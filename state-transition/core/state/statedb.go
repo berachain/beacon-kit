@@ -24,7 +24,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/chain"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -104,7 +104,7 @@ func (s *StateDB) UpdateSlashingAtIndex(index uint64, amount math.Gwei) error {
 // (as the first withdrawal) used for EVM inflation.
 func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 	var (
-		validator         *ctypes.Validator
+		validator         *deneb.Validator
 		balance           math.Gwei
 		withdrawalAddress common.ExecutionAddress
 	)
@@ -212,8 +212,8 @@ func (s *StateDB) EVMInflationWithdrawal(slot math.Slot) *engineprimitives.Withd
 // GetMarshallable is the interface for the beacon store.
 //
 //nolint:funlen,gocognit // todo fix somehow
-func (s *StateDB) GetMarshallable() (*ctypes.BeaconState, error) {
-	var empty *ctypes.BeaconState
+func (s *StateDB) GetMarshallable() (*deneb.BeaconState, error) {
+	var empty *deneb.BeaconState
 
 	slot, err := s.GetSlot()
 	if err != nil {
@@ -304,7 +304,7 @@ func (s *StateDB) GetMarshallable() (*ctypes.BeaconState, error) {
 		return empty, err
 	}
 
-	return &ctypes.BeaconState{
+	return &deneb.BeaconState{
 		Slot:                         slot,
 		GenesisValidatorsRoot:        genesisValidatorsRoot,
 		Fork:                         fork,

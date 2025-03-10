@@ -22,7 +22,7 @@
 package merkle
 
 import (
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -37,7 +37,7 @@ import (
 func ProveExecutionNumberInBlock[
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
 ](
-	bbh *ctypes.BeaconBlockHeader,
+	bbh *deneb.BeaconBlockHeader,
 	bs types.BeaconState[BeaconStateMarshallableT],
 ) ([]common.Root, common.Root, error) {
 	// Get the proof of the execution number in the beacon state.
@@ -99,7 +99,7 @@ func ProveExecutionNumberInState[
 //
 // TODO: verifying the proof is not absolutely necessary.
 func verifyExecutionNumberInBlock(
-	bbh *ctypes.BeaconBlockHeader,
+	bbh *deneb.BeaconBlockHeader,
 	proof []common.Root,
 	leaf common.Root,
 ) (common.Root, error) {

@@ -24,7 +24,7 @@ import (
 	"bytes"
 
 	"github.com/berachain/beacon-kit/chain"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -81,7 +81,7 @@ func NewStateProcessor(
 func (sp *StateProcessor) Transition(
 	ctx ReadOnlyContext,
 	st *state.StateDB,
-	blk *ctypes.BeaconBlock,
+	blk *deneb.BeaconBlock,
 ) (transition.ValidatorUpdates, error) {
 	if blk.IsNil() {
 		return nil, nil
@@ -182,7 +182,7 @@ func (sp *StateProcessor) processSlot(st *state.StateDB) error {
 func (sp *StateProcessor) ProcessBlock(
 	ctx ReadOnlyContext,
 	st *state.StateDB,
-	blk *ctypes.BeaconBlock,
+	blk *deneb.BeaconBlock,
 ) error {
 	if err := sp.processBlockHeader(ctx, st, blk); err != nil {
 		return err
@@ -274,7 +274,7 @@ func (sp *StateProcessor) processEpoch(st *state.StateDB) (transition.ValidatorU
 func (sp *StateProcessor) processBlockHeader(
 	ctx ReadOnlyContext,
 	st *state.StateDB,
-	blk *ctypes.BeaconBlock,
+	blk *deneb.BeaconBlock,
 ) error {
 	// Ensure the block slot matches the state slot.
 	slot, err := st.GetSlot()
@@ -333,7 +333,7 @@ func (sp *StateProcessor) processBlockHeader(
 	// Cache current block as the new latest block
 	bodyRoot := blk.GetBody().HashTreeRoot()
 
-	lbh := &ctypes.BeaconBlockHeader{
+	lbh := &deneb.BeaconBlockHeader{
 		Slot:            blk.GetSlot(),
 		ProposerIndex:   blk.GetProposerIndex(),
 		ParentBlockRoot: blk.GetParentBlockRoot(),
@@ -376,7 +376,7 @@ func (sp *StateProcessor) processEffectiveBalanceUpdates(st *state.StateDB) erro
 
 		if balance+downwardThreshold < val.GetEffectiveBalance() ||
 			val.GetEffectiveBalance()+upwardThreshold < balance {
-			updatedBalance := ctypes.ComputeEffectiveBalance(
+			updatedBalance := deneb.ComputeEffectiveBalance(
 				balance,
 				math.U64(effectiveBalanceIncrement),
 				math.U64(sp.cs.MaxEffectiveBalance()),

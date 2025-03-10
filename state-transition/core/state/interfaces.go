@@ -23,7 +23,7 @@ package state
 import (
 	"context"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -40,11 +40,11 @@ type KVStore[T any] interface {
 	// GetLatestExecutionPayloadHeader retrieves the latest execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (
-		*ctypes.ExecutionPayloadHeader, error,
+		*deneb.ExecutionPayloadHeader, error,
 	)
 	// SetLatestExecutionPayloadHeader sets the latest execution payload header.
 	SetLatestExecutionPayloadHeader(
-		payloadHeader *ctypes.ExecutionPayloadHeader,
+		payloadHeader *deneb.ExecutionPayloadHeader,
 	) error
 	// GetEth1DepositIndex retrieves the eth1 deposit index.
 	GetEth1DepositIndex() (uint64, error)
@@ -59,27 +59,27 @@ type KVStore[T any] interface {
 	// SetSlot sets the current slot.
 	SetSlot(slot math.Slot) error
 	// GetFork retrieves the fork.
-	GetFork() (*ctypes.Fork, error)
+	GetFork() (*deneb.Fork, error)
 	// SetFork sets the fork.
-	SetFork(fork *ctypes.Fork) error
+	SetFork(fork *deneb.Fork) error
 	// GetGenesisValidatorsRoot retrieves the genesis validators root.
 	GetGenesisValidatorsRoot() (common.Root, error)
 	// SetGenesisValidatorsRoot sets the genesis validators root.
 	SetGenesisValidatorsRoot(root common.Root) error
 	// GetLatestBlockHeader retrieves the latest block header.
-	GetLatestBlockHeader() (*ctypes.BeaconBlockHeader, error)
+	GetLatestBlockHeader() (*deneb.BeaconBlockHeader, error)
 	// SetLatestBlockHeader sets the latest block header.
-	SetLatestBlockHeader(header *ctypes.BeaconBlockHeader) error
+	SetLatestBlockHeader(header *deneb.BeaconBlockHeader) error
 	// GetBlockRootAtIndex retrieves the block root at the given index.
 	GetBlockRootAtIndex(index uint64) (common.Root, error)
 	// StateRootAtIndex retrieves the state root at the given index.
 	StateRootAtIndex(index uint64) (common.Root, error)
 	// GetEth1Data retrieves the eth1 data.
-	GetEth1Data() (*ctypes.Eth1Data, error)
+	GetEth1Data() (*deneb.Eth1Data, error)
 	// SetEth1Data sets the eth1 data.
-	SetEth1Data(data *ctypes.Eth1Data) error
+	SetEth1Data(data *deneb.Eth1Data) error
 	// GetValidators retrieves all validators.
-	GetValidators() (ctypes.Validators, error)
+	GetValidators() (deneb.Validators, error)
 	// GetBalances retrieves all balances.
 	GetBalances() ([]uint64, error)
 	// GetNextWithdrawalIndex retrieves the next withdrawal index.
@@ -108,7 +108,7 @@ type KVStore[T any] interface {
 	// GetTotalActiveBalances retrieves the total active balances.
 	GetTotalActiveBalances(uint64) (math.Gwei, error)
 	// ValidatorByIndex retrieves the validator at the given index.
-	ValidatorByIndex(index math.ValidatorIndex) (*ctypes.Validator, error)
+	ValidatorByIndex(index math.ValidatorIndex) (*deneb.Validator, error)
 	// UpdateBlockRootAtIndex updates the block root at the given index.
 	UpdateBlockRootAtIndex(index uint64, root common.Root) error
 	// UpdateStateRootAtIndex updates the state root at the given index.
@@ -118,12 +118,12 @@ type KVStore[T any] interface {
 	// UpdateValidatorAtIndex updates the validator at the given index.
 	UpdateValidatorAtIndex(
 		index math.ValidatorIndex,
-		validator *ctypes.Validator,
+		validator *deneb.Validator,
 	) error
 	// ValidatorIndexByPubkey retrieves the validator index by the given pubkey.
 	ValidatorIndexByPubkey(pubkey crypto.BLSPubkey) (math.ValidatorIndex, error)
 	// AddValidator adds a validator.
-	AddValidator(val *ctypes.Validator) error
+	AddValidator(val *deneb.Validator) error
 	// ValidatorIndexByCometBFTAddress retrieves the validator index by the
 	// given comet BFT address.
 	ValidatorIndexByCometBFTAddress(
@@ -131,5 +131,5 @@ type KVStore[T any] interface {
 	) (math.ValidatorIndex, error)
 	// GetValidatorsByEffectiveBalance retrieves validators by effective
 	// balance.
-	GetValidatorsByEffectiveBalance() ([]*ctypes.Validator, error)
+	GetValidatorsByEffectiveBalance() ([]*deneb.Validator, error)
 }

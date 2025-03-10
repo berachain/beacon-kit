@@ -23,7 +23,7 @@ package types
 import (
 	"time"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
@@ -32,9 +32,9 @@ type SlotData struct {
 	// slot is the slot number of the incoming slot.
 	slot math.Slot
 	// attestationData is the attestation data of the incoming slot.
-	attestationData []*ctypes.AttestationData
+	attestationData []*deneb.AttestationData
 	// slashingInfo is the slashing info of the incoming slot.
-	slashingInfo []*ctypes.SlashingInfo
+	slashingInfo []*deneb.SlashingInfo
 
 	// some consensus data useful to build and verify the block
 	*commonConsensusData
@@ -43,8 +43,8 @@ type SlotData struct {
 // NewSlotData creates a new SlotData instance.
 func NewSlotData(
 	slot math.Slot,
-	attestationData []*ctypes.AttestationData,
-	slashingInfo []*ctypes.SlashingInfo,
+	attestationData []*deneb.AttestationData,
+	slashingInfo []*deneb.SlashingInfo,
 	proposerAddress []byte,
 	consensusTime time.Time,
 ) *SlotData {
@@ -65,25 +65,25 @@ func (b *SlotData) GetSlot() math.Slot {
 }
 
 // GetAttestationData retrieves the attestation data of the SlotData.
-func (b *SlotData) GetAttestationData() []*ctypes.AttestationData {
+func (b *SlotData) GetAttestationData() []*deneb.AttestationData {
 	return b.attestationData
 }
 
 // GetSlashingInfo retrieves the slashing info of the SlotData.
-func (b *SlotData) GetSlashingInfo() []*ctypes.SlashingInfo {
+func (b *SlotData) GetSlashingInfo() []*deneb.SlashingInfo {
 	return b.slashingInfo
 }
 
 // SetAttestationData sets the attestation data of the SlotData.
 func (b *SlotData) SetAttestationData(
-	attestationData []*ctypes.AttestationData,
+	attestationData []*deneb.AttestationData,
 ) {
 	b.attestationData = attestationData
 }
 
 // SetSlashingInfo sets the slashing info of the SlotData.
 func (b *SlotData) SetSlashingInfo(
-	slashingInfo []*ctypes.SlashingInfo,
+	slashingInfo []*deneb.SlashingInfo,
 ) {
 	b.slashingInfo = slashingInfo
 }

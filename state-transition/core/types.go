@@ -24,7 +24,7 @@ import (
 	stdbytes "bytes"
 	"context"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
@@ -55,7 +55,7 @@ type ExecutionEngine interface {
 	// NotifyNewPayload notifies the execution client of the new payload.
 	NotifyNewPayload(
 		ctx context.Context,
-		req *ctypes.NewPayloadRequest,
+		req *deneb.NewPayloadRequest,
 		retryOnSyncingStatus bool,
 	) error
 }
@@ -70,7 +70,7 @@ type Validator[
 	// New creates a new validator with the given parameters.
 	New(
 		pubkey crypto.BLSPubkey,
-		withdrawalCredentials ctypes.WithdrawalCredentials,
+		withdrawalCredentials deneb.WithdrawalCredentials,
 		amount math.Gwei,
 		effectiveBalanceIncrement math.Gwei,
 		maxEffectiveBalance math.Gwei,

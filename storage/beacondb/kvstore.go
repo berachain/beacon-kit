@@ -26,7 +26,7 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/storage/beacondb/index"
 	"github.com/berachain/beacon-kit/storage/beacondb/keys"
 	"github.com/berachain/beacon-kit/storage/encoding"
@@ -43,17 +43,17 @@ type KVStore struct {
 	// slot is the current slot.
 	slot sdkcollections.Item[uint64]
 	// fork is the current fork
-	fork sdkcollections.Item[*ctypes.Fork]
+	fork sdkcollections.Item[*deneb.Fork]
 	// History
 	// latestBlockHeader stores the latest beacon block header.
-	latestBlockHeader sdkcollections.Item[*ctypes.BeaconBlockHeader]
+	latestBlockHeader sdkcollections.Item[*deneb.BeaconBlockHeader]
 	// blockRoots stores the block roots for the current epoch.
 	blockRoots sdkcollections.Map[uint64, []byte]
 	// stateRoots stores the state roots for the current epoch.
 	stateRoots sdkcollections.Map[uint64, []byte]
 	// Eth1
 	// eth1Data stores the latest eth1 data.
-	eth1Data sdkcollections.Item[*ctypes.Eth1Data]
+	eth1Data sdkcollections.Item[*deneb.Eth1Data]
 	// eth1DepositIndex is the index of the latest eth1 deposit.
 	eth1DepositIndex sdkcollections.Item[uint64]
 	// latestExecutionPayloadVersion stores the latest execution payload
@@ -62,15 +62,15 @@ type KVStore struct {
 	// latestExecutionPayloadCodec is the codec for the latest execution
 	// payload, it allows us to update the codec with the latest version.
 	latestExecutionPayloadCodec *encoding.
-					SSZInterfaceCodec[*ctypes.ExecutionPayloadHeader]
+					SSZInterfaceCodec[*deneb.ExecutionPayloadHeader]
 	// latestExecutionPayloadHeader stores the latest execution payload header.
-	latestExecutionPayloadHeader sdkcollections.Item[*ctypes.ExecutionPayloadHeader]
+	latestExecutionPayloadHeader sdkcollections.Item[*deneb.ExecutionPayloadHeader]
 	// Registry
 	// validatorIndex provides the next available index for a new validator.
 	validatorIndex sdkcollections.Sequence
 	// validators stores the list of validators.
 	validators *sdkcollections.IndexedMap[
-		uint64, *ctypes.Validator, index.ValidatorsIndex[*ctypes.Validator],
+		uint64, *deneb.Validator, index.ValidatorsIndex[*deneb.Validator],
 	]
 	// balances stores the list of balances.
 	balances sdkcollections.Map[uint64, uint64]
@@ -95,7 +95,7 @@ type KVStore struct {
 func New(kss store.KVStoreService) *KVStore {
 	var (
 		schemaBuilder = sdkcollections.NewSchemaBuilder(kss)
-		payloadCodec  = &encoding.SSZInterfaceCodec[*ctypes.ExecutionPayloadHeader]{}
+		payloadCodec  = &encoding.SSZInterfaceCodec[*deneb.ExecutionPayloadHeader]{}
 	)
 
 	res := &KVStore{
@@ -116,7 +116,7 @@ func New(kss store.KVStoreService) *KVStore {
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.ForkPrefix}),
 			keys.ForkPrefixHumanReadable,
-			encoding.SSZValueCodec[*ctypes.Fork]{},
+			encoding.SSZValueCodec[*deneb.Fork]{},
 		),
 		blockRoots: sdkcollections.NewMap(
 			schemaBuilder,
@@ -136,7 +136,7 @@ func New(kss store.KVStoreService) *KVStore {
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.Eth1DataPrefix}),
 			keys.Eth1DataPrefixHumanReadable,
-			encoding.SSZValueCodec[*ctypes.Eth1Data]{},
+			encoding.SSZValueCodec[*deneb.Eth1Data]{},
 		),
 		eth1DepositIndex: sdkcollections.NewItem(
 			schemaBuilder,
@@ -171,8 +171,8 @@ func New(kss store.KVStoreService) *KVStore {
 			sdkcollections.NewPrefix([]byte{keys.ValidatorByIndexPrefix}),
 			keys.ValidatorByIndexPrefixHumanReadable,
 			sdkcollections.Uint64Key,
-			encoding.SSZValueCodec[*ctypes.Validator]{},
-			index.NewValidatorsIndex[*ctypes.Validator](schemaBuilder),
+			encoding.SSZValueCodec[*deneb.Validator]{},
+			index.NewValidatorsIndex[*deneb.Validator](schemaBuilder),
 		),
 		balances: sdkcollections.NewMap(
 			schemaBuilder,
@@ -221,7 +221,7 @@ func New(kss store.KVStoreService) *KVStore {
 				[]byte{keys.LatestBeaconBlockHeaderPrefix},
 			),
 			keys.LatestBeaconBlockHeaderPrefixHumanReadable,
-			encoding.SSZValueCodec[*ctypes.BeaconBlockHeader]{},
+			encoding.SSZValueCodec[*deneb.BeaconBlockHeader]{},
 		),
 	}
 	if _, err := schemaBuilder.Build(); err != nil {

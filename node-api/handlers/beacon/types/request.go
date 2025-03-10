@@ -21,7 +21,7 @@
 package types
 
 import (
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/node-api/handlers/types"
 )
 
@@ -107,7 +107,7 @@ type PostBlindedBlocksV2Request struct {
 
 type PostBlocksV1Request struct {
 	EthConsensusVersion string             `json:"eth_consensus_version" validate:"required,eth_consensus_version"`
-	BeaconBlock         ctypes.BeaconBlock `json:"beacon_block"`
+	BeaconBlock         deneb.BeaconBlock `json:"beacon_block"`
 }
 
 type PostBlocksV2Request struct {

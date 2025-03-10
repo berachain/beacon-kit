@@ -21,7 +21,7 @@
 package types
 
 import (
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -32,7 +32,7 @@ import (
 type BlockProposerResponse struct {
 	// BeaconBlockHeader is the block header of which the hash tree root is the
 	// beacon block root to verify against.
-	BeaconBlockHeader *ctypes.BeaconBlockHeader `json:"beacon_block_header"`
+	BeaconBlockHeader *deneb.BeaconBlockHeader `json:"beacon_block_header"`
 
 	// BeaconBlockRoot is the beacon block root for this slot.
 	BeaconBlockRoot common.Root `json:"beacon_block_root"`
@@ -56,7 +56,7 @@ type BlockProposerResponse struct {
 type ExecutionNumberResponse struct {
 	// BeaconBlockHeader is the block header of which the hash tree root is the
 	// beacon block root to verify against.
-	BeaconBlockHeader *ctypes.BeaconBlockHeader `json:"beacon_block_header"`
+	BeaconBlockHeader *deneb.BeaconBlockHeader `json:"beacon_block_header"`
 
 	// BeaconBlockRoot is the beacon block root for this slot.
 	BeaconBlockRoot common.Root `json:"beacon_block_root"`
@@ -74,7 +74,7 @@ type ExecutionNumberResponse struct {
 type ExecutionFeeRecipientResponse struct {
 	// BeaconBlockHeader is the block header of which the hash tree root is the
 	// beacon block root to verify against.
-	BeaconBlockHeader *ctypes.BeaconBlockHeader `json:"beacon_block_header"`
+	BeaconBlockHeader *deneb.BeaconBlockHeader `json:"beacon_block_header"`
 
 	// BeaconBlockRoot is the beacon block root for this slot.
 	BeaconBlockRoot common.Root `json:"beacon_block_root"`

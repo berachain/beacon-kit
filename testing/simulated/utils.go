@@ -33,7 +33,7 @@ import (
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/chain"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/da/kzg"
 	"github.com/berachain/beacon-kit/da/kzg/gokzg"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
@@ -82,7 +82,7 @@ func GetBlsSigner(tempHomeDir string) *signer.BLSSigner {
 	return signer.NewBLSSigner(privValKeyFile, privValStateFile)
 }
 
-func DefaultSimulationInput(t *testing.T, chainSpec chain.Spec, origBlock *ctypes.BeaconBlock, txs []*gethprimitives.Transaction) *execution.SimOpts {
+func DefaultSimulationInput(t *testing.T, chainSpec chain.Spec, origBlock *deneb.BeaconBlock, txs []*gethprimitives.Transaction) *execution.SimOpts {
 	t.Helper()
 	overrideTime := hexutil.Uint64(origBlock.GetTimestamp().Unwrap())
 	overrideGasLimit := hexutil.Uint64(30000000)
@@ -124,10 +124,10 @@ func DefaultSimulationInput(t *testing.T, chainSpec chain.Spec, origBlock *ctype
 // is not validated in the CL.
 func ComputeAndSetInvalidExecutionBlock(
 	t *testing.T,
-	latestBlock *ctypes.BeaconBlock,
+	latestBlock *deneb.BeaconBlock,
 	chainSpec chain.Spec,
 	txs []*gethprimitives.Transaction,
-) *ctypes.BeaconBlock {
+) *deneb.BeaconBlock {
 	t.Helper()
 	forkVersion := chainSpec.ActiveForkVersionForSlot(latestBlock.GetSlot())
 	_, sidecars := splitTxs(txs)
@@ -142,7 +142,7 @@ func ComputeAndSetInvalidExecutionBlock(
 	}
 	executionPayload.Transactions = txsBytesArray
 	parentBlockRoot := latestBlock.GetParentBlockRoot()
-	execBlock, _, err := ctypes.MakeEthBlock(executionPayload, &parentBlockRoot)
+	execBlock, _, err := deneb.MakeEthBlock(executionPayload, &parentBlockRoot)
 	require.NoError(t, err)
 	return setExecutionPayload(t, latestBlock, forkVersion, execBlock, sidecars)
 }
@@ -153,11 +153,11 @@ func ComputeAndSetInvalidExecutionBlock(
 // Note: The returned block's state root is not finalized and must be updated via a state transition (see ComputeAndSetStateRoot).
 func ComputeAndSetValidExecutionBlock(
 	t *testing.T,
-	latestBlock *ctypes.BeaconBlock,
+	latestBlock *deneb.BeaconBlock,
 	simClient *execution.SimulationClient,
 	chainSpec chain.Spec,
 	txs []*gethprimitives.Transaction,
-) *ctypes.BeaconBlock {
+) *deneb.BeaconBlock {
 	// Run simulation to get a simulated block.
 	baseHeight := int64(latestBlock.GetSlot().Unwrap()) - 1
 	simInput := DefaultSimulationInput(t, chainSpec, latestBlock, txs)
@@ -188,8 +188,8 @@ func ComputeAndSetStateRoot(
 	proposerAddress []byte,
 	stateProcessor *core.StateProcessor,
 	storageBackend blockchain.StorageBackend,
-	block *ctypes.BeaconBlock,
-) (*ctypes.BeaconBlock, error) {
+	block *deneb.BeaconBlock,
+) (*deneb.BeaconBlock, error) {
 
 	// Copy the current state from the storage backend.
 	stateDBCopy := storageBackend.StateFromContext(queryCtx).Copy(queryCtx)
@@ -244,11 +244,11 @@ func GetProofAndCommitmentsForBlobs(t *require.Assertions, blobs []*eip4844.Blob
 // sets that payload into latestBlock. It returns the updated block.
 func setExecutionPayload(
 	t *testing.T,
-	latestBlock *ctypes.BeaconBlock,
+	latestBlock *deneb.BeaconBlock,
 	forkVersion common.Version,
 	execBlock *gethtypes.Block,
 	sidecars []*gethtypes.BlobTxSidecar, // adjust type as needed
-) *ctypes.BeaconBlock {
+) *deneb.BeaconBlock {
 	// Convert the Geth block into ExecutableData.
 	execData := gethprimitives.BlockToExecutableData(execBlock, nil, sidecars, nil)
 	// Convert the ExecutableData into our internal ExecutionPayload type.

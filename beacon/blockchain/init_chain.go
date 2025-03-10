@@ -24,7 +24,7 @@ import (
 	"context"
 	"encoding/json"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/primitives/transition"
 )
 
@@ -34,7 +34,7 @@ func (s *Service) ProcessGenesisData(
 	ctx context.Context,
 	bytes []byte,
 ) (transition.ValidatorUpdates, error) {
-	genesisData := ctypes.Genesis{}
+	genesisData := deneb.Genesis{}
 	if err := json.Unmarshal(bytes, &genesisData); err != nil {
 		s.logger.Error("Failed to unmarshal genesis data", "error", err)
 		return nil, err

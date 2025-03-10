@@ -21,7 +21,7 @@
 package proof
 
 import (
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
@@ -34,7 +34,7 @@ type Backend interface {
 }
 
 type BlockBackend interface {
-	BlockHeaderAtSlot(slot math.Slot) (*ctypes.BeaconBlockHeader, error)
+	BlockHeaderAtSlot(slot math.Slot) (*deneb.BeaconBlockHeader, error)
 }
 
 type StateBackend interface {

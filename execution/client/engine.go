@@ -24,7 +24,7 @@ import (
 	"context"
 	"time"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/errors"
@@ -39,7 +39,7 @@ import (
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
 func (s *EngineClient) NewPayload(
 	ctx context.Context,
-	payload *ctypes.ExecutionPayload,
+	payload *deneb.ExecutionPayload,
 	versionedHashes []common.ExecutionHash,
 	parentBeaconBlockRoot *common.Root,
 ) (*common.ExecutionHash, error) {
@@ -132,7 +132,7 @@ func (s *EngineClient) GetPayload(
 	ctx context.Context,
 	payloadID engineprimitives.PayloadID,
 	forkVersion common.Version,
-) (ctypes.BuiltExecutionPayloadEnv, error) {
+) (deneb.BuiltExecutionPayloadEnv, error) {
 	var (
 		startTime    = time.Now()
 		cctx, cancel = s.createContextWithTimeout(ctx)

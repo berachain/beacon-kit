@@ -26,7 +26,7 @@ import (
 	"time"
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/consensus/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/payload/builder"
@@ -116,7 +116,7 @@ func (s *Service) BuildBlockAndSidecars(
 	}
 
 	// Craft the signature and signed beacon block.
-	signedBlk, err := ctypes.NewSignedBeaconBlock(blk, forkData, s.chainSpec, s.signer)
+	signedBlk, err := deneb.NewSignedBeaconBlock(blk, forkData, s.chainSpec, s.signer)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -149,7 +149,7 @@ func (s *Service) BuildBlockAndSidecars(
 // getEmptyBeaconBlockForSlot creates a new empty block.
 func (s *Service) getEmptyBeaconBlockForSlot(
 	st *statedb.StateDB, requestedSlot math.Slot,
-) (*ctypes.BeaconBlock, error) {
+) (*deneb.BeaconBlock, error) {
 	// Create a new block.
 	parentBlockRoot, err := st.GetBlockRootAtIndex(
 		(requestedSlot.Unwrap() - 1) % s.chainSpec.SlotsPerHistoricalRoot(),
@@ -166,7 +166,7 @@ func (s *Service) getEmptyBeaconBlockForSlot(
 		return nil, err
 	}
 
-	return ctypes.NewBeaconBlockWithVersion(
+	return deneb.NewBeaconBlockWithVersion(
 		requestedSlot,
 		proposerIndex,
 		parentBlockRoot,
@@ -174,13 +174,13 @@ func (s *Service) getEmptyBeaconBlockForSlot(
 	)
 }
 
-func (s *Service) buildForkData(st *statedb.StateDB, slot math.Slot) (*ctypes.ForkData, error) {
+func (s *Service) buildForkData(st *statedb.StateDB, slot math.Slot) (*deneb.ForkData, error) {
 	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
 	if err != nil {
 		return nil, err
 	}
 
-	return ctypes.NewForkData(
+	return deneb.NewForkData(
 		s.chainSpec.ActiveForkVersionForSlot(slot),
 		genesisValidatorsRoot,
 	), nil
@@ -188,7 +188,7 @@ func (s *Service) buildForkData(st *statedb.StateDB, slot math.Slot) (*ctypes.Fo
 
 // buildRandaoReveal builds a randao reveal for the given slot.
 func (s *Service) buildRandaoReveal(
-	forkData *ctypes.ForkData, slot math.Slot,
+	forkData *deneb.ForkData, slot math.Slot,
 ) (crypto.BLSSignature, error) {
 	signingRoot := forkData.ComputeRandaoSigningRoot(
 		s.chainSpec.DomainTypeRandao(),
@@ -205,9 +205,9 @@ func (s *Service) buildRandaoReveal(
 func (s *Service) retrieveExecutionPayload(
 	ctx context.Context,
 	st *statedb.StateDB,
-	blk *ctypes.BeaconBlock,
+	blk *deneb.BeaconBlock,
 	slotData *types.SlotData,
-) (ctypes.BuiltExecutionPayloadEnv, error) {
+) (deneb.BuiltExecutionPayloadEnv, error) {
 	//
 	// TODO: Add external block builders to this flow.
 	//
@@ -261,9 +261,9 @@ func (s *Service) retrieveExecutionPayload(
 func (s *Service) buildBlockBody(
 	ctx context.Context,
 	st *statedb.StateDB,
-	blk *ctypes.BeaconBlock,
+	blk *deneb.BeaconBlock,
 	reveal crypto.BLSSignature,
-	envelope ctypes.BuiltExecutionPayloadEnv,
+	envelope deneb.BuiltExecutionPayloadEnv,
 ) error {
 	// Assemble a new block with the payload.
 	body := blk.GetBody()
@@ -305,7 +305,7 @@ func (s *Service) buildBlockBody(
 		)
 	}
 
-	eth1Data := ctypes.NewEth1Data(deposits.HashTreeRoot())
+	eth1Data := deneb.NewEth1Data(deposits.HashTreeRoot())
 	body.SetEth1Data(eth1Data)
 
 	s.logger.Info(
@@ -323,7 +323,7 @@ func (s *Service) buildBlockBody(
 	body.SetGraffiti(graffiti)
 
 	// Fill in unused field with non-nil value
-	body.SetSyncAggregate(&ctypes.SyncAggregate{})
+	body.SetSyncAggregate(&deneb.SyncAggregate{})
 
 	// Set the execution payload on the block body.
 	body.SetExecutionPayload(envelope.GetExecutionPayload())
@@ -338,7 +338,7 @@ func (s *Service) computeAndSetStateRoot(
 	proposerAddress []byte,
 	consensusTime math.U64,
 	st *statedb.StateDB,
-	blk *ctypes.BeaconBlock,
+	blk *deneb.BeaconBlock,
 ) error {
 	stateRoot, err := s.computeStateRoot(
 		ctx,
@@ -365,7 +365,7 @@ func (s *Service) computeStateRoot(
 	proposerAddress []byte,
 	consensusTime math.U64,
 	st *statedb.StateDB,
-	blk *ctypes.BeaconBlock,
+	blk *deneb.BeaconBlock,
 ) (common.Root, error) {
 	startTime := time.Now()
 	defer s.metrics.measureStateRootComputationTime(startTime)

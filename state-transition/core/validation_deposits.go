@@ -23,7 +23,7 @@ package core
 import (
 	"context"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
@@ -33,7 +33,7 @@ import (
 )
 
 func validateGenesisDeposits(
-	st *statedb.StateDB, deposits []*ctypes.Deposit, validatorSetCap uint64,
+	st *statedb.StateDB, deposits []*deneb.Deposit, validatorSetCap uint64,
 ) error {
 	eth1DepositIndex, err := st.GetEth1DepositIndex()
 	if err != nil {
@@ -75,7 +75,7 @@ func ValidateNonGenesisDeposits(
 	st *statedb.StateDB,
 	depositStore *depositdb.KVStore,
 	maxDepositsPerBlock uint64,
-	blkDeposits []*ctypes.Deposit,
+	blkDeposits []*deneb.Deposit,
 	blkDepositRoot common.Root,
 ) error {
 	depositIndex, err := st.GetEth1DepositIndex()

@@ -24,7 +24,7 @@ import (
 	"context"
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
@@ -36,12 +36,12 @@ import (
 func (sp *StateProcessor) processExecutionPayload(
 	txCtx ReadOnlyContext,
 	st *statedb.StateDB,
-	blk *ctypes.BeaconBlock,
+	blk *deneb.BeaconBlock,
 ) error {
 	var (
 		body    = blk.GetBody()
 		payload = body.GetExecutionPayload()
-		header  = &ctypes.ExecutionPayloadHeader{} // appeases nilaway
+		header  = &deneb.ExecutionPayloadHeader{} // appeases nilaway
 		g, ctx  = errgroup.WithContext(txCtx.ConsensusCtx())
 	)
 
@@ -92,7 +92,7 @@ func (sp *StateProcessor) validateExecutionPayload(
 	ctx context.Context,
 	consensusTime math.U64,
 	st ReadOnlyBeaconState,
-	blk *ctypes.BeaconBlock,
+	blk *deneb.BeaconBlock,
 ) error {
 	if err := sp.validateStatelessPayload(blk); err != nil {
 		return err
@@ -101,7 +101,7 @@ func (sp *StateProcessor) validateExecutionPayload(
 }
 
 // validateStatelessPayload performs stateless checks on the execution payload.
-func (sp *StateProcessor) validateStatelessPayload(blk *ctypes.BeaconBlock) error {
+func (sp *StateProcessor) validateStatelessPayload(blk *deneb.BeaconBlock) error {
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
 
@@ -125,7 +125,7 @@ func (sp *StateProcessor) validateStatefulPayload(
 	ctx context.Context,
 	consensusTime math.U64,
 	st ReadOnlyBeaconState,
-	blk *ctypes.BeaconBlock,
+	blk *deneb.BeaconBlock,
 ) error {
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
@@ -156,7 +156,7 @@ func (sp *StateProcessor) validateStatefulPayload(
 	}
 
 	parentBeaconBlockRoot := blk.GetParentBlockRoot()
-	payloadReq := ctypes.BuildNewPayloadRequest(
+	payloadReq := deneb.BuildNewPayloadRequest(
 		payload,
 		body.GetBlobKzgCommitments().ToVersionedHashes(),
 		&parentBeaconBlockRoot,

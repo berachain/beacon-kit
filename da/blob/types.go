@@ -23,7 +23,7 @@ package blob
 import (
 	"time"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
@@ -32,7 +32,7 @@ import (
 
 type ConsensusSidecars interface {
 	GetSidecars() datypes.BlobSidecars
-	GetHeader() *ctypes.BeaconBlockHeader
+	GetHeader() *deneb.BeaconBlockHeader
 }
 
 type Sidecar interface {
@@ -40,7 +40,7 @@ type Sidecar interface {
 	GetBlob() eip4844.Blob
 	GetKzgProof() eip4844.KZGProof
 	GetKzgCommitment() eip4844.KZGCommitment
-	GetSignedBeaconBlockHeader() *ctypes.SignedBeaconBlockHeader
+	GetSignedBeaconBlockHeader() *deneb.SignedBeaconBlockHeader
 }
 
 type Sidecars[SidecarT any] interface {

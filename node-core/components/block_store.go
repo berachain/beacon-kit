@@ -23,7 +23,7 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/config"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/storage/block"
 )
@@ -38,8 +38,8 @@ type BlockStoreInput struct {
 
 // ProvideBlockStore is a function that provides the module to the
 // application.
-func ProvideBlockStore(in BlockStoreInput) (*block.KVStore[*ctypes.BeaconBlock], error) {
-	return block.NewStore[*ctypes.BeaconBlock](
+func ProvideBlockStore(in BlockStoreInput) (*block.KVStore[*deneb.BeaconBlock], error) {
+	return block.NewStore[*deneb.BeaconBlock](
 		in.Logger.With("service", "block-store"),
 		in.Config.BlockStoreService.AvailabilityWindow,
 	), nil

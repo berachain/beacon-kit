@@ -25,7 +25,7 @@ import (
 	"fmt"
 	"slices"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
@@ -120,7 +120,7 @@ func (sp *StateProcessor) processValidatorSetCap(st *statedb.StateDB) error {
 		return nil
 	}
 
-	slices.SortFunc(nextEpochVals, func(lhs, rhs *ctypes.Validator) int {
+	slices.SortFunc(nextEpochVals, func(lhs, rhs *deneb.Validator) int {
 		var (
 			val1Stake = lhs.GetEffectiveBalance()
 			val2Stake = rhs.GetEffectiveBalance()
@@ -169,12 +169,12 @@ func (sp *StateProcessor) processValidatorSetCap(st *statedb.StateDB) error {
 // Note: validatorSetsDiffs does not need to be a StateProcessor method
 // but it helps simplifying generic instantiation.
 func validatorSetsDiffs(
-	prevEpochValidators []*ctypes.Validator,
-	currEpochValidator []*ctypes.Validator,
+	prevEpochValidators []*deneb.Validator,
+	currEpochValidator []*deneb.Validator,
 ) transition.ValidatorUpdates {
 	currentValSet := iter.Map(
 		currEpochValidator,
-		func(val **ctypes.Validator) *transition.ValidatorUpdate {
+		func(val **deneb.Validator) *transition.ValidatorUpdate {
 			v := (*val)
 			return &transition.ValidatorUpdate{
 				Pubkey:           v.GetPubkey(),
@@ -221,13 +221,13 @@ func validatorSetsDiffs(
 
 // nextEpochValidatorSet returns the current estimation of what next epoch
 // validator set would be.
-func getActiveVals(st *statedb.StateDB, epoch math.Epoch) ([]*ctypes.Validator, error) {
+func getActiveVals(st *statedb.StateDB, epoch math.Epoch) ([]*deneb.Validator, error) {
 	vals, err := st.GetValidators()
 	if err != nil {
 		return nil, err
 	}
 
-	activeVals := make([]*ctypes.Validator, 0, len(vals))
+	activeVals := make([]*deneb.Validator, 0, len(vals))
 	for _, val := range vals {
 		if val.IsActive(epoch) {
 			activeVals = append(activeVals, val)

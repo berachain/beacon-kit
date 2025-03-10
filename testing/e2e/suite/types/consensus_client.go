@@ -32,7 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	rpcclient "github.com/cometbft/cometbft/rpc/client"
 	httpclient "github.com/cometbft/cometbft/rpc/client/http"
-	ctypes "github.com/cometbft/cometbft/rpc/core/types"
+	deneb "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
 	"github.com/rs/zerolog"
 )
@@ -155,7 +155,7 @@ func (cc *ConsensusClient) IsActive(ctx context.Context) (bool, error) {
 // ABCIInfo returns the ABCI info of the node.
 func (cc ConsensusClient) ABCIInfo(
 	ctx context.Context,
-) (*ctypes.ResultABCIInfo, error) {
+) (*deneb.ResultABCIInfo, error) {
 	return cc.cometClient.ABCIInfo(ctx)
 }
 

@@ -23,7 +23,7 @@ package builder
 import (
 	"context"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
@@ -79,12 +79,12 @@ type ExecutionEngine interface {
 	// GetPayload returns the payload and blobs bundle for the given slot.
 	GetPayload(
 		ctx context.Context,
-		req *ctypes.GetPayloadRequest,
-	) (ctypes.BuiltExecutionPayloadEnv, error)
+		req *deneb.GetPayloadRequest,
+	) (deneb.BuiltExecutionPayloadEnv, error)
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
-		req *ctypes.ForkchoiceUpdateRequest,
+		req *deneb.ForkchoiceUpdateRequest,
 	) (*engineprimitives.PayloadID, error)
 }

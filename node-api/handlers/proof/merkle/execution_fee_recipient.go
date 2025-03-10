@@ -22,7 +22,7 @@
 package merkle
 
 import (
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -37,7 +37,7 @@ import (
 func ProveExecutionFeeRecipientInBlock[
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
 ](
-	bbh *ctypes.BeaconBlockHeader,
+	bbh *deneb.BeaconBlockHeader,
 	bs types.BeaconState[BeaconStateMarshallableT],
 ) ([]common.Root, common.Root, error) {
 	// Get the proof of the execution fee recipient in the beacon state.
@@ -103,7 +103,7 @@ func ProveExecutionFeeRecipientInState[
 //
 // TODO: verifying the proof is not absolutely necessary.
 func verifyExecutionFeeRecipientInBlock(
-	bbh *ctypes.BeaconBlockHeader,
+	bbh *deneb.BeaconBlockHeader,
 	proof []common.Root,
 	leaf common.Root,
 ) (common.Root, error) {

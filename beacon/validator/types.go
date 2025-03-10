@@ -24,7 +24,7 @@ import (
 	"context"
 	"time"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/consensus/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -59,7 +59,7 @@ type BeaconBlock[
 	// GetStateRoot returns the state root of the beacon block.
 	GetStateRoot() common.Root
 	// GetBody returns the body of the beacon block.
-	GetBody() *ctypes.BeaconBlockBody
+	GetBody() *deneb.BeaconBlockBody
 }
 
 // BeaconBlockBody represents a beacon block body interface.
@@ -69,17 +69,17 @@ type BeaconBlockBody interface {
 	// SetRandaoReveal sets the Randao reveal of the beacon block body.
 	SetRandaoReveal(crypto.BLSSignature)
 	// SetEth1Data sets the Eth1 data of the beacon block body.
-	SetEth1Data(*ctypes.Eth1Data)
+	SetEth1Data(*deneb.Eth1Data)
 	// SetDeposits sets the deposits of the beacon block body.
-	SetDeposits([]*ctypes.Deposit)
+	SetDeposits([]*deneb.Deposit)
 	// SetExecutionPayload sets the execution data of the beacon block body.
-	SetExecutionPayload(*ctypes.ExecutionPayload)
+	SetExecutionPayload(*deneb.ExecutionPayload)
 	// SetGraffiti sets the graffiti of the beacon block body.
 	SetGraffiti(common.Bytes32)
 	// SetAttestations sets the attestations of the beacon block body.
-	SetAttestations([]*ctypes.AttestationData)
+	SetAttestations([]*deneb.AttestationData)
 	// SetSlashingInfo sets the slashing info of the beacon block body.
-	SetSlashingInfo([]*ctypes.SlashingInfo)
+	SetSlashingInfo([]*deneb.SlashingInfo)
 	// SetBlobKzgCommitments sets the blob KZG commitments of the beacon block
 	// body.
 	SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])
@@ -91,7 +91,7 @@ type BeaconState interface {
 	GetBlockRootAtIndex(uint64) (common.Root, error)
 	// GetLatestExecutionPayloadHeader returns the latest execution payload
 	// header.
-	GetLatestExecutionPayloadHeader() (*ctypes.ExecutionPayloadHeader, error)
+	GetLatestExecutionPayloadHeader() (*deneb.ExecutionPayloadHeader, error)
 	// GetSlot returns the current slot of the beacon state.
 	GetSlot() (math.Slot, error)
 	// HashTreeRoot returns the hash tree root of the beacon state.
@@ -109,8 +109,8 @@ type BeaconState interface {
 type BlobFactory interface {
 	// BuildSidecars builds sidecars for a given block and blobs bundle.
 	BuildSidecars(
-		signedBlk *ctypes.SignedBeaconBlock,
-		blobs ctypes.BlobsBundle,
+		signedBlk *deneb.SignedBeaconBlock,
+		blobs deneb.BlobsBundle,
 	) (datypes.BlobSidecars, error)
 }
 
@@ -141,7 +141,7 @@ type PayloadBuilder interface {
 		ctx context.Context,
 		slot math.Slot,
 		parentBlockRoot common.Root,
-	) (ctypes.BuiltExecutionPayloadEnv, error)
+	) (deneb.BuiltExecutionPayloadEnv, error)
 	// RequestPayloadSync requests a payload for the given slot and
 	// blocks until the payload is delivered.
 	RequestPayloadSync(
@@ -152,7 +152,7 @@ type PayloadBuilder interface {
 		parentBlockRoot common.Root,
 		headEth1BlockHash common.ExecutionHash,
 		finalEth1BlockHash common.ExecutionHash,
-	) (ctypes.BuiltExecutionPayloadEnv, error)
+	) (deneb.BuiltExecutionPayloadEnv, error)
 }
 
 // SlotData represents the slot data interface.
@@ -160,9 +160,9 @@ type SlotData interface {
 	// GetSlot returns the slot of the incoming slot.
 	GetSlot() math.Slot
 	// GetAttestationData returns the attestation data of the incoming slot.
-	GetAttestationData() []*ctypes.AttestationData
+	GetAttestationData() []*deneb.AttestationData
 	// GetSlashingInfo returns the slashing info of the incoming slot.
-	GetSlashingInfo() []*ctypes.SlashingInfo
+	GetSlashingInfo() []*deneb.SlashingInfo
 	// GetProposerAddress returns the address of the validator
 	// selected by consensus to propose the block
 	GetProposerAddress() []byte
@@ -181,7 +181,7 @@ type StateProcessor interface {
 	Transition(
 		ctx core.ReadOnlyContext,
 		st *statedb.StateDB,
-		blk *ctypes.BeaconBlock,
+		blk *deneb.BeaconBlock,
 	) (transition.ValidatorUpdates, error)
 }
 

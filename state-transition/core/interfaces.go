@@ -21,7 +21,7 @@
 package core
 
 import (
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -43,18 +43,18 @@ type ReadOnlyBeaconState interface {
 
 	GetBalance(math.ValidatorIndex) (math.Gwei, error)
 	GetSlot() (math.Slot, error)
-	GetFork() (*ctypes.Fork, error)
+	GetFork() (*deneb.Fork, error)
 	GetGenesisValidatorsRoot() (common.Root, error)
 	GetBlockRootAtIndex(uint64) (common.Root, error)
-	GetLatestBlockHeader() (*ctypes.BeaconBlockHeader, error)
+	GetLatestBlockHeader() (*deneb.BeaconBlockHeader, error)
 	GetTotalActiveBalances(uint64) (math.Gwei, error)
-	GetValidators() (ctypes.Validators, error)
+	GetValidators() (deneb.Validators, error)
 	GetSlashingAtIndex(uint64) (math.Gwei, error)
 	GetTotalSlashing() (math.Gwei, error)
 	GetNextWithdrawalIndex() (uint64, error)
 	GetNextWithdrawalValidatorIndex() (math.ValidatorIndex, error)
 	GetTotalValidators() (uint64, error)
-	GetValidatorsByEffectiveBalance() ([]*ctypes.Validator, error)
+	GetValidatorsByEffectiveBalance() ([]*deneb.Validator, error)
 	ValidatorIndexByCometBFTAddress(
 		cometBFTAddress []byte,
 	) (math.ValidatorIndex, error)
@@ -68,10 +68,10 @@ type WriteOnlyBeaconState interface {
 	WriteOnlyValidators
 
 	SetGenesisValidatorsRoot(root common.Root) error
-	SetFork(*ctypes.Fork) error
+	SetFork(*deneb.Fork) error
 	SetSlot(math.Slot) error
 	UpdateBlockRootAtIndex(uint64, common.Root) error
-	SetLatestBlockHeader(*ctypes.BeaconBlockHeader) error
+	SetLatestBlockHeader(*deneb.BeaconBlockHeader) error
 	IncreaseBalance(math.ValidatorIndex, math.Gwei) error
 	DecreaseBalance(math.ValidatorIndex, math.Gwei) error
 	UpdateSlashingAtIndex(uint64, math.Gwei) error
@@ -108,10 +108,10 @@ type ReadOnlyRandaoMixes interface {
 type WriteOnlyValidators interface {
 	UpdateValidatorAtIndex(
 		math.ValidatorIndex,
-		*ctypes.Validator,
+		*deneb.Validator,
 	) error
 
-	AddValidator(*ctypes.Validator) error
+	AddValidator(*deneb.Validator) error
 }
 
 // ReadOnlyValidators has read access to validator methods.
@@ -122,21 +122,21 @@ type ReadOnlyValidators interface {
 
 	ValidatorByIndex(
 		math.ValidatorIndex,
-	) (*ctypes.Validator, error)
+	) (*deneb.Validator, error)
 }
 
 // WriteOnlyEth1Data has write access to eth1 data.
 type WriteOnlyEth1Data interface {
-	SetEth1Data(*ctypes.Eth1Data) error
+	SetEth1Data(*deneb.Eth1Data) error
 	SetEth1DepositIndex(uint64) error
-	SetLatestExecutionPayloadHeader(*ctypes.ExecutionPayloadHeader) error
+	SetLatestExecutionPayloadHeader(*deneb.ExecutionPayloadHeader) error
 }
 
 // ReadOnlyEth1Data has read access to eth1 data.
 type ReadOnlyEth1Data interface {
-	GetEth1Data() (*ctypes.Eth1Data, error)
+	GetEth1Data() (*deneb.Eth1Data, error)
 	GetEth1DepositIndex() (uint64, error)
-	GetLatestExecutionPayloadHeader() (*ctypes.ExecutionPayloadHeader, error)
+	GetLatestExecutionPayloadHeader() (*deneb.ExecutionPayloadHeader, error)
 }
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.

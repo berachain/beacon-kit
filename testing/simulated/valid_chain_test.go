@@ -27,7 +27,7 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	dablob "github.com/berachain/beacon-kit/da/blob"
 	datypes "github.com/berachain/beacon-kit/da/types"
@@ -153,9 +153,9 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 	finalBlock, err := simulated.ComputeAndSetStateRoot(queryCtx, consensusTime, proposerAddress, s.TestNode.StateProcessor, s.TestNode.StorageBackend, unsignedBlock)
 	s.Require().NoError(err)
 
-	newSignedBlock, err := ctypes.NewSignedBeaconBlock(
+	newSignedBlock, err := deneb.NewSignedBeaconBlock(
 		finalBlock,
-		&ctypes.ForkData{
+		&deneb.ForkData{
 			CurrentVersion:        s.TestNode.ChainSpec.ActiveForkVersionForSlot(unsignedBlock.GetSlot()),
 			GenesisValidatorsRoot: s.GenesisValidatorsRoot,
 		},
@@ -297,9 +297,9 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessfu
 	proposedBlockMessage, err = simulated.ComputeAndSetStateRoot(queryCtx, consensusTime, proposerAddress, s.TestNode.StateProcessor, s.TestNode.StorageBackend, proposedBlockMessage)
 	s.Require().NoError(err)
 
-	newSignedBlock, err := ctypes.NewSignedBeaconBlock(
+	newSignedBlock, err := deneb.NewSignedBeaconBlock(
 		proposedBlockMessage,
-		&ctypes.ForkData{
+		&deneb.ForkData{
 			CurrentVersion:        s.TestNode.ChainSpec.ActiveForkVersionForSlot(proposedBlockMessage.GetSlot()),
 			GenesisValidatorsRoot: s.GenesisValidatorsRoot,
 		},
@@ -314,7 +314,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessfu
 	proposal.Txs[0] = newSignedBlockBytes
 
 	// Create the beaconBlock Header for the sidecar
-	blockWithCommitmentsSignedHeader := ctypes.NewSignedBeaconBlockHeader(
+	blockWithCommitmentsSignedHeader := deneb.NewSignedBeaconBlockHeader(
 		newSignedBlock.GetMessage().GetHeader(),
 		newSignedBlock.GetSignature(),
 	)

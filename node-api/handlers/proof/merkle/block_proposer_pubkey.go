@@ -21,7 +21,7 @@
 package merkle
 
 import (
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -36,7 +36,7 @@ import (
 func ProveProposerPubkeyInBlock[
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
 ](
-	bbh *ctypes.BeaconBlockHeader,
+	bbh *deneb.BeaconBlockHeader,
 	bs types.BeaconState[BeaconStateMarshallableT],
 ) ([]common.Root, common.Root, error) {
 	// Get the proof of the proposer pubkey in the beacon state.
@@ -103,7 +103,7 @@ func ProveProposerPubkeyInState[
 //
 // TODO: verifying the proof is not absolutely necessary.
 func verifyProposerInBlock(
-	bbh *ctypes.BeaconBlockHeader,
+	bbh *deneb.BeaconBlockHeader,
 	valOffset math.U64,
 	proof []common.Root,
 	leaf common.Root,

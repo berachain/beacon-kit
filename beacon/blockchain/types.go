@@ -24,7 +24,7 @@ import (
 	"context"
 	"time"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -41,7 +41,7 @@ import (
 )
 
 type ConsensusBlock interface {
-	GetBeaconBlock() *ctypes.BeaconBlock
+	GetBeaconBlock() *deneb.BeaconBlock
 
 	// GetProposerAddress returns the address of the validator
 	// selected by consensus to propose the block
@@ -63,14 +63,14 @@ type ExecutionEngine interface {
 	// NotifyNewPayload notifies the execution client of new payload.
 	NotifyNewPayload(
 		ctx context.Context,
-		req *ctypes.NewPayloadRequest,
+		req *deneb.NewPayloadRequest,
 		retryOnSyncingStatus bool,
 	) error
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
-		req *ctypes.ForkchoiceUpdateRequest,
+		req *deneb.ForkchoiceUpdateRequest,
 	) (*engineprimitives.PayloadID, error)
 }
 
@@ -95,9 +95,9 @@ type Genesis interface {
 	// GetForkVersion returns the fork version.
 	GetForkVersion() common.Version
 	// GetDeposits returns the deposits.
-	GetDeposits() []*ctypes.Deposit
+	GetDeposits() []*deneb.Deposit
 	// GetExecutionPayloadHeader returns the execution payload header.
-	GetExecutionPayloadHeader() *ctypes.ExecutionPayloadHeader
+	GetExecutionPayloadHeader() *deneb.ExecutionPayloadHeader
 }
 
 // LocalBuilder is the interface for the builder service.
@@ -125,12 +125,12 @@ type ReadOnlyBeaconState[
 	Copy(context.Context) T
 	// GetLatestBlockHeader returns the most recent block header.
 	GetLatestBlockHeader() (
-		*ctypes.BeaconBlockHeader,
+		*deneb.BeaconBlockHeader,
 		error,
 	)
 	// GetLatestExecutionPayloadHeader returns the most recent execution payload
 	// header.
-	GetLatestExecutionPayloadHeader() (*ctypes.ExecutionPayloadHeader, error)
+	GetLatestExecutionPayloadHeader() (*deneb.ExecutionPayloadHeader, error)
 	// GetSlot retrieves the current slot of the beacon state.
 	GetSlot() (math.Slot, error)
 	// HashTreeRoot returns the hash tree root of the beacon state.
@@ -145,8 +145,8 @@ type StateProcessor interface {
 	// from the eth1 deposits.
 	InitializePreminedBeaconStateFromEth1(
 		*statedb.StateDB,
-		ctypes.Deposits,
-		*ctypes.ExecutionPayloadHeader,
+		deneb.Deposits,
+		*deneb.ExecutionPayloadHeader,
 		common.Version,
 	) (transition.ValidatorUpdates, error)
 	// ProcessSlots processes the state transition for a range of slots.
@@ -157,11 +157,11 @@ type StateProcessor interface {
 	Transition(
 		core.ReadOnlyContext,
 		*statedb.StateDB,
-		*ctypes.BeaconBlock,
+		*deneb.BeaconBlock,
 	) (transition.ValidatorUpdates, error)
 	GetSignatureVerifierFn(*statedb.StateDB) (
 		func(
-			blk *ctypes.BeaconBlock,
+			blk *deneb.BeaconBlock,
 			signature crypto.BLSSignature) error,
 		error,
 	)
@@ -177,7 +177,7 @@ type StorageBackend interface {
 	// DepositStore retrieves the deposit store.
 	DepositStore() *depositdb.KVStore
 	// BlockStore retrieves the block store.
-	BlockStore() *block.KVStore[*ctypes.BeaconBlock]
+	BlockStore() *block.KVStore[*deneb.BeaconBlock]
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.

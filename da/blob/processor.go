@@ -25,7 +25,7 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/chain"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/da/kzg"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
@@ -69,7 +69,7 @@ func NewProcessor(
 func (sp *Processor) VerifySidecars(
 	ctx context.Context,
 	sidecars datypes.BlobSidecars,
-	blkHeader *ctypes.BeaconBlockHeader,
+	blkHeader *deneb.BeaconBlockHeader,
 	kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],
 ) error {
 	defer sp.metrics.measureVerifySidecarsDuration(

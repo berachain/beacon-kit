@@ -21,7 +21,7 @@
 package proof
 
 import (
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -48,11 +48,11 @@ func NewHandler(backend Backend) *Handler {
 // Get the slot from the given input of timestamp id, beacon state, and beacon
 // block header for the resolved slot.
 func (h *Handler) resolveTimestampID(timestampID string) (
-	math.Slot, *statedb.StateDB, *ctypes.BeaconBlockHeader, error,
+	math.Slot, *statedb.StateDB, *deneb.BeaconBlockHeader, error,
 ) {
 	var (
 		beaconState *statedb.StateDB
-		blockHeader *ctypes.BeaconBlockHeader
+		blockHeader *deneb.BeaconBlockHeader
 	)
 
 	slot, err := utils.ParentSlotFromTimestampID(timestampID, h.backend)

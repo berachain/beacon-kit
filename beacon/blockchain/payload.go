@@ -24,7 +24,7 @@ import (
 	"context"
 	"fmt"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/errors"
@@ -68,7 +68,7 @@ func (s *Service) forceSyncUponProcess(
 	)
 
 	// Submit the forkchoice update to the execution client.
-	req := ctypes.BuildForkchoiceUpdateRequestNoAttrs(
+	req := deneb.BuildForkchoiceUpdateRequestNoAttrs(
 		&engineprimitives.ForkchoiceStateV1{
 			HeadBlockHash:      lph.GetBlockHash(),
 			SafeBlockHash:      lph.GetParentHash(),
@@ -89,12 +89,12 @@ func (s *Service) forceSyncUponProcess(
 // if blocks are missing. This function should only be run once at startup.
 func (s *Service) forceSyncUponFinalize(
 	ctx context.Context,
-	beaconBlock *ctypes.BeaconBlock,
+	beaconBlock *deneb.BeaconBlock,
 ) error {
 	// NewPayload call first to load payload into EL client.
 	executionPayload := beaconBlock.GetBody().GetExecutionPayload()
 	parentBeaconBlockRoot := beaconBlock.GetParentBlockRoot()
-	payloadReq := ctypes.BuildNewPayloadRequest(
+	payloadReq := deneb.BuildNewPayloadRequest(
 		executionPayload,
 		beaconBlock.GetBody().GetBlobKzgCommitments().ToVersionedHashes(),
 		&parentBeaconBlockRoot,
@@ -112,7 +112,7 @@ func (s *Service) forceSyncUponFinalize(
 
 	// Submit the forkchoice update to the EL client. This will ensure that it is either synced or
 	// starts up a sync.
-	req := ctypes.BuildForkchoiceUpdateRequestNoAttrs(
+	req := deneb.BuildForkchoiceUpdateRequestNoAttrs(
 		&engineprimitives.ForkchoiceStateV1{
 			HeadBlockHash:      executionPayload.GetBlockHash(),
 			SafeBlockHash:      executionPayload.GetParentHash(),
@@ -225,7 +225,7 @@ func (s *Service) rebuildPayloadForRejectedBlock(
 func (s *Service) handleOptimisticPayloadBuild(
 	ctx context.Context,
 	st *statedb.StateDB,
-	blk *ctypes.BeaconBlock,
+	blk *deneb.BeaconBlock,
 	nextPayloadTimestamp math.U64,
 ) {
 	if err := s.optimisticPayloadBuild(
@@ -246,7 +246,7 @@ func (s *Service) handleOptimisticPayloadBuild(
 func (s *Service) optimisticPayloadBuild(
 	ctx context.Context,
 	st *statedb.StateDB,
-	blk *ctypes.BeaconBlock,
+	blk *deneb.BeaconBlock,
 	nextPayloadTimestamp math.U64,
 ) error {
 	// We are building for the next slot, so we increment the slot relative

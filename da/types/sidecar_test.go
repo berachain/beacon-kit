@@ -26,7 +26,7 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/config/spec"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/da/blob"
 	"github.com/berachain/beacon-kit/da/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -48,8 +48,8 @@ func TestSidecarMarshalling(t *testing.T) {
 	for i := range blob {
 		blob[i] = byte(i % 256)
 	}
-	inclusionProof := make([]common.Root, 0, ctypes.KZGInclusionProofDepth)
-	for i := 1; i <= ctypes.KZGInclusionProofDepth; i++ {
+	inclusionProof := make([]common.Root, 0, deneb.KZGInclusionProofDepth)
+	for i := 1; i <= deneb.KZGInclusionProofDepth; i++ {
 		it := byteslib.ExtendToSize([]byte(strconv.Itoa(i)), byteslib.B32Size)
 		proof, errBytes := byteslib.ToBytes32(it)
 		require.NoError(t, errBytes)
@@ -57,8 +57,8 @@ func TestSidecarMarshalling(t *testing.T) {
 	}
 	sidecar := types.BuildBlobSidecar(
 		1,
-		&ctypes.SignedBeaconBlockHeader{
-			Header:    &ctypes.BeaconBlockHeader{},
+		&deneb.SignedBeaconBlockHeader{
+			Header:    &deneb.BeaconBlockHeader{},
 			Signature: crypto.BLSSignature{},
 		},
 		&blob,
@@ -86,12 +86,12 @@ func TestSidecarMarshalling(t *testing.T) {
 	)
 }
 
-func generateValidBeaconBlock(t *testing.T) *ctypes.BeaconBlock {
+func generateValidBeaconBlock(t *testing.T) *deneb.BeaconBlock {
 	t.Helper()
 
 	// Initialize your block here
 	deneb1 := version.Deneb1()
-	beaconBlock, err := ctypes.NewBeaconBlockWithVersion(
+	beaconBlock, err := deneb.NewBeaconBlockWithVersion(
 		math.Slot(10),
 		math.ValidatorIndex(5),
 		common.Root{1, 2, 3, 4, 5}, // parent root
@@ -100,8 +100,8 @@ func generateValidBeaconBlock(t *testing.T) *ctypes.BeaconBlock {
 	require.NoError(t, err)
 
 	beaconBlock.StateRoot = common.Root{5, 4, 3, 2, 1}
-	beaconBlock.Body = &ctypes.BeaconBlockBody{
-		ExecutionPayload: &ctypes.ExecutionPayload{
+	beaconBlock.Body = &deneb.BeaconBlockBody{
+		ExecutionPayload: &deneb.ExecutionPayload{
 			Timestamp: 10,
 			ExtraData: []byte("dummy extra data for testing"),
 			Transactions: [][]byte{
@@ -116,8 +116,8 @@ func generateValidBeaconBlock(t *testing.T) *ctypes.BeaconBlock {
 			BaseFeePerGas: math.NewU256(0),
 			EpVersion:     deneb1,
 		},
-		Eth1Data: &ctypes.Eth1Data{},
-		Deposits: []*ctypes.Deposit{
+		Eth1Data: &deneb.Eth1Data{},
+		Deposits: []*deneb.Deposit{
 			{
 				Index: 1,
 			},
@@ -128,12 +128,12 @@ func generateValidBeaconBlock(t *testing.T) *ctypes.BeaconBlock {
 	}
 
 	body := beaconBlock.GetBody()
-	body.SetProposerSlashings(ctypes.ProposerSlashings{})
-	body.SetAttesterSlashings(ctypes.AttesterSlashings{})
-	body.SetAttestations(ctypes.Attestations{})
-	body.SetSyncAggregate(&ctypes.SyncAggregate{})
-	body.SetVoluntaryExits(ctypes.VoluntaryExits{})
-	body.SetBlsToExecutionChanges(ctypes.BlsToExecutionChanges{})
+	body.SetProposerSlashings(deneb.ProposerSlashings{})
+	body.SetAttesterSlashings(deneb.AttesterSlashings{})
+	body.SetAttestations(deneb.Attestations{})
+	body.SetSyncAggregate(&deneb.SyncAggregate{})
+	body.SetVoluntaryExits(deneb.VoluntaryExits{})
+	body.SetBlsToExecutionChanges(deneb.BlsToExecutionChanges{})
 	return beaconBlock
 }
 
@@ -157,7 +157,7 @@ func TestHasValidInclusionProof(t *testing.T) {
 			sidecars: func(t *testing.T) types.BlobSidecars {
 				t.Helper()
 				inclusionProof := make([]common.Root, 0)
-				for i := 1; i <= ctypes.KZGInclusionProofDepth; i++ {
+				for i := 1; i <= deneb.KZGInclusionProofDepth; i++ {
 					it := byteslib.ExtendToSize(
 						[]byte(strconv.Itoa(i)),
 						byteslib.B32Size,
@@ -168,8 +168,8 @@ func TestHasValidInclusionProof(t *testing.T) {
 				}
 				return types.BlobSidecars{types.BuildBlobSidecar(
 					math.U64(0),
-					&ctypes.SignedBeaconBlockHeader{
-						Header: &ctypes.BeaconBlockHeader{
+					&deneb.SignedBeaconBlockHeader{
+						Header: &deneb.BeaconBlockHeader{
 							BodyRoot: [32]byte{3},
 						},
 						Signature: crypto.BLSSignature{},
@@ -187,7 +187,7 @@ func TestHasValidInclusionProof(t *testing.T) {
 			sidecars: func(*testing.T) types.BlobSidecars {
 				return types.BlobSidecars{types.BuildBlobSidecar(
 					math.U64(0),
-					&ctypes.SignedBeaconBlockHeader{},
+					&deneb.SignedBeaconBlockHeader{},
 					&eip4844.Blob{},
 					eip4844.KZGCommitment{},
 					eip4844.KZGProof{},
@@ -210,7 +210,7 @@ func TestHasValidInclusionProof(t *testing.T) {
 						block.GetBody(), math.U64(i),
 					)
 					require.NoError(t, incErr)
-					sigHeader := ctypes.NewSignedBeaconBlockHeader(block.GetHeader(), crypto.BLSSignature{})
+					sigHeader := deneb.NewSignedBeaconBlockHeader(block.GetHeader(), crypto.BLSSignature{})
 					sidecars[i] = types.BuildBlobSidecar(
 						math.U64(i),
 						sigHeader,
@@ -246,16 +246,16 @@ func TestHasValidInclusionProof(t *testing.T) {
 func Test_KZGRootIndex(t *testing.T) {
 	t.Parallel()
 	// Level of the KZG commitment root's parent.
-	kzgParentRootLevel := log.ILog2Ceil(ctypes.KZGPositionDeneb)
+	kzgParentRootLevel := log.ILog2Ceil(deneb.KZGPositionDeneb)
 	require.NotEqual(t, 0, kzgParentRootLevel)
 	// Merkle index of the KZG commitment root's parent.
 	// The parent's left child is the KZG commitment root,
 	// and its right child is the KZG commitment size.
-	kzgParentRootIndex := ctypes.KZGPositionDeneb + (1 << kzgParentRootLevel)
-	require.Equal(t, uint64(ctypes.KZGGeneralizedIndex), kzgParentRootIndex)
+	kzgParentRootIndex := deneb.KZGPositionDeneb + (1 << kzgParentRootLevel)
+	require.Equal(t, uint64(deneb.KZGGeneralizedIndex), kzgParentRootIndex)
 	// The KZG commitment root is the left child of its parent.
 	// Its Merkle index is the double of its parent's Merkle index.
-	require.Equal(t, 2*kzgParentRootIndex, uint64(ctypes.KZGRootIndexDeneb))
+	require.Equal(t, 2*kzgParentRootIndex, uint64(deneb.KZGRootIndexDeneb))
 }
 
 func TestHashTreeRoot(t *testing.T) {
@@ -282,8 +282,8 @@ func TestHashTreeRoot(t *testing.T) {
 				}
 				return types.BuildBlobSidecar(
 					math.U64(1),
-					&ctypes.SignedBeaconBlockHeader{
-						Header: &ctypes.BeaconBlockHeader{
+					&deneb.SignedBeaconBlockHeader{
+						Header: &deneb.BeaconBlockHeader{
 							BodyRoot: [32]byte{7, 8, 9},
 						},
 						Signature: crypto.BLSSignature{0xde, 0xad},

@@ -26,7 +26,7 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/storage/encoding"
@@ -38,7 +38,7 @@ const KeyDepositPrefix = "deposit"
 // KVStore is a simple KV store based implementation that assumes
 // the deposit indexes are tracked outside of the kv store.
 type KVStore struct {
-	store sdkcollections.Map[uint64, *ctypes.Deposit]
+	store sdkcollections.Map[uint64, *deneb.Deposit]
 
 	// closeFunc is a closure that closes the underlying database
 	// used by store to ensure that all writes are flushed to disk.
@@ -69,7 +69,7 @@ func NewStore(
 			sdkcollections.NewPrefix([]byte(KeyDepositPrefix)),
 			KeyDepositPrefix,
 			sdkcollections.Uint64Key,
-			encoding.SSZValueCodec[*ctypes.Deposit]{},
+			encoding.SSZValueCodec[*deneb.Deposit]{},
 		),
 		closeFunc: closeFunc,
 		logger:    logger,
@@ -95,11 +95,11 @@ func (kv *KVStore) GetDepositsByIndex(
 	ctx context.Context,
 	startIndex uint64,
 	depRange uint64,
-) (ctypes.Deposits, error) {
+) (deneb.Deposits, error) {
 	kv.mu.RLock()
 	defer kv.mu.RUnlock()
 	var (
-		deposits = make(ctypes.Deposits, 0, depRange)
+		deposits = make(deneb.Deposits, 0, depRange)
 		endIdx   = startIndex + depRange
 	)
 
@@ -122,7 +122,7 @@ func (kv *KVStore) GetDepositsByIndex(
 }
 
 // EnqueueDeposits pushes multiple deposits to the queue.
-func (kv *KVStore) EnqueueDeposits(ctx context.Context, deposits []*ctypes.Deposit) error {
+func (kv *KVStore) EnqueueDeposits(ctx context.Context, deposits []*deneb.Deposit) error {
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
 

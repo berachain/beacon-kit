@@ -28,7 +28,7 @@ import (
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	dablob "github.com/berachain/beacon-kit/da/blob"
 	datypes "github.com/berachain/beacon-kit/da/types"
@@ -108,9 +108,9 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	maliciousBlock := simulated.ComputeAndSetInvalidExecutionBlock(s.T(), proposedBlock.GetMessage(), s.TestNode.ChainSpec, maliciousTxs)
 
 	// Re-sign the block
-	maliciousBlockSigned, err := ctypes.NewSignedBeaconBlock(
+	maliciousBlockSigned, err := deneb.NewSignedBeaconBlock(
 		maliciousBlock,
-		&ctypes.ForkData{
+		&deneb.ForkData{
 			CurrentVersion:        s.TestNode.ChainSpec.ActiveForkVersionForSlot(maliciousBlock.GetSlot()),
 			GenesisValidatorsRoot: s.GenesisValidatorsRoot,
 		},
@@ -298,9 +298,9 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobCommitment_Errors() {
 	proposedBlockMessage, err = simulated.ComputeAndSetStateRoot(queryCtx, consensusTime, proposerAddress, s.TestNode.StateProcessor, s.TestNode.StorageBackend, proposedBlockMessage)
 	s.Require().NoError(err)
 
-	newSignedBlock, err := ctypes.NewSignedBeaconBlock(
+	newSignedBlock, err := deneb.NewSignedBeaconBlock(
 		proposedBlockMessage,
-		&ctypes.ForkData{
+		&deneb.ForkData{
 			CurrentVersion:        s.TestNode.ChainSpec.ActiveForkVersionForSlot(proposedBlockMessage.GetSlot()),
 			GenesisValidatorsRoot: s.GenesisValidatorsRoot,
 		},
@@ -315,7 +315,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobCommitment_Errors() {
 	proposal.Txs[0] = newSignedBlockBytes
 
 	// Create the beaconBlock Header for the sidecar
-	blockWithCommitmentsSignedHeader := ctypes.NewSignedBeaconBlockHeader(
+	blockWithCommitmentsSignedHeader := deneb.NewSignedBeaconBlockHeader(
 		newSignedBlock.GetMessage().GetHeader(),
 		newSignedBlock.GetSignature(),
 	)
@@ -459,9 +459,9 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobInclusionProof_Errors() 
 	proposedBlockMessage, err = simulated.ComputeAndSetStateRoot(queryCtx, consensusTime, proposerAddress, s.TestNode.StateProcessor, s.TestNode.StorageBackend, proposedBlockMessage)
 	s.Require().NoError(err)
 
-	newSignedBlock, err := ctypes.NewSignedBeaconBlock(
+	newSignedBlock, err := deneb.NewSignedBeaconBlock(
 		proposedBlockMessage,
-		&ctypes.ForkData{
+		&deneb.ForkData{
 			CurrentVersion:        s.TestNode.ChainSpec.ActiveForkVersionForSlot(proposedBlockMessage.GetSlot()),
 			GenesisValidatorsRoot: s.GenesisValidatorsRoot,
 		},
@@ -476,7 +476,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobInclusionProof_Errors() 
 	proposal.Txs[0] = newSignedBlockBytes
 
 	// Create the beaconBlock Header for the sidecar
-	blockWithCommitmentsSignedHeader := ctypes.NewSignedBeaconBlockHeader(
+	blockWithCommitmentsSignedHeader := deneb.NewSignedBeaconBlockHeader(
 		newSignedBlock.GetMessage().GetHeader(),
 		newSignedBlock.GetSignature(),
 	)

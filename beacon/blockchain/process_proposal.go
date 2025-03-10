@@ -27,7 +27,7 @@ import (
 	"time"
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/consensus/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
@@ -160,7 +160,7 @@ func (s *Service) ProcessProposal(
 
 func (s *Service) VerifyIncomingBlockSignature(
 	ctx context.Context,
-	beaconBlk *ctypes.BeaconBlock,
+	beaconBlk *deneb.BeaconBlock,
 	signature crypto.BLSSignature,
 ) error {
 	// Get the sidecar verification function from the state processor
@@ -182,7 +182,7 @@ func (s *Service) VerifyIncomingBlockSignature(
 func (s *Service) VerifyIncomingBlobSidecars(
 	ctx context.Context,
 	sidecars datypes.BlobSidecars,
-	blkHeader *ctypes.BeaconBlockHeader,
+	blkHeader *deneb.BeaconBlockHeader,
 	kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],
 ) error {
 	// Verify the blobs and ensure they match the local state.
@@ -208,7 +208,7 @@ func (s *Service) VerifyIncomingBlobSidecars(
 //nolint:funlen // not an issue
 func (s *Service) VerifyIncomingBlock(
 	ctx context.Context,
-	beaconBlk *ctypes.BeaconBlock,
+	beaconBlk *deneb.BeaconBlock,
 	consensusTime math.U64,
 	proposerAddress []byte,
 ) error {
@@ -325,7 +325,7 @@ func (s *Service) VerifyIncomingBlock(
 func (s *Service) verifyStateRoot(
 	ctx context.Context,
 	st *statedb.StateDB,
-	blk *ctypes.BeaconBlock,
+	blk *deneb.BeaconBlock,
 	consensusTime math.U64,
 	proposerAddress []byte,
 ) error {

@@ -31,7 +31,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log/noop"
 	"github.com/berachain/beacon-kit/node-api/backend"
@@ -98,7 +98,7 @@ func TestFilteredValidators(t *testing.T) {
 			},
 			Status: constants.ValidatorStatusPendingInitialized,
 			Validator: beacontypes.ValidatorFromConsensus(
-				&ctypes.Validator{
+				&deneb.Validator{
 					Pubkey:                     [48]byte{0x01},
 					WithdrawalCredentials:      [32]byte{0x02},
 					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance()),
@@ -117,7 +117,7 @@ func TestFilteredValidators(t *testing.T) {
 			},
 			Status: constants.ValidatorStatusPendingQueued,
 			Validator: beacontypes.ValidatorFromConsensus(
-				&ctypes.Validator{
+				&deneb.Validator{
 					Pubkey:                     [48]byte{0x03},
 					WithdrawalCredentials:      [32]byte{0x04},
 					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 2),
@@ -136,7 +136,7 @@ func TestFilteredValidators(t *testing.T) {
 			},
 			Status: constants.ValidatorStatusActiveOngoing,
 			Validator: beacontypes.ValidatorFromConsensus(
-				&ctypes.Validator{
+				&deneb.Validator{
 					Pubkey:                     [48]byte{0x05},
 					WithdrawalCredentials:      [32]byte{0x06},
 					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 3),
@@ -155,7 +155,7 @@ func TestFilteredValidators(t *testing.T) {
 			},
 			Status: constants.ValidatorStatusActiveSlashed,
 			Validator: beacontypes.ValidatorFromConsensus(
-				&ctypes.Validator{
+				&deneb.Validator{
 					Pubkey:                     [48]byte{0x15},
 					WithdrawalCredentials:      [32]byte{0x16},
 					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 3),
@@ -174,7 +174,7 @@ func TestFilteredValidators(t *testing.T) {
 			},
 			Status: constants.ValidatorStatusActiveExiting,
 			Validator: beacontypes.ValidatorFromConsensus(
-				&ctypes.Validator{
+				&deneb.Validator{
 					Pubkey:                     [48]byte{0x17},
 					WithdrawalCredentials:      [32]byte{0x18},
 					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 3),
@@ -193,7 +193,7 @@ func TestFilteredValidators(t *testing.T) {
 			},
 			Status: constants.ValidatorStatusExitedUnslashed,
 			Validator: beacontypes.ValidatorFromConsensus(
-				&ctypes.Validator{
+				&deneb.Validator{
 					Pubkey:                     [48]byte{0x07},
 					WithdrawalCredentials:      [32]byte{0x08},
 					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 4),
@@ -212,7 +212,7 @@ func TestFilteredValidators(t *testing.T) {
 			},
 			Status: constants.ValidatorStatusExitedSlashed,
 			Validator: beacontypes.ValidatorFromConsensus(
-				&ctypes.Validator{
+				&deneb.Validator{
 					Pubkey:                     [48]byte{0x27},
 					WithdrawalCredentials:      [32]byte{0x28},
 					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 4),
@@ -231,7 +231,7 @@ func TestFilteredValidators(t *testing.T) {
 			},
 			Status: constants.ValidatorStatusWithdrawalPossible,
 			Validator: beacontypes.ValidatorFromConsensus(
-				&ctypes.Validator{
+				&deneb.Validator{
 					Pubkey:                     [48]byte{0x09},
 					WithdrawalCredentials:      [32]byte{0x10},
 					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 5),
@@ -250,7 +250,7 @@ func TestFilteredValidators(t *testing.T) {
 			},
 			Status: constants.ValidatorStatusWithdrawalPossible,
 			Validator: beacontypes.ValidatorFromConsensus(
-				&ctypes.Validator{
+				&deneb.Validator{
 					Pubkey:                     [48]byte{0x39},
 					WithdrawalCredentials:      [32]byte{0x40},
 					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 5),
@@ -374,12 +374,12 @@ func setupStateDummyParts(t *testing.T, cs chain.Spec, st *statedb.StateDB) {
 	dummySlot := math.Slot(2025)
 	require.NoError(t, st.SetSlot(dummySlot))
 
-	fork := ctypes.NewFork(version.Genesis(), version.Genesis(), constants.GenesisEpoch)
+	fork := deneb.NewFork(version.Genesis(), version.Genesis(), constants.GenesisEpoch)
 	require.NoError(t, st.SetFork(fork))
 
 	require.NoError(t, st.SetGenesisValidatorsRoot(common.Root{}))
 
-	blkHeader := &ctypes.BeaconBlockHeader{
+	blkHeader := &deneb.BeaconBlockHeader{
 		Slot:            constants.GenesisSlot,
 		ProposerIndex:   0,
 		ParentBlockRoot: common.Root{},
@@ -393,11 +393,11 @@ func setupStateDummyParts(t *testing.T, cs chain.Spec, st *statedb.StateDB) {
 		require.NoError(t, st.UpdateStateRootAtIndex(i, common.Root{}))
 	}
 
-	payload, err := ctypes.DefaultGenesisExecutionPayloadHeader()
+	payload, err := deneb.DefaultGenesisExecutionPayloadHeader()
 	require.NoError(t, err)
 	require.NoError(t, st.SetLatestExecutionPayloadHeader(payload))
 
-	eth1Data := &ctypes.Eth1Data{
+	eth1Data := &deneb.Eth1Data{
 		DepositRoot:  common.Root{},
 		DepositCount: 0,
 		BlockHash:    payload.GetBlockHash(),

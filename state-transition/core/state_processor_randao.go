@@ -23,7 +23,7 @@ package core
 import (
 	"fmt"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -37,7 +37,7 @@ import (
 func (sp *StateProcessor) processRandaoReveal(
 	ctx ReadOnlyContext,
 	st *statedb.StateDB,
-	blk *ctypes.BeaconBlock,
+	blk *deneb.BeaconBlock,
 ) error {
 	slot, err := st.GetSlot()
 	if err != nil {
@@ -58,7 +58,7 @@ func (sp *StateProcessor) processRandaoReveal(
 	epoch := sp.cs.SlotToEpoch(slot)
 	body := blk.GetBody()
 
-	fd := ctypes.NewForkData(sp.cs.ActiveForkVersionForEpoch(epoch), genesisValidatorsRoot)
+	fd := deneb.NewForkData(sp.cs.ActiveForkVersionForEpoch(epoch), genesisValidatorsRoot)
 
 	if ctx.VerifyRandao() {
 		signingRoot := fd.ComputeRandaoSigningRoot(sp.cs.DomainTypeRandao(), epoch)

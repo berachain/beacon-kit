@@ -25,7 +25,7 @@ import (
 	"errors"
 	"fmt"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/geth-primitives/bind"
 	"github.com/berachain/beacon-kit/geth-primitives/deposit"
@@ -65,7 +65,7 @@ func (dc *WrappedDepositContract) ReadDeposits(
 	ctx context.Context,
 	fromBlock math.U64,
 	toBlock math.U64,
-) ([]*ctypes.Deposit, error) {
+) ([]*deneb.Deposit, error) {
 	logs, err := dc.FilterDeposit(
 		&bind.FilterOpts{
 			Context: ctx,
@@ -77,7 +77,7 @@ func (dc *WrappedDepositContract) ReadDeposits(
 		return nil, err
 	}
 
-	deposits := make([]*ctypes.Deposit, 0)
+	deposits := make([]*deneb.Deposit, 0)
 	for logs.Next() {
 		var (
 			cred   bytes.B32
@@ -96,9 +96,9 @@ func (dc *WrappedDepositContract) ReadDeposits(
 		if err != nil {
 			return nil, fmt.Errorf("failed reading signature: %w", err)
 		}
-		deposit := &ctypes.Deposit{
+		deposit := &deneb.Deposit{
 			Pubkey:      pubKey,
-			Credentials: ctypes.WithdrawalCredentials(cred),
+			Credentials: deneb.WithdrawalCredentials(cred),
 			Amount:      math.U64(logs.Event.Amount),
 			Signature:   sign,
 			Index:       logs.Event.Index,

@@ -27,7 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/cli/commands/genesis/types"
 	"github.com/berachain/beacon-kit/cli/context"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/errors"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	libcommon "github.com/berachain/beacon-kit/primitives/common"
@@ -95,7 +95,7 @@ func SetDepositStorage(
 
 	beaconStateRaw := genesisState["beacon"]
 	var beaconState struct {
-		Deposits ctypes.Deposits `json:"deposits"`
+		Deposits deneb.Deposits `json:"deposits"`
 	}
 	if err = json.Unmarshal(beaconStateRaw, &beaconState); err != nil {
 		return errors.Wrap(err, "failed to unmarshal beacon state")

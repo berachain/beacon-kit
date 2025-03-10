@@ -21,7 +21,7 @@
 package core
 
 import (
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/state-transition/core/state"
@@ -39,7 +39,7 @@ import (
 //
 
 func (sp *StateProcessor) processWithdrawals(
-	st *state.StateDB, blk *ctypes.BeaconBlock,
+	st *state.StateDB, blk *deneb.BeaconBlock,
 ) error {
 	// Dequeue and verify the logs.
 	var (

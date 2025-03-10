@@ -24,7 +24,7 @@ import (
 	"context"
 	"fmt"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
@@ -39,7 +39,7 @@ import (
 // NewPayload calls the appropriate version of the Engine API NewPayload method.
 func (s *Client) NewPayload(
 	ctx context.Context,
-	payload *ctypes.ExecutionPayload,
+	payload *deneb.ExecutionPayload,
 	versionedHashes []common.ExecutionHash,
 	parentBlockRoot *common.Root,
 ) (*engineprimitives.PayloadStatusV1, error) {
@@ -55,7 +55,7 @@ func (s *Client) NewPayload(
 // NewPayloadV3 calls the engine_newPayloadV3 via JSON-RPC.
 func (s *Client) NewPayloadV3(
 	ctx context.Context,
-	payload *ctypes.ExecutionPayload,
+	payload *deneb.ExecutionPayload,
 	versionedHashes []common.ExecutionHash,
 	parentBlockRoot *common.Root,
 ) (*engineprimitives.PayloadStatusV1, error) {
@@ -117,7 +117,7 @@ func (s *Client) GetPayload(
 	ctx context.Context,
 	payloadID engineprimitives.PayloadID,
 	forkVersion common.Version,
-) (ctypes.BuiltExecutionPayloadEnv, error) {
+) (deneb.BuiltExecutionPayloadEnv, error) {
 	// Versions before Deneb are not supported for calling GetPayload.
 	if version.IsBefore(forkVersion, version.Deneb()) {
 		return nil, ErrInvalidVersion
@@ -132,9 +132,9 @@ func (s *Client) GetPayloadV3(
 	ctx context.Context,
 	payloadID engineprimitives.PayloadID,
 	forkVersion common.Version,
-) (ctypes.BuiltExecutionPayloadEnv, error) {
-	var t *ctypes.ExecutionPayload
-	result := &ctypes.ExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1[
+) (deneb.BuiltExecutionPayloadEnv, error) {
+	var t *deneb.ExecutionPayload
+	result := &deneb.ExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1[
 		eip4844.KZGCommitment,
 		eip4844.KZGProof,
 		eip4844.Blob,

@@ -23,7 +23,7 @@ package core
 import (
 	"fmt"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -36,7 +36,7 @@ import (
 func (sp *StateProcessor) processOperations(
 	ctx ReadOnlyContext,
 	st *state.StateDB,
-	blk *ctypes.BeaconBlock,
+	blk *deneb.BeaconBlock,
 ) error {
 	// Verify that outstanding deposits are processed up to the maximum number of deposits.
 	//
@@ -72,7 +72,7 @@ func (sp *StateProcessor) processOperations(
 }
 
 // processDeposit processes the deposit and ensures it matches the local state.
-func (sp *StateProcessor) processDeposit(st *state.StateDB, dep *ctypes.Deposit) error {
+func (sp *StateProcessor) processDeposit(st *state.StateDB, dep *deneb.Deposit) error {
 	eth1DepositIndex, err := st.GetEth1DepositIndex()
 	if err != nil {
 		return err
@@ -93,7 +93,7 @@ func (sp *StateProcessor) processDeposit(st *state.StateDB, dep *ctypes.Deposit)
 }
 
 // applyDeposit processes the deposit and ensures it matches the local state.
-func (sp *StateProcessor) applyDeposit(st *state.StateDB, dep *ctypes.Deposit) error {
+func (sp *StateProcessor) applyDeposit(st *state.StateDB, dep *deneb.Deposit) error {
 	idx, err := st.ValidatorIndexByPubkey(dep.GetPubkey())
 	if err != nil {
 		sp.logger.Info("Validator does not exist so creating",
@@ -118,7 +118,7 @@ func (sp *StateProcessor) applyDeposit(st *state.StateDB, dep *ctypes.Deposit) e
 }
 
 // createValidator creates a validator if the deposit is valid.
-func (sp *StateProcessor) createValidator(st *state.StateDB, dep *ctypes.Deposit) error {
+func (sp *StateProcessor) createValidator(st *state.StateDB, dep *deneb.Deposit) error {
 	// Get the current slot.
 	slot, err := st.GetSlot()
 	if err != nil {
@@ -148,7 +148,7 @@ func (sp *StateProcessor) createValidator(st *state.StateDB, dep *ctypes.Deposit
 
 	// Verify that the message was signed correctly.
 	err = dep.VerifySignature(
-		ctypes.NewForkData(
+		deneb.NewForkData(
 			// Deposits must be signed with GENESIS_FORK_VERSION.
 			version.Genesis(),
 			genesisValidatorsRoot,
@@ -174,8 +174,8 @@ func (sp *StateProcessor) createValidator(st *state.StateDB, dep *ctypes.Deposit
 }
 
 // addValidatorToRegistry adds a validator to the registry.
-func (sp *StateProcessor) addValidatorToRegistry(st *state.StateDB, dep *ctypes.Deposit) error {
-	val := ctypes.NewValidatorFromDeposit(
+func (sp *StateProcessor) addValidatorToRegistry(st *state.StateDB, dep *deneb.Deposit) error {
+	val := deneb.NewValidatorFromDeposit(
 		dep.GetPubkey(),
 		dep.GetWithdrawalCredentials(),
 		dep.GetAmount(),

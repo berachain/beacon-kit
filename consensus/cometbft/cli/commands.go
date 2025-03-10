@@ -39,7 +39,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	codedeneb "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
@@ -156,7 +156,7 @@ func ShowValidatorCmd() *cobra.Command {
 				return err
 			}
 
-			registry := codectypes.NewInterfaceRegistry()
+			registry := codedeneb.NewInterfaceRegistry()
 			cryptocodec.RegisterInterfaces(registry)
 			cdc := codec.NewProtoCodec(registry)
 

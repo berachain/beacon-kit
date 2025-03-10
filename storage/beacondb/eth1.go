@@ -21,14 +21,14 @@
 package beacondb
 
 import (
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 )
 
 // GetLatestExecutionPayloadHeader retrieves the latest execution payload
 // header from the BeaconStore.
 func (kv *KVStore) GetLatestExecutionPayloadHeader() (
-	*ctypes.ExecutionPayloadHeader, error,
+	*deneb.ExecutionPayloadHeader, error,
 ) {
 	forkVersion, err := kv.latestExecutionPayloadVersion.Get(kv.ctx)
 	if err != nil {
@@ -41,7 +41,7 @@ func (kv *KVStore) GetLatestExecutionPayloadHeader() (
 // SetLatestExecutionPayloadHeader sets the latest execution payload header in
 // the BeaconStore.
 func (kv *KVStore) SetLatestExecutionPayloadHeader(
-	payloadHeader *ctypes.ExecutionPayloadHeader,
+	payloadHeader *deneb.ExecutionPayloadHeader,
 ) error {
 	version := payloadHeader.Version()
 	if err := kv.latestExecutionPayloadVersion.Set(
@@ -64,11 +64,11 @@ func (kv *KVStore) SetEth1DepositIndex(index uint64) error {
 }
 
 // GetEth1Data retrieves the eth1 data from the beacon state.
-func (kv *KVStore) GetEth1Data() (*ctypes.Eth1Data, error) {
+func (kv *KVStore) GetEth1Data() (*deneb.Eth1Data, error) {
 	return kv.eth1Data.Get(kv.ctx)
 }
 
 // SetEth1Data sets the eth1 data in the beacon state.
-func (kv *KVStore) SetEth1Data(data *ctypes.Eth1Data) error {
+func (kv *KVStore) SetEth1Data(data *deneb.Eth1Data) error {
 	return kv.eth1Data.Set(kv.ctx, data)
 }

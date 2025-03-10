@@ -23,7 +23,7 @@ package blob
 import (
 	"time"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
@@ -53,8 +53,8 @@ func NewSidecarFactory(
 
 // BuildSidecars builds a sidecar.
 func (f *SidecarFactory) BuildSidecars(
-	signedBlk *ctypes.SignedBeaconBlock,
-	bundle ctypes.BlobsBundle,
+	signedBlk *deneb.SignedBeaconBlock,
+	bundle deneb.BlobsBundle,
 ) (types.BlobSidecars, error) {
 	var (
 		blobs       = bundle.GetBlobs()
@@ -76,7 +76,7 @@ func (f *SidecarFactory) BuildSidecars(
 	// We can reuse the signature from the SignedBeaconBlock. Verifying the
 	// signature will require the corresponding BeaconBlock to reconstruct the
 	// signing root.
-	sigHeader := ctypes.NewSignedBeaconBlockHeader(header, signedBlk.GetSignature())
+	sigHeader := deneb.NewSignedBeaconBlockHeader(header, signedBlk.GetSignature())
 
 	for i := range numBlobs {
 		g.Go(func() error {
@@ -101,7 +101,7 @@ func (f *SidecarFactory) BuildSidecars(
 
 // BuildKZGInclusionProof builds a KZG inclusion proof.
 func (f *SidecarFactory) BuildKZGInclusionProof(
-	body *ctypes.BeaconBlockBody,
+	body *deneb.BeaconBlockBody,
 	index math.U64,
 ) ([]common.Root, error) {
 	startTime := time.Now()
@@ -127,7 +127,7 @@ func (f *SidecarFactory) BuildKZGInclusionProof(
 
 // BuildBlockBodyProof builds a block body proof.
 func (f *SidecarFactory) BuildBlockBodyProof(
-	body *ctypes.BeaconBlockBody,
+	body *deneb.BeaconBlockBody,
 ) ([]common.Root, error) {
 	startTime := time.Now()
 	defer f.metrics.measureBuildBlockBodyProofDuration(startTime)
@@ -139,12 +139,12 @@ func (f *SidecarFactory) BuildBlockBodyProof(
 		return nil, err
 	}
 
-	return tree.MerkleProof(ctypes.KZGPositionDeneb)
+	return tree.MerkleProof(deneb.KZGPositionDeneb)
 }
 
 // BuildCommitmentProof builds a commitment proof.
 func (f *SidecarFactory) BuildCommitmentProof(
-	body *ctypes.BeaconBlockBody,
+	body *deneb.BeaconBlockBody,
 	index math.U64,
 ) ([]common.Root, error) {
 	startTime := time.Now()

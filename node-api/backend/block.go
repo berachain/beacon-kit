@@ -21,7 +21,7 @@
 package backend
 
 import (
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/errors"
 	types "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -29,7 +29,7 @@ import (
 )
 
 // BlockHeader returns the block header at the given slot.
-func (b Backend) BlockHeaderAtSlot(slot math.Slot) (*ctypes.BeaconBlockHeader, error) {
+func (b Backend) BlockHeaderAtSlot(slot math.Slot) (*deneb.BeaconBlockHeader, error) {
 	st, _, err := b.stateFromSlot(slot)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get state from slot %d", slot)

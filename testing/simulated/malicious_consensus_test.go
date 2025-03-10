@@ -27,7 +27,7 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/engine-primitives/errors"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
@@ -97,9 +97,9 @@ func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_Errors() {
 	maliciousBlock := simulated.ComputeAndSetInvalidExecutionBlock(s.T(), proposedBlock.GetMessage(), s.TestNode.ChainSpec, maliciousTxs)
 
 	// Re-sign the block
-	maliciousBlockSigned, err := ctypes.NewSignedBeaconBlock(
+	maliciousBlockSigned, err := deneb.NewSignedBeaconBlock(
 		maliciousBlock,
-		&ctypes.ForkData{
+		&deneb.ForkData{
 			CurrentVersion:        s.TestNode.ChainSpec.ActiveForkVersionForSlot(maliciousBlock.GetSlot()),
 			GenesisValidatorsRoot: s.GenesisValidatorsRoot,
 		},

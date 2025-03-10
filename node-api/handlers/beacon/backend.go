@@ -21,7 +21,7 @@
 package beacon
 
 import (
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -49,7 +49,7 @@ type GenesisBackend interface {
 
 type HistoricalBackend interface {
 	StateRootAtSlot(slot math.Slot) (common.Root, error)
-	StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error)
+	StateForkAtSlot(slot math.Slot) (*deneb.Fork, error)
 }
 
 type RandaoBackend interface {
@@ -63,12 +63,12 @@ type BlobBackend interface {
 type BlockBackend interface {
 	BlockRootAtSlot(slot math.Slot) (common.Root, error)
 	BlockRewardsAtSlot(slot math.Slot) (*types.BlockRewardsData, error)
-	BlockHeaderAtSlot(slot math.Slot) (*ctypes.BeaconBlockHeader, error)
+	BlockHeaderAtSlot(slot math.Slot) (*deneb.BeaconBlockHeader, error)
 }
 
 type StateBackend interface {
 	StateRootAtSlot(slot math.Slot) (common.Root, error)
-	StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error)
+	StateForkAtSlot(slot math.Slot) (*deneb.Fork, error)
 	StateAtSlot(slot math.Slot) (*statedb.StateDB, error)
 }
 

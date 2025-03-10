@@ -21,7 +21,7 @@
 package types
 
 import (
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
@@ -43,7 +43,7 @@ type BlobSidecar struct {
 	KzgProof eip4844.KZGProof
 	// BeaconBlockHeader represents the beacon block header for which this blob
 	// is being included.
-	SignedBeaconBlockHeader *ctypes.SignedBeaconBlockHeader
+	SignedBeaconBlockHeader *deneb.SignedBeaconBlockHeader
 	// InclusionProof is the inclusion proof of the blob in the beacon block
 	// body.
 	InclusionProof []common.Root
@@ -53,7 +53,7 @@ type BlobSidecar struct {
 // beacon block.
 func BuildBlobSidecar(
 	index math.U64,
-	header *ctypes.SignedBeaconBlockHeader,
+	header *deneb.SignedBeaconBlockHeader,
 	blob *eip4844.Blob,
 	commitment eip4844.KZGCommitment,
 	proof eip4844.KZGProof,
@@ -76,8 +76,8 @@ func (b *BlobSidecar) HasValidInclusionProof() bool {
 	return header != nil && merkle.IsValidMerkleBranch(
 		b.KzgCommitment.HashTreeRoot(),
 		b.InclusionProof,
-		ctypes.KZGInclusionProofDepth,
-		ctypes.KZGOffsetDeneb+b.Index,
+		deneb.KZGInclusionProofDepth,
+		deneb.KZGOffsetDeneb+b.Index,
 		header.BodyRoot,
 	)
 }
@@ -98,7 +98,7 @@ func (b *BlobSidecar) GetKzgCommitment() eip4844.KZGCommitment {
 	return b.KzgCommitment
 }
 
-func (b *BlobSidecar) GetBeaconBlockHeader() *ctypes.BeaconBlockHeader {
+func (b *BlobSidecar) GetBeaconBlockHeader() *deneb.BeaconBlockHeader {
 	return b.SignedBeaconBlockHeader.Header
 }
 
@@ -113,24 +113,24 @@ func (b *BlobSidecar) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineStaticBytes(codec, &b.KzgCommitment)
 	ssz.DefineStaticBytes(codec, &b.KzgProof)
 	ssz.DefineStaticObject(codec, &b.SignedBeaconBlockHeader)
-	ssz.DefineCheckedArrayOfStaticBytes(codec, &b.InclusionProof, ctypes.KZGInclusionProofDepth)
+	ssz.DefineCheckedArrayOfStaticBytes(codec, &b.InclusionProof, deneb.KZGInclusionProofDepth)
 }
 
 // SizeSSZ returns the size of the BlobSidecar object in SSZ encoding.
 // TODO: get from accessible chainspec field params.
 func (b *BlobSidecar) SizeSSZ(sizer *ssz.Sizer) uint32 {
-	ssize := (*ctypes.SignedBeaconBlockHeader)(nil).SizeSSZ(sizer)
+	ssize := (*deneb.SignedBeaconBlockHeader)(nil).SizeSSZ(sizer)
 	return 8 + // Index
 		131072 + // Blob
 		48 + // KzgCommitment
 		48 + // KzgProof
 		ssize + // SignedBeaconBlockHeader
-		ctypes.KZGInclusionProofDepth*32 // InclusionProof
+		deneb.KZGInclusionProofDepth*32 // InclusionProof
 }
 
 // MarshalSSZ marshals the BlobSidecar object to SSZ format.
 func (b *BlobSidecar) MarshalSSZ() ([]byte, error) {
-	if len(b.InclusionProof) != ctypes.KZGInclusionProofDepth {
+	if len(b.InclusionProof) != deneb.KZGInclusionProofDepth {
 		return []byte{}, errors.New("invalid inclusion proof length")
 	}
 	buf := make([]byte, ssz.Size(b))
@@ -140,7 +140,7 @@ func (b *BlobSidecar) MarshalSSZ() ([]byte, error) {
 // UnmarshalSSZ unmarshals the BlobSidecar object from SSZ format.
 func (b *BlobSidecar) UnmarshalSSZ(buf []byte) error {
 	err := ssz.DecodeFromBytes(buf, b)
-	if len(b.InclusionProof) != ctypes.KZGInclusionProofDepth {
+	if len(b.InclusionProof) != deneb.KZGInclusionProofDepth {
 		return errors.New("invalid inclusion proof length")
 	}
 	return err
@@ -157,6 +157,6 @@ func (b *BlobSidecar) HashTreeRoot() common.Root {
 	return ssz.HashSequential(b)
 }
 
-func (b *BlobSidecar) GetSignedBeaconBlockHeader() *ctypes.SignedBeaconBlockHeader {
+func (b *BlobSidecar) GetSignedBeaconBlockHeader() *deneb.SignedBeaconBlockHeader {
 	return b.SignedBeaconBlockHeader
 }

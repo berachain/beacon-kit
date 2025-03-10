@@ -24,7 +24,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/chain"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -58,7 +58,7 @@ func New(
 func (s *Store) IsDataAvailable(
 	_ context.Context,
 	slot math.Slot,
-	body *ctypes.BeaconBlockBody,
+	body *deneb.BeaconBlockBody,
 ) bool {
 	for _, commitment := range body.GetBlobKzgCommitments() {
 		// Check if the block data is available in the IndexDB

@@ -24,7 +24,7 @@ import (
 	"context"
 	"fmt"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	contypes "github.com/berachain/beacon-kit/consensus/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
@@ -49,7 +49,7 @@ func (s *Service) sendPostBlockFCU(
 	// EL of the new head.
 	beaconBlk := blk.GetBeaconBlock()
 	// TODO: Switch to New().
-	req := ctypes.BuildForkchoiceUpdateRequestNoAttrs(
+	req := deneb.BuildForkchoiceUpdateRequestNoAttrs(
 		&engineprimitives.ForkchoiceStateV1{
 			HeadBlockHash:      lph.GetBlockHash(),
 			SafeBlockHash:      lph.GetParentHash(),

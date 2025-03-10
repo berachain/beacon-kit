@@ -24,7 +24,7 @@ import (
 	"strconv"
 	"testing"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/da/types"
 	byteslib "github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -38,7 +38,7 @@ func TestEmptySidecarMarshalling(t *testing.T) {
 	t.Parallel()
 	inclusionProof := make([]common.Root, 0)
 	// Create an empty BlobSidecar
-	for i := 1; i <= ctypes.KZGInclusionProofDepth; i++ {
+	for i := 1; i <= deneb.KZGInclusionProofDepth; i++ {
 		it := byteslib.ExtendToSize([]byte(strconv.Itoa(i)), byteslib.B32Size)
 		proof, errBytes := byteslib.ToBytes32(it)
 		require.NoError(t, errBytes)
@@ -47,8 +47,8 @@ func TestEmptySidecarMarshalling(t *testing.T) {
 
 	sidecar := types.BuildBlobSidecar(
 		math.U64(0),
-		&ctypes.SignedBeaconBlockHeader{
-			Header:    &ctypes.BeaconBlockHeader{},
+		&deneb.SignedBeaconBlockHeader{
+			Header:    &deneb.BeaconBlockHeader{},
 			Signature: crypto.BLSSignature{},
 		},
 		&eip4844.Blob{},
@@ -92,7 +92,7 @@ func TestValidateBlockRoots(t *testing.T) {
 	t.Parallel()
 	inclusionProof := make([]common.Root, 0)
 	// Create a sample BlobSidecar with valid roots
-	for i := 1; i <= ctypes.KZGInclusionProofDepth; i++ {
+	for i := 1; i <= deneb.KZGInclusionProofDepth; i++ {
 		it := byteslib.ExtendToSize([]byte(strconv.Itoa(i)), byteslib.B32Size)
 		proof, errBytes := byteslib.ToBytes32(it)
 		require.NoError(t, errBytes)
@@ -101,8 +101,8 @@ func TestValidateBlockRoots(t *testing.T) {
 
 	validSidecar := types.BuildBlobSidecar(
 		math.U64(0),
-		&ctypes.SignedBeaconBlockHeader{
-			Header: &ctypes.BeaconBlockHeader{
+		&deneb.SignedBeaconBlockHeader{
+			Header: &deneb.BeaconBlockHeader{
 				StateRoot: [32]byte{1},
 				BodyRoot:  [32]byte{2},
 			},
@@ -128,8 +128,8 @@ func TestValidateBlockRoots(t *testing.T) {
 	// Create a sample BlobSidecar with invalid roots
 	differentBlockRootSidecar := types.BuildBlobSidecar(
 		math.U64(0),
-		&ctypes.SignedBeaconBlockHeader{
-			Header: &ctypes.BeaconBlockHeader{
+		&deneb.SignedBeaconBlockHeader{
+			Header: &deneb.BeaconBlockHeader{
 				StateRoot: [32]byte{1},
 				BodyRoot:  [32]byte{3},
 			},

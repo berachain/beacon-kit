@@ -20,14 +20,14 @@
 
 package beacondb
 
-import ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+import deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 
 // SetFork sets the fork version for the given epoch.
-func (kv *KVStore) SetFork(fork *ctypes.Fork) error {
+func (kv *KVStore) SetFork(fork *deneb.Fork) error {
 	return kv.fork.Set(kv.ctx, fork)
 }
 
 // GetFork gets the fork version for the given epoch.
-func (kv *KVStore) GetFork() (*ctypes.Fork, error) {
+func (kv *KVStore) GetFork() (*deneb.Fork, error) {
 	return kv.fork.Get(kv.ctx)
 }

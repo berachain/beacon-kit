@@ -27,7 +27,7 @@ import (
 	"math/big"
 	"unsafe"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	libcommon "github.com/berachain/beacon-kit/primitives/common"
@@ -87,10 +87,10 @@ func transformSimulatedBlockToGethBlock(simBlock *execution.SimulatedBlock, txs 
 
 // transformExecutableDataToExecutionPayload converts Ethereum executable data into a beacon execution payload.
 // This function supports fork versions prior to Deneb1. For unsupported fork versions, it returns an error.
-func transformExecutableDataToExecutionPayload(forkVersion libcommon.Version, data *gethprimitives.ExecutableData) (*ctypes.ExecutionPayload, error) {
+func transformExecutableDataToExecutionPayload(forkVersion libcommon.Version, data *gethprimitives.ExecutableData) (*deneb.ExecutionPayload, error) {
 	// Check that the fork version is supported (pre-Deneb1).
 	if !version.IsBefore(forkVersion, version.Deneb1()) {
-		return nil, ctypes.ErrForkVersionNotSupported
+		return nil, deneb.ErrForkVersionNotSupported
 	}
 
 	// Convert withdrawals
@@ -117,7 +117,7 @@ func transformExecutableDataToExecutionPayload(forkVersion libcommon.Version, da
 	}
 
 	// Construct the execution payload.
-	executionPayload := &ctypes.ExecutionPayload{
+	executionPayload := &deneb.ExecutionPayload{
 		ParentHash:    libcommon.ExecutionHash(data.ParentHash),
 		FeeRecipient:  libcommon.ExecutionAddress(data.FeeRecipient),
 		StateRoot:     libcommon.Bytes32(data.StateRoot),

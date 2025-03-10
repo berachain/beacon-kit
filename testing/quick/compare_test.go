@@ -29,7 +29,7 @@ import (
 	"testing/quick"
 	"unsafe"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/math"
 	zcommon "github.com/protolambda/zrnt/eth2/beacon/common"
@@ -49,7 +49,7 @@ var (
 
 func TestExecutionPayloadHashTreeRootZrnt(t *testing.T) {
 	t.Parallel()
-	f := func(payload *ctypes.ExecutionPayload, logsBloom [256]byte) bool {
+	f := func(payload *deneb.ExecutionPayload, logsBloom [256]byte) bool {
 		// skip these cases lest we trigger a
 		// nil-pointer dereference in fastssz
 		if payload == nil ||

@@ -26,7 +26,7 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/chain"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/da/kzg"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -64,7 +64,7 @@ func newVerifier(
 func (bv *verifier) verifySidecars(
 	ctx context.Context,
 	sidecars datypes.BlobSidecars,
-	blkHeader *ctypes.BeaconBlockHeader,
+	blkHeader *deneb.BeaconBlockHeader,
 	kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],
 ) error {
 	numSidecars := uint64(len(sidecars))

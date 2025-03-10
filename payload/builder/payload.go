@@ -25,7 +25,7 @@ import (
 	"fmt"
 	"time"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -68,7 +68,7 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 	}
 
 	// Submit the forkchoice update to the execution client.
-	req := ctypes.BuildForkchoiceUpdateRequest(
+	req := deneb.BuildForkchoiceUpdateRequest(
 		&engineprimitives.ForkchoiceStateV1{
 			HeadBlockHash:      headEth1BlockHash,
 			SafeBlockHash:      finalEth1BlockHash,
@@ -100,7 +100,7 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 	parentBlockRoot common.Root,
 	parentEth1Hash common.ExecutionHash,
 	finalBlockHash common.ExecutionHash,
-) (ctypes.BuiltExecutionPayloadEnv, error) {
+) (deneb.BuiltExecutionPayloadEnv, error) {
 	if !pb.Enabled() {
 		return nil, ErrPayloadBuilderDisabled
 	}
@@ -149,7 +149,7 @@ func (pb *PayloadBuilder) RetrievePayload(
 	ctx context.Context,
 	slot math.Slot,
 	parentBlockRoot common.Root,
-) (ctypes.BuiltExecutionPayloadEnv, error) {
+) (deneb.BuiltExecutionPayloadEnv, error) {
 	if !pb.Enabled() {
 		return nil, ErrPayloadBuilderDisabled
 	}
@@ -198,10 +198,10 @@ func (pb *PayloadBuilder) getPayload(
 	ctx context.Context,
 	payloadID engineprimitives.PayloadID,
 	slot math.U64,
-) (ctypes.BuiltExecutionPayloadEnv, error) {
+) (deneb.BuiltExecutionPayloadEnv, error) {
 	envelope, err := pb.ee.GetPayload(
 		ctx,
-		&ctypes.GetPayloadRequest{
+		&deneb.GetPayloadRequest{
 			PayloadID:   payloadID,
 			ForkVersion: pb.chainSpec.ActiveForkVersionForSlot(slot),
 		},

@@ -21,13 +21,13 @@
 package core
 
 import (
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 func (sp *StateProcessor) GetSignatureVerifierFn(st *statedb.StateDB) (
-	func(blk *ctypes.BeaconBlock, signature crypto.BLSSignature) error,
+	func(blk *deneb.BeaconBlock, signature crypto.BLSSignature) error,
 	error,
 ) {
 	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
@@ -35,8 +35,8 @@ func (sp *StateProcessor) GetSignatureVerifierFn(st *statedb.StateDB) (
 		return nil, err
 	}
 
-	return func(blk *ctypes.BeaconBlock, signature crypto.BLSSignature) error {
-		fd := ctypes.NewForkData(
+	return func(blk *deneb.BeaconBlock, signature crypto.BLSSignature) error {
+		fd := deneb.NewForkData(
 			sp.cs.ActiveForkVersionForSlot(blk.GetSlot()), genesisValidatorsRoot,
 		)
 		domain := fd.ComputeDomain(sp.cs.DomainTypeProposer())
@@ -46,7 +46,7 @@ func (sp *StateProcessor) GetSignatureVerifierFn(st *statedb.StateDB) (
 		if err != nil {
 			return err
 		}
-		signingRoot := ctypes.ComputeSigningRoot(blk, domain)
+		signingRoot := deneb.ComputeSigningRoot(blk, domain)
 		return sp.signer.VerifySignature(proposer.GetPubkey(), signingRoot[:], signature)
 	}, nil
 }

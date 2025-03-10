@@ -25,13 +25,13 @@ import (
 	"strconv"
 
 	"github.com/berachain/beacon-kit/cli/utils/parser"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-func BeaconBlockHeaderFromConsensus(h *ctypes.BeaconBlockHeader) *BeaconBlockHeader {
+func BeaconBlockHeaderFromConsensus(h *deneb.BeaconBlockHeader) *BeaconBlockHeader {
 	return &BeaconBlockHeader{
 		Slot:          fmt.Sprintf("%d", h.Slot),
 		ProposerIndex: fmt.Sprintf("%d", h.ProposerIndex),
@@ -41,7 +41,7 @@ func BeaconBlockHeaderFromConsensus(h *ctypes.BeaconBlockHeader) *BeaconBlockHea
 	}
 }
 
-func SignedBeaconBlockHeaderFromConsensus(h *ctypes.SignedBeaconBlockHeader) *SignedBeaconBlockHeader {
+func SignedBeaconBlockHeaderFromConsensus(h *deneb.SignedBeaconBlockHeader) *SignedBeaconBlockHeader {
 	return &SignedBeaconBlockHeader{
 		Message:   BeaconBlockHeaderFromConsensus(h.Header),
 		Signature: h.Signature.String(),
@@ -63,7 +63,7 @@ func SidecarFromConsensus(sc *datypes.BlobSidecar) *Sidecar {
 	}
 }
 
-func ValidatorFromConsensus(v *ctypes.Validator) *Validator {
+func ValidatorFromConsensus(v *deneb.Validator) *Validator {
 	return &Validator{
 		PublicKey:                  v.GetPubkey().String(),
 		WithdrawalCredentials:      v.GetWithdrawalCredentials().String(),
@@ -77,7 +77,7 @@ func ValidatorFromConsensus(v *ctypes.Validator) *Validator {
 }
 
 // useful in UTs
-func ValidatorToConsensus(v *Validator) (*ctypes.Validator, error) {
+func ValidatorToConsensus(v *Validator) (*deneb.Validator, error) {
 	pk, err := parser.ConvertPubkey(v.PublicKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed parsing public key: %w", err)
@@ -106,7 +106,7 @@ func ValidatorToConsensus(v *Validator) (*ctypes.Validator, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed parsing withdrawable epoch: %w", err)
 	}
-	return &ctypes.Validator{
+	return &deneb.Validator{
 		Pubkey:                     pk,
 		WithdrawalCredentials:      wc,
 		EffectiveBalance:           eb,

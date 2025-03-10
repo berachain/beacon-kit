@@ -25,7 +25,7 @@ import (
 	"encoding/json"
 
 	"github.com/berachain/beacon-kit/chain"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -60,7 +60,7 @@ type (
 	}
 
 	ConsensusBlock interface {
-		GetBeaconBlock() *ctypes.BeaconBlock
+		GetBeaconBlock() *deneb.BeaconBlock
 
 		// GetProposerAddress returns the address of the validator
 		// selected by consensus to propose the block
@@ -95,9 +95,9 @@ type (
 		// GetSlot returns the slot number of the block.
 		GetSlot() math.Slot
 		// GetBody returns the body of the block.
-		GetBody() *ctypes.BeaconBlockBody
+		GetBody() *deneb.BeaconBlockBody
 		// GetHeader returns the header of the block.
-		GetHeader() *ctypes.BeaconBlockHeader
+		GetHeader() *deneb.BeaconBlockHeader
 		// GetParentBlockRoot returns the root of the parent block.
 		GetParentBlockRoot() common.Root
 		// GetStateRoot returns the state root of the block.
@@ -120,25 +120,25 @@ type (
 		// GetRandaoReveal returns the RANDAO reveal signature.
 		GetRandaoReveal() crypto.BLSSignature
 		// GetExecutionPayload returns the execution payload.
-		GetExecutionPayload() *ctypes.ExecutionPayload
+		GetExecutionPayload() *deneb.ExecutionPayload
 		// GetDeposits returns the list of deposits.
-		GetDeposits() []*ctypes.Deposit
+		GetDeposits() []*deneb.Deposit
 		// GetBlobKzgCommitments returns the KZG commitments for the blobs.
 		GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 		// SetRandaoReveal sets the Randao reveal of the beacon block body.
 		SetRandaoReveal(crypto.BLSSignature)
 		// SetEth1Data sets the Eth1 data of the beacon block body.
-		SetEth1Data(*ctypes.Eth1Data)
+		SetEth1Data(*deneb.Eth1Data)
 		// SetDeposits sets the deposits of the beacon block body.
-		SetDeposits([]*ctypes.Deposit)
+		SetDeposits([]*deneb.Deposit)
 		// SetExecutionPayload sets the execution data of the beacon block body.
-		SetExecutionPayload(*ctypes.ExecutionPayload)
+		SetExecutionPayload(*deneb.ExecutionPayload)
 		// SetGraffiti sets the graffiti of the beacon block body.
 		SetGraffiti(common.Bytes32)
 		// SetAttestations sets the attestations of the beacon block body.
-		SetAttestations([]*ctypes.AttestationData)
+		SetAttestations([]*deneb.AttestationData)
 		// SetSlashingInfo sets the slashing info of the beacon block body.
-		SetSlashingInfo([]*ctypes.SlashingInfo)
+		SetSlashingInfo([]*deneb.SlashingInfo)
 		// SetBlobKzgCommitments sets the blob KZG commitments of the beacon
 		// block body.
 		SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])
@@ -156,14 +156,14 @@ type (
 			forkVersion uint32,
 			genesisValidatorsRoot common.Root,
 			slot math.U64,
-			fork *ctypes.Fork,
-			latestBlockHeader *ctypes.BeaconBlockHeader,
+			fork *deneb.Fork,
+			latestBlockHeader *deneb.BeaconBlockHeader,
 			blockRoots []common.Root,
 			stateRoots []common.Root,
-			eth1Data *ctypes.Eth1Data,
+			eth1Data *deneb.Eth1Data,
 			eth1DepositIndex uint64,
-			latestExecutionPayloadHeader *ctypes.ExecutionPayloadHeader,
-			validators []*ctypes.Validator,
+			latestExecutionPayloadHeader *deneb.ExecutionPayloadHeader,
+			validators []*deneb.Validator,
 			balances []uint64,
 			randaoMixes []common.Bytes32,
 			nextWithdrawalIndex uint64,
@@ -185,14 +185,14 @@ type (
 		VerifySidecars(
 			ctx context.Context,
 			sidecars datypes.BlobSidecars,
-			blkHeader *ctypes.BeaconBlockHeader,
+			blkHeader *deneb.BeaconBlockHeader,
 			kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],
 		) error
 	}
 
 	ConsensusSidecars interface {
 		GetSidecars() datypes.BlobSidecars
-		GetHeader() *ctypes.BeaconBlockHeader
+		GetHeader() *deneb.BeaconBlockHeader
 	}
 
 	ConsensusEngine interface {
@@ -213,7 +213,7 @@ type (
 		// New creates a new deposit.
 		New(
 			crypto.BLSPubkey,
-			ctypes.WithdrawalCredentials,
+			deneb.WithdrawalCredentials,
 			math.U64,
 			crypto.BLSSignature,
 			uint64,
@@ -227,13 +227,13 @@ type (
 		// GetPubkey returns the public key of the validator.
 		GetPubkey() crypto.BLSPubkey
 		// GetWithdrawalCredentials returns the withdrawal credentials.
-		GetWithdrawalCredentials() ctypes.WithdrawalCredentials
+		GetWithdrawalCredentials() deneb.WithdrawalCredentials
 		// HasEth1WithdrawalCredentials returns true if the deposit has eth1
 		// withdrawal credentials.
 		HasEth1WithdrawalCredentials() bool
 		// VerifySignature verifies the deposit and creates a validator.
 		VerifySignature(
-			forkData *ctypes.ForkData,
+			forkData *deneb.ForkData,
 			domainType common.DomainType,
 			signatureVerificationFn func(
 				pubkey crypto.BLSPubkey,
@@ -248,9 +248,9 @@ type (
 		// GetForkVersion returns the fork version.
 		GetForkVersion() common.Version
 		// GetDeposits returns the deposits.
-		GetDeposits() []*ctypes.Deposit
+		GetDeposits() []*deneb.Deposit
 		// GetExecutionPayloadHeader returns the execution payload header.
-		GetExecutionPayloadHeader() *ctypes.ExecutionPayloadHeader
+		GetExecutionPayloadHeader() *deneb.ExecutionPayloadHeader
 	}
 
 	// IndexDB is the interface for the range DB.
@@ -281,7 +281,7 @@ type (
 			ctx context.Context,
 			slot math.Slot,
 			parentBlockRoot common.Root,
-		) (ctypes.BuiltExecutionPayloadEnv, error)
+		) (deneb.BuiltExecutionPayloadEnv, error)
 		// RequestPayloadSync requests a payload for the given slot and
 		// blocks until the payload is delivered.
 		RequestPayloadSync(
@@ -292,7 +292,7 @@ type (
 			parentBlockRoot common.Root,
 			headEth1BlockHash common.ExecutionHash,
 			finalEth1BlockHash common.ExecutionHash,
-		) (ctypes.BuiltExecutionPayloadEnv, error)
+		) (deneb.BuiltExecutionPayloadEnv, error)
 	}
 
 	// 	// PayloadAttributes is the interface for the payload attributes.
@@ -316,8 +316,8 @@ type (
 		// from the eth1 deposits.
 		InitializePreminedBeaconStateFromEth1(
 			*statedb.StateDB,
-			ctypes.Deposits,
-			*ctypes.ExecutionPayloadHeader,
+			deneb.Deposits,
+			*deneb.ExecutionPayloadHeader,
 			common.Version,
 		) (transition.ValidatorUpdates, error)
 		// ProcessSlot processes the slot.
@@ -328,10 +328,10 @@ type (
 		Transition(
 			ctx core.ReadOnlyContext,
 			st *statedb.StateDB,
-			blk *ctypes.BeaconBlock,
+			blk *deneb.BeaconBlock,
 		) (transition.ValidatorUpdates, error)
 		GetSignatureVerifierFn(st *statedb.StateDB) (
-			func(blk *ctypes.BeaconBlock, signature crypto.BLSSignature) error,
+			func(blk *deneb.BeaconBlock, signature crypto.BLSSignature) error,
 			error,
 		)
 	}
@@ -339,8 +339,8 @@ type (
 	SidecarFactory interface {
 		// BuildSidecars builds sidecars for a given block and blobs bundle.
 		BuildSidecars(
-			signedBlk *ctypes.SignedBeaconBlock,
-			blobs ctypes.BlobsBundle,
+			signedBlk *deneb.SignedBeaconBlock,
+			blobs deneb.BlobsBundle,
 		) (datypes.BlobSidecars, error)
 	}
 
@@ -348,7 +348,7 @@ type (
 	// components required by the beacon node.
 	StorageBackend interface {
 		AvailabilityStore() *dastore.Store
-		BlockStore() *block.KVStore[*ctypes.BeaconBlock]
+		BlockStore() *block.KVStore[*deneb.BeaconBlock]
 		DepositStore() *depositdb.KVStore
 		// StateFromContext retrieves the beacon state from the given context.
 		StateFromContext(context.Context) *statedb.StateDB
@@ -464,10 +464,10 @@ type (
 		// GetLatestExecutionPayloadHeader retrieves the latest execution
 		// payload
 		// header.
-		GetLatestExecutionPayloadHeader() (*ctypes.ExecutionPayloadHeader, error)
+		GetLatestExecutionPayloadHeader() (*deneb.ExecutionPayloadHeader, error)
 		// SetLatestExecutionPayloadHeader sets the latest execution payload
 		// header.
-		SetLatestExecutionPayloadHeader(payloadHeader *ctypes.ExecutionPayloadHeader) error
+		SetLatestExecutionPayloadHeader(payloadHeader *deneb.ExecutionPayloadHeader) error
 		// GetEth1DepositIndex retrieves the eth1 deposit index.
 		GetEth1DepositIndex() (uint64, error)
 		// SetEth1DepositIndex sets the eth1 deposit index.
@@ -483,27 +483,27 @@ type (
 		// SetSlot sets the current slot.
 		SetSlot(slot math.Slot) error
 		// GetFork retrieves the fork.
-		GetFork() (*ctypes.Fork, error)
+		GetFork() (*deneb.Fork, error)
 		// SetFork sets the fork.
-		SetFork(fork *ctypes.Fork) error
+		SetFork(fork *deneb.Fork) error
 		// GetGenesisValidatorsRoot retrieves the genesis validators root.
 		GetGenesisValidatorsRoot() (common.Root, error)
 		// SetGenesisValidatorsRoot sets the genesis validators root.
 		SetGenesisValidatorsRoot(root common.Root) error
 		// GetLatestBlockHeader retrieves the latest block header.
-		GetLatestBlockHeader() (*ctypes.BeaconBlockHeader, error)
+		GetLatestBlockHeader() (*deneb.BeaconBlockHeader, error)
 		// SetLatestBlockHeader sets the latest block header.
-		SetLatestBlockHeader(header *ctypes.BeaconBlockHeader) error
+		SetLatestBlockHeader(header *deneb.BeaconBlockHeader) error
 		// GetBlockRootAtIndex retrieves the block root at the given index.
 		GetBlockRootAtIndex(index uint64) (common.Root, error)
 		// StateRootAtIndex retrieves the state root at the given index.
 		StateRootAtIndex(index uint64) (common.Root, error)
 		// GetEth1Data retrieves the eth1 data.
-		GetEth1Data() (*ctypes.Eth1Data, error)
+		GetEth1Data() (*deneb.Eth1Data, error)
 		// SetEth1Data sets the eth1 data.
-		SetEth1Data(data *ctypes.Eth1Data) error
+		SetEth1Data(data *deneb.Eth1Data) error
 		// GetValidators retrieves all validators.
-		GetValidators() (ctypes.Validators, error)
+		GetValidators() (deneb.Validators, error)
 		// GetBalances retrieves all balances.
 		GetBalances() ([]uint64, error)
 		// GetNextWithdrawalIndex retrieves the next withdrawal index.
@@ -534,7 +534,7 @@ type (
 		// GetTotalActiveBalances retrieves the total active balances.
 		GetTotalActiveBalances(uint64) (math.Gwei, error)
 		// ValidatorByIndex retrieves the validator at the given index.
-		ValidatorByIndex(index math.ValidatorIndex) (*ctypes.Validator, error)
+		ValidatorByIndex(index math.ValidatorIndex) (*deneb.Validator, error)
 		// UpdateBlockRootAtIndex updates the block root at the given index.
 		UpdateBlockRootAtIndex(index uint64, root common.Root) error
 		// UpdateStateRootAtIndex updates the state root at the given index.
@@ -544,7 +544,7 @@ type (
 		// UpdateValidatorAtIndex updates the validator at the given index.
 		UpdateValidatorAtIndex(
 			index math.ValidatorIndex,
-			validator *ctypes.Validator,
+			validator *deneb.Validator,
 		) error
 		// ValidatorIndexByPubkey retrieves the validator index by the given
 		// pubkey.
@@ -552,7 +552,7 @@ type (
 			pubkey crypto.BLSPubkey,
 		) (math.ValidatorIndex, error)
 		// AddValidator adds a validator.
-		AddValidator(val *ctypes.Validator) error
+		AddValidator(val *deneb.Validator) error
 		// ValidatorIndexByCometBFTAddress retrieves the validator index by the
 		// given comet BFT address.
 		ValidatorIndexByCometBFTAddress(
@@ -560,7 +560,7 @@ type (
 		) (math.ValidatorIndex, error)
 		// GetValidatorsByEffectiveBalance retrieves validators by effective
 		// balance.
-		GetValidatorsByEffectiveBalance() ([]*ctypes.Validator, error)
+		GetValidatorsByEffectiveBalance() ([]*deneb.Validator, error)
 	}
 
 	// ReadOnlyBeaconState is the interface for a read-only beacon state.
@@ -575,18 +575,18 @@ type (
 		GetBalances() ([]uint64, error)
 		GetBalance(math.ValidatorIndex) (math.Gwei, error)
 		GetSlot() (math.Slot, error)
-		GetFork() (*ctypes.Fork, error)
+		GetFork() (*deneb.Fork, error)
 		GetGenesisValidatorsRoot() (common.Root, error)
 		GetBlockRootAtIndex(uint64) (common.Root, error)
-		GetLatestBlockHeader() (*ctypes.BeaconBlockHeader, error)
+		GetLatestBlockHeader() (*deneb.BeaconBlockHeader, error)
 		GetTotalActiveBalances(uint64) (math.Gwei, error)
-		GetValidators() (ctypes.Validators, error)
+		GetValidators() (deneb.Validators, error)
 		GetSlashingAtIndex(uint64) (math.Gwei, error)
 		GetTotalSlashing() (math.Gwei, error)
 		GetNextWithdrawalIndex() (uint64, error)
 		GetNextWithdrawalValidatorIndex() (math.ValidatorIndex, error)
 		GetTotalValidators() (uint64, error)
-		GetValidatorsByEffectiveBalance() ([]*ctypes.Validator, error)
+		GetValidatorsByEffectiveBalance() ([]*deneb.Validator, error)
 		ValidatorIndexByCometBFTAddress(
 			cometBFTAddress []byte,
 		) (math.ValidatorIndex, error)
@@ -600,10 +600,10 @@ type (
 		WriteOnlyValidators
 
 		SetGenesisValidatorsRoot(root common.Root) error
-		SetFork(*ctypes.Fork) error
+		SetFork(*deneb.Fork) error
 		SetSlot(math.Slot) error
 		UpdateBlockRootAtIndex(uint64, common.Root) error
-		SetLatestBlockHeader(*ctypes.BeaconBlockHeader) error
+		SetLatestBlockHeader(*deneb.BeaconBlockHeader) error
 		IncreaseBalance(math.ValidatorIndex, math.Gwei) error
 		DecreaseBalance(math.ValidatorIndex, math.Gwei) error
 		UpdateSlashingAtIndex(uint64, math.Gwei) error
@@ -642,10 +642,10 @@ type (
 	WriteOnlyValidators interface {
 		UpdateValidatorAtIndex(
 			math.ValidatorIndex,
-			*ctypes.Validator,
+			*deneb.Validator,
 		) error
 
-		AddValidator(*ctypes.Validator) error
+		AddValidator(*deneb.Validator) error
 	}
 
 	// ReadOnlyValidators has read access to validator methods.
@@ -656,21 +656,21 @@ type (
 
 		ValidatorByIndex(
 			math.ValidatorIndex,
-		) (*ctypes.Validator, error)
+		) (*deneb.Validator, error)
 	}
 
 	// WriteOnlyEth1Data has write access to eth1 data.
 	WriteOnlyEth1Data interface {
-		SetEth1Data(*ctypes.Eth1Data) error
+		SetEth1Data(*deneb.Eth1Data) error
 		SetEth1DepositIndex(uint64) error
-		SetLatestExecutionPayloadHeader(*ctypes.ExecutionPayloadHeader) error
+		SetLatestExecutionPayloadHeader(*deneb.ExecutionPayloadHeader) error
 	}
 
 	// ReadOnlyEth1Data has read access to eth1 data.
 	ReadOnlyEth1Data interface {
-		GetEth1Data() (*ctypes.Eth1Data, error)
+		GetEth1Data() (*deneb.Eth1Data, error)
 		GetEth1DepositIndex() (uint64, error)
-		GetLatestExecutionPayloadHeader() (*ctypes.ExecutionPayloadHeader, error)
+		GetLatestExecutionPayloadHeader() (*deneb.ExecutionPayloadHeader, error)
 	}
 
 	// ReadOnlyWithdrawals only has read access to withdrawal methods.
@@ -736,7 +736,7 @@ type (
 
 	HistoricalBackend interface {
 		StateRootAtSlot(slot math.Slot) (common.Root, error)
-		StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error)
+		StateForkAtSlot(slot math.Slot) (*deneb.Fork, error)
 	}
 
 	RandaoBackend interface {
@@ -750,12 +750,12 @@ type (
 	BlockBackend interface {
 		BlockRootAtSlot(slot math.Slot) (common.Root, error)
 		BlockRewardsAtSlot(slot math.Slot) (*types.BlockRewardsData, error)
-		BlockHeaderAtSlot(slot math.Slot) (*ctypes.BeaconBlockHeader, error)
+		BlockHeaderAtSlot(slot math.Slot) (*deneb.BeaconBlockHeader, error)
 	}
 
 	StateBackend interface {
 		StateRootAtSlot(slot math.Slot) (common.Root, error)
-		StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error)
+		StateForkAtSlot(slot math.Slot) (*deneb.Fork, error)
 		StateFromSlotForProof(slot math.Slot) (*statedb.StateDB, math.Slot, error)
 		StateAtSlot(slot math.Slot) (*statedb.StateDB, error)
 	}

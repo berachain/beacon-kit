@@ -24,7 +24,7 @@ import (
 	"context"
 	"testing"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/execution/client/ethclient"
 	"github.com/berachain/beacon-kit/execution/client/ethclient/rpc"
@@ -58,7 +58,7 @@ func TestNewPayloadWithValidVersion(t *testing.T) {
 	c := ethclient.New(&stubRPCClient{t: t})
 	ctx := context.Background()
 
-	payload := &ctypes.ExecutionPayload{EpVersion: version.Deneb1()}
+	payload := &deneb.ExecutionPayload{EpVersion: version.Deneb1()}
 	versionedHashes := []common.ExecutionHash{}
 	var parentBlockRoot *common.Root
 
@@ -72,7 +72,7 @@ func TestNewPayloadWithInvalidVersion(t *testing.T) {
 	c := ethclient.New(&stubRPCClient{t: t})
 	ctx := context.Background()
 
-	payload := &ctypes.ExecutionPayload{EpVersion: version.Capella()}
+	payload := &deneb.ExecutionPayload{EpVersion: version.Capella()}
 	versionedHashes := []common.ExecutionHash{}
 	var parentBlockRoot *common.Root
 

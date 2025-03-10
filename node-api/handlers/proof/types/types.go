@@ -21,7 +21,7 @@
 package types
 
 import (
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	fastssz "github.com/ferranbt/fastssz"
@@ -33,11 +33,11 @@ type BeaconState[
 ] interface {
 	// GetLatestExecutionPayloadHeader returns the latest execution payload
 	// header.
-	GetLatestExecutionPayloadHeader() (*ctypes.ExecutionPayloadHeader, error)
+	GetLatestExecutionPayloadHeader() (*deneb.ExecutionPayloadHeader, error)
 	// GetMarshallable returns the marshallable version of the beacon state.
 	GetMarshallable() (BeaconStateMarshallableT, error)
 	// ValidatorByIndex retrieves the validator at the given index.
-	ValidatorByIndex(index math.ValidatorIndex) (*ctypes.Validator, error)
+	ValidatorByIndex(index math.ValidatorIndex) (*deneb.Validator, error)
 }
 
 // BeaconStateMarshallable is the interface for a beacon state that can be

@@ -24,10 +24,10 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/chain"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 )
 
-func (s *Service) processPruning(ctx context.Context, beaconBlk *ctypes.BeaconBlock) error {
+func (s *Service) processPruning(ctx context.Context, beaconBlk *deneb.BeaconBlock) error {
 	// prune availability store
 	start, end := availabilityPruneRangeFn(beaconBlk.GetSlot().Unwrap(), s.chainSpec)
 	err := s.storageBackend.AvailabilityStore().Prune(start, end)
@@ -45,7 +45,7 @@ func (s *Service) processPruning(ctx context.Context, beaconBlk *ctypes.BeaconBl
 	return nil
 }
 
-func depositPruneRangeFn([]*ctypes.Deposit, chain.Spec) (uint64, uint64) {
+func depositPruneRangeFn([]*deneb.Deposit, chain.Spec) (uint64, uint64) {
 	// The whole deposit list is validated in consensus and its Merkle root is part of
 	// Beacon State. Therefore every node must keep the full deposit list and deposits
 	// pruning must be turned off.

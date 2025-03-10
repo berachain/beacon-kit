@@ -21,7 +21,7 @@
 package beacondb
 
 import (
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/primitives/common"
 )
 
@@ -46,14 +46,14 @@ func (kv *KVStore) GetBlockRootAtIndex(
 
 // SetLatestBlockHeader sets the latest block header in the BeaconStore.
 func (kv *KVStore) SetLatestBlockHeader(
-	header *ctypes.BeaconBlockHeader,
+	header *deneb.BeaconBlockHeader,
 ) error {
 	return kv.latestBlockHeader.Set(kv.ctx, header)
 }
 
 // GetLatestBlockHeader retrieves the latest block header from the BeaconStore.
 func (kv *KVStore) GetLatestBlockHeader() (
-	*ctypes.BeaconBlockHeader, error,
+	*deneb.BeaconBlockHeader, error,
 ) {
 	return kv.latestBlockHeader.Get(kv.ctx)
 }

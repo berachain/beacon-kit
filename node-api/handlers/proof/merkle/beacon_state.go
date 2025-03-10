@@ -21,7 +21,7 @@
 package merkle
 
 import (
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/encoding/ssz/merkle"
@@ -30,7 +30,7 @@ import (
 // ProveBeaconStateInBlock generates a proof for the beacon state in the
 // beacon block. It uses the fastssz library to generate the proof.
 func ProveBeaconStateInBlock(
-	bbh *ctypes.BeaconBlockHeader, verifyProof bool,
+	bbh *deneb.BeaconBlockHeader, verifyProof bool,
 ) ([]common.Root, error) {
 	blockProofTree, err := bbh.GetTree()
 	if err != nil {
@@ -62,7 +62,7 @@ func ProveBeaconStateInBlock(
 //
 // TODO: verifying the proof is not absolutely necessary.
 func verifyBeaconStateInBlock(
-	bbh *ctypes.BeaconBlockHeader, proof []common.Root, leaf common.Root,
+	bbh *deneb.BeaconBlockHeader, proof []common.Root, leaf common.Root,
 ) error {
 	beaconRoot := bbh.HashTreeRoot()
 	if beaconRootVerified, err := merkle.VerifyProof(

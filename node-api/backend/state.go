@@ -21,7 +21,7 @@
 package backend
 
 import (
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
@@ -57,8 +57,8 @@ func (b Backend) StateAtSlot(slot math.Slot) (*statedb.StateDB, error) {
 }
 
 // GetStateFork returns the fork of the state at the given stateID.
-func (b Backend) StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error) {
-	var fork *ctypes.Fork
+func (b Backend) StateForkAtSlot(slot math.Slot) (*deneb.Fork, error) {
+	var fork *deneb.Fork
 	st, _, err := b.stateFromSlot(slot)
 	if err != nil {
 		return fork, err

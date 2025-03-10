@@ -25,7 +25,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/config/spec"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log/noop"
@@ -69,12 +69,12 @@ func TestRetrievePayloadSunnyPath(t *testing.T) {
 		parentBlockRoot = common.Root{0xff, 0xaa}
 		dummyPayloadID  = engineprimitives.PayloadID{0xab}
 
-		expectedPayload = &ctypes.ExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1[
+		expectedPayload = &deneb.ExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1[
 			eip4844.KZGCommitment,
 			eip4844.KZGProof,
 			eip4844.Blob,
 		]]{
-			ExecutionPayload: &ctypes.ExecutionPayload{
+			ExecutionPayload: &deneb.ExecutionPayload{
 				Withdrawals: engineprimitives.Withdrawals{},
 			},
 			BlobsBundle: &engineprimitives.BlobsBundleV1[
@@ -125,12 +125,12 @@ func TestRetrievePayloadNilWithdrawalsListRejected(t *testing.T) {
 		parentBlockRoot = common.Root{0xff, 0xaa}
 		dummyPayloadID  = engineprimitives.PayloadID{0xab}
 
-		faultyPayload = &ctypes.ExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1[
+		faultyPayload = &deneb.ExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1[
 			eip4844.KZGCommitment,
 			eip4844.KZGProof,
 			eip4844.Blob,
 		]]{
-			ExecutionPayload: &ctypes.ExecutionPayload{
+			ExecutionPayload: &deneb.ExecutionPayload{
 				Withdrawals: nil, // empty withdrawals are fine, nil list should be rejected
 			},
 			BlobsBundle: &engineprimitives.BlobsBundleV1[
@@ -155,18 +155,18 @@ func TestRetrievePayloadNilWithdrawalsListRejected(t *testing.T) {
 var errStubNotImplemented = errors.New("stub not implemented")
 
 type stubExecutionEngine struct {
-	payloadEnvToReturn ctypes.BuiltExecutionPayloadEnv
+	payloadEnvToReturn deneb.BuiltExecutionPayloadEnv
 	errToReturn        error
 }
 
 func (ee *stubExecutionEngine) GetPayload(
-	context.Context, *ctypes.GetPayloadRequest,
-) (ctypes.BuiltExecutionPayloadEnv, error) {
+	context.Context, *deneb.GetPayloadRequest,
+) (deneb.BuiltExecutionPayloadEnv, error) {
 	return ee.payloadEnvToReturn, ee.errToReturn
 }
 
 func (ee *stubExecutionEngine) NotifyForkchoiceUpdate(
-	context.Context, *ctypes.ForkchoiceUpdateRequest,
+	context.Context, *deneb.ForkchoiceUpdateRequest,
 ) (*engineprimitives.PayloadID, error) {
 	return nil, errStubNotImplemented
 }

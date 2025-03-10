@@ -23,7 +23,7 @@ package deposit
 import (
 	"context"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
@@ -39,7 +39,7 @@ type Contract interface {
 		ctx context.Context,
 		fromBlock math.U64,
 		toBlock math.U64,
-	) ([]*ctypes.Deposit, error)
+	) ([]*deneb.Deposit, error)
 }
 
 // Store defines the interface for managing deposit operations.
@@ -47,7 +47,7 @@ type Store interface {
 	// Prune prunes the deposit store of [start, end)
 	Prune(index uint64, numPrune uint64) error
 	// EnqueueDeposits adds a list of deposits to the deposit store.
-	EnqueueDeposits(deposits []*ctypes.Deposit) error
+	EnqueueDeposits(deposits []*deneb.Deposit) error
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.

@@ -23,7 +23,7 @@ package core
 import (
 	"fmt"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -37,20 +37,20 @@ import (
 //nolint:gocognit,funlen // todo fix.
 func (sp *StateProcessor) InitializePreminedBeaconStateFromEth1(
 	st *statedb.StateDB,
-	deposits ctypes.Deposits,
-	execPayloadHeader *ctypes.ExecutionPayloadHeader,
+	deposits deneb.Deposits,
+	execPayloadHeader *deneb.ExecutionPayloadHeader,
 	genesisVersion common.Version,
 ) (transition.ValidatorUpdates, error) {
 	if err := st.SetSlot(constants.GenesisSlot); err != nil {
 		return nil, err
 	}
 
-	fork := ctypes.NewFork(genesisVersion, genesisVersion, constants.GenesisEpoch)
+	fork := deneb.NewFork(genesisVersion, genesisVersion, constants.GenesisEpoch)
 	if err := st.SetFork(fork); err != nil {
 		return nil, err
 	}
 
-	eth1Data := &ctypes.Eth1Data{
+	eth1Data := &deneb.Eth1Data{
 		DepositRoot:  deposits.HashTreeRoot(),
 		DepositCount: 0,
 		BlockHash:    execPayloadHeader.GetBlockHash(),
@@ -62,15 +62,15 @@ func (sp *StateProcessor) InitializePreminedBeaconStateFromEth1(
 	if !version.Equals(genesisVersion, version.Genesis()) {
 		return nil, fmt.Errorf("fork version not supported: %s", genesisVersion)
 	}
-	blkBody := &ctypes.BeaconBlockBody{
-		Eth1Data: &ctypes.Eth1Data{},
-		ExecutionPayload: &ctypes.ExecutionPayload{
-			ExtraData: make([]byte, ctypes.ExtraDataSize),
+	blkBody := &deneb.BeaconBlockBody{
+		Eth1Data: &deneb.Eth1Data{},
+		ExecutionPayload: &deneb.ExecutionPayload{
+			ExtraData: make([]byte, deneb.ExtraDataSize),
 			EpVersion: version.Genesis(),
 		},
 	}
 
-	blkHeader := &ctypes.BeaconBlockHeader{
+	blkHeader := &deneb.BeaconBlockHeader{
 		Slot:            constants.GenesisSlot,
 		ProposerIndex:   0,
 		ParentBlockRoot: common.Root{},

@@ -23,7 +23,7 @@ package backend
 import (
 	"context"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -47,7 +47,7 @@ type StateProcessor interface {
 // StorageBackend is the interface for the storage backend.
 type StorageBackend interface {
 	AvailabilityStore() *dastore.Store
-	BlockStore() *block.KVStore[*ctypes.BeaconBlock]
+	BlockStore() *block.KVStore[*deneb.BeaconBlock]
 	DepositStore() *depositdb.KVStore
 	StateFromContext(context.Context) *statedb.StateDB
 }
@@ -57,7 +57,7 @@ type StorageBackend interface {
 type Validator interface {
 	// GetWithdrawalCredentials returns the withdrawal credentials of the
 	// validator.
-	GetWithdrawalCredentials() ctypes.WithdrawalCredentials
+	GetWithdrawalCredentials() deneb.WithdrawalCredentials
 	// IsFullyWithdrawable checks if the validator is fully withdrawable given a
 	// certain Gwei amount and epoch.
 	IsFullyWithdrawable(amount math.Gwei, epoch math.Epoch) bool

@@ -21,7 +21,7 @@
 package state
 
 import (
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
@@ -31,7 +31,7 @@ import (
 type Validator interface {
 	// GetWithdrawalCredentials returns the withdrawal credentials of the
 	// validator.
-	GetWithdrawalCredentials() ctypes.WithdrawalCredentials
+	GetWithdrawalCredentials() deneb.WithdrawalCredentials
 	// IsFullyWithdrawable checks if the validator is fully withdrawable given a
 	// certain Gwei amount and epoch.
 	IsFullyWithdrawable(amount math.Gwei, epoch math.Epoch) bool

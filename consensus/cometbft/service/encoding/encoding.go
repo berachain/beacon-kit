@@ -21,7 +21,7 @@
 package encoding
 
 import (
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 )
@@ -33,7 +33,7 @@ func ExtractBlobsAndBlockFromRequest(
 	beaconBlkIndex uint,
 	blobSidecarsIndex uint,
 	forkVersion common.Version,
-) (*ctypes.SignedBeaconBlock, datypes.BlobSidecars, error) {
+) (*deneb.SignedBeaconBlock, datypes.BlobSidecars, error) {
 	if req == nil {
 		return nil, nil, ErrNilABCIRequest
 	}
@@ -61,8 +61,8 @@ func UnmarshalBeaconBlockFromABCIRequest(
 	txs [][]byte,
 	bzIndex uint,
 	forkVersion common.Version,
-) (*ctypes.SignedBeaconBlock, error) {
-	var signedBlk *ctypes.SignedBeaconBlock
+) (*deneb.SignedBeaconBlock, error) {
+	var signedBlk *deneb.SignedBeaconBlock
 	lenTxs := uint(len(txs))
 
 	// Ensure there are transactions in the request and that the request is
@@ -80,7 +80,7 @@ func UnmarshalBeaconBlockFromABCIRequest(
 		return signedBlk, ErrNilBeaconBlockInRequest
 	}
 
-	return ctypes.NewSignedBeaconBlockFromSSZ(blkBz, forkVersion)
+	return deneb.NewSignedBeaconBlockFromSSZ(blkBz, forkVersion)
 }
 
 // UnmarshalBlobSidecarsFromABCIRequest extracts blob sidecars from an ABCI

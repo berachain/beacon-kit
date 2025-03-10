@@ -23,7 +23,7 @@ package engine
 import (
 	"context"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/errors"
@@ -61,8 +61,8 @@ func New(
 // GetPayload returns the payload and blobs bundle for the given slot.
 func (ee *Engine) GetPayload(
 	ctx context.Context,
-	req *ctypes.GetPayloadRequest,
-) (ctypes.BuiltExecutionPayloadEnv, error) {
+	req *deneb.GetPayloadRequest,
+) (deneb.BuiltExecutionPayloadEnv, error) {
 	return ee.ec.GetPayload(
 		ctx, req.PayloadID,
 		req.ForkVersion,
@@ -72,7 +72,7 @@ func (ee *Engine) GetPayload(
 // NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
 func (ee *Engine) NotifyForkchoiceUpdate(
 	ctx context.Context,
-	req *ctypes.ForkchoiceUpdateRequest,
+	req *deneb.ForkchoiceUpdateRequest,
 ) (*engineprimitives.PayloadID, error) {
 	var (
 		engineAPIBackoff     = ee.newBackoff()
@@ -162,7 +162,7 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 //nolint:funlen // error handling and logs
 func (ee *Engine) NotifyNewPayload(
 	ctx context.Context,
-	req *ctypes.NewPayloadRequest,
+	req *deneb.NewPayloadRequest,
 	retryOnSyncingStatus bool,
 ) error {
 	var (

@@ -24,13 +24,13 @@ import (
 	"errors"
 
 	"cosmossdk.io/collections/indexes"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // AddValidator registers a new validator in the beacon state.
-func (kv *KVStore) AddValidator(val *ctypes.Validator) error {
+func (kv *KVStore) AddValidator(val *deneb.Validator) error {
 	// Get the next validator index from the sequence.
 	idx, err := kv.validatorIndex.Next(kv.ctx)
 	if err != nil {
@@ -48,7 +48,7 @@ func (kv *KVStore) AddValidator(val *ctypes.Validator) error {
 // UpdateValidatorAtIndex updates a validator at a specific index.
 func (kv *KVStore) UpdateValidatorAtIndex(
 	index math.ValidatorIndex,
-	val *ctypes.Validator,
+	val *deneb.Validator,
 ) error {
 	return kv.validators.Set(kv.ctx, index.Unwrap(), val)
 }
@@ -84,10 +84,10 @@ func (kv *KVStore) ValidatorIndexByCometBFTAddress(
 // ValidatorByIndex returns the validator address by index.
 func (kv *KVStore) ValidatorByIndex(
 	index math.ValidatorIndex,
-) (*ctypes.Validator, error) {
+) (*deneb.Validator, error) {
 	val, err := kv.validators.Get(kv.ctx, index.Unwrap())
 	if err != nil {
-		var t *ctypes.Validator
+		var t *deneb.Validator
 		return t, err
 	}
 	return val, err
@@ -95,7 +95,7 @@ func (kv *KVStore) ValidatorByIndex(
 
 // GetValidators retrieves all validators from the beacon state.
 func (kv *KVStore) GetValidators() (
-	ctypes.Validators, error,
+	deneb.Validators, error,
 ) {
 	registrySize, err := kv.validatorIndex.Peek(kv.ctx)
 	if err != nil {
@@ -103,8 +103,8 @@ func (kv *KVStore) GetValidators() (
 	}
 
 	var (
-		vals = make([]*ctypes.Validator, 0, registrySize)
-		val  *ctypes.Validator
+		vals = make([]*deneb.Validator, 0, registrySize)
+		val  *deneb.Validator
 	)
 
 	iter, err := kv.validators.Iterate(kv.ctx, nil)
@@ -138,11 +138,11 @@ func (kv *KVStore) GetTotalValidators() (uint64, error) {
 // GetValidatorsByEffectiveBalance retrieves all validators sorted by
 // effective balance from the beacon state.
 func (kv *KVStore) GetValidatorsByEffectiveBalance() (
-	[]*ctypes.Validator, error,
+	[]*deneb.Validator, error,
 ) {
 	var (
-		vals []*ctypes.Validator
-		v    *ctypes.Validator
+		vals []*deneb.Validator
+		v    *deneb.Validator
 		idx  uint64
 	)
 
@@ -232,7 +232,7 @@ func (kv *KVStore) GetTotalActiveBalances(
 	}()
 
 	err = indexes.ScanValues(
-		kv.ctx, kv.validators, iter, func(v *ctypes.Validator,
+		kv.ctx, kv.validators, iter, func(v *deneb.Validator,
 		) bool {
 			if v.IsActive(epoch) {
 				totalActiveBalances += v.GetEffectiveBalance()
