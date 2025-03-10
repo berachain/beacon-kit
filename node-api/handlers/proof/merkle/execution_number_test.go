@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -34,6 +34,7 @@ import (
 // TestExecutionNumberProof tests the ProveExecutionNumberInBlock
 // function and that the generated proof correctly verifies.
 func TestExecutionNumberProof(t *testing.T) {
+	t.Parallel()
 	var proof []common.Root
 
 	testCases := []struct {
@@ -73,7 +74,7 @@ func TestExecutionNumberProof(t *testing.T) {
 			)
 			require.NoError(t, err)
 
-			bbh := (&types.BeaconBlockHeader{}).New(
+			bbh := types.NewBeaconBlockHeader(
 				tc.slot,
 				tc.proposerIndex,
 				tc.parentBlockRoot,

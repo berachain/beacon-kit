@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -24,55 +24,14 @@ import (
 	"context"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	dastore "github.com/berachain/beacon-kit/da/store"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
-	"github.com/berachain/beacon-kit/state-transition/core"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
+	"github.com/berachain/beacon-kit/storage/block"
+	depositdb "github.com/berachain/beacon-kit/storage/deposit"
 )
-
-// The AvailabilityStore interface is responsible for validating and storing
-// sidecars for specific blocks, as well as verifying sidecars that have already
-// been stored.
-type AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT any] interface {
-	// IsDataAvailable ensures that all blobs referenced in the block are
-	// securely stored before it returns without an error.
-	IsDataAvailable(
-		context.Context, math.Slot, BeaconBlockBodyT,
-	) bool
-	// Persist makes sure that the sidecar remains accessible for data
-	// availability checks throughout the beacon node's operation.
-	Persist(math.Slot, BlobSidecarsT) error
-}
-
-// BeaconState is the interface for the beacon state.
-type BeaconState[
-	ExecutionPayloadHeaderT any,
-] interface {
-	// SetSlot sets the slot on the beacon state.
-	SetSlot(math.Slot) error
-
-	core.ReadOnlyBeaconState[ExecutionPayloadHeaderT]
-}
-
-// BlockStore is the interface for block storage.
-type BlockStore[BeaconBlockT any] interface {
-	// GetSlotByBlockRoot retrieves the slot by a given block root.
-	GetSlotByBlockRoot(root common.Root) (math.Slot, error)
-	// GetSlotByStateRoot retrieves the slot by a given state root.
-	GetSlotByStateRoot(root common.Root) (math.Slot, error)
-	// GetParentSlotByTimestamp retrieves the parent slot by a given timestamp.
-	GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
-}
-
-// DepositStore defines the interface for deposit storage.
-type DepositStore interface {
-	// GetDepositsByIndex returns `numView` expected deposits.
-	GetDepositsByIndex(startIndex uint64, numView uint64) ([]*ctypes.Deposit, error)
-	// Prune prunes the deposit store of [start, end)
-	Prune(start, end uint64) error
-	// EnqueueDeposits adds a list of deposits to the deposit store.
-	EnqueueDeposits(deposits []*ctypes.Deposit) error
-}
 
 // Node is the interface for a node.
 type Node[ContextT any] interface {
@@ -81,18 +40,16 @@ type Node[ContextT any] interface {
 	CreateQueryContext(height int64, prove bool) (ContextT, error)
 }
 
-type StateProcessor[BeaconStateT any] interface {
-	ProcessSlots(BeaconStateT, math.Slot) (transition.ValidatorUpdates, error)
+type StateProcessor interface {
+	ProcessSlots(*statedb.StateDB, math.Slot) (transition.ValidatorUpdates, error)
 }
 
 // StorageBackend is the interface for the storage backend.
-type StorageBackend[
-	AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT any,
-] interface {
-	AvailabilityStore() AvailabilityStoreT
-	BlockStore() BlockStoreT
-	DepositStore() DepositStoreT
-	StateFromContext(context.Context) BeaconStateT
+type StorageBackend interface {
+	AvailabilityStore() *dastore.Store
+	BlockStore() *block.KVStore[*ctypes.BeaconBlock]
+	DepositStore() *depositdb.KVStore
+	StateFromContext(context.Context) *statedb.StateDB
 }
 
 // Validator represents an interface for a validator with generic withdrawal

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -62,20 +62,6 @@ func CreateAndSignDepositMessage(
 	}
 
 	return depositMessage, signature, nil
-}
-
-// New creates a new deposit message.
-func (dm *DepositMessage) New(
-	pubkey crypto.BLSPubkey,
-	credentials WithdrawalCredentials,
-	amount math.Gwei,
-) *DepositMessage {
-	dm = &DepositMessage{
-		Pubkey:      pubkey,
-		Credentials: credentials,
-		Amount:      amount,
-	}
-	return dm
 }
 
 /* -------------------------------------------------------------------------- */

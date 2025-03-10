@@ -1,44 +1,53 @@
 #!/usr/bin/make -f
 
-
-
 ###############################################################################
 ###                           Tests & Simulation                            ###
 ###############################################################################
 
+# ask_reset_dir_func checks if the directory passed in exists, and if so asks the user whether it
+# should delete it. Note that on linux, docker may have created the directory with root
+# permissions, so we may need to ask the user to delete it with sudo
+define ask_reset_dir_func
+	@abs_path=$(abspath $(1)); \
+	if test -d "$$abs_path"; then \
+		read -p "Directory '$$abs_path' exists. Do you want to delete it? (y/n): " confirm && \
+		if [ "$$confirm" = "y" ]; then \
+			echo "Deleting directory '$$abs_path'..."; \
+			rm -rf "$$abs_path" 2>/dev/null || sudo rm -rf "$$abs_path"; \
+			if test -d "$$abs_path"; then \
+				echo "Failed to delete directory '$$abs_path'."; \
+				exit 1; \
+			fi; \
+		fi \
+	else \
+		echo "Directory '$$abs_path' does not exist."; \
+	fi
+endef
+
 #################
-#    beacond     #
+#     Local     #
 #################
 
-DEVNET_CHAIN_SPEC = devnet
+# Use the genesis file from the beacond folder as it has been modified by 
+# beacond genesis set-deposit-storage.
+ETH_GENESIS_PATH = ${HOMEDIR}/eth-genesis.json
+NETHER_ETH_GENESIS_PATH = ${HOMEDIR}/eth-nether-genesis.json
+
+HOMEDIR = .tmp/beacond
 JWT_PATH = ${TESTAPP_FILES_DIR}/jwt.hex
-ETH_GENESIS_PATH = ${TESTAPP_FILES_DIR}/eth-genesis.json
-NETHER_ETH_GENESIS_PATH = ${TESTAPP_FILES_DIR}/eth-nether-genesis.json
 ETH_DATA_DIR = .tmp/eth-home
-# URLs used for dialing the eth client
-IPC_PATH = .tmp/eth-home/eth-engine.ipc
-HTTP_URL = localhost:8551
-IPC_PREFIX = ipc://
-HTTP_PREFIX = http://
+DEVNET_CHAIN_SPEC = devnet
 
-#################
-#    bartio     #
-#################
-
-TESTNET_CHAIN_SPEC = testnet
-BARTIO_NETWORK_FILES_DIR = ${TESTAPP_FILES_DIR}/../networks/80084
-BARTIO_ETH_GENESIS_PATH = ${BARTIO_NETWORK_FILES_DIR}/eth-genesis.json
-
-## Testing:
-start: ## start an ephemeral `beacond` node
+## Start an ephemeral `beacond` node. Must be run before running the EL to
+## configure the deposit contract storage slots pre-genesis.
+start: 
 	@JWT_SECRET_PATH=$(JWT_PATH) \
 	CHAIN_SPEC=$(DEVNET_CHAIN_SPEC) \
 	${TESTAPP_FILES_DIR}/entrypoint.sh
 
-start-bartio:
-	@JWT_SECRET_PATH=$(JWT_PATH) \
-	CHAIN_SPEC=$(TESTNET_CHAIN_SPEC) \
-	${TESTAPP_FILES_DIR}/entrypoint.sh
+# URLs used for dialing the eth client
+IPC_PATH = .tmp/eth-home/eth-engine.ipc
+IPC_PREFIX = ipc://
 
 # start-ipc is currently only supported while running eth client the host machine
 # Only works with geth-host rn
@@ -48,8 +57,9 @@ start-ipc: ## start a local ephemeral `beacond` node with IPC
 	RPC_PREFIX=${IPC_PREFIX} \
 	${TESTAPP_FILES_DIR}/entrypoint.sh
 
-start-reth: ## start an ephemeral `reth` node
-	@rm -rf ${ETH_DATA_DIR}
+## Start an ephemeral `reth` node
+start-reth: 
+	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
 	@docker run \
 	-p 30303:30303 \
 	-p 8545:8545 \
@@ -66,27 +76,9 @@ start-reth: ## start an ephemeral `reth` node
 	--datadir ${ETH_DATA_DIR} \
 	--ipcpath ${IPC_PATH}
 
-start-reth-bartio:
-	@rm -rf ${ETH_DATA_DIR}
-	@docker run \
-	-p 30303:30303 \
-	-p 8545:8545 \
-	-p 8551:8551 \
-	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
-	--rm -v $(PWD)/${BARTIO_NETWORK_FILES_DIR}:/${BARTIO_NETWORK_FILES_DIR} \
-	-v $(PWD)/.tmp:/.tmp \
-	ghcr.io/paradigmxyz/reth node \
-	--chain ${BARTIO_ETH_GENESIS_PATH} \
-	--http \
-	--http.addr "0.0.0.0" \
-	--http.api eth,net \
-	--authrpc.addr "0.0.0.0" \
-	--authrpc.jwtsecret $(JWT_PATH) \
-	--datadir ${ETH_DATA_DIR} \
-	--ipcpath ${IPC_PATH}
-
-start-reth-host: ## start a local ephemeral `reth` node on host machine
-	rm -rf ${ETH_DATA_DIR}
+## Start a local ephemeral `reth` node on host machine
+start-reth-host: 
+	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
 	reth init --datadir ${ETH_DATA_DIR} --chain ${ETH_GENESIS_PATH}
 	reth node \
 	--chain ${ETH_GENESIS_PATH} \
@@ -98,8 +90,9 @@ start-reth-host: ## start a local ephemeral `reth` node on host machine
 	--datadir ${ETH_DATA_DIR} \
 	--ipcpath ${IPC_PATH}
 
-start-geth: ## start an ephemeral `geth` node with docker
-	rm -rf ${ETH_DATA_DIR}
+## Start an ephemeral `geth` node with docker
+start-geth: 
+	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
 	docker run \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
@@ -114,6 +107,7 @@ start-geth: ## start an ephemeral `geth` node with docker
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
 	ethereum/client-go \
+	--syncmode=full \
 	--http \
 	--http.addr 0.0.0.0 \
 	--http.api eth,net \
@@ -123,35 +117,9 @@ start-geth: ## start an ephemeral `geth` node with docker
 	--datadir ${ETH_DATA_DIR} \
 	--ipcpath ${IPC_PATH}
 
-start-geth-bartio:
-	rm -rf ${ETH_DATA_DIR}
-	docker run \
-	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
-	--rm -v $(PWD)/${BARTIO_NETWORK_FILES_DIR}:/${BARTIO_NETWORK_FILES_DIR} \
-	-v $(PWD)/.tmp:/.tmp \
-	ethereum/client-go init \
-	--datadir ${ETH_DATA_DIR} \
-	${BARTIO_ETH_GENESIS_PATH}
-
-	docker run \
-	-p 30303:30303 \
-	-p 8545:8545 \
-	-p 8551:8551 \
-	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
-	--rm -v $(PWD)/${BARTIO_NETWORK_FILES_DIR}:/${BARTIO_NETWORK_FILES_DIR} \
-	-v $(PWD)/.tmp:/.tmp \
-	ethereum/client-go \
-	--http \
-	--http.addr 0.0.0.0 \
-	--http.api eth,net \
-	--authrpc.addr 0.0.0.0 \
-	--authrpc.jwtsecret $(JWT_PATH) \
-	--authrpc.vhosts "*" \
-	--datadir ${ETH_DATA_DIR} \
-	--ipcpath ${IPC_PATH}
-
-start-geth-host: ## start a local ephemeral `geth` node on host machine
-	rm -rf ${ETH_DATA_DIR}
+## Start a local ephemeral `geth` node on host machine
+start-geth-host: 
+	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
 	geth init --datadir ${ETH_DATA_DIR} ${ETH_GENESIS_PATH}
 	geth \
 	--datadir ${ETH_DATA_DIR} \
@@ -163,12 +131,14 @@ start-geth-host: ## start a local ephemeral `geth` node on host machine
 	--authrpc.jwtsecret $(JWT_PATH) \
 	--authrpc.vhosts "*"
 
-start-nethermind: ## start an ephemeral `nethermind` node
+## Start an ephemeral `nethermind` node
+start-nethermind: 
 	docker run \
 	-p 30303:30303 \
 	-p 8545:8545 \
 	-p 8551:8551 \
 	-v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	-v $(PWD)/${HOMEDIR}:/${HOMEDIR} \
 	nethermind/nethermind \
 	--JsonRpc.Port 8545 \
 	--JsonRpc.EngineEnabledModules "eth,net,engine" \
@@ -177,16 +147,19 @@ start-nethermind: ## start an ephemeral `nethermind` node
 	--JsonRpc.Host 0.0.0.0 \
 	--JsonRpc.JwtSecretFile ../$(JWT_PATH) \
 	--Sync.PivotNumber 0 \
-	--Init.ChainSpecPath ../$(TESTAPP_FILES_DIR)/eth-nether-genesis.json
+	--Init.ChainSpecPath ../$(NETHER_ETH_GENESIS_PATH)
 
-start-besu: ## start an ephemeral `besu` node
+## Start an ephemeral `besu` node
+start-besu: 
+	$(call ask_reset_dir_func, .tmp/besu)
 	docker run \
 	-p 30303:30303 \
 	-p 8545:8545 \
 	-p 8551:8551 \
+	-v $(PWD)/.tmp:/.tmp \
 	-v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	hyperledger/besu:latest \
-	--data-path=.tmp/besu \
+	--data-path=/.tmp/besu \
 	--genesis-file=../../${ETH_GENESIS_PATH} \
 	--rpc-http-enabled \
 	--rpc-http-api=ETH,NET,ENGINE,DEBUG,NET,WEB3 \
@@ -197,8 +170,9 @@ start-besu: ## start an ephemeral `besu` node
 	--engine-host-allowlist="*" \
 	--engine-jwt-secret=../../${JWT_PATH}
 
-start-erigon: ## start an ephemeral `erigon` node
-	rm -rf .tmp/erigon
+## Start an ephemeral `erigon` node
+start-erigon: 
+	$(call ask_reset_dir_func, .tmp/erigon)
 	docker run \
 	--user 1000:1000 \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
@@ -217,7 +191,7 @@ start-erigon: ## start an ephemeral `erigon` node
 	erigontech/erigon:latest \
 	--http \
 	--http.addr 0.0.0.0 \
-	--http.api eth,net \
+	--http.api eth,erigon,engine,web3,net,debug,trace,txpool,admin,ots \
 	--http.vhosts "*" \
 	--port 30303 \
 	--http.corsdomain "*" \
@@ -230,7 +204,7 @@ start-erigon: ## start an ephemeral `erigon` node
 	--datadir /.tmp/erigon
 
 start-ethereumjs:
-	rm -rf .tmp/ethereumjs
+	$(call ask_reset_dir_func, .tmp/ethereumjs)
 	docker run \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
@@ -242,32 +216,205 @@ start-ethereumjs:
 	--rpcEngine \
 	--jwtSecret ../../$(JWT_PATH) \
 	--rpcEngineAddr 0.0.0.0 \
-	--dataDir .tmp/ethereumjs \
+	--dataDir ../../.tmp/ethereumjs \
 	--isSingleNode \
 	--rpc \
 	--rpcAddr 0.0.0.0
+
+#################
+#    Bepolia    #
+#################
+
+TESTNET_CHAIN_SPEC = testnet
+BEPOLIA_NETWORK_FILES_DIR = ${TESTAPP_FILES_DIR}/../networks/80069
+BEPOLIA_ETH_GENESIS_PATH = ${BEPOLIA_NETWORK_FILES_DIR}/eth-genesis.json
+
+start-bepolia:
+	@JWT_SECRET_PATH=$(JWT_PATH) \
+	CHAIN_SPEC=$(TESTNET_CHAIN_SPEC) \
+	${TESTAPP_FILES_DIR}/entrypoint.sh
+
+# NOTE: Peers are used as bootnodes for the Geth node.
+start-geth-bepolia:
+	# TODO: Update to use latest Geth once ready
+	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
+	docker run \
+	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	--rm -v $(PWD)/${BEPOLIA_NETWORK_FILES_DIR}:/${BEPOLIA_NETWORK_FILES_DIR} \
+	-v $(PWD)/.tmp:/.tmp \
+	ethereum/client-go:v1.14.13 init \
+	--datadir ${ETH_DATA_DIR} \
+	${BEPOLIA_ETH_GENESIS_PATH}
+
+	@# Read bootnodes from the file; the file is mounted into the container.
+	@bootnodes=`cat $(PWD)/$(BEPOLIA_NETWORK_FILES_DIR)/el-peers.txt`; \
+	echo "Using bootnodes: $$bootnodes"; \
+	docker run \
+	-p 30303:30303 \
+	-p 8545:8545 \
+	-p 8551:8551 \
+	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	--rm -v $(PWD)/${BEPOLIA_NETWORK_FILES_DIR}:/${BEPOLIA_NETWORK_FILES_DIR} \
+	-v $(PWD)/.tmp:/.tmp \
+	ethereum/client-go:v1.14.13 \
+	--http \
+	--http.addr 0.0.0.0 \
+	--http.api eth,net \
+	--authrpc.addr 0.0.0.0 \
+	--authrpc.jwtsecret $(JWT_PATH) \
+	--authrpc.vhosts "*" \
+	--datadir ${ETH_DATA_DIR} \
+	--ipcpath ${IPC_PATH} \
+	--syncmode=full \
+	--bootnodes $$bootnodes
+
+start-reth-bepolia:
+	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
+	@trustedpeers=`cat $(PWD)/$(BEPOLIA_NETWORK_FILES_DIR)/el-peers.txt`; \
+	echo "Using truted peers: $$trustedpeers"; \
+	docker run \
+	-p 30303:30303 \
+	-p 8545:8545 \
+	-p 8551:8551 \
+	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	--rm -v $(PWD)/${BEPOLIA_NETWORK_FILES_DIR}:/${BEPOLIA_NETWORK_FILES_DIR} \
+	-v $(PWD)/.tmp:/.tmp \
+	ghcr.io/paradigmxyz/reth node \
+	--chain ${BEPOLIA_ETH_GENESIS_PATH} \
+	--http \
+	--http.addr "0.0.0.0" \
+	--http.api eth,net \
+	--authrpc.addr "0.0.0.0" \
+	--authrpc.jwtsecret $(JWT_PATH) \
+	--datadir ${ETH_DATA_DIR} \
+	--ipcpath ${IPC_PATH} \
+	--trusted-peers $$trustedpeers
+
+#################
+#    Mainnet    #
+#################
+
+MAINNET_CHAIN_SPEC = mainnet
+MAINNET_NETWORK_FILES_DIR = ${TESTAPP_FILES_DIR}/../networks/80094
+MAINNET_ETH_GENESIS_PATH = ${MAINNET_NETWORK_FILES_DIR}/eth-genesis.json
+
+start-mainnet:
+	@JWT_SECRET_PATH=$(JWT_PATH) \
+	CHAIN_SPEC=$(MAINNET_CHAIN_SPEC) \
+	${TESTAPP_FILES_DIR}/entrypoint.sh
+
+# NOTE: By default this will use the EL peers as your bootnodes. If you want specific 
+# discovery bootnodes by region, refer to testing/networks/80094/el-bootnodes.txt
+start-geth-mainnet:
+	# TODO: Update to use latest Geth once ready
+	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
+	docker run \
+	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	--rm -v $(PWD)/${MAINNET_NETWORK_FILES_DIR}:/${MAINNET_NETWORK_FILES_DIR} \
+	-v $(PWD)/.tmp:/.tmp \
+	ethereum/client-go:v1.14.13 init \
+	--datadir ${ETH_DATA_DIR} \
+	${MAINNET_ETH_GENESIS_PATH}
+
+	@# Read bootnodes from the file; the file is mounted into the container.
+	@bootnodes=`cat $(PWD)/$(MAINNET_NETWORK_FILES_DIR)/el-peers.txt`; \
+	echo "Using bootnodes: $$bootnodes"; \
+	docker run \
+	-p 30303:30303 \
+	-p 8545:8545 \
+	-p 8551:8551 \
+	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	--rm -v $(PWD)/${BEPOLIA_NETWORK_FILES_DIR}:/${BEPOLIA_NETWORK_FILES_DIR} \
+	-v $(PWD)/.tmp:/.tmp \
+	ethereum/client-go:v1.14.13 \
+	--http \
+	--http.addr 0.0.0.0 \
+	--http.api eth,net \
+	--authrpc.addr 0.0.0.0 \
+	--authrpc.jwtsecret $(JWT_PATH) \
+	--authrpc.vhosts "*" \
+	--datadir ${ETH_DATA_DIR} \
+	--ipcpath ${IPC_PATH} \
+	--syncmode=full \
+	--bootnodes $$bootnodes
+
+start-reth-mainnet:
+	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
+	@trustedpeers=`cat $(PWD)/$(MAINNET_NETWORK_FILES_DIR)/el-peers.txt`; \
+	echo "Using truted peers: $$trustedpeers"; \
+	docker run \
+	-p 30303:30303 \
+	-p 8545:8545 \
+	-p 8551:8551 \
+	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	--rm -v $(PWD)/${MAINNET_NETWORK_FILES_DIR}:/${MAINNET_NETWORK_FILES_DIR} \
+	-v $(PWD)/.tmp:/.tmp \
+	ghcr.io/paradigmxyz/reth node \
+	--chain ${MAINNET_ETH_GENESIS_PATH} \
+	--http \
+	--http.addr "0.0.0.0" \
+	--http.api eth,net \
+	--authrpc.addr "0.0.0.0" \
+	--authrpc.jwtsecret $(JWT_PATH) \
+	--datadir ${ETH_DATA_DIR} \
+	--ipcpath ${IPC_PATH} \
+	--trusted-peers $$trustedpeers
+
+#################
+#    Testing    #
+#################
 
 SHORT_FUZZ_TIME=10s
 MEDIUM_FUZZ_TIME=30s
 LONG_FUZZ_TIME=3m
 
+# Define a function to filter out lines with "/testing/", "/mock/", "/mocks/", or ".mock.go"
+define FILTER_COVERAGE
+	grep -Ev '(/testing/|/mock/|/mocks/|\.mock\.go)' $(1) > $(2)
+endef
+
 test:
 	@$(MAKE) test-unit test-forge-fuzz
 
-test-unit: ## run golang unit tests
+test-unit-no-coverage: ## run golang unit tests
 	@echo "Running unit tests..."
 	@go list -f '{{.Dir}}/...' -m | xargs \
-		go test
+		go test -race -tags bls12381,test
 
-test-unit-cover: ## run golang unit tests with coverage
-	@echo "Running unit tests with coverage..."
+coverage-summary: test-unit test-simulated
+	@echo "Merging coverage reports..."
+	@go install github.com/wadey/gocovmerge@latest
+	@gocovmerge test-unit-cover.txt test-simulated.txt > coverage-merged.txt
+	@echo "Coverage Summary:"
+	@go tool cover -html=coverage-merged.txt
+
+test-unit-cover: test-unit test-simulated test-unit-quick ## run golang unit tests with coverage
+
+test-unit:
+	@echo "Running unit tests with coverage and race checks..."
 	@go list -f '{{.Dir}}/...' -m | xargs \
-		go test -race -coverprofile=test-unit-cover.txt
+		go test -race -covermode=atomic -coverpkg=github.com/berachain/beacon-kit/... -coverprofile=temp-test-unit-cover.txt -tags bls12381,test
+	# Filter out any coverage lines from the testing directory
+	$(call FILTER_COVERAGE, temp-test-unit-cover.txt, test-unit-cover.txt)
+	@rm temp-test-unit-cover.txt
+
+test-unit-quick: ## run quick tests. We run these without coverage as covermode=atomic is too slow and coverage here provides little value
+	@echo "Running 'quick' tests..."
+	@go list -f '{{.Dir}}/testing/quick' -m | xargs \
+		go test -v -tags quick
+
+test-simulated: ## run simulation tests
+	@echo "Running simulation tests with coverage"
+	@go list -f '{{.Dir}}/testing/simulated' -m | xargs \
+		go test -cover -covermode=atomic -coverpkg=github.com/berachain/beacon-kit/... -coverprofile=temp-test-simulated.txt -tags simulated -v
+	# Filter out any coverage lines from the testing directory
+	$(call FILTER_COVERAGE, temp-test-simulated.txt, test-simulated.txt)
+	@rm temp-test-simulated.txt
 
 test-unit-bench: ## run golang unit benchmarks
 	@echo "Running unit tests with benchmarks..."
 	@go list -f '{{.Dir}}/...' -m | xargs \
-		go test -bench=. -run=^$ -benchmem
+		go test -bench=. -run=^$ -benchmem -tags bls12381,test
 
 # On MacOS, if there is a linking issue on the fuzz tests,
 # use the old linker with flags -ldflags=-extldflags=-Wl,-ld_classic
@@ -282,4 +429,16 @@ test-e2e: ## run e2e tests
 	@$(MAKE) build-docker VERSION=kurtosis-local test-e2e-no-build
 
 test-e2e-no-build:
-	go test -timeout 0 -tags e2e,bls12381 ./testing/e2e/. -v
+	go test -timeout 0 -tags e2e,bls12381,test ./testing/e2e/. -v
+
+test-e2e-4844: ## run e2e tests
+	@$(MAKE) build-docker VERSION=kurtosis-local test-e2e-4844-no-build
+
+test-e2e-4844-no-build:
+	go test -timeout 0 -tags e2e,bls12381,test ./testing/e2e/. -v -testify.m Test4844Live
+
+test-e2e-deposits: ## run e2e tests
+	@$(MAKE) build-docker VERSION=kurtosis-local test-e2e-deposits-no-build
+
+test-e2e-deposits-no-build:
+	go test -timeout 0 -tags e2e,bls12381,test ./testing/e2e/. -v -testify.m TestDepositRobustness

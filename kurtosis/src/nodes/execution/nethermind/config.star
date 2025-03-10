@@ -20,14 +20,12 @@ CONFIG_FOLDER = "/root/.{}".format(NODE_TYPE)
 # NOTE: THIS MUST REFERENCE THE FILEPATH RELATIVE TO execution.star
 GLOBAL_FILES = [
     ("./{}/{}".format(NODE_TYPE, CONFIG_FILENAME), NODE_CONFIG_ARTIFACT_NAME),
-    ("./{}/{}".format(NODE_TYPE, GENESIS_FILENAME), "nether_genesis_file"),
 ]
 
 ENTRYPOINT = ["sh", "-c"]
 CONFIG_LOCATION = "{}/{}".format(CONFIG_FOLDER, CONFIG_FILENAME)
 FILES = {
     CONFIG_FOLDER: NODE_CONFIG_ARTIFACT_NAME,
-    "/root/genesis": "nether_genesis_file",
     "/jwt": "jwt_file",
 }
 CMD = [

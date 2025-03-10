@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -37,4 +37,7 @@ var (
 	// ErrNilPayloadEnvelope is returned when a nil payload envelope is
 	// received.
 	ErrNilPayloadEnvelope = errors.New("received nil payload envelope")
+
+	// ErrNilWithdrawals is returned when nil withdrawals list is received.
+	ErrNilWithdrawals = errors.New("nil withdrawals received from execution client")
 )

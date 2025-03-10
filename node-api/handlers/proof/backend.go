@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,12 +23,13 @@ package proof
 import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/math"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // Backend is the interface for backend of the proof API.
-type Backend[BeaconStateT any] interface {
+type Backend interface {
 	BlockBackend
-	StateBackend[BeaconStateT]
+	StateBackend
 	GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
 }
 
@@ -36,6 +37,6 @@ type BlockBackend interface {
 	BlockHeaderAtSlot(slot math.Slot) (*ctypes.BeaconBlockHeader, error)
 }
 
-type StateBackend[BeaconStateT any] interface {
-	StateFromSlotForProof(slot math.Slot) (BeaconStateT, math.Slot, error)
+type StateBackend interface {
+	StateFromSlotForProof(slot math.Slot) (*statedb.StateDB, math.Slot, error)
 }

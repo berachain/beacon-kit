@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -31,10 +31,10 @@ const (
 	BeaconKitAcceptTos = beaconKitRoot + "accept-tos"
 
 	// Builder Config.
-	builderRoot              = beaconKitRoot + "payload-builder."
-	SuggestedFeeRecipient    = builderRoot + "suggested-fee-recipient"
-	LocalBuilderEnabled      = builderRoot + "local-builder-enabled"
-	LocalBuildPayloadTimeout = builderRoot + "local-build-payload-timeout"
+	builderRoot           = beaconKitRoot + "payload-builder."
+	SuggestedFeeRecipient = builderRoot + "suggested-fee-recipient"
+	BuilderEnabled        = builderRoot + "enabled"
+	BuildPayloadTimeout   = builderRoot + "payload-timeout"
 
 	// Validator Config.
 	validatorRoot = beaconKitRoot + "validator."
@@ -44,6 +44,8 @@ const (
 	engineRoot              = beaconKitRoot + "engine."
 	RPCDialURL              = engineRoot + "rpc-dial-url"
 	RPCRetries              = engineRoot + "rpc-retries"
+	RPCRetryInterval        = engineRoot + "rpc-retry-interval"
+	RPCMaxRetryInterval     = engineRoot + "rpc-max-retry-interval"
 	RPCTimeout              = engineRoot + "rpc-timeout"
 	RPCStartupCheckInterval = engineRoot + "rpc-startup-check-interval"
 	RPCHealthCheckInteval   = engineRoot + "rpc-health-check-interval"
@@ -72,6 +74,10 @@ const (
 	NodeAPIEnabled = nodeAPIRoot + "enabled"
 	NodeAPIAddress = nodeAPIRoot + "address"
 	NodeAPILogging = nodeAPIRoot + "logging"
+
+	// BLS Config.
+	PrivValidatorKeyFile   = "priv_validator_key_file"
+	PrivValidatorStateFile = "priv_validator_state_file"
 )
 
 // AddBeaconKitFlags implements servertypes.ModuleInitFlags interface.
@@ -89,6 +95,12 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 		RPCRetries, defaultCfg.Engine.RPCRetries, "rpc retries",
 	)
 	startCmd.Flags().Duration(
+		RPCRetryInterval, defaultCfg.Engine.RPCRetryInterval, "initial rpc retry interval",
+	)
+	startCmd.Flags().Duration(
+		RPCMaxRetryInterval, defaultCfg.Engine.RPCMaxRetryInterval, "max rpc retry interval",
+	)
+	startCmd.Flags().Duration(
 		RPCTimeout, defaultCfg.Engine.RPCTimeout, "rpc timeout",
 	)
 	startCmd.Flags().Duration(
@@ -100,6 +112,16 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 		RPCJWTRefreshInterval,
 		defaultCfg.Engine.RPCJWTRefreshInterval,
 		"rpc jwt refresh interval",
+	)
+	startCmd.Flags().Bool(
+		BuilderEnabled,
+		defaultCfg.PayloadBuilder.Enabled,
+		"payload builder enabled",
+	)
+	startCmd.Flags().Duration(
+		BuildPayloadTimeout,
+		defaultCfg.PayloadBuilder.PayloadTimeout,
+		"payload builder timeout",
 	)
 	startCmd.Flags().String(
 		SuggestedFeeRecipient,

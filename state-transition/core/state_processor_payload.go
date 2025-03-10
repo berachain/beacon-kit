@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -24,32 +24,29 @@ import (
 	"context"
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
-	"github.com/berachain/beacon-kit/config/spec"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/math"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"golang.org/x/sync/errgroup"
 )
 
 // processExecutionPayload processes the execution payload and ensures it
 // matches the local state.
-func (sp *StateProcessor[
-	BeaconBlockT, _, BeaconStateT, ContextT,
-	_, ExecutionPayloadHeaderT, _,
-]) processExecutionPayload(
-	ctx ContextT,
-	st BeaconStateT,
-	blk BeaconBlockT,
+func (sp *StateProcessor) processExecutionPayload(
+	txCtx ReadOnlyContext,
+	st *statedb.StateDB,
+	blk *ctypes.BeaconBlock,
 ) error {
 	var (
 		body    = blk.GetBody()
 		payload = body.GetExecutionPayload()
-		header  ExecutionPayloadHeaderT
-		g, gCtx = errgroup.WithContext(context.Background())
+		header  = &ctypes.ExecutionPayloadHeader{} // appeases nilaway
+		g, ctx  = errgroup.WithContext(txCtx.ConsensusCtx())
 	)
 
 	payloadTimestamp := payload.GetTimestamp().Unwrap()
-	consensusTimestamp := ctx.GetConsensusTime().Unwrap()
+	consensusTimestamp := txCtx.ConsensusTime().Unwrap()
 
 	sp.metrics.gaugeTimestamps(payloadTimestamp, consensusTimestamp)
 
@@ -58,24 +55,17 @@ func (sp *StateProcessor[
 		"payload height", payload.GetNumber().Unwrap(),
 		"payload timestamp", payloadTimestamp,
 		"consensus timestamp", consensusTimestamp,
-		"skip payload verification", ctx.GetSkipPayloadVerification(),
+		"verify payload", txCtx.VerifyPayload(),
 	)
 
-	// Skip payload verification if the context is configured as such.
-	if !ctx.GetSkipPayloadVerification() {
+	// Perform payload verification only if the context is configured as such.
+	if txCtx.VerifyPayload() {
 		g.Go(func() error {
-			return sp.validateExecutionPayload(
-				gCtx, st, blk,
-				ctx.GetConsensusTime(),
-				ctx.GetOptimisticEngine(),
-			)
+			return sp.validateExecutionPayload(ctx, txCtx.ConsensusTime(), st, blk)
 		})
 	}
 
-	// Get the execution payload header. TODO: This is live on bArtio with a bug
-	// and needs to be hardforked off of. We check for version and convert to
-	// header based on that version as a temporary solution to avoid breaking
-	// changes.
+	// Get the execution payload header.
 	g.Go(func() error {
 		var err error
 		header, err = payload.ToHeader()
@@ -86,41 +76,32 @@ func (sp *StateProcessor[
 		return err
 	}
 
+	if txCtx.MeterGas() {
+		sp.metrics.gaugeBlockGasUsed(
+			payload.GetNumber(), payload.GetGasUsed(), payload.GetBlobGasUsed(),
+		)
+	}
+
 	// Set the latest execution payload header.
 	return st.SetLatestExecutionPayloadHeader(header)
 }
 
 // validateExecutionPayload validates the execution payload against both local
 // state and the execution engine.
-func (sp *StateProcessor[
-	BeaconBlockT, _, BeaconStateT,
-	_, _, _, _,
-]) validateExecutionPayload(
+func (sp *StateProcessor) validateExecutionPayload(
 	ctx context.Context,
-	st BeaconStateT,
-	blk BeaconBlockT,
 	consensusTime math.U64,
-	optimisticEngine bool,
+	st ReadOnlyBeaconState,
+	blk *ctypes.BeaconBlock,
 ) error {
 	if err := sp.validateStatelessPayload(blk); err != nil {
 		return err
 	}
-	return sp.validateStatefulPayload(
-		ctx,
-		st,
-		blk,
-		consensusTime,
-		optimisticEngine,
-	)
+	return sp.validateStatefulPayload(ctx, consensusTime, st, blk)
 }
 
 // validateStatelessPayload performs stateless checks on the execution payload.
-func (sp *StateProcessor[
-	BeaconBlockT, _, _,
-	_, _, _, _,
-]) validateStatelessPayload(
-	blk BeaconBlockT,
-) error {
+func (sp *StateProcessor) validateStatelessPayload(blk *ctypes.BeaconBlock) error {
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
 
@@ -134,29 +115,17 @@ func (sp *StateProcessor[
 		)
 	}
 
-	// Verify the number of blobs.
-	blobKzgCommitments := body.GetBlobKzgCommitments()
-	if uint64(len(blobKzgCommitments)) > sp.cs.MaxBlobsPerBlock() {
-		return errors.Wrapf(
-			ErrExceedsBlockBlobLimit,
-			"expected: %d, got: %d",
-			sp.cs.MaxBlobsPerBlock(), len(blobKzgCommitments),
-		)
-	}
-
+	// No need to verify bounded number of commitments here, since it is
+	// verified early on in ProcessProposal.
 	return nil
 }
 
 // validateStatefulPayload performs stateful checks on the execution payload.
-func (sp *StateProcessor[
-	BeaconBlockT, _, BeaconStateT,
-	_, _, _, _,
-]) validateStatefulPayload(
+func (sp *StateProcessor) validateStatefulPayload(
 	ctx context.Context,
-	st BeaconStateT,
-	blk BeaconBlockT,
 	consensusTime math.U64,
-	optimisticEngine bool,
+	st ReadOnlyBeaconState,
+	blk *ctypes.BeaconBlock,
 ) error {
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
@@ -164,18 +133,6 @@ func (sp *StateProcessor[
 	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return err
-	}
-
-	// We skip timestamp check on Bartio for backward compatibility reasons
-	// TODO: enforce the check when we drop other Bartio special cases.
-	if sp.cs.DepositEth1ChainID() != spec.BartioChainID {
-		if err = payloadtime.Verify(
-			consensusTime,
-			lph.GetTimestamp(),
-			payload.GetTimestamp(),
-		); err != nil {
-			return err
-		}
 	}
 
 	// Check chain canonicity
@@ -189,15 +146,32 @@ func (sp *StateProcessor[
 		)
 	}
 
-	parentBeaconBlockRoot := blk.GetParentBlockRoot()
-	if err = sp.executionEngine.VerifyAndNotifyNewPayload(
-		ctx, engineprimitives.BuildNewPayloadRequest(
-			payload,
-			body.GetBlobKzgCommitments().ToVersionedHashes(),
-			&parentBeaconBlockRoot,
-			optimisticEngine,
-		),
+	// Verify that the payload stamp is within a reasonable bound
+	if err = payloadtime.Verify(
+		consensusTime,
+		lph.GetTimestamp(),
+		payload.GetTimestamp(),
 	); err != nil {
+		return err
+	}
+
+	parentBeaconBlockRoot := blk.GetParentBlockRoot()
+	payloadReq := ctypes.BuildNewPayloadRequest(
+		payload,
+		body.GetBlobKzgCommitments().ToVersionedHashes(),
+		&parentBeaconBlockRoot,
+	)
+
+	// First we verify the block hash and versioned hashes are valid.
+	// TODO: is this required? Or will the EL handle this for us during
+	// new payload?
+	if err = payloadReq.HasValidVersionedAndBlockHashes(); err != nil {
+		return err
+	}
+
+	// TODO: set retryOnSyncingStatus to false if we are in FinalizeBlock.
+	// Otherwise leave as true. This is ok to leave this way for now.
+	if err = sp.executionEngine.NotifyNewPayload(ctx, payloadReq, true); err != nil {
 		return err
 	}
 
@@ -208,7 +182,8 @@ func (sp *StateProcessor[
 	}
 
 	expectedMix, err := st.GetRandaoMixAtIndex(
-		sp.cs.SlotToEpoch(slot).Unwrap() % sp.cs.EpochsPerHistoricalVector())
+		sp.cs.SlotToEpoch(slot).Unwrap() % sp.cs.EpochsPerHistoricalVector(),
+	)
 	if err != nil {
 		return err
 	}

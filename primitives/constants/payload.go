@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -31,8 +31,13 @@ const (
 	// payload.
 	MaxTxsPerPayload uint64 = 1048576
 
-	// MaxDepositsPerBlock is the maximum number of deposits per block.
-	MaxDepositsPerBlock uint64 = 16
+	// DepositContractDepth is the depth of the deposit contract merkle tree.
+	DepositContractDepth uint64 = 32
+
+	// MaxDeposits is the maximum number of deposits supported by the
+	// deposit tree (2**32). This is different from the enforced
+	// MaxDepositsPerBlock.
+	MaxDeposits uint64 = 1 << DepositContractDepth
 
 	// MaxWithdrawalsPerPayload is the maximum number of withdrawals in a
 	// execution payload.

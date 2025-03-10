@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -25,7 +25,7 @@ import (
 	"math/big"
 
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
-	byteslib "github.com/berachain/beacon-kit/primitives/bytes"
+	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
@@ -41,11 +41,7 @@ const (
 
 // Genesis is a struct that contains the genesis information
 // need to start the beacon chain.
-type Genesis[
-	ExecutionPayloadHeaderT interface {
-		NewFromJSON([]byte, uint32) (ExecutionPayloadHeaderT, error)
-	},
-] struct {
+type Genesis struct {
 	// ForkVersion is the fork version of the genesis slot.
 	ForkVersion common.Version `json:"fork_version"`
 
@@ -55,26 +51,26 @@ type Genesis[
 
 	// ExecutionPayloadHeader is the header of the execution payload
 	// in the genesis.
-	ExecutionPayloadHeader ExecutionPayloadHeaderT `json:"execution_payload_header"`
+	ExecutionPayloadHeader *ExecutionPayloadHeader `json:"execution_payload_header"`
 }
 
 // GetForkVersion returns the fork version in the genesis.
-func (g *Genesis[ExecutionPayloadHeaderT]) GetForkVersion() common.Version {
+func (g *Genesis) GetForkVersion() common.Version {
 	return g.ForkVersion
 }
 
 // GetDeposits returns the deposits in the genesis.
-func (g *Genesis[ExecutionPayloadHeaderT]) GetDeposits() []*Deposit {
+func (g *Genesis) GetDeposits() []*Deposit {
 	return g.Deposits
 }
 
 // GetExecutionPayloadHeader returns the execution payload header.
-func (g *Genesis[ExecutionPayloadHeaderT]) GetExecutionPayloadHeader() ExecutionPayloadHeaderT {
+func (g *Genesis) GetExecutionPayloadHeader() *ExecutionPayloadHeader {
 	return g.ExecutionPayloadHeader
 }
 
 // UnmarshalJSON for Genesis.
-func (g *Genesis[ExecutionPayloadHeaderT]) UnmarshalJSON(
+func (g *Genesis) UnmarshalJSON(
 	data []byte,
 ) error {
 	type genesisMarshalable[Deposit any] struct {
@@ -88,12 +84,11 @@ func (g *Genesis[ExecutionPayloadHeaderT]) UnmarshalJSON(
 	}
 
 	var (
-		payloadHeader ExecutionPayloadHeaderT
+		payloadHeader *ExecutionPayloadHeader
 		err           error
 	)
 	payloadHeader, err = payloadHeader.NewFromJSON(
-		g2.ExecutionPayloadHeader,
-		version.ToUint32(g2.ForkVersion),
+		g2.ExecutionPayloadHeader, g2.ForkVersion,
 	)
 	if err != nil {
 		return err
@@ -105,30 +100,23 @@ func (g *Genesis[ExecutionPayloadHeaderT]) UnmarshalJSON(
 	return nil
 }
 
-// DefaultGenesisDeneb returns a the default genesis.
-func DefaultGenesisDeneb() *Genesis[*ExecutionPayloadHeader] {
-	defaultHeader, err :=
-		DefaultGenesisExecutionPayloadHeaderDeneb()
+// DefaultGenesis returns the default genesis.
+func DefaultGenesis() *Genesis {
+	defaultHeader, err := DefaultGenesisExecutionPayloadHeader()
 	if err != nil {
 		panic(err)
 	}
 
-	// TODO: Uncouple from deneb.
-	return &Genesis[*ExecutionPayloadHeader]{
-		ForkVersion: version.FromUint32[common.Version](
-			version.Deneb,
-		),
+	return &Genesis{
+		ForkVersion:            version.Genesis(),
 		Deposits:               make([]*Deposit, 0),
 		ExecutionPayloadHeader: defaultHeader,
 	}
 }
 
-// DefaultGenesisExecutionPayloadHeaderDeneb returns a default
-// ExecutionPayloadHeaderDeneb.
-func DefaultGenesisExecutionPayloadHeaderDeneb() (
-	*ExecutionPayloadHeader, error,
-) {
-	stateRoot, err := byteslib.ToBytes32(
+// DefaultGenesisExecutionPayloadHeader returns a default ExecutionPayloadHeader.
+func DefaultGenesisExecutionPayloadHeader() (*ExecutionPayloadHeader, error) {
+	stateRoot, err := bytes.ToBytes32(
 		hex.MustToBytes(
 			"0x12965ab9cbe2d2203f61d23636eb7e998f167cb79d02e452f532535641e35bcc",
 		),
@@ -137,7 +125,7 @@ func DefaultGenesisExecutionPayloadHeaderDeneb() (
 		return nil, fmt.Errorf("failed generating state root: %w", err)
 	}
 
-	receiptsRoot, err := byteslib.ToBytes32(
+	receiptsRoot, err := bytes.ToBytes32(
 		hex.MustToBytes(
 			"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
 		),
@@ -174,5 +162,6 @@ func DefaultGenesisExecutionPayloadHeaderDeneb() (
 		WithdrawalsRoot: engineprimitives.Withdrawals(nil).HashTreeRoot(),
 		BlobGasUsed:     0,
 		ExcessBlobGas:   0,
+		EphVersion:      version.Genesis(),
 	}, nil
 }

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -36,26 +36,40 @@ var (
 	errNilFinalizeBlockState = errors.New("finalizeBlockState is nil")
 )
 
-func (s *Service[LoggerT]) InitChain(
-	ctx context.Context,
+func (s *Service) InitChain(
+	_ context.Context,
 	req *cmtabci.InitChainRequest,
 ) (*cmtabci.InitChainResponse, error) {
-	return s.initChain(ctx, req)
+	// Check if ctx is still good. CometBFT does not check this.
+	if s.ctx.Err() != nil {
+		// If the context is getting cancelled, we are shutting down.
+		return &cmtabci.InitChainResponse{}, s.ctx.Err()
+	}
+	//nolint:contextcheck // see s.ctx comment for more details
+	return s.initChain(s.ctx, req)
 }
 
 // PrepareProposal implements the PrepareProposal ABCI method and returns a
 // ResponsePrepareProposal object to the client.
-func (s *Service[LoggerT]) PrepareProposal(
-	ctx context.Context,
+func (s *Service) PrepareProposal(
+	_ context.Context,
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
-	return s.prepareProposal(ctx, req)
+	// Check if ctx is still good. CometBFT does not check this.
+	if s.ctx.Err() != nil {
+		// If the context is getting cancelled, we are shutting down.
+		// It is ok returning an empty proposal.
+		//nolint:nilerr // explicitly allowing this case
+		return &cmtabci.PrepareProposalResponse{Txs: req.Txs}, nil
+	}
+	//nolint:contextcheck // see s.ctx comment for more details
+	return s.prepareProposal(s.ctx, req)
 }
 
-func (s *Service[LoggerT]) Info(context.Context,
+func (s *Service) Info(context.Context,
 	*cmtabci.InfoRequest,
 ) (*cmtabci.InfoResponse, error) {
-	lastCommitID := s.sm.CommitMultiStore().LastCommitID()
+	lastCommitID := s.sm.GetCommitMultiStore().LastCommitID()
 	appVersion := initialAppVersion
 	if lastCommitID.Version > 0 {
 		var err error
@@ -66,7 +80,7 @@ func (s *Service[LoggerT]) Info(context.Context,
 	}
 
 	return &cmtabci.InfoResponse{
-		Data:             appName,
+		Data:             AppName,
 		Version:          sdkversion.Version,
 		AppVersion:       appVersion,
 		LastBlockHeight:  lastCommitID.Version,
@@ -76,18 +90,33 @@ func (s *Service[LoggerT]) Info(context.Context,
 
 // ProcessProposal implements the ProcessProposal ABCI method and returns a
 // ResponseProcessProposal object to the client.
-func (s *Service[LoggerT]) ProcessProposal(
-	ctx context.Context,
+func (s *Service) ProcessProposal(
+	_ context.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
-	return s.processProposal(ctx, req)
+	// Check if ctx is still good. CometBFT does not check this.
+	if s.ctx.Err() != nil {
+		// Node will panic on context cancel with "CONSENSUS FAILURE!!!" due to
+		// returning an error. This is expected. We do not want to accept or
+		// reject a proposal based on incomplete data.
+		return nil, s.ctx.Err()
+	}
+	//nolint:contextcheck // see s.ctx comment for more details
+	return s.processProposal(s.ctx, req)
 }
 
-func (s *Service[_]) FinalizeBlock(
-	ctx context.Context,
+func (s *Service) FinalizeBlock(
+	_ context.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (*cmtabci.FinalizeBlockResponse, error) {
-	return s.finalizeBlock(ctx, req)
+	// Check if ctx is still good. CometBFT does not check this.
+	if s.ctx.Err() != nil {
+		// Node will panic on context cancel with "CONSENSUS FAILURE!!!" due to error.
+		// We expect this to happen and do not want to finalize any incomplete or invalid state.
+		return nil, s.ctx.Err()
+	}
+	//nolint:contextcheck // see s.ctx comment for more details
+	return s.finalizeBlock(s.ctx, req)
 }
 
 // Commit implements the ABCI interface. It will commit all state that exists in
@@ -97,66 +126,73 @@ func (s *Service[_]) FinalizeBlock(
 // defined in config, Commit will execute a deferred function call to check
 // against that height and gracefully halt if it matches the latest committed
 // height.
-func (s *Service[LoggerT]) Commit(
-	ctx context.Context, req *cmtabci.CommitRequest,
+func (s *Service) Commit(
+	_ context.Context, req *cmtabci.CommitRequest,
 ) (*cmtabci.CommitResponse, error) {
-	return s.commit(ctx, req)
+	// Check if ctx is still good. CometBFT does not check this.
+	if s.ctx.Err() != nil {
+		// Node will panic on context cancel with "CONSENSUS FAILURE!!!" due to error.
+		// We expect this to happen and do not want to commit any incomplete or invalid state.
+		return nil, s.ctx.Err()
+	}
+
+	return s.commit(req)
 }
 
 //
 // NOOP methods
 //
 
-func (Service[_]) Query(
+func (Service) Query(
 	context.Context,
 	*abci.QueryRequest,
 ) (*abci.QueryResponse, error) {
 	return &abci.QueryResponse{}, nil
 }
 
-func (Service[_]) ListSnapshots(
+func (Service) ListSnapshots(
 	context.Context,
 	*abci.ListSnapshotsRequest,
 ) (*abci.ListSnapshotsResponse, error) {
 	return &abci.ListSnapshotsResponse{}, nil
 }
 
-func (Service[_]) LoadSnapshotChunk(
+func (Service) LoadSnapshotChunk(
 	context.Context,
 	*abci.LoadSnapshotChunkRequest,
 ) (*abci.LoadSnapshotChunkResponse, error) {
 	return &abci.LoadSnapshotChunkResponse{}, nil
 }
 
-func (Service[_]) OfferSnapshot(
+func (Service) OfferSnapshot(
 	context.Context,
 	*abci.OfferSnapshotRequest,
 ) (*abci.OfferSnapshotResponse, error) {
 	return &abci.OfferSnapshotResponse{}, nil
 }
 
-func (Service[_]) ApplySnapshotChunk(
+func (Service) ApplySnapshotChunk(
 	context.Context,
 	*abci.ApplySnapshotChunkRequest,
 ) (*abci.ApplySnapshotChunkResponse, error) {
 	return &abci.ApplySnapshotChunkResponse{}, nil
 }
 
-func (Service[_]) ExtendVote(
+func (Service) ExtendVote(
 	context.Context,
 	*abci.ExtendVoteRequest,
 ) (*abci.ExtendVoteResponse, error) {
 	return &abci.ExtendVoteResponse{}, nil
 }
 
-func (Service[_]) VerifyVoteExtension(
+func (Service) VerifyVoteExtension(
 	context.Context,
 	*abci.VerifyVoteExtensionRequest,
 ) (*abci.VerifyVoteExtensionResponse, error) {
 	return &abci.VerifyVoteExtensionResponse{}, nil
 }
 
-func (*Service[_]) CheckTx(
+func (*Service) CheckTx(
 	context.Context,
 	*abci.CheckTxRequest,
 ) (*abci.CheckTxResponse, error) {

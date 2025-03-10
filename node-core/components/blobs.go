@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,14 +22,13 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/cli/flags"
 	"github.com/berachain/beacon-kit/config"
-	"github.com/berachain/beacon-kit/consensus-types/types"
 	dablob "github.com/berachain/beacon-kit/da/blob"
 	"github.com/berachain/beacon-kit/da/kzg"
-	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
-	"github.com/berachain/beacon-kit/primitives/common"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/spf13/cast"
 )
@@ -54,44 +53,22 @@ func ProvideBlobProofVerifier(
 }
 
 // BlobProcessorIn is the input for the BlobProcessor.
-type BlobProcessorIn[
-	BlobSidecarsT any,
-	LoggerT any,
-] struct {
+type BlobProcessorIn struct {
 	depinject.In
 
 	BlobProofVerifier kzg.BlobProofVerifier
-	ChainSpec         common.ChainSpec
-	Logger            LoggerT
+	ChainSpec         chain.Spec
+	Logger            *phuslu.Logger
 	TelemetrySink     *metrics.TelemetrySink
 }
 
 // ProvideBlobProcessor is a function that provides the BlobProcessor to the
 // depinject framework.
-func ProvideBlobProcessor[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
-	BeaconBlockBodyT any,
-	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
-	BlobSidecarT BlobSidecar,
-	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
-	LoggerT log.AdvancedLogger[LoggerT],
-](
-	in BlobProcessorIn[BlobSidecarsT, LoggerT],
-) *dablob.Processor[
-	AvailabilityStoreT, BeaconBlockBodyT,
-	ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
-] {
-	return dablob.NewProcessor[
-		AvailabilityStoreT,
-		BeaconBlockBodyT,
-		ConsensusSidecarsT,
-		BlobSidecarT,
-		BlobSidecarsT,
-	](
+func ProvideBlobProcessor(in BlobProcessorIn) *dablob.Processor {
+	return dablob.NewProcessor(
 		in.Logger.With("service", "blob-processor"),
 		in.ChainSpec,
 		in.BlobProofVerifier,
-		types.BlockBodyKZGOffset,
 		in.TelemetrySink,
 	)
 }

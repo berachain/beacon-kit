@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,9 +22,8 @@ package core
 
 import (
 	"bytes"
-	"fmt"
 
-	"github.com/berachain/beacon-kit/config/spec"
+	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
@@ -33,34 +32,16 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/state-transition/core/state"
+	depositdb "github.com/berachain/beacon-kit/storage/deposit"
 )
 
 // StateProcessor is a basic Processor, which takes care of the
 // main state transition for the beacon chain.
-type StateProcessor[
-	BeaconBlockT BeaconBlock[
-		BeaconBlockBodyT,
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
-	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT,
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
-	BeaconStateT BeaconState[
-		BeaconStateT,
-		ExecutionPayloadHeaderT, KVStoreT,
-	],
-	ContextT Context,
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	KVStoreT any,
-] struct {
+type StateProcessor struct {
 	// logger is used for logging information and errors.
 	logger log.Logger
 	// cs is the chain specification for the beacon chain.
-	cs common.ChainSpec
+	cs chain.Spec
 	// signer is the BLS signer used for cryptographic operations.
 	signer crypto.BLSSigner
 	// fGetAddressFromPubKey verifies that a validator public key
@@ -68,56 +49,24 @@ type StateProcessor[
 	// Injected via ctor to simplify testing.
 	fGetAddressFromPubKey func(crypto.BLSPubkey) ([]byte, error)
 	// executionEngine is the engine responsible for executing transactions.
-	executionEngine ExecutionEngine[
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	]
+	executionEngine ExecutionEngine
 	// ds allows checking payload deposits against the deposit contract
-	ds DepositStore
+	ds *depositdb.KVStore
 	// metrics is the metrics for the service.
 	metrics *stateProcessorMetrics
 }
 
 // NewStateProcessor creates a new state processor.
-func NewStateProcessor[
-	BeaconBlockT BeaconBlock[
-		BeaconBlockBodyT,
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
-	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT,
-		ExecutionPayloadT,
-		ExecutionPayloadHeaderT,
-	],
-	BeaconStateT BeaconState[
-		BeaconStateT, ExecutionPayloadHeaderT,
-		KVStoreT,
-	],
-	ContextT Context,
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	KVStoreT any,
-](
+func NewStateProcessor(
 	logger log.Logger,
-	cs common.ChainSpec,
-	executionEngine ExecutionEngine[
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
-	ds DepositStore,
+	cs chain.Spec,
+	executionEngine ExecutionEngine,
+	ds *depositdb.KVStore,
 	signer crypto.BLSSigner,
 	fGetAddressFromPubKey func(crypto.BLSPubkey) ([]byte, error),
 	telemetrySink TelemetrySink,
-) *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, ContextT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, KVStoreT,
-] {
-	return &StateProcessor[
-		BeaconBlockT, BeaconBlockBodyT,
-		BeaconStateT, ContextT, ExecutionPayloadT,
-		ExecutionPayloadHeaderT, KVStoreT,
-	]{
+) *StateProcessor {
+	return &StateProcessor{
 		logger:                logger,
 		cs:                    cs,
 		executionEngine:       executionEngine,
@@ -129,13 +78,10 @@ func NewStateProcessor[
 }
 
 // Transition is the main function for processing a state transition.
-func (sp *StateProcessor[
-	BeaconBlockT, _, BeaconStateT, ContextT,
-	_, _, _,
-]) Transition(
-	ctx ContextT,
-	st BeaconStateT,
-	blk BeaconBlockT,
+func (sp *StateProcessor) Transition(
+	ctx ReadOnlyContext,
+	st *state.StateDB,
+	blk *ctypes.BeaconBlock,
 ) (transition.ValidatorUpdates, error) {
 	if blk.IsNil() {
 		return nil, nil
@@ -155,10 +101,11 @@ func (sp *StateProcessor[
 	return validatorUpdates, nil
 }
 
-func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _, _, _,
-]) ProcessSlots(
-	st BeaconStateT, slot math.Slot,
+// NOTE: if process slots is called across multiple epochs (the given slot is more than 1 multiple
+// ahead of the current state slot), then validator updates will be returned in the order they are
+// processed, which may effectually override each other.
+func (sp *StateProcessor) ProcessSlots(
+	st *state.StateDB, slot math.Slot,
 ) (transition.ValidatorUpdates, error) {
 	var res transition.ValidatorUpdates
 
@@ -171,28 +118,6 @@ func (sp *StateProcessor[
 	for ; stateSlot < slot; stateSlot++ {
 		if err = sp.processSlot(st); err != nil {
 			return nil, err
-		}
-
-		// Handle special cases
-		if sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-			slot == math.U64(spec.BoonetFork2Height) {
-			var idx uint64
-			idx, err = st.GetEth1DepositIndex()
-			if err != nil {
-				return nil, fmt.Errorf(
-					"failed retrieving deposit index at slot %d: %w",
-					slot, err,
-				)
-			}
-			fixedDepositIdx := idx - 1
-			if err = st.SetEth1DepositIndex(fixedDepositIdx); err != nil {
-				return nil, err
-			}
-
-			sp.logger.Info(
-				"Fixed Eth 1 deposit index",
-				"previous", idx, "fixed", fixedDepositIdx,
-			)
 		}
 
 		// Process the Epoch Boundary.
@@ -216,11 +141,7 @@ func (sp *StateProcessor[
 }
 
 // processSlot is run when a slot is missed.
-func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _, _, _,
-]) processSlot(
-	st BeaconStateT,
-) error {
+func (sp *StateProcessor) processSlot(st *state.StateDB) error {
 	stateSlot, err := st.GetSlot()
 	if err != nil {
 		return err
@@ -252,19 +173,16 @@ func (sp *StateProcessor[
 
 	// We update the block root.
 	return st.UpdateBlockRootAtIndex(
-		stateSlot.Unwrap()%sp.cs.SlotsPerHistoricalRoot(),
-		latestHeader.HashTreeRoot(),
+		stateSlot.Unwrap()%sp.cs.SlotsPerHistoricalRoot(), latestHeader.HashTreeRoot(),
 	)
 }
 
 // ProcessBlock processes the block, it optionally verifies the
 // state root.
-func (sp *StateProcessor[
-	BeaconBlockT, _, BeaconStateT, ContextT, _, _, _,
-]) ProcessBlock(
-	ctx ContextT,
-	st BeaconStateT,
-	blk BeaconBlockT,
+func (sp *StateProcessor) ProcessBlock(
+	ctx ReadOnlyContext,
+	st *state.StateDB,
+	blk *ctypes.BeaconBlock,
 ) error {
 	if err := sp.processBlockHeader(ctx, st, blk); err != nil {
 		return err
@@ -282,13 +200,13 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	if err := sp.processOperations(st, blk); err != nil {
+	if err := sp.processOperations(ctx, st, blk); err != nil {
 		return err
 	}
 
 	// If we are skipping validate, we can skip calculating the state
 	// root to save compute.
-	if ctx.GetSkipValidateResult() {
+	if !ctx.VerifyResult() {
 		return nil
 	}
 
@@ -305,12 +223,9 @@ func (sp *StateProcessor[
 	return nil
 }
 
-// processEpoch processes the epoch and ensures it matches the local state.
-func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _, _, _,
-]) processEpoch(
-	st BeaconStateT,
-) (transition.ValidatorUpdates, error) {
+// processEpoch processes the epoch and ensures it matches the local state. Currently
+// beacon-kit does not enforce rewards, penalties, and slashing for validators.
+func (sp *StateProcessor) processEpoch(st *state.StateDB) (transition.ValidatorUpdates, error) {
 	slot, err := st.GetSlot()
 	if err != nil {
 		return nil, err
@@ -319,52 +234,47 @@ func (sp *StateProcessor[
 	// track validators set before updating it, to be able to
 	// inform consensus of the validators set changes
 	currentEpoch := sp.cs.SlotToEpoch(slot)
-	currentActiveVals, err := sp.getActiveVals(st, currentEpoch)
+	currentActiveVals, err := getActiveVals(st, currentEpoch)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = sp.processRewardsAndPenalties(st); err != nil {
-		return nil, err
-	}
+	// if err = sp.processRewardsAndPenalties(st); err != nil {
+	// 	return nil, err
+	// }
 	if err = sp.processRegistryUpdates(st); err != nil {
 		return nil, err
 	}
-	if err = sp.processEffectiveBalanceUpdates(st, slot); err != nil {
+	if err = sp.processEffectiveBalanceUpdates(st); err != nil {
 		return nil, err
 	}
-	if err = sp.processSlashingsReset(st); err != nil {
-		return nil, err
-	}
+	// if err = sp.processSlashingsReset(st); err != nil {
+	// 	return nil, err
+	// }
 	if err = sp.processRandaoMixesReset(st); err != nil {
 		return nil, err
 	}
 
-	// only after we have fully updated validators, we enforce
-	// a cap on the validators set
+	// only after we have fully updated validators, we enforce a cap on the validators set
 	if err = sp.processValidatorSetCap(st); err != nil {
 		return nil, err
 	}
 
 	// finally compute diffs in validator set to duly update consensus
 	nextEpoch := currentEpoch + 1
-	nextActiveVals, err := sp.getActiveVals(st, nextEpoch)
+	nextActiveVals, err := getActiveVals(st, nextEpoch)
 	if err != nil {
 		return nil, err
 	}
 
-	return sp.validatorSetsDiffs(currentActiveVals, nextActiveVals), nil
+	return validatorSetsDiffs(currentActiveVals, nextActiveVals), nil
 }
 
-// processBlockHeader processes the header and ensures it matches the local
-// state.
-func (sp *StateProcessor[
-	BeaconBlockT, _, BeaconStateT,
-	ContextT, _, _, _,
-]) processBlockHeader(
-	ctx ContextT,
-	st BeaconStateT,
-	blk BeaconBlockT,
+// processBlockHeader processes the header and ensures it matches the local state.
+func (sp *StateProcessor) processBlockHeader(
+	ctx ReadOnlyContext,
+	st *state.StateDB,
+	blk *ctypes.BeaconBlock,
 ) error {
 	// Ensure the block slot matches the state slot.
 	slot, err := st.GetSlot()
@@ -372,10 +282,7 @@ func (sp *StateProcessor[
 		return err
 	}
 	if blk.GetSlot() != slot {
-		return errors.Wrapf(
-			ErrSlotMismatch, "expected: %d, got: %d",
-			slot, blk.GetSlot(),
-		)
+		return errors.Wrapf(ErrSlotMismatch, "expected: %d, got: %d", slot, blk.GetSlot())
 	}
 
 	// Verify that the block is newer than latest block header
@@ -399,10 +306,10 @@ func (sp *StateProcessor[
 	if err != nil {
 		return err
 	}
-	if !bytes.Equal(stateProposerAddress, ctx.GetProposerAddress()) {
+	if !bytes.Equal(stateProposerAddress, ctx.ProposerAddress()) {
 		return errors.Wrapf(
 			ErrProposerMismatch, "store key: %s, consensus key: %s",
-			stateProposerAddress, ctx.GetProposerAddress(),
+			stateProposerAddress, ctx.ProposerAddress(),
 		)
 	}
 
@@ -425,27 +332,21 @@ func (sp *StateProcessor[
 
 	// Cache current block as the new latest block
 	bodyRoot := blk.GetBody().HashTreeRoot()
-	var lbh *ctypes.BeaconBlockHeader
-	lbh = lbh.New(
-		blk.GetSlot(),
-		blk.GetProposerIndex(),
-		blk.GetParentBlockRoot(),
-		// state_root is zeroed and overwritten
-		// in the next `process_slot` call.
-		common.Root{},
-		bodyRoot,
-	)
+
+	lbh := &ctypes.BeaconBlockHeader{
+		Slot:            blk.GetSlot(),
+		ProposerIndex:   blk.GetProposerIndex(),
+		ParentBlockRoot: blk.GetParentBlockRoot(),
+		// state_root is zeroed and overwritten in the next `process_slot` call.
+		StateRoot: common.Root{},
+		BodyRoot:  bodyRoot,
+	}
 	return st.SetLatestBlockHeader(lbh)
 }
 
 // processEffectiveBalanceUpdates as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#effective-balances-updates
-func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _, _, _,
-]) processEffectiveBalanceUpdates(
-	st BeaconStateT,
-	slot math.Slot,
-) error {
+func (sp *StateProcessor) processEffectiveBalanceUpdates(st *state.StateDB) error {
 	// Update effective balances with hysteresis
 	validators, err := st.GetValidators()
 	if err != nil {
@@ -453,13 +354,10 @@ func (sp *StateProcessor[
 	}
 
 	var (
-		hysteresisIncrement = sp.cs.EffectiveBalanceIncrement() / sp.cs.HysteresisQuotient()
-		downwardThreshold   = math.Gwei(
-			hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier(),
-		)
-		upwardThreshold = math.Gwei(
-			hysteresisIncrement * sp.cs.HysteresisUpwardMultiplier(),
-		)
+		effectiveBalanceIncrement = sp.cs.EffectiveBalanceIncrement()
+		hysteresisIncrement       = effectiveBalanceIncrement / sp.cs.HysteresisQuotient()
+		downwardThreshold         = math.Gwei(hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier())
+		upwardThreshold           = math.Gwei(hysteresisIncrement * sp.cs.HysteresisUpwardMultiplier())
 
 		idx     math.U64
 		balance math.Gwei
@@ -480,10 +378,8 @@ func (sp *StateProcessor[
 			val.GetEffectiveBalance()+upwardThreshold < balance {
 			updatedBalance := ctypes.ComputeEffectiveBalance(
 				balance,
-				math.U64(sp.cs.EffectiveBalanceIncrement()),
-				math.U64(sp.cs.MaxEffectiveBalance(
-					state.IsPostFork3(sp.cs.DepositEth1ChainID(), slot),
-				)),
+				math.U64(effectiveBalanceIncrement),
+				math.U64(sp.cs.MaxEffectiveBalance()),
 			)
 			val.SetEffectiveBalance(updatedBalance)
 			if err = st.UpdateValidatorAtIndex(idx, val); err != nil {

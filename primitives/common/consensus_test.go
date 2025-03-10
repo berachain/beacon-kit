@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -31,6 +31,7 @@ import (
 )
 
 func TestNewRootFromHex(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name        string
 		input       func() string
@@ -68,6 +69,7 @@ func TestNewRootFromHex(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var err error
 			f := func() {
 				input := tt.input()
@@ -76,6 +78,62 @@ func TestNewRootFromHex(t *testing.T) {
 			require.NotPanics(t, f)
 			if tt.expectedErr != nil {
 				require.ErrorIs(t, err, tt.expectedErr)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestRoot_UnmarshalJSON(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name        string
+		input       []byte
+		expectedErr error
+	}{
+		{
+			name:        "nil input",
+			input:       nil,
+			expectedErr: bytes.ErrIncorrectLength,
+		},
+		{
+			name:        "empty input",
+			input:       []byte(``),
+			expectedErr: bytes.ErrIncorrectLength,
+		},
+		{
+			name:        "short input of 1 byte",
+			input:       []byte{0x01},
+			expectedErr: bytes.ErrIncorrectLength,
+		},
+		{
+			name:        "short input of just quotes",
+			input:       []byte(`""`),
+			expectedErr: hex.ErrEmptyString,
+		},
+		{
+			name:        "valid input",
+			input:       []byte(`"0x6969696969696969696969696969696969696969696969696969696969696969"`),
+			expectedErr: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var (
+				r     common.Root
+				err   error
+				input = tt.input
+			)
+
+			f := func() {
+				err = r.UnmarshalJSON(input)
+			}
+			require.NotPanics(t, f)
+
+			if tt.expectedErr != nil {
+				require.ErrorContains(t, err, tt.expectedErr.Error())
 			} else {
 				require.NoError(t, err)
 			}

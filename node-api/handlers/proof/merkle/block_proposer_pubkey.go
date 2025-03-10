@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -35,12 +35,9 @@ import (
 // the fastssz library to generate the proof.
 func ProveProposerPubkeyInBlock[
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
-	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
 ](
 	bbh *ctypes.BeaconBlockHeader,
-	bs types.BeaconState[
-		BeaconStateMarshallableT, ExecutionPayloadHeaderT,
-	],
+	bs types.BeaconState[BeaconStateMarshallableT],
 ) ([]common.Root, common.Root, error) {
 	// Get the proof of the proposer pubkey in the beacon state.
 	proposerOffset := ValidatorPubkeyGIndexOffset * bbh.GetProposerIndex()
@@ -75,11 +72,8 @@ func ProveProposerPubkeyInBlock[
 // in the beacon state. It uses the fastssz library to generate the proof.
 func ProveProposerPubkeyInState[
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
-	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
 ](
-	bs types.BeaconState[
-		BeaconStateMarshallableT, ExecutionPayloadHeaderT,
-	],
+	bs types.BeaconState[BeaconStateMarshallableT],
 	proposerOffset math.U64,
 ) ([]common.Root, common.Root, error) {
 	bsm, err := bs.GetMarshallable()
@@ -91,8 +85,7 @@ func ProveProposerPubkeyInState[
 		return nil, common.Root{}, err
 	}
 
-	//#nosec:G701 // max proposer offset is 8 * (2^40 - 1).
-	gIndex := ZeroValidatorPubkeyGIndexDenebState + int(proposerOffset)
+	gIndex := ZeroValidatorPubkeyGIndexDenebState + int(proposerOffset) // #nosec G115 -- max proposer offset is 8 * (2^40 - 1).
 	valPubkeyInStateProof, err := stateProofTree.Prove(gIndex)
 	if err != nil {
 		return nil, common.Root{}, err

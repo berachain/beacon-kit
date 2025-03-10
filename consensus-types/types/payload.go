@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -72,6 +72,23 @@ type ExecutionPayload struct {
 	BlobGasUsed math.U64 `json:"blobGasUsed"`
 	// ExcessBlobGas is the amount of excess blob gas in the block.
 	ExcessBlobGas math.U64 `json:"excessBlobGas"`
+
+	// EpVersion is the version of the execution payload.
+	// EpVersion must be not serialized, but it's exported
+	// to allow unit tests using reflect on execution payload.
+	EpVersion common.Version `json:"-"`
+}
+
+func EnsureNotNilWithdrawals(p *ExecutionPayload) {
+	// Post Shanghai an EL explicitly check that Withdrawals are not nil
+	// (instead empty slices are fine). Currently BeaconKit duly builds
+	// a block with Withdrawals set to empty slice if there are no
+	// withdrawals) but as soon as the block is returned by CometBFT
+	// for verification, the SSZ decoding sets the empty slice to nil.
+	// This code change solves the issue.
+	if p.Withdrawals == nil {
+		p.Withdrawals = make([]*engineprimitives.Withdrawal, 0)
+	}
 }
 
 /* -------------------------------------------------------------------------- */
@@ -93,7 +110,7 @@ func (p *ExecutionPayload) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 
 // DefineSSZ defines how an object is encoded/decoded.
 //
-//nolint:mnd // todo fix.
+//nolint:mnd // TODO: get from accessible chainspec field params
 func (p *ExecutionPayload) DefineSSZ(codec *ssz.Codec) {
 	// Define the static data (fields and dynamic offsets)
 	ssz.DefineStaticBytes(codec, &p.ParentHash)
@@ -129,15 +146,11 @@ func (p *ExecutionPayload) DefineSSZ(codec *ssz.Codec) {
 	)
 	ssz.DefineSliceOfStaticObjectsContent(codec, &p.Withdrawals, 16)
 
-	// Post Shangai an EL explicitly check that Withdrawals are not nil
-	// (instead empty slices are fine). Currently BeaconKit duly builds
-	// a block with Withdrawals set to empty slice if there are no
-	// withdrawals) but as soon as the block is returned by CometBFT
-	// for verification, the SSZ decoding sets the empty slice to nil.
-	// This code change solves the issue.
-	if p.Withdrawals == nil {
-		p.Withdrawals = make([]*engineprimitives.Withdrawal, 0)
-	}
+	// Note that at this state we don't have any guarantee that
+	// p.Withdrawal is not nil, which we require following Capella
+	// (empty list of withdrawals are fine). We ensure non-nillness
+	// in EnsureNotNilWithdrawals which is must be called wherever
+	// we deserialize an execution payload (or anything containing one).
 }
 
 // MarshalSSZ serializes the ExecutionPayload object into a slice of bytes.
@@ -454,13 +467,15 @@ func (p *ExecutionPayload) UnmarshalJSON(input []byte) error {
 }
 
 // Empty returns an empty ExecutionPayload for the given fork version.
-func (p *ExecutionPayload) Empty(_ uint32) *ExecutionPayload {
-	return &ExecutionPayload{}
+func (p *ExecutionPayload) Empty(forkVersion common.Version) *ExecutionPayload {
+	return &ExecutionPayload{
+		EpVersion: forkVersion,
+	}
 }
 
 // Version returns the version of the ExecutionPayload.
-func (p *ExecutionPayload) Version() uint32 {
-	return version.Deneb
+func (p *ExecutionPayload) Version() common.Version {
+	return p.EpVersion
 }
 
 // IsNil checks if the ExecutionPayload is nil.
@@ -479,9 +494,7 @@ func (p *ExecutionPayload) GetParentHash() common.ExecutionHash {
 }
 
 // GetFeeRecipient returns the fee recipient address of the ExecutionPayload.
-func (
-	p *ExecutionPayload,
-) GetFeeRecipient() common.ExecutionAddress {
+func (p *ExecutionPayload) GetFeeRecipient() common.ExecutionAddress {
 	return p.FeeRecipient
 }
 
@@ -561,14 +574,11 @@ func (p *ExecutionPayload) GetExcessBlobGas() math.U64 {
 }
 
 // ToHeader converts the ExecutionPayload to an ExecutionPayloadHeader.
-func (p *ExecutionPayload) ToHeader() (
-	*ExecutionPayloadHeader,
-	error,
-) {
+func (p *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 	txsRoot := p.GetTransactions().HashTreeRoot()
 
-	switch p.Version() {
-	case version.Deneb, version.DenebPlus:
+	switch p.EpVersion {
+	case version.Deneb(), version.Deneb1():
 		return &ExecutionPayloadHeader{
 			ParentHash:       p.ParentHash,
 			FeeRecipient:     p.GetFeeRecipient(),
@@ -587,6 +597,7 @@ func (p *ExecutionPayload) ToHeader() (
 			WithdrawalsRoot:  p.GetWithdrawals().HashTreeRoot(),
 			BlobGasUsed:      p.GetBlobGasUsed(),
 			ExcessBlobGas:    p.GetExcessBlobGas(),
+			EphVersion:       p.EpVersion,
 		}, nil
 	default:
 		return nil, errors.New("unknown fork version")

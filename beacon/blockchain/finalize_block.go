@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,106 +22,118 @@ package blockchain
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/consensus/types"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func (s *Service[
-	_, _, ConsensusBlockT, BeaconBlockT, _, _,
-	_, _, _, GenesisT, ConsensusSidecarsT, BlobSidecarsT, _,
-]) FinalizeBlock(
+func (s *Service) FinalizeBlock(
 	ctx sdk.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (transition.ValidatorUpdates, error) {
-	var (
-		valUpdates  transition.ValidatorUpdates
-		finalizeErr error
-	)
-
-	// STEP 1: Decode blok and blobs
-	blk, blobs, err := encoding.
-		ExtractBlobsAndBlockFromRequest[BeaconBlockT, BlobSidecarsT](
+	// STEP 1: Decode block and blobs.
+	signedBlk, blobs, err := encoding.ExtractBlobsAndBlockFromRequest(
 		req,
 		BeaconBlockTxIndex,
 		BlobSidecarsTxIndex,
-		s.chainSpec.ActiveForkVersionForSlot(
-			math.Slot(req.Height),
-		))
+		s.chainSpec.ActiveForkVersionForSlot(math.Slot(req.Height))) // #nosec G115
 	if err != nil {
-		//nolint:nilerr // If we don't have a block, we can't do anything.
-		return nil, nil
+		s.logger.Error("Failed to decode block and blobs", "error", err)
+		return nil, fmt.Errorf("failed to decode block and blobs: %w", err)
 	}
+	blk := signedBlk.GetMessage()
 
-	// STEP 2: Finalize sidecars first (block will check for
-	// sidecar availability)
-	err = s.blobProcessor.ProcessSidecars(
-		s.storageBackend.AvailabilityStore(),
-		blobs,
-	)
-	if err != nil {
-		s.logger.Error("Failed to process blob sidecars", "error", err)
-	}
-
-	// STEP 3: finalize the block
-	var consensusBlk *types.ConsensusBlock[BeaconBlockT]
-	consensusBlk = consensusBlk.New(
-		blk,
-		req.GetProposerAddress(),
-		req.GetTime(),
-	)
-
-	cBlk, ok := any(consensusBlk).(ConsensusBlockT)
-	if !ok {
-		panic("failed to convert consensusBlk to ConsensusBlockT")
-	}
-
-	st := s.storageBackend.StateFromContext(ctx)
-	valUpdates, finalizeErr = s.finalizeBeaconBlock(ctx, st, cBlk)
+	// Send an FCU to force the HEAD of the chain on the EL on startup.
+	var finalizeErr error
+	s.forceStartupSyncOnce.Do(func() {
+		finalizeErr = s.forceSyncUponFinalize(ctx, blk)
+	})
 	if finalizeErr != nil {
-		s.logger.Error("Failed to process verified beacon block",
-			"error", finalizeErr,
+		return nil, finalizeErr
+	}
+
+	// STEP 2: Finalize sidecars first (block will check for sidecar availability).
+	// SyncingToHeight is always the tip of the chain both during sync and when
+	// caught up. We don't need to process sidecars unless they are within DA period.
+	//
+	//#nosec: G115 // SyncingToHeight will never be negative.
+	if s.chainSpec.WithinDAPeriod(blk.GetSlot(), math.Slot(req.SyncingToHeight)) {
+		err = s.blobProcessor.ProcessSidecars(
+			s.storageBackend.AvailabilityStore(),
+			blobs,
+		)
+		if err != nil {
+			s.logger.Error("Failed to process blob sidecars", "error", err)
+			return nil, fmt.Errorf("failed to process blob sidecars: %w", err)
+		}
+
+		// Ensure we can access the data using the commitments from the block.
+		if !s.storageBackend.AvailabilityStore().IsDataAvailable(
+			ctx, blk.GetSlot(), blk.GetBody(),
+		) {
+			return nil, ErrDataNotAvailable
+		}
+	} else if len(blobs) > 0 {
+		s.logger.Info(
+			"Skipping blob processing outside of Data Availability Period",
+			"slot", blk.GetSlot().Base10(), "head", req.SyncingToHeight,
 		)
 	}
 
-	// STEP 4: Post Finalizations cleanups
+	// STEP 3: Finalize the block.
+	consensusBlk := types.NewConsensusBlock(blk, req.GetProposerAddress(), req.GetTime())
+	st := s.storageBackend.StateFromContext(ctx)
+	valUpdates, err := s.finalizeBeaconBlock(ctx, st, consensusBlk)
+	if err != nil {
+		s.logger.Error("Failed to process verified beacon block",
+			"error", err,
+		)
+		return nil, err
+	}
 
-	// fetch and store the deposit for the block
+	// STEP 4: Post Finalizations cleanups.
+
+	// Fetch and store the deposit for the block.
 	blockNum := blk.GetBody().GetExecutionPayload().GetNumber()
 	s.depositFetcher(ctx, blockNum)
 
-	// store the finalized block in the KVStore.
+	// Store the finalized block in the KVStore.
+	//
+	// TODO: Store full SignedBeaconBlock with all data in storage
 	slot := blk.GetSlot()
-	if err = s.blockStore.Set(blk); err != nil {
+	if err = s.storageBackend.BlockStore().Set(blk); err != nil {
 		s.logger.Error(
 			"failed to store block", "slot", slot, "error", err,
 		)
+		return nil, err
 	}
 
-	// prune the availability and deposit store
-	err = s.processPruning(blk)
+	// Prune the availability and deposit store.
+	err = s.processPruning(ctx, blk)
 	if err != nil {
 		s.logger.Error("failed to processPruning", "error", err)
 	}
 
-	go s.sendPostBlockFCU(ctx, st, cBlk)
+	if err = s.sendPostBlockFCU(ctx, st, consensusBlk); err != nil {
+		return nil, fmt.Errorf("sendPostBlockFCU failed: %w", err)
+	}
 
 	return valUpdates, nil
 }
 
 // finalizeBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
-func (s *Service[
-	_, _, ConsensusBlockT, _, _, BeaconStateT, _, _, _, _, _, _, _,
-]) finalizeBeaconBlock(
+func (s *Service) finalizeBeaconBlock(
 	ctx context.Context,
-	st BeaconStateT,
-	blk ConsensusBlockT,
+	st *statedb.StateDB,
+	blk *types.ConsensusBlock,
 ) (transition.ValidatorUpdates, error) {
 	beaconBlk := blk.GetBeaconBlock()
 
@@ -134,59 +146,47 @@ func (s *Service[
 	if err != nil {
 		return nil, err
 	}
-
-	// If the blobs needed to process the block are not available, we
-	// return an error. It is safe to use the slot off of the beacon block
-	// since it has been verified as correct already.
-	if !s.storageBackend.AvailabilityStore().IsDataAvailable(
-		ctx, beaconBlk.GetSlot(), beaconBlk.GetBody(),
-	) {
-		return nil, ErrDataNotAvailable
-	}
 	return valUpdates.CanonicalSort(), nil
 }
 
 // executeStateTransition runs the stf.
-func (s *Service[
-	_, _, ConsensusBlockT, _, _, BeaconStateT, _, _, _, _, _, _, _,
-]) executeStateTransition(
+func (s *Service) executeStateTransition(
 	ctx context.Context,
-	st BeaconStateT,
-	blk ConsensusBlockT,
+	st *statedb.StateDB,
+	blk *types.ConsensusBlock,
 ) (transition.ValidatorUpdates, error) {
 	startTime := time.Now()
 	defer s.metrics.measureStateTransitionDuration(startTime)
-	valUpdates, err := s.stateProcessor.Transition(
-		&transition.Context{
-			Context: ctx,
 
-			// We set `OptimisticEngine` to true since this is called during
-			// FinalizeBlock. We want to assume the payload is valid. If it
-			// ends up not being valid later, the node will simply AppHash,
-			// which is completely fine. This means we were syncing from a
-			// bad peer, and we would likely AppHash anyways.
-			OptimisticEngine: true,
+	// Notes about context attributes:
+	// - VerifyPayload: set to true. When we are NOT synced to the tip,
+	// process proposal does NOT get called and thus we must ensure that
+	// NewPayload is called to get the execution client the payload.
+	// When we are synced to the tip, we can skip the
+	// NewPayload call since we already gave our execution client
+	// the payload in process proposal.
+	// In both cases the payload was already accepted by a majority
+	// of validators in their process proposal call and thus
+	// the "verification aspect" of this NewPayload call is
+	// actually irrelevant at this point.
+	// - VerifyRandao: set to false. We skip randao validation in FinalizeBlock
+	// since either
+	//   1. we validated it during ProcessProposal at the head of the chain OR
+	//   2. we are bootstrapping and implicitly trust that the randao was validated by
+	//    the super majority during ProcessProposal of the given block height.
+	txCtx := transition.NewTransitionCtx(
+		ctx,
+		blk.GetConsensusTime(),
+		blk.GetProposerAddress(),
+	).
+		WithVerifyPayload(true).
+		WithVerifyRandao(false).
+		WithVerifyResult(false).
+		WithMeterGas(true)
 
-			// When we are NOT synced to the tip, process proposal
-			// does NOT get called and thus we must ensure that
-			// NewPayload is called to get the execution
-			// client the payload.
-			//
-			// When we are synced to the tip, we can skip the
-			// NewPayload call since we already gave our execution client
-			// the payload in process proposal.
-			//
-			// In both cases the payload was already accepted by a majority
-			// of validators in their process proposal call and thus
-			// the "verification aspect" of this NewPayload call is
-			// actually irrelevant at this point.
-			SkipPayloadVerification: false,
-
-			ProposerAddress: blk.GetProposerAddress(),
-			ConsensusTime:   blk.GetConsensusTime(),
-		},
+	return s.stateProcessor.Transition(
+		txCtx,
 		st,
 		blk.GetBeaconBlock(),
 	)
-	return valUpdates, err
 }

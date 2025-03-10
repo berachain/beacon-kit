@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -27,62 +27,50 @@ import (
 	jsonrpc "github.com/berachain/beacon-kit/primitives/net/json-rpc"
 )
 
-// ErrUnauthenticatedConnection indicates that the connection is not
-// authenticated.
 const (
 	UnauthenticatedConnectionErrorStr = `could not verify execution chain ID as your
 	connection is not authenticated. If connecting to your execution client via HTTP, you
 	will need to set up JWT authentication...`
-
-	AuthErrMsg = "HTTP authentication to your execution client " +
-		"is not working. Please ensure you are setting a correct " +
-		"value for the JWT secret path" +
-		"is set correctly, or use an IPC " +
-		"connection if on the same machine."
 )
 
 var (
-	// ErrNotStarted indicates that the execution client is not started.
-	ErrNotStarted = errors.New("engine client is not started")
-
-	// ErrFailedToRefreshJWT indicates that the JWT could not be refreshed.
-	ErrFailedToRefreshJWT = errors.New("failed to refresh auth token")
 
 	// ErrMismatchedEth1ChainID is returned when the chainID does not
 	// match the expected chain ID.
 	ErrMismatchedEth1ChainID = errors.New("mismatched chain ID")
+
+	// ErrBadConnection indicates that the http.Client was unable to
+	// establish a connection.
+	ErrBadConnection = errors.New("connection error")
 )
 
 // Handles errors received from the RPC server according to the specification.
-func (s *EngineClient[
-	_, _,
-]) handleRPCError(
+func (s *EngineClient) handleRPCError(
 	err error,
 ) error {
-	// Exit early if there is no error.
 	if err == nil {
-		return nil
+		//nolint:nilerr // appease nilaway
+		return err
 	}
 
 	// Check for timeout errors.
+	if errors.Is(err, engineerrors.ErrEngineAPITimeout) {
+		s.metrics.incrementEngineAPITimeout()
+		return err
+	}
 	if http.IsTimeoutError(err) {
 		s.metrics.incrementHTTPTimeoutCounter()
 		return http.ErrTimeout
 	}
-
+	// Check for authorization errors
+	if errors.Is(err, http.ErrUnauthorized) {
+		return err
+	}
 	// Check for connection errors.
-	//
-	//nolint:errorlint // from prysm.
-	e, ok := err.(jsonrpc.Error)
-	if !ok {
-		if jsonrpc.IsUnauthorizedError(e) {
-			return http.ErrUnauthorized
-		}
-		return errors.Wrapf(
-			err,
-			"got an unexpected server error in JSON-RPC response "+
-				"failed to convert from jsonrpc.Error",
-		)
+	var e jsonrpc.Error
+	ok := errors.As(err, &e)
+	if !ok || e == nil {
+		return errors.Join(ErrBadConnection, err)
 	}
 
 	// Otherwise check for our engine errors.
@@ -130,4 +118,23 @@ func (s *EngineClient[
 	default:
 		return err
 	}
+}
+
+// IsFatalError defines errors that indicate a bad request or an otherwise
+// unusable client.
+func IsFatalError(err error) bool {
+	return jsonrpc.IsPreDefinedError(err) || errors.IsAny(
+		err,
+		ErrBadConnection,
+	)
+}
+
+// IsNonFatalError defines errors that should be ephemeral and can be
+// recovered from simply by retrying.
+func IsNonFatalError(err error) bool {
+	return errors.IsAny(
+		err,
+		engineerrors.ErrEngineAPITimeout,
+		http.ErrTimeout,
+	)
 }

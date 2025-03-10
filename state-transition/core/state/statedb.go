@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,76 +21,41 @@
 package state
 
 import (
-	"github.com/berachain/beacon-kit/config/spec"
+	"context"
+
+	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/storage/beacondb"
 )
 
 // StateDB is the underlying struct behind the BeaconState interface.
 //
 //nolint:revive // todo fix somehow
-type StateDB[
-	BeaconStateMarshallableT BeaconStateMarshallable[
-		BeaconStateMarshallableT,
-		ExecutionPayloadHeaderT,
-	],
-	ExecutionPayloadHeaderT any,
-	KVStoreT KVStore[
-		KVStoreT,
-		ExecutionPayloadHeaderT,
-	],
-] struct {
-	KVStore[
-		KVStoreT,
-		ExecutionPayloadHeaderT,
-	]
-	cs common.ChainSpec
+type StateDB struct {
+	beacondb.KVStore
+
+	cs chain.Spec
 }
 
 // NewBeaconStateFromDB creates a new beacon state from an underlying state db.
-func (s *StateDB[
-	BeaconStateMarshallableT,
-	ExecutionPayloadHeaderT, KVStoreT,
-]) NewFromDB(
-	bdb KVStoreT,
-	cs common.ChainSpec,
-) *StateDB[
-	BeaconStateMarshallableT,
-	ExecutionPayloadHeaderT,
-	KVStoreT,
-] {
-	return &StateDB[
-		BeaconStateMarshallableT,
-		ExecutionPayloadHeaderT,
-		KVStoreT,
-	]{
-		KVStore: bdb,
+func NewBeaconStateFromDB(bdb *beacondb.KVStore, cs chain.Spec) *StateDB {
+	return &StateDB{
+		KVStore: *bdb,
 		cs:      cs,
 	}
 }
 
 // Copy returns a copy of the beacon state.
-func (s *StateDB[
-	BeaconStateMarshallableT,
-	ExecutionPayloadHeaderT, KVStoreT,
-]) Copy() *StateDB[
-	BeaconStateMarshallableT,
-	ExecutionPayloadHeaderT,
-	KVStoreT,
-] {
-	return s.NewFromDB(s.KVStore.Copy(), s.cs)
+func (s *StateDB) Copy(ctx context.Context) *StateDB {
+	return NewBeaconStateFromDB(s.KVStore.Copy(ctx), s.cs)
 }
 
 // IncreaseBalance increases the balance of a validator.
-func (s *StateDB[
-	_, _, _,
-]) IncreaseBalance(
-	idx math.ValidatorIndex,
-	delta math.Gwei,
-) error {
+func (s *StateDB) IncreaseBalance(idx math.ValidatorIndex, delta math.Gwei) error {
 	balance, err := s.GetBalance(idx)
 	if err != nil {
 		return err
@@ -99,12 +64,7 @@ func (s *StateDB[
 }
 
 // DecreaseBalance decreases the balance of a validator.
-func (s *StateDB[
-	_, _, _,
-]) DecreaseBalance(
-	idx math.ValidatorIndex,
-	delta math.Gwei,
-) error {
+func (s *StateDB) DecreaseBalance(idx math.ValidatorIndex, delta math.Gwei) error {
 	balance, err := s.GetBalance(idx)
 	if err != nil {
 		return err
@@ -113,12 +73,7 @@ func (s *StateDB[
 }
 
 // UpdateSlashingAtIndex sets the slashing amount in the store.
-func (s *StateDB[
-	_, _, _,
-]) UpdateSlashingAtIndex(
-	index uint64,
-	amount math.Gwei,
-) error {
+func (s *StateDB) UpdateSlashingAtIndex(index uint64, amount math.Gwei) error {
 	// Update the total slashing amount before overwriting the old amount.
 	total, err := s.GetTotalSlashing()
 	if err != nil {
@@ -147,51 +102,23 @@ func (s *StateDB[
 //
 // NOTE: This function is modified from the spec to allow a fixed withdrawal
 // (as the first withdrawal) used for EVM inflation.
-//
-//nolint:funlen,gocognit // TODO: Simplify when dropping special cases.
-func (s *StateDB[
-	_, _, _,
-]) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
+func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 	var (
 		validator         *ctypes.Validator
 		balance           math.Gwei
 		withdrawalAddress common.ExecutionAddress
-		withdrawals       = make([]*engineprimitives.Withdrawal, 0)
-		withdrawal        *engineprimitives.Withdrawal
 	)
 
 	slot, err := s.GetSlot()
 	if err != nil {
 		return nil, err
 	}
+	epoch := s.cs.SlotToEpoch(slot)
+	maxWithdrawals := s.cs.MaxWithdrawalsPerPayload()
+	withdrawals := make([]*engineprimitives.Withdrawal, 0, maxWithdrawals)
 
-	// Handle special cases wherever it's necessary
-	switch {
-	case s.cs.DepositEth1ChainID() == spec.BartioChainID:
-		// nothing special to do
-
-	case s.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-		slot == math.U64(spec.BoonetFork1Height):
-		// Slot used to emergency mint EVM tokens on Boonet.
-		withdrawals = append(withdrawals, withdrawal.New(
-			0, // NOT USED
-			0, // NOT USED
-			common.NewExecutionAddressFromHex(EVMMintingAddress),
-			math.Gwei(EVMMintingAmount),
-		))
-		return withdrawals, nil
-
-	case s.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-		slot < math.U64(spec.BoonetFork2Height):
-		// Boonet inherited the Bartio behaviour pre BoonetFork2Height
-		// nothing specific to do
-
-	default:
-		// The first withdrawal is fixed to be the EVM inflation withdrawal.
-		withdrawals = append(withdrawals, s.EVMInflationWithdrawal())
-	}
-
-	epoch := math.Epoch(slot.Unwrap() / s.cs.SlotsPerEpoch())
+	// The first withdrawal is fixed to be the EVM inflation withdrawal.
+	withdrawals = append(withdrawals, s.EVMInflationWithdrawal(slot))
 
 	withdrawalIndex, err := s.GetNextWithdrawalIndex()
 	if err != nil {
@@ -208,11 +135,7 @@ func (s *StateDB[
 		return nil, err
 	}
 
-	bound := min(
-		totalValidators, s.cs.MaxValidatorsPerWithdrawalsSweep(
-			IsPostFork2(s.cs.DepositEth1ChainID(), slot),
-		),
-	)
+	bound := min(totalValidators, s.cs.MaxValidatorsPerWithdrawalsSweep())
 
 	// Iterate through indices to find the next validators to withdraw.
 	for range bound {
@@ -226,17 +149,14 @@ func (s *StateDB[
 			return nil, err
 		}
 
-		// Set the amount of the withdrawal depending on the balance of the
-		// validator.
-		//nolint:gocritic,nestif // ok.
+		// Set the amount of the withdrawal depending on the balance of the validator.
 		if validator.IsFullyWithdrawable(balance, epoch) {
-			withdrawalAddress, err = validator.
-				GetWithdrawalCredentials().ToExecutionAddress()
+			withdrawalAddress, err = validator.GetWithdrawalCredentials().ToExecutionAddress()
 			if err != nil {
 				return nil, err
 			}
 
-			withdrawals = append(withdrawals, withdrawal.New(
+			withdrawals = append(withdrawals, engineprimitives.NewWithdrawal(
 				math.U64(withdrawalIndex),
 				validatorIndex,
 				withdrawalAddress,
@@ -246,57 +166,31 @@ func (s *StateDB[
 			// Increment the withdrawal index to process the next withdrawal.
 			withdrawalIndex++
 		} else if validator.IsPartiallyWithdrawable(
-			balance, math.Gwei(s.cs.MaxEffectiveBalance(
-				IsPostFork3(s.cs.DepositEth1ChainID(), slot),
-			)),
+			balance, math.Gwei(s.cs.MaxEffectiveBalance()),
 		) {
-			withdrawalAddress, err = validator.
-				GetWithdrawalCredentials().ToExecutionAddress()
+			withdrawalAddress, err = validator.GetWithdrawalCredentials().ToExecutionAddress()
 			if err != nil {
 				return nil, err
 			}
 
-			withdrawals = append(withdrawals, withdrawal.New(
+			withdrawals = append(withdrawals, engineprimitives.NewWithdrawal(
 				math.U64(withdrawalIndex),
 				validatorIndex,
 				withdrawalAddress,
-				balance-math.Gwei(s.cs.MaxEffectiveBalance(
-					IsPostFork3(s.cs.DepositEth1ChainID(), slot),
-				)),
+				balance-math.Gwei(s.cs.MaxEffectiveBalance()),
 			))
 
 			// Increment the withdrawal index to process the next withdrawal.
 			withdrawalIndex++
-		} else if s.cs.DepositEth1ChainID() == spec.BartioChainID {
-			// Backward compatibility with Bartio
-			// TODO: Drop this when we drop other Bartio special cases.
-
-			withdrawalAddress, err = validator.
-				GetWithdrawalCredentials().ToExecutionAddress()
-			if err != nil {
-				return nil, err
-			}
-
-			withdrawal = withdrawal.New(
-				math.U64(withdrawalIndex),
-				validatorIndex,
-				withdrawalAddress,
-				0,
-			)
-
-			withdrawals = append(withdrawals, withdrawal)
-			withdrawalIndex++
 		}
 
 		// Cap the number of withdrawals to the maximum allowed per payload.
-		if uint64(len(withdrawals)) == s.cs.MaxWithdrawalsPerPayload() {
+		if uint64(len(withdrawals)) == maxWithdrawals {
 			break
 		}
 
 		// Increment the validator index to process the next validator.
-		validatorIndex = (validatorIndex + 1) % math.ValidatorIndex(
-			totalValidators,
-		)
+		validatorIndex = (validatorIndex + 1) % math.ValidatorIndex(totalValidators)
 	}
 
 	return withdrawals, nil
@@ -304,27 +198,22 @@ func (s *StateDB[
 
 // EVMInflationWithdrawal returns the withdrawal used for EVM balance inflation.
 //
-// NOTE: The withdrawal index and validator index are both set to 0 as they are
-// not used during processing.
-func (s *StateDB[
-	_, _, _,
-]) EVMInflationWithdrawal() *engineprimitives.Withdrawal {
-	var withdrawal *engineprimitives.Withdrawal
-	return withdrawal.New(
+// NOTE: The withdrawal index and validator index are both set to max(uint64) as
+// they are not used during processing.
+func (s *StateDB) EVMInflationWithdrawal(slot math.Slot) *engineprimitives.Withdrawal {
+	return engineprimitives.NewWithdrawal(
 		EVMInflationWithdrawalIndex,
 		EVMInflationWithdrawalValidatorIndex,
-		s.cs.EVMInflationAddress(),
-		math.Gwei(s.cs.EVMInflationPerBlock()),
+		s.cs.EVMInflationAddress(slot),
+		math.Gwei(s.cs.EVMInflationPerBlock(slot)),
 	)
 }
 
 // GetMarshallable is the interface for the beacon store.
 //
 //nolint:funlen,gocognit // todo fix somehow
-func (s *StateDB[
-	BeaconStateMarshallableT, _, _,
-]) GetMarshallable() (BeaconStateMarshallableT, error) {
-	var empty BeaconStateMarshallableT
+func (s *StateDB) GetMarshallable() (*ctypes.BeaconState, error) {
+	var empty *ctypes.BeaconState
 
 	slot, err := s.GetSlot()
 	if err != nil {
@@ -415,32 +304,28 @@ func (s *StateDB[
 		return empty, err
 	}
 
-	// TODO: Properly move BeaconState into full generics.
-	return (*new(BeaconStateMarshallableT)).New(
-		s.cs.ActiveForkVersionForSlot(slot),
-		genesisValidatorsRoot,
-		slot,
-		fork,
-		latestBlockHeader,
-		blockRoots,
-		stateRoots,
-		eth1Data,
-		eth1DepositIndex,
-		latestExecutionPayloadHeader,
-		validators,
-		balances,
-		randaoMixes,
-		nextWithdrawalIndex,
-		nextWithdrawalValidatorIndex,
-		slashings,
-		totalSlashings,
-	)
+	return &ctypes.BeaconState{
+		Slot:                         slot,
+		GenesisValidatorsRoot:        genesisValidatorsRoot,
+		Fork:                         fork,
+		LatestBlockHeader:            latestBlockHeader,
+		BlockRoots:                   blockRoots,
+		StateRoots:                   stateRoots,
+		LatestExecutionPayloadHeader: latestExecutionPayloadHeader,
+		Eth1Data:                     eth1Data,
+		Eth1DepositIndex:             eth1DepositIndex,
+		Validators:                   validators,
+		Balances:                     balances,
+		RandaoMixes:                  randaoMixes,
+		NextWithdrawalIndex:          nextWithdrawalIndex,
+		NextWithdrawalValidatorIndex: nextWithdrawalValidatorIndex,
+		Slashings:                    slashings,
+		TotalSlashing:                totalSlashings,
+	}, nil
 }
 
 // HashTreeRoot is the interface for the beacon store.
-func (s *StateDB[
-	_, _, _,
-]) HashTreeRoot() common.Root {
+func (s *StateDB) HashTreeRoot() common.Root {
 	st, err := s.GetMarshallable()
 	if err != nil {
 		panic(err)

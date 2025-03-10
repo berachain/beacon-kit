@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -30,7 +30,7 @@ import (
 
 // LegacySigner is a BLS12-381 signer that uses a bls.PrivKey for signing.
 type LegacySigner struct {
-	*bls12381.PrivKey
+	bls12381.PrivKey
 }
 
 // NewLegacySigner creates a new Signer instance given a secret key.
@@ -41,7 +41,7 @@ func NewLegacySigner(
 	if err != nil {
 		return nil, err
 	}
-	return &LegacySigner{PrivKey: &pk}, nil
+	return &LegacySigner{PrivKey: *pk}, nil
 }
 
 // PublicKey returns the public key of the signer.
@@ -66,8 +66,11 @@ func (LegacySigner) VerifySignature(
 	msg []byte,
 	signature crypto.BLSSignature,
 ) error {
-	if ok := bls12381.PubKey(pubKey[:]).
-		VerifySignature(msg, signature[:]); !ok {
+	pk, err := bls12381.NewPublicKeyFromBytes(pubKey[:])
+	if err != nil {
+		return err
+	}
+	if !pk.VerifySignature(msg, signature[:]) {
 		return ErrInvalidSignature
 	}
 	return nil

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -37,6 +37,7 @@ import (
 
 // Test NewRootWithMaxLeaves with empty leaves.
 func TestNewRootWithMaxLeaves_EmptyLeaves(t *testing.T) {
+	t.Parallel()
 	hasher := merkle.NewHasher[[32]byte](sha256.Hash)
 	rootHasher := merkle.NewRootHasher[[32]byte](
 		hasher, merkle.BuildParentTreeRoots,
@@ -53,6 +54,7 @@ func TestNewRootWithMaxLeaves_EmptyLeaves(t *testing.T) {
 
 // Test NewRootWithDepth with empty leaves.
 func TestNewRootWithDepth_EmptyLeaves(t *testing.T) {
+	t.Parallel()
 	hasher := merkle.NewHasher[[32]byte](sha256.Hash)
 	rootHasher := merkle.NewRootHasher[[32]byte](
 		hasher, merkle.BuildParentTreeRoots,
@@ -76,6 +78,7 @@ func createDummyLeaf(value byte) [32]byte {
 
 // Test NewRootWithMaxLeaves with one leaf.
 func TestNewRootWithMaxLeaves_OneLeaf(t *testing.T) {
+	t.Parallel()
 	hasher := merkle.NewHasher[[32]byte](sha256.Hash)
 	rootHasher := merkle.NewRootHasher[[32]byte](
 		hasher, merkle.BuildParentTreeRoots,
@@ -109,13 +112,14 @@ func BenchmarkHasher(b *testing.B) {
 	}
 
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		_, err := rootHasher.NewRootWithMaxLeaves(leaves, math.U64(len(leaves)))
 		require.NoError(b, err)
 	}
 }
 
 func Test_HashTreeRootEqualInputs(t *testing.T) {
+	t.Parallel()
 	// Test with slices of varying sizes to ensure robustness across different
 	// conditions
 	sliceSizes := []int{16, 32, 64}
@@ -123,6 +127,7 @@ func Test_HashTreeRootEqualInputs(t *testing.T) {
 		t.Run(
 			fmt.Sprintf("Size%d", size*merkle.MinParallelizationSize),
 			func(t *testing.T) {
+				t.Parallel()
 				largeSlice := make(
 					[][32]byte, size*merkle.MinParallelizationSize,
 				)
@@ -159,6 +164,7 @@ func Test_HashTreeRootEqualInputs(t *testing.T) {
 }
 
 func Test_GoHashTreeHashConformance(t *testing.T) {
+	t.Parallel()
 	// Define a test table with various input sizes,
 	// including ones above and below MinParallelizationSize
 	testCases := []struct {
@@ -197,6 +203,7 @@ func Test_GoHashTreeHashConformance(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			inputList := make([][32]byte, tc.size)
 			// Fill inputList with pseudo-random data
 			randSource := rand.NewSource(time.Now().UnixNano())
@@ -286,6 +293,7 @@ func requireGoHashTreeEquivalence(
 }
 
 func TestNewRootWithDepth(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		leaves   [][32]byte
@@ -341,6 +349,7 @@ func TestNewRootWithDepth(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			rootHashFn := func(dst, src [][32]byte) error {
 				if tt.wantErr {
 					return errors.New("hasher error")
@@ -368,6 +377,7 @@ func TestNewRootWithDepth(t *testing.T) {
 }
 
 func TestNewRootWithMaxLeaves(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		leaves   [][32]byte
@@ -416,6 +426,7 @@ func TestNewRootWithMaxLeaves(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			hasher := merkle.NewHasher[[32]byte](sha256.Hash)
 			rootHasher := merkle.NewRootHasher(
 				hasher, merkle.BuildParentTreeRoots,

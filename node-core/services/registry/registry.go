@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,6 +22,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 
 	"github.com/berachain/beacon-kit/log"
@@ -38,10 +39,6 @@ type Basic interface {
 	Name() string
 }
 
-type Dispatcher interface {
-	Start(ctx context.Context) error
-}
-
 // Registry provides a useful pattern for managing services.
 // It allows for ease of dependency management and ensures services
 // dependent on others use the same references in memory.
@@ -50,15 +47,18 @@ type Registry struct {
 	logger log.Logger
 	// services is a map of service type -> service instance.
 	services map[string]Basic
+	// servicesStarted is a map of services we have called Start() on.
+	servicesStarted map[string]struct{}
 	// serviceTypes is an ordered slice of registered service types.
 	serviceTypes []string
 }
 
 // NewRegistry starts a registry instance for convenience.
-func NewRegistry(
-	opts ...RegistryOption) *Registry {
+func NewRegistry(logger log.Logger, opts ...RegistryOption) *Registry {
 	r := &Registry{
-		services: make(map[string]Basic),
+		logger:          logger,
+		services:        make(map[string]Basic),
+		servicesStarted: make(map[string]struct{}),
 	}
 
 	for _, opt := range opts {
@@ -82,15 +82,26 @@ func (s *Registry) StartAll(ctx context.Context) error {
 		}
 
 		if err := svc.Start(ctx); err != nil {
-			return err
+			return fmt.Errorf("error when starting service %s: %w", typeName, err)
 		}
+
+		s.servicesStarted[typeName] = struct{}{}
 	}
+	s.logger.Info("All services started", "num", len(s.servicesStarted))
 	return nil
 }
 
-func (s *Registry) StopAll() error {
+func (s *Registry) StopAll() {
+	// stop all services in reverse order they were started
 	s.logger.Info("Stopping services", "num", len(s.serviceTypes))
-	for _, typeName := range s.serviceTypes {
+	for i := len(s.serviceTypes) - 1; i >= 0; i-- {
+		typeName := s.serviceTypes[i]
+
+		if _, started := s.servicesStarted[typeName]; !started {
+			s.logger.Info("Service not started", "type", typeName)
+			continue
+		}
+
 		s.logger.Info("Stopping service", "type", typeName)
 		svc := s.services[typeName]
 		if svc == nil {
@@ -99,10 +110,10 @@ func (s *Registry) StopAll() error {
 		}
 
 		if err := svc.Stop(); err != nil {
-			return err
+			s.logger.Error("error when stopping service", "type", typeName, "err", err)
 		}
 	}
-	return nil
+	s.logger.Info("All services stopped", "num", len(s.servicesStarted))
 }
 
 // RegisterService appends a service constructor function to the service

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -27,43 +27,32 @@ import (
 	"github.com/sourcegraph/conc/iter"
 )
 
-// BlobSidecars is a slice of blob side cars to be included in the block.
-type BlobSidecars struct {
-	// Sidecars is a slice of blob side cars to be included in the block.
-	Sidecars []*BlobSidecar
-}
+// Sidecars is a slice of blob side cars to be included in the block.
+type BlobSidecars []*BlobSidecar
 
-// NewBlobSidecars creates a new BlobSidecars object.
+// Empty creates a new empty BlobSidecars object.
 func (bs *BlobSidecars) Empty() *BlobSidecars {
 	return &BlobSidecars{}
 }
 
-func (bs *BlobSidecars) Len() int {
-	return len(bs.Sidecars)
-}
-
-func (bs *BlobSidecars) GetSidecars() []*BlobSidecar {
-	return bs.Sidecars
-}
-
-func (bs *BlobSidecars) Get(index int) *BlobSidecar {
-	return bs.Sidecars[index]
-}
-
 // IsNil checks to see if blobs are nil.
 func (bs *BlobSidecars) IsNil() bool {
-	return bs == nil || bs.Sidecars == nil
+	return bs == nil
 }
 
 // ValidateBlockRoots checks to make sure that
 // all blobs in the sidecar are from the same block.
 func (bs *BlobSidecars) ValidateBlockRoots() error {
+	if bs.IsNil() {
+		return ErrAttemptedToVerifyNilSidecar
+	}
+	sidecars := *bs
 	// We only need to check if there is more than
 	// a single blob in the sidecar.
-	if sc := bs.Sidecars; len(sc) > 1 {
-		firstHtr := sc[0].BeaconBlockHeader.HashTreeRoot()
-		for i := 1; i < len(sc); i++ {
-			if firstHtr != sc[i].BeaconBlockHeader.HashTreeRoot() {
+	if len(sidecars) > 1 {
+		firstHtr := sidecars[0].SignedBeaconBlockHeader.HashTreeRoot()
+		for i := 1; i < len(sidecars); i++ {
+			if firstHtr != sidecars[i].SignedBeaconBlockHeader.HashTreeRoot() {
 				return ErrSidecarContainsDifferingBlockRoots
 			}
 		}
@@ -72,11 +61,9 @@ func (bs *BlobSidecars) ValidateBlockRoots() error {
 }
 
 // VerifyInclusionProofs verifies the inclusion proofs for all sidecars.
-func (bs *BlobSidecars) VerifyInclusionProofs(
-	kzgOffset uint64,
-) error {
+func (bs *BlobSidecars) VerifyInclusionProofs() error {
 	return errors.Join(iter.Map(
-		bs.Sidecars,
+		*bs,
 		func(sidecar **BlobSidecar) error {
 			sc := *sidecar
 			if sc == nil {
@@ -84,7 +71,7 @@ func (bs *BlobSidecars) VerifyInclusionProofs(
 			}
 
 			// Verify the KZG inclusion proof.
-			if !sc.HasValidInclusionProof(kzgOffset) {
+			if !sc.HasValidInclusionProof() {
 				return ErrInvalidInclusionProof
 			}
 			return nil
@@ -93,9 +80,10 @@ func (bs *BlobSidecars) VerifyInclusionProofs(
 }
 
 // DefineSSZ defines the SSZ encoding for the BlobSidecars object.
+// TODO: get from accessible chainspec field params.
 func (bs *BlobSidecars) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineSliceOfStaticObjectsOffset(codec, &bs.Sidecars, 6)
-	ssz.DefineSliceOfStaticObjectsContent(codec, &bs.Sidecars, 6)
+	ssz.DefineSliceOfStaticObjectsOffset(codec, (*[]*BlobSidecar)(bs), 6)
+	ssz.DefineSliceOfStaticObjectsContent(codec, (*[]*BlobSidecar)(bs), 6)
 }
 
 // SizeSSZ returns the size of the BlobSidecars object in SSZ encoding.
@@ -103,7 +91,7 @@ func (bs *BlobSidecars) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 	if fixed {
 		return 4
 	}
-	return 4 + ssz.SizeSliceOfStaticObjects(siz, bs.Sidecars)
+	return 4 + ssz.SizeSliceOfStaticObjects(siz, *bs)
 }
 
 // MarshalSSZ marshals the BlobSidecars object to SSZ format.

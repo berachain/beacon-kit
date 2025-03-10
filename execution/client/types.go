@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,16 +22,7 @@ package client
 
 import (
 	"time"
-
-	"github.com/berachain/beacon-kit/primitives/common"
 )
-
-type PayloadAttributes interface {
-	// IsNil returns true if the payload attributes are nil.
-	IsNil() bool
-	// GetSuggestedFeeRecipient returns the suggested fee recipient.
-	GetSuggestedFeeRecipient() common.ExecutionAddress
-}
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.
 type TelemetrySink interface {

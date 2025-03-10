@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -20,31 +20,12 @@
 
 package builder
 
-import (
-	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/node-core/types"
-)
-
 // Opt is a type that defines a function that modifies NodeBuilder.
-type Opt[
-	NodeT types.Node,
-	LoggerT interface {
-		log.AdvancedLogger[LoggerT]
-		log.Configurable[LoggerT, LoggerConfigT]
-	},
-	LoggerConfigT any,
-] func(*NodeBuilder[NodeT, LoggerT, LoggerConfigT])
+type Opt func(*NodeBuilder)
 
 // WithComponents is a function that sets the components for the NodeBuilder.
-func WithComponents[
-	NodeT types.Node,
-	LoggerT interface {
-		log.AdvancedLogger[LoggerT]
-		log.Configurable[LoggerT, LoggerConfigT]
-	},
-	LoggerConfigT any,
-](components []any) Opt[NodeT, LoggerT, LoggerConfigT] {
-	return func(nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) {
+func WithComponents(components []any) Opt {
+	return func(nb *NodeBuilder) {
 		nb.components = components
 	}
 }

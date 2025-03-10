@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,13 +21,14 @@
 package utils
 
 import (
-	"strconv"
 	"strings"
 
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
+
+var ErrNoSlotForStateRoot = errors.New("slot not found at state root")
 
 // TODO: define unique types for each of the query-able IDs (state & block from
 // spec, execution unique to beacon-kit). For each type define validation
@@ -49,7 +50,11 @@ func SlotFromStateID[StorageBackendT interface {
 	if err != nil {
 		return 0, err
 	}
-	return storage.GetSlotByStateRoot(root)
+	slot, err := storage.GetSlotByStateRoot(root)
+	if err != nil {
+		return 0, ErrNoSlotForStateRoot
+	}
+	return slot, nil
 }
 
 // SlotFromBlockID returns a slot from the block ID.
@@ -91,7 +96,7 @@ func ParentSlotFromTimestampID[StorageBackendT interface {
 	}
 
 	// Parse the timestamp from the timestampID.
-	timestamp, err := U64FromString(timestampID[1:])
+	timestamp, err := math.U64FromString(timestampID[1:])
 	if err != nil {
 		return 0, errors.Wrapf(
 			err, "failed to parse timestamp from timestampID: %s", timestampID,
@@ -106,18 +111,8 @@ func IsTimestampIDPrefix(timestampID string) bool {
 	return strings.HasPrefix(timestampID, TimestampIDPrefix)
 }
 
-// U64FromString returns a math.U64 from the given string. Errors if the given
-// string is not in proper decimal notation.
-func U64FromString(id string) (math.U64, error) {
-	u64, err := strconv.ParseUint(id, 10, 64)
-	if err != nil {
-		return 0, err
-	}
-
-	return math.U64(u64), nil
-}
-
 // slotFromStateID returns a slot number from the given state ID.
+// TODO: This pattern does not allow us to query block 0. Genesis points to block 1.
 func slotFromStateID(id string) (math.Slot, error) {
 	switch id {
 	case StateIDFinalized, StateIDJustified, StateIDHead:
@@ -125,6 +120,6 @@ func slotFromStateID(id string) (math.Slot, error) {
 	case StateIDGenesis:
 		return Genesis, nil
 	default:
-		return U64FromString(id)
+		return math.U64FromString(id)
 	}
 }

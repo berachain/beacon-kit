@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -25,7 +25,9 @@ import (
 	"testing"
 	"time"
 
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/payload/cache"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/stretchr/testify/require"
 )
 
@@ -36,30 +38,29 @@ func FuzzPayloadIDCacheBasic(f *testing.F) {
 	f.Fuzz(func(t *testing.T, s uint64, _r, _p []byte) {
 		var r [32]byte
 		copy(r[:], _r)
-		slot := s
-		pid := [8]byte(_p[:8])
-		cacheUnderTest := cache.NewPayloadIDCache[[8]byte, [32]byte, uint64]()
+		slot := math.Slot(s)
+		pid := engineprimitives.PayloadID(_p[:8])
+		cacheUnderTest := cache.NewPayloadIDCache()
 		cacheUnderTest.Set(slot, r, pid)
 
-		p, ok := cacheUnderTest.Get(slot, r)
+		p, ok := cacheUnderTest.GetAndEvict(slot, r)
 		require.True(t, ok)
 		require.Equal(t, pid, p)
 
 		// Test overwriting the same slot and root with a different PayloadID
-		newPid := [8]byte{}
+		newPid := engineprimitives.PayloadID{}
 		for i := range pid {
 			newPid[i] = pid[i] + 1 // Simple mutation for a new PayloadID
 		}
 		cacheUnderTest.Set((slot), r, newPid)
 
-		p, ok = cacheUnderTest.Get(slot, r)
+		p, ok = cacheUnderTest.GetAndEvict(slot, r)
 		require.True(t, ok)
 		require.Equal(
 			t, newPid, p, "PayloadID should be overwritten with the new value")
 
-		// Prune and verify deletion
-		cacheUnderTest.UnsafePrunePrior((slot) + 1)
-		_, ok = cacheUnderTest.Get(slot, r)
+		// Verify deletion
+		ok = cacheUnderTest.Has(slot, r)
 		require.False(t, ok, "Entry should be pruned and not found")
 	})
 }
@@ -70,7 +71,7 @@ func FuzzPayloadIDInvalidInput(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, s uint64, _r, _p []byte) {
 		var r [32]byte
-		slot := s
+		slot := math.Slot(s)
 		if len(_r) > 32 {
 			// Expecting an error or specific handling of oversized input
 			t.Skip(
@@ -81,10 +82,10 @@ func FuzzPayloadIDInvalidInput(f *testing.F) {
 		var paddedPayload [8]byte
 		copy(paddedPayload[:], _p[:min(len(_p), 8)])
 		pid := [8]byte(paddedPayload[:])
-		cacheUnderTest := cache.NewPayloadIDCache[[8]byte, [32]byte, uint64]()
+		cacheUnderTest := cache.NewPayloadIDCache()
 		cacheUnderTest.Set(slot, r, pid)
 
-		_, ok := cacheUnderTest.Get(slot, r)
+		_, ok := cacheUnderTest.GetAndEvict(slot, r)
 		require.True(t, ok)
 	})
 }
@@ -93,8 +94,8 @@ func FuzzPayloadIDCacheConcurrency(f *testing.F) {
 	f.Add(uint64(1), []byte{1, 2, 3}, []byte{1, 2, 3, 4})
 
 	f.Fuzz(func(t *testing.T, s uint64, _r, _p []byte) {
-		cacheUnderTest := cache.NewPayloadIDCache[[8]byte, [32]byte, uint64]()
-		slot := s
+		cacheUnderTest := cache.NewPayloadIDCache()
+		slot := math.Slot(s)
 		var wg sync.WaitGroup
 		wg.Add(2)
 
@@ -118,7 +119,7 @@ func FuzzPayloadIDCacheConcurrency(f *testing.F) {
 			) // Small delay to let the Set operation proceed
 			var r [32]byte
 			copy(r[:], _r)
-			_, ok = cacheUnderTest.Get(slot, r)
+			_, ok = cacheUnderTest.GetAndEvict(slot, r)
 		}()
 
 		wg.Wait()

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -30,31 +30,26 @@ import (
 )
 
 // KVStore is the interface for the key-value store holding the beacon state.
-type KVStore[
-	T,
-	ExecutionPayloadHeaderT any,
-] interface {
+type KVStore[T any] interface {
 	// Context returns the context of the key-value store.
 	Context() context.Context
 	// WithContext returns a new key-value store with the given context.
 	WithContext(ctx context.Context) T
 	// Copy returns a copy of the key-value store.
-	Copy() T
+	Copy(context.Context) T
 	// GetLatestExecutionPayloadHeader retrieves the latest execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (
-		ExecutionPayloadHeaderT, error,
+		*ctypes.ExecutionPayloadHeader, error,
 	)
 	// SetLatestExecutionPayloadHeader sets the latest execution payload header.
 	SetLatestExecutionPayloadHeader(
-		payloadHeader ExecutionPayloadHeaderT,
+		payloadHeader *ctypes.ExecutionPayloadHeader,
 	) error
 	// GetEth1DepositIndex retrieves the eth1 deposit index.
 	GetEth1DepositIndex() (uint64, error)
 	// SetEth1DepositIndex sets the eth1 deposit index.
-	SetEth1DepositIndex(
-		index uint64,
-	) error
+	SetEth1DepositIndex(index uint64) error
 	// GetBalance retrieves the balance of a validator.
 	GetBalance(idx math.ValidatorIndex) (math.Gwei, error)
 	// SetBalance sets the balance of a validator.
@@ -129,8 +124,6 @@ type KVStore[
 	ValidatorIndexByPubkey(pubkey crypto.BLSPubkey) (math.ValidatorIndex, error)
 	// AddValidator adds a validator.
 	AddValidator(val *ctypes.Validator) error
-	// AddValidatorBartio adds a validator to the Bartio chain.
-	AddValidatorBartio(val *ctypes.Validator) error
 	// ValidatorIndexByCometBFTAddress retrieves the validator index by the
 	// given comet BFT address.
 	ValidatorIndexByCometBFTAddress(

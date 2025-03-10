@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -39,6 +39,7 @@ import (
 var baseDir = "../../testing/files/"
 
 func TestNewBlobProofVerifier_KzgImpl(t *testing.T) {
+	t.Parallel()
 	ts, err := loadTrustedSetupFromFile()
 	require.NoError(t, err)
 
@@ -49,6 +50,7 @@ func TestNewBlobProofVerifier_KzgImpl(t *testing.T) {
 }
 
 func TestNewBlobProofVerifier_CkzgImpl(t *testing.T) {
+	t.Parallel()
 	ts, err := loadTrustedSetupFromFile()
 	require.NoError(t, err)
 
@@ -59,6 +61,7 @@ func TestNewBlobProofVerifier_CkzgImpl(t *testing.T) {
 }
 
 func TestNewBlobProofVerifier_InvalidImpl(t *testing.T) {
+	t.Parallel()
 	ts, err := loadTrustedSetupFromFile()
 	require.NoError(t, err)
 
@@ -86,6 +89,7 @@ func loadTrustedSetupFromFile() (*gokzg4844.JSONTrustedSetup, error) {
 }
 
 func TestArgsFromSidecars(t *testing.T) {
+	t.Parallel()
 	fs := afero.NewOsFs()
 	fullPath := filepath.Join(baseDir, "test_data.json")
 	file, err := afero.ReadFile(fs, fullPath)
@@ -103,20 +107,15 @@ func TestArgsFromSidecars(t *testing.T) {
 	err = json.Unmarshal(file, &data)
 	require.NoError(t, err)
 
-	scs := &types.BlobSidecars{
-		Sidecars: []*types.BlobSidecar{
-			{
-				Blob:          eip4844.Blob{data.Input.Blob[0]},
-				KzgProof:      eip4844.KZGProof{data.Input.Proof[0]},
-				KzgCommitment: eip4844.KZGCommitment{data.Input.Commitment[0]},
-			},
+	scs := types.BlobSidecars{
+		{
+			Blob:          eip4844.Blob{data.Input.Blob[0]},
+			KzgProof:      eip4844.KZGProof{data.Input.Proof[0]},
+			KzgCommitment: eip4844.KZGCommitment{data.Input.Commitment[0]},
 		},
 	}
 
-	args := kzg.ArgsFromSidecars[
-		*types.BlobSidecar,
-		*types.BlobSidecars,
-	](scs)
+	args := kzg.ArgsFromSidecars(scs)
 
 	require.Len(t, args.Blobs, 1)
 	require.Len(t, args.Proofs, 1)

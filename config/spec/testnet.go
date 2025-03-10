@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -20,21 +20,23 @@
 
 package spec
 
-import (
-	"github.com/berachain/beacon-kit/chain-spec/chain"
-	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/math"
-)
+import "github.com/berachain/beacon-kit/chain"
 
-// TestnetChainSpec is the ChainSpec for the bArtio testnet.
-func TestnetChainSpec() (chain.Spec[
-	common.DomainType,
-	math.Epoch,
-	common.ExecutionAddress,
-	math.Slot,
-	any,
-], error) {
-	testnetSpec := BaseSpec()
-	testnetSpec.DepositEth1ChainID = TestnetEth1ChainID
-	return chain.NewChainSpec(testnetSpec)
+// TestnetChainSpecData is the chain.SpecData for Berachain's public testnet.
+func TestnetChainSpecData() *chain.SpecData {
+	specData := MainnetChainSpecData()
+
+	// Testnet uses chain ID of 80069.
+	specData.DepositEth1ChainID = TestnetEth1ChainID
+
+	// Genesis values of EVM inflation are consistent with those of mainnet.
+	// Testnet activates Deneb1 for BERA minting at epoch 1.
+	specData.Deneb1ForkEpoch = 1
+
+	return specData
+}
+
+// TestnetChainSpec is the chain.Spec for Berachain's public testnet.
+func TestnetChainSpec() (chain.Spec, error) {
+	return chain.NewSpec(TestnetChainSpecData())
 }

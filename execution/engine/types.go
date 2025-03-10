@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,34 +21,9 @@
 package engine
 
 import (
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
-	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
-
-// ExecutionPayload represents the payload of an execution block.
-type ExecutionPayload[ExecutionPayloadT any] interface {
-	constraints.EngineType[ExecutionPayloadT]
-	GetPrevRandao() common.Bytes32
-	GetBlockHash() common.ExecutionHash
-	GetParentHash() common.ExecutionHash
-	GetNumber() math.U64
-	GetGasLimit() math.U64
-	GetGasUsed() math.U64
-	GetTimestamp() math.U64
-	GetExtraData() []byte
-	GetBaseFeePerGas() *math.U256
-	GetFeeRecipient() common.ExecutionAddress
-	GetStateRoot() common.Bytes32
-	GetReceiptsRoot() common.Bytes32
-	GetLogsBloom() bytes.B256
-	GetBlobGasUsed() math.U64
-	GetExcessBlobGas() math.U64
-	GetWithdrawals() engineprimitives.Withdrawals
-	GetTransactions() engineprimitives.Transactions
-}
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.
 type TelemetrySink interface {

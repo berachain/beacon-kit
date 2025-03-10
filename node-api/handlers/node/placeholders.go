@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -20,10 +20,12 @@
 
 package node
 
+import "github.com/berachain/beacon-kit/node-api/handlers"
+
 // Syncing is a placeholder so that beacon API clients don't break.
 //
 // TODO: Implement with real data.
-func (h *Handler[ContextT]) Syncing(ContextT) (any, error) {
+func (h *Handler) Syncing(handlers.Context) (any, error) {
 	type SyncingResponse struct {
 		Data struct {
 			HeadSlot     string `json:"head_slot"`
@@ -47,7 +49,7 @@ func (h *Handler[ContextT]) Syncing(ContextT) (any, error) {
 // Version is a placeholder so that beacon API clients don't break.
 //
 // TODO: Implement with real data.
-func (h *Handler[ContextT]) Version(ContextT) (any, error) {
+func (h *Handler) Version(handlers.Context) (any, error) {
 	type VersionResponse struct {
 		Data struct {
 			Version string `json:"version"`
@@ -55,7 +57,7 @@ func (h *Handler[ContextT]) Version(ContextT) (any, error) {
 	}
 
 	response := VersionResponse{}
-	response.Data.Version = "1.0.0"
+	response.Data.Version = "1.1.0"
 
 	return response, nil
 }

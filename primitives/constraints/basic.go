@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -19,6 +19,8 @@
 // TITLE.
 
 package constraints
+
+import "github.com/berachain/beacon-kit/primitives/common"
 
 // ForkTyped is a constraint that requires a type to have an Empty method.
 type ForkTyped[SelfT any] interface {
@@ -39,7 +41,7 @@ type EngineType[SelfT any] interface {
 // EmptyWithVersion is a constraint that requires a type to have an Empty
 // method.
 type EmptyWithVersion[SelfT any] interface {
-	Empty(uint32) SelfT
+	Empty(common.Version) SelfT
 }
 
 // Empty is a constraint that requires a type to have an Empty method.
@@ -54,5 +56,5 @@ type Nillable interface {
 
 // Versionable is a constraint that requires a type to have a Version method.
 type Versionable interface {
-	Version() uint32
+	Version() common.Version
 }

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,27 +21,23 @@
 package blockchain
 
 import (
+	"context"
+
+	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-func (s *Service[
-	_, _, ConsensusBlockT, BeaconBlockT, _, _, _, _, _, _, _, _, _,
-]) processPruning(beaconBlk BeaconBlockT) error {
+func (s *Service) processPruning(ctx context.Context, beaconBlk *ctypes.BeaconBlock) error {
 	// prune availability store
-	start, end := availabilityPruneRangeFn(
-		beaconBlk.GetSlot().Unwrap(), s.chainSpec)
+	start, end := availabilityPruneRangeFn(beaconBlk.GetSlot().Unwrap(), s.chainSpec)
 	err := s.storageBackend.AvailabilityStore().Prune(start, end)
 	if err != nil {
 		return err
 	}
 
 	// prune deposit store
-	start, end = depositPruneRangeFn(
-		beaconBlk.GetBody().GetDeposits(), s.chainSpec)
-	err = s.storageBackend.DepositStore().Prune(start, end)
-
+	start, end = depositPruneRangeFn(beaconBlk.GetBody().GetDeposits(), s.chainSpec)
+	err = s.storageBackend.DepositStore().Prune(ctx, start, end)
 	if err != nil {
 		return err
 	}
@@ -49,24 +45,16 @@ func (s *Service[
 	return nil
 }
 
-func depositPruneRangeFn(deposits []*ctypes.Deposit, cs common.ChainSpec) (uint64, uint64) {
-	if len(deposits) == 0 || cs.MaxDepositsPerBlock() == 0 {
-		return 0, 0
-	}
-	index := deposits[len(deposits)-1].GetIndex()
-
-	end := min(index.Unwrap(), cs.MaxDepositsPerBlock())
-	if index < math.U64(cs.MaxDepositsPerBlock()) {
-		return 0, end
-	}
-
-	return index.Unwrap() - cs.MaxDepositsPerBlock(), end
+func depositPruneRangeFn([]*ctypes.Deposit, chain.Spec) (uint64, uint64) {
+	// The whole deposit list is validated in consensus and its Merkle root is part of
+	// Beacon State. Therefore every node must keep the full deposit list and deposits
+	// pruning must be turned off.
+	return 0, 0
 }
 
 //nolint:unparam // this is ok
-func availabilityPruneRangeFn(
-	slot uint64, cs common.ChainSpec) (uint64, uint64) {
-	window := cs.MinEpochsForBlobsSidecarsRequest() * cs.SlotsPerEpoch()
+func availabilityPruneRangeFn(slot uint64, cs chain.Spec) (uint64, uint64) {
+	window := cs.MinEpochsForBlobsSidecarsRequest().Unwrap() * cs.SlotsPerEpoch()
 	if slot < window {
 		return 0, 0
 	}

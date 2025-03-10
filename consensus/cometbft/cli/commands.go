@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,11 +23,9 @@ package server
 import (
 	"context"
 
-	"cosmossdk.io/store"
 	types "github.com/berachain/beacon-kit/cli/commands/server/types"
 	clicontext "github.com/berachain/beacon-kit/cli/context"
 	service "github.com/berachain/beacon-kit/consensus/cometbft/service"
-	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/storage/db"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	cmtcfg "github.com/cometbft/cometbft/config"
@@ -40,6 +38,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
+	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
@@ -47,13 +47,8 @@ import (
 )
 
 // Commands add server commands.
-func Commands[
-	T interface {
-		Start(context.Context) error
-		CommitMultiStore() store.CommitMultiStore
-	}, LoggerT log.AdvancedLogger[LoggerT],
-](
-	appCreator types.AppCreator[T, LoggerT],
+func Commands(
+	appCreator types.AppCreator,
 ) *cobra.Command {
 	cometCmd := &cobra.Command{
 		Use:     "comet",
@@ -68,7 +63,7 @@ func Commands[
 		VersionCmd(),
 		cmtcmd.ResetAllCmd,
 		cmtcmd.ResetStateCmd,
-		BootstrapStateCmd[T](appCreator),
+		BootstrapStateCmd(appCreator),
 	)
 
 	return cometCmd
@@ -84,10 +79,14 @@ func StatusCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			cometRPC, err := clientCtx.GetNode()
+			if err != nil {
+				return err
+			}
 
 			status, err := cmtservice.GetNodeStatus(
 				context.Background(),
-				clientCtx,
+				cometRPC,
 			)
 			if err != nil {
 				return err
@@ -157,8 +156,11 @@ func ShowValidatorCmd() *cobra.Command {
 				return err
 			}
 
-			clientCtx := client.GetClientContextFromCmd(cmd)
-			bz, err := clientCtx.Codec.MarshalInterfaceJSON(sdkPK)
+			registry := codectypes.NewInterfaceRegistry()
+			cryptocodec.RegisterInterfaces(registry)
+			cdc := codec.NewProtoCodec(registry)
+
+			bz, err := cdc.MarshalInterfaceJSON(sdkPK)
 			if err != nil {
 				return err
 			}
@@ -222,11 +224,8 @@ which this app has been compiled.`,
 	}
 }
 
-func BootstrapStateCmd[T interface {
-	Start(context.Context) error
-	CommitMultiStore() store.CommitMultiStore
-}, LoggerT log.AdvancedLogger[LoggerT]](
-	appCreator types.AppCreator[T, LoggerT],
+func BootstrapStateCmd(
+	appCreator types.AppCreator,
 ) *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "bootstrap-state",
@@ -234,7 +233,7 @@ func BootstrapStateCmd[T interface {
 using a light client`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			logger := clicontext.GetLoggerFromCmd[LoggerT](cmd)
+			logger := clicontext.GetLoggerFromCmd(cmd)
 			cfg := clicontext.GetConfigFromCmd(cmd)
 			v := clicontext.GetViperFromCmd(cmd)
 
@@ -259,8 +258,7 @@ using a light client`,
 				cfg,
 				cmtcfg.DefaultDBProvider,
 				service.GetGenDocProvider(cfg),
-				//#nosec:G701 // bet.
-				uint64(height),
+				uint64(height), // #nosec G115
 				nil,
 			)
 		},

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -76,6 +76,16 @@ func (c Config) GetEngine() *engineclient.Config {
 	return &c.Engine
 }
 
+// GetPayloadBuilder returns the block store configuration.
+func (c Config) GetPayloadBuilder() *builder.Config {
+	return &c.PayloadBuilder
+}
+
+// GetBlockStoreService returns the block store configuration.
+func (c Config) GetBlockStoreService() *blockstore.Config {
+	return &c.BlockStoreService
+}
+
 // GetLogger returns the logger configuration.
 func (c Config) GetLogger() *log.Config {
 	return &c.Logger
@@ -84,16 +94,6 @@ func (c Config) GetLogger() *log.Config {
 // Template returns the configuration template.
 func (c Config) Template() string {
 	return template.TomlTemplate
-}
-
-// MustReadConfigFromAppOpts reads the configuration options from the given
-// application options.
-func MustReadConfigFromAppOpts(opts AppOptions) *Config {
-	cfg, err := ReadConfigFromAppOpts(opts)
-	if err != nil {
-		panic(err)
-	}
-	return cfg
 }
 
 // ReadConfigFromAppOpts reads the configuration options from the given

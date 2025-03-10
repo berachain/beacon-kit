@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -33,6 +33,7 @@ import (
 )
 
 func TestBytes96UnmarshalText(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		input   string
@@ -64,6 +65,7 @@ func TestBytes96UnmarshalText(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var got bytes.B96
 			err := got.UnmarshalText([]byte(tt.input))
 			if tt.wantErr {
@@ -77,6 +79,7 @@ func TestBytes96UnmarshalText(t *testing.T) {
 }
 
 func TestBytes96UnmarshalJSON(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		input   string
@@ -108,6 +111,7 @@ func TestBytes96UnmarshalJSON(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var got bytes.B96
 			err := got.UnmarshalJSON([]byte(tt.input))
 			if tt.wantErr {
@@ -120,6 +124,7 @@ func TestBytes96UnmarshalJSON(t *testing.T) {
 	}
 }
 func TestBytes96MarshalText(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		h    bytes.B96
@@ -162,6 +167,7 @@ func TestBytes96MarshalText(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, err := tt.h.MarshalText()
 			require.NoError(t, err)
 			require.Equal(t, tt.want, string(got))
@@ -170,6 +176,7 @@ func TestBytes96MarshalText(t *testing.T) {
 }
 
 func TestBytes96String(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		h    bytes.B96
@@ -195,6 +202,7 @@ func TestBytes96String(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := tt.h.String()
 			require.Equal(t, tt.want, got)
 		})
@@ -202,6 +210,7 @@ func TestBytes96String(t *testing.T) {
 }
 
 func TestToBytes96(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		input   []byte
@@ -229,6 +238,7 @@ func TestToBytes96(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result, err := bytes.ToBytes96(tt.input)
 			if tt.wantErr != nil {
 				require.ErrorIs(t, err, tt.wantErr)
@@ -241,6 +251,7 @@ func TestToBytes96(t *testing.T) {
 }
 
 func TestB96_HashTreeRoot(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name  string
 		input bytes.B96
@@ -255,6 +266,7 @@ func TestB96_HashTreeRoot(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := tt.input.HashTreeRoot()
 			require.Equal(t, tt.want, result)
 		})
@@ -264,7 +276,7 @@ func TestB96_HashTreeRoot(t *testing.T) {
 func BenchmarkB96_MarshalJSON(b *testing.B) {
 	data := bytes.B96{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		_, err := json.Marshal(data)
 		require.NoError(b, err)
 	}
@@ -277,13 +289,14 @@ func BenchmarkB96_UnmarshalJSON(b *testing.B) {
 	)
 	var data bytes.B96
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		err := data.UnmarshalJSON(jsonData)
 		require.NoError(b, err)
 	}
 }
 
 func TestB96MarshalSSZ(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name  string
 		input bytes.B96
@@ -316,6 +329,7 @@ func TestB96MarshalSSZ(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, err := tt.input.MarshalSSZ()
 			require.NoError(t, err)
 			require.Equal(t, tt.want, got)

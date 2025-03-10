@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -25,30 +25,23 @@ import (
 	"time"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	dastore "github.com/berachain/beacon-kit/da/store"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	"github.com/berachain/beacon-kit/state-transition/core"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
+	"github.com/berachain/beacon-kit/storage/block"
+	depositdb "github.com/berachain/beacon-kit/storage/deposit"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// AvailabilityStore interface is responsible for validating and storing
-// sidecars for specific blocks, as well as verifying sidecars that have already
-// been stored.
-type AvailabilityStore[BeaconBlockBodyT any] interface {
-	// IsDataAvailable ensures that all blobs referenced in the block are
-	// securely stored before it returns without an error.
-	IsDataAvailable(
-		context.Context, math.Slot, BeaconBlockBodyT,
-	) bool
-	// Prune prunes the deposit store of [start, end)
-	Prune(start, end uint64) error
-}
-
-type ConsensusBlock[BeaconBlockT any] interface {
-	GetBeaconBlock() BeaconBlockT
+type ConsensusBlock interface {
+	GetBeaconBlock() *ctypes.BeaconBlock
 
 	// GetProposerAddress returns the address of the validator
 	// selected by consensus to propose the block
@@ -59,48 +52,26 @@ type ConsensusBlock[BeaconBlockT any] interface {
 	GetConsensusTime() math.U64
 }
 
-// BeaconBlock represents a beacon block interface.
-type BeaconBlock[
-	BeaconBlockT any,
-	BeaconBlockBodyT any,
-] interface {
-	constraints.SSZMarshallableRootable
-	constraints.Nillable
-	// GetSlot returns the slot of the beacon block.
-	GetSlot() math.Slot
-	// GetStateRoot returns the state root of the beacon block.
-	GetStateRoot() common.Root
-	// GetBody returns the body of the beacon block.
-	GetBody() BeaconBlockBodyT
-	NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
-	GetHeader() *ctypes.BeaconBlockHeader
-}
-
-// BeaconBlockBody represents the interface for the beacon block body.
-type BeaconBlockBody[ExecutionPayloadT any] interface {
-	constraints.SSZMarshallableRootable
-	constraints.Nillable
-	// GetExecutionPayload returns the execution payload of the beacon block
-	// body.
-	GetExecutionPayload() ExecutionPayloadT
-}
-
 type BlobSidecars[T any] interface {
 	constraints.SSZMarshallable
 	constraints.Empty[T]
 	constraints.Nillable
-	// Len returns the length of the blobs sidecars.
-	Len() int
 }
 
 // ExecutionEngine is the interface for the execution engine.
-type ExecutionEngine[PayloadAttributesT any] interface {
+type ExecutionEngine interface {
+	// NotifyNewPayload notifies the execution client of new payload.
+	NotifyNewPayload(
+		ctx context.Context,
+		req *ctypes.NewPayloadRequest,
+		retryOnSyncingStatus bool,
+	) error
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
-		req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
-	) (*engineprimitives.PayloadID, *common.ExecutionHash, error)
+		req *ctypes.ForkchoiceUpdateRequest,
+	) (*engineprimitives.PayloadID, error)
 }
 
 // ExecutionPayload is the interface for the execution payload.
@@ -120,51 +91,38 @@ type ExecutionPayloadHeader interface {
 }
 
 // Genesis is the interface for the genesis.
-type Genesis[ExecutionPayloadHeaderT any] interface {
+type Genesis interface {
 	// GetForkVersion returns the fork version.
 	GetForkVersion() common.Version
 	// GetDeposits returns the deposits.
 	GetDeposits() []*ctypes.Deposit
 	// GetExecutionPayloadHeader returns the execution payload header.
-	GetExecutionPayloadHeader() ExecutionPayloadHeaderT
+	GetExecutionPayloadHeader() *ctypes.ExecutionPayloadHeader
 }
 
 // LocalBuilder is the interface for the builder service.
-type LocalBuilder[BeaconStateT any] interface {
+type LocalBuilder interface {
 	// Enabled returns true if the local builder is enabled.
 	Enabled() bool
 	// RequestPayloadAsync requests a new payload for the given slot.
 	RequestPayloadAsync(
 		ctx context.Context,
-		st BeaconStateT,
+		st *statedb.StateDB,
 		slot math.Slot,
 		timestamp uint64,
 		parentBlockRoot common.Root,
 		headEth1BlockHash common.ExecutionHash,
 		finalEth1BlockHash common.ExecutionHash,
 	) (*engineprimitives.PayloadID, error)
-	// SendForceHeadFCU sends a force head FCU request.
-	SendForceHeadFCU(
-		ctx context.Context,
-		st BeaconStateT,
-		slot math.Slot,
-	) error
-}
-
-type PayloadAttributes interface {
-	IsNil() bool
-	Version() uint32
-	GetSuggestedFeeRecipient() common.ExecutionAddress
 }
 
 // ReadOnlyBeaconState defines the interface for accessing various components of
 // the beacon state.
 type ReadOnlyBeaconState[
 	T any,
-	ExecutionPayloadHeaderT any,
 ] interface {
 	// Copy creates a copy of the beacon state.
-	Copy() T
+	Copy(context.Context) T
 	// GetLatestBlockHeader returns the most recent block header.
 	GetLatestBlockHeader() (
 		*ctypes.BeaconBlockHeader,
@@ -172,10 +130,7 @@ type ReadOnlyBeaconState[
 	)
 	// GetLatestExecutionPayloadHeader returns the most recent execution payload
 	// header.
-	GetLatestExecutionPayloadHeader() (
-		ExecutionPayloadHeaderT,
-		error,
-	)
+	GetLatestExecutionPayloadHeader() (*ctypes.ExecutionPayloadHeader, error)
 	// GetSlot retrieves the current slot of the beacon state.
 	GetSlot() (math.Slot, error)
 	// HashTreeRoot returns the hash tree root of the beacon state.
@@ -184,46 +139,45 @@ type ReadOnlyBeaconState[
 
 // StateProcessor defines the interface for processing various state transitions
 // in the beacon chain.
-type StateProcessor[
-	BeaconBlockT,
-	BeaconStateT,
-	ContextT,
-	ExecutionPayloadHeaderT any,
-] interface {
+type StateProcessor interface {
 	// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
 	// state
 	// from the eth1 deposits.
 	InitializePreminedBeaconStateFromEth1(
-		BeaconStateT,
-		[]*ctypes.Deposit,
-		ExecutionPayloadHeaderT,
+		*statedb.StateDB,
+		ctypes.Deposits,
+		*ctypes.ExecutionPayloadHeader,
 		common.Version,
 	) (transition.ValidatorUpdates, error)
 	// ProcessSlots processes the state transition for a range of slots.
 	ProcessSlots(
-		BeaconStateT, math.Slot,
+		*statedb.StateDB, math.Slot,
 	) (transition.ValidatorUpdates, error)
 	// Transition processes the state transition for a given block.
 	Transition(
-		ContextT,
-		BeaconStateT,
-		BeaconBlockT,
+		core.ReadOnlyContext,
+		*statedb.StateDB,
+		*ctypes.BeaconBlock,
 	) (transition.ValidatorUpdates, error)
+	GetSignatureVerifierFn(*statedb.StateDB) (
+		func(
+			blk *ctypes.BeaconBlock,
+			signature crypto.BLSSignature) error,
+		error,
+	)
 }
 
 // StorageBackend defines an interface for accessing various storage components
 // required by the beacon node.
-type StorageBackend[
-	AvailabilityStoreT any,
-	BeaconStateT any,
-	DepositStoreT any,
-] interface {
+type StorageBackend interface {
 	// AvailabilityStore returns the availability store for the given context.
-	AvailabilityStore() AvailabilityStoreT
+	AvailabilityStore() *dastore.Store
 	// StateFromContext retrieves the beacon state from the given context.
-	StateFromContext(context.Context) BeaconStateT
+	StateFromContext(context.Context) *statedb.StateDB
 	// DepositStore retrieves the deposit store.
-	DepositStore() DepositStoreT
+	DepositStore() *depositdb.KVStore
+	// BlockStore retrieves the block store.
+	BlockStore() *block.KVStore[*ctypes.BeaconBlock]
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.
@@ -244,7 +198,7 @@ type BlockchainI interface {
 	ProcessProposal(
 		sdk.Context,
 		*cmtabci.ProcessProposalRequest,
-	) (*cmtabci.ProcessProposalResponse, error)
+	) error
 	FinalizeBlock(
 		sdk.Context,
 		*cmtabci.FinalizeBlockRequest,

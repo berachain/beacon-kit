@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -31,6 +31,7 @@ import (
 
 // FromBigInt, then ToBigInt.
 func TestBigIntRoundTrip(t *testing.T) {
+	t.Parallel()
 	// assume FromBigInt only called on non-negative big.Int
 	tests := []struct {
 		name     string
@@ -56,6 +57,7 @@ func TestBigIntRoundTrip(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := hex.FromBigInt(tt.input)
 			require.Equal(t, tt.expected, result)
 
@@ -78,6 +80,7 @@ func TestBigIntRoundTrip(t *testing.T) {
 }
 
 func TestString_MustToBigInt(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		input    string
@@ -92,6 +95,7 @@ func TestString_MustToBigInt(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var (
 				res *big.Int
 				f   = func() {

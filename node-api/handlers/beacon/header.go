@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,19 +21,20 @@
 package beacon
 
 import (
+	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
-	"github.com/berachain/beacon-kit/primitives/bytes"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-func (h *Handler[ContextT]) GetBlockHeaders(c ContextT) (any, error) {
+func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetBlockHeadersRequest](
 		c, h.Logger(),
 	)
 	if err != nil {
 		return nil, err
 	}
-	slot, err := utils.U64FromString(req.Slot)
+	slot, err := math.U64FromString(req.Slot)
 	if err != nil {
 		return nil, err
 	}
@@ -41,21 +42,17 @@ func (h *Handler[ContextT]) GetBlockHeaders(c ContextT) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return beacontypes.ValidatorResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data: &beacontypes.BlockHeaderResponse{
-			Root:      header.GetBodyRoot(),
-			Canonical: true,
-			Header: &beacontypes.BlockHeader{
-				Message:   header,
-				Signature: bytes.B48{}, // TODO: implement
-			},
+	return beacontypes.NewResponse(&beacontypes.BlockHeaderResponse{
+		Root:      header.GetBodyRoot(),
+		Canonical: true,
+		Header: &beacontypes.SignedBeaconBlockHeader{
+			Message:   beacontypes.BeaconBlockHeaderFromConsensus(header),
+			Signature: "", // TODO: implement
 		},
-	}, nil
+	}), nil
 }
 
-func (h *Handler[ContextT]) GetBlockHeaderByID(c ContextT) (any, error) {
+func (h *Handler) GetBlockHeaderByID(c handlers.Context) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetBlockHeaderRequest](
 		c, h.Logger(),
 	)
@@ -70,16 +67,12 @@ func (h *Handler[ContextT]) GetBlockHeaderByID(c ContextT) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return beacontypes.ValidatorResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data: &beacontypes.BlockHeaderResponse{
-			Root:      header.GetBodyRoot(),
-			Canonical: true,
-			Header: &beacontypes.BlockHeader{
-				Message:   header,
-				Signature: bytes.B48{}, // TODO: implement
-			},
+	return beacontypes.NewResponse(&beacontypes.BlockHeaderResponse{
+		Root:      header.GetBodyRoot(),
+		Canonical: true,
+		Header: &beacontypes.SignedBeaconBlockHeader{
+			Message:   beacontypes.BeaconBlockHeaderFromConsensus(header),
+			Signature: "", // TODO: implement
 		},
-	}, nil
+	}), nil
 }

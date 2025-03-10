@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -24,26 +24,39 @@ import (
 	"context"
 	"encoding/json"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/transition"
 )
 
 // ProcessGenesisData processes the genesis state and initializes the beacon
 // state.
-func (s *Service[
-	_, _, _, _, _, _, _, _, _, GenesisT, _, _, _,
-]) ProcessGenesisData(
+func (s *Service) ProcessGenesisData(
 	ctx context.Context,
 	bytes []byte,
 ) (transition.ValidatorUpdates, error) {
-	genesisData := *new(GenesisT)
+	genesisData := ctypes.Genesis{}
 	if err := json.Unmarshal(bytes, &genesisData); err != nil {
 		s.logger.Error("Failed to unmarshal genesis data", "error", err)
 		return nil, err
 	}
-	return s.stateProcessor.InitializePreminedBeaconStateFromEth1(
+
+	validatorUpdates, err := s.stateProcessor.InitializePreminedBeaconStateFromEth1(
 		s.storageBackend.StateFromContext(ctx),
 		genesisData.GetDeposits(),
 		genesisData.GetExecutionPayloadHeader(),
 		genesisData.GetForkVersion(),
 	)
+	if err != nil {
+		return nil, err
+	}
+
+	// After deposits are validated, store the genesis deposits in the deposit store.
+	if err = s.storageBackend.DepositStore().EnqueueDeposits(
+		ctx,
+		genesisData.GetDeposits(),
+	); err != nil {
+		return nil, err
+	}
+
+	return validatorUpdates, nil
 }

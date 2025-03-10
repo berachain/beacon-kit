@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -157,11 +157,11 @@ type AdditionalService struct {
 }
 
 // MustMarshalJSON marshals the E2ETestConfig to JSON, panicking if an error.
-func (c *E2ETestConfig) MustMarshalJSON() []byte {
+func (c *E2ETestConfig) MustMarshalJSON() string {
 	jsonBytes, err := json.Marshal(c)
 	if err != nil {
 		panic(err)
 	}
 
-	return jsonBytes
+	return string(jsonBytes)
 }

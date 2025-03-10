@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,7 +22,6 @@ package types
 
 import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	fastssz "github.com/ferranbt/fastssz"
@@ -30,11 +29,11 @@ import (
 
 // BeaconState is the interface for a beacon state.
 type BeaconState[
-	BeaconStateMarshallableT, ExecutionPayloadHeaderT any,
+	BeaconStateMarshallableT any,
 ] interface {
 	// GetLatestExecutionPayloadHeader returns the latest execution payload
 	// header.
-	GetLatestExecutionPayloadHeader() (ExecutionPayloadHeaderT, error)
+	GetLatestExecutionPayloadHeader() (*ctypes.ExecutionPayloadHeader, error)
 	// GetMarshallable returns the marshallable version of the beacon state.
 	GetMarshallable() (BeaconStateMarshallableT, error)
 	// ValidatorByIndex retrieves the validator at the given index.
@@ -46,15 +45,6 @@ type BeaconState[
 type BeaconStateMarshallable interface {
 	// GetTree is kept for FastSSZ compatibility.
 	GetTree() (*fastssz.Node, error)
-}
-
-// ExecutionPayloadHeader is the interface for an execution payload header.
-type ExecutionPayloadHeader interface {
-	// GetNumber returns the block number of the ExecutionPayloadHeader.
-	GetNumber() math.U64
-	// GetFeeRecipient returns the fee recipient address of the
-	// ExecutionPayloadHeader.
-	GetFeeRecipient() common.ExecutionAddress
 }
 
 // Validator is the interface for a validator.

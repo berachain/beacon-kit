@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,6 +22,7 @@ package types
 
 import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -30,7 +31,7 @@ import (
 )
 
 // BlobSidecar as per the Ethereum 2.0 specification:
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/p2p-interface.md?ref=bankless.ghost.io#blobsidecar
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/p2p-interface.md#blobsidecar
 type BlobSidecar struct {
 	// Index represents the index of the blob in the block.
 	Index uint64
@@ -42,7 +43,7 @@ type BlobSidecar struct {
 	KzgProof eip4844.KZGProof
 	// BeaconBlockHeader represents the beacon block header for which this blob
 	// is being included.
-	BeaconBlockHeader *ctypes.BeaconBlockHeader
+	SignedBeaconBlockHeader *ctypes.SignedBeaconBlockHeader
 	// InclusionProof is the inclusion proof of the blob in the beacon block
 	// body.
 	InclusionProof []common.Root
@@ -52,39 +53,37 @@ type BlobSidecar struct {
 // beacon block.
 func BuildBlobSidecar(
 	index math.U64,
-	header *ctypes.BeaconBlockHeader,
+	header *ctypes.SignedBeaconBlockHeader,
 	blob *eip4844.Blob,
 	commitment eip4844.KZGCommitment,
 	proof eip4844.KZGProof,
 	inclusionProof []common.Root,
 ) *BlobSidecar {
-	//nolint:errcheck // should be safe
 	return &BlobSidecar{
-		Index:             index.Unwrap(),
-		Blob:              *blob,
-		KzgCommitment:     commitment,
-		KzgProof:          proof,
-		BeaconBlockHeader: any(header).(*ctypes.BeaconBlockHeader),
-		InclusionProof:    inclusionProof,
+		Index:                   index.Unwrap(),
+		Blob:                    *blob,
+		KzgCommitment:           commitment,
+		KzgProof:                proof,
+		SignedBeaconBlockHeader: header,
+		InclusionProof:          inclusionProof,
 	}
 }
 
 // HasValidInclusionProof verifies the inclusion proof of the
 // blob in the beacon body.
-func (b *BlobSidecar) HasValidInclusionProof(
-	kzgOffset uint64,
-) bool {
-	// Verify the inclusion proof.
-	return merkle.IsValidMerkleBranch(
+func (b *BlobSidecar) HasValidInclusionProof() bool {
+	header := b.GetSignedBeaconBlockHeader().GetHeader()
+	return header != nil && merkle.IsValidMerkleBranch(
 		b.KzgCommitment.HashTreeRoot(),
 		b.InclusionProof,
-		//#nosec:G701 // safe.
-		uint8(
-			len(b.InclusionProof),
-		), // TODO: use KZG_INCLUSION_PROOF_DEPTH calculation.
-		kzgOffset+b.Index,
-		b.BeaconBlockHeader.BodyRoot,
+		ctypes.KZGInclusionProofDepth,
+		ctypes.KZGOffsetDeneb+b.Index,
+		header.BodyRoot,
 	)
+}
+
+func (b *BlobSidecar) GetIndex() uint64 {
+	return b.Index
 }
 
 func (b *BlobSidecar) GetBlob() eip4844.Blob {
@@ -100,7 +99,11 @@ func (b *BlobSidecar) GetKzgCommitment() eip4844.KZGCommitment {
 }
 
 func (b *BlobSidecar) GetBeaconBlockHeader() *ctypes.BeaconBlockHeader {
-	return b.BeaconBlockHeader
+	return b.SignedBeaconBlockHeader.Header
+}
+
+func (b *BlobSidecar) GetInclusionProof() []common.Root {
+	return b.InclusionProof
 }
 
 // DefineSSZ defines the SSZ encoding for the BlobSidecar object.
@@ -109,30 +112,38 @@ func (b *BlobSidecar) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineStaticBytes(codec, &b.Blob)
 	ssz.DefineStaticBytes(codec, &b.KzgCommitment)
 	ssz.DefineStaticBytes(codec, &b.KzgProof)
-	ssz.DefineStaticObject(codec, &b.BeaconBlockHeader)
-	//nolint:mnd // depth of 8
-	ssz.DefineCheckedArrayOfStaticBytes(codec, &b.InclusionProof, 8)
+	ssz.DefineStaticObject(codec, &b.SignedBeaconBlockHeader)
+	ssz.DefineCheckedArrayOfStaticBytes(codec, &b.InclusionProof, ctypes.KZGInclusionProofDepth)
 }
 
 // SizeSSZ returns the size of the BlobSidecar object in SSZ encoding.
-func (b *BlobSidecar) SizeSSZ(*ssz.Sizer) uint32 {
+// TODO: get from accessible chainspec field params.
+func (b *BlobSidecar) SizeSSZ(sizer *ssz.Sizer) uint32 {
+	ssize := (*ctypes.SignedBeaconBlockHeader)(nil).SizeSSZ(sizer)
 	return 8 + // Index
 		131072 + // Blob
 		48 + // KzgCommitment
 		48 + // KzgProof
-		112 + // BeaconBlockHeader
-		8*32 // InclusionProof
+		ssize + // SignedBeaconBlockHeader
+		ctypes.KZGInclusionProofDepth*32 // InclusionProof
 }
 
 // MarshalSSZ marshals the BlobSidecar object to SSZ format.
 func (b *BlobSidecar) MarshalSSZ() ([]byte, error) {
+	if len(b.InclusionProof) != ctypes.KZGInclusionProofDepth {
+		return []byte{}, errors.New("invalid inclusion proof length")
+	}
 	buf := make([]byte, ssz.Size(b))
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 
 // UnmarshalSSZ unmarshals the BlobSidecar object from SSZ format.
 func (b *BlobSidecar) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, b)
+	err := ssz.DecodeFromBytes(buf, b)
+	if len(b.InclusionProof) != ctypes.KZGInclusionProofDepth {
+		return errors.New("invalid inclusion proof length")
+	}
+	return err
 }
 
 // MarshalSSZTo marshals the BlobSidecar object to the provided buffer in SSZ
@@ -144,4 +155,8 @@ func (b *BlobSidecar) MarshalSSZTo(buf []byte) ([]byte, error) {
 // HashTreeRoot computes the SSZ hash tree root of the BlobSidecar object.
 func (b *BlobSidecar) HashTreeRoot() common.Root {
 	return ssz.HashSequential(b)
+}
+
+func (b *BlobSidecar) GetSignedBeaconBlockHeader() *ctypes.SignedBeaconBlockHeader {
+	return b.SignedBeaconBlockHeader
 }

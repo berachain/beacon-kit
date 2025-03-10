@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -24,25 +24,19 @@ import (
 	"os"
 
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/chain"
 	cmdlib "github.com/berachain/beacon-kit/cli/commands"
 	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	"github.com/berachain/beacon-kit/cli/config"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
-	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/node-core/types"
-	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constraints"
+	"github.com/berachain/beacon-kit/log/phuslu"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 )
 
 // CLIBuilder is the builder for the commands.Root (root command).
-type CLIBuilder[
-	T types.Node,
-	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
-	LoggerT log.AdvancedLogger[LoggerT],
-] struct {
+type CLIBuilder struct {
 	name        string
 	description string
 	// components is a list of component providers for depinject.
@@ -52,18 +46,12 @@ type CLIBuilder[
 	// nodeBuilderFunc is a function that builds the Node,
 	// eventually called by the cosmos-sdk.
 	// TODO: CLI should not know about the AppCreator
-	nodeBuilderFunc servertypes.AppCreator[T, LoggerT]
+	nodeBuilderFunc servertypes.AppCreator
 }
 
 // New returns a new CLIBuilder with the given options.
-func New[
-	T types.Node,
-	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
-	LoggerT log.AdvancedLogger[LoggerT],
-](
-	opts ...Opt[T, ExecutionPayloadT, LoggerT],
-) *CLIBuilder[T, ExecutionPayloadT, LoggerT] {
-	cb := &CLIBuilder[T, ExecutionPayloadT, LoggerT]{
+func New(opts ...Opt) *CLIBuilder {
+	cb := &CLIBuilder{
 		suppliers: []any{
 			os.Stdout, // supply io.Writer for logger
 		},
@@ -75,14 +63,12 @@ func New[
 }
 
 // Build builds the CLI commands.
-func (cb *CLIBuilder[
-	T, ExecutionPayloadT, LoggerT,
-]) Build() (*cmdlib.Root, error) {
+func (cb *CLIBuilder) Build() (*cmdlib.Root, error) {
 	// allocate memory to hold the dependencies
 	var (
 		clientCtx client.Context
-		chainSpec common.ChainSpec
-		logger    LoggerT
+		chainSpec chain.Spec
+		logger    *phuslu.Logger
 	)
 
 	// build dependencies for the root command
@@ -109,9 +95,9 @@ func (cb *CLIBuilder[
 	)
 
 	// apply default root command setup
-	cmdlib.DefaultRootCommandSetup[T, ExecutionPayloadT](
+	cmdlib.DefaultRootCommandSetup(
 		rootCmd,
-		&cometbft.Service[LoggerT]{},
+		&cometbft.Service{},
 		cb.nodeBuilderFunc,
 		chainSpec,
 	)
@@ -120,28 +106,26 @@ func (cb *CLIBuilder[
 }
 
 // defaultRunHandler returns the default run handler for the CLIBuilder.
-func (cb *CLIBuilder[_, _, LoggerT]) defaultRunHandler(
-	logger LoggerT,
-) func(cmd *cobra.Command) error {
+func (cb *CLIBuilder) defaultRunHandler(logger *phuslu.Logger) func(cmd *cobra.Command) error {
 	return func(cmd *cobra.Command) error {
 		return cb.InterceptConfigsPreRunHandler(
 			cmd,
 			logger,
 			DefaultAppConfigTemplate(),
 			DefaultAppConfig(),
-			DefaultCometConfig(),
+			cometbft.DefaultConfig(),
 		)
 	}
 }
 
-func (cb *CLIBuilder[_, _, LoggerT]) InterceptConfigsPreRunHandler(
+func (cb *CLIBuilder) InterceptConfigsPreRunHandler(
 	cmd *cobra.Command,
-	logger LoggerT,
+	logger *phuslu.Logger,
 	customAppConfigTemplate string,
 	customAppConfig interface{},
 	cmtConfig *cmtcfg.Config,
 ) error {
-	return config.SetupCommand[LoggerT](
+	return config.SetupCommand(
 		cmd,
 		customAppConfigTemplate,
 		customAppConfig,

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -27,34 +27,39 @@ import (
 )
 
 func TestNewLogger(t *testing.T) {
+	t.Parallel()
 	logger := noop.NewLogger[any]()
 	if logger == nil {
 		t.Error("Expected NewLogger to return a non-nil logger")
 	}
 }
 
-func TestLogger_Info(*testing.T) {
+func TestLogger_Info(t *testing.T) {
+	t.Parallel()
 	logger := noop.NewLogger[any]()
 	logger.Info("test message", "key1", "value1", "key2", "value2")
 	// Since it's a no-op logger, there's nothing to assert. This test just
 	// ensures no panic occurs.
 }
 
-func TestLogger_Warn(*testing.T) {
+func TestLogger_Warn(t *testing.T) {
+	t.Parallel()
 	logger := noop.NewLogger[any]()
 	logger.Warn("test warning", "key1", "value1", "key2", "value2")
 	// Since it's a no-op logger, there's nothing to assert. This test just
 	// ensures no panic occurs.
 }
 
-func TestLogger_Error(*testing.T) {
+func TestLogger_Error(t *testing.T) {
+	t.Parallel()
 	logger := noop.NewLogger[any]()
 	logger.Error("test error", "key1", "value1", "key2", "value2")
 	// Since it's a no-op logger, there's nothing to assert. This test just
 	// ensures no panic occurs.
 }
 
-func TestLogger_Debug(*testing.T) {
+func TestLogger_Debug(t *testing.T) {
+	t.Parallel()
 	logger := noop.NewLogger[any]()
 	logger.Debug("test debug", "key1", "value1", "key2", "value2")
 	// Since it's a no-op logger, there's nothing to assert. This test just

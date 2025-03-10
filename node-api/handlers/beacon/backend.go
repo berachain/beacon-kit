@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -25,11 +25,13 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // Backend is the interface for backend of the beacon API.
 type Backend interface {
 	GenesisBackend
+	BlobBackend
 	BlockBackend
 	RandaoBackend
 	StateBackend
@@ -54,6 +56,10 @@ type RandaoBackend interface {
 	RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes32, error)
 }
 
+type BlobBackend interface {
+	BlobSidecarsByIndices(slot math.Slot, indices []uint64) ([]*types.Sidecar, error)
+}
+
 type BlockBackend interface {
 	BlockRootAtSlot(slot math.Slot) (common.Root, error)
 	BlockRewardsAtSlot(slot math.Slot) (*types.BlockRewardsData, error)
@@ -63,13 +69,14 @@ type BlockBackend interface {
 type StateBackend interface {
 	StateRootAtSlot(slot math.Slot) (common.Root, error)
 	StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error)
+	StateAtSlot(slot math.Slot) (*statedb.StateDB, error)
 }
 
 type ValidatorBackend interface {
 	ValidatorByID(
 		slot math.Slot, id string,
 	) (*types.ValidatorData, error)
-	ValidatorsByIDs(
+	FilteredValidators(
 		slot math.Slot,
 		ids []string,
 		statuses []string,

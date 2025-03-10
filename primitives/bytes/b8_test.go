@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -28,6 +28,7 @@ import (
 )
 
 func TestBytes8UnmarshalJSON(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		input   string
@@ -54,6 +55,7 @@ func TestBytes8UnmarshalJSON(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var got bytes.B8
 			err := got.UnmarshalJSON([]byte(tt.input))
 			if tt.wantErr {
@@ -66,6 +68,7 @@ func TestBytes8UnmarshalJSON(t *testing.T) {
 }
 
 func TestBytes8String(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		h    bytes.B8
@@ -85,6 +88,7 @@ func TestBytes8String(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := tt.h.String()
 			require.Equal(t, tt.want, got)
 		})
@@ -92,6 +96,7 @@ func TestBytes8String(t *testing.T) {
 }
 
 func TestBytes8MarshalText(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		h    bytes.B8
@@ -126,6 +131,7 @@ func TestBytes8MarshalText(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, err := tt.h.MarshalText()
 			require.NoError(t, err)
 			require.Equal(t, tt.want, string(got))
@@ -134,6 +140,7 @@ func TestBytes8MarshalText(t *testing.T) {
 }
 
 func TestBytes8UnmarshalText(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		input   string
@@ -160,6 +167,7 @@ func TestBytes8UnmarshalText(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var got bytes.B8
 			err := got.UnmarshalText([]byte(tt.input))
 			if tt.wantErr {
@@ -172,6 +180,7 @@ func TestBytes8UnmarshalText(t *testing.T) {
 }
 
 func TestToBytes8(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		input   []byte
@@ -208,6 +217,7 @@ func TestToBytes8(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result, err := bytes.ToBytes8(tt.input)
 			if tt.wantErr != nil {
 				require.ErrorIs(t, err, tt.wantErr)
@@ -220,6 +230,7 @@ func TestToBytes8(t *testing.T) {
 }
 
 func TestBytes8MarshalSSZ(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name  string
 		input bytes.B8
@@ -234,6 +245,7 @@ func TestBytes8MarshalSSZ(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, err := tt.input.MarshalSSZ()
 			require.NoError(t, err)
 			require.Equal(t, tt.want, got)
@@ -242,6 +254,7 @@ func TestBytes8MarshalSSZ(t *testing.T) {
 }
 
 func TestBytes8HashTreeRoot(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name  string
 		input bytes.B8
@@ -256,6 +269,7 @@ func TestBytes8HashTreeRoot(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, err := tt.input.HashTreeRoot()
 			require.NoError(t, err)
 			require.Equal(t, tt.want, got)

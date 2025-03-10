@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,12 +22,9 @@
 package server
 
 import (
-	"context"
-
 	pruningtypes "cosmossdk.io/store/pruning/types"
 	types "github.com/berachain/beacon-kit/cli/commands/server/types"
 	clicontext "github.com/berachain/beacon-kit/cli/context"
-	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/storage/db"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	dbm "github.com/cosmos/cosmos-db"
@@ -52,43 +49,22 @@ const (
 
 // StartCmdOptions defines options that can be customized in
 // `StartCmdWithOptions`,.
-type StartCmdOptions[
-	T interface {
-		Start(context.Context) error
-	},
-] struct {
+type StartCmdOptions struct {
 	// AddFlags allows adding custom flags to the start command.
 	AddFlags func(cmd *cobra.Command)
-}
-
-// StartCmd runs the service passed in, either stand-alone or in-process with
-// CometBFT.
-func StartCmd[
-	T interface {
-		Start(context.Context) error
-	},
-	LoggerT log.AdvancedLogger[LoggerT],
-](
-	appCreator types.AppCreator[T, LoggerT],
-) *cobra.Command {
-	return StartCmdWithOptions[T, LoggerT](appCreator, StartCmdOptions[T]{})
 }
 
 // StartCmdWithOptions runs the service passed in, either stand-alone or
 // in-process with
 // CometBFT.
-func StartCmdWithOptions[
-	T interface {
-		Start(context.Context) error
-	},
-	LoggerT log.AdvancedLogger[LoggerT],
-](
-	appCreator types.AppCreator[T, LoggerT],
-	opts StartCmdOptions[T],
+func StartCmdWithOptions(
+	appCreator types.AppCreator,
+	opts StartCmdOptions,
 ) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "start",
-		Short: "Run the node",
+		Use:          "start",
+		SilenceUsage: true,
+		Short:        "Run the node",
 		Long: `Run the node application with CometBFT in process. By
 default, the application will run with CometBFT in process.
 
@@ -104,8 +80,9 @@ custom: allow pruning options to be manually specified through 'pruning-keep-rec
 
 `,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			logger := clicontext.GetLoggerFromCmd[LoggerT](cmd)
+			logger := clicontext.GetLoggerFromCmd(cmd)
 			cfg := clicontext.GetConfigFromCmd(cmd)
+
 			v := clicontext.GetViperFromCmd(cmd)
 			_, err := GetPruningOptionsFromFlags(v)
 			if err != nil {
@@ -129,13 +106,9 @@ custom: allow pruning options to be manually specified through 'pruning-keep-rec
 }
 
 // addStartNodeFlags should be added to any CLI commands that start the network.
-func addStartNodeFlags[
-	T interface {
-		Start(context.Context) error
-	},
-](
+func addStartNodeFlags(
 	cmd *cobra.Command,
-	opts StartCmdOptions[T],
+	opts StartCmdOptions,
 ) {
 	cmd.Flags().String(
 		flagAddress, "tcp://127.0.0.1:26658", "Listen address")

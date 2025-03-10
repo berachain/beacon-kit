@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,31 +21,55 @@
 package types
 
 import (
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 )
 
-type ValidatorResponse struct {
+type GenericResponse struct {
 	ExecutionOptimistic bool `json:"execution_optimistic"`
 	Finalized           bool `json:"finalized"`
 	Data                any  `json:"data"`
 }
 
+// NewResponse creates a new response with CometBFT's finality guarantees.
+func NewResponse(data any) GenericResponse {
+	return GenericResponse{
+		// All data is finalized in CometBFT since we only return data for slots up to head
+		Finalized: true,
+		// Never optimistic since we only return finalized data
+		ExecutionOptimistic: false,
+		Data:                data,
+	}
+}
+
 type BlockResponse struct {
 	Version string `json:"version"`
-	ValidatorResponse
+	GenericResponse
+}
+
+type StateResponse struct {
+	Version             string `json:"version"`
+	ExecutionOptimistic bool   `json:"execution_optimistic"`
+	Finalized           bool   `json:"finalized"`
+	Data                any    `json:"data"`
 }
 
 type BlockHeaderResponse struct {
-	Root      common.Root  `json:"root"`
-	Canonical bool         `json:"canonical"`
-	Header    *BlockHeader `json:"header"`
+	Root      common.Root              `json:"root"`
+	Canonical bool                     `json:"canonical"`
+	Header    *SignedBeaconBlockHeader `json:"header"`
 }
 
-type BlockHeader struct {
-	Message   *ctypes.BeaconBlockHeader `json:"message"`
-	Signature bytes.B48                 `json:"signature"`
+type BeaconBlockHeader struct {
+	Slot          string `json:"slot"`
+	ProposerIndex string `json:"proposer_index"`
+	ParentRoot    string `json:"parent_root"`
+	StateRoot     string `json:"state_root"`
+	BodyRoot      string `json:"body_root"`
+}
+
+type SignedBeaconBlockHeader struct {
+	Message   *BeaconBlockHeader `json:"message"`
+	Signature string             `json:"signature"`
 }
 
 type GenesisData struct {
@@ -54,19 +78,39 @@ type GenesisData struct {
 	GenesisForkVersion    string      `json:"genesis_fork_version"`
 }
 
+// GenesisResponse is handled with this explicit response type since
+// "finalized" and "execution_optimistic" are not part of the return value.
+//
+// https://ethereum.github.io/beacon-APIs/#/Beacon/getGenesis
+type GenesisResponse struct {
+	Data GenesisData `json:"data"`
+}
+
 type RootData struct {
 	Root common.Root `json:"root"`
 }
 
 type ValidatorData struct {
 	ValidatorBalanceData
-	Status    string            `json:"status"`
-	Validator *ctypes.Validator `json:"validator"`
+	Status    string     `json:"status"`
+	Validator *Validator `json:"validator"`
 }
 
 type ValidatorBalanceData struct {
 	Index   uint64 `json:"index,string"`
 	Balance uint64 `json:"balance,string"`
+}
+
+// Validator is the spec representation of the struct.
+type Validator struct {
+	PublicKey                  string `json:"pubkey"`
+	WithdrawalCredentials      string `json:"withdrawal_credentials"`
+	EffectiveBalance           string `json:"effective_balance"`
+	Slashed                    bool   `json:"slashed"`
+	ActivationEligibilityEpoch string `json:"activation_eligibility_epoch"`
+	ActivationEpoch            string `json:"activation_epoch"`
+	ExitEpoch                  string `json:"exit_epoch"`
+	WithdrawableEpoch          string `json:"withdrawable_epoch"`
 }
 
 //nolint:staticcheck // todo: figure this out.
@@ -83,4 +127,17 @@ type BlockRewardsData struct {
 	SyncAggregate     uint64 `json:"sync_aggregate,string"`
 	ProposerSlashings uint64 `json:"proposer_slashings,string"`
 	AttesterSlashings uint64 `json:"attester_slashings,string"`
+}
+
+type Sidecar struct {
+	Index                       string                   `json:"index"`
+	Blob                        string                   `json:"blob"`
+	KZGCommitment               string                   `json:"kzg_commitment"`
+	KZGProof                    string                   `json:"kzg_proof"`
+	SignedBlockHeader           *SignedBeaconBlockHeader `json:"signed_block_header"`
+	KZGCommitmentInclusionProof []string                 `json:"kzg_commitment_inclusion_proof"`
+}
+
+type SidecarsResponse struct {
+	Data []*Sidecar `json:"data"`
 }

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,7 +23,6 @@ package client
 import (
 	"context"
 	"math/big"
-	"strings"
 	"sync"
 	"time"
 
@@ -31,17 +30,14 @@ import (
 	ethclient "github.com/berachain/beacon-kit/execution/client/ethclient"
 	ethclientrpc "github.com/berachain/beacon-kit/execution/client/ethclient/rpc"
 	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/net/http"
 	"github.com/berachain/beacon-kit/primitives/net/jwt"
 )
 
 // EngineClient is a struct that holds a pointer to an Eth1Client.
-type EngineClient[
-	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
-	PayloadAttributesT PayloadAttributes,
-] struct {
-	*ethclient.Client[ExecutionPayloadT]
+type EngineClient struct {
+	*ethclient.Client
 	// cfg is the supplied configuration for the engine client.
 	cfg *Config
 	// logger is the logger for the engine client.
@@ -61,29 +57,39 @@ type EngineClient[
 // New creates a new engine client EngineClient.
 // It takes an Eth1Client as an argument and returns a pointer  to an
 // EngineClient.
-func New[
-	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
-	PayloadAttributesT PayloadAttributes,
-](
+func New(
 	cfg *Config,
 	logger log.Logger,
 	jwtSecret *jwt.Secret,
 	telemetrySink TelemetrySink,
 	eth1ChainID *big.Int,
-) *EngineClient[
-	ExecutionPayloadT, PayloadAttributesT,
-] {
-	return &EngineClient[ExecutionPayloadT, PayloadAttributesT]{
-		cfg:    cfg,
-		logger: logger,
-		Client: ethclient.New[ExecutionPayloadT](
-			ethclientrpc.NewClient(
-				cfg.RPCDialURL.String(),
-				ethclientrpc.WithJWTSecret(jwtSecret),
-				ethclientrpc.WithJWTRefreshInterval(
-					cfg.RPCJWTRefreshInterval,
-				),
-			)),
+) *EngineClient {
+	ethClient := ethclientrpc.NewClient(
+		cfg.RPCDialURL.String(),
+		jwtSecret,
+		cfg.RPCJWTRefreshInterval,
+	)
+
+	// Enforcing minimum rpc timeout
+	// The reason we do it is that we previously suggested a
+	// 900 ms default, which is unnecessarily strict.
+	// TODO: Not great enforcing this here since, in principle,
+	// other services may use this config (not currently the case)
+	// and we pass cfg by pointer, hence we do a global change.
+	// The altenative of validating every config in ProvideConfig
+	// should be considered (but logging there is trickier)
+	if cfg.RPCTimeout < MinRPCTimeout {
+		logger.Warn("Automatically raising RPCTimeout",
+			"configured", cfg.RPCTimeout,
+			"minimum", MinRPCTimeout,
+		)
+	}
+	cfg.RPCTimeout = max(MinRPCTimeout, cfg.RPCTimeout)
+
+	return &EngineClient{
+		cfg:          cfg,
+		logger:       logger,
+		Client:       ethclient.New(ethClient),
 		capabilities: make(map[string]struct{}),
 		eth1ChainID:  eth1ChainID,
 		metrics:      newClientMetrics(telemetrySink, logger),
@@ -92,18 +98,12 @@ func New[
 }
 
 // Name returns the name of the engine client.
-func (s *EngineClient[
-	_, _,
-]) Name() string {
+func (s *EngineClient) Name() string {
 	return "engine-client"
 }
 
 // Start the engine client.
-func (s *EngineClient[
-	_, _,
-]) Start(
-	ctx context.Context,
-) error {
+func (s *EngineClient) Start(ctx context.Context) error {
 	// Start the Client.
 	go s.Client.Start(ctx)
 
@@ -144,17 +144,17 @@ func (s *EngineClient[
 	}
 }
 
-func (s *EngineClient[_, _]) Stop() error {
+func (s *EngineClient) Stop() error {
 	return nil
 }
 
-func (s *EngineClient[_, _]) IsConnected() bool {
+func (s *EngineClient) IsConnected() bool {
 	s.connectedMu.RLock()
 	defer s.connectedMu.RUnlock()
 	return s.connected
 }
 
-func (s *EngineClient[_, _]) HasCapability(capability string) bool {
+func (s *EngineClient) HasCapability(capability string) bool {
 	_, ok := s.capabilities[capability]
 	return ok
 }
@@ -165,9 +165,7 @@ func (s *EngineClient[_, _]) HasCapability(capability string) bool {
 
 // verifyChainID dials the execution client and
 // ensures the chain ID is correct.
-func (s *EngineClient[
-	_, _,
-]) verifyChainIDAndConnection(
+func (s *EngineClient) verifyChainIDAndConnection(
 	ctx context.Context,
 ) error {
 	var (
@@ -184,7 +182,7 @@ func (s *EngineClient[
 	// After the initial dial, check to make sure the chain ID is correct.
 	chainID, err = s.Client.ChainID(ctx)
 	if err != nil {
-		if strings.Contains(err.Error(), "401 Unauthorized") {
+		if errors.Is(err, http.ErrUnauthorized) {
 			// We always log this error as it is a critical error.
 			s.logger.Error(UnauthenticatedConnectionErrorStr)
 		}
@@ -213,12 +211,9 @@ func (s *EngineClient[
 	// Log the chain ID.
 	s.logger.Info(
 		"Connected to execution client 🔌",
-		"dial_url",
-		s.cfg.RPCDialURL.String(),
-		"chain_id",
-		chainID.Unwrap(),
-		"required_chain_id",
-		s.eth1ChainID,
+		"dial_url", s.cfg.RPCDialURL.String(),
+		"chain_id", chainID.Unwrap(),
+		"required_chain_id", s.eth1ChainID,
 	)
 
 	// Exchange capabilities with the execution client.
@@ -227,4 +222,20 @@ func (s *EngineClient[
 		return err
 	}
 	return nil
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   Getters                                  */
+/* -------------------------------------------------------------------------- */
+
+func (s *EngineClient) GetRPCRetries() uint64 {
+	return s.cfg.RPCRetries
+}
+
+func (s *EngineClient) GetRPCRetryInterval() time.Duration {
+	return s.cfg.RPCRetryInterval
+}
+
+func (s *EngineClient) GetRPCMaxRetryInterval() time.Duration {
+	return s.cfg.RPCMaxRetryInterval
 }

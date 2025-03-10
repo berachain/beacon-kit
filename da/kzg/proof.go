@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -24,6 +24,7 @@ import (
 	"github.com/berachain/beacon-kit/da/kzg/ckzg"
 	"github.com/berachain/beacon-kit/da/kzg/gokzg"
 	kzgtypes "github.com/berachain/beacon-kit/da/kzg/types"
+	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
@@ -69,18 +70,15 @@ func NewBlobProofVerifier(
 }
 
 // ArgsFromSidecars converts a BlobSidecars to a slice of BlobProofArgs.
-func ArgsFromSidecars[
-	BlobSidecarT kzgtypes.BlobSidecar,
-	BlobSidecarsT kzgtypes.BlobSidecars[BlobSidecarT],
-](
-	scs BlobSidecarsT,
+func ArgsFromSidecars(
+	scs datypes.BlobSidecars,
 ) *kzgtypes.BlobProofArgs {
 	proofArgs := &kzgtypes.BlobProofArgs{
-		Blobs:       make([]*eip4844.Blob, scs.Len()),
-		Proofs:      make([]eip4844.KZGProof, scs.Len()),
-		Commitments: make([]eip4844.KZGCommitment, scs.Len()),
+		Blobs:       make([]*eip4844.Blob, len(scs)),
+		Proofs:      make([]eip4844.KZGProof, len(scs)),
+		Commitments: make([]eip4844.KZGCommitment, len(scs)),
 	}
-	for i, sidecar := range scs.GetSidecars() {
+	for i, sidecar := range scs {
 		blob := sidecar.GetBlob()
 		proofArgs.Blobs[i] = &blob
 		proofArgs.Proofs[i] = sidecar.GetKzgProof()

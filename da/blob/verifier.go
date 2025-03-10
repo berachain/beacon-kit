@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -25,66 +25,96 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/kzg"
+	datypes "github.com/berachain/beacon-kit/da/types"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"golang.org/x/sync/errgroup"
 )
 
 // verifier is responsible for verifying blobs, including their
 // inclusion and KZG proofs.
-type verifier[
-	BlobSidecarT Sidecar,
-	BlobSidecarsT Sidecars[BlobSidecarT],
-] struct {
+type verifier struct {
 	// proofVerifier is used to verify the KZG proofs of the blobs.
 	proofVerifier kzg.BlobProofVerifier
 	// metrics collects and reports metrics related to the verification process.
 	metrics *verifierMetrics
+	// chainSpec contains the chain specification
+	chainSpec chain.Spec
 }
 
 // newVerifier creates a new Verifier with the given proof verifier.
-func newVerifier[
-	BlobSidecarT Sidecar,
-	BlobSidecarsT Sidecars[BlobSidecarT],
-](
+func newVerifier(
 	proofVerifier kzg.BlobProofVerifier,
 	telemetrySink TelemetrySink,
-) *verifier[BlobSidecarT, BlobSidecarsT] {
-	return &verifier[BlobSidecarT, BlobSidecarsT]{
+	chainSpec chain.Spec,
+) *verifier {
+	return &verifier{
 		proofVerifier: proofVerifier,
 		metrics:       newVerifierMetrics(telemetrySink),
+		chainSpec:     chainSpec,
 	}
 }
 
 // verifySidecars verifies the blobs for both inclusion as well
 // as the KZG proofs.
-func (bv *verifier[_, BlobSidecarsT]) verifySidecars(
-	sidecars BlobSidecarsT,
-	kzgOffset uint64,
+func (bv *verifier) verifySidecars(
+	ctx context.Context,
+	sidecars datypes.BlobSidecars,
 	blkHeader *ctypes.BeaconBlockHeader,
+	kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],
 ) error {
+	numSidecars := uint64(len(sidecars))
 	defer bv.metrics.measureVerifySidecarsDuration(
-		time.Now(), math.U64(sidecars.Len()),
+		time.Now(), math.U64(numSidecars),
 		bv.proofVerifier.GetImplementation(),
 	)
 
-	// check that sideracs block headers match with header of the
-	// corresponding block
-	for i, s := range sidecars.GetSidecars() {
-		if !s.GetBeaconBlockHeader().Equals(blkHeader) {
+	g, _ := errgroup.WithContext(ctx)
+
+	// Create lookup table for each blob sidecar commitment and indicies.
+	blobSidecarCommitments := make(map[eip4844.KZGCommitment]struct{})
+	blobSidecarIndicies := make(map[uint64]struct{})
+
+	// Validate sidecar fields against data from the BeaconBlock.
+	for i, s := range sidecars {
+		// Fill lookup table with commitments from the blob sidecars.
+		blobSidecarCommitments[s.GetKzgCommitment()] = struct{}{}
+
+		// We should only have unique indexes.
+		if _, exists := blobSidecarIndicies[s.GetIndex()]; exists {
+			return fmt.Errorf("duplicate sidecar Index: %d", i)
+		}
+		blobSidecarIndicies[s.GetIndex()] = struct{}{}
+
+		// This check happens outside the goroutines so that we do not
+		// process the inclusion proofs before validating the index.
+		if s.GetIndex() >= numSidecars {
+			return fmt.Errorf("invalid sidecar Index: %d", i)
+		}
+
+		// Verify the signature.
+		var sigHeader = s.GetSignedBeaconBlockHeader()
+
+		// Check BlobSidecar.Header equality with BeaconBlockHeader
+		if !sigHeader.GetHeader().Equals(blkHeader) {
 			return fmt.Errorf("unequal block header: idx: %d", i)
 		}
 	}
 
+	// Ensure each commitment from the BeaconBlock has a corresponding sidecar commitment.
+	for _, kzgCommitment := range kzgCommitments {
+		if _, exists := blobSidecarCommitments[kzgCommitment]; !exists {
+			return fmt.Errorf("missing kzg commitment: %s", kzgCommitment)
+		}
+	}
+
 	// Verify the inclusion proofs on the blobs concurrently.
-	g, _ := errgroup.WithContext(context.Background())
 	g.Go(func() error {
-		// TODO: KZGOffset needs to be configurable and not
-		// passed in.
-		return bv.verifyInclusionProofs(
-			sidecars, kzgOffset,
-		)
+		return bv.verifyInclusionProofs(sidecars)
 	})
 
 	// Verify the KZG proofs on the blobs concurrently.
@@ -92,45 +122,41 @@ func (bv *verifier[_, BlobSidecarsT]) verifySidecars(
 		return bv.verifyKZGProofs(sidecars)
 	})
 
-	g.Go(func() error {
-		return sidecars.ValidateBlockRoots()
-	})
-
 	// Wait for all goroutines to finish and return the result.
 	return g.Wait()
 }
 
-func (bv *verifier[_, BlobSidecarsT]) verifyInclusionProofs(
-	scs BlobSidecarsT,
-	kzgOffset uint64,
+func (bv *verifier) verifyInclusionProofs(
+	scs datypes.BlobSidecars,
 ) error {
 	startTime := time.Now()
 	defer bv.metrics.measureVerifyInclusionProofsDuration(
-		startTime, math.U64(scs.Len()),
+		startTime, math.U64(len(scs)),
 	)
-	return scs.VerifyInclusionProofs(kzgOffset)
+
+	return scs.VerifyInclusionProofs()
 }
 
 // verifyKZGProofs verifies the sidecars.
-func (bv *verifier[_, BlobSidecarsT]) verifyKZGProofs(
-	scs BlobSidecarsT,
+func (bv *verifier) verifyKZGProofs(
+	scs datypes.BlobSidecars,
 ) error {
 	start := time.Now()
 	defer bv.metrics.measureVerifyKZGProofsDuration(
-		start, math.U64(scs.Len()),
+		start, math.U64(len(scs)),
 		bv.proofVerifier.GetImplementation(),
 	)
 
-	switch scs.Len() {
+	switch len(scs) {
 	case 0:
 		return nil
 	case 1:
-		blob := scs.Get(0).GetBlob()
+		blob := scs[0].GetBlob()
 		// This method is fastest for a single blob.
 		return bv.proofVerifier.VerifyBlobProof(
 			&blob,
-			scs.Get(0).GetKzgProof(),
-			scs.Get(0).GetKzgCommitment(),
+			scs[0].GetKzgProof(),
+			scs[0].GetKzgCommitment(),
 		)
 	default:
 		// For multiple blobs batch verification is more performant

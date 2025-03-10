@@ -14,7 +14,3 @@ proto-build: ## build the proto files
 proto-clean: ## clean the proto files
 	@find . -name '*.pb.go' -delete
 	@find . -name '*.pb.gw.go' -delete
-
-buf-install:
-	@echo "--> Installing buf"
-	@go install github.com/bufbuild/buf/cmd/buf

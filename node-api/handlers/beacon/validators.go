@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,81 +21,59 @@
 package beacon
 
 import (
+	"errors"
+	"net/http"
+
+	"github.com/berachain/beacon-kit/node-api/backend"
+	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	"github.com/berachain/beacon-kit/node-api/handlers/types"
+	types "github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 )
 
-func (h *Handler[ContextT]) GetStateValidators(
-	c ContextT,
-) (any, error) {
+var ErrNoSlotForStateRoot = errors.New("slot not found at state root")
+
+// getStateValidators is a helper function to provide implementation
+// consistency between GetStateValidators and PostStateValidators, since they
+// are intended to behave the same way.
+func (h *Handler) getStateValidators(stateID string, ids []string, statuses []string) (any, error) {
+	slot, err := utils.SlotFromStateID(stateID, h.backend)
+	if err != nil {
+		return nil, err
+	}
+	validators, err := h.backend.FilteredValidators(
+		slot,
+		ids,
+		statuses,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return beacontypes.NewResponse(validators), nil
+}
+
+func (h *Handler) GetStateValidators(c handlers.Context) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetStateValidatorsRequest](
 		c, h.Logger(),
 	)
 	if err != nil {
 		return nil, err
 	}
-	// TODO: remove this once status filter is implemented.
-	if len(req.Statuses) > 0 {
-		return nil, types.ErrNotImplemented
-	}
-	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
-	if err != nil {
-		return nil, err
-	}
-	validators, err := h.backend.ValidatorsByIDs(
-		slot,
-		req.IDs,
-		req.Statuses,
-	)
-	if err != nil {
-		return nil, err
-	}
-	if len(validators) == 0 {
-		return nil, types.ErrNotFound
-	}
-	return beacontypes.ValidatorResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data:                validators,
-	}, nil
+	return h.getStateValidators(req.StateID, req.IDs, req.Statuses)
 }
 
-func (h *Handler[ContextT]) PostStateValidators(
-	c ContextT,
-) (any, error) {
+func (h *Handler) PostStateValidators(c handlers.Context) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.PostStateValidatorsRequest](
 		c, h.Logger(),
 	)
 	if err != nil {
 		return nil, err
 	}
-	// TODO: remove this once status filter is implemented.
-	if len(req.Statuses) > 0 {
-		return nil, types.ErrNotImplemented
-	}
-	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
-	if err != nil {
-		return nil, err
-	}
-	validators, err := h.backend.ValidatorsByIDs(
-		slot,
-		req.IDs,
-		req.Statuses,
-	)
-	if err != nil {
-		return nil, err
-	}
-	return beacontypes.ValidatorResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data:                validators,
-	}, nil
+	return h.getStateValidators(req.StateID, req.IDs, req.Statuses)
 }
 
-func (h *Handler[ContextT]) GetStateValidator(
-	c ContextT,
-) (any, error) {
+func (h *Handler) GetStateValidator(c handlers.Context) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetStateValidatorRequest](
 		c, h.Logger(),
 	)
@@ -103,22 +81,35 @@ func (h *Handler[ContextT]) GetStateValidator(
 		return nil, err
 	}
 	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
-	if err != nil {
+	switch {
+	case err == nil:
+		// No error, continue
+	case errors.Is(err, utils.ErrNoSlotForStateRoot):
+		return &handlers.HTTPError{
+			Code:    http.StatusNotFound,
+			Message: "State not found",
+		}, nil
+	default:
 		return nil, err
 	}
 	validator, err := h.backend.ValidatorByID(
 		slot,
 		req.ValidatorID,
 	)
-	if err != nil {
+	switch {
+	case errors.Is(err, backend.ErrValidatorNotFound):
+		return &handlers.HTTPError{
+			Code:    http.StatusNotFound,
+			Message: "Validator not found",
+		}, nil
+	case err != nil:
 		return nil, err
+	default:
+		return beacontypes.NewResponse(validator), nil
 	}
-	return validator, nil
 }
 
-func (h *Handler[ContextT]) GetStateValidatorBalances(
-	c ContextT,
-) (any, error) {
+func (h *Handler) GetStateValidatorBalances(c handlers.Context) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetValidatorBalancesRequest](
 		c, h.Logger(),
 	)
@@ -126,7 +117,16 @@ func (h *Handler[ContextT]) GetStateValidatorBalances(
 		return nil, err
 	}
 	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
-	if err != nil {
+
+	switch {
+	case err == nil:
+		// No error, continue
+	case errors.Is(err, utils.ErrNoSlotForStateRoot):
+		return &handlers.HTTPError{
+			Code:    http.StatusNotFound,
+			Message: "State not found",
+		}, nil
+	default:
 		return nil, err
 	}
 	balances, err := h.backend.ValidatorBalancesByIDs(
@@ -136,24 +136,34 @@ func (h *Handler[ContextT]) GetStateValidatorBalances(
 	if err != nil {
 		return nil, err
 	}
-	return beacontypes.ValidatorResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data:                balances,
-	}, nil
+	return beacontypes.NewResponse(balances), nil
 }
 
-func (h *Handler[ContextT]) PostStateValidatorBalances(
-	c ContextT,
-) (any, error) {
-	req, err := utils.BindAndValidate[beacontypes.PostValidatorBalancesRequest](
-		c, h.Logger(),
-	)
-	if err != nil {
-		return nil, err
+func (h *Handler) PostStateValidatorBalances(c handlers.Context) (any, error) {
+	var ids []string
+	if err := c.Bind(&ids); err != nil {
+		return nil, types.ErrInvalidRequest
 	}
+	// Get state_id from URL path parameter
+	req := beacontypes.PostValidatorBalancesRequest{
+		StateIDRequest: types.StateIDRequest{StateID: c.Param("state_id")},
+		IDs:            ids,
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return nil, types.ErrInvalidRequest
+	}
+
 	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
-	if err != nil {
+	switch {
+	case err == nil:
+		// No error, continue
+	case errors.Is(err, utils.ErrNoSlotForStateRoot):
+		return &handlers.HTTPError{
+			Code:    http.StatusNotFound,
+			Message: "State not found",
+		}, nil
+	default:
 		return nil, err
 	}
 	balances, err := h.backend.ValidatorBalancesByIDs(
@@ -163,9 +173,5 @@ func (h *Handler[ContextT]) PostStateValidatorBalances(
 	if err != nil {
 		return nil, err
 	}
-	return beacontypes.ValidatorResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data:                balances,
-	}, nil
+	return beacontypes.NewResponse(balances), nil
 }

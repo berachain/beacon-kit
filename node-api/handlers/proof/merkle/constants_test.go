@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -112,6 +112,7 @@ var (
 // TestGIndexProposerIndexDeneb tests the generalized index of the proposer
 // index in the beacon block on the Deneb fork.
 func TestGIndexProposerIndexDeneb(t *testing.T) {
+	t.Parallel()
 	// GIndex of the proposer index in the beacon block.
 	_, proposerIndexGIndexDenebBlock, _, err := mlib.ObjectPath[
 		mlib.GeneralizedIndex, [32]byte,
@@ -127,6 +128,7 @@ func TestGIndexProposerIndexDeneb(t *testing.T) {
 // TestGIndicesValidatorPubkeyDeneb tests the generalized indices used by
 // beacon state proofs for validator pubkeys on the Deneb fork.
 func TestGIndicesValidatorPubkeyDeneb(t *testing.T) {
+	t.Parallel()
 	// GIndex of state in the block.
 	_, stateGIndexDenebBlock, _, err := mlib.ObjectPath[
 		mlib.GeneralizedIndex, [32]byte,
@@ -178,6 +180,7 @@ func TestGIndicesValidatorPubkeyDeneb(t *testing.T) {
 // TestGInidicesExecutionDeneb tests the generalized indices used by
 // beacon state proofs from the execution payload header on the Deneb fork.
 func TestGInidicesExecutionDeneb(t *testing.T) {
+	t.Parallel()
 	// GIndex of the execution number in the state.
 	_, executionNumberGIndexDenebState, _, err := mlib.ObjectPath[
 		mlib.GeneralizedIndex, [32]byte,

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -30,7 +30,8 @@ import (
 )
 
 func TestWithdrawal(t *testing.T) {
-	withdrawal := (&engineprimitives.Withdrawal{}).New(
+	t.Parallel()
+	withdrawal := engineprimitives.NewWithdrawal(
 		math.U64(1),
 		math.ValidatorIndex(1),
 		common.ExecutionAddress{1, 2, 3, 4, 5},
@@ -47,6 +48,7 @@ func TestWithdrawal(t *testing.T) {
 }
 
 func TestWithdrawal_Equals(t *testing.T) {
+	t.Parallel()
 	withdrawal1 := &engineprimitives.Withdrawal{
 		Index:     math.U64(1),
 		Validator: math.ValidatorIndex(1),
@@ -76,6 +78,7 @@ func TestWithdrawal_Equals(t *testing.T) {
 }
 
 func TestWithdrawalMethods(t *testing.T) {
+	t.Parallel()
 	withdrawal := &engineprimitives.Withdrawal{
 		Index:     math.U64(1),
 		Validator: math.ValidatorIndex(2),
@@ -84,6 +87,7 @@ func TestWithdrawalMethods(t *testing.T) {
 	}
 
 	t.Run("Getters", func(t *testing.T) {
+		t.Parallel()
 		require.Equal(t, math.U64(1), withdrawal.GetIndex())
 		require.Equal(t, math.ValidatorIndex(2), withdrawal.GetValidatorIndex())
 		require.Equal(t, common.ExecutionAddress([20]byte{0x01, 0x02, 0x03}),

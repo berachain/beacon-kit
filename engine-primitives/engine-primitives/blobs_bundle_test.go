@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -28,6 +28,7 @@ import (
 )
 
 func TestBlobsBundleV1(t *testing.T) {
+	t.Parallel()
 	bundle := &engineprimitives.BlobsBundleV1[[48]byte, [48]byte, [131072]byte]{
 		Commitments: [][48]byte{{1, 2, 3}, {4, 5, 6}},
 		Proofs:      [][48]byte{{7, 8, 9}, {10, 11, 12}},

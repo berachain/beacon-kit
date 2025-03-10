@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,15 +22,14 @@
 package cometbft
 
 import (
-	"context"
 	"fmt"
 
 	"cosmossdk.io/store/rootmulti"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
-func (s *Service[LoggerT]) commit(
-	context.Context, *cmtabci.CommitRequest,
+func (s *Service) commit(
+	*cmtabci.CommitRequest,
 ) (*cmtabci.CommitResponse, error) {
 	if s.finalizeBlockState == nil {
 		// This is unexpected since CometBFT should call Commit only
@@ -40,11 +39,11 @@ func (s *Service[LoggerT]) commit(
 	header := s.finalizeBlockState.Context().BlockHeader()
 	retainHeight := s.GetBlockRetentionHeight(header.Height)
 
-	rms, ok := s.sm.CommitMultiStore().(*rootmulti.Store)
+	rms, ok := s.sm.GetCommitMultiStore().(*rootmulti.Store)
 	if ok {
 		rms.SetCommitHeader(header)
 	}
-	s.sm.CommitMultiStore().Commit()
+	s.sm.GetCommitMultiStore().Commit()
 
 	s.finalizeBlockState = nil
 
@@ -77,7 +76,7 @@ func (s *Service[LoggerT]) commit(
 // all blocks, e.g. via a local config option min-retain-blocks. There may also
 // be a need to vary retention for other nodes, e.g. sentry nodes which do not
 // need historical blocks.
-func (s *Service[_]) GetBlockRetentionHeight(commitHeight int64) int64 {
+func (s *Service) GetBlockRetentionHeight(commitHeight int64) int64 {
 	// pruning is disabled if minRetainBlocks is zero
 	if s.minRetainBlocks == 0 {
 		return 0
@@ -114,13 +113,12 @@ func (s *Service[_]) GetBlockRetentionHeight(commitHeight int64) int64 {
 	if s.finalizeBlockState == nil {
 		return 0
 	}
-	cp := s.paramStore.Get()
+	cp := s.cmtConsensusParams.ToProto()
 	if cp.Evidence != nil && cp.Evidence.MaxAgeNumBlocks > 0 {
 		retentionHeight = commitHeight - cp.Evidence.MaxAgeNumBlocks
 	}
 
-	//#nosec:G701 // bet.
-	v := commitHeight - int64(s.minRetainBlocks)
+	v := commitHeight - int64(s.minRetainBlocks) // #nosec G115
 	retentionHeight = minNonZero(retentionHeight, v)
 
 	if retentionHeight <= 0 {

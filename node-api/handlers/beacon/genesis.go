@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,12 +21,13 @@
 package beacon
 
 import (
+	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 )
 
-func (h *Handler[ContextT]) GetGenesis(_ ContextT) (any, error) {
+func (h *Handler) GetGenesis(_ handlers.Context) (any, error) {
 	genesisRoot, err := h.backend.GenesisValidatorsRoot(utils.Genesis)
 	if err != nil {
 		return nil, err
@@ -34,9 +35,11 @@ func (h *Handler[ContextT]) GetGenesis(_ ContextT) (any, error) {
 	if len(genesisRoot) == 0 {
 		return nil, types.ErrNotFound
 	}
-	return types.Wrap(beacontypes.GenesisData{
-		GenesisTime:           "1590832934", // stub
-		GenesisValidatorsRoot: genesisRoot,
-		GenesisForkVersion:    "0x00000000", // stub
-	}), nil
+	return beacontypes.GenesisResponse{
+		Data: beacontypes.GenesisData{
+			GenesisTime:           "1590832934", // stub
+			GenesisValidatorsRoot: genesisRoot,
+			GenesisForkVersion:    "0x00000000", // stub
+		},
+	}, nil
 }

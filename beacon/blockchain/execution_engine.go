@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,123 +22,46 @@ package blockchain
 
 import (
 	"context"
-	"time"
+	"fmt"
 
-	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
-	"github.com/berachain/beacon-kit/config/spec"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	contypes "github.com/berachain/beacon-kit/consensus/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-// sendPostBlockFCU sends a forkchoice update to the execution client.
-func (s *Service[
-	_, _, ConsensusBlockT, _, _, BeaconStateT, _, _, _, _, _, _, _,
-]) sendPostBlockFCU(
+// sendPostBlockFCU sends a forkchoice update to the execution client after a
+// block is finalized.This function should only be used to notify
+// the EL client of the new head and should not request optimistic builds, as:
+// Optimistic clients already request builds in handleOptimisticPayloadBuild()
+// Non-optimistic clients should never request optimistic builds.
+func (s *Service) sendPostBlockFCU(
 	ctx context.Context,
-	st BeaconStateT,
-	blk ConsensusBlockT,
-) {
+	st *statedb.StateDB,
+	blk *contypes.ConsensusBlock,
+) error {
 	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
-		s.logger.Error(
-			"failed to get latest execution payload in postBlockProcess",
-			"error", err,
-		)
-		return
+		return fmt.Errorf("failed getting latest payload: %w", err)
 	}
 
-	if !s.shouldBuildOptimisticPayloads() && s.localBuilder.Enabled() {
-		s.sendNextFCUWithAttributes(ctx, st, blk, lph)
-	} else {
-		s.sendNextFCUWithoutAttributes(ctx, blk, lph)
-	}
-}
-
-// sendNextFCUWithAttributes sends a forkchoice update to the execution
-// client with attributes.
-func (s *Service[
-	_, _, ConsensusBlockT, _, _, BeaconStateT, _,
-	_, ExecutionPayloadHeaderT, _, _, _, _,
-]) sendNextFCUWithAttributes(
-	ctx context.Context,
-	st BeaconStateT,
-	blk ConsensusBlockT,
-	lph ExecutionPayloadHeaderT,
-) {
+	// Send a forkchoice update without payload attributes to notify
+	// EL of the new head.
 	beaconBlk := blk.GetBeaconBlock()
-
-	stCopy := st.Copy()
-	if _, err := s.stateProcessor.ProcessSlots(
-		stCopy, beaconBlk.GetSlot()+1,
-	); err != nil {
-		s.logger.Error(
-			"failed to process slots in non-optimistic payload",
-			"error", err,
-		)
-		return
-	}
-
-	nextPayloadTime := payloadtime.Next(
-		blk.GetConsensusTime(),
-		lph.GetTimestamp(),
-		true, // buildOptimistically
-	).Unwrap()
-
-	// We set timestamp check on Bartio for backward compatibility reasons
-	// TODO: drop this we drop other Bartio special cases.
-	if s.chainSpec.DepositEth1ChainID() == spec.BartioChainID {
-		nextPayloadTime = max(
-			//#nosec:G701
-			uint64(time.Now().Unix()+1),
-			uint64((lph.GetTimestamp() + 1)),
-		)
-	}
-
-	prevBlockRoot := beaconBlk.HashTreeRoot()
-	if _, err := s.localBuilder.RequestPayloadAsync(
-		ctx,
-		stCopy,
-		beaconBlk.GetSlot()+1,
-		nextPayloadTime,
-		prevBlockRoot,
-		lph.GetBlockHash(),
-		lph.GetParentHash(),
-	); err != nil {
-		s.logger.Error(
-			"failed to send forkchoice update with attributes in non-optimistic payload",
-			"error",
+	// TODO: Switch to New().
+	req := ctypes.BuildForkchoiceUpdateRequestNoAttrs(
+		&engineprimitives.ForkchoiceStateV1{
+			HeadBlockHash:      lph.GetBlockHash(),
+			SafeBlockHash:      lph.GetParentHash(),
+			FinalizedBlockHash: lph.GetParentHash(),
+		},
+		s.chainSpec.ActiveForkVersionForSlot(beaconBlk.GetSlot()),
+	)
+	if _, err = s.executionEngine.NotifyForkchoiceUpdate(ctx, req); err != nil {
+		return fmt.Errorf("failed forkchoice update, head %s: %w",
+			lph.GetBlockHash().String(),
 			err,
 		)
 	}
-}
-
-// sendNextFCUWithoutAttributes sends a forkchoice update to the
-// execution client without attributes.
-func (s *Service[
-	_, _, ConsensusBlockT, _, _, _, _, _,
-	ExecutionPayloadHeaderT, _, _, _, PayloadAttributesT,
-]) sendNextFCUWithoutAttributes(
-	ctx context.Context,
-	blk ConsensusBlockT,
-	lph ExecutionPayloadHeaderT,
-) {
-	beaconBlk := blk.GetBeaconBlock()
-
-	if _, _, err := s.executionEngine.NotifyForkchoiceUpdate(
-		ctx,
-		// TODO: Switch to New().
-		engineprimitives.
-			BuildForkchoiceUpdateRequestNoAttrs[PayloadAttributesT](
-			&engineprimitives.ForkchoiceStateV1{
-				HeadBlockHash:      lph.GetBlockHash(),
-				SafeBlockHash:      lph.GetParentHash(),
-				FinalizedBlockHash: lph.GetParentHash(),
-			},
-			s.chainSpec.ActiveForkVersionForSlot(beaconBlk.GetSlot()),
-		),
-	); err != nil {
-		s.logger.Error(
-			"failed to send forkchoice update without attributes",
-			"error", err,
-		)
-	}
+	return nil
 }

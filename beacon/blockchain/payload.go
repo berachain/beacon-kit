@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,16 +22,20 @@ package blockchain
 
 import (
 	"context"
+	"fmt"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/math"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-// forceStartupHead sends a force head FCU to the execution client.
-func (s *Service[
-	_, _, _, _, _, BeaconStateT, _, _, _, _, _, _, _,
-]) forceStartupHead(
+// forceSyncUponProcess sends a force head FCU to the execution client.
+func (s *Service) forceSyncUponProcess(
 	ctx context.Context,
-	st BeaconStateT,
+	st *statedb.StateDB,
 ) {
 	slot, err := st.GetSlot()
 	if err != nil {
@@ -43,9 +47,36 @@ func (s *Service[
 	}
 
 	// TODO: Verify if the slot number is correct here, I believe in current
-	// form
-	// it should be +1'd. Not a big deal until hardforks are in play though.
-	if err = s.localBuilder.SendForceHeadFCU(ctx, st, slot+1); err != nil {
+	// form it should be +1'd. Not a big deal until hardforks are in play though.
+	slot++
+
+	lph, err := st.GetLatestExecutionPayloadHeader()
+	if err != nil {
+		s.logger.Error(
+			"failed to get latest execution payload header",
+			"error", err,
+		)
+		return
+	}
+
+	s.logger.Info(
+		"Sending startup forkchoice update to execution client",
+		"head_eth1_hash", lph.GetBlockHash(),
+		"safe_eth1_hash", lph.GetParentHash(),
+		"finalized_eth1_hash", lph.GetParentHash(),
+		"for_slot", slot.Base10(),
+	)
+
+	// Submit the forkchoice update to the execution client.
+	req := ctypes.BuildForkchoiceUpdateRequestNoAttrs(
+		&engineprimitives.ForkchoiceStateV1{
+			HeadBlockHash:      lph.GetBlockHash(),
+			SafeBlockHash:      lph.GetParentHash(),
+			FinalizedBlockHash: lph.GetParentHash(),
+		},
+		s.chainSpec.ActiveForkVersionForSlot(slot),
+	)
+	if _, err = s.executionEngine.NotifyForkchoiceUpdate(ctx, req); err != nil {
 		s.logger.Error(
 			"failed to send force head FCU",
 			"error", err,
@@ -53,13 +84,66 @@ func (s *Service[
 	}
 }
 
+// forceSyncUponFinalize sends a new payload and force startup FCU to the Execution
+// Layer client. This informs the EL client of the new head and forces a SYNC
+// if blocks are missing. This function should only be run once at startup.
+func (s *Service) forceSyncUponFinalize(
+	ctx context.Context,
+	beaconBlock *ctypes.BeaconBlock,
+) error {
+	// NewPayload call first to load payload into EL client.
+	executionPayload := beaconBlock.GetBody().GetExecutionPayload()
+	parentBeaconBlockRoot := beaconBlock.GetParentBlockRoot()
+	payloadReq := ctypes.BuildNewPayloadRequest(
+		executionPayload,
+		beaconBlock.GetBody().GetBlobKzgCommitments().ToVersionedHashes(),
+		&parentBeaconBlockRoot,
+	)
+	if err := payloadReq.HasValidVersionedAndBlockHashes(); err != nil {
+		return err
+	}
+
+	// We set retryOnSyncingStatus to false here. We can ignore SYNCING status and proceed
+	// to the FCU.
+	err := s.executionEngine.NotifyNewPayload(ctx, payloadReq, false)
+	if err != nil {
+		return fmt.Errorf("startSyncUponFinalize NotifyNewPayload failed: %w", err)
+	}
+
+	// Submit the forkchoice update to the EL client. This will ensure that it is either synced or
+	// starts up a sync.
+	req := ctypes.BuildForkchoiceUpdateRequestNoAttrs(
+		&engineprimitives.ForkchoiceStateV1{
+			HeadBlockHash:      executionPayload.GetBlockHash(),
+			SafeBlockHash:      executionPayload.GetParentHash(),
+			FinalizedBlockHash: executionPayload.GetParentHash(),
+		},
+		s.chainSpec.ActiveForkVersionForSlot(beaconBlock.GetSlot()),
+	)
+
+	switch _, err = s.executionEngine.NotifyForkchoiceUpdate(ctx, req); {
+	case err == nil:
+		return nil
+
+	case errors.IsAny(err,
+		engineerrors.ErrSyncingPayloadStatus,
+		engineerrors.ErrAcceptedPayloadStatus):
+		s.logger.Warn(
+			//nolint:lll // long message on one line for readability.
+			`Your execution client is syncing. It should be downloading eth blocks from its peers. Restart the beacon node once the execution client is caught up.`,
+		)
+		return err
+
+	default:
+		return fmt.Errorf("force startup NotifyForkchoiceUpdate failed: %w", err)
+	}
+}
+
 // handleRebuildPayloadForRejectedBlock handles the case where the incoming
 // block was rejected and we need to rebuild the payload for the current slot.
-func (s *Service[
-	_, _, _, _, _, BeaconStateT, _, _, _, _, _, _, _,
-]) handleRebuildPayloadForRejectedBlock(
+func (s *Service) handleRebuildPayloadForRejectedBlock(
 	ctx context.Context,
-	st BeaconStateT,
+	st *statedb.StateDB,
 	nextPayloadTimestamp math.U64,
 ) {
 	if err := s.rebuildPayloadForRejectedBlock(
@@ -81,12 +165,9 @@ func (s *Service[
 // any required information from our local state. We do this since we have
 // rejected the incoming block and it would be unsafe to use any
 // information from it.
-func (s *Service[
-	_, _, _, _, _, BeaconStateT, _, _, ExecutionPayloadHeaderT,
-	_, _, _, _,
-]) rebuildPayloadForRejectedBlock(
+func (s *Service) rebuildPayloadForRejectedBlock(
 	ctx context.Context,
-	st BeaconStateT,
+	st *statedb.StateDB,
 	nextPayloadTimestamp math.U64,
 ) error {
 	s.logger.Info("Rebuilding payload for rejected block ⏳ ")
@@ -122,7 +203,8 @@ func (s *Service[
 		// We are rebuilding for the current slot.
 		stateSlot,
 		nextPayloadTimestamp.Unwrap(),
-		// We set the parent root to the previous block root.
+		// We set the parent root to the previous block root. The HashTreeRoot
+		// of the header is the same as the HashTreeRoot of the block.
 		latestHeader.HashTreeRoot(),
 		// We set the head of our chain to the previous finalized block.
 		lph.GetBlockHash(),
@@ -140,12 +222,10 @@ func (s *Service[
 
 // handleOptimisticPayloadBuild handles optimistically
 // building for the next slot.
-func (s *Service[
-	_, _, _, BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _,
-]) handleOptimisticPayloadBuild(
+func (s *Service) handleOptimisticPayloadBuild(
 	ctx context.Context,
-	st BeaconStateT,
-	blk BeaconBlockT,
+	st *statedb.StateDB,
+	blk *ctypes.BeaconBlock,
 	nextPayloadTimestamp math.U64,
 ) {
 	if err := s.optimisticPayloadBuild(
@@ -163,12 +243,10 @@ func (s *Service[
 }
 
 // optimisticPayloadBuild builds a payload for the next slot.
-func (s *Service[
-	_, _, _, BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _,
-]) optimisticPayloadBuild(
+func (s *Service) optimisticPayloadBuild(
 	ctx context.Context,
-	st BeaconStateT,
-	blk BeaconBlockT,
+	st *statedb.StateDB,
+	blk *ctypes.BeaconBlock,
 	nextPayloadTimestamp math.U64,
 ) error {
 	// We are building for the next slot, so we increment the slot relative

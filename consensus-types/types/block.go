@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -27,7 +27,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
-	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
 )
 
@@ -42,53 +41,47 @@ type BeaconBlock struct {
 	ParentRoot common.Root `json:"parent_root"`
 	// StateRoot is the hash of the state at the block.
 	StateRoot common.Root `json:"state_root"`
-	// Body is the body of the BeaconBlock, containing the block's
-	// operations.
+	// Body is the body of the BeaconBlock, containing the block's operations.
 	Body *BeaconBlockBody `json:"body"`
+
+	// BbVersion is the BbVersion of the beacon block.
+	// BbVersion must be not serialized but it's exported
+	// to allow unit tests using reflect on beacon block.
+	BbVersion common.Version `json:"-"`
 }
 
 // Empty creates an empty beacon block.
 func (*BeaconBlock) Empty() *BeaconBlock {
-	return &BeaconBlock{}
+	return &BeaconBlock{
+		// By default, we set the version to Deneb to maintain backward-compatibility.
+		BbVersion: version.Deneb(),
+	}
 }
 
-// NewWithVersion assembles a new beacon block from the given.
-func (b *BeaconBlock) NewWithVersion(
+// NewBeaconBlockWithVersion assembles a new beacon block from the given.
+func NewBeaconBlockWithVersion(
 	slot math.Slot,
 	proposerIndex math.ValidatorIndex,
 	parentBlockRoot common.Root,
-	forkVersion uint32,
+	forkVersion common.Version,
 ) (*BeaconBlock, error) {
-	if forkVersion == version.Deneb {
+	switch forkVersion {
+	case version.Deneb(), version.Deneb1():
 		return &BeaconBlock{
 			Slot:          slot,
 			ProposerIndex: proposerIndex,
 			ParentRoot:    parentBlockRoot,
 			StateRoot:     common.Root{},
 			Body:          &BeaconBlockBody{},
+			BbVersion:     forkVersion,
 		}, nil
+	default:
+		// we return block here to appease nilaway
+		return &BeaconBlock{}, errors.Wrap(
+			ErrForkVersionNotSupported,
+			fmt.Sprintf("fork %d", forkVersion),
+		)
 	}
-
-	return nil, errors.Wrap(
-		ErrForkVersionNotSupported,
-		fmt.Sprintf("fork %d", forkVersion),
-	)
-}
-
-// NewFromSSZ creates a new beacon block from the given SSZ bytes.
-func (b *BeaconBlock) NewFromSSZ(
-	bz []byte,
-	forkVersion uint32,
-) (*BeaconBlock, error) {
-	if forkVersion == version.Deneb {
-		block := &BeaconBlock{}
-		return block, block.UnmarshalSSZ(bz)
-	}
-
-	return nil, errors.Wrap(
-		ErrForkVersionNotSupported,
-		fmt.Sprintf("fork %d", forkVersion),
-	)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -135,51 +128,6 @@ func (b *BeaconBlock) HashTreeRoot() common.Root {
 	return ssz.HashConcurrent(b)
 }
 
-/* -------------------------------------------------------------------------- */
-/*                                   FastSSZ                                  */
-/* -------------------------------------------------------------------------- */
-
-// MarshalSSZTo marshals the BeaconBlock object to the provided buffer in SSZ
-// format.
-func (b *BeaconBlock) MarshalSSZTo(dst []byte) ([]byte, error) {
-	bz, err := b.MarshalSSZ()
-	if err != nil {
-		return nil, err
-	}
-	dst = append(dst, bz...)
-	return dst, nil
-}
-
-// HashTreeRootWith ssz hashes the BeaconBlock object with a hasher.
-func (b *BeaconBlock) HashTreeRootWith(hh fastssz.HashWalker) error {
-	indx := hh.Index()
-
-	// Field (0) 'Slot'
-	hh.PutUint64(uint64(b.Slot))
-
-	// Field (1) 'ProposerIndex'
-	hh.PutUint64(uint64(b.ProposerIndex))
-
-	// Field (2) 'ParentBlockRoot'
-	hh.PutBytes(b.ParentRoot[:])
-
-	// Field (3) 'StateRoot'
-	hh.PutBytes(b.StateRoot[:])
-
-	// Field (4) 'Body'
-	if err := b.Body.HashTreeRootWith(hh); err != nil {
-		return err
-	}
-
-	hh.Merkleize(indx)
-	return nil
-}
-
-// GetTree ssz hashes the BeaconBlock object.
-func (b *BeaconBlock) GetTree() (*fastssz.Node, error) {
-	return fastssz.ProofTree(b)
-}
-
 // IsNil checks if the beacon block is nil.
 func (b *BeaconBlock) IsNil() bool {
 	return b == nil
@@ -206,8 +154,8 @@ func (b *BeaconBlock) GetStateRoot() common.Root {
 }
 
 // Version identifies the version of the BeaconBlock.
-func (b *BeaconBlock) Version() uint32 {
-	return version.Deneb
+func (b *BeaconBlock) Version() common.Version {
+	return b.BbVersion
 }
 
 // SetStateRoot sets the state root of the BeaconBlock.

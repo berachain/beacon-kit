@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,76 +21,33 @@
 package backend
 
 import (
-	"context"
+	"fmt"
 
+	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/node-core/components/storage"
+	"github.com/berachain/beacon-kit/node-core/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // Backend is the db access layer for the beacon node-api.
 // It serves as a wrapper around the storage backend and provides an abstraction
 // over building the query context for a given state.
-type Backend[
-	AvailabilityStoreT AvailabilityStore[
-		BeaconBlockBodyT, BlobSidecarsT,
-	],
-	BeaconBlockT any,
-	BeaconBlockBodyT any,
-	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
-	BeaconStateMarshallableT any,
-	BlobSidecarsT any,
-	BlockStoreT BlockStore[BeaconBlockT],
-	ContextT context.Context,
-	DepositStoreT DepositStore,
-	ExecutionPayloadHeaderT any,
-	NodeT Node[ContextT],
-	StateStoreT any,
-	StorageBackendT StorageBackend[
-		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,
-	],
-] struct {
-	sb   StorageBackendT
-	cs   common.ChainSpec
-	node NodeT
-
-	sp StateProcessor[BeaconStateT]
+type Backend struct {
+	sb   *storage.Backend
+	cs   chain.Spec
+	node types.ConsensusService
+	sp   StateProcessor
 }
 
 // New creates and returns a new Backend instance.
-func New[
-	AvailabilityStoreT AvailabilityStore[
-		BeaconBlockBodyT, BlobSidecarsT,
-	],
-	BeaconBlockT any,
-	BeaconBlockBodyT any,
-	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
-	BeaconStateMarshallableT any,
-	BlobSidecarsT any,
-	BlockStoreT BlockStore[BeaconBlockT],
-	ContextT context.Context,
-	DepositStoreT DepositStore,
-	ExecutionPayloadHeaderT any,
-	NodeT Node[ContextT],
-	StateStoreT any,
-	StorageBackendT StorageBackend[
-		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,
-	],
-](
-	storageBackend StorageBackendT,
-	cs common.ChainSpec,
-	sp StateProcessor[BeaconStateT],
-) *Backend[
-	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BlockStoreT,
-	ContextT, DepositStoreT, ExecutionPayloadHeaderT,
-	NodeT, StateStoreT, StorageBackendT,
-] {
-	return &Backend[
-		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
-		BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BlockStoreT,
-		ContextT, DepositStoreT, ExecutionPayloadHeaderT,
-		NodeT, StateStoreT, StorageBackendT,
-	]{
+func New(
+	storageBackend *storage.Backend,
+	cs chain.Spec,
+	sp StateProcessor,
+) *Backend {
+	return &Backend{
 		sb: storageBackend,
 		cs: cs,
 		sp: sp,
@@ -99,86 +56,69 @@ func New[
 
 // AttachQueryBackend sets the node on the backend for
 // querying historical heights.
-func (b *Backend[
-	_, _, _, _, _, _, _, _, _, _, NodeT, _, _,
-]) AttachQueryBackend(node NodeT) {
+func (b *Backend) AttachQueryBackend(node types.ConsensusService) {
 	b.node = node
 }
 
 // ChainSpec returns the chain spec from the backend.
-func (b *Backend[
-	_, _, _, _, _, _, _, _, _, _, NodeT, _, _,
-]) ChainSpec() common.ChainSpec {
+func (b *Backend) ChainSpec() chain.Spec {
 	return b.cs
 }
 
 // GetSlotByBlockRoot retrieves the slot by a block root from the block store.
-func (b *Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
-]) GetSlotByBlockRoot(root common.Root) (math.Slot, error) {
+func (b *Backend) GetSlotByBlockRoot(root common.Root) (math.Slot, error) {
 	return b.sb.BlockStore().GetSlotByBlockRoot(root)
 }
 
 // GetSlotByStateRoot retrieves the slot by a state root from the block store.
-func (b *Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
-]) GetSlotByStateRoot(root common.Root) (math.Slot, error) {
+func (b *Backend) GetSlotByStateRoot(root common.Root) (math.Slot, error) {
 	return b.sb.BlockStore().GetSlotByStateRoot(root)
 }
 
 // GetParentSlotByTimestamp retrieves the parent slot by a given timestamp from
 // the block store.
-func (b *Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
-]) GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error) {
+func (b *Backend) GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error) {
 	return b.sb.BlockStore().GetParentSlotByTimestamp(timestamp)
 }
 
 // stateFromSlot returns the state at the given slot, after also processing the
 // next slot to ensure the returned beacon state is up to date.
-func (b *Backend[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
-]) stateFromSlot(slot math.Slot) (BeaconStateT, math.Slot, error) {
-	var (
-		st  BeaconStateT
-		err error
-	)
-	if st, slot, err = b.stateFromSlotRaw(slot); err != nil {
-		return st, slot, err
+func (b *Backend) stateFromSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error) {
+	st, slot, err := b.stateFromSlotRaw(slot)
+	if err != nil {
+		return st, slot, fmt.Errorf("stateFromSlotRaw failed: %w", err)
 	}
 
 	// Process the slot to update the latest state and block roots.
-	if _, err = b.sp.ProcessSlots(st, slot+1); err != nil {
-		return st, slot, err
+	targetSlot := slot + 1
+	if _, err = b.sp.ProcessSlots(st, targetSlot); err != nil {
+		return st, slot, fmt.Errorf("ProcessSlots failed, target slot %d: %w", targetSlot, err)
 	}
 
 	// We need to set the slot on the state back since ProcessSlot will update
 	// it to slot + 1.
-	err = st.SetSlot(slot)
-	return st, slot, err
+	if err = st.SetSlot(slot); err != nil {
+		return st, slot, fmt.Errorf("failed resetting slot to %d: %w", slot, err)
+	}
+	return st, slot, nil
 }
 
 // stateFromSlotRaw returns the state at the given slot using query context,
 // resolving an input slot of 0 to the latest slot. It does not process the
 // next slot on the beacon state.
-func (b *Backend[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
-]) stateFromSlotRaw(slot math.Slot) (BeaconStateT, math.Slot, error) {
-	var st BeaconStateT
-	//#nosec:G701 // not an issue in practice.
-	queryCtx, err := b.node.CreateQueryContext(int64(slot), false)
+func (b *Backend) stateFromSlotRaw(slot math.Slot) (*statedb.StateDB, math.Slot, error) {
+	queryCtx, err := b.node.CreateQueryContext(int64(slot), false) // #nosec G115 -- not an issue in practice.
 	if err != nil {
-		return st, slot, err
+		return nil, slot, fmt.Errorf("CreateQueryContext failed: %w", err)
 	}
-	st = b.sb.StateFromContext(queryCtx)
+	st := b.sb.StateFromContext(queryCtx)
 
-	// If using height 0 for the query context, make sure to return the latest
-	// slot.
+	// If using height 0 for the query context, make sure to return the latest slot.
 	if slot == 0 {
 		slot, err = st.GetSlot()
 		if err != nil {
-			return st, slot, err
+			return st, slot, fmt.Errorf("GetSlot failed: %w", err)
 		}
 	}
-	return st, slot, err
+	return st, slot, nil
 }

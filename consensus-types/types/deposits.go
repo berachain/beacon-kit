@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -39,22 +39,21 @@ func (ds Deposits) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {
 }
 
 // DefineSSZ defines the SSZ encoding for the Deposits object.
+// TODO: get from accessible chainspec field params.
 func (ds Deposits) DefineSSZ(c *ssz.Codec) {
 	c.DefineDecoder(func(*ssz.Decoder) {
-		ssz.DefineSliceOfStaticObjectsContent(
-			c, (*[]*Deposit)(&ds), constants.MaxDepositsPerBlock)
+		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*Deposit)(&ds), constants.MaxDeposits)
 	})
 	c.DefineEncoder(func(*ssz.Encoder) {
-		ssz.DefineSliceOfStaticObjectsContent(
-			c, (*[]*Deposit)(&ds), constants.MaxDepositsPerBlock)
+		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*Deposit)(&ds), constants.MaxDeposits)
 	})
 	c.DefineHasher(func(*ssz.Hasher) {
-		ssz.DefineSliceOfStaticObjectsOffset(
-			c, (*[]*Deposit)(&ds), constants.MaxDepositsPerBlock)
+		ssz.DefineSliceOfStaticObjectsOffset(c, (*[]*Deposit)(&ds), constants.MaxDeposits)
 	})
 }
 
 // HashTreeRoot returns the hash tree root of the Deposits.
 func (ds Deposits) HashTreeRoot() common.Root {
+	// TODO: determine if using HashConcurrent optimizes performance.
 	return ssz.HashSequential(ds)
 }

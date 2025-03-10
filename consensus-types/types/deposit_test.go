@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -50,19 +50,49 @@ func generateValidDeposit() *types.Deposit {
 	}
 }
 
-func TestDeposit_New(t *testing.T) {
-	deposit := generateValidDeposit()
-	newDeposit := deposit.New(
-		deposit.Pubkey,
-		deposit.Credentials,
-		deposit.Amount,
-		deposit.Signature,
-		deposit.Index,
-	)
-	require.Equal(t, deposit, newDeposit)
+func TestDeposit_Equals(t *testing.T) {
+	t.Parallel()
+	// Create base deposit
+	deposit1 := generateValidDeposit()
+
+	// Test equal deposits
+	deposit2 := &types.Deposit{
+		Pubkey:      deposit1.Pubkey,
+		Credentials: deposit1.Credentials,
+		Amount:      deposit1.Amount,
+		Signature:   deposit1.Signature,
+		Index:       deposit1.Index,
+	}
+	require.True(t, deposit1.Equals(deposit2))
+
+	// Test different pubkey
+	differentPubkey := deposit2
+	differentPubkey.Pubkey[0] = 0x01
+	require.False(t, deposit1.Equals(differentPubkey))
+
+	// Test different credentials
+	differentCreds := deposit2
+	differentCreds.Credentials[0] = 0x01
+	require.False(t, deposit1.Equals(differentCreds))
+
+	// Test different amount
+	differentAmount := deposit2
+	differentAmount.Amount = math.Gwei(16)
+	require.False(t, deposit1.Equals(differentAmount))
+
+	// Test different signature
+	differentSig := deposit2
+	differentSig.Signature[0] = 0x01
+	require.False(t, deposit1.Equals(differentSig))
+
+	// Test different index
+	differentIndex := deposit2
+	differentIndex.Index = 2
+	require.False(t, deposit1.Equals(differentIndex))
 }
 
 func TestDeposit_MarshalUnmarshalSSZ(t *testing.T) {
+	t.Parallel()
 	originalDeposit := generateValidDeposit()
 
 	// Marshal the original deposit to SSZ
@@ -78,6 +108,7 @@ func TestDeposit_MarshalUnmarshalSSZ(t *testing.T) {
 }
 
 func TestDeposit_MarshalSSZTo(t *testing.T) {
+	t.Parallel()
 	deposit := generateValidDeposit()
 	buf := make([]byte, karalabessz.Size(deposit))
 	target, err := deposit.MarshalSSZTo(buf)
@@ -86,6 +117,7 @@ func TestDeposit_MarshalSSZTo(t *testing.T) {
 }
 
 func TestDeposit_HashTreeRoot(t *testing.T) {
+	t.Parallel()
 	deposit := generateValidDeposit()
 	require.NotPanics(t, func() {
 		_ = deposit.HashTreeRoot()
@@ -93,12 +125,14 @@ func TestDeposit_HashTreeRoot(t *testing.T) {
 }
 
 func TestDeposit_SizeSSZ(t *testing.T) {
+	t.Parallel()
 	deposit := generateValidDeposit()
 
 	require.Equal(t, uint32(192), karalabessz.Size(deposit))
 }
 
 func TestDeposit_HashTreeRootWith(t *testing.T) {
+	t.Parallel()
 	deposit := generateValidDeposit()
 	require.NotNil(t, deposit)
 	hasher := ssz.NewHasher()
@@ -108,12 +142,14 @@ func TestDeposit_HashTreeRootWith(t *testing.T) {
 }
 
 func TestDeposit_GetTree(t *testing.T) {
+	t.Parallel()
 	deposit := generateValidDeposit()
 	_, err := deposit.GetTree()
 	require.NoError(t, err)
 }
 
 func TestDeposit_UnmarshalSSZ_ErrSize(t *testing.T) {
+	t.Parallel()
 	// Create a byte slice of incorrect size
 	buf := make([]byte, 10) // size less than 192
 
@@ -124,6 +160,7 @@ func TestDeposit_UnmarshalSSZ_ErrSize(t *testing.T) {
 }
 
 func TestDeposit_VerifySignature(t *testing.T) {
+	t.Parallel()
 	deposit := generateValidDeposit()
 
 	forkData := &types.ForkData{
@@ -144,6 +181,7 @@ func TestDeposit_VerifySignature(t *testing.T) {
 }
 
 func TestDeposit_Getters(t *testing.T) {
+	t.Parallel()
 	deposit := generateValidDeposit()
 
 	require.Equal(t, deposit.Pubkey, deposit.GetPubkey())

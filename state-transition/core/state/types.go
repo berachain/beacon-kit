@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,37 +23,8 @@ package state
 import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
-
-// BeaconStateMarshallable represents an interface for a beacon state
-// with generic types.
-type BeaconStateMarshallable[
-	T any,
-	ExecutionPayloadHeaderT any,
-] interface {
-	constraints.SSZMarshallableRootable
-	// New returns a new instance of the BeaconStateMarshallable.
-	New(
-		forkVersion uint32,
-		genesisValidatorsRoot common.Root,
-		slot math.U64,
-		fork *ctypes.Fork,
-		latestBlockHeader *ctypes.BeaconBlockHeader,
-		blockRoots []common.Root,
-		stateRoots []common.Root,
-		eth1Data *ctypes.Eth1Data,
-		eth1DepositIndex uint64,
-		latestExecutionPayloadHeader ExecutionPayloadHeaderT,
-		validators []*ctypes.Validator,
-		balances []uint64,
-		randaoMixes []common.Bytes32,
-		nextWithdrawalIndex uint64,
-		nextWithdrawalValidatorIndex math.U64,
-		slashings []math.U64, totalSlashing math.U64,
-	) (T, error)
-}
 
 // Validator represents an interface for a validator with generic withdrawal
 // credentials.

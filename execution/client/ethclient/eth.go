@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -34,11 +34,11 @@ import (
 )
 
 // ChainID retrieves the current chain ID.
-func (ec *Client[ExecutionPayloadT]) ChainID(
+func (s *Client) ChainID(
 	ctx context.Context,
 ) (math.U64, error) {
 	var result math.U64
-	if err := ec.Call(ctx, &result, "eth_chainId"); err != nil {
+	if err := s.Call(ctx, &result, "eth_chainId"); err != nil {
 		return 0, err
 	}
 	return result, nil
@@ -47,7 +47,7 @@ func (ec *Client[ExecutionPayloadT]) ChainID(
 // TODO: Figure out how to unhood all this.
 
 // FilterLogs executes a filter query.
-func (ec *Client[ExecutionPayloadT]) FilterLogs(
+func (s *Client) FilterLogs(
 	ctx context.Context,
 	q ethereum.FilterQuery,
 ) ([]types.Log, error) {
@@ -56,13 +56,13 @@ func (ec *Client[ExecutionPayloadT]) FilterLogs(
 	if err != nil {
 		return nil, err
 	}
-	return result, ec.Call(ctx, &result, "eth_getLogs", arg)
+	return result, s.Call(ctx, &result, "eth_getLogs", arg)
 }
 
 // SubscribeFilterLogs(ctx context.Context, q FilterQuery, ch chan<- types.Log)
 // (Subscription, error)
 
-func (ec *Client[ExecutionPayloadT]) SubscribeFilterLogs(
+func (s *Client) SubscribeFilterLogs(
 	context.Context,
 	ethereum.FilterQuery,
 	chan<- types.Log,

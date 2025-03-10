@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,6 +21,7 @@
 package proof
 
 import (
+	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/merkle"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
@@ -29,9 +30,7 @@ import (
 // GetExecutionNumber returns the block number from the latest execution
 // payload header for the given timestamp id, along with the proof that can be
 // verified against the beacon block root.
-func (h *Handler[
-	_, _, ContextT, _,
-]) GetExecutionNumber(c ContextT) (any, error) {
+func (h *Handler) GetExecutionNumber(c handlers.Context) (any, error) {
 	params, err := utils.BindAndValidate[types.ExecutionNumberRequest](
 		c, h.Logger(),
 	)

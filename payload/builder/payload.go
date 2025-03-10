@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,64 +22,64 @@ package builder
 
 import (
 	"context"
+	"fmt"
 	"time"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // RequestPayloadAsync builds a payload for the given slot and
 // returns the payload ID.
-func (pb *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	PayloadAttributesT, PayloadIDT,
-]) RequestPayloadAsync(
+func (pb *PayloadBuilder) RequestPayloadAsync(
 	ctx context.Context,
-	st BeaconStateT,
+	st *statedb.StateDB,
 	slot math.Slot,
 	timestamp uint64,
 	parentBlockRoot common.Root,
 	headEth1BlockHash common.ExecutionHash,
 	finalEth1BlockHash common.ExecutionHash,
-) (*PayloadIDT, error) {
+) (*engineprimitives.PayloadID, error) {
 	if !pb.Enabled() {
 		return nil, ErrPayloadBuilderDisabled
 	}
 
-	if payloadID, found := pb.pc.Get(slot, parentBlockRoot); found {
-		pb.logger.Warn(
+	if payloadID, found := pb.pc.GetAndEvict(slot, parentBlockRoot); found {
+		pb.logger.Info(
 			"aborting payload build; payload already exists in cache",
-			"for_slot",
-			slot.Base10(),
-			"parent_block_root",
-			parentBlockRoot,
+			"for_slot", slot.Base10(),
+			"parent_block_root", parentBlockRoot,
 		)
 		return &payloadID, nil
 	}
 
 	// Assemble the payload attributes.
-	attrs, err := pb.attributesFactory.
-		BuildPayloadAttributes(st, slot, timestamp, parentBlockRoot)
+	attrs, err := pb.attributesFactory.BuildPayloadAttributes(
+		st,
+		slot,
+		timestamp,
+		parentBlockRoot,
+	)
 	if err != nil {
 		return nil, err
 	}
 
 	// Submit the forkchoice update to the execution client.
-	var payloadID *PayloadIDT
-	payloadID, _, err = pb.ee.NotifyForkchoiceUpdate(
-		ctx, &engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT]{
-			State: &engineprimitives.ForkchoiceStateV1{
-				HeadBlockHash:      headEth1BlockHash,
-				SafeBlockHash:      finalEth1BlockHash,
-				FinalizedBlockHash: finalEth1BlockHash,
-			},
-			PayloadAttributes: attrs,
-			ForkVersion:       pb.chainSpec.ActiveForkVersionForSlot(slot),
+	req := ctypes.BuildForkchoiceUpdateRequest(
+		&engineprimitives.ForkchoiceStateV1{
+			HeadBlockHash:      headEth1BlockHash,
+			SafeBlockHash:      finalEth1BlockHash,
+			FinalizedBlockHash: finalEth1BlockHash,
 		},
+		attrs,
+		pb.chainSpec.ActiveForkVersionForSlot(slot),
 	)
+	payloadID, err := pb.ee.NotifyForkchoiceUpdate(ctx, req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("RequestPayloadAsync failed sending forkchoice update: %w", err)
 	}
 
 	// Only add to cache if we received back a payload ID.
@@ -92,18 +92,15 @@ func (pb *PayloadBuilder[
 
 // RequestPayloadSync request a payload for the given slot and
 // blocks until the payload is delivered.
-func (pb *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	PayloadAttributesT, PayloadIDT,
-]) RequestPayloadSync(
+func (pb *PayloadBuilder) RequestPayloadSync(
 	ctx context.Context,
-	st BeaconStateT,
+	st *statedb.StateDB,
 	slot math.Slot,
 	timestamp uint64,
 	parentBlockRoot common.Root,
 	parentEth1Hash common.ExecutionHash,
 	finalBlockHash common.ExecutionHash,
-) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
+) (ctypes.BuiltExecutionPayloadEnv, error) {
 	if !pb.Enabled() {
 		return nil, ErrPayloadBuilderDisabled
 	}
@@ -148,21 +145,18 @@ func (pb *PayloadBuilder[
 // by reading a payloadID from the builder's cache. If it fails to
 // retrieve a payload, it will build a new payload and wait for the
 // execution client to return the payload.
-func (pb *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	PayloadAttributesT, PayloadIDT,
-]) RetrievePayload(
+func (pb *PayloadBuilder) RetrievePayload(
 	ctx context.Context,
 	slot math.Slot,
 	parentBlockRoot common.Root,
-) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
+) (ctypes.BuiltExecutionPayloadEnv, error) {
 	if !pb.Enabled() {
 		return nil, ErrPayloadBuilderDisabled
 	}
 
 	// Attempt to see if we previously fired off a payload built for
 	// this particular slot and parent block root.
-	payloadID, found := pb.pc.Get(slot, parentBlockRoot)
+	payloadID, found := pb.pc.GetAndEvict(slot, parentBlockRoot)
 	if !found {
 		return nil, ErrPayloadIDNotFound
 	}
@@ -173,29 +167,9 @@ func (pb *PayloadBuilder[
 		return nil, err
 	}
 
-	overrideBuilder := envelope.ShouldOverrideBuilder()
-	args := []any{
-		"for_slot", slot.Base10(),
-		"override_builder", overrideBuilder,
-	}
-
-	payload := envelope.GetExecutionPayload()
-	if !payload.IsNil() {
-		args = append(args,
-			"payload_block_hash", payload.GetBlockHash(),
-			"parent_hash", payload.GetParentHash(),
-		)
-	}
-
-	blobsBundle := envelope.GetBlobsBundle()
-	if blobsBundle != nil {
-		args = append(args, "num_blobs", len(blobsBundle.GetBlobs()))
-	}
-
-	pb.logger.Info("Payload retrieved from local builder", args...)
-
 	// If the payload was built by a different builder, something is
 	// wrong the EL<>CL setup.
+	payload := envelope.GetExecutionPayload()
 	if payload.GetFeeRecipient() != pb.cfg.SuggestedFeeRecipient {
 		pb.logger.Warn(
 			"Payload fee recipient does not match suggested fee recipient - "+
@@ -204,66 +178,30 @@ func (pb *PayloadBuilder[
 			"suggested_fee_recipient", pb.cfg.SuggestedFeeRecipient,
 		)
 	}
+
+	// log some data
+	args := []any{
+		"for_slot", slot.Base10(),
+		"override_builder", envelope.ShouldOverrideBuilder(),
+		"payload_block_hash", payload.GetBlockHash(),
+		"parent_hash", payload.GetParentHash(),
+	}
+	if blobsBundle := envelope.GetBlobsBundle(); blobsBundle != nil {
+		args = append(args, "num_blobs", len(blobsBundle.GetBlobs()))
+	}
+	pb.logger.Info("Payload retrieved from local builder", args...)
+
 	return envelope, err
 }
 
-// SendForceHeadFCU builds a payload for the given slot and
-// returns the payload ID.
-//
-// TODO: This should be moved onto a "sync service"
-// of some kind.
-func (pb *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	PayloadAttributesT, PayloadIDT,
-]) SendForceHeadFCU(
+func (pb *PayloadBuilder) getPayload(
 	ctx context.Context,
-	st BeaconStateT,
-	slot math.Slot,
-) error {
-	if !pb.Enabled() {
-		return ErrPayloadBuilderDisabled
-	}
-
-	lph, err := st.GetLatestExecutionPayloadHeader()
-	if err != nil {
-		return err
-	}
-
-	pb.logger.Info(
-		"Sending startup forkchoice update to execution client",
-		"head_eth1_hash", lph.GetBlockHash(),
-		"safe_eth1_hash", lph.GetParentHash(),
-		"finalized_eth1_hash", lph.GetParentHash(),
-		"for_slot", slot.Base10(),
-	)
-
-	// Submit the forkchoice update to the execution client.
-	var attrs PayloadAttributesT
-	_, _, err = pb.ee.NotifyForkchoiceUpdate(
-		ctx, &engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT]{
-			State: &engineprimitives.ForkchoiceStateV1{
-				HeadBlockHash:      lph.GetBlockHash(),
-				SafeBlockHash:      lph.GetParentHash(),
-				FinalizedBlockHash: lph.GetParentHash(),
-			},
-			PayloadAttributes: attrs,
-			ForkVersion:       pb.chainSpec.ActiveForkVersionForSlot(slot),
-		},
-	)
-	return err
-}
-
-func (pb *PayloadBuilder[
-	_, ExecutionPayloadT, _,
-	_, PayloadIDT,
-]) getPayload(
-	ctx context.Context,
-	payloadID PayloadIDT,
+	payloadID engineprimitives.PayloadID,
 	slot math.U64,
-) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
+) (ctypes.BuiltExecutionPayloadEnv, error) {
 	envelope, err := pb.ee.GetPayload(
 		ctx,
-		&engineprimitives.GetPayloadRequest[PayloadIDT]{
+		&ctypes.GetPayloadRequest{
 			PayloadID:   payloadID,
 			ForkVersion: pb.chainSpec.ActiveForkVersionForSlot(slot),
 		},
@@ -273,6 +211,9 @@ func (pb *PayloadBuilder[
 	}
 	if envelope == nil {
 		return nil, ErrNilPayloadEnvelope
+	}
+	if envelope.GetExecutionPayload().Withdrawals == nil {
+		return nil, ErrNilWithdrawals
 	}
 	return envelope, nil
 }

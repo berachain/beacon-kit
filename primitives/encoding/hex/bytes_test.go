@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -29,6 +29,7 @@ import (
 )
 
 func TestEncodeAndDecodeBytes(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		input    []byte
@@ -62,6 +63,7 @@ func TestEncodeAndDecodeBytes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := hex.EncodeBytes(tt.input)
 			require.Equal(t, tt.expected, result)
 
@@ -81,6 +83,7 @@ func TestEncodeAndDecodeBytes(t *testing.T) {
 }
 
 func TestUnmarshalByteText(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name      string
 		input     []byte
@@ -115,6 +118,7 @@ func TestUnmarshalByteText(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result, err := hex.UnmarshalByteText(tt.input)
 			if tt.expectErr {
 				require.Error(t, err)
@@ -127,6 +131,7 @@ func TestUnmarshalByteText(t *testing.T) {
 }
 
 func TestDecodeFixedText(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name      string
 		typename  string
@@ -166,6 +171,7 @@ func TestDecodeFixedText(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			out := make([]byte, len(tt.expected))
 			err := hex.DecodeFixedText(tt.input, out)
 			if tt.expectErr {
@@ -179,6 +185,7 @@ func TestDecodeFixedText(t *testing.T) {
 }
 
 func TestDecodeFixedJSON(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name      string
 		typename  string
@@ -218,6 +225,7 @@ func TestDecodeFixedJSON(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			err := hex.DecodeFixedJSON(
 				tt.input,
 				tt.out,
@@ -254,7 +262,7 @@ func BenchmarkDecodeFixedText(b *testing.B) {
 			) // Adjust the size based on the expected output length
 
 			b.ResetTimer()
-			for i := 0; i < b.N; i++ {
+			for range b.N {
 				err := hex.DecodeFixedText(input, out)
 				if err != nil {
 					b.Fatalf("DecodeFixedText failed: %v", err)
