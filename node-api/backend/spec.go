@@ -33,11 +33,9 @@ func (b *Backend) Spec() (*types.SpecData, error) {
 	return &types.SpecData{
 		DepositContractAddress: chainSpec.DepositContractAddress(),
 		// Currently network ID is same as eth1 chain ID.
-		DepositNetworkID:        chainSpec.DepositEth1ChainID(),
-		DomainAggregateAndProof: chainSpec.DomainTypeAggregateAndProof(),
-		// TODO: Value is not set in chainSpec.
-		InactivityPenaltyQuotient: chainSpec.InactivityPenaltyQuotient(),
-		// TODO: Value is not set in chainSpec.
+		DepositNetworkID:                chainSpec.DepositEth1ChainID(),
+		DomainAggregateAndProof:         chainSpec.DomainTypeAggregateAndProof(),
+		InactivityPenaltyQuotient:       chainSpec.InactivityPenaltyQuotient(),
 		InactivityPenaltyQuotientAltair: chainSpec.InactivityPenaltyQuotientAltair(),
 	}, nil
 }
