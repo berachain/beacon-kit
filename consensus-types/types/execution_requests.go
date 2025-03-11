@@ -60,13 +60,6 @@ type WithdrawalRequest struct {
 	Amount          math.Gwei
 }
 
-// ConsolidationRequest is part of EIP7251 which we add for posterity but is not processed.
-type ConsolidationRequest struct {
-	SourceAddress common.ExecutionAddress
-	SourcePubKey  crypto.BLSPubkey
-	TargetPubKey  crypto.BLSPubkey
-}
-
 /* -------------------------------------------------------------------------- */
 /*                                     SSZ                                    */
 /* -------------------------------------------------------------------------- */
