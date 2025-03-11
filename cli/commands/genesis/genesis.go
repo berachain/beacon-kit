@@ -21,7 +21,6 @@
 package genesis
 
 import (
-	"github.com/berachain/beacon-kit/chain"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 )
