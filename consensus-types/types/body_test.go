@@ -322,5 +322,5 @@ func TestBeaconBlockBody_ExecutionRequests(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, unmarshalledBody.ExecutionRequests)
 	require.Equal(t, body.HashTreeRoot(), unmarshalledBody.HashTreeRoot())
-	// require.Equal(t, len(body.ExecutionRequests.Deposits), len(unmarshalledBody.ExecutionRequests.Deposits))
+	require.Equal(t, body.ExecutionRequests.Deposits[0], unmarshalledBody.ExecutionRequests.Deposits[0])
 }
