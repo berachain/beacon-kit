@@ -39,34 +39,36 @@ func (txs Transactions) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {
 	return ssz.SizeSliceOfDynamicBytes(siz, txs)
 }
 
-// DefineSSZ defines the SSZ encoding for the Transactions object.
-// TODO: This can accidentally decouple from the definition in
-// ExecutionPayload and we should be cognizant of that and/or
-// make a PR to allow for them to be defined in one place.
+// DefineSSZOffset defines the SSZ offset for the Transactions object.
+func (txs Transactions) DefineSSZOffset(c *ssz.Codec) {
+	ssz.DefineSliceOfDynamicBytesOffset(
+		c,
+		(*[][]byte)(&txs),
+		constants.MaxTxsPerPayload,
+		constants.MaxBytesPerTx,
+	)
+}
+
+// DefineSSZContent defines the SSZ content for the Transactions object.
+func (txs Transactions) DefineSSZContent(c *ssz.Codec) {
+	ssz.DefineSliceOfDynamicBytesContent(
+		c,
+		(*[][]byte)(&txs),
+		constants.MaxTxsPerPayload,
+		constants.MaxBytesPerTx,
+	)
+}
+
+// DefineSSZ defines the SSZ (en/de)coding and hashing for the Transactions object.
 func (txs Transactions) DefineSSZ(codec *ssz.Codec) {
 	codec.DefineEncoder(func(*ssz.Encoder) {
-		ssz.DefineSliceOfDynamicBytesContent(
-			codec,
-			(*[][]byte)(&txs),
-			constants.MaxTxsPerPayload,
-			constants.MaxBytesPerTx,
-		)
+		txs.DefineSSZContent(codec)
 	})
 	codec.DefineDecoder(func(*ssz.Decoder) {
-		ssz.DefineSliceOfDynamicBytesContent(
-			codec,
-			(*[][]byte)(&txs),
-			constants.MaxTxsPerPayload,
-			constants.MaxBytesPerTx,
-		)
+		txs.DefineSSZContent(codec)
 	})
 	codec.DefineHasher(func(*ssz.Hasher) {
-		ssz.DefineSliceOfDynamicBytesOffset(
-			codec,
-			(*[][]byte)(&txs),
-			constants.MaxTxsPerPayload,
-			constants.MaxBytesPerTx,
-		)
+		txs.DefineSSZOffset(codec)
 	})
 }
 

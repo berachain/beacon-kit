@@ -25,7 +25,6 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -126,24 +125,14 @@ func (p *ExecutionPayload) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineDynamicBytesOffset(codec, (*[]byte)(&p.ExtraData), 32)
 	ssz.DefineUint256(codec, &p.BaseFeePerGas)
 	ssz.DefineStaticBytes(codec, &p.BlockHash)
-	ssz.DefineSliceOfDynamicBytesOffset(
-		codec,
-		(*[][]byte)(&p.Transactions),
-		constants.MaxTxsPerPayload,
-		constants.MaxBytesPerTx,
-	)
+	p.Transactions.DefineSSZOffset(codec)
 	ssz.DefineSliceOfStaticObjectsOffset(codec, &p.Withdrawals, 16)
 	ssz.DefineUint64(codec, &p.BlobGasUsed)
 	ssz.DefineUint64(codec, &p.ExcessBlobGas)
 
 	// Define the dynamic data (fields)
 	ssz.DefineDynamicBytesContent(codec, (*[]byte)(&p.ExtraData), 32)
-	ssz.DefineSliceOfDynamicBytesContent(
-		codec,
-		(*[][]byte)(&p.Transactions),
-		constants.MaxTxsPerPayload,
-		constants.MaxBytesPerTx,
-	)
+	p.Transactions.DefineSSZContent(codec)
 	ssz.DefineSliceOfStaticObjectsContent(codec, &p.Withdrawals, 16)
 
 	// Note that at this state we don't have any guarantee that
