@@ -161,19 +161,23 @@ func TestNewWithVersion(t *testing.T) {
 	proposerIndex := math.ValidatorIndex(5)
 	parentBlockRoot := common.Root{1, 2, 3, 4, 5}
 
-	deneb := version.Deneb()
-	block, err := types.NewBeaconBlockWithVersion(
-		slot, proposerIndex, parentBlockRoot, deneb,
-	)
-	require.NoError(t, err)
-	require.NotNil(t, block)
+	for _, v := range version.GetSupportedVersions() {
+		t.Run(v.String(), func(t *testing.T) {
+			t.Parallel()
+			block, err := types.NewBeaconBlockWithVersion(
+				slot, proposerIndex, parentBlockRoot, v,
+			)
+			require.NoError(t, err)
+			require.NotNil(t, block)
 
-	// Check the block's fields
-	require.NotNil(t, block)
-	require.Equal(t, slot, block.GetSlot())
-	require.Equal(t, proposerIndex, block.GetProposerIndex())
-	require.Equal(t, parentBlockRoot, block.GetParentBlockRoot())
-	require.Equal(t, deneb, block.Version())
+			// Check the block's fields
+			require.NotNil(t, block)
+			require.Equal(t, slot, block.GetSlot())
+			require.Equal(t, proposerIndex, block.GetProposerIndex())
+			require.Equal(t, parentBlockRoot, block.GetParentBlockRoot())
+			require.Equal(t, v, block.Version())
+		})
+	}
 }
 
 func TestNewWithVersionInvalidForkVersion(t *testing.T) {
@@ -193,22 +197,25 @@ func TestNewWithVersionInvalidForkVersion(t *testing.T) {
 
 func TestPropertyBlockRootAndBlockHeaderRootEquivalence(t *testing.T) {
 	t.Parallel()
-
 	qc := &quick.Config{MaxCount: 100}
-
-	f := func(
-		slot math.Slot,
-		proposerIdx math.ValidatorIndex,
-		parentBlockRoot common.Root,
-	) bool {
-		blk, err := types.NewBeaconBlockWithVersion(
-			slot,
-			proposerIdx,
-			parentBlockRoot,
-			version.Deneb(),
-		)
-		require.NoError(t, err)
-		return blk.GetHeader().HashTreeRoot().Equals(blk.HashTreeRoot())
+	for _, v := range version.GetSupportedVersions() {
+		t.Run(v.String(), func(t *testing.T) {
+			t.Parallel()
+			f := func(
+				slot math.Slot,
+				proposerIdx math.ValidatorIndex,
+				parentBlockRoot common.Root,
+			) bool {
+				blk, err := types.NewBeaconBlockWithVersion(
+					slot,
+					proposerIdx,
+					parentBlockRoot,
+					v,
+				)
+				require.NoError(t, err)
+				return blk.GetHeader().HashTreeRoot().Equals(blk.HashTreeRoot())
+			}
+			require.NoError(t, quick.Check(f, qc))
+		})
 	}
-	require.NoError(t, quick.Check(f, qc))
 }

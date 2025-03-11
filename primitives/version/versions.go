@@ -51,8 +51,7 @@ var (
 var supportedVersions = []common.Version{
 	deneb,
 	deneb1,
-	electra,
-	electra1,
+	// TODO, Add electra here
 }
 
 func GetSupportedVersions() []common.Version {
