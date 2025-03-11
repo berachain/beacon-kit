@@ -47,6 +47,18 @@ var (
 	electra1 = common.Version{0x05, 0x01, 0x00, 0x00}
 )
 
+//nolint:gochecknoglobals // used for testing
+var supportedVersions = []common.Version{
+	deneb,
+	deneb1,
+	electra,
+	electra1,
+}
+
+func GetSupportedVersions() []common.Version {
+	return supportedVersions
+}
+
 // Genesis returns the fork version for the genesis of Berachain mainnet, which is Deneb.
 func Genesis() common.Version {
 	return Deneb()

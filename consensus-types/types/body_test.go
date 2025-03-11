@@ -36,7 +36,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func generateBeaconBlockBody() types.BeaconBlockBody {
+func generateBeaconBlockBody(version common.Version) types.BeaconBlockBody {
 	body := types.BeaconBlockBody{
 		RandaoReveal: [96]byte{1, 2, 3},
 		Eth1Data:     &types.Eth1Data{},
@@ -44,10 +44,11 @@ func generateBeaconBlockBody() types.BeaconBlockBody {
 		Deposits:     []*types.Deposit{},
 		ExecutionPayload: &types.ExecutionPayload{
 			BaseFeePerGas: math.NewU256(0),
-			EpVersion:     version.Deneb1(),
+			EpVersion:     version,
 		},
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
+	body.SetVersion(version)
 	body.SetProposerSlashings(types.ProposerSlashings{})
 	body.SetAttesterSlashings(types.AttesterSlashings{})
 	body.SetAttestations(types.Attestations{})
@@ -147,9 +148,13 @@ func TestBeaconBlockBody_MarshalSSZ(t *testing.T) {
 
 func TestBeaconBlockBody_GetTopLevelRoots(t *testing.T) {
 	t.Parallel()
-	body := generateBeaconBlockBody()
-	roots := body.GetTopLevelRoots()
-	require.NotNil(t, roots)
+	for _, v := range version.GetSupportedVersions() {
+		t.Run(v.String(), func(t *testing.T) {
+			body := generateBeaconBlockBody(v)
+			roots := body.GetTopLevelRoots()
+			require.NotNil(t, roots)
+		})
+	}
 }
 
 func TestBeaconBlockBody_Empty(t *testing.T) {
@@ -255,15 +260,21 @@ func TestBeaconBlockBody_UnusedBlsToExecutionChangesEnforcement(t *testing.T) {
 
 func TestBeaconBlockBody_RoundTrip_HashTreeRoot(t *testing.T) {
 	t.Parallel()
-	body := generateBeaconBlockBody()
-	data, err := body.MarshalSSZ()
-	require.NoError(t, err)
-	require.NotNil(t, data)
+	for _, v := range version.GetSupportedVersions() {
+		t.Run(v.String(), func(t *testing.T) {
+			body := generateBeaconBlockBody(v)
+			data, err := body.MarshalSSZ()
+			require.NoError(t, err)
+			require.NotNil(t, data)
 
-	unmarshalledBody := &types.BeaconBlockBody{}
-	err = unmarshalledBody.UnmarshalSSZ(data)
-	require.NoError(t, err)
-	require.Equal(t, body.HashTreeRoot(), unmarshalledBody.HashTreeRoot())
+			unmarshalledBody := &types.BeaconBlockBody{}
+			// We must set the version first for correct marshalling
+			unmarshalledBody.SetVersion(v)
+			err = unmarshalledBody.UnmarshalSSZ(data)
+			require.NoError(t, err)
+			require.Equal(t, body.HashTreeRoot(), unmarshalledBody.HashTreeRoot())
+		})
+	}
 }
 
 // This test explains the calculation of the KZG commitment' inclusion proof depth.
@@ -297,8 +308,8 @@ func Test_KZGCommitmentInclusionProofDepth(t *testing.T) {
 
 func TestBeaconBlockBody_ExecutionRequests(t *testing.T) {
 	t.Parallel()
-	body := generateBeaconBlockBody()
 
+	body := generateBeaconBlockBody(version.Electra())
 	err := body.SetExecutionRequests(&types.ExecutionRequests{
 		Deposits: []*types.DepositRequest{
 			{
@@ -308,8 +319,21 @@ func TestBeaconBlockBody_ExecutionRequests(t *testing.T) {
 				Signature:             bytes.B96{0, 1, 2},
 				Index:                 69,
 			},
+			{
+				Pubkey:                bytes.B48{0, 3, 4},
+				WithdrawalCredentials: types.WithdrawalCredentials(common.Bytes32{0, 1, 2}),
+				Amount:                math.Gwei(1000),
+				Signature:             bytes.B96{0, 1, 2},
+				Index:                 70,
+			},
 		},
-		Withdrawals: []*types.WithdrawalRequest{},
+		Withdrawals: []*types.WithdrawalRequest{
+			{
+				SourceAddress:   common.NewExecutionAddressFromHex("0xFF00000000000000000000000000000000000010"),
+				ValidatorPubKey: bytes.B48{0, 1, 2},
+				Amount:          math.Gwei(1000),
+			},
+		},
 	})
 	require.NoError(t, err)
 	require.NotNil(t, body.ExecutionRequests)
@@ -318,9 +342,13 @@ func TestBeaconBlockBody_ExecutionRequests(t *testing.T) {
 	require.NotNil(t, data)
 
 	unmarshalledBody := &types.BeaconBlockBody{}
+	// We must set the body version before unmarshalling.
+	unmarshalledBody.SetVersion(body.Version())
 	err = unmarshalledBody.UnmarshalSSZ(data)
 	require.NoError(t, err)
 	require.NotNil(t, unmarshalledBody.ExecutionRequests)
 	require.Equal(t, body.HashTreeRoot(), unmarshalledBody.HashTreeRoot())
 	require.Equal(t, body.ExecutionRequests.Deposits[0], unmarshalledBody.ExecutionRequests.Deposits[0])
+	require.Equal(t, body.ExecutionRequests.Deposits[1], unmarshalledBody.ExecutionRequests.Deposits[1])
+	require.Equal(t, body.ExecutionRequests.Withdrawals[0], unmarshalledBody.ExecutionRequests.Withdrawals[0])
 }

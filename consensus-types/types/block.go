@@ -72,8 +72,11 @@ func NewBeaconBlockWithVersion(
 			ProposerIndex: proposerIndex,
 			ParentRoot:    parentBlockRoot,
 			StateRoot:     common.Root{},
-			Body:          &BeaconBlockBody{},
-			BbVersion:     forkVersion,
+			Body: &BeaconBlockBody{
+				forkVersion:      forkVersion,
+				ExecutionPayload: &ExecutionPayload{EpVersion: forkVersion},
+			},
+			BbVersion: forkVersion,
 		}, nil
 	default:
 		// we return block here to appease nilaway

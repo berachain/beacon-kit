@@ -62,7 +62,7 @@ func generateValidBeaconBlock(t *testing.T) *types.BeaconBlock {
 				{Index: 1, Amount: 200},
 			},
 			BaseFeePerGas: math.NewU256(0),
-			EpVersion:     deneb1,
+			EpVersion:     beaconBlock.GetBody().GetExecutionPayload().Version(),
 		},
 		Eth1Data: &types.Eth1Data{},
 		Deposits: []*types.Deposit{
@@ -76,6 +76,7 @@ func generateValidBeaconBlock(t *testing.T) *types.BeaconBlock {
 	}
 
 	body := beaconBlock.GetBody()
+	body.SetVersion(beaconBlock.BbVersion)
 	body.SetProposerSlashings(types.ProposerSlashings{})
 	body.SetAttesterSlashings(types.AttesterSlashings{})
 	body.SetAttestations(types.Attestations{})
@@ -136,6 +137,7 @@ func TestBeaconBlock_MarshalUnmarshalSSZ(t *testing.T) {
 	require.NoError(t, err)
 
 	unmarshalledBlock.Body.ExecutionPayload.EpVersion = block.Version()
+	unmarshalledBlock.Body.SetVersion(block.Version())
 	unmarshalledBlock.BbVersion = block.Version()
 	require.Equal(t, block, unmarshalledBlock)
 }
