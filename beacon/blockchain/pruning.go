@@ -44,7 +44,7 @@ func (s *Service) processPruning(ctx context.Context, beaconBlk *ctypes.BeaconBl
 	return nil
 }
 
-func depositPruneRangeFn([]*ctypes.Deposit, ChainSpec) (uint64, uint64) {
+func depositPruneRangeFn([]*ctypes.Deposit, PruningChainSpec) (uint64, uint64) {
 	// The whole deposit list is validated in consensus and its Merkle root is part of
 	// Beacon State. Therefore, every node must keep the full deposit list and deposits
 	// pruning must be turned off.
@@ -52,7 +52,7 @@ func depositPruneRangeFn([]*ctypes.Deposit, ChainSpec) (uint64, uint64) {
 }
 
 //nolint:unparam // this is ok
-func availabilityPruneRangeFn(slot uint64, cs ChainSpec) (uint64, uint64) {
+func availabilityPruneRangeFn(slot uint64, cs PruningChainSpec) (uint64, uint64) {
 	window := cs.MinEpochsForBlobsSidecarsRequest().Unwrap() * cs.SlotsPerEpoch()
 	if slot < window {
 		return 0, 0

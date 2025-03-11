@@ -24,6 +24,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
@@ -158,9 +159,13 @@ type BlobProcessor interface {
 	) error
 }
 
-type ChainSpec interface {
+type PruningChainSpec interface {
 	MinEpochsForBlobsSidecarsRequest() math.Epoch
 	SlotsPerEpoch() uint64
 }
 
-type ValidatorUpdates = transition.ValidatorUpdates
+type ServiceChainSpec interface {
+	PruningChainSpec
+	chain.BlobSpec
+	ActiveForkVersionForSlot(slot math.Slot) common.Version
+}
