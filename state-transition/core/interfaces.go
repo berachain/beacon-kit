@@ -23,6 +23,7 @@ package core
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -61,4 +62,20 @@ type TelemetrySink interface {
 	// IncrementCounter increments the counter identified by
 	// the provided key.
 	IncrementCounter(key string, args ...string)
+}
+
+type ChainSpec interface {
+	chain.HysteresisSpec
+	chain.BalancesSpec
+	chain.DepositSpec
+	chain.DomainTypeSpec
+	chain.WithdrawalsSpec
+	SlotsPerEpoch() uint64
+	SlotToEpoch(slot math.Slot) math.Epoch
+	SlotsPerHistoricalRoot() uint64
+	EpochsPerHistoricalVector() uint64
+	ActiveForkVersionForSlot(slot math.Slot) common.Version
+	ActiveForkVersionForEpoch(epoch math.Epoch) common.Version
+	ValidatorSetCap() uint64
+	HistoricalRootsLimit() uint64
 }
