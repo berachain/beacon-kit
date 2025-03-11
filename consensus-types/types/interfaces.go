@@ -18,15 +18,11 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package server
+package types
 
-import (
-	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/node-api/handlers"
-)
+import "github.com/berachain/beacon-kit/primitives/common"
 
-// Engine is a generic interface for an API engine.
-type Engine interface {
-	Run(addr string) error
-	RegisterRoutes(*handlers.RouteSet, log.Logger)
+type ProposerDomain interface {
+	// DomainTypeProposer returns the domain for proposer signatures.
+	DomainTypeProposer() common.DomainType
 }

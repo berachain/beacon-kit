@@ -44,22 +44,6 @@ type BlobFactory interface {
 	) (datypes.BlobSidecars, error)
 }
 
-// ForkData represents the fork data interface.
-type ForkData[T any] interface {
-	// New creates a new fork data with the given parameters.
-	New(
-		common.Version,
-		common.Root,
-	) T
-	// ComputeRandaoSigningRoot computes the Randao signing root.
-	ComputeRandaoSigningRoot(
-		common.DomainType,
-		math.Epoch,
-	) common.Root
-	// ComputeDomain computes the fork data domain for a given domain type.
-	ComputeDomain(common.DomainType) common.Domain
-}
-
 // PayloadBuilder represents a service that is responsible for
 // building eth1 blocks.
 type PayloadBuilder interface {
@@ -85,25 +69,9 @@ type PayloadBuilder interface {
 	) (ctypes.BuiltExecutionPayloadEnv, error)
 }
 
-// SlotData represents the slot data interface.
-type SlotData interface {
-	// GetSlot returns the slot of the incoming slot.
-	GetSlot() math.Slot
-	// GetAttestationData returns the attestation data of the incoming slot.
-	GetAttestationData() []*ctypes.AttestationData
-	// GetSlashingInfo returns the slashing info of the incoming slot.
-	GetSlashingInfo() []*ctypes.SlashingInfo
-	// GetProposerAddress returns the address of the validator
-	// selected by consensus to propose the block
-	GetProposerAddress() []byte
-	// GetConsensusTime returns the timestamp of current consensus request.
-	// It is used to build next payload and to validate currentpayload.
-	GetConsensusTime() math.U64
-}
-
 // StateProcessor defines the interface for processing the state.
 type StateProcessor interface {
-	// ProcessSlot processes the slot.
+	// ProcessSlots processes the slot.
 	ProcessSlots(
 		st *statedb.StateDB, slot math.Slot,
 	) (transition.ValidatorUpdates, error)
@@ -138,4 +106,14 @@ type BlockBuilderI interface {
 		context.Context,
 		*types.SlotData,
 	) ([]byte, []byte, error)
+}
+
+// ChainSpec defines an interface for accessing chain-specific parameters.
+type ChainSpec interface {
+	SlotsPerHistoricalRoot() uint64
+	DomainTypeRandao() common.DomainType
+	MaxDepositsPerBlock() uint64
+	ActiveForkVersionForSlot(slot math.Slot) common.Version
+	SlotToEpoch(slot math.Slot) math.Epoch
+	ctypes.ProposerDomain
 }

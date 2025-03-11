@@ -18,15 +18,11 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package ethclient
+package engine
 
-import "github.com/ethereum/go-ethereum/ethclient"
-
-type (
-	Client = ethclient.Client
-)
-
-//nolint:gochecknoglobals // its okay.
-var (
-	NewClient = ethclient.NewClient
-)
+// TelemetrySink is an interface for sending metrics to a telemetry backend.
+type TelemetrySink interface {
+	// IncrementCounter increments a counter metric identified by the provided
+	// keys.
+	IncrementCounter(key string, args ...string)
+}

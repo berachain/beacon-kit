@@ -21,7 +21,6 @@
 package genesis
 
 import (
-	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -46,7 +45,7 @@ type Genesis struct {
 }
 
 // ComputeValidatorsRootFromFile returns the validator root for a given genesis file and chain spec.
-func ComputeValidatorsRootFromFile(genesisFile string, cs chain.Spec) (common.Root, error) {
+func ComputeValidatorsRootFromFile(genesisFile string, cs ChainSpec) (common.Root, error) {
 	genesisBz, err := afero.ReadFile(afero.NewOsFs(), genesisFile)
 	if err != nil {
 		return common.Root{}, errors.Wrap(err, "failed to genesis json file")
@@ -63,7 +62,7 @@ func ComputeValidatorsRootFromFile(genesisFile string, cs chain.Spec) (common.Ro
 
 // ComputeValidatorsRoot returns the validator root for a given set of genesis deposits
 // and a chain spec.
-func ComputeValidatorsRoot(genesisDeposits types.Deposits, cs chain.Spec) common.Root {
+func ComputeValidatorsRoot(genesisDeposits types.Deposits, cs ChainSpec) common.Root {
 	validators := make(types.Validators, len(genesisDeposits))
 	minEffectiveBalance := math.Gwei(
 		cs.EjectionBalance() +

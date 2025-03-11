@@ -18,13 +18,15 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package bind
+package server
 
-import "github.com/ethereum/go-ethereum/accounts/abi/bind"
-
-type (
-	ContractBackend  = bind.ContractBackend
-	ContractFilterer = bind.ContractFilterer
-	FilterOpts       = bind.FilterOpts
-	TransactOpts     = bind.TransactOpts
+import (
+	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/node-api/handlers"
 )
+
+// Engine is an interface for an API engine.
+type Engine interface {
+	Run(addr string) error
+	RegisterRoutes(*handlers.RouteSet, log.Logger)
+}

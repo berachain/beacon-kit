@@ -32,7 +32,6 @@ import (
 
 type PayloadCache interface {
 	GetAndEvict(slot math.Slot, stateRoot common.Root) (engineprimitives.PayloadID, bool)
-	Has(slot math.Slot, stateRoot common.Root) bool
 	Set(slot math.Slot, stateRoot common.Root, pid engineprimitives.PayloadID)
 }
 

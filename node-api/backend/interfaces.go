@@ -18,41 +18,22 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package deposit
+package backend
 
 import (
-	"context"
-
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/transition"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-// ExecutionPayload is an interface for execution payloads.
-type ExecutionPayload interface {
-	GetNumber() math.U64
+type StateProcessor interface {
+	ProcessSlots(*statedb.StateDB, math.Slot) (transition.ValidatorUpdates, error)
 }
 
-// Contract is the ABI for the deposit contract.
-type Contract interface {
-	// ReadDeposits reads deposits from the deposit contract.
-	ReadDeposits(
-		ctx context.Context,
-		fromBlock math.U64,
-		toBlock math.U64,
-	) ([]*ctypes.Deposit, error)
-}
-
-// Store defines the interface for managing deposit operations.
-type Store interface {
-	// Prune prunes the deposit store of [start, end)
-	Prune(index uint64, numPrune uint64) error
-	// EnqueueDeposits adds a list of deposits to the deposit store.
-	EnqueueDeposits(deposits []*ctypes.Deposit) error
-}
-
-// TelemetrySink is an interface for sending metrics to a telemetry backend.
-type TelemetrySink interface {
-	// IncrementCounter increments a counter metric identified by the provided
-	// keys.
-	IncrementCounter(key string, args ...string)
+type ChainSpec interface {
+	chain.BlobSpec
+	SlotsPerHistoricalRoot() uint64
+	EpochsPerHistoricalVector() uint64
+	SlotToEpoch(slot math.Slot) math.Epoch
 }

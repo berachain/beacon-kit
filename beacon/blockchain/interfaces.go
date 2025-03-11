@@ -26,9 +26,11 @@ import (
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	dastore "github.com/berachain/beacon-kit/da/store"
+	datypes "github.com/berachain/beacon-kit/da/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/state-transition/core"
@@ -38,18 +40,6 @@ import (
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
-
-type ConsensusBlock interface {
-	GetBeaconBlock() *ctypes.BeaconBlock
-
-	// GetProposerAddress returns the address of the validator
-	// selected by consensus to propose the block
-	GetProposerAddress() []byte
-
-	// GetConsensusTime returns the timestamp of current consensus request.
-	// It is used to build next payload and to validate currentpayload.
-	GetConsensusTime() math.U64
-}
 
 // ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine interface {
@@ -67,32 +57,6 @@ type ExecutionEngine interface {
 	) (*engineprimitives.PayloadID, error)
 }
 
-// ExecutionPayload is the interface for the execution payload.
-type ExecutionPayload interface {
-	ExecutionPayloadHeader
-	GetNumber() math.U64
-}
-
-// ExecutionPayloadHeader is the interface for the execution payload header.
-type ExecutionPayloadHeader interface {
-	// GetTimestamp returns the timestamp.
-	GetTimestamp() math.U64
-	// GetBlockHash returns the block hash.
-	GetBlockHash() common.ExecutionHash
-	// GetParentHash returns the parent hash.
-	GetParentHash() common.ExecutionHash
-}
-
-// Genesis is the interface for the genesis.
-type Genesis interface {
-	// GetForkVersion returns the fork version.
-	GetForkVersion() common.Version
-	// GetDeposits returns the deposits.
-	GetDeposits() []*ctypes.Deposit
-	// GetExecutionPayloadHeader returns the execution payload header.
-	GetExecutionPayloadHeader() *ctypes.ExecutionPayloadHeader
-}
-
 // LocalBuilder is the interface for the builder service.
 type LocalBuilder interface {
 	// Enabled returns true if the local builder is enabled.
@@ -107,27 +71,6 @@ type LocalBuilder interface {
 		headEth1BlockHash common.ExecutionHash,
 		finalEth1BlockHash common.ExecutionHash,
 	) (*engineprimitives.PayloadID, error)
-}
-
-// ReadOnlyBeaconState defines the interface for accessing various components of
-// the beacon state.
-type ReadOnlyBeaconState[
-	T any,
-] interface {
-	// Copy creates a copy of the beacon state.
-	Copy(context.Context) T
-	// GetLatestBlockHeader returns the most recent block header.
-	GetLatestBlockHeader() (
-		*ctypes.BeaconBlockHeader,
-		error,
-	)
-	// GetLatestExecutionPayloadHeader returns the most recent execution payload
-	// header.
-	GetLatestExecutionPayloadHeader() (*ctypes.ExecutionPayloadHeader, error)
-	// GetSlot retrieves the current slot of the beacon state.
-	GetSlot() (math.Slot, error)
-	// HashTreeRoot returns the hash tree root of the beacon state.
-	HashTreeRoot() common.Root
 }
 
 // StateProcessor defines the interface for processing various state transitions
@@ -196,6 +139,23 @@ type BlockchainI interface {
 		sdk.Context,
 		*cmtabci.FinalizeBlockRequest,
 	) (transition.ValidatorUpdates, error)
+}
+
+// BlobProcessor is the interface for the blobs processor.
+type BlobProcessor interface {
+	// ProcessSidecars processes the blobs and ensures they match the local
+	// state.
+	ProcessSidecars(
+		avs *dastore.Store,
+		sidecars datypes.BlobSidecars,
+	) error
+	// VerifySidecars verifies the blobs and ensures they match the local state.
+	VerifySidecars(
+		ctx context.Context,
+		sidecars datypes.BlobSidecars,
+		blkHeader *ctypes.BeaconBlockHeader,
+		kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],
+	) error
 }
 
 type ValidatorUpdates = transition.ValidatorUpdates

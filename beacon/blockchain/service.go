@@ -25,7 +25,6 @@ import (
 	"sync"
 
 	"github.com/berachain/beacon-kit/chain"
-	"github.com/berachain/beacon-kit/da/da"
 	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -36,7 +35,7 @@ type Service struct {
 	// storageBackend represents the backend storage for not state-enforced data.
 	storageBackend StorageBackend
 	// blobProcessor is used for processing sidecars.
-	blobProcessor da.BlobProcessor
+	blobProcessor BlobProcessor
 	// depositContract is the contract interface for interacting with the
 	// deposit contract.
 	depositContract deposit.Contract
@@ -71,7 +70,7 @@ type Service struct {
 // NewService creates a new validator service.
 func NewService(
 	storageBackend StorageBackend,
-	blobProcessor da.BlobProcessor,
+	blobProcessor BlobProcessor,
 	depositContract deposit.Contract,
 	eth1FollowDistance math.U64,
 	logger log.Logger,
