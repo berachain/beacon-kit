@@ -59,3 +59,7 @@ type ExecutionEngine interface {
 		req *ctypes.ForkchoiceUpdateRequest,
 	) (*engineprimitives.PayloadID, error)
 }
+
+type ChainSpec interface {
+	ActiveForkVersionForSlot(slot math.Slot) common.Version
+}
