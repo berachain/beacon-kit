@@ -118,10 +118,6 @@ datadog-hostname = "my_beacond_node"
 # HTTP url of the execution client JSON-RPC endpoint.
 rpc-dial-url = "http://localhost:8551"
 
-# Number of retries before shutting down consensus client.
-# A value of 0 will retry infinitely.
-rpc-retries = "0"
-
 # RPC timeout for execution client requests.
 rpc-timeout = "2s"
 
