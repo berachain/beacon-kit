@@ -294,3 +294,33 @@ func Test_KZGCommitmentInclusionProofDepth(t *testing.T) {
 
 	require.Equal(t, uint8(expectedInclusionProofDepth), uint8(actualInclusionProofDepth))
 }
+
+func TestBeaconBlockBody_ExecutionRequests(t *testing.T) {
+	t.Parallel()
+	body := generateBeaconBlockBody()
+
+	err := body.SetExecutionRequests(&types.ExecutionRequests{
+		Deposits: []*types.DepositRequest{
+			{
+				Pubkey:                bytes.B48{0, 1, 2},
+				WithdrawalCredentials: types.WithdrawalCredentials(common.Bytes32{0, 1, 2}),
+				Amount:                math.Gwei(1000),
+				Signature:             bytes.B96{0, 1, 2},
+				Index:                 69,
+			},
+		},
+		Withdrawals: []*types.WithdrawalRequest{},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, body.ExecutionRequests)
+	data, err := body.MarshalSSZ()
+	require.NoError(t, err)
+	require.NotNil(t, data)
+
+	unmarshalledBody := &types.BeaconBlockBody{}
+	err = unmarshalledBody.UnmarshalSSZ(data)
+	require.NoError(t, err)
+	require.NotNil(t, unmarshalledBody.ExecutionRequests)
+	require.Equal(t, body.HashTreeRoot(), unmarshalledBody.HashTreeRoot())
+	// require.Equal(t, len(body.ExecutionRequests.Deposits), len(unmarshalledBody.ExecutionRequests.Deposits))
+}
