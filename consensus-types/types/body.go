@@ -110,7 +110,7 @@ func (b *BeaconBlockBody) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 
 	if !version.IsBefore(b.Version(), version.Electra()) {
 		// Add 4 for the offset of dynamic field ExecutionRequests
-		size += 4
+		size += sszDynamicObjectOffset
 	}
 
 	if fixed {
