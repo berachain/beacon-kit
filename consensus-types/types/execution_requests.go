@@ -35,8 +35,9 @@ import (
 const MaxDepositRequestsPerPayload = 8192
 const MaxWithdrawalRequestsPerPayload = 16
 const sszDynamicObjectOffset = 4
-const sszDepositRequestSize = 192 // Pubkey = 48, WithdrawalCredentials = 32, Amount = 8, Signature = 96, Index = 8.
-const sszWithdrawRequestSize = 76 // ExecutionAddress = 20, ValidatorPubKey = 48, Amount = 8
+const sszDepositRequestSize = 192          // Pubkey = 48, WithdrawalCredentials = 32, Amount = 8, Signature = 96, Index = 8.
+const sszWithdrawRequestSize = 76          // ExecutionAddress = 20, ValidatorPubKey = 48, Amount = 8
+const dynamicFieldsInExecutionRequests = 2 // 2 since two dynamic objects (Deposits, Withdrawals)
 
 type ExecutionRequests struct {
 	Deposits    []*DepositRequest
@@ -80,7 +81,7 @@ func (e *ExecutionRequests) DefineSSZ(codec *ssz.Codec) {
 
 func (e *ExecutionRequests) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 	// Multiply by 2 since two dynamic objects (Deposits, Withdrawals)
-	size := uint32(sszDynamicObjectOffset * 2)
+	size := uint32(sszDynamicObjectOffset * dynamicFieldsInExecutionRequests)
 	if fixed {
 		return size
 	}
