@@ -86,6 +86,10 @@ func New(
 	}
 	cfg.RPCTimeout = max(MinRPCTimeout, cfg.RPCTimeout)
 
+	if cfg.DeprecatedRPCRetries != 0 {
+		logger.Warn("rpc-retries is deprecated and the configured value will be ignored")
+	}
+
 	return &EngineClient{
 		cfg:          cfg,
 		logger:       logger,
@@ -227,10 +231,6 @@ func (s *EngineClient) verifyChainIDAndConnection(
 /* -------------------------------------------------------------------------- */
 /*                                   Getters                                  */
 /* -------------------------------------------------------------------------- */
-
-func (s *EngineClient) GetRPCRetries() uint64 {
-	return s.cfg.RPCRetries
-}
 
 func (s *EngineClient) GetRPCRetryInterval() time.Duration {
 	return s.cfg.RPCRetryInterval
