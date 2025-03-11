@@ -158,4 +158,9 @@ type BlobProcessor interface {
 	) error
 }
 
+type ChainSpec interface {
+	MinEpochsForBlobsSidecarsRequest() math.Epoch
+	SlotsPerEpoch() uint64
+}
+
 type ValidatorUpdates = transition.ValidatorUpdates

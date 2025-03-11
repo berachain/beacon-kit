@@ -18,14 +18,11 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package storage
+package genesis
 
-import (
-	"context"
-)
+import "github.com/berachain/beacon-kit/primitives/common"
 
-// KVStore is the interface for the key-value store holding the beacon state.
-type KVStore[T any] interface {
-	// WithContext returns a new key-value store with the given context.
-	WithContext(ctx context.Context) T
+type ChainSpec interface {
+	DomainTypeDeposit() common.DomainType
+	MaxWithdrawalsPerPayload() uint64
 }

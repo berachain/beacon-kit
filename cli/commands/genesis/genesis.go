@@ -29,7 +29,7 @@ import (
 // Commands builds the genesis-related command. Users may
 // provide application specific commands as a parameter.
 func Commands(
-	cs chain.Spec,
+	cs ChainSpec,
 	cmds ...*cobra.Command,
 ) *cobra.Command {
 	cmd := &cobra.Command{
