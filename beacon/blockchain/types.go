@@ -28,7 +28,6 @@ import (
 	dastore "github.com/berachain/beacon-kit/da/store"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
@@ -50,12 +49,6 @@ type ConsensusBlock interface {
 	// GetConsensusTime returns the timestamp of current consensus request.
 	// It is used to build next payload and to validate currentpayload.
 	GetConsensusTime() math.U64
-}
-
-type BlobSidecars[T any] interface {
-	constraints.SSZMarshallable
-	constraints.Empty[T]
-	constraints.Nillable
 }
 
 // ExecutionEngine is the interface for the execution engine.
