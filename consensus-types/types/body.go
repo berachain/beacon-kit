@@ -93,10 +93,17 @@ type BeaconBlockBody struct {
 	BlobKzgCommitments []eip4844.KZGCommitment
 	// ExecutionRequests is introduced in electra.
 	ExecutionRequests *ExecutionRequests
+	// forkVersion is the fork version of the block body. Must not be involved in serialization
+	// Must be available within the object to satisfy signature required for SizeSSZ and DefineSSZ.
+	forkVersion common.Version
 }
 
 func (b *BeaconBlockBody) Version() common.Version {
-	return version.Electra()
+	// empty := common.Version{}
+	// if b.forkVersion == empty {
+	//	panic("forkVersion is empty")
+	//}
+	return b.forkVersion
 }
 
 /* -------------------------------------------------------------------------- */
