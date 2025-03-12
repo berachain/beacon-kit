@@ -18,23 +18,11 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package beacondb
+package types
 
-import (
-	"github.com/berachain/beacon-kit/primitives/constraints"
-	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/math"
-)
+import "github.com/berachain/beacon-kit/primitives/common"
 
-// Validator represents an interface for a validator in the beacon chain.
-type Validator[SelfT any] interface {
-	constraints.Empty[SelfT]
-	constraints.SSZMarshallable
-	// GetPubkey returns the BLS public key of the validator.
-	GetPubkey() crypto.BLSPubkey
-	// GetEffectiveBalance returns the effective balance of the validator in
-	// Gwei.
-	GetEffectiveBalance() math.Gwei
-	// IsActive checks if the validator is active at the given epoch.
-	IsActive(epoch math.Epoch) bool
+type ProposerDomain interface {
+	// DomainTypeProposer returns the domain for proposer signatures.
+	DomainTypeProposer() common.DomainType
 }

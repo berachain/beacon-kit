@@ -23,7 +23,6 @@ package backend
 import (
 	"fmt"
 
-	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/berachain/beacon-kit/node-core/types"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -36,7 +35,7 @@ import (
 // over building the query context for a given state.
 type Backend struct {
 	sb   *storage.Backend
-	cs   chain.Spec
+	cs   ChainSpec
 	node types.ConsensusService
 	sp   StateProcessor
 }
@@ -44,7 +43,7 @@ type Backend struct {
 // New creates and returns a new Backend instance.
 func New(
 	storageBackend *storage.Backend,
-	cs chain.Spec,
+	cs ChainSpec,
 	sp StateProcessor,
 ) *Backend {
 	return &Backend{
@@ -58,11 +57,6 @@ func New(
 // querying historical heights.
 func (b *Backend) AttachQueryBackend(node types.ConsensusService) {
 	b.node = node
-}
-
-// ChainSpec returns the chain spec from the backend.
-func (b *Backend) ChainSpec() chain.Spec {
-	return b.cs
 }
 
 // GetSlotByBlockRoot retrieves the slot by a block root from the block store.

@@ -18,44 +18,21 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package da
+package deposit
 
 import (
 	"context"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	dastore "github.com/berachain/beacon-kit/da/store"
-	datypes "github.com/berachain/beacon-kit/da/types"
-	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/eip4844"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-// BlobProcessor is the interface for the blobs processor.
-type BlobProcessor interface {
-	// ProcessSidecars processes the blobs and ensures they match the local
-	// state.
-	ProcessSidecars(
-		avs *dastore.Store,
-		sidecars datypes.BlobSidecars,
-	) error
-	// VerifySidecars verifies the blobs and ensures they match the local state.
-	VerifySidecars(
+// Contract is the ABI for the deposit contract.
+type Contract interface {
+	// ReadDeposits reads deposits from the deposit contract.
+	ReadDeposits(
 		ctx context.Context,
-		sidecars datypes.BlobSidecars,
-		blkHeader *ctypes.BeaconBlockHeader,
-		kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],
-	) error
-}
-
-type ConsensusSidecars interface {
-	GetSidecars() datypes.BlobSidecars
-	GetHeader() *ctypes.BeaconBlockHeader
-}
-
-// BlobSidecar is the interface for the blob sidecar.
-type BlobSidecar interface {
-	// Len returns the length of the sidecar.
-	Len() int
-	// IsNil checks if the sidecar is nil.
-	IsNil() bool
+		fromBlock math.U64,
+		toBlock math.U64,
+	) ([]*ctypes.Deposit, error)
 }

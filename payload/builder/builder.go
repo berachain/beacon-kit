@@ -21,7 +21,6 @@
 package builder
 
 import (
-	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/log"
 )
 
@@ -31,7 +30,7 @@ type PayloadBuilder struct {
 	// cfg holds the configuration settings for the PayloadBuilder.
 	cfg *Config
 	// chainSpec holds the chain specifications for the PayloadBuilder.
-	chainSpec chain.Spec
+	chainSpec ChainSpec
 	// logger is used for logging within the PayloadBuilder.
 	logger log.Logger
 	// ee is the execution engine.
@@ -47,7 +46,7 @@ type PayloadBuilder struct {
 // New creates a new service.
 func New(
 	cfg *Config,
-	chainSpec chain.Spec,
+	chainSpec ChainSpec,
 	logger log.Logger,
 	ee ExecutionEngine,
 	pc PayloadCache,

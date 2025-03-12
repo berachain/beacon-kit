@@ -23,7 +23,6 @@ package state
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/errors"
@@ -38,11 +37,11 @@ import (
 type StateDB struct {
 	beacondb.KVStore
 
-	cs chain.Spec
+	cs ChainSpec
 }
 
 // NewBeaconStateFromDB creates a new beacon state from an underlying state db.
-func NewBeaconStateFromDB(bdb *beacondb.KVStore, cs chain.Spec) *StateDB {
+func NewBeaconStateFromDB(bdb *beacondb.KVStore, cs ChainSpec) *StateDB {
 	return &StateDB{
 		KVStore: *bdb,
 		cs:      cs,

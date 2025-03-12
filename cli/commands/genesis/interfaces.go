@@ -18,11 +18,16 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package constants
+package genesis
 
-const (
-	// DomainTypeLength is the length of the domain type.
-	DomainTypeLength = 4
-	// DomainLength is the length of the domain.
-	DomainLength = 32
+import (
+	"github.com/berachain/beacon-kit/cli/utils/genesis"
+	"github.com/berachain/beacon-kit/primitives/common"
 )
+
+type ChainSpec interface {
+	genesis.ChainSpec
+	DomainTypeDeposit() common.DomainType
+	MaxWithdrawalsPerPayload() uint64
+	DepositContractAddress() common.ExecutionAddress
+}

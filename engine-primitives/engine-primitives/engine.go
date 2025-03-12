@@ -41,18 +41,16 @@ func (v *ClientVersionV1) String() string {
 	return fmt.Sprintf("%s-%s-%s-%s", v.Code, v.Name, v.Version, v.Commit)
 }
 
-type PayloadStatusStr = string
-
 var (
 	// PayloadStatusValid is the status of a valid payload.
-	PayloadStatusValid PayloadStatusStr = "VALID"
+	PayloadStatusValid = "VALID"
 	// PayloadStatusInvalid is the status of an invalid payload.
-	PayloadStatusInvalid PayloadStatusStr = "INVALID"
+	PayloadStatusInvalid = "INVALID"
 	// PayloadStatusSyncing is the status returned when the EL is syncing.
-	PayloadStatusSyncing PayloadStatusStr = "SYNCING"
+	PayloadStatusSyncing = "SYNCING"
 	// PayloadStatusAccepted is the status returned when the EL has accepted the
 	// payload.
-	PayloadStatusAccepted PayloadStatusStr = "ACCEPTED"
+	PayloadStatusAccepted = "ACCEPTED"
 )
 
 // ForkchoiceResponseV1 as per the EngineAPI Specification:

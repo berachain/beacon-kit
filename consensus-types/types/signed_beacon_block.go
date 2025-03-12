@@ -23,7 +23,6 @@ package types
 import (
 	"fmt"
 
-	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -80,7 +79,7 @@ func NewSignedBeaconBlockFromSSZ(
 //
 // NOTE: will panic if any provided argument is nil. Only errors if signing fails.
 func NewSignedBeaconBlock(
-	blk *BeaconBlock, forkData *ForkData, cs chain.Spec, signer crypto.BLSSigner,
+	blk *BeaconBlock, forkData *ForkData, cs ProposerDomain, signer crypto.BLSSigner,
 ) (*SignedBeaconBlock, error) {
 	domain := forkData.ComputeDomain(cs.DomainTypeProposer())
 	signingRoot := ComputeSigningRoot(blk, domain)

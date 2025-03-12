@@ -22,7 +22,6 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/cli/flags"
 	"github.com/berachain/beacon-kit/config"
 	dablob "github.com/berachain/beacon-kit/da/blob"
@@ -37,6 +36,7 @@ import (
 // dep inject framework.
 type BlobProofVerifierInput struct {
 	depinject.In
+
 	AppOpts          config.AppOptions
 	JSONTrustedSetup *gokzg4844.JSONTrustedSetup
 }
@@ -57,7 +57,6 @@ type BlobProcessorIn struct {
 	depinject.In
 
 	BlobProofVerifier kzg.BlobProofVerifier
-	ChainSpec         chain.Spec
 	Logger            *phuslu.Logger
 	TelemetrySink     *metrics.TelemetrySink
 }
@@ -67,7 +66,6 @@ type BlobProcessorIn struct {
 func ProvideBlobProcessor(in BlobProcessorIn) *dablob.Processor {
 	return dablob.NewProcessor(
 		in.Logger.With("service", "blob-processor"),
-		in.ChainSpec,
 		in.BlobProofVerifier,
 		in.TelemetrySink,
 	)

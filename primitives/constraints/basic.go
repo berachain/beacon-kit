@@ -22,28 +22,6 @@ package constraints
 
 import "github.com/berachain/beacon-kit/primitives/common"
 
-// ForkTyped is a constraint that requires a type to have an Empty method.
-type ForkTyped[SelfT any] interface {
-	EmptyWithVersion[SelfT]
-	Versionable
-	Nillable
-}
-
-// EngineType represents the constraints for a type that is
-// used within the context of sending over the EngineAPI.
-type EngineType[SelfT any] interface {
-	EmptyWithVersion[SelfT]
-	Versionable
-	Nillable
-	JSONMarshallable
-}
-
-// EmptyWithVersion is a constraint that requires a type to have an Empty
-// method.
-type EmptyWithVersion[SelfT any] interface {
-	Empty(common.Version) SelfT
-}
-
 // Empty is a constraint that requires a type to have an Empty method.
 type Empty[SelfT any] interface {
 	Empty() SelfT

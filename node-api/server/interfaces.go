@@ -18,18 +18,15 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package encoding
+package server
 
 import (
-	"time"
+	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/node-api/handlers"
 )
 
-// ABCIRequest represents the interface for an ABCI request.
-type ABCIRequest interface {
-	// GetHeight returns the height of the request.
-	GetHeight() int64
-	// GetTime returns the time of the request.
-	GetTime() time.Time
-	// GetTxs returns the transactions included in the request.
-	GetTxs() [][]byte
+// Engine is an interface for an API engine.
+type Engine interface {
+	Run(addr string) error
+	RegisterRoutes(*handlers.RouteSet, log.Logger)
 }

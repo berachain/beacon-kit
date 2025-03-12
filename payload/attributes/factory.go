@@ -21,7 +21,6 @@
 package attributes
 
 import (
-	"github.com/berachain/beacon-kit/chain"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -32,7 +31,7 @@ import (
 // Factory is a factory for creating payload attributes.
 type Factory struct {
 	// chainSpec is the chain spec for the attributes factory.
-	chainSpec chain.Spec
+	chainSpec ChainSpec
 	// logger is the logger for the attributes factory.
 	logger log.Logger
 	// suggestedFeeRecipient is the suggested fee recipient sent to
@@ -42,7 +41,7 @@ type Factory struct {
 
 // NewAttributesFactory creates a new instance of AttributesFactory.
 func NewAttributesFactory(
-	chainSpec chain.Spec,
+	chainSpec ChainSpec,
 	logger log.Logger,
 	suggestedFeeRecipient common.ExecutionAddress,
 ) *Factory {
