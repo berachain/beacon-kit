@@ -362,21 +362,21 @@ func TestBeaconBlockBody_ExecutionRequests(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
-	requests, err := body.GetExecutionRequests()
+	originalRequests, err := body.GetExecutionRequests()
 	require.NoError(t, err)
-	require.NotNil(t, requests)
+	require.NotNil(t, originalRequests)
 	data, err := body.MarshalSSZ()
 	require.NoError(t, err)
 	require.NotNil(t, data)
 
 	unmarshalledBody := &types.BeaconBlockBody{}
-	err = unmarshalledBody.UnmarshalSSZ(data, body.Version())
+	err = unmarshalledBody.UnmarshalSSZ(data, body.GetForkVersion())
 	require.NoError(t, err)
 	executionRequests, err := unmarshalledBody.GetExecutionRequests()
 	require.NoError(t, err)
 	require.NotNil(t, executionRequests)
 	require.Equal(t, body.HashTreeRoot(), unmarshalledBody.HashTreeRoot())
-	require.Equal(t, executionRequests.Deposits[0], executionRequests.Deposits[0])
-	require.Equal(t, executionRequests.Deposits[1], executionRequests.Deposits[1])
-	require.Equal(t, executionRequests.Withdrawals[0], executionRequests.Withdrawals[0])
+	require.Equal(t, executionRequests.Deposits[0], originalRequests.Deposits[0])
+	require.Equal(t, executionRequests.Deposits[1], originalRequests.Deposits[1])
+	require.Equal(t, executionRequests.Withdrawals[0], originalRequests.Withdrawals[0])
 }

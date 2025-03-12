@@ -70,20 +70,15 @@ type ExecutionPayloadHeader struct {
 	BlobGasUsed math.U64 `json:"blobGasUsed"`
 	// ExcessBlobGas is the amount of excess blob gas in the block.
 	ExcessBlobGas math.U64 `json:"excessBlobGas"`
-
-	// EphVersion is the fork EphVersion of the execution payload header.
-	// EphVersion must be not serialized but it's exported
-	// to allow unit tests using reflect on execution payload header.
-	// TODO: Enable once
-	// https://github.com/karalabe/ssz/pull/9/files# is merged.
-	EphVersion common.Version `json:"-"`
+	// forkVersion specifies the fork version of the ExecutionPayloadHeader.
+	forkVersion common.Version
 }
 
 // Empty returns an empty ExecutionPayloadHeader.
 func (h *ExecutionPayloadHeader) Empty() *ExecutionPayloadHeader {
 	return &ExecutionPayloadHeader{
 		// By default, we set the version to Deneb to maintain compatibility.
-		EphVersion:    version.Deneb(),
+		forkVersion:   version.Deneb(),
 		BaseFeePerGas: &uint256.Int{},
 	}
 }
@@ -93,7 +88,7 @@ func (h *ExecutionPayloadHeader) NewFromSSZ(
 	bz []byte, forkVersion common.Version,
 ) (*ExecutionPayloadHeader, error) {
 	h = h.Empty()
-	h.EphVersion = forkVersion
+	h.forkVersion = forkVersion
 	return h, h.UnmarshalSSZ(bz)
 }
 
@@ -105,7 +100,7 @@ func (h *ExecutionPayloadHeader) NewFromJSON(
 	if err := json.Unmarshal(bz, h); err != nil {
 		return nil, err
 	}
-	h.EphVersion = forkVersion
+	h.forkVersion = forkVersion
 	return h, nil
 }
 
@@ -452,9 +447,14 @@ func (h *ExecutionPayloadHeader) UnmarshalJSON(input []byte) error {
 /*                             Getters and Setters                            */
 /* -------------------------------------------------------------------------- */
 
-// Version returns the version of the ExecutionPayloadHeader.
-func (h *ExecutionPayloadHeader) Version() common.Version {
-	return h.EphVersion
+// GetForkVersion returns the version of the ExecutionPayloadHeader.
+func (h *ExecutionPayloadHeader) GetForkVersion() common.Version {
+	return h.forkVersion
+}
+
+// SetForkVersion ses the version of the ExecutionPayloadHeader.
+func (h *ExecutionPayloadHeader) SetForkVersion(version common.Version) {
+	h.forkVersion = version
 }
 
 // IsNil checks if the ExecutionPayloadHeader is nil.

@@ -61,7 +61,7 @@ func generateValidBeaconBlock(t *testing.T, version common.Version) *types.Beaco
 				{Index: 1, Amount: 200},
 			},
 			BaseFeePerGas: math.NewU256(0),
-			EpVersion:     beaconBlock.GetBody().GetExecutionPayload().Version(),
+			EpVersion:     beaconBlock.GetBody().GetExecutionPayload().GetForkVersion(),
 		},
 		Eth1Data: &types.Eth1Data{},
 		Deposits: []*types.Deposit{

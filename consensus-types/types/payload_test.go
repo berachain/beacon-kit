@@ -83,7 +83,7 @@ func TestExecutionPayload_Serialization(t *testing.T) {
 	err = unmarshalled.UnmarshalSSZ(data)
 	require.NoError(t, err)
 
-	unmarshalled.EpVersion = original.Version()
+	unmarshalled.EpVersion = original.GetForkVersion()
 	require.Equal(t, original, &unmarshalled)
 
 	var buf []byte
@@ -171,7 +171,7 @@ func TestExecutionPayload_MarshalJSON(t *testing.T) {
 	err = unmarshalled.UnmarshalJSON(data)
 	require.NoError(t, err)
 
-	unmarshalled.EpVersion = payload.Version()
+	unmarshalled.EpVersion = payload.GetForkVersion()
 	require.Equal(t, payload, &unmarshalled)
 }
 
@@ -208,7 +208,7 @@ func TestExecutionPayload_IsBlinded(t *testing.T) {
 func TestExecutionPayload_Version(t *testing.T) {
 	t.Parallel()
 	payload := generateExecutionPayload()
-	require.Equal(t, version.Deneb1(), payload.Version())
+	require.Equal(t, version.Deneb1(), payload.GetForkVersion())
 }
 
 func TestExecutionPayload_ToHeader(t *testing.T) {
@@ -253,7 +253,7 @@ func TestExecutionPayload_ToHeader(t *testing.T) {
 	require.Equal(t, payload.GetBlockHash(), header.GetBlockHash())
 	require.Equal(t, payload.GetBlobGasUsed(), header.GetBlobGasUsed())
 	require.Equal(t, payload.GetExcessBlobGas(), header.GetExcessBlobGas())
-	require.Equal(t, payload.Version(), header.Version())
+	require.Equal(t, payload.GetForkVersion(), header.GetForkVersion())
 
 	require.Equal(t, payload.HashTreeRoot(), header.HashTreeRoot())
 }

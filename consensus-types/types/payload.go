@@ -474,7 +474,7 @@ func (p *ExecutionPayload) Empty(forkVersion common.Version) *ExecutionPayload {
 }
 
 // Version returns the version of the ExecutionPayload.
-func (p *ExecutionPayload) Version() common.Version {
+func (p *ExecutionPayload) GetForkVersion() common.Version {
 	return p.EpVersion
 }
 
@@ -597,7 +597,7 @@ func (p *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 			WithdrawalsRoot:  p.GetWithdrawals().HashTreeRoot(),
 			BlobGasUsed:      p.GetBlobGasUsed(),
 			ExcessBlobGas:    p.GetExcessBlobGas(),
-			EphVersion:       p.EpVersion,
+			forkVersion:      p.EpVersion,
 		}, nil
 	default:
 		return nil, errors.New("unknown fork version")

@@ -117,7 +117,7 @@ func TestPayloadAttributes(t *testing.T) {
 					in.suggestedFeeRecipient,
 					got.GetSuggestedFeeRecipient(),
 				)
-				require.Equal(t, in.forkVersion, got.Version())
+				require.Equal(t, in.forkVersion, got.GetForkVersion())
 			}
 		})
 	}

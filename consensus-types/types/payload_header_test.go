@@ -36,6 +36,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// generateExecutionPayloadHeader generates an ExecutionPayloadHeader.
+// TODO: change this to take version as an argument, forcing callers to specify.
 func generateExecutionPayloadHeader() *types.ExecutionPayloadHeader {
 	eph := &types.ExecutionPayloadHeader{
 		ParentHash:       common.ExecutionHash{},
@@ -55,8 +57,8 @@ func generateExecutionPayloadHeader() *types.ExecutionPayloadHeader {
 		WithdrawalsRoot:  common.Root{},
 		BlobGasUsed:      math.U64(0),
 		ExcessBlobGas:    math.U64(0),
-		EphVersion:       version.Deneb1(),
 	}
+	eph.SetForkVersion(version.Deneb1())
 	return eph
 }
 
@@ -98,7 +100,7 @@ func TestExecutionPayloadHeader_IsNil(t *testing.T) {
 func TestExecutionPayloadHeader_Version(t *testing.T) {
 	t.Parallel()
 	header := generateExecutionPayloadHeader()
-	require.Equal(t, version.Deneb1(), header.Version())
+	require.Equal(t, version.Deneb1(), header.GetForkVersion())
 }
 
 func TestExecutionPayloadHeader_MarshalUnmarshalJSON(t *testing.T) {
@@ -112,8 +114,7 @@ func TestExecutionPayloadHeader_MarshalUnmarshalJSON(t *testing.T) {
 	var header types.ExecutionPayloadHeader
 	err = header.UnmarshalJSON(data)
 	require.NoError(t, err)
-
-	header.EphVersion = originalHeader.Version()
+	header.SetForkVersion(originalHeader.GetForkVersion())
 	require.Equal(t, originalHeader, &header)
 }
 
@@ -129,7 +130,7 @@ func TestExecutionPayloadHeader_Serialization(t *testing.T) {
 	err = unmarshalled.UnmarshalSSZ(data)
 	require.NoError(t, err)
 
-	unmarshalled.EphVersion = original.Version()
+	unmarshalled.SetForkVersion(original.GetForkVersion())
 	require.Equal(t, original, unmarshalled)
 }
 
@@ -454,7 +455,7 @@ func TestExecutionPayloadHeader_NewFromSSZ(t *testing.T) {
 				} else {
 					require.NoError(t, err)
 
-					header.EphVersion = tc.expectedHeader.Version()
+					header.SetForkVersion(tc.expectedHeader.GetForkVersion())
 					require.Equal(t, tc.expectedHeader, header)
 				}
 			}
@@ -505,7 +506,7 @@ func TestExecutionPayloadHeader_NewFromJSON(t *testing.T) {
 				require.NoError(t, err)
 			}
 			if tc.header != nil {
-				header.EphVersion = tc.header.Version()
+				header.SetForkVersion(tc.header.GetForkVersion())
 				require.Equal(t, tc.header, header)
 			}
 		})

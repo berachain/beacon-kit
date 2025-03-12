@@ -34,5 +34,5 @@ type Nillable interface {
 
 // Versionable is a constraint that requires a type to have a Version method.
 type Versionable interface {
-	Version() common.Version
+	GetForkVersion() common.Version
 }
