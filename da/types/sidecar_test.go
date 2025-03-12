@@ -25,7 +25,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/blob"
 	"github.com/berachain/beacon-kit/da/types"
@@ -143,8 +142,6 @@ func (is InclusionSink) MeasureSince(_ string, _ time.Time, _ ...string) {}
 
 func TestHasValidInclusionProof(t *testing.T) {
 	t.Parallel()
-	spec, err := spec.DevnetChainSpec()
-	require.NoError(t, err)
 
 	sink := InclusionSink{}
 	tests := []struct {
@@ -202,7 +199,7 @@ func TestHasValidInclusionProof(t *testing.T) {
 				t.Helper()
 				block := generateValidBeaconBlock(t)
 
-				sidecarFactory := blob.NewSidecarFactory(spec, sink)
+				sidecarFactory := blob.NewSidecarFactory(sink)
 				numBlobs := len(block.GetBody().GetBlobKzgCommitments())
 				sidecars := make(types.BlobSidecars, numBlobs)
 				for i := range numBlobs {
