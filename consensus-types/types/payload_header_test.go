@@ -31,14 +31,14 @@ import (
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
+	"github.com/berachain/beacon-kit/testing/utils"
 	ssz "github.com/ferranbt/fastssz"
 	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
 // generateExecutionPayloadHeader generates an ExecutionPayloadHeader.
-// TODO: change this to take version as an argument, forcing callers to specify.
-func generateExecutionPayloadHeader() *types.ExecutionPayloadHeader {
+func generateExecutionPayloadHeader(version common.Version) *types.ExecutionPayloadHeader {
 	eph := &types.ExecutionPayloadHeader{
 		ParentHash:       common.ExecutionHash{},
 		FeeRecipient:     common.ExecutionAddress{},
@@ -58,87 +58,96 @@ func generateExecutionPayloadHeader() *types.ExecutionPayloadHeader {
 		BlobGasUsed:      math.U64(0),
 		ExcessBlobGas:    math.U64(0),
 	}
-	eph.SetForkVersion(version.Deneb1())
+	eph.SetForkVersion(version)
 	return eph
 }
 
 func TestExecutionPayloadHeader_Getters(t *testing.T) {
 	t.Parallel()
-	header := generateExecutionPayloadHeader()
+	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		header := generateExecutionPayloadHeader(v)
+		require.NotNil(t, header)
 
-	require.NotNil(t, header)
-
-	require.Equal(t, common.ExecutionHash{}, header.GetParentHash())
-	require.Equal(
-		t,
-		common.ExecutionAddress{},
-		header.GetFeeRecipient(),
-	)
-	require.Equal(t, bytes.B32{}, header.GetStateRoot())
-	require.Equal(t, bytes.B32{}, header.GetReceiptsRoot())
-	require.Equal(t, bytes.B256{}, header.GetLogsBloom())
-	require.Equal(t, bytes.B32{}, header.GetPrevRandao())
-	require.Equal(t, math.U64(0), header.GetNumber())
-	require.Equal(t, math.U64(0), header.GetGasLimit())
-	require.Equal(t, math.U64(0), header.GetGasUsed())
-	require.Equal(t, math.U64(0), header.GetTimestamp())
-	require.Equal(t, []byte(nil), header.GetExtraData())
-	require.Equal(t, math.NewU256(0), header.GetBaseFeePerGas())
-	require.Equal(t, common.ExecutionHash{}, header.GetBlockHash())
-	require.Equal(t, common.Root{}, header.GetTransactionsRoot())
-	require.Equal(t, common.Root{}, header.GetWithdrawalsRoot())
-	require.Equal(t, math.U64(0), header.GetBlobGasUsed())
-	require.Equal(t, math.U64(0), header.GetExcessBlobGas())
+		require.Equal(t, common.ExecutionHash{}, header.GetParentHash())
+		require.Equal(
+			t,
+			common.ExecutionAddress{},
+			header.GetFeeRecipient(),
+		)
+		require.Equal(t, bytes.B32{}, header.GetStateRoot())
+		require.Equal(t, bytes.B32{}, header.GetReceiptsRoot())
+		require.Equal(t, bytes.B256{}, header.GetLogsBloom())
+		require.Equal(t, bytes.B32{}, header.GetPrevRandao())
+		require.Equal(t, math.U64(0), header.GetNumber())
+		require.Equal(t, math.U64(0), header.GetGasLimit())
+		require.Equal(t, math.U64(0), header.GetGasUsed())
+		require.Equal(t, math.U64(0), header.GetTimestamp())
+		require.Equal(t, []byte(nil), header.GetExtraData())
+		require.Equal(t, math.NewU256(0), header.GetBaseFeePerGas())
+		require.Equal(t, common.ExecutionHash{}, header.GetBlockHash())
+		require.Equal(t, common.Root{}, header.GetTransactionsRoot())
+		require.Equal(t, common.Root{}, header.GetWithdrawalsRoot())
+		require.Equal(t, math.U64(0), header.GetBlobGasUsed())
+		require.Equal(t, math.U64(0), header.GetExcessBlobGas())
+	})
 }
 
 func TestExecutionPayloadHeader_IsNil(t *testing.T) {
 	t.Parallel()
-	header := generateExecutionPayloadHeader()
-	require.False(t, header.IsNil())
+	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		header := generateExecutionPayloadHeader(v)
+		require.False(t, header.IsNil())
+	})
 }
 
 func TestExecutionPayloadHeader_Version(t *testing.T) {
 	t.Parallel()
-	header := generateExecutionPayloadHeader()
-	require.Equal(t, version.Deneb1(), header.GetForkVersion())
+	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		header := generateExecutionPayloadHeader(v)
+		require.Equal(t, v, header.GetForkVersion())
+	})
 }
 
 func TestExecutionPayloadHeader_MarshalUnmarshalJSON(t *testing.T) {
 	t.Parallel()
-	originalHeader := generateExecutionPayloadHeader()
+	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		originalHeader := generateExecutionPayloadHeader(v)
 
-	data, err := originalHeader.MarshalJSON()
-	require.NoError(t, err)
-	require.NotNil(t, data)
+		data, err := originalHeader.MarshalJSON()
+		require.NoError(t, err)
+		require.NotNil(t, data)
 
-	var header types.ExecutionPayloadHeader
-	err = header.UnmarshalJSON(data)
-	require.NoError(t, err)
-	header.SetForkVersion(originalHeader.GetForkVersion())
-	require.Equal(t, originalHeader, &header)
+		var header types.ExecutionPayloadHeader
+		err = header.UnmarshalJSON(data)
+		require.NoError(t, err)
+		header.SetForkVersion(originalHeader.GetForkVersion())
+		require.Equal(t, originalHeader, &header)
+	})
 }
 
 func TestExecutionPayloadHeader_Serialization(t *testing.T) {
 	t.Parallel()
-	original := generateExecutionPayloadHeader()
+	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		original := generateExecutionPayloadHeader(v)
 
-	data, err := original.MarshalSSZ()
-	require.NoError(t, err)
-	require.NotNil(t, data)
+		data, err := original.MarshalSSZ()
+		require.NoError(t, err)
+		require.NotNil(t, data)
 
-	var unmarshalled = &types.ExecutionPayloadHeader{}
-	err = unmarshalled.UnmarshalSSZ(data)
-	require.NoError(t, err)
+		var unmarshalled = &types.ExecutionPayloadHeader{}
+		err = unmarshalled.UnmarshalSSZ(data)
+		require.NoError(t, err)
 
-	unmarshalled.SetForkVersion(original.GetForkVersion())
-	require.Equal(t, original, unmarshalled)
+		unmarshalled.SetForkVersion(original.GetForkVersion())
+		require.Equal(t, original, unmarshalled)
+	})
 }
 
 func TestExecutionPayloadHeader_MarshalSSZTo(t *testing.T) {
 	t.Parallel()
 	testcases := []struct {
 		name     string
-		malleate func() *types.ExecutionPayloadHeader
+		malleate func(common.Version) *types.ExecutionPayloadHeader
 		expErr   error
 	}{
 		{
@@ -146,41 +155,45 @@ func TestExecutionPayloadHeader_MarshalSSZTo(t *testing.T) {
 			malleate: generateExecutionPayloadHeader,
 			expErr:   nil,
 		},
-		// TODO: Is this okay?
-		// {
-		// 	name: "invalid extra data",
-		// 	malleate: func() *types.ExecutionPayloadHeader {
-		// 		header := generateExecutionPayloadHeader()
-		// 		header.ExtraData = make([]byte, 100)
-		// 		return header
-		// 	},
-		// 	expErr: ssz.ErrBytesLengthFn(extraDataField, 100, 32),
-		// },
+		{
+			name: "invalid extra data passes marshalling",
+			malleate: func(version common.Version) *types.ExecutionPayloadHeader {
+				header := generateExecutionPayloadHeader(version)
+				header.ExtraData = make([]byte, 100)
+				return header
+			},
+			expErr: nil,
+		},
 	}
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			header := tc.malleate()
-			buf := make([]byte, 64)
-			_, err := header.MarshalSSZTo(buf)
-			if tc.expErr != nil {
-				require.Error(t, err)
-			} else {
-				require.NoError(t, err)
-			}
+			utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+				header := tc.malleate(v)
+				buf := make([]byte, 64)
+				_, err := header.MarshalSSZTo(buf)
+				if tc.expErr != nil {
+					require.Error(t, err)
+				} else {
+					require.NoError(t, err)
+				}
+			})
 		})
 	}
 }
 
 func TestExecutionPayloadHeader_UnmarshalSSZ_EmptyBuf(t *testing.T) {
 	t.Parallel()
-	header := generateExecutionPayloadHeader()
-	buf := make([]byte, 0)
-	err := header.UnmarshalSSZ(buf)
-	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
+	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		header := generateExecutionPayloadHeader(v)
+		buf := make([]byte, 0)
+		err := header.UnmarshalSSZ(buf)
+		require.ErrorIs(t, err, io.ErrUnexpectedEOF)
+	})
 }
 
+// TODO(pectra): Why is this commented out?
 // func TestExecutionPayloadHeader_UnmarshalSSZ(t *testing.T) {
 // 	testcases := []struct {
 // 		name     string
@@ -244,271 +257,283 @@ func TestExecutionPayloadHeader_UnmarshalSSZ_EmptyBuf(t *testing.T) {
 
 func TestExecutionPayloadHeader_SizeSSZ(t *testing.T) {
 	t.Parallel()
-	header := generateExecutionPayloadHeader()
-	size := karalabessz.Size(header)
-	require.Equal(t, uint32(584), size)
+	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		header := generateExecutionPayloadHeader(v)
+		size := karalabessz.Size(header)
+		require.Equal(t, uint32(584), size)
+	})
 }
 
 func TestExecutionPayloadHeader_HashTreeRoot(t *testing.T) {
 	t.Parallel()
-	header := generateExecutionPayloadHeader()
-	require.NotPanics(t, func() {
-		header.HashTreeRoot()
+	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		header := generateExecutionPayloadHeader(v)
+		require.NotPanics(t, func() {
+			header.HashTreeRoot()
+		})
 	})
 }
 
 func TestExecutionPayloadHeader_GetTree(t *testing.T) {
 	t.Parallel()
-	header := generateExecutionPayloadHeader()
-	_, err := header.GetTree()
-	require.NoError(t, err)
+	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		header := generateExecutionPayloadHeader(v)
+		_, err := header.GetTree()
+		require.NoError(t, err)
+	})
 }
 
-func TestExecutablePayloadHeaderDeneb_UnmarshalJSON_Error(t *testing.T) {
+func TestExecutablePayloadHeader_UnmarshalJSON_Error(t *testing.T) {
 	t.Parallel()
-	original := generateExecutionPayloadHeader()
-	validJSON, err := original.MarshalJSON()
-	require.NoError(t, err)
+	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		original := generateExecutionPayloadHeader(v)
+		validJSON, err := original.MarshalJSON()
+		require.NoError(t, err)
 
-	testCases := []struct {
-		name          string
-		removeField   string
-		expectedError string
-	}{
-		{
-			name:          "missing required field 'parentHash'",
-			removeField:   "parentHash",
-			expectedError: "missing required field 'parentHash' for ExecutionPayloadHeader",
-		},
-		{
-			name:          "missing required field 'feeRecipient'",
-			removeField:   "feeRecipient",
-			expectedError: "missing required field 'feeRecipient' for ExecutionPayloadHeader",
-		},
-		{
-			name:          "missing required field 'stateRoot'",
-			removeField:   "stateRoot",
-			expectedError: "missing required field 'stateRoot' for ExecutionPayloadHeader",
-		},
-		{
-			name:          "missing required field 'receiptsRoot'",
-			removeField:   "receiptsRoot",
-			expectedError: "missing required field 'receiptsRoot' for ExecutionPayloadHeader",
-		},
-		{
-			name:          "missing required field 'logsBloom'",
-			removeField:   "logsBloom",
-			expectedError: "missing required field 'logsBloom' for ExecutionPayloadHeader",
-		},
-		{
-			name:          "missing required field 'prevRandao'",
-			removeField:   "prevRandao",
-			expectedError: "missing required field 'prevRandao' for ExecutionPayloadHeader",
-		},
-		{
-			name:          "missing required field 'blockNumber'",
-			removeField:   "blockNumber",
-			expectedError: "missing required field 'blockNumber' for ExecutionPayloadHeader",
-		},
-		{
-			name:          "missing required field 'gasLimit'",
-			removeField:   "gasLimit",
-			expectedError: "missing required field 'gasLimit' for ExecutionPayloadHeader",
-		},
-		{
-			name:          "missing required field 'gasUsed'",
-			removeField:   "gasUsed",
-			expectedError: "missing required field 'gasUsed' for ExecutionPayloadHeader",
-		},
-		{
-			name:          "missing required field 'timestamp'",
-			removeField:   "timestamp",
-			expectedError: "missing required field 'timestamp' for ExecutionPayloadHeader",
-		},
-		{
-			name:          "missing required field 'extraData'",
-			removeField:   "extraData",
-			expectedError: "missing required field 'extraData' for ExecutionPayloadHeader",
-		},
-		{
-			name:          "missing required field 'baseFeePerGas'",
-			removeField:   "baseFeePerGas",
-			expectedError: "missing required field 'baseFeePerGas' for ExecutionPayloadHeader",
-		},
-		{
-			name:          "missing required field 'blockHash'",
-			removeField:   "blockHash",
-			expectedError: "missing required field 'blockHash' for ExecutionPayloadHeader",
-		},
-		{
-			name:          "missing required field 'transactionsRoot'",
-			removeField:   "transactionsRoot",
-			expectedError: "missing required field 'transactionsRoot' for ExecutionPayloadHeader",
-		},
-	}
+		testCases := []struct {
+			name          string
+			removeField   string
+			expectedError string
+		}{
+			{
+				name:          "missing required field 'parentHash'",
+				removeField:   "parentHash",
+				expectedError: "missing required field 'parentHash' for ExecutionPayloadHeader",
+			},
+			{
+				name:          "missing required field 'feeRecipient'",
+				removeField:   "feeRecipient",
+				expectedError: "missing required field 'feeRecipient' for ExecutionPayloadHeader",
+			},
+			{
+				name:          "missing required field 'stateRoot'",
+				removeField:   "stateRoot",
+				expectedError: "missing required field 'stateRoot' for ExecutionPayloadHeader",
+			},
+			{
+				name:          "missing required field 'receiptsRoot'",
+				removeField:   "receiptsRoot",
+				expectedError: "missing required field 'receiptsRoot' for ExecutionPayloadHeader",
+			},
+			{
+				name:          "missing required field 'logsBloom'",
+				removeField:   "logsBloom",
+				expectedError: "missing required field 'logsBloom' for ExecutionPayloadHeader",
+			},
+			{
+				name:          "missing required field 'prevRandao'",
+				removeField:   "prevRandao",
+				expectedError: "missing required field 'prevRandao' for ExecutionPayloadHeader",
+			},
+			{
+				name:          "missing required field 'blockNumber'",
+				removeField:   "blockNumber",
+				expectedError: "missing required field 'blockNumber' for ExecutionPayloadHeader",
+			},
+			{
+				name:          "missing required field 'gasLimit'",
+				removeField:   "gasLimit",
+				expectedError: "missing required field 'gasLimit' for ExecutionPayloadHeader",
+			},
+			{
+				name:          "missing required field 'gasUsed'",
+				removeField:   "gasUsed",
+				expectedError: "missing required field 'gasUsed' for ExecutionPayloadHeader",
+			},
+			{
+				name:          "missing required field 'timestamp'",
+				removeField:   "timestamp",
+				expectedError: "missing required field 'timestamp' for ExecutionPayloadHeader",
+			},
+			{
+				name:          "missing required field 'extraData'",
+				removeField:   "extraData",
+				expectedError: "missing required field 'extraData' for ExecutionPayloadHeader",
+			},
+			{
+				name:          "missing required field 'baseFeePerGas'",
+				removeField:   "baseFeePerGas",
+				expectedError: "missing required field 'baseFeePerGas' for ExecutionPayloadHeader",
+			},
+			{
+				name:          "missing required field 'blockHash'",
+				removeField:   "blockHash",
+				expectedError: "missing required field 'blockHash' for ExecutionPayloadHeader",
+			},
+			{
+				name:          "missing required field 'transactionsRoot'",
+				removeField:   "transactionsRoot",
+				expectedError: "missing required field 'transactionsRoot' for ExecutionPayloadHeader",
+			},
+		}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			var payload types.ExecutionPayloadHeader
-			var jsonMap map[string]interface{}
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				var payload types.ExecutionPayloadHeader
+				var jsonMap map[string]interface{}
 
-			errUnmarshal := json.Unmarshal(validJSON, &jsonMap)
-			require.NoError(t, errUnmarshal)
+				errUnmarshal := json.Unmarshal(validJSON, &jsonMap)
+				require.NoError(t, errUnmarshal)
 
-			delete(jsonMap, tc.removeField)
+				delete(jsonMap, tc.removeField)
 
-			malformedJSON, errMarshal := json.Marshal(jsonMap)
-			require.NoError(t, errMarshal)
+				malformedJSON, errMarshal := json.Marshal(jsonMap)
+				require.NoError(t, errMarshal)
 
-			err = payload.UnmarshalJSON(malformedJSON)
-			require.Error(t, err)
-			require.Contains(t, err.Error(), tc.expectedError)
-		})
-	}
+				err = payload.UnmarshalJSON(malformedJSON)
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tc.expectedError)
+			})
+		}
+	})
 }
 
-func TestExecutablePayloadHeaderDeneb_UnmarshalJSON_Empty(t *testing.T) {
+func TestExecutablePayloadHeader_UnmarshalJSON_Empty(t *testing.T) {
 	t.Parallel()
 	var payload types.ExecutionPayloadHeader
 	err := payload.UnmarshalJSON([]byte{})
 	require.Error(t, err)
 }
 
-func TestExecutablePayloadHeaderDeneb_HashTreeRootWith(t *testing.T) {
+func TestExecutablePayloadHeader_HashTreeRootWith(t *testing.T) {
 	t.Parallel()
-	testcases := []struct {
-		name     string
-		malleate func() *types.ExecutionPayloadHeader
-		expErr   error
-	}{
-		{
-			name: "invalid ExtraData length",
-			malleate: func() *types.ExecutionPayloadHeader {
-				var header = generateExecutionPayloadHeader()
-				header.ExtraData = make([]byte, 50)
-				return header
+	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		testcases := []struct {
+			name     string
+			malleate func() *types.ExecutionPayloadHeader
+			expErr   error
+		}{
+			{
+				name: "invalid ExtraData length",
+				malleate: func() *types.ExecutionPayloadHeader {
+					var header = generateExecutionPayloadHeader(v)
+					header.ExtraData = make([]byte, 50)
+					return header
+				},
+				expErr: ssz.ErrIncorrectListSize,
 			},
-			expErr: ssz.ErrIncorrectListSize,
-		},
-	}
+		}
 
-	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-			hh := ssz.DefaultHasherPool.Get()
-			header := tc.malleate()
-			err := header.HashTreeRootWith(hh)
-			require.Equal(t, tc.expErr, err)
-		})
-	}
+		for _, tc := range testcases {
+			t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
+				hh := ssz.DefaultHasherPool.Get()
+				header := tc.malleate()
+				err := header.HashTreeRootWith(hh)
+				require.Equal(t, tc.expErr, err)
+			})
+		}
+	})
 }
 
 func TestExecutionPayloadHeader_NewFromSSZ(t *testing.T) {
 	t.Parallel()
-	t.Helper()
-	testCases := []struct {
-		name           string
-		data           []byte
-		forkVersion    common.Version
-		expErr         error
-		expectedHeader *types.ExecutionPayloadHeader
-	}{
-		{
-			name: "Valid SSZ data",
-			data: func() []byte {
-				data, _ := generateExecutionPayloadHeader().MarshalSSZ()
-				return data
-			}(),
-			forkVersion:    version.Deneb1(),
-			expErr:         nil,
-			expectedHeader: generateExecutionPayloadHeader(),
-		},
-		{
-			name:           "Invalid SSZ data",
-			data:           []byte{0x01, 0x02},
-			forkVersion:    version.Deneb1(),
-			expErr:         io.ErrUnexpectedEOF,
-			expectedHeader: nil,
-		},
-		{
-			name:           "Empty SSZ data",
-			data:           []byte{},
-			forkVersion:    version.Deneb1(),
-			expErr:         io.ErrUnexpectedEOF,
-			expectedHeader: nil,
-		},
-	}
+	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		testCases := []struct {
+			name           string
+			data           []byte
+			forkVersion    common.Version
+			expErr         error
+			expectedHeader *types.ExecutionPayloadHeader
+		}{
+			{
+				name: "Valid SSZ data",
+				data: func() []byte {
+					data, _ := generateExecutionPayloadHeader(v).MarshalSSZ()
+					return data
+				}(),
+				forkVersion:    version.Deneb1(),
+				expErr:         nil,
+				expectedHeader: generateExecutionPayloadHeader(v),
+			},
+			{
+				name:           "Invalid SSZ data",
+				data:           []byte{0x01, 0x02},
+				forkVersion:    version.Deneb1(),
+				expErr:         io.ErrUnexpectedEOF,
+				expectedHeader: nil,
+			},
+			{
+				name:           "Empty SSZ data",
+				data:           []byte{},
+				forkVersion:    version.Deneb1(),
+				expErr:         io.ErrUnexpectedEOF,
+				expectedHeader: nil,
+			},
+		}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-			if tc.name == "Different fork version" {
-				require.Panics(t, func() {
-					_, _ = new(types.ExecutionPayloadHeader).
-						NewFromSSZ(tc.data, tc.forkVersion)
-				}, "Expected panic for different fork version")
-			} else {
-				header, err := new(types.ExecutionPayloadHeader).
-					NewFromSSZ(tc.data, tc.forkVersion)
-				if tc.expErr != nil {
-					require.ErrorIs(t, err, tc.expErr)
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
+				if tc.name == "Different fork version" {
+					require.Panics(t, func() {
+						_, _ = new(types.ExecutionPayloadHeader).
+							NewFromSSZ(tc.data, tc.forkVersion)
+					}, "Expected panic for different fork version")
 				} else {
-					require.NoError(t, err)
+					header, err := new(types.ExecutionPayloadHeader).
+						NewFromSSZ(tc.data, tc.forkVersion)
+					if tc.expErr != nil {
+						require.ErrorIs(t, err, tc.expErr)
+					} else {
+						require.NoError(t, err)
 
-					header.SetForkVersion(tc.expectedHeader.GetForkVersion())
-					require.Equal(t, tc.expectedHeader, header)
+						header.SetForkVersion(tc.expectedHeader.GetForkVersion())
+						require.Equal(t, tc.expectedHeader, header)
+					}
 				}
-			}
-		})
-	}
+			})
+		}
+	})
 }
 
 func TestExecutionPayloadHeader_NewFromJSON(t *testing.T) {
 	t.Parallel()
-	t.Helper()
-	type testCase struct {
-		name          string
-		data          []byte
-		header        *types.ExecutionPayloadHeader
-		expectedError error
-	}
-	testCases := []testCase{
-		func() testCase {
-			header := generateExecutionPayloadHeader()
-			return testCase{
-				name:   "Valid JSON",
-				header: header,
-				data: func() []byte {
-					data, err := json.Marshal(header)
-					require.NoError(t, err)
-					return data
-				}(),
-			}
-		}(),
-		{
-			name:          "Invalid JSON",
-			data:          []byte{},
-			expectedError: errors.New("unexpected end of JSON input"),
-		},
-	}
+	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		type testCase struct {
+			name          string
+			data          []byte
+			header        *types.ExecutionPayloadHeader
+			expectedError error
+		}
+		testCases := []testCase{
+			func() testCase {
+				header := generateExecutionPayloadHeader(v)
+				return testCase{
+					name:   "Valid JSON",
+					header: header,
+					data: func() []byte {
+						data, err := json.Marshal(header)
+						require.NoError(t, err)
+						return data
+					}(),
+				}
+			}(),
+			{
+				name:          "Invalid JSON",
+				data:          []byte{},
+				expectedError: errors.New("unexpected end of JSON input"),
+			},
+		}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-			header, err := new(types.ExecutionPayloadHeader).NewFromJSON(
-				tc.data,
-				version.Deneb1(),
-			)
-			if tc.expectedError != nil {
-				require.Error(t, err)
-				require.Contains(t, err.Error(), tc.expectedError.Error())
-			} else {
-				require.NoError(t, err)
-			}
-			if tc.header != nil {
-				header.SetForkVersion(tc.header.GetForkVersion())
-				require.Equal(t, tc.header, header)
-			}
-		})
-	}
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
+				header, err := new(types.ExecutionPayloadHeader).NewFromJSON(
+					tc.data,
+					version.Deneb1(),
+				)
+				if tc.expectedError != nil {
+					require.Error(t, err)
+					require.Contains(t, err.Error(), tc.expectedError.Error())
+				} else {
+					require.NoError(t, err)
+				}
+				if tc.header != nil {
+					header.SetForkVersion(tc.header.GetForkVersion())
+					require.Equal(t, tc.header, header)
+				}
+			})
+		}
+	})
 }
