@@ -18,9 +18,6 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-<<<<<<<< HEAD:consensus-types/types/util_test.go
-package types_test
-========
 package types
 
 import "github.com/berachain/beacon-kit/primitives/common"
