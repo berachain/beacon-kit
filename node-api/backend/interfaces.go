@@ -21,7 +21,6 @@
 package backend
 
 import (
-	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
@@ -32,7 +31,9 @@ type StateProcessor interface {
 }
 
 type ChainSpec interface {
-	chain.BlobSpec
+	WithinDAPeriod(block, current math.Slot) bool
+	MinEpochsForBlobsSidecarsRequest() math.Epoch
+	MaxBlobsPerBlock() uint64
 	SlotsPerHistoricalRoot() uint64
 	EpochsPerHistoricalVector() uint64
 	SlotToEpoch(slot math.Slot) math.Epoch
