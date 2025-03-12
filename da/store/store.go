@@ -35,20 +35,16 @@ type Store struct {
 	IndexDB
 	// logger is used for logging.
 	logger log.Logger
-	// chainSpec contains the chain specification.
-	chainSpec ChainSpec
 }
 
 // New creates a new instance of the AvailabilityStore.
 func New(
 	db IndexDB,
 	logger log.Logger,
-	chainSpec ChainSpec,
 ) *Store {
 	return &Store{
-		IndexDB:   db,
-		chainSpec: chainSpec,
-		logger:    logger,
+		IndexDB: db,
+		logger:  logger,
 	}
 }
 
