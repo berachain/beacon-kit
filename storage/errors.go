@@ -18,15 +18,8 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package ethclient
+package storage
 
-import "github.com/ethereum/go-ethereum/ethclient"
+import "github.com/berachain/beacon-kit/errors"
 
-type (
-	Client = ethclient.Client
-)
-
-//nolint:gochecknoglobals // its okay.
-var (
-	NewClient = ethclient.NewClient
-)
+var ErrInvalidRange = errors.New("range start greater than end")

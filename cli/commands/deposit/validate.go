@@ -21,7 +21,6 @@
 package deposit
 
 import (
-	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/cli/utils/parser"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
@@ -45,7 +44,7 @@ const (
 // NewValidateDeposit creates a new command for validating a deposit message.
 //
 //nolint:lll // Reads better if long description is one line.
-func GetValidateDepositCmd(chainSpec chain.Spec) *cobra.Command {
+func GetValidateDepositCmd(chainSpec ChainSpec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "validate [pubkey] [withdrawal-credentials] [amount] [signature] ?[beacond/genesis.json]",
 		Short: "Validates a deposit message for creating a new validator",
@@ -65,7 +64,7 @@ func GetValidateDepositCmd(chainSpec chain.Spec) *cobra.Command {
 }
 
 // validateDepositMessage validates a deposit message for creating a new validator.
-func validateDepositMessage(chainSpec chain.Spec) func(cmd *cobra.Command, args []string) error {
+func validateDepositMessage(chainSpec ChainSpec) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		pubKeyStr := args[validatePubKey0]
 		pubkey, err := parser.ConvertPubkey(pubKeyStr)
@@ -110,7 +109,7 @@ func validateDepositMessage(chainSpec chain.Spec) func(cmd *cobra.Command, args 
 }
 
 func ValidateDeposit(
-	cs chain.Spec,
+	cs ChainSpec,
 	pubkey crypto.BLSPubkey,
 	creds types.WithdrawalCredentials,
 	amount math.Gwei,

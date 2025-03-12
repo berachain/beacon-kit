@@ -28,6 +28,3 @@ type (
 	FilterOpts       = bind.FilterOpts
 	TransactOpts     = bind.TransactOpts
 )
-
-//nolint:gochecknoglobals //used an alias.
-var WaitMined = bind.WaitMined

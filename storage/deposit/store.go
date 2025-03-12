@@ -29,8 +29,8 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/storage"
 	"github.com/berachain/beacon-kit/storage/encoding"
-	"github.com/berachain/beacon-kit/storage/pruner"
 )
 
 const KeyDepositPrefix = "deposit"
@@ -146,7 +146,7 @@ func (kv *KVStore) EnqueueDeposits(ctx context.Context, deposits []*ctypes.Depos
 func (kv *KVStore) Prune(ctx context.Context, start, end uint64) error {
 	if start > end {
 		return errors.Wrapf(
-			pruner.ErrInvalidRange, "DepositKVStore Prune start: %d, end: %d", start, end)
+			storage.ErrInvalidRange, "DepositKVStore Prune start: %d, end: %d", start, end)
 	}
 
 	kv.mu.Lock()

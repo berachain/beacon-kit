@@ -22,7 +22,6 @@ package constraints
 
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/encoding/json"
 )
 
 // SSZMarshaler is an interface for objects that can be
@@ -58,11 +57,4 @@ type SSZMarshallable interface {
 type SSZMarshallableRootable interface {
 	SSZMarshallable
 	SSZRootable
-}
-
-// JSONMarshallable is an interface that combines the json.Marshaler and
-// json.Unmarshaler interfaces.
-type JSONMarshallable interface {
-	json.Marshaler
-	json.Unmarshaler
 }

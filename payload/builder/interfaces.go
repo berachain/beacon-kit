@@ -26,26 +26,13 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 type PayloadCache interface {
 	GetAndEvict(slot math.Slot, stateRoot common.Root) (engineprimitives.PayloadID, bool)
-	Has(slot math.Slot, stateRoot common.Root) bool
 	Set(slot math.Slot, stateRoot common.Root, pid engineprimitives.PayloadID)
-}
-
-// ExecutionPayload is the interface for the execution payload.
-type ExecutionPayload[T any] interface {
-	constraints.ForkTyped[T]
-	// GetBlockHash returns the block hash.
-	GetBlockHash() common.ExecutionHash
-	// GetFeeRecipient returns the fee recipient.
-	GetFeeRecipient() common.ExecutionAddress
-	// GetParentHash returns the parent hash.
-	GetParentHash() common.ExecutionHash
 }
 
 // AttributesFactory is the interface for the attributes factory.
@@ -56,22 +43,6 @@ type AttributesFactory interface {
 		timestamp uint64,
 		prevHeadRoot [32]byte,
 	) (*engineprimitives.PayloadAttributes, error)
-}
-
-// PayloadAttributes is the interface for the payload attributes.
-type PayloadAttributes[
-	SelfT any,
-] interface {
-	engineprimitives.PayloadAttributer
-	// New creates a new payload attributes instance.
-	New(
-		uint32,
-		uint64,
-		common.Bytes32,
-		common.ExecutionAddress,
-		engineprimitives.Withdrawals,
-		common.Root,
-	) (SelfT, error)
 }
 
 // ExecutionEngine is the interface for the execution engine.
@@ -87,4 +58,8 @@ type ExecutionEngine interface {
 		ctx context.Context,
 		req *ctypes.ForkchoiceUpdateRequest,
 	) (*engineprimitives.PayloadID, error)
+}
+
+type ChainSpec interface {
+	ActiveForkVersionForSlot(slot math.Slot) common.Version
 }
