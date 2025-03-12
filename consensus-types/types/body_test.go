@@ -335,7 +335,6 @@ func Test_KZGCommitmentInclusionProofDepth(t *testing.T) {
 
 func TestBeaconBlockBody_ExecutionRequests(t *testing.T) {
 	t.Parallel()
-
 	body := generateBeaconBlockBody(version.Electra())
 	err := body.SetExecutionRequests(&types.ExecutionRequests{
 		Deposits: []*types.DepositRequest{
@@ -363,7 +362,9 @@ func TestBeaconBlockBody_ExecutionRequests(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
-	require.NotNil(t, body.ExecutionRequests)
+	requests, err := body.GetExecutionRequests()
+	require.NoError(t, err)
+	require.NotNil(t, requests)
 	data, err := body.MarshalSSZ()
 	require.NoError(t, err)
 	require.NotNil(t, data)
@@ -371,9 +372,11 @@ func TestBeaconBlockBody_ExecutionRequests(t *testing.T) {
 	unmarshalledBody := &types.BeaconBlockBody{}
 	err = unmarshalledBody.UnmarshalSSZ(data, body.Version())
 	require.NoError(t, err)
-	require.NotNil(t, unmarshalledBody.ExecutionRequests)
+	executionRequests, err := unmarshalledBody.GetExecutionRequests()
+	require.NoError(t, err)
+	require.NotNil(t, executionRequests)
 	require.Equal(t, body.HashTreeRoot(), unmarshalledBody.HashTreeRoot())
-	require.Equal(t, body.ExecutionRequests.Deposits[0], unmarshalledBody.ExecutionRequests.Deposits[0])
-	require.Equal(t, body.ExecutionRequests.Deposits[1], unmarshalledBody.ExecutionRequests.Deposits[1])
-	require.Equal(t, body.ExecutionRequests.Withdrawals[0], unmarshalledBody.ExecutionRequests.Withdrawals[0])
+	require.Equal(t, executionRequests.Deposits[0], executionRequests.Deposits[0])
+	require.Equal(t, executionRequests.Deposits[1], executionRequests.Deposits[1])
+	require.Equal(t, executionRequests.Withdrawals[0], executionRequests.Withdrawals[0])
 }

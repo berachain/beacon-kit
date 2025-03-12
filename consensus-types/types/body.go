@@ -91,8 +91,8 @@ type BeaconBlockBody struct {
 	blsToExecutionChanges []*BlsToExecutionChange
 	// BlobKzgCommitments is the list of KZG commitments for the EIP-4844 blobs.
 	BlobKzgCommitments []eip4844.KZGCommitment
-	// ExecutionRequests is introduced in electra.
-	ExecutionRequests *ExecutionRequests
+	// executionRequests is introduced in electra.
+	executionRequests *ExecutionRequests
 	// ForkVersion is the fork version of the block body. Must not be involved in serialization
 	// Must be available within the object to satisfy signature required for SizeSSZ and DefineSSZ.
 	forkVersion common.Version
@@ -126,7 +126,7 @@ func (b *BeaconBlockBody) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 	size += ssz.SizeSliceOfStaticBytes(siz, b.BlobKzgCommitments)
 
 	if !version.IsBefore(b.Version(), version.Electra()) {
-		size += ssz.SizeDynamicObject(siz, b.ExecutionRequests)
+		size += ssz.SizeDynamicObject(siz, b.executionRequests)
 	}
 	return size
 }
@@ -149,7 +149,7 @@ func (b *BeaconBlockBody) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineSliceOfStaticObjectsOffset(codec, &b.blsToExecutionChanges, constants.MaxBlsToExecutionChanges)
 	ssz.DefineSliceOfStaticBytesOffset(codec, &b.BlobKzgCommitments, 4096)
 	if !version.IsBefore(b.Version(), version.Electra()) {
-		ssz.DefineDynamicObjectOffset(codec, &b.ExecutionRequests)
+		ssz.DefineDynamicObjectOffset(codec, &b.executionRequests)
 	}
 	// Define the dynamic data (fields)
 	ssz.DefineSliceOfStaticObjectsContent(codec, &b.proposerSlashings, constants.MaxProposerSlashings)
@@ -161,7 +161,7 @@ func (b *BeaconBlockBody) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineSliceOfStaticObjectsContent(codec, &b.blsToExecutionChanges, constants.MaxBlsToExecutionChanges)
 	ssz.DefineSliceOfStaticBytesContent(codec, &b.BlobKzgCommitments, 4096)
 	if !version.IsBefore(b.Version(), version.Electra()) {
-		ssz.DefineDynamicObjectContent(codec, &b.ExecutionRequests)
+		ssz.DefineDynamicObjectContent(codec, &b.executionRequests)
 	}
 }
 
@@ -341,14 +341,14 @@ func (b *BeaconBlockBody) GetExecutionRequests() (*ExecutionRequests, error) {
 	if version.IsBefore(b.Version(), version.Electra()) {
 		return nil, errors.Wrapf(ErrFieldNotSupportedOnFork, "block version %d", b.Version())
 	}
-	return b.ExecutionRequests, nil
+	return b.executionRequests, nil
 }
 
 func (b *BeaconBlockBody) SetExecutionRequests(executionRequest *ExecutionRequests) error {
 	if version.IsBefore(b.Version(), version.Electra()) {
 		return errors.Wrapf(ErrFieldNotSupportedOnFork, "block version %d", b.Version())
 	}
-	b.ExecutionRequests = executionRequest
+	b.executionRequests = executionRequest
 	return nil
 }
 
