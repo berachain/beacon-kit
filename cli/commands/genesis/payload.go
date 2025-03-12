@@ -86,6 +86,8 @@ func AddExecutionPayload(chainSpec chain.Spec, elGenesisPath string, config *cmt
 		return errors.Wrap(err, "failed to read genesis doc from file")
 	}
 
+	payload.Timestamp = uint64(appGenesis.GenesisTime.Unix())
+
 	// create the app state
 	appGenesisState, err := genutiltypes.GenesisStateFromAppGenesis(
 		appGenesis,
