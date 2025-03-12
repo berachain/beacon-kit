@@ -24,6 +24,8 @@ package compare_test
 
 import (
 	"bytes"
+	"math/rand"
+	"reflect"
 	"slices"
 	"testing"
 	"testing/quick"
@@ -31,7 +33,11 @@ import (
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	bytesprimitives "github.com/berachain/beacon-kit/primitives/bytes"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 	zcommon "github.com/protolambda/zrnt/eth2/beacon/common"
 	zdeneb "github.com/protolambda/zrnt/eth2/beacon/deneb"
 	zspec "github.com/protolambda/zrnt/eth2/configs"
@@ -42,26 +48,111 @@ import (
 )
 
 var (
-	c    = quick.Config{MaxCount: 5_000}
+	c    = quick.Config{MaxCount: 100_000}
 	hFn  = ztree.GetHashFn()
 	spec = zspec.Mainnet
 )
 
+// --- Helper Struct ---
+// execPayloadExported mirrors the exported fields of ExecutionPayload.
+// Note that forkVersion is unexported and omitted.
+type execPayloadExported struct {
+	// ParentHash is the hash of the parent block.
+	ParentHash common.ExecutionHash `json:"parentHash"`
+	// FeeRecipient is the address of the fee recipient.
+	FeeRecipient common.ExecutionAddress `json:"feeRecipient"`
+	// StateRoot is the root of the state trie.
+	StateRoot common.Bytes32 `json:"stateRoot"`
+	// ReceiptsRoot is the root of the receipts trie.
+	ReceiptsRoot common.Bytes32 `json:"receiptsRoot"`
+	// LogsBloom is the bloom filter for the logs.
+	LogsBloom bytesprimitives.B256 `json:"logsBloom"`
+	// Random is the prevRandao value.
+	Random common.Bytes32 `json:"prevRandao"`
+	// Number is the block number.
+	Number math.U64 `json:"blockNumber"`
+	// GasLimit is the gas limit for the block.
+	GasLimit math.U64 `json:"gasLimit"`
+	// GasUsed is the amount of gas used in the block.
+	GasUsed math.U64 `json:"gasUsed"`
+	// Timestamp is the timestamp of the block.
+	Timestamp math.U64 `json:"timestamp"`
+	// ExtraData is the extra data of the block.
+	ExtraData bytesprimitives.Bytes `json:"extraData"`
+	// BaseFeePerGas is the base fee per gas.
+	BaseFeePerGas *math.U256 `json:"baseFeePerGas"`
+	// BlockHash is the hash of the block.
+	BlockHash common.ExecutionHash `json:"blockHash"`
+	// Transactions is the list of transactions in the block.
+	Transactions engineprimitives.Transactions `json:"transactions"`
+	// Withdrawals is the list of withdrawals in the block.
+	Withdrawals []*engineprimitives.Withdrawal `json:"withdrawals"`
+	// BlobGasUsed is the amount of blob gas used in the block.
+	BlobGasUsed math.U64 `json:"blobGasUsed"`
+	// ExcessBlobGas is the amount of excess blob gas in the block.
+	ExcessBlobGas math.U64 `json:"excessBlobGas"`
+}
+
+// --- Local Alias Type ---
+// TestExecPayload is our alias for ExecutionPayload.
+type TestExecPayload ctypes.ExecutionPayload
+
+// Generate implements quick.Generator for *TestExecPayload.
+func (p *TestExecPayload) Generate(r *rand.Rand, size int) reflect.Value {
+	// Step 1: Generate a value for the helper struct, which contains only exported fields.
+	var exp execPayloadExported
+	v, ok := quick.Value(reflect.TypeOf(exp), r)
+	if !ok {
+		panic("failed to generate execPayloadExported")
+	}
+	exp = v.Interface().(execPayloadExported)
+
+	// Step 2: Copy exported fields from exp into our alias.
+	var tep TestExecPayload
+	tep.ParentHash = exp.ParentHash
+	tep.FeeRecipient = exp.FeeRecipient
+	tep.StateRoot = exp.StateRoot
+	tep.ReceiptsRoot = exp.ReceiptsRoot
+	tep.LogsBloom = exp.LogsBloom
+	tep.Random = exp.Random
+	tep.Number = exp.Number
+	tep.GasLimit = exp.GasLimit
+	tep.GasUsed = exp.GasUsed
+	tep.Timestamp = exp.Timestamp
+	tep.ExtraData = exp.ExtraData
+	tep.BaseFeePerGas = exp.BaseFeePerGas
+	tep.BlockHash = exp.BlockHash
+	tep.Transactions = exp.Transactions
+	tep.Withdrawals = exp.Withdrawals
+	tep.BlobGasUsed = exp.BlobGasUsed
+	tep.ExcessBlobGas = exp.ExcessBlobGas
+
+	// Step 3: Ensure that slices are non-nil.
+	if tep.Withdrawals == nil {
+		tep.Withdrawals = []*engineprimitives.Withdrawal{}
+	}
+	if slices.Contains(tep.Withdrawals, nil) {
+		tep.Withdrawals = []*engineprimitives.Withdrawal{}
+	}
+	if tep.Transactions == nil {
+		tep.Transactions = engineprimitives.Transactions{}
+	}
+
+	// Step 4: Set the unexported forkVersion via the setter.
+	// Convert our alias pointer to the production *ctypes.ExecutionPayload.
+	orig := (*ctypes.ExecutionPayload)(&tep)
+	supported := version.GetSupportedVersions()
+	orig.SetForkVersion(supported[r.Intn(len(supported))])
+
+	// Return a reflect.Value representing a pointer to our alias.
+	return reflect.ValueOf(&tep)
+}
+
 func TestExecutionPayloadHashTreeRootZrnt(t *testing.T) {
 	t.Parallel()
-	f := func(payload *ctypes.ExecutionPayload, logsBloom [256]byte) bool {
-		// skip these cases lest we trigger a
-		// nil-pointer dereference in fastssz
-		if payload == nil ||
-			payload.Withdrawals == nil ||
-			slices.Contains(payload.Withdrawals, nil) ||
-			payload.Transactions == nil ||
-			slices.ContainsFunc(payload.Transactions, func(e []byte) bool {
-				return e == nil
-			}) {
-			return true
-		}
-
+	f := func(testPayload *TestExecPayload, logsBloom [256]byte) bool {
+		// Convert the generated value back to the production type.
+		payload := (*ctypes.ExecutionPayload)(testPayload)
 		payload.LogsBloom = logsBloom
 		payload.BaseFeePerGas = math.NewU256(123)
 		typeRoot := payload.HashTreeRoot()
