@@ -35,6 +35,3 @@ type IndexDB interface {
 	// returned with no error.
 	GetByIndex(index uint64) ([][]byte, error)
 }
-
-// ChainSpec currently unused but may be used with new forks.
-type ChainSpec interface{}
