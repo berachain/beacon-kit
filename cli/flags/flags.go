@@ -85,7 +85,7 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 	startCmd.Flags().Duration(
 		ShutdownTimeout,
 		defaultCfg.ShutdownTimeout,
-		"maximum time to wait for the chain to gracefully shutdown before forcing an exit",
+		"maximum time to wait for the node to gracefully shutdown before forcing an exit",
 	)
 	startCmd.Flags().String(
 		JWTSecretPath,

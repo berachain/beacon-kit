@@ -37,7 +37,7 @@ type ProvideNodeInputs struct {
 	Logger   *phuslu.Logger
 }
 
-// ProvideNode is a function that provides the module to the.
+// ProvideNode returns a new node with the given options.
 func ProvideNode(in ProvideNodeInputs) types.Node {
 	return node.New[types.Node](in.Config.ShutdownTimeout, in.Registry, in.Logger)
 }

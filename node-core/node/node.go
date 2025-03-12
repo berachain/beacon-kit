@@ -46,7 +46,7 @@ type node struct {
 	logger log.Logger
 	// registry is the node's service registry.
 	registry *service.Registry
-	// shutdownTimeout is the maximum time we will wait for a clean shutdown before forcing an exit
+	// shutdownTimeout is the maximum time to wait for the node to gracefully shutdown before forcing an exit.
 	shutdownTimeout time.Duration
 }
 

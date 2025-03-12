@@ -62,7 +62,7 @@ func DefaultConfig() *Config {
 
 // Config is the main configuration struct for the BeaconKit chain.
 type Config struct {
-	// ShutdownTimeout is the maximum time to wait for the chain to gracefully shutdown before forcing an exit.
+	// ShutdownTimeout is the maximum time to wait for the node to gracefully shutdown before forcing an exit.
 	ShutdownTimeout time.Duration `mapstructure:"shutdown-timeout"`
 	// Engine is the configuration for the execution client.
 	Engine engineclient.Config `mapstructure:"engine"`

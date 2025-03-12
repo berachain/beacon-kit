@@ -26,8 +26,8 @@ const TomlTemplate = `
 ###############################################################################
 
 [beacon-kit]
-# ShutdownTimeout is the duration to wait for the application to gracefully
-# shutdown before killing the process.
+# ShutdownTimeout is the maximum time to wait for the node to gracefully
+# shutdown before forcing an exit.
 shutdown-timeout = "{{ .BeaconKit.ShutdownTimeout }}"
 
 [beacon-kit.engine]
