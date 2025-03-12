@@ -27,9 +27,8 @@ import (
 
 const (
 	// Beacon Kit Root Flag.
-	beaconKitRoot      = "beacon-kit."
-	BeaconKitAcceptTos = beaconKitRoot + "accept-tos"
-	ShutdownTimeout    = beaconKitRoot + "shutdown-timeout"
+	beaconKitRoot   = "beacon-kit."
+	ShutdownTimeout = beaconKitRoot + "shutdown-timeout"
 
 	// Builder Config.
 	builderRoot           = beaconKitRoot + "payload-builder."
