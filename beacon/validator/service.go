@@ -23,7 +23,6 @@ package validator
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 )
@@ -35,7 +34,7 @@ type Service struct {
 	// logger is a logger.
 	logger log.Logger
 	// chainSpec is the chain spec.
-	chainSpec chain.Spec
+	chainSpec ChainSpec
 	// signer is used to retrieve the public key of this node.
 	signer crypto.BLSSigner
 	// blobFactory is used to create blob sidecars for blocks.
@@ -57,7 +56,7 @@ type Service struct {
 func NewService(
 	cfg *Config,
 	logger log.Logger,
-	chainSpec chain.Spec,
+	chainSpec ChainSpec,
 	sb StorageBackend,
 	stateProcessor StateProcessor,
 	signer crypto.BLSSigner,

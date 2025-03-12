@@ -18,15 +18,10 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package server
+package encoding
 
-import (
-	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/node-api/handlers"
-)
-
-// Engine is a generic interface for an API engine.
-type Engine interface {
-	Run(addr string) error
-	RegisterRoutes(*handlers.RouteSet, log.Logger)
+// ABCIRequest represents the interface for an ABCI request.
+type ABCIRequest interface {
+	// GetTxs returns the transactions included in the request.
+	GetTxs() [][]byte
 }

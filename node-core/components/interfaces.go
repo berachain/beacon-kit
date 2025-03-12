@@ -22,9 +22,7 @@ package components
 
 import (
 	"context"
-	"encoding/json"
 
-	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
@@ -35,7 +33,6 @@ import (
 	configtypes "github.com/berachain/beacon-kit/node-api/handlers/config/types"
 	nodecoretypes "github.com/berachain/beacon-kit/node-core/types"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -44,9 +41,6 @@ import (
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/berachain/beacon-kit/storage/block"
 	depositdb "github.com/berachain/beacon-kit/storage/deposit"
-	v1 "github.com/cometbft/cometbft/api/cometbft/abci/v1"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	fastssz "github.com/ferranbt/fastssz"
 )
 
 type (
@@ -58,119 +52,6 @@ type (
 			timestamp uint64,
 			prevHeadRoot [32]byte,
 		) (*engineprimitives.PayloadAttributes, error)
-	}
-
-	ConsensusBlock interface {
-		GetBeaconBlock() *ctypes.BeaconBlock
-
-		// GetProposerAddress returns the address of the validator
-		// selected by consensus to propose the block
-		GetProposerAddress() []byte
-
-		// GetConsensusTime returns the timestamp of current consensus request.
-		// It is used to build next payload and to validate currentpayload.
-		GetConsensusTime() math.U64
-	}
-
-	// BeaconBlock represents a generic interface for a beacon block.
-	BeaconBlock[
-		T any,
-	] interface {
-		constraints.Nillable
-		constraints.Empty[T]
-		constraints.Versionable
-		constraints.SSZMarshallableRootable
-
-		NewFromSSZ([]byte, uint32) (T, error)
-		// NewWithVersion creates a new beacon block with the given parameters.
-		NewWithVersion(
-			slot math.Slot,
-			proposerIndex math.ValidatorIndex,
-			parentBlockRoot common.Root,
-			forkVersion uint32,
-		) (T, error)
-		// SetStateRoot sets the state root of the beacon block.
-		SetStateRoot(common.Root)
-		// GetProposerIndex returns the index of the proposer.
-		GetProposerIndex() math.ValidatorIndex
-		// GetSlot returns the slot number of the block.
-		GetSlot() math.Slot
-		// GetBody returns the body of the block.
-		GetBody() *ctypes.BeaconBlockBody
-		// GetHeader returns the header of the block.
-		GetHeader() *ctypes.BeaconBlockHeader
-		// GetParentBlockRoot returns the root of the parent block.
-		GetParentBlockRoot() common.Root
-		// GetStateRoot returns the state root of the block.
-		GetStateRoot() common.Root
-		// GetTimestamp returns the timestamp of the block from the execution
-		// payload.
-		GetTimestamp() math.U64
-	}
-
-	// BeaconBlockBody represents a generic interface for the body of a beacon
-	// block.
-	BeaconBlockBody[
-		T any,
-	] interface {
-		constraints.Nillable
-		constraints.EmptyWithVersion[T]
-		constraints.SSZMarshallableRootable
-		Length() uint64
-		GetTopLevelRoots() []common.Root
-		// GetRandaoReveal returns the RANDAO reveal signature.
-		GetRandaoReveal() crypto.BLSSignature
-		// GetExecutionPayload returns the execution payload.
-		GetExecutionPayload() *ctypes.ExecutionPayload
-		// GetDeposits returns the list of deposits.
-		GetDeposits() []*ctypes.Deposit
-		// GetBlobKzgCommitments returns the KZG commitments for the blobs.
-		GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
-		// SetRandaoReveal sets the Randao reveal of the beacon block body.
-		SetRandaoReveal(crypto.BLSSignature)
-		// SetEth1Data sets the Eth1 data of the beacon block body.
-		SetEth1Data(*ctypes.Eth1Data)
-		// SetDeposits sets the deposits of the beacon block body.
-		SetDeposits([]*ctypes.Deposit)
-		// SetExecutionPayload sets the execution data of the beacon block body.
-		SetExecutionPayload(*ctypes.ExecutionPayload)
-		// SetGraffiti sets the graffiti of the beacon block body.
-		SetGraffiti(common.Bytes32)
-		// SetAttestations sets the attestations of the beacon block body.
-		SetAttestations([]*ctypes.AttestationData)
-		// SetSlashingInfo sets the slashing info of the beacon block body.
-		SetSlashingInfo([]*ctypes.SlashingInfo)
-		// SetBlobKzgCommitments sets the blob KZG commitments of the beacon
-		// block body.
-		SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])
-	}
-
-	// BeaconStateMarshallable represents an interface for a beacon state
-	// with generic types.
-	BeaconStateMarshallable[
-		T any,
-	] interface {
-		constraints.SSZMarshallableRootable
-		GetTree() (*fastssz.Node, error)
-		// New returns a new instance of the BeaconStateMarshallable.
-		New(
-			forkVersion uint32,
-			genesisValidatorsRoot common.Root,
-			slot math.U64,
-			fork *ctypes.Fork,
-			latestBlockHeader *ctypes.BeaconBlockHeader,
-			blockRoots []common.Root,
-			stateRoots []common.Root,
-			eth1Data *ctypes.Eth1Data,
-			eth1DepositIndex uint64,
-			latestExecutionPayloadHeader *ctypes.ExecutionPayloadHeader,
-			validators []*ctypes.Validator,
-			balances []uint64,
-			randaoMixes []common.Bytes32,
-			nextWithdrawalIndex uint64,
-			nextWithdrawalValidatorIndex math.U64,
-			slashings []math.U64, totalSlashing math.U64,
-		) (T, error)
 	}
 
 	// BlobProcessor is the interface for the blobs processor.
@@ -189,78 +70,6 @@ type (
 			blkHeader *ctypes.BeaconBlockHeader,
 			kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],
 		) error
-	}
-
-	ConsensusSidecars interface {
-		GetSidecars() datypes.BlobSidecars
-		GetHeader() *ctypes.BeaconBlockHeader
-	}
-
-	ConsensusEngine interface {
-		PrepareProposal(
-			ctx sdk.Context, req *v1.PrepareProposalRequest,
-		) (*v1.PrepareProposalResponse, error)
-		ProcessProposal(
-			ctx sdk.Context, req *v1.ProcessProposalRequest,
-		) (*v1.ProcessProposalResponse, error)
-	}
-
-	// Deposit is the interface for a deposit.
-	Deposit[
-		T any,
-	] interface {
-		constraints.Empty[T]
-		constraints.SSZMarshallableRootable
-		// New creates a new deposit.
-		New(
-			crypto.BLSPubkey,
-			ctypes.WithdrawalCredentials,
-			math.U64,
-			crypto.BLSSignature,
-			uint64,
-		) T
-		// Equals returns true if the Deposit is equal to the other.
-		Equals(T) bool
-		// GetIndex returns the index of the deposit.
-		GetIndex() math.U64
-		// GetAmount returns the amount of the deposit.
-		GetAmount() math.Gwei
-		// GetPubkey returns the public key of the validator.
-		GetPubkey() crypto.BLSPubkey
-		// GetWithdrawalCredentials returns the withdrawal credentials.
-		GetWithdrawalCredentials() ctypes.WithdrawalCredentials
-		// HasEth1WithdrawalCredentials returns true if the deposit has eth1
-		// withdrawal credentials.
-		HasEth1WithdrawalCredentials() bool
-		// VerifySignature verifies the deposit and creates a validator.
-		VerifySignature(
-			forkData *ctypes.ForkData,
-			domainType common.DomainType,
-			signatureVerificationFn func(
-				pubkey crypto.BLSPubkey,
-				message []byte, signature crypto.BLSSignature,
-			) error,
-		) error
-	}
-
-	// Genesis is the interface for the genesis.
-	Genesis interface {
-		json.Unmarshaler
-		// GetForkVersion returns the fork version.
-		GetForkVersion() common.Version
-		// GetDeposits returns the deposits.
-		GetDeposits() []*ctypes.Deposit
-		// GetExecutionPayloadHeader returns the execution payload header.
-		GetExecutionPayloadHeader() *ctypes.ExecutionPayloadHeader
-	}
-
-	// IndexDB is the interface for the range DB.
-	IndexDB interface {
-		Has(index uint64, key []byte) (bool, error)
-		Get(index uint64, key []byte) ([]byte, error)
-		Set(index uint64, key []byte, value []byte) error
-		Prune(start uint64, end uint64) error
-		GetByIndex(index uint64) ([][]byte, error)
 	}
 
 	// LocalBuilder is the interface for the builder service.
@@ -700,7 +509,6 @@ type (
 
 	NodeAPIBackend interface {
 		AttachQueryBackend(node nodecoretypes.ConsensusService)
-		ChainSpec() chain.Spec
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		GetSlotByStateRoot(root common.Root) (math.Slot, error)
 		GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)

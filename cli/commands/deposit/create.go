@@ -23,7 +23,6 @@ package deposit
 import (
 	"fmt"
 
-	"github.com/berachain/beacon-kit/chain"
 	clicontext "github.com/berachain/beacon-kit/cli/context"
 	"github.com/berachain/beacon-kit/cli/utils/parser"
 	"github.com/berachain/beacon-kit/consensus-types/types"
@@ -57,7 +56,7 @@ const (
 //
 //nolint:lll // Reads better if long description is one line.
 func GetCreateValidatorCmd(
-	chainSpec chain.Spec,
+	chainSpec ChainSpec,
 ) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-validator [withdrawal-address] [amount] ?[beacond/genesis.json]",
@@ -90,7 +89,7 @@ func GetCreateValidatorCmd(
 
 // createValidatorCmd returns a command that builds a create validator request.
 func createValidatorCmd(
-	chainSpec chain.Spec,
+	chainSpec ChainSpec,
 ) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		// Get the BLS signer.
@@ -135,7 +134,7 @@ func createValidatorCmd(
 }
 
 func CreateDepositMessage(
-	cs chain.Spec,
+	cs ChainSpec,
 	blsSigner crypto.BLSSigner,
 	genValRoot common.Root,
 	creds types.WithdrawalCredentials,

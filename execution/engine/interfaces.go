@@ -18,23 +18,11 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package attributes
+package engine
 
-import (
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
-	"github.com/berachain/beacon-kit/primitives/common"
-)
-
-// PayloadAttributes is the interface for the payload attributes.
-type PayloadAttributes[SelfT any] interface {
-	engineprimitives.PayloadAttributer
-	// New creates a new payload attributes instance.
-	New(
-		uint32,
-		uint64,
-		common.Bytes32,
-		common.ExecutionAddress,
-		engineprimitives.Withdrawals,
-		common.Root,
-	) (SelfT, error)
+// TelemetrySink is an interface for sending metrics to a telemetry backend.
+type TelemetrySink interface {
+	// IncrementCounter increments a counter metric identified by the provided
+	// keys.
+	IncrementCounter(key string, args ...string)
 }
