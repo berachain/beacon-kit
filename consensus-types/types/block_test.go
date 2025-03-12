@@ -96,6 +96,8 @@ func TestBeaconBlockForDeneb(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, block)
 	require.Equal(t, deneb1, block.GetForkVersion())
+	require.Equal(t, deneb1, block.GetBody().GetForkVersion())
+	require.Equal(t, deneb1, block.GetBody().GetExecutionPayload().GetForkVersion())
 }
 
 func TestBeaconBlock(t *testing.T) {
