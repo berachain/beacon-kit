@@ -21,8 +21,6 @@
 package beacondb
 
 import (
-	"fmt"
-
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
@@ -61,7 +59,6 @@ func (kv *KVStore) SetSlot(
 // GetGenesisTime retrieves the genesis time from the beacon state.
 func (kv *KVStore) GetGenesisTime() (math.U64, error) {
 	time, err := kv.genesisTime.Get(kv.ctx)
-	fmt.Println("time in getGenesisTime in kv store", time)
 	return math.U64(time), err
 }
 
@@ -69,6 +66,5 @@ func (kv *KVStore) GetGenesisTime() (math.U64, error) {
 func (kv *KVStore) SetGenesisTime(
 	time math.U64,
 ) error {
-	fmt.Println("time in setGenesisTime in kv store", time)
 	return kv.genesisTime.Set(kv.ctx, time.Unwrap())
 }

@@ -121,7 +121,6 @@ func (sp *StateProcessor) InitializePreminedBeaconStateFromEth1(
 	}
 
 	genesisTime := execPayloadHeader.GetTimestamp()
-	fmt.Println("genesisTime in state processor genesis", genesisTime)
 	if err = st.SetGenesisTime(genesisTime); err != nil {
 		return nil, err
 	}

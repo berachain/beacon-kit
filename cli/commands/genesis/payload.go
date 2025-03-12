@@ -86,6 +86,8 @@ func AddExecutionPayload(chainSpec chain.Spec, elGenesisPath string, config *cmt
 		return errors.Wrap(err, "failed to read genesis doc from file")
 	}
 
+	//#nosec:G115 // genesis time won't ever be negative i.e. before Unix epoch (1970-01-01)
+	// Set the genesis time from app Genesis in the execution payload which gets converted to ExecutionPayloadHeader.
 	payload.Timestamp = uint64(appGenesis.GenesisTime.Unix())
 
 	// create the app state

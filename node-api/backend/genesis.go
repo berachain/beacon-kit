@@ -21,8 +21,6 @@
 package backend
 
 import (
-	"fmt"
-
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -58,7 +56,6 @@ func (b Backend) GenesisTime(genesisSlot math.Slot) (math.U64, error) {
 		return 0, errors.Wrapf(err, "failed to get state from slot %d", genesisSlot)
 	}
 	genesisTime, err := st.GetGenesisTime()
-	fmt.Println("genesisTime in backend", genesisTime)
 	if err != nil {
 		return 0, errors.Wrapf(err, "failed to get genesis time from state")
 	}
