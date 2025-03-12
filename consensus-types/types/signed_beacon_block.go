@@ -63,7 +63,7 @@ func NewSignedBeaconBlockFromSSZ(
 		EnsureNotNilWithdrawals(block.Message.Body.ExecutionPayload)
 
 		// duly setup fork version in every relevant block member
-		block.Message.Body.ExecutionPayload.EpVersion = forkVersion
+		block.Message.Body.ExecutionPayload.forkVersion = forkVersion
 		block.Message.forkVersion = forkVersion
 		block.Message.Body.forkVersion = forkVersion
 		return block, nil

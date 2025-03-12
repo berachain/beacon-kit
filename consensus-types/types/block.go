@@ -74,7 +74,7 @@ func NewBeaconBlockWithVersion(
 			StateRoot:     common.Root{},
 			Body: &BeaconBlockBody{
 				forkVersion:      forkVersion,
-				ExecutionPayload: &ExecutionPayload{EpVersion: forkVersion},
+				ExecutionPayload: &ExecutionPayload{forkVersion: forkVersion},
 			},
 			forkVersion: forkVersion,
 		}, nil

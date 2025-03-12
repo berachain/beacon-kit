@@ -86,6 +86,7 @@ func TestSidecarMarshalling(t *testing.T) {
 	)
 }
 
+// TODO: Update to take in version
 func generateValidBeaconBlock(t *testing.T) *ctypes.BeaconBlock {
 	t.Helper()
 
@@ -114,7 +115,6 @@ func generateValidBeaconBlock(t *testing.T) *ctypes.BeaconBlock {
 				{Index: 1, Amount: 200},
 			},
 			BaseFeePerGas: math.NewU256(0),
-			EpVersion:     deneb1,
 		},
 		Eth1Data: &ctypes.Eth1Data{},
 		Deposits: []*ctypes.Deposit{
@@ -126,8 +126,8 @@ func generateValidBeaconBlock(t *testing.T) *ctypes.BeaconBlock {
 			{0xab, 0xab, 0xab, 0xab, 0xab, 0xab, 0xab, 0xab}, {2}, {0x69},
 		},
 	}
-
 	body := beaconBlock.GetBody()
+	body.GetExecutionPayload().SetForkVersion(deneb1)
 	body.SetProposerSlashings(ctypes.ProposerSlashings{})
 	body.SetAttesterSlashings(ctypes.AttesterSlashings{})
 	body.SetAttestations(ctypes.Attestations{})

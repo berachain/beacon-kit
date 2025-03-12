@@ -66,8 +66,8 @@ func generateExecutionPayload() *types.ExecutionPayload {
 		Withdrawals:   withdrawals,
 		BlobGasUsed:   math.U64(0),
 		ExcessBlobGas: math.U64(0),
-		EpVersion:     version.Deneb1(),
 	}
+	ep.SetForkVersion(version.Deneb1())
 	return ep
 }
 
@@ -83,7 +83,7 @@ func TestExecutionPayload_Serialization(t *testing.T) {
 	err = unmarshalled.UnmarshalSSZ(data)
 	require.NoError(t, err)
 
-	unmarshalled.EpVersion = original.GetForkVersion()
+	unmarshalled.SetForkVersion(original.GetForkVersion())
 	require.Equal(t, original, &unmarshalled)
 
 	var buf []byte
@@ -171,7 +171,7 @@ func TestExecutionPayload_MarshalJSON(t *testing.T) {
 	err = unmarshalled.UnmarshalJSON(data)
 	require.NoError(t, err)
 
-	unmarshalled.EpVersion = payload.GetForkVersion()
+	unmarshalled.SetForkVersion(payload.GetForkVersion())
 	require.Equal(t, payload, &unmarshalled)
 }
 
@@ -231,9 +231,8 @@ func TestExecutionPayload_ToHeader(t *testing.T) {
 		Withdrawals:   engineprimitives.Withdrawals{},
 		BlobGasUsed:   math.U64(0),
 		ExcessBlobGas: math.U64(0),
-		EpVersion:     version.Deneb1(),
 	}
-
+	payload.SetForkVersion(version.Deneb1())
 	header, err := payload.ToHeader()
 	require.NoError(t, err)
 	require.NotNil(t, header)

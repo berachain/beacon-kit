@@ -66,9 +66,9 @@ func (sp *StateProcessor) InitializePreminedBeaconStateFromEth1(
 		Eth1Data: &ctypes.Eth1Data{},
 		ExecutionPayload: &ctypes.ExecutionPayload{
 			ExtraData: make([]byte, ctypes.ExtraDataSize),
-			EpVersion: version.Genesis(),
 		},
 	}
+	blkBody.ExecutionPayload.SetForkVersion(version.Genesis())
 
 	blkHeader := &ctypes.BeaconBlockHeader{
 		Slot:            constants.GenesisSlot,

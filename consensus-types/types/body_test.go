@@ -44,11 +44,11 @@ func generateBeaconBlockBody(version common.Version) types.BeaconBlockBody {
 		Deposits:     []*types.Deposit{},
 		ExecutionPayload: &types.ExecutionPayload{
 			BaseFeePerGas: math.NewU256(0),
-			EpVersion:     version,
 		},
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
 	body.SetVersion(version)
+	body.GetExecutionPayload().SetForkVersion(version)
 	body.SetProposerSlashings(types.ProposerSlashings{})
 	body.SetAttesterSlashings(types.AttesterSlashings{})
 	body.SetAttestations(types.Attestations{})
