@@ -24,9 +24,6 @@ import (
 	"time"
 )
 
-// ChainSpec represents a chain spec. Currently unused but may be used with new forks
-type ChainSpec interface{}
-
 // TelemetrySink is an interface for sending metrics to a telemetry backend.
 type TelemetrySink interface {
 	// MeasureSince measures the time since the provided start time,
