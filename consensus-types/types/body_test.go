@@ -47,7 +47,7 @@ func generateBeaconBlockBody(version common.Version) types.BeaconBlockBody {
 		},
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
-	body.SetVersion(version)
+	body.SetForkVersion(version)
 	body.GetExecutionPayload().SetForkVersion(version)
 	body.SetProposerSlashings(types.ProposerSlashings{})
 	body.SetAttesterSlashings(types.AttesterSlashings{})
@@ -296,7 +296,7 @@ func TestBeaconBlockBody_RoundTrip_HashTreeRoot(t *testing.T) {
 
 			unmarshalledBody := &types.BeaconBlockBody{}
 			// We must set the version first for correct marshalling
-			unmarshalledBody.SetVersion(v)
+			unmarshalledBody.SetForkVersion(v)
 			err = unmarshalledBody.UnmarshalSSZ(data, v)
 			require.NoError(t, err)
 			require.Equal(t, body.HashTreeRoot(), unmarshalledBody.HashTreeRoot())
