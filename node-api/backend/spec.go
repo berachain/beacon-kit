@@ -26,16 +26,15 @@ import (
 )
 
 func (b *Backend) Spec() (*types.SpecData, error) {
-	chainSpec := b.ChainSpec()
-	if chainSpec == nil {
+	if b.cs == nil {
 		return nil, errors.New("chain spec not found")
 	}
 	return &types.SpecData{
-		DepositContractAddress: chainSpec.DepositContractAddress(),
+		DepositContractAddress: b.cs.DepositContractAddress(),
 		// Network ID is same as eth1 chain ID.
-		DepositNetworkID:                chainSpec.DepositEth1ChainID(),
-		DomainAggregateAndProof:         chainSpec.DomainTypeAggregateAndProof(),
-		InactivityPenaltyQuotient:       chainSpec.InactivityPenaltyQuotient(),
-		InactivityPenaltyQuotientAltair: chainSpec.InactivityPenaltyQuotientAltair(),
+		DepositNetworkID:                b.cs.DepositEth1ChainID(),
+		DomainAggregateAndProof:         b.cs.DomainTypeAggregateAndProof(),
+		InactivityPenaltyQuotient:       b.cs.InactivityPenaltyQuotient(),
+		InactivityPenaltyQuotientAltair: b.cs.InactivityPenaltyQuotientAltair(),
 	}, nil
 }
