@@ -135,8 +135,8 @@ func transformExecutableDataToExecutionPayload(forkVersion libcommon.Version, da
 		Transactions:  data.Transactions,
 		BlobGasUsed:   math.U64(blobGasUsed),
 		ExcessBlobGas: math.U64(excessBlobGas),
-		forkVersion:   forkVersion,
 	}
+	executionPayload.SetForkVersion(forkVersion)
 	return executionPayload, nil
 }
 
