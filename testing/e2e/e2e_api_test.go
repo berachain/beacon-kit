@@ -744,7 +744,6 @@ func (s *BeaconKitE2ESuite) TestConfigSpec() {
 
 	specData := resp.Data
 	s.Require().NotNil(specData)
-	fmt.Println("spec: ", specData)
 
 	// TODO: make test use configurable chain spec.
 	chainspec, err := spec.DevnetChainSpec()
@@ -752,7 +751,8 @@ func (s *BeaconKitE2ESuite) TestConfigSpec() {
 
 	// Verify essential config parameters exist and have expected types
 	s.Require().Contains(specData, "DEPOSIT_CONTRACT_ADDRESS")
-	addressBytes := specData["DEPOSIT_CONTRACT_ADDRESS"].([]byte)
+	addressBytes, ok := specData["DEPOSIT_CONTRACT_ADDRESS"].([]byte)
+	s.Require().True(ok, "DEPOSIT_CONTRACT_ADDRESS should be a byte array")
 	var executionAddress common.Address
 	copy(executionAddress[:], addressBytes)
 
