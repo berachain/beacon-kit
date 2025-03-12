@@ -150,6 +150,7 @@ func TestBeaconBlockBody_GetTopLevelRoots(t *testing.T) {
 	t.Parallel()
 	for _, v := range version.GetSupportedVersions() {
 		t.Run(v.String(), func(t *testing.T) {
+			t.Parallel()
 			body := generateBeaconBlockBody(v)
 			roots := body.GetTopLevelRoots()
 			require.NotNil(t, roots)
@@ -167,101 +168,127 @@ func TestBeaconBlockBody_Empty(t *testing.T) {
 // enforcing that it's unused.
 func TestBeaconBlockBody_UnusedProposerSlashingsEnforcement(t *testing.T) {
 	t.Parallel()
-	blockBody := types.BeaconBlockBody{}
-	unused := types.UnusedType(1)
-	blockBody.SetProposerSlashings(types.ProposerSlashings{&unused})
-	_, err := blockBody.MarshalSSZ()
-	require.Error(t, err)
+	for _, v := range version.GetSupportedVersions() {
+		t.Run(v.String(), func(t *testing.T) {
+			t.Parallel()
+			blockBody := types.BeaconBlockBody{}
+			unused := types.UnusedType(1)
+			blockBody.SetProposerSlashings(types.ProposerSlashings{&unused})
+			_, err := blockBody.MarshalSSZ()
+			require.Error(t, err)
 
-	buf := make([]byte, ssz.Size(&blockBody))
-	err = ssz.EncodeToBytes(buf, &blockBody)
-	require.NoError(t, err)
+			buf := make([]byte, ssz.Size(&blockBody))
+			err = ssz.EncodeToBytes(buf, &blockBody)
+			require.NoError(t, err)
 
-	unmarshalledBody := &types.BeaconBlockBody{}
-	err = unmarshalledBody.UnmarshalSSZ(buf)
-	require.ErrorContains(t, err, "must be unused")
+			unmarshalledBody := &types.BeaconBlockBody{}
+			err = unmarshalledBody.UnmarshalSSZ(buf, v)
+			require.ErrorContains(t, err, "must be unused")
+		})
+	}
 }
 
 // Ensure that the AttesterSlashings field cannot be unmarshaled with data in it,
 // enforcing that it's unused.
 func TestBeaconBlockBody_UnusedAttesterSlashingsEnforcement(t *testing.T) {
 	t.Parallel()
-	blockBody := types.BeaconBlockBody{}
-	unused := types.UnusedType(1)
-	blockBody.SetAttesterSlashings(types.AttesterSlashings{&unused})
-	_, err := blockBody.MarshalSSZ()
-	require.Error(t, err)
+	for _, v := range version.GetSupportedVersions() {
+		t.Run(v.String(), func(t *testing.T) {
+			t.Parallel()
+			blockBody := types.BeaconBlockBody{}
+			unused := types.UnusedType(1)
+			blockBody.SetAttesterSlashings(types.AttesterSlashings{&unused})
+			_, err := blockBody.MarshalSSZ()
+			require.Error(t, err)
 
-	buf := make([]byte, ssz.Size(&blockBody))
-	err = ssz.EncodeToBytes(buf, &blockBody)
-	require.NoError(t, err)
+			buf := make([]byte, ssz.Size(&blockBody))
+			err = ssz.EncodeToBytes(buf, &blockBody)
+			require.NoError(t, err)
 
-	unmarshalledBody := &types.BeaconBlockBody{}
-	err = unmarshalledBody.UnmarshalSSZ(buf)
-	require.ErrorContains(t, err, "must be unused")
+			unmarshalledBody := &types.BeaconBlockBody{}
+			err = unmarshalledBody.UnmarshalSSZ(buf, v)
+			require.ErrorContains(t, err, "must be unused")
+		})
+	}
 }
 
 // Ensure that the Attestations field cannot be unmarshaled with data in it,
 // enforcing that it's unused.
 func TestBeaconBlockBody_UnusedAttestationsEnforcement(t *testing.T) {
 	t.Parallel()
-	blockBody := types.BeaconBlockBody{}
-	unused := types.UnusedType(1)
-	blockBody.SetAttestations(types.Attestations{&unused})
-	_, err := blockBody.MarshalSSZ()
-	require.Error(t, err)
+	for _, v := range version.GetSupportedVersions() {
+		t.Run(v.String(), func(t *testing.T) {
+			t.Parallel()
+			blockBody := types.BeaconBlockBody{}
+			unused := types.UnusedType(1)
+			blockBody.SetAttestations(types.Attestations{&unused})
+			_, err := blockBody.MarshalSSZ()
+			require.Error(t, err)
 
-	buf := make([]byte, ssz.Size(&blockBody))
-	err = ssz.EncodeToBytes(buf, &blockBody)
-	require.NoError(t, err)
+			buf := make([]byte, ssz.Size(&blockBody))
+			err = ssz.EncodeToBytes(buf, &blockBody)
+			require.NoError(t, err)
 
-	unmarshalledBody := &types.BeaconBlockBody{}
-	err = unmarshalledBody.UnmarshalSSZ(buf)
-	require.ErrorContains(t, err, "must be unused")
+			unmarshalledBody := &types.BeaconBlockBody{}
+			err = unmarshalledBody.UnmarshalSSZ(buf, v)
+			require.ErrorContains(t, err, "must be unused")
+		})
+	}
 }
 
 // Ensure that the VoluntaryExits field cannot be unmarshaled with data in it,
 // enforcing that it's unused.
 func TestBeaconBlockBody_UnusedVoluntaryExitsEnforcement(t *testing.T) {
 	t.Parallel()
-	blockBody := types.BeaconBlockBody{}
-	unused := types.UnusedType(1)
-	blockBody.SetVoluntaryExits(types.VoluntaryExits{&unused})
-	_, err := blockBody.MarshalSSZ()
-	require.Error(t, err)
+	for _, v := range version.GetSupportedVersions() {
+		t.Run(v.String(), func(t *testing.T) {
+			t.Parallel()
+			blockBody := types.BeaconBlockBody{}
+			unused := types.UnusedType(1)
+			blockBody.SetVoluntaryExits(types.VoluntaryExits{&unused})
+			_, err := blockBody.MarshalSSZ()
+			require.Error(t, err)
 
-	buf := make([]byte, ssz.Size(&blockBody))
-	err = ssz.EncodeToBytes(buf, &blockBody)
-	require.NoError(t, err)
+			buf := make([]byte, ssz.Size(&blockBody))
+			err = ssz.EncodeToBytes(buf, &blockBody)
+			require.NoError(t, err)
 
-	unmarshalledBody := &types.BeaconBlockBody{}
-	err = unmarshalledBody.UnmarshalSSZ(buf)
-	require.ErrorContains(t, err, "must be unused")
+			unmarshalledBody := &types.BeaconBlockBody{}
+			err = unmarshalledBody.UnmarshalSSZ(buf, v)
+			require.ErrorContains(t, err, "must be unused")
+		})
+	}
 }
 
 // Ensure that the BlsToExecutionChanges field cannot be unmarshaled with data in it,
 // enforcing that it's unused.
 func TestBeaconBlockBody_UnusedBlsToExecutionChangesEnforcement(t *testing.T) {
 	t.Parallel()
-	blockBody := types.BeaconBlockBody{}
-	unused := types.UnusedType(1)
-	blockBody.SetBlsToExecutionChanges(types.BlsToExecutionChanges{&unused})
-	_, err := blockBody.MarshalSSZ()
-	require.Error(t, err)
+	for _, v := range version.GetSupportedVersions() {
+		t.Run(v.String(), func(t *testing.T) {
+			t.Parallel()
+			blockBody := types.BeaconBlockBody{}
+			unused := types.UnusedType(1)
+			blockBody.SetBlsToExecutionChanges(types.BlsToExecutionChanges{&unused})
+			_, err := blockBody.MarshalSSZ()
+			require.Error(t, err)
 
-	buf := make([]byte, ssz.Size(&blockBody))
-	err = ssz.EncodeToBytes(buf, &blockBody)
-	require.NoError(t, err)
+			buf := make([]byte, ssz.Size(&blockBody))
+			err = ssz.EncodeToBytes(buf, &blockBody)
+			require.NoError(t, err)
 
-	unmarshalledBody := &types.BeaconBlockBody{}
-	err = unmarshalledBody.UnmarshalSSZ(buf)
-	require.ErrorContains(t, err, "must be unused")
+			unmarshalledBody := &types.BeaconBlockBody{}
+			err = unmarshalledBody.UnmarshalSSZ(buf, v)
+			require.ErrorContains(t, err, "must be unused")
+		})
+	}
 }
 
 func TestBeaconBlockBody_RoundTrip_HashTreeRoot(t *testing.T) {
 	t.Parallel()
 	for _, v := range version.GetSupportedVersions() {
 		t.Run(v.String(), func(t *testing.T) {
+			t.Parallel()
 			body := generateBeaconBlockBody(v)
 			data, err := body.MarshalSSZ()
 			require.NoError(t, err)
@@ -270,7 +297,7 @@ func TestBeaconBlockBody_RoundTrip_HashTreeRoot(t *testing.T) {
 			unmarshalledBody := &types.BeaconBlockBody{}
 			// We must set the version first for correct marshalling
 			unmarshalledBody.SetVersion(v)
-			err = unmarshalledBody.UnmarshalSSZ(data)
+			err = unmarshalledBody.UnmarshalSSZ(data, v)
 			require.NoError(t, err)
 			require.Equal(t, body.HashTreeRoot(), unmarshalledBody.HashTreeRoot())
 		})
@@ -342,9 +369,7 @@ func TestBeaconBlockBody_ExecutionRequests(t *testing.T) {
 	require.NotNil(t, data)
 
 	unmarshalledBody := &types.BeaconBlockBody{}
-	// We must set the body version before unmarshalling.
-	unmarshalledBody.SetVersion(body.Version())
-	err = unmarshalledBody.UnmarshalSSZ(data)
+	err = unmarshalledBody.UnmarshalSSZ(data, body.Version())
 	require.NoError(t, err)
 	require.NotNil(t, unmarshalledBody.ExecutionRequests)
 	require.Equal(t, body.HashTreeRoot(), unmarshalledBody.HashTreeRoot())

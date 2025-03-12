@@ -34,16 +34,15 @@ import (
 )
 
 // generateValidBeaconBlock generates a valid beacon block for the Deneb.
-func generateValidBeaconBlock(t *testing.T) *types.BeaconBlock {
+func generateValidBeaconBlock(t *testing.T, version common.Version) *types.BeaconBlock {
 	t.Helper()
 
 	// Initialize your block here
-	deneb1 := version.Deneb1()
 	beaconBlock, err := types.NewBeaconBlockWithVersion(
 		math.Slot(10),
 		math.ValidatorIndex(5),
 		common.Root{1, 2, 3, 4, 5}, // parent block root
-		deneb1,
+		version,
 	)
 	require.NoError(t, err)
 
@@ -76,7 +75,7 @@ func generateValidBeaconBlock(t *testing.T) *types.BeaconBlock {
 	}
 
 	body := beaconBlock.GetBody()
-	body.SetVersion(beaconBlock.BbVersion)
+	body.SetVersion(beaconBlock.GetForkVersion())
 	body.SetProposerSlashings(types.ProposerSlashings{})
 	body.SetAttesterSlashings(types.AttesterSlashings{})
 	body.SetAttestations(types.Attestations{})
@@ -97,56 +96,71 @@ func TestBeaconBlockForDeneb(t *testing.T) {
 	)
 	require.NoError(t, err)
 	require.NotNil(t, block)
-	require.Equal(t, deneb1, block.Version())
+	require.Equal(t, deneb1, block.GetForkVersion())
 }
 
 func TestBeaconBlock(t *testing.T) {
 	t.Parallel()
-	block := generateValidBeaconBlock(t)
+	for _, v := range version.GetSupportedVersions() {
+		t.Run(v.String(), func(t *testing.T) {
+			t.Parallel()
+			block := generateValidBeaconBlock(t, v)
 
-	require.NotNil(t, block.Body)
-	require.Equal(t, math.U64(10), block.GetTimestamp())
-	require.Equal(t, version.Deneb1(), block.Version())
-	require.False(t, block.IsNil())
+			require.NotNil(t, block.Body)
+			require.Equal(t, math.U64(10), block.GetTimestamp())
+			require.Equal(t, v, block.GetForkVersion())
+			require.False(t, block.IsNil())
 
-	// Set a new state root and test the SetStateRoot and GetBody methods
-	newStateRoot := [32]byte{1, 1, 1, 1, 1}
-	block.SetStateRoot(newStateRoot)
-	require.Equal(t, newStateRoot, [32]byte(block.StateRoot))
+			// Set a new state root and test the SetStateRoot and GetBody methods
+			newStateRoot := [32]byte{1, 1, 1, 1, 1}
+			block.SetStateRoot(newStateRoot)
+			require.Equal(t, newStateRoot, [32]byte(block.StateRoot))
 
-	// Test the GetHeader method
-	header := block.GetHeader()
-	require.NotNil(t, header)
-	require.Equal(t, block.Slot, header.Slot)
-	require.Equal(t, block.ProposerIndex, header.ProposerIndex)
-	require.Equal(t, block.ParentRoot, header.ParentBlockRoot)
-	require.Equal(t, block.StateRoot, header.StateRoot)
-	require.Equal(t, newStateRoot, [32]byte(block.GetStateRoot()))
+			// Test the GetHeader method
+			header := block.GetHeader()
+			require.NotNil(t, header)
+			require.Equal(t, block.Slot, header.Slot)
+			require.Equal(t, block.ProposerIndex, header.ProposerIndex)
+			require.Equal(t, block.ParentRoot, header.ParentBlockRoot)
+			require.Equal(t, block.StateRoot, header.StateRoot)
+			require.Equal(t, newStateRoot, [32]byte(block.GetStateRoot()))
+		})
+	}
 }
 
 func TestBeaconBlock_MarshalUnmarshalSSZ(t *testing.T) {
 	t.Parallel()
-	block := *generateValidBeaconBlock(t)
+	for _, v := range version.GetSupportedVersions() {
+		t.Run(v.String(), func(t *testing.T) {
+			t.Parallel()
+			block := *generateValidBeaconBlock(t, v)
 
-	sszBlock, err := block.MarshalSSZ()
-	require.NoError(t, err)
-	require.NotNil(t, sszBlock)
+			sszBlock, err := block.MarshalSSZ()
+			require.NoError(t, err)
+			require.NotNil(t, sszBlock)
 
-	var unmarshalledBlock types.BeaconBlock
-	err = unmarshalledBlock.UnmarshalSSZ(sszBlock)
-	require.NoError(t, err)
+			var unmarshalledBlock types.BeaconBlock
+			err = unmarshalledBlock.UnmarshalSSZ(sszBlock)
+			require.NoError(t, err)
 
-	unmarshalledBlock.Body.ExecutionPayload.EpVersion = block.Version()
-	unmarshalledBlock.Body.SetVersion(block.Version())
-	unmarshalledBlock.BbVersion = block.Version()
-	require.Equal(t, block, unmarshalledBlock)
+			unmarshalledBlock.Body.ExecutionPayload.EpVersion = block.GetForkVersion()
+			unmarshalledBlock.Body.SetVersion(block.GetForkVersion())
+			unmarshalledBlock.SetForkVersion(block.GetForkVersion())
+			require.Equal(t, block, unmarshalledBlock)
+		})
+	}
 }
 
 func TestBeaconBlock_HashTreeRoot(t *testing.T) {
 	t.Parallel()
-	block := generateValidBeaconBlock(t)
-	hashRoot := block.HashTreeRoot()
-	require.NotNil(t, hashRoot)
+	for _, v := range version.GetSupportedVersions() {
+		t.Run(v.String(), func(t *testing.T) {
+			t.Parallel()
+			block := generateValidBeaconBlock(t, v)
+			hashRoot := block.HashTreeRoot()
+			require.NotNil(t, hashRoot)
+		})
+	}
 }
 
 func TestBeaconBlock_IsNil(t *testing.T) {
@@ -175,7 +189,7 @@ func TestNewWithVersion(t *testing.T) {
 			require.Equal(t, slot, block.GetSlot())
 			require.Equal(t, proposerIndex, block.GetProposerIndex())
 			require.Equal(t, parentBlockRoot, block.GetParentBlockRoot())
-			require.Equal(t, v, block.Version())
+			require.Equal(t, v, block.GetForkVersion())
 		})
 	}
 }

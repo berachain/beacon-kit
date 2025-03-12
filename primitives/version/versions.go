@@ -28,6 +28,8 @@ import (
 //
 //nolint:gochecknoglobals // Kept as private to avoid modification of these variables at runtime.
 var (
+	// empty is the empty version bytes
+	empty = common.Version{0x00, 0x00, 0x00, 0x00}
 	// phase0 is the first version of the Beacon Chain.
 	phase0 = common.Version{0x00, 0x00, 0x00, 0x00}
 	// altair is the first hardfork of the Beacon Chain.
@@ -56,6 +58,11 @@ var supportedVersions = []common.Version{
 
 func GetSupportedVersions() []common.Version {
 	return supportedVersions
+}
+
+// Empty returns the version nil value
+func Empty() common.Version {
+	return empty
 }
 
 // Genesis returns the fork version for the genesis of Berachain mainnet, which is Deneb.

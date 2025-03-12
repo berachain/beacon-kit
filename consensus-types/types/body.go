@@ -183,10 +183,8 @@ func (b *BeaconBlockBody) MarshalSSZ() ([]byte, error) {
 }
 
 // UnmarshalSSZ deserializes the BeaconBlockBody from SSZ-encoded bytes.
-func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte) error {
-	// if b.forkVersion == version.Empty() {
-	//	return errors.New("fork version is required")
-	//}
+func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte, version common.Version) error {
+	b.SetVersion(version)
 	err := ssz.DecodeFromBytes(buf, b)
 	if err != nil {
 		return err
