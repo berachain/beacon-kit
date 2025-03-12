@@ -26,7 +26,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 	fastssz "github.com/ferranbt/fastssz"
 	"github.com/holiman/uint256"
 	"github.com/karalabe/ssz"
@@ -75,10 +74,10 @@ type ExecutionPayloadHeader struct {
 }
 
 // Empty returns an empty ExecutionPayloadHeader.
-func (h *ExecutionPayloadHeader) Empty() *ExecutionPayloadHeader {
+func (h *ExecutionPayloadHeader) Empty(version common.Version) *ExecutionPayloadHeader {
 	return &ExecutionPayloadHeader{
 		// By default, we set the version to Deneb to maintain compatibility.
-		forkVersion:   version.Deneb(),
+		forkVersion:   version,
 		BaseFeePerGas: &uint256.Int{},
 	}
 }
@@ -87,20 +86,22 @@ func (h *ExecutionPayloadHeader) Empty() *ExecutionPayloadHeader {
 func (h *ExecutionPayloadHeader) NewFromSSZ(
 	bz []byte, forkVersion common.Version,
 ) (*ExecutionPayloadHeader, error) {
-	h = h.Empty()
-	h.forkVersion = forkVersion
-	return h, h.UnmarshalSSZ(bz)
+	h = h.Empty(forkVersion)
+	err := h.UnmarshalSSZ(bz)
+	if err != nil {
+		return nil, err
+	}
+	return h, nil
 }
 
 // NewFromJSON returns a new ExecutionPayloadHeader from the given JSON bytes.
 func (h *ExecutionPayloadHeader) NewFromJSON(
 	bz []byte, forkVersion common.Version,
 ) (*ExecutionPayloadHeader, error) {
-	h = h.Empty()
+	h = h.Empty(forkVersion)
 	if err := json.Unmarshal(bz, h); err != nil {
 		return nil, err
 	}
-	h.forkVersion = forkVersion
 	return h, nil
 }
 

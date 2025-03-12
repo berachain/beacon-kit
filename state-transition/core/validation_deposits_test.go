@@ -60,7 +60,7 @@ func TestInvalidDeposits(t *testing.T) {
 				Index:       0,
 			},
 		}
-		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty(version.Deneb())
 		genVersion       = version.Genesis()
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
@@ -124,7 +124,7 @@ func TestInvalidDepositsCount(t *testing.T) {
 				Index:       0,
 			},
 		}
-		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty(version.Deneb())
 		genVersion       = version.Deneb()
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
@@ -191,7 +191,7 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 				Index:       0,
 			},
 		}
-		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty(version.Deneb())
 		genVersion       = version.Deneb()
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
@@ -258,7 +258,7 @@ func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
 				Index:       0,
 			},
 		}
-		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty(version.Deneb())
 		genVersion       = version.Deneb()
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))

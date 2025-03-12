@@ -75,7 +75,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 				Index:       uint64(2),
 			},
 		}
-		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty(version.Deneb())
 		genVersion       = version.Deneb()
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
@@ -195,7 +195,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 				Index:       uint64(0),
 			},
 		}
-		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty(version.Deneb())
 		genVersion       = version.Deneb()
 	)
 
@@ -369,7 +369,7 @@ func TestTransitionWithdrawals(t *testing.T) {
 				Index:       1,
 			},
 		}
-		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty(version.Deneb())
 		genVersion       = version.Deneb()
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
@@ -452,7 +452,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 				Index:       1,
 			},
 		}
-		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty(version.Deneb())
 		genVersion       = version.Deneb()
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
@@ -564,7 +564,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	// TODO: consider instead setting state artificially
 	var (
 		genDeposits      = make(types.Deposits, 0, cs.ValidatorSetCap())
-		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty(version.Deneb())
 		genVersion       = version.Deneb()
 	)
 
@@ -779,7 +779,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	// TODO: consider instead setting state artificially
 	var (
 		genDeposits      = make(types.Deposits, 0, cs.ValidatorSetCap())
-		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty(version.Deneb())
 		genVersion       = version.Deneb()
 	)
 
@@ -1058,7 +1058,7 @@ func TestValidatorNotWithdrawable(t *testing.T) {
 				Index:       0,
 			},
 		}
-		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty(version.Deneb())
 		genVersion       = version.Deneb()
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))

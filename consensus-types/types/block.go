@@ -50,14 +50,6 @@ type BeaconBlock struct {
 	forkVersion common.Version
 }
 
-// Empty creates an empty beacon block.
-func (*BeaconBlock) Empty() *BeaconBlock {
-	return &BeaconBlock{
-		// By default, we set the version to Deneb to maintain backward-compatibility.
-		forkVersion: version.Deneb(),
-	}
-}
-
 // NewBeaconBlockWithVersion assembles a new beacon block from the given.
 func NewBeaconBlockWithVersion(
 	slot math.Slot,
