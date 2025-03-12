@@ -41,7 +41,11 @@ import (
 
 // transformSimulatedBlockToGethBlock converts a simulated execution block into a Geth-style block.
 // It uses the provided transactions and parent beacon root to construct a new execution block header.
-func transformSimulatedBlockToGethBlock(simBlock *execution.SimulatedBlock, txs []*gethtypes.Transaction, parentBeaconRoot libcommon.Root) *gethtypes.Block {
+func transformSimulatedBlockToGethBlock(
+	simBlock *execution.SimulatedBlock,
+	txs []*gethtypes.Transaction,
+	parentBeaconRoot libcommon.Root,
+) *gethtypes.Block {
 	// Convert numeric fields.
 	excessBlobGas := simBlock.ExcessBlobGas.ToInt().Uint64()
 	blobGasUsed := simBlock.BlobGasUsed.ToInt().Uint64()
@@ -87,7 +91,10 @@ func transformSimulatedBlockToGethBlock(simBlock *execution.SimulatedBlock, txs 
 
 // transformExecutableDataToExecutionPayload converts Ethereum executable data into a beacon execution payload.
 // This function supports fork versions prior to Deneb1. For unsupported fork versions, it returns an error.
-func transformExecutableDataToExecutionPayload(forkVersion libcommon.Version, data *gethprimitives.ExecutableData) (*ctypes.ExecutionPayload, error) {
+func transformExecutableDataToExecutionPayload(
+	forkVersion libcommon.Version,
+	data *gethprimitives.ExecutableData,
+) (*ctypes.ExecutionPayload, error) {
 	// Check that the fork version is supported (pre-Deneb1).
 	if !version.IsBefore(forkVersion, version.Deneb1()) {
 		return nil, ctypes.ErrForkVersionNotSupported

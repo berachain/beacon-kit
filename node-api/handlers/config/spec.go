@@ -21,29 +21,18 @@
 package config
 
 import (
+	"fmt"
 	"net/http"
 
-	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-api/handlers"
+	"github.com/berachain/beacon-kit/node-api/handlers/config/types"
 )
 
-func (h *Handler) RegisterRoutes(logger log.Logger) {
-	h.SetLogger(logger)
-	h.BaseHandler.AddRoutes([]*handlers.Route{
-		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v1/config/fork_schedule",
-			Handler: h.NotImplemented,
-		},
-		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v1/config/spec",
-			Handler: h.GetSpec,
-		},
-		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v1/config/deposit_contract",
-			Handler: h.NotImplemented,
-		},
-	})
+// GetSpec returns the spec of the beacon chain.
+func (h *Handler) GetSpec(_ handlers.Context) (any, error) {
+	spec, err := h.backend.Spec()
+	if err != nil {
+		return nil, handlers.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get spec: %v", err))
+	}
+	return types.SpecResponse{Data: *spec}, nil
 }

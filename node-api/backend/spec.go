@@ -18,32 +18,23 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package config
+package backend
 
 import (
-	"net/http"
-
-	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/node-api/handlers"
+	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/node-api/handlers/config/types"
 )
 
-func (h *Handler) RegisterRoutes(logger log.Logger) {
-	h.SetLogger(logger)
-	h.BaseHandler.AddRoutes([]*handlers.Route{
-		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v1/config/fork_schedule",
-			Handler: h.NotImplemented,
-		},
-		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v1/config/spec",
-			Handler: h.GetSpec,
-		},
-		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v1/config/deposit_contract",
-			Handler: h.NotImplemented,
-		},
-	})
+func (b *Backend) Spec() (*types.SpecData, error) {
+	if b.cs == nil {
+		return nil, errors.New("chain spec not found")
+	}
+	return &types.SpecData{
+		DepositContractAddress: b.cs.DepositContractAddress(),
+		// Network ID is same as eth1 chain ID.
+		DepositNetworkID:                b.cs.DepositEth1ChainID(),
+		DomainAggregateAndProof:         b.cs.DomainTypeAggregateAndProof(),
+		InactivityPenaltyQuotient:       b.cs.InactivityPenaltyQuotient(),
+		InactivityPenaltyQuotientAltair: b.cs.InactivityPenaltyQuotientAltair(),
+	}, nil
 }

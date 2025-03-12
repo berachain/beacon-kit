@@ -21,6 +21,7 @@
 package backend
 
 import (
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
@@ -37,4 +38,9 @@ type ChainSpec interface {
 	SlotsPerHistoricalRoot() uint64
 	EpochsPerHistoricalVector() uint64
 	SlotToEpoch(slot math.Slot) math.Epoch
+	DepositContractAddress() common.ExecutionAddress
+	DepositEth1ChainID() uint64
+	DomainTypeAggregateAndProof() common.DomainType
+	InactivityPenaltyQuotient() uint64
+	InactivityPenaltyQuotientAltair() uint64
 }
