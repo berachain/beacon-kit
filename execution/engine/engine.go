@@ -76,7 +76,6 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 ) (*engineprimitives.PayloadID, error) {
 	var (
 		engineAPIBackoff     = ee.newBackoff()
-		maxRetries           = uint(ee.ec.GetRPCRetries())
 		hasPayloadAttributes = !req.PayloadAttributes.IsNil()
 	)
 
@@ -152,8 +151,8 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 			}
 		},
 		backoff.WithBackOff(engineAPIBackoff),
-		backoff.WithMaxTries(maxRetries),
-		backoff.WithMaxElapsedTime(0), // Set 0 max elapsed time so we don't check it.
+		backoff.WithMaxTries(0),       // 0 for infinite retries.
+		backoff.WithMaxElapsedTime(0), // 0 for infinite max elapsed time.
 	)
 }
 
@@ -166,9 +165,7 @@ func (ee *Engine) NotifyNewPayload(
 	retryOnSyncingStatus bool,
 ) error {
 	var (
-		engineAPIBackoff = ee.newBackoff()
-		maxRetries       = uint(ee.ec.GetRPCRetries())
-
+		engineAPIBackoff  = ee.newBackoff()
 		payloadHash       = req.ExecutionPayload.GetBlockHash()
 		payloadParentHash = req.ExecutionPayload.GetParentHash()
 	)
@@ -260,8 +257,8 @@ func (ee *Engine) NotifyNewPayload(
 			}
 		},
 		backoff.WithBackOff(engineAPIBackoff),
-		backoff.WithMaxTries(maxRetries),
-		backoff.WithMaxElapsedTime(0), // Set 0 max elapsed time so we don't check it.
+		backoff.WithMaxTries(0),       // 0 for infinite retries.
+		backoff.WithMaxElapsedTime(0), // 0 for infinite max elapsed time.
 	)
 	return err
 }
