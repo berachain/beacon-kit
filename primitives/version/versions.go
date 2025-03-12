@@ -54,6 +54,9 @@ var supportedVersions = []common.Version{
 	// TODO, Add electra here
 }
 
+// GetSupportedVersions returns the supported versions of beacon-kit.
+// Primarily for testing so that we can easily extend test case coverage
+// with new versions by modifying the return value rather than each test.
 func GetSupportedVersions() []common.Version {
 	return supportedVersions
 }
