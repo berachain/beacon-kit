@@ -21,16 +21,23 @@
 package components
 
 import (
+	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/node"
 	service "github.com/berachain/beacon-kit/node-core/services/registry"
 	"github.com/berachain/beacon-kit/node-core/types"
 )
 
+type ProvideNodeInputs struct {
+	depinject.In
+
+	Config   *config.Config
+	Registry *service.Registry
+	Logger   *phuslu.Logger
+}
+
 // ProvideNode is a function that provides the module to the.
-func ProvideNode(
-	registry *service.Registry,
-	logger *phuslu.Logger,
-) types.Node {
-	return node.New[types.Node](registry, logger)
+func ProvideNode(in ProvideNodeInputs) types.Node {
+	return node.New[types.Node](in.Config.ShutdownTimeout, in.Registry, in.Logger)
 }

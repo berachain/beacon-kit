@@ -25,6 +25,11 @@ const TomlTemplate = `
 ###                                BeaconKit                                ###
 ###############################################################################
 
+[beacon-kit]
+# ShutdownTimeout is the duration to wait for the application to gracefully
+# shutdown before killing the process.
+shutdown-timeout = "{{ .BeaconKit.ShutdownTimeout }}"
+
 [beacon-kit.engine]
 # HTTP url of the execution client JSON-RPC endpoint.
 rpc-dial-url = "{{ .BeaconKit.Engine.RPCDialURL }}"

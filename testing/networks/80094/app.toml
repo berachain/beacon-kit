@@ -114,6 +114,11 @@ datadog-hostname = "my_beacond_node"
 ###                                BeaconKit                                ###
 ###############################################################################
 
+[beacon-kit]
+# ShutdownTimeout is the duration to wait for the application to gracefully
+# shutdown before killing the process.
+shutdown-timeout = "5m0s"
+
 [beacon-kit.engine]
 # HTTP url of the execution client JSON-RPC endpoint.
 rpc-dial-url = "http://localhost:8551"
