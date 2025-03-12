@@ -41,20 +41,16 @@ type verifier struct {
 	proofVerifier kzg.BlobProofVerifier
 	// metrics collects and reports metrics related to the verification process.
 	metrics *verifierMetrics
-	// chainSpec contains the chain specification
-	chainSpec ChainSpec
 }
 
 // newVerifier creates a new Verifier with the given proof verifier.
 func newVerifier(
 	proofVerifier kzg.BlobProofVerifier,
 	telemetrySink TelemetrySink,
-	chainSpec ChainSpec,
 ) *verifier {
 	return &verifier{
 		proofVerifier: proofVerifier,
 		metrics:       newVerifierMetrics(telemetrySink),
-		chainSpec:     chainSpec,
 	}
 }
 

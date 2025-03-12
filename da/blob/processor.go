@@ -39,8 +39,6 @@ import (
 type Processor struct {
 	// logger is used to log information and errors.
 	logger log.Logger
-	// chainSpec defines the specifications of the blockchain.
-	chainSpec ChainSpec
 	// verifier is responsible for verifying the blobs.
 	verifier *verifier
 	// metrics is used to collect and report processor metrics.
@@ -50,17 +48,15 @@ type Processor struct {
 // NewProcessor creates a new blob processor.
 func NewProcessor(
 	logger log.Logger,
-	chainSpec ChainSpec,
 	proofVerifier kzg.BlobProofVerifier,
 	telemetrySink TelemetrySink,
 ) *Processor {
-	verifier := newVerifier(proofVerifier, telemetrySink, chainSpec)
+	verifier := newVerifier(proofVerifier, telemetrySink)
 
 	return &Processor{
-		logger:    logger,
-		chainSpec: chainSpec,
-		verifier:  verifier,
-		metrics:   newProcessorMetrics(telemetrySink),
+		logger:   logger,
+		verifier: verifier,
+		metrics:  newProcessorMetrics(telemetrySink),
 	}
 }
 
