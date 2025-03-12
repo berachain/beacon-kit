@@ -47,7 +47,7 @@ type PayloadAttributes struct {
 	ParentBeaconBlockRoot common.Root `json:"parentBeaconBlockRoot"`
 
 	// forkVersion is the forkVersion of the payload attributes.
-	forkVersion common.Version `json:"-"`
+	forkVersion common.Version
 }
 
 // NewPayloadAttributes creates a new empty PayloadAttributes.
@@ -85,7 +85,7 @@ func (p *PayloadAttributes) GetSuggestedFeeRecipient() common.ExecutionAddress {
 	return p.SuggestedFeeRecipient
 }
 
-// Version returns the forkVersion of the PayloadAttributes.
+// GetForkVersion returns the forkVersion of the PayloadAttributes.
 func (p *PayloadAttributes) GetForkVersion() common.Version {
 	return p.forkVersion
 }
