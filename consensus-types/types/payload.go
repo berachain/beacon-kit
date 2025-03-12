@@ -183,8 +183,6 @@ func (p *ExecutionPayload) MarshalSSZTo(dst []byte) ([]byte, error) {
 
 // HashTreeRootWith ssz hashes the ExecutionPayload object with a hasher.
 //
-// TODO: REZ
-//
 //nolint:mnd // will be deprecated eventually.
 func (p *ExecutionPayload) HashTreeRootWith(hh fastssz.HashWalker) error {
 	indx := hh.Index()
