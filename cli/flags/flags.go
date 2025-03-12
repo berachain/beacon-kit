@@ -29,6 +29,7 @@ const (
 	// Beacon Kit Root Flag.
 	beaconKitRoot      = "beacon-kit."
 	BeaconKitAcceptTos = beaconKitRoot + "accept-tos"
+	ShutdownTimeout    = beaconKitRoot + "shutdown-timeout"
 
 	// Builder Config.
 	builderRoot           = beaconKitRoot + "payload-builder."
@@ -82,6 +83,11 @@ const (
 // AddBeaconKitFlags implements servertypes.ModuleInitFlags interface.
 func AddBeaconKitFlags(startCmd *cobra.Command) {
 	defaultCfg := config.DefaultConfig()
+	startCmd.Flags().Duration(
+		ShutdownTimeout,
+		defaultCfg.ShutdownTimeout,
+		"maximum time to wait for the chain to gracefully shutdown before forcing an exit",
+	)
 	startCmd.Flags().String(
 		JWTSecretPath,
 		defaultCfg.Engine.JWTSecretPath,
