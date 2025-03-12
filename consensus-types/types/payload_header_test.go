@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
-	"github.com/berachain/beacon-kit/testing/utils"
 	ssz "github.com/ferranbt/fastssz"
 	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
@@ -64,7 +63,7 @@ func generateExecutionPayloadHeader(version common.Version) *types.ExecutionPayl
 
 func TestExecutionPayloadHeader_Getters(t *testing.T) {
 	t.Parallel()
-	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		header := generateExecutionPayloadHeader(v)
 		require.NotNil(t, header)
 
@@ -94,7 +93,7 @@ func TestExecutionPayloadHeader_Getters(t *testing.T) {
 
 func TestExecutionPayloadHeader_IsNil(t *testing.T) {
 	t.Parallel()
-	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		header := generateExecutionPayloadHeader(v)
 		require.False(t, header.IsNil())
 	})
@@ -102,7 +101,7 @@ func TestExecutionPayloadHeader_IsNil(t *testing.T) {
 
 func TestExecutionPayloadHeader_Version(t *testing.T) {
 	t.Parallel()
-	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		header := generateExecutionPayloadHeader(v)
 		require.Equal(t, v, header.GetForkVersion())
 	})
@@ -110,7 +109,7 @@ func TestExecutionPayloadHeader_Version(t *testing.T) {
 
 func TestExecutionPayloadHeader_MarshalUnmarshalJSON(t *testing.T) {
 	t.Parallel()
-	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		originalHeader := generateExecutionPayloadHeader(v)
 
 		data, err := originalHeader.MarshalJSON()
@@ -127,7 +126,7 @@ func TestExecutionPayloadHeader_MarshalUnmarshalJSON(t *testing.T) {
 
 func TestExecutionPayloadHeader_Serialization(t *testing.T) {
 	t.Parallel()
-	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		original := generateExecutionPayloadHeader(v)
 
 		data, err := original.MarshalSSZ()
@@ -169,7 +168,7 @@ func TestExecutionPayloadHeader_MarshalSSZTo(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+			runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 				header := tc.malleate(v)
 				buf := make([]byte, 64)
 				_, err := header.MarshalSSZTo(buf)
@@ -185,7 +184,7 @@ func TestExecutionPayloadHeader_MarshalSSZTo(t *testing.T) {
 
 func TestExecutionPayloadHeader_UnmarshalSSZ_EmptyBuf(t *testing.T) {
 	t.Parallel()
-	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		header := generateExecutionPayloadHeader(v)
 		buf := make([]byte, 0)
 		err := header.UnmarshalSSZ(buf)
@@ -257,7 +256,7 @@ func TestExecutionPayloadHeader_UnmarshalSSZ_EmptyBuf(t *testing.T) {
 
 func TestExecutionPayloadHeader_SizeSSZ(t *testing.T) {
 	t.Parallel()
-	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		header := generateExecutionPayloadHeader(v)
 		size := karalabessz.Size(header)
 		require.Equal(t, uint32(584), size)
@@ -266,7 +265,7 @@ func TestExecutionPayloadHeader_SizeSSZ(t *testing.T) {
 
 func TestExecutionPayloadHeader_HashTreeRoot(t *testing.T) {
 	t.Parallel()
-	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		header := generateExecutionPayloadHeader(v)
 		require.NotPanics(t, func() {
 			header.HashTreeRoot()
@@ -276,7 +275,7 @@ func TestExecutionPayloadHeader_HashTreeRoot(t *testing.T) {
 
 func TestExecutionPayloadHeader_GetTree(t *testing.T) {
 	t.Parallel()
-	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		header := generateExecutionPayloadHeader(v)
 		_, err := header.GetTree()
 		require.NoError(t, err)
@@ -285,7 +284,7 @@ func TestExecutionPayloadHeader_GetTree(t *testing.T) {
 
 func TestExecutablePayloadHeader_UnmarshalJSON_Error(t *testing.T) {
 	t.Parallel()
-	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		original := generateExecutionPayloadHeader(v)
 		validJSON, err := original.MarshalJSON()
 		require.NoError(t, err)
@@ -397,7 +396,7 @@ func TestExecutablePayloadHeader_UnmarshalJSON_Empty(t *testing.T) {
 
 func TestExecutablePayloadHeader_HashTreeRootWith(t *testing.T) {
 	t.Parallel()
-	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		testcases := []struct {
 			name     string
 			malleate func() *types.ExecutionPayloadHeader
@@ -428,7 +427,7 @@ func TestExecutablePayloadHeader_HashTreeRootWith(t *testing.T) {
 
 func TestExecutionPayloadHeader_NewFromSSZ(t *testing.T) {
 	t.Parallel()
-	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		testCases := []struct {
 			name           string
 			data           []byte
@@ -489,7 +488,7 @@ func TestExecutionPayloadHeader_NewFromSSZ(t *testing.T) {
 
 func TestExecutionPayloadHeader_NewFromJSON(t *testing.T) {
 	t.Parallel()
-	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		type testCase struct {
 			name          string
 			data          []byte

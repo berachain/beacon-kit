@@ -29,13 +29,25 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/version"
-	"github.com/berachain/beacon-kit/testing/utils"
 	cmtcrypto "github.com/cometbft/cometbft/crypto"
 	"github.com/cometbft/cometbft/crypto/bls12381"
 	"github.com/cometbft/cometbft/privval"
 	"github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
+
+// runForAllSupportedVersions iterates over all supported versions,
+// creating a subtest for each that runs the provided testFunc.
+func runForAllSupportedVersions(t *testing.T, testFunc func(t *testing.T, v common.Version)) {
+	t.Helper()
+	for _, v := range version.GetSupportedVersions() {
+		v := v // capture the variable for parallel tests
+		t.Run(v.String(), func(t *testing.T) {
+			t.Parallel()
+			testFunc(t, v)
+		})
+	}
+}
 
 func generateFakeSignedBeaconBlock(t *testing.T, version common.Version) *types.SignedBeaconBlock {
 	t.Helper()
@@ -88,7 +100,7 @@ func generateRealSignedBeaconBlock(t *testing.T, blsSigner crypto.BLSSigner, ver
 // TestNewSignedBeaconBlockFromSSZ tests the roundtrip SSZ encoding for Deneb.
 func TestNewSignedBeaconBlockFromSSZ(t *testing.T) {
 	t.Parallel()
-	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		originalBlock := generateFakeSignedBeaconBlock(t, v)
 		blockBytes, err := originalBlock.MarshalSSZ()
 		require.NoError(t, err)
@@ -110,7 +122,7 @@ func TestNewSignedBeaconBlockFromSSZForkVersionNotSupported(t *testing.T) {
 
 func TestSignedBeaconBlock_HashTreeRoot(t *testing.T) {
 	t.Parallel()
-	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		sBlk := generateFakeSignedBeaconBlock(t, v)
 		sBlk.HashTreeRoot()
 	})
@@ -120,7 +132,7 @@ func TestSignedBeaconBlock_HashTreeRoot(t *testing.T) {
 // signatures.
 func TestSignedBeaconBlock_SignBeaconBlock(t *testing.T) {
 	t.Parallel()
-	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		// Generate a new bls key signer
 		filePV, err := privval.GenFilePV(
 			"signed_beacon_block_test_filepv_key",
@@ -161,7 +173,7 @@ func TestSignedBeaconBlock_SignBeaconBlock(t *testing.T) {
 
 func TestSignedBeaconBlock_SizeSSZ(t *testing.T) {
 	t.Parallel()
-	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		sBlk := generateFakeSignedBeaconBlock(t, v)
 		size := ssz.Size(sBlk)
 		require.Positive(t, size)

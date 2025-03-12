@@ -17,25 +17,5 @@
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
-//go:build test
 
-package utils
-
-import (
-	"testing"
-
-	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/version"
-)
-
-// RunForAllSupportedVersions iterates over all supported versions,
-// creating a subtest for each that runs the provided testFunc.
-func RunForAllSupportedVersions(t *testing.T, testFunc func(t *testing.T, v common.Version)) {
-	for _, v := range version.GetSupportedVersions() {
-		v := v // capture the variable for parallel tests
-		t.Run(v.String(), func(t *testing.T) {
-			t.Parallel()
-			testFunc(t, v)
-		})
-	}
-}
+package types_test

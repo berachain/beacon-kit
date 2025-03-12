@@ -30,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
-	"github.com/berachain/beacon-kit/testing/utils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -101,7 +100,7 @@ func TestBeaconBlockForDeneb(t *testing.T) {
 
 func TestBeaconBlock(t *testing.T) {
 	t.Parallel()
-	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		block := generateValidBeaconBlock(t, v)
 
 		require.NotNil(t, block.Body)
@@ -127,7 +126,7 @@ func TestBeaconBlock(t *testing.T) {
 
 func TestBeaconBlock_MarshalUnmarshalSSZ(t *testing.T) {
 	t.Parallel()
-	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		block := *generateValidBeaconBlock(t, v)
 
 		sszBlock, err := block.MarshalSSZ()
@@ -147,7 +146,7 @@ func TestBeaconBlock_MarshalUnmarshalSSZ(t *testing.T) {
 
 func TestBeaconBlock_HashTreeRoot(t *testing.T) {
 	t.Parallel()
-	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		block := generateValidBeaconBlock(t, v)
 		hashRoot := block.HashTreeRoot()
 		require.NotNil(t, hashRoot)
@@ -166,7 +165,7 @@ func TestNewWithVersion(t *testing.T) {
 	proposerIndex := math.ValidatorIndex(5)
 	parentBlockRoot := common.Root{1, 2, 3, 4, 5}
 
-	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		block, err := types.NewBeaconBlockWithVersion(
 			slot, proposerIndex, parentBlockRoot, v,
 		)
@@ -200,7 +199,7 @@ func TestNewWithVersionInvalidForkVersion(t *testing.T) {
 func TestPropertyBlockRootAndBlockHeaderRootEquivalence(t *testing.T) {
 	t.Parallel()
 	qc := &quick.Config{MaxCount: 100}
-	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		f := func(
 			slot math.Slot,
 			proposerIdx math.ValidatorIndex,

@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/math/log"
 	"github.com/berachain/beacon-kit/primitives/version"
-	"github.com/berachain/beacon-kit/testing/utils"
 	"github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
@@ -80,7 +79,7 @@ func TestBeaconBlockBodyBase(t *testing.T) {
 
 func TestBeaconBlockBody(t *testing.T) {
 	t.Parallel()
-	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		body := types.BeaconBlockBody{
 			RandaoReveal:       [96]byte{1, 2, 3},
 			Eth1Data:           &types.Eth1Data{},
@@ -150,7 +149,7 @@ func TestBeaconBlockBody_MarshalSSZ(t *testing.T) {
 
 func TestBeaconBlockBody_GetTopLevelRoots(t *testing.T) {
 	t.Parallel()
-	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		body := generateBeaconBlockBody(v)
 		roots := body.GetTopLevelRoots()
 		require.NotNil(t, roots)
@@ -167,7 +166,7 @@ func TestBeaconBlockBody_Empty(t *testing.T) {
 // enforcing that it's unused.
 func TestBeaconBlockBody_UnusedProposerSlashingsEnforcement(t *testing.T) {
 	t.Parallel()
-	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		blockBody := types.BeaconBlockBody{}
 		unused := types.UnusedType(1)
 		blockBody.SetProposerSlashings(types.ProposerSlashings{&unused})
@@ -188,7 +187,7 @@ func TestBeaconBlockBody_UnusedProposerSlashingsEnforcement(t *testing.T) {
 // enforcing that it's unused.
 func TestBeaconBlockBody_UnusedAttesterSlashingsEnforcement(t *testing.T) {
 	t.Parallel()
-	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		blockBody := types.BeaconBlockBody{}
 		unused := types.UnusedType(1)
 		blockBody.SetAttesterSlashings(types.AttesterSlashings{&unused})
@@ -209,7 +208,7 @@ func TestBeaconBlockBody_UnusedAttesterSlashingsEnforcement(t *testing.T) {
 // enforcing that it's unused.
 func TestBeaconBlockBody_UnusedAttestationsEnforcement(t *testing.T) {
 	t.Parallel()
-	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		blockBody := types.BeaconBlockBody{}
 		unused := types.UnusedType(1)
 		blockBody.SetAttestations(types.Attestations{&unused})
@@ -230,7 +229,7 @@ func TestBeaconBlockBody_UnusedAttestationsEnforcement(t *testing.T) {
 // enforcing that it's unused.
 func TestBeaconBlockBody_UnusedVoluntaryExitsEnforcement(t *testing.T) {
 	t.Parallel()
-	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		blockBody := types.BeaconBlockBody{}
 		unused := types.UnusedType(1)
 		blockBody.SetVoluntaryExits(types.VoluntaryExits{&unused})
@@ -251,7 +250,7 @@ func TestBeaconBlockBody_UnusedVoluntaryExitsEnforcement(t *testing.T) {
 // enforcing that it's unused.
 func TestBeaconBlockBody_UnusedBlsToExecutionChangesEnforcement(t *testing.T) {
 	t.Parallel()
-	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		blockBody := types.BeaconBlockBody{}
 		unused := types.UnusedType(1)
 		blockBody.SetBlsToExecutionChanges(types.BlsToExecutionChanges{&unused})
@@ -270,7 +269,7 @@ func TestBeaconBlockBody_UnusedBlsToExecutionChangesEnforcement(t *testing.T) {
 
 func TestBeaconBlockBody_RoundTrip_HashTreeRoot(t *testing.T) {
 	t.Parallel()
-	utils.RunForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		body := generateBeaconBlockBody(v)
 		data, err := body.MarshalSSZ()
 		require.NoError(t, err)
