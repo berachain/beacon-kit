@@ -20,21 +20,7 @@
 
 package constraints
 
-import "github.com/berachain/beacon-kit/primitives/common"
-
 // Empty is a constraint that requires a type to have an Empty method.
 type Empty[SelfT any] interface {
 	Empty() SelfT
-}
-
-// Nillable is a constraint that requires a type to have an IsNil method.
-type Nillable interface {
-	IsNil() bool
-}
-
-// Versionable is a constraint that requires a type to have a Version method.
-// This should eventually be implemented by all consensus types as they need to be fork version aware for SSZ.
-type Versionable interface {
-	GetForkVersion() common.Version
-	SetForkVersion(common.Version)
 }
