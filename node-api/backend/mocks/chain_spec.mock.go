@@ -3,7 +3,11 @@
 package mocks
 
 import (
+	bytes "github.com/berachain/beacon-kit/primitives/bytes"
+	common "github.com/berachain/beacon-kit/primitives/common"
+
 	math "github.com/berachain/beacon-kit/primitives/math"
+
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -18,6 +22,145 @@ type ChainSpec_Expecter struct {
 
 func (_m *ChainSpec) EXPECT() *ChainSpec_Expecter {
 	return &ChainSpec_Expecter{mock: &_m.Mock}
+}
+
+// DepositContractAddress provides a mock function with given fields:
+func (_m *ChainSpec) DepositContractAddress() common.ExecutionAddress {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for DepositContractAddress")
+	}
+
+	var r0 common.ExecutionAddress
+	if rf, ok := ret.Get(0).(func() common.ExecutionAddress); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(common.ExecutionAddress)
+		}
+	}
+
+	return r0
+}
+
+// ChainSpec_DepositContractAddress_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DepositContractAddress'
+type ChainSpec_DepositContractAddress_Call struct {
+	*mock.Call
+}
+
+// DepositContractAddress is a helper method to define mock.On call
+func (_e *ChainSpec_Expecter) DepositContractAddress() *ChainSpec_DepositContractAddress_Call {
+	return &ChainSpec_DepositContractAddress_Call{Call: _e.mock.On("DepositContractAddress")}
+}
+
+func (_c *ChainSpec_DepositContractAddress_Call) Run(run func()) *ChainSpec_DepositContractAddress_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *ChainSpec_DepositContractAddress_Call) Return(_a0 common.ExecutionAddress) *ChainSpec_DepositContractAddress_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *ChainSpec_DepositContractAddress_Call) RunAndReturn(run func() common.ExecutionAddress) *ChainSpec_DepositContractAddress_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DepositEth1ChainID provides a mock function with given fields:
+func (_m *ChainSpec) DepositEth1ChainID() uint64 {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for DepositEth1ChainID")
+	}
+
+	var r0 uint64
+	if rf, ok := ret.Get(0).(func() uint64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(uint64)
+	}
+
+	return r0
+}
+
+// ChainSpec_DepositEth1ChainID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DepositEth1ChainID'
+type ChainSpec_DepositEth1ChainID_Call struct {
+	*mock.Call
+}
+
+// DepositEth1ChainID is a helper method to define mock.On call
+func (_e *ChainSpec_Expecter) DepositEth1ChainID() *ChainSpec_DepositEth1ChainID_Call {
+	return &ChainSpec_DepositEth1ChainID_Call{Call: _e.mock.On("DepositEth1ChainID")}
+}
+
+func (_c *ChainSpec_DepositEth1ChainID_Call) Run(run func()) *ChainSpec_DepositEth1ChainID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *ChainSpec_DepositEth1ChainID_Call) Return(_a0 uint64) *ChainSpec_DepositEth1ChainID_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *ChainSpec_DepositEth1ChainID_Call) RunAndReturn(run func() uint64) *ChainSpec_DepositEth1ChainID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DomainTypeAggregateAndProof provides a mock function with given fields:
+func (_m *ChainSpec) DomainTypeAggregateAndProof() bytes.B4 {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for DomainTypeAggregateAndProof")
+	}
+
+	var r0 bytes.B4
+	if rf, ok := ret.Get(0).(func() bytes.B4); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(bytes.B4)
+		}
+	}
+
+	return r0
+}
+
+// ChainSpec_DomainTypeAggregateAndProof_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DomainTypeAggregateAndProof'
+type ChainSpec_DomainTypeAggregateAndProof_Call struct {
+	*mock.Call
+}
+
+// DomainTypeAggregateAndProof is a helper method to define mock.On call
+func (_e *ChainSpec_Expecter) DomainTypeAggregateAndProof() *ChainSpec_DomainTypeAggregateAndProof_Call {
+	return &ChainSpec_DomainTypeAggregateAndProof_Call{Call: _e.mock.On("DomainTypeAggregateAndProof")}
+}
+
+func (_c *ChainSpec_DomainTypeAggregateAndProof_Call) Run(run func()) *ChainSpec_DomainTypeAggregateAndProof_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *ChainSpec_DomainTypeAggregateAndProof_Call) Return(_a0 bytes.B4) *ChainSpec_DomainTypeAggregateAndProof_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *ChainSpec_DomainTypeAggregateAndProof_Call) RunAndReturn(run func() bytes.B4) *ChainSpec_DomainTypeAggregateAndProof_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // EpochsPerHistoricalVector provides a mock function with given fields:
@@ -61,6 +204,96 @@ func (_c *ChainSpec_EpochsPerHistoricalVector_Call) Return(_a0 uint64) *ChainSpe
 }
 
 func (_c *ChainSpec_EpochsPerHistoricalVector_Call) RunAndReturn(run func() uint64) *ChainSpec_EpochsPerHistoricalVector_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// InactivityPenaltyQuotient provides a mock function with given fields:
+func (_m *ChainSpec) InactivityPenaltyQuotient() uint64 {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for InactivityPenaltyQuotient")
+	}
+
+	var r0 uint64
+	if rf, ok := ret.Get(0).(func() uint64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(uint64)
+	}
+
+	return r0
+}
+
+// ChainSpec_InactivityPenaltyQuotient_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'InactivityPenaltyQuotient'
+type ChainSpec_InactivityPenaltyQuotient_Call struct {
+	*mock.Call
+}
+
+// InactivityPenaltyQuotient is a helper method to define mock.On call
+func (_e *ChainSpec_Expecter) InactivityPenaltyQuotient() *ChainSpec_InactivityPenaltyQuotient_Call {
+	return &ChainSpec_InactivityPenaltyQuotient_Call{Call: _e.mock.On("InactivityPenaltyQuotient")}
+}
+
+func (_c *ChainSpec_InactivityPenaltyQuotient_Call) Run(run func()) *ChainSpec_InactivityPenaltyQuotient_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *ChainSpec_InactivityPenaltyQuotient_Call) Return(_a0 uint64) *ChainSpec_InactivityPenaltyQuotient_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *ChainSpec_InactivityPenaltyQuotient_Call) RunAndReturn(run func() uint64) *ChainSpec_InactivityPenaltyQuotient_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// InactivityPenaltyQuotientAltair provides a mock function with given fields:
+func (_m *ChainSpec) InactivityPenaltyQuotientAltair() uint64 {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for InactivityPenaltyQuotientAltair")
+	}
+
+	var r0 uint64
+	if rf, ok := ret.Get(0).(func() uint64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(uint64)
+	}
+
+	return r0
+}
+
+// ChainSpec_InactivityPenaltyQuotientAltair_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'InactivityPenaltyQuotientAltair'
+type ChainSpec_InactivityPenaltyQuotientAltair_Call struct {
+	*mock.Call
+}
+
+// InactivityPenaltyQuotientAltair is a helper method to define mock.On call
+func (_e *ChainSpec_Expecter) InactivityPenaltyQuotientAltair() *ChainSpec_InactivityPenaltyQuotientAltair_Call {
+	return &ChainSpec_InactivityPenaltyQuotientAltair_Call{Call: _e.mock.On("InactivityPenaltyQuotientAltair")}
+}
+
+func (_c *ChainSpec_InactivityPenaltyQuotientAltair_Call) Run(run func()) *ChainSpec_InactivityPenaltyQuotientAltair_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *ChainSpec_InactivityPenaltyQuotientAltair_Call) Return(_a0 uint64) *ChainSpec_InactivityPenaltyQuotientAltair_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *ChainSpec_InactivityPenaltyQuotientAltair_Call) RunAndReturn(run func() uint64) *ChainSpec_InactivityPenaltyQuotientAltair_Call {
 	_c.Call.Return(run)
 	return _c
 }
