@@ -28,7 +28,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
 	fastssz "github.com/ferranbt/fastssz"
-	"github.com/holiman/uint256"
 	"github.com/karalabe/ssz"
 )
 
@@ -65,7 +64,7 @@ type ExecutionPayloadHeader struct {
 	// ExtraData is the extra data of the block.
 	ExtraData bytes.Bytes `json:"extraData"`
 	// BaseFeePerGas is the base fee per gas.
-	BaseFeePerGas *uint256.Int `json:"baseFeePerGas"`
+	BaseFeePerGas *math.U256 `json:"baseFeePerGas"`
 	// BlockHash is the hash of the block.
 	BlockHash common.ExecutionHash `json:"blockHash"`
 	// TransactionsRoot is the root of the transaction trie.
@@ -84,7 +83,7 @@ type ExecutionPayloadHeader struct {
 func (*ExecutionPayloadHeader) Empty(version common.Version) *ExecutionPayloadHeader {
 	return &ExecutionPayloadHeader{
 		forkVersion:   version,
-		BaseFeePerGas: &uint256.Int{},
+		BaseFeePerGas: &math.U256{},
 	}
 }
 

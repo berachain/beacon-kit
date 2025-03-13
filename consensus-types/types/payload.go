@@ -166,7 +166,8 @@ func (p *ExecutionPayload) MarshalSSZ() ([]byte, error) {
 // Empty returns an empty ExecutionPayload for the given fork version.
 func (*ExecutionPayload) Empty(version common.Version) *ExecutionPayload {
 	return &ExecutionPayload{
-		Versionable: (&BeaconBlock{}).WithForkVersion(version),
+		Versionable:   (&BeaconBlock{}).WithForkVersion(version),
+		BaseFeePerGas: &math.U256{},
 	}
 }
 

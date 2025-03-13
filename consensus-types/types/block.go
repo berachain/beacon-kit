@@ -126,6 +126,7 @@ func (b *BeaconBlock) MarshalSSZ() ([]byte, error) {
 func (*BeaconBlock) Empty(version common.Version) *BeaconBlock {
 	return &BeaconBlock{
 		forkVersion: version,
+		Body:        (&BeaconBlockBody{}).Empty(version),
 	}
 }
 
