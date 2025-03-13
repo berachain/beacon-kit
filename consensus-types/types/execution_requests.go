@@ -35,9 +35,7 @@ import (
 const sszDynamicObjectOffset = 4
 const maxDepositRequestsPerPayload = 8192
 const maxWithdrawalRequestsPerPayload = 16
-
-// TODO(pectra): Prysm requires this to be 1, which we mimick to get same HTR. Is this their skill issue?
-const maxConsolidationRequestsPerPayload = 1
+const maxConsolidationRequestsPerPayload = 2
 const sszDepositRequestSize = 192          // Pubkey = 48, WithdrawalCredentials = 32, Amount = 8, Signature = 96, Index = 8.
 const sszWithdrawRequestSize = 76          // ExecutionAddress = 20, ValidatorPubKey = 48, Amount = 8
 const sszConsolidationRequestSize = 116    // ExecutionAddress = 20, PubKey = 48, Pubkey = 48
