@@ -45,4 +45,7 @@ var (
 
 	// ErrInvalidValidatorStatus is an error for when the validator status is invalid.
 	ErrInvalidValidatorStatus = errors.New("invalid validator status")
+
+	// ErrFieldNotSupportedOnFork occurs when attempting to retrieve a field on a fork on which it is not supported
+	ErrFieldNotSupportedOnFork = errors.New("field not supported on fork")
 )
