@@ -32,16 +32,19 @@ import (
 	"github.com/karalabe/ssz"
 )
 
+const sszDynamicObjectOffset = 4
 const maxDepositRequestsPerPayload = 8192
 const maxWithdrawalRequestsPerPayload = 16
-const sszDynamicObjectOffset = 4
+const maxConsolidationRequestsPerPayload = 2
 const sszDepositRequestSize = 192          // Pubkey = 48, WithdrawalCredentials = 32, Amount = 8, Signature = 96, Index = 8.
 const sszWithdrawRequestSize = 76          // ExecutionAddress = 20, ValidatorPubKey = 48, Amount = 8
+const sszConsolidationRequestSize = 116    // ExecutionAddress = 20, PubKey = 48, Pubkey = 48
 const dynamicFieldsInExecutionRequests = 2 // 2 since two dynamic objects (Deposits, Withdrawals)
 
 type ExecutionRequests struct {
-	Deposits    []*DepositRequest
-	Withdrawals []*WithdrawalRequest
+	Deposits       []*DepositRequest
+	Withdrawals    []*WithdrawalRequest
+	Consolidations []*ConsolidationRequest
 }
 
 // DepositRequest is introduced in EIP6110 which is currently not processed.
@@ -60,16 +63,26 @@ type WithdrawalRequest struct {
 	Amount          math.Gwei
 }
 
+// ConsolidationRequest is introduced in Pectra but not used by us.
+// We keep it so we can maintain parity tests with other SSZ implementations.
+type ConsolidationRequest struct {
+	SourceAddress common.ExecutionAddress
+	SourcePubKey  crypto.BLSPubkey
+	TargetPubKey  crypto.BLSPubkey
+}
+
 /* -------------------------------------------------------------------------- */
-/*                                     SSZ                                    */
+/*                       Execution Requests SSZ                               */
 /* -------------------------------------------------------------------------- */
 
 func (e *ExecutionRequests) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Deposits, maxDepositRequestsPerPayload)
 	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Withdrawals, maxWithdrawalRequestsPerPayload)
+	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Consolidations, maxConsolidationRequestsPerPayload)
 
 	ssz.DefineSliceOfStaticObjectsContent(codec, &e.Deposits, maxDepositRequestsPerPayload)
 	ssz.DefineSliceOfStaticObjectsContent(codec, &e.Withdrawals, maxWithdrawalRequestsPerPayload)
+	ssz.DefineSliceOfStaticObjectsContent(codec, &e.Consolidations, maxConsolidationRequestsPerPayload)
 }
 
 func (e *ExecutionRequests) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
@@ -82,6 +95,24 @@ func (e *ExecutionRequests) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 	size += ssz.SizeSliceOfStaticObjects(siz, e.Withdrawals)
 	return size
 }
+
+func (e *ExecutionRequests) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, ssz.Size(e))
+	return buf, ssz.EncodeToBytes(buf, e)
+}
+
+func (e *ExecutionRequests) UnmarshalSSZ(buf []byte) error {
+	return ssz.DecodeFromBytes(buf, e)
+}
+
+// HashTreeRoot returns the hash tree root of the Deposits.
+func (e *ExecutionRequests) HashTreeRoot() common.Root {
+	return ssz.HashSequential(e)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                       Deposit Requests SSZ                                 */
+/* -------------------------------------------------------------------------- */
 
 func (d *DepositRequest) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineStaticBytes(codec, &d.Pubkey)
@@ -109,6 +140,10 @@ func (d *DepositRequest) HashTreeRoot() common.Root {
 	return ssz.HashSequential(d)
 }
 
+/* -------------------------------------------------------------------------- */
+/*                       Withdrawal Requests SSZ                              */
+/* -------------------------------------------------------------------------- */
+
 func (w *WithdrawalRequest) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineStaticBytes(codec, &w.SourceAddress)
 	ssz.DefineStaticBytes(codec, &w.ValidatorPubKey)
@@ -131,4 +166,32 @@ func (w *WithdrawalRequest) UnmarshalSSZ(buf []byte) error {
 // HashTreeRoot returns the hash tree root of the Deposits.
 func (w *WithdrawalRequest) HashTreeRoot() common.Root {
 	return ssz.HashSequential(w)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                       Consolidation Requests SSZ                           */
+/* -------------------------------------------------------------------------- */
+
+func (c *ConsolidationRequest) DefineSSZ(codec *ssz.Codec) {
+	ssz.DefineStaticBytes(codec, &c.SourceAddress)
+	ssz.DefineStaticBytes(codec, &c.SourcePubKey)
+	ssz.DefineStaticBytes(codec, &c.TargetPubKey)
+}
+
+func (c *ConsolidationRequest) SizeSSZ(_ *ssz.Sizer) uint32 {
+	return sszConsolidationRequestSize
+}
+
+func (c *ConsolidationRequest) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, ssz.Size(c))
+	return buf, ssz.EncodeToBytes(buf, c)
+}
+
+func (c *ConsolidationRequest) UnmarshalSSZ(buf []byte) error {
+	return ssz.DecodeFromBytes(buf, c)
+}
+
+// HashTreeRoot returns the hash tree root of the Deposits.
+func (c *ConsolidationRequest) HashTreeRoot() common.Root {
+	return ssz.HashSequential(c)
 }

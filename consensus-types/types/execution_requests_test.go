@@ -36,126 +36,9 @@ import (
 )
 
 // TODO(pectra): Add tests
-// 1. Compare HTR with well known library
-// 2. Marshalling/Unmarshalling invalid values.
+// 1. Marshalling/Unmarshalling invalid values.
 // 3. NewSignedBeaconBlockFromSSZ tests.
 
-func TestWithdrawalRequest_ValidValuesSSZ(t *testing.T) {
-	t.Parallel()
-
-	testCases := []struct {
-		name              string
-		withdrawalRequest *types.WithdrawalRequest
-	}{
-		{
-			name: "basic",
-			withdrawalRequest: &types.WithdrawalRequest{
-				// 20-byte execution address
-				SourceAddress: common.ExecutionAddress{
-					1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-					11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-				},
-				// 48-byte public key
-				ValidatorPubKey: crypto.BLSPubkey{
-					1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-					11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-					21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
-					31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
-					41, 42, 43, 44, 45, 46, 47, 48,
-				},
-				Amount: 1000,
-			},
-		},
-		{
-			name: "zero amount",
-			withdrawalRequest: &types.WithdrawalRequest{
-				SourceAddress: common.ExecutionAddress{
-					10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-					20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
-				},
-				ValidatorPubKey: crypto.BLSPubkey{
-					10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-					20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
-					30, 31, 32, 33, 34, 35, 36, 37, 38, 39,
-					40, 41, 42, 43, 44, 45, 46, 47, 48, 49,
-					50, 51, 52, 53, 54, 55, 56, 57,
-				},
-				Amount: 0,
-			},
-		},
-		{
-			name: "max values",
-			withdrawalRequest: &types.WithdrawalRequest{
-				SourceAddress: common.ExecutionAddress{
-					255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-					255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-				},
-				ValidatorPubKey: crypto.BLSPubkey{
-					255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-					255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-					255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-					255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-					255, 255, 255, 255, 255, 255, 255, 255,
-				},
-				Amount: 1<<64 - 1,
-			},
-		},
-		{
-			name: "random-ish values",
-			withdrawalRequest: &types.WithdrawalRequest{
-				SourceAddress: common.ExecutionAddress{
-					7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
-					17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
-				},
-				ValidatorPubKey: crypto.BLSPubkey{
-					7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
-					17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
-					27, 28, 29, 30, 31, 32, 33, 34, 35, 36,
-					37, 38, 39, 40, 41, 42, 43, 44, 45, 46,
-					47, 48, 49, 50, 51, 52, 53, 54,
-				},
-				Amount: 54321,
-			},
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc // capture range variable
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			// Marshal the original withdrawal request.
-			withdrawalRequestBytes, err := tc.withdrawalRequest.MarshalSSZ()
-			require.NoError(t, err)
-
-			// Unmarshal into a Prysm withdrawal request.
-			var prysmWithdrawal enginev1.WithdrawalRequest
-			err = prysmWithdrawal.UnmarshalSSZ(withdrawalRequestBytes)
-			require.NoError(t, err)
-
-			prysmHTR, err := prysmWithdrawal.HashTreeRoot()
-			require.NoError(t, err)
-			withdrawalHTR := tc.withdrawalRequest.HashTreeRoot()
-
-			// Compare the HashTreeRoots. Effectively a test for comparing all field values.
-			require.Equal(t, withdrawalHTR[:], prysmHTR[:])
-
-			// Marshal the Prysm withdrawal request.
-			prysmWithdrawalBytes, err := prysmWithdrawal.MarshalSSZ()
-			require.NoError(t, err)
-
-			// Unmarshal back into a new WithdrawalRequest.
-			var recomputedWithdrawalRequest types.WithdrawalRequest
-			err = recomputedWithdrawalRequest.UnmarshalSSZ(prysmWithdrawalBytes)
-			require.NoError(t, err)
-
-			// Compare that the original and recomputed values match.
-			require.Equal(t, *tc.withdrawalRequest, recomputedWithdrawalRequest)
-		})
-	}
-}
-
-// ValidValuesSSZ tests the SSZ marshalling and unmarshalling of DepositRequest for a variety of inputs.
 func TestDepositRequest_ValidValuesSSZ(t *testing.T) {
 	t.Parallel()
 
@@ -324,6 +207,238 @@ func TestDepositRequest_ValidValuesSSZ(t *testing.T) {
 
 			// Compare that the original and recomputed deposit requests match.
 			require.Equal(t, *tc.depositRequest, recomputedDepositRequest)
+		})
+	}
+}
+
+func TestWithdrawalRequest_ValidValuesSSZ(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name              string
+		withdrawalRequest *types.WithdrawalRequest
+	}{
+		{
+			name: "basic",
+			withdrawalRequest: &types.WithdrawalRequest{
+				// 20-byte execution address
+				SourceAddress: common.ExecutionAddress{
+					1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+					11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+				},
+				// 48-byte public key
+				ValidatorPubKey: crypto.BLSPubkey{
+					1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+					11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+					21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+					31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+					41, 42, 43, 44, 45, 46, 47, 48,
+				},
+				Amount: 1000,
+			},
+		},
+		{
+			name: "zero amount",
+			withdrawalRequest: &types.WithdrawalRequest{
+				SourceAddress: common.ExecutionAddress{
+					10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+					20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+				},
+				ValidatorPubKey: crypto.BLSPubkey{
+					10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+					20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+					30, 31, 32, 33, 34, 35, 36, 37, 38, 39,
+					40, 41, 42, 43, 44, 45, 46, 47, 48, 49,
+					50, 51, 52, 53, 54, 55, 56, 57,
+				},
+				Amount: 0,
+			},
+		},
+		{
+			name: "max values",
+			withdrawalRequest: &types.WithdrawalRequest{
+				SourceAddress: common.ExecutionAddress{
+					255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+					255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+				},
+				ValidatorPubKey: crypto.BLSPubkey{
+					255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+					255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+					255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+					255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+					255, 255, 255, 255, 255, 255, 255, 255,
+				},
+				Amount: 1<<64 - 1,
+			},
+		},
+		{
+			name: "random-ish values",
+			withdrawalRequest: &types.WithdrawalRequest{
+				SourceAddress: common.ExecutionAddress{
+					7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+					17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
+				},
+				ValidatorPubKey: crypto.BLSPubkey{
+					7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+					17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
+					27, 28, 29, 30, 31, 32, 33, 34, 35, 36,
+					37, 38, 39, 40, 41, 42, 43, 44, 45, 46,
+					47, 48, 49, 50, 51, 52, 53, 54,
+				},
+				Amount: 54321,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc // capture range variable
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			// Marshal the original withdrawal request.
+			withdrawalRequestBytes, err := tc.withdrawalRequest.MarshalSSZ()
+			require.NoError(t, err)
+
+			// Unmarshal into a Prysm withdrawal request.
+			var prysmWithdrawal enginev1.WithdrawalRequest
+			err = prysmWithdrawal.UnmarshalSSZ(withdrawalRequestBytes)
+			require.NoError(t, err)
+
+			prysmHTR, err := prysmWithdrawal.HashTreeRoot()
+			require.NoError(t, err)
+			withdrawalHTR := tc.withdrawalRequest.HashTreeRoot()
+
+			// Compare the HashTreeRoots. Effectively a test for comparing all field values.
+			require.Equal(t, withdrawalHTR[:], prysmHTR[:])
+
+			// Marshal the Prysm withdrawal request.
+			prysmWithdrawalBytes, err := prysmWithdrawal.MarshalSSZ()
+			require.NoError(t, err)
+
+			// Unmarshal back into a new WithdrawalRequest.
+			var recomputedWithdrawalRequest types.WithdrawalRequest
+			err = recomputedWithdrawalRequest.UnmarshalSSZ(prysmWithdrawalBytes)
+			require.NoError(t, err)
+
+			// Compare that the original and recomputed values match.
+			require.Equal(t, *tc.withdrawalRequest, recomputedWithdrawalRequest)
+		})
+	}
+}
+
+func TestConsolidationRequest_ValidValuesSSZ(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name                 string
+		consolidationRequest *types.ConsolidationRequest
+	}{
+		{
+			name: "basic",
+			consolidationRequest: &types.ConsolidationRequest{
+				// 20-byte execution address for SourceAddress
+				SourceAddress: common.ExecutionAddress{
+					1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+					11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+				},
+				// 48-byte public key for SourcePubKey
+				SourcePubKey: crypto.BLSPubkey{
+					1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+					11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+					21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+					31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+					41, 42, 43, 44, 45, 46, 47, 48,
+				},
+				// 48-byte public key for TargetPubKey
+				TargetPubKey: crypto.BLSPubkey{
+					48, 47, 46, 45, 44, 43, 42, 41, 40, 39,
+					38, 37, 36, 35, 34, 33, 32, 31, 30, 29,
+					28, 27, 26, 25, 24, 23, 22, 21, 20, 19,
+					18, 17, 16, 15, 14, 13, 12, 11, 10, 9,
+					8, 7, 6, 5, 4, 3, 2, 1,
+				},
+			},
+		},
+		{
+			name: "max values",
+			consolidationRequest: &types.ConsolidationRequest{
+				SourceAddress: common.ExecutionAddress{
+					255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+					255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+				},
+				SourcePubKey: crypto.BLSPubkey{
+					255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+					255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+					255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+					255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+					255, 255, 255, 255, 255, 255, 255, 255,
+				},
+				TargetPubKey: crypto.BLSPubkey{
+					255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+					255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+					255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+					255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+					255, 255, 255, 255, 255, 255, 255, 255,
+				},
+			},
+		},
+		{
+			name: "random-ish values",
+			consolidationRequest: &types.ConsolidationRequest{
+				SourceAddress: common.ExecutionAddress{
+					7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+					17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
+				},
+				SourcePubKey: crypto.BLSPubkey{
+					7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+					17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
+					27, 28, 29, 30, 31, 32, 33, 34, 35, 36,
+					37, 38, 39, 40, 41, 42, 43, 44, 45, 46,
+					47, 48, 49, 50, 51, 52, 53, 54,
+				},
+				TargetPubKey: crypto.BLSPubkey{
+					14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
+					24, 25, 26, 27, 28, 29, 30, 31, 32, 33,
+					34, 35, 36, 37, 38, 39, 40, 41, 42, 43,
+					44, 45, 46, 47, 48, 49, 50, 51, 52, 53,
+					54, 55, 56, 57, 58, 59, 60, 61,
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc // capture range variable
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			// Marshal the original consolidation request.
+			crBytes, err := tc.consolidationRequest.MarshalSSZ()
+			require.NoError(t, err)
+
+			// Unmarshal into a Prysm consolidation request.
+			var prysmCR enginev1.ConsolidationRequest
+			err = prysmCR.UnmarshalSSZ(crBytes)
+			require.NoError(t, err)
+
+			prysmHTR, err := prysmCR.HashTreeRoot()
+			require.NoError(t, err)
+			crHTR := tc.consolidationRequest.HashTreeRoot()
+
+			// Compare the HashTreeRoots. This effectively tests that all fields were encoded correctly.
+			require.Equal(t, crHTR[:], prysmHTR[:])
+
+			// Marshal the Prysm consolidation request.
+			prysmCRBytes, err := prysmCR.MarshalSSZ()
+			require.NoError(t, err)
+
+			// Unmarshal back into a new ConsolidationRequest.
+			var recomputedCR types.ConsolidationRequest
+			err = recomputedCR.UnmarshalSSZ(prysmCRBytes)
+			require.NoError(t, err)
+
+			// Compare that the original and recomputed consolidation requests match.
+			require.Equal(t, *tc.consolidationRequest, recomputedCR)
 		})
 	}
 }
