@@ -43,7 +43,6 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 	return &E2ETestConfig{
 		NetworkConfiguration: defaultNetworkConfiguration(),
 		NodeSettings:         defaultNodeSettings(),
-		EthJSONRPCEndpoints:  defaultEthJSONRPCEndpoints(),
 		AdditionalServices:   defaultAdditionalServices(),
 	}
 }
@@ -96,17 +95,17 @@ func defaultFullNodes() NodeSet {
 		Nodes: []Node{
 			{
 				ElType:   "nethermind",
-				Replicas: 1,
+				Replicas: 0,
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
 				ElType:   "reth",
-				Replicas: 1,
+				Replicas: 2, //nolint:mnd // we want two replicas here
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
 				ElType:   "geth",
-				Replicas: 1,
+				Replicas: 2, //nolint:mnd // we want two replicas here
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
@@ -116,7 +115,7 @@ func defaultFullNodes() NodeSet {
 			},
 			{
 				ElType:   "besu",
-				Replicas: 1,
+				Replicas: 0,
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 		},
@@ -192,23 +191,6 @@ func defaultConsensusSettings() ConsensusSettings {
 		AppConfig: AppConfig{
 			PayloadTimeout:                builderCfg.PayloadTimeout.String(),
 			EnableOptimisticPayloadBuilds: builderCfg.Enabled,
-		},
-	}
-}
-
-func defaultEthJSONRPCEndpoints() []EthJSONRPCEndpoint {
-	return []EthJSONRPCEndpoint{
-		{
-			Type: "blutgang",
-			Clients: []string{
-				// "el-full-nethermind-0",
-				// "el-full-reth-0",
-				"el-full-geth-2",
-				// "el-full-erigon-3",
-				// "el-full-erigon-3",
-				// Besu causing flakey tests.
-				// "el-full-besu-4",
-			},
 		},
 	}
 }
