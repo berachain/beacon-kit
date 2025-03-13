@@ -59,17 +59,21 @@ func NewBeaconBlockWithVersion(
 ) (*BeaconBlock, error) {
 	switch forkVersion {
 	case version.Deneb(), version.Deneb1():
-		return &BeaconBlock{
+		eph := &ExecutionPayload{}
+
+		block := &BeaconBlock{
 			Slot:          slot,
 			ProposerIndex: proposerIndex,
 			ParentRoot:    parentBlockRoot,
 			StateRoot:     common.Root{},
 			Body: &BeaconBlockBody{
-				forkVersion:      forkVersion,
-				ExecutionPayload: &ExecutionPayload{forkVersion: forkVersion},
+				ExecutionPayload: eph,
 			},
 			forkVersion: forkVersion,
-		}, nil
+		}
+		block.Body.Versionable = block
+		eph.Versionable = block
+		return block, nil
 	default:
 		// we return block here to appease nilaway
 		return &BeaconBlock{}, errors.Wrap(
@@ -151,6 +155,11 @@ func (b *BeaconBlock) GetStateRoot() common.Root {
 // SetStateRoot sets the state root of the BeaconBlock.
 func (b *BeaconBlock) SetStateRoot(root common.Root) {
 	b.StateRoot = root
+}
+
+// Version identifies the version of the BeaconBlock.
+func (b *BeaconBlock) Version() common.Version {
+	return b.forkVersion
 }
 
 // GetForkVersion identifies the version of the BeaconBlock.

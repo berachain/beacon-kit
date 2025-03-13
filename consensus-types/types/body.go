@@ -28,6 +28,7 @@ package types
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/karalabe/ssz"
@@ -62,9 +63,11 @@ const (
 	ExtraDataSize = 32
 )
 
-// BeaconBlockBody represents the body of a beacon block in the Deneb
-// chain.
+// BeaconBlockBody represents the body of a beacon block.
 type BeaconBlockBody struct {
+	// Must be available within the object to satisfy signature required for SizeSSZ and DefineSSZ.
+	constraints.Versionable
+
 	// RandaoReveal is the reveal of the RANDAO.
 	RandaoReveal crypto.BLSSignature
 	// Eth1Data is the data from the Eth1 chain.
@@ -89,9 +92,6 @@ type BeaconBlockBody struct {
 	blsToExecutionChanges []*BlsToExecutionChange
 	// BlobKzgCommitments is the list of KZG commitments for the EIP-4844 blobs.
 	BlobKzgCommitments []eip4844.KZGCommitment
-	// forkVersion is the fork version of the block body. Must not be involved in serialization
-	// Must be available within the object to satisfy signature required for SizeSSZ and DefineSSZ.
-	forkVersion common.Version
 }
 
 /* -------------------------------------------------------------------------- */
@@ -163,26 +163,26 @@ func (b *BeaconBlockBody) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 
-// UnmarshalSSZ deserializes the BeaconBlockBody from SSZ-encoded bytes.
-func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte, version common.Version) error {
-	b.SetForkVersion(version)
-	err := ssz.DecodeFromBytes(buf, b)
-	if err != nil {
-		return err
-	}
-	err = EnforceAllUnused(
-		b.GetProposerSlashings(),
-		b.GetAttesterSlashings(),
-		b.GetAttestations(),
-		b.GetVoluntaryExits(),
-		b.GetSyncAggregate(),
-		b.GetBlsToExecutionChanges(),
-	)
-	if err != nil {
-		return err
-	}
-	return nil
-}
+// // UnmarshalSSZ deserializes the BeaconBlockBody from SSZ-encoded bytes.
+// func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte, version common.Version) error {
+// 	b.SetForkVersion(version)
+// 	err := ssz.DecodeFromBytes(buf, b)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	err = EnforceAllUnused(
+// 		b.GetProposerSlashings(),
+// 		b.GetAttesterSlashings(),
+// 		b.GetAttestations(),
+// 		b.GetVoluntaryExits(),
+// 		b.GetSyncAggregate(),
+// 		b.GetBlsToExecutionChanges(),
+// 	)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
 
 // HashTreeRoot returns the SSZ hash tree root of the BeaconBlockBody.
 func (b *BeaconBlockBody) HashTreeRoot() common.Root {
@@ -318,10 +318,6 @@ func (b *BeaconBlockBody) SetBlobKzgCommitments(commitments eip4844.KZGCommitmen
 	b.BlobKzgCommitments = commitments
 }
 
-func (b *BeaconBlockBody) GetForkVersion() common.Version {
-	return b.forkVersion
-}
-
-func (b *BeaconBlockBody) SetForkVersion(version common.Version) {
-	b.forkVersion = version
-}
+// func (b *BeaconBlockBody) SetForkVersion(version common.Version) {
+// 	b.forkVersion = version
+// }

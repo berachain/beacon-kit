@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -38,6 +39,8 @@ const ExecutionPayloadStaticSize uint32 = 528
 
 // ExecutionPayload represents the payload of an execution block.
 type ExecutionPayload struct {
+	constraints.Versionable
+
 	// ParentHash is the hash of the parent block.
 	ParentHash common.ExecutionHash `json:"parentHash"`
 	// FeeRecipient is the address of the fee recipient.
@@ -73,8 +76,8 @@ type ExecutionPayload struct {
 	// ExcessBlobGas is the amount of excess blob gas in the block.
 	ExcessBlobGas math.U64 `json:"excessBlobGas"`
 
-	// forkVersion is the version of the execution payload, it must be not serialized.
-	forkVersion common.Version
+	// // forkVersion is the version of the execution payload, it must be not serialized.
+	// forkVersion common.Version
 }
 
 func EnsureNotNilWithdrawals(p *ExecutionPayload) {
@@ -467,19 +470,16 @@ func (p *ExecutionPayload) UnmarshalJSON(input []byte) error {
 // Empty returns an empty ExecutionPayload for the given fork version.
 func (p *ExecutionPayload) Empty(forkVersion common.Version) *ExecutionPayload {
 	return &ExecutionPayload{
-		forkVersion: forkVersion,
+		Versionable: &BeaconBlock{
+			forkVersion: forkVersion,
+		},
 	}
 }
 
-// GetForkVersion returns the version of the ExecutionPayload.
-func (p *ExecutionPayload) GetForkVersion() common.Version {
-	return p.forkVersion
-}
-
-// SetForkVersion sets the version of the ExecutionPayload.
-func (p *ExecutionPayload) SetForkVersion(version common.Version) {
-	p.forkVersion = version
-}
+// // SetForkVersion sets the version of the ExecutionPayload.
+// func (p *ExecutionPayload) SetForkVersion(version common.Version) {
+// 	p.forkVersion = version
+// }
 
 // IsNil checks if the ExecutionPayload is nil.
 func (p *ExecutionPayload) IsNil() bool {
@@ -580,7 +580,7 @@ func (p *ExecutionPayload) GetExcessBlobGas() math.U64 {
 func (p *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 	txsRoot := p.GetTransactions().HashTreeRoot()
 
-	switch p.forkVersion {
+	switch p.GetForkVersion() {
 	case version.Deneb(), version.Deneb1():
 		return &ExecutionPayloadHeader{
 			ParentHash:       p.ParentHash,
@@ -600,7 +600,7 @@ func (p *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 			WithdrawalsRoot:  p.GetWithdrawals().HashTreeRoot(),
 			BlobGasUsed:      p.GetBlobGasUsed(),
 			ExcessBlobGas:    p.GetExcessBlobGas(),
-			forkVersion:      p.forkVersion,
+			forkVersion:      p.GetForkVersion(),
 		}, nil
 	default:
 		return nil, errors.New("unknown fork version")

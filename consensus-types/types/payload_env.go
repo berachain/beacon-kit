@@ -57,6 +57,7 @@ type ExecutionPayloadEnvelope[
 	ExecutionPayload *ExecutionPayload `json:"executionPayload"`
 	BlockValue       *math.U256        `json:"blockValue"`
 	BlobsBundle      BlobsBundleT      `json:"blobsBundle"`
+	Requests         [][]byte          `json:"requests"`
 	Override         bool              `json:"shouldOverrideBuilder"`
 }
 

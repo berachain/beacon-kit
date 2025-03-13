@@ -20,7 +20,14 @@
 
 package constraints
 
+import "github.com/berachain/beacon-kit/primitives/common"
+
 // Empty is a constraint that requires a type to have an Empty method.
 type Empty[SelfT any] interface {
 	Empty() SelfT
+}
+
+// Versionable is a constraint that requires a type to have a GetForkVersion method.
+type Versionable interface {
+	GetForkVersion() common.Version
 }
