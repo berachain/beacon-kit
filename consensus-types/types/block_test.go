@@ -73,8 +73,6 @@ func generateValidBeaconBlock(t *testing.T, version common.Version) *types.Beaco
 		},
 	}
 	body := beaconBlock.GetBody()
-	body.GetExecutionPayload().SetForkVersion(version)
-	body.SetForkVersion(beaconBlock.GetForkVersion())
 	body.SetProposerSlashings(types.ProposerSlashings{})
 	body.SetAttesterSlashings(types.AttesterSlashings{})
 	body.SetAttestations(types.Attestations{})
@@ -139,9 +137,10 @@ func TestBeaconBlock_MarshalUnmarshalSSZ(t *testing.T) {
 		err = unmarshalledBlock.UnmarshalSSZ(sszBlock)
 		require.NoError(t, err)
 
-		unmarshalledBlock.Body.ExecutionPayload.SetForkVersion(block.GetForkVersion())
-		unmarshalledBlock.Body.SetForkVersion(block.GetForkVersion())
-		unmarshalledBlock.SetForkVersion(block.GetForkVersion())
+		unmarshalledBlock.WithForkVersion(block.GetForkVersion())
+		unmarshalledBlock.Body.Versionable = &unmarshalledBlock
+		unmarshalledBlock.Body.ExecutionPayload.Versionable = &unmarshalledBlock
+
 		require.Equal(t, block, unmarshalledBlock)
 	})
 }

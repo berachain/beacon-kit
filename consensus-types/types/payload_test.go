@@ -49,6 +49,7 @@ func generateExecutionPayload() *types.ExecutionPayload {
 	)
 
 	ep := &types.ExecutionPayload{
+		Versionable:   (&types.BeaconBlock{}).WithForkVersion(version.Deneb1()),
 		ParentHash:    common.ExecutionHash{},
 		FeeRecipient:  common.ExecutionAddress{},
 		StateRoot:     bytes.B32{},
@@ -67,7 +68,6 @@ func generateExecutionPayload() *types.ExecutionPayload {
 		BlobGasUsed:   math.U64(0),
 		ExcessBlobGas: math.U64(0),
 	}
-	ep.SetForkVersion(version.Deneb1())
 	return ep
 }
 
@@ -80,10 +80,8 @@ func TestExecutionPayload_Serialization(t *testing.T) {
 	require.NotNil(t, data)
 
 	var unmarshalled types.ExecutionPayload
-	err = unmarshalled.UnmarshalSSZ(data)
+	err = unmarshalled.UnmarshalSSZ(data, original.GetForkVersion())
 	require.NoError(t, err)
-
-	unmarshalled.SetForkVersion(original.GetForkVersion())
 	require.Equal(t, original, &unmarshalled)
 
 	var buf []byte
@@ -101,7 +99,7 @@ func TestExecutionPayload_SizeSSZ(t *testing.T) {
 	require.Equal(t, uint32(578), size)
 
 	state := &types.ExecutionPayload{}
-	err := state.UnmarshalSSZ([]byte{0x01, 0x02, 0x03}) // Invalid data
+	err := state.UnmarshalSSZ([]byte{0x01, 0x02, 0x03}, version.Deneb1()) // Invalid data
 	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
 
@@ -171,7 +169,7 @@ func TestExecutionPayload_MarshalJSON(t *testing.T) {
 	err = unmarshalled.UnmarshalJSON(data)
 	require.NoError(t, err)
 
-	unmarshalled.SetForkVersion(payload.GetForkVersion())
+	unmarshalled.Versionable = payload.Versionable
 	require.Equal(t, payload, &unmarshalled)
 }
 
@@ -214,6 +212,7 @@ func TestExecutionPayload_Version(t *testing.T) {
 func TestExecutionPayload_ToHeader(t *testing.T) {
 	t.Parallel()
 	payload := &types.ExecutionPayload{
+		Versionable:   (&types.BeaconBlock{}).WithForkVersion(version.Deneb1()),
 		ParentHash:    common.ExecutionHash{},
 		FeeRecipient:  common.ExecutionAddress{},
 		StateRoot:     bytes.B32{},
@@ -232,7 +231,6 @@ func TestExecutionPayload_ToHeader(t *testing.T) {
 		BlobGasUsed:   math.U64(0),
 		ExcessBlobGas: math.U64(0),
 	}
-	payload.SetForkVersion(version.Deneb1())
 	header, err := payload.ToHeader()
 	require.NoError(t, err)
 	require.NotNil(t, header)

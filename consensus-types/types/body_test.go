@@ -38,17 +38,17 @@ import (
 
 func generateBeaconBlockBody(version common.Version) types.BeaconBlockBody {
 	body := types.BeaconBlockBody{
+		Versionable:  (&types.BeaconBlock{}).WithForkVersion(version),
 		RandaoReveal: [96]byte{1, 2, 3},
 		Eth1Data:     &types.Eth1Data{},
 		Graffiti:     [32]byte{4, 5, 6},
 		Deposits:     []*types.Deposit{},
 		ExecutionPayload: &types.ExecutionPayload{
+			Versionable:   (&types.BeaconBlock{}).WithForkVersion(version),
 			BaseFeePerGas: math.NewU256(0),
 		},
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
-	body.SetForkVersion(version)
-	body.GetExecutionPayload().SetForkVersion(version)
 	body.SetProposerSlashings(types.ProposerSlashings{})
 	body.SetAttesterSlashings(types.AttesterSlashings{})
 	body.SetAttestations(types.Attestations{})
@@ -276,8 +276,6 @@ func TestBeaconBlockBody_RoundTrip_HashTreeRoot(t *testing.T) {
 		require.NotNil(t, data)
 
 		unmarshalledBody := &types.BeaconBlockBody{}
-		// We must set the version first for correct marshalling
-		unmarshalledBody.SetForkVersion(v)
 		err = unmarshalledBody.UnmarshalSSZ(data, v)
 		require.NoError(t, err)
 		require.Equal(t, body.HashTreeRoot(), unmarshalledBody.HashTreeRoot())

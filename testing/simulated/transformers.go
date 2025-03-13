@@ -118,6 +118,7 @@ func transformExecutableDataToExecutionPayload(forkVersion libcommon.Version, da
 
 	// Construct the execution payload.
 	executionPayload := &ctypes.ExecutionPayload{
+		Versionable:   (&ctypes.BeaconBlock{}).WithForkVersion(forkVersion),
 		ParentHash:    libcommon.ExecutionHash(data.ParentHash),
 		FeeRecipient:  libcommon.ExecutionAddress(data.FeeRecipient),
 		StateRoot:     libcommon.Bytes32(data.StateRoot),
@@ -136,7 +137,6 @@ func transformExecutableDataToExecutionPayload(forkVersion libcommon.Version, da
 		BlobGasUsed:   math.U64(blobGasUsed),
 		ExcessBlobGas: math.U64(excessBlobGas),
 	}
-	executionPayload.SetForkVersion(forkVersion)
 	return executionPayload, nil
 }
 

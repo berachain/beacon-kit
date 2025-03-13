@@ -47,7 +47,7 @@ type BeaconBlock struct {
 	// forkVersion is the forkVersion of the beacon block.
 	// forkVersion must be not serialized but it's exported
 	// to allow unit tests using reflect on beacon block.
-	forkVersion common.Version
+	forkVersion common.Version `json:"-"`
 }
 
 // NewBeaconBlockWithVersion assembles a new beacon block from the given.
@@ -60,7 +60,6 @@ func NewBeaconBlockWithVersion(
 	switch forkVersion {
 	case version.Deneb(), version.Deneb1():
 		eph := &ExecutionPayload{}
-
 		block := &BeaconBlock{
 			Slot:          slot,
 			ProposerIndex: proposerIndex,
@@ -167,9 +166,10 @@ func (b *BeaconBlock) GetForkVersion() common.Version {
 	return b.forkVersion
 }
 
-// SetForkVersion sets the fork version of the BeaconBlock
-func (b *BeaconBlock) SetForkVersion(version common.Version) {
+// WithForkVersion sets the fork version of the BeaconBlock and returns it.
+func (b *BeaconBlock) WithForkVersion(version common.Version) *BeaconBlock {
 	b.forkVersion = version
+	return b
 }
 
 // GetBody retrieves the body of the BeaconBlock.

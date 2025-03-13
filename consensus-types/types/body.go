@@ -66,7 +66,7 @@ const (
 // BeaconBlockBody represents the body of a beacon block.
 type BeaconBlockBody struct {
 	// Must be available within the object to satisfy signature required for SizeSSZ and DefineSSZ.
-	constraints.Versionable
+	constraints.Versionable `json:"-"`
 
 	// RandaoReveal is the reveal of the RANDAO.
 	RandaoReveal crypto.BLSSignature
@@ -163,26 +163,26 @@ func (b *BeaconBlockBody) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 
-// // UnmarshalSSZ deserializes the BeaconBlockBody from SSZ-encoded bytes.
-// func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte, version common.Version) error {
-// 	b.SetForkVersion(version)
-// 	err := ssz.DecodeFromBytes(buf, b)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	err = EnforceAllUnused(
-// 		b.GetProposerSlashings(),
-// 		b.GetAttesterSlashings(),
-// 		b.GetAttestations(),
-// 		b.GetVoluntaryExits(),
-// 		b.GetSyncAggregate(),
-// 		b.GetBlsToExecutionChanges(),
-// 	)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	return nil
-// }
+// UnmarshalSSZ deserializes the BeaconBlockBody from SSZ-encoded bytes.
+func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte, version common.Version) error {
+	b.Versionable = (&BeaconBlock{}).WithForkVersion(version)
+	err := ssz.DecodeFromBytes(buf, b)
+	if err != nil {
+		return err
+	}
+	err = EnforceAllUnused(
+		b.GetProposerSlashings(),
+		b.GetAttesterSlashings(),
+		b.GetAttestations(),
+		b.GetVoluntaryExits(),
+		b.GetSyncAggregate(),
+		b.GetBlsToExecutionChanges(),
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 // HashTreeRoot returns the SSZ hash tree root of the BeaconBlockBody.
 func (b *BeaconBlockBody) HashTreeRoot() common.Root {
@@ -317,7 +317,3 @@ func (b *BeaconBlockBody) GetBlobKzgCommitments() eip4844.KZGCommitments[common.
 func (b *BeaconBlockBody) SetBlobKzgCommitments(commitments eip4844.KZGCommitments[common.ExecutionHash]) {
 	b.BlobKzgCommitments = commitments
 }
-
-// func (b *BeaconBlockBody) SetForkVersion(version common.Version) {
-// 	b.forkVersion = version
-// }

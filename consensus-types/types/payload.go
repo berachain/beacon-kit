@@ -39,7 +39,7 @@ const ExecutionPayloadStaticSize uint32 = 528
 
 // ExecutionPayload represents the payload of an execution block.
 type ExecutionPayload struct {
-	constraints.Versionable
+	constraints.Versionable `json:"-"`
 
 	// ParentHash is the hash of the parent block.
 	ParentHash common.ExecutionHash `json:"parentHash"`
@@ -75,9 +75,6 @@ type ExecutionPayload struct {
 	BlobGasUsed math.U64 `json:"blobGasUsed"`
 	// ExcessBlobGas is the amount of excess blob gas in the block.
 	ExcessBlobGas math.U64 `json:"excessBlobGas"`
-
-	// // forkVersion is the version of the execution payload, it must be not serialized.
-	// forkVersion common.Version
 }
 
 func EnsureNotNilWithdrawals(p *ExecutionPayload) {
@@ -161,7 +158,8 @@ func (p *ExecutionPayload) MarshalSSZ() ([]byte, error) {
 }
 
 // UnmarshalSSZ unmarshals the ExecutionPayload object from a source array.
-func (p *ExecutionPayload) UnmarshalSSZ(bz []byte) error {
+func (p *ExecutionPayload) UnmarshalSSZ(bz []byte, version common.Version) error {
+	p.Versionable = (&BeaconBlock{}).WithForkVersion(version)
 	return ssz.DecodeFromBytes(bz, p)
 }
 
