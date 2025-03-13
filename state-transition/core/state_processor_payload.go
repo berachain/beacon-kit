@@ -58,6 +58,9 @@ func (sp *StateProcessor) processExecutionPayload(
 		"verify payload", txCtx.VerifyPayload(),
 	)
 
+	// TODO(pectra): https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#modified-process_execution_payload
+	// Possibly no change is required.
+
 	// Perform payload verification only if the context is configured as such.
 	if txCtx.VerifyPayload() {
 		g.Go(func() error {
@@ -156,6 +159,9 @@ func (sp *StateProcessor) validateStatefulPayload(
 	}
 
 	parentBeaconBlockRoot := blk.GetParentBlockRoot()
+
+	// TODO(pectra): https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#new-get_execution_requests_list
+
 	payloadReq := ctypes.BuildNewPayloadRequest(
 		payload,
 		body.GetBlobKzgCommitments().ToVersionedHashes(),
