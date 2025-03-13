@@ -95,6 +95,20 @@ func (d *DepositRequest) SizeSSZ(_ *ssz.Sizer) uint32 {
 	return sszDepositRequestSize
 }
 
+func (d *DepositRequest) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, ssz.Size(d))
+	return buf, ssz.EncodeToBytes(buf, d)
+}
+
+func (d *DepositRequest) UnmarshalSSZ(buf []byte) error {
+	return ssz.DecodeFromBytes(buf, d)
+}
+
+// HashTreeRoot returns the hash tree root of the Deposits.
+func (d *DepositRequest) HashTreeRoot() common.Root {
+	return ssz.HashSequential(d)
+}
+
 func (w *WithdrawalRequest) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineStaticBytes(codec, &w.SourceAddress)
 	ssz.DefineStaticBytes(codec, &w.ValidatorPubKey)
@@ -103,4 +117,18 @@ func (w *WithdrawalRequest) DefineSSZ(codec *ssz.Codec) {
 
 func (w *WithdrawalRequest) SizeSSZ(_ *ssz.Sizer) uint32 {
 	return sszWithdrawRequestSize
+}
+
+func (w *WithdrawalRequest) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, ssz.Size(w))
+	return buf, ssz.EncodeToBytes(buf, w)
+}
+
+func (w *WithdrawalRequest) UnmarshalSSZ(buf []byte) error {
+	return ssz.DecodeFromBytes(buf, w)
+}
+
+// HashTreeRoot returns the hash tree root of the Deposits.
+func (w *WithdrawalRequest) HashTreeRoot() common.Root {
+	return ssz.HashSequential(w)
 }

@@ -261,8 +261,10 @@ func (sp *StateProcessor) processEpoch(st *state.StateDB) (transition.ValidatorU
 
 	// TODO(pectra): process_pending_deposits(state)  # [New in Electra:EIP7251]
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#epoch-processing
-	// - process_pending_deposits https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#new-process_pending_deposits
-	// - apply_pending_deposit - https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#new-apply_pending_deposit
+	// - process_pending_deposits
+	//		https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#new-process_pending_deposits
+	// - apply_pending_deposit
+	//		https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#new-apply_pending_deposit
 
 	// finally compute diffs in validator set to duly update consensus
 	nextEpoch := currentEpoch + 1
