@@ -24,7 +24,6 @@ package compare_test
 
 import (
 	"bytes"
-	"fmt"
 	"math/rand"
 	"reflect"
 	"testing"
@@ -35,6 +34,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	bytesprimitives "github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	zcommon "github.com/protolambda/zrnt/eth2/beacon/common"
@@ -102,7 +102,6 @@ func generateWithdrawals(r *rand.Rand, maxLen int) []*engineprimitives.Withdrawa
 		w := v.Interface().(engineprimitives.Withdrawal)
 		withdrawals[i] = &w
 	}
-	fmt.Println(withdrawals)
 	return withdrawals
 }
 
@@ -136,17 +135,8 @@ func (p *TestExecPayload) Generate(r *rand.Rand, size int) reflect.Value {
 	tep.BlobGasUsed = exp.BlobGasUsed
 	tep.ExcessBlobGas = exp.ExcessBlobGas
 
-	// Step 3: Ensure that slices are non-nil. Default withdrawals generation only generates a maximum length of 1.
-	const maxWithdrawalLen = 0
-	tep.Withdrawals = generateWithdrawals(r, maxWithdrawalLen)
-
-	if tep.Transactions == nil {
-		tep.Transactions = engineprimitives.Transactions{}
-	}
-
-	if len(tep.Withdrawals) > 2 {
-		fmt.Println(tep.Withdrawals)
-	}
+	// Step 3: Generate withdrawals. Default withdrawals generation only generates a maximum length of 1 so we need a custom helper.
+	tep.Withdrawals = generateWithdrawals(r, int(constants.MaxWithdrawalsPerPayload))
 
 	// Step 4: Set the unexported forkVersion via the setter.
 	// Convert our alias pointer to the production *ctypes.ExecutionPayload.
@@ -154,18 +144,18 @@ func (p *TestExecPayload) Generate(r *rand.Rand, size int) reflect.Value {
 	supported := version.GetSupportedVersions()
 	orig.SetForkVersion(supported[r.Intn(len(supported))])
 
+	// Step 5 set a fixed value for BaseFee to avoid panicks. Could be its own generator.
+	orig.BaseFeePerGas = math.NewU256(123)
+
 	// Return a reflect.Value representing a pointer to our alias.
 	return reflect.ValueOf(&tep)
 }
 
 func TestExecutionPayloadHashTreeRootZrnt(t *testing.T) {
 	t.Parallel()
-	f := func(testPayload *TestExecPayload, logsBloom [256]byte) bool {
+	f := func(testPayload *TestExecPayload) bool {
 		// Convert the generated value back to the production type.
 		payload := (*ctypes.ExecutionPayload)(testPayload)
-		//fmt.Printf("%+v\n", payload)
-		payload.LogsBloom = logsBloom
-		payload.BaseFeePerGas = math.NewU256(123)
 		typeRoot := payload.HashTreeRoot()
 
 		baseFeePerGas := zview.Uint256View{}
@@ -186,14 +176,23 @@ func TestExecutionPayloadHashTreeRootZrnt(t *testing.T) {
 			BlockHash:     ztree.Root(payload.BlockHash),
 			Transactions: *(*zcommon.PayloadTransactions)(
 				unsafe.Pointer(&payload.Transactions)),
-			Withdrawals:   *(*zcommon.Withdrawals)(unsafe.Pointer(&payload.Withdrawals)),
 			BlobGasUsed:   zview.Uint64View(payload.BlobGasUsed.Unwrap()),
 			ExcessBlobGas: zview.Uint64View(payload.ExcessBlobGas.Unwrap()),
 		}
+		var zWithdrawals zcommon.Withdrawals
+		for _, withdrawal := range payload.Withdrawals {
+			zWithdrawal := zcommon.Withdrawal{
+				Index:          zcommon.WithdrawalIndex(withdrawal.Index),
+				ValidatorIndex: zcommon.ValidatorIndex(withdrawal.Validator),
+				Address:        zcommon.Eth1Address(withdrawal.Address),
+				Amount:         zcommon.Gwei(withdrawal.Amount),
+			}
+			zWithdrawals = append(zWithdrawals, zWithdrawal)
+		}
+		zpayload.Withdrawals = zWithdrawals
 
 		zRoot := zpayload.HashTreeRoot(spec, hFn)
 		containerRoot := payload.HashTreeRoot()
-
 		return bytes.Equal(typeRoot[:], containerRoot[:]) &&
 			bytes.Equal(typeRoot[:], zRoot[:])
 	}

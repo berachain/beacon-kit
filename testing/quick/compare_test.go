@@ -35,7 +35,7 @@ import (
 )
 
 var (
-	c    = quick.Config{MaxCount: 1}
+	c    = quick.Config{MaxCount: 10_000}
 	hFn  = ztree.GetHashFn()
 	spec = zspec.Mainnet
 )
