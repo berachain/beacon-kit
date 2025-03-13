@@ -40,6 +40,8 @@ type KVStore struct {
 	// Versioning
 	// genesisValidatorsRoot is the root of the genesis validators.
 	genesisValidatorsRoot sdkcollections.Item[[]byte]
+	// genesisTime is the time of the genesis block.
+	genesisTime sdkcollections.Item[uint64]
 	// slot is the current slot.
 	slot sdkcollections.Item[uint64]
 	// fork is the current fork
@@ -105,6 +107,12 @@ func New(kss store.KVStoreService) *KVStore {
 			sdkcollections.NewPrefix([]byte{keys.GenesisValidatorsRootPrefix}),
 			keys.GenesisValidatorsRootPrefixHumanReadable,
 			sdkcollections.BytesValue,
+		),
+		genesisTime: sdkcollections.NewItem(
+			schemaBuilder,
+			sdkcollections.NewPrefix([]byte{keys.GenesisTimePrefix}),
+			keys.GenesisTimePrefixHumanReadable,
+			sdkcollections.Uint64Value,
 		),
 		slot: sdkcollections.NewItem(
 			schemaBuilder,

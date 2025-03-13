@@ -35,3 +35,29 @@ func (b Backend) GenesisValidatorsRoot(slot math.Slot) (common.Root, error) {
 	}
 	return st.GetGenesisValidatorsRoot()
 }
+
+// GenesisForkVersion returns the genesis fork version of the beacon chain.
+func (b Backend) GenesisForkVersion(genesisSlot math.Slot) (common.Version, error) {
+	st, _, err := b.stateFromSlot(genesisSlot)
+	if err != nil {
+		return common.Version{}, errors.Wrapf(err, "failed to get state from slot %d", genesisSlot)
+	}
+	fork, err := st.GetFork()
+	if err != nil {
+		return common.Version{}, errors.Wrapf(err, "failed to get fork from state")
+	}
+	return fork.CurrentVersion, nil
+}
+
+// GenesisTime returns the genesis time of the beacon chain.
+func (b Backend) GenesisTime(genesisSlot math.Slot) (math.U64, error) {
+	st, _, err := b.stateFromSlot(genesisSlot)
+	if err != nil {
+		return 0, errors.Wrapf(err, "failed to get state from slot %d", genesisSlot)
+	}
+	genesisTime, err := st.GetGenesisTime()
+	if err != nil {
+		return 0, errors.Wrapf(err, "failed to get genesis time from state")
+	}
+	return genesisTime, nil
+}
