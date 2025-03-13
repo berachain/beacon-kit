@@ -23,7 +23,6 @@ package core
 import (
 	"bytes"
 
-	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
@@ -41,7 +40,7 @@ type StateProcessor struct {
 	// logger is used for logging information and errors.
 	logger log.Logger
 	// cs is the chain specification for the beacon chain.
-	cs chain.Spec
+	cs ChainSpec
 	// signer is the BLS signer used for cryptographic operations.
 	signer crypto.BLSSigner
 	// fGetAddressFromPubKey verifies that a validator public key
@@ -59,7 +58,7 @@ type StateProcessor struct {
 // NewStateProcessor creates a new state processor.
 func NewStateProcessor(
 	logger log.Logger,
-	cs chain.Spec,
+	cs ChainSpec,
 	executionEngine ExecutionEngine,
 	ds *depositdb.KVStore,
 	signer crypto.BLSSigner,
@@ -101,7 +100,7 @@ func (sp *StateProcessor) Transition(
 	return validatorUpdates, nil
 }
 
-// NOTE: if process slots is called across multiple epochs (the given slot is more than 1 multiple
+// ProcessSlots NOTE: if process slots is called across multiple epochs (the given slot is more than 1 multiple
 // ahead of the current state slot), then validator updates will be returned in the order they are
 // processed, which may effectually override each other.
 func (sp *StateProcessor) ProcessSlots(
