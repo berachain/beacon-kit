@@ -62,7 +62,7 @@ func (sp *StateProcessor) InitializePreminedBeaconStateFromEth1(
 	if !version.Equals(genesisVersion, version.Genesis()) {
 		return nil, fmt.Errorf("fork version not supported: %s", genesisVersion)
 	}
-	versionable := (&ctypes.BeaconBlock{}).WithForkVersion(version.Genesis())
+	versionable := ctypes.NewVersionable(version.Genesis())
 	blkBody := &ctypes.BeaconBlockBody{
 		Versionable: versionable,
 		Eth1Data:    &ctypes.Eth1Data{},

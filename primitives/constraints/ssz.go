@@ -31,31 +31,23 @@ type SSZMarshaler interface {
 	MarshalSSZ() ([]byte, error)
 }
 
-// SSZUnmarshaler is an interface for objects that can be
-// unmarshaled from SSZ format.
-type SSZUnmarshaler interface {
-	// UnmarshalSSZ unmarshals the object from SSZ format.
-	UnmarshalSSZ([]byte) error
+// SSZUnmarshaler is an interface for objects that can be unmarshaled from SSZ format.
+type SSZUnmarshaler[SelfT any] interface {
+	// NewFromSSZ creates a new object from SSZ format.
+	NewFromSSZ(bz []byte) (SelfT, error)
 }
 
 // SSZVersionedUnmarshaler is an interface for objects that can be
 // unmarshaled from SSZ format for specific versions.
 type SSZVersionedUnmarshaler[SelfT any] interface {
+	// NewFromSSZ creates a new object from SSZ format with the given version.
 	NewFromSSZ(bz []byte, version common.Version) (SelfT, error)
 }
 
-// SSZRootable is an interface for objects that can compute
-// their hash tree root.
-type SSZRootable interface {
-	// HashTreeRoot computes the hash tree root of the object.
-	HashTreeRoot() common.Root
-}
-
-// SSZMarshallable is an interface that combines
-// SSZMarshaler and SSZUnmarshaler.
-type SSZMarshallable interface {
+// SSZMarshallable is an interface that combines SSZMarshaler and SSZUnmarshaler.
+type SSZMarshallable[SelfT any] interface {
 	SSZMarshaler
-	SSZUnmarshaler
+	SSZUnmarshaler[SelfT]
 }
 
 // Versionable is a constraint that requires a type to have a GetForkVersion method.
@@ -63,18 +55,23 @@ type Versionable interface {
 	GetForkVersion() common.Version
 }
 
-// SSZVersionable is an interface that combines
-// SSZMarshallable and Versionable.
+// SSZVersionable is an interface that combines SSZMarshallable and Versionable.
 type SSZVersionedMarshallable[SelfT any] interface {
 	Versionable
-	SSZVersionedUnmarshaler[SelfT]
 	SSZMarshaler
+	SSZVersionedUnmarshaler[SelfT]
+}
+
+// SSZRootable is an interface for objects that can compute their hash tree root.
+type SSZRootable interface {
+	// HashTreeRoot computes the hash tree root of the object.
+	HashTreeRoot() common.Root
 }
 
 // SSZMarshallableRootable is an interface that combines
 // SSZMarshaler, SSZUnmarshaler, and SSZRootable.
-type SSZMarshallableRootable interface {
-	SSZMarshallable
+type SSZMarshallableRootable[SelfT any] interface {
+	SSZMarshallable[SelfT]
 	SSZRootable
 }
 

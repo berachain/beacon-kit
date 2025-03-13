@@ -34,8 +34,8 @@ import (
 )
 
 var (
-	_ ssz.DynamicObject                   = (*SignedBeaconBlock)(nil)
-	_ constraints.SSZMarshallableRootable = (*SignedBeaconBlock)(nil)
+	_ ssz.DynamicObject                                       = (*SignedBeaconBlock)(nil)
+	_ constraints.SSZMarshallableRootable[*SignedBeaconBlock] = (*SignedBeaconBlock)(nil)
 )
 
 type SignedBeaconBlock struct {
@@ -55,21 +55,23 @@ func NewSignedBeaconBlockFromSSZ(
 	block := &SignedBeaconBlock{}
 	switch forkVersion {
 	case version.Deneb(), version.Deneb1():
-		if err := block.UnmarshalSSZ(bz); err != nil {
-			return block, err
+		block, err := block.NewFromSSZ(bz)
+		if err != nil {
+			return nil, err
 		}
 
 		// make sure Withdrawals in execution payload are not nil
 		EnsureNotNilWithdrawals(block.Message.Body.ExecutionPayload)
 
 		// duly setup fork version in every relevant block member
-		block.Message.forkVersion = forkVersion
-		block.Message.Body.Versionable = block.Message
-		block.Message.Body.ExecutionPayload.Versionable = block.Message
+		versionable := NewVersionable(forkVersion)
+		block.Message.Versionable = versionable
+		block.Message.Body.Versionable = versionable
+		block.Message.Body.ExecutionPayload.Versionable = versionable
 		return block, nil
 	default:
 		// we return block here to appease nilaway
-		return block, errors.Wrap(
+		return &SignedBeaconBlock{}, errors.Wrap(
 			ErrForkVersionNotSupported,
 			fmt.Sprintf("fork %d", forkVersion),
 		)
@@ -126,9 +128,10 @@ func (b *SignedBeaconBlock) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 
-// UnmarshalSSZ unmarshals the SignedBeaconBlockHeader object from SSZ format.
-func (b *SignedBeaconBlock) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, b)
+// NewFromSSZ creates a new SignedBeaconBlock from SSZ format.
+func (*SignedBeaconBlock) NewFromSSZ(buf []byte) (*SignedBeaconBlock, error) {
+	b := &SignedBeaconBlock{}
+	return b, ssz.DecodeFromBytes(buf, b)
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the

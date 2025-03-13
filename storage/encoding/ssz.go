@@ -28,8 +28,7 @@ import (
 
 // SSZValueCodec provides methods to encode and decode SSZ values.
 type SSZValueCodec[T interface {
-	constraints.SSZMarshallable
-	Empty() T
+	constraints.SSZMarshallable[T]
 }] struct{}
 
 // Encode marshals the provided value into its SSZ encoding.
@@ -39,9 +38,8 @@ func (SSZValueCodec[T]) Encode(value T) ([]byte, error) {
 
 // Decode unmarshals the provided bytes into a value of type T.
 func (SSZValueCodec[T]) Decode(bz []byte) (T, error) {
-	var v T
-	v = (v).Empty()
-	return v, v.UnmarshalSSZ(bz)
+	var t T
+	return t.NewFromSSZ(bz)
 }
 
 // EncodeJSON is not implemented and will panic if called.

@@ -163,22 +163,19 @@ func (p *ExecutionPayload) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, p)
 }
 
-// Empty returns an empty ExecutionPayload for the given fork version.
-func (*ExecutionPayload) Empty(version common.Version) *ExecutionPayload {
+// empty returns an empty ExecutionPayload for the given fork version.
+func (*ExecutionPayload) empty(version common.Version) *ExecutionPayload {
 	return &ExecutionPayload{
-		Versionable:   (&BeaconBlock{}).WithForkVersion(version),
+		Versionable:   NewVersionable(version),
+		ExtraData:     make([]byte, ExtraDataSize),
 		BaseFeePerGas: &math.U256{},
 	}
 }
 
 // NewFromSSZ unmarshals the ExecutionPayload object from a source array with a given fork version.
-func (p *ExecutionPayload) NewFromSSZ(bz []byte, version common.Version) (*ExecutionPayload, error) {
-	p = p.Empty(version)
-	err := ssz.DecodeFromBytes(bz, p)
-	if err != nil {
-		return nil, err
-	}
-	return p, nil
+func (*ExecutionPayload) NewFromSSZ(bz []byte, version common.Version) (*ExecutionPayload, error) {
+	p := (&ExecutionPayload{}).empty(version)
+	return p, ssz.DecodeFromBytes(bz, p)
 }
 
 // HashTreeRoot returns the hash tree root of the ExecutionPayload.

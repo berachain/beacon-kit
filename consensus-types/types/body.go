@@ -169,22 +169,19 @@ func (b *BeaconBlockBody) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 
-// Empty returns an empty BeaconBlockBody for the given fork version.
-func (*BeaconBlockBody) Empty(version common.Version) *BeaconBlockBody {
-	versionable := (&BeaconBlock{}).WithForkVersion(version)
+// empty returns an empty BeaconBlockBody for the given fork version.
+func (*BeaconBlockBody) empty(version common.Version) *BeaconBlockBody {
 	return &BeaconBlockBody{
-		Versionable: versionable,
-		Eth1Data:    &Eth1Data{},
-		ExecutionPayload: &ExecutionPayload{
-			Versionable: versionable,
-		},
-		syncAggregate: &SyncAggregate{},
+		Versionable:      NewVersionable(version),
+		Eth1Data:         &Eth1Data{},
+		ExecutionPayload: (&ExecutionPayload{}).empty(version),
+		syncAggregate:    &SyncAggregate{},
 	}
 }
 
 // UnmarshalSSZ deserializes the BeaconBlockBody from SSZ-encoded bytes.
-func (b *BeaconBlockBody) NewFromSSZ(buf []byte, version common.Version) (*BeaconBlockBody, error) {
-	b = b.Empty(version)
+func (*BeaconBlockBody) NewFromSSZ(buf []byte, version common.Version) (*BeaconBlockBody, error) {
+	b := (&BeaconBlockBody{}).empty(version)
 	err := ssz.DecodeFromBytes(buf, b)
 	if err != nil {
 		return nil, err

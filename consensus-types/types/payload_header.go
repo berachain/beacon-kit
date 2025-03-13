@@ -75,35 +75,25 @@ type ExecutionPayloadHeader struct {
 	BlobGasUsed math.U64 `json:"blobGasUsed"`
 	// ExcessBlobGas is the amount of excess blob gas in the block.
 	ExcessBlobGas math.U64 `json:"excessBlobGas"`
+
 	// forkVersion specifies the fork version of the ExecutionPayloadHeader.
+	// TODO: replace with versionable.
 	forkVersion common.Version
 }
 
-// Empty returns an empty ExecutionPayloadHeader.
-func (*ExecutionPayloadHeader) Empty(version common.Version) *ExecutionPayloadHeader {
+// empty returns an empty ExecutionPayloadHeader.
+func (*ExecutionPayloadHeader) empty(version common.Version) *ExecutionPayloadHeader {
 	return &ExecutionPayloadHeader{
 		forkVersion:   version,
 		BaseFeePerGas: &math.U256{},
 	}
 }
 
-// NewFromSSZ returns a new ExecutionPayloadHeader from the given SSZ bytes.
-func (h *ExecutionPayloadHeader) NewFromSSZ(
-	bz []byte, forkVersion common.Version,
-) (*ExecutionPayloadHeader, error) {
-	h = h.Empty(forkVersion)
-	err := h.UnmarshalSSZ(bz)
-	if err != nil {
-		return nil, err
-	}
-	return h, nil
-}
-
 // NewFromJSON returns a new ExecutionPayloadHeader from the given JSON bytes.
 func (h *ExecutionPayloadHeader) NewFromJSON(
 	bz []byte, forkVersion common.Version,
 ) (*ExecutionPayloadHeader, error) {
-	h = h.Empty(forkVersion)
+	h = h.empty(forkVersion)
 	if err := json.Unmarshal(bz, h); err != nil {
 		return nil, err
 	}
@@ -161,10 +151,12 @@ func (h *ExecutionPayloadHeader) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, h)
 }
 
-// UnmarshalSSZ unmarshals the ExecutionPayloadHeaderDeneb object from a source
-// array.
-func (h *ExecutionPayloadHeader) UnmarshalSSZ(bz []byte) error {
-	return ssz.DecodeFromBytes(bz, h)
+// NewFromSSZ returns a new ExecutionPayloadHeader from the given SSZ bytes.
+func (*ExecutionPayloadHeader) NewFromSSZ(
+	bz []byte, forkVersion common.Version,
+) (*ExecutionPayloadHeader, error) {
+	h := (&ExecutionPayloadHeader{}).empty(forkVersion)
+	return h, ssz.DecodeFromBytes(bz, h)
 }
 
 // HashTreeRootSSZ returns the hash tree root of the ExecutionPayloadHeader.
