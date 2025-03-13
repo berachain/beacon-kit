@@ -85,7 +85,7 @@ func TestSidecarMarshalling(t *testing.T) {
 	)
 }
 
-// TODO: Update to take in version
+// TODO(pectra): Update to take in version
 func generateValidBeaconBlock(t *testing.T) *ctypes.BeaconBlock {
 	t.Helper()
 

@@ -38,6 +38,7 @@ import (
 
 // runForAllSupportedVersions iterates over all supported versions,
 // creating a subtest for each that runs the provided testFunc.
+// TODO(pectra): Find a better home for this function.
 func runForAllSupportedVersions(t *testing.T, testFunc func(t *testing.T, v common.Version)) {
 	t.Helper()
 	for _, v := range version.GetSupportedVersions() {
