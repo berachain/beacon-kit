@@ -18,28 +18,10 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package engine
+package genesis
 
-import (
-	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/math"
-)
+import "github.com/berachain/beacon-kit/chain"
 
-// TelemetrySink is an interface for sending metrics to a telemetry backend.
-type TelemetrySink interface {
-	// IncrementCounter increments a counter metric identified by the provided
-	// keys.
-	IncrementCounter(key string, args ...string)
-}
-
-// Withdrawal is the interface for a withdrawal.
-type Withdrawal interface {
-	// GetAmount returns the amount of the withdrawal.
-	GetAmount() math.Gwei
-	// GetIndex returns the public key of the validator.
-	GetIndex() math.U64
-	// GetValidatorIndex returns the index of the validator.
-	GetValidatorIndex() math.ValidatorIndex
-	// GetAddress returns the address of the withdrawal.
-	GetAddress() common.ExecutionAddress
+type ChainSpec interface {
+	chain.BalancesSpec
 }

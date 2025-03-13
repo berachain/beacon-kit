@@ -24,7 +24,6 @@ import (
 	"fmt"
 	"unsafe"
 
-	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/cli/context"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -42,7 +41,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func AddExecutionPayloadCmd(chainSpec chain.Spec) *cobra.Command {
+func AddExecutionPayloadCmd(chainSpec ChainSpec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "execution-payload [eth/genesis/file.json]",
 		Short: "adds the eth1 genesis execution payload to the genesis file",
@@ -58,7 +57,7 @@ func AddExecutionPayloadCmd(chainSpec chain.Spec) *cobra.Command {
 	return cmd
 }
 
-func AddExecutionPayload(chainSpec chain.Spec, elGenesisPath string, config *cmtcfg.Config) error {
+func AddExecutionPayload(chainSpec ChainSpec, elGenesisPath string, config *cmtcfg.Config) error {
 	genesisBz, err := afero.ReadFile(afero.NewOsFs(), elGenesisPath)
 	if err != nil {
 		return errors.Wrap(err, "failed to read eth1 genesis file")

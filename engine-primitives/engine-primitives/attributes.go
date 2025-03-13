@@ -22,23 +22,11 @@ package engineprimitives
 
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 )
 
-// PayloadAttributer represents payload attributes of a block.
-type PayloadAttributer interface {
-	constraints.Versionable
-	constraints.Nillable
-	// GetSuggestedFeeRecipient returns the suggested fee recipient for the
-	// block.
-	GetSuggestedFeeRecipient() common.ExecutionAddress
-}
-
 // PayloadAttributes is the attributes of a block payload.
-//
-
 type PayloadAttributes struct {
 	// Timestamp is the timestamp at which the block will be built at.
 	Timestamp math.U64 `json:"timestamp"`
@@ -62,7 +50,7 @@ type PayloadAttributes struct {
 	version common.Version `json:"-"`
 }
 
-// New empty PayloadAttributes.
+// NewPayloadAttributes creates a new empty PayloadAttributes.
 func NewPayloadAttributes(
 	forkVersion common.Version,
 	timestamp uint64,

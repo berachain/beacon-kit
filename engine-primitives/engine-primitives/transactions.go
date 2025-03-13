@@ -26,7 +26,7 @@ import (
 	"github.com/karalabe/ssz"
 )
 
-// ProperTransactions is a type alias for [][]byte, which is how
+// Transactions is a type alias for [][]byte, which is how
 // transactions are received in the execution payload.
 type Transactions [][]byte
 
