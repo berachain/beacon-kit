@@ -63,6 +63,12 @@ const (
 	ExtraDataSize = 32
 )
 
+// Compile-time assertions to ensure BeaconBlockBody implements necessary interfaces.
+var (
+	_ ssz.DynamicObject                                              = (*BeaconBlockBody)(nil)
+	_ constraints.SSZVersionedMarshallableRootable[*BeaconBlockBody] = (*BeaconBlockBody)(nil)
+)
+
 // BeaconBlockBody represents the body of a beacon block.
 type BeaconBlockBody struct {
 	// Must be available within the object to satisfy signature required for SizeSSZ and DefineSSZ.
@@ -163,12 +169,25 @@ func (b *BeaconBlockBody) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 
+// Empty returns an empty BeaconBlockBody for the given fork version.
+func (*BeaconBlockBody) Empty(version common.Version) *BeaconBlockBody {
+	versionable := (&BeaconBlock{}).WithForkVersion(version)
+	return &BeaconBlockBody{
+		Versionable: versionable,
+		Eth1Data:    &Eth1Data{},
+		ExecutionPayload: &ExecutionPayload{
+			Versionable: versionable,
+		},
+		syncAggregate: &SyncAggregate{},
+	}
+}
+
 // UnmarshalSSZ deserializes the BeaconBlockBody from SSZ-encoded bytes.
-func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte, version common.Version) error {
-	b.Versionable = (&BeaconBlock{}).WithForkVersion(version)
+func (b *BeaconBlockBody) NewFromSSZ(buf []byte, version common.Version) (*BeaconBlockBody, error) {
+	b = b.Empty(version)
 	err := ssz.DecodeFromBytes(buf, b)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	err = EnforceAllUnused(
 		b.GetProposerSlashings(),
@@ -179,9 +198,9 @@ func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte, version common.Version) error
 		b.GetBlsToExecutionChanges(),
 	)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return b, nil
 }
 
 // HashTreeRoot returns the SSZ hash tree root of the BeaconBlockBody.

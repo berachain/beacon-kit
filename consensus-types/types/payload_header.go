@@ -24,11 +24,18 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
 	fastssz "github.com/ferranbt/fastssz"
 	"github.com/holiman/uint256"
 	"github.com/karalabe/ssz"
+)
+
+// Compile-time assertions to ensure ExecutionPayloadHeader implements necessary interfaces.
+var (
+	_ ssz.DynamicObject                                                     = (*ExecutionPayloadHeader)(nil)
+	_ constraints.SSZVersionedMarshallableRootable[*ExecutionPayloadHeader] = (*ExecutionPayloadHeader)(nil)
 )
 
 // ExecutionPayloadHeader is the execution header payload of Deneb.
@@ -74,9 +81,8 @@ type ExecutionPayloadHeader struct {
 }
 
 // Empty returns an empty ExecutionPayloadHeader.
-func (h *ExecutionPayloadHeader) Empty(version common.Version) *ExecutionPayloadHeader {
+func (*ExecutionPayloadHeader) Empty(version common.Version) *ExecutionPayloadHeader {
 	return &ExecutionPayloadHeader{
-		// By default, we set the version to Deneb to maintain compatibility.
 		forkVersion:   version,
 		BaseFeePerGas: &uint256.Int{},
 	}

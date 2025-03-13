@@ -61,8 +61,7 @@ type KVStore struct {
 	latestExecutionPayloadVersion sdkcollections.Item[uint32]
 	// latestExecutionPayloadCodec is the codec for the latest execution
 	// payload, it allows us to update the codec with the latest version.
-	latestExecutionPayloadCodec *encoding.
-					SSZInterfaceCodec[*ctypes.ExecutionPayloadHeader]
+	latestExecutionPayloadCodec *encoding.SSZVersionedValueCodec[*ctypes.ExecutionPayloadHeader]
 	// latestExecutionPayloadHeader stores the latest execution payload header.
 	latestExecutionPayloadHeader sdkcollections.Item[*ctypes.ExecutionPayloadHeader]
 	// Registry
@@ -95,7 +94,7 @@ type KVStore struct {
 func New(kss store.KVStoreService) *KVStore {
 	var (
 		schemaBuilder = sdkcollections.NewSchemaBuilder(kss)
-		payloadCodec  = &encoding.SSZInterfaceCodec[*ctypes.ExecutionPayloadHeader]{}
+		payloadCodec  = &encoding.SSZVersionedValueCodec[*ctypes.ExecutionPayloadHeader]{}
 	)
 
 	res := &KVStore{

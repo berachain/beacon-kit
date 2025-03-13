@@ -25,13 +25,19 @@ import (
 
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/karalabe/ssz"
 )
 
-// BeaconBlock represents a block in the beacon chain during
-// the Deneb fork.
+// Compile-time assertions to ensure BeaconBlock implements necessary interfaces.
+var (
+	_ ssz.DynamicObject                                          = (*BeaconBlock)(nil)
+	_ constraints.SSZVersionedMarshallableRootable[*BeaconBlock] = (*BeaconBlock)(nil)
+)
+
+// BeaconBlock represents a block in the beacon chain.
 type BeaconBlock struct {
 	// Slot represents the position of the block in the chain.
 	Slot math.Slot `json:"slot"`
@@ -116,9 +122,21 @@ func (b *BeaconBlock) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 
-// UnmarshalSSZ unmarshals the BeaconBlock object from SSZ format.
-func (b *BeaconBlock) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, b)
+// Empty returns an empty BeaconBlock for the given fork version.
+func (*BeaconBlock) Empty(version common.Version) *BeaconBlock {
+	return &BeaconBlock{
+		forkVersion: version,
+	}
+}
+
+// NewFromSSZ unmarshals the BeaconBlock object from SSZ format.
+func (b *BeaconBlock) NewFromSSZ(buf []byte, version common.Version) (*BeaconBlock, error) {
+	b = b.Empty(version)
+	err := ssz.DecodeFromBytes(buf, b)
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
 }
 
 // HashTreeRoot computes the Merkleization of the BeaconBlock object.

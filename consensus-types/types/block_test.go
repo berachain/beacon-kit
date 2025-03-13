@@ -129,19 +129,18 @@ func TestBeaconBlock(t *testing.T) {
 func TestBeaconBlock_MarshalUnmarshalSSZ(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
-		block := *generateValidBeaconBlock(t, v)
+		block := generateValidBeaconBlock(t, v)
 
 		sszBlock, err := block.MarshalSSZ()
 		require.NoError(t, err)
 		require.NotNil(t, sszBlock)
 
-		var unmarshalledBlock types.BeaconBlock
-		err = unmarshalledBlock.UnmarshalSSZ(sszBlock)
+		unmarshalledBlock, err := (&types.BeaconBlock{}).NewFromSSZ(sszBlock, v)
 		require.NoError(t, err)
 
 		unmarshalledBlock.WithForkVersion(block.GetForkVersion())
-		unmarshalledBlock.Body.Versionable = &unmarshalledBlock
-		unmarshalledBlock.Body.ExecutionPayload.Versionable = &unmarshalledBlock
+		unmarshalledBlock.Body.Versionable = unmarshalledBlock
+		unmarshalledBlock.Body.ExecutionPayload.Versionable = unmarshalledBlock
 
 		require.Equal(t, block, unmarshalledBlock)
 	})

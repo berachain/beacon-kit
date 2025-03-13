@@ -38,6 +38,12 @@ type SSZUnmarshaler interface {
 	UnmarshalSSZ([]byte) error
 }
 
+// SSZVersionedUnmarshaler is an interface for objects that can be
+// unmarshaled from SSZ format for specific versions.
+type SSZVersionedUnmarshaler[SelfT any] interface {
+	NewFromSSZ(bz []byte, version common.Version) (SelfT, error)
+}
+
 // SSZRootable is an interface for objects that can compute
 // their hash tree root.
 type SSZRootable interface {
@@ -52,9 +58,29 @@ type SSZMarshallable interface {
 	SSZUnmarshaler
 }
 
+// Versionable is a constraint that requires a type to have a GetForkVersion method.
+type Versionable interface {
+	GetForkVersion() common.Version
+}
+
+// SSZVersionable is an interface that combines
+// SSZMarshallable and Versionable.
+type SSZVersionedMarshallable[SelfT any] interface {
+	Versionable
+	SSZVersionedUnmarshaler[SelfT]
+	SSZMarshaler
+}
+
 // SSZMarshallableRootable is an interface that combines
 // SSZMarshaler, SSZUnmarshaler, and SSZRootable.
 type SSZMarshallableRootable interface {
 	SSZMarshallable
+	SSZRootable
+}
+
+// SSZVersionedMarshallableRootable is an interface that combines
+// SSZVersionedMarshallable and SSZRootable.
+type SSZVersionedMarshallableRootable[SelfT any] interface {
+	SSZVersionedMarshallable[SelfT]
 	SSZRootable
 }

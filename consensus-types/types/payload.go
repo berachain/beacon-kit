@@ -37,6 +37,12 @@ import (
 // ExecutionPayloadStaticSize is the static size of the ExecutionPayload.
 const ExecutionPayloadStaticSize uint32 = 528
 
+// Compile-time assertions to ensure ExecutionPayload implements necessary interfaces.
+var (
+	_ ssz.DynamicObject                                               = (*ExecutionPayload)(nil)
+	_ constraints.SSZVersionedMarshallableRootable[*ExecutionPayload] = (*ExecutionPayload)(nil)
+)
+
 // ExecutionPayload represents the payload of an execution block.
 type ExecutionPayload struct {
 	constraints.Versionable `json:"-"`
@@ -157,10 +163,21 @@ func (p *ExecutionPayload) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, p)
 }
 
-// UnmarshalSSZ unmarshals the ExecutionPayload object from a source array.
-func (p *ExecutionPayload) UnmarshalSSZ(bz []byte, version common.Version) error {
-	p.Versionable = (&BeaconBlock{}).WithForkVersion(version)
-	return ssz.DecodeFromBytes(bz, p)
+// Empty returns an empty ExecutionPayload for the given fork version.
+func (*ExecutionPayload) Empty(version common.Version) *ExecutionPayload {
+	return &ExecutionPayload{
+		Versionable: (&BeaconBlock{}).WithForkVersion(version),
+	}
+}
+
+// NewFromSSZ unmarshals the ExecutionPayload object from a source array with a given fork version.
+func (p *ExecutionPayload) NewFromSSZ(bz []byte, version common.Version) (*ExecutionPayload, error) {
+	p = p.Empty(version)
+	err := ssz.DecodeFromBytes(bz, p)
+	if err != nil {
+		return nil, err
+	}
+	return p, nil
 }
 
 // HashTreeRoot returns the hash tree root of the ExecutionPayload.
@@ -464,20 +481,6 @@ func (p *ExecutionPayload) UnmarshalJSON(input []byte) error {
 	}
 	return nil
 }
-
-// Empty returns an empty ExecutionPayload for the given fork version.
-func (p *ExecutionPayload) Empty(forkVersion common.Version) *ExecutionPayload {
-	return &ExecutionPayload{
-		Versionable: &BeaconBlock{
-			forkVersion: forkVersion,
-		},
-	}
-}
-
-// // SetForkVersion sets the version of the ExecutionPayload.
-// func (p *ExecutionPayload) SetForkVersion(version common.Version) {
-// 	p.forkVersion = version
-// }
 
 // IsNil checks if the ExecutionPayload is nil.
 func (p *ExecutionPayload) IsNil() bool {

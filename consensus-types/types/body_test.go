@@ -177,8 +177,7 @@ func TestBeaconBlockBody_UnusedProposerSlashingsEnforcement(t *testing.T) {
 		err = ssz.EncodeToBytes(buf, &blockBody)
 		require.NoError(t, err)
 
-		unmarshalledBody := &types.BeaconBlockBody{}
-		err = unmarshalledBody.UnmarshalSSZ(buf, v)
+		_, err = (&types.BeaconBlockBody{}).NewFromSSZ(buf, v)
 		require.ErrorContains(t, err, "must be unused")
 	})
 }
@@ -198,8 +197,7 @@ func TestBeaconBlockBody_UnusedAttesterSlashingsEnforcement(t *testing.T) {
 		err = ssz.EncodeToBytes(buf, &blockBody)
 		require.NoError(t, err)
 
-		unmarshalledBody := &types.BeaconBlockBody{}
-		err = unmarshalledBody.UnmarshalSSZ(buf, v)
+		_, err = (&types.BeaconBlockBody{}).NewFromSSZ(buf, v)
 		require.ErrorContains(t, err, "must be unused")
 	})
 }
@@ -219,8 +217,7 @@ func TestBeaconBlockBody_UnusedAttestationsEnforcement(t *testing.T) {
 		err = ssz.EncodeToBytes(buf, &blockBody)
 		require.NoError(t, err)
 
-		unmarshalledBody := &types.BeaconBlockBody{}
-		err = unmarshalledBody.UnmarshalSSZ(buf, v)
+		_, err = (&types.BeaconBlockBody{}).NewFromSSZ(buf, v)
 		require.ErrorContains(t, err, "must be unused")
 	})
 }
@@ -240,8 +237,7 @@ func TestBeaconBlockBody_UnusedVoluntaryExitsEnforcement(t *testing.T) {
 		err = ssz.EncodeToBytes(buf, &blockBody)
 		require.NoError(t, err)
 
-		unmarshalledBody := &types.BeaconBlockBody{}
-		err = unmarshalledBody.UnmarshalSSZ(buf, v)
+		_, err = (&types.BeaconBlockBody{}).NewFromSSZ(buf, v)
 		require.ErrorContains(t, err, "must be unused")
 	})
 }
@@ -261,8 +257,7 @@ func TestBeaconBlockBody_UnusedBlsToExecutionChangesEnforcement(t *testing.T) {
 		err = ssz.EncodeToBytes(buf, &blockBody)
 		require.NoError(t, err)
 
-		unmarshalledBody := &types.BeaconBlockBody{}
-		err = unmarshalledBody.UnmarshalSSZ(buf, v)
+		_, err = (&types.BeaconBlockBody{}).NewFromSSZ(buf, v)
 		require.ErrorContains(t, err, "must be unused")
 	})
 }
@@ -275,8 +270,7 @@ func TestBeaconBlockBody_RoundTrip_HashTreeRoot(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, data)
 
-		unmarshalledBody := &types.BeaconBlockBody{}
-		err = unmarshalledBody.UnmarshalSSZ(data, v)
+		unmarshalledBody, err := (&types.BeaconBlockBody{}).NewFromSSZ(data, v)
 		require.NoError(t, err)
 		require.Equal(t, body.HashTreeRoot(), unmarshalledBody.HashTreeRoot())
 	})
