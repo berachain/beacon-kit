@@ -156,11 +156,6 @@ func (b *BeaconBlock) SetStateRoot(root common.Root) {
 	b.StateRoot = root
 }
 
-// Version identifies the version of the BeaconBlock.
-func (b *BeaconBlock) Version() common.Version {
-	return b.forkVersion
-}
-
 // GetForkVersion identifies the version of the BeaconBlock.
 func (b *BeaconBlock) GetForkVersion() common.Version {
 	return b.forkVersion
