@@ -35,11 +35,13 @@ import (
 const sszDynamicObjectOffset = 4
 const maxDepositRequestsPerPayload = 8192
 const maxWithdrawalRequestsPerPayload = 16
-const maxConsolidationRequestsPerPayload = 2
+
+// TODO(pectra): Prysm requires this to be 1, which we mimick to get same HTR. Is this their skill issue?
+const maxConsolidationRequestsPerPayload = 1
 const sszDepositRequestSize = 192          // Pubkey = 48, WithdrawalCredentials = 32, Amount = 8, Signature = 96, Index = 8.
 const sszWithdrawRequestSize = 76          // ExecutionAddress = 20, ValidatorPubKey = 48, Amount = 8
 const sszConsolidationRequestSize = 116    // ExecutionAddress = 20, PubKey = 48, Pubkey = 48
-const dynamicFieldsInExecutionRequests = 2 // 2 since two dynamic objects (Deposits, Withdrawals)
+const dynamicFieldsInExecutionRequests = 3 // 3 since three dynamic objects (Deposits, Withdrawals, Consolidations)
 
 type ExecutionRequests struct {
 	Deposits       []*DepositRequest
@@ -86,13 +88,13 @@ func (e *ExecutionRequests) DefineSSZ(codec *ssz.Codec) {
 }
 
 func (e *ExecutionRequests) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
-	// Multiply by 2 since two dynamic objects (Deposits, Withdrawals)
 	size := uint32(sszDynamicObjectOffset * dynamicFieldsInExecutionRequests)
 	if fixed {
 		return size
 	}
 	size += ssz.SizeSliceOfStaticObjects(siz, e.Deposits)
 	size += ssz.SizeSliceOfStaticObjects(siz, e.Withdrawals)
+	size += ssz.SizeSliceOfStaticObjects(siz, e.Consolidations)
 	return size
 }
 
@@ -107,7 +109,7 @@ func (e *ExecutionRequests) UnmarshalSSZ(buf []byte) error {
 
 // HashTreeRoot returns the hash tree root of the Deposits.
 func (e *ExecutionRequests) HashTreeRoot() common.Root {
-	return ssz.HashSequential(e)
+	return ssz.HashConcurrent(e)
 }
 
 /* -------------------------------------------------------------------------- */
