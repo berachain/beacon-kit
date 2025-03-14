@@ -73,8 +73,8 @@ func (s *SimulatedSuite) TestProcessProposal_CrashedExecutionClient_Errors() {
 		ProposerAddress: pubkey.Address(),
 		Time:            proposalTime,
 	})
-	s.Require().NoError(err)
-	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
+	s.Require().Error(err)
+	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_UNKNOWN, processResp.Status)
 	s.Require().Contains(s.LogBuffer.String(), client.ErrBadConnection.Error())
 }
 
