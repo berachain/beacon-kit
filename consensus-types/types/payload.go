@@ -582,6 +582,7 @@ func (p *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 	switch p.GetForkVersion() {
 	case version.Deneb(), version.Deneb1():
 		return &ExecutionPayloadHeader{
+			Versionable:      p.Versionable,
 			ParentHash:       p.ParentHash,
 			FeeRecipient:     p.GetFeeRecipient(),
 			StateRoot:        p.GetStateRoot(),
@@ -599,7 +600,6 @@ func (p *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 			WithdrawalsRoot:  p.GetWithdrawals().HashTreeRoot(),
 			BlobGasUsed:      p.GetBlobGasUsed(),
 			ExcessBlobGas:    p.GetExcessBlobGas(),
-			forkVersion:      p.GetForkVersion(),
 		}, nil
 	default:
 		return nil, errors.New("unknown fork version")

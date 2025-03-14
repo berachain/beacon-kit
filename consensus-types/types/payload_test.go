@@ -49,7 +49,7 @@ func generateExecutionPayload() *types.ExecutionPayload {
 	)
 
 	ep := &types.ExecutionPayload{
-		Versionable:   (&types.BeaconBlock{}).WithForkVersion(version.Deneb1()),
+		Versionable:   types.NewVersionable(version.Deneb1()),
 		ParentHash:    common.ExecutionHash{},
 		FeeRecipient:  common.ExecutionAddress{},
 		StateRoot:     bytes.B32{},
@@ -213,7 +213,7 @@ func TestExecutionPayload_Version(t *testing.T) {
 func TestExecutionPayload_ToHeader(t *testing.T) {
 	t.Parallel()
 	payload := &types.ExecutionPayload{
-		Versionable:   (&types.BeaconBlock{}).WithForkVersion(version.Deneb1()),
+		Versionable:   types.NewVersionable(version.Deneb1()),
 		ParentHash:    common.ExecutionHash{},
 		FeeRecipient:  common.ExecutionAddress{},
 		StateRoot:     bytes.B32{},

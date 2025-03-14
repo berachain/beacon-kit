@@ -84,15 +84,15 @@ func TestAttestationData_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, data)
 
-			var unmarshalled types.AttestationData
+			var unmarshalled *types.AttestationData
 			if tc.name == "Invalid Buffer Size" {
-				err = unmarshalled.UnmarshalSSZ(data[:32])
+				_, err = unmarshalled.NewFromSSZ(data[:32])
 				require.Error(t, err)
 				require.Equal(t, tc.err, err)
 			} else {
-				err = unmarshalled.UnmarshalSSZ(data)
+				unmarshalled, err = unmarshalled.NewFromSSZ(data)
 				require.NoError(t, err)
-				require.Equal(t, tc.expected, &unmarshalled)
+				require.Equal(t, tc.expected, unmarshalled)
 
 				var buf []byte
 				buf, err = tc.data.MarshalSSZTo(buf)

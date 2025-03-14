@@ -39,6 +39,8 @@ var (
 
 // ExecutionPayloadHeader is the execution header payload of Deneb.
 type ExecutionPayloadHeader struct {
+	constraints.Versionable
+
 	// Contents
 	//
 	// ParentHash is the hash of the parent block.
@@ -75,16 +77,12 @@ type ExecutionPayloadHeader struct {
 	BlobGasUsed math.U64 `json:"blobGasUsed"`
 	// ExcessBlobGas is the amount of excess blob gas in the block.
 	ExcessBlobGas math.U64 `json:"excessBlobGas"`
-
-	// forkVersion specifies the fork version of the ExecutionPayloadHeader.
-	// TODO: replace with versionable.
-	forkVersion common.Version
 }
 
 // empty returns an empty ExecutionPayloadHeader.
 func (*ExecutionPayloadHeader) empty(version common.Version) *ExecutionPayloadHeader {
 	return &ExecutionPayloadHeader{
-		forkVersion:   version,
+		Versionable:   NewVersionable(version),
 		BaseFeePerGas: &math.U256{},
 	}
 }
@@ -444,16 +442,6 @@ func (h *ExecutionPayloadHeader) UnmarshalJSON(input []byte) error {
 /* -------------------------------------------------------------------------- */
 /*                             Getters and Setters                            */
 /* -------------------------------------------------------------------------- */
-
-// GetForkVersion returns the version of the ExecutionPayloadHeader.
-func (h *ExecutionPayloadHeader) GetForkVersion() common.Version {
-	return h.forkVersion
-}
-
-// SetForkVersion ses the version of the ExecutionPayloadHeader.
-func (h *ExecutionPayloadHeader) SetForkVersion(version common.Version) {
-	h.forkVersion = version
-}
 
 // IsNil checks if the ExecutionPayloadHeader is nil.
 func (h *ExecutionPayloadHeader) IsNil() bool {

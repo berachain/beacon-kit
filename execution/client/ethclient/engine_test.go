@@ -59,7 +59,7 @@ func TestNewPayloadWithValidVersion(t *testing.T) {
 	ctx := context.Background()
 
 	payload := &ctypes.ExecutionPayload{
-		Versionable: (&ctypes.BeaconBlock{}).WithForkVersion(version.Deneb1()),
+		Versionable: ctypes.NewVersionable(version.Deneb1()),
 	}
 	versionedHashes := []common.ExecutionHash{}
 	var parentBlockRoot *common.Root
@@ -75,7 +75,7 @@ func TestNewPayloadWithInvalidVersion(t *testing.T) {
 	ctx := context.Background()
 
 	payload := &ctypes.ExecutionPayload{
-		Versionable: (&ctypes.BeaconBlock{}).WithForkVersion(version.Capella()),
+		Versionable: ctypes.NewVersionable(version.Capella()),
 	}
 	versionedHashes := []common.ExecutionHash{}
 	var parentBlockRoot *common.Root

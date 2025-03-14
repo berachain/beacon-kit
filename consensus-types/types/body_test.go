@@ -31,20 +31,20 @@ import (
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/math/log"
-	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
 func generateBeaconBlockBody(version common.Version) types.BeaconBlockBody {
+	versionable := types.NewVersionable(version)
 	body := types.BeaconBlockBody{
-		Versionable:  (&types.BeaconBlock{}).WithForkVersion(version),
+		Versionable:  versionable,
 		RandaoReveal: [96]byte{1, 2, 3},
 		Eth1Data:     &types.Eth1Data{},
 		Graffiti:     [32]byte{4, 5, 6},
 		Deposits:     []*types.Deposit{},
 		ExecutionPayload: &types.ExecutionPayload{
-			Versionable:   (&types.BeaconBlock{}).WithForkVersion(version),
+			Versionable:   versionable,
 			BaseFeePerGas: math.NewU256(0),
 		},
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
@@ -80,12 +80,17 @@ func TestBeaconBlockBodyBase(t *testing.T) {
 func TestBeaconBlockBody(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		versionable := types.NewVersionable(v)
 		body := types.BeaconBlockBody{
-			RandaoReveal:       [96]byte{1, 2, 3},
-			Eth1Data:           &types.Eth1Data{},
-			Graffiti:           [32]byte{4, 5, 6},
-			Deposits:           []*types.Deposit{},
-			ExecutionPayload:   (&types.ExecutionPayload{}).Empty(v),
+			Versionable:  versionable,
+			RandaoReveal: [96]byte{1, 2, 3},
+			Eth1Data:     &types.Eth1Data{},
+			Graffiti:     [32]byte{4, 5, 6},
+			Deposits:     []*types.Deposit{},
+			ExecutionPayload: &types.ExecutionPayload{
+				Versionable:   versionable,
+				BaseFeePerGas: math.NewU256(0),
+			},
 			BlobKzgCommitments: []eip4844.KZGCommitment{},
 		}
 		require.False(t, body.IsNil())
@@ -138,7 +143,7 @@ func TestBeaconBlockBody_MarshalSSZ(t *testing.T) {
 		Eth1Data:           &types.Eth1Data{},
 		Graffiti:           [32]byte{4, 5, 6},
 		Deposits:           []*types.Deposit{},
-		ExecutionPayload:   (&types.ExecutionPayload{}).Empty(version.Deneb1()),
+		ExecutionPayload:   &types.ExecutionPayload{},
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
 	data, err := body.MarshalSSZ()
