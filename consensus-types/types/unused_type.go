@@ -36,9 +36,9 @@ type UnusedEnforcer interface {
 
 // Compile-time assertions to ensure UnusedType implements necessary interfaces.
 var (
-	_ ssz.StaticObject                    = (*UnusedType)(nil)
-	_ constraints.SSZMarshallableRootable = (*UnusedType)(nil)
-	_ UnusedEnforcer                      = (*UnusedType)(nil)
+	_ ssz.StaticObject                                 = (*UnusedType)(nil)
+	_ constraints.SSZMarshallableRootable[*UnusedType] = (*UnusedType)(nil)
+	_ UnusedEnforcer                                   = (*UnusedType)(nil)
 )
 
 type UnusedType uint8
@@ -58,14 +58,14 @@ func (ut *UnusedType) MarshalSSZ() ([]byte, error) {
 	return []byte{uint8(*ut)}, nil
 }
 
-// UnmarshalSSZ unmarshals the UnusedType object from SSZ format.
-func (ut *UnusedType) UnmarshalSSZ(buf []byte) error {
+// NewFromSSZ creates a new UnusedType object from SSZ format.
+func (*UnusedType) NewFromSSZ(buf []byte) (*UnusedType, error) {
 	if len(buf) != 1 {
-		return fmt.Errorf("expected 1 byte got %d", len(buf))
+		return nil, fmt.Errorf("expected 1 byte got %d", len(buf))
 	}
 	//#nosec:G701 // UnusedType is uint8 and byte is uint8.
-	*ut = UnusedType(buf[0])
-	return nil
+	ut := UnusedType(buf[0])
+	return &ut, nil
 }
 
 // HashTreeRoot returns the hash tree root of the Deposits.

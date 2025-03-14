@@ -92,13 +92,13 @@ func buildNextBlock(
 
 	// build the payload
 	payload := &types.ExecutionPayload{
+		Versionable:   (&types.BeaconBlock{}).WithForkVersion(version.Deneb1()),
 		Timestamp:     timestamp,
 		ExtraData:     []byte("testing"),
 		Transactions:  [][]byte{},
 		Withdrawals:   withdrawals,
 		BaseFeePerGas: math.NewU256(0),
 	}
-	payload.SetForkVersion(version.Deneb1())
 	parentBeaconBlockRoot := parentBlkHeader.HashTreeRoot()
 	ethBlk, _, err := types.MakeEthBlock(payload, &parentBeaconBlockRoot)
 	require.NoError(t, err)

@@ -34,7 +34,7 @@ import (
 // that the generated proof correctly verifies.
 func TestProveBeaconStateInBlock(t *testing.T) {
 	t.Parallel()
-	bbh := (&types.BeaconBlockHeader{}).Empty()
+	bbh := &types.BeaconBlockHeader{}
 
 	testCases := []struct {
 		name              string

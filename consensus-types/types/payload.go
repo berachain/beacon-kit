@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -36,8 +37,16 @@ import (
 // ExecutionPayloadStaticSize is the static size of the ExecutionPayload.
 const ExecutionPayloadStaticSize uint32 = 528
 
+// Compile-time assertions to ensure ExecutionPayload implements necessary interfaces.
+var (
+	_ ssz.DynamicObject                                               = (*ExecutionPayload)(nil)
+	_ constraints.SSZVersionedMarshallableRootable[*ExecutionPayload] = (*ExecutionPayload)(nil)
+)
+
 // ExecutionPayload represents the payload of an execution block.
 type ExecutionPayload struct {
+	constraints.Versionable `json:"-"`
+
 	// ParentHash is the hash of the parent block.
 	ParentHash common.ExecutionHash `json:"parentHash"`
 	// FeeRecipient is the address of the fee recipient.
@@ -72,9 +81,6 @@ type ExecutionPayload struct {
 	BlobGasUsed math.U64 `json:"blobGasUsed"`
 	// ExcessBlobGas is the amount of excess blob gas in the block.
 	ExcessBlobGas math.U64 `json:"excessBlobGas"`
-
-	// forkVersion is the version of the execution payload, it must be not serialized.
-	forkVersion common.Version
 }
 
 func EnsureNotNilWithdrawals(p *ExecutionPayload) {
@@ -157,9 +163,19 @@ func (p *ExecutionPayload) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, p)
 }
 
-// UnmarshalSSZ unmarshals the ExecutionPayload object from a source array.
-func (p *ExecutionPayload) UnmarshalSSZ(bz []byte) error {
-	return ssz.DecodeFromBytes(bz, p)
+// empty returns an empty ExecutionPayload for the given fork version.
+func (*ExecutionPayload) empty(version common.Version) *ExecutionPayload {
+	return &ExecutionPayload{
+		Versionable:   NewVersionable(version),
+		ExtraData:     make([]byte, ExtraDataSize),
+		BaseFeePerGas: &math.U256{},
+	}
+}
+
+// NewFromSSZ unmarshals the ExecutionPayload object from a source array with a given fork version.
+func (*ExecutionPayload) NewFromSSZ(bz []byte, version common.Version) (*ExecutionPayload, error) {
+	p := (&ExecutionPayload{}).empty(version)
+	return p, ssz.DecodeFromBytes(bz, p)
 }
 
 // HashTreeRoot returns the hash tree root of the ExecutionPayload.
@@ -464,23 +480,6 @@ func (p *ExecutionPayload) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
-// Empty returns an empty ExecutionPayload for the given fork version.
-func (p *ExecutionPayload) Empty(forkVersion common.Version) *ExecutionPayload {
-	return &ExecutionPayload{
-		forkVersion: forkVersion,
-	}
-}
-
-// GetForkVersion returns the version of the ExecutionPayload.
-func (p *ExecutionPayload) GetForkVersion() common.Version {
-	return p.forkVersion
-}
-
-// SetForkVersion sets the version of the ExecutionPayload.
-func (p *ExecutionPayload) SetForkVersion(version common.Version) {
-	p.forkVersion = version
-}
-
 // IsNil checks if the ExecutionPayload is nil.
 func (p *ExecutionPayload) IsNil() bool {
 	return p == nil
@@ -580,9 +579,10 @@ func (p *ExecutionPayload) GetExcessBlobGas() math.U64 {
 func (p *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 	txsRoot := p.GetTransactions().HashTreeRoot()
 
-	switch p.forkVersion {
+	switch p.GetForkVersion() {
 	case version.Deneb(), version.Deneb1():
 		return &ExecutionPayloadHeader{
+			Versionable:      p.Versionable,
 			ParentHash:       p.ParentHash,
 			FeeRecipient:     p.GetFeeRecipient(),
 			StateRoot:        p.GetStateRoot(),
@@ -600,7 +600,6 @@ func (p *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 			WithdrawalsRoot:  p.GetWithdrawals().HashTreeRoot(),
 			BlobGasUsed:      p.GetBlobGasUsed(),
 			ExcessBlobGas:    p.GetExcessBlobGas(),
-			forkVersion:      p.forkVersion,
 		}, nil
 	default:
 		return nil, errors.New("unknown fork version")

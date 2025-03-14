@@ -35,8 +35,8 @@ import (
 const BeaconBlockHeaderSize = 112
 
 var (
-	_ ssz.StaticObject                    = (*BeaconBlockHeader)(nil)
-	_ constraints.SSZMarshallableRootable = (*BeaconBlockHeader)(nil)
+	_ ssz.StaticObject                                        = (*BeaconBlockHeader)(nil)
+	_ constraints.SSZMarshallableRootable[*BeaconBlockHeader] = (*BeaconBlockHeader)(nil)
 )
 
 // BeaconBlockHeader represents the base of a beacon block header.
@@ -74,11 +74,6 @@ func NewBeaconBlockHeader(
 	}
 }
 
-// Empty creates an empty BeaconBlockHeader instance.
-func (*BeaconBlockHeader) Empty() *BeaconBlockHeader {
-	return &BeaconBlockHeader{}
-}
-
 /* -------------------------------------------------------------------------- */
 /*                                     SSZ                                    */
 /* -------------------------------------------------------------------------- */
@@ -103,9 +98,10 @@ func (b *BeaconBlockHeader) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 
-// UnmarshalSSZ unmarshals the BeaconBlockBody object from SSZ format.
-func (b *BeaconBlockHeader) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, b)
+// NewFromSSZ creates a new BeaconBlockHeader object from SSZ format.
+func (*BeaconBlockHeader) NewFromSSZ(buf []byte) (*BeaconBlockHeader, error) {
+	b := &BeaconBlockHeader{}
+	return b, ssz.DecodeFromBytes(buf, b)
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the BeaconBlockHeader object.

@@ -215,5 +215,22 @@ func (pb *PayloadBuilder) getPayload(
 	if envelope.GetExecutionPayload().Withdrawals == nil {
 		return nil, ErrNilWithdrawals
 	}
+
+	// // TODO(pectra): Unmarshal the envelope.requests into WithdrawalRequests/DepositReceipts
+	// if len(result.Requests) > 0 { // similar to >= Pectra
+	//  for _, request := range result.Requests {
+	//   var depositReceipt engineprimitives.DepositReceipt
+	// 	 var withdrawalRequest engineprimitives.WithdrawalRequest
+	//
+	// 	 if err := json.Unmarshal(request, &withdrawalRequest); err != nil {
+	// 		return nil, fmt.Errorf("failed to unmarshal withdrawal request: %w", err)
+	// 	 }
+	//
+	// 	 result.ExecutionPayload.WithdrawalRequests = append(
+	// 	 	result.ExecutionPayload.WithdrawalRequests, withdrawalRequest,
+	// 	 )
+	//  }
+	// }
+
 	return envelope, nil
 }

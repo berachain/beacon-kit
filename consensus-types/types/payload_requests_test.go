@@ -34,7 +34,9 @@ import (
 func TestBuildNewPayloadRequest(t *testing.T) {
 	t.Parallel()
 	var (
-		executionPayload      = (&types.ExecutionPayload{}).Empty(version.Deneb1())
+		executionPayload = &types.ExecutionPayload{
+			Versionable: types.NewVersionable(version.Deneb1()),
+		}
 		versionedHashes       []common.ExecutionHash
 		parentBeaconBlockRoot = common.Root{}
 	)
@@ -94,7 +96,9 @@ func TestBuildGetPayloadRequest(t *testing.T) {
 func TestHasValidVersionedAndBlockHashesPayloadError(t *testing.T) {
 	t.Parallel()
 	var (
-		executionPayload      = (&types.ExecutionPayload{}).Empty(version.Deneb1())
+		executionPayload = &types.ExecutionPayload{
+			Versionable: types.NewVersionable(version.Deneb1()),
+		}
 		versionedHashes       = []common.ExecutionHash{}
 		parentBeaconBlockRoot = common.Root{}
 	)
@@ -112,7 +116,9 @@ func TestHasValidVersionedAndBlockHashesPayloadError(t *testing.T) {
 func TestHasValidVersionedAndBlockHashesMismatchedHashes(t *testing.T) {
 	t.Parallel()
 	var (
-		executionPayload      = (&types.ExecutionPayload{}).Empty(version.Deneb1())
+		executionPayload = &types.ExecutionPayload{
+			Versionable: types.NewVersionable(version.Deneb1()),
+		}
 		versionedHashes       = []common.ExecutionHash{{}}
 		parentBeaconBlockRoot = common.Root{}
 	)

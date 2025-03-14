@@ -31,9 +31,9 @@ import (
 
 // Compile-time assertions to ensure VoluntaryExit implements necessary interfaces.
 var (
-	_ ssz.StaticObject                    = (*VoluntaryExit)(nil)
-	_ constraints.SSZMarshallableRootable = (*VoluntaryExit)(nil)
-	_ UnusedEnforcer                      = (*VoluntaryExits)(nil)
+	_ ssz.StaticObject                                    = (*VoluntaryExit)(nil)
+	_ constraints.SSZMarshallableRootable[*VoluntaryExit] = (*VoluntaryExit)(nil)
+	_ UnusedEnforcer                                      = (*VoluntaryExits)(nil)
 )
 
 type (

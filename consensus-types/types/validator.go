@@ -35,8 +35,8 @@ const ValidatorSize = 121
 
 // Compile-time checks for the Validator struct.
 var (
-	_ ssz.StaticObject                    = (*Validator)(nil)
-	_ constraints.SSZMarshallableRootable = (*Validator)(nil)
+	_ ssz.StaticObject                                = (*Validator)(nil)
+	_ constraints.SSZMarshallableRootable[*Validator] = (*Validator)(nil)
 )
 
 // Validator as defined in the Ethereum 2.0 Spec
@@ -99,11 +99,6 @@ func ComputeEffectiveBalance(
 	return min(amount-amount%effectiveBalanceIncrement, maxEffectiveBalance)
 }
 
-// Empty creates an empty Validator.
-func (*Validator) Empty() *Validator {
-	return &Validator{}
-}
-
 /* -------------------------------------------------------------------------- */
 /*                                     SSZ                                    */
 /* -------------------------------------------------------------------------- */
@@ -136,9 +131,10 @@ func (v *Validator) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, v)
 }
 
-// UnmarshalSSZ unmarshals the Validator object from SSZ format.
-func (v *Validator) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, v)
+// NewFromSSZ creates a new Validator object from SSZ format.
+func (*Validator) NewFromSSZ(buf []byte) (*Validator, error) {
+	v := &Validator{}
+	return v, ssz.DecodeFromBytes(buf, v)
 }
 
 /* -------------------------------------------------------------------------- */

@@ -188,8 +188,8 @@ func TestSignedBeaconBlock_EmptySerialization(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, data)
 
-	var unmarshalled types.SignedBeaconBlock
-	err = unmarshalled.UnmarshalSSZ(data)
+	var unmarshalled *types.SignedBeaconBlock
+	unmarshalled, err = unmarshalled.NewFromSSZ(data)
 	require.NoError(t, err)
 	require.NotNil(t, unmarshalled.GetMessage())
 	require.NotNil(t, unmarshalled.GetSignature())

@@ -28,8 +28,8 @@ import (
 )
 
 var (
-	_ ssz.StaticObject                    = (*SignedBeaconBlockHeader)(nil)
-	_ constraints.SSZMarshallableRootable = (*SignedBeaconBlockHeader)(nil)
+	_ ssz.StaticObject                                              = (*SignedBeaconBlockHeader)(nil)
+	_ constraints.SSZMarshallableRootable[*SignedBeaconBlockHeader] = (*SignedBeaconBlockHeader)(nil)
 )
 
 type SignedBeaconBlockHeader struct {
@@ -49,11 +49,6 @@ func NewSignedBeaconBlockHeader(
 	return &SignedBeaconBlockHeader{
 		header, signature,
 	}
-}
-
-// Empty creates an empty BeaconBlockHeader instance.
-func (*SignedBeaconBlockHeader) Empty() *SignedBeaconBlockHeader {
-	return &SignedBeaconBlockHeader{}
 }
 
 /* -------------------------------------------------------------------------- */
@@ -80,9 +75,10 @@ func (b *SignedBeaconBlockHeader) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 
-// UnmarshalSSZ unmarshals the SignedBeaconBlockHeader object from SSZ format.
-func (b *SignedBeaconBlockHeader) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, b)
+// NewFromSSZ creates a new SignedBeaconBlockHeader from SSZ format.
+func (*SignedBeaconBlockHeader) NewFromSSZ(buf []byte) (*SignedBeaconBlockHeader, error) {
+	b := &SignedBeaconBlockHeader{}
+	return b, ssz.DecodeFromBytes(buf, b)
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the

@@ -39,8 +39,8 @@ const SlashingInfoSize = 16 // 8 bytes for Slot + 8 bytes for Index
 // Compile-time assertions to ensure SlashingInfo implements the correct
 // interfaces.
 var (
-	_ ssz.StaticObject                    = (*SlashingInfo)(nil)
-	_ constraints.SSZMarshallableRootable = (*SlashingInfo)(nil)
+	_ ssz.StaticObject                                   = (*SlashingInfo)(nil)
+	_ constraints.SSZMarshallableRootable[*SlashingInfo] = (*SlashingInfo)(nil)
 )
 
 // Compile-time assertion to ensure SlashingInfoSize matches the SizeSSZ method.
@@ -80,9 +80,10 @@ func (s *SlashingInfo) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, s)
 }
 
-// UnmarshalSSZ unmarshals the SlashingInfo object from SSZ format.
-func (s *SlashingInfo) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, s)
+// NewFromSSZ creates a new SlashingInfo object from SSZ format.
+func (*SlashingInfo) NewFromSSZ(buf []byte) (*SlashingInfo, error) {
+	s := &SlashingInfo{}
+	return s, ssz.DecodeFromBytes(buf, s)
 }
 
 /* -------------------------------------------------------------------------- */

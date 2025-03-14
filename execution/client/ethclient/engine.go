@@ -133,14 +133,14 @@ func (s *Client) GetPayloadV3(
 	payloadID engineprimitives.PayloadID,
 	forkVersion common.Version,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
-	var t *ctypes.ExecutionPayload
 	result := &ctypes.ExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1[
 		eip4844.KZGCommitment,
 		eip4844.KZGProof,
 		eip4844.Blob,
 	]]{
-		ExecutionPayload: t.Empty(forkVersion),
+		ExecutionPayload: &ctypes.ExecutionPayload{},
 	}
+	result.ExecutionPayload.Versionable = ctypes.NewVersionable(forkVersion)
 
 	err := s.Call(ctx, result, GetPayloadMethodV3, payloadID)
 	if err != nil {

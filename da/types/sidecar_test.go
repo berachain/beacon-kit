@@ -101,9 +101,11 @@ func generateValidBeaconBlock(t *testing.T) *ctypes.BeaconBlock {
 
 	beaconBlock.StateRoot = common.Root{5, 4, 3, 2, 1}
 	beaconBlock.Body = &ctypes.BeaconBlockBody{
+		Versionable: beaconBlock,
 		ExecutionPayload: &ctypes.ExecutionPayload{
-			Timestamp: 10,
-			ExtraData: []byte("dummy extra data for testing"),
+			Versionable: beaconBlock,
+			Timestamp:   10,
+			ExtraData:   []byte("dummy extra data for testing"),
 			Transactions: [][]byte{
 				[]byte("tx1"),
 				[]byte("tx2"),
@@ -126,7 +128,6 @@ func generateValidBeaconBlock(t *testing.T) *ctypes.BeaconBlock {
 		},
 	}
 	body := beaconBlock.GetBody()
-	body.GetExecutionPayload().SetForkVersion(deneb1)
 	body.SetProposerSlashings(ctypes.ProposerSlashings{})
 	body.SetAttesterSlashings(ctypes.AttesterSlashings{})
 	body.SetAttestations(ctypes.Attestations{})

@@ -18,9 +18,29 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package constraints
+package types
 
-// Empty is a constraint that requires a type to have an Empty method.
-type Empty[SelfT any] interface {
-	Empty() SelfT
+import (
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constraints"
+)
+
+// versionable is a helper struct that implements the Versionable interface.
+type versionable struct {
+	forkVersion common.Version
+}
+
+// NewVersionable creates a new versionable object.
+//
+// NOTE: should only be used in these cases:
+//   - when creating a new object from scratch (including unmarshalling).
+//     If there is a parent object, use the parent object as the Versionable.
+//   - in unit tests.
+func NewVersionable(forkVersion common.Version) constraints.Versionable {
+	return &versionable{forkVersion: forkVersion}
+}
+
+// GetForkVersion returns the fork version of the versionable object.
+func (v *versionable) GetForkVersion() common.Version {
+	return v.forkVersion
 }

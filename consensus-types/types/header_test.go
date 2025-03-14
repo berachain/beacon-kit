@@ -126,10 +126,10 @@ func TestBeaconBlockHeader_Serialization(t *testing.T) {
 	data, err := original.MarshalSSZ()
 	require.NoError(t, err)
 	require.NotNil(t, data)
-	var unmarshalled types.BeaconBlockHeader
-	err = unmarshalled.UnmarshalSSZ(data)
+	var unmarshalled *types.BeaconBlockHeader
+	unmarshalled, err = unmarshalled.NewFromSSZ(data)
 	require.NoError(t, err)
-	require.Equal(t, original, &unmarshalled)
+	require.Equal(t, original, unmarshalled)
 
 	var buf []byte
 	buf, err = original.MarshalSSZTo(buf)
@@ -263,9 +263,9 @@ func TestBeaconBlockHeader_SetBodyRoot(t *testing.T) {
 
 func TestBeaconBlockHeader_UnmarshalSSZ_ErrSize(t *testing.T) {
 	t.Parallel()
-	header := &types.BeaconBlockHeader{}
 	buf := make([]byte, 100) // Incorrect size
 
-	err := header.UnmarshalSSZ(buf)
+	var header *types.BeaconBlockHeader
+	_, err := header.NewFromSSZ(buf)
 	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }

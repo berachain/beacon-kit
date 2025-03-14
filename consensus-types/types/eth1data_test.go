@@ -37,10 +37,10 @@ func TestEth1Data_Serialization(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, data)
 
-	var unmarshalled types.Eth1Data
-	err = unmarshalled.UnmarshalSSZ(data)
+	var unmarshalled *types.Eth1Data
+	unmarshalled, err = unmarshalled.NewFromSSZ(data)
 	require.NoError(t, err)
-	require.Equal(t, original, &unmarshalled)
+	require.Equal(t, original, unmarshalled)
 
 	var buf []byte
 	buf, err = original.MarshalSSZTo(buf)
@@ -52,8 +52,8 @@ func TestEth1Data_Serialization(t *testing.T) {
 
 func TestEth1Data_UnmarshalError(t *testing.T) {
 	t.Parallel()
-	var unmarshalled types.Eth1Data
-	err := unmarshalled.UnmarshalSSZ([]byte{})
+	var unmarshalled *types.Eth1Data
+	_, err := unmarshalled.NewFromSSZ([]byte{})
 	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
 
