@@ -26,10 +26,12 @@
 package types
 
 import (
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/karalabe/ssz"
 )
 
@@ -89,6 +91,9 @@ type BeaconBlockBody struct {
 	blsToExecutionChanges []*BlsToExecutionChange
 	// BlobKzgCommitments is the list of KZG commitments for the EIP-4844 blobs.
 	BlobKzgCommitments []eip4844.KZGCommitment
+	// executionRequests is introduced in electra. We keep this private so that it must go through Getter/Setter
+	// which does a forkVersion check.
+	executionRequests *ExecutionRequests
 	// forkVersion is the fork version of the block body. Must not be involved in serialization
 	// Must be available within the object to satisfy signature required for SizeSSZ and DefineSSZ.
 	forkVersion common.Version
@@ -102,6 +107,11 @@ type BeaconBlockBody struct {
 func (b *BeaconBlockBody) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 	syncSize := b.syncAggregate.SizeSSZ(siz)
 	var size = 96 + 72 + 32 + 4 + 4 + 4 + 4 + 4 + syncSize + 4 + 4 + 4
+	if !version.IsBefore(b.GetForkVersion(), version.Electra()) {
+		// Add 4 for the offset of dynamic field ExecutionRequests
+		size += sszDynamicObjectOffset
+	}
+
 	if fixed {
 		return size
 	}
@@ -114,6 +124,9 @@ func (b *BeaconBlockBody) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 	size += ssz.SizeDynamicObject(siz, b.ExecutionPayload)
 	size += ssz.SizeSliceOfStaticObjects(siz, b.blsToExecutionChanges)
 	size += ssz.SizeSliceOfStaticBytes(siz, b.BlobKzgCommitments)
+	if !version.IsBefore(b.GetForkVersion(), version.Electra()) {
+		size += ssz.SizeDynamicObject(siz, b.executionRequests)
+	}
 	return size
 }
 
@@ -134,6 +147,9 @@ func (b *BeaconBlockBody) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineDynamicObjectOffset(codec, &b.ExecutionPayload)
 	ssz.DefineSliceOfStaticObjectsOffset(codec, &b.blsToExecutionChanges, constants.MaxBlsToExecutionChanges)
 	ssz.DefineSliceOfStaticBytesOffset(codec, &b.BlobKzgCommitments, 4096)
+	if !version.IsBefore(b.GetForkVersion(), version.Electra()) {
+		ssz.DefineDynamicObjectOffset(codec, &b.executionRequests)
+	}
 
 	// Define the dynamic data (fields)
 	ssz.DefineSliceOfStaticObjectsContent(codec, &b.proposerSlashings, constants.MaxProposerSlashings)
@@ -144,6 +160,9 @@ func (b *BeaconBlockBody) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineDynamicObjectContent(codec, &b.ExecutionPayload)
 	ssz.DefineSliceOfStaticObjectsContent(codec, &b.blsToExecutionChanges, constants.MaxBlsToExecutionChanges)
 	ssz.DefineSliceOfStaticBytesContent(codec, &b.BlobKzgCommitments, 4096)
+	if !version.IsBefore(b.GetForkVersion(), version.Electra()) {
+		ssz.DefineDynamicObjectContent(codec, &b.executionRequests)
+	}
 }
 
 // MarshalSSZ serializes the BeaconBlockBody to SSZ-encoded bytes.
@@ -316,6 +335,21 @@ func (b *BeaconBlockBody) GetBlobKzgCommitments() eip4844.KZGCommitments[common.
 
 func (b *BeaconBlockBody) SetBlobKzgCommitments(commitments eip4844.KZGCommitments[common.ExecutionHash]) {
 	b.BlobKzgCommitments = commitments
+}
+
+func (b *BeaconBlockBody) GetExecutionRequests() (*ExecutionRequests, error) {
+	if version.IsBefore(b.GetForkVersion(), version.Electra()) {
+		return nil, errors.Wrapf(ErrFieldNotSupportedOnFork, "block version %d", b.GetForkVersion())
+	}
+	return b.executionRequests, nil
+}
+
+func (b *BeaconBlockBody) SetExecutionRequests(executionRequest *ExecutionRequests) error {
+	if version.IsBefore(b.GetForkVersion(), version.Electra()) {
+		return errors.Wrapf(ErrFieldNotSupportedOnFork, "block version %d", b.GetForkVersion())
+	}
+	b.executionRequests = executionRequest
+	return nil
 }
 
 func (b *BeaconBlockBody) GetForkVersion() common.Version {
