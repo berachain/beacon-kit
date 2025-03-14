@@ -53,7 +53,7 @@ type client struct {
 	reqPool *sync.Pool
 	// jwtSecret is the JWT secret used for authentication.
 	jwtSecret *jwt.Secret
-	// jwtRefershInterval is the interval at which the JWT token should be
+	// jwtRefreshInterval is the interval at which the JWT token should be
 	// refreshed.
 	jwtRefreshInterval time.Duration
 

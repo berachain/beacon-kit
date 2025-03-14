@@ -59,7 +59,7 @@ type Service struct {
 	// are agreed upon by all validators in the network.
 	cmtConsensusParams *cmttypes.ConsensusParams
 
-	// cmtCgf are node-specific settings that influence how
+	// cmtCfg are node-specific settings that influence how
 	// the consensus engine operates on a particular node.
 	// Loaded from config file (config.toml), not part of state.
 	cmtCfg *cmtcfg.Config
