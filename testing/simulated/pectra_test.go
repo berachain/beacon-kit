@@ -25,6 +25,7 @@ package simulated_test
 import (
 	"bytes"
 	"context"
+	"math/big"
 	"path"
 	"testing"
 	"time"
@@ -32,6 +33,11 @@ import (
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/params"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/suite"
 )
@@ -110,7 +116,7 @@ func (s *PectraSuite) TearDownTest() {
 
 // TODO(pectra): Get this test case passing. It currently fails in ProcessProposal with error:
 // `block hash in payload does not match assembled block`.
-func (s *PectraSuite) TestFullLifecycle_IsSuccessful() {
+func (s *PectraSuite) TestFullLifecycle_WithRequests_IsSuccessful() {
 	s.T().Skip("TODO(pectra): Get this test case passing. It currently fails in ProcessProposal with error")
 	const blockHeight = 1
 	const coreLoopIterations = 10
@@ -121,7 +127,34 @@ func (s *PectraSuite) TestFullLifecycle_IsSuccessful() {
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
 
-	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
+	// create withdrawal request
+	// corresponds with funded address in genesis 0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4
+	senderKey, err := crypto.HexToECDSA("fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306")
+	s.Require().NoError(err)
+
+	elChainID := big.NewInt(int64(s.TestNode.ChainSpec.DepositEth1ChainID()))
+	signer := types.NewPragueSigner(elChainID)
+	// Field values roughly copies from Geth
+	// https://github.com/ethereum/go-ethereum/blob/39638c81c56db2b2dfe6f51999ffd3029ee212cb/core/blockchain_test.go#L4131-L4130
+	withdrawalTx := types.MustSignNewTx(senderKey, signer, &types.DynamicFeeTx{
+		ChainID:   elChainID,
+		Nonce:     1,
+		To:        &params.WithdrawalQueueAddress,
+		Gas:       500_000,
+		GasFeeCap: big.NewInt(1000000000),
+		GasTipCap: big.NewInt(1000000000),
+		Value:     big.NewInt(1),
+		Data:      common.FromHex("b917cfdc0d25b72d55cf94db328e1629b7f4fde2c30cdacf873b664416f76a0c7f7cc50c9f72a3cb84be88144cde91250000000000000d80"),
+	})
+
+	txBytes, err := withdrawalTx.MarshalBinary()
+	s.Require().NoError(err)
+
+	var result interface{}
+	err = s.TestNode.EngineClient.Call(s.CtxApp, &result, "eth_sendRawTransaction", hexutil.Encode(txBytes))
+	s.Require().NoError(err)
+
+	// Go through iterations of the core loop.
 	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner)
 	s.Require().Len(proposals, coreLoopIterations)
 }
