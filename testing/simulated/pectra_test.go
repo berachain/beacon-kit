@@ -36,20 +36,20 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-// SimulatedSuite defines our test suite for the simulated Comet component.
-type SimulatedSuite struct {
+// PectraSuite defines our test suite for Pectra related work using simulated Comet component.
+type PectraSuite struct {
 	suite.Suite
 	// Embedded shared accessors for convenience.
 	simulated.SharedAccessors
 }
 
 // TestSimulatedCometComponent runs the test suite.
-func TestSimulatedCometComponent(t *testing.T) {
-	suite.Run(t, new(SimulatedSuite))
+func TestPectraSuite(t *testing.T) {
+	suite.Run(t, new(PectraSuite))
 }
 
 // SetupTest initializes the test environment.
-func (s *SimulatedSuite) SetupTest() {
+func (s *PectraSuite) SetupTest() {
 	// Create a cancellable context for the duration of the test.
 	s.CtxApp, s.CtxAppCancelFn = context.WithCancel(context.Background())
 
@@ -59,7 +59,7 @@ func (s *SimulatedSuite) SetupTest() {
 	s.HomeDir = s.T().TempDir()
 
 	// Initialize the home directory, Comet configuration, and genesis info.
-	const elGenesisPath = "./eth-genesis.json"
+	const elGenesisPath = "./pectra-eth-genesis.json"
 	cometConfig, genesisValidatorsRoot := simulated.InitializeHomeDir(s.T(), s.HomeDir, elGenesisPath)
 	s.GenesisValidatorsRoot = genesisValidatorsRoot
 
@@ -99,11 +99,26 @@ func (s *SimulatedSuite) SetupTest() {
 }
 
 // TearDownTest cleans up the test environment.
-func (s *SimulatedSuite) TearDownTest() {
+func (s *PectraSuite) TearDownTest() {
 	if err := s.ElHandle.Close(); err != nil {
 		s.T().Error("Error closing EL handle:", err)
 	}
 	// mimics the behaviour of shutdown func
 	s.CtxAppCancelFn()
 	s.TestNode.ServiceRegistry.StopAll()
+}
+
+func (s *PectraSuite) TestFullLifecycle_IsSuccessful() {
+	const blockHeight = 1
+	const coreLoopIterations = 10
+
+	// Initialize the chain state.
+	s.InitializeChain(s.T())
+
+	// Retrieve the BLS signer and proposer address.
+	blsSigner := simulated.GetBlsSigner(s.HomeDir)
+
+	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
+	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner)
+	s.Require().Len(proposals, coreLoopIterations)
 }
