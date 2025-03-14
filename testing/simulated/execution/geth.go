@@ -52,7 +52,7 @@ func NewGethNode(homeDir string, image docker.PullImageOptions) *GethNode {
 
 // Start launches the Geth node container using dockertest, waits until the node is ready,
 // and returns the container resource and the connection URL for the Auth RPC endpoint.
-func (g *GethNode) Start(t *testing.T) (*Resource, *url.ConnectionURL) {
+func (g *GethNode) Start(t *testing.T, genesisFile string) (*Resource, *url.ConnectionURL) {
 	t.Helper()
 
 	// Create a new Docker pool.
@@ -72,6 +72,20 @@ func (g *GethNode) Start(t *testing.T) (*Resource, *url.ConnectionURL) {
 	absPath, err := filepath.Abs("../files")
 	require.NoError(t, err, "failed to determine absolute path for test files")
 
+	// Use the passed genesisFile variable in the command.
+	cmdStr := fmt.Sprintf(`
+		geth init --datadir /tmp/gethdata /testdata/%s && 
+		geth --http --http.addr 0.0.0.0 --http.api eth,net,web3,debug \
+			 --authrpc.addr 0.0.0.0 \
+			 --authrpc.jwtsecret /testing/files/jwt.hex \
+			 --authrpc.vhosts '*' \
+			 --datadir /tmp/gethdata \
+			 --ipcpath /tmp/gethdata/geth.ipc \
+			 --syncmode full \
+			 --verbosity 4 \
+			 --nodiscover
+	`, genesisFile)
+
 	// Run the container with custom commands that initialize and run Geth.
 	resource, err := pool.RunWithOptions(&dockertest.RunOptions{
 		Repository: g.image.Repository,
@@ -80,18 +94,7 @@ func (g *GethNode) Start(t *testing.T) (*Resource, *url.ConnectionURL) {
 		Entrypoint: []string{"/bin/sh"},
 		Cmd: []string{
 			"-c",
-			`
-			geth init --datadir /tmp/gethdata /testdata/eth-genesis.json && 
-			geth --http --http.addr 0.0.0.0 --http.api eth,net,web3,debug \
-				 --authrpc.addr 0.0.0.0 \
-				 --authrpc.jwtsecret /testing/files/jwt.hex \
-				 --authrpc.vhosts '*' \
-				 --datadir /tmp/gethdata \
-				 --ipcpath /tmp/gethdata/geth.ipc \
-				 --syncmode full \
-				 --verbosity 4 \
-				 --nodiscover
-			`,
+			cmdStr,
 		},
 		// Expose required ports for EL RPC, Auth RPC, and P2P communication.
 		ExposedPorts: []string{"8545/tcp", "8551/tcp", "30303/tcp"},
