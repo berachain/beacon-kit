@@ -26,6 +26,7 @@
 package types_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
@@ -37,7 +38,7 @@ import (
 
 // TODO(pectra): Add tests
 // 1. Marshalling/Unmarshalling invalid values.
-// 3. NewSignedBeaconBlockFromSSZ tests.
+// 2. NewSignedBeaconBlockFromSSZ tests.
 
 func TestExecutionRequests_ValidValuesSSZ(t *testing.T) {
 	t.Parallel()
@@ -246,6 +247,67 @@ func TestExecutionRequests_ValidValuesSSZ(t *testing.T) {
 
 			// Compare that the original and recomputed ExecutionRequests match.
 			require.Equal(t, *tc.executionRequests, recomputedER)
+		})
+	}
+}
+
+func TestExecutionRequests_InvalidValuesUnmarshalSSZ(t *testing.T) {
+	t.Parallel()
+
+	// Define several invalid payloads.
+	invalidPayloads := [][]byte{
+		nil,                    // nil slice
+		{},                     // empty slice
+		[]byte("invalid data"), // arbitrary string data
+		{0x00, 0x01},           // too short to be valid
+		// A random 50-byte slice (likely invalid)
+		func() []byte {
+			b := make([]byte, 50)
+			for i := range b {
+				b[i] = byte((i * 3) % 256)
+			}
+			return b
+		}(),
+		// A truncated valid payload: marshal a valid empty ExecutionRequests and drop last 4 bytes.
+		func() []byte {
+			er := types.ExecutionRequests{
+				Deposits:       []*types.DepositRequest{},
+				Withdrawals:    []*types.WithdrawalRequest{},
+				Consolidations: []*types.ConsolidationRequest{},
+			}
+			validBytes, err := er.MarshalSSZ()
+			require.NoError(t, err)
+			if len(validBytes) > 4 {
+				return validBytes[:len(validBytes)-4]
+			}
+			return validBytes
+		}(),
+		// A valid payload with extra trailing bytes.
+		func() []byte {
+			er := types.ExecutionRequests{
+				Deposits:       []*types.DepositRequest{},
+				Withdrawals:    []*types.WithdrawalRequest{},
+				Consolidations: []*types.ConsolidationRequest{},
+			}
+			validBytes, err := er.MarshalSSZ()
+			require.NoError(t, err)
+			// Append extra bytes that should make the payload invalid.
+			extra := []byte{0xFF, 0xEE, 0xDD, 0xCC}
+			return append(validBytes, extra...)
+		}(),
+	}
+
+	for i, payload := range invalidPayloads {
+		i, payload := i, payload // capture loop variables
+		t.Run(fmt.Sprintf("invalidPayload_%d", i), func(t *testing.T) {
+			t.Parallel()
+			var er types.ExecutionRequests
+			// Ensure that calling UnmarshalSSZ with an invalid payload does not panic
+			// and returns a non-nil error.
+			require.NotPanics(t, func() {
+				err := er.UnmarshalSSZ(payload)
+				require.Error(t, err, "Expected error for payload %v", payload)
+			})
 		})
 	}
 }
