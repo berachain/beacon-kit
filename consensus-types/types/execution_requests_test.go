@@ -251,6 +251,7 @@ func TestExecutionRequests_ValidValuesSSZ(t *testing.T) {
 	}
 }
 
+// TestExecutionRequests_InvalidValuesUnmarshalSSZ ensures that Unmarshal must never panic.
 func TestExecutionRequests_InvalidValuesUnmarshalSSZ(t *testing.T) {
 	t.Parallel()
 
@@ -480,6 +481,80 @@ func TestDepositRequest_ValidValuesSSZ(t *testing.T) {
 
 			// Compare that the original and recomputed deposit requests match.
 			require.Equal(t, *tc.depositRequest, recomputedDepositRequest)
+		})
+	}
+}
+
+func TestDepositRequest_InvalidValuesUnmarshalSSZ(t *testing.T) {
+	t.Parallel()
+
+	// Build a valid deposit request and marshal it to obtain a baseline valid payload.
+	validDeposit := &types.DepositRequest{
+		// 48-byte public key
+		Pubkey: crypto.BLSPubkey{
+			1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+			11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+			21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+			31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+			41, 42, 43, 44, 45, 46, 47, 48,
+		},
+		// 32-byte withdrawal credentials
+		WithdrawalCredentials: [32]byte{
+			1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+			11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+			21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+			31, 32,
+		},
+		Amount: 1000,
+		// 96-byte BLS signature
+		Signature: crypto.BLSSignature{
+			1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+			11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+			21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+			31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+			41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
+			51, 52, 53, 54, 55, 56, 57, 58, 59, 60,
+			61, 62, 63, 64, 65, 66, 67, 68, 69, 70,
+			71, 72, 73, 74, 75, 76, 77, 78, 79, 80,
+			81, 82, 83, 84, 85, 86, 87, 88, 89, 90,
+			91, 92, 93, 94, 95, 96,
+		},
+		Index: 1,
+	}
+	validBytes, err := validDeposit.MarshalSSZ()
+	require.NoError(t, err)
+
+	// Build a slice of invalid payloads.
+	invalidPayloads := [][]byte{
+		nil,                       // nil slice
+		{},                        // empty slice
+		[]byte("this is not ssz"), // arbitrary non-SSZ data
+		{0x00, 0x01, 0x02},        // too short to be valid
+		// A truncated valid payload.
+		func() []byte {
+			if len(validBytes) > 5 {
+				return validBytes[:len(validBytes)-5]
+			}
+			return validBytes
+		}(),
+		// A valid payload with extra trailing bytes.
+		func() []byte {
+			extra := []byte{0xAA, 0xBB, 0xCC, 0xDD}
+			return append(validBytes, extra...)
+		}(),
+	}
+
+	// Iterate over each invalid payload.
+	for i, payload := range invalidPayloads {
+		i, payload := i, payload // capture range variables
+		t.Run(fmt.Sprintf("invalidPayload_%d", i), func(t *testing.T) {
+			t.Parallel()
+			var dr types.DepositRequest
+			require.NotPanics(t, func() {
+				err := dr.UnmarshalSSZ(payload)
+				// We expect an error for every invalid payload.
+				require.Error(t, err, "expected error for payload %v", payload)
+			})
 		})
 	}
 }
