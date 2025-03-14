@@ -58,7 +58,8 @@ func TestNewPayloadWithValidVersion(t *testing.T) {
 	c := ethclient.New(&stubRPCClient{t: t})
 	ctx := context.Background()
 
-	payload := &ctypes.ExecutionPayload{EpVersion: version.Deneb1()}
+	payload := &ctypes.ExecutionPayload{}
+	payload.SetForkVersion(version.Deneb1())
 	versionedHashes := []common.ExecutionHash{}
 	var parentBlockRoot *common.Root
 
@@ -72,7 +73,8 @@ func TestNewPayloadWithInvalidVersion(t *testing.T) {
 	c := ethclient.New(&stubRPCClient{t: t})
 	ctx := context.Background()
 
-	payload := &ctypes.ExecutionPayload{EpVersion: version.Capella()}
+	payload := &ctypes.ExecutionPayload{}
+	payload.SetForkVersion(version.Capella())
 	versionedHashes := []common.ExecutionHash{}
 	var parentBlockRoot *common.Root
 

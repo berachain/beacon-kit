@@ -43,7 +43,7 @@ func (kv *KVStore) GetLatestExecutionPayloadHeader() (
 func (kv *KVStore) SetLatestExecutionPayloadHeader(
 	payloadHeader *ctypes.ExecutionPayloadHeader,
 ) error {
-	version := payloadHeader.Version()
+	version := payloadHeader.GetForkVersion()
 	if err := kv.latestExecutionPayloadVersion.Set(
 		kv.ctx, version.ToUint32(),
 	); err != nil {

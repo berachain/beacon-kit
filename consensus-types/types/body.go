@@ -89,6 +89,9 @@ type BeaconBlockBody struct {
 	blsToExecutionChanges []*BlsToExecutionChange
 	// BlobKzgCommitments is the list of KZG commitments for the EIP-4844 blobs.
 	BlobKzgCommitments []eip4844.KZGCommitment
+	// forkVersion is the fork version of the block body. Must not be involved in serialization
+	// Must be available within the object to satisfy signature required for SizeSSZ and DefineSSZ.
+	forkVersion common.Version
 }
 
 /* -------------------------------------------------------------------------- */
@@ -161,7 +164,8 @@ func (b *BeaconBlockBody) MarshalSSZ() ([]byte, error) {
 }
 
 // UnmarshalSSZ deserializes the BeaconBlockBody from SSZ-encoded bytes.
-func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte) error {
+func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte, version common.Version) error {
+	b.SetForkVersion(version)
 	err := ssz.DecodeFromBytes(buf, b)
 	if err != nil {
 		return err
@@ -312,4 +316,12 @@ func (b *BeaconBlockBody) GetBlobKzgCommitments() eip4844.KZGCommitments[common.
 
 func (b *BeaconBlockBody) SetBlobKzgCommitments(commitments eip4844.KZGCommitments[common.ExecutionHash]) {
 	b.BlobKzgCommitments = commitments
+}
+
+func (b *BeaconBlockBody) GetForkVersion() common.Version {
+	return b.forkVersion
+}
+
+func (b *BeaconBlockBody) SetForkVersion(version common.Version) {
+	b.forkVersion = version
 }

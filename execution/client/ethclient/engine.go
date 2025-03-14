@@ -44,7 +44,7 @@ func (s *Client) NewPayload(
 	parentBlockRoot *common.Root,
 ) (*engineprimitives.PayloadStatusV1, error) {
 	// Versions before Deneb are not supported for calling NewPayload.
-	if version.IsBefore(payload.Version(), version.Deneb()) {
+	if version.IsBefore(payload.GetForkVersion(), version.Deneb()) {
 		return nil, ErrInvalidVersion
 	}
 

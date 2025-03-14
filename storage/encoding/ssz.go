@@ -71,7 +71,6 @@ func (SSZValueCodec[T]) ValueType() string {
 // infer the type of an interface.
 type SSZInterfaceCodec[T interface {
 	constraints.SSZMarshallable
-	constraints.Versionable
 	NewFromSSZ([]byte, common.Version) (T, error)
 }] struct {
 	latestVersion common.Version

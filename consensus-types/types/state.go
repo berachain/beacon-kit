@@ -23,6 +23,7 @@ package types
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
 )
@@ -224,7 +225,8 @@ func (st *BeaconState) HashTreeRootWith(
 
 	// Field (8) 'LatestExecutionPayloadHeader'
 	if st.LatestExecutionPayloadHeader == nil {
-		st.LatestExecutionPayloadHeader = st.LatestExecutionPayloadHeader.Empty()
+		// TODO(pectra): Remove the hardcoded Deneb value and use a retrieved time from beaconState
+		st.LatestExecutionPayloadHeader = st.LatestExecutionPayloadHeader.Empty(version.Deneb())
 	}
 	if err := st.LatestExecutionPayloadHeader.HashTreeRootWith(hh); err != nil {
 		return err

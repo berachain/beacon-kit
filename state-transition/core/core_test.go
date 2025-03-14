@@ -97,8 +97,8 @@ func buildNextBlock(
 		Transactions:  [][]byte{},
 		Withdrawals:   withdrawals,
 		BaseFeePerGas: math.NewU256(0),
-		EpVersion:     version.Deneb1(),
 	}
+	payload.SetForkVersion(version.Deneb1())
 	parentBeaconBlockRoot := parentBlkHeader.HashTreeRoot()
 	ethBlk, _, err := types.MakeEthBlock(payload, &parentBeaconBlockRoot)
 	require.NoError(t, err)

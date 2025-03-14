@@ -162,6 +162,6 @@ func DefaultGenesisExecutionPayloadHeader() (*ExecutionPayloadHeader, error) {
 		WithdrawalsRoot: engineprimitives.Withdrawals(nil).HashTreeRoot(),
 		BlobGasUsed:     0,
 		ExcessBlobGas:   0,
-		EphVersion:      version.Genesis(),
+		forkVersion:     version.Genesis(),
 	}, nil
 }

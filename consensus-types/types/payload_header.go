@@ -26,7 +26,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 	fastssz "github.com/ferranbt/fastssz"
 	"github.com/holiman/uint256"
 	"github.com/karalabe/ssz"
@@ -70,20 +69,15 @@ type ExecutionPayloadHeader struct {
 	BlobGasUsed math.U64 `json:"blobGasUsed"`
 	// ExcessBlobGas is the amount of excess blob gas in the block.
 	ExcessBlobGas math.U64 `json:"excessBlobGas"`
-
-	// EphVersion is the fork EphVersion of the execution payload header.
-	// EphVersion must be not serialized but it's exported
-	// to allow unit tests using reflect on execution payload header.
-	// TODO: Enable once
-	// https://github.com/karalabe/ssz/pull/9/files# is merged.
-	EphVersion common.Version `json:"-"`
+	// forkVersion specifies the fork version of the ExecutionPayloadHeader.
+	forkVersion common.Version
 }
 
 // Empty returns an empty ExecutionPayloadHeader.
-func (h *ExecutionPayloadHeader) Empty() *ExecutionPayloadHeader {
+func (h *ExecutionPayloadHeader) Empty(version common.Version) *ExecutionPayloadHeader {
 	return &ExecutionPayloadHeader{
 		// By default, we set the version to Deneb to maintain compatibility.
-		EphVersion:    version.Deneb(),
+		forkVersion:   version,
 		BaseFeePerGas: &uint256.Int{},
 	}
 }
@@ -92,20 +86,22 @@ func (h *ExecutionPayloadHeader) Empty() *ExecutionPayloadHeader {
 func (h *ExecutionPayloadHeader) NewFromSSZ(
 	bz []byte, forkVersion common.Version,
 ) (*ExecutionPayloadHeader, error) {
-	h = h.Empty()
-	h.EphVersion = forkVersion
-	return h, h.UnmarshalSSZ(bz)
+	h = h.Empty(forkVersion)
+	err := h.UnmarshalSSZ(bz)
+	if err != nil {
+		return nil, err
+	}
+	return h, nil
 }
 
 // NewFromJSON returns a new ExecutionPayloadHeader from the given JSON bytes.
 func (h *ExecutionPayloadHeader) NewFromJSON(
 	bz []byte, forkVersion common.Version,
 ) (*ExecutionPayloadHeader, error) {
-	h = h.Empty()
+	h = h.Empty(forkVersion)
 	if err := json.Unmarshal(bz, h); err != nil {
 		return nil, err
 	}
-	h.EphVersion = forkVersion
 	return h, nil
 }
 
@@ -452,9 +448,14 @@ func (h *ExecutionPayloadHeader) UnmarshalJSON(input []byte) error {
 /*                             Getters and Setters                            */
 /* -------------------------------------------------------------------------- */
 
-// Version returns the version of the ExecutionPayloadHeader.
-func (h *ExecutionPayloadHeader) Version() common.Version {
-	return h.EphVersion
+// GetForkVersion returns the version of the ExecutionPayloadHeader.
+func (h *ExecutionPayloadHeader) GetForkVersion() common.Version {
+	return h.forkVersion
+}
+
+// SetForkVersion ses the version of the ExecutionPayloadHeader.
+func (h *ExecutionPayloadHeader) SetForkVersion(version common.Version) {
+	h.forkVersion = version
 }
 
 // IsNil checks if the ExecutionPayloadHeader is nil.
