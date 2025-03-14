@@ -64,6 +64,9 @@ def launch_blockscout(
             )
             break
 
+    if (not el_client_info):
+        fail("no client info found")
+
     config_verif = get_config_verif()
     verif_service_name = "{}-verif".format(SERVICE_NAME_BLOCKSCOUT)
     verif_service = plan.add_service(verif_service_name, config_verif)
@@ -117,6 +120,11 @@ def get_config_backend(
         database = postgres_output.database,
     )
 
+
+    jsonrpc_variant = "geth" 
+    if el_client_name and (el_client_name != 'geth' and el_client_name != 'reth'):
+        jsonrpc_variant = el_client_name
+    
     return ServiceConfig(
         image = IMAGE_NAME_BLOCKSCOUT,
         ports = USED_PORTS,
@@ -126,7 +134,7 @@ def get_config_backend(
             'bin/blockscout eval "Elixir.Explorer.ReleaseTasks.create_and_migrate()" && bin/blockscout start',
         ],
         env_vars = {
-            "ETHEREUM_JSONRPC_VARIANT": "erigon" if el_client_name == "erigon" or el_client_name == "reth" else el_client_name,
+            "ETHEREUM_JSONRPC_VARIANT": jsonrpc_variant,
             "ETHEREUM_JSONRPC_HTTP_URL": el_client_rpc_url,
             "ETHEREUM_JSONRPC_TRACE_URL": el_client_rpc_url,
             "DATABASE_URL": database_url,
