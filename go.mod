@@ -2,8 +2,6 @@ module github.com/berachain/beacon-kit
 
 go 1.23.6
 
-toolchain go1.23.7
-
 replace (
 	github.com/cometbft/cometbft => github.com/berachain/cometbft v1.0.1-0.20250312110441-7b91e589f5c8
 	github.com/cometbft/cometbft/api => github.com/berachain/cometbft/api v1.0.1-0.20250312110441-7b91e589f5c8
