@@ -301,10 +301,6 @@ type (
 		SetGenesisValidatorsRoot(root common.Root) error
 		// GetLatestBlockHeader retrieves the latest block header.
 		GetLatestBlockHeader() (*ctypes.BeaconBlockHeader, error)
-		// GetGenesisTime retrieves the genesis time.
-		// GetGenesisTime() (math.U64, error)
-		// SetGenesisTime sets the genesis time.
-		// SetGenesisTime(time math.U64) error
 		// SetLatestBlockHeader sets the latest block header.
 		SetLatestBlockHeader(header *ctypes.BeaconBlockHeader) error
 		// GetBlockRootAtIndex retrieves the block root at the given index.
@@ -390,7 +386,6 @@ type (
 		GetSlot() (math.Slot, error)
 		GetFork() (*ctypes.Fork, error)
 		GetGenesisValidatorsRoot() (common.Root, error)
-		// GetGenesisTime() (math.U64, error)
 		GetBlockRootAtIndex(uint64) (common.Root, error)
 		GetLatestBlockHeader() (*ctypes.BeaconBlockHeader, error)
 		GetTotalActiveBalances(uint64) (math.Gwei, error)
@@ -414,7 +409,6 @@ type (
 		WriteOnlyValidators
 
 		SetGenesisValidatorsRoot(root common.Root) error
-		// SetGenesisTime(time math.U64) error
 		SetFork(*ctypes.Fork) error
 		SetSlot(math.Slot) error
 		UpdateBlockRootAtIndex(uint64, common.Root) error
