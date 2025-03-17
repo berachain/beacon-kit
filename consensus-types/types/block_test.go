@@ -46,11 +46,12 @@ func generateValidBeaconBlock(t *testing.T, version common.Version) *types.Beaco
 	)
 	require.NoError(t, err)
 
+	versionable := types.NewVersionable(version)
 	beaconBlock.StateRoot = common.Root{5, 4, 3, 2, 1}
 	beaconBlock.Body = &types.BeaconBlockBody{
-		Versionable: beaconBlock,
+		Versionable: versionable,
 		ExecutionPayload: &types.ExecutionPayload{
-			Versionable: beaconBlock,
+			Versionable: versionable,
 			Timestamp:   10,
 			ExtraData:   []byte("dummy extra data for testing"),
 			Transactions: [][]byte{

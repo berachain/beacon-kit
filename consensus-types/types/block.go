@@ -62,19 +62,15 @@ func NewBeaconBlockWithVersion(
 ) (*BeaconBlock, error) {
 	switch forkVersion {
 	case version.Deneb(), version.Deneb1():
-		eph := &ExecutionPayload{}
+		versionable := NewVersionable(forkVersion)
 		block := &BeaconBlock{
-			Versionable:   NewVersionable(forkVersion),
+			Versionable:   versionable,
 			Slot:          slot,
 			ProposerIndex: proposerIndex,
 			ParentRoot:    parentBlockRoot,
 			StateRoot:     common.Root{},
-			Body: &BeaconBlockBody{
-				ExecutionPayload: eph,
-			},
+			Body:          (&BeaconBlockBody{}).empty(forkVersion),
 		}
-		block.Body.Versionable = block
-		eph.Versionable = block
 		return block, nil
 	default:
 		// we return block here to appease nilaway
