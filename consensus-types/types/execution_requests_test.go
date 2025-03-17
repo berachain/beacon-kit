@@ -551,7 +551,7 @@ func TestDepositRequest_InvalidValuesUnmarshalSSZ(t *testing.T) {
 			t.Parallel()
 			var dr types.DepositRequest
 			require.NotPanics(t, func() {
-				err := dr.UnmarshalSSZ(payload)
+				err = dr.UnmarshalSSZ(payload)
 				// We expect an error for every invalid payload.
 				require.Error(t, err, "expected error for payload %v", payload)
 			})
