@@ -39,7 +39,7 @@ func (s *SimulatedSuite) TestProcessProposal_CrashedExecutionClient_Errors() {
 	const coreLoopIterations = 1
 
 	// Initialize the chain state.
-	s.initializeChain()
+	s.InitializeChain(s.T())
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
@@ -47,7 +47,7 @@ func (s *SimulatedSuite) TestProcessProposal_CrashedExecutionClient_Errors() {
 	s.Require().NoError(err)
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals := s.moveChainToHeight(blockHeight, coreLoopIterations, blsSigner)
+	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	currentHeight := int64(blockHeight + coreLoopIterations)
@@ -84,7 +84,7 @@ func (s *SimulatedSuite) TestContextHandling_SIGINT_SafeShutdown() {
 	const coreLoopIterations = 1
 
 	// Initialize the chain state.
-	s.initializeChain()
+	s.InitializeChain(s.T())
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
@@ -92,7 +92,7 @@ func (s *SimulatedSuite) TestContextHandling_SIGINT_SafeShutdown() {
 	s.Require().NoError(err)
 
 	// Run through core loop iterations to bypass any startup edge cases.
-	proposals := s.moveChainToHeight(blockHeight, coreLoopIterations, blsSigner)
+	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	currentHeight := int64(blockHeight + coreLoopIterations)
@@ -144,7 +144,7 @@ func (s *SimulatedSuite) TestContextHandling_CancelledContext_Rejected() {
 	const coreLoopIterations = 1
 
 	// Initialize the chain state.
-	s.initializeChain()
+	s.InitializeChain(s.T())
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
@@ -152,7 +152,7 @@ func (s *SimulatedSuite) TestContextHandling_CancelledContext_Rejected() {
 	s.Require().NoError(err)
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals := s.moveChainToHeight(blockHeight, coreLoopIterations, blsSigner)
+	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	currentHeight := int64(blockHeight + coreLoopIterations)
