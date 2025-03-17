@@ -37,9 +37,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-const (
-	defaultShutdownTimeout = 5 * time.Minute
-)
+const defaultShutdownTimeout = 5 * time.Minute
 
 // AppOptions is from the SDK, we should look to remove its usage.
 type AppOptions interface {
