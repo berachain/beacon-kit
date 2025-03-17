@@ -36,7 +36,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func generateBeaconBlockBody(version common.Version) types.BeaconBlockBody {
+func generateBeaconBlockBody(t *testing.T, forkVersion common.Version) types.BeaconBlockBody {
+	t.Helper()
 	body := types.BeaconBlockBody{
 		RandaoReveal: [96]byte{1, 2, 3},
 		Eth1Data:     &types.Eth1Data{},
@@ -47,14 +48,43 @@ func generateBeaconBlockBody(version common.Version) types.BeaconBlockBody {
 		},
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
-	body.SetForkVersion(version)
-	body.GetExecutionPayload().SetForkVersion(version)
+	body.SetForkVersion(forkVersion)
+	body.GetExecutionPayload().SetForkVersion(forkVersion)
 	body.SetProposerSlashings(types.ProposerSlashings{})
 	body.SetAttesterSlashings(types.AttesterSlashings{})
 	body.SetAttestations(types.Attestations{})
 	body.SetSyncAggregate(&types.SyncAggregate{})
 	body.SetVoluntaryExits(types.VoluntaryExits{})
 	body.SetBlsToExecutionChanges(types.BlsToExecutionChanges{})
+	if !version.IsBefore(forkVersion, version.Electra()) {
+		err := body.SetExecutionRequests(&types.ExecutionRequests{
+			Deposits: []*types.DepositRequest{
+				{
+					Pubkey:                bytes.B48{0, 1, 2},
+					WithdrawalCredentials: types.WithdrawalCredentials(common.Bytes32{0, 1, 2}),
+					Amount:                math.Gwei(1000),
+					Signature:             bytes.B96{0, 1, 2},
+					Index:                 69,
+				},
+				{
+					Pubkey:                bytes.B48{0, 3, 4},
+					WithdrawalCredentials: types.WithdrawalCredentials(common.Bytes32{0, 1, 2}),
+					Amount:                math.Gwei(1000),
+					Signature:             bytes.B96{0, 1, 2},
+					Index:                 70,
+				},
+			},
+			Withdrawals: []*types.WithdrawalRequest{
+				{
+					SourceAddress:   common.NewExecutionAddressFromHex("0xFF00000000000000000000000000000000000010"),
+					ValidatorPubKey: bytes.B48{0, 1, 2},
+					Amount:          math.Gwei(1000),
+				},
+			},
+			Consolidations: []*types.ConsolidationRequest{},
+		})
+		require.NoError(t, err)
+	}
 	return body
 }
 
@@ -150,7 +180,7 @@ func TestBeaconBlockBody_MarshalSSZ(t *testing.T) {
 func TestBeaconBlockBody_GetTopLevelRoots(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
-		body := generateBeaconBlockBody(v)
+		body := generateBeaconBlockBody(t, v)
 		roots := body.GetTopLevelRoots()
 		require.NotNil(t, roots)
 	})
@@ -270,7 +300,7 @@ func TestBeaconBlockBody_UnusedBlsToExecutionChangesEnforcement(t *testing.T) {
 func TestBeaconBlockBody_RoundTrip_HashTreeRoot(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
-		body := generateBeaconBlockBody(v)
+		body := generateBeaconBlockBody(t, v)
 		data, err := body.MarshalSSZ()
 		require.NoError(t, err)
 		require.NotNil(t, data)
@@ -315,33 +345,7 @@ func Test_KZGCommitmentInclusionProofDepth(t *testing.T) {
 
 func TestBeaconBlockBody_ExecutionRequestsSSZMarshalling(t *testing.T) {
 	t.Parallel()
-	body := generateBeaconBlockBody(version.Electra())
-	err := body.SetExecutionRequests(&types.ExecutionRequests{
-		Deposits: []*types.DepositRequest{
-			{
-				Pubkey:                bytes.B48{0, 1, 2},
-				WithdrawalCredentials: types.WithdrawalCredentials(common.Bytes32{0, 1, 2}),
-				Amount:                math.Gwei(1000),
-				Signature:             bytes.B96{0, 1, 2},
-				Index:                 69,
-			},
-			{
-				Pubkey:                bytes.B48{0, 3, 4},
-				WithdrawalCredentials: types.WithdrawalCredentials(common.Bytes32{0, 1, 2}),
-				Amount:                math.Gwei(1000),
-				Signature:             bytes.B96{0, 1, 2},
-				Index:                 70,
-			},
-		},
-		Withdrawals: []*types.WithdrawalRequest{
-			{
-				SourceAddress:   common.NewExecutionAddressFromHex("0xFF00000000000000000000000000000000000010"),
-				ValidatorPubKey: bytes.B48{0, 1, 2},
-				Amount:          math.Gwei(1000),
-			},
-		},
-	})
-	require.NoError(t, err)
+	body := generateBeaconBlockBody(t, version.Electra())
 	originalRequests, err := body.GetExecutionRequests()
 	require.NoError(t, err)
 	require.NotNil(t, originalRequests)

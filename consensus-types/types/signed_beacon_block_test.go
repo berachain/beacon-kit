@@ -42,9 +42,7 @@ import (
 func runForAllSupportedVersions(t *testing.T, testFunc func(t *testing.T, v common.Version)) {
 	t.Helper()
 	for _, v := range version.GetSupportedVersions() {
-		v := v // capture the variable for parallel tests
 		t.Run(v.String(), func(t *testing.T) {
-			t.Parallel()
 			testFunc(t, v)
 		})
 	}
