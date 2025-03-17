@@ -26,6 +26,7 @@ import (
 	"context"
 	"os"
 	"path"
+	"path/filepath"
 	"testing"
 
 	"github.com/berachain/beacon-kit/cli/commands/genesis"
@@ -46,7 +47,7 @@ const TestnetBeaconChainID = "testnet-beacon-80069"
 // InitializeHomeDir sets up a temporary home directory with the necessary genesis state
 // and configuration files for testing. It returns the configured CometBFT config along with
 // the computed genesis validators root.
-func InitializeHomeDir(t *testing.T, tempHomeDir string) (*cmtcfg.Config, common.Root) {
+func InitializeHomeDir(t *testing.T, tempHomeDir string, elGenesisPath string) (*cmtcfg.Config, common.Root) {
 	t.Helper()
 
 	t.Logf("Initializing home directory: %s", tempHomeDir)
@@ -80,11 +81,11 @@ func InitializeHomeDir(t *testing.T, tempHomeDir string) (*cmtcfg.Config, common
 	require.NoError(t, err, "failed to collect genesis deposits")
 
 	// Update the execution layer deposit storage with the eth-genesis file.
-	err = genesis.SetDepositStorage(chainSpec, cometConfig, "./eth-genesis.json", false)
+	err = genesis.SetDepositStorage(chainSpec, cometConfig, elGenesisPath, false)
 	require.NoError(t, err, "failed to set deposit storage")
 
 	// Add the execution payload to the genesis configuration.
-	err = genesis.AddExecutionPayload(chainSpec, path.Join(cometConfig.RootDir, "eth-genesis.json"), cometConfig)
+	err = genesis.AddExecutionPayload(chainSpec, path.Join(cometConfig.RootDir, filepath.Base(elGenesisPath)), cometConfig)
 	require.NoError(t, err, "failed to add execution payload")
 
 	// Compute the validators root from the genesis file.
