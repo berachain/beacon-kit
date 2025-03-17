@@ -125,7 +125,7 @@ func transformExecutableDataToExecutionPayload(
 
 	// Construct the execution payload.
 	executionPayload := &ctypes.ExecutionPayload{
-		Versionable:   (&ctypes.BeaconBlock{}).WithForkVersion(forkVersion),
+		Versionable:   ctypes.NewVersionable(forkVersion),
 		ParentHash:    libcommon.ExecutionHash(data.ParentHash),
 		FeeRecipient:  libcommon.ExecutionAddress(data.FeeRecipient),
 		StateRoot:     libcommon.Bytes32(data.StateRoot),

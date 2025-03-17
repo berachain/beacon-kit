@@ -92,7 +92,7 @@ func buildNextBlock(
 
 	// build the payload
 	payload := &types.ExecutionPayload{
-		Versionable:   (&types.BeaconBlock{}).WithForkVersion(version.Deneb1()),
+		Versionable:   types.NewVersionable(version.Deneb1()),
 		Timestamp:     timestamp,
 		ExtraData:     []byte("testing"),
 		Transactions:  [][]byte{},
