@@ -55,6 +55,8 @@ func (b Backend) GenesisTime(genesisSlot math.Slot) (math.U64, error) {
 	if err != nil {
 		return 0, errors.Wrapf(err, "failed to get state from slot %d", genesisSlot)
 	}
+	// Get the execution payload header from the beacon state,
+	// and return the timestamp as the genesis time.
 	execPayloadHeader, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return 0, errors.Wrapf(err, "failed to get execution payload header from state")
