@@ -79,7 +79,7 @@ func (n *node) Start(
 
 	shutdownFunc := func(err error) {
 		now := time.Now()
-		n.logger.Error("Shutdown initiated", "error", err)
+		n.logger.Error("Shutdown initiated", "timeout", n.shutdownTimeout.String(), "error", err)
 
 		cancelFn()
 		n.registry.StopAll()
