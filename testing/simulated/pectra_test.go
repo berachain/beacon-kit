@@ -106,12 +106,34 @@ func (s *PectraSuite) SetupTest() {
 
 // TearDownTest cleans up the test environment.
 func (s *PectraSuite) TearDownTest() {
+	// If the test has failed, log additional information.
+	if s.T().Failed() {
+		s.T().Log(s.LogBuffer.String())
+	}
 	if err := s.ElHandle.Close(); err != nil {
 		s.T().Error("Error closing EL handle:", err)
 	}
 	// mimics the behaviour of shutdown func
 	s.CtxAppCancelFn()
 	s.TestNode.ServiceRegistry.StopAll()
+}
+
+// TODO(pectra): Get this test case passing. It currently fails in ProcessProposal with error:
+// `block hash in payload does not match assembled block`.
+func (s *PectraSuite) TestFullLifecycle_WithoutRequests_IsSuccessful() {
+	s.T().Skip("TODO(pectra): Get this test case passing. It currently fails in ProcessProposal with error")
+	const blockHeight = 1
+	const coreLoopIterations = 10
+
+	// Initialize the chain state.
+	s.InitializeChain(s.T())
+
+	// Retrieve the BLS signer and proposer address.
+	blsSigner := simulated.GetBlsSigner(s.HomeDir)
+
+	// Go through iterations of the core loop.
+	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner)
+	s.Require().Len(proposals, coreLoopIterations)
 }
 
 // TODO(pectra): Get this test case passing. It currently fails in ProcessProposal with error:
