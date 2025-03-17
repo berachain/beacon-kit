@@ -21,8 +21,6 @@
 package types
 
 import (
-	"fmt"
-
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -52,13 +50,10 @@ func NewSignedBeaconBlockFromSSZ(
 	bz []byte,
 	forkVersion common.Version,
 ) (*SignedBeaconBlock, error) {
-	var (
-		block = &SignedBeaconBlock{}
-		err   error
-	)
-
+	block := &SignedBeaconBlock{}
 	switch forkVersion {
 	case version.Deneb(), version.Deneb1():
+		var err error
 		block, err = block.NewFromSSZ(bz)
 		if err != nil {
 			return nil, err
@@ -72,15 +67,11 @@ func NewSignedBeaconBlockFromSSZ(
 		block.Message.Versionable = versionable
 		block.Message.Body.Versionable = versionable
 		block.Message.Body.ExecutionPayload.Versionable = versionable
+		return block, nil
 	default:
 		// we return block here to appease nilaway
-		err = errors.Wrap(
-			ErrForkVersionNotSupported,
-			fmt.Sprintf("fork %d", forkVersion),
-		)
+		return block, errors.Wrapf(ErrForkVersionNotSupported, "fork %d", forkVersion)
 	}
-
-	return block, err
 }
 
 // NewSignedBeaconBlock signs the provided BeaconBlock and populates the receiver.
