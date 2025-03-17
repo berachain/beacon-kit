@@ -41,7 +41,6 @@ const (
 	LatestExecutionPayloadHeaderPrefix
 	LatestExecutionPayloadVersionPrefix
 	GenesisValidatorsRootPrefix
-	GenesisTimePrefix
 	NextWithdrawalIndexPrefix
 	NextWithdrawalValidatorIndexPrefix
 	ForkPrefix
