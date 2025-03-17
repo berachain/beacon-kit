@@ -867,3 +867,28 @@ func (s *BeaconKitE2ESuite) TestGetValidatorsWithStateGenesis() {
 		s.Require().True(validator.Balance <= 32e9, "Validator balance should not exceed 32 BERA")
 	}
 }
+
+// TestGenesis tests querying the genesis of the beacon node.
+func (s *BeaconKitE2ESuite) TestGenesis() {
+	client := s.initBeaconTest()
+
+	genesisResp, err := client.Genesis(s.Ctx(), &beaconapi.GenesisOpts{})
+	s.Require().NoError(err)
+	s.Require().NotNil(genesisResp)
+	s.Require().NotEmpty(genesisResp.Data)
+
+	genesis := genesisResp.Data
+
+	s.Require().NotZero(genesis.GenesisTime, "Genesis time should not be zero")
+	s.Require().True(genesis.GenesisTime.Unix() < time.Now().Unix(), "Genesis time should not be in future")
+
+	s.Require().NotEmpty(genesis.GenesisValidatorsRoot, "Genesis validators root should not be empty")
+	s.Require().NotEmpty(genesis.GenesisForkVersion, "Genesis fork version should not be empty")
+
+	expectedVersion := phase0.Version{0x04, 0x00, 0x00, 0x00}
+	s.Require().Equal(
+		expectedVersion,
+		genesisResp.Data.GenesisForkVersion,
+		"Genesis fork version does not match expected value",
+	)
+}
