@@ -62,9 +62,8 @@ func NewBeaconBlockWithVersion(
 ) (*BeaconBlock, error) {
 	switch forkVersion {
 	case version.Deneb(), version.Deneb1():
-		versionable := NewVersionable(forkVersion)
 		block := &BeaconBlock{
-			Versionable:   versionable,
+			Versionable:   NewVersionable(forkVersion),
 			Slot:          slot,
 			ProposerIndex: proposerIndex,
 			ParentRoot:    parentBlockRoot,

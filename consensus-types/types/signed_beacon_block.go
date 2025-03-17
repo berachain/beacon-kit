@@ -63,10 +63,10 @@ func NewSignedBeaconBlockFromSSZ(
 		EnsureNotNilWithdrawals(block.Message.Body.ExecutionPayload)
 
 		// duly setup fork version in every relevant block member
-		versionable := NewVersionable(forkVersion)
-		block.Message.Versionable = versionable
-		block.Message.Body.Versionable = versionable
-		block.Message.Body.ExecutionPayload.Versionable = versionable
+		versioner := NewVersionable(forkVersion)
+		block.Message.Versionable = versioner
+		block.Message.Body.Versionable = versioner
+		block.Message.Body.ExecutionPayload.Versionable = versioner
 		return block, nil
 	default:
 		// we return block here to appease nilaway
