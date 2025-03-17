@@ -46,7 +46,7 @@ func TestForkData_Serialization(t *testing.T) {
 	unmarshalled, err = unmarshalled.NewFromSSZ(data)
 	require.NoError(t, err)
 
-	require.Equal(t, original, &unmarshalled)
+	require.Equal(t, original, unmarshalled)
 }
 
 func TestForkData_Unmarshal(t *testing.T) {

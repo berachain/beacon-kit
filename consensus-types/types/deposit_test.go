@@ -104,7 +104,7 @@ func TestDeposit_MarshalUnmarshalSSZ(t *testing.T) {
 	unmarshalledDeposit, err = unmarshalledDeposit.NewFromSSZ(sszDeposit)
 	require.NoError(t, err)
 
-	require.Equal(t, originalDeposit, &unmarshalledDeposit)
+	require.Equal(t, originalDeposit, unmarshalledDeposit)
 }
 
 func TestDeposit_MarshalSSZTo(t *testing.T) {
