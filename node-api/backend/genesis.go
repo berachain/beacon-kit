@@ -55,7 +55,11 @@ func (b Backend) GenesisTime(genesisSlot math.Slot) (math.U64, error) {
 	if err != nil {
 		return 0, errors.Wrapf(err, "failed to get state from slot %d", genesisSlot)
 	}
-	genesisTime, err := st.GetGenesisTime()
+	execPayloadHeader, err := st.GetLatestExecutionPayloadHeader()
+	if err != nil {
+		return 0, errors.Wrapf(err, "failed to get execution payload header from state")
+	}
+	genesisTime := execPayloadHeader.Timestamp
 	if err != nil {
 		return 0, errors.Wrapf(err, "failed to get genesis time from state")
 	}
