@@ -21,6 +21,7 @@
 package genesis
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -58,6 +59,10 @@ func CollectGenesisDeposits(config *cmtcfg.Config) error {
 		return errors.Wrap(err, "failed to read genesis doc from file")
 	}
 
+	// Get genesis time from appGenesis
+	genesisTime := appGenesis.GenesisTime
+	fmt.Println("genesisTime nids", genesisTime)
+
 	// create the app state
 	appGenesisState, err := genutiltypes.GenesisStateFromAppGenesis(
 		appGenesis,
@@ -84,6 +89,9 @@ func CollectGenesisDeposits(config *cmtcfg.Config) error {
 	); err != nil {
 		return errors.Wrap(err, "failed to unmarshal beacon genesis")
 	}
+
+	// Set the genesis time in the beacon genesis info
+	// genesisInfo.ExecutionPayloadHeader.Timestamp = math.U64(genesisTime.Unix())
 
 	for i, deposit := range deposits {
 		deposit.Index = uint64(i) // #nosec G115 -- won't realistically overflow.

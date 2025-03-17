@@ -120,10 +120,10 @@ func (sp *StateProcessor) InitializePreminedBeaconStateFromEth1(
 		return nil, err
 	}
 
-	genesisTime := execPayloadHeader.GetTimestamp()
-	if err = st.SetGenesisTime(genesisTime); err != nil {
-		return nil, err
-	}
+	// genesisTime := execPayloadHeader.GetTimestamp()
+	// if err = st.SetGenesisTime(genesisTime); err != nil {
+	// 	return nil, err
+	// }
 
 	// Setup a bunch of 0s to prime the DB.
 	for i := range sp.cs.HistoricalRootsLimit() {
