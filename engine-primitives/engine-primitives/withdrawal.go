@@ -35,8 +35,8 @@ import (
 const WithdrawalSize = 44
 
 var (
-	_ ssz.StaticObject                    = (*Withdrawal)(nil)
-	_ constraints.SSZMarshallableRootable = (*Withdrawal)(nil)
+	_ ssz.StaticObject                                 = (*Withdrawal)(nil)
+	_ constraints.SSZMarshallableRootable[*Withdrawal] = (*Withdrawal)(nil)
 )
 
 // Withdrawal represents a validator withdrawal from the consensus layer.
@@ -94,9 +94,10 @@ func (w *Withdrawal) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, w)
 }
 
-// UnmarshalSSZ unmarshals the SSZ encoded data to a Withdrawal object.
-func (w *Withdrawal) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, w)
+// NewFromSSZ creates a new Withdrawal object from SSZ encoded data.
+func (*Withdrawal) NewFromSSZ(buf []byte) (*Withdrawal, error) {
+	w := &Withdrawal{}
+	return w, ssz.DecodeFromBytes(buf, w)
 }
 
 /* -------------------------------------------------------------------------- */
