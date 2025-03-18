@@ -26,6 +26,8 @@ import "github.com/berachain/beacon-kit/primitives/eip4844"
 var _ BlobsBundle = (*BlobsBundleV1)(nil)
 
 // BlobsBundle is an interface for the blobs bundle.
+//
+// TODO: move interface definition to packages where it is used.
 type BlobsBundle interface {
 	// GetCommitments returns the commitments in the blobs bundle.
 	GetCommitments() []eip4844.KZGCommitment

@@ -34,6 +34,8 @@ var (
 )
 
 // BuiltExecutionPayloadEnv is an interface for the execution payload envelope.
+//
+// TODO: move interface definition to packages where it is used.
 type BuiltExecutionPayloadEnv interface {
 	// GetExecutionPayload retrieves the associated execution payload.
 	GetExecutionPayload() *ExecutionPayload
