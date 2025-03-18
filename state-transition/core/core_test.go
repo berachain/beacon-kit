@@ -113,6 +113,7 @@ func buildNextBlock(
 	)
 	require.NoError(t, err)
 	blk.Body = &types.BeaconBlockBody{
+		Versionable:      blk,
 		ExecutionPayload: payload,
 		Eth1Data:         eth1Data,
 		Deposits:         blockDeposits,
