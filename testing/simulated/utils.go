@@ -182,12 +182,7 @@ func GetBlsSigner(tempHomeDir string) *signer.BLSSigner {
 	return signer.NewBLSSigner(privValKeyFile, privValStateFile)
 }
 
-func DefaultSimulationInput(
-	t *testing.T,
-	chainSpec chain.Spec,
-	origBlock *ctypes.BeaconBlock,
-	txs []*gethprimitives.Transaction,
-) *execution.SimOpts {
+func DefaultSimulationInput(t *testing.T, chainSpec chain.Spec, origBlock *ctypes.BeaconBlock, txs []*gethprimitives.Transaction) *execution.SimOpts {
 	t.Helper()
 	overrideTime := hexutil.Uint64(origBlock.GetTimestamp().Unwrap())
 	overrideGasLimit := hexutil.Uint64(30000000)
@@ -322,11 +317,7 @@ func ComputeAndSetStateRoot(
 }
 
 // GetProofAndCommitmentsForBlobs will create a commitment and proof for each blob. Technically
-func GetProofAndCommitmentsForBlobs(
-	t *require.Assertions,
-	blobs []*eip4844.Blob,
-	verifier kzg.BlobProofVerifier,
-) ([]eip4844.KZGProof, []eip4844.KZGCommitment) {
+func GetProofAndCommitmentsForBlobs(t *require.Assertions, blobs []*eip4844.Blob, verifier kzg.BlobProofVerifier) ([]eip4844.KZGProof, []eip4844.KZGCommitment) {
 	if verifier.GetImplementation() != gokzg.Implementation {
 		t.Fail("test expects gokzg implementation")
 	}
