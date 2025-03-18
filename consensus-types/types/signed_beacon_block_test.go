@@ -56,8 +56,9 @@ func generateFakeSignedBeaconBlock(t *testing.T, version common.Version) *types.
 	blk := generateValidBeaconBlock(t, version)
 	signature := crypto.BLSSignature{}
 	return &types.SignedBeaconBlock{
-		Message:   blk,
-		Signature: signature,
+		Versionable: types.NewVersionable(version),
+		Message:     blk,
+		Signature:   signature,
 	}
 }
 

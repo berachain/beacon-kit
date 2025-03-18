@@ -32,11 +32,12 @@ import (
 )
 
 var (
-	_ ssz.DynamicObject                                       = (*SignedBeaconBlock)(nil)
-	_ constraints.SSZMarshallableRootable[*SignedBeaconBlock] = (*SignedBeaconBlock)(nil)
+	_ ssz.DynamicObject                                                = (*SignedBeaconBlock)(nil)
+	_ constraints.SSZVersionedMarshallableRootable[*SignedBeaconBlock] = (*SignedBeaconBlock)(nil)
 )
 
 type SignedBeaconBlock struct {
+	constraints.Versionable
 	Message   *BeaconBlock        `json:"message"`
 	Signature crypto.BLSSignature `json:"signature"`
 }
@@ -54,7 +55,7 @@ func NewSignedBeaconBlockFromSSZ(
 	switch forkVersion {
 	case version.Deneb(), version.Deneb1():
 		var err error
-		block, err = block.NewFromSSZ(bz)
+		block, err = block.NewFromSSZ(bz, forkVersion)
 		if err != nil {
 			return nil, err
 		}
@@ -125,8 +126,20 @@ func (b *SignedBeaconBlock) MarshalSSZ() ([]byte, error) {
 }
 
 // NewFromSSZ creates a new SignedBeaconBlock from SSZ format.
-func (*SignedBeaconBlock) NewFromSSZ(buf []byte) (*SignedBeaconBlock, error) {
-	b := &SignedBeaconBlock{}
+func (*SignedBeaconBlock) NewFromSSZ(buf []byte, version common.Version) (*SignedBeaconBlock, error) {
+	v := NewVersionable(version)
+	b := &SignedBeaconBlock{
+		Versionable: v,
+		Message: &BeaconBlock{
+			Versionable: v,
+			Body: &BeaconBlockBody{
+				Versionable: v,
+				ExecutionPayload: &ExecutionPayload{
+					Versionable: v,
+				},
+			},
+		},
+	}
 	return b, ssz.DecodeFromBytes(buf, b)
 }
 
