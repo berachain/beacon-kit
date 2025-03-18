@@ -21,62 +21,69 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/primitives/eip4844"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
+)
+
+// Compile-time assertions to ensure ExecutionPayloadEnvelope implements the necessary interfaces.
+var (
+	_ BuiltExecutionPayloadEnv = (*ExecutionPayloadEnvelope)(nil)
+	_ constraints.Versionable  = (*ExecutionPayloadEnvelope)(nil)
 )
 
 // BuiltExecutionPayloadEnv is an interface for the execution payload envelope.
 type BuiltExecutionPayloadEnv interface {
 	// GetExecutionPayload retrieves the associated execution payload.
 	GetExecutionPayload() *ExecutionPayload
-	// GetValue returns the Wei value of the block in the execution payload.
-	GetValue() *math.U256
+	// GetBlockValue returns the Wei value of the block in the execution payload.
+	GetBlockValue() *math.U256
 	// GetBlobsBundle fetches the associated BlobsBundleV1 if available.
-	GetBlobsBundle() BlobsBundle
+	GetBlobsBundle() engineprimitives.BlobsBundle
 	// ShouldOverrideBuilder indicates if the builder should be overridden.
 	ShouldOverrideBuilder() bool
-}
-
-// BlobsBundle is an interface for the blobs bundle.
-type BlobsBundle interface {
-	// GetCommitments returns the commitments in the blobs bundle.
-	GetCommitments() []eip4844.KZGCommitment
-	// GetProofs returns the proofs in the blobs bundle.
-	GetProofs() []eip4844.KZGProof
-	// GetBlobs returns the blobs in the blobs bundle.
-	GetBlobs() []*eip4844.Blob
 }
 
 // ExecutionPayloadEnvelope is a struct that holds the execution payload and
 // its associated data.
 // It utilizes a generic type ExecutionData to allow for different types of
 // execution payloads depending on the active hard fork.
-type ExecutionPayloadEnvelope[
-	BlobsBundleT BlobsBundle,
-] struct {
-	ExecutionPayload *ExecutionPayload `json:"executionPayload"`
-	BlockValue       *math.U256        `json:"blockValue"`
-	BlobsBundle      BlobsBundleT      `json:"blobsBundle"`
-	Override         bool              `json:"shouldOverrideBuilder"`
+type ExecutionPayloadEnvelope struct {
+	*ExecutionPayload `json:"executionPayload"`
+	BlockValue        *math.U256                   `json:"blockValue"`
+	BlobsBundle       engineprimitives.BlobsBundle `json:"blobsBundle"`
+	Override          bool                         `json:"shouldOverrideBuilder"`
+}
+
+// NewEmptyExecutionPayloadEnvelope returns an empty ExecutionPayloadEnvelope
+// for the given fork version.
+func NewEmptyExecutionPayloadEnvelope(forkVersion common.Version) *ExecutionPayloadEnvelope {
+	return &ExecutionPayloadEnvelope{
+		ExecutionPayload: (&ExecutionPayload{}).empty(forkVersion),
+		BlockValue:       &math.U256{},
+		BlobsBundle:      &engineprimitives.BlobsBundleV1{},
+		Override:         false,
+	}
 }
 
 // GetExecutionPayload returns the execution payload of the
 // ExecutionPayloadEnvelope.
-func (e *ExecutionPayloadEnvelope[BlobsBundleT]) GetExecutionPayload() *ExecutionPayload {
+func (e *ExecutionPayloadEnvelope) GetExecutionPayload() *ExecutionPayload {
 	return e.ExecutionPayload
 }
 
-// GetValue returns the value of the ExecutionPayloadEnvelope.
-func (e *ExecutionPayloadEnvelope[BlobsBundleT]) GetValue() *math.U256 {
+// GetBlockValue returns the block value of the ExecutionPayloadEnvelope.
+func (e *ExecutionPayloadEnvelope) GetBlockValue() *math.U256 {
 	return e.BlockValue
 }
 
 // GetBlobsBundle returns the blobs bundle of the ExecutionPayloadEnvelope.
-func (e *ExecutionPayloadEnvelope[BlobsBundleT]) GetBlobsBundle() BlobsBundle {
+func (e *ExecutionPayloadEnvelope) GetBlobsBundle() engineprimitives.BlobsBundle {
 	return e.BlobsBundle
 }
 
 // ShouldOverrideBuilder returns whether the builder should be overridden.
-func (e *ExecutionPayloadEnvelope[BlobsBundleT]) ShouldOverrideBuilder() bool {
+func (e *ExecutionPayloadEnvelope) ShouldOverrideBuilder() bool {
 	return e.Override
 }
