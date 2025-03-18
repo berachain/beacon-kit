@@ -181,17 +181,20 @@ func TestSignedBeaconBlock_SizeSSZ(t *testing.T) {
 func TestSignedBeaconBlock_EmptySerialization(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, fv common.Version) {
+		v := types.NewVersionable(fv)
 		orig := &types.SignedBeaconBlock{
 			BeaconBlock: &types.BeaconBlock{
-				Versionable: types.NewVersionable(fv),
+				Versionable: v,
+				Body: &types.BeaconBlockBody{
+					Versionable: v,
+				},
 			},
 		}
 		data, err := orig.MarshalSSZ()
 		require.NoError(t, err)
 		require.NotNil(t, data)
 
-		var unmarshalled *types.SignedBeaconBlock
-		unmarshalled, err = unmarshalled.NewFromSSZ(data, fv)
+		unmarshalled, err := types.NewSignedBeaconBlockFromSSZ(data, fv)
 		require.NoError(t, err)
 		require.NotNil(t, unmarshalled.GetBeaconBlock())
 		require.NotNil(t, unmarshalled.GetSignature())

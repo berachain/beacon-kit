@@ -168,18 +168,20 @@ func TestBeaconBlockBody_SetDeposits(t *testing.T) {
 
 func TestBeaconBlockBody_MarshalSSZ(t *testing.T) {
 	t.Parallel()
-	body := types.BeaconBlockBody{
-		RandaoReveal:       [96]byte{1, 2, 3},
-		Eth1Data:           &types.Eth1Data{},
-		Graffiti:           [32]byte{4, 5, 6},
-		Deposits:           []*types.Deposit{},
-		ExecutionPayload:   &types.ExecutionPayload{},
-		BlobKzgCommitments: []eip4844.KZGCommitment{},
-	}
-	data, err := body.MarshalSSZ()
-
-	require.NoError(t, err)
-	require.NotNil(t, data)
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		body := types.BeaconBlockBody{
+			Versionable:        types.NewVersionable(v),
+			RandaoReveal:       [96]byte{1, 2, 3},
+			Eth1Data:           &types.Eth1Data{},
+			Graffiti:           [32]byte{4, 5, 6},
+			Deposits:           []*types.Deposit{},
+			ExecutionPayload:   &types.ExecutionPayload{},
+			BlobKzgCommitments: []eip4844.KZGCommitment{},
+		}
+		data, err := body.MarshalSSZ()
+		require.NoError(t, err)
+		require.NotNil(t, data)
+	})
 }
 
 func TestBeaconBlockBody_GetTopLevelRoots(t *testing.T) {
@@ -202,7 +204,9 @@ func TestBeaconBlockBody_Empty(t *testing.T) {
 func TestBeaconBlockBody_UnusedProposerSlashingsEnforcement(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
-		blockBody := types.BeaconBlockBody{}
+		blockBody := types.BeaconBlockBody{
+			Versionable: types.NewVersionable(v),
+		}
 		unused := types.UnusedType(1)
 		blockBody.SetProposerSlashings(types.ProposerSlashings{&unused})
 		_, err := blockBody.MarshalSSZ()
@@ -222,7 +226,9 @@ func TestBeaconBlockBody_UnusedProposerSlashingsEnforcement(t *testing.T) {
 func TestBeaconBlockBody_UnusedAttesterSlashingsEnforcement(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
-		blockBody := types.BeaconBlockBody{}
+		blockBody := types.BeaconBlockBody{
+			Versionable: types.NewVersionable(v),
+		}
 		unused := types.UnusedType(1)
 		blockBody.SetAttesterSlashings(types.AttesterSlashings{&unused})
 		_, err := blockBody.MarshalSSZ()
@@ -242,7 +248,9 @@ func TestBeaconBlockBody_UnusedAttesterSlashingsEnforcement(t *testing.T) {
 func TestBeaconBlockBody_UnusedAttestationsEnforcement(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
-		blockBody := types.BeaconBlockBody{}
+		blockBody := types.BeaconBlockBody{
+			Versionable: types.NewVersionable(v),
+		}
 		unused := types.UnusedType(1)
 		blockBody.SetAttestations(types.Attestations{&unused})
 		_, err := blockBody.MarshalSSZ()
@@ -262,7 +270,9 @@ func TestBeaconBlockBody_UnusedAttestationsEnforcement(t *testing.T) {
 func TestBeaconBlockBody_UnusedVoluntaryExitsEnforcement(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
-		blockBody := types.BeaconBlockBody{}
+		blockBody := types.BeaconBlockBody{
+			Versionable: types.NewVersionable(v),
+		}
 		unused := types.UnusedType(1)
 		blockBody.SetVoluntaryExits(types.VoluntaryExits{&unused})
 		_, err := blockBody.MarshalSSZ()
@@ -282,7 +292,9 @@ func TestBeaconBlockBody_UnusedVoluntaryExitsEnforcement(t *testing.T) {
 func TestBeaconBlockBody_UnusedBlsToExecutionChangesEnforcement(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
-		blockBody := types.BeaconBlockBody{}
+		blockBody := types.BeaconBlockBody{
+			Versionable: types.NewVersionable(v),
+		}
 		unused := types.UnusedType(1)
 		blockBody.SetBlsToExecutionChanges(types.BlsToExecutionChanges{&unused})
 		_, err := blockBody.MarshalSSZ()
