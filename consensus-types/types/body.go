@@ -198,7 +198,7 @@ func (*BeaconBlockBody) empty(version common.Version) *BeaconBlockBody {
 	}
 }
 
-// UnmarshalSSZ deserializes the BeaconBlockBody from SSZ-encoded bytes.
+// NewFromSSZ deserializes the BeaconBlockBody from SSZ-encoded bytes.
 func (*BeaconBlockBody) NewFromSSZ(buf []byte, version common.Version) (*BeaconBlockBody, error) {
 	b := (&BeaconBlockBody{}).empty(version)
 	err := ssz.DecodeFromBytes(buf, b)
