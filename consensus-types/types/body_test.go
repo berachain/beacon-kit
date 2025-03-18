@@ -36,8 +36,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func generateBeaconBlockBody(version common.Version) types.BeaconBlockBody {
-	versionable := types.NewVersionable(version)
+func generateBeaconBlockBody(t *testing.T, forkVersion common.Version) types.BeaconBlockBody {
+	versionable := types.NewVersionable(forkVersion)
 	body := types.BeaconBlockBody{
 		Versionable:  versionable,
 		RandaoReveal: [96]byte{1, 2, 3},
@@ -60,18 +60,18 @@ func generateBeaconBlockBody(version common.Version) types.BeaconBlockBody {
 		err := body.SetExecutionRequests(&types.ExecutionRequests{
 			Deposits: []*types.DepositRequest{
 				{
-					Pubkey:                bytes.B48{0, 1, 2},
-					WithdrawalCredentials: types.WithdrawalCredentials(common.Bytes32{0, 1, 2}),
-					Amount:                math.Gwei(1000),
-					Signature:             bytes.B96{0, 1, 2},
-					Index:                 69,
+					Pubkey:      bytes.B48{0, 1, 2},
+					Credentials: types.WithdrawalCredentials(common.Bytes32{0, 1, 2}),
+					Amount:      math.Gwei(1000),
+					Signature:   bytes.B96{0, 1, 2},
+					Index:       69,
 				},
 				{
-					Pubkey:                bytes.B48{0, 3, 4},
-					WithdrawalCredentials: types.WithdrawalCredentials(common.Bytes32{0, 1, 2}),
-					Amount:                math.Gwei(1000),
-					Signature:             bytes.B96{0, 1, 2},
-					Index:                 70,
+					Pubkey:      bytes.B48{0, 3, 4},
+					Credentials: types.WithdrawalCredentials(common.Bytes32{0, 1, 2}),
+					Amount:      math.Gwei(1000),
+					Signature:   bytes.B96{0, 1, 2},
+					Index:       70,
 				},
 			},
 			Withdrawals: []*types.WithdrawalRequest{
@@ -350,8 +350,7 @@ func TestBeaconBlockBody_ExecutionRequestsSSZMarshalling(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, data)
 
-	unmarshalledBody := &types.BeaconBlockBody{}
-	err = unmarshalledBody.UnmarshalSSZ(data, body.GetForkVersion())
+	unmarshalledBody, err := (&types.BeaconBlockBody{}).NewFromSSZ(data, body.GetForkVersion())
 	require.NoError(t, err)
 	executionRequests, err := unmarshalledBody.GetExecutionRequests()
 	require.NoError(t, err)
