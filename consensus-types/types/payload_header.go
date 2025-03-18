@@ -440,7 +440,7 @@ func (h *ExecutionPayloadHeader) UnmarshalJSON(input []byte) error {
 }
 
 /* -------------------------------------------------------------------------- */
-/*                             Getters and Setters                            */
+/*                                   Getters                                  */
 /* -------------------------------------------------------------------------- */
 
 // IsNil checks if the ExecutionPayloadHeader is nil.
@@ -511,9 +511,7 @@ func (h *ExecutionPayloadHeader) GetBaseFeePerGas() *math.U256 {
 }
 
 // GetBlockHash returns the block hash of the ExecutionPayloadHeader.
-func (
-	h *ExecutionPayloadHeader,
-) GetBlockHash() common.ExecutionHash {
+func (h *ExecutionPayloadHeader) GetBlockHash() common.ExecutionHash {
 	return h.BlockHash
 }
 

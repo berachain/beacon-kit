@@ -100,19 +100,9 @@ func (b *SignedBeaconBlockHeader) GetHeader() *BeaconBlockHeader {
 	return b.Header
 }
 
-// Setheader sets the header of the BeaconBlockHeader.
-func (b *SignedBeaconBlockHeader) SetHeader(header *BeaconBlockHeader) {
-	b.Header = header
-}
-
 // GetSignature retrieves the Signature of the SignedBeaconBlockHeader.
 func (b *SignedBeaconBlockHeader) GetSignature() crypto.BLSSignature {
 	return b.Signature
-}
-
-// SetSignature sets the Signature of the BeaconBlockHeader.
-func (b *SignedBeaconBlockHeader) SetSignature(signature crypto.BLSSignature) {
-	b.Signature = signature
 }
 
 func (b *SignedBeaconBlockHeader) IsNil() bool {

@@ -480,6 +480,10 @@ func (p *ExecutionPayload) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                   Getters                                  */
+/* -------------------------------------------------------------------------- */
+
 // IsNil checks if the ExecutionPayload is nil.
 func (p *ExecutionPayload) IsNil() bool {
 	return p == nil
@@ -577,13 +581,11 @@ func (p *ExecutionPayload) GetExcessBlobGas() math.U64 {
 
 // ToHeader converts the ExecutionPayload to an ExecutionPayloadHeader.
 func (p *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
-	txsRoot := p.GetTransactions().HashTreeRoot()
-
 	switch p.GetForkVersion() {
 	case version.Deneb(), version.Deneb1():
 		return &ExecutionPayloadHeader{
 			Versionable:      p.Versionable,
-			ParentHash:       p.ParentHash,
+			ParentHash:       p.GetParentHash(),
 			FeeRecipient:     p.GetFeeRecipient(),
 			StateRoot:        p.GetStateRoot(),
 			ReceiptsRoot:     p.GetReceiptsRoot(),
@@ -595,8 +597,8 @@ func (p *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 			Timestamp:        p.GetTimestamp(),
 			ExtraData:        p.GetExtraData(),
 			BaseFeePerGas:    p.GetBaseFeePerGas(),
-			BlockHash:        p.BlockHash,
-			TransactionsRoot: txsRoot,
+			BlockHash:        p.GetBlockHash(),
+			TransactionsRoot: p.GetTransactions().HashTreeRoot(),
 			WithdrawalsRoot:  p.GetWithdrawals().HashTreeRoot(),
 			BlobGasUsed:      p.GetBlobGasUsed(),
 			ExcessBlobGas:    p.GetExcessBlobGas(),
