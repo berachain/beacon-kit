@@ -83,7 +83,7 @@ type ExecutionPayload struct {
 	ExcessBlobGas math.U64 `json:"excessBlobGas"`
 }
 
-func EnsureNotNilWithdrawals(p *ExecutionPayload) {
+func (p *ExecutionPayload) EnsureNotNilWithdrawals() {
 	// Post Shanghai an EL explicitly check that Withdrawals are not nil
 	// (instead empty slices are fine). Currently, BeaconKit duly builds
 	// a block with Withdrawals set to empty slice if there are no

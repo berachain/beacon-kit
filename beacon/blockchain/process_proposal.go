@@ -55,6 +55,7 @@ const (
 	MaxConsensusTxsCount = 2
 )
 
+//nolint:funlen // not an issue
 func (s *Service) ProcessProposal(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
@@ -88,9 +89,10 @@ func (s *Service) ProcessProposal(
 		return ErrNilBlob
 	}
 
-	blk := signedBlk.GetMessage()
+	blk := signedBlk.GetBeaconBlock()
 	// Make sure we have the right number of BlobSidecars
-	numCommitments := len(blk.GetBody().GetBlobKzgCommitments())
+	blobKzgCommitments := blk.GetBody().GetBlobKzgCommitments()
+	numCommitments := len(blobKzgCommitments)
 	if numCommitments != len(sidecars) {
 		err = fmt.Errorf("expected %d sidecars, got %d: %w",
 			numCommitments, len(sidecars),
@@ -117,7 +119,7 @@ func (s *Service) ProcessProposal(
 			return fmt.Errorf("%w, idx: %d", ErrSidecarSignatureMismatch, i)
 		}
 	}
-	err = s.VerifyIncomingBlockSignature(ctx, signedBlk.GetMessage(), signedBlk.GetSignature())
+	err = s.VerifyIncomingBlockSignature(ctx, blk, signedBlk.GetSignature())
 	if err != nil {
 		return err
 	}
@@ -131,7 +133,7 @@ func (s *Service) ProcessProposal(
 		// the currently active fork). ProcessProposal should only
 		// keep the state changes as candidates (which is what we do in
 		// VerifyIncomingBlock).
-		err = s.VerifyIncomingBlobSidecars(ctx, sidecars, blk.GetHeader(), blk.GetBody().GetBlobKzgCommitments())
+		err = s.VerifyIncomingBlobSidecars(ctx, sidecars, blk.GetHeader(), blobKzgCommitments)
 		if err != nil {
 			s.logger.Error("failed to verify incoming blob sidecars", "error", err)
 			return err
