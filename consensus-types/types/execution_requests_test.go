@@ -36,13 +36,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TODO(pectra): Add tests
-// 1. Marshalling/Unmarshalling invalid values.
-// 2. NewSignedBeaconBlockFromSSZ tests.
-
 func TestExecutionRequests_ValidValuesSSZ(t *testing.T) {
 	t.Parallel()
-
 	// Create a few helper instances to reuse in test cases.
 	// You can reuse your existing tests' values for deposit, withdrawal, and consolidation.
 	depositBasic := &types.DepositRequest{
@@ -314,7 +309,6 @@ func TestExecutionRequests_InvalidValuesUnmarshalSSZ(t *testing.T) {
 
 func TestDepositRequest_ValidValuesSSZ(t *testing.T) {
 	t.Parallel()
-
 	testCases := []struct {
 		name           string
 		depositRequest *types.DepositRequest
@@ -556,7 +550,6 @@ func TestDepositRequest_InvalidValuesUnmarshalSSZ(t *testing.T) {
 
 func TestWithdrawalRequest_ValidValuesSSZ(t *testing.T) {
 	t.Parallel()
-
 	testCases := []struct {
 		name              string
 		withdrawalRequest *types.WithdrawalRequest
@@ -669,9 +662,61 @@ func TestWithdrawalRequest_ValidValuesSSZ(t *testing.T) {
 	}
 }
 
+//nolint:paralleltest // Invalid SSZ values cannot be run in parallel due to zeroalloc, which is global shared memory.
+func TestWithdrawalRequest_InvalidValuesUnmarshalSSZ(t *testing.T) {
+	// Build a valid withdrawal request to obtain a baseline valid payload.
+	validWithdrawal := &types.WithdrawalRequest{
+		SourceAddress: common.ExecutionAddress{
+			1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+			11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+		},
+		ValidatorPubKey: crypto.BLSPubkey{
+			1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+			11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+			21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+			31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+			41, 42, 43, 44, 45, 46, 47, 48,
+		},
+		Amount: 1000,
+	}
+	validBytes, err := validWithdrawal.MarshalSSZ()
+	require.NoError(t, err)
+
+	// Build a slice of invalid payloads.
+	invalidPayloads := [][]byte{
+		nil,                       // nil slice
+		{},                        // empty slice
+		[]byte("this is not ssz"), // arbitrary non-SSZ data
+		{0x00, 0x01},              // too short to be valid
+		// A truncated valid payload: remove last 5 bytes.
+		func() []byte {
+			if len(validBytes) > 5 {
+				return validBytes[:len(validBytes)-5]
+			}
+			return validBytes
+		}(),
+		// A valid payload with extra trailing bytes.
+		func() []byte {
+			extra := []byte{0xAA, 0xBB, 0xCC, 0xDD}
+			return append(validBytes, extra...)
+		}(),
+	}
+
+	for i, payload := range invalidPayloads {
+		i, payload := i, payload // capture loop variables
+		t.Run(fmt.Sprintf("invalidWithdrawal_%d", i), func(t *testing.T) {
+			// Ensure that calling UnmarshalSSZ does not panic and returns an error.
+			require.NotPanics(t, func() {
+				var w types.WithdrawalRequest
+				err = w.UnmarshalSSZ(payload)
+				require.Error(t, err, "expected error for payload %v", payload)
+			})
+		})
+	}
+}
+
 func TestConsolidationRequest_ValidValuesSSZ(t *testing.T) {
 	t.Parallel()
-
 	testCases := []struct {
 		name                 string
 		consolidationRequest *types.ConsolidationRequest
@@ -782,6 +827,65 @@ func TestConsolidationRequest_ValidValuesSSZ(t *testing.T) {
 
 			// Compare that the original and recomputed consolidation requests match.
 			require.Equal(t, *tc.consolidationRequest, recomputedCR)
+		})
+	}
+}
+
+//nolint:paralleltest // Invalid SSZ values cannot be run in parallel due to zeroalloc, which is global shared memory.
+func TestConsolidationRequest_InvalidValuesUnmarshalSSZ(t *testing.T) {
+	// Build a valid consolidation request to get a baseline valid payload.
+	validConsolidation := &types.ConsolidationRequest{
+		SourceAddress: common.ExecutionAddress{
+			1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+			11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+		},
+		SourcePubKey: crypto.BLSPubkey{
+			1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+			11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+			21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+			31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+			41, 42, 43, 44, 45, 46, 47, 48,
+		},
+		TargetPubKey: crypto.BLSPubkey{
+			48, 47, 46, 45, 44, 43, 42, 41, 40, 39,
+			38, 37, 36, 35, 34, 33, 32, 31, 30, 29,
+			28, 27, 26, 25, 24, 23, 22, 21, 20, 19,
+			18, 17, 16, 15, 14, 13, 12, 11, 10, 9,
+			8, 7, 6, 5, 4, 3, 2, 1,
+		},
+	}
+	validBytes, err := validConsolidation.MarshalSSZ()
+	require.NoError(t, err)
+
+	// Build a slice of invalid payloads.
+	invalidPayloads := [][]byte{
+		nil,                       // nil slice
+		{},                        // empty slice
+		[]byte("this is not ssz"), // arbitrary non-SSZ data
+		{0x00, 0x01, 0x02},        // too short to be valid
+		// A truncated valid payload.
+		func() []byte {
+			if len(validBytes) > 5 {
+				return validBytes[:len(validBytes)-5]
+			}
+			return validBytes
+		}(),
+		// A valid payload with extra trailing bytes.
+		func() []byte {
+			extra := []byte{0xAA, 0xBB, 0xCC, 0xDD}
+			return append(validBytes, extra...)
+		}(),
+	}
+
+	for i, payload := range invalidPayloads {
+		i, payload := i, payload // capture loop variables
+		t.Run(fmt.Sprintf("invalidConsolidation_%d", i), func(t *testing.T) {
+			// Ensure that calling UnmarshalSSZ does not panic and returns an error.
+			require.NotPanics(t, func() {
+				var c types.ConsolidationRequest
+				err = c.UnmarshalSSZ(payload)
+				require.Error(t, err, "expected error for payload %v", payload)
+			})
 		})
 	}
 }
