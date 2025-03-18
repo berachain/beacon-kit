@@ -31,6 +31,9 @@ import (
 	"github.com/karalabe/ssz"
 )
 
+// ExecutionPayloadHeaderStaticSize is the static size of the ExecutionPayloadHeader.
+const ExecutionPayloadHeaderStaticSize uint32 = 584
+
 // Compile-time assertions to ensure ExecutionPayloadHeader implements necessary interfaces.
 var (
 	_ ssz.DynamicObject                                                     = (*ExecutionPayloadHeader)(nil)
@@ -106,8 +109,7 @@ func (h *ExecutionPayloadHeader) NewFromJSON(
 // SizeSSZ returns either the static size of the object if fixed == true, or
 // the total size otherwise.
 func (h *ExecutionPayloadHeader) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
-	//nolint:mnd // todo fix.
-	var size = uint32(584)
+	size := ExecutionPayloadHeaderStaticSize
 	if fixed {
 		return size
 	}

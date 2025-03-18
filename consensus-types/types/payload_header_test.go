@@ -30,14 +30,15 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
-	ssz "github.com/ferranbt/fastssz"
-	karalabessz "github.com/karalabe/ssz"
+	"github.com/berachain/beacon-kit/primitives/version"
+	fastssz "github.com/ferranbt/fastssz"
+	"github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
 // generateExecutionPayloadHeader generates an ExecutionPayloadHeader.
 func generateExecutionPayloadHeader(version common.Version) *types.ExecutionPayloadHeader {
-	eph := &types.ExecutionPayloadHeader{
+	return &types.ExecutionPayloadHeader{
 		Versionable:      types.NewVersionable(version),
 		ParentHash:       common.ExecutionHash{},
 		FeeRecipient:     common.ExecutionAddress{},
@@ -49,7 +50,7 @@ func generateExecutionPayloadHeader(version common.Version) *types.ExecutionPayl
 		GasLimit:         math.U64(0),
 		GasUsed:          math.U64(0),
 		Timestamp:        math.U64(0),
-		ExtraData:        nil,
+		ExtraData:        make(bytes.Bytes, types.ExtraDataSize),
 		BaseFeePerGas:    &math.U256{},
 		BlockHash:        common.ExecutionHash{},
 		TransactionsRoot: common.Root{},
@@ -57,7 +58,6 @@ func generateExecutionPayloadHeader(version common.Version) *types.ExecutionPayl
 		BlobGasUsed:      math.U64(0),
 		ExcessBlobGas:    math.U64(0),
 	}
-	return eph
 }
 
 func TestExecutionPayloadHeader_Getters(t *testing.T) {
@@ -80,7 +80,7 @@ func TestExecutionPayloadHeader_Getters(t *testing.T) {
 		require.Equal(t, math.U64(0), header.GetGasLimit())
 		require.Equal(t, math.U64(0), header.GetGasUsed())
 		require.Equal(t, math.U64(0), header.GetTimestamp())
-		require.Equal(t, []byte(nil), header.GetExtraData())
+		require.Equal(t, make([]byte, types.ExtraDataSize), header.GetExtraData())
 		require.Equal(t, math.NewU256(0), header.GetBaseFeePerGas())
 		require.Equal(t, common.ExecutionHash{}, header.GetBlockHash())
 		require.Equal(t, common.Root{}, header.GetTransactionsRoot())
@@ -179,7 +179,7 @@ func TestExecutionPayloadHeader_MarshalSSZTo(t *testing.T) {
 	}
 }
 
-func TestExecutionPayloadHeader_UnmarshalSSZ_EmptyBuf(t *testing.T) {
+func TestExecutionPayloadHeader_NewFromSSZ_EmptyBuf(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		header := generateExecutionPayloadHeader(v)
@@ -189,74 +189,72 @@ func TestExecutionPayloadHeader_UnmarshalSSZ_EmptyBuf(t *testing.T) {
 	})
 }
 
-// TODO(pectra): Why is this commented out?
-// func TestExecutionPayloadHeader_UnmarshalSSZ(t *testing.T) {
-// 	testcases := []struct {
-// 		name     string
-// 		malleate func() []byte
-// 		expErr   error
-// 	}{
-// 		{
-// 			name: "offset exceeds length",
-// 			malleate: func() []byte {
-// 				header := generateExecutionPayloadHeader()
-// 				buf, err := header.MarshalSSZ()
-// 				require.NoError(t, err)
+func TestExecutionPayloadHeader_NewFromSSZ_Invalid(t *testing.T) {
+	testcases := []struct {
+		name     string
+		malleate func() []byte
+		expErr   error
+	}{
+		{
+			name: "offset exceeds length",
+			malleate: func() []byte {
+				header := generateExecutionPayloadHeader(version.Deneb())
+				buf, err := header.MarshalSSZ()
+				require.NoError(t, err)
 
-// 				buf[436] = 10
-// 				buf[437] = 10
-// 				buf[438] = 10
-// 				buf[439] = 10
-// 				return buf
-// 			},
-// 			expErr: ssz.ErrOffset,
-// 		},
-// 		{
-// 			name: "invalid extra data: offset too small",
-// 			malleate: func() []byte {
-// 				header := generateExecutionPayloadHeader()
-// 				buf, err := header.MarshalSSZ()
-// 				require.NoError(t, err)
+				buf[436] = 10
+				buf[437] = 10
+				buf[438] = 10
+				buf[439] = 10
+				return buf
+			},
+			expErr: ssz.ErrOffsetBeyondCapacity,
+		},
+		{
+			name: "invalid extra data: offset too small",
+			malleate: func() []byte {
+				header := generateExecutionPayloadHeader(version.Deneb())
+				buf, err := header.MarshalSSZ()
+				require.NoError(t, err)
 
-// 				buf[436] = 1
-// 				buf[437] = 0
-// 				buf[438] = 0
-// 				buf[439] = 0
-// 				return buf
-// 			},
-// 			expErr: ssz.ErrInvalidVariableOffset,
-// 		},
-// 		{
-// 			name: "invalid extra data: extra data too large",
-// 			malleate: func() []byte {
-// 				header := generateExecutionPayloadHeader()
-// 				buf, err := header.MarshalSSZ()
+				buf[436] = 1
+				buf[437] = 0
+				buf[438] = 0
+				buf[439] = 0
+				return buf
+			},
+			expErr: ssz.ErrFirstOffsetMismatch,
+		},
+		{
+			name: "invalid extra data: extra data too large",
+			malleate: func() []byte {
+				header := generateExecutionPayloadHeader(version.Deneb())
+				buf, err := header.MarshalSSZ()
 
-// 				// add dummy extra data to exceed the 32 limit
-// 				dummyExtra := make([]byte, 100)
-// 				buf = append(buf, dummyExtra...)
-// 				require.NoError(t, err)
-// 				return buf
-// 			},
-// 			expErr: ssz.ErrBytesLength,
-// 		},
-// 	}
-// 	for _, tc := range testcases {
-// 		t.Run(tc.name, func(t *testing.T) {
-// 			var header types.ExecutionPayloadHeader
-// 			buf := tc.malleate()
-// 			err := header.UnmarshalSSZ(buf)
-// 			require.Equal(t, tc.expErr, err)
-// 		})
-// 	}
-// }
+				// add dummy extra data to exceed the 32 limit
+				dummyExtra := make([]byte, 100)
+				buf = append(buf, dummyExtra...)
+				require.NoError(t, err)
+				return buf
+			},
+			expErr: ssz.ErrMaxLengthExceeded,
+		},
+	}
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			buf := tc.malleate()
+			_, err := (&types.ExecutionPayloadHeader{}).NewFromSSZ(buf, version.Deneb())
+			require.ErrorContains(t, err, tc.expErr.Error())
+		})
+	}
+}
 
 func TestExecutionPayloadHeader_SizeSSZ(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		header := generateExecutionPayloadHeader(v)
-		size := karalabessz.Size(header)
-		require.Equal(t, uint32(584), size)
+		size := ssz.Size(header)
+		require.Equal(t, types.ExecutionPayloadHeaderStaticSize+types.ExtraDataSize, size)
 	})
 }
 
@@ -406,14 +404,14 @@ func TestExecutablePayloadHeader_HashTreeRootWith(t *testing.T) {
 					header.ExtraData = make([]byte, 50)
 					return header
 				},
-				expErr: ssz.ErrIncorrectListSize,
+				expErr: fastssz.ErrIncorrectListSize,
 			},
 		}
 
 		for _, tc := range testcases {
 			t.Run(tc.name, func(t *testing.T) {
 				t.Parallel()
-				hh := ssz.DefaultHasherPool.Get()
+				hh := fastssz.DefaultHasherPool.Get()
 				header := tc.malleate()
 				err := header.HashTreeRootWith(hh)
 				require.Equal(t, tc.expErr, err)
