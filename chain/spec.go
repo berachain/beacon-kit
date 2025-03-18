@@ -366,7 +366,7 @@ func (s spec) TargetSecondsPerEth1Block() uint64 {
 	return s.Data.TargetSecondsPerEth1Block
 }
 
-// Deneb1ForEpoch returns the epoch of the Deneb1 fork.
+// Deneb1ForkEpoch returns the epoch of the Deneb1 fork.
 func (s spec) Deneb1ForkEpoch() math.Epoch {
 	return math.Epoch(s.Data.Deneb1ForkEpoch)
 }
