@@ -40,6 +40,8 @@ var (
 
 // BlobSidecar as per the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/p2p-interface.md#blobsidecar
+//
+// NOTE: This struct is only ever (un)marshalled with SSZ and NOT with JSON.
 type BlobSidecar struct {
 	// Index represents the index of the blob in the block.
 	Index uint64
