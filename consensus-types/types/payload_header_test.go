@@ -50,7 +50,7 @@ func generateExecutionPayloadHeader(version common.Version) *types.ExecutionPayl
 		GasLimit:         math.U64(0),
 		GasUsed:          math.U64(0),
 		Timestamp:        math.U64(0),
-		ExtraData:        make(bytes.Bytes, types.ExtraDataSize),
+		ExtraData:        nil,
 		BaseFeePerGas:    &math.U256{},
 		BlockHash:        common.ExecutionHash{},
 		TransactionsRoot: common.Root{},
@@ -80,7 +80,7 @@ func TestExecutionPayloadHeader_Getters(t *testing.T) {
 		require.Equal(t, math.U64(0), header.GetGasLimit())
 		require.Equal(t, math.U64(0), header.GetGasUsed())
 		require.Equal(t, math.U64(0), header.GetTimestamp())
-		require.Equal(t, make([]byte, types.ExtraDataSize), header.GetExtraData())
+		require.Equal(t, []byte(nil), header.GetExtraData())
 		require.Equal(t, math.NewU256(0), header.GetBaseFeePerGas())
 		require.Equal(t, common.ExecutionHash{}, header.GetBlockHash())
 		require.Equal(t, common.Root{}, header.GetTransactionsRoot())
@@ -255,7 +255,7 @@ func TestExecutionPayloadHeader_SizeSSZ(t *testing.T) {
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		header := generateExecutionPayloadHeader(v)
 		size := ssz.Size(header)
-		require.Equal(t, types.ExecutionPayloadHeaderStaticSize+types.ExtraDataSize, size)
+		require.Equal(t, types.ExecutionPayloadHeaderStaticSize, size)
 	})
 }
 

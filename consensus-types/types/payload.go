@@ -172,7 +172,6 @@ func (p *ExecutionPayload) MarshalSSZ() ([]byte, error) {
 func (*ExecutionPayload) empty(version common.Version) *ExecutionPayload {
 	return &ExecutionPayload{
 		Versionable:   NewVersionable(version),
-		ExtraData:     make(bytes.Bytes, ExtraDataSize),
 		BaseFeePerGas: &math.U256{},
 	}
 }

@@ -86,7 +86,6 @@ type ExecutionPayloadHeader struct {
 func (*ExecutionPayloadHeader) empty(version common.Version) *ExecutionPayloadHeader {
 	return &ExecutionPayloadHeader{
 		Versionable:   NewVersionable(version),
-		ExtraData:     make(bytes.Bytes, ExtraDataSize),
 		BaseFeePerGas: &math.U256{},
 	}
 }
