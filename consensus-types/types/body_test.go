@@ -38,18 +38,19 @@ import (
 
 func generateBeaconBlockBody(t *testing.T, forkVersion common.Version) types.BeaconBlockBody {
 	t.Helper()
+	versionable := types.NewVersionable(version)
 	body := types.BeaconBlockBody{
+		Versionable:  versionable,
 		RandaoReveal: [96]byte{1, 2, 3},
 		Eth1Data:     &types.Eth1Data{},
 		Graffiti:     [32]byte{4, 5, 6},
 		Deposits:     []*types.Deposit{},
 		ExecutionPayload: &types.ExecutionPayload{
+			Versionable:   versionable,
 			BaseFeePerGas: math.NewU256(0),
 		},
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
-	body.SetForkVersion(forkVersion)
-	body.GetExecutionPayload().SetForkVersion(forkVersion)
 	body.SetProposerSlashings(types.ProposerSlashings{})
 	body.SetAttesterSlashings(types.AttesterSlashings{})
 	body.SetAttestations(types.Attestations{})
@@ -110,12 +111,17 @@ func TestBeaconBlockBodyBase(t *testing.T) {
 func TestBeaconBlockBody(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		versionable := types.NewVersionable(v)
 		body := types.BeaconBlockBody{
-			RandaoReveal:       [96]byte{1, 2, 3},
-			Eth1Data:           &types.Eth1Data{},
-			Graffiti:           [32]byte{4, 5, 6},
-			Deposits:           []*types.Deposit{},
-			ExecutionPayload:   (&types.ExecutionPayload{}).Empty(v),
+			Versionable:  versionable,
+			RandaoReveal: [96]byte{1, 2, 3},
+			Eth1Data:     &types.Eth1Data{},
+			Graffiti:     [32]byte{4, 5, 6},
+			Deposits:     []*types.Deposit{},
+			ExecutionPayload: &types.ExecutionPayload{
+				Versionable:   versionable,
+				BaseFeePerGas: math.NewU256(0),
+			},
 			BlobKzgCommitments: []eip4844.KZGCommitment{},
 		}
 		require.False(t, body.IsNil())
@@ -168,7 +174,7 @@ func TestBeaconBlockBody_MarshalSSZ(t *testing.T) {
 		Eth1Data:           &types.Eth1Data{},
 		Graffiti:           [32]byte{4, 5, 6},
 		Deposits:           []*types.Deposit{},
-		ExecutionPayload:   (&types.ExecutionPayload{}).Empty(version.Deneb1()),
+		ExecutionPayload:   &types.ExecutionPayload{},
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
 	data, err := body.MarshalSSZ()
@@ -207,8 +213,7 @@ func TestBeaconBlockBody_UnusedProposerSlashingsEnforcement(t *testing.T) {
 		err = ssz.EncodeToBytes(buf, &blockBody)
 		require.NoError(t, err)
 
-		unmarshalledBody := &types.BeaconBlockBody{}
-		err = unmarshalledBody.UnmarshalSSZ(buf, v)
+		_, err = (&types.BeaconBlockBody{}).NewFromSSZ(buf, v)
 		require.ErrorContains(t, err, "must be unused")
 	})
 }
@@ -228,8 +233,7 @@ func TestBeaconBlockBody_UnusedAttesterSlashingsEnforcement(t *testing.T) {
 		err = ssz.EncodeToBytes(buf, &blockBody)
 		require.NoError(t, err)
 
-		unmarshalledBody := &types.BeaconBlockBody{}
-		err = unmarshalledBody.UnmarshalSSZ(buf, v)
+		_, err = (&types.BeaconBlockBody{}).NewFromSSZ(buf, v)
 		require.ErrorContains(t, err, "must be unused")
 	})
 }
@@ -249,8 +253,7 @@ func TestBeaconBlockBody_UnusedAttestationsEnforcement(t *testing.T) {
 		err = ssz.EncodeToBytes(buf, &blockBody)
 		require.NoError(t, err)
 
-		unmarshalledBody := &types.BeaconBlockBody{}
-		err = unmarshalledBody.UnmarshalSSZ(buf, v)
+		_, err = (&types.BeaconBlockBody{}).NewFromSSZ(buf, v)
 		require.ErrorContains(t, err, "must be unused")
 	})
 }
@@ -270,8 +273,7 @@ func TestBeaconBlockBody_UnusedVoluntaryExitsEnforcement(t *testing.T) {
 		err = ssz.EncodeToBytes(buf, &blockBody)
 		require.NoError(t, err)
 
-		unmarshalledBody := &types.BeaconBlockBody{}
-		err = unmarshalledBody.UnmarshalSSZ(buf, v)
+		_, err = (&types.BeaconBlockBody{}).NewFromSSZ(buf, v)
 		require.ErrorContains(t, err, "must be unused")
 	})
 }
@@ -291,8 +293,7 @@ func TestBeaconBlockBody_UnusedBlsToExecutionChangesEnforcement(t *testing.T) {
 		err = ssz.EncodeToBytes(buf, &blockBody)
 		require.NoError(t, err)
 
-		unmarshalledBody := &types.BeaconBlockBody{}
-		err = unmarshalledBody.UnmarshalSSZ(buf, v)
+		_, err = (&types.BeaconBlockBody{}).NewFromSSZ(buf, v)
 		require.ErrorContains(t, err, "must be unused")
 	})
 }
@@ -305,10 +306,7 @@ func TestBeaconBlockBody_RoundTrip_HashTreeRoot(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, data)
 
-		unmarshalledBody := &types.BeaconBlockBody{}
-		// We must set the version first for correct marshalling
-		unmarshalledBody.SetForkVersion(v)
-		err = unmarshalledBody.UnmarshalSSZ(data, v)
+		unmarshalledBody, err := (&types.BeaconBlockBody{}).NewFromSSZ(data, v)
 		require.NoError(t, err)
 		require.Equal(t, body.HashTreeRoot(), unmarshalledBody.HashTreeRoot())
 	})

@@ -48,11 +48,14 @@ func generateValidBeaconBlock(t *testing.T, forkVersion common.Version) *types.B
 	)
 	require.NoError(t, err)
 
+	versionable := types.NewVersionable(version)
 	beaconBlock.StateRoot = common.Root{5, 4, 3, 2, 1}
 	beaconBlock.Body = &types.BeaconBlockBody{
+		Versionable: versionable,
 		ExecutionPayload: &types.ExecutionPayload{
-			Timestamp: 10,
-			ExtraData: []byte("dummy extra data for testing"),
+			Versionable: versionable,
+			Timestamp:   10,
+			ExtraData:   []byte("dummy extra data for testing"),
 			Transactions: [][]byte{
 				[]byte("tx1"),
 				[]byte("tx2"),
@@ -75,8 +78,6 @@ func generateValidBeaconBlock(t *testing.T, forkVersion common.Version) *types.B
 		},
 	}
 	body := beaconBlock.GetBody()
-	body.GetExecutionPayload().SetForkVersion(forkVersion)
-	body.SetForkVersion(beaconBlock.GetForkVersion())
 	body.SetProposerSlashings(types.ProposerSlashings{})
 	body.SetAttesterSlashings(types.AttesterSlashings{})
 	body.SetAttestations(types.Attestations{})
@@ -152,19 +153,14 @@ func TestBeaconBlock(t *testing.T) {
 func TestBeaconBlock_MarshalUnmarshalSSZ(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
-		block := *generateValidBeaconBlock(t, v)
+		block := generateValidBeaconBlock(t, v)
 
 		sszBlock, err := block.MarshalSSZ()
 		require.NoError(t, err)
 		require.NotNil(t, sszBlock)
 
-		var unmarshalledBlock types.BeaconBlock
-		err = unmarshalledBlock.UnmarshalSSZ(sszBlock)
+		unmarshalledBlock, err := (&types.BeaconBlock{}).NewFromSSZ(sszBlock, v)
 		require.NoError(t, err)
-
-		unmarshalledBlock.Body.ExecutionPayload.SetForkVersion(block.GetForkVersion())
-		unmarshalledBlock.Body.SetForkVersion(block.GetForkVersion())
-		unmarshalledBlock.SetForkVersion(block.GetForkVersion())
 		require.Equal(t, block, unmarshalledBlock)
 	})
 }

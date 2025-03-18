@@ -30,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 	ssz "github.com/ferranbt/fastssz"
 	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
@@ -39,6 +38,7 @@ import (
 // generateExecutionPayloadHeader generates an ExecutionPayloadHeader.
 func generateExecutionPayloadHeader(version common.Version) *types.ExecutionPayloadHeader {
 	eph := &types.ExecutionPayloadHeader{
+		Versionable:      types.NewVersionable(version),
 		ParentHash:       common.ExecutionHash{},
 		FeeRecipient:     common.ExecutionAddress{},
 		StateRoot:        bytes.B32{},
@@ -57,7 +57,6 @@ func generateExecutionPayloadHeader(version common.Version) *types.ExecutionPayl
 		BlobGasUsed:      math.U64(0),
 		ExcessBlobGas:    math.U64(0),
 	}
-	eph.SetForkVersion(version)
 	return eph
 }
 
@@ -119,7 +118,7 @@ func TestExecutionPayloadHeader_MarshalUnmarshalJSON(t *testing.T) {
 		var header types.ExecutionPayloadHeader
 		err = header.UnmarshalJSON(data)
 		require.NoError(t, err)
-		header.SetForkVersion(originalHeader.GetForkVersion())
+		header.Versionable = types.NewVersionable(originalHeader.GetForkVersion())
 		require.Equal(t, originalHeader, &header)
 	})
 }
@@ -134,10 +133,8 @@ func TestExecutionPayloadHeader_Serialization(t *testing.T) {
 		require.NotNil(t, data)
 
 		var unmarshalled = &types.ExecutionPayloadHeader{}
-		err = unmarshalled.UnmarshalSSZ(data)
+		unmarshalled, err = unmarshalled.NewFromSSZ(data, original.GetForkVersion())
 		require.NoError(t, err)
-
-		unmarshalled.SetForkVersion(original.GetForkVersion())
 		require.Equal(t, original, unmarshalled)
 	})
 }
@@ -187,7 +184,7 @@ func TestExecutionPayloadHeader_UnmarshalSSZ_EmptyBuf(t *testing.T) {
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		header := generateExecutionPayloadHeader(v)
 		buf := make([]byte, 0)
-		err := header.UnmarshalSSZ(buf)
+		_, err := header.NewFromSSZ(buf, v)
 		require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 	})
 }
@@ -431,7 +428,6 @@ func TestExecutionPayloadHeader_NewFromSSZ(t *testing.T) {
 		testCases := []struct {
 			name           string
 			data           []byte
-			forkVersion    common.Version
 			expErr         error
 			expectedHeader *types.ExecutionPayloadHeader
 		}{
@@ -441,21 +437,18 @@ func TestExecutionPayloadHeader_NewFromSSZ(t *testing.T) {
 					data, _ := generateExecutionPayloadHeader(v).MarshalSSZ()
 					return data
 				}(),
-				forkVersion:    version.Deneb1(),
 				expErr:         nil,
 				expectedHeader: generateExecutionPayloadHeader(v),
 			},
 			{
 				name:           "Invalid SSZ data",
 				data:           []byte{0x01, 0x02},
-				forkVersion:    version.Deneb1(),
 				expErr:         io.ErrUnexpectedEOF,
 				expectedHeader: nil,
 			},
 			{
 				name:           "Empty SSZ data",
 				data:           []byte{},
-				forkVersion:    version.Deneb1(),
 				expErr:         io.ErrUnexpectedEOF,
 				expectedHeader: nil,
 			},
@@ -467,17 +460,15 @@ func TestExecutionPayloadHeader_NewFromSSZ(t *testing.T) {
 				if tc.name == "Different fork version" {
 					require.Panics(t, func() {
 						_, _ = new(types.ExecutionPayloadHeader).
-							NewFromSSZ(tc.data, tc.forkVersion)
+							NewFromSSZ(tc.data, v)
 					}, "Expected panic for different fork version")
 				} else {
 					header, err := new(types.ExecutionPayloadHeader).
-						NewFromSSZ(tc.data, tc.forkVersion)
+						NewFromSSZ(tc.data, v)
 					if tc.expErr != nil {
 						require.ErrorIs(t, err, tc.expErr)
 					} else {
 						require.NoError(t, err)
-
-						header.SetForkVersion(tc.expectedHeader.GetForkVersion())
 						require.Equal(t, tc.expectedHeader, header)
 					}
 				}
@@ -520,7 +511,7 @@ func TestExecutionPayloadHeader_NewFromJSON(t *testing.T) {
 				t.Parallel()
 				header, err := new(types.ExecutionPayloadHeader).NewFromJSON(
 					tc.data,
-					version.Deneb1(),
+					v,
 				)
 				if tc.expectedError != nil {
 					require.Error(t, err)
@@ -529,7 +520,6 @@ func TestExecutionPayloadHeader_NewFromJSON(t *testing.T) {
 					require.NoError(t, err)
 				}
 				if tc.header != nil {
-					header.SetForkVersion(tc.header.GetForkVersion())
 					require.Equal(t, tc.header, header)
 				}
 			})

@@ -31,9 +31,9 @@ import (
 
 // Compile-time assertions to ensure BlsToExecutionChange implements necessary interfaces.
 var (
-	_ ssz.StaticObject                    = (*BlsToExecutionChange)(nil)
-	_ constraints.SSZMarshallableRootable = (*BlsToExecutionChange)(nil)
-	_ UnusedEnforcer                      = (*BlsToExecutionChanges)(nil)
+	_ ssz.StaticObject                                           = (*BlsToExecutionChange)(nil)
+	_ constraints.SSZMarshallableRootable[*BlsToExecutionChange] = (*BlsToExecutionChange)(nil)
+	_ UnusedEnforcer                                             = (*BlsToExecutionChanges)(nil)
 )
 
 type (

@@ -23,6 +23,7 @@
 package simulated
 
 import (
+	"bytes"
 	"context"
 	"crypto/ecdsa"
 	"fmt"
@@ -36,14 +37,18 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/kzg"
 	"github.com/berachain/beacon-kit/da/kzg/gokzg"
+	"github.com/berachain/beacon-kit/errors"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/state-transition/core"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
+	"github.com/cometbft/cometbft/abci/types"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -57,14 +62,109 @@ const testPkey = "fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f993
 
 // SharedAccessors holds references to common utilities required in tests.
 type SharedAccessors struct {
-	CtxApp         context.Context
-	CtxAppCancelFn context.CancelFunc
-	CtxComet       context.Context
-	HomeDir        string
-	TestNode       TestNode
+	CtxApp                context.Context
+	CtxAppCancelFn        context.CancelFunc
+	CtxComet              context.Context
+	HomeDir               string
+	TestNode              TestNode
+	SimComet              *SimComet
+	LogBuffer             *bytes.Buffer
+	GenesisValidatorsRoot common.Root
+	SimulationClient      *execution.SimulationClient
 
 	// ElHandle is a dockertest resource handle that should be closed in teardown.
 	ElHandle *execution.Resource
+}
+
+// InitializeChain sets up the chain using the genesis file.
+func (s *SharedAccessors) InitializeChain(t *testing.T) {
+	// Load the genesis state.
+	appGenesis, err := genutiltypes.AppGenesisFromFile(s.HomeDir + "/config/genesis.json")
+	require.NoError(t, err)
+
+	// Initialize the chain.
+	initResp, err := s.SimComet.Comet.InitChain(s.CtxComet, &types.InitChainRequest{
+		ChainId:       TestnetBeaconChainID,
+		AppStateBytes: appGenesis.AppState,
+	})
+	require.NoError(t, err)
+	require.Len(t, initResp.Validators, 1, "Expected 1 validator")
+
+	// Verify that the deposit store contains the expected deposits.
+	deposits, err := s.TestNode.StorageBackend.DepositStore().GetDepositsByIndex(
+		s.CtxApp,
+		constants.FirstDepositIndex,
+		constants.FirstDepositIndex+s.TestNode.ChainSpec.MaxDepositsPerBlock(),
+	)
+	require.NoError(t, err)
+	require.Len(t, deposits, 1, "Expected 1 deposit")
+}
+
+// MoveChainToHeight will iterate through the core loop `iterations` times, i.e. Propose, Process, Finalize and Commit.
+// Returns the list of proposed comet blocks.
+func (s *SharedAccessors) MoveChainToHeight(t *testing.T, startHeight, iterations int64, proposer *signer.BLSSigner) []*types.PrepareProposalResponse {
+	// Prepare a block proposal.
+	pubkey, err := proposer.GetPubKey()
+	require.NoError(t, err)
+
+	var proposedCometBlocks []*types.PrepareProposalResponse
+
+	for currentHeight := startHeight; currentHeight < startHeight+iterations; currentHeight++ {
+		proposalTime := time.Now()
+		proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
+			Height:          currentHeight,
+			Time:            proposalTime,
+			ProposerAddress: pubkey.Address(),
+		})
+		require.NoError(t, err)
+		require.NotEmpty(t, proposal)
+
+		// Process the proposal.
+		processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
+			Txs:             proposal.Txs,
+			Height:          currentHeight,
+			ProposerAddress: pubkey.Address(),
+			Time:            proposalTime,
+		})
+		require.NoError(t, err)
+		require.Equal(t, types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
+
+		// Finalize the block.
+		finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.FinalizeBlockRequest{
+			Txs:             proposal.Txs,
+			Height:          currentHeight,
+			ProposerAddress: pubkey.Address(),
+		})
+		require.NoError(t, err)
+		require.NotEmpty(t, finalizeResp)
+
+		// Commit the block.
+		_, err = s.SimComet.Comet.Commit(s.CtxComet, &types.CommitRequest{})
+		require.NoError(t, err)
+
+		// Record the Commit Block
+		proposedCometBlocks = append(proposedCometBlocks, proposal)
+	}
+	return proposedCometBlocks
+}
+
+// WaitTillServicesStarted waits until the log buffer contains "All services started".
+// It checks periodically with a timeout to prevent indefinite waiting.
+// If there is a better way to determine the services have started, e.g. readiness probe, replace this.
+func WaitTillServicesStarted(logBuffer *bytes.Buffer, timeout, interval time.Duration) error {
+	deadline := time.After(timeout)
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-deadline:
+			return errors.New("timeout waiting for services to start")
+		case <-ticker.C:
+			if bytes.Contains(logBuffer.Bytes(), []byte("All services started")) {
+				return nil
+			}
+		}
+	}
 }
 
 func GetTestKey(t *testing.T) *ecdsa.PrivateKey {
@@ -82,7 +182,12 @@ func GetBlsSigner(tempHomeDir string) *signer.BLSSigner {
 	return signer.NewBLSSigner(privValKeyFile, privValStateFile)
 }
 
-func DefaultSimulationInput(t *testing.T, chainSpec chain.Spec, origBlock *ctypes.BeaconBlock, txs []*gethprimitives.Transaction) *execution.SimOpts {
+func DefaultSimulationInput(
+	t *testing.T,
+	chainSpec chain.Spec,
+	origBlock *ctypes.BeaconBlock,
+	txs []*gethprimitives.Transaction,
+) *execution.SimOpts {
 	t.Helper()
 	overrideTime := hexutil.Uint64(origBlock.GetTimestamp().Unwrap())
 	overrideGasLimit := hexutil.Uint64(30000000)
@@ -217,7 +322,11 @@ func ComputeAndSetStateRoot(
 }
 
 // GetProofAndCommitmentsForBlobs will create a commitment and proof for each blob. Technically
-func GetProofAndCommitmentsForBlobs(t *require.Assertions, blobs []*eip4844.Blob, verifier kzg.BlobProofVerifier) ([]eip4844.KZGProof, []eip4844.KZGCommitment) {
+func GetProofAndCommitmentsForBlobs(
+	t *require.Assertions,
+	blobs []*eip4844.Blob,
+	verifier kzg.BlobProofVerifier,
+) ([]eip4844.KZGProof, []eip4844.KZGCommitment) {
 	if verifier.GetImplementation() != gokzg.Implementation {
 		t.Fail("test expects gokzg implementation")
 	}

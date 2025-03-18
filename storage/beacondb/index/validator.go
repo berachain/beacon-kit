@@ -39,8 +39,8 @@ const (
 
 // Validator is an interface that combines the ssz.Marshaler and
 // ssz.Unmarshaler interfaces.
-type Validator interface {
-	constraints.SSZMarshallable
+type Validator[SelfT any] interface {
+	constraints.SSZMarshallable[SelfT]
 	// GetPubkey returns the public key of the validator.
 	GetPubkey() crypto.BLSPubkey
 	// GetEffectiveBalance returns the effective balance of the validator.
@@ -49,7 +49,7 @@ type Validator interface {
 
 // ValidatorsIndex is a struct that holds a unique index for validators based
 // on their public key.
-type ValidatorsIndex[ValidatorT Validator] struct {
+type ValidatorsIndex[ValidatorT Validator[ValidatorT]] struct {
 	// Pubkey is a unique index mapping a validator's public key to their
 	// numeric ID and vice versa.
 	Pubkey *indexes.Unique[[]byte, uint64, ValidatorT]
@@ -75,7 +75,7 @@ func (a ValidatorsIndex[ValidatorT]) IndexesList() []sdkcollections.Index[
 
 // NewValidatorsIndex creates a new validatorsIndex with a unique index for
 // validator public keys.
-func NewValidatorsIndex[ValidatorT Validator](
+func NewValidatorsIndex[ValidatorT Validator[ValidatorT]](
 	sb *sdkcollections.SchemaBuilder,
 ) ValidatorsIndex[ValidatorT] {
 	return ValidatorsIndex[ValidatorT]{

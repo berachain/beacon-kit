@@ -680,8 +680,8 @@ func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 			if tt.invalidSSZ {
 				// Create a byte slice with an invalid size (not 121)
 				invalidSizeData := make([]byte, 120)
-				var v types.Validator
-				err := v.UnmarshalSSZ(invalidSizeData)
+				var v *types.Validator
+				_, err := v.NewFromSSZ(invalidSizeData)
 				require.Error(t, err, "Test case: %s", tt.name)
 				require.Equal(t, io.ErrUnexpectedEOF, err,
 					"Test case: %s", tt.name)
@@ -691,15 +691,15 @@ func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 				require.NoError(t, err)
 
 				// Unmarshal into a new validator
-				var unmarshaled types.Validator
-				err = unmarshaled.UnmarshalSSZ(marshaled)
+				var unmarshaled *types.Validator
+				unmarshaled, err = unmarshaled.NewFromSSZ(marshaled)
 				require.NoError(t, err)
 
 				// Check if the original and unmarshaled validators are equal
 				require.Equal(
 					t,
 					tt.validator,
-					&unmarshaled,
+					unmarshaled,
 					"Test case: %s",
 					tt.name,
 				)

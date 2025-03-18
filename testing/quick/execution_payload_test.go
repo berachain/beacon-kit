@@ -142,7 +142,7 @@ func (p *TestExecPayload) Generate(r *rand.Rand, size int) reflect.Value {
 	// Convert our alias pointer to the production *ctypes.ExecutionPayload.
 	orig := (*ctypes.ExecutionPayload)(&tep)
 	supported := version.GetSupportedVersions()
-	orig.SetForkVersion(supported[r.Intn(len(supported))])
+	orig.Versionable = ctypes.NewVersionable(supported[r.Intn(len(supported))])
 
 	// Step 5 set a fixed value for BaseFee to avoid panicks. Could be its own generator.
 	orig.BaseFeePerGas = math.NewU256(123)

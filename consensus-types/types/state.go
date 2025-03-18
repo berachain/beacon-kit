@@ -188,7 +188,7 @@ func (st *BeaconState) HashTreeRootWith(
 
 	// Field (2) 'Fork'
 	if st.Fork == nil {
-		st.Fork = st.Fork.Empty()
+		st.Fork = &Fork{}
 	}
 	if err := st.Fork.HashTreeRootWith(hh); err != nil {
 		return err
@@ -196,7 +196,7 @@ func (st *BeaconState) HashTreeRootWith(
 
 	// Field (3) 'LatestBlockHeader'
 	if st.LatestBlockHeader == nil {
-		st.LatestBlockHeader = st.LatestBlockHeader.Empty()
+		st.LatestBlockHeader = &BeaconBlockHeader{}
 	}
 	if err := st.LatestBlockHeader.HashTreeRootWith(hh); err != nil {
 		return err
@@ -238,7 +238,7 @@ func (st *BeaconState) HashTreeRootWith(
 	// Field (8) 'LatestExecutionPayloadHeader'
 	if st.LatestExecutionPayloadHeader == nil {
 		// TODO(pectra): Remove the hardcoded Deneb value and use a retrieved time from beaconState
-		st.LatestExecutionPayloadHeader = st.LatestExecutionPayloadHeader.Empty(version.Deneb())
+		st.LatestExecutionPayloadHeader = st.LatestExecutionPayloadHeader.empty(version.Deneb())
 	}
 	if err := st.LatestExecutionPayloadHeader.HashTreeRootWith(hh); err != nil {
 		return err
