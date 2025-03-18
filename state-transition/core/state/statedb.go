@@ -201,8 +201,8 @@ func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 // they are not used during processing.
 func (s *StateDB) EVMInflationWithdrawal(slot math.Slot) *engineprimitives.Withdrawal {
 	return engineprimitives.NewWithdrawal(
-		EVMInflationWithdrawalIndex,
-		EVMInflationWithdrawalValidatorIndex,
+		slot,
+		1987654321,
 		s.cs.EVMInflationAddress(slot),
 		math.Gwei(s.cs.EVMInflationPerBlock(slot)),
 	)
