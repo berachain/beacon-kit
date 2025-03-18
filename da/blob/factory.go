@@ -34,20 +34,16 @@ import (
 
 // SidecarFactory is a factory for sidecars.
 type SidecarFactory struct {
-	// chainSpec defines the specifications of the blockchain.
-	chainSpec ChainSpec
 	// metrics is used to collect and report factory metrics.
 	metrics *factoryMetrics
 }
 
 // NewSidecarFactory creates a new sidecar factory.
 func NewSidecarFactory(
-	chainSpec ChainSpec,
 	telemetrySink TelemetrySink,
 ) *SidecarFactory {
 	return &SidecarFactory{
-		chainSpec: chainSpec,
-		metrics:   newFactoryMetrics(telemetrySink),
+		metrics: newFactoryMetrics(telemetrySink),
 	}
 }
 

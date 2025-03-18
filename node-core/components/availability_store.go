@@ -25,7 +25,6 @@ import (
 	"path/filepath"
 
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	"github.com/berachain/beacon-kit/log/phuslu"
@@ -38,9 +37,8 @@ import (
 // function for the depinject framework.
 type AvailabilityStoreInput struct {
 	depinject.In
-	AppOpts   config.AppOptions
-	ChainSpec chain.Spec
-	Logger    *phuslu.Logger
+	AppOpts config.AppOptions
+	Logger  *phuslu.Logger
 }
 
 // ProvideAvailabilityStore provides the availability store.
@@ -60,6 +58,5 @@ func ProvideAvailabilityStore(in AvailabilityStoreInput) (*dastore.Store, error)
 			),
 		),
 		in.Logger.With("service", "da-store"),
-		in.ChainSpec,
 	), nil
 }

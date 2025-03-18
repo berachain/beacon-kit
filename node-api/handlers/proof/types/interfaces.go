@@ -22,7 +22,6 @@ package types
 
 import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	fastssz "github.com/ferranbt/fastssz"
 )
@@ -45,10 +44,4 @@ type BeaconState[
 type BeaconStateMarshallable interface {
 	// GetTree is kept for FastSSZ compatibility.
 	GetTree() (*fastssz.Node, error)
-}
-
-// Validator is the interface for a validator.
-type Validator interface {
-	// GetPubkey returns the public key of the validator.
-	GetPubkey() crypto.BLSPubkey
 }

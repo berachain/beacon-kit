@@ -18,11 +18,15 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package commands
+package blob
 
 import (
-	"github.com/spf13/cobra"
+	"time"
 )
 
-// runHandler is a function that sets up run handlers for the root command.
-type runHandler func(cmd *cobra.Command) error
+// TelemetrySink is an interface for sending metrics to a telemetry backend.
+type TelemetrySink interface {
+	// MeasureSince measures the time since the provided start time,
+	// identified by the provided keys.
+	MeasureSince(key string, start time.Time, args ...string)
+}

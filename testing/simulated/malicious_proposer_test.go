@@ -55,7 +55,7 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	const coreLoopIterations = 1
 
 	// Initialize the chain state.
-	s.initializeChain()
+	s.InitializeChain(s.T())
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
@@ -63,7 +63,7 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	s.Require().NoError(err)
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals := s.moveChainToHeight(blockHeight, coreLoopIterations, blsSigner)
+	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	currentHeight := int64(blockHeight + coreLoopIterations)
@@ -150,7 +150,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidTimestamps_Errors() {
 	const coreLoopIterations = 1
 
 	// Initialize the chain state.
-	s.initializeChain()
+	s.InitializeChain(s.T())
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
@@ -158,7 +158,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidTimestamps_Errors() {
 	s.Require().NoError(err)
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals := s.moveChainToHeight(blockHeight, coreLoopIterations, blsSigner)
+	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner)
 	s.Require().Len(proposals, coreLoopIterations)
 	currentHeight := int64(blockHeight + coreLoopIterations)
 
@@ -196,7 +196,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobCommitment_Errors() {
 	const coreLoopIterations = 1
 
 	// Initialize the chain state.
-	s.initializeChain()
+	s.InitializeChain(s.T())
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
@@ -204,7 +204,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobCommitment_Errors() {
 	s.Require().NoError(err)
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals := s.moveChainToHeight(blockHeight, coreLoopIterations, blsSigner)
+	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	currentHeight := int64(blockHeight + coreLoopIterations)
@@ -322,7 +322,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobCommitment_Errors() {
 
 	sidecarsSlice := make([]*datypes.BlobSidecar, len(blobs))
 	// Build Inclusion Proofs for Sidecars
-	sidecarFactory := dablob.NewSidecarFactory(s.TestNode.ChainSpec, metrics.NewNoOpTelemetrySink())
+	sidecarFactory := dablob.NewSidecarFactory(metrics.NewNoOpTelemetrySink())
 	for i := range blobs {
 		inclusionProof, err := sidecarFactory.BuildKZGInclusionProof(proposedBlockMessage.GetBody(), math.U64(i))
 		s.Require().NoError(err)
@@ -364,7 +364,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobInclusionProof_Errors() 
 	const coreLoopIterations = 1
 
 	// Initialize the chain state.
-	s.initializeChain()
+	s.InitializeChain(s.T())
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
@@ -372,7 +372,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobInclusionProof_Errors() 
 	s.Require().NoError(err)
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals := s.moveChainToHeight(blockHeight, coreLoopIterations, blsSigner)
+	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	currentHeight := int64(blockHeight + coreLoopIterations)
@@ -483,7 +483,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobInclusionProof_Errors() 
 
 	sidecarsSlice := make([]*datypes.BlobSidecar, len(blobs))
 	// Build Inclusion Proofs for Sidecars
-	sidecarFactory := dablob.NewSidecarFactory(s.TestNode.ChainSpec, metrics.NewNoOpTelemetrySink())
+	sidecarFactory := dablob.NewSidecarFactory(metrics.NewNoOpTelemetrySink())
 	for i := range blobs {
 		inclusionProof, err := sidecarFactory.BuildKZGInclusionProof(proposedBlockMessage.GetBody(), math.U64(i))
 		s.Require().NoError(err)
