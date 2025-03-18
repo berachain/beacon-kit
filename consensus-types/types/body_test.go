@@ -138,18 +138,23 @@ func TestBeaconBlockBody_SetDeposits(t *testing.T) {
 
 func TestBeaconBlockBody_MarshalSSZ(t *testing.T) {
 	t.Parallel()
-	body := types.BeaconBlockBody{
-		RandaoReveal:       [96]byte{1, 2, 3},
-		Eth1Data:           &types.Eth1Data{},
-		Graffiti:           [32]byte{4, 5, 6},
-		Deposits:           []*types.Deposit{},
-		ExecutionPayload:   &types.ExecutionPayload{},
-		BlobKzgCommitments: []eip4844.KZGCommitment{},
-	}
-	data, err := body.MarshalSSZ()
-
-	require.NoError(t, err)
-	require.NotNil(t, data)
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		ver := types.NewVersionable(v)
+		body := types.BeaconBlockBody{
+			Versionable:  ver,
+			RandaoReveal: [96]byte{1, 2, 3},
+			Eth1Data:     &types.Eth1Data{},
+			Graffiti:     [32]byte{4, 5, 6},
+			Deposits:     []*types.Deposit{},
+			ExecutionPayload: &types.ExecutionPayload{
+				Versionable: ver,
+			},
+			BlobKzgCommitments: []eip4844.KZGCommitment{},
+		}
+		data, err := body.MarshalSSZ()
+		require.NoError(t, err)
+		require.NotNil(t, data)
+	})
 }
 
 func TestBeaconBlockBody_GetTopLevelRoots(t *testing.T) {
