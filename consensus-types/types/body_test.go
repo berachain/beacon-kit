@@ -208,7 +208,13 @@ func TestBeaconBlockBody_Empty(t *testing.T) {
 func TestBeaconBlockBody_UnusedProposerSlashingsEnforcement(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
-		blockBody := types.BeaconBlockBody{}
+		ver := types.NewVersionable(v)
+		blockBody := types.BeaconBlockBody{
+			Versionable: ver,
+			ExecutionPayload: &types.ExecutionPayload{
+				Versionable: ver,
+			},
+		}
 		unused := types.UnusedType(1)
 		blockBody.SetProposerSlashings(types.ProposerSlashings{&unused})
 		_, err := blockBody.MarshalSSZ()
@@ -228,7 +234,13 @@ func TestBeaconBlockBody_UnusedProposerSlashingsEnforcement(t *testing.T) {
 func TestBeaconBlockBody_UnusedAttesterSlashingsEnforcement(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
-		blockBody := types.BeaconBlockBody{}
+		ver := types.NewVersionable(v)
+		blockBody := types.BeaconBlockBody{
+			Versionable: ver,
+			ExecutionPayload: &types.ExecutionPayload{
+				Versionable: ver,
+			},
+		}
 		unused := types.UnusedType(1)
 		blockBody.SetAttesterSlashings(types.AttesterSlashings{&unused})
 		_, err := blockBody.MarshalSSZ()
@@ -248,7 +260,13 @@ func TestBeaconBlockBody_UnusedAttesterSlashingsEnforcement(t *testing.T) {
 func TestBeaconBlockBody_UnusedAttestationsEnforcement(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
-		blockBody := types.BeaconBlockBody{}
+		ver := types.NewVersionable(v)
+		blockBody := types.BeaconBlockBody{
+			Versionable: ver,
+			ExecutionPayload: &types.ExecutionPayload{
+				Versionable: ver,
+			},
+		}
 		unused := types.UnusedType(1)
 		blockBody.SetAttestations(types.Attestations{&unused})
 		_, err := blockBody.MarshalSSZ()
@@ -294,7 +312,13 @@ func TestBeaconBlockBody_UnusedVoluntaryExitsEnforcement(t *testing.T) {
 func TestBeaconBlockBody_UnusedBlsToExecutionChangesEnforcement(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
-		blockBody := types.BeaconBlockBody{}
+		ver := types.NewVersionable(v)
+		blockBody := types.BeaconBlockBody{
+			Versionable: ver,
+			ExecutionPayload: &types.ExecutionPayload{
+				Versionable: ver,
+			},
+		}
 		unused := types.UnusedType(1)
 		blockBody.SetBlsToExecutionChanges(types.BlsToExecutionChanges{&unused})
 		_, err := blockBody.MarshalSSZ()
