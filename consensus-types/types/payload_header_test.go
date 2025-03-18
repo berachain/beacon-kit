@@ -190,6 +190,7 @@ func TestExecutionPayloadHeader_NewFromSSZ_EmptyBuf(t *testing.T) {
 }
 
 func TestExecutionPayloadHeader_NewFromSSZ_Invalid(t *testing.T) {
+	t.Parallel()
 	testcases := []struct {
 		name     string
 		malleate func() []byte
