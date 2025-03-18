@@ -367,7 +367,3 @@ func (b *BeaconBlockBody) SetExecutionRequests(executionRequest *ExecutionReques
 	b.executionRequests = executionRequest
 	return nil
 }
-
-func (b *BeaconBlockBody) GetForkVersion() common.Version {
-	return b.Versionable.GetForkVersion()
-}
