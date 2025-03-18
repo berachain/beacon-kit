@@ -59,6 +59,8 @@ func New(
 }
 
 // GetPayload returns the payload and blobs bundle for the given slot.
+//
+// TODO(pectra): Ensure the execution requests are properly unmarshaled into the BuiltExecutionPayloadEnv.
 func (ee *Engine) GetPayload(
 	ctx context.Context,
 	req *ctypes.GetPayloadRequest,
