@@ -55,6 +55,7 @@ const (
 	MaxConsensusTxsCount = 2
 )
 
+//nolint:funlen // not an issue
 func (s *Service) ProcessProposal(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
