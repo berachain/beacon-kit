@@ -35,6 +35,7 @@ import (
 	"github.com/attestantio/go-eth2-client/spec/phase0"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -880,15 +881,16 @@ func (s *BeaconKitE2ESuite) TestGenesis() {
 	genesis := genesisResp.Data
 
 	s.Require().NotZero(genesis.GenesisTime, "Genesis time should not be zero")
-	s.Require().True(genesis.GenesisTime.Unix() < time.Now().Unix(), "Genesis time should not be in future")
+	s.Require().True(genesis.GenesisTime.Unix() < time.Now().Unix(), "Genesis time should be in the past")
 
 	s.Require().NotEmpty(genesis.GenesisValidatorsRoot, "Genesis validators root should not be empty")
 	s.Require().NotEmpty(genesis.GenesisForkVersion, "Genesis fork version should not be empty")
 
-	expectedVersion := phase0.Version{0x04, 0x00, 0x00, 0x00}
+	expectedVersion := version.Genesis()
+
 	s.Require().Equal(
-		expectedVersion,
-		genesisResp.Data.GenesisForkVersion,
+		expectedVersion[:],
+		genesis.GenesisForkVersion[:],
 		"Genesis fork version does not match expected value",
 	)
 }
