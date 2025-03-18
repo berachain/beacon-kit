@@ -58,7 +58,7 @@ func (f *SidecarFactory) BuildSidecars(
 		proofs      = bundle.GetProofs()
 		numBlobs    = uint64(len(blobs))
 		sidecars    = make([]*types.BlobSidecar, numBlobs)
-		blk         = signedBlk.GetMessage()
+		blk         = signedBlk.GetBeaconBlock()
 		body        = blk.GetBody()
 		header      = blk.GetHeader()
 		g           = errgroup.Group{}

@@ -53,12 +53,8 @@ func runForAllSupportedVersions(t *testing.T, testFunc func(t *testing.T, v comm
 func generateFakeSignedBeaconBlock(t *testing.T, version common.Version) *types.SignedBeaconBlock {
 	t.Helper()
 
-	blk := generateValidBeaconBlock(t, version)
-	signature := crypto.BLSSignature{}
 	return &types.SignedBeaconBlock{
-		Versionable: types.NewVersionable(version),
-		Message:     blk,
-		Signature:   signature,
+		BeaconBlock: generateValidBeaconBlock(t, version),
 	}
 }
 
@@ -94,8 +90,8 @@ func generateRealSignedBeaconBlock(t *testing.T, blsSigner crypto.BLSSigner, ver
 		return nil, err
 	}
 	return &types.SignedBeaconBlock{
-		Message:   blk,
-		Signature: signature,
+		BeaconBlock: blk,
+		Signature:   signature,
 	}, nil
 }
 
@@ -108,7 +104,7 @@ func TestNewSignedBeaconBlockFromSSZ(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, blockBytes)
 		newBlock, err := types.NewSignedBeaconBlockFromSSZ(
-			blockBytes, originalBlock.Message.GetForkVersion(),
+			blockBytes, originalBlock.GetForkVersion(),
 		)
 		require.NoError(t, err)
 		require.NotNil(t, newBlock)
@@ -153,7 +149,7 @@ func TestSignedBeaconBlock_SignBeaconBlock(t *testing.T) {
 		cs, err := spec.DevnetChainSpec()
 		require.NoError(t, err)
 		newSignedBlk, err := types.NewSignedBeaconBlock(
-			signedBlk.GetMessage(),
+			signedBlk.GetBeaconBlock(),
 			&types.ForkData{},
 			cs,
 			blsSigner,
@@ -166,7 +162,7 @@ func TestSignedBeaconBlock_SignBeaconBlock(t *testing.T) {
 		require.Equal(t, sig1, sig2)
 
 		// Verify the signature is good
-		signingRoot, err := generateSigningRoot(newSignedBlk.GetMessage())
+		signingRoot, err := generateSigningRoot(newSignedBlk.GetBeaconBlock())
 		require.NoError(t, err)
 		err = blsSigner.VerifySignature(blsSigner.PublicKey(), signingRoot[:], newSignedBlk.GetSignature())
 		require.NoError(t, err)
@@ -184,26 +180,20 @@ func TestSignedBeaconBlock_SizeSSZ(t *testing.T) {
 
 func TestSignedBeaconBlock_EmptySerialization(t *testing.T) {
 	t.Parallel()
-	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
-		ver := types.NewVersionable(v)
+	runForAllSupportedVersions(t, func(t *testing.T, fv common.Version) {
 		orig := &types.SignedBeaconBlock{
-			Message: &types.BeaconBlock{
-				Versionable: ver,
-				Body: &types.BeaconBlockBody{
-					Versionable: ver,
-					ExecutionPayload: &types.ExecutionPayload{
-						Versionable: ver,
-					},
-				},
+			BeaconBlock: &types.BeaconBlock{
+				Versionable: types.NewVersionable(fv),
 			},
 		}
 		data, err := orig.MarshalSSZ()
 		require.NoError(t, err)
 		require.NotNil(t, data)
 
-		unmarshalled, err := types.NewSignedBeaconBlockFromSSZ(data, v)
+		var unmarshalled *types.SignedBeaconBlock
+		unmarshalled, err = unmarshalled.NewFromSSZ(data, fv)
 		require.NoError(t, err)
-		require.NotNil(t, unmarshalled.GetMessage())
+		require.NotNil(t, unmarshalled.GetBeaconBlock())
 		require.NotNil(t, unmarshalled.GetSignature())
 
 		buf := make([]byte, ssz.Size(orig))

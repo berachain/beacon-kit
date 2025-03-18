@@ -36,9 +36,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func generateBeaconBlockBody(t *testing.T, forkVersion common.Version) types.BeaconBlockBody {
-	t.Helper()
-	versionable := types.NewVersionable(forkVersion)
+func generateBeaconBlockBody(version common.Version) types.BeaconBlockBody {
+	versionable := types.NewVersionable(version)
 	body := types.BeaconBlockBody{
 		Versionable:  versionable,
 		RandaoReveal: [96]byte{1, 2, 3},
@@ -61,18 +60,18 @@ func generateBeaconBlockBody(t *testing.T, forkVersion common.Version) types.Bea
 		err := body.SetExecutionRequests(&types.ExecutionRequests{
 			Deposits: []*types.DepositRequest{
 				{
-					Pubkey:      bytes.B48{0, 1, 2},
-					Credentials: types.WithdrawalCredentials(common.Bytes32{0, 1, 2}),
-					Amount:      math.Gwei(1000),
-					Signature:   bytes.B96{0, 1, 2},
-					Index:       69,
+					Pubkey:                bytes.B48{0, 1, 2},
+					WithdrawalCredentials: types.WithdrawalCredentials(common.Bytes32{0, 1, 2}),
+					Amount:                math.Gwei(1000),
+					Signature:             bytes.B96{0, 1, 2},
+					Index:                 69,
 				},
 				{
-					Pubkey:      bytes.B48{0, 3, 4},
-					Credentials: types.WithdrawalCredentials(common.Bytes32{0, 1, 2}),
-					Amount:      math.Gwei(1000),
-					Signature:   bytes.B96{0, 1, 2},
-					Index:       70,
+					Pubkey:                bytes.B48{0, 3, 4},
+					WithdrawalCredentials: types.WithdrawalCredentials(common.Bytes32{0, 1, 2}),
+					Amount:                math.Gwei(1000),
+					Signature:             bytes.B96{0, 1, 2},
+					Index:                 70,
 				},
 			},
 			Withdrawals: []*types.WithdrawalRequest{
@@ -169,23 +168,18 @@ func TestBeaconBlockBody_SetDeposits(t *testing.T) {
 
 func TestBeaconBlockBody_MarshalSSZ(t *testing.T) {
 	t.Parallel()
-	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
-		ver := types.NewVersionable(v)
-		body := types.BeaconBlockBody{
-			Versionable:  ver,
-			RandaoReveal: [96]byte{1, 2, 3},
-			Eth1Data:     &types.Eth1Data{},
-			Graffiti:     [32]byte{4, 5, 6},
-			Deposits:     []*types.Deposit{},
-			ExecutionPayload: &types.ExecutionPayload{
-				Versionable: ver,
-			},
-			BlobKzgCommitments: []eip4844.KZGCommitment{},
-		}
-		data, err := body.MarshalSSZ()
-		require.NoError(t, err)
-		require.NotNil(t, data)
-	})
+	body := types.BeaconBlockBody{
+		RandaoReveal:       [96]byte{1, 2, 3},
+		Eth1Data:           &types.Eth1Data{},
+		Graffiti:           [32]byte{4, 5, 6},
+		Deposits:           []*types.Deposit{},
+		ExecutionPayload:   &types.ExecutionPayload{},
+		BlobKzgCommitments: []eip4844.KZGCommitment{},
+	}
+	data, err := body.MarshalSSZ()
+
+	require.NoError(t, err)
+	require.NotNil(t, data)
 }
 
 func TestBeaconBlockBody_GetTopLevelRoots(t *testing.T) {
@@ -208,13 +202,7 @@ func TestBeaconBlockBody_Empty(t *testing.T) {
 func TestBeaconBlockBody_UnusedProposerSlashingsEnforcement(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
-		ver := types.NewVersionable(v)
-		blockBody := types.BeaconBlockBody{
-			Versionable: ver,
-			ExecutionPayload: &types.ExecutionPayload{
-				Versionable: ver,
-			},
-		}
+		blockBody := types.BeaconBlockBody{}
 		unused := types.UnusedType(1)
 		blockBody.SetProposerSlashings(types.ProposerSlashings{&unused})
 		_, err := blockBody.MarshalSSZ()
@@ -234,13 +222,7 @@ func TestBeaconBlockBody_UnusedProposerSlashingsEnforcement(t *testing.T) {
 func TestBeaconBlockBody_UnusedAttesterSlashingsEnforcement(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
-		ver := types.NewVersionable(v)
-		blockBody := types.BeaconBlockBody{
-			Versionable: ver,
-			ExecutionPayload: &types.ExecutionPayload{
-				Versionable: ver,
-			},
-		}
+		blockBody := types.BeaconBlockBody{}
 		unused := types.UnusedType(1)
 		blockBody.SetAttesterSlashings(types.AttesterSlashings{&unused})
 		_, err := blockBody.MarshalSSZ()
@@ -260,13 +242,7 @@ func TestBeaconBlockBody_UnusedAttesterSlashingsEnforcement(t *testing.T) {
 func TestBeaconBlockBody_UnusedAttestationsEnforcement(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
-		ver := types.NewVersionable(v)
-		blockBody := types.BeaconBlockBody{
-			Versionable: ver,
-			ExecutionPayload: &types.ExecutionPayload{
-				Versionable: ver,
-			},
-		}
+		blockBody := types.BeaconBlockBody{}
 		unused := types.UnusedType(1)
 		blockBody.SetAttestations(types.Attestations{&unused})
 		_, err := blockBody.MarshalSSZ()
@@ -286,13 +262,7 @@ func TestBeaconBlockBody_UnusedAttestationsEnforcement(t *testing.T) {
 func TestBeaconBlockBody_UnusedVoluntaryExitsEnforcement(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
-		ver := types.NewVersionable(v)
-		blockBody := types.BeaconBlockBody{
-			Versionable: ver,
-			ExecutionPayload: &types.ExecutionPayload{
-				Versionable: ver,
-			},
-		}
+		blockBody := types.BeaconBlockBody{}
 		unused := types.UnusedType(1)
 		blockBody.SetVoluntaryExits(types.VoluntaryExits{&unused})
 		_, err := blockBody.MarshalSSZ()
@@ -312,13 +282,7 @@ func TestBeaconBlockBody_UnusedVoluntaryExitsEnforcement(t *testing.T) {
 func TestBeaconBlockBody_UnusedBlsToExecutionChangesEnforcement(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
-		ver := types.NewVersionable(v)
-		blockBody := types.BeaconBlockBody{
-			Versionable: ver,
-			ExecutionPayload: &types.ExecutionPayload{
-				Versionable: ver,
-			},
-		}
+		blockBody := types.BeaconBlockBody{}
 		unused := types.UnusedType(1)
 		blockBody.SetBlsToExecutionChanges(types.BlsToExecutionChanges{&unused})
 		_, err := blockBody.MarshalSSZ()
@@ -386,7 +350,8 @@ func TestBeaconBlockBody_ExecutionRequestsSSZMarshalling(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, data)
 
-	unmarshalledBody, err := (&types.BeaconBlockBody{}).NewFromSSZ(data, body.GetForkVersion())
+	unmarshalledBody := &types.BeaconBlockBody{}
+	err = unmarshalledBody.UnmarshalSSZ(data, body.GetForkVersion())
 	require.NoError(t, err)
 	executionRequests, err := unmarshalledBody.GetExecutionRequests()
 	require.NoError(t, err)

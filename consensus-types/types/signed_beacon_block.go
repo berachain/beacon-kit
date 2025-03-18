@@ -37,9 +37,8 @@ var (
 )
 
 type SignedBeaconBlock struct {
-	constraints.Versionable
-	Message   *BeaconBlock        `json:"message"`
-	Signature crypto.BLSSignature `json:"signature"`
+	*BeaconBlock `json:"message"`
+	Signature    crypto.BLSSignature `json:"signature"`
 }
 
 /* -------------------------------------------------------------------------- */
@@ -60,17 +59,12 @@ func NewSignedBeaconBlockFromSSZ(
 			return nil, err
 		}
 
-		// make sure Withdrawals in execution payload are not nil
-		EnsureNotNilWithdrawals(block.Message.Body.ExecutionPayload)
+		// Make sure Withdrawals in execution payload are not nil.
+		block.Body.ExecutionPayload.EnsureNotNilWithdrawals()
 
-		// duly setup fork version in every relevant block member
-		versioner := NewVersionable(forkVersion)
-		block.Message.Versionable = versioner
-		block.Message.Body.Versionable = versioner
-		block.Message.Body.ExecutionPayload.Versionable = versioner
 		return block, nil
 	default:
-		// we return block here to appease nilaway
+		// We return block here to appease nilaway.
 		return block, errors.Wrapf(ErrForkVersionNotSupported, "fork %d", forkVersion)
 	}
 }
@@ -89,8 +83,8 @@ func NewSignedBeaconBlock(
 	}
 
 	return &SignedBeaconBlock{
-		Message:   blk,
-		Signature: signature,
+		BeaconBlock: blk,
+		Signature:   signature,
 	}, nil
 }
 
@@ -106,17 +100,17 @@ func (b *SignedBeaconBlock) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 	if fixed {
 		return size
 	}
-	size += ssz.SizeDynamicObject(siz, b.Message)
+	size += ssz.SizeDynamicObject(siz, b.BeaconBlock)
 	return size
 }
 
 // DefineSSZ defines the SSZ encoding for the SignedBeaconBlockHeader object.
 func (b *SignedBeaconBlock) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineDynamicObjectOffset(codec, &b.Message)
+	ssz.DefineDynamicObjectOffset(codec, &b.BeaconBlock)
 	ssz.DefineStaticBytes(codec, &b.Signature)
 
 	// Define the dynamic data (fields)
-	ssz.DefineDynamicObjectContent(codec, &b.Message)
+	ssz.DefineDynamicObjectContent(codec, &b.BeaconBlock)
 }
 
 // MarshalSSZ marshals the SignedBeaconBlockHeader object to SSZ format.
@@ -125,21 +119,18 @@ func (b *SignedBeaconBlock) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 
-// NewFromSSZ creates a new SignedBeaconBlock from SSZ format.
-func (*SignedBeaconBlock) NewFromSSZ(buf []byte, version common.Version) (*SignedBeaconBlock, error) {
-	v := NewVersionable(version)
-	b := &SignedBeaconBlock{
-		Versionable: v,
-		Message: &BeaconBlock{
-			Versionable: v,
-			Body: &BeaconBlockBody{
-				Versionable: v,
-				ExecutionPayload: &ExecutionPayload{
-					Versionable: v,
-				},
-			},
-		},
+// empty creates a new SignedBeaconBlock with empty values.
+func (*SignedBeaconBlock) empty(version common.Version) *SignedBeaconBlock {
+	return &SignedBeaconBlock{
+		BeaconBlock: (&BeaconBlock{}).empty(version),
 	}
+}
+
+// NewFromSSZ creates a new SignedBeaconBlock from SSZ format.
+func (*SignedBeaconBlock) NewFromSSZ(
+	buf []byte, version common.Version,
+) (*SignedBeaconBlock, error) {
+	b := (&SignedBeaconBlock{}).empty(version)
 	return b, ssz.DecodeFromBytes(buf, b)
 }
 
@@ -150,23 +141,15 @@ func (b *SignedBeaconBlock) HashTreeRoot() common.Root {
 }
 
 /* -------------------------------------------------------------------------- */
-/*                            Getters and Setters                             */
+/*                                 Getters                                    */
 /* -------------------------------------------------------------------------- */
 
-func (b *SignedBeaconBlock) GetMessage() *BeaconBlock {
-	return b.Message
-}
-
-func (b *SignedBeaconBlock) SetHeader(message *BeaconBlock) {
-	b.Message = message
+func (b *SignedBeaconBlock) GetBeaconBlock() *BeaconBlock {
+	return b.BeaconBlock
 }
 
 func (b *SignedBeaconBlock) GetSignature() crypto.BLSSignature {
 	return b.Signature
-}
-
-func (b *SignedBeaconBlock) SetSignature(signature crypto.BLSSignature) {
-	b.Signature = signature
 }
 
 func (b *SignedBeaconBlock) IsNil() bool {
