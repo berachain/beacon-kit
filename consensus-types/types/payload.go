@@ -34,8 +34,13 @@ import (
 	"github.com/karalabe/ssz"
 )
 
-// ExecutionPayloadStaticSize is the static size of the ExecutionPayload.
-const ExecutionPayloadStaticSize uint32 = 528
+const (
+	// ExecutionPayloadStaticSize is the static size of the ExecutionPayload.
+	ExecutionPayloadStaticSize uint32 = 528
+
+	// ExtraDataSize is the size of ExtraData in bytes.
+	ExtraDataSize = 32
+)
 
 // Compile-time assertions to ensure ExecutionPayload implements necessary interfaces.
 var (
@@ -167,7 +172,7 @@ func (p *ExecutionPayload) MarshalSSZ() ([]byte, error) {
 func (*ExecutionPayload) empty(version common.Version) *ExecutionPayload {
 	return &ExecutionPayload{
 		Versionable:   NewVersionable(version),
-		ExtraData:     make([]byte, ExtraDataSize),
+		ExtraData:     make(bytes.Bytes, ExtraDataSize),
 		BaseFeePerGas: &math.U256{},
 	}
 }

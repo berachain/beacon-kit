@@ -58,9 +58,6 @@ const (
 
 	// KZGOffsetDeneb is the offset of the KZG commitments in the serialized block body.
 	KZGOffsetDeneb = KZGRootIndexDeneb * constants.MaxBlobCommitmentsPerBlock
-
-	// ExtraDataSize is the size of ExtraData in bytes.
-	ExtraDataSize = 32
 )
 
 // Compile-time assertions to ensure BeaconBlockBody implements necessary interfaces.
