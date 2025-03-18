@@ -35,7 +35,7 @@ import (
 
 func setSlot(scs datypes.BlobSidecars, slot math.Slot) {
 	for _, sc := range scs {
-		hdr := sc.GetSignedBeaconBlockHeader().GetHeader()
+		hdr := sc.GetBeaconBlockHeader()
 		hdr.SetSlot(slot)
 	}
 }

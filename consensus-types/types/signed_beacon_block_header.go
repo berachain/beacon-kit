@@ -27,14 +27,18 @@ import (
 	"github.com/karalabe/ssz"
 )
 
+// Compile-time assertions to ensure SignedBeaconBlockHeader implements necessary interfaces.
 var (
 	_ ssz.StaticObject                                              = (*SignedBeaconBlockHeader)(nil)
 	_ constraints.SSZMarshallableRootable[*SignedBeaconBlockHeader] = (*SignedBeaconBlockHeader)(nil)
 )
 
+// SignedBeaconBlockHeader is a struct that contains a BeaconBlockHeader and a BLSSignature.
+//
+// NOTE: This struct is only ever (un)marshalled with SSZ and NOT with JSON.
 type SignedBeaconBlockHeader struct {
-	Header    *BeaconBlockHeader  `json:"header"`
-	Signature crypto.BLSSignature `json:"signature"`
+	Header    *BeaconBlockHeader
+	Signature crypto.BLSSignature
 }
 
 /* -------------------------------------------------------------------------- */

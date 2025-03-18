@@ -37,7 +37,7 @@ var (
 	_ constraints.SSZVersionedMarshallableRootable[*ExecutionPayloadHeader] = (*ExecutionPayloadHeader)(nil)
 )
 
-// ExecutionPayloadHeader is the execution header payload of Deneb.
+// ExecutionPayloadHeader represents the payload header of an execution block.
 type ExecutionPayloadHeader struct {
 	constraints.Versionable
 

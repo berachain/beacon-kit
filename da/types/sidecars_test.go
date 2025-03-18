@@ -71,8 +71,7 @@ func TestEmptySidecarMarshalling(t *testing.T) {
 	)
 
 	// Unmarshal the empty sidecar
-	unmarshalled := &types.BlobSidecar{}
-	err = unmarshalled.UnmarshalSSZ(marshalled)
+	unmarshalled, err := (&types.BlobSidecar{}).NewFromSSZ(marshalled)
 	require.NoError(
 		t,
 		err,

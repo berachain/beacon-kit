@@ -114,7 +114,7 @@ func (s *Service) ProcessProposal(
 	// signature and then make sure the sidecar signatures match the block.
 	blkSignature := signedBlk.GetSignature()
 	for i, sidecar := range sidecars {
-		sidecarSignature := sidecar.GetSignedBeaconBlockHeader().GetSignature()
+		sidecarSignature := sidecar.GetSignature()
 		if !bytes.Equal(blkSignature[:], sidecarSignature[:]) {
 			return fmt.Errorf("%w, idx: %d", ErrSidecarSignatureMismatch, i)
 		}

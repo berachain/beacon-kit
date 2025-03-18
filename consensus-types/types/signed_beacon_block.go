@@ -31,14 +31,18 @@ import (
 	"github.com/karalabe/ssz"
 )
 
+// Compile-time assertions to ensure SignedBeaconBlock implements necessary interfaces.
 var (
 	_ ssz.DynamicObject                                                = (*SignedBeaconBlock)(nil)
 	_ constraints.SSZVersionedMarshallableRootable[*SignedBeaconBlock] = (*SignedBeaconBlock)(nil)
 )
 
+// SignedBeaconBlock is a struct that contains a BeaconBlock and a BLSSignature.
+//
+// NOTE: This struct is only ever (un)marshalled with SSZ and NOT with JSON.
 type SignedBeaconBlock struct {
-	*BeaconBlock `json:"message"`
-	Signature    crypto.BLSSignature `json:"signature"`
+	*BeaconBlock
+	Signature crypto.BLSSignature
 }
 
 /* -------------------------------------------------------------------------- */

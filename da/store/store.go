@@ -74,12 +74,11 @@ func (s *Store) GetBlobSidecars(slot math.Slot) (types.BlobSidecars, error) {
 
 	sidecars := make(types.BlobSidecars, 0, len(sidecarBzs))
 	for _, sidecarBz := range sidecarBzs {
-		sidecar := types.BlobSidecar{}
-		err = sidecar.UnmarshalSSZ(sidecarBz)
+		sidecar, err := (&types.BlobSidecar{}).NewFromSSZ(sidecarBz)
 		if err != nil {
 			return sidecars, err
 		}
-		sidecars = append(sidecars, &sidecar)
+		sidecars = append(sidecars, sidecar)
 	}
 
 	return sidecars, nil
@@ -101,7 +100,7 @@ func (s *Store) Persist(
 		if err != nil {
 			return err
 		}
-		slot = sidecar.GetSignedBeaconBlockHeader().GetHeader().GetSlot()
+		slot = sidecar.GetBeaconBlockHeader().GetSlot()
 		err = s.IndexDB.Set(slot.Unwrap(), sidecar.KzgCommitment[:], bz)
 
 		if err != nil {
