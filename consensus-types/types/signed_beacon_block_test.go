@@ -183,21 +183,33 @@ func TestSignedBeaconBlock_SizeSSZ(t *testing.T) {
 
 func TestSignedBeaconBlock_EmptySerialization(t *testing.T) {
 	t.Parallel()
-	orig := &types.SignedBeaconBlock{}
-	data, err := orig.MarshalSSZ()
-	require.NoError(t, err)
-	require.NotNil(t, data)
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		ver := types.NewVersionable(v)
+		orig := &types.SignedBeaconBlock{
+			Message: &types.BeaconBlock{
+				Versionable: ver,
+				Body: &types.BeaconBlockBody{
+					Versionable: ver,
+					ExecutionPayload: &types.ExecutionPayload{
+						Versionable: ver,
+					},
+				},
+			},
+		}
+		data, err := orig.MarshalSSZ()
+		require.NoError(t, err)
+		require.NotNil(t, data)
 
-	var unmarshalled *types.SignedBeaconBlock
-	unmarshalled, err = unmarshalled.NewFromSSZ(data)
-	require.NoError(t, err)
-	require.NotNil(t, unmarshalled.GetMessage())
-	require.NotNil(t, unmarshalled.GetSignature())
+		unmarshalled, err := types.NewSignedBeaconBlockFromSSZ(data, v)
+		require.NoError(t, err)
+		require.NotNil(t, unmarshalled.GetMessage())
+		require.NotNil(t, unmarshalled.GetSignature())
 
-	buf := make([]byte, ssz.Size(orig))
-	err = ssz.EncodeToBytes(buf, orig)
-	require.NoError(t, err)
+		buf := make([]byte, ssz.Size(orig))
+		err = ssz.EncodeToBytes(buf, orig)
+		require.NoError(t, err)
 
-	// The two byte slices should be equal
-	require.Equal(t, data, buf)
+		// The two byte slices should be equal
+		require.Equal(t, data, buf)
+	})
 }

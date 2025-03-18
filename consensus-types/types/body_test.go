@@ -61,18 +61,18 @@ func generateBeaconBlockBody(t *testing.T, forkVersion common.Version) types.Bea
 		err := body.SetExecutionRequests(&types.ExecutionRequests{
 			Deposits: []*types.DepositRequest{
 				{
-					Pubkey:                bytes.B48{0, 1, 2},
-					WithdrawalCredentials: types.WithdrawalCredentials(common.Bytes32{0, 1, 2}),
-					Amount:                math.Gwei(1000),
-					Signature:             bytes.B96{0, 1, 2},
-					Index:                 69,
+					Pubkey:      bytes.B48{0, 1, 2},
+					Credentials: types.WithdrawalCredentials(common.Bytes32{0, 1, 2}),
+					Amount:      math.Gwei(1000),
+					Signature:   bytes.B96{0, 1, 2},
+					Index:       69,
 				},
 				{
-					Pubkey:                bytes.B48{0, 3, 4},
-					WithdrawalCredentials: types.WithdrawalCredentials(common.Bytes32{0, 1, 2}),
-					Amount:                math.Gwei(1000),
-					Signature:             bytes.B96{0, 1, 2},
-					Index:                 70,
+					Pubkey:      bytes.B48{0, 3, 4},
+					Credentials: types.WithdrawalCredentials(common.Bytes32{0, 1, 2}),
+					Amount:      math.Gwei(1000),
+					Signature:   bytes.B96{0, 1, 2},
+					Index:       70,
 				},
 			},
 			Withdrawals: []*types.WithdrawalRequest{

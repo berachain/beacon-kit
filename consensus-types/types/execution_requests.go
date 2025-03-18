@@ -36,7 +36,6 @@ const sszDynamicObjectOffset = 4
 const maxDepositRequestsPerPayload = 8192
 const maxWithdrawalRequestsPerPayload = 16
 const maxConsolidationRequestsPerPayload = 2
-const sszDepositRequestSize = 192          // Pubkey = 48, WithdrawalCredentials = 32, Amount = 8, Signature = 96, Index = 8.
 const sszWithdrawRequestSize = 76          // ExecutionAddress = 20, ValidatorPubKey = 48, Amount = 8
 const sszConsolidationRequestSize = 116    // ExecutionAddress = 20, PubKey = 48, Pubkey = 48
 const dynamicFieldsInExecutionRequests = 3 // 3 since three dynamic objects (Deposits, Withdrawals, Consolidations)
@@ -48,13 +47,7 @@ type ExecutionRequests struct {
 }
 
 // DepositRequest is introduced in EIP6110 which is currently not processed.
-type DepositRequest struct {
-	Pubkey                crypto.BLSPubkey
-	WithdrawalCredentials WithdrawalCredentials
-	Amount                math.Gwei
-	Signature             crypto.BLSSignature
-	Index                 math.U64
-}
+type DepositRequest = Deposit
 
 // WithdrawalRequest is introduced in EIP7002 which we use for withdrawals.
 type WithdrawalRequest struct {
@@ -108,36 +101,6 @@ func (e *ExecutionRequests) UnmarshalSSZ(buf []byte) error {
 // HashTreeRoot returns the hash tree root of the Deposits.
 func (e *ExecutionRequests) HashTreeRoot() common.Root {
 	return ssz.HashConcurrent(e)
-}
-
-/* -------------------------------------------------------------------------- */
-/*                       Deposit Requests SSZ                                 */
-/* -------------------------------------------------------------------------- */
-
-func (d *DepositRequest) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineStaticBytes(codec, &d.Pubkey)
-	ssz.DefineStaticBytes(codec, &d.WithdrawalCredentials)
-	ssz.DefineUint64(codec, &d.Amount)
-	ssz.DefineStaticBytes(codec, &d.Signature)
-	ssz.DefineUint64(codec, &d.Index)
-}
-
-func (d *DepositRequest) SizeSSZ(_ *ssz.Sizer) uint32 {
-	return sszDepositRequestSize
-}
-
-func (d *DepositRequest) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(d))
-	return buf, ssz.EncodeToBytes(buf, d)
-}
-
-func (d *DepositRequest) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, d)
-}
-
-// HashTreeRoot returns the hash tree root of the Deposits.
-func (d *DepositRequest) HashTreeRoot() common.Root {
-	return ssz.HashSequential(d)
 }
 
 /* -------------------------------------------------------------------------- */

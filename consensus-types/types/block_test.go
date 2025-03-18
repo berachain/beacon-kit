@@ -88,11 +88,11 @@ func generateValidBeaconBlock(t *testing.T, forkVersion common.Version) *types.B
 		err = body.SetExecutionRequests(&types.ExecutionRequests{
 			Deposits: []*types.DepositRequest{
 				{
-					Pubkey:                crypto.BLSPubkey{1, 2, 3},
-					WithdrawalCredentials: types.WithdrawalCredentials(bytes.B32{4, 5, 6}),
-					Amount:                100,
-					Signature:             crypto.BLSSignature{1, 2, 3},
-					Index:                 1,
+					Pubkey:      crypto.BLSPubkey{1, 2, 3},
+					Credentials: types.WithdrawalCredentials(bytes.B32{4, 5, 6}),
+					Amount:      100,
+					Signature:   crypto.BLSSignature{1, 2, 3},
+					Index:       1,
 				},
 			},
 			Withdrawals: []*types.WithdrawalRequest{

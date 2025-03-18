@@ -54,7 +54,7 @@ func TestExecutionRequests_ValidValuesSSZ(t *testing.T) {
 			31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
 			41, 42, 43, 44, 45, 46, 47, 48,
 		},
-		WithdrawalCredentials: [32]byte{
+		Credentials: [32]byte{
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
 			11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
 			21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
@@ -152,7 +152,7 @@ func TestExecutionRequests_ValidValuesSSZ(t *testing.T) {
 							37, 38, 39, 40, 41, 42, 43, 44, 45, 46,
 							47, 48, 49, 50, 51, 52, 53, 54,
 						},
-						WithdrawalCredentials: [32]byte{
+						Credentials: [32]byte{
 							7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
 							17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
 							27, 28, 29, 30, 31, 32, 33, 34, 35, 36,
@@ -332,7 +332,7 @@ func TestDepositRequest_ValidValuesSSZ(t *testing.T) {
 					41, 42, 43, 44, 45, 46, 47, 48,
 				},
 				// 32-byte withdrawal credentials
-				WithdrawalCredentials: [32]byte{
+				Credentials: [32]byte{
 					1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
 					11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
 					21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
@@ -364,7 +364,7 @@ func TestDepositRequest_ValidValuesSSZ(t *testing.T) {
 					30, 31, 32, 33, 34, 35, 36, 37, 38, 39,
 					40, 41, 42, 43, 44, 45, 46, 47, 48,
 				},
-				WithdrawalCredentials: [32]byte{
+				Credentials: [32]byte{
 					10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
 					20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
 					30, 31, 32, 33, 34, 35, 36, 37, 38, 39,
@@ -395,7 +395,7 @@ func TestDepositRequest_ValidValuesSSZ(t *testing.T) {
 					255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
 					255, 255, 255, 255, 255, 255, 255, 255,
 				},
-				WithdrawalCredentials: [32]byte{
+				Credentials: [32]byte{
 					255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
 					255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
 					255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
@@ -426,7 +426,7 @@ func TestDepositRequest_ValidValuesSSZ(t *testing.T) {
 					37, 38, 39, 40, 41, 42, 43, 44, 45, 46,
 					47, 48, 49, 50, 51, 52, 53, 54,
 				},
-				WithdrawalCredentials: [32]byte{
+				Credentials: [32]byte{
 					7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
 					17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
 					27, 28, 29, 30, 31, 32, 33, 34, 35, 36,
@@ -475,8 +475,7 @@ func TestDepositRequest_ValidValuesSSZ(t *testing.T) {
 			require.NoError(t, err)
 
 			// Unmarshal back into a new DepositRequest.
-			var recomputedDepositRequest types.DepositRequest
-			err = recomputedDepositRequest.UnmarshalSSZ(prysmDepositBytes)
+			recomputedDepositRequest, err := (&types.DepositRequest{}).NewFromSSZ(prysmDepositBytes)
 			require.NoError(t, err)
 
 			// Compare that the original and recomputed deposit requests match.
@@ -499,7 +498,7 @@ func TestDepositRequest_InvalidValuesUnmarshalSSZ(t *testing.T) {
 			41, 42, 43, 44, 45, 46, 47, 48,
 		},
 		// 32-byte withdrawal credentials
-		WithdrawalCredentials: [32]byte{
+		Credentials: [32]byte{
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
 			11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
 			21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
@@ -549,9 +548,8 @@ func TestDepositRequest_InvalidValuesUnmarshalSSZ(t *testing.T) {
 		i, payload := i, payload // capture range variables
 		t.Run(fmt.Sprintf("invalidPayload_%d", i), func(t *testing.T) {
 			t.Parallel()
-			var dr types.DepositRequest
 			require.NotPanics(t, func() {
-				err = dr.UnmarshalSSZ(payload)
+				_, err = (&types.DepositRequest{}).NewFromSSZ(payload)
 				// We expect an error for every invalid payload.
 				require.Error(t, err, "expected error for payload %v", payload)
 			})
