@@ -109,7 +109,7 @@ func (bs *BlobSidecars) MarshalSSZTo(buf []byte) ([]byte, error) {
 }
 
 // NewFromSSZ unmarshals the BlobSidecars object from SSZ format.
-func (*BlobSidecars) NewFromSSZ(buf []byte) (*BlobSidecars, error) {
+func (BlobSidecars) NewFromSSZ(buf []byte) (*BlobSidecars, error) {
 	bs := &BlobSidecars{}
 	return bs, ssz.DecodeFromBytes(buf, bs)
 }
