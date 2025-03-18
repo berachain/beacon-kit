@@ -68,7 +68,7 @@ func TestRetrievePayloadSunnyPath(t *testing.T) {
 		parentBlockRoot = common.Root{0xff, 0xaa}
 		dummyPayloadID  = engineprimitives.PayloadID{0xab}
 
-		expectedPayload = &ctypes.ExecutionPayloadEnvelope{
+		expectedPayload = &ctypes.ExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1]{
 			ExecutionPayload: &ctypes.ExecutionPayload{
 				Withdrawals: engineprimitives.Withdrawals{},
 			},
@@ -116,7 +116,7 @@ func TestRetrievePayloadNilWithdrawalsListRejected(t *testing.T) {
 		parentBlockRoot = common.Root{0xff, 0xaa}
 		dummyPayloadID  = engineprimitives.PayloadID{0xab}
 
-		faultyPayload = &ctypes.ExecutionPayloadEnvelope{
+		faultyPayload = &ctypes.ExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1]{
 			ExecutionPayload: &ctypes.ExecutionPayload{
 				Withdrawals: nil, // empty withdrawals are fine, nil list should be rejected
 			},

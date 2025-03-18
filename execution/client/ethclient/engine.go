@@ -132,7 +132,7 @@ func (s *Client) GetPayloadV3(
 	payloadID engineprimitives.PayloadID,
 	forkVersion common.Version,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
-	result := ctypes.NewEmptyExecutionPayloadEnvelope(forkVersion)
+	result := ctypes.NewEmptyExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1](forkVersion)
 	if err := s.Call(ctx, result, GetPayloadMethodV3, payloadID); err != nil {
 		return nil, fmt.Errorf("failed GetPayloadV3 call: %w", err)
 	}
