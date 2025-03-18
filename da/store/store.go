@@ -87,9 +87,7 @@ func (s *Store) GetBlobSidecars(slot math.Slot) (types.BlobSidecars, error) {
 
 // Persist ensures the sidecar data remains accessible, utilizing parallel
 // processing for efficiency.
-func (s *Store) Persist(
-	sidecars types.BlobSidecars,
-) error {
+func (s *Store) Persist(sidecars types.BlobSidecars) error {
 	var slot math.Slot
 	// Store each sidecar sequentially. The store's underlying RangeDB is not
 	// built to handle concurrent writes.

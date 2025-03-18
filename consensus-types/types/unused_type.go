@@ -59,13 +59,14 @@ func (ut *UnusedType) MarshalSSZ() ([]byte, error) {
 }
 
 // NewFromSSZ creates a new UnusedType object from SSZ format.
-func (*UnusedType) NewFromSSZ(buf []byte) (*UnusedType, error) {
+func (ut *UnusedType) NewFromSSZ(buf []byte) (*UnusedType, error) {
 	if len(buf) != 1 {
 		return nil, fmt.Errorf("expected 1 byte got %d", len(buf))
 	}
 	//#nosec:G701 // UnusedType is uint8 and byte is uint8.
-	ut := UnusedType(buf[0])
-	return &ut, nil
+	u := UnusedType(buf[0])
+	ut = &u
+	return ut, nil
 }
 
 // HashTreeRoot returns the hash tree root of the Deposits.

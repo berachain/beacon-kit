@@ -168,17 +168,18 @@ func (b *BeaconBlockBody) MarshalSSZ() ([]byte, error) {
 
 // empty returns an empty BeaconBlockBody for the given fork version.
 func (*BeaconBlockBody) empty(version common.Version) *BeaconBlockBody {
+	var ep *ExecutionPayload
 	return &BeaconBlockBody{
 		Versionable:      NewVersionable(version),
 		Eth1Data:         &Eth1Data{},
-		ExecutionPayload: (&ExecutionPayload{}).empty(version),
+		ExecutionPayload: ep.empty(version),
 		syncAggregate:    &SyncAggregate{},
 	}
 }
 
 // NewFromSSZ deserializes the BeaconBlockBody from SSZ-encoded bytes.
-func (*BeaconBlockBody) NewFromSSZ(buf []byte, version common.Version) (*BeaconBlockBody, error) {
-	b := (&BeaconBlockBody{}).empty(version)
+func (b *BeaconBlockBody) NewFromSSZ(buf []byte, version common.Version) (*BeaconBlockBody, error) {
+	b = b.empty(version)
 	err := ssz.DecodeFromBytes(buf, b)
 	if err != nil {
 		return nil, err

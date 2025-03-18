@@ -167,13 +167,20 @@ func (*BlobSidecar) empty() *BlobSidecar {
 }
 
 // NewFromSSZ creates a new BlobSidecar object from SSZ format.
-func (*BlobSidecar) NewFromSSZ(buf []byte) (*BlobSidecar, error) {
-	b := (&BlobSidecar{}).empty()
-	err := ssz.DecodeFromBytes(buf, b)
+func (b *BlobSidecar) NewFromSSZ(buf []byte) (*BlobSidecar, error) {
+	if b == nil {
+		b = b.empty()
+	}
+
+	if err := ssz.DecodeFromBytes(buf, b); err != nil {
+		return nil, err
+	}
+
 	if len(b.InclusionProof) != ctypes.KZGInclusionProofDepth {
 		return nil, errors.New("invalid inclusion proof length")
 	}
-	return b, err
+
+	return b, nil
 }
 
 // MarshalSSZTo marshals the BlobSidecar object to the provided buffer in SSZ

@@ -177,8 +177,8 @@ func (*ExecutionPayload) empty(version common.Version) *ExecutionPayload {
 }
 
 // NewFromSSZ unmarshals the ExecutionPayload object from a source array with a given fork version.
-func (*ExecutionPayload) NewFromSSZ(bz []byte, version common.Version) (*ExecutionPayload, error) {
-	p := (&ExecutionPayload{}).empty(version)
+func (p *ExecutionPayload) NewFromSSZ(bz []byte, version common.Version) (*ExecutionPayload, error) {
+	p = p.empty(version)
 	return p, ssz.DecodeFromBytes(bz, p)
 }
 

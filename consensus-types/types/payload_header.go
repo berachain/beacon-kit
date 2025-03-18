@@ -152,10 +152,10 @@ func (h *ExecutionPayloadHeader) MarshalSSZ() ([]byte, error) {
 }
 
 // NewFromSSZ returns a new ExecutionPayloadHeader from the given SSZ bytes.
-func (*ExecutionPayloadHeader) NewFromSSZ(
+func (h *ExecutionPayloadHeader) NewFromSSZ(
 	bz []byte, forkVersion common.Version,
 ) (*ExecutionPayloadHeader, error) {
-	h := (&ExecutionPayloadHeader{}).empty(forkVersion)
+	h = h.empty(forkVersion)
 	return h, ssz.DecodeFromBytes(bz, h)
 }
 

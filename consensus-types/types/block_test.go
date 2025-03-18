@@ -136,7 +136,8 @@ func TestBeaconBlock_MarshalUnmarshalSSZ(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, sszBlock)
 
-		unmarshalledBlock, err := (&types.BeaconBlock{}).NewFromSSZ(sszBlock, v)
+		var unmarshalledBlock *types.BeaconBlock
+		unmarshalledBlock, err = unmarshalledBlock.NewFromSSZ(sszBlock, v)
 		require.NoError(t, err)
 		require.Equal(t, block, unmarshalledBlock)
 	})

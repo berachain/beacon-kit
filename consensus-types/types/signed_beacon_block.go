@@ -135,10 +135,10 @@ func (*SignedBeaconBlock) empty(version common.Version) *SignedBeaconBlock {
 }
 
 // NewFromSSZ creates a new SignedBeaconBlock from SSZ format.
-func (*SignedBeaconBlock) NewFromSSZ(
+func (b *SignedBeaconBlock) NewFromSSZ(
 	buf []byte, version common.Version,
 ) (*SignedBeaconBlock, error) {
-	b := (&SignedBeaconBlock{}).empty(version)
+	b = b.empty(version)
 	return b, ssz.DecodeFromBytes(buf, b)
 }
 
