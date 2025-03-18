@@ -38,7 +38,7 @@ import (
 
 func generateBeaconBlockBody(t *testing.T, forkVersion common.Version) types.BeaconBlockBody {
 	t.Helper()
-	versionable := types.NewVersionable(version)
+	versionable := types.NewVersionable(forkVersion)
 	body := types.BeaconBlockBody{
 		Versionable:  versionable,
 		RandaoReveal: [96]byte{1, 2, 3},
@@ -351,8 +351,7 @@ func TestBeaconBlockBody_ExecutionRequestsSSZMarshalling(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, data)
 
-	unmarshalledBody := &types.BeaconBlockBody{}
-	err = unmarshalledBody.UnmarshalSSZ(data, body.GetForkVersion())
+	unmarshalledBody, err := (&types.BeaconBlockBody{}).NewFromSSZ(data, body.GetForkVersion())
 	require.NoError(t, err)
 	executionRequests, err := unmarshalledBody.GetExecutionRequests()
 	require.NoError(t, err)

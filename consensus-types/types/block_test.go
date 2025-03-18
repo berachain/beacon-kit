@@ -48,7 +48,7 @@ func generateValidBeaconBlock(t *testing.T, forkVersion common.Version) *types.B
 	)
 	require.NoError(t, err)
 
-	versionable := types.NewVersionable(version)
+	versionable := types.NewVersionable(forkVersion)
 	beaconBlock.StateRoot = common.Root{5, 4, 3, 2, 1}
 	beaconBlock.Body = &types.BeaconBlockBody{
 		Versionable: versionable,
