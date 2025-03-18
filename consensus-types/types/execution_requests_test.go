@@ -479,7 +479,7 @@ func TestDepositRequest_ValidValuesSSZ(t *testing.T) {
 			require.NoError(t, err)
 
 			// Compare that the original and recomputed deposit requests match.
-			require.Equal(t, *tc.depositRequest, recomputedDepositRequest)
+			require.Equal(t, *tc.depositRequest, *recomputedDepositRequest)
 		})
 	}
 }
