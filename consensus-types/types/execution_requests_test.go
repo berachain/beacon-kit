@@ -252,9 +252,9 @@ func TestExecutionRequests_ValidValuesSSZ(t *testing.T) {
 }
 
 // TestExecutionRequests_InvalidValuesUnmarshalSSZ ensures that Unmarshal must never panic.
+//
+//nolint:paralleltest // Invalid SSZ values cannot be run in parallel due to zeroalloc, which is global shared memory.
 func TestExecutionRequests_InvalidValuesUnmarshalSSZ(t *testing.T) {
-	t.Parallel()
-
 	// Define several invalid payloads.
 	invalidPayloads := [][]byte{
 		nil,                    // nil slice
@@ -301,7 +301,6 @@ func TestExecutionRequests_InvalidValuesUnmarshalSSZ(t *testing.T) {
 	for i, payload := range invalidPayloads {
 		i, payload := i, payload // capture loop variables
 		t.Run(fmt.Sprintf("invalidPayload_%d", i), func(t *testing.T) {
-			t.Parallel()
 			var er types.ExecutionRequests
 			// Ensure that calling UnmarshalSSZ with an invalid payload does not panic
 			// and returns a non-nil error.
@@ -484,9 +483,8 @@ func TestDepositRequest_ValidValuesSSZ(t *testing.T) {
 	}
 }
 
+//nolint:paralleltest // Invalid SSZ values cannot be run in parallel due to zeroalloc, which is global shared memory.
 func TestDepositRequest_InvalidValuesUnmarshalSSZ(t *testing.T) {
-	t.Parallel()
-
 	// Build a valid deposit request and marshal it to obtain a baseline valid payload.
 	validDeposit := &types.DepositRequest{
 		// 48-byte public key
@@ -547,7 +545,6 @@ func TestDepositRequest_InvalidValuesUnmarshalSSZ(t *testing.T) {
 	for i, payload := range invalidPayloads {
 		i, payload := i, payload // capture range variables
 		t.Run(fmt.Sprintf("invalidPayload_%d", i), func(t *testing.T) {
-			t.Parallel()
 			require.NotPanics(t, func() {
 				_, err = (&types.DepositRequest{}).NewFromSSZ(payload)
 				// We expect an error for every invalid payload.
