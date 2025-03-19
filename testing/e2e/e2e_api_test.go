@@ -34,6 +34,7 @@ import (
 	apiv1 "github.com/attestantio/go-eth2-client/api/v1"
 	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/berachain/beacon-kit/config/spec"
+	"github.com/berachain/beacon-kit/node-api/backend"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
@@ -902,8 +903,8 @@ func (s *BeaconKitE2ESuite) TestConfigSpec() {
 
 	// Check penalty quotients
 	s.Require().Contains(specData, "INACTIVITY_PENALTY_QUOTIENT")
-	s.Require().Equal(67108864, specData["INACTIVITY_PENALTY_QUOTIENT"])
+	s.Require().Equal(uint64(backend.Phase0InactivityPenaltyQuotient), specData["INACTIVITY_PENALTY_QUOTIENT"])
 
 	s.Require().Contains(specData, "INACTIVITY_PENALTY_QUOTIENT_ALTAIR")
-	s.Require().Equal(50331648, specData["INACTIVITY_PENALTY_QUOTIENT_ALTAIR"])
+	s.Require().Equal(uint64(backend.AltairInactivityPenaltyQuotient), specData["INACTIVITY_PENALTY_QUOTIENT_ALTAIR"])
 }

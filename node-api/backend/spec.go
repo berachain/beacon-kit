@@ -26,8 +26,8 @@ import (
 )
 
 const (
-	phase0InactivityPenaltyQuotient = 67108864
-	altairInactivityPenaltyQuotient = 50331648
+	Phase0InactivityPenaltyQuotient = 67108864
+	AltairInactivityPenaltyQuotient = 50331648
 )
 
 func (b *Backend) Spec() (*types.SpecData, error) {
@@ -42,8 +42,7 @@ func (b *Backend) Spec() (*types.SpecData, error) {
 		// These values are taken from ETH2.0 consensus spec.Currently these are placeholders, will be replaced
 		// with the correct values for our versions like Deneb, Deneb1 etc once we implement slashing for inactivity.
 		// https://github.com/ethereum/consensus-specs/blob/v1.3.0/specs/phase0/beacon-chain.md#rewards-and-penalties for phase 0.
-		InactivityPenaltyQuotient: phase0InactivityPenaltyQuotient,
-		// https://github.com/ethereum/consensus-specs/blob/v1.3.0/specs/altair/beacon-chain.md#updated-penalty-values for altair.
-		InactivityPenaltyQuotientAltair: altairInactivityPenaltyQuotient,
+		InactivityPenaltyQuotient:       Phase0InactivityPenaltyQuotient,
+		InactivityPenaltyQuotientAltair: AltairInactivityPenaltyQuotient,
 	}, nil
 }
