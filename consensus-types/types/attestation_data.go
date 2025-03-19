@@ -87,6 +87,9 @@ func (a *AttestationData) NewFromSSZ(buf []byte) (*AttestationData, error) {
 	return a, ssz.DecodeFromBytes(buf, a)
 }
 
+func (*AttestationData) IsUnusedFromSZZ() bool      { return false }
+func (*AttestationData) VerifySyntaxFromSSZ() error { return nil }
+
 /* -------------------------------------------------------------------------- */
 /*                                   FastSSZ                                  */
 /* -------------------------------------------------------------------------- */

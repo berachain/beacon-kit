@@ -110,3 +110,6 @@ func (bs *BlobSidecars) NewFromSSZ(buf []byte) (*BlobSidecars, error) {
 	}
 	return bs, ssz.DecodeFromBytes(buf, bs)
 }
+
+func (*BlobSidecars) IsUnusedFromSZZ() bool      { return false }
+func (*BlobSidecars) VerifySyntaxFromSSZ() error { return nil }

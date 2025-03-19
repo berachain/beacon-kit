@@ -35,6 +35,8 @@ type SSZMarshaler interface {
 type SSZUnmarshaler[SelfT any] interface {
 	// NewFromSSZ creates a new object from SSZ format.
 	NewFromSSZ(bz []byte) (SelfT, error)
+	IsUnusedFromSZZ() bool      // some types are not used and we can/must shortcut their marshalling
+	VerifySyntaxFromSSZ() error // once unmarshalled we will check whether type syntax is correct
 }
 
 // SSZVersionedUnmarshaler is an interface for objects that can be

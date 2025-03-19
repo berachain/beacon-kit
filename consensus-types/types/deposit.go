@@ -108,6 +108,9 @@ func (d *Deposit) NewFromSSZ(buf []byte) (*Deposit, error) {
 	return d, ssz.DecodeFromBytes(buf, d)
 }
 
+func (*Deposit) IsUnusedFromSZZ() bool      { return false }
+func (*Deposit) VerifySyntaxFromSSZ() error { return nil }
+
 // SizeSSZ returns the SSZ encoded size of the Deposit object.
 func (d *Deposit) SizeSSZ(*ssz.Sizer) uint32 {
 	return DepositSize

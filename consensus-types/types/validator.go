@@ -139,6 +139,9 @@ func (v *Validator) NewFromSSZ(buf []byte) (*Validator, error) {
 	return v, ssz.DecodeFromBytes(buf, v)
 }
 
+func (*Validator) IsUnusedFromSZZ() bool      { return false }
+func (*Validator) VerifySyntaxFromSSZ() error { return nil }
+
 /* -------------------------------------------------------------------------- */
 /*                                   FastSSZ                                  */
 /* -------------------------------------------------------------------------- */

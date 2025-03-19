@@ -87,6 +87,9 @@ func (b *SignedBeaconBlockHeader) NewFromSSZ(buf []byte) (*SignedBeaconBlockHead
 	return b, ssz.DecodeFromBytes(buf, b)
 }
 
+func (*SignedBeaconBlockHeader) IsUnusedFromSZZ() bool      { return false }
+func (*SignedBeaconBlockHeader) VerifySyntaxFromSSZ() error { return nil }
+
 // HashTreeRoot computes the SSZ hash tree root of the
 // SignedBeaconBlockHeader object.
 func (b *SignedBeaconBlockHeader) HashTreeRoot() common.Root {

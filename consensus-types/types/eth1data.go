@@ -91,6 +91,9 @@ func (e *Eth1Data) NewFromSSZ(buf []byte) (*Eth1Data, error) {
 	return e, ssz.DecodeFromBytes(buf, e)
 }
 
+func (*Eth1Data) IsUnusedFromSZZ() bool      { return false }
+func (*Eth1Data) VerifySyntaxFromSSZ() error { return nil }
+
 // MarshalSSZTo marshals the Eth1Data object into a pre-allocated byte slice.
 func (e *Eth1Data) MarshalSSZTo(dst []byte) ([]byte, error) {
 	bz, err := e.MarshalSSZ()

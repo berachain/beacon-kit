@@ -71,6 +71,9 @@ func (s *SyncAggregate) NewFromSSZ(buf []byte) (*SyncAggregate, error) {
 	return s, ssz.DecodeFromBytes(buf, s)
 }
 
+func (*SyncAggregate) IsUnusedFromSZZ() bool      { return false }
+func (*SyncAggregate) VerifySyntaxFromSSZ() error { return nil }
+
 // HashTreeRoot returns the hash tree root of the Deposits.
 func (s *SyncAggregate) HashTreeRoot() common.Root {
 	htr := ssz.HashSequential(s)

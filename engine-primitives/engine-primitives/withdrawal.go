@@ -102,6 +102,9 @@ func (w *Withdrawal) NewFromSSZ(buf []byte) (*Withdrawal, error) {
 	return w, ssz.DecodeFromBytes(buf, w)
 }
 
+func (*Withdrawal) IsUnusedFromSZZ() bool      { return false }
+func (*Withdrawal) VerifySyntaxFromSSZ() error { return nil }
+
 /* -------------------------------------------------------------------------- */
 /*                                   FastSSZ                                  */
 /* -------------------------------------------------------------------------- */

@@ -88,6 +88,9 @@ func (s *SlashingInfo) NewFromSSZ(buf []byte) (*SlashingInfo, error) {
 	return s, ssz.DecodeFromBytes(buf, s)
 }
 
+func (*SlashingInfo) IsUnusedFromSZZ() bool      { return false }
+func (*SlashingInfo) VerifySyntaxFromSSZ() error { return nil }
+
 /* -------------------------------------------------------------------------- */
 /*                                   FastSSZ                                  */
 /* -------------------------------------------------------------------------- */

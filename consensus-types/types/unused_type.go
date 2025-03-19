@@ -69,6 +69,9 @@ func (ut *UnusedType) NewFromSSZ(buf []byte) (*UnusedType, error) {
 	return ut, nil
 }
 
+func (*UnusedType) IsUnusedFromSZZ() bool      { return true }
+func (*UnusedType) VerifySyntaxFromSSZ() error { return nil }
+
 // HashTreeRoot returns the hash tree root of the Deposits.
 func (ut *UnusedType) HashTreeRoot() common.Root {
 	return ssz.HashSequential(ut)

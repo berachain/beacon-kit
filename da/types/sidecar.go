@@ -180,6 +180,14 @@ func (b *BlobSidecar) NewFromSSZ(buf []byte) (*BlobSidecar, error) {
 	return b, nil
 }
 
+func (*BlobSidecar) IsUnusedFromSZZ() bool { return false }
+func (b *BlobSidecar) VerifySyntaxFromSSZ() error {
+	if len(b.InclusionProof) != ctypes.KZGInclusionProofDepth {
+		return errors.New("invalid inclusion proof length")
+	}
+	return nil
+}
+
 // MarshalSSZTo marshals the BlobSidecar object to the provided buffer in SSZ
 // format.
 func (b *BlobSidecar) MarshalSSZTo(buf []byte) ([]byte, error) {

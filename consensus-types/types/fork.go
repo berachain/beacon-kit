@@ -95,6 +95,9 @@ func (f *Fork) NewFromSSZ(buf []byte) (*Fork, error) {
 	return f, ssz.DecodeFromBytes(buf, f)
 }
 
+func (*Fork) IsUnusedFromSZZ() bool      { return false }
+func (*Fork) VerifySyntaxFromSSZ() error { return nil }
+
 // HashTreeRoot computes the SSZ hash tree root of the Fork object.
 func (f *Fork) HashTreeRoot() common.Root {
 	return ssz.HashSequential(f)
