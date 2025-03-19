@@ -892,7 +892,7 @@ func TestConsolidationRequest_InvalidValuesUnmarshalSSZ(t *testing.T) {
 	}
 }
 
-func TestDecodeExecutionRequests(t *testing.T) {
+func TestDecodeExecutionRequests_PrysmTests(t *testing.T) {
 	t.Run("All requests decode successfully", func(t *testing.T) {
 		depositRequestBytes, err := hexutil.Decode("0x610000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
 			"620000000000000000000000000000000000000000000000000000000000000000" +
@@ -911,7 +911,7 @@ func TestDecodeExecutionRequests(t *testing.T) {
 				append([]byte{uint8(enginev1.WithdrawalRequestType)}, withdrawalRequestBytes...),
 				append([]byte{uint8(enginev1.ConsolidationRequestType)}, consolidationRequestBytes...)},
 		}
-		requests, err := ebe.GetDecodedExecutionRequests()
+		requests, err := types.DecodeExecutionRequests(ebe.GetExecutionRequests())
 		require.NoError(t, err)
 		require.Len(t, requests.Deposits, 1)
 		require.Len(t, requests.Withdrawals, 1)
