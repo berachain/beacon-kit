@@ -23,6 +23,7 @@ package encoding
 import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	sszconstructors "github.com/berachain/beacon-kit/primitives/ssz-constructors"
 )
@@ -102,6 +103,9 @@ func UnmarshalBlobSidecarsFromABCIRequest(
 	sidecars, err := sszconstructors.NewFromSSZ[*datypes.BlobSidecars](sidecarBz)
 	if err != nil {
 		return nil, err
+	}
+	if sidecars == nil { // appease nilaway
+		return nil, errors.New("nil sidecars")
 	}
 	return *sidecars, nil
 }
