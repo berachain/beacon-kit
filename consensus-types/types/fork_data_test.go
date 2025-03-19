@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	sszconstructors "github.com/berachain/beacon-kit/primitives/ssz-constructors"
 	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
@@ -42,8 +43,7 @@ func TestForkData_Serialization(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, data)
 
-	var unmarshalled *types.ForkData
-	unmarshalled, err = unmarshalled.NewFromSSZ(data)
+	unmarshalled, err := sszconstructors.NewFromSSZ[*types.ForkData](data)
 	require.NoError(t, err)
 
 	require.Equal(t, original, unmarshalled)
@@ -51,8 +51,7 @@ func TestForkData_Serialization(t *testing.T) {
 
 func TestForkData_Unmarshal(t *testing.T) {
 	t.Parallel()
-	var unmarshalled types.ForkData
-	_, err := unmarshalled.NewFromSSZ([]byte{})
+	_, err := sszconstructors.NewFromSSZ[*types.ForkData]([]byte{})
 	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
 

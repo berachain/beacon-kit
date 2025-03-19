@@ -35,6 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/math/log"
+	sszconstructors "github.com/berachain/beacon-kit/primitives/ssz-constructors"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -72,7 +73,7 @@ func TestSidecarMarshalling(t *testing.T) {
 	require.NotNil(t, marshalled, "Marshalling should produce a result")
 
 	// Unmarshal the sidecar
-	unmarshalled, err := (&types.BlobSidecar{}).NewFromSSZ(marshalled)
+	unmarshalled, err := sszconstructors.NewFromSSZ[*types.BlobSidecar](marshalled)
 	require.NoError(t, err, "Unmarshalling should not produce an error")
 
 	// Compare the original and unmarshalled sidecars

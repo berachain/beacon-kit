@@ -14,7 +14,7 @@ func NewFromSSZ[T interface {
 }](buf []byte) (T, error) {
 	var v T
 	if v.IsUnusedFromSZZ() {
-		// we special case construction of unsed types, for efficiency
+		// we special case construction of unused types, for efficiency
 		if len(buf) != 1 {
 			return v, fmt.Errorf("expected 1 byte got %d", len(buf))
 		}

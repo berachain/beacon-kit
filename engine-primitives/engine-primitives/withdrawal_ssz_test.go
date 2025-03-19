@@ -25,6 +25,7 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/math"
+	sszconstructors "github.com/berachain/beacon-kit/primitives/ssz-constructors"
 	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
@@ -42,7 +43,7 @@ func TestWithdrawalSSZ(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, data)
 
-	unmarshalled, err := withdrawal.NewFromSSZ(data)
+	unmarshalled, err := sszconstructors.NewFromSSZ[*engineprimitives.Withdrawal](data)
 	require.NoError(t, err)
 	require.Equal(t, withdrawal, unmarshalled)
 
@@ -128,7 +129,7 @@ func TestWithdrawalUnmarshalSSZ(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			w, err := (&engineprimitives.Withdrawal{}).NewFromSSZ(tt.input)
+			w, err := sszconstructors.NewFromSSZ[*engineprimitives.Withdrawal](tt.input)
 
 			if tt.wantErr {
 				require.Error(t, err)

@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
+	sszconstructors "github.com/berachain/beacon-kit/primitives/ssz-constructors"
 	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
@@ -49,8 +50,8 @@ func TestSignedBeaconBlockHeader_Serialization(t *testing.T) {
 	data, err := orig.MarshalSSZ()
 	require.NoError(t, err)
 	require.NotNil(t, data)
-	var unmarshalled *types.SignedBeaconBlockHeader
-	unmarshalled, err = unmarshalled.NewFromSSZ(data)
+
+	unmarshalled, err := sszconstructors.NewFromSSZ[*types.SignedBeaconBlockHeader](data)
 	require.NoError(t, err)
 	require.Equal(t, orig, unmarshalled)
 
@@ -69,8 +70,7 @@ func TestSignedBeaconBlockHeader_EmptySerialization(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, data)
 
-	var unmarshalled *types.SignedBeaconBlockHeader
-	unmarshalled, err = unmarshalled.NewFromSSZ(data)
+	unmarshalled, err := sszconstructors.NewFromSSZ[*types.SignedBeaconBlockHeader](data)
 	require.NoError(t, err)
 	require.NotNil(t, unmarshalled.GetHeader())
 	require.NotNil(t, unmarshalled.GetSignature())

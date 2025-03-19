@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
+	sszconstructors "github.com/berachain/beacon-kit/primitives/ssz-constructors"
 	ssz "github.com/ferranbt/fastssz"
 	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
@@ -100,10 +101,8 @@ func TestDeposit_MarshalUnmarshalSSZ(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, sszDeposit)
 
-	var unmarshalledDeposit *types.Deposit
-	unmarshalledDeposit, err = unmarshalledDeposit.NewFromSSZ(sszDeposit)
+	unmarshalledDeposit, err := sszconstructors.NewFromSSZ[*types.Deposit](sszDeposit)
 	require.NoError(t, err)
-
 	require.Equal(t, originalDeposit, unmarshalledDeposit)
 }
 
@@ -153,8 +152,7 @@ func TestDeposit_UnmarshalSSZ_ErrSize(t *testing.T) {
 	// Create a byte slice of incorrect size
 	buf := make([]byte, 10) // size less than 192
 
-	var unmarshalledDeposit *types.Deposit
-	_, err := unmarshalledDeposit.NewFromSSZ(buf)
+	_, err := sszconstructors.NewFromSSZ[*types.Deposit](buf)
 	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
 

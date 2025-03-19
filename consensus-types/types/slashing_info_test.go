@@ -26,6 +26,7 @@ import (
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/math"
+	sszconstructors "github.com/berachain/beacon-kit/primitives/ssz-constructors"
 	"github.com/stretchr/testify/require"
 )
 
@@ -77,13 +78,13 @@ func TestSlashingInfo_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, data)
 
-			var unmarshalled *types.SlashingInfo
 			if tc.name == "Invalid Buffer Size" {
-				_, err = unmarshalled.NewFromSSZ(data[:8])
+				_, err = sszconstructors.NewFromSSZ[*types.SlashingInfo](data[:8])
 				require.Error(t, err)
 				require.Equal(t, tc.err, err)
 			} else {
-				unmarshalled, err = unmarshalled.NewFromSSZ(data)
+				var unmarshalled *types.SlashingInfo
+				unmarshalled, err = sszconstructors.NewFromSSZ[*types.SlashingInfo](data)
 				require.NoError(t, err)
 				require.Equal(t, tc.expected, unmarshalled)
 
