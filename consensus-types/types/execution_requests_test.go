@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	enginev1 "github.com/prysmaticlabs/prysm/v5/proto/engine/v1"
 	"github.com/stretchr/testify/require"
 )
@@ -889,4 +890,31 @@ func TestConsolidationRequest_InvalidValuesUnmarshalSSZ(t *testing.T) {
 			})
 		})
 	}
+}
+
+func TestDecodeExecutionRequests(t *testing.T) {
+	t.Run("All requests decode successfully", func(t *testing.T) {
+		depositRequestBytes, err := hexutil.Decode("0x610000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+			"620000000000000000000000000000000000000000000000000000000000000000" +
+			"4059730700000063000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+			"00000000000000000000000000000000000000000000000000000000000000000000000000000000")
+		require.NoError(t, err)
+		withdrawalRequestBytes, err := hexutil.Decode("0x6400000000000000000000000000000000000000" +
+			"6500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000040597307000000")
+		require.NoError(t, err)
+		consolidationRequestBytes, err := hexutil.Decode("0x6600000000000000000000000000000000000000" +
+			"670000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+			"680000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000")
+		require.NoError(t, err)
+		ebe := &enginev1.ExecutionBundleElectra{
+			ExecutionRequests: [][]byte{append([]byte{uint8(enginev1.DepositRequestType)}, depositRequestBytes...),
+				append([]byte{uint8(enginev1.WithdrawalRequestType)}, withdrawalRequestBytes...),
+				append([]byte{uint8(enginev1.ConsolidationRequestType)}, consolidationRequestBytes...)},
+		}
+		requests, err := ebe.GetDecodedExecutionRequests()
+		require.NoError(t, err)
+		require.Len(t, requests.Deposits, 1)
+		require.Len(t, requests.Withdrawals, 1)
+		require.Len(t, requests.Consolidations, 1)
+	})
 }

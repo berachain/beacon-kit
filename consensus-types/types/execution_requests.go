@@ -58,6 +58,9 @@ type ExecutionRequests struct {
 // DepositRequest is introduced in EIP6110 which is currently not processed.
 type DepositRequest = Deposit
 
+// DepositRequests is used for SSZ unmarshalling a list of DepositRequest
+type DepositRequests []*DepositRequest
+
 // WithdrawalRequest is introduced in EIP7002 which we use for withdrawals.
 type WithdrawalRequest struct {
 	SourceAddress   common.ExecutionAddress
@@ -207,7 +210,29 @@ func (e *ExecutionRequests) NewFromSSZ(buf []byte) (*ExecutionRequests, error) {
 
 // HashTreeRoot returns the hash tree root of the Deposits.
 func (e *ExecutionRequests) HashTreeRoot() common.Root {
-	return ssz.HashConcurrent(e)
+	return ssz.HashSequential(e)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                       Deposit    Requests SSZ                              */
+/* -------------------------------------------------------------------------- */
+
+// SizeSSZ returns the SSZ encoded size in bytes for the Deposits.
+func (dr DepositRequests) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {
+	return ssz.SizeSliceOfStaticObjects(siz, ([]*DepositRequest)(dr))
+}
+
+// DefineSSZ defines the SSZ encoding for the Deposits object.
+func (dr DepositRequests) DefineSSZ(c *ssz.Codec) {
+	c.DefineDecoder(func(*ssz.Decoder) {
+		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*DepositRequest)(&dr), maxDepositRequestsPerPayload)
+	})
+	c.DefineEncoder(func(*ssz.Encoder) {
+		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*DepositRequest)(&dr), maxDepositRequestsPerPayload)
+	})
+	c.DefineHasher(func(*ssz.Hasher) {
+		ssz.DefineSliceOfStaticObjectsOffset(c, (*[]*DepositRequest)(&dr), maxDepositRequestsPerPayload)
+	})
 }
 
 /* -------------------------------------------------------------------------- */
@@ -244,7 +269,6 @@ func (wr WithdrawalRequests) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {
 }
 
 // DefineSSZ defines the SSZ encoding for the Deposits object.
-// TODO: get from accessible chainspec field params.
 func (wr WithdrawalRequests) DefineSSZ(c *ssz.Codec) {
 	c.DefineDecoder(func(*ssz.Decoder) {
 		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*WithdrawalRequest)(&wr), maxWithdrawalRequestsPerPayload)
@@ -259,7 +283,7 @@ func (wr WithdrawalRequests) DefineSSZ(c *ssz.Codec) {
 
 // HashTreeRoot returns the hash tree root of the Deposits.
 func (wr WithdrawalRequests) HashTreeRoot() common.Root {
-	return ssz.HashConcurrent(wr)
+	return ssz.HashSequential(wr)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -311,7 +335,7 @@ func (cr ConsolidationRequests) DefineSSZ(c *ssz.Codec) {
 
 // HashTreeRoot returns the hash tree root of the Deposits.
 func (cr ConsolidationRequests) HashTreeRoot() common.Root {
-	return ssz.HashConcurrent(cr)
+	return ssz.HashSequential(cr)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -319,7 +343,7 @@ func (cr ConsolidationRequests) HashTreeRoot() common.Root {
 /* -------------------------------------------------------------------------- */
 
 func marshalSSZDeposits(deposits []*DepositRequest) ([]byte, error) {
-	d := Deposits(deposits)
+	d := DepositRequests(deposits)
 	buf := make([]byte, ssz.Size(d))
 	err := ssz.EncodeToBytes(buf, d)
 	if err != nil {
@@ -329,7 +353,7 @@ func marshalSSZDeposits(deposits []*DepositRequest) ([]byte, error) {
 }
 
 func unmarshalSSZDeposits(data []byte) ([]*DepositRequest, error) {
-	var deps Deposits
+	var deps DepositRequests
 	err := ssz.DecodeFromBytes(data, &deps)
 	return deps, err
 }
@@ -350,8 +374,8 @@ func unmarshalWithdrawals(data []byte) ([]*WithdrawalRequest, error) {
 	return withdrawals, err
 }
 
-func marshalSSZConsolidations(withdrawals []*ConsolidationRequest) ([]byte, error) {
-	c := ConsolidationRequests(withdrawals)
+func marshalSSZConsolidations(consolidations []*ConsolidationRequest) ([]byte, error) {
+	c := ConsolidationRequests(consolidations)
 	buf := make([]byte, ssz.Size(c))
 	err := ssz.EncodeToBytes(buf, c)
 	if err != nil {
