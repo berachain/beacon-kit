@@ -88,7 +88,7 @@ func (f *Fork) MarshalSSZ() ([]byte, error) {
 }
 
 func (*Fork) IsUnusedFromSZZ() bool      { return false }
-func (*Fork) VerifySyntaxFromSSZ() error { return nil }
+func (*Fork) EnsureSyntaxFromSSZ() error { return nil }
 
 // HashTreeRoot computes the SSZ hash tree root of the Fork object.
 func (f *Fork) HashTreeRoot() common.Root {

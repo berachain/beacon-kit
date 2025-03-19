@@ -99,7 +99,7 @@ func (b *BeaconBlockHeader) MarshalSSZ() ([]byte, error) {
 }
 
 func (*BeaconBlockHeader) IsUnusedFromSZZ() bool      { return false }
-func (*BeaconBlockHeader) VerifySyntaxFromSSZ() error { return nil }
+func (*BeaconBlockHeader) EnsureSyntaxFromSSZ() error { return nil }
 
 // HashTreeRoot computes the SSZ hash tree root of the BeaconBlockHeader object.
 func (b *BeaconBlockHeader) HashTreeRoot() common.Root {

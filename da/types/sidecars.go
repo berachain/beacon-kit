@@ -104,4 +104,4 @@ func (bs *BlobSidecars) MarshalSSZTo(buf []byte) ([]byte, error) {
 }
 
 func (*BlobSidecars) IsUnusedFromSZZ() bool      { return false }
-func (*BlobSidecars) VerifySyntaxFromSSZ() error { return nil }
+func (*BlobSidecars) EnsureSyntaxFromSSZ() error { return nil }

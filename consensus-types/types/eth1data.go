@@ -84,7 +84,7 @@ func (e *Eth1Data) MarshalSSZ() ([]byte, error) {
 }
 
 func (*Eth1Data) IsUnusedFromSZZ() bool      { return false }
-func (*Eth1Data) VerifySyntaxFromSSZ() error { return nil }
+func (*Eth1Data) EnsureSyntaxFromSSZ() error { return nil }
 
 // MarshalSSZTo marshals the Eth1Data object into a pre-allocated byte slice.
 func (e *Eth1Data) MarshalSSZTo(dst []byte) ([]byte, error) {

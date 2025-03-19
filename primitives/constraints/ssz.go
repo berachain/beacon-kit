@@ -34,7 +34,7 @@ type SSZMarshaler interface {
 // SSZUnmarshaler is an interface for objects that can be unmarshaled from SSZ format.
 type SSZUnmarshaler interface {
 	IsUnusedFromSZZ() bool      // some types are not used and we can/must shortcut their marshalling
-	VerifySyntaxFromSSZ() error // once unmarshalled we will check whether type syntax is correct
+	EnsureSyntaxFromSSZ() error // once unmarshalled we will check whether type syntax is correct
 }
 
 // SSZVersionedUnmarshaler is an interface for objects that can be

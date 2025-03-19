@@ -27,5 +27,5 @@ func NewFromSSZ[T interface {
 	if err := ssz.DecodeFromBytes(buf, v); err != nil {
 		return v, err
 	}
-	return v, v.VerifySyntaxFromSSZ()
+	return v, v.EnsureSyntaxFromSSZ()
 }

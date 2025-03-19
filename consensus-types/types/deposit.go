@@ -101,7 +101,7 @@ func (d *Deposit) MarshalSSZ() ([]byte, error) {
 }
 
 func (*Deposit) IsUnusedFromSZZ() bool      { return false }
-func (*Deposit) VerifySyntaxFromSSZ() error { return nil }
+func (*Deposit) EnsureSyntaxFromSSZ() error { return nil }
 
 // SizeSSZ returns the SSZ encoded size of the Deposit object.
 func (d *Deposit) SizeSSZ(*ssz.Sizer) uint32 {

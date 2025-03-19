@@ -81,7 +81,7 @@ func (s *SlashingInfo) MarshalSSZ() ([]byte, error) {
 }
 
 func (*SlashingInfo) IsUnusedFromSZZ() bool      { return false }
-func (*SlashingInfo) VerifySyntaxFromSSZ() error { return nil }
+func (*SlashingInfo) EnsureSyntaxFromSSZ() error { return nil }
 
 /* -------------------------------------------------------------------------- */
 /*                                   FastSSZ                                  */

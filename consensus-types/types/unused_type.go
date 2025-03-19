@@ -57,7 +57,7 @@ func (ut *UnusedType) MarshalSSZ() ([]byte, error) {
 }
 
 func (*UnusedType) IsUnusedFromSZZ() bool      { return true }
-func (*UnusedType) VerifySyntaxFromSSZ() error { return nil }
+func (*UnusedType) EnsureSyntaxFromSSZ() error { return nil }
 
 // HashTreeRoot returns the hash tree root of the Deposits.
 func (ut *UnusedType) HashTreeRoot() common.Root {

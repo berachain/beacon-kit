@@ -132,7 +132,7 @@ func (v *Validator) MarshalSSZ() ([]byte, error) {
 }
 
 func (*Validator) IsUnusedFromSZZ() bool      { return false }
-func (*Validator) VerifySyntaxFromSSZ() error { return nil }
+func (*Validator) EnsureSyntaxFromSSZ() error { return nil }
 
 /* -------------------------------------------------------------------------- */
 /*                                   FastSSZ                                  */

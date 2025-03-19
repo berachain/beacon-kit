@@ -80,7 +80,7 @@ func (a *AttestationData) MarshalSSZ() ([]byte, error) {
 }
 
 func (*AttestationData) IsUnusedFromSZZ() bool      { return false }
-func (*AttestationData) VerifySyntaxFromSSZ() error { return nil }
+func (*AttestationData) EnsureSyntaxFromSSZ() error { return nil }
 
 /* -------------------------------------------------------------------------- */
 /*                                   FastSSZ                                  */

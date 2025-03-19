@@ -95,7 +95,7 @@ func (w *Withdrawal) MarshalSSZ() ([]byte, error) {
 }
 
 func (*Withdrawal) IsUnusedFromSZZ() bool      { return false }
-func (*Withdrawal) VerifySyntaxFromSSZ() error { return nil }
+func (*Withdrawal) EnsureSyntaxFromSSZ() error { return nil }
 
 /* -------------------------------------------------------------------------- */
 /*                                   FastSSZ                                  */

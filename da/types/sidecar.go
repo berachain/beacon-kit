@@ -160,8 +160,7 @@ func (b *BlobSidecar) MarshalSSZ() ([]byte, error) {
 }
 
 func (*BlobSidecar) IsUnusedFromSZZ() bool { return false }
-
-func (b *BlobSidecar) VerifySyntaxFromSSZ() error {
+func (b *BlobSidecar) EnsureSyntaxFromSSZ() error {
 	// Ensure SignedBeaconBlockHeader is not nil
 	if b.SignedBeaconBlockHeader == nil {
 		b.SignedBeaconBlockHeader = &ctypes.SignedBeaconBlockHeader{}
