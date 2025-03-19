@@ -159,15 +159,15 @@ func (b *BlobSidecar) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 
-// empty creates an empty BlobSidecar object.
-func (*BlobSidecar) empty() *BlobSidecar {
-	return &BlobSidecar{
-		SignedBeaconBlockHeader: &ctypes.SignedBeaconBlockHeader{},
-	}
-}
-
 func (*BlobSidecar) IsUnusedFromSZZ() bool { return false }
+
 func (b *BlobSidecar) VerifySyntaxFromSSZ() error {
+	// Ensure SignedBeaconBlockHeader is not nil
+	if b.SignedBeaconBlockHeader == nil {
+		b.SignedBeaconBlockHeader = &ctypes.SignedBeaconBlockHeader{}
+	}
+
+	// Verify inclusion proof length
 	if len(b.InclusionProof) != ctypes.KZGInclusionProofDepth {
 		return errors.New("invalid inclusion proof length")
 	}
