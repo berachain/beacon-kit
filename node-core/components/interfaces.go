@@ -539,7 +539,7 @@ type (
 	}
 
 	GenesisBackend interface {
-		GenesisValidatorsRoot(slot math.Slot) (common.Root, error)
+		GenesisValidatorsRoot() (common.Root, error)
 		GenesisForkVersion(slot math.Slot) (common.Version, error)
 		GenesisTime(slot math.Slot) (math.U64, error)
 	}
