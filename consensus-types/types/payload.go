@@ -580,7 +580,7 @@ func (p *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 	txsRoot := p.GetTransactions().HashTreeRoot()
 
 	switch p.GetForkVersion() {
-	case version.Deneb(), version.Deneb1():
+	case version.Deneb(), version.Deneb1(), version.Electra():
 		return &ExecutionPayloadHeader{
 			Versionable:      p.Versionable,
 			ParentHash:       p.ParentHash,
