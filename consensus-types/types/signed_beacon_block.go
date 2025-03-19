@@ -129,8 +129,9 @@ func (b *SignedBeaconBlock) MarshalSSZ() ([]byte, error) {
 
 // empty creates a new SignedBeaconBlock with empty values.
 func (*SignedBeaconBlock) empty(version common.Version) *SignedBeaconBlock {
+	var bb *BeaconBlock
 	return &SignedBeaconBlock{
-		BeaconBlock: (&BeaconBlock{}).empty(version),
+		BeaconBlock: bb.empty(version),
 	}
 }
 
