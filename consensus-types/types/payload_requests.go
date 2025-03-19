@@ -28,8 +28,6 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/version"
-	"github.com/ethereum/go-ethereum/core/types"
 )
 
 // NewPayloadRequest as per the Ethereum 2.0 specification:
@@ -150,10 +148,6 @@ func MakeEthBlock(
 		ExcessBlobGas:    payload.GetExcessBlobGas().UnwrapPtr(),
 		BlobGasUsed:      payload.GetBlobGasUsed().UnwrapPtr(),
 		ParentBeaconRoot: (*gethprimitives.ExecutionHash)(parentBeaconBlockRoot),
-	}
-	if !version.IsBefore(payload.GetForkVersion(), version.Electra()) {
-		// TODO(pectra): This should be calculated from the block requests
-		blkHeader.RequestsHash = &types.EmptyRequestsHash
 	}
 	block := gethprimitives.NewBlockWithHeader(blkHeader).WithBody(
 		gethprimitives.Body{
