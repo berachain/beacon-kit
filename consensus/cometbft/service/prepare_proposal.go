@@ -74,7 +74,7 @@ func (s *Service) prepareProposal(
 	)
 	switch {
 	case errors.IsFatal(err):
-		return &cmtabci.PrepareProposalResponse{}, err
+		return nil, err
 	case err != nil:
 		s.logger.Error(
 			"failed to prepare proposal",

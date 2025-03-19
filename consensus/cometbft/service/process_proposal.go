@@ -75,7 +75,7 @@ func (s *Service) processProposal(
 	)
 	switch {
 	case errors.IsFatal(err):
-		return &cmtabci.ProcessProposalResponse{Status: cmtabci.PROCESS_PROPOSAL_STATUS_UNKNOWN}, err
+		return nil, err
 	case err != nil:
 		s.logger.Error(
 			"proposal rejected",

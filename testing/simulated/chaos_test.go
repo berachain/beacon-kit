@@ -74,7 +74,7 @@ func (s *SimulatedSuite) TestProcessProposal_CrashedExecutionClient_Errors() {
 		Time:            proposalTime,
 	})
 	s.Require().Error(err)
-	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_UNKNOWN, processResp.Status)
+	s.Require().Nil(processResp)
 	s.Require().Contains(s.LogBuffer.String(), client.ErrBadConnection.Error())
 }
 
