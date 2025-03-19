@@ -42,5 +42,4 @@ type ChainSpec interface {
 	DepositEth1ChainID() uint64
 	DomainTypeAggregateAndProof() common.DomainType
 	InactivityPenaltyQuotient() uint64
-	InactivityPenaltyQuotientAltair() uint64
 }

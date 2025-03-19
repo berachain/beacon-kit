@@ -902,8 +902,8 @@ func (s *BeaconKitE2ESuite) TestConfigSpec() {
 
 	// Check penalty quotients
 	s.Require().Contains(specData, "INACTIVITY_PENALTY_QUOTIENT")
-	s.Require().Equal(chainspec.InactivityPenaltyQuotient(), specData["INACTIVITY_PENALTY_QUOTIENT"])
+	s.Require().Equal(67108864, specData["INACTIVITY_PENALTY_QUOTIENT"])
 
 	s.Require().Contains(specData, "INACTIVITY_PENALTY_QUOTIENT_ALTAIR")
-	s.Require().Equal(chainspec.InactivityPenaltyQuotientAltair(), specData["INACTIVITY_PENALTY_QUOTIENT_ALTAIR"])
+	s.Require().Equal(50331648, specData["INACTIVITY_PENALTY_QUOTIENT_ALTAIR"])
 }

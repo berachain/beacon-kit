@@ -112,8 +112,6 @@ type SpecData struct {
 	//
 	// InactivityPenaltyQuotient is the inactivity penalty quotient.
 	InactivityPenaltyQuotient uint64 `mapstructure:"inactivity-penalty-quotient"`
-	// InactivityPenaltyQuotientAltair is the inactivity penalty quotient for Altair.
-	InactivityPenaltyQuotientAltair uint64 `mapstructure:"inactivity-penalty-quotient-altair"`
 	// ProportionalSlashingMultiplier is the slashing multiplier relative to the
 	// base penalty.
 	ProportionalSlashingMultiplier uint64 `mapstructure:"proportional-slashing-multiplier"`

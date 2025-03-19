@@ -120,10 +120,8 @@ func MainnetChainSpecData() *chain.SpecData {
 		TargetSecondsPerEth1Block: defaultTargetSecondsPerEth1Block,
 
 		// Fork-related values.
-		Deneb1ForkEpoch:                 mainnetDeneb1ForkEpoch,
-		ElectraForkEpoch:                defaultElectraForkEpoch,
-		InactivityPenaltyQuotient:       defaultInactivityPenaltyQuotient,
-		InactivityPenaltyQuotientAltair: defaultInactivityPenaltyQuotientAltair,
+		Deneb1ForkEpoch:  mainnetDeneb1ForkEpoch,
+		ElectraForkEpoch: defaultElectraForkEpoch,
 
 		// State list length constants.
 		EpochsPerHistoricalVector: defaultEpochsPerHistoricalVector,

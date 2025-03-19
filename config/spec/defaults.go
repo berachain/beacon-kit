@@ -57,10 +57,8 @@ const (
 	defaultTargetSecondsPerEth1Block = 2 // Berachain specific.
 
 	// Fork-related values.
-	defaultDeneb1ForkEpoch                 = 9999999999999998 // Set as a future epoch as not yet determined.
-	defaultElectraForkEpoch                = 9999999999999999 // Set as a future epoch as not yet determined.
-	defaultInactivityPenaltyQuotient       = 67108864         // Phase 0
-	defaultInactivityPenaltyQuotientAltair = 50331648         // Altair
+	defaultDeneb1ForkEpoch  = 9999999999999998 // Set as a future epoch as not yet determined.
+	defaultElectraForkEpoch = 9999999999999999 // Set as a future epoch as not yet determined.
 
 	// State list length constants.
 	defaultEpochsPerHistoricalVector = 8
