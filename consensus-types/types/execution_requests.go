@@ -152,13 +152,13 @@ func DecodeExecutionRequests(encodedRequests [][]byte) (*ExecutionRequests, erro
 			}
 			result.Deposits = drs
 		case WithdrawalRequestType[0]:
-			wrs, err := unmarshalWithdrawals(data)
+			wrs, err := unmarshalSSZWithdrawals(data)
 			if err != nil {
 				return nil, err
 			}
 			result.Withdrawals = wrs
 		case ConsolidationRequestType[0]:
-			crs, err := unmarshalConsolidations(data)
+			crs, err := unmarshalSSZConsolidations(data)
 			if err != nil {
 				return nil, err
 			}
@@ -344,8 +344,8 @@ func (cr ConsolidationRequests) HashTreeRoot() common.Root {
 
 func marshalSSZDeposits(deposits []*DepositRequest) ([]byte, error) {
 	d := DepositRequests(deposits)
-	buf := make([]byte, ssz.Size(d))
-	err := ssz.EncodeToBytes(buf, d)
+	buf := make([]byte, ssz.Size(&d))
+	err := ssz.EncodeToBytes(buf, &d)
 	if err != nil {
 		return nil, err
 	}
@@ -368,7 +368,7 @@ func marshalSSZWithdrawals(withdrawals []*WithdrawalRequest) ([]byte, error) {
 	return buf, nil
 }
 
-func unmarshalWithdrawals(data []byte) ([]*WithdrawalRequest, error) {
+func unmarshalSSZWithdrawals(data []byte) ([]*WithdrawalRequest, error) {
 	var withdrawals WithdrawalRequests
 	err := ssz.DecodeFromBytes(data, &withdrawals)
 	return withdrawals, err
@@ -384,7 +384,7 @@ func marshalSSZConsolidations(consolidations []*ConsolidationRequest) ([]byte, e
 	return buf, nil
 }
 
-func unmarshalConsolidations(data []byte) ([]*ConsolidationRequest, error) {
+func unmarshalSSZConsolidations(data []byte) ([]*ConsolidationRequest, error) {
 	var consolidations ConsolidationRequests
 	err := ssz.DecodeFromBytes(data, &consolidations)
 	return consolidations, err
