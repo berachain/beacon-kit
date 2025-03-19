@@ -28,6 +28,7 @@ import (
 	"github.com/karalabe/ssz"
 )
 
+// NewFromSSZ is the way we build objects from byte formatted as ssz
 func NewFromSSZ[T interface {
 	ssz.Object
 	constraints.SSZUnmarshaler
@@ -40,7 +41,7 @@ func NewFromSSZ[T interface {
 		}
 		//#nosec:G701 // UnusedType is uint8 and byte is uint8.
 		tmp := types.UnusedType(buf[0])
-		v, _ = any(tmp).(T) // TODO ABENEGIA: get rid of this cast
+		v, _ = any(tmp).(T) // TODO: any way this could be avoided?
 		return v, nil
 	}
 
