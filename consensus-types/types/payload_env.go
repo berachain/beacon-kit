@@ -23,14 +23,7 @@ package types
 import (
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
-)
-
-// Compile-time assertions to ensure ExecutionPayloadEnvelope implements the necessary interfaces.
-var (
-	_ BuiltExecutionPayloadEnv = (*ExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1])(nil)
-	_ constraints.Versionable  = (*ExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1])(nil)
 )
 
 // BuiltExecutionPayloadEnv is an interface for the execution payload envelope.
@@ -52,19 +45,20 @@ type BuiltExecutionPayloadEnv interface {
 // It utilizes a generic type ExecutionData to allow for different types of
 // execution payloads depending on the active hard fork.
 type ExecutionPayloadEnvelope[BlobsBundleT engineprimitives.BlobsBundle] struct {
-	*ExecutionPayload `json:"executionPayload"`
-	BlockValue        *math.U256   `json:"blockValue"`
-	BlobsBundle       BlobsBundleT `json:"blobsBundle"`
-	Override          bool         `json:"shouldOverrideBuilder"`
+	ExecutionPayload *ExecutionPayload `json:"executionPayload"`
+	BlockValue       *math.U256        `json:"blockValue"`
+	BlobsBundle      BlobsBundleT      `json:"blobsBundle"`
+	Override         bool              `json:"shouldOverrideBuilder"`
 }
 
 // NewEmptyExecutionPayloadEnvelope returns an empty ExecutionPayloadEnvelope
 // for the given fork version.
 func NewEmptyExecutionPayloadEnvelope[
 	BlobsBundleT engineprimitives.BlobsBundle,
-](forkVersion common.Version) *ExecutionPayloadEnvelope[BlobsBundleT] {
+](forkVersion common.Version) BuiltExecutionPayloadEnv {
+	var ep *ExecutionPayload
 	return &ExecutionPayloadEnvelope[BlobsBundleT]{
-		ExecutionPayload: (&ExecutionPayload{}).empty(forkVersion),
+		ExecutionPayload: ep.empty(forkVersion),
 	}
 }
 
