@@ -85,14 +85,6 @@ func (fd *ForkData) MarshalSSZ() ([]byte, error) {
 	return fd.MarshalSSZTo(buf)
 }
 
-// NewFromSSZ creates a new ForkData object from SSZ format.
-func (fd *ForkData) NewFromSSZ(buf []byte) (*ForkData, error) {
-	if fd == nil {
-		fd = &ForkData{}
-	}
-	return fd, ssz.DecodeFromBytes(buf, fd)
-}
-
 func (*ForkData) IsUnusedFromSZZ() bool      { return false }
 func (*ForkData) VerifySyntaxFromSSZ() error { return nil }
 

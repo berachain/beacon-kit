@@ -166,20 +166,6 @@ func (*BlobSidecar) empty() *BlobSidecar {
 	}
 }
 
-// NewFromSSZ creates a new BlobSidecar object from SSZ format.
-func (b *BlobSidecar) NewFromSSZ(buf []byte) (*BlobSidecar, error) {
-	b = b.empty()
-	if err := ssz.DecodeFromBytes(buf, b); err != nil {
-		return nil, err
-	}
-
-	if len(b.InclusionProof) != ctypes.KZGInclusionProofDepth {
-		return nil, errors.New("invalid inclusion proof length")
-	}
-
-	return b, nil
-}
-
 func (*BlobSidecar) IsUnusedFromSZZ() bool { return false }
 func (b *BlobSidecar) VerifySyntaxFromSSZ() error {
 	if len(b.InclusionProof) != ctypes.KZGInclusionProofDepth {

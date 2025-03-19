@@ -24,6 +24,7 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/common"
+	sszconstructors "github.com/berachain/beacon-kit/primitives/ssz-constructors"
 )
 
 // ExtractBlobsAndBlockFromRequest extracts the blobs and block from an ABCI
@@ -89,19 +90,18 @@ func UnmarshalBlobSidecarsFromABCIRequest(
 	txs [][]byte,
 	bzIndex uint,
 ) (datypes.BlobSidecars, error) {
-	var empty datypes.BlobSidecars
 	if len(txs) == 0 || bzIndex >= uint(len(txs)) {
-		return empty, ErrNoBlobSidecarInRequest
+		return nil, ErrNoBlobSidecarInRequest
 	}
 
 	sidecarBz := txs[bzIndex]
 	if sidecarBz == nil {
-		return empty, ErrNilBlobSidecarInRequest
+		return nil, ErrNilBlobSidecarInRequest
 	}
 
-	sidecars, err := empty.NewFromSSZ(sidecarBz)
+	sidecars, err := sszconstructors.NewFromSSZ[*datypes.BlobSidecars](sidecarBz)
 	if err != nil {
-		return empty, err
+		return nil, err
 	}
 	return *sidecars, nil
 }

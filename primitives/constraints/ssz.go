@@ -32,9 +32,7 @@ type SSZMarshaler interface {
 }
 
 // SSZUnmarshaler is an interface for objects that can be unmarshaled from SSZ format.
-type SSZUnmarshaler[SelfT any] interface {
-	// NewFromSSZ creates a new object from SSZ format.
-	NewFromSSZ(bz []byte) (SelfT, error)
+type SSZUnmarshaler interface {
 	IsUnusedFromSZZ() bool      // some types are not used and we can/must shortcut their marshalling
 	VerifySyntaxFromSSZ() error // once unmarshalled we will check whether type syntax is correct
 }
@@ -47,9 +45,9 @@ type SSZVersionedUnmarshaler[SelfT any] interface {
 }
 
 // SSZMarshallable is an interface that combines SSZMarshaler and SSZUnmarshaler.
-type SSZMarshallable[SelfT any] interface {
+type SSZMarshallable interface {
 	SSZMarshaler
-	SSZUnmarshaler[SelfT]
+	SSZUnmarshaler
 }
 
 // Versionable is a constraint that requires a type to have a GetForkVersion method.
@@ -73,7 +71,7 @@ type SSZRootable interface {
 // SSZMarshallableRootable is an interface that combines
 // SSZMarshaler, SSZUnmarshaler, and SSZRootable.
 type SSZMarshallableRootable[SelfT any] interface {
-	SSZMarshallable[SelfT]
+	SSZMarshallable
 	SSZRootable
 }
 

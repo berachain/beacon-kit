@@ -98,14 +98,6 @@ func (b *BeaconBlockHeader) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 
-// NewFromSSZ creates a new BeaconBlockHeader object from SSZ format.
-func (b *BeaconBlockHeader) NewFromSSZ(buf []byte) (*BeaconBlockHeader, error) {
-	if b == nil {
-		b = &BeaconBlockHeader{}
-	}
-	return b, ssz.DecodeFromBytes(buf, b)
-}
-
 func (*BeaconBlockHeader) IsUnusedFromSZZ() bool      { return false }
 func (*BeaconBlockHeader) VerifySyntaxFromSSZ() error { return nil }
 

@@ -21,8 +21,6 @@
 package types
 
 import (
-	"fmt"
-
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
@@ -56,17 +54,6 @@ func (ut *UnusedType) DefineSSZ(c *ssz.Codec) {
 // MarshalSSZ marshals the UnusedType object to SSZ format.
 func (ut *UnusedType) MarshalSSZ() ([]byte, error) {
 	return []byte{uint8(*ut)}, nil
-}
-
-// NewFromSSZ creates a new UnusedType object from SSZ format.
-func (ut *UnusedType) NewFromSSZ(buf []byte) (*UnusedType, error) {
-	if len(buf) != 1 {
-		return nil, fmt.Errorf("expected 1 byte got %d", len(buf))
-	}
-	//#nosec:G701 // UnusedType is uint8 and byte is uint8.
-	u := UnusedType(buf[0])
-	ut = &u
-	return ut, nil
 }
 
 func (*UnusedType) IsUnusedFromSZZ() bool      { return true }

@@ -76,14 +76,6 @@ func (s *SigningData) MarshalSSZ() ([]byte, error) {
 	return s.MarshalSSZTo(buf)
 }
 
-// NewFromSSZ creates a new SigningData object from SSZ format.
-func (s *SigningData) NewFromSSZ(buf []byte) (*SigningData, error) {
-	if s == nil {
-		s = &SigningData{}
-	}
-	return s, ssz.DecodeFromBytes(buf, s)
-}
-
 func (*SigningData) IsUnusedFromSZZ() bool      { return false }
 func (*SigningData) VerifySyntaxFromSSZ() error { return nil }
 

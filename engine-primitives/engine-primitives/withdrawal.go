@@ -94,14 +94,6 @@ func (w *Withdrawal) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, w)
 }
 
-// NewFromSSZ creates a new Withdrawal object from SSZ encoded data.
-func (w *Withdrawal) NewFromSSZ(buf []byte) (*Withdrawal, error) {
-	if w == nil {
-		w = &Withdrawal{}
-	}
-	return w, ssz.DecodeFromBytes(buf, w)
-}
-
 func (*Withdrawal) IsUnusedFromSZZ() bool      { return false }
 func (*Withdrawal) VerifySyntaxFromSSZ() error { return nil }
 

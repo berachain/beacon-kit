@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/math"
+	sszconstructors "github.com/berachain/beacon-kit/primitives/ssz-constructors"
 )
 
 // Store is the default implementation of the AvailabilityStore.
@@ -72,10 +73,9 @@ func (s *Store) GetBlobSidecars(slot math.Slot) (types.BlobSidecars, error) {
 		return nil, err
 	}
 
-	var sidecar *types.BlobSidecar
 	sidecars := make(types.BlobSidecars, 0, len(sidecarBzs))
 	for _, sidecarBz := range sidecarBzs {
-		sidecar, err = sidecar.NewFromSSZ(sidecarBz)
+		sidecar, err := sszconstructors.NewFromSSZ[*types.BlobSidecar](sidecarBz)
 		if err != nil {
 			return sidecars, err
 		}

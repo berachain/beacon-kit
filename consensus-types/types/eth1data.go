@@ -83,14 +83,6 @@ func (e *Eth1Data) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, e)
 }
 
-// NewFromSSZ creates a new Eth1Data object from SSZ format.
-func (e *Eth1Data) NewFromSSZ(buf []byte) (*Eth1Data, error) {
-	if e == nil {
-		e = &Eth1Data{}
-	}
-	return e, ssz.DecodeFromBytes(buf, e)
-}
-
 func (*Eth1Data) IsUnusedFromSZZ() bool      { return false }
 func (*Eth1Data) VerifySyntaxFromSSZ() error { return nil }
 

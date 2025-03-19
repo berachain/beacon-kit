@@ -10,7 +10,7 @@ import (
 
 func NewFromSSZ[T interface {
 	ssz.Object
-	constraints.SSZUnmarshaler[any]
+	constraints.SSZUnmarshaler
 }](buf []byte) (T, error) {
 	var v T
 	if v.IsUnusedFromSZZ() {
