@@ -192,10 +192,10 @@ func TestExecutionPayload_MarshalJSON_ValueAndPointer(t *testing.T) {
 func TestExecutionPayload_IsNil(t *testing.T) {
 	t.Parallel()
 	var payload *types.ExecutionPayload
-	require.True(t, payload == nil)
+	require.Nil(t, payload)
 
 	payload = generateExecutionPayload()
-	require.False(t, payload == nil)
+	require.NotNil(t, payload)
 }
 
 func TestExecutionPayload_IsBlinded(t *testing.T) {

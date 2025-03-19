@@ -49,7 +49,7 @@ func TestGetPayloadV3NeverReturnsEmptyPayload(t *testing.T) {
 	require.NoError(t, err)
 
 	// check that execution payload is not nil
-	require.False(t, pe.GetExecutionPayload() == nil)
+	require.NotNil(t, pe.GetExecutionPayload())
 }
 
 // TestNewPayloadWithValidVersion tests that NewPayload correctly handles Deneb version.

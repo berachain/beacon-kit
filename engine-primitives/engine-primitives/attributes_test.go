@@ -109,7 +109,7 @@ func TestPayloadAttributes(t *testing.T) {
 				require.NoError(t, err)
 				require.NotNil(t, got)
 
-				require.False(t, got == nil)
+				require.NotNil(t, got)
 				require.NoError(t, got.Validate())
 
 				require.Equal(

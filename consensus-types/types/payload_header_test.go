@@ -94,7 +94,7 @@ func TestExecutionPayloadHeader_IsNil(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		header := generateExecutionPayloadHeader(v)
-		require.False(t, header == nil)
+		require.NotNil(t, header)
 	})
 }
 
