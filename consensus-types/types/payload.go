@@ -34,8 +34,13 @@ import (
 	"github.com/karalabe/ssz"
 )
 
-// ExecutionPayloadStaticSize is the static size of the ExecutionPayload.
-const ExecutionPayloadStaticSize uint32 = 528
+const (
+	// ExecutionPayloadStaticSize is the static size of the ExecutionPayload.
+	ExecutionPayloadStaticSize uint32 = 528
+
+	// ExtraDataSize is the size of ExtraData in bytes.
+	ExtraDataSize = 32
+)
 
 // Compile-time assertions to ensure ExecutionPayload implements necessary interfaces.
 var (
@@ -167,14 +172,13 @@ func (p *ExecutionPayload) MarshalSSZ() ([]byte, error) {
 func (*ExecutionPayload) empty(version common.Version) *ExecutionPayload {
 	return &ExecutionPayload{
 		Versionable:   NewVersionable(version),
-		ExtraData:     make([]byte, ExtraDataSize),
 		BaseFeePerGas: &math.U256{},
 	}
 }
 
 // NewFromSSZ unmarshals the ExecutionPayload object from a source array with a given fork version.
-func (*ExecutionPayload) NewFromSSZ(bz []byte, version common.Version) (*ExecutionPayload, error) {
-	p := (&ExecutionPayload{}).empty(version)
+func (p *ExecutionPayload) NewFromSSZ(bz []byte, version common.Version) (*ExecutionPayload, error) {
+	p = p.empty(version)
 	return p, ssz.DecodeFromBytes(bz, p)
 }
 
@@ -480,10 +484,9 @@ func (p *ExecutionPayload) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
-// IsNil checks if the ExecutionPayload is nil.
-func (p *ExecutionPayload) IsNil() bool {
-	return p == nil
-}
+/* -------------------------------------------------------------------------- */
+/*                                   Getters                                  */
+/* -------------------------------------------------------------------------- */
 
 // IsBlinded checks if the ExecutionPayload is blinded.
 func (p *ExecutionPayload) IsBlinded() bool {
@@ -577,13 +580,11 @@ func (p *ExecutionPayload) GetExcessBlobGas() math.U64 {
 
 // ToHeader converts the ExecutionPayload to an ExecutionPayloadHeader.
 func (p *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
-	txsRoot := p.GetTransactions().HashTreeRoot()
-
 	switch p.GetForkVersion() {
 	case version.Deneb(), version.Deneb1():
 		return &ExecutionPayloadHeader{
 			Versionable:      p.Versionable,
-			ParentHash:       p.ParentHash,
+			ParentHash:       p.GetParentHash(),
 			FeeRecipient:     p.GetFeeRecipient(),
 			StateRoot:        p.GetStateRoot(),
 			ReceiptsRoot:     p.GetReceiptsRoot(),
@@ -595,8 +596,8 @@ func (p *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 			Timestamp:        p.GetTimestamp(),
 			ExtraData:        p.GetExtraData(),
 			BaseFeePerGas:    p.GetBaseFeePerGas(),
-			BlockHash:        p.BlockHash,
-			TransactionsRoot: txsRoot,
+			BlockHash:        p.GetBlockHash(),
+			TransactionsRoot: p.GetTransactions().HashTreeRoot(),
 			WithdrawalsRoot:  p.GetWithdrawals().HashTreeRoot(),
 			BlobGasUsed:      p.GetBlobGasUsed(),
 			ExcessBlobGas:    p.GetExcessBlobGas(),

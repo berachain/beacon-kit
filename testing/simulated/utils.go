@@ -102,7 +102,11 @@ func (s *SharedAccessors) InitializeChain(t *testing.T) {
 
 // MoveChainToHeight will iterate through the core loop `iterations` times, i.e. Propose, Process, Finalize and Commit.
 // Returns the list of proposed comet blocks.
-func (s *SharedAccessors) MoveChainToHeight(t *testing.T, startHeight, iterations int64, proposer *signer.BLSSigner) []*types.PrepareProposalResponse {
+func (s *SharedAccessors) MoveChainToHeight(
+	t *testing.T,
+	startHeight, iterations int64,
+	proposer *signer.BLSSigner,
+) []*types.PrepareProposalResponse {
 	// Prepare a block proposal.
 	pubkey, err := proposer.GetPubKey()
 	require.NoError(t, err)
