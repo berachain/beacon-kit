@@ -117,6 +117,7 @@ func (s *SharedAccessors) MoveChainToHeight(t *testing.T, startHeight, iteration
 			ProposerAddress: pubkey.Address(),
 		})
 		require.NoError(t, err)
+		require.Len(t, proposal, 2)
 		require.NotEmpty(t, proposal)
 
 		// Process the proposal.
