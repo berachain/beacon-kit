@@ -149,7 +149,7 @@ type (
 		// BuildSidecars builds sidecars for a given block and blobs bundle.
 		BuildSidecars(
 			signedBlk *ctypes.SignedBeaconBlock,
-			blobs ctypes.BlobsBundle,
+			blobs engineprimitives.BlobsBundle,
 		) (datypes.BlobSidecars, error)
 	}
 

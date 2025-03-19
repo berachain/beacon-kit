@@ -138,7 +138,7 @@ func (s *Service) finalizeBeaconBlock(
 	beaconBlk := blk.GetBeaconBlock()
 
 	// If the block is nil, exit early.
-	if beaconBlk.IsNil() {
+	if beaconBlk == nil {
 		return nil, ErrNilBlk
 	}
 

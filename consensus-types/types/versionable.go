@@ -31,11 +31,6 @@ type versionable struct {
 }
 
 // NewVersionable creates a new versionable object.
-//
-// NOTE: should only be used in these cases:
-//   - when creating a new object from scratch (including unmarshalling).
-//     If there is a parent object, use the parent object as the Versionable.
-//   - in unit tests.
 func NewVersionable(forkVersion common.Version) constraints.Versionable {
 	return &versionable{forkVersion: forkVersion}
 }

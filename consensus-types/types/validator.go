@@ -132,8 +132,10 @@ func (v *Validator) MarshalSSZ() ([]byte, error) {
 }
 
 // NewFromSSZ creates a new Validator object from SSZ format.
-func (*Validator) NewFromSSZ(buf []byte) (*Validator, error) {
-	v := &Validator{}
+func (v *Validator) NewFromSSZ(buf []byte) (*Validator, error) {
+	if v == nil {
+		v = &Validator{}
+	}
 	return v, ssz.DecodeFromBytes(buf, v)
 }
 

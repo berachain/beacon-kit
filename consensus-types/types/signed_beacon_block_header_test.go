@@ -41,9 +41,10 @@ func TestSignedBeaconBlockHeader_Serialization(t *testing.T) {
 		common.Root{0xde, 0xad, 0xca, 0xfe},
 	)
 	sig := crypto.BLSSignature{0xde, 0xad, 0xc4, 0xc4}
-	orig := &types.SignedBeaconBlockHeader{}
-	orig.SetHeader(header)
-	orig.SetSignature(sig)
+	orig := &types.SignedBeaconBlockHeader{
+		Header:    header,
+		Signature: sig,
+	}
 
 	data, err := orig.MarshalSSZ()
 	require.NoError(t, err)
