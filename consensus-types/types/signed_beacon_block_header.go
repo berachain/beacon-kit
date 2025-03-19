@@ -27,14 +27,18 @@ import (
 	"github.com/karalabe/ssz"
 )
 
+// Compile-time assertions to ensure SignedBeaconBlockHeader implements necessary interfaces.
 var (
 	_ ssz.StaticObject                                              = (*SignedBeaconBlockHeader)(nil)
 	_ constraints.SSZMarshallableRootable[*SignedBeaconBlockHeader] = (*SignedBeaconBlockHeader)(nil)
 )
 
+// SignedBeaconBlockHeader is a struct that contains a BeaconBlockHeader and a BLSSignature.
+//
+// NOTE: This struct is only ever (un)marshalled with SSZ and NOT with JSON.
 type SignedBeaconBlockHeader struct {
-	Header    *BeaconBlockHeader  `json:"header"`
-	Signature crypto.BLSSignature `json:"signature"`
+	Header    *BeaconBlockHeader
+	Signature crypto.BLSSignature
 }
 
 /* -------------------------------------------------------------------------- */
@@ -76,8 +80,10 @@ func (b *SignedBeaconBlockHeader) MarshalSSZ() ([]byte, error) {
 }
 
 // NewFromSSZ creates a new SignedBeaconBlockHeader from SSZ format.
-func (*SignedBeaconBlockHeader) NewFromSSZ(buf []byte) (*SignedBeaconBlockHeader, error) {
-	b := &SignedBeaconBlockHeader{}
+func (b *SignedBeaconBlockHeader) NewFromSSZ(buf []byte) (*SignedBeaconBlockHeader, error) {
+	if b == nil {
+		b = &SignedBeaconBlockHeader{}
+	}
 	return b, ssz.DecodeFromBytes(buf, b)
 }
 
@@ -96,21 +102,7 @@ func (b *SignedBeaconBlockHeader) GetHeader() *BeaconBlockHeader {
 	return b.Header
 }
 
-// Setheader sets the header of the BeaconBlockHeader.
-func (b *SignedBeaconBlockHeader) SetHeader(header *BeaconBlockHeader) {
-	b.Header = header
-}
-
 // GetSignature retrieves the Signature of the SignedBeaconBlockHeader.
 func (b *SignedBeaconBlockHeader) GetSignature() crypto.BLSSignature {
 	return b.Signature
-}
-
-// SetSignature sets the Signature of the BeaconBlockHeader.
-func (b *SignedBeaconBlockHeader) SetSignature(signature crypto.BLSSignature) {
-	b.Signature = signature
-}
-
-func (b *SignedBeaconBlockHeader) IsNil() bool {
-	return b == nil
 }

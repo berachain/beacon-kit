@@ -95,8 +95,10 @@ func (w *Withdrawal) MarshalSSZ() ([]byte, error) {
 }
 
 // NewFromSSZ creates a new Withdrawal object from SSZ encoded data.
-func (*Withdrawal) NewFromSSZ(buf []byte) (*Withdrawal, error) {
-	w := &Withdrawal{}
+func (w *Withdrawal) NewFromSSZ(buf []byte) (*Withdrawal, error) {
+	if w == nil {
+		w = &Withdrawal{}
+	}
 	return w, ssz.DecodeFromBytes(buf, w)
 }
 

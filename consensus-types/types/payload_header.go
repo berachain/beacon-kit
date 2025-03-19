@@ -31,13 +31,16 @@ import (
 	"github.com/karalabe/ssz"
 )
 
+// ExecutionPayloadHeaderStaticSize is the static size of the ExecutionPayloadHeader.
+const ExecutionPayloadHeaderStaticSize uint32 = 584
+
 // Compile-time assertions to ensure ExecutionPayloadHeader implements necessary interfaces.
 var (
 	_ ssz.DynamicObject                                                     = (*ExecutionPayloadHeader)(nil)
 	_ constraints.SSZVersionedMarshallableRootable[*ExecutionPayloadHeader] = (*ExecutionPayloadHeader)(nil)
 )
 
-// ExecutionPayloadHeader is the execution header payload of Deneb.
+// ExecutionPayloadHeader represents the payload header of an execution block.
 type ExecutionPayloadHeader struct {
 	constraints.Versionable
 
@@ -105,8 +108,7 @@ func (h *ExecutionPayloadHeader) NewFromJSON(
 // SizeSSZ returns either the static size of the object if fixed == true, or
 // the total size otherwise.
 func (h *ExecutionPayloadHeader) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
-	//nolint:mnd // todo fix.
-	var size = uint32(584)
+	size := ExecutionPayloadHeaderStaticSize
 	if fixed {
 		return size
 	}
@@ -150,10 +152,10 @@ func (h *ExecutionPayloadHeader) MarshalSSZ() ([]byte, error) {
 }
 
 // NewFromSSZ returns a new ExecutionPayloadHeader from the given SSZ bytes.
-func (*ExecutionPayloadHeader) NewFromSSZ(
+func (h *ExecutionPayloadHeader) NewFromSSZ(
 	bz []byte, forkVersion common.Version,
 ) (*ExecutionPayloadHeader, error) {
-	h := (&ExecutionPayloadHeader{}).empty(forkVersion)
+	h = h.empty(forkVersion)
 	return h, ssz.DecodeFromBytes(bz, h)
 }
 
@@ -440,13 +442,8 @@ func (h *ExecutionPayloadHeader) UnmarshalJSON(input []byte) error {
 }
 
 /* -------------------------------------------------------------------------- */
-/*                             Getters and Setters                            */
+/*                                   Getters                                  */
 /* -------------------------------------------------------------------------- */
-
-// IsNil checks if the ExecutionPayloadHeader is nil.
-func (h *ExecutionPayloadHeader) IsNil() bool {
-	return h == nil
-}
 
 // GetParentHash returns the parent hash of the ExecutionPayloadHeader.
 func (h *ExecutionPayloadHeader) GetParentHash() common.ExecutionHash {
@@ -511,9 +508,7 @@ func (h *ExecutionPayloadHeader) GetBaseFeePerGas() *math.U256 {
 }
 
 // GetBlockHash returns the block hash of the ExecutionPayloadHeader.
-func (
-	h *ExecutionPayloadHeader,
-) GetBlockHash() common.ExecutionHash {
+func (h *ExecutionPayloadHeader) GetBlockHash() common.ExecutionHash {
 	return h.BlockHash
 }
 

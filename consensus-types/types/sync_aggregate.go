@@ -64,8 +64,10 @@ func (s *SyncAggregate) MarshalSSZ() ([]byte, error) {
 }
 
 // NewFromSSZ creates a new SyncAggregate object from SSZ format.
-func (*SyncAggregate) NewFromSSZ(buf []byte) (*SyncAggregate, error) {
-	s := &SyncAggregate{}
+func (s *SyncAggregate) NewFromSSZ(buf []byte) (*SyncAggregate, error) {
+	if s == nil {
+		s = &SyncAggregate{}
+	}
 	return s, ssz.DecodeFromBytes(buf, s)
 }
 

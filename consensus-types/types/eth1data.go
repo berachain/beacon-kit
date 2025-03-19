@@ -84,8 +84,10 @@ func (e *Eth1Data) MarshalSSZ() ([]byte, error) {
 }
 
 // NewFromSSZ creates a new Eth1Data object from SSZ format.
-func (*Eth1Data) NewFromSSZ(buf []byte) (*Eth1Data, error) {
-	e := &Eth1Data{}
+func (e *Eth1Data) NewFromSSZ(buf []byte) (*Eth1Data, error) {
+	if e == nil {
+		e = &Eth1Data{}
+	}
 	return e, ssz.DecodeFromBytes(buf, e)
 }
 

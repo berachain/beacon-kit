@@ -89,18 +89,19 @@ func UnmarshalBlobSidecarsFromABCIRequest(
 	txs [][]byte,
 	bzIndex uint,
 ) (datypes.BlobSidecars, error) {
-	var sidecars datypes.BlobSidecars
+	var empty datypes.BlobSidecars
 	if len(txs) == 0 || bzIndex >= uint(len(txs)) {
-		return sidecars, ErrNoBlobSidecarInRequest
+		return empty, ErrNoBlobSidecarInRequest
 	}
 
 	sidecarBz := txs[bzIndex]
 	if sidecarBz == nil {
-		return sidecars, ErrNilBlobSidecarInRequest
+		return empty, ErrNilBlobSidecarInRequest
 	}
 
-	// TODO: Do some research to figure out how to make this more
-	// elegant.
-	sidecars = datypes.BlobSidecars{}
-	return sidecars, sidecars.UnmarshalSSZ(sidecarBz)
+	sidecars, err := empty.NewFromSSZ(sidecarBz)
+	if err != nil {
+		return empty, err
+	}
+	return *sidecars, nil
 }
