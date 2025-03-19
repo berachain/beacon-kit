@@ -1,0 +1,106 @@
+// SPDX-License-Identifier: MIT
+//
+// Copyright (c) 2025 Berachain Foundation
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WdeHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
+package types
+
+import (
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/karalabe/ssz"
+)
+
+// WithdrawalRequest is introduced in EIP7002 which we use for withdrawals.
+type WithdrawalRequest struct {
+	SourceAddress   common.ExecutionAddress
+	ValidatorPubKey crypto.BLSPubkey
+	Amount          math.Gwei
+}
+
+// WithdrawalRequests is used for SSZ unmarshalling a list of WithdrawalRequest
+type WithdrawalRequests []*WithdrawalRequest
+
+func (w *WithdrawalRequest) DefineSSZ(codec *ssz.Codec) {
+	ssz.DefineStaticBytes(codec, &w.SourceAddress)
+	ssz.DefineStaticBytes(codec, &w.ValidatorPubKey)
+	ssz.DefineUint64(codec, &w.Amount)
+}
+
+func (w *WithdrawalRequest) SizeSSZ(_ *ssz.Sizer) uint32 {
+	return sszWithdrawRequestSize
+}
+
+func (w *WithdrawalRequest) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, ssz.Size(w))
+	return buf, ssz.EncodeToBytes(buf, w)
+}
+
+func (w *WithdrawalRequest) UnmarshalSSZ(buf []byte) error {
+	return ssz.DecodeFromBytes(buf, w)
+}
+
+// HashTreeRoot returns the hash tree root of the Deposits.
+func (w *WithdrawalRequest) HashTreeRoot() common.Root {
+	return ssz.HashSequential(w)
+}
+
+// SizeSSZ returns the SSZ encoded size in bytes for the Deposits.
+func (wr WithdrawalRequests) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {
+	return ssz.SizeSliceOfStaticObjects(siz, ([]*WithdrawalRequest)(wr))
+}
+
+// DefineSSZ defines the SSZ encoding for the Deposits object.
+func (wr WithdrawalRequests) DefineSSZ(c *ssz.Codec) {
+	c.DefineDecoder(func(*ssz.Decoder) {
+		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*WithdrawalRequest)(&wr), maxWithdrawalRequestsPerPayload)
+	})
+	c.DefineEncoder(func(*ssz.Encoder) {
+		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*WithdrawalRequest)(&wr), maxWithdrawalRequestsPerPayload)
+	})
+	c.DefineHasher(func(*ssz.Hasher) {
+		ssz.DefineSliceOfStaticObjectsOffset(c, (*[]*WithdrawalRequest)(&wr), maxWithdrawalRequestsPerPayload)
+	})
+}
+
+// HashTreeRoot returns the hash tree root of the Deposits.
+func (wr WithdrawalRequests) HashTreeRoot() common.Root {
+	return ssz.HashSequential(wr)
+}
+
+func marshalSSZWithdrawals(withdrawals []*WithdrawalRequest) ([]byte, error) {
+	w := WithdrawalRequests(withdrawals)
+	buf := make([]byte, ssz.Size(w))
+	err := ssz.EncodeToBytes(buf, w)
+	if err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+func unmarshalSSZWithdrawals(data []byte) ([]*WithdrawalRequest, error) {
+	withdrawals := WithdrawalRequests{}
+	err := ssz.DecodeFromBytes(data, &withdrawals)
+	return withdrawals, err
+}
