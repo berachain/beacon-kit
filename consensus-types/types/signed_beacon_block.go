@@ -63,24 +63,6 @@ func NewSignedBeaconBlockFromSSZ(
 		block.GetBody().GetExecutionPayload().EnsureNotNilWithdrawals()
 
 		return block, nil
-	case version.Electra():
-		var err error
-		block, err = block.NewFromSSZ(bz, forkVersion)
-		if err != nil {
-			return nil, err
-		}
-
-		// Make sure Withdrawals in execution payload are not nil.
-		blockBody := block.GetBody()
-		blockBody.GetExecutionPayload().EnsureNotNilWithdrawals()
-		requests, err := blockBody.GetExecutionRequests()
-		if err != nil {
-			return nil, err
-		}
-		if requests == nil {
-			return nil, errors.New("no execution requests found")
-		}
-		return block, nil
 	default:
 		// We return block here to appease nilaway.
 		return block, errors.Wrapf(ErrForkVersionNotSupported, "fork %d", forkVersion)
