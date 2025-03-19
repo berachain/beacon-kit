@@ -39,10 +39,11 @@ func (b *Backend) Spec() (*types.SpecData, error) {
 		// Network ID is same as eth1 chain ID.
 		DepositNetworkID:        b.cs.DepositEth1ChainID(),
 		DomainAggregateAndProof: b.cs.DomainTypeAggregateAndProof(),
-		// These values are taken from ETH2.0 consensus spec.Currently these are placeholders, will be replaced
+		// These values are taken from ETH2.0 consensus spec. Currently these are placeholders, will be replaced
 		// with the correct values for our versions like Deneb, Deneb1 etc once we implement slashing for inactivity.
 		// https://github.com/ethereum/consensus-specs/blob/v1.3.0/specs/phase0/beacon-chain.md#rewards-and-penalties for phase 0.
-		InactivityPenaltyQuotient:       Phase0InactivityPenaltyQuotient,
+		InactivityPenaltyQuotient: Phase0InactivityPenaltyQuotient,
+		// https://github.com/ethereum/consensus-specs/blob/v1.3.0/specs/altair/beacon-chain.md#updated-penalty-values for altair.
 		InactivityPenaltyQuotientAltair: AltairInactivityPenaltyQuotient,
 	}, nil
 }
