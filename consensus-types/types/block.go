@@ -53,32 +53,34 @@ type BeaconBlock struct {
 	Body *BeaconBlockBody `json:"body"`
 }
 
-// NewBeaconBlockWithVersion assembles a new beacon block from the given.
+// NewBeaconBlockWithVersion assembles a new beacon block from the given parameters.
 func NewBeaconBlockWithVersion(
 	slot math.Slot,
 	proposerIndex math.ValidatorIndex,
 	parentBlockRoot common.Root,
 	forkVersion common.Version,
 ) (*BeaconBlock, error) {
+	var (
+		block *BeaconBlock
+		err   error
+	)
+
 	switch forkVersion {
 	case version.Deneb(), version.Deneb1():
-		var body *BeaconBlockBody
-		block := &BeaconBlock{
-			Versionable:   NewVersionable(forkVersion),
-			Slot:          slot,
-			ProposerIndex: proposerIndex,
-			ParentRoot:    parentBlockRoot,
-			StateRoot:     common.Root{},
-			Body:          body.empty(forkVersion),
-		}
-		return block, nil
+		block = block.empty(forkVersion)
+		block.Slot = slot
+		block.ProposerIndex = proposerIndex
+		block.ParentRoot = parentBlockRoot
+
+		// StateRoot is left empty as it is not ready at this time.
+		block.StateRoot = common.Root{}
 	default:
-		// we return block here to appease nilaway
-		return &BeaconBlock{}, errors.Wrap(
-			ErrForkVersionNotSupported,
-			fmt.Sprintf("fork %d", forkVersion),
-		)
+		// We return block here to appease nilaway.
+		block = &BeaconBlock{}
+		err = errors.Wrap(ErrForkVersionNotSupported, fmt.Sprintf("fork %d", forkVersion))
 	}
+
+	return block, err
 }
 
 /* -------------------------------------------------------------------------- */
