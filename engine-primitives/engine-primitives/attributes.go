@@ -100,11 +100,5 @@ func (p *PayloadAttributes) Validate() error {
 		return ErrNilWithdrawals
 	}
 
-	// TODO: currently beaconBlockRoot is 0x000 on block 1, we need
-	// to fix this, before uncommenting the line below.
-	// if p.ParentBeaconBlockRoot == [32]byte{} {
-	// 	return ErrInvalidParentBeaconBlockRoot
-	// }
-
 	return nil
 }

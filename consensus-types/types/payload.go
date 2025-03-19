@@ -156,9 +156,9 @@ func (p *ExecutionPayload) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineSliceOfStaticObjectsContent(codec, &p.Withdrawals, 16)
 
 	// Note that at this state we don't have any guarantee that
-	// p.Withdrawal is not nil, which we require following Capella
+	// p.Withdrawal is not nil, which we require Capella onwards
 	// (empty list of withdrawals are fine). We ensure non-nillness
-	// in EnsureNotNilWithdrawals which is must be called wherever
+	// in EnsureNotNilWithdrawals which must be called wherever
 	// we deserialize an execution payload (or anything containing one).
 }
 
@@ -169,11 +169,18 @@ func (p *ExecutionPayload) MarshalSSZ() ([]byte, error) {
 }
 
 // empty returns an empty ExecutionPayload for the given fork version.
-func (*ExecutionPayload) empty(version common.Version) *ExecutionPayload {
-	return &ExecutionPayload{
-		Versionable:   NewVersionable(version),
+func (*ExecutionPayload) empty(forkVersion common.Version) *ExecutionPayload {
+	ep := &ExecutionPayload{
+		Versionable:   NewVersionable(forkVersion),
 		BaseFeePerGas: &math.U256{},
 	}
+
+	// For any fork version after Bellatrix (Capella onwards), non-nil withdrawals are required.
+	if version.IsAfter(forkVersion, version.Bellatrix()) {
+		ep.Withdrawals = make([]*engineprimitives.Withdrawal, 0)
+	}
+
+	return ep
 }
 
 // NewFromSSZ unmarshals the ExecutionPayload object from a source array with a given fork version.
