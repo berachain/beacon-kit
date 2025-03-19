@@ -76,13 +76,13 @@ func (s *Service) ProcessProposal(
 	if err != nil {
 		return err
 	}
-	if signedBlk.IsNil() {
+	if signedBlk == nil {
 		s.logger.Warn(
 			"Aborting block verification - beacon block not found in proposal",
 		)
 		return ErrNilBlk
 	}
-	if sidecars.IsNil() {
+	if sidecars == nil {
 		s.logger.Warn(
 			"Aborting block verification - blob sidecars not found in proposal",
 		)

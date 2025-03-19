@@ -157,5 +157,5 @@ func TestZeroSidecarsInBlobSidecarsIsNotNil(t *testing.T) {
 	// This test exists to ensure that proposing a BlobSidecars with 0
 	// Sidecars is not considered IsNil().
 	sidecars := &types.BlobSidecars{}
-	require.False(t, sidecars.IsNil())
+	require.False(t, sidecars == nil)
 }

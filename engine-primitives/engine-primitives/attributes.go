@@ -75,11 +75,6 @@ func NewPayloadAttributes(
 	return pa, nil
 }
 
-// IsNil returns true if the PayloadAttributes is nil.
-func (p *PayloadAttributes) IsNil() bool {
-	return p == nil
-}
-
 // GetSuggestedFeeRecipient returns the suggested fee recipient.
 func (p *PayloadAttributes) GetSuggestedFeeRecipient() common.ExecutionAddress {
 	return p.SuggestedFeeRecipient

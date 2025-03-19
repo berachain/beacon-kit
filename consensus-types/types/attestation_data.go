@@ -81,7 +81,7 @@ func (a *AttestationData) MarshalSSZ() ([]byte, error) {
 
 // NewFromSSZ creates a new AttestationData object from SSZ format.
 func (a *AttestationData) NewFromSSZ(buf []byte) (*AttestationData, error) {
-	if a.IsNil() {
+	if a == nil {
 		a = &AttestationData{}
 	}
 	return a, ssz.DecodeFromBytes(buf, a)
@@ -127,11 +127,6 @@ func (a *AttestationData) GetTree() (*fastssz.Node, error) {
 /* -------------------------------------------------------------------------- */
 /*                             Getters and Setters                            */
 /* -------------------------------------------------------------------------- */
-
-// IsNil returns true if the attestation data is nil.
-func (a *AttestationData) IsNil() bool {
-	return a == nil
-}
 
 // GetSlot returns the slot of the attestation data.
 func (a *AttestationData) GetSlot() math.U64 {

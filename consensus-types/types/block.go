@@ -134,11 +134,6 @@ func (b *BeaconBlock) HashTreeRoot() common.Root {
 	return ssz.HashConcurrent(b)
 }
 
-// IsNil checks if the beacon block is nil.
-func (b *BeaconBlock) IsNil() bool {
-	return b == nil
-}
-
 // GetSlot retrieves the slot of the BeaconBlockBase.
 func (b *BeaconBlock) GetSlot() math.Slot {
 	return b.Slot

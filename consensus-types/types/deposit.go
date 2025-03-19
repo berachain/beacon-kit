@@ -102,7 +102,7 @@ func (d *Deposit) MarshalSSZ() ([]byte, error) {
 
 // NewFromSSZ creates a new Deposit object from SSZ format.
 func (d *Deposit) NewFromSSZ(buf []byte) (*Deposit, error) {
-	if d.IsNil() {
+	if d == nil {
 		d = &Deposit{}
 	}
 	return d, ssz.DecodeFromBytes(buf, d)
@@ -163,11 +163,6 @@ func (d *Deposit) GetTree() (*fastssz.Node, error) {
 /* -------------------------------------------------------------------------- */
 /*                             Getters and Setters                            */
 /* -------------------------------------------------------------------------- */
-
-// IsNil returns true if the deposit is nil.
-func (d *Deposit) IsNil() bool {
-	return d == nil
-}
 
 // GetAmount returns the deposit amount in gwei.
 func (d *Deposit) GetAmount() math.Gwei {

@@ -203,11 +203,6 @@ func (b *BeaconBlockBody) HashTreeRoot() common.Root {
 	return ssz.HashConcurrent(b)
 }
 
-// IsNil checks if the BeaconBlockBody is nil.
-func (b *BeaconBlockBody) IsNil() bool {
-	return b == nil
-}
-
 // GetTopLevelRoots returns the top-level roots of the BeaconBlockBody.
 func (b *BeaconBlockBody) GetTopLevelRoots() []common.Root {
 	return []common.Root{

@@ -445,11 +445,6 @@ func (h *ExecutionPayloadHeader) UnmarshalJSON(input []byte) error {
 /*                                   Getters                                  */
 /* -------------------------------------------------------------------------- */
 
-// IsNil checks if the ExecutionPayloadHeader is nil.
-func (h *ExecutionPayloadHeader) IsNil() bool {
-	return h == nil
-}
-
 // GetParentHash returns the parent hash of the ExecutionPayloadHeader.
 func (h *ExecutionPayloadHeader) GetParentHash() common.ExecutionHash {
 	return h.ParentHash

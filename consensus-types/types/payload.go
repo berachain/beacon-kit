@@ -488,11 +488,6 @@ func (p *ExecutionPayload) UnmarshalJSON(input []byte) error {
 /*                                   Getters                                  */
 /* -------------------------------------------------------------------------- */
 
-// IsNil checks if the ExecutionPayload is nil.
-func (p *ExecutionPayload) IsNil() bool {
-	return p == nil
-}
-
 // IsBlinded checks if the ExecutionPayload is blinded.
 func (p *ExecutionPayload) IsBlinded() bool {
 	return false

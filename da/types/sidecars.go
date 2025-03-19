@@ -37,15 +37,10 @@ var (
 // Sidecars is a slice of blob side cars to be included in the block.
 type BlobSidecars []*BlobSidecar
 
-// IsNil checks to see if blobs are nil.
-func (bs *BlobSidecars) IsNil() bool {
-	return bs == nil
-}
-
 // ValidateBlockRoots checks to make sure that
 // all blobs in the sidecar are from the same block.
 func (bs *BlobSidecars) ValidateBlockRoots() error {
-	if bs.IsNil() {
+	if bs == nil {
 		return ErrAttemptedToVerifyNilSidecar
 	}
 	sidecars := *bs
@@ -110,7 +105,7 @@ func (bs *BlobSidecars) MarshalSSZTo(buf []byte) ([]byte, error) {
 
 // NewFromSSZ unmarshals the BlobSidecars object from SSZ format.
 func (bs *BlobSidecars) NewFromSSZ(buf []byte) (*BlobSidecars, error) {
-	if bs.IsNil() {
+	if bs == nil {
 		bs = &BlobSidecars{}
 	}
 	return bs, ssz.DecodeFromBytes(buf, bs)

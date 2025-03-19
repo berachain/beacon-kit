@@ -106,7 +106,3 @@ func (b *SignedBeaconBlockHeader) GetHeader() *BeaconBlockHeader {
 func (b *SignedBeaconBlockHeader) GetSignature() crypto.BLSSignature {
 	return b.Signature
 }
-
-func (b *SignedBeaconBlockHeader) IsNil() bool {
-	return b == nil
-}
