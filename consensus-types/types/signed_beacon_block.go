@@ -60,8 +60,8 @@ func NewSignedBeaconBlockFromSSZ(
 		}
 
 		// Make sure Withdrawals in execution payload are not nil.
-		block.GetBody().GetExecutionPayload().EnsureNotNilWithdrawals()
-
+		block.Body.ExecutionPayload.EnsureNotNilWithdrawals()
+		
 		return block, nil
 	default:
 		// We return block here to appease nilaway.
