@@ -177,7 +177,7 @@ func (ee *Engine) NotifyNewPayload(
 		func() (*common.ExecutionHash, error) {
 			ee.metrics.markNewPayloadCalled(payloadHash, payloadParentHash)
 			lastValidHash, err := ee.ec.NewPayload(
-				ctx, req.ExecutionPayload, req.VersionedHashes, req.ParentBeaconBlockRoot,
+				ctx, req.ExecutionPayload, req.VersionedHashes, req.ParentBeaconBlockRoot, req.ExecutionRequests
 			)
 
 			// NotifyNewPayload gets called under three circumstances:

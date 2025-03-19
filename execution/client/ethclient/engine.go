@@ -26,6 +26,7 @@ import (
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -42,14 +43,28 @@ func (s *Client) NewPayload(
 	payload *ctypes.ExecutionPayload,
 	versionedHashes []common.ExecutionHash,
 	parentBlockRoot *common.Root,
+	requests [][]byte,
 ) (*engineprimitives.PayloadStatusV1, error) {
+	forkVersion := payload.GetForkVersion()
 	// Versions before Deneb are not supported for calling NewPayload.
-	if version.IsBefore(payload.GetForkVersion(), version.Deneb()) {
+	if version.IsBefore(forkVersion, version.Deneb()) {
 		return nil, ErrInvalidVersion
 	}
-
-	// V3 is used for beacon versions Deneb and onwards.
-	return s.NewPayloadV3(ctx, payload, versionedHashes, parentBlockRoot)
+	// Deneb and Deneb1 must have requests as nil
+	if version.Equals(forkVersion, version.Deneb()) || version.Equals(forkVersion, version.Deneb1()) {
+		if requests != nil {
+			return nil, errors.Wrap(ErrInvalidVersion, "requests not supported")
+		}
+		return s.NewPayloadV3(ctx, payload, versionedHashes, parentBlockRoot)
+	}
+	// Electra must have requests as non-nil and uses NewPayloadV4
+	if version.Equals(forkVersion, version.Electra()) {
+		if requests == nil {
+			return nil, errors.Wrap(ErrInvalidVersion, "requests must be non-nil")
+		}
+		return s.NewPayloadV4(ctx, payload, versionedHashes, parentBlockRoot, requests)
+	}
+	return nil, errors.Wrap(ErrInvalidVersion, "unsupported fork version")
 }
 
 // NewPayloadV3 calls the engine_newPayloadV3 via JSON-RPC.
@@ -62,6 +77,23 @@ func (s *Client) NewPayloadV3(
 	result := &engineprimitives.PayloadStatusV1{}
 	if err := s.Call(
 		ctx, result, NewPayloadMethodV3, payload, versionedHashes, parentBlockRoot,
+	); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// NewPayloadV4 calls the engine_newPayloadV4 via JSON-RPC.
+func (s *Client) NewPayloadV4(
+	ctx context.Context,
+	payload *ctypes.ExecutionPayload,
+	versionedHashes []common.ExecutionHash,
+	parentBlockRoot *common.Root,
+	executionRequests [][]byte,
+) (*engineprimitives.PayloadStatusV1, error) {
+	result := &engineprimitives.PayloadStatusV1{}
+	if err := s.Call(
+		ctx, result, NewPayloadMethodV4, payload, versionedHashes, parentBlockRoot, executionRequests,
 	); err != nil {
 		return nil, err
 	}

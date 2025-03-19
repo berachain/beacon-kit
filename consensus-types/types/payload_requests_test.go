@@ -45,6 +45,7 @@ func TestBuildNewPayloadRequest(t *testing.T) {
 		executionPayload,
 		versionedHashes,
 		&parentBeaconBlockRoot,
+		nil,
 	)
 
 	require.NotNil(t, request)
@@ -107,6 +108,7 @@ func TestHasValidVersionedAndBlockHashesPayloadError(t *testing.T) {
 		executionPayload,
 		versionedHashes,
 		&parentBeaconBlockRoot,
+		nil,
 	)
 
 	err := request.HasValidVersionedAndBlockHashes()
@@ -127,6 +129,7 @@ func TestHasValidVersionedAndBlockHashesMismatchedHashes(t *testing.T) {
 		executionPayload,
 		versionedHashes,
 		&parentBeaconBlockRoot,
+		nil,
 	)
 
 	err := request.HasValidVersionedAndBlockHashes()

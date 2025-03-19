@@ -42,6 +42,7 @@ func (s *EngineClient) NewPayload(
 	payload *ctypes.ExecutionPayload,
 	versionedHashes []common.ExecutionHash,
 	parentBeaconBlockRoot *common.Root,
+	executionRequests [][]byte,
 ) (*common.ExecutionHash, error) {
 	var (
 		startTime    = time.Now()
@@ -52,7 +53,7 @@ func (s *EngineClient) NewPayload(
 
 	// Call the appropriate RPC method based on the payload version.
 	result, err := s.Client.NewPayload(
-		cctx, payload, versionedHashes, parentBeaconBlockRoot,
+		cctx, payload, versionedHashes, parentBeaconBlockRoot, executionRequests,
 	)
 	if err != nil {
 		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {

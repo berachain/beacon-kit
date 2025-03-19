@@ -247,7 +247,7 @@ func ComputeAndSetInvalidExecutionBlock(
 	}
 	executionPayload.Transactions = txsBytesArray
 	parentBlockRoot := latestBlock.GetParentBlockRoot()
-	execBlock, _, err := ctypes.MakeEthBlock(executionPayload, &parentBlockRoot)
+	execBlock, _, err := ctypes.MakeEthBlock(executionPayload, &parentBlockRoot, nil)
 	require.NoError(t, err)
 	return setExecutionPayload(t, latestBlock, forkVersion, execBlock, sidecars)
 }

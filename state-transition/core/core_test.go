@@ -108,7 +108,7 @@ func buildNextBlock(
 		BaseFeePerGas: math.NewU256(0),
 	}
 	parentBeaconBlockRoot := parentBlkHeader.HashTreeRoot()
-	ethBlk, _, err := types.MakeEthBlock(payload, &parentBeaconBlockRoot)
+	ethBlk, _, err := types.MakeEthBlock(payload, &parentBeaconBlockRoot, nil)
 	require.NoError(t, err)
 	payload.BlockHash = common.ExecutionHash(ethBlk.Hash())
 

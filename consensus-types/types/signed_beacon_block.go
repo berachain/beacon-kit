@@ -69,7 +69,7 @@ func NewSignedBeaconBlockFromSSZ(
 		if err != nil {
 			return nil, err
 		}
-
+		// TODO(REZ): Come back here and add decoding
 		blockBody := block.GetBody()
 		// Make sure Withdrawals in execution payload are not nil.
 		blockBody.GetExecutionPayload().EnsureNotNilWithdrawals()

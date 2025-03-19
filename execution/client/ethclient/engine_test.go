@@ -64,7 +64,7 @@ func TestNewPayloadWithValidVersion(t *testing.T) {
 	versionedHashes := []common.ExecutionHash{}
 	var parentBlockRoot *common.Root
 
-	_, err := c.NewPayload(ctx, payload, versionedHashes, parentBlockRoot)
+	_, err := c.NewPayload(ctx, payload, versionedHashes, parentBlockRoot, nil)
 	require.NoError(t, err)
 }
 
@@ -80,7 +80,7 @@ func TestNewPayloadWithInvalidVersion(t *testing.T) {
 	versionedHashes := []common.ExecutionHash{}
 	var parentBlockRoot *common.Root
 
-	_, err := c.NewPayload(ctx, payload, versionedHashes, parentBlockRoot)
+	_, err := c.NewPayload(ctx, payload, versionedHashes, parentBlockRoot, nil)
 	require.ErrorIs(t, err, ethclient.ErrInvalidVersion)
 }
 

@@ -28,11 +28,12 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/version"
+	"github.com/ethereum/go-ethereum/core/types"
 )
 
 // NewPayloadRequest as per the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/beacon-chain.md#modified-newpayloadrequest
-// TODO(pectra): Modified NewPayloadRequest: new execution_requests. This may need to be Versionable.
 type NewPayloadRequest struct {
 	// ExecutionPayload is the payload to the execution client.
 	ExecutionPayload *ExecutionPayload
@@ -40,6 +41,8 @@ type NewPayloadRequest struct {
 	VersionedHashes []common.ExecutionHash
 	// ParentBeaconBlockRoot is the root of the parent beacon block.
 	ParentBeaconBlockRoot *common.Root
+	// ExecutionRequests is introduced in Pectra. It is only non-nil after Pectra.
+	ExecutionRequests [][]byte
 }
 
 // BuildNewPayloadRequest builds a new payload request.
@@ -47,11 +50,13 @@ func BuildNewPayloadRequest(
 	executionPayload *ExecutionPayload,
 	versionedHashes []common.ExecutionHash,
 	parentBeaconBlockRoot *common.Root,
+	executionRequests [][]byte,
 ) *NewPayloadRequest {
 	return &NewPayloadRequest{
 		ExecutionPayload:      executionPayload,
 		VersionedHashes:       versionedHashes,
 		ParentBeaconBlockRoot: parentBeaconBlockRoot,
+		ExecutionRequests:     executionRequests,
 	}
 }
 
@@ -62,7 +67,7 @@ func BuildNewPayloadRequest(
 // https://github.com/ethereum/consensus-specs/blob/v1.4.0-beta.2/specs/deneb/beacon-chain.md#is_valid_versioned_hashes
 // TODO(pectra): The function is_valid_block_hash is modified to include the additional execution_requests_list.
 func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
-	block, blobHashes, err := MakeEthBlock(n.ExecutionPayload, n.ParentBeaconBlockRoot)
+	block, blobHashes, err := MakeEthBlock(n.ExecutionPayload, n.ParentBeaconBlockRoot, n.ExecutionRequests)
 	if err != nil {
 		return err
 	}
@@ -106,6 +111,7 @@ func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
 func MakeEthBlock(
 	payload *ExecutionPayload,
 	parentBeaconBlockRoot *common.Root,
+	executionRequests [][]byte,
 ) (
 	*gethprimitives.Block,
 	[]gethprimitives.ExecutionHash,
@@ -149,6 +155,12 @@ func MakeEthBlock(
 		BlobGasUsed:      payload.GetBlobGasUsed().UnwrapPtr(),
 		ParentBeaconRoot: (*gethprimitives.ExecutionHash)(parentBeaconBlockRoot),
 	}
+
+	if !version.IsBefore(payload.GetForkVersion(), version.Electra()) {
+		// TODO(pectra): Calculate this from the executionRequests
+		blkHeader.RequestsHash = &types.EmptyRequestsHash
+	}
+
 	block := gethprimitives.NewBlockWithHeader(blkHeader).WithBody(
 		gethprimitives.Body{
 			Transactions: txs,

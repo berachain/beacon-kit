@@ -27,6 +27,7 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"golang.org/x/sync/errgroup"
 )
@@ -57,9 +58,6 @@ func (sp *StateProcessor) processExecutionPayload(
 		"consensus timestamp", consensusTimestamp,
 		"verify payload", txCtx.VerifyPayload(),
 	)
-
-	// TODO(pectra): https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#modified-process_execution_payload
-	// Possibly no change is required.
 
 	// Perform payload verification only if the context is configured as such.
 	if txCtx.VerifyPayload() {
@@ -118,6 +116,8 @@ func (sp *StateProcessor) validateStatelessPayload(blk *ctypes.BeaconBlock) erro
 		)
 	}
 
+	// TODO(pectra): Is any additional validation required?
+
 	// No need to verify bounded number of commitments here, since it is
 	// verified early on in ProcessProposal.
 	return nil
@@ -162,10 +162,24 @@ func (sp *StateProcessor) validateStatefulPayload(
 
 	// TODO(pectra): https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#new-get_execution_requests_list
 
+	var executionRequestsList [][]byte
+	if !version.IsBefore(blk.GetForkVersion(), version.Electra()) {
+		// If we're post-electra, we set execution requests.
+		executionRequests, err := body.GetExecutionRequests()
+		if err != nil {
+			return err
+		}
+		executionRequestsList, err = ctypes.GetExecutionRequestsList(executionRequests)
+		if err != nil {
+			return err
+		}
+	}
+
 	payloadReq := ctypes.BuildNewPayloadRequest(
 		payload,
 		body.GetBlobKzgCommitments().ToVersionedHashes(),
 		&parentBeaconBlockRoot,
+		executionRequestsList,
 	)
 
 	// First we verify the block hash and versioned hashes are valid.

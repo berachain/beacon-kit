@@ -236,8 +236,8 @@ func TestExecutionRequests_ValidValuesSSZ(t *testing.T) {
 			require.NoError(t, err)
 
 			// Unmarshal back into a new ExecutionRequests.
-			var recomputedER types.ExecutionRequests
-			err = recomputedER.UnmarshalSSZ(prysmERBytes)
+			var recomputedER *types.ExecutionRequests
+			recomputedER, err = recomputedER.NewFromSSZ(prysmERBytes)
 			require.NoError(t, err)
 
 			// Compare that the original and recomputed ExecutionRequests match.
@@ -296,11 +296,12 @@ func TestExecutionRequests_InvalidValuesUnmarshalSSZ(t *testing.T) {
 	for i, payload := range invalidPayloads {
 		i, payload := i, payload // capture loop variables
 		t.Run(fmt.Sprintf("invalidPayload_%d", i), func(t *testing.T) {
-			var er types.ExecutionRequests
+			var er *types.ExecutionRequests
 			// Ensure that calling UnmarshalSSZ with an invalid payload does not panic
 			// and returns a non-nil error.
 			require.NotPanics(t, func() {
-				err := er.UnmarshalSSZ(payload)
+				var err error
+				er, err = er.NewFromSSZ(payload)
 				require.Error(t, err, "Expected error for payload %v", payload)
 			})
 		})

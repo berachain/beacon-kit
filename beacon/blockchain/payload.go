@@ -98,6 +98,7 @@ func (s *Service) forceSyncUponFinalize(
 		executionPayload,
 		beaconBlock.GetBody().GetBlobKzgCommitments().ToVersionedHashes(),
 		&parentBeaconBlockRoot,
+		nil,
 	)
 	if err := payloadReq.HasValidVersionedAndBlockHashes(); err != nil {
 		return err
