@@ -88,8 +88,10 @@ func (f *Fork) MarshalSSZ() ([]byte, error) {
 }
 
 // NewFromSSZ creates a new Fork object from SSZ format.
-func (*Fork) NewFromSSZ(buf []byte) (*Fork, error) {
-	f := &Fork{}
+func (f *Fork) NewFromSSZ(buf []byte) (*Fork, error) {
+	if f == nil {
+		f = &Fork{}
+	}
 	return f, ssz.DecodeFromBytes(buf, f)
 }
 

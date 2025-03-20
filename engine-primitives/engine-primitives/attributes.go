@@ -75,11 +75,6 @@ func NewPayloadAttributes(
 	return pa, nil
 }
 
-// IsNil returns true if the PayloadAttributes is nil.
-func (p *PayloadAttributes) IsNil() bool {
-	return p == nil
-}
-
 // GetSuggestedFeeRecipient returns the suggested fee recipient.
 func (p *PayloadAttributes) GetSuggestedFeeRecipient() common.ExecutionAddress {
 	return p.SuggestedFeeRecipient
@@ -104,12 +99,6 @@ func (p *PayloadAttributes) Validate() error {
 	if p.Withdrawals == nil && version.IsAfter(p.forkVersion, version.Bellatrix()) {
 		return ErrNilWithdrawals
 	}
-
-	// TODO: currently beaconBlockRoot is 0x000 on block 1, we need
-	// to fix this, before uncommenting the line below.
-	// if p.ParentBeaconBlockRoot == [32]byte{} {
-	// 	return ErrInvalidParentBeaconBlockRoot
-	// }
 
 	return nil
 }

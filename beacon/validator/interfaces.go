@@ -27,6 +27,7 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
@@ -40,7 +41,7 @@ type BlobFactory interface {
 	// BuildSidecars builds sidecars for a given block and blobs bundle.
 	BuildSidecars(
 		signedBlk *ctypes.SignedBeaconBlock,
-		blobs ctypes.BlobsBundle,
+		blobs engineprimitives.BlobsBundle,
 	) (datypes.BlobSidecars, error)
 }
 

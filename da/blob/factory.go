@@ -25,6 +25,7 @@ import (
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/types"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -50,7 +51,7 @@ func NewSidecarFactory(
 // BuildSidecars builds a sidecar.
 func (f *SidecarFactory) BuildSidecars(
 	signedBlk *ctypes.SignedBeaconBlock,
-	bundle ctypes.BlobsBundle,
+	bundle engineprimitives.BlobsBundle,
 ) (types.BlobSidecars, error) {
 	var (
 		blobs       = bundle.GetBlobs()

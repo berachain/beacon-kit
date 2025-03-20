@@ -132,7 +132,7 @@ func TestBeaconBlock(t *testing.T) {
 		require.NotNil(t, block.Body)
 		require.Equal(t, math.U64(10), block.GetTimestamp())
 		require.Equal(t, v, block.GetForkVersion())
-		require.False(t, block.IsNil())
+		require.NotNil(t, block)
 
 		// Set a new state root and test the SetStateRoot and GetBody methods
 		newStateRoot := [32]byte{1, 1, 1, 1, 1}
@@ -159,7 +159,8 @@ func TestBeaconBlock_MarshalUnmarshalSSZ(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, sszBlock)
 
-		unmarshalledBlock, err := (&types.BeaconBlock{}).NewFromSSZ(sszBlock, v)
+		var unmarshalledBlock *types.BeaconBlock
+		unmarshalledBlock, err = unmarshalledBlock.NewFromSSZ(sszBlock, v)
 		require.NoError(t, err)
 		require.Equal(t, block, unmarshalledBlock)
 	})
@@ -177,7 +178,7 @@ func TestBeaconBlock_HashTreeRoot(t *testing.T) {
 func TestBeaconBlock_IsNil(t *testing.T) {
 	t.Parallel()
 	var block *types.BeaconBlock
-	require.True(t, block.IsNil())
+	require.Nil(t, block)
 }
 
 func TestNewWithVersion(t *testing.T) {

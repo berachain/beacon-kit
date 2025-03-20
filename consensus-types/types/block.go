@@ -53,31 +53,32 @@ type BeaconBlock struct {
 	Body *BeaconBlockBody `json:"body"`
 }
 
-// NewBeaconBlockWithVersion assembles a new beacon block from the given.
+// NewBeaconBlockWithVersion assembles a new beacon block from the given parameters.
 func NewBeaconBlockWithVersion(
 	slot math.Slot,
 	proposerIndex math.ValidatorIndex,
 	parentBlockRoot common.Root,
 	forkVersion common.Version,
 ) (*BeaconBlock, error) {
+	var (
+		block *BeaconBlock
+		err   error
+	)
+
 	switch forkVersion {
 	case version.Deneb(), version.Deneb1(), version.Electra():
-		block := &BeaconBlock{
-			Versionable:   NewVersionable(forkVersion),
-			Slot:          slot,
-			ProposerIndex: proposerIndex,
-			ParentRoot:    parentBlockRoot,
-			StateRoot:     common.Root{},
-			Body:          (&BeaconBlockBody{}).empty(forkVersion),
-		}
-		return block, nil
+		// NOTE: StateRoot is left empty as it is not ready at this time.
+		block = block.empty(forkVersion)
+		block.Slot = slot
+		block.ProposerIndex = proposerIndex
+		block.ParentRoot = parentBlockRoot
 	default:
-		// we return block here to appease nilaway
-		return &BeaconBlock{}, errors.Wrap(
-			ErrForkVersionNotSupported,
-			fmt.Sprintf("fork %d", forkVersion),
-		)
+		// We return block here to appease nilaway.
+		block = &BeaconBlock{}
+		err = errors.Wrap(ErrForkVersionNotSupported, fmt.Sprintf("fork %d", forkVersion))
 	}
+
+	return block, err
 }
 
 /* -------------------------------------------------------------------------- */
@@ -116,26 +117,22 @@ func (b *BeaconBlock) MarshalSSZ() ([]byte, error) {
 
 // empty returns an empty BeaconBlock for the given fork version.
 func (*BeaconBlock) empty(version common.Version) *BeaconBlock {
+	var body *BeaconBlockBody
 	return &BeaconBlock{
 		Versionable: NewVersionable(version),
-		Body:        (&BeaconBlockBody{}).empty(version),
+		Body:        body.empty(version),
 	}
 }
 
 // NewFromSSZ creates a new BeaconBlock from SSZ format.
-func (*BeaconBlock) NewFromSSZ(buf []byte, version common.Version) (*BeaconBlock, error) {
-	b := (&BeaconBlock{}).empty(version)
+func (b *BeaconBlock) NewFromSSZ(buf []byte, version common.Version) (*BeaconBlock, error) {
+	b = b.empty(version)
 	return b, ssz.DecodeFromBytes(buf, b)
 }
 
 // HashTreeRoot computes the Merkleization of the BeaconBlock object.
 func (b *BeaconBlock) HashTreeRoot() common.Root {
 	return ssz.HashConcurrent(b)
-}
-
-// IsNil checks if the beacon block is nil.
-func (b *BeaconBlock) IsNil() bool {
-	return b == nil
 }
 
 // GetSlot retrieves the slot of the BeaconBlockBase.

@@ -80,8 +80,10 @@ func (a *AttestationData) MarshalSSZ() ([]byte, error) {
 }
 
 // NewFromSSZ creates a new AttestationData object from SSZ format.
-func (*AttestationData) NewFromSSZ(buf []byte) (*AttestationData, error) {
-	a := &AttestationData{}
+func (a *AttestationData) NewFromSSZ(buf []byte) (*AttestationData, error) {
+	if a == nil {
+		a = &AttestationData{}
+	}
 	return a, ssz.DecodeFromBytes(buf, a)
 }
 
