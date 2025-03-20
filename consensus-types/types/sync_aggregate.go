@@ -33,7 +33,7 @@ import (
 var (
 	_ ssz.StaticObject                    = (*SyncAggregate)(nil)
 	_ constraints.SSZMarshallableRootable = (*SyncAggregate)(nil)
-	_ UnusedEnforcer                      = (*SyncAggregate)(nil)
+	_ common.UnusedEnforcer               = (*SyncAggregate)(nil)
 )
 
 const (

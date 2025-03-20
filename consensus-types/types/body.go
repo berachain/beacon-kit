@@ -153,7 +153,7 @@ func (b *BeaconBlockBody) DefineSSZ(codec *ssz.Codec) {
 
 // MarshalSSZ serializes the BeaconBlockBody to SSZ-encoded bytes.
 func (b *BeaconBlockBody) MarshalSSZ() ([]byte, error) {
-	err := EnforceAllUnused(
+	err := common.EnforceAllUnused(
 		b.GetProposerSlashings(),
 		b.GetAttesterSlashings(),
 		b.GetAttestations(),
@@ -178,7 +178,7 @@ func NewEmptyBeaconBlockBodyWithVersion(version common.Version) *BeaconBlockBody
 }
 
 func (b *BeaconBlockBody) EnsureSyntaxFromSSZ() error {
-	errUnused := EnforceAllUnused(
+	errUnused := common.EnforceAllUnused(
 		b.GetProposerSlashings(),
 		b.GetAttesterSlashings(),
 		b.GetAttestations(),

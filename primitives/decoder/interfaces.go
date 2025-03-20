@@ -20,27 +20,10 @@
 
 package decoder
 
-import (
-	"fmt"
+import "github.com/karalabe/ssz"
 
-	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/karalabe/ssz"
-)
-
-// SSZUnmarshal is the way we build objects from byte formatted as ssz
-// While logically related to constraints package, SSZUnmarshal has its own
-// small package to avoid import cycle related to Unused Type
-// Also SSZUnmarshal highlight the common template for SSZ decoding different
-// objects
-func SSZUnmarshal[T SSZUnmarshaler](buf []byte, v T) error {
-	switch dest := any(v).(type) {
-	case *common.UnusedType:
-		// unused types have special formatting for efficiency
-		return common.DecodeUnusedType(buf, dest)
-	default:
-		if err := ssz.DecodeFromBytes(buf, v); err != nil {
-			return fmt.Errorf("failed decoding %T: %w", dest, err)
-		}
-		return v.EnsureSyntaxFromSSZ()
-	}
+// SSZUnmarshaler is an interface for objects that can be unmarshaled from SSZ format.
+type SSZUnmarshaler interface {
+	ssz.Object
+	EnsureSyntaxFromSSZ() error // once unmarshalled we will check whether type syntax is correct
 }

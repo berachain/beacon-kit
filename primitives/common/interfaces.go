@@ -18,29 +18,39 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package decoder
+package common
 
 import (
-	"fmt"
-
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/karalabe/ssz"
 )
 
-// SSZUnmarshal is the way we build objects from byte formatted as ssz
-// While logically related to constraints package, SSZUnmarshal has its own
-// small package to avoid import cycle related to Unused Type
-// Also SSZUnmarshal highlight the common template for SSZ decoding different
-// objects
-func SSZUnmarshal[T SSZUnmarshaler](buf []byte, v T) error {
-	switch dest := any(v).(type) {
-	case *common.UnusedType:
-		// unused types have special formatting for efficiency
-		return common.DecodeUnusedType(buf, dest)
-	default:
-		if err := ssz.DecodeFromBytes(buf, v); err != nil {
-			return fmt.Errorf("failed decoding %T: %w", dest, err)
-		}
-		return v.EnsureSyntaxFromSSZ()
-	}
+// sszMarshaler is an interface for objects that can be marshaled to SSZ format.
+type sszMarshaler interface {
+	// MarshalSSZ marshals the object into SSZ format.
+	MarshalSSZ() ([]byte, error)
+}
+
+// SSZUnmarshaler is an interface for objects that can be unmarshaled from SSZ format.
+type SSZUnmarshaler interface {
+	ssz.Object
+	EnsureSyntaxFromSSZ() error // once unmarshalled we will check whether type syntax is correct
+}
+
+// SSZMarshallable is an interface that combines SSZMarshaler and SSZUnmarshaler.
+type SSZMarshallable interface {
+	sszMarshaler
+	SSZUnmarshaler
+}
+
+// SSZRootable is an interface for objects that can compute their hash tree root.
+type SSZRootable interface {
+	// HashTreeRoot computes the hash tree root of the object.
+	HashTreeRoot() Root
+}
+
+// SSZMarshallableRootable is an interface that combines
+// sszMarshaler, sszUnmarshaler, and SSZRootable.
+type SSZMarshallableRootable interface {
+	SSZMarshallable
+	SSZRootable
 }
