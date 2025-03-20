@@ -112,15 +112,7 @@ func (b *SignedBeaconBlock) MarshalSSZ() ([]byte, error) {
 }
 
 func (b *SignedBeaconBlock) EnsureSyntaxFromSSZ() error {
-	switch fv := b.GetForkVersion(); fv {
-	case version.Deneb(), version.Deneb1():
-		// Make sure Withdrawals in execution payload are not nil.
-		b.Body.ExecutionPayload.EnsureNotNilWithdrawals()
-		return nil
-	default:
-		// We return a non-nil block here to appease nilaway.
-		return errors.Wrapf(ErrForkVersionNotSupported, "fork %d", fv)
-	}
+	return b.BeaconBlock.EnsureSyntaxFromSSZ()
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the

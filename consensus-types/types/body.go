@@ -26,6 +26,8 @@
 package types
 
 import (
+	"errors"
+
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
@@ -176,13 +178,17 @@ func NewEmptyBeaconBlockBodyWithVersion(version common.Version) *BeaconBlockBody
 }
 
 func (b *BeaconBlockBody) EnsureSyntaxFromSSZ() error {
-	return EnforceAllUnused(
+	errUnused := EnforceAllUnused(
 		b.GetProposerSlashings(),
 		b.GetAttesterSlashings(),
 		b.GetAttestations(),
 		b.GetVoluntaryExits(),
 		b.GetSyncAggregate(),
 		b.GetBlsToExecutionChanges(),
+	)
+	return errors.Join(
+		b.ExecutionPayload.EnsureSyntaxFromSSZ(),
+		errUnused,
 	)
 }
 

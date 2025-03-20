@@ -101,18 +101,6 @@ func NewEmptyExecutionPayloadWithVersion(forkVersion common.Version) *ExecutionP
 	return ep
 }
 
-func (p *ExecutionPayload) EnsureNotNilWithdrawals() {
-	// Post Shanghai an EL explicitly check that Withdrawals are not nil
-	// (instead empty slices are fine). Currently, BeaconKit duly builds
-	// a block with Withdrawals set to empty slice if there are no
-	// withdrawals) but as soon as the block is returned by CometBFT
-	// for verification, the SSZ decoding sets the empty slice to nil.
-	// This code change solves the issue.
-	if p.Withdrawals == nil {
-		p.Withdrawals = make([]*engineprimitives.Withdrawal, 0)
-	}
-}
-
 /* -------------------------------------------------------------------------- */
 /*                                     SSZ                                    */
 /* -------------------------------------------------------------------------- */
