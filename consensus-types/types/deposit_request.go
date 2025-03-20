@@ -32,7 +32,7 @@ import (
 	"github.com/karalabe/ssz"
 )
 
-const maxDepositRequestsPerPayload = 8192
+const MaxDepositRequestsPerPayload = 8192
 
 // DepositRequest is introduced in EIP6110 which is currently not processed.
 type DepositRequest = Deposit
@@ -47,7 +47,7 @@ func (dr *DepositRequests) MarshalSSZ() ([]byte, error) {
 
 // NewFromSSZ decodes SSZ data into a Deposits object by decoding each deposit individually.
 func (dr *DepositRequests) NewFromSSZ(data []byte) (*DepositRequests, error) {
-	maxSize := maxDepositRequestsPerPayload * DepositSize
+	maxSize := MaxDepositRequestsPerPayload * DepositSize
 	if len(data) > maxSize {
 		return nil, fmt.Errorf("invalid deposit requests SSZ size, requests should not be more than the max per payload, got %d max %d", len(data), maxSize)
 	}

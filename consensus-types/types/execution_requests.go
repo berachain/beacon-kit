@@ -55,9 +55,8 @@ type ExecutionRequests struct {
 
 // GetExecutionRequestsList introduced in pectra from the consensus spec
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#new-get_execution_requests_list
-// TODO(pectra): Test this
 func GetExecutionRequestsList(er *ExecutionRequests) ([][]byte, error) {
-	var result [][]byte
+	result := make([][]byte, 0)
 
 	// Process deposit requests if non-empty.
 	if len(er.Deposits) > 0 {
@@ -153,11 +152,11 @@ func DecodeExecutionRequests(encodedRequests [][]byte) (*ExecutionRequests, erro
 /* -------------------------------------------------------------------------- */
 
 func (e *ExecutionRequests) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Deposits, maxDepositRequestsPerPayload)
+	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Deposits, MaxDepositRequestsPerPayload)
 	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Withdrawals, maxWithdrawalRequestsPerPayload)
 	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Consolidations, maxConsolidationRequestsPerPayload)
 
-	ssz.DefineSliceOfStaticObjectsContent(codec, &e.Deposits, maxDepositRequestsPerPayload)
+	ssz.DefineSliceOfStaticObjectsContent(codec, &e.Deposits, MaxDepositRequestsPerPayload)
 	ssz.DefineSliceOfStaticObjectsContent(codec, &e.Withdrawals, maxWithdrawalRequestsPerPayload)
 	ssz.DefineSliceOfStaticObjectsContent(codec, &e.Consolidations, maxConsolidationRequestsPerPayload)
 }

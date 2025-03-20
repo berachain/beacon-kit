@@ -313,10 +313,11 @@ func TestExecutionRequests_InvalidValuesUnmarshalSSZ(t *testing.T) {
 }
 
 // All tests below are adapted from Prysm
+// https://github.com/prysmaticlabs/prysm/blob/e0e735470809df29c5404f64102ffbae5a574e0a/proto/engine/v1/electra_test.go#L13-L240
+
 var depositRequestsSSZHex = "0x706b0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000077630000000000000000000000000000000000000000000000000000000000007b00000000000000736967000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c801000000000000706b00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000776300000000000000000000000000000000000000000000000000000000000090010000000000007369670000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002000000000000000"
 
-// https://github.com/prysmaticlabs/prysm/blob/e0e735470809df29c5404f64102ffbae5a574e0a/proto/engine/v1/electra_test.go#L13-L240
-func TestGetDecodedExecutionRequests(t *testing.T) {
+func TestDecodeExecutionRequests(t *testing.T) {
 	t.Run("All requests decode successfully", func(t *testing.T) {
 		depositRequestBytes, err := hexutil.Decode("0x610000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
 			"620000000000000000000000000000000000000000000000000000000000000000" +
@@ -429,7 +430,7 @@ func TestGetDecodedExecutionRequests(t *testing.T) {
 		require.ErrorContains(t, err, "invalid deposit requests SSZ size")
 	})
 	t.Run("If deposit requests are over the max allowed per payload then we should error", func(t *testing.T) {
-		requests := make([]*enginev1.DepositRequest, params.BeaconConfig().MaxDepositRequestsPerPayload+1)
+		requests := make([]*enginev1.DepositRequest, types.MaxDepositRequestsPerPayload+1)
 		for i := range requests {
 			requests[i] = &enginev1.DepositRequest{
 				Pubkey:                bytesutil.PadTo([]byte("pk"), 48),
@@ -489,7 +490,7 @@ func TestGetDecodedExecutionRequests(t *testing.T) {
 	})
 }
 
-func TestEncodeExecutionRequests(t *testing.T) {
+func TestGetExecutionRequestsList(t *testing.T) {
 	t.Run("Empty execution requests should return an empty response and not nil", func(t *testing.T) {
 		ebe := &types.ExecutionRequests{}
 		b, err := types.GetExecutionRequestsList(ebe)
