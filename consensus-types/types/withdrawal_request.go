@@ -77,8 +77,8 @@ func (wr *WithdrawalRequests) MarshalSSZ() ([]byte, error) {
 	return eip7685.MarshalItems[*WithdrawalRequest](*wr)
 }
 
-// DecodeList decodes SSZ data by decoding each deposit individually.
-func (wr *WithdrawalRequests) DecodeList(data []byte) (*WithdrawalRequests, error) {
+// DecodeWithdrawalRequests decodes SSZ data by decoding each withdrawal individually.
+func DecodeWithdrawalRequests(data []byte) (*WithdrawalRequests, error) {
 	maxSize := maxWithdrawalRequestsPerPayload * sszWithdrawRequestSize
 	if len(data) > maxSize {
 		return nil, fmt.Errorf(

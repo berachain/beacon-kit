@@ -335,7 +335,7 @@ func TestDepositRequests_ValidValuesSSZ(t *testing.T) {
 
 			// Unmarshal back into a new DepositRequest.
 			var recomputedDepositRequest *types.DepositRequests
-			recomputedDepositRequest, err = recomputedDepositRequest.DecodeList(depositRequestBytes)
+			recomputedDepositRequest, err = types.DecodeDepositRequests(depositRequestBytes)
 			require.NoError(t, err)
 
 			// Compare that the original and recomputed deposit requests match.

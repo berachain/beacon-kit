@@ -45,8 +45,8 @@ func (dr *DepositRequests) MarshalSSZ() ([]byte, error) {
 	return eip7685.MarshalItems[*DepositRequest](*dr)
 }
 
-// DecodeList decodes SSZ data by decoding each request individually.
-func (dr *DepositRequests) DecodeList(data []byte) (*DepositRequests, error) {
+// DecodeDepositRequests decodes SSZ data by decoding each request individually.
+func DecodeDepositRequests(data []byte) (*DepositRequests, error) {
 	maxSize := MaxDepositRequestsPerPayload * DepositSize
 	if len(data) > maxSize {
 		return nil, fmt.Errorf(
