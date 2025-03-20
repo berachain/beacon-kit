@@ -53,7 +53,7 @@ func (sp *StateProcessor) InitializePreminedBeaconStateFromEth1(
 	eth1Data := &ctypes.Eth1Data{
 		DepositRoot:  deposits.HashTreeRoot(),
 		DepositCount: 0,
-		BlockHash:    execPayloadHeader.GetBlockHash(),
+		BlockHash:    common.ExecutionHash{},
 	}
 	if err := st.SetEth1Data(eth1Data); err != nil {
 		return nil, err
