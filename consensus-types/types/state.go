@@ -59,18 +59,6 @@ type BeaconState struct {
 	// Slashing
 	Slashings     []math.Gwei `json:"slashings,omitempty"`
 	TotalSlashing math.Gwei   `json:"total_slashing,omitempty"`
-
-	// TODO(pectra): EIP6110: deposit_requests_start_index
-	// https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#beaconstate
-	// Check if this is required based on rationale in https://eips.ethereum.org/EIPS/eip-6110
-
-	// TODO(pectra): pending_deposits: List[PendingDeposit, PENDING_DEPOSITS_LIMIT]  # [New in Electra:EIP7251]
-	// https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#beaconstate
-	// Needed for https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#modified-apply_deposit
-
-	// TODO(pectra): Do we need pending_partial_withdrawals?
-	// Used in https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#new-process_withdrawal_request
-
 }
 
 /* -------------------------------------------------------------------------- */

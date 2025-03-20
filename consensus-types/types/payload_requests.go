@@ -32,7 +32,6 @@ import (
 
 // NewPayloadRequest as per the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/beacon-chain.md#modified-newpayloadrequest
-// TODO(pectra): Modified NewPayloadRequest: new execution_requests. This may need to be Versionable.
 type NewPayloadRequest struct {
 	// ExecutionPayload is the payload to the execution client.
 	ExecutionPayload *ExecutionPayload
@@ -60,7 +59,6 @@ func BuildNewPayloadRequest(
 // As per the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/v1.4.0-beta.2/specs/deneb/beacon-chain.md#is_valid_block_hash
 // https://github.com/ethereum/consensus-specs/blob/v1.4.0-beta.2/specs/deneb/beacon-chain.md#is_valid_versioned_hashes
-// TODO(pectra): The function is_valid_block_hash is modified to include the additional execution_requests_list.
 func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
 	block, blobHashes, err := MakeEthBlock(n.ExecutionPayload, n.ParentBeaconBlockRoot)
 	if err != nil {

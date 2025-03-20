@@ -160,8 +160,6 @@ func (sp *StateProcessor) validateStatefulPayload(
 
 	parentBeaconBlockRoot := blk.GetParentBlockRoot()
 
-	// TODO(pectra): https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#new-get_execution_requests_list
-
 	payloadReq := ctypes.BuildNewPayloadRequest(
 		payload,
 		body.GetBlobKzgCommitments().ToVersionedHashes(),

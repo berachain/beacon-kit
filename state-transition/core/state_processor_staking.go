@@ -68,10 +68,6 @@ func (sp *StateProcessor) processOperations(
 		}
 	}
 
-	// TODO(pectra)
-	// for_ops(body.execution_requests.deposits, process_deposit_request)  # [New in Electra:EIP6110]
-	// for_ops(body.execution_requests.withdrawals, process_withdrawal_request)  # [New in Electra:EIP7002:EIP7251]
-
 	return st.SetEth1Data(blk.GetBody().Eth1Data)
 }
 
