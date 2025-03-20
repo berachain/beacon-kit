@@ -27,6 +27,8 @@ package types
 
 import "github.com/karalabe/ssz"
 
+const maxDepositRequestsPerPayload = 8192
+
 // DepositRequest is introduced in EIP6110 which is currently not processed.
 type DepositRequest = Deposit
 
@@ -39,27 +41,27 @@ func (dr DepositRequests) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {
 }
 
 // DefineSSZ defines the SSZ encoding for the Deposits object.
-func (dr *DepositRequests) DefineSSZ(c *ssz.Codec) {
+func (dr DepositRequests) DefineSSZ(c *ssz.Codec) {
 	c.DefineDecoder(func(*ssz.Decoder) {
-		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*DepositRequest)(dr), maxDepositRequestsPerPayload)
+		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*DepositRequest)(&dr), maxDepositRequestsPerPayload)
 	})
 	c.DefineEncoder(func(*ssz.Encoder) {
-		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*DepositRequest)(dr), maxDepositRequestsPerPayload)
+		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*DepositRequest)(&dr), maxDepositRequestsPerPayload)
 	})
 	c.DefineHasher(func(*ssz.Hasher) {
-		ssz.DefineSliceOfStaticObjectsOffset(c, (*[]*DepositRequest)(dr), maxDepositRequestsPerPayload)
+		ssz.DefineSliceOfStaticObjectsOffset(c, (*[]*DepositRequest)(&dr), maxDepositRequestsPerPayload)
 	})
 }
 
-func MarshalSSZDeposits(deposits []*DepositRequest) ([]byte, error) {
-	d := DepositRequests(deposits)
-	buf := make([]byte, ssz.Size(&d))
-	err := ssz.EncodeToBytes(buf, &d)
-	return buf, err
+// MarshalSSZ marshals the BlobSidecars object to SSZ format.
+func (dr *DepositRequests) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, ssz.Size(dr))
+	return buf, ssz.EncodeToBytes(buf, dr)
 }
 
-func UnmarshalSSZDeposits(data []byte) ([]*DepositRequest, error) {
-	var deps DepositRequests // This is nil by default
-	err := ssz.DecodeFromBytes(data, &deps)
-	return deps, err
+func (dr *DepositRequests) NewFromSSZ(data []byte) (*DepositRequests, error) {
+	if dr == nil {
+		dr = &DepositRequests{}
+	}
+	return dr, ssz.DecodeFromBytes(data, dr)
 }

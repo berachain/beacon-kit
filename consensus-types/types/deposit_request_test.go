@@ -205,70 +205,6 @@ func TestDepositRequest_ValidValuesSSZ(t *testing.T) {
 	}
 }
 
-func TestDepositRequests_ValidValuesSSZ(t *testing.T) {
-	t.Parallel()
-	testCases := []struct {
-		name           string
-		depositRequest []*types.DepositRequest
-	}{
-		{
-			name: "basic",
-			depositRequest: []*types.DepositRequest{
-				{
-					// 48-byte public key
-					Pubkey: crypto.BLSPubkey{
-						1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-						11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-						21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
-						31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
-						41, 42, 43, 44, 45, 46, 47, 48,
-					},
-					// 32-byte withdrawal credentials
-					Credentials: [32]byte{
-						1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-						11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-						21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
-						31, 32,
-					},
-					Amount: 1000,
-					// 96-byte BLS signature
-					Signature: crypto.BLSSignature{
-						1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-						11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-						21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
-						31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
-						41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
-						51, 52, 53, 54, 55, 56, 57, 58, 59, 60,
-						61, 62, 63, 64, 65, 66, 67, 68, 69, 70,
-						71, 72, 73, 74, 75, 76, 77, 78, 79, 80,
-						81, 82, 83, 84, 85, 86, 87, 88, 89, 90,
-						91, 92, 93, 94, 95, 96,
-					},
-					Index: 1,
-				},
-			},
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc // capture range variable
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			// Marshal the original deposit request.
-			depositRequestBytes, err := types.MarshalSSZDeposits(tc.depositRequest)
-			require.NoError(t, err)
-
-			// Unmarshal back into a new DepositRequest.
-			recomputedDepositRequest, err := types.UnmarshalSSZDeposits(depositRequestBytes)
-			require.NoError(t, err)
-
-			// Compare that the original and recomputed deposit requests match.
-			require.Equal(t, tc.depositRequest, recomputedDepositRequest)
-		})
-	}
-}
-
 //nolint:paralleltest // Invalid SSZ values cannot be run in parallel due to zeroalloc, which is global shared memory.
 func TestDepositRequest_InvalidValuesUnmarshalSSZ(t *testing.T) {
 	// Build a valid deposit request and marshal it to obtain a baseline valid payload.
@@ -336,6 +272,71 @@ func TestDepositRequest_InvalidValuesUnmarshalSSZ(t *testing.T) {
 				// We expect an error for every invalid payload.
 				require.Error(t, err, "expected error for payload %v", payload)
 			})
+		})
+	}
+}
+
+func TestDepositRequests_ValidValuesSSZ(t *testing.T) {
+	t.Parallel()
+	testCases := []struct {
+		name           string
+		depositRequest types.DepositRequests
+	}{
+		{
+			name: "basic",
+			depositRequest: []*types.DepositRequest{
+				{
+					// 48-byte public key
+					Pubkey: crypto.BLSPubkey{
+						1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+						11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+						21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+						31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+						41, 42, 43, 44, 45, 46, 47, 48,
+					},
+					// 32-byte withdrawal credentials
+					Credentials: [32]byte{
+						1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+						11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+						21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+						31, 32,
+					},
+					Amount: 1000,
+					// 96-byte BLS signature
+					Signature: crypto.BLSSignature{
+						1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+						11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+						21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+						31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+						41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
+						51, 52, 53, 54, 55, 56, 57, 58, 59, 60,
+						61, 62, 63, 64, 65, 66, 67, 68, 69, 70,
+						71, 72, 73, 74, 75, 76, 77, 78, 79, 80,
+						81, 82, 83, 84, 85, 86, 87, 88, 89, 90,
+						91, 92, 93, 94, 95, 96,
+					},
+					Index: 1,
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc // capture range variable
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			// Marshal the original deposit request.
+			depositRequestBytes, err := tc.depositRequest.MarshalSSZ()
+			require.NoError(t, err)
+
+			// Unmarshal back into a new DepositRequest.
+			var recomputedDepositRequest *types.DepositRequests
+			recomputedDepositRequest, err = recomputedDepositRequest.NewFromSSZ(depositRequestBytes)
+			require.NoError(t, err)
+
+			// Compare that the original and recomputed deposit requests match.
+			require.Equal(t, tc.depositRequest, recomputedDepositRequest)
 		})
 	}
 }

@@ -91,23 +91,15 @@ func (cr ConsolidationRequests) DefineSSZ(c *ssz.Codec) {
 	})
 }
 
-// HashTreeRoot returns the hash tree root of the Deposits.
-func (cr ConsolidationRequests) HashTreeRoot() common.Root {
-	return ssz.HashSequential(cr)
+// MarshalSSZ marshals the BlobSidecars object to SSZ format.
+func (cr *ConsolidationRequests) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, ssz.Size(cr))
+	return buf, ssz.EncodeToBytes(buf, cr)
 }
 
-func marshalSSZConsolidations(consolidations []*ConsolidationRequest) ([]byte, error) {
-	c := ConsolidationRequests(consolidations)
-	buf := make([]byte, ssz.Size(c))
-	err := ssz.EncodeToBytes(buf, c)
-	if err != nil {
-		return nil, err
+func (cr *ConsolidationRequests) NewFromSSZ(data []byte) (*ConsolidationRequests, error) {
+	if cr == nil {
+		cr = &ConsolidationRequests{}
 	}
-	return buf, nil
-}
-
-func unmarshalSSZConsolidations(data []byte) ([]*ConsolidationRequest, error) {
-	var consolidations ConsolidationRequests
-	err := ssz.DecodeFromBytes(data, &consolidations)
-	return consolidations, err
+	return cr, ssz.DecodeFromBytes(data, cr)
 }

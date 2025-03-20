@@ -89,18 +89,15 @@ func (wr WithdrawalRequests) HashTreeRoot() common.Root {
 	return ssz.HashSequential(wr)
 }
 
-func marshalSSZWithdrawals(withdrawals []*WithdrawalRequest) ([]byte, error) {
-	w := WithdrawalRequests(withdrawals)
-	buf := make([]byte, ssz.Size(w))
-	err := ssz.EncodeToBytes(buf, w)
-	if err != nil {
-		return nil, err
-	}
-	return buf, nil
+// MarshalSSZ marshals the BlobSidecars object to SSZ format.
+func (wr *WithdrawalRequests) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, ssz.Size(wr))
+	return buf, ssz.EncodeToBytes(buf, wr)
 }
 
-func unmarshalSSZWithdrawals(data []byte) ([]*WithdrawalRequest, error) {
-	withdrawals := WithdrawalRequests{}
-	err := ssz.DecodeFromBytes(data, &withdrawals)
-	return withdrawals, err
+func (wr *WithdrawalRequests) NewFromSSZ(data []byte) (*WithdrawalRequests, error) {
+	if wr == nil {
+		wr = &WithdrawalRequests{}
+	}
+	return wr, ssz.DecodeFromBytes(data, wr)
 }

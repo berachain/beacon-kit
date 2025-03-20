@@ -33,7 +33,6 @@ import (
 )
 
 const sszDynamicObjectOffset = 4
-const maxDepositRequestsPerPayload = 8192
 const maxWithdrawalRequestsPerPayload = 16
 const maxConsolidationRequestsPerPayload = 2
 const sszWithdrawRequestSize = 76          // ExecutionAddress = 20, ValidatorPubKey = 48, Amount = 8
@@ -61,7 +60,8 @@ func GetExecutionRequestsList(er *ExecutionRequests) ([][]byte, error) {
 
 	// Process deposit requests if non-empty.
 	if len(er.Deposits) > 0 {
-		depositBytes, err := MarshalSSZDeposits(er.Deposits)
+		requests := DepositRequests(er.Deposits)
+		depositBytes, err := requests.MarshalSSZ()
 		if err != nil {
 			return nil, err
 		}
@@ -71,7 +71,8 @@ func GetExecutionRequestsList(er *ExecutionRequests) ([][]byte, error) {
 
 	// Process withdrawal requests if non-empty.
 	if len(er.Withdrawals) > 0 {
-		withdrawalBytes, err := marshalSSZWithdrawals(er.Withdrawals)
+		requests := WithdrawalRequests(er.Withdrawals)
+		withdrawalBytes, err := requests.MarshalSSZ()
 		if err != nil {
 			return nil, err
 		}
@@ -81,7 +82,8 @@ func GetExecutionRequestsList(er *ExecutionRequests) ([][]byte, error) {
 
 	// Process consolidation requests if non-empty.
 	if len(er.Consolidations) > 0 {
-		consolidationBytes, err := marshalSSZConsolidations(er.Consolidations)
+		requests := ConsolidationRequests(er.Consolidations)
+		consolidationBytes, err := requests.MarshalSSZ()
 		if err != nil {
 			return nil, err
 		}
@@ -117,23 +119,26 @@ func DecodeExecutionRequests(encodedRequests [][]byte) (*ExecutionRequests, erro
 		// Switch based on the request type.
 		switch reqType {
 		case DepositRequestType[0]:
-			drs, err := UnmarshalSSZDeposits(data)
+			var req *DepositRequests
+			req, err := req.NewFromSSZ(data)
 			if err != nil {
 				return nil, err
 			}
-			result.Deposits = drs
+			result.Deposits = *req
 		case WithdrawalRequestType[0]:
-			wrs, err := unmarshalSSZWithdrawals(data)
+			var req *WithdrawalRequests
+			req, err := req.NewFromSSZ(data)
 			if err != nil {
 				return nil, err
 			}
-			result.Withdrawals = wrs
+			result.Withdrawals = *req
 		case ConsolidationRequestType[0]:
-			crs, err := unmarshalSSZConsolidations(data)
+			var req *ConsolidationRequests
+			req, err := req.NewFromSSZ(data)
 			if err != nil {
 				return nil, err
 			}
-			result.Consolidations = crs
+			result.Consolidations = *req
 		default:
 			return nil, fmt.Errorf("unsupported request type %d", reqType)
 		}
