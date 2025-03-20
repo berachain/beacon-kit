@@ -25,9 +25,9 @@ import (
 	"github.com/karalabe/ssz"
 )
 
-// SSZMarshaler is an interface for objects that can be
+// sszMarshaler is an interface for objects that can be
 // marshaled to SSZ format.
-type SSZMarshaler interface {
+type sszMarshaler interface {
 	// MarshalSSZ marshals the object into SSZ format.
 	MarshalSSZ() ([]byte, error)
 }
@@ -38,16 +38,16 @@ type SSZUnmarshaler interface {
 	EnsureSyntaxFromSSZ() error // once unmarshalled we will check whether type syntax is correct
 }
 
-// SSZVersionedUnmarshaler is an interface for objects that can be
+// sszVersionedUnmarshaler is an interface for objects that can be
 // unmarshaled from SSZ format for specific versions.
-type SSZVersionedUnmarshaler[SelfT any] interface {
+type sszVersionedUnmarshaler[SelfT any] interface {
 	// NewFromSSZ creates a new object from SSZ format with the given version.
 	NewFromSSZ(bz []byte, version common.Version) (SelfT, error)
 }
 
 // SSZMarshallable is an interface that combines SSZMarshaler and SSZUnmarshaler.
 type SSZMarshallable interface {
-	SSZMarshaler
+	sszMarshaler
 	SSZUnmarshaler
 }
 
@@ -59,8 +59,8 @@ type Versionable interface {
 // SSZVersionable is an interface that combines SSZMarshallable and Versionable.
 type SSZVersionedMarshallable[SelfT any] interface {
 	Versionable
-	SSZMarshaler
-	SSZVersionedUnmarshaler[SelfT]
+	sszMarshaler
+	sszVersionedUnmarshaler[SelfT]
 }
 
 // SSZRootable is an interface for objects that can compute their hash tree root.
@@ -70,7 +70,7 @@ type SSZRootable interface {
 }
 
 // SSZMarshallableRootable is an interface that combines
-// SSZMarshaler, SSZUnmarshaler, and SSZRootable.
+// sszMarshaler, sszUnmarshaler, and SSZRootable.
 type SSZMarshallableRootable[SelfT any] interface {
 	SSZMarshallable
 	SSZRootable
