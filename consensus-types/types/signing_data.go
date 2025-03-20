@@ -30,8 +30,8 @@ import (
 )
 
 var (
-	_ ssz.StaticObject                                  = (*SigningData)(nil)
-	_ constraints.SSZMarshallableRootable[*SigningData] = (*SigningData)(nil)
+	_ ssz.StaticObject                    = (*SigningData)(nil)
+	_ constraints.SSZMarshallableRootable = (*SigningData)(nil)
 )
 
 // SigningData as defined in the Ethereum 2.0 specification.
@@ -76,13 +76,7 @@ func (s *SigningData) MarshalSSZ() ([]byte, error) {
 	return s.MarshalSSZTo(buf)
 }
 
-// NewFromSSZ creates a new SigningData object from SSZ format.
-func (s *SigningData) NewFromSSZ(buf []byte) (*SigningData, error) {
-	if s == nil {
-		s = &SigningData{}
-	}
-	return s, ssz.DecodeFromBytes(buf, s)
-}
+func (*SigningData) EnsureSyntaxFromSSZ() error { return nil }
 
 // ComputeSigningRoot as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#compute_signing_root

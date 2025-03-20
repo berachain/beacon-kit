@@ -1,44 +1,39 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (c) 2025 Berachain Foundation
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
+// Use of this software is governed by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
 //
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WdeHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
 
 package types
 
 import (
+	"fmt"
+
+	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/karalabe/ssz"
 )
 
-const sszDynamicObjectOffset = 4
-const maxDepositRequestsPerPayload = 8192
-const maxWithdrawalRequestsPerPayload = 16
-const maxConsolidationRequestsPerPayload = 2
-const sszWithdrawRequestSize = 76          // ExecutionAddress = 20, ValidatorPubKey = 48, Amount = 8
-const sszConsolidationRequestSize = 116    // ExecutionAddress = 20, PubKey = 48, Pubkey = 48
+const sszDynamicObjectOffset = 4           // ExecutionAddress = 20, PubKey = 48, Pubkey = 48
 const dynamicFieldsInExecutionRequests = 3 // 3 since three dynamic objects (Deposits, Withdrawals, Consolidations)
+
+// EncodedExecutionRequest is the result of GetExecutionRequestsList which is spec defined.
+type EncodedExecutionRequest = bytes.Bytes
 
 type ExecutionRequests struct {
 	Deposits       []*DepositRequest
@@ -46,22 +41,119 @@ type ExecutionRequests struct {
 	Consolidations []*ConsolidationRequest
 }
 
-// DepositRequest is introduced in EIP6110 which is currently not processed.
-type DepositRequest = Deposit
-
-// WithdrawalRequest is introduced in EIP7002 which we use for withdrawals.
-type WithdrawalRequest struct {
-	SourceAddress   common.ExecutionAddress
-	ValidatorPubKey crypto.BLSPubkey
-	Amount          math.Gwei
+func (e *ExecutionRequests) EnsureSyntaxFromSSZ() error {
+	return nil
 }
 
-// ConsolidationRequest is introduced in Pectra but not used by us.
-// We keep it so we can maintain parity tests with other SSZ implementations.
-type ConsolidationRequest struct {
-	SourceAddress common.ExecutionAddress
-	SourcePubKey  crypto.BLSPubkey
-	TargetPubKey  crypto.BLSPubkey
+// GetExecutionRequestsList introduced in pectra from the consensus spec
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#new-get_execution_requests_list
+func GetExecutionRequestsList(er *ExecutionRequests) ([]EncodedExecutionRequest, error) {
+	if er == nil {
+		return nil, errors.New("nil execution requests")
+	}
+	result := make([]EncodedExecutionRequest, 0)
+
+	// Process deposit requests if non-empty.
+	if len(er.Deposits) > 0 {
+		requests := DepositRequests(er.Deposits)
+		depositBytes, err := requests.MarshalSSZ()
+		if err != nil {
+			return nil, err
+		}
+		combined := append([]byte{}, depositRequestType()...)
+		combined = append(combined, depositBytes...)
+		result = append(result, combined)
+	}
+
+	// Process withdrawal requests if non-empty.
+	if len(er.Withdrawals) > 0 {
+		requests := WithdrawalRequests(er.Withdrawals)
+		withdrawalBytes, err := requests.MarshalSSZ()
+		if err != nil {
+			return nil, err
+		}
+		combined := append([]byte{}, withdrawalRequestType()...)
+		combined = append(combined, withdrawalBytes...)
+		result = append(result, combined)
+	}
+
+	// Process consolidation requests if non-empty.
+	if len(er.Consolidations) > 0 {
+		requests := ConsolidationRequests(er.Consolidations)
+		consolidationBytes, err := requests.MarshalSSZ()
+		if err != nil {
+			return nil, err
+		}
+		combined := append([]byte{}, consolidationRequestType()...)
+		combined = append(combined, consolidationBytes...)
+		result = append(result, combined)
+	}
+
+	return result, nil
+}
+
+// DecodeExecutionRequests is used to decode the result from GetPayload into an ExecutionRequests.
+// TODO(pectra): Change this to use []EncodedExecutionRequest as input and fix tests.
+func DecodeExecutionRequests(encodedRequests [][]byte) (*ExecutionRequests, error) {
+	var result ExecutionRequests
+	var prevType *uint8
+
+	// Iterate over each encoded request group.
+	for _, encoded := range encodedRequests {
+		if len(encoded) < 1 {
+			return nil, errors.New("invalid execution request, length less than 1")
+		}
+		// The first byte indicates the request type.
+		reqType := encoded[0]
+
+		// Enforce that request types are in strictly increasing order.
+		if prevType != nil && *prevType >= reqType {
+			return nil, errors.New("requests should be in sorted order and unique")
+		}
+		prevType = &reqType
+
+		// The remaining bytes are the SSZ serialization for this group.
+		data := encoded[1:]
+
+		// Switch based on the request type.
+		switch reqType {
+		case depositRequestType()[0]:
+			req, err := DecodeDepositRequests(data)
+			if err != nil {
+				return nil, err
+			}
+			result.Deposits = *req
+		case withdrawalRequestType()[0]:
+			var req *WithdrawalRequests
+			req, err := DecodeWithdrawalRequests(data)
+			if err != nil {
+				return nil, err
+			}
+			result.Withdrawals = *req
+		case consolidationRequestType()[0]:
+			req, err := DecodeConsolidationRequests(data)
+			if err != nil {
+				return nil, err
+			}
+			result.Consolidations = *req
+		default:
+			return nil, fmt.Errorf("unsupported request type %d", reqType)
+		}
+	}
+
+	return &result, nil
+}
+
+func depositRequestType() []byte {
+	return []byte{0x00}
+}
+
+func withdrawalRequestType() []byte {
+	return []byte{0x01}
+}
+
+func consolidationRequestType() []byte {
+	return []byte{0x02}
 }
 
 /* -------------------------------------------------------------------------- */
@@ -69,11 +161,11 @@ type ConsolidationRequest struct {
 /* -------------------------------------------------------------------------- */
 
 func (e *ExecutionRequests) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Deposits, maxDepositRequestsPerPayload)
+	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Deposits, MaxDepositRequestsPerPayload)
 	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Withdrawals, maxWithdrawalRequestsPerPayload)
 	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Consolidations, maxConsolidationRequestsPerPayload)
 
-	ssz.DefineSliceOfStaticObjectsContent(codec, &e.Deposits, maxDepositRequestsPerPayload)
+	ssz.DefineSliceOfStaticObjectsContent(codec, &e.Deposits, MaxDepositRequestsPerPayload)
 	ssz.DefineSliceOfStaticObjectsContent(codec, &e.Withdrawals, maxWithdrawalRequestsPerPayload)
 	ssz.DefineSliceOfStaticObjectsContent(codec, &e.Consolidations, maxConsolidationRequestsPerPayload)
 }
@@ -94,67 +186,7 @@ func (e *ExecutionRequests) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, e)
 }
 
-func (e *ExecutionRequests) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, e)
-}
-
 // HashTreeRoot returns the hash tree root of the Deposits.
 func (e *ExecutionRequests) HashTreeRoot() common.Root {
-	return ssz.HashConcurrent(e)
-}
-
-/* -------------------------------------------------------------------------- */
-/*                       Withdrawal Requests SSZ                              */
-/* -------------------------------------------------------------------------- */
-
-func (w *WithdrawalRequest) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineStaticBytes(codec, &w.SourceAddress)
-	ssz.DefineStaticBytes(codec, &w.ValidatorPubKey)
-	ssz.DefineUint64(codec, &w.Amount)
-}
-
-func (w *WithdrawalRequest) SizeSSZ(_ *ssz.Sizer) uint32 {
-	return sszWithdrawRequestSize
-}
-
-func (w *WithdrawalRequest) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(w))
-	return buf, ssz.EncodeToBytes(buf, w)
-}
-
-func (w *WithdrawalRequest) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, w)
-}
-
-// HashTreeRoot returns the hash tree root of the Deposits.
-func (w *WithdrawalRequest) HashTreeRoot() common.Root {
-	return ssz.HashSequential(w)
-}
-
-/* -------------------------------------------------------------------------- */
-/*                       Consolidation Requests SSZ                           */
-/* -------------------------------------------------------------------------- */
-
-func (c *ConsolidationRequest) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineStaticBytes(codec, &c.SourceAddress)
-	ssz.DefineStaticBytes(codec, &c.SourcePubKey)
-	ssz.DefineStaticBytes(codec, &c.TargetPubKey)
-}
-
-func (c *ConsolidationRequest) SizeSSZ(_ *ssz.Sizer) uint32 {
-	return sszConsolidationRequestSize
-}
-
-func (c *ConsolidationRequest) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(c))
-	return buf, ssz.EncodeToBytes(buf, c)
-}
-
-func (c *ConsolidationRequest) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, c)
-}
-
-// HashTreeRoot returns the hash tree root of the Deposits.
-func (c *ConsolidationRequest) HashTreeRoot() common.Root {
-	return ssz.HashSequential(c)
+	return ssz.HashSequential(e)
 }

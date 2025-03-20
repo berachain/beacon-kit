@@ -18,15 +18,13 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package constraints
+package common
 
 import (
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/karalabe/ssz"
 )
 
-// sszMarshaler is an interface for objects that can be
-// marshaled to SSZ format.
+// sszMarshaler is an interface for objects that can be marshaled to SSZ format.
 type sszMarshaler interface {
 	// MarshalSSZ marshals the object into SSZ format.
 	MarshalSSZ() ([]byte, error)
@@ -44,33 +42,15 @@ type SSZMarshallable interface {
 	SSZUnmarshaler
 }
 
-// Versionable is a constraint that requires a type to have a GetForkVersion method.
-type Versionable interface {
-	GetForkVersion() common.Version
-}
-
-// SSZVersionable is an interface that combines SSZMarshallable and Versionable.
-type SSZVersionedMarshallable interface {
-	Versionable
-	SSZMarshallable
-}
-
 // SSZRootable is an interface for objects that can compute their hash tree root.
 type SSZRootable interface {
 	// HashTreeRoot computes the hash tree root of the object.
-	HashTreeRoot() common.Root
+	HashTreeRoot() Root
 }
 
 // SSZMarshallableRootable is an interface that combines
 // sszMarshaler, sszUnmarshaler, and SSZRootable.
 type SSZMarshallableRootable interface {
 	SSZMarshallable
-	SSZRootable
-}
-
-// SSZVersionedMarshallableRootable is an interface that combines
-// SSZVersionedMarshallable and SSZRootable.
-type SSZVersionedMarshallableRootable interface {
-	SSZVersionedMarshallable
 	SSZRootable
 }

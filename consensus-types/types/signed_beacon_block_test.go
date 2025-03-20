@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/decoder"
 	"github.com/berachain/beacon-kit/primitives/version"
 	cmtcrypto "github.com/cometbft/cometbft/crypto"
 	"github.com/cometbft/cometbft/crypto/bls12381"
@@ -103,9 +104,10 @@ func TestNewSignedBeaconBlockFromSSZ(t *testing.T) {
 		blockBytes, err := originalBlock.MarshalSSZ()
 		require.NoError(t, err)
 		require.NotNil(t, blockBytes)
-		newBlock, err := types.NewSignedBeaconBlockFromSSZ(
-			blockBytes, originalBlock.GetForkVersion(),
-		)
+
+		newBlock, err := types.NewEmptySignedBeaconBlockWithVersion(originalBlock.GetForkVersion())
+		require.NoError(t, err)
+		err = decoder.SSZUnmarshal(blockBytes, newBlock)
 		require.NoError(t, err)
 		require.NotNil(t, newBlock)
 		require.Equal(t, originalBlock, newBlock)
@@ -114,7 +116,8 @@ func TestNewSignedBeaconBlockFromSSZ(t *testing.T) {
 
 func TestNewSignedBeaconBlockFromSSZForkVersionNotSupported(t *testing.T) {
 	t.Parallel()
-	_, err := types.NewSignedBeaconBlockFromSSZ([]byte{}, version.Altair())
+
+	_, err := types.NewEmptySignedBeaconBlockWithVersion(version.Altair())
 	require.ErrorIs(t, err, types.ErrForkVersionNotSupported)
 }
 
@@ -181,20 +184,18 @@ func TestSignedBeaconBlock_SizeSSZ(t *testing.T) {
 func TestSignedBeaconBlock_EmptySerialization(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, fv common.Version) {
-		v := types.NewVersionable(fv)
 		orig := &types.SignedBeaconBlock{
 			BeaconBlock: &types.BeaconBlock{
-				Versionable: v,
-				Body: &types.BeaconBlockBody{
-					Versionable: v,
-				},
+				Versionable: types.NewVersionable(fv),
 			},
 		}
 		data, err := orig.MarshalSSZ()
 		require.NoError(t, err)
 		require.NotNil(t, data)
 
-		unmarshalled, err := types.NewSignedBeaconBlockFromSSZ(data, fv)
+		unmarshalled, err := types.NewEmptySignedBeaconBlockWithVersion(fv)
+		require.NoError(t, err)
+		err = decoder.SSZUnmarshal(data, unmarshalled)
 		require.NoError(t, err)
 		require.NotNil(t, unmarshalled.GetBeaconBlock())
 		require.NotNil(t, unmarshalled.GetSignature())

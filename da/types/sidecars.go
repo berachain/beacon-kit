@@ -30,8 +30,8 @@ import (
 
 // Compile-time check to ensure BlobSidecars implements the necessary interfaces.
 var (
-	_ ssz.DynamicObject                          = (*BlobSidecars)(nil)
-	_ constraints.SSZMarshallable[*BlobSidecars] = (*BlobSidecars)(nil)
+	_ ssz.DynamicObject           = (*BlobSidecars)(nil)
+	_ constraints.SSZMarshallable = (*BlobSidecars)(nil)
 )
 
 // Sidecars is a slice of blob side cars to be included in the block.
@@ -103,10 +103,4 @@ func (bs *BlobSidecars) MarshalSSZTo(buf []byte) ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, bs)
 }
 
-// NewFromSSZ unmarshals the BlobSidecars object from SSZ format.
-func (bs *BlobSidecars) NewFromSSZ(buf []byte) (*BlobSidecars, error) {
-	if bs == nil {
-		bs = &BlobSidecars{}
-	}
-	return bs, ssz.DecodeFromBytes(buf, bs)
-}
+func (*BlobSidecars) EnsureSyntaxFromSSZ() error { return nil }

@@ -44,8 +44,8 @@ const (
 
 // Compile-time assertions to ensure ExecutionPayload implements necessary interfaces.
 var (
-	_ ssz.DynamicObject                                               = (*ExecutionPayload)(nil)
-	_ constraints.SSZVersionedMarshallableRootable[*ExecutionPayload] = (*ExecutionPayload)(nil)
+	_ ssz.DynamicObject                            = (*ExecutionPayload)(nil)
+	_ constraints.SSZVersionedMarshallableRootable = (*ExecutionPayload)(nil)
 )
 
 // ExecutionPayload represents the payload of an execution block.
@@ -88,16 +88,17 @@ type ExecutionPayload struct {
 	ExcessBlobGas math.U64 `json:"excessBlobGas"`
 }
 
-func (p *ExecutionPayload) EnsureNotNilWithdrawals() {
-	// Post Shanghai an EL explicitly check that Withdrawals are not nil
-	// (instead empty slices are fine). Currently, BeaconKit duly builds
-	// a block with Withdrawals set to empty slice if there are no
-	// withdrawals) but as soon as the block is returned by CometBFT
-	// for verification, the SSZ decoding sets the empty slice to nil.
-	// This code change solves the issue.
-	if p.Withdrawals == nil {
-		p.Withdrawals = make([]*engineprimitives.Withdrawal, 0)
+func NewEmptyExecutionPayloadWithVersion(forkVersion common.Version) *ExecutionPayload {
+	ep := &ExecutionPayload{
+		Versionable:   NewVersionable(forkVersion),
+		BaseFeePerGas: &math.U256{},
 	}
+
+	// For any fork version after Bellatrix (Capella onwards), non-nil withdrawals are required.
+	if version.IsAfter(forkVersion, version.Bellatrix()) {
+		ep.Withdrawals = make([]*engineprimitives.Withdrawal, 0)
+	}
+	return ep
 }
 
 /* -------------------------------------------------------------------------- */
@@ -168,25 +169,12 @@ func (p *ExecutionPayload) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, p)
 }
 
-// empty returns an empty ExecutionPayload for the given fork version.
-func (*ExecutionPayload) empty(forkVersion common.Version) *ExecutionPayload {
-	ep := &ExecutionPayload{
-		Versionable:   NewVersionable(forkVersion),
-		BaseFeePerGas: &math.U256{},
-	}
-
+func (p *ExecutionPayload) EnsureSyntaxFromSSZ() error {
 	// For any fork version after Bellatrix (Capella onwards), non-nil withdrawals are required.
-	if version.IsAfter(forkVersion, version.Bellatrix()) {
-		ep.Withdrawals = make([]*engineprimitives.Withdrawal, 0)
+	if p.Withdrawals == nil && version.IsAfter(p.GetForkVersion(), version.Bellatrix()) {
+		p.Withdrawals = make([]*engineprimitives.Withdrawal, 0)
 	}
-
-	return ep
-}
-
-// NewFromSSZ unmarshals the ExecutionPayload object from a source array with a given fork version.
-func (p *ExecutionPayload) NewFromSSZ(bz []byte, version common.Version) (*ExecutionPayload, error) {
-	p = p.empty(version)
-	return p, ssz.DecodeFromBytes(bz, p)
+	return nil
 }
 
 // HashTreeRoot returns the hash tree root of the ExecutionPayload.

@@ -166,12 +166,12 @@ func (s *PectraSuite) TestFullLifecycle_WithRequests_IsSuccessful() {
 	// https://github.com/ethereum/go-ethereum/blob/39638c81c56db2b2dfe6f51999ffd3029ee212cb/core/blockchain_test.go#L4131-L4130
 	withdrawalTx := types.MustSignNewTx(senderKey, signer, &types.DynamicFeeTx{
 		ChainID:   elChainID,
-		Nonce:     1,
+		Nonce:     0,
 		To:        &params.WithdrawalQueueAddress,
 		Gas:       500_000,
 		GasFeeCap: big.NewInt(1000000000),
 		GasTipCap: big.NewInt(1000000000),
-		Value:     big.NewInt(1),
+		Value:     big.NewInt(100),
 		Data:      common.FromHex("b917cfdc0d25b72d55cf94db328e1629b7f4fde2c30cdacf873b664416f76a0c7f7cc50c9f72a3cb84be88144cde91250000000000000d80"),
 	})
 
