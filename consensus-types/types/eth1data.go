@@ -56,9 +56,8 @@ func NewEth1Data(depositRoot common.Root) *Eth1Data {
 	}
 }
 
-func NewEmptyEthi1Data() (*Eth1Data, error) {
-	res := &Eth1Data{}
-	return res, res.EnsureSyntaxFromSSZ()
+func NewEmptyEthi1Data() *Eth1Data {
+	return &Eth1Data{}
 }
 
 /* -------------------------------------------------------------------------- */
@@ -88,7 +87,6 @@ func (e *Eth1Data) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, e)
 }
 
-func (*Eth1Data) IsUnusedFromSZZ() bool      { return false }
 func (*Eth1Data) EnsureSyntaxFromSSZ() error { return nil }
 
 // MarshalSSZTo marshals the Eth1Data object into a pre-allocated byte slice.

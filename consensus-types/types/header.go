@@ -74,9 +74,8 @@ func NewBeaconBlockHeader(
 	}
 }
 
-func NewEmptyBeaconBlockHeader() (*BeaconBlockHeader, error) {
-	res := &BeaconBlockHeader{}
-	return res, res.EnsureSyntaxFromSSZ()
+func NewEmptyBeaconBlockHeader() *BeaconBlockHeader {
+	return &BeaconBlockHeader{}
 }
 
 /* -------------------------------------------------------------------------- */
@@ -103,7 +102,6 @@ func (b *BeaconBlockHeader) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 
-func (*BeaconBlockHeader) IsUnusedFromSZZ() bool      { return false }
 func (*BeaconBlockHeader) EnsureSyntaxFromSSZ() error { return nil }
 
 // HashTreeRoot computes the SSZ hash tree root of the BeaconBlockHeader object.

@@ -76,7 +76,6 @@ func (s *SigningData) MarshalSSZ() ([]byte, error) {
 	return s.MarshalSSZTo(buf)
 }
 
-func (*SigningData) IsUnusedFromSZZ() bool      { return false }
 func (*SigningData) EnsureSyntaxFromSSZ() error { return nil }
 
 // ComputeSigningRoot as defined in the Ethereum 2.0 specification.

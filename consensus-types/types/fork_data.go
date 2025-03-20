@@ -85,7 +85,6 @@ func (fd *ForkData) MarshalSSZ() ([]byte, error) {
 	return fd.MarshalSSZTo(buf)
 }
 
-func (*ForkData) IsUnusedFromSZZ() bool      { return false }
 func (*ForkData) EnsureSyntaxFromSSZ() error { return nil }
 
 // ComputeDomain as defined in the Ethereum 2.0 specification.

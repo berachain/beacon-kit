@@ -25,7 +25,7 @@ import (
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
-	sszconstructors "github.com/berachain/beacon-kit/primitives/ssz-constructors"
+	"github.com/berachain/beacon-kit/primitives/decoder"
 )
 
 // ExtractBlobsAndBlockFromRequest extracts the blobs and block from an ABCI
@@ -101,7 +101,7 @@ func UnmarshalBlobSidecarsFromABCIRequest(
 	}
 
 	var sidecars datypes.BlobSidecars
-	if err := sszconstructors.SSZUnmarshal(sidecarBz, &sidecars); err != nil {
+	if err := decoder.SSZUnmarshal(sidecarBz, &sidecars); err != nil {
 		return nil, err
 	}
 	if sidecars == nil { // appease nilaway

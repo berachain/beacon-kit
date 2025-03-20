@@ -65,9 +65,8 @@ func NewFork(
 	}
 }
 
-func NewEmptyFork() (*Fork, error) {
-	res := &Fork{}
-	return res, res.EnsureSyntaxFromSSZ()
+func NewEmptyFork() *Fork {
+	return &Fork{}
 }
 
 /* -------------------------------------------------------------------------- */
@@ -92,7 +91,6 @@ func (f *Fork) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, f)
 }
 
-func (*Fork) IsUnusedFromSZZ() bool      { return false }
 func (*Fork) EnsureSyntaxFromSSZ() error { return nil }
 
 // HashTreeRoot computes the SSZ hash tree root of the Fork object.

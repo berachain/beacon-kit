@@ -93,9 +93,8 @@ func NewValidatorFromDeposit(
 	}
 }
 
-func NewEmptyValidator() (*Validator, error) {
-	res := &Validator{}
-	return res, res.EnsureSyntaxFromSSZ()
+func NewEmptyValidator() *Validator {
+	return &Validator{}
 }
 
 func ComputeEffectiveBalance(
@@ -136,7 +135,6 @@ func (v *Validator) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, v)
 }
 
-func (*Validator) IsUnusedFromSZZ() bool      { return false }
 func (*Validator) EnsureSyntaxFromSSZ() error { return nil }
 
 /* -------------------------------------------------------------------------- */

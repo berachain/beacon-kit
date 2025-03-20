@@ -94,7 +94,6 @@ func (w *Withdrawal) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, w)
 }
 
-func (*Withdrawal) IsUnusedFromSZZ() bool      { return false }
 func (*Withdrawal) EnsureSyntaxFromSSZ() error { return nil }
 
 /* -------------------------------------------------------------------------- */

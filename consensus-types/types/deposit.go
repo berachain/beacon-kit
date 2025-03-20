@@ -54,9 +54,8 @@ type Deposit struct {
 	Index uint64 `json:"index"`
 }
 
-func NewEmptyDeposit() (*Deposit, error) {
-	res := &Deposit{}
-	return res, res.EnsureSyntaxFromSSZ()
+func NewEmptyDeposit() *Deposit {
+	return &Deposit{}
 }
 
 // Equals returns true if the Deposit is equal to the other.
@@ -105,7 +104,6 @@ func (d *Deposit) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, d)
 }
 
-func (*Deposit) IsUnusedFromSZZ() bool      { return false }
 func (*Deposit) EnsureSyntaxFromSSZ() error { return nil }
 
 // SizeSSZ returns the SSZ encoded size of the Deposit object.

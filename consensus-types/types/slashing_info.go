@@ -80,7 +80,6 @@ func (s *SlashingInfo) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, s)
 }
 
-func (*SlashingInfo) IsUnusedFromSZZ() bool      { return false }
 func (*SlashingInfo) EnsureSyntaxFromSSZ() error { return nil }
 
 /* -------------------------------------------------------------------------- */

@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package sszconstructors
+package decoder
 
 import (
 	"fmt"
@@ -29,23 +29,19 @@ import (
 )
 
 // SSZUnmarshal is the way we build objects from byte formatted as ssz
-func SSZUnmarshal[T interface {
-	ssz.Object
-	constraints.SSZUnmarshaler
-}](buf []byte, v T) error {
-	if v.IsUnusedFromSZZ() {
-		// we special case construction of unused types, for efficiency
-		if len(buf) != 1 {
-			return fmt.Errorf("expected 1 byte got %d", len(buf))
+// While logically related to constraits package, SSZUnmarshal has its own
+// small package to avoid import cycle related to Unused Type
+// Also SSZUnmarshal highlight the common template for SSZ decoding different
+// objects
+func SSZUnmarshal[T constraints.SSZUnmarshaler](buf []byte, v T) error {
+	switch dest := any(v).(type) {
+	case *types.UnusedType:
+		// unused types have special formatting for efficiency
+		return types.DecodeUnusedType(buf, dest)
+	default:
+		if err := ssz.DecodeFromBytes(buf, v); err != nil {
+			return fmt.Errorf("failed decoding %T: %w", dest, err)
 		}
-		//#nosec:G701 // UnusedType is uint8 and byte is uint8.
-		tmp := types.UnusedType(buf[0])
-		v, _ = any(tmp).(T) // TODO: any way this could be avoided?
-		return nil
+		return v.EnsureSyntaxFromSSZ()
 	}
-
-	if err := ssz.DecodeFromBytes(buf, v); err != nil {
-		return err
-	}
-	return v.EnsureSyntaxFromSSZ()
 }

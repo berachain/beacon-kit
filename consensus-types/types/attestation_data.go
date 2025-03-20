@@ -79,7 +79,6 @@ func (a *AttestationData) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, a)
 }
 
-func (*AttestationData) IsUnusedFromSZZ() bool      { return false }
 func (*AttestationData) EnsureSyntaxFromSSZ() error { return nil }
 
 /* -------------------------------------------------------------------------- */
