@@ -57,3 +57,16 @@ func (ds Deposits) HashTreeRoot() common.Root {
 	// TODO: determine if using HashConcurrent optimizes performance.
 	return ssz.HashSequential(ds)
 }
+
+// MarshalSSZ marshals the BlobSidecars object to SSZ format.
+func (dr *Deposits) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, ssz.Size(dr))
+	return buf, ssz.EncodeToBytes(buf, dr)
+}
+
+func (dr *Deposits) NewFromSSZ(data []byte) (*Deposits, error) {
+	if dr == nil {
+		dr = &Deposits{}
+	}
+	return dr, ssz.DecodeFromBytes(data, dr)
+}
