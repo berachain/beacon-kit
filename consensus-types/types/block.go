@@ -72,6 +72,9 @@ func NewBeaconBlockWithVersion(
 		block.Slot = slot
 		block.ProposerIndex = proposerIndex
 		block.ParentRoot = parentBlockRoot
+
+		// StateRoot is left empty as it is not ready at this time.
+		block.StateRoot = common.Root{}
 	default:
 		// We return block here to appease nilaway.
 		block = &BeaconBlock{}
