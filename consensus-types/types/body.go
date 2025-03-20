@@ -347,12 +347,15 @@ func (b *BeaconBlockBody) GetExecutionRequests() (*ExecutionRequests, error) {
 		return nil, errors.Wrapf(ErrFieldNotSupportedOnFork, "block version %d", b.GetForkVersion())
 	}
 	if b.executionRequests == nil {
-		return nil, errors.New("execution requests is nil")
+		return nil, errors.New("retrieved execution requests is nil")
 	}
 	return b.executionRequests, nil
 }
 
 func (b *BeaconBlockBody) SetExecutionRequests(executionRequest *ExecutionRequests) error {
+	if executionRequest == nil {
+		return errors.New("cannot set execution requests to nil")
+	}
 	if version.IsBefore(b.GetForkVersion(), version.Electra()) {
 		return errors.Wrapf(ErrFieldNotSupportedOnFork, "block version %d", b.GetForkVersion())
 	}
