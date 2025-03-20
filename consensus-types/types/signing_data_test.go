@@ -82,13 +82,13 @@ func TestSigningData_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, data)
 
+			unmarshalled := new(types.SigningData)
 			if tc.name == "Invalid Buffer Size" {
-				_, err = sszconstructors.NewFromSSZ[*types.SigningData](data[:32])
+				err = sszconstructors.SSZUnmarshal(data[:32], unmarshalled)
 				require.Error(t, err)
 				require.Equal(t, tc.err, err)
 			} else {
-				var unmarshalled *types.SigningData
-				unmarshalled, err = sszconstructors.NewFromSSZ[*types.SigningData](data)
+				err = sszconstructors.SSZUnmarshal(data, unmarshalled)
 				require.NoError(t, err)
 				require.Equal(t, tc.expected, unmarshalled)
 			}

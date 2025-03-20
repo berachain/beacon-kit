@@ -78,13 +78,14 @@ func TestSlashingInfo_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, data)
 
+			unmarshalled := new(types.SlashingInfo)
 			if tc.name == "Invalid Buffer Size" {
-				_, err = sszconstructors.NewFromSSZ[*types.SlashingInfo](data[:8])
+				err = sszconstructors.SSZUnmarshal(data[:8], unmarshalled)
 				require.Error(t, err)
 				require.Equal(t, tc.err, err)
 			} else {
-				var unmarshalled *types.SlashingInfo
-				unmarshalled, err = sszconstructors.NewFromSSZ[*types.SlashingInfo](data)
+
+				err = sszconstructors.SSZUnmarshal(data, unmarshalled)
 				require.NoError(t, err)
 				require.Equal(t, tc.expected, unmarshalled)
 

@@ -75,8 +75,8 @@ func (s *Store) GetBlobSidecars(slot math.Slot) (types.BlobSidecars, error) {
 
 	sidecars := make(types.BlobSidecars, 0, len(sidecarBzs))
 	for _, sidecarBz := range sidecarBzs {
-		var sidecar *types.BlobSidecar
-		sidecar, err = sszconstructors.NewFromSSZ[*types.BlobSidecar](sidecarBz)
+		sidecar := new(types.BlobSidecar)
+		err = sszconstructors.SSZUnmarshal(sidecarBz, sidecar)
 		if err != nil {
 			return sidecars, err
 		}

@@ -21,6 +21,8 @@
 package encoding
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	sszconstructors "github.com/berachain/beacon-kit/primitives/ssz-constructors"
@@ -32,7 +34,9 @@ import (
 type SSZValueCodec[T interface {
 	ssz.StaticObject
 	constraints.SSZMarshallable
-}] struct{}
+}] struct {
+	NewEmptyF func() (T, error) // constructor
+}
 
 // Encode marshals the provided value into its SSZ encoding.
 func (SSZValueCodec[T]) Encode(value T) ([]byte, error) {
@@ -40,8 +44,12 @@ func (SSZValueCodec[T]) Encode(value T) ([]byte, error) {
 }
 
 // Decode unmarshals the provided bytes into a value of type T.
-func (SSZValueCodec[T]) Decode(bz []byte) (T, error) {
-	return sszconstructors.NewFromSSZ[T](bz)
+func (sc SSZValueCodec[T]) Decode(bz []byte) (T, error) {
+	res, err := sc.NewEmptyF()
+	if err != nil {
+		return res, fmt.Errorf("failed instatiating %T while SSZ decoding: %w", res, err)
+	}
+	return res, sszconstructors.SSZUnmarshal(bz, res)
 }
 
 // EncodeJSON is not implemented and will panic if called.

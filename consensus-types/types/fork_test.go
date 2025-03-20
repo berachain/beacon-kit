@@ -44,7 +44,8 @@ func TestFork_Serialization(t *testing.T) {
 	require.NotNil(t, data)
 	require.NoError(t, err)
 
-	unmarshalled, err := sszconstructors.NewFromSSZ[*types.Fork](data)
+	unmarshalled := new(types.Fork)
+	err = sszconstructors.SSZUnmarshal(data, unmarshalled)
 	require.NoError(t, err)
 	require.Equal(t, original, unmarshalled)
 
@@ -98,6 +99,7 @@ func TestFork_UnmarshalSSZ_ErrSize(t *testing.T) {
 	t.Parallel()
 	buf := make([]byte, 10) // size less than 16
 
-	_, err := sszconstructors.NewFromSSZ[*types.Fork](buf)
+	var unmarshalled types.Fork
+	err := sszconstructors.SSZUnmarshal(buf, &unmarshalled)
 	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }

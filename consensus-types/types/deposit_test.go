@@ -101,7 +101,8 @@ func TestDeposit_MarshalUnmarshalSSZ(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, sszDeposit)
 
-	unmarshalledDeposit, err := sszconstructors.NewFromSSZ[*types.Deposit](sszDeposit)
+	unmarshalledDeposit := new(types.Deposit)
+	err = sszconstructors.SSZUnmarshal(sszDeposit, unmarshalledDeposit)
 	require.NoError(t, err)
 	require.Equal(t, originalDeposit, unmarshalledDeposit)
 }
@@ -152,7 +153,8 @@ func TestDeposit_UnmarshalSSZ_ErrSize(t *testing.T) {
 	// Create a byte slice of incorrect size
 	buf := make([]byte, 10) // size less than 192
 
-	_, err := sszconstructors.NewFromSSZ[*types.Deposit](buf)
+	var unmarshalledDeposit types.Deposit
+	err := sszconstructors.SSZUnmarshal(buf, &unmarshalledDeposit)
 	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
 

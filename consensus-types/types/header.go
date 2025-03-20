@@ -74,6 +74,11 @@ func NewBeaconBlockHeader(
 	}
 }
 
+func NewEmptyBeaconBlockHeader() (*BeaconBlockHeader, error) {
+	res := &BeaconBlockHeader{}
+	return res, res.EnsureSyntaxFromSSZ()
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                     SSZ                                    */
 /* -------------------------------------------------------------------------- */

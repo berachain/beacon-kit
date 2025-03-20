@@ -56,6 +56,11 @@ func NewEth1Data(depositRoot common.Root) *Eth1Data {
 	}
 }
 
+func NewEmptyEthi1Data() (*Eth1Data, error) {
+	res := &Eth1Data{}
+	return res, res.EnsureSyntaxFromSSZ()
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                     SSZ                                    */
 /* -------------------------------------------------------------------------- */

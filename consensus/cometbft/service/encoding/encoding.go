@@ -100,12 +100,12 @@ func UnmarshalBlobSidecarsFromABCIRequest(
 		return nil, ErrNilBlobSidecarInRequest
 	}
 
-	sidecars, err := sszconstructors.NewFromSSZ[*datypes.BlobSidecars](sidecarBz)
-	if err != nil {
+	var sidecars datypes.BlobSidecars
+	if err := sszconstructors.SSZUnmarshal(sidecarBz, &sidecars); err != nil {
 		return nil, err
 	}
 	if sidecars == nil { // appease nilaway
 		return nil, errors.New("nil sidecars")
 	}
-	return *sidecars, nil
+	return sidecars, nil
 }

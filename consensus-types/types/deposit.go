@@ -54,6 +54,11 @@ type Deposit struct {
 	Index uint64 `json:"index"`
 }
 
+func NewEmptyDeposit() (*Deposit, error) {
+	res := &Deposit{}
+	return res, res.EnsureSyntaxFromSSZ()
+}
+
 // Equals returns true if the Deposit is equal to the other.
 func (d *Deposit) Equals(o *Deposit) bool {
 	return d.Pubkey == o.Pubkey &&

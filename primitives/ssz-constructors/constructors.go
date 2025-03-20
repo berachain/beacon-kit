@@ -28,25 +28,24 @@ import (
 	"github.com/karalabe/ssz"
 )
 
-// NewFromSSZ is the way we build objects from byte formatted as ssz
-func NewFromSSZ[T interface {
+// SSZUnmarshal is the way we build objects from byte formatted as ssz
+func SSZUnmarshal[T interface {
 	ssz.Object
 	constraints.SSZUnmarshaler
-}](buf []byte) (T, error) {
-	var v T
+}](buf []byte, v T) error {
 	if v.IsUnusedFromSZZ() {
 		// we special case construction of unused types, for efficiency
 		if len(buf) != 1 {
-			return v, fmt.Errorf("expected 1 byte got %d", len(buf))
+			return fmt.Errorf("expected 1 byte got %d", len(buf))
 		}
 		//#nosec:G701 // UnusedType is uint8 and byte is uint8.
 		tmp := types.UnusedType(buf[0])
 		v, _ = any(tmp).(T) // TODO: any way this could be avoided?
-		return v, nil
+		return nil
 	}
 
 	if err := ssz.DecodeFromBytes(buf, v); err != nil {
-		return v, err
+		return err
 	}
-	return v, v.EnsureSyntaxFromSSZ()
+	return v.EnsureSyntaxFromSSZ()
 }

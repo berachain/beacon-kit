@@ -43,7 +43,8 @@ func TestWithdrawalSSZ(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, data)
 
-	unmarshalled, err := sszconstructors.NewFromSSZ[*engineprimitives.Withdrawal](data)
+	unmarshalled := new(engineprimitives.Withdrawal)
+	err = sszconstructors.SSZUnmarshal(data, unmarshalled)
 	require.NoError(t, err)
 	require.Equal(t, withdrawal, unmarshalled)
 
@@ -129,7 +130,8 @@ func TestWithdrawalUnmarshalSSZ(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			w, err := sszconstructors.NewFromSSZ[*engineprimitives.Withdrawal](tt.input)
+			var w engineprimitives.Withdrawal
+			err := sszconstructors.SSZUnmarshal(tt.input, &w)
 
 			if tt.wantErr {
 				require.Error(t, err)

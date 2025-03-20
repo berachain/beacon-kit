@@ -93,6 +93,11 @@ func NewValidatorFromDeposit(
 	}
 }
 
+func NewEmptyValidator() (*Validator, error) {
+	res := &Validator{}
+	return res, res.EnsureSyntaxFromSSZ()
+}
+
 func ComputeEffectiveBalance(
 	amount, effectiveBalanceIncrement, maxEffectiveBalance math.Gwei,
 ) math.Gwei {

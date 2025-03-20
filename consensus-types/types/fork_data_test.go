@@ -43,7 +43,8 @@ func TestForkData_Serialization(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, data)
 
-	unmarshalled, err := sszconstructors.NewFromSSZ[*types.ForkData](data)
+	unmarshalled := new(types.ForkData)
+	err = sszconstructors.SSZUnmarshal(data, unmarshalled)
 	require.NoError(t, err)
 
 	require.Equal(t, original, unmarshalled)
@@ -51,7 +52,8 @@ func TestForkData_Serialization(t *testing.T) {
 
 func TestForkData_Unmarshal(t *testing.T) {
 	t.Parallel()
-	_, err := sszconstructors.NewFromSSZ[*types.ForkData]([]byte{})
+	unmarshalled := new(types.ForkData)
+	err := sszconstructors.SSZUnmarshal([]byte{}, unmarshalled)
 	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
 

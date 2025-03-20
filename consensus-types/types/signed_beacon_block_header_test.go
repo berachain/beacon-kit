@@ -51,7 +51,8 @@ func TestSignedBeaconBlockHeader_Serialization(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, data)
 
-	unmarshalled, err := sszconstructors.NewFromSSZ[*types.SignedBeaconBlockHeader](data)
+	unmarshalled := new(types.SignedBeaconBlockHeader)
+	err = sszconstructors.SSZUnmarshal(data, unmarshalled)
 	require.NoError(t, err)
 	require.Equal(t, orig, unmarshalled)
 
@@ -70,12 +71,13 @@ func TestSignedBeaconBlockHeader_EmptySerialization(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, data)
 
-	unmarshalled, err := sszconstructors.NewFromSSZ[*types.SignedBeaconBlockHeader](data)
+	unmarshalled := new(types.SignedBeaconBlockHeader)
+	err = sszconstructors.SSZUnmarshal(data, unmarshalled)
 	require.NoError(t, err)
 	require.NotNil(t, unmarshalled)
 	require.NotNil(t, unmarshalled.GetHeader())
 	require.NotNil(t, unmarshalled.GetSignature())
-	require.Equal(t, types.BeaconBlockHeader{}, unmarshalled.GetHeader())
+	require.Equal(t, &types.BeaconBlockHeader{}, unmarshalled.GetHeader())
 
 	buf := make([]byte, karalabessz.Size(orig))
 	err = karalabessz.EncodeToBytes(buf, orig)

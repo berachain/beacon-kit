@@ -38,7 +38,8 @@ func TestEth1Data_Serialization(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, data)
 
-	unmarshalled, err := sszconstructors.NewFromSSZ[*types.Eth1Data](data)
+	unmarshalled := new(types.Eth1Data)
+	err = sszconstructors.SSZUnmarshal(data, unmarshalled)
 	require.NoError(t, err)
 	require.Equal(t, original, unmarshalled)
 
@@ -53,7 +54,8 @@ func TestEth1Data_Serialization(t *testing.T) {
 func TestEth1Data_UnmarshalError(t *testing.T) {
 	t.Parallel()
 
-	_, err := sszconstructors.NewFromSSZ[*types.Eth1Data]([]byte{})
+	var unmarshalled types.Eth1Data
+	err := sszconstructors.SSZUnmarshal([]byte{}, &unmarshalled)
 	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
 

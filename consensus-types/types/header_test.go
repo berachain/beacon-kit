@@ -128,7 +128,8 @@ func TestBeaconBlockHeader_Serialization(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, data)
 
-	unmarshalled, err := sszconstructors.NewFromSSZ[*types.BeaconBlockHeader](data)
+	unmarshalled := new(types.BeaconBlockHeader)
+	err = sszconstructors.SSZUnmarshal(data, unmarshalled)
 	require.NoError(t, err)
 	require.Equal(t, original, unmarshalled)
 
@@ -266,6 +267,7 @@ func TestBeaconBlockHeader_UnmarshalSSZ_ErrSize(t *testing.T) {
 	t.Parallel()
 	buf := make([]byte, 100) // Incorrect size
 
-	_, err := sszconstructors.NewFromSSZ[*types.BeaconBlockHeader](buf)
+	var unmarshalled types.BeaconBlockHeader
+	err := sszconstructors.SSZUnmarshal(buf, &unmarshalled)
 	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
