@@ -47,6 +47,10 @@ type ExecutionRequests struct {
 	Consolidations []*ConsolidationRequest
 }
 
+func (e *ExecutionRequests) EnsureSyntaxFromSSZ() error {
+	return nil
+}
+
 // GetExecutionRequestsList introduced in pectra from the consensus spec
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#new-get_execution_requests_list
 func GetExecutionRequestsList(er *ExecutionRequests) ([]EncodedExecutionRequest, error) {
@@ -121,21 +125,21 @@ func DecodeExecutionRequests(encodedRequests [][]byte) (*ExecutionRequests, erro
 		switch reqType {
 		case depositRequestType()[0]:
 			var req *DepositRequests
-			req, err := req.NewFromSSZ(data)
+			req, err := req.DecodeList(data)
 			if err != nil {
 				return nil, err
 			}
 			result.Deposits = *req
 		case withdrawalRequestType()[0]:
 			var req *WithdrawalRequests
-			req, err := req.NewFromSSZ(data)
+			req, err := req.DecodeList(data)
 			if err != nil {
 				return nil, err
 			}
 			result.Withdrawals = *req
 		case consolidationRequestType()[0]:
 			var req *ConsolidationRequests
-			req, err := req.NewFromSSZ(data)
+			req, err := req.DecodeList(data)
 			if err != nil {
 				return nil, err
 			}
@@ -188,13 +192,6 @@ func (e *ExecutionRequests) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 func (e *ExecutionRequests) MarshalSSZ() ([]byte, error) {
 	buf := make([]byte, ssz.Size(e))
 	return buf, ssz.EncodeToBytes(buf, e)
-}
-
-func (e *ExecutionRequests) NewFromSSZ(buf []byte) (*ExecutionRequests, error) {
-	if e == nil {
-		e = &ExecutionRequests{}
-	}
-	return e, ssz.DecodeFromBytes(buf, e)
 }
 
 // HashTreeRoot returns the hash tree root of the Deposits.

@@ -73,13 +73,6 @@ func (c *ConsolidationRequest) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, c)
 }
 
-func (c *ConsolidationRequest) NewFromSSZ(buf []byte) (*ConsolidationRequest, error) {
-	if c == nil {
-		c = &ConsolidationRequest{}
-	}
-	return c, ssz.DecodeFromBytes(buf, c)
-}
-
 // HashTreeRoot returns the hash tree root of the Deposits.
 func (c *ConsolidationRequest) HashTreeRoot() common.Root {
 	return ssz.HashSequential(c)
@@ -90,8 +83,8 @@ func (cr *ConsolidationRequests) MarshalSSZ() ([]byte, error) {
 	return eip7685.MarshalItems[*ConsolidationRequest](*cr)
 }
 
-// NewFromSSZ decodes SSZ data into a ConsolidationRequests object by decoding each consolidation request individually.
-func (cr *ConsolidationRequests) NewFromSSZ(data []byte) (*ConsolidationRequests, error) {
+// DecodeList decodes SSZ data by decoding each request individually.
+func (cr *ConsolidationRequests) DecodeList(data []byte) (*ConsolidationRequests, error) {
 	maxSize := maxConsolidationRequestsPerPayload * sszConsolidationRequestSize
 	if len(data) > maxSize {
 		return nil, fmt.Errorf(

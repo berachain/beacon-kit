@@ -67,13 +67,6 @@ func (w *WithdrawalRequest) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, w)
 }
 
-func (w *WithdrawalRequest) NewFromSSZ(buf []byte) (*WithdrawalRequest, error) {
-	if w == nil {
-		w = &WithdrawalRequest{}
-	}
-	return w, ssz.DecodeFromBytes(buf, w)
-}
-
 // HashTreeRoot returns the hash tree root of the Deposits.
 func (w *WithdrawalRequest) HashTreeRoot() common.Root {
 	return ssz.HashSequential(w)
@@ -84,8 +77,8 @@ func (wr *WithdrawalRequests) MarshalSSZ() ([]byte, error) {
 	return eip7685.MarshalItems[*WithdrawalRequest](*wr)
 }
 
-// NewFromSSZ decodes SSZ data into a Deposits object by decoding each deposit individually.
-func (wr *WithdrawalRequests) NewFromSSZ(data []byte) (*WithdrawalRequests, error) {
+// DecodeList decodes SSZ data by decoding each deposit individually.
+func (wr *WithdrawalRequests) DecodeList(data []byte) (*WithdrawalRequests, error) {
 	maxSize := maxWithdrawalRequestsPerPayload * sszWithdrawRequestSize
 	if len(data) > maxSize {
 		return nil, fmt.Errorf(
