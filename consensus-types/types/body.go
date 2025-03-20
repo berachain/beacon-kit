@@ -37,11 +37,14 @@ import (
 )
 
 const (
-	// BodyLengthDeneb is the number of fields in the BeaconBlockBodyDeneb
-	// struct.
+	// BodyLengthDeneb is the number of fields in the BeaconBlockBodyDeneb struct.
 	BodyLengthDeneb uint64 = 12
 
+	// BodyLengthElectra is the number of fields in the BeaconBlockBodyElectra struct.
+	BodyLengthElectra uint64 = 13
+
 	// KZGPositionDeneb is the position of BlobKzgCommitments in the block body.
+	// TODO(pectra): Does this need to change?
 	KZGPositionDeneb = BodyLengthDeneb - 1
 
 	// KZGGeneralizedIndex is the index of the KZG commitment root's parent.
@@ -243,6 +246,9 @@ func (b *BeaconBlockBody) GetTopLevelRoots() []common.Root {
 
 // Length returns the number of fields in the BeaconBlockBody struct.
 func (b *BeaconBlockBody) Length() uint64 {
+	if !version.IsBefore(b.GetForkVersion(), version.Electra()) {
+		return BodyLengthElectra
+	}
 	return BodyLengthDeneb
 }
 
