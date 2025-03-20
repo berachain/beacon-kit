@@ -86,7 +86,7 @@ type SSZVersionedMarshallableRootable[SelfT any] interface {
 
 // MarshalItems marshals a slice of items that satisfy SSZMarshaler.
 // It encodes each item individually and appends its bytes to the output buffer.
-func MarshalItems[T SSZMarshaler](items []T) ([]byte, error) {
+func MarshalItems[T sszMarshaler](items []T) ([]byte, error) {
 	var buf []byte
 	for i, item := range items {
 		itemBytes, err := item.MarshalSSZ()
@@ -101,7 +101,7 @@ func MarshalItems[T SSZMarshaler](items []T) ([]byte, error) {
 // UnmarshalItems decodes a slice of items from the provided data.
 // It assumes that each item is encoded into a fixed number of bytes (itemSize)
 // and that newItem returns a new instance of the item.
-func UnmarshalItems[T SSZUnmarshaler[T]](data []byte, itemSize int, newItem func() T) ([]T, error) {
+func UnmarshalItems[T sszUnmarshaler[T]](data []byte, itemSize int, newItem func() T) ([]T, error) {
 	if len(data)%itemSize != 0 {
 		return nil, fmt.Errorf("invalid data length: %d is not a multiple of item size %d", len(data), itemSize)
 	}
