@@ -47,6 +47,9 @@ type ExecutionRequests struct {
 // GetExecutionRequestsList introduced in pectra from the consensus spec
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#new-get_execution_requests_list
 func GetExecutionRequestsList(er *ExecutionRequests) ([][]byte, error) {
+	if er == nil {
+		return nil, errors.New("nil execution requests")
+	}
 	result := make([][]byte, 0)
 
 	// Process deposit requests if non-empty.
