@@ -52,6 +52,9 @@ func (dr *DepositRequests) NewFromSSZ(data []byte) (*DepositRequests, error) {
 		return nil, fmt.Errorf("invalid deposit requests SSZ size, requests should not be more than the max per payload, got %d max %d", len(data), maxSize)
 	}
 	depositSize := int(ssz.Size(&Deposit{}))
+	if len(data) < depositSize {
+		return nil, fmt.Errorf("invalid deposit requests SSZ size, got %d expected at least %d", len(data), depositSize)
+	}
 	// Use the generic unmarshalItems helper.
 	items, err := constraints.UnmarshalItems[*DepositRequest](data, depositSize, func() *Deposit { return new(DepositRequest) })
 	if err != nil {

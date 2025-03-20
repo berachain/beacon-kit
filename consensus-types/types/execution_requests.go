@@ -28,6 +28,7 @@ package types
 import (
 	"fmt"
 
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/karalabe/ssz"
 )
@@ -100,16 +101,16 @@ func DecodeExecutionRequests(encodedRequests [][]byte) (*ExecutionRequests, erro
 	var prevType *uint8
 
 	// Iterate over each encoded request group.
-	for i, encoded := range encodedRequests {
+	for _, encoded := range encodedRequests {
 		if len(encoded) < 1 {
-			return nil, fmt.Errorf("encoded request group %d is empty", i)
+			return nil, errors.New("invalid execution request, length less than 1")
 		}
 		// The first byte indicates the request type.
 		reqType := encoded[0]
 
 		// Enforce that request types are in strictly increasing order.
 		if prevType != nil && *prevType >= reqType {
-			return nil, fmt.Errorf("invalid request type order or duplicate at group %d: got %d after %d", i, reqType, *prevType)
+			return nil, errors.New("requests should be in sorted order and unique")
 		}
 		prevType = &reqType
 

@@ -84,6 +84,9 @@ func (wr *WithdrawalRequests) NewFromSSZ(data []byte) (*WithdrawalRequests, erro
 		return nil, fmt.Errorf("invalid withdrawal requests SSZ size, requests should not be more than the max per payload, got %d max %d", len(data), maxSize)
 	}
 	withdrawalSize := int(ssz.Size(&WithdrawalRequest{}))
+	if len(data) < withdrawalSize {
+		return nil, fmt.Errorf("invalid withdrawal requests SSZ size, got %d expected at least %d", len(data), withdrawalSize)
+	}
 	// Use the generic unmarshalItems helper.
 	items, err := constraints.UnmarshalItems[*WithdrawalRequest](data, withdrawalSize, func() *WithdrawalRequest { return new(WithdrawalRequest) })
 	if err != nil {
