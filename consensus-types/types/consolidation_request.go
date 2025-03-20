@@ -28,7 +28,10 @@
 package types
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/karalabe/ssz"
 )
@@ -63,8 +66,11 @@ func (c *ConsolidationRequest) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, c)
 }
 
-func (c *ConsolidationRequest) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, c)
+func (c *ConsolidationRequest) NewFromSSZ(buf []byte) (*ConsolidationRequest, error) {
+	if c == nil {
+		c = &ConsolidationRequest{}
+	}
+	return c, ssz.DecodeFromBytes(buf, c)
 }
 
 // HashTreeRoot returns the hash tree root of the Deposits.
@@ -72,34 +78,23 @@ func (c *ConsolidationRequest) HashTreeRoot() common.Root {
 	return ssz.HashSequential(c)
 }
 
-// SizeSSZ returns the SSZ encoded size in bytes for the Deposits.
-func (cr ConsolidationRequests) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {
-	return ssz.SizeSliceOfStaticObjects(siz, ([]*ConsolidationRequest)(cr))
-}
-
-// DefineSSZ defines the SSZ encoding for the Deposits object.
-// TODO: get from accessible chainspec field params.
-func (cr ConsolidationRequests) DefineSSZ(c *ssz.Codec) {
-	c.DefineDecoder(func(*ssz.Decoder) {
-		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*ConsolidationRequest)(&cr), maxConsolidationRequestsPerPayload)
-	})
-	c.DefineEncoder(func(*ssz.Encoder) {
-		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*ConsolidationRequest)(&cr), maxConsolidationRequestsPerPayload)
-	})
-	c.DefineHasher(func(*ssz.Hasher) {
-		ssz.DefineSliceOfStaticObjectsOffset(c, (*[]*ConsolidationRequest)(&cr), maxConsolidationRequestsPerPayload)
-	})
-}
-
-// MarshalSSZ marshals the BlobSidecars object to SSZ format.
+// MarshalSSZ marshals the ConsolidationRequests object to SSZ format by encoding each consolidation request individually.
 func (cr *ConsolidationRequests) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(cr))
-	return buf, ssz.EncodeToBytes(buf, cr)
+	return constraints.MarshalItems[*ConsolidationRequest](*cr)
 }
 
+// NewFromSSZ decodes SSZ data into a ConsolidationRequests object by decoding each consolidation request individually.
 func (cr *ConsolidationRequests) NewFromSSZ(data []byte) (*ConsolidationRequests, error) {
-	if cr == nil {
-		cr = &ConsolidationRequests{}
+	// Optionally, add a check against a maximum payload size if required.
+	requestSize := int(ssz.Size(&ConsolidationRequest{}))
+	if len(data)%requestSize != 0 {
+		return nil, fmt.Errorf("invalid data length: %d is not a multiple of consolidation request size %d", len(data), requestSize)
 	}
-	return cr, ssz.DecodeFromBytes(data, cr)
+
+	items, err := constraints.UnmarshalItems[*ConsolidationRequest](data, requestSize, func() *ConsolidationRequest { return new(ConsolidationRequest) })
+	if err != nil {
+		return nil, err
+	}
+	consolidationRequests := ConsolidationRequests(items)
+	return &consolidationRequests, nil
 }

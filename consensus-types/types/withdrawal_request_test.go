@@ -140,12 +140,12 @@ func TestWithdrawalRequest_ValidValuesSSZ(t *testing.T) {
 			require.NoError(t, err)
 
 			// Unmarshal back into a new WithdrawalRequest.
-			var recomputedWithdrawalRequest types.WithdrawalRequest
-			err = recomputedWithdrawalRequest.UnmarshalSSZ(prysmWithdrawalBytes)
+			var recomputedWithdrawalRequest *types.WithdrawalRequest
+			recomputedWithdrawalRequest, err = recomputedWithdrawalRequest.NewFromSSZ(prysmWithdrawalBytes)
 			require.NoError(t, err)
 
 			// Compare that the original and recomputed values match.
-			require.Equal(t, *tc.withdrawalRequest, recomputedWithdrawalRequest)
+			require.Equal(t, tc.withdrawalRequest, recomputedWithdrawalRequest)
 		})
 	}
 }
@@ -195,8 +195,8 @@ func TestWithdrawalRequest_InvalidValuesUnmarshalSSZ(t *testing.T) {
 		t.Run(fmt.Sprintf("invalidWithdrawal_%d", i), func(t *testing.T) {
 			// Ensure that calling UnmarshalSSZ does not panic and returns an error.
 			require.NotPanics(t, func() {
-				var w types.WithdrawalRequest
-				err = w.UnmarshalSSZ(payload)
+				var w *types.WithdrawalRequest
+				w, err = w.NewFromSSZ(payload)
 				require.Error(t, err, "expected error for payload %v", payload)
 			})
 		})

@@ -142,12 +142,12 @@ func TestConsolidationRequest_ValidValuesSSZ(t *testing.T) {
 			require.NoError(t, err)
 
 			// Unmarshal back into a new ConsolidationRequest.
-			var recomputedCR types.ConsolidationRequest
-			err = recomputedCR.UnmarshalSSZ(prysmCRBytes)
+			var recomputedCR *types.ConsolidationRequest
+			recomputedCR, err = recomputedCR.NewFromSSZ(prysmCRBytes)
 			require.NoError(t, err)
 
 			// Compare that the original and recomputed consolidation requests match.
-			require.Equal(t, *tc.consolidationRequest, recomputedCR)
+			require.Equal(t, tc.consolidationRequest, recomputedCR)
 		})
 	}
 }
@@ -203,8 +203,8 @@ func TestConsolidationRequest_InvalidValuesUnmarshalSSZ(t *testing.T) {
 		t.Run(fmt.Sprintf("invalidConsolidation_%d", i), func(t *testing.T) {
 			// Ensure that calling UnmarshalSSZ does not panic and returns an error.
 			require.NotPanics(t, func() {
-				var c types.ConsolidationRequest
-				err = c.UnmarshalSSZ(payload)
+				var c *types.ConsolidationRequest
+				c, err = c.NewFromSSZ(payload)
 				require.Error(t, err, "expected error for payload %v", payload)
 			})
 		})

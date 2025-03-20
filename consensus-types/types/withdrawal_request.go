@@ -26,7 +26,10 @@
 package types
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/karalabe/ssz"
@@ -57,8 +60,11 @@ func (w *WithdrawalRequest) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, w)
 }
 
-func (w *WithdrawalRequest) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, w)
+func (w *WithdrawalRequest) NewFromSSZ(buf []byte) (*WithdrawalRequest, error) {
+	if w == nil {
+		w = &WithdrawalRequest{}
+	}
+	return w, ssz.DecodeFromBytes(buf, w)
 }
 
 // HashTreeRoot returns the hash tree root of the Deposits.
@@ -66,38 +72,23 @@ func (w *WithdrawalRequest) HashTreeRoot() common.Root {
 	return ssz.HashSequential(w)
 }
 
-// SizeSSZ returns the SSZ encoded size in bytes for the Deposits.
-func (wr WithdrawalRequests) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {
-	return ssz.SizeSliceOfStaticObjects(siz, ([]*WithdrawalRequest)(wr))
-}
-
-// DefineSSZ defines the SSZ encoding for the Deposits object.
-func (wr WithdrawalRequests) DefineSSZ(c *ssz.Codec) {
-	c.DefineDecoder(func(*ssz.Decoder) {
-		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*WithdrawalRequest)(&wr), maxWithdrawalRequestsPerPayload)
-	})
-	c.DefineEncoder(func(*ssz.Encoder) {
-		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*WithdrawalRequest)(&wr), maxWithdrawalRequestsPerPayload)
-	})
-	c.DefineHasher(func(*ssz.Hasher) {
-		ssz.DefineSliceOfStaticObjectsOffset(c, (*[]*WithdrawalRequest)(&wr), maxWithdrawalRequestsPerPayload)
-	})
-}
-
-// HashTreeRoot returns the hash tree root of the Deposits.
-func (wr WithdrawalRequests) HashTreeRoot() common.Root {
-	return ssz.HashSequential(wr)
-}
-
-// MarshalSSZ marshals the BlobSidecars object to SSZ format.
+// MarshalSSZ marshals the WithdrawalRequests object to SSZ format by encoding each deposit individually.
 func (wr *WithdrawalRequests) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(wr))
-	return buf, ssz.EncodeToBytes(buf, wr)
+	return constraints.MarshalItems[*WithdrawalRequest](*wr)
 }
 
+// NewFromSSZ decodes SSZ data into a Deposits object by decoding each deposit individually.
 func (wr *WithdrawalRequests) NewFromSSZ(data []byte) (*WithdrawalRequests, error) {
-	if wr == nil {
-		wr = &WithdrawalRequests{}
+	maxSize := maxWithdrawalRequestsPerPayload * sszWithdrawRequestSize
+	if len(data) > maxSize {
+		return nil, fmt.Errorf("invalid withdrawal requests SSZ size, requests should not be more than the max per payload, got %d max %d", len(data), maxSize)
 	}
-	return wr, ssz.DecodeFromBytes(data, wr)
+	withdrawalSize := int(ssz.Size(&WithdrawalRequest{}))
+	// Use the generic unmarshalItems helper.
+	items, err := constraints.UnmarshalItems[*WithdrawalRequest](data, withdrawalSize, func() *WithdrawalRequest { return new(WithdrawalRequest) })
+	if err != nil {
+		return nil, err
+	}
+	deposits := WithdrawalRequests(items)
+	return &deposits, nil
 }

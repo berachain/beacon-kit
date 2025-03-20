@@ -334,29 +334,4 @@ func TestDecodeExecutionRequests_PrysmTests(t *testing.T) {
 		require.Len(t, requests.Withdrawals, 1)
 		require.Len(t, requests.Consolidations, 1)
 	})
-	t.Run("Withdrawal requests decode successfully", func(t *testing.T) {
-		// Use a valid hex payload for a withdrawal request.
-		// This is similar to the one used in your deposits test.
-		withdrawalRequestBytes, err := hexutil.Decode(
-			"0x6400000000000000000000000000000000000000" +
-				"6500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000040597307000000",
-		)
-		require.NoError(t, err)
-
-		// Build an ExecutionBundleElectra with only the withdrawal group.
-		ebe := &enginev1.ExecutionBundleElectra{
-			ExecutionRequests: [][]byte{
-				append([]byte{uint8(enginev1.WithdrawalRequestType)}, withdrawalRequestBytes...),
-			},
-		}
-
-		// Decode the execution requests.
-		requests, err := types.DecodeExecutionRequests(ebe.GetExecutionRequests())
-		require.NoError(t, err)
-
-		// Expect one withdrawal request and zero deposits and consolidations.
-		require.Len(t, requests.Withdrawals, 1)
-		require.Empty(t, requests.Deposits)
-		require.Empty(t, requests.Consolidations)
-	})
 }

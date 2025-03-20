@@ -21,8 +21,6 @@
 package types
 
 import (
-	"fmt"
-
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/karalabe/ssz"
@@ -58,47 +56,4 @@ func (ds Deposits) DefineSSZ(c *ssz.Codec) {
 func (ds Deposits) HashTreeRoot() common.Root {
 	// TODO: determine if using HashConcurrent optimizes performance.
 	return ssz.HashSequential(ds)
-}
-
-// MarshalSSZ marshals the Deposits object to SSZ format by encoding each deposit individually.
-func (dr *Deposits) MarshalSSZ() ([]byte, error) {
-	var buf []byte
-	depositSize := ssz.Size(&Deposit{})
-	// Loop through each deposit in the slice.
-	for _, deposit := range *dr {
-		// Allocate a buffer for the current deposit.
-		depositBuf := make([]byte, depositSize)
-		// Encode the deposit into the depositBuf.
-		if err := ssz.EncodeToBytes(depositBuf, deposit); err != nil {
-			return nil, err
-		}
-		// Append the encoded bytes to the main buffer.
-		buf = append(buf, depositBuf...)
-	}
-	return buf, nil
-}
-
-func (dr *Deposits) NewFromSSZ(data []byte) (*Deposits, error) {
-	if dr == nil {
-		dr = &Deposits{}
-	}
-	// Get the size of a single deposit (assumed constant).
-	depositSize := int(ssz.Size(&Deposit{}))
-	// Ensure that the data length is a multiple of depositSize.
-	if len(data)%depositSize != 0 {
-		return nil, fmt.Errorf("invalid data length: %d is not a multiple of deposit size %d", len(data), depositSize)
-	}
-	// Reset the slice.
-	*dr = make(Deposits, 0, len(data)/depositSize)
-
-	// Loop through the data in chunks of depositSize.
-	for i := 0; i < len(data); i += depositSize {
-		chunk := data[i : i+depositSize]
-		deposit := new(Deposit)
-		if err := ssz.DecodeFromBytes(chunk, deposit); err != nil {
-			return nil, err
-		}
-		*dr = append(*dr, deposit)
-	}
-	return dr, nil
 }

@@ -25,7 +25,12 @@
 
 package types
 
-import "github.com/karalabe/ssz"
+import (
+	"fmt"
+
+	"github.com/berachain/beacon-kit/primitives/constraints"
+	"github.com/karalabe/ssz"
+)
 
 const maxDepositRequestsPerPayload = 8192
 
@@ -35,33 +40,23 @@ type DepositRequest = Deposit
 // DepositRequests is used for SSZ unmarshalling a list of DepositRequest
 type DepositRequests []*DepositRequest
 
-// SizeSSZ returns the SSZ encoded size in bytes for the Deposits.
-func (dr DepositRequests) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {
-	return ssz.SizeSliceOfStaticObjects(siz, ([]*DepositRequest)(dr))
-}
-
-// DefineSSZ defines the SSZ encoding for the Deposits object.
-func (dr DepositRequests) DefineSSZ(c *ssz.Codec) {
-	c.DefineDecoder(func(*ssz.Decoder) {
-		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*DepositRequest)(&dr), maxDepositRequestsPerPayload)
-	})
-	c.DefineEncoder(func(*ssz.Encoder) {
-		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*DepositRequest)(&dr), maxDepositRequestsPerPayload)
-	})
-	c.DefineHasher(func(*ssz.Hasher) {
-		ssz.DefineSliceOfStaticObjectsOffset(c, (*[]*DepositRequest)(&dr), maxDepositRequestsPerPayload)
-	})
-}
-
-// MarshalSSZ marshals the BlobSidecars object to SSZ format.
+// MarshalSSZ marshals the Deposits object to SSZ format by encoding each deposit individually.
 func (dr *DepositRequests) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(dr))
-	return buf, ssz.EncodeToBytes(buf, dr)
+	return constraints.MarshalItems[*DepositRequest](*dr)
 }
 
+// NewFromSSZ decodes SSZ data into a Deposits object by decoding each deposit individually.
 func (dr *DepositRequests) NewFromSSZ(data []byte) (*DepositRequests, error) {
-	if dr == nil {
-		dr = &DepositRequests{}
+	maxSize := maxDepositRequestsPerPayload * DepositSize
+	if len(data) > maxSize {
+		return nil, fmt.Errorf("invalid deposit requests SSZ size, requests should not be more than the max per payload, got %d max %d", len(data), maxSize)
 	}
-	return dr, ssz.DecodeFromBytes(data, dr)
+	depositSize := int(ssz.Size(&Deposit{}))
+	// Use the generic unmarshalItems helper.
+	items, err := constraints.UnmarshalItems[*DepositRequest](data, depositSize, func() *Deposit { return new(DepositRequest) })
+	if err != nil {
+		return nil, err
+	}
+	deposits := DepositRequests(items)
+	return &deposits, nil
 }
