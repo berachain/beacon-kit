@@ -33,8 +33,8 @@ import (
 
 // Compile-time assertions to ensure BeaconBlock implements necessary interfaces.
 var (
-	_ ssz.DynamicObject                                          = (*BeaconBlock)(nil)
-	_ constraints.SSZVersionedMarshallableRootable[*BeaconBlock] = (*BeaconBlock)(nil)
+	_ ssz.DynamicObject                            = (*BeaconBlock)(nil)
+	_ constraints.SSZVersionedMarshallableRootable = (*BeaconBlock)(nil)
 )
 
 // BeaconBlock represents a block in the beacon chain.
@@ -60,27 +60,29 @@ func NewBeaconBlockWithVersion(
 	parentBlockRoot common.Root,
 	forkVersion common.Version,
 ) (*BeaconBlock, error) {
-	var (
-		block *BeaconBlock
-		err   error
-	)
-
 	switch forkVersion {
 	case version.Deneb(), version.Deneb1():
-		block = block.empty(forkVersion)
+		block := NewEmptyBeaconBlockWithVersion(forkVersion)
 		block.Slot = slot
 		block.ProposerIndex = proposerIndex
 		block.ParentRoot = parentBlockRoot
 
 		// StateRoot is left empty as it is not ready at this time.
 		block.StateRoot = common.Root{}
+		return block, nil
 	default:
 		// We return block here to appease nilaway.
-		block = &BeaconBlock{}
-		err = errors.Wrap(ErrForkVersionNotSupported, fmt.Sprintf("fork %d", forkVersion))
+		block := &BeaconBlock{}
+		err := errors.Wrap(ErrForkVersionNotSupported, fmt.Sprintf("fork %d", forkVersion))
+		return block, err
 	}
+}
 
-	return block, err
+func NewEmptyBeaconBlockWithVersion(version common.Version) *BeaconBlock {
+	return &BeaconBlock{
+		Versionable: NewVersionable(version),
+		Body:        NewEmptyBeaconBlockBodyWithVersion(version),
+	}
 }
 
 /* -------------------------------------------------------------------------- */
@@ -117,19 +119,8 @@ func (b *BeaconBlock) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 
-// empty returns an empty BeaconBlock for the given fork version.
-func (*BeaconBlock) empty(version common.Version) *BeaconBlock {
-	var body *BeaconBlockBody
-	return &BeaconBlock{
-		Versionable: NewVersionable(version),
-		Body:        body.empty(version),
-	}
-}
-
-// NewFromSSZ creates a new BeaconBlock from SSZ format.
-func (b *BeaconBlock) NewFromSSZ(buf []byte, version common.Version) (*BeaconBlock, error) {
-	b = b.empty(version)
-	return b, ssz.DecodeFromBytes(buf, b)
+func (b *BeaconBlock) EnsureSyntaxFromSSZ() error {
+	return b.Body.EnsureSyntaxFromSSZ()
 }
 
 // HashTreeRoot computes the Merkleization of the BeaconBlock object.

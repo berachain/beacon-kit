@@ -238,7 +238,7 @@ func (st *BeaconState) HashTreeRootWith(
 	// Field (8) 'LatestExecutionPayloadHeader'
 	if st.LatestExecutionPayloadHeader == nil {
 		// TODO(pectra): Remove the hardcoded Deneb value and use a retrieved time from beaconState
-		st.LatestExecutionPayloadHeader = st.LatestExecutionPayloadHeader.empty(version.Deneb())
+		st.LatestExecutionPayloadHeader = NewEmptyExecutionPayloadHeaderWithVersion(version.Deneb())
 	}
 	if err := st.LatestExecutionPayloadHeader.HashTreeRootWith(hh); err != nil {
 		return err

@@ -33,8 +33,8 @@ import (
 const ForkSize = 16
 
 var (
-	_ ssz.StaticObject                           = (*Fork)(nil)
-	_ constraints.SSZMarshallableRootable[*Fork] = (*Fork)(nil)
+	_ ssz.StaticObject                    = (*Fork)(nil)
+	_ constraints.SSZMarshallableRootable = (*Fork)(nil)
 )
 
 // Fork as defined in the Ethereum 2.0 specification:
@@ -65,6 +65,10 @@ func NewFork(
 	}
 }
 
+func NewEmptyFork() *Fork {
+	return &Fork{}
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                     SSZ                                    */
 /* -------------------------------------------------------------------------- */
@@ -87,13 +91,7 @@ func (f *Fork) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, f)
 }
 
-// NewFromSSZ creates a new Fork object from SSZ format.
-func (f *Fork) NewFromSSZ(buf []byte) (*Fork, error) {
-	if f == nil {
-		f = &Fork{}
-	}
-	return f, ssz.DecodeFromBytes(buf, f)
-}
+func (*Fork) EnsureSyntaxFromSSZ() error { return nil }
 
 // HashTreeRoot computes the SSZ hash tree root of the Fork object.
 func (f *Fork) HashTreeRoot() common.Root {
