@@ -68,9 +68,15 @@ func NewSignedBeaconBlock(
 	}, nil
 }
 
-func NewEmptySignedBeaconBlockWithVersion(version common.Version) *SignedBeaconBlock {
-	return &SignedBeaconBlock{
-		BeaconBlock: NewEmptyBeaconBlockWithVersion(version),
+func NewEmptySignedBeaconBlockWithVersion(forkVersion common.Version) (*SignedBeaconBlock, error) {
+	switch forkVersion {
+	case version.Deneb(), version.Deneb1():
+		return &SignedBeaconBlock{
+			BeaconBlock: NewEmptyBeaconBlockWithVersion(forkVersion),
+		}, nil
+	default:
+		// We return a non-nil block here to appease nilaway.
+		return nil, errors.Wrapf(ErrForkVersionNotSupported, "fork %d", forkVersion)
 	}
 }
 

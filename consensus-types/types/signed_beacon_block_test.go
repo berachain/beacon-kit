@@ -105,7 +105,8 @@ func TestNewSignedBeaconBlockFromSSZ(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, blockBytes)
 
-		newBlock := types.NewEmptySignedBeaconBlockWithVersion(originalBlock.GetForkVersion())
+		newBlock, err := types.NewEmptySignedBeaconBlockWithVersion(originalBlock.GetForkVersion())
+		require.NoError(t, err)
 		err = decoder.SSZUnmarshal(blockBytes, newBlock)
 		require.NoError(t, err)
 		require.NotNil(t, newBlock)
@@ -116,8 +117,7 @@ func TestNewSignedBeaconBlockFromSSZ(t *testing.T) {
 func TestNewSignedBeaconBlockFromSSZForkVersionNotSupported(t *testing.T) {
 	t.Parallel()
 
-	block := types.NewEmptySignedBeaconBlockWithVersion(version.Altair())
-	err := decoder.SSZUnmarshal([]byte{}, block)
+	_, err := types.NewEmptySignedBeaconBlockWithVersion(version.Altair())
 	require.ErrorIs(t, err, types.ErrForkVersionNotSupported)
 }
 
@@ -193,7 +193,8 @@ func TestSignedBeaconBlock_EmptySerialization(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, data)
 
-		unmarshalled := types.NewEmptySignedBeaconBlockWithVersion(fv)
+		unmarshalled, err := types.NewEmptySignedBeaconBlockWithVersion(fv)
+		require.NoError(t, err)
 		err = decoder.SSZUnmarshal(data, unmarshalled)
 		require.NoError(t, err)
 		require.NotNil(t, unmarshalled.GetBeaconBlock())

@@ -183,7 +183,7 @@ func (p *ExecutionPayload) MarshalSSZ() ([]byte, error) {
 
 func (p *ExecutionPayload) EnsureSyntaxFromSSZ() error {
 	// For any fork version after Bellatrix (Capella onwards), non-nil withdrawals are required.
-	if version.IsAfter(p.GetForkVersion(), version.Bellatrix()) {
+	if p.Withdrawals == nil && version.IsAfter(p.GetForkVersion(), version.Bellatrix()) {
 		p.Withdrawals = make([]*engineprimitives.Withdrawal, 0)
 	}
 	return nil
