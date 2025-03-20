@@ -204,7 +204,7 @@ func TestConsolidationRequest_InvalidValuesUnmarshalSSZ(t *testing.T) {
 			// Ensure that calling UnmarshalSSZ does not panic and returns an error.
 			require.NotPanics(t, func() {
 				var c *types.ConsolidationRequest
-				c, err = c.NewFromSSZ(payload)
+				_, err = c.NewFromSSZ(payload)
 				require.Error(t, err, "expected error for payload %v", payload)
 			})
 		})

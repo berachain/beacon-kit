@@ -49,7 +49,10 @@ func (dr *DepositRequests) MarshalSSZ() ([]byte, error) {
 func (dr *DepositRequests) NewFromSSZ(data []byte) (*DepositRequests, error) {
 	maxSize := MaxDepositRequestsPerPayload * DepositSize
 	if len(data) > maxSize {
-		return nil, fmt.Errorf("invalid deposit requests SSZ size, requests should not be more than the max per payload, got %d max %d", len(data), maxSize)
+		return nil, fmt.Errorf(
+			"invalid deposit requests SSZ size, requests should not be more than the max per "+
+				"payload, got %d max %d", len(data), maxSize,
+		)
 	}
 	depositSize := int(ssz.Size(&Deposit{}))
 	if len(data) < depositSize {

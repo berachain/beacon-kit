@@ -165,7 +165,8 @@ func (sp *StateProcessor) validateStatefulPayload(
 	var executionRequestsList [][]byte
 	if !version.IsBefore(blk.GetForkVersion(), version.Electra()) {
 		// If we're post-electra, we set execution requests.
-		executionRequests, err := body.GetExecutionRequests()
+		var executionRequests *ctypes.ExecutionRequests
+		executionRequests, err = body.GetExecutionRequests()
 		if err != nil {
 			return err
 		}

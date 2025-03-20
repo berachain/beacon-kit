@@ -315,13 +315,23 @@ func TestExecutionRequests_InvalidValuesUnmarshalSSZ(t *testing.T) {
 // All tests below are adapted from Prysm
 // https://github.com/prysmaticlabs/prysm/blob/e0e735470809df29c5404f64102ffbae5a574e0a/proto/engine/v1/electra_test.go#L13-L240
 
-var depositRequestsSSZHex = "0x706b0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000077630000000000000000000000000000000000000000000000000000000000007b00000000000000736967000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c801000000000000706b00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000776300000000000000000000000000000000000000000000000000000000000090010000000000007369670000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002000000000000000"
+var depositRequestsSSZHex = "0x706b000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+	"0000000000077630000000000000000000000000000000000000000000000000000000000007b00000000000000736967000000000000000" +
+	"0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+	"00000000000000000000000000000000000000000000000000000000000c801000000000000706b000000000000000000000000000000000" +
+	"0000000000000000000000000000000000000000000000000000000000077630000000000000000000000000000000000000000000000000" +
+	"000000000009001000000000000736967000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+	"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020" +
+	"00000000000000"
 
 func TestDecodeExecutionRequests(t *testing.T) {
+	t.Parallel()
 	t.Run("All requests decode successfully", func(t *testing.T) {
-		depositRequestBytes, err := hexutil.Decode("0x610000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+		depositRequestBytes, err := hexutil.Decode("0x610000000000000000000000000000000000000000000000000000000" +
+			"000000000000000000000000000000000000000" +
 			"620000000000000000000000000000000000000000000000000000000000000000" +
-			"4059730700000063000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+			"40597307000000630000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+			"00000000000000000000000000000000000000" +
 			"00000000000000000000000000000000000000000000000000000000000000000000000000000000")
 		require.NoError(t, err)
 		withdrawalRequestBytes, err := hexutil.Decode("0x6400000000000000000000000000000000000000" +
@@ -343,9 +353,11 @@ func TestDecodeExecutionRequests(t *testing.T) {
 		require.Len(t, requests.Consolidations, 1)
 	})
 	t.Run("Excluded requests still decode successfully when one request is missing", func(t *testing.T) {
-		depositRequestBytes, err := hexutil.Decode("0x610000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+		depositRequestBytes, err := hexutil.Decode("0x610000000000000000000000000000000000000000000000000000000" +
+			"000000000000000000000000000000000000000" +
 			"620000000000000000000000000000000000000000000000000000000000000000" +
-			"4059730700000063000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+			"405973070000006300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+			"0000000000000000000000000000000000000" +
 			"00000000000000000000000000000000000000000000000000000000000000000000000000000000")
 		require.NoError(t, err)
 		consolidationRequestBytes, err := hexutil.Decode("0x6600000000000000000000000000000000000000" +
@@ -353,7 +365,10 @@ func TestDecodeExecutionRequests(t *testing.T) {
 			"680000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000")
 		require.NoError(t, err)
 		ebe := &enginev1.ExecutionBundleElectra{
-			ExecutionRequests: [][]byte{append([]byte{uint8(enginev1.DepositRequestType)}, depositRequestBytes...), append([]byte{uint8(enginev1.ConsolidationRequestType)}, consolidationRequestBytes...)},
+			ExecutionRequests: [][]byte{
+				append([]byte{uint8(enginev1.DepositRequestType)}, depositRequestBytes...),
+				append([]byte{uint8(enginev1.ConsolidationRequestType)}, consolidationRequestBytes...),
+			},
 		}
 		requests, err := types.DecodeExecutionRequests(ebe.GetExecutionRequests())
 		require.NoError(t, err)
@@ -362,9 +377,11 @@ func TestDecodeExecutionRequests(t *testing.T) {
 		require.Len(t, requests.Consolidations, 1)
 	})
 	t.Run("Decode execution requests should fail if ordering is not sorted", func(t *testing.T) {
-		depositRequestBytes, err := hexutil.Decode("0x610000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+		depositRequestBytes, err := hexutil.Decode("0x61000000000000000000000000000000000000000000000000000000000" +
+			"0000000000000000000000000000000000000" +
 			"620000000000000000000000000000000000000000000000000000000000000000" +
-			"4059730700000063000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+			"405973070000006300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+			"0000000000000000000000000000000000000" +
 			"00000000000000000000000000000000000000000000000000000000000000000000000000000000")
 		require.NoError(t, err)
 		consolidationRequestBytes, err := hexutil.Decode("0x6600000000000000000000000000000000000000" +
@@ -372,7 +389,10 @@ func TestDecodeExecutionRequests(t *testing.T) {
 			"680000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000")
 		require.NoError(t, err)
 		ebe := &enginev1.ExecutionBundleElectra{
-			ExecutionRequests: [][]byte{append([]byte{uint8(enginev1.ConsolidationRequestType)}, consolidationRequestBytes...), append([]byte{uint8(enginev1.DepositRequestType)}, depositRequestBytes...)},
+			ExecutionRequests: [][]byte{
+				append([]byte{uint8(enginev1.ConsolidationRequestType)}, consolidationRequestBytes...),
+				append([]byte{uint8(enginev1.DepositRequestType)}, depositRequestBytes...),
+			},
 		}
 		_, err = types.DecodeExecutionRequests(ebe.GetExecutionRequests())
 		require.ErrorContains(t, err, "requests should be in sorted order and unique")
@@ -383,7 +403,10 @@ func TestDecodeExecutionRequests(t *testing.T) {
 			"680000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000")
 		require.NoError(t, err)
 		ebe := &enginev1.ExecutionBundleElectra{
-			ExecutionRequests: [][]byte{append([]byte{}, []byte{}...), append([]byte{uint8(enginev1.ConsolidationRequestType)}, consolidationRequestBytes...)},
+			ExecutionRequests: [][]byte{
+				append([]byte{}, []byte{}...),
+				append([]byte{uint8(enginev1.ConsolidationRequestType)}, consolidationRequestBytes...),
+			},
 		}
 		_, err = types.DecodeExecutionRequests(ebe.GetExecutionRequests())
 		require.ErrorContains(t, err, "invalid execution request, length less than 1")
@@ -396,24 +419,34 @@ func TestDecodeExecutionRequests(t *testing.T) {
 			"6500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000040597307000000")
 		require.NoError(t, err)
 		ebe := &enginev1.ExecutionBundleElectra{
-			ExecutionRequests: [][]byte{append([]byte{uint8(enginev1.WithdrawalRequestType)}, withdrawalRequestBytes...), append([]byte{uint8(enginev1.WithdrawalRequestType)}, withdrawalRequestBytes2...)},
+			ExecutionRequests: [][]byte{
+				append([]byte{uint8(enginev1.WithdrawalRequestType)}, withdrawalRequestBytes...),
+				append([]byte{uint8(enginev1.WithdrawalRequestType)}, withdrawalRequestBytes2...),
+			},
 		}
 		_, err = types.DecodeExecutionRequests(ebe.GetExecutionRequests())
 		require.ErrorContains(t, err, "requests should be in sorted order and unique")
 	})
 	t.Run("a duplicate withdrawals ( non 0 request type )request should fail", func(t *testing.T) {
-		depositRequestBytes, err := hexutil.Decode("0x610000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+		depositRequestBytes, err := hexutil.Decode("0x61000000000000000000000000000000000000000000000000000000" +
+			"0000000000000000000000000000000000000000" +
 			"620000000000000000000000000000000000000000000000000000000000000000" +
-			"4059730700000063000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+			"4059730700000063000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+			"000000000000000000000000000000000000000" +
 			"00000000000000000000000000000000000000000000000000000000000000000000000000000000")
 		require.NoError(t, err)
-		depositRequestBytes2, err := hexutil.Decode("0x610000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+		depositRequestBytes2, err := hexutil.Decode("0x61000000000000000000000000000000000000000000000000000000" +
+			"0000000000000000000000000000000000000000" +
 			"620000000000000000000000000000000000000000000000000000000000000000" +
-			"4059730700000063000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+			"405973070000006300000000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+			"0000000000000000000000000000000000000000" +
 			"00000000000000000000000000000000000000000000000000000000000000000000000000000000")
 		require.NoError(t, err)
 		ebe := &enginev1.ExecutionBundleElectra{
-			ExecutionRequests: [][]byte{append([]byte{uint8(enginev1.DepositRequestType)}, depositRequestBytes...), append([]byte{uint8(enginev1.DepositRequestType)}, depositRequestBytes2...)},
+			ExecutionRequests: [][]byte{
+				append([]byte{uint8(enginev1.DepositRequestType)}, depositRequestBytes...),
+				append([]byte{uint8(enginev1.DepositRequestType)}, depositRequestBytes2...),
+			},
 		}
 		_, err = types.DecodeExecutionRequests(ebe.GetExecutionRequests())
 		require.ErrorContains(t, err, "requests should be in sorted order and unique")
@@ -424,7 +457,10 @@ func TestDecodeExecutionRequests(t *testing.T) {
 			"680000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000")
 		require.NoError(t, err)
 		ebe := &enginev1.ExecutionBundleElectra{
-			ExecutionRequests: [][]byte{append([]byte{uint8(enginev1.DepositRequestType)}, []byte{}...), append([]byte{uint8(enginev1.ConsolidationRequestType)}, consolidationRequestBytes...)},
+			ExecutionRequests: [][]byte{
+				append([]byte{uint8(enginev1.DepositRequestType)}, []byte{}...),
+				append([]byte{uint8(enginev1.ConsolidationRequestType)}, consolidationRequestBytes...),
+			},
 		}
 		_, err = types.DecodeExecutionRequests(ebe.GetExecutionRequests())
 		require.ErrorContains(t, err, "invalid deposit requests SSZ size")
@@ -491,6 +527,7 @@ func TestDecodeExecutionRequests(t *testing.T) {
 }
 
 func TestGetExecutionRequestsList(t *testing.T) {
+	t.Parallel()
 	t.Run("Empty execution requests should return an empty response and not nil", func(t *testing.T) {
 		ebe := &types.ExecutionRequests{}
 		b, err := types.GetExecutionRequestsList(ebe)
@@ -501,10 +538,14 @@ func TestGetExecutionRequestsList(t *testing.T) {
 }
 
 func TestUnmarshalItems_OK(t *testing.T) {
+	t.Parallel()
 	drb, err := hexutil.Decode(depositRequestsSSZHex)
 	require.NoError(t, err)
 	exampleRequest := &types.DepositRequest{}
-	depositRequests, err := constraints.UnmarshalItems(drb, int(exampleRequest.SizeSSZ(nil)), func() *types.DepositRequest { return &types.DepositRequest{} })
+	depositRequests, err := constraints.UnmarshalItems(
+		drb,
+		int(exampleRequest.SizeSSZ(nil)),
+		func() *types.DepositRequest { return &types.DepositRequest{} })
 	require.NoError(t, err)
 
 	exampleRequest1 := &types.DepositRequest{
@@ -525,6 +566,7 @@ func TestUnmarshalItems_OK(t *testing.T) {
 }
 
 func TestMarshalItems_OK(t *testing.T) {
+	t.Parallel()
 	exampleRequest1 := &types.DepositRequest{
 		Pubkey:      crypto.BLSPubkey(bytesutil.PadTo([]byte("pk"), 48)),
 		Credentials: types.WithdrawalCredentials(bytesutil.PadTo([]byte("wc"), 32)),

@@ -87,16 +87,27 @@ func (cr *ConsolidationRequests) MarshalSSZ() ([]byte, error) {
 func (cr *ConsolidationRequests) NewFromSSZ(data []byte) (*ConsolidationRequests, error) {
 	maxSize := maxConsolidationRequestsPerPayload * sszConsolidationRequestSize
 	if len(data) > maxSize {
-		return nil, fmt.Errorf("invalid consolidation requests SSZ size, requests should not be more than the max per payload, got %d max %d", len(data), maxSize)
+		return nil, fmt.Errorf(
+			"invalid consolidation requests SSZ size, requests should not be more than the "+
+				"max per payload, got %d max %d", len(data), maxSize,
+		)
 	}
 	requestSize := int(ssz.Size(&ConsolidationRequest{}))
 	if len(data) < requestSize {
-		return nil, fmt.Errorf("invalid consolidation requests SSZ size, got %d expected at least %d", len(data), requestSize)
+		return nil, fmt.Errorf(
+			"invalid consolidation requests SSZ size, got %d expected at least %d", len(data), requestSize,
+		)
 	}
 	if len(data)%requestSize != 0 {
-		return nil, fmt.Errorf("invalid data length: %d is not a multiple of consolidation request size %d", len(data), requestSize)
+		return nil, fmt.Errorf(
+			"invalid data length: %d is not a multiple of consolidation request size %d", len(data), requestSize,
+		)
 	}
-	items, err := constraints.UnmarshalItems[*ConsolidationRequest](data, requestSize, func() *ConsolidationRequest { return new(ConsolidationRequest) })
+	items, err := constraints.UnmarshalItems[*ConsolidationRequest](
+		data,
+		requestSize,
+		func() *ConsolidationRequest { return new(ConsolidationRequest) },
+	)
 	if err != nil {
 		return nil, err
 	}

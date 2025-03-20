@@ -196,7 +196,7 @@ func TestWithdrawalRequest_InvalidValuesUnmarshalSSZ(t *testing.T) {
 			// Ensure that calling UnmarshalSSZ does not panic and returns an error.
 			require.NotPanics(t, func() {
 				var w *types.WithdrawalRequest
-				w, err = w.NewFromSSZ(payload)
+				_, err = w.NewFromSSZ(payload)
 				require.Error(t, err, "expected error for payload %v", payload)
 			})
 		})

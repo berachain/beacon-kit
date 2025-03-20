@@ -41,11 +41,6 @@ const sszConsolidationRequestSize = 116    // ExecutionAddress = 20, PubKey = 48
 const dynamicFieldsInExecutionRequests = 3 // 3 since three dynamic objects (Deposits, Withdrawals, Consolidations)
 
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#execution-layer-triggered-requests
-var (
-	DepositRequestType       = []byte{0x00}
-	WithdrawalRequestType    = []byte{0x01}
-	ConsolidationRequestType = []byte{0x02}
-)
 
 type ExecutionRequests struct {
 	Deposits       []*DepositRequest
@@ -65,7 +60,8 @@ func GetExecutionRequestsList(er *ExecutionRequests) ([][]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		combined := append(DepositRequestType, depositBytes...)
+		combined := append([]byte{}, depositRequestType()...)
+		combined = append(combined, depositBytes...)
 		result = append(result, combined)
 	}
 
@@ -76,7 +72,8 @@ func GetExecutionRequestsList(er *ExecutionRequests) ([][]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		combined := append(WithdrawalRequestType, withdrawalBytes...)
+		combined := append([]byte{}, withdrawalRequestType()...)
+		combined = append(combined, withdrawalBytes...)
 		result = append(result, combined)
 	}
 
@@ -87,7 +84,8 @@ func GetExecutionRequestsList(er *ExecutionRequests) ([][]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		combined := append(ConsolidationRequestType, consolidationBytes...)
+		combined := append([]byte{}, consolidationRequestType()...)
+		combined = append(combined, consolidationBytes...)
 		result = append(result, combined)
 	}
 
@@ -118,21 +116,21 @@ func DecodeExecutionRequests(encodedRequests [][]byte) (*ExecutionRequests, erro
 
 		// Switch based on the request type.
 		switch reqType {
-		case DepositRequestType[0]:
+		case depositRequestType()[0]:
 			var req *DepositRequests
 			req, err := req.NewFromSSZ(data)
 			if err != nil {
 				return nil, err
 			}
 			result.Deposits = *req
-		case WithdrawalRequestType[0]:
+		case withdrawalRequestType()[0]:
 			var req *WithdrawalRequests
 			req, err := req.NewFromSSZ(data)
 			if err != nil {
 				return nil, err
 			}
 			result.Withdrawals = *req
-		case ConsolidationRequestType[0]:
+		case consolidationRequestType()[0]:
 			var req *ConsolidationRequests
 			req, err := req.NewFromSSZ(data)
 			if err != nil {
@@ -145,6 +143,18 @@ func DecodeExecutionRequests(encodedRequests [][]byte) (*ExecutionRequests, erro
 	}
 
 	return &result, nil
+}
+
+func depositRequestType() []byte {
+	return []byte{0x00}
+}
+
+func withdrawalRequestType() []byte {
+	return []byte{0x01}
+}
+
+func consolidationRequestType() []byte {
+	return []byte{0x02}
 }
 
 /* -------------------------------------------------------------------------- */

@@ -34,8 +34,8 @@ type Deposits []*Deposit
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the SSZ encoded size in bytes for the Deposits.
-func (ds Deposits) SizeSSZ(fixed bool) uint32 {
-	return uint32(len(ds) * DepositSize)
+func (ds Deposits) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {
+	return ssz.SizeSliceOfStaticObjects(siz, ([]*Deposit)(ds))
 }
 
 // DefineSSZ defines the SSZ encoding for the Deposits object.

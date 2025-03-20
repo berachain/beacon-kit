@@ -111,7 +111,7 @@ func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
 func MakeEthBlock(
 	payload *ExecutionPayload,
 	parentBeaconBlockRoot *common.Root,
-	executionRequests [][]byte,
+	_ [][]byte,
 ) (
 	*gethprimitives.Block,
 	[]gethprimitives.ExecutionHash,

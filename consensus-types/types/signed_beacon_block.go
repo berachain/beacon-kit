@@ -79,7 +79,8 @@ func NewSignedBeaconBlockFromSSZ(
 		// Make sure Withdrawals and ExecutionRequests in execution payload are not nil.
 		blockBody := block.GetBody()
 		blockBody.GetExecutionPayload().EnsureNotNilWithdrawals()
-		requests, err := blockBody.GetExecutionRequests()
+		var requests *ExecutionRequests
+		requests, err = blockBody.GetExecutionRequests()
 		if err != nil {
 			return nil, err
 		}
