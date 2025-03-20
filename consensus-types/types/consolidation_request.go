@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: MIT
 //
-// SPDX-License-Identifier: MIT
-//
 // Copyright (c) 2025 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
