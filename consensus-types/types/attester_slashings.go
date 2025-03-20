@@ -31,9 +31,9 @@ import (
 
 // Compile-time assertions to ensure AttesterSlashing implements necessary interfaces.
 var (
-	_ ssz.StaticObject                                       = (*AttesterSlashing)(nil)
-	_ constraints.SSZMarshallableRootable[*AttesterSlashing] = (*AttesterSlashing)(nil)
-	_ UnusedEnforcer                                         = (*AttesterSlashings)(nil)
+	_ ssz.StaticObject                    = (*AttesterSlashing)(nil)
+	_ constraints.SSZMarshallableRootable = (*AttesterSlashing)(nil)
+	_ UnusedEnforcer                      = (*AttesterSlashings)(nil)
 )
 
 type (

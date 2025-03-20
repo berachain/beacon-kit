@@ -33,8 +33,8 @@ import (
 const ForkSize = 16
 
 var (
-	_ ssz.StaticObject                           = (*Fork)(nil)
-	_ constraints.SSZMarshallableRootable[*Fork] = (*Fork)(nil)
+	_ ssz.StaticObject                    = (*Fork)(nil)
+	_ constraints.SSZMarshallableRootable = (*Fork)(nil)
 )
 
 // Fork as defined in the Ethereum 2.0 specification:

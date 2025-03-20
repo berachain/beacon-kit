@@ -33,8 +33,8 @@ import (
 const Eth1DataSize = 72
 
 var (
-	_ ssz.StaticObject                               = (*Eth1Data)(nil)
-	_ constraints.SSZMarshallableRootable[*Eth1Data] = (*Eth1Data)(nil)
+	_ ssz.StaticObject                    = (*Eth1Data)(nil)
+	_ constraints.SSZMarshallableRootable = (*Eth1Data)(nil)
 )
 
 type Eth1Data struct {

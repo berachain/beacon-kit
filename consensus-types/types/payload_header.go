@@ -36,8 +36,8 @@ const ExecutionPayloadHeaderStaticSize uint32 = 584
 
 // Compile-time assertions to ensure ExecutionPayloadHeader implements necessary interfaces.
 var (
-	_ ssz.DynamicObject                                                     = (*ExecutionPayloadHeader)(nil)
-	_ constraints.SSZVersionedMarshallableRootable[*ExecutionPayloadHeader] = (*ExecutionPayloadHeader)(nil)
+	_ ssz.DynamicObject                            = (*ExecutionPayloadHeader)(nil)
+	_ constraints.SSZVersionedMarshallableRootable = (*ExecutionPayloadHeader)(nil)
 )
 
 // ExecutionPayloadHeader represents the payload header of an execution block.

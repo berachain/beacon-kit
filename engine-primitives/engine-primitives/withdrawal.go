@@ -35,8 +35,8 @@ import (
 const WithdrawalSize = 44
 
 var (
-	_ ssz.StaticObject                                 = (*Withdrawal)(nil)
-	_ constraints.SSZMarshallableRootable[*Withdrawal] = (*Withdrawal)(nil)
+	_ ssz.StaticObject                    = (*Withdrawal)(nil)
+	_ constraints.SSZMarshallableRootable = (*Withdrawal)(nil)
 )
 
 // Withdrawal represents a validator withdrawal from the consensus layer.

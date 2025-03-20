@@ -44,8 +44,8 @@ const (
 
 // Compile-time assertions to ensure ExecutionPayload implements necessary interfaces.
 var (
-	_ ssz.DynamicObject                                               = (*ExecutionPayload)(nil)
-	_ constraints.SSZVersionedMarshallableRootable[*ExecutionPayload] = (*ExecutionPayload)(nil)
+	_ ssz.DynamicObject                            = (*ExecutionPayload)(nil)
+	_ constraints.SSZVersionedMarshallableRootable = (*ExecutionPayload)(nil)
 )
 
 // ExecutionPayload represents the payload of an execution block.

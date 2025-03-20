@@ -29,8 +29,8 @@ import (
 
 // Compile-time assertions to ensure SignedBeaconBlockHeader implements necessary interfaces.
 var (
-	_ ssz.StaticObject                                              = (*SignedBeaconBlockHeader)(nil)
-	_ constraints.SSZMarshallableRootable[*SignedBeaconBlockHeader] = (*SignedBeaconBlockHeader)(nil)
+	_ ssz.StaticObject                    = (*SignedBeaconBlockHeader)(nil)
+	_ constraints.SSZMarshallableRootable = (*SignedBeaconBlockHeader)(nil)
 )
 
 // SignedBeaconBlockHeader is a struct that contains a BeaconBlockHeader and a BLSSignature.

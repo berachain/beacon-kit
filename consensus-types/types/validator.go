@@ -35,8 +35,8 @@ const ValidatorSize = 121
 
 // Compile-time checks for the Validator struct.
 var (
-	_ ssz.StaticObject                                = (*Validator)(nil)
-	_ constraints.SSZMarshallableRootable[*Validator] = (*Validator)(nil)
+	_ ssz.StaticObject                    = (*Validator)(nil)
+	_ constraints.SSZMarshallableRootable = (*Validator)(nil)
 )
 
 // Validator as defined in the Ethereum 2.0 Spec

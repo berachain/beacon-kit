@@ -33,8 +33,8 @@ import (
 
 // Compile-time assertions to ensure BeaconBlock implements necessary interfaces.
 var (
-	_ ssz.DynamicObject                                          = (*BeaconBlock)(nil)
-	_ constraints.SSZVersionedMarshallableRootable[*BeaconBlock] = (*BeaconBlock)(nil)
+	_ ssz.DynamicObject                            = (*BeaconBlock)(nil)
+	_ constraints.SSZVersionedMarshallableRootable = (*BeaconBlock)(nil)
 )
 
 // BeaconBlock represents a block in the beacon chain.

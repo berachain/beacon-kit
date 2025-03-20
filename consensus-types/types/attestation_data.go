@@ -38,8 +38,8 @@ import (
 const AttestationDataSize = 48
 
 var (
-	_ ssz.StaticObject                                      = (*AttestationData)(nil)
-	_ constraints.SSZMarshallableRootable[*AttestationData] = (*AttestationData)(nil)
+	_ ssz.StaticObject                    = (*AttestationData)(nil)
+	_ constraints.SSZMarshallableRootable = (*AttestationData)(nil)
 )
 
 // AttestationData represents an attestation data.

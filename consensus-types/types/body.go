@@ -62,8 +62,8 @@ const (
 
 // Compile-time assertions to ensure BeaconBlockBody implements necessary interfaces.
 var (
-	_ ssz.DynamicObject                                              = (*BeaconBlockBody)(nil)
-	_ constraints.SSZVersionedMarshallableRootable[*BeaconBlockBody] = (*BeaconBlockBody)(nil)
+	_ ssz.DynamicObject                            = (*BeaconBlockBody)(nil)
+	_ constraints.SSZVersionedMarshallableRootable = (*BeaconBlockBody)(nil)
 )
 
 // BeaconBlockBody represents the body of a beacon block.

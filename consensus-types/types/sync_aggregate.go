@@ -31,9 +31,9 @@ import (
 
 // Compile-time assertions to ensure SyncAggregate implements necessary interfaces.
 var (
-	_ ssz.StaticObject                                    = (*SyncAggregate)(nil)
-	_ constraints.SSZMarshallableRootable[*SyncAggregate] = (*SyncAggregate)(nil)
-	_ UnusedEnforcer                                      = (*SyncAggregate)(nil)
+	_ ssz.StaticObject                    = (*SyncAggregate)(nil)
+	_ constraints.SSZMarshallableRootable = (*SyncAggregate)(nil)
+	_ UnusedEnforcer                      = (*SyncAggregate)(nil)
 )
 
 const (

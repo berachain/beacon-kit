@@ -39,8 +39,8 @@ const SlashingInfoSize = 16 // 8 bytes for Slot + 8 bytes for Index
 // Compile-time assertions to ensure SlashingInfo implements the correct
 // interfaces.
 var (
-	_ ssz.StaticObject                                   = (*SlashingInfo)(nil)
-	_ constraints.SSZMarshallableRootable[*SlashingInfo] = (*SlashingInfo)(nil)
+	_ ssz.StaticObject                    = (*SlashingInfo)(nil)
+	_ constraints.SSZMarshallableRootable = (*SlashingInfo)(nil)
 )
 
 // Compile-time assertion to ensure SlashingInfoSize matches the SizeSSZ method.

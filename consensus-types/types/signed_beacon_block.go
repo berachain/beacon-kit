@@ -33,8 +33,8 @@ import (
 
 // Compile-time assertions to ensure SignedBeaconBlock implements necessary interfaces.
 var (
-	_ ssz.DynamicObject                                                = (*SignedBeaconBlock)(nil)
-	_ constraints.SSZVersionedMarshallableRootable[*SignedBeaconBlock] = (*SignedBeaconBlock)(nil)
+	_ ssz.DynamicObject                            = (*SignedBeaconBlock)(nil)
+	_ constraints.SSZVersionedMarshallableRootable = (*SignedBeaconBlock)(nil)
 )
 
 // SignedBeaconBlock is a struct that contains a BeaconBlock and a BLSSignature.
