@@ -60,9 +60,6 @@ const (
 
 	// KZGOffsetDeneb is the offset of the KZG commitments in the serialized block body.
 	KZGOffsetDeneb = KZGRootIndexDeneb * constants.MaxBlobCommitmentsPerBlock
-
-	// ExtraDataSize is the size of ExtraData in bytes.
-	ExtraDataSize = 32
 )
 
 // Compile-time assertions to ensure BeaconBlockBody implements necessary interfaces.
@@ -190,17 +187,18 @@ func (b *BeaconBlockBody) MarshalSSZ() ([]byte, error) {
 
 // empty returns an empty BeaconBlockBody for the given fork version.
 func (*BeaconBlockBody) empty(version common.Version) *BeaconBlockBody {
+	var ep *ExecutionPayload
 	return &BeaconBlockBody{
 		Versionable:      NewVersionable(version),
 		Eth1Data:         &Eth1Data{},
-		ExecutionPayload: (&ExecutionPayload{}).empty(version),
+		ExecutionPayload: ep.empty(version),
 		syncAggregate:    &SyncAggregate{},
 	}
 }
 
 // NewFromSSZ deserializes the BeaconBlockBody from SSZ-encoded bytes.
-func (*BeaconBlockBody) NewFromSSZ(buf []byte, version common.Version) (*BeaconBlockBody, error) {
-	b := (&BeaconBlockBody{}).empty(version)
+func (b *BeaconBlockBody) NewFromSSZ(buf []byte, version common.Version) (*BeaconBlockBody, error) {
+	b = b.empty(version)
 	err := ssz.DecodeFromBytes(buf, b)
 	if err != nil {
 		return nil, err
@@ -222,11 +220,6 @@ func (*BeaconBlockBody) NewFromSSZ(buf []byte, version common.Version) (*BeaconB
 // HashTreeRoot returns the SSZ hash tree root of the BeaconBlockBody.
 func (b *BeaconBlockBody) HashTreeRoot() common.Root {
 	return ssz.HashConcurrent(b)
-}
-
-// IsNil checks if the BeaconBlockBody is nil.
-func (b *BeaconBlockBody) IsNil() bool {
-	return b == nil
 }
 
 // GetTopLevelRoots returns the top-level roots of the BeaconBlockBody.

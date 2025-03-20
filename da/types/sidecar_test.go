@@ -72,8 +72,7 @@ func TestSidecarMarshalling(t *testing.T) {
 	require.NotNil(t, marshalled, "Marshalling should produce a result")
 
 	// Unmarshal the sidecar
-	unmarshalled := &types.BlobSidecar{}
-	err = unmarshalled.UnmarshalSSZ(marshalled)
+	unmarshalled, err := (&types.BlobSidecar{}).NewFromSSZ(marshalled)
 	require.NoError(t, err, "Unmarshalling should not produce an error")
 
 	// Compare the original and unmarshalled sidecars

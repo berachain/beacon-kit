@@ -93,7 +93,6 @@ func TestBeaconBlockBody(t *testing.T) {
 			},
 			BlobKzgCommitments: []eip4844.KZGCommitment{},
 		}
-		require.False(t, body.IsNil())
 		require.NotNil(t, body.GetExecutionPayload())
 		require.NotNil(t, body.GetBlobKzgCommitments())
 		require.Equal(t, types.BodyLengthDeneb, body.Length())

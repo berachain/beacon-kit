@@ -31,14 +31,18 @@ import (
 	"github.com/karalabe/ssz"
 )
 
+// Compile-time assertions to ensure SignedBeaconBlock implements necessary interfaces.
 var (
 	_ ssz.DynamicObject                                                = (*SignedBeaconBlock)(nil)
 	_ constraints.SSZVersionedMarshallableRootable[*SignedBeaconBlock] = (*SignedBeaconBlock)(nil)
 )
 
+// SignedBeaconBlock is a struct that contains a BeaconBlock and a BLSSignature.
+//
+// NOTE: This struct is only ever (un)marshalled with SSZ and NOT with JSON.
 type SignedBeaconBlock struct {
-	*BeaconBlock `json:"message"`
-	Signature    crypto.BLSSignature `json:"signature"`
+	*BeaconBlock
+	Signature crypto.BLSSignature
 }
 
 /* -------------------------------------------------------------------------- */
@@ -50,28 +54,30 @@ func NewSignedBeaconBlockFromSSZ(
 	bz []byte,
 	forkVersion common.Version,
 ) (*SignedBeaconBlock, error) {
-	block := &SignedBeaconBlock{}
+	var (
+		block *SignedBeaconBlock
+		err   error
+	)
+
 	switch forkVersion {
 	case version.Deneb(), version.Deneb1():
-		var err error
 		block, err = block.NewFromSSZ(bz, forkVersion)
 		if err != nil {
 			return nil, err
 		}
 
 		// Make sure Withdrawals in execution payload are not nil.
-		block.Body.ExecutionPayload.EnsureNotNilWithdrawals()
-
-		return block, nil
+		block.GetBody().GetExecutionPayload().EnsureNotNilWithdrawals()
 	case version.Electra():
-		var err error
 		block, err = block.NewFromSSZ(bz, forkVersion)
 		if err != nil {
 			return nil, err
 		}
+
 		// TODO(REZ): Come back here and add decoding
+
+		// Make sure Withdrawals and ExecutionRequests in execution payload are not nil.
 		blockBody := block.GetBody()
-		// Make sure Withdrawals in execution payload are not nil.
 		blockBody.GetExecutionPayload().EnsureNotNilWithdrawals()
 		requests, err := blockBody.GetExecutionRequests()
 		if err != nil {
@@ -80,11 +86,13 @@ func NewSignedBeaconBlockFromSSZ(
 		if requests == nil {
 			return nil, errors.New("execution requests was nil")
 		}
-		return block, nil
 	default:
-		// We return block here to appease nilaway.
-		return block, errors.Wrapf(ErrForkVersionNotSupported, "fork %d", forkVersion)
+		// We return a non-nil block here to appease nilaway.
+		block = &SignedBeaconBlock{}
+		err = errors.Wrapf(ErrForkVersionNotSupported, "fork %d", forkVersion)
 	}
+
+	return block, err
 }
 
 // NewSignedBeaconBlock signs the provided BeaconBlock and populates the receiver.
@@ -139,16 +147,17 @@ func (b *SignedBeaconBlock) MarshalSSZ() ([]byte, error) {
 
 // empty creates a new SignedBeaconBlock with empty values.
 func (*SignedBeaconBlock) empty(version common.Version) *SignedBeaconBlock {
+	var bb *BeaconBlock
 	return &SignedBeaconBlock{
-		BeaconBlock: (&BeaconBlock{}).empty(version),
+		BeaconBlock: bb.empty(version),
 	}
 }
 
 // NewFromSSZ creates a new SignedBeaconBlock from SSZ format.
-func (*SignedBeaconBlock) NewFromSSZ(
+func (b *SignedBeaconBlock) NewFromSSZ(
 	buf []byte, version common.Version,
 ) (*SignedBeaconBlock, error) {
-	b := (&SignedBeaconBlock{}).empty(version)
+	b = b.empty(version)
 	return b, ssz.DecodeFromBytes(buf, b)
 }
 
@@ -168,8 +177,4 @@ func (b *SignedBeaconBlock) GetBeaconBlock() *BeaconBlock {
 
 func (b *SignedBeaconBlock) GetSignature() crypto.BLSSignature {
 	return b.Signature
-}
-
-func (b *SignedBeaconBlock) IsNil() bool {
-	return b == nil
 }

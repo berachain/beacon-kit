@@ -101,8 +101,10 @@ func (d *Deposit) MarshalSSZ() ([]byte, error) {
 }
 
 // NewFromSSZ creates a new Deposit object from SSZ format.
-func (*Deposit) NewFromSSZ(buf []byte) (*Deposit, error) {
-	d := &Deposit{}
+func (d *Deposit) NewFromSSZ(buf []byte) (*Deposit, error) {
+	if d == nil {
+		d = &Deposit{}
+	}
 	return d, ssz.DecodeFromBytes(buf, d)
 }
 
