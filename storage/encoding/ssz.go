@@ -25,14 +25,10 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/decoder"
 	"github.com/davecgh/go-spew/spew"
-	"github.com/karalabe/ssz"
 )
 
 // SSZValueCodec provides methods to encode and decode SSZ values.
-type SSZValueCodec[T interface {
-	ssz.StaticObject
-	constraints.SSZMarshallable
-}] struct {
+type SSZValueCodec[T constraints.SSZMarshallable] struct {
 	NewEmptyF func() T // constructor
 }
 
