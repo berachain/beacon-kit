@@ -22,6 +22,7 @@ package core
 
 import (
 	"context"
+	"fmt"
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
@@ -162,7 +163,7 @@ func (sp *StateProcessor) validateStatefulPayload(
 
 	// TODO(pectra): https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#new-get_execution_requests_list
 
-	var executionRequestsList [][]byte
+	var executionRequestsList []ctypes.EncodedExecutionRequest
 	if !version.IsBefore(blk.GetForkVersion(), version.Electra()) {
 		// If we're post-electra, we set execution requests.
 		var executionRequests *ctypes.ExecutionRequests
@@ -170,6 +171,7 @@ func (sp *StateProcessor) validateStatefulPayload(
 		if err != nil {
 			return err
 		}
+		fmt.Println(executionRequests)
 		executionRequestsList, err = ctypes.GetExecutionRequestsList(executionRequests)
 		if err != nil {
 			return err

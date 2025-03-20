@@ -36,6 +36,8 @@ type BuiltExecutionPayloadEnv interface {
 	GetBlockValue() *math.U256
 	// GetBlobsBundle fetches the associated BlobsBundleV1 if available.
 	GetBlobsBundle() engineprimitives.BlobsBundle
+	// GetExecutionRequests fetches the associated execution requests if available
+	GetExecutionRequests() []EncodedExecutionRequest
 	// ShouldOverrideBuilder indicates if the builder should be overridden.
 	ShouldOverrideBuilder() bool
 }
@@ -48,7 +50,9 @@ type ExecutionPayloadEnvelope[BlobsBundleT engineprimitives.BlobsBundle] struct 
 	ExecutionPayload *ExecutionPayload `json:"executionPayload"`
 	BlockValue       *math.U256        `json:"blockValue"`
 	BlobsBundle      BlobsBundleT      `json:"blobsBundle"`
-	Override         bool              `json:"shouldOverrideBuilder"`
+	// TODO(pectra): Do we need a new type or can we just add this without a version check? Seems to be fine.
+	ExecutionRequests []EncodedExecutionRequest `json:"executionRequests"`
+	Override          bool                      `json:"shouldOverrideBuilder"`
 }
 
 // NewEmptyExecutionPayloadEnvelope returns an empty ExecutionPayloadEnvelope
@@ -76,6 +80,11 @@ func (e *ExecutionPayloadEnvelope[BlobsBundleT]) GetBlockValue() *math.U256 {
 // GetBlobsBundle returns the blobs bundle of the ExecutionPayloadEnvelope.
 func (e *ExecutionPayloadEnvelope[BlobsBundleT]) GetBlobsBundle() engineprimitives.BlobsBundle {
 	return e.BlobsBundle
+}
+
+// GetExecutionRequests returns the encoded Execution Requests
+func (e *ExecutionPayloadEnvelope[BlobsBundleT]) GetExecutionRequests() []EncodedExecutionRequest {
+	return e.ExecutionRequests
 }
 
 // ShouldOverrideBuilder returns whether the builder should be overridden.

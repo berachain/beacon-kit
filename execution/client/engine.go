@@ -42,7 +42,7 @@ func (s *EngineClient) NewPayload(
 	payload *ctypes.ExecutionPayload,
 	versionedHashes []common.ExecutionHash,
 	parentBeaconBlockRoot *common.Root,
-	executionRequests [][]byte,
+	executionRequests []ctypes.EncodedExecutionRequest,
 ) (*common.ExecutionHash, error) {
 	var (
 		startTime    = time.Now()

@@ -29,6 +29,7 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/karalabe/ssz"
 )
@@ -38,6 +39,8 @@ const dynamicFieldsInExecutionRequests = 3 // 3 since three dynamic objects (Dep
 
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#execution-layer-triggered-requests
 
+type EncodedExecutionRequest = bytes.Bytes
+
 type ExecutionRequests struct {
 	Deposits       []*DepositRequest
 	Withdrawals    []*WithdrawalRequest
@@ -46,11 +49,11 @@ type ExecutionRequests struct {
 
 // GetExecutionRequestsList introduced in pectra from the consensus spec
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#new-get_execution_requests_list
-func GetExecutionRequestsList(er *ExecutionRequests) ([][]byte, error) {
+func GetExecutionRequestsList(er *ExecutionRequests) ([]EncodedExecutionRequest, error) {
 	if er == nil {
 		return nil, errors.New("nil execution requests")
 	}
-	result := make([][]byte, 0)
+	result := make([]EncodedExecutionRequest, 0)
 
 	// Process deposit requests if non-empty.
 	if len(er.Deposits) > 0 {
@@ -92,6 +95,7 @@ func GetExecutionRequestsList(er *ExecutionRequests) ([][]byte, error) {
 }
 
 // DecodeExecutionRequests is used to decode the result from GetPayload into an ExecutionRequests.
+// TODO(pectra): Change this to use []EncodedExecutionRequest as input and fix tests.
 func DecodeExecutionRequests(encodedRequests [][]byte) (*ExecutionRequests, error) {
 	var result ExecutionRequests
 	var prevType *uint8

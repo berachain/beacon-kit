@@ -42,7 +42,7 @@ func (s *Client) NewPayload(
 	payload *ctypes.ExecutionPayload,
 	versionedHashes []common.ExecutionHash,
 	parentBlockRoot *common.Root,
-	requests [][]byte,
+	requests []ctypes.EncodedExecutionRequest,
 ) (*engineprimitives.PayloadStatusV1, error) {
 	forkVersion := payload.GetForkVersion()
 	// Versions before Deneb are not supported for calling NewPayload.
@@ -88,7 +88,7 @@ func (s *Client) NewPayloadV4(
 	payload *ctypes.ExecutionPayload,
 	versionedHashes []common.ExecutionHash,
 	parentBlockRoot *common.Root,
-	executionRequests [][]byte,
+	executionRequests []ctypes.EncodedExecutionRequest,
 ) (*engineprimitives.PayloadStatusV1, error) {
 	result := &engineprimitives.PayloadStatusV1{}
 	if err := s.Call(

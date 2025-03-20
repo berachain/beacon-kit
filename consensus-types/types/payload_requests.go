@@ -42,7 +42,7 @@ type NewPayloadRequest struct {
 	// ParentBeaconBlockRoot is the root of the parent beacon block.
 	ParentBeaconBlockRoot *common.Root
 	// ExecutionRequests is introduced in Pectra. It is only non-nil after Pectra.
-	ExecutionRequests [][]byte
+	ExecutionRequests []EncodedExecutionRequest
 }
 
 // BuildNewPayloadRequest builds a new payload request.
@@ -50,7 +50,7 @@ func BuildNewPayloadRequest(
 	executionPayload *ExecutionPayload,
 	versionedHashes []common.ExecutionHash,
 	parentBeaconBlockRoot *common.Root,
-	executionRequests [][]byte,
+	executionRequests []EncodedExecutionRequest,
 ) *NewPayloadRequest {
 	return &NewPayloadRequest{
 		ExecutionPayload:      executionPayload,
@@ -111,7 +111,7 @@ func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
 func MakeEthBlock(
 	payload *ExecutionPayload,
 	parentBeaconBlockRoot *common.Root,
-	_ [][]byte,
+	requests []EncodedExecutionRequest,
 ) (
 	*gethprimitives.Block,
 	[]gethprimitives.ExecutionHash,
@@ -157,8 +157,13 @@ func MakeEthBlock(
 	}
 
 	if !version.IsBefore(payload.GetForkVersion(), version.Electra()) {
-		// TODO(pectra): Calculate this from the executionRequests
-		blkHeader.RequestsHash = &types.EmptyRequestsHash
+		// TODO(pectra): Don't use direct geth method
+		result := make([][]byte, len(requests))
+		for i, req := range requests {
+			result[i] = req // conversion from ExecutionRequest to []byte
+		}
+		reqHash := types.CalcRequestsHash(result)
+		blkHeader.RequestsHash = &reqHash
 	}
 
 	block := gethprimitives.NewBlockWithHeader(blkHeader).WithBody(
