@@ -22,7 +22,6 @@ package core
 
 import (
 	"context"
-	"fmt"
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
@@ -171,7 +170,6 @@ func (sp *StateProcessor) validateStatefulPayload(
 		if err != nil {
 			return err
 		}
-		fmt.Println(executionRequests)
 		executionRequestsList, err = ctypes.GetExecutionRequestsList(executionRequests)
 		if err != nil {
 			return err
