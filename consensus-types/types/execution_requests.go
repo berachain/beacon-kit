@@ -33,11 +33,7 @@ import (
 	"github.com/karalabe/ssz"
 )
 
-const sszDynamicObjectOffset = 4
-const maxWithdrawalRequestsPerPayload = 16
-const maxConsolidationRequestsPerPayload = 2
-const sszWithdrawRequestSize = 76          // ExecutionAddress = 20, ValidatorPubKey = 48, Amount = 8
-const sszConsolidationRequestSize = 116    // ExecutionAddress = 20, PubKey = 48, Pubkey = 48
+const sszDynamicObjectOffset = 4           // ExecutionAddress = 20, PubKey = 48, Pubkey = 48
 const dynamicFieldsInExecutionRequests = 3 // 3 since three dynamic objects (Deposits, Withdrawals, Consolidations)
 
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#execution-layer-triggered-requests

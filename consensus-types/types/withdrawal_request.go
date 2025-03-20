@@ -35,6 +35,9 @@ import (
 	"github.com/karalabe/ssz"
 )
 
+const maxWithdrawalRequestsPerPayload = 16
+const sszWithdrawRequestSize = 76 // ExecutionAddress = 20, ValidatorPubKey = 48, Amount = 8
+
 // WithdrawalRequest is introduced in EIP7002 which we use for withdrawals.
 type WithdrawalRequest struct {
 	SourceAddress   common.ExecutionAddress

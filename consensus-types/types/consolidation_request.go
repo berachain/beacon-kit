@@ -36,6 +36,9 @@ import (
 	"github.com/karalabe/ssz"
 )
 
+const maxConsolidationRequestsPerPayload = 2
+const sszConsolidationRequestSize = 116
+
 // ConsolidationRequest is introduced in Pectra but not used by us.
 // We keep it so we can maintain parity tests with other SSZ implementations.
 type ConsolidationRequest struct {
