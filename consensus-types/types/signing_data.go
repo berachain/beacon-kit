@@ -25,7 +25,13 @@ import (
 
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/karalabe/ssz"
+)
+
+var (
+	_ ssz.StaticObject                                  = (*SigningData)(nil)
+	_ constraints.SSZMarshallableRootable[*SigningData] = (*SigningData)(nil)
 )
 
 // SigningData as defined in the Ethereum 2.0 specification.
@@ -70,9 +76,12 @@ func (s *SigningData) MarshalSSZ() ([]byte, error) {
 	return s.MarshalSSZTo(buf)
 }
 
-// UnmarshalSSZ unmarshals the SigningData object from SSZ format.
-func (s *SigningData) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, s)
+// NewFromSSZ creates a new SigningData object from SSZ format.
+func (s *SigningData) NewFromSSZ(buf []byte) (*SigningData, error) {
+	if s == nil {
+		s = &SigningData{}
+	}
+	return s, ssz.DecodeFromBytes(buf, s)
 }
 
 // ComputeSigningRoot as defined in the Ethereum 2.0 specification.

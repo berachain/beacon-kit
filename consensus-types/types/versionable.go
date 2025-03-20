@@ -18,43 +18,24 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package constraints
+package types
 
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 )
 
-// SSZMarshaler is an interface for objects that can be
-// marshaled to SSZ format.
-type SSZMarshaler interface {
-	// MarshalSSZ marshals the object into SSZ format.
-	MarshalSSZ() ([]byte, error)
+// versionable is a helper struct that implements the Versionable interface.
+type versionable struct {
+	forkVersion common.Version
 }
 
-// SSZUnmarshaler is an interface for objects that can be
-// unmarshaled from SSZ format.
-type SSZUnmarshaler interface {
-	// UnmarshalSSZ unmarshals the object from SSZ format.
-	UnmarshalSSZ([]byte) error
+// NewVersionable creates a new versionable object.
+func NewVersionable(forkVersion common.Version) constraints.Versionable {
+	return &versionable{forkVersion: forkVersion}
 }
 
-// SSZRootable is an interface for objects that can compute
-// their hash tree root.
-type SSZRootable interface {
-	// HashTreeRoot computes the hash tree root of the object.
-	HashTreeRoot() common.Root
-}
-
-// SSZMarshallable is an interface that combines
-// SSZMarshaler and SSZUnmarshaler.
-type SSZMarshallable interface {
-	SSZMarshaler
-	SSZUnmarshaler
-}
-
-// SSZMarshallableRootable is an interface that combines
-// SSZMarshaler, SSZUnmarshaler, and SSZRootable.
-type SSZMarshallableRootable interface {
-	SSZMarshallable
-	SSZRootable
+// GetForkVersion returns the fork version of the versionable object.
+func (v *versionable) GetForkVersion() common.Version {
+	return v.forkVersion
 }

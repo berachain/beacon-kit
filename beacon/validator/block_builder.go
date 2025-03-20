@@ -267,7 +267,7 @@ func (s *Service) buildBlockBody(
 ) error {
 	// Assemble a new block with the payload.
 	body := blk.GetBody()
-	if body.IsNil() {
+	if body == nil {
 		return ErrNilBlkBody
 	}
 
