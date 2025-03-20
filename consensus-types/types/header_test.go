@@ -267,7 +267,7 @@ func TestBeaconBlockHeader_UnmarshalSSZ_ErrSize(t *testing.T) {
 	t.Parallel()
 	buf := make([]byte, 100) // Incorrect size
 
-	var unmarshalled types.BeaconBlockHeader
-	err := decoder.SSZUnmarshal(buf, &unmarshalled)
+	unmarshalled := new(types.BeaconBlockHeader)
+	err := decoder.SSZUnmarshal(buf, unmarshalled)
 	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }

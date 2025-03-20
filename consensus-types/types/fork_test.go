@@ -99,7 +99,7 @@ func TestFork_UnmarshalSSZ_ErrSize(t *testing.T) {
 	t.Parallel()
 	buf := make([]byte, 10) // size less than 16
 
-	var unmarshalled types.Fork
-	err := decoder.SSZUnmarshal(buf, &unmarshalled)
+	unmarshalled := new(types.Fork)
+	err := decoder.SSZUnmarshal(buf, unmarshalled)
 	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }

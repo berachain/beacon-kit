@@ -29,7 +29,7 @@ import (
 )
 
 // SSZUnmarshal is the way we build objects from byte formatted as ssz
-// While logically related to constraits package, SSZUnmarshal has its own
+// While logically related to constraints package, SSZUnmarshal has its own
 // small package to avoid import cycle related to Unused Type
 // Also SSZUnmarshal highlight the common template for SSZ decoding different
 // objects
