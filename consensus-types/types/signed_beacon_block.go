@@ -49,34 +49,6 @@ type SignedBeaconBlock struct {
 /*                                 Constructors                               */
 /* -------------------------------------------------------------------------- */
 
-// NewSignedBeaconBlockFromSSZ creates a new beacon block from the given SSZ bytes.
-func NewSignedBeaconBlockFromSSZ(
-	bz []byte,
-	forkVersion common.Version,
-) (*SignedBeaconBlock, error) {
-	var (
-		block *SignedBeaconBlock
-		err   error
-	)
-
-	switch forkVersion {
-	case version.Deneb(), version.Deneb1():
-		block, err = block.NewFromSSZ(bz, forkVersion)
-		if err != nil {
-			return nil, err
-		}
-
-		// Make sure Withdrawals in execution payload are not nil.
-		block.Body.ExecutionPayload.EnsureNotNilWithdrawals()
-	default:
-		// We return a non-nil block here to appease nilaway.
-		block = &SignedBeaconBlock{}
-		err = errors.Wrapf(ErrForkVersionNotSupported, "fork %d", forkVersion)
-	}
-
-	return block, err
-}
-
 // NewSignedBeaconBlock signs the provided BeaconBlock and populates the receiver.
 //
 // NOTE: will panic if any provided argument is nil. Only errors if signing fails.
@@ -94,6 +66,12 @@ func NewSignedBeaconBlock(
 		BeaconBlock: blk,
 		Signature:   signature,
 	}, nil
+}
+
+func NewEmptySignedBeaconBlockWithVersion(version common.Version) *SignedBeaconBlock {
+	return &SignedBeaconBlock{
+		BeaconBlock: NewEmptyBeaconBlockWithVersion(version),
+	}
 }
 
 /* -------------------------------------------------------------------------- */
@@ -127,20 +105,16 @@ func (b *SignedBeaconBlock) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 
-// empty creates a new SignedBeaconBlock with empty values.
-func (*SignedBeaconBlock) empty(version common.Version) *SignedBeaconBlock {
-	var bb *BeaconBlock
-	return &SignedBeaconBlock{
-		BeaconBlock: bb.empty(version),
+func (b *SignedBeaconBlock) EnsureSyntaxFromSSZ() error {
+	switch fv := b.GetForkVersion(); fv {
+	case version.Deneb(), version.Deneb1():
+		// Make sure Withdrawals in execution payload are not nil.
+		b.Body.ExecutionPayload.EnsureNotNilWithdrawals()
+		return nil
+	default:
+		// We return a non-nil block here to appease nilaway.
+		return errors.Wrapf(ErrForkVersionNotSupported, "fork %d", fv)
 	}
-}
-
-// NewFromSSZ creates a new SignedBeaconBlock from SSZ format.
-func (b *SignedBeaconBlock) NewFromSSZ(
-	buf []byte, version common.Version,
-) (*SignedBeaconBlock, error) {
-	b = b.empty(version)
-	return b, ssz.DecodeFromBytes(buf, b)
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the

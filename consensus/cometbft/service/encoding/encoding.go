@@ -81,7 +81,11 @@ func UnmarshalBeaconBlockFromABCIRequest(
 		return signedBlk, ErrNilBeaconBlockInRequest
 	}
 
-	return ctypes.NewSignedBeaconBlockFromSSZ(blkBz, forkVersion)
+	block := ctypes.NewEmptySignedBeaconBlockWithVersion(forkVersion)
+	if err := decoder.SSZUnmarshal(blkBz, block); err != nil {
+		return nil, err
+	}
+	return block, nil
 }
 
 // UnmarshalBlobSidecarsFromABCIRequest extracts blob sidecars from an ABCI

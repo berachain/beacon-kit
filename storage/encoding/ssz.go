@@ -69,8 +69,10 @@ func (SSZValueCodec[T]) ValueType() string {
 
 // SSZVersionedValueCodec provides methods to encode and decode SSZ values for a specific version.
 type SSZVersionedValueCodec[T interface {
+	ssz.Object
 	constraints.SSZVersionedMarshallable[T]
 }] struct {
+	NewEmptyF     func(common.Version) T // constructor
 	latestVersion common.Version
 }
 
@@ -86,8 +88,8 @@ func (cdc *SSZVersionedValueCodec[T]) Encode(value T) ([]byte, error) {
 
 // Decode unmarshals the provided bytes into a value of type T.
 func (cdc *SSZVersionedValueCodec[T]) Decode(b []byte) (T, error) {
-	var t T
-	return t.NewFromSSZ(b, cdc.latestVersion)
+	dest := cdc.NewEmptyF(cdc.latestVersion)
+	return dest, decoder.SSZUnmarshal(b, dest)
 }
 
 // EncodeJSON is not implemented and will panic if called.

@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/decoder"
 	"github.com/berachain/beacon-kit/primitives/version"
 	cmtcrypto "github.com/cometbft/cometbft/crypto"
 	"github.com/cometbft/cometbft/crypto/bls12381"
@@ -103,9 +104,9 @@ func TestNewSignedBeaconBlockFromSSZ(t *testing.T) {
 		blockBytes, err := originalBlock.MarshalSSZ()
 		require.NoError(t, err)
 		require.NotNil(t, blockBytes)
-		newBlock, err := types.NewSignedBeaconBlockFromSSZ(
-			blockBytes, originalBlock.GetForkVersion(),
-		)
+
+		newBlock := types.NewEmptySignedBeaconBlockWithVersion(originalBlock.GetForkVersion())
+		err = decoder.SSZUnmarshal(blockBytes, newBlock)
 		require.NoError(t, err)
 		require.NotNil(t, newBlock)
 		require.Equal(t, originalBlock, newBlock)
@@ -114,7 +115,9 @@ func TestNewSignedBeaconBlockFromSSZ(t *testing.T) {
 
 func TestNewSignedBeaconBlockFromSSZForkVersionNotSupported(t *testing.T) {
 	t.Parallel()
-	_, err := types.NewSignedBeaconBlockFromSSZ([]byte{}, version.Altair())
+
+	block := types.NewEmptySignedBeaconBlockWithVersion(version.Altair())
+	err := decoder.SSZUnmarshal([]byte{}, block)
 	require.ErrorIs(t, err, types.ErrForkVersionNotSupported)
 }
 
@@ -190,8 +193,8 @@ func TestSignedBeaconBlock_EmptySerialization(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, data)
 
-		var unmarshalled *types.SignedBeaconBlock
-		unmarshalled, err = unmarshalled.NewFromSSZ(data, fv)
+		unmarshalled := types.NewEmptySignedBeaconBlockWithVersion(fv)
+		err = decoder.SSZUnmarshal(data, unmarshalled)
 		require.NoError(t, err)
 		require.NotNil(t, unmarshalled.GetBeaconBlock())
 		require.NotNil(t, unmarshalled.GetSignature())

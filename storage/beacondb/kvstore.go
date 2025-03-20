@@ -94,7 +94,9 @@ type KVStore struct {
 func New(kss store.KVStoreService) *KVStore {
 	var (
 		schemaBuilder = sdkcollections.NewSchemaBuilder(kss)
-		payloadCodec  = &encoding.SSZVersionedValueCodec[*ctypes.ExecutionPayloadHeader]{}
+		payloadCodec  = &encoding.SSZVersionedValueCodec[*ctypes.ExecutionPayloadHeader]{
+			NewEmptyF: ctypes.NewEmptyExecutionPayloadHeaderWithVersion,
+		}
 	)
 
 	res := &KVStore{

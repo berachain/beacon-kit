@@ -88,6 +88,19 @@ type ExecutionPayload struct {
 	ExcessBlobGas math.U64 `json:"excessBlobGas"`
 }
 
+func NewEmptyExecutionPayloadWithVersion(forkVersion common.Version) *ExecutionPayload {
+	ep := &ExecutionPayload{
+		Versionable:   NewVersionable(forkVersion),
+		BaseFeePerGas: &math.U256{},
+	}
+
+	// For any fork version after Bellatrix (Capella onwards), non-nil withdrawals are required.
+	if version.IsAfter(forkVersion, version.Bellatrix()) {
+		ep.Withdrawals = make([]*engineprimitives.Withdrawal, 0)
+	}
+	return ep
+}
+
 func (p *ExecutionPayload) EnsureNotNilWithdrawals() {
 	// Post Shanghai an EL explicitly check that Withdrawals are not nil
 	// (instead empty slices are fine). Currently, BeaconKit duly builds
@@ -168,25 +181,12 @@ func (p *ExecutionPayload) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, p)
 }
 
-// empty returns an empty ExecutionPayload for the given fork version.
-func (*ExecutionPayload) empty(forkVersion common.Version) *ExecutionPayload {
-	ep := &ExecutionPayload{
-		Versionable:   NewVersionable(forkVersion),
-		BaseFeePerGas: &math.U256{},
-	}
-
+func (p *ExecutionPayload) EnsureSyntaxFromSSZ() error {
 	// For any fork version after Bellatrix (Capella onwards), non-nil withdrawals are required.
-	if version.IsAfter(forkVersion, version.Bellatrix()) {
-		ep.Withdrawals = make([]*engineprimitives.Withdrawal, 0)
+	if version.IsAfter(p.GetForkVersion(), version.Bellatrix()) {
+		p.Withdrawals = make([]*engineprimitives.Withdrawal, 0)
 	}
-
-	return ep
-}
-
-// NewFromSSZ unmarshals the ExecutionPayload object from a source array with a given fork version.
-func (p *ExecutionPayload) NewFromSSZ(bz []byte, version common.Version) (*ExecutionPayload, error) {
-	p = p.empty(version)
-	return p, ssz.DecodeFromBytes(bz, p)
+	return nil
 }
 
 // HashTreeRoot returns the hash tree root of the ExecutionPayload.

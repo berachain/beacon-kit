@@ -41,8 +41,7 @@ type SSZUnmarshaler interface {
 // sszVersionedUnmarshaler is an interface for objects that can be
 // unmarshaled from SSZ format for specific versions.
 type sszVersionedUnmarshaler[SelfT any] interface {
-	// NewFromSSZ creates a new object from SSZ format with the given version.
-	NewFromSSZ(bz []byte, version common.Version) (SelfT, error)
+	EnsureSyntaxFromSSZ() error // once unmarshalled we will check whether type syntax is correct
 }
 
 // SSZMarshallable is an interface that combines SSZMarshaler and SSZUnmarshaler.

@@ -82,6 +82,13 @@ type ExecutionPayloadHeader struct {
 	ExcessBlobGas math.U64 `json:"excessBlobGas"`
 }
 
+func NewEmptyExecutionPayloadHeaderWithVersion(version common.Version) *ExecutionPayloadHeader {
+	return &ExecutionPayloadHeader{
+		Versionable:   NewVersionable(version),
+		BaseFeePerGas: &math.U256{},
+	}
+}
+
 // empty returns an empty ExecutionPayloadHeader.
 func (*ExecutionPayloadHeader) empty(version common.Version) *ExecutionPayloadHeader {
 	return &ExecutionPayloadHeader{
@@ -151,13 +158,7 @@ func (h *ExecutionPayloadHeader) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, h)
 }
 
-// NewFromSSZ returns a new ExecutionPayloadHeader from the given SSZ bytes.
-func (h *ExecutionPayloadHeader) NewFromSSZ(
-	bz []byte, forkVersion common.Version,
-) (*ExecutionPayloadHeader, error) {
-	h = h.empty(forkVersion)
-	return h, ssz.DecodeFromBytes(bz, h)
-}
+func (*ExecutionPayloadHeader) EnsureSyntaxFromSSZ() error { return nil }
 
 // HashTreeRootSSZ returns the hash tree root of the ExecutionPayloadHeader.
 func (h *ExecutionPayloadHeader) HashTreeRoot() common.Root {

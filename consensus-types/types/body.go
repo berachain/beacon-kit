@@ -166,25 +166,17 @@ func (b *BeaconBlockBody) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 
-// empty returns an empty BeaconBlockBody for the given fork version.
-func (*BeaconBlockBody) empty(version common.Version) *BeaconBlockBody {
-	var ep *ExecutionPayload
+func NewEmptyBeaconBlockBodyWithVersion(version common.Version) *BeaconBlockBody {
 	return &BeaconBlockBody{
 		Versionable:      NewVersionable(version),
-		Eth1Data:         &Eth1Data{},
-		ExecutionPayload: ep.empty(version),
+		Eth1Data:         NewEmptyEthi1Data(),
+		ExecutionPayload: NewEmptyExecutionPayloadWithVersion(version),
 		syncAggregate:    &SyncAggregate{},
 	}
 }
 
-// NewFromSSZ deserializes the BeaconBlockBody from SSZ-encoded bytes.
-func (b *BeaconBlockBody) NewFromSSZ(buf []byte, version common.Version) (*BeaconBlockBody, error) {
-	b = b.empty(version)
-	err := ssz.DecodeFromBytes(buf, b)
-	if err != nil {
-		return nil, err
-	}
-	err = EnforceAllUnused(
+func (b *BeaconBlockBody) EnsureSyntaxFromSSZ() error {
+	return EnforceAllUnused(
 		b.GetProposerSlashings(),
 		b.GetAttesterSlashings(),
 		b.GetAttestations(),
@@ -192,10 +184,6 @@ func (b *BeaconBlockBody) NewFromSSZ(buf []byte, version common.Version) (*Beaco
 		b.GetSyncAggregate(),
 		b.GetBlsToExecutionChanges(),
 	)
-	if err != nil {
-		return nil, err
-	}
-	return b, nil
 }
 
 // HashTreeRoot returns the SSZ hash tree root of the BeaconBlockBody.
