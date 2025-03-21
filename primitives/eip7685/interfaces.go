@@ -38,5 +38,5 @@ type sszMarshaler interface {
 // sszUnmarshaler is an interface for objects that can be unmarshaled from SSZ format.
 type sszUnmarshaler interface {
 	ssz.Object
-	EnsureSyntaxFromSSZ() error // once unmarshalled we will check whether type syntax is correct
+	ValidateAfterDecodingSSZ() error // once unmarshalled we will check whether type syntax is correct
 }

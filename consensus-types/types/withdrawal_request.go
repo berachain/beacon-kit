@@ -40,7 +40,7 @@ type WithdrawalRequest struct {
 	Amount          math.Gwei
 }
 
-func (w *WithdrawalRequest) EnsureSyntaxFromSSZ() error {
+func (w *WithdrawalRequest) ValidateAfterDecodingSSZ() error {
 	return nil
 }
 

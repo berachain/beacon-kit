@@ -76,7 +76,7 @@ func (s *SigningData) MarshalSSZ() ([]byte, error) {
 	return s.MarshalSSZTo(buf)
 }
 
-func (*SigningData) EnsureSyntaxFromSSZ() error { return nil }
+func (*SigningData) ValidateAfterDecodingSSZ() error { return nil }
 
 // ComputeSigningRoot as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#compute_signing_root

@@ -509,10 +509,9 @@ func TestExecutionPayloadHeader_NewFromJSON(t *testing.T) {
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
 				t.Parallel()
-				header, err := new(types.ExecutionPayloadHeader).NewFromJSON(
-					tc.data,
-					v,
-				)
+				header := types.NewEmptyExecutionPayloadHeaderWithVersion(v)
+				err := json.Unmarshal(tc.data, header)
+
 				if tc.expectedError != nil {
 					require.Error(t, err)
 					require.Contains(t, err.Error(), tc.expectedError.Error())

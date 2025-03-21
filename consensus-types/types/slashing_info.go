@@ -75,7 +75,7 @@ func (s *SlashingInfo) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, s)
 }
 
-func (*SlashingInfo) EnsureSyntaxFromSSZ() error { return nil }
+func (*SlashingInfo) ValidateAfterDecodingSSZ() error { return nil }
 
 /* -------------------------------------------------------------------------- */
 /*                                   FastSSZ                                  */

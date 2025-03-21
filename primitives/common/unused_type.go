@@ -66,7 +66,7 @@ func DecodeUnusedType(buf []byte, v *UnusedType) error {
 	return nil
 }
 
-func (*UnusedType) EnsureSyntaxFromSSZ() error { return nil }
+func (*UnusedType) ValidateAfterDecodingSSZ() error { return nil }
 
 // HashTreeRoot returns the hash tree root of the Deposits.
 func (ut *UnusedType) HashTreeRoot() Root {
