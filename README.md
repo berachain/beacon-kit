@@ -85,6 +85,6 @@ Please refer to the [Kurtosis README](https://github.com/berachain/beacon-kit/bl
 
 The key environment variable is `CHAIN_SPEC`, which can be set to `mainnet`, `testnet`, or `devnet`. This should be set any time when using beacond. It will influence which configuration files you get during `init` and which chain ID beacond will communicate with while running.  
 
-You can override the default operating directories for beacond with the `--home <path> option.
+You can override the default operating directories for beacond with the `--home <path>` option.
 
 The [Berachain Node Quickstart](https://docs.berachain.com/nodes/quickstart) provides a complete example of a functioning setup, suitable for a development system or for experiments.  
