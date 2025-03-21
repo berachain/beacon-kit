@@ -170,6 +170,7 @@ func executableDataToExecutionPayloadHeader(
 		}
 
 		executionPayloadHeader = &types.ExecutionPayloadHeader{
+			Versionable:   types.NewVersionable(forkVersion),
 			ParentHash:    common.ExecutionHash(data.ParentHash),
 			FeeRecipient:  common.ExecutionAddress(data.FeeRecipient),
 			StateRoot:     common.Bytes32(data.StateRoot),
@@ -189,7 +190,6 @@ func executableDataToExecutionPayloadHeader(
 			WithdrawalsRoot: withdrawals.HashTreeRoot(),
 			BlobGasUsed:     math.U64(blobGasUsed),
 			ExcessBlobGas:   math.U64(excessBlobGas),
-			EphVersion:      forkVersion,
 		}
 	default:
 		return nil, types.ErrForkVersionNotSupported

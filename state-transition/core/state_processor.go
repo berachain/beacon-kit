@@ -82,7 +82,7 @@ func (sp *StateProcessor) Transition(
 	st *state.StateDB,
 	blk *ctypes.BeaconBlock,
 ) (transition.ValidatorUpdates, error) {
-	if blk.IsNil() {
+	if blk == nil {
 		return nil, nil
 	}
 

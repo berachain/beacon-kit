@@ -18,21 +18,20 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package constraints
+package version
 
 import "github.com/berachain/beacon-kit/primitives/common"
 
-// Empty is a constraint that requires a type to have an Empty method.
-type Empty[SelfT any] interface {
-	Empty() SelfT
+//nolint:gochecknoglobals // used for testing
+var supportedVersions = []common.Version{
+	deneb,
+	deneb1,
+	// TODO, Add electra here
 }
 
-// Nillable is a constraint that requires a type to have an IsNil method.
-type Nillable interface {
-	IsNil() bool
-}
-
-// Versionable is a constraint that requires a type to have a Version method.
-type Versionable interface {
-	Version() common.Version
+// GetSupportedVersions returns the supported versions of beacon-kit.
+// Primarily for testing so that we can easily extend test case coverage
+// with new versions by modifying the return value rather than each test.
+func GetSupportedVersions() []common.Version {
+	return supportedVersions
 }

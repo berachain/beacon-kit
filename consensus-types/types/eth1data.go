@@ -33,8 +33,8 @@ import (
 const Eth1DataSize = 72
 
 var (
-	_ ssz.StaticObject                    = (*Eth1Data)(nil)
-	_ constraints.SSZMarshallableRootable = (*Eth1Data)(nil)
+	_ ssz.StaticObject                               = (*Eth1Data)(nil)
+	_ constraints.SSZMarshallableRootable[*Eth1Data] = (*Eth1Data)(nil)
 )
 
 type Eth1Data struct {
@@ -54,11 +54,6 @@ func NewEth1Data(depositRoot common.Root) *Eth1Data {
 	return &Eth1Data{
 		DepositRoot: depositRoot,
 	}
-}
-
-// Empty creates an empty Eth1Data.
-func (*Eth1Data) Empty() *Eth1Data {
-	return &Eth1Data{}
 }
 
 /* -------------------------------------------------------------------------- */
@@ -88,9 +83,12 @@ func (e *Eth1Data) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, e)
 }
 
-// UnmarshalSSZ unmarshals the Eth1Data object from SSZ format.
-func (e *Eth1Data) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, e)
+// NewFromSSZ creates a new Eth1Data object from SSZ format.
+func (e *Eth1Data) NewFromSSZ(buf []byte) (*Eth1Data, error) {
+	if e == nil {
+		e = &Eth1Data{}
+	}
+	return e, ssz.DecodeFromBytes(buf, e)
 }
 
 // MarshalSSZTo marshals the Eth1Data object into a pre-allocated byte slice.

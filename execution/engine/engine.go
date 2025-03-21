@@ -76,7 +76,7 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 ) (*engineprimitives.PayloadID, error) {
 	var (
 		engineAPIBackoff     = ee.newBackoff()
-		hasPayloadAttributes = !req.PayloadAttributes.IsNil()
+		hasPayloadAttributes = req.PayloadAttributes != nil
 	)
 
 	return backoff.Retry(
