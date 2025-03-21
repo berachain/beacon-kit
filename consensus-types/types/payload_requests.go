@@ -98,8 +98,11 @@ func (n *newPayloadRequest) GetParentBeaconBlockRoot() *common.Root {
 }
 
 func (n *newPayloadRequest) GetExecutionRequests() ([]EncodedExecutionRequest, error) {
-	if version.EqualOrAfter(n.GetForkVersion(), version.Electra()) {
-		return nil, ErrForkVersionNotSupported
+	if version.IsBefore(n.GetForkVersion(), version.Electra()) {
+		return nil, errors.Wrap(
+			ErrForkVersionNotSupported,
+			"execution requests not supported in newPayloadRequest before electra",
+		)
 	}
 	if n.executionRequests == nil {
 		return nil, errors.Wrap(ErrNilValue, "executionRequests cannot be nil")
@@ -113,9 +116,28 @@ func (n *newPayloadRequest) GetExecutionRequests() ([]EncodedExecutionRequest, e
 // https://github.com/ethereum/consensus-specs/blob/v1.4.0-beta.2/specs/deneb/beacon-chain.md#is_valid_block_hash
 // https://github.com/ethereum/consensus-specs/blob/v1.4.0-beta.2/specs/deneb/beacon-chain.md#is_valid_versioned_hashes
 func (n *newPayloadRequest) HasValidVersionedAndBlockHashes() error {
-	block, blobHashes, err := MakeEthBlock(n.executionPayload, n.parentBeaconBlockRoot)
-	if err != nil {
-		return err
+	var block *gethprimitives.Block
+	var blobHashes []gethprimitives.ExecutionHash
+	if version.IsBefore(n.GetForkVersion(), version.Electra()) {
+		// Before electra there is no executionRequests in a block
+		var err error
+		block, blobHashes, err = MakeEthBlock(n.executionPayload, n.parentBeaconBlockRoot)
+		if err != nil {
+			return err
+		}
+	} else {
+		executionRequests, err := n.GetExecutionRequests()
+		if err != nil {
+			return err
+		}
+		block, blobHashes, err = MakeEthBlockWithExecutionRequests(
+			n.GetExecutionPayload(),
+			n.GetParentBeaconBlockRoot(),
+			executionRequests,
+		)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Validate the blob hashes from the transactions in the execution payload.
@@ -158,7 +180,8 @@ func (n *newPayloadRequest) HasValidVersionedAndBlockHashes() error {
 func MakeEthBlock(
 	payload *ExecutionPayload,
 	parentBeaconBlockRoot *common.Root,
-) (*gethprimitives.Block,
+) (
+	*gethprimitives.Block,
 	[]gethprimitives.ExecutionHash,
 	error) {
 	return makeEthBlock(payload, parentBeaconBlockRoot, nil)
@@ -169,7 +192,8 @@ func MakeEthBlockWithExecutionRequests(
 	payload *ExecutionPayload,
 	parentBeaconBlockRoot *common.Root,
 	executionRequests []EncodedExecutionRequest,
-) (*gethprimitives.Block,
+) (
+	*gethprimitives.Block,
 	[]gethprimitives.ExecutionHash,
 	error) {
 	return makeEthBlock(payload, parentBeaconBlockRoot, executionRequests)
@@ -227,7 +251,7 @@ func makeEthBlock(
 
 	if version.EqualOrAfter(payload.GetForkVersion(), version.Electra()) {
 		if executionRequests == nil {
-			return nil, nil, ErrNilValue
+			return nil, nil, errors.Wrap(ErrNilValue, "executionRequests is nil after electra in makeEthBlock")
 		}
 		result := make([][]byte, len(executionRequests))
 		for i, req := range executionRequests {
