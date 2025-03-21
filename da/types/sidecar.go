@@ -21,6 +21,8 @@
 package types
 
 import (
+	"fmt"
+
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -160,14 +162,17 @@ func (b *BlobSidecar) MarshalSSZ() ([]byte, error) {
 }
 
 func (b *BlobSidecar) ValidateAfterDecodingSSZ() error {
+	// Verify inclusion proof length
+	if len(b.InclusionProof) != ctypes.KZGInclusionProofDepth {
+		return fmt.Errorf("invalid inclusion proof length, got %d, expect %d",
+			b.InclusionProof,
+			ctypes.KZGInclusionProofDepth,
+		)
+	}
+
 	// Ensure SignedBeaconBlockHeader is not nil
 	if b.SignedBeaconBlockHeader == nil {
 		b.SignedBeaconBlockHeader = &ctypes.SignedBeaconBlockHeader{}
-	}
-
-	// Verify inclusion proof length
-	if len(b.InclusionProof) != ctypes.KZGInclusionProofDepth {
-		return errors.New("invalid inclusion proof length")
 	}
 	return nil
 }
