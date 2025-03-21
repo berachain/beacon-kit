@@ -169,7 +169,7 @@ func (p *ExecutionPayload) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, p)
 }
 
-func (p *ExecutionPayload) EnsureSyntaxFromSSZ() error {
+func (p *ExecutionPayload) ValidateAfterDecodingSSZ() error {
 	// For any fork version after Bellatrix (Capella onwards), non-nil withdrawals are required.
 	if p.Withdrawals == nil && version.IsAfter(p.GetForkVersion(), version.Bellatrix()) {
 		p.Withdrawals = make([]*engineprimitives.Withdrawal, 0)

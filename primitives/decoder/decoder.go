@@ -41,6 +41,9 @@ func SSZUnmarshal[T SSZUnmarshaler](buf []byte, v T) error {
 		if err := ssz.DecodeFromBytes(buf, v); err != nil {
 			return fmt.Errorf("failed decoding %T: %w", dest, err)
 		}
-		return v.EnsureSyntaxFromSSZ()
+
+		// Note: ValidateAfterDecodingSSZ may change v even if it returns error
+		// (depending on the specific implementations)
+		return v.ValidateAfterDecodingSSZ()
 	}
 }

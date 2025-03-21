@@ -25,5 +25,5 @@ import "github.com/karalabe/ssz"
 // SSZUnmarshaler is an interface for objects that can be unmarshaled from SSZ format.
 type SSZUnmarshaler interface {
 	ssz.Object
-	EnsureSyntaxFromSSZ() error // once unmarshalled we will check whether type syntax is correct
+	ValidateAfterDecodingSSZ() error // once unmarshalled we will check whether type syntax is correct
 }
