@@ -21,8 +21,6 @@
 package common
 
 import (
-	"fmt"
-
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/karalabe/ssz"
 )
@@ -53,20 +51,13 @@ func (ut *UnusedType) DefineSSZ(c *ssz.Codec) {
 
 // MarshalSSZ marshals the UnusedType object to SSZ format.
 func (ut *UnusedType) MarshalSSZ() ([]byte, error) {
-	return []byte{uint8(*ut)}, nil
+	buf := make([]byte, ssz.Size(ut))
+	return buf, ssz.EncodeToBytes(buf, ut)
 }
 
-func DecodeUnusedType(buf []byte, v *UnusedType) error {
-	// we special case construction of unused types, for efficiency
-	if len(buf) != 1 {
-		return fmt.Errorf("expected 1 byte got %d", len(buf))
-	}
-	//#nosec:G701 // UnusedType is uint8 and byte is uint8.
-	*v = UnusedType(buf[0])
-	return nil
+func (ut *UnusedType) ValidateAfterDecodingSSZ() error {
+	return ut.EnforceUnused()
 }
-
-func (*UnusedType) ValidateAfterDecodingSSZ() error { return nil }
 
 // HashTreeRoot returns the hash tree root of the Deposits.
 func (ut *UnusedType) HashTreeRoot() Root {
