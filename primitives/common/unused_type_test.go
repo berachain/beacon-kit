@@ -32,31 +32,28 @@ import (
 // defined by *v = UnusedType(buf[0])
 func TestDecodeUnusedTypeEquality(t *testing.T) {
 	t.Parallel()
-	type args struct {
-		buf []byte
-	}
 	tests := []struct {
 		name    string
-		args    args
+		buf     []byte
 		wantErr bool
 	}{
-		{name: "decode-unused-type-empty", args: args{buf: []byte{0x00}}, wantErr: false},
-		{name: "decode-unused-type-one", args: args{buf: []byte{0x01}}, wantErr: false},
-		{name: "decode-unused-type-max", args: args{buf: []byte{0xff}}, wantErr: false},
-		{name: "decode-unused-type-too-long", args: args{buf: []byte{0xff, 0xff}}, wantErr: true},
-		{name: "decode-unused-type-too-short", args: args{buf: []byte{}}, wantErr: true},
+		{name: "decode-unused-type-empty", buf: []byte{0x00}, wantErr: false},
+		{name: "decode-unused-type-one", buf: []byte{0x01}, wantErr: false},
+		{name: "decode-unused-type-max", buf: []byte{0xff}, wantErr: false},
+		{name: "decode-unused-type-too-long", buf: []byte{0xff, 0xff}, wantErr: true},
+		{name: "decode-unused-type-too-short", buf: []byte{}, wantErr: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := new(common.UnusedType)
-			if err := ssz.DecodeFromBytes(tt.args.buf, got); err != nil {
+			if err := ssz.DecodeFromBytes(tt.buf, got); err != nil {
 				if tt.wantErr {
 					return
 				}
 				t.Errorf("DecodeFromBytes() error = %v", err)
 			}
 			want := new(common.UnusedType)
-			*want = common.UnusedType(tt.args.buf[0])
+			*want = common.UnusedType(tt.buf[0])
 			if !reflect.DeepEqual(got, want) {
 				t.Errorf("MarshalSSZ() got = %v, want %v", got, want)
 			}
