@@ -89,25 +89,6 @@ func NewEmptyExecutionPayloadHeaderWithVersion(version common.Version) *Executio
 	}
 }
 
-// empty returns an empty ExecutionPayloadHeader.
-func (*ExecutionPayloadHeader) empty(version common.Version) *ExecutionPayloadHeader {
-	return &ExecutionPayloadHeader{
-		Versionable:   NewVersionable(version),
-		BaseFeePerGas: &math.U256{},
-	}
-}
-
-// NewFromJSON returns a new ExecutionPayloadHeader from the given JSON bytes.
-func (h *ExecutionPayloadHeader) NewFromJSON(
-	bz []byte, forkVersion common.Version,
-) (*ExecutionPayloadHeader, error) {
-	h = h.empty(forkVersion)
-	if err := json.Unmarshal(bz, h); err != nil {
-		return nil, err
-	}
-	return h, nil
-}
-
 /* -------------------------------------------------------------------------- */
 /*                                     SSZ                                    */
 /* -------------------------------------------------------------------------- */
