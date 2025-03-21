@@ -85,7 +85,7 @@ func (fd *ForkData) MarshalSSZ() ([]byte, error) {
 	return fd.MarshalSSZTo(buf)
 }
 
-func (*ForkData) EnsureSyntaxFromSSZ() error { return nil }
+func (*ForkData) ValidateAfterDecodingSSZ() error { return nil }
 
 // ComputeDomain as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#compute_domain

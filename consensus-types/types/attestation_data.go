@@ -79,7 +79,7 @@ func (a *AttestationData) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, a)
 }
 
-func (*AttestationData) EnsureSyntaxFromSSZ() error { return nil }
+func (*AttestationData) ValidateAfterDecodingSSZ() error { return nil }
 
 /* -------------------------------------------------------------------------- */
 /*                                   FastSSZ                                  */
