@@ -213,21 +213,6 @@ func TestExecutionPayloadHeader_NewFromSSZ_Invalid(t *testing.T) {
 			expErr: ssz.ErrOffsetBeyondCapacity,
 		},
 		{
-			name: "invalid extra data: offset too small",
-			malleate: func() []byte {
-				header := generateExecutionPayloadHeader(version.Deneb())
-				buf, err := header.MarshalSSZ()
-				require.NoError(t, err)
-
-				buf[436] = 1
-				buf[437] = 0
-				buf[438] = 0
-				buf[439] = 0
-				return buf
-			},
-			expErr: ssz.ErrFirstOffsetMismatch,
-		},
-		{
 			name: "invalid extra data: extra data too large",
 			malleate: func() []byte {
 				header := generateExecutionPayloadHeader(version.Deneb())
@@ -250,6 +235,37 @@ func TestExecutionPayloadHeader_NewFromSSZ_Invalid(t *testing.T) {
 			require.ErrorIs(t, err, tc.expErr)
 		})
 	}
+}
+
+func TestExecutionPayloadHeader_NewFromSSZ_Invalid_TooSmall(t *testing.T) {
+	t.Parallel()
+	header := generateExecutionPayloadHeader(version.Deneb())
+	buf, err := header.MarshalSSZ()
+	require.NoError(t, err)
+
+	buf[436] = 1
+	buf[437] = 0
+	buf[438] = 0
+	buf[439] = 0
+
+	dest := types.NewEmptyExecutionPayloadHeaderWithVersion(version.Deneb())
+	err = decoder.SSZUnmarshal(buf, dest)
+	require.Error(t, err)
+
+	// Can be either ErrFirstOffsetMismatch or ErrBadOffsetProgression due to reused Decoder in
+	// SSZ lib. If the SSZ lib happens to grab a reused Decoder from the decoderPool, the decoder's
+	// `offsets` field is already initialized to an empty slice instead of nil. This passes the nil
+	// check in the ErrFirstOffsetMismatch error condition resulting in no error. Immediately after,
+	// it will still fail the ErrBadOffsetProgression error condition. This flakiness depends upon
+	// retrieving a used Decoder from the decoderPool as well as the intentional misuse of the
+	// marshaled data. In the case that an actor intentionally tries to induce this behavior, the
+	// unmarshaling of the data correctly results in error, just a different error.
+	// In this unit test, we simply expect the error to be one of the two possible errors.
+	isExpectedError := errors.IsAny(err, ssz.ErrFirstOffsetMismatch, ssz.ErrBadOffsetProgression)
+	require.True(
+		t, isExpectedError, "expected %w or %w, got %w",
+		ssz.ErrFirstOffsetMismatch, ssz.ErrBadOffsetProgression, err,
+	)
 }
 
 func TestExecutionPayloadHeader_SizeSSZ(t *testing.T) {
