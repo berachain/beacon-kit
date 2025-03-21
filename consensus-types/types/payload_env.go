@@ -42,9 +42,9 @@ type BuiltExecutionPayloadEnv interface {
 	ShouldOverrideBuilder() bool
 }
 
-// ExecutionPayloadEnvelope is a struct that holds the execution payload and
+// executionPayloadEnvelope is a struct that holds the execution payload and
 // its associated data.
-type ExecutionPayloadEnvelope[BlobsBundleT engineprimitives.BlobsBundle] struct {
+type executionPayloadEnvelope[BlobsBundleT engineprimitives.BlobsBundle] struct {
 	ExecutionPayload  *ExecutionPayload         `json:"executionPayload"`
 	BlockValue        *math.U256                `json:"blockValue"`
 	BlobsBundle       BlobsBundleT              `json:"blobsBundle"`
@@ -52,38 +52,38 @@ type ExecutionPayloadEnvelope[BlobsBundleT engineprimitives.BlobsBundle] struct 
 	Override          bool                      `json:"shouldOverrideBuilder"`
 }
 
-// NewEmptyExecutionPayloadEnvelope returns an empty ExecutionPayloadEnvelope
+// NewEmptyExecutionPayloadEnvelope returns an empty executionPayloadEnvelope
 // for the given fork version.
 func NewEmptyExecutionPayloadEnvelope[
 	BlobsBundleT engineprimitives.BlobsBundle,
 ](forkVersion common.Version) BuiltExecutionPayloadEnv {
-	return &ExecutionPayloadEnvelope[BlobsBundleT]{
+	return &executionPayloadEnvelope[BlobsBundleT]{
 		ExecutionPayload: NewEmptyExecutionPayloadWithVersion(forkVersion),
 	}
 }
 
 // GetExecutionPayload returns the execution payload of the
-// ExecutionPayloadEnvelope.
-func (e *ExecutionPayloadEnvelope[BlobsBundleT]) GetExecutionPayload() *ExecutionPayload {
+// executionPayloadEnvelope.
+func (e *executionPayloadEnvelope[BlobsBundleT]) GetExecutionPayload() *ExecutionPayload {
 	return e.ExecutionPayload
 }
 
-// GetBlockValue returns the block value of the ExecutionPayloadEnvelope.
-func (e *ExecutionPayloadEnvelope[BlobsBundleT]) GetBlockValue() *math.U256 {
+// GetBlockValue returns the block value of the executionPayloadEnvelope.
+func (e *executionPayloadEnvelope[BlobsBundleT]) GetBlockValue() *math.U256 {
 	return e.BlockValue
 }
 
-// GetBlobsBundle returns the blobs bundle of the ExecutionPayloadEnvelope.
-func (e *ExecutionPayloadEnvelope[BlobsBundleT]) GetBlobsBundle() engineprimitives.BlobsBundle {
+// GetBlobsBundle returns the blobs bundle of the executionPayloadEnvelope.
+func (e *executionPayloadEnvelope[BlobsBundleT]) GetBlobsBundle() engineprimitives.BlobsBundle {
 	return e.BlobsBundle
 }
 
 // GetEncodedExecutionRequests returns the encoded Execution Requests
-func (e *ExecutionPayloadEnvelope[BlobsBundleT]) GetEncodedExecutionRequests() []EncodedExecutionRequest {
+func (e *executionPayloadEnvelope[BlobsBundleT]) GetEncodedExecutionRequests() []EncodedExecutionRequest {
 	return e.ExecutionRequests
 }
 
 // ShouldOverrideBuilder returns whether the builder should be overridden.
-func (e *ExecutionPayloadEnvelope[BlobsBundleT]) ShouldOverrideBuilder() bool {
+func (e *executionPayloadEnvelope[BlobsBundleT]) ShouldOverrideBuilder() bool {
 	return e.Override
 }
