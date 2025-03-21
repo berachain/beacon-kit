@@ -103,4 +103,4 @@ func (bs *BlobSidecars) MarshalSSZTo(buf []byte) ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, bs)
 }
 
-func (*BlobSidecars) EnsureSyntaxFromSSZ() error { return nil }
+func (*BlobSidecars) ValidateAfterDecodingSSZ() error { return nil }

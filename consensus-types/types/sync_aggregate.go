@@ -63,7 +63,7 @@ func (s *SyncAggregate) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, s)
 }
 
-func (*SyncAggregate) EnsureSyntaxFromSSZ() error { return nil }
+func (*SyncAggregate) ValidateAfterDecodingSSZ() error { return nil }
 
 // HashTreeRoot returns the hash tree root of the Deposits.
 func (s *SyncAggregate) HashTreeRoot() common.Root {

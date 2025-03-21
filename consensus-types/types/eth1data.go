@@ -87,7 +87,7 @@ func (e *Eth1Data) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, e)
 }
 
-func (*Eth1Data) EnsureSyntaxFromSSZ() error { return nil }
+func (*Eth1Data) ValidateAfterDecodingSSZ() error { return nil }
 
 // MarshalSSZTo marshals the Eth1Data object into a pre-allocated byte slice.
 func (e *Eth1Data) MarshalSSZTo(dst []byte) ([]byte, error) {

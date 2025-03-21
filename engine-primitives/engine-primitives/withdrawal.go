@@ -94,7 +94,7 @@ func (w *Withdrawal) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, w)
 }
 
-func (*Withdrawal) EnsureSyntaxFromSSZ() error { return nil }
+func (*Withdrawal) ValidateAfterDecodingSSZ() error { return nil }
 
 /* -------------------------------------------------------------------------- */
 /*                                   FastSSZ                                  */

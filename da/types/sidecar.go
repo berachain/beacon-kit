@@ -159,7 +159,7 @@ func (b *BlobSidecar) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 
-func (b *BlobSidecar) EnsureSyntaxFromSSZ() error {
+func (b *BlobSidecar) ValidateAfterDecodingSSZ() error {
 	// Ensure SignedBeaconBlockHeader is not nil
 	if b.SignedBeaconBlockHeader == nil {
 		b.SignedBeaconBlockHeader = &ctypes.SignedBeaconBlockHeader{}
