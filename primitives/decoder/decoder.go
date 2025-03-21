@@ -32,14 +32,11 @@ import (
 // Also SSZUnmarshal highlight the common template for SSZ decoding different
 // objects
 func SSZUnmarshal[T SSZUnmarshaler](buf []byte, v T) error {
-	switch dest := any(v).(type) {
-	default:
-		if err := ssz.DecodeFromBytes(buf, v); err != nil {
-			return fmt.Errorf("failed decoding %T: %w", dest, err)
-		}
-
-		// Note: ValidateAfterDecodingSSZ may change v even if it returns error
-		// (depending on the specific implementations)
-		return v.ValidateAfterDecodingSSZ()
+	if err := ssz.DecodeFromBytes(buf, v); err != nil {
+		return fmt.Errorf("failed decoding %T: %w", v, err)
 	}
+
+	// Note: ValidateAfterDecodingSSZ may change v even if it returns error
+	// (depending on the specific implementations)
+	return v.ValidateAfterDecodingSSZ()
 }

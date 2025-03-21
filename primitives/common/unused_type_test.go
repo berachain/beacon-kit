@@ -18,18 +18,21 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package common
+package common_test
 
 import (
-	"github.com/karalabe/ssz"
 	"reflect"
 	"testing"
+
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/karalabe/ssz"
 )
 
 // Verify that DecodeFromBytes produces the same UnusedType obj as the previous implementation
 // defined by:
 // *v = UnusedType(buf[0])
 func TestDecodeUnusedTypeEquality(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		buf []byte
 	}
@@ -43,13 +46,12 @@ func TestDecodeUnusedTypeEquality(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
-			ut1 := new(UnusedType)
+			ut1 := new(common.UnusedType)
 			if err := ssz.DecodeFromBytes(tt.args.buf, ut1); err != nil {
 				t.Errorf("DecodeFromBytes() error = %v", err)
 			}
-			ut2 := new(UnusedType)
-			*ut2 = UnusedType(tt.args.buf[0])
+			ut2 := new(common.UnusedType)
+			*ut2 = common.UnusedType(tt.args.buf[0])
 		})
 	}
 }
@@ -58,13 +60,14 @@ func TestDecodeUnusedTypeEquality(t *testing.T) {
 // defined by:
 // []byte{uint8(*ut)}
 func TestEncodeUnusedTypeEquality(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
-		ut   UnusedType
+		ut   common.UnusedType
 	}{
-		{name: "encode-unused-type-empty", ut: UnusedType(0)},
-		{name: "encode-unused-type-one", ut: UnusedType(1)},
-		{name: "encode-unused-type-max", ut: ^UnusedType(0)},
+		{name: "encode-unused-type-empty", ut: common.UnusedType(0)},
+		{name: "encode-unused-type-one", ut: common.UnusedType(1)},
+		{name: "encode-unused-type-max", ut: ^common.UnusedType(0)},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
