@@ -68,6 +68,22 @@ func BuildNewPayloadRequest(
 	}
 }
 
+// BuildNewPayloadRequestWithExecutionRequests builds a new payload post-electra
+func BuildNewPayloadRequestWithExecutionRequests(
+	executionPayload *ExecutionPayload,
+	versionedHashes []common.ExecutionHash,
+	parentBeaconBlockRoot *common.Root,
+	executionRequests []EncodedExecutionRequest,
+) NewPayloadRequest {
+	return &newPayloadRequest{
+		Versionable:           NewVersionable(executionPayload.GetForkVersion()),
+		executionPayload:      executionPayload,
+		versionedHashes:       versionedHashes,
+		parentBeaconBlockRoot: parentBeaconBlockRoot,
+		executionRequests:     executionRequests,
+	}
+}
+
 func (n *newPayloadRequest) GetExecutionPayload() *ExecutionPayload {
 	return n.executionPayload
 }
@@ -83,6 +99,9 @@ func (n *newPayloadRequest) GetParentBeaconBlockRoot() *common.Root {
 func (n *newPayloadRequest) GetExecutionRequests() ([]EncodedExecutionRequest, error) {
 	if !version.IsBefore(n.GetForkVersion(), version.Electra()) {
 		return nil, ErrForkVersionNotSupported
+	}
+	if n.executionPayload == nil {
+		return nil, ErrNilValue
 	}
 	return n.executionRequests, nil
 }
