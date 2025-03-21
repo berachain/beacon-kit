@@ -56,7 +56,7 @@ func NewEth1Data(depositRoot common.Root) *Eth1Data {
 	}
 }
 
-func NewEmptyEthi1Data() *Eth1Data {
+func NewEmptyEth1Data() *Eth1Data {
 	return &Eth1Data{}
 }
 

@@ -138,7 +138,7 @@ func New(kss store.KVStoreService) *KVStore {
 			sdkcollections.NewPrefix([]byte{keys.Eth1DataPrefix}),
 			keys.Eth1DataPrefixHumanReadable,
 			encoding.SSZValueCodec[*ctypes.Eth1Data]{
-				NewEmptyF: ctypes.NewEmptyEthi1Data,
+				NewEmptyF: ctypes.NewEmptyEth1Data,
 			},
 		),
 		eth1DepositIndex: sdkcollections.NewItem(
