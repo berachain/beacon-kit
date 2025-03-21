@@ -158,7 +158,7 @@ func (h *ExecutionPayloadHeader) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, h)
 }
 
-func (*ExecutionPayloadHeader) EnsureSyntaxFromSSZ() error { return nil }
+func (*ExecutionPayloadHeader) ValidateAfterDecodingSSZ() error { return nil }
 
 // HashTreeRootSSZ returns the hash tree root of the ExecutionPayloadHeader.
 func (h *ExecutionPayloadHeader) HashTreeRoot() common.Root {
