@@ -21,6 +21,7 @@
 package types_test
 
 import (
+	"github.com/berachain/beacon-kit/primitives/version"
 	"io"
 	"testing"
 
@@ -32,13 +33,13 @@ import (
 
 func TestEth1Data_Serialization(t *testing.T) {
 	t.Parallel()
-	original := types.NewEth1Data(common.Root{})
+	original := types.NewEth1Data(common.Root{}, version.Electra())
 	data, err := original.MarshalSSZ()
 	require.NoError(t, err)
 	require.NotNil(t, data)
 
 	var unmarshalled *types.Eth1Data
-	unmarshalled, err = unmarshalled.NewFromSSZ(data)
+	unmarshalled, err = unmarshalled.NewFromSSZ(data, version.Electra())
 	require.NoError(t, err)
 	require.Equal(t, original, unmarshalled)
 
@@ -53,20 +54,20 @@ func TestEth1Data_Serialization(t *testing.T) {
 func TestEth1Data_UnmarshalError(t *testing.T) {
 	t.Parallel()
 	var unmarshalled *types.Eth1Data
-	_, err := unmarshalled.NewFromSSZ([]byte{})
+	_, err := unmarshalled.NewFromSSZ([]byte{}, version.Electra())
 	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
 
 func TestEth1Data_SizeSSZ(t *testing.T) {
 	t.Parallel()
-	eth1Data := types.NewEth1Data(common.Root{})
+	eth1Data := types.NewEth1Data(common.Root{}, version.Electra())
 	size := karalabessz.Size(eth1Data)
 	require.Equal(t, uint32(72), size)
 }
 
 func TestEth1Data_HashTreeRoot(t *testing.T) {
 	t.Parallel()
-	eth1Data := types.NewEth1Data(common.Root{})
+	eth1Data := types.NewEth1Data(common.Root{}, version.Electra())
 
 	require.NotPanics(t, func() {
 		_ = eth1Data.HashTreeRoot()
@@ -75,7 +76,7 @@ func TestEth1Data_HashTreeRoot(t *testing.T) {
 
 func TestEth1Data_GetTree(t *testing.T) {
 	t.Parallel()
-	eth1Data := types.NewEth1Data(common.Root{})
+	eth1Data := types.NewEth1Data(common.Root{}, version.Electra())
 	tree, err := eth1Data.GetTree()
 
 	require.NoError(t, err)

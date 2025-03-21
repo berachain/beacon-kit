@@ -25,6 +25,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
+	forkVersion "github.com/berachain/beacon-kit/primitives/version"
 	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
 )
@@ -34,12 +35,14 @@ import (
 const Eth1DataSize = 72
 
 var (
-	_ ssz.StaticObject                               = (*Eth1Data)(nil)
-	_ constraints.SSZMarshallableRootable[*Eth1Data] = (*Eth1Data)(nil)
-	_ UnusedEnforcer                                 = (*Eth1Data)(nil)
+	_ ssz.StaticObject                                        = (*Eth1Data)(nil)
+	_ constraints.SSZVersionedMarshallableRootable[*Eth1Data] = (*Eth1Data)(nil)
+	_ UnusedEnforcer                                          = (*Eth1Data)(nil)
 )
 
 type Eth1Data struct {
+	constraints.Versionable `json:"-"`
+
 	// DepositRoot is the root of the deposit tree.
 	DepositRoot common.Root `json:"depositRoot"`
 	// DepositCount is the number of deposits in the deposit tree.
@@ -52,9 +55,10 @@ type Eth1Data struct {
 /*                                 Constructor                                */
 /* -------------------------------------------------------------------------- */
 
-func NewEth1Data(depositRoot common.Root) *Eth1Data {
+func NewEth1Data(depositRoot common.Root, version common.Version) *Eth1Data {
 	return &Eth1Data{
 		DepositRoot: depositRoot,
+		Versionable: NewVersionable(version),
 	}
 }
 
@@ -88,11 +92,16 @@ func (e *Eth1Data) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, e)
 }
 
-// NewFromSSZ creates a new Eth1Data object from SSZ format.
-func (e *Eth1Data) NewFromSSZ(buf []byte) (*Eth1Data, error) {
-	if e == nil {
-		e = &Eth1Data{}
+// empty returns an empty Eth1Data for the given fork version.
+func (*Eth1Data) empty(version common.Version) *Eth1Data {
+	return &Eth1Data{
+		Versionable: NewVersionable(version),
 	}
+}
+
+// NewFromSSZ creates a new Eth1Data object from SSZ format.
+func (e *Eth1Data) NewFromSSZ(buf []byte, version common.Version) (*Eth1Data, error) {
+	e = e.empty(version)
 	err := ssz.DecodeFromBytes(buf, e)
 	if err != nil {
 		return nil, err
@@ -147,11 +156,13 @@ func (e *Eth1Data) EnforceUnused() error {
 	if e == nil {
 		return nil
 	}
-	if e.DepositCount != 0 {
-		return errors.New("Eth1Data DepositCount field must be unused")
-	}
-	if e.BlockHash != (common.ExecutionHash{}) {
-		return errors.New("Eth1Data BlockHash field must be unused")
+	if !forkVersion.IsBefore(e.GetForkVersion(), forkVersion.Electra()) {
+		if e.DepositCount != 0 {
+			return errors.New("Eth1Data DepositCount field must be unused")
+		}
+		if e.BlockHash != (common.ExecutionHash{}) {
+			return errors.New("Eth1Data BlockHash field must be unused")
+		}
 	}
 	return nil
 }

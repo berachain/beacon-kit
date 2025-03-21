@@ -91,7 +91,7 @@ func TestInvalidDeposits(t *testing.T) {
 	blk := buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		depRoot,
 		10,
 		[]*types.Deposit{invalidDeposit},
 		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
@@ -156,7 +156,7 @@ func TestInvalidDepositsCount(t *testing.T) {
 	blk := buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		depRoot,
 		10,
 		correctDeposits,
 		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
@@ -218,7 +218,7 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 	blk := buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		depRoot,
 		10,
 		blockDeposits,
 		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
@@ -294,7 +294,7 @@ func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
 	blk := buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(badDepRoot),
+		badDepRoot,
 		10,
 		blockDeposits,
 		st.EVMInflationWithdrawal(constants.GenesisSlot+1),

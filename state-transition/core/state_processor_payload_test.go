@@ -141,7 +141,7 @@ func TestPayloadTimestampVerification(t *testing.T) {
 			blk := buildNextBlock(
 				t,
 				testSt,
-				types.NewEth1Data(genDeposits.HashTreeRoot()),
+				genDeposits.HashTreeRoot(),
 				math.U64(tt.payloadTime.Unix()),
 				nil,
 				testSt.EVMInflationWithdrawal(constants.GenesisSlot+1),

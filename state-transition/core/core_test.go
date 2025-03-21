@@ -77,7 +77,7 @@ func progressStateToSlot(
 func buildNextBlock(
 	t *testing.T,
 	beaconState *statetransition.TestBeaconStateT,
-	eth1Data *types.Eth1Data,
+	depositRoot common.Root,
 	timestamp math.U64,
 	blockDeposits types.Deposits,
 	withdrawals ...*engineprimitives.Withdrawal,
@@ -118,7 +118,7 @@ func buildNextBlock(
 	blk.Body = &types.BeaconBlockBody{
 		Versionable:      versionable,
 		ExecutionPayload: payload,
-		Eth1Data:         eth1Data,
+		Eth1Data:         types.NewEth1Data(depositRoot, fv),
 		Deposits:         blockDeposits,
 	}
 	return blk
@@ -166,7 +166,7 @@ func moveToEndOfEpoch(
 		blk = buildNextBlock(
 			t,
 			st,
-			types.NewEth1Data(depRoot),
+			depRoot,
 			blk.Body.ExecutionPayload.Timestamp+1,
 			[]*types.Deposit{},
 			st.EVMInflationWithdrawal(blk.GetSlot()+1),

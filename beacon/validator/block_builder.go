@@ -305,7 +305,7 @@ func (s *Service) buildBlockBody(
 		)
 	}
 
-	eth1Data := ctypes.NewEth1Data(deposits.HashTreeRoot())
+	eth1Data := ctypes.NewEth1Data(deposits.HashTreeRoot(), body.GetForkVersion())
 	body.SetEth1Data(eth1Data)
 
 	s.logger.Info(

@@ -101,7 +101,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	blk1 := buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		depRoot,
 		10,
 		[]*types.Deposit{blkDeposit},
 		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
@@ -143,7 +143,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		depRoot,
 		blk.Body.ExecutionPayload.Timestamp+1,
 		[]*types.Deposit{},
 		st.EVMInflationWithdrawal(blk.GetSlot()+1),
@@ -223,7 +223,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 	blk1 := buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		depRoot,
 		10,
 		[]*types.Deposit{blkDeposit},
 		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
@@ -266,7 +266,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		depRoot,
 		blk.Body.ExecutionPayload.Timestamp+1,
 		[]*types.Deposit{},
 		st.EVMInflationWithdrawal(blk.GetSlot()+1),
@@ -301,7 +301,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		depRoot,
 		blk.Body.ExecutionPayload.Timestamp+1,
 		[]*types.Deposit{},
 		st.EVMInflationWithdrawal(blk.GetSlot()+1),
@@ -401,7 +401,7 @@ func TestTransitionWithdrawals(t *testing.T) {
 	blk := buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(genDeposits.HashTreeRoot()),
+		genDeposits.HashTreeRoot(),
 		10,
 		[]*types.Deposit{},
 		withdrawals...,
@@ -490,7 +490,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	blk := buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		depRoot,
 		10,
 		[]*types.Deposit{},
 		withdrawals...,
@@ -531,7 +531,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		depRoot,
 		blk.Body.ExecutionPayload.Timestamp+1,
 		[]*types.Deposit{},
 		withdrawals...,
@@ -617,7 +617,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	blk1 := buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		depRoot,
 		10,
 		[]*types.Deposit{extraValDeposit},
 		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
@@ -660,7 +660,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		depRoot,
 		blk.Body.ExecutionPayload.Timestamp+1,
 		[]*types.Deposit{},
 		st.EVMInflationWithdrawal(blk.GetSlot()+1),
@@ -695,7 +695,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		depRoot,
 		blk.Body.ExecutionPayload.Timestamp+1,
 		[]*types.Deposit{},
 		st.EVMInflationWithdrawal(blk.GetSlot()+1),
@@ -724,7 +724,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		depRoot,
 		blk.Body.ExecutionPayload.Timestamp+1,
 		[]*types.Deposit{},
 		st.EVMInflationWithdrawal(blk.GetSlot()+1),
@@ -735,7 +735,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		depRoot,
 		blk.Body.ExecutionPayload.Timestamp+1,
 		[]*types.Deposit{},
 		st.EVMInflationWithdrawal(blk.GetSlot()+1),
@@ -755,7 +755,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		depRoot,
 		blk.Body.ExecutionPayload.Timestamp+1,
 		[]*types.Deposit{},
 		withdrawals...,
@@ -836,7 +836,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	blk1 := buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		depRoot,
 		10,
 		[]*types.Deposit{extraValDeposit},
 		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
@@ -896,7 +896,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		depRoot,
 		blk.Body.ExecutionPayload.Timestamp+1,
 		[]*types.Deposit{},
 		st.EVMInflationWithdrawal(blk.GetSlot()+1),
@@ -946,7 +946,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		depRoot,
 		blk.Body.ExecutionPayload.Timestamp+1,
 		[]*types.Deposit{},
 		st.EVMInflationWithdrawal(blk.GetSlot()+1),
@@ -1004,7 +1004,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		depRoot,
 		blk.Body.ExecutionPayload.Timestamp+1,
 		[]*types.Deposit{},
 		st.EVMInflationWithdrawal(blk.GetSlot()),
@@ -1015,7 +1015,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		depRoot,
 		blk.Body.ExecutionPayload.Timestamp+1,
 		[]*types.Deposit{},
 		st.EVMInflationWithdrawal(blk.GetSlot()+1),
@@ -1035,7 +1035,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		depRoot,
 		blk.Body.ExecutionPayload.Timestamp+1,
 		[]*types.Deposit{},
 		withdrawals...,
@@ -1091,7 +1091,7 @@ func TestValidatorNotWithdrawable(t *testing.T) {
 	blk := buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		depRoot,
 		10,
 		blockDeposits,
 		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
