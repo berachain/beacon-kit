@@ -103,6 +103,7 @@ func generateValidBeaconBlock(t *testing.T, forkVersion common.Version) *types.B
 					Amount:          1000,
 				},
 			},
+			Consolidations: []*types.ConsolidationRequest{},
 		})
 		require.NoError(t, err)
 	}

@@ -110,7 +110,7 @@ func TestNewSignedBeaconBlockFromSSZ(t *testing.T) {
 		err = decoder.SSZUnmarshal(blockBytes, newBlock)
 		require.NoError(t, err)
 		require.NotNil(t, newBlock)
-		require.Equal(t, originalBlock, newBlock)
+		require.Equal(t, *originalBlock, *newBlock)
 	})
 }
 
