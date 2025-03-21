@@ -111,8 +111,8 @@ func (b *SignedBeaconBlock) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 
-func (b *SignedBeaconBlock) EnsureSyntaxFromSSZ() error {
-	return b.BeaconBlock.EnsureSyntaxFromSSZ()
+func (b *SignedBeaconBlock) ValidateAfterDecodingSSZ() error {
+	return b.BeaconBlock.ValidateAfterDecodingSSZ()
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the

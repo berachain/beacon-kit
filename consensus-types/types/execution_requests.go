@@ -41,7 +41,7 @@ type ExecutionRequests struct {
 	Consolidations []*ConsolidationRequest
 }
 
-func (e *ExecutionRequests) EnsureSyntaxFromSSZ() error {
+func (e *ExecutionRequests) ValidateAfterDecodingSSZ() error {
 	return nil
 }
 

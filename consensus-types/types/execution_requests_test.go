@@ -241,7 +241,7 @@ func TestExecutionRequests_ValidValuesSSZ(t *testing.T) {
 			require.NoError(t, err)
 
 			// Compare that the original and recomputed ExecutionRequests match.
-			require.Equal(t, tc.executionRequests, recomputedER)
+			require.Equal(t, *tc.executionRequests, recomputedER)
 		})
 	}
 }

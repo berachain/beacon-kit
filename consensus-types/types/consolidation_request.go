@@ -40,7 +40,7 @@ type ConsolidationRequest struct {
 	TargetPubKey  crypto.BLSPubkey
 }
 
-func (c *ConsolidationRequest) EnsureSyntaxFromSSZ() error {
+func (c *ConsolidationRequest) ValidateAfterDecodingSSZ() error {
 	return nil
 }
 

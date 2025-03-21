@@ -91,7 +91,7 @@ func (f *Fork) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, f)
 }
 
-func (*Fork) EnsureSyntaxFromSSZ() error { return nil }
+func (*Fork) ValidateAfterDecodingSSZ() error { return nil }
 
 // HashTreeRoot computes the SSZ hash tree root of the Fork object.
 func (f *Fork) HashTreeRoot() common.Root {
