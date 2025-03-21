@@ -101,8 +101,8 @@ func (n *newPayloadRequest) GetExecutionRequests() ([]EncodedExecutionRequest, e
 	if version.EqualOrAfter(n.GetForkVersion(), version.Electra()) {
 		return nil, ErrForkVersionNotSupported
 	}
-	if n.executionPayload == nil {
-		return nil, ErrNilValue
+	if n.executionRequests == nil {
+		return nil, errors.Wrap(ErrNilValue, "executionRequests cannot be nil")
 	}
 	return n.executionRequests, nil
 }
