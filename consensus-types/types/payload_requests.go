@@ -152,6 +152,9 @@ func (n *newPayloadRequest) HasValidVersionedAndBlockHashes() error {
 	return nil
 }
 
+// MakeEthBlock builds an Ethereum block out of given payload and parent block root.
+// It also returns blobHashes out of payload to ease up checks.
+// Use MakeEthBlockWithExecutionRequests after Pectra.
 func MakeEthBlock(
 	payload *ExecutionPayload,
 	parentBeaconBlockRoot *common.Root,
@@ -161,6 +164,7 @@ func MakeEthBlock(
 	return makeEthBlock(payload, parentBeaconBlockRoot, nil)
 }
 
+// MakeEthBlockWithExecutionRequests is MakeEthBlock with support for executionRequests which is needed post-pectra.
 func MakeEthBlockWithExecutionRequests(
 	payload *ExecutionPayload,
 	parentBeaconBlockRoot *common.Root,
