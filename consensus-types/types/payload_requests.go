@@ -121,7 +121,7 @@ func (n *newPayloadRequest) HasValidVersionedAndBlockHashes() error {
 	if version.IsBefore(n.GetForkVersion(), version.Electra()) {
 		// Before electra there is no executionRequests in a block
 		var err error
-		block, blobHashes, err = MakeEthBlock(n.executionPayload, n.parentBeaconBlockRoot)
+		block, blobHashes, err = MakeEthBlock(n.GetExecutionPayload(), n.GetParentBeaconBlockRoot())
 		if err != nil {
 			return err
 		}
@@ -142,33 +142,33 @@ func (n *newPayloadRequest) HasValidVersionedAndBlockHashes() error {
 
 	// Validate the blob hashes from the transactions in the execution payload.
 	// Check if the number of blob hashes matches the number of versioned hashes.
-	if len(blobHashes) != len(n.versionedHashes) {
+	if len(blobHashes) != len(n.GetVersionedHashes()) {
 		return errors.Wrapf(
 			engineprimitives.ErrMismatchedNumVersionedHashes,
 			"expected %d, got %d",
 			len(blobHashes),
-			len(n.versionedHashes),
+			len(n.GetVersionedHashes()),
 		)
 	}
 
 	// Validate each blob hash against the corresponding versioned hash.
 	for i, blobHash := range blobHashes {
-		if common.ExecutionHash(blobHash) != n.versionedHashes[i] {
+		if common.ExecutionHash(blobHash) != n.GetVersionedHashes()[i] {
 			return errors.Wrapf(
 				engineprimitives.ErrInvalidVersionedHash,
 				"index %d: expected %v, got %v",
 				i,
 				blobHash,
-				n.versionedHashes[i],
+				n.GetVersionedHashes()[i],
 			)
 		}
 	}
 
 	// Verify that the payload is telling the truth about its block hash.
-	if common.ExecutionHash(block.Hash()) != n.executionPayload.GetBlockHash() {
+	if common.ExecutionHash(block.Hash()) != n.GetExecutionPayload().GetBlockHash() {
 		return errors.Wrapf(engineprimitives.ErrPayloadBlockHashMismatch,
 			"expected %x, got %x",
-			block.Hash(), n.executionPayload.GetBlockHash(),
+			block.Hash(), n.GetExecutionPayload().GetBlockHash(),
 		)
 	}
 	return nil
