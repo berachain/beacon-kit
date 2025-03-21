@@ -171,13 +171,13 @@ func (b *BeaconBlockBody) MarshalSSZ() ([]byte, error) {
 func NewEmptyBeaconBlockBodyWithVersion(version common.Version) *BeaconBlockBody {
 	return &BeaconBlockBody{
 		Versionable:      NewVersionable(version),
-		Eth1Data:         NewEmptyEthi1Data(),
+		Eth1Data:         NewEmptyEth1Data(),
 		ExecutionPayload: NewEmptyExecutionPayloadWithVersion(version),
 		syncAggregate:    &SyncAggregate{},
 	}
 }
 
-func (b *BeaconBlockBody) EnsureSyntaxFromSSZ() error {
+func (b *BeaconBlockBody) ValidateAfterDecodingSSZ() error {
 	errUnused := common.EnforceAllUnused(
 		b.GetProposerSlashings(),
 		b.GetAttesterSlashings(),
@@ -187,7 +187,7 @@ func (b *BeaconBlockBody) EnsureSyntaxFromSSZ() error {
 		b.GetBlsToExecutionChanges(),
 	)
 	return errors.Join(
-		b.ExecutionPayload.EnsureSyntaxFromSSZ(),
+		b.ExecutionPayload.ValidateAfterDecodingSSZ(),
 		errUnused,
 	)
 }

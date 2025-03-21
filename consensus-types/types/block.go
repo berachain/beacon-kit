@@ -119,8 +119,8 @@ func (b *BeaconBlock) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 
-func (b *BeaconBlock) EnsureSyntaxFromSSZ() error {
-	return b.Body.EnsureSyntaxFromSSZ()
+func (b *BeaconBlock) ValidateAfterDecodingSSZ() error {
+	return b.Body.ValidateAfterDecodingSSZ()
 }
 
 // HashTreeRoot computes the Merkleization of the BeaconBlock object.
