@@ -23,7 +23,6 @@ package decoder
 import (
 	"fmt"
 
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/karalabe/ssz"
 )
 
@@ -34,9 +33,6 @@ import (
 // objects
 func SSZUnmarshal[T SSZUnmarshaler](buf []byte, v T) error {
 	switch dest := any(v).(type) {
-	case *common.UnusedType:
-		// unused types have special formatting for efficiency
-		return common.DecodeUnusedType(buf, dest)
 	default:
 		if err := ssz.DecodeFromBytes(buf, v); err != nil {
 			return fmt.Errorf("failed decoding %T: %w", dest, err)
