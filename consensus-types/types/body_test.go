@@ -178,7 +178,7 @@ func TestBeaconBlockBody_UnusedProposerSlashingsEnforcement(t *testing.T) {
 		blockBody := types.BeaconBlockBody{
 			Versionable: types.NewVersionable(v),
 		}
-		unused := types.UnusedType(1)
+		unused := common.UnusedType(1)
 		blockBody.SetProposerSlashings(types.ProposerSlashings{&unused})
 		_, err := blockBody.MarshalSSZ()
 		require.Error(t, err)
@@ -201,7 +201,7 @@ func TestBeaconBlockBody_UnusedAttesterSlashingsEnforcement(t *testing.T) {
 		blockBody := types.BeaconBlockBody{
 			Versionable: types.NewVersionable(v),
 		}
-		unused := types.UnusedType(1)
+		unused := common.UnusedType(1)
 		blockBody.SetAttesterSlashings(types.AttesterSlashings{&unused})
 		_, err := blockBody.MarshalSSZ()
 		require.Error(t, err)
@@ -224,7 +224,7 @@ func TestBeaconBlockBody_UnusedAttestationsEnforcement(t *testing.T) {
 		blockBody := types.BeaconBlockBody{
 			Versionable: types.NewVersionable(v),
 		}
-		unused := types.UnusedType(1)
+		unused := common.UnusedType(1)
 		blockBody.SetAttestations(types.Attestations{&unused})
 		_, err := blockBody.MarshalSSZ()
 		require.Error(t, err)
@@ -247,7 +247,7 @@ func TestBeaconBlockBody_UnusedVoluntaryExitsEnforcement(t *testing.T) {
 		blockBody := types.BeaconBlockBody{
 			Versionable: types.NewVersionable(v),
 		}
-		unused := types.UnusedType(1)
+		unused := common.UnusedType(1)
 		blockBody.SetVoluntaryExits(types.VoluntaryExits{&unused})
 		_, err := blockBody.MarshalSSZ()
 		require.Error(t, err)
@@ -270,7 +270,7 @@ func TestBeaconBlockBody_UnusedBlsToExecutionChangesEnforcement(t *testing.T) {
 		blockBody := types.BeaconBlockBody{
 			Versionable: types.NewVersionable(v),
 		}
-		unused := types.UnusedType(1)
+		unused := common.UnusedType(1)
 		blockBody.SetBlsToExecutionChanges(types.BlsToExecutionChanges{&unused})
 		_, err := blockBody.MarshalSSZ()
 		require.Error(t, err)
