@@ -30,8 +30,8 @@ import (
 )
 
 var (
-	_ ssz.StaticObject                                  = (*SigningData)(nil)
-	_ constraints.SSZMarshallableRootable[*SigningData] = (*SigningData)(nil)
+	_ ssz.StaticObject                    = (*SigningData)(nil)
+	_ constraints.SSZMarshallableRootable = (*SigningData)(nil)
 )
 
 // SigningData as defined in the Ethereum 2.0 specification.

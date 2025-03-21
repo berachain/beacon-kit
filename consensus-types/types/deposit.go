@@ -34,8 +34,8 @@ const DepositSize = 192 // 48 + 32 + 8 + 96 + 8
 
 // Compile-time assertions to ensure Deposit implements necessary interfaces.
 var (
-	_ ssz.StaticObject                              = (*Deposit)(nil)
-	_ constraints.SSZMarshallableRootable[*Deposit] = (*Deposit)(nil)
+	_ ssz.StaticObject                    = (*Deposit)(nil)
+	_ constraints.SSZMarshallableRootable = (*Deposit)(nil)
 )
 
 // Deposit into the consensus layer from the deposit contract in the execution

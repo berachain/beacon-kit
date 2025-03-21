@@ -21,6 +21,8 @@
 package encoding
 
 import (
+	"fmt"
+
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -81,7 +83,14 @@ func UnmarshalBeaconBlockFromABCIRequest(
 		return signedBlk, ErrNilBeaconBlockInRequest
 	}
 
-	return ctypes.NewSignedBeaconBlockFromSSZ(blkBz, forkVersion)
+	block, err := ctypes.NewEmptySignedBeaconBlockWithVersion(forkVersion)
+	if err != nil {
+		return nil, fmt.Errorf("attempt at building block with wrong version %s: %w", forkVersion, err)
+	}
+	if err = decoder.SSZUnmarshal(blkBz, block); err != nil {
+		return nil, err
+	}
+	return block, nil
 }
 
 // UnmarshalBlobSidecarsFromABCIRequest extracts blob sidecars from an ABCI

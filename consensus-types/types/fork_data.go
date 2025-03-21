@@ -29,8 +29,8 @@ import (
 
 // Compile-time assertions to ensure ForkData implements necessary interfaces.
 var (
-	_ ssz.StaticObject                               = (*ForkData)(nil)
-	_ constraints.SSZMarshallableRootable[*ForkData] = (*ForkData)(nil)
+	_ ssz.StaticObject                    = (*ForkData)(nil)
+	_ constraints.SSZMarshallableRootable = (*ForkData)(nil)
 )
 
 // ForkData as defined in the Ethereum 2.0 specification:

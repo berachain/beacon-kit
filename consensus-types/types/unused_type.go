@@ -36,9 +36,9 @@ type UnusedEnforcer interface {
 
 // Compile-time assertions to ensure UnusedType implements necessary interfaces.
 var (
-	_ ssz.StaticObject                                 = (*UnusedType)(nil)
-	_ constraints.SSZMarshallableRootable[*UnusedType] = (*UnusedType)(nil)
-	_ UnusedEnforcer                                   = (*UnusedType)(nil)
+	_ ssz.StaticObject                    = (*UnusedType)(nil)
+	_ constraints.SSZMarshallableRootable = (*UnusedType)(nil)
+	_ UnusedEnforcer                      = (*UnusedType)(nil)
 )
 
 type UnusedType uint8

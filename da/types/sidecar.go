@@ -36,8 +36,8 @@ import (
 
 // Compile-time assertions to ensure BlobSidecar implements necessary interfaces.
 var (
-	_ ssz.StaticObject                                  = (*BlobSidecar)(nil)
-	_ constraints.SSZMarshallableRootable[*BlobSidecar] = (*BlobSidecar)(nil)
+	_ ssz.StaticObject                    = (*BlobSidecar)(nil)
+	_ constraints.SSZMarshallableRootable = (*BlobSidecar)(nil)
 )
 
 // BlobSidecar as per the Ethereum 2.0 specification:
