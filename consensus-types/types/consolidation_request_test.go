@@ -143,7 +143,7 @@ func TestConsolidationRequest_ValidValuesSSZ(t *testing.T) {
 			require.NoError(t, err)
 
 			// Compare that the original and recomputed consolidation requests match.
-			require.Equal(t, tc.consolidationRequest, recomputedCR)
+			require.Equal(t, *tc.consolidationRequest, recomputedCR)
 		})
 	}
 }
