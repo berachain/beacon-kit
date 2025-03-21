@@ -52,9 +52,8 @@ func TestDecodeUnusedTypeEquality(t *testing.T) {
 				}
 				t.Errorf("DecodeFromBytes() error = %v", err)
 			}
-			want := new(common.UnusedType)
-			*want = common.UnusedType(tt.buf[0])
-			if !reflect.DeepEqual(got, want) {
+			want := common.UnusedType(tt.buf[0])
+			if !reflect.DeepEqual(got, &want) {
 				t.Errorf("MarshalSSZ() got = %v, want %v", got, want)
 			}
 		})
