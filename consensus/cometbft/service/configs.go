@@ -26,6 +26,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/berachain/beacon-kit/log"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	cmttypes "github.com/cometbft/cometbft/types"
 )
@@ -43,6 +44,9 @@ const ( // appeases mnd
 
 	precision    = 505 * time.Millisecond
 	messageDelay = 15 * time.Second
+
+	defaultMaxNumInboundPeers  = 40
+	defaultMaxNumOutboundPeers = 10
 )
 
 var (
@@ -63,8 +67,8 @@ func DefaultConfig() *cmtcfg.Config {
 	cfg.BaseConfig.DBBackend = "pebbledb"
 
 	// These settings are set by default for performance reasons.
-	cfg.P2P.MaxNumInboundPeers = 120
-	cfg.P2P.MaxNumOutboundPeers = 40
+	cfg.P2P.MaxNumInboundPeers = defaultMaxNumInboundPeers
+	cfg.P2P.MaxNumOutboundPeers = defaultMaxNumOutboundPeers
 
 	cfg.Mempool.Type = "nop"
 	cfg.Mempool.Recheck = false
@@ -156,7 +160,25 @@ func validateConfig(cfg *cmtcfg.Config) error {
 			minTimeoutCommit,
 		)
 	}
+
 	return nil
+}
+
+func warnAboutConfigs(
+	cmtCfg *cmtcfg.Config,
+	logger log.Logger,
+) {
+	connectionsCap := defaultMaxNumInboundPeers + defaultMaxNumOutboundPeers
+	if cmtCfg.P2P.MaxNumInboundPeers+cmtCfg.P2P.MaxNumOutboundPeers > connectionsCap {
+		logger.Warn(
+			"excessive peering consider reducing it.",
+			"max_num_inbound_peers", cmtCfg.P2P.MaxNumInboundPeers,
+			"recommended max_num_inbound_peers", defaultMaxNumInboundPeers,
+			"max_num_outbound_peers", cmtCfg.P2P.MaxNumOutboundPeers,
+			"recommended max_num_outbound_peers", defaultMaxNumOutboundPeers,
+			"recommended connections cap (inbound + outbound)", connectionsCap,
+		)
+	}
 }
 
 // extractConsensusParams pull consensus parameters (not config) set in
