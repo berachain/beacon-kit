@@ -202,14 +202,14 @@ func buildNewPayloadRequestFromFork(blk *ctypes.BeaconBlock) (ctypes.NewPayloadR
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
 	parentBeaconBlockRoot := blk.GetParentBlockRoot()
-	if blk.GetForkVersion() == version.Deneb() || blk.GetForkVersion() == version.Deneb1() {
+	if version.Equals(blk.GetForkVersion(), version.Deneb()) || version.Equals(blk.GetForkVersion(), version.Deneb1()) {
 		return ctypes.BuildNewPayloadRequest(
 			payload,
 			body.GetBlobKzgCommitments().ToVersionedHashes(),
 			&parentBeaconBlockRoot,
 		), nil
 	}
-	if blk.GetForkVersion() == version.Electra() {
+	if version.Equals(blk.GetForkVersion(), version.Electra()) {
 		var executionRequestsList []ctypes.EncodedExecutionRequest
 		// If we're post-electra, we set execution requests.
 		var executionRequests *ctypes.ExecutionRequests
