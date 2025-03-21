@@ -74,3 +74,17 @@ preloaded with the native EVM token.
 ## Multinode Local Devnet
 
 Please refer to the [Kurtosis README](https://github.com/berachain/beacon-kit/blob/main/kurtosis/README.md) for more information on how to run a multinode local devnet.
+
+## Important Commands and Options
+
+`beacond help` lists available commands. Some commands have sub-commands.
+
+`beacond init` creates a folder structure for beacond to operate in, along with initial configuration files, the important ones being `app.toml` and `config.toml`.
+
+`beacond start` starts the chain client and begins the syncing process.
+
+The key environment variable is `CHAIN_SPEC`, which can be set to `mainnet`, `testnet`, or `devnet`. This should be set any time when using beacond. It will influence which configuration files you get during `init` and which chain ID beacond will communicate with while running.  
+
+You can override the default operating directories for beacond with the `--home <path> option.
+
+The [Berachain Node Quickstart](https://docs.berachain.com/nodes/quickstart) provides a complete example of a functioning setup, suitable for a development system or for experiments.  
