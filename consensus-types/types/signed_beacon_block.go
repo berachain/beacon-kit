@@ -70,7 +70,7 @@ func NewSignedBeaconBlock(
 
 func NewEmptySignedBeaconBlockWithVersion(forkVersion common.Version) (*SignedBeaconBlock, error) {
 	switch forkVersion {
-	case version.Deneb(), version.Deneb1():
+	case version.Deneb(), version.Deneb1(), version.Electra():
 		return &SignedBeaconBlock{
 			BeaconBlock: NewEmptyBeaconBlockWithVersion(forkVersion),
 		}, nil

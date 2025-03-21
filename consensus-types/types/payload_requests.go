@@ -28,17 +28,30 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constraints"
+	"github.com/berachain/beacon-kit/primitives/version"
 )
 
 // NewPayloadRequest as per the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/beacon-chain.md#modified-newpayloadrequest
-type NewPayloadRequest struct {
-	// ExecutionPayload is the payload to the execution client.
-	ExecutionPayload *ExecutionPayload
-	// VersionedHashes is the versioned hashes of the execution payload.
-	VersionedHashes []common.ExecutionHash
-	// ParentBeaconBlockRoot is the root of the parent beacon block.
-	ParentBeaconBlockRoot *common.Root
+type NewPayloadRequest interface {
+	HasValidVersionedAndBlockHashes() error
+	GetExecutionPayload() *ExecutionPayload
+	GetVersionedHashes() []common.ExecutionHash
+	GetParentBeaconBlockRoot() *common.Root
+	GetExecutionRequests() ([]EncodedExecutionRequest, error)
+}
+
+type newPayloadRequest struct {
+	constraints.Versionable
+	// executionPayload is the payload to the execution client.
+	executionPayload *ExecutionPayload
+	// versionedHashes is the versioned hashes of the execution payload.
+	versionedHashes []common.ExecutionHash
+	// parentBeaconBlockRoot is the root of the parent beacon block.
+	parentBeaconBlockRoot *common.Root
+	// ExecutionRequests is introduced in Pectra. It is only non-nil after Pectra.
+	executionRequests []EncodedExecutionRequest
 }
 
 // BuildNewPayloadRequest builds a new payload request.
@@ -46,12 +59,32 @@ func BuildNewPayloadRequest(
 	executionPayload *ExecutionPayload,
 	versionedHashes []common.ExecutionHash,
 	parentBeaconBlockRoot *common.Root,
-) *NewPayloadRequest {
-	return &NewPayloadRequest{
-		ExecutionPayload:      executionPayload,
-		VersionedHashes:       versionedHashes,
-		ParentBeaconBlockRoot: parentBeaconBlockRoot,
+) NewPayloadRequest {
+	return &newPayloadRequest{
+		Versionable:           NewVersionable(executionPayload.GetForkVersion()),
+		executionPayload:      executionPayload,
+		versionedHashes:       versionedHashes,
+		parentBeaconBlockRoot: parentBeaconBlockRoot,
 	}
+}
+
+func (n *newPayloadRequest) GetExecutionPayload() *ExecutionPayload {
+	return n.executionPayload
+}
+
+func (n *newPayloadRequest) GetVersionedHashes() []common.ExecutionHash {
+	return n.versionedHashes
+}
+
+func (n *newPayloadRequest) GetParentBeaconBlockRoot() *common.Root {
+	return n.parentBeaconBlockRoot
+}
+
+func (n *newPayloadRequest) GetExecutionRequests() ([]EncodedExecutionRequest, error) {
+	if !version.IsBefore(n.GetForkVersion(), version.Electra()) {
+		return nil, ErrForkVersionNotSupported
+	}
+	return n.executionRequests, nil
 }
 
 // HasValidVersionedAndBlockHashes checks if the version and block hashes are
@@ -59,41 +92,41 @@ func BuildNewPayloadRequest(
 // As per the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/v1.4.0-beta.2/specs/deneb/beacon-chain.md#is_valid_block_hash
 // https://github.com/ethereum/consensus-specs/blob/v1.4.0-beta.2/specs/deneb/beacon-chain.md#is_valid_versioned_hashes
-func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
-	block, blobHashes, err := MakeEthBlock(n.ExecutionPayload, n.ParentBeaconBlockRoot)
+func (n *newPayloadRequest) HasValidVersionedAndBlockHashes() error {
+	block, blobHashes, err := MakeEthBlock(n.executionPayload, n.parentBeaconBlockRoot)
 	if err != nil {
 		return err
 	}
 
 	// Validate the blob hashes from the transactions in the execution payload.
 	// Check if the number of blob hashes matches the number of versioned hashes.
-	if len(blobHashes) != len(n.VersionedHashes) {
+	if len(blobHashes) != len(n.versionedHashes) {
 		return errors.Wrapf(
 			engineprimitives.ErrMismatchedNumVersionedHashes,
 			"expected %d, got %d",
 			len(blobHashes),
-			len(n.VersionedHashes),
+			len(n.versionedHashes),
 		)
 	}
 
 	// Validate each blob hash against the corresponding versioned hash.
 	for i, blobHash := range blobHashes {
-		if common.ExecutionHash(blobHash) != n.VersionedHashes[i] {
+		if common.ExecutionHash(blobHash) != n.versionedHashes[i] {
 			return errors.Wrapf(
 				engineprimitives.ErrInvalidVersionedHash,
 				"index %d: expected %v, got %v",
 				i,
 				blobHash,
-				n.VersionedHashes[i],
+				n.versionedHashes[i],
 			)
 		}
 	}
 
 	// Verify that the payload is telling the truth about its block hash.
-	if common.ExecutionHash(block.Hash()) != n.ExecutionPayload.GetBlockHash() {
+	if common.ExecutionHash(block.Hash()) != n.executionPayload.GetBlockHash() {
 		return errors.Wrapf(engineprimitives.ErrPayloadBlockHashMismatch,
 			"expected %x, got %x",
-			block.Hash(), n.ExecutionPayload.GetBlockHash(),
+			block.Hash(), n.executionPayload.GetBlockHash(),
 		)
 	}
 	return nil
