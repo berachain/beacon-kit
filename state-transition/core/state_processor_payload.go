@@ -227,7 +227,6 @@ func buildNewPayloadRequestFromFork(blk *ctypes.BeaconBlock) (ctypes.NewPayloadR
 			&parentBeaconBlockRoot,
 			executionRequestsList,
 		), nil
-
 	}
 	return nil, ctypes.ErrForkVersionNotSupported
 }
