@@ -104,8 +104,6 @@ func (d *Deposit) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, d)
 }
 
-func (*Deposit) ValidateAfterDecodingSSZ() error { return nil }
-
 // SizeSSZ returns the SSZ encoded size of the Deposit object.
 func (d *Deposit) SizeSSZ(*ssz.Sizer) uint32 {
 	return DepositSize
