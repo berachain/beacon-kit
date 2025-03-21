@@ -26,12 +26,53 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-// GetGenesis returns the genesis state of the beacon chain.
-func (b Backend) GenesisValidatorsRoot(slot math.Slot) (common.Root, error) {
-	// needs genesis_time and genesis_fork_version
-	st, _, err := b.stateFromSlot(slot)
-	if err != nil {
-		return common.Root{}, errors.Wrapf(err, "failed to get state from slot %d", slot)
+// GetGenesisValidatorsRoot returns the genesis validators root of the beacon chain.
+func (b Backend) GenesisValidatorsRoot() (common.Root, error) {
+	// Return cached value if available
+	if b.genesisValidatorsRoot != (common.Root{}) {
+		return b.genesisValidatorsRoot, nil
 	}
-	return st.GetGenesisValidatorsRoot()
+	// If not cached, read from the state of the tip of the chain
+	st, _, err := b.stateFromSlot(0)
+	if err != nil {
+		return common.Root{}, errors.Wrapf(err, "failed to get state from tip of chain")
+	}
+	// Get the genesis validators root
+	root, err := st.GetGenesisValidatorsRoot()
+	if err != nil {
+		return common.Root{}, errors.Wrap(err, "failed to get genesis validators root from state")
+	}
+
+	// Cache the value for future use
+	b.genesisValidatorsRoot = root
+
+	return root, nil
+}
+
+// GenesisForkVersion returns the genesis fork version of the beacon chain.
+func (b Backend) GenesisForkVersion(genesisSlot math.Slot) (common.Version, error) {
+	st, _, err := b.stateFromSlot(genesisSlot)
+	if err != nil {
+		return common.Version{}, errors.Wrapf(err, "failed to get state from slot %d", genesisSlot)
+	}
+	fork, err := st.GetFork()
+	if err != nil {
+		return common.Version{}, errors.Wrapf(err, "failed to get fork from state")
+	}
+	return fork.CurrentVersion, nil
+}
+
+// GenesisTime returns the genesis time of the beacon chain.
+func (b Backend) GenesisTime(genesisSlot math.Slot) (math.U64, error) {
+	st, _, err := b.stateFromSlot(genesisSlot)
+	if err != nil {
+		return 0, errors.Wrapf(err, "failed to get state from slot %d", genesisSlot)
+	}
+	// Get the execution payload header from the beacon state,
+	// and return the timestamp as the genesis time.
+	execPayloadHeader, err := st.GetLatestExecutionPayloadHeader()
+	if err != nil {
+		return 0, errors.Wrapf(err, "failed to get execution payload header from state")
+	}
+	return execPayloadHeader.Timestamp, nil
 }

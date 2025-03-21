@@ -28,18 +28,29 @@ import (
 )
 
 func (h *Handler) GetGenesis(_ handlers.Context) (any, error) {
-	genesisRoot, err := h.backend.GenesisValidatorsRoot(utils.Genesis)
+	genesisRoot, err := h.backend.GenesisValidatorsRoot()
 	if err != nil {
 		return nil, err
 	}
 	if len(genesisRoot) == 0 {
 		return nil, types.ErrNotFound
 	}
+
+	genesisForkVersion, err := h.backend.GenesisForkVersion(utils.Genesis)
+	if err != nil {
+		return nil, err
+	}
+
+	genesisTime, err := h.backend.GenesisTime(utils.Genesis)
+	if err != nil {
+		return nil, err
+	}
+
 	return beacontypes.GenesisResponse{
 		Data: beacontypes.GenesisData{
-			GenesisTime:           "1590832934", // stub
+			GenesisTime:           genesisTime.Base10(),
 			GenesisValidatorsRoot: genesisRoot,
-			GenesisForkVersion:    "0x00000000", // stub
+			GenesisForkVersion:    genesisForkVersion.String(),
 		},
 	}, nil
 }
