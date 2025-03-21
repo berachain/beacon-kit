@@ -203,24 +203,6 @@ start-erigon:
 	--db.size.limit	3000MB \
 	--datadir /.tmp/erigon
 
-start-ethereumjs:
-	$(call ask_reset_dir_func, .tmp/ethereumjs)
-	docker run \
-	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
-	-v $(PWD)/.tmp:/.tmp \
-	-p 30303:30303 \
-	-p 8545:8545 \
-	-p 8551:8551 \
-	ethpandaops/ethereumjs:master \
-	--gethGenesis ../../${ETH_GENESIS_PATH} \
-	--rpcEngine \
-	--jwtSecret ../../$(JWT_PATH) \
-	--rpcEngineAddr 0.0.0.0 \
-	--dataDir ../../.tmp/ethereumjs \
-	--isSingleNode \
-	--rpc \
-	--rpcAddr 0.0.0.0
-
 #################
 #    Bepolia    #
 #################
