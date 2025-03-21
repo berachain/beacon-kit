@@ -3,7 +3,9 @@
 package mocks
 
 import (
+	bytes "github.com/berachain/beacon-kit/primitives/bytes"
 	common "github.com/berachain/beacon-kit/primitives/common"
+
 	mock "github.com/stretchr/testify/mock"
 
 	types "github.com/berachain/beacon-kit/consensus-types/types"
@@ -122,6 +124,53 @@ func (_c *NewPayloadRequest_GetExecutionRequests_Call) Return(_a0 []types.Encode
 }
 
 func (_c *NewPayloadRequest_GetExecutionRequests_Call) RunAndReturn(run func() ([]types.EncodedExecutionRequest, error)) *NewPayloadRequest_GetExecutionRequests_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetForkVersion provides a mock function with given fields:
+func (_m *NewPayloadRequest) GetForkVersion() bytes.B4 {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetForkVersion")
+	}
+
+	var r0 bytes.B4
+	if rf, ok := ret.Get(0).(func() bytes.B4); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(bytes.B4)
+		}
+	}
+
+	return r0
+}
+
+// NewPayloadRequest_GetForkVersion_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetForkVersion'
+type NewPayloadRequest_GetForkVersion_Call struct {
+	*mock.Call
+}
+
+// GetForkVersion is a helper method to define mock.On call
+func (_e *NewPayloadRequest_Expecter) GetForkVersion() *NewPayloadRequest_GetForkVersion_Call {
+	return &NewPayloadRequest_GetForkVersion_Call{Call: _e.mock.On("GetForkVersion")}
+}
+
+func (_c *NewPayloadRequest_GetForkVersion_Call) Run(run func()) *NewPayloadRequest_GetForkVersion_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *NewPayloadRequest_GetForkVersion_Call) Return(_a0 bytes.B4) *NewPayloadRequest_GetForkVersion_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *NewPayloadRequest_GetForkVersion_Call) RunAndReturn(run func() bytes.B4) *NewPayloadRequest_GetForkVersion_Call {
 	_c.Call.Return(run)
 	return _c
 }

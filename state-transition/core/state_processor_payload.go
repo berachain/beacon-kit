@@ -27,6 +27,7 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"golang.org/x/sync/errgroup"
 )
@@ -155,12 +156,10 @@ func (sp *StateProcessor) validateStatefulPayload(
 		return err
 	}
 
-	parentBeaconBlockRoot := blk.GetParentBlockRoot()
-	payloadReq := ctypes.BuildNewPayloadRequest(
-		payload,
-		body.GetBlobKzgCommitments().ToVersionedHashes(),
-		&parentBeaconBlockRoot,
-	)
+	payloadReq, err := buildNewPayloadRequestFromFork(blk)
+	if err != nil {
+		return err
+	}
 
 	// First we verify the block hash and versioned hashes are valid.
 	// TODO: is this required? Or will the EL handle this for us during
@@ -197,4 +196,38 @@ func (sp *StateProcessor) validateStatefulPayload(
 	}
 
 	return nil
+}
+
+func buildNewPayloadRequestFromFork(blk *ctypes.BeaconBlock) (ctypes.NewPayloadRequest, error) {
+	body := blk.GetBody()
+	payload := body.GetExecutionPayload()
+	parentBeaconBlockRoot := blk.GetParentBlockRoot()
+	if blk.GetForkVersion() == version.Deneb() || blk.GetForkVersion() == version.Deneb1() {
+		return ctypes.BuildNewPayloadRequest(
+			payload,
+			body.GetBlobKzgCommitments().ToVersionedHashes(),
+			&parentBeaconBlockRoot,
+		), nil
+	}
+	if blk.GetForkVersion() == version.Electra() {
+		var executionRequestsList []ctypes.EncodedExecutionRequest
+		// If we're post-electra, we set execution requests.
+		var executionRequests *ctypes.ExecutionRequests
+		executionRequests, err := body.GetExecutionRequests()
+		if err != nil {
+			return nil, err
+		}
+		executionRequestsList, err = ctypes.GetExecutionRequestsList(executionRequests)
+		if err != nil {
+			return nil, err
+		}
+		return ctypes.BuildNewPayloadRequestWithExecutionRequests(
+			payload,
+			body.GetBlobKzgCommitments().ToVersionedHashes(),
+			&parentBeaconBlockRoot,
+			executionRequestsList,
+		), nil
+
+	}
+	return nil, ctypes.ErrForkVersionNotSupported
 }

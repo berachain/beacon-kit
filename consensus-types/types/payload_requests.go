@@ -35,6 +35,7 @@ import (
 // NewPayloadRequest as per the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/beacon-chain.md#modified-newpayloadrequest
 type NewPayloadRequest interface {
+	constraints.Versionable
 	HasValidVersionedAndBlockHashes() error
 	GetExecutionPayload() *ExecutionPayload
 	GetVersionedHashes() []common.ExecutionHash
@@ -151,11 +152,31 @@ func (n *newPayloadRequest) HasValidVersionedAndBlockHashes() error {
 	return nil
 }
 
-// MakeEthBlock builds an Ethereum block out of given payload and parent block root.
-// It also returns blobHashes out of payload to ease up checks.
 func MakeEthBlock(
 	payload *ExecutionPayload,
 	parentBeaconBlockRoot *common.Root,
+) (*gethprimitives.Block,
+	[]gethprimitives.ExecutionHash,
+	error) {
+	return makeEthBlock(payload, parentBeaconBlockRoot, nil)
+}
+
+func MakeEthBlockWithExecutionRequests(
+	payload *ExecutionPayload,
+	parentBeaconBlockRoot *common.Root,
+	executionRequests []EncodedExecutionRequest,
+) (*gethprimitives.Block,
+	[]gethprimitives.ExecutionHash,
+	error) {
+	return makeEthBlock(payload, parentBeaconBlockRoot, executionRequests)
+}
+
+// makeEthBlock builds an Ethereum block out of given payload and parent block root.
+// It also returns blobHashes out of payload to ease up checks.
+func makeEthBlock(
+	payload *ExecutionPayload,
+	parentBeaconBlockRoot *common.Root,
+	executionRequests []EncodedExecutionRequest,
 ) (
 	*gethprimitives.Block,
 	[]gethprimitives.ExecutionHash,
@@ -199,6 +220,19 @@ func MakeEthBlock(
 		BlobGasUsed:      payload.GetBlobGasUsed().UnwrapPtr(),
 		ParentBeaconRoot: (*gethprimitives.ExecutionHash)(parentBeaconBlockRoot),
 	}
+
+	if !version.IsBefore(payload.GetForkVersion(), version.Electra()) {
+		if executionRequests == nil {
+			return nil, nil, ErrNilValue
+		}
+		result := make([][]byte, len(executionRequests))
+		for i, req := range executionRequests {
+			result[i] = req // conversion from ExecutionRequest to []byte
+		}
+		reqHash := gethprimitives.CalcRequestsHash(result)
+		blkHeader.RequestsHash = &reqHash
+	}
+
 	block := gethprimitives.NewBlockWithHeader(blkHeader).WithBody(
 		gethprimitives.Body{
 			Transactions: txs,

@@ -159,8 +159,7 @@ func (p *ExecutionPayload) DefineSSZ(codec *ssz.Codec) {
 	// Note that at this state we don't have any guarantee that
 	// p.Withdrawal is not nil, which we require Capella onwards
 	// (empty list of withdrawals are fine). We ensure non-nillness
-	// in EnsureNotNilWithdrawals which must be called wherever
-	// we deserialize an execution payload (or anything containing one).
+	// in ValidateAfterDecodingSSZ.
 }
 
 // MarshalSSZ serializes the ExecutionPayload object into a slice of bytes.

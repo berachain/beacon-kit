@@ -38,7 +38,7 @@ var (
 
 	// ErrNilValue is an error for when a getter returns nil on a value
 	// It should generally not occur unless we have a bug in our code and is used for defensive programming.
-	ErrNilValue = errors.New("getter retrieved nil value")
+	ErrNilValue = errors.New("unexpected nil value")
 
 	// ErrInclusionProofDepthExceeded is an error for when the
 	// KZG_COMMITMENT_INCLUSION_PROOF_DEPTH calculation overflows.
