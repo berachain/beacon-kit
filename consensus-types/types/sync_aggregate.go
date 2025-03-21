@@ -63,13 +63,7 @@ func (s *SyncAggregate) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, s)
 }
 
-// NewFromSSZ creates a new SyncAggregate object from SSZ format.
-func (s *SyncAggregate) NewFromSSZ(buf []byte) (*SyncAggregate, error) {
-	if s == nil {
-		s = &SyncAggregate{}
-	}
-	return s, ssz.DecodeFromBytes(buf, s)
-}
+func (*SyncAggregate) ValidateAfterDecodingSSZ() error { return nil }
 
 // HashTreeRoot returns the hash tree root of the Deposits.
 func (s *SyncAggregate) HashTreeRoot() common.Root {

@@ -79,13 +79,7 @@ func (a *AttestationData) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, a)
 }
 
-// NewFromSSZ creates a new AttestationData object from SSZ format.
-func (a *AttestationData) NewFromSSZ(buf []byte) (*AttestationData, error) {
-	if a == nil {
-		a = &AttestationData{}
-	}
-	return a, ssz.DecodeFromBytes(buf, a)
-}
+func (*AttestationData) ValidateAfterDecodingSSZ() error { return nil }
 
 /* -------------------------------------------------------------------------- */
 /*                                   FastSSZ                                  */

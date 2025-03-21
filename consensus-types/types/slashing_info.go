@@ -80,13 +80,7 @@ func (s *SlashingInfo) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, s)
 }
 
-// NewFromSSZ creates a new SlashingInfo object from SSZ format.
-func (s *SlashingInfo) NewFromSSZ(buf []byte) (*SlashingInfo, error) {
-	if s == nil {
-		s = &SlashingInfo{}
-	}
-	return s, ssz.DecodeFromBytes(buf, s)
-}
+func (*SlashingInfo) ValidateAfterDecodingSSZ() error { return nil }
 
 /* -------------------------------------------------------------------------- */
 /*                                   FastSSZ                                  */

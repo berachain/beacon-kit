@@ -26,6 +26,7 @@ import (
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/decoder"
 	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
@@ -37,8 +38,8 @@ func TestEth1Data_Serialization(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, data)
 
-	var unmarshalled *types.Eth1Data
-	unmarshalled, err = unmarshalled.NewFromSSZ(data)
+	unmarshalled := new(types.Eth1Data)
+	err = decoder.SSZUnmarshal(data, unmarshalled)
 	require.NoError(t, err)
 	require.Equal(t, original, unmarshalled)
 
@@ -52,8 +53,9 @@ func TestEth1Data_Serialization(t *testing.T) {
 
 func TestEth1Data_UnmarshalError(t *testing.T) {
 	t.Parallel()
-	var unmarshalled *types.Eth1Data
-	_, err := unmarshalled.NewFromSSZ([]byte{})
+
+	var unmarshalled types.Eth1Data
+	err := decoder.SSZUnmarshal([]byte{}, &unmarshalled)
 	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
 

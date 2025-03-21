@@ -93,6 +93,10 @@ func NewValidatorFromDeposit(
 	}
 }
 
+func NewEmptyValidator() *Validator {
+	return &Validator{}
+}
+
 func ComputeEffectiveBalance(
 	amount, effectiveBalanceIncrement, maxEffectiveBalance math.Gwei,
 ) math.Gwei {
@@ -131,13 +135,7 @@ func (v *Validator) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, v)
 }
 
-// NewFromSSZ creates a new Validator object from SSZ format.
-func (v *Validator) NewFromSSZ(buf []byte) (*Validator, error) {
-	if v == nil {
-		v = &Validator{}
-	}
-	return v, ssz.DecodeFromBytes(buf, v)
-}
+func (*Validator) ValidateAfterDecodingSSZ() error { return nil }
 
 /* -------------------------------------------------------------------------- */
 /*                                   FastSSZ                                  */

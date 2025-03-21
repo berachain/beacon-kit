@@ -245,7 +245,7 @@ func TestExecutionPayloadHeader_NewFromSSZ_Invalid(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			buf := tc.malleate()
 			_, err := (&types.ExecutionPayloadHeader{}).NewFromSSZ(buf, version.Deneb())
-			require.ErrorContains(t, err, tc.expErr.Error())
+			require.ErrorIs(t, err, tc.expErr)
 		})
 	}
 }

@@ -56,6 +56,10 @@ func NewEth1Data(depositRoot common.Root) *Eth1Data {
 	}
 }
 
+func NewEmptyEth1Data() *Eth1Data {
+	return &Eth1Data{}
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                     SSZ                                    */
 /* -------------------------------------------------------------------------- */
@@ -83,13 +87,7 @@ func (e *Eth1Data) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, e)
 }
 
-// NewFromSSZ creates a new Eth1Data object from SSZ format.
-func (e *Eth1Data) NewFromSSZ(buf []byte) (*Eth1Data, error) {
-	if e == nil {
-		e = &Eth1Data{}
-	}
-	return e, ssz.DecodeFromBytes(buf, e)
-}
+func (*Eth1Data) ValidateAfterDecodingSSZ() error { return nil }
 
 // MarshalSSZTo marshals the Eth1Data object into a pre-allocated byte slice.
 func (e *Eth1Data) MarshalSSZTo(dst []byte) ([]byte, error) {

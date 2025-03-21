@@ -22,6 +22,7 @@ package constraints
 
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/karalabe/ssz"
 )
 
 // sszMarshaler is an interface for objects that can be
@@ -31,10 +32,10 @@ type sszMarshaler interface {
 	MarshalSSZ() ([]byte, error)
 }
 
-// sszUnmarshaler is an interface for objects that can be unmarshaled from SSZ format.
-type sszUnmarshaler[SelfT any] interface {
-	// NewFromSSZ creates a new object from SSZ format.
-	NewFromSSZ(bz []byte) (SelfT, error)
+// SSZUnmarshaler is an interface for objects that can be unmarshaled from SSZ format.
+type SSZUnmarshaler interface {
+	ssz.Object
+	ValidateAfterDecodingSSZ() error // once unmarshalled we will check whether type syntax is correct
 }
 
 // sszVersionedUnmarshaler is an interface for objects that can be
@@ -44,10 +45,10 @@ type sszVersionedUnmarshaler[SelfT any] interface {
 	NewFromSSZ(bz []byte, version common.Version) (SelfT, error)
 }
 
-// SSZMarshallable is an interface that combines sszMarshaler and sszUnmarshaler.
-type SSZMarshallable[SelfT any] interface {
+// SSZMarshallable is an interface that combines SSZMarshaler and SSZUnmarshaler.
+type SSZMarshallable interface {
 	sszMarshaler
-	sszUnmarshaler[SelfT]
+	SSZUnmarshaler
 }
 
 // Versionable is a constraint that requires a type to have a GetForkVersion method.
@@ -71,7 +72,7 @@ type SSZRootable interface {
 // SSZMarshallableRootable is an interface that combines
 // sszMarshaler, sszUnmarshaler, and SSZRootable.
 type SSZMarshallableRootable[SelfT any] interface {
-	SSZMarshallable[SelfT]
+	SSZMarshallable
 	SSZRootable
 }
 

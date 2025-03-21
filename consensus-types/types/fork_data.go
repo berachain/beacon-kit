@@ -85,13 +85,7 @@ func (fd *ForkData) MarshalSSZ() ([]byte, error) {
 	return fd.MarshalSSZTo(buf)
 }
 
-// NewFromSSZ creates a new ForkData object from SSZ format.
-func (fd *ForkData) NewFromSSZ(buf []byte) (*ForkData, error) {
-	if fd == nil {
-		fd = &ForkData{}
-	}
-	return fd, ssz.DecodeFromBytes(buf, fd)
-}
+func (*ForkData) ValidateAfterDecodingSSZ() error { return nil }
 
 // ComputeDomain as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#compute_domain
