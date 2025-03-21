@@ -141,7 +141,7 @@ func TestWithdrawalRequest_ValidValuesSSZ(t *testing.T) {
 			require.NoError(t, err)
 
 			// Compare that the original and recomputed values match.
-			require.Equal(t, tc.withdrawalRequest, recomputedWithdrawalRequest)
+			require.Equal(t, *tc.withdrawalRequest, recomputedWithdrawalRequest)
 		})
 	}
 }
