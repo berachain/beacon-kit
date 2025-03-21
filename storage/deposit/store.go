@@ -69,7 +69,9 @@ func NewStore(
 			sdkcollections.NewPrefix([]byte(KeyDepositPrefix)),
 			KeyDepositPrefix,
 			sdkcollections.Uint64Key,
-			encoding.SSZValueCodec[*ctypes.Deposit]{},
+			encoding.SSZValueCodec[*ctypes.Deposit]{
+				NewEmptyF: ctypes.NewEmptyDeposit,
+			},
 		),
 		closeFunc: closeFunc,
 		logger:    logger,

@@ -34,8 +34,8 @@ const DepositSize = 192 // 48 + 32 + 8 + 96 + 8
 
 // Compile-time assertions to ensure Deposit implements necessary interfaces.
 var (
-	_ ssz.StaticObject                              = (*Deposit)(nil)
-	_ constraints.SSZMarshallableRootable[*Deposit] = (*Deposit)(nil)
+	_ ssz.StaticObject                    = (*Deposit)(nil)
+	_ constraints.SSZMarshallableRootable = (*Deposit)(nil)
 )
 
 // Deposit into the consensus layer from the deposit contract in the execution
@@ -52,6 +52,10 @@ type Deposit struct {
 	Signature crypto.BLSSignature `json:"signature"`
 	// Index of the deposit in the deposit contract.
 	Index uint64 `json:"index"`
+}
+
+func NewEmptyDeposit() *Deposit {
+	return &Deposit{}
 }
 
 // Equals returns true if the Deposit is equal to the other.
@@ -100,13 +104,7 @@ func (d *Deposit) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, d)
 }
 
-// NewFromSSZ creates a new Deposit object from SSZ format.
-func (d *Deposit) NewFromSSZ(buf []byte) (*Deposit, error) {
-	if d == nil {
-		d = &Deposit{}
-	}
-	return d, ssz.DecodeFromBytes(buf, d)
-}
+func (*Deposit) ValidateAfterDecodingSSZ() error { return nil }
 
 // SizeSSZ returns the SSZ encoded size of the Deposit object.
 func (d *Deposit) SizeSSZ(*ssz.Sizer) uint32 {

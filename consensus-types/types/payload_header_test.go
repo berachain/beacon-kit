@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/decoder"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -132,8 +133,8 @@ func TestExecutionPayloadHeader_Serialization(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, data)
 
-		var unmarshalled = &types.ExecutionPayloadHeader{}
-		unmarshalled, err = unmarshalled.NewFromSSZ(data, original.GetForkVersion())
+		unmarshalled := types.NewEmptyExecutionPayloadHeaderWithVersion(original.GetForkVersion())
+		err = decoder.SSZUnmarshal(data, unmarshalled)
 		require.NoError(t, err)
 		require.Equal(t, original, unmarshalled)
 	})
@@ -182,9 +183,9 @@ func TestExecutionPayloadHeader_MarshalSSZTo(t *testing.T) {
 func TestExecutionPayloadHeader_NewFromSSZ_EmptyBuf(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
-		header := generateExecutionPayloadHeader(v)
 		buf := make([]byte, 0)
-		_, err := header.NewFromSSZ(buf, v)
+		header := types.NewEmptyExecutionPayloadHeaderWithVersion(v)
+		err := decoder.SSZUnmarshal(buf, header)
 		require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 	})
 }
@@ -244,8 +245,9 @@ func TestExecutionPayloadHeader_NewFromSSZ_Invalid(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			buf := tc.malleate()
-			_, err := (&types.ExecutionPayloadHeader{}).NewFromSSZ(buf, version.Deneb())
-			require.ErrorContains(t, err, tc.expErr.Error())
+			dest := types.NewEmptyExecutionPayloadHeaderWithVersion(version.Deneb())
+			err := decoder.SSZUnmarshal(buf, dest)
+			require.ErrorIs(t, err, tc.expErr)
 		})
 	}
 }
@@ -456,14 +458,13 @@ func TestExecutionPayloadHeader_NewFromSSZ(t *testing.T) {
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
 				t.Parallel()
+				header := types.NewEmptyExecutionPayloadHeaderWithVersion(v)
 				if tc.name == "Different fork version" {
 					require.Panics(t, func() {
-						_, _ = new(types.ExecutionPayloadHeader).
-							NewFromSSZ(tc.data, v)
+						_ = decoder.SSZUnmarshal(tc.data, header)
 					}, "Expected panic for different fork version")
 				} else {
-					header, err := new(types.ExecutionPayloadHeader).
-						NewFromSSZ(tc.data, v)
+					err := decoder.SSZUnmarshal(tc.data, header)
 					if tc.expErr != nil {
 						require.ErrorIs(t, err, tc.expErr)
 					} else {
@@ -508,10 +509,9 @@ func TestExecutionPayloadHeader_NewFromJSON(t *testing.T) {
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
 				t.Parallel()
-				header, err := new(types.ExecutionPayloadHeader).NewFromJSON(
-					tc.data,
-					v,
-				)
+				header := types.NewEmptyExecutionPayloadHeaderWithVersion(v)
+				err := json.Unmarshal(tc.data, header)
+
 				if tc.expectedError != nil {
 					require.Error(t, err)
 					require.Contains(t, err.Error(), tc.expectedError.Error())
