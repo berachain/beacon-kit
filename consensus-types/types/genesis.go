@@ -142,6 +142,7 @@ func DefaultGenesisExecutionPayloadHeader() (*ExecutionPayloadHeader, error) {
 	}
 
 	return &ExecutionPayloadHeader{
+		Versionable:   NewVersionable(version.Genesis()),
 		ParentHash:    common.ExecutionHash{},
 		FeeRecipient:  common.ExecutionAddress{},
 		StateRoot:     stateRoot,
@@ -162,6 +163,5 @@ func DefaultGenesisExecutionPayloadHeader() (*ExecutionPayloadHeader, error) {
 		WithdrawalsRoot: engineprimitives.Withdrawals(nil).HashTreeRoot(),
 		BlobGasUsed:     0,
 		ExcessBlobGas:   0,
-		EphVersion:      version.Genesis(),
 	}, nil
 }

@@ -102,7 +102,11 @@ func (s *SharedAccessors) InitializeChain(t *testing.T) {
 
 // MoveChainToHeight will iterate through the core loop `iterations` times, i.e. Propose, Process, Finalize and Commit.
 // Returns the list of proposed comet blocks.
-func (s *SharedAccessors) MoveChainToHeight(t *testing.T, startHeight, iterations int64, proposer *signer.BLSSigner) []*types.PrepareProposalResponse {
+func (s *SharedAccessors) MoveChainToHeight(
+	t *testing.T,
+	startHeight, iterations int64,
+	proposer *signer.BLSSigner,
+) []*types.PrepareProposalResponse {
 	// Prepare a block proposal.
 	pubkey, err := proposer.GetPubKey()
 	require.NoError(t, err)
@@ -182,7 +186,12 @@ func GetBlsSigner(tempHomeDir string) *signer.BLSSigner {
 	return signer.NewBLSSigner(privValKeyFile, privValStateFile)
 }
 
-func DefaultSimulationInput(t *testing.T, chainSpec chain.Spec, origBlock *ctypes.BeaconBlock, txs []*gethprimitives.Transaction) *execution.SimOpts {
+func DefaultSimulationInput(
+	t *testing.T,
+	chainSpec chain.Spec,
+	origBlock *ctypes.BeaconBlock,
+	txs []*gethprimitives.Transaction,
+) *execution.SimOpts {
 	t.Helper()
 	overrideTime := hexutil.Uint64(origBlock.GetTimestamp().Unwrap())
 	overrideGasLimit := hexutil.Uint64(30000000)
@@ -317,7 +326,11 @@ func ComputeAndSetStateRoot(
 }
 
 // GetProofAndCommitmentsForBlobs will create a commitment and proof for each blob. Technically
-func GetProofAndCommitmentsForBlobs(t *require.Assertions, blobs []*eip4844.Blob, verifier kzg.BlobProofVerifier) ([]eip4844.KZGProof, []eip4844.KZGCommitment) {
+func GetProofAndCommitmentsForBlobs(
+	t *require.Assertions,
+	blobs []*eip4844.Blob,
+	verifier kzg.BlobProofVerifier,
+) ([]eip4844.KZGProof, []eip4844.KZGCommitment) {
 	if verifier.GetImplementation() != gokzg.Implementation {
 		t.Fail("test expects gokzg implementation")
 	}

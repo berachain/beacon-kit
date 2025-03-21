@@ -72,8 +72,7 @@ func TestSidecarMarshalling(t *testing.T) {
 	require.NotNil(t, marshalled, "Marshalling should produce a result")
 
 	// Unmarshal the sidecar
-	unmarshalled := &types.BlobSidecar{}
-	err = unmarshalled.UnmarshalSSZ(marshalled)
+	unmarshalled, err := (&types.BlobSidecar{}).NewFromSSZ(marshalled)
 	require.NoError(t, err, "Unmarshalling should not produce an error")
 
 	// Compare the original and unmarshalled sidecars
@@ -85,6 +84,7 @@ func TestSidecarMarshalling(t *testing.T) {
 	)
 }
 
+// TODO(pectra): Update to take in version
 func generateValidBeaconBlock(t *testing.T) *ctypes.BeaconBlock {
 	t.Helper()
 
@@ -100,9 +100,11 @@ func generateValidBeaconBlock(t *testing.T) *ctypes.BeaconBlock {
 
 	beaconBlock.StateRoot = common.Root{5, 4, 3, 2, 1}
 	beaconBlock.Body = &ctypes.BeaconBlockBody{
+		Versionable: beaconBlock,
 		ExecutionPayload: &ctypes.ExecutionPayload{
-			Timestamp: 10,
-			ExtraData: []byte("dummy extra data for testing"),
+			Versionable: beaconBlock,
+			Timestamp:   10,
+			ExtraData:   []byte("dummy extra data for testing"),
 			Transactions: [][]byte{
 				[]byte("tx1"),
 				[]byte("tx2"),
@@ -113,7 +115,6 @@ func generateValidBeaconBlock(t *testing.T) *ctypes.BeaconBlock {
 				{Index: 1, Amount: 200},
 			},
 			BaseFeePerGas: math.NewU256(0),
-			EpVersion:     deneb1,
 		},
 		Eth1Data: &ctypes.Eth1Data{},
 		Deposits: []*ctypes.Deposit{
@@ -125,7 +126,6 @@ func generateValidBeaconBlock(t *testing.T) *ctypes.BeaconBlock {
 			{0xab, 0xab, 0xab, 0xab, 0xab, 0xab, 0xab, 0xab}, {2}, {0x69},
 		},
 	}
-
 	body := beaconBlock.GetBody()
 	body.SetProposerSlashings(ctypes.ProposerSlashings{})
 	body.SetAttesterSlashings(ctypes.AttesterSlashings{})

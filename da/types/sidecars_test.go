@@ -71,8 +71,7 @@ func TestEmptySidecarMarshalling(t *testing.T) {
 	)
 
 	// Unmarshal the empty sidecar
-	unmarshalled := &types.BlobSidecar{}
-	err = unmarshalled.UnmarshalSSZ(marshalled)
+	unmarshalled, err := (&types.BlobSidecar{}).NewFromSSZ(marshalled)
 	require.NoError(
 		t,
 		err,
@@ -158,5 +157,5 @@ func TestZeroSidecarsInBlobSidecarsIsNotNil(t *testing.T) {
 	// This test exists to ensure that proposing a BlobSidecars with 0
 	// Sidecars is not considered IsNil().
 	sidecars := &types.BlobSidecars{}
-	require.False(t, sidecars.IsNil())
+	require.NotNil(t, sidecars)
 }

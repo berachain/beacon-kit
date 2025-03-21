@@ -42,8 +42,9 @@ func TestWithdrawalSSZ(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, data)
 
-	err = withdrawal.UnmarshalSSZ(data)
+	unmarshalled, err := withdrawal.NewFromSSZ(data)
 	require.NoError(t, err)
+	require.Equal(t, withdrawal, unmarshalled)
 
 	size := karalabessz.Size(withdrawal)
 	require.Equal(t, uint32(44), size)
@@ -127,8 +128,7 @@ func TestWithdrawalUnmarshalSSZ(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			w := &engineprimitives.Withdrawal{}
-			err := w.UnmarshalSSZ(tt.input)
+			w, err := (&engineprimitives.Withdrawal{}).NewFromSSZ(tt.input)
 
 			if tt.wantErr {
 				require.Error(t, err)

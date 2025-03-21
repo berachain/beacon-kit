@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/payload/cache"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/stretchr/testify/require"
@@ -69,19 +68,11 @@ func TestRetrievePayloadSunnyPath(t *testing.T) {
 		parentBlockRoot = common.Root{0xff, 0xaa}
 		dummyPayloadID  = engineprimitives.PayloadID{0xab}
 
-		expectedPayload = &ctypes.ExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1[
-			eip4844.KZGCommitment,
-			eip4844.KZGProof,
-			eip4844.Blob,
-		]]{
+		expectedPayload = &ctypes.ExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1]{
 			ExecutionPayload: &ctypes.ExecutionPayload{
 				Withdrawals: engineprimitives.Withdrawals{},
 			},
-			BlobsBundle: &engineprimitives.BlobsBundleV1[
-				eip4844.KZGCommitment,
-				eip4844.KZGProof,
-				eip4844.Blob,
-			]{},
+			BlobsBundle: &engineprimitives.BlobsBundleV1{},
 		}
 	)
 
@@ -125,19 +116,11 @@ func TestRetrievePayloadNilWithdrawalsListRejected(t *testing.T) {
 		parentBlockRoot = common.Root{0xff, 0xaa}
 		dummyPayloadID  = engineprimitives.PayloadID{0xab}
 
-		faultyPayload = &ctypes.ExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1[
-			eip4844.KZGCommitment,
-			eip4844.KZGProof,
-			eip4844.Blob,
-		]]{
+		faultyPayload = &ctypes.ExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1]{
 			ExecutionPayload: &ctypes.ExecutionPayload{
 				Withdrawals: nil, // empty withdrawals are fine, nil list should be rejected
 			},
-			BlobsBundle: &engineprimitives.BlobsBundleV1[
-				eip4844.KZGCommitment,
-				eip4844.KZGProof,
-				eip4844.Blob,
-			]{},
+			BlobsBundle: &engineprimitives.BlobsBundleV1{},
 		}
 	)
 

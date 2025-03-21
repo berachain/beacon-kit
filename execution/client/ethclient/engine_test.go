@@ -49,7 +49,7 @@ func TestGetPayloadV3NeverReturnsEmptyPayload(t *testing.T) {
 	require.NoError(t, err)
 
 	// check that execution payload is not nil
-	require.False(t, pe.GetExecutionPayload().IsNil())
+	require.NotNil(t, pe.GetExecutionPayload())
 }
 
 // TestNewPayloadWithValidVersion tests that NewPayload correctly handles Deneb version.
@@ -58,7 +58,9 @@ func TestNewPayloadWithValidVersion(t *testing.T) {
 	c := ethclient.New(&stubRPCClient{t: t})
 	ctx := context.Background()
 
-	payload := &ctypes.ExecutionPayload{EpVersion: version.Deneb1()}
+	payload := &ctypes.ExecutionPayload{
+		Versionable: ctypes.NewVersionable(version.Deneb1()),
+	}
 	versionedHashes := []common.ExecutionHash{}
 	var parentBlockRoot *common.Root
 
@@ -72,7 +74,9 @@ func TestNewPayloadWithInvalidVersion(t *testing.T) {
 	c := ethclient.New(&stubRPCClient{t: t})
 	ctx := context.Background()
 
-	payload := &ctypes.ExecutionPayload{EpVersion: version.Capella()}
+	payload := &ctypes.ExecutionPayload{
+		Versionable: ctypes.NewVersionable(version.Capella()),
+	}
 	versionedHashes := []common.ExecutionHash{}
 	var parentBlockRoot *common.Root
 

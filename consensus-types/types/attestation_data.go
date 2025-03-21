@@ -38,8 +38,8 @@ import (
 const AttestationDataSize = 48
 
 var (
-	_ ssz.StaticObject                    = (*AttestationData)(nil)
-	_ constraints.SSZMarshallableRootable = (*AttestationData)(nil)
+	_ ssz.StaticObject                                      = (*AttestationData)(nil)
+	_ constraints.SSZMarshallableRootable[*AttestationData] = (*AttestationData)(nil)
 )
 
 // AttestationData represents an attestation data.
@@ -79,9 +79,12 @@ func (a *AttestationData) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, a)
 }
 
-// UnmarshalSSZ unmarshals the AttestationData object from SSZ format.
-func (a *AttestationData) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, a)
+// NewFromSSZ creates a new AttestationData object from SSZ format.
+func (a *AttestationData) NewFromSSZ(buf []byte) (*AttestationData, error) {
+	if a == nil {
+		a = &AttestationData{}
+	}
+	return a, ssz.DecodeFromBytes(buf, a)
 }
 
 /* -------------------------------------------------------------------------- */
