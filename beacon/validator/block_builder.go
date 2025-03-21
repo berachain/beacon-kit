@@ -329,7 +329,7 @@ func (s *Service) buildBlockBody(
 	// Set the execution payload on the block body.
 	body.SetExecutionPayload(envelope.GetExecutionPayload())
 
-	if !version.IsBefore(body.GetForkVersion(), version.Electra()) {
+	if version.EqualOrAfter(body.GetForkVersion(), version.Electra()) {
 		var requests *ctypes.ExecutionRequests
 		// TODO(pectra): Remove the conversion once DecodeExecutionRequests constructor changed.
 		encodedReqs := envelope.GetEncodedExecutionRequests()

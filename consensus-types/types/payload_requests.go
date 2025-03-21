@@ -98,7 +98,7 @@ func (n *newPayloadRequest) GetParentBeaconBlockRoot() *common.Root {
 }
 
 func (n *newPayloadRequest) GetExecutionRequests() ([]EncodedExecutionRequest, error) {
-	if !version.IsBefore(n.GetForkVersion(), version.Electra()) {
+	if version.EqualOrAfter(n.GetForkVersion(), version.Electra()) {
 		return nil, ErrForkVersionNotSupported
 	}
 	if n.executionPayload == nil {
@@ -221,7 +221,7 @@ func makeEthBlock(
 		ParentBeaconRoot: (*gethprimitives.ExecutionHash)(parentBeaconBlockRoot),
 	}
 
-	if !version.IsBefore(payload.GetForkVersion(), version.Electra()) {
+	if version.EqualOrAfter(payload.GetForkVersion(), version.Electra()) {
 		if executionRequests == nil {
 			return nil, nil, ErrNilValue
 		}
