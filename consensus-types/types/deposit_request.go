@@ -32,10 +32,6 @@ const MaxDepositRequestsPerPayload = 8192
 // DepositRequest is introduced in EIP6110 which is currently not processed.
 type DepositRequest = Deposit
 
-func (d *DepositRequest) ValidateAfterDecodingSSZ() error {
-	return nil
-}
-
 // DepositRequests is used for SSZ unmarshalling a list of DepositRequest
 type DepositRequests []*DepositRequest
 
