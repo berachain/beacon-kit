@@ -23,6 +23,7 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/karalabe/ssz"
 	"github.com/sourcegraph/conc/iter"
@@ -77,10 +78,9 @@ func (bs *BlobSidecars) VerifyInclusionProofs() error {
 }
 
 // DefineSSZ defines the SSZ encoding for the BlobSidecars object.
-// TODO: get from accessible chainspec field params.
 func (bs *BlobSidecars) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineSliceOfStaticObjectsOffset(codec, (*[]*BlobSidecar)(bs), 6)
-	ssz.DefineSliceOfStaticObjectsContent(codec, (*[]*BlobSidecar)(bs), 6)
+	ssz.DefineSliceOfStaticObjectsOffset(codec, (*[]*BlobSidecar)(bs), constants.MaxBlobSidecars)
+	ssz.DefineSliceOfStaticObjectsContent(codec, (*[]*BlobSidecar)(bs), constants.MaxBlobSidecars)
 }
 
 // SizeSSZ returns the size of the BlobSidecars object in SSZ encoding.

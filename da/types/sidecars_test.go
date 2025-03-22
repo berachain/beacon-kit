@@ -87,6 +87,8 @@ func TestEmptySidecarMarshalling(t *testing.T) {
 		unmarshalled,
 		"The original and unmarshalled empty sidecars should be equal",
 	)
+
+	require.False(t, true)
 }
 
 func TestValidateBlockRoots(t *testing.T) {

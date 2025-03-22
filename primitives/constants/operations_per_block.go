@@ -26,4 +26,6 @@ const (
 	MaxAttestations          = 128
 	MaxVoluntaryExits        = 16
 	MaxBlsToExecutionChanges = 16
+	MaxValidators            = 1099511627776
+	MaxBlobSidecars          = 6
 )

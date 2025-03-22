@@ -43,6 +43,10 @@ const (
 	// execution payload.
 	MaxWithdrawalsPerPayload uint64 = 16
 
+	// MaxDepositRequestsPerPayload is the maximum number of deposit requests
+	// in a execution payload.
+	MaxDepositRequestsPerPayload uint64 = 8192
+
 	// MaxBytesPerTx is the maximum number of bytes per transaction.
 	MaxBytesPerTx uint64 = 1073741824
 )

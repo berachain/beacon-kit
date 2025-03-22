@@ -22,33 +22,39 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/karalabe/ssz"
 )
 
-const MaxValidators = 1099511627776
+// Compile-time checks for the Validators list.
+var (
+	_ ssz.StaticObject        = (*Validators)(nil)
+	_ constraints.SSZRootable = (*Validators)(nil)
+)
 
+// Validators represents a SSZ list of validators.
 type Validators []*Validator
 
 // SizeSSZ returns the SSZ encoded size in bytes for the Validators.
-func (vs Validators) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {
-	return ssz.SizeSliceOfStaticObjects(siz, ([]*Validator)(vs))
+func (vs Validators) SizeSSZ(siz *ssz.Sizer) uint32 {
+	return ssz.SizeSliceOfStaticObjects(siz, vs)
 }
 
 // DefineSSZ defines the SSZ encoding for the Validators object.
-// TODO: get from accessible chainspec field params.
-func (vs Validators) DefineSSZ(c *ssz.Codec) {
-	c.DefineDecoder(func(*ssz.Decoder) {
+func (vs Validators) DefineSSZ(codec *ssz.Codec) {
+	codec.DefineDecoder(func(*ssz.Decoder) {
 		ssz.DefineSliceOfStaticObjectsContent(
-			c, (*[]*Validator)(&vs), MaxValidators)
+			codec, (*[]*Validator)(&vs), constants.MaxValidators)
 	})
-	c.DefineEncoder(func(*ssz.Encoder) {
+	codec.DefineEncoder(func(*ssz.Encoder) {
 		ssz.DefineSliceOfStaticObjectsContent(
-			c, (*[]*Validator)(&vs), MaxValidators)
+			codec, (*[]*Validator)(&vs), constants.MaxValidators)
 	})
 
-	c.DefineHasher(func(*ssz.Hasher) {
+	codec.DefineHasher(func(*ssz.Hasher) {
 		ssz.DefineSliceOfStaticObjectsOffset(
-			c, (*[]*Validator)(&vs), MaxValidators)
+			codec, (*[]*Validator)(&vs), constants.MaxValidators)
 	})
 }
 

@@ -64,7 +64,7 @@ func (SSZValueCodec[T]) ValueType() string {
 }
 
 // SSZVersionedValueCodec provides methods to encode and decode SSZ values for a specific version.
-type SSZVersionedValueCodec[T constraints.SSZMarshallable] struct {
+type SSZVersionedValueCodec[T constraints.SSZVersionedMarshallable] struct {
 	NewEmptyF     func(common.Version) T // constructor
 	latestVersion common.Version
 }

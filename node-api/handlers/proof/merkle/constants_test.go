@@ -23,8 +23,8 @@ package merkle_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/merkle"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	mlib "github.com/berachain/beacon-kit/primitives/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/primitives/encoding/ssz/schema"
 	"github.com/stretchr/testify/require"
@@ -84,15 +84,15 @@ var (
 			schema.NewField("ActivationEpoch", schema.U64()),
 			schema.NewField("ExitEpoch", schema.U64()),
 			schema.NewField("WithdrawableEpoch", schema.U64()),
-		), types.MaxValidators)),
+		), constants.MaxValidators)),
 		schema.NewField(
-			"Balances", schema.DefineList(schema.U64(), types.MaxValidators),
+			"Balances", schema.DefineList(schema.U64(), constants.MaxValidators),
 		),
 		schema.NewField("RandaoMixes", schema.DefineList(schema.B32(), 65536)),
 		schema.NewField("NextWithdrawalIndex", schema.U64()),
 		schema.NewField("NextWithdrawalValidatorIndex", schema.U64()),
 		schema.NewField(
-			"Slashings", schema.DefineList(schema.U64(), types.MaxValidators),
+			"Slashings", schema.DefineList(schema.U64(), constants.MaxValidators),
 		),
 		schema.NewField("TotalSlashing", schema.U64()),
 	)

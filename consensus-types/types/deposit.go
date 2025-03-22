@@ -89,6 +89,11 @@ func (d *Deposit) VerifySignature(
 /*                                     SSZ                                    */
 /* -------------------------------------------------------------------------- */
 
+// ValidateAfterDecodingSSZ validates the Deposit object after decoding.
+func (d *Deposit) ValidateAfterDecodingSSZ() error {
+	return nil
+}
+
 // DefineSSZ defines the SSZ encoding for the Deposit object.
 func (d *Deposit) DefineSSZ(c *ssz.Codec) {
 	ssz.DefineStaticBytes(c, &d.Pubkey)

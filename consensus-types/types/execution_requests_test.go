@@ -26,6 +26,7 @@ import (
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/decoder"
 	"github.com/berachain/beacon-kit/primitives/eip7685"
@@ -461,7 +462,7 @@ func TestDecodeExecutionRequests(t *testing.T) {
 		require.ErrorContains(t, err, "invalid deposit requests SSZ size")
 	})
 	t.Run("If deposit requests are over the max allowed per payload then we should error", func(t *testing.T) {
-		requests := make([]*enginev1.DepositRequest, types.MaxDepositRequestsPerPayload+1)
+		requests := make([]*enginev1.DepositRequest, constants.MaxDepositRequestsPerPayload+1)
 		for i := range requests {
 			requests[i] = &enginev1.DepositRequest{
 				Pubkey:                bytesutil.PadTo([]byte("pk"), 48),
