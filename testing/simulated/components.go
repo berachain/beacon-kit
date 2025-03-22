@@ -25,6 +25,8 @@ package simulated
 import (
 	"testing"
 
+	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/node-core/components"
 )
 
@@ -40,7 +42,6 @@ func FixedComponents(t *testing.T) []any {
 		components.ProvideBlobProofVerifier,
 		components.ProvideChainService,
 		components.ProvideNode,
-		components.ProvideChainSpec,
 		components.ProvideConfig,
 		components.ProvideServerConfig,
 		components.ProvideDepositStore,
@@ -75,4 +76,23 @@ func FixedComponents(t *testing.T) []any {
 		components.ProvideNodeAPIProofHandler,
 	)
 	return c
+}
+
+// ProvideElectraGenesisChainSpec provides a chain spec with pectra as the genesis.
+func ProvideElectraGenesisChainSpec() (chain.Spec, error) {
+	specData := spec.TestnetChainSpecData()
+	// Both Deneb1 and Electra happen in genesis.
+	specData.Deneb1ForkEpoch = 0
+	specData.ElectraForkEpoch = 0
+	chainSpec, err := chain.NewSpec(specData)
+	if err != nil {
+		return nil, err
+	}
+	return chainSpec, nil
+}
+
+// ProvideSimulationChainSpec provides a default chain-spec equivalent to testnet.
+// Bypasses the need for environment variables.
+func ProvideSimulationChainSpec() (chain.Spec, error) {
+	return spec.TestnetChainSpec()
 }

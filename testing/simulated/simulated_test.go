@@ -60,7 +60,11 @@ func (s *SimulatedSuite) SetupTest() {
 
 	// Initialize the home directory, Comet configuration, and genesis info.
 	const elGenesisPath = "./eth-genesis.json"
-	cometConfig, genesisValidatorsRoot := simulated.InitializeHomeDir(s.T(), s.HomeDir, elGenesisPath)
+	chainSpecFunc := simulated.ProvideSimulationChainSpec
+	// Create the chainSpec.
+	chainSpec, err := chainSpecFunc()
+	s.Require().NoError(err)
+	cometConfig, genesisValidatorsRoot := simulated.InitializeHomeDir(s.T(), chainSpec, s.HomeDir, elGenesisPath)
 	s.GenesisValidatorsRoot = genesisValidatorsRoot
 
 	// Start the EL (execution layer) Geth node.
@@ -75,6 +79,7 @@ func (s *SimulatedSuite) SetupTest() {
 	// Build the Beacon node with the simulated Comet component.
 	components := simulated.FixedComponents(s.T())
 	components = append(components, simulated.ProvideSimComet)
+	components = append(components, chainSpecFunc)
 	s.TestNode = simulated.NewTestNode(s.T(), simulated.TestNodeInput{
 		TempHomeDir: s.HomeDir,
 		CometConfig: cometConfig,
@@ -94,7 +99,7 @@ func (s *SimulatedSuite) SetupTest() {
 	s.SimulationClient = execution.NewSimulationClient(s.TestNode.EngineClient)
 	timeOut := 10 * time.Second
 	interval := 50 * time.Millisecond
-	err := simulated.WaitTillServicesStarted(s.LogBuffer, timeOut, interval)
+	err = simulated.WaitTillServicesStarted(s.LogBuffer, timeOut, interval)
 	s.Require().NoError(err)
 }
 
