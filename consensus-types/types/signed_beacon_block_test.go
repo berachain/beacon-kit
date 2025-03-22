@@ -185,9 +185,7 @@ func TestSignedBeaconBlock_EmptySerialization(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, fv common.Version) {
 		orig := &types.SignedBeaconBlock{
-			BeaconBlock: &types.BeaconBlock{
-				Versionable: types.NewVersionable(fv),
-			},
+			BeaconBlock: types.NewEmptyBeaconBlockWithVersion(fv),
 		}
 		data, err := orig.MarshalSSZ()
 		require.NoError(t, err)

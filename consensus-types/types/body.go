@@ -1,38 +1,33 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (c) 2025 Berachain Foundation
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
+// Use of this software is governed by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
 //
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WdeHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
 
 package types
 
 import (
-	"errors"
-
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/karalabe/ssz"
 )
 
@@ -40,6 +35,10 @@ const (
 	// BodyLengthDeneb is the number of fields in the BeaconBlockBodyDeneb
 	// struct.
 	BodyLengthDeneb uint64 = 12
+
+	// BodyLengthElectra is the number of fields in the BeaconBlockBodyElectra struct.
+	// TODO(pectra): Ensure this is propagated where necessary
+	BodyLengthElectra uint64 = 13
 
 	// KZGPositionDeneb is the position of BlobKzgCommitments in the block body.
 	KZGPositionDeneb = BodyLengthDeneb - 1
@@ -97,6 +96,9 @@ type BeaconBlockBody struct {
 	blsToExecutionChanges []*BlsToExecutionChange
 	// BlobKzgCommitments is the list of KZG commitments for the EIP-4844 blobs.
 	BlobKzgCommitments []eip4844.KZGCommitment
+	// executionRequests is introduced in electra. We keep this private so that it must go through Getter/Setter
+	// which does a forkVersion check.
+	executionRequests *ExecutionRequests
 }
 
 /* -------------------------------------------------------------------------- */
@@ -107,6 +109,11 @@ type BeaconBlockBody struct {
 func (b *BeaconBlockBody) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 	syncSize := b.syncAggregate.SizeSSZ(siz)
 	var size = 96 + 72 + 32 + 4 + 4 + 4 + 4 + 4 + syncSize + 4 + 4 + 4
+	if !version.IsBefore(b.GetForkVersion(), version.Electra()) {
+		// Add 4 for the offset of dynamic field ExecutionRequests
+		size += sszDynamicObjectOffset
+	}
+
 	if fixed {
 		return size
 	}
@@ -119,6 +126,9 @@ func (b *BeaconBlockBody) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 	size += ssz.SizeDynamicObject(siz, b.ExecutionPayload)
 	size += ssz.SizeSliceOfStaticObjects(siz, b.blsToExecutionChanges)
 	size += ssz.SizeSliceOfStaticBytes(siz, b.BlobKzgCommitments)
+	if !version.IsBefore(b.GetForkVersion(), version.Electra()) {
+		size += ssz.SizeDynamicObject(siz, b.executionRequests)
+	}
 	return size
 }
 
@@ -139,6 +149,9 @@ func (b *BeaconBlockBody) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineDynamicObjectOffset(codec, &b.ExecutionPayload)
 	ssz.DefineSliceOfStaticObjectsOffset(codec, &b.blsToExecutionChanges, constants.MaxBlsToExecutionChanges)
 	ssz.DefineSliceOfStaticBytesOffset(codec, &b.BlobKzgCommitments, 4096)
+	if !version.IsBefore(b.GetForkVersion(), version.Electra()) {
+		ssz.DefineDynamicObjectOffset(codec, &b.executionRequests)
+	}
 
 	// Define the dynamic data (fields)
 	ssz.DefineSliceOfStaticObjectsContent(codec, &b.proposerSlashings, constants.MaxProposerSlashings)
@@ -149,6 +162,9 @@ func (b *BeaconBlockBody) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineDynamicObjectContent(codec, &b.ExecutionPayload)
 	ssz.DefineSliceOfStaticObjectsContent(codec, &b.blsToExecutionChanges, constants.MaxBlsToExecutionChanges)
 	ssz.DefineSliceOfStaticBytesContent(codec, &b.BlobKzgCommitments, 4096)
+	if !version.IsBefore(b.GetForkVersion(), version.Electra()) {
+		ssz.DefineDynamicObjectContent(codec, &b.executionRequests)
+	}
 }
 
 // MarshalSSZ serializes the BeaconBlockBody to SSZ-encoded bytes.
@@ -319,4 +335,25 @@ func (b *BeaconBlockBody) GetBlobKzgCommitments() eip4844.KZGCommitments[common.
 
 func (b *BeaconBlockBody) SetBlobKzgCommitments(commitments eip4844.KZGCommitments[common.ExecutionHash]) {
 	b.BlobKzgCommitments = commitments
+}
+
+func (b *BeaconBlockBody) GetExecutionRequests() (*ExecutionRequests, error) {
+	if version.IsBefore(b.GetForkVersion(), version.Electra()) {
+		return nil, errors.Wrapf(ErrFieldNotSupportedOnFork, "block version %d", b.GetForkVersion())
+	}
+	if b.executionRequests == nil {
+		return nil, errors.New("retrieved execution requests is nil")
+	}
+	return b.executionRequests, nil
+}
+
+func (b *BeaconBlockBody) SetExecutionRequests(executionRequest *ExecutionRequests) error {
+	if executionRequest == nil {
+		return errors.New("cannot set execution requests to nil")
+	}
+	if version.IsBefore(b.GetForkVersion(), version.Electra()) {
+		return errors.Wrapf(ErrFieldNotSupportedOnFork, "block version %d", b.GetForkVersion())
+	}
+	b.executionRequests = executionRequest
+	return nil
 }
