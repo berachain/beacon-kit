@@ -451,7 +451,7 @@ func (s spec) ValidatorSetCap() uint64 {
 func (s spec) EVMInflationAddress(slot math.Slot) common.ExecutionAddress {
 	fv := s.ActiveForkVersionForSlot(slot)
 	switch fv {
-	case version.Deneb1():
+	case version.Deneb1(), version.Electra():
 		return s.Data.EVMInflationAddressDeneb1
 	case version.Deneb():
 		return s.Data.EVMInflationAddressGenesis
@@ -465,7 +465,7 @@ func (s spec) EVMInflationAddress(slot math.Slot) common.ExecutionAddress {
 func (s spec) EVMInflationPerBlock(slot math.Slot) uint64 {
 	fv := s.ActiveForkVersionForSlot(slot)
 	switch fv {
-	case version.Deneb1():
+	case version.Deneb1(), version.Electra():
 		return s.Data.EVMInflationPerBlockDeneb1
 	case version.Deneb():
 		return s.Data.EVMInflationPerBlockGenesis

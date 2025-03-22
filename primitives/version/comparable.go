@@ -73,3 +73,8 @@ func Equals(a, b common.Version) bool {
 func IsAfter(a, b common.Version) bool {
 	return !IsBefore(a, b) && !Equals(a, b)
 }
+
+// EqualOrAfter returns true a == b or a is after b.
+func EqualOrAfter(a, b common.Version) bool {
+	return !IsBefore(a, b)
+}

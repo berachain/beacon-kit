@@ -35,6 +35,8 @@ func BeaconKitSupportedCapabilities() []string {
 const (
 	// NewPayloadMethodV3 for creating a new payload in Deneb.
 	NewPayloadMethodV3 = "engine_newPayloadV3"
+	// NewPayloadMethodV4 for creating a new payload in Electra.
+	NewPayloadMethodV4 = "engine_newPayloadV4"
 	// ForkchoiceUpdatedMethodV3 for updating fork choice in Deneb.
 	ForkchoiceUpdatedMethodV3 = "engine_forkchoiceUpdatedV3"
 	// GetPayloadMethodV3 for retrieving a payload in Deneb.

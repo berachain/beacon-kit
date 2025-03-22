@@ -61,7 +61,7 @@ func NewBeaconBlockWithVersion(
 	forkVersion common.Version,
 ) (*BeaconBlock, error) {
 	switch forkVersion {
-	case version.Deneb(), version.Deneb1():
+	case version.Deneb(), version.Deneb1(), version.Electra():
 		block := NewEmptyBeaconBlockWithVersion(forkVersion)
 		block.Slot = slot
 		block.ProposerIndex = proposerIndex
