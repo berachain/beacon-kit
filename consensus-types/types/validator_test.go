@@ -27,8 +27,8 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/decoder"
 	"github.com/berachain/beacon-kit/primitives/math"
 	ssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/require"
@@ -682,7 +682,7 @@ func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 				// Create a byte slice with an invalid size (not 121)
 				invalidSizeData := make([]byte, 120)
 				unmarshalled := new(types.Validator)
-				err := decoder.SSZUnmarshal(invalidSizeData, unmarshalled)
+				err := constraints.SSZUnmarshal(invalidSizeData, unmarshalled)
 				require.ErrorIs(t, err, io.ErrUnexpectedEOF, "Test case: %s", tt.name)
 			} else {
 				// Marshal the validator
@@ -691,7 +691,7 @@ func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 
 				// Unmarshal into a new validator
 				unmarshalled := new(types.Validator)
-				err = decoder.SSZUnmarshal(marshaled, unmarshalled)
+				err = constraints.SSZUnmarshal(marshaled, unmarshalled)
 				require.NoError(t, err)
 
 				// Check if the original and unmarshaled validators are equal

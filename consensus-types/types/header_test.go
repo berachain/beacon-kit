@@ -26,7 +26,7 @@ import (
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/decoder"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
 	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
@@ -129,7 +129,7 @@ func TestBeaconBlockHeader_Serialization(t *testing.T) {
 	require.NotNil(t, data)
 
 	unmarshalled := new(types.BeaconBlockHeader)
-	err = decoder.SSZUnmarshal(data, unmarshalled)
+	err = constraints.SSZUnmarshal(data, unmarshalled)
 	require.NoError(t, err)
 	require.Equal(t, original, unmarshalled)
 
@@ -268,6 +268,6 @@ func TestBeaconBlockHeader_UnmarshalSSZ_ErrSize(t *testing.T) {
 	buf := make([]byte, 100) // Incorrect size
 
 	unmarshalled := new(types.BeaconBlockHeader)
-	err := decoder.SSZUnmarshal(buf, unmarshalled)
+	err := constraints.SSZUnmarshal(buf, unmarshalled)
 	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
