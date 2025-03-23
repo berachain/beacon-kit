@@ -21,11 +21,11 @@
 package common_test
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/karalabe/ssz"
+	"github.com/stretchr/testify/require"
 )
 
 // Verify that DecodeFromBytes produces the same UnusedType obj as the previous implementation
@@ -53,9 +53,7 @@ func TestDecodeUnusedTypeEquality(t *testing.T) {
 				t.Errorf("DecodeFromBytes() error = %v", err)
 			}
 			want := common.UnusedType(tt.buf[0])
-			if !reflect.DeepEqual(got, &want) {
-				t.Errorf("MarshalSSZ() got = %v, want %v", got, want)
-			}
+			require.Equal(t, &want, got)
 		})
 	}
 }
@@ -81,9 +79,7 @@ func TestEncodeUnusedTypeEquality(t *testing.T) {
 				return
 			}
 			want := []byte{uint8(tt.ut)}
-			if !reflect.DeepEqual(got, want) {
-				t.Errorf("MarshalSSZ() got = %v, want %v", got, want)
-			}
+			require.Equal(t, want, got)
 		})
 	}
 }
