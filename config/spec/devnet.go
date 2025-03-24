@@ -41,6 +41,9 @@ const (
 	// devnetDeneb1ForkEpoch is the epoch at which the Deneb1 fork occurs.
 	devnetDeneb1ForkEpoch = 1
 
+	// devnetElectraForkEpoch is the epoch at which the Electra fork occurs.
+	devnetElectraForkEpoch = 2
+
 	// devnetEVMInflationAddressDeneb1 is the address of the EVM inflation contract
 	// after the Deneb1 fork.
 	devnetEVMInflationAddressDeneb1 = "0x4206942069420694206942069420694206942069"
@@ -48,6 +51,8 @@ const (
 	// devnetEVMInflationPerBlockDeneb1 is the amount of native EVM balance (in units
 	// of Gwei) to be minted per EL block after the Deneb1 fork.
 	devnetEVMInflationPerBlockDeneb1 = 11 * params.GWei
+
+	devnetSlotsPerEpoch = 10
 )
 
 // DevnetChainSpecData is the chain.SpecData for a devnet. It is similar to mainnet but
@@ -60,6 +65,7 @@ func DevnetChainSpecData() *chain.SpecData {
 
 	// Deneb1 fork takes place at epoch 1.
 	specData.Deneb1ForkEpoch = devnetDeneb1ForkEpoch
+	specData.ElectraForkEpoch = devnetElectraForkEpoch
 
 	// EVM inflation is different from mainnet to test.
 	specData.EVMInflationAddressGenesis = common.NewExecutionAddressFromHex(devnetEVMInflationAddress)
@@ -73,7 +79,7 @@ func DevnetChainSpecData() *chain.SpecData {
 	specData.MaxEffectiveBalance = devnetMaxStakeAmount
 	specData.EjectionBalance = defaultEjectionBalance
 	specData.EffectiveBalanceIncrement = defaultEffectiveBalanceIncrement
-	specData.SlotsPerEpoch = defaultSlotsPerEpoch
+	specData.SlotsPerEpoch = devnetSlotsPerEpoch
 
 	return specData
 }
