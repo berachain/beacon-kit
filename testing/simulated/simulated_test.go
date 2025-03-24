@@ -59,7 +59,7 @@ func (s *SimulatedSuite) SetupTest() {
 	s.HomeDir = s.T().TempDir()
 
 	// Initialize the home directory, Comet configuration, and genesis info.
-	const elGenesisPath = "./eth-genesis.json"
+	const elGenesisPath = "./el-genesis-files/eth-genesis.json"
 	chainSpecFunc := simulated.ProvideSimulationChainSpec
 	// Create the chainSpec.
 	chainSpec, err := chainSpecFunc()

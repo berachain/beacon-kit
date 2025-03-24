@@ -42,8 +42,8 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-// PectraSuite defines our test suite for Pectra related work using simulated Comet component.
-type PectraSuite struct {
+// PectraGenesisSuite defines our test suite for Pectra related work using simulated Comet component.
+type PectraGenesisSuite struct {
 	suite.Suite
 	// Embedded shared accessors for convenience.
 	simulated.SharedAccessors
@@ -51,11 +51,11 @@ type PectraSuite struct {
 
 // TestSimulatedCometComponent runs the test suite.
 func TestPectraSuite(t *testing.T) {
-	suite.Run(t, new(PectraSuite))
+	suite.Run(t, new(PectraGenesisSuite))
 }
 
 // SetupTest initializes the test environment.
-func (s *PectraSuite) SetupTest() {
+func (s *PectraGenesisSuite) SetupTest() {
 	// Create a cancellable context for the duration of the test.
 	s.CtxApp, s.CtxAppCancelFn = context.WithCancel(context.Background())
 
@@ -65,7 +65,7 @@ func (s *PectraSuite) SetupTest() {
 	s.HomeDir = s.T().TempDir()
 
 	// Initialize the home directory, Comet configuration, and genesis info.
-	const elGenesisPath = "./pectra-eth-genesis.json"
+	const elGenesisPath = "./el-genesis-files/pectra-eth-genesis.json"
 	chainSpecFunc := simulated.ProvideElectraGenesisChainSpec
 	// Create the chainSpec.
 	chainSpec, err := chainSpecFunc()
@@ -111,7 +111,7 @@ func (s *PectraSuite) SetupTest() {
 }
 
 // TearDownTest cleans up the test environment.
-func (s *PectraSuite) TearDownTest() {
+func (s *PectraGenesisSuite) TearDownTest() {
 	// If the test has failed, log additional information.
 	if s.T().Failed() {
 		s.T().Log(s.LogBuffer.String())
@@ -124,7 +124,7 @@ func (s *PectraSuite) TearDownTest() {
 	s.TestNode.ServiceRegistry.StopAll()
 }
 
-func (s *PectraSuite) TestFullLifecycle_WithoutRequests_IsSuccessful() {
+func (s *PectraGenesisSuite) TestFullLifecycle_WithoutRequests_IsSuccessful() {
 	const blockHeight = 1
 	const coreLoopIterations = 10
 
@@ -139,7 +139,7 @@ func (s *PectraSuite) TestFullLifecycle_WithoutRequests_IsSuccessful() {
 	s.Require().Len(proposals, coreLoopIterations)
 }
 
-func (s *PectraSuite) TestFullLifecycle_WithRequests_IsSuccessful() {
+func (s *PectraGenesisSuite) TestFullLifecycle_WithRequests_IsSuccessful() {
 	const blockHeight = 1
 	const coreLoopIterations = 10
 
