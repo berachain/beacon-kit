@@ -40,7 +40,7 @@ type SpecData struct {
 	InactivityPenaltyQuotientAltair uint64                  `json:"INACTIVITY_PENALTY_QUOTIENT_ALTAIR"`
 }
 
-type specJSON struct {
+type specDataJSON struct {
 	DepositContractAddress          string `json:"DEPOSIT_CONTRACT_ADDRESS"`
 	DepositNetworkID                string `json:"DEPOSIT_NETWORK_ID"`
 	DomainAggregateAndProof         string `json:"DOMAIN_AGGREGATE_AND_PROOF"`
@@ -49,7 +49,7 @@ type specJSON struct {
 }
 
 func (sd SpecData) MarshalJSON() ([]byte, error) {
-	return json.Marshal(specJSON{
+	return json.Marshal(specDataJSON{
 		DepositContractAddress: "0x" + hex.EncodeToString(
 			sd.DepositContractAddress[:],
 		),

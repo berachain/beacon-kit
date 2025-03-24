@@ -21,7 +21,6 @@
 package config
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/berachain/beacon-kit/node-api/handlers"
@@ -32,7 +31,7 @@ import (
 func (h *Handler) GetSpec(_ handlers.Context) (any, error) {
 	spec, err := h.backend.Spec()
 	if err != nil {
-		return nil, handlers.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get spec: %v", err))
+		return nil, handlers.NewHTTPError(http.StatusInternalServerError, "failed to get spec: %v", err)
 	}
 	return types.SpecResponse{Data: *spec}, nil
 }
