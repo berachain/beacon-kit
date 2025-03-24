@@ -45,7 +45,7 @@ func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_Errors() {
 	const coreLoopIterations = 1
 
 	// Initialize the chain state.
-	s.initializeChain()
+	s.InitializeChain(s.T())
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
@@ -53,7 +53,7 @@ func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_Errors() {
 	s.Require().NoError(err)
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals := s.moveChainToHeight(blockHeight, coreLoopIterations, blsSigner)
+	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	currentHeight := int64(blockHeight + coreLoopIterations)
@@ -94,7 +94,7 @@ func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_Errors() {
 	maliciousTxs := []*gethprimitives.Transaction{maliciousTx}
 
 	// Create a malicious block by injecting an invalid transaction.
-	maliciousBlock := simulated.ComputeAndSetInvalidExecutionBlock(s.T(), proposedBlock.GetMessage(), s.TestNode.ChainSpec, maliciousTxs)
+	maliciousBlock := simulated.ComputeAndSetInvalidExecutionBlock(s.T(), proposedBlock.GetBeaconBlock(), s.TestNode.ChainSpec, maliciousTxs)
 
 	// Re-sign the block
 	maliciousBlockSigned, err := ctypes.NewSignedBeaconBlock(

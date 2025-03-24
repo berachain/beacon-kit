@@ -46,8 +46,8 @@ type PayloadAttributes struct {
 	// EIP-4788.
 	ParentBeaconBlockRoot common.Root `json:"parentBeaconBlockRoot"`
 
-	// version is the version of the payload attributes.
-	version common.Version `json:"-"`
+	// forkVersion is the forkVersion of the payload attributes.
+	forkVersion common.Version
 }
 
 // NewPayloadAttributes creates a new empty PayloadAttributes.
@@ -65,7 +65,7 @@ func NewPayloadAttributes(
 		SuggestedFeeRecipient: suggestedFeeRecipient,
 		Withdrawals:           withdrawals,
 		ParentBeaconBlockRoot: parentBeaconBlockRoot,
-		version:               forkVersion,
+		forkVersion:           forkVersion,
 	}
 
 	if err := pa.Validate(); err != nil {
@@ -75,19 +75,14 @@ func NewPayloadAttributes(
 	return pa, nil
 }
 
-// IsNil returns true if the PayloadAttributes is nil.
-func (p *PayloadAttributes) IsNil() bool {
-	return p == nil
-}
-
 // GetSuggestedFeeRecipient returns the suggested fee recipient.
 func (p *PayloadAttributes) GetSuggestedFeeRecipient() common.ExecutionAddress {
 	return p.SuggestedFeeRecipient
 }
 
-// Version returns the version of the PayloadAttributes.
-func (p *PayloadAttributes) Version() common.Version {
-	return p.version
+// GetForkVersion returns the forkVersion of the PayloadAttributes.
+func (p *PayloadAttributes) GetForkVersion() common.Version {
+	return p.forkVersion
 }
 
 // Validate validates the PayloadAttributes.
@@ -101,15 +96,9 @@ func (p *PayloadAttributes) Validate() error {
 	}
 
 	// For any fork version after Bellatrix (Capella onwards), withdrawals are required.
-	if p.Withdrawals == nil && version.IsAfter(p.version, version.Bellatrix()) {
+	if p.Withdrawals == nil && version.IsAfter(p.forkVersion, version.Bellatrix()) {
 		return ErrNilWithdrawals
 	}
-
-	// TODO: currently beaconBlockRoot is 0x000 on block 1, we need
-	// to fix this, before uncommenting the line below.
-	// if p.ParentBeaconBlockRoot == [32]byte{} {
-	// 	return ErrInvalidParentBeaconBlockRoot
-	// }
 
 	return nil
 }

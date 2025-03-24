@@ -233,6 +233,7 @@ coverage-merged.txt
 test-simulated.txt
 test-unit-cover.txt
 temp-test-simulated.txt
+temp-test-unit-cover.txt
 .vercel
 
 # server dev env for Air

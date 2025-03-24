@@ -27,7 +27,6 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/ethereum/go-ethereum/beacon/engine"
 )
@@ -44,7 +43,7 @@ func (s *Client) NewPayload(
 	parentBlockRoot *common.Root,
 ) (*engineprimitives.PayloadStatusV1, error) {
 	// Versions before Deneb are not supported for calling NewPayload.
-	if version.IsBefore(payload.Version(), version.Deneb()) {
+	if version.IsBefore(payload.GetForkVersion(), version.Deneb()) {
 		return nil, ErrInvalidVersion
 	}
 
@@ -133,18 +132,9 @@ func (s *Client) GetPayloadV3(
 	payloadID engineprimitives.PayloadID,
 	forkVersion common.Version,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
-	var t *ctypes.ExecutionPayload
-	result := &ctypes.ExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1[
-		eip4844.KZGCommitment,
-		eip4844.KZGProof,
-		eip4844.Blob,
-	]]{
-		ExecutionPayload: t.Empty(forkVersion),
-	}
-
-	err := s.Call(ctx, result, GetPayloadMethodV3, payloadID)
-	if err != nil {
-		return result, fmt.Errorf("failed GetPayloadV3 call: %w", err)
+	result := ctypes.NewEmptyExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1](forkVersion)
+	if err := s.Call(ctx, result, GetPayloadMethodV3, payloadID); err != nil {
+		return nil, fmt.Errorf("failed GetPayloadV3 call: %w", err)
 	}
 	return result, nil
 }

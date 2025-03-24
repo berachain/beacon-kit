@@ -25,6 +25,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/primitives/decoder"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/stretchr/testify/require"
 )
@@ -77,15 +78,14 @@ func TestSlashingInfo_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, data)
 
-			var unmarshalled types.SlashingInfo
+			unmarshalled := new(types.SlashingInfo)
 			if tc.name == "Invalid Buffer Size" {
-				err = unmarshalled.UnmarshalSSZ(data[:8])
-				require.Error(t, err)
-				require.Equal(t, tc.err, err)
+				err = decoder.SSZUnmarshal(data[:8], unmarshalled)
+				require.ErrorIs(t, err, tc.err)
 			} else {
-				err = unmarshalled.UnmarshalSSZ(data)
+				err = decoder.SSZUnmarshal(data, unmarshalled)
 				require.NoError(t, err)
-				require.Equal(t, tc.expected, &unmarshalled)
+				require.Equal(t, tc.expected, unmarshalled)
 
 				var buf []byte
 				buf, err = tc.data.MarshalSSZTo(buf)

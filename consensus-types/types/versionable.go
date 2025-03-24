@@ -18,30 +18,24 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package engineprimitives_test
+package types
 
 import (
-	"testing"
-
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
-	"github.com/berachain/beacon-kit/primitives/eip4844"
-	"github.com/stretchr/testify/require"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 )
 
-func TestBlobsBundleV1(t *testing.T) {
-	t.Parallel()
-	bundle := &engineprimitives.BlobsBundleV1{
-		Commitments: []eip4844.KZGCommitment{{1, 2, 3}, {4, 5, 6}},
-		Proofs:      []eip4844.KZGProof{{7, 8, 9}, {10, 11, 12}},
-		Blobs:       []*eip4844.Blob{{13, 14, 15}, {16, 17, 18}},
-	}
+// versionable is a helper struct that implements the Versionable interface.
+type versionable struct {
+	forkVersion common.Version
+}
 
-	commitments := bundle.GetCommitments()
-	require.Equal(t, bundle.Commitments, commitments)
+// NewVersionable creates a new versionable object.
+func NewVersionable(forkVersion common.Version) constraints.Versionable {
+	return &versionable{forkVersion: forkVersion}
+}
 
-	proofs := bundle.GetProofs()
-	require.Equal(t, bundle.Proofs, proofs)
-
-	blobs := bundle.GetBlobs()
-	require.Equal(t, bundle.Blobs, blobs)
+// GetForkVersion returns the fork version of the versionable object.
+func (v *versionable) GetForkVersion() common.Version {
+	return v.forkVersion
 }

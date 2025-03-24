@@ -26,6 +26,7 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/primitives/decoder"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
@@ -74,12 +75,12 @@ func (s *Store) GetBlobSidecars(slot math.Slot) (types.BlobSidecars, error) {
 
 	sidecars := make(types.BlobSidecars, 0, len(sidecarBzs))
 	for _, sidecarBz := range sidecarBzs {
-		sidecar := types.BlobSidecar{}
-		err = sidecar.UnmarshalSSZ(sidecarBz)
+		sidecar := new(types.BlobSidecar)
+		err = decoder.SSZUnmarshal(sidecarBz, sidecar)
 		if err != nil {
 			return sidecars, err
 		}
-		sidecars = append(sidecars, &sidecar)
+		sidecars = append(sidecars, sidecar)
 	}
 
 	return sidecars, nil
@@ -87,9 +88,7 @@ func (s *Store) GetBlobSidecars(slot math.Slot) (types.BlobSidecars, error) {
 
 // Persist ensures the sidecar data remains accessible, utilizing parallel
 // processing for efficiency.
-func (s *Store) Persist(
-	sidecars types.BlobSidecars,
-) error {
+func (s *Store) Persist(sidecars types.BlobSidecars) error {
 	var slot math.Slot
 	// Store each sidecar sequentially. The store's underlying RangeDB is not
 	// built to handle concurrent writes.
@@ -101,7 +100,7 @@ func (s *Store) Persist(
 		if err != nil {
 			return err
 		}
-		slot = sidecar.GetSignedBeaconBlockHeader().GetHeader().GetSlot()
+		slot = sidecar.GetBeaconBlockHeader().GetSlot()
 		err = s.IndexDB.Set(slot.Unwrap(), sidecar.KzgCommitment[:], bz)
 
 		if err != nil {

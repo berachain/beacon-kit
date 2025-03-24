@@ -55,7 +55,7 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	const coreLoopIterations = 1
 
 	// Initialize the chain state.
-	s.initializeChain()
+	s.InitializeChain(s.T())
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
@@ -63,7 +63,7 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	s.Require().NoError(err)
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals := s.moveChainToHeight(blockHeight, coreLoopIterations, blsSigner)
+	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	currentHeight := int64(blockHeight + coreLoopIterations)
@@ -105,7 +105,7 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	maliciousTxs := []*gethprimitives.Transaction{maliciousTx}
 
 	// Create a malicious block by injecting an invalid transaction.
-	maliciousBlock := simulated.ComputeAndSetInvalidExecutionBlock(s.T(), proposedBlock.GetMessage(), s.TestNode.ChainSpec, maliciousTxs)
+	maliciousBlock := simulated.ComputeAndSetInvalidExecutionBlock(s.T(), proposedBlock.GetBeaconBlock(), s.TestNode.ChainSpec, maliciousTxs)
 
 	// Re-sign the block
 	maliciousBlockSigned, err := ctypes.NewSignedBeaconBlock(
@@ -150,7 +150,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidTimestamps_Errors() {
 	const coreLoopIterations = 1
 
 	// Initialize the chain state.
-	s.initializeChain()
+	s.InitializeChain(s.T())
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
@@ -158,7 +158,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidTimestamps_Errors() {
 	s.Require().NoError(err)
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals := s.moveChainToHeight(blockHeight, coreLoopIterations, blsSigner)
+	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner)
 	s.Require().Len(proposals, coreLoopIterations)
 	currentHeight := int64(blockHeight + coreLoopIterations)
 
@@ -196,7 +196,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobCommitment_Errors() {
 	const coreLoopIterations = 1
 
 	// Initialize the chain state.
-	s.initializeChain()
+	s.InitializeChain(s.T())
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
@@ -204,7 +204,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobCommitment_Errors() {
 	s.Require().NoError(err)
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals := s.moveChainToHeight(blockHeight, coreLoopIterations, blsSigner)
+	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	currentHeight := int64(blockHeight + coreLoopIterations)
@@ -280,7 +280,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobCommitment_Errors() {
 
 	proposedBlockMessage := simulated.ComputeAndSetValidExecutionBlock(
 		s.T(),
-		proposedBlock.GetMessage(),
+		proposedBlock.GetBeaconBlock(),
 		s.SimulationClient,
 		s.TestNode.ChainSpec,
 		blobTxs,
@@ -316,7 +316,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobCommitment_Errors() {
 
 	// Create the beaconBlock Header for the sidecar
 	blockWithCommitmentsSignedHeader := ctypes.NewSignedBeaconBlockHeader(
-		newSignedBlock.GetMessage().GetHeader(),
+		newSignedBlock.GetHeader(),
 		newSignedBlock.GetSignature(),
 	)
 
@@ -364,7 +364,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobInclusionProof_Errors() 
 	const coreLoopIterations = 1
 
 	// Initialize the chain state.
-	s.initializeChain()
+	s.InitializeChain(s.T())
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
@@ -372,7 +372,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobInclusionProof_Errors() 
 	s.Require().NoError(err)
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals := s.moveChainToHeight(blockHeight, coreLoopIterations, blsSigner)
+	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	currentHeight := int64(blockHeight + coreLoopIterations)
@@ -441,7 +441,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobInclusionProof_Errors() 
 
 	proposedBlockMessage := simulated.ComputeAndSetValidExecutionBlock(
 		s.T(),
-		proposedBlock.GetMessage(),
+		proposedBlock.GetBeaconBlock(),
 		s.SimulationClient,
 		s.TestNode.ChainSpec,
 		blobTxs,
@@ -477,7 +477,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobInclusionProof_Errors() 
 
 	// Create the beaconBlock Header for the sidecar
 	blockWithCommitmentsSignedHeader := ctypes.NewSignedBeaconBlockHeader(
-		newSignedBlock.GetMessage().GetHeader(),
+		newSignedBlock.GetHeader(),
 		newSignedBlock.GetSignature(),
 	)
 

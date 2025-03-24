@@ -18,21 +18,32 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package constraints
+package decoder
 
-import "github.com/berachain/beacon-kit/primitives/common"
+import (
+	"fmt"
 
-// Empty is a constraint that requires a type to have an Empty method.
-type Empty[SelfT any] interface {
-	Empty() SelfT
-}
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/karalabe/ssz"
+)
 
-// Nillable is a constraint that requires a type to have an IsNil method.
-type Nillable interface {
-	IsNil() bool
-}
+// SSZUnmarshal is the way we build objects from byte formatted as ssz
+// While logically related to constraints package, SSZUnmarshal has its own
+// small package to avoid import cycle related to Unused Type
+// Also SSZUnmarshal highlight the common template for SSZ decoding different
+// objects
+func SSZUnmarshal[T SSZUnmarshaler](buf []byte, v T) error {
+	switch dest := any(v).(type) {
+	case *common.UnusedType:
+		// unused types have special formatting for efficiency
+		return common.DecodeUnusedType(buf, dest)
+	default:
+		if err := ssz.DecodeFromBytes(buf, v); err != nil {
+			return fmt.Errorf("failed decoding %T: %w", dest, err)
+		}
 
-// Versionable is a constraint that requires a type to have a Version method.
-type Versionable interface {
-	Version() common.Version
+		// Note: ValidateAfterDecodingSSZ may change v even if it returns error
+		// (depending on the specific implementations)
+		return v.ValidateAfterDecodingSSZ()
+	}
 }

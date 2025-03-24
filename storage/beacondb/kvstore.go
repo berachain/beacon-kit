@@ -61,8 +61,7 @@ type KVStore struct {
 	latestExecutionPayloadVersion sdkcollections.Item[uint32]
 	// latestExecutionPayloadCodec is the codec for the latest execution
 	// payload, it allows us to update the codec with the latest version.
-	latestExecutionPayloadCodec *encoding.
-					SSZInterfaceCodec[*ctypes.ExecutionPayloadHeader]
+	latestExecutionPayloadCodec *encoding.SSZVersionedValueCodec[*ctypes.ExecutionPayloadHeader]
 	// latestExecutionPayloadHeader stores the latest execution payload header.
 	latestExecutionPayloadHeader sdkcollections.Item[*ctypes.ExecutionPayloadHeader]
 	// Registry
@@ -95,7 +94,9 @@ type KVStore struct {
 func New(kss store.KVStoreService) *KVStore {
 	var (
 		schemaBuilder = sdkcollections.NewSchemaBuilder(kss)
-		payloadCodec  = &encoding.SSZInterfaceCodec[*ctypes.ExecutionPayloadHeader]{}
+		payloadCodec  = &encoding.SSZVersionedValueCodec[*ctypes.ExecutionPayloadHeader]{
+			NewEmptyF: ctypes.NewEmptyExecutionPayloadHeaderWithVersion,
+		}
 	)
 
 	res := &KVStore{
@@ -116,7 +117,9 @@ func New(kss store.KVStoreService) *KVStore {
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.ForkPrefix}),
 			keys.ForkPrefixHumanReadable,
-			encoding.SSZValueCodec[*ctypes.Fork]{},
+			encoding.SSZValueCodec[*ctypes.Fork]{
+				NewEmptyF: ctypes.NewEmptyFork,
+			},
 		),
 		blockRoots: sdkcollections.NewMap(
 			schemaBuilder,
@@ -136,7 +139,9 @@ func New(kss store.KVStoreService) *KVStore {
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.Eth1DataPrefix}),
 			keys.Eth1DataPrefixHumanReadable,
-			encoding.SSZValueCodec[*ctypes.Eth1Data]{},
+			encoding.SSZValueCodec[*ctypes.Eth1Data]{
+				NewEmptyF: ctypes.NewEmptyEth1Data,
+			},
 		),
 		eth1DepositIndex: sdkcollections.NewItem(
 			schemaBuilder,
@@ -171,7 +176,9 @@ func New(kss store.KVStoreService) *KVStore {
 			sdkcollections.NewPrefix([]byte{keys.ValidatorByIndexPrefix}),
 			keys.ValidatorByIndexPrefixHumanReadable,
 			sdkcollections.Uint64Key,
-			encoding.SSZValueCodec[*ctypes.Validator]{},
+			encoding.SSZValueCodec[*ctypes.Validator]{
+				NewEmptyF: ctypes.NewEmptyValidator,
+			},
 			index.NewValidatorsIndex[*ctypes.Validator](schemaBuilder),
 		),
 		balances: sdkcollections.NewMap(
@@ -221,7 +228,9 @@ func New(kss store.KVStoreService) *KVStore {
 				[]byte{keys.LatestBeaconBlockHeaderPrefix},
 			),
 			keys.LatestBeaconBlockHeaderPrefixHumanReadable,
-			encoding.SSZValueCodec[*ctypes.BeaconBlockHeader]{},
+			encoding.SSZValueCodec[*ctypes.BeaconBlockHeader]{
+				NewEmptyF: ctypes.NewEmptyBeaconBlockHeader,
+			},
 		),
 	}
 	if _, err := schemaBuilder.Build(); err != nil {

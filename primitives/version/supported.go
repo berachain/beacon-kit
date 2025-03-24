@@ -18,30 +18,20 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package engineprimitives_test
+package version
 
-import (
-	"testing"
+import "github.com/berachain/beacon-kit/primitives/common"
 
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
-	"github.com/berachain/beacon-kit/primitives/eip4844"
-	"github.com/stretchr/testify/require"
-)
+//nolint:gochecknoglobals // used for testing
+var supportedVersions = []common.Version{
+	deneb,
+	deneb1,
+	// TODO, Add electra here
+}
 
-func TestBlobsBundleV1(t *testing.T) {
-	t.Parallel()
-	bundle := &engineprimitives.BlobsBundleV1{
-		Commitments: []eip4844.KZGCommitment{{1, 2, 3}, {4, 5, 6}},
-		Proofs:      []eip4844.KZGProof{{7, 8, 9}, {10, 11, 12}},
-		Blobs:       []*eip4844.Blob{{13, 14, 15}, {16, 17, 18}},
-	}
-
-	commitments := bundle.GetCommitments()
-	require.Equal(t, bundle.Commitments, commitments)
-
-	proofs := bundle.GetProofs()
-	require.Equal(t, bundle.Proofs, proofs)
-
-	blobs := bundle.GetBlobs()
-	require.Equal(t, bundle.Blobs, blobs)
+// GetSupportedVersions returns the supported versions of beacon-kit.
+// Primarily for testing so that we can easily extend test case coverage
+// with new versions by modifying the return value rather than each test.
+func GetSupportedVersions() []common.Version {
+	return supportedVersions
 }

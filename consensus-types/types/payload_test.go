@@ -28,6 +28,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/decoder"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -49,6 +50,7 @@ func generateExecutionPayload() *types.ExecutionPayload {
 	)
 
 	ep := &types.ExecutionPayload{
+		Versionable:   types.NewVersionable(version.Deneb1()),
 		ParentHash:    common.ExecutionHash{},
 		FeeRecipient:  common.ExecutionAddress{},
 		StateRoot:     bytes.B32{},
@@ -66,7 +68,6 @@ func generateExecutionPayload() *types.ExecutionPayload {
 		Withdrawals:   withdrawals,
 		BlobGasUsed:   math.U64(0),
 		ExcessBlobGas: math.U64(0),
-		EpVersion:     version.Deneb1(),
 	}
 	return ep
 }
@@ -79,12 +80,10 @@ func TestExecutionPayload_Serialization(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, data)
 
-	var unmarshalled types.ExecutionPayload
-	err = unmarshalled.UnmarshalSSZ(data)
+	unmarshalled := types.NewEmptyExecutionPayloadWithVersion(original.GetForkVersion())
+	err = decoder.SSZUnmarshal(data, unmarshalled)
 	require.NoError(t, err)
-
-	unmarshalled.EpVersion = original.Version()
-	require.Equal(t, original, &unmarshalled)
+	require.Equal(t, original, unmarshalled)
 
 	var buf []byte
 	buf, err = original.MarshalSSZTo(buf)
@@ -100,8 +99,11 @@ func TestExecutionPayload_SizeSSZ(t *testing.T) {
 	size := karalabessz.Size(payload)
 	require.Equal(t, uint32(578), size)
 
-	state := &types.ExecutionPayload{}
-	err := state.UnmarshalSSZ([]byte{0x01, 0x02, 0x03}) // Invalid data
+	unmarshalledBody := types.NewEmptyExecutionPayloadWithVersion(version.Deneb1())
+	err := decoder.SSZUnmarshal(
+		[]byte{0x01, 0x02, 0x03}, // Invalid data
+		unmarshalledBody,
+	)
 	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
 
@@ -171,7 +173,7 @@ func TestExecutionPayload_MarshalJSON(t *testing.T) {
 	err = unmarshalled.UnmarshalJSON(data)
 	require.NoError(t, err)
 
-	unmarshalled.EpVersion = payload.Version()
+	unmarshalled.Versionable = payload.Versionable
 	require.Equal(t, payload, &unmarshalled)
 }
 
@@ -193,10 +195,10 @@ func TestExecutionPayload_MarshalJSON_ValueAndPointer(t *testing.T) {
 func TestExecutionPayload_IsNil(t *testing.T) {
 	t.Parallel()
 	var payload *types.ExecutionPayload
-	require.True(t, payload.IsNil())
+	require.Nil(t, payload)
 
 	payload = generateExecutionPayload()
-	require.False(t, payload.IsNil())
+	require.NotNil(t, payload)
 }
 
 func TestExecutionPayload_IsBlinded(t *testing.T) {
@@ -208,12 +210,13 @@ func TestExecutionPayload_IsBlinded(t *testing.T) {
 func TestExecutionPayload_Version(t *testing.T) {
 	t.Parallel()
 	payload := generateExecutionPayload()
-	require.Equal(t, version.Deneb1(), payload.Version())
+	require.Equal(t, version.Deneb1(), payload.GetForkVersion())
 }
 
 func TestExecutionPayload_ToHeader(t *testing.T) {
 	t.Parallel()
 	payload := &types.ExecutionPayload{
+		Versionable:   types.NewVersionable(version.Deneb1()),
 		ParentHash:    common.ExecutionHash{},
 		FeeRecipient:  common.ExecutionAddress{},
 		StateRoot:     bytes.B32{},
@@ -231,9 +234,7 @@ func TestExecutionPayload_ToHeader(t *testing.T) {
 		Withdrawals:   engineprimitives.Withdrawals{},
 		BlobGasUsed:   math.U64(0),
 		ExcessBlobGas: math.U64(0),
-		EpVersion:     version.Deneb1(),
 	}
-
 	header, err := payload.ToHeader()
 	require.NoError(t, err)
 	require.NotNil(t, header)
@@ -253,7 +254,7 @@ func TestExecutionPayload_ToHeader(t *testing.T) {
 	require.Equal(t, payload.GetBlockHash(), header.GetBlockHash())
 	require.Equal(t, payload.GetBlobGasUsed(), header.GetBlobGasUsed())
 	require.Equal(t, payload.GetExcessBlobGas(), header.GetExcessBlobGas())
-	require.Equal(t, payload.Version(), header.Version())
+	require.Equal(t, payload.GetForkVersion(), header.GetForkVersion())
 
 	require.Equal(t, payload.HashTreeRoot(), header.HashTreeRoot())
 }

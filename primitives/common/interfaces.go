@@ -18,26 +18,39 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package common
 
 import (
-	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/config"
-	"github.com/berachain/beacon-kit/log/phuslu"
-	"github.com/berachain/beacon-kit/node-core/node"
-	service "github.com/berachain/beacon-kit/node-core/services/registry"
-	"github.com/berachain/beacon-kit/node-core/types"
+	"github.com/karalabe/ssz"
 )
 
-type ProvideNodeInputs struct {
-	depinject.In
-
-	Config   *config.Config
-	Registry *service.Registry
-	Logger   *phuslu.Logger
+// sszMarshaler is an interface for objects that can be marshaled to SSZ format.
+type sszMarshaler interface {
+	// MarshalSSZ marshals the object into SSZ format.
+	MarshalSSZ() ([]byte, error)
 }
 
-// ProvideNode returns a new node with the given options.
-func ProvideNode(in ProvideNodeInputs) types.Node {
-	return node.New[types.Node](in.Config.ShutdownTimeout, in.Registry, in.Logger)
+// SSZUnmarshaler is an interface for objects that can be unmarshaled from SSZ format.
+type SSZUnmarshaler interface {
+	ssz.Object
+	ValidateAfterDecodingSSZ() error // once unmarshalled we will check whether type syntax is correct
+}
+
+// SSZMarshallable is an interface that combines SSZMarshaler and SSZUnmarshaler.
+type SSZMarshallable interface {
+	sszMarshaler
+	SSZUnmarshaler
+}
+
+// SSZRootable is an interface for objects that can compute their hash tree root.
+type SSZRootable interface {
+	// HashTreeRoot computes the hash tree root of the object.
+	HashTreeRoot() Root
+}
+
+// SSZMarshallableRootable is an interface that combines
+// sszMarshaler, sszUnmarshaler, and SSZRootable.
+type SSZMarshallableRootable interface {
+	SSZMarshallable
+	SSZRootable
 }
