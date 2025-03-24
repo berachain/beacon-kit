@@ -900,7 +900,8 @@ func (s *BeaconKitE2ESuite) TestConfigSpec() {
 	s.Require().Equal(chainspec.DepositEth1ChainID(), specData["DEPOSIT_NETWORK_ID"])
 
 	s.Require().Contains(specData, "DOMAIN_AGGREGATE_AND_PROOF")
-	s.Require().EqualValues(chainspec.DomainTypeAggregateAndProof().String(), specData["DOMAIN_AGGREGATE_AND_PROOF"])
+	s.Require().EqualValues(chainspec.DomainTypeAggregateAndProof(), specData["DOMAIN_AGGREGATE_AND_PROOF"])
+
 	// Check penalty quotients
 	s.Require().Contains(specData, "INACTIVITY_PENALTY_QUOTIENT")
 	s.Require().EqualValues(apiconfig.Phase0InactivityPenaltyQuotient, specData["INACTIVITY_PENALTY_QUOTIENT"])
