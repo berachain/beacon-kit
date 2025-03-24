@@ -18,13 +18,12 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package backend
+package config
 
-import "github.com/berachain/beacon-kit/errors"
+import "github.com/berachain/beacon-kit/primitives/common"
 
-func (b *Backend) Spec() (ChainSpec, error) {
-	if b.cs == nil {
-		return nil, errors.New("chain spec not found")
-	}
-	return b.cs, nil
+type ChainSpec interface {
+	DepositContractAddress() common.ExecutionAddress
+	DepositEth1ChainID() uint64
+	DomainTypeAggregateAndProof() common.DomainType
 }

@@ -20,12 +20,10 @@
 
 package config
 
-import "github.com/berachain/beacon-kit/node-api/handlers/config/types"
-
 type Backend interface {
 	SpecBackend
 }
 
 type SpecBackend interface {
-	Spec() (*types.SpecData, error)
+	Spec() (ChainSpec, error)
 }

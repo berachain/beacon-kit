@@ -30,7 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	configtypes "github.com/berachain/beacon-kit/node-api/handlers/config/types"
+	"github.com/berachain/beacon-kit/node-api/handlers/config"
 	nodecoretypes "github.com/berachain/beacon-kit/node-core/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -534,7 +534,7 @@ type (
 
 	// NodeAPIConfigBackend is the interface for backend of the config API.
 	NodeAPIConfigBackend interface {
-		Spec() (*configtypes.SpecData, error)
+		Spec() (config.ChainSpec, error)
 	}
 
 	// NodeAPIProofBackend is the interface for backend of the proof API.
