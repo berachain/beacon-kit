@@ -179,4 +179,6 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithRequests_IsSuccessful() {
 	// Go through iterations of the core loop.
 	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner)
 	s.Require().Len(proposals, coreLoopIterations)
+	s.Require().Contains(s.LogBuffer.String(), "Building with execution requests service=validator\u001B[0m deposits=0\u001B[0m withdrawals=1\u001B[0m consolidations=0")
+
 }
