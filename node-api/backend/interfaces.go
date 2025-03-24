@@ -21,7 +21,6 @@
 package backend
 
 import (
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
@@ -29,16 +28,4 @@ import (
 
 type StateProcessor interface {
 	ProcessSlots(*statedb.StateDB, math.Slot) (transition.ValidatorUpdates, error)
-}
-
-type ChainSpec interface {
-	WithinDAPeriod(block, current math.Slot) bool
-	MinEpochsForBlobsSidecarsRequest() math.Epoch
-	MaxBlobsPerBlock() uint64
-	SlotsPerHistoricalRoot() uint64
-	EpochsPerHistoricalVector() uint64
-	SlotToEpoch(slot math.Slot) math.Epoch
-	DepositContractAddress() common.ExecutionAddress
-	DepositEth1ChainID() uint64
-	DomainTypeAggregateAndProof() common.DomainType
 }

@@ -63,7 +63,7 @@ func ProvideNodeAPIBuilderHandler() *builderapi.Handler {
 	return builderapi.NewHandler()
 }
 
-func ProvideNodeAPIConfigHandler(b NodeAPIConfigBackend) *configapi.Handler {
+func ProvideNodeAPIConfigHandler(b NodeAPIBackend) *configapi.Handler {
 	return configapi.NewHandler(b)
 }
 

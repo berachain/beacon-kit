@@ -23,6 +23,7 @@ package components
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
@@ -30,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	"github.com/berachain/beacon-kit/node-api/handlers/config"
 	nodecoretypes "github.com/berachain/beacon-kit/node-core/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -515,6 +515,7 @@ type (
 
 		NodeAPIBeaconBackend
 		NodeAPIProofBackend
+		NodeAPIConfigBackend
 	}
 
 	// NodeAPIBackend is the interface for backend of the beacon API.
@@ -534,7 +535,7 @@ type (
 
 	// NodeAPIConfigBackend is the interface for backend of the config API.
 	NodeAPIConfigBackend interface {
-		Spec() (config.ChainSpec, error)
+		Spec() (chain.Spec, error)
 	}
 
 	// NodeAPIProofBackend is the interface for backend of the proof API.

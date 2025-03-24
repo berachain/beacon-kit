@@ -20,10 +20,12 @@
 
 package config
 
+import "github.com/berachain/beacon-kit/chain"
+
 type Backend interface {
 	SpecBackend
 }
 
 type SpecBackend interface {
-	Spec() (ChainSpec, error)
+	Spec() (chain.Spec, error)
 }
