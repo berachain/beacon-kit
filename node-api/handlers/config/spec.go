@@ -28,13 +28,8 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-// These values are taken from ETH2.0 consensus spec.
-const (
-	//https://github.com/ethereum/consensus-specs/blob/v1.3.0/specs/phase0/beacon-chain.md#rewards-and-penalties
-	Phase0InactivityPenaltyQuotient math.U64 = 67108864
-	// https://github.com/ethereum/consensus-specs/blob/v1.3.0/specs/altair/beacon-chain.md#updated-penalty-values
-	AltairInactivityPenaltyQuotient math.U64 = 50331648
-)
+// InactivityPenaltyQuotientPlaceholder is a placeholder value for the inactivity penalty quotient.
+const InactivityPenaltyQuotientPlaceholder = "0"
 
 // GetSpec returns the spec of the beacon chain.
 func (h *Handler) GetSpec(handlers.Context) (any, error) {
@@ -52,7 +47,7 @@ func (h *Handler) GetSpec(handlers.Context) (any, error) {
 
 		// Currently these are placeholders, will be replaced with the correct values for our
 		// versions like Deneb, Deneb1 etc once we implement slashing for inactivity.
-		InactivityPenaltyQuotient:       Phase0InactivityPenaltyQuotient.Base10(),
-		InactivityPenaltyQuotientAltair: AltairInactivityPenaltyQuotient.Base10(),
+		InactivityPenaltyQuotient:       InactivityPenaltyQuotientPlaceholder,
+		InactivityPenaltyQuotientAltair: InactivityPenaltyQuotientPlaceholder,
 	}}, nil
 }
