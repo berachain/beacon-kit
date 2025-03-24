@@ -203,5 +203,16 @@ func (cc ConsensusClient) ValidatorBalances(
 	return cc.beaconClient.ValidatorBalances(ctx, opts)
 }
 
+// Genesis returns the genesis of the beacon node.
+func (cc ConsensusClient) Genesis(
+	ctx context.Context,
+	opts *beaconapi.GenesisOpts,
+) (*beaconapi.Response[*apiv1.Genesis], error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
+	return cc.beaconClient.Genesis(ctx, opts)
+}
+
 // TODO: Add helpers for the beacon node-api client (converting from
 // go-eth2-client types to beacon-kit consensus types).

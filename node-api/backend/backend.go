@@ -34,10 +34,11 @@ import (
 // It serves as a wrapper around the storage backend and provides an abstraction
 // over building the query context for a given state.
 type Backend struct {
-	sb   *storage.Backend
-	cs   ChainSpec
-	node types.ConsensusService
-	sp   StateProcessor
+	sb                    *storage.Backend
+	cs                    ChainSpec
+	node                  types.ConsensusService
+	sp                    StateProcessor
+	genesisValidatorsRoot common.Root
 }
 
 // New creates and returns a new Backend instance.
