@@ -95,6 +95,48 @@ func TestIsBefore(t *testing.T) {
 	}
 }
 
+func TestIsBeforeOrAt(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		a, b     common.Version
+		expected bool
+	}{
+		{
+			name:     "equal versions",
+			a:        common.Version{1, 2, 1, 0},
+			b:        common.Version{1, 2, 1, 0},
+			expected: true,
+		},
+		{
+			name:     "clearly after",
+			a:        common.Version{2, 0, 0, 0},
+			b:        common.Version{1, 0, 0, 0},
+			expected: false,
+		},
+		{
+			name:     "minor version before",
+			a:        common.Version{1, 1, 0, 0},
+			b:        common.Version{1, 2, 0, 0},
+			expected: true,
+		},
+		{
+			name:     "patch version before",
+			a:        common.Version{1, 1, 1, 0},
+			b:        common.Version{1, 1, 2, 0},
+			expected: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			result := version.IsBeforeOrAt(tc.a, tc.b)
+			require.Equal(t, tc.expected, result)
+		})
+	}
+}
+
 func TestEquals(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -180,6 +222,48 @@ func TestIsAfter(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			result := version.IsAfter(tc.a, tc.b)
+			require.Equal(t, tc.expected, result)
+		})
+	}
+}
+
+func TestIsAtOrAfter(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		a, b     common.Version
+		expected bool
+	}{
+		{
+			name:     "equal versions",
+			a:        common.Version{1, 2, 1, 0},
+			b:        common.Version{1, 2, 1, 0},
+			expected: true,
+		},
+		{
+			name:     "clearly after",
+			a:        common.Version{2, 0, 0, 0},
+			b:        common.Version{1, 0, 0, 0},
+			expected: true,
+		},
+		{
+			name:     "minor version before",
+			a:        common.Version{1, 1, 0, 0},
+			b:        common.Version{1, 2, 0, 0},
+			expected: false,
+		},
+		{
+			name:     "patch version before",
+			a:        common.Version{1, 1, 1, 0},
+			b:        common.Version{1, 1, 2, 0},
+			expected: false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			result := version.IsAtOrAfter(tc.a, tc.b)
 			require.Equal(t, tc.expected, result)
 		})
 	}

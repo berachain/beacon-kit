@@ -32,15 +32,14 @@ import (
 )
 
 const (
-	// BodyLengthDeneb is the number of fields in the BeaconBlockBodyDeneb
-	// struct.
+	// BodyLengthDeneb is the number of fields in the BeaconBlockBody struct for Deneb.
 	BodyLengthDeneb uint64 = 12
 
-	// BodyLength is the number of fields in the BeaconBlockBodyElectra struct.
-	BodyLength uint64 = 13
+	// BodyLengthElectra is the number of fields in the BeaconBlockBody struct for Electra.
+	BodyLengthElectra uint64 = 13
 
 	// KZGPosition is the position of BlobKzgCommitments in the block body.
-	KZGPosition = BodyLength - 2
+	KZGPosition uint64 = 11
 
 	// KZGGeneralizedIndex is the index of the KZG commitment root's parent.
 	//     (1 << log2ceil(KZGPosition)) | KZGPosition.
@@ -108,7 +107,7 @@ type BeaconBlockBody struct {
 func (b *BeaconBlockBody) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 	syncSize := b.syncAggregate.SizeSSZ(siz)
 	var size = 96 + 72 + 32 + 4 + 4 + 4 + 4 + 4 + syncSize + 4 + 4 + 4
-	if !version.IsBefore(b.GetForkVersion(), version.Electra()) {
+	if version.IsAtOrAfter(b.GetForkVersion(), version.Electra()) {
 		// Add 4 for the offset of dynamic field ExecutionRequests
 		size += sszDynamicObjectOffset
 	}
@@ -125,7 +124,7 @@ func (b *BeaconBlockBody) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 	size += ssz.SizeDynamicObject(siz, b.ExecutionPayload)
 	size += ssz.SizeSliceOfStaticObjects(siz, b.blsToExecutionChanges)
 	size += ssz.SizeSliceOfStaticBytes(siz, b.BlobKzgCommitments)
-	if !version.IsBefore(b.GetForkVersion(), version.Electra()) {
+	if version.IsAtOrAfter(b.GetForkVersion(), version.Electra()) {
 		size += ssz.SizeDynamicObject(siz, b.executionRequests)
 	}
 	return size
@@ -148,7 +147,7 @@ func (b *BeaconBlockBody) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineDynamicObjectOffset(codec, &b.ExecutionPayload)
 	ssz.DefineSliceOfStaticObjectsOffset(codec, &b.blsToExecutionChanges, constants.MaxBlsToExecutionChanges)
 	ssz.DefineSliceOfStaticBytesOffset(codec, &b.BlobKzgCommitments, 4096)
-	if !version.IsBefore(b.GetForkVersion(), version.Electra()) {
+	if version.IsAtOrAfter(b.GetForkVersion(), version.Electra()) {
 		ssz.DefineDynamicObjectOffset(codec, &b.executionRequests)
 	}
 
@@ -161,7 +160,7 @@ func (b *BeaconBlockBody) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineDynamicObjectContent(codec, &b.ExecutionPayload)
 	ssz.DefineSliceOfStaticObjectsContent(codec, &b.blsToExecutionChanges, constants.MaxBlsToExecutionChanges)
 	ssz.DefineSliceOfStaticBytesContent(codec, &b.BlobKzgCommitments, 4096)
-	if !version.IsBefore(b.GetForkVersion(), version.Electra()) {
+	if version.IsAtOrAfter(b.GetForkVersion(), version.Electra()) {
 		ssz.DefineDynamicObjectContent(codec, &b.executionRequests)
 	}
 }
@@ -229,7 +228,7 @@ func (b *BeaconBlockBody) GetTopLevelRoots() ([]common.Root, error) {
 		// KzgCommitments intentionally left blank - included separately for inclusion proof
 		{},
 	}
-	if !version.IsBefore(b.GetForkVersion(), version.Electra()) {
+	if version.IsAtOrAfter(b.GetForkVersion(), version.Electra()) {
 		er, err := b.GetExecutionRequests()
 		if err != nil {
 			return nil, err
@@ -241,10 +240,10 @@ func (b *BeaconBlockBody) GetTopLevelRoots() ([]common.Root, error) {
 
 // Length returns the number of fields in the BeaconBlockBody struct.
 func (b *BeaconBlockBody) Length() uint64 {
-	if !version.IsBefore(b.GetForkVersion(), version.Electra()) {
+	if version.IsBefore(b.GetForkVersion(), version.Electra()) {
 		return BodyLengthDeneb
 	}
-	return BodyLength
+	return BodyLengthElectra
 }
 
 /* -------------------------------------------------------------------------- */
