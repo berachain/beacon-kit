@@ -21,6 +21,8 @@
 package cometbft
 
 import (
+	"fmt"
+
 	pruningtypes "cosmossdk.io/store/pruning/types"
 	storetypes "cosmossdk.io/store/types"
 )
@@ -30,7 +32,20 @@ import (
 
 // SetPruning sets a pruning option on the multistore associated with the s.
 func SetPruning(opts pruningtypes.PruningOptions) func(*Service) {
-	return func(bs *Service) { bs.sm.GetCommitMultiStore().SetPruning(opts) }
+	return func(bs *Service) {
+		if opts.Strategy == pruningtypes.PruningNothing {
+			bs.logger.Warn(
+				"State pruning disabled. This may increase memory footprint considerable.",
+				"strategy", pruningtypes.PruningOptionNothing,
+				"recommended strategies", fmt.Sprintf("%s or %s",
+					pruningtypes.PruningOptionEverything,
+					pruningtypes.PruningOptionDefault,
+				),
+			)
+		}
+
+		bs.sm.GetCommitMultiStore().SetPruning(opts)
+	}
 }
 
 // SetMinRetainBlocks returns a Service option function that sets the minimum

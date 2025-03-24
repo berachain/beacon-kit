@@ -1,31 +1,28 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (c) 2025 Berachain Foundation
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
+// Use of this software is governed by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
 //
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WdeHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
 
 package types
 
 import (
+	"errors"
+
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
@@ -62,8 +59,8 @@ const (
 
 // Compile-time assertions to ensure BeaconBlockBody implements necessary interfaces.
 var (
-	_ ssz.DynamicObject                                              = (*BeaconBlockBody)(nil)
-	_ constraints.SSZVersionedMarshallableRootable[*BeaconBlockBody] = (*BeaconBlockBody)(nil)
+	_ ssz.DynamicObject                            = (*BeaconBlockBody)(nil)
+	_ constraints.SSZVersionedMarshallableRootable = (*BeaconBlockBody)(nil)
 )
 
 // BeaconBlockBody represents the body of a beacon block.
@@ -151,7 +148,7 @@ func (b *BeaconBlockBody) DefineSSZ(codec *ssz.Codec) {
 
 // MarshalSSZ serializes the BeaconBlockBody to SSZ-encoded bytes.
 func (b *BeaconBlockBody) MarshalSSZ() ([]byte, error) {
-	err := EnforceAllUnused(
+	err := common.EnforceAllUnused(
 		b.GetProposerSlashings(),
 		b.GetAttesterSlashings(),
 		b.GetAttestations(),
@@ -166,25 +163,17 @@ func (b *BeaconBlockBody) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 
-// empty returns an empty BeaconBlockBody for the given fork version.
-func (*BeaconBlockBody) empty(version common.Version) *BeaconBlockBody {
-	var ep *ExecutionPayload
+func NewEmptyBeaconBlockBodyWithVersion(version common.Version) *BeaconBlockBody {
 	return &BeaconBlockBody{
 		Versionable:      NewVersionable(version),
-		Eth1Data:         &Eth1Data{},
-		ExecutionPayload: ep.empty(version),
+		Eth1Data:         NewEmptyEth1Data(),
+		ExecutionPayload: NewEmptyExecutionPayloadWithVersion(version),
 		syncAggregate:    &SyncAggregate{},
 	}
 }
 
-// NewFromSSZ deserializes the BeaconBlockBody from SSZ-encoded bytes.
-func (b *BeaconBlockBody) NewFromSSZ(buf []byte, version common.Version) (*BeaconBlockBody, error) {
-	b = b.empty(version)
-	err := ssz.DecodeFromBytes(buf, b)
-	if err != nil {
-		return nil, err
-	}
-	err = EnforceAllUnused(
+func (b *BeaconBlockBody) ValidateAfterDecodingSSZ() error {
+	errUnused := common.EnforceAllUnused(
 		b.GetProposerSlashings(),
 		b.GetAttesterSlashings(),
 		b.GetAttestations(),
@@ -192,10 +181,10 @@ func (b *BeaconBlockBody) NewFromSSZ(buf []byte, version common.Version) (*Beaco
 		b.GetSyncAggregate(),
 		b.GetBlsToExecutionChanges(),
 	)
-	if err != nil {
-		return nil, err
-	}
-	return b, nil
+	return errors.Join(
+		b.ExecutionPayload.ValidateAfterDecodingSSZ(),
+		errUnused,
+	)
 }
 
 // HashTreeRoot returns the SSZ hash tree root of the BeaconBlockBody.

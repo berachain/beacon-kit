@@ -56,9 +56,8 @@ type ExecutionPayloadEnvelope[BlobsBundleT engineprimitives.BlobsBundle] struct 
 func NewEmptyExecutionPayloadEnvelope[
 	BlobsBundleT engineprimitives.BlobsBundle,
 ](forkVersion common.Version) BuiltExecutionPayloadEnv {
-	var ep *ExecutionPayload
 	return &ExecutionPayloadEnvelope[BlobsBundleT]{
-		ExecutionPayload: ep.empty(forkVersion),
+		ExecutionPayload: NewEmptyExecutionPayloadWithVersion(forkVersion),
 	}
 }
 

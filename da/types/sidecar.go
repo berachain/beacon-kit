@@ -21,6 +21,8 @@
 package types
 
 import (
+	"fmt"
+
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -34,8 +36,8 @@ import (
 
 // Compile-time assertions to ensure BlobSidecar implements necessary interfaces.
 var (
-	_ ssz.StaticObject                                  = (*BlobSidecar)(nil)
-	_ constraints.SSZMarshallableRootable[*BlobSidecar] = (*BlobSidecar)(nil)
+	_ ssz.StaticObject                    = (*BlobSidecar)(nil)
+	_ constraints.SSZMarshallableRootable = (*BlobSidecar)(nil)
 )
 
 // BlobSidecar as per the Ethereum 2.0 specification:
@@ -159,25 +161,20 @@ func (b *BlobSidecar) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 
-// empty creates an empty BlobSidecar object.
-func (*BlobSidecar) empty() *BlobSidecar {
-	return &BlobSidecar{
-		SignedBeaconBlockHeader: &ctypes.SignedBeaconBlockHeader{},
-	}
-}
-
-// NewFromSSZ creates a new BlobSidecar object from SSZ format.
-func (b *BlobSidecar) NewFromSSZ(buf []byte) (*BlobSidecar, error) {
-	b = b.empty()
-	if err := ssz.DecodeFromBytes(buf, b); err != nil {
-		return nil, err
-	}
-
+func (b *BlobSidecar) ValidateAfterDecodingSSZ() error {
+	// Verify inclusion proof length
 	if len(b.InclusionProof) != ctypes.KZGInclusionProofDepth {
-		return nil, errors.New("invalid inclusion proof length")
+		return fmt.Errorf("invalid inclusion proof length, got %d, expect %d",
+			b.InclusionProof,
+			ctypes.KZGInclusionProofDepth,
+		)
 	}
 
-	return b, nil
+	// Ensure SignedBeaconBlockHeader is not nil
+	if b.SignedBeaconBlockHeader == nil {
+		b.SignedBeaconBlockHeader = &ctypes.SignedBeaconBlockHeader{}
+	}
+	return nil
 }
 
 // MarshalSSZTo marshals the BlobSidecar object to the provided buffer in SSZ

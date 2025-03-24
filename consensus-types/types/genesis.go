@@ -83,14 +83,8 @@ func (g *Genesis) UnmarshalJSON(
 		return err
 	}
 
-	var (
-		payloadHeader *ExecutionPayloadHeader
-		err           error
-	)
-	payloadHeader, err = payloadHeader.NewFromJSON(
-		g2.ExecutionPayloadHeader, g2.ForkVersion,
-	)
-	if err != nil {
+	payloadHeader := NewEmptyExecutionPayloadHeaderWithVersion(g2.ForkVersion)
+	if err := json.Unmarshal(g2.ExecutionPayloadHeader, payloadHeader); err != nil {
 		return err
 	}
 
