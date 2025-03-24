@@ -234,7 +234,6 @@ start-bepolia:
 	CHAIN_SPEC=$(TESTNET_CHAIN_SPEC) \
 	${TESTAPP_FILES_DIR}/entrypoint.sh
 
-# NOTE: Peers are used as bootnodes for the Geth node.
 start-geth-bepolia:
 	# TODO: Update to use latest Geth once ready
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
@@ -247,7 +246,7 @@ start-geth-bepolia:
 	${BEPOLIA_ETH_GENESIS_PATH}
 
 	@# Read bootnodes from the file; the file is mounted into the container.
-	@bootnodes=`cat $(PWD)/$(BEPOLIA_NETWORK_FILES_DIR)/el-peers.txt`; \
+	@bootnodes=`cat $(PWD)/$(BEPOLIA_NETWORK_FILES_DIR)/el-bootnodes.txt`; \
 	echo "Using bootnodes: $$bootnodes"; \
 	docker run \
 	-p 30303:30303 \
