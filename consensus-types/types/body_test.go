@@ -159,7 +159,8 @@ func TestBeaconBlockBody_GetTopLevelRoots(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		body := generateBeaconBlockBody(v)
-		roots := body.GetTopLevelRoots()
+		roots, err := body.GetTopLevelRoots()
+		require.NoError(t, err)
 		require.NotNil(t, roots)
 	})
 }

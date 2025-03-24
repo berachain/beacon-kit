@@ -36,29 +36,28 @@ const (
 	// struct.
 	BodyLengthDeneb uint64 = 12
 
-	// BodyLengthElectra is the number of fields in the BeaconBlockBodyElectra struct.
-	// TODO(pectra): Ensure this is propagated where necessary
-	BodyLengthElectra uint64 = 13
+	// BodyLength is the number of fields in the BeaconBlockBodyElectra struct.
+	BodyLength uint64 = 13
 
-	// KZGPositionDeneb is the position of BlobKzgCommitments in the block body.
-	KZGPositionDeneb = BodyLengthDeneb - 1
+	// KZGPosition is the position of BlobKzgCommitments in the block body.
+	KZGPosition = BodyLength - 2
 
 	// KZGGeneralizedIndex is the index of the KZG commitment root's parent.
-	//     (1 << log2ceil(KZGPositionDeneb)) | KZGPositionDeneb.
+	//     (1 << log2ceil(KZGPosition)) | KZGPosition.
 	KZGGeneralizedIndex = 27
 
-	// KZGRootIndexDeneb is the merkle index of BlobKzgCommitments' root
+	// KZGRootIndex is the merkle index of BlobKzgCommitments' root
 	// in the merkle tree built from the block body.
 	//     2 * KZGGeneralizedIndex.
-	KZGRootIndexDeneb = KZGGeneralizedIndex * 2
+	KZGRootIndex = KZGGeneralizedIndex * 2
 
 	// KZGInclusionProofDepth is the
 	//     Log2Floor(KZGGeneralizedIndex) +
 	//     Log2Ceil(MaxBlobCommitmentsPerBlock) + 1
 	KZGInclusionProofDepth = 17
 
-	// KZGOffsetDeneb is the offset of the KZG commitments in the serialized block body.
-	KZGOffsetDeneb = KZGRootIndexDeneb * constants.MaxBlobCommitmentsPerBlock
+	// KZGOffset is the offset of the KZG commitments in the serialized block body.
+	KZGOffset = KZGRootIndex * constants.MaxBlobCommitmentsPerBlock
 )
 
 // Compile-time assertions to ensure BeaconBlockBody implements necessary interfaces.
@@ -214,8 +213,8 @@ func (b *BeaconBlockBody) HashTreeRoot() common.Root {
 }
 
 // GetTopLevelRoots returns the top-level roots of the BeaconBlockBody.
-func (b *BeaconBlockBody) GetTopLevelRoots() []common.Root {
-	return []common.Root{
+func (b *BeaconBlockBody) GetTopLevelRoots() ([]common.Root, error) {
+	tlrs := []common.Root{
 		common.Root(b.GetRandaoReveal().HashTreeRoot()),
 		b.Eth1Data.HashTreeRoot(),
 		common.Root(b.GetGraffiti().HashTreeRoot()),
@@ -230,11 +229,22 @@ func (b *BeaconBlockBody) GetTopLevelRoots() []common.Root {
 		// KzgCommitments intentionally left blank - included separately for inclusion proof
 		{},
 	}
+	if !version.IsBefore(b.GetForkVersion(), version.Electra()) {
+		er, err := b.GetExecutionRequests()
+		if err != nil {
+			return nil, err
+		}
+		tlrs = append(tlrs, er.HashTreeRoot())
+	}
+	return tlrs, nil
 }
 
 // Length returns the number of fields in the BeaconBlockBody struct.
 func (b *BeaconBlockBody) Length() uint64 {
-	return BodyLengthDeneb
+	if !version.IsBefore(b.GetForkVersion(), version.Electra()) {
+		return BodyLengthDeneb
+	}
+	return BodyLength
 }
 
 /* -------------------------------------------------------------------------- */
