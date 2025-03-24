@@ -23,13 +23,14 @@ package encoding
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
+	"github.com/berachain/beacon-kit/primitives/decoder"
 	"github.com/davecgh/go-spew/spew"
 )
 
 // SSZValueCodec provides methods to encode and decode SSZ values.
-type SSZValueCodec[T interface {
-	constraints.SSZMarshallable[T]
-}] struct{}
+type SSZValueCodec[T constraints.SSZMarshallable] struct {
+	NewEmptyF func() T // constructor
+}
 
 // Encode marshals the provided value into its SSZ encoding.
 func (SSZValueCodec[T]) Encode(value T) ([]byte, error) {
@@ -37,9 +38,9 @@ func (SSZValueCodec[T]) Encode(value T) ([]byte, error) {
 }
 
 // Decode unmarshals the provided bytes into a value of type T.
-func (SSZValueCodec[T]) Decode(bz []byte) (T, error) {
-	var t T
-	return t.NewFromSSZ(bz)
+func (sc SSZValueCodec[T]) Decode(bz []byte) (T, error) {
+	dest := sc.NewEmptyF()
+	return dest, decoder.SSZUnmarshal(bz, dest)
 }
 
 // EncodeJSON is not implemented and will panic if called.
@@ -63,9 +64,8 @@ func (SSZValueCodec[T]) ValueType() string {
 }
 
 // SSZVersionedValueCodec provides methods to encode and decode SSZ values for a specific version.
-type SSZVersionedValueCodec[T interface {
-	constraints.SSZVersionedMarshallable[T]
-}] struct {
+type SSZVersionedValueCodec[T constraints.SSZMarshallable] struct {
+	NewEmptyF     func(common.Version) T // constructor
 	latestVersion common.Version
 }
 
@@ -81,8 +81,8 @@ func (cdc *SSZVersionedValueCodec[T]) Encode(value T) ([]byte, error) {
 
 // Decode unmarshals the provided bytes into a value of type T.
 func (cdc *SSZVersionedValueCodec[T]) Decode(b []byte) (T, error) {
-	var t T
-	return t.NewFromSSZ(b, cdc.latestVersion)
+	dest := cdc.NewEmptyF(cdc.latestVersion)
+	return dest, decoder.SSZUnmarshal(b, dest)
 }
 
 // EncodeJSON is not implemented and will panic if called.
