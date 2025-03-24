@@ -31,29 +31,3 @@ type SpecData struct {
 	InactivityPenaltyQuotient       string `json:"INACTIVITY_PENALTY_QUOTIENT"`
 	InactivityPenaltyQuotientAltair string `json:"INACTIVITY_PENALTY_QUOTIENT_ALTAIR"`
 }
-
-// type specDataJSON struct {
-// 	DepositContractAddress          string `json:"DEPOSIT_CONTRACT_ADDRESS"`
-// 	DepositNetworkID                string `json:"DEPOSIT_NETWORK_ID"`
-// 	DomainAggregateAndProof         string `json:"DOMAIN_AGGREGATE_AND_PROOF"`
-// 	InactivityPenaltyQuotient       string `json:"INACTIVITY_PENALTY_QUOTIENT"`
-// 	InactivityPenaltyQuotientAltair string `json:"INACTIVITY_PENALTY_QUOTIENT_ALTAIR"`
-// }
-
-// func (sd SpecData) MarshalJSON() ([]byte, error) {
-// 	return json.Marshal(specDataJSON{
-// 		DepositContractAddress: "0x" + hex.EncodeToString(
-// 			sd.DepositContractAddress[:],
-// 		),
-// 		DepositNetworkID: math.U64(sd.DepositNetworkID).Base10(),
-// 		DomainAggregateAndProof: "0x" + hex.EncodeToString(
-// 			sd.DomainAggregateAndProof[:],
-// 		),
-// 		InactivityPenaltyQuotient: strconv.FormatUint(
-// 			sd.InactivityPenaltyQuotient, 10,
-// 		),
-// 		InactivityPenaltyQuotientAltair: strconv.FormatUint(
-// 			sd.InactivityPenaltyQuotientAltair, 10,
-// 		),
-// 	})
-// }
