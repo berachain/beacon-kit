@@ -21,6 +21,8 @@
 package types
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
@@ -211,6 +213,10 @@ func (b *BeaconBlockBody) HashTreeRoot() common.Root {
 	return ssz.HashConcurrent(b)
 }
 
+/* -------------------------------------------------------------------------- */
+/*                              Getters/Setters                               */
+/* -------------------------------------------------------------------------- */
+
 // GetTopLevelRoots returns the top-level roots of the BeaconBlockBody.
 func (b *BeaconBlockBody) GetTopLevelRoots() ([]common.Root, error) {
 	tlrs := []common.Root{
@@ -235,20 +241,26 @@ func (b *BeaconBlockBody) GetTopLevelRoots() ([]common.Root, error) {
 		}
 		tlrs = append(tlrs, er.HashTreeRoot())
 	}
+
+	// Ensure that the length returned is correct according to the fork version.
+	if uint64(len(tlrs)) != b.Length() {
+		return nil, fmt.Errorf(
+			"top-level roots length (%d) does not match expected body length (%d)",
+			len(tlrs), b.Length(),
+		)
+	}
+
 	return tlrs, nil
 }
 
-// Length returns the number of fields in the BeaconBlockBody struct.
+// Length returns the number of fields in the BeaconBlockBody struct
+// according to the fork version.
 func (b *BeaconBlockBody) Length() uint64 {
 	if version.IsBefore(b.GetForkVersion(), version.Electra()) {
 		return BodyLengthDeneb
 	}
 	return BodyLengthElectra
 }
-
-/* -------------------------------------------------------------------------- */
-/*                              Getters/Setters                               */
-/* -------------------------------------------------------------------------- */
 
 func (b *BeaconBlockBody) GetRandaoReveal() crypto.BLSSignature {
 	return b.RandaoReveal

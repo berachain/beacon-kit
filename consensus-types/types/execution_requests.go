@@ -29,8 +29,12 @@ import (
 	"github.com/karalabe/ssz"
 )
 
-const sszDynamicObjectOffset = 4           // ExecutionAddress = 20, PubKey = 48, Pubkey = 48
-const dynamicFieldsInExecutionRequests = 3 // 3 since three dynamic objects (Deposits, Withdrawals, Consolidations)
+const (
+	// ExecutionAddress = 20, PubKey = 48, Pubkey = 48
+	sszDynamicObjectOffset = 4
+	// 3 since three dynamic objects (Deposits, Withdrawals, Consolidations)
+	dynamicFieldsInExecutionRequests = 3
+)
 
 // EncodedExecutionRequest is the result of GetExecutionRequestsList which is spec defined.
 type EncodedExecutionRequest = bytes.Bytes
