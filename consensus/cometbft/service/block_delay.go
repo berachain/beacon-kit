@@ -27,16 +27,25 @@ import (
 	"time"
 )
 
-// maxDelayBetweenBlocks is the maximum delay between two consecutive blocks.
+// MaxDelayBetweenBlocks is the maximum delay between two consecutive blocks.
 // If the last block time minus the previous block time is greater than
-// maxDelayBetweenBlocks, then we reset `FinalizeBlockResponse.NextBlockDelay`
+// MaxDelayBetweenBlocks, then we reset `FinalizeBlockResponse.NextBlockDelay`
 // to default.
 //
 // This is needed because the network may stall for a long time and we don't
 // want to rush in new blocks as the network resumes its operation.
-const maxDelayBetweenBlocks = 30 * time.Minute
+const (
+	MaxDelayBetweenBlocks = 30 * time.Minute
 
-type blockDelay struct {
+	// TargetBlockTime is the desired block time.
+	//
+	// Note that it CAN'T be lower than the minimal (floor) block time in the
+	// network, which is comprised of the time to a) propose a new block b)
+	// gather 2/3+ prevotes c) gather 2/3+ precommits.
+	TargetBlockTime = 2 * time.Second
+)
+
+type BlockDelay struct {
 	// - genesis time if height is 0 OR
 	// - block time of the last block if height > 0 and time between blocks is
 	// greater than maxDelayBetweenBlocks.
@@ -51,15 +60,15 @@ type blockDelay struct {
 }
 
 // CONTRACT: called only once upon genesis during or after InitChain.
-func blockDelayUponGenesis(genesisTime time.Time, initialHeight int64) *blockDelay {
-	return &blockDelay{
+func BlockDelayUponGenesis(genesisTime time.Time, initialHeight int64) *BlockDelay {
+	return &BlockDelay{
 		InitialTime:       genesisTime,
 		InitialHeight:     initialHeight,
 		PreviousBlockTime: genesisTime,
 	}
 }
 
-// blockDelayFromBytes converts the bytes to a blockDelay.
+// BlockDelayFromBytes converts the bytes to a blockDelay.
 //
 // Expected format:
 //
@@ -67,9 +76,9 @@ func blockDelayUponGenesis(genesisTime time.Time, initialHeight int64) *blockDel
 //	(little endian)
 //
 // Panics if it fails to read from the buffer.
-func blockDelayFromBytes(
+func BlockDelayFromBytes(
 	bz []byte,
-) *blockDelay {
+) *BlockDelay {
 	buf := bytes.NewReader(bz)
 	var initialTime, prevBlockTime int64
 	var initialHeight int64
@@ -87,7 +96,7 @@ func blockDelayFromBytes(
 		panic(fmt.Sprintf("failed to read PreviousBlockTime: %v", err))
 	}
 
-	return &blockDelay{
+	return &BlockDelay{
 		InitialTime:       time.Unix(initialTime, 0),
 		InitialHeight:     initialHeight,
 		PreviousBlockTime: time.Unix(prevBlockTime, 0),
@@ -95,8 +104,7 @@ func blockDelayFromBytes(
 }
 
 // Next returns the duration to wait before proposing the next block.
-func (d *blockDelay) Next(curBlockTime time.Time, curBlockHeight int64,
-	targetBlockTime time.Duration) time.Duration {
+func (d *BlockDelay) Next(curBlockTime time.Time, curBlockHeight int64) time.Duration {
 	// Until `timeout_commit` is removed from the CometBFT config,
 	// `FinalizeBlockResponse.NextBlockDelay` can't be exactly 0. If it's set to
 	// 0, then `timeout_commit` from the config will be used, which is not what
@@ -105,13 +113,13 @@ func (d *blockDelay) Next(curBlockTime time.Time, curBlockHeight int64,
 
 	// Reset the initial time and height if the time between blocks is greater
 	// than maxDelayBetweenBlocks.
-	if curBlockTime.Sub(d.PreviousBlockTime) > maxDelayBetweenBlocks {
+	if curBlockTime.Sub(d.PreviousBlockTime) > MaxDelayBetweenBlocks {
 		d.InitialTime = curBlockTime
 		d.InitialHeight = curBlockHeight - 1
 	}
 	d.PreviousBlockTime = curBlockTime
 
-	t := d.InitialTime.Add(targetBlockTime * time.Duration(curBlockHeight-d.InitialHeight))
+	t := d.InitialTime.Add(TargetBlockTime * time.Duration(curBlockHeight-d.InitialHeight))
 	if curBlockTime.Before(t) {
 		return t.Sub(curBlockTime)
 	}
@@ -126,7 +134,7 @@ func (d *blockDelay) Next(curBlockTime time.Time, curBlockHeight int64,
 //	(little endian)
 //
 // Panics if it fails to write to the buffer.
-func (d *blockDelay) ToBytes() []byte {
+func (d *BlockDelay) ToBytes() []byte {
 	buf := new(bytes.Buffer)
 
 	err := binary.Write(buf, binary.LittleEndian, d.InitialTime.Unix())

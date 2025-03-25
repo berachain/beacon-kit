@@ -103,6 +103,8 @@ func (s *Service) finalizeBlockInternal(
 }
 
 // Panics if SBT upgrade parameters are not set.
+//
+//nolint:lll // long message on one line for readability.
 func (s *Service) nextBlockDelay(req *cmtabci.FinalizeBlockRequest) time.Duration {
 	delay := constBlockDelay
 
@@ -116,17 +118,13 @@ func (s *Service) nextBlockDelay(req *cmtabci.FinalizeBlockRequest) time.Duratio
 			if s.sbtUpgradeTime.IsZero() {
 				panic("SBT (stable block time) upgrade detected. --beacon-kit.cometbft.sbt-upgrade-time (block's time where SBT was enabled) must be set")
 			}
-			s.blockDelay = blockDelayUponGenesis(
+			s.blockDelay = BlockDelayUponGenesis(
 				s.sbtUpgradeTime,
 				s.sbtUpgradeHeight,
 			)
-			delay = s.blockDelay.Next(
-				req.Time,
-				req.Height,
-				targetBlockTime,
-			)
+			delay = s.blockDelay.Next(req.Time, req.Height)
 		case req.Height == s.sbtUpgradeHeight: // upgrade is happening now
-			s.blockDelay = blockDelayUponGenesis(
+			s.blockDelay = BlockDelayUponGenesis(
 				req.Time,
 				req.Height,
 			)
@@ -135,28 +133,20 @@ func (s *Service) nextBlockDelay(req *cmtabci.FinalizeBlockRequest) time.Duratio
 		}
 	case s.blockDelay.InitialHeight < s.sbtUpgradeHeight: // height > 0; blockDelay record exists in DB; consecutive (2nd, 3rd, so on) live upgrade
 		// Calculate block delay based on existing checkpoint.
-		delay = s.blockDelay.Next(
-			req.Time,
-			req.Height,
-			targetBlockTime,
-		)
+		delay = s.blockDelay.Next(req.Time, req.Height)
 
 		switch {
 		case req.Height > s.sbtUpgradeHeight: // upgrade happened in the past
 			if s.sbtUpgradeTime.IsZero() {
 				panic("SBT (stable block time) upgrade detected. --beacon-kit.cometbft.sbt-upgrade-time (block's time where SBT was enabled) must be set")
 			}
-			s.blockDelay = blockDelayUponGenesis(
+			s.blockDelay = BlockDelayUponGenesis(
 				s.sbtUpgradeTime,
 				s.sbtUpgradeHeight,
 			)
-			delay = s.blockDelay.Next(
-				req.Time,
-				req.Height,
-				targetBlockTime,
-			)
+			delay = s.blockDelay.Next(req.Time, req.Height)
 		case req.Height == s.sbtUpgradeHeight: // upgrade is happening now
-			s.blockDelay = blockDelayUponGenesis(
+			s.blockDelay = BlockDelayUponGenesis(
 				req.Time,
 				req.Height,
 			)

@@ -95,7 +95,7 @@ type TimeFlag struct {
 func (t *TimeFlag) Set(value string) error {
 	parsedTime, err := time.Parse(time.RFC3339Nano, value)
 	if err != nil {
-		return fmt.Errorf("invalid time format: %v", err)
+		return fmt.Errorf("invalid time format: %w", err)
 	}
 	t.Time = parsedTime
 	return nil

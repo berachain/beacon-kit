@@ -18,20 +18,23 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package cometbft
+package cometbft_test
 
 import (
 	"testing"
 	"time"
 
+	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestBlockDelayUponGenesis(t *testing.T) {
+	t.Parallel()
+
 	genesisTime := time.Now()
 	initialHeight := int64(1)
 
-	d := blockDelayUponGenesis(genesisTime, initialHeight)
+	d := cometbft.BlockDelayUponGenesis(genesisTime, initialHeight)
 
 	assert.Equal(t, genesisTime, d.InitialTime)
 	assert.Equal(t, initialHeight, d.InitialHeight)
@@ -39,14 +42,16 @@ func TestBlockDelayUponGenesis(t *testing.T) {
 }
 
 func TestBlockDelayFromBytes(t *testing.T) {
-	d1 := &blockDelay{
+	t.Parallel()
+
+	d1 := &cometbft.BlockDelay{
 		InitialTime:       time.Now().Add(-10 * time.Minute),
 		InitialHeight:     5,
 		PreviousBlockTime: time.Now().Add(-5 * time.Minute),
 	}
 
 	b := d1.ToBytes()
-	d2 := blockDelayFromBytes(b)
+	d2 := cometbft.BlockDelayFromBytes(b)
 
 	assert.Equal(t, d1.InitialTime.Unix(), d2.InitialTime.Unix())
 	assert.Equal(t, d1.InitialHeight, d2.InitialHeight)
@@ -54,14 +59,16 @@ func TestBlockDelayFromBytes(t *testing.T) {
 }
 
 func TestBlockDelayNext_NoDelay(t *testing.T) {
+	t.Parallel()
+
 	genesisTime := time.Now()
 	initialHeight := int64(1)
-	d := blockDelayUponGenesis(genesisTime, initialHeight)
+	d := cometbft.BlockDelayUponGenesis(genesisTime, initialHeight)
 
 	curBlockTime := genesisTime.Add(10 * time.Second)
 	curBlockHeight := int64(2)
-	targetBlockTime := 5 * time.Second
-	delay := d.Next(curBlockTime, curBlockHeight, targetBlockTime)
+
+	delay := d.Next(curBlockTime, curBlockHeight)
 
 	assert.Equal(t, 1*time.Microsecond, delay)
 
@@ -72,16 +79,18 @@ func TestBlockDelayNext_NoDelay(t *testing.T) {
 }
 
 func TestBlockDelayNext_WithDelay(t *testing.T) {
+	t.Parallel()
+
 	genesisTime := time.Now()
 	initialHeight := int64(1)
-	d := blockDelayUponGenesis(genesisTime, initialHeight)
+	d := cometbft.BlockDelayUponGenesis(genesisTime, initialHeight)
 
 	curBlockTime := genesisTime.Add(8 * time.Second)
 	curBlockHeight := int64(3)
-	targetBlockTime := 5 * time.Second
-	delay := d.Next(curBlockTime, curBlockHeight, targetBlockTime)
 
-	assert.Equal(t, delay, 2*time.Second)
+	delay := d.Next(curBlockTime, curBlockHeight)
+
+	assert.Equal(t, 2*time.Second, delay)
 
 	// InitialTime/Height are not updated, PreviousBlockTime is updated
 	assert.Equal(t, genesisTime, d.InitialTime)
@@ -90,30 +99,33 @@ func TestBlockDelayNext_WithDelay(t *testing.T) {
 }
 
 func TestBlockDelayNext_ResetOnStall(t *testing.T) {
+	t.Parallel()
+
 	genesisTime := time.Now()
 	initialHeight := int64(1)
-	d := blockDelayUponGenesis(genesisTime, initialHeight)
+	d := cometbft.BlockDelayUponGenesis(genesisTime, initialHeight)
 
-	curBlockTime := genesisTime.Add(maxDelayBetweenBlocks + 1*time.Minute)
+	curBlockTime := genesisTime.Add(cometbft.MaxDelayBetweenBlocks + 1*time.Minute)
 	curBlockHeight := int64(10)
-	targetBlockTime := 5 * time.Second
 
-	delay := d.Next(curBlockTime, curBlockHeight, targetBlockTime)
+	delay := d.Next(curBlockTime, curBlockHeight)
 
 	assert.Equal(t, d.InitialTime, curBlockTime)
 	assert.Equal(t, d.InitialHeight, curBlockHeight-1)
-	assert.Equal(t, delay, targetBlockTime)
+	assert.Equal(t, cometbft.TargetBlockTime, delay)
 }
 
 func TestBlockDelaySerialization(t *testing.T) {
-	d := &blockDelay{
+	t.Parallel()
+
+	d := &cometbft.BlockDelay{
 		InitialTime:       time.Now(),
 		InitialHeight:     10,
 		PreviousBlockTime: time.Now().Add(-1 * time.Minute),
 	}
 
 	b := d.ToBytes()
-	d2 := blockDelayFromBytes(b)
+	d2 := cometbft.BlockDelayFromBytes(b)
 
 	assert.Equal(t, d.InitialTime.Unix(), d2.InitialTime.Unix())
 	assert.Equal(t, d.InitialHeight, d2.InitialHeight)

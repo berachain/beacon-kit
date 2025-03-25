@@ -94,7 +94,7 @@ func (s *Service) initChain(
 		return nil, err
 	}
 
-	s.blockDelay = blockDelayUponGenesis(
+	s.blockDelay = BlockDelayUponGenesis(
 		req.Time,
 		req.InitialHeight,
 	)

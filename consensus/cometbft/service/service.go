@@ -51,13 +51,6 @@ import (
 const (
 	initialAppVersion uint64 = 0
 	AppName           string = "beacond"
-
-	// targetBlockTime is the desired block time.
-	//
-	// Note that it CAN'T be lower than the minimal (floor) block time in the
-	// network, which is comprised of the time to a) propose a new block b)
-	// gather 2/3+ prevotes c) gather 2/3+ precommits.
-	targetBlockTime = 2 * time.Second
 )
 
 type Service struct {
@@ -108,7 +101,7 @@ type Service struct {
 	// calculates block delay for the next block
 	//
 	// NOTE: may be nil until either InitChain or FinalizeBlock is called.
-	blockDelay *blockDelay
+	blockDelay *BlockDelay
 
 	// stable block time upgrade height and time
 	sbtUpgradeHeight int64
@@ -169,7 +162,7 @@ func NewService(
 		panic(fmt.Errorf("failed loading block delay: %w", err))
 	}
 	if bz != nil {
-		s.blockDelay = blockDelayFromBytes(bz)
+		s.blockDelay = BlockDelayFromBytes(bz)
 	}
 
 	return s

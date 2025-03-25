@@ -92,6 +92,7 @@ func (sm *Manager) GetCommitMultiStore() storetypes.CommitMultiStore {
 	return sm.cms
 }
 
+//nolint:gochecknoglobals // unexported key
 var blockDelayKey = []byte("blockDelay")
 
 // LoadBlockDelay loads the block delay bytes from the database.
