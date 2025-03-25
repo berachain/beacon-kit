@@ -37,7 +37,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func generateBeaconBlockBody(v common.Version) types.BeaconBlockBody {
+func generateBeaconBlockBody(t *testing.T, v common.Version) types.BeaconBlockBody {
 	versionable := types.NewVersionable(v)
 	body := types.BeaconBlockBody{
 		Versionable:  versionable,
@@ -58,7 +58,7 @@ func generateBeaconBlockBody(v common.Version) types.BeaconBlockBody {
 	body.SetVoluntaryExits(types.VoluntaryExits{})
 	body.SetBlsToExecutionChanges(types.BlsToExecutionChanges{})
 	if version.EqualsOrIsAfter(v, version.Electra()) {
-		body.SetExecutionRequests(&types.ExecutionRequests{})
+		require.NoError(t, body.SetExecutionRequests(&types.ExecutionRequests{}))
 	}
 	return body
 }
@@ -166,7 +166,7 @@ func TestBeaconBlockBody_MarshalSSZ(t *testing.T) {
 func TestBeaconBlockBody_GetTopLevelRoots(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
-		body := generateBeaconBlockBody(v)
+		body := generateBeaconBlockBody(t, v)
 		roots, err := body.GetTopLevelRoots()
 		require.NoError(t, err)
 		require.NotNil(t, roots)
@@ -302,7 +302,7 @@ func TestBeaconBlockBody_UnusedBlsToExecutionChangesEnforcement(t *testing.T) {
 func TestBeaconBlockBody_RoundTrip_HashTreeRoot(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
-		body := generateBeaconBlockBody(v)
+		body := generateBeaconBlockBody(t, v)
 		data, err := body.MarshalSSZ()
 		require.NoError(t, err)
 		require.NotNil(t, data)
