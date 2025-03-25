@@ -32,12 +32,13 @@ import (
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/math/log"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
-func generateBeaconBlockBody(version common.Version) types.BeaconBlockBody {
-	versionable := types.NewVersionable(version)
+func generateBeaconBlockBody(v common.Version) types.BeaconBlockBody {
+	versionable := types.NewVersionable(v)
 	body := types.BeaconBlockBody{
 		Versionable:  versionable,
 		RandaoReveal: [96]byte{1, 2, 3},
@@ -56,6 +57,9 @@ func generateBeaconBlockBody(version common.Version) types.BeaconBlockBody {
 	body.SetSyncAggregate(&types.SyncAggregate{})
 	body.SetVoluntaryExits(types.VoluntaryExits{})
 	body.SetBlsToExecutionChanges(types.BlsToExecutionChanges{})
+	if version.EqualsOrIsAfter(v, version.Electra()) {
+		body.SetExecutionRequests(&types.ExecutionRequests{})
+	}
 	return body
 }
 
@@ -96,7 +100,11 @@ func TestBeaconBlockBody(t *testing.T) {
 		}
 		require.NotNil(t, body.GetExecutionPayload())
 		require.NotNil(t, body.GetBlobKzgCommitments())
-		require.Equal(t, types.BodyLengthDeneb, body.Length())
+		if version.EqualsOrIsAfter(v, version.Electra()) {
+			require.Equal(t, types.BodyLengthElectra, body.Length())
+		} else {
+			require.Equal(t, types.BodyLengthDeneb, body.Length())
+		}
 	})
 }
 
@@ -162,6 +170,11 @@ func TestBeaconBlockBody_GetTopLevelRoots(t *testing.T) {
 		roots, err := body.GetTopLevelRoots()
 		require.NoError(t, err)
 		require.NotNil(t, roots)
+		if version.EqualsOrIsAfter(v, version.Electra()) {
+			require.Equal(t, types.BodyLengthElectra, uint64(len(roots)))
+		} else {
+			require.Equal(t, types.BodyLengthDeneb, uint64(len(roots)))
+		}
 	})
 }
 
