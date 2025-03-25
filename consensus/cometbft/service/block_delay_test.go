@@ -64,6 +64,11 @@ func TestBlockDelayNext_NoDelay(t *testing.T) {
 	delay := d.Next(curBlockTime, curBlockHeight, targetBlockTime)
 
 	assert.Equal(t, 1*time.Microsecond, delay)
+
+	// InitialTime/Height are not updated, PreviousBlockTime is updated
+	assert.Equal(t, genesisTime, d.InitialTime)
+	assert.Equal(t, initialHeight, d.InitialHeight)
+	assert.Equal(t, curBlockTime, d.PreviousBlockTime)
 }
 
 func TestBlockDelayNext_WithDelay(t *testing.T) {
@@ -77,6 +82,11 @@ func TestBlockDelayNext_WithDelay(t *testing.T) {
 	delay := d.Next(curBlockTime, curBlockHeight, targetBlockTime)
 
 	assert.Equal(t, delay, 2*time.Second)
+
+	// InitialTime/Height are not updated, PreviousBlockTime is updated
+	assert.Equal(t, genesisTime, d.InitialTime)
+	assert.Equal(t, initialHeight, d.InitialHeight)
+	assert.Equal(t, curBlockTime, d.PreviousBlockTime)
 }
 
 func TestBlockDelayNext_ResetOnStall(t *testing.T) {

@@ -88,9 +88,9 @@ func blockDelayFromBytes(
 	}
 
 	return &blockDelay{
-		InitialTime:       time.Unix(0, initialTime),
+		InitialTime:       time.Unix(initialTime, 0),
 		InitialHeight:     initialHeight,
-		PreviousBlockTime: time.Unix(0, prevBlockTime),
+		PreviousBlockTime: time.Unix(prevBlockTime, 0),
 	}
 }
 
@@ -109,15 +109,12 @@ func (d *blockDelay) Next(curBlockTime time.Time, curBlockHeight int64,
 		d.InitialTime = curBlockTime
 		d.InitialHeight = curBlockHeight - 1
 	}
+	d.PreviousBlockTime = curBlockTime
 
 	t := d.InitialTime.Add(targetBlockTime * time.Duration(curBlockHeight-d.InitialHeight))
 	if curBlockTime.Before(t) {
 		return t.Sub(curBlockTime)
 	}
-
-	// Update the previous block time.
-	d.PreviousBlockTime = curBlockTime
-
 	return noDelay
 }
 
@@ -132,7 +129,7 @@ func (d *blockDelay) Next(curBlockTime time.Time, curBlockHeight int64,
 func (d *blockDelay) ToBytes() []byte {
 	buf := new(bytes.Buffer)
 
-	err := binary.Write(buf, binary.LittleEndian, d.InitialTime.UnixNano())
+	err := binary.Write(buf, binary.LittleEndian, d.InitialTime.Unix())
 	if err != nil {
 		panic(fmt.Sprintf("failed to write InitialTime: %v", err))
 	}
@@ -140,7 +137,7 @@ func (d *blockDelay) ToBytes() []byte {
 	if err != nil {
 		panic(fmt.Sprintf("failed to write InitialHeight: %v", err))
 	}
-	err = binary.Write(buf, binary.LittleEndian, d.PreviousBlockTime.UnixNano())
+	err = binary.Write(buf, binary.LittleEndian, d.PreviousBlockTime.Unix())
 	if err != nil {
 		panic(fmt.Sprintf("failed to write PreviousBlockTime: %v", err))
 	}
