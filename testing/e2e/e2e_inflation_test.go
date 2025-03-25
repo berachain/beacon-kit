@@ -21,6 +21,7 @@
 package e2e_test
 
 import (
+	"fmt"
 	"math/big"
 
 	"github.com/berachain/beacon-kit/config/spec"
@@ -35,16 +36,23 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 	chainspec, err := spec.DevnetChainSpec()
 	s.Require().NoError(err)
 
-	// TODO(fork): figure out how to properly calculate this slot based on timestamp
-	deneb1ForkSlot := chainspec.Deneb1ForkTime() / chainspec.TargetSecondsPerEth1Block()
-
 	// Check over the first epoch before Deneb1, the balance of the Devnet EVM inflation address
 	// increases by DevnetEVMInflationPerBlock.
 	preForkInflation := chainspec.EVMInflationPerBlock(0)
 	preForkAddress := chainspec.EVMInflationAddress(0)
-	for blkNum := range int64(deneb1ForkSlot) {
+
+	var blkNum int64
+	for {
 		err = s.WaitForFinalizedBlockNumber(uint64(blkNum))
 		s.Require().NoError(err)
+		payload, err := s.JSONRPCBalancer().BlockByNumber(s.Ctx(), big.NewInt(blkNum))
+		s.Require().NoError(err)
+
+		payloadTime := payload.Time()
+		if payloadTime >= chainspec.Deneb1ForkTime() {
+			fmt.Printf("DEBUG: finished EVM inflation preFork %d :: %d\n", payloadTime, chainspec.Deneb1ForkTime())
+			break
+		}
 
 		expectedBalance := new(big.Int).Mul(
 			new(big.Int).SetUint64(preForkInflation*params.GWei),
@@ -63,6 +71,7 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 			"balance", balance,
 			"expectedBalance", expectedBalance,
 		)
+		blkNum++
 	}
 
 	// Check over the first epoch after Deneb1, the balance of the Devnet EVM inflation address
@@ -76,24 +85,27 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 	// take the snapshot of balance right before the fork and check it won't change anymore
 	var preForkAddressFinalBalance *big.Int
 	preForkAddressFinalBalance, err = s.JSONRPCBalancer().BalanceAt(
-		s.Ctx(), gethcommon.Address(preForkAddress), big.NewInt(int64(deneb1ForkSlot-1)),
+		s.Ctx(), gethcommon.Address(preForkAddress), big.NewInt(blkNum-1),
 	)
 	s.Require().NoError(err)
 
-	for blkNum := deneb1ForkSlot; blkNum < deneb1ForkSlot+chainspec.SlotsPerEpoch(); blkNum++ {
-		err = s.WaitForFinalizedBlockNumber(blkNum)
+	// TODO(fork): 2*slotsPerEpoch is arbitrary. This can be made better.
+	startSlot := blkNum
+	endSlot := int64(2 * chainspec.SlotsPerEpoch())
+	for ; blkNum < endSlot; blkNum++ {
+		err = s.WaitForFinalizedBlockNumber(uint64(blkNum))
 		s.Require().NoError(err)
 
 		expectedBalance := new(big.Int).Mul(
 			new(big.Int).SetUint64(postForkInflation*params.GWei),
-			big.NewInt(int64(blkNum-(deneb1ForkSlot-1))),
+			big.NewInt(blkNum-startSlot+1),
 		)
 
 		var balance *big.Int
 		balance, err = s.JSONRPCBalancer().BalanceAt(
 			s.Ctx(),
 			gethcommon.Address(postForkAddress),
-			big.NewInt(int64(blkNum)),
+			big.NewInt(blkNum),
 		)
 		s.Require().NoError(err)
 		s.Require().Zero(balance.Cmp(expectedBalance),
