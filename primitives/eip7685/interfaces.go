@@ -26,6 +26,8 @@
 package eip7685
 
 import (
+	"context"
+
 	"github.com/karalabe/ssz"
 )
 
@@ -39,4 +41,8 @@ type sszMarshaler interface {
 type sszUnmarshaler interface {
 	ssz.Object
 	ValidateAfterDecodingSSZ() error // once unmarshalled we will check whether type syntax is correct
+}
+
+type rpcClient interface {
+	Call(ctx context.Context, target any, method string, params ...any) error
 }
