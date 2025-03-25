@@ -18,32 +18,16 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package config
+package types
 
-import (
-	"net/http"
+type SpecResponse struct {
+	Data SpecData `json:"data"`
+}
 
-	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/node-api/handlers"
-)
-
-func (h *Handler) RegisterRoutes(logger log.Logger) {
-	h.SetLogger(logger)
-	h.BaseHandler.AddRoutes([]*handlers.Route{
-		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v1/config/fork_schedule",
-			Handler: h.NotImplemented,
-		},
-		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v1/config/spec",
-			Handler: h.GetSpec,
-		},
-		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v1/config/deposit_contract",
-			Handler: h.NotImplemented,
-		},
-	})
+type SpecData struct {
+	DepositContractAddress          string `json:"DEPOSIT_CONTRACT_ADDRESS"`
+	DepositNetworkID                string `json:"DEPOSIT_NETWORK_ID"`
+	DomainAggregateAndProof         string `json:"DOMAIN_AGGREGATE_AND_PROOF"`
+	InactivityPenaltyQuotient       string `json:"INACTIVITY_PENALTY_QUOTIENT"`
+	InactivityPenaltyQuotientAltair string `json:"INACTIVITY_PENALTY_QUOTIENT_ALTAIR"`
 }
