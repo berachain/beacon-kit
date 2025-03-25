@@ -76,7 +76,7 @@ func (s *Service) finalizeBlockInternal(
 		}
 	}
 
-	finalizeBlock, err := s.Blockchain.FinalizeBlock(
+	finalizedValidatorUpdates, err := s.Blockchain.FinalizeBlock(
 		s.finalizeBlockState.Context(),
 		req,
 	)
@@ -85,7 +85,7 @@ func (s *Service) finalizeBlockInternal(
 	}
 
 	valUpdates, err := iter.MapErr(
-		finalizeBlock,
+		finalizedValidatorUpdates,
 		convertValidatorUpdate[cmtabci.ValidatorUpdate],
 	)
 	if err != nil {
