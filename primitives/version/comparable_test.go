@@ -95,7 +95,7 @@ func TestIsBefore(t *testing.T) {
 	}
 }
 
-func TestIsBeforeOrAt(t *testing.T) {
+func TestIsBeforeOrEquals(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name     string
@@ -131,7 +131,7 @@ func TestIsBeforeOrAt(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			result := version.IsBeforeOrAt(tc.a, tc.b)
+			result := version.IsBeforeOrEquals(tc.a, tc.b)
 			require.Equal(t, tc.expected, result)
 		})
 	}
@@ -227,7 +227,7 @@ func TestIsAfter(t *testing.T) {
 	}
 }
 
-func TestIsAtOrAfter(t *testing.T) {
+func TestEqualsOrIsAfter(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name     string
@@ -263,7 +263,7 @@ func TestIsAtOrAfter(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			result := version.IsAtOrAfter(tc.a, tc.b)
+			result := version.EqualsOrIsAfter(tc.a, tc.b)
 			require.Equal(t, tc.expected, result)
 		})
 	}

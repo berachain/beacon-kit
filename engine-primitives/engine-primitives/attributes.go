@@ -96,7 +96,7 @@ func (p *PayloadAttributes) Validate() error {
 	}
 
 	// For any fork version Capella onwards, withdrawals are required.
-	if p.Withdrawals == nil && version.IsAtOrAfter(p.forkVersion, version.Capella()) {
+	if p.Withdrawals == nil && version.EqualsOrIsAfter(p.forkVersion, version.Capella()) {
 		return ErrNilWithdrawals
 	}
 

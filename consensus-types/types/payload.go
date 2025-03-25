@@ -95,7 +95,7 @@ func NewEmptyExecutionPayloadWithVersion(forkVersion common.Version) *ExecutionP
 	}
 
 	// For any fork version Capella onwards, non-nil withdrawals are required.
-	if version.IsAtOrAfter(forkVersion, version.Capella()) {
+	if version.EqualsOrIsAfter(forkVersion, version.Capella()) {
 		ep.Withdrawals = make([]*engineprimitives.Withdrawal, 0)
 	}
 	return ep
@@ -171,7 +171,7 @@ func (p *ExecutionPayload) MarshalSSZ() ([]byte, error) {
 
 func (p *ExecutionPayload) ValidateAfterDecodingSSZ() error {
 	// For any fork version Capella onwards, non-nil withdrawals are required.
-	if p.Withdrawals == nil && version.IsAtOrAfter(p.GetForkVersion(), version.Bellatrix()) {
+	if p.Withdrawals == nil && version.EqualsOrIsAfter(p.GetForkVersion(), version.Bellatrix()) {
 		p.Withdrawals = make([]*engineprimitives.Withdrawal, 0)
 	}
 	return nil

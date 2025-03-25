@@ -63,8 +63,8 @@ func IsBefore(a, b common.Version) bool {
 	return false
 }
 
-// IsBeforeOrAt returns true if a is before or at the same version as b.
-func IsBeforeOrAt(a, b common.Version) bool {
+// IsBeforeOrEquals returns true if a is before or at the same version as b.
+func IsBeforeOrEquals(a, b common.Version) bool {
 	return !IsAfter(a, b)
 }
 
@@ -79,7 +79,7 @@ func IsAfter(a, b common.Version) bool {
 	return !IsBefore(a, b) && !Equals(a, b)
 }
 
-// IsAtOrAfter returns true if a is the same version as b or after.
-func IsAtOrAfter(a, b common.Version) bool {
+// EqualsOrIsAfter returns true if a is the same version as b or after.
+func EqualsOrIsAfter(a, b common.Version) bool {
 	return !IsBefore(a, b)
 }
