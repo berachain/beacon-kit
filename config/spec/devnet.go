@@ -67,7 +67,8 @@ func DevnetChainSpecData() *chain.SpecData {
 	specData.Deneb1ForkTime = devnetDeneb1ForkTime
 
 	// Electra fork takes place at timestamp estimated to be around epoch 2.
-	specData.ElectraForkTime = devnetElectraForkTime
+	// TODO(fork): Set to devnetElectraForkTime when ready.
+	specData.ElectraForkTime = defaultElectraForkTime
 
 	// EVM inflation is different from mainnet to test.
 	specData.EVMInflationAddressGenesis = common.NewExecutionAddressFromHex(devnetEVMInflationAddress)
