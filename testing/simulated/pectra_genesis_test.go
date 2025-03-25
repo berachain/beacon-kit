@@ -157,6 +157,9 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithRequests_IsSuccessful() {
 	elChainID := big.NewInt(int64(s.TestNode.ChainSpec.DepositEth1ChainID()))
 	signer := types.NewPragueSigner(elChainID)
 
+	fee, err := eip7002.GetWithdrawalFee(s.CtxApp, s.TestNode.EngineClient)
+	s.Require().NoError(err)
+
 	withdrawalTxData, err := eip7002.CreateWithdrawalRequestData(blsSigner.PublicKey(), 3456)
 	s.Require().NoError(err)
 	withdrawalTx := types.MustSignNewTx(senderKey, signer, &types.DynamicFeeTx{
@@ -166,7 +169,7 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithRequests_IsSuccessful() {
 		Gas:       500_000,
 		GasFeeCap: big.NewInt(1000000000),
 		GasTipCap: big.NewInt(1000000000),
-		Value:     big.NewInt(100),
+		Value:     fee,
 		Data:      withdrawalTxData,
 	})
 

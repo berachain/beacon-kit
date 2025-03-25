@@ -29,21 +29,34 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
+	"math/big"
 
+	"github.com/berachain/beacon-kit/errors"
 	beaconbytes "github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/ethereum/go-ethereum/params"
 )
 
+type feeOpts struct {
+	To string `json:"to"`
+}
+
 // GetWithdrawalFee returns the withdrawal fee in wei. See https://eips.ethereum.org/EIPS/eip-7002 for more.
-func GetWithdrawalFee(ctx context.Context, client rpcClient) (math.U64, error) {
-	var result math.U64
-	err := client.Call(ctx, &result, "eth_call", params.WithdrawalQueueAddress)
-	if err != nil {
-		return 0, err
+func GetWithdrawalFee(ctx context.Context, client rpcClient) (*big.Int, error) {
+	var result string
+	feeInput := &feeOpts{
+		To: params.WithdrawalQueueAddress.String(),
 	}
-	return result, nil
+	err := client.Call(ctx, &result, "eth_call", feeInput)
+	if err != nil {
+		return nil, err
+	}
+	n, ok := new(big.Int).SetString(result, 0)
+	if !ok {
+		return nil, errors.New("error converting hex string to big.Int")
+	}
+	return n, nil
 }
 
 // CreateWithdrawalRequestData returns the request body formatted as defined by the EIP-7002 specification.
