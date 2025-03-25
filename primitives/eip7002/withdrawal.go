@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package eip7685
+package eip7002
 
 import (
 	"bytes"
@@ -33,16 +33,13 @@ import (
 	beaconbytes "github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/ethereum/go-ethereum/params"
 )
-
-// WithdrawalRequestPredeployAddress is a spec defined address for the withdrawal contract
-const WithdrawalRequestPredeployAddress = "0x00000961Ef480Eb55e80D19ad83579A64c007002"
-const ethCall = "eth_call"
 
 // GetWithdrawalFee returns the withdrawal fee in wei. See https://eips.ethereum.org/EIPS/eip-7002 for more.
 func GetWithdrawalFee(ctx context.Context, client rpcClient) (math.U64, error) {
 	var result math.U64
-	err := client.Call(ctx, &result, ethCall, WithdrawalRequestPredeployAddress)
+	err := client.Call(ctx, &result, "eth_call", params.WithdrawalQueueAddress)
 	if err != nil {
 		return 0, err
 	}
@@ -50,7 +47,7 @@ func GetWithdrawalFee(ctx context.Context, client rpcClient) (math.U64, error) {
 }
 
 // CreateWithdrawalRequestData returns the request body formatted as defined by the EIP-7002 specification.
-func CreateWithdrawalRequestData(blsPubKey crypto.BLSPubkey, withdrawAmount math.U64) (beaconbytes.Bytes, error) {
+func CreateWithdrawalRequestData(blsPubKey crypto.BLSPubkey, withdrawAmount math.Gwei) (beaconbytes.Bytes, error) {
 	// Create a buffer to hold the packed encoding.
 	var packed bytes.Buffer
 	if _, err := packed.Write(blsPubKey[:]); err != nil {

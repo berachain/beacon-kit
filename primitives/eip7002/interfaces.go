@@ -19,24 +19,14 @@
 // OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
 // NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
 // HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WdeHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package eip7685
+package eip7002
 
-import (
-	"github.com/karalabe/ssz"
-)
+import "context"
 
-// sszMarshaler is an interface for objects that can be marshaled to SSZ format.
-type sszMarshaler interface {
-	// MarshalSSZ marshals the object into SSZ format.
-	MarshalSSZ() ([]byte, error)
-}
-
-// sszUnmarshaler is an interface for objects that can be unmarshaled from SSZ format.
-type sszUnmarshaler interface {
-	ssz.Object
-	ValidateAfterDecodingSSZ() error // once unmarshalled we will check whether type syntax is correct
+type rpcClient interface {
+	Call(ctx context.Context, target any, method string, params ...any) error
 }

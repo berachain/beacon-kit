@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package eip7685_test
+package eip7002_test
 
 import (
 	"encoding/hex"
@@ -31,12 +31,13 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/eip7685"
+	"github.com/berachain/beacon-kit/primitives/eip7002"
 	beaconmath "github.com/berachain/beacon-kit/primitives/math"
 	"github.com/stretchr/testify/require"
 )
 
 func TestCreateWithdrawalRequestData(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name           string
 		pubKey         string
@@ -65,11 +66,12 @@ func TestCreateWithdrawalRequestData(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			blsPubKeyBytes, err := hex.DecodeString(tt.pubKey)
 			require.NoError(t, err)
 			blsPubKey := crypto.BLSPubkey(blsPubKeyBytes)
 			// Call the function under test.
-			result, err := eip7685.CreateWithdrawalRequestData(blsPubKey, beaconmath.U64(tt.withdrawAmount))
+			result, err := eip7002.CreateWithdrawalRequestData(blsPubKey, beaconmath.U64(tt.withdrawAmount))
 			require.NoError(t, err)
 			// Compare the resulting bytes with the expected output.
 			require.Equal(t, tt.expected, result.String())

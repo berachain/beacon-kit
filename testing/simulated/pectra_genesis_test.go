@@ -31,9 +31,9 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/log/phuslu"
+	"github.com/berachain/beacon-kit/primitives/eip7002"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -156,8 +156,9 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithRequests_IsSuccessful() {
 
 	elChainID := big.NewInt(int64(s.TestNode.ChainSpec.DepositEth1ChainID()))
 	signer := types.NewPragueSigner(elChainID)
-	// Field values roughly copies from Geth
-	// https://github.com/ethereum/go-ethereum/blob/39638c81c56db2b2dfe6f51999ffd3029ee212cb/core/blockchain_test.go#L4131-L4130
+
+	withdrawalTxData, err := eip7002.CreateWithdrawalRequestData(blsSigner.PublicKey(), 3456)
+	s.Require().NoError(err)
 	withdrawalTx := types.MustSignNewTx(senderKey, signer, &types.DynamicFeeTx{
 		ChainID:   elChainID,
 		Nonce:     0,
@@ -166,7 +167,7 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithRequests_IsSuccessful() {
 		GasFeeCap: big.NewInt(1000000000),
 		GasTipCap: big.NewInt(1000000000),
 		Value:     big.NewInt(100),
-		Data:      common.FromHex("b917cfdc0d25b72d55cf94db328e1629b7f4fde2c30cdacf873b664416f76a0c7f7cc50c9f72a3cb84be88144cde91250000000000000d80"),
+		Data:      withdrawalTxData,
 	})
 
 	txBytes, err := withdrawalTx.MarshalBinary()
