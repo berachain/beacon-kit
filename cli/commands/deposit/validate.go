@@ -103,7 +103,7 @@ func validateDepositMessage(chainSpec ChainSpec) func(cmd *cobra.Command, args [
 			return err
 		}
 
-		cmd.Printf("✅ Deposit message is valid!")
+		cmd.Println("✅ Deposit message is valid!")
 		return nil
 	}
 }
