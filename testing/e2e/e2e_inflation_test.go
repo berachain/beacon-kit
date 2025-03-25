@@ -21,7 +21,6 @@
 package e2e_test
 
 import (
-	"fmt"
 	"math/big"
 
 	"github.com/berachain/beacon-kit/config/spec"
@@ -45,12 +44,11 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 	for {
 		err = s.WaitForFinalizedBlockNumber(uint64(blkNum))
 		s.Require().NoError(err)
-		payload, err := s.JSONRPCBalancer().BlockByNumber(s.Ctx(), big.NewInt(blkNum))
-		s.Require().NoError(err)
+		payload, errBlk := s.JSONRPCBalancer().BlockByNumber(s.Ctx(), big.NewInt(blkNum))
+		s.Require().NoError(errBlk)
 
 		payloadTime := payload.Time()
 		if payloadTime >= chainspec.Deneb1ForkTime() {
-			fmt.Printf("DEBUG: finished EVM inflation preFork %d :: %d\n", payloadTime, chainspec.Deneb1ForkTime())
 			break
 		}
 
