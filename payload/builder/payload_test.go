@@ -81,7 +81,7 @@ func TestRetrievePayloadSunnyPath(t *testing.T) {
 	ee.payloadEnvToReturn = expectedPayload
 
 	// test and checks
-	payload, err := pb.RetrievePayload(ctx, slot, parentBlockRoot)
+	payload, err := pb.RetrievePayload(ctx, slot, 0, parentBlockRoot)
 	require.NoError(t, err)
 	require.Equal(t, expectedPayload, payload)
 }
@@ -129,7 +129,7 @@ func TestRetrievePayloadNilWithdrawalsListRejected(t *testing.T) {
 	ee.payloadEnvToReturn = faultyPayload
 
 	// test and checks
-	_, err = pb.RetrievePayload(ctx, slot, parentBlockRoot)
+	_, err = pb.RetrievePayload(ctx, slot, 0, parentBlockRoot)
 	require.ErrorIs(t, builder.ErrNilWithdrawals, err)
 }
 

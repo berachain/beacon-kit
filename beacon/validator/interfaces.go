@@ -55,6 +55,7 @@ type PayloadBuilder interface {
 	RetrievePayload(
 		ctx context.Context,
 		slot math.Slot,
+		timestamp uint64,
 		parentBlockRoot common.Root,
 	) (ctypes.BuiltExecutionPayloadEnv, error)
 	// RequestPayloadSync requests a payload for the given slot and
@@ -114,7 +115,7 @@ type ChainSpec interface {
 	SlotsPerHistoricalRoot() uint64
 	DomainTypeRandao() common.DomainType
 	MaxDepositsPerBlock() uint64
-	ActiveForkVersionForSlot(slot math.Slot) common.Version
+	ActiveForkVersionForTimestamp(timestamp uint64) common.Version
 	SlotToEpoch(slot math.Slot) math.Epoch
 	ctypes.ProposerDomain
 }

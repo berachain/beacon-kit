@@ -167,5 +167,5 @@ type PruningChainSpec interface {
 type ServiceChainSpec interface {
 	PruningChainSpec
 	chain.BlobSpec
-	ActiveForkVersionForSlot(slot math.Slot) common.Version
+	ActiveForkVersionForTimestamp(timestamp uint64) common.Version
 }

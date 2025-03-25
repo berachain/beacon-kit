@@ -24,7 +24,6 @@ import (
 	"math/big"
 
 	"github.com/berachain/beacon-kit/config/spec"
-	"github.com/berachain/beacon-kit/primitives/math"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/params"
 )
@@ -36,12 +35,13 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 	chainspec, err := spec.DevnetChainSpec()
 	s.Require().NoError(err)
 
-	deneb1ForkSlot := chainspec.SlotsPerEpoch() * uint64(chainspec.Deneb1ForkEpoch())
+	// TODO(fork): figure out how to properly calculate this slot based on timestamp
+	deneb1ForkSlot := chainspec.Deneb1ForkTime() / chainspec.TargetSecondsPerEth1Block()
 
 	// Check over the first epoch before Deneb1, the balance of the Devnet EVM inflation address
 	// increases by DevnetEVMInflationPerBlock.
-	preForkInflation := chainspec.EVMInflationPerBlock(math.Slot(0))
-	preForkAddress := chainspec.EVMInflationAddress(math.Slot(0))
+	preForkInflation := chainspec.EVMInflationPerBlock(0)
+	preForkAddress := chainspec.EVMInflationAddress(0)
 	for blkNum := range int64(deneb1ForkSlot) {
 		err = s.WaitForFinalizedBlockNumber(uint64(blkNum))
 		s.Require().NoError(err)
@@ -67,10 +67,10 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 
 	// Check over the first epoch after Deneb1, the balance of the Devnet EVM inflation address
 	// post Deneb1 increases by DevnetEVMInflationPerBlockDeneb1.
-	postForkInflation := chainspec.EVMInflationPerBlock(math.Slot(deneb1ForkSlot))
+	postForkInflation := chainspec.EVMInflationPerBlock(chainspec.Deneb1ForkTime())
 	s.Require().NotEqual(preForkInflation, postForkInflation)
 
-	postForkAddress := chainspec.EVMInflationAddress(math.Slot(deneb1ForkSlot))
+	postForkAddress := chainspec.EVMInflationAddress(chainspec.Deneb1ForkTime())
 	s.Require().NotEqual(preForkAddress, postForkAddress)
 
 	// take the snapshot of balance right before the fork and check it won't change anymore

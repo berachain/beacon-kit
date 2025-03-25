@@ -38,8 +38,13 @@ const (
 	// of Gwei) that can be staked.
 	devnetMaxStakeAmount = 4000 * params.GWei
 
-	// devnetDeneb1ForkEpoch is the epoch at which the Deneb1 fork occurs.
-	devnetDeneb1ForkEpoch = 1
+	// devnetDeneb1ForkTime is the timestamp at which the Deneb1 fork occurs. This is
+	// approximately at epoch 1.
+	devnetDeneb1ForkTime = 1 * defaultSlotsPerEpoch * defaultTargetSecondsPerEth1Block
+
+	// devnetElectraForkTime is the timestamp at which the Electra fork occurs. This is
+	// approximately at epoch 2.
+	devnetElectraForkTime = 2 * defaultSlotsPerEpoch * defaultTargetSecondsPerEth1Block
 
 	// devnetEVMInflationAddressDeneb1 is the address of the EVM inflation contract
 	// after the Deneb1 fork.
@@ -58,8 +63,11 @@ func DevnetChainSpecData() *chain.SpecData {
 	specData := MainnetChainSpecData()
 	specData.DepositEth1ChainID = DevnetEth1ChainID
 
-	// Deneb1 fork takes place at epoch 1.
-	specData.Deneb1ForkEpoch = devnetDeneb1ForkEpoch
+	// Deneb1 fork takes place at timestamp estimated to be around epoch 1.
+	specData.Deneb1ForkTime = devnetDeneb1ForkTime
+
+	// Electra fork takes place at timestamp estimated to be around epoch 2.
+	specData.ElectraForkTime = devnetElectraForkTime
 
 	// EVM inflation is different from mainnet to test.
 	specData.EVMInflationAddressGenesis = common.NewExecutionAddressFromHex(devnetEVMInflationAddress)

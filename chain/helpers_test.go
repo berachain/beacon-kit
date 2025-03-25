@@ -35,8 +35,8 @@ import (
 // Create an instance of chainSpec with test data.
 var spec, _ = chain.NewSpec(
 	&chain.SpecData{
-		Deneb1ForkEpoch:                  9,
-		ElectraForkEpoch:                 10,
+		Deneb1ForkTime:                   9 * 32 * 2,
+		ElectraForkTime:                  10 * 32 * 2,
 		SlotsPerEpoch:                    32,
 		MinEpochsForBlobsSidecarsRequest: 5,
 		MaxWithdrawalsPerPayload:         2,
@@ -48,20 +48,20 @@ func TestActiveForkVersionForEpoch(t *testing.T) {
 	t.Parallel()
 	// Define test cases
 	tests := []struct {
-		name     string
-		epoch    math.Epoch
-		expected common.Version
+		name      string
+		timestamp uint64
+		expected  common.Version
 	}{
-		{name: "Before Electra Fork", epoch: 9, expected: version.Deneb1()},
-		{name: "At Electra Fork", epoch: 10, expected: version.Electra()},
-		{name: "After Electra Fork", epoch: 11, expected: version.Electra()},
+		{name: "Before Electra Fork", timestamp: spec.ElectraForkTime() - 1, expected: version.Deneb1()},
+		{name: "At Electra Fork", timestamp: spec.ElectraForkTime(), expected: version.Electra()},
+		{name: "After Electra Fork", timestamp: spec.ElectraForkTime() + 1, expected: version.Electra()},
 	}
 
 	// Run test cases
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			result := spec.ActiveForkVersionForEpoch(tt.epoch)
+			result := spec.ActiveForkVersionForTimestamp(tt.timestamp)
 			require.Equal(t, tt.expected, result, "Test case : %s", tt.name)
 		})
 	}
@@ -89,35 +89,6 @@ func TestSlotToEpoch(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			result := spec.SlotToEpoch(tt.slot)
-			require.Equal(t, tt.expected, result, "Test case : %s", tt.name)
-		})
-	}
-}
-
-// TestActiveForkVersionForSlot tests the ActiveForkVersionForSlot method.
-func TestActiveForkVersionForSlot(t *testing.T) {
-	t.Parallel()
-	// Define test cases
-	tests := []struct {
-		name     string
-		slot     math.Slot
-		expected common.Version
-	}{
-		{name: "Before Electra Fork", slot: 0, expected: version.Deneb()},
-		{
-			name:     "Just Before Electra Fork",
-			slot:     319,
-			expected: version.Deneb1(),
-		},
-		{name: "At Electra Fork", slot: 320, expected: version.Electra()},
-		{name: "After Electra Fork", slot: 640, expected: version.Electra()},
-	}
-
-	// Run test cases
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			result := spec.ActiveForkVersionForSlot(tt.slot)
 			require.Equal(t, tt.expected, result, "Test case : %s", tt.name)
 		})
 	}

@@ -73,8 +73,8 @@ const (
 	// default deposit contract address.
 	mainnetDepositContractAddress = defaultDepositContractAddress
 
-	// mainnetDeneb1ForkEpoch is the epoch at which the Deneb1 fork occurs.
-	mainnetDeneb1ForkEpoch = 2855
+	// mainnetDeneb1ForkTime is the timestamp at which the Deneb1 fork occurs.
+	mainnetDeneb1ForkTime = 2855 // TODO(fork): determine this value based on first Deneb1 block in mainnet.
 
 	// mainnetEVMInflationAddressDeneb1 is the address on the EVM which will receive the
 	// inflation amount of native EVM balance through a withdrawal every block in the Deneb1 fork.
@@ -120,8 +120,8 @@ func MainnetChainSpecData() *chain.SpecData {
 		TargetSecondsPerEth1Block: defaultTargetSecondsPerEth1Block,
 
 		// Fork-related values.
-		Deneb1ForkEpoch:  mainnetDeneb1ForkEpoch,
-		ElectraForkEpoch: defaultElectraForkEpoch,
+		Deneb1ForkTime:  mainnetDeneb1ForkTime,
+		ElectraForkTime: defaultElectraForkTime,
 
 		// State list length constants.
 		EpochsPerHistoricalVector: defaultEpochsPerHistoricalVector,

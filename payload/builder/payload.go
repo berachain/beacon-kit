@@ -75,7 +75,7 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 			FinalizedBlockHash: finalEth1BlockHash,
 		},
 		attrs,
-		pb.chainSpec.ActiveForkVersionForSlot(slot),
+		pb.chainSpec.ActiveForkVersionForTimestamp(timestamp),
 	)
 	payloadID, err := pb.ee.NotifyForkchoiceUpdate(ctx, req)
 	if err != nil {
@@ -138,7 +138,7 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 	}
 
 	// Get the payload from the execution client.
-	return pb.getPayload(ctx, *payloadID, slot)
+	return pb.getPayload(ctx, *payloadID, timestamp)
 }
 
 // RetrievePayload attempts to pull a previously built payload
@@ -148,6 +148,7 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 func (pb *PayloadBuilder) RetrievePayload(
 	ctx context.Context,
 	slot math.Slot,
+	timestamp uint64,
 	parentBlockRoot common.Root,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
 	if !pb.Enabled() {
@@ -162,7 +163,7 @@ func (pb *PayloadBuilder) RetrievePayload(
 	}
 
 	// Get the payload from the execution client.
-	envelope, err := pb.getPayload(ctx, payloadID, slot)
+	envelope, err := pb.getPayload(ctx, payloadID, timestamp)
 	if err != nil {
 		return nil, err
 	}
@@ -197,13 +198,13 @@ func (pb *PayloadBuilder) RetrievePayload(
 func (pb *PayloadBuilder) getPayload(
 	ctx context.Context,
 	payloadID engineprimitives.PayloadID,
-	slot math.U64,
+	timestamp uint64,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
 	envelope, err := pb.ee.GetPayload(
 		ctx,
 		&ctypes.GetPayloadRequest{
 			PayloadID:   payloadID,
-			ForkVersion: pb.chainSpec.ActiveForkVersionForSlot(slot),
+			ForkVersion: pb.chainSpec.ActiveForkVersionForTimestamp(timestamp),
 		},
 	)
 	if err != nil {

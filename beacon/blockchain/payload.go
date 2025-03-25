@@ -74,7 +74,7 @@ func (s *Service) forceSyncUponProcess(
 			SafeBlockHash:      lph.GetParentHash(),
 			FinalizedBlockHash: lph.GetParentHash(),
 		},
-		s.chainSpec.ActiveForkVersionForSlot(slot),
+		s.chainSpec.ActiveForkVersionForTimestamp(lph.GetTimestamp().Unwrap()),
 	)
 	if _, err = s.executionEngine.NotifyForkchoiceUpdate(ctx, req); err != nil {
 		s.logger.Error(
@@ -118,7 +118,7 @@ func (s *Service) forceSyncUponFinalize(
 			SafeBlockHash:      executionPayload.GetParentHash(),
 			FinalizedBlockHash: executionPayload.GetParentHash(),
 		},
-		s.chainSpec.ActiveForkVersionForSlot(beaconBlock.GetSlot()),
+		s.chainSpec.ActiveForkVersionForTimestamp(executionPayload.GetTimestamp().Unwrap()),
 	)
 
 	switch _, err = s.executionEngine.NotifyForkchoiceUpdate(ctx, req); {

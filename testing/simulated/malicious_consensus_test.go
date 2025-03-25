@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/engine-primitives/errors"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
-	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/cometbft/cometbft/abci/types"
 	gethcommon "github.com/ethereum/go-ethereum/common"
@@ -71,7 +70,7 @@ func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_Errors() {
 	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
 		proposal.Txs,
 		blockchain.BeaconBlockTxIndex,
-		s.TestNode.ChainSpec.ActiveForkVersionForSlot(math.Slot(currentHeight)),
+		s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(uint64(proposalTime.Unix())),
 	)
 	s.Require().NoError(err)
 
@@ -100,7 +99,7 @@ func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_Errors() {
 	maliciousBlockSigned, err := ctypes.NewSignedBeaconBlock(
 		maliciousBlock,
 		&ctypes.ForkData{
-			CurrentVersion:        s.TestNode.ChainSpec.ActiveForkVersionForSlot(maliciousBlock.GetSlot()),
+			CurrentVersion:        s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(maliciousBlock.GetTimestamp().Unwrap()),
 			GenesisValidatorsRoot: s.GenesisValidatorsRoot,
 		},
 		s.TestNode.ChainSpec,

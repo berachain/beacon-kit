@@ -76,11 +76,14 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlock_IsSuccessful() {
 	stateHeader, err := stateDB.GetLatestBlockHeader()
 	s.Require().NoError(err)
 
+	lph, err := stateDB.GetLatestExecutionPayloadHeader()
+	s.Require().NoError(err)
+
 	// Unmarshal the beacon block from the ABCI request.
 	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
 		proposals[len(proposals)-1].Txs,
 		blockchain.BeaconBlockTxIndex,
-		s.TestNode.ChainSpec.ActiveForkVersionForSlot(slot),
+		s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(lph.GetTimestamp().Unwrap()),
 	)
 	s.Require().NoError(err)
 	s.Require().Equal(proposedBlock.GetHeader().GetBodyRoot(), stateHeader.GetBodyRoot())
@@ -119,7 +122,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
 		proposal.Txs,
 		blockchain.BeaconBlockTxIndex,
-		s.TestNode.ChainSpec.ActiveForkVersionForSlot(math.Slot(currentHeight)),
+		s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(uint64(consensusTime.Unix())),
 	)
 	s.Require().NoError(err)
 
@@ -156,7 +159,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 	newSignedBlock, err := ctypes.NewSignedBeaconBlock(
 		finalBlock,
 		&ctypes.ForkData{
-			CurrentVersion:        s.TestNode.ChainSpec.ActiveForkVersionForSlot(unsignedBlock.GetSlot()),
+			CurrentVersion:        s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(unsignedBlock.GetTimestamp().Unwrap()),
 			GenesisValidatorsRoot: s.GenesisValidatorsRoot,
 		},
 		s.TestNode.ChainSpec,
@@ -229,7 +232,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessfu
 	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
 		proposal.Txs,
 		blockchain.BeaconBlockTxIndex,
-		s.TestNode.ChainSpec.ActiveForkVersionForSlot(blockHeight),
+		s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(uint64(consensusTime.Unix())),
 	)
 	s.Require().NoError(err)
 
@@ -300,7 +303,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessfu
 	newSignedBlock, err := ctypes.NewSignedBeaconBlock(
 		proposedBlockMessage,
 		&ctypes.ForkData{
-			CurrentVersion:        s.TestNode.ChainSpec.ActiveForkVersionForSlot(proposedBlockMessage.GetSlot()),
+			CurrentVersion:        s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(proposedBlockMessage.GetTimestamp().Unwrap()),
 			GenesisValidatorsRoot: s.GenesisValidatorsRoot,
 		},
 		s.TestNode.ChainSpec,

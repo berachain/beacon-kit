@@ -31,6 +31,9 @@ const (
 	GenesisSlot math.Slot = 0
 	// GenesisEpoch represents the initial epoch in the system.
 	GenesisEpoch math.Epoch = 0
+	// TODO(fork): figure out genesis time
+	// GenesisTime represents the initial time in the system
+	GenesisTime uint64 = 0
 	// FarFutureEpoch represents a far future epoch value.
 	FarFutureEpoch = ^uint64(0)
 )

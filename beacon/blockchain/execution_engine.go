@@ -55,7 +55,9 @@ func (s *Service) sendPostBlockFCU(
 			SafeBlockHash:      lph.GetParentHash(),
 			FinalizedBlockHash: lph.GetParentHash(),
 		},
-		s.chainSpec.ActiveForkVersionForSlot(beaconBlk.GetSlot()),
+		// TODO(fork): Is this the correct fork version?? sending head block as lph, but using
+		// current blk timestamp as the forkVersion timestamp?
+		s.chainSpec.ActiveForkVersionForTimestamp(beaconBlk.GetTimestamp().Unwrap()),
 	)
 	if _, err = s.executionEngine.NotifyForkchoiceUpdate(ctx, req); err != nil {
 		return fmt.Errorf("failed forkchoice update, head %s: %w",

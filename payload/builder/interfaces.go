@@ -61,5 +61,5 @@ type ExecutionEngine interface {
 }
 
 type ChainSpec interface {
-	ActiveForkVersionForSlot(slot math.Slot) common.Version
+	ActiveForkVersionForTimestamp(timestamp uint64) common.Version
 }

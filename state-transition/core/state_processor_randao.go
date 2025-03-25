@@ -58,7 +58,8 @@ func (sp *StateProcessor) processRandaoReveal(
 	epoch := sp.cs.SlotToEpoch(slot)
 	body := blk.GetBody()
 
-	fd := ctypes.NewForkData(sp.cs.ActiveForkVersionForEpoch(epoch), genesisValidatorsRoot)
+	timestamp := blk.GetTimestamp().Unwrap()
+	fd := ctypes.NewForkData(sp.cs.ActiveForkVersionForTimestamp(timestamp), genesisValidatorsRoot)
 
 	if ctx.VerifyRandao() {
 		signingRoot := fd.ComputeRandaoSigningRoot(sp.cs.DomainTypeRandao(), epoch)

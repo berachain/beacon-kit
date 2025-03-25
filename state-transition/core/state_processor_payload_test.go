@@ -32,7 +32,6 @@ import (
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -144,7 +143,7 @@ func TestPayloadTimestampVerification(t *testing.T) {
 				types.NewEth1Data(genDeposits.HashTreeRoot()),
 				math.U64(tt.payloadTime.Unix()),
 				nil,
-				testSt.EVMInflationWithdrawal(constants.GenesisSlot+1),
+				testSt.EVMInflationWithdrawal(uint64(tt.payloadTime.Unix())),
 			)
 
 			_, err = sp.Transition(tCtx, testSt, blk)

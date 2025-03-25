@@ -61,10 +61,7 @@ func (s *Service) BuildBlockAndSidecars(
 	// and safe block hashes to the execution client.
 	st := s.sb.StateFromContext(ctx)
 
-	// we introduce hard forks with the expectation that the height set for the
-	// hard fork is the first height at which new rules apply. So we need to make
-	// sure that when building blocks, we pick the right height. blkSlots is the
-	// height for the next block, which consensus is requesting BeaconKit to build.
+	// blkSlot is the height for the next block, which consensus is requesting BeaconKit to build.
 	blkSlot := slotData.GetSlot()
 
 	// Prepare the state such that it is ready to build a block for
@@ -73,8 +70,13 @@ func (s *Service) BuildBlockAndSidecars(
 		return nil, nil, err
 	}
 
+	// We introduce hard forks with the expectation that the first block proposed after the
+	// hard fork timestamp is when new rules apply. When building blocks, we set the timestamp
+	// now so we can build a block for the correct fork.
+	timestamp := slotData.GetConsensusTime().Unwrap()
+
 	// Build forkdata used for the signing root of the reveal and the sidecars
-	forkData, err := s.buildForkData(st, blkSlot)
+	forkData, err := s.buildForkData(st, timestamp)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -87,7 +89,7 @@ func (s *Service) BuildBlockAndSidecars(
 	}
 
 	// Create a new empty block from the current state.
-	blk, err := s.getEmptyBeaconBlockForSlot(st, blkSlot)
+	blk, err := s.getEmptyBeaconBlockForSlot(st, blkSlot, timestamp)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -148,7 +150,7 @@ func (s *Service) BuildBlockAndSidecars(
 
 // getEmptyBeaconBlockForSlot creates a new empty block.
 func (s *Service) getEmptyBeaconBlockForSlot(
-	st *statedb.StateDB, requestedSlot math.Slot,
+	st *statedb.StateDB, requestedSlot math.Slot, timestamp uint64,
 ) (*ctypes.BeaconBlock, error) {
 	// Create a new block.
 	parentBlockRoot, err := st.GetBlockRootAtIndex(
@@ -170,18 +172,18 @@ func (s *Service) getEmptyBeaconBlockForSlot(
 		requestedSlot,
 		proposerIndex,
 		parentBlockRoot,
-		s.chainSpec.ActiveForkVersionForSlot(requestedSlot),
+		s.chainSpec.ActiveForkVersionForTimestamp(timestamp),
 	)
 }
 
-func (s *Service) buildForkData(st *statedb.StateDB, slot math.Slot) (*ctypes.ForkData, error) {
+func (s *Service) buildForkData(st *statedb.StateDB, timestamp uint64) (*ctypes.ForkData, error) {
 	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
 	if err != nil {
 		return nil, err
 	}
 
 	return ctypes.NewForkData(
-		s.chainSpec.ActiveForkVersionForSlot(slot),
+		s.chainSpec.ActiveForkVersionForTimestamp(timestamp),
 		genesisValidatorsRoot,
 	), nil
 }
@@ -215,6 +217,7 @@ func (s *Service) retrieveExecutionPayload(
 	envelope, err := s.localPayloadBuilder.RetrievePayload(
 		ctx,
 		blk.GetSlot(),
+		slotData.GetConsensusTime().Unwrap(),
 		blk.GetParentBlockRoot(),
 	)
 	if err == nil {

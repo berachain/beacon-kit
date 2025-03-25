@@ -72,7 +72,8 @@ func (s *Service) ProcessProposal(
 		req,
 		BeaconBlockTxIndex,
 		BlobSidecarsTxIndex,
-		s.chainSpec.ActiveForkVersionForSlot(math.Slot(req.Height))) // #nosec G115
+		// TODO(fork): ensure req.GetTime() is same fork version for time in BeaconBlock somehow.
+		s.chainSpec.ActiveForkVersionForTimestamp(uint64(req.GetTime().Unix()))) //#nosec: G115
 	if err != nil {
 		return err
 	}
