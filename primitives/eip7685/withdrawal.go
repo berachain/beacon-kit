@@ -53,7 +53,9 @@ func GetWithdrawalFee(ctx context.Context, client rpcClient) (math.U64, error) {
 func CreateWithdrawalRequestData(blsPubKey crypto.BLSPubkey, withdrawAmount math.U64) (beaconbytes.Bytes, error) {
 	// Create a buffer to hold the packed encoding.
 	var packed bytes.Buffer
-	packed.Write(blsPubKey[:])
+	if _, err := packed.Write(blsPubKey[:]); err != nil {
+		return nil, err
+	}
 	// Write the uint64 value in big-endian order.
 	if err := binary.Write(&packed, binary.BigEndian, withdrawAmount); err != nil {
 		return nil, err
