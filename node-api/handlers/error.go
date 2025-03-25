@@ -20,17 +20,19 @@
 
 package handlers
 
+import "fmt"
+
 // HTTPError represents an HTTP error response.
 type HTTPError struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
 }
 
-// NewHTTPError creates a new HTTPError.
-func NewHTTPError(code int, message string) *HTTPError {
+// NewHTTPError creates a new HTTPError with a formatted message.
+func NewHTTPError(code int, message string, args ...any) *HTTPError {
 	return &HTTPError{
 		Code:    code,
-		Message: message,
+		Message: fmt.Sprintf(message, args...),
 	}
 }
 
