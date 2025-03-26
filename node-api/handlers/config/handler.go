@@ -24,13 +24,15 @@ import "github.com/berachain/beacon-kit/node-api/handlers"
 
 type Handler struct {
 	*handlers.BaseHandler
+	backend Backend
 }
 
-func NewHandler() *Handler {
+func NewHandler(backend Backend) *Handler {
 	h := &Handler{
 		BaseHandler: handlers.NewBaseHandler(
 			handlers.NewRouteSet(""),
 		),
+		backend: backend,
 	}
 	return h
 }
