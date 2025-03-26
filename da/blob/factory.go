@@ -128,15 +128,19 @@ func (f *SidecarFactory) BuildBlockBodyProof(
 ) ([]common.Root, error) {
 	startTime := time.Now()
 	defer f.metrics.measureBuildBlockBodyProofDuration(startTime)
+	tlrs, err := body.GetTopLevelRoots()
+	if err != nil {
+		return nil, err
+	}
 	tree, err := merkle.NewTreeWithMaxLeaves[common.Root](
-		body.GetTopLevelRoots(),
+		tlrs,
 		body.Length()-1,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	return tree.MerkleProof(ctypes.KZGPositionDeneb)
+	return tree.MerkleProof(ctypes.KZGPosition)
 }
 
 // BuildCommitmentProof builds a commitment proof.
