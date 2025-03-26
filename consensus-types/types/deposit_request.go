@@ -24,7 +24,6 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/primitives/eip7685"
-	"github.com/karalabe/ssz"
 )
 
 const MaxDepositRequestsPerPayload = 8192
@@ -49,12 +48,11 @@ func DecodeDepositRequests(data []byte) (DepositRequests, error) {
 				"payload, got %d max %d", len(data), maxSize,
 		)
 	}
-	depositSize := int(ssz.Size(&Deposit{}))
-	if len(data) < depositSize {
-		return nil, fmt.Errorf("invalid deposit requests SSZ size, got %d expected at least %d", len(data), depositSize)
+	if len(data) < DepositSize {
+		return nil, fmt.Errorf("invalid deposit requests SSZ size, got %d expected at least %d", len(data), DepositSize)
 	}
 	// Use the generic unmarshalItems helper.
-	items, err := eip7685.UnmarshalItems[*DepositRequest](data, depositSize, func() *Deposit { return new(DepositRequest) })
+	items, err := eip7685.UnmarshalItems[*DepositRequest](data, DepositSize, func() *Deposit { return new(DepositRequest) })
 	if err != nil {
 		return nil, err
 	}
