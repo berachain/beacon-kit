@@ -29,12 +29,11 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/cli/commands/genesis"
 	"github.com/berachain/beacon-kit/cli/commands/initialize"
 	genesisutils "github.com/berachain/beacon-kit/cli/utils/genesis"
-	"github.com/berachain/beacon-kit/config/spec"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
-	"github.com/berachain/beacon-kit/node-core/components"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	cmtcfg "github.com/cometbft/cometbft/config"
@@ -47,19 +46,12 @@ const TestnetBeaconChainID = "testnet-beacon-80069"
 // InitializeHomeDir sets up a temporary home directory with the necessary genesis state
 // and configuration files for testing. It returns the configured CometBFT config along with
 // the computed genesis validators root.
-func InitializeHomeDir(t *testing.T, tempHomeDir string, elGenesisPath string) (*cmtcfg.Config, common.Root) {
+func InitializeHomeDir(t *testing.T, chainSpec chain.Spec, tempHomeDir string, elGenesisPath string) (*cmtcfg.Config, common.Root) {
 	t.Helper()
 
 	t.Logf("Initializing home directory: %s", tempHomeDir)
 	// Create the default CometBFT configuration using the temporary home directory.
 	cometConfig := createCometConfig(t, tempHomeDir)
-
-	// Retrieve the testnet chain specification.
-	chainSpec, err := spec.TestnetChainSpec()
-	require.NoError(t, err, "failed to retrieve testnet chain spec")
-
-	// Set the chain spec type environment variable.
-	t.Setenv(components.ChainSpecTypeEnvVar, components.TestnetChainSpecType)
 
 	// Run initialization command to mimic 'beacond init'
 	initCommand(t, cometConfig.RootDir)
@@ -73,7 +65,7 @@ func InitializeHomeDir(t *testing.T, tempHomeDir string, elGenesisPath string) (
 	withdrawalAddress := common.NewExecutionAddressFromHex("0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4")
 
 	// Add a genesis deposit.
-	err = genesis.AddGenesisDeposit(chainSpec, cometConfig, blsSigner, depositAmount, withdrawalAddress, "")
+	err := genesis.AddGenesisDeposit(chainSpec, cometConfig, blsSigner, depositAmount, withdrawalAddress, "")
 	require.NoError(t, err, "failed to add genesis deposit")
 
 	// Collect the genesis deposit.
