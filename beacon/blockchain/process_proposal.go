@@ -152,8 +152,7 @@ func (s *Service) ProcessProposal(
 		}
 	}
 
-	// Process the block
-	// NOTE: the consensusBlk.GetConsensusTime() must NOT be used to determine the fork version.
+	// Process the block.
 	consensusBlk := types.NewConsensusBlock(
 		blk,
 		req.GetProposerAddress(),
@@ -162,6 +161,8 @@ func (s *Service) ProcessProposal(
 	err = s.VerifyIncomingBlock(
 		ctx,
 		consensusBlk.GetBeaconBlock(),
+		// The ConsensusTime() should only be used to validate the block timestamp. For all other
+		// timestamp needs, make sure to use the block timestamp.
 		consensusBlk.GetConsensusTime(),
 		consensusBlk.GetProposerAddress(),
 	)
