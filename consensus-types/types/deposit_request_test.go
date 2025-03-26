@@ -25,8 +25,8 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/decoder"
 	enginev1 "github.com/prysmaticlabs/prysm/v5/proto/engine/v1"
 	"github.com/stretchr/testify/require"
 )
@@ -193,7 +193,7 @@ func TestDepositRequest_ValidValuesSSZ(t *testing.T) {
 
 			// Unmarshal back into a new DepositRequest.
 			var recomputedDepositRequest types.DepositRequest
-			err = decoder.SSZUnmarshal(prysmDepositBytes, &recomputedDepositRequest)
+			err = constraints.SSZUnmarshal(prysmDepositBytes, &recomputedDepositRequest)
 			require.NoError(t, err)
 
 			// Compare that the original and recomputed deposit requests match.
@@ -266,7 +266,7 @@ func TestDepositRequest_InvalidValuesUnmarshalSSZ(t *testing.T) {
 		t.Run(fmt.Sprintf("invalidPayload_%d", i), func(t *testing.T) {
 			require.NotPanics(t, func() {
 				var d types.DepositRequest
-				err = decoder.SSZUnmarshal(payload, &d)
+				err = constraints.SSZUnmarshal(payload, &d)
 				// We expect an error for every invalid payload.
 				require.Error(t, err, "expected error for payload %v", payload)
 			})
@@ -329,12 +329,12 @@ func TestDepositRequests_ValidValuesSSZ(t *testing.T) {
 			require.NoError(t, err)
 
 			// Unmarshal back into a new DepositRequest.
-			var recomputedDepositRequest *types.DepositRequests
+			var recomputedDepositRequest types.DepositRequests
 			recomputedDepositRequest, err = types.DecodeDepositRequests(depositRequestBytes)
 			require.NoError(t, err)
 
 			// Compare that the original and recomputed deposit requests match.
-			require.Equal(t, tc.depositRequest, *recomputedDepositRequest)
+			require.Equal(t, tc.depositRequest, recomputedDepositRequest)
 		})
 	}
 }

@@ -27,17 +27,18 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/decoder"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/math/log"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
-func generateBeaconBlockBody(version common.Version) types.BeaconBlockBody {
-	versionable := types.NewVersionable(version)
+func generateBeaconBlockBody(t *testing.T, v common.Version) types.BeaconBlockBody {
+	versionable := types.NewVersionable(v)
 	body := types.BeaconBlockBody{
 		Versionable:  versionable,
 		RandaoReveal: [96]byte{1, 2, 3},
@@ -56,6 +57,9 @@ func generateBeaconBlockBody(version common.Version) types.BeaconBlockBody {
 	body.SetSyncAggregate(&types.SyncAggregate{})
 	body.SetVoluntaryExits(types.VoluntaryExits{})
 	body.SetBlsToExecutionChanges(types.BlsToExecutionChanges{})
+	if version.EqualsOrIsAfter(v, version.Electra()) {
+		require.NoError(t, body.SetExecutionRequests(&types.ExecutionRequests{}))
+	}
 	return body
 }
 
@@ -96,7 +100,11 @@ func TestBeaconBlockBody(t *testing.T) {
 		}
 		require.NotNil(t, body.GetExecutionPayload())
 		require.NotNil(t, body.GetBlobKzgCommitments())
-		require.Equal(t, types.BodyLengthDeneb, body.Length())
+		if version.EqualsOrIsAfter(v, version.Electra()) {
+			require.Equal(t, types.BodyLengthElectra, body.Length())
+		} else {
+			require.Equal(t, types.BodyLengthDeneb, body.Length())
+		}
 	})
 }
 
@@ -158,9 +166,15 @@ func TestBeaconBlockBody_MarshalSSZ(t *testing.T) {
 func TestBeaconBlockBody_GetTopLevelRoots(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
-		body := generateBeaconBlockBody(v)
-		roots := body.GetTopLevelRoots()
+		body := generateBeaconBlockBody(t, v)
+		roots, err := body.GetTopLevelRoots()
+		require.NoError(t, err)
 		require.NotNil(t, roots)
+		if version.EqualsOrIsAfter(v, version.Electra()) {
+			require.Equal(t, types.BodyLengthElectra, uint64(len(roots)))
+		} else {
+			require.Equal(t, types.BodyLengthDeneb, uint64(len(roots)))
+		}
 	})
 }
 
@@ -188,7 +202,7 @@ func TestBeaconBlockBody_UnusedProposerSlashingsEnforcement(t *testing.T) {
 		require.NoError(t, err)
 
 		unmarshalledBody := types.NewEmptyBeaconBlockBodyWithVersion(v)
-		err = decoder.SSZUnmarshal(buf, unmarshalledBody)
+		err = constraints.SSZUnmarshal(buf, unmarshalledBody)
 		require.ErrorContains(t, err, "must be unused")
 	})
 }
@@ -211,7 +225,7 @@ func TestBeaconBlockBody_UnusedAttesterSlashingsEnforcement(t *testing.T) {
 		require.NoError(t, err)
 
 		unmarshalledBody := types.NewEmptyBeaconBlockBodyWithVersion(v)
-		err = decoder.SSZUnmarshal(buf, unmarshalledBody)
+		err = constraints.SSZUnmarshal(buf, unmarshalledBody)
 		require.ErrorContains(t, err, "must be unused")
 	})
 }
@@ -234,7 +248,7 @@ func TestBeaconBlockBody_UnusedAttestationsEnforcement(t *testing.T) {
 		require.NoError(t, err)
 
 		unmarshalledBody := types.NewEmptyBeaconBlockBodyWithVersion(v)
-		err = decoder.SSZUnmarshal(buf, unmarshalledBody)
+		err = constraints.SSZUnmarshal(buf, unmarshalledBody)
 		require.ErrorContains(t, err, "must be unused")
 	})
 }
@@ -257,7 +271,7 @@ func TestBeaconBlockBody_UnusedVoluntaryExitsEnforcement(t *testing.T) {
 		require.NoError(t, err)
 
 		unmarshalledBody := types.NewEmptyBeaconBlockBodyWithVersion(v)
-		err = decoder.SSZUnmarshal(buf, unmarshalledBody)
+		err = constraints.SSZUnmarshal(buf, unmarshalledBody)
 		require.ErrorContains(t, err, "must be unused")
 	})
 }
@@ -280,7 +294,7 @@ func TestBeaconBlockBody_UnusedBlsToExecutionChangesEnforcement(t *testing.T) {
 		require.NoError(t, err)
 
 		unmarshalledBody := types.NewEmptyBeaconBlockBodyWithVersion(v)
-		err = decoder.SSZUnmarshal(buf, unmarshalledBody)
+		err = constraints.SSZUnmarshal(buf, unmarshalledBody)
 		require.ErrorContains(t, err, "must be unused")
 	})
 }
@@ -288,13 +302,13 @@ func TestBeaconBlockBody_UnusedBlsToExecutionChangesEnforcement(t *testing.T) {
 func TestBeaconBlockBody_RoundTrip_HashTreeRoot(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
-		body := generateBeaconBlockBody(v)
+		body := generateBeaconBlockBody(t, v)
 		data, err := body.MarshalSSZ()
 		require.NoError(t, err)
 		require.NotNil(t, data)
 
 		unmarshalledBody := types.NewEmptyBeaconBlockBodyWithVersion(v)
-		err = decoder.SSZUnmarshal(data, unmarshalledBody)
+		err = constraints.SSZUnmarshal(data, unmarshalledBody)
 		require.NoError(t, err)
 		require.Equal(t, body.HashTreeRoot(), unmarshalledBody.HashTreeRoot())
 	})

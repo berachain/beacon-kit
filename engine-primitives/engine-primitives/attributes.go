@@ -95,8 +95,8 @@ func (p *PayloadAttributes) Validate() error {
 		return ErrEmptyPrevRandao
 	}
 
-	// For any fork version after Bellatrix (Capella onwards), withdrawals are required.
-	if p.Withdrawals == nil && version.IsAfter(p.forkVersion, version.Bellatrix()) {
+	// For any fork version Capella onwards, withdrawals are required.
+	if p.Withdrawals == nil && version.EqualsOrIsAfter(p.forkVersion, version.Capella()) {
 		return ErrNilWithdrawals
 	}
 
