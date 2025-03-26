@@ -21,6 +21,8 @@
 package types
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
@@ -32,33 +34,31 @@ import (
 )
 
 const (
-	// BodyLengthDeneb is the number of fields in the BeaconBlockBodyDeneb
-	// struct.
+	// BodyLengthDeneb is the number of fields in the BeaconBlockBody struct for Deneb.
 	BodyLengthDeneb uint64 = 12
 
-	// BodyLengthElectra is the number of fields in the BeaconBlockBodyElectra struct.
-	// TODO(pectra): Ensure this is propagated where necessary
+	// BodyLengthElectra is the number of fields in the BeaconBlockBody struct for Electra.
 	BodyLengthElectra uint64 = 13
 
-	// KZGPositionDeneb is the position of BlobKzgCommitments in the block body.
-	KZGPositionDeneb = BodyLengthDeneb - 1
+	// KZGPosition is the position of BlobKzgCommitments in the block body.
+	KZGPosition uint64 = 11
 
 	// KZGGeneralizedIndex is the index of the KZG commitment root's parent.
-	//     (1 << log2ceil(KZGPositionDeneb)) | KZGPositionDeneb.
+	//     (1 << log2ceil(KZGPosition)) | KZGPosition.
 	KZGGeneralizedIndex = 27
 
-	// KZGRootIndexDeneb is the merkle index of BlobKzgCommitments' root
+	// KZGRootIndex is the merkle index of BlobKzgCommitments' root
 	// in the merkle tree built from the block body.
 	//     2 * KZGGeneralizedIndex.
-	KZGRootIndexDeneb = KZGGeneralizedIndex * 2
+	KZGRootIndex = KZGGeneralizedIndex * 2
 
 	// KZGInclusionProofDepth is the
 	//     Log2Floor(KZGGeneralizedIndex) +
 	//     Log2Ceil(MaxBlobCommitmentsPerBlock) + 1
 	KZGInclusionProofDepth = 17
 
-	// KZGOffsetDeneb is the offset of the KZG commitments in the serialized block body.
-	KZGOffsetDeneb = KZGRootIndexDeneb * constants.MaxBlobCommitmentsPerBlock
+	// KZGOffset is the offset of the KZG commitments in the serialized block body.
+	KZGOffset = KZGRootIndex * constants.MaxBlobCommitmentsPerBlock
 )
 
 // Compile-time assertions to ensure BeaconBlockBody implements necessary interfaces.
@@ -109,7 +109,8 @@ type BeaconBlockBody struct {
 func (b *BeaconBlockBody) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 	syncSize := b.syncAggregate.SizeSSZ(siz)
 	var size = 96 + 72 + 32 + 4 + 4 + 4 + 4 + 4 + syncSize + 4 + 4 + 4
-	if !version.IsBefore(b.GetForkVersion(), version.Electra()) {
+	includeExecRequest := version.EqualsOrIsAfter(b.GetForkVersion(), version.Electra())
+	if includeExecRequest {
 		// Add 4 for the offset of dynamic field ExecutionRequests
 		size += sszDynamicObjectOffset
 	}
@@ -126,7 +127,7 @@ func (b *BeaconBlockBody) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 	size += ssz.SizeDynamicObject(siz, b.ExecutionPayload)
 	size += ssz.SizeSliceOfStaticObjects(siz, b.blsToExecutionChanges)
 	size += ssz.SizeSliceOfStaticBytes(siz, b.BlobKzgCommitments)
-	if !version.IsBefore(b.GetForkVersion(), version.Electra()) {
+	if includeExecRequest {
 		size += ssz.SizeDynamicObject(siz, b.executionRequests)
 	}
 	return size
@@ -149,7 +150,8 @@ func (b *BeaconBlockBody) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineDynamicObjectOffset(codec, &b.ExecutionPayload)
 	ssz.DefineSliceOfStaticObjectsOffset(codec, &b.blsToExecutionChanges, constants.MaxBlsToExecutionChanges)
 	ssz.DefineSliceOfStaticBytesOffset(codec, &b.BlobKzgCommitments, 4096)
-	if !version.IsBefore(b.GetForkVersion(), version.Electra()) {
+	includeExecRequest := version.EqualsOrIsAfter(b.GetForkVersion(), version.Electra())
+	if includeExecRequest {
 		ssz.DefineDynamicObjectOffset(codec, &b.executionRequests)
 	}
 
@@ -162,7 +164,7 @@ func (b *BeaconBlockBody) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineDynamicObjectContent(codec, &b.ExecutionPayload)
 	ssz.DefineSliceOfStaticObjectsContent(codec, &b.blsToExecutionChanges, constants.MaxBlsToExecutionChanges)
 	ssz.DefineSliceOfStaticBytesContent(codec, &b.BlobKzgCommitments, 4096)
-	if !version.IsBefore(b.GetForkVersion(), version.Electra()) {
+	if includeExecRequest {
 		ssz.DefineDynamicObjectContent(codec, &b.executionRequests)
 	}
 }
@@ -213,9 +215,13 @@ func (b *BeaconBlockBody) HashTreeRoot() common.Root {
 	return ssz.HashConcurrent(b)
 }
 
+/* -------------------------------------------------------------------------- */
+/*                              Getters/Setters                               */
+/* -------------------------------------------------------------------------- */
+
 // GetTopLevelRoots returns the top-level roots of the BeaconBlockBody.
-func (b *BeaconBlockBody) GetTopLevelRoots() []common.Root {
-	return []common.Root{
+func (b *BeaconBlockBody) GetTopLevelRoots() ([]common.Root, error) {
+	tlrs := []common.Root{
 		common.Root(b.GetRandaoReveal().HashTreeRoot()),
 		b.Eth1Data.HashTreeRoot(),
 		common.Root(b.GetGraffiti().HashTreeRoot()),
@@ -230,16 +236,33 @@ func (b *BeaconBlockBody) GetTopLevelRoots() []common.Root {
 		// KzgCommitments intentionally left blank - included separately for inclusion proof
 		{},
 	}
+	if version.EqualsOrIsAfter(b.GetForkVersion(), version.Electra()) {
+		er, err := b.GetExecutionRequests()
+		if err != nil {
+			return nil, err
+		}
+		tlrs = append(tlrs, er.HashTreeRoot())
+	}
+
+	// Ensure that the length returned is correct according to the fork version.
+	if uint64(len(tlrs)) != b.Length() {
+		return nil, fmt.Errorf(
+			"top-level roots length (%d) does not match expected body length (%d)",
+			len(tlrs), b.Length(),
+		)
+	}
+
+	return tlrs, nil
 }
 
-// Length returns the number of fields in the BeaconBlockBody struct.
+// Length returns the number of fields in the BeaconBlockBody struct
+// according to the fork version.
 func (b *BeaconBlockBody) Length() uint64 {
-	return BodyLengthDeneb
+	if version.IsBefore(b.GetForkVersion(), version.Electra()) {
+		return BodyLengthDeneb
+	}
+	return BodyLengthElectra
 }
-
-/* -------------------------------------------------------------------------- */
-/*                              Getters/Setters                               */
-/* -------------------------------------------------------------------------- */
 
 func (b *BeaconBlockBody) GetRandaoReveal() crypto.BLSSignature {
 	return b.RandaoReveal

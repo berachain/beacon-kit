@@ -77,7 +77,7 @@ func (cr *ConsolidationRequests) MarshalSSZ() ([]byte, error) {
 }
 
 // DecodeConsolidationRequests decodes SSZ data by decoding each request individually.
-func DecodeConsolidationRequests(data []byte) (*ConsolidationRequests, error) {
+func DecodeConsolidationRequests(data []byte) (ConsolidationRequests, error) {
 	maxSize := maxConsolidationRequestsPerPayload * sszConsolidationRequestSize
 	if len(data) > maxSize {
 		return nil, fmt.Errorf(
@@ -105,5 +105,5 @@ func DecodeConsolidationRequests(data []byte) (*ConsolidationRequests, error) {
 		return nil, err
 	}
 	consolidationRequests := ConsolidationRequests(items)
-	return &consolidationRequests, nil
+	return consolidationRequests, nil
 }

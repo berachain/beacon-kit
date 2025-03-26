@@ -73,7 +73,7 @@ func (wr *WithdrawalRequests) MarshalSSZ() ([]byte, error) {
 }
 
 // DecodeWithdrawalRequests decodes SSZ data by decoding each withdrawal individually.
-func DecodeWithdrawalRequests(data []byte) (*WithdrawalRequests, error) {
+func DecodeWithdrawalRequests(data []byte) (WithdrawalRequests, error) {
 	maxSize := maxWithdrawalRequestsPerPayload * sszWithdrawRequestSize
 	if len(data) > maxSize {
 		return nil, fmt.Errorf(
@@ -94,6 +94,6 @@ func DecodeWithdrawalRequests(data []byte) (*WithdrawalRequests, error) {
 	if err != nil {
 		return nil, err
 	}
-	deposits := WithdrawalRequests(items)
-	return &deposits, nil
+	withdrawals := WithdrawalRequests(items)
+	return withdrawals, nil
 }
