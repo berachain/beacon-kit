@@ -36,11 +36,11 @@ var (
 	bellatrix = common.Version{0x02, 0x00, 0x00, 0x00}
 	// capella is the third hardfork of the Beacon Chain.
 	capella = common.Version{0x03, 0x00, 0x00, 0x00}
-	// deneb is the first version of Deneb, used for genesis of Berachain mainnet.
+	// deneb is the first version of the Deneb hardfork, used for genesis of Berachain mainnet.
 	deneb = common.Version{0x04, 0x00, 0x00, 0x00}
 	// deneb1 is the first hardfork of Deneb on Berachain mainnet.
 	deneb1 = common.Version{0x04, 0x01, 0x00, 0x00}
-	// electra is the first version of Electra on Berachain mainnet.
+	// electra is the first version of the Electra hardfork on Berachain mainnet.
 	electra = common.Version{0x05, 0x00, 0x00, 0x00}
 	// electra1 is the first hardfork of Electra on Berachain mainnet.
 	// TBD if used but kept as an example.

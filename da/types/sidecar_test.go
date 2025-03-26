@@ -245,16 +245,16 @@ func TestHasValidInclusionProof(t *testing.T) {
 func Test_KZGRootIndex(t *testing.T) {
 	t.Parallel()
 	// Level of the KZG commitment root's parent.
-	kzgParentRootLevel := log.ILog2Ceil(ctypes.KZGPositionDeneb)
+	kzgParentRootLevel := log.ILog2Ceil(ctypes.KZGPosition)
 	require.NotEqual(t, 0, kzgParentRootLevel)
 	// Merkle index of the KZG commitment root's parent.
 	// The parent's left child is the KZG commitment root,
 	// and its right child is the KZG commitment size.
-	kzgParentRootIndex := ctypes.KZGPositionDeneb + (1 << kzgParentRootLevel)
+	kzgParentRootIndex := ctypes.KZGPosition + (1 << kzgParentRootLevel)
 	require.Equal(t, uint64(ctypes.KZGGeneralizedIndex), kzgParentRootIndex)
 	// The KZG commitment root is the left child of its parent.
 	// Its Merkle index is the double of its parent's Merkle index.
-	require.Equal(t, 2*kzgParentRootIndex, uint64(ctypes.KZGRootIndexDeneb))
+	require.Equal(t, 2*kzgParentRootIndex, uint64(ctypes.KZGRootIndex))
 }
 
 func TestHashTreeRoot(t *testing.T) {
