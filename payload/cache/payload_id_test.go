@@ -38,7 +38,7 @@ func TestPayloadIDCache(t *testing.T) {
 		var r [32]byte
 		p, ok := cacheUnderTest.GetAndEvict(0, r)
 		require.False(t, ok)
-		require.Equal(t, engineprimitives.PayloadID{}, p)
+		require.Equal(t, engineprimitives.PayloadID{}, p.PayloadID)
 	})
 
 	t.Run("Set and Get", func(t *testing.T) {
@@ -49,7 +49,7 @@ func TestPayloadIDCache(t *testing.T) {
 
 		p, ok := cacheUnderTest.GetAndEvict(slot, r)
 		require.True(t, ok)
-		require.Equal(t, pid, p)
+		require.Equal(t, pid, p.PayloadID)
 	})
 
 	t.Run("Overwrite existing", func(t *testing.T) {
@@ -60,7 +60,7 @@ func TestPayloadIDCache(t *testing.T) {
 
 		p, ok := cacheUnderTest.GetAndEvict(slot, r)
 		require.True(t, ok)
-		require.Equal(t, newPid, p)
+		require.Equal(t, newPid, p.PayloadID)
 	})
 
 	t.Run("Prune and verify deletion", func(t *testing.T) {

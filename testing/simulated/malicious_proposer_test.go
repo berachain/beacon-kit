@@ -67,8 +67,11 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	s.Require().Len(proposals, coreLoopIterations)
 
 	currentHeight := int64(blockHeight + coreLoopIterations)
+
+	// We expected this test to happen during Pre-Deneb1 fork.
+	proposalTime := time.Unix(int64(s.TestNode.ChainSpec.Deneb1ForkTime()-1), 0)
+
 	// Prepare a block proposal.
-	proposalTime := time.Now()
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
 		Time:            proposalTime,
@@ -209,8 +212,10 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobCommitment_Errors() {
 
 	currentHeight := int64(blockHeight + coreLoopIterations)
 
+	// We expected this test to happen during Pre-Deneb1 fork.
+	consensusTime := time.Unix(int64(s.TestNode.ChainSpec.Deneb1ForkTime()-1), 0)
+
 	// Prepare a block proposal.
-	consensusTime := time.Now()
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
 		Time:            consensusTime,
@@ -223,7 +228,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobCommitment_Errors() {
 	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
 		proposal.Txs,
 		blockchain.BeaconBlockTxIndex,
-		s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(math.U64(blockHeight*s.TestNode.ChainSpec.TargetSecondsPerEth1Block())),
+		s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(math.U64(consensusTime.Unix())),
 	)
 	s.Require().NoError(err)
 
@@ -377,8 +382,10 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobInclusionProof_Errors() 
 
 	currentHeight := int64(blockHeight + coreLoopIterations)
 
+	// We expected this test to happen during Pre-Deneb1 fork.
+	consensusTime := time.Unix(int64(s.TestNode.ChainSpec.Deneb1ForkTime()-1), 0)
+
 	// Prepare a block proposal.
-	consensusTime := time.Now()
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
 		Time:            consensusTime,
@@ -391,7 +398,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobInclusionProof_Errors() 
 	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
 		proposal.Txs,
 		blockchain.BeaconBlockTxIndex,
-		s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(math.U64(blockHeight*s.TestNode.ChainSpec.TargetSecondsPerEth1Block())),
+		s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(math.U64(consensusTime.Unix())),
 	)
 	s.Require().NoError(err)
 

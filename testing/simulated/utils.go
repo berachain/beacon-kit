@@ -138,6 +138,7 @@ func (s *SharedAccessors) MoveChainToHeight(
 			Txs:             proposal.Txs,
 			Height:          currentHeight,
 			ProposerAddress: pubkey.Address(),
+			Time:            proposalTime,
 		})
 		require.NoError(t, err)
 		require.NotEmpty(t, finalizeResp)

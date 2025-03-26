@@ -39,7 +39,11 @@ const (
 	devnetMaxStakeAmount = 4000 * params.GWei
 
 	// devnetDeneb1ForkTime is the timestamp at which the Deneb1 fork occurs.
+	// This must be greater than 0.
 	// TODO(fork): Make devnet fork time take place during each devnet test.
+	// Currently the e2e tests start already on the Deneb1 fork, since time.Now()
+	// returns the current time, whereas the Deneb1ForkTime measures the seconds
+	// since the Unix Epoch.
 	devnetDeneb1ForkTime = 1
 
 	// devnetElectraForkTime is the timestamp at which the Electra fork occurs.

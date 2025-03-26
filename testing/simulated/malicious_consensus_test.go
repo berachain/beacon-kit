@@ -57,8 +57,17 @@ func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_Errors() {
 	s.Require().Len(proposals, coreLoopIterations)
 
 	currentHeight := int64(blockHeight + coreLoopIterations)
+
+	// We expected this test to happen during Pre-Deneb1 fork.
+	// TODO(fork): PrepareProposal currently builds a block based on the outcome of the following:
+	//     max(lastExecutionPayloadHeader.Time, proposalTime)
+	// The lastExecutionPayloadHeader is the genesis execution payload, and the timestamp on that
+	// payload is set at genesis. So we must find a way to either:
+	//     a. Set genesis time to 0 for simulated tests
+	//     b. Offset chainspec fork times by the set genesis time for simulated tests
+	proposalTime := time.Unix(int64(s.TestNode.ChainSpec.Deneb1ForkTime()-1), 0)
+
 	// Prepare a block proposal.
-	proposalTime := time.Now()
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
 		Time:            proposalTime,

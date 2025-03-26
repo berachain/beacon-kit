@@ -43,7 +43,8 @@ func (s *Service) FinalizeBlock(
 		req,
 		BeaconBlockTxIndex,
 		BlobSidecarsTxIndex,
-		// TODO(fork): ensure req.GetTime() is same fork version for time in BeaconBlock somehow.
+		// req.GetTime() should ALWAYS be during the same fork version as blk.GetTimestamp()
+		// due to checks during ProcessProposal.
 		s.chainSpec.ActiveForkVersionForTimestamp(math.U64(req.GetTime().Unix()))) //#nosec: G115
 	if err != nil {
 		s.logger.Error("Failed to decode block and blobs", "error", err)

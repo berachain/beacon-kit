@@ -108,8 +108,11 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 	s.Require().Len(proposals, coreLoopIterations)
 
 	currentHeight := int64(blockHeight + coreLoopIterations)
+
+	// We expected this test to happen during Pre-Deneb1 fork.
+	consensusTime := time.Unix(int64(s.TestNode.ChainSpec.Deneb1ForkTime()-1), 0)
+
 	// Prepare a valid block proposal.
-	consensusTime := time.Now()
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
 		Time:            consensusTime,
@@ -218,8 +221,10 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessfu
 
 	currentHeight := int64(blockHeight + coreLoopIterations)
 
+	// We expected this test to happen during Pre-Deneb1 fork.
+	consensusTime := time.Unix(int64(s.TestNode.ChainSpec.Deneb1ForkTime()-1), 0)
+
 	// Prepare a valid block proposal.
-	consensusTime := time.Now()
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
 		Time:            consensusTime,
