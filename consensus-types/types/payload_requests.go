@@ -249,7 +249,7 @@ func makeEthBlock(
 		ParentBeaconRoot: (*gethprimitives.ExecutionHash)(parentBeaconBlockRoot),
 	}
 
-	if version.EqualOrAfter(payload.GetForkVersion(), version.Electra()) {
+	if version.EqualsOrIsAfter(payload.GetForkVersion(), version.Electra()) {
 		if executionRequests == nil {
 			return nil, nil, errors.Wrap(ErrNilValue, "executionRequests is nil after electra in makeEthBlock")
 		}
