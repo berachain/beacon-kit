@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/version"
 	cmtcrypto "github.com/cometbft/cometbft/crypto"
@@ -36,14 +37,25 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func generateFakeSignedBeaconBlock(t *testing.T) *types.SignedBeaconBlock {
+// runForAllSupportedVersions iterates over all supported versions,
+// creating a subtest for each that runs the provided testFunc.
+// TODO(pectra): Find a better home for this function.
+func runForAllSupportedVersions(t *testing.T, testFunc func(t *testing.T, v common.Version)) {
+	t.Helper()
+	for _, v := range version.GetSupportedVersions() {
+		v := v // capture the variable for parallel tests
+		t.Run(v.String(), func(t *testing.T) {
+			t.Parallel()
+			testFunc(t, v)
+		})
+	}
+}
+
+func generateFakeSignedBeaconBlock(t *testing.T, version common.Version) *types.SignedBeaconBlock {
 	t.Helper()
 
-	blk := generateValidBeaconBlock(t)
-	signature := crypto.BLSSignature{}
 	return &types.SignedBeaconBlock{
-		Message:   blk,
-		Signature: signature,
+		BeaconBlock: generateValidBeaconBlock(t, version),
 	}
 }
 
@@ -65,10 +77,10 @@ func generateSigningRoot(blk *types.BeaconBlock) (common.Root, error) {
 	return signingRoot, nil
 }
 
-func generateRealSignedBeaconBlock(t *testing.T, blsSigner crypto.BLSSigner) (*types.SignedBeaconBlock, error) {
+func generateRealSignedBeaconBlock(t *testing.T, blsSigner crypto.BLSSigner, version common.Version) (*types.SignedBeaconBlock, error) {
 	t.Helper()
 
-	blk := generateValidBeaconBlock(t)
+	blk := generateValidBeaconBlock(t, version)
 
 	signingRoot, err := generateSigningRoot(blk)
 	if err != nil {
@@ -79,104 +91,120 @@ func generateRealSignedBeaconBlock(t *testing.T, blsSigner crypto.BLSSigner) (*t
 		return nil, err
 	}
 	return &types.SignedBeaconBlock{
-		Message:   blk,
-		Signature: signature,
+		BeaconBlock: blk,
+		Signature:   signature,
 	}, nil
 }
 
 // TestNewSignedBeaconBlockFromSSZ tests the roundtrip SSZ encoding for Deneb.
 func TestNewSignedBeaconBlockFromSSZ(t *testing.T) {
 	t.Parallel()
-	originalBlock := generateFakeSignedBeaconBlock(t)
-	blockBytes, err := originalBlock.MarshalSSZ()
-	require.NoError(t, err)
-	require.NotNil(t, blockBytes)
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		originalBlock := generateFakeSignedBeaconBlock(t, v)
+		blockBytes, err := originalBlock.MarshalSSZ()
+		require.NoError(t, err)
+		require.NotNil(t, blockBytes)
 
-	newBlock, err := types.NewSignedBeaconBlockFromSSZ(
-		blockBytes, originalBlock.Message.Version(),
-	)
-	require.NoError(t, err)
-	require.NotNil(t, newBlock)
-	require.Equal(t, originalBlock, newBlock)
+		newBlock, err := types.NewEmptySignedBeaconBlockWithVersion(originalBlock.GetForkVersion())
+		require.NoError(t, err)
+		err = constraints.SSZUnmarshal(blockBytes, newBlock)
+		require.NoError(t, err)
+		require.NotNil(t, newBlock)
+		require.Equal(t, originalBlock, newBlock)
+	})
 }
 
 func TestNewSignedBeaconBlockFromSSZForkVersionNotSupported(t *testing.T) {
 	t.Parallel()
-	_, err := types.NewSignedBeaconBlockFromSSZ([]byte{}, version.Altair())
+
+	_, err := types.NewEmptySignedBeaconBlockWithVersion(version.Altair())
 	require.ErrorIs(t, err, types.ErrForkVersionNotSupported)
 }
 
 func TestSignedBeaconBlock_HashTreeRoot(t *testing.T) {
 	t.Parallel()
-	sBlk := generateFakeSignedBeaconBlock(t)
-	sBlk.HashTreeRoot()
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		sBlk := generateFakeSignedBeaconBlock(t, v)
+		sBlk.HashTreeRoot()
+	})
 }
 
 // TestSignedBeaconBlock_SignBeaconBlock ensures the validity of the block
 // signatures.
 func TestSignedBeaconBlock_SignBeaconBlock(t *testing.T) {
 	t.Parallel()
-	// Generate a new bls key signer
-	filePV, err := privval.GenFilePV(
-		"signed_beacon_block_test_filepv_key",
-		"signed_beacon_block_test_filepv_state",
-		generatePrivKey,
-	)
-	require.NoError(t, err)
-	blsSigner := signer.BLSSigner{PrivValidator: filePV}
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		// Generate a new bls key signer
+		filePV, err := privval.GenFilePV(
+			"signed_beacon_block_test_filepv_key",
+			"signed_beacon_block_test_filepv_state",
+			generatePrivKey,
+		)
+		require.NoError(t, err)
+		blsSigner := signer.BLSSigner{PrivValidator: filePV}
 
-	// Generate real signed beacon block
-	signedBlk, err := generateRealSignedBeaconBlock(t, blsSigner)
-	require.NoError(t, err)
-	require.NotNil(t, signedBlk)
+		// Generate real signed beacon block
+		signedBlk, err := generateRealSignedBeaconBlock(t, blsSigner, v)
+		require.NoError(t, err)
+		require.NotNil(t, signedBlk)
 
-	// Use SignBeaconBlock to sign the same BeaconBlock
-	cs, err := spec.DevnetChainSpec()
-	require.NoError(t, err)
-	newSignedBlk, err := types.NewSignedBeaconBlock(
-		signedBlk.GetMessage(),
-		&types.ForkData{},
-		cs,
-		blsSigner,
-	)
-	require.NoError(t, err)
+		// Use SignBeaconBlock to sign the same BeaconBlock
+		cs, err := spec.DevnetChainSpec()
+		require.NoError(t, err)
+		newSignedBlk, err := types.NewSignedBeaconBlock(
+			signedBlk.GetBeaconBlock(),
+			&types.ForkData{},
+			cs,
+			blsSigner,
+		)
+		require.NoError(t, err)
 
-	// Check that the signature from SignBeaconBlock matches
-	sig1 := signedBlk.GetSignature()
-	sig2 := newSignedBlk.GetSignature()
-	require.Equal(t, sig1, sig2)
+		// Check that the signature from SignBeaconBlock matches
+		sig1 := signedBlk.GetSignature()
+		sig2 := newSignedBlk.GetSignature()
+		require.Equal(t, sig1, sig2)
 
-	// Verify the signature is good
-	signingRoot, err := generateSigningRoot(newSignedBlk.GetMessage())
-	require.NoError(t, err)
-	err = blsSigner.VerifySignature(blsSigner.PublicKey(), signingRoot[:], newSignedBlk.GetSignature())
-	require.NoError(t, err)
+		// Verify the signature is good
+		signingRoot, err := generateSigningRoot(newSignedBlk.GetBeaconBlock())
+		require.NoError(t, err)
+		err = blsSigner.VerifySignature(blsSigner.PublicKey(), signingRoot[:], newSignedBlk.GetSignature())
+		require.NoError(t, err)
+	})
 }
 
 func TestSignedBeaconBlock_SizeSSZ(t *testing.T) {
 	t.Parallel()
-	sBlk := generateFakeSignedBeaconBlock(t)
-	size := ssz.Size(sBlk)
-	require.Positive(t, size)
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		sBlk := generateFakeSignedBeaconBlock(t, v)
+		size := ssz.Size(sBlk)
+		require.Positive(t, size)
+	})
 }
 
 func TestSignedBeaconBlock_EmptySerialization(t *testing.T) {
 	t.Parallel()
-	orig := &types.SignedBeaconBlock{}
-	data, err := orig.MarshalSSZ()
-	require.NoError(t, err)
-	require.NotNil(t, data)
+	runForAllSupportedVersions(t, func(t *testing.T, fv common.Version) {
+		orig := &types.SignedBeaconBlock{
+			BeaconBlock: &types.BeaconBlock{
+				Versionable: types.NewVersionable(fv),
+			},
+		}
+		data, err := orig.MarshalSSZ()
+		require.NoError(t, err)
+		require.NotNil(t, data)
 
-	var unmarshalled types.SignedBeaconBlock
-	err = unmarshalled.UnmarshalSSZ(data)
-	require.NoError(t, err)
-	require.NotNil(t, unmarshalled.GetMessage())
-	require.NotNil(t, unmarshalled.GetSignature())
+		unmarshalled, err := types.NewEmptySignedBeaconBlockWithVersion(fv)
+		require.NoError(t, err)
+		err = constraints.SSZUnmarshal(data, unmarshalled)
+		require.NoError(t, err)
+		require.NotNil(t, unmarshalled.GetBeaconBlock())
+		require.NotNil(t, unmarshalled.GetSignature())
 
-	buf := make([]byte, ssz.Size(orig))
-	err = ssz.EncodeToBytes(buf, orig)
-	require.NoError(t, err)
+		buf := make([]byte, ssz.Size(orig))
+		err = ssz.EncodeToBytes(buf, orig)
+		require.NoError(t, err)
 
-	// The two byte slices should be equal
-	require.Equal(t, data, buf)
+		// The two byte slices should be equal
+		require.Equal(t, data, buf)
+	})
 }

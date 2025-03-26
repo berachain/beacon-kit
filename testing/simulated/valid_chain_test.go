@@ -83,7 +83,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlock_IsSuccessful() {
 		s.TestNode.ChainSpec.ActiveForkVersionForSlot(slot),
 	)
 	s.Require().NoError(err)
-	s.Require().Equal(proposedBlock.Message.GetHeader().GetBodyRoot(), stateHeader.GetBodyRoot())
+	s.Require().Equal(proposedBlock.GetHeader().GetBodyRoot(), stateHeader.GetBodyRoot())
 }
 
 // TestFullLifecycle_ValidBlockWithInjectedTransaction_IsSuccessful effectively serves as a demonstration for how one can
@@ -142,7 +142,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 	validTxs := []*gethprimitives.Transaction{validTx}
 	// Create a new beacon block with the valid transaction.
 	// Note: The beacon block returned here has an incorrect beacon state root, which is fixed in `ComputeAndSetStateRoot`.
-	unsignedBlock := simulated.ComputeAndSetValidExecutionBlock(s.T(), proposedBlock.GetMessage(), s.SimulationClient, s.TestNode.ChainSpec, validTxs)
+	unsignedBlock := simulated.ComputeAndSetValidExecutionBlock(s.T(), proposedBlock.GetBeaconBlock(), s.SimulationClient, s.TestNode.ChainSpec, validTxs)
 
 	proposerAddress, err := crypto.GetAddressFromPubKey(blsSigner.PublicKey())
 	s.Require().NoError(err)
@@ -279,7 +279,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessfu
 
 	proposedBlockMessage := simulated.ComputeAndSetValidExecutionBlock(
 		s.T(),
-		proposedBlock.GetMessage(),
+		proposedBlock.GetBeaconBlock(),
 		s.SimulationClient,
 		s.TestNode.ChainSpec,
 		blobTxs,
@@ -315,7 +315,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessfu
 
 	// Create the beaconBlock Header for the sidecar
 	blockWithCommitmentsSignedHeader := ctypes.NewSignedBeaconBlockHeader(
-		newSignedBlock.GetMessage().GetHeader(),
+		newSignedBlock.GetHeader(),
 		newSignedBlock.GetSignature(),
 	)
 

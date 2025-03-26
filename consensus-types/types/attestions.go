@@ -33,11 +33,11 @@ import (
 var (
 	_ ssz.StaticObject                    = (*Attestation)(nil)
 	_ constraints.SSZMarshallableRootable = (*Attestation)(nil)
-	_ UnusedEnforcer                      = (*Attestations)(nil)
+	_ common.UnusedEnforcer               = (*Attestations)(nil)
 )
 
 type (
-	Attestation  = UnusedType
+	Attestation  = common.UnusedType
 	Attestations []*Attestation
 )
 

@@ -23,27 +23,24 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/karalabe/ssz"
 	"github.com/sourcegraph/conc/iter"
+)
+
+// Compile-time check to ensure BlobSidecars implements the necessary interfaces.
+var (
+	_ ssz.DynamicObject           = (*BlobSidecars)(nil)
+	_ constraints.SSZMarshallable = (*BlobSidecars)(nil)
 )
 
 // Sidecars is a slice of blob side cars to be included in the block.
 type BlobSidecars []*BlobSidecar
 
-// Empty creates a new empty BlobSidecars object.
-func (bs *BlobSidecars) Empty() *BlobSidecars {
-	return &BlobSidecars{}
-}
-
-// IsNil checks to see if blobs are nil.
-func (bs *BlobSidecars) IsNil() bool {
-	return bs == nil
-}
-
 // ValidateBlockRoots checks to make sure that
 // all blobs in the sidecar are from the same block.
 func (bs *BlobSidecars) ValidateBlockRoots() error {
-	if bs.IsNil() {
+	if bs == nil {
 		return ErrAttemptedToVerifyNilSidecar
 	}
 	sidecars := *bs
@@ -106,7 +103,4 @@ func (bs *BlobSidecars) MarshalSSZTo(buf []byte) ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, bs)
 }
 
-// UnmarshalSSZ unmarshals the BlobSidecars object from SSZ format.
-func (bs *BlobSidecars) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, bs)
-}
+func (*BlobSidecars) ValidateAfterDecodingSSZ() error { return nil }

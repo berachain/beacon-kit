@@ -27,6 +27,7 @@ import (
 	types "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/stretchr/testify/require"
 )
 
@@ -81,15 +82,14 @@ func TestSigningData_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, data)
 
-			var unmarshalled types.SigningData
+			unmarshalled := new(types.SigningData)
 			if tc.name == "Invalid Buffer Size" {
-				err = unmarshalled.UnmarshalSSZ(data[:32])
-				require.Error(t, err)
-				require.Equal(t, tc.err, err)
+				err = constraints.SSZUnmarshal(data[:32], unmarshalled)
+				require.ErrorIs(t, err, tc.err)
 			} else {
-				err = unmarshalled.UnmarshalSSZ(data)
+				err = constraints.SSZUnmarshal(data, unmarshalled)
 				require.NoError(t, err)
-				require.Equal(t, tc.expected, &unmarshalled)
+				require.Equal(t, tc.expected, unmarshalled)
 			}
 		})
 	}

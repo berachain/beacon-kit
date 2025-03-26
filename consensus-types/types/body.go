@@ -21,8 +21,11 @@
 package types
 
 import (
+	"errors"
+
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/karalabe/ssz"
@@ -52,14 +55,19 @@ const (
 
 	// KZGOffsetDeneb is the offset of the KZG commitments in the serialized block body.
 	KZGOffsetDeneb = KZGRootIndexDeneb * constants.MaxBlobCommitmentsPerBlock
-
-	// ExtraDataSize is the size of ExtraData in bytes.
-	ExtraDataSize = 32
 )
 
-// BeaconBlockBody represents the body of a beacon block in the Deneb
-// chain.
+// Compile-time assertions to ensure BeaconBlockBody implements necessary interfaces.
+var (
+	_ ssz.DynamicObject                            = (*BeaconBlockBody)(nil)
+	_ constraints.SSZVersionedMarshallableRootable = (*BeaconBlockBody)(nil)
+)
+
+// BeaconBlockBody represents the body of a beacon block.
 type BeaconBlockBody struct {
+	// Must be available within the object to satisfy signature required for SizeSSZ and DefineSSZ.
+	constraints.Versionable `json:"-"`
+
 	// RandaoReveal is the reveal of the RANDAO.
 	RandaoReveal crypto.BLSSignature
 	// Eth1Data is the data from the Eth1 chain.
@@ -140,7 +148,7 @@ func (b *BeaconBlockBody) DefineSSZ(codec *ssz.Codec) {
 
 // MarshalSSZ serializes the BeaconBlockBody to SSZ-encoded bytes.
 func (b *BeaconBlockBody) MarshalSSZ() ([]byte, error) {
-	err := EnforceAllUnused(
+	err := common.EnforceAllUnused(
 		b.GetProposerSlashings(),
 		b.GetAttesterSlashings(),
 		b.GetAttestations(),
@@ -155,13 +163,17 @@ func (b *BeaconBlockBody) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 
-// UnmarshalSSZ deserializes the BeaconBlockBody from SSZ-encoded bytes.
-func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte) error {
-	err := ssz.DecodeFromBytes(buf, b)
-	if err != nil {
-		return err
+func NewEmptyBeaconBlockBodyWithVersion(version common.Version) *BeaconBlockBody {
+	return &BeaconBlockBody{
+		Versionable:      NewVersionable(version),
+		Eth1Data:         NewEmptyEth1Data(),
+		ExecutionPayload: NewEmptyExecutionPayloadWithVersion(version),
+		syncAggregate:    &SyncAggregate{},
 	}
-	err = EnforceAllUnused(
+}
+
+func (b *BeaconBlockBody) ValidateAfterDecodingSSZ() error {
+	errUnused := common.EnforceAllUnused(
 		b.GetProposerSlashings(),
 		b.GetAttesterSlashings(),
 		b.GetAttestations(),
@@ -169,20 +181,15 @@ func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte) error {
 		b.GetSyncAggregate(),
 		b.GetBlsToExecutionChanges(),
 	)
-	if err != nil {
-		return err
-	}
-	return nil
+	return errors.Join(
+		b.ExecutionPayload.ValidateAfterDecodingSSZ(),
+		errUnused,
+	)
 }
 
 // HashTreeRoot returns the SSZ hash tree root of the BeaconBlockBody.
 func (b *BeaconBlockBody) HashTreeRoot() common.Root {
 	return ssz.HashConcurrent(b)
-}
-
-// IsNil checks if the BeaconBlockBody is nil.
-func (b *BeaconBlockBody) IsNil() bool {
-	return b == nil
 }
 
 // GetTopLevelRoots returns the top-level roots of the BeaconBlockBody.

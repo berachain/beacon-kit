@@ -90,29 +90,33 @@ func buildNextBlock(
 	root := beaconState.HashTreeRoot()
 	parentBlkHeader.SetStateRoot(root)
 
+	// build the block
+	fv := version.Deneb1()
+	versionable := types.NewVersionable(fv)
+	blk, err := types.NewBeaconBlockWithVersion(
+		parentBlkHeader.GetSlot()+1,
+		parentBlkHeader.GetProposerIndex(),
+		parentBlkHeader.HashTreeRoot(),
+		fv,
+	)
+
 	// build the payload
 	payload := &types.ExecutionPayload{
+		Versionable:   versionable,
 		Timestamp:     timestamp,
 		ExtraData:     []byte("testing"),
 		Transactions:  [][]byte{},
 		Withdrawals:   withdrawals,
 		BaseFeePerGas: math.NewU256(0),
-		EpVersion:     version.Deneb1(),
 	}
 	parentBeaconBlockRoot := parentBlkHeader.HashTreeRoot()
 	ethBlk, _, err := types.MakeEthBlock(payload, &parentBeaconBlockRoot)
 	require.NoError(t, err)
 	payload.BlockHash = common.ExecutionHash(ethBlk.Hash())
 
-	// finally build the block
-	blk, err := types.NewBeaconBlockWithVersion(
-		parentBlkHeader.GetSlot()+1,
-		parentBlkHeader.GetProposerIndex(),
-		parentBlkHeader.HashTreeRoot(),
-		version.Deneb1(),
-	)
 	require.NoError(t, err)
 	blk.Body = &types.BeaconBlockBody{
+		Versionable:      versionable,
 		ExecutionPayload: payload,
 		Eth1Data:         eth1Data,
 		Deposits:         blockDeposits,

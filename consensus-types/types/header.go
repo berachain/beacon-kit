@@ -74,8 +74,7 @@ func NewBeaconBlockHeader(
 	}
 }
 
-// Empty creates an empty BeaconBlockHeader instance.
-func (*BeaconBlockHeader) Empty() *BeaconBlockHeader {
+func NewEmptyBeaconBlockHeader() *BeaconBlockHeader {
 	return &BeaconBlockHeader{}
 }
 
@@ -103,10 +102,7 @@ func (b *BeaconBlockHeader) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 
-// UnmarshalSSZ unmarshals the BeaconBlockBody object from SSZ format.
-func (b *BeaconBlockHeader) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, b)
-}
+func (*BeaconBlockHeader) ValidateAfterDecodingSSZ() error { return nil }
 
 // HashTreeRoot computes the SSZ hash tree root of the BeaconBlockHeader object.
 func (b *BeaconBlockHeader) HashTreeRoot() common.Root {

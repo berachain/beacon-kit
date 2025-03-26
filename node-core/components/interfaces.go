@@ -23,6 +23,7 @@ package components
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
@@ -149,7 +150,7 @@ type (
 		// BuildSidecars builds sidecars for a given block and blobs bundle.
 		BuildSidecars(
 			signedBlk *ctypes.SignedBeaconBlock,
-			blobs ctypes.BlobsBundle,
+			blobs engineprimitives.BlobsBundle,
 		) (datypes.BlobSidecars, error)
 	}
 
@@ -514,6 +515,7 @@ type (
 
 		NodeAPIBeaconBackend
 		NodeAPIProofBackend
+		NodeAPIConfigBackend
 	}
 
 	// NodeAPIBackend is the interface for backend of the beacon API.
@@ -529,6 +531,11 @@ type (
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		// GetSlotByStateRoot retrieves the slot by a given root from the store.
 		GetSlotByStateRoot(root common.Root) (math.Slot, error)
+	}
+
+	// NodeAPIConfigBackend is the interface for backend of the config API.
+	NodeAPIConfigBackend interface {
+		Spec() (chain.Spec, error)
 	}
 
 	// NodeAPIProofBackend is the interface for backend of the proof API.

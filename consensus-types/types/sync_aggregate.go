@@ -33,7 +33,7 @@ import (
 var (
 	_ ssz.StaticObject                    = (*SyncAggregate)(nil)
 	_ constraints.SSZMarshallableRootable = (*SyncAggregate)(nil)
-	_ UnusedEnforcer                      = (*SyncAggregate)(nil)
+	_ common.UnusedEnforcer               = (*SyncAggregate)(nil)
 )
 
 const (
@@ -63,10 +63,7 @@ func (s *SyncAggregate) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, s)
 }
 
-// UnmarshalSSZ unmarshals the SyncAggregate object from SSZ format.
-func (s *SyncAggregate) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, s)
-}
+func (*SyncAggregate) ValidateAfterDecodingSSZ() error { return nil }
 
 // HashTreeRoot returns the hash tree root of the Deposits.
 func (s *SyncAggregate) HashTreeRoot() common.Root {

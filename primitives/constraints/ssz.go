@@ -22,39 +22,55 @@ package constraints
 
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/karalabe/ssz"
 )
 
-// SSZMarshaler is an interface for objects that can be
+// sszMarshaler is an interface for objects that can be
 // marshaled to SSZ format.
-type SSZMarshaler interface {
+type sszMarshaler interface {
 	// MarshalSSZ marshals the object into SSZ format.
 	MarshalSSZ() ([]byte, error)
 }
 
-// SSZUnmarshaler is an interface for objects that can be
-// unmarshaled from SSZ format.
+// SSZUnmarshaler is an interface for objects that can be unmarshaled from SSZ format.
 type SSZUnmarshaler interface {
-	// UnmarshalSSZ unmarshals the object from SSZ format.
-	UnmarshalSSZ([]byte) error
+	ssz.Object
+	ValidateAfterDecodingSSZ() error // once unmarshalled we will check whether type syntax is correct
 }
 
-// SSZRootable is an interface for objects that can compute
-// their hash tree root.
+// SSZMarshallable is an interface that combines SSZMarshaler and SSZUnmarshaler.
+type SSZMarshallable interface {
+	sszMarshaler
+	SSZUnmarshaler
+}
+
+// Versionable is a constraint that requires a type to have a GetForkVersion method.
+type Versionable interface {
+	GetForkVersion() common.Version
+}
+
+// SSZVersionable is an interface that combines SSZMarshallable and Versionable.
+type SSZVersionedMarshallable interface {
+	Versionable
+	SSZMarshallable
+}
+
+// SSZRootable is an interface for objects that can compute their hash tree root.
 type SSZRootable interface {
 	// HashTreeRoot computes the hash tree root of the object.
 	HashTreeRoot() common.Root
 }
 
-// SSZMarshallable is an interface that combines
-// SSZMarshaler and SSZUnmarshaler.
-type SSZMarshallable interface {
-	SSZMarshaler
-	SSZUnmarshaler
-}
-
 // SSZMarshallableRootable is an interface that combines
-// SSZMarshaler, SSZUnmarshaler, and SSZRootable.
+// sszMarshaler, sszUnmarshaler, and SSZRootable.
 type SSZMarshallableRootable interface {
 	SSZMarshallable
+	SSZRootable
+}
+
+// SSZVersionedMarshallableRootable is an interface that combines
+// SSZVersionedMarshallable and SSZRootable.
+type SSZVersionedMarshallableRootable interface {
+	SSZVersionedMarshallable
 	SSZRootable
 }

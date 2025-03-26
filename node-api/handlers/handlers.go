@@ -21,7 +21,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/berachain/beacon-kit/errors"
@@ -56,20 +55,17 @@ func NewBaseHandler(routes *RouteSet) *BaseHandler {
 	}
 }
 
-// NotImplemented is the handler for API endpoints that are defined in the Ethereum Beacon Node API spec,
-// but not yet implemented.
+// NotImplemented is the handler for API endpoints that are defined in the Ethereum Beacon Node API
+// spec, but not yet implemented.
 func (b *BaseHandler) NotImplemented(Context) (any, error) {
 	return nil, errors.New("not implemented")
 }
 
-// Deprecated handles deprecated API endpoints that are no longer supported according to the Ethereum Beacon Node API spec.
+// Deprecated handles deprecated API endpoints that are no longer supported according to the
+// Ethereum Beacon Node API spec.
 func (b *BaseHandler) Deprecated(c Context) (any, error) {
 	endpoint := c.Request().URL.Path
-
-	return nil, NewHTTPError(
-		http.StatusInternalServerError,
-		fmt.Sprintf("The endpoint %s is deprecated.", endpoint),
-	)
+	return nil, NewHTTPError(http.StatusInternalServerError, "The endpoint %s is deprecated.", endpoint)
 }
 
 // RouteSet returns the route set for the base handler.

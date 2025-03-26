@@ -75,10 +75,7 @@ func (s *SlashingInfo) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, s)
 }
 
-// UnmarshalSSZ unmarshals the SlashingInfo object from SSZ format.
-func (s *SlashingInfo) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, s)
-}
+func (*SlashingInfo) ValidateAfterDecodingSSZ() error { return nil }
 
 /* -------------------------------------------------------------------------- */
 /*                                   FastSSZ                                  */

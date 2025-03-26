@@ -54,8 +54,7 @@ type Deposit struct {
 	Index uint64 `json:"index"`
 }
 
-// Empty creates an empty Deposit instance.
-func (d *Deposit) Empty() *Deposit {
+func NewEmptyDeposit() *Deposit {
 	return &Deposit{}
 }
 
@@ -105,10 +104,7 @@ func (d *Deposit) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, d)
 }
 
-// UnmarshalSSZ unmarshals the Deposit object from SSZ format.
-func (d *Deposit) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, d)
-}
+func (*Deposit) ValidateAfterDecodingSSZ() error { return nil }
 
 // SizeSSZ returns the SSZ encoded size of the Deposit object.
 func (d *Deposit) SizeSSZ(*ssz.Sizer) uint32 {

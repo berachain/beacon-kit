@@ -33,11 +33,11 @@ import (
 var (
 	_ ssz.StaticObject                    = (*VoluntaryExit)(nil)
 	_ constraints.SSZMarshallableRootable = (*VoluntaryExit)(nil)
-	_ UnusedEnforcer                      = (*VoluntaryExits)(nil)
+	_ common.UnusedEnforcer               = (*VoluntaryExits)(nil)
 )
 
 type (
-	VoluntaryExit  = UnusedType
+	VoluntaryExit  = common.UnusedType
 	VoluntaryExits []*VoluntaryExit
 )
 

@@ -21,9 +21,12 @@
 package encoding
 
 import (
+	"fmt"
+
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 )
 
 // ExtractBlobsAndBlockFromRequest extracts the blobs and block from an ABCI
@@ -80,7 +83,14 @@ func UnmarshalBeaconBlockFromABCIRequest(
 		return signedBlk, ErrNilBeaconBlockInRequest
 	}
 
-	return ctypes.NewSignedBeaconBlockFromSSZ(blkBz, forkVersion)
+	block, err := ctypes.NewEmptySignedBeaconBlockWithVersion(forkVersion)
+	if err != nil {
+		return nil, fmt.Errorf("attempt at building block with wrong version %s: %w", forkVersion, err)
+	}
+	if err = constraints.SSZUnmarshal(blkBz, block); err != nil {
+		return nil, err
+	}
+	return block, nil
 }
 
 // UnmarshalBlobSidecarsFromABCIRequest extracts blob sidecars from an ABCI
@@ -89,18 +99,18 @@ func UnmarshalBlobSidecarsFromABCIRequest(
 	txs [][]byte,
 	bzIndex uint,
 ) (datypes.BlobSidecars, error) {
-	var sidecars datypes.BlobSidecars
 	if len(txs) == 0 || bzIndex >= uint(len(txs)) {
-		return sidecars, ErrNoBlobSidecarInRequest
+		return nil, ErrNoBlobSidecarInRequest
 	}
 
 	sidecarBz := txs[bzIndex]
 	if sidecarBz == nil {
-		return sidecars, ErrNilBlobSidecarInRequest
+		return nil, ErrNilBlobSidecarInRequest
 	}
 
-	// TODO: Do some research to figure out how to make this more
-	// elegant.
-	sidecars = datypes.BlobSidecars{}
-	return sidecars, sidecars.UnmarshalSSZ(sidecarBz)
+	var sidecars datypes.BlobSidecars
+	if err := constraints.SSZUnmarshal(sidecarBz, &sidecars); err != nil {
+		return nil, err
+	}
+	return sidecars, nil
 }

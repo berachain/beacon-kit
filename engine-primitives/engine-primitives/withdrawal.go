@@ -94,10 +94,7 @@ func (w *Withdrawal) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, w)
 }
 
-// UnmarshalSSZ unmarshals the SSZ encoded data to a Withdrawal object.
-func (w *Withdrawal) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, w)
-}
+func (*Withdrawal) ValidateAfterDecodingSSZ() error { return nil }
 
 /* -------------------------------------------------------------------------- */
 /*                                   FastSSZ                                  */

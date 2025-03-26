@@ -18,14 +18,10 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package common
 
 import (
-	"fmt"
-
 	"github.com/berachain/beacon-kit/errors"
-	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/karalabe/ssz"
 )
 
@@ -36,9 +32,9 @@ type UnusedEnforcer interface {
 
 // Compile-time assertions to ensure UnusedType implements necessary interfaces.
 var (
-	_ ssz.StaticObject                    = (*UnusedType)(nil)
-	_ constraints.SSZMarshallableRootable = (*UnusedType)(nil)
-	_ UnusedEnforcer                      = (*UnusedType)(nil)
+	_ ssz.StaticObject        = (*UnusedType)(nil)
+	_ SSZMarshallableRootable = (*UnusedType)(nil)
+	_ UnusedEnforcer          = (*UnusedType)(nil)
 )
 
 type UnusedType uint8
@@ -55,21 +51,16 @@ func (ut *UnusedType) DefineSSZ(c *ssz.Codec) {
 
 // MarshalSSZ marshals the UnusedType object to SSZ format.
 func (ut *UnusedType) MarshalSSZ() ([]byte, error) {
-	return []byte{uint8(*ut)}, nil
+	buf := make([]byte, ssz.Size(ut))
+	return buf, ssz.EncodeToBytes(buf, ut)
 }
 
-// UnmarshalSSZ unmarshals the UnusedType object from SSZ format.
-func (ut *UnusedType) UnmarshalSSZ(buf []byte) error {
-	if len(buf) != 1 {
-		return fmt.Errorf("expected 1 byte got %d", len(buf))
-	}
-	//#nosec:G701 // UnusedType is uint8 and byte is uint8.
-	*ut = UnusedType(buf[0])
-	return nil
+func (ut *UnusedType) ValidateAfterDecodingSSZ() error {
+	return ut.EnforceUnused()
 }
 
 // HashTreeRoot returns the hash tree root of the Deposits.
-func (ut *UnusedType) HashTreeRoot() common.Root {
+func (ut *UnusedType) HashTreeRoot() Root {
 	return ssz.HashSequential(ut)
 }
 

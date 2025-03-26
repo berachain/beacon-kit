@@ -74,10 +74,7 @@ func (a *AttestationData) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, a)
 }
 
-// UnmarshalSSZ unmarshals the AttestationData object from SSZ format.
-func (a *AttestationData) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, a)
-}
+func (*AttestationData) ValidateAfterDecodingSSZ() error { return nil }
 
 /* -------------------------------------------------------------------------- */
 /*                                   FastSSZ                                  */
