@@ -67,7 +67,7 @@ func (em *engineMetrics) markNewPayloadValid(
 	payloadHash common.ExecutionHash,
 	parentHash common.ExecutionHash,
 ) {
-	em.logger.Info(
+	em.logger.Warn(
 		"Inserted new payload into execution chain",
 		"payload_block_hash", payloadHash,
 		"payload_parent_block_hash", parentHash,
