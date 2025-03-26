@@ -41,7 +41,7 @@ func (dr *DepositRequests) MarshalSSZ() ([]byte, error) {
 }
 
 // DecodeDepositRequests decodes SSZ data by decoding each request individually.
-func DecodeDepositRequests(data []byte) (*DepositRequests, error) {
+func DecodeDepositRequests(data []byte) (DepositRequests, error) {
 	maxSize := MaxDepositRequestsPerPayload * DepositSize
 	if len(data) > maxSize {
 		return nil, fmt.Errorf(
@@ -59,5 +59,5 @@ func DecodeDepositRequests(data []byte) (*DepositRequests, error) {
 		return nil, err
 	}
 	deposits := DepositRequests(items)
-	return &deposits, nil
+	return deposits, nil
 }

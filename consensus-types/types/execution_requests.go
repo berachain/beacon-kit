@@ -126,20 +126,19 @@ func DecodeExecutionRequests(encodedRequests [][]byte) (*ExecutionRequests, erro
 			if err != nil {
 				return nil, err
 			}
-			result.Deposits = *req
+			result.Deposits = req
 		case withdrawalRequestType()[0]:
-			var req *WithdrawalRequests
 			req, err := DecodeWithdrawalRequests(data)
 			if err != nil {
 				return nil, err
 			}
-			result.Withdrawals = *req
+			result.Withdrawals = req
 		case consolidationRequestType()[0]:
 			req, err := DecodeConsolidationRequests(data)
 			if err != nil {
 				return nil, err
 			}
-			result.Consolidations = *req
+			result.Consolidations = req
 		default:
 			return nil, fmt.Errorf("unsupported request type %d", reqType)
 		}
