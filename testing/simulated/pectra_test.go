@@ -66,7 +66,11 @@ func (s *PectraSuite) SetupTest() {
 
 	// Initialize the home directory, Comet configuration, and genesis info.
 	const elGenesisPath = "./pectra-eth-genesis.json"
-	cometConfig, genesisValidatorsRoot := simulated.InitializeHomeDir(s.T(), s.HomeDir, elGenesisPath)
+	chainSpecFunc := simulated.ProvideElectraGenesisChainSpec
+	// Create the chainSpec.
+	chainSpec, err := chainSpecFunc()
+	s.Require().NoError(err)
+	cometConfig, genesisValidatorsRoot := simulated.InitializeHomeDir(s.T(), chainSpec, s.HomeDir, elGenesisPath)
 	s.GenesisValidatorsRoot = genesisValidatorsRoot
 
 	// Start the EL (execution layer) Geth node.
@@ -78,9 +82,11 @@ func (s *PectraSuite) SetupTest() {
 	s.LogBuffer = new(bytes.Buffer)
 	logger := phuslu.NewLogger(s.LogBuffer, nil)
 
-	// Build the Beacon node with the simulated Comet component.
+	// Build the Beacon node with the simulated Comet component and electra genesis chain spec
 	components := simulated.FixedComponents(s.T())
 	components = append(components, simulated.ProvideSimComet)
+	components = append(components, chainSpecFunc)
+
 	s.TestNode = simulated.NewTestNode(s.T(), simulated.TestNodeInput{
 		TempHomeDir: s.HomeDir,
 		CometConfig: cometConfig,
@@ -100,7 +106,7 @@ func (s *PectraSuite) SetupTest() {
 	s.SimulationClient = execution.NewSimulationClient(s.TestNode.EngineClient)
 	timeOut := 10 * time.Second
 	interval := 50 * time.Millisecond
-	err := simulated.WaitTillServicesStarted(s.LogBuffer, timeOut, interval)
+	err = simulated.WaitTillServicesStarted(s.LogBuffer, timeOut, interval)
 	s.Require().NoError(err)
 }
 
