@@ -109,7 +109,8 @@ type BeaconBlockBody struct {
 func (b *BeaconBlockBody) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 	syncSize := b.syncAggregate.SizeSSZ(siz)
 	var size = 96 + 72 + 32 + 4 + 4 + 4 + 4 + 4 + syncSize + 4 + 4 + 4
-	if version.EqualsOrIsAfter(b.GetForkVersion(), version.Electra()) {
+	includeExecRequest := version.EqualsOrIsAfter(b.GetForkVersion(), version.Electra())
+	if includeExecRequest {
 		// Add 4 for the offset of dynamic field ExecutionRequests
 		size += sszDynamicObjectOffset
 	}
@@ -126,7 +127,7 @@ func (b *BeaconBlockBody) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 	size += ssz.SizeDynamicObject(siz, b.ExecutionPayload)
 	size += ssz.SizeSliceOfStaticObjects(siz, b.blsToExecutionChanges)
 	size += ssz.SizeSliceOfStaticBytes(siz, b.BlobKzgCommitments)
-	if version.EqualsOrIsAfter(b.GetForkVersion(), version.Electra()) {
+	if includeExecRequest {
 		size += ssz.SizeDynamicObject(siz, b.executionRequests)
 	}
 	return size
@@ -149,7 +150,8 @@ func (b *BeaconBlockBody) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineDynamicObjectOffset(codec, &b.ExecutionPayload)
 	ssz.DefineSliceOfStaticObjectsOffset(codec, &b.blsToExecutionChanges, constants.MaxBlsToExecutionChanges)
 	ssz.DefineSliceOfStaticBytesOffset(codec, &b.BlobKzgCommitments, 4096)
-	if version.EqualsOrIsAfter(b.GetForkVersion(), version.Electra()) {
+	includeExecRequest := version.EqualsOrIsAfter(b.GetForkVersion(), version.Electra())
+	if includeExecRequest {
 		ssz.DefineDynamicObjectOffset(codec, &b.executionRequests)
 	}
 
@@ -162,7 +164,7 @@ func (b *BeaconBlockBody) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineDynamicObjectContent(codec, &b.ExecutionPayload)
 	ssz.DefineSliceOfStaticObjectsContent(codec, &b.blsToExecutionChanges, constants.MaxBlsToExecutionChanges)
 	ssz.DefineSliceOfStaticBytesContent(codec, &b.BlobKzgCommitments, 4096)
-	if version.EqualsOrIsAfter(b.GetForkVersion(), version.Electra()) {
+	if includeExecRequest {
 		ssz.DefineDynamicObjectContent(codec, &b.executionRequests)
 	}
 }
