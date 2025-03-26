@@ -26,8 +26,10 @@ import (
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/decoder"
+	"github.com/berachain/beacon-kit/primitives/constraints"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -35,7 +37,7 @@ import (
 )
 
 // generateValidBeaconBlock generates a valid beacon block for the Deneb.
-func generateValidBeaconBlock(t *testing.T, version common.Version) *types.BeaconBlock {
+func generateValidBeaconBlock(t *testing.T, forkVersion common.Version) *types.BeaconBlock {
 	t.Helper()
 
 	// Initialize your block here
@@ -43,11 +45,11 @@ func generateValidBeaconBlock(t *testing.T, version common.Version) *types.Beaco
 		math.Slot(10),
 		math.ValidatorIndex(5),
 		common.Root{1, 2, 3, 4, 5}, // parent block root
-		version,
+		forkVersion,
 	)
 	require.NoError(t, err)
 
-	versionable := types.NewVersionable(version)
+	versionable := types.NewVersionable(forkVersion)
 	beaconBlock.StateRoot = common.Root{5, 4, 3, 2, 1}
 	beaconBlock.Body = &types.BeaconBlockBody{
 		Versionable: versionable,
@@ -83,6 +85,27 @@ func generateValidBeaconBlock(t *testing.T, version common.Version) *types.Beaco
 	body.SetSyncAggregate(&types.SyncAggregate{})
 	body.SetVoluntaryExits(types.VoluntaryExits{})
 	body.SetBlsToExecutionChanges(types.BlsToExecutionChanges{})
+	if !version.IsBefore(forkVersion, version.Electra()) {
+		err = body.SetExecutionRequests(&types.ExecutionRequests{
+			Deposits: []*types.DepositRequest{
+				{
+					Pubkey:      crypto.BLSPubkey{1, 2, 3},
+					Credentials: types.WithdrawalCredentials(bytes.B32{4, 5, 6}),
+					Amount:      100,
+					Signature:   crypto.BLSSignature{1, 2, 3},
+					Index:       1,
+				},
+			},
+			Withdrawals: []*types.WithdrawalRequest{
+				{
+					SourceAddress:   common.ExecutionAddress{0, 1, 2, 3, 4, 5},
+					ValidatorPubKey: crypto.BLSPubkey{4, 2, 0},
+					Amount:          1000,
+				},
+			},
+		})
+		require.NoError(t, err)
+	}
 	return beaconBlock
 }
 
@@ -138,7 +161,7 @@ func TestBeaconBlock_MarshalUnmarshalSSZ(t *testing.T) {
 		require.NotNil(t, sszBlock)
 
 		unmarshalledBlock := types.NewEmptyBeaconBlockWithVersion(v)
-		err = decoder.SSZUnmarshal(sszBlock, unmarshalledBlock)
+		err = constraints.SSZUnmarshal(sszBlock, unmarshalledBlock)
 		require.NoError(t, err)
 		require.Equal(t, block, unmarshalledBlock)
 	})

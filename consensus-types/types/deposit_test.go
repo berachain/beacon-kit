@@ -26,8 +26,8 @@ import (
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/decoder"
 	"github.com/berachain/beacon-kit/primitives/math"
 	ssz "github.com/ferranbt/fastssz"
 	karalabessz "github.com/karalabe/ssz"
@@ -102,7 +102,7 @@ func TestDeposit_MarshalUnmarshalSSZ(t *testing.T) {
 	require.NotNil(t, sszDeposit)
 
 	unmarshalledDeposit := new(types.Deposit)
-	err = decoder.SSZUnmarshal(sszDeposit, unmarshalledDeposit)
+	err = constraints.SSZUnmarshal(sszDeposit, unmarshalledDeposit)
 	require.NoError(t, err)
 	require.Equal(t, originalDeposit, unmarshalledDeposit)
 }
@@ -154,7 +154,7 @@ func TestDeposit_UnmarshalSSZ_ErrSize(t *testing.T) {
 	buf := make([]byte, 10) // size less than 192
 
 	var unmarshalledDeposit types.Deposit
-	err := decoder.SSZUnmarshal(buf, &unmarshalledDeposit)
+	err := constraints.SSZUnmarshal(buf, &unmarshalledDeposit)
 	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
 

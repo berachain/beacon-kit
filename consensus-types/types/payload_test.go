@@ -28,7 +28,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/decoder"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -81,7 +81,7 @@ func TestExecutionPayload_Serialization(t *testing.T) {
 	require.NotNil(t, data)
 
 	unmarshalled := types.NewEmptyExecutionPayloadWithVersion(original.GetForkVersion())
-	err = decoder.SSZUnmarshal(data, unmarshalled)
+	err = constraints.SSZUnmarshal(data, unmarshalled)
 	require.NoError(t, err)
 	require.Equal(t, original, unmarshalled)
 
@@ -100,7 +100,7 @@ func TestExecutionPayload_SizeSSZ(t *testing.T) {
 	require.Equal(t, uint32(578), size)
 
 	unmarshalledBody := types.NewEmptyExecutionPayloadWithVersion(version.Deneb1())
-	err := decoder.SSZUnmarshal(
+	err := constraints.SSZUnmarshal(
 		[]byte{0x01, 0x02, 0x03}, // Invalid data
 		unmarshalledBody,
 	)

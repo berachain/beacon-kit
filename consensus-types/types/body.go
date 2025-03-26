@@ -21,40 +21,44 @@
 package types
 
 import (
-	"errors"
+	"fmt"
 
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/karalabe/ssz"
 )
 
 const (
-	// BodyLengthDeneb is the number of fields in the BeaconBlockBodyDeneb
-	// struct.
+	// BodyLengthDeneb is the number of fields in the BeaconBlockBody struct for Deneb.
 	BodyLengthDeneb uint64 = 12
 
-	// KZGPositionDeneb is the position of BlobKzgCommitments in the block body.
-	KZGPositionDeneb = BodyLengthDeneb - 1
+	// BodyLengthElectra is the number of fields in the BeaconBlockBody struct for Electra.
+	BodyLengthElectra uint64 = 13
+
+	// KZGPosition is the position of BlobKzgCommitments in the block body.
+	KZGPosition uint64 = 11
 
 	// KZGGeneralizedIndex is the index of the KZG commitment root's parent.
-	//     (1 << log2ceil(KZGPositionDeneb)) | KZGPositionDeneb.
+	//     (1 << log2ceil(KZGPosition)) | KZGPosition.
 	KZGGeneralizedIndex = 27
 
-	// KZGRootIndexDeneb is the merkle index of BlobKzgCommitments' root
+	// KZGRootIndex is the merkle index of BlobKzgCommitments' root
 	// in the merkle tree built from the block body.
 	//     2 * KZGGeneralizedIndex.
-	KZGRootIndexDeneb = KZGGeneralizedIndex * 2
+	KZGRootIndex = KZGGeneralizedIndex * 2
 
 	// KZGInclusionProofDepth is the
 	//     Log2Floor(KZGGeneralizedIndex) +
 	//     Log2Ceil(MaxBlobCommitmentsPerBlock) + 1
 	KZGInclusionProofDepth = 17
 
-	// KZGOffsetDeneb is the offset of the KZG commitments in the serialized block body.
-	KZGOffsetDeneb = KZGRootIndexDeneb * constants.MaxBlobCommitmentsPerBlock
+	// KZGOffset is the offset of the KZG commitments in the serialized block body.
+	KZGOffset = KZGRootIndex * constants.MaxBlobCommitmentsPerBlock
 )
 
 // Compile-time assertions to ensure BeaconBlockBody implements necessary interfaces.
@@ -92,6 +96,9 @@ type BeaconBlockBody struct {
 	blsToExecutionChanges []*BlsToExecutionChange
 	// BlobKzgCommitments is the list of KZG commitments for the EIP-4844 blobs.
 	BlobKzgCommitments []eip4844.KZGCommitment
+	// executionRequests is introduced in electra. We keep this private so that it must go through Getter/Setter
+	// which does a forkVersion check.
+	executionRequests *ExecutionRequests
 }
 
 /* -------------------------------------------------------------------------- */
@@ -102,6 +109,12 @@ type BeaconBlockBody struct {
 func (b *BeaconBlockBody) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 	syncSize := b.syncAggregate.SizeSSZ(siz)
 	var size = 96 + 72 + 32 + 4 + 4 + 4 + 4 + 4 + syncSize + 4 + 4 + 4
+	includeExecRequest := version.EqualsOrIsAfter(b.GetForkVersion(), version.Electra())
+	if includeExecRequest {
+		// Add 4 for the offset of dynamic field ExecutionRequests
+		size += sszDynamicObjectOffset
+	}
+
 	if fixed {
 		return size
 	}
@@ -114,6 +127,9 @@ func (b *BeaconBlockBody) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 	size += ssz.SizeDynamicObject(siz, b.ExecutionPayload)
 	size += ssz.SizeSliceOfStaticObjects(siz, b.blsToExecutionChanges)
 	size += ssz.SizeSliceOfStaticBytes(siz, b.BlobKzgCommitments)
+	if includeExecRequest {
+		size += ssz.SizeDynamicObject(siz, b.executionRequests)
+	}
 	return size
 }
 
@@ -134,6 +150,10 @@ func (b *BeaconBlockBody) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineDynamicObjectOffset(codec, &b.ExecutionPayload)
 	ssz.DefineSliceOfStaticObjectsOffset(codec, &b.blsToExecutionChanges, constants.MaxBlsToExecutionChanges)
 	ssz.DefineSliceOfStaticBytesOffset(codec, &b.BlobKzgCommitments, 4096)
+	includeExecRequest := version.EqualsOrIsAfter(b.GetForkVersion(), version.Electra())
+	if includeExecRequest {
+		ssz.DefineDynamicObjectOffset(codec, &b.executionRequests)
+	}
 
 	// Define the dynamic data (fields)
 	ssz.DefineSliceOfStaticObjectsContent(codec, &b.proposerSlashings, constants.MaxProposerSlashings)
@@ -144,6 +164,9 @@ func (b *BeaconBlockBody) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineDynamicObjectContent(codec, &b.ExecutionPayload)
 	ssz.DefineSliceOfStaticObjectsContent(codec, &b.blsToExecutionChanges, constants.MaxBlsToExecutionChanges)
 	ssz.DefineSliceOfStaticBytesContent(codec, &b.BlobKzgCommitments, 4096)
+	if includeExecRequest {
+		ssz.DefineDynamicObjectContent(codec, &b.executionRequests)
+	}
 }
 
 // MarshalSSZ serializes the BeaconBlockBody to SSZ-encoded bytes.
@@ -192,9 +215,13 @@ func (b *BeaconBlockBody) HashTreeRoot() common.Root {
 	return ssz.HashConcurrent(b)
 }
 
+/* -------------------------------------------------------------------------- */
+/*                              Getters/Setters                               */
+/* -------------------------------------------------------------------------- */
+
 // GetTopLevelRoots returns the top-level roots of the BeaconBlockBody.
-func (b *BeaconBlockBody) GetTopLevelRoots() []common.Root {
-	return []common.Root{
+func (b *BeaconBlockBody) GetTopLevelRoots() ([]common.Root, error) {
+	tlrs := []common.Root{
 		common.Root(b.GetRandaoReveal().HashTreeRoot()),
 		b.Eth1Data.HashTreeRoot(),
 		common.Root(b.GetGraffiti().HashTreeRoot()),
@@ -209,16 +236,33 @@ func (b *BeaconBlockBody) GetTopLevelRoots() []common.Root {
 		// KzgCommitments intentionally left blank - included separately for inclusion proof
 		{},
 	}
+	if version.EqualsOrIsAfter(b.GetForkVersion(), version.Electra()) {
+		er, err := b.GetExecutionRequests()
+		if err != nil {
+			return nil, err
+		}
+		tlrs = append(tlrs, er.HashTreeRoot())
+	}
+
+	// Ensure that the length returned is correct according to the fork version.
+	if uint64(len(tlrs)) != b.Length() {
+		return nil, fmt.Errorf(
+			"top-level roots length (%d) does not match expected body length (%d)",
+			len(tlrs), b.Length(),
+		)
+	}
+
+	return tlrs, nil
 }
 
-// Length returns the number of fields in the BeaconBlockBody struct.
+// Length returns the number of fields in the BeaconBlockBody struct
+// according to the fork version.
 func (b *BeaconBlockBody) Length() uint64 {
-	return BodyLengthDeneb
+	if version.IsBefore(b.GetForkVersion(), version.Electra()) {
+		return BodyLengthDeneb
+	}
+	return BodyLengthElectra
 }
-
-/* -------------------------------------------------------------------------- */
-/*                              Getters/Setters                               */
-/* -------------------------------------------------------------------------- */
 
 func (b *BeaconBlockBody) GetRandaoReveal() crypto.BLSSignature {
 	return b.RandaoReveal
@@ -314,4 +358,25 @@ func (b *BeaconBlockBody) GetBlobKzgCommitments() eip4844.KZGCommitments[common.
 
 func (b *BeaconBlockBody) SetBlobKzgCommitments(commitments eip4844.KZGCommitments[common.ExecutionHash]) {
 	b.BlobKzgCommitments = commitments
+}
+
+func (b *BeaconBlockBody) GetExecutionRequests() (*ExecutionRequests, error) {
+	if version.IsBefore(b.GetForkVersion(), version.Electra()) {
+		return nil, errors.Wrapf(ErrFieldNotSupportedOnFork, "block version %d", b.GetForkVersion())
+	}
+	if b.executionRequests == nil {
+		return nil, errors.New("retrieved execution requests is nil")
+	}
+	return b.executionRequests, nil
+}
+
+func (b *BeaconBlockBody) SetExecutionRequests(executionRequest *ExecutionRequests) error {
+	if executionRequest == nil {
+		return errors.New("cannot set execution requests to nil")
+	}
+	if version.IsBefore(b.GetForkVersion(), version.Electra()) {
+		return errors.Wrapf(ErrFieldNotSupportedOnFork, "block version %d", b.GetForkVersion())
+	}
+	b.executionRequests = executionRequest
+	return nil
 }
