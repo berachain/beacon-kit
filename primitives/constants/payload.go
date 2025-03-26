@@ -27,10 +27,6 @@ const (
 	// ExtraDataLength is the length of the extra data in bytes.
 	ExtraDataLength = 32
 
-	// MaxTxsPerPayload is the maximum number of transactions in a execution
-	// payload.
-	MaxTxsPerPayload uint64 = 1048576
-
 	// DepositContractDepth is the depth of the deposit contract merkle tree.
 	DepositContractDepth uint64 = 32
 
@@ -38,10 +34,6 @@ const (
 	// deposit tree (2**32). This is different from the enforced
 	// MaxDepositsPerBlock.
 	MaxDeposits uint64 = 1 << DepositContractDepth
-
-	// MaxWithdrawalsPerPayload is the maximum number of withdrawals in a
-	// execution payload.
-	MaxWithdrawalsPerPayload uint64 = 16
 
 	// MaxBytesPerTx is the maximum number of bytes per transaction.
 	MaxBytesPerTx uint64 = 1073741824

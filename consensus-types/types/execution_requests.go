@@ -26,12 +26,11 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/karalabe/ssz"
 )
 
 const (
-	// ExecutionAddress = 20, PubKey = 48, Pubkey = 48
-	sszDynamicObjectOffset = 4
 	// 3 since three dynamic objects (Deposits, Withdrawals, Consolidations)
 	dynamicFieldsInExecutionRequests = 3
 
@@ -156,17 +155,17 @@ func DecodeExecutionRequests(encodedRequests [][]byte) (*ExecutionRequests, erro
 /* -------------------------------------------------------------------------- */
 
 func (e *ExecutionRequests) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Deposits, MaxDepositRequestsPerPayload)
-	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Withdrawals, maxWithdrawalRequestsPerPayload)
-	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Consolidations, maxConsolidationRequestsPerPayload)
+	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Deposits, constants.MaxDepositRequestsPerPayload)
+	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Withdrawals, constants.MaxWithdrawalRequestsPerPayload)
+	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Consolidations, constants.MaxConsolidationRequestsPerPayload)
 
-	ssz.DefineSliceOfStaticObjectsContent(codec, &e.Deposits, MaxDepositRequestsPerPayload)
-	ssz.DefineSliceOfStaticObjectsContent(codec, &e.Withdrawals, maxWithdrawalRequestsPerPayload)
-	ssz.DefineSliceOfStaticObjectsContent(codec, &e.Consolidations, maxConsolidationRequestsPerPayload)
+	ssz.DefineSliceOfStaticObjectsContent(codec, &e.Deposits, constants.MaxDepositRequestsPerPayload)
+	ssz.DefineSliceOfStaticObjectsContent(codec, &e.Withdrawals, constants.MaxWithdrawalRequestsPerPayload)
+	ssz.DefineSliceOfStaticObjectsContent(codec, &e.Consolidations, constants.MaxConsolidationRequestsPerPayload)
 }
 
 func (e *ExecutionRequests) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
-	size := uint32(sszDynamicObjectOffset * dynamicFieldsInExecutionRequests)
+	size := constants.SSZOffsetSize * dynamicFieldsInExecutionRequests
 	if fixed {
 		return size
 	}
