@@ -201,7 +201,7 @@ func (em *engineMetrics) markForkchoiceUpdateValid(
 	if hasPayloadAttributes {
 		args = append(args, "payload_id", payloadID)
 	}
-	em.logger.Info("Forkchoice updated", args...)
+	em.logger.Debug("Forkchoice updated", args...)
 
 	em.sink.IncrementCounter(
 		"beacon_kit.execution.engine.forkchoice_update_valid",

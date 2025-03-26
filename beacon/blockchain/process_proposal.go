@@ -224,7 +224,7 @@ func (s *Service) VerifyIncomingBlock(
 	// forceStartupSync, then we should shut down the node and fix the problem.
 	s.forceStartupSyncOnce.Do(func() { s.forceSyncUponProcess(ctx, preState) })
 
-	s.logger.Info(
+	s.logger.Debug(
 		"Received incoming beacon block",
 		"state_root", beaconBlk.GetStateRoot(),
 		"slot", beaconBlk.GetSlot(),
