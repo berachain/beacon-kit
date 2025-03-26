@@ -34,6 +34,10 @@ const (
 	sszDynamicObjectOffset = 4
 	// 3 since three dynamic objects (Deposits, Withdrawals, Consolidations)
 	dynamicFieldsInExecutionRequests = 3
+
+	depositRequestType       = byte(0x00)
+	withdrawalRequestType    = byte(0x01)
+	consolidationRequestType = byte(0x02)
 )
 
 // EncodedExecutionRequest is the result of GetExecutionRequestsList which is spec defined.
@@ -64,7 +68,7 @@ func GetExecutionRequestsList(er *ExecutionRequests) ([]EncodedExecutionRequest,
 		if err != nil {
 			return nil, err
 		}
-		combined := append([]byte{}, depositRequestType()...)
+		combined := append([]byte{}, depositRequestType)
 		combined = append(combined, depositBytes...)
 		result = append(result, combined)
 	}
@@ -76,7 +80,7 @@ func GetExecutionRequestsList(er *ExecutionRequests) ([]EncodedExecutionRequest,
 		if err != nil {
 			return nil, err
 		}
-		combined := append([]byte{}, withdrawalRequestType()...)
+		combined := append([]byte{}, withdrawalRequestType)
 		combined = append(combined, withdrawalBytes...)
 		result = append(result, combined)
 	}
@@ -88,7 +92,7 @@ func GetExecutionRequestsList(er *ExecutionRequests) ([]EncodedExecutionRequest,
 		if err != nil {
 			return nil, err
 		}
-		combined := append([]byte{}, consolidationRequestType()...)
+		combined := append([]byte{}, consolidationRequestType)
 		combined = append(combined, consolidationBytes...)
 		result = append(result, combined)
 	}
@@ -121,19 +125,19 @@ func DecodeExecutionRequests(encodedRequests [][]byte) (*ExecutionRequests, erro
 
 		// Switch based on the request type.
 		switch reqType {
-		case depositRequestType()[0]:
+		case depositRequestType:
 			req, err := DecodeDepositRequests(data)
 			if err != nil {
 				return nil, err
 			}
 			result.Deposits = req
-		case withdrawalRequestType()[0]:
+		case withdrawalRequestType:
 			req, err := DecodeWithdrawalRequests(data)
 			if err != nil {
 				return nil, err
 			}
 			result.Withdrawals = req
-		case consolidationRequestType()[0]:
+		case consolidationRequestType:
 			req, err := DecodeConsolidationRequests(data)
 			if err != nil {
 				return nil, err
@@ -145,18 +149,6 @@ func DecodeExecutionRequests(encodedRequests [][]byte) (*ExecutionRequests, erro
 	}
 
 	return &result, nil
-}
-
-func depositRequestType() []byte {
-	return []byte{0x00}
-}
-
-func withdrawalRequestType() []byte {
-	return []byte{0x01}
-}
-
-func consolidationRequestType() []byte {
-	return []byte{0x02}
 }
 
 /* -------------------------------------------------------------------------- */
