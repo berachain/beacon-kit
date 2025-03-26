@@ -47,12 +47,16 @@ func (s *SimulatedSuite) TestProcessProposal_CrashedExecutionClient_Errors() {
 	s.Require().NoError(err)
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner)
+	startTime := time.Now()
+	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	currentHeight := int64(blockHeight + coreLoopIterations)
+	proposalTime := startTime.Add(
+		time.Duration(s.TestNode.ChainSpec.TargetSecondsPerEth1Block()) * coreLoopIterations * time.Second,
+	)
+
 	// Prepare a valid block proposal.
-	proposalTime := time.Now()
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
 		Time:            proposalTime,
@@ -92,10 +96,14 @@ func (s *SimulatedSuite) TestContextHandling_SIGINT_SafeShutdown() {
 	s.Require().NoError(err)
 
 	// Run through core loop iterations to bypass any startup edge cases.
-	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner)
+	startTime := time.Now()
+	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	currentHeight := int64(blockHeight + coreLoopIterations)
+	proposalTime := startTime.Add(
+		time.Duration(s.TestNode.ChainSpec.TargetSecondsPerEth1Block()) * coreLoopIterations * time.Second,
+	)
 
 	s.LogBuffer.Reset()
 	// Kill the EL (execution layer)
@@ -108,8 +116,8 @@ func (s *SimulatedSuite) TestContextHandling_SIGINT_SafeShutdown() {
 	}
 	// Capture result of prepare proposal
 	resultCh := make(chan proposalResult, 1)
+
 	// Prepare proposal in a separate goroutine since it will block due to retrying on the crashed EL.
-	proposalTime := time.Now()
 	go func() {
 		proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 			Height:          currentHeight,
@@ -152,10 +160,14 @@ func (s *SimulatedSuite) TestContextHandling_CancelledContext_Rejected() {
 	s.Require().NoError(err)
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner)
+	startTime := time.Now()
+	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	currentHeight := int64(blockHeight + coreLoopIterations)
+	proposalTime := startTime.Add(
+		time.Duration(s.TestNode.ChainSpec.TargetSecondsPerEth1Block()) * coreLoopIterations * time.Second,
+	)
 
 	// Kill the EL
 	err = s.ElHandle.Close()
@@ -165,7 +177,6 @@ func (s *SimulatedSuite) TestContextHandling_CancelledContext_Rejected() {
 	s.CtxAppCancelFn()
 
 	s.LogBuffer.Reset()
-	proposalTime := time.Now()
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
 		Time:            proposalTime,

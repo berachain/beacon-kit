@@ -138,7 +138,7 @@ func (s *PectraSuite) TestFullLifecycle_WithoutRequests_IsSuccessful() {
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
 
 	// Go through iterations of the core loop.
-	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner)
+	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, time.Now())
 	s.Require().Len(proposals, coreLoopIterations)
 }
 
@@ -183,6 +183,6 @@ func (s *PectraSuite) TestFullLifecycle_WithRequests_IsSuccessful() {
 	s.Require().NoError(err)
 
 	// Go through iterations of the core loop.
-	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner)
+	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, time.Now())
 	s.Require().Len(proposals, coreLoopIterations)
 }

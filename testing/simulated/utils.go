@@ -106,6 +106,7 @@ func (s *SharedAccessors) MoveChainToHeight(
 	t *testing.T,
 	startHeight, iterations int64,
 	proposer *signer.BLSSigner,
+	startTime time.Time,
 ) []*types.PrepareProposalResponse {
 	// Prepare a block proposal.
 	pubkey, err := proposer.GetPubKey()
@@ -114,7 +115,7 @@ func (s *SharedAccessors) MoveChainToHeight(
 	var proposedCometBlocks []*types.PrepareProposalResponse
 
 	for currentHeight := startHeight; currentHeight < startHeight+iterations; currentHeight++ {
-		proposalTime := time.Now()
+		proposalTime := startTime.Add(time.Duration(uint64(startHeight-currentHeight)*s.TestNode.ChainSpec.TargetSecondsPerEth1Block()) * time.Second)
 		proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 			Height:          currentHeight,
 			Time:            proposalTime,

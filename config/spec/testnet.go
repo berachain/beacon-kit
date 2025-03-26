@@ -30,9 +30,7 @@ func TestnetChainSpecData() *chain.SpecData {
 	specData.DepositEth1ChainID = TestnetEth1ChainID
 
 	// Genesis values of EVM inflation are consistent with those of mainnet.
-	// Testnet activates Deneb1 for BERA minting near epoch 1.
-	// TODO(fork): Set to usable fork time for simulated tests.
-	specData.Deneb1ForkTime = 1
+	specData.Deneb1ForkTime = mainnetDeneb1ForkTime
 	specData.ElectraForkTime = defaultElectraForkTime
 
 	return specData
