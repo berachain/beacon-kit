@@ -65,7 +65,7 @@ func IsBefore(a, b common.Version) bool {
 
 // IsBeforeOrEquals returns true if a is before or at the same version as b.
 func IsBeforeOrEquals(a, b common.Version) bool {
-	return !IsAfter(a, b)
+	return IsBefore(a, b) || Equals(a, b)
 }
 
 // Equals returns true if a and b are equal (each byte in the 4-byte vector is the same).
