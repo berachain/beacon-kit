@@ -121,7 +121,7 @@ func (s *SharedAccessors) MoveChainToHeight(
 			ProposerAddress: pubkey.Address(),
 		})
 		require.NoError(t, err)
-		require.NotEmpty(t, proposal)
+		require.Len(t, proposal.Txs, 2)
 
 		// Process the proposal.
 		processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
