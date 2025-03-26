@@ -294,7 +294,7 @@ func (s *Service) VerifyIncomingBlock(
 		return err
 	}
 
-	s.logger.Info(
+	s.logger.Debug(
 		"State root verification succeeded - accepting incoming beacon block",
 		"state_root",
 		beaconBlk.GetStateRoot(),
