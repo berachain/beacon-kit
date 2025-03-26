@@ -18,22 +18,10 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package hex
+package eip7002
 
-// decodeNibble decodes a single hexadecimal nibble (half-byte) into uint64.
-func decodeNibble(in byte) uint64 {
-	// uint64 conversion here is safe
-	switch {
-	case in >= '0' && in <= '9':
-		//#nosec G701 // The resulting value will be in the range 0-9.
-		return uint64(in - hexBaseOffset)
-	case in >= 'A' && in <= 'F':
-		//#nosec G701 // The resulting value will be in the range 10-15.
-		return uint64(in - hexAlphaOffsetUpper)
-	case in >= 'a' && in <= 'f':
-		//#nosec G701 // The resulting value will be in the range 10-15.
-		return uint64(in - hexAlphaOffsetLower)
-	default:
-		return badNibble
-	}
+import "context"
+
+type rpcClient interface {
+	Call(ctx context.Context, target any, method string, params ...any) error
 }

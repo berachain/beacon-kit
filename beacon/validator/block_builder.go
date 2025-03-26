@@ -342,10 +342,19 @@ func (s *Service) buildBlockBody(
 		if err != nil {
 			return err
 		}
+		if requests == nil {
+			return errors.New("requests was nil") // appease nilaway
+		}
 		err = body.SetExecutionRequests(requests)
 		if err != nil {
 			return err
 		}
+		s.logger.Info(
+			"Building with execution requests",
+			"deposits", len(requests.Deposits),
+			"withdrawals", len(requests.Withdrawals),
+			"consolidations", len(requests.Consolidations),
+		)
 	}
 
 	return nil

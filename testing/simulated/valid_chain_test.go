@@ -187,6 +187,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 		Txs:             proposal.Txs,
 		Height:          currentHeight,
 		ProposerAddress: pubkey.Address(),
+		Time:            consensusTime,
 	})
 	s.Require().NoError(err)
 	s.Require().NotEmpty(finalizeResp)
@@ -359,6 +360,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessfu
 		Txs:             proposal.Txs,
 		Height:          currentHeight,
 		ProposerAddress: pubkey.Address(),
+		Time:            consensusTime,
 	})
 	s.Require().NoError(err)
 	s.Require().NotEmpty(finalizeResp)

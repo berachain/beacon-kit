@@ -187,6 +187,7 @@ func (s *SimulatedSuite) TestContextHandling_CancelledContext_Rejected() {
 		Txs:             proposal.Txs,
 		Height:          currentHeight,
 		ProposerAddress: pubkey.Address(),
+		Time:            proposalTime,
 	})
 	s.Require().Error(err, context.Canceled)
 	s.Require().Nil(finalizeResp)

@@ -91,6 +91,19 @@ func ProvideElectraGenesisChainSpec() (chain.Spec, error) {
 	return chainSpec, nil
 }
 
+// ProvidePectraForkTestChainSpec provides a chain spec with pectra in epoch 2
+func ProvidePectraForkTestChainSpec() (chain.Spec, error) {
+	specData := spec.TestnetChainSpecData()
+	specData.SlotsPerEpoch = 5
+	specData.Deneb1ForkEpoch = 0
+	specData.ElectraForkEpoch = 1
+	chainSpec, err := chain.NewSpec(specData)
+	if err != nil {
+		return nil, err
+	}
+	return chainSpec, nil
+}
+
 // ProvideSimulationChainSpec provides a default chain-spec equivalent to testnet.
 // Bypasses the need for environment variables.
 func ProvideSimulationChainSpec() (chain.Spec, error) {

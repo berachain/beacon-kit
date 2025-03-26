@@ -39,15 +39,22 @@ func (s *Service) FinalizeBlock(
 	req *cmtabci.FinalizeBlockRequest,
 ) (transition.ValidatorUpdates, error) {
 	// STEP 1: Decode block and blobs.
+	forkForSlot := s.chainSpec.ActiveForkVersionForSlot(math.Slot(req.Height)) // #nosec G115
 	signedBlk, blobs, err := encoding.ExtractBlobsAndBlockFromRequest(
 		req,
 		BeaconBlockTxIndex,
 		BlobSidecarsTxIndex,
-		s.chainSpec.ActiveForkVersionForSlot(math.Slot(req.Height))) // #nosec G115
+		forkForSlot,
+	)
 	if err != nil {
 		s.logger.Error("Failed to decode block and blobs", "error", err)
 		return nil, fmt.Errorf("failed to decode block and blobs: %w", err)
 	}
+	s.logger.Debug(
+		"Finalizing block with fork version",
+		"block", req.Height,
+		"fork", forkForSlot.String(),
+	)
 	blk := signedBlk.GetBeaconBlock()
 
 	// Send an FCU to force the HEAD of the chain on the EL on startup.
