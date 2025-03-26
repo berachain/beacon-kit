@@ -28,8 +28,8 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/decoder"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -161,7 +161,7 @@ func TestBeaconBlock_MarshalUnmarshalSSZ(t *testing.T) {
 		require.NotNil(t, sszBlock)
 
 		unmarshalledBlock := types.NewEmptyBeaconBlockWithVersion(v)
-		err = decoder.SSZUnmarshal(sszBlock, unmarshalledBlock)
+		err = constraints.SSZUnmarshal(sszBlock, unmarshalledBlock)
 		require.NoError(t, err)
 		require.Equal(t, block, unmarshalledBlock)
 	})
