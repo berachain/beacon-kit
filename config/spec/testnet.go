@@ -22,6 +22,8 @@ package spec
 
 import "github.com/berachain/beacon-kit/chain"
 
+const testnetDeneb1ForkTime = 1 // TODO(fork): determine this value based on first Deneb1 block in bepolia.
+
 // TestnetChainSpecData is the chain.SpecData for Berachain's public testnet.
 func TestnetChainSpecData() *chain.SpecData {
 	specData := MainnetChainSpecData()
@@ -29,9 +31,7 @@ func TestnetChainSpecData() *chain.SpecData {
 	// Testnet uses chain ID of 80069.
 	specData.DepositEth1ChainID = TestnetEth1ChainID
 
-	// Genesis values of EVM inflation are consistent with those of mainnet.
-	specData.Deneb1ForkTime = mainnetDeneb1ForkTime
-	specData.ElectraForkTime = defaultElectraForkTime
+	specData.Deneb1ForkTime = testnetDeneb1ForkTime
 
 	return specData
 }

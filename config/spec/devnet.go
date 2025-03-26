@@ -47,6 +47,7 @@ const (
 	devnetDeneb1ForkTime = 1
 
 	// devnetElectraForkTime is the timestamp at which the Electra fork occurs.
+	// TODO(fork): Make devnet fork time take place during each devnet test for electra.
 	devnetElectraForkTime = defaultElectraForkTime
 
 	// devnetEVMInflationAddressDeneb1 is the address of the EVM inflation contract

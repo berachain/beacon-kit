@@ -65,8 +65,6 @@ func Next(
 		// Next.consensusTime <= Verify.consensusTime
 		delta = 1
 	}
-	fmt.Println("Consensus time:", consensusTime+delta)
-	fmt.Println("Parent Payload time:", parentPayloadTimestamp+1)
 	return max(
 		consensusTime+delta,
 		parentPayloadTimestamp+1,

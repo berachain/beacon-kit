@@ -252,7 +252,6 @@ func (s *Service) retrieveExecutionPayload(
 		return nil, err
 	}
 
-	fmt.Println("Building block for slot", slotData.GetSlot())
 	return s.localPayloadBuilder.RequestPayloadSync(
 		ctx,
 		st,
