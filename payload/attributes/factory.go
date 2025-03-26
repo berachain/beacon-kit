@@ -56,7 +56,7 @@ func NewAttributesFactory(
 func (f *Factory) BuildPayloadAttributes(
 	st *statedb.StateDB,
 	slot math.Slot,
-	timestamp uint64,
+	timestamp math.U64,
 	prevHeadRoot [32]byte,
 ) (*engineprimitives.PayloadAttributes, error) {
 	var (

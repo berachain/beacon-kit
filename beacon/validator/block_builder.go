@@ -70,20 +70,27 @@ func (s *Service) BuildBlockAndSidecars(
 		return nil, nil, err
 	}
 
-	// We introduce hard forks with the expectation that the first block proposed after the
-	// hard fork timestamp is when new rules apply. When building blocks, we set the timestamp
-	// now so we can build a block for the correct fork.
-	timestamp := slotData.GetConsensusTime().Unwrap()
-
-	// Build forkdata used for the signing root of the reveal and the sidecars
-	forkData, err := s.buildForkData(st, timestamp)
+	// Grab parent block root for payload request.
+	parentBlockRoot, err := st.GetBlockRootAtIndex(
+		(blkSlot.Unwrap() - 1) % s.chainSpec.SlotsPerHistoricalRoot(),
+	)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	// Build the reveal for the current slot.
-	// TODO: We can optimize to pre-compute this in parallel?
-	reveal, err := s.buildRandaoReveal(forkData, blkSlot)
+	// Get the payload for the block.
+	envelope, err := s.retrieveExecutionPayload(ctx, st, parentBlockRoot, slotData)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed retrieving execution payload: %w", err)
+	}
+
+	// We introduce hard forks with the expectation that the first block proposed after the
+	// hard fork timestamp is when new rules apply. When building blocks, we set the timestamp
+	// now so we can build a block for the correct fork.
+	timestamp := envelope.GetExecutionPayload().GetTimestamp()
+
+	// Build forkdata used for the signing root of the reveal and the sidecars
+	forkData, err := s.buildForkData(st, timestamp)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -94,10 +101,11 @@ func (s *Service) BuildBlockAndSidecars(
 		return nil, nil, err
 	}
 
-	// Get the payload for the block.
-	envelope, err := s.retrieveExecutionPayload(ctx, st, blk, slotData)
+	// Build the reveal for the current slot.
+	// TODO: We can optimize to pre-compute this in parallel?
+	reveal, err := s.buildRandaoReveal(forkData, blkSlot)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed retrieving execution payload: %w", err)
+		return nil, nil, err
 	}
 
 	// We have to assemble the block body prior to producing the sidecars
@@ -110,7 +118,7 @@ func (s *Service) BuildBlockAndSidecars(
 	if err = s.computeAndSetStateRoot(
 		ctx,
 		slotData.GetProposerAddress(),
-		slotData.GetConsensusTime(),
+		timestamp,
 		st,
 		blk,
 	); err != nil {
@@ -150,7 +158,7 @@ func (s *Service) BuildBlockAndSidecars(
 
 // getEmptyBeaconBlockForSlot creates a new empty block.
 func (s *Service) getEmptyBeaconBlockForSlot(
-	st *statedb.StateDB, requestedSlot math.Slot, timestamp uint64,
+	st *statedb.StateDB, requestedSlot math.Slot, timestamp math.U64,
 ) (*ctypes.BeaconBlock, error) {
 	// Create a new block.
 	parentBlockRoot, err := st.GetBlockRootAtIndex(
@@ -176,7 +184,7 @@ func (s *Service) getEmptyBeaconBlockForSlot(
 	)
 }
 
-func (s *Service) buildForkData(st *statedb.StateDB, timestamp uint64) (*ctypes.ForkData, error) {
+func (s *Service) buildForkData(st *statedb.StateDB, timestamp math.U64) (*ctypes.ForkData, error) {
 	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
 	if err != nil {
 		return nil, err
@@ -207,7 +215,7 @@ func (s *Service) buildRandaoReveal(
 func (s *Service) retrieveExecutionPayload(
 	ctx context.Context,
 	st *statedb.StateDB,
-	blk *ctypes.BeaconBlock,
+	parentBlockRoot common.Root,
 	slotData *types.SlotData,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
 	//
@@ -216,9 +224,8 @@ func (s *Service) retrieveExecutionPayload(
 	// Get the payload for the block.
 	envelope, err := s.localPayloadBuilder.RetrievePayload(
 		ctx,
-		blk.GetSlot(),
-		slotData.GetConsensusTime().Unwrap(),
-		blk.GetParentBlockRoot(),
+		slotData.GetSlot(),
+		parentBlockRoot,
 	)
 	if err == nil {
 		return envelope, nil
@@ -234,7 +241,7 @@ func (s *Service) retrieveExecutionPayload(
 	// this less confusing.
 
 	s.metrics.failedToRetrievePayload(
-		blk.GetSlot(),
+		slotData.GetSlot(),
 		err,
 	)
 
@@ -248,13 +255,13 @@ func (s *Service) retrieveExecutionPayload(
 	return s.localPayloadBuilder.RequestPayloadSync(
 		ctx,
 		st,
-		blk.GetSlot(),
+		slotData.GetSlot(),
 		payloadtime.Next(
 			slotData.GetConsensusTime(),
 			lph.GetTimestamp(),
 			false, // buildOptimistically
-		).Unwrap(),
-		blk.GetParentBlockRoot(),
+		),
+		parentBlockRoot,
 		lph.GetBlockHash(),
 		lph.GetParentHash(),
 	)

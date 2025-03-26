@@ -38,13 +38,13 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 	ctx context.Context,
 	st *statedb.StateDB,
 	slot math.Slot,
-	timestamp uint64,
+	timestamp math.U64,
 	parentBlockRoot common.Root,
 	headEth1BlockHash common.ExecutionHash,
 	finalEth1BlockHash common.ExecutionHash,
-) (*engineprimitives.PayloadID, error) {
+) (*engineprimitives.PayloadID, common.Version, error) {
 	if !pb.Enabled() {
-		return nil, ErrPayloadBuilderDisabled
+		return nil, common.Version{}, ErrPayloadBuilderDisabled
 	}
 
 	if payloadID, found := pb.pc.GetAndEvict(slot, parentBlockRoot); found {
@@ -53,7 +53,7 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 			"for_slot", slot.Base10(),
 			"parent_block_root", parentBlockRoot,
 		)
-		return &payloadID, nil
+		return &payloadID.PayloadID, payloadID.ForkVersion, nil
 	}
 
 	// Assemble the payload attributes.
@@ -64,9 +64,10 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 		parentBlockRoot,
 	)
 	if err != nil {
-		return nil, err
+		return nil, common.Version{}, err
 	}
 
+	forkVersion := pb.chainSpec.ActiveForkVersionForTimestamp(timestamp)
 	// Submit the forkchoice update to the execution client.
 	req := ctypes.BuildForkchoiceUpdateRequest(
 		&engineprimitives.ForkchoiceStateV1{
@@ -75,19 +76,19 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 			FinalizedBlockHash: finalEth1BlockHash,
 		},
 		attrs,
-		pb.chainSpec.ActiveForkVersionForTimestamp(timestamp),
+		forkVersion,
 	)
 	payloadID, err := pb.ee.NotifyForkchoiceUpdate(ctx, req)
 	if err != nil {
-		return nil, fmt.Errorf("RequestPayloadAsync failed sending forkchoice update: %w", err)
+		return nil, common.Version{}, fmt.Errorf("RequestPayloadAsync failed sending forkchoice update: %w", err)
 	}
 
 	// Only add to cache if we received back a payload ID.
 	if payloadID != nil {
-		pb.pc.Set(slot, parentBlockRoot, *payloadID)
+		pb.pc.Set(slot, parentBlockRoot, *payloadID, forkVersion)
 	}
 
-	return payloadID, nil
+	return payloadID, forkVersion, nil
 }
 
 // RequestPayloadSync request a payload for the given slot and
@@ -96,7 +97,7 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 	ctx context.Context,
 	st *statedb.StateDB,
 	slot math.Slot,
-	timestamp uint64,
+	timestamp math.U64,
 	parentBlockRoot common.Root,
 	parentEth1Hash common.ExecutionHash,
 	finalBlockHash common.ExecutionHash,
@@ -107,7 +108,7 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 
 	// Build the payload and wait for the execution client to
 	// return the payload ID.
-	payloadID, err := pb.RequestPayloadAsync(
+	payloadID, forkVersion, err := pb.RequestPayloadAsync(
 		ctx,
 		st,
 		slot,
@@ -138,7 +139,7 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 	}
 
 	// Get the payload from the execution client.
-	return pb.getPayload(ctx, *payloadID, timestamp)
+	return pb.getPayload(ctx, *payloadID, forkVersion)
 }
 
 // RetrievePayload attempts to pull a previously built payload
@@ -148,7 +149,6 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 func (pb *PayloadBuilder) RetrievePayload(
 	ctx context.Context,
 	slot math.Slot,
-	timestamp uint64,
 	parentBlockRoot common.Root,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
 	if !pb.Enabled() {
@@ -163,7 +163,7 @@ func (pb *PayloadBuilder) RetrievePayload(
 	}
 
 	// Get the payload from the execution client.
-	envelope, err := pb.getPayload(ctx, payloadID, timestamp)
+	envelope, err := pb.getPayload(ctx, payloadID.PayloadID, payloadID.ForkVersion)
 	if err != nil {
 		return nil, err
 	}
@@ -198,13 +198,13 @@ func (pb *PayloadBuilder) RetrievePayload(
 func (pb *PayloadBuilder) getPayload(
 	ctx context.Context,
 	payloadID engineprimitives.PayloadID,
-	timestamp uint64,
+	forkVersion common.Version,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
 	envelope, err := pb.ee.GetPayload(
 		ctx,
 		&ctypes.GetPayloadRequest{
 			PayloadID:   payloadID,
-			ForkVersion: pb.chainSpec.ActiveForkVersionForTimestamp(timestamp),
+			ForkVersion: forkVersion,
 		},
 	)
 	if err != nil {

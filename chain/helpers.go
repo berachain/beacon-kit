@@ -27,11 +27,11 @@ import (
 )
 
 // ActiveForkVersionForTimestamp returns the active fork version for a given timestamp.
-func (s spec) ActiveForkVersionForTimestamp(timestamp uint64) common.Version {
-	if timestamp >= s.ElectraForkTime() {
+func (s spec) ActiveForkVersionForTimestamp(timestamp math.U64) common.Version {
+	if timestamp.Unwrap() >= s.ElectraForkTime() {
 		return version.Electra()
 	}
-	if timestamp >= s.Deneb1ForkTime() {
+	if timestamp.Unwrap() >= s.Deneb1ForkTime() {
 		return version.Deneb1()
 	}
 	return version.Deneb()

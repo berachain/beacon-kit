@@ -67,11 +67,11 @@ type LocalBuilder interface {
 		ctx context.Context,
 		st *statedb.StateDB,
 		slot math.Slot,
-		timestamp uint64,
+		timestamp math.U64,
 		parentBlockRoot common.Root,
 		headEth1BlockHash common.ExecutionHash,
 		finalEth1BlockHash common.ExecutionHash,
-	) (*engineprimitives.PayloadID, error)
+	) (*engineprimitives.PayloadID, common.Version, error)
 }
 
 // StateProcessor defines the interface for processing various state transitions
@@ -167,5 +167,5 @@ type PruningChainSpec interface {
 type ServiceChainSpec interface {
 	PruningChainSpec
 	chain.BlobSpec
-	ActiveForkVersionForTimestamp(timestamp uint64) common.Version
+	ActiveForkVersionForTimestamp(timestamp math.U64) common.Version
 }

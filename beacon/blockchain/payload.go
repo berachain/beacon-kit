@@ -74,7 +74,7 @@ func (s *Service) forceSyncUponProcess(
 			SafeBlockHash:      lph.GetParentHash(),
 			FinalizedBlockHash: lph.GetParentHash(),
 		},
-		s.chainSpec.ActiveForkVersionForTimestamp(lph.GetTimestamp().Unwrap()),
+		s.chainSpec.ActiveForkVersionForTimestamp(lph.GetTimestamp()),
 	)
 	if _, err = s.executionEngine.NotifyForkchoiceUpdate(ctx, req); err != nil {
 		s.logger.Error(
@@ -118,7 +118,7 @@ func (s *Service) forceSyncUponFinalize(
 			SafeBlockHash:      executionPayload.GetParentHash(),
 			FinalizedBlockHash: executionPayload.GetParentHash(),
 		},
-		s.chainSpec.ActiveForkVersionForTimestamp(executionPayload.GetTimestamp().Unwrap()),
+		s.chainSpec.ActiveForkVersionForTimestamp(executionPayload.GetTimestamp()),
 	)
 
 	switch _, err = s.executionEngine.NotifyForkchoiceUpdate(ctx, req); {
@@ -197,12 +197,12 @@ func (s *Service) rebuildPayloadForRejectedBlock(
 	}
 
 	// Submit a request for a new payload.
-	if _, err = s.localBuilder.RequestPayloadAsync(
+	if _, _, err = s.localBuilder.RequestPayloadAsync(
 		ctx,
 		st,
 		// We are rebuilding for the current slot.
 		stateSlot,
-		nextPayloadTimestamp.Unwrap(),
+		nextPayloadTimestamp,
 		// We set the parent root to the previous block root. The HashTreeRoot
 		// of the header is the same as the HashTreeRoot of the block.
 		latestHeader.HashTreeRoot(),
@@ -265,10 +265,10 @@ func (s *Service) optimisticPayloadBuild(
 
 	// We then trigger a request for the next payload.
 	payload := blk.GetBody().GetExecutionPayload()
-	if _, err := s.localBuilder.RequestPayloadAsync(
+	if _, _, err := s.localBuilder.RequestPayloadAsync(
 		ctx, st,
 		slot,
-		nextPayloadTimestamp.Unwrap(),
+		nextPayloadTimestamp,
 		// The previous block root is simply the root of the block we just
 		// processed.
 		blk.HashTreeRoot(),

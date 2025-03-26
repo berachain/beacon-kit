@@ -26,7 +26,7 @@ import (
 )
 
 type ChainSpec interface {
-	ActiveForkVersionForTimestamp(timestamp uint64) common.Version
+	ActiveForkVersionForTimestamp(timestamp math.U64) common.Version
 	EpochsPerHistoricalVector() uint64
 	SlotToEpoch(slot math.Slot) math.Epoch
 }

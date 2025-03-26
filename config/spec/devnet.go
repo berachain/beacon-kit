@@ -38,14 +38,11 @@ const (
 	// of Gwei) that can be staked.
 	devnetMaxStakeAmount = 4000 * params.GWei
 
-	// devnetDeneb1ForkTime is the timestamp at which the Deneb1 fork occurs. This is
-	// approximately at epoch 1.
-	devnetDeneb1ForkTime = 1 * defaultSlotsPerEpoch * defaultTargetSecondsPerEth1Block
+	// devnetDeneb1ForkTime is the timestamp at which the Deneb1 fork occurs.
+	// TODO(fork): Make devnet fork time take place during each devnet test.
+	devnetDeneb1ForkTime = 1
 
-	// devnetElectraForkTime is the timestamp at which the Electra fork occurs. This is
-	// approximately at epoch 2.
-	// TODO(fork): Set to devnetElectraForkTime when ready.
-	// devnetElectraForkTime = 2 * defaultSlotsPerEpoch * defaultTargetSecondsPerEth1Block
+	// devnetElectraForkTime is the timestamp at which the Electra fork occurs.
 	devnetElectraForkTime = defaultElectraForkTime
 
 	// devnetEVMInflationAddressDeneb1 is the address of the EVM inflation contract

@@ -238,7 +238,7 @@ func ComputeAndSetInvalidExecutionBlock(
 	txs []*gethprimitives.Transaction,
 ) *ctypes.BeaconBlock {
 	t.Helper()
-	forkVersion := chainSpec.ActiveForkVersionForTimestamp(latestBlock.GetTimestamp().Unwrap())
+	forkVersion := chainSpec.ActiveForkVersionForTimestamp(latestBlock.GetTimestamp())
 	_, sidecars := splitTxs(txs)
 	// Use the current execution payload (e.g. for an invalid block, no simulation is done).
 	executionPayload := latestBlock.GetBody().GetExecutionPayload()
@@ -275,7 +275,7 @@ func ComputeAndSetValidExecutionBlock(
 	require.Len(t, simulatedBlocks, 1)
 	simBlock := simulatedBlocks[0]
 
-	forkVersion := chainSpec.ActiveForkVersionForTimestamp(latestBlock.GetTimestamp().Unwrap())
+	forkVersion := chainSpec.ActiveForkVersionForTimestamp(latestBlock.GetTimestamp())
 	txsNoSidecar, sidecars := splitTxs(txs)
 	origParent := latestBlock.GetParentBlockRoot()
 

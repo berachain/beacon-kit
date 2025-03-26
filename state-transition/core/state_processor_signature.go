@@ -37,7 +37,7 @@ func (sp *StateProcessor) GetSignatureVerifierFn(st *statedb.StateDB) (
 
 	return func(blk *ctypes.BeaconBlock, signature crypto.BLSSignature) error {
 		fd := ctypes.NewForkData(
-			sp.cs.ActiveForkVersionForTimestamp(blk.GetTimestamp().Unwrap()),
+			sp.cs.ActiveForkVersionForTimestamp(blk.GetTimestamp()),
 			genesisValidatorsRoot,
 		)
 		domain := fd.ComputeDomain(sp.cs.DomainTypeProposer())

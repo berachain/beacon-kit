@@ -170,7 +170,7 @@ func moveToEndOfEpoch(
 			types.NewEth1Data(depRoot),
 			timestamp,
 			[]*types.Deposit{},
-			st.EVMInflationWithdrawal(timestamp.Unwrap()),
+			st.EVMInflationWithdrawal(timestamp),
 		)
 
 		vals, err := sp.Transition(ctx, st, blk)

@@ -33,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/payload/cache"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/stretchr/testify/require"
 )
@@ -77,11 +78,11 @@ func TestRetrievePayloadSunnyPath(t *testing.T) {
 	)
 
 	// set expectations
-	cache.Set(slot, parentBlockRoot, dummyPayloadID)
+	cache.Set(slot, parentBlockRoot, dummyPayloadID, version.Deneb())
 	ee.payloadEnvToReturn = expectedPayload
 
 	// test and checks
-	payload, err := pb.RetrievePayload(ctx, slot, 0, parentBlockRoot)
+	payload, err := pb.RetrievePayload(ctx, slot, parentBlockRoot)
 	require.NoError(t, err)
 	require.Equal(t, expectedPayload, payload)
 }
@@ -125,11 +126,11 @@ func TestRetrievePayloadNilWithdrawalsListRejected(t *testing.T) {
 	)
 
 	// set expectations
-	cache.Set(slot, parentBlockRoot, dummyPayloadID)
+	cache.Set(slot, parentBlockRoot, dummyPayloadID, version.Deneb())
 	ee.payloadEnvToReturn = faultyPayload
 
 	// test and checks
-	_, err = pb.RetrievePayload(ctx, slot, 0, parentBlockRoot)
+	_, err = pb.RetrievePayload(ctx, slot, parentBlockRoot)
 	require.ErrorIs(t, builder.ErrNilWithdrawals, err)
 }
 
@@ -158,7 +159,7 @@ type stubAttributesFactory struct{}
 
 func (ee *stubAttributesFactory) BuildPayloadAttributes(
 	*statedb.StateDB, math.U64,
-	uint64, [32]byte,
+	math.U64, [32]byte,
 ) (*engineprimitives.PayloadAttributes, error) {
 	return nil, errStubNotImplemented
 }

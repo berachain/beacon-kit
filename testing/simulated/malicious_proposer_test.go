@@ -81,7 +81,7 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
 		proposal.Txs,
 		blockchain.BeaconBlockTxIndex,
-		s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(uint64(proposalTime.Unix())),
+		s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(math.U64(proposalTime.Unix())),
 	)
 	s.Require().NoError(err)
 
@@ -111,7 +111,7 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	maliciousBlockSigned, err := ctypes.NewSignedBeaconBlock(
 		maliciousBlock,
 		&ctypes.ForkData{
-			CurrentVersion:        s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(maliciousBlock.GetTimestamp().Unwrap()),
+			CurrentVersion:        s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(maliciousBlock.GetTimestamp()),
 			GenesisValidatorsRoot: s.GenesisValidatorsRoot,
 		},
 		s.TestNode.ChainSpec,
@@ -223,7 +223,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobCommitment_Errors() {
 	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
 		proposal.Txs,
 		blockchain.BeaconBlockTxIndex,
-		s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(blockHeight*s.TestNode.ChainSpec.TargetSecondsPerEth1Block()),
+		s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(math.U64(blockHeight*s.TestNode.ChainSpec.TargetSecondsPerEth1Block())),
 	)
 	s.Require().NoError(err)
 
@@ -301,7 +301,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobCommitment_Errors() {
 	newSignedBlock, err := ctypes.NewSignedBeaconBlock(
 		proposedBlockMessage,
 		&ctypes.ForkData{
-			CurrentVersion:        s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(proposedBlockMessage.GetTimestamp().Unwrap()),
+			CurrentVersion:        s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(proposedBlockMessage.GetTimestamp()),
 			GenesisValidatorsRoot: s.GenesisValidatorsRoot,
 		},
 		s.TestNode.ChainSpec,
@@ -391,7 +391,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobInclusionProof_Errors() 
 	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
 		proposal.Txs,
 		blockchain.BeaconBlockTxIndex,
-		s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(blockHeight*s.TestNode.ChainSpec.TargetSecondsPerEth1Block()),
+		s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(math.U64(blockHeight*s.TestNode.ChainSpec.TargetSecondsPerEth1Block())),
 	)
 	s.Require().NoError(err)
 
@@ -462,7 +462,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobInclusionProof_Errors() 
 	newSignedBlock, err := ctypes.NewSignedBeaconBlock(
 		proposedBlockMessage,
 		&ctypes.ForkData{
-			CurrentVersion:        s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(proposedBlockMessage.GetTimestamp().Unwrap()),
+			CurrentVersion:        s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(proposedBlockMessage.GetTimestamp()),
 			GenesisValidatorsRoot: s.GenesisValidatorsRoot,
 		},
 		s.TestNode.ChainSpec,

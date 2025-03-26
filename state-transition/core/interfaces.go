@@ -74,7 +74,7 @@ type ChainSpec interface {
 	SlotToEpoch(slot math.Slot) math.Epoch
 	SlotsPerHistoricalRoot() uint64
 	EpochsPerHistoricalVector() uint64
-	ActiveForkVersionForTimestamp(timestamp uint64) common.Version
+	ActiveForkVersionForTimestamp(timestamp math.U64) common.Version
 	ValidatorSetCap() uint64
 	HistoricalRootsLimit() uint64
 }

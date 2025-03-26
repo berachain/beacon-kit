@@ -101,7 +101,7 @@ func (s *StateDB) UpdateSlashingAtIndex(index uint64, amount math.Gwei) error {
 //
 // NOTE: This function is modified from the spec to allow a fixed withdrawal
 // (as the first withdrawal) used for EVM inflation.
-func (s *StateDB) ExpectedWithdrawals(timestamp uint64) (engineprimitives.Withdrawals, error) {
+func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.Withdrawals, error) {
 	var (
 		validator         *ctypes.Validator
 		balance           math.Gwei
@@ -199,7 +199,7 @@ func (s *StateDB) ExpectedWithdrawals(timestamp uint64) (engineprimitives.Withdr
 //
 // NOTE: The withdrawal index and validator index are both set to max(uint64) as
 // they are not used during processing.
-func (s *StateDB) EVMInflationWithdrawal(timestamp uint64) *engineprimitives.Withdrawal {
+func (s *StateDB) EVMInflationWithdrawal(timestamp math.U64) *engineprimitives.Withdrawal {
 	return engineprimitives.NewWithdrawal(
 		EVMInflationWithdrawalIndex,
 		EVMInflationWithdrawalValidatorIndex,

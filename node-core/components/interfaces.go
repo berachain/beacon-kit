@@ -49,7 +49,7 @@ type (
 		BuildPayloadAttributes(
 			st *statedb.StateDB,
 			slot math.Slot,
-			timestamp uint64,
+			timestamp math.U64,
 			prevHeadRoot [32]byte,
 		) (*engineprimitives.PayloadAttributes, error)
 	}
@@ -81,16 +81,15 @@ type (
 			ctx context.Context,
 			st *statedb.StateDB,
 			slot math.Slot,
-			timestamp uint64,
+			timestamp math.U64,
 			parentBlockRoot common.Root,
 			headEth1BlockHash common.ExecutionHash,
 			finalEth1BlockHash common.ExecutionHash,
-		) (*engineprimitives.PayloadID, error)
+		) (*engineprimitives.PayloadID, common.Version, error)
 		// RetrievePayload retrieves the payload for the given slot.
 		RetrievePayload(
 			ctx context.Context,
 			slot math.Slot,
-			timestamp uint64,
 			parentBlockRoot common.Root,
 		) (ctypes.BuiltExecutionPayloadEnv, error)
 		// RequestPayloadSync requests a payload for the given slot and
@@ -99,7 +98,7 @@ type (
 			ctx context.Context,
 			st *statedb.StateDB,
 			slot math.Slot,
-			timestamp uint64,
+			timestamp math.U64,
 			parentBlockRoot common.Root,
 			headEth1BlockHash common.ExecutionHash,
 			finalEth1BlockHash common.ExecutionHash,

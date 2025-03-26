@@ -23,6 +23,7 @@
 package simulated_test
 
 import (
+	"github.com/berachain/beacon-kit/primitives/math"
 	"math/big"
 	"time"
 
@@ -70,7 +71,7 @@ func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_Errors() {
 	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
 		proposal.Txs,
 		blockchain.BeaconBlockTxIndex,
-		s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(uint64(proposalTime.Unix())),
+		s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(math.U64(proposalTime.Unix())),
 	)
 	s.Require().NoError(err)
 
@@ -99,7 +100,7 @@ func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_Errors() {
 	maliciousBlockSigned, err := ctypes.NewSignedBeaconBlock(
 		maliciousBlock,
 		&ctypes.ForkData{
-			CurrentVersion:        s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(maliciousBlock.GetTimestamp().Unwrap()),
+			CurrentVersion:        s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(maliciousBlock.GetTimestamp()),
 			GenesisValidatorsRoot: s.GenesisValidatorsRoot,
 		},
 		s.TestNode.ChainSpec,

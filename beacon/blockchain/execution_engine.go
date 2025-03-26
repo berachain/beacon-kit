@@ -25,7 +25,6 @@ import (
 	"fmt"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	contypes "github.com/berachain/beacon-kit/consensus/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
@@ -38,7 +37,6 @@ import (
 func (s *Service) sendPostBlockFCU(
 	ctx context.Context,
 	st *statedb.StateDB,
-	blk *contypes.ConsensusBlock,
 ) error {
 	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
@@ -47,7 +45,6 @@ func (s *Service) sendPostBlockFCU(
 
 	// Send a forkchoice update without payload attributes to notify
 	// EL of the new head.
-	beaconBlk := blk.GetBeaconBlock()
 	// TODO: Switch to New().
 	req := ctypes.BuildForkchoiceUpdateRequestNoAttrs(
 		&engineprimitives.ForkchoiceStateV1{
@@ -55,9 +52,7 @@ func (s *Service) sendPostBlockFCU(
 			SafeBlockHash:      lph.GetParentHash(),
 			FinalizedBlockHash: lph.GetParentHash(),
 		},
-		// TODO(fork): Is this the correct fork version?? sending head block as lph, but using
-		// current blk timestamp as the forkVersion timestamp?
-		s.chainSpec.ActiveForkVersionForTimestamp(beaconBlk.GetTimestamp().Unwrap()),
+		lph.GetForkVersion(),
 	)
 	if _, err = s.executionEngine.NotifyForkchoiceUpdate(ctx, req); err != nil {
 		return fmt.Errorf("failed forkchoice update, head %s: %w",

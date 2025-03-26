@@ -83,7 +83,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlock_IsSuccessful() {
 	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
 		proposals[len(proposals)-1].Txs,
 		blockchain.BeaconBlockTxIndex,
-		s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(lph.GetTimestamp().Unwrap()),
+		s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(lph.GetTimestamp()),
 	)
 	s.Require().NoError(err)
 	s.Require().Equal(proposedBlock.GetHeader().GetBodyRoot(), stateHeader.GetBodyRoot())
@@ -122,7 +122,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
 		proposal.Txs,
 		blockchain.BeaconBlockTxIndex,
-		s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(uint64(consensusTime.Unix())),
+		s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(math.U64(consensusTime.Unix())),
 	)
 	s.Require().NoError(err)
 
@@ -159,7 +159,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 	newSignedBlock, err := ctypes.NewSignedBeaconBlock(
 		finalBlock,
 		&ctypes.ForkData{
-			CurrentVersion:        s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(unsignedBlock.GetTimestamp().Unwrap()),
+			CurrentVersion:        s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(unsignedBlock.GetTimestamp()),
 			GenesisValidatorsRoot: s.GenesisValidatorsRoot,
 		},
 		s.TestNode.ChainSpec,
@@ -232,7 +232,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessfu
 	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
 		proposal.Txs,
 		blockchain.BeaconBlockTxIndex,
-		s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(uint64(consensusTime.Unix())),
+		s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(math.U64(consensusTime.Unix())),
 	)
 	s.Require().NoError(err)
 
@@ -303,7 +303,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessfu
 	newSignedBlock, err := ctypes.NewSignedBeaconBlock(
 		proposedBlockMessage,
 		&ctypes.ForkData{
-			CurrentVersion:        s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(proposedBlockMessage.GetTimestamp().Unwrap()),
+			CurrentVersion:        s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(proposedBlockMessage.GetTimestamp()),
 			GenesisValidatorsRoot: s.GenesisValidatorsRoot,
 		},
 		s.TestNode.ChainSpec,

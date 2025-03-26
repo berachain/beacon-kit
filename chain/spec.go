@@ -128,18 +128,18 @@ type ForkVersionSpec interface {
 	// Helpers for ChainSpecData
 
 	// ActiveForkVersionForTimestamp returns the active fork version for a given timestamp.
-	ActiveForkVersionForTimestamp(timestamp uint64) common.Version
+	ActiveForkVersionForTimestamp(timestamp math.U64) common.Version
 }
 
 type EVMInflationSpec interface {
 	// EVMInflationAddress returns the address on the EVM which will receive
 	// the inflation amount of native EVM balance through a withdrawal every
 	// block.
-	EVMInflationAddress(timestamp uint64) common.ExecutionAddress
+	EVMInflationAddress(timestamp math.U64) common.ExecutionAddress
 
 	// EVMInflationPerBlock returns the amount of native EVM balance (in Gwei)
 	// to be minted to the EVMInflationAddress via a withdrawal every block.
-	EVMInflationPerBlock(timestamp uint64) uint64
+	EVMInflationPerBlock(timestamp math.U64) uint64
 }
 
 type WithdrawalsSpec interface {
@@ -445,7 +445,7 @@ func (s spec) ValidatorSetCap() uint64 {
 
 // EVMInflationAddress returns the address on the EVM which will receive the
 // inflation amount of native EVM balance through a withdrawal every block.
-func (s spec) EVMInflationAddress(timestamp uint64) common.ExecutionAddress {
+func (s spec) EVMInflationAddress(timestamp math.U64) common.ExecutionAddress {
 	fv := s.ActiveForkVersionForTimestamp(timestamp)
 	switch fv {
 	case version.Deneb1():
@@ -459,7 +459,7 @@ func (s spec) EVMInflationAddress(timestamp uint64) common.ExecutionAddress {
 
 // EVMInflationPerBlock returns the amount of native EVM balance (in Gwei) to
 // be minted to the EVMInflationAddress via a withdrawal every block.
-func (s spec) EVMInflationPerBlock(timestamp uint64) uint64 {
+func (s spec) EVMInflationPerBlock(timestamp math.U64) uint64 {
 	fv := s.ActiveForkVersionForTimestamp(timestamp)
 	switch fv {
 	case version.Deneb1():

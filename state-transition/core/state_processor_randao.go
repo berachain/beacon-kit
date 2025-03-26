@@ -58,7 +58,7 @@ func (sp *StateProcessor) processRandaoReveal(
 	epoch := sp.cs.SlotToEpoch(slot)
 	body := blk.GetBody()
 
-	timestamp := blk.GetTimestamp().Unwrap()
+	timestamp := blk.GetTimestamp()
 	fd := ctypes.NewForkData(sp.cs.ActiveForkVersionForTimestamp(timestamp), genesisValidatorsRoot)
 
 	if ctx.VerifyRandao() {

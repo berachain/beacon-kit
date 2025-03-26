@@ -37,6 +37,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/state-transition/core"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
@@ -67,13 +68,14 @@ func (s *Service) ProcessProposal(
 		)
 	}
 
+	forkVersion := s.chainSpec.ActiveForkVersionForTimestamp(math.U64(req.GetTime().Unix())) //#nosec: G115
 	// Decode signed block and sidecars.
 	signedBlk, sidecars, err := encoding.ExtractBlobsAndBlockFromRequest(
 		req,
 		BeaconBlockTxIndex,
 		BlobSidecarsTxIndex,
-		// TODO(fork): ensure req.GetTime() is same fork version for time in BeaconBlock somehow.
-		s.chainSpec.ActiveForkVersionForTimestamp(uint64(req.GetTime().Unix()))) //#nosec: G115
+		forkVersion,
+	)
 	if err != nil {
 		return err
 	}
@@ -91,6 +93,15 @@ func (s *Service) ProcessProposal(
 	}
 
 	blk := signedBlk.GetBeaconBlock()
+
+	// The timestamp from the ABCI request can be slightly different from the timestamp
+	// put in the BeaconBlock's ExecutionPayload. We need to ensure that the fork version
+	// for these timestamps is the same, since the ABCI request timestamp must be used to
+	// determine the unmarshaling of the BeaconBlock. This may result in a failed proposal
+	// or two at the start of the fork.
+	if !version.Equals(s.chainSpec.ActiveForkVersionForTimestamp(blk.GetTimestamp()), forkVersion) {
+		return ErrVersionMismatch
+	}
 	// Make sure we have the right number of BlobSidecars
 	blobKzgCommitments := blk.GetBody().GetBlobKzgCommitments()
 	numCommitments := len(blobKzgCommitments)
@@ -142,6 +153,7 @@ func (s *Service) ProcessProposal(
 	}
 
 	// Process the block
+	// NOTE: the consensusBlk.GetConsensusTime() must NOT be used to determine the fork version.
 	consensusBlk := types.NewConsensusBlock(
 		blk,
 		req.GetProposerAddress(),

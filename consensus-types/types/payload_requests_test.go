@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/stretchr/testify/require"
 )
@@ -61,7 +62,7 @@ func TestBuildForkchoiceUpdateRequest(t *testing.T) {
 	)
 	payloadAttributes, err := engineprimitives.NewPayloadAttributes(
 		forkVersion,
-		uint64(time.Now().Truncate(time.Second).Unix()),
+		math.U64(time.Now().Truncate(time.Second).Unix()),
 		common.Bytes32{0x01},
 		common.ExecutionAddress{},
 		engineprimitives.Withdrawals{},

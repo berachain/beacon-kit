@@ -53,14 +53,14 @@ type PayloadAttributes struct {
 // NewPayloadAttributes creates a new empty PayloadAttributes.
 func NewPayloadAttributes(
 	forkVersion common.Version,
-	timestamp uint64,
+	timestamp math.U64,
 	prevRandao common.Bytes32,
 	suggestedFeeRecipient common.ExecutionAddress,
 	withdrawals Withdrawals,
 	parentBeaconBlockRoot common.Root,
 ) (*PayloadAttributes, error) {
 	pa := &PayloadAttributes{
-		Timestamp:             math.U64(timestamp),
+		Timestamp:             timestamp,
 		PrevRandao:            prevRandao,
 		SuggestedFeeRecipient: suggestedFeeRecipient,
 		Withdrawals:           withdrawals,

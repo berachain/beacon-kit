@@ -146,7 +146,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		types.NewEth1Data(depRoot),
 		blk.GetTimestamp()+1,
 		[]*types.Deposit{},
-		st.EVMInflationWithdrawal(blk.GetTimestamp().Unwrap()+1),
+		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
 	)
 
 	valDiff, err = sp.Transition(ctx, st, blk)
@@ -269,7 +269,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 		types.NewEth1Data(depRoot),
 		blk.GetTimestamp()+1,
 		[]*types.Deposit{},
-		st.EVMInflationWithdrawal(blk.GetTimestamp().Unwrap()+1),
+		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
 	)
 
 	valDiff, err = sp.Transition(ctx, st, blk)
@@ -304,7 +304,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 		types.NewEth1Data(depRoot),
 		blk.GetTimestamp()+1,
 		[]*types.Deposit{},
-		st.EVMInflationWithdrawal(blk.GetTimestamp().Unwrap()+1),
+		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
 	)
 
 	// run the test
@@ -519,7 +519,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 
 	withdrawals = []*engineprimitives.Withdrawal{
 		// The first withdrawal is always for EVM inflation.
-		st.EVMInflationWithdrawal(blk.GetTimestamp().Unwrap() + 1),
+		st.EVMInflationWithdrawal(blk.GetTimestamp() + 1),
 		// Partially withdraw validator 1 by minBalance.
 		{
 			Index:     1,
@@ -663,7 +663,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		types.NewEth1Data(depRoot),
 		blk.GetTimestamp()+1,
 		[]*types.Deposit{},
-		st.EVMInflationWithdrawal(blk.GetTimestamp().Unwrap()+1),
+		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
 	)
 
 	// run the test
@@ -698,7 +698,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		types.NewEth1Data(depRoot),
 		blk.GetTimestamp()+1,
 		[]*types.Deposit{},
-		st.EVMInflationWithdrawal(blk.GetTimestamp().Unwrap()+1),
+		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
 	)
 
 	// run the test
@@ -727,7 +727,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		types.NewEth1Data(depRoot),
 		blk.GetTimestamp()+1,
 		[]*types.Deposit{},
-		st.EVMInflationWithdrawal(blk.GetTimestamp().Unwrap()+1),
+		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
 	)
 	_, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
@@ -738,13 +738,13 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		types.NewEth1Data(depRoot),
 		blk.GetTimestamp()+1,
 		[]*types.Deposit{},
-		st.EVMInflationWithdrawal(blk.GetTimestamp().Unwrap()+1),
+		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
 	)
 	_, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
 
 	withdrawals := []*engineprimitives.Withdrawal{
-		st.EVMInflationWithdrawal(blk.GetTimestamp().Unwrap() + 1),
+		st.EVMInflationWithdrawal(blk.GetTimestamp() + 1),
 		{
 			Index:     0,
 			Validator: extraValIdx,
@@ -899,7 +899,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		types.NewEth1Data(depRoot),
 		blk.GetTimestamp()+1,
 		[]*types.Deposit{},
-		st.EVMInflationWithdrawal(blk.GetTimestamp().Unwrap()+1),
+		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
 	)
 
 	// run the test
@@ -949,7 +949,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		types.NewEth1Data(depRoot),
 		blk.GetTimestamp()+1,
 		[]*types.Deposit{},
-		st.EVMInflationWithdrawal(blk.GetTimestamp().Unwrap()+1),
+		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
 	)
 
 	// run the test
@@ -1007,7 +1007,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		types.NewEth1Data(depRoot),
 		blk.GetTimestamp()+1,
 		[]*types.Deposit{},
-		st.EVMInflationWithdrawal(blk.GetTimestamp().Unwrap()+1),
+		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
 	)
 	_, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
@@ -1018,13 +1018,13 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		types.NewEth1Data(depRoot),
 		blk.GetTimestamp()+1,
 		[]*types.Deposit{},
-		st.EVMInflationWithdrawal(blk.GetTimestamp().Unwrap()+1),
+		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
 	)
 	_, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
 
 	withdrawals := []*engineprimitives.Withdrawal{
-		st.EVMInflationWithdrawal(blk.GetTimestamp().Unwrap() + 1),
+		st.EVMInflationWithdrawal(blk.GetTimestamp() + 1),
 		{
 			Index:     0,
 			Validator: smallestValIdx,
