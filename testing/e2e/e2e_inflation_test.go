@@ -86,7 +86,7 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 
 			expectedBalance = new(big.Int).Mul(
 				new(big.Int).SetUint64(inflationPerBlock*params.GWei),
-				big.NewInt(blkNum-forkSlot),
+				big.NewInt(blkNum-forkSlot+1),
 			)
 		} else {
 			expectedBalance = new(big.Int).Mul(
