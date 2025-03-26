@@ -96,8 +96,7 @@ func transformExecutableDataToExecutionPayload(
 	data *gethprimitives.ExecutableData,
 ) (*ctypes.ExecutionPayload, error) {
 	// Check that the fork version is supported (pre-Deneb1).
-	// TODO(pectra): Extended simulated test support for pectra
-	if !version.IsBefore(forkVersion, version.Deneb1()) {
+	if version.EqualsOrIsAfter(forkVersion, version.Deneb1()) {
 		return nil, ctypes.ErrForkVersionNotSupported
 	}
 

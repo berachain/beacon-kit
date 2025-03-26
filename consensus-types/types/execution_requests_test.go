@@ -26,8 +26,8 @@ import (
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/decoder"
 	"github.com/berachain/beacon-kit/primitives/eip7685"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/prysmaticlabs/prysm/v5/config/params"
@@ -237,7 +237,7 @@ func TestExecutionRequests_ValidValuesSSZ(t *testing.T) {
 
 			// Unmarshal back into a new ExecutionRequests.
 			var recomputedER types.ExecutionRequests
-			err = decoder.SSZUnmarshal(prysmERBytes, &recomputedER)
+			err = constraints.SSZUnmarshal(prysmERBytes, &recomputedER)
 			require.NoError(t, err)
 
 			// Compare that the original and recomputed ExecutionRequests match.
@@ -300,7 +300,7 @@ func TestExecutionRequests_InvalidValuesUnmarshalSSZ(t *testing.T) {
 			// Ensure that calling UnmarshalSSZ with an invalid payload does not panic
 			// and returns a non-nil error.
 			require.NotPanics(t, func() {
-				err := decoder.SSZUnmarshal(payload, &er)
+				err := constraints.SSZUnmarshal(payload, &er)
 				require.Error(t, err, "Expected error for payload %v", payload)
 			})
 		})
