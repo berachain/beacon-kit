@@ -8,14 +8,12 @@ beacond = import_module("./src/nodes/consensus/beacond/launcher.star")
 networks = import_module("./src/networks/networks.star")
 port_spec_lib = import_module("./src/lib/port_spec.star")
 nodes = import_module("./src/nodes/nodes.star")
-nginx = import_module("./src/services/nginx/nginx.star")
 constants = import_module("./src/constants.star")
 spamoor = import_module("./src/services/spamoor/launcher.star")
 prometheus = import_module("./src/observability/prometheus/prometheus.star")
 grafana = import_module("./src/observability/grafana/grafana.star")
 pyroscope = import_module("./src/observability/pyroscope/pyroscope.star")
 tx_fuzz = import_module("./src/services/tx_fuzz/launcher.star")
-blutgang = import_module("./src/services/blutgang/launcher.star")
 blockscout = import_module("./src/services/blockscout/launcher.star")
 otterscan = import_module("./src/services/otterscan/launcher.star")
 
@@ -37,7 +35,6 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
 
     plan.print("CHAIN_ID: {}".format(chain_id), "CHAIN_SPEC: {}".format(chain_spec))
 
-    next_free_prefunded_account = 0
     validators = nodes.parse_nodes_from_dict(network_configuration["validators"], node_settings)
     full_nodes = nodes.parse_nodes_from_dict(network_configuration["full_nodes"], node_settings)
     seed_nodes = nodes.parse_nodes_from_dict(network_configuration["seed_nodes"], node_settings)
@@ -183,29 +180,8 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
     for n, seed_node in enumerate(seed_nodes):
         beacond.dial_unsafe_peers(plan, seed_node.cl_service_name, all_consensus_peering_info)
 
-    # Get only the first rpc endpoint
-    eth_json_rpc_endpoint = eth_json_rpc_endpoints[0]
-    endpoint_type = eth_json_rpc_endpoint["type"]
-    plan.print("RPC Endpoint Type:", endpoint_type)
-    if endpoint_type == "nginx":
-        plan.print("Launching RPCs for ", endpoint_type)
-        nginx.get_config(plan, eth_json_rpc_endpoint["clients"])
-
-    elif endpoint_type == "blutgang":
-        plan.print("Launching blutgang")
-        blutgang_config_template = read_file(
-            constants.BLUTGANG_CONFIG_TEMPLATE_FILEPATH,
-        )
-        blutgang.launch_blutgang(
-            plan,
-            blutgang_config_template,
-            full_node_el_clients,
-            eth_json_rpc_endpoint["clients"],
-            "kurtosis",
-        )
-
-    else:
-        plan.print("Invalid type for eth_json_rpc_endpoint")
+    # an index into the PRE_FUNDED_ACCOUNTS array in constants.star
+    next_free_prefunded_account = 0
 
     # 7. Start additional services
     prometheus_url = ""
@@ -213,22 +189,21 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
         s = service_module.parse_service_from_dict(s_dict)
         if s.name == "spamoor":
             plan.print("Launching spamoor")
-            ip_spamoor = plan.get_service(endpoint_type).ip_address
-            port_spamoor = plan.get_service(endpoint_type).ports["http"].number
-            spamoor.launch_spamoor(
+            if "replicas" not in s_dict:
+                s.replicas = 1
+            next_free_prefunded_account = spamoor.launch_spamoors(
                 plan,
-                constants.PRE_FUNDED_ACCOUNTS[next_free_prefunded_account],
-                "http://{}:{}".format(ip_spamoor, port_spamoor),
+                s.replicas,
+                next_free_prefunded_account,
+                full_node_el_client_configs,
+                full_node_el_clients,
             )
-            next_free_prefunded_account += 1
             plan.print("Successfully launched spamoor")
         elif s.name == "tx-fuzz":
             plan.print("Launching tx-fuzz")
             if "replicas" not in s_dict:
                 s.replicas = 1
             next_free_prefunded_account = tx_fuzz.launch_tx_fuzzes(plan, s.replicas, next_free_prefunded_account, full_node_el_client_configs, full_node_el_clients, [])
-            # next_free_prefunded_account = tx_fuzz.launch_tx_fuzzes_gang(plan, s.replicas, next_free_prefunded_account, [])
-
         elif s.name == "prometheus":
             prometheus_url = prometheus.start(plan, metrics_enabled_services)
         elif s.name == "grafana":
