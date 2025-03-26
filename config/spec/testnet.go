@@ -22,7 +22,10 @@ package spec
 
 import "github.com/berachain/beacon-kit/chain"
 
-const testnetDeneb1ForkTime = 1 // TODO(fork): determine this value based on first Deneb1 block in bepolia.
+// Deneb1 fork timing on Bepolia. This is calculated based on the timestamp of the first bepolia
+// epoch, block 192, which was used to initiate the fork when beacon-kit forked by epoch instead
+// of by timestamp.
+const testnetDeneb1ForkTime = 1740090694
 
 // TestnetChainSpecData is the chain.SpecData for Berachain's public testnet.
 func TestnetChainSpecData() *chain.SpecData {

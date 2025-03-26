@@ -74,7 +74,9 @@ const (
 	mainnetDepositContractAddress = defaultDepositContractAddress
 
 	// mainnetDeneb1ForkTime is the timestamp at which the Deneb1 fork occurs.
-	mainnetDeneb1ForkTime = 2855 // TODO(fork): determine this value based on first Deneb1 block in mainnet.
+	// This is calculated based on the timestamp of the 2855th mainnet epoch, block 548160, which
+	// was used to initiate the fork when beacon-kit forked by epoch instead of by timestamp.
+	mainnetDeneb1ForkTime = 1738415507
 
 	// mainnetEVMInflationAddressDeneb1 is the address on the EVM which will receive the
 	// inflation amount of native EVM balance through a withdrawal every block in the Deneb1 fork.
