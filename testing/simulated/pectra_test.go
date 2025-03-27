@@ -124,10 +124,7 @@ func (s *PectraSuite) TearDownTest() {
 	s.TestNode.ServiceRegistry.StopAll()
 }
 
-// TODO(pectra): Get this test case passing. It currently fails in ProcessProposal with error:
-// `block hash in payload does not match assembled block`.
 func (s *PectraSuite) TestFullLifecycle_WithoutRequests_IsSuccessful() {
-	s.T().Skip("TODO(pectra): Get this test case passing. It currently fails in ProcessProposal with error")
 	const blockHeight = 1
 	const coreLoopIterations = 10
 
@@ -142,10 +139,7 @@ func (s *PectraSuite) TestFullLifecycle_WithoutRequests_IsSuccessful() {
 	s.Require().Len(proposals, coreLoopIterations)
 }
 
-// TODO(pectra): Get this test case passing. It currently fails in ProcessProposal with error:
-// `block hash in payload does not match assembled block`.
 func (s *PectraSuite) TestFullLifecycle_WithRequests_IsSuccessful() {
-	s.T().Skip("TODO(pectra): Get this test case passing. It currently fails in ProcessProposal with error")
 	const blockHeight = 1
 	const coreLoopIterations = 10
 

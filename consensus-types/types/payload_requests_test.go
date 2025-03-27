@@ -48,9 +48,9 @@ func TestBuildNewPayloadRequest(t *testing.T) {
 	)
 
 	require.NotNil(t, request)
-	require.Equal(t, executionPayload, request.ExecutionPayload)
-	require.Equal(t, versionedHashes, request.VersionedHashes)
-	require.Equal(t, &parentBeaconBlockRoot, request.ParentBeaconBlockRoot)
+	require.Equal(t, executionPayload, request.GetExecutionPayload())
+	require.Equal(t, versionedHashes, request.GetVersionedHashes())
+	require.Equal(t, &parentBeaconBlockRoot, request.GetParentBeaconBlockRoot())
 }
 
 func TestBuildForkchoiceUpdateRequest(t *testing.T) {

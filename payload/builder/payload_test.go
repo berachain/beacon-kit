@@ -37,6 +37,34 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type mockExecutionPayloadEnvelope[BlobsBundleT engineprimitives.BlobsBundle] struct {
+	ExecutionPayload  *ctypes.ExecutionPayload         `json:"executionPayload"`
+	BlockValue        *math.U256                       `json:"blockValue"`
+	BlobsBundle       BlobsBundleT                     `json:"blobsBundle"`
+	ExecutionRequests []ctypes.EncodedExecutionRequest `json:"executionRequests"`
+	Override          bool                             `json:"shouldOverrideBuilder"`
+}
+
+func (m mockExecutionPayloadEnvelope[BlobsBundleT]) GetExecutionPayload() *ctypes.ExecutionPayload {
+	return m.ExecutionPayload
+}
+
+func (m mockExecutionPayloadEnvelope[BlobsBundleT]) GetBlockValue() *math.U256 {
+	return m.BlockValue
+}
+
+func (m mockExecutionPayloadEnvelope[BlobsBundleT]) GetBlobsBundle() engineprimitives.BlobsBundle {
+	return m.BlobsBundle
+}
+
+func (m mockExecutionPayloadEnvelope[BlobsBundleT]) GetEncodedExecutionRequests() []ctypes.EncodedExecutionRequest {
+	return m.ExecutionRequests
+}
+
+func (m mockExecutionPayloadEnvelope[BlobsBundleT]) ShouldOverrideBuilder() bool {
+	return m.Override
+}
+
 // TODO cluster these tests into a single test table
 func TestRetrievePayloadSunnyPath(t *testing.T) {
 	t.Parallel()
@@ -68,7 +96,7 @@ func TestRetrievePayloadSunnyPath(t *testing.T) {
 		parentBlockRoot = common.Root{0xff, 0xaa}
 		dummyPayloadID  = engineprimitives.PayloadID{0xab}
 
-		expectedPayload = &ctypes.ExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1]{
+		expectedPayload = &mockExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1]{
 			ExecutionPayload: &ctypes.ExecutionPayload{
 				Withdrawals: engineprimitives.Withdrawals{},
 			},
@@ -116,7 +144,7 @@ func TestRetrievePayloadNilWithdrawalsListRejected(t *testing.T) {
 		parentBlockRoot = common.Root{0xff, 0xaa}
 		dummyPayloadID  = engineprimitives.PayloadID{0xab}
 
-		faultyPayload = &ctypes.ExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1]{
+		faultyPayload = &mockExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1]{
 			ExecutionPayload: &ctypes.ExecutionPayload{
 				Withdrawals: nil, // empty withdrawals are fine, nil list should be rejected
 			},

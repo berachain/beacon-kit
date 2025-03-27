@@ -36,6 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	"github.com/berachain/beacon-kit/primitives/version"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
@@ -327,6 +328,25 @@ func (s *Service) buildBlockBody(
 
 	// Set the execution payload on the block body.
 	body.SetExecutionPayload(envelope.GetExecutionPayload())
+
+	if version.EqualsOrIsAfter(body.GetForkVersion(), version.Electra()) {
+		var requests *ctypes.ExecutionRequests
+		// TODO(pectra): Remove the conversion once DecodeExecutionRequests constructor changed.
+		encodedReqs := envelope.GetEncodedExecutionRequests()
+		result := make([][]byte, len(encodedReqs))
+		for i, req := range encodedReqs {
+			result[i] = req // conversion from ExecutionRequest to []byte
+		}
+
+		requests, err = ctypes.DecodeExecutionRequests(result)
+		if err != nil {
+			return err
+		}
+		err = body.SetExecutionRequests(requests)
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
