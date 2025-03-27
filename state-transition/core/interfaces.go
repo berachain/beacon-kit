@@ -51,7 +51,7 @@ type ExecutionEngine interface {
 	// NotifyNewPayload notifies the execution client of the new payload.
 	NotifyNewPayload(
 		ctx context.Context,
-		req *ctypes.NewPayloadRequest,
+		req ctypes.NewPayloadRequest,
 		retryOnSyncingStatus bool,
 	) error
 }
