@@ -63,7 +63,7 @@ type PayloadBuilder interface {
 		ctx context.Context,
 		st *statedb.StateDB,
 		slot math.Slot,
-		timestamp uint64,
+		timestamp math.U64,
 		parentBlockRoot common.Root,
 		headEth1BlockHash common.ExecutionHash,
 		finalEth1BlockHash common.ExecutionHash,
@@ -114,7 +114,7 @@ type ChainSpec interface {
 	SlotsPerHistoricalRoot() uint64
 	DomainTypeRandao() common.DomainType
 	MaxDepositsPerBlock() uint64
-	ActiveForkVersionForSlot(slot math.Slot) common.Version
+	ActiveForkVersionForTimestamp(timestamp math.U64) common.Version
 	SlotToEpoch(slot math.Slot) math.Epoch
 	ctypes.ProposerDomain
 }

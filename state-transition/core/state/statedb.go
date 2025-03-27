@@ -101,7 +101,7 @@ func (s *StateDB) UpdateSlashingAtIndex(index uint64, amount math.Gwei) error {
 //
 // NOTE: This function is modified from the spec to allow a fixed withdrawal
 // (as the first withdrawal) used for EVM inflation.
-func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
+func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.Withdrawals, error) {
 	var (
 		validator         *ctypes.Validator
 		balance           math.Gwei
@@ -117,7 +117,7 @@ func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 	withdrawals := make([]*engineprimitives.Withdrawal, 0, maxWithdrawals)
 
 	// The first withdrawal is fixed to be the EVM inflation withdrawal.
-	withdrawals = append(withdrawals, s.EVMInflationWithdrawal(slot))
+	withdrawals = append(withdrawals, s.EVMInflationWithdrawal(timestamp))
 
 	withdrawalIndex, err := s.GetNextWithdrawalIndex()
 	if err != nil {
@@ -199,12 +199,12 @@ func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 //
 // NOTE: The withdrawal index and validator index are both set to max(uint64) as
 // they are not used during processing.
-func (s *StateDB) EVMInflationWithdrawal(slot math.Slot) *engineprimitives.Withdrawal {
+func (s *StateDB) EVMInflationWithdrawal(timestamp math.U64) *engineprimitives.Withdrawal {
 	return engineprimitives.NewWithdrawal(
 		EVMInflationWithdrawalIndex,
 		EVMInflationWithdrawalValidatorIndex,
-		s.cs.EVMInflationAddress(slot),
-		math.Gwei(s.cs.EVMInflationPerBlock(slot)),
+		s.cs.EVMInflationAddress(timestamp),
+		math.Gwei(s.cs.EVMInflationPerBlock(timestamp)),
 	)
 }
 

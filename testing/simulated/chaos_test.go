@@ -46,13 +46,16 @@ func (s *SimulatedSuite) TestProcessProposal_CrashedExecutionClient_Errors() {
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
 
+	// Test happens post Deneb1 fork.
+	startTime := time.Now()
+
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner)
+	proposals, proposalTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	currentHeight := int64(blockHeight + coreLoopIterations)
+
 	// Prepare a valid block proposal.
-	proposalTime := time.Now()
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
 		Time:            proposalTime,
@@ -91,8 +94,11 @@ func (s *SimulatedSuite) TestContextHandling_SIGINT_SafeShutdown() {
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
 
+	// Test happens post Deneb1 fork.
+	startTime := time.Now()
+
 	// Run through core loop iterations to bypass any startup edge cases.
-	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner)
+	proposals, proposalTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	currentHeight := int64(blockHeight + coreLoopIterations)
@@ -108,8 +114,8 @@ func (s *SimulatedSuite) TestContextHandling_SIGINT_SafeShutdown() {
 	}
 	// Capture result of prepare proposal
 	resultCh := make(chan proposalResult, 1)
+
 	// Prepare proposal in a separate goroutine since it will block due to retrying on the crashed EL.
-	proposalTime := time.Now()
 	go func() {
 		proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 			Height:          currentHeight,
@@ -151,8 +157,11 @@ func (s *SimulatedSuite) TestContextHandling_CancelledContext_Rejected() {
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
 
+	// Test happens post Deneb1 fork.
+	startTime := time.Now()
+
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner)
+	proposals, proposalTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	currentHeight := int64(blockHeight + coreLoopIterations)
@@ -165,7 +174,6 @@ func (s *SimulatedSuite) TestContextHandling_CancelledContext_Rejected() {
 	s.CtxAppCancelFn()
 
 	s.LogBuffer.Reset()
-	proposalTime := time.Now()
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
 		Time:            proposalTime,
@@ -187,6 +195,7 @@ func (s *SimulatedSuite) TestContextHandling_CancelledContext_Rejected() {
 		Txs:             proposal.Txs,
 		Height:          currentHeight,
 		ProposerAddress: pubkey.Address(),
+		Time:            proposalTime,
 	})
 	s.Require().Error(err, context.Canceled)
 	s.Require().Nil(finalizeResp)

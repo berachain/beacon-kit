@@ -31,6 +31,9 @@ var (
 	ErrNilBlk = errors.New("nil beacon block")
 	// ErrNilBlob is an error for when the BlobSidecars is nil.
 	ErrNilBlob = errors.New("nil blob")
+	// ErrVersionMismatch is an error for when the fork for the block timestamp does not match the fork
+	// for the ABCI timestamp.
+	ErrVersionMismatch = errors.New("ABCI fork version mismatch")
 	// ErrDataNotAvailable indicates that the required data is not available.
 	ErrDataNotAvailable = errors.New("data not available")
 	// ErrSidecarCommitmentMismatch indicates that the BeaconBlockBody commitments do not match the sidecars.

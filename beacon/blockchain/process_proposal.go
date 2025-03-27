@@ -37,6 +37,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/state-transition/core"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
@@ -67,12 +68,14 @@ func (s *Service) ProcessProposal(
 		)
 	}
 
+	forkVersion := s.chainSpec.ActiveForkVersionForTimestamp(math.U64(req.GetTime().Unix())) //#nosec: G115
 	// Decode signed block and sidecars.
 	signedBlk, sidecars, err := encoding.ExtractBlobsAndBlockFromRequest(
 		req,
 		BeaconBlockTxIndex,
 		BlobSidecarsTxIndex,
-		s.chainSpec.ActiveForkVersionForSlot(math.Slot(req.Height))) // #nosec G115
+		forkVersion,
+	)
 	if err != nil {
 		return err
 	}
@@ -90,24 +93,41 @@ func (s *Service) ProcessProposal(
 	}
 
 	blk := signedBlk.GetBeaconBlock()
+
+	// There are two different timestamps:
+	//     - The "consensus time" is determined by CometBFT consensus and can be retrieved with `req.GetTime()`
+	//     - The "block time" is determined by beacon-kit consensus and can be retrieved with `blk.GetTimestamp()`
+	// The "consensus time" is what the network agrees the current time is based on CometBFT PBTS.
+	// This "consensus time" is used to constrain the timestamp set as the "block time" by the
+	// beacon-kit app, but they are not always equal in value. The "block time" is used by the
+	// beacon-kit consensus and execution layers to determine the active fork version.
+	//
+	// When unmarshaling the BeaconBlock, we do not yet have access to the "block time", so we
+	// must rely on the "consensus time" as our best estimation of the "block time" needed to
+	// determine the current fork version. Since the two timestamps could be different, we need to
+	// ensure that the fork version for these timestamps are the same. This may result in a failed
+	// proposal or two at the start of the fork.
+	blkVersion := s.chainSpec.ActiveForkVersionForTimestamp(blk.GetTimestamp())
+	if !version.Equals(blkVersion, forkVersion) {
+		return fmt.Errorf("CometBFT version %v, BeaconBlock version %v: %w",
+			forkVersion, blkVersion,
+			ErrVersionMismatch,
+		)
+	}
 	// Make sure we have the right number of BlobSidecars
 	blobKzgCommitments := blk.GetBody().GetBlobKzgCommitments()
 	numCommitments := len(blobKzgCommitments)
 	if numCommitments != len(sidecars) {
-		err = fmt.Errorf("expected %d sidecars, got %d: %w",
+		return fmt.Errorf("expected %d sidecars, got %d: %w",
 			numCommitments, len(sidecars),
 			ErrSidecarCommitmentMismatch,
 		)
-		s.logger.Warn(err.Error())
-		return err
 	}
 	if uint64(numCommitments) > s.chainSpec.MaxBlobsPerBlock() {
-		err = fmt.Errorf("expected less than %d sidecars, got %d: %w",
+		return fmt.Errorf("expected less than %d sidecars, got %d: %w",
 			s.chainSpec.MaxBlobsPerBlock(), numCommitments,
 			core.ErrExceedsBlockBlobLimit,
 		)
-		s.logger.Warn(err.Error())
-		return err
 	}
 
 	// Verify the block and sidecar signatures. We can simply verify the block
@@ -140,7 +160,7 @@ func (s *Service) ProcessProposal(
 		}
 	}
 
-	// Process the block
+	// Process the block.
 	consensusBlk := types.NewConsensusBlock(
 		blk,
 		req.GetProposerAddress(),

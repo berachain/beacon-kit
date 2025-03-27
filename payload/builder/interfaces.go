@@ -25,14 +25,15 @@ import (
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	"github.com/berachain/beacon-kit/payload/cache"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 type PayloadCache interface {
-	GetAndEvict(slot math.Slot, stateRoot common.Root) (engineprimitives.PayloadID, bool)
-	Set(slot math.Slot, stateRoot common.Root, pid engineprimitives.PayloadID)
+	GetAndEvict(slot math.Slot, stateRoot common.Root) (cache.PayloadIDCacheResult, bool)
+	Set(slot math.Slot, stateRoot common.Root, pid engineprimitives.PayloadID, version common.Version)
 }
 
 // AttributesFactory is the interface for the attributes factory.
@@ -40,7 +41,7 @@ type AttributesFactory interface {
 	BuildPayloadAttributes(
 		st *statedb.StateDB,
 		slot math.U64,
-		timestamp uint64,
+		timestamp math.U64,
 		prevHeadRoot [32]byte,
 	) (*engineprimitives.PayloadAttributes, error)
 }
@@ -61,5 +62,5 @@ type ExecutionEngine interface {
 }
 
 type ChainSpec interface {
-	ActiveForkVersionForSlot(slot math.Slot) common.Version
+	ActiveForkVersionForTimestamp(timestamp math.U64) common.Version
 }

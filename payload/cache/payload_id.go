@@ -40,7 +40,7 @@ type PayloadIDCache struct {
 	// mu protects access to the slotToBlockRootToPayloadID map.
 	mu sync.RWMutex
 	// slotToBlockRootToPayloadID is used for storing payload ID mappings
-	slotToBlockRootToPayloadID map[payloadIDCacheKey]engineprimitives.PayloadID
+	slotToBlockRootToPayloadID map[payloadIDCacheKey]PayloadIDCacheResult
 }
 
 // payloadIDCacheKey is the (slot, root) tuple that is used to access a
@@ -50,13 +50,18 @@ type payloadIDCacheKey struct {
 	root common.Root
 }
 
+type PayloadIDCacheResult struct {
+	PayloadID   engineprimitives.PayloadID
+	ForkVersion common.Version
+}
+
 // NewPayloadIDCache initializes and returns a new instance of PayloadIDCache.
 // It prepares the internal data structures for storing payload ID mappings.
 func NewPayloadIDCache() *PayloadIDCache {
 	return &PayloadIDCache{
 		mu: sync.RWMutex{},
 		slotToBlockRootToPayloadID: make(
-			map[payloadIDCacheKey]engineprimitives.PayloadID,
+			map[payloadIDCacheKey]PayloadIDCacheResult,
 		),
 	}
 }
@@ -78,13 +83,13 @@ func (p *PayloadIDCache) Has(
 func (p *PayloadIDCache) GetAndEvict(
 	slot math.Slot,
 	blockRoot common.Root,
-) (engineprimitives.PayloadID, bool) {
+) (PayloadIDCacheResult, bool) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	key := payloadIDCacheKey{slot, blockRoot}
 	pid, ok := p.slotToBlockRootToPayloadID[key]
 	if !ok {
-		return engineprimitives.PayloadID{}, false
+		return PayloadIDCacheResult{}, false
 	}
 
 	// Successfully retrieved. Remove from cache.
@@ -96,7 +101,8 @@ func (p *PayloadIDCache) GetAndEvict(
 // It also prunes entries in the cache that are older than the
 // historicalPayloadIDCacheSize limit.
 func (p *PayloadIDCache) Set(
-	slot math.Slot, blockRoot common.Root, pid engineprimitives.PayloadID,
+	slot math.Slot, blockRoot common.Root,
+	pid engineprimitives.PayloadID, version common.Version,
 ) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -107,7 +113,10 @@ func (p *PayloadIDCache) Set(
 	}
 
 	// Update the cache with the new payload ID.
-	p.slotToBlockRootToPayloadID[payloadIDCacheKey{slot, blockRoot}] = pid
+	p.slotToBlockRootToPayloadID[payloadIDCacheKey{slot, blockRoot}] = PayloadIDCacheResult{
+		PayloadID:   pid,
+		ForkVersion: version,
+	}
 }
 
 // prunePrior removes payload IDs from the cache for slots less than

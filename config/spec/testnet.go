@@ -29,9 +29,10 @@ func TestnetChainSpecData() *chain.SpecData {
 	// Testnet uses chain ID of 80069.
 	specData.DepositEth1ChainID = TestnetEth1ChainID
 
-	// Genesis values of EVM inflation are consistent with those of mainnet.
-	// Testnet activates Deneb1 for BERA minting at epoch 1.
-	specData.Deneb1ForkEpoch = 1
+	// Deneb1 fork timing on Bepolia. This is calculated based on the timestamp of the first bepolia
+	// epoch, block 192, which was used to initiate the fork when beacon-kit forked by epoch instead
+	// of by timestamp.
+	specData.Deneb1ForkTime = 1740090694
 
 	return specData
 }

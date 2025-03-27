@@ -30,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
@@ -94,7 +93,7 @@ func TestInvalidDeposits(t *testing.T) {
 		types.NewEth1Data(depRoot),
 		10,
 		[]*types.Deposit{invalidDeposit},
-		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
+		st.EVMInflationWithdrawal(10),
 	)
 
 	// Add correct deposit to local store (honest validator will see this locally).
@@ -159,7 +158,7 @@ func TestInvalidDepositsCount(t *testing.T) {
 		types.NewEth1Data(depRoot),
 		10,
 		correctDeposits,
-		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
+		st.EVMInflationWithdrawal(10),
 	)
 
 	// Add JUST 1 correct deposit to local store. This node SHOULD fail to verify.
@@ -221,7 +220,7 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 		types.NewEth1Data(depRoot),
 		10,
 		blockDeposits,
-		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
+		st.EVMInflationWithdrawal(10),
 	)
 
 	extraLocalDeposit := &types.Deposit{
@@ -297,7 +296,7 @@ func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
 		types.NewEth1Data(badDepRoot),
 		10,
 		blockDeposits,
-		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
+		st.EVMInflationWithdrawal(10),
 	)
 
 	// Add both deposits to local store (which includes more than what's in the block).

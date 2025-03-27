@@ -28,6 +28,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/payload/cache"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/stretchr/testify/require"
 )
 
@@ -41,23 +42,23 @@ func FuzzPayloadIDCacheBasic(f *testing.F) {
 		slot := math.Slot(s)
 		pid := engineprimitives.PayloadID(_p[:8])
 		cacheUnderTest := cache.NewPayloadIDCache()
-		cacheUnderTest.Set(slot, r, pid)
+		cacheUnderTest.Set(slot, r, pid, version.Deneb())
 
 		p, ok := cacheUnderTest.GetAndEvict(slot, r)
 		require.True(t, ok)
-		require.Equal(t, pid, p)
+		require.Equal(t, pid, p.PayloadID)
 
 		// Test overwriting the same slot and root with a different PayloadID
 		newPid := engineprimitives.PayloadID{}
 		for i := range pid {
 			newPid[i] = pid[i] + 1 // Simple mutation for a new PayloadID
 		}
-		cacheUnderTest.Set((slot), r, newPid)
+		cacheUnderTest.Set(slot, r, newPid, version.Deneb())
 
 		p, ok = cacheUnderTest.GetAndEvict(slot, r)
 		require.True(t, ok)
 		require.Equal(
-			t, newPid, p, "PayloadID should be overwritten with the new value")
+			t, newPid, p.PayloadID, "PayloadID should be overwritten with the new value")
 
 		// Verify deletion
 		ok = cacheUnderTest.Has(slot, r)
@@ -83,7 +84,7 @@ func FuzzPayloadIDInvalidInput(f *testing.F) {
 		copy(paddedPayload[:], _p[:min(len(_p), 8)])
 		pid := [8]byte(paddedPayload[:])
 		cacheUnderTest := cache.NewPayloadIDCache()
-		cacheUnderTest.Set(slot, r, pid)
+		cacheUnderTest.Set(slot, r, pid, version.Deneb())
 
 		_, ok := cacheUnderTest.GetAndEvict(slot, r)
 		require.True(t, ok)
@@ -107,7 +108,7 @@ func FuzzPayloadIDCacheConcurrency(f *testing.F) {
 			var paddedPayload [8]byte
 			copy(paddedPayload[:], _p[:min(len(_p), 8)])
 			pid := [8]byte(paddedPayload[:])
-			cacheUnderTest.Set((slot), r, pid)
+			cacheUnderTest.Set(slot, r, pid, version.Deneb())
 		}()
 
 		// Get operation in another goroutine

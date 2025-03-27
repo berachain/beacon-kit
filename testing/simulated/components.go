@@ -82,8 +82,8 @@ func FixedComponents(t *testing.T) []any {
 func ProvideElectraGenesisChainSpec() (chain.Spec, error) {
 	specData := spec.TestnetChainSpecData()
 	// Both Deneb1 and Electra happen in genesis.
-	specData.Deneb1ForkEpoch = 0
-	specData.ElectraForkEpoch = 0
+	specData.Deneb1ForkTime = 0
+	specData.ElectraForkTime = 0
 	chainSpec, err := chain.NewSpec(specData)
 	if err != nil {
 		return nil, err
@@ -94,5 +94,12 @@ func ProvideElectraGenesisChainSpec() (chain.Spec, error) {
 // ProvideSimulationChainSpec provides a default chain-spec equivalent to testnet.
 // Bypasses the need for environment variables.
 func ProvideSimulationChainSpec() (chain.Spec, error) {
-	return spec.TestnetChainSpec()
+	specData := spec.TestnetChainSpecData()
+	// Arbitrary number
+	specData.Deneb1ForkTime = 30
+	chainSpec, err := chain.NewSpec(specData)
+	if err != nil {
+		return nil, err
+	}
+	return chainSpec, nil
 }
