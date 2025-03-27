@@ -107,7 +107,7 @@ type BeaconBlockBody struct {
 
 // SizeSSZ returns the size of the BeaconBlockBody in SSZ.
 func (b *BeaconBlockBody) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
-	size := 96 + 72 + 32 + 4 + 4 + 4 + 4 + 4 + b.syncAggregate.SizeSSZ(siz) + 4 + 4 + 4
+	size := 96 + 72 + 32 + 4 + 4 + 4 + 4 + 4 + b.syncAggregate.SizeSSZ(siz) + 4 + 4 + 4 //nolint:mnd // okay for now.
 	includeExecRequest := version.EqualsOrIsAfter(b.GetForkVersion(), version.Electra())
 	if includeExecRequest {
 		// Add 4 for the offset of dynamic field ExecutionRequests

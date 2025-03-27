@@ -209,7 +209,9 @@ func buildNewPayloadRequestFromFork(blk *ctypes.BeaconBlock) (ctypes.NewPayloadR
 			body.GetBlobKzgCommitments().ToVersionedHashes(),
 			&parentBeaconBlockRoot,
 		), nil
-	} else if version.Equals(blk.GetForkVersion(), version.Electra()) {
+	}
+
+	if version.Equals(blk.GetForkVersion(), version.Electra()) {
 		// If we're post-electra, we set execution requests.
 		var executionRequests *ctypes.ExecutionRequests
 		executionRequests, err := body.GetExecutionRequests()
@@ -229,7 +231,7 @@ func buildNewPayloadRequestFromFork(blk *ctypes.BeaconBlock) (ctypes.NewPayloadR
 			&parentBeaconBlockRoot,
 			executionRequestsList,
 		), nil
-	} else {
-		return nil, ctypes.ErrForkVersionNotSupported
 	}
+
+	return nil, ctypes.ErrForkVersionNotSupported
 }
