@@ -39,9 +39,7 @@ import (
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
 func (s *EngineClient) NewPayload(
 	ctx context.Context,
-	payload *ctypes.ExecutionPayload,
-	versionedHashes []common.ExecutionHash,
-	parentBeaconBlockRoot *common.Root,
+	req ctypes.NewPayloadRequest,
 ) (*common.ExecutionHash, error) {
 	var (
 		startTime    = time.Now()
@@ -51,9 +49,7 @@ func (s *EngineClient) NewPayload(
 	defer cancel()
 
 	// Call the appropriate RPC method based on the payload version.
-	result, err := s.Client.NewPayload(
-		cctx, payload, versionedHashes, parentBeaconBlockRoot,
-	)
+	result, err := s.Client.NewPayload(cctx, req)
 	if err != nil {
 		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {
 			s.metrics.incrementNewPayloadTimeout()

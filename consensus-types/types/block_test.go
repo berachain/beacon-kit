@@ -85,7 +85,7 @@ func generateValidBeaconBlock(t *testing.T, forkVersion common.Version) *types.B
 	body.SetSyncAggregate(&types.SyncAggregate{})
 	body.SetVoluntaryExits(types.VoluntaryExits{})
 	body.SetBlsToExecutionChanges(types.BlsToExecutionChanges{})
-	if !version.IsBefore(forkVersion, version.Electra()) {
+	if version.EqualsOrIsAfter(forkVersion, version.Electra()) {
 		err = body.SetExecutionRequests(&types.ExecutionRequests{
 			Deposits: []*types.DepositRequest{
 				{
@@ -103,6 +103,7 @@ func generateValidBeaconBlock(t *testing.T, forkVersion common.Version) *types.B
 					Amount:          1000,
 				},
 			},
+			Consolidations: []*types.ConsolidationRequest{},
 		})
 		require.NoError(t, err)
 	}
