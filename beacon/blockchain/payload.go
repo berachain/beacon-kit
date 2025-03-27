@@ -37,19 +37,6 @@ func (s *Service) forceSyncUponProcess(
 	ctx context.Context,
 	st *statedb.StateDB,
 ) {
-	slot, err := st.GetSlot()
-	if err != nil {
-		s.logger.Error(
-			"failed to get slot for force startup head",
-			"error", err,
-		)
-		return
-	}
-
-	// TODO: Verify if the slot number is correct here, I believe in current
-	// form it should be +1'd. Not a big deal until hardforks are in play though.
-	slot++
-
 	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		s.logger.Error(
@@ -64,7 +51,6 @@ func (s *Service) forceSyncUponProcess(
 		"head_eth1_hash", lph.GetBlockHash(),
 		"safe_eth1_hash", lph.GetParentHash(),
 		"finalized_eth1_hash", lph.GetParentHash(),
-		"for_slot", slot.Base10(),
 	)
 
 	// Submit the forkchoice update to the execution client.

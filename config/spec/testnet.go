@@ -22,11 +22,6 @@ package spec
 
 import "github.com/berachain/beacon-kit/chain"
 
-// Deneb1 fork timing on Bepolia. This is calculated based on the timestamp of the first bepolia
-// epoch, block 192, which was used to initiate the fork when beacon-kit forked by epoch instead
-// of by timestamp.
-const testnetDeneb1ForkTime = 1740090694
-
 // TestnetChainSpecData is the chain.SpecData for Berachain's public testnet.
 func TestnetChainSpecData() *chain.SpecData {
 	specData := MainnetChainSpecData()
@@ -34,7 +29,10 @@ func TestnetChainSpecData() *chain.SpecData {
 	// Testnet uses chain ID of 80069.
 	specData.DepositEth1ChainID = TestnetEth1ChainID
 
-	specData.Deneb1ForkTime = testnetDeneb1ForkTime
+	// Deneb1 fork timing on Bepolia. This is calculated based on the timestamp of the first bepolia
+	// epoch, block 192, which was used to initiate the fork when beacon-kit forked by epoch instead
+	// of by timestamp.
+	specData.Deneb1ForkTime = 1740090694
 
 	return specData
 }

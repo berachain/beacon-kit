@@ -94,38 +94,40 @@ func (s *Service) ProcessProposal(
 
 	blk := signedBlk.GetBeaconBlock()
 
-	// The timestamp from the ABCI request can be slightly different from the timestamp
-	// put in the BeaconBlock's ExecutionPayload. We need to ensure that the fork version
-	// for these timestamps is the same, since the ABCI request timestamp must be used to
-	// determine the unmarshaling of the BeaconBlock. This may result in a failed proposal
-	// or two at the start of the fork.
+	// There are two different timestamps:
+	//     - The "consensus time" is determined by CometBFT consensus and can be retrieved with `req.GetTime()`
+	//     - The "block time" is determined by beacon-kit consensus and can be retrieved with `blk.GetTimestamp()`
+	// The "consensus time" is what the network agrees the current time is based on CometBFT PBTS.
+	// This "consensus time" is used to constrain the timestamp set as the "block time" by the
+	// beacon-kit app, but they are not always equal in value. The "block time" is used by the
+	// beacon-kit consensus and execution layers to determine the active fork version.
+	//
+	// When unmarshaling the BeaconBlock, we do not yet have access to the "block time", so we
+	// must rely on the "consensus time" as our best estimation of the "block time" needed to
+	// determine the current fork version. Since the two timestamps could be different, we need to
+	// ensure that the fork version for these timestamps are the same. This may result in a failed
+	// proposal or two at the start of the fork.
 	blkVersion := s.chainSpec.ActiveForkVersionForTimestamp(blk.GetTimestamp())
 	if !version.Equals(blkVersion, forkVersion) {
-		err = fmt.Errorf("CometBFT version %v, BeaconBlock version %v: %w",
+		return fmt.Errorf("CometBFT version %v, BeaconBlock version %v: %w",
 			forkVersion, blkVersion,
 			ErrVersionMismatch,
 		)
-		s.logger.Warn(err.Error())
-		return err
 	}
 	// Make sure we have the right number of BlobSidecars
 	blobKzgCommitments := blk.GetBody().GetBlobKzgCommitments()
 	numCommitments := len(blobKzgCommitments)
 	if numCommitments != len(sidecars) {
-		err = fmt.Errorf("expected %d sidecars, got %d: %w",
+		return fmt.Errorf("expected %d sidecars, got %d: %w",
 			numCommitments, len(sidecars),
 			ErrSidecarCommitmentMismatch,
 		)
-		s.logger.Warn(err.Error())
-		return err
 	}
 	if uint64(numCommitments) > s.chainSpec.MaxBlobsPerBlock() {
-		err = fmt.Errorf("expected less than %d sidecars, got %d: %w",
+		return fmt.Errorf("expected less than %d sidecars, got %d: %w",
 			s.chainSpec.MaxBlobsPerBlock(), numCommitments,
 			core.ErrExceedsBlockBlobLimit,
 		)
-		s.logger.Warn(err.Error())
-		return err
 	}
 
 	// Verify the block and sidecar signatures. We can simply verify the block
@@ -167,8 +169,6 @@ func (s *Service) ProcessProposal(
 	err = s.VerifyIncomingBlock(
 		ctx,
 		consensusBlk.GetBeaconBlock(),
-		// The ConsensusTime() should only be used to validate the block timestamp. For all other
-		// timestamp needs, make sure to use the block timestamp.
 		consensusBlk.GetConsensusTime(),
 		consensusBlk.GetProposerAddress(),
 	)

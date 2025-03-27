@@ -39,15 +39,18 @@ const (
 	devnetMaxStakeAmount = 4000 * params.GWei
 
 	// devnetDeneb1ForkTime is the timestamp at which the Deneb1 fork occurs.
-	// This must be greater than 0.
+	// A value of 64 is set for the fork to occur 64 seconds into the test,
+	// which is approximately 1 epoch.
 	// TODO(fork): Make devnet fork time take place during each devnet test.
-	// Currently the e2e tests start already on the Deneb1 fork, since time.Now()
-	// returns the current time, whereas the Deneb1ForkTime measures the seconds
-	// since the Unix Epoch.
-	devnetDeneb1ForkTime = 1
+	//  devnetDeneb1ForkTime is the UNIX timestamp of when the deneb1 fork occurs. If this value
+	//  is 64, it means that the deneb1 fork occurred 64 seconds into 1970 at the start of UNIX
+	//  time. Since e2e tests start at `time.Now()`, we would be significantly past the fork time.
+	//  To make this fork time happen during an e2e test, we must either:
+	//     a. find a way to set the fork time as an offset from genesis time
+	//     b. trick `time.Now()` into thinking it's at the UNIX Epoch.
+	devnetDeneb1ForkTime = 1 * defaultSlotsPerEpoch * defaultTargetSecondsPerEth1Block
 
 	// devnetElectraForkTime is the timestamp at which the Electra fork occurs.
-	// TODO(fork): Make devnet fork time take place during each devnet test for electra.
 	devnetElectraForkTime = defaultElectraForkTime
 
 	// devnetEVMInflationAddressDeneb1 is the address of the EVM inflation contract

@@ -86,8 +86,10 @@ func (s *Service) BuildBlockAndSidecars(
 	}
 
 	// We introduce hard forks with the expectation that the first block proposed after the
-	// hard fork timestamp is when new rules apply. When building blocks, we set the timestamp
-	// now so we can build a block for the correct fork.
+	// hard fork timestamp is when new rules apply. When building blocks, we provide the Execution
+	// Layer client with a timestamp, and it will create its payload based on that timestamp. We
+	// must use this same timestamp from the payload to build the beacon block. This ensures that
+	// we are building on the same fork version as the Execution Layer.
 	timestamp := envelope.GetExecutionPayload().GetTimestamp()
 
 	// Build forkdata used for the signing root of the reveal and the sidecars
