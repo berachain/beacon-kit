@@ -24,12 +24,12 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip7685"
 	"github.com/karalabe/ssz"
 )
 
-const maxConsolidationRequestsPerPayload = 2
 const sszConsolidationRequestSize = 116
 
 // ConsolidationRequest is introduced in Pectra but not used by us.
@@ -40,16 +40,13 @@ type ConsolidationRequest struct {
 	TargetPubKey  crypto.BLSPubkey
 }
 
-func (c *ConsolidationRequest) ValidateAfterDecodingSSZ() error {
-	return nil
-}
-
-// ConsolidationRequests is used for SSZ unmarshalling a list of ConsolidationRequest
-type ConsolidationRequests []*ConsolidationRequest
-
 /* -------------------------------------------------------------------------- */
 /*                       Consolidation Requests SSZ                           */
 /* -------------------------------------------------------------------------- */
+
+func (c *ConsolidationRequest) ValidateAfterDecodingSSZ() error {
+	return nil
+}
 
 func (c *ConsolidationRequest) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineStaticBytes(codec, &c.SourceAddress)
@@ -71,39 +68,40 @@ func (c *ConsolidationRequest) HashTreeRoot() common.Root {
 	return ssz.HashSequential(c)
 }
 
+// ConsolidationRequests is used for SSZ unmarshalling a list of ConsolidationRequest
+type ConsolidationRequests []*ConsolidationRequest
+
 // MarshalSSZ marshals the ConsolidationRequests object to SSZ format by encoding each consolidation request individually.
-func (cr *ConsolidationRequests) MarshalSSZ() ([]byte, error) {
-	return eip7685.MarshalItems[*ConsolidationRequest](*cr)
+func (cr ConsolidationRequests) MarshalSSZ() ([]byte, error) {
+	return eip7685.MarshalItems(cr)
 }
 
 // DecodeConsolidationRequests decodes SSZ data by decoding each request individually.
 func DecodeConsolidationRequests(data []byte) (ConsolidationRequests, error) {
-	maxSize := maxConsolidationRequestsPerPayload * sszConsolidationRequestSize
+	maxSize := constants.MaxConsolidationRequestsPerPayload * sszConsolidationRequestSize
 	if len(data) > maxSize {
 		return nil, fmt.Errorf(
 			"invalid consolidation requests SSZ size, requests should not be more than the "+
 				"max per payload, got %d max %d", len(data), maxSize,
 		)
 	}
-	requestSize := int(ssz.Size(&ConsolidationRequest{}))
-	if len(data) < requestSize {
+	if len(data) < sszConsolidationRequestSize {
 		return nil, fmt.Errorf(
-			"invalid consolidation requests SSZ size, got %d expected at least %d", len(data), requestSize,
+			"invalid consolidation requests SSZ size, got %d expected at least %d", len(data), sszConsolidationRequestSize,
 		)
 	}
-	if len(data)%requestSize != 0 {
+	if len(data)%sszConsolidationRequestSize != 0 {
 		return nil, fmt.Errorf(
-			"invalid data length: %d is not a multiple of consolidation request size %d", len(data), requestSize,
+			"invalid data length: %d is not a multiple of consolidation request size %d", len(data), sszConsolidationRequestSize,
 		)
 	}
-	items, err := eip7685.UnmarshalItems[*ConsolidationRequest](
+	items, err := eip7685.UnmarshalItems(
 		data,
-		requestSize,
+		sszConsolidationRequestSize,
 		func() *ConsolidationRequest { return new(ConsolidationRequest) },
 	)
 	if err != nil {
 		return nil, err
 	}
-	consolidationRequests := ConsolidationRequests(items)
-	return consolidationRequests, nil
+	return ConsolidationRequests(items), nil
 }

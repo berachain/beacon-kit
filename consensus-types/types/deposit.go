@@ -29,8 +29,8 @@ import (
 	"github.com/karalabe/ssz"
 )
 
-// DepositSize is the size of the SSZ encoding of a Deposit.
-const DepositSize = 192 // 48 + 32 + 8 + 96 + 8
+// depositSize is the size of the SSZ encoding of a Deposit.
+const depositSize = 192 // 48 + 32 + 8 + 96 + 8
 
 // Compile-time assertions to ensure Deposit implements necessary interfaces.
 var (
@@ -108,7 +108,7 @@ func (*Deposit) ValidateAfterDecodingSSZ() error { return nil }
 
 // SizeSSZ returns the SSZ encoded size of the Deposit object.
 func (d *Deposit) SizeSSZ(*ssz.Sizer) uint32 {
-	return DepositSize
+	return depositSize
 }
 
 // HashTreeRoot computes the Merkleization of the Deposit object.

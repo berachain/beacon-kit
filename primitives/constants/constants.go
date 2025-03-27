@@ -25,5 +25,5 @@ const (
 	RootLength = 32
 
 	// SSZOffsetSize is the number of bytes that an SSZ Offset contains.
-	SSZOffsetSize = 4
+	SSZOffsetSize uint32 = 4
 )

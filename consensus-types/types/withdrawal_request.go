@@ -24,13 +24,13 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip7685"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/karalabe/ssz"
 )
 
-const maxWithdrawalRequestsPerPayload = 16
 const sszWithdrawRequestSize = 76 // ExecutionAddress = 20, ValidatorPubKey = 48, Amount = 8
 
 // WithdrawalRequest is introduced in EIP7002 which we use for withdrawals.
@@ -43,9 +43,6 @@ type WithdrawalRequest struct {
 func (w *WithdrawalRequest) ValidateAfterDecodingSSZ() error {
 	return nil
 }
-
-// WithdrawalRequests is used for SSZ unmarshalling a list of WithdrawalRequest
-type WithdrawalRequests []*WithdrawalRequest
 
 func (w *WithdrawalRequest) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineStaticBytes(codec, &w.SourceAddress)
@@ -67,28 +64,30 @@ func (w *WithdrawalRequest) HashTreeRoot() common.Root {
 	return ssz.HashSequential(w)
 }
 
+// WithdrawalRequests is used for SSZ unmarshalling a list of WithdrawalRequest
+type WithdrawalRequests []*WithdrawalRequest
+
 // MarshalSSZ marshals the WithdrawalRequests object to SSZ format by encoding each deposit individually.
-func (wr *WithdrawalRequests) MarshalSSZ() ([]byte, error) {
-	return eip7685.MarshalItems[*WithdrawalRequest](*wr)
+func (wr WithdrawalRequests) MarshalSSZ() ([]byte, error) {
+	return eip7685.MarshalItems(wr)
 }
 
 // DecodeWithdrawalRequests decodes SSZ data by decoding each withdrawal individually.
 func DecodeWithdrawalRequests(data []byte) (WithdrawalRequests, error) {
-	maxSize := maxWithdrawalRequestsPerPayload * sszWithdrawRequestSize
+	maxSize := constants.MaxWithdrawalRequestsPerPayload * sszWithdrawRequestSize
 	if len(data) > maxSize {
 		return nil, fmt.Errorf(
 			"invalid withdrawal requests SSZ size, requests should not be more "+
 				"than the max per payload, got %d max %d", len(data), maxSize,
 		)
 	}
-	withdrawalSize := int(ssz.Size(&WithdrawalRequest{}))
-	if len(data) < withdrawalSize {
-		return nil, fmt.Errorf("invalid withdrawal requests SSZ size, got %d expected at least %d", len(data), withdrawalSize)
+	if len(data) < sszWithdrawRequestSize {
+		return nil, fmt.Errorf("invalid withdrawal requests SSZ size, got %d expected at least %d", len(data), sszWithdrawRequestSize)
 	}
 	// Use the generic unmarshalItems helper.
-	items, err := eip7685.UnmarshalItems[*WithdrawalRequest](
+	items, err := eip7685.UnmarshalItems(
 		data,
-		withdrawalSize,
+		sszWithdrawRequestSize,
 		func() *WithdrawalRequest { return new(WithdrawalRequest) },
 	)
 	if err != nil {
