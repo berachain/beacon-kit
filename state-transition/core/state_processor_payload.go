@@ -195,6 +195,15 @@ func (sp *StateProcessor) validateStatefulPayload(
 		)
 	}
 
+	parentBlockFork := sp.cs.ActiveForkVersionForTimestamp(lph.GetTimestamp())
+	currentBlockFork := sp.cs.ActiveForkVersionForTimestamp(payload.GetTimestamp())
+	if !version.Equals(parentBlockFork, currentBlockFork) {
+		sp.logger.Info(
+			"============ 🐼 POTENTIAL FORK BLOCK 🐼 ============",
+			"from", parentBlockFork.String(),
+			"to", currentBlockFork.String(),
+		)
+	}
 	return nil
 }
 
