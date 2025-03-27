@@ -39,6 +39,9 @@ func (s *Service) FinalizeBlock(
 	req *cmtabci.FinalizeBlockRequest,
 ) (transition.ValidatorUpdates, error) {
 	// STEP 1: Decode block and blobs.
+	x := s.chainSpec.ActiveForkVersionForTimestamp(math.U64(req.GetTime().Unix()))
+	fmt.Println("FinalizeBlock ReqTime: ", req.GetTime().Unix())
+	fmt.Println("FinalizeBlock Fork Version: ", x)
 	signedBlk, blobs, err := encoding.ExtractBlobsAndBlockFromRequest(
 		req,
 		BeaconBlockTxIndex,
@@ -50,8 +53,14 @@ func (s *Service) FinalizeBlock(
 		s.logger.Error("Failed to decode block and blobs", "error", err)
 		return nil, fmt.Errorf("failed to decode block and blobs: %w", err)
 	}
-	blk := signedBlk.GetBeaconBlock()
 
+	blk := signedBlk.GetBeaconBlock()
+	_, err = blk.GetBody().GetExecutionRequests()
+	if err != nil {
+		fmt.Println("Failed to decode block execution requests", "error", err)
+	} else {
+		fmt.Println("EL Reqs is fine")
+	}
 	// Send an FCU to force the HEAD of the chain on the EL on startup.
 	var finalizeErr error
 	s.forceStartupSyncOnce.Do(func() {

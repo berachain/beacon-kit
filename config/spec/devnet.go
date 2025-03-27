@@ -51,7 +51,7 @@ const (
 	devnetDeneb1ForkTime = 1 * defaultSlotsPerEpoch * defaultTargetSecondsPerEth1Block
 
 	// devnetElectraForkTime is the timestamp at which the Electra fork occurs.
-	devnetElectraForkTime = 1743114409
+	devnetElectraForkTime = defaultElectraForkTime
 
 	// devnetEVMInflationAddressDeneb1 is the address of the EVM inflation contract
 	// after the Deneb1 fork.
@@ -71,8 +71,8 @@ func DevnetChainSpecData() *chain.SpecData {
 	specData.DepositEth1ChainID = DevnetEth1ChainID
 
 	// Fork timings are set to facilitate local testing across fork versions.
-	specData.Deneb1ForkTime = 1743111987
-	specData.ElectraForkTime = 1743112487
+	specData.Deneb1ForkTime = devnetDeneb1ForkTime
+	specData.ElectraForkTime = 1743117922
 
 	// EVM inflation is different from mainnet to test.
 	specData.EVMInflationAddressGenesis = common.NewExecutionAddressFromHex(devnetEVMInflationAddress)

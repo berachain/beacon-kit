@@ -21,6 +21,7 @@
 package types
 
 import (
+	"fmt"
 	"math/big"
 	"unsafe"
 
@@ -128,6 +129,7 @@ func (n *newPayloadRequest) HasValidVersionedAndBlockHashes() error {
 	} else {
 		executionRequests, err := n.GetExecutionRequests()
 		if err != nil {
+			fmt.Println("Error getting execution requests in HasValidVersionedAndBlockHashes")
 			return err
 		}
 		block, blobHashes, err = MakeEthBlockWithExecutionRequests(

@@ -51,6 +51,7 @@ func (s *Client) NewPayload(
 	if version.Equals(forkVersion, version.Electra()) {
 		executionRequests, err := req.GetExecutionRequests()
 		if err != nil {
+			fmt.Println("error getting execution requests in NewPayload")
 			return nil, err
 		}
 		return s.NewPayloadV4(
