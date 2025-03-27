@@ -202,31 +202,34 @@ func buildNewPayloadRequestFromFork(blk *ctypes.BeaconBlock) (ctypes.NewPayloadR
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
 	parentBeaconBlockRoot := blk.GetParentBlockRoot()
-	if version.Equals(blk.GetForkVersion(), version.Deneb()) || version.Equals(blk.GetForkVersion(), version.Deneb1()) {
+
+	if version.IsBefore(blk.GetForkVersion(), version.Electra()) {
 		return ctypes.BuildNewPayloadRequest(
 			payload,
 			body.GetBlobKzgCommitments().ToVersionedHashes(),
 			&parentBeaconBlockRoot,
 		), nil
-	}
-	if version.Equals(blk.GetForkVersion(), version.Electra()) {
-		var executionRequestsList []ctypes.EncodedExecutionRequest
+	} else if version.Equals(blk.GetForkVersion(), version.Electra()) {
 		// If we're post-electra, we set execution requests.
 		var executionRequests *ctypes.ExecutionRequests
 		executionRequests, err := body.GetExecutionRequests()
 		if err != nil {
 			return nil, err
 		}
+
+		var executionRequestsList []ctypes.EncodedExecutionRequest
 		executionRequestsList, err = ctypes.GetExecutionRequestsList(executionRequests)
 		if err != nil {
 			return nil, err
 		}
+
 		return ctypes.BuildNewPayloadRequestWithExecutionRequests(
 			payload,
 			body.GetBlobKzgCommitments().ToVersionedHashes(),
 			&parentBeaconBlockRoot,
 			executionRequestsList,
 		), nil
+	} else {
+		return nil, ctypes.ErrForkVersionNotSupported
 	}
-	return nil, ctypes.ErrForkVersionNotSupported
 }

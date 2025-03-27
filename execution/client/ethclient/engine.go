@@ -40,14 +40,24 @@ func (s *Client) NewPayload(
 	ctx context.Context,
 	req ctypes.NewPayloadRequest,
 ) (*engineprimitives.PayloadStatusV1, error) {
+	forkVersion := req.GetForkVersion()
+
 	// Versions before Deneb are not supported for calling NewPayload.
-	if version.IsBefore(req.GetForkVersion(), version.Deneb()) {
+	if version.IsBefore(forkVersion, version.Deneb()) {
 		return nil, ErrInvalidVersion
 	}
-	forkVersion := req.GetForkVersion()
-	if version.Equals(forkVersion, version.Deneb()) || version.Equals(forkVersion, version.Deneb1()) {
-		return s.NewPayloadV3(ctx, req.GetExecutionPayload(), req.GetVersionedHashes(), req.GetParentBeaconBlockRoot())
+
+	// Use V3 for Deneb versions (Deneb and Deneb1).
+	if version.IsBefore(forkVersion, version.Electra()) {
+		return s.NewPayloadV3(
+			ctx,
+			req.GetExecutionPayload(),
+			req.GetVersionedHashes(),
+			req.GetParentBeaconBlockRoot(),
+		)
 	}
+
+	// Use V4 for Electra versions.
 	if version.Equals(forkVersion, version.Electra()) {
 		executionRequests, err := req.GetExecutionRequests()
 		if err != nil {
@@ -61,6 +71,7 @@ func (s *Client) NewPayload(
 			executionRequests,
 		)
 	}
+
 	return nil, ErrInvalidVersion
 }
 
