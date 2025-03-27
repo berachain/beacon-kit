@@ -52,16 +52,15 @@ func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_Errors() {
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
 
-	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
+	// Test happens on Deneb, pre Deneb1 fork.
 	startTime := time.Unix(0, 0)
-	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
+
+	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
+	proposals, proposalTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	// We expected this test to happen during Pre-Deneb1 fork.
 	currentHeight := int64(blockHeight + coreLoopIterations)
-	proposalTime := startTime.Add(
-		time.Duration(s.TestNode.ChainSpec.TargetSecondsPerEth1Block()) * coreLoopIterations * time.Second,
-	)
 
 	// Prepare a block proposal.
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{

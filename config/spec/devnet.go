@@ -67,10 +67,8 @@ func DevnetChainSpecData() *chain.SpecData {
 	specData := MainnetChainSpecData()
 	specData.DepositEth1ChainID = DevnetEth1ChainID
 
-	// Deneb1 fork takes place at timestamp estimated to be around epoch 1.
+	// Fork timings are set to facilitate local testing across fork versions.
 	specData.Deneb1ForkTime = devnetDeneb1ForkTime
-
-	// Electra fork takes place at timestamp estimated to be around epoch 2.
 	specData.ElectraForkTime = devnetElectraForkTime
 
 	// EVM inflation is different from mainnet to test.

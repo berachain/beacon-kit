@@ -99,8 +99,14 @@ func (s *Service) ProcessProposal(
 	// for these timestamps is the same, since the ABCI request timestamp must be used to
 	// determine the unmarshaling of the BeaconBlock. This may result in a failed proposal
 	// or two at the start of the fork.
-	if !version.Equals(s.chainSpec.ActiveForkVersionForTimestamp(blk.GetTimestamp()), forkVersion) {
-		return ErrVersionMismatch
+	blkVersion := s.chainSpec.ActiveForkVersionForTimestamp(blk.GetTimestamp())
+	if !version.Equals(blkVersion, forkVersion) {
+		err = fmt.Errorf("CometBFT version %v, BeaconBlock version %v: %w",
+			forkVersion, blkVersion,
+			ErrVersionMismatch,
+		)
+		s.logger.Warn(err.Error())
+		return err
 	}
 	// Make sure we have the right number of BlobSidecars
 	blobKzgCommitments := blk.GetBody().GetBlobKzgCommitments()

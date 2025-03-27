@@ -46,15 +46,14 @@ func (s *SimulatedSuite) TestProcessProposal_CrashedExecutionClient_Errors() {
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
 
-	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
+	// Test happens post Deneb1 fork.
 	startTime := time.Now()
-	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
+
+	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
+	proposals, proposalTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	currentHeight := int64(blockHeight + coreLoopIterations)
-	proposalTime := startTime.Add(
-		time.Duration(s.TestNode.ChainSpec.TargetSecondsPerEth1Block()) * coreLoopIterations * time.Second,
-	)
 
 	// Prepare a valid block proposal.
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
@@ -95,15 +94,14 @@ func (s *SimulatedSuite) TestContextHandling_SIGINT_SafeShutdown() {
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
 
-	// Run through core loop iterations to bypass any startup edge cases.
+	// Test happens post Deneb1 fork.
 	startTime := time.Now()
-	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
+
+	// Run through core loop iterations to bypass any startup edge cases.
+	proposals, proposalTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	currentHeight := int64(blockHeight + coreLoopIterations)
-	proposalTime := startTime.Add(
-		time.Duration(s.TestNode.ChainSpec.TargetSecondsPerEth1Block()) * coreLoopIterations * time.Second,
-	)
 
 	s.LogBuffer.Reset()
 	// Kill the EL (execution layer)
@@ -159,15 +157,14 @@ func (s *SimulatedSuite) TestContextHandling_CancelledContext_Rejected() {
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
 
-	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
+	// Test happens post Deneb1 fork.
 	startTime := time.Now()
-	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
+
+	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
+	proposals, proposalTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	currentHeight := int64(blockHeight + coreLoopIterations)
-	proposalTime := startTime.Add(
-		time.Duration(s.TestNode.ChainSpec.TargetSecondsPerEth1Block()) * coreLoopIterations * time.Second,
-	)
 
 	// Kill the EL
 	err = s.ElHandle.Close()

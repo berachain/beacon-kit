@@ -57,8 +57,11 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlock_IsSuccessful() {
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
 
+	// Test happens post Deneb1 fork.
+	startTime := time.Now()
+
 	// iterate through the core loop `coreLoopIterations` times, i.e. Propose, Process, Finalize and Commit.
-	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, time.Now())
+	proposals, _ := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
 
 	// We expect that the number of proposals that were finalized should be `coreLoopIterations`.
 	s.Require().Len(proposals, coreLoopIterations)
@@ -103,16 +106,15 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
 
-	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
+	// Test happens on Deneb, pre Deneb1 fork.
 	startTime := time.Unix(0, 0)
-	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
+
+	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
+	proposals, consensusTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	// We expected this test to happen during Pre-Deneb1 fork.
 	currentHeight := int64(blockHeight + coreLoopIterations)
-	consensusTime := startTime.Add(
-		time.Duration(s.TestNode.ChainSpec.TargetSecondsPerEth1Block()) * coreLoopIterations * time.Second,
-	)
 
 	// Prepare a valid block proposal.
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
@@ -218,16 +220,15 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessfu
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
 
-	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
+	// Test happens on Deneb, pre Deneb1 fork.
 	startTime := time.Unix(0, 0)
-	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
+
+	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
+	proposals, consensusTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	// We expected this test to happen during Pre-Deneb1 fork.
 	currentHeight := int64(blockHeight + coreLoopIterations)
-	consensusTime := startTime.Add(
-		time.Duration(s.TestNode.ChainSpec.TargetSecondsPerEth1Block()) * coreLoopIterations * time.Second,
-	)
 
 	// Prepare a valid block proposal.
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{

@@ -97,7 +97,7 @@ func (s *Service) BuildBlockAndSidecars(
 	}
 
 	// Create a new empty block from the current state.
-	blk, err := s.getEmptyBeaconBlockForSlot(st, blkSlot, timestamp)
+	blk, err := s.getEmptyBeaconBlockForSlot(st, blkSlot, forkData.CurrentVersion, parentBlockRoot)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -119,7 +119,7 @@ func (s *Service) BuildBlockAndSidecars(
 	if err = s.computeAndSetStateRoot(
 		ctx,
 		slotData.GetProposerAddress(),
-		timestamp,
+		slotData.GetConsensusTime(),
 		st,
 		blk,
 	); err != nil {
@@ -159,16 +159,9 @@ func (s *Service) BuildBlockAndSidecars(
 
 // getEmptyBeaconBlockForSlot creates a new empty block.
 func (s *Service) getEmptyBeaconBlockForSlot(
-	st *statedb.StateDB, requestedSlot math.Slot, timestamp math.U64,
+	st *statedb.StateDB, requestedSlot math.Slot,
+	forkVersion common.Version, parentBlockRoot common.Root,
 ) (*ctypes.BeaconBlock, error) {
-	// Create a new block.
-	parentBlockRoot, err := st.GetBlockRootAtIndex(
-		(requestedSlot.Unwrap() - 1) % s.chainSpec.SlotsPerHistoricalRoot(),
-	)
-	if err != nil {
-		return nil, err
-	}
-
 	// Get the proposer index for the slot.
 	proposerIndex, err := st.ValidatorIndexByPubkey(
 		s.signer.PublicKey(),
@@ -177,11 +170,12 @@ func (s *Service) getEmptyBeaconBlockForSlot(
 		return nil, err
 	}
 
+	// Create a new block.
 	return ctypes.NewBeaconBlockWithVersion(
 		requestedSlot,
 		proposerIndex,
 		parentBlockRoot,
-		s.chainSpec.ActiveForkVersionForTimestamp(timestamp),
+		forkVersion,
 	)
 }
 

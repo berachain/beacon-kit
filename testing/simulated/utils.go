@@ -107,15 +107,15 @@ func (s *SharedAccessors) MoveChainToHeight(
 	startHeight, iterations int64,
 	proposer *signer.BLSSigner,
 	startTime time.Time,
-) []*types.PrepareProposalResponse {
+) ([]*types.PrepareProposalResponse, time.Time) {
 	// Prepare a block proposal.
 	pubkey, err := proposer.GetPubKey()
 	require.NoError(t, err)
 
 	var proposedCometBlocks []*types.PrepareProposalResponse
 
+	proposalTime := startTime
 	for currentHeight := startHeight; currentHeight < startHeight+iterations; currentHeight++ {
-		proposalTime := startTime.Add(time.Duration(uint64(startHeight-currentHeight)*s.TestNode.ChainSpec.TargetSecondsPerEth1Block()) * time.Second)
 		proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 			Height:          currentHeight,
 			Time:            proposalTime,
@@ -150,8 +150,9 @@ func (s *SharedAccessors) MoveChainToHeight(
 
 		// Record the Commit Block
 		proposedCometBlocks = append(proposedCometBlocks, proposal)
+		proposalTime = proposalTime.Add(time.Duration(s.TestNode.ChainSpec.TargetSecondsPerEth1Block()) * time.Second)
 	}
-	return proposedCometBlocks
+	return proposedCometBlocks, proposalTime
 }
 
 // WaitTillServicesStarted waits until the log buffer contains "All services started".

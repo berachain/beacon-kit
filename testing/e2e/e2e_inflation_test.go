@@ -60,6 +60,7 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 		inflationPerBlock = chainspec.EVMInflationPerBlock(math.U64(payloadTime))
 		inflationAddress = chainspec.EVMInflationAddress(math.U64(payloadTime))
 		if payloadTime >= chainspec.Deneb1ForkTime() {
+			// If we have passed the Deneb1 fork, do some verifications and update inflation values.
 			onceOnFork.Do(func() {
 				oldInflationPerBlock := chainspec.EVMInflationPerBlock(math.U64(chainspec.Deneb1ForkTime() - 1))
 				oldInflationAddress = chainspec.EVMInflationAddress(math.U64(chainspec.Deneb1ForkTime() - 1))
@@ -89,6 +90,7 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 				big.NewInt(blkNum-forkSlot+1),
 			)
 		} else {
+			// Pre-Deneb1
 			expectedBalance = new(big.Int).Mul(
 				new(big.Int).SetUint64(inflationPerBlock*params.GWei),
 				big.NewInt(blkNum),
