@@ -30,14 +30,8 @@ import (
 	"github.com/karalabe/ssz"
 )
 
-const (
-	// 3 since three dynamic objects (Deposits, Withdrawals, Consolidations)
-	dynamicFieldsInExecutionRequests = 3
-
-	depositRequestType       = byte(0x00)
-	withdrawalRequestType    = byte(0x01)
-	consolidationRequestType = byte(0x02)
-)
+// 3 since three dynamic objects (Deposits, Withdrawals, Consolidations)
+const dynamicFieldsInExecutionRequests = 3
 
 // EncodedExecutionRequest is the result of GetExecutionRequestsList which is spec defined.
 type EncodedExecutionRequest = bytes.Bytes
@@ -67,7 +61,7 @@ func GetExecutionRequestsList(er *ExecutionRequests) ([]EncodedExecutionRequest,
 		if err != nil {
 			return nil, err
 		}
-		combined := append([]byte{}, depositRequestType)
+		combined := []byte{constants.DepositRequestType}
 		combined = append(combined, depositBytes...)
 		result = append(result, combined)
 	}
@@ -79,7 +73,7 @@ func GetExecutionRequestsList(er *ExecutionRequests) ([]EncodedExecutionRequest,
 		if err != nil {
 			return nil, err
 		}
-		combined := append([]byte{}, withdrawalRequestType)
+		combined := []byte{constants.WithdrawalRequestType}
 		combined = append(combined, withdrawalBytes...)
 		result = append(result, combined)
 	}
@@ -91,7 +85,7 @@ func GetExecutionRequestsList(er *ExecutionRequests) ([]EncodedExecutionRequest,
 		if err != nil {
 			return nil, err
 		}
-		combined := append([]byte{}, consolidationRequestType)
+		combined := []byte{constants.ConsolidationRequestType}
 		combined = append(combined, consolidationBytes...)
 		result = append(result, combined)
 	}
@@ -124,19 +118,19 @@ func DecodeExecutionRequests(encodedRequests [][]byte) (*ExecutionRequests, erro
 
 		// Switch based on the request type.
 		switch reqType {
-		case depositRequestType:
+		case constants.DepositRequestType:
 			req, err := DecodeDepositRequests(data)
 			if err != nil {
 				return nil, err
 			}
 			result.Deposits = req
-		case withdrawalRequestType:
+		case constants.WithdrawalRequestType:
 			req, err := DecodeWithdrawalRequests(data)
 			if err != nil {
 				return nil, err
 			}
 			result.Withdrawals = req
-		case consolidationRequestType:
+		case constants.ConsolidationRequestType:
 			req, err := DecodeConsolidationRequests(data)
 			if err != nil {
 				return nil, err

@@ -38,3 +38,11 @@ const (
 	// MaxBytesPerTx is the maximum number of bytes per transaction.
 	MaxBytesPerTx uint64 = 1073741824
 )
+
+// Execution Layer Triggered Requests
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#execution-layer-triggered-requests
+const (
+	DepositRequestType       = byte(0x00)
+	WithdrawalRequestType    = byte(0x01)
+	ConsolidationRequestType = byte(0x02)
+)
