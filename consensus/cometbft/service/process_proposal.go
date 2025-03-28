@@ -47,34 +47,24 @@ func (s *Service) processProposal(
 
 	// Since the application can get access to FinalizeBlock state and write to
 	// it, we must be sure to reset it in case ProcessProposal timeouts and is
-	// called
-	// again in a subsequent round. However, we only want to do this after we've
+	// called again in a subsequent round. However, we only want to do this after we've
 	// processed the first block, as we want to avoid overwriting the
-	// finalizeState
-	// after state changes during InitChain.
-	s.processProposalState = s.resetState(ctx)
+	// finalizeState after state changes during InitChain.
+	processProposalState := s.resetState(ctx)
 	if req.Height > s.initialHeight {
 		s.finalizeBlockState = s.resetState(ctx)
 	}
 
 	//nolint:contextcheck // ctx already passed via resetState
-	s.processProposalState.SetContext(
-		s.getContextForProposal(
-			s.processProposalState.Context(),
-			req.Height,
-		),
+	processProposalState.SetContext(
+		s.getContextForProposal(processProposalState.Context(), req.Height),
 	)
 
 	// errors to consensus indicate that the node was not able to understand
 	// whether the block was valid or not. Viceversa, we signal that a block
 	// is invalid by its status, but we do return nil error in such a case.
-	status := cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
-	err := s.Blockchain.ProcessProposal(
-		s.processProposalState.Context(),
-		req,
-	)
+	err := s.Blockchain.ProcessProposal(processProposalState.Context(), req)
 	if err != nil {
-		status = cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
 		s.logger.Error(
 			"failed to process proposal",
 			"height", req.Height,
@@ -82,6 +72,26 @@ func (s *Service) processProposal(
 			"hash", fmt.Sprintf("%X", req.Hash),
 			"err", err,
 		)
+		return &cmtabci.ProcessProposalResponse{
+			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
+		}, nil
 	}
-	return &cmtabci.ProcessProposalResponse{Status: status}, nil
+
+	// try caching the state, to avoid reprocessing it if it is finalized
+	if err = s.states.Cache(req.Height, req.Hash, processProposalState); err != nil {
+		s.logger.Error(
+			"failed to cache process proposal state",
+			"height", req.Height,
+			"time", req.Time,
+			"hash", fmt.Sprintf("%X", req.Hash),
+			"err", err,
+		)
+		return &cmtabci.ProcessProposalResponse{
+			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
+		}, nil
+	}
+
+	return &cmtabci.ProcessProposalResponse{
+		Status: cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT,
+	}, nil
 }

@@ -71,17 +71,13 @@ type Service struct {
 	Blockchain   blockchain.BlockchainI
 	BlockBuilder validator.BlockBuilderI
 
+	states *ephemeralStates
+
 	// prepareProposalState is used for PrepareProposal, which is set based on
 	// the previous block's state. This state is never committed. In case of
 	// multiple consensus rounds, the state is always reset to the previous
 	// block's state.
 	prepareProposalState *state
-
-	// processProposalState is used for ProcessProposal, which is set based on
-	// the previous block's state. This state is never committed. In case of
-	// multiple consensus rounds, the state is always reset to the previous
-	// block's state.
-	processProposalState *state
 
 	// finalizeBlockState is used for FinalizeBlock, which is set based on the
 	// previous block's state. This state is committed. finalizeBlockState is
@@ -132,6 +128,7 @@ func NewService(
 	s := &Service{
 		logger:             logger,
 		sm:                 statem.NewManager(db, log),
+		states:             newEphemeralStates(),
 		Blockchain:         blockchain,
 		BlockBuilder:       blockBuilder,
 		cmtConsensusParams: cmtConsensusParams,

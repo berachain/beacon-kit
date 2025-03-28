@@ -21,6 +21,7 @@
 package cometbft
 
 import (
+	"fmt"
 	"sync"
 
 	storetypes "cosmossdk.io/store/types"
@@ -52,4 +53,47 @@ func (st *state) Context() sdk.Context {
 	st.mtx.RLock()
 	defer st.mtx.RUnlock()
 	return st.ctx
+}
+
+// ephemeralStates collects all the states related to a block
+// which has been verified successfully. They are candidate states
+// to be finalized
+type ephemeralStates struct {
+	states map[int64]map[string]*state // blkHeight -> blkHash -> state
+}
+
+func newEphemeralStates() *ephemeralStates {
+	return &ephemeralStates{
+		states: make(map[int64]map[string]*state),
+	}
+}
+
+func (es *ephemeralStates) Cache(blkHeight int64, blkHash []byte, blkState *state) error {
+	states, found := es.states[blkHeight]
+	if !found {
+		states = make(map[string]*state)
+		es.states[blkHeight] = states
+	}
+	if _, found = states[string(blkHash)]; found {
+		return fmt.Errorf("overwriting state height %d, blk hash %s", blkHeight, blkHash)
+	}
+	states[string(blkHash)] = blkState
+	return nil
+}
+
+func (es *ephemeralStates) Get(blkHeight int64, blkHash []byte) (*state, bool) {
+	states, found := es.states[blkHeight]
+	if !found {
+		return nil, found
+	}
+	res, found := states[string(blkHash)]
+	return res, found
+}
+
+func (es *ephemeralStates) Clear(blkHeight int64) error {
+	if _, found := es.states[blkHeight]; !found {
+		return fmt.Errorf("attempt at deleting unknown blkHeight %d", blkHeight)
+	}
+	delete(es.states, blkHeight)
+	return nil
 }
