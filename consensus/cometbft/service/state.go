@@ -68,7 +68,7 @@ func newEphemeralStates() *ephemeralStates {
 	}
 }
 
-func (es *ephemeralStates) Cache(blkHeight int64, blkHash []byte, blkState *state) error {
+func (es *ephemeralStates) CacheVerified(blkHeight int64, blkHash []byte, blkState *state) error {
 	states, found := es.states[blkHeight]
 	if !found {
 		states = make(map[string]*state)

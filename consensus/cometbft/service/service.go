@@ -73,12 +73,6 @@ type Service struct {
 
 	states *ephemeralStates
 
-	// prepareProposalState is used for PrepareProposal, which is set based on
-	// the previous block's state. This state is never committed. In case of
-	// multiple consensus rounds, the state is always reset to the previous
-	// block's state.
-	prepareProposalState *state
-
 	// finalizeBlockState is used for FinalizeBlock, which is set based on the
 	// previous block's state. This state is committed. finalizeBlockState is
 	// set

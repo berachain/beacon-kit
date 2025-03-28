@@ -78,7 +78,7 @@ func (s *Service) processProposal(
 	}
 
 	// try caching the state, to avoid reprocessing it if it is finalized
-	if err = s.states.Cache(req.Height, req.Hash, processProposalState); err != nil {
+	if err = s.states.CacheVerified(req.Height, req.Hash, processProposalState); err != nil {
 		s.logger.Error(
 			"failed to cache process proposal state",
 			"height", req.Height,

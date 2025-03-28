@@ -47,15 +47,15 @@ func (s *Service) prepareProposal(
 		)
 	}
 
-	// Always reset state given that PrepareProposal can timeout
+	// prepareProposalState is used for PrepareProposal, which is set based on
+	// the previous block's state. This state is never committed. In case of
+	// multiple consensus rounds, the state is always reset to the previous
+	// block's state. Always reset state given that PrepareProposal can timeout
 	// and be called again in a subsequent round.
-	s.prepareProposalState = s.resetState(ctx)
+	prepareProposalState := s.resetState(ctx)
 	//nolint:contextcheck // ctx already passed via resetState
-	s.prepareProposalState.SetContext(
-		s.getContextForProposal(
-			s.prepareProposalState.Context(),
-			req.Height,
-		),
+	prepareProposalState.SetContext(
+		s.getContextForProposal(prepareProposalState.Context(), req.Height),
 	)
 
 	slotData := types.NewSlotData(
@@ -68,7 +68,7 @@ func (s *Service) prepareProposal(
 
 	//nolint:contextcheck // ctx already passed via resetState
 	blkBz, sidecarsBz, err := s.BlockBuilder.BuildBlockAndSidecars(
-		s.prepareProposalState.Context(),
+		prepareProposalState.Context(),
 		slotData,
 	)
 	if err != nil {
