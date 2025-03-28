@@ -29,7 +29,6 @@ import (
 	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/state-transition/core"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
@@ -94,7 +93,7 @@ func (s *Service) forceSyncUponFinalize(
 ) error {
 	// NewPayload call first to load payload into EL client.
 	executionPayload := beaconBlock.GetBody().GetExecutionPayload()
-	payloadReq, err := core.BuildNewPayloadRequestFromFork(beaconBlock)
+	payloadReq, err := ctypes.BuildNewPayloadRequestFromFork(beaconBlock)
 	if err != nil {
 		return err
 	}
