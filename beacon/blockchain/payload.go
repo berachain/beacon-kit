@@ -29,7 +29,7 @@ import (
 	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
+	"github.com/berachain/beacon-kit/state-transition/core"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
@@ -94,38 +94,18 @@ func (s *Service) forceSyncUponFinalize(
 ) error {
 	// NewPayload call first to load payload into EL client.
 	executionPayload := beaconBlock.GetBody().GetExecutionPayload()
-	parentBeaconBlockRoot := beaconBlock.GetParentBlockRoot()
-	var payloadReq ctypes.NewPayloadRequest
-	if version.EqualsOrIsAfter(beaconBlock.GetForkVersion(), version.Electra()) {
-		requests, err := beaconBlock.GetBody().GetExecutionRequests()
-		if err != nil {
-			return err
-		}
-		requestsList, err := ctypes.GetExecutionRequestsList(requests)
-		if err != nil {
-			return err
-		}
-		payloadReq = ctypes.BuildNewPayloadRequestWithExecutionRequests(
-			executionPayload,
-			beaconBlock.GetBody().GetBlobKzgCommitments().ToVersionedHashes(),
-			&parentBeaconBlockRoot,
-			requestsList,
-		)
-	} else {
-		payloadReq = ctypes.BuildNewPayloadRequest(
-			executionPayload,
-			beaconBlock.GetBody().GetBlobKzgCommitments().ToVersionedHashes(),
-			&parentBeaconBlockRoot,
-		)
+	payloadReq, err := core.BuildNewPayloadRequestFromFork(beaconBlock)
+	if err != nil {
+		return err
 	}
 
-	if err := payloadReq.HasValidVersionedAndBlockHashes(); err != nil {
+	if err = payloadReq.HasValidVersionedAndBlockHashes(); err != nil {
 		return err
 	}
 
 	// We set retryOnSyncingStatus to false here. We can ignore SYNCING status and proceed
 	// to the FCU.
-	err := s.executionEngine.NotifyNewPayload(ctx, payloadReq, false)
+	err = s.executionEngine.NotifyNewPayload(ctx, payloadReq, false)
 	if err != nil {
 		return fmt.Errorf("startSyncUponFinalize NotifyNewPayload failed: %w", err)
 	}

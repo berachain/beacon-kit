@@ -156,7 +156,7 @@ func (sp *StateProcessor) validateStatefulPayload(
 		return err
 	}
 
-	payloadReq, err := buildNewPayloadRequestFromFork(blk)
+	payloadReq, err := BuildNewPayloadRequestFromFork(blk)
 	if err != nil {
 		return err
 	}
@@ -198,7 +198,7 @@ func (sp *StateProcessor) validateStatefulPayload(
 	return nil
 }
 
-func buildNewPayloadRequestFromFork(blk *ctypes.BeaconBlock) (ctypes.NewPayloadRequest, error) {
+func BuildNewPayloadRequestFromFork(blk *ctypes.BeaconBlock) (ctypes.NewPayloadRequest, error) {
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
 	parentBeaconBlockRoot := blk.GetParentBlockRoot()
