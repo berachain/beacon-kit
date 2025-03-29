@@ -73,9 +73,8 @@ func Next(
 	// TODO(fork): figure out how to determine if we are in test or not.
 	isDevnet := true
 	if isDevnet {
-		consensusTime = parentPayloadTimestamp
+		return parentPayloadTimestamp + 2
 	}
-	fmt.Println("DEBUG: New TIME:", parentPayloadTimestamp+1)
 	return max(
 		consensusTime+delta,
 		parentPayloadTimestamp+1,
