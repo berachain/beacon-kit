@@ -21,6 +21,7 @@
 package e2e_test
 
 import (
+	"fmt"
 	"math/big"
 	"sync"
 
@@ -57,9 +58,11 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 		s.Require().NoError(errBlk)
 
 		payloadTime := payload.Time()
+		fmt.Println("DEBUG: PAYLOAD TIME: ", payloadTime)
 		inflationPerBlock = chainspec.EVMInflationPerBlock(math.U64(payloadTime))
 		inflationAddress = chainspec.EVMInflationAddress(math.U64(payloadTime))
 		if chainspec.Deneb1ForkTime() > 0 && payloadTime >= chainspec.Deneb1ForkTime() {
+			fmt.Println("DEBUG: IS FORK!: ", chainspec.Deneb1ForkTime())
 			// If we have passed the Deneb1 fork, do some verifications and update inflation values.
 			onceOnFork.Do(func() {
 				oldInflationPerBlock := chainspec.EVMInflationPerBlock(math.U64(chainspec.Deneb1ForkTime() - 1))

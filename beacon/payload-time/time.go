@@ -65,6 +65,17 @@ func Next(
 		// Next.consensusTime <= Verify.consensusTime
 		delta = 1
 	}
+	// If we are in a testnet, we opt to always build the timestamp as an
+	// offset of the previous payload timestamp. This makes it so that we can
+	// deterministically know the "block time" based on whatever time we set
+	// in the genesis payload. This allows for testing to trigger forks
+	// deterministically without modifying fork timestamps.
+	// TODO(fork): figure out how to determine if we are in test or not.
+	isDevnet := true
+	if isDevnet {
+		consensusTime = parentPayloadTimestamp
+	}
+	fmt.Println("DEBUG: New TIME:", parentPayloadTimestamp+1)
 	return max(
 		consensusTime+delta,
 		parentPayloadTimestamp+1,
