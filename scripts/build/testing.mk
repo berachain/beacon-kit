@@ -121,7 +121,7 @@ start-geth:
 ## Start a local ephemeral `geth` node on host machine
 start-geth-host: 
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
-	geth init --datadir ${ETH_DATA_DIR} --override.prague 1743117922 ${ETH_GENESIS_PATH}
+	geth init --datadir ${ETH_DATA_DIR} --override.prague 1743280894 ${ETH_GENESIS_PATH}
 	geth \
 	--datadir ${ETH_DATA_DIR} \
 	--ipcpath ${IPC_PATH} \
@@ -130,7 +130,7 @@ start-geth-host:
 	--http.api eth,net \
 	--authrpc.addr 0.0.0.0 \
 	--authrpc.jwtsecret $(JWT_PATH) \
-	--authrpc.vhosts "*" \
+	--authrpc.vhosts "*"
 
 ## Start an ephemeral `nethermind` node
 start-nethermind: 
