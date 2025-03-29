@@ -56,6 +56,39 @@ type newPayloadRequest struct {
 	executionRequests []EncodedExecutionRequest
 }
 
+func BuildNewPayloadRequestFromFork(blk *BeaconBlock) (NewPayloadRequest, error) {
+	body := blk.GetBody()
+	payload := body.GetExecutionPayload()
+	parentBeaconBlockRoot := blk.GetParentBlockRoot()
+	if version.Equals(blk.GetForkVersion(), version.Deneb()) || version.Equals(blk.GetForkVersion(), version.Deneb1()) {
+		return BuildNewPayloadRequest(
+			payload,
+			body.GetBlobKzgCommitments().ToVersionedHashes(),
+			&parentBeaconBlockRoot,
+		), nil
+	}
+	if version.Equals(blk.GetForkVersion(), version.Electra()) {
+		var executionRequestsList []EncodedExecutionRequest
+		// If we're post-electra, we set execution requests.
+		var executionRequests *ExecutionRequests
+		executionRequests, err := body.GetExecutionRequests()
+		if err != nil {
+			return nil, err
+		}
+		executionRequestsList, err = GetExecutionRequestsList(executionRequests)
+		if err != nil {
+			return nil, err
+		}
+		return BuildNewPayloadRequestWithExecutionRequests(
+			payload,
+			body.GetBlobKzgCommitments().ToVersionedHashes(),
+			&parentBeaconBlockRoot,
+			executionRequestsList,
+		), nil
+	}
+	return nil, ErrForkVersionNotSupported
+}
+
 // BuildNewPayloadRequest builds a new payload request.
 func BuildNewPayloadRequest(
 	executionPayload *ExecutionPayload,
