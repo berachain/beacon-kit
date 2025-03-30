@@ -27,7 +27,6 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"golang.org/x/sync/errgroup"
 )
@@ -195,14 +194,5 @@ func (sp *StateProcessor) validateStatefulPayload(
 		)
 	}
 
-	parentBlockFork := sp.cs.ActiveForkVersionForTimestamp(lph.GetTimestamp())
-	currentBlockFork := sp.cs.ActiveForkVersionForTimestamp(payload.GetTimestamp())
-	if !version.Equals(parentBlockFork, currentBlockFork) {
-		sp.logger.Info(
-			"============ 🐼 POTENTIAL FORK BLOCK 🐼 ============",
-			"from", parentBlockFork.String(),
-			"to", currentBlockFork.String(),
-		)
-	}
 	return nil
 }

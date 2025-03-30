@@ -36,8 +36,6 @@ func (s *Service) finalizeBlock(
 	if res != nil {
 		res.AppHash = s.workingHash()
 	}
-	fmt.Println("Returning FinalizeBlockResponse:", res)
-	fmt.Println("Returning Err:", err)
 	return res, err
 }
 

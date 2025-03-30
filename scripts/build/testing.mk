@@ -115,8 +115,7 @@ start-geth:
 	--authrpc.jwtsecret $(JWT_PATH) \
 	--authrpc.vhosts "*" \
 	--datadir ${ETH_DATA_DIR} \
-	--ipcpath ${IPC_PATH} \
-	--override.prague 100 \
+	--ipcpath ${IPC_PATH}
 
 ## Start a local ephemeral `geth` node on host machine
 start-geth-host:
