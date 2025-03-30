@@ -74,7 +74,9 @@ start-reth:
 	--authrpc.addr "0.0.0.0" \
 	--authrpc.jwtsecret $(JWT_PATH) \
 	--datadir ${ETH_DATA_DIR} \
-	--ipcpath ${IPC_PATH}
+	--ipcpath ${IPC_PATH} \
+	--engine.persistence-threshold 0 \
+	--engine.memory-block-buffer-target 0
 
 ## Start a local ephemeral `reth` node on host machine
 start-reth-host: 
