@@ -88,7 +88,9 @@ start-reth-host:
 	--authrpc.addr "0.0.0.0" \
 	--authrpc.jwtsecret $(JWT_PATH) \
 	--datadir ${ETH_DATA_DIR} \
-	--ipcpath ${IPC_PATH}
+	--ipcpath ${IPC_PATH} \
+	--engine.persistence-threshold 0 \
+	--engine.memory-block-buffer-target 0
 
 ## Start an ephemeral `geth` node with docker
 start-geth: 
