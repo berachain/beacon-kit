@@ -150,6 +150,7 @@ func (rs *ReportingService) printToConsole(
 	+ 🧩 Your node is running version: %-40s+
 	+ ♦ Eth client: %-59s+
 	+ 💾 Your system: %-57s+
+	+ 🍴 Deneb1 Fork Time: %-51d+
 	+ 🍴 Electra Fork Time: %-51d+
 	+ 🦺 Please report issues @ https://github.com/berachain/beacon-kit/issues +
 	+==========================================================================+
@@ -158,7 +159,9 @@ func (rs *ReportingService) printToConsole(
 `,
 		rs.version,
 		fmt.Sprintf("%s (version: %s)", ethClient.Name, ethClient.Version),
-		runtime.GOOS+"/"+runtime.GOARCH, rs.forkSpec.ElectraForkTime(),
+		runtime.GOOS+"/"+runtime.GOARCH,
+		rs.forkSpec.Deneb1ForkTime(),
+		rs.forkSpec.ElectraForkTime(),
 	))
 }
 
