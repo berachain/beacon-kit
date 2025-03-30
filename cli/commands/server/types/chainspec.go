@@ -40,6 +40,7 @@ const (
 	DevnetChainSpecType           = "devnet"
 	MainnetChainSpecType          = "mainnet"
 	TestnetChainSpecType          = "testnet"
+	ConfigurableChainSpecType     = "configurable"
 	FlagConfigurableChainSpecPath = "spec"
 )
 
@@ -52,6 +53,8 @@ func CreateChainSpec(appOpts AppOptions) (chain.Spec, error) {
 		err       error
 	)
 	switch os.Getenv(ChainSpecTypeEnvVar) {
+	case ConfigurableChainSpecType:
+		chainSpec, err = handleConfigurableChainSpec(appOpts)
 	case DevnetChainSpecType:
 		chainSpec, err = spec.DevnetChainSpec()
 	case TestnetChainSpecType:
@@ -59,7 +62,7 @@ func CreateChainSpec(appOpts AppOptions) (chain.Spec, error) {
 	case MainnetChainSpecType:
 		chainSpec, err = spec.MainnetChainSpec()
 	default:
-		chainSpec, err = handleConfigurableChainSpec(appOpts)
+		chainSpec, err = spec.MainnetChainSpec()
 	}
 	if err != nil {
 		return nil, err
@@ -73,7 +76,7 @@ func CreateChainSpec(appOpts AppOptions) (chain.Spec, error) {
 func handleConfigurableChainSpec(appOpts AppOptions) (chain.Spec, error) {
 	specPath := cast.ToString(appOpts.Get(FlagConfigurableChainSpecPath))
 	if specPath == "" {
-		return nil, fmt.Errorf("expected flag %s for chain spec", FlagConfigurableChainSpecPath)
+		return nil, fmt.Errorf("expected flag '%s' for chain spec", FlagConfigurableChainSpecPath)
 	}
 	specData, err := loadSpecData(specPath)
 	if err != nil {
@@ -183,9 +186,9 @@ func simpleDecodeHook(
 		var num uint64
 		switch v := data.(type) {
 		case int:
-			num = uint64(v)
+			num = uint64(v) //nolint:gosec // user must validate
 		case int64:
-			num = uint64(v)
+			num = uint64(v) //nolint:gosec // user must validate
 		case uint64:
 			num = v
 		case float64:
@@ -194,6 +197,7 @@ func simpleDecodeHook(
 			return nil, fmt.Errorf("expected numeric value for [4]byte conversion, got %T", data)
 		}
 		// Use FromUint32 to convert the number to a little-endian [4]byte.
+		//nolint:gosec // user must validate
 		return bytes.FromUint32(uint32(num)), nil
 	}
 
