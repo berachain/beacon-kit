@@ -49,7 +49,8 @@ type ReportingService struct {
 	// sink is the telemetry sink used to report metrics.
 	sink TelemetrySink
 	// client to query the execution layer
-	client *client.EngineClient
+	client   *client.EngineClient
+	forkSpec ForkSpec
 }
 
 // NewReportingService creates a new VersionReporterService.
@@ -58,6 +59,7 @@ func NewReportingService(
 	telemetrySink TelemetrySink,
 	version string,
 	engineClient *client.EngineClient,
+	forkSpec ForkSpec,
 ) *ReportingService {
 	return &ReportingService{
 		logger:            logger,
@@ -65,6 +67,7 @@ func NewReportingService(
 		reportingInterval: defaultReportingInterval,
 		sink:              telemetrySink,
 		client:            engineClient,
+		forkSpec:          forkSpec,
 	}
 }
 
@@ -147,6 +150,7 @@ func (rs *ReportingService) printToConsole(
 	+ 🧩 Your node is running version: %-40s+
 	+ ♦ Eth client: %-59s+
 	+ 💾 Your system: %-57s+
+	+ 🍴 Electra Fork Time: %-51d+
 	+ 🦺 Please report issues @ https://github.com/berachain/beacon-kit/issues +
 	+==========================================================================+
 
@@ -154,7 +158,7 @@ func (rs *ReportingService) printToConsole(
 `,
 		rs.version,
 		fmt.Sprintf("%s (version: %s)", ethClient.Name, ethClient.Version),
-		runtime.GOOS+"/"+runtime.GOARCH,
+		runtime.GOOS+"/"+runtime.GOARCH, rs.forkSpec.ElectraForkTime(),
 	))
 }
 
