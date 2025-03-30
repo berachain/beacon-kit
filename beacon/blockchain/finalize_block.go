@@ -50,8 +50,8 @@ func (s *Service) FinalizeBlock(
 		s.logger.Error("Failed to decode block and blobs", "error", err)
 		return nil, fmt.Errorf("failed to decode block and blobs: %w", err)
 	}
-
 	blk := signedBlk.GetBeaconBlock()
+
 	// Send an FCU to force the HEAD of the chain on the EL on startup.
 	var finalizeErr error
 	s.forceStartupSyncOnce.Do(func() {
