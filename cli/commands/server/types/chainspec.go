@@ -186,9 +186,9 @@ func simpleDecodeHook(
 		var num uint64
 		switch v := data.(type) {
 		case int:
-			num = uint64(v) // #nosec G115: Conversion is safe because user validated.
+			num = uint64(v) // #nosec G115: Conversion is not safe but is a trusted config file.
 		case int64:
-			num = uint64(v) // #nosec G115: Conversion is safe because user validated.
+			num = uint64(v) // #nosec G115: Conversion is not safe but is a trusted config file.
 		case uint64:
 			num = v
 		case float64:
@@ -197,7 +197,7 @@ func simpleDecodeHook(
 			return nil, fmt.Errorf("expected numeric value for [4]byte conversion, got %T", data)
 		}
 		// Use FromUint32 to convert the number to a little-endian [4]byte.
-		// #nosec G115: Conversion is safe because user validated.
+		// #nosec G115: Conversion is not safe but is a trusted config file.
 		return bytes.FromUint32(uint32(num)), nil
 	}
 
