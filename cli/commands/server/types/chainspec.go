@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package types
 
 import (
 	"os"
@@ -28,33 +28,32 @@ import (
 )
 
 const (
-	ChainSpecTypeEnvVar  = "CHAIN_SPEC"
-	DevnetChainSpecType  = "devnet"
-	MainnetChainSpecType = "mainnet"
-	TestnetChainSpecType = "testnet"
-	ConfigurableSpecType = "configurable"
+	ChainSpecTypeEnvVar           = "CHAIN_SPEC"
+	DevnetChainSpecType           = "devnet"
+	MainnetChainSpecType          = "mainnet"
+	TestnetChainSpecType          = "testnet"
+	ConfigurableSpecType          = "configurable"
+	FlagConfigurableChainSpecPath = "spec-path"
 )
 
-// ProvideChainSpec provides the chain spec based on the environment variable.
-// Defaults to use Mainnet if no valid chain spec environment variable is set.
-func ProvideChainSpec() (chain.Spec, error) {
+// ChainSpecCreator is a function that allows us to lazily initialize the ChainSpec
+type ChainSpecCreator func(AppOptions) (chain.Spec, error)
+
+func CreateChainSpec(appOpts AppOptions) (chain.Spec, error) {
 	var (
 		chainSpec chain.Spec
 		err       error
 	)
-
-	// TODO: replace reading env var with config value.
 	switch os.Getenv(ChainSpecTypeEnvVar) {
 	case DevnetChainSpecType:
 		chainSpec, err = spec.DevnetChainSpec()
 	case TestnetChainSpecType:
 		chainSpec, err = spec.TestnetChainSpec()
 	case MainnetChainSpecType:
-		fallthrough
-	default:
 		chainSpec, err = spec.MainnetChainSpec()
+	default:
+		chainSpec, err = handleConfigurableChainSpec(appOpts)
 	}
-
 	if err != nil {
 		return nil, err
 	}
@@ -62,4 +61,9 @@ func ProvideChainSpec() (chain.Spec, error) {
 		panic("chain spec is nil")
 	}
 	return chainSpec, nil
+}
+
+func handleConfigurableChainSpec(_ AppOptions) (chain.Spec, error) {
+	// cast.ToString(appOpts.Get(FlagConfigurableChainSpecPath))
+	return spec.DevnetChainSpec()
 }

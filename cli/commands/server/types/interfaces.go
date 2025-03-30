@@ -18,30 +18,16 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package deposit
+package types
 
-import (
-	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/spf13/cobra"
-)
-
-// Commands creates a new command for deposit related actions.
-func Commands(chainSpecCreator servertypes.ChainSpecCreator, appCreator servertypes.AppCreator) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:                        "deposit",
-		Short:                      "deposit subcommands",
-		DisableFlagParsing:         false,
-		SuggestionsMinimumDistance: 2, //nolint:mnd // from sdk.
-		RunE:                       client.ValidateCmd,
-	}
-
-	cmd.AddCommand(
-		GetValidateDepositCmd(chainSpecCreator),
-		GetCreateValidatorCmd(chainSpecCreator),
-		GetValidatorKeysCmd(),
-		GetDBCheckCmd(appCreator),
-	)
-
-	return cmd
+// AppOptions defines an interface that is passed into an application
+// constructor, typically used to set BaseApp options that are either
+// supplied via config file or through CLI arguments/flags. The underlying
+// implementation
+// is defined by the server package and is typically implemented via a Viper
+// literal defined on the server Context. Note, casting Get calls may not
+// yield the expected types and could result in type assertion errors. It is
+// recommended to either use the cast package or perform manual conversion for safety.
+type AppOptions interface {
+	Get(string) interface{}
 }

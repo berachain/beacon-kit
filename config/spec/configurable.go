@@ -18,30 +18,4 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package deposit
-
-import (
-	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/spf13/cobra"
-)
-
-// Commands creates a new command for deposit related actions.
-func Commands(chainSpecCreator servertypes.ChainSpecCreator, appCreator servertypes.AppCreator) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:                        "deposit",
-		Short:                      "deposit subcommands",
-		DisableFlagParsing:         false,
-		SuggestionsMinimumDistance: 2, //nolint:mnd // from sdk.
-		RunE:                       client.ValidateCmd,
-	}
-
-	cmd.AddCommand(
-		GetValidateDepositCmd(chainSpecCreator),
-		GetCreateValidatorCmd(chainSpecCreator),
-		GetValidatorKeysCmd(),
-		GetDBCheckCmd(appCreator),
-	)
-
-	return cmd
-}
+package spec
