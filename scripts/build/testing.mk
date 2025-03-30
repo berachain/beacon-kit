@@ -133,7 +133,7 @@ start-geth-host:
 	--http.api eth,net \
 	--authrpc.addr 0.0.0.0 \
 	--authrpc.jwtsecret $(JWT_PATH) \
-	--authrpc.vhosts "*" \
+	--authrpc.vhosts "*"
 
 ## Start an ephemeral `nethermind` node
 start-nethermind: 
