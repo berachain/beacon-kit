@@ -82,6 +82,7 @@ func TestCreateChainSpec_Default_NoSpecFlag(t *testing.T) {
 	// Provide an empty AppOptions so that no spec flag is present.
 	opts := dummyAppOptions{values: map[string]interface{}{}}
 	cs, err := types.CreateChainSpec(opts)
+	require.NoError(t, err)
 	mainnetSpec, err := spec.MainnetChainSpec()
 	require.NoError(t, err)
 	require.Equal(t, cs, mainnetSpec, "expected mainnet chain spec to match")
