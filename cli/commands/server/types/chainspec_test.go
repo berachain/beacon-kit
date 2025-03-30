@@ -45,6 +45,9 @@ func TestCreateChainSpec_Devnet(t *testing.T) {
 	cs, err := types.CreateChainSpec(opts)
 	require.NoError(t, err)
 	require.NotNil(t, cs)
+	devnetSpec, err := spec.DevnetChainSpec()
+	require.NoError(t, err)
+	require.Equal(t, cs, devnetSpec, "expected devnet chain spec to match")
 }
 
 func TestCreateChainSpec_Testnet(t *testing.T) {
@@ -54,6 +57,9 @@ func TestCreateChainSpec_Testnet(t *testing.T) {
 	cs, err := types.CreateChainSpec(opts)
 	require.NoError(t, err)
 	require.NotNil(t, cs)
+	testnetSpec, err := spec.TestnetChainSpec()
+	require.NoError(t, err)
+	require.Equal(t, cs, testnetSpec, "expected testnet chain spec to match")
 }
 
 func TestCreateChainSpec_Mainnet(t *testing.T) {
@@ -63,6 +69,9 @@ func TestCreateChainSpec_Mainnet(t *testing.T) {
 	cs, err := types.CreateChainSpec(opts)
 	require.NoError(t, err)
 	require.NotNil(t, cs)
+	mainnetSpec, err := spec.MainnetChainSpec()
+	require.NoError(t, err)
+	require.Equal(t, cs, mainnetSpec, "expected mainnet chain spec to match")
 }
 
 //nolint:paralleltest // uses envars
@@ -73,12 +82,13 @@ func TestCreateChainSpec_Default_NoSpecFlag(t *testing.T) {
 	// Provide an empty AppOptions so that no spec flag is present.
 	opts := dummyAppOptions{values: map[string]interface{}{}}
 	cs, err := types.CreateChainSpec(opts)
-	require.Error(t, err)
-	require.Nil(t, cs)
+	mainnetSpec, err := spec.MainnetChainSpec()
+	require.NoError(t, err)
+	require.Equal(t, cs, mainnetSpec, "expected mainnet chain spec to match")
 }
 
 //nolint:paralleltest // uses envars
-func TestCreateChainSpec_Default_WithSpecFlag(t *testing.T) {
+func TestCreateChainSpec_ConfigurableEnvar_WithSpecFlag(t *testing.T) {
 	// Ensure the env variable is unset so that the default branch is taken.
 	err := os.Unsetenv(types.ChainSpecTypeEnvVar)
 	require.NoError(t, err)
