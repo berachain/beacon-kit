@@ -120,7 +120,7 @@ start-geth:
 ## Start a local ephemeral `geth` node on host machine
 start-geth-host:
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
-	geth init --override.prague 1743294966 --datadir ${ETH_DATA_DIR} ${ETH_GENESIS_PATH}
+	geth init --datadir ${ETH_DATA_DIR} ${ETH_GENESIS_PATH}
 	geth \
 	--datadir ${ETH_DATA_DIR} \
 	--ipcpath ${IPC_PATH} \
