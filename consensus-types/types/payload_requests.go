@@ -55,6 +55,7 @@ type newPayloadRequest struct {
 	executionRequests []EncodedExecutionRequest
 }
 
+// BuildNewPayloadRequestFromFork will build a NewPayloadRequest
 func BuildNewPayloadRequestFromFork(blk *BeaconBlock) (NewPayloadRequest, error) {
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
