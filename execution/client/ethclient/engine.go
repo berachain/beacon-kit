@@ -49,7 +49,7 @@ func (s *Client) NewPayload(
 		return s.NewPayloadV3(ctx, req.GetExecutionPayload(), req.GetVersionedHashes(), req.GetParentBeaconBlockRoot())
 	}
 	if version.Equals(forkVersion, version.Electra()) {
-		executionRequests, err := req.GetExecutionRequests()
+		executionRequests, err := req.GetEncodedExecutionRequests()
 		if err != nil {
 			return nil, err
 		}

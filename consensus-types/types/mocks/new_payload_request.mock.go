@@ -72,11 +72,11 @@ func (_c *NewPayloadRequest_GetExecutionPayload_Call) RunAndReturn(run func() *t
 }
 
 // GetExecutionRequests provides a mock function with given fields:
-func (_m *NewPayloadRequest) GetExecutionRequests() ([]types.EncodedExecutionRequest, error) {
+func (_m *NewPayloadRequest) GetEncodedExecutionRequests() ([]types.EncodedExecutionRequest, error) {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetExecutionRequests")
+		panic("no return value specified for GetEncodedExecutionRequests")
 	}
 
 	var r0 []types.EncodedExecutionRequest
@@ -101,14 +101,14 @@ func (_m *NewPayloadRequest) GetExecutionRequests() ([]types.EncodedExecutionReq
 	return r0, r1
 }
 
-// NewPayloadRequest_GetExecutionRequests_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetExecutionRequests'
+// NewPayloadRequest_GetExecutionRequests_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetEncodedExecutionRequests'
 type NewPayloadRequest_GetExecutionRequests_Call struct {
 	*mock.Call
 }
 
 // GetExecutionRequests is a helper method to define mock.On call
 func (_e *NewPayloadRequest_Expecter) GetExecutionRequests() *NewPayloadRequest_GetExecutionRequests_Call {
-	return &NewPayloadRequest_GetExecutionRequests_Call{Call: _e.mock.On("GetExecutionRequests")}
+	return &NewPayloadRequest_GetExecutionRequests_Call{Call: _e.mock.On("GetEncodedExecutionRequests")}
 }
 
 func (_c *NewPayloadRequest_GetExecutionRequests_Call) Run(run func()) *NewPayloadRequest_GetExecutionRequests_Call {
