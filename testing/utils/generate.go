@@ -41,8 +41,8 @@ func GenerateValidBeaconBlock(t *testing.T, forkVersion common.Version) *types.B
 
 	// Initialize your block here
 	beaconBlock, err := types.NewBeaconBlockWithVersion(
-		math.Slot(10),
-		math.ValidatorIndex(5),
+		math.Slot(10),              //nolint:mnd // dummy value
+		math.ValidatorIndex(5),     //nolint:mnd // dummy value
 		common.Root{1, 2, 3, 4, 5}, // parent block root
 		forkVersion,
 	)
@@ -54,7 +54,7 @@ func GenerateValidBeaconBlock(t *testing.T, forkVersion common.Version) *types.B
 		Versionable: versionable,
 		ExecutionPayload: &types.ExecutionPayload{
 			Versionable: versionable,
-			Timestamp:   10,
+			Timestamp:   10, //nolint:mnd // dummy value
 			ExtraData:   []byte("dummy extra data for testing"),
 			Transactions: [][]byte{
 				[]byte("0x"),
@@ -62,8 +62,8 @@ func GenerateValidBeaconBlock(t *testing.T, forkVersion common.Version) *types.B
 				[]byte("0x"),
 			},
 			Withdrawals: engineprimitives.Withdrawals{
-				{Index: 0, Amount: 100},
-				{Index: 1, Amount: 200},
+				{Index: 0, Amount: 100}, //nolint:mnd // dummy value
+				{Index: 1, Amount: 200}, //nolint:mnd // dummy value
 			},
 			BaseFeePerGas: math.NewU256(0),
 		},
@@ -90,7 +90,7 @@ func GenerateValidBeaconBlock(t *testing.T, forkVersion common.Version) *types.B
 				{
 					Pubkey:      crypto.BLSPubkey{1, 2, 3},
 					Credentials: types.WithdrawalCredentials(bytes.B32{4, 5, 6}),
-					Amount:      100,
+					Amount:      100, //nolint:mnd // dummy value
 					Signature:   crypto.BLSSignature{1, 2, 3},
 					Index:       1,
 				},
@@ -98,8 +98,8 @@ func GenerateValidBeaconBlock(t *testing.T, forkVersion common.Version) *types.B
 			Withdrawals: []*types.WithdrawalRequest{
 				{
 					SourceAddress:   common.ExecutionAddress{0, 1, 2, 3, 4, 5},
-					ValidatorPubKey: crypto.BLSPubkey{4, 2, 0},
-					Amount:          1000,
+					ValidatorPubKey: crypto.BLSPubkey{4, 2, 0}, //			Amount:          1000, // nolint:mnd // dummy value
+
 				},
 			},
 			Consolidations: []*types.ConsolidationRequest{},

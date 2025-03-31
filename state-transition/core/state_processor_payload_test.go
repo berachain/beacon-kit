@@ -46,6 +46,7 @@ import (
 // TestPayloadTimestampVerification ensures that payload timestamp
 // is properly validated
 func TestPayloadTimestampVerification(t *testing.T) {
+	t.Parallel()
 	// Create state processor to test
 	cs := setupChain(t)
 	sp, st, ds, ctx, cms, mockEngine := statetransition.SetupTestState(t, cs)
@@ -74,6 +75,7 @@ func TestPayloadTimestampVerification(t *testing.T) {
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 
 	// write genesis changes to make them available for next blocks
+	//nolint:errcheck // false positive as this has no return value
 	ctx.ConsensusCtx().(sdk.Context).MultiStore().(storetypes.CacheMultiStore).Write()
 
 	// Test cases

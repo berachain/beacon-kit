@@ -43,6 +43,7 @@ import (
 // TestTransitionUpdateValidators shows that when validator is
 // updated (increasing amount), corresponding balance is updated.
 func TestTransitionUpdateValidators(t *testing.T) {
+	t.Parallel()
 	cs := setupChain(t)
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
@@ -174,6 +175,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 // TestTransitionCreateValidator shows the lifecycle
 // of a validator creation.
 func TestTransitionCreateValidator(t *testing.T) {
+	t.Parallel()
 	// Create state processor to test
 	cs := setupChain(t)
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
@@ -344,6 +346,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 }
 
 func TestTransitionWithdrawals(t *testing.T) {
+	t.Parallel()
 	cs := setupChain(t)
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
@@ -421,6 +424,7 @@ func TestTransitionWithdrawals(t *testing.T) {
 }
 
 func TestTransitionMaxWithdrawals(t *testing.T) {
+	t.Parallel()
 	// Use custom chain spec with max withdrawals set to 2.
 	csData := spec.DevnetChainSpecData()
 	csData.MaxWithdrawalsPerPayload = 2
@@ -554,6 +558,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 // validator added when validators set is at cap gets never activated
 // and its deposit is returned at after next epoch starts.
 func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
+	t.Parallel()
 	cs := setupChain(t)
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
@@ -770,6 +775,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 //
 //nolint:maintidx // Okay for test.
 func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
+	t.Parallel()
 	cs := setupChain(t)
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
@@ -1045,6 +1051,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 }
 
 func TestValidatorNotWithdrawable(t *testing.T) {
+	t.Parallel()
 	cs := setupChain(t)
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
