@@ -54,3 +54,10 @@ func WithNodeBuilderFunc(nodeBuilderFunc servertypes.AppCreator) Opt {
 		cb.nodeBuilderFunc = nodeBuilderFunc
 	}
 }
+
+// WithChainSpecBuilderFunc sets the chainspec builder
+func WithChainSpecBuilderFunc(chainBuilderFunc servertypes.ChainSpecCreator) Opt {
+	return func(cb *CLIBuilder) {
+		cb.chainSpecBuilderFunc = chainBuilderFunc
+	}
+}

@@ -28,9 +28,9 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
-	"github.com/berachain/beacon-kit/node-core/components"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -42,12 +42,9 @@ import (
 
 func setupChain(t *testing.T) chain.Spec {
 	t.Helper()
-
-	t.Setenv(components.ChainSpecTypeEnvVar, components.DevnetChainSpecType)
-	cs, err := components.ProvideChainSpec()
+	chainSpec, err := spec.DevnetChainSpec()
 	require.NoError(t, err)
-
-	return cs
+	return chainSpec
 }
 
 //nolint:unused // may be used in the future.

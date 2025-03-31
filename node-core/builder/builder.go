@@ -71,8 +71,13 @@ func (nb *NodeBuilder) Build(
 		config     *config.Config
 	)
 
+	chainSpec, err := servertypes.CreateChainSpec(appOpts)
+	if err != nil {
+		panic(err)
+	}
+
 	// build all node components using depinject
-	if err := depinject.Inject(
+	if err = depinject.Inject(
 		depinject.Configs(
 			depinject.Provide(
 				nb.components...,
@@ -82,6 +87,7 @@ func (nb *NodeBuilder) Build(
 				logger,
 				db,
 				cmtCfg,
+				chainSpec,
 			),
 		),
 		&apiBackend,
