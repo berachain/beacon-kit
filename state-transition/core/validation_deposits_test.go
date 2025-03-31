@@ -37,8 +37,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+//nolint:paralleltest // uses envars
 func TestInvalidDeposits(t *testing.T) {
-	t.Parallel()
 	cs := setupChain(t)
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
@@ -107,8 +107,8 @@ func TestInvalidDeposits(t *testing.T) {
 	require.ErrorContains(t, err, "deposit mismatched")
 }
 
+//nolint:paralleltest // uses envars
 func TestInvalidDepositsCount(t *testing.T) {
-	t.Parallel()
 	cs := setupChain(t)
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 

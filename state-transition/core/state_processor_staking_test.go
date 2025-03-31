@@ -42,8 +42,9 @@ import (
 
 // TestTransitionUpdateValidators shows that when validator is
 // updated (increasing amount), corresponding balance is updated.
+//
+//nolint:paralleltest // uses envars
 func TestTransitionUpdateValidators(t *testing.T) {
-	t.Parallel()
 	cs := setupChain(t)
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
@@ -174,8 +175,9 @@ func TestTransitionUpdateValidators(t *testing.T) {
 
 // TestTransitionCreateValidator shows the lifecycle
 // of a validator creation.
+//
+//nolint:paralleltest // uses envars
 func TestTransitionCreateValidator(t *testing.T) {
-	t.Parallel()
 	// Create state processor to test
 	cs := setupChain(t)
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
@@ -345,8 +347,8 @@ func TestTransitionCreateValidator(t *testing.T) {
 	require.Equal(t, expectedEffectiveBalance, val.EffectiveBalance)
 }
 
+//nolint:paralleltest // uses envars
 func TestTransitionWithdrawals(t *testing.T) {
-	t.Parallel()
 	cs := setupChain(t)
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
@@ -557,8 +559,9 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 // TestTransitionHittingValidatorsCap shows that the extra
 // validator added when validators set is at cap gets never activated
 // and its deposit is returned at after next epoch starts.
+//
+//nolint:paralleltest // uses envars
 func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
-	t.Parallel()
 	cs := setupChain(t)
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
@@ -773,9 +776,8 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 // validator added when validators set is at cap improves amount staked
 // an existing validator is removed at the beginning of next epoch.
 //
-//nolint:maintidx // Okay for test.
+//nolint:paralleltest,maintidx // uses envars
 func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
-	t.Parallel()
 	cs := setupChain(t)
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
@@ -1050,8 +1052,8 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	require.NoError(t, err)
 }
 
+//nolint:paralleltest // uses envars
 func TestValidatorNotWithdrawable(t *testing.T) {
-	t.Parallel()
 	cs := setupChain(t)
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 

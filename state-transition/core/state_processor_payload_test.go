@@ -45,8 +45,9 @@ import (
 
 // TestPayloadTimestampVerification ensures that payload timestamp
 // is properly validated
+//
+//nolint:paralleltest // uses envars
 func TestPayloadTimestampVerification(t *testing.T) {
-	t.Parallel()
 	// Create state processor to test
 	cs := setupChain(t)
 	sp, st, ds, ctx, cms, mockEngine := statetransition.SetupTestState(t, cs)
