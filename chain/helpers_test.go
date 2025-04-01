@@ -43,8 +43,8 @@ var spec, _ = chain.NewSpec(
 	},
 )
 
-// TestActiveForkVersionForEpoch tests the ActiveForkVersionForEpoch method.
-func TestActiveForkVersionForEpoch(t *testing.T) {
+// TestActiveForkVersionForTimestamp tests the ActiveForkVersionForTimestamp method.
+func TestActiveForkVersionForTimestamp(t *testing.T) {
 	t.Parallel()
 	// Define test cases
 	tests := []struct {
