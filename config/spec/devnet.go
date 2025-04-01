@@ -79,8 +79,8 @@ func DevnetChainSpecData() *chain.SpecData {
 	specData.EVMInflationPerBlockGenesis = devnetEVMInflationPerBlock
 
 	// EVM inflation is different from mainnet for now, after the Deneb1 fork.
-	specData.EVMInflationAddressGenesis = common.NewExecutionAddressFromHex(devnetEVMInflationAddressDeneb1)
-	specData.EVMInflationPerBlockGenesis = devnetEVMInflationPerBlockDeneb1
+	specData.EVMInflationAddressDeneb1 = common.NewExecutionAddressFromHex(devnetEVMInflationAddressDeneb1)
+	specData.EVMInflationPerBlockDeneb1 = devnetEVMInflationPerBlockDeneb1
 
 	// Staking is different from mainnet for now.
 	specData.MaxEffectiveBalance = devnetMaxStakeAmount

@@ -51,6 +51,7 @@ func (s *Service) forceSyncUponProcess(
 		"head_eth1_hash", lph.GetBlockHash(),
 		"safe_eth1_hash", lph.GetParentHash(),
 		"finalized_eth1_hash", lph.GetParentHash(),
+		"for_slot", lph.GetNumber(),
 	)
 
 	// Submit the forkchoice update to the execution client.

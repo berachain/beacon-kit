@@ -23,6 +23,7 @@ package deposit
 import (
 	"fmt"
 
+	clitypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	clicontext "github.com/berachain/beacon-kit/cli/context"
 	"github.com/berachain/beacon-kit/cli/utils/parser"
 	"github.com/berachain/beacon-kit/consensus-types/types"
@@ -56,14 +57,14 @@ const (
 //
 //nolint:lll // Reads better if long description is one line.
 func GetCreateValidatorCmd(
-	chainSpec ChainSpec,
+	chainSpecCreator clitypes.ChainSpecCreator,
 ) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-validator [withdrawal-address] [amount] ?[beacond/genesis.json]",
 		Short: "Creates a validator deposit message",
 		Long:  `Creates a validator deposit message with the necessary credentials. The arguments are expected in the order of withdrawal address, deposit amount, and optionally the beacond genesis file. If the genesis validator root flag is NOT set, the beacond genesis file MUST be provided as the last argument. If the override flag is set to true, a private key must be provided to sign the message.`,
 		Args:  cobra.RangeArgs(minArgsCreateDeposit, maxArgsCreateDeposit),
-		RunE:  createValidatorCmd(chainSpec),
+		RunE:  createValidatorCmd(chainSpecCreator),
 	}
 
 	cmd.Flags().BoolP(
@@ -89,9 +90,14 @@ func GetCreateValidatorCmd(
 
 // createValidatorCmd returns a command that builds a create validator request.
 func createValidatorCmd(
-	chainSpec ChainSpec,
+	chainSpecCreator clitypes.ChainSpecCreator,
 ) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
+		appOpts := clicontext.GetViperFromCmd(cmd)
+		chainSpec, err := chainSpecCreator(appOpts)
+		if err != nil {
+			return err
+		}
 		// Get the BLS signer.
 		blsSigner, err := getBLSSigner(cmd)
 		if err != nil {
