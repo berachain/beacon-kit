@@ -25,7 +25,6 @@ package simulated_test
 import (
 	"bytes"
 	"context"
-	"math/big"
 	"path"
 	"testing"
 	"time"
@@ -33,29 +32,25 @@ import (
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/cometbft/cometbft/abci/types"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/suite"
 )
 
-// PectraSuite defines our test suite for Pectra related work using simulated Comet component.
-type PectraSuite struct {
+// PectraForkSuite defines our test suite for Pectra related work using simulated Comet component.
+type PectraForkSuite struct {
 	suite.Suite
 	// Embedded shared accessors for convenience.
 	simulated.SharedAccessors
 }
 
 // TestSimulatedCometComponent runs the test suite.
-func TestPectraSuite(t *testing.T) {
-	suite.Run(t, new(PectraSuite))
+func TestPectraForkSuite(t *testing.T) {
+	suite.Run(t, new(PectraForkSuite))
 }
 
 // SetupTest initializes the test environment.
-func (s *PectraSuite) SetupTest() {
+func (s *PectraForkSuite) SetupTest() {
 	// Create a cancellable context for the duration of the test.
 	s.CtxApp, s.CtxAppCancelFn = context.WithCancel(context.Background())
 
@@ -65,8 +60,8 @@ func (s *PectraSuite) SetupTest() {
 	s.HomeDir = s.T().TempDir()
 
 	// Initialize the home directory, Comet configuration, and genesis info.
-	const elGenesisPath = "./pectra-eth-genesis.json"
-	chainSpecFunc := simulated.ProvideElectraGenesisChainSpec
+	const elGenesisPath = "./el-genesis-files/pectra-fork-genesis.json"
+	chainSpecFunc := simulated.ProvidePectraForkTestChainSpec
 	// Create the chainSpec.
 	chainSpec, err := chainSpecFunc()
 	s.Require().NoError(err)
@@ -111,7 +106,7 @@ func (s *PectraSuite) SetupTest() {
 }
 
 // TearDownTest cleans up the test environment.
-func (s *PectraSuite) TearDownTest() {
+func (s *PectraForkSuite) TearDownTest() {
 	// If the test has failed, log additional information.
 	if s.T().Failed() {
 		s.T().Log(s.LogBuffer.String())
@@ -124,65 +119,68 @@ func (s *PectraSuite) TearDownTest() {
 	s.TestNode.ServiceRegistry.StopAll()
 }
 
-func (s *PectraSuite) TestFullLifecycle_WithoutRequests_IsSuccessful() {
-	const blockHeight = 1
-	const coreLoopIterations = 10
-
+// TestTimestampFork_ELAndCLInSync_IsSuccessful tests that we can fork successfully if EL and CL have synced timestamps
+// The forks timestamp at Unix 0, as the genesis at Unix 0, Cancun is at 10 and Prague is at 20.
+func (s *PectraForkSuite) TestTimestampFork_ELAndCLInSync_IsSuccessful() {
 	// Initialize the chain state.
 	s.InitializeChain(s.T())
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
 
-	// Test happens post Electra fork.
-	startTime := time.Now()
-
-	// Go through iterations of the core loop.
-	proposals, _ := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
-	s.Require().Len(proposals, coreLoopIterations)
-}
-
-func (s *PectraSuite) TestFullLifecycle_WithRequests_IsSuccessful() {
-	const blockHeight = 1
-	const coreLoopIterations = 10
-
-	// Initialize the chain state.
-	s.InitializeChain(s.T())
-
-	// Retrieve the BLS signer and proposer address.
-	blsSigner := simulated.GetBlsSigner(s.HomeDir)
-
-	// create withdrawal request
-	// corresponds with funded address in genesis 0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4
-	senderKey, err := crypto.HexToECDSA("fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306")
+	// Prepare a block proposal.
+	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
 
-	elChainID := big.NewInt(int64(s.TestNode.ChainSpec.DepositEth1ChainID()))
-	signer := types.NewPragueSigner(elChainID)
-	// Field values roughly copies from Geth
-	// https://github.com/ethereum/go-ethereum/blob/39638c81c56db2b2dfe6f51999ffd3029ee212cb/core/blockchain_test.go#L4131-L4130
-	withdrawalTx := types.MustSignNewTx(senderKey, signer, &types.DynamicFeeTx{
-		ChainID:   elChainID,
-		Nonce:     0,
-		To:        &params.WithdrawalQueueAddress,
-		Gas:       500_000,
-		GasFeeCap: big.NewInt(1000000000),
-		GasTipCap: big.NewInt(1000000000),
-		Value:     big.NewInt(100),
-		Data:      common.FromHex("b917cfdc0d25b72d55cf94db328e1629b7f4fde2c30cdacf873b664416f76a0c7f7cc50c9f72a3cb84be88144cde91250000000000000d80"),
-	})
+	expectedMessages := []string{
+		"Finalizing block with fork version service=blockchain\u001B[0m block=1\u001B[0m fork=0x04010000\u001B[0m",
+		"Finalizing block with fork version service=blockchain\u001B[0m block=2\u001B[0m fork=0x04010000\u001B[0m",
+		"Finalizing block with fork version service=blockchain\u001B[0m block=3\u001B[0m fork=0x04010000\u001B[0m",
+		"Finalizing block with fork version service=blockchain\u001B[0m block=4\u001B[0m fork=0x04010000\u001B[0m",
+		"Finalizing block with fork version service=blockchain\u001B[0m block=5\u001B[0m fork=0x05000000\u001B[0m",
+		"Finalizing block with fork version service=blockchain\u001B[0m block=6\u001B[0m fork=0x05000000\u001B[0m",
+		"Finalizing block with fork version service=blockchain\u001B[0m block=7\u001B[0m fork=0x05000000\u001B[0m",
+	}
 
-	txBytes, err := withdrawalTx.MarshalBinary()
-	s.Require().NoError(err)
+	startHeight := int64(1)
+	iterations := int64(len(expectedMessages))
+	expectedMessagesIdx := 0
+	for currentHeight := startHeight; currentHeight < startHeight+iterations; currentHeight++ {
+		// We set the consensus time to currentHeight * 2 to mimick a functional 2s block time.
+		// This assumption is not always true but used in a valid test.
+		consensusTime := time.Unix(currentHeight*2, 0)
+		proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
+			Height:          currentHeight,
+			Time:            consensusTime,
+			ProposerAddress: pubkey.Address(),
+		})
+		s.Require().NoError(err)
+		s.Require().Len(proposal.Txs, 2)
 
-	var result interface{}
-	err = s.TestNode.EngineClient.Call(s.CtxApp, &result, "eth_sendRawTransaction", hexutil.Encode(txBytes))
-	s.Require().NoError(err)
+		// Process the proposal.
+		processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
+			Txs:             proposal.Txs,
+			Height:          currentHeight,
+			ProposerAddress: pubkey.Address(),
+			Time:            consensusTime,
+		})
+		s.Require().NoError(err)
+		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
 
-	// Test happens post Electra fork.
-	startTime := time.Now()
-
-	// Go through iterations of the core loop.
-	proposals, _ := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
-	s.Require().Len(proposals, coreLoopIterations)
+		// Finalize the block.
+		s.LogBuffer.Reset()
+		finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.FinalizeBlockRequest{
+			Txs:             proposal.Txs,
+			Height:          currentHeight,
+			ProposerAddress: pubkey.Address(),
+			Time:            consensusTime,
+		})
+		s.Require().Contains(s.LogBuffer.String(), expectedMessages[expectedMessagesIdx])
+		s.Require().NoError(err)
+		s.Require().NotEmpty(finalizeResp)
+		// Commit the block.
+		_, err = s.SimComet.Comet.Commit(s.CtxComet, &types.CommitRequest{})
+		s.Require().NoError(err)
+		expectedMessagesIdx++
+	}
 }

@@ -103,3 +103,15 @@ func ProvideSimulationChainSpec() (chain.Spec, error) {
 	}
 	return chainSpec, nil
 }
+
+// ProvidePectraForkTestChainSpec provides a chain spec with pectra in epoch 2
+func ProvidePectraForkTestChainSpec() (chain.Spec, error) {
+	specData := spec.TestnetChainSpecData()
+	specData.Deneb1ForkTime = 0
+	specData.ElectraForkTime = 10
+	chainSpec, err := chain.NewSpec(specData)
+	if err != nil {
+		return nil, err
+	}
+	return chainSpec, nil
+}
