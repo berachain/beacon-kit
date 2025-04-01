@@ -25,6 +25,7 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"math/big"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -120,10 +121,8 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	err = s.SetupConsensusClients()
 	s.Require().NoError(err, "Error setting up consensus clients")
 
-	// Setup the JSON-RPC balancer.
-	s.logger.Info("Setting up JSON-RPC balancer")
-	err = s.SetupJSONRPCBalancer()
-	s.Require().NoError(err, "Error setting up JSON-RPC balancer")
+	// Setup the clients and connect.
+	s.SetupExecutionClients()
 
 	s.logger.Info("Waiting for nodes to get ready...")
 	//nolint:mnd // its okay.
@@ -186,25 +185,27 @@ func (s *KurtosisE2ESuite) SetupConsensusClients() error {
 	return nil
 }
 
-// SetupJSONRPCBalancer sets up the load balancer for the test suite.
-func (s *KurtosisE2ESuite) SetupJSONRPCBalancer() error {
-	// get the type for EthJSONRPCEndpoint
-	typeRPCEndpoint := s.JSONRPCBalancerType()
+// SetupExecutionClients sets up the execution clients for the test suite.
+func (s *KurtosisE2ESuite) SetupExecutionClients() {
+	s.executionClients = make(map[string]*types.ExecutionClient)
+	svrcs, err := s.Enclave().GetServices()
+	s.Require().NoError(err, "Error getting services")
 
-	s.logger.Info("Setting up JSON-RPC balancer:", "type", typeRPCEndpoint)
+	s.logger.Info("len(svrcs)", "svrcs", len(svrcs))
+	for name, v := range svrcs {
+		var serviceCtx *services.ServiceContext
+		serviceCtx, err = s.Enclave().GetServiceContext(string(v))
+		s.Require().NoError(err, "Error getting service context")
+		s.logger.Info("name", "name", name)
 
-	sCtx, err := s.Enclave().GetServiceContext(typeRPCEndpoint)
-	if err != nil {
-		return err
+		if strings.HasPrefix(string(name), "el-") {
+			s.executionClients[string(name)] = types.NewExecutionClientFromServiceCtx(
+				types.NewWrappedServiceContext(serviceCtx, s.Enclave().RunStarlarkScriptBlocking),
+				s.logger,
+			)
+		}
 	}
-
-	if s.loadBalancer, err = types.NewLoadBalancer(
-		sCtx,
-	); err != nil {
-		return err
-	}
-
-	return nil
+	s.Require().True(len(s.executionClients) > 0)
 }
 
 // FundAccounts funds the accounts for the test suite.
@@ -213,22 +214,23 @@ func (s *KurtosisE2ESuite) SetupJSONRPCBalancer() error {
 func (s *KurtosisE2ESuite) FundAccounts() {
 	ctx := context.Background()
 	nonce := atomic.Uint64{}
-	pendingNonce, err := s.JSONRPCBalancer().PendingNonceAt(
-		ctx, s.genesisAccount.Address())
+	pendingNonce, err := s.RandomExecutionClient().PendingNonceAt(ctx, s.genesisAccount.Address())
 	s.Require().NoError(err, "Failed to get nonce for genesis account")
 	nonce.Store(pendingNonce)
 
 	var chainID *big.Int
-	chainID, err = s.JSONRPCBalancer().ChainID(ctx)
+	chainID, err = s.RandomExecutionClient().ChainID(ctx)
 	s.Require().NoError(err, "failed to get chain ID")
+
 	s.logger.Info("Chain-id is", "chain_id", chainID)
 	_, err = iter.MapErr(
 		s.testAccounts,
 		func(acc **types.EthAccount) (*ethtypes.Receipt, error) {
 			account := *acc
+			ec := s.RandomExecutionClient()
 			var gasTipCap *big.Int
 
-			if gasTipCap, err = s.JSONRPCBalancer().SuggestGasTipCap(ctx); err != nil {
+			if gasTipCap, err = ec.SuggestGasTipCap(ctx); err != nil {
 				var rpcErr rpc.Error
 				if errors.As(err, &rpcErr) && rpcErr.ErrorCode() == -32601 {
 					// Besu does not support eth_maxPriorityFeePerGas
@@ -259,7 +261,7 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 
 			cctx, cancel := context.WithTimeout(ctx, DefaultE2ETestTimeout)
 			defer cancel()
-			if err = s.JSONRPCBalancer().SendTransaction(cctx, signedTx); err != nil {
+			if err = ec.SendTransaction(cctx, signedTx); err != nil {
 				s.logger.Error(
 					"error submitting funding transaction",
 					"error",
@@ -275,10 +277,8 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 			)
 
 			var receipt *ethtypes.Receipt
-
-			if receipt, err = bind.WaitMined(
-				cctx, s.JSONRPCBalancer(), signedTx,
-			); err != nil {
+			receipt, err = bind.WaitMined(cctx, ec, signedTx)
+			if err != nil {
 				return nil, err
 			}
 
@@ -303,7 +303,7 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 
 			// Verify the balance of the account
 			var balance *big.Int
-			if balance, err = s.JSONRPCBalancer().BalanceAt(ctx, dest, nil); err != nil {
+			if balance, err = ec.BalanceAt(ctx, dest, nil); err != nil {
 				return nil, err
 			} else if balance.Cmp(value) != 0 {
 				return nil, errors.Wrap(
@@ -325,7 +325,7 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 	defer cancel()
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
-	finalBlockNum, err := s.JSONRPCBalancer().BlockNumber(cctx)
+	finalBlockNum, err := s.RandomExecutionClient().BlockNumber(cctx)
 	if err != nil {
 		s.logger.Error("error getting finalized block number", "error", err)
 	}
@@ -337,7 +337,7 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 		default:
 		}
 
-		finalBlockNum, err = s.JSONRPCBalancer().BlockNumber(cctx)
+		finalBlockNum, err = s.RandomExecutionClient().BlockNumber(cctx)
 		if err != nil {
 			s.logger.Error("error getting finalized block number", "error", err)
 			continue
@@ -374,7 +374,7 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 func (s *KurtosisE2ESuite) WaitForNBlockNumbers(
 	n uint64,
 ) error {
-	current, err := s.JSONRPCBalancer().BlockNumber(s.ctx)
+	current, err := s.RandomExecutionClient().BlockNumber(s.ctx)
 	if err != nil {
 		return err
 	}
@@ -400,7 +400,7 @@ func (s *KurtosisE2ESuite) CheckForSuccessfulTx(
 ) bool {
 	ctx, cancel := context.WithTimeout(s.Ctx(), DefaultE2ETestTimeout)
 	defer cancel()
-	receipt, err := s.JSONRPCBalancer().TransactionReceipt(ctx, tx)
+	receipt, err := s.RandomExecutionClient().TransactionReceipt(ctx, tx)
 	if err != nil {
 		s.Logger().Error("Error getting transaction receipt", "error", err)
 		return false

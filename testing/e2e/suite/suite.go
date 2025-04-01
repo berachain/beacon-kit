@@ -22,6 +22,8 @@ package suite
 
 import (
 	"context"
+	"crypto/rand"
+	"math/big"
 
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
@@ -48,8 +50,7 @@ type KurtosisE2ESuite struct {
 
 	// TODO: Figure out what these may be useful for.
 	consensusClients map[string]*types.ConsensusClient
-	// executionClients map[string]*types.ExecutionClient
-	loadBalancer *types.LoadBalancer
+	executionClients map[string]*types.ExecutionClient
 
 	genesisAccount *types.EthAccount
 	testAccounts   []*types.EthAccount
@@ -89,21 +90,20 @@ func (s *KurtosisE2ESuite) KurtosisCtx() *kurtosis_context.KurtosisContext {
 
 // ExecutionClients returns the execution clients associated with the
 // KurtosisE2ESuite.
-func (
-	s *KurtosisE2ESuite,
-) ExecutionClients() map[string]*types.ExecutionClient {
-	return nil
+func (s *KurtosisE2ESuite) ExecutionClients() map[string]*types.ExecutionClient {
+	return s.executionClients
 }
 
-// JSONRPCBalancer returns the JSON-RPC balancer for the test suite.
-func (s *KurtosisE2ESuite) JSONRPCBalancer() *types.LoadBalancer {
-	return s.loadBalancer
-}
-
-// JSONRPCBalancerType returns the type of the JSON-RPC balancer
-// for the test suite.
-func (s *KurtosisE2ESuite) JSONRPCBalancerType() string {
-	return s.cfg.EthJSONRPCEndpoints[0].Type
+func (s *KurtosisE2ESuite) RandomExecutionClient() *types.ExecutionClient {
+	ecKeys := make([]string, 0, len(s.executionClients))
+	for key := range s.executionClients {
+		ecKeys = append(ecKeys, key)
+	}
+	randomIndex, err := rand.Int(rand.Reader, big.NewInt(int64(len(ecKeys))))
+	if err != nil {
+		panic(err)
+	}
+	return s.executionClients[ecKeys[randomIndex.Int64()]]
 }
 
 // Logger returns the logger for the test suite.
