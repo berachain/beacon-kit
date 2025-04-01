@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/version"
+	"github.com/berachain/beacon-kit/testing/utils"
 	cmtcrypto "github.com/cometbft/cometbft/crypto"
 	"github.com/cometbft/cometbft/crypto/bls12381"
 	"github.com/cometbft/cometbft/privval"
@@ -55,7 +56,7 @@ func generateFakeSignedBeaconBlock(t *testing.T, version common.Version) *types.
 	t.Helper()
 
 	return &types.SignedBeaconBlock{
-		BeaconBlock: generateValidBeaconBlock(t, version),
+		BeaconBlock: utils.GenerateValidBeaconBlock(t, version),
 	}
 }
 
@@ -80,7 +81,7 @@ func generateSigningRoot(blk *types.BeaconBlock) (common.Root, error) {
 func generateRealSignedBeaconBlock(t *testing.T, blsSigner crypto.BLSSigner, version common.Version) (*types.SignedBeaconBlock, error) {
 	t.Helper()
 
-	blk := generateValidBeaconBlock(t, version)
+	blk := utils.GenerateValidBeaconBlock(t, version)
 
 	signingRoot, err := generateSigningRoot(blk)
 	if err != nil {

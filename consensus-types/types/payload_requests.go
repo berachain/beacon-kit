@@ -40,7 +40,7 @@ type NewPayloadRequest interface {
 	GetExecutionPayload() *ExecutionPayload
 	GetVersionedHashes() []common.ExecutionHash
 	GetParentBeaconBlockRoot() *common.Root
-	GetExecutionRequests() ([]EncodedExecutionRequest, error)
+	GetEncodedExecutionRequests() ([]EncodedExecutionRequest, error)
 }
 
 type newPayloadRequest struct {
@@ -55,34 +55,40 @@ type newPayloadRequest struct {
 	executionRequests []EncodedExecutionRequest
 }
 
-// BuildNewPayloadRequest builds a new payload request.
-func BuildNewPayloadRequest(
-	executionPayload *ExecutionPayload,
-	versionedHashes []common.ExecutionHash,
-	parentBeaconBlockRoot *common.Root,
-) NewPayloadRequest {
-	return &newPayloadRequest{
-		Versionable:           NewVersionable(executionPayload.GetForkVersion()),
-		executionPayload:      executionPayload,
-		versionedHashes:       versionedHashes,
-		parentBeaconBlockRoot: parentBeaconBlockRoot,
+// BuildNewPayloadRequestFromFork will build a NewPayloadRequest
+func BuildNewPayloadRequestFromFork(blk *BeaconBlock) (NewPayloadRequest, error) {
+	body := blk.GetBody()
+	payload := body.GetExecutionPayload()
+	parentBeaconBlockRoot := blk.GetParentBlockRoot()
+	if version.Equals(blk.GetForkVersion(), version.Deneb()) || version.Equals(blk.GetForkVersion(), version.Deneb1()) {
+		return &newPayloadRequest{
+			Versionable:           NewVersionable(payload.GetForkVersion()),
+			executionPayload:      payload,
+			versionedHashes:       body.GetBlobKzgCommitments().ToVersionedHashes(),
+			parentBeaconBlockRoot: &parentBeaconBlockRoot,
+		}, nil
 	}
-}
-
-// BuildNewPayloadRequestWithExecutionRequests builds a new payload post-electra
-func BuildNewPayloadRequestWithExecutionRequests(
-	executionPayload *ExecutionPayload,
-	versionedHashes []common.ExecutionHash,
-	parentBeaconBlockRoot *common.Root,
-	executionRequests []EncodedExecutionRequest,
-) NewPayloadRequest {
-	return &newPayloadRequest{
-		Versionable:           NewVersionable(executionPayload.GetForkVersion()),
-		executionPayload:      executionPayload,
-		versionedHashes:       versionedHashes,
-		parentBeaconBlockRoot: parentBeaconBlockRoot,
-		executionRequests:     executionRequests,
+	if version.Equals(blk.GetForkVersion(), version.Electra()) {
+		var executionRequestsList []EncodedExecutionRequest
+		// If we're post-electra, we set execution requests.
+		var executionRequests *ExecutionRequests
+		executionRequests, err := body.GetExecutionRequests()
+		if err != nil {
+			return nil, err
+		}
+		executionRequestsList, err = GetExecutionRequestsList(executionRequests)
+		if err != nil {
+			return nil, err
+		}
+		return &newPayloadRequest{
+			Versionable:           NewVersionable(payload.GetForkVersion()),
+			executionPayload:      payload,
+			versionedHashes:       body.GetBlobKzgCommitments().ToVersionedHashes(),
+			parentBeaconBlockRoot: &parentBeaconBlockRoot,
+			executionRequests:     executionRequestsList,
+		}, nil
 	}
+	return nil, ErrForkVersionNotSupported
 }
 
 func (n *newPayloadRequest) GetExecutionPayload() *ExecutionPayload {
@@ -97,7 +103,7 @@ func (n *newPayloadRequest) GetParentBeaconBlockRoot() *common.Root {
 	return n.parentBeaconBlockRoot
 }
 
-func (n *newPayloadRequest) GetExecutionRequests() ([]EncodedExecutionRequest, error) {
+func (n *newPayloadRequest) GetEncodedExecutionRequests() ([]EncodedExecutionRequest, error) {
 	if version.IsBefore(n.GetForkVersion(), version.Electra()) {
 		return nil, errors.Wrap(
 			ErrForkVersionNotSupported,
@@ -126,7 +132,7 @@ func (n *newPayloadRequest) HasValidVersionedAndBlockHashes() error {
 			return err
 		}
 	} else {
-		executionRequests, err := n.GetExecutionRequests()
+		executionRequests, err := n.GetEncodedExecutionRequests()
 		if err != nil {
 			return err
 		}
