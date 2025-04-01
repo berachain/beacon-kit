@@ -150,7 +150,7 @@ func (rs *ReportingService) printToConsole(
 	+ 🧩 Your node is running version: %-40s+
 	+ ♦ Eth client: %-59s+
 	+ 💾 Your system: %-57s+
-	+ 🍴 Deneb1 Fork Time: %-51d+
+	+ 🍴 Deneb1 Fork Time: %-52d+
 	+ 🍴 Electra Fork Time: %-51d+
 	+ 🦺 Please report issues @ https://github.com/berachain/beacon-kit/issues +
 	+==========================================================================+
