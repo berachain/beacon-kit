@@ -36,6 +36,7 @@ func (s *Service) finalizeBlock(
 	if res != nil {
 		res.AppHash = s.workingHash()
 	}
+
 	return res, err
 }
 
