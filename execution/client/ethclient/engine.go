@@ -161,7 +161,7 @@ func (s *Client) GetPayloadV3(
 	ctx context.Context,
 	payloadID engineprimitives.PayloadID,
 	forkVersion common.Version,
-) (ctypes.BuiltExecutionPayloadEnv, error) {
+) (*ctypes.BuiltExecutionPayloadEnv, error) { // <-- Изменяем возвращаемый тип
 	result := ctypes.NewEmptyExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1](forkVersion)
 	if err := s.Call(ctx, result, GetPayloadMethodV3, payloadID); err != nil {
 		return nil, fmt.Errorf("failed GetPayloadV3 call: %w", err)
