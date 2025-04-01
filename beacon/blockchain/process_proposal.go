@@ -160,19 +160,6 @@ func (s *Service) ProcessProposal(
 		}
 	}
 
-	if version.EqualsOrIsAfter(blkVersion, version.Electra()) {
-		requests, getErr := blk.GetBody().GetExecutionRequests()
-		if getErr != nil {
-			return getErr
-		}
-		s.logger.Info(
-			"Processing execution requests",
-			"deposits", len(requests.Deposits),
-			"withdrawals", len(requests.Withdrawals),
-			"consolidations", len(requests.Consolidations),
-		)
-	}
-
 	// Process the block.
 	consensusBlk := types.NewConsensusBlock(
 		blk,
