@@ -27,6 +27,7 @@ import (
 	"time"
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
+	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/consensus/types"
@@ -108,9 +109,7 @@ func (s *Service) ProcessProposal(
 	// ensure that the fork version for these timestamps are the same. This may result in a failed
 	// proposal or two at the start of the fork.
 	blkVersion := s.chainSpec.ActiveForkVersionForTimestamp(blk.GetTimestamp())
-	// TODO(fork): figure out how to determine if we are in test or not.
-	isDevnet := true
-	if !version.Equals(blkVersion, forkVersion) && !isDevnet {
+	if !version.Equals(blkVersion, forkVersion) && s.chainSpec.DepositEth1ChainID() != spec.DevnetEth1ChainID {
 		return fmt.Errorf("CometBFT version %v, BeaconBlock version %v: %w",
 			forkVersion, blkVersion,
 			ErrVersionMismatch,
@@ -311,6 +310,7 @@ func (s *Service) VerifyIncomingBlock(
 					consensusTime,
 					lph.GetTimestamp(),
 					true, // buildOptimistically
+					s.chainSpec,
 				),
 			)
 		}
@@ -338,6 +338,7 @@ func (s *Service) VerifyIncomingBlock(
 				consensusTime,
 				lph.GetTimestamp(),
 				true, // buildOptimistically
+				s.chainSpec,
 			),
 		)
 	}

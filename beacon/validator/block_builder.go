@@ -257,6 +257,7 @@ func (s *Service) retrieveExecutionPayload(
 			slotData.GetConsensusTime(),
 			lph.GetTimestamp(),
 			false, // buildOptimistically
+			s.chainSpec,
 		),
 		parentBlockRoot,
 		lph.GetBlockHash(),
