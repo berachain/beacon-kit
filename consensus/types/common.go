@@ -41,3 +41,8 @@ func (c *commonConsensusData) GetProposerAddress() []byte {
 func (c *commonConsensusData) GetConsensusTime() math.U64 {
 	return c.consensusTime
 }
+
+// SetConsensusTime sets the consensusTime.
+func (c *commonConsensusData) SetConsensusTime(consensusTime math.U64) {
+	c.consensusTime = consensusTime
+}

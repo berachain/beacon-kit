@@ -23,6 +23,7 @@ package validator
 import (
 	"context"
 	"fmt"
+	"github.com/berachain/beacon-kit/config/spec"
 	"time"
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
@@ -53,6 +54,15 @@ func (s *Service) BuildBlockAndSidecars(
 	if !s.localPayloadBuilder.Enabled() {
 		// node is not supposed to build blocks
 		return nil, nil, builder.ErrPayloadBuilderDisabled
+	}
+
+	if s.chainSpec.DepositEth1ChainID() != spec.DevnetEth1ChainID {
+		state := s.sb.StateFromContext(ctx)
+		lph, err := state.GetLatestExecutionPayloadHeader()
+		if err != nil {
+			return nil, nil, err
+		}
+		slotData.SetConsensusTime(lph.GetTimestamp() + math.U64(s.chainSpec.TargetSecondsPerEth1Block()))
 	}
 
 	// The goal here is to acquire a payload whose parent is the previously
@@ -257,7 +267,6 @@ func (s *Service) retrieveExecutionPayload(
 			slotData.GetConsensusTime(),
 			lph.GetTimestamp(),
 			false, // buildOptimistically
-			s.chainSpec,
 		),
 		parentBlockRoot,
 		lph.GetBlockHash(),

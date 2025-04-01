@@ -21,8 +21,6 @@
 package types
 
 import (
-	"time"
-
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
@@ -34,17 +32,17 @@ type ConsensusBlock struct {
 	*commonConsensusData
 }
 
-// New creates a new ConsensusBlock instance.
+// NewConsensusBlock creates a new ConsensusBlock instance.
 func NewConsensusBlock(
 	beaconBlock *types.BeaconBlock,
 	proposerAddress []byte,
-	consensusTime time.Time,
+	consensusTime math.U64,
 ) *ConsensusBlock {
 	return &ConsensusBlock{
 		blk: beaconBlock,
 		commonConsensusData: &commonConsensusData{
 			proposerAddress: proposerAddress,
-			consensusTime:   math.U64(consensusTime.Unix()), // #nosec G115
+			consensusTime:   consensusTime,
 		},
 	}
 }

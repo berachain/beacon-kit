@@ -25,7 +25,6 @@ import (
 	"time"
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
-	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/stretchr/testify/require"
 )
@@ -34,8 +33,6 @@ import (
 // built via payloadtime.Next always pass payloadtime.Verify.
 func TestNextTimestampVerifies(t *testing.T) {
 	t.Parallel()
-	chainSpec, err := spec.MainnetChainSpec()
-	require.NoError(t, err)
 	tests := []struct {
 		name        string
 		times       func() (time.Time, time.Time)
@@ -80,7 +77,6 @@ func TestNextTimestampVerifies(t *testing.T) {
 				math.U64(consensusTime.Unix()),
 				math.U64(parentPayloadTimestamp.Unix()),
 				true, // buildOptimistically
-				chainSpec,
 			)
 
 			gotErr := payloadtime.Verify(
@@ -99,7 +95,6 @@ func TestNextTimestampVerifies(t *testing.T) {
 				math.U64(consensusTime.Unix()),
 				math.U64(parentPayloadTimestamp.Unix()),
 				false, // buildOptimistically
-				chainSpec,
 			)
 
 			gotErr = payloadtime.Verify(

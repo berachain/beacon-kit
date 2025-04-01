@@ -24,14 +24,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
-
-type chainIDChainSpec interface {
-	DepositEth1ChainID() uint64
-	TargetSecondsPerEth1Block() uint64
-}
 
 // ErrTooFarInTheFuture is returned when the payload timestamp
 // in a block exceeds the time bound.
@@ -60,7 +54,6 @@ func Next(
 	consensusTime,
 	parentPayloadTimestamp math.U64,
 	buildOptimistically bool,
-	chainSpec chainIDChainSpec,
 ) math.U64 {
 	delta := math.U64(0)
 	if buildOptimistically {
@@ -71,15 +64,6 @@ func Next(
 		// Verify pass which should always to since:
 		// Next.consensusTime <= Verify.consensusTime
 		delta = 1
-	}
-	// If we are in a devnet, we opt to always build the timestamp as an
-	// offset of the previous payload timestamp. This makes it so that we can
-	// deterministically know the "block time" based on whatever time we set
-	// in the genesis payload. This allows for tests to trigger forks
-	// deterministically no matter when the test is started, without having to
-	// pre-determine fork offsets and synchronize them at test startup.
-	if chainSpec.DepositEth1ChainID() == spec.DevnetEth1ChainID {
-		return parentPayloadTimestamp + math.U64(chainSpec.TargetSecondsPerEth1Block())
 	}
 	return max(
 		consensusTime+delta,

@@ -24,10 +24,10 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/berachain/beacon-kit/config/spec"
 	"time"
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
-	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/consensus/types"
@@ -69,7 +69,16 @@ func (s *Service) ProcessProposal(
 		)
 	}
 
-	forkVersion := s.chainSpec.ActiveForkVersionForTimestamp(math.U64(req.GetTime().Unix())) //#nosec: G115
+	cometTime := math.U64(req.GetTime().Unix()) //#nosec: G115
+	if s.chainSpec.DepositEth1ChainID() != spec.DevnetEth1ChainID {
+		state := s.storageBackend.StateFromContext(ctx)
+		lph, err := state.GetLatestExecutionPayloadHeader()
+		if err != nil {
+			return err
+		}
+		cometTime = lph.GetTimestamp() + math.U64(s.chainSpec.TargetSecondsPerEth1Block())
+	}
+	forkVersion := s.chainSpec.ActiveForkVersionForTimestamp(cometTime)
 	// Decode signed block and sidecars.
 	signedBlk, sidecars, err := encoding.ExtractBlobsAndBlockFromRequest(
 		req,
@@ -109,7 +118,7 @@ func (s *Service) ProcessProposal(
 	// ensure that the fork version for these timestamps are the same. This may result in a failed
 	// proposal or two at the start of the fork.
 	blkVersion := s.chainSpec.ActiveForkVersionForTimestamp(blk.GetTimestamp())
-	if !version.Equals(blkVersion, forkVersion) && s.chainSpec.DepositEth1ChainID() != spec.DevnetEth1ChainID {
+	if !version.Equals(blkVersion, forkVersion) {
 		return fmt.Errorf("CometBFT version %v, BeaconBlock version %v: %w",
 			forkVersion, blkVersion,
 			ErrVersionMismatch,
@@ -165,7 +174,7 @@ func (s *Service) ProcessProposal(
 	consensusBlk := types.NewConsensusBlock(
 		blk,
 		req.GetProposerAddress(),
-		req.GetTime(),
+		cometTime,
 	)
 	err = s.VerifyIncomingBlock(
 		ctx,
@@ -310,7 +319,6 @@ func (s *Service) VerifyIncomingBlock(
 					consensusTime,
 					lph.GetTimestamp(),
 					true, // buildOptimistically
-					s.chainSpec,
 				),
 			)
 		}
@@ -338,7 +346,6 @@ func (s *Service) VerifyIncomingBlock(
 				consensusTime,
 				lph.GetTimestamp(),
 				true, // buildOptimistically
-				s.chainSpec,
 			),
 		)
 	}
