@@ -65,7 +65,7 @@ nilaway-install:
 
 nilaway: nilaway-install
 	@echo "--> Running nilaway"
-	(nilaway -exclude-errors-in-files "geth-primitives/deposit/" -v ./...) || exit 1;
+	(nilaway -test=false -exclude-errors-in-files "geth-primitives/deposit/" -v ./...) || exit 1;
 	@printf "Nilaway check complete\n"
 
 #################

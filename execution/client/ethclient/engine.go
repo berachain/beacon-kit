@@ -59,7 +59,7 @@ func (s *Client) NewPayload(
 
 	// Use V4 for Electra versions.
 	if version.Equals(forkVersion, version.Electra()) {
-		executionRequests, err := req.GetExecutionRequests()
+		executionRequests, err := req.GetEncodedExecutionRequests()
 		if err != nil {
 			return nil, err
 		}
