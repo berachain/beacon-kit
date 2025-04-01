@@ -143,6 +143,11 @@ func (b *BeaconBlock) GetParentBlockRoot() common.Root {
 	return b.ParentRoot
 }
 
+// SetParentBlockRoot sets the parent block root of the BeaconBlockBase.
+func (b *BeaconBlock) SetParentBlockRoot(parentBlockRoot common.Root) {
+	b.ParentRoot = parentBlockRoot
+}
+
 // GetStateRoot retrieves the state root of the BeaconBlock.
 func (b *BeaconBlock) GetStateRoot() common.Root {
 	return b.StateRoot
