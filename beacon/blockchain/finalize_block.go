@@ -40,7 +40,7 @@ func (s *Service) FinalizeBlock(
 	req *cmtabci.FinalizeBlockRequest,
 ) (transition.ValidatorUpdates, error) {
 	cometTime := math.U64(req.GetTime().Unix()) //#nosec: G115
-	if s.chainSpec.DepositEth1ChainID() != spec.DevnetEth1ChainID {
+	if s.chainSpec.DepositEth1ChainID() == spec.DevnetEth1ChainID {
 		state := s.storageBackend.StateFromContext(ctx)
 		lph, err := state.GetLatestExecutionPayloadHeader()
 		if err != nil {

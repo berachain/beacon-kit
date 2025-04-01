@@ -56,7 +56,7 @@ func (s *Service) BuildBlockAndSidecars(
 		return nil, nil, builder.ErrPayloadBuilderDisabled
 	}
 
-	if s.chainSpec.DepositEth1ChainID() != spec.DevnetEth1ChainID {
+	if s.chainSpec.DepositEth1ChainID() == spec.DevnetEth1ChainID {
 		state := s.sb.StateFromContext(ctx)
 		lph, err := state.GetLatestExecutionPayloadHeader()
 		if err != nil {
