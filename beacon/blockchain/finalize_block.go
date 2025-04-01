@@ -110,14 +110,12 @@ func (s *Service) FinalizeBlock(
 		return nil, err
 	}
 
-	// STEP 4: Post Finalizations cleanups.
-
+	// STEP 4: Post Finalization cleanups.
 	// Fetch and store the deposit for the block.
 	blockNum := blk.GetBody().GetExecutionPayload().GetNumber()
 	s.depositFetcher(ctx, blockNum)
 
 	// Store the finalized block in the KVStore.
-	//
 	// TODO: Store full SignedBeaconBlock with all data in storage
 	slot := blk.GetSlot()
 	if err = s.storageBackend.BlockStore().Set(blk); err != nil {
@@ -136,7 +134,6 @@ func (s *Service) FinalizeBlock(
 	if err = s.sendPostBlockFCU(ctx, st); err != nil {
 		return nil, fmt.Errorf("sendPostBlockFCU failed: %w", err)
 	}
-
 	return valUpdates, nil
 }
 

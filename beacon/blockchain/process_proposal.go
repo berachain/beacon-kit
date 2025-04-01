@@ -24,10 +24,10 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/berachain/beacon-kit/config/spec"
 	"time"
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
+	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/consensus/types"
