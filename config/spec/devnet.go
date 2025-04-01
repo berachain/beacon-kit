@@ -51,7 +51,7 @@ const (
 	devnetDeneb1ForkTime = 1 * defaultSlotsPerEpoch * defaultTargetSecondsPerEth1Block
 
 	// devnetElectraForkTime is the timestamp at which the Electra fork occurs.
-	devnetElectraForkTime = 1743472967
+	devnetElectraForkTime = 1743520000
 
 	// devnetEVMInflationAddressDeneb1 is the address of the EVM inflation contract
 	// after the Deneb1 fork.
