@@ -25,6 +25,7 @@ package ethclient
 func BeaconKitSupportedCapabilities() []string {
 	return []string{
 		NewPayloadMethodV3,
+		NewPayloadMethodV4,
 		ForkchoiceUpdatedMethodV3,
 		GetPayloadMethodV3,
 		GetClientVersionV1,
