@@ -894,6 +894,7 @@ func (s *BeaconKitE2ESuite) TestGenesis() {
 		genesis.GenesisForkVersion[:],
 		"Genesis fork version does not match expected value",
 	)
+}
 
 // TestConfigSpec tests querying the config spec.
 func (s *BeaconKitE2ESuite) TestConfigSpec() {
