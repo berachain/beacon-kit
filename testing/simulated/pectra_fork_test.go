@@ -34,6 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
 	"github.com/cometbft/cometbft/abci/types"
 	"github.com/spf13/viper"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -160,14 +161,16 @@ func (s *PectraForkSuite) TearDownTest() {
 
 // TestTimestampFork_ELAndCLInSync_IsSuccessful tests that we can fork successfully if EL and CL have synced timestamps
 // The forks timestamp at Unix 0, as the genesis at Unix 0, Cancun is at 10 and Prague is at 20.
+// The Geth Node will be the block producer but the Reth node is treated as a full node, i.e. doesn't produce blocks.
 func (s *PectraForkSuite) TestTimestampFork_ELAndCLInSync_IsSuccessful() {
-	// Initialize the chain state.
+	// Initialize the geth chain state.
 	s.Geth.InitializeChain(s.T())
+	// Initialize the reth chain state.
+	s.Reth.InitializeChain(s.T())
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.Geth.HomeDir)
 
-	// Prepare a block proposal.
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
 
@@ -196,30 +199,46 @@ func (s *PectraForkSuite) TestTimestampFork_ELAndCLInSync_IsSuccessful() {
 		s.Require().NoError(err)
 		s.Require().Len(proposal.Txs, 2)
 
-		// Process the proposal.
-		processResp, err := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, &types.ProcessProposalRequest{
+		processRequest := &types.ProcessProposalRequest{
 			Txs:             proposal.Txs,
 			Height:          currentHeight,
 			ProposerAddress: pubkey.Address(),
 			Time:            consensusTime,
-		})
-		s.Require().NoError(err)
-		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
+		}
 
-		// Finalize the block.
-		s.Geth.LogBuffer.Reset()
-		finalizeResp, err := s.Geth.SimComet.Comet.FinalizeBlock(s.Geth.CtxComet, &types.FinalizeBlockRequest{
+		finalizeRequest := &types.FinalizeBlockRequest{
 			Txs:             proposal.Txs,
 			Height:          currentHeight,
 			ProposerAddress: pubkey.Address(),
 			Time:            consensusTime,
-		})
-		s.Require().Contains(s.Geth.LogBuffer.String(), expectedMessages[expectedMessagesIdx])
-		s.Require().NoError(err)
-		s.Require().NotEmpty(finalizeResp)
-		// Commit the block.
-		_, err = s.Geth.SimComet.Comet.Commit(s.Geth.CtxComet, &types.CommitRequest{})
-		s.Require().NoError(err)
+		}
+		expectedMessage := expectedMessages[expectedMessagesIdx]
+		processFinalizeCommit(s.T(), s.Geth, processRequest, finalizeRequest, expectedMessage)
+		processFinalizeCommit(s.T(), s.Reth, processRequest, finalizeRequest, expectedMessage)
 		expectedMessagesIdx++
 	}
+}
+
+func processFinalizeCommit(
+	t *testing.T,
+	node simulated.SharedAccessors,
+	processRequest *types.ProcessProposalRequest,
+	finalizeRequest *types.FinalizeBlockRequest,
+	expectedMessage string,
+) {
+	// Process the proposal
+	processResp, err := node.SimComet.Comet.ProcessProposal(node.CtxComet, processRequest)
+	require.NoError(t, err)
+	require.Equal(t, types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
+
+	// Finalize the block
+	node.LogBuffer.Reset()
+	finalizeResp, err := node.SimComet.Comet.FinalizeBlock(node.CtxComet, finalizeRequest)
+	require.NoError(t, err)
+	require.Contains(t, node.LogBuffer.String(), expectedMessage)
+	require.NotEmpty(t, finalizeResp)
+
+	// Commit the block.
+	_, err = node.SimComet.Comet.Commit(node.CtxComet, &types.CommitRequest{})
+	require.NoError(t, err)
 }
