@@ -69,7 +69,7 @@ func (s *PectraForkSuite) SetupTest() {
 	s.GenesisValidatorsRoot = genesisValidatorsRoot
 
 	// Start the EL (execution layer) Geth node.
-	elNode := execution.NewGethNode(s.HomeDir, execution.ValidGethImageWithSimulate())
+	elNode := execution.NewGethNode(s.HomeDir, execution.ValidGethImage())
 	elHandle, authRPC := elNode.Start(s.T(), path.Base(elGenesisPath))
 	s.ElHandle = elHandle
 
