@@ -66,7 +66,11 @@ func (s *PectraSuite) SetupTest() {
 
 	// Initialize the home directory, Comet configuration, and genesis info.
 	const elGenesisPath = "./pectra-eth-genesis.json"
-	cometConfig, genesisValidatorsRoot := simulated.InitializeHomeDir(s.T(), s.HomeDir, elGenesisPath)
+	chainSpecFunc := simulated.ProvideElectraGenesisChainSpec
+	// Create the chainSpec.
+	chainSpec, err := chainSpecFunc()
+	s.Require().NoError(err)
+	cometConfig, genesisValidatorsRoot := simulated.InitializeHomeDir(s.T(), chainSpec, s.HomeDir, elGenesisPath)
 	s.GenesisValidatorsRoot = genesisValidatorsRoot
 
 	// Start the EL (execution layer) Geth node.
@@ -78,9 +82,11 @@ func (s *PectraSuite) SetupTest() {
 	s.LogBuffer = new(bytes.Buffer)
 	logger := phuslu.NewLogger(s.LogBuffer, nil)
 
-	// Build the Beacon node with the simulated Comet component.
+	// Build the Beacon node with the simulated Comet component and electra genesis chain spec
 	components := simulated.FixedComponents(s.T())
 	components = append(components, simulated.ProvideSimComet)
+	components = append(components, chainSpecFunc)
+
 	s.TestNode = simulated.NewTestNode(s.T(), simulated.TestNodeInput{
 		TempHomeDir: s.HomeDir,
 		CometConfig: cometConfig,
@@ -100,7 +106,7 @@ func (s *PectraSuite) SetupTest() {
 	s.SimulationClient = execution.NewSimulationClient(s.TestNode.EngineClient)
 	timeOut := 10 * time.Second
 	interval := 50 * time.Millisecond
-	err := simulated.WaitTillServicesStarted(s.LogBuffer, timeOut, interval)
+	err = simulated.WaitTillServicesStarted(s.LogBuffer, timeOut, interval)
 	s.Require().NoError(err)
 }
 
@@ -118,10 +124,7 @@ func (s *PectraSuite) TearDownTest() {
 	s.TestNode.ServiceRegistry.StopAll()
 }
 
-// TODO(pectra): Get this test case passing. It currently fails in ProcessProposal with error:
-// `block hash in payload does not match assembled block`.
 func (s *PectraSuite) TestFullLifecycle_WithoutRequests_IsSuccessful() {
-	s.T().Skip("TODO(pectra): Get this test case passing. It currently fails in ProcessProposal with error")
 	const blockHeight = 1
 	const coreLoopIterations = 10
 
@@ -136,10 +139,7 @@ func (s *PectraSuite) TestFullLifecycle_WithoutRequests_IsSuccessful() {
 	s.Require().Len(proposals, coreLoopIterations)
 }
 
-// TODO(pectra): Get this test case passing. It currently fails in ProcessProposal with error:
-// `block hash in payload does not match assembled block`.
 func (s *PectraSuite) TestFullLifecycle_WithRequests_IsSuccessful() {
-	s.T().Skip("TODO(pectra): Get this test case passing. It currently fails in ProcessProposal with error")
 	const blockHeight = 1
 	const coreLoopIterations = 10
 
@@ -160,12 +160,12 @@ func (s *PectraSuite) TestFullLifecycle_WithRequests_IsSuccessful() {
 	// https://github.com/ethereum/go-ethereum/blob/39638c81c56db2b2dfe6f51999ffd3029ee212cb/core/blockchain_test.go#L4131-L4130
 	withdrawalTx := types.MustSignNewTx(senderKey, signer, &types.DynamicFeeTx{
 		ChainID:   elChainID,
-		Nonce:     1,
+		Nonce:     0,
 		To:        &params.WithdrawalQueueAddress,
 		Gas:       500_000,
 		GasFeeCap: big.NewInt(1000000000),
 		GasTipCap: big.NewInt(1000000000),
-		Value:     big.NewInt(1),
+		Value:     big.NewInt(100),
 		Data:      common.FromHex("b917cfdc0d25b72d55cf94db328e1629b7f4fde2c30cdacf873b664416f76a0c7f7cc50c9f72a3cb84be88144cde91250000000000000d80"),
 	})
 

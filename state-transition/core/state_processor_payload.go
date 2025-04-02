@@ -155,12 +155,10 @@ func (sp *StateProcessor) validateStatefulPayload(
 		return err
 	}
 
-	parentBeaconBlockRoot := blk.GetParentBlockRoot()
-	payloadReq := ctypes.BuildNewPayloadRequest(
-		payload,
-		body.GetBlobKzgCommitments().ToVersionedHashes(),
-		&parentBeaconBlockRoot,
-	)
+	payloadReq, err := ctypes.BuildNewPayloadRequestFromFork(blk)
+	if err != nil {
+		return err
+	}
 
 	// First we verify the block hash and versioned hashes are valid.
 	// TODO: is this required? Or will the EL handle this for us during

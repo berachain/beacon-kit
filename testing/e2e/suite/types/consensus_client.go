@@ -212,6 +212,16 @@ func (cc ConsensusClient) Genesis(
 		return nil, errors.New("beacon client is not initialized")
 	}
 	return cc.beaconClient.Genesis(ctx, opts)
+
+// Spec returns the spec of the beacon node.
+func (cc ConsensusClient) Spec(
+	ctx context.Context,
+	opts *beaconapi.SpecOpts,
+) (*beaconapi.Response[map[string]any], error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
+	return cc.beaconClient.Spec(ctx, opts)
 }
 
 // TODO: Add helpers for the beacon node-api client (converting from

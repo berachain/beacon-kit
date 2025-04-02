@@ -93,19 +93,18 @@ func (s *Service) forceSyncUponFinalize(
 ) error {
 	// NewPayload call first to load payload into EL client.
 	executionPayload := beaconBlock.GetBody().GetExecutionPayload()
-	parentBeaconBlockRoot := beaconBlock.GetParentBlockRoot()
-	payloadReq := ctypes.BuildNewPayloadRequest(
-		executionPayload,
-		beaconBlock.GetBody().GetBlobKzgCommitments().ToVersionedHashes(),
-		&parentBeaconBlockRoot,
-	)
-	if err := payloadReq.HasValidVersionedAndBlockHashes(); err != nil {
+	payloadReq, err := ctypes.BuildNewPayloadRequestFromFork(beaconBlock)
+	if err != nil {
+		return err
+	}
+
+	if err = payloadReq.HasValidVersionedAndBlockHashes(); err != nil {
 		return err
 	}
 
 	// We set retryOnSyncingStatus to false here. We can ignore SYNCING status and proceed
 	// to the FCU.
-	err := s.executionEngine.NotifyNewPayload(ctx, payloadReq, false)
+	err = s.executionEngine.NotifyNewPayload(ctx, payloadReq, false)
 	if err != nil {
 		return fmt.Errorf("startSyncUponFinalize NotifyNewPayload failed: %w", err)
 	}

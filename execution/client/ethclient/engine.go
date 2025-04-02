@@ -38,17 +38,30 @@ import (
 // NewPayload calls the appropriate version of the Engine API NewPayload method.
 func (s *Client) NewPayload(
 	ctx context.Context,
-	payload *ctypes.ExecutionPayload,
-	versionedHashes []common.ExecutionHash,
-	parentBlockRoot *common.Root,
+	req ctypes.NewPayloadRequest,
 ) (*engineprimitives.PayloadStatusV1, error) {
 	// Versions before Deneb are not supported for calling NewPayload.
-	if version.IsBefore(payload.GetForkVersion(), version.Deneb()) {
+	if version.IsBefore(req.GetForkVersion(), version.Deneb()) {
 		return nil, ErrInvalidVersion
 	}
-
-	// V3 is used for beacon versions Deneb and onwards.
-	return s.NewPayloadV3(ctx, payload, versionedHashes, parentBlockRoot)
+	forkVersion := req.GetForkVersion()
+	if version.Equals(forkVersion, version.Deneb()) || version.Equals(forkVersion, version.Deneb1()) {
+		return s.NewPayloadV3(ctx, req.GetExecutionPayload(), req.GetVersionedHashes(), req.GetParentBeaconBlockRoot())
+	}
+	if version.Equals(forkVersion, version.Electra()) {
+		executionRequests, err := req.GetEncodedExecutionRequests()
+		if err != nil {
+			return nil, err
+		}
+		return s.NewPayloadV4(
+			ctx,
+			req.GetExecutionPayload(),
+			req.GetVersionedHashes(),
+			req.GetParentBeaconBlockRoot(),
+			executionRequests,
+		)
+	}
+	return nil, ErrInvalidVersion
 }
 
 // NewPayloadV3 calls the engine_newPayloadV3 via JSON-RPC.
@@ -61,6 +74,23 @@ func (s *Client) NewPayloadV3(
 	result := &engineprimitives.PayloadStatusV1{}
 	if err := s.Call(
 		ctx, result, NewPayloadMethodV3, payload, versionedHashes, parentBlockRoot,
+	); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// NewPayloadV4 calls the engine_newPayloadV4 via JSON-RPC.
+func (s *Client) NewPayloadV4(
+	ctx context.Context,
+	payload *ctypes.ExecutionPayload,
+	versionedHashes []common.ExecutionHash,
+	parentBlockRoot *common.Root,
+	executionRequests []ctypes.EncodedExecutionRequest,
+) (*engineprimitives.PayloadStatusV1, error) {
+	result := &engineprimitives.PayloadStatusV1{}
+	if err := s.Call(
+		ctx, result, NewPayloadMethodV4, payload, versionedHashes, parentBlockRoot, executionRequests,
 	); err != nil {
 		return nil, err
 	}

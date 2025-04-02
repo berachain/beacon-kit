@@ -23,6 +23,8 @@ package backend
 import (
 	"fmt"
 
+	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/berachain/beacon-kit/node-core/types"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -35,7 +37,7 @@ import (
 // over building the query context for a given state.
 type Backend struct {
 	sb                    *storage.Backend
-	cs                    ChainSpec
+	cs                    chain.Spec
 	node                  types.ConsensusService
 	sp                    StateProcessor
 	genesisValidatorsRoot common.Root
@@ -44,7 +46,7 @@ type Backend struct {
 // New creates and returns a new Backend instance.
 func New(
 	storageBackend *storage.Backend,
-	cs ChainSpec,
+	cs chain.Spec,
 	sp StateProcessor,
 ) *Backend {
 	return &Backend{
@@ -74,6 +76,14 @@ func (b *Backend) GetSlotByStateRoot(root common.Root) (math.Slot, error) {
 // the block store.
 func (b *Backend) GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error) {
 	return b.sb.BlockStore().GetParentSlotByTimestamp(timestamp)
+}
+
+// Spec returns the chain spec used by the backend.
+func (b *Backend) Spec() (chain.Spec, error) {
+	if b.cs == nil {
+		return nil, errors.New("chain spec not found")
+	}
+	return b.cs, nil
 }
 
 // stateFromSlot returns the state at the given slot, after also processing the

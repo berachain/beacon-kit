@@ -99,6 +99,7 @@ func buildNextBlock(
 		parentBlkHeader.HashTreeRoot(),
 		fv,
 	)
+	require.NoError(t, err)
 
 	// build the payload
 	payload := &types.ExecutionPayload{

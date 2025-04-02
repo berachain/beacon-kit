@@ -29,12 +29,3 @@ import (
 type StateProcessor interface {
 	ProcessSlots(*statedb.StateDB, math.Slot) (transition.ValidatorUpdates, error)
 }
-
-type ChainSpec interface {
-	WithinDAPeriod(block, current math.Slot) bool
-	MinEpochsForBlobsSidecarsRequest() math.Epoch
-	MaxBlobsPerBlock() uint64
-	SlotsPerHistoricalRoot() uint64
-	EpochsPerHistoricalVector() uint64
-	SlotToEpoch(slot math.Slot) math.Epoch
-}

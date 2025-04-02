@@ -27,9 +27,10 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/decoder"
 	"github.com/berachain/beacon-kit/primitives/version"
+	"github.com/berachain/beacon-kit/testing/utils"
 	cmtcrypto "github.com/cometbft/cometbft/crypto"
 	"github.com/cometbft/cometbft/crypto/bls12381"
 	"github.com/cometbft/cometbft/privval"
@@ -55,7 +56,7 @@ func generateFakeSignedBeaconBlock(t *testing.T, version common.Version) *types.
 	t.Helper()
 
 	return &types.SignedBeaconBlock{
-		BeaconBlock: generateValidBeaconBlock(t, version),
+		BeaconBlock: utils.GenerateValidBeaconBlock(t, version),
 	}
 }
 
@@ -80,7 +81,7 @@ func generateSigningRoot(blk *types.BeaconBlock) (common.Root, error) {
 func generateRealSignedBeaconBlock(t *testing.T, blsSigner crypto.BLSSigner, version common.Version) (*types.SignedBeaconBlock, error) {
 	t.Helper()
 
-	blk := generateValidBeaconBlock(t, version)
+	blk := utils.GenerateValidBeaconBlock(t, version)
 
 	signingRoot, err := generateSigningRoot(blk)
 	if err != nil {
@@ -107,7 +108,7 @@ func TestNewSignedBeaconBlockFromSSZ(t *testing.T) {
 
 		newBlock, err := types.NewEmptySignedBeaconBlockWithVersion(originalBlock.GetForkVersion())
 		require.NoError(t, err)
-		err = decoder.SSZUnmarshal(blockBytes, newBlock)
+		err = constraints.SSZUnmarshal(blockBytes, newBlock)
 		require.NoError(t, err)
 		require.NotNil(t, newBlock)
 		require.Equal(t, originalBlock, newBlock)
@@ -185,9 +186,7 @@ func TestSignedBeaconBlock_EmptySerialization(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, fv common.Version) {
 		orig := &types.SignedBeaconBlock{
-			BeaconBlock: &types.BeaconBlock{
-				Versionable: types.NewVersionable(fv),
-			},
+			BeaconBlock: types.NewEmptyBeaconBlockWithVersion(fv),
 		}
 		data, err := orig.MarshalSSZ()
 		require.NoError(t, err)
@@ -195,7 +194,7 @@ func TestSignedBeaconBlock_EmptySerialization(t *testing.T) {
 
 		unmarshalled, err := types.NewEmptySignedBeaconBlockWithVersion(fv)
 		require.NoError(t, err)
-		err = decoder.SSZUnmarshal(data, unmarshalled)
+		err = constraints.SSZUnmarshal(data, unmarshalled)
 		require.NoError(t, err)
 		require.NotNil(t, unmarshalled.GetBeaconBlock())
 		require.NotNil(t, unmarshalled.GetSignature())

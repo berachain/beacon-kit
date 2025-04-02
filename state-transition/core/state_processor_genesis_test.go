@@ -36,8 +36,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+//nolint:paralleltest // uses envars
 func TestInitialize(t *testing.T) {
 	cs := setupChain(t)
+	//nolint:dogsled // used for testing
 	sp, st, _, _, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (

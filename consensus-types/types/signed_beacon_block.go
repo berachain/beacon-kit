@@ -70,7 +70,8 @@ func NewSignedBeaconBlock(
 
 func NewEmptySignedBeaconBlockWithVersion(forkVersion common.Version) (*SignedBeaconBlock, error) {
 	switch forkVersion {
-	case version.Deneb(), version.Deneb1():
+	// TODO(pectra): Evaluate if we need to change any of the Empty handling for electra.
+	case version.Deneb(), version.Deneb1(), version.Electra():
 		return &SignedBeaconBlock{
 			BeaconBlock: NewEmptyBeaconBlockWithVersion(forkVersion),
 		}, nil

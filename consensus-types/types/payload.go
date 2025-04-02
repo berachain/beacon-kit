@@ -94,8 +94,8 @@ func NewEmptyExecutionPayloadWithVersion(forkVersion common.Version) *ExecutionP
 		BaseFeePerGas: &math.U256{},
 	}
 
-	// For any fork version after Bellatrix (Capella onwards), non-nil withdrawals are required.
-	if version.IsAfter(forkVersion, version.Bellatrix()) {
+	// For any fork version Capella onwards, non-nil withdrawals are required.
+	if version.EqualsOrIsAfter(forkVersion, version.Capella()) {
 		ep.Withdrawals = make([]*engineprimitives.Withdrawal, 0)
 	}
 	return ep
@@ -159,8 +159,7 @@ func (p *ExecutionPayload) DefineSSZ(codec *ssz.Codec) {
 	// Note that at this state we don't have any guarantee that
 	// p.Withdrawal is not nil, which we require Capella onwards
 	// (empty list of withdrawals are fine). We ensure non-nillness
-	// in EnsureNotNilWithdrawals which must be called wherever
-	// we deserialize an execution payload (or anything containing one).
+	// in ValidateAfterDecodingSSZ.
 }
 
 // MarshalSSZ serializes the ExecutionPayload object into a slice of bytes.
@@ -170,8 +169,8 @@ func (p *ExecutionPayload) MarshalSSZ() ([]byte, error) {
 }
 
 func (p *ExecutionPayload) ValidateAfterDecodingSSZ() error {
-	// For any fork version after Bellatrix (Capella onwards), non-nil withdrawals are required.
-	if p.Withdrawals == nil && version.IsAfter(p.GetForkVersion(), version.Bellatrix()) {
+	// For any fork version Capella onwards, non-nil withdrawals are required.
+	if p.Withdrawals == nil && version.EqualsOrIsAfter(p.GetForkVersion(), version.Capella()) {
 		p.Withdrawals = make([]*engineprimitives.Withdrawal, 0)
 	}
 	return nil
@@ -576,7 +575,7 @@ func (p *ExecutionPayload) GetExcessBlobGas() math.U64 {
 // ToHeader converts the ExecutionPayload to an ExecutionPayloadHeader.
 func (p *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 	switch p.GetForkVersion() {
-	case version.Deneb(), version.Deneb1():
+	case version.Deneb(), version.Deneb1(), version.Electra():
 		return &ExecutionPayloadHeader{
 			Versionable:      p.Versionable,
 			ParentHash:       p.GetParentHash(),

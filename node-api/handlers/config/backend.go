@@ -18,32 +18,14 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package decoder
+package config
 
-import (
-	"fmt"
+import "github.com/berachain/beacon-kit/chain"
 
-	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/karalabe/ssz"
-)
+type Backend interface {
+	SpecBackend
+}
 
-// SSZUnmarshal is the way we build objects from byte formatted as ssz
-// While logically related to constraints package, SSZUnmarshal has its own
-// small package to avoid import cycle related to Unused Type
-// Also SSZUnmarshal highlight the common template for SSZ decoding different
-// objects
-func SSZUnmarshal[T SSZUnmarshaler](buf []byte, v T) error {
-	switch dest := any(v).(type) {
-	case *common.UnusedType:
-		// unused types have special formatting for efficiency
-		return common.DecodeUnusedType(buf, dest)
-	default:
-		if err := ssz.DecodeFromBytes(buf, v); err != nil {
-			return fmt.Errorf("failed decoding %T: %w", dest, err)
-		}
-
-		// Note: ValidateAfterDecodingSSZ may change v even if it returns error
-		// (depending on the specific implementations)
-		return v.ValidateAfterDecodingSSZ()
-	}
+type SpecBackend interface {
+	Spec() (chain.Spec, error)
 }

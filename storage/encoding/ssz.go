@@ -23,7 +23,6 @@ package encoding
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
-	"github.com/berachain/beacon-kit/primitives/decoder"
 	"github.com/davecgh/go-spew/spew"
 )
 
@@ -40,7 +39,7 @@ func (SSZValueCodec[T]) Encode(value T) ([]byte, error) {
 // Decode unmarshals the provided bytes into a value of type T.
 func (sc SSZValueCodec[T]) Decode(bz []byte) (T, error) {
 	dest := sc.NewEmptyF()
-	return dest, decoder.SSZUnmarshal(bz, dest)
+	return dest, constraints.SSZUnmarshal(bz, dest)
 }
 
 // EncodeJSON is not implemented and will panic if called.
@@ -82,7 +81,7 @@ func (cdc *SSZVersionedValueCodec[T]) Encode(value T) ([]byte, error) {
 // Decode unmarshals the provided bytes into a value of type T.
 func (cdc *SSZVersionedValueCodec[T]) Decode(b []byte) (T, error) {
 	dest := cdc.NewEmptyF(cdc.latestVersion)
-	return dest, decoder.SSZUnmarshal(b, dest)
+	return dest, constraints.SSZUnmarshal(b, dest)
 }
 
 // EncodeJSON is not implemented and will panic if called.

@@ -18,12 +18,25 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package decoder
+package constraints
 
-import "github.com/karalabe/ssz"
+import (
+	"fmt"
 
-// SSZUnmarshaler is an interface for objects that can be unmarshaled from SSZ format.
-type SSZUnmarshaler interface {
-	ssz.Object
-	ValidateAfterDecodingSSZ() error // once unmarshalled we will check whether type syntax is correct
+	"github.com/karalabe/ssz"
+)
+
+// SSZUnmarshal is the way we build objects from byte formatted as ssz
+// While logically related to constraints package, SSZUnmarshal has its own
+// small package to avoid import cycle related to Unused Type
+// Also SSZUnmarshal highlight the common template for SSZ decoding different
+// objects
+func SSZUnmarshal[T SSZUnmarshaler](buf []byte, v T) error {
+	if err := ssz.DecodeFromBytes(buf, v); err != nil {
+		return fmt.Errorf("failed decoding %T: %w", v, err)
+	}
+
+	// Note: ValidateAfterDecodingSSZ may change v even if it returns error
+	// (depending on the specific implementations)
+	return v.ValidateAfterDecodingSSZ()
 }
