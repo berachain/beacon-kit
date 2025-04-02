@@ -25,6 +25,7 @@ package simulated_test
 import (
 	"bytes"
 	"context"
+	"math/big"
 	"path"
 	"testing"
 	"time"
@@ -33,6 +34,10 @@ import (
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
 	"github.com/cometbft/cometbft/abci/types"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	gethtypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/params"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -187,7 +192,9 @@ func (s *PectraForkSuite) TestTimestampFork_ELAndCLInSync_IsSuccessful() {
 	startHeight := int64(1)
 	iterations := int64(len(expectedMessages))
 	expectedMessagesIdx := 0
+	submitTxNonce := uint64(0)
 	for currentHeight := startHeight; currentHeight < startHeight+iterations; currentHeight++ {
+		submitTxNonce = s.submitTransactions(submitTxNonce, 100)
 		// We set the consensus time to currentHeight * 2 to mimick a functional 2s block time.
 		// This assumption is not always true but used in a valid test.
 		consensusTime := time.Unix(currentHeight*2, 0)
@@ -217,6 +224,35 @@ func (s *PectraForkSuite) TestTimestampFork_ELAndCLInSync_IsSuccessful() {
 		processFinalizeCommit(s.T(), s.Reth, processRequest, finalizeRequest, expectedMessage)
 		expectedMessagesIdx++
 	}
+}
+
+func (s *PectraForkSuite) submitTransactions(startNonce uint64, numTransactions uint64) uint64 {
+	// corresponds with funded address in genesis 0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4
+	senderKey, err := crypto.HexToECDSA("fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306")
+	s.Require().NoError(err)
+	elChainID := big.NewInt(int64(s.Geth.TestNode.ChainSpec.DepositEth1ChainID()))
+	signer := gethtypes.NewPragueSigner(elChainID)
+
+	for i := startNonce; i < startNonce+numTransactions; i++ {
+		transaction := gethtypes.MustSignNewTx(senderKey, signer, &gethtypes.DynamicFeeTx{
+			ChainID:   elChainID,
+			Nonce:     i,
+			To:        &params.BeaconRootsAddress, // any address
+			Gas:       500_000,
+			GasFeeCap: big.NewInt(1000000000),
+			GasTipCap: big.NewInt(1000000000),
+			Value:     big.NewInt(0),
+			Data:      nil,
+		})
+
+		txBytes, err := transaction.MarshalBinary()
+		s.Require().NoError(err)
+
+		var result interface{}
+		err = s.Geth.TestNode.EngineClient.Call(s.Geth.CtxApp, &result, "eth_sendRawTransaction", hexutil.Encode(txBytes))
+		s.Require().NoError(err)
+	}
+	return startNonce + numTransactions
 }
 
 func processFinalizeCommit(
