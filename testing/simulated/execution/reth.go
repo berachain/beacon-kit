@@ -44,14 +44,14 @@ func ValidRethImage() docker.PullImageOptions {
 // defaultRethCmdStrBuilder returns a command string tailored for running a Geth node.
 func defaultRethCmdStrBuilder(genesisFile string) string {
 	return fmt.Sprintf(`
-		reth init --datadir /tmp/rethdata --chain /testdata/%s && 
-		reth --http --http.addr 0.0.0.0 --http.api eth,net,web3,debug \
+		reth node --http --http.addr 0.0.0.0 --http.api eth,net,web3,debug \
+			 --chain=/testdata/%s \
 			 --authrpc.addr 0.0.0.0 \
 			 --authrpc.jwtsecret /testing/files/jwt.hex \
-			 --authrpc.vhosts '*' \
 			 --datadir /tmp/rethdata \
-			 --syncmode full \
-			 --verbosity 4 \
-			 --nodiscover
+			 --full \
+			 --engine.persistence-threshold=0 \
+			 --engine.memory-block-buffer-target=0 \
+			 -vvvv \
 	`, genesisFile)
 }
