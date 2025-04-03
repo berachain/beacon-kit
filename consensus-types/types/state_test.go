@@ -56,7 +56,7 @@ func generateValidBeaconState(forkVersion common.Version) *types.BeaconState {
 			{
 				Pubkey:                     [48]byte{0x01},
 				WithdrawalCredentials:      [32]byte{0x02},
-				EffectiveBalance:           32000000000,
+				EffectiveBalance:           250000000000000,
 				Slashed:                    false,
 				ActivationEligibilityEpoch: 1,
 				ActivationEpoch:            2,
@@ -66,7 +66,7 @@ func generateValidBeaconState(forkVersion common.Version) *types.BeaconState {
 			{
 				Pubkey:                     [48]byte{0x03},
 				WithdrawalCredentials:      [32]byte{0x04},
-				EffectiveBalance:           31000000000,
+				EffectiveBalance:           240000000000000,
 				Slashed:                    true,
 				ActivationEligibilityEpoch: 3,
 				ActivationEpoch:            4,
@@ -74,7 +74,7 @@ func generateValidBeaconState(forkVersion common.Version) *types.BeaconState {
 				WithdrawableEpoch:          6,
 			},
 		},
-		Balances:                     []uint64{32000000000, 31000000000},
+		Balances:                     []uint64{250000000000000, 240000000000000},
 		RandaoMixes:                  generateRandomBytes32(65536),
 		Slashings:                    []math.Gwei{1000000000, 2000000000},
 		NextWithdrawalIndex:          7,
