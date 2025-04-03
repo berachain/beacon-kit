@@ -23,6 +23,7 @@ package backend
 import (
 	"fmt"
 	"sync"
+	"sync/atomic"
 
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/errors"
@@ -31,18 +32,28 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
+	cmtcfg "github.com/cometbft/cometbft/config"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 )
 
 // Backend is the db access layer for the beacon node-api.
 // It serves as a wrapper around the storage backend and provides an abstraction
 // over building the query context for a given state.
 type Backend struct {
-	sb                      *storage.Backend
-	cs                      chain.Spec
-	node                    types.ConsensusService
-	sp                      StateProcessor
+	sb   *storage.Backend
+	cs   chain.Spec
+	node types.ConsensusService
+	sp   StateProcessor
+
+	// TODO: store as an atomic.Pointer
 	genesisValidatorsRoot   common.Root
 	genesisValidatorsRootMu sync.RWMutex
+
+	// genesisTime is cached here, written to once during initialization!
+	genesisTime atomic.Pointer[math.U64]
+
+	// genesisForkVersion is cached here, written to once during initialization!
+	genesisForkVersion atomic.Pointer[common.Version]
 }
 
 // New creates and returns a new Backend instance.
@@ -50,12 +61,33 @@ func New(
 	storageBackend *storage.Backend,
 	cs chain.Spec,
 	sp StateProcessor,
-) *Backend {
-	return &Backend{
+	cmtCfg *cmtcfg.Config,
+) (*Backend, error) {
+	b := &Backend{
 		sb: storageBackend,
 		cs: cs,
 		sp: sp,
 	}
+
+	// Load the genesis file from cometbft config.
+	appGenesis, err := genutiltypes.AppGenesisFromFile(cmtCfg.GenesisFile())
+	if err != nil {
+		return nil, err
+	}
+	gen, err := appGenesis.ToGenesisDoc()
+	if err != nil {
+		return nil, err
+	}
+
+	// Store the genesis time in the backend.
+	genesisTime := math.U64(gen.GenesisTime.Unix())
+	b.genesisTime.Store(&genesisTime)
+
+	// Derive the genesis fork version from the genesis time.
+	genesisForkVersion := cs.ActiveForkVersionForTimestamp(genesisTime)
+	b.genesisForkVersion.Store(&genesisForkVersion)
+
+	return b, nil
 }
 
 // AttachQueryBackend sets the node on the backend for

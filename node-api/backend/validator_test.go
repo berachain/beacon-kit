@@ -74,7 +74,7 @@ func TestFilteredValidators(t *testing.T) {
 		nodemetrics.NewNoOpTelemetrySink(),
 	)
 
-	b := backend.New(sb, cs, sp)
+	b := backend.New(sb, cs, sp, nil) // TODO: add comet config
 	tcs := &testConsensusService{
 		cms:     cms,
 		kvStore: kvStore,

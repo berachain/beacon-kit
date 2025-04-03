@@ -64,29 +64,11 @@ func (b *Backend) GenesisValidatorsRoot() (common.Root, error) {
 }
 
 // GenesisForkVersion returns the genesis fork version of the beacon chain.
-func (b *Backend) GenesisForkVersion(genesisSlot math.Slot) (common.Version, error) {
-	st, _, err := b.stateFromSlot(genesisSlot)
-	if err != nil {
-		return common.Version{}, errors.Wrapf(err, "failed to get state from slot %d", genesisSlot)
-	}
-	fork, err := st.GetFork()
-	if err != nil {
-		return common.Version{}, errors.Wrapf(err, "failed to get fork from state")
-	}
-	return fork.CurrentVersion, nil
+func (b *Backend) GenesisForkVersion() (common.Version, error) {
+	return *b.genesisForkVersion.Load(), nil
 }
 
 // GenesisTime returns the genesis time of the beacon chain.
-func (b *Backend) GenesisTime(genesisSlot math.Slot) (math.U64, error) {
-	st, _, err := b.stateFromSlot(genesisSlot)
-	if err != nil {
-		return 0, errors.Wrapf(err, "failed to get state from slot %d", genesisSlot)
-	}
-	// Get the execution payload header from the beacon state,
-	// and return the timestamp as the genesis time.
-	execPayloadHeader, err := st.GetLatestExecutionPayloadHeader()
-	if err != nil {
-		return 0, errors.Wrapf(err, "failed to get execution payload header from state")
-	}
-	return execPayloadHeader.Timestamp, nil
+func (b *Backend) GenesisTime() (math.U64, error) {
+	return *b.genesisTime.Load(), nil
 }
