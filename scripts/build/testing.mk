@@ -57,6 +57,11 @@ start-ipc: ## start a local ephemeral `beacond` node with IPC
 	RPC_PREFIX=${IPC_PREFIX} \
 	${TESTAPP_FILES_DIR}/entrypoint.sh
 
+start-configurable:
+	@JWT_SECRET_PATH=$(JWT_PATH) \
+	CHAIN_SPEC=configurable \
+	${TESTAPP_FILES_DIR}/entrypoint.sh
+
 ## Start an ephemeral `reth` node
 start-reth: 
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
