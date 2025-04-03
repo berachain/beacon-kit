@@ -25,9 +25,9 @@ import (
 	"github.com/karalabe/ssz"
 )
 
-// sszMarshaler is an interface for objects that can be
+// SSZMarshaler is an interface for objects that can be
 // marshaled to SSZ format.
-type sszMarshaler interface {
+type SSZMarshaler interface {
 	// MarshalSSZ marshals the object into SSZ format.
 	MarshalSSZ() ([]byte, error)
 }
@@ -40,7 +40,7 @@ type SSZUnmarshaler interface {
 
 // SSZMarshallable is an interface that combines SSZMarshaler and SSZUnmarshaler.
 type SSZMarshallable interface {
-	sszMarshaler
+	SSZMarshaler
 	SSZUnmarshaler
 }
 
