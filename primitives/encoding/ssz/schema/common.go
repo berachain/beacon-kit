@@ -20,9 +20,28 @@
 
 package schema
 
-import "github.com/berachain/beacon-kit/primitives/encoding/ssz/constants"
-
 const (
+	// BoolSize is the size of a boolean in bytes.
+	BoolSize uint32 = 1
+
+	// U8Size is the size of an 8-bit unsigned integer in bytes.
+	U8Size uint32 = 1
+
+	// U16Size is the size of a 16-bit unsigned integer in bytes.
+	U16Size uint32 = 2
+
+	// U32Size is the size of a 32-bit unsigned integer in bytes.
+	U32Size uint32 = 4
+
+	// U64Size is the size of a 64-bit unsigned integer in bytes.
+	U64Size uint32 = 8
+
+	// U128Size is the size of a 128-bit unsigned integer in bytes.
+	U128Size uint32 = 16
+
+	// U256Size is the size of a 256-bit unsigned integer in bytes.
+	U256Size uint32 = 32
+
 	B4Size   = 4
 	B8Size   = 8
 	B16Size  = 16
@@ -36,25 +55,25 @@ const (
 
 // Basic SSZ types.
 // Bool returns an SSZType representing a boolean.
-func Bool() SSZType { return basic(constants.BoolSize) }
+func Bool() SSZType { return basic(BoolSize) }
 
 // U8 returns an SSZType representing an 8-bit unsigned integer.
-func U8() SSZType { return basic(constants.U8Size) }
+func U8() SSZType { return basic(U8Size) }
 
 // U16 returns an SSZType representing a 16-bit unsigned integer.
-func U16() SSZType { return basic(constants.U16Size) }
+func U16() SSZType { return basic(U16Size) }
 
 // U32 returns an SSZType representing a 32-bit unsigned integer.
-func U32() SSZType { return basic(constants.U32Size) }
+func U32() SSZType { return basic(U32Size) }
 
 // U64 returns an SSZType representing a 64-bit unsigned integer.
-func U64() SSZType { return basic(constants.U64Size) }
+func U64() SSZType { return basic(U64Size) }
 
 // U128 returns an SSZType representing a 128-bit unsigned integer.
-func U128() SSZType { return basic(constants.U128Size) }
+func U128() SSZType { return basic(U128Size) }
 
 // U256 returns an SSZType representing a 256-bit unsigned integer.
-func U256() SSZType { return basic(constants.U256Size) }
+func U256() SSZType { return basic(U256Size) }
 
 // B4 creates a DefineByteVector of 4 bytes (32 bits).
 func B4() SSZType { return DefineByteVector(B4Size) }

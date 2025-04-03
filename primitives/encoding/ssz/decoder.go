@@ -18,39 +18,24 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package constants
+package ssz
 
-const (
-	// BytesPerChunk is the number of bytes per chunk.
-	BytesPerChunk = 32
+import (
+	"fmt"
 
-	// BytesPerLengthOffset is the number of bytes per serialized length offset.
-	BytesPerLengthOffset = 4
-
-	// BitsPerByte is the number of bits per byte.
-	BitsPerByte = 8
-
-	// ByteSize is the size of a single byte.
-	ByteSize uint32 = 1
-
-	// BoolSize is the size of a boolean in bytes.
-	BoolSize uint32 = 1
-
-	// U8Size is the size of an 8-bit unsigned integer in bytes.
-	U8Size uint32 = 1
-
-	// U16Size is the size of a 16-bit unsigned integer in bytes.
-	U16Size uint32 = 2
-
-	// U32Size is the size of a 32-bit unsigned integer in bytes.
-	U32Size uint32 = 4
-
-	// U64Size is the size of a 64-bit unsigned integer in bytes.
-	U64Size uint32 = 8
-
-	// U128Size is the size of a 128-bit unsigned integer in bytes.
-	U128Size uint32 = 16
-
-	// U256Size is the size of a 256-bit unsigned integer in bytes.
-	U256Size uint32 = 32
+	"github.com/berachain/beacon-kit/primitives/constraints"
+	"github.com/karalabe/ssz"
 )
+
+// Unmarshal is the way we build objects from byte formatted in SSZ encoding.
+// This function highlights the common template for SSZ decoding different
+// objects.
+func Unmarshal[T constraints.SSZUnmarshaler](buf []byte, v T) error {
+	if err := ssz.DecodeFromBytes(buf, v); err != nil {
+		return fmt.Errorf("failed decoding %T: %w", v, err)
+	}
+
+	// Note: ValidateAfterDecodingSSZ may change v even if it returns error
+	// (depending on the specific implementations)
+	return v.ValidateAfterDecodingSSZ()
+}
