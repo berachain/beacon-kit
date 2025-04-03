@@ -25,6 +25,7 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
@@ -78,7 +79,7 @@ func (h *Handler) GetBlockHeaderByID(c handlers.Context) (any, error) {
 		Canonical: true,
 		Header: &beacontypes.SignedBeaconBlockHeader{
 			Message:   beacontypes.BeaconBlockHeaderFromConsensus(header),
-			Signature: "", // TODO: implement
+			Signature: (&crypto.BLSSignature{}).String(), // TODO: implement
 		},
 	}), nil
 }
