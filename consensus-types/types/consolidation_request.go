@@ -26,7 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/eip7685"
+	sszutil "github.com/berachain/beacon-kit/primitives/encoding/ssz"
 	"github.com/karalabe/ssz"
 )
 
@@ -73,7 +73,7 @@ type ConsolidationRequests []*ConsolidationRequest
 
 // MarshalSSZ marshals the ConsolidationRequests object to SSZ format by encoding each consolidation request individually.
 func (cr ConsolidationRequests) MarshalSSZ() ([]byte, error) {
-	return eip7685.MarshalItems(cr)
+	return sszutil.MarshalItemsEIP7685(cr)
 }
 
 // DecodeConsolidationRequests decodes SSZ data by decoding each request individually.
@@ -95,7 +95,7 @@ func DecodeConsolidationRequests(data []byte) (ConsolidationRequests, error) {
 			"invalid data length: %d is not a multiple of consolidation request size %d", len(data), sszConsolidationRequestSize,
 		)
 	}
-	items, err := eip7685.UnmarshalItems(
+	items, err := sszutil.UnmarshalItemsEIP7685(
 		data,
 		sszConsolidationRequestSize,
 		func() *ConsolidationRequest { return new(ConsolidationRequest) },

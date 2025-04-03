@@ -26,7 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/eip7685"
+	sszutil "github.com/berachain/beacon-kit/primitives/encoding/ssz"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/karalabe/ssz"
 )
@@ -69,7 +69,7 @@ type WithdrawalRequests []*WithdrawalRequest
 
 // MarshalSSZ marshals the WithdrawalRequests object to SSZ format by encoding each deposit individually.
 func (wr WithdrawalRequests) MarshalSSZ() ([]byte, error) {
-	return eip7685.MarshalItems(wr)
+	return sszutil.MarshalItemsEIP7685(wr)
 }
 
 // DecodeWithdrawalRequests decodes SSZ data by decoding each withdrawal individually.
@@ -85,7 +85,7 @@ func DecodeWithdrawalRequests(data []byte) (WithdrawalRequests, error) {
 		return nil, fmt.Errorf("invalid withdrawal requests SSZ size, got %d expected at least %d", len(data), sszWithdrawRequestSize)
 	}
 	// Use the generic unmarshalItems helper.
-	items, err := eip7685.UnmarshalItems(
+	items, err := sszutil.UnmarshalItemsEIP7685(
 		data,
 		sszWithdrawRequestSize,
 		func() *WithdrawalRequest { return new(WithdrawalRequest) },

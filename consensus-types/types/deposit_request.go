@@ -24,7 +24,7 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/primitives/constants"
-	"github.com/berachain/beacon-kit/primitives/eip7685"
+	sszutil "github.com/berachain/beacon-kit/primitives/encoding/ssz"
 	"github.com/karalabe/ssz"
 )
 
@@ -47,7 +47,7 @@ func (dr DepositRequests) DefineSSZ(codec *ssz.Codec) {
 
 // MarshalSSZ marshals the Deposits object to SSZ format by encoding each deposit individually.
 func (dr DepositRequests) MarshalSSZ() ([]byte, error) {
-	return eip7685.MarshalItems(dr)
+	return sszutil.MarshalItemsEIP7685(dr)
 }
 
 // ValidateAfterDecodingSSZ validates the DepositRequests object after decoding.
@@ -68,7 +68,11 @@ func DecodeDepositRequests(data []byte) (DepositRequests, error) {
 		return nil, fmt.Errorf("invalid deposit requests SSZ size, got %d expected at least %d", len(data), depositSize)
 	}
 	// Use the generic unmarshalItems helper.
-	items, err := eip7685.UnmarshalItems(data, depositSize, func() *DepositRequest { return new(DepositRequest) })
+	items, err := sszutil.UnmarshalItemsEIP7685(
+		data,
+		depositSize,
+		func() *DepositRequest { return new(DepositRequest) },
+	)
 	if err != nil {
 		return nil, err
 	}

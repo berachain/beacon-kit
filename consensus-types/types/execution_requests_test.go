@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
-	"github.com/berachain/beacon-kit/primitives/eip7685"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/prysmaticlabs/prysm/v5/config/params"
 	"github.com/prysmaticlabs/prysm/v5/encoding/bytesutil"
@@ -472,7 +471,7 @@ func TestDecodeExecutionRequests(t *testing.T) {
 				Index:                 456,
 			}
 		}
-		by, err := eip7685.MarshalItems(requests)
+		by, err := ssz.MarshalItemsEIP7685(requests)
 		require.NoError(t, err)
 		ebe := &enginev1.ExecutionBundleElectra{
 			ExecutionRequests: [][]byte{
@@ -491,7 +490,7 @@ func TestDecodeExecutionRequests(t *testing.T) {
 				Amount:          55555,
 			}
 		}
-		by, err := eip7685.MarshalItems(requests)
+		by, err := ssz.MarshalItemsEIP7685(requests)
 		require.NoError(t, err)
 		ebe := &enginev1.ExecutionBundleElectra{
 			ExecutionRequests: [][]byte{
@@ -510,7 +509,7 @@ func TestDecodeExecutionRequests(t *testing.T) {
 				TargetPubkey:  bytesutil.PadTo([]byte("pk"), 48),
 			}
 		}
-		by, err := eip7685.MarshalItems(requests)
+		by, err := ssz.MarshalItemsEIP7685(requests)
 		require.NoError(t, err)
 		ebe := &enginev1.ExecutionBundleElectra{
 			ExecutionRequests: [][]byte{
@@ -538,7 +537,7 @@ func TestUnmarshalItems_OK(t *testing.T) {
 	drb, err := hexutil.Decode(depositRequestsSSZHex)
 	require.NoError(t, err)
 	exampleRequest := &types.DepositRequest{}
-	depositRequests, err := eip7685.UnmarshalItems(
+	depositRequests, err := ssz.UnmarshalItemsEIP7685(
 		drb,
 		int(exampleRequest.SizeSSZ(nil)),
 		func() *types.DepositRequest { return &types.DepositRequest{} })
@@ -577,7 +576,7 @@ func TestMarshalItems_OK(t *testing.T) {
 		Signature:   crypto.BLSSignature(bytesutil.PadTo([]byte("sig"), 96)),
 		Index:       32,
 	}
-	drbs, err := eip7685.MarshalItems([]*types.DepositRequest{exampleRequest1, exampleRequest2})
+	drbs, err := ssz.MarshalItemsEIP7685([]*types.DepositRequest{exampleRequest1, exampleRequest2})
 	require.NoError(t, err)
 	require.Equal(t, depositRequestsSSZHex, hexutil.Encode(drbs))
 }

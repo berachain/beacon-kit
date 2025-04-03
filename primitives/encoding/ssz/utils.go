@@ -38,3 +38,43 @@ func Unmarshal[T constraints.SSZUnmarshaler](buf []byte, v T) error {
 	// (depending on the specific implementations)
 	return v.ValidateAfterDecodingSSZ()
 }
+
+// MarshalItemsEIP7685 marshals a slice of items that satisfy SSZMarshaler according
+// to the EIP-7685 standard. It encodes each item individually and appends its bytes
+// to the output buffer.
+func MarshalItemsEIP7685[T constraints.SSZMarshaler](items []T) ([]byte, error) {
+	var buf []byte
+	for i, item := range items {
+		itemBytes, err := item.MarshalSSZ()
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal item at index %d: %w", i, err)
+		}
+		buf = append(buf, itemBytes...)
+	}
+	return buf, nil
+}
+
+// UnmarshalItemsEIP7685 decodes a slice of items from the provided data according
+// to the EIP-7685 standard. It assumes that each item is encoded into a fixed number
+// of bytes (itemSize) and that newItem returns a new instance of the item.
+func UnmarshalItemsEIP7685[T constraints.SSZUnmarshaler](
+	data []byte,
+	itemSize int,
+	newItem func() T,
+) ([]T, error) {
+	if len(data)%itemSize != 0 {
+		return nil, fmt.Errorf("invalid data length: %d is not a multiple of item size %d", len(data), itemSize)
+	}
+	numItems := len(data) / itemSize
+	items := make([]T, 0, numItems)
+	for i := 0; i < len(data); i += itemSize {
+		chunk := data[i : i+itemSize]
+		item := newItem()
+		err := ssz.DecodeFromBytes(chunk, item)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal item at index %d: %w", i/itemSize, err)
+		}
+		items = append(items, item)
+	}
+	return items, nil
+}
