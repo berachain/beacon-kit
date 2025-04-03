@@ -89,7 +89,7 @@ func NewEmptySignedBeaconBlockWithVersion(forkVersion common.Version) (*SignedBe
 // in SSZ encoding.
 // Total size: MessageOffset (4) + Signature (96) + MessageContentDynamic.
 func (b *SignedBeaconBlock) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
-	var size = uint32(constants.SSZOffsetSize + bytes.B96Size)
+	size := constants.SSZOffsetSize + bytes.B96Size
 	if fixed {
 		return size
 	}

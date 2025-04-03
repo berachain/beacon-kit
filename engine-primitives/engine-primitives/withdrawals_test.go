@@ -41,10 +41,7 @@ func TestWithdrawals(t *testing.T) {
 			{Index: 1, Validator: 2, Address: [20]byte{1, 2, 3}, Amount: 100},
 			{Index: 3, Validator: 4, Address: [20]byte{4, 5, 6}, Amount: 200},
 		}
-		expectedSize := uint32(
-			len(withdrawals),
-		) * engineprimitives.WithdrawalSize
-		require.Equal(t, expectedSize, karalabessz.Size(withdrawals))
+		require.Equal(t, uint32(len(withdrawals))*44, karalabessz.Size(withdrawals))
 	})
 
 	t.Run("HashTreeRoot", func(t *testing.T) {
