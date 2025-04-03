@@ -27,6 +27,8 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/prysmaticlabs/prysm/v5/encoding/bytesutil"
 	enginev1 "github.com/prysmaticlabs/prysm/v5/proto/engine/v1"
 	"github.com/stretchr/testify/require"
 )
@@ -337,4 +339,66 @@ func TestDepositRequests_ValidValuesSSZ(t *testing.T) {
 			require.Equal(t, tc.depositRequest, recomputedDepositRequest)
 		})
 	}
+}
+
+// Tests below are adapted from Prysm
+// https://github.com/prysmaticlabs/prysm/blob/develop/proto/engine/v1/electra_test.go#L198-L240
+
+// Modified from Prysm to include "04000000" at the beginning of payload.
+const depositRequestsSSZHex = "0x04000000706b000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+	"0000000000077630000000000000000000000000000000000000000000000000000000000007b00000000000000736967000000000000000" +
+	"0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+	"00000000000000000000000000000000000000000000000000000000000c801000000000000706b000000000000000000000000000000000" +
+	"0000000000000000000000000000000000000000000000000000000000077630000000000000000000000000000000000000000000000000" +
+	"000000000009001000000000000736967000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+	"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020" +
+	"00000000000000"
+
+func TestUnmarshalItems_OK(t *testing.T) {
+	t.Parallel()
+	drb, err := hexutil.Decode(depositRequestsSSZHex)
+	require.NoError(t, err)
+	var exampleRequest types.DepositRequests
+	err = ssz.Unmarshal(drb, &exampleRequest)
+	require.NoError(t, err)
+
+	exampleRequest1 := &types.DepositRequest{
+		Pubkey:      crypto.BLSPubkey(bytesutil.PadTo([]byte("pk"), 48)),
+		Credentials: types.WithdrawalCredentials(bytesutil.PadTo([]byte("wc"), 32)),
+		Amount:      123,
+		Signature:   crypto.BLSSignature(bytesutil.PadTo([]byte("sig"), 96)),
+		Index:       456,
+	}
+	exampleRequest2 := &types.DepositRequest{
+		Pubkey:      crypto.BLSPubkey(bytesutil.PadTo([]byte("pk"), 48)),
+		Credentials: types.WithdrawalCredentials(bytesutil.PadTo([]byte("wc"), 32)),
+		Amount:      400,
+		Signature:   crypto.BLSSignature(bytesutil.PadTo([]byte("sig"), 96)),
+		Index:       32,
+	}
+	require.Equal(t, types.DepositRequests{exampleRequest1, exampleRequest2}, exampleRequest)
+}
+
+func TestMarshalItems_OK(t *testing.T) {
+	t.Parallel()
+	exampleRequest1 := types.DepositRequest{
+		Pubkey:      crypto.BLSPubkey(bytesutil.PadTo([]byte("pk"), 48)),
+		Credentials: types.WithdrawalCredentials(bytesutil.PadTo([]byte("wc"), 32)),
+		Amount:      123,
+		Signature:   crypto.BLSSignature(bytesutil.PadTo([]byte("sig"), 96)),
+		Index:       456,
+	}
+	exampleRequest2 := types.DepositRequest{
+		Pubkey:      crypto.BLSPubkey(bytesutil.PadTo([]byte("pk"), 48)),
+		Credentials: types.WithdrawalCredentials(bytesutil.PadTo([]byte("wc"), 32)),
+		Amount:      400,
+		Signature:   crypto.BLSSignature(bytesutil.PadTo([]byte("sig"), 96)),
+		Index:       32,
+	}
+	depositReqs := &types.DepositRequests{&exampleRequest1, &exampleRequest2}
+	drbs, err := depositReqs.MarshalSSZ()
+	require.NoError(t, err)
+	drb, err := hexutil.Decode(depositRequestsSSZHex)
+	require.NoError(t, err)
+	require.Equal(t, drb, drbs)
 }

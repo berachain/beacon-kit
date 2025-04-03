@@ -76,6 +76,17 @@ func (cr ConsolidationRequests) MarshalSSZ() ([]byte, error) {
 	return sszutil.MarshalItemsEIP7685(cr)
 }
 
+// ValidateAfterDecodingSSZ validates the ConsolidationRequests object after decoding.
+func (cr ConsolidationRequests) ValidateAfterDecodingSSZ() error {
+	if len(cr) > constants.MaxConsolidationRequestsPerPayload {
+		return fmt.Errorf(
+			"invalid number of consolidation requests, got %d max %d",
+			len(cr), constants.MaxConsolidationRequestsPerPayload,
+		)
+	}
+	return nil
+}
+
 // DecodeConsolidationRequests decodes SSZ data by decoding each request individually.
 func DecodeConsolidationRequests(data []byte) (ConsolidationRequests, error) {
 	maxSize := constants.MaxConsolidationRequestsPerPayload * sszConsolidationRequestSize

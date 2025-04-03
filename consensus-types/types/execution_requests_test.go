@@ -307,22 +307,13 @@ func TestExecutionRequests_InvalidValuesUnmarshalSSZ(t *testing.T) {
 	}
 }
 
-// All tests below are adapted from Prysm
-// https://github.com/prysmaticlabs/prysm/blob/e0e735470809df29c5404f64102ffbae5a574e0a/proto/engine/v1/electra_test.go#L13-L240
-
-var depositRequestsSSZHex = "0x706b000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
-	"0000000000077630000000000000000000000000000000000000000000000000000000000007b00000000000000736967000000000000000" +
-	"0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
-	"00000000000000000000000000000000000000000000000000000000000c801000000000000706b000000000000000000000000000000000" +
-	"0000000000000000000000000000000000000000000000000000000000077630000000000000000000000000000000000000000000000000" +
-	"000000000009001000000000000736967000000000000000000000000000000000000000000000000000000000000000000000000000000" +
-	"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020" +
-	"00000000000000"
+// Tests below are adapted from Prysm
+// https://github.com/prysmaticlabs/prysm/blob/develop/proto/engine/v1/electra_test.go#L15-L196
 
 func TestDecodeExecutionRequests(t *testing.T) {
 	t.Parallel()
 	t.Run("All requests decode successfully", func(t *testing.T) {
-		depositRequestBytes, err := hexutil.Decode("0x610000000000000000000000000000000000000000000000000000000" +
+		depositRequestBytes, err := hexutil.Decode("0x04000000610000000000000000000000000000000000000000000000000000000" +
 			"000000000000000000000000000000000000000" +
 			"620000000000000000000000000000000000000000000000000000000000000000" +
 			"40597307000000630000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
@@ -348,7 +339,7 @@ func TestDecodeExecutionRequests(t *testing.T) {
 		require.Len(t, requests.Consolidations, 1)
 	})
 	t.Run("Excluded requests still decode successfully when one request is missing", func(t *testing.T) {
-		depositRequestBytes, err := hexutil.Decode("0x610000000000000000000000000000000000000000000000000000000" +
+		depositRequestBytes, err := hexutil.Decode("0x04000000610000000000000000000000000000000000000000000000000000000" +
 			"000000000000000000000000000000000000000" +
 			"620000000000000000000000000000000000000000000000000000000000000000" +
 			"405973070000006300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
@@ -423,14 +414,14 @@ func TestDecodeExecutionRequests(t *testing.T) {
 		require.ErrorContains(t, err, "requests should be in sorted order and unique")
 	})
 	t.Run("a duplicate withdrawals ( non 0 request type )request should fail", func(t *testing.T) {
-		depositRequestBytes, err := hexutil.Decode("0x61000000000000000000000000000000000000000000000000000000" +
+		depositRequestBytes, err := hexutil.Decode("0x0400000061000000000000000000000000000000000000000000000000000000" +
 			"0000000000000000000000000000000000000000" +
 			"620000000000000000000000000000000000000000000000000000000000000000" +
 			"4059730700000063000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
 			"000000000000000000000000000000000000000" +
 			"00000000000000000000000000000000000000000000000000000000000000000000000000000000")
 		require.NoError(t, err)
-		depositRequestBytes2, err := hexutil.Decode("0x61000000000000000000000000000000000000000000000000000000" +
+		depositRequestBytes2, err := hexutil.Decode("0x0400000061000000000000000000000000000000000000000000000000000000" +
 			"0000000000000000000000000000000000000000" +
 			"620000000000000000000000000000000000000000000000000000000000000000" +
 			"405973070000006300000000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
@@ -458,20 +449,20 @@ func TestDecodeExecutionRequests(t *testing.T) {
 			},
 		}
 		_, err = types.DecodeExecutionRequests(ebe.GetExecutionRequests())
-		require.ErrorContains(t, err, "invalid deposit requests SSZ size")
+		require.ErrorContains(t, err, "unexpected EOF")
 	})
 	t.Run("If deposit requests are over the max allowed per payload then we should error", func(t *testing.T) {
-		requests := make([]*enginev1.DepositRequest, constants.MaxDepositRequestsPerPayload+1)
+		requests := make(types.DepositRequests, constants.MaxDepositRequestsPerPayload+1)
 		for i := range requests {
-			requests[i] = &enginev1.DepositRequest{
-				Pubkey:                bytesutil.PadTo([]byte("pk"), 48),
-				WithdrawalCredentials: bytesutil.PadTo([]byte("wc"), 32),
-				Amount:                123,
-				Signature:             bytesutil.PadTo([]byte("sig"), 96),
-				Index:                 456,
+			requests[i] = &types.DepositRequest{
+				Pubkey:      crypto.BLSPubkey{1, 2, 3, 4, 5},
+				Credentials: types.WithdrawalCredentials{1, 2, 3, 4, 5},
+				Amount:      123,
+				Signature:   crypto.BLSSignature{1, 2, 3, 4, 5},
+				Index:       456,
 			}
 		}
-		by, err := ssz.MarshalItemsEIP7685(requests)
+		by, err := requests.MarshalSSZ()
 		require.NoError(t, err)
 		ebe := &enginev1.ExecutionBundleElectra{
 			ExecutionRequests: [][]byte{
@@ -479,7 +470,7 @@ func TestDecodeExecutionRequests(t *testing.T) {
 			},
 		}
 		_, err = types.DecodeExecutionRequests(ebe.GetExecutionRequests())
-		require.ErrorContains(t, err, "invalid deposit requests SSZ size, requests should not be more than the max per payload")
+		require.ErrorContains(t, err, "ssz: maximum item count exceeded: decoded 8193, max 8192")
 	})
 	t.Run("If withdrawal requests are over the max allowed per payload then we should error", func(t *testing.T) {
 		requests := make([]*enginev1.WithdrawalRequest, params.BeaconConfig().MaxWithdrawalRequestsPerPayload+1)
@@ -530,53 +521,4 @@ func TestGetExecutionRequestsList(t *testing.T) {
 		require.NotNil(t, b)
 		require.Empty(t, b)
 	})
-}
-
-func TestUnmarshalItems_OK(t *testing.T) {
-	t.Parallel()
-	drb, err := hexutil.Decode(depositRequestsSSZHex)
-	require.NoError(t, err)
-	exampleRequest := &types.DepositRequest{}
-	depositRequests, err := ssz.UnmarshalItemsEIP7685(
-		drb,
-		int(exampleRequest.SizeSSZ(nil)),
-		func() *types.DepositRequest { return &types.DepositRequest{} })
-	require.NoError(t, err)
-
-	exampleRequest1 := &types.DepositRequest{
-		Pubkey:      crypto.BLSPubkey(bytesutil.PadTo([]byte("pk"), 48)),
-		Credentials: types.WithdrawalCredentials(bytesutil.PadTo([]byte("wc"), 32)),
-		Amount:      123,
-		Signature:   crypto.BLSSignature(bytesutil.PadTo([]byte("sig"), 96)),
-		Index:       456,
-	}
-	exampleRequest2 := &types.DepositRequest{
-		Pubkey:      crypto.BLSPubkey(bytesutil.PadTo([]byte("pk"), 48)),
-		Credentials: types.WithdrawalCredentials(bytesutil.PadTo([]byte("wc"), 32)),
-		Amount:      400,
-		Signature:   crypto.BLSSignature(bytesutil.PadTo([]byte("sig"), 96)),
-		Index:       32,
-	}
-	require.Equal(t, []*types.DepositRequest{exampleRequest1, exampleRequest2}, depositRequests)
-}
-
-func TestMarshalItems_OK(t *testing.T) {
-	t.Parallel()
-	exampleRequest1 := &types.DepositRequest{
-		Pubkey:      crypto.BLSPubkey(bytesutil.PadTo([]byte("pk"), 48)),
-		Credentials: types.WithdrawalCredentials(bytesutil.PadTo([]byte("wc"), 32)),
-		Amount:      123,
-		Signature:   crypto.BLSSignature(bytesutil.PadTo([]byte("sig"), 96)),
-		Index:       456,
-	}
-	exampleRequest2 := &types.DepositRequest{
-		Pubkey:      crypto.BLSPubkey(bytesutil.PadTo([]byte("pk"), 48)),
-		Credentials: types.WithdrawalCredentials(bytesutil.PadTo([]byte("wc"), 32)),
-		Amount:      400,
-		Signature:   crypto.BLSSignature(bytesutil.PadTo([]byte("sig"), 96)),
-		Index:       32,
-	}
-	drbs, err := ssz.MarshalItemsEIP7685([]*types.DepositRequest{exampleRequest1, exampleRequest2})
-	require.NoError(t, err)
-	require.Equal(t, depositRequestsSSZHex, hexutil.Encode(drbs))
 }
