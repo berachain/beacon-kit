@@ -46,7 +46,6 @@ import (
 // PectraForkSuite defines our test suite for Pectra related work using simulated Comet component.
 type PectraForkSuite struct {
 	suite.Suite
-	// Embedded shared accessors for convenience.
 	Geth simulated.SharedAccessors
 	Reth simulated.SharedAccessors
 }
