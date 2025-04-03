@@ -29,7 +29,7 @@ import (
 )
 
 // BlockHeader returns the block header at the given slot.
-func (b Backend) BlockHeaderAtSlot(slot math.Slot) (*ctypes.BeaconBlockHeader, error) {
+func (b *Backend) BlockHeaderAtSlot(slot math.Slot) (*ctypes.BeaconBlockHeader, error) {
 	st, _, err := b.stateFromSlot(slot)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get state from slot %d", slot)
@@ -38,7 +38,7 @@ func (b Backend) BlockHeaderAtSlot(slot math.Slot) (*ctypes.BeaconBlockHeader, e
 }
 
 // GetBlockRoot returns the root of the block at the given stateID.
-func (b Backend) BlockRootAtSlot(slot math.Slot) (common.Root, error) {
+func (b *Backend) BlockRootAtSlot(slot math.Slot) (common.Root, error) {
 	st, resolvedSlot, err := b.stateFromSlot(slot)
 	if err != nil {
 		return common.Root{}, errors.Wrapf(err, "failed to get state from slot %d", slot)
@@ -50,7 +50,7 @@ func (b Backend) BlockRootAtSlot(slot math.Slot) (common.Root, error) {
 }
 
 // TODO: Implement this.
-func (b Backend) BlockRewardsAtSlot(math.Slot) (*types.BlockRewardsData, error) {
+func (b *Backend) BlockRewardsAtSlot(_ math.Slot) (*types.BlockRewardsData, error) {
 	return &types.BlockRewardsData{
 		ProposerIndex:     1,
 		Total:             1,
