@@ -18,20 +18,18 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package constraints
+package ssz
 
 import (
 	"fmt"
 
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/karalabe/ssz"
 )
 
-// SSZUnmarshal is the way we build objects from byte formatted as ssz
-// While logically related to constraints package, SSZUnmarshal has its own
-// small package to avoid import cycle related to Unused Type
-// Also SSZUnmarshal highlight the common template for SSZ decoding different
-// objects
-func SSZUnmarshal[T SSZUnmarshaler](buf []byte, v T) error {
+// Unmarshal is the way we build objects from byte formatted in SSZ encoding.
+// This function highlights the common template for SSZ decoding different objects.
+func Unmarshal[T constraints.SSZUnmarshaler](buf []byte, v T) error {
 	if err := ssz.DecodeFromBytes(buf, v); err != nil {
 		return fmt.Errorf("failed decoding %T: %w", v, err)
 	}
