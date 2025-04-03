@@ -24,58 +24,53 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/primitives/constants"
-	sszutil "github.com/berachain/beacon-kit/primitives/encoding/ssz"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/karalabe/ssz"
 )
 
 // DepositRequest is introduced in EIP6110 which is currently not processed.
 type DepositRequest = Deposit
 
+// Compile-time check to ensure DepositRequests implements the necessary interfaces.
+var (
+	_ ssz.DynamicObject           = (*DepositRequests)(nil)
+	_ constraints.SSZMarshallable = (*DepositRequests)(nil)
+)
+
 // DepositRequests is used for SSZ unmarshalling a list of DepositRequest
 type DepositRequests []*DepositRequest
 
 // SizeSSZ returns the size of the DepositRequests object in SSZ encoding.
-func (dr DepositRequests) SizeSSZ(siz *ssz.Sizer) uint32 {
-	return ssz.SizeSliceOfStaticObjects(siz, dr)
+func (dr *DepositRequests) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
+	if fixed {
+		return constants.SSZOffsetSize
+	}
+	return constants.SSZOffsetSize + ssz.SizeSliceOfStaticObjects(siz, *dr)
 }
 
 // DefineSSZ defines the SSZ encoding for the DepositRequests object.
-func (dr DepositRequests) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineSliceOfStaticObjectsOffset(codec, (*[]*DepositRequest)(&dr), constants.MaxDepositRequestsPerPayload)
-	ssz.DefineSliceOfStaticObjectsContent(codec, (*[]*DepositRequest)(&dr), constants.MaxDepositRequestsPerPayload)
+func (dr *DepositRequests) DefineSSZ(codec *ssz.Codec) {
+	ssz.DefineSliceOfStaticObjectsOffset(
+		codec, (*[]*DepositRequest)(dr), constants.MaxDepositRequestsPerPayload,
+	)
+	ssz.DefineSliceOfStaticObjectsContent(
+		codec, (*[]*DepositRequest)(dr), constants.MaxDepositRequestsPerPayload,
+	)
 }
 
 // MarshalSSZ marshals the Deposits object to SSZ format by encoding each deposit individually.
-func (dr DepositRequests) MarshalSSZ() ([]byte, error) {
-	return sszutil.MarshalItemsEIP7685(dr)
+func (dr *DepositRequests) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, ssz.Size(dr))
+	return buf, ssz.EncodeToBytes(buf, dr)
 }
 
 // ValidateAfterDecodingSSZ validates the DepositRequests object after decoding.
-func (dr DepositRequests) ValidateAfterDecodingSSZ() error {
-	return nil
-}
-
-// DecodeDepositRequests decodes SSZ data by decoding each request individually.
-func DecodeDepositRequests(data []byte) (DepositRequests, error) {
-	maxSize := constants.MaxDepositRequestsPerPayload * depositSize
-	if len(data) > maxSize {
-		return nil, fmt.Errorf(
-			"invalid deposit requests SSZ size, requests should not be more than the max per "+
-				"payload, got %d max %d", len(data), maxSize,
+func (dr *DepositRequests) ValidateAfterDecodingSSZ() error {
+	if len(*dr) > constants.MaxDepositRequestsPerPayload {
+		return fmt.Errorf(
+			"invalid number of deposit requests, got %d max %d",
+			len(*dr), constants.MaxDepositRequestsPerPayload,
 		)
 	}
-	if len(data) < depositSize {
-		return nil, fmt.Errorf("invalid deposit requests SSZ size, got %d expected at least %d", len(data), depositSize)
-	}
-	// Use the generic unmarshalItems helper.
-	items, err := sszutil.UnmarshalItemsEIP7685(
-		data,
-		depositSize,
-		func() *DepositRequest { return new(DepositRequest) },
-	)
-	if err != nil {
-		return nil, err
-	}
-	deposits := DepositRequests(items)
-	return deposits, nil
+	return nil
 }

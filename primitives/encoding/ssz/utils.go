@@ -63,16 +63,20 @@ func UnmarshalItemsEIP7685[T constraints.SSZUnmarshaler](
 	newItem func() T,
 ) ([]T, error) {
 	if len(data)%itemSize != 0 {
-		return nil, fmt.Errorf("invalid data length: %d is not a multiple of item size %d", len(data), itemSize)
+		return nil, fmt.Errorf(
+			"invalid data length: %d is not a multiple of item size %d",
+			len(data), itemSize,
+		)
 	}
 	numItems := len(data) / itemSize
 	items := make([]T, 0, numItems)
 	for i := 0; i < len(data); i += itemSize {
 		chunk := data[i : i+itemSize]
 		item := newItem()
-		err := ssz.DecodeFromBytes(chunk, item)
-		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal item at index %d: %w", i/itemSize, err)
+		if err := Unmarshal(chunk, item); err != nil {
+			return nil, fmt.Errorf(
+				"failed to unmarshal item at index %d: %w", i/itemSize, err,
+			)
 		}
 		items = append(items, item)
 	}

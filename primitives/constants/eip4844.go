@@ -33,4 +33,8 @@ const (
 	//
 	// https://ethereum.github.io/consensus-specs/specs/deneb/beacon-chain/#execution
 	MaxBlobCommitmentsPerBlock = 4096
+
+	// MaxBlobSidecarsPerBlock is the maximum number of blob sidecars that can
+	// be included in a block.
+	MaxBlobSidecarsPerBlock = 6
 )
