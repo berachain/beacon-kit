@@ -22,6 +22,7 @@ package backend
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/errors"
@@ -36,11 +37,12 @@ import (
 // It serves as a wrapper around the storage backend and provides an abstraction
 // over building the query context for a given state.
 type Backend struct {
-	sb                    *storage.Backend
-	cs                    chain.Spec
-	node                  types.ConsensusService
-	sp                    StateProcessor
-	genesisValidatorsRoot common.Root
+	sb                      *storage.Backend
+	cs                      chain.Spec
+	node                    types.ConsensusService
+	sp                      StateProcessor
+	genesisValidatorsRoot   common.Root
+	genesisValidatorsRootMu sync.RWMutex
 }
 
 // New creates and returns a new Backend instance.

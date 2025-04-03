@@ -27,12 +27,26 @@ import (
 )
 
 // GetGenesisValidatorsRoot returns the genesis validators root of the beacon chain.
-func (b Backend) GenesisValidatorsRoot() (common.Root, error) {
-	// Return cached value if available
+func (b *Backend) GenesisValidatorsRoot() (common.Root, error) {
+	// Fast path: read lock for checking cached value
+	b.genesisValidatorsRootMu.RLock()
+	if b.genesisValidatorsRoot != (common.Root{}) {
+		root := b.genesisValidatorsRoot
+		b.genesisValidatorsRootMu.RUnlock()
+		return root, nil
+	}
+	b.genesisValidatorsRootMu.RUnlock()
+
+	// Slow path: write lock for initialization
+	b.genesisValidatorsRootMu.Lock()
+	defer b.genesisValidatorsRootMu.Unlock()
+
+	// Double check after acquiring write lock
 	if b.genesisValidatorsRoot != (common.Root{}) {
 		return b.genesisValidatorsRoot, nil
 	}
-	// If not cached, read from the state of the tip of the chain
+
+	// If not cached, read state from the genesis slot
 	st, _, err := b.stateFromSlot(0)
 	if err != nil {
 		return common.Root{}, errors.Wrapf(err, "failed to get state from tip of chain")
