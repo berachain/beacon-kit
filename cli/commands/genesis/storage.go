@@ -25,6 +25,7 @@ import (
 	"path/filepath"
 
 	"github.com/berachain/beacon-kit/cli/commands/genesis/types"
+	clitypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	"github.com/berachain/beacon-kit/cli/context"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
@@ -41,7 +42,7 @@ import (
 // SetDepositStorageCmd sets deposit contract storage in genesis alloc file.
 //
 //nolint:lll // reads better if long description is one line
-func SetDepositStorageCmd(chainSpec ChainSpec) *cobra.Command {
+func SetDepositStorageCmd(chainSpecCreator clitypes.ChainSpecCreator) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "set-deposit-storage [eth/genesis/file.json]",
 		Short: "sets deposit contract storage in eth genesis",
@@ -56,6 +57,11 @@ func SetDepositStorageCmd(chainSpec ChainSpec) *cobra.Command {
 			}
 			// Get the deposits from the beacon chain genesis appstate.
 			config := context.GetConfigFromCmd(cmd)
+			appOpts := context.GetViperFromCmd(cmd)
+			chainSpec, err := chainSpecCreator(appOpts)
+			if err != nil {
+				return err
+			}
 			return SetDepositStorage(chainSpec, config, elGenesisFilePath, isNethermind)
 		},
 	}
