@@ -25,7 +25,7 @@ import (
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/merkle"
-	mlib "github.com/berachain/beacon-kit/primitives/encoding/ssz/merkle"
+	mlib "github.com/berachain/beacon-kit/primitives/merkle"
 	"github.com/berachain/beacon-kit/primitives/encoding/ssz/schema"
 	"github.com/stretchr/testify/require"
 )
