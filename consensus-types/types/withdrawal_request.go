@@ -80,7 +80,7 @@ func (w *WithdrawalRequest) HashTreeRoot() common.Root {
 /* -------------------------------------------------------------------------- */
 
 // Compile-time check to ensure WithdrawalRequests implements the necessary interfaces.
-var _ constraints.SSZMarshallable = (*WithdrawalRequests)(nil)
+var _ constraints.SSZMarshaler = (*WithdrawalRequests)(nil)
 
 // WithdrawalRequests is used for SSZ unmarshalling a list of WithdrawalRequest
 type WithdrawalRequests []*WithdrawalRequest
@@ -88,15 +88,6 @@ type WithdrawalRequests []*WithdrawalRequest
 // MarshalSSZ marshals the WithdrawalRequests object to SSZ format by encoding each deposit individually.
 func (wr WithdrawalRequests) MarshalSSZ() ([]byte, error) {
 	return sszutil.MarshalItemsEIP7685(wr)
-}
-
-func (wr WithdrawalRequests) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineSliceOfStaticObjectsOffset(
-		codec, (*[]*WithdrawalRequest)(&wr), constants.MaxWithdrawalRequestsPerPayload,
-	)
-	ssz.DefineSliceOfStaticObjectsContent(
-		codec, (*[]*WithdrawalRequest)(&wr), constants.MaxWithdrawalRequestsPerPayload,
-	)
 }
 
 // ValidateAfterDecodingSSZ validates the WithdrawalRequests object after decoding.
