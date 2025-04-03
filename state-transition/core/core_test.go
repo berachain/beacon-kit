@@ -161,13 +161,14 @@ func moveToEndOfEpoch(
 	blk := tip
 	currEpoch := cs.SlotToEpoch(blk.GetSlot())
 	for currEpoch == cs.SlotToEpoch(blk.GetSlot()+1) {
+		timestamp := blk.Body.ExecutionPayload.Timestamp + 1
 		blk = buildNextBlock(
 			t,
 			st,
 			types.NewEth1Data(depRoot),
-			blk.Body.ExecutionPayload.Timestamp+1,
+			timestamp,
 			[]*types.Deposit{},
-			st.EVMInflationWithdrawal(blk.GetSlot()+1),
+			st.EVMInflationWithdrawal(timestamp),
 		)
 
 		vals, err := sp.Transition(ctx, st, blk)
