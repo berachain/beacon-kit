@@ -111,10 +111,12 @@ type BlockBuilderI interface {
 
 // ChainSpec defines an interface for accessing chain-specific parameters.
 type ChainSpec interface {
-	SlotsPerHistoricalRoot() uint64
+	ActiveForkVersionForTimestamp(timestamp math.U64) common.Version
+	DepositEth1ChainID() uint64
 	DomainTypeRandao() common.DomainType
 	MaxDepositsPerBlock() uint64
-	ActiveForkVersionForTimestamp(timestamp math.U64) common.Version
 	SlotToEpoch(slot math.Slot) math.Epoch
+	SlotsPerHistoricalRoot() uint64
+	TargetSecondsPerEth1Block() uint64
 	ctypes.ProposerDomain
 }

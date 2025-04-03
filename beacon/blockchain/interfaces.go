@@ -168,4 +168,6 @@ type ServiceChainSpec interface {
 	PruningChainSpec
 	chain.BlobSpec
 	ActiveForkVersionForTimestamp(timestamp math.U64) common.Version
+	DepositEth1ChainID() uint64
+	TargetSecondsPerEth1Block() uint64
 }

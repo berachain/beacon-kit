@@ -27,6 +27,7 @@ import (
 	"time"
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
+	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/consensus/types"
@@ -68,7 +69,16 @@ func (s *Service) ProcessProposal(
 		)
 	}
 
-	forkVersion := s.chainSpec.ActiveForkVersionForTimestamp(math.U64(req.GetTime().Unix())) //#nosec: G115
+	cometTime := math.U64(req.GetTime().Unix()) //#nosec: G115
+	if s.chainSpec.DepositEth1ChainID() == spec.DevnetEth1ChainID {
+		state := s.storageBackend.StateFromContext(ctx)
+		lph, err := state.GetLatestExecutionPayloadHeader()
+		if err != nil {
+			return err
+		}
+		cometTime = lph.GetTimestamp() + math.U64(s.chainSpec.TargetSecondsPerEth1Block())
+	}
+	forkVersion := s.chainSpec.ActiveForkVersionForTimestamp(cometTime)
 	// Decode signed block and sidecars.
 	signedBlk, sidecars, err := encoding.ExtractBlobsAndBlockFromRequest(
 		req,
@@ -164,7 +174,7 @@ func (s *Service) ProcessProposal(
 	consensusBlk := types.NewConsensusBlock(
 		blk,
 		req.GetProposerAddress(),
-		req.GetTime(),
+		cometTime,
 	)
 	err = s.VerifyIncomingBlock(
 		ctx,

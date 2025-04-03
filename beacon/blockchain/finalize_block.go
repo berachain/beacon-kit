@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/consensus/types"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -38,6 +39,15 @@ func (s *Service) FinalizeBlock(
 	ctx sdk.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (transition.ValidatorUpdates, error) {
+	cometTime := math.U64(req.GetTime().Unix()) //#nosec: G115
+	if s.chainSpec.DepositEth1ChainID() == spec.DevnetEth1ChainID {
+		state := s.storageBackend.StateFromContext(ctx)
+		lph, err := state.GetLatestExecutionPayloadHeader()
+		if err != nil {
+			return nil, err
+		}
+		cometTime = lph.GetTimestamp() + math.U64(s.chainSpec.TargetSecondsPerEth1Block())
+	}
 	// STEP 1: Decode block and blobs.
 	signedBlk, blobs, err := encoding.ExtractBlobsAndBlockFromRequest(
 		req,
@@ -45,7 +55,7 @@ func (s *Service) FinalizeBlock(
 		BlobSidecarsTxIndex,
 		// While req.GetTime() and blk.GetTimestamp() may be different, they are guaranteed
 		// to map to the same forkVersion due to checks during ProcessProposal.
-		s.chainSpec.ActiveForkVersionForTimestamp(math.U64(req.GetTime().Unix()))) //#nosec: G115
+		s.chainSpec.ActiveForkVersionForTimestamp(cometTime))
 	if err != nil {
 		s.logger.Error("Failed to decode block and blobs", "error", err)
 		return nil, fmt.Errorf("failed to decode block and blobs: %w", err)
@@ -90,7 +100,7 @@ func (s *Service) FinalizeBlock(
 	}
 
 	// STEP 3: Finalize the block.
-	consensusBlk := types.NewConsensusBlock(blk, req.GetProposerAddress(), req.GetTime())
+	consensusBlk := types.NewConsensusBlock(blk, req.GetProposerAddress(), cometTime)
 	st := s.storageBackend.StateFromContext(ctx)
 	valUpdates, err := s.finalizeBeaconBlock(ctx, st, consensusBlk)
 	if err != nil {
@@ -100,14 +110,12 @@ func (s *Service) FinalizeBlock(
 		return nil, err
 	}
 
-	// STEP 4: Post Finalizations cleanups.
-
+	// STEP 4: Post Finalization cleanups.
 	// Fetch and store the deposit for the block.
 	blockNum := blk.GetBody().GetExecutionPayload().GetNumber()
 	s.depositFetcher(ctx, blockNum)
 
 	// Store the finalized block in the KVStore.
-	//
 	// TODO: Store full SignedBeaconBlock with all data in storage
 	slot := blk.GetSlot()
 	if err = s.storageBackend.BlockStore().Set(blk); err != nil {
@@ -126,7 +134,6 @@ func (s *Service) FinalizeBlock(
 	if err = s.sendPostBlockFCU(ctx, st); err != nil {
 		return nil, fmt.Errorf("sendPostBlockFCU failed: %w", err)
 	}
-
 	return valUpdates, nil
 }
 
