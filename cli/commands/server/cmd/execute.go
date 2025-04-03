@@ -25,6 +25,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/berachain/beacon-kit/cli/commands/server/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
@@ -47,6 +48,10 @@ func Execute(rootCmd *cobra.Command, envPrefix, defaultHome string) error {
 	ctx := CreateExecuteContext(context.Background())
 	rootCmd.PersistentFlags().
 		StringP(flags.FlagHome, "", defaultHome, "directory for config and data")
+	rootCmd.PersistentFlags().String(
+		types.FlagConfigurableChainSpecPath,
+		"",
+		"Path to custom chain spec if CHAIN_SPEC=configurable envar is set")
 
 	// update the global viper with the root command's configuration
 	viper.SetEnvPrefix(envPrefix)

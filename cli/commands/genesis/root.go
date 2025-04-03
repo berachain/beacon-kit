@@ -21,19 +21,26 @@
 package genesis
 
 import (
+	"github.com/berachain/beacon-kit/cli/commands/server/types"
+	"github.com/berachain/beacon-kit/cli/context"
 	"github.com/berachain/beacon-kit/cli/utils/genesis"
 	"github.com/spf13/cobra"
 )
 
 // GetGenesisValidatorRootCmd returns a command that gets the genesis validator root from a given
 // beacond genesis file.
-func GetGenesisValidatorRootCmd(cs ChainSpec) *cobra.Command {
+func GetGenesisValidatorRootCmd(chainSpecCreator types.ChainSpecCreator) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "validator-root [beacond/genesis.json]",
 		Short: "gets and returns the genesis validator root",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			genesisValidatorsRoot, err := genesis.ComputeValidatorsRootFromFile(args[0], cs)
+			v := context.GetViperFromCmd(cmd)
+			chainSpec, err := chainSpecCreator(v)
+			if err != nil {
+				return err
+			}
+			genesisValidatorsRoot, err := genesis.ComputeValidatorsRootFromFile(args[0], chainSpec)
 			if err != nil {
 				return err
 			}

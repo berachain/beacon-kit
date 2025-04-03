@@ -43,7 +43,9 @@ func (s *Service) FinalizeBlock(
 		req,
 		BeaconBlockTxIndex,
 		BlobSidecarsTxIndex,
-		s.chainSpec.ActiveForkVersionForSlot(math.Slot(req.Height))) // #nosec G115
+		// While req.GetTime() and blk.GetTimestamp() may be different, they are guaranteed
+		// to map to the same forkVersion due to checks during ProcessProposal.
+		s.chainSpec.ActiveForkVersionForTimestamp(math.U64(req.GetTime().Unix()))) //#nosec: G115
 	if err != nil {
 		s.logger.Error("Failed to decode block and blobs", "error", err)
 		return nil, fmt.Errorf("failed to decode block and blobs: %w", err)
@@ -121,7 +123,7 @@ func (s *Service) FinalizeBlock(
 		s.logger.Error("failed to processPruning", "error", err)
 	}
 
-	if err = s.sendPostBlockFCU(ctx, st, consensusBlk); err != nil {
+	if err = s.sendPostBlockFCU(ctx, st); err != nil {
 		return nil, fmt.Errorf("sendPostBlockFCU failed: %w", err)
 	}
 

@@ -21,6 +21,7 @@
 package genesis
 
 import (
+	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 )
@@ -28,7 +29,7 @@ import (
 // Commands builds the genesis-related command. Users may
 // provide application specific commands as a parameter.
 func Commands(
-	cs ChainSpec,
+	csc servertypes.ChainSpecCreator,
 	cmds ...*cobra.Command,
 ) *cobra.Command {
 	cmd := &cobra.Command{
@@ -41,11 +42,11 @@ func Commands(
 
 	// Adding subcommands for genesis-related operations.
 	cmd.AddCommand(
-		AddGenesisDepositCmd(cs),
+		AddGenesisDepositCmd(csc),
 		CollectGenesisDepositsCmd(),
-		AddExecutionPayloadCmd(cs),
-		GetGenesisValidatorRootCmd(cs),
-		SetDepositStorageCmd(cs),
+		AddExecutionPayloadCmd(csc),
+		GetGenesisValidatorRootCmd(csc),
+		SetDepositStorageCmd(csc),
 	)
 
 	// Add additional commands

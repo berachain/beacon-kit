@@ -90,10 +90,10 @@ type SpecData struct {
 
 	// Fork-related values.
 	//
-	// Deneb1ForkEpoch is the epoch at which the Deneb1 fork is activated.
-	Deneb1ForkEpoch uint64 `mapstructure:"deneb-one-fork-epoch"`
-	// ElectraForkEpoch is the epoch at which the Electra fork is activated.
-	ElectraForkEpoch uint64 `mapstructure:"electra-fork-epoch"`
+	// Deneb1ForkTime is the time at which the Deneb1 fork is activated.
+	Deneb1ForkTime uint64 `mapstructure:"deneb-one-fork-time"`
+	// ElectraForkTime is the time at which the Electra fork is activated.
+	ElectraForkTime uint64 `mapstructure:"electra-fork-time"`
 
 	// State list lengths
 	//

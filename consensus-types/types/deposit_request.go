@@ -50,8 +50,7 @@ func (dr DepositRequests) DefineSSZ(codec *ssz.Codec) {
 
 // MarshalSSZ marshals the Deposits object to SSZ format by encoding each deposit individually.
 func (dr DepositRequests) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(dr))
-	return buf, ssz.EncodeToBytes(buf, dr)
+	return sszutil.MarshalItemsEIP7685(dr)
 }
 
 // ValidateAfterDecodingSSZ validates the DepositRequests object after decoding.
