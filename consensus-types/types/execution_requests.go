@@ -27,12 +27,19 @@ import (
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	sszutil "github.com/berachain/beacon-kit/primitives/encoding/ssz"
 	"github.com/karalabe/ssz"
 )
 
 // 3 since three dynamic objects (Deposits, Withdrawals, Consolidations)
 const dynamicFieldsInExecutionRequests = 3
+
+// Compile-time check to ensure ExecutionRequests implements the necessary interfaces.
+var (
+	_ ssz.DynamicObject                   = (*ExecutionRequests)(nil)
+	_ constraints.SSZMarshallableRootable = (*ExecutionRequests)(nil)
+)
 
 // EncodedExecutionRequest is the result of GetExecutionRequestsList which is spec defined.
 type EncodedExecutionRequest = bytes.Bytes
@@ -46,7 +53,7 @@ type ExecutionRequests struct {
 func (e *ExecutionRequests) ValidateAfterDecodingSSZ() error {
 	return errors.Join(
 		DepositRequests(e.Deposits).ValidateAfterDecodingSSZ(),
-		// WithdrawalRequests(e.Withdrawals).ValidateAfterDecodingSSZ(),
+		WithdrawalRequests(e.Withdrawals).ValidateAfterDecodingSSZ(),
 		ConsolidationRequests(e.Consolidations).ValidateAfterDecodingSSZ(),
 	)
 }

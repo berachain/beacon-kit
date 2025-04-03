@@ -337,8 +337,8 @@ func (s *Service) buildBlockBody(
 			result[i] = req // conversion from ExecutionRequest to []byte
 		}
 
-		requests, err := ctypes.DecodeExecutionRequests(result)
-		if err != nil {
+		var requests *ctypes.ExecutionRequests
+		if requests, err = ctypes.DecodeExecutionRequests(result); err != nil {
 			return err
 		}
 		if err = body.SetExecutionRequests(requests); err != nil {

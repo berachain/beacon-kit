@@ -18,7 +18,6 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-//nolint:mnd // todo fix.
 package types
 
 import (
