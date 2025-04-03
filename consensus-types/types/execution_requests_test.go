@@ -449,7 +449,7 @@ func TestDecodeExecutionRequests(t *testing.T) {
 			},
 		}
 		_, err = types.DecodeExecutionRequests(ebe.GetExecutionRequests())
-		require.ErrorContains(t, err, "nvalid deposit requests SSZ size, got 0 expected at least 192")
+		require.ErrorContains(t, err, "invalid deposit requests SSZ size, got 0 expected at least 192")
 	})
 	t.Run("If deposit requests are over the max allowed per payload then we should error", func(t *testing.T) {
 		requests := make([]*enginev1.DepositRequest, constants.MaxDepositRequestsPerPayload+1)
