@@ -80,20 +80,10 @@ func (c *ConsolidationRequest) HashTreeRoot() common.Root {
 /* -------------------------------------------------------------------------- */
 
 // Compile-time check to ensure ConsolidationRequests implements the necessary interfaces.
-var _ constraints.SSZMarshallable = (*ConsolidationRequests)(nil)
+var _ constraints.SSZMarshaler = (*ConsolidationRequests)(nil)
 
 // ConsolidationRequests is used for SSZ unmarshalling a list of ConsolidationRequest
 type ConsolidationRequests []*ConsolidationRequest
-
-// DefineSSZ defines the SSZ encoding for the ConsolidationRequests object.
-func (cr ConsolidationRequests) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineSliceOfStaticObjectsOffset(
-		codec, (*[]*ConsolidationRequest)(&cr), constants.MaxConsolidationRequestsPerPayload,
-	)
-	ssz.DefineSliceOfStaticObjectsContent(
-		codec, (*[]*ConsolidationRequest)(&cr), constants.MaxConsolidationRequestsPerPayload,
-	)
-}
 
 // MarshalSSZ marshals the ConsolidationRequests object to SSZ format by encoding each consolidation request individually.
 func (cr ConsolidationRequests) MarshalSSZ() ([]byte, error) {

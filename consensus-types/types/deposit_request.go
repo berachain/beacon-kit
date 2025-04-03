@@ -25,32 +25,21 @@ import (
 
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
-	sszutil "github.com/berachain/beacon-kit/primitives/encoding/ssz"
-	"github.com/karalabe/ssz"
+	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
 )
 
 // DepositRequest is introduced in EIP6110 which is currently not processed.
 type DepositRequest = Deposit
 
 // Compile-time check to ensure DepositRequests implements the necessary interfaces.
-var _ constraints.SSZMarshallable = (DepositRequests)(nil)
+var _ constraints.SSZMarshaler = (*DepositRequests)(nil)
 
 // DepositRequests is used for SSZ unmarshalling a list of DepositRequest
 type DepositRequests []*DepositRequest
 
-// DefineSSZ defines the SSZ encoding for the DepositRequests object.
-func (dr DepositRequests) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineSliceOfStaticObjectsOffset(
-		codec, (*[]*DepositRequest)(&dr), constants.MaxDepositRequestsPerPayload,
-	)
-	ssz.DefineSliceOfStaticObjectsContent(
-		codec, (*[]*DepositRequest)(&dr), constants.MaxDepositRequestsPerPayload,
-	)
-}
-
 // MarshalSSZ marshals the Deposits object to SSZ format by encoding each deposit individually.
 func (dr DepositRequests) MarshalSSZ() ([]byte, error) {
-	return sszutil.MarshalItemsEIP7685(dr)
+	return ssz.MarshalItemsEIP7685(dr)
 }
 
 // ValidateAfterDecodingSSZ validates the DepositRequests object after decoding.
@@ -81,7 +70,7 @@ func DecodeDepositRequests(data []byte) (DepositRequests, error) {
 	}
 
 	// Use the EIP-7685 unmarshalItems helper.
-	return sszutil.UnmarshalItemsEIP7685(
+	return ssz.UnmarshalItemsEIP7685(
 		data,
 		depositSize,
 		func() *DepositRequest { return new(DepositRequest) },
