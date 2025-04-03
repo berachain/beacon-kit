@@ -22,22 +22,9 @@ package spec
 
 import (
 	"github.com/berachain/beacon-kit/chain"
-	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/ethereum/go-ethereum/params"
 )
 
 const (
-	// devnetEVMInflationAddress is the address of the EVM inflation contract.
-	devnetEVMInflationAddress = "0x6942069420694206942069420694206942069420"
-
-	// devnetEVMInflationPerBlock is the amount of native EVM balance (in units
-	// of Gwei) to be minted per EL block.
-	devnetEVMInflationPerBlock = 10 * params.GWei
-
-	// devnetMaxStakeAmount is the maximum amount of native EVM balance (in units
-	// of Gwei) that can be staked.
-	devnetMaxStakeAmount = 4000 * params.GWei
-
 	// devnetGenesisTime is the timestamp of devnet genesis.
 	devnetGenesisTime = 0
 
@@ -71,10 +58,7 @@ const (
 	devnetEVMInflationPerBlockFulu = 12 * params.GWei
 )
 
-// DevnetChainSpecData is the chain.SpecData for a devnet. It is similar to mainnet but
-// has different values for testing EVM inflation, staking, and hard forks.
-//
-// TODO: remove modifications from mainnet spec to align with mainnet behavior.
+// DevnetChainSpecData is the chain.SpecData for a devnet.
 func DevnetChainSpecData() *chain.SpecData {
 	specData := MainnetChainSpecData()
 	specData.DepositEth1ChainID = chain.DevnetEth1ChainID
