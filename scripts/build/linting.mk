@@ -106,4 +106,10 @@ markdownlint:
 
 lint-ci: lint slither gosec nilaway markdownlint generate-check \
     tidy-sync-check test-unit-cover test-unit-bench test-unit-fuzz \
-	test-forge-cover test-forge-fuzz
+	test-forge-cover test-forge-fuzz consensuswarn
+
+.PHONY: consensuswarn
+consensuswarn:
+	@echo "Running consensuswarn..."
+	@go install github.com/orijtech/consensuswarn/cmd/consensuswarn@latest
+	@consensuswarn ./...
