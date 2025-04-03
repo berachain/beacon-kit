@@ -908,3 +908,32 @@ func (s *BeaconKitE2ESuite) TestConfigSpec() {
 	s.Require().Contains(specData, "INACTIVITY_PENALTY_QUOTIENT_ALTAIR")
 	s.Require().Zero(specData["INACTIVITY_PENALTY_QUOTIENT_ALTAIR"])
 }
+
+// TestBeaconBlockHeaderByHead tests querying the beacon block header by head.
+func (s *BeaconKitE2ESuite) TestBeaconBlockHeaderByHead() {
+	client := s.initBeaconTest()
+
+	resp, err := client.BeaconBlockHeader(s.Ctx(), &beaconapi.BeaconBlockHeaderOpts{
+		Block: utils.StateIDHead,
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(resp)
+
+	header := resp.Data
+	s.Require().NotNil(header)
+}
+
+// TestBeaconBlockHeaderByGenesis tests querying the beacon block header by genesis.
+func (s *BeaconKitE2ESuite) TestBeaconBlockHeaderByGenesis() {
+	client := s.initBeaconTest()
+
+	resp, err := client.BeaconBlockHeader(s.Ctx(), &beaconapi.BeaconBlockHeaderOpts{
+		Block: utils.StateIDGenesis,
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(resp)
+
+	header := resp.Data
+	s.Require().NotNil(header)
+
+}
