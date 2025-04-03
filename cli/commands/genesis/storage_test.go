@@ -26,7 +26,9 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/cli/commands/genesis"
+	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -41,7 +43,9 @@ func TestSetDepositStorageCmd(t *testing.T) {
 		t.Parallel()
 		chainSpec, err := spec.DevnetChainSpec()
 		require.NoError(t, err)
-		cmd := genesis.SetDepositStorageCmd(chainSpec)
+		cmd := genesis.SetDepositStorageCmd(func(_ servertypes.AppOptions) (chain.Spec, error) {
+			return chainSpec, nil
+		})
 		require.Equal(t, "set-deposit-storage [eth/genesis/file.json]", cmd.Use)
 	})
 
@@ -63,7 +67,9 @@ func TestSetDepositStorageCmd(t *testing.T) {
 		// Create and execute the command
 		chainSpec, err := spec.DevnetChainSpec()
 		require.NoError(t, err)
-		cmd := genesis.SetDepositStorageCmd(chainSpec)
+		cmd := genesis.SetDepositStorageCmd(func(_ servertypes.AppOptions) (chain.Spec, error) {
+			return chainSpec, nil
+		})
 		cmd.SetContext(ctx)
 		// Change working directory to tmpDir for the test
 		currentDir, err := os.Getwd()

@@ -63,10 +63,16 @@ else
 overwrite="Y"
 fi
 
+CHAIN_SPEC_ARG=""
+if [ "$CHAIN_SPEC" == "configurable" ]; then
+  CHAIN_SPEC_ARG="--spec=$(resolve_path "./cli/commands/server/types/mainnet_spec.toml")"
+fi
+
+
 # Setup local node if overwrite is set to Yes, otherwise skip setup
 if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	rm -rf $HOMEDIR
-	./build/bin/beacond init $MONIKER --chain-id $CHAINID --home $HOMEDIR
+	./build/bin/beacond init $MONIKER --chain-id $CHAINID --home $HOMEDIR $CHAIN_SPEC_ARG
 
 	if [ "$CHAIN_SPEC" == "testnet" ]; then
 	    network_dir="testing/networks/80069"
@@ -76,18 +82,22 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 		network_dir="testing/networks/80094"
 		cp -f $network_dir/*.toml $network_dir/genesis.json ${HOMEDIR}/config
     	KZG_PATH=$network_dir/kzg-trusted-setup.json
+  elif [ "$CHAIN_SPEC" == "configurable" ]; then
+    network_dir="testing/networks/80094"
+    cp -f $network_dir/*.toml $network_dir/genesis.json ${HOMEDIR}/config
+      KZG_PATH=$network_dir/kzg-trusted-setup.json
 	else
-		./build/bin/beacond genesis add-premined-deposit --home $HOMEDIR \
+		./build/bin/beacond genesis add-premined-deposit --home $HOMEDIR $CHAIN_SPEC_ARG \
 			32000000000 0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4
-		./build/bin/beacond genesis collect-premined-deposits --home $HOMEDIR
-		./build/bin/beacond genesis set-deposit-storage "$ETH_GENESIS" --home $HOMEDIR
-		./build/bin/beacond genesis set-deposit-storage "$ETH_NETHER_GENESIS" --nethermind --home $HOMEDIR
-		./build/bin/beacond genesis execution-payload "$HOMEDIR/eth-genesis.json" --home $HOMEDIR
+		./build/bin/beacond genesis collect-premined-deposits --home $HOMEDIR $CHAIN_SPEC_ARG
+		./build/bin/beacond genesis set-deposit-storage "$ETH_GENESIS" --home $HOMEDIR $CHAIN_SPEC_ARG
+		./build/bin/beacond genesis set-deposit-storage "$ETH_NETHER_GENESIS" --nethermind --home $HOMEDIR $CHAIN_SPEC_ARG
+		./build/bin/beacond genesis execution-payload "$HOMEDIR/eth-genesis.json" --home $HOMEDIR $CHAIN_SPEC_ARG
 	fi
 fi
 
 # Start the node (remove the --pruning=nothing flag if historical queries are not needed)
-BEACON_START_CMD="./build/bin/beacond start --pruning=nothing "$TRACE" \
+BEACON_START_CMD="./build/bin/beacond start $CHAIN_SPEC_ARG --pruning=nothing "$TRACE" \
 --beacon-kit.logger.log-level $LOGLEVEL --home $HOMEDIR \
 --beacon-kit.engine.jwt-secret-path ${JWT_SECRET_PATH} \
 --beacon-kit.kzg.trusted-setup-path ${KZG_PATH}  \

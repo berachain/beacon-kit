@@ -106,15 +106,16 @@ func (s *SharedAccessors) MoveChainToHeight(
 	t *testing.T,
 	startHeight, iterations int64,
 	proposer *signer.BLSSigner,
-) []*types.PrepareProposalResponse {
+	startTime time.Time,
+) ([]*types.PrepareProposalResponse, time.Time) {
 	// Prepare a block proposal.
 	pubkey, err := proposer.GetPubKey()
 	require.NoError(t, err)
 
 	var proposedCometBlocks []*types.PrepareProposalResponse
 
+	proposalTime := startTime
 	for currentHeight := startHeight; currentHeight < startHeight+iterations; currentHeight++ {
-		proposalTime := time.Now()
 		proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 			Height:          currentHeight,
 			Time:            proposalTime,
@@ -138,6 +139,7 @@ func (s *SharedAccessors) MoveChainToHeight(
 			Txs:             proposal.Txs,
 			Height:          currentHeight,
 			ProposerAddress: pubkey.Address(),
+			Time:            proposalTime,
 		})
 		require.NoError(t, err)
 		require.NotEmpty(t, finalizeResp)
@@ -148,8 +150,9 @@ func (s *SharedAccessors) MoveChainToHeight(
 
 		// Record the Commit Block
 		proposedCometBlocks = append(proposedCometBlocks, proposal)
+		proposalTime = proposalTime.Add(time.Duration(s.TestNode.ChainSpec.TargetSecondsPerEth1Block()) * time.Second)
 	}
-	return proposedCometBlocks
+	return proposedCometBlocks, proposalTime
 }
 
 // WaitTillServicesStarted waits until the log buffer contains "All services started".
@@ -238,7 +241,7 @@ func ComputeAndSetInvalidExecutionBlock(
 	txs []*gethprimitives.Transaction,
 ) *ctypes.BeaconBlock {
 	t.Helper()
-	forkVersion := chainSpec.ActiveForkVersionForSlot(latestBlock.GetSlot())
+	forkVersion := chainSpec.ActiveForkVersionForTimestamp(latestBlock.GetTimestamp())
 	_, sidecars := splitTxs(txs)
 	// Use the current execution payload (e.g. for an invalid block, no simulation is done).
 	executionPayload := latestBlock.GetBody().GetExecutionPayload()
@@ -275,7 +278,7 @@ func ComputeAndSetValidExecutionBlock(
 	require.Len(t, simulatedBlocks, 1)
 	simBlock := simulatedBlocks[0]
 
-	forkVersion := chainSpec.ActiveForkVersionForSlot(latestBlock.GetSlot())
+	forkVersion := chainSpec.ActiveForkVersionForTimestamp(latestBlock.GetTimestamp())
 	txsNoSidecar, sidecars := splitTxs(txs)
 	origParent := latestBlock.GetParentBlockRoot()
 
