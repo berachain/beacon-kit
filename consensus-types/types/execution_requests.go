@@ -38,16 +38,16 @@ const dynamicFieldsInExecutionRequests = 3
 type EncodedExecutionRequest = bytes.Bytes
 
 type ExecutionRequests struct {
-	Deposits       DepositRequests
-	Withdrawals    WithdrawalRequests
-	Consolidations ConsolidationRequests
+	Deposits       []*DepositRequest
+	Withdrawals    []*WithdrawalRequest
+	Consolidations []*ConsolidationRequest
 }
 
 func (e *ExecutionRequests) ValidateAfterDecodingSSZ() error {
 	return errors.Join(
-		e.Deposits.ValidateAfterDecodingSSZ(),
-		// e.Withdrawals.ValidateAfterDecodingSSZ(),
-		e.Consolidations.ValidateAfterDecodingSSZ(),
+		DepositRequests(e.Deposits).ValidateAfterDecodingSSZ(),
+		// WithdrawalRequests(e.Withdrawals).ValidateAfterDecodingSSZ(),
+		ConsolidationRequests(e.Consolidations).ValidateAfterDecodingSSZ(),
 	)
 }
 
@@ -61,7 +61,7 @@ func GetExecutionRequestsList(er *ExecutionRequests) ([]EncodedExecutionRequest,
 
 	// Process deposit requests if non-empty.
 	if len(er.Deposits) > 0 {
-		depositBytes, err := er.Deposits.MarshalSSZ()
+		depositBytes, err := sszutil.MarshalItemsEIP7685(er.Deposits)
 		if err != nil {
 			return nil, err
 		}
@@ -71,7 +71,7 @@ func GetExecutionRequestsList(er *ExecutionRequests) ([]EncodedExecutionRequest,
 
 	// Process withdrawal requests if non-empty.
 	if len(er.Withdrawals) > 0 {
-		withdrawalBytes, err := er.Withdrawals.MarshalSSZ()
+		withdrawalBytes, err := sszutil.MarshalItemsEIP7685(er.Withdrawals)
 		if err != nil {
 			return nil, err
 		}
@@ -81,7 +81,7 @@ func GetExecutionRequestsList(er *ExecutionRequests) ([]EncodedExecutionRequest,
 
 	// Process consolidation requests if non-empty.
 	if len(er.Consolidations) > 0 {
-		consolidationBytes, err := er.Consolidations.MarshalSSZ()
+		consolidationBytes, err := sszutil.MarshalItemsEIP7685(er.Consolidations)
 		if err != nil {
 			return nil, err
 		}
@@ -95,8 +95,11 @@ func GetExecutionRequestsList(er *ExecutionRequests) ([]EncodedExecutionRequest,
 // DecodeExecutionRequests is used to decode the result from GetPayload into an ExecutionRequests.
 // TODO(pectra): Change this to use []EncodedExecutionRequest as input and fix tests.
 func DecodeExecutionRequests(encodedRequests [][]byte) (*ExecutionRequests, error) {
-	var result ExecutionRequests
-	var prevType *uint8
+	var (
+		result   ExecutionRequests
+		prevType *uint8
+		err      error
+	)
 
 	// Iterate over each encoded request group.
 	for _, encoded := range encodedRequests {
@@ -118,21 +121,17 @@ func DecodeExecutionRequests(encodedRequests [][]byte) (*ExecutionRequests, erro
 		// Switch based on the request type.
 		switch reqType {
 		case constants.DepositRequestType:
-			if err := sszutil.Unmarshal(data, &result.Deposits); err != nil {
+			if result.Deposits, err = DecodeDepositRequests(data); err != nil {
 				return nil, err
 			}
 		case constants.WithdrawalRequestType:
-			req, err := DecodeWithdrawalRequests(data)
-			if err != nil {
+			if result.Withdrawals, err = DecodeWithdrawalRequests(data); err != nil {
 				return nil, err
 			}
-			result.Withdrawals = req
 		case constants.ConsolidationRequestType:
-			req, err := DecodeConsolidationRequests(data)
-			if err != nil {
+			if result.Consolidations, err = DecodeConsolidationRequests(data); err != nil {
 				return nil, err
 			}
-			result.Consolidations = req
 		default:
 			return nil, fmt.Errorf("unsupported request type %d", reqType)
 		}
@@ -146,25 +145,13 @@ func DecodeExecutionRequests(encodedRequests [][]byte) (*ExecutionRequests, erro
 /* -------------------------------------------------------------------------- */
 
 func (e *ExecutionRequests) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineSliceOfStaticObjectsOffset(
-		codec, (*[]*DepositRequest)(&e.Deposits), constants.MaxDepositRequestsPerPayload,
-	)
-	ssz.DefineSliceOfStaticObjectsOffset(
-		codec, (*[]*WithdrawalRequest)(&e.Withdrawals), constants.MaxWithdrawalRequestsPerPayload,
-	)
-	ssz.DefineSliceOfStaticObjectsOffset(
-		codec, (*[]*ConsolidationRequest)(&e.Consolidations), constants.MaxConsolidationRequestsPerPayload,
-	)
+	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Deposits, constants.MaxDepositRequestsPerPayload)
+	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Withdrawals, constants.MaxWithdrawalRequestsPerPayload)
+	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Consolidations, constants.MaxConsolidationRequestsPerPayload)
 
-	ssz.DefineSliceOfStaticObjectsContent(
-		codec, (*[]*DepositRequest)(&e.Deposits), constants.MaxDepositRequestsPerPayload,
-	)
-	ssz.DefineSliceOfStaticObjectsContent(
-		codec, (*[]*WithdrawalRequest)(&e.Withdrawals), constants.MaxWithdrawalRequestsPerPayload,
-	)
-	ssz.DefineSliceOfStaticObjectsContent(
-		codec, (*[]*ConsolidationRequest)(&e.Consolidations), constants.MaxConsolidationRequestsPerPayload,
-	)
+	ssz.DefineSliceOfStaticObjectsContent(codec, &e.Deposits, constants.MaxDepositRequestsPerPayload)
+	ssz.DefineSliceOfStaticObjectsContent(codec, &e.Withdrawals, constants.MaxWithdrawalRequestsPerPayload)
+	ssz.DefineSliceOfStaticObjectsContent(codec, &e.Consolidations, constants.MaxConsolidationRequestsPerPayload)
 }
 
 func (e *ExecutionRequests) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {

@@ -25,6 +25,7 @@ import (
 
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	sszutil "github.com/berachain/beacon-kit/primitives/encoding/ssz"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -33,12 +34,22 @@ import (
 
 const sszWithdrawRequestSize = 76 // ExecutionAddress = 20, ValidatorPubKey = 48, Amount = 8
 
+// Compile-time check to ensure WithdrawalRequest implements the necessary interfaces.
+var (
+	_ ssz.StaticObject            = (*WithdrawalRequest)(nil)
+	_ constraints.SSZMarshallable = (*WithdrawalRequest)(nil)
+)
+
 // WithdrawalRequest is introduced in EIP7002 which we use for withdrawals.
 type WithdrawalRequest struct {
 	SourceAddress   common.ExecutionAddress
 	ValidatorPubKey crypto.BLSPubkey
 	Amount          math.Gwei
 }
+
+/* -------------------------------------------------------------------------- */
+/*                        Withdrawal Request SSZ                              */
+/* -------------------------------------------------------------------------- */
 
 func (w *WithdrawalRequest) ValidateAfterDecodingSSZ() error {
 	return nil
@@ -64,12 +75,39 @@ func (w *WithdrawalRequest) HashTreeRoot() common.Root {
 	return ssz.HashSequential(w)
 }
 
+/* -------------------------------------------------------------------------- */
+/*                       Withdrawal Requests SSZ                              */
+/* -------------------------------------------------------------------------- */
+
+// Compile-time check to ensure WithdrawalRequests implements the necessary interfaces.
+var _ constraints.SSZMarshallable = (*WithdrawalRequests)(nil)
+
 // WithdrawalRequests is used for SSZ unmarshalling a list of WithdrawalRequest
 type WithdrawalRequests []*WithdrawalRequest
 
 // MarshalSSZ marshals the WithdrawalRequests object to SSZ format by encoding each deposit individually.
 func (wr WithdrawalRequests) MarshalSSZ() ([]byte, error) {
 	return sszutil.MarshalItemsEIP7685(wr)
+}
+
+func (wr WithdrawalRequests) DefineSSZ(codec *ssz.Codec) {
+	ssz.DefineSliceOfStaticObjectsOffset(
+		codec, (*[]*WithdrawalRequest)(&wr), constants.MaxWithdrawalRequestsPerPayload,
+	)
+	ssz.DefineSliceOfStaticObjectsContent(
+		codec, (*[]*WithdrawalRequest)(&wr), constants.MaxWithdrawalRequestsPerPayload,
+	)
+}
+
+// ValidateAfterDecodingSSZ validates the WithdrawalRequests object after decoding.
+func (wr WithdrawalRequests) ValidateAfterDecodingSSZ() error {
+	if len(wr) > constants.MaxWithdrawalRequestsPerPayload {
+		return fmt.Errorf(
+			"invalid number of withdrawal requests, got %d max %d",
+			len(wr), constants.MaxWithdrawalRequestsPerPayload,
+		)
+	}
+	return nil
 }
 
 // DecodeWithdrawalRequests decodes SSZ data by decoding each withdrawal individually.
@@ -82,17 +120,16 @@ func DecodeWithdrawalRequests(data []byte) (WithdrawalRequests, error) {
 		)
 	}
 	if len(data) < sszWithdrawRequestSize {
-		return nil, fmt.Errorf("invalid withdrawal requests SSZ size, got %d expected at least %d", len(data), sszWithdrawRequestSize)
+		return nil, fmt.Errorf(
+			"invalid withdrawal requests SSZ size, got %d expected at least %d",
+			len(data), sszWithdrawRequestSize,
+		)
 	}
-	// Use the generic unmarshalItems helper.
-	items, err := sszutil.UnmarshalItemsEIP7685(
+
+	// Use the EIP-7685 unmarshalItems helper.
+	return sszutil.UnmarshalItemsEIP7685(
 		data,
 		sszWithdrawRequestSize,
 		func() *WithdrawalRequest { return new(WithdrawalRequest) },
 	)
-	if err != nil {
-		return nil, err
-	}
-	withdrawals := WithdrawalRequests(items)
-	return withdrawals, nil
 }

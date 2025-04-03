@@ -344,8 +344,7 @@ func TestDepositRequests_ValidValuesSSZ(t *testing.T) {
 // Tests below are adapted from Prysm
 // https://github.com/prysmaticlabs/prysm/blob/develop/proto/engine/v1/electra_test.go#L198-L240
 
-// Modified from Prysm to include "04000000" at the beginning of payload.
-const depositRequestsSSZHex = "0x04000000706b000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+const depositRequestsSSZHex = "0x706b000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
 	"0000000000077630000000000000000000000000000000000000000000000000000000000007b00000000000000736967000000000000000" +
 	"0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
 	"00000000000000000000000000000000000000000000000000000000000c801000000000000706b000000000000000000000000000000000" +
@@ -358,8 +357,11 @@ func TestUnmarshalItems_OK(t *testing.T) {
 	t.Parallel()
 	drb, err := hexutil.Decode(depositRequestsSSZHex)
 	require.NoError(t, err)
-	var exampleRequest types.DepositRequests
-	err = ssz.Unmarshal(drb, &exampleRequest)
+	exampleRequest := &types.DepositRequest{}
+	depositRequests, err := ssz.UnmarshalItemsEIP7685(
+		drb,
+		int(exampleRequest.SizeSSZ(nil)),
+		func() *types.DepositRequest { return &types.DepositRequest{} })
 	require.NoError(t, err)
 
 	exampleRequest1 := &types.DepositRequest{
@@ -376,29 +378,26 @@ func TestUnmarshalItems_OK(t *testing.T) {
 		Signature:   crypto.BLSSignature(bytesutil.PadTo([]byte("sig"), 96)),
 		Index:       32,
 	}
-	require.Equal(t, types.DepositRequests{exampleRequest1, exampleRequest2}, exampleRequest)
+	require.Equal(t, []*types.DepositRequest{exampleRequest1, exampleRequest2}, depositRequests)
 }
 
 func TestMarshalItems_OK(t *testing.T) {
 	t.Parallel()
-	exampleRequest1 := types.DepositRequest{
+	exampleRequest1 := &types.DepositRequest{
 		Pubkey:      crypto.BLSPubkey(bytesutil.PadTo([]byte("pk"), 48)),
 		Credentials: types.WithdrawalCredentials(bytesutil.PadTo([]byte("wc"), 32)),
 		Amount:      123,
 		Signature:   crypto.BLSSignature(bytesutil.PadTo([]byte("sig"), 96)),
 		Index:       456,
 	}
-	exampleRequest2 := types.DepositRequest{
+	exampleRequest2 := &types.DepositRequest{
 		Pubkey:      crypto.BLSPubkey(bytesutil.PadTo([]byte("pk"), 48)),
 		Credentials: types.WithdrawalCredentials(bytesutil.PadTo([]byte("wc"), 32)),
 		Amount:      400,
 		Signature:   crypto.BLSSignature(bytesutil.PadTo([]byte("sig"), 96)),
 		Index:       32,
 	}
-	depositReqs := &types.DepositRequests{&exampleRequest1, &exampleRequest2}
-	drbs, err := depositReqs.MarshalSSZ()
+	drbs, err := ssz.MarshalItemsEIP7685([]*types.DepositRequest{exampleRequest1, exampleRequest2})
 	require.NoError(t, err)
-	drb, err := hexutil.Decode(depositRequestsSSZHex)
-	require.NoError(t, err)
-	require.Equal(t, drb, drbs)
+	require.Equal(t, depositRequestsSSZHex, hexutil.Encode(drbs))
 }

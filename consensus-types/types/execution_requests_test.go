@@ -313,7 +313,7 @@ func TestExecutionRequests_InvalidValuesUnmarshalSSZ(t *testing.T) {
 func TestDecodeExecutionRequests(t *testing.T) {
 	t.Parallel()
 	t.Run("All requests decode successfully", func(t *testing.T) {
-		depositRequestBytes, err := hexutil.Decode("0x04000000610000000000000000000000000000000000000000000000000000000" +
+		depositRequestBytes, err := hexutil.Decode("0x610000000000000000000000000000000000000000000000000000000" +
 			"000000000000000000000000000000000000000" +
 			"620000000000000000000000000000000000000000000000000000000000000000" +
 			"40597307000000630000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
@@ -339,7 +339,7 @@ func TestDecodeExecutionRequests(t *testing.T) {
 		require.Len(t, requests.Consolidations, 1)
 	})
 	t.Run("Excluded requests still decode successfully when one request is missing", func(t *testing.T) {
-		depositRequestBytes, err := hexutil.Decode("0x04000000610000000000000000000000000000000000000000000000000000000" +
+		depositRequestBytes, err := hexutil.Decode("0x610000000000000000000000000000000000000000000000000000000" +
 			"000000000000000000000000000000000000000" +
 			"620000000000000000000000000000000000000000000000000000000000000000" +
 			"405973070000006300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
@@ -414,14 +414,14 @@ func TestDecodeExecutionRequests(t *testing.T) {
 		require.ErrorContains(t, err, "requests should be in sorted order and unique")
 	})
 	t.Run("a duplicate withdrawals ( non 0 request type )request should fail", func(t *testing.T) {
-		depositRequestBytes, err := hexutil.Decode("0x0400000061000000000000000000000000000000000000000000000000000000" +
+		depositRequestBytes, err := hexutil.Decode("0x61000000000000000000000000000000000000000000000000000000" +
 			"0000000000000000000000000000000000000000" +
 			"620000000000000000000000000000000000000000000000000000000000000000" +
 			"4059730700000063000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
 			"000000000000000000000000000000000000000" +
 			"00000000000000000000000000000000000000000000000000000000000000000000000000000000")
 		require.NoError(t, err)
-		depositRequestBytes2, err := hexutil.Decode("0x0400000061000000000000000000000000000000000000000000000000000000" +
+		depositRequestBytes2, err := hexutil.Decode("0x61000000000000000000000000000000000000000000000000000000" +
 			"0000000000000000000000000000000000000000" +
 			"620000000000000000000000000000000000000000000000000000000000000000" +
 			"405973070000006300000000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
@@ -449,20 +449,20 @@ func TestDecodeExecutionRequests(t *testing.T) {
 			},
 		}
 		_, err = types.DecodeExecutionRequests(ebe.GetExecutionRequests())
-		require.ErrorContains(t, err, "unexpected EOF")
+		require.ErrorContains(t, err, "nvalid deposit requests SSZ size, got 0 expected at least 192")
 	})
 	t.Run("If deposit requests are over the max allowed per payload then we should error", func(t *testing.T) {
-		requests := make(types.DepositRequests, constants.MaxDepositRequestsPerPayload+1)
+		requests := make([]*enginev1.DepositRequest, constants.MaxDepositRequestsPerPayload+1)
 		for i := range requests {
-			requests[i] = &types.DepositRequest{
-				Pubkey:      crypto.BLSPubkey{1, 2, 3, 4, 5},
-				Credentials: types.WithdrawalCredentials{1, 2, 3, 4, 5},
-				Amount:      123,
-				Signature:   crypto.BLSSignature{1, 2, 3, 4, 5},
-				Index:       456,
+			requests[i] = &enginev1.DepositRequest{
+				Pubkey:                bytesutil.PadTo([]byte("pk"), 48),
+				WithdrawalCredentials: bytesutil.PadTo([]byte("wc"), 32),
+				Amount:                123,
+				Signature:             bytesutil.PadTo([]byte("sig"), 96),
+				Index:                 456,
 			}
 		}
-		by, err := requests.MarshalSSZ()
+		by, err := ssz.MarshalItemsEIP7685(requests)
 		require.NoError(t, err)
 		ebe := &enginev1.ExecutionBundleElectra{
 			ExecutionRequests: [][]byte{
@@ -470,7 +470,7 @@ func TestDecodeExecutionRequests(t *testing.T) {
 			},
 		}
 		_, err = types.DecodeExecutionRequests(ebe.GetExecutionRequests())
-		require.ErrorContains(t, err, "ssz: maximum item count exceeded: decoded 8193, max 8192")
+		require.ErrorContains(t, err, "invalid deposit requests SSZ size, requests should not be more than the max per payload")
 	})
 	t.Run("If withdrawal requests are over the max allowed per payload then we should error", func(t *testing.T) {
 		requests := make([]*enginev1.WithdrawalRequest, params.BeaconConfig().MaxWithdrawalRequestsPerPayload+1)
