@@ -144,7 +144,7 @@ func (s *BeaconKitE2ESuite) TestBeaconValidatorsWithIndices() {
 	s.Require().
 		True(validator.Validator.EffectiveBalance > 0, "Effective balance should be positive")
 	s.Require().
-		True(validator.Validator.EffectiveBalance <= 32e9, "Effective balance should not exceed 32 ETH")
+		True(validator.Validator.EffectiveBalance <= 250e12, "Effective balance should not exceed 250_000 ETH")
 
 	s.Require().
 		False(validator.Validator.Slashed, "Slashed status should not be true")
@@ -163,7 +163,7 @@ func (s *BeaconKitE2ESuite) TestBeaconValidatorsWithIndices() {
 	s.Require().
 		True(validator.Balance > 0, "Validator balance should be positive")
 	s.Require().
-		True(validator.Balance <= 32e9, "Validator balance should not exceed 32 ETH")
+		True(validator.Balance <= 250e12, "Validator balance should not exceed 250_000 ETH")
 }
 
 // TestValidatorsEmptyIndicesAndStatuses tests that querying validators with empty indices and empty statuses returns all validators.
@@ -272,8 +272,8 @@ func (s *BeaconKitE2ESuite) TestValidatorBalances() {
 	balanceMap := balancesResp.Data
 	for _, balance := range balanceMap {
 		s.Require().True(balance > 0, "Validator balance should be positive")
-		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
-		s.Require().True(balance <= 4e12, "Validator balance should not exceed 4e12 gwei (4000 BERA)")
+		// 10e15 Gwei = 10_000_000 * 10^9 Gwei = 10,000,000,000,000,000 Gwei = 10_000_000 BERA
+		s.Require().True(balance <= 10e15, "Validator balance should not exceed 10_000_000 BERA")
 	}
 }
 
@@ -299,8 +299,8 @@ func (s *BeaconKitE2ESuite) TestValidatorBalancesWithSpecificIndices() {
 		s.Require().NotNil(balance)
 		s.Require().Contains(indices, index)
 		s.Require().True(balance > 0, "Validator balance should be positive")
-		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
-		s.Require().True(balance <= 4e12, "Validator balance should not exceed 4000 BERA")
+		// 10e15 Gwei = 10_000_000 * 10^9 Gwei = 10,000,000,000,000,000 Gwei = 10_000_000 BERA
+		s.Require().True(balance <= 10e15, "Validator balance should not exceed 10_000_000 BERA")
 	}
 }
 
@@ -326,8 +326,8 @@ func (s *BeaconKitE2ESuite) TestValidatorBalancesMultipleIndices() {
 	for index, balance := range balancesResp.Data {
 		returnedIndices[index] = struct{}{}
 		s.Require().True(balance > 0)
-		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
-		s.Require().True(balance <= 4e12, "Validator balance should not exceed 4000 BERA")
+		// 10e15 Gwei = 10_000_000 * 10^9 Gwei = 10,000,000,000,000,000 Gwei = 10_000_000 BERA
+		s.Require().True(balance <= 10e15, "Validator balance should not exceed 10_000_000 BERA")
 	}
 	for _, idx := range indices {
 		_, exists := returnedIndices[idx]
@@ -379,8 +379,8 @@ func (s *BeaconKitE2ESuite) TestValidatorBalancesWithPubkey() {
 	for _, balance := range balancesResp.Data {
 		s.Require().NotNil(balance)
 		s.Require().True(balance > 0, "Validator balance should be positive")
-		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
-		s.Require().True(balance <= 4e12, "Validator balance should not exceed 4000 BERA")
+		// 10e15 Gwei = 10_000_000 * 10^9 Gwei = 10,000,000,000,000,000 Gwei = 10_000_000 BERA
+		s.Require().True(balance <= 10e15, "Validator balance should not exceed 10_000_000 BERA")
 	}
 }
 
@@ -582,8 +582,8 @@ func (s *BeaconKitE2ESuite) TestGetValidatorBalances() {
 
 	for _, balance := range *balancesResp {
 		s.Require().True(balance.Balance > 0, "Validator balance should be positive")
-		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
-		s.Require().True(balance.Balance <= 4e12, "Validator balance should not exceed 4000 BERA")
+		// 10e15 Gwei = 10_000_000 * 10^9 Gwei = 10,000,000,000,000,000 Gwei = 10_000_000 BERA
+		s.Require().True(balance.Balance <= 10e15, "Validator balance should not exceed 10_000_000 BERA")
 	}
 }
 
@@ -600,8 +600,8 @@ func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithSpecificID() {
 
 	s.Require().Len(*balancesResp, 1)
 	s.Require().True((*balancesResp)[0].Balance > 0, "Validator balance should be positive")
-	// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
-	s.Require().True((*balancesResp)[0].Balance <= 4e12, "Validator balance should not exceed 4000 BERA")
+	// 10e15 Gwei = 10_000_000 * 10^9 Gwei = 10,000,000,000,000,000 Gwei = 10_000_000 BERA
+	s.Require().True((*balancesResp)[0].Balance <= 10e15, "Validator balance should not exceed 10_000_000 BERA")
 }
 
 // TestGetValidatorBalancesWithMultipleIDs tests querying validator balances with multiple IDs.
@@ -621,8 +621,8 @@ func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithMultipleIDs() {
 
 	for _, balance := range *balancesResp {
 		s.Require().True(balance.Balance > 0, "Validator balance should be positive")
-		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
-		s.Require().True(balance.Balance <= 4e12, "Validator balance should not exceed 4000 BERA")
+		// 10e15 Gwei = 10_000_000 * 10^9 Gwei = 10,000,000,000,000,000 Gwei = 10_000_000 BERA
+		s.Require().True(balance.Balance <= 10e15, "Validator balance should not exceed 10_000_000 BERA")
 	}
 }
 
@@ -681,8 +681,8 @@ func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithPublicKey() {
 
 	s.Require().Len(*balancesResp, 1)
 	s.Require().True((*balancesResp)[0].Balance > 0, "Validator balance should be positive")
-	// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
-	s.Require().True((*balancesResp)[0].Balance <= 4e12, "Validator balance should not exceed 4000 BERA")
+	// 10e15 Gwei = 10_000_000 * 10^9 Gwei = 10,000,000,000,000,000 Gwei = 10_000_000 BERA
+	s.Require().True((*balancesResp)[0].Balance <= 10e15, "Validator balance should not exceed 10_000_000 BERA")
 }
 
 // TestGetValidatorBalancesWithInvalidPublicKey tests querying validator balances with invalid public key.
@@ -717,9 +717,9 @@ func (s *BeaconKitE2ESuite) TestGetValidatorBalancesForGenesis() {
 
 	for _, balance := range *balancesResp {
 		s.Require().True(balance.Balance > 0, "Validator balance should be positive")
-		// At genesis, the validator balance is 32 BERA.
-		// 32e9 Gwei = 32 * 10^9 Gwei = 32,000,000,000 Gwei = 32 BERA
-		s.Require().True(balance.Balance <= 32e9, "Validator balance should not exceed 32 BERA")
+		// At genesis, the validator balance is 250_000 BERA.
+		// 250e12 Gwei = 250_000 * 10^9 Gwei = 250,000,000,000,000 Gwei = 250_000 BERA
+		s.Require().True(balance.Balance <= 250e12, "Validator balance should not exceed 250_000 BERA")
 	}
 }
 
@@ -779,8 +779,8 @@ func (s *BeaconKitE2ESuite) TestGetValidatorsWithStateHead() {
 	for _, validator := range *validators {
 		s.Require().True(validator.Status == "active_ongoing")
 		s.Require().True(validator.Balance > 0, "Validator balance should be positive")
-		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
-		s.Require().True(validator.Balance <= 4e12, "Validator balance should not exceed 4000 BERA")
+		// 10e15 Gwei = 10_000_000 * 10^9 Gwei = 10,000,000,000,000,000 Gwei = 10_000_000 BERA
+		s.Require().True(validator.Balance <= 10e15, "Validator balance should not exceed 10_000_000 BERA")
 	}
 }
 
@@ -800,8 +800,8 @@ func (s *BeaconKitE2ESuite) TestGetValidatorsWithID() {
 	s.Require().Equal(uint64(0), (*validators)[0].Index, "Validator index should be 0")
 	s.Require().Equal("active_ongoing", (*validators)[0].Status, "Validator status should be active_ongoing")
 	s.Require().True((*validators)[0].Balance > 0, "Validator balance should be positive")
-	// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
-	s.Require().True((*validators)[0].Balance <= 4e12, "Validator balance should not exceed 4000 BERA")
+	// 10e15 Gwei = 10_000_000 * 10^9 Gwei = 10,000,000,000,000,000 Gwei = 10_000_000 BERA
+	s.Require().True((*validators)[0].Balance <= 10e15, "Validator balance should not exceed 10_000_000 BERA")
 }
 
 // TestGetValidatorsWithStatus tests querying validators with status parameter.
@@ -820,8 +820,8 @@ func (s *BeaconKitE2ESuite) TestGetValidatorsWithStatus() {
 	for _, validator := range *validators {
 		s.Require().Equal("active_ongoing", validator.Status, "Validator status should be active_ongoing")
 		s.Require().True(validator.Balance > 0, "Validator balance should be positive")
-		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
-		s.Require().True(validator.Balance <= 4e12, "Validator balance should not exceed 4000 BERA")
+		// 10e15 Gwei = 10_000_000 * 10^9 Gwei = 10,000,000,000,000,000 Gwei = 10_000_000 BERA
+		s.Require().True(validator.Balance <= 10e15, "Validator balance should not exceed 10_000_000 BERA")
 	}
 }
 
@@ -846,8 +846,8 @@ func (s *BeaconKitE2ESuite) TestGetValidatorsWithIDAndStatus() {
 	s.Require().Equal(uint64(0), (*validators)[0].Index, "Validator index should be 0")
 	s.Require().Equal("active_ongoing", (*validators)[0].Status, "Validator status should be active_ongoing")
 	s.Require().True((*validators)[0].Balance > 0, "Validator balance should be positive")
-	// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
-	s.Require().True((*validators)[0].Balance <= 4e12, "Validator balance should not exceed 4000 BERA")
+	// 10e15 Gwei = 10_000_000 * 10^9 Gwei = 10,000,000,000,000,000 Gwei = 10_000_000 BERA
+	s.Require().True((*validators)[0].Balance <= 10e15, "Validator balance should not exceed 10_000_000 BERA")
 }
 
 // TestGetValidatorsWithStateGenesis tests querying validators with state genesis.
@@ -864,8 +864,8 @@ func (s *BeaconKitE2ESuite) TestGetValidatorsWithStateGenesis() {
 	for _, validator := range *validators {
 		s.Require().True(validator.Status == "active_ongoing")
 		s.Require().True(validator.Balance > 0, "Validator balance should be positive")
-		// 32e9 Gwei = 32 * 10^9 Gwei = 32,000,000,000 Gwei = 32 BERA
-		s.Require().True(validator.Balance <= 32e9, "Validator balance should not exceed 32 BERA")
+		// 250e12 Gwei = 250_000 * 10^9 Gwei = 250,000,000,000,000 Gwei = 250_000 BERA
+		s.Require().True(validator.Balance <= 250e12, "Validator balance should not exceed 250_000 BERA")
 	}
 }
 
