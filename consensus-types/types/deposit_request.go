@@ -24,7 +24,8 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/primitives/constants"
-	"github.com/berachain/beacon-kit/primitives/eip7685"
+	sszutil "github.com/berachain/beacon-kit/primitives/encoding/ssz"
+	"github.com/karalabe/ssz"
 )
 
 // DepositRequest is introduced in EIP6110 which is currently not processed.
@@ -33,9 +34,25 @@ type DepositRequest = Deposit
 // DepositRequests is used for SSZ unmarshalling a list of DepositRequest
 type DepositRequests []*DepositRequest
 
+// SizeSSZ returns the size of the DepositRequests object in SSZ encoding.
+func (dr DepositRequests) SizeSSZ(siz *ssz.Sizer) uint32 {
+	return ssz.SizeSliceOfStaticObjects(siz, dr)
+}
+
+// DefineSSZ defines the SSZ encoding for the DepositRequests object.
+func (dr DepositRequests) DefineSSZ(codec *ssz.Codec) {
+	ssz.DefineSliceOfStaticObjectsOffset(codec, (*[]*DepositRequest)(&dr), constants.MaxDepositRequestsPerPayload)
+	ssz.DefineSliceOfStaticObjectsContent(codec, (*[]*DepositRequest)(&dr), constants.MaxDepositRequestsPerPayload)
+}
+
 // MarshalSSZ marshals the Deposits object to SSZ format by encoding each deposit individually.
 func (dr DepositRequests) MarshalSSZ() ([]byte, error) {
-	return eip7685.MarshalItems(dr)
+	return sszutil.MarshalItemsEIP7685(dr)
+}
+
+// ValidateAfterDecodingSSZ validates the DepositRequests object after decoding.
+func (dr DepositRequests) ValidateAfterDecodingSSZ() error {
+	return nil
 }
 
 // DecodeDepositRequests decodes SSZ data by decoding each request individually.
@@ -51,7 +68,11 @@ func DecodeDepositRequests(data []byte) (DepositRequests, error) {
 		return nil, fmt.Errorf("invalid deposit requests SSZ size, got %d expected at least %d", len(data), depositSize)
 	}
 	// Use the generic unmarshalItems helper.
-	items, err := eip7685.UnmarshalItems(data, depositSize, func() *DepositRequest { return new(DepositRequest) })
+	items, err := sszutil.UnmarshalItemsEIP7685(
+		data,
+		depositSize,
+		func() *DepositRequest { return new(DepositRequest) },
+	)
 	if err != nil {
 		return nil, err
 	}

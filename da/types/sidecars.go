@@ -94,12 +94,6 @@ func (bs *BlobSidecars) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 // MarshalSSZ marshals the BlobSidecars object to SSZ format.
 func (bs *BlobSidecars) MarshalSSZ() ([]byte, error) {
 	buf := make([]byte, ssz.Size(bs))
-	return bs.MarshalSSZTo(buf)
-}
-
-// MarshalSSZTo marshals the BlobSidecars object to the provided buffer in SSZ
-// format.
-func (bs *BlobSidecars) MarshalSSZTo(buf []byte) ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, bs)
 }
 

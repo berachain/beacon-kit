@@ -25,8 +25,8 @@ import (
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
 	"github.com/berachain/beacon-kit/primitives/math"
 	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
@@ -52,7 +52,7 @@ func TestSignedBeaconBlockHeader_Serialization(t *testing.T) {
 	require.NotNil(t, data)
 
 	unmarshalled := new(types.SignedBeaconBlockHeader)
-	err = constraints.SSZUnmarshal(data, unmarshalled)
+	err = ssz.Unmarshal(data, unmarshalled)
 	require.NoError(t, err)
 	require.Equal(t, orig, unmarshalled)
 
@@ -72,7 +72,7 @@ func TestSignedBeaconBlockHeader_EmptySerialization(t *testing.T) {
 	require.NotNil(t, data)
 
 	unmarshalled := new(types.SignedBeaconBlockHeader)
-	err = constraints.SSZUnmarshal(data, unmarshalled)
+	err = ssz.Unmarshal(data, unmarshalled)
 	require.NoError(t, err)
 	require.NotNil(t, unmarshalled)
 	require.NotNil(t, unmarshalled.GetHeader())
