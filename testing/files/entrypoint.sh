@@ -88,7 +88,7 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
       KZG_PATH=$network_dir/kzg-trusted-setup.json
 	else
 		./build/bin/beacond genesis add-premined-deposit --home $HOMEDIR $CHAIN_SPEC_ARG \
-			32000000000 0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4
+			250000000000000 0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4
 		./build/bin/beacond genesis collect-premined-deposits --home $HOMEDIR $CHAIN_SPEC_ARG
 		./build/bin/beacond genesis set-deposit-storage "$ETH_GENESIS" --home $HOMEDIR $CHAIN_SPEC_ARG
 		./build/bin/beacond genesis set-deposit-storage "$ETH_NETHER_GENESIS" --nethermind --home $HOMEDIR $CHAIN_SPEC_ARG

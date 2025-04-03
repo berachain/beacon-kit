@@ -33,7 +33,7 @@
             "args": [
                 "genesis",
                 "add-premined-deposit",
-                "32000000000",
+                "250000000000000",
                 "0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4",
                 "--home=${workspaceFolder}/.tmp/beacond",
             ],

@@ -123,7 +123,7 @@ func setupMockCLGenesis(t *testing.T, tmpDir string) string {
 				"deposits": []interface{}{
 					map[string]interface{}{
 						"data": map[string]interface{}{
-							"amount":               "32000000000",
+							"amount":               "250000000000000",
 							"pubkey":               "0x1234",
 							"withdrawal_address":   "0x5678",
 							"signature":            "0x9abc",
