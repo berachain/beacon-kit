@@ -191,7 +191,7 @@ func defaultConsensusSettings() ConsensusSettings {
 		},
 		AppConfig: AppConfig{
 			PayloadTimeout:                builderCfg.PayloadTimeout.String(),
-			EnableOptimisticPayloadBuilds: builderCfg.Enabled,
+			EnableOptimisticPayloadBuilds: false,
 		},
 	}
 }
