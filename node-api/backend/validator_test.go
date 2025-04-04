@@ -24,6 +24,7 @@ package backend_test
 
 import (
 	"context"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -84,11 +85,16 @@ func TestFilteredValidators(t *testing.T) {
 	cmtCfg := cmtcfg.DefaultConfig()
 	cmtCfg.SetRoot(tmpDir)
 
+	// Create config directory
+	configDir := filepath.Join(tmpDir, "config")
+	err = os.MkdirAll(configDir, 0o755)
+	require.NoError(t, err)
+
 	// Create app genesis
 	appGenesis := genutiltypes.NewAppGenesisWithVersion("test-chain", []byte("{}"))
 
 	// Save genesis file to the config directory
-	genesisFile := filepath.Join(tmpDir, "genesis.json")
+	genesisFile := filepath.Join(configDir, "genesis.json")
 	err = appGenesis.SaveAs(genesisFile)
 	require.NoError(t, err)
 
