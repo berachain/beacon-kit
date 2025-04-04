@@ -95,11 +95,11 @@ type DomainTypeSpec interface {
 type ForkSpec interface {
 	// Fork-related values.
 
-	// Deneb1ForkEpoch returns the epoch at which the Deneb1 fork takes effect.
-	Deneb1ForkEpoch() math.Epoch
+	// Deneb1ForkTime returns the time at which the Deneb1 fork takes effect.
+	Deneb1ForkTime() uint64
 
-	// ElectraForkEpoch returns the epoch at which the Electra fork takes effect.
-	ElectraForkEpoch() math.Epoch
+	// ElectraForkTime returns the time at which the Electra fork takes effect.
+	ElectraForkTime() uint64
 }
 
 type BlobSpec interface {
@@ -127,22 +127,19 @@ type BlobSpec interface {
 type ForkVersionSpec interface {
 	// Helpers for ChainSpecData
 
-	// ActiveForkVersionForSlot returns the active fork version for a given slot.
-	ActiveForkVersionForSlot(slot math.Slot) common.Version
-
-	// ActiveForkVersionForEpoch returns the active fork version for a given epoch.
-	ActiveForkVersionForEpoch(epoch math.Epoch) common.Version
+	// ActiveForkVersionForTimestamp returns the active fork version for a given timestamp.
+	ActiveForkVersionForTimestamp(timestamp math.U64) common.Version
 }
 
 type EVMInflationSpec interface {
 	// EVMInflationAddress returns the address on the EVM which will receive
 	// the inflation amount of native EVM balance through a withdrawal every
 	// block.
-	EVMInflationAddress(slot math.Slot) common.ExecutionAddress
+	EVMInflationAddress(timestamp math.U64) common.ExecutionAddress
 
 	// EVMInflationPerBlock returns the amount of native EVM balance (in Gwei)
 	// to be minted to the EVMInflationAddress via a withdrawal every block.
-	EVMInflationPerBlock(slot math.Slot) uint64
+	EVMInflationPerBlock(timestamp math.U64) uint64
 }
 
 type WithdrawalsSpec interface {
@@ -363,14 +360,14 @@ func (s spec) TargetSecondsPerEth1Block() uint64 {
 	return s.Data.TargetSecondsPerEth1Block
 }
 
-// Deneb1ForkEpoch returns the epoch of the Deneb1 fork.
-func (s spec) Deneb1ForkEpoch() math.Epoch {
-	return math.Epoch(s.Data.Deneb1ForkEpoch)
+// Deneb1ForkTime returns the epoch of the Deneb1 fork.
+func (s spec) Deneb1ForkTime() uint64 {
+	return s.Data.Deneb1ForkTime
 }
 
-// ElectraForkEpoch returns the epoch of the Electra fork.
-func (s spec) ElectraForkEpoch() math.Epoch {
-	return math.Epoch(s.Data.ElectraForkEpoch)
+// ElectraForkTime returns the epoch of the Electra fork.
+func (s spec) ElectraForkTime() uint64 {
+	return s.Data.ElectraForkTime
 }
 
 // EpochsPerHistoricalVector returns the number of epochs per historical vector.
@@ -448,8 +445,8 @@ func (s spec) ValidatorSetCap() uint64 {
 
 // EVMInflationAddress returns the address on the EVM which will receive the
 // inflation amount of native EVM balance through a withdrawal every block.
-func (s spec) EVMInflationAddress(slot math.Slot) common.ExecutionAddress {
-	fv := s.ActiveForkVersionForSlot(slot)
+func (s spec) EVMInflationAddress(timestamp math.U64) common.ExecutionAddress {
+	fv := s.ActiveForkVersionForTimestamp(timestamp)
 	switch fv {
 	case version.Deneb1(), version.Electra():
 		return s.Data.EVMInflationAddressDeneb1
@@ -462,8 +459,8 @@ func (s spec) EVMInflationAddress(slot math.Slot) common.ExecutionAddress {
 
 // EVMInflationPerBlock returns the amount of native EVM balance (in Gwei) to
 // be minted to the EVMInflationAddress via a withdrawal every block.
-func (s spec) EVMInflationPerBlock(slot math.Slot) uint64 {
-	fv := s.ActiveForkVersionForSlot(slot)
+func (s spec) EVMInflationPerBlock(timestamp math.U64) uint64 {
+	fv := s.ActiveForkVersionForTimestamp(timestamp)
 	switch fv {
 	case version.Deneb1(), version.Electra():
 		return s.Data.EVMInflationPerBlockDeneb1

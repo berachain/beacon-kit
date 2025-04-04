@@ -25,8 +25,10 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/prysmaticlabs/prysm/v5/encoding/bytesutil"
 	enginev1 "github.com/prysmaticlabs/prysm/v5/proto/engine/v1"
 	"github.com/stretchr/testify/require"
 )
@@ -193,7 +195,7 @@ func TestDepositRequest_ValidValuesSSZ(t *testing.T) {
 
 			// Unmarshal back into a new DepositRequest.
 			var recomputedDepositRequest types.DepositRequest
-			err = constraints.SSZUnmarshal(prysmDepositBytes, &recomputedDepositRequest)
+			err = ssz.Unmarshal(prysmDepositBytes, &recomputedDepositRequest)
 			require.NoError(t, err)
 
 			// Compare that the original and recomputed deposit requests match.
@@ -266,7 +268,7 @@ func TestDepositRequest_InvalidValuesUnmarshalSSZ(t *testing.T) {
 		t.Run(fmt.Sprintf("invalidPayload_%d", i), func(t *testing.T) {
 			require.NotPanics(t, func() {
 				var d types.DepositRequest
-				err = constraints.SSZUnmarshal(payload, &d)
+				err = ssz.Unmarshal(payload, &d)
 				// We expect an error for every invalid payload.
 				require.Error(t, err, "expected error for payload %v", payload)
 			})
@@ -329,12 +331,72 @@ func TestDepositRequests_ValidValuesSSZ(t *testing.T) {
 			require.NoError(t, err)
 
 			// Unmarshal back into a new DepositRequest.
-			var recomputedDepositRequest types.DepositRequests
-			recomputedDepositRequest, err = types.DecodeDepositRequests(depositRequestBytes)
+			recomputedDepositRequest, err := types.DecodeDepositRequests(depositRequestBytes)
 			require.NoError(t, err)
 
 			// Compare that the original and recomputed deposit requests match.
 			require.Equal(t, tc.depositRequest, recomputedDepositRequest)
 		})
 	}
+}
+
+// Tests below are adapted from Prysm
+// https://github.com/prysmaticlabs/prysm/blob/develop/proto/engine/v1/electra_test.go#L198-L240
+
+const depositRequestsSSZHex = "0x706b000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+	"0000000000077630000000000000000000000000000000000000000000000000000000000007b00000000000000736967000000000000000" +
+	"0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+	"00000000000000000000000000000000000000000000000000000000000c801000000000000706b000000000000000000000000000000000" +
+	"0000000000000000000000000000000000000000000000000000000000077630000000000000000000000000000000000000000000000000" +
+	"000000000009001000000000000736967000000000000000000000000000000000000000000000000000000000000000000000000000000" +
+	"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020" +
+	"00000000000000"
+
+func TestUnmarshalItems_OK(t *testing.T) {
+	t.Parallel()
+	drb, err := hexutil.Decode(depositRequestsSSZHex)
+	require.NoError(t, err)
+	exampleRequest := &types.DepositRequest{}
+	depositRequests, err := ssz.UnmarshalItemsEIP7685(
+		drb,
+		int(exampleRequest.SizeSSZ(nil)),
+		func() *types.DepositRequest { return &types.DepositRequest{} })
+	require.NoError(t, err)
+
+	exampleRequest1 := &types.DepositRequest{
+		Pubkey:      crypto.BLSPubkey(bytesutil.PadTo([]byte("pk"), 48)),
+		Credentials: types.WithdrawalCredentials(bytesutil.PadTo([]byte("wc"), 32)),
+		Amount:      123,
+		Signature:   crypto.BLSSignature(bytesutil.PadTo([]byte("sig"), 96)),
+		Index:       456,
+	}
+	exampleRequest2 := &types.DepositRequest{
+		Pubkey:      crypto.BLSPubkey(bytesutil.PadTo([]byte("pk"), 48)),
+		Credentials: types.WithdrawalCredentials(bytesutil.PadTo([]byte("wc"), 32)),
+		Amount:      400,
+		Signature:   crypto.BLSSignature(bytesutil.PadTo([]byte("sig"), 96)),
+		Index:       32,
+	}
+	require.Equal(t, []*types.DepositRequest{exampleRequest1, exampleRequest2}, depositRequests)
+}
+
+func TestMarshalItems_OK(t *testing.T) {
+	t.Parallel()
+	exampleRequest1 := &types.DepositRequest{
+		Pubkey:      crypto.BLSPubkey(bytesutil.PadTo([]byte("pk"), 48)),
+		Credentials: types.WithdrawalCredentials(bytesutil.PadTo([]byte("wc"), 32)),
+		Amount:      123,
+		Signature:   crypto.BLSSignature(bytesutil.PadTo([]byte("sig"), 96)),
+		Index:       456,
+	}
+	exampleRequest2 := &types.DepositRequest{
+		Pubkey:      crypto.BLSPubkey(bytesutil.PadTo([]byte("pk"), 48)),
+		Credentials: types.WithdrawalCredentials(bytesutil.PadTo([]byte("wc"), 32)),
+		Amount:      400,
+		Signature:   crypto.BLSSignature(bytesutil.PadTo([]byte("sig"), 96)),
+		Index:       32,
+	}
+	drbs, err := ssz.MarshalItemsEIP7685([]*types.DepositRequest{exampleRequest1, exampleRequest2})
+	require.NoError(t, err)
+	require.Equal(t, depositRequestsSSZHex, hexutil.Encode(drbs))
 }

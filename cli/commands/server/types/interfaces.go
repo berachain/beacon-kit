@@ -18,39 +18,16 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package constants
+package types
 
-const (
-	// BytesPerChunk is the number of bytes per chunk.
-	BytesPerChunk = 32
-
-	// BytesPerLengthOffset is the number of bytes per serialized length offset.
-	BytesPerLengthOffset = 4
-
-	// BitsPerByte is the number of bits per byte.
-	BitsPerByte = 8
-
-	// ByteSize is the size of a single byte.
-	ByteSize uint32 = 1
-
-	// BoolSize is the size of a boolean in bytes.
-	BoolSize uint32 = 1
-
-	// U8Size is the size of an 8-bit unsigned integer in bytes.
-	U8Size uint32 = 1
-
-	// U16Size is the size of a 16-bit unsigned integer in bytes.
-	U16Size uint32 = 2
-
-	// U32Size is the size of a 32-bit unsigned integer in bytes.
-	U32Size uint32 = 4
-
-	// U64Size is the size of a 64-bit unsigned integer in bytes.
-	U64Size uint32 = 8
-
-	// U128Size is the size of a 128-bit unsigned integer in bytes.
-	U128Size uint32 = 16
-
-	// U256Size is the size of a 256-bit unsigned integer in bytes.
-	U256Size uint32 = 32
-)
+// AppOptions defines an interface that is passed into an application
+// constructor, typically used to set BaseApp options that are either
+// supplied via config file or through CLI arguments/flags. The underlying
+// implementation
+// is defined by the server package and is typically implemented via a Viper
+// literal defined on the server Context. Note, casting Get calls may not
+// yield the expected types and could result in type assertion errors. It is
+// recommended to either use the cast package or perform manual conversion for safety.
+type AppOptions interface {
+	Get(string) interface{}
+}

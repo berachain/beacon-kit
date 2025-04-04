@@ -38,8 +38,20 @@ const (
 	// of Gwei) that can be staked.
 	devnetMaxStakeAmount = 4000 * params.GWei
 
-	// devnetDeneb1ForkEpoch is the epoch at which the Deneb1 fork occurs.
-	devnetDeneb1ForkEpoch = 1
+	// devnetDeneb1ForkTime is the timestamp at which the Deneb1 fork occurs.
+	// A value of 64 is set for the fork to occur 64 seconds into the test,
+	// which is approximately 1 epoch.
+	// TODO(fork): Make devnet fork time take place during each devnet test.
+	//  devnetDeneb1ForkTime is the UNIX timestamp of when the deneb1 fork occurs. If this value
+	//  is 64, it means that the deneb1 fork occurred 64 seconds into 1970 at the start of UNIX
+	//  time. Since e2e tests start at `time.Now()`, we would be significantly past the fork time.
+	//  To make this fork time happen during an e2e test, we must either:
+	//     a. find a way to set the fork time as an offset from genesis time
+	//     b. trick `time.Now()` into thinking it's at the UNIX Epoch.
+	devnetDeneb1ForkTime = 1 * defaultSlotsPerEpoch * defaultTargetSecondsPerEth1Block
+
+	// devnetElectraForkTime is the timestamp at which the Electra fork occurs.
+	devnetElectraForkTime = defaultElectraForkTime
 
 	// devnetEVMInflationAddressDeneb1 is the address of the EVM inflation contract
 	// after the Deneb1 fork.
@@ -58,8 +70,9 @@ func DevnetChainSpecData() *chain.SpecData {
 	specData := MainnetChainSpecData()
 	specData.DepositEth1ChainID = DevnetEth1ChainID
 
-	// Deneb1 fork takes place at epoch 1.
-	specData.Deneb1ForkEpoch = devnetDeneb1ForkEpoch
+	// Fork timings are set to facilitate local testing across fork versions.
+	specData.Deneb1ForkTime = devnetDeneb1ForkTime
+	specData.ElectraForkTime = devnetElectraForkTime
 
 	// EVM inflation is different from mainnet to test.
 	specData.EVMInflationAddressGenesis = common.NewExecutionAddressFromHex(devnetEVMInflationAddress)

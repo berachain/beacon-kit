@@ -134,8 +134,11 @@ func (s *PectraSuite) TestFullLifecycle_WithoutRequests_IsSuccessful() {
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
 
+	// Test happens post Electra fork.
+	startTime := time.Now()
+
 	// Go through iterations of the core loop.
-	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner)
+	proposals, _ := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 }
 
@@ -176,7 +179,10 @@ func (s *PectraSuite) TestFullLifecycle_WithRequests_IsSuccessful() {
 	err = s.TestNode.EngineClient.Call(s.CtxApp, &result, "eth_sendRawTransaction", hexutil.Encode(txBytes))
 	s.Require().NoError(err)
 
+	// Test happens post Electra fork.
+	startTime := time.Now()
+
 	// Go through iterations of the core loop.
-	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner)
+	proposals, _ := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 }

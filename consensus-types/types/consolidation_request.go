@@ -24,13 +24,20 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/eip7685"
+	sszutil "github.com/berachain/beacon-kit/primitives/encoding/ssz"
 	"github.com/karalabe/ssz"
 )
 
-const maxConsolidationRequestsPerPayload = 2
 const sszConsolidationRequestSize = 116
+
+// Compile-time check to ensure ConsolidationRequest implements the necessary interfaces.
+var (
+	_ ssz.StaticObject            = (*ConsolidationRequest)(nil)
+	_ constraints.SSZMarshallable = (*ConsolidationRequest)(nil)
+)
 
 // ConsolidationRequest is introduced in Pectra but not used by us.
 // We keep it so we can maintain parity tests with other SSZ implementations.
@@ -40,16 +47,13 @@ type ConsolidationRequest struct {
 	TargetPubKey  crypto.BLSPubkey
 }
 
+/* -------------------------------------------------------------------------- */
+/*                       Consolidation Request SSZ                            */
+/* -------------------------------------------------------------------------- */
+
 func (c *ConsolidationRequest) ValidateAfterDecodingSSZ() error {
 	return nil
 }
-
-// ConsolidationRequests is used for SSZ unmarshalling a list of ConsolidationRequest
-type ConsolidationRequests []*ConsolidationRequest
-
-/* -------------------------------------------------------------------------- */
-/*                       Consolidation Requests SSZ                           */
-/* -------------------------------------------------------------------------- */
 
 func (c *ConsolidationRequest) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineStaticBytes(codec, &c.SourceAddress)
@@ -71,39 +75,58 @@ func (c *ConsolidationRequest) HashTreeRoot() common.Root {
 	return ssz.HashSequential(c)
 }
 
+/* -------------------------------------------------------------------------- */
+/*                       Consolidation Requests SSZ                           */
+/* -------------------------------------------------------------------------- */
+
+// Compile-time check to ensure ConsolidationRequests implements the necessary interfaces.
+var _ constraints.SSZMarshaler = (*ConsolidationRequests)(nil)
+
+// ConsolidationRequests is used for SSZ unmarshalling a list of ConsolidationRequest
+type ConsolidationRequests []*ConsolidationRequest
+
 // MarshalSSZ marshals the ConsolidationRequests object to SSZ format by encoding each consolidation request individually.
-func (cr *ConsolidationRequests) MarshalSSZ() ([]byte, error) {
-	return eip7685.MarshalItems[*ConsolidationRequest](*cr)
+func (cr ConsolidationRequests) MarshalSSZ() ([]byte, error) {
+	return sszutil.MarshalItemsEIP7685(cr)
+}
+
+// ValidateAfterDecodingSSZ validates the ConsolidationRequests object after decoding.
+func (cr ConsolidationRequests) ValidateAfterDecodingSSZ() error {
+	if len(cr) > constants.MaxConsolidationRequestsPerPayload {
+		return fmt.Errorf(
+			"invalid number of consolidation requests, got %d max %d",
+			len(cr), constants.MaxConsolidationRequestsPerPayload,
+		)
+	}
+	return nil
 }
 
 // DecodeConsolidationRequests decodes SSZ data by decoding each request individually.
 func DecodeConsolidationRequests(data []byte) (ConsolidationRequests, error) {
-	maxSize := maxConsolidationRequestsPerPayload * sszConsolidationRequestSize
+	maxSize := constants.MaxConsolidationRequestsPerPayload * sszConsolidationRequestSize
 	if len(data) > maxSize {
 		return nil, fmt.Errorf(
 			"invalid consolidation requests SSZ size, requests should not be more than the "+
 				"max per payload, got %d max %d", len(data), maxSize,
 		)
 	}
-	requestSize := int(ssz.Size(&ConsolidationRequest{}))
-	if len(data) < requestSize {
+	if len(data) < sszConsolidationRequestSize {
 		return nil, fmt.Errorf(
-			"invalid consolidation requests SSZ size, got %d expected at least %d", len(data), requestSize,
+			"invalid consolidation requests SSZ size, got %d expected at least %d",
+			len(data), sszConsolidationRequestSize,
 		)
 	}
-	if len(data)%requestSize != 0 {
+	if len(data)%sszConsolidationRequestSize != 0 {
 		return nil, fmt.Errorf(
-			"invalid data length: %d is not a multiple of consolidation request size %d", len(data), requestSize,
+			"invalid data length: %d is not a multiple of consolidation request size %d",
+			len(data), sszConsolidationRequestSize,
 		)
 	}
-	items, err := eip7685.UnmarshalItems[*ConsolidationRequest](
+
+	// Use the EIP-7685 unmarshalItems helper.
+	return sszutil.UnmarshalItemsEIP7685(
 		data,
-		requestSize,
+		sszConsolidationRequestSize,
 		func() *ConsolidationRequest { return new(ConsolidationRequest) },
 	)
-	if err != nil {
-		return nil, err
-	}
-	consolidationRequests := ConsolidationRequests(items)
-	return consolidationRequests, nil
 }

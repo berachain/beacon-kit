@@ -69,14 +69,12 @@ func BuildNewPayloadRequestFromFork(blk *BeaconBlock) (NewPayloadRequest, error)
 		}, nil
 	}
 	if version.Equals(blk.GetForkVersion(), version.Electra()) {
-		var executionRequestsList []EncodedExecutionRequest
 		// If we're post-electra, we set execution requests.
-		var executionRequests *ExecutionRequests
 		executionRequests, err := body.GetExecutionRequests()
 		if err != nil {
 			return nil, err
 		}
-		executionRequestsList, err = GetExecutionRequestsList(executionRequests)
+		executionRequestsList, err := GetExecutionRequestsList(executionRequests)
 		if err != nil {
 			return nil, err
 		}

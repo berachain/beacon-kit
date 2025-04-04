@@ -35,7 +35,6 @@ func DefaultComponents() []any {
 		components.ProvideBlobProofVerifier,
 		components.ProvideChainService,
 		components.ProvideNode,
-		components.ProvideChainSpec,
 		components.ProvideConfig,
 		components.ProvideServerConfig,
 		components.ProvideDepositStore,

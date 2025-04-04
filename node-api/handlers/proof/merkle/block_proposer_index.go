@@ -24,7 +24,7 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/encoding/ssz/merkle"
+	"github.com/berachain/beacon-kit/primitives/merkle"
 )
 
 // ProveProposerIndexInBlock generates a proof for the proposer index in the
@@ -68,13 +68,10 @@ func verifyProposerIndexInBlock(
 	bbh *ctypes.BeaconBlockHeader, proof []common.Root, leaf common.Root,
 ) (common.Root, error) {
 	beaconRoot := bbh.HashTreeRoot()
-	if beaconRootVerified, err := merkle.VerifyProof(
-		ProposerIndexGIndexDenebBlock, leaf, proof, beaconRoot,
-	); err != nil {
-		return common.Root{}, err
-	} else if !beaconRootVerified {
-		return common.Root{}, errors.New(
-			"proposer index proof failed to verify against beacon root",
+	if !merkle.VerifyProof(beaconRoot, leaf, ProposerIndexGIndexDenebBlock, proof) {
+		return common.Root{}, errors.Wrapf(
+			errors.New("proposer index proof failed to verify against beacon root"),
+			"beacon root: 0x%s", beaconRoot,
 		)
 	}
 
