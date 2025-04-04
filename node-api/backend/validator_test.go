@@ -24,6 +24,7 @@ package backend_test
 
 import (
 	"context"
+	"path/filepath"
 	"testing"
 
 	"cosmossdk.io/log"
@@ -51,6 +52,7 @@ import (
 	cmtcfg "github.com/cometbft/cometbft/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -75,7 +77,20 @@ func TestFilteredValidators(t *testing.T) {
 		nodemetrics.NewNoOpTelemetrySink(),
 	)
 
-	cmtCfg := &cmtcfg.Config{}
+	// Create a temporary directory for CometBFT config
+	tmpDir := t.TempDir()
+
+	// Create CometBFT config with temporary directory
+	cmtCfg := cmtcfg.DefaultConfig()
+	cmtCfg.SetRoot(tmpDir)
+
+	// Create app genesis
+	appGenesis := genutiltypes.NewAppGenesisWithVersion("test-chain", []byte("{}"))
+
+	// Save genesis file to the config directory
+	genesisFile := filepath.Join(tmpDir, "genesis.json")
+	err = appGenesis.SaveAs(genesisFile)
+	require.NoError(t, err)
 
 	b, err := backend.New(sb, cs, sp, cmtCfg)
 	require.NoError(t, err)
