@@ -25,8 +25,8 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/merkle"
 )
 
 // ProveProposerPubkeyInBlock generates a proof for the proposer pubkey in the
@@ -109,14 +109,12 @@ func verifyProposerInBlock(
 	leaf common.Root,
 ) (common.Root, error) {
 	beaconRoot := bbh.HashTreeRoot()
-	if beaconRootVerified, err := merkle.VerifyProof(
-		merkle.GeneralizedIndex(ZeroValidatorPubkeyGIndexDenebBlock+valOffset),
-		leaf, proof, beaconRoot,
-	); err != nil {
-		return common.Root{}, err
-	} else if !beaconRootVerified {
-		return common.Root{}, errors.New(
-			"proof failed to verify against beacon root",
+	if !merkle.VerifyProof(
+		beaconRoot, leaf, ZeroValidatorPubkeyGIndexDenebBlock+uint64(valOffset), proof,
+	) {
+		return common.Root{}, errors.Wrapf(
+			errors.New("proposer pubkey proof failed to verify against beacon root"),
+			"beacon root: 0x%s", beaconRoot,
 		)
 	}
 

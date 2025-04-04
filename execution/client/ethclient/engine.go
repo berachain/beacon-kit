@@ -40,14 +40,23 @@ func (s *Client) NewPayload(
 	ctx context.Context,
 	req ctypes.NewPayloadRequest,
 ) (*engineprimitives.PayloadStatusV1, error) {
+	forkVersion := req.GetForkVersion()
 	// Versions before Deneb are not supported for calling NewPayload.
-	if version.IsBefore(req.GetForkVersion(), version.Deneb()) {
+	if version.IsBefore(forkVersion, version.Deneb()) {
 		return nil, ErrInvalidVersion
 	}
-	forkVersion := req.GetForkVersion()
+
+	// Use V3 for Deneb versions (Deneb and Deneb1).
 	if version.Equals(forkVersion, version.Deneb()) || version.Equals(forkVersion, version.Deneb1()) {
-		return s.NewPayloadV3(ctx, req.GetExecutionPayload(), req.GetVersionedHashes(), req.GetParentBeaconBlockRoot())
+		return s.NewPayloadV3(
+			ctx,
+			req.GetExecutionPayload(),
+			req.GetVersionedHashes(),
+			req.GetParentBeaconBlockRoot(),
+		)
 	}
+
+	// Use V4 for Electra versions.
 	if version.Equals(forkVersion, version.Electra()) {
 		executionRequests, err := req.GetEncodedExecutionRequests()
 		if err != nil {
@@ -61,6 +70,7 @@ func (s *Client) NewPayload(
 			executionRequests,
 		)
 	}
+
 	return nil, ErrInvalidVersion
 }
 
@@ -151,9 +161,13 @@ func (s *Client) GetPayload(
 	if version.IsBefore(forkVersion, version.Deneb()) {
 		return nil, ErrInvalidVersion
 	}
-
-	// V3 is used for beacon versions Deneb and onwards.
-	return s.GetPayloadV3(ctx, payloadID, forkVersion)
+	if version.Equals(forkVersion, version.Deneb()) || version.Equals(forkVersion, version.Deneb1()) {
+		return s.GetPayloadV3(ctx, payloadID, forkVersion)
+	}
+	if version.Equals(forkVersion, version.Electra()) {
+		return s.GetPayloadV4(ctx, payloadID, forkVersion)
+	}
+	return nil, ErrInvalidVersion
 }
 
 // GetPayloadV3 calls the engine_getPayloadV3 method via JSON-RPC.
@@ -165,6 +179,19 @@ func (s *Client) GetPayloadV3(
 	result := ctypes.NewEmptyExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1](forkVersion)
 	if err := s.Call(ctx, result, GetPayloadMethodV3, payloadID); err != nil {
 		return nil, fmt.Errorf("failed GetPayloadV3 call: %w", err)
+	}
+	return result, nil
+}
+
+// GetPayloadV4 calls the engine_getPayloadV4 method via JSON-RPC.
+func (s *Client) GetPayloadV4(
+	ctx context.Context,
+	payloadID engineprimitives.PayloadID,
+	forkVersion common.Version,
+) (ctypes.BuiltExecutionPayloadEnv, error) {
+	result := ctypes.NewEmptyExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1](forkVersion)
+	if err := s.Call(ctx, result, GetPayloadMethodV4, payloadID); err != nil {
+		return nil, fmt.Errorf("failed GetPayloadV4 call: %w", err)
 	}
 	return result, nil
 }
