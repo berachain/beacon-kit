@@ -26,7 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-// GetGenesisValidatorsRoot returns the genesis validators root of the beacon chain.
+// GenesisValidatorsRoot returns the genesis validators root of the beacon chain.
 func (b *Backend) GenesisValidatorsRoot() (common.Root, error) {
 	// First check if the value is cached
 	root := b.genesisValidatorsRoot.Load()

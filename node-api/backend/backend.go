@@ -78,7 +78,7 @@ func New(
 	}
 
 	// Store the genesis time in the backend.
-	//nolint:gosec // not an issue in practice. As Unix time cannot be negative.
+	//#nosec: G115 // Unix time will never be negative.
 	genesisTime := math.U64(gen.GenesisTime.Unix())
 	b.genesisTime.Store(&genesisTime)
 
