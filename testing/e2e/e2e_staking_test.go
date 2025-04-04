@@ -59,7 +59,7 @@ type ValidatorTestStruct struct {
 // 2) Add staking tests for hitting the validator set cap and eviction.
 func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	// TODO: make test use configurable chain spec.
-	chainspec, err := spec.DevnetChainSpec()
+	chainSpec, err := spec.DevnetChainSpec()
 	s.Require().NoError(err)
 
 	weiPerGwei := big.NewInt(1e9)
@@ -81,10 +81,6 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 
 	// Get the chain ID.
 	chainID, err := s.JSONRPCBalancer().ChainID(s.Ctx())
-	s.Require().NoError(err)
-
-	// Get the chain spec used by the e2e nodes. TODO: make configurable.
-	chainSpec, err := spec.DevnetChainSpec()
 	s.Require().NoError(err)
 
 	// Bind the deposit contract.
@@ -221,7 +217,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	s.Logger().Info("Final deposit tx mined successfully", "hash", receipt.TxHash.Hex())
 
 	// Give time for the nodes to catch up.
-	err = s.WaitForNBlockNumbers(NumDepositsLoad / chainspec.MaxDepositsPerBlock())
+	err = s.WaitForNBlockNumbers(NumDepositsLoad / chainSpec.MaxDepositsPerBlock())
 	s.Require().NoError(err)
 
 	// Compare height of nodes 0 and 1
@@ -249,8 +245,8 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	// after the end of the epoch (next multiple of SlotsPerEpoch after receipt.BlockNumber).
 	blkNum, err = s.JSONRPCBalancer().BlockNumber(s.Ctx())
 	s.Require().NoError(err)
-	nextEpoch := chainspec.SlotToEpoch(math.Slot(blkNum)) + 1
-	nextEpochBlockNum := nextEpoch.Unwrap() * chainspec.SlotsPerEpoch()
+	nextEpoch := chainSpec.SlotToEpoch(math.Slot(blkNum)) + 1
+	nextEpochBlockNum := nextEpoch.Unwrap() * chainSpec.SlotsPerEpoch()
 	err = s.WaitForFinalizedBlockNumber(nextEpochBlockNum + 1)
 	s.Require().NoError(err)
 
