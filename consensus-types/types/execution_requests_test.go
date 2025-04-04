@@ -26,9 +26,9 @@ import (
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constraints"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/eip7685"
+	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/prysmaticlabs/prysm/v5/config/params"
 	"github.com/prysmaticlabs/prysm/v5/encoding/bytesutil"
@@ -237,7 +237,7 @@ func TestExecutionRequests_ValidValuesSSZ(t *testing.T) {
 
 			// Unmarshal back into a new ExecutionRequests.
 			var recomputedER types.ExecutionRequests
-			err = constraints.SSZUnmarshal(prysmERBytes, &recomputedER)
+			err = ssz.Unmarshal(prysmERBytes, &recomputedER)
 			require.NoError(t, err)
 
 			// Compare that the original and recomputed ExecutionRequests match.
@@ -300,24 +300,15 @@ func TestExecutionRequests_InvalidValuesUnmarshalSSZ(t *testing.T) {
 			// Ensure that calling UnmarshalSSZ with an invalid payload does not panic
 			// and returns a non-nil error.
 			require.NotPanics(t, func() {
-				err := constraints.SSZUnmarshal(payload, &er)
+				err := ssz.Unmarshal(payload, &er)
 				require.Error(t, err, "Expected error for payload %v", payload)
 			})
 		})
 	}
 }
 
-// All tests below are adapted from Prysm
-// https://github.com/prysmaticlabs/prysm/blob/e0e735470809df29c5404f64102ffbae5a574e0a/proto/engine/v1/electra_test.go#L13-L240
-
-var depositRequestsSSZHex = "0x706b000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
-	"0000000000077630000000000000000000000000000000000000000000000000000000000007b00000000000000736967000000000000000" +
-	"0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" +
-	"00000000000000000000000000000000000000000000000000000000000c801000000000000706b000000000000000000000000000000000" +
-	"0000000000000000000000000000000000000000000000000000000000077630000000000000000000000000000000000000000000000000" +
-	"000000000009001000000000000736967000000000000000000000000000000000000000000000000000000000000000000000000000000" +
-	"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020" +
-	"00000000000000"
+// Tests below are adapted from Prysm
+// https://github.com/prysmaticlabs/prysm/blob/develop/proto/engine/v1/electra_test.go#L15-L196
 
 func TestDecodeExecutionRequests(t *testing.T) {
 	t.Parallel()
@@ -458,10 +449,10 @@ func TestDecodeExecutionRequests(t *testing.T) {
 			},
 		}
 		_, err = types.DecodeExecutionRequests(ebe.GetExecutionRequests())
-		require.ErrorContains(t, err, "invalid deposit requests SSZ size")
+		require.ErrorContains(t, err, "invalid deposit requests SSZ size, got 0 expected at least 192")
 	})
 	t.Run("If deposit requests are over the max allowed per payload then we should error", func(t *testing.T) {
-		requests := make([]*enginev1.DepositRequest, types.MaxDepositRequestsPerPayload+1)
+		requests := make([]*enginev1.DepositRequest, constants.MaxDepositRequestsPerPayload+1)
 		for i := range requests {
 			requests[i] = &enginev1.DepositRequest{
 				Pubkey:                bytesutil.PadTo([]byte("pk"), 48),
@@ -471,7 +462,7 @@ func TestDecodeExecutionRequests(t *testing.T) {
 				Index:                 456,
 			}
 		}
-		by, err := eip7685.MarshalItems(requests)
+		by, err := ssz.MarshalItemsEIP7685(requests)
 		require.NoError(t, err)
 		ebe := &enginev1.ExecutionBundleElectra{
 			ExecutionRequests: [][]byte{
@@ -490,7 +481,7 @@ func TestDecodeExecutionRequests(t *testing.T) {
 				Amount:          55555,
 			}
 		}
-		by, err := eip7685.MarshalItems(requests)
+		by, err := ssz.MarshalItemsEIP7685(requests)
 		require.NoError(t, err)
 		ebe := &enginev1.ExecutionBundleElectra{
 			ExecutionRequests: [][]byte{
@@ -509,7 +500,7 @@ func TestDecodeExecutionRequests(t *testing.T) {
 				TargetPubkey:  bytesutil.PadTo([]byte("pk"), 48),
 			}
 		}
-		by, err := eip7685.MarshalItems(requests)
+		by, err := ssz.MarshalItemsEIP7685(requests)
 		require.NoError(t, err)
 		ebe := &enginev1.ExecutionBundleElectra{
 			ExecutionRequests: [][]byte{
@@ -530,53 +521,4 @@ func TestGetExecutionRequestsList(t *testing.T) {
 		require.NotNil(t, b)
 		require.Empty(t, b)
 	})
-}
-
-func TestUnmarshalItems_OK(t *testing.T) {
-	t.Parallel()
-	drb, err := hexutil.Decode(depositRequestsSSZHex)
-	require.NoError(t, err)
-	exampleRequest := &types.DepositRequest{}
-	depositRequests, err := eip7685.UnmarshalItems(
-		drb,
-		int(exampleRequest.SizeSSZ(nil)),
-		func() *types.DepositRequest { return &types.DepositRequest{} })
-	require.NoError(t, err)
-
-	exampleRequest1 := &types.DepositRequest{
-		Pubkey:      crypto.BLSPubkey(bytesutil.PadTo([]byte("pk"), 48)),
-		Credentials: types.WithdrawalCredentials(bytesutil.PadTo([]byte("wc"), 32)),
-		Amount:      123,
-		Signature:   crypto.BLSSignature(bytesutil.PadTo([]byte("sig"), 96)),
-		Index:       456,
-	}
-	exampleRequest2 := &types.DepositRequest{
-		Pubkey:      crypto.BLSPubkey(bytesutil.PadTo([]byte("pk"), 48)),
-		Credentials: types.WithdrawalCredentials(bytesutil.PadTo([]byte("wc"), 32)),
-		Amount:      400,
-		Signature:   crypto.BLSSignature(bytesutil.PadTo([]byte("sig"), 96)),
-		Index:       32,
-	}
-	require.Equal(t, []*types.DepositRequest{exampleRequest1, exampleRequest2}, depositRequests)
-}
-
-func TestMarshalItems_OK(t *testing.T) {
-	t.Parallel()
-	exampleRequest1 := &types.DepositRequest{
-		Pubkey:      crypto.BLSPubkey(bytesutil.PadTo([]byte("pk"), 48)),
-		Credentials: types.WithdrawalCredentials(bytesutil.PadTo([]byte("wc"), 32)),
-		Amount:      123,
-		Signature:   crypto.BLSSignature(bytesutil.PadTo([]byte("sig"), 96)),
-		Index:       456,
-	}
-	exampleRequest2 := &types.DepositRequest{
-		Pubkey:      crypto.BLSPubkey(bytesutil.PadTo([]byte("pk"), 48)),
-		Credentials: types.WithdrawalCredentials(bytesutil.PadTo([]byte("wc"), 32)),
-		Amount:      400,
-		Signature:   crypto.BLSSignature(bytesutil.PadTo([]byte("sig"), 96)),
-		Index:       32,
-	}
-	drbs, err := eip7685.MarshalItems([]*types.DepositRequest{exampleRequest1, exampleRequest2})
-	require.NoError(t, err)
-	require.Equal(t, depositRequestsSSZHex, hexutil.Encode(drbs))
 }

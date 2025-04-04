@@ -27,9 +27,9 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
+	sszutil "github.com/berachain/beacon-kit/primitives/encoding/ssz"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/math/log"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -202,7 +202,7 @@ func TestBeaconBlockBody_UnusedProposerSlashingsEnforcement(t *testing.T) {
 		require.NoError(t, err)
 
 		unmarshalledBody := types.NewEmptyBeaconBlockBodyWithVersion(v)
-		err = constraints.SSZUnmarshal(buf, unmarshalledBody)
+		err = sszutil.Unmarshal(buf, unmarshalledBody)
 		require.ErrorContains(t, err, "must be unused")
 	})
 }
@@ -225,7 +225,7 @@ func TestBeaconBlockBody_UnusedAttesterSlashingsEnforcement(t *testing.T) {
 		require.NoError(t, err)
 
 		unmarshalledBody := types.NewEmptyBeaconBlockBodyWithVersion(v)
-		err = constraints.SSZUnmarshal(buf, unmarshalledBody)
+		err = sszutil.Unmarshal(buf, unmarshalledBody)
 		require.ErrorContains(t, err, "must be unused")
 	})
 }
@@ -248,7 +248,7 @@ func TestBeaconBlockBody_UnusedAttestationsEnforcement(t *testing.T) {
 		require.NoError(t, err)
 
 		unmarshalledBody := types.NewEmptyBeaconBlockBodyWithVersion(v)
-		err = constraints.SSZUnmarshal(buf, unmarshalledBody)
+		err = sszutil.Unmarshal(buf, unmarshalledBody)
 		require.ErrorContains(t, err, "must be unused")
 	})
 }
@@ -271,7 +271,7 @@ func TestBeaconBlockBody_UnusedVoluntaryExitsEnforcement(t *testing.T) {
 		require.NoError(t, err)
 
 		unmarshalledBody := types.NewEmptyBeaconBlockBodyWithVersion(v)
-		err = constraints.SSZUnmarshal(buf, unmarshalledBody)
+		err = sszutil.Unmarshal(buf, unmarshalledBody)
 		require.ErrorContains(t, err, "must be unused")
 	})
 }
@@ -294,7 +294,7 @@ func TestBeaconBlockBody_UnusedBlsToExecutionChangesEnforcement(t *testing.T) {
 		require.NoError(t, err)
 
 		unmarshalledBody := types.NewEmptyBeaconBlockBodyWithVersion(v)
-		err = constraints.SSZUnmarshal(buf, unmarshalledBody)
+		err = sszutil.Unmarshal(buf, unmarshalledBody)
 		require.ErrorContains(t, err, "must be unused")
 	})
 }
@@ -308,7 +308,7 @@ func TestBeaconBlockBody_RoundTrip_HashTreeRoot(t *testing.T) {
 		require.NotNil(t, data)
 
 		unmarshalledBody := types.NewEmptyBeaconBlockBodyWithVersion(v)
-		err = constraints.SSZUnmarshal(data, unmarshalledBody)
+		err = sszutil.Unmarshal(data, unmarshalledBody)
 		require.NoError(t, err)
 		require.Equal(t, body.HashTreeRoot(), unmarshalledBody.HashTreeRoot())
 	})

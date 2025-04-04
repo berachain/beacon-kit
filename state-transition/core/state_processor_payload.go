@@ -27,6 +27,7 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"golang.org/x/sync/errgroup"
 )
@@ -57,6 +58,19 @@ func (sp *StateProcessor) processExecutionPayload(
 		"consensus timestamp", consensusTimestamp,
 		"verify payload", txCtx.VerifyPayload(),
 	)
+
+	if version.EqualsOrIsAfter(blk.GetForkVersion(), version.Electra()) {
+		requests, getErr := blk.GetBody().GetExecutionRequests()
+		if getErr != nil {
+			return getErr
+		}
+		sp.logger.Info(
+			"Processing execution requests",
+			"deposits", len(requests.Deposits),
+			"withdrawals", len(requests.Withdrawals),
+			"consolidations", len(requests.Consolidations),
+		)
+	}
 
 	// Perform payload verification only if the context is configured as such.
 	if txCtx.VerifyPayload() {

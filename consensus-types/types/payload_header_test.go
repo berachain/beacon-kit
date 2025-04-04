@@ -28,8 +28,8 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
+	sszutil "github.com/berachain/beacon-kit/primitives/encoding/ssz"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	fastssz "github.com/ferranbt/fastssz"
@@ -134,7 +134,7 @@ func TestExecutionPayloadHeader_Serialization(t *testing.T) {
 		require.NotNil(t, data)
 
 		unmarshalled := types.NewEmptyExecutionPayloadHeaderWithVersion(original.GetForkVersion())
-		err = constraints.SSZUnmarshal(data, unmarshalled)
+		err = sszutil.Unmarshal(data, unmarshalled)
 		require.NoError(t, err)
 		require.Equal(t, original, unmarshalled)
 	})
@@ -185,7 +185,7 @@ func TestExecutionPayloadHeader_NewFromSSZ_EmptyBuf(t *testing.T) {
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		buf := make([]byte, 0)
 		header := types.NewEmptyExecutionPayloadHeaderWithVersion(v)
-		err := constraints.SSZUnmarshal(buf, header)
+		err := sszutil.Unmarshal(buf, header)
 		require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 	})
 }
@@ -231,7 +231,7 @@ func TestExecutionPayloadHeader_NewFromSSZ_Invalid(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			buf := tc.malleate()
 			dest := types.NewEmptyExecutionPayloadHeaderWithVersion(version.Deneb())
-			err := constraints.SSZUnmarshal(buf, dest)
+			err := sszutil.Unmarshal(buf, dest)
 			require.ErrorIs(t, err, tc.expErr)
 		})
 	}
@@ -249,7 +249,7 @@ func TestExecutionPayloadHeader_NewFromSSZ_Invalid_TooSmall(t *testing.T) {
 	buf[439] = 0
 
 	dest := types.NewEmptyExecutionPayloadHeaderWithVersion(version.Deneb())
-	err = constraints.SSZUnmarshal(buf, dest)
+	err = sszutil.Unmarshal(buf, dest)
 	require.Error(t, err)
 
 	// Can be either ErrFirstOffsetMismatch or ErrBadOffsetProgression due to reused Decoder in
@@ -477,10 +477,10 @@ func TestExecutionPayloadHeader_NewFromSSZ(t *testing.T) {
 				header := types.NewEmptyExecutionPayloadHeaderWithVersion(v)
 				if tc.name == "Different fork version" {
 					require.Panics(t, func() {
-						_ = constraints.SSZUnmarshal(tc.data, header)
+						_ = sszutil.Unmarshal(tc.data, header)
 					}, "Expected panic for different fork version")
 				} else {
-					err := constraints.SSZUnmarshal(tc.data, header)
+					err := sszutil.Unmarshal(tc.data, header)
 					if tc.expErr != nil {
 						require.ErrorIs(t, err, tc.expErr)
 					} else {
