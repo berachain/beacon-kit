@@ -567,6 +567,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 			Amount:    extraValDeposit.Amount,
 		},
 	}
+
 	blk = buildNextBlock(
 		t,
 		cs,
@@ -848,7 +849,6 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	valToEvict := genDeposits[0]
 	valToEvictAddr, err := valToEvict.Credentials.ToExecutionAddress()
 	require.NoError(t, err)
-
 	withdrawals := []*engineprimitives.Withdrawal{
 		st.EVMInflationWithdrawal(blk.GetTimestamp() + 1),
 		{
