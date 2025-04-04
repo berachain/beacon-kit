@@ -48,6 +48,7 @@ import (
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/berachain/beacon-kit/storage/beacondb"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
+	cmtcfg "github.com/cometbft/cometbft/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stretchr/testify/require"
@@ -74,7 +75,10 @@ func TestFilteredValidators(t *testing.T) {
 		nodemetrics.NewNoOpTelemetrySink(),
 	)
 
-	b := backend.New(sb, cs, sp, nil) // TODO: add comet config
+	cmtCfg := &cmtcfg.Config{}
+
+	b, err := backend.New(sb, cs, sp, cmtCfg)
+	require.NoError(t, err)
 	tcs := &testConsensusService{
 		cms:     cms,
 		kvStore: kvStore,

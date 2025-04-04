@@ -22,7 +22,6 @@ package backend
 
 import (
 	"fmt"
-	"sync"
 	"sync/atomic"
 
 	"github.com/berachain/beacon-kit/chain"
@@ -45,9 +44,8 @@ type Backend struct {
 	node types.ConsensusService
 	sp   StateProcessor
 
-	// TODO: store as an atomic.Pointer
-	genesisValidatorsRoot   common.Root
-	genesisValidatorsRootMu sync.RWMutex
+	// genesisValidatorsRoot is cached in the backend.
+	genesisValidatorsRoot atomic.Pointer[common.Root]
 
 	// genesisTime is cached here, written to once during initialization!
 	genesisTime atomic.Pointer[math.U64]
@@ -80,6 +78,7 @@ func New(
 	}
 
 	// Store the genesis time in the backend.
+	//nolint:gosec // not an issue in practice. As Unix time cannot be negative.
 	genesisTime := math.U64(gen.GenesisTime.Unix())
 	b.genesisTime.Store(&genesisTime)
 
