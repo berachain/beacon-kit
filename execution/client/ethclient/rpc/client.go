@@ -178,7 +178,10 @@ func (rpc *client) callRaw(
 		return nil, ErrNilResponse
 	}
 	defer response.Body.Close()
-
+	if method == "engine_newPayloadV4" {
+		//nolint:forbidigo // testing
+		fmt.Println(string(body))
+	}
 	data, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, err

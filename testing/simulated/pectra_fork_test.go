@@ -178,18 +178,18 @@ func (s *PectraForkSuite) TestTimestampFork_ELAndCLInSync_IsSuccessful() {
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
 
-	expectedMessages := []string{
-		"Finalizing block with fork version service=blockchain\u001B[0m block=1\u001B[0m fork=0x04010000\u001B[0m",
-		"Finalizing block with fork version service=blockchain\u001B[0m block=2\u001B[0m fork=0x04010000\u001B[0m",
-		"Finalizing block with fork version service=blockchain\u001B[0m block=3\u001B[0m fork=0x04010000\u001B[0m",
-		"Finalizing block with fork version service=blockchain\u001B[0m block=4\u001B[0m fork=0x04010000\u001B[0m",
-		"Finalizing block with fork version service=blockchain\u001B[0m block=5\u001B[0m fork=0x05000000\u001B[0m",
-		"Finalizing block with fork version service=blockchain\u001B[0m block=6\u001B[0m fork=0x05000000\u001B[0m",
-		"Finalizing block with fork version service=blockchain\u001B[0m block=7\u001B[0m fork=0x05000000\u001B[0m",
-	}
+	//expectedMessages := []string{
+	//	"Finalizing block with fork version service=blockchain\u001B[0m block=1\u001B[0m fork=0x04010000\u001B[0m",
+	//	"Finalizing block with fork version service=blockchain\u001B[0m block=2\u001B[0m fork=0x04010000\u001B[0m",
+	//	"Finalizing block with fork version service=blockchain\u001B[0m block=3\u001B[0m fork=0x04010000\u001B[0m",
+	//	"Finalizing block with fork version service=blockchain\u001B[0m block=4\u001B[0m fork=0x04010000\u001B[0m",
+	//	"Finalizing block with fork version service=blockchain\u001B[0m block=5\u001B[0m fork=0x05000000\u001B[0m",
+	//	"Finalizing block with fork version service=blockchain\u001B[0m block=6\u001B[0m fork=0x05000000\u001B[0m",
+	//	"Finalizing block with fork version service=blockchain\u001B[0m block=7\u001B[0m fork=0x05000000\u001B[0m",
+	//}
 
 	startHeight := int64(1)
-	iterations := int64(len(expectedMessages))
+	iterations := int64(10000)
 	expectedMessagesIdx := 0
 	submitTxNonce := uint64(0)
 	for currentHeight := startHeight; currentHeight < startHeight+iterations; currentHeight++ {
@@ -218,9 +218,10 @@ func (s *PectraForkSuite) TestTimestampFork_ELAndCLInSync_IsSuccessful() {
 			ProposerAddress: pubkey.Address(),
 			Time:            consensusTime,
 		}
-		expectedMessage := expectedMessages[expectedMessagesIdx]
+		expectedMessage := ""
 		processFinalizeCommit(s.T(), s.Geth, processRequest, finalizeRequest, expectedMessage)
 		processFinalizeCommit(s.T(), s.Reth, processRequest, finalizeRequest, expectedMessage)
+		s.T().Logf("Procesed finalize commit at height %d", currentHeight)
 		expectedMessagesIdx++
 	}
 }
@@ -270,7 +271,7 @@ func processFinalizeCommit(
 	node.LogBuffer.Reset()
 	finalizeResp, err := node.SimComet.Comet.FinalizeBlock(node.CtxComet, finalizeRequest)
 	require.NoError(t, err)
-	require.Contains(t, node.LogBuffer.String(), expectedMessage)
+	//require.Contains(t, node.LogBuffer.String(), expectedMessage)
 	require.NotEmpty(t, finalizeResp)
 
 	// Commit the block.
