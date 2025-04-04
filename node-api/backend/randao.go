@@ -26,7 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-func (b Backend) RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes32, error) {
+func (b *Backend) RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes32, error) {
 	st, resolvedSlot, err := b.stateFromSlot(slot)
 	if err != nil {
 		return common.Bytes32{}, errors.Wrapf(err, "failed to get state from slot %d", slot)

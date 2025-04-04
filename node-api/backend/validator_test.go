@@ -24,6 +24,8 @@ package backend_test
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"cosmossdk.io/log"
@@ -48,8 +50,10 @@ import (
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/berachain/beacon-kit/storage/beacondb"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
+	cmtcfg "github.com/cometbft/cometbft/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -74,7 +78,28 @@ func TestFilteredValidators(t *testing.T) {
 		nodemetrics.NewNoOpTelemetrySink(),
 	)
 
-	b := backend.New(sb, cs, sp)
+	// Create a temporary directory for CometBFT config
+	tmpDir := t.TempDir()
+
+	// Create CometBFT config with temporary directory
+	cmtCfg := cmtcfg.DefaultConfig()
+	cmtCfg.SetRoot(tmpDir)
+
+	// Create config directory
+	configDir := filepath.Join(tmpDir, "config")
+	err = os.MkdirAll(configDir, 0o755)
+	require.NoError(t, err)
+
+	// Create app genesis
+	appGenesis := genutiltypes.NewAppGenesisWithVersion("test-chain", []byte("{}"))
+
+	// Save genesis file to the config directory
+	genesisFile := filepath.Join(configDir, "genesis.json")
+	err = appGenesis.SaveAs(genesisFile)
+	require.NoError(t, err)
+
+	b, err := backend.New(sb, cs, sp, cmtCfg)
+	require.NoError(t, err)
 	tcs := &testConsensusService{
 		cms:     cms,
 		kvStore: kvStore,

@@ -35,7 +35,7 @@ func (b *Backend) StateFromSlotForProof(slot math.Slot) (*statedb.StateDB, math.
 }
 
 // GetStateRoot returns the root of the state at the given slot.
-func (b Backend) StateRootAtSlot(slot math.Slot) (common.Root, error) {
+func (b *Backend) StateRootAtSlot(slot math.Slot) (common.Root, error) {
 	st, resolvedSlot, err := b.stateFromSlot(slot)
 	if err != nil {
 		return common.Root{}, err
@@ -47,7 +47,7 @@ func (b Backend) StateRootAtSlot(slot math.Slot) (common.Root, error) {
 }
 
 // StateAtSlot returns the beacon state at a particular slot.
-func (b Backend) StateAtSlot(slot math.Slot) (*statedb.StateDB, error) {
+func (b *Backend) StateAtSlot(slot math.Slot) (*statedb.StateDB, error) {
 	st, _, err := b.stateFromSlot(slot)
 	if err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func (b Backend) StateAtSlot(slot math.Slot) (*statedb.StateDB, error) {
 }
 
 // GetStateFork returns the fork of the state at the given stateID.
-func (b Backend) StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error) {
+func (b *Backend) StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error) {
 	var fork *ctypes.Fork
 	st, _, err := b.stateFromSlot(slot)
 	if err != nil {
