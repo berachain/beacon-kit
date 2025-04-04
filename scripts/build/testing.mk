@@ -79,7 +79,9 @@ start-reth:
 	--authrpc.addr "0.0.0.0" \
 	--authrpc.jwtsecret $(JWT_PATH) \
 	--datadir ${ETH_DATA_DIR} \
-	--ipcpath ${IPC_PATH}
+	--ipcpath ${IPC_PATH} \
+	--engine.persistence-threshold 0 \
+	--engine.memory-block-buffer-target 0
 
 ## Start a local ephemeral `reth` node on host machine
 start-reth-host: 
@@ -93,7 +95,9 @@ start-reth-host:
 	--authrpc.addr "0.0.0.0" \
 	--authrpc.jwtsecret $(JWT_PATH) \
 	--datadir ${ETH_DATA_DIR} \
-	--ipcpath ${IPC_PATH}
+	--ipcpath ${IPC_PATH} \
+	--engine.persistence-threshold 0 \
+	--engine.memory-block-buffer-target 0
 
 ## Start an ephemeral `geth` node with docker
 start-geth: 
@@ -123,7 +127,7 @@ start-geth:
 	--ipcpath ${IPC_PATH}
 
 ## Start a local ephemeral `geth` node on host machine
-start-geth-host: 
+start-geth-host:
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
 	geth init --datadir ${ETH_DATA_DIR} ${ETH_GENESIS_PATH}
 	geth \

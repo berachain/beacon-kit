@@ -45,9 +45,18 @@ func (s *Client) NewPayload(
 	if version.IsBefore(forkVersion, version.Deneb()) {
 		return nil, ErrInvalidVersion
 	}
+
+	// Use V3 for Deneb versions (Deneb and Deneb1).
 	if version.Equals(forkVersion, version.Deneb()) || version.Equals(forkVersion, version.Deneb1()) {
-		return s.NewPayloadV3(ctx, req.GetExecutionPayload(), req.GetVersionedHashes(), req.GetParentBeaconBlockRoot())
+		return s.NewPayloadV3(
+			ctx,
+			req.GetExecutionPayload(),
+			req.GetVersionedHashes(),
+			req.GetParentBeaconBlockRoot(),
+		)
 	}
+
+	// Use V4 for Electra versions.
 	if version.Equals(forkVersion, version.Electra()) {
 		executionRequests, err := req.GetEncodedExecutionRequests()
 		if err != nil {
@@ -61,6 +70,7 @@ func (s *Client) NewPayload(
 			executionRequests,
 		)
 	}
+
 	return nil, ErrInvalidVersion
 }
 

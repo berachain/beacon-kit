@@ -336,7 +336,6 @@ func (s *Service) buildBlockBody(
 	body.SetExecutionPayload(envelope.GetExecutionPayload())
 
 	if version.EqualsOrIsAfter(body.GetForkVersion(), version.Electra()) {
-		var requests *ctypes.ExecutionRequests
 		// TODO(pectra): Remove the conversion once DecodeExecutionRequests constructor changed.
 		encodedReqs := envelope.GetEncodedExecutionRequests()
 		result := make([][]byte, len(encodedReqs))
@@ -344,12 +343,11 @@ func (s *Service) buildBlockBody(
 			result[i] = req // conversion from ExecutionRequest to []byte
 		}
 
-		requests, err = ctypes.DecodeExecutionRequests(result)
-		if err != nil {
+		var requests *ctypes.ExecutionRequests
+		if requests, err = ctypes.DecodeExecutionRequests(result); err != nil {
 			return err
 		}
-		err = body.SetExecutionRequests(requests)
-		if err != nil {
+		if err = body.SetExecutionRequests(requests); err != nil {
 			return err
 		}
 	}
