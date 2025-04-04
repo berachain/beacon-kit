@@ -37,7 +37,6 @@ BeaconKit is able to support all 6 major Ethereum execution clients:
 - [**Nethermind**](https://www.nethermind.io/): .NET based client with full support for Ethereum protocols.
 - [**Besu**](https://www.lfdecentralizedtrust.org/projects/besu): Enterprise-grade client, Apache 2.0 licensed, written in Java.
 - [**Reth**](https://reth.rs/): Rust-based client focusing on performance and reliability.
-- [**Ethereumjs**](https://ethereumjs.readthedocs.io/en/latest/#): Javascript based client managed by the Ethereum Foundation.
 
 ## Running a Local Development Network
 
@@ -63,7 +62,7 @@ eth-genesis file used by the Execution Client.
 
 ```bash
 # Start an Ethereum Execution Client:
-make start-reth # or start-geth start-besu start-erigon start-nethermind start-ethereumjs
+make start-reth # or start-geth start-besu start-erigon start-nethermind 
 ```
 
 The account with
@@ -74,3 +73,17 @@ preloaded with the native EVM token.
 ## Multinode Local Devnet
 
 Please refer to the [Kurtosis README](https://github.com/berachain/beacon-kit/blob/main/kurtosis/README.md) for more information on how to run a multinode local devnet.
+
+## Important Commands and Options
+
+`beacond help` lists available commands. Some commands have sub-commands.
+
+`beacond init` creates a folder structure for beacond to operate in, along with initial configuration files, the important ones being `app.toml` and `config.toml`.
+
+`beacond start` starts the chain client and begins the syncing process.
+
+The key environment variable is `CHAIN_SPEC`, which can be set to `mainnet`, `testnet`, or `devnet`. This should be set any time when using beacond. It will influence which configuration files you get during `init` and which chain ID beacond will communicate with while running.  
+
+You can override the default operating directories for beacond with the `--home <path>` option.
+
+The [Berachain Node Quickstart](https://docs.berachain.com/nodes/quickstart) provides a complete example of a functioning setup, suitable for a development system or for experiments.  
