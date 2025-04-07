@@ -88,7 +88,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	s.Require().NoError(err)
 
 	// Bind the deposit contract.
-	depositContractAddress := gethcommon.Address(chainSpec.DepositContractAddress())
+	depositContractAddress := gethcommon.Address(chainspec.DepositContractAddress())
 
 	dc, err := deposit.NewDepositContract(depositContractAddress, elClient)
 	s.Require().NoError(err)
