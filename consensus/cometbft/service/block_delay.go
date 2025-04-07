@@ -112,11 +112,15 @@ func (d *BlockDelay) Next(curBlockTime time.Time, curBlockHeight int64) time.Dur
 	const noDelay = 1 * time.Microsecond
 
 	// Reset the initial time and height if the time between blocks is greater
-	// than maxDelayBetweenBlocks.
+	// than MaxDelayBetweenBlocks. This makes the current time and height the
+	// initial one as if the upgrade happened just now.
 	if curBlockTime.Sub(d.PreviousBlockTime) > MaxDelayBetweenBlocks {
 		d.InitialTime = curBlockTime
-		d.InitialHeight = curBlockHeight - 1
+		d.InitialHeight = curBlockHeight
+		d.PreviousBlockTime = curBlockTime
+		return TargetBlockTime
 	}
+
 	d.PreviousBlockTime = curBlockTime
 
 	t := d.InitialTime.Add(TargetBlockTime * time.Duration(curBlockHeight-d.InitialHeight))
