@@ -36,7 +36,7 @@ func TestCreateWithdrawalRequestData(t *testing.T) {
 	tests := []struct {
 		name           string
 		pubKey         string
-		withdrawAmount uint64 // Assuming math.U64 is an alias for uint64
+		withdrawAmount uint64
 		expected       string
 	}{
 		{
