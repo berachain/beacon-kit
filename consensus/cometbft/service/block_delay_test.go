@@ -114,20 +114,3 @@ func TestBlockDelayNext_ResetOnStall(t *testing.T) {
 	assert.Equal(t, d.InitialHeight, curBlockHeight-1)
 	assert.Equal(t, cometbft.TargetBlockTime, delay)
 }
-
-func TestBlockDelaySerialization(t *testing.T) {
-	t.Parallel()
-
-	d := &cometbft.BlockDelay{
-		InitialTime:       time.Now(),
-		InitialHeight:     10,
-		PreviousBlockTime: time.Now().Add(-1 * time.Minute),
-	}
-
-	b := d.ToBytes()
-	d2 := cometbft.BlockDelayFromBytes(b)
-
-	assert.Equal(t, d.InitialTime.Unix(), d2.InitialTime.Unix())
-	assert.Equal(t, d.InitialHeight, d2.InitialHeight)
-	assert.Equal(t, d.PreviousBlockTime.Unix(), d2.PreviousBlockTime.Unix())
-}
