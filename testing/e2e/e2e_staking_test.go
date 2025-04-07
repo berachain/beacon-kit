@@ -65,14 +65,9 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	weiPerGwei := big.NewInt(1e9)
 
 	// This value is determined by the MIN_DEPOSIT_AMOUNT_IN_GWEI variable from the deposit contract.
-	//
-	// TODO: fix the genesis file to use the correct deposit contract.
-	contractMinDepositAmountWei := big.NewInt(1e9 * 1e9)
-	depositAmountWei := new(big.Int).Mul(contractMinDepositAmountWei, big.NewInt(100))
-	depositAmountGwei := new(big.Int).Div(depositAmountWei, weiPerGwei)
-
-	// Our deposits should be greater than the min deposit amount.
-	s.Require().Equal(1, depositAmountWei.Cmp(contractMinDepositAmountWei))
+	contractMinDepositAmountGwei := big.NewInt(int64(chainspec.EjectionBalance() + chainspec.EffectiveBalanceIncrement()))
+	depositAmountGwei := new(big.Int).Set(contractMinDepositAmountGwei)
+	depositAmountWei := new(big.Int).Mul(depositAmountGwei, weiPerGwei)
 
 	s.Require().Equal(
 		0, int(NumDepositsLoad%config.NumValidators),
@@ -84,7 +79,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	s.Require().NoError(err)
 
 	// Bind the deposit contract.
-	depositContractAddress := gethcommon.Address(chainSpec.DepositContractAddress())
+	depositContractAddress := gethcommon.Address(chainspec.DepositContractAddress())
 
 	dc, err := deposit.NewDepositContract(depositContractAddress, s.JSONRPCBalancer())
 	s.Require().NoError(err)
