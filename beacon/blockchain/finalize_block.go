@@ -39,14 +39,14 @@ func (s *Service) FinalizeBlock(
 	req *cmtabci.FinalizeBlockRequest,
 ) (transition.ValidatorUpdates, error) {
 	// STEP 1: Decode block and blobs.
-	forkForSlot := s.chainSpec.ActiveForkVersionForTimestamp(math.U64(req.GetTime().Unix())) //#nosec: G115
+	currentForkVersion := s.chainSpec.ActiveForkVersionForTimestamp(math.U64(req.GetTime().Unix())) //#nosec: G115
 	signedBlk, blobs, err := encoding.ExtractBlobsAndBlockFromRequest(
 		req,
 		BeaconBlockTxIndex,
 		BlobSidecarsTxIndex,
 		// While req.GetTime() and blk.GetTimestamp() may be different, they are guaranteed
 		// to map to the same forkVersion due to checks during ProcessProposal.
-		forkForSlot,
+		currentForkVersion,
 	)
 	if err != nil {
 		s.logger.Error("Failed to decode block and blobs", "error", err)
@@ -55,7 +55,7 @@ func (s *Service) FinalizeBlock(
 	s.logger.Debug(
 		"Finalizing block with fork version",
 		"block", req.Height,
-		"fork", forkForSlot.String(),
+		"fork", currentForkVersion.String(),
 	)
 	blk := signedBlk.GetBeaconBlock()
 
