@@ -30,9 +30,9 @@ import (
 	"github.com/berachain/beacon-kit/da/types"
 	byteslib "github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
+	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/math/log"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -74,7 +74,7 @@ func TestSidecarMarshalling(t *testing.T) {
 
 	// Unmarshal the sidecar
 	unmarshalled := new(types.BlobSidecar)
-	err = constraints.SSZUnmarshal(marshalled, unmarshalled)
+	err = ssz.Unmarshal(marshalled, unmarshalled)
 	require.NoError(t, err, "Unmarshalling should not produce an error")
 
 	// Compare the original and unmarshalled sidecars

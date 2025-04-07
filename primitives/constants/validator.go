@@ -20,8 +20,8 @@
 
 package constants
 
+// Validator status strings.
 const (
-	// Validator status strings.
 	ValidatorStatusPendingInitialized = "pending_initialized"
 	ValidatorStatusPendingQueued      = "pending_queued"
 	ValidatorStatusActiveOngoing      = "active_ongoing"

@@ -26,7 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/encoding/ssz/merkle"
+	"github.com/berachain/beacon-kit/primitives/merkle"
 )
 
 // ProveExecutionFeeRecipientInBlock generates a proof for the fee recipient in
@@ -108,14 +108,10 @@ func verifyExecutionFeeRecipientInBlock(
 	leaf common.Root,
 ) (common.Root, error) {
 	beaconRoot := bbh.HashTreeRoot()
-	if beaconRootVerified, err := merkle.VerifyProof(
-		ExecutionFeeRecipientGIndexDenebBlock, leaf, proof, beaconRoot,
-	); err != nil {
-		return common.Root{}, err
-	} else if !beaconRootVerified {
+	if !merkle.VerifyProof(beaconRoot, leaf, ExecutionFeeRecipientGIndexDenebBlock, proof) {
 		return common.Root{}, errors.Wrapf(
-			errors.New("proof failed to verify against beacon root"),
-			"beacon root: 0x%x", beaconRoot[:],
+			errors.New("execution fee recipient proof failed to verify against beacon root"),
+			"beacon root: 0x%s", beaconRoot,
 		)
 	}
 

@@ -20,6 +20,8 @@
 
 package version
 
+import "github.com/berachain/beacon-kit/chain"
+
 // TelemetrySink is an interface for sending telemetry data.
 type TelemetrySink interface {
 	// IncrementCounter increments a counter metric identified by the provided
@@ -28,4 +30,8 @@ type TelemetrySink interface {
 	// SetGauge sets a gauge metric to the specified value, identified by the
 	// provided keys.
 	SetGauge(key string, value int64, args ...string)
+}
+
+type ForkSpec interface {
+	chain.ForkSpec
 }
