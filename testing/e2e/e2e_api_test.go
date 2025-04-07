@@ -887,7 +887,7 @@ func (s *BeaconKitE2ESuite) TestGenesis() {
 	s.Require().NotEmpty(genesis.GenesisValidatorsRoot, "Genesis validators root should not be empty")
 	s.Require().NotEmpty(genesis.GenesisForkVersion, "Genesis fork version should not be empty")
 
-	expectedVersion := version.Genesis()
+	expectedVersion := version.Deneb1()
 
 	s.Require().Equal(
 		expectedVersion[:],
