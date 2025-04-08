@@ -33,19 +33,25 @@ func (sp *StateProcessor) GetActivationExitChurnLimit(st *statedb.StateDB) math.
 	return min(maxPerEpochActivationExitChurnLimit, st.GetBalanceChurnLimit())
 }
 
+// ComputeActivationExitEpoch returns the epoch during which validator activations and exits initiated in `epoch` take
+// effect.
 func (sp *StateProcessor) ComputeActivationExitEpoch(epoch math.Epoch) math.Epoch {
 	// TODO(pectra): get this value from config or constant
 	var maxSeedLookahead math.Epoch
 	return epoch + 1 + maxSeedLookahead
 }
 
-func (sp *StateProcessor) ComputeExitEpochAndUpdateChurn(st *statedb.StateDB, exitBalance math.Gwei) (math.Epoch, error) {
+// ComputeExitEpochAndUpdateChurn
+func (sp *StateProcessor) ComputeExitEpochAndUpdateChurn(
+	st *statedb.StateDB, exitBalance math.Gwei,
+) (math.Epoch, error) {
 	slot, err := st.GetSlot()
 	if err != nil {
 		return 0, err
 	}
 	earliestExitEpoch := max(st.GetEarliestExitEpoch(), sp.ComputeActivationExitEpoch(sp.cs.SlotToEpoch(slot)))
 	perEpochChurn := sp.GetActivationExitChurnLimit(st)
+	// New epoch for exits.
 	var exitBalanceToConsume math.Gwei
 	if st.GetEarliestExitEpoch() < earliestExitEpoch {
 		exitBalanceToConsume = perEpochChurn
@@ -53,6 +59,7 @@ func (sp *StateProcessor) ComputeExitEpochAndUpdateChurn(st *statedb.StateDB, ex
 		exitBalanceToConsume = st.GetExitBalanceToConsume()
 	}
 
+	// Exit doesn't fit in the current earliest epoch.
 	if exitBalance > exitBalanceToConsume {
 		balanceToProcess := exitBalance - exitBalanceToConsume
 		additionalEpochs := (balanceToProcess-1)/perEpochChurn + 1
