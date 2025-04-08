@@ -264,6 +264,12 @@ func (v Validator) HasEth1WithdrawalCredentials() bool {
 	return v.WithdrawalCredentials.IsValidEth1WithdrawalCredentials()
 }
 
+// HasExecutionWithdrawalCredential deviated from `has_execution_withdrawal_credential` by not checking for
+// compounding withdrawal credentials, i.e 0x02.
+func (v Validator) HasExecutionWithdrawalCredential() bool {
+	return v.HasEth1WithdrawalCredentials()
+}
+
 // HasMaxEffectiveBalance determines if the validator has the maximum effective
 // balance.
 func (v Validator) HasMaxEffectiveBalance(
