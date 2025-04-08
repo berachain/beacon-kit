@@ -214,13 +214,16 @@ func (sp *StateProcessor) processWithdrawalRequest(st *state.StateDB, withdrawal
 	// TODO(pectra): Removed check on compounding withdrawal credentials. Validate if this is okay.
 	if hasSufficientEffectiveBalance && hasExcessBalance {
 		toWithdraw := min(balance-MinActivationBalance-pendingBalanceToWithdraw, amount)
-		_ = sp.ComputeExitEpochAndUpdateChurn(st, toWithdraw)
+		_, err = sp.ComputeExitEpochAndUpdateChurn(st, toWithdraw)
+		if err != nil {
+			return err
+		}
 		/*
 				TODO(pectra)
 			   withdrawable_epoch = Epoch(exit_queue_epoch + config.MIN_VALIDATOR_WITHDRAWABILITY_DELAY)
 		*/
 		// TODO(pectra): Create type for PendingPartialWithdrawal.
-		appendErr := st.AppendPendingPartialWithdrawal()
+		appendErr := st.AppendPendingPartialWithdrawal(nil)
 		if appendErr != nil {
 			return appendErr
 		}
