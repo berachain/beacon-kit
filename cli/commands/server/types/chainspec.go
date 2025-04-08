@@ -47,6 +47,8 @@ const (
 // ChainSpecCreator is a function that allows us to lazily initialize the ChainSpec
 type ChainSpecCreator func(AppOptions) (chain.Spec, error)
 
+// CreateChainSpec creates a chain spec based on the environment variable CHAIN_SPEC.
+// If the environment variable is not set, the default of "mainnet" chain spec is used.
 func CreateChainSpec(appOpts AppOptions) (chain.Spec, error) {
 	var (
 		chainSpec chain.Spec
@@ -60,7 +62,7 @@ func CreateChainSpec(appOpts AppOptions) (chain.Spec, error) {
 	case TestnetChainSpecType:
 		chainSpec, err = spec.TestnetChainSpec()
 	case MainnetChainSpecType:
-		chainSpec, err = spec.MainnetChainSpec()
+		fallthrough
 	default:
 		chainSpec, err = spec.MainnetChainSpec()
 	}
