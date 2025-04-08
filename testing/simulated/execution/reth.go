@@ -28,31 +28,30 @@ import (
 	"github.com/ory/dockertest/docker"
 )
 
-// NewGethNode creates a new execution node configured for Geth by using the default Geth command builder.
-func NewGethNode(homeDir string, image docker.PullImageOptions) *ExecNode {
-	return NewExecNode(homeDir, image, defaultGethCmdStrBuilder)
+// NewRethNode creates a new execution node configured for Reth by using the default Reth command builder.
+func NewRethNode(homeDir string, image docker.PullImageOptions) *ExecNode {
+	return NewExecNode(homeDir, image, defaultRethCmdStrBuilder)
 }
 
-// ValidGethImage returns the default Docker image options for the Geth node.
-func ValidGethImage() docker.PullImageOptions {
+// ValidRethImage returns the default Docker image options for the Reth node.
+func ValidRethImage() docker.PullImageOptions {
 	return docker.PullImageOptions{
-		Repository: "ethereum/client-go",
+		Repository: "ghcr.io/paradigmxyz/reth",
 		Tag:        "latest",
 	}
 }
 
-// defaultGethCmdStrBuilder returns a command string tailored for running a Geth node.
-func defaultGethCmdStrBuilder(genesisFile string) string {
+// defaultRethCmdStrBuilder returns a command string tailored for running a Geth node.
+func defaultRethCmdStrBuilder(genesisFile string) string {
 	return fmt.Sprintf(`
-		geth init --datadir /tmp/gethdata /testdata/%s && 
-		geth --http --http.addr 0.0.0.0 --http.api eth,net,web3,debug \
+		reth node --http --http.addr 0.0.0.0 --http.api eth,net,web3,debug \
+			 --chain=/testdata/%s \
 			 --authrpc.addr 0.0.0.0 \
 			 --authrpc.jwtsecret /testing/files/jwt.hex \
-			 --authrpc.vhosts '*' \
-			 --datadir /tmp/gethdata \
-			 --ipcpath /tmp/gethdata/geth.ipc \
-			 --syncmode full \
-			 --verbosity 4 \
-			 --nodiscover
+			 --datadir /tmp/rethdata \
+			 --full \
+			 --engine.persistence-threshold=0 \
+			 --engine.memory-block-buffer-target=0 \
+			 -vvvv \
 	`, genesisFile)
 }

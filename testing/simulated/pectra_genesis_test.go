@@ -31,9 +31,9 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/log/phuslu"
+	"github.com/berachain/beacon-kit/primitives/eip7002"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -42,8 +42,8 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-// PectraSuite defines our test suite for Pectra related work using simulated Comet component.
-type PectraSuite struct {
+// PectraGenesisSuite defines our test suite for Pectra related work using simulated Comet component.
+type PectraGenesisSuite struct {
 	suite.Suite
 	// Embedded shared accessors for convenience.
 	simulated.SharedAccessors
@@ -51,11 +51,11 @@ type PectraSuite struct {
 
 // TestSimulatedCometComponent runs the test suite.
 func TestPectraSuite(t *testing.T) {
-	suite.Run(t, new(PectraSuite))
+	suite.Run(t, new(PectraGenesisSuite))
 }
 
 // SetupTest initializes the test environment.
-func (s *PectraSuite) SetupTest() {
+func (s *PectraGenesisSuite) SetupTest() {
 	// Create a cancellable context for the duration of the test.
 	s.CtxApp, s.CtxAppCancelFn = context.WithCancel(context.Background())
 
@@ -65,7 +65,7 @@ func (s *PectraSuite) SetupTest() {
 	s.HomeDir = s.T().TempDir()
 
 	// Initialize the home directory, Comet configuration, and genesis info.
-	const elGenesisPath = "./pectra-eth-genesis.json"
+	const elGenesisPath = "./el-genesis-files/pectra-eth-genesis.json"
 	chainSpecFunc := simulated.ProvideElectraGenesisChainSpec
 	// Create the chainSpec.
 	chainSpec, err := chainSpecFunc()
@@ -74,7 +74,7 @@ func (s *PectraSuite) SetupTest() {
 	s.GenesisValidatorsRoot = genesisValidatorsRoot
 
 	// Start the EL (execution layer) Geth node.
-	elNode := execution.NewGethNode(s.HomeDir, execution.ValidGethImageWithSimulate())
+	elNode := execution.NewGethNode(s.HomeDir, execution.ValidGethImage())
 	elHandle, authRPC := elNode.Start(s.T(), path.Base(elGenesisPath))
 	s.ElHandle = elHandle
 
@@ -111,7 +111,7 @@ func (s *PectraSuite) SetupTest() {
 }
 
 // TearDownTest cleans up the test environment.
-func (s *PectraSuite) TearDownTest() {
+func (s *PectraGenesisSuite) TearDownTest() {
 	// If the test has failed, log additional information.
 	if s.T().Failed() {
 		s.T().Log(s.LogBuffer.String())
@@ -124,7 +124,7 @@ func (s *PectraSuite) TearDownTest() {
 	s.TestNode.ServiceRegistry.StopAll()
 }
 
-func (s *PectraSuite) TestFullLifecycle_WithoutRequests_IsSuccessful() {
+func (s *PectraGenesisSuite) TestFullLifecycle_WithoutRequests_IsSuccessful() {
 	const blockHeight = 1
 	const coreLoopIterations = 10
 
@@ -142,7 +142,7 @@ func (s *PectraSuite) TestFullLifecycle_WithoutRequests_IsSuccessful() {
 	s.Require().Len(proposals, coreLoopIterations)
 }
 
-func (s *PectraSuite) TestFullLifecycle_WithRequests_IsSuccessful() {
+func (s *PectraGenesisSuite) TestFullLifecycle_WithRequests_IsSuccessful() {
 	const blockHeight = 1
 	const coreLoopIterations = 10
 
@@ -159,8 +159,13 @@ func (s *PectraSuite) TestFullLifecycle_WithRequests_IsSuccessful() {
 
 	elChainID := big.NewInt(int64(s.TestNode.ChainSpec.DepositEth1ChainID()))
 	signer := types.NewPragueSigner(elChainID)
-	// Field values roughly copies from Geth
-	// https://github.com/ethereum/go-ethereum/blob/39638c81c56db2b2dfe6f51999ffd3029ee212cb/core/blockchain_test.go#L4131-L4130
+
+	fee, err := eip7002.GetWithdrawalFee(s.CtxApp, s.TestNode.EngineClient)
+	s.Require().NoError(err)
+
+	withdrawalTxData, err := eip7002.CreateWithdrawalRequestData(blsSigner.PublicKey(), 3456)
+	s.Require().NoError(err)
+
 	withdrawalTx := types.MustSignNewTx(senderKey, signer, &types.DynamicFeeTx{
 		ChainID:   elChainID,
 		Nonce:     0,
@@ -168,8 +173,8 @@ func (s *PectraSuite) TestFullLifecycle_WithRequests_IsSuccessful() {
 		Gas:       500_000,
 		GasFeeCap: big.NewInt(1000000000),
 		GasTipCap: big.NewInt(1000000000),
-		Value:     big.NewInt(100),
-		Data:      common.FromHex("b917cfdc0d25b72d55cf94db328e1629b7f4fde2c30cdacf873b664416f76a0c7f7cc50c9f72a3cb84be88144cde91250000000000000d80"),
+		Value:     fee,
+		Data:      withdrawalTxData,
 	})
 
 	txBytes, err := withdrawalTx.MarshalBinary()
@@ -183,6 +188,9 @@ func (s *PectraSuite) TestFullLifecycle_WithRequests_IsSuccessful() {
 	startTime := time.Now()
 
 	// Go through iterations of the core loop.
+	s.LogBuffer.Reset()
 	proposals, _ := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
+	// Log contains 1 withdrawal
+	s.Require().Contains(s.LogBuffer.String(), "Processing execution requests service=state-processor\u001B[0m deposits=0\u001B[0m withdrawals=1\u001B[0m consolidations=0\u001B[0m")
 }
