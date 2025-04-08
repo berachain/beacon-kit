@@ -224,6 +224,26 @@ func (s *StateDB) GetPendingBalanceToWithdraw(_ math.ValidatorIndex) math.Gwei {
 	panic("TODO(pectra): unimplemented")
 }
 
+func (s *StateDB) GetEarliestExitEpoch() math.Epoch {
+	panic("TODO(pectra): unimplemented")
+}
+
+func (s *StateDB) GetExitBalanceToConsume() math.Gwei {
+	panic("TODO(pectra): unimplemented")
+}
+
+func (s *StateDB) GetBalanceChurnLimit() math.Gwei {
+	panic("TODO(pectra): unimplemented")
+}
+
+func (s *StateDB) SetEarliestExitEpoch(math.Epoch) {
+	panic("TODO(pectra): unimplemented")
+}
+
+func (s *StateDB) SetExitBalanceToConsume(math.Gwei) {
+	panic("TODO(pectra): unimplemented")
+}
+
 // GetMarshallable is the interface for the beacon store.
 //
 //nolint:funlen,gocognit // todo fix somehow
