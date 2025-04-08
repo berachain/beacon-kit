@@ -64,9 +64,6 @@ func (sp *StateProcessor) processRegistryUpdates(st *statedb.StateDB) error {
 			val.SetActivationEpoch(nextEpoch)
 			valModified = true
 		}
-		// Note: without slashing and voluntary withdrawals, there is no way
-		// for an activa validator to have its balance less or equal to
-		// EjectionBalance
 
 		if valModified {
 			idx, err = st.ValidatorIndexByPubkey(val.GetPubkey())
@@ -77,6 +74,12 @@ func (sp *StateProcessor) processRegistryUpdates(st *statedb.StateDB) error {
 					err,
 				)
 			}
+			/*
+				 TODO(pectra): Now that we have volunatary withdrarawals, the balance can fall below EjectionBalance
+					elif is_active_validator(validator, current_epoch) and validator.effective_balance <= config.EJECTION_BALANCE:
+						initiate_validator_exit(state, ValidatorIndex(index))  # [Modified in Electra:EIP7251]
+			*/
+
 			if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
 				return fmt.Errorf(
 					"registry update, failed updating validator idx %d: %w",
