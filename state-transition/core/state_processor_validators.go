@@ -145,8 +145,6 @@ func (sp *StateProcessor) processValidatorSetCap(st *statedb.StateDB) error {
 	var idx math.ValidatorIndex
 	for li := range uint64(len(nextEpochVals)) - validatorSetCap {
 		valToEject := nextEpochVals[li]
-		valToEject.SetExitEpoch(nextEpoch)
-		valToEject.SetWithdrawableEpoch(nextEpoch + 1)
 		idx, err = st.ValidatorIndexByPubkey(valToEject.GetPubkey())
 		if err != nil {
 			return fmt.Errorf(
@@ -154,7 +152,8 @@ func (sp *StateProcessor) processValidatorSetCap(st *statedb.StateDB) error {
 				err,
 			)
 		}
-		if err = st.UpdateValidatorAtIndex(idx, valToEject); err != nil {
+		err = sp.InitiateValidatorExit(st, idx)
+		if err != nil {
 			return fmt.Errorf(
 				"validator cap, failed ejecting validator idx %d: %w",
 				li,
