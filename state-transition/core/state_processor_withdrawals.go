@@ -201,7 +201,9 @@ func (sp *StateProcessor) processWithdrawalRequest(st *state.StateDB, withdrawal
 	if isFullExitRequest {
 		// Only exit validator if it has no pending withdrawals in the queue
 		if pendingBalanceToWithdraw == 0 {
-			// TODO(pectra): initiate_validator_exit(state, index). Do we have this?
+			if exitErr := sp.InitiateValidatorExit(st, index); exitErr != nil {
+				return exitErr
+			}
 			return nil
 		}
 	}
