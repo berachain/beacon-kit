@@ -94,7 +94,9 @@ type KVStore struct {
 	// 4. process_withdrawals -> requires removing entries from the collection
 	// It is easiest to have these operations be done on an `Item` that is a list under the hood rather than
 	// `sdkcollection` native types due to lack of support for lists.
-	pendingPartialWithdrawals sdkcollections.Item[ctypes.PendingPartialWithdrawals]
+	// We must use `*ctypes.PendingPartialWithdrawals` instead of `ctypes.PendingPartialWithdrawals` as marshalling
+	// methods require a pointer receiver.
+	pendingPartialWithdrawals sdkcollections.Item[*ctypes.PendingPartialWithdrawals]
 }
 
 // New creates a new instance of Store.
@@ -245,7 +247,7 @@ func New(kss store.KVStoreService) *KVStore {
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.PendingPartialWithdrawalsPrefix}),
 			keys.PendingPartialWithdrawalsPrefixHumanReadable,
-			encoding.SSZValueCodec[ctypes.PendingPartialWithdrawals]{
+			encoding.SSZValueCodec[*ctypes.PendingPartialWithdrawals]{
 				NewEmptyF: ctypes.NewEmptyPendingPartialWithdrawals,
 			},
 		),

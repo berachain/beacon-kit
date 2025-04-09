@@ -93,28 +93,31 @@ func (p *PendingPartialWithdrawal) HashTreeRoot() common.Root {
 
 type PendingPartialWithdrawals []*PendingPartialWithdrawal
 
-func NewEmptyPendingPartialWithdrawals() PendingPartialWithdrawals {
-	return PendingPartialWithdrawals{}
+func NewEmptyPendingPartialWithdrawals() *PendingPartialWithdrawals {
+	return &PendingPartialWithdrawals{}
 }
 
-func (p PendingPartialWithdrawals) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineSliceOfStaticObjectsOffset(codec, (*[]*PendingPartialWithdrawal)(&p), constants.PendingPartialWithdrawalsLimit)
-	ssz.DefineSliceOfStaticObjectsContent(codec, (*[]*PendingPartialWithdrawal)(&p), constants.PendingPartialWithdrawalsLimit)
+func (p *PendingPartialWithdrawals) DefineSSZ(codec *ssz.Codec) {
+	ssz.DefineSliceOfStaticObjectsOffset(codec, (*[]*PendingPartialWithdrawal)(p), constants.PendingPartialWithdrawalsLimit)
+	ssz.DefineSliceOfStaticObjectsContent(codec, (*[]*PendingPartialWithdrawal)(p), constants.PendingPartialWithdrawalsLimit)
 }
 
-func (p PendingPartialWithdrawals) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
+func (p *PendingPartialWithdrawals) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 	if fixed {
 		return constants.SSZOffsetSize
 	}
-	return constants.SSZOffsetSize + ssz.SizeSliceOfStaticObjects(siz, p)
+	return constants.SSZOffsetSize + ssz.SizeSliceOfStaticObjects(siz, *p)
 }
-func (p PendingPartialWithdrawals) MarshalSSZ() ([]byte, error) {
+func (p *PendingPartialWithdrawals) MarshalSSZ() ([]byte, error) {
 	buf := make([]byte, ssz.Size(p))
 	return buf, ssz.EncodeToBytes(buf, p)
 }
 
-func (p PendingPartialWithdrawals) ValidateAfterDecodingSSZ() error {
-	if len(p) > constants.PendingPartialWithdrawalsLimit {
+func (p *PendingPartialWithdrawals) ValidateAfterDecodingSSZ() error {
+	if p == nil {
+		return errors.New("nil PendingPartialWithdrawals")
+	}
+	if len(*p) > constants.PendingPartialWithdrawalsLimit {
 		return errors.New("pending partial withdrawals too large")
 	}
 	return nil

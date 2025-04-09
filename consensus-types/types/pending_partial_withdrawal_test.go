@@ -156,7 +156,7 @@ func TestPendingPartialWithdrawals_ValidValuesSSZ(t *testing.T) {
 
 	testCases := []struct {
 		name     string
-		withdraw types.PendingPartialWithdrawals
+		withdraw *types.PendingPartialWithdrawals
 	}{
 		{
 			name:     "empty slice",
@@ -164,7 +164,7 @@ func TestPendingPartialWithdrawals_ValidValuesSSZ(t *testing.T) {
 		},
 		{
 			name: "one element",
-			withdraw: types.PendingPartialWithdrawals{
+			withdraw: &types.PendingPartialWithdrawals{
 				&types.PendingPartialWithdrawal{
 					ValidatorIndex:    1,
 					Amount:            1000,
@@ -174,7 +174,7 @@ func TestPendingPartialWithdrawals_ValidValuesSSZ(t *testing.T) {
 		},
 		{
 			name: "multiple elements",
-			withdraw: types.PendingPartialWithdrawals{
+			withdraw: &types.PendingPartialWithdrawals{
 				&types.PendingPartialWithdrawal{ValidatorIndex: 1, Amount: 1000, WithdrawableEpoch: 10},
 				&types.PendingPartialWithdrawal{ValidatorIndex: 2, Amount: 2000, WithdrawableEpoch: 20},
 				&types.PendingPartialWithdrawal{ValidatorIndex: 3, Amount: 3000, WithdrawableEpoch: 30},
@@ -197,7 +197,7 @@ func TestPendingPartialWithdrawals_ValidValuesSSZ(t *testing.T) {
 			require.NoError(t, err)
 
 			// Compare the original slice to the recomputed one.
-			require.Equal(t, tc.withdraw, recomputed)
+			require.Equal(t, tc.withdraw, &recomputed)
 		})
 	}
 }

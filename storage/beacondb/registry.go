@@ -250,8 +250,14 @@ func (kv *KVStore) GetPendingPartialWithdrawals() ([]*ctypes.PendingPartialWithd
 	if err := kv.requireEqualOrAfterVersion(version.Electra()); err != nil {
 		return nil, err
 	}
-
-	return kv.pendingPartialWithdrawals.Get(kv.ctx)
+	pendingPartialWithdrawals, err := kv.pendingPartialWithdrawals.Get(kv.ctx)
+	if err != nil {
+		return nil, err
+	}
+	if pendingPartialWithdrawals == nil {
+		return nil, errors.New("unexpected nil pending partial withdrawals")
+	}
+	return *pendingPartialWithdrawals, err
 }
 
 // SetPendingPartialWithdrawals sets the pending partial withdrawals
@@ -259,5 +265,6 @@ func (kv *KVStore) SetPendingPartialWithdrawals(pendingPartialWithdrawals []*cty
 	if err := kv.requireEqualOrAfterVersion(version.Electra()); err != nil {
 		return err
 	}
-	return kv.pendingPartialWithdrawals.Set(kv.ctx, pendingPartialWithdrawals)
+	ppw := ctypes.PendingPartialWithdrawals(pendingPartialWithdrawals)
+	return kv.pendingPartialWithdrawals.Set(kv.ctx, &ppw)
 }
