@@ -112,9 +112,9 @@ func (sp *StateProcessor) Transition(
 // The reasoning behind this deviation is to be explicit in this behavior and also to better support the usage of fork
 // logic in the `processEpoch` function. Since we do not fork by slot but instead fork by timestamp, we must be able to
 // strictly tie each call of `processSlot` and `processEpoch` to a timestamp. Since we don't have beacon blocks during
-// each iteration of the slot loop, we cannot correlate each slot to a timestamp. We instead enforce a fork version for
-// the call and ensure we are only processing one slot. This will allow us to simply grab the latest payload header from
-// the state and use its fork version.
+// each iteration of the slot loop, we cannot correlate each slot to a timestamp. We instead identify that we process
+// only one slot. This will allow us to simply grab the latest payload header from the state and use its fork version
+// wherever we may need to add fork logic in the future.
 func (sp *StateProcessor) ProcessSlots(
 	st *state.StateDB, slot math.Slot,
 ) (transition.ValidatorUpdates, error) {
