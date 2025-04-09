@@ -42,12 +42,27 @@ import (
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/state-transition/core"
 	"github.com/berachain/beacon-kit/state-transition/core/mocks"
+	"github.com/berachain/beacon-kit/storage/beacondb"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/stretchr/testify/require"
 )
+
+func setupStateWithGenesisValues(
+	t *testing.T, cms storetypes.CommitMultiStore, kvStore *beacondb.KVStore,
+) {
+	t.Helper()
+
+	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), false, log.NewNopLogger())
+	kvStore = kvStore.WithContext(sdkCtx)
+	require.NoError(t, kvStore.SetSlot(0))
+	require.NoError(t, kvStore.SetGenesisValidatorsRoot(common.Root{0x1, 0x2, 0x3}))
+
+	//nolint:errcheck // false positive as this has no return value
+	sdkCtx.MultiStore().(storetypes.CacheMultiStore).Write()
+}
 
 func TestGetGenesisData(t *testing.T) {
 	t.Parallel()
@@ -59,12 +74,7 @@ func TestGetGenesisData(t *testing.T) {
 	require.NoError(t, err)
 
 	// Setup state for genesis tests.
-	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), false, log.NewNopLogger())
-	kvStore = kvStore.WithContext(sdkCtx)
-	require.NoError(t, kvStore.SetSlot(0))
-	require.NoError(t, kvStore.SetGenesisValidatorsRoot(common.Root{0x1, 0x2, 0x3}))
-	sdkCtx.MultiStore().(storetypes.CacheMultiStore).Write()
-
+	setupStateWithGenesisValues(t, cms, kvStore)
 	sb := storage.NewBackend(cs, nil, kvStore, depositStore, nil)
 	sp := core.NewStateProcessor(
 		noop.NewLogger[any](),
@@ -119,9 +129,9 @@ func TestGetGenesisData(t *testing.T) {
 
 	genesisForkVersion, err := b.GenesisForkVersion()
 	require.NoError(t, err)
-	require.Equal(t, genesisForkVersion, version.Genesis()) // Deneb 0x04000000
+	require.Equal(t, version.Genesis(), genesisForkVersion) // Deneb 0x04000000
 
 	genesisValidatorsRoot, err := b.GenesisValidatorsRoot()
 	require.NoError(t, err)
-	require.Equal(t, genesisValidatorsRoot, common.Root{0x1, 0x2, 0x3})
+	require.Equal(t, common.Root{0x1, 0x2, 0x3}, genesisValidatorsRoot)
 }
