@@ -113,8 +113,7 @@ func (sp *StateProcessor) Transition(
 // logic in the `processEpoch` function. Since we do not fork by slot but instead fork by timestamp, we must be able to
 // strictly tie each call of `processSlot` and `processEpoch` to a timestamp. Since we don't have beacon blocks during
 // each iteration of the slot loop, we cannot correlate each slot to a timestamp. We instead identify that we process
-// only one slot. This will allow us to simply grab the latest payload header from the state and use its fork version
-// wherever we may need to add fork logic in the future.
+// only one slot, allowing us to simply use the fork version from the state.
 func (sp *StateProcessor) ProcessSlots(
 	st *state.StateDB, slot math.Slot,
 ) (transition.ValidatorUpdates, error) {
@@ -145,8 +144,7 @@ func (sp *StateProcessor) ProcessSlots(
 		res = append(res, epochUpdates...)
 	}
 
-	// We update on the state because we need to
-	// update the state for calls within processSlot/Epoch().
+	// Update the state slot.
 	if err = st.SetSlot(stateSlot + 1); err != nil {
 		return nil, err
 	}
