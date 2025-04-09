@@ -23,6 +23,7 @@ package core
 import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
@@ -80,18 +81,33 @@ func (sp *StateProcessor) InitiateValidatorExit(st *statedb.StateDB, idx math.Va
 	if err != nil {
 		return err
 	}
-	// Return if validator already initiated exit.
-	if validator.GetExitEpoch() != math.Epoch(constants.FarFutureEpoch) {
-		return nil
-	}
-	// Compute the exit queue epoch.
-	exitQueueEpoch, err := sp.ComputeExitEpochAndUpdateChurn(st, validator.GetEffectiveBalance())
+	fork, err := st.GetFork()
 	if err != nil {
 		return err
 	}
-	// TODO(pectra): get this value from config or constant
-	minValidatorWithdrawabilityDelay := math.Epoch(0)
-	withdrawableEpoch := exitQueueEpoch + minValidatorWithdrawabilityDelay
+	var withdrawableEpoch, exitQueueEpoch math.Epoch
+	if version.EqualsOrIsAfter(fork.CurrentVersion, version.Electra()) {
+		// Return if validator already initiated exit.
+		if validator.GetExitEpoch() != math.Epoch(constants.FarFutureEpoch) {
+			return nil
+		}
+		// Compute the exit queue epoch.
+		exitQueueEpoch, err = sp.ComputeExitEpochAndUpdateChurn(st, validator.GetEffectiveBalance())
+		if err != nil {
+			return err
+		}
+		// TODO(pectra): get this value from config or constant
+		minValidatorWithdrawabilityDelay := math.Epoch(0)
+		withdrawableEpoch = exitQueueEpoch + minValidatorWithdrawabilityDelay
+	} else {
+		slot, slotErr := st.GetSlot()
+		if slotErr != nil {
+			return slotErr
+		}
+		nextEpoch := sp.cs.SlotToEpoch(slot) + 1
+		exitQueueEpoch = nextEpoch
+		withdrawableEpoch = nextEpoch + 1
+	}
 
 	// Set validator exit epoch and withdrawable epoch.
 	validator.SetExitEpoch(exitQueueEpoch)
