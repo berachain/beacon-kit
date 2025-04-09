@@ -89,7 +89,11 @@ type KVStore struct {
 	// pendingPartialWithdrawals stores the PendingPartialWithdrawals introduced in Electra.
 	// These are the operations done on this collection:
 	// 1. get_pending_balance_to_withdraw -> requires iteration
+	// 2. get_expected_withdrawals -> requires iterations
+	// 3. process_withdrawal_request -> requires number of entries in the collection and adding new entries
 	// 4. process_withdrawals -> requires removing entries from the collection
+	// It is easiest to have these operations be done on an `Item` that is a list under the hood rather than
+	// `sdkcollection` native types due to lack of support for lists.
 	pendingPartialWithdrawals sdkcollections.Item[ctypes.PendingPartialWithdrawals]
 }
 
