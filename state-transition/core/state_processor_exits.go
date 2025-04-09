@@ -41,7 +41,7 @@ func (sp *StateProcessor) ComputeActivationExitEpoch(epoch math.Epoch) math.Epoc
 	return epoch + 1 + maxSeedLookahead
 }
 
-// ComputeExitEpochAndUpdateChurn
+// ComputeExitEpochAndUpdateChurn is equivalent to `compute_exit_epoch_and_update_churn`
 func (sp *StateProcessor) ComputeExitEpochAndUpdateChurn(
 	st *statedb.StateDB, exitBalance math.Gwei,
 ) (math.Epoch, error) {
@@ -70,7 +70,7 @@ func (sp *StateProcessor) ComputeExitEpochAndUpdateChurn(
 	// Consume the balance and update state variables.
 	st.SetExitBalanceToConsume(exitBalanceToConsume - exitBalance)
 	st.SetEarliestExitEpoch(earliestExitEpoch)
-	return st.GetEarliestExitEpoch(), nil
+	return earliestExitEpoch, nil
 }
 
 // InitiateValidatorExit initiates the exit of the validator with index `idx`.
@@ -88,12 +88,13 @@ func (sp *StateProcessor) InitiateValidatorExit(st *statedb.StateDB, idx math.Va
 	if err != nil {
 		return err
 	}
+	// TODO(pectra): get this value from config or constant
+	minValidatorWithdrawabilityDelay := math.Epoch(0)
+	withdrawableEpoch := exitQueueEpoch + minValidatorWithdrawabilityDelay
 
 	// Set validator exit epoch and withdrawable epoch.
 	validator.SetExitEpoch(exitQueueEpoch)
-	// TODO(pectra): Get chainspec value
-	minValidatorWithdrawabilityDelay := math.Epoch(0)
-	validator.SetWithdrawableEpoch(validator.GetExitEpoch() + minValidatorWithdrawabilityDelay)
+	validator.SetWithdrawableEpoch(withdrawableEpoch)
 	err = st.UpdateValidatorAtIndex(idx, validator)
 	if err != nil {
 		return err
