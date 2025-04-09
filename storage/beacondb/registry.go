@@ -247,39 +247,17 @@ func (kv *KVStore) GetTotalActiveBalances(
 // GetPendingPartialWithdrawals is equivalent to `pending_partial_withdrawals`
 // If called before electra, will return an error.
 func (kv *KVStore) GetPendingPartialWithdrawals() ([]*ctypes.PendingPartialWithdrawal, error) {
-	beaconStateFork, err := kv.GetFork()
-	if err != nil {
+	if err := kv.requireEqualOrAfterVersion(version.Electra()); err != nil {
 		return nil, err
 	}
-	if beaconStateFork == nil {
-		return nil, errors.New("no fork in beacon state")
-	}
-	if version.IsBefore(beaconStateFork.CurrentVersion, version.Electra()) {
-		return nil, errors.New("attempted to get pending partial withdrawals before electra")
-	}
 
-	iterator, err := kv.pendingPartialWithdrawals.Iterate(kv.ctx, nil)
-	if err != nil {
-		return nil, err
-	}
-	pendingWithdrawals := make([]*ctypes.PendingPartialWithdrawal, 0)
-	var value *ctypes.PendingPartialWithdrawal
-	for ; iterator.Valid(); iterator.Next() {
-		value, err = iterator.Value()
-		if err != nil {
-			return nil, err
-		}
-		pendingWithdrawals = append(pendingWithdrawals, value)
-	}
-	return pendingWithdrawals, err
+	return kv.pendingPartialWithdrawals.Get(kv.ctx)
 }
 
-// AppendPendingPartialWithdrawal adds a pending partial withdrawal to `pending_partial_withdrawals`
-func (kv *KVStore) AppendPendingPartialWithdrawal(_ *ctypes.PendingPartialWithdrawal) error {
-	panic("TODO(pectra): unimplemented")
-}
-
-// GetPendingBalanceToWithdraw is equivalent to `get_pending_balance_to_withdraw`
-func (kv *KVStore) GetPendingBalanceToWithdraw(_ math.ValidatorIndex) math.Gwei {
-	panic("TODO(pectra): unimplemented")
+// SetPendingPartialWithdrawals sets the pending partial withdrawals
+func (kv *KVStore) SetPendingPartialWithdrawals(pendingPartialWithdrawals []*ctypes.PendingPartialWithdrawal) error {
+	if err := kv.requireEqualOrAfterVersion(version.Electra()); err != nil {
+		return err
+	}
+	return kv.pendingPartialWithdrawals.Set(kv.ctx, pendingPartialWithdrawals)
 }

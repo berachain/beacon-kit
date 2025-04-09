@@ -45,6 +45,7 @@ const (
 	NextWithdrawalValidatorIndexPrefix
 	ForkPrefix
 	PendingPartialWithdrawalsPrefix
+	PendingPartialWithdrawalsIndexPrefix
 )
 
 const (
@@ -72,4 +73,5 @@ const (
 	NextWithdrawalValidatorIndexPrefixHumanReadable     = "NextWithdrawalValidatorIndexPrefix"
 	ForkPrefixHumanReadable                             = "ForkPrefix"
 	PendingPartialWithdrawalsPrefixHumanReadable        = "PendingPartialWithdrawalsPrefix"
+	PendingPartialWithdrawalsIndexPrefixHumanReadable   = "PendingPartialWithdrawalsIndexPrefix"
 )

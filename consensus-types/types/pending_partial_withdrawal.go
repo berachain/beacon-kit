@@ -21,7 +21,10 @@
 package types
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/karalabe/ssz"
@@ -35,10 +38,13 @@ import (
 // Total = 8 + 8 + 8 = 24 bytes.
 const sszPendingPartialWithdrawalSize = 24
 
-// Compile-time check to ensure PendingPartialWithdrawal implements the necessary interfaces.
+// Compile-time check to ensure PendingPartialWithdrawal and PendingPartialWithdrawals implements the necessary interfaces.
 var (
 	_ ssz.StaticObject            = (*PendingPartialWithdrawal)(nil)
 	_ constraints.SSZMarshallable = (*PendingPartialWithdrawal)(nil)
+
+	_ ssz.DynamicObject           = (*PendingPartialWithdrawals)(nil)
+	_ constraints.SSZMarshallable = (*PendingPartialWithdrawals)(nil)
 )
 
 // PendingPartialWithdrawal reflects the following spec:
@@ -51,10 +57,6 @@ type PendingPartialWithdrawal struct {
 	ValidatorIndex    math.ValidatorIndex
 	Amount            math.Gwei
 	WithdrawableEpoch math.Epoch
-}
-
-func NewEmptyPendingPartialWithdrawal() *PendingPartialWithdrawal {
-	return &PendingPartialWithdrawal{}
 }
 
 /* -------------------------------------------------------------------------- */
@@ -88,4 +90,33 @@ func (p *PendingPartialWithdrawal) MarshalSSZ() ([]byte, error) {
 // HashTreeRoot computes and returns the hash tree root for the PendingPartialWithdrawal.
 func (p *PendingPartialWithdrawal) HashTreeRoot() common.Root {
 	return ssz.HashSequential(p)
+}
+
+type PendingPartialWithdrawals []*PendingPartialWithdrawal
+
+func NewEmptyPendingPartialWithdrawals() PendingPartialWithdrawals {
+	return PendingPartialWithdrawals{}
+}
+
+func (p *PendingPartialWithdrawals) DefineSSZ(codec *ssz.Codec) {
+	ssz.DefineSliceOfStaticObjectsOffset(codec, (*[]*PendingPartialWithdrawal)(p), constants.PendingPartialWithdrawalsLimit)
+	ssz.DefineSliceOfStaticObjectsContent(codec, (*[]*PendingPartialWithdrawal)(p), constants.PendingPartialWithdrawalsLimit)
+}
+
+func (p *PendingPartialWithdrawals) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
+	if fixed {
+		return constants.SSZOffsetSize
+	}
+	return constants.SSZOffsetSize + ssz.SizeSliceOfStaticObjects(siz, *p)
+}
+func (p *PendingPartialWithdrawals) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, ssz.Size(p))
+	return buf, ssz.EncodeToBytes(buf, p)
+}
+
+func (p *PendingPartialWithdrawals) ValidateAfterDecodingSSZ() error {
+	if len(*p) > constants.PendingPartialWithdrawalsLimit {
+		return fmt.Errorf("pending partial withdrawals too large")
+	}
+	return nil
 }

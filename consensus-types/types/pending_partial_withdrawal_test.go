@@ -146,3 +146,108 @@ func TestPendingPartialWithdrawal_InvalidValuesUnmarshalSSZ(t *testing.T) {
 		})
 	}
 }
+
+// -----------------------------------------------------------------------------
+// Tests for the slice type: PendingPartialWithdrawals
+// -----------------------------------------------------------------------------
+
+func TestPendingPartialWithdrawals_ValidValuesSSZ(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name     string
+		withdraw types.PendingPartialWithdrawals
+	}{
+		{
+			name:     "empty slice",
+			withdraw: types.NewEmptyPendingPartialWithdrawals(),
+		},
+		{
+			name: "one element",
+			withdraw: types.PendingPartialWithdrawals{
+				&types.PendingPartialWithdrawal{
+					ValidatorIndex:    1,
+					Amount:            1000,
+					WithdrawableEpoch: 10,
+				},
+			},
+		},
+		{
+			name: "multiple elements",
+			withdraw: types.PendingPartialWithdrawals{
+				&types.PendingPartialWithdrawal{ValidatorIndex: 1, Amount: 1000, WithdrawableEpoch: 10},
+				&types.PendingPartialWithdrawal{ValidatorIndex: 2, Amount: 2000, WithdrawableEpoch: 20},
+				&types.PendingPartialWithdrawal{ValidatorIndex: 3, Amount: 3000, WithdrawableEpoch: 30},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc // capture range variable
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			// Marshal the slice to SSZ.
+			withdrawBytes, err := tc.withdraw.MarshalSSZ()
+			require.NoError(t, err)
+
+			// Unmarshal into a new PendingPartialWithdrawals variable.
+			var recomputed types.PendingPartialWithdrawals
+			err = ssz.Unmarshal(withdrawBytes, &recomputed)
+			require.NoError(t, err)
+
+			// Compare the original slice to the recomputed one.
+			require.Equal(t, tc.withdraw, recomputed)
+		})
+	}
+}
+
+//nolint:paralleltest // Invalid SSZ payloads rely on shared zeroalloc
+func TestPendingPartialWithdrawals_InvalidValuesUnmarshalSSZ(t *testing.T) {
+	// Build a valid pending partial withdrawals slice to obtain a baseline payload.
+	validWithdrawals := types.PendingPartialWithdrawals{
+		&types.PendingPartialWithdrawal{
+			ValidatorIndex:    1,
+			Amount:            1000,
+			WithdrawableEpoch: 10,
+		},
+		&types.PendingPartialWithdrawal{
+			ValidatorIndex:    2,
+			Amount:            2000,
+			WithdrawableEpoch: 20,
+		},
+	}
+	validBytes, err := validWithdrawals.MarshalSSZ()
+	require.NoError(t, err)
+
+	invalidPayloads := [][]byte{
+		nil,                        // nil slice
+		{},                         // empty slice
+		[]byte("this is not ssz"),  // arbitrary non-SSZ data
+		{0x00, 0x01},               // too short to be valid
+		// A truncated valid payload.
+		func() []byte {
+			if len(validBytes) > 5 {
+				return validBytes[:len(validBytes)-5]
+			}
+			return validBytes
+		}(),
+		// A valid payload with extra trailing bytes.
+		func() []byte {
+			extra := []byte{0xAA, 0xBB, 0xCC, 0xDD}
+			return append(validBytes, extra...)
+		}(),
+	}
+
+	for i, payload := range invalidPayloads {
+		i, payload := i, payload // capture range variables
+		t.Run(fmt.Sprintf("invalidPendingSlice_%d", i), func(t *testing.T) {
+			// Ensure that unmarshalling does not panic and returns an error.
+			require.NotPanics(t, func() {
+				var withdrawals types.PendingPartialWithdrawals
+				err = ssz.Unmarshal(payload, &withdrawals)
+				require.Error(t, err, "expected error for payload %v", payload)
+			})
+		})
+	}
+}

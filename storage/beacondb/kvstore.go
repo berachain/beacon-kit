@@ -87,8 +87,10 @@ type KVStore struct {
 	// totalSlashing stores the total slashing in the vector range.
 	totalSlashing sdkcollections.Item[uint64]
 	// pendingPartialWithdrawals stores the PendingPartialWithdrawals introduced in Electra.
-	// There could be a better data
-	pendingPartialWithdrawals sdkcollections.Map[uint64, *ctypes.PendingPartialWithdrawal]
+	// These are the operations done on this collection:
+	// 1. get_pending_balance_to_withdraw -> requires iteration
+	// 4. process_withdrawals -> requires removing entries from the collection
+	pendingPartialWithdrawals sdkcollections.Item[ctypes.PendingPartialWithdrawals]
 }
 
 // New creates a new instance of Store.
@@ -235,13 +237,12 @@ func New(kss store.KVStoreService) *KVStore {
 				NewEmptyF: ctypes.NewEmptyBeaconBlockHeader,
 			},
 		),
-		pendingPartialWithdrawals: sdkcollections.NewMap(
+		pendingPartialWithdrawals: sdkcollections.NewItem(
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.PendingPartialWithdrawalsPrefix}),
 			keys.PendingPartialWithdrawalsPrefixHumanReadable,
-			sdkcollections.Uint64Key,
-			encoding.SSZValueCodec[*ctypes.PendingPartialWithdrawal]{
-				NewEmptyF: ctypes.NewEmptyPendingPartialWithdrawal,
+			encoding.SSZValueCodec[ctypes.PendingPartialWithdrawals]{
+				NewEmptyF: ctypes.NewEmptyPendingPartialWithdrawals,
 			},
 		),
 	}
