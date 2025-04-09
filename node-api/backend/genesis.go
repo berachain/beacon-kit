@@ -22,30 +22,32 @@ package backend
 
 import (
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // GenesisValidatorsRoot returns the genesis validators root of the beacon chain.
 func (b *Backend) GenesisValidatorsRoot() (common.Root, error) {
-	// First check if the value is cached
+	// First check if the value is cached.
 	root := b.genesisValidatorsRoot.Load()
 	if root != nil && *root != (common.Root{}) {
 		return *root, nil
 	}
 
-	// If not cached, read state from the genesis slot
-	st, _, err := b.stateFromSlot(0)
+	// If not cached, read state from the beacon state at the tip of chain.
+	st, _, err := b.stateFromSlotRaw(utils.Head)
 	if err != nil {
 		return common.Root{}, errors.Wrapf(err, "failed to get state from tip of chain")
 	}
-	// Get the genesis validators root
+
+	// Get the genesis validators root.
 	validatorsRoot, err := st.GetGenesisValidatorsRoot()
 	if err != nil {
 		return common.Root{}, errors.Wrap(err, "failed to get genesis validators root from state")
 	}
 
-	// Cache the value for future use
+	// Cache the value for future use.
 	b.genesisValidatorsRoot.Store(&validatorsRoot)
 
 	return validatorsRoot, nil

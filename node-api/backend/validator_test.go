@@ -23,7 +23,6 @@
 package backend_test
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -33,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log/noop"
 	"github.com/berachain/beacon-kit/node-api/backend"
 	types "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
@@ -52,7 +50,6 @@ import (
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/stretchr/testify/require"
 )
@@ -444,46 +441,4 @@ func setupStateDummyParts(t *testing.T, cs chain.Spec, st *statedb.StateDB) {
 	require.NoError(t, st.SetNextWithdrawalIndex(0))
 	require.NoError(t, st.SetNextWithdrawalValidatorIndex(0))
 	require.NoError(t, st.SetTotalSlashing(0))
-}
-
-var errTestMemberNotImplemented = errors.New("not implemented")
-
-// testConsensusService stubs consensus service
-type testConsensusService struct {
-	cms     storetypes.CommitMultiStore
-	kvStore *beacondb.KVStore
-	cs      chain.Spec
-}
-
-func (t *testConsensusService) CreateQueryContext(height int64, _ bool) (sdk.Context, error) {
-	sdkCtx := sdk.NewContext(t.cms.CacheMultiStore(), true, log.NewNopLogger())
-
-	// there validations mimics consensus service, not sure if they are necessary
-	tmpState := statedb.NewBeaconStateFromDB(t.kvStore.WithContext(sdkCtx), t.cs)
-	slot, err := tmpState.GetSlot()
-	if err != nil {
-		return sdk.Context{}, sdkerrors.ErrInvalidHeight
-	}
-	if height > int64(slot.Unwrap()) {
-		return sdk.Context{}, sdkerrors.ErrInvalidHeight
-	}
-	// end of possibly unnecessary validations
-
-	return sdkCtx, nil
-}
-
-func (t *testConsensusService) Start(_ context.Context) error {
-	return errTestMemberNotImplemented
-}
-
-func (t *testConsensusService) Stop() error {
-	return errTestMemberNotImplemented
-}
-
-func (t *testConsensusService) Name() string {
-	panic(errTestMemberNotImplemented)
-}
-
-func (t *testConsensusService) LastBlockHeight() int64 {
-	panic(errTestMemberNotImplemented)
 }
