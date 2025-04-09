@@ -21,8 +21,7 @@
 package types
 
 import (
-	"fmt"
-
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
@@ -116,7 +115,7 @@ func (p PendingPartialWithdrawals) MarshalSSZ() ([]byte, error) {
 
 func (p PendingPartialWithdrawals) ValidateAfterDecodingSSZ() error {
 	if len(p) > constants.PendingPartialWithdrawalsLimit {
-		return fmt.Errorf("pending partial withdrawals too large")
+		return errors.New("pending partial withdrawals too large")
 	}
 	return nil
 }

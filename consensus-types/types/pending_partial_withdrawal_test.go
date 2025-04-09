@@ -221,10 +221,10 @@ func TestPendingPartialWithdrawals_InvalidValuesUnmarshalSSZ(t *testing.T) {
 	require.NoError(t, err)
 
 	invalidPayloads := [][]byte{
-		nil,                        // nil slice
-		{},                         // empty slice
-		[]byte("this is not ssz"),  // arbitrary non-SSZ data
-		{0x00, 0x01},               // too short to be valid
+		nil,                       // nil slice
+		{},                        // empty slice
+		[]byte("this is not ssz"), // arbitrary non-SSZ data
+		{0x00, 0x01},              // too short to be valid
 		// A truncated valid payload.
 		func() []byte {
 			if len(validBytes) > 5 {
