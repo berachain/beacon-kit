@@ -36,7 +36,8 @@ func (sp *StateProcessor) GetActivationExitChurnLimit(st *statedb.StateDB) math.
 // ComputeActivationExitEpoch returns the epoch during which validator activations and exits initiated in `epoch` take
 // effect.
 func (sp *StateProcessor) ComputeActivationExitEpoch(epoch math.Epoch) math.Epoch {
-	// TODO(pectra): get this value from config or constant
+	// TODO(pectra): get this value from config or constant.
+	// We should likely set maxSeedLookAhead to zero to keep processRegistryUpdates consistent.
 	var maxSeedLookahead math.Epoch
 	return epoch + 1 + maxSeedLookahead
 }

@@ -45,7 +45,7 @@ func (sp *StateProcessor) processRegistryUpdates(st *statedb.StateDB) error {
 	}
 
 	currEpoch := sp.cs.SlotToEpoch(slot)
-	nextEpoch := currEpoch + 1
+	activationEpoch := sp.ComputeActivationExitEpoch(currEpoch)
 
 	minEffectiveBalance := math.Gwei(
 		sp.cs.EjectionBalance() + sp.cs.EffectiveBalanceIncrement(),
@@ -57,11 +57,16 @@ func (sp *StateProcessor) processRegistryUpdates(st *statedb.StateDB) error {
 	for si, val := range vals {
 		valModified := false
 		if val.IsEligibleForActivationQueue(minEffectiveBalance) {
-			val.SetActivationEligibilityEpoch(nextEpoch)
+			val.SetActivationEligibilityEpoch(activationEpoch)
 			valModified = true
 		}
+		/*
+			 TODO(pectra): Now that we have volunatary withdrarawals, the balance can fall below EjectionBalance
+				elif is_active_validator(validator, current_epoch) and validator.effective_balance <= config.EJECTION_BALANCE:
+					initiate_validator_exit(state, ValidatorIndex(index))  # [Modified in Electra:EIP7251]
+		*/
 		if val.IsEligibleForActivation(currEpoch) {
-			val.SetActivationEpoch(nextEpoch)
+			val.SetActivationEpoch(activationEpoch)
 			valModified = true
 		}
 
@@ -74,11 +79,6 @@ func (sp *StateProcessor) processRegistryUpdates(st *statedb.StateDB) error {
 					err,
 				)
 			}
-			/*
-				 TODO(pectra): Now that we have volunatary withdrarawals, the balance can fall below EjectionBalance
-					elif is_active_validator(validator, current_epoch) and validator.effective_balance <= config.EJECTION_BALANCE:
-						initiate_validator_exit(state, ValidatorIndex(index))  # [Modified in Electra:EIP7251]
-			*/
 
 			if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
 				return fmt.Errorf(
