@@ -43,4 +43,8 @@ const (
 
 	// MaxDepositRequestsPerPayload is the maximum number of deposit requests in a execution payload.
 	MaxDepositRequestsPerPayload = 8192
+
+	// PendingPartialWithdrawalsLimit is the maximum number of pending partial withdrawals.
+	// as defined in the spec https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#state-list-lengths
+	PendingPartialWithdrawalsLimit = 134_217_728
 )

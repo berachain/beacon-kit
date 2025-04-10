@@ -27,6 +27,7 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 )
 
 // AddValidator registers a new validator in the beacon state.
@@ -241,4 +242,29 @@ func (kv *KVStore) GetTotalActiveBalances(
 		},
 	)
 	return totalActiveBalances, err
+}
+
+// GetPendingPartialWithdrawals is equivalent to `pending_partial_withdrawals`
+// If called before electra, will return an error.
+func (kv *KVStore) GetPendingPartialWithdrawals() ([]*ctypes.PendingPartialWithdrawal, error) {
+	if err := kv.requireEqualOrAfterVersion(version.Electra()); err != nil {
+		return nil, err
+	}
+	pendingPartialWithdrawals, err := kv.pendingPartialWithdrawals.Get(kv.ctx)
+	if err != nil {
+		return nil, err
+	}
+	if pendingPartialWithdrawals == nil {
+		return nil, errors.New("unexpected nil pending partial withdrawals")
+	}
+	return *pendingPartialWithdrawals, err
+}
+
+// SetPendingPartialWithdrawals sets the pending partial withdrawals
+func (kv *KVStore) SetPendingPartialWithdrawals(pendingPartialWithdrawals []*ctypes.PendingPartialWithdrawal) error {
+	if err := kv.requireEqualOrAfterVersion(version.Electra()); err != nil {
+		return err
+	}
+	ppw := ctypes.PendingPartialWithdrawals(pendingPartialWithdrawals)
+	return kv.pendingPartialWithdrawals.Set(kv.ctx, &ppw)
 }

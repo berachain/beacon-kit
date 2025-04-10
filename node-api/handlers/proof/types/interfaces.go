@@ -21,20 +21,8 @@
 package types
 
 import (
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/primitives/math"
 	fastssz "github.com/ferranbt/fastssz"
 )
-
-// BeaconState is the interface for a beacon state.
-type BeaconState[
-	BeaconStateMarshallableT any,
-] interface {
-	// GetMarshallable returns the marshallable version of the beacon state.
-	GetMarshallable() (BeaconStateMarshallableT, error)
-	// ValidatorByIndex retrieves the validator at the given index.
-	ValidatorByIndex(index math.ValidatorIndex) (*ctypes.Validator, error)
-}
 
 // BeaconStateMarshallable is the interface for a beacon state that can be
 // marshalled or hash tree rooted.

@@ -33,16 +33,14 @@ import (
 // beacon block. The proof is then verified against the beacon block root as a
 // sanity check. Returns the proof along with the beacon block root. It uses
 // the fastssz library to generate the proof.
-func ProveProposerPubkeyInBlock[
-	BeaconStateMarshallableT types.BeaconStateMarshallable,
-](
+func ProveProposerPubkeyInBlock(
 	bbh *ctypes.BeaconBlockHeader,
-	bs types.BeaconState[BeaconStateMarshallableT],
+	bsm types.BeaconStateMarshallable,
 ) ([]common.Root, common.Root, error) {
 	// Get the proof of the proposer pubkey in the beacon state.
 	proposerOffset := ValidatorPubkeyGIndexOffset * bbh.GetProposerIndex()
 	valPubkeyInStateProof, leaf, err := ProveProposerPubkeyInState(
-		bs, proposerOffset,
+		bsm, proposerOffset,
 	)
 	if err != nil {
 		return nil, common.Root{}, err
@@ -70,16 +68,10 @@ func ProveProposerPubkeyInBlock[
 
 // ProveProposerPubkeyInState generates a proof for the proposer pubkey
 // in the beacon state. It uses the fastssz library to generate the proof.
-func ProveProposerPubkeyInState[
-	BeaconStateMarshallableT types.BeaconStateMarshallable,
-](
-	bs types.BeaconState[BeaconStateMarshallableT],
+func ProveProposerPubkeyInState(
+	bsm types.BeaconStateMarshallable,
 	proposerOffset math.U64,
 ) ([]common.Root, common.Root, error) {
-	bsm, err := bs.GetMarshallable()
-	if err != nil {
-		return nil, common.Root{}, err
-	}
 	stateProofTree, err := bsm.GetTree()
 	if err != nil {
 		return nil, common.Root{}, err
