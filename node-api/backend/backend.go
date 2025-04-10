@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Backend is the db access layer for the beacon node-api.
@@ -87,10 +88,20 @@ func (b *Backend) Spec() (chain.Spec, error) {
 
 // stateFromSlot returns the state at the given slot, after also processing the
 // next slot to ensure the returned beacon state is up to date.
-func (b *Backend) stateFromSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error) {
-	st, slot, err := b.stateFromSlotRaw(slot)
+func (b *Backend) stateFromSlot(slot math.Slot, isGenesis ...bool) (*statedb.StateDB, math.Slot, error) {
+	genesis := false
+	if len(isGenesis) > 0 {
+		genesis = isGenesis[0]
+	}
+	fmt.Println("stateFromSlot nids", slot, genesis)
+	st, slot, err := b.stateFromSlotRaw(slot, genesis)
 	if err != nil {
 		return st, slot, fmt.Errorf("stateFromSlotRaw failed: %w", err)
+	}
+
+	// Skip processing for genesis state since it's a special case
+	if genesis {
+		return st, slot, nil
 	}
 
 	// Process the slot to update the latest state and block roots.
@@ -110,12 +121,39 @@ func (b *Backend) stateFromSlot(slot math.Slot) (*statedb.StateDB, math.Slot, er
 // stateFromSlotRaw returns the state at the given slot using query context,
 // resolving an input slot of 0 to the latest slot. It does not process the
 // next slot on the beacon state.
-func (b *Backend) stateFromSlotRaw(slot math.Slot) (*statedb.StateDB, math.Slot, error) {
-	queryCtx, err := b.node.CreateQueryContext(int64(slot), false) // #nosec G115 -- not an issue in practice.
+func (b *Backend) stateFromSlotRaw(slot math.Slot, isGenesis bool) (*statedb.StateDB, math.Slot, error) {
+	var queryCtx sdk.Context
+	var err error
+
+	// For both genesis and non-genesis cases, we need to get a valid context from the node
+	// For genesis case, we'll use height 1 and then modify the state afterward
+	var height int64 = int64(slot)
+	if isGenesis || slot == 0 {
+		// Use height 1 which should contain the genesis state information
+		height = 0
+	}
+
+	queryCtx, err = b.node.CreateQueryContext(height, false, isGenesis)
 	if err != nil {
 		return nil, slot, fmt.Errorf("CreateQueryContext failed: %w", err)
 	}
+
+	fmt.Println("queryCtx nids", queryCtx)
 	st := b.sb.StateFromContext(queryCtx)
+
+	outputSlot, err := st.GetSlot()
+	if err != nil {
+		return nil, slot, fmt.Errorf("GetSlot failed: %w", err)
+	}
+	fmt.Println("st nids", outputSlot)
+
+	// If the query context is for genesis, we need to handle it differently.
+	if isGenesis {
+		if err = st.SetSlot(0); err != nil {
+			return nil, 0, fmt.Errorf("failed to set genesis slot: %w", err)
+		}
+		return st, 0, nil
+	}
 
 	// If using height 0 for the query context, make sure to return the latest slot.
 	if slot == 0 {

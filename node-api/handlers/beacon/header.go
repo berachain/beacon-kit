@@ -21,9 +21,13 @@
 package beacon
 
 import (
+	"fmt"
+
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
@@ -38,7 +42,7 @@ func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	header, err := h.backend.BlockHeaderAtSlot(slot)
+	header, err := h.backend.BlockHeaderAtSlot(slot, false)
 	if err != nil {
 		return nil, err
 	}
@@ -57,22 +61,36 @@ func (h *Handler) GetBlockHeaderByID(c handlers.Context) (any, error) {
 		c, h.Logger(),
 	)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to bind and validate request")
 	}
-	slot, err := utils.SlotFromBlockID(req.BlockID, h.backend)
-	if err != nil {
-		return nil, err
+
+	var slot math.Slot
+	var isGenesis bool
+	// If the block ID is genesis, we need to handle it differently.
+	if req.BlockID == utils.StateIDGenesis {
+		isGenesis = true
+	} else {
+		slot, err = utils.SlotFromBlockID(req.BlockID, h.backend)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to get slot from block ID %s", req.BlockID)
+		}
 	}
-	header, err := h.backend.BlockHeaderAtSlot(slot)
+	fmt.Println("getBlockHeaderByID nids", slot, isGenesis)
+	header, err := h.backend.BlockHeaderAtSlot(slot, isGenesis)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "failed to get block header at slot %d", slot)
+	}
+
+	root, err := h.backend.BlockRootAtSlot(slot)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get block root at slot %d", slot)
 	}
 	return beacontypes.NewResponse(&beacontypes.BlockHeaderResponse{
-		Root:      header.GetBodyRoot(),
+		Root:      root, // This is root hash of entire beacon block
 		Canonical: true,
 		Header: &beacontypes.SignedBeaconBlockHeader{
 			Message:   beacontypes.BeaconBlockHeaderFromConsensus(header),
-			Signature: "", // TODO: implement
+			Signature: (&crypto.BLSSignature{}).String(), // TODO: implement
 		},
 	}), nil
 }

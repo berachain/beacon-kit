@@ -34,7 +34,7 @@ type Backend interface {
 }
 
 type BlockBackend interface {
-	BlockHeaderAtSlot(slot math.Slot) (*ctypes.BeaconBlockHeader, error)
+	BlockHeaderAtSlot(slot math.Slot, isGenesis bool) (*ctypes.BeaconBlockHeader, error)
 }
 
 type StateBackend interface {

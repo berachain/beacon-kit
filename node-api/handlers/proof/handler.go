@@ -65,7 +65,7 @@ func (h *Handler) resolveTimestampID(timestampID string) (
 		return 0, beaconState, blockHeader, err
 	}
 
-	blockHeader, err = h.backend.BlockHeaderAtSlot(slot)
+	blockHeader, err = h.backend.BlockHeaderAtSlot(slot, false)
 	if err != nil {
 		return 0, beaconState, blockHeader, err
 	}

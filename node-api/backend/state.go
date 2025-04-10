@@ -31,7 +31,7 @@ import (
 // to calculate the parent beacon block root, which has the empty state root in
 // the latest block header. Hence we do not process the next slot.
 func (b *Backend) StateFromSlotForProof(slot math.Slot) (*statedb.StateDB, math.Slot, error) {
-	return b.stateFromSlotRaw(slot)
+	return b.stateFromSlotRaw(slot, false)
 }
 
 // GetStateRoot returns the root of the state at the given slot.
