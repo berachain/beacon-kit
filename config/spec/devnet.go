@@ -58,7 +58,8 @@ const (
 	devnetEVMInflationPerBlockFulu = 12 * params.GWei
 )
 
-// DevnetChainSpecData is the chain.SpecData for a devnet.
+// DevnetChainSpecData is the chain.SpecData for a devnet. We try to keep this
+// as close to the mainnet spec as possible.
 func DevnetChainSpecData() *chain.SpecData {
 	specData := MainnetChainSpecData()
 	specData.DepositEth1ChainID = chain.DevnetEth1ChainID
@@ -91,6 +92,9 @@ func DevnetChainSpecData() *chain.SpecData {
 	// EVM inflation for the Fulu fork on devnet. The address remains the same as the Deneb1 fork.
 	specData.EVMInflationAddressFulu = common.MustNewExecutionAddressFromHex(devnetEVMInflationAddressDeneb1)
 	specData.EVMInflationPerBlockFulu = devnetEVMInflationPerBlockFulu
+
+	// Use fewer slots per epoch for devnet to speed up testing.
+	specData.SlotsPerEpoch = 32
 
 	return specData
 }
