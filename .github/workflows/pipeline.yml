@@ -151,12 +151,11 @@ jobs:
           fi
         shell: bash
       - name: Login to Docker Hub
-        uses: docker/login-action@v3
+        uses: docker/login-action@v3.4.0
         if: steps.check-docker-credentials.outputs.has_credentials == 'true'
         with:
-          registry: https://index.docker.io/v1/
           username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Setup Golang
         uses: actions/setup-go@v5
         with:
@@ -174,6 +173,7 @@ jobs:
           echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
           sudo apt update
           sudo apt install kurtosis-cli=$(go list -m -f '{{.Version}}' github.com/kurtosis-tech/kurtosis/api/golang | sed 's/^v//') -y
+          docker info
           kurtosis engine start
         if: ${{ matrix.args == 'test-e2e' }}
       - name: Run ${{ matrix.args }}
