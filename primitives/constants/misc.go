@@ -40,3 +40,16 @@ const (
 	// FirstDepositIndex represents the index of the first deposit in the system, set at genesis.
 	FirstDepositIndex uint64 = 0
 )
+
+// State list lengths.
+const (
+	// ValidatorsRegistryLimit is the maximum number of validators that can be registered.
+	// https://github.com/ethereum/consensus-specs/blob/dev/presets/mainnet/phase0.yaml#L49
+	// 2**40 (= 1,099,511,627,776) validator spots.
+	ValidatorsRegistryLimit = 1_099_511_627_776
+
+	// PendingPartialWithdrawalsLimit is the maximum number of pending partial withdrawals.
+	// https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#state-list-lengths
+	// 2**27 (= 134,217,728) pending partial withdrawals
+	PendingPartialWithdrawalsLimit = 134_217_728
+)

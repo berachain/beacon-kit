@@ -37,7 +37,7 @@ func ProveBeaconStateInBlock(
 		return nil, err
 	}
 
-	stateInBlockProof, err := blockProofTree.Prove(StateGIndexDenebBlock)
+	stateInBlockProof, err := blockProofTree.Prove(StateGIndexBlock)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func verifyBeaconStateInBlock(
 	bbh *ctypes.BeaconBlockHeader, proof []common.Root, leaf common.Root,
 ) error {
 	beaconRoot := bbh.HashTreeRoot()
-	if !merkle.VerifyProof(beaconRoot, leaf, StateGIndexDenebBlock, proof) {
+	if !merkle.VerifyProof(beaconRoot, leaf, StateGIndexBlock, proof) {
 		return errors.Wrapf(
 			errors.New("beacon stateproof failed to verify against beacon root"),
 			"beacon root: 0x%s", beaconRoot,
