@@ -75,9 +75,7 @@ func NewBeaconState(
 }
 
 // GetMarshallable implements proof BeaconState.
-func (m *BeaconState) GetMarshallable() (
-	*types.BeaconState, error,
-) {
+func (m *BeaconState) GetMarshallable() (*types.BeaconState, error) {
 	return m.internal, nil
 }
 

@@ -22,10 +22,9 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/karalabe/ssz"
 )
-
-const MaxValidators = 1099511627776
 
 type Validators []*Validator
 
@@ -39,16 +38,16 @@ func (vs Validators) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {
 func (vs Validators) DefineSSZ(c *ssz.Codec) {
 	c.DefineDecoder(func(*ssz.Decoder) {
 		ssz.DefineSliceOfStaticObjectsContent(
-			c, (*[]*Validator)(&vs), MaxValidators)
+			c, (*[]*Validator)(&vs), constants.ValidatorsRegistryLimit)
 	})
 	c.DefineEncoder(func(*ssz.Encoder) {
 		ssz.DefineSliceOfStaticObjectsContent(
-			c, (*[]*Validator)(&vs), MaxValidators)
+			c, (*[]*Validator)(&vs), constants.ValidatorsRegistryLimit)
 	})
 
 	c.DefineHasher(func(*ssz.Hasher) {
 		ssz.DefineSliceOfStaticObjectsOffset(
-			c, (*[]*Validator)(&vs), MaxValidators)
+			c, (*[]*Validator)(&vs), constants.ValidatorsRegistryLimit)
 	})
 }
 

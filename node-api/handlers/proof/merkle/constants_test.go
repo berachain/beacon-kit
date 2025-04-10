@@ -23,8 +23,8 @@ package merkle_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/merkle"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/encoding/ssz/schema"
 	mlib "github.com/berachain/beacon-kit/primitives/merkle"
 	"github.com/stretchr/testify/require"
@@ -32,7 +32,7 @@ import (
 
 var (
 	// beaconStateSchema is the schema for the BeaconState struct defined in
-	// beacon-kit/mod/consensus-types/types/state.go.
+	// beacon-kit/mod/consensus-types/types/state.go (for the latest fork -- electra).
 	beaconStateSchema = schema.DefineContainer(
 		schema.NewField("GenesisValidatorsRoot", schema.B32()),
 		schema.NewField("Slot", schema.U64()),
@@ -84,17 +84,22 @@ var (
 			schema.NewField("ActivationEpoch", schema.U64()),
 			schema.NewField("ExitEpoch", schema.U64()),
 			schema.NewField("WithdrawableEpoch", schema.U64()),
-		), types.MaxValidators)),
+		), constants.ValidatorsRegistryLimit)),
 		schema.NewField(
-			"Balances", schema.DefineList(schema.U64(), types.MaxValidators),
+			"Balances", schema.DefineList(schema.U64(), constants.ValidatorsRegistryLimit),
 		),
 		schema.NewField("RandaoMixes", schema.DefineList(schema.B32(), 65536)),
 		schema.NewField("NextWithdrawalIndex", schema.U64()),
 		schema.NewField("NextWithdrawalValidatorIndex", schema.U64()),
 		schema.NewField(
-			"Slashings", schema.DefineList(schema.U64(), types.MaxValidators),
+			"Slashings", schema.DefineList(schema.U64(), constants.ValidatorsRegistryLimit),
 		),
 		schema.NewField("TotalSlashing", schema.U64()),
+		schema.NewField("PendingPartialWithdrawals", schema.DefineList(schema.DefineContainer(
+			schema.NewField("ValidatorIndex", schema.U64()),
+			schema.NewField("Amount", schema.U64()),
+			schema.NewField("WithdrawableEpoch", schema.U64()),
+		), constants.PendingPartialWithdrawalsLimit)),
 	)
 
 	// beaconHeaderSchema is the schema for the BeaconBlockHeader struct defined

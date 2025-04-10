@@ -22,22 +22,22 @@ package merkle
 
 const (
 	// ProposerIndexGIndexBlock is the generalized index of the proposer
-	// index in the beacon block in the  fork.
+	// index in the beacon block.
 	ProposerIndexGIndexBlock = 9
 
 	// StateGIndexBlock is the generalized index of the beacon state in
-	// the beacon block in the  fork.
+	// the beacon block.
 	StateGIndexBlock = 11
 
 	// ZeroValidatorPubkeyGIndexState is the generalized index of the 0
-	// validator's pubkey in the beacon state in the  fork. To get the
+	// validator's pubkey in the beacon state. To get the
 	// GIndex of the pubkey of validator at index n, the formula is:
 	// GIndex = ZeroValidatorPubkeyGIndexState +
 	//          (ValidatorPubkeyGIndexOffset * n)
 	ZeroValidatorPubkeyGIndexState = 439804651110400
 
 	// ZeroValidatorPubkeyGIndexBlock is the generalized index of the 0
-	// validator's pubkey in the beacon block in the  fork. This is
+	// validator's pubkey in the beacon block. This is
 	// calculated by concatenating the (ZeroValidatorPubkeyGIndexState,
 	// StateGIndexBlock) GIndices. To get the GIndex of the pubkey of
 	// validator at index n, the formula is:
