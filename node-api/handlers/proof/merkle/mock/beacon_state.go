@@ -27,6 +27,7 @@ import (
 	ptypes "github.com/berachain/beacon-kit/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/holiman/uint256"
 )
 
@@ -65,6 +66,8 @@ func NewBeaconState(
 	}
 
 	bsm := &BeaconStateMarshallable{
+		// TODO(pectra): Change this to an argument.
+		Versionable:                  types.NewVersionable(version.Deneb()),
 		Slot:                         slot,
 		GenesisValidatorsRoot:        common.Root{},
 		Fork:                         &types.Fork{},
