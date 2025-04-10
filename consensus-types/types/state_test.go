@@ -153,10 +153,6 @@ func TestBeaconStateMarshalUnmarshalSSZ(t *testing.T) {
 		err := newState.UnmarshalSSZ(data)
 		require.NoError(t, err)
 
-		if version.Equals(v, version.Electra()) {
-			t.Skip("TODO(pectra): Get Marshalling and unmarshalling working for BeaconState post Electra")
-		}
-
 		require.EqualValues(t, genState, newState)
 
 		// Check if the state size is greater than 0
