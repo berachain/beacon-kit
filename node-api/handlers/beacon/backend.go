@@ -44,7 +44,9 @@ type Backend interface {
 }
 
 type GenesisBackend interface {
-	GenesisValidatorsRoot(slot math.Slot) (common.Root, error)
+	GenesisValidatorsRoot() (common.Root, error)
+	GenesisForkVersion() (common.Version, error)
+	GenesisTime() (math.U64, error)
 }
 
 type HistoricalBackend interface {
