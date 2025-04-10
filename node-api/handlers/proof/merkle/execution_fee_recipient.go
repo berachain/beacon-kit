@@ -34,14 +34,12 @@ import (
 // verified against the beacon block root as a sanity check. Returns the proof
 // along with the beacon block root. It uses the fastssz library to generate the
 // proof.
-func ProveExecutionFeeRecipientInBlock[
-	BeaconStateMarshallableT types.BeaconStateMarshallable,
-](
+func ProveExecutionFeeRecipientInBlock(
 	bbh *ctypes.BeaconBlockHeader,
-	bs types.BeaconState[BeaconStateMarshallableT],
+	bsm types.BeaconStateMarshallable,
 ) ([]common.Root, common.Root, error) {
 	// Get the proof of the execution fee recipient in the beacon state.
-	feeRecipientInStateProof, leaf, err := ProveExecutionFeeRecipientInState(bs)
+	feeRecipientInStateProof, leaf, err := ProveExecutionFeeRecipientInState(bsm)
 	if err != nil {
 		return nil, common.Root{}, err
 	}
@@ -69,15 +67,9 @@ func ProveExecutionFeeRecipientInBlock[
 // ProveExecutionFeeRecipientInState generates a proof for the execution fee
 // recipient in the beacon state. It uses the fastssz library to generate the
 // proof.
-func ProveExecutionFeeRecipientInState[
-	BeaconStateMarshallableT types.BeaconStateMarshallable,
-](
-	bs types.BeaconState[BeaconStateMarshallableT],
+func ProveExecutionFeeRecipientInState(
+	bsm types.BeaconStateMarshallable,
 ) ([]common.Root, common.Root, error) {
-	bsm, err := bs.GetMarshallable()
-	if err != nil {
-		return nil, common.Root{}, err
-	}
 	stateProofTree, err := bsm.GetTree()
 	if err != nil {
 		return nil, common.Root{}, err

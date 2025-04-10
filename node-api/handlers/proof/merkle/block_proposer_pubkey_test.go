@@ -89,7 +89,9 @@ func TestBlockProposerPubkeyProof(t *testing.T) {
 				tc.bodyRoot,
 			)
 
-			proof, _, err := merkle.ProveProposerPubkeyInBlock(bbh, bs)
+			bsm, err := bs.GetMarshallable()
+			require.NoError(t, err)
+			proof, _, err := merkle.ProveProposerPubkeyInBlock(bbh, bsm)
 			require.NoError(t, err)
 			expectedProof := ReadProofFromFile(t, tc.expectedProofFile)
 			require.Equal(t, expectedProof, proof)

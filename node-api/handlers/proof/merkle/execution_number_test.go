@@ -81,8 +81,9 @@ func TestExecutionNumberProof(t *testing.T) {
 				bs.HashTreeRoot(),
 				tc.bodyRoot,
 			)
-
-			proof, _, err = merkle.ProveExecutionNumberInBlock(bbh, bs)
+			bsm, err := bs.GetMarshallable()
+			require.NoError(t, err)
+			proof, _, err = merkle.ProveExecutionNumberInBlock(bbh, bsm)
 			require.NoError(t, err)
 			expectedProof := ReadProofFromFile(t, tc.expectedProofFile)
 			require.Equal(t, expectedProof, proof)

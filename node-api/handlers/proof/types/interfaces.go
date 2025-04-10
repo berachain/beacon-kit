@@ -27,14 +27,12 @@ import (
 )
 
 // BeaconState is the interface for a beacon state.
-type BeaconState[
-	BeaconStateMarshallableT any,
-] interface {
+type BeaconState interface {
 	// GetLatestExecutionPayloadHeader returns the latest execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (*ctypes.ExecutionPayloadHeader, error)
 	// GetMarshallable returns the marshallable version of the beacon state.
-	GetMarshallable() (BeaconStateMarshallableT, error)
+	GetMarshallable() (BeaconStateMarshallable, error)
 	// ValidatorByIndex retrieves the validator at the given index.
 	ValidatorByIndex(index math.ValidatorIndex) (*ctypes.Validator, error)
 }

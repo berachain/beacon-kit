@@ -21,29 +21,17 @@
 package mock
 
 import (
-	"errors"
-
 	"github.com/berachain/beacon-kit/consensus-types/types"
-	ptypes "github.com/berachain/beacon-kit/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/holiman/uint256"
 )
 
-// Compile time check to ensure BeaconState implements the methods
-// required by the BeaconState for proofs.
-var _ ptypes.BeaconState[*BeaconStateMarshallable] = (*BeaconState)(nil)
-
-// BeaconState is a mock implementation of the proof BeaconState interface
-// using the default BeaconState type that is marshallable.
-type (
-	BeaconStateMarshallable = types.BeaconState
-
-	BeaconState struct {
-		*BeaconStateMarshallable
-	}
-)
+// BeaconState is a mock implementation of the StateDB BeaconState
+type BeaconState struct {
+	internal types.BeaconState
+}
 
 // NewBeaconState creates a new mock beacon state, with only the given slot,
 // validators, execution number, and execution fee recipient.
@@ -52,7 +40,7 @@ func NewBeaconState(
 	vals types.Validators,
 	executionNumber math.U64,
 	executionFeeRecipient common.ExecutionAddress,
-) (*BeaconState, error) {
+) (BeaconState, error) {
 	// If no validators are provided, create an empty slice.
 	if len(vals) == 0 {
 		vals = make(types.Validators, 0)
@@ -65,7 +53,7 @@ func NewBeaconState(
 		BaseFeePerGas: &uint256.Int{},
 	}
 
-	bsm := &BeaconStateMarshallable{
+	bsm := types.BeaconState{
 		// TODO(pectra): Change this to an argument.
 		Versionable:                  types.NewVersionable(version.Deneb()),
 		Slot:                         slot,
@@ -86,31 +74,42 @@ func NewBeaconState(
 		TotalSlashing:                0,
 	}
 
-	return &BeaconState{BeaconStateMarshallable: bsm}, nil
-}
-
-// GetLatestExecutionPayloadHeader implements proof BeaconState.
-func (m *BeaconState) GetLatestExecutionPayloadHeader() (
-	*types.ExecutionPayloadHeader, error,
-) {
-	return m.BeaconStateMarshallable.LatestExecutionPayloadHeader, nil
+	return BeaconState{bsm}, nil
 }
 
 // GetMarshallable implements proof BeaconState.
 func (m *BeaconState) GetMarshallable() (
-	*BeaconStateMarshallable, error,
+	*types.BeaconState, error,
 ) {
-	return m.BeaconStateMarshallable, nil
+	beaconState := types.NewEmptyBeaconStateWithVersion(m.internal.GetForkVersion())
+	beaconState.Slot = m.internal.Slot
+	beaconState.GenesisValidatorsRoot = m.internal.GenesisValidatorsRoot
+	beaconState.Fork = m.internal.Fork
+	beaconState.LatestBlockHeader = m.internal.LatestBlockHeader
+	beaconState.BlockRoots = m.internal.BlockRoots
+	beaconState.StateRoots = m.internal.StateRoots
+	beaconState.LatestExecutionPayloadHeader = m.internal.LatestExecutionPayloadHeader
+	beaconState.Eth1Data = m.internal.Eth1Data
+	beaconState.Eth1DepositIndex = m.internal.Eth1DepositIndex
+	beaconState.Validators = m.internal.Validators
+	beaconState.Balances = m.internal.Balances
+	beaconState.RandaoMixes = m.internal.RandaoMixes
+	beaconState.NextWithdrawalIndex = m.internal.NextWithdrawalIndex
+	beaconState.NextWithdrawalValidatorIndex = m.internal.NextWithdrawalValidatorIndex
+	beaconState.Slashings = m.internal.Slashings
+	beaconState.TotalSlashing = m.internal.TotalSlashing
+
+	if version.EqualsOrIsAfter(beaconState.GetForkVersion(), version.Electra()) {
+		beaconState.PendingPartialWithdrawals = m.internal.PendingPartialWithdrawals
+	}
+	return beaconState, nil
 }
 
-// ValidatorByIndex implements proof BeaconState.
-func (m *BeaconState) ValidatorByIndex(
-	index math.ValidatorIndex,
-) (*types.Validator, error) {
-	vals := m.BeaconStateMarshallable.Validators
-	if index >= math.ValidatorIndex(len(vals)) {
-		return nil, errors.New("validator index out of range")
+// HashTreeRoot is the interface for the beacon store.
+func (m *BeaconState) HashTreeRoot() common.Root {
+	st, err := m.GetMarshallable()
+	if err != nil {
+		panic(err)
 	}
-
-	return vals[index], nil
+	return st.HashTreeRoot()
 }

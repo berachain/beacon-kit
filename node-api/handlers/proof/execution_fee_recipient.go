@@ -47,8 +47,12 @@ func (h *Handler) GetExecutionFeeRecipient(c handlers.Context) (any, error) {
 	// Generate the proof (along with the "correct" beacon block root to
 	// verify against) for the execution payload fee recipient.
 	h.Logger().Info("Generating execution fee recipient proof", "slot", slot)
+	bsm, err := beaconState.GetMarshallable()
+	if err != nil {
+		return nil, err
+	}
 	proof, beaconBlockRoot, err := merkle.ProveExecutionFeeRecipientInBlock(
-		blockHeader, beaconState,
+		blockHeader, bsm,
 	)
 	if err != nil {
 		return nil, err

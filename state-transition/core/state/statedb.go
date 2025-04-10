@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/storage/beacondb"
 )
 
@@ -317,6 +318,15 @@ func (s *StateDB) GetMarshallable() (*ctypes.BeaconState, error) {
 	beaconState.NextWithdrawalValidatorIndex = nextWithdrawalValidatorIndex
 	beaconState.Slashings = slashings
 	beaconState.TotalSlashing = totalSlashings
+
+	if version.EqualsOrIsAfter(beaconState.GetForkVersion(), version.Electra()) {
+		pendingPartialWithdrawals, getErr := s.GetPendingPartialWithdrawals()
+		if getErr != nil {
+			return nil, getErr
+		}
+		beaconState.PendingPartialWithdrawals = pendingPartialWithdrawals
+	}
+
 	return beaconState, nil
 }
 

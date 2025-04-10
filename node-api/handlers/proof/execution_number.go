@@ -46,9 +46,13 @@ func (h *Handler) GetExecutionNumber(c handlers.Context) (any, error) {
 
 	// Generate the proof (along with the "correct" beacon block root to
 	// verify against) for the execution payload block number.
+	bsm, err := beaconState.GetMarshallable()
+	if err != nil {
+		return nil, err
+	}
 	h.Logger().Info("Generating execution block number proof", "slot", slot)
 	proof, beaconBlockRoot, err := merkle.ProveExecutionNumberInBlock(
-		blockHeader, beaconState,
+		blockHeader, bsm,
 	)
 	if err != nil {
 		return nil, err

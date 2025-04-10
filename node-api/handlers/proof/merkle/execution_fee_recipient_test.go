@@ -82,8 +82,9 @@ func TestExecutionFeeRecipientProof(t *testing.T) {
 				bs.HashTreeRoot(),
 				tc.bodyRoot,
 			)
-
-			proof, _, err = merkle.ProveExecutionFeeRecipientInBlock(bbh, bs)
+			bsm, err := bs.GetMarshallable()
+			require.NoError(t, err)
+			proof, _, err = merkle.ProveExecutionFeeRecipientInBlock(bbh, bsm)
 			require.NoError(t, err)
 			expectedProof := ReadProofFromFile(t, tc.expectedProofFile)
 			require.Equal(t, expectedProof, proof)

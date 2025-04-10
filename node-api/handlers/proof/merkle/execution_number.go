@@ -34,14 +34,12 @@ import (
 // verified against the beacon block root as a sanity check. Returns the proof
 // along with the beacon block root. It uses the fastssz library to generate the
 // proof.
-func ProveExecutionNumberInBlock[
-	BeaconStateMarshallableT types.BeaconStateMarshallable,
-](
+func ProveExecutionNumberInBlock(
 	bbh *ctypes.BeaconBlockHeader,
-	bs types.BeaconState[BeaconStateMarshallableT],
+	bsm types.BeaconStateMarshallable,
 ) ([]common.Root, common.Root, error) {
 	// Get the proof of the execution number in the beacon state.
-	numberInStateProof, leaf, err := ProveExecutionNumberInState(bs)
+	numberInStateProof, leaf, err := ProveExecutionNumberInState(bsm)
 	if err != nil {
 		return nil, common.Root{}, err
 	}
@@ -66,15 +64,9 @@ func ProveExecutionNumberInBlock[
 
 // ProveExecutionNumberInState generates a proof for the block number of the
 // execution payload in the beacon state. It uses the fastssz library.
-func ProveExecutionNumberInState[
-	BeaconStateMarshallableT types.BeaconStateMarshallable,
-](
-	bs types.BeaconState[BeaconStateMarshallableT],
+func ProveExecutionNumberInState(
+	bsm types.BeaconStateMarshallable,
 ) ([]common.Root, common.Root, error) {
-	bsm, err := bs.GetMarshallable()
-	if err != nil {
-		return nil, common.Root{}, err
-	}
 	stateProofTree, err := bsm.GetTree()
 	if err != nil {
 		return nil, common.Root{}, err
