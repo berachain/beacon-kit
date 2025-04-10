@@ -45,7 +45,7 @@ func (sp *StateProcessor) processRegistryUpdates(st *statedb.StateDB) error {
 	}
 
 	currEpoch := sp.cs.SlotToEpoch(slot)
-	nextEpoch := currEpoch + 1
+	activationEpoch := sp.ComputeActivationExitEpoch(currEpoch)
 
 	minEffectiveBalance := math.Gwei(
 		sp.cs.EjectionBalance() + sp.cs.EffectiveBalanceIncrement(),
@@ -57,16 +57,18 @@ func (sp *StateProcessor) processRegistryUpdates(st *statedb.StateDB) error {
 	for si, val := range vals {
 		valModified := false
 		if val.IsEligibleForActivationQueue(minEffectiveBalance) {
-			val.SetActivationEligibilityEpoch(nextEpoch)
+			val.SetActivationEligibilityEpoch(activationEpoch)
 			valModified = true
 		}
+		/*
+			 TODO(pectra): Now that we have volunatary withdrarawals, the balance can fall below EjectionBalance
+				elif is_active_validator(validator, current_epoch) and validator.effective_balance <= config.EJECTION_BALANCE:
+					initiate_validator_exit(state, ValidatorIndex(index))  # [Modified in Electra:EIP7251]
+		*/
 		if val.IsEligibleForActivation(currEpoch) {
-			val.SetActivationEpoch(nextEpoch)
+			val.SetActivationEpoch(activationEpoch)
 			valModified = true
 		}
-		// Note: without slashing and voluntary withdrawals, there is no way
-		// for an activa validator to have its balance less or equal to
-		// EjectionBalance
 
 		if valModified {
 			idx, err = st.ValidatorIndexByPubkey(val.GetPubkey())
@@ -77,6 +79,7 @@ func (sp *StateProcessor) processRegistryUpdates(st *statedb.StateDB) error {
 					err,
 				)
 			}
+
 			if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
 				return fmt.Errorf(
 					"registry update, failed updating validator idx %d: %w",
@@ -145,8 +148,6 @@ func (sp *StateProcessor) processValidatorSetCap(st *statedb.StateDB) error {
 	var idx math.ValidatorIndex
 	for li := range uint64(len(nextEpochVals)) - validatorSetCap {
 		valToEject := nextEpochVals[li]
-		valToEject.SetExitEpoch(nextEpoch)
-		valToEject.SetWithdrawableEpoch(nextEpoch + 1)
 		idx, err = st.ValidatorIndexByPubkey(valToEject.GetPubkey())
 		if err != nil {
 			return fmt.Errorf(
@@ -154,7 +155,8 @@ func (sp *StateProcessor) processValidatorSetCap(st *statedb.StateDB) error {
 				err,
 			)
 		}
-		if err = st.UpdateValidatorAtIndex(idx, valToEject); err != nil {
+		err = sp.InitiateValidatorExit(st, idx)
+		if err != nil {
 			return fmt.Errorf(
 				"validator cap, failed ejecting validator idx %d: %w",
 				li,

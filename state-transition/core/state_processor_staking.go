@@ -68,6 +68,18 @@ func (sp *StateProcessor) processOperations(
 		}
 	}
 
+	if version.EqualsOrIsAfter(blk.GetForkVersion(), version.Electra()) {
+		requests, err := blk.GetBody().GetExecutionRequests()
+		if err != nil {
+			return err
+		}
+		for _, withdrawal := range requests.Withdrawals {
+			if withdrawErr := sp.processWithdrawalRequest(st, withdrawal); withdrawErr != nil {
+				return withdrawErr
+			}
+		}
+	}
+
 	return st.SetEth1Data(blk.GetBody().Eth1Data)
 }
 

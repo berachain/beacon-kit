@@ -208,6 +208,46 @@ func (s *StateDB) EVMInflationWithdrawal(timestamp math.U64) *engineprimitives.W
 	)
 }
 
+// PendingPartialWithdrawals is equivalent to `pending_partial_withdrawals`
+func (s *StateDB) PendingPartialWithdrawals() []uint64 {
+	panic("TODO(pectra): unimplemented")
+}
+
+// AppendPendingPartialWithdrawal adds a pending partial withdrawal to `pending_partial_withdrawals`
+func (s *StateDB) AppendPendingPartialWithdrawal(_ interface{}) error {
+	panic("TODO(pectra): unimplemented")
+}
+
+// GetPendingBalanceToWithdraw is equivalent to `get_pending_balance_to_withdraw`
+func (s *StateDB) GetPendingBalanceToWithdraw(_ math.ValidatorIndex) math.Gwei {
+	panic("TODO(pectra): unimplemented")
+}
+
+// GetEarliestExitEpoch is equivalent to reading `earliest_epoch`
+func (s *StateDB) GetEarliestExitEpoch() math.Epoch {
+	panic("TODO(pectra): unimplemented")
+}
+
+// GetExitBalanceToConsume is equivalent to reading `exit_balance_to_consume`
+func (s *StateDB) GetExitBalanceToConsume() math.Gwei {
+	panic("TODO(pectra): unimplemented")
+}
+
+// GetBalanceChurnLimit is equivalent to `get_balance_churn_limit`
+func (s *StateDB) GetBalanceChurnLimit() math.Gwei {
+	panic("TODO(pectra): unimplemented")
+}
+
+// SetEarliestExitEpoch is equivalent to writing `earliest_epoch`
+func (s *StateDB) SetEarliestExitEpoch(math.Epoch) {
+	panic("TODO(pectra): unimplemented")
+}
+
+// SetExitBalanceToConsume is equivalent to writing `exit_balance_to_consume`
+func (s *StateDB) SetExitBalanceToConsume(math.Gwei) {
+	panic("TODO(pectra): unimplemented")
+}
+
 // GetMarshallable is the interface for the beacon store.
 //
 //nolint:funlen,gocognit // todo fix somehow
