@@ -129,6 +129,7 @@ func TestGIndexProposerIndex(t *testing.T) {
 // beacon state proofs for validator pubkeys on the  fork.
 func TestGIndicesValidatorPubkey(t *testing.T) {
 	t.Parallel()
+
 	// GIndex of state in the block.
 	_, stateGIndexBlock, _, err := mlib.ObjectPath[
 		mlib.GeneralizedIndex, [32]byte,
@@ -174,78 +175,5 @@ func TestGIndicesValidatorPubkey(t *testing.T) {
 	require.Equal(t,
 		mlib.GeneralizedIndex(merkle.ValidatorPubkeyGIndexOffset),
 		oneValidatorPubkeyGIndexState-zeroValidatorPubkeyGIndexState,
-	)
-}
-
-// TestGInidicesExecution tests the generalized indices used by
-// beacon state proofs from the execution payload header on the  fork.
-func TestGInidicesExecution(t *testing.T) {
-	t.Parallel()
-	// GIndex of the execution number in the state.
-	_, executionNumberGIndexState, _, err := mlib.ObjectPath[
-		mlib.GeneralizedIndex, [32]byte,
-	]("LatestExecutionPayloadHeader/Number").GetGeneralizedIndex(
-		beaconStateSchema,
-	)
-	require.NoError(t, err)
-	require.Equal(t,
-		merkle.ExecutionNumberGIndexState,
-		int(executionNumberGIndexState),
-	)
-
-	// GIndex of the execution number in the block.
-	_, executionNumberGIndexBlock, _, err := mlib.ObjectPath[
-		mlib.GeneralizedIndex, [32]byte,
-	]("State/LatestExecutionPayloadHeader/Number").GetGeneralizedIndex(
-		beaconHeaderSchema,
-	)
-	require.NoError(t, err)
-	require.Equal(t,
-		merkle.ExecutionNumberGIndexBlock,
-		int(executionNumberGIndexBlock),
-	)
-
-	// Concatenation is consistent.
-	concatExecutionNumberStateToBlock := mlib.GeneralizedIndices{
-		merkle.StateGIndexBlock,
-		executionNumberGIndexState,
-	}.Concat()
-	require.Equal(t,
-		executionNumberGIndexBlock,
-		concatExecutionNumberStateToBlock,
-	)
-
-	// GIndex of the execution fee recipient in the state.
-	_, executionFeeRecipientGIndexState, _, err := mlib.ObjectPath[
-		mlib.GeneralizedIndex, [32]byte,
-	]("LatestExecutionPayloadHeader/FeeRecipient").GetGeneralizedIndex(
-		beaconStateSchema,
-	)
-	require.NoError(t, err)
-	require.Equal(t,
-		merkle.ExecutionFeeRecipientGIndexState,
-		int(executionFeeRecipientGIndexState),
-	)
-
-	// GIndex of the execution fee recipient in the block.
-	_, executionFeeRecipientGIndexBlock, _, err := mlib.ObjectPath[
-		mlib.GeneralizedIndex, [32]byte,
-	]("State/LatestExecutionPayloadHeader/FeeRecipient").GetGeneralizedIndex(
-		beaconHeaderSchema,
-	)
-	require.NoError(t, err)
-	require.Equal(t,
-		merkle.ExecutionFeeRecipientGIndexBlock,
-		int(executionFeeRecipientGIndexBlock),
-	)
-
-	// Concatenation is consistent.
-	concatExecutionFeeRecipientStateToBlock := mlib.GeneralizedIndices{
-		merkle.StateGIndexBlock,
-		executionFeeRecipientGIndexState,
-	}.Concat()
-	require.Equal(t,
-		executionFeeRecipientGIndexBlock,
-		concatExecutionFeeRecipientStateToBlock,
 	)
 }

@@ -47,25 +47,4 @@ const (
 
 	// ValidatorPubkeyGIndexOffset is the offset of a validator pubkey GIndex.
 	ValidatorPubkeyGIndexOffset = 8
-
-	// ExecutionNumberGIndexState is the generalized index of the latest
-	// execution payload header in the beacon state in the  fork.
-	ExecutionNumberGIndexState = 774
-
-	// ExecutionNumberGIndexBlock is the generalized index of the number
-	// in the latest execution payload header in the beacon block in the 
-	// fork. This is calculated by concatenating the
-	// (ExecutionNumberGIndexState, StateGIndexBlock) GIndices.
-	ExecutionNumberGIndexBlock = 5894
-
-	// ExecutionFeeRecipientGIndexState is the generalized index of the
-	// fee recipient in the latest execution payload header in the beacon state
-	// in the  fork.
-	ExecutionFeeRecipientGIndexState = 769
-
-	// ExecutionFeeRecipientGIndexBlock is the generalized index of the
-	// fee recipient in the latest execution payload header in the beacon block
-	// in the  fork. This is calculated by concatenating the
-	// (ExecutionFeeRecipientGIndexState, StateGIndexBlock) GIndices.
-	ExecutionFeeRecipientGIndexBlock = 5889
 )
