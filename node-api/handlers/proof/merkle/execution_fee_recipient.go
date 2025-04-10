@@ -76,7 +76,7 @@ func ProveExecutionFeeRecipientInState(
 	}
 
 	feeRecipientInStateProof, err := stateProofTree.Prove(
-		ExecutionFeeRecipientGIndexDenebState,
+		ExecutionFeeRecipientGIndexState,
 	)
 	if err != nil {
 		return nil, common.Root{}, err
@@ -100,7 +100,7 @@ func verifyExecutionFeeRecipientInBlock(
 	leaf common.Root,
 ) (common.Root, error) {
 	beaconRoot := bbh.HashTreeRoot()
-	if !merkle.VerifyProof(beaconRoot, leaf, ExecutionFeeRecipientGIndexDenebBlock, proof) {
+	if !merkle.VerifyProof(beaconRoot, leaf, ExecutionFeeRecipientGIndexBlock, proof) {
 		return common.Root{}, errors.Wrapf(
 			errors.New("execution fee recipient proof failed to verify against beacon root"),
 			"beacon root: 0x%s", beaconRoot,

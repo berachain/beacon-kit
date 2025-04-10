@@ -73,7 +73,7 @@ func ProveExecutionNumberInState(
 	}
 
 	numberInStateProof, err := stateProofTree.Prove(
-		ExecutionNumberGIndexDenebState,
+		ExecutionNumberGIndexState,
 	)
 	if err != nil {
 		return nil, common.Root{}, err
@@ -96,7 +96,7 @@ func verifyExecutionNumberInBlock(
 	leaf common.Root,
 ) (common.Root, error) {
 	beaconRoot := bbh.HashTreeRoot()
-	if !merkle.VerifyProof(beaconRoot, leaf, ExecutionNumberGIndexDenebBlock, proof) {
+	if !merkle.VerifyProof(beaconRoot, leaf, ExecutionNumberGIndexBlock, proof) {
 		return common.Root{}, errors.Wrapf(
 			errors.New("execution number proof failed to verify against beacon root"),
 			"beacon root: 0x%s", beaconRoot,

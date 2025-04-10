@@ -21,53 +21,51 @@
 package merkle
 
 const (
-	// TODO(pectra): All of these values need to be evaluated for pectra.
+	// ProposerIndexGIndexBlock is the generalized index of the proposer
+	// index in the beacon block in the  fork.
+	ProposerIndexGIndexBlock = 9
 
-	// ProposerIndexGIndexDenebBlock is the generalized index of the proposer
-	// index in the beacon block in the Deneb fork.
-	ProposerIndexGIndexDenebBlock = 9
+	// StateGIndexBlock is the generalized index of the beacon state in
+	// the beacon block in the  fork.
+	StateGIndexBlock = 11
 
-	// StateGIndexDenebBlock is the generalized index of the beacon state in
-	// the beacon block in the Deneb fork.
-	StateGIndexDenebBlock = 11
-
-	// ZeroValidatorPubkeyGIndexDenebState is the generalized index of the 0
-	// validator's pubkey in the beacon state in the Deneb fork. To get the
+	// ZeroValidatorPubkeyGIndexState is the generalized index of the 0
+	// validator's pubkey in the beacon state in the  fork. To get the
 	// GIndex of the pubkey of validator at index n, the formula is:
-	// GIndex = ZeroValidatorPubkeyGIndexDenebState +
+	// GIndex = ZeroValidatorPubkeyGIndexState +
 	//          (ValidatorPubkeyGIndexOffset * n)
-	ZeroValidatorPubkeyGIndexDenebState = 439804651110400
+	ZeroValidatorPubkeyGIndexState = 439804651110400
 
-	// ZeroValidatorPubkeyGIndexDenebBlock is the generalized index of the 0
-	// validator's pubkey in the beacon block in the Deneb fork. This is
-	// calculated by concatenating the (ZeroValidatorPubkeyGIndexDenebState,
-	// StateGIndexDenebBlock) GIndices. To get the GIndex of the pubkey of
+	// ZeroValidatorPubkeyGIndexBlock is the generalized index of the 0
+	// validator's pubkey in the beacon block in the  fork. This is
+	// calculated by concatenating the (ZeroValidatorPubkeyGIndexState,
+	// StateGIndexBlock) GIndices. To get the GIndex of the pubkey of
 	// validator at index n, the formula is:
-	// GIndex = ZeroValidatorPubkeyGIndexDenebBlock +
+	// GIndex = ZeroValidatorPubkeyGIndexBlock +
 	//          (ValidatorPubkeyGIndexOffset * n)
-	ZeroValidatorPubkeyGIndexDenebBlock = 3254554418216960
+	ZeroValidatorPubkeyGIndexBlock = 3254554418216960
 
 	// ValidatorPubkeyGIndexOffset is the offset of a validator pubkey GIndex.
 	ValidatorPubkeyGIndexOffset = 8
 
-	// ExecutionNumberGIndexDenebState is the generalized index of the latest
-	// execution payload header in the beacon state in the Deneb fork.
-	ExecutionNumberGIndexDenebState = 774
+	// ExecutionNumberGIndexState is the generalized index of the latest
+	// execution payload header in the beacon state in the  fork.
+	ExecutionNumberGIndexState = 774
 
-	// ExecutionNumberGIndexDenebBlock is the generalized index of the number
-	// in the latest execution payload header in the beacon block in the Deneb
+	// ExecutionNumberGIndexBlock is the generalized index of the number
+	// in the latest execution payload header in the beacon block in the 
 	// fork. This is calculated by concatenating the
-	// (ExecutionNumberGIndexDenebState, StateGIndexDenebBlock) GIndices.
-	ExecutionNumberGIndexDenebBlock = 5894
+	// (ExecutionNumberGIndexState, StateGIndexBlock) GIndices.
+	ExecutionNumberGIndexBlock = 5894
 
-	// ExecutionFeeRecipientGIndexDenebState is the generalized index of the
+	// ExecutionFeeRecipientGIndexState is the generalized index of the
 	// fee recipient in the latest execution payload header in the beacon state
-	// in the Deneb fork.
-	ExecutionFeeRecipientGIndexDenebState = 769
+	// in the  fork.
+	ExecutionFeeRecipientGIndexState = 769
 
-	// ExecutionFeeRecipientGIndexDenebBlock is the generalized index of the
+	// ExecutionFeeRecipientGIndexBlock is the generalized index of the
 	// fee recipient in the latest execution payload header in the beacon block
-	// in the Deneb fork. This is calculated by concatenating the
-	// (ExecutionFeeRecipientGIndexDenebState, StateGIndexDenebBlock) GIndices.
-	ExecutionFeeRecipientGIndexDenebBlock = 5889
+	// in the  fork. This is calculated by concatenating the
+	// (ExecutionFeeRecipientGIndexState, StateGIndexBlock) GIndices.
+	ExecutionFeeRecipientGIndexBlock = 5889
 )
