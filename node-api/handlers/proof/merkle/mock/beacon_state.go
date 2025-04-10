@@ -25,7 +25,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
-	"github.com/holiman/uint256"
 )
 
 // BeaconState is a mock implementation of the StateDB BeaconState
@@ -40,6 +39,7 @@ func NewBeaconState(
 	vals types.Validators,
 	executionNumber math.U64,
 	executionFeeRecipient common.ExecutionAddress,
+	forkVersion common.Version,
 ) (BeaconState, error) {
 	// If no validators are provided, create an empty slice.
 	if len(vals) == 0 {
@@ -47,34 +47,29 @@ func NewBeaconState(
 	}
 
 	// Create an empty execution payload header with the given execution number and fee recipient.
-	execPayloadHeader := &types.ExecutionPayloadHeader{
-		Number:        executionNumber,
-		FeeRecipient:  executionFeeRecipient,
-		BaseFeePerGas: &uint256.Int{},
-	}
+	execPayloadHeader := types.NewEmptyExecutionPayloadHeaderWithVersion(forkVersion)
+	execPayloadHeader.Number = executionNumber
+	execPayloadHeader.FeeRecipient = executionFeeRecipient
 
-	bsm := types.BeaconState{
-		// TODO(pectra): Change this to an argument.
-		Versionable:                  types.NewVersionable(version.Deneb()),
-		Slot:                         slot,
-		GenesisValidatorsRoot:        common.Root{},
-		Fork:                         &types.Fork{},
-		LatestBlockHeader:            &types.BeaconBlockHeader{},
-		BlockRoots:                   []common.Root{},
-		StateRoots:                   []common.Root{},
-		LatestExecutionPayloadHeader: execPayloadHeader,
-		Eth1Data:                     &types.Eth1Data{},
-		Eth1DepositIndex:             0,
-		Validators:                   vals,
-		Balances:                     []uint64{},
-		RandaoMixes:                  []common.Bytes32{},
-		NextWithdrawalIndex:          0,
-		NextWithdrawalValidatorIndex: 0,
-		Slashings:                    []math.Gwei{},
-		TotalSlashing:                0,
-	}
+	bsm := types.NewEmptyBeaconStateWithVersion(forkVersion)
+	bsm.Slot = slot
+	bsm.GenesisValidatorsRoot = common.Root{}
+	bsm.Fork = &types.Fork{}
+	bsm.LatestBlockHeader = types.NewEmptyBeaconBlockHeader()
+	bsm.BlockRoots = []common.Root{}
+	bsm.StateRoots = []common.Root{}
+	bsm.LatestExecutionPayloadHeader = execPayloadHeader
+	bsm.Eth1Data = &types.Eth1Data{}
+	bsm.Eth1DepositIndex = 0
+	bsm.Validators = vals
+	bsm.Balances = []uint64{}
+	bsm.RandaoMixes = []common.Bytes32{}
+	bsm.NextWithdrawalIndex = 0
+	bsm.NextWithdrawalValidatorIndex = 0
+	bsm.Slashings = []math.Gwei{}
+	bsm.TotalSlashing = 0
 
-	return BeaconState{bsm}, nil
+	return BeaconState{*bsm}, nil
 }
 
 // GetMarshallable implements proof BeaconState.

@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/merkle/mock"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/stretchr/testify/require"
 )
 
@@ -69,25 +70,30 @@ func TestExecutionFeeRecipientProof(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			bs, err := mock.NewBeaconState(
-				tc.slot, nil, 0, tc.executionFeeRecipient,
-			)
-			require.NoError(t, err)
+		for _, forkVersion := range version.GetSupportedVersions() {
+			t.Run(tc.name+forkVersion.String(), func(t *testing.T) {
+				bs, err := mock.NewBeaconState(
+					tc.slot, nil, 0, tc.executionFeeRecipient, forkVersion,
+				)
+				require.NoError(t, err)
 
-			bbh := types.NewBeaconBlockHeader(
-				tc.slot,
-				tc.proposerIndex,
-				tc.parentBlockRoot,
-				bs.HashTreeRoot(),
-				tc.bodyRoot,
-			)
-			bsm, err := bs.GetMarshallable()
-			require.NoError(t, err)
-			proof, _, err = merkle.ProveExecutionFeeRecipientInBlock(bbh, bsm)
-			require.NoError(t, err)
-			expectedProof := ReadProofFromFile(t, tc.expectedProofFile)
-			require.Equal(t, expectedProof, proof)
-		})
+				bbh := types.NewBeaconBlockHeader(
+					tc.slot,
+					tc.proposerIndex,
+					tc.parentBlockRoot,
+					bs.HashTreeRoot(),
+					tc.bodyRoot,
+				)
+				bsm, err := bs.GetMarshallable()
+				require.NoError(t, err)
+				if forkVersion == version.Electra() {
+					t.Skip("TODO(pectra): This test currently panics on electra")
+				}
+				proof, _, err = merkle.ProveExecutionFeeRecipientInBlock(bbh, bsm)
+				require.NoError(t, err)
+				expectedProof := ReadProofFromFile(t, tc.expectedProofFile)
+				require.Equal(t, expectedProof, proof)
+			})
+		}
 	}
 }

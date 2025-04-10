@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/stretchr/testify/require"
 )
 
@@ -69,32 +70,37 @@ func TestBlockProposerPubkeyProof(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			vals := make(types.Validators, tc.numValidators)
-			for i := range vals {
-				vals[i] = &types.Validator{}
-			}
-			vals[tc.proposerIndex] = &types.Validator{Pubkey: tc.pubKey}
+		for _, forkVersion := range version.GetSupportedVersions() {
+			t.Run(tc.name+forkVersion.String(), func(t *testing.T) {
+				vals := make(types.Validators, tc.numValidators)
+				for i := range vals {
+					vals[i] = &types.Validator{}
+				}
+				vals[tc.proposerIndex] = &types.Validator{Pubkey: tc.pubKey}
 
-			bs, err := mock.NewBeaconState(
-				tc.slot, vals, 0, common.ExecutionAddress{},
-			)
-			require.NoError(t, err)
+				bs, err := mock.NewBeaconState(
+					tc.slot, vals, 0, common.ExecutionAddress{}, forkVersion,
+				)
+				require.NoError(t, err)
 
-			bbh := types.NewBeaconBlockHeader(
-				tc.slot,
-				tc.proposerIndex,
-				tc.parentBlockRoot,
-				bs.HashTreeRoot(),
-				tc.bodyRoot,
-			)
+				bbh := types.NewBeaconBlockHeader(
+					tc.slot,
+					tc.proposerIndex,
+					tc.parentBlockRoot,
+					bs.HashTreeRoot(),
+					tc.bodyRoot,
+				)
 
-			bsm, err := bs.GetMarshallable()
-			require.NoError(t, err)
-			proof, _, err := merkle.ProveProposerPubkeyInBlock(bbh, bsm)
-			require.NoError(t, err)
-			expectedProof := ReadProofFromFile(t, tc.expectedProofFile)
-			require.Equal(t, expectedProof, proof)
-		})
+				bsm, err := bs.GetMarshallable()
+				require.NoError(t, err)
+				if forkVersion == version.Electra() {
+					t.Skip("TODO(pectra): This test currently fails as ProveProposerPubkeyInBlock will panic")
+				}
+				proof, _, err := merkle.ProveProposerPubkeyInBlock(bbh, bsm)
+				require.NoError(t, err)
+				expectedProof := ReadProofFromFile(t, tc.expectedProofFile)
+				require.Equal(t, expectedProof, proof)
+			})
+		}
 	}
 }

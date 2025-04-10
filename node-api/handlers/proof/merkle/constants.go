@@ -21,6 +21,8 @@
 package merkle
 
 const (
+	// TODO(pectra): All of these values need to be evaluated for pectra.
+
 	// ProposerIndexGIndexDenebBlock is the generalized index of the proposer
 	// index in the beacon block in the Deneb fork.
 	ProposerIndexGIndexDenebBlock = 9
