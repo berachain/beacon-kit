@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
+	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
 )
 
@@ -89,6 +90,23 @@ func (p *PendingPartialWithdrawal) MarshalSSZ() ([]byte, error) {
 // HashTreeRoot computes and returns the hash tree root for the PendingPartialWithdrawal.
 func (p *PendingPartialWithdrawal) HashTreeRoot() common.Root {
 	return ssz.HashSequential(p)
+}
+
+// HashTreeRootWith ssz hashes the Deposit object with a hasher. Needed for BeaconState SSZ.
+func (p *PendingPartialWithdrawal) HashTreeRootWith(hh fastssz.HashWalker) error {
+	indx := hh.Index()
+
+	// Field (0) 'ValidatorIndex'
+	hh.PutUint64(uint64(p.ValidatorIndex))
+
+	// Field (1) 'Amount'
+	hh.PutUint64(uint64(p.Amount))
+
+	// Field (2) 'WithdrawableEpoch'
+	hh.PutUint64(uint64(p.WithdrawableEpoch))
+
+	hh.Merkleize(indx)
+	return nil
 }
 
 type PendingPartialWithdrawals []*PendingPartialWithdrawal
