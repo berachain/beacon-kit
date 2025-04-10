@@ -77,7 +77,7 @@ func (f *validatorFilters) parseID(id string) {
 
 // FilteredValidators will grab all of the validators from the state at the
 // given slot. It will then filter them by the provided ids and statuses.
-func (b Backend) FilteredValidators(
+func (b *Backend) FilteredValidators(
 	slot math.Slot, ids []string, statuses []string,
 ) ([]*beacontypes.ValidatorData, error) {
 	st, resolvedSlot, err := b.stateFromSlot(slot)
@@ -195,7 +195,7 @@ func buildValidatorData(
 	}, nil
 }
 
-func (b Backend) ValidatorByID(slot math.Slot, id string) (*beacontypes.ValidatorData, error) {
+func (b *Backend) ValidatorByID(slot math.Slot, id string) (*beacontypes.ValidatorData, error) {
 	st, resolvedSlot, err := b.stateFromSlot(slot)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get state from slot %d", slot)
@@ -236,7 +236,7 @@ func (b Backend) ValidatorByID(slot math.Slot, id string) (*beacontypes.Validato
 	}, nil
 }
 
-func (b Backend) ValidatorBalancesByIDs(slot math.Slot, ids []string) ([]*beacontypes.ValidatorBalanceData, error) {
+func (b *Backend) ValidatorBalancesByIDs(slot math.Slot, ids []string) ([]*beacontypes.ValidatorBalanceData, error) {
 	st, _, err := b.stateFromSlot(slot)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get state from slot %d", slot)
