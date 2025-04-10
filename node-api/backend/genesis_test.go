@@ -123,15 +123,12 @@ func TestGetGenesisData(t *testing.T) {
 	b.AttachQueryBackend(tcs)
 
 	// Test all genesis data.
-	genesisTime, err := b.GenesisTime()
-	require.NoError(t, err)
+	genesisTime := b.GenesisTime()
 	require.Equal(t, math.U64(1737410400), genesisTime)
 
-	genesisForkVersion, err := b.GenesisForkVersion()
-	require.NoError(t, err)
+	genesisForkVersion := b.GenesisForkVersion()
 	require.Equal(t, version.Genesis(), genesisForkVersion) // Deneb 0x04000000
 
-	genesisValidatorsRoot, err := b.GenesisValidatorsRoot()
-	require.NoError(t, err)
+	genesisValidatorsRoot := b.GenesisValidatorsRoot()
 	require.Equal(t, common.Root{0x1, 0x2, 0x3}, genesisValidatorsRoot)
 }

@@ -25,29 +25,32 @@ import (
 	"encoding/json"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/transition"
 )
 
-// ProcessGenesisData processes the genesis state and initializes the beacon
-// state.
+// ProcessGenesisData processes the genesis state and initializes the beacon state.
 func (s *Service) ProcessGenesisData(
 	ctx context.Context,
 	bytes []byte,
-) (transition.ValidatorUpdates, error) {
+) (transition.ValidatorUpdates, *ctypes.BeaconBlockHeader, common.Root, error) {
+	// Unmarshal the genesis data.
 	genesisData := ctypes.Genesis{}
 	if err := json.Unmarshal(bytes, &genesisData); err != nil {
 		s.logger.Error("Failed to unmarshal genesis data", "error", err)
-		return nil, err
+		return nil, nil, common.Root{}, err
 	}
 
+	// Call the state processor to initialize the "premined" (genesis) beacon state.
+	genesisState := s.storageBackend.StateFromContext(ctx)
 	validatorUpdates, err := s.stateProcessor.InitializePreminedBeaconStateFromEth1(
-		s.storageBackend.StateFromContext(ctx),
+		genesisState,
 		genesisData.GetDeposits(),
 		genesisData.GetExecutionPayloadHeader(),
 		genesisData.GetForkVersion(),
 	)
 	if err != nil {
-		return nil, err
+		return nil, nil, common.Root{}, err
 	}
 
 	// After deposits are validated, store the genesis deposits in the deposit store.
@@ -55,8 +58,20 @@ func (s *Service) ProcessGenesisData(
 		ctx,
 		genesisData.GetDeposits(),
 	); err != nil {
-		return nil, err
+		return nil, nil, common.Root{}, err
 	}
 
-	return validatorUpdates, nil
+	// Get the genesis beacon block header from the state.
+	genesisHeader, err := genesisState.GetLatestBlockHeader()
+	if err != nil {
+		return nil, nil, common.Root{}, err
+	}
+
+	// Get the genesis validators root from the state.
+	genesisValidatorsRoot, err := genesisState.GetGenesisValidatorsRoot()
+	if err != nil {
+		return nil, nil, common.Root{}, err
+	}
+
+	return validatorUpdates, genesisHeader, genesisValidatorsRoot, nil
 }

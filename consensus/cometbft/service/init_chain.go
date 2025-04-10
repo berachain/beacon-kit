@@ -30,6 +30,9 @@ import (
 	"github.com/sourcegraph/conc/iter"
 )
 
+// beaconStateKey is the key for the beacon state in the genesis app state.
+const beaconStateKey = "beacon"
+
 func (s *Service) initChain(
 	ctx context.Context,
 	req *cmtabci.InitChainRequest,
@@ -88,15 +91,14 @@ func (s *Service) initChain(
 	//nolint:contextcheck // ctx already passed via resetState
 	resValidators, err := s.initChainer(
 		s.finalizeBlockState.Context(),
-		req.AppStateBytes,
+		genesisState[beaconStateKey],
 	)
 	if err != nil {
 		return nil, err
 	}
 
 	// NOTE: We don't commit, but FinalizeBlock for block InitialHeight starts
-	// from
-	// this FinalizeBlockState.
+	// from this FinalizeBlockState.
 	return &cmtabci.InitChainResponse{
 		ConsensusParams: req.ConsensusParams,
 		Validators:      resValidators,
@@ -107,18 +109,17 @@ func (s *Service) initChain(
 // InitChainer initializes the chain.
 func (s *Service) initChainer(
 	ctx sdk.Context,
-	appStateBytes []byte,
+	beaconStateGenesis json.RawMessage,
 ) ([]cmtabci.ValidatorUpdate, error) {
-	var genesisState map[string]json.RawMessage
-	if err := json.Unmarshal(appStateBytes, &genesisState); err != nil {
-		return nil, err
-	}
-
-	data := []byte(genesisState["beacon"])
-	valUpdates, err := s.Blockchain.ProcessGenesisData(ctx, data)
+	valUpdates, genesisHeader, genesisValidatorsRoot, err := s.Blockchain.ProcessGenesisData(
+		ctx, []byte(beaconStateGenesis),
+	)
 	if err != nil {
 		return nil, err
 	}
+
+	// Set the genesis data on the API backend.
+	s.apiBackend.SetGenesisData(genesisHeader, genesisValidatorsRoot)
 
 	return iter.MapErr(
 		valUpdates,
