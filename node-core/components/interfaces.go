@@ -565,7 +565,7 @@ type (
 	BlockBackend interface {
 		BlockRootAtSlot(slot math.Slot) (common.Root, error)
 		BlockRewardsAtSlot(slot math.Slot) (*types.BlockRewardsData, error)
-		BlockHeaderAtSlot(slot math.Slot) (*ctypes.BeaconBlockHeader, error)
+		BlockHeaderAtSlot(slot math.Slot, isGenesis bool) (*ctypes.BeaconBlockHeader, error)
 	}
 
 	StateBackend interface {

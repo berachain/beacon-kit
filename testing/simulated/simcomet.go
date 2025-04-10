@@ -77,8 +77,8 @@ func (s *SimComet) Name() string {
 	return s.Comet.Name()
 }
 
-func (s *SimComet) CreateQueryContext(height int64, prove bool) (sdk.Context, error) {
-	return s.Comet.CreateQueryContext(height, prove)
+func (s *SimComet) CreateQueryContext(height int64, prove bool, genesis bool) (sdk.Context, error) {
+	return s.Comet.CreateQueryContext(height, prove, genesis)
 }
 
 func (s *SimComet) LastBlockHeight() int64 {

@@ -56,6 +56,7 @@ type ConsensusService interface {
 	CreateQueryContext(
 		height int64,
 		prove bool,
+		genesis bool,
 	) (sdk.Context, error)
 	LastBlockHeight() int64
 }

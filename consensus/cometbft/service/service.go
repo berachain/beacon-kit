@@ -348,6 +348,7 @@ func (s *Service) getContextForProposal(
 func (s *Service) CreateQueryContext(
 	height int64,
 	prove bool,
+	genesis bool,
 ) (sdk.Context, error) {
 	// use custom query multi-store if provided
 	lastBlockHeight := s.sm.GetCommitMultiStore().LatestVersion()
@@ -369,7 +370,11 @@ func (s *Service) CreateQueryContext(
 
 	// when a client did not provide a query height, manually inject the latest
 	if height == 0 {
-		height = lastBlockHeight
+		if genesis {
+			height = 0
+		} else {
+			height = lastBlockHeight
+		}
 	}
 
 	if height <= 1 && prove {

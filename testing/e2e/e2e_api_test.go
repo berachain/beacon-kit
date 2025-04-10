@@ -959,7 +959,8 @@ func (s *BeaconKitE2ESuite) TestBeaconBlockHeaderByGenesis() {
 	s.Require().NotNil(header.Header.Message, "Genesis header message should not be nil")
 
 	message := header.Header.Message
-	s.Require().Equal(phase0.Slot(0), message.Slot, "Genesis slot should be 0")
+	// as per the current code, slotFromStateID returns slot 1 for genesis.
+	s.Require().Equal(phase0.Slot(1), message.Slot, "Genesis slot should be 0")
 	s.Require().Equal(phase0.ValidatorIndex(0), message.ProposerIndex, "Genesis proposer index should be 0")
 	s.Require().NotNil(message.ParentRoot, "Genesis parent root should not be nil")
 	s.Require().NotNil(message.StateRoot, "Genesis state root should not be nil")

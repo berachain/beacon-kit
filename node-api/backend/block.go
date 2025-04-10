@@ -29,11 +29,12 @@ import (
 )
 
 // BlockHeader returns the block header at the given slot.
-func (b Backend) BlockHeaderAtSlot(slot math.Slot) (*ctypes.BeaconBlockHeader, error) {
-	st, _, err := b.stateFromSlot(slot)
+func (b Backend) BlockHeaderAtSlot(slot math.Slot, isGenesis bool) (*ctypes.BeaconBlockHeader, error) {
+	st, _, err := b.stateFromSlot(slot, isGenesis)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get state from slot %d", slot)
 	}
+	// we don't use the slot here, so no point of passing anything for header API.
 	return st.GetLatestBlockHeader()
 }
 
