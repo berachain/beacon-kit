@@ -31,7 +31,7 @@ import (
 
 // BeaconState represents the entire state of the beacon chain.
 type BeaconState struct {
-	constraints.Versionable
+	constraints.Versionable `json:"-"`
 	// Versioning
 	GenesisValidatorsRoot common.Root `json:"genesis_validators_root,omitempty"`
 	Slot                  math.Slot   `json:"slot,omitempty"`
@@ -61,6 +61,15 @@ type BeaconState struct {
 	// Slashing
 	Slashings     []math.Gwei `json:"slashings,omitempty"`
 	TotalSlashing math.Gwei   `json:"total_slashing,omitempty"`
+
+	// PendingPartialWithdrawals is introduced in electra
+	PendingPartialWithdrawals []*PendingPartialWithdrawal `json:"pending_partial_withdrawals,omitempty"`
+}
+
+func NewEmptyBeaconStateWithVersion(version common.Version) *BeaconState {
+	return &BeaconState{
+		Versionable: NewVersionable(version),
+	}
 }
 
 /* -------------------------------------------------------------------------- */
@@ -150,17 +159,6 @@ func (st *BeaconState) HashTreeRoot() common.Root {
 /* -------------------------------------------------------------------------- */
 /*                                   FastSSZ                                  */
 /* -------------------------------------------------------------------------- */
-
-func (st *BeaconState) MarshalSSZTo(
-	dst []byte,
-) ([]byte, error) {
-	bz, err := st.MarshalSSZ()
-	if err != nil {
-		return nil, err
-	}
-	dst = append(dst, bz...)
-	return dst, nil
-}
 
 // HashTreeRootWith ssz hashes the BeaconState object with a hasher.
 //
