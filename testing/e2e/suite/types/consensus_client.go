@@ -203,6 +203,17 @@ func (cc ConsensusClient) ValidatorBalances(
 	return cc.beaconClient.ValidatorBalances(ctx, opts)
 }
 
+// Genesis returns the genesis of the beacon node.
+func (cc ConsensusClient) Genesis(
+	ctx context.Context,
+	opts *beaconapi.GenesisOpts,
+) (*beaconapi.Response[*apiv1.Genesis], error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
+	return cc.beaconClient.Genesis(ctx, opts)
+}
+
 // Spec returns the spec of the beacon node.
 func (cc ConsensusClient) Spec(
 	ctx context.Context,
