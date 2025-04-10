@@ -264,6 +264,7 @@ func (st *BeaconState) HashTreeRootWith(
 
 	// Field (8) 'LatestExecutionPayloadHeader'
 	if st.LatestExecutionPayloadHeader == nil {
+		// TODO(pectra): Implement the  `upgrade_to_electra` state transition which updates the beacon state.
 		st.LatestExecutionPayloadHeader = NewEmptyExecutionPayloadHeaderWithVersion(st.GetForkVersion())
 	}
 	if err := st.LatestExecutionPayloadHeader.HashTreeRootWith(hh); err != nil {
