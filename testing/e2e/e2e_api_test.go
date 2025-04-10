@@ -959,9 +959,39 @@ func (s *BeaconKitE2ESuite) TestBeaconBlockHeaderByGenesis() {
 	s.Require().NotNil(header.Header.Message, "Genesis header message should not be nil")
 
 	message := header.Header.Message
-	s.Require().Equal(phase0.Slot(0), message.Slot, "Genesis slot should be 0")
+	// Currently querying for genesis will return slot 1.
+	s.Require().Equal(phase0.Slot(1), message.Slot, "Genesis slot should be 1")
 	s.Require().Equal(phase0.ValidatorIndex(0), message.ProposerIndex, "Genesis proposer index should be 0")
 	s.Require().NotNil(message.ParentRoot, "Genesis parent root should not be nil")
 	s.Require().NotNil(message.StateRoot, "Genesis state root should not be nil")
 	s.Require().NotNil(message.BodyRoot, "Genesis body root should not be nil")
+}
+
+// TestBeaconBlockHeaderBySlot tests querying the beacon block header by a specific slot.
+func (s *BeaconKitE2ESuite) TestBeaconBlockHeaderBySlot() {
+	client := s.initBeaconTest()
+
+	resp, err := client.BeaconBlockHeader(s.Ctx(), &beaconapi.BeaconBlockHeaderOpts{
+		Block: fmt.Sprintf("%d", phase0.Slot(10)),
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(resp)
+
+	header := resp.Data
+	s.Require().NotNil(header)
+
+	s.Require().NotNil(header.Root, "Block root should not be nil")
+	s.Require().False(header.Root.IsZero(), "Block root should not be zero")
+
+	s.Require().NotNil(header.Header, "Header should not be nil")
+	s.Require().NotNil(header.Header.Message, "Header message should not be nil")
+
+	message := header.Header.Message
+	s.Require().Equal(phase0.Slot(10), message.Slot, "Slot should be 10")
+	s.Require().NotNil(message.ParentRoot, "ParentRoot should not be nil")
+	s.Require().False(message.ParentRoot.IsZero(), "ParentRoot should not be zero")
+	s.Require().NotNil(message.StateRoot, "StateRoot should not be nil")
+	s.Require().False(message.StateRoot.IsZero(), "StateRoot should not be zero")
+	s.Require().NotNil(message.BodyRoot, "BodyRoot should not be nil")
+	s.Require().False(message.BodyRoot.IsZero(), "BodyRoot should not be zero")
 }
