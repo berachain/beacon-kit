@@ -726,9 +726,31 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	blk = moveToEndOfEpoch(t, blk, cs, sp, st, ctx, depRoot)
 
 	// finally the block turning epoch. extra validator deposits
-	// will be withdrawn asap (#Validator / MaxValidatorsPerWithdrawalsSweep)
+	// will be withdrawn within 3 blocks (#Validator / MaxValidatorsPerWithdrawalsSweep)
 	extraValAddr, err := extraValCreds.ToExecutionAddress()
 	require.NoError(t, err)
+	blk = buildNextBlock(
+		t,
+		st,
+		types.NewEth1Data(depRoot),
+		blk.GetTimestamp()+1,
+		[]*types.Deposit{},
+		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
+	)
+	_, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+
+	blk = buildNextBlock(
+		t,
+		st,
+		types.NewEth1Data(depRoot),
+		blk.GetTimestamp()+1,
+		[]*types.Deposit{},
+		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
+	)
+	_, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+
 	withdrawals := []*engineprimitives.Withdrawal{
 		st.EVMInflationWithdrawal(blk.GetTimestamp() + 1),
 		{
@@ -738,7 +760,6 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 			Amount:    extraValDeposit.Amount,
 		},
 	}
-
 	blk = buildNextBlock(
 		t,
 		st,
@@ -755,7 +776,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 // validator added when validators set is at cap improves amount staked
 // an existing validator is removed at the beginning of next epoch.
 //
-//nolint:paralleltest // uses envars
+//nolint:paralleltest,maintidx // uses envars
 func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	cs := setupChain(t)
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
@@ -979,13 +1000,37 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	require.Equal(t, constants.GenesisEpoch+3, smallestVal.WithdrawableEpoch)
 
 	// STEP 4: move the chain to the next epoch and show withdrawal
-	// for rejected validator is enqueued asap
+	// for rejected validator is enqueued within 3 blocks
 	// (#Validator / MaxValidatorsPerWithdrawalsSweep)
 	_ = moveToEndOfEpoch(t, blk, cs, sp, st, ctx, depRoot)
 
 	valToEvict := genDeposits[0]
 	valToEvictAddr, err := valToEvict.Credentials.ToExecutionAddress()
 	require.NoError(t, err)
+
+	// finally the block turning epoch
+	blk = buildNextBlock(
+		t,
+		st,
+		types.NewEth1Data(depRoot),
+		blk.GetTimestamp()+1,
+		[]*types.Deposit{},
+		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
+	)
+	_, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+
+	blk = buildNextBlock(
+		t,
+		st,
+		types.NewEth1Data(depRoot),
+		blk.GetTimestamp()+1,
+		[]*types.Deposit{},
+		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
+	)
+	_, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+
 	withdrawals := []*engineprimitives.Withdrawal{
 		st.EVMInflationWithdrawal(blk.GetTimestamp() + 1),
 		{
