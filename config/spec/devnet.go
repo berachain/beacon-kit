@@ -36,7 +36,8 @@ const (
 	devnetElectraForkTime = 0
 )
 
-// DevnetChainSpecData is the chain.SpecData for a devnet.
+// DevnetChainSpecData is the chain.SpecData for a devnet. We try to keep this
+// as close to the mainnet spec as possible.
 func DevnetChainSpecData() *chain.SpecData {
 	specData := MainnetChainSpecData()
 	specData.DepositEth1ChainID = DevnetEth1ChainID
@@ -45,6 +46,9 @@ func DevnetChainSpecData() *chain.SpecData {
 	specData.GenesisTime = devnetGenesisTime
 	specData.Deneb1ForkTime = devnetDeneb1ForkTime
 	specData.ElectraForkTime = devnetElectraForkTime
+
+	// Use fewer slots per epoch for devnet to speed up testing.
+	specData.SlotsPerEpoch = 32
 
 	return specData
 }
