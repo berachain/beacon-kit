@@ -29,7 +29,7 @@ import (
 
 // BeaconState is a mock implementation of the StateDB BeaconState
 type BeaconState struct {
-	internal types.BeaconState
+	internal *types.BeaconState
 }
 
 // NewBeaconState creates a new mock beacon state, with only the given slot,
@@ -68,36 +68,17 @@ func NewBeaconState(
 	bsm.NextWithdrawalValidatorIndex = 0
 	bsm.Slashings = []math.Gwei{}
 	bsm.TotalSlashing = 0
-
-	return BeaconState{*bsm}, nil
+	if version.EqualsOrIsAfter(bsm.GetForkVersion(), version.Electra()) {
+		bsm.PendingPartialWithdrawals = []*types.PendingPartialWithdrawal{}
+	}
+	return BeaconState{bsm}, nil
 }
 
 // GetMarshallable implements proof BeaconState.
 func (m *BeaconState) GetMarshallable() (
 	*types.BeaconState, error,
 ) {
-	beaconState := types.NewEmptyBeaconStateWithVersion(m.internal.GetForkVersion())
-	beaconState.Slot = m.internal.Slot
-	beaconState.GenesisValidatorsRoot = m.internal.GenesisValidatorsRoot
-	beaconState.Fork = m.internal.Fork
-	beaconState.LatestBlockHeader = m.internal.LatestBlockHeader
-	beaconState.BlockRoots = m.internal.BlockRoots
-	beaconState.StateRoots = m.internal.StateRoots
-	beaconState.LatestExecutionPayloadHeader = m.internal.LatestExecutionPayloadHeader
-	beaconState.Eth1Data = m.internal.Eth1Data
-	beaconState.Eth1DepositIndex = m.internal.Eth1DepositIndex
-	beaconState.Validators = m.internal.Validators
-	beaconState.Balances = m.internal.Balances
-	beaconState.RandaoMixes = m.internal.RandaoMixes
-	beaconState.NextWithdrawalIndex = m.internal.NextWithdrawalIndex
-	beaconState.NextWithdrawalValidatorIndex = m.internal.NextWithdrawalValidatorIndex
-	beaconState.Slashings = m.internal.Slashings
-	beaconState.TotalSlashing = m.internal.TotalSlashing
-
-	if version.EqualsOrIsAfter(beaconState.GetForkVersion(), version.Electra()) {
-		beaconState.PendingPartialWithdrawals = m.internal.PendingPartialWithdrawals
-	}
-	return beaconState, nil
+	return m.internal, nil
 }
 
 // HashTreeRoot is the interface for the beacon store.
