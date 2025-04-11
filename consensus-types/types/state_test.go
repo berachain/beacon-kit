@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
+	ssz "github.com/ferranbt/fastssz"
 	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
@@ -200,12 +201,24 @@ func TestBeaconState_HashTreeRoot(t *testing.T) {
 		// Get the HashConcurrent
 		concurrentRoot := common.Root(karalabessz.HashSequential(state))
 
+		// Get the HashTreeRootWith
+		hasher := ssz.NewHasher()
+		err := state.HashTreeRootWith(hasher)
+		require.NoError(t, err)
+		root2 := hasher.Hash()
+
 		// Compare the results
 		require.Equal(
 			t,
 			root,
 			concurrentRoot,
 			"HashTreeRoot and HashSequential should produce the same result",
+		)
+
+		require.Equal(t,
+			root[:],
+			root2,
+			"HashTreeRoot and HashTreeRootWith should produce the same result",
 		)
 	})
 }
