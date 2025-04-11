@@ -22,10 +22,22 @@ package cometbft
 
 import (
 	"time"
+
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/primitives/common"
 )
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.
 type TelemetrySink interface {
 	// MeasureSince measures the time since the given time.
 	MeasureSince(key string, start time.Time, args ...string)
+}
+
+// APIBackend is an interface for the API backend.
+type APIBackend interface {
+	// SetGenesisData sets the genesis data on the API backend.
+	SetGenesisData(
+		genesisHeader *ctypes.BeaconBlockHeader,
+		genesisValidatorsRoot common.Root,
+	)
 }
