@@ -18,6 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
+//nolint:dupl // False positive detected.
 package types
 
 import (
@@ -26,6 +27,7 @@ import (
 	"github.com/karalabe/ssz"
 )
 
+// Validators is a type alias for a SSZ list of Validator containers.
 type Validators []*Validator
 
 // SizeSSZ returns the SSZ encoded size in bytes for the Validators.
