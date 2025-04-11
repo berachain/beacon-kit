@@ -94,7 +94,7 @@ func TestBlockProposerPubkeyProof(t *testing.T) {
 				bsm, err := bs.GetMarshallable()
 				require.NoError(t, err)
 				if forkVersion == version.Electra() {
-					t.Skip("TODO(pectra): This test currently fails as ProveProposerPubkeyInBlock will panic")
+					t.Skip("TODO(pectra): This test currently fails as ProveProposerPubkeyInBlock will panic since the g-index changes post-electra")
 				}
 				proof, _, err := merkle.ProveProposerPubkeyInBlock(bbh, bsm)
 				require.NoError(t, err)
