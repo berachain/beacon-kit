@@ -122,6 +122,11 @@ func TestGetGenesisData(t *testing.T) {
 	}
 	b.AttachQueryBackend(tcs)
 
+	// Set genesis data.
+	b.SetGenesisData(
+		nil,
+		common.Root{0x1, 0x2, 0x3})
+
 	// Test all genesis data.
 	genesisTime := b.GenesisTime()
 	require.Equal(t, math.U64(1737410400), genesisTime)
