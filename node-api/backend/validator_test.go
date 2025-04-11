@@ -287,7 +287,7 @@ func TestFilteredValidators(t *testing.T) {
 	setupTestFilteredValidatorsState(
 		t,
 		cms, kvStore, cs,
-		stateValidators,
+		stateValidators, refSlot,
 	)
 
 	// test cases
@@ -374,6 +374,7 @@ func setupTestFilteredValidatorsState(
 	kvStore *beacondb.KVStore,
 	cs chain.Spec,
 	stateValidators []*types.ValidatorData,
+	dummySlot math.Slot,
 ) {
 	t.Helper()
 
@@ -388,16 +389,15 @@ func setupTestFilteredValidatorsState(
 		require.NoError(t, st.SetBalance(math.ValidatorIndex(in.Index), math.Gwei(in.Balance)))
 	}
 
-	setupStateDummyParts(t, cs, st)
+	setupStateDummyParts(t, cs, st, dummySlot)
 
 	// finally write it all to underlying cms
 	//nolint:errcheck // false positive as this has no return value
 	sdkCtx.MultiStore().(storetypes.CacheMultiStore).Write()
 }
 
-func setupStateDummyParts(t *testing.T, cs chain.Spec, st *statedb.StateDB) {
+func setupStateDummyParts(t *testing.T, cs chain.Spec, st *statedb.StateDB, dummySlot math.Slot) {
 	t.Helper()
-	dummySlot := math.Slot(2025)
 	require.NoError(t, st.SetSlot(dummySlot))
 
 	fork := ctypes.NewFork(version.Genesis(), version.Genesis(), constants.GenesisEpoch)
