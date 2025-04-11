@@ -245,15 +245,16 @@ func TestPendingPartialWithdrawals_EmptySlice(t *testing.T) {
 
 			// Attempt to set an empty slice.
 			err = store.SetPendingPartialWithdrawals([]*types.PendingPartialWithdrawal{})
+			var ppw []*types.PendingPartialWithdrawal
 			if version.IsBefore(fork, version.Electra()) {
 				require.ErrorContains(t, err, fmt.Sprintf("operation requires fork %s", version.Electra()))
 				// Also expect Get to fail.
-				ppw, err := store.GetPendingPartialWithdrawals()
+				ppw, err = store.GetPendingPartialWithdrawals()
 				require.ErrorContains(t, err, fmt.Sprintf("operation requires fork %s", version.Electra()))
 				require.Nil(t, ppw)
 			} else {
 				require.NoError(t, err)
-				ppw, err := store.GetPendingPartialWithdrawals()
+				ppw, err = store.GetPendingPartialWithdrawals()
 				require.NoError(t, err)
 				require.Empty(t, ppw)
 			}
@@ -292,17 +293,18 @@ func TestPendingPartialWithdrawals_SetAndGetNonEmpty(t *testing.T) {
 			}
 			sampleWithdrawals := []*types.PendingPartialWithdrawal{entry1, entry2}
 
+			var ppw []*types.PendingPartialWithdrawal
 			// Attempt to set the non-empty slice.
 			err = store.SetPendingPartialWithdrawals(sampleWithdrawals)
 			if version.IsBefore(fork, version.Electra()) {
 				require.ErrorContains(t, err, fmt.Sprintf("operation requires fork %s", version.Electra()))
 				// Get should also fail.
-				ppw, err := store.GetPendingPartialWithdrawals()
+				ppw, err = store.GetPendingPartialWithdrawals()
 				require.ErrorContains(t, err, fmt.Sprintf("operation requires fork %s", version.Electra()))
 				require.Nil(t, ppw)
 			} else {
 				require.NoError(t, err)
-				ppw, err := store.GetPendingPartialWithdrawals()
+				ppw, err = store.GetPendingPartialWithdrawals()
 				require.NoError(t, err)
 				require.Equal(t, sampleWithdrawals, ppw)
 			}
@@ -340,11 +342,11 @@ func TestPendingPartialWithdrawals_Update(t *testing.T) {
 				WithdrawableEpoch: math.U64(20),
 			}
 			initialWithdrawals := []*types.PendingPartialWithdrawal{entry1, entry2}
-
+			var ppw []*types.PendingPartialWithdrawal
 			if version.IsBefore(fork, version.Electra()) {
 				err = store.SetPendingPartialWithdrawals(initialWithdrawals)
 				require.ErrorContains(t, err, fmt.Sprintf("operation requires fork %s", version.Electra()))
-				ppw, err := store.GetPendingPartialWithdrawals()
+				ppw, err = store.GetPendingPartialWithdrawals()
 				require.ErrorContains(t, err, fmt.Sprintf("operation requires fork %s", version.Electra()))
 				require.Nil(t, ppw)
 			} else {
@@ -362,7 +364,7 @@ func TestPendingPartialWithdrawals_Update(t *testing.T) {
 				err = store.SetPendingPartialWithdrawals(updatedWithdrawals)
 				require.NoError(t, err)
 
-				ppw, err := store.GetPendingPartialWithdrawals()
+				ppw, err = store.GetPendingPartialWithdrawals()
 				require.NoError(t, err)
 				require.Equal(t, updatedWithdrawals, ppw)
 			}
