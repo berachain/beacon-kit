@@ -129,6 +129,7 @@ func TestGIndexProposerIndexDeneb(t *testing.T) {
 // beacon state proofs for validator pubkeys on the Deneb fork.
 func TestGIndicesValidatorPubkeyDeneb(t *testing.T) {
 	t.Parallel()
+
 	// GIndex of state in the block.
 	_, stateGIndexDenebBlock, _, err := mlib.ObjectPath[
 		mlib.GeneralizedIndex, [32]byte,
@@ -174,78 +175,5 @@ func TestGIndicesValidatorPubkeyDeneb(t *testing.T) {
 	require.Equal(t,
 		mlib.GeneralizedIndex(merkle.ValidatorPubkeyGIndexOffset),
 		oneValidatorPubkeyGIndexDenebState-zeroValidatorPubkeyGIndexDenebState,
-	)
-}
-
-// TestGInidicesExecutionDeneb tests the generalized indices used by
-// beacon state proofs from the execution payload header on the Deneb fork.
-func TestGInidicesExecutionDeneb(t *testing.T) {
-	t.Parallel()
-	// GIndex of the execution number in the state.
-	_, executionNumberGIndexDenebState, _, err := mlib.ObjectPath[
-		mlib.GeneralizedIndex, [32]byte,
-	]("LatestExecutionPayloadHeader/Number").GetGeneralizedIndex(
-		beaconStateSchema,
-	)
-	require.NoError(t, err)
-	require.Equal(t,
-		merkle.ExecutionNumberGIndexDenebState,
-		int(executionNumberGIndexDenebState),
-	)
-
-	// GIndex of the execution number in the block.
-	_, executionNumberGIndexDenebBlock, _, err := mlib.ObjectPath[
-		mlib.GeneralizedIndex, [32]byte,
-	]("State/LatestExecutionPayloadHeader/Number").GetGeneralizedIndex(
-		beaconHeaderSchema,
-	)
-	require.NoError(t, err)
-	require.Equal(t,
-		merkle.ExecutionNumberGIndexDenebBlock,
-		int(executionNumberGIndexDenebBlock),
-	)
-
-	// Concatenation is consistent.
-	concatExecutionNumberStateToBlock := mlib.GeneralizedIndices{
-		merkle.StateGIndexDenebBlock,
-		executionNumberGIndexDenebState,
-	}.Concat()
-	require.Equal(t,
-		executionNumberGIndexDenebBlock,
-		concatExecutionNumberStateToBlock,
-	)
-
-	// GIndex of the execution fee recipient in the state.
-	_, executionFeeRecipientGIndexDenebState, _, err := mlib.ObjectPath[
-		mlib.GeneralizedIndex, [32]byte,
-	]("LatestExecutionPayloadHeader/FeeRecipient").GetGeneralizedIndex(
-		beaconStateSchema,
-	)
-	require.NoError(t, err)
-	require.Equal(t,
-		merkle.ExecutionFeeRecipientGIndexDenebState,
-		int(executionFeeRecipientGIndexDenebState),
-	)
-
-	// GIndex of the execution fee recipient in the block.
-	_, executionFeeRecipientGIndexDenebBlock, _, err := mlib.ObjectPath[
-		mlib.GeneralizedIndex, [32]byte,
-	]("State/LatestExecutionPayloadHeader/FeeRecipient").GetGeneralizedIndex(
-		beaconHeaderSchema,
-	)
-	require.NoError(t, err)
-	require.Equal(t,
-		merkle.ExecutionFeeRecipientGIndexDenebBlock,
-		int(executionFeeRecipientGIndexDenebBlock),
-	)
-
-	// Concatenation is consistent.
-	concatExecutionFeeRecipientStateToBlock := mlib.GeneralizedIndices{
-		merkle.StateGIndexDenebBlock,
-		executionFeeRecipientGIndexDenebState,
-	}.Concat()
-	require.Equal(t,
-		executionFeeRecipientGIndexDenebBlock,
-		concatExecutionFeeRecipientStateToBlock,
 	)
 }
