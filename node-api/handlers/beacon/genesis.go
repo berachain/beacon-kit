@@ -26,20 +26,11 @@ import (
 )
 
 func (h *Handler) GetGenesis(_ handlers.Context) (any, error) {
-	genesisRoot, err := h.backend.GenesisValidatorsRoot()
-	if err != nil {
-		return nil, err
-	}
+	genesisRoot := h.backend.GenesisValidatorsRoot()
 
-	genesisForkVersion, err := h.backend.GenesisForkVersion()
-	if err != nil {
-		return nil, err
-	}
+	genesisForkVersion := h.backend.GenesisForkVersion()
 
-	genesisTime, err := h.backend.GenesisTime()
-	if err != nil {
-		return nil, err
-	}
+	genesisTime := h.backend.GenesisTime()
 
 	return beacontypes.GenesisResponse{
 		Data: beacontypes.GenesisData{
