@@ -39,9 +39,7 @@ func ProveProposerIndexInBlock(
 		return nil, common.Root{}, err
 	}
 
-	proposerIndexProof, err := blockProofTree.Prove(
-		ProposerIndexGIndexBlock,
-	)
+	proposerIndexProof, err := blockProofTree.Prove(ProposerIndexGIndexBlock)
 	if err != nil {
 		return nil, common.Root{}, err
 	}

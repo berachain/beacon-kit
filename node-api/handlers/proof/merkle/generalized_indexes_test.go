@@ -31,9 +31,7 @@ import (
 )
 
 var (
-	// beaconStateSchema is the schema for the BeaconState struct defined in
-	// beacon-kit/mod/consensus-types/types/state.go (for the latest fork -- electra).
-	beaconStateSchema = schema.DefineContainer(
+	beaconStateFieldsDeneb = []*schema.Field{
 		schema.NewField("GenesisValidatorsRoot", schema.B32()),
 		schema.NewField("Slot", schema.U64()),
 		schema.NewField("Fork", schema.DefineContainer(
@@ -95,90 +93,176 @@ var (
 			"Slashings", schema.DefineList(schema.U64(), constants.ValidatorsRegistryLimit),
 		),
 		schema.NewField("TotalSlashing", schema.U64()),
+	}
+
+	additionalBeaconStateFieldsElectra = []*schema.Field{
 		schema.NewField("PendingPartialWithdrawals", schema.DefineList(schema.DefineContainer(
 			schema.NewField("ValidatorIndex", schema.U64()),
 			schema.NewField("Amount", schema.U64()),
 			schema.NewField("WithdrawableEpoch", schema.U64()),
 		), constants.PendingPartialWithdrawalsLimit)),
-	)
+	}
 
-	// beaconHeaderSchema is the schema for the BeaconBlockHeader struct defined
-	// in beacon-kit/mod/consensus-types/types/header.go, with the SSZ
-	// expansion of StateRoot to use the BeaconState.
-	beaconHeaderSchema = schema.DefineContainer(
+	// beaconStateSchemaDeneb is the schema for the BeaconState struct in the Deneb forks.
+	beaconStateSchemaDeneb = schema.DefineContainer(beaconStateFieldsDeneb...)
+
+	// beaconStateSchemaElectra is the schema for the BeaconState struct in the Electra forks.
+	beaconStateSchemaElectra = schema.DefineContainer(
+		append(beaconStateFieldsDeneb, additionalBeaconStateFieldsElectra...)...,
+	)
+)
+
+var (
+	// beaconHeaderSchemaDeneb is the schema for the BeaconBlockHeader in the Deneb forks, with the
+	// SSZ expansion of StateRoot to use the BeaconState.
+	beaconHeaderSchemaDeneb = schema.DefineContainer(
 		schema.NewField("Slot", schema.U64()),
 		schema.NewField("ProposerIndex", schema.U64()),
 		schema.NewField("ParentRoot", schema.B32()),
-		schema.NewField("State", beaconStateSchema),
+		schema.NewField("State", beaconStateSchemaDeneb),
+		schema.NewField("BodyRoot", schema.B32()),
+	)
+
+	// beaconHeaderSchemaElectra is the schema for the BeaconBlockHeader in the Electra forks, with
+	// the SSZ expansion of StateRoot to use the BeaconState.
+	beaconHeaderSchemaElectra = schema.DefineContainer(
+		schema.NewField("Slot", schema.U64()),
+		schema.NewField("ProposerIndex", schema.U64()),
+		schema.NewField("ParentRoot", schema.B32()),
+		schema.NewField("State", beaconStateSchemaElectra),
 		schema.NewField("BodyRoot", schema.B32()),
 	)
 )
 
 // TestGIndexProposerIndex tests the generalized index of the proposer
-// index in the beacon block on the  fork.
+// index in the beacon block.
 func TestGIndexProposerIndex(t *testing.T) {
 	t.Parallel()
-	// GIndex of the proposer index in the beacon block.
-	_, proposerIndexGIndexBlock, _, err := mlib.ObjectPath[
-		mlib.GeneralizedIndex, [32]byte,
-	]("ProposerIndex").GetGeneralizedIndex(beaconHeaderSchema)
+
+	// Deneb forks.
+	_, proposerIndexGIndexBlock, _, err := mlib.ObjectPath(
+		"ProposerIndex",
+	).GetGeneralizedIndex(beaconHeaderSchemaDeneb)
 	require.NoError(t, err)
 	require.Equal(
 		t,
 		merkle.ProposerIndexGIndexBlock,
 		int(proposerIndexGIndexBlock),
 	)
+
+	// Electra forks.
+	_, proposerIndexGIndexBlockElectra, _, err := mlib.ObjectPath(
+		"ProposerIndex",
+	).GetGeneralizedIndex(beaconHeaderSchemaElectra)
+	require.NoError(t, err)
+	require.Equal(t,
+		merkle.ProposerIndexGIndexBlock,
+		int(proposerIndexGIndexBlockElectra),
+	)
 }
 
-// TestGIndicesValidatorPubkey tests the generalized indices used by
-// beacon state proofs for validator pubkeys on the  fork.
-func TestGIndicesValidatorPubkey(t *testing.T) {
+// TestGIndicesValidatorPubkeyDeneb tests the generalized indices used by
+// beacon state proofs for validator pubkeys on the Deneb forks.
+func TestGIndicesValidatorPubkeyDeneb(t *testing.T) {
 	t.Parallel()
 
 	// GIndex of state in the block.
-	_, stateGIndexBlock, _, err := mlib.ObjectPath[
-		mlib.GeneralizedIndex, [32]byte,
-	]("State").GetGeneralizedIndex(beaconHeaderSchema)
+	_, stateGIndexBlock, _, err := mlib.ObjectPath(
+		"State",
+	).GetGeneralizedIndex(beaconHeaderSchemaDeneb)
 	require.NoError(t, err)
 	require.Equal(t, merkle.StateGIndexBlock, int(stateGIndexBlock))
 
 	// GIndex of the 0 validator's pubkey in the state.
-	_, zeroValidatorPubkeyGIndexState, _, err := mlib.ObjectPath[
-		mlib.GeneralizedIndex, [32]byte,
-	]("Validators/0/Pubkey").GetGeneralizedIndex(beaconStateSchema)
+	_, zeroValidatorPubkeyGIndexState, _, err := mlib.ObjectPath(
+		"Validators/0/Pubkey",
+	).GetGeneralizedIndex(beaconStateSchemaDeneb)
 	require.NoError(t, err)
 	require.Equal(t,
-		merkle.ZeroValidatorPubkeyGIndexState,
+		merkle.ZeroValidatorPubkeyGIndexDenebState,
 		int(zeroValidatorPubkeyGIndexState),
 	)
 
 	// GIndex of the 0 validator's pubkey in the block.
-	_, zeroValidatorPubkeyGIndexBlock, _, err := mlib.ObjectPath[
-		mlib.GeneralizedIndex, [32]byte,
-	]("State/Validators/0/Pubkey").GetGeneralizedIndex(beaconHeaderSchema)
+	_, zeroValidatorPubkeyGIndexBlock, _, err := mlib.ObjectPath(
+		"State/Validators/0/Pubkey",
+	).GetGeneralizedIndex(beaconHeaderSchemaDeneb)
 	require.NoError(t, err)
 	require.Equal(t,
-		merkle.ZeroValidatorPubkeyGIndexBlock,
+		merkle.ZeroValidatorPubkeyGIndexDenebBlock,
 		int(zeroValidatorPubkeyGIndexBlock),
 	)
 
 	// Concatenation is consistent.
 	concatValidatorPubkeyStateToBlock := mlib.GeneralizedIndices{
-		stateGIndexBlock,
-		zeroValidatorPubkeyGIndexState,
+		mlib.GeneralizedIndex(stateGIndexBlock),
+		mlib.GeneralizedIndex(zeroValidatorPubkeyGIndexState),
 	}.Concat()
 	require.Equal(t,
 		zeroValidatorPubkeyGIndexBlock,
-		concatValidatorPubkeyStateToBlock,
+		uint64(concatValidatorPubkeyStateToBlock),
 	)
 
 	// GIndex offset of the next validator's pubkey.
-	_, oneValidatorPubkeyGIndexState, _, err := mlib.ObjectPath[
-		mlib.GeneralizedIndex, [32]byte,
-	]("Validators/1/Pubkey").GetGeneralizedIndex(beaconStateSchema)
+	_, oneValidatorPubkeyGIndexState, _, err := mlib.ObjectPath(
+		"Validators/1/Pubkey",
+	).GetGeneralizedIndex(beaconStateSchemaDeneb)
 	require.NoError(t, err)
 	require.Equal(t,
-		mlib.GeneralizedIndex(merkle.ValidatorPubkeyGIndexOffset),
-		oneValidatorPubkeyGIndexState-zeroValidatorPubkeyGIndexState,
+		merkle.ValidatorPubkeyGIndexOffset,
+		int(oneValidatorPubkeyGIndexState-zeroValidatorPubkeyGIndexState),
+	)
+}
+
+// TestGIndicesValidatorPubkeyElectra tests the generalized indices used by
+// beacon state proofs for validator pubkeys on the Electra forks.
+func TestGIndicesValidatorPubkeyElectra(t *testing.T) {
+	t.Parallel()
+
+	// GIndex of state in the block.
+	_, stateGIndexBlock, _, err := mlib.ObjectPath(
+		"State",
+	).GetGeneralizedIndex(beaconHeaderSchemaElectra)
+	require.NoError(t, err)
+	require.Equal(t, merkle.StateGIndexBlock, int(stateGIndexBlock))
+
+	// GIndex of the 0 validator's pubkey in the state.
+	_, zeroValidatorPubkeyGIndexState, _, err := mlib.ObjectPath(
+		"Validators/0/Pubkey",
+	).GetGeneralizedIndex(beaconStateSchemaElectra)
+	require.NoError(t, err)
+	require.Equal(t,
+		merkle.ZeroValidatorPubkeyGIndexElectraState,
+		int(zeroValidatorPubkeyGIndexState),
+	)
+
+	// GIndex of the 0 validator's pubkey in the block.
+	_, zeroValidatorPubkeyGIndexBlock, _, err := mlib.ObjectPath(
+		"State/Validators/0/Pubkey",
+	).GetGeneralizedIndex(beaconHeaderSchemaElectra)
+	require.NoError(t, err)
+	require.Equal(t,
+		merkle.ZeroValidatorPubkeyGIndexElectraBlock,
+		int(zeroValidatorPubkeyGIndexBlock),
+	)
+
+	// Concatenation is consistent.
+	concatValidatorPubkeyStateToBlock := mlib.GeneralizedIndices{
+		mlib.GeneralizedIndex(stateGIndexBlock),
+		mlib.GeneralizedIndex(zeroValidatorPubkeyGIndexState),
+	}.Concat()
+	require.Equal(t,
+		zeroValidatorPubkeyGIndexBlock,
+		uint64(concatValidatorPubkeyStateToBlock),
+	)
+
+	// GIndex offset of the next validator's pubkey.
+	_, oneValidatorPubkeyGIndexState, _, err := mlib.ObjectPath(
+		"Validators/1/Pubkey",
+	).GetGeneralizedIndex(beaconStateSchemaElectra)
+	require.NoError(t, err)
+	require.Equal(t,
+		merkle.ValidatorPubkeyGIndexOffset,
+		int(oneValidatorPubkeyGIndexState-zeroValidatorPubkeyGIndexState),
 	)
 }

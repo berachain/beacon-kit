@@ -77,7 +77,7 @@ func ProveProposerPubkeyInState(
 		return nil, common.Root{}, err
 	}
 
-	gIndex := ZeroValidatorPubkeyGIndexState + int(proposerOffset) // #nosec G115 -- max proposer offset is 8 * (2^40 - 1).
+	gIndex := ZeroValidatorPubkeyGIndexDenebState + int(proposerOffset) // #nosec G115 -- max proposer offset is 8 * (2^40 - 1).
 	valPubkeyInStateProof, err := stateProofTree.Prove(gIndex)
 	if err != nil {
 		return nil, common.Root{}, err
@@ -102,7 +102,7 @@ func verifyProposerInBlock(
 ) (common.Root, error) {
 	beaconRoot := bbh.HashTreeRoot()
 	if !merkle.VerifyProof(
-		beaconRoot, leaf, ZeroValidatorPubkeyGIndexBlock+uint64(valOffset), proof,
+		beaconRoot, leaf, ZeroValidatorPubkeyGIndexDenebBlock+uint64(valOffset), proof,
 	) {
 		return common.Root{}, errors.Wrapf(
 			errors.New("proposer pubkey proof failed to verify against beacon root"),
