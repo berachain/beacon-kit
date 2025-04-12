@@ -47,6 +47,7 @@ func (sp *StateProcessor) ComputeActivationExitEpoch(epoch math.Epoch) math.Epoc
 func (sp *StateProcessor) ComputeExitEpochAndUpdateChurn(
 	st *statedb.StateDB, exitBalance math.Gwei,
 ) (math.Epoch, error) {
+	//nolint:staticcheck // linter error
 	slot, err := st.GetSlot()
 	if err != nil {
 		return 0, err
@@ -100,6 +101,8 @@ func (sp *StateProcessor) InitiateValidatorExit(st *statedb.StateDB, idx math.Va
 		minValidatorWithdrawabilityDelay := math.Epoch(0)
 		withdrawableEpoch = exitQueueEpoch + minValidatorWithdrawabilityDelay
 	} else {
+		// Before Electra, this was the logic for exiting a validator.
+		// It would only be triggered if the maximum validator set size was reached.
 		slot, slotErr := st.GetSlot()
 		if slotErr != nil {
 			return slotErr

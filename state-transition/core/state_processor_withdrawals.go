@@ -148,9 +148,13 @@ const PendingPartialWithdrawalsLimit = 64
 const MinActivationBalance = 250_000 * params.GWei
 
 // processWithdrawalRequest is the equivalent of process_withdrawal_request as defined in the spec.
+// It should only be called after the electra hard fork.
+//
+//nolint:gocognit // follows the spec implementation
 func (sp *StateProcessor) processWithdrawalRequest(st *state.StateDB, withdrawalRequest *ctypes.WithdrawalRequest) error {
 	amount := withdrawalRequest.Amount
 	// If the amount is 0, it's a full exit.
+	//nolint:staticcheck // linter error
 	isFullExitRequest := amount == FullExitRequestAmount
 	// If partial withdrawal queue is full, only full exits are processed
 	if len(st.PendingPartialWithdrawals()) == PendingPartialWithdrawalsLimit && !isFullExitRequest {
