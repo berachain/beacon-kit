@@ -82,6 +82,7 @@ func (sp *StateProcessor) InitiateValidatorExit(st *statedb.StateDB, idx math.Va
 	if err != nil {
 		return err
 	}
+	// TODO(pectra): Ensure that state is correctly updated to the fork
 	fork, err := st.GetFork()
 	if err != nil {
 		return err
@@ -97,9 +98,7 @@ func (sp *StateProcessor) InitiateValidatorExit(st *statedb.StateDB, idx math.Va
 		if err != nil {
 			return err
 		}
-		// TODO(pectra): get this value from config or constant
-		minValidatorWithdrawabilityDelay := math.Epoch(0)
-		withdrawableEpoch = exitQueueEpoch + minValidatorWithdrawabilityDelay
+		withdrawableEpoch = math.Epoch(uint64(exitQueueEpoch) + sp.cs.MinValidatorWithdrawabilityDelay())
 	} else {
 		// Before Electra, this was the logic for exiting a validator.
 		// It would only be triggered if the maximum validator set size was reached.
@@ -115,9 +114,8 @@ func (sp *StateProcessor) InitiateValidatorExit(st *statedb.StateDB, idx math.Va
 	// Set validator exit epoch and withdrawable epoch.
 	validator.SetExitEpoch(exitQueueEpoch)
 	validator.SetWithdrawableEpoch(withdrawableEpoch)
-	err = st.UpdateValidatorAtIndex(idx, validator)
-	if err != nil {
-		return err
+	if updateErr := st.UpdateValidatorAtIndex(idx, validator); updateErr != nil {
+		return updateErr
 	}
 	return nil
 }

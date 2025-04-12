@@ -150,6 +150,11 @@ type WithdrawalsSpec interface {
 	// MaxValidatorsPerWithdrawalsSweep returns the maximum number of validators
 	// per withdrawal sweep.
 	MaxValidatorsPerWithdrawalsSweep() uint64
+
+	// MinValidatorWithdrawabilityDelay - an exited validator remains eligible to be slashed until its withdrawable_epoch,
+	// which is set to MIN_VALIDATOR_WITHDRAWABILITY_DELAY epochs after its exit_epoch.
+	// This is to allow some extra time for any slashable offences by the validator to be detected and reported.
+	MinValidatorWithdrawabilityDelay() uint64
 }
 
 // Spec defines an interface for accessing chain-specific parameters.
@@ -409,6 +414,10 @@ func (s spec) MaxWithdrawalsPerPayload() uint64 {
 // MaxValidatorsPerWithdrawalsSweep returns the maximum number of validators per withdrawals sweep.
 func (s spec) MaxValidatorsPerWithdrawalsSweep() uint64 {
 	return s.Data.MaxValidatorsPerWithdrawalsSweep
+}
+
+func (s spec) MinValidatorWithdrawabilityDelay() uint64 {
+	return s.Data.MinValidatorWithdrawabilityDelay
 }
 
 // MinEpochsForBlobsSidecarsRequest returns the minimum number of epochs for

@@ -320,6 +320,13 @@ func (v Validator) GetWithdrawalCredentials() WithdrawalCredentials {
 	return v.WithdrawalCredentials
 }
 
+// HasCompoundingWithdrawalCredential is equivalent to has_compounding_withdrawal_credential.
+// On Berachain, all validators are considered to be 'compounding' validators, regardless of whether
+// they have the '0x2' prefix. We introduce this for spec parity.
+func (v Validator) HasCompoundingWithdrawalCredential() bool {
+	return true
+}
+
 // Status returns the current validator status based on its set epoch values.
 // This function taken from Prysm:
 // https://github.com/prysmaticlabs/prysm/blob/0229a2055e6349655a471b2427f349e40c275cee/beacon-chain/rpc/eth/helpers/validator_status.go#L31
