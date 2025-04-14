@@ -44,9 +44,8 @@ const (
 
 	// ZeroValidatorPubkeyGIndexDenebBlock is the generalized index of the 0
 	// validator's pubkey in the beacon block in the Deneb forks. This is
-	// calculated by concatenating the (ZeroValidatorPubkeyGIndexDenebState,
-	// StateGIndexDenebBlock) GIndices. To get the GIndex of the pubkey of
-	// validator at index n, the formula is:
+	// calculated by concatenating the (ZeroValidatorPubkeyGIndexDenebState, StateGIndexBlock)
+	// GIndices. To get the GIndex of the pubkey of validator at index n, the formula is:
 	// GIndex = ZeroValidatorPubkeyGIndexDenebBlock + (ValidatorPubkeyGIndexOffset * n)
 	ZeroValidatorPubkeyGIndexDenebBlock = 3254554418216960
 
@@ -61,9 +60,8 @@ const (
 
 	// ZeroValidatorPubkeyGIndexElectraBlock is the generalized index of the 0
 	// validator's pubkey in the beacon block in the Electra forks. This is
-	// calculated by concatenating the (ZeroValidatorPubkeyGIndexElectraState,
-	// StateGIndexElectraBlock) GIndices. To get the GIndex of the pubkey of
-	// validator at index n, the formula is:
+	// calculated by concatenating the (ZeroValidatorPubkeyGIndexElectraState, StateGIndexBlock)
+	// GIndices. To get the GIndex of the pubkey of validator at index n, the formula is:
 	// GIndex = ZeroValidatorPubkeyGIndexElectraBlock + (ValidatorPubkeyGIndexOffset * n)
 	ZeroValidatorPubkeyGIndexElectraBlock = 6350779162034176
 )
