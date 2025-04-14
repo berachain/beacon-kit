@@ -27,6 +27,7 @@ import (
 	"github.com/karalabe/ssz"
 )
 
+// Deposits is a type alias for a SSZ list of Deposit containers.
 type Deposits []*Deposit
 
 /* -------------------------------------------------------------------------- */
