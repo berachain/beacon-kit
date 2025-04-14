@@ -78,10 +78,12 @@ const (
 	defaultMaxBlobsPerBlock                 = 6
 	defaultFieldElementsPerBlob             = 4096
 	defaultBytesPerBlob                     = 131072
-	defaultKZGCommitmentInclusionProofDepth = 17
 
 	// Berachain values.
 	defaultValidatorSetCap      = 256
 	defaultEVMInflationAddress  = "0x0000000000000000000000000000000000000000"
 	defaultEVMInflationPerBlock = 0
+
+	// Electra values.
+	defaultMinValidatorWithdrawabilityDelay = 256
 )
