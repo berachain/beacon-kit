@@ -39,6 +39,7 @@ func TestBlockProposerPubkeyProof(t *testing.T) {
 	t.Parallel()
 	testCases := []struct {
 		name              string
+		forkVersion       common.Version
 		numValidators     int
 		slot              math.Slot
 		proposerIndex     math.ValidatorIndex
@@ -49,6 +50,7 @@ func TestBlockProposerPubkeyProof(t *testing.T) {
 	}{
 		{
 			name:              "1 Validator Set - Deneb",
+			forkVersion:       version.Deneb(),
 			numValidators:     1,
 			slot:              4,
 			proposerIndex:     0,
@@ -59,6 +61,7 @@ func TestBlockProposerPubkeyProof(t *testing.T) {
 		},
 		{
 			name:              "Many Validator Set - Deneb",
+			forkVersion:       version.Deneb(),
 			numValidators:     100,
 			slot:              5,
 			proposerIndex:     95,
@@ -66,6 +69,28 @@ func TestBlockProposerPubkeyProof(t *testing.T) {
 			bodyRoot:          common.Root{3, 2, 1, 9, 8, 7},
 			pubKey:            [48]byte{9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2},
 			expectedProofFile: "many_validators_proposer_pubkey_proof_deneb.json",
+		},
+		{
+			name:              "1 Validator Set - Electra",
+			forkVersion:       version.Electra(),
+			numValidators:     1,
+			slot:              4,
+			proposerIndex:     0,
+			parentBlockRoot:   common.Root{1, 2, 3},
+			bodyRoot:          common.Root{3, 2, 1},
+			pubKey:            [48]byte{9, 8, 7, 6, 5, 4, 3, 2, 1},
+			expectedProofFile: "one_validator_proposer_pubkey_proof_electra.json",
+		},
+		{
+			name:              "Many Validator Set - Electra",
+			forkVersion:       version.Electra(),
+			numValidators:     100,
+			slot:              5,
+			proposerIndex:     95,
+			parentBlockRoot:   common.Root{1, 2, 3, 4, 5, 6},
+			bodyRoot:          common.Root{3, 2, 1, 9, 8, 7},
+			pubKey:            [48]byte{9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2},
+			expectedProofFile: "many_validators_proposer_pubkey_proof_electra.json",
 		},
 	}
 
@@ -77,10 +102,9 @@ func TestBlockProposerPubkeyProof(t *testing.T) {
 			}
 			vals[tc.proposerIndex] = &types.Validator{Pubkey: tc.pubKey}
 
-			bs, err := mock.NewBeaconState(
-				tc.slot, vals, 0, common.ExecutionAddress{}, version.Deneb(),
+			bs := mock.NewBeaconStateWith(
+				tc.slot, vals, 0, common.ExecutionAddress{}, tc.forkVersion,
 			)
-			require.NoError(t, err)
 
 			bbh := types.NewBeaconBlockHeader(
 				tc.slot,
@@ -90,9 +114,7 @@ func TestBlockProposerPubkeyProof(t *testing.T) {
 				tc.bodyRoot,
 			)
 
-			bsm, err := bs.GetMarshallable()
-			require.NoError(t, err)
-			proof, _, err := merkle.ProveProposerPubkeyInBlock(bbh, bsm)
+			proof, _, err := merkle.ProveProposerPubkeyInBlock(bbh, bs)
 			require.NoError(t, err)
 			expectedProof := ReadProofFromFile(t, tc.expectedProofFile)
 			require.Equal(t, expectedProof, proof)

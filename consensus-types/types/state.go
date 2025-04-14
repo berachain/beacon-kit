@@ -33,6 +33,7 @@ import (
 // BeaconState represents the entire state of the beacon chain.
 type BeaconState struct {
 	constraints.Versionable `json:"-"`
+
 	// Versioning
 	GenesisValidatorsRoot common.Root `json:"genesis_validators_root,omitempty"`
 	Slot                  math.Slot   `json:"slot,omitempty"`
