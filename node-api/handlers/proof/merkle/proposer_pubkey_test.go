@@ -48,59 +48,54 @@ func TestBlockProposerPubkeyProof(t *testing.T) {
 		expectedProofFile string
 	}{
 		{
-			name:              "1 Validator Set",
+			name:              "1 Validator Set - Deneb",
 			numValidators:     1,
 			slot:              4,
 			proposerIndex:     0,
 			parentBlockRoot:   common.Root{1, 2, 3},
 			bodyRoot:          common.Root{3, 2, 1},
 			pubKey:            [48]byte{9, 8, 7, 6, 5, 4, 3, 2, 1},
-			expectedProofFile: "one_validator_proposer_pubkey_proof.json",
+			expectedProofFile: "one_validator_proposer_pubkey_proof_deneb.json",
 		},
 		{
-			name:              "Many Validator Set",
+			name:              "Many Validator Set - Deneb",
 			numValidators:     100,
 			slot:              5,
 			proposerIndex:     95,
 			parentBlockRoot:   common.Root{1, 2, 3, 4, 5, 6},
 			bodyRoot:          common.Root{3, 2, 1, 9, 8, 7},
 			pubKey:            [48]byte{9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2},
-			expectedProofFile: "many_validators_proposer_pubkey_proof.json",
+			expectedProofFile: "many_validators_proposer_pubkey_proof_deneb.json",
 		},
 	}
 
 	for _, tc := range testCases {
-		for _, forkVersion := range version.GetSupportedVersions() {
-			t.Run(tc.name+forkVersion.String(), func(t *testing.T) {
-				vals := make(types.Validators, tc.numValidators)
-				for i := range vals {
-					vals[i] = &types.Validator{}
-				}
-				vals[tc.proposerIndex] = &types.Validator{Pubkey: tc.pubKey}
+		t.Run(tc.name, func(t *testing.T) {
+			vals := make(types.Validators, tc.numValidators)
+			for i := range vals {
+				vals[i] = &types.Validator{}
+			}
+			vals[tc.proposerIndex] = &types.Validator{Pubkey: tc.pubKey}
 
-				bs, err := mock.NewBeaconState(
-					tc.slot, vals, 0, common.ExecutionAddress{}, forkVersion,
-				)
-				require.NoError(t, err)
+			bs, err := mock.NewBeaconState(
+				tc.slot, vals, 0, common.ExecutionAddress{}, version.Deneb(),
+			)
+			require.NoError(t, err)
 
-				bbh := types.NewBeaconBlockHeader(
-					tc.slot,
-					tc.proposerIndex,
-					tc.parentBlockRoot,
-					bs.HashTreeRoot(),
-					tc.bodyRoot,
-				)
+			bbh := types.NewBeaconBlockHeader(
+				tc.slot,
+				tc.proposerIndex,
+				tc.parentBlockRoot,
+				bs.HashTreeRoot(),
+				tc.bodyRoot,
+			)
 
-				bsm, err := bs.GetMarshallable()
-				require.NoError(t, err)
-				if forkVersion == version.Electra() {
-					t.Skip("TODO(pectra): This test currently fails as ProveProposerPubkeyInBlock will panic since the g-index changes post-electra")
-				}
-				proof, _, err := merkle.ProveProposerPubkeyInBlock(bbh, bsm)
-				require.NoError(t, err)
-				expectedProof := ReadProofFromFile(t, tc.expectedProofFile)
-				require.Equal(t, expectedProof, proof)
-			})
-		}
+			bsm, err := bs.GetMarshallable()
+			require.NoError(t, err)
+			proof, _, err := merkle.ProveProposerPubkeyInBlock(bbh, bsm)
+			require.NoError(t, err)
+			expectedProof := ReadProofFromFile(t, tc.expectedProofFile)
+			require.Equal(t, expectedProof, proof)
+		})
 	}
 }
