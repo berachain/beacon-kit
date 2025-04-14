@@ -24,7 +24,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
@@ -102,10 +101,6 @@ type Service struct {
 	//
 	// NOTE: may be nil until either InitChain or FinalizeBlock is called.
 	blockDelay *BlockDelay
-
-	// stable block time upgrade height and time
-	sbtUpgradeHeight int64
-	sbtUpgradeTime   time.Time
 }
 
 func NewService(
@@ -279,12 +274,6 @@ func (s *Service) LastBlockHeight() int64 {
 
 func (s *Service) setMinRetainBlocks(minRetainBlocks uint64) {
 	s.minRetainBlocks = minRetainBlocks
-}
-
-// setSBTUpgradeHeightAndTime sets the height and time for the SBT upgrade.
-func (s *Service) setSBTUpgradeHeightAndTime(h int64, t time.Time) {
-	s.sbtUpgradeHeight = h
-	s.sbtUpgradeTime = t
 }
 
 func (s *Service) setInterBlockCache(
