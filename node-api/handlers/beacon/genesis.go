@@ -23,27 +23,14 @@ package beacon
 import (
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	"github.com/berachain/beacon-kit/node-api/handlers/types"
 )
 
 func (h *Handler) GetGenesis(_ handlers.Context) (any, error) {
-	genesisRoot, err := h.backend.GenesisValidatorsRoot()
-	if err != nil {
-		return nil, err
-	}
-	if len(genesisRoot) == 0 {
-		return nil, types.ErrNotFound
-	}
+	genesisRoot := h.backend.GenesisValidatorsRoot()
 
-	genesisForkVersion, err := h.backend.GenesisForkVersion()
-	if err != nil {
-		return nil, err
-	}
+	genesisForkVersion := h.backend.GenesisForkVersion()
 
-	genesisTime, err := h.backend.GenesisTime()
-	if err != nil {
-		return nil, err
-	}
+	genesisTime := h.backend.GenesisTime()
 
 	return beacontypes.GenesisResponse{
 		Data: beacontypes.GenesisData{
