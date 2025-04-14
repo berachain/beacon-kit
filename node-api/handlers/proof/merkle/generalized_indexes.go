@@ -20,6 +20,13 @@
 
 package merkle
 
+import (
+	"fmt"
+
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/version"
+)
+
 const (
 	// ProposerIndexGIndexBlock is the generalized index of the proposer index in the beacon block.
 	ProposerIndexGIndexBlock = 9
@@ -62,3 +69,25 @@ const (
 	//          (ValidatorPubkeyGIndexOffset * n)
 	ZeroValidatorPubkeyGIndexElectraBlock = 6350779162034176
 )
+
+// GetZeroValidatorPubkeyGIndexState determines the generalized index of the 0
+// validator's pubkey in the beacon state based on the fork version.
+func GetZeroValidatorPubkeyGIndexState(forkVersion common.Version) (int, error) {
+	if version.EqualsOrIsAfter(forkVersion, version.Electra()) {
+		return ZeroValidatorPubkeyGIndexElectraState, nil
+	} else if version.EqualsOrIsAfter(forkVersion, version.Deneb()) {
+		return ZeroValidatorPubkeyGIndexDenebState, nil
+	}
+	return 0, fmt.Errorf("unsupported fork version: %s", forkVersion)
+}
+
+// GetZeroValidatorPubkeyGIndexBlock determines the generalized index of the 0
+// validator's pubkey in the beacon block based on the fork version.
+func GetZeroValidatorPubkeyGIndexBlock(forkVersion common.Version) (uint64, error) {
+	if version.EqualsOrIsAfter(forkVersion, version.Electra()) {
+		return ZeroValidatorPubkeyGIndexElectraBlock, nil
+	} else if version.EqualsOrIsAfter(forkVersion, version.Deneb()) {
+		return ZeroValidatorPubkeyGIndexDenebBlock, nil
+	}
+	return 0, fmt.Errorf("unsupported fork version: %s", forkVersion)
+}

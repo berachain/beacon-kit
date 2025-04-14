@@ -27,20 +27,15 @@ import (
 	"github.com/berachain/beacon-kit/primitives/version"
 )
 
-// BeaconState is a mock implementation of the StateDB BeaconState
-type BeaconState struct {
-	internal *types.BeaconState
-}
-
-// NewBeaconState creates a new mock beacon state, with only the given slot,
-// validators, execution number, and execution fee recipient.
-func NewBeaconState(
+// NewBeaconState creates a new mock beacon state with only the given fork version,
+// slot, validators, execution number, and execution fee recipient populated.
+func NewBeaconStateWith(
 	slot math.Slot,
 	vals types.Validators,
 	executionNumber math.U64,
 	executionFeeRecipient common.ExecutionAddress,
 	forkVersion common.Version,
-) (BeaconState, error) {
+) *types.BeaconState {
 	// If no validators are provided, create an empty slice.
 	if len(vals) == 0 {
 		vals = make(types.Validators, 0)
@@ -71,19 +66,6 @@ func NewBeaconState(
 	if version.EqualsOrIsAfter(bsm.GetForkVersion(), version.Electra()) {
 		bsm.PendingPartialWithdrawals = []*types.PendingPartialWithdrawal{}
 	}
-	return BeaconState{bsm}, nil
-}
 
-// GetMarshallable implements proof BeaconState.
-func (m *BeaconState) GetMarshallable() (*types.BeaconState, error) {
-	return m.internal, nil
-}
-
-// HashTreeRoot is the interface for the beacon store.
-func (m *BeaconState) HashTreeRoot() common.Root {
-	st, err := m.GetMarshallable()
-	if err != nil {
-		panic(err)
-	}
-	return st.HashTreeRoot()
+	return bsm
 }
