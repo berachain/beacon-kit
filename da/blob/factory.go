@@ -40,9 +40,7 @@ type SidecarFactory struct {
 }
 
 // NewSidecarFactory creates a new sidecar factory.
-func NewSidecarFactory(
-	telemetrySink TelemetrySink,
-) *SidecarFactory {
+func NewSidecarFactory(telemetrySink TelemetrySink) *SidecarFactory {
 	return &SidecarFactory{
 		metrics: newFactoryMetrics(telemetrySink),
 	}
@@ -50,8 +48,7 @@ func NewSidecarFactory(
 
 // BuildSidecars builds a sidecar.
 func (f *SidecarFactory) BuildSidecars(
-	signedBlk *ctypes.SignedBeaconBlock,
-	bundle engineprimitives.BlobsBundle,
+	signedBlk *ctypes.SignedBeaconBlock, bundle engineprimitives.BlobsBundle,
 ) (types.BlobSidecars, error) {
 	var (
 		blobs       = bundle.GetBlobs()
@@ -66,9 +63,7 @@ func (f *SidecarFactory) BuildSidecars(
 	)
 
 	startTime := time.Now()
-	defer f.metrics.measureBuildSidecarsDuration(
-		startTime, math.U64(numBlobs),
-	)
+	defer f.metrics.measureBuildSidecarsDuration(startTime, math.U64(numBlobs))
 
 	// We can reuse the signature from the SignedBeaconBlock. Verifying the
 	// signature will require the corresponding BeaconBlock to reconstruct the
@@ -98,14 +93,12 @@ func (f *SidecarFactory) BuildSidecars(
 
 // BuildKZGInclusionProof builds a KZG inclusion proof.
 func (f *SidecarFactory) BuildKZGInclusionProof(
-	body *ctypes.BeaconBlockBody,
-	index math.U64,
+	body *ctypes.BeaconBlockBody, index math.U64,
 ) ([]common.Root, error) {
 	startTime := time.Now()
 	defer f.metrics.measureBuildKZGInclusionProofDuration(startTime)
 
-	// Build the merkle proof to the commitment within the
-	// list of commitments.
+	// Build the merkle proof to the commitment within the list of commitments.
 	commitmentsProof, err := f.BuildCommitmentProof(body, index)
 	if err != nil {
 		return nil, err
@@ -117,25 +110,21 @@ func (f *SidecarFactory) BuildKZGInclusionProof(
 		return nil, err
 	}
 
-	// By property of the merkle tree, we can concatenate the
-	// two proofs to get the final proof.
+	// By property of the merkle tree, we can concatenate the two proofs to get the final proof.
 	return append(commitmentsProof, bodyProof...), nil
 }
 
 // BuildBlockBodyProof builds a block body proof.
-func (f *SidecarFactory) BuildBlockBodyProof(
-	body *ctypes.BeaconBlockBody,
-) ([]common.Root, error) {
+func (f *SidecarFactory) BuildBlockBodyProof(body *ctypes.BeaconBlockBody) ([]common.Root, error) {
 	startTime := time.Now()
 	defer f.metrics.measureBuildBlockBodyProofDuration(startTime)
+
 	tlrs, err := body.GetTopLevelRoots()
 	if err != nil {
 		return nil, err
 	}
-	tree, err := merkle.NewTreeWithMaxLeaves[common.Root](
-		tlrs,
-		body.Length()-1,
-	)
+
+	tree, err := merkle.NewTreeFromLeaves(tlrs)
 	if err != nil {
 		return nil, err
 	}
@@ -145,14 +134,13 @@ func (f *SidecarFactory) BuildBlockBodyProof(
 
 // BuildCommitmentProof builds a commitment proof.
 func (f *SidecarFactory) BuildCommitmentProof(
-	body *ctypes.BeaconBlockBody,
-	index math.U64,
+	body *ctypes.BeaconBlockBody, index math.U64,
 ) ([]common.Root, error) {
 	startTime := time.Now()
 	defer f.metrics.measureBuildCommitmentProofDuration(startTime)
-	bodyTree, err := merkle.NewTreeWithMaxLeaves[common.Root](
-		body.GetBlobKzgCommitments().Leafify(),
-		constants.MaxBlobCommitmentsPerBlock,
+
+	bodyTree, err := merkle.NewTreeWithMaxLeaves(
+		body.GetBlobKzgCommitments().Leafify(), constants.MaxBlobCommitmentsPerBlock,
 	)
 	if err != nil {
 		return nil, err

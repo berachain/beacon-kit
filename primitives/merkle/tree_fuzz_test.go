@@ -24,6 +24,7 @@ import (
 	"testing"
 
 	byteslib "github.com/berachain/beacon-kit/primitives/bytes"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/merkle"
 	"github.com/stretchr/testify/require"
 )
@@ -45,7 +46,7 @@ func FuzzTree_IsValidMerkleBranch(f *testing.F) {
 		return proofs
 	}
 
-	items := make([][32]byte, 0)
+	items := make([]common.Root, 0)
 	for _, v := range [][]byte{
 		byteslib.ExtendToSize([]byte("A"), byteslib.B32Size),
 		byteslib.ExtendToSize([]byte("B"), byteslib.B32Size),
@@ -57,7 +58,7 @@ func FuzzTree_IsValidMerkleBranch(f *testing.F) {
 	} {
 		item, err := byteslib.ToBytes32(v)
 		require.NoError(f, err)
-		items = append(items, item)
+		items = append(items, common.Root(item))
 	}
 	require.NotEmpty(f, items) // appease nilaway
 
