@@ -22,8 +22,12 @@ package e2e_test
 
 import (
 	"fmt"
+	"math/big"
 
+	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/geth-primitives/ssztest"
+	"github.com/berachain/beacon-kit/node-api/handlers/proof/merkle"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
@@ -39,7 +43,7 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 	s.Require().NoError(err)
 
 	// Deploy the SSZTest contract to verify the block proposer proof.
-	addr, tx, _, err := ssztest.DeploySSZTest(&bind.TransactOpts{
+	addr, tx, sszTest, err := ssztest.DeploySSZTest(&bind.TransactOpts{
 		From:     sender.Address(),
 		Signer:   sender.SignerFunc(chainID),
 		GasLimit: 1000000,
@@ -70,4 +74,54 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 
 	// Verify the slot is equal to the requested block number.
 	s.Require().Equal(blockProposerResp.BeaconBlockHeader.Slot.Unwrap(), blockNumber)
+
+	// First verify the proposer index proof.
+	var proposerIndexProof [][32]byte
+	for _, proofItem := range blockProposerResp.ProposerIndexProof {
+		proposerIndexProof = append(proposerIndexProof, proofItem)
+	}
+	err = sszTest.MustVerifyProof(
+		&bind.CallOpts{
+			Context: s.Ctx(),
+		},
+		proposerIndexProof,
+		beaconBlockHeaderRoot,
+		blockProposerResp.BeaconBlockHeader.ProposerIndex.HashTreeRoot(),
+		big.NewInt(merkle.ProposerIndexGIndexBlock),
+	)
+	s.Require().NoError(err)
+
+	// Get the header.
+	header, err := s.JSONRPCBalancer().HeaderByNumber(s.Ctx(), new(big.Int).SetUint64(blockNumber))
+	s.Require().NoError(err)
+	s.Require().NotNil(header)
+
+	// Get the chain spec to determine the fork version.
+	// TODO: make test use configurable chain spec.
+	cs, err := spec.DevnetChainSpec()
+	s.Require().NoError(err)
+
+	// Get validator pubkey GIndex for the fork version.
+	zeroValidatorPubkeyGIndex, err := merkle.GetZeroValidatorPubkeyGIndexBlock(
+		cs.ActiveForkVersionForTimestamp(math.U64(header.Time)),
+	)
+	s.Require().NoError(err)
+	gIndex := zeroValidatorPubkeyGIndex +
+		(blockProposerResp.BeaconBlockHeader.ProposerIndex.Unwrap() * merkle.ValidatorPubkeyGIndexOffset)
+
+	// Next verify the validator pubkey proof.
+	var validatorPubkeyProof [][32]byte
+	for _, proofItem := range blockProposerResp.ValidatorPubkeyProof {
+		validatorPubkeyProof = append(validatorPubkeyProof, proofItem)
+	}
+	err = sszTest.MustVerifyProof(
+		&bind.CallOpts{
+			Context: s.Ctx(),
+		},
+		validatorPubkeyProof,
+		beaconBlockHeaderRoot,
+		blockProposerResp.ValidatorPubkey.HashTreeRoot(),
+		new(big.Int).SetUint64(gIndex),
+	)
+	s.Require().NoError(err)
 }
