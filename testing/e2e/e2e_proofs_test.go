@@ -21,8 +21,8 @@
 package e2e_test
 
 import (
-	"fmt"
 	"math/big"
+	"strconv"
 
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/geth-primitives/ssztest"
@@ -63,7 +63,7 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 
 	// Get the block proposer proof for the current block number.
 	blockProposerResp, err := s.ConsensusClients()[config.ClientValidator0].BlockProposerProof(
-		s.Ctx(), fmt.Sprintf("%d", blockNumber),
+		s.Ctx(), strconv.FormatUint(blockNumber, 10),
 	)
 	s.Require().NoError(err)
 	s.Require().NotNil(blockProposerResp)
@@ -76,9 +76,9 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 	s.Require().Equal(blockProposerResp.BeaconBlockHeader.Slot.Unwrap(), blockNumber)
 
 	// First verify the proposer index proof.
-	var proposerIndexProof [][32]byte
-	for _, proofItem := range blockProposerResp.ProposerIndexProof {
-		proposerIndexProof = append(proposerIndexProof, proofItem)
+	proposerIndexProof := make([][32]byte, len(blockProposerResp.ProposerIndexProof))
+	for i, proofItem := range blockProposerResp.ProposerIndexProof {
+		proposerIndexProof[i] = proofItem
 	}
 	err = sszTest.MustVerifyProof(
 		&bind.CallOpts{
@@ -110,9 +110,9 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 		(blockProposerResp.BeaconBlockHeader.ProposerIndex.Unwrap() * merkle.ValidatorPubkeyGIndexOffset)
 
 	// Next verify the validator pubkey proof.
-	var validatorPubkeyProof [][32]byte
-	for _, proofItem := range blockProposerResp.ValidatorPubkeyProof {
-		validatorPubkeyProof = append(validatorPubkeyProof, proofItem)
+	validatorPubkeyProof := make([][32]byte, len(blockProposerResp.ValidatorPubkeyProof))
+	for i, proofItem := range blockProposerResp.ValidatorPubkeyProof {
+		validatorPubkeyProof[i] = proofItem
 	}
 	err = sszTest.MustVerifyProof(
 		&bind.CallOpts{

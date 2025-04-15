@@ -27,13 +27,12 @@ import (
 	"net/http"
 	"strings"
 
-	ptypes "github.com/berachain/beacon-kit/node-api/handlers/proof/types"
-
 	client "github.com/attestantio/go-eth2-client"
 	beaconapi "github.com/attestantio/go-eth2-client/api"
 	apiv1 "github.com/attestantio/go-eth2-client/api/v1"
 	beaconhttp "github.com/attestantio/go-eth2-client/http"
 	"github.com/attestantio/go-eth2-client/spec/phase0"
+	ptypes "github.com/berachain/beacon-kit/node-api/handlers/proof/types"
 	"github.com/pkg/errors"
 )
 
