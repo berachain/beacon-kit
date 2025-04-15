@@ -109,8 +109,9 @@ func AddGenesisDeposit(
 		return errors.New("failed to initialize commands validator files")
 	}
 
-	// All deposits are signed with the genesis version.
-	genesisVersion := version.Genesis()
+	// All deposits are signed with Deneb version.
+	// TODO(pectra): Change this to get genesis fork based on genesis timestamps.
+	genesisVersion := version.Deneb()
 
 	depositMsg, signature, err := types.CreateAndSignDepositMessage(
 		types.NewForkData(genesisVersion, common.Root{}),

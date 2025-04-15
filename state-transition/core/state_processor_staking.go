@@ -150,7 +150,7 @@ func (sp *StateProcessor) createValidator(st *state.StateDB, dep *ctypes.Deposit
 	err = dep.VerifySignature(
 		ctypes.NewForkData(
 			// Deposits must be signed with GENESIS_FORK_VERSION.
-			version.Genesis(),
+			version.Deneb(),
 			genesisValidatorsRoot,
 		),
 		sp.cs.DomainTypeDeposit(),

@@ -152,7 +152,7 @@ func CreateDepositMessage(
 ) {
 	// Create and sign the deposit message. All deposits are signed with the genesis version.
 	depositMsg, signature, err := types.CreateAndSignDepositMessage(
-		types.NewForkData(version.Genesis(), genValRoot),
+		types.NewForkData(version.Deneb(), genValRoot),
 		cs.DomainTypeDeposit(),
 		blsSigner,
 		creds,

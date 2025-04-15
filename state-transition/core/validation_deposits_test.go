@@ -61,12 +61,12 @@ func TestInvalidDeposits(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(version.Genesis()),
+			Versionable: types.NewVersionable(version.Deneb()),
 		}
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 	_, err := sp.InitializePreminedBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, version.Genesis(),
+		st, genDeposits, genPayloadHeader, version.Deneb(),
 	)
 	require.NoError(t, err)
 
@@ -127,12 +127,12 @@ func TestInvalidDepositsCount(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(version.Genesis()),
+			Versionable: types.NewVersionable(version.Deneb()),
 		}
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 	_, err := sp.InitializePreminedBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, version.Genesis(),
+		st, genDeposits, genPayloadHeader, version.Deneb(),
 	)
 	require.NoError(t, err)
 
@@ -196,12 +196,12 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(version.Genesis()),
+			Versionable: types.NewVersionable(version.Deneb()),
 		}
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 	_, err = sp.InitializePreminedBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, version.Genesis(),
+		st, genDeposits, genPayloadHeader, version.Deneb(),
 	)
 	require.NoError(t, err)
 
@@ -265,12 +265,12 @@ func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(version.Genesis()),
+			Versionable: types.NewVersionable(version.Deneb()),
 		}
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 	_, err = sp.InitializePreminedBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, version.Genesis(),
+		st, genDeposits, genPayloadHeader, version.Deneb(),
 	)
 	require.NoError(t, err)
 

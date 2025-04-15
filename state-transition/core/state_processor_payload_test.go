@@ -63,13 +63,13 @@ func TestPayloadTimestampVerification(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(version.Genesis()),
+			Versionable: types.NewVersionable(version.Deneb()),
 		}
 	)
 	genPayloadHeader.Timestamp = math.U64(genesisTime.Unix())
 
 	_, err := sp.InitializePreminedBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, version.Genesis(),
+		st, genDeposits, genPayloadHeader, version.Deneb(),
 	)
 	require.NoError(t, err)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))

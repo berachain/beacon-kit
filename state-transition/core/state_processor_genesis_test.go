@@ -121,7 +121,7 @@ func TestInitialize(t *testing.T) {
 			genDeposits[5], genDeposits[6],
 		}
 		executionPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(version.Genesis()),
+			Versionable: types.NewVersionable(version.Deneb()),
 		}
 		fork = &types.Fork{
 			PreviousVersion: version.Deneb(),

@@ -131,7 +131,7 @@ func ValidateDeposit(
 
 	// All deposits are signed with the genesis version.
 	return depositMessage.VerifyCreateValidator(
-		types.NewForkData(version.Genesis(), genValRoot),
+		types.NewForkData(version.Deneb(), genValRoot),
 		signature,
 		cs.DomainTypeDeposit(),
 		signer.BLSSigner{}.VerifySignature,

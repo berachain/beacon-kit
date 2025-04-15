@@ -102,13 +102,13 @@ func TestCompareGenesisCmdWithStateProcessor(t *testing.T) {
 		// genesis validators root from StateProcessor
 		sp, st, _, _, _, _ := statetransition.SetupTestState(t, cs)
 		genPayloadHeader := &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(version.Genesis()),
+			Versionable: types.NewVersionable(version.Deneb()),
 		}
 		_, err = sp.InitializePreminedBeaconStateFromEth1(
 			st,
 			deposits,
 			genPayloadHeader,
-			version.Genesis(),
+			version.Deneb(),
 		)
 		require.NoError(t, err)
 

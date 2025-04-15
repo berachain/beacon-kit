@@ -78,7 +78,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(version.Genesis()),
+			Versionable: types.NewVersionable(version.Deneb()),
 		}
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
@@ -86,7 +86,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		st,
 		genDeposits,
 		genPayloadHeader,
-		version.Genesis(),
+		version.Deneb(),
 	)
 	require.NoError(t, err)
 	require.Len(t, valDiff, len(genDeposits))
@@ -201,7 +201,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(version.Genesis()),
+			Versionable: types.NewVersionable(version.Deneb()),
 		}
 	)
 
@@ -210,7 +210,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 		st,
 		genDeposits,
 		genPayloadHeader,
-		version.Genesis(),
+		version.Deneb(),
 	)
 	require.NoError(t, err)
 	require.Len(t, genVals, len(genDeposits))
@@ -377,12 +377,12 @@ func TestTransitionWithdrawals(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(version.Genesis()),
+			Versionable: types.NewVersionable(version.Deneb()),
 		}
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 	_, err := sp.InitializePreminedBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, version.Genesis(),
+		st, genDeposits, genPayloadHeader, version.Deneb(),
 	)
 	require.NoError(t, err)
 
@@ -462,12 +462,12 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(version.Genesis()),
+			Versionable: types.NewVersionable(version.Deneb()),
 		}
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 	_, err = sp.InitializePreminedBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, version.Genesis(),
+		st, genDeposits, genPayloadHeader, version.Deneb(),
 	)
 	require.NoError(t, err)
 
@@ -577,7 +577,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	var (
 		genDeposits      = make(types.Deposits, 0, cs.ValidatorSetCap())
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(version.Genesis()),
+			Versionable: types.NewVersionable(version.Deneb()),
 		}
 	)
 
@@ -605,7 +605,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		st,
 		genDeposits,
 		genPayloadHeader,
-		version.Genesis(),
+		version.Deneb(),
 	)
 	require.NoError(t, err)
 
@@ -793,7 +793,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	var (
 		genDeposits      = make(types.Deposits, 0, cs.ValidatorSetCap())
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(version.Genesis()),
+			Versionable: types.NewVersionable(version.Deneb()),
 		}
 	)
 
@@ -823,7 +823,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		st,
 		genDeposits,
 		genPayloadHeader,
-		version.Genesis(),
+		version.Deneb(),
 	)
 	require.NoError(t, err)
 	require.Len(t, genVals, len(genDeposits))
@@ -1074,12 +1074,12 @@ func TestValidatorNotWithdrawable(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(version.Genesis()),
+			Versionable: types.NewVersionable(version.Deneb()),
 		}
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 	_, err := sp.InitializePreminedBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, version.Genesis(),
+		st, genDeposits, genPayloadHeader, version.Deneb(),
 	)
 	require.NoError(t, err)
 
