@@ -27,16 +27,17 @@ import (
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-// StateFromSlotForProof returns the beacon state of the version that was used
-// to calculate the parent beacon block root, which has the empty state root in
-// the latest block header. Hence we do not process the next slot.
-func (b *Backend) StateFromSlotForProof(slot math.Slot) (*statedb.StateDB, math.Slot, error) {
+// StateAtSlot returns the beacon state at a particular slot. This returns the beacon state of
+// the version that was used to calculate the parent beacon block root, which has the empty state
+// root in the latest block header. Hence we do not process the next slot.
+func (b *Backend) StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error) {
 	return b.stateFromSlotRaw(slot)
 }
 
 // GetStateRoot returns the root of the state at the given slot.
 func (b *Backend) StateRootAtSlot(slot math.Slot) (common.Root, error) {
-	st, resolvedSlot, err := b.stateFromSlot(slot)
+	// Get the state with the latest block and state roots.
+	st, resolvedSlot, err := b.stateFromSlotWithProcessing(slot)
 	if err != nil {
 		return common.Root{}, err
 	}
@@ -46,22 +47,14 @@ func (b *Backend) StateRootAtSlot(slot math.Slot) (common.Root, error) {
 	return st.StateRootAtIndex(resolvedSlot.Unwrap() % b.cs.SlotsPerHistoricalRoot())
 }
 
-// StateAtSlot returns the beacon state at a particular slot.
-func (b *Backend) StateAtSlot(slot math.Slot) (*statedb.StateDB, error) {
-	st, _, err := b.stateFromSlot(slot)
-	if err != nil {
-		return nil, err
-	}
-
-	return st, nil
-}
-
 // GetStateFork returns the fork of the state at the given stateID.
 func (b *Backend) StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error) {
+	// Get the state at the given slot.
 	var fork *ctypes.Fork
-	st, _, err := b.stateFromSlot(slot)
+	st, _, err := b.stateFromSlotRaw(slot)
 	if err != nil {
 		return fork, err
 	}
+
 	return st.GetFork()
 }

@@ -24,6 +24,7 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/primitives/version"
 )
 
 func (h *Handler) GetState(c handlers.Context) (any, error) {
@@ -37,7 +38,9 @@ func (h *Handler) GetState(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	state, err := h.backend.StateAtSlot(slot)
+
+	// Get the raw state at the given slot.
+	state, _, err := h.backend.StateAtSlot(slot)
 	if err != nil {
 		return nil, err
 	}
@@ -45,12 +48,39 @@ func (h *Handler) GetState(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// Get the fork version from the state.
+	fork, err := state.GetFork()
+	if err != nil {
+		return nil, err
+	}
+	var forkVersion string
+	switch fork.CurrentVersion {
+	case version.Phase0():
+		forkVersion = "phase0"
+	case version.Altair():
+		forkVersion = "altair"
+	case version.Bellatrix():
+		forkVersion = "bellatrix"
+	case version.Capella():
+		forkVersion = "capella"
+	case version.Deneb():
+		forkVersion = "deneb"
+	case version.Deneb1():
+		forkVersion = "deneb1"
+	case version.Electra():
+		forkVersion = "electra"
+	default:
+		forkVersion = "unknown"
+	}
+
 	return beacontypes.StateResponse{
-		// TODO: The version should be retrieved based on the slot
-		Version:             "deneb1", // stubbed
-		ExecutionOptimistic: false,    // stubbed
-		// TODO: We can set to finalized if this is less than the highest height
-		Finalized: false, // stubbed
-		Data:      beaconState,
+		// All data is finalized in CometBFT since we only return data for slots up to head
+		Finalized: true,
+		// Never optimistic since we only return finalized data
+		ExecutionOptimistic: false,
+
+		Version: forkVersion,
+		Data:    beaconState,
 	}, nil
 }

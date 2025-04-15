@@ -119,9 +119,9 @@ func (b *Backend) Spec() (chain.Spec, error) {
 	return b.cs, nil
 }
 
-// stateFromSlot returns the state at the given slot, after also processing the
-// next slot to ensure the returned beacon state is up to date.
-func (b *Backend) stateFromSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error) {
+// stateFromSlotWithProcessing returns the state at the given slot, after also processing the
+// next slot to ensure the latest state and block roots are updated.
+func (b *Backend) stateFromSlotWithProcessing(slot math.Slot) (*statedb.StateDB, math.Slot, error) {
 	st, slot, err := b.stateFromSlotRaw(slot)
 	if err != nil {
 		return st, slot, fmt.Errorf("stateFromSlotRaw failed: %w", err)

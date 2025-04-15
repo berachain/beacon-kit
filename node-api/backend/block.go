@@ -30,16 +30,19 @@ import (
 
 // BlockHeader returns the block header at the given slot.
 func (b *Backend) BlockHeaderAtSlot(slot math.Slot) (*ctypes.BeaconBlockHeader, error) {
-	st, _, err := b.stateFromSlot(slot)
+	// Get the state with latest block root and slot.
+	st, _, err := b.stateFromSlotWithProcessing(slot)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get state from slot %d", slot)
 	}
+
 	return st.GetLatestBlockHeader()
 }
 
 // GetBlockRoot returns the root of the block at the given stateID.
 func (b *Backend) BlockRootAtSlot(slot math.Slot) (common.Root, error) {
-	st, resolvedSlot, err := b.stateFromSlot(slot)
+	// Get the state with latest block root and slot.
+	st, resolvedSlot, err := b.stateFromSlotWithProcessing(slot)
 	if err != nil {
 		return common.Root{}, errors.Wrapf(err, "failed to get state from slot %d", slot)
 	}
