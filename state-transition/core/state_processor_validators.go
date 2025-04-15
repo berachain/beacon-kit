@@ -45,8 +45,7 @@ func (sp *StateProcessor) processRegistryUpdates(st *statedb.StateDB) error {
 	}
 
 	currEpoch := sp.cs.SlotToEpoch(slot)
-	activationEpoch := sp.ComputeActivationExitEpoch(currEpoch)
-
+	activationEpoch := currEpoch + 1
 	minEffectiveBalance := math.Gwei(
 		sp.cs.EjectionBalance() + sp.cs.EffectiveBalanceIncrement(),
 	)

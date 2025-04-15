@@ -177,14 +177,14 @@ func (sp *StateProcessor) processWithdrawalRequest(st *state.StateDB, withdrawal
 
 	// Process full exit or partial withdrawal.
 	if isFullExitRequest {
-		return sp.processFullExit(st, index)
+		return sp.processFullExit(st, index, pendingPartialWithdrawals)
 	}
 	return sp.processPartialWithdrawal(st, withdrawalRequest, validator, index, pendingPartialWithdrawals)
 }
 
 // processFullExit processes the full exit request is not a pending partial withdrawal and has passed validation of `processWithdrawalRequest`
-func (sp *StateProcessor) processFullExit(st *state.StateDB, index math.ValidatorIndex) error {
-	pendingBalance := st.GetPendingBalanceToWithdraw(index)
+func (sp *StateProcessor) processFullExit(st *state.StateDB, index math.ValidatorIndex, pendingPartialWithdrawals ctypes.PendingPartialWithdrawals) error {
+	pendingBalance := pendingPartialWithdrawals.PendingBalanceToWithdraw(index)
 	if pendingBalance == 0 {
 		// Only exit validator if it has no pending withdrawals in the queue
 		return sp.InitiateValidatorExit(st, index)
@@ -210,15 +210,20 @@ func (sp *StateProcessor) processPartialWithdrawal(
 	if err != nil {
 		return err
 	}
-	pendingBalanceToWithdraw := st.GetPendingBalanceToWithdraw(index)
+
+	pendingBalanceToWithdraw := ctypes.PendingPartialWithdrawals(pendingWithdrawals).PendingBalanceToWithdraw(index)
+
 	hasExcess := balance > MinActivationBalance+pendingBalanceToWithdraw
 
 	if validator.HasCompoundingWithdrawalCredential() && hasSufficient && hasExcess {
 		toWithdraw := min(balance-MinActivationBalance-pendingBalanceToWithdraw, req.Amount)
-		exitQueueEpoch, computeErr := sp.ComputeExitEpochAndUpdateChurn(st, toWithdraw)
-		if computeErr != nil {
-			return computeErr
+		// As long as `processPartialWithdrawal` is called after `processSlots`, this will always return the correct slot.
+		currentSlot, getErr := st.GetSlot()
+		if getErr != nil {
+			return getErr
 		}
+		nextEpoch := sp.cs.SlotToEpoch(currentSlot) + 1
+		exitQueueEpoch := nextEpoch
 		withdrawableEpoch := math.Epoch(uint64(exitQueueEpoch) + sp.cs.MinValidatorWithdrawabilityDelay())
 		ppWithdrawal := &ctypes.PendingPartialWithdrawal{
 			ValidatorIndex:    index,
