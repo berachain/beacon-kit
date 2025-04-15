@@ -21,12 +21,8 @@
 package beacondb
 
 import (
-	"fmt"
-
-	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 )
 
 // SetGenesisValidatorsRoot sets the genesis validators root in the beacon
@@ -58,20 +54,4 @@ func (kv *KVStore) SetSlot(
 	slot math.Slot,
 ) error {
 	return kv.slot.Set(kv.ctx, slot.Unwrap())
-}
-
-func (kv *KVStore) requireEqualOrAfterVersion(forkVersion common.Version) error {
-	beaconStateFork, err := kv.GetFork()
-	if err != nil {
-		return err
-	}
-	if beaconStateFork == nil {
-		return errors.New("no fork in beacon state")
-	}
-	if !version.EqualsOrIsAfter(beaconStateFork.CurrentVersion, forkVersion) {
-		return fmt.Errorf(
-			"operation requires fork %s, current fork is %s", forkVersion.String(), beaconStateFork.CurrentVersion.String(),
-		)
-	}
-	return nil
 }
