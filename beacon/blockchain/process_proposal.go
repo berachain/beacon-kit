@@ -114,6 +114,7 @@ func (s *Service) ProcessProposal(
 			ErrVersionMismatch,
 		)
 	}
+	
 	// Make sure we have the right number of BlobSidecars
 	blobKzgCommitments := blk.GetBody().GetBlobKzgCommitments()
 	numCommitments := len(blobKzgCommitments)

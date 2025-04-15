@@ -68,6 +68,7 @@ type BeaconState struct {
 	PendingPartialWithdrawals []*PendingPartialWithdrawal `json:"pending_partial_withdrawals,omitempty"`
 }
 
+// NewEmptyBeaconStateWithVersion returns a new empty BeaconState with the given fork version.
 func NewEmptyBeaconStateWithVersion(version common.Version) *BeaconState {
 	return &BeaconState{
 		Versionable: NewVersionable(version),

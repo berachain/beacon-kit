@@ -27,7 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/version"
 )
 
-// NewBeaconState creates a new mock beacon state with only the given fork version,
+// NewBeaconStateWith creates a new mock beacon state with only the given fork version,
 // slot, validators, execution number, and execution fee recipient populated.
 func NewBeaconStateWith(
 	slot math.Slot,

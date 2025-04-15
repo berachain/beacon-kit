@@ -92,7 +92,7 @@ func (p *PendingPartialWithdrawal) HashTreeRoot() common.Root {
 	return ssz.HashSequential(p)
 }
 
-// HashTreeRootWith ssz hashes the Deposit object with a hasher. Needed for BeaconState SSZ.
+// HashTreeRootWith SSZ hashes the Deposit object with a hasher. Needed for BeaconState SSZ.
 func (p *PendingPartialWithdrawal) HashTreeRootWith(hh fastssz.HashWalker) error {
 	indx := hh.Index()
 
@@ -109,28 +109,35 @@ func (p *PendingPartialWithdrawal) HashTreeRootWith(hh fastssz.HashWalker) error
 	return nil
 }
 
+// PendingPartialWithdrawals is a SSZ list of PendingPartialWithdrawal containers.
 type PendingPartialWithdrawals []*PendingPartialWithdrawal
 
+// NewEmptyPendingPartialWithdrawals returns a new empty PendingPartialWithdrawals list.
 func NewEmptyPendingPartialWithdrawals() *PendingPartialWithdrawals {
 	return &PendingPartialWithdrawals{}
 }
 
+// DefineSSZ defines the SSZ encoding for the PendingPartialWithdrawals list.
 func (p *PendingPartialWithdrawals) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineSliceOfStaticObjectsOffset(codec, (*[]*PendingPartialWithdrawal)(p), constants.PendingPartialWithdrawalsLimit)
 	ssz.DefineSliceOfStaticObjectsContent(codec, (*[]*PendingPartialWithdrawal)(p), constants.PendingPartialWithdrawalsLimit)
 }
 
+// SizeSSZ returns the size of the PendingPartialWithdrawals list.
 func (p *PendingPartialWithdrawals) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 	if fixed {
 		return constants.SSZOffsetSize
 	}
 	return constants.SSZOffsetSize + ssz.SizeSliceOfStaticObjects(siz, *p)
 }
+
+// MarshalSSZ returns the SSZ encoding of the PendingPartialWithdrawals list.
 func (p *PendingPartialWithdrawals) MarshalSSZ() ([]byte, error) {
 	buf := make([]byte, ssz.Size(p))
 	return buf, ssz.EncodeToBytes(buf, p)
 }
 
+// ValidateAfterDecodingSSZ validates the PendingPartialWithdrawals list after decoding from SSZ.
 func (p *PendingPartialWithdrawals) ValidateAfterDecodingSSZ() error {
 	if p == nil {
 		return errors.New("nil PendingPartialWithdrawals")

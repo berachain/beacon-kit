@@ -92,7 +92,7 @@ func (s *Service) BuildBlockAndSidecars(
 	// we are building on the same fork version as the Execution Layer.
 	timestamp := envelope.GetExecutionPayload().GetTimestamp()
 
-	// Build forkdata used for the signing root of the reveal and the sidecars
+	// Build forkdata used for the signing root of the reveal and the sidecars.
 	forkData, err := s.buildForkData(st, timestamp)
 	if err != nil {
 		return nil, nil, err
