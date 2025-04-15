@@ -21,6 +21,8 @@
 package chain
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -29,6 +31,11 @@ import (
 // ActiveForkVersionForTimestamp returns the active fork version for a given timestamp.
 func (s spec) ActiveForkVersionForTimestamp(timestamp math.U64) common.Version {
 	time := timestamp.Unwrap()
+
+	if time < 1744711964 {
+		panic(fmt.Sprintf("timestamp %d is before 1744711964", time))
+	}
+
 	if time >= s.ElectraForkTime() {
 		return version.Electra()
 	}
