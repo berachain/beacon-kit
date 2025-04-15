@@ -228,6 +228,7 @@ func (sp *StateProcessor) processPartialWithdrawal(
 			return getErr
 		}
 		nextEpoch := sp.cs.SlotToEpoch(currentSlot) + 1
+		// TODO(pectra): ExitQueueEpoch is not relevant here, given that a partial withdrawal will not exit the validator.
 		exitQueueEpoch := nextEpoch
 		withdrawableEpoch := math.Epoch(uint64(exitQueueEpoch) + sp.cs.MinValidatorWithdrawabilityDelay())
 		ppWithdrawal := &ctypes.PendingPartialWithdrawal{
