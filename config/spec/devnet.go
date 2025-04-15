@@ -64,7 +64,7 @@ func DevnetChainSpecData() *chain.SpecData {
 
 	// Fork timings are set to facilitate local testing across fork versions.
 	specData.Deneb1ForkTime = devnetDeneb1ForkTime
-	specData.ElectraForkTime = devnetElectraForkTime
+	specData.ElectraForkTime = 1744711964
 
 	// EVM inflation is different from mainnet to test.
 	specData.EVMInflationAddressGenesis = common.NewExecutionAddressFromHex(devnetEVMInflationAddress)
