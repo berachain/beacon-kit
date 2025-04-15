@@ -83,5 +83,13 @@ func (sp *StateProcessor) upgradeToElectra(
 	fork.CurrentVersion = version.Electra()
 	fork.Epoch = sp.cs.SlotToEpoch(slot)
 
-	return st.SetFork(fork)
+	if err := st.SetFork(fork); err != nil {
+		return err
+	}
+
+	if err := st.SetPendingPartialWithdrawals([]*types.PendingPartialWithdrawal{}); err != nil {
+		return err
+	}
+	sp.logger.Info("Upgraded beacon state to Electra")
+	return nil
 }
