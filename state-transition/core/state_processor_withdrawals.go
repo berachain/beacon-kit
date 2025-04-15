@@ -169,10 +169,14 @@ func (sp *StateProcessor) processWithdrawalRequest(st *state.StateDB, withdrawal
 		// Note that we do not return error on invalid requests as it's a user error.
 		return nil
 	}
+	if validator == nil {
+		sp.logger.Warn("Validate withdrawal return nil validator")
+		return nil
+	}
 
 	if err = verifyWithdrawalConditions(sp.cs, st, validator); err != nil {
 		sp.logger.Warn("Failed to verify withdrawal conditions", "err", err)
-		return err
+		return nil
 	}
 
 	// Process full exit or partial withdrawal.
@@ -182,7 +186,8 @@ func (sp *StateProcessor) processWithdrawalRequest(st *state.StateDB, withdrawal
 	return sp.processPartialWithdrawal(st, withdrawalRequest, validator, index, pendingPartialWithdrawals)
 }
 
-// processFullExit processes the full exit request is not a pending partial withdrawal and has passed validation of `processWithdrawalRequest`
+// processFullExit processes the full exit request is not a pending partial withdrawal
+// and has passed validation of `processWithdrawalRequest`.
 func (sp *StateProcessor) processFullExit(
 	st *state.StateDB,
 	index math.ValidatorIndex,
@@ -253,6 +258,9 @@ func validateWithdrawal(st *state.StateDB, withdrawalRequest *ctypes.WithdrawalR
 	validator, err := st.ValidatorByIndex(index)
 	if err != nil {
 		return 0, nil, err
+	}
+	if validator == nil {
+		return 0, nil, errors.New("validator does not exist")
 	}
 
 	// Verify withdrawal credentials

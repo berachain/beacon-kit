@@ -85,6 +85,10 @@ const (
 	// mainnetEVMInflationPerBlockDeneb1 is the amount of native EVM balance (in Gwei) to be
 	// minted to the EVMInflationAddressDeneb1 via a withdrawal every block in the Deneb1 fork.
 	mainnetEVMInflationPerBlockDeneb1 = 5.75 * params.GWei
+
+	// mainnetMinValidatorWithdrawabilityDelay is the number of epochs of delay epochs of delay for a balance to be withdrawable.
+	// 32 Epochs equates to roughly ~3.5 hours of withdrawal delay.
+	mainnetMinValidatorWithdrawabilityDelay = 32
 )
 
 // MainnetChainSpecData is the chain.SpecData for the Berachain mainnet.
@@ -152,7 +156,7 @@ func MainnetChainSpecData() *chain.SpecData {
 		EVMInflationPerBlockDeneb1: mainnetEVMInflationPerBlockDeneb1,
 
 		// Electra values.
-		MinValidatorWithdrawabilityDelay: defaultMinValidatorWithdrawabilityDelay,
+		MinValidatorWithdrawabilityDelay: mainnetMinValidatorWithdrawabilityDelay,
 	}
 }
 
