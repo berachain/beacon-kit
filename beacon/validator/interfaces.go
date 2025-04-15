@@ -73,14 +73,10 @@ type PayloadBuilder interface {
 // StateProcessor defines the interface for processing the state.
 type StateProcessor interface {
 	// ProcessSlots processes the slot.
-	ProcessSlots(
-		st *statedb.StateDB, slot math.Slot,
-	) (transition.ValidatorUpdates, error)
+	ProcessSlots(st *statedb.StateDB, slot math.Slot) (transition.ValidatorUpdates, error)
 	// Transition performs the core state transition.
 	Transition(
-		ctx core.ReadOnlyContext,
-		st *statedb.StateDB,
-		blk *ctypes.BeaconBlock,
+		ctx core.ReadOnlyContext, st *statedb.StateDB, blk *ctypes.BeaconBlock,
 	) (transition.ValidatorUpdates, error)
 }
 
