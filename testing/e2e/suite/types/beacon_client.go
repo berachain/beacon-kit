@@ -27,6 +27,8 @@ import (
 	"net/http"
 	"strings"
 
+	ptypes "github.com/berachain/beacon-kit/node-api/handlers/proof/types"
+
 	client "github.com/attestantio/go-eth2-client"
 	beaconapi "github.com/attestantio/go-eth2-client/api"
 	apiv1 "github.com/attestantio/go-eth2-client/api/v1"
@@ -88,12 +90,16 @@ type BeaconKitNodeClient interface {
 	client.DomainProvider
 	client.NodeClientProvider
 
-	// Other beacon-kit node-api methods here...
+	// BlockProposerProof calls `bkit/v1/proof/block_proposer/:timestamp_id` endpoint to get
+	// the merkle proofs that can be used to verify the block proposer for a given timestamp id.
+	BlockProposerProof(
+		ctx context.Context, timestampID string,
+	) (*ptypes.BlockProposerResponse, error)
 }
 
-// CustomBeaconClient is a custom implementation of the BeaconKitNodeClient interface
+// customBeaconClient is a custom implementation of the BeaconKitNodeClient interface
 // that overrides the Validators method to handle deneb1.
-type CustomBeaconClient struct {
+type customBeaconClient struct {
 	*beaconhttp.Service
 	address string
 	client  *http.Client
@@ -127,7 +133,7 @@ func NewBeaconKitNodeClient(
 		return nil, errors.New("failed to cast service to beaconhttp.Service")
 	}
 
-	return &CustomBeaconClient{
+	return &customBeaconClient{
 		Service: httpService,
 		address: address,
 		client:  &http.Client{},
@@ -135,7 +141,7 @@ func NewBeaconKitNodeClient(
 }
 
 // Validators implements a custom validator query that handles deneb1.
-func (c *CustomBeaconClient) Validators(
+func (c *customBeaconClient) Validators(
 	ctx context.Context,
 	opts *beaconapi.ValidatorsOpts,
 ) (*beaconapi.Response[map[phase0.ValidatorIndex]*apiv1.Validator], error) {
@@ -208,4 +214,33 @@ func (c *CustomBeaconClient) Validators(
 			"finalized":            result.Finalized,
 		},
 	}, nil
+}
+
+// BlockProposerProof calls `bkit/v1/proof/block_proposer/:timestamp_id` endpoint to get
+// the merkle proofs that can be used to verify the block proposer for a given timestamp id.
+func (c *customBeaconClient) BlockProposerProof(
+	ctx context.Context, timestampID string,
+) (*ptypes.BlockProposerResponse, error) {
+	url := fmt.Sprintf("%s/bkit/v1/proof/block_proposer/%s", c.address, timestampID)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send request: %w", err)
+	}
+	if resp == nil {
+		return nil, errors.New("received nil response")
+	}
+	defer resp.Body.Close()
+
+	var result ptypes.BlockProposerResponse
+	if err = json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	return &result, nil
 }
