@@ -85,7 +85,7 @@ func TestBlockDelayNext_WithDelay(t *testing.T) {
 	initialHeight := int64(1)
 	d := cometbft.BlockDelayUponGenesis(genesisTime, initialHeight)
 
-	curBlockTime := genesisTime.Add(8 * time.Second)
+	curBlockTime := genesisTime.Add(2 * time.Second)
 	curBlockHeight := int64(3)
 
 	delay := d.Next(curBlockTime, curBlockHeight)
@@ -113,4 +113,49 @@ func TestBlockDelayNext_ResetOnStall(t *testing.T) {
 	assert.Equal(t, d.InitialTime, curBlockTime)
 	assert.Equal(t, d.InitialHeight, curBlockHeight-1)
 	assert.Equal(t, cometbft.TargetBlockTime, delay)
+}
+
+func TestBlockDelayNext_Catchup(t *testing.T) {
+	t.Parallel()
+
+	genesisTime := time.Now()
+	initialHeight := int64(1)
+	d := cometbft.BlockDelayUponGenesis(genesisTime, initialHeight)
+
+	curBlockTime := genesisTime.Add(2 * time.Second)
+	curBlockHeight := int64(3)
+
+	delay := d.Next(curBlockTime, curBlockHeight)
+
+	assert.Equal(t, 2*time.Second, delay)
+
+	// Ideal
+	// height 4 -> 3*2 = 6
+	// height 5 -> 4*2 = 8
+	// height 6 -> 5*2 = 10
+	// height 7 -> 6*2 = 12
+
+	curBlockHeight = curBlockHeight + 1
+	curBlockTime = genesisTime.Add(8 * time.Second)
+	// T(h4) = 8s
+	// delay = 1us
+	// T(h5 = 9s)
+	// delay = 1us
+	// T(h6) = 10s
+	// delay = 1us
+	// T(h7) = 11s
+	// delay = 1
+	delay = d.Next(curBlockTime, curBlockHeight)
+	assert.Equal(t, 1*time.Microsecond, delay)
+
+	for curBlockHeight = curBlockHeight + 1; curBlockHeight < 7; curBlockHeight = curBlockHeight + 1 {
+		curBlockTime = curBlockTime.Add(1 * time.Second)
+		delay = d.Next(curBlockTime, curBlockHeight)
+		assert.Equal(t, 1*time.Microsecond, delay)
+	}
+	curBlockTime = curBlockTime.Add(1 * time.Second)
+	delay = d.Next(curBlockTime, curBlockHeight)
+
+	assert.Equal(t, 1*time.Second, delay)
+
 }
