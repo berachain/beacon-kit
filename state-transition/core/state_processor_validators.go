@@ -154,12 +154,11 @@ func (sp *StateProcessor) processValidatorSetCap(st *statedb.StateDB) error {
 				err,
 			)
 		}
-		err = sp.InitiateValidatorExit(st, idx)
-		if err != nil {
+		if exitErr := sp.InitiateValidatorExit(st, idx); exitErr != nil {
 			return fmt.Errorf(
 				"validator cap, failed ejecting validator idx %d: %w",
 				li,
-				err,
+				exitErr,
 			)
 		}
 	}

@@ -183,7 +183,11 @@ func (sp *StateProcessor) processWithdrawalRequest(st *state.StateDB, withdrawal
 }
 
 // processFullExit processes the full exit request is not a pending partial withdrawal and has passed validation of `processWithdrawalRequest`
-func (sp *StateProcessor) processFullExit(st *state.StateDB, index math.ValidatorIndex, pendingPartialWithdrawals ctypes.PendingPartialWithdrawals) error {
+func (sp *StateProcessor) processFullExit(
+	st *state.StateDB,
+	index math.ValidatorIndex,
+	pendingPartialWithdrawals ctypes.PendingPartialWithdrawals,
+) error {
 	pendingBalance := pendingPartialWithdrawals.PendingBalanceToWithdraw(index)
 	if pendingBalance == 0 {
 		// Only exit validator if it has no pending withdrawals in the queue
@@ -196,7 +200,8 @@ func (sp *StateProcessor) processFullExit(st *state.StateDB, index math.Validato
 	return nil
 }
 
-// processPartialWithdrawal handles the partial withdrawal processing and called after request has passed validation of `processWithdrawalRequest`
+// processPartialWithdrawal handles the partial withdrawal processing and called after
+// request has passed validation of `processWithdrawalRequest`
 func (sp *StateProcessor) processPartialWithdrawal(
 	st *state.StateDB,
 	req *ctypes.WithdrawalRequest,
