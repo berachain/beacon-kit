@@ -343,6 +343,45 @@ func TestU64_PrevPowerOfTwo(t *testing.T) {
 	}
 }
 
+func TestU64_HashTreeRoot(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		value       math.U64
+		expectedHex string
+	}{
+		{
+			name:        "zero",
+			value:       math.U64(0),
+			expectedHex: "0x0000000000000000000000000000000000000000000000000000000000000000",
+		},
+		{
+			name:        "nine",
+			value:       math.U64(9),
+			expectedHex: "0x0900000000000000000000000000000000000000000000000000000000000000",
+		},
+		{
+			name:        "max uint64",
+			value:       math.U64(1<<64 - 1),
+			expectedHex: "0xffffffffffffffff000000000000000000000000000000000000000000000000",
+		},
+		{
+			name:        "large number",
+			value:       math.U64(3080829),
+			expectedHex: "0x7d022f0000000000000000000000000000000000000000000000000000000000",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			require.Equal(t, tt.expectedHex, tt.value.HashTreeRoot().String())
+		})
+	}
+}
+
 func TestGweiFromWei(t *testing.T) {
 	t.Parallel()
 	tests := []struct {

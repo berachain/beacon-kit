@@ -65,8 +65,7 @@ func (s *Service) BuildBlockAndSidecars(
 	// blkSlot is the height for the next block, which consensus is requesting BeaconKit to build.
 	blkSlot := slotData.GetSlot()
 
-	// Prepare the state such that it is ready to build a block for
-	// the requested slot
+	// Prepare the state such that it is ready to build a block for the requested slot.
 	if _, err := s.stateProcessor.ProcessSlots(st, blkSlot); err != nil {
 		return nil, nil, err
 	}

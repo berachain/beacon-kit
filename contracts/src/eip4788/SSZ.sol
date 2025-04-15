@@ -69,3 +69,44 @@ library SSZ {
         }
     }
 }
+
+/// @notice Contract for testing SSZ (Simple Serialize) proof verification with the `SSZ` library.
+contract SSZTest {
+    /// @notice Verifies a proof of inclusion for a given leaf in a Merkle tree.
+    /// @param proof The proof of inclusion.
+    /// @param root The root of the Merkle tree.
+    /// @param leaf The leaf to verify.
+    /// @param index The index of the leaf in the Merkle tree.
+    /// @return isValid Whether the proof is valid.
+    function verifyProof(
+        bytes32[] calldata proof,
+        bytes32 root,
+        bytes32 leaf,
+        uint256 index
+    )
+        external
+        view
+        returns (bool isValid)
+    {
+        isValid = SSZ.verifyProof(proof, root, leaf, index);
+    }
+
+    /// @notice Verifies a proof of inclusion for a given leaf in a Merkle tree. Reverts if the proof is invalid.
+    /// @param proof The proof of inclusion.
+    /// @param root The root of the Merkle tree.
+    /// @param leaf The leaf to verify.
+    /// @param index The index of the leaf in the Merkle tree.
+    function mustVerifyProof(
+        bytes32[] calldata proof,
+        bytes32 root,
+        bytes32 leaf,
+        uint256 index
+    )
+        external
+        view
+    {
+        if (!SSZ.verifyProof(proof, root, leaf, index)) {
+            revert("Proof is invalid");
+        }
+    }
+}
