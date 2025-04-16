@@ -41,10 +41,6 @@ func (sp *StateProcessor) InitializePreminedBeaconStateFromEth1(
 	execPayloadHeader *ctypes.ExecutionPayloadHeader,
 	genesisVersion common.Version,
 ) (transition.ValidatorUpdates, error) {
-	if !version.Equals(genesisVersion, execPayloadHeader.GetForkVersion()) {
-		return nil, fmt.Errorf("fork mismatch between genesisVersion %s and execPayloadHeader %s",
-			genesisVersion, execPayloadHeader.GetForkVersion())
-	}
 	if !version.Equals(sp.cs.GenesisForkVersion(), genesisVersion) {
 		return nil, fmt.Errorf(
 			"fork mismatch between chain spec genesis version (%s) and CL genesis file fork version (%s)",
