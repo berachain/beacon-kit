@@ -142,7 +142,7 @@ func executableDataToExecutionPayloadHeader(
 ) (*types.ExecutionPayloadHeader, error) {
 	var executionPayloadHeader *types.ExecutionPayloadHeader
 	switch forkVersion {
-	case version.Deneb():
+	case version.Deneb(), version.Deneb1(), version.Electra():
 		withdrawals := make(
 			engineprimitives.Withdrawals,
 			len(data.Withdrawals),

@@ -82,6 +82,7 @@ func FixedComponents(t *testing.T) []any {
 func ProvideElectraGenesisChainSpec() (chain.Spec, error) {
 	specData := spec.TestnetChainSpecData()
 	// Both Deneb1 and Electra happen in genesis.
+	specData.GenesisTime = 0
 	specData.Deneb1ForkTime = 0
 	specData.ElectraForkTime = 0
 	chainSpec, err := chain.NewSpec(specData)
