@@ -87,15 +87,15 @@ func (sp *StateProcessor) Transition(
 		return nil, nil
 	}
 
-	// Prepare the state for the given fork version.
+	// Process the next slot.
 	slot := blk.GetSlot()
-	if err := sp.PrepareStateForFork(st, blk.GetForkVersion(), slot); err != nil {
+	validatorUpdates, err := sp.ProcessSlots(st, slot)
+	if err != nil {
 		return nil, err
 	}
 
-	// Process the slots.
-	validatorUpdates, err := sp.ProcessSlots(st, slot)
-	if err != nil {
+	// Prepare the state for the next block's fork version.
+	if err := sp.PrepareStateForFork(st, blk.GetForkVersion(), slot); err != nil {
 		return nil, err
 	}
 
