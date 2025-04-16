@@ -250,7 +250,7 @@ func (s *Service) retrieveExecutionPayload(
 		lph.GetTimestamp(),
 		false, // buildOptimistically
 	)
-	if err := s.stateProcessor.PrepareStateForFork(
+	if err = s.stateProcessor.PrepareStateForFork(
 		st, s.chainSpec.ActiveForkVersionForTimestamp(nextPayloadTimestamp), slot,
 	); err != nil {
 		return nil, err
