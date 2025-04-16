@@ -25,13 +25,12 @@ import (
 	"sync"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-// PrepareStateForFork prepares the state for the given fork version.
+// PrepareStateForFork prepares the state for the fork version at the given timestamp.
 //   - If this function is called for the same version as the state's current version,
 //     it will do nothing.
 //   - If this function is called for a version before the state's current version,
@@ -39,7 +38,7 @@ import (
 //   - If this function is called for a version after the state's current version,
 //     it will upgrade the state to the new version.
 func (sp *StateProcessor) PrepareStateForFork(
-	st *statedb.StateDB, forkVersion common.Version, slot math.Slot,
+	st *statedb.StateDB, timestamp math.U64, slot math.Slot,
 ) error {
 	stateFork, err := st.GetFork()
 	if err != nil {
@@ -47,6 +46,7 @@ func (sp *StateProcessor) PrepareStateForFork(
 	}
 
 	// Return early if the given fork version is before or equal to the current state fork version.
+	forkVersion := sp.cs.ActiveForkVersionForTimestamp(timestamp)
 	if version.IsBefore(forkVersion, stateFork.CurrentVersion) {
 		return fmt.Errorf(
 			"cannot downgrade state from %s to %s", stateFork.CurrentVersion, forkVersion,
@@ -66,7 +66,7 @@ func (sp *StateProcessor) PrepareStateForFork(
 		// In this fork, the Fork struct on BeaconState is NOT updated.
 		// In future hard forks, the Fork struct WILL be updated.
 	case version.Electra():
-		return sp.upgradeToElectra(st, stateFork, slot)
+		return sp.upgradeToElectra(st, stateFork, slot, timestamp)
 	default:
 		return fmt.Errorf("unsupported fork version: %s", forkVersion)
 	}
@@ -78,7 +78,7 @@ func (sp *StateProcessor) PrepareStateForFork(
 // spec (https://ethereum.github.io/consensus-specs/specs/electra/fork/#upgrading-the-state)
 // to only upgrade the Fork struct in the BeaconState.
 func (sp *StateProcessor) upgradeToElectra(
-	st *statedb.StateDB, fork *types.Fork, slot math.Slot,
+	st *statedb.StateDB, fork *types.Fork, slot math.Slot, timestamp math.U64,
 ) error {
 	// Set the fork on BeaconState.
 	fork.PreviousVersion = fork.CurrentVersion
@@ -94,13 +94,28 @@ func (sp *StateProcessor) upgradeToElectra(
 	}
 
 	// Log the upgrade to Electra, but only once.
+	// TODO: fix. Still being logged this multiple times.
 	sync.OnceFunc(func() {
-		sp.logger.Info(`
-+==========================================================================+
-+ ⏭️ Upgraded to Electra fork! 🎉
-+==========================================================================+
-	
-	`)
+		sp.logger.Info(fmt.Sprintf(`
+
+
+	⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️
+
+	+ ✅  upgraded to electra (0x05000000) fork! 🎉
+	+ 🚝  previous fork: %s (%s)
+	+ ⏱️   electra fork time: %d
+	+ 🍴  first slot / timestamp of electra: %d / %d
+	+ ⛓️   current beacon epoch: %d
+
+	⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️
+
+
+`,
+			version.Name(fork.PreviousVersion), fork.PreviousVersion.String(),
+			sp.cs.ElectraForkTime(),
+			slot.Unwrap(), timestamp.Unwrap(),
+			fork.Epoch.Unwrap(),
+		))
 	})()
 	return nil
 }
