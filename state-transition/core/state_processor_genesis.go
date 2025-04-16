@@ -58,7 +58,7 @@ func (sp *StateProcessor) InitializePreminedBeaconStateFromEth1(
 	if err := st.SetFork(fork); err != nil {
 		return nil, err
 	}
-	if err := sp.prepareStateForFork(st, genesisVersion, 0); err != nil {
+	if err := sp.PrepareStateForFork(st, genesisVersion, 0); err != nil {
 		return nil, err
 	}
 
