@@ -59,10 +59,15 @@ func (sp *StateProcessor) InitializePreminedBeaconStateFromEth1(
 		return nil, err
 	}
 
-	if !version.Equals(genesisVersion, version.Deneb()) {
-		return nil, fmt.Errorf("fork version not supported: %s", genesisVersion)
+	if !version.Equals(genesisVersion, execPayloadHeader.GetForkVersion()) {
+		return nil, fmt.Errorf("fork mismatch between genesisVersion %s and execPayloadHeader %s",
+			genesisVersion, execPayloadHeader.GetForkVersion())
 	}
-	versionable := ctypes.NewVersionable(version.Deneb())
+	if !version.Equals(sp.cs.GenesisForkVersion(), genesisVersion) {
+		return nil, fmt.Errorf("fork mismatch between chain spec genesis version %s and genesisVersion %s",
+			sp.cs.GenesisForkVersion(), execPayloadHeader.GetForkVersion())
+	}
+	versionable := ctypes.NewVersionable(genesisVersion)
 	blkBody := &ctypes.BeaconBlockBody{
 		Versionable: versionable,
 		Eth1Data:    &ctypes.Eth1Data{},
