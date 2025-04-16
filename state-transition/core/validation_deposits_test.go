@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	"github.com/stretchr/testify/require"
 )
@@ -61,12 +60,12 @@ func TestInvalidDeposits(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(version.Deneb()),
+			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
 		}
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 	_, err := sp.InitializePreminedBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, version.Deneb(),
+		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
 
@@ -120,12 +119,12 @@ func TestInvalidDepositsCount(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(version.Deneb()),
+			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
 		}
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 	_, err := sp.InitializePreminedBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, version.Deneb(),
+		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
 
@@ -182,12 +181,12 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(version.Deneb()),
+			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
 		}
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 	_, err = sp.InitializePreminedBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, version.Deneb(),
+		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
 

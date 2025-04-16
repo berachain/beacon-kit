@@ -35,7 +35,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
-	"github.com/berachain/beacon-kit/primitives/version"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	"github.com/stretchr/testify/require"
 )
@@ -348,12 +347,12 @@ func TestTransitionWithdrawals(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(version.Deneb()),
+			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
 		}
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 	_, err := sp.InitializePreminedBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, version.Deneb(),
+		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
 
@@ -527,7 +526,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	var (
 		genDeposits      = make(types.Deposits, 0, cs.ValidatorSetCap())
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(version.Deneb()),
+			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
 		}
 	)
 
@@ -555,7 +554,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		st,
 		genDeposits,
 		genPayloadHeader,
-		version.Deneb(),
+		cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
 
@@ -956,12 +955,12 @@ func TestValidatorNotWithdrawable(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(version.Deneb()),
+			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
 		}
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 	_, err := sp.InitializePreminedBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, version.Deneb(),
+		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
 
