@@ -122,6 +122,7 @@ func loadSpecData(path string) (*chain.SpecData, error) {
 		"deposit-eth1-chain-id",
 		"eth1-follow-distance",
 		"target-seconds-per-eth1-block",
+		"genesis-time",
 		"deneb-one-fork-epoch",
 		"electra-fork-epoch",
 		"epochs-per-historical-vector",

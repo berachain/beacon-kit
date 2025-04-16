@@ -36,7 +36,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
@@ -109,9 +108,7 @@ func AddGenesisDeposit(
 		return errors.New("failed to initialize commands validator files")
 	}
 
-	// All deposits are signed with Deneb version.
-	// TODO(pectra): Change this to get genesis fork based on genesis timestamps.
-	genesisVersion := version.Deneb()
+	genesisVersion := cs.GenesisForkVersion()
 
 	depositMsg, signature, err := types.CreateAndSignDepositMessage(
 		types.NewForkData(genesisVersion, common.Root{}),

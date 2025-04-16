@@ -125,6 +125,7 @@ type BlobSpec interface {
 }
 
 type ForkVersionSpec interface {
+	GenesisForkVersion() common.Version
 	// Helpers for ChainSpecData
 
 	// ActiveForkVersionForTimestamp returns the active fork version for a given timestamp.
@@ -358,6 +359,10 @@ func (s spec) Eth1FollowDistance() uint64 {
 // TargetSecondsPerEth1Block returns the target time between eth1 blocks.
 func (s spec) TargetSecondsPerEth1Block() uint64 {
 	return s.Data.TargetSecondsPerEth1Block
+}
+
+func (s spec) GenesisForkVersion() common.Version {
+	return s.ActiveForkVersionForTimestamp(math.U64(s.Data.GenesisTime))
 }
 
 // Deneb1ForkTime returns the epoch of the Deneb1 fork.

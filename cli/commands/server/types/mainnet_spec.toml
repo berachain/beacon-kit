@@ -34,6 +34,7 @@ eth1-follow-distance = 1
 target-seconds-per-eth1-block = 2
 
 # Fork-related values
+genesis-time = 1737381600
 deneb-one-fork-epoch = 2855
 electra-fork-epoch = 9999999999999999
 
