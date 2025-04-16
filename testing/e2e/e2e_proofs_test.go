@@ -24,10 +24,11 @@ import (
 	"math/big"
 	"strconv"
 
+	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/geth-primitives/ssztest"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/merkle"
 	"github.com/berachain/beacon-kit/primitives/common"
-	mlib "github.com/berachain/beacon-kit/primitives/merkle"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -72,13 +73,15 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 	s.Require().NotNil(blockProposerResp)
 
 	// Get the current block header.
-	header, err := s.JSONRPCBalancer().HeaderByNumber(s.Ctx(), new(big.Int).SetUint64(blockNumber))
+	nextHeader, err := s.JSONRPCBalancer().HeaderByNumber(
+		s.Ctx(), new(big.Int).SetUint64(blockNumber),
+	)
 	s.Require().NoError(err)
-	s.Require().NotNil(header)
+	s.Require().NotNil(nextHeader)
 
 	// Get the block proposer proof for the current timestamp and enforce equality.
 	blockProposerResp2, err := s.ConsensusClients()[config.ClientValidator0].BlockProposerProof(
-		s.Ctx(), "t"+strconv.FormatUint(header.Time, 10),
+		s.Ctx(), "t"+strconv.FormatUint(nextHeader.Time, 10),
 	)
 	s.Require().NoError(err)
 	s.Require().NotNil(blockProposerResp2)
@@ -98,7 +101,7 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 		&bind.CallOpts{
 			Context: s.Ctx(),
 		},
-		header.Time,
+		nextHeader.Time,
 	)
 	s.Require().NoError(err)
 	s.Require().Equal(common.Root(parentBlockRoot4788), blockProposerResp.BeaconBlockRoot)
@@ -129,14 +132,22 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 
 	// Get the chain spec to determine the fork version.
 	// TODO: make test use configurable chain spec.
-	// cs, err := spec.DevnetChainSpec()
-	// s.Require().NoError(err)
+	cs, err := spec.DevnetChainSpec()
+	s.Require().NoError(err)
 
-	// Get validator pubkey GIndex for the fork version.
-	zeroValidatorPubkeyGIndex, err := merkle.GetZeroValidatorPubkeyGIndexBlock(
-		version.Deneb(),
+	// Get the fork version based on the block's timestamp.
+	header, err := s.JSONRPCBalancer().HeaderByNumber(
+		s.Ctx(), new(big.Int).SetUint64(blockNumber-1),
 	)
 	s.Require().NoError(err)
+
+	// TODO: use the chain spec's active fork version once Electra genesis is fixed.
+	// For now, Deneb is the fork version by which devnet blocks are produced.
+	_ = cs.ActiveForkVersionForTimestamp(math.U64(header.Time))
+	zeroValidatorPubkeyGIndex, err := merkle.GetZeroValidatorPubkeyGIndexBlock(version.Deneb())
+	s.Require().NoError(err)
+
+	// Calculate the validator pubkey GIndex based on fork version.
 	gIndex := zeroValidatorPubkeyGIndex +
 		(blockProposerResp.BeaconBlockHeader.ProposerIndex.Unwrap() * merkle.ValidatorPubkeyGIndexOffset)
 
@@ -144,16 +155,6 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 	validatorPubkeyProof := make([][32]byte, len(blockProposerResp.ValidatorPubkeyProof))
 	for i, proofItem := range blockProposerResp.ValidatorPubkeyProof {
 		validatorPubkeyProof[i] = proofItem
-	}
-
-	// TODO: remove this check.
-	if !mlib.VerifyProof(
-		blockProposerResp.BeaconBlockRoot,
-		common.Root(blockProposerResp.ValidatorPubkey.HashTreeRoot()),
-		gIndex,
-		validatorPubkeyProof,
-	) {
-		s.Logger().Error("validator pubkey proof failed to verify against beacon root")
 	}
 
 	err = sszTest.MustVerifyProof(
