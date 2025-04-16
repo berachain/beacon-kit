@@ -47,7 +47,7 @@ func (sp *StateProcessor) InitializePreminedBeaconStateFromEth1(
 	}
 	if !version.Equals(sp.cs.GenesisForkVersion(), genesisVersion) {
 		return nil, fmt.Errorf("fork mismatch between chain spec genesis version %s and genesisVersion %s",
-			sp.cs.GenesisForkVersion(), execPayloadHeader.GetForkVersion())
+			sp.cs.GenesisForkVersion(), genesisVersion)
 	}
 
 	if err := st.SetSlot(constants.GenesisSlot); err != nil {
