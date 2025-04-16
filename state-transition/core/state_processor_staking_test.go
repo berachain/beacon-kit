@@ -507,7 +507,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 
 // TestTransitionHittingValidatorsCap shows that the extra
 // validator added when validators set is at cap gets never activated
-// and its deposit is returned at after next epoch starts.
+// and its deposit is returned at after MinValidatorWithdrawabilityDelay
 //
 //nolint:paralleltest // uses envars
 func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
@@ -651,27 +651,35 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	require.Equal(t, constants.GenesisEpoch+1, extraVal.ActivationEligibilityEpoch)
 	require.Equal(t, constants.GenesisEpoch+2, extraVal.ActivationEpoch)
 	require.Equal(t, constants.GenesisEpoch+2, extraVal.ExitEpoch)
-	require.Equal(t, constants.GenesisEpoch+3, extraVal.WithdrawableEpoch)
+	// After electra, the withdrawable epoch is exitEpoch + sp.cs.MinValidatorWithdrawabilityDelay())
+	require.Equal(t, math.Epoch(cs.MinValidatorWithdrawabilityDelay()+extraVal.ExitEpoch.Unwrap()), extraVal.WithdrawableEpoch)
 
-	// STEP 4: move the chain to the next epoch and show withdrawals
+	// STEP 4: move the chain to the MinValidatorWithdrawabilityDelay epoch and show withdrawals
 	// for rejected validator are enqueued then
-	blk = moveToEndOfEpoch(t, blk, cs, sp, st, ctx, depRoot)
+	epoch := cs.SlotToEpoch(blk.Slot)
+	require.Equal(t, math.Epoch(2), epoch)
 
-	// finally the block turning epoch. extra validator deposits
-	// will be withdrawn within 3 blocks (#Validator / MaxValidatorsPerWithdrawalsSweep)
+	for i := epoch; i < extraVal.WithdrawableEpoch; i++ {
+		blk = moveToEndOfEpoch(t, blk, cs, sp, st, ctx, depRoot)
+		// Epoch turning block
+		blk = buildNextBlock(
+			t, cs, st, types.NewEth1Data(depRoot), blk.GetTimestamp()+1, []*types.Deposit{}, st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
+		)
+	}
+
+	epoch = cs.SlotToEpoch(blk.Slot)
+	require.Equal(t, math.Epoch(cs.MinValidatorWithdrawabilityDelay()+extraVal.ExitEpoch.Unwrap()), epoch)
+
+	// Extra validator deposits will be withdrawn within 3 blocks (#Validator / MaxValidatorsPerWithdrawalsSweep)
 	extraValAddr, err := extraValCreds.ToExecutionAddress()
 	require.NoError(t, err)
-	blk = buildNextBlock(
-		t, cs, st, types.NewEth1Data(depRoot), blk.GetTimestamp()+1, []*types.Deposit{}, st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
-	)
+
 	_, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
 
-	blk = buildNextBlock(
-		t, cs, st, types.NewEth1Data(depRoot), blk.GetTimestamp()+1, []*types.Deposit{}, st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
-	)
-	_, err = sp.Transition(ctx, st, blk)
+	extraValBalance, err := st.GetBalance(extraValIdx)
 	require.NoError(t, err)
+	require.Equal(t, extraValBalance, minBalance)
 
 	withdrawals := []*engineprimitives.Withdrawal{
 		st.EVMInflationWithdrawal(blk.GetTimestamp() + 1),
@@ -682,9 +690,15 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 			Amount:    extraValDeposit.Amount,
 		},
 	}
+
 	blk = buildNextBlock(t, cs, st, types.NewEth1Data(depRoot), blk.GetTimestamp()+1, []*types.Deposit{}, withdrawals...)
 	_, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
+
+	extraValBalance, err = st.GetBalance(extraValIdx)
+	require.NoError(t, err)
+
+	require.Equal(t, extraValBalance, math.Gwei(0))
 }
 
 // TestTransitionHittingValidatorsCap shows that if the extra
