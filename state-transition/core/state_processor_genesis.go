@@ -41,12 +41,24 @@ func (sp *StateProcessor) InitializePreminedBeaconStateFromEth1(
 	execPayloadHeader *ctypes.ExecutionPayloadHeader,
 	genesisVersion common.Version,
 ) (transition.ValidatorUpdates, error) {
+	if !version.Equals(genesisVersion, execPayloadHeader.GetForkVersion()) {
+		return nil, fmt.Errorf("fork mismatch between genesisVersion %s and execPayloadHeader %s",
+			genesisVersion, execPayloadHeader.GetForkVersion())
+	}
+	if !version.Equals(sp.cs.GenesisForkVersion(), genesisVersion) {
+		return nil, fmt.Errorf("fork mismatch between chain spec genesis version %s and genesisVersion %s",
+			sp.cs.GenesisForkVersion(), execPayloadHeader.GetForkVersion())
+	}
+
 	if err := st.SetSlot(constants.GenesisSlot); err != nil {
 		return nil, err
 	}
 
 	fork := ctypes.NewFork(genesisVersion, genesisVersion, constants.GenesisEpoch)
 	if err := st.SetFork(fork); err != nil {
+		return nil, err
+	}
+	if err := sp.prepareStateForFork(st, genesisVersion, 0); err != nil {
 		return nil, err
 	}
 
@@ -59,14 +71,6 @@ func (sp *StateProcessor) InitializePreminedBeaconStateFromEth1(
 		return nil, err
 	}
 
-	if !version.Equals(genesisVersion, execPayloadHeader.GetForkVersion()) {
-		return nil, fmt.Errorf("fork mismatch between genesisVersion %s and execPayloadHeader %s",
-			genesisVersion, execPayloadHeader.GetForkVersion())
-	}
-	if !version.Equals(sp.cs.GenesisForkVersion(), genesisVersion) {
-		return nil, fmt.Errorf("fork mismatch between chain spec genesis version %s and genesisVersion %s",
-			sp.cs.GenesisForkVersion(), execPayloadHeader.GetForkVersion())
-	}
 	versionable := ctypes.NewVersionable(genesisVersion)
 	blkBody := &ctypes.BeaconBlockBody{
 		Versionable: versionable,

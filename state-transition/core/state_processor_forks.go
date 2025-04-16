@@ -50,7 +50,8 @@ func (sp *StateProcessor) prepareStateForFork(
 		return fmt.Errorf(
 			"cannot downgrade state from %s to %s", stateFork.CurrentVersion, forkVersion,
 		)
-	} else if version.Equals(forkVersion, stateFork.CurrentVersion) {
+	} else if version.Equals(forkVersion, stateFork.CurrentVersion) && slot != 0 {
+		// In the genesis block, i.e. slot 0, we will process always process the fork versions
 		return nil
 	}
 
