@@ -86,6 +86,10 @@ type StateProcessor interface {
 		*ctypes.ExecutionPayloadHeader,
 		common.Version,
 	) (transition.ValidatorUpdates, error)
+	// PrepareStateForFork prepares the state for the given fork version.
+	PrepareStateForFork(
+		st *statedb.StateDB, forkVersion common.Version, slot math.Slot,
+	) error
 	// ProcessSlots processes the state transition for a range of slots.
 	ProcessSlots(
 		*statedb.StateDB, math.Slot,
