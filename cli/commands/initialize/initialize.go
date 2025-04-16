@@ -31,6 +31,8 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math/unsafe"
+	"github.com/berachain/beacon-kit/chain"
+	clitypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	"github.com/berachain/beacon-kit/cli/context"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/errors"
@@ -93,8 +95,8 @@ func displayInfo(dst io.Writer, info printInfo) error {
 }
 
 //nolint:funlen,gocognit,mnd // based on cosmossdk implementation
-func InitCmd(mm interface {
-	DefaultGenesis() map[string]json.RawMessage
+func InitCmd(creator clitypes.ChainSpecCreator, mm interface {
+	DefaultGenesis(chain.Spec) map[string]json.RawMessage
 	ValidateGenesis(genesisData map[string]json.RawMessage) error
 }) *cobra.Command {
 	cmd := &cobra.Command{
@@ -182,7 +184,12 @@ func InitCmd(mm interface {
 			if defaultDenom != "" {
 				sdk.DefaultBondDenom = defaultDenom
 			}
-			appGenState := mm.DefaultGenesis()
+
+			chainSpec, err := creator(context.GetViperFromCmd(cmd))
+			if err != nil {
+				return fmt.Errorf("faile to create chain spec: %w", err)
+			}
+			appGenState := mm.DefaultGenesis(chainSpec)
 
 			appState, err := json.MarshalIndent(appGenState, "", " ")
 			if err != nil {
