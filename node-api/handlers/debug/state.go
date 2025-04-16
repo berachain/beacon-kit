@@ -54,25 +54,6 @@ func (h *Handler) GetState(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	var forkVersion string
-	switch fork.CurrentVersion {
-	case version.Phase0():
-		forkVersion = "phase0"
-	case version.Altair():
-		forkVersion = "altair"
-	case version.Bellatrix():
-		forkVersion = "bellatrix"
-	case version.Capella():
-		forkVersion = "capella"
-	case version.Deneb():
-		forkVersion = "deneb"
-	case version.Deneb1():
-		forkVersion = "deneb1"
-	case version.Electra():
-		forkVersion = "electra"
-	default:
-		forkVersion = "unknown"
-	}
 
 	return beacontypes.StateResponse{
 		// All data is finalized in CometBFT since we only return data for slots up to head
@@ -80,7 +61,7 @@ func (h *Handler) GetState(c handlers.Context) (any, error) {
 		// Never optimistic since we only return finalized data
 		ExecutionOptimistic: false,
 
-		Version: forkVersion,
+		Version: version.Name(fork.CurrentVersion),
 		Data:    beaconState,
 	}, nil
 }
