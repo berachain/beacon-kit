@@ -59,7 +59,7 @@ func (sp *StateProcessor) InitializePreminedBeaconStateFromEth1(
 		return nil, err
 	}
 
-	if !version.Equals(genesisVersion, sp.cs.ActiveForkVersionForTimestamp(execPayloadHeader.GetTimestamp())) {
+	if !version.Equals(genesisVersion, version.Genesis()) {
 		return nil, fmt.Errorf("fork version not supported: %s", genesisVersion)
 	}
 	versionable := ctypes.NewVersionable(version.Genesis())
