@@ -44,7 +44,6 @@ func (s *Service) DefaultGenesis(spec chain.Spec) map[string]json.RawMessage {
 	// genesis states.
 	gen := make(map[string]json.RawMessage)
 
-	// We must override the DefaultGenesis Fork version since we may be activating hardforks after deneb in genesis.
 	defaultGenesis := types.DefaultGenesis(spec.GenesisForkVersion())
 
 	var err error
