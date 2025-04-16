@@ -95,7 +95,7 @@ func (sp *StateProcessor) Transition(
 	}
 
 	// Prepare the state for the next block's fork version.
-	if err = sp.PrepareStateForFork(st, blk.GetForkVersion(), slot); err != nil {
+	if err = sp.PrepareStateForFork(st, blk.GetTimestamp(), slot); err != nil {
 		return nil, err
 	}
 

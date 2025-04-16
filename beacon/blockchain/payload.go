@@ -187,9 +187,7 @@ func (s *Service) rebuildPayloadForRejectedBlock(
 	//
 	// Although nextPayloadTimestamp is not the confirmed timestamp by the EL, we will assume
 	// the fork version of the new block based on nextPayloadTimestamp as our best estimate.
-	if err = s.stateProcessor.PrepareStateForFork(
-		st, s.chainSpec.ActiveForkVersionForTimestamp(nextPayloadTimestamp), stateSlot,
-	); err != nil {
+	if err = s.stateProcessor.PrepareStateForFork(st, nextPayloadTimestamp, stateSlot); err != nil {
 		return err
 	}
 
@@ -264,9 +262,7 @@ func (s *Service) optimisticPayloadBuild(
 	//
 	// Although nextPayloadTimestamp is not the confirmed timestamp by the EL, we will assume
 	// the fork version of the new block based on nextPayloadTimestamp as our best estimate.
-	if err := s.stateProcessor.PrepareStateForFork(
-		st, s.chainSpec.ActiveForkVersionForTimestamp(nextPayloadTimestamp), slot,
-	); err != nil {
+	if err := s.stateProcessor.PrepareStateForFork(st, nextPayloadTimestamp, slot); err != nil {
 		return err
 	}
 
