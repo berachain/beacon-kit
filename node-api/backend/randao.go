@@ -37,7 +37,7 @@ func (b *Backend) RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes3
 	if epoch == 0 {
 		epoch = b.cs.SlotToEpoch(resolvedSlot)
 	}
-	
+
 	index := epoch.Unwrap() % b.cs.EpochsPerHistoricalVector()
 	return st.GetRandaoMixAtIndex(index)
 }
