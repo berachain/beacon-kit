@@ -24,12 +24,11 @@ import (
 	"math/big"
 	"strconv"
 
-	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/geth-primitives/ssztest"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/merkle"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/math"
 	mlib "github.com/berachain/beacon-kit/primitives/merkle"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
@@ -130,12 +129,12 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 
 	// Get the chain spec to determine the fork version.
 	// TODO: make test use configurable chain spec.
-	cs, err := spec.DevnetChainSpec()
-	s.Require().NoError(err)
+	// cs, err := spec.DevnetChainSpec()
+	// s.Require().NoError(err)
 
 	// Get validator pubkey GIndex for the fork version.
 	zeroValidatorPubkeyGIndex, err := merkle.GetZeroValidatorPubkeyGIndexBlock(
-		cs.ActiveForkVersionForTimestamp(math.U64(header.Time)),
+		version.Deneb(),
 	)
 	s.Require().NoError(err)
 	gIndex := zeroValidatorPubkeyGIndex +
