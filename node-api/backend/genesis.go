@@ -21,44 +21,27 @@
 package backend
 
 import (
-	"github.com/berachain/beacon-kit/errors"
-	"github.com/berachain/beacon-kit/node-api/handlers/utils"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
+// GenesisBlockHeader returns the genesis block header of the beacon chain.
+func (b *Backend) GenesisBlockHeader() *ctypes.BeaconBlockHeader {
+	return b.genesisHeader.Load()
+}
+
 // GenesisValidatorsRoot returns the genesis validators root of the beacon chain.
-func (b *Backend) GenesisValidatorsRoot() (common.Root, error) {
-	// First check if the value is cached.
-	root := b.genesisValidatorsRoot.Load()
-	if root != nil && *root != (common.Root{}) {
-		return *root, nil
-	}
-
-	// If not cached, read state from the beacon state at the tip of chain.
-	st, _, err := b.stateFromSlotRaw(utils.Head)
-	if err != nil {
-		return common.Root{}, errors.Wrapf(err, "failed to get state from tip of chain")
-	}
-
-	// Get the genesis validators root.
-	validatorsRoot, err := st.GetGenesisValidatorsRoot()
-	if err != nil {
-		return common.Root{}, errors.Wrap(err, "failed to get genesis validators root from state")
-	}
-
-	// Cache the value for future use.
-	b.genesisValidatorsRoot.Store(&validatorsRoot)
-
-	return validatorsRoot, nil
+func (b *Backend) GenesisValidatorsRoot() common.Root {
+	return *b.genesisValidatorsRoot.Load()
 }
 
 // GenesisForkVersion returns the genesis fork version of the beacon chain.
-func (b *Backend) GenesisForkVersion() (common.Version, error) {
-	return *b.genesisForkVersion.Load(), nil
+func (b *Backend) GenesisForkVersion() common.Version {
+	return *b.genesisForkVersion.Load()
 }
 
 // GenesisTime returns the genesis time of the beacon chain.
-func (b *Backend) GenesisTime() (math.U64, error) {
-	return *b.genesisTime.Load(), nil
+func (b *Backend) GenesisTime() math.U64 {
+	return *b.genesisTime.Load()
 }

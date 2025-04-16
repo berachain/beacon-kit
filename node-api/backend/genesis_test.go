@@ -31,6 +31,7 @@ import (
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/config/spec"
+	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/log/noop"
 	"github.com/berachain/beacon-kit/node-api/backend"
 	nodemetrics "github.com/berachain/beacon-kit/node-core/components/metrics"
@@ -122,16 +123,26 @@ func TestGetGenesisData(t *testing.T) {
 	}
 	b.AttachQueryBackend(tcs)
 
+	// Set genesis data.
+	bbh := types.BeaconBlockHeader{
+		Slot:            0,
+		ProposerIndex:   0,
+		ParentBlockRoot: common.Root{0x1, 0x2, 0x3},
+		StateRoot:       common.Root{0x1, 0x2, 0x3},
+		BodyRoot:        common.Root{0x1, 0x2, 0x3},
+	}
+	b.SetGenesisData(&bbh, common.Root{0x1, 0x2, 0x3})
+
 	// Test all genesis data.
-	genesisTime, err := b.GenesisTime()
-	require.NoError(t, err)
+	genesisTime := b.GenesisTime()
 	require.Equal(t, math.U64(1737410400), genesisTime)
 
-	genesisForkVersion, err := b.GenesisForkVersion()
-	require.NoError(t, err)
+	genesisForkVersion := b.GenesisForkVersion()
 	require.Equal(t, version.Genesis(), genesisForkVersion) // Deneb 0x04000000
 
-	genesisValidatorsRoot, err := b.GenesisValidatorsRoot()
-	require.NoError(t, err)
+	genesisValidatorsRoot := b.GenesisValidatorsRoot()
 	require.Equal(t, common.Root{0x1, 0x2, 0x3}, genesisValidatorsRoot)
+
+	genesisBlockHeader := b.GenesisBlockHeader()
+	require.Equal(t, bbh, *genesisBlockHeader)
 }

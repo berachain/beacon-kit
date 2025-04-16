@@ -512,7 +512,6 @@ type (
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		GetSlotByStateRoot(root common.Root) (math.Slot, error)
 		GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
-
 		NodeAPIBeaconBackend
 		NodeAPIProofBackend
 		NodeAPIConfigBackend
@@ -546,9 +545,9 @@ type (
 	}
 
 	GenesisBackend interface {
-		GenesisValidatorsRoot() (common.Root, error)
-		GenesisForkVersion() (common.Version, error)
-		GenesisTime() (math.U64, error)
+		GenesisValidatorsRoot() common.Root
+		GenesisForkVersion() common.Version
+		GenesisTime() math.U64
 	}
 
 	HistoricalBackend interface {
