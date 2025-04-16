@@ -74,7 +74,8 @@ library SSZ {
 /// @author Inspired by [madlabman](https://github.com/madlabman/eip-4788-proof).
 contract SSZTest {
     /// @notice The address of the EIP-4788 Beacon Roots contract.
-    address public constant BEACON_ROOTS = 0x000F3df6D732807Ef1319fB7B8bB8522d0Beac02;
+    address public constant BEACON_ROOTS =
+        0x000F3df6D732807Ef1319fB7B8bB8522d0Beac02;
 
     // Signature: 0x3033b0ff
     error RootNotFound();
@@ -119,7 +120,11 @@ contract SSZTest {
 
     /// @notice Get the parent block root at a given timestamp.
     /// @dev Reverts with `RootNotFound()` if the root is not found.
-    function getParentBlockRootAt(uint64 ts) external view returns (bytes32 root) {
+    function getParentBlockRootAt(uint64 ts)
+        external
+        view
+        returns (bytes32 root)
+    {
         assembly ("memory-safe") {
             mstore(0, ts)
             let success := staticcall(gas(), BEACON_ROOTS, 0, 0x20, 0, 0x20)
