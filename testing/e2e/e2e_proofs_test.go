@@ -27,7 +27,9 @@ import (
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/geth-primitives/ssztest"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/merkle"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	mlib "github.com/berachain/beacon-kit/primitives/merkle"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
@@ -114,6 +116,16 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 	for i, proofItem := range blockProposerResp.ValidatorPubkeyProof {
 		validatorPubkeyProof[i] = proofItem
 	}
+
+	if !mlib.VerifyProof(
+		beaconBlockHeaderRoot,
+		common.Root(blockProposerResp.ValidatorPubkey.HashTreeRoot()),
+		gIndex,
+		validatorPubkeyProof,
+	) {
+		s.FailNow("validator pubkey proof failed to verify against beacon root")
+	}
+
 	err = sszTest.MustVerifyProof(
 		&bind.CallOpts{
 			Context: s.Ctx(),
