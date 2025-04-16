@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/stretchr/testify/require"
 )
 
@@ -47,24 +48,24 @@ func TestBlockProposerPubkeyProof(t *testing.T) {
 		expectedProofFile string
 	}{
 		{
-			name:              "1 Validator Set",
+			name:              "1 Validator Set - Deneb",
 			numValidators:     1,
 			slot:              4,
 			proposerIndex:     0,
 			parentBlockRoot:   common.Root{1, 2, 3},
 			bodyRoot:          common.Root{3, 2, 1},
 			pubKey:            [48]byte{9, 8, 7, 6, 5, 4, 3, 2, 1},
-			expectedProofFile: "one_validator_proposer_pubkey_proof.json",
+			expectedProofFile: "one_validator_proposer_pubkey_proof_deneb.json",
 		},
 		{
-			name:              "Many Validator Set",
+			name:              "Many Validator Set - Deneb",
 			numValidators:     100,
 			slot:              5,
 			proposerIndex:     95,
 			parentBlockRoot:   common.Root{1, 2, 3, 4, 5, 6},
 			bodyRoot:          common.Root{3, 2, 1, 9, 8, 7},
 			pubKey:            [48]byte{9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2},
-			expectedProofFile: "many_validators_proposer_pubkey_proof.json",
+			expectedProofFile: "many_validators_proposer_pubkey_proof_deneb.json",
 		},
 	}
 
@@ -77,7 +78,7 @@ func TestBlockProposerPubkeyProof(t *testing.T) {
 			vals[tc.proposerIndex] = &types.Validator{Pubkey: tc.pubKey}
 
 			bs, err := mock.NewBeaconState(
-				tc.slot, vals, 0, common.ExecutionAddress{},
+				tc.slot, vals, 0, common.ExecutionAddress{}, version.Deneb(),
 			)
 			require.NoError(t, err)
 
@@ -89,7 +90,9 @@ func TestBlockProposerPubkeyProof(t *testing.T) {
 				tc.bodyRoot,
 			)
 
-			proof, _, err := merkle.ProveProposerPubkeyInBlock(bbh, bs)
+			bsm, err := bs.GetMarshallable()
+			require.NoError(t, err)
+			proof, _, err := merkle.ProveProposerPubkeyInBlock(bbh, bsm)
 			require.NoError(t, err)
 			expectedProof := ReadProofFromFile(t, tc.expectedProofFile)
 			require.Equal(t, expectedProof, proof)

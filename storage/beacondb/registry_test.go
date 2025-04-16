@@ -194,6 +194,103 @@ func TestValidators(t *testing.T) {
 	require.Equal(t, inUpdatedVal2, res[1])
 }
 
+// TestPendingPartialWithdrawals_Nil verifies that if no pending partial withdrawals
+// have been set, then GetPendingPartialWithdrawals returns an error.
+func TestPendingPartialWithdrawals_Nil(t *testing.T) {
+	t.Parallel()
+	store, err := initTestStore()
+	require.NoError(t, err)
+
+	ppw, err := store.GetPendingPartialWithdrawals()
+
+	require.ErrorContains(t, err, "collections: not found: key 'no_key' of type SSZMarshallable")
+	require.Nil(t, ppw)
+}
+
+// TestPendingPartialWithdrawals_EmptySlice verifies that when setting an empty slice, the Set and Get operations succeed.
+func TestPendingPartialWithdrawals_EmptySlice(t *testing.T) {
+	t.Parallel()
+	store, err := initTestStore()
+	require.NoError(t, err)
+
+	// Attempt to set an empty slice.
+	err = store.SetPendingPartialWithdrawals([]*types.PendingPartialWithdrawal{})
+	var ppw []*types.PendingPartialWithdrawal
+	require.NoError(t, err)
+	ppw, err = store.GetPendingPartialWithdrawals()
+	require.NoError(t, err)
+	require.Empty(t, ppw)
+}
+
+// TestPendingPartialWithdrawals_SetAndGetNonEmpty verifies that setting a non-empty list of pending partial withdrawals succeeds.
+func TestPendingPartialWithdrawals_SetAndGetNonEmpty(t *testing.T) {
+	t.Parallel()
+	store, err := initTestStore()
+	require.NoError(t, err)
+
+	// Create sample pending partial withdrawal entries.
+	entry1 := &types.PendingPartialWithdrawal{
+		ValidatorIndex:    math.U64(1),
+		Amount:            math.U64(100),
+		WithdrawableEpoch: math.U64(15),
+	}
+	entry2 := &types.PendingPartialWithdrawal{
+		ValidatorIndex:    math.U64(2),
+		Amount:            math.U64(200),
+		WithdrawableEpoch: math.U64(20),
+	}
+	sampleWithdrawals := []*types.PendingPartialWithdrawal{entry1, entry2}
+
+	var ppw []*types.PendingPartialWithdrawal
+	// Attempt to set the non-empty slice.
+	err = store.SetPendingPartialWithdrawals(sampleWithdrawals)
+
+	require.NoError(t, err)
+	ppw, err = store.GetPendingPartialWithdrawals()
+	require.NoError(t, err)
+	require.Equal(t, sampleWithdrawals, ppw)
+}
+
+// TestPendingPartialWithdrawals_Update verifies that updating the pending partial withdrawals works correctly.
+func TestPendingPartialWithdrawals_Update(t *testing.T) {
+	t.Parallel()
+	store, err := initTestStore()
+	require.NoError(t, err)
+
+	require.NoError(t, err)
+	// Create initial pending partial withdrawal entries.
+	entry1 := &types.PendingPartialWithdrawal{
+		ValidatorIndex:    math.U64(1),
+		Amount:            math.U64(100),
+		WithdrawableEpoch: math.U64(15),
+	}
+	entry2 := &types.PendingPartialWithdrawal{
+		ValidatorIndex:    math.U64(2),
+		Amount:            math.U64(200),
+		WithdrawableEpoch: math.U64(20),
+	}
+	initialWithdrawals := []*types.PendingPartialWithdrawal{entry1, entry2}
+	var ppw []*types.PendingPartialWithdrawal
+
+	// Set the initial list.
+	err = store.SetPendingPartialWithdrawals(initialWithdrawals)
+	require.NoError(t, err)
+
+	// Now update by modifying entry1's amount and dropping entry2.
+	updatedEntry := &types.PendingPartialWithdrawal{
+		ValidatorIndex:    math.U64(1),
+		Amount:            math.U64(150), // Updated amount.
+		WithdrawableEpoch: math.U64(15),
+	}
+	updatedWithdrawals := []*types.PendingPartialWithdrawal{updatedEntry}
+	err = store.SetPendingPartialWithdrawals(updatedWithdrawals)
+	require.NoError(t, err)
+
+	ppw, err = store.GetPendingPartialWithdrawals()
+	require.NoError(t, err)
+	require.Equal(t, updatedWithdrawals, ppw)
+}
+
 func initTestStore() (*beacondb.KVStore, error) {
 	db, err := db.OpenDB("", dbm.MemDBBackend)
 	if err != nil {

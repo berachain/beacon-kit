@@ -48,8 +48,12 @@ func (h *Handler) GetBlockProposer(c handlers.Context) (any, error) {
 
 	// Generate the proof (along with the "correct" beacon block root to
 	// verify against) for the proposer validator pubkey.
+	beaconStateMarshallable, err := beaconState.GetMarshallable()
+	if err != nil {
+		return nil, err
+	}
 	pubkeyProof, beaconBlockRoot, err := merkle.ProveProposerPubkeyInBlock(
-		blockHeader, beaconState,
+		blockHeader, beaconStateMarshallable,
 	)
 	if err != nil {
 		return nil, err
