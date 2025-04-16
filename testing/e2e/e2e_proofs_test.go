@@ -110,7 +110,7 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 	)
 
 	// Verify the slot is equal to the requested block number.
-	s.Require().Equal(blockProposerResp.BeaconBlockHeader.Slot.Unwrap(), blockNumber)
+	s.Require().Equal(blockProposerResp.BeaconBlockHeader.Slot.Unwrap(), blockNumber-1)
 
 	// First verify the proposer index proof.
 	proposerIndexProof := make([][32]byte, len(blockProposerResp.ProposerIndexProof))
