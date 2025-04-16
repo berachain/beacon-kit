@@ -32,19 +32,13 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/log/noop"
 	"github.com/berachain/beacon-kit/node-api/backend"
 	types "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	nodemetrics "github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
-	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
-	cryptomocks "github.com/berachain/beacon-kit/primitives/crypto/mocks"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
-	"github.com/berachain/beacon-kit/state-transition/core"
-	"github.com/berachain/beacon-kit/state-transition/core/mocks"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/berachain/beacon-kit/storage/beacondb"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
@@ -64,16 +58,6 @@ func TestFilteredValidators(t *testing.T) {
 	cms, kvStore, depositStore, err := statetransition.BuildTestStores()
 	require.NoError(t, err)
 	sb := storage.NewBackend(cs, nil, kvStore, depositStore, nil)
-
-	sp := core.NewStateProcessor(
-		noop.NewLogger[any](),
-		cs,
-		mocks.NewExecutionEngine(t),
-		depositStore,
-		&cryptomocks.BLSSigner{},
-		func(bytes.B48) ([]byte, error) { return nil, nil },
-		nodemetrics.NewNoOpTelemetrySink(),
-	)
 
 	// Create a temporary directory for CometBFT config
 	tmpDir := t.TempDir()
@@ -95,7 +79,7 @@ func TestFilteredValidators(t *testing.T) {
 	err = appGenesis.SaveAs(genesisFile)
 	require.NoError(t, err)
 
-	b, err := backend.New(sb, cs, sp, cmtCfg)
+	b, err := backend.New(sb, cs, cmtCfg)
 	require.NoError(t, err)
 	tcs := &testConsensusService{
 		cms:     cms,
@@ -400,7 +384,7 @@ func setupStateDummyParts(t *testing.T, cs chain.Spec, st *statedb.StateDB, dumm
 	t.Helper()
 	require.NoError(t, st.SetSlot(dummySlot))
 
-	fork := ctypes.NewFork(version.Genesis(), version.Genesis(), constants.GenesisEpoch)
+	fork := ctypes.NewFork(version.Deneb(), version.Deneb(), constants.GenesisEpoch)
 	require.NoError(t, st.SetFork(fork))
 
 	require.NoError(t, st.SetGenesisValidatorsRoot(common.Root{}))

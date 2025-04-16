@@ -110,7 +110,7 @@ func AddExecutionPayload(chainSpec ChainSpec, elGenesisPath string, config *cmtc
 	// Inject the execution payload.
 	genesisInfo.ExecutionPayloadHeader, err =
 		executableDataToExecutionPayloadHeader(
-			version.Genesis(),
+			chainSpec.GenesisForkVersion(),
 			payload,
 			chainSpec.MaxWithdrawalsPerPayload(),
 		)
@@ -142,7 +142,7 @@ func executableDataToExecutionPayloadHeader(
 ) (*types.ExecutionPayloadHeader, error) {
 	var executionPayloadHeader *types.ExecutionPayloadHeader
 	switch forkVersion {
-	case version.Genesis():
+	case version.Deneb(), version.Deneb1(), version.Electra():
 		withdrawals := make(
 			engineprimitives.Withdrawals,
 			len(data.Withdrawals),

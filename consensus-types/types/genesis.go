@@ -102,7 +102,7 @@ func DefaultGenesis() *Genesis {
 	}
 
 	return &Genesis{
-		ForkVersion:            version.Genesis(),
+		ForkVersion:            version.Deneb(),
 		Deposits:               make([]*Deposit, 0),
 		ExecutionPayloadHeader: defaultHeader,
 	}
@@ -136,7 +136,7 @@ func DefaultGenesisExecutionPayloadHeader() (*ExecutionPayloadHeader, error) {
 	}
 
 	return &ExecutionPayloadHeader{
-		Versionable:   NewVersionable(version.Genesis()),
+		Versionable:   NewVersionable(version.Deneb()),
 		ParentHash:    common.ExecutionHash{},
 		FeeRecipient:  common.ExecutionAddress{},
 		StateRoot:     stateRoot,

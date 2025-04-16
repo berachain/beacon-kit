@@ -89,6 +89,7 @@ type SpecData struct {
 	TargetSecondsPerEth1Block uint64 `mapstructure:"target-seconds-per-eth1-block"`
 
 	// Fork-related values.
+	GenesisTime uint64 `mapstructure:"genesis-time"`
 	//
 	// Deneb1ForkTime is the time at which the Deneb1 fork is activated.
 	Deneb1ForkTime uint64 `mapstructure:"deneb-one-fork-time"`

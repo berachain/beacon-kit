@@ -18,4 +18,8 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package cometbft
+package ssztest
+
+// TODO: Remove ldflags=-checklinkname=0 override once fix is applied.
+//
+//go:generate abigen --abi=../../contracts/out/SSZ.sol/SSZTest.abi.json --bin=../../contracts/out/SSZ.sol/SSZTest.bin --pkg=ssztest --type=SSZTest --out=contract.abigen.go

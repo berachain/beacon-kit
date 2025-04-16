@@ -22,6 +22,7 @@ package core
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -30,14 +31,14 @@ import (
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-// prepareStateForFork prepares the state for the given fork version.
+// PrepareStateForFork prepares the state for the given fork version.
 //   - If this function is called for the same version as the state's current version,
 //     it will do nothing.
 //   - If this function is called for a version before the state's current version,
 //     it will return error as this is not allowed.
 //   - If this function is called for a version after the state's current version,
 //     it will upgrade the state to the new version.
-func (sp *StateProcessor) prepareStateForFork(
+func (sp *StateProcessor) PrepareStateForFork(
 	st *statedb.StateDB, forkVersion common.Version, slot math.Slot,
 ) error {
 	stateFork, err := st.GetFork()
@@ -50,7 +51,8 @@ func (sp *StateProcessor) prepareStateForFork(
 		return fmt.Errorf(
 			"cannot downgrade state from %s to %s", stateFork.CurrentVersion, forkVersion,
 		)
-	} else if version.Equals(forkVersion, stateFork.CurrentVersion) {
+	} else if version.Equals(forkVersion, stateFork.CurrentVersion) && slot != 0 {
+		// In the genesis block, i.e. slot 0, we will process always process the fork versions
 		return nil
 	}
 
@@ -79,9 +81,27 @@ func (sp *StateProcessor) prepareStateForFork(
 func (sp *StateProcessor) upgradeToElectra(
 	st *statedb.StateDB, fork *types.Fork, slot math.Slot,
 ) error {
+	// Set the fork on BeaconState.
 	fork.PreviousVersion = fork.CurrentVersion
 	fork.CurrentVersion = version.Electra()
 	fork.Epoch = sp.cs.SlotToEpoch(slot)
+	if err := st.SetFork(fork); err != nil {
+		return err
+	}
 
-	return st.SetFork(fork)
+	// Initialize the pending partial withdrawals to an empty array.
+	if err := st.SetPendingPartialWithdrawals([]*types.PendingPartialWithdrawal{}); err != nil {
+		return err
+	}
+
+	// Log the upgrade to Electra, but only once.
+	sync.OnceFunc(func() {
+		sp.logger.Info(`
++==========================================================================+
++ ⏭️ Upgraded to Electra fork! 🎉
++==========================================================================+
+	
+	`)
+	})()
+	return nil
 }

@@ -130,6 +130,10 @@ type (
 			*ctypes.ExecutionPayloadHeader,
 			common.Version,
 		) (transition.ValidatorUpdates, error)
+		// PrepareStateForFork prepares the state for the given fork version.
+		PrepareStateForFork(
+			st *statedb.StateDB, forkVersion common.Version, slot math.Slot,
+		) error
 		// ProcessSlot processes the slot.
 		ProcessSlots(
 			st *statedb.StateDB, slot math.Slot,
@@ -341,8 +345,6 @@ type (
 		GetSlashingAtIndex(index uint64) (math.Gwei, error)
 		// GetTotalValidators retrieves the total validators.
 		GetTotalValidators() (uint64, error)
-		// GetTotalActiveBalances retrieves the total active balances.
-		GetTotalActiveBalances(uint64) (math.Gwei, error)
 		// ValidatorByIndex retrieves the validator at the given index.
 		ValidatorByIndex(index math.ValidatorIndex) (*ctypes.Validator, error)
 		// UpdateBlockRootAtIndex updates the block root at the given index.
@@ -368,9 +370,6 @@ type (
 		ValidatorIndexByCometBFTAddress(
 			cometBFTAddress []byte,
 		) (math.ValidatorIndex, error)
-		// GetValidatorsByEffectiveBalance retrieves validators by effective
-		// balance.
-		GetValidatorsByEffectiveBalance() ([]*ctypes.Validator, error)
 	}
 
 	// ReadOnlyBeaconState is the interface for a read-only beacon state.
@@ -389,14 +388,12 @@ type (
 		GetGenesisValidatorsRoot() (common.Root, error)
 		GetBlockRootAtIndex(uint64) (common.Root, error)
 		GetLatestBlockHeader() (*ctypes.BeaconBlockHeader, error)
-		GetTotalActiveBalances(uint64) (math.Gwei, error)
 		GetValidators() (ctypes.Validators, error)
 		GetSlashingAtIndex(uint64) (math.Gwei, error)
 		GetTotalSlashing() (math.Gwei, error)
 		GetNextWithdrawalIndex() (uint64, error)
 		GetNextWithdrawalValidatorIndex() (math.ValidatorIndex, error)
 		GetTotalValidators() (uint64, error)
-		GetValidatorsByEffectiveBalance() ([]*ctypes.Validator, error)
 		ValidatorIndexByCometBFTAddress(
 			cometBFTAddress []byte,
 		) (math.ValidatorIndex, error)
@@ -416,7 +413,6 @@ type (
 		SetLatestBlockHeader(*ctypes.BeaconBlockHeader) error
 		IncreaseBalance(math.ValidatorIndex, math.Gwei) error
 		DecreaseBalance(math.ValidatorIndex, math.Gwei) error
-		UpdateSlashingAtIndex(uint64, math.Gwei) error
 		SetNextWithdrawalIndex(uint64) error
 		SetNextWithdrawalValidatorIndex(math.ValidatorIndex) error
 		SetTotalSlashing(math.Gwei) error
@@ -573,8 +569,7 @@ type (
 	StateBackend interface {
 		StateRootAtSlot(slot math.Slot) (common.Root, error)
 		StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error)
-		StateFromSlotForProof(slot math.Slot) (*statedb.StateDB, math.Slot, error)
-		StateAtSlot(slot math.Slot) (*statedb.StateDB, error)
+		StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error)
 	}
 
 	ValidatorBackend interface {

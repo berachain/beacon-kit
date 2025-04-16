@@ -18,14 +18,28 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package backend
+package version
 
-import (
-	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/transition"
-	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
-)
+import "github.com/berachain/beacon-kit/primitives/common"
 
-type StateProcessor interface {
-	ProcessSlots(*statedb.StateDB, math.Slot) (transition.ValidatorUpdates, error)
+// Name returns the name of the fork version.
+func Name(v common.Version) string {
+	switch v {
+	case phase0:
+		return "phase0"
+	case altair:
+		return "altair"
+	case bellatrix:
+		return "bellatrix"
+	case capella:
+		return "capella"
+	case deneb:
+		return "deneb"
+	case deneb1:
+		return "deneb1"
+	case electra:
+		return "electra"
+	default:
+		return "unknown"
+	}
 }

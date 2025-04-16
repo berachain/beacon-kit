@@ -33,7 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/storage"
 	"github.com/berachain/beacon-kit/storage/beacondb"
 	"github.com/berachain/beacon-kit/storage/db"
@@ -199,177 +198,97 @@ func TestValidators(t *testing.T) {
 // have been set, then GetPendingPartialWithdrawals returns an error.
 func TestPendingPartialWithdrawals_Nil(t *testing.T) {
 	t.Parallel()
-	for _, fork := range version.GetSupportedVersions() {
-		t.Run(fork.String(), func(t *testing.T) {
-			store, err := initTestStore()
-			require.NoError(t, err)
+	store, err := initTestStore()
+	require.NoError(t, err)
 
-			err = store.SetFork(&types.Fork{
-				PreviousVersion: fork,
-				CurrentVersion:  fork,
-				Epoch:           0,
-			})
-			require.NoError(t, err)
+	ppw, err := store.GetPendingPartialWithdrawals()
 
-			ppw, err := store.GetPendingPartialWithdrawals()
-			if version.IsBefore(fork, version.Electra()) {
-				require.ErrorContains(t, err, fmt.Sprintf(
-					"operation requires fork %s", version.Electra(),
-				))
-				require.Nil(t, ppw)
-			} else {
-				require.ErrorContains(t, err, "collections: not found: key 'no_key' of type SSZMarshallable")
-				require.Nil(t, ppw)
-			}
-		})
-	}
+	require.ErrorContains(t, err, "collections: not found: key 'no_key' of type SSZMarshallable")
+	require.Nil(t, ppw)
 }
 
-// TestPendingPartialWithdrawals_EmptySlice verifies that when setting an empty slice,
-// the Set and Get operations both fail if before Electra, or succeed (returning an empty slice)
-// if fork is Electra or later.
+// TestPendingPartialWithdrawals_EmptySlice verifies that when setting an empty slice, the Set and Get operations succeed.
 func TestPendingPartialWithdrawals_EmptySlice(t *testing.T) {
 	t.Parallel()
-	for _, fork := range version.GetSupportedVersions() {
-		t.Run(fork.String(), func(t *testing.T) {
-			store, err := initTestStore()
-			require.NoError(t, err)
+	store, err := initTestStore()
+	require.NoError(t, err)
 
-			// Set the fork version.
-			err = store.SetFork(&types.Fork{
-				PreviousVersion: fork,
-				CurrentVersion:  fork,
-				Epoch:           0,
-			})
-			require.NoError(t, err)
-
-			// Attempt to set an empty slice.
-			err = store.SetPendingPartialWithdrawals([]*types.PendingPartialWithdrawal{})
-			var ppw []*types.PendingPartialWithdrawal
-			if version.IsBefore(fork, version.Electra()) {
-				require.ErrorContains(t, err, fmt.Sprintf("operation requires fork %s", version.Electra()))
-				// Also expect Get to fail.
-				ppw, err = store.GetPendingPartialWithdrawals()
-				require.ErrorContains(t, err, fmt.Sprintf("operation requires fork %s", version.Electra()))
-				require.Nil(t, ppw)
-			} else {
-				require.NoError(t, err)
-				ppw, err = store.GetPendingPartialWithdrawals()
-				require.NoError(t, err)
-				require.Empty(t, ppw)
-			}
-		})
-	}
+	// Attempt to set an empty slice.
+	err = store.SetPendingPartialWithdrawals([]*types.PendingPartialWithdrawal{})
+	var ppw []*types.PendingPartialWithdrawal
+	require.NoError(t, err)
+	ppw, err = store.GetPendingPartialWithdrawals()
+	require.NoError(t, err)
+	require.Empty(t, ppw)
 }
 
-// TestPendingPartialWithdrawals_SetAndGetNonEmpty verifies that setting a non-empty list of pending
-// partial withdrawals fails if fork is before Electra, and succeeds (returning the same list)
-// if fork is Electra or later.
+// TestPendingPartialWithdrawals_SetAndGetNonEmpty verifies that setting a non-empty list of pending partial withdrawals succeeds.
 func TestPendingPartialWithdrawals_SetAndGetNonEmpty(t *testing.T) {
 	t.Parallel()
-	for _, fork := range version.GetSupportedVersions() {
-		t.Run(fork.String(), func(t *testing.T) {
-			store, err := initTestStore()
-			require.NoError(t, err)
+	store, err := initTestStore()
+	require.NoError(t, err)
 
-			// Set the fork version.
-			err = store.SetFork(&types.Fork{
-				PreviousVersion: fork,
-				CurrentVersion:  fork,
-				Epoch:           0,
-			})
-			require.NoError(t, err)
-
-			// Create sample pending partial withdrawal entries.
-			entry1 := &types.PendingPartialWithdrawal{
-				ValidatorIndex:    math.U64(1),
-				Amount:            math.U64(100),
-				WithdrawableEpoch: math.U64(15),
-			}
-			entry2 := &types.PendingPartialWithdrawal{
-				ValidatorIndex:    math.U64(2),
-				Amount:            math.U64(200),
-				WithdrawableEpoch: math.U64(20),
-			}
-			sampleWithdrawals := []*types.PendingPartialWithdrawal{entry1, entry2}
-
-			var ppw []*types.PendingPartialWithdrawal
-			// Attempt to set the non-empty slice.
-			err = store.SetPendingPartialWithdrawals(sampleWithdrawals)
-			if version.IsBefore(fork, version.Electra()) {
-				require.ErrorContains(t, err, fmt.Sprintf("operation requires fork %s", version.Electra()))
-				// Get should also fail.
-				ppw, err = store.GetPendingPartialWithdrawals()
-				require.ErrorContains(t, err, fmt.Sprintf("operation requires fork %s", version.Electra()))
-				require.Nil(t, ppw)
-			} else {
-				require.NoError(t, err)
-				ppw, err = store.GetPendingPartialWithdrawals()
-				require.NoError(t, err)
-				require.Equal(t, sampleWithdrawals, ppw)
-			}
-		})
+	// Create sample pending partial withdrawal entries.
+	entry1 := &types.PendingPartialWithdrawal{
+		ValidatorIndex:    math.U64(1),
+		Amount:            math.U64(100),
+		WithdrawableEpoch: math.U64(15),
 	}
+	entry2 := &types.PendingPartialWithdrawal{
+		ValidatorIndex:    math.U64(2),
+		Amount:            math.U64(200),
+		WithdrawableEpoch: math.U64(20),
+	}
+	sampleWithdrawals := []*types.PendingPartialWithdrawal{entry1, entry2}
+
+	var ppw []*types.PendingPartialWithdrawal
+	// Attempt to set the non-empty slice.
+	err = store.SetPendingPartialWithdrawals(sampleWithdrawals)
+
+	require.NoError(t, err)
+	ppw, err = store.GetPendingPartialWithdrawals()
+	require.NoError(t, err)
+	require.Equal(t, sampleWithdrawals, ppw)
 }
 
-// TestPendingPartialWithdrawals_Update verifies that updating the pending partial withdrawals
-// (by replacing the existing list) fails if fork is before Electra, and works correctly (returning
-// the updated data) if fork is Electra or later.
+// TestPendingPartialWithdrawals_Update verifies that updating the pending partial withdrawals works correctly.
 func TestPendingPartialWithdrawals_Update(t *testing.T) {
 	t.Parallel()
-	for _, fork := range version.GetSupportedVersions() {
-		t.Run(fork.String(), func(t *testing.T) {
-			store, err := initTestStore()
-			require.NoError(t, err)
+	store, err := initTestStore()
+	require.NoError(t, err)
 
-			// Set the fork version.
-			err = store.SetFork(&types.Fork{
-				PreviousVersion: fork,
-				CurrentVersion:  fork,
-				Epoch:           0,
-			})
-			require.NoError(t, err)
-
-			// Create initial pending partial withdrawal entries.
-			entry1 := &types.PendingPartialWithdrawal{
-				ValidatorIndex:    math.U64(1),
-				Amount:            math.U64(100),
-				WithdrawableEpoch: math.U64(15),
-			}
-			entry2 := &types.PendingPartialWithdrawal{
-				ValidatorIndex:    math.U64(2),
-				Amount:            math.U64(200),
-				WithdrawableEpoch: math.U64(20),
-			}
-			initialWithdrawals := []*types.PendingPartialWithdrawal{entry1, entry2}
-			var ppw []*types.PendingPartialWithdrawal
-			if version.IsBefore(fork, version.Electra()) {
-				err = store.SetPendingPartialWithdrawals(initialWithdrawals)
-				require.ErrorContains(t, err, fmt.Sprintf("operation requires fork %s", version.Electra()))
-				ppw, err = store.GetPendingPartialWithdrawals()
-				require.ErrorContains(t, err, fmt.Sprintf("operation requires fork %s", version.Electra()))
-				require.Nil(t, ppw)
-			} else {
-				// Set the initial list.
-				err = store.SetPendingPartialWithdrawals(initialWithdrawals)
-				require.NoError(t, err)
-
-				// Now update by modifying entry1's amount and dropping entry2.
-				updatedEntry := &types.PendingPartialWithdrawal{
-					ValidatorIndex:    math.U64(1),
-					Amount:            math.U64(150), // Updated amount.
-					WithdrawableEpoch: math.U64(15),
-				}
-				updatedWithdrawals := []*types.PendingPartialWithdrawal{updatedEntry}
-				err = store.SetPendingPartialWithdrawals(updatedWithdrawals)
-				require.NoError(t, err)
-
-				ppw, err = store.GetPendingPartialWithdrawals()
-				require.NoError(t, err)
-				require.Equal(t, updatedWithdrawals, ppw)
-			}
-		})
+	require.NoError(t, err)
+	// Create initial pending partial withdrawal entries.
+	entry1 := &types.PendingPartialWithdrawal{
+		ValidatorIndex:    math.U64(1),
+		Amount:            math.U64(100),
+		WithdrawableEpoch: math.U64(15),
 	}
+	entry2 := &types.PendingPartialWithdrawal{
+		ValidatorIndex:    math.U64(2),
+		Amount:            math.U64(200),
+		WithdrawableEpoch: math.U64(20),
+	}
+	initialWithdrawals := []*types.PendingPartialWithdrawal{entry1, entry2}
+	var ppw []*types.PendingPartialWithdrawal
+
+	// Set the initial list.
+	err = store.SetPendingPartialWithdrawals(initialWithdrawals)
+	require.NoError(t, err)
+
+	// Now update by modifying entry1's amount and dropping entry2.
+	updatedEntry := &types.PendingPartialWithdrawal{
+		ValidatorIndex:    math.U64(1),
+		Amount:            math.U64(150), // Updated amount.
+		WithdrawableEpoch: math.U64(15),
+	}
+	updatedWithdrawals := []*types.PendingPartialWithdrawal{updatedEntry}
+	err = store.SetPendingPartialWithdrawals(updatedWithdrawals)
+	require.NoError(t, err)
+
+	ppw, err = store.GetPendingPartialWithdrawals()
+	require.NoError(t, err)
+	require.Equal(t, updatedWithdrawals, ppw)
 }
 
 func initTestStore() (*beacondb.KVStore, error) {
