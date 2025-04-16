@@ -139,7 +139,6 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 		s.Ctx(), new(big.Int).SetUint64(blockNumber-1),
 	)
 	s.Require().NoError(err)
-
 	forkVersion := cs.ActiveForkVersionForTimestamp(math.U64(header.Time))
 	zeroValidatorPubkeyGIndex, err := merkle.GetZeroValidatorPubkeyGIndexBlock(forkVersion)
 	s.Require().NoError(err)
