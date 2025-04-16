@@ -31,8 +31,8 @@ var (
 
 // SSZTestMetaData contains all meta data concerning the SSZTest contract.
 var SSZTestMetaData = &bind.MetaData{
-	ABI: "[{\"type\":\"function\",\"name\":\"mustVerifyProof\",\"inputs\":[{\"name\":\"proof\",\"type\":\"bytes32[]\",\"internalType\":\"bytes32[]\"},{\"name\":\"root\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"leaf\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"index\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"verifyProof\",\"inputs\":[{\"name\":\"proof\",\"type\":\"bytes32[]\",\"internalType\":\"bytes32[]\"},{\"name\":\"root\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"leaf\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"index\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"isValid\",\"type\":\"bool\",\"internalType\":\"bool\"}],\"stateMutability\":\"view\"}]",
-	Bin: "0x6080604052348015600e575f80fd5b5061025f8061001c5f395ff3fe608060405234801561000f575f80fd5b5060043610610034575f3560e01c806341b703ff146100385780634fc36be61461004d575b5f80fd5b61004b6100463660046101a4565b610074565b005b61006061005b3660046101a4565b6100f2565b604051901515815260200160405180910390f35b610081858585858561010a565b6100eb576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601060248201527f50726f6f6620697320696e76616c696400000000000000000000000000000000604482015260640160405180910390fd5b5050505050565b5f610100868686868661010a565b9695505050505050565b5f8415610166578460051b8601865b6001841660051b8460011c94508461013857635849603f5f526004601cfd5b85815281356020918218525f60408160025afa80610154575f80fd5b505f5194506020018181106101195750505b7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff82011561019b57631b6661c35f526004601cfd5b50501492915050565b5f805f805f608086880312156101b8575f80fd5b853567ffffffffffffffff8111156101ce575f80fd5b8601601f810188136101de575f80fd5b803567ffffffffffffffff8111156101f4575f80fd5b8860208260051b8401011115610208575f80fd5b6020918201999098509087013596604081013596506060013594509250505056fea26469706673582212208778da1308154d8fae10a8ae616eb37887fec9be573397aab1d43ed15bb221ab64736f6c634300081a0033",
+	ABI: "[{\"type\":\"function\",\"name\":\"BEACON_ROOTS\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getParentBlockRootAt\",\"inputs\":[{\"name\":\"ts\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"outputs\":[{\"name\":\"root\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"mustVerifyProof\",\"inputs\":[{\"name\":\"proof\",\"type\":\"bytes32[]\",\"internalType\":\"bytes32[]\"},{\"name\":\"root\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"leaf\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"index\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"verifyProof\",\"inputs\":[{\"name\":\"proof\",\"type\":\"bytes32[]\",\"internalType\":\"bytes32[]\"},{\"name\":\"root\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"leaf\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"index\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"isValid\",\"type\":\"bool\",\"internalType\":\"bool\"}],\"stateMutability\":\"view\"},{\"type\":\"error\",\"name\":\"RootNotFound\",\"inputs\":[]}]",
+	Bin: "0x6080604052348015600e575f80fd5b5061033f8061001c5f395ff3fe608060405234801561000f575f80fd5b506004361061004a575f3560e01c806341b703ff1461004e5780634fc36be61461006357806356d7e8fd1461008b578063e2c37a98146100ca575b5f80fd5b61006161005c366004610256565b6100eb565b005b610076610071366004610256565b610169565b60405190151581526020015b60405180910390f35b6100a5720f3df6d732807ef1319fb7b8bb8522d0beac0281565b60405173ffffffffffffffffffffffffffffffffffffffff9091168152602001610082565b6100dd6100d83660046102db565b610181565b604051908152602001610082565b6100f885858585856101bc565b610162576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601060248201527f50726f6f6620697320696e76616c696400000000000000000000000000000000604482015260640160405180910390fd5b5050505050565b5f61017786868686866101bc565b9695505050505050565b5f815f5260205f60205f720f3df6d732807ef1319fb7b8bb8522d0beac025afa806101b357633033b0ff5f526004601cfd5b50505f51919050565b5f8415610218578460051b8601865b6001841660051b8460011c9450846101ea57635849603f5f526004601cfd5b85815281356020918218525f60408160025afa80610206575f80fd5b505f5194506020018181106101cb5750505b7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff82011561024d57631b6661c35f526004601cfd5b50501492915050565b5f805f805f6080868803121561026a575f80fd5b853567ffffffffffffffff811115610280575f80fd5b8601601f81018813610290575f80fd5b803567ffffffffffffffff8111156102a6575f80fd5b8860208260051b84010111156102ba575f80fd5b60209182019990985090870135966040810135965060600135945092505050565b5f602082840312156102eb575f80fd5b813567ffffffffffffffff81168114610302575f80fd5b939250505056fea26469706673582212204724bf3416aae18e01c0638ca800fae338e23a3106badd9db039f0186c3a2e7764736f6c634300081a0033",
 }
 
 // SSZTestABI is the input ABI used to generate the binding from.
@@ -200,6 +200,68 @@ func (_SSZTest *SSZTestTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.
 // Transact invokes the (paid) contract method with params as input values.
 func (_SSZTest *SSZTestTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
 	return _SSZTest.Contract.contract.Transact(opts, method, params...)
+}
+
+// BEACONROOTS is a free data retrieval call binding the contract method 0x56d7e8fd.
+//
+// Solidity: function BEACON_ROOTS() view returns(address)
+func (_SSZTest *SSZTestCaller) BEACONROOTS(opts *bind.CallOpts) (common.Address, error) {
+	var out []interface{}
+	err := _SSZTest.contract.Call(opts, &out, "BEACON_ROOTS")
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
+}
+
+// BEACONROOTS is a free data retrieval call binding the contract method 0x56d7e8fd.
+//
+// Solidity: function BEACON_ROOTS() view returns(address)
+func (_SSZTest *SSZTestSession) BEACONROOTS() (common.Address, error) {
+	return _SSZTest.Contract.BEACONROOTS(&_SSZTest.CallOpts)
+}
+
+// BEACONROOTS is a free data retrieval call binding the contract method 0x56d7e8fd.
+//
+// Solidity: function BEACON_ROOTS() view returns(address)
+func (_SSZTest *SSZTestCallerSession) BEACONROOTS() (common.Address, error) {
+	return _SSZTest.Contract.BEACONROOTS(&_SSZTest.CallOpts)
+}
+
+// GetParentBlockRootAt is a free data retrieval call binding the contract method 0xe2c37a98.
+//
+// Solidity: function getParentBlockRootAt(uint64 ts) view returns(bytes32 root)
+func (_SSZTest *SSZTestCaller) GetParentBlockRootAt(opts *bind.CallOpts, ts uint64) ([32]byte, error) {
+	var out []interface{}
+	err := _SSZTest.contract.Call(opts, &out, "getParentBlockRootAt", ts)
+
+	if err != nil {
+		return *new([32]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
+
+	return out0, err
+
+}
+
+// GetParentBlockRootAt is a free data retrieval call binding the contract method 0xe2c37a98.
+//
+// Solidity: function getParentBlockRootAt(uint64 ts) view returns(bytes32 root)
+func (_SSZTest *SSZTestSession) GetParentBlockRootAt(ts uint64) ([32]byte, error) {
+	return _SSZTest.Contract.GetParentBlockRootAt(&_SSZTest.CallOpts, ts)
+}
+
+// GetParentBlockRootAt is a free data retrieval call binding the contract method 0xe2c37a98.
+//
+// Solidity: function getParentBlockRootAt(uint64 ts) view returns(bytes32 root)
+func (_SSZTest *SSZTestCallerSession) GetParentBlockRootAt(ts uint64) ([32]byte, error) {
+	return _SSZTest.Contract.GetParentBlockRootAt(&_SSZTest.CallOpts, ts)
 }
 
 // MustVerifyProof is a free data retrieval call binding the contract method 0x41b703ff.
