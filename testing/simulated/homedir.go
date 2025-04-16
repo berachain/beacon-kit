@@ -34,11 +34,10 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/cli/commands/genesis"
 	"github.com/berachain/beacon-kit/cli/commands/initialize"
+	"github.com/berachain/beacon-kit/cli/commands/server/types"
 	genesisutils "github.com/berachain/beacon-kit/cli/utils/genesis"
-	"github.com/berachain/beacon-kit/consensus-types/types"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -117,24 +116,6 @@ type genesisCreator struct {
 	cometService *cometbft.Service
 }
 
-// DefaultGenesis will take the DefaultGenesis and override the Fork version which is hardcoded to Deneb
-// The behaviour is identical to the Comet Service `DefaultGenesis()` with the exception that it calculates the
-// fork version based on chain spec.
-func (g *genesisCreator) DefaultGenesis() map[string]json.RawMessage {
-	gen := make(map[string]json.RawMessage)
-	defaultGen := types.DefaultGenesis()
-	defaultGen.ForkVersion = g.chainSpec.GenesisForkVersion()
-	var err error
-	gen["beacon"], err = json.Marshal(defaultGen)
-	if err != nil {
-		panic(err)
-	}
-	return gen
-}
-func (g *genesisCreator) ValidateGenesis(genesisData map[string]json.RawMessage) error {
-	return g.cometService.ValidateGenesis(genesisData)
-}
-
 // initCommand runs the initialization command to prepare the home directory.
 // This function emulates the 'beacond init' command.
 func initCommand(t *testing.T, spec chain.Spec, homeDir string) {
@@ -153,10 +134,7 @@ func initCommand(t *testing.T, spec chain.Spec, homeDir string) {
 	require.NoError(t, err, "failed to create data directory")
 
 	// Initialize the command to set up the home directory.
-	initCMD := initialize.InitCmd(&genesisCreator{
-		chainSpec:    spec,
-		cometService: &cometbft.Service{},
-	})
+	initCMD := initialize.InitCmd(func(_ types.AppOptions) (chain.Spec, error) { return spec, nil }, &cometbft.Service{})
 	initCMD.SetArgs([]string{"test-moniker"})
 
 	// Set the command context; required to work around a Cosmos SDK issue.

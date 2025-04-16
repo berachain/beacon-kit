@@ -42,6 +42,7 @@ var (
 
 // ExecutionPayloadHeader represents the payload header of an execution block.
 type ExecutionPayloadHeader struct {
+	// TODO(pectra): Remove the versionable as it's not needed.
 	constraints.Versionable
 
 	// Contents
