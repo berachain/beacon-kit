@@ -75,6 +75,7 @@ const (
 
 	// mainnetGenesisTime is the timestamp of the Berachain mainnet genesis block.
 	mainnetGenesisTime = 1737381600
+
 	// mainnetDeneb1ForkTime is the timestamp at which the Deneb1 fork occurs.
 	// This is calculated based on the timestamp of the 2855th mainnet epoch, block 548160, which
 	// was used to initiate the fork when beacon-kit forked by epoch instead of by timestamp.

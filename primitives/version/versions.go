@@ -67,7 +67,8 @@ func Capella() common.Version {
 	return capella
 }
 
-// Deneb returns deneb as a common.Version. Deneb is the genesis fork version for Berachain mainnet.
+// Deneb returns deneb as a common.Version. Deneb is the genesis fork version for Berachain
+// mainnet and Bepolia testnet.
 func Deneb() common.Version {
 	return deneb
 }
