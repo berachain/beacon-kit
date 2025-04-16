@@ -72,6 +72,10 @@ type PayloadBuilder interface {
 
 // StateProcessor defines the interface for processing the state.
 type StateProcessor interface {
+	// PrepareStateForFork prepares the state for the given fork version.
+	PrepareStateForFork(
+		st *statedb.StateDB, forkVersion common.Version, slot math.Slot,
+	) error
 	// ProcessSlots processes the slot.
 	ProcessSlots(
 		st *statedb.StateDB, slot math.Slot,

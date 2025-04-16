@@ -89,7 +89,7 @@ func (sp *StateProcessor) Transition(
 
 	// Prepare the state for the given fork version.
 	slot := blk.GetSlot()
-	if err := sp.prepareStateForFork(st, blk.GetForkVersion(), slot); err != nil {
+	if err := sp.PrepareStateForFork(st, blk.GetForkVersion(), slot); err != nil {
 		return nil, err
 	}
 
@@ -157,7 +157,8 @@ func (sp *StateProcessor) ProcessSlots(
 	return res, nil
 }
 
-// processSlot is run when a slot is missed.
+// processSlot as defined in the Ethereum 2.0 Specification:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#beacon-chain-state-transition-function
 func (sp *StateProcessor) processSlot(st *state.StateDB) error {
 	stateSlot, err := st.GetSlot()
 	if err != nil {
