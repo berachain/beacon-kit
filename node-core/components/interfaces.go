@@ -130,6 +130,10 @@ type (
 			*ctypes.ExecutionPayloadHeader,
 			common.Version,
 		) (transition.ValidatorUpdates, error)
+		// PrepareStateForFork prepares the state for the given fork version.
+		PrepareStateForFork(
+			st *statedb.StateDB, forkVersion common.Version, slot math.Slot,
+		) error
 		// ProcessSlot processes the slot.
 		ProcessSlots(
 			st *statedb.StateDB, slot math.Slot,
