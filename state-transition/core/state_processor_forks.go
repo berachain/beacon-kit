@@ -32,7 +32,8 @@ import (
 
 // PrepareStateForFork prepares the state for the fork version at the given timestamp.
 //   - If this function is called for the same version as the state's current version,
-//     it will do nothing.
+//     it will do nothing. Unless it is the genesis slot, in which case we want to
+//     prepare the state for the genesis fork version.
 //   - If this function is called for a version before the state's current version,
 //     it will return error as this is not allowed.
 //   - If this function is called for a version after the state's current version,
@@ -51,12 +52,12 @@ func (sp *StateProcessor) PrepareStateForFork(
 		return fmt.Errorf(
 			"cannot downgrade state from %s to %s", stateFork.CurrentVersion, forkVersion,
 		)
-	} else if version.Equals(forkVersion, stateFork.CurrentVersion) && slot != 0 {
-		// In the genesis block, i.e. slot 0, we will process always process the fork versions
+	} else if slot > 0 && version.Equals(forkVersion, stateFork.CurrentVersion) {
+		// If we are past genesis and the fork version remains consistent, do nothing.
 		return nil
 	}
 
-	// Upgrade the state to the new version.
+	// If we are at genesis or moving to a new fork version, upgrade the state.
 	switch forkVersion {
 	case version.Deneb():
 		// Do nothing. NOTE: Deneb is the genesis version of Berachain.
