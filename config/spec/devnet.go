@@ -58,15 +58,15 @@ const (
 )
 
 // DevnetChainSpecData is the chain.SpecData for a devnet. It is similar to mainnet but
-// has different values for testing EVM inflation and staking.
+// has different values for testing EVM inflation, staking, and hard forks.
 //
 // TODO: remove modifications from mainnet spec to align with mainnet behavior.
 func DevnetChainSpecData() *chain.SpecData {
 	specData := MainnetChainSpecData()
 	specData.DepositEth1ChainID = DevnetEth1ChainID
 
-	specData.GenesisTime = devnetGenesisTime
 	// Fork timings are set to facilitate local testing across fork versions.
+	specData.GenesisTime = devnetGenesisTime
 	specData.Deneb1ForkTime = devnetDeneb1ForkTime
 	specData.ElectraForkTime = devnetElectraForkTime
 
