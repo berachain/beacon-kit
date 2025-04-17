@@ -40,7 +40,7 @@ var (
 	spec = zspec.Mainnet
 )
 
-// TODO(pectra): None of the iterations makes it to `HashTreeRoot` as they all get caught by the nil checks.
+// TODO: None of the iterations makes it to `HashTreeRoot` as they all get caught by the nil checks.
 // A custom generator is required like TestExecPayload. Test is skipped for now as it is not useful as is.
 func TestBlobSidecarTreeRootPrysm(t *testing.T) {
 	t.Parallel()

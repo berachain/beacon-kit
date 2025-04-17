@@ -164,7 +164,7 @@ func MainnetChainSpecData() *chain.SpecData {
 	}
 }
 
-// MainnetChainSpec is the ChainSpec for the Beracdhain mainnet.
+// MainnetChainSpec is the ChainSpec for the Berachain mainnet.
 func MainnetChainSpec() (chain.Spec, error) {
 	return chain.NewSpec(MainnetChainSpecData())
 }
