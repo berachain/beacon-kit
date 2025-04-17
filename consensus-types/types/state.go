@@ -33,6 +33,7 @@ import (
 // BeaconState represents the entire state of the beacon chain.
 type BeaconState struct {
 	constraints.Versionable `json:"-"`
+
 	// Versioning
 	GenesisValidatorsRoot common.Root `json:"genesis_validators_root,omitempty"`
 	Slot                  math.Slot   `json:"slot,omitempty"`
@@ -67,6 +68,7 @@ type BeaconState struct {
 	PendingPartialWithdrawals []*PendingPartialWithdrawal `json:"pending_partial_withdrawals,omitempty"`
 }
 
+// NewEmptyBeaconStateWithVersion returns a new empty BeaconState with the given fork version.
 func NewEmptyBeaconStateWithVersion(version common.Version) *BeaconState {
 	return &BeaconState{
 		Versionable: NewVersionable(version),

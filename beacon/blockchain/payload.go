@@ -240,8 +240,7 @@ func (s *Service) optimisticPayloadBuild(
 	slot := blk.GetSlot() + 1
 
 	s.logger.Info(
-		"Optimistically triggering payload build for next slot 🛩️ ",
-		"next_slot", slot.Base10(),
+		"Optimistically triggering payload build for next slot 🛩️ ", "next_slot", slot.Base10(),
 	)
 
 	// We process the slot to update any RANDAO values.

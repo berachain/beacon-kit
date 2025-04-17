@@ -18,27 +18,8 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package schema
+package ssztest
 
-// Field represents a named value of a generic type.
-type Field struct {
-	// name is the name of the field
-	name string
-	// value is the value of the field
-	value SSZType
-}
-
-// NewField creates a new field.
-func NewField(name string, typ SSZType) *Field {
-	return &Field{name: name, value: typ}
-}
-
-// GetName returns the name of the field.
-func (f Field) GetName() string {
-	return f.name
-}
-
-// GetValue returns the value of the field.
-func (f Field) GetValue() SSZType {
-	return f.value
-}
+// TODO: Remove ldflags=-checklinkname=0 override once fix is applied.
+//
+//go:generate abigen --abi=../../contracts/out/SSZ.sol/SSZTest.abi.json --bin=../../contracts/out/SSZ.sol/SSZTest.bin --pkg=ssztest --type=SSZTest --out=contract.abigen.go
