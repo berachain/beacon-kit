@@ -357,6 +357,7 @@ func TestU64_HashTreeRoot(t *testing.T) {
 			expectedHex: "0x0000000000000000000000000000000000000000000000000000000000000000",
 		},
 		{
+			// https://eth2book.info/capella/part2/building_blocks/merkleization/#the-data-root
 			name:        "nine",
 			value:       math.U64(9),
 			expectedHex: "0x0900000000000000000000000000000000000000000000000000000000000000",
@@ -367,6 +368,7 @@ func TestU64_HashTreeRoot(t *testing.T) {
 			expectedHex: "0xffffffffffffffff000000000000000000000000000000000000000000000000",
 		},
 		{
+			// https://eth2book.info/capella/part2/building_blocks/merkleization/#the-data-root
 			name:        "large number",
 			value:       math.U64(3080829),
 			expectedHex: "0x7d022f0000000000000000000000000000000000000000000000000000000000",

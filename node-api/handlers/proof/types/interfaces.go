@@ -21,15 +21,14 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	fastssz "github.com/ferranbt/fastssz"
 )
 
 // BeaconStateMarshallable is the interface for a beacon state that can be
 // marshalled or hash tree rooted.
 type BeaconStateMarshallable interface {
-	// GetForkVersion returns the fork version of the beacon state.
-	GetForkVersion() common.Version
+	constraints.Versionable
 	// GetTree is kept for FastSSZ compatibility.
 	GetTree() (*fastssz.Node, error)
 }

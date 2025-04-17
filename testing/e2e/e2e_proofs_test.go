@@ -130,6 +130,19 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 	)
 	s.Require().NoError(err)
 
+	// If the proof or leaf is modified, the proof should not verify.
+	isVerified, err := sszTest.VerifyProof(
+		&bind.CallOpts{
+			Context: s.Ctx(),
+		},
+		proposerIndexProof,
+		blockProposerResp.BeaconBlockRoot,
+		(blockProposerResp.BeaconBlockHeader.ProposerIndex + 2).HashTreeRoot(), // malicious leaf
+		big.NewInt(merkle.ProposerIndexGIndexBlock),
+	)
+	s.Require().NoError(err)
+	s.Require().False(isVerified)
+
 	// Get the chain spec to determine the fork version.
 	// TODO: make test use configurable chain spec.
 	cs, err := spec.DevnetChainSpec()
@@ -156,7 +169,6 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 	for i, proofItem := range blockProposerResp.ValidatorPubkeyProof {
 		validatorPubkeyProof[i] = proofItem
 	}
-
 	err = sszTest.MustVerifyProof(
 		&bind.CallOpts{
 			Context: s.Ctx(),
