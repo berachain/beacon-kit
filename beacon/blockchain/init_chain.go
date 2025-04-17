@@ -30,8 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/version"
 )
 
-// ProcessGenesisData processes the genesis state and initializes the beacon
-// state.
+// ProcessGenesisData processes the genesis state and initializes the beacon state.
 func (s *Service) ProcessGenesisData(
 	ctx context.Context,
 	bytes []byte,
@@ -42,7 +41,17 @@ func (s *Service) ProcessGenesisData(
 		return nil, err
 	}
 
-	// Validate the genesis timestamps and fork versions, ensuring consistency.
+	// Ensure consistency of the genesis timestamp.
+	execPayloadHeader := genesisData.GetExecutionPayloadHeader()
+	if s.chainSpec.GenesisTime() != execPayloadHeader.GetTimestamp().Unwrap() {
+		return nil, fmt.Errorf(
+			"mismatch between chain spec genesis time (%d) and execution payload header time (%d)",
+			s.chainSpec.GenesisTime(),
+			execPayloadHeader.GetTimestamp().Unwrap(),
+		)
+	}
+
+	// Ensure consistency of the genesis fork version.
 	genesisVersion := genesisData.GetForkVersion()
 	if !version.Equals(genesisVersion, s.chainSpec.GenesisForkVersion()) {
 		return nil, fmt.Errorf(
@@ -50,18 +59,8 @@ func (s *Service) ProcessGenesisData(
 			genesisVersion, s.chainSpec.GenesisForkVersion(),
 		)
 	}
-	execPayloadHeader := genesisData.GetExecutionPayloadHeader()
-	if !version.Equals(
-		s.chainSpec.ActiveForkVersionForTimestamp(execPayloadHeader.GetTimestamp()),
-		genesisVersion,
-	) {
-		return nil, fmt.Errorf(
-			"fork mismatch between CL genesis file version (%s) and execution payload header version (%s)",
-			s.chainSpec.ActiveForkVersionForTimestamp(execPayloadHeader.GetTimestamp()),
-			genesisVersion,
-		)
-	}
 
+	// Initialize the beacon state from the genesis deposits.
 	validatorUpdates, err := s.stateProcessor.InitializeBeaconStateFromEth1(
 		s.storageBackend.StateFromContext(ctx),
 		genesisData.GetDeposits(),
