@@ -49,9 +49,6 @@ func (sp *StateProcessor) InitializePreminedBeaconStateFromEth1(
 	if err := st.SetFork(fork); err != nil {
 		return nil, err
 	}
-	if err := sp.PrepareStateForFork(st, execPayloadHeader.GetTimestamp(), 0, true); err != nil {
-		return nil, err
-	}
 
 	eth1Data := &ctypes.Eth1Data{
 		DepositRoot:  deposits.HashTreeRoot(),
