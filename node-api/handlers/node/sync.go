@@ -20,44 +20,47 @@
 
 package node
 
-import "github.com/berachain/beacon-kit/node-api/handlers"
+import (
+	"errors"
 
-// Syncing is a placeholder so that beacon API clients don't break.
-//
-// TODO: Implement with real data.
+	"github.com/berachain/beacon-kit/node-api/handlers"
+	nodetypes "github.com/berachain/beacon-kit/node-api/handlers/node/types"
+)
+
+var (
+	errNilBlockStore = errors.New("block store is nil")
+	errNilNode       = errors.New("node is nil")
+)
+
+// Syncing returns the syncing status of the node.
 func (h *Handler) Syncing(handlers.Context) (any, error) {
-	type SyncingResponse struct {
-		Data struct {
-			HeadSlot     string `json:"head_slot"`
-			SyncDistance string `json:"sync_distance"`
-			IsSyncing    bool   `json:"is_syncing"`
-			IsOptimistic bool   `json:"is_optimistic"`
-			ELOffline    bool   `json:"el_offline"`
-		} `json:"data"`
+	node := h.backend.GetNode()
+	if node == nil {
+		return nil, errNilNode
 	}
 
-	response := SyncingResponse{}
-	response.Data.HeadSlot = "0"
-	response.Data.SyncDistance = "1"
-	response.Data.IsSyncing = false
-	response.Data.IsOptimistic = true
-	response.Data.ELOffline = false
-
-	return response, nil
-}
-
-// Version is a placeholder so that beacon API clients don't break.
-//
-// TODO: Implement with real data.
-func (h *Handler) Version(handlers.Context) (any, error) {
-	type VersionResponse struct {
-		Data struct {
-			Version string `json:"version"`
-		} `json:"data"`
+	// Get blockStore for heights
+	blockStore := node.BlockStore()
+	if blockStore == nil {
+		return nil, errNilBlockStore
 	}
 
-	response := VersionResponse{}
-	response.Data.Version = "1.1.0"
+	latestHeight := blockStore.Height()
+	baseHeight := blockStore.Base()
 
-	return response, nil
+	response := nodetypes.SyncingData{
+		HeadSlot:     latestHeight,
+		IsOptimistic: true,
+		ELOffline:    false,
+	}
+
+	// Calculate sync distance using block heights
+	response.SyncDistance = latestHeight - baseHeight
+	// If SyncDistance is greater than 0,
+	// we consider the node to be syncing
+	if response.SyncDistance > 0 {
+		response.IsSyncing = true
+	}
+
+	return nodetypes.NewResponse(&response), nil
 }

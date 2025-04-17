@@ -75,8 +75,8 @@ func ProvideNodeAPIEventsHandler() *eventsapi.Handler {
 	return eventsapi.NewHandler()
 }
 
-func ProvideNodeAPINodeHandler() *nodeapi.Handler {
-	return nodeapi.NewHandler()
+func ProvideNodeAPINodeHandler(b NodeAPIBackend) *nodeapi.Handler {
+	return nodeapi.NewHandler(b)
 }
 
 func ProvideNodeAPIProofHandler(b NodeAPIBackend) *proofapi.Handler {
