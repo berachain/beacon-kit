@@ -140,8 +140,6 @@ func (rs *ReportingService) Stop() error {
 	return nil
 }
 
-// v1.1.5-98b93c6-76-gbc067a11d
-
 func (rs *ReportingService) printToConsole(
 	ethClient engineprimitives.ClientVersionV1) {
 	rs.logger.Info(fmt.Sprintf(`
