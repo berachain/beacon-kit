@@ -91,7 +91,7 @@ func (sp *StateProcessor) ProcessFork(
 			sp.logDeneb1Fork(stateFork.PreviousVersion, timestamp, slot)
 		}
 	case version.Electra():
-		if err = sp.upgradeToElectra(st, stateFork, timestamp, slot); err != nil {
+		if err = sp.upgradeToElectra(st, stateFork, slot); err != nil {
 			return err
 		}
 
@@ -169,7 +169,7 @@ func (sp *StateProcessor) logDeneb1Fork(
 //   - update the Fork struct in the BeaconState
 //   - initialize the pending partial withdrawals to an empty array
 func (sp *StateProcessor) upgradeToElectra(
-	st *statedb.StateDB, fork *types.Fork, timestamp math.U64, slot math.Slot,
+	st *statedb.StateDB, fork *types.Fork, slot math.Slot,
 ) error {
 	// Set the fork on BeaconState.
 	fork.PreviousVersion = fork.CurrentVersion
