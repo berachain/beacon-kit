@@ -34,8 +34,7 @@ import (
 
 // ProcessFork prepares the state for the fork version at the given timestamp.
 //   - If this function is called for the same version as the state's current version,
-//     it will do nothing. Unless it is the genesis slot, in which case we want to
-//     prepare the state for the genesis fork version.
+//     it will do nothing.
 //   - If this function is called for a version before the state's current version,
 //     it will return error as this is not allowed.
 //   - If this function is called for a version after the state's current version,
@@ -62,27 +61,23 @@ func (sp *StateProcessor) ProcessFork(
 		return fmt.Errorf(
 			"cannot downgrade state from %s to %s", stateFork.CurrentVersion, forkVersion,
 		)
-	} else if slot > 0 && version.Equals(forkVersion, stateFork.CurrentVersion) {
-		// If we are past genesis and the fork version remains consistent, do nothing.
+	} else if version.Equals(forkVersion, stateFork.CurrentVersion) {
+		// If the fork version remains consistent, do nothing.
 		return nil
 	}
 
-	// If we are at genesis or moving to a new fork version, upgrade the state.
+	// If we are moving to a new fork version, upgrade the state.
 	switch forkVersion {
 	case version.Deneb():
 		// Do nothing to the state. NOTE: Deneb is the genesis version of Berachain mainnet and
-		// Bepolia testnet. At genesis, InitializePreminedBeaconStateFromEth1 should be called,
-		// which adequately prepares the BeaconState for Deneb.
-		if slot != constants.GenesisSlot {
-			return fmt.Errorf("the Deneb fork must be at genesis slot but got %d", slot)
-		}
+		// Bepolia testnet.
 
 		// Log the upgrade to Deneb if requested.
 		if logUpgrade {
 			sp.logDenebFork(timestamp)
 		}
 	case version.Deneb1():
-		// Do nothing to the state. NOTE: Deneb1 is the first hard fork of  Berachain mainnet and
+		// Do nothing to the state. NOTE: Deneb1 is the first hard fork of Berachain mainnet and
 		// Bepolia testnet. In this fork, the Fork struct on BeaconState is NOT updated. In
 		// future hard forks, the Fork struct should be updated.
 
@@ -109,7 +104,7 @@ func (sp *StateProcessor) ProcessFork(
 // logDenebFork logs information about the Deneb fork.
 func (sp *StateProcessor) logDenebFork(timestamp math.U64) {
 	// Since Deneb is the earliest fork version supported by beacon-kit, if we are
-	// "upgrading to Deneb" it must be at genesis, which means the fork time of Deneb is
+	// entering Deneb it must be at genesis, which means the fork time of Deneb is
 	// the timestamp of the genesis block itself.
 	denebForkTime := timestamp.Unwrap()
 
