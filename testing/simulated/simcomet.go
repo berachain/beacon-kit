@@ -33,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/node-core/builder"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	cmtcfg "github.com/cometbft/cometbft/config"
+	"github.com/cometbft/cometbft/node"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -83,4 +84,8 @@ func (s *SimComet) CreateQueryContext(height int64, prove bool) (sdk.Context, er
 
 func (s *SimComet) LastBlockHeight() int64 {
 	panic("unimplemented")
+}
+
+func (s *SimComet) GetCometNode() *node.Node {
+	return s.Comet.GetCometNode()
 }
