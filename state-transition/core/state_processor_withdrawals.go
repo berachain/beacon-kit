@@ -41,7 +41,7 @@ import (
 // 2. Subsequent withdrawals (if any) are processed as validator withdrawals
 // 3. This modification reduces the maximum validator withdrawals per block by one.
 //
-
+//nolint:gocognit,funlen // TODO(pectra).
 func (sp *StateProcessor) processWithdrawals(
 	st *state.StateDB, blk *ctypes.BeaconBlock,
 ) error {
@@ -167,7 +167,7 @@ const FullExitRequestAmount = 0
 const PendingPartialWithdrawalsLimit = 64
 
 // MinActivationBalance TODO(pectra): Move to somewhere more appropriate. 250K BERA.
-const MinActivationBalance = 250_000_000_000_000 * params.GWei
+const MinActivationBalance = 250_000 * params.GWei
 
 // processWithdrawalRequest is the equivalent of process_withdrawal_request as defined in the spec.
 // It should only be called after the electra hard fork.
