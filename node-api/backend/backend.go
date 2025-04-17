@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	cmtcfg "github.com/cometbft/cometbft/config"
+	"github.com/cometbft/cometbft/node"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 )
 
@@ -159,4 +160,10 @@ func (b *Backend) stateFromSlotRaw(slot math.Slot) (*statedb.StateDB, math.Slot,
 		}
 	}
 	return st, slot, nil
+}
+
+// GetNode returns the comet node from the backend.
+// This is part of the NodeAPIBackend interface.
+func (b *Backend) GetNode() *node.Node {
+	return b.node.GetCometNode()
 }

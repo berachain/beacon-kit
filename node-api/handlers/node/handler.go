@@ -20,17 +20,23 @@
 
 package node
 
-import "github.com/berachain/beacon-kit/node-api/handlers"
+import (
+	"github.com/berachain/beacon-kit/node-api/handlers"
+)
 
+// Handler is the handler for the node API.
 type Handler struct {
 	*handlers.BaseHandler
+	backend Backend
 }
 
-func NewHandler() *Handler {
+// NewHandler creates a new handler for the node API.
+func NewHandler(backend Backend) *Handler {
 	h := &Handler{
 		BaseHandler: handlers.NewBaseHandler(
 			handlers.NewRouteSet(""),
 		),
+		backend: backend,
 	}
 	return h
 }
