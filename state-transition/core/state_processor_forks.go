@@ -22,7 +22,6 @@ package core
 
 import (
 	"fmt"
-	"sync"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -38,7 +37,7 @@ import (
 //   - If this function is called for a version after the state's current version,
 //     it will upgrade the state to the new version.
 func (sp *StateProcessor) PrepareStateForFork(
-	st *statedb.StateDB, timestamp math.U64, slot math.Slot,
+	st *statedb.StateDB, timestamp math.U64, slot math.Slot, logUpgrade bool,
 ) error {
 	stateFork, err := st.GetFork()
 	if err != nil {
@@ -66,7 +65,7 @@ func (sp *StateProcessor) PrepareStateForFork(
 		// In this fork, the Fork struct on BeaconState is NOT updated.
 		// In future hard forks, the Fork struct WILL be updated.
 	case version.Electra():
-		return sp.upgradeToElectra(st, stateFork, slot, timestamp)
+		return sp.upgradeToElectra(st, stateFork, timestamp, slot, logUpgrade)
 	default:
 		return fmt.Errorf("unsupported fork version: %s", forkVersion)
 	}
@@ -78,7 +77,7 @@ func (sp *StateProcessor) PrepareStateForFork(
 // spec (https://ethereum.github.io/consensus-specs/specs/electra/fork/#upgrading-the-state)
 // to only upgrade the Fork struct in the BeaconState.
 func (sp *StateProcessor) upgradeToElectra(
-	st *statedb.StateDB, fork *types.Fork, slot math.Slot, timestamp math.U64,
+	st *statedb.StateDB, fork *types.Fork, timestamp math.U64, slot math.Slot, logUpgrade bool,
 ) error {
 	// Set the fork on BeaconState.
 	fork.PreviousVersion = fork.CurrentVersion
@@ -95,7 +94,7 @@ func (sp *StateProcessor) upgradeToElectra(
 
 	// Log the upgrade to Electra, but only once.
 	// TODO: fix. Still being logged this multiple times.
-	sync.OnceFunc(func() {
+	if logUpgrade {
 		sp.logger.Info(fmt.Sprintf(`
 
 
@@ -116,6 +115,6 @@ func (sp *StateProcessor) upgradeToElectra(
 			slot.Unwrap(), timestamp.Unwrap(),
 			fork.Epoch.Unwrap(),
 		))
-	})()
+	}
 	return nil
 }
