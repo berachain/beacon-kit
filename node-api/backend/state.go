@@ -23,8 +23,6 @@ package backend
 import (
 	"fmt"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
@@ -50,22 +48,4 @@ func (b *Backend) StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, erro
 		}
 	}
 	return st, slot, nil
-}
-
-// GetStateRoot returns the root of the state at the given slot.
-func (b *Backend) StateRootAtSlot(slot math.Slot) (common.Root, error) {
-	st, _, err := b.StateAtSlot(slot)
-	if err != nil {
-		return common.Root{}, err
-	}
-	return st.HashTreeRoot(), nil
-}
-
-// GetStateFork returns the fork of the state at the given stateID.
-func (b *Backend) StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error) {
-	st, _, err := b.StateAtSlot(slot)
-	if err != nil {
-		return nil, err
-	}
-	return st.GetFork()
 }
