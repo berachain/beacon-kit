@@ -85,6 +85,8 @@ func ProvideElectraGenesisChainSpec() (chain.Spec, error) {
 	specData.GenesisTime = 0
 	specData.Deneb1ForkTime = 0
 	specData.ElectraForkTime = 0
+	// We set slots per epoch to 2 for faster observation of withdrawal behaviour
+	specData.SlotsPerEpoch = 2
 	chainSpec, err := chain.NewSpec(specData)
 	if err != nil {
 		return nil, err
