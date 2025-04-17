@@ -27,14 +27,18 @@ import (
 	"github.com/karalabe/ssz"
 )
 
+// Compile-time assertions to ensure SignedBeaconBlockHeader implements necessary interfaces.
 var (
 	_ ssz.StaticObject                    = (*SignedBeaconBlockHeader)(nil)
 	_ constraints.SSZMarshallableRootable = (*SignedBeaconBlockHeader)(nil)
 )
 
+// SignedBeaconBlockHeader is a struct that contains a BeaconBlockHeader and a BLSSignature.
+//
+// NOTE: This struct is only ever (un)marshalled with SSZ and NOT with JSON.
 type SignedBeaconBlockHeader struct {
-	Header    *BeaconBlockHeader  `json:"header"`
-	Signature crypto.BLSSignature `json:"signature"`
+	Header    *BeaconBlockHeader
+	Signature crypto.BLSSignature
 }
 
 /* -------------------------------------------------------------------------- */
@@ -49,11 +53,6 @@ func NewSignedBeaconBlockHeader(
 	return &SignedBeaconBlockHeader{
 		header, signature,
 	}
-}
-
-// Empty creates an empty BeaconBlockHeader instance.
-func (*SignedBeaconBlockHeader) Empty() *SignedBeaconBlockHeader {
-	return &SignedBeaconBlockHeader{}
 }
 
 /* -------------------------------------------------------------------------- */
@@ -80,10 +79,7 @@ func (b *SignedBeaconBlockHeader) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 
-// UnmarshalSSZ unmarshals the SignedBeaconBlockHeader object from SSZ format.
-func (b *SignedBeaconBlockHeader) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, b)
-}
+func (*SignedBeaconBlockHeader) ValidateAfterDecodingSSZ() error { return nil }
 
 // HashTreeRoot computes the SSZ hash tree root of the
 // SignedBeaconBlockHeader object.
@@ -100,21 +96,7 @@ func (b *SignedBeaconBlockHeader) GetHeader() *BeaconBlockHeader {
 	return b.Header
 }
 
-// Setheader sets the header of the BeaconBlockHeader.
-func (b *SignedBeaconBlockHeader) SetHeader(header *BeaconBlockHeader) {
-	b.Header = header
-}
-
 // GetSignature retrieves the Signature of the SignedBeaconBlockHeader.
 func (b *SignedBeaconBlockHeader) GetSignature() crypto.BLSSignature {
 	return b.Signature
-}
-
-// SetSignature sets the Signature of the BeaconBlockHeader.
-func (b *SignedBeaconBlockHeader) SetSignature(signature crypto.BLSSignature) {
-	b.Signature = signature
-}
-
-func (b *SignedBeaconBlockHeader) IsNil() bool {
-	return b == nil
 }

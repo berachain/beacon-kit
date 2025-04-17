@@ -27,6 +27,7 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"golang.org/x/sync/errgroup"
 )
@@ -57,6 +58,19 @@ func (sp *StateProcessor) processExecutionPayload(
 		"consensus timestamp", consensusTimestamp,
 		"verify payload", txCtx.VerifyPayload(),
 	)
+
+	if version.EqualsOrIsAfter(blk.GetForkVersion(), version.Electra()) {
+		requests, getErr := blk.GetBody().GetExecutionRequests()
+		if getErr != nil {
+			return getErr
+		}
+		sp.logger.Info(
+			"Processing execution requests",
+			"deposits", len(requests.Deposits),
+			"withdrawals", len(requests.Withdrawals),
+			"consolidations", len(requests.Consolidations),
+		)
+	}
 
 	// Perform payload verification only if the context is configured as such.
 	if txCtx.VerifyPayload() {
@@ -155,12 +169,10 @@ func (sp *StateProcessor) validateStatefulPayload(
 		return err
 	}
 
-	parentBeaconBlockRoot := blk.GetParentBlockRoot()
-	payloadReq := ctypes.BuildNewPayloadRequest(
-		payload,
-		body.GetBlobKzgCommitments().ToVersionedHashes(),
-		&parentBeaconBlockRoot,
-	)
+	payloadReq, err := ctypes.BuildNewPayloadRequestFromFork(blk)
+	if err != nil {
+		return err
+	}
 
 	// First we verify the block hash and versioned hashes are valid.
 	// TODO: is this required? Or will the EL handle this for us during
@@ -169,7 +181,9 @@ func (sp *StateProcessor) validateStatefulPayload(
 		return err
 	}
 
-	if err = sp.executionEngine.NotifyNewPayload(ctx, payloadReq); err != nil {
+	// TODO: set retryOnSyncingStatus to false if we are in FinalizeBlock.
+	// Otherwise leave as true. This is ok to leave this way for now.
+	if err = sp.executionEngine.NotifyNewPayload(ctx, payloadReq, true); err != nil {
 		return err
 	}
 

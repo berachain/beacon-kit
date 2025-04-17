@@ -21,13 +21,13 @@
 package deposit
 
 import (
-	"github.com/berachain/beacon-kit/chain"
+	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 )
 
 // Commands creates a new command for deposit related actions.
-func Commands(chainSpec chain.Spec) *cobra.Command {
+func Commands(chainSpecCreator servertypes.ChainSpecCreator, appCreator servertypes.AppCreator) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "deposit",
 		Short:                      "deposit subcommands",
@@ -37,9 +37,10 @@ func Commands(chainSpec chain.Spec) *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		NewValidateDeposit(chainSpec),
-		NewCreateValidator(chainSpec),
+		GetValidateDepositCmd(chainSpecCreator),
+		GetCreateValidatorCmd(chainSpecCreator),
 		GetValidatorKeysCmd(),
+		GetDBCheckCmd(appCreator),
 	)
 
 	return cmd

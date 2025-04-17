@@ -24,16 +24,18 @@ package simulated
 
 import (
 	"context"
+	"fmt"
 	"os"
+	"os/exec"
 	"path"
+	"path/filepath"
 	"testing"
 
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/cli/commands/genesis"
 	"github.com/berachain/beacon-kit/cli/commands/initialize"
 	genesisutils "github.com/berachain/beacon-kit/cli/utils/genesis"
-	"github.com/berachain/beacon-kit/config/spec"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
-	"github.com/berachain/beacon-kit/node-core/components"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	cmtcfg "github.com/cometbft/cometbft/config"
@@ -46,19 +48,12 @@ const TestnetBeaconChainID = "testnet-beacon-80069"
 // InitializeHomeDir sets up a temporary home directory with the necessary genesis state
 // and configuration files for testing. It returns the configured CometBFT config along with
 // the computed genesis validators root.
-func InitializeHomeDir(t *testing.T, tempHomeDir string) (*cmtcfg.Config, common.Root) {
+func InitializeHomeDir(t *testing.T, chainSpec chain.Spec, tempHomeDir string, elGenesisPath string) (*cmtcfg.Config, common.Root) {
 	t.Helper()
 
 	t.Logf("Initializing home directory: %s", tempHomeDir)
 	// Create the default CometBFT configuration using the temporary home directory.
 	cometConfig := createCometConfig(t, tempHomeDir)
-
-	// Retrieve the testnet chain specification.
-	chainSpec, err := spec.TestnetChainSpec()
-	require.NoError(t, err, "failed to retrieve testnet chain spec")
-
-	// Set the chain spec type environment variable.
-	t.Setenv(components.ChainSpecTypeEnvVar, components.TestnetChainSpecType)
 
 	// Run initialization command to mimic 'beacond init'
 	initCommand(t, cometConfig.RootDir)
@@ -72,7 +67,7 @@ func InitializeHomeDir(t *testing.T, tempHomeDir string) (*cmtcfg.Config, common
 	withdrawalAddress := common.NewExecutionAddressFromHex("0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4")
 
 	// Add a genesis deposit.
-	err = genesis.AddGenesisDeposit(chainSpec, cometConfig, blsSigner, depositAmount, withdrawalAddress, "")
+	err := genesis.AddGenesisDeposit(chainSpec, cometConfig, blsSigner, depositAmount, withdrawalAddress, "")
 	require.NoError(t, err, "failed to add genesis deposit")
 
 	// Collect the genesis deposit.
@@ -80,18 +75,29 @@ func InitializeHomeDir(t *testing.T, tempHomeDir string) (*cmtcfg.Config, common
 	require.NoError(t, err, "failed to collect genesis deposits")
 
 	// Update the execution layer deposit storage with the eth-genesis file.
-	err = genesis.SetDepositStorage(chainSpec, cometConfig, "./eth-genesis.json", false)
+	err = genesis.SetDepositStorage(chainSpec, cometConfig, elGenesisPath, false)
 	require.NoError(t, err, "failed to set deposit storage")
 
 	// Add the execution payload to the genesis configuration.
-	err = genesis.AddExecutionPayload(chainSpec, path.Join(cometConfig.RootDir, "eth-genesis.json"), cometConfig)
+	err = genesis.AddExecutionPayload(chainSpec, path.Join(cometConfig.RootDir, filepath.Base(elGenesisPath)), cometConfig)
 	require.NoError(t, err, "failed to add execution payload")
 
 	// Compute the validators root from the genesis file.
-	genesisValidatorsRoot, err := genesisutils.ComputeValidatorsRootFromFile(path.Join(cometConfig.RootDir, "config/genesis.json"), chainSpec)
+	genesisValidatorsRoot, err := genesisutils.ComputeValidatorsRootFromFile(
+		path.Join(cometConfig.RootDir, "config/genesis.json"),
+		chainSpec,
+	)
 	require.NoError(t, err, "failed to compute validators root")
 
 	return cometConfig, genesisValidatorsRoot
+}
+
+func CopyHomeDir(t *testing.T, sourceHomeDir, targetHomeDir string) {
+	t.Logf("Copying home directory to: %s", targetHomeDir)
+	srcPath := filepath.Join(filepath.Clean(sourceHomeDir), ".")
+	cmd := exec.Command("sh", "-c", fmt.Sprintf("cp -r %s/* %s", srcPath, targetHomeDir))
+	err := cmd.Run()
+	require.NoError(t, err)
 }
 
 // createCometConfig creates a default CometBFT configuration with the home directory set.

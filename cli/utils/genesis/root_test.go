@@ -80,6 +80,7 @@ func (TestDeposits) Generate(rand *rand.Rand, size int) reflect.Value {
 }
 
 func TestCompareGenesisCmdWithStateProcessor(t *testing.T) {
+	t.Parallel()
 	qc := &quick.Config{MaxCount: 1_000}
 	cs, err := spec.DevnetChainSpec()
 	require.NoError(t, err)
@@ -100,7 +101,9 @@ func TestCompareGenesisCmdWithStateProcessor(t *testing.T) {
 
 		// genesis validators root from StateProcessor
 		sp, st, _, _, _, _ := statetransition.SetupTestState(t, cs)
-		genPayloadHeader := new(types.ExecutionPayloadHeader).Empty()
+		genPayloadHeader := &types.ExecutionPayloadHeader{
+			Versionable: types.NewVersionable(version.Genesis()),
+		}
 		_, err = sp.InitializePreminedBeaconStateFromEth1(
 			st,
 			deposits,

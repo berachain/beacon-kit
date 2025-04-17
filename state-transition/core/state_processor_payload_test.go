@@ -32,7 +32,6 @@ import (
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -45,6 +44,8 @@ import (
 
 // TestPayloadTimestampVerification ensures that payload timestamp
 // is properly validated
+//
+//nolint:paralleltest // uses envars
 func TestPayloadTimestampVerification(t *testing.T) {
 	// Create state processor to test
 	cs := setupChain(t)
@@ -61,18 +62,20 @@ func TestPayloadTimestampVerification(t *testing.T) {
 				Index:       0,
 			},
 		}
-		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		genVersion       = version.Deneb()
+		genPayloadHeader = &types.ExecutionPayloadHeader{
+			Versionable: types.NewVersionable(version.Genesis()),
+		}
 	)
 	genPayloadHeader.Timestamp = math.U64(genesisTime.Unix())
 
 	_, err := sp.InitializePreminedBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, genVersion,
+		st, genDeposits, genPayloadHeader, version.Genesis(),
 	)
 	require.NoError(t, err)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 
 	// write genesis changes to make them available for next blocks
+	//nolint:errcheck // false positive as this has no return value
 	ctx.ConsensusCtx().(sdk.Context).MultiStore().(storetypes.CacheMultiStore).Write()
 
 	// Test cases
@@ -86,7 +89,7 @@ func TestPayloadTimestampVerification(t *testing.T) {
 		{
 			name: "Payload timestamp < consensus timestamp",
 			setupMocksF: func() {
-				mockEngine.EXPECT().NotifyNewPayload(mock.Anything, mock.Anything).Return(nil)
+				mockEngine.EXPECT().NotifyNewPayload(mock.Anything, mock.Anything, mock.Anything).Return(nil)
 			},
 			payloadTime: consensusBlkTime.Add(-10 * time.Second),
 			expectedErr: nil,
@@ -94,7 +97,7 @@ func TestPayloadTimestampVerification(t *testing.T) {
 		{
 			name: "Payload timestamp == consensus timestamp",
 			setupMocksF: func() {
-				mockEngine.EXPECT().NotifyNewPayload(mock.Anything, mock.Anything).Return(nil)
+				mockEngine.EXPECT().NotifyNewPayload(mock.Anything, mock.Anything, mock.Anything).Return(nil)
 			},
 			payloadTime: consensusBlkTime,
 			expectedErr: nil,
@@ -102,7 +105,7 @@ func TestPayloadTimestampVerification(t *testing.T) {
 		{
 			name: "Payload timestamp > consensus timestamp",
 			setupMocksF: func() {
-				mockEngine.EXPECT().NotifyNewPayload(mock.Anything, mock.Anything).Return(nil)
+				mockEngine.EXPECT().NotifyNewPayload(mock.Anything, mock.Anything, mock.Anything).Return(nil)
 			},
 			payloadTime: consensusBlkTime.Add(time.Second),
 			expectedErr: nil,
@@ -143,7 +146,7 @@ func TestPayloadTimestampVerification(t *testing.T) {
 				types.NewEth1Data(genDeposits.HashTreeRoot()),
 				math.U64(tt.payloadTime.Unix()),
 				nil,
-				testSt.EVMInflationWithdrawal(constants.GenesisSlot+1),
+				testSt.EVMInflationWithdrawal(math.U64(tt.payloadTime.Unix())),
 			)
 
 			_, err = sp.Transition(tCtx, testSt, blk)

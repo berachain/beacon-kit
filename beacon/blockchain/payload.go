@@ -37,19 +37,6 @@ func (s *Service) forceSyncUponProcess(
 	ctx context.Context,
 	st *statedb.StateDB,
 ) {
-	slot, err := st.GetSlot()
-	if err != nil {
-		s.logger.Error(
-			"failed to get slot for force startup head",
-			"error", err,
-		)
-		return
-	}
-
-	// TODO: Verify if the slot number is correct here, I believe in current
-	// form it should be +1'd. Not a big deal until hardforks are in play though.
-	slot++
-
 	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		s.logger.Error(
@@ -64,7 +51,7 @@ func (s *Service) forceSyncUponProcess(
 		"head_eth1_hash", lph.GetBlockHash(),
 		"safe_eth1_hash", lph.GetParentHash(),
 		"finalized_eth1_hash", lph.GetParentHash(),
-		"for_slot", slot.Base10(),
+		"for_slot", lph.GetNumber(),
 	)
 
 	// Submit the forkchoice update to the execution client.
@@ -74,7 +61,7 @@ func (s *Service) forceSyncUponProcess(
 			SafeBlockHash:      lph.GetParentHash(),
 			FinalizedBlockHash: lph.GetParentHash(),
 		},
-		s.chainSpec.ActiveForkVersionForSlot(slot),
+		s.chainSpec.ActiveForkVersionForTimestamp(lph.GetTimestamp()),
 	)
 	if _, err = s.executionEngine.NotifyForkchoiceUpdate(ctx, req); err != nil {
 		s.logger.Error(
@@ -93,31 +80,19 @@ func (s *Service) forceSyncUponFinalize(
 ) error {
 	// NewPayload call first to load payload into EL client.
 	executionPayload := beaconBlock.GetBody().GetExecutionPayload()
-	parentBeaconBlockRoot := beaconBlock.GetParentBlockRoot()
-	payloadReq := ctypes.BuildNewPayloadRequest(
-		executionPayload,
-		beaconBlock.GetBody().GetBlobKzgCommitments().ToVersionedHashes(),
-		&parentBeaconBlockRoot,
-	)
-	if err := payloadReq.HasValidVersionedAndBlockHashes(); err != nil {
+	payloadReq, err := ctypes.BuildNewPayloadRequestFromFork(beaconBlock)
+	if err != nil {
 		return err
 	}
 
-	switch err := s.executionEngine.NotifyNewPayload(ctx, payloadReq); {
-	case err == nil:
-		// Do nothing and move on to NotifyForkchoiceUpdate.
+	if err = payloadReq.HasValidVersionedAndBlockHashes(); err != nil {
+		return err
+	}
 
-	case errors.IsAny(err,
-		engineerrors.ErrSyncingPayloadStatus,
-		engineerrors.ErrAcceptedPayloadStatus):
-		// Don't return error here, because we want to send the forkchoice update regardless.
-		s.logger.Warn("pushed new payload to SYNCING node during force startup",
-			"error", err,
-			"blockNum", executionPayload.GetNumber(),
-			"blockHash", executionPayload.GetBlockHash(),
-		)
-
-	default:
+	// We set retryOnSyncingStatus to false here. We can ignore SYNCING status and proceed
+	// to the FCU.
+	err = s.executionEngine.NotifyNewPayload(ctx, payloadReq, false)
+	if err != nil {
 		return fmt.Errorf("startSyncUponFinalize NotifyNewPayload failed: %w", err)
 	}
 
@@ -129,10 +104,10 @@ func (s *Service) forceSyncUponFinalize(
 			SafeBlockHash:      executionPayload.GetParentHash(),
 			FinalizedBlockHash: executionPayload.GetParentHash(),
 		},
-		s.chainSpec.ActiveForkVersionForSlot(beaconBlock.GetSlot()),
+		s.chainSpec.ActiveForkVersionForTimestamp(executionPayload.GetTimestamp()),
 	)
 
-	switch _, err := s.executionEngine.NotifyForkchoiceUpdate(ctx, req); {
+	switch _, err = s.executionEngine.NotifyForkchoiceUpdate(ctx, req); {
 	case err == nil:
 		return nil
 
@@ -208,12 +183,12 @@ func (s *Service) rebuildPayloadForRejectedBlock(
 	}
 
 	// Submit a request for a new payload.
-	if _, err = s.localBuilder.RequestPayloadAsync(
+	if _, _, err = s.localBuilder.RequestPayloadAsync(
 		ctx,
 		st,
 		// We are rebuilding for the current slot.
 		stateSlot,
-		nextPayloadTimestamp.Unwrap(),
+		nextPayloadTimestamp,
 		// We set the parent root to the previous block root. The HashTreeRoot
 		// of the header is the same as the HashTreeRoot of the block.
 		latestHeader.HashTreeRoot(),
@@ -265,8 +240,7 @@ func (s *Service) optimisticPayloadBuild(
 	slot := blk.GetSlot() + 1
 
 	s.logger.Info(
-		"Optimistically triggering payload build for next slot 🛩️ ",
-		"next_slot", slot.Base10(),
+		"Optimistically triggering payload build for next slot 🛩️ ", "next_slot", slot.Base10(),
 	)
 
 	// We process the slot to update any RANDAO values.
@@ -276,10 +250,10 @@ func (s *Service) optimisticPayloadBuild(
 
 	// We then trigger a request for the next payload.
 	payload := blk.GetBody().GetExecutionPayload()
-	if _, err := s.localBuilder.RequestPayloadAsync(
+	if _, _, err := s.localBuilder.RequestPayloadAsync(
 		ctx, st,
 		slot,
-		nextPayloadTimestamp.Unwrap(),
+		nextPayloadTimestamp,
 		// The previous block root is simply the root of the block we just
 		// processed.
 		blk.HashTreeRoot(),

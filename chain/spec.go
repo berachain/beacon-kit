@@ -28,10 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/version"
 )
 
-// Spec defines an interface for accessing chain-specific parameters.
-type Spec interface {
-	// Gwei value constants.
-
+type BalancesSpec interface {
 	// MaxEffectiveBalance returns the maximum balance counted in rewards calculations in Gwei.
 	MaxEffectiveBalance() uint64
 
@@ -41,7 +38,9 @@ type Spec interface {
 	// EffectiveBalanceIncrement returns the increment of balance used in reward
 	// calculations.
 	EffectiveBalanceIncrement() uint64
+}
 
+type HysteresisSpec interface {
 	// HysteresisQuotient returns the quotient used in effective balance
 	// calculations to create hysteresis. This provides resistance to small
 	// balance changes triggering effective balance updates.
@@ -54,19 +53,18 @@ type Spec interface {
 	// HysteresisUpwardMultiplier returns the multiplier used when checking
 	// if the effective balance should be increased.
 	HysteresisUpwardMultiplier() uint64
+}
 
-	// Time parameters constants.
+type DepositSpec interface {
+	// MaxDepositsPerBlock returns the maximum number of deposit operations per
+	// block.
+	MaxDepositsPerBlock() uint64
 
-	// SlotsPerEpoch returns the number of slots in an epoch.
-	SlotsPerEpoch() uint64
+	// DepositEth1ChainID returns the chain ID of the deposit contract.
+	DepositEth1ChainID() uint64
+}
 
-	// SlotsPerHistoricalRoot returns the number of slots per historical root.
-	SlotsPerHistoricalRoot() uint64
-
-	// MinEpochsToInactivityPenalty returns the minimum number of epochs before
-	// an inactivity penalty is applied.
-	MinEpochsToInactivityPenalty() uint64
-
+type DomainTypeSpec interface {
 	// Signature Domains
 
 	// DomainTypeProposer returns the domain for proposer signatures.
@@ -92,18 +90,96 @@ type Spec interface {
 
 	// DomainTypeApplicationMask returns the domain for application signatures.
 	DomainTypeApplicationMask() common.DomainType
+}
+
+type ForkSpec interface {
+	// Fork-related values.
+
+	// Deneb1ForkTime returns the time at which the Deneb1 fork takes effect.
+	Deneb1ForkTime() uint64
+
+	// ElectraForkTime returns the time at which the Electra fork takes effect.
+	ElectraForkTime() uint64
+}
+
+type BlobSpec interface {
+	// MaxBlobCommitmentsPerBlock returns the maximum number of blob commitments
+	// per block.
+	MaxBlobCommitmentsPerBlock() uint64
+
+	// MaxBlobsPerBlock returns the maximum number of blobs per block.
+	MaxBlobsPerBlock() uint64
+
+	// FieldElementsPerBlob returns the number of field elements per blob.
+	FieldElementsPerBlob() uint64
+
+	// WithinDAPeriod checks if a given block slot is within the data
+	// availability period relative to the current slot.
+	WithinDAPeriod(block, current math.Slot) bool
+
+	// BytesPerBlob returns the number of bytes per blob.
+	BytesPerBlob() uint64
+	// MinEpochsForBlobsSidecarsRequest returns the minimum number of epochs for
+	// blob sidecar requests.
+	MinEpochsForBlobsSidecarsRequest() math.Epoch
+}
+
+type ForkVersionSpec interface {
+	// Helpers for ChainSpecData
+
+	// ActiveForkVersionForTimestamp returns the active fork version for a given timestamp.
+	ActiveForkVersionForTimestamp(timestamp math.U64) common.Version
+}
+
+type EVMInflationSpec interface {
+	// EVMInflationAddress returns the address on the EVM which will receive
+	// the inflation amount of native EVM balance through a withdrawal every
+	// block.
+	EVMInflationAddress(timestamp math.U64) common.ExecutionAddress
+
+	// EVMInflationPerBlock returns the amount of native EVM balance (in Gwei)
+	// to be minted to the EVMInflationAddress via a withdrawal every block.
+	EVMInflationPerBlock(timestamp math.U64) uint64
+}
+
+type WithdrawalsSpec interface {
+	// MaxWithdrawalsPerPayload returns the maximum number of withdrawals per
+	// payload.
+	MaxWithdrawalsPerPayload() uint64
+
+	// MaxValidatorsPerWithdrawalsSweep returns the maximum number of validators
+	// per withdrawal sweep.
+	MaxValidatorsPerWithdrawalsSweep() uint64
+}
+
+// Spec defines an interface for accessing chain-specific parameters.
+type Spec interface {
+	DepositSpec
+	BalancesSpec
+	HysteresisSpec
+	DomainTypeSpec
+	ForkSpec
+	BlobSpec
+	ForkVersionSpec
+	EVMInflationSpec
+	WithdrawalsSpec
+
+	// Time parameters constants.
+
+	// SlotsPerEpoch returns the number of slots in an epoch.
+	SlotsPerEpoch() uint64
+
+	// SlotsPerHistoricalRoot returns the number of slots per historical root.
+	SlotsPerHistoricalRoot() uint64
+
+	// MinEpochsToInactivityPenalty returns the minimum number of epochs before
+	// an inactivity penalty is applied.
+	MinEpochsToInactivityPenalty() uint64
 
 	// Eth1-related values.
 
 	// DepositContractAddress returns the deposit contract address.
 	DepositContractAddress() common.ExecutionAddress
-
-	// MaxDepositsPerBlock returns the maximum number of deposit operations per
-	// block.
-	MaxDepositsPerBlock() uint64
-
-	// DepositEth1ChainID returns the chain ID of the deposit contract.
-	DepositEth1ChainID() uint64
 
 	// Eth1FollowDistance returns the distance between the eth1 chain and the
 	// beacon chain for eth1 data.
@@ -111,14 +187,6 @@ type Spec interface {
 
 	// TargetSecondsPerEth1Block returns the target time between eth1 blocks.
 	TargetSecondsPerEth1Block() uint64
-
-	// Fork-related values.
-
-	// Deneb1ForkEpoch returns the epoch at which the Deneb1 fork takes effect.
-	Deneb1ForkEpoch() math.Epoch
-
-	// ElectraForkEpoch returns the epoch at which the Electra fork takes effect.
-	ElectraForkEpoch() math.Epoch
 
 	// State list lengths
 
@@ -145,63 +213,13 @@ type Spec interface {
 	// slashing penalties.
 	ProportionalSlashingMultiplier() uint64
 
-	// Capella Values
-
-	// MaxWithdrawalsPerPayload returns the maximum number of withdrawals per
-	// payload.
-	MaxWithdrawalsPerPayload() uint64
-
-	// MaxValidatorsPerWithdrawalsSweep returns the maximum number of validators
-	// per withdrawal sweep.
-	MaxValidatorsPerWithdrawalsSweep() uint64
-
-	// Deneb Values
-
-	// MinEpochsForBlobsSidecarsRequest returns the minimum number of epochs for
-	// blob sidecar requests.
-	MinEpochsForBlobsSidecarsRequest() math.Epoch
-
-	// MaxBlobCommitmentsPerBlock returns the maximum number of blob commitments
-	// per block.
-	MaxBlobCommitmentsPerBlock() uint64
-
-	// MaxBlobsPerBlock returns the maximum number of blobs per block.
-	MaxBlobsPerBlock() uint64
-
-	// FieldElementsPerBlob returns the number of field elements per blob.
-	FieldElementsPerBlob() uint64
-
-	// BytesPerBlob returns the number of bytes per blob.
-	BytesPerBlob() uint64
-
-	// Helpers for ChainSpecData
-
-	// ActiveForkVersionForSlot returns the active fork version for a given slot.
-	ActiveForkVersionForSlot(slot math.Slot) common.Version
-
-	// ActiveForkVersionForEpoch returns the active fork version for a given epoch.
-	ActiveForkVersionForEpoch(epoch math.Epoch) common.Version
-
 	// SlotToEpoch converts a slot number to an epoch number.
 	SlotToEpoch(slot math.Slot) math.Epoch
-
-	// WithinDAPeriod checks if a given block slot is within the data
-	// availability period relative to the current slot.
-	WithinDAPeriod(block, current math.Slot) bool
 
 	// Berachain Values
 
 	// ValidatorSetCap retrieves the maximum number of validators allowed in the active set.
 	ValidatorSetCap() uint64
-
-	// EVMInflationAddress returns the address on the EVM which will receive
-	// the inflation amount of native EVM balance through a withdrawal every
-	// block.
-	EVMInflationAddress(slot math.Slot) common.ExecutionAddress
-
-	// EVMInflationPerBlock returns the amount of native EVM balance (in Gwei)
-	// to be minted to the EVMInflationAddress via a withdrawal every block.
-	EVMInflationPerBlock(slot math.Slot) uint64
 }
 
 // spec is a concrete implementation of the Spec interface, holding the actual data.
@@ -342,14 +360,14 @@ func (s spec) TargetSecondsPerEth1Block() uint64 {
 	return s.Data.TargetSecondsPerEth1Block
 }
 
-// Deneb1ForEpoch returns the epoch of the Deneb1 fork.
-func (s spec) Deneb1ForkEpoch() math.Epoch {
-	return math.Epoch(s.Data.Deneb1ForkEpoch)
+// Deneb1ForkTime returns the epoch of the Deneb1 fork.
+func (s spec) Deneb1ForkTime() uint64 {
+	return s.Data.Deneb1ForkTime
 }
 
-// ElectraForkEpoch returns the epoch of the Electra fork.
-func (s spec) ElectraForkEpoch() math.Epoch {
-	return math.Epoch(s.Data.ElectraForkEpoch)
+// ElectraForkTime returns the epoch of the Electra fork.
+func (s spec) ElectraForkTime() uint64 {
+	return s.Data.ElectraForkTime
 }
 
 // EpochsPerHistoricalVector returns the number of epochs per historical vector.
@@ -427,10 +445,10 @@ func (s spec) ValidatorSetCap() uint64 {
 
 // EVMInflationAddress returns the address on the EVM which will receive the
 // inflation amount of native EVM balance through a withdrawal every block.
-func (s spec) EVMInflationAddress(slot math.Slot) common.ExecutionAddress {
-	fv := s.ActiveForkVersionForSlot(slot)
+func (s spec) EVMInflationAddress(timestamp math.U64) common.ExecutionAddress {
+	fv := s.ActiveForkVersionForTimestamp(timestamp)
 	switch fv {
-	case version.Deneb1():
+	case version.Deneb1(), version.Electra():
 		return s.Data.EVMInflationAddressDeneb1
 	case version.Deneb():
 		return s.Data.EVMInflationAddressGenesis
@@ -441,10 +459,10 @@ func (s spec) EVMInflationAddress(slot math.Slot) common.ExecutionAddress {
 
 // EVMInflationPerBlock returns the amount of native EVM balance (in Gwei) to
 // be minted to the EVMInflationAddress via a withdrawal every block.
-func (s spec) EVMInflationPerBlock(slot math.Slot) uint64 {
-	fv := s.ActiveForkVersionForSlot(slot)
+func (s spec) EVMInflationPerBlock(timestamp math.U64) uint64 {
+	fv := s.ActiveForkVersionForTimestamp(timestamp)
 	switch fv {
-	case version.Deneb1():
+	case version.Deneb1(), version.Electra():
 		return s.Data.EVMInflationPerBlockDeneb1
 	case version.Deneb():
 		return s.Data.EVMInflationPerBlockGenesis

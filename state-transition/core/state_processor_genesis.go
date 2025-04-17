@@ -62,11 +62,13 @@ func (sp *StateProcessor) InitializePreminedBeaconStateFromEth1(
 	if !version.Equals(genesisVersion, version.Genesis()) {
 		return nil, fmt.Errorf("fork version not supported: %s", genesisVersion)
 	}
+	versionable := ctypes.NewVersionable(version.Genesis())
 	blkBody := &ctypes.BeaconBlockBody{
-		Eth1Data: &ctypes.Eth1Data{},
+		Versionable: versionable,
+		Eth1Data:    &ctypes.Eth1Data{},
 		ExecutionPayload: &ctypes.ExecutionPayload{
-			ExtraData: make([]byte, ctypes.ExtraDataSize),
-			EpVersion: version.Genesis(),
+			Versionable: versionable,
+			ExtraData:   make([]byte, ctypes.ExtraDataSize),
 		},
 	}
 
@@ -94,7 +96,7 @@ func (sp *StateProcessor) InitializePreminedBeaconStateFromEth1(
 	if err := st.SetEth1DepositIndex(constants.FirstDepositIndex); err != nil {
 		return nil, err
 	}
-	if err := sp.validateGenesisDeposits(st, deposits); err != nil {
+	if err := validateGenesisDeposits(st, deposits, sp.cs.ValidatorSetCap()); err != nil {
 		return nil, err
 	}
 	for _, deposit := range deposits {

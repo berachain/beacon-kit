@@ -24,16 +24,26 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 	fastssz "github.com/ferranbt/fastssz"
-	"github.com/holiman/uint256"
 	"github.com/karalabe/ssz"
 )
 
-// ExecutionPayloadHeader is the execution header payload of Deneb.
+// ExecutionPayloadHeaderStaticSize is the static size of the ExecutionPayloadHeader.
+const ExecutionPayloadHeaderStaticSize uint32 = 584
+
+// Compile-time assertions to ensure ExecutionPayloadHeader implements necessary interfaces.
+var (
+	_ ssz.DynamicObject                            = (*ExecutionPayloadHeader)(nil)
+	_ constraints.SSZVersionedMarshallableRootable = (*ExecutionPayloadHeader)(nil)
+)
+
+// ExecutionPayloadHeader represents the payload header of an execution block.
 type ExecutionPayloadHeader struct {
+	constraints.Versionable
+
 	// Contents
 	//
 	// ParentHash is the hash of the parent block.
@@ -59,7 +69,7 @@ type ExecutionPayloadHeader struct {
 	// ExtraData is the extra data of the block.
 	ExtraData bytes.Bytes `json:"extraData"`
 	// BaseFeePerGas is the base fee per gas.
-	BaseFeePerGas *uint256.Int `json:"baseFeePerGas"`
+	BaseFeePerGas *math.U256 `json:"baseFeePerGas"`
 	// BlockHash is the hash of the block.
 	BlockHash common.ExecutionHash `json:"blockHash"`
 	// TransactionsRoot is the root of the transaction trie.
@@ -70,43 +80,13 @@ type ExecutionPayloadHeader struct {
 	BlobGasUsed math.U64 `json:"blobGasUsed"`
 	// ExcessBlobGas is the amount of excess blob gas in the block.
 	ExcessBlobGas math.U64 `json:"excessBlobGas"`
-
-	// EphVersion is the fork EphVersion of the execution payload header.
-	// EphVersion must be not serialized but it's exported
-	// to allow unit tests using reflect on execution payload header.
-	// TODO: Enable once
-	// https://github.com/karalabe/ssz/pull/9/files# is merged.
-	EphVersion common.Version `json:"-"`
 }
 
-// Empty returns an empty ExecutionPayloadHeader.
-func (h *ExecutionPayloadHeader) Empty() *ExecutionPayloadHeader {
+func NewEmptyExecutionPayloadHeaderWithVersion(version common.Version) *ExecutionPayloadHeader {
 	return &ExecutionPayloadHeader{
-		// By default, we set the version to Deneb to maintain compatibility.
-		EphVersion:    version.Deneb(),
-		BaseFeePerGas: &uint256.Int{},
+		Versionable:   NewVersionable(version),
+		BaseFeePerGas: &math.U256{},
 	}
-}
-
-// NewFromSSZ returns a new ExecutionPayloadHeader from the given SSZ bytes.
-func (h *ExecutionPayloadHeader) NewFromSSZ(
-	bz []byte, forkVersion common.Version,
-) (*ExecutionPayloadHeader, error) {
-	h = h.Empty()
-	h.EphVersion = forkVersion
-	return h, h.UnmarshalSSZ(bz)
-}
-
-// NewFromJSON returns a new ExecutionPayloadHeader from the given JSON bytes.
-func (h *ExecutionPayloadHeader) NewFromJSON(
-	bz []byte, forkVersion common.Version,
-) (*ExecutionPayloadHeader, error) {
-	h = h.Empty()
-	if err := json.Unmarshal(bz, h); err != nil {
-		return nil, err
-	}
-	h.EphVersion = forkVersion
-	return h, nil
 }
 
 /* -------------------------------------------------------------------------- */
@@ -116,8 +96,7 @@ func (h *ExecutionPayloadHeader) NewFromJSON(
 // SizeSSZ returns either the static size of the object if fixed == true, or
 // the total size otherwise.
 func (h *ExecutionPayloadHeader) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
-	//nolint:mnd // todo fix.
-	var size = uint32(584)
+	size := ExecutionPayloadHeaderStaticSize
 	if fixed {
 		return size
 	}
@@ -160,11 +139,7 @@ func (h *ExecutionPayloadHeader) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, h)
 }
 
-// UnmarshalSSZ unmarshals the ExecutionPayloadHeaderDeneb object from a source
-// array.
-func (h *ExecutionPayloadHeader) UnmarshalSSZ(bz []byte) error {
-	return ssz.DecodeFromBytes(bz, h)
-}
+func (*ExecutionPayloadHeader) ValidateAfterDecodingSSZ() error { return nil }
 
 // HashTreeRootSSZ returns the hash tree root of the ExecutionPayloadHeader.
 func (h *ExecutionPayloadHeader) HashTreeRoot() common.Root {
@@ -449,18 +424,8 @@ func (h *ExecutionPayloadHeader) UnmarshalJSON(input []byte) error {
 }
 
 /* -------------------------------------------------------------------------- */
-/*                             Getters and Setters                            */
+/*                                   Getters                                  */
 /* -------------------------------------------------------------------------- */
-
-// Version returns the version of the ExecutionPayloadHeader.
-func (h *ExecutionPayloadHeader) Version() common.Version {
-	return h.EphVersion
-}
-
-// IsNil checks if the ExecutionPayloadHeader is nil.
-func (h *ExecutionPayloadHeader) IsNil() bool {
-	return h == nil
-}
 
 // GetParentHash returns the parent hash of the ExecutionPayloadHeader.
 func (h *ExecutionPayloadHeader) GetParentHash() common.ExecutionHash {
@@ -525,9 +490,7 @@ func (h *ExecutionPayloadHeader) GetBaseFeePerGas() *math.U256 {
 }
 
 // GetBlockHash returns the block hash of the ExecutionPayloadHeader.
-func (
-	h *ExecutionPayloadHeader,
-) GetBlockHash() common.ExecutionHash {
+func (h *ExecutionPayloadHeader) GetBlockHash() common.ExecutionHash {
 	return h.BlockHash
 }
 

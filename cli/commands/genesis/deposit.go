@@ -25,7 +25,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/berachain/beacon-kit/chain"
+	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	"github.com/berachain/beacon-kit/cli/context"
 	"github.com/berachain/beacon-kit/cli/utils/parser"
 	"github.com/berachain/beacon-kit/consensus-types/types"
@@ -48,7 +48,7 @@ import (
 // add a premined deposit to the genesis file.
 //
 //nolint:lll // reads better if long description is one line.
-func AddGenesisDepositCmd(cs chain.Spec) *cobra.Command {
+func AddGenesisDepositCmd(chainSpecCreator servertypes.ChainSpecCreator) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add-premined-deposit",
 		Short: "adds a validator to the genesis file",
@@ -75,7 +75,11 @@ func AddGenesisDepositCmd(cs chain.Spec) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			return AddGenesisDeposit(cs, cometConfig, blsSigner, depositAmount, withdrawalAddress, outputDocument)
+			chainSpec, err := chainSpecCreator(appOpts)
+			if err != nil {
+				return err
+			}
+			return AddGenesisDeposit(chainSpec, cometConfig, blsSigner, depositAmount, withdrawalAddress, outputDocument)
 		},
 	}
 	return cmd
@@ -83,7 +87,7 @@ func AddGenesisDepositCmd(cs chain.Spec) *cobra.Command {
 
 // AddGenesisDeposit is the modularized version of AddGenesisDepositCmd that can be properly tested from within the runtime.
 func AddGenesisDeposit(
-	cs chain.Spec,
+	cs ChainSpec,
 	cometConfig *cmtcfg.Config,
 	blsSigner crypto.BLSSigner,
 	depositAmount math.Gwei,

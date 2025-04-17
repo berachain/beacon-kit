@@ -28,9 +28,9 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
-	"github.com/berachain/beacon-kit/node-core/components"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -42,12 +42,9 @@ import (
 
 func setupChain(t *testing.T) chain.Spec {
 	t.Helper()
-
-	t.Setenv(components.ChainSpecTypeEnvVar, components.DevnetChainSpecType)
-	cs, err := components.ProvideChainSpec()
+	chainSpec, err := spec.DevnetChainSpec()
 	require.NoError(t, err)
-
-	return cs
+	return chainSpec
 }
 
 //nolint:unused // may be used in the future.
@@ -90,29 +87,34 @@ func buildNextBlock(
 	root := beaconState.HashTreeRoot()
 	parentBlkHeader.SetStateRoot(root)
 
+	// build the block
+	fv := version.Deneb1()
+	versionable := types.NewVersionable(fv)
+	blk, err := types.NewBeaconBlockWithVersion(
+		parentBlkHeader.GetSlot()+1,
+		parentBlkHeader.GetProposerIndex(),
+		parentBlkHeader.HashTreeRoot(),
+		fv,
+	)
+	require.NoError(t, err)
+
 	// build the payload
 	payload := &types.ExecutionPayload{
+		Versionable:   versionable,
 		Timestamp:     timestamp,
 		ExtraData:     []byte("testing"),
 		Transactions:  [][]byte{},
 		Withdrawals:   withdrawals,
 		BaseFeePerGas: math.NewU256(0),
-		EpVersion:     version.Deneb1(),
 	}
 	parentBeaconBlockRoot := parentBlkHeader.HashTreeRoot()
 	ethBlk, _, err := types.MakeEthBlock(payload, &parentBeaconBlockRoot)
 	require.NoError(t, err)
 	payload.BlockHash = common.ExecutionHash(ethBlk.Hash())
 
-	// finally build the block
-	blk, err := types.NewBeaconBlockWithVersion(
-		parentBlkHeader.GetSlot()+1,
-		parentBlkHeader.GetProposerIndex(),
-		parentBlkHeader.HashTreeRoot(),
-		version.Deneb1(),
-	)
 	require.NoError(t, err)
 	blk.Body = &types.BeaconBlockBody{
+		Versionable:      versionable,
 		ExecutionPayload: payload,
 		Eth1Data:         eth1Data,
 		Deposits:         blockDeposits,
@@ -159,13 +161,14 @@ func moveToEndOfEpoch(
 	blk := tip
 	currEpoch := cs.SlotToEpoch(blk.GetSlot())
 	for currEpoch == cs.SlotToEpoch(blk.GetSlot()+1) {
+		timestamp := blk.Body.ExecutionPayload.Timestamp + 1
 		blk = buildNextBlock(
 			t,
 			st,
 			types.NewEth1Data(depRoot),
-			blk.Body.ExecutionPayload.Timestamp+1,
+			timestamp,
 			[]*types.Deposit{},
-			st.EVMInflationWithdrawal(blk.GetSlot()+1),
+			st.EVMInflationWithdrawal(timestamp),
 		)
 
 		vals, err := sp.Transition(ctx, st, blk)

@@ -36,8 +36,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+//nolint:paralleltest // uses envars
 func TestInitialize(t *testing.T) {
 	cs := setupChain(t)
+	//nolint:dogsled // used for testing
 	sp, st, _, _, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
@@ -118,8 +120,10 @@ func TestInitialize(t *testing.T) {
 			genDeposits[0], genDeposits[1], genDeposits[3],
 			genDeposits[5], genDeposits[6],
 		}
-		executionPayloadHeader = &types.ExecutionPayloadHeader{}
-		fork                   = &types.Fork{
+		executionPayloadHeader = &types.ExecutionPayloadHeader{
+			Versionable: types.NewVersionable(version.Genesis()),
+		}
+		fork = &types.Fork{
 			PreviousVersion: version.Deneb(),
 			CurrentVersion:  version.Deneb(),
 			Epoch:           constants.GenesisEpoch,

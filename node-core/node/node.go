@@ -30,6 +30,8 @@ import (
 	"time"
 
 	"cosmossdk.io/store"
+	"github.com/berachain/beacon-kit/beacon/blockchain"
+	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/log"
 	service "github.com/berachain/beacon-kit/node-core/services/registry"
 	"github.com/berachain/beacon-kit/node-core/types"
@@ -38,23 +40,22 @@ import (
 // Compile-time assertion that node implements the NodeI interface.
 var _ types.Node = (*node)(nil)
 
-// if the node does not shutdown within a very reasonable time (5min) then we force exit.
-const shutdownTimeout = 5 * time.Minute
-
 // node is the hard-type representation of the beacon-kit node.
 type node struct {
 	// logger is the node's logger.
 	logger log.Logger
 	// registry is the node's service registry.
 	registry *service.Registry
+	// shutdownTimeout is the maximum time to wait for the node to gracefully shutdown before forcing an exit.
+	shutdownTimeout time.Duration
 }
 
 // New returns a new node.
-func New[NodeT types.Node](
-	registry *service.Registry, logger log.Logger) NodeT {
+func New[NodeT types.Node](shutdownTimeout time.Duration, registry *service.Registry, logger log.Logger) NodeT {
 	n := &node{
-		registry: registry,
-		logger:   logger,
+		shutdownTimeout: shutdownTimeout,
+		registry:        registry,
+		logger:          logger,
 	}
 
 	//nolint:errcheck // should be safe
@@ -78,7 +79,7 @@ func (n *node) Start(
 
 	shutdownFunc := func(err error) {
 		now := time.Now()
-		n.logger.Error("Shutdown initiated", "error", err)
+		n.logger.Error("Shutdown initiated", "timeout", n.shutdownTimeout.String(), "error", err)
 
 		cancelFn()
 		n.registry.StopAll()
@@ -91,8 +92,8 @@ func (n *node) Start(
 	go func() {
 		sig := <-sigc
 
-		timeout := time.AfterFunc(shutdownTimeout, func() {
-			n.logger.Error("Shutdown timeout exceeded, forcing exit", "timeout", shutdownTimeout.String())
+		timeout := time.AfterFunc(n.shutdownTimeout, func() {
+			n.logger.Error("Shutdown timeout exceeded, forcing exit", "timeout", n.shutdownTimeout.String())
 			os.Exit(1)
 		})
 		defer timeout.Stop()
@@ -116,6 +117,24 @@ func (n *node) Start(
 	return nil
 }
 
+// CommitMultiStore returns the CommitMultiStore from cometbft service.
 func (n *node) CommitMultiStore() store.CommitMultiStore {
-	return n.registry.CommitMultiStore()
+	var cometService *cometbft.Service
+	err := n.registry.FetchService(&cometService)
+	if err != nil || cometService == nil { // appease nilaway
+		err = fmt.Errorf("failed to fetch cometbft service: %w", err)
+		panic(err)
+	}
+	return cometService.CommitMultiStore()
+}
+
+// StorageBackend returns the storage backend from the blockchain service.
+func (n *node) StorageBackend() blockchain.StorageBackend {
+	var blockchainService *blockchain.Service
+	err := n.registry.FetchService(&blockchainService)
+	if err != nil || blockchainService == nil { // appease nilaway
+		err = fmt.Errorf("failed to fetch blockchain service: %w", err)
+		panic(err)
+	}
+	return blockchainService.StorageBackend()
 }

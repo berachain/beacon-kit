@@ -64,7 +64,8 @@ func ProvideSimComet(
 		)}
 }
 
-func (s *SimComet) Start(_ context.Context) error {
+func (s *SimComet) Start(ctx context.Context) error {
+	s.Comet.ResetAppCtx(ctx)
 	return nil
 }
 

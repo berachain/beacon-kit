@@ -24,8 +24,6 @@ import (
 	"context"
 	"sync"
 
-	"github.com/berachain/beacon-kit/chain"
-	"github.com/berachain/beacon-kit/da/da"
 	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -36,7 +34,7 @@ type Service struct {
 	// storageBackend represents the backend storage for not state-enforced data.
 	storageBackend StorageBackend
 	// blobProcessor is used for processing sidecars.
-	blobProcessor da.BlobProcessor
+	blobProcessor BlobProcessor
 	// depositContract is the contract interface for interacting with the
 	// deposit contract.
 	depositContract deposit.Contract
@@ -50,7 +48,7 @@ type Service struct {
 	// logger is used for logging messages in the service.
 	logger log.Logger
 	// chainSpec holds the chain specifications.
-	chainSpec chain.Spec
+	chainSpec ServiceChainSpec
 	// executionEngine is the execution engine responsible for processing
 	//
 	// execution payloads.
@@ -71,11 +69,11 @@ type Service struct {
 // NewService creates a new validator service.
 func NewService(
 	storageBackend StorageBackend,
-	blobProcessor da.BlobProcessor,
+	blobProcessor BlobProcessor,
 	depositContract deposit.Contract,
 	eth1FollowDistance math.U64,
 	logger log.Logger,
-	chainSpec chain.Spec,
+	chainSpec ServiceChainSpec,
 	executionEngine ExecutionEngine,
 	localBuilder LocalBuilder,
 	stateProcessor StateProcessor,
@@ -104,13 +102,15 @@ func (s *Service) Name() string {
 	return "blockchain"
 }
 
+// Start starts the blockchain service.
 func (s *Service) Start(ctx context.Context) error {
-	// Catchup deposits for failed blocks.
+	// Catchup deposits for failed blocks. TODO: remove.
 	go s.depositCatchupFetcher(ctx)
 
 	return nil
 }
 
+// Stop stops the blockchain service and closes the deposit store.
 func (s *Service) Stop() error {
 	s.logger.Info("Stopping blockchain service")
 
@@ -120,4 +120,9 @@ func (s *Service) Stop() error {
 	}
 
 	return nil
+}
+
+// StorageBackend returns the storage backend.
+func (s *Service) StorageBackend() StorageBackend {
+	return s.storageBackend
 }

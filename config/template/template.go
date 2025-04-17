@@ -25,12 +25,14 @@ const TomlTemplate = `
 ###                                BeaconKit                                ###
 ###############################################################################
 
+[beacon-kit]
+# ShutdownTimeout is the maximum time to wait for the node to gracefully
+# shutdown before forcing an exit.
+shutdown-timeout = "{{ .BeaconKit.ShutdownTimeout }}"
+
 [beacon-kit.engine]
 # HTTP url of the execution client JSON-RPC endpoint.
 rpc-dial-url = "{{ .BeaconKit.Engine.RPCDialURL }}"
-
-# Number of retries before shutting down consensus client.
-rpc-retries = "{{.BeaconKit.Engine.RPCRetries}}"
 
 # RPC timeout for execution client requests.
 rpc-timeout = "{{ .BeaconKit.Engine.RPCTimeout }}"

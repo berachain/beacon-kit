@@ -24,7 +24,7 @@ import (
 	"fmt"
 	"unsafe"
 
-	"github.com/berachain/beacon-kit/chain"
+	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	"github.com/berachain/beacon-kit/cli/context"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -42,7 +42,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func AddExecutionPayloadCmd(chainSpec chain.Spec) *cobra.Command {
+func AddExecutionPayloadCmd(chainSpecCreator servertypes.ChainSpecCreator) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "execution-payload [eth/genesis/file.json]",
 		Short: "adds the eth1 genesis execution payload to the genesis file",
@@ -51,6 +51,11 @@ func AddExecutionPayloadCmd(chainSpec chain.Spec) *cobra.Command {
 			// Read the genesis file.
 			elGenesisPath := args[0]
 			config := context.GetConfigFromCmd(cmd)
+			v := context.GetViperFromCmd(cmd)
+			chainSpec, err := chainSpecCreator(v)
+			if err != nil {
+				return err
+			}
 			return AddExecutionPayload(chainSpec, elGenesisPath, config)
 		},
 	}
@@ -58,7 +63,7 @@ func AddExecutionPayloadCmd(chainSpec chain.Spec) *cobra.Command {
 	return cmd
 }
 
-func AddExecutionPayload(chainSpec chain.Spec, elGenesisPath string, config *cmtcfg.Config) error {
+func AddExecutionPayload(chainSpec ChainSpec, elGenesisPath string, config *cmtcfg.Config) error {
 	genesisBz, err := afero.ReadFile(afero.NewOsFs(), elGenesisPath)
 	if err != nil {
 		return errors.Wrap(err, "failed to read eth1 genesis file")
@@ -171,6 +176,7 @@ func executableDataToExecutionPayloadHeader(
 		}
 
 		executionPayloadHeader = &types.ExecutionPayloadHeader{
+			Versionable:   types.NewVersionable(forkVersion),
 			ParentHash:    common.ExecutionHash(data.ParentHash),
 			FeeRecipient:  common.ExecutionAddress(data.FeeRecipient),
 			StateRoot:     common.Bytes32(data.StateRoot),
@@ -190,7 +196,6 @@ func executableDataToExecutionPayloadHeader(
 			WithdrawalsRoot: withdrawals.HashTreeRoot(),
 			BlobGasUsed:     math.U64(blobGasUsed),
 			ExcessBlobGas:   math.U64(excessBlobGas),
-			EphVersion:      forkVersion,
 		}
 	default:
 		return nil, types.ErrForkVersionNotSupported

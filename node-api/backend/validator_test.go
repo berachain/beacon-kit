@@ -23,8 +23,8 @@
 package backend_test
 
 import (
-	"context"
-	"fmt"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"cosmossdk.io/log"
@@ -32,10 +32,8 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log/noop"
 	"github.com/berachain/beacon-kit/node-api/backend"
-	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	types "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	nodemetrics "github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
@@ -50,11 +48,13 @@ import (
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/berachain/beacon-kit/storage/beacondb"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
+	cmtcfg "github.com/cometbft/cometbft/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/stretchr/testify/require"
 )
 
+//nolint:maintidx // it's fine
 func TestFilteredValidators(t *testing.T) {
 	t.Parallel()
 
@@ -75,7 +75,28 @@ func TestFilteredValidators(t *testing.T) {
 		nodemetrics.NewNoOpTelemetrySink(),
 	)
 
-	b := backend.New(sb, cs, sp)
+	// Create a temporary directory for CometBFT config
+	tmpDir := t.TempDir()
+
+	// Create CometBFT config with temporary directory
+	cmtCfg := cmtcfg.DefaultConfig()
+	cmtCfg.SetRoot(tmpDir)
+
+	// Create config directory
+	configDir := filepath.Join(tmpDir, "config")
+	err = os.MkdirAll(configDir, 0o755)
+	require.NoError(t, err)
+
+	// Create app genesis
+	appGenesis := genutiltypes.NewAppGenesisWithVersion("test-chain", []byte("{}"))
+
+	// Save genesis file to the config directory
+	genesisFile := filepath.Join(configDir, "genesis.json")
+	err = appGenesis.SaveAs(genesisFile)
+	require.NoError(t, err)
+
+	b, err := backend.New(sb, cs, sp, cmtCfg)
+	require.NoError(t, err)
 	tcs := &testConsensusService{
 		cms:     cms,
 		kvStore: kvStore,
@@ -92,12 +113,12 @@ func TestFilteredValidators(t *testing.T) {
 	// on top of cms
 	stateValidators := []*types.ValidatorData{
 		{
-			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
+			ValidatorBalanceData: types.ValidatorBalanceData{
 				Index:   0,
 				Balance: cs.MaxEffectiveBalance(),
 			},
 			Status: constants.ValidatorStatusPendingInitialized,
-			Validator: beacontypes.ValidatorFromConsensus(
+			Validator: types.ValidatorFromConsensus(
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x01},
 					WithdrawalCredentials:      [32]byte{0x02},
@@ -111,12 +132,12 @@ func TestFilteredValidators(t *testing.T) {
 			),
 		},
 		{
-			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
+			ValidatorBalanceData: types.ValidatorBalanceData{
 				Index:   1,
 				Balance: cs.MaxEffectiveBalance() * 3 / 4,
 			},
 			Status: constants.ValidatorStatusPendingQueued,
-			Validator: beacontypes.ValidatorFromConsensus(
+			Validator: types.ValidatorFromConsensus(
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x03},
 					WithdrawalCredentials:      [32]byte{0x04},
@@ -130,12 +151,12 @@ func TestFilteredValidators(t *testing.T) {
 			),
 		},
 		{
-			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
+			ValidatorBalanceData: types.ValidatorBalanceData{
 				Index:   2,
 				Balance: cs.MaxEffectiveBalance() / 4,
 			},
 			Status: constants.ValidatorStatusActiveOngoing,
-			Validator: beacontypes.ValidatorFromConsensus(
+			Validator: types.ValidatorFromConsensus(
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x05},
 					WithdrawalCredentials:      [32]byte{0x06},
@@ -149,12 +170,12 @@ func TestFilteredValidators(t *testing.T) {
 			),
 		},
 		{
-			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
+			ValidatorBalanceData: types.ValidatorBalanceData{
 				Index:   3,
 				Balance: cs.MaxEffectiveBalance() / 4,
 			},
 			Status: constants.ValidatorStatusActiveSlashed,
-			Validator: beacontypes.ValidatorFromConsensus(
+			Validator: types.ValidatorFromConsensus(
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x15},
 					WithdrawalCredentials:      [32]byte{0x16},
@@ -168,12 +189,12 @@ func TestFilteredValidators(t *testing.T) {
 			),
 		},
 		{
-			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
+			ValidatorBalanceData: types.ValidatorBalanceData{
 				Index:   4,
 				Balance: cs.MaxEffectiveBalance() / 4,
 			},
 			Status: constants.ValidatorStatusActiveExiting,
-			Validator: beacontypes.ValidatorFromConsensus(
+			Validator: types.ValidatorFromConsensus(
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x17},
 					WithdrawalCredentials:      [32]byte{0x18},
@@ -187,12 +208,12 @@ func TestFilteredValidators(t *testing.T) {
 			),
 		},
 		{
-			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
+			ValidatorBalanceData: types.ValidatorBalanceData{
 				Index:   5,
 				Balance: cs.MaxEffectiveBalance() / 2,
 			},
 			Status: constants.ValidatorStatusExitedUnslashed,
-			Validator: beacontypes.ValidatorFromConsensus(
+			Validator: types.ValidatorFromConsensus(
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x07},
 					WithdrawalCredentials:      [32]byte{0x08},
@@ -206,12 +227,12 @@ func TestFilteredValidators(t *testing.T) {
 			),
 		},
 		{
-			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
+			ValidatorBalanceData: types.ValidatorBalanceData{
 				Index:   6,
 				Balance: cs.MaxEffectiveBalance() / 2,
 			},
 			Status: constants.ValidatorStatusExitedSlashed,
-			Validator: beacontypes.ValidatorFromConsensus(
+			Validator: types.ValidatorFromConsensus(
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x27},
 					WithdrawalCredentials:      [32]byte{0x28},
@@ -225,12 +246,12 @@ func TestFilteredValidators(t *testing.T) {
 			),
 		},
 		{
-			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
+			ValidatorBalanceData: types.ValidatorBalanceData{
 				Index:   7,
 				Balance: cs.EjectionBalance(),
 			},
 			Status: constants.ValidatorStatusWithdrawalPossible,
-			Validator: beacontypes.ValidatorFromConsensus(
+			Validator: types.ValidatorFromConsensus(
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x09},
 					WithdrawalCredentials:      [32]byte{0x10},
@@ -244,12 +265,12 @@ func TestFilteredValidators(t *testing.T) {
 			),
 		},
 		{
-			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
+			ValidatorBalanceData: types.ValidatorBalanceData{
 				Index:   8,
 				Balance: 0,
 			},
 			Status: constants.ValidatorStatusWithdrawalPossible,
-			Validator: beacontypes.ValidatorFromConsensus(
+			Validator: types.ValidatorFromConsensus(
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x39},
 					WithdrawalCredentials:      [32]byte{0x40},
@@ -266,7 +287,7 @@ func TestFilteredValidators(t *testing.T) {
 	setupTestFilteredValidatorsState(
 		t,
 		cms, kvStore, cs,
-		stateValidators,
+		stateValidators, refSlot,
 	)
 
 	// test cases
@@ -283,9 +304,10 @@ func TestFilteredValidators(t *testing.T) {
 			},
 			expectedErr: nil,
 			checkF: func(t *testing.T, res []*types.ValidatorData) {
+				t.Helper()
 				require.Len(t, res, len(stateValidators))
-				for i := range len(res) {
-					require.Equal(t, stateValidators[i], res[i], fmt.Sprintf("index %d", i))
+				for i := range res {
+					require.Equal(t, stateValidators[i], res[i], "index %d", i)
 				}
 			},
 		},
@@ -296,13 +318,14 @@ func TestFilteredValidators(t *testing.T) {
 			},
 			expectedErr: nil,
 			checkF: func(t *testing.T, res []*types.ValidatorData) {
+				t.Helper()
 				expectedRes := []*types.ValidatorData{
 					stateValidators[1],
 					stateValidators[3],
 				}
 				require.Len(t, res, len(expectedRes))
-				for i := range len(res) {
-					require.Equal(t, expectedRes[i], res[i], fmt.Sprintf("index %d", i))
+				for i := range res {
+					require.Equal(t, expectedRes[i], res[i], "index %d", i)
 				}
 			},
 		},
@@ -317,14 +340,15 @@ func TestFilteredValidators(t *testing.T) {
 			},
 			expectedErr: nil,
 			checkF: func(t *testing.T, res []*types.ValidatorData) {
+				t.Helper()
 				expectedRes := []*types.ValidatorData{
 					stateValidators[2],
 					stateValidators[3],
 					stateValidators[4],
 				}
 				require.Len(t, res, len(expectedRes))
-				for i := range len(res) {
-					require.Equal(t, expectedRes[i], res[i], fmt.Sprintf("index %d", i))
+				for i := range res {
+					require.Equal(t, expectedRes[i], res[i], "index %d", i)
 				}
 			},
 		},
@@ -333,11 +357,11 @@ func TestFilteredValidators(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ids, statuses := tt.inputsF()
-			res, err := b.FilteredValidators(refSlot, ids, statuses)
+			res, filterErr := b.FilteredValidators(refSlot, ids, statuses)
 			if tt.expectedErr == nil {
-				require.NoError(t, err)
+				require.NoError(t, filterErr)
 			} else {
-				require.ErrorIs(t, err, tt.expectedErr)
+				require.ErrorIs(t, filterErr, tt.expectedErr)
 			}
 			tt.checkF(t, res)
 		})
@@ -350,6 +374,7 @@ func setupTestFilteredValidatorsState(
 	kvStore *beacondb.KVStore,
 	cs chain.Spec,
 	stateValidators []*types.ValidatorData,
+	dummySlot math.Slot,
 ) {
 	t.Helper()
 
@@ -357,21 +382,22 @@ func setupTestFilteredValidatorsState(
 	st := statedb.NewBeaconStateFromDB(kvStore.WithContext(sdkCtx), cs)
 
 	for _, in := range stateValidators {
-		val, err := beacontypes.ValidatorToConsensus(in.Validator)
+		val, err := types.ValidatorToConsensus(in.Validator)
 		require.NoError(t, err)
 		require.NoError(t, st.AddValidator(val))
 
 		require.NoError(t, st.SetBalance(math.ValidatorIndex(in.Index), math.Gwei(in.Balance)))
 	}
 
-	setupStateDummyParts(t, cs, st)
+	setupStateDummyParts(t, cs, st, dummySlot)
 
 	// finally write it all to underlying cms
+	//nolint:errcheck // false positive as this has no return value
 	sdkCtx.MultiStore().(storetypes.CacheMultiStore).Write()
 }
 
-func setupStateDummyParts(t *testing.T, cs chain.Spec, st *statedb.StateDB) {
-	dummySlot := math.Slot(2025)
+func setupStateDummyParts(t *testing.T, cs chain.Spec, st *statedb.StateDB, dummySlot math.Slot) {
+	t.Helper()
 	require.NoError(t, st.SetSlot(dummySlot))
 
 	fork := ctypes.NewFork(version.Genesis(), version.Genesis(), constants.GenesisEpoch)
@@ -415,46 +441,4 @@ func setupStateDummyParts(t *testing.T, cs chain.Spec, st *statedb.StateDB) {
 	require.NoError(t, st.SetNextWithdrawalIndex(0))
 	require.NoError(t, st.SetNextWithdrawalValidatorIndex(0))
 	require.NoError(t, st.SetTotalSlashing(0))
-}
-
-var errTestMemberNotImplemented = errors.New("not implemented")
-
-// testConsensusService stubs consensus service
-type testConsensusService struct {
-	cms     storetypes.CommitMultiStore
-	kvStore *beacondb.KVStore
-	cs      chain.Spec
-}
-
-func (t *testConsensusService) CreateQueryContext(height int64, prove bool) (sdk.Context, error) {
-	sdkCtx := sdk.NewContext(t.cms.CacheMultiStore(), true, log.NewNopLogger())
-
-	// there validations mimics consensus service, not sure if they are necessary
-	tmpState := statedb.NewBeaconStateFromDB(t.kvStore.WithContext(sdkCtx), t.cs)
-	slot, err := tmpState.GetSlot()
-	if err != nil {
-		return sdk.Context{}, sdkerrors.ErrInvalidHeight
-	}
-	if height > int64(slot.Unwrap()) {
-		return sdk.Context{}, sdkerrors.ErrInvalidHeight
-	}
-	// end of possibly unnecessary validations
-
-	return sdkCtx, nil
-}
-
-func (t *testConsensusService) Start(ctx context.Context) error {
-	return errTestMemberNotImplemented
-}
-
-func (t *testConsensusService) Stop() error {
-	return errTestMemberNotImplemented
-}
-
-func (t *testConsensusService) Name() string {
-	panic(errTestMemberNotImplemented)
-}
-
-func (t *testConsensusService) LastBlockHeight() int64 {
-	panic(errTestMemberNotImplemented)
 }

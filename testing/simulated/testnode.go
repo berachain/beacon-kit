@@ -35,11 +35,14 @@ import (
 	"github.com/berachain/beacon-kit/cli/flags"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/da/kzg"
+	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	nodecomponents "github.com/berachain/beacon-kit/node-core/components"
+	service "github.com/berachain/beacon-kit/node-core/services/registry"
 	nodetypes "github.com/berachain/beacon-kit/node-core/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/net/url"
+	"github.com/berachain/beacon-kit/state-transition/core"
 	"github.com/berachain/beacon-kit/storage/db"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	dbm "github.com/cosmos/cosmos-db"
@@ -59,10 +62,14 @@ type TestNodeInput struct {
 
 type TestNode struct {
 	nodetypes.Node
-	StorageBackend blockchain.StorageBackend
-	ChainSpec      chain.Spec
-	APIBackend     nodecomponents.NodeAPIBackend
-	SimComet       *SimComet
+	StorageBackend  blockchain.StorageBackend
+	ChainSpec       chain.Spec
+	APIBackend      nodecomponents.NodeAPIBackend
+	SimComet        *SimComet
+	EngineClient    *client.EngineClient
+	StateProcessor  *core.StateProcessor
+	ServiceRegistry *service.Registry
+	KZGVerifier     kzg.BlobProofVerifier
 }
 
 // NewTestNode Uses the testnet chainspec.
@@ -103,12 +110,16 @@ func buildNode(
 ) TestNode {
 	// variables to hold the components needed to set up BeaconApp
 	var (
-		apiBackend     nodecomponents.NodeAPIBackend
-		beaconNode     nodetypes.Node
-		simComet       *SimComet
-		config         *config.Config
-		storageBackend blockchain.StorageBackend
-		chainSpec      chain.Spec
+		apiBackend      nodecomponents.NodeAPIBackend
+		beaconNode      nodetypes.Node
+		simComet        *SimComet
+		config          *config.Config
+		storageBackend  blockchain.StorageBackend
+		chainSpec       chain.Spec
+		engineClient    *client.EngineClient
+		stateProcessor  *core.StateProcessor
+		serviceRegistry *service.Registry
+		kzgVerifier     kzg.BlobProofVerifier
 	)
 
 	// build all node components using depinject
@@ -130,6 +141,10 @@ func buildNode(
 		&config,
 		&storageBackend,
 		&chainSpec,
+		&engineClient,
+		&stateProcessor,
+		&serviceRegistry,
+		&kzgVerifier,
 	); err != nil {
 		panic(err)
 	}
@@ -143,11 +158,15 @@ func buildNode(
 	logger.WithConfig(config.GetLogger())
 	apiBackend.AttachQueryBackend(simComet)
 	return TestNode{
-		Node:           beaconNode,
-		StorageBackend: storageBackend,
-		ChainSpec:      chainSpec,
-		APIBackend:     apiBackend,
-		SimComet:       simComet,
+		Node:            beaconNode,
+		StorageBackend:  storageBackend,
+		ChainSpec:       chainSpec,
+		APIBackend:      apiBackend,
+		SimComet:        simComet,
+		EngineClient:    engineClient,
+		StateProcessor:  stateProcessor,
+		ServiceRegistry: serviceRegistry,
+		KZGVerifier:     kzgVerifier,
 	}
 }
 
@@ -178,7 +197,9 @@ func getAppOptions(t *testing.T, appOpts *viper.Viper, beaconKitConfig *config.C
 	appOpts.Set(flags.KZGImplementation, kzg.DefaultConfig().Implementation)
 
 	// Payload Builder Config
-	beaconKitConfig.GetPayloadBuilder().SuggestedFeeRecipient = common.NewExecutionAddressFromHex("0x981114102592310C347E61368342DDA67017bf84")
+	beaconKitConfig.GetPayloadBuilder().SuggestedFeeRecipient = common.NewExecutionAddressFromHex(
+		"0x981114102592310C347E61368342DDA67017bf84",
+	)
 	appOpts.Set(flags.BuilderEnabled, beaconKitConfig.GetPayloadBuilder().Enabled)
 	appOpts.Set(flags.BuildPayloadTimeout, beaconKitConfig.GetPayloadBuilder().PayloadTimeout)
 	appOpts.Set(flags.SuggestedFeeRecipient, beaconKitConfig.GetPayloadBuilder().SuggestedFeeRecipient)

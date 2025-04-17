@@ -21,7 +21,8 @@
 package deposit
 
 import (
-	"github.com/berachain/beacon-kit/chain"
+	clitypes "github.com/berachain/beacon-kit/cli/commands/server/types"
+	"github.com/berachain/beacon-kit/cli/context"
 	"github.com/berachain/beacon-kit/cli/utils/parser"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
@@ -42,16 +43,16 @@ const (
 	maxArgsValidateDeposit = 5
 )
 
-// NewValidateDeposit creates a new command for validating a deposit message.
+// GetValidateDepositCmd creates a new command for validating a deposit message.
 //
-//nolint:lll // reads better if long description is one line
-func NewValidateDeposit(chainSpec chain.Spec) *cobra.Command {
+//nolint:lll // Reads better if long description is one line.
+func GetValidateDepositCmd(chainSpecCreator clitypes.ChainSpecCreator) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "validate [pubkey] [withdrawal-credentials] [amount] [signature] ?[beacond/genesis.json]",
 		Short: "Validates a deposit message for creating a new validator",
 		Long:  `Validates a deposit message (public key, withdrawal credentials, deposit amount) for creating a new validator. The args taken are in the order of the public key, withdrawal credentials, deposit amount, signature, and optionally the beacond genesis file. If the genesis validator root flag is NOT set, the beacond genesis file MUST be provided as the last argument.`,
 		Args:  cobra.RangeArgs(minArgsValidateDeposit, maxArgsValidateDeposit),
-		RunE:  validateDepositMessage(chainSpec),
+		RunE:  validateDepositMessage(chainSpecCreator),
 	}
 
 	cmd.Flags().StringP(
@@ -65,11 +66,13 @@ func NewValidateDeposit(chainSpec chain.Spec) *cobra.Command {
 }
 
 // validateDepositMessage validates a deposit message for creating a new validator.
-func validateDepositMessage(chainSpec chain.Spec) func(
-	_ *cobra.Command,
-	args []string,
-) error {
+func validateDepositMessage(chainSpecCreator clitypes.ChainSpecCreator) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
+		v := context.GetViperFromCmd(cmd)
+		chainSpec, err := chainSpecCreator(v)
+		if err != nil {
+			return err
+		}
 		pubKeyStr := args[validatePubKey0]
 		pubkey, err := parser.ConvertPubkey(pubKeyStr)
 		if err != nil {
@@ -101,12 +104,19 @@ func validateDepositMessage(chainSpec chain.Spec) func(
 			return err
 		}
 
-		return ValidateDeposit(chainSpec, pubkey, credentials, amount, genesisValidatorRoot, signature)
+		if err = ValidateDeposit(
+			chainSpec, pubkey, credentials, amount, genesisValidatorRoot, signature,
+		); err != nil {
+			return err
+		}
+
+		cmd.Println("✅ Deposit message is valid!")
+		return nil
 	}
 }
 
 func ValidateDeposit(
-	cs chain.Spec,
+	cs ChainSpec,
 	pubkey crypto.BLSPubkey,
 	creds types.WithdrawalCredentials,
 	amount math.Gwei,

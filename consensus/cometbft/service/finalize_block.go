@@ -58,6 +58,9 @@ func (s *Service) finalizeBlockInternal(
 	// CometBFT.
 	if s.finalizeBlockState == nil {
 		s.finalizeBlockState = s.resetState(ctx)
+	} else {
+		// Preserve the CosmosSDK context while using the correct base ctx.
+		s.finalizeBlockState.SetContext(s.finalizeBlockState.Context().WithContext(ctx))
 	}
 
 	// Iterate over all raw transactions in the proposal and attempt to execute

@@ -114,15 +114,23 @@ datadog-hostname = "my_beacond_node"
 ###                                BeaconKit                                ###
 ###############################################################################
 
+[beacon-kit]
+# ShutdownTimeout is the maximum time to wait for the node to gracefully
+# shutdown before forcing an exit.
+shutdown-timeout = "5m0s"
+
 [beacon-kit.engine]
 # HTTP url of the execution client JSON-RPC endpoint.
 rpc-dial-url = "http://localhost:8551"
 
-# Number of retries before shutting down consensus client.
-rpc-retries = "3"
-
 # RPC timeout for execution client requests.
-rpc-timeout = "900ms"
+rpc-timeout = "2s"
+
+# RPC retry interval for execution client requests.
+rpc-retry-interval = "100ms"
+
+# RPC max retry interval for execution client requests.
+rpc-max-retry-interval = "10s"
 
 # Interval for the startup check.
 rpc-startup-check-interval = "3s"

@@ -22,7 +22,6 @@
 package cometbft
 
 import (
-	"context"
 	"fmt"
 
 	"cosmossdk.io/store/rootmulti"
@@ -30,7 +29,7 @@ import (
 )
 
 func (s *Service) commit(
-	context.Context, *cmtabci.CommitRequest,
+	*cmtabci.CommitRequest,
 ) (*cmtabci.CommitResponse, error) {
 	if s.finalizeBlockState == nil {
 		// This is unexpected since CometBFT should call Commit only

@@ -38,49 +38,66 @@ func (s *Service) FinalizeBlock(
 	ctx sdk.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (transition.ValidatorUpdates, error) {
-	// STEP 1: Decode block and blobs
+	// STEP 1: Decode block and blobs.
+	currentForkVersion := s.chainSpec.ActiveForkVersionForTimestamp(math.U64(req.GetTime().Unix())) //#nosec: G115
 	signedBlk, blobs, err := encoding.ExtractBlobsAndBlockFromRequest(
 		req,
 		BeaconBlockTxIndex,
 		BlobSidecarsTxIndex,
-		s.chainSpec.ActiveForkVersionForSlot(math.Slot(req.Height))) // #nosec G115
+		// While req.GetTime() and blk.GetTimestamp() may be different, they are guaranteed
+		// to map to the same forkVersion due to checks during ProcessProposal.
+		currentForkVersion,
+	)
 	if err != nil {
 		s.logger.Error("Failed to decode block and blobs", "error", err)
 		return nil, fmt.Errorf("failed to decode block and blobs: %w", err)
 	}
+	s.logger.Debug(
+		"Finalizing block with fork version",
+		"block", req.Height,
+		"fork", currentForkVersion.String(),
+	)
+	blk := signedBlk.GetBeaconBlock()
 
 	// Send an FCU to force the HEAD of the chain on the EL on startup.
 	var finalizeErr error
 	s.forceStartupSyncOnce.Do(func() {
-		finalizeErr = s.forceSyncUponFinalize(ctx, signedBlk.GetMessage())
+		finalizeErr = s.forceSyncUponFinalize(ctx, blk)
 	})
 	if finalizeErr != nil {
 		return nil, finalizeErr
 	}
 
-	// STEP 2: Finalize sidecars first (block will check for
-	// sidecar availability)
-	err = s.blobProcessor.ProcessSidecars(
-		s.storageBackend.AvailabilityStore(),
-		blobs,
-	)
-	if err != nil {
-		s.logger.Error("Failed to process blob sidecars", "error", err)
-		return nil, fmt.Errorf("failed to process blob sidecars: %w", err)
+	// STEP 2: Finalize sidecars first (block will check for sidecar availability).
+	// SyncingToHeight is always the tip of the chain both during sync and when
+	// caught up. We don't need to process sidecars unless they are within DA period.
+	//
+	//#nosec: G115 // SyncingToHeight will never be negative.
+	if s.chainSpec.WithinDAPeriod(blk.GetSlot(), math.Slot(req.SyncingToHeight)) {
+		err = s.blobProcessor.ProcessSidecars(
+			s.storageBackend.AvailabilityStore(),
+			blobs,
+		)
+		if err != nil {
+			s.logger.Error("Failed to process blob sidecars", "error", err)
+			return nil, fmt.Errorf("failed to process blob sidecars: %w", err)
+		}
+
+		// Ensure we can access the data using the commitments from the block.
+		if !s.storageBackend.AvailabilityStore().IsDataAvailable(
+			ctx, blk.GetSlot(), blk.GetBody(),
+		) {
+			return nil, ErrDataNotAvailable
+		}
+	} else if len(blobs) > 0 {
+		s.logger.Info(
+			"Skipping blob processing outside of Data Availability Period",
+			"slot", blk.GetSlot().Base10(), "head", req.SyncingToHeight,
+		)
 	}
 
-	// STEP 3: finalize the block
-	blk := signedBlk.GetMessage()
-	if blk == nil {
-		s.logger.Error("SignedBeaconBlock contains nil BeaconBlock during FinalizeBlock")
-		return nil, ErrNilBlk
-	}
-	consensusBlk := types.NewConsensusBlock(
-		blk,
-		req.GetProposerAddress(),
-		req.GetTime(),
-	)
-
+	// STEP 3: Finalize the block.
+	consensusBlk := types.NewConsensusBlock(blk, req.GetProposerAddress(), req.GetTime())
 	st := s.storageBackend.StateFromContext(ctx)
 	valUpdates, err := s.finalizeBeaconBlock(ctx, st, consensusBlk)
 	if err != nil {
@@ -90,13 +107,14 @@ func (s *Service) FinalizeBlock(
 		return nil, err
 	}
 
-	// STEP 4: Post Finalizations cleanups
+	// STEP 4: Post Finalizations cleanups.
 
-	// fetch and store the deposit for the block
+	// Fetch and store the deposit for the block.
 	blockNum := blk.GetBody().GetExecutionPayload().GetNumber()
 	s.depositFetcher(ctx, blockNum)
 
-	// store the finalized block in the KVStore.
+	// Store the finalized block in the KVStore.
+	//
 	// TODO: Store full SignedBeaconBlock with all data in storage
 	slot := blk.GetSlot()
 	if err = s.storageBackend.BlockStore().Set(blk); err != nil {
@@ -106,13 +124,13 @@ func (s *Service) FinalizeBlock(
 		return nil, err
 	}
 
-	// prune the availability and deposit store
+	// Prune the availability and deposit store.
 	err = s.processPruning(ctx, blk)
 	if err != nil {
 		s.logger.Error("failed to processPruning", "error", err)
 	}
 
-	if err = s.sendPostBlockFCU(ctx, st, consensusBlk); err != nil {
+	if err = s.sendPostBlockFCU(ctx, st); err != nil {
 		return nil, fmt.Errorf("sendPostBlockFCU failed: %w", err)
 	}
 
@@ -129,22 +147,13 @@ func (s *Service) finalizeBeaconBlock(
 	beaconBlk := blk.GetBeaconBlock()
 
 	// If the block is nil, exit early.
-	if beaconBlk.IsNil() {
+	if beaconBlk == nil {
 		return nil, ErrNilBlk
 	}
 
 	valUpdates, err := s.executeStateTransition(ctx, st, blk)
 	if err != nil {
 		return nil, err
-	}
-
-	// If the blobs needed to process the block are not available, we
-	// return an error. It is safe to use the slot off of the beacon block
-	// since it has been verified as correct already.
-	if !s.storageBackend.AvailabilityStore().IsDataAvailable(
-		ctx, beaconBlk.GetSlot(), beaconBlk.GetBody(),
-	) {
-		return nil, ErrDataNotAvailable
 	}
 	return valUpdates.CanonicalSort(), nil
 }

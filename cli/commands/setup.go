@@ -21,7 +21,6 @@
 package commands
 
 import (
-	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/cli/commands/deposit"
 	"github.com/berachain/beacon-kit/cli/commands/genesis"
 	"github.com/berachain/beacon-kit/cli/commands/initialize"
@@ -39,7 +38,7 @@ func DefaultRootCommandSetup(
 	root *Root,
 	mm *cometbft.Service,
 	appCreator servertypes.AppCreator,
-	chainSpec chain.Spec,
+	chainSpecCreator servertypes.ChainSpecCreator,
 ) {
 	// Add all the commands to the root command.
 	root.cmd.AddCommand(
@@ -48,9 +47,9 @@ func DefaultRootCommandSetup(
 		// `init`
 		initialize.InitCmd(mm),
 		// `genesis`
-		genesis.Commands(chainSpec),
+		genesis.Commands(chainSpecCreator),
 		// `deposit`
-		deposit.Commands(chainSpec),
+		deposit.Commands(chainSpecCreator, appCreator),
 		// `jwt`
 		jwt.Commands(),
 		// `rollback`
