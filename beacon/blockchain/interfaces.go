@@ -88,7 +88,7 @@ type StateProcessor interface {
 	) (transition.ValidatorUpdates, error)
 	// PrepareStateForFork prepares the state for the fork version at the given timestamp.
 	PrepareStateForFork(
-		st *statedb.StateDB, timestamp math.U64, slot math.Slot,
+		st *statedb.StateDB, timestamp math.U64, slot math.Slot, logUpgrade bool,
 	) error
 	// ProcessSlots processes the state transition for a range of slots.
 	ProcessSlots(

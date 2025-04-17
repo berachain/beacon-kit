@@ -94,8 +94,12 @@ func (sp *StateProcessor) Transition(
 		return nil, err
 	}
 
-	// Prepare the state for the next block's fork version.
-	if err = sp.PrepareStateForFork(st, blk.GetTimestamp(), slot); err != nil {
+	// Prepare the state for the next block's fork version, logging only once during FinalizeBlock.
+	//
+	// TODO: allow the state transition context to directly indicate what stage of block processing
+	// we are in, i.e. ProcessProposal, FinalizeBlock, etc.
+	inFinalizeBlock := ctx.VerifyPayload() && !ctx.VerifyRandao()
+	if err = sp.PrepareStateForFork(st, blk.GetTimestamp(), slot, inFinalizeBlock); err != nil {
 		return nil, err
 	}
 

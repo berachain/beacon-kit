@@ -132,7 +132,7 @@ type (
 		) (transition.ValidatorUpdates, error)
 		// PrepareStateForFork prepares the state for the fork version at the given timestamp.
 		PrepareStateForFork(
-			st *statedb.StateDB, timestamp math.U64, slot math.Slot,
+			st *statedb.StateDB, timestamp math.U64, slot math.Slot, logUpgrade bool,
 		) error
 		// ProcessSlot processes the slot.
 		ProcessSlots(
