@@ -139,7 +139,7 @@ func TestInitialize(t *testing.T) {
 			)
 
 			// run test
-			genVals, initErr := sp.InitializePreminedBeaconStateFromEth1(
+			genVals, initErr := sp.InitializeBeaconStateFromEth1(
 				st, genDeposits, executionPayloadHeader, fork.CurrentVersion,
 			)
 

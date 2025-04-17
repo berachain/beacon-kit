@@ -57,7 +57,7 @@ func progressStateToSlot(
 	t.Helper()
 
 	if slot == math.U64(0) {
-		t.Fatal("for genesis slot, use InitializePreminedBeaconStateFromEth1")
+		t.Fatal("for genesis slot, use InitializeBeaconStateFromEth1")
 	}
 
 	err := beaconState.SetSlot(slot)

@@ -77,10 +77,9 @@ type LocalBuilder interface {
 // StateProcessor defines the interface for processing various state transitions
 // in the beacon chain.
 type StateProcessor interface {
-	// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
-	// state
-	// from the eth1 deposits.
-	InitializePreminedBeaconStateFromEth1(
+	// InitializeBeaconStateFromEth1 initializes the premined beacon
+	// state from the eth1 deposits.
+	InitializeBeaconStateFromEth1(
 		*statedb.StateDB,
 		ctypes.Deposits,
 		*ctypes.ExecutionPayloadHeader,
@@ -171,5 +170,5 @@ type PruningChainSpec interface {
 type ServiceChainSpec interface {
 	PruningChainSpec
 	chain.BlobSpec
-	ActiveForkVersionForTimestamp(timestamp math.U64) common.Version
+	chain.ForkVersionSpec
 }

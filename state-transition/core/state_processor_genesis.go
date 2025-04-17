@@ -28,26 +28,17 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
-	"github.com/berachain/beacon-kit/primitives/version"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-// InitializePreminedBeaconStateFromEth1 initializes the beacon state.
-//
-//nolint:gocognit,funlen // todo fix.
-func (sp *StateProcessor) InitializePreminedBeaconStateFromEth1(
+// InitializeBeaconStateFromEth1 initializes the beacon state. Modified from the ETH 2.0 spec:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#genesis
+func (sp *StateProcessor) InitializeBeaconStateFromEth1(
 	st *statedb.StateDB,
 	deposits ctypes.Deposits,
 	execPayloadHeader *ctypes.ExecutionPayloadHeader,
 	genesisVersion common.Version,
 ) (transition.ValidatorUpdates, error) {
-	if !version.Equals(sp.cs.GenesisForkVersion(), genesisVersion) {
-		return nil, fmt.Errorf(
-			"fork mismatch between chain spec genesis version (%s) and CL genesis file fork version (%s)",
-			sp.cs.GenesisForkVersion(), genesisVersion,
-		)
-	}
-
 	if err := st.SetSlot(constants.GenesisSlot); err != nil {
 		return nil, err
 	}
@@ -56,7 +47,7 @@ func (sp *StateProcessor) InitializePreminedBeaconStateFromEth1(
 	if err := st.SetFork(fork); err != nil {
 		return nil, err
 	}
-	if err := sp.PrepareStateForFork(st, execPayloadHeader.GetTimestamp(), 0, true); err != nil {
+	if err := sp.ProcessFork(st, execPayloadHeader.GetTimestamp(), true); err != nil {
 		return nil, err
 	}
 

@@ -56,7 +56,7 @@ func TestStateProcessor_ProcessSlots(t *testing.T) {
 		}
 	)
 	genPayloadHeader.Timestamp = math.U64(genesisTime.Unix())
-	_, err := sp.InitializePreminedBeaconStateFromEth1(
+	_, err := sp.InitializeBeaconStateFromEth1(
 		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)

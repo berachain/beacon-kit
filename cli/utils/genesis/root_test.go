@@ -110,7 +110,7 @@ func TestCompareGenesisCmdWithStateProcessor(t *testing.T) {
 				sp, st, _, _, _, _ := statetransition.SetupTestState(t, cs)
 				genPayloadHeader := types.NewEmptyExecutionPayloadHeaderWithVersion(cs.GenesisForkVersion())
 
-				_, err = sp.InitializePreminedBeaconStateFromEth1(
+				_, err = sp.InitializeBeaconStateFromEth1(
 					st,
 					deposits,
 					genPayloadHeader,
