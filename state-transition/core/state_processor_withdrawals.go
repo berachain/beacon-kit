@@ -21,10 +21,13 @@
 package core
 
 import (
+	"fmt"
+
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/ethereum/go-ethereum/params"
@@ -50,9 +53,14 @@ func (sp *StateProcessor) processWithdrawals(
 	)
 
 	// Get the expected withdrawals.
-	expectedWithdrawals, err := st.ExpectedWithdrawals(blk.GetTimestamp())
+	expectedWithdrawals, processedPartialWithdrawalsCount, err := st.ExpectedWithdrawals(blk.GetTimestamp())
 	if err != nil {
 		return err
+	}
+
+	if version.IsBefore(blk.GetForkVersion(), version.Electra()) && processedPartialWithdrawalsCount != 0 {
+		// This should never happen as we would not add pending partial withdrawals to the beacon state before electra.
+		return fmt.Errorf("there must be no partial withdrawals before electra but found %d", processedPartialWithdrawalsCount)
 	}
 
 	// Common validations
@@ -91,6 +99,20 @@ func (sp *StateProcessor) processWithdrawals(
 		); err != nil {
 			return err
 		}
+	}
+
+	// Update pending partial withdrawals [Introduced in Electra:EIP7251]
+	// This case can only be hit after electra.
+	if processedPartialWithdrawalsCount > 0 {
+		ppWithdrawals, getErr := st.GetPendingPartialWithdrawals()
+		if getErr != nil {
+			return getErr
+		}
+		updatedWithdrawals := ppWithdrawals[processedPartialWithdrawalsCount:]
+		if setErr := st.SetPendingPartialWithdrawals(updatedWithdrawals); setErr != nil {
+			return setErr
+		}
+		sp.logger.Info("pending partial withdrawals found", "count", processedPartialWithdrawalsCount)
 	}
 
 	if numWithdrawals > 1 {
@@ -144,8 +166,8 @@ const FullExitRequestAmount = 0
 // PendingPartialWithdrawalsLimit TODO(pectra): Move to somewhere more appropriate
 const PendingPartialWithdrawalsLimit = 64
 
-// MinActivationBalance TODO(pectra): Move to somewhere more appropriate
-const MinActivationBalance = 250_000 * params.GWei
+// MinActivationBalance TODO(pectra): Move to somewhere more appropriate. 250K BERA.
+const MinActivationBalance = 250_000_000_000_000 * params.GWei
 
 // processWithdrawalRequest is the equivalent of process_withdrawal_request as defined in the spec.
 // It should only be called after the electra hard fork.
