@@ -71,8 +71,8 @@ func (sp *StateProcessor) ProcessFork(
 	switch forkVersion {
 	case version.Deneb():
 		// Do nothing to the state. NOTE: Deneb is the genesis version of Berachain mainnet and
-		// Bepolia testnet. At genesis, InitializeBeaconStateFromEth1 should be called, which
-		// adequately prepares the BeaconState for Deneb.
+		// Bepolia testnet. At genesis, InitializeBeaconStateFromEth1 should adequately prepare
+		// the BeaconState for Deneb.
 
 		// Log the upgrade to Deneb if requested.
 		if logUpgrade {

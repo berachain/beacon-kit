@@ -140,7 +140,6 @@ func executableDataToExecutionPayloadHeader(
 	// todo: re-enable when codec supports.
 	_ uint64,
 ) (*types.ExecutionPayloadHeader, error) {
-	var executionPayloadHeader *types.ExecutionPayloadHeader
 	switch forkVersion {
 	case version.Deneb(), version.Deneb1(), version.Electra():
 		withdrawals := make(
@@ -175,7 +174,7 @@ func executableDataToExecutionPayloadHeader(
 			return nil, fmt.Errorf("failed baseFeePerGas conversion: %w", err)
 		}
 
-		executionPayloadHeader = &types.ExecutionPayloadHeader{
+		return &types.ExecutionPayloadHeader{
 			Versionable:   types.NewVersionable(forkVersion),
 			ParentHash:    common.ExecutionHash(data.ParentHash),
 			FeeRecipient:  common.ExecutionAddress(data.FeeRecipient),
@@ -196,10 +195,8 @@ func executableDataToExecutionPayloadHeader(
 			WithdrawalsRoot: withdrawals.HashTreeRoot(),
 			BlobGasUsed:     math.U64(blobGasUsed),
 			ExcessBlobGas:   math.U64(excessBlobGas),
-		}
+		}, nil
 	default:
 		return nil, types.ErrForkVersionNotSupported
 	}
-
-	return executionPayloadHeader, nil
 }
