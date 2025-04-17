@@ -24,6 +24,7 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
@@ -57,19 +58,77 @@ func (sp *StateProcessor) PrepareStateForFork(
 	// Upgrade the state to the new version.
 	switch forkVersion {
 	case version.Deneb():
-		// Do nothing. NOTE: Deneb is the genesis version of Berachain.
-		// At genesis, InitializePreminedBeaconStateFromEth1 should be called,
-		// which adequately prepares the BeaconState for Deneb.
+		return sp.upgradeToDeneb(stateFork.CurrentVersion, timestamp, slot, logUpgrade)
 	case version.Deneb1():
-		// Do nothing. NOTE: Deneb1 is the first hard fork of Berachain.
-		// In this fork, the Fork struct on BeaconState is NOT updated.
-		// In future hard forks, the Fork struct WILL be updated.
+		return sp.upgradeToDeneb1(stateFork.CurrentVersion, timestamp, slot, logUpgrade)
 	case version.Electra():
 		return sp.upgradeToElectra(st, stateFork, timestamp, slot, logUpgrade)
 	default:
 		return fmt.Errorf("unsupported fork version: %s", forkVersion)
 	}
+}
 
+// Do nothing to the state. NOTE: Deneb is the genesis version of Berachain
+// mainnet and Bepolia testnet. At genesis, InitializePreminedBeaconStateFromEth1
+// should be called, which adequately prepares the BeaconState for Deneb.
+func (sp *StateProcessor) upgradeToDeneb(
+	previousVersion common.Version, timestamp math.U64, slot math.Slot, logUpgrade bool,
+) error {
+	// Log the upgrade to Deneb if requested.
+	if logUpgrade {
+		sp.logger.Info(fmt.Sprintf(`
+
+
+	⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️
+
+	+ ✅  upgraded to deneb (0x04000000) fork! 🎉
+	+ 🚝  previous fork: %s (%s)
+	+ ⏱️   deneb fork time: %d
+	+ 🍴  first slot / timestamp of deneb: %d / %d
+	+ ⛓️   current beacon epoch: %d
+
+	⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️
+
+
+`,
+			version.Name(previousVersion), previousVersion.String(),
+			timestamp.Unwrap(), // TODO: this should be fetched from the chain spec.
+			slot.Unwrap(), timestamp.Unwrap(),
+			sp.cs.SlotToEpoch(slot).Unwrap(),
+		))
+	}
+	return nil
+}
+
+// upgradeToDeneb1 does nothing to the state. NOTE: Deneb1 is the first hard fork of Berachain
+// mainnet and Bepolia testnet. In this fork, the Fork struct on BeaconState is NOT updated. In
+// future hard forks, the Fork struct should be updated.
+func (sp *StateProcessor) upgradeToDeneb1(
+	previousVersion common.Version, timestamp math.U64, slot math.Slot, logUpgrade bool,
+) error {
+	// Log the upgrade to Deneb1 if requested.
+	if logUpgrade {
+		sp.logger.Info(fmt.Sprintf(`
+
+
+	⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️
+
+	+ ✅  upgraded to deneb1 (0x04010000) fork! 🎉
+	+ 🚝  previous fork: %s (%s)
+	+ ⏱️   deneb1 fork time: %d
+	+ 🍴  first slot / timestamp of deneb1: %d / %d
+	+ ⛓️   current beacon epoch: %d
+
+	⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️
+
+
+`,
+			version.Name(previousVersion), previousVersion.String(),
+			sp.cs.Deneb1ForkTime(),
+			slot.Unwrap(), timestamp.Unwrap(),
+			sp.cs.SlotToEpoch(slot).Unwrap(),
+		))
+	}
 	return nil
 }
 
@@ -92,8 +151,7 @@ func (sp *StateProcessor) upgradeToElectra(
 		return err
 	}
 
-	// Log the upgrade to Electra, but only once.
-	// TODO: fix. Still being logged this multiple times.
+	// Log the upgrade to Electra if requested.
 	if logUpgrade {
 		sp.logger.Info(fmt.Sprintf(`
 
