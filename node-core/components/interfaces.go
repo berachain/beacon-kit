@@ -130,9 +130,9 @@ type (
 			*ctypes.ExecutionPayloadHeader,
 			common.Version,
 		) (transition.ValidatorUpdates, error)
-		// PrepareStateForFork prepares the state for the fork version at the given timestamp.
-		PrepareStateForFork(
-			st *statedb.StateDB, timestamp math.U64, slot math.Slot, logUpgrade bool,
+		// ProcessFork prepares the state for the fork version at the given timestamp.
+		ProcessFork(
+			st *statedb.StateDB, timestamp math.U64, logUpgrade bool,
 		) error
 		// ProcessSlot processes the slot.
 		ProcessSlots(
