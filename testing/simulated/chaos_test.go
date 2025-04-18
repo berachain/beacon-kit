@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/cometbft/cometbft/abci/types"
-	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
 // TestProcessProposal_CrashedExecutionClient_Errors effectively serves as a test for how a valid node would react to
@@ -109,7 +108,7 @@ func (s *SimulatedSuite) TestContextHandling_SIGINT_SafeShutdown() {
 	s.Require().NoError(err)
 
 	type proposalResult struct {
-		proposal *cmtabci.PrepareProposalResponse
+		proposal *types.PrepareProposalResponse
 		err      error
 	}
 	// Capture result of prepare proposal
