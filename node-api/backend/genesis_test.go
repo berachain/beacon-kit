@@ -114,7 +114,7 @@ func TestGetGenesisData(t *testing.T) {
 
 	genesisForkVersion, err := b.GenesisForkVersion()
 	require.NoError(t, err)
-	require.Equal(t, version.Genesis(), genesisForkVersion) // Deneb 0x04000000
+	require.Equal(t, version.Deneb(), genesisForkVersion) // Deneb 0x04000000
 
 	genesisValidatorsRoot, err := b.GenesisValidatorsRoot()
 	require.NoError(t, err)

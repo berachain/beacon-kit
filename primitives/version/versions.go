@@ -47,11 +47,6 @@ var (
 	electra1 = common.Version{0x05, 0x01, 0x00, 0x00}
 )
 
-// Genesis returns the fork version for the genesis of Berachain mainnet, which is Deneb.
-func Genesis() common.Version {
-	return Deneb()
-}
-
 // Phase0 returns phase0 as a common.Version.
 func Phase0() common.Version {
 	return phase0
@@ -72,7 +67,8 @@ func Capella() common.Version {
 	return capella
 }
 
-// Deneb returns deneb as a common.Version.
+// Deneb returns deneb as a common.Version. Deneb is the genesis fork version for Berachain
+// mainnet and Bepolia testnet.
 func Deneb() common.Version {
 	return deneb
 }

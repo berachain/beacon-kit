@@ -30,6 +30,8 @@ import (
 func (kv *KVStore) GetLatestExecutionPayloadHeader() (
 	*ctypes.ExecutionPayloadHeader, error,
 ) {
+	// NOTE: unmarshalling this struct is NOT affected by it's own fork version. The versioned
+	// codec is left in for backwards compatibility.
 	forkVersion, err := kv.latestExecutionPayloadVersion.Get(kv.ctx)
 	if err != nil {
 		return nil, err
@@ -43,6 +45,8 @@ func (kv *KVStore) GetLatestExecutionPayloadHeader() (
 func (kv *KVStore) SetLatestExecutionPayloadHeader(
 	payloadHeader *ctypes.ExecutionPayloadHeader,
 ) error {
+	// NOTE: marshalling this struct is NOT affected by it's own fork version. The versioned
+	// codec is left in for backwards compatibility.
 	version := payloadHeader.GetForkVersion()
 	if err := kv.latestExecutionPayloadVersion.Set(
 		kv.ctx, version.ToUint32(),

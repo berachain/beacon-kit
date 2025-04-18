@@ -31,13 +31,13 @@ import (
 	"testing"
 	"testing/quick"
 
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/cli/utils/genesis"
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	"github.com/stretchr/testify/require"
 )
@@ -82,43 +82,50 @@ func (TestDeposits) Generate(rand *rand.Rand, size int) reflect.Value {
 func TestCompareGenesisCmdWithStateProcessor(t *testing.T) {
 	t.Parallel()
 	qc := &quick.Config{MaxCount: 1_000}
-	cs, err := spec.DevnetChainSpec()
+	csDev, err := spec.DevnetChainSpec()
+	require.NoError(t, err)
+	csTest, err := spec.TestnetChainSpec()
+	require.NoError(t, err)
+	csMain, err := spec.MainnetChainSpec()
 	require.NoError(t, err)
 
-	f := func(inputs TestDeposits) bool {
-		deposits := make(types.Deposits, len(inputs))
-		for i, input := range inputs {
-			deposits[i] = &types.Deposit{
-				Pubkey:      input.Pubkey,
-				Credentials: input.Credentials,
-				Amount:      input.Amount,
-				Signature:   input.Signature,
-				Index:       uint64(i),
+	specs := []chain.Spec{csDev, csTest, csMain}
+	for i, cs := range specs {
+		t.Run(fmt.Sprintf("spec-%d", i), func(t *testing.T) {
+			f := func(inputs TestDeposits) bool {
+				deposits := make(types.Deposits, len(inputs))
+				for i, input := range inputs {
+					deposits[i] = &types.Deposit{
+						Pubkey:      input.Pubkey,
+						Credentials: input.Credentials,
+						Amount:      input.Amount,
+						Signature:   input.Signature,
+						Index:       uint64(i),
+					}
+				}
+				// genesis validators root from CLI
+				cliValRoot := genesis.ComputeValidatorsRoot(deposits, cs)
+
+				// genesis validators root from StateProcessor
+				sp, st, _, _, _, _ := statetransition.SetupTestState(t, cs)
+				genPayloadHeader := types.NewEmptyExecutionPayloadHeaderWithVersion(cs.GenesisForkVersion())
+
+				_, err = sp.InitializeBeaconStateFromEth1(
+					st,
+					deposits,
+					genPayloadHeader,
+					cs.GenesisForkVersion(),
+				)
+				require.NoError(t, err)
+
+				var processorRoot common.Root
+				processorRoot, err = st.GetGenesisValidatorsRoot()
+				require.NoError(t, err)
+
+				// assert that they generate the same root, given the same list of deposits
+				return libbytes.Equal(cliValRoot[:], processorRoot[:])
 			}
-		}
-		// genesis validators root from CLI
-		cliValRoot := genesis.ComputeValidatorsRoot(deposits, cs)
-
-		// genesis validators root from StateProcessor
-		sp, st, _, _, _, _ := statetransition.SetupTestState(t, cs)
-		genPayloadHeader := &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(version.Genesis()),
-		}
-		_, err = sp.InitializePreminedBeaconStateFromEth1(
-			st,
-			deposits,
-			genPayloadHeader,
-			version.Genesis(),
-		)
-		require.NoError(t, err)
-
-		var processorRoot common.Root
-		processorRoot, err = st.GetGenesisValidatorsRoot()
-		require.NoError(t, err)
-
-		// assert that they generate the same root, given the same list of deposits
-		return libbytes.Equal(cliValRoot[:], processorRoot[:])
+			require.NoError(t, quick.Check(f, qc))
+		})
 	}
-
-	require.NoError(t, quick.Check(f, qc))
 }

@@ -384,7 +384,7 @@ func setupStateDummyParts(t *testing.T, cs chain.Spec, st *statedb.StateDB, dumm
 	t.Helper()
 	require.NoError(t, st.SetSlot(dummySlot))
 
-	fork := ctypes.NewFork(version.Genesis(), version.Genesis(), constants.GenesisEpoch)
+	fork := ctypes.NewFork(version.Deneb(), version.Deneb(), constants.GenesisEpoch)
 	require.NoError(t, st.SetFork(fork))
 
 	require.NoError(t, st.SetGenesisValidatorsRoot(common.Root{}))
@@ -403,7 +403,7 @@ func setupStateDummyParts(t *testing.T, cs chain.Spec, st *statedb.StateDB, dumm
 		require.NoError(t, st.UpdateStateRootAtIndex(i, common.Root{}))
 	}
 
-	payload, err := ctypes.DefaultGenesisExecutionPayloadHeader()
+	payload, err := ctypes.DefaultGenesisExecutionPayloadHeader(version.Deneb())
 	require.NoError(t, err)
 	require.NoError(t, st.SetLatestExecutionPayloadHeader(payload))
 

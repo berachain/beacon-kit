@@ -45,7 +45,7 @@ func DefaultRootCommandSetup(
 		// `comet`
 		cmtcli.Commands(appCreator),
 		// `init`
-		initialize.InitCmd(mm),
+		initialize.InitCmd(chainSpecCreator, mm),
 		// `genesis`
 		genesis.Commands(chainSpecCreator),
 		// `deposit`

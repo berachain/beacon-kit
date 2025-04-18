@@ -43,16 +43,14 @@ func (s *Service) sendPostBlockFCU(
 		return fmt.Errorf("failed getting latest payload: %w", err)
 	}
 
-	// Send a forkchoice update without payload attributes to notify
-	// EL of the new head.
-	// TODO: Switch to New().
+	// Send a forkchoice update without payload attributes to notify EL of the new head.
 	req := ctypes.BuildForkchoiceUpdateRequestNoAttrs(
 		&engineprimitives.ForkchoiceStateV1{
 			HeadBlockHash:      lph.GetBlockHash(),
 			SafeBlockHash:      lph.GetParentHash(),
 			FinalizedBlockHash: lph.GetParentHash(),
 		},
-		lph.GetForkVersion(),
+		s.chainSpec.ActiveForkVersionForTimestamp(lph.GetTimestamp()),
 	)
 	if _, err = s.executionEngine.NotifyForkchoiceUpdate(ctx, req); err != nil {
 		return fmt.Errorf("failed forkchoice update, head %s: %w",

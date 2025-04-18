@@ -34,7 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
-	"github.com/berachain/beacon-kit/primitives/version"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -53,6 +52,8 @@ func TestPayloadTimestampVerification(t *testing.T) {
 
 	// process genesis before any other block
 	genesisTime := time.Now().Truncate(time.Second)
+	genesisFork := cs.ActiveForkVersionForTimestamp(math.U64(genesisTime.Unix()))
+	require.Equal(t, genesisFork, cs.GenesisForkVersion())
 	var (
 		genDeposits = types.Deposits{
 			{
@@ -63,14 +64,12 @@ func TestPayloadTimestampVerification(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(version.Genesis()),
+			Versionable: types.NewVersionable(genesisFork),
 		}
 	)
 	genPayloadHeader.Timestamp = math.U64(genesisTime.Unix())
 
-	_, err := sp.InitializePreminedBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, version.Genesis(),
-	)
+	_, err := sp.InitializeBeaconStateFromEth1(st, genDeposits, genPayloadHeader, genesisFork)
 	require.NoError(t, err)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 
@@ -142,6 +141,7 @@ func TestPayloadTimestampVerification(t *testing.T) {
 
 			blk := buildNextBlock(
 				t,
+				cs,
 				testSt,
 				types.NewEth1Data(genDeposits.HashTreeRoot()),
 				math.U64(tt.payloadTime.Unix()),

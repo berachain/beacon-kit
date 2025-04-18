@@ -42,6 +42,12 @@ var (
 
 // ExecutionPayloadHeader represents the payload header of an execution block.
 type ExecutionPayloadHeader struct {
+	// NOTE: This version is not required but left in for backwards compatibility.
+	//
+	// A recommended alternative to `GetForkVersion()` on this struct would be to use the chain
+	// spec's `ActiveForkVersionForTimestamp()` on the value of `GetTimestamp()`.
+	//
+	// This version should still be set to the correct value to avoid potential inconsistencies.
 	constraints.Versionable
 
 	// Contents

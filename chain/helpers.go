@@ -38,6 +38,11 @@ func (s spec) ActiveForkVersionForTimestamp(timestamp math.U64) common.Version {
 	return version.Deneb()
 }
 
+// GenesisForkVersion returns the fork version at genesis.
+func (s spec) GenesisForkVersion() common.Version {
+	return s.ActiveForkVersionForTimestamp(math.U64(s.GenesisTime()))
+}
+
 // SlotToEpoch converts a slot to an epoch.
 func (s spec) SlotToEpoch(slot math.Slot) math.Epoch {
 	return math.Epoch(slot.Unwrap() / s.SlotsPerEpoch())

@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -56,7 +57,7 @@ func progressStateToSlot(
 	t.Helper()
 
 	if slot == math.U64(0) {
-		t.Fatal("for genesis slot, use InitializePreminedBeaconStateFromEth1")
+		t.Fatal("for genesis slot, use InitializeBeaconStateFromEth1")
 	}
 
 	err := beaconState.SetSlot(slot)
@@ -73,6 +74,7 @@ func progressStateToSlot(
 
 func buildNextBlock(
 	t *testing.T,
+	cs chain.Spec,
 	beaconState *statetransition.TestBeaconStateT,
 	eth1Data *types.Eth1Data,
 	timestamp math.U64,
@@ -80,7 +82,7 @@ func buildNextBlock(
 	withdrawals ...*engineprimitives.Withdrawal,
 ) *types.BeaconBlock {
 	t.Helper()
-
+	require.NotNil(t, cs)
 	// first update state root, similarly to what we do in processSlot
 	parentBlkHeader, err := beaconState.GetLatestBlockHeader()
 	require.NoError(t, err)
@@ -88,7 +90,7 @@ func buildNextBlock(
 	parentBlkHeader.SetStateRoot(root)
 
 	// build the block
-	fv := version.Deneb1()
+	fv := cs.ActiveForkVersionForTimestamp(timestamp)
 	versionable := types.NewVersionable(fv)
 	blk, err := types.NewBeaconBlockWithVersion(
 		parentBlkHeader.GetSlot()+1,
@@ -108,8 +110,24 @@ func buildNextBlock(
 		BaseFeePerGas: math.NewU256(0),
 	}
 	parentBeaconBlockRoot := parentBlkHeader.HashTreeRoot()
-	ethBlk, _, err := types.MakeEthBlock(payload, &parentBeaconBlockRoot)
-	require.NoError(t, err)
+
+	executionRequests := &types.ExecutionRequests{
+		Deposits:       nil,
+		Withdrawals:    nil,
+		Consolidations: nil,
+	}
+
+	var ethBlk *gethprimitives.Block
+	if version.IsBefore(fv, version.Electra()) {
+		ethBlk, _, err = types.MakeEthBlock(payload, &parentBeaconBlockRoot)
+		require.NoError(t, err)
+	} else {
+		encodedER, erErr := types.GetExecutionRequestsList(executionRequests)
+		require.NoError(t, erErr)
+		require.NotNil(t, encodedER)
+		ethBlk, _, err = types.MakeEthBlockWithExecutionRequests(payload, &parentBeaconBlockRoot, encodedER)
+		require.NoError(t, err)
+	}
 	payload.BlockHash = common.ExecutionHash(ethBlk.Hash())
 
 	require.NoError(t, err)
@@ -118,6 +136,10 @@ func buildNextBlock(
 		ExecutionPayload: payload,
 		Eth1Data:         eth1Data,
 		Deposits:         blockDeposits,
+	}
+	if version.EqualsOrIsAfter(fv, version.Electra()) {
+		err = blk.Body.SetExecutionRequests(executionRequests)
+		require.NoError(t, err)
 	}
 	return blk
 }
@@ -162,14 +184,7 @@ func moveToEndOfEpoch(
 	currEpoch := cs.SlotToEpoch(blk.GetSlot())
 	for currEpoch == cs.SlotToEpoch(blk.GetSlot()+1) {
 		timestamp := blk.Body.ExecutionPayload.Timestamp + 1
-		blk = buildNextBlock(
-			t,
-			st,
-			types.NewEth1Data(depRoot),
-			timestamp,
-			[]*types.Deposit{},
-			st.EVMInflationWithdrawal(timestamp),
-		)
+		blk = buildNextBlock(t, cs, st, types.NewEth1Data(depRoot), timestamp, []*types.Deposit{}, st.EVMInflationWithdrawal(timestamp))
 
 		vals, err := sp.Transition(ctx, st, blk)
 		require.NoError(t, err)

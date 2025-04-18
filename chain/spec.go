@@ -92,8 +92,10 @@ type DomainTypeSpec interface {
 	DomainTypeApplicationMask() common.DomainType
 }
 
+// Fork-related values.
 type ForkSpec interface {
-	// Fork-related values.
+	// GenesisTime returns the time at which the genesis block was created.
+	GenesisTime() uint64
 
 	// Deneb1ForkTime returns the time at which the Deneb1 fork takes effect.
 	Deneb1ForkTime() uint64
@@ -119,13 +121,16 @@ type BlobSpec interface {
 
 	// BytesPerBlob returns the number of bytes per blob.
 	BytesPerBlob() uint64
+
 	// MinEpochsForBlobsSidecarsRequest returns the minimum number of epochs for
 	// blob sidecar requests.
 	MinEpochsForBlobsSidecarsRequest() math.Epoch
 }
 
+// Helpers for Fork Version
 type ForkVersionSpec interface {
-	// Helpers for ChainSpecData
+	// GenesisForkVersion returns the fork version at genesis.
+	GenesisForkVersion() common.Version
 
 	// ActiveForkVersionForTimestamp returns the active fork version for a given timestamp.
 	ActiveForkVersionForTimestamp(timestamp math.U64) common.Version
@@ -358,6 +363,11 @@ func (s spec) Eth1FollowDistance() uint64 {
 // TargetSecondsPerEth1Block returns the target time between eth1 blocks.
 func (s spec) TargetSecondsPerEth1Block() uint64 {
 	return s.Data.TargetSecondsPerEth1Block
+}
+
+// GenesisTime returns the time at which the genesis block was created.
+func (s spec) GenesisTime() uint64 {
+	return s.Data.GenesisTime
 }
 
 // Deneb1ForkTime returns the epoch of the Deneb1 fork.
