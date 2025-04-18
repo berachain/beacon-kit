@@ -23,10 +23,14 @@ package cometbft
 import (
 	"context"
 	"fmt"
+	"time"
 
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/sourcegraph/conc/iter"
 )
+
+// Delay to use before the upgrade to SBT.
+const constBlockDelay = 500 * time.Millisecond
 
 func (s *Service) finalizeBlock(
 	ctx context.Context,
@@ -97,7 +101,28 @@ func (s *Service) finalizeBlockInternal(
 		TxResults:             txResults,
 		ValidatorUpdates:      valUpdates,
 		ConsensusParamUpdates: &cp,
+		NextBlockDelay:        s.nextBlockDelay(req),
 	}, nil
+}
+
+func (s *Service) nextBlockDelay(req *cmtabci.FinalizeBlockRequest) time.Duration {
+	// TODO: Uncomment after https://github.com/berachain/cometbft/pull/29
+	// switch req.Height {
+	// case s.cmtConsensusParams.Feature.SBTEnableHeight-1: // one block before
+	// 	s.blockDelay = &BlockDelay{
+	// 		PreviousBlockTime: req.Time,
+	// 	}
+	// case s.cmtConsensusParams.Feature.SBTEnableHeight: // the block of the upgrade
+	// 	s.blockDelay.InitialTime = req.Time
+	// 	s.blockDelay.InitialHeight = req.Height
+	// }
+
+	// If the block delay is not set, we return the default block delay.
+	if s.blockDelay == nil {
+		return constBlockDelay
+	}
+
+	return s.blockDelay.Next(req.Time, req.Height)
 }
 
 // workingHash gets the apphash that will be finalized in commit.

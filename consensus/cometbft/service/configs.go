@@ -38,7 +38,6 @@ const ( // appeases mnd
 	minTimeoutPropose   = 2000 * time.Millisecond
 	minTimeoutPrevote   = 2000 * time.Millisecond
 	minTimeoutPrecommit = 2000 * time.Millisecond
-	minTimeoutCommit    = 500 * time.Millisecond
 
 	maxBlockSize = 100 * 1024 * 1024
 
@@ -84,7 +83,8 @@ func DefaultConfig() *cmtcfg.Config {
 	consensus.TimeoutPropose = minTimeoutPropose
 	consensus.TimeoutPrevote = minTimeoutPrevote
 	consensus.TimeoutPrecommit = minTimeoutPrecommit
-	consensus.TimeoutCommit = minTimeoutCommit
+	// DEPRECATED: we use NextBlockDelay now
+	consensus.TimeoutCommit = 0
 
 	cfg.Storage.DiscardABCIResponses = true
 
@@ -150,14 +150,6 @@ func validateConfig(cfg *cmtcfg.Config) error {
 			ErrInvalidaConfig,
 			cfg.Consensus.TimeoutPrecommit,
 			minTimeoutPrecommit,
-		)
-	}
-
-	if cfg.Consensus.TimeoutCommit < minTimeoutCommit {
-		return fmt.Errorf("%w, config timeout propose %v, min requested %v",
-			ErrInvalidaConfig,
-			cfg.Consensus.TimeoutCommit,
-			minTimeoutCommit,
 		)
 	}
 
