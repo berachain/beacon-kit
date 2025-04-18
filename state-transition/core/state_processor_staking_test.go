@@ -81,7 +81,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		}
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
-	valDiff, err := sp.InitializePreminedBeaconStateFromEth1(
+	valDiff, err := sp.InitializeBeaconStateFromEth1(
 		st,
 		genDeposits,
 		genPayloadHeader,
@@ -193,7 +193,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 	)
 
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
-	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
+	genVals, err := sp.InitializeBeaconStateFromEth1(
 		st,
 		genDeposits,
 		genPayloadHeader,
@@ -351,7 +351,7 @@ func TestTransitionWithdrawals(t *testing.T) {
 		}
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
-	_, err := sp.InitializePreminedBeaconStateFromEth1(
+	_, err := sp.InitializeBeaconStateFromEth1(
 		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
@@ -429,7 +429,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 		}
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
-	_, err = sp.InitializePreminedBeaconStateFromEth1(
+	_, err = sp.InitializeBeaconStateFromEth1(
 		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
@@ -550,7 +550,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	}
 
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
-	_, err := sp.InitializePreminedBeaconStateFromEth1(
+	_, err := sp.InitializeBeaconStateFromEth1(
 		st,
 		genDeposits,
 		genPayloadHeader,
@@ -745,7 +745,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	genDeposits[0].Amount = minBalance
 
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
-	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
+	genVals, err := sp.InitializeBeaconStateFromEth1(
 		st,
 		genDeposits,
 		genPayloadHeader,
@@ -972,7 +972,7 @@ func TestValidatorNotWithdrawable(t *testing.T) {
 		}
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
-	_, err := sp.InitializePreminedBeaconStateFromEth1(
+	_, err := sp.InitializeBeaconStateFromEth1(
 		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)

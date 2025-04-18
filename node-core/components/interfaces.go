@@ -121,18 +121,18 @@ type (
 
 	// StateProcessor defines the interface for processing the state.
 	StateProcessor interface {
-		// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
+		// InitializeBeaconStateFromEth1 initializes the premined beacon
 		// state
 		// from the eth1 deposits.
-		InitializePreminedBeaconStateFromEth1(
+		InitializeBeaconStateFromEth1(
 			*statedb.StateDB,
 			ctypes.Deposits,
 			*ctypes.ExecutionPayloadHeader,
 			common.Version,
 		) (transition.ValidatorUpdates, error)
-		// PrepareStateForFork prepares the state for the fork version at the given timestamp.
-		PrepareStateForFork(
-			st *statedb.StateDB, timestamp math.U64, slot math.Slot,
+		// ProcessFork prepares the state for the fork version at the given timestamp.
+		ProcessFork(
+			st *statedb.StateDB, timestamp math.U64, logUpgrade bool,
 		) error
 		// ProcessSlot processes the slot.
 		ProcessSlots(
@@ -522,7 +522,6 @@ type (
 		RandaoBackend
 		StateBackend
 		ValidatorBackend
-		HistoricalBackend
 		// GetSlotByBlockRoot retrieves the slot by a given root from the store.
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		// GetSlotByStateRoot retrieves the slot by a given root from the store.
@@ -547,11 +546,6 @@ type (
 		GenesisTime() (math.U64, error)
 	}
 
-	HistoricalBackend interface {
-		StateRootAtSlot(slot math.Slot) (common.Root, error)
-		StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error)
-	}
-
 	RandaoBackend interface {
 		RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes32, error)
 	}
@@ -567,8 +561,6 @@ type (
 	}
 
 	StateBackend interface {
-		StateRootAtSlot(slot math.Slot) (common.Root, error)
-		StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error)
 		StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error)
 	}
 

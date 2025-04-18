@@ -69,9 +69,7 @@ func TestPayloadTimestampVerification(t *testing.T) {
 	)
 	genPayloadHeader.Timestamp = math.U64(genesisTime.Unix())
 
-	_, err := sp.InitializePreminedBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, genesisFork,
-	)
+	_, err := sp.InitializeBeaconStateFromEth1(st, genDeposits, genPayloadHeader, genesisFork)
 	require.NoError(t, err)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 

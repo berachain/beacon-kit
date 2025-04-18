@@ -64,7 +64,7 @@ func TestInvalidDeposits(t *testing.T) {
 		}
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
-	_, err := sp.InitializePreminedBeaconStateFromEth1(
+	_, err := sp.InitializeBeaconStateFromEth1(
 		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
@@ -123,7 +123,7 @@ func TestInvalidDepositsCount(t *testing.T) {
 		}
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
-	_, err := sp.InitializePreminedBeaconStateFromEth1(
+	_, err := sp.InitializeBeaconStateFromEth1(
 		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
@@ -185,7 +185,7 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 		}
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
-	_, err = sp.InitializePreminedBeaconStateFromEth1(
+	_, err = sp.InitializeBeaconStateFromEth1(
 		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
@@ -247,7 +247,7 @@ func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
 		}
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
-	_, err = sp.InitializePreminedBeaconStateFromEth1(
+	_, err = sp.InitializeBeaconStateFromEth1(
 		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)

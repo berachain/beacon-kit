@@ -241,16 +241,16 @@ func (s *Service) retrieveExecutionPayload(
 	}
 
 	// We must prepare the state for the fork version of the new block being built to handle
-	// the case where the new block is on a new fork version.
-	//
-	// Although nextPayloadTimestamp is not the confirmed timestamp by the EL, we will assume
-	// the fork version of the new block based on nextPayloadTimestamp as our best estimate.
+	// the case where the new block is on a new fork version. Although we do not have the
+	// confirmed timestamp by the EL, we will assume it to be `nextPayloadTimestamp` to decide
+	// the new block's fork version.
 	nextPayloadTimestamp := payloadtime.Next(
 		slotData.GetConsensusTime(),
 		lph.GetTimestamp(),
 		false, // buildOptimistically
 	)
-	if err = s.stateProcessor.PrepareStateForFork(st, nextPayloadTimestamp, slot); err != nil {
+	err = s.stateProcessor.ProcessFork(st, nextPayloadTimestamp, false)
+	if err != nil {
 		return nil, err
 	}
 

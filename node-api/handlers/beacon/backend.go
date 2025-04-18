@@ -63,8 +63,6 @@ type BlockBackend interface {
 }
 
 type StateBackend interface {
-	StateRootAtSlot(slot math.Slot) (common.Root, error)
-	StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error)
 	StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error)
 }
 

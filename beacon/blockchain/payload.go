@@ -183,11 +183,11 @@ func (s *Service) rebuildPayloadForRejectedBlock(
 	}
 
 	// We must prepare the state for the fork version of the new block being built to handle
-	// the case where the new block is on a new fork version.
-	//
-	// Although nextPayloadTimestamp is not the confirmed timestamp by the EL, we will assume
-	// the fork version of the new block based on nextPayloadTimestamp as our best estimate.
-	if err = s.stateProcessor.PrepareStateForFork(st, nextPayloadTimestamp, stateSlot); err != nil {
+	// the case where the new block is on a new fork version. Although we do not have the
+	// confirmed timestamp by the EL, we will assume it to be `nextPayloadTimestamp` to decide
+	// the new block's fork version.
+	err = s.stateProcessor.ProcessFork(st, nextPayloadTimestamp, false)
+	if err != nil {
 		return err
 	}
 
@@ -258,17 +258,17 @@ func (s *Service) optimisticPayloadBuild(
 	}
 
 	// We must prepare the state for the fork version of the new block being built to handle
-	// the case where the new block is on a new fork version.
-	//
-	// Although nextPayloadTimestamp is not the confirmed timestamp by the EL, we will assume
-	// the fork version of the new block based on nextPayloadTimestamp as our best estimate.
-	if err := s.stateProcessor.PrepareStateForFork(st, nextPayloadTimestamp, slot); err != nil {
+	// the case where the new block is on a new fork version. Although we do not have the
+	// confirmed timestamp by the EL, we will assume it to be `nextPayloadTimestamp` to decide
+	// the new block's fork version.
+	err := s.stateProcessor.ProcessFork(st, nextPayloadTimestamp, false)
+	if err != nil {
 		return err
 	}
 
 	// We then trigger a request for the next payload.
 	payload := blk.GetBody().GetExecutionPayload()
-	if _, _, err := s.localBuilder.RequestPayloadAsync(
+	if _, _, err = s.localBuilder.RequestPayloadAsync(
 		ctx, st,
 		slot,
 		nextPayloadTimestamp,

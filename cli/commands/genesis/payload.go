@@ -140,7 +140,7 @@ func executableDataToExecutionPayloadHeader(
 	// todo: re-enable when codec supports.
 	_ uint64,
 ) (*types.ExecutionPayloadHeader, error) {
-	var executionPayloadHeader *types.ExecutionPayloadHeader
+	eph := &types.ExecutionPayloadHeader{}
 	switch forkVersion {
 	case version.Deneb(), version.Deneb1(), version.Electra():
 		withdrawals := make(
@@ -175,31 +175,27 @@ func executableDataToExecutionPayloadHeader(
 			return nil, fmt.Errorf("failed baseFeePerGas conversion: %w", err)
 		}
 
-		executionPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable:   types.NewVersionable(forkVersion),
-			ParentHash:    common.ExecutionHash(data.ParentHash),
-			FeeRecipient:  common.ExecutionAddress(data.FeeRecipient),
-			StateRoot:     common.Bytes32(data.StateRoot),
-			ReceiptsRoot:  common.Bytes32(data.ReceiptsRoot),
-			LogsBloom:     [256]byte(data.LogsBloom),
-			Random:        common.Bytes32(data.Random),
-			Number:        math.U64(data.Number),
-			GasLimit:      math.U64(data.GasLimit),
-			GasUsed:       math.U64(data.GasUsed),
-			Timestamp:     math.U64(data.Timestamp),
-			ExtraData:     data.ExtraData,
-			BaseFeePerGas: baseFeePerGas,
-			BlockHash:     common.ExecutionHash(data.BlockHash),
-			TransactionsRoot: engineprimitives.Transactions(
-				data.Transactions,
-			).HashTreeRoot(),
-			WithdrawalsRoot: withdrawals.HashTreeRoot(),
-			BlobGasUsed:     math.U64(blobGasUsed),
-			ExcessBlobGas:   math.U64(excessBlobGas),
-		}
+		eph.Versionable = types.NewVersionable(forkVersion)
+		eph.ParentHash = common.ExecutionHash(data.ParentHash)
+		eph.FeeRecipient = common.ExecutionAddress(data.FeeRecipient)
+		eph.StateRoot = common.Bytes32(data.StateRoot)
+		eph.ReceiptsRoot = common.Bytes32(data.ReceiptsRoot)
+		eph.LogsBloom = [256]byte(data.LogsBloom)
+		eph.Random = common.Bytes32(data.Random)
+		eph.Number = math.U64(data.Number)
+		eph.GasLimit = math.U64(data.GasLimit)
+		eph.GasUsed = math.U64(data.GasUsed)
+		eph.Timestamp = math.U64(data.Timestamp)
+		eph.ExtraData = data.ExtraData
+		eph.BaseFeePerGas = baseFeePerGas
+		eph.BlockHash = common.ExecutionHash(data.BlockHash)
+		eph.TransactionsRoot = engineprimitives.Transactions(data.Transactions).HashTreeRoot()
+		eph.WithdrawalsRoot = withdrawals.HashTreeRoot()
+		eph.BlobGasUsed = math.U64(blobGasUsed)
+		eph.ExcessBlobGas = math.U64(excessBlobGas)
 	default:
 		return nil, types.ErrForkVersionNotSupported
 	}
 
-	return executionPayloadHeader, nil
+	return eph, nil
 }

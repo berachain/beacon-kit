@@ -88,14 +88,17 @@ func (sp *StateProcessor) Transition(
 	}
 
 	// Process the next slot.
-	slot := blk.GetSlot()
-	validatorUpdates, err := sp.ProcessSlots(st, slot)
+	validatorUpdates, err := sp.ProcessSlots(st, blk.GetSlot())
 	if err != nil {
 		return nil, err
 	}
 
-	// Prepare the state for the next block's fork version.
-	if err = sp.PrepareStateForFork(st, blk.GetTimestamp(), slot); err != nil {
+	// Prepare the state for the next block's fork version, logging only once during FinalizeBlock.
+	//
+	// TODO: allow the state transition context to directly indicate what stage of block processing
+	// we are in, i.e. ProcessProposal, FinalizeBlock, etc.
+	inFinalizeBlock := ctx.VerifyPayload() && !ctx.VerifyRandao()
+	if err = sp.ProcessFork(st, blk.GetTimestamp(), inFinalizeBlock); err != nil {
 		return nil, err
 	}
 
