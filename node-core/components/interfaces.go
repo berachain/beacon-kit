@@ -48,7 +48,6 @@ type (
 	AttributesFactory interface {
 		BuildPayloadAttributes(
 			st *statedb.StateDB,
-			slot math.Slot,
 			timestamp math.U64,
 			prevHeadRoot [32]byte,
 		) (*engineprimitives.PayloadAttributes, error)

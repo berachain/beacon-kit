@@ -54,7 +54,6 @@ func NewAttributesFactory(
 // BuildPayloadAttributes creates a new instance of PayloadAttributes.
 func (f *Factory) BuildPayloadAttributes(
 	st ReadOnlyBeaconState,
-	slot math.Slot,
 	timestamp math.U64,
 	prevHeadRoot [32]byte,
 ) (*engineprimitives.PayloadAttributes, error) {
@@ -70,6 +69,14 @@ func (f *Factory) BuildPayloadAttributes(
 	}
 
 	// Get the previous randao mix.
+	slot, err := st.GetSlot()
+	if err != nil {
+		f.logger.Error(
+			"Could not get slot to get payload attribute",
+			"error", err,
+		)
+		return nil, err
+	}
 	epoch := f.chainSpec.SlotToEpoch(slot)
 	prevRandao, err := st.GetRandaoMixAtIndex(epoch.Unwrap() % f.chainSpec.EpochsPerHistoricalVector())
 	if err != nil {

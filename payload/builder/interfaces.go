@@ -40,7 +40,6 @@ type PayloadCache interface {
 type AttributesFactory interface {
 	BuildPayloadAttributes(
 		st *statedb.StateDB,
-		slot math.U64,
 		timestamp math.U64,
 		prevHeadRoot [32]byte,
 	) (*engineprimitives.PayloadAttributes, error)
