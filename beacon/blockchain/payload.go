@@ -29,6 +29,7 @@ import (
 	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
@@ -46,12 +47,18 @@ func (s *Service) forceSyncUponProcess(
 		return
 	}
 
+	forkVersion := version.Genesis()
+	if lph.GetNumber() != 0 {
+		forkVersion = s.chainSpec.ActiveForkVersionForTimestamp(lph.GetTimestamp())
+	}
+
 	s.logger.Info(
 		"Sending startup forkchoice update to execution client",
 		"head_eth1_hash", lph.GetBlockHash(),
 		"safe_eth1_hash", lph.GetParentHash(),
 		"finalized_eth1_hash", lph.GetParentHash(),
 		"for_slot", lph.GetNumber(),
+		"forkVersion", forkVersion,
 	)
 
 	// Submit the forkchoice update to the execution client.
@@ -61,7 +68,7 @@ func (s *Service) forceSyncUponProcess(
 			SafeBlockHash:      lph.GetParentHash(),
 			FinalizedBlockHash: lph.GetParentHash(),
 		},
-		s.chainSpec.ActiveForkVersionForTimestamp(lph.GetTimestamp()),
+		forkVersion,
 	)
 	if _, err = s.executionEngine.NotifyForkchoiceUpdate(ctx, req); err != nil {
 		s.logger.Error(
