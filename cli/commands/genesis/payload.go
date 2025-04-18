@@ -106,9 +106,6 @@ func AddExecutionPayload(chainSpec ChainSpec, elGenesisPath string, config *cmtc
 	); err != nil {
 		return errors.Wrap(err, "failed to unmarshal beacon state")
 	}
-	if genesisInfo == nil {
-		return errors.New("failed to unmarshal beacon state")
-	}
 	// Inject the execution payload.
 	eph, err :=
 		executableDataToExecutionPayloadHeader(
