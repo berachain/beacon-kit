@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/berachain/beacon-kit/storage/beacondb"
+	"github.com/cometbft/cometbft/node"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -74,5 +75,9 @@ func (t *testConsensusService) Name() string {
 }
 
 func (t *testConsensusService) LastBlockHeight() int64 {
+	panic(errTestMemberNotImplemented)
+}
+
+func (t *testConsensusService) GetCometNode() *node.Node {
 	panic(errTestMemberNotImplemented)
 }

@@ -18,25 +18,29 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package node
+package types
 
-import (
-	"github.com/berachain/beacon-kit/node-api/handlers"
-)
-
-// Handler is the handler for the node API.
-type Handler struct {
-	*handlers.BaseHandler
-	backend Backend
+type SyncingData struct {
+	HeadSlot     int64 `json:"head_slot"`
+	SyncDistance int64 `json:"sync_distance"`
+	IsSyncing    bool  `json:"is_syncing"`
+	IsOptimistic bool  `json:"is_optimistic"`
+	ELOffline    bool  `json:"el_offline"`
 }
 
-// NewHandler creates a new handler for the node API.
-func NewHandler(backend Backend) *Handler {
-	h := &Handler{
-		BaseHandler: handlers.NewBaseHandler(
-			handlers.NewRouteSet(""),
-		),
-		backend: backend,
+type GenericResponse struct {
+	ExecutionOptimistic bool `json:"execution_optimistic"`
+	Finalized           bool `json:"finalized"`
+	Data                any  `json:"data"`
+}
+
+// NewResponse creates a new response with CometBFT's finality guarantees.
+func NewResponse(data any) GenericResponse {
+	return GenericResponse{
+		// All data is finalized in CometBFT since we only return data for slots up to head
+		Finalized: true,
+		// Never optimistic since we only return finalized data
+		ExecutionOptimistic: false,
+		Data:                data,
 	}
-	return h
 }

@@ -20,23 +20,19 @@
 
 package node
 
-import (
-	"github.com/berachain/beacon-kit/node-api/handlers"
-)
+import "github.com/berachain/beacon-kit/node-api/handlers"
 
-// Handler is the handler for the node API.
-type Handler struct {
-	*handlers.BaseHandler
-	backend Backend
-}
-
-// NewHandler creates a new handler for the node API.
-func NewHandler(backend Backend) *Handler {
-	h := &Handler{
-		BaseHandler: handlers.NewBaseHandler(
-			handlers.NewRouteSet(""),
-		),
-		backend: backend,
+// Version is a placeholder so that beacon API clients don't break.
+// TODO: Implement with real data.
+func (h *Handler) Version(handlers.Context) (any, error) {
+	type VersionResponse struct {
+		Data struct {
+			Version string `json:"version"`
+		} `json:"data"`
 	}
-	return h
+
+	response := VersionResponse{}
+	response.Data.Version = "1.1.0"
+
+	return response, nil
 }
