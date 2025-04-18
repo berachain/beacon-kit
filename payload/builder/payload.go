@@ -27,16 +27,16 @@ import (
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	"github.com/berachain/beacon-kit/payload/attributes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // RequestPayloadAsync builds a payload for the given slot and
 // returns the payload ID.
 func (pb *PayloadBuilder) RequestPayloadAsync(
 	ctx context.Context,
-	st *statedb.StateDB,
+	st attributes.ReadOnlyBeaconState,
 	slot math.Slot,
 	timestamp math.U64,
 	parentBlockRoot common.Root,
@@ -94,7 +94,7 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 // blocks until the payload is delivered.
 func (pb *PayloadBuilder) RequestPayloadSync(
 	ctx context.Context,
-	st *statedb.StateDB,
+	st attributes.ReadOnlyBeaconState,
 	slot math.Slot,
 	timestamp math.U64,
 	parentBlockRoot common.Root,
