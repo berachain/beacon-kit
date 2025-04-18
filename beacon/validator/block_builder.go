@@ -252,9 +252,7 @@ func (s *Service) retrieveExecutionPayload(
 	return s.localPayloadBuilder.RequestPayloadSync(
 		ctx,
 		st,
-		slot,
 		nextPayloadTimestamp,
-		parentBlockRoot,
 		lph.GetBlockHash(),
 		lph.GetParentHash(),
 	)
