@@ -38,5 +38,5 @@ type BlockBackend interface {
 }
 
 type StateBackend interface {
-	StateFromSlotForProof(slot math.Slot) (*statedb.StateDB, math.Slot, error)
+	StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error)
 }

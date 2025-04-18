@@ -21,47 +21,31 @@
 package backend
 
 import (
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/primitives/common"
+	"fmt"
+
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-// StateFromSlotForProof returns the beacon state of the version that was used
-// to calculate the parent beacon block root, which has the empty state root in
-// the latest block header. Hence we do not process the next slot.
-func (b *Backend) StateFromSlotForProof(slot math.Slot) (*statedb.StateDB, math.Slot, error) {
-	return b.stateFromSlotRaw(slot)
-}
-
-// GetStateRoot returns the root of the state at the given slot.
-func (b *Backend) StateRootAtSlot(slot math.Slot) (common.Root, error) {
-	st, resolvedSlot, err := b.stateFromSlot(slot)
+// StateAtSlot returns the beacon state at a particular slot using query context,
+// resolving an input slot of 0 to the latest slot.
+//
+// This returns the beacon state of the version that was committed to disk at the requested slot,
+// which has the empty state root in the latest block header. Hence, the most recent state and
+// block roots are not updated.
+func (b *Backend) StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error) {
+	queryCtx, err := b.node.CreateQueryContext(int64(slot), false) // #nosec G115 -- not an issue in practice.
 	if err != nil {
-		return common.Root{}, err
+		return nil, slot, fmt.Errorf("CreateQueryContext failed: %w", err)
 	}
+	st := b.sb.StateFromContext(queryCtx)
 
-	// As calculated by the beacon chain. Ideally, this logic
-	// should be abstracted by the beacon chain.
-	return st.StateRootAtIndex(resolvedSlot.Unwrap() % b.cs.SlotsPerHistoricalRoot())
-}
-
-// StateAtSlot returns the beacon state at a particular slot.
-func (b *Backend) StateAtSlot(slot math.Slot) (*statedb.StateDB, error) {
-	st, _, err := b.stateFromSlot(slot)
-	if err != nil {
-		return nil, err
+	// If using height 0 for the query context, make sure to return the latest slot.
+	if slot == 0 {
+		slot, err = st.GetSlot()
+		if err != nil {
+			return st, slot, fmt.Errorf("GetSlot failed: %w", err)
+		}
 	}
-
-	return st, nil
-}
-
-// GetStateFork returns the fork of the state at the given stateID.
-func (b *Backend) StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error) {
-	var fork *ctypes.Fork
-	st, _, err := b.stateFromSlot(slot)
-	if err != nil {
-		return fork, err
-	}
-	return st.GetFork()
+	return st, slot, nil
 }

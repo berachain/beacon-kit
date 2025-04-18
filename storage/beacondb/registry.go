@@ -23,7 +23,6 @@ package beacondb
 import (
 	"errors"
 
-	"cosmossdk.io/collections/indexes"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -135,42 +134,6 @@ func (kv *KVStore) GetTotalValidators() (uint64, error) {
 	return uint64(len(validators)), nil
 }
 
-// GetValidatorsByEffectiveBalance retrieves all validators sorted by
-// effective balance from the beacon state.
-func (kv *KVStore) GetValidatorsByEffectiveBalance() (
-	[]*ctypes.Validator, error,
-) {
-	var (
-		vals []*ctypes.Validator
-		v    *ctypes.Validator
-		idx  uint64
-	)
-
-	iter, err := kv.validators.Indexes.EffectiveBalance.Iterate(
-		kv.ctx,
-		nil,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		err = errors.Join(err, iter.Close())
-	}()
-
-	// Iterate over all validators and collect them.
-	for ; iter.Valid(); iter.Next() {
-		idx, err = iter.PrimaryKey()
-		if err != nil {
-			return nil, err
-		}
-		if v, err = kv.validators.Get(kv.ctx, idx); err != nil {
-			return nil, err
-		}
-		vals = append(vals, v)
-	}
-	return vals, err
-}
-
 // GetBalance returns the balance of a validator.
 func (kv *KVStore) GetBalance(
 	idx math.ValidatorIndex,
@@ -207,40 +170,6 @@ func (kv *KVStore) GetBalances() ([]uint64, error) {
 		balances = append(balances, balance)
 	}
 	return balances, err
-}
-
-// GetTotalActiveBalances returns the total active balances of all validatorkv.
-// TODO: unhood this and probably store this as just a value changed on writekv.
-// TODO: this shouldn't live in KVStore.
-func (kv *KVStore) GetTotalActiveBalances(
-	slotsPerEpoch uint64,
-) (math.Gwei, error) {
-	slot, err := kv.slot.Get(kv.ctx)
-	if err != nil {
-		return 0, err
-	}
-
-	totalActiveBalances := math.Gwei(0)
-	epoch := math.Epoch(slot / slotsPerEpoch)
-
-	iter, err := kv.validators.Indexes.EffectiveBalance.Iterate(kv.ctx, nil)
-	if err != nil {
-		return 0, err
-	}
-	defer func() {
-		err = errors.Join(err, iter.Close())
-	}()
-
-	err = indexes.ScanValues(
-		kv.ctx, kv.validators, iter, func(v *ctypes.Validator,
-		) bool {
-			if v.IsActive(epoch) {
-				totalActiveBalances += v.GetEffectiveBalance()
-			}
-			return false
-		},
-	)
-	return totalActiveBalances, err
 }
 
 // GetPendingPartialWithdrawals is equivalent to `pending_partial_withdrawals`

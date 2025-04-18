@@ -91,7 +91,7 @@ func (s *Service) BuildBlockAndSidecars(
 	// we are building on the same fork version as the Execution Layer.
 	timestamp := envelope.GetExecutionPayload().GetTimestamp()
 
-	// Build forkdata used for the signing root of the reveal and the sidecars
+	// Build forkdata used for the signing root of the reveal and the sidecars.
 	forkData, err := s.buildForkData(st, timestamp)
 	if err != nil {
 		return nil, nil, err
@@ -214,15 +214,11 @@ func (s *Service) retrieveExecutionPayload(
 	parentBlockRoot common.Root,
 	slotData *types.SlotData,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
-	//
 	// TODO: Add external block builders to this flow.
 	//
 	// Get the payload for the block.
-	envelope, err := s.localPayloadBuilder.RetrievePayload(
-		ctx,
-		slotData.GetSlot(),
-		parentBlockRoot,
-	)
+	slot := slotData.GetSlot()
+	envelope, err := s.localPayloadBuilder.RetrievePayload(ctx, slot, parentBlockRoot)
 	if err == nil {
 		return envelope, nil
 	}
@@ -235,11 +231,7 @@ func (s *Service) retrieveExecutionPayload(
 	// call that needs to be called before requesting the Payload.
 	// TODO: We should decouple the PayloadBuilder from BeaconState to make
 	// this less confusing.
-
-	s.metrics.failedToRetrievePayload(
-		slotData.GetSlot(),
-		err,
-	)
+	s.metrics.failedToRetrievePayload(slot, err)
 
 	// The latest execution payload header will be from the previous block
 	// during the block building phase.
@@ -248,15 +240,25 @@ func (s *Service) retrieveExecutionPayload(
 		return nil, err
 	}
 
+	// We must prepare the state for the fork version of the new block being built to handle
+	// the case where the new block is on a new fork version. Although we do not have the
+	// confirmed timestamp by the EL, we will assume it to be `nextPayloadTimestamp` to decide
+	// the new block's fork version.
+	nextPayloadTimestamp := payloadtime.Next(
+		slotData.GetConsensusTime(),
+		lph.GetTimestamp(),
+		false, // buildOptimistically
+	)
+	err = s.stateProcessor.ProcessFork(st, nextPayloadTimestamp, false)
+	if err != nil {
+		return nil, err
+	}
+
 	return s.localPayloadBuilder.RequestPayloadSync(
 		ctx,
 		st,
-		slotData.GetSlot(),
-		payloadtime.Next(
-			slotData.GetConsensusTime(),
-			lph.GetTimestamp(),
-			false, // buildOptimistically
-		),
+		slot,
+		nextPayloadTimestamp,
 		parentBlockRoot,
 		lph.GetBlockHash(),
 		lph.GetParentHash(),

@@ -36,7 +36,7 @@ func (b *Backend) GenesisValidatorsRoot() (common.Root, error) {
 	}
 
 	// If not cached, read state from the beacon state at the tip of chain.
-	st, _, err := b.stateFromSlotRaw(utils.Head)
+	st, _, err := b.StateAtSlot(utils.Head)
 	if err != nil {
 		return common.Root{}, errors.Wrapf(err, "failed to get state from tip of chain")
 	}

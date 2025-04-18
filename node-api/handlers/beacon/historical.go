@@ -23,7 +23,6 @@ package beacon
 import (
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	"github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 )
 
@@ -38,14 +37,11 @@ func (h *Handler) GetStateRoot(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	stateRoot, err := h.backend.StateRootAtSlot(slot)
+	st, _, err := h.backend.StateAtSlot(slot)
 	if err != nil {
 		return nil, err
 	}
-	if len(stateRoot) == 0 {
-		return nil, types.ErrNotFound
-	}
-	return beacontypes.NewResponse(beacontypes.RootData{Root: stateRoot}), nil
+	return beacontypes.NewResponse(beacontypes.RootData{Root: st.HashTreeRoot()}), nil
 }
 
 func (h *Handler) GetStateFork(c handlers.Context) (any, error) {
@@ -59,7 +55,11 @@ func (h *Handler) GetStateFork(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	fork, err := h.backend.StateForkAtSlot(slot)
+	st, _, err := h.backend.StateAtSlot(slot)
+	if err != nil {
+		return nil, err
+	}
+	fork, err := st.GetFork()
 	if err != nil {
 		return nil, err
 	}

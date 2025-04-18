@@ -43,7 +43,6 @@ type NodeAPIBackendInput struct {
 	depinject.In
 
 	ChainSpec      chain.Spec
-	StateProcessor StateProcessor
 	StorageBackend *storage.Backend
 	CometConfig    *cmtcfg.Config
 }
@@ -54,7 +53,6 @@ func ProvideNodeAPIBackend(
 	return backend.New(
 		in.StorageBackend,
 		in.ChainSpec,
-		in.StateProcessor,
 		in.CometConfig,
 	)
 }

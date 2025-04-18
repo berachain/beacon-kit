@@ -25,7 +25,6 @@ import (
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
-	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -70,31 +69,6 @@ func (s *StateDB) DecreaseBalance(idx math.ValidatorIndex, delta math.Gwei) erro
 		return err
 	}
 	return s.SetBalance(idx, balance-min(balance, delta))
-}
-
-// UpdateSlashingAtIndex sets the slashing amount in the store.
-func (s *StateDB) UpdateSlashingAtIndex(index uint64, amount math.Gwei) error {
-	// Update the total slashing amount before overwriting the old amount.
-	total, err := s.GetTotalSlashing()
-	if err != nil {
-		return err
-	}
-
-	oldValue, err := s.GetSlashingAtIndex(index)
-	if err != nil {
-		return err
-	}
-
-	// Defensive check but total - oldValue should never underflow.
-	if oldValue > total {
-		return errors.New("count of total slashing is not up to date")
-	} else if err = s.SetTotalSlashing(
-		total - oldValue + amount,
-	); err != nil {
-		return err
-	}
-
-	return s.SetSlashingAtIndex(index, amount)
 }
 
 // ExpectedWithdrawals as defined in the Ethereum 2.0 Specification:

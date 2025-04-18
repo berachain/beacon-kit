@@ -21,7 +21,6 @@
 package backend
 
 import (
-	"fmt"
 	"sync/atomic"
 
 	"github.com/berachain/beacon-kit/chain"
@@ -30,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/node-core/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 )
@@ -42,7 +40,6 @@ type Backend struct {
 	sb   *storage.Backend
 	cs   chain.Spec
 	node types.ConsensusService
-	sp   StateProcessor
 
 	// genesisValidatorsRoot is cached in the backend.
 	genesisValidatorsRoot atomic.Pointer[common.Root]
@@ -58,13 +55,11 @@ type Backend struct {
 func New(
 	storageBackend *storage.Backend,
 	cs chain.Spec,
-	sp StateProcessor,
 	cmtCfg *cmtcfg.Config,
 ) (*Backend, error) {
 	b := &Backend{
 		sb: storageBackend,
 		cs: cs,
-		sp: sp,
 	}
 
 	// Load the genesis file from cometbft config.
@@ -117,46 +112,4 @@ func (b *Backend) Spec() (chain.Spec, error) {
 		return nil, errors.New("chain spec not found")
 	}
 	return b.cs, nil
-}
-
-// stateFromSlot returns the state at the given slot, after also processing the
-// next slot to ensure the returned beacon state is up to date.
-func (b *Backend) stateFromSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error) {
-	st, slot, err := b.stateFromSlotRaw(slot)
-	if err != nil {
-		return st, slot, fmt.Errorf("stateFromSlotRaw failed: %w", err)
-	}
-
-	// Process the slot to update the latest state and block roots.
-	targetSlot := slot + 1
-	if _, err = b.sp.ProcessSlots(st, targetSlot); err != nil {
-		return st, slot, fmt.Errorf("ProcessSlots failed, target slot %d: %w", targetSlot, err)
-	}
-
-	// We need to set the slot on the state back since ProcessSlot will update
-	// it to slot + 1.
-	if err = st.SetSlot(slot); err != nil {
-		return st, slot, fmt.Errorf("failed resetting slot to %d: %w", slot, err)
-	}
-	return st, slot, nil
-}
-
-// stateFromSlotRaw returns the state at the given slot using query context,
-// resolving an input slot of 0 to the latest slot. It does not process the
-// next slot on the beacon state.
-func (b *Backend) stateFromSlotRaw(slot math.Slot) (*statedb.StateDB, math.Slot, error) {
-	queryCtx, err := b.node.CreateQueryContext(int64(slot), false) // #nosec G115 -- not an issue in practice.
-	if err != nil {
-		return nil, slot, fmt.Errorf("CreateQueryContext failed: %w", err)
-	}
-	st := b.sb.StateFromContext(queryCtx)
-
-	// If using height 0 for the query context, make sure to return the latest slot.
-	if slot == 0 {
-		slot, err = st.GetSlot()
-		if err != nil {
-			return st, slot, fmt.Errorf("GetSlot failed: %w", err)
-		}
-	}
-	return st, slot, nil
 }

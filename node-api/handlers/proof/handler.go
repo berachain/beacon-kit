@@ -60,7 +60,7 @@ func (h *Handler) resolveTimestampID(timestampID string) (
 		return 0, beaconState, blockHeader, err
 	}
 
-	beaconState, slot, err = h.backend.StateFromSlotForProof(slot)
+	beaconState, slot, err = h.backend.StateAtSlot(slot)
 	if err != nil {
 		return 0, beaconState, blockHeader, err
 	}

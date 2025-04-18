@@ -80,7 +80,7 @@ func (f *validatorFilters) parseID(id string) {
 func (b *Backend) FilteredValidators(
 	slot math.Slot, ids []string, statuses []string,
 ) ([]*beacontypes.ValidatorData, error) {
-	st, resolvedSlot, err := b.stateFromSlot(slot)
+	st, resolvedSlot, err := b.StateAtSlot(slot)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get state from slot %d", slot)
 	}
@@ -196,7 +196,8 @@ func buildValidatorData(
 }
 
 func (b *Backend) ValidatorByID(slot math.Slot, id string) (*beacontypes.ValidatorData, error) {
-	st, resolvedSlot, err := b.stateFromSlot(slot)
+	// Get the state at the given slot.
+	st, resolvedSlot, err := b.StateAtSlot(slot)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get state from slot %d", slot)
 	}
@@ -237,7 +238,8 @@ func (b *Backend) ValidatorByID(slot math.Slot, id string) (*beacontypes.Validat
 }
 
 func (b *Backend) ValidatorBalancesByIDs(slot math.Slot, ids []string) ([]*beacontypes.ValidatorBalanceData, error) {
-	st, _, err := b.stateFromSlot(slot)
+	// Get the state at the given slot.
+	st, _, err := b.StateAtSlot(slot)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get state from slot %d", slot)
 	}

@@ -114,6 +114,7 @@ func (s *Service) ProcessProposal(
 			ErrVersionMismatch,
 		)
 	}
+
 	// Make sure we have the right number of BlobSidecars
 	blobKzgCommitments := blk.GetBody().GetBlobKzgCommitments()
 	numCommitments := len(blobKzgCommitments)
@@ -302,6 +303,8 @@ func (s *Service) VerifyIncomingBlock(
 				)
 			}
 
+			// If we are rejecting the incoming block, let's optimistically build a candidate
+			// payload for this slot (in case we are selected as the next proposer for this slot).
 			go s.handleRebuildPayloadForRejectedBlock(
 				ctx,
 				preState,
