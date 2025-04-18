@@ -105,14 +105,24 @@ func (s *Service) finalizeBlockInternal(
 	}, nil
 }
 
-// Panics if SBT upgrade parameters are not set.
-//
-//nolint:lll // long message on one line for readability.
 func (s *Service) nextBlockDelay(req *cmtabci.FinalizeBlockRequest) time.Duration {
-	//delay := constBlockDelay
+	// TODO: Uncomment after https://github.com/berachain/cometbft/pull/29
+	// switch req.Height {
+	// case s.cmtConsensusParams.Feature.SBTEnableHeight-1: // one block before
+	// 	s.blockDelay = &BlockDelay{
+	// 		PreviousBlockTime: req.Time,
+	// 	}
+	// case s.cmtConsensusParams.Feature.SBTEnableHeight: // the block of the upgrade
+	// 	s.blockDelay.InitialTime = req.Time
+	// 	s.blockDelay.InitialHeight = req.Height
+	// }
+
+	// If the block delay is not set, we return the default block delay.
+	if s.blockDelay == nil {
+		return constBlockDelay
+	}
 
 	return s.blockDelay.Next(req.Time, req.Height)
-
 }
 
 // workingHash gets the apphash that will be finalized in commit.

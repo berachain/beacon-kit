@@ -59,15 +59,6 @@ type BlockDelay struct {
 	PreviousBlockTime time.Time
 }
 
-// CONTRACT: called only once upon genesis during or after InitChain.
-func BlockDelayUponGenesis(genesisTime time.Time, initialHeight int64) *BlockDelay {
-	return &BlockDelay{
-		InitialTime:       genesisTime,
-		InitialHeight:     initialHeight,
-		PreviousBlockTime: genesisTime,
-	}
-}
-
 // BlockDelayFromBytes converts the bytes to a blockDelay.
 //
 // Expected format:

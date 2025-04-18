@@ -28,19 +28,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestBlockDelayUponGenesis(t *testing.T) {
-	t.Parallel()
-
-	genesisTime := time.Now()
-	initialHeight := int64(1)
-
-	d := cometbft.BlockDelayUponGenesis(genesisTime, initialHeight)
-
-	assert.Equal(t, genesisTime, d.InitialTime)
-	assert.Equal(t, initialHeight, d.InitialHeight)
-	assert.Equal(t, genesisTime, d.PreviousBlockTime)
-}
-
 func TestBlockDelayFromBytes(t *testing.T) {
 	t.Parallel()
 
@@ -63,7 +50,11 @@ func TestBlockDelayNext_NoDelay(t *testing.T) {
 
 	genesisTime := time.Now()
 	initialHeight := int64(1)
-	d := cometbft.BlockDelayUponGenesis(genesisTime, initialHeight)
+	d := &cometbft.BlockDelay{
+		InitialTime:       genesisTime,
+		InitialHeight:     initialHeight,
+		PreviousBlockTime: genesisTime,
+	}
 
 	curBlockTime := genesisTime.Add(10 * time.Second)
 	curBlockHeight := int64(2)
@@ -83,7 +74,11 @@ func TestBlockDelayNext_WithDelay(t *testing.T) {
 
 	genesisTime := time.Now()
 	initialHeight := int64(1)
-	d := cometbft.BlockDelayUponGenesis(genesisTime, initialHeight)
+	d := &cometbft.BlockDelay{
+		InitialTime:       genesisTime,
+		InitialHeight:     initialHeight,
+		PreviousBlockTime: genesisTime,
+	}
 
 	curBlockTime := genesisTime.Add(2 * time.Second)
 	curBlockHeight := int64(3)
@@ -103,7 +98,11 @@ func TestBlockDelayNext_ResetOnStall(t *testing.T) {
 
 	genesisTime := time.Now()
 	initialHeight := int64(1)
-	d := cometbft.BlockDelayUponGenesis(genesisTime, initialHeight)
+	d := &cometbft.BlockDelay{
+		InitialTime:       genesisTime,
+		InitialHeight:     initialHeight,
+		PreviousBlockTime: genesisTime,
+	}
 
 	curBlockTime := genesisTime.Add(cometbft.MaxDelayBetweenBlocks + 1*time.Minute)
 	curBlockHeight := int64(10)
@@ -111,7 +110,7 @@ func TestBlockDelayNext_ResetOnStall(t *testing.T) {
 	delay := d.Next(curBlockTime, curBlockHeight)
 
 	assert.Equal(t, d.InitialTime, curBlockTime)
-	assert.Equal(t, d.InitialHeight, curBlockHeight-1)
+	assert.Equal(t, d.InitialHeight, curBlockHeight)
 	assert.Equal(t, cometbft.TargetBlockTime, delay)
 }
 
@@ -120,7 +119,11 @@ func TestBlockDelayNext_Catchup(t *testing.T) {
 
 	genesisTime := time.Now()
 	initialHeight := int64(1)
-	d := cometbft.BlockDelayUponGenesis(genesisTime, initialHeight)
+	d := &cometbft.BlockDelay{
+		InitialTime:       genesisTime,
+		InitialHeight:     initialHeight,
+		PreviousBlockTime: genesisTime,
+	}
 
 	curBlockTime := genesisTime.Add(2 * time.Second)
 	curBlockHeight := int64(3)
@@ -157,5 +160,4 @@ func TestBlockDelayNext_Catchup(t *testing.T) {
 	delay = d.Next(curBlockTime, curBlockHeight)
 
 	assert.Equal(t, 1*time.Second, delay)
-
 }
