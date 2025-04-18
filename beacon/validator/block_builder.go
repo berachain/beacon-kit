@@ -90,6 +90,10 @@ func (s *Service) BuildBlockAndSidecars(
 	// must use this same timestamp from the payload to build the beacon block. This ensures that
 	// we are building on the same fork version as the Execution Layer.
 	timestamp := envelope.GetExecutionPayload().GetTimestamp()
+	err = s.stateProcessor.ProcessFork(st, timestamp, false)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	// Build forkdata used for the signing root of the reveal and the sidecars.
 	forkData, err := s.buildForkData(st, timestamp)
@@ -240,20 +244,11 @@ func (s *Service) retrieveExecutionPayload(
 		return nil, err
 	}
 
-	// We must prepare the state for the fork version of the new block being built to handle
-	// the case where the new block is on a new fork version. Although we do not have the
-	// confirmed timestamp by the EL, we will assume it to be `nextPayloadTimestamp` to decide
-	// the new block's fork version.
 	nextPayloadTimestamp := payloadtime.Next(
 		slotData.GetConsensusTime(),
 		lph.GetTimestamp(),
 		false, // buildOptimistically
 	)
-	err = s.stateProcessor.ProcessFork(st, nextPayloadTimestamp, false)
-	if err != nil {
-		return nil, err
-	}
-
 	return s.localPayloadBuilder.RequestPayloadSync(
 		ctx,
 		st,
