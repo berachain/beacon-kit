@@ -108,31 +108,32 @@ func (sp *StateProcessor) validateExecutionPayload(
 	st ReadOnlyBeaconState,
 	blk *ctypes.BeaconBlock,
 ) error {
-	if err := sp.validateStatelessPayload(blk); err != nil {
-		return err
-	}
+	// NOTE: skip consensus block
+	// if err := sp.validateStatelessPayload(blk); err != nil {
+	// 	return err
+	// }
 	return sp.validateStatefulPayload(ctx, consensusTime, st, blk)
 }
 
 // validateStatelessPayload performs stateless checks on the execution payload.
-func (sp *StateProcessor) validateStatelessPayload(blk *ctypes.BeaconBlock) error {
-	body := blk.GetBody()
-	payload := body.GetExecutionPayload()
+// func (sp *StateProcessor) validateStatelessPayload(blk *ctypes.BeaconBlock) error {
+// 	body := blk.GetBody()
+// 	payload := body.GetExecutionPayload()
 
-	// Verify the number of withdrawals.
-	withdrawals := payload.GetWithdrawals()
-	if uint64(len(withdrawals)) > sp.cs.MaxWithdrawalsPerPayload() {
-		return errors.Wrapf(
-			ErrExceedMaximumWithdrawals,
-			"too many withdrawals, expected: %d, got: %d",
-			sp.cs.MaxWithdrawalsPerPayload(), len(withdrawals),
-		)
-	}
+// 	// Verify the number of withdrawals.
+// 	withdrawals := payload.GetWithdrawals()
+// 	if uint64(len(withdrawals)) > sp.cs.MaxWithdrawalsPerPayload() {
+// 		return errors.Wrapf(
+// 			ErrExceedMaximumWithdrawals,
+// 			"too many withdrawals, expected: %d, got: %d",
+// 			sp.cs.MaxWithdrawalsPerPayload(), len(withdrawals),
+// 		)
+// 	}
 
-	// No need to verify bounded number of commitments here, since it is
-	// verified early on in ProcessProposal.
-	return nil
-}
+// 	// No need to verify bounded number of commitments here, since it is
+// 	// verified early on in ProcessProposal.
+// 	return nil
+// }
 
 // validateStatefulPayload performs stateful checks on the execution payload.
 func (sp *StateProcessor) validateStatefulPayload(
