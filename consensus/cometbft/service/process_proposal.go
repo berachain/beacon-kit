@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/berachain/beacon-kit/errors"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
@@ -68,20 +69,23 @@ func (s *Service) processProposal(
 	// errors to consensus indicate that the node was not able to understand
 	// whether the block was valid or not. Viceversa, we signal that a block
 	// is invalid by its status, but we do return nil error in such a case.
-	status := cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
 	err := s.Blockchain.ProcessProposal(
 		s.processProposalState.Context(),
 		req,
 	)
-	if err != nil {
-		status = cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
+	switch {
+	case errors.IsFatal(err):
+		return nil, err
+	case err != nil:
 		s.logger.Error(
-			"failed to process proposal",
+			"proposal rejected",
 			"height", req.Height,
 			"time", req.Time,
 			"hash", fmt.Sprintf("%X", req.Hash),
 			"err", err,
 		)
+		return &cmtabci.ProcessProposalResponse{Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT}, nil
+	default:
+		return &cmtabci.ProcessProposalResponse{Status: cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT}, nil
 	}
-	return &cmtabci.ProcessProposalResponse{Status: status}, nil
 }
