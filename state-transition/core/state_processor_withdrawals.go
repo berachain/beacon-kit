@@ -183,28 +183,39 @@ func (sp *StateProcessor) processWithdrawalRequest(st *state.StateDB, withdrawal
 	}
 	// If partial withdrawal queue is full, only full exits are processed
 	if len(pendingPartialWithdrawals) == PendingPartialWithdrawalsLimit && !isFullExitRequest {
+		sp.logger.Warn(
+			"skipping processing of withdrawal request as partial withdrawal queue is full",
+			withdrawalFields(withdrawalRequest, nil)...,
+		)
 		return nil
 	}
 	index, validator, err := validateWithdrawal(st, withdrawalRequest)
 	if err != nil {
-		sp.logger.Warn("Failed to validate withdrawal", "err", err)
-		// Note that we do not return error on invalid requests as it's a user error.
+		sp.logger.Info("Failed to validate withdrawal", withdrawalFields(withdrawalRequest, err)...)
+		// Note that we do not return error on invalid requests as it's a user error and invalid withdrawal requests are simply skipped.
+		// Since we're interacting with the KV Store, i/o errors could occur, but we expect these to be sparse enough
+		// that it won't impact consensus. We could consider returning error on codec.ErrEncoding rather than silencing here.
 		return nil
 	}
 	if validator == nil {
-		sp.logger.Warn("Validate withdrawal return nil validator")
+		sp.logger.Warn("Validate withdrawal return nil validator", withdrawalFields(withdrawalRequest, nil)...)
 		return nil
 	}
 
 	if err = verifyWithdrawalConditions(sp.cs, st, validator); err != nil {
-		sp.logger.Warn("Failed to verify withdrawal conditions", "err", err)
+		// Note that we do not return error on invalid requests as it's a user error and invalid withdrawal requests are simply skipped.
+		// Since we're interacting with the KV Store, i/o errors could occur, but we expect these to be sparse enough
+		// that it won't impact consensus. We could consider returning error on codec.ErrEncoding rather than silencing here.
+		sp.logger.Info("Failed to verify withdrawal conditions", withdrawalFields(withdrawalRequest, err)...)
 		return nil
 	}
 
 	// Process full exit or partial withdrawal.
 	if isFullExitRequest {
+		sp.logger.Info("Processing full exit request", withdrawalFields(withdrawalRequest, nil)...)
 		return sp.processFullExit(st, index, pendingPartialWithdrawals)
 	}
+	sp.logger.Info("Processing partial withdrawal request", withdrawalFields(withdrawalRequest, nil)...)
 	return sp.processPartialWithdrawal(st, withdrawalRequest, validator, index, pendingPartialWithdrawals)
 }
 
@@ -321,4 +332,18 @@ func verifyWithdrawalConditions(chainSpec ChainSpec, st *state.StateDB, validato
 		return errors.New("validator not active long enough")
 	}
 	return nil
+}
+
+// withdrawalFields returns the structured fields for logging any WithdrawalRequest.
+// error is optional
+func withdrawalFields(req *ctypes.WithdrawalRequest, err error) []interface{} {
+	logFields := []interface{}{
+		"source_address", req.SourceAddress.String(),
+		"validator_pubkey", req.ValidatorPubKey.String(),
+		"amount", req.Amount,
+	}
+	if err != nil {
+		logFields = append(logFields, "error", err)
+	}
+	return logFields
 }

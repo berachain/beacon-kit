@@ -87,6 +87,9 @@ func ProvideElectraGenesisChainSpec() (chain.Spec, error) {
 	specData.ElectraForkTime = 0
 	// We set slots per epoch to 2 for faster observation of withdrawal behaviour
 	specData.SlotsPerEpoch = 2
+	// We set this to 4 so tests are faster
+	specData.MinValidatorWithdrawabilityDelay = 4
+
 	chainSpec, err := chain.NewSpec(specData)
 	if err != nil {
 		return nil, err
