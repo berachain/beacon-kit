@@ -66,7 +66,7 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	startTime := time.Unix(0, 0)
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals, proposalTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
+	proposals, _, proposalTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	// We expected this test to happen during Pre-Deneb1 fork.
@@ -165,7 +165,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidTimestamps_Errors() {
 	startTime := time.Now()
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals, correctConsensusTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
+	proposals, _, correctConsensusTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 	currentHeight := int64(blockHeight + coreLoopIterations)
 
@@ -213,7 +213,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobCommitment_Errors() {
 	startTime := time.Unix(0, 0)
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals, consensusTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
+	proposals, _, consensusTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	// We expected this test to happen during Pre-Deneb1 fork.
@@ -384,7 +384,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobInclusionProof_Errors() 
 	startTime := time.Unix(0, 0)
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals, consensusTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
+	proposals, _, consensusTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	// We expected this test to happen during Pre-Deneb1 fork.

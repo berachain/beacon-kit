@@ -96,7 +96,7 @@ type BeaconBlockBody struct {
 	blsToExecutionChanges []*BlsToExecutionChange
 	// BlobKzgCommitments is the list of KZG commitments for the EIP-4844 blobs.
 	BlobKzgCommitments []eip4844.KZGCommitment
-	// executionRequests is introduced in electra. We keep this private so that it must go through Getter/Setter
+	// executionRequests is introduced in Electra. We keep this private so that it must go through Getter/Setter
 	// which does a forkVersion check.
 	executionRequests *ExecutionRequests
 }

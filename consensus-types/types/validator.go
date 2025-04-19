@@ -264,6 +264,12 @@ func (v Validator) HasEth1WithdrawalCredentials() bool {
 	return v.WithdrawalCredentials.IsValidEth1WithdrawalCredentials()
 }
 
+// HasExecutionWithdrawalCredential deviated from `has_execution_withdrawal_credential` by not checking for
+// compounding withdrawal credentials, i.e 0x02.
+func (v Validator) HasExecutionWithdrawalCredential() bool {
+	return v.HasEth1WithdrawalCredentials()
+}
+
 // HasMaxEffectiveBalance determines if the validator has the maximum effective
 // balance.
 func (v Validator) HasMaxEffectiveBalance(
@@ -312,6 +318,13 @@ func (v Validator) GetWithdrawableEpoch() math.Epoch {
 // GetWithdrawalCredentials returns the withdrawal credentials of the validator.
 func (v Validator) GetWithdrawalCredentials() WithdrawalCredentials {
 	return v.WithdrawalCredentials
+}
+
+// HasCompoundingWithdrawalCredential is equivalent to has_compounding_withdrawal_credential.
+// On Berachain, all validators are considered to be 'compounding' validators, regardless of whether
+// they have the '0x2' prefix. We introduce this for spec parity.
+func (v Validator) HasCompoundingWithdrawalCredential() bool {
+	return true
 }
 
 // Status returns the current validator status based on its set epoch values.

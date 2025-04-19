@@ -61,7 +61,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlock_IsSuccessful() {
 	startTime := time.Now()
 
 	// iterate through the core loop `coreLoopIterations` times, i.e. Propose, Process, Finalize and Commit.
-	proposals, _ := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
+	proposals, _, _ := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
 
 	// We expect that the number of proposals that were finalized should be `coreLoopIterations`.
 	s.Require().Len(proposals, coreLoopIterations)
@@ -110,7 +110,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 	startTime := time.Unix(0, 0)
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals, consensusTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
+	proposals, _, consensusTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	// We expected this test to happen during Pre-Deneb1 fork.
@@ -224,7 +224,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessfu
 	startTime := time.Unix(0, 0)
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals, consensusTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
+	proposals, _, consensusTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	// We expected this test to happen during Pre-Deneb1 fork.

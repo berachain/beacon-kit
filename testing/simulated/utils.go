@@ -104,15 +104,17 @@ func (s *SharedAccessors) InitializeChain(t *testing.T) {
 // Returns the list of proposed comet blocks.
 func (s *SharedAccessors) MoveChainToHeight(
 	t *testing.T,
-	startHeight, iterations int64,
+	startHeight,
+	iterations int64,
 	proposer *signer.BLSSigner,
 	startTime time.Time,
-) ([]*types.PrepareProposalResponse, time.Time) {
+) ([]*types.PrepareProposalResponse, []*types.FinalizeBlockResponse, time.Time) {
 	// Prepare a block proposal.
 	pubkey, err := proposer.GetPubKey()
 	require.NoError(t, err)
 
 	var proposedCometBlocks []*types.PrepareProposalResponse
+	var finalizedResponses []*types.FinalizeBlockResponse
 
 	proposalTime := startTime
 	for currentHeight := startHeight; currentHeight < startHeight+iterations; currentHeight++ {
@@ -150,9 +152,11 @@ func (s *SharedAccessors) MoveChainToHeight(
 
 		// Record the Commit Block
 		proposedCometBlocks = append(proposedCometBlocks, proposal)
+		finalizedResponses = append(finalizedResponses, finalizeResp)
+
 		proposalTime = proposalTime.Add(time.Duration(s.TestNode.ChainSpec.TargetSecondsPerEth1Block()) * time.Second)
 	}
-	return proposedCometBlocks, proposalTime
+	return proposedCometBlocks, finalizedResponses, proposalTime
 }
 
 // WaitTillServicesStarted waits until the log buffer contains "All services started".

@@ -142,8 +142,6 @@ type SpecData struct {
 	FieldElementsPerBlob uint64 `mapstructure:"field-elements-per-blob"`
 	// BytesPerBlob denotes the size of EIP-4844 blobs in bytes.
 	BytesPerBlob uint64 `mapstructure:"bytes-per-blob"`
-	// KZGCommitmentInclusionProofDepth is the depth of the KZG inclusion proof.
-	KZGCommitmentInclusionProofDepth uint64 `mapstructure:"kzg-commitment-inclusion-proof-depth"`
 
 	// Berachain Values at genesis
 	//
@@ -166,4 +164,10 @@ type SpecData struct {
 	// EVMInflationPerBlockDeneb1 is the amount of native EVM balance (in Gwei) to be
 	// minted to the EVMInflationAddressDeneb1 via a withdrawal every block in the Deneb1 fork.
 	EVMInflationPerBlockDeneb1 uint64 `mapstructure:"evm-inflation-per-block-deneb-one"`
+
+	// Electra Values
+	//
+	// MinValidatorWithdrawabilityDelay is defined in the Electra spec and introduces
+	// withdrawability delays to allow for slashing.
+	MinValidatorWithdrawabilityDelay uint64 `mapstructure:"min-validator-withdrawability-delay"`
 }

@@ -25,10 +25,13 @@ import (
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/storage/beacondb"
+	"github.com/ethereum/go-ethereum/params"
 )
 
 // StateDB is the underlying struct behind the BeaconState interface.
@@ -71,21 +74,31 @@ func (s *StateDB) DecreaseBalance(idx math.ValidatorIndex, delta math.Gwei) erro
 	return s.SetBalance(idx, balance-min(balance, delta))
 }
 
+// MaxPendingPartialsPerWithdrawalsSweep TODO(pectra): Find a better home for this.
+const MaxPendingPartialsPerWithdrawalsSweep = uint64(8)
+
+// MinActivationBalance TODO(pectra): Move to somewhere more appropriate. 250K BERA.
+const MinActivationBalance = 250_000 * params.GWei
+
 // ExpectedWithdrawals as defined in the Ethereum 2.0 Specification:
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-get_expected_withdrawals
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#new-get_expected_withdrawals
 //
 // NOTE: This function is modified from the spec to allow a fixed withdrawal
 // (as the first withdrawal) used for EVM inflation.
-func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.Withdrawals, error) {
+//
+//nolint:gocognit,funlen // TODO(pectra).
+func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.Withdrawals, uint64, error) {
 	var (
 		validator         *ctypes.Validator
 		balance           math.Gwei
 		withdrawalAddress common.ExecutionAddress
 	)
 
+	processedPartialWithdrawals := uint64(0)
+
 	slot, err := s.GetSlot()
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	epoch := s.cs.SlotToEpoch(slot)
 	maxWithdrawals := s.cs.MaxWithdrawalsPerPayload()
@@ -96,17 +109,27 @@ func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.With
 
 	withdrawalIndex, err := s.GetNextWithdrawalIndex()
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	validatorIndex, err := s.GetNextWithdrawalValidatorIndex()
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	totalValidators, err := s.GetTotalValidators()
 	if err != nil {
-		return nil, err
+		return nil, 0, err
+	}
+
+	// [New in Electra:EIP7251] Consume pending partial withdrawals
+	timestampFork := s.cs.ActiveForkVersionForTimestamp(timestamp)
+	if version.EqualsOrIsAfter(timestampFork, version.Electra()) {
+		withdrawals, withdrawalIndex, processedPartialWithdrawals, err =
+			s.consumePendingPartialWithdrawals(timestampFork, epoch, withdrawals, withdrawalIndex)
+		if err != nil {
+			return nil, 0, err
+		}
 	}
 
 	bound := min(totalValidators, s.cs.MaxValidatorsPerWithdrawalsSweep())
@@ -115,19 +138,19 @@ func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.With
 	for range bound {
 		validator, err = s.ValidatorByIndex(validatorIndex)
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 
 		balance, err = s.GetBalance(validatorIndex)
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 
 		// Set the amount of the withdrawal depending on the balance of the validator.
 		if validator.IsFullyWithdrawable(balance, epoch) {
 			withdrawalAddress, err = validator.GetWithdrawalCredentials().ToExecutionAddress()
 			if err != nil {
-				return nil, err
+				return nil, 0, err
 			}
 
 			withdrawals = append(withdrawals, engineprimitives.NewWithdrawal(
@@ -144,7 +167,7 @@ func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.With
 		) {
 			withdrawalAddress, err = validator.GetWithdrawalCredentials().ToExecutionAddress()
 			if err != nil {
-				return nil, err
+				return nil, 0, err
 			}
 
 			withdrawals = append(withdrawals, engineprimitives.NewWithdrawal(
@@ -167,7 +190,74 @@ func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.With
 		validatorIndex = (validatorIndex + 1) % math.ValidatorIndex(totalValidators)
 	}
 
-	return withdrawals, nil
+	return withdrawals, processedPartialWithdrawals, nil
+}
+
+func (s *StateDB) consumePendingPartialWithdrawals(
+	timestampFork common.Version,
+	epoch math.Epoch,
+	withdrawals engineprimitives.Withdrawals,
+	withdrawalIndex uint64,
+) (
+	[]*engineprimitives.Withdrawal,
+	uint64, // withdrawalIndex
+	uint64, // processedPartialWithdrawals
+	error,
+) {
+	// By this point, if we're post-Electra, the fork version on the BeaconState will have been set as part of `PrepareStateForFork`.
+	// We sanity check this by enforcing the state fork and timestamp version are equal.
+	// We cannot do this check before Electra as Deneb1 did not have a beacon state fork version set.
+	stateFork, forkErr := s.GetFork()
+	if forkErr != nil {
+		return nil, 0, 0, forkErr
+	}
+	if !version.Equals(stateFork.CurrentVersion, timestampFork) {
+		return nil, 0, 0, errors.New("state fork version does not match timestamp fork in expected withdrawals")
+	}
+	ppWithdrawals, getErr := s.GetPendingPartialWithdrawals()
+	if getErr != nil {
+		return nil, 0, 0, getErr
+	}
+	processedPartialWithdrawals := uint64(0)
+
+	for _, withdrawal := range ppWithdrawals {
+		if withdrawal.WithdrawableEpoch > epoch || len(withdrawals) == int(MaxPendingPartialsPerWithdrawalsSweep) {
+			// If the first withdrawal in the queue is not withdrawable, then all subsequent withdrawals will also be in later
+			// epochs and hence are not withdrawable, so we can break early.
+			break
+		}
+		validator, err := s.ValidatorByIndex(withdrawal.ValidatorIndex)
+		if err != nil {
+			return nil, 0, 0, err
+		}
+		hasSufficientEffectiveBalance := validator.GetEffectiveBalance() >= MinActivationBalance
+		balance, err := s.GetBalance(withdrawal.ValidatorIndex)
+		if err != nil {
+			return nil, 0, 0, err
+		}
+		hasExcessBalance := balance > MinActivationBalance
+		if validator.ExitEpoch == math.Epoch(constants.FarFutureEpoch) && hasSufficientEffectiveBalance && hasExcessBalance {
+			// A validator can only partial withdraw an amount such that:
+			// 1. never withdraw more than what the validator asked for.
+			// 2. never withdraw so much that the validator’s remaining balance would drop below MIN_ACTIVATION_BALANCE
+			withdrawableBalance := min(balance-MinActivationBalance, withdrawal.Amount)
+
+			withdrawalAddress, addrErr := validator.WithdrawalCredentials.ToExecutionAddress()
+			if addrErr != nil {
+				return nil, 0, 0, addrErr
+			}
+			withdrawals = append(
+				withdrawals,
+				engineprimitives.NewWithdrawal(math.U64(withdrawalIndex), withdrawal.ValidatorIndex, withdrawalAddress, withdrawableBalance),
+			)
+			// Increment the withdrawal index to process the next withdrawal.
+			withdrawalIndex++
+		}
+		// Even if a withdrawal was not created, e.g. the validator did not have sufficient balance, we will consider
+		// this withdrawal processed (spec defined) and hence increment the processedPartialWithdrawals count.
+		processedPartialWithdrawals++
+	}
+	return withdrawals, withdrawalIndex, processedPartialWithdrawals, nil
 }
 
 // EVMInflationWithdrawal returns the withdrawal used for EVM balance inflation.
