@@ -81,30 +81,15 @@ func (sp *StateProcessor) InitializeBeaconStateFromEth1(
 		return nil, err
 	}
 
-	for i := range sp.cs.EpochsPerHistoricalVector() {
-		if err := st.UpdateRandaoMixAtIndex(
-			i,
-			common.Bytes32(execPayloadHeader.GetBlockHash()),
-		); err != nil {
-			return nil, err
-		}
-	}
-
-	// Before processing deposits, set the eth1 deposit index to 0.
-	if err := st.SetEth1DepositIndex(constants.FirstDepositIndex); err != nil {
+	if err := sp.seedRandaoMix(
+		st,
+		execPayloadHeader.GetBlockHash(),
+	); err != nil {
 		return nil, err
 	}
-	if err := validateGenesisDeposits(st, deposits, sp.cs.ValidatorSetCap()); err != nil {
-		return nil, err
-	}
-	for _, deposit := range deposits {
-		if err := sp.processDeposit(st, deposit); err != nil {
-			return nil, err
-		}
-	}
 
-	// process activations
-	if err := sp.processGenesisActivation(st); err != nil {
+	// ingest deposits & do genesis‐activation
+	if err := sp.processGenesisDepositsAndActivations(st, deposits); err != nil {
 		return nil, err
 	}
 
@@ -120,14 +105,9 @@ func (sp *StateProcessor) InitializeBeaconStateFromEth1(
 		return nil, err
 	}
 
-	// Setup a bunch of 0s to prime the DB.
-	for i := range sp.cs.HistoricalRootsLimit() {
-		if err = st.UpdateBlockRootAtIndex(i, common.Root{}); err != nil {
-			return nil, err
-		}
-		if err = st.UpdateStateRootAtIndex(i, common.Root{}); err != nil {
-			return nil, err
-		}
+	// seed historical block‑ and state‑roots
+	if err = sp.seedHistoricalRoots(st); err != nil {
+		return nil, err
 	}
 
 	if err = st.SetNextWithdrawalIndex(0); err != nil {
@@ -147,6 +127,57 @@ func (sp *StateProcessor) InitializeBeaconStateFromEth1(
 		return nil, err
 	}
 	return validatorSetsDiffs(nil, activeVals), nil
+}
+
+// seedRandaoMix writes the initial RANDAO mixes.
+func (sp *StateProcessor) seedRandaoMix(
+	st *statedb.StateDB,
+	hash common.ExecutionHash,
+) error {
+	for i := range sp.cs.EpochsPerHistoricalVector() {
+		if err := st.UpdateRandaoMixAtIndex(
+			i, common.Bytes32(hash),
+		); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// seedHistoricalRoots zero‑primes the block and state‐roots.
+func (sp *StateProcessor) seedHistoricalRoots(st *statedb.StateDB) error {
+	for i := range sp.cs.HistoricalRootsLimit() {
+		if err := st.UpdateBlockRootAtIndex(i, common.Root{}); err != nil {
+			return err
+		}
+		if err := st.UpdateStateRootAtIndex(i, common.Root{}); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// processGenesisDepositsAndActivations handles the eth1 deposit index,
+// validates and ingests each deposit, then does the genesis activation pass.
+func (sp *StateProcessor) processGenesisDepositsAndActivations(
+	st *statedb.StateDB,
+	deposits ctypes.Deposits,
+) error {
+	// Before processing deposits, set the eth1 deposit index to 0.
+	if err := st.SetEth1DepositIndex(constants.FirstDepositIndex); err != nil {
+		return err
+	}
+	if err := validateGenesisDeposits(
+		st, deposits, sp.cs.ValidatorSetCap(),
+	); err != nil {
+		return err
+	}
+	for _, dep := range deposits {
+		if err := sp.processDeposit(st, dep); err != nil {
+			return err
+		}
+	}
+	return sp.processGenesisActivation(st)
 }
 
 func (sp *StateProcessor) processGenesisActivation(st *statedb.StateDB) error {
