@@ -328,4 +328,6 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithFullWithdrawalRequest_IsSucce
 
 	// The new balance of the validator is updated
 	s.Require().Equal(expectedBalance.String(), afterWithdrawalBalance.ToInt().String())
+
+	// TODO(pectra): Ensure the validator was exited, i.e. validator set update.
 }
