@@ -112,7 +112,11 @@ func (sp *StateProcessor) processWithdrawals(
 		if setErr := st.SetPendingPartialWithdrawals(updatedWithdrawals); setErr != nil {
 			return setErr
 		}
-		sp.logger.Info("pending partial withdrawals found", "count", processedPartialWithdrawalsCount)
+		sp.logger.Info(
+			"pending partial withdrawals found",
+			"original_count", processedPartialWithdrawalsCount,
+			"updated_count", len(updatedWithdrawals),
+		)
 	}
 
 	if numWithdrawals > 1 {
@@ -160,25 +164,19 @@ func (sp *StateProcessor) processWithdrawals(
 	return nil
 }
 
-// FullExitRequestAmount TODO(pectra): Move to somewhere more appropriate
-const FullExitRequestAmount = 0
-
-// PendingPartialWithdrawalsLimit TODO(pectra): Move to somewhere more appropriate
-const PendingPartialWithdrawalsLimit = 64
-
 // processWithdrawalRequest is the equivalent of process_withdrawal_request as defined in the spec.
 // It should only be called after the electra hard fork.
 // For invalid withdrawal requests, we return nil, and only return error for system errors.
 func (sp *StateProcessor) processWithdrawalRequest(st *state.StateDB, withdrawalRequest *ctypes.WithdrawalRequest) error {
 	amount := withdrawalRequest.Amount
 	// If the amount is 0, it's a full exit.
-	isFullExitRequest := amount == FullExitRequestAmount
+	isFullExitRequest := amount == constants.FullExitRequestAmount
 	pendingPartialWithdrawals, err := st.GetPendingPartialWithdrawals()
 	if err != nil {
 		return err
 	}
 	// If partial withdrawal queue is full, only full exits are processed
-	if len(pendingPartialWithdrawals) == PendingPartialWithdrawalsLimit && !isFullExitRequest {
+	if len(pendingPartialWithdrawals) == constants.PendingPartialWithdrawalsLimit && !isFullExitRequest {
 		sp.logger.Warn(
 			"skipping processing of withdrawal request as partial withdrawal queue is full",
 			withdrawalFields(withdrawalRequest, nil)...,

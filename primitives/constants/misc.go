@@ -48,8 +48,14 @@ const (
 	// 2**40 (= 1,099,511,627,776) validator spots.
 	ValidatorsRegistryLimit = 1_099_511_627_776
 
+	// FullExitRequestAmount is the request amount for a full exit request, i.e. when a validator wants to withdraw
+	// its entire balance.
+	FullExitRequestAmount = 0
+
 	// PendingPartialWithdrawalsLimit is the maximum number of pending partial withdrawals.
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#state-list-lengths
 	// 2**27 (= 134,217,728) pending partial withdrawals
+	// If the limit is hit, any new partial withdrawal requests will be dropped. This is not likely to happen but
+	// theoretically possible.
 	PendingPartialWithdrawalsLimit = 134_217_728
 )

@@ -46,14 +46,14 @@ func (sp *StateProcessor) processRegistryUpdates(st *statedb.StateDB) error {
 
 	currEpoch := sp.cs.SlotToEpoch(slot)
 	activationEpoch := currEpoch + 1
-	minEffectiveBalance := math.Gwei(sp.cs.MinActivationBalance())
+	minActivationBalance := math.Gwei(sp.cs.MinActivationBalance())
 
 	// We do not currently have a cap on validator churn,
 	// so we can process validators activations in a single loop
 	var idx math.ValidatorIndex
 	for si, val := range vals {
 		valModified := false
-		if val.IsEligibleForActivationQueue(minEffectiveBalance) {
+		if val.IsEligibleForActivationQueue(minActivationBalance) {
 			val.SetActivationEligibilityEpoch(activationEpoch)
 			valModified = true
 		}
@@ -76,7 +76,6 @@ func (sp *StateProcessor) processRegistryUpdates(st *statedb.StateDB) error {
 					err,
 				)
 			}
-
 			if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
 				return fmt.Errorf(
 					"registry update, failed updating validator idx %d: %w",

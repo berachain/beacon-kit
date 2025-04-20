@@ -906,7 +906,6 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	require.Equal(t, constants.GenesisEpoch, smallestVal.ActivationEligibilityEpoch)
 	require.Equal(t, constants.GenesisEpoch, smallestVal.ActivationEpoch)
 	require.Equal(t, constants.GenesisEpoch+2, smallestVal.ExitEpoch)
-	// require.Equal(t, constants.GenesisEpoch+3, smallestVal.WithdrawableEpoch)
 	require.Equal(t, math.Epoch(smallestVal.ExitEpoch.Unwrap()+cs.MinValidatorWithdrawabilityDelay()), smallestVal.WithdrawableEpoch)
 
 	epoch := cs.SlotToEpoch(blk.Slot)
