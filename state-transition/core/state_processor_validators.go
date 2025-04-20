@@ -57,11 +57,18 @@ func (sp *StateProcessor) processRegistryUpdates(st *statedb.StateDB) error {
 			val.SetActivationEligibilityEpoch(activationEpoch)
 			valModified = true
 		}
+
+		// Note: without slashing and voluntary withdrawals, there is no way
+		// for an active validator to have its balance less or equal to EjectionBalance.
+		// Even Partial Withdrawals through EIP7002 can only reduce a validator's balance to `MinActivationBalance`,
+		// which is not enough to trigger a validator exit.
+		// A Full Withdrawal through EIP7002 would initiate a validator exit directly and does not rely on `processRegistryUpdates`.
+		// As such, we do not include the logic:
 		/*
-			 TODO(pectra): Now that we have volunatary withdrarawals, the balance can fall below EjectionBalance
-				elif is_active_validator(validator, current_epoch) and validator.effective_balance <= config.EJECTION_BALANCE:
-					initiate_validator_exit(state, ValidatorIndex(index))  # [Modified in Electra:EIP7251]
+			elif is_active_validator(validator, current_epoch) and validator.effective_balance <= config.EJECTION_BALANCE:
+							initiate_validator_exit(state, ValidatorIndex(index))  # [Modified in Electra:EIP7251]
 		*/
+
 		if val.IsEligibleForActivation(currEpoch) {
 			val.SetActivationEpoch(activationEpoch)
 			valModified = true

@@ -33,7 +33,7 @@ func (sp *StateProcessor) InitiateValidatorExit(st *statedb.StateDB, idx math.Va
 	if err != nil {
 		return err
 	}
-	// TODO(pectra): Ensure that state is correctly updated to the fork
+	// By this point, the state should be correctly updated with the fork.
 	fork, err := st.GetFork()
 	if err != nil {
 		return err
