@@ -32,6 +32,7 @@ import (
 
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/primitives/eip7002"
+	"github.com/berachain/beacon-kit/primitives/encoding/hex"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
@@ -279,26 +280,39 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithFullWithdrawalRequest_IsSucce
 	err = s.TestNode.EngineClient.Call(s.CtxApp, &result, "eth_sendRawTransaction", hexutil.Encode(txBytes))
 	s.Require().NoError(err)
 
-	// Test happens post Electra fork.
-	nextBlockTime := time.Now()
-
 	// Go through 1 iteration of the core loop so that the withdrawal tx is included
 	s.LogBuffer.Reset()
-	proposals, _, _ := s.MoveChainToHeight(s.T(), blockHeight, 1, blsSigner, nextBlockTime)
+	proposals, finalizeBlockResponses, _ := s.MoveChainToHeight(s.T(), blockHeight, 1, blsSigner, time.Now())
 	s.Require().Len(proposals, 1)
 	// Log contains 1 withdrawal
 	s.Require().Contains(s.LogBuffer.String(), "Processing execution requests service=state-processor\u001B[0m deposits=0\u001B[0m withdrawals=1\u001B[0m consolidations=0\u001B[0m")
+	s.Require().Len(finalizeBlockResponses, 1)
+	// No validator updates yet
+	s.Require().Len(finalizeBlockResponses[0].GetValidatorUpdates(), 0)
 
 	s.LogBuffer.Reset()
 	var afterRequestBalance hexutil.Big
 	err = s.TestNode.EngineClient.Call(s.CtxApp, &afterRequestBalance, "eth_getBalance", simulated.WithdrawalExecutionAddress, "latest")
 	s.T().Logf("Balance after withdrawal request included in block: %s", afterRequestBalance.ToInt().String())
 
+	// Once a validator's full withdrawal request has been included in a block, it's exit epoch will be set to the next epoch.
+	// We enforce that it is exited by checking that FinalizeBlock returns the updated validator set without the validator.
+	nextBlockHeight := blockHeight + 1
+	proposals, finalizeBlockResponses, _ = s.MoveChainToHeight(s.T(), int64(nextBlockHeight), int64(1), blsSigner, time.Now())
+	s.Require().Len(finalizeBlockResponses, 1)
+	// We expect the validator to be kicked out now, with power 0
+	s.Require().Len(finalizeBlockResponses[0].GetValidatorUpdates(), 1)
+	ejectedValidator := finalizeBlockResponses[0].GetValidatorUpdates()[0]
+	s.Require().Equal(int64(0), ejectedValidator.GetPower())
+	s.Require().Equal(blsSigner.PublicKey().String(), hex.EncodeBytes(ejectedValidator.GetPubKeyBytes()))
+
+	// We also expect the validators balance to have updated.
+
 	// We must progress to Epoch `nextEpoch + MinValidatorWithdrawabilityDelay` before the balance will be removed.
 	// As such, we move the chain to the height `nextEpoch + MinValidatorWithdrawabilityDelay - 1`.
-	nextBlockHeight := blockHeight + 1
-	iterations := s.TestNode.ChainSpec.SlotsPerEpoch() * s.TestNode.ChainSpec.MinValidatorWithdrawabilityDelay()
-	proposals, _, _ = s.MoveChainToHeight(s.T(), int64(nextBlockHeight), int64(iterations), blsSigner, nextBlockTime)
+	nextBlockHeight = nextBlockHeight + 1
+	iterations := s.TestNode.ChainSpec.SlotsPerEpoch()*s.TestNode.ChainSpec.MinValidatorWithdrawabilityDelay() - 1
+	proposals, _, _ = s.MoveChainToHeight(s.T(), int64(nextBlockHeight), int64(iterations), blsSigner, time.Now())
 
 	s.LogBuffer.Reset()
 	var beforeWithdrawalBalance hexutil.Big
@@ -310,7 +324,7 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithFullWithdrawalRequest_IsSucce
 
 	// The next block will be the turn of the Epoch, and balance will change
 	nextBlockHeight = int(iterations) + nextBlockHeight
-	proposals, _, _ = s.MoveChainToHeight(s.T(), int64(nextBlockHeight), 1, blsSigner, nextBlockTime)
+	proposals, _, _ = s.MoveChainToHeight(s.T(), int64(nextBlockHeight), 1, blsSigner, time.Now())
 
 	var afterWithdrawalBalance hexutil.Big
 	err = s.TestNode.EngineClient.Call(s.CtxApp, &afterWithdrawalBalance, "eth_getBalance", simulated.WithdrawalExecutionAddress, "latest")
@@ -326,5 +340,4 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithFullWithdrawalRequest_IsSucce
 	// The new balance of the validator is updated
 	s.Require().Equal(expectedBalance.String(), afterWithdrawalBalance.ToInt().String())
 
-	// TODO(pectra): Ensure the validator was exited, i.e. validator set update.
 }
