@@ -39,7 +39,7 @@ type BalancesSpec interface {
 	// calculations.
 	EffectiveBalanceIncrement() uint64
 
-	// MinActivationBalance [New in Electra:EIP7251] Minimum balance for a validator to become active
+	// MinActivationBalance returns the maximum balance counted in rewards calculations in Gwei.
 	MinActivationBalance() uint64
 }
 

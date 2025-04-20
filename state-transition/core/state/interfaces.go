@@ -34,4 +34,5 @@ type ChainSpec interface {
 	MaxEffectiveBalance() uint64
 	EpochsPerHistoricalVector() uint64
 	ActiveForkVersionForTimestamp(timestamp math.U64) common.Version
+	MinActivationBalance() uint64
 }

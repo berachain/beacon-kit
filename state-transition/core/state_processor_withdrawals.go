@@ -166,9 +166,6 @@ const FullExitRequestAmount = 0
 // PendingPartialWithdrawalsLimit TODO(pectra): Move to somewhere more appropriate
 const PendingPartialWithdrawalsLimit = 64
 
-// MinActivationBalance TODO(pectra): Move to somewhere more appropriate. 250K BERA.
-const MinActivationBalance = 250_000 * params.GWei
-
 // processWithdrawalRequest is the equivalent of process_withdrawal_request as defined in the spec.
 // It should only be called after the electra hard fork.
 // For invalid withdrawal requests, we return nil, and only return error for system errors.
@@ -247,7 +244,8 @@ func (sp *StateProcessor) processPartialWithdrawal(
 	index math.ValidatorIndex,
 	pendingWithdrawals []*ctypes.PendingPartialWithdrawal,
 ) error {
-	hasSufficient := validator.GetEffectiveBalance() >= MinActivationBalance
+	minActivationBalance := math.Gwei(sp.cs.MinActivationBalance())
+	hasSufficient := validator.GetEffectiveBalance() >= minActivationBalance
 
 	balance, err := st.GetBalance(index)
 	if err != nil {
@@ -256,10 +254,10 @@ func (sp *StateProcessor) processPartialWithdrawal(
 
 	pendingBalanceToWithdraw := ctypes.PendingPartialWithdrawals(pendingWithdrawals).PendingBalanceToWithdraw(index)
 
-	hasExcess := balance > MinActivationBalance+pendingBalanceToWithdraw
+	hasExcess := balance > minActivationBalance+pendingBalanceToWithdraw
 
 	if validator.HasCompoundingWithdrawalCredential() && hasSufficient && hasExcess {
-		toWithdraw := min(balance-MinActivationBalance-pendingBalanceToWithdraw, req.Amount)
+		toWithdraw := min(balance-minActivationBalance-pendingBalanceToWithdraw, req.Amount)
 		// As long as `processPartialWithdrawal` is called after `processSlots`, this will always return the correct slot.
 		currentSlot, getErr := st.GetSlot()
 		if getErr != nil {

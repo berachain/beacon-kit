@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/storage/beacondb"
-	"github.com/ethereum/go-ethereum/params"
 )
 
 // StateDB is the underlying struct behind the BeaconState interface.
@@ -76,9 +75,6 @@ func (s *StateDB) DecreaseBalance(idx math.ValidatorIndex, delta math.Gwei) erro
 
 // MaxPendingPartialsPerWithdrawalsSweep TODO(pectra): Find a better home for this.
 const MaxPendingPartialsPerWithdrawalsSweep = uint64(8)
-
-// MinActivationBalance TODO(pectra): Move to somewhere more appropriate. 250K BERA.
-const MinActivationBalance = 250_000 * params.GWei
 
 // ExpectedWithdrawals as defined in the Ethereum 2.0 Specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#new-get_expected_withdrawals
@@ -230,17 +226,18 @@ func (s *StateDB) consumePendingPartialWithdrawals(
 		if err != nil {
 			return nil, 0, 0, err
 		}
-		hasSufficientEffectiveBalance := validator.GetEffectiveBalance() >= MinActivationBalance
+		minActivationBalance := math.Gwei(s.cs.MinActivationBalance())
+		hasSufficientEffectiveBalance := validator.GetEffectiveBalance() >= minActivationBalance
 		balance, err := s.GetBalance(withdrawal.ValidatorIndex)
 		if err != nil {
 			return nil, 0, 0, err
 		}
-		hasExcessBalance := balance > MinActivationBalance
+		hasExcessBalance := balance > minActivationBalance
 		if validator.ExitEpoch == math.Epoch(constants.FarFutureEpoch) && hasSufficientEffectiveBalance && hasExcessBalance {
 			// A validator can only partial withdraw an amount such that:
 			// 1. never withdraw more than what the validator asked for.
 			// 2. never withdraw so much that the validator’s remaining balance would drop below MIN_ACTIVATION_BALANCE
-			withdrawableBalance := min(balance-MinActivationBalance, withdrawal.Amount)
+			withdrawableBalance := min(balance-minActivationBalance, withdrawal.Amount)
 
 			withdrawalAddress, addrErr := validator.WithdrawalCredentials.ToExecutionAddress()
 			if addrErr != nil {
