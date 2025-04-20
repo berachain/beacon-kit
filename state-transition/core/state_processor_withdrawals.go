@@ -263,7 +263,9 @@ func (sp *StateProcessor) processPartialWithdrawal(
 		}
 		nextEpoch := sp.cs.SlotToEpoch(currentSlot) + 1
 		// Note that we do not need to set the ExitEpoch anywhere here as Partial withdrawals do not exit the validator
-		// unless they fall below the required the balance, which would be checked in `processRegistryUpdates`.
+		// as we enforce that the `toWithdraw` amount is always above the `minActivationBalance`.
+		// For example, if a validator's balance is already at `minActivationBalance` (250K BERA on mainnet)
+		// and they request a partial withdrawal, the `toWithdraw` amount will always be zero.
 		withdrawableEpoch := math.Epoch(uint64(nextEpoch) + sp.cs.MinValidatorWithdrawabilityDelay())
 		ppWithdrawal := &ctypes.PendingPartialWithdrawal{
 			ValidatorIndex:    index,
