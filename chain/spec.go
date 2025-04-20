@@ -38,6 +38,9 @@ type BalancesSpec interface {
 	// EffectiveBalanceIncrement returns the increment of balance used in reward
 	// calculations.
 	EffectiveBalanceIncrement() uint64
+
+	// MinActivationBalance [New in Electra:EIP7251] Minimum balance for a validator to become active
+	MinActivationBalance() uint64
 }
 
 type HysteresisSpec interface {
@@ -268,6 +271,11 @@ func (s spec) MaxEffectiveBalance() uint64 {
 // EjectionBalance returns the balance below which a validator is ejected.
 func (s spec) EjectionBalance() uint64 {
 	return s.Data.EjectionBalance
+}
+
+// MinActivationBalance returns the minimum activation balance effective. Introduced in Electra.
+func (s spec) MinActivationBalance() uint64 {
+	return s.Data.MinActivationBalance
 }
 
 // EffectiveBalanceIncrement returns the increment of effective balance.

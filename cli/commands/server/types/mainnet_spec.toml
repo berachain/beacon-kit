@@ -68,3 +68,7 @@ evm-inflation-per-block = 0
 # Deneb1 value changes
 evm-inflation-address-deneb-one = "0x656b95E550C07a9ffe548bd4085c72418Ceb1dba"
 evm-inflation-per-block-deneb-one = 5750000000
+
+# Electra values
+min-activation-balance = 250000000000000
+min-validator-withdrawability-delay = 32

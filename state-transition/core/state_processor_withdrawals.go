@@ -172,7 +172,6 @@ const MinActivationBalance = 250_000 * params.GWei
 // processWithdrawalRequest is the equivalent of process_withdrawal_request as defined in the spec.
 // It should only be called after the electra hard fork.
 // For invalid withdrawal requests, we return nil, and only return error for system errors.
-// TODO(pectra): Audit when we should return errors and when we should silence errors.
 func (sp *StateProcessor) processWithdrawalRequest(st *state.StateDB, withdrawalRequest *ctypes.WithdrawalRequest) error {
 	amount := withdrawalRequest.Amount
 	// If the amount is 0, it's a full exit.
@@ -198,8 +197,9 @@ func (sp *StateProcessor) processWithdrawalRequest(st *state.StateDB, withdrawal
 		return nil
 	}
 	if validator == nil {
+		// This should never occur as we expect ErrNotFound if the validator is not found. As such, we return error here.
 		sp.logger.Warn("Validate withdrawal return nil validator", withdrawalFields(withdrawalRequest, nil)...)
-		return nil
+		return errors.New("unexpected nil validator")
 	}
 
 	if err = verifyWithdrawalConditions(sp.cs, st, validator); err != nil {

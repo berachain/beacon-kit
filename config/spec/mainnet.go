@@ -55,10 +55,13 @@ const (
 	// (equivalent to the Deposit Contract's MIN_DEPOSIT_AMOUNT).
 	mainnetEffectiveBalanceIncrement = 10_000 * params.GWei
 
+	// mainnetMinActivationBalance [New in Electra:EIP7251] Minimum balance for a validator to become active
+	mainnetMinActivationBalance = 250_000 * params.GWei
+
 	// mainnetEjectionBalance is 240k BERA, calculated as:
 	// activation_balance - effective_balance_increment = 250k - 10k = 240k BERA.
 	// Activation balance is the min stake of 250k BERA at genesis.
-	mainnetEjectionBalance = 250_000*params.GWei - mainnetEffectiveBalanceIncrement
+	mainnetEjectionBalance = mainnetMinActivationBalance - mainnetEffectiveBalanceIncrement
 
 	// mainnetSlotsPerEpoch is 192 to mirror the time of epochs on Ethereum mainnet.
 	mainnetSlotsPerEpoch = 192
@@ -160,6 +163,7 @@ func MainnetChainSpecData() *chain.SpecData {
 		EVMInflationPerBlockDeneb1: mainnetEVMInflationPerBlockDeneb1,
 
 		// Electra values.
+		MinActivationBalance:             mainnetMinActivationBalance,
 		MinValidatorWithdrawabilityDelay: mainnetMinValidatorWithdrawabilityDelay,
 	}
 }

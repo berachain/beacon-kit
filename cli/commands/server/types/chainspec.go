@@ -142,6 +142,8 @@ func loadSpecData(path string) (*chain.SpecData, error) {
 		"evm-inflation-per-block",
 		"evm-inflation-address-deneb-one",
 		"evm-inflation-per-block-deneb-one",
+		"min-activation-balance",
+		"min-validator-withdrawability-delay",
 	}
 
 	// Check if all required keys are set in the config.

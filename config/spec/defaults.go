@@ -27,6 +27,7 @@ package spec
 const (
 	// Gwei value constants.
 	defaultMaxEffectiveBalance       = 32e9
+	defaultActivationBalance         = 32e9
 	defaultEjectionBalance           = 16e9
 	defaultEffectiveBalanceIncrement = 1e9
 

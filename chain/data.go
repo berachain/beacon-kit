@@ -167,6 +167,8 @@ type SpecData struct {
 
 	// Electra Values
 	//
+	// MinActivationBalance [New in Electra:EIP7251] Minimum balance for a validator to become active
+	MinActivationBalance uint64 `mapstructure:"min-activation-balance"`
 	// MinValidatorWithdrawabilityDelay is defined in the Electra spec and introduces
 	// withdrawability delays to allow for slashing.
 	MinValidatorWithdrawabilityDelay uint64 `mapstructure:"min-validator-withdrawability-delay"`

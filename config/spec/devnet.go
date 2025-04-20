@@ -81,6 +81,7 @@ func DevnetChainSpecData() *chain.SpecData {
 	// Staking is different from mainnet for now.
 	specData.MaxEffectiveBalance = devnetMaxStakeAmount
 	specData.EjectionBalance = defaultEjectionBalance
+	specData.MinActivationBalance = defaultActivationBalance
 	specData.EffectiveBalanceIncrement = defaultEffectiveBalanceIncrement
 	specData.SlotsPerEpoch = defaultSlotsPerEpoch
 
