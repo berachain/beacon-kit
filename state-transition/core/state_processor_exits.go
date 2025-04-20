@@ -38,7 +38,7 @@ func (sp *StateProcessor) InitiateValidatorExit(st *statedb.StateDB, idx math.Va
 	if err != nil {
 		return err
 	}
-	var withdrawableEpoch, exitQueueEpoch math.Epoch
+	var withdrawableEpoch, exitEpoch math.Epoch
 	if version.EqualsOrIsAfter(fork.CurrentVersion, version.Electra()) {
 		// Return if validator already initiated exit.
 		if validator.GetExitEpoch() != math.Epoch(constants.FarFutureEpoch) {
@@ -49,9 +49,9 @@ func (sp *StateProcessor) InitiateValidatorExit(st *statedb.StateDB, idx math.Va
 			return slotErr
 		}
 		nextEpoch := sp.cs.SlotToEpoch(slot) + 1
-		exitQueueEpoch = nextEpoch
-		// The withdrawable Epoch is `MinValidatorWithdrawabilityDelay` epoch's after `exitQueueEpoch`.
-		withdrawableEpoch = math.Epoch(uint64(exitQueueEpoch) + sp.cs.MinValidatorWithdrawabilityDelay())
+		exitEpoch = nextEpoch
+		// The withdrawable Epoch is `MinValidatorWithdrawabilityDelay` epoch's after `exitEpoch`.
+		withdrawableEpoch = math.Epoch(uint64(exitEpoch) + sp.cs.MinValidatorWithdrawabilityDelay())
 	} else {
 		// Before Electra, this was the logic for exiting a validator.
 		// It would only be triggered if the maximum validator set size was reached.
@@ -61,13 +61,13 @@ func (sp *StateProcessor) InitiateValidatorExit(st *statedb.StateDB, idx math.Va
 			return slotErr
 		}
 		nextEpoch := sp.cs.SlotToEpoch(slot) + 1
-		exitQueueEpoch = nextEpoch
-		// The withdrawable Epoch is the next epoch after `exitQueueEpoch`.
+		exitEpoch = nextEpoch
+		// The withdrawable Epoch is the next epoch after `exitEpoch`.
 		withdrawableEpoch = nextEpoch + 1
 	}
 
 	// Set validator exit epoch and withdrawable epoch.
-	validator.SetExitEpoch(exitQueueEpoch)
+	validator.SetExitEpoch(exitEpoch)
 	validator.SetWithdrawableEpoch(withdrawableEpoch)
 	if updateErr := st.UpdateValidatorAtIndex(idx, validator); updateErr != nil {
 		return updateErr
