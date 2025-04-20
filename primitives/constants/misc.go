@@ -58,4 +58,7 @@ const (
 	// If the limit is hit, any new partial withdrawal requests will be dropped. This is not likely to happen but
 	// theoretically possible.
 	PendingPartialWithdrawalsLimit = 134_217_728
+
+	// MaxPendingPartialsPerWithdrawalsSweep is the maximum number of pending partial withdrawals per sweep
+	MaxPendingPartialsPerWithdrawalsSweep = uint64(8)
 )

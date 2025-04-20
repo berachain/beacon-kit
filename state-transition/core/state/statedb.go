@@ -73,9 +73,6 @@ func (s *StateDB) DecreaseBalance(idx math.ValidatorIndex, delta math.Gwei) erro
 	return s.SetBalance(idx, balance-min(balance, delta))
 }
 
-// MaxPendingPartialsPerWithdrawalsSweep TODO(pectra): Find a better home for this.
-const MaxPendingPartialsPerWithdrawalsSweep = uint64(8)
-
 // ExpectedWithdrawals as defined in the Ethereum 2.0 Specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#new-get_expected_withdrawals
 //
@@ -217,7 +214,7 @@ func (s *StateDB) consumePendingPartialWithdrawals(
 	processedPartialWithdrawals := uint64(0)
 
 	for _, withdrawal := range ppWithdrawals {
-		if withdrawal.WithdrawableEpoch > epoch || len(withdrawals) == int(MaxPendingPartialsPerWithdrawalsSweep) {
+		if withdrawal.WithdrawableEpoch > epoch || len(withdrawals) == int(constants.MaxPendingPartialsPerWithdrawalsSweep) {
 			// If the first withdrawal in the queue is not withdrawable, then all subsequent withdrawals will also be in later
 			// epochs and hence are not withdrawable, so we can break early.
 			break

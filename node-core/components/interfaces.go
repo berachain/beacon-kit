@@ -482,6 +482,7 @@ type (
 	// ReadOnlyWithdrawals only has read access to withdrawal methods.
 	ReadOnlyWithdrawals interface {
 		EVMInflationWithdrawal(math.Slot) *engineprimitives.Withdrawal
+		// ExpectedWithdrawals TODO(pectra): Update interface if necessary
 		ExpectedWithdrawals() (engineprimitives.Withdrawals, error)
 	}
 )

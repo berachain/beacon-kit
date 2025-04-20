@@ -149,7 +149,6 @@ func (p *PendingPartialWithdrawals) ValidateAfterDecodingSSZ() error {
 }
 
 // PendingBalanceToWithdraw implements get_pending_balance_to_withdraw.
-// TODO(pectra): Add tests
 func (p PendingPartialWithdrawals) PendingBalanceToWithdraw(validatorIndex math.ValidatorIndex) math.Gwei {
 	var total math.Gwei
 	for _, withdrawal := range p {
