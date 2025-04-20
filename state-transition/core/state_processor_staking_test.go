@@ -708,7 +708,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 
 	var (
 		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
-		minBalance = math.Gwei(cs.MinValidatorWithdrawabilityDelay())
+		minBalance = math.Gwei(cs.MinActivationBalance())
 		rndSeed    = 2024 // seed used to generate unique random value
 	)
 
