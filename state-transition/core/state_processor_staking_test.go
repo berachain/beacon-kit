@@ -515,10 +515,9 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
-		maxBalance      = math.Gwei(cs.MaxEffectiveBalance())
-		ejectionBalance = math.Gwei(cs.EjectionBalance())
-		minBalance      = ejectionBalance + math.Gwei(cs.EffectiveBalanceIncrement())
-		rndSeed         = 2024 // seed used to generate unique random value
+		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
+		minBalance = math.Gwei(cs.MinActivationBalance())
+		rndSeed    = 2024 // seed used to generate unique random value
 	)
 
 	// STEP 0: Setup genesis with GetValidatorSetCap validators
@@ -708,10 +707,9 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
-		maxBalance      = math.Gwei(cs.MaxEffectiveBalance())
-		ejectionBalance = math.Gwei(cs.EjectionBalance())
-		minBalance      = ejectionBalance + math.Gwei(cs.EffectiveBalanceIncrement())
-		rndSeed         = 2024 // seed used to generate unique random value
+		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
+		minBalance = math.Gwei(cs.MinValidatorWithdrawabilityDelay())
+		rndSeed    = 2024 // seed used to generate unique random value
 	)
 
 	// STEP 0: Setup genesis with GetValidatorSetCap validators
