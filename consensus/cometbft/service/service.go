@@ -161,8 +161,7 @@ func NewService(
 
 	// Load block delay
 	//
-	// If not found and height == 0, we will initialize it in InitChain.
-	// Otherwise - in FinalizeBlock.
+	// If not found, we will initialize it in FinalizeBlock.
 	bz, err := s.sm.LoadBlockDelay()
 	if err != nil {
 		panic(fmt.Errorf("failed loading block delay: %w", err))
