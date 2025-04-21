@@ -131,7 +131,7 @@ func TestGetGenesisData(t *testing.T) {
 		StateRoot:       common.Root{0x1, 0x2, 0x3},
 		BodyRoot:        common.Root{0x1, 0x2, 0x3},
 	}
-	b.SetGenesisData(&bbh, common.Root{0x1, 0x2, 0x3})
+	b.SetGenesisData(&bbh, common.Root{0x1, 0x2, 0x3}, common.Root{0x4, 0x5, 0x6})
 
 	// Test all genesis data.
 	genesisTime := b.GenesisTime()
@@ -142,6 +142,9 @@ func TestGetGenesisData(t *testing.T) {
 
 	genesisValidatorsRoot := b.GenesisValidatorsRoot()
 	require.Equal(t, common.Root{0x1, 0x2, 0x3}, genesisValidatorsRoot)
+
+	genesisBlockRoot := b.GenesisBlockRoot()
+	require.Equal(t, common.Root{0x4, 0x5, 0x6}, genesisBlockRoot)
 
 	genesisBlockHeader := b.GenesisBlockHeader()
 	require.Equal(t, bbh, *genesisBlockHeader)

@@ -72,9 +72,9 @@ func (h *Handler) GetBlockHeaderByID(c handlers.Context) (any, error) {
 		// TODO: Get genesis block root. Currently it is all zeros.
 		root = h.backend.GenesisBlockRoot()
 	default:
-		slot, err := utils.SlotFromBlockID(req.BlockID, h.backend)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to get slot from block ID %s", req.BlockID)
+		slot, errInSlot := utils.SlotFromBlockID(req.BlockID, h.backend)
+		if errInSlot != nil {
+			return nil, errors.Wrapf(errInSlot, "failed to get slot from block ID %s", req.BlockID)
 		}
 		header, err = h.backend.BlockHeaderAtSlot(slot)
 		if err != nil {
