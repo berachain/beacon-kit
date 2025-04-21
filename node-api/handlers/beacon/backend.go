@@ -36,7 +36,6 @@ type Backend interface {
 	RandaoBackend
 	StateBackend
 	ValidatorBackend
-	HistoricalBackend
 	// GetSlotByBlockRoot retrieves the slot by a given root from the store.
 	GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 	// GetSlotByStateRoot retrieves the slot by a given root from the store.
@@ -47,11 +46,6 @@ type GenesisBackend interface {
 	GenesisValidatorsRoot() (common.Root, error)
 	GenesisForkVersion() (common.Version, error)
 	GenesisTime() (math.U64, error)
-}
-
-type HistoricalBackend interface {
-	StateRootAtSlot(slot math.Slot) (common.Root, error)
-	StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error)
 }
 
 type RandaoBackend interface {
@@ -69,9 +63,7 @@ type BlockBackend interface {
 }
 
 type StateBackend interface {
-	StateRootAtSlot(slot math.Slot) (common.Root, error)
-	StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error)
-	StateAtSlot(slot math.Slot) (*statedb.StateDB, error)
+	StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error)
 }
 
 type ValidatorBackend interface {

@@ -29,5 +29,5 @@ import (
 // Backend is the interface for backend of the debug API.
 type Backend interface {
 	GetSlotByStateRoot(root common.Root) (math.Slot, error)
-	StateAtSlot(slot math.Slot) (*statedb.StateDB, error)
+	StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error)
 }
