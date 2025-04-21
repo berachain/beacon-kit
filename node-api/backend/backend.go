@@ -48,6 +48,7 @@ type Backend struct {
 	// the genesis data is cached here, written to once during initialization!
 	genesisHeader         atomic.Pointer[ctypes.BeaconBlockHeader]
 	genesisValidatorsRoot atomic.Pointer[common.Root]
+	genesisBlockRoot      atomic.Pointer[common.Root]
 	genesisTime           atomic.Pointer[math.U64]
 	genesisForkVersion    atomic.Pointer[common.Version]
 }
@@ -95,10 +96,13 @@ func (b *Backend) AttachQueryBackend(node types.ConsensusService) {
 
 // SetGenesisData sets the genesis data on the API backend.
 func (b *Backend) SetGenesisData(
-	genesisHeader *ctypes.BeaconBlockHeader, genesisValidatorsRoot common.Root,
+	genesisHeader *ctypes.BeaconBlockHeader,
+	genesisValidatorsRoot common.Root,
+	genesisBlockRoot common.Root,
 ) {
 	b.genesisHeader.Store(genesisHeader)
 	b.genesisValidatorsRoot.Store(&genesisValidatorsRoot)
+	b.genesisBlockRoot.Store(&genesisBlockRoot)
 }
 
 // GetSlotByBlockRoot retrieves the slot by a block root from the block store.

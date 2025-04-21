@@ -33,12 +33,12 @@ import (
 func (s *Service) ProcessGenesisData(
 	ctx context.Context,
 	bytes []byte,
-) (transition.ValidatorUpdates, *ctypes.BeaconBlockHeader, common.Root, error) {
+) (transition.ValidatorUpdates, *ctypes.BeaconBlockHeader, common.Root, common.Root, error) {
 	// Unmarshal the genesis data.
 	genesisData := ctypes.Genesis{}
 	if err := json.Unmarshal(bytes, &genesisData); err != nil {
 		s.logger.Error("Failed to unmarshal genesis data", "error", err)
-		return nil, nil, common.Root{}, err
+		return nil, nil, common.Root{}, common.Root{}, err
 	}
 
 	// Call the state processor to initialize the "premined" (genesis) beacon state.
@@ -50,7 +50,7 @@ func (s *Service) ProcessGenesisData(
 		genesisData.GetForkVersion(),
 	)
 	if err != nil {
-		return nil, nil, common.Root{}, err
+		return nil, nil, common.Root{}, common.Root{}, err
 	}
 
 	// After deposits are validated, store the genesis deposits in the deposit store.
@@ -58,20 +58,25 @@ func (s *Service) ProcessGenesisData(
 		ctx,
 		genesisData.GetDeposits(),
 	); err != nil {
-		return nil, nil, common.Root{}, err
+		return nil, nil, common.Root{}, common.Root{}, err
 	}
 
 	// Get the genesis beacon block header from the state.
 	genesisHeader, err := genesisState.GetLatestBlockHeader()
 	if err != nil {
-		return nil, nil, common.Root{}, err
+		return nil, nil, common.Root{}, common.Root{}, err
+	}
+
+	genesisBlockRoot, err := genesisState.GetBlockRootAtIndex(0)
+	if err != nil {
+		return nil, nil, common.Root{}, common.Root{}, err
 	}
 
 	// Get the genesis validators root from the state.
 	genesisValidatorsRoot, err := genesisState.GetGenesisValidatorsRoot()
 	if err != nil {
-		return nil, nil, common.Root{}, err
+		return nil, nil, common.Root{}, common.Root{}, err
 	}
 
-	return validatorUpdates, genesisHeader, genesisValidatorsRoot, nil
+	return validatorUpdates, genesisHeader, genesisValidatorsRoot, genesisBlockRoot, nil
 }

@@ -39,5 +39,6 @@ type APIBackend interface {
 	SetGenesisData(
 		genesisHeader *ctypes.BeaconBlockHeader,
 		genesisValidatorsRoot common.Root,
+		genesisBlockRoot common.Root,
 	)
 }

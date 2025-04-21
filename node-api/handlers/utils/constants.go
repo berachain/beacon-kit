@@ -31,6 +31,5 @@ const (
 )
 
 const (
-	Head    math.Slot = iota
-	Genesis           // TODO: this should not be equal to 1.
+	Head math.Slot = iota
 )

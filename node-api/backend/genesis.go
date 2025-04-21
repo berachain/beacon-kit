@@ -45,3 +45,8 @@ func (b *Backend) GenesisForkVersion() common.Version {
 func (b *Backend) GenesisTime() math.U64 {
 	return *b.genesisTime.Load()
 }
+
+// GenesisBlockRoot returns the genesis block root of the beacon chain.
+func (b *Backend) GenesisBlockRoot() common.Root {
+	return *b.genesisBlockRoot.Load()
+}

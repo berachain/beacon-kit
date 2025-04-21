@@ -112,13 +112,11 @@ func IsTimestampIDPrefix(timestampID string) bool {
 }
 
 // slotFromStateID returns a slot number from the given state ID.
-// TODO: This pattern does not allow us to query block 0. Genesis points to block 1. Fix.
+// In case of genesis, the flow won't reach this function.
 func slotFromStateID(id string) (math.Slot, error) {
 	switch id {
 	case StateIDFinalized, StateIDJustified, StateIDHead:
 		return Head, nil
-	case StateIDGenesis:
-		return Genesis, nil
 	default:
 		return math.U64FromString(id)
 	}

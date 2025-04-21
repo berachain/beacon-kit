@@ -21,10 +21,12 @@
 package beacon
 
 import (
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
@@ -61,18 +63,28 @@ func (h *Handler) GetBlockHeaderByID(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to bind and validate request")
 	}
-	slot, err := utils.SlotFromBlockID(req.BlockID, h.backend)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get slot from block ID %s", req.BlockID)
-	}
-	header, err := h.backend.BlockHeaderAtSlot(slot)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get block header at slot %d", slot)
-	}
+	var header *ctypes.BeaconBlockHeader
+	var root common.Root
 
-	root, err := h.backend.BlockRootAtSlot(slot)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get block root at slot %d", slot)
+	switch req.BlockID {
+	case utils.StateIDGenesis, "0":
+		header = h.backend.GenesisBlockHeader()
+		// TODO: Get genesis block root. Currently it is all zeros.
+		root = h.backend.GenesisBlockRoot()
+	default:
+		slot, err := utils.SlotFromBlockID(req.BlockID, h.backend)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to get slot from block ID %s", req.BlockID)
+		}
+		header, err = h.backend.BlockHeaderAtSlot(slot)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to get block header at slot %d", slot)
+		}
+
+		root, err = h.backend.BlockRootAtSlot(slot)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to get block root at slot %d", slot)
+		}
 	}
 	return beacontypes.NewResponse(&beacontypes.BlockHeaderResponse{
 		Root:      root, // This is root hash of entire beacon block
