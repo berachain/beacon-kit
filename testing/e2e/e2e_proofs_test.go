@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/merkle"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
@@ -153,11 +152,8 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 		s.Ctx(), new(big.Int).SetUint64(blockNumber-1),
 	)
 	s.Require().NoError(err)
-
-	// TODO: use the chain spec's active fork version once Electra genesis is fixed.
-	// For now, Deneb is the fork version by which devnet blocks are produced.
-	_ = cs.ActiveForkVersionForTimestamp(math.U64(header.Time))
-	zeroValidatorPubkeyGIndex, err := merkle.GetZeroValidatorPubkeyGIndexBlock(version.Deneb())
+	forkVersion := cs.ActiveForkVersionForTimestamp(math.U64(header.Time))
+	zeroValidatorPubkeyGIndex, err := merkle.GetZeroValidatorPubkeyGIndexBlock(forkVersion)
 	s.Require().NoError(err)
 
 	// Calculate the validator pubkey GIndex based on fork version.

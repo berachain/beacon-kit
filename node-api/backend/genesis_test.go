@@ -34,15 +34,10 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/log/noop"
 	"github.com/berachain/beacon-kit/node-api/backend"
-	nodemetrics "github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
-	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
-	cryptomocks "github.com/berachain/beacon-kit/primitives/crypto/mocks"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
-	"github.com/berachain/beacon-kit/state-transition/core"
-	"github.com/berachain/beacon-kit/state-transition/core/mocks"
 	"github.com/berachain/beacon-kit/storage/beacondb"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	cmtcfg "github.com/cometbft/cometbft/config"
@@ -77,15 +72,6 @@ func TestGetGenesisData(t *testing.T) {
 	// Setup state for genesis tests.
 	setupStateWithGenesisValues(t, cms, kvStore)
 	sb := storage.NewBackend(cs, nil, kvStore, depositStore, nil)
-	sp := core.NewStateProcessor(
-		noop.NewLogger[any](),
-		cs,
-		mocks.NewExecutionEngine(t),
-		depositStore,
-		&cryptomocks.BLSSigner{},
-		func(bytes.B48) ([]byte, error) { return nil, nil },
-		nodemetrics.NewNoOpTelemetrySink(),
-	)
 
 	// Create a temporary directory for CometBFT config
 	tmpDir := t.TempDir()
@@ -114,7 +100,7 @@ func TestGetGenesisData(t *testing.T) {
 	err = appGenesis.SaveAs(genesisFile)
 	require.NoError(t, err)
 
-	b, err := backend.New(sb, cs, sp, cmtCfg)
+	b, err := backend.New(sb, cs, cmtCfg)
 	require.NoError(t, err)
 	tcs := &testConsensusService{
 		cms:     cms,
