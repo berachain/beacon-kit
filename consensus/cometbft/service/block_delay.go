@@ -35,7 +35,7 @@ const (
 	//
 	// This is needed because the network may stall for a long time and we don't
 	// want to rush in new blocks as the network resumes its operation.
-	MaxDelayBetweenBlocks = 30 * time.Minute
+	MaxDelayBetweenBlocks = 5 * time.Minute
 
 	// TargetBlockTime is the desired block time.
 	//
