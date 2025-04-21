@@ -117,8 +117,19 @@ func (s *Service) nextBlockDelay(req *cmtabci.FinalizeBlockRequest) time.Duratio
 	// 	s.blockDelay.InitialHeight = req.Height
 	// }
 
-	// If the block delay is not set, we return the default block delay.
 	if s.blockDelay == nil {
+		// If the upgrade happened in the past and the block delay is not set (node
+		// restores from the snapshot), set it as if the upgrade happened now.
+		// TODO: Uncomment after https://github.com/berachain/cometbft/pull/29
+		// if req.Height > s.cmtConsensusParams.Feature.SBTEnableHeight {
+		// 	s.blockDelay = &BlockDelay{
+		// 		InitialTime:       req.Time,
+		// 		InitialHeight:     req.Height,
+		// 		PreviousBlockTime: req.Time,
+		// 	}
+		// 	return TargetBlockTime
+		// }
+		// otherwise use the old block delay.
 		return constBlockDelay
 	}
 
