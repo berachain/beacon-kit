@@ -63,16 +63,15 @@ func (sp *StateProcessor) ProcessFork(
 			"cannot downgrade state from %s to %s", stateFork.CurrentVersion, forkVersion,
 		)
 	} else if slot > 0 && version.Equals(forkVersion, stateFork.CurrentVersion) {
-		// If we are past genesis and the fork version remains consistent, do nothing.
+		// If the fork version remains consistent, do nothing.
 		return nil
 	}
 
-	// If we are at genesis or moving to a new fork version, upgrade the state.
+	// If we are moving to a new fork version, upgrade the state.
 	switch forkVersion {
 	case version.Deneb():
 		// Do nothing to the state. NOTE: Deneb is the genesis version of Berachain mainnet and
-		// Bepolia testnet. At genesis, InitializeBeaconStateFromEth1 should adequately prepare
-		// the BeaconState for Deneb.
+		// Bepolia testnet.
 
 		// Log the upgrade to Deneb if requested.
 		if logUpgrade {
