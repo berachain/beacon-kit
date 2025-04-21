@@ -108,21 +108,11 @@ func (s *Service) finalizeBlockInternal(
 func (s *Service) nextBlockDelay(req *cmtabci.FinalizeBlockRequest) time.Duration {
 	// TODO: Uncomment after https://github.com/berachain/cometbft/pull/29
 	// switch req.Height {
-	// case s.cmtConsensusParams.Feature.SBTEnableHeight-1: // one block before
+	// case s.cmtConsensusParams.Feature.SBTEnableHeight: // the block of the upgrade
 	// 	s.blockDelay = &BlockDelay{
 	// 		PreviousBlockTime: req.Time,
 	// 	}
-	// case s.cmtConsensusParams.Feature.SBTEnableHeight: // the block of the upgrade
-	//  // Special case: SBTEnableHeight == 1
-	//  // SBT will kick in after the first block.
-	//  if s.blockDelay == nil {
-	//		s.blockDelay = &BlockDelay{
-	// 	    InitialTime: req.Time,
-	// 	    InitialHeight: req.Height,
-	//			PreviousBlockTime: req.Time,
-	//	  }
-	//    return constBlockDelay
-	//	}
+	// case s.cmtConsensusParams.Feature.SBTEnableHeight+1: // the following block
 	// 	s.blockDelay.InitialTime = req.Time
 	// 	s.blockDelay.InitialHeight = req.Height
 	// }
