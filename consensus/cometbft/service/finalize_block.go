@@ -145,14 +145,9 @@ func (s *Service) nextBlockDelay(req *cmtabci.FinalizeBlockRequest) time.Duratio
 		// c3.2
 		//
 		// Looks like we've skipped SBTEnableHeight (probably restoring from the
-		// snapshot) => reinitialize the block delay. Treat the current block as a
-		// checkpoint.
-		s.blockDelay = &BlockDelay{
-			InitialTime:       req.Time,
-			InitialHeight:     req.Height,
-			PreviousBlockTime: req.Time,
-		}
-		return constBlockDelay
+		// snapshot) => panic.
+		panic(fmt.Sprintf("nil block delay at height %d past SBTEnableHeight %d. This is only possible w/ statesync, which is not supported by SBT atm",
+			req.Height, s.cmtConsensusParams.Feature.SBTEnableHeight))
 	}
 }
 
