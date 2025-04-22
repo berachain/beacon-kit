@@ -100,7 +100,7 @@ func (s *Service) finalizeBlockInternal(
 		return nil, err
 	}
 
-	if req.Height == sbtEnableHeight {
+	if s.cmtConsensusParams.Feature.SBTEnableHeight == 0 && req.Height == sbtEnableHeight {
 		s.cmtConsensusParams.Feature.SBTEnableHeight = sbtEnableHeight
 	}
 
