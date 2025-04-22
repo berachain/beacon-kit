@@ -1,9 +1,9 @@
 # Mainnet Chain Spec Configuration
 
 # Gwei value constants
-max-effective-balance = 10000000000000000
-ejection-balance = 240000000000000
-effective-balance-increment = 10000000000000
+max-effective-balance = 10_000_000_000_000_000
+ejection-balance = 240_000_000_000_000
+effective-balance-increment = 10_000_000_000_000
 
 # Hysteresis parameters
 hysteresis-quotient = 4
@@ -42,7 +42,7 @@ electra-fork-time = 9999999999999999
 epochs-per-historical-vector = 8
 epochs-per-slashings-vector = 8
 historical-roots-limit = 8
-validator-registry-limit = 1099511627776
+validator-registry-limit = 1_099_511_627_776
 
 # Rewards and penalties constants
 #inactivity-penalty-quotient = 33554432
@@ -67,8 +67,8 @@ evm-inflation-per-block = 0
 
 # Deneb1 value changes
 evm-inflation-address-deneb-one = "0x656b95E550C07a9ffe548bd4085c72418Ceb1dba"
-evm-inflation-per-block-deneb-one = 5750000000
+evm-inflation-per-block-deneb-one = 5_750_000_000
 
 # Electra values
-min-activation-balance = 250000000000000
+min-activation-balance = 250_000_000_000_000
 min-validator-withdrawability-delay = 256
