@@ -34,7 +34,8 @@ const constBlockDelay = 1 * time.Second
 
 // Height to enable SBT. Changes will be applied in the next block after this
 // (10_000_001).
-const sbtEnableHeight = 10_000_000
+const sbtEnableHeight = 10_000_100
+const sbtConsensusParamUpdate = 10_000_000
 
 func (s *Service) finalizeBlock(
 	ctx context.Context,
@@ -100,7 +101,7 @@ func (s *Service) finalizeBlockInternal(
 		return nil, err
 	}
 
-	if s.cmtConsensusParams.Feature.SBTEnableHeight == 0 && req.Height == sbtEnableHeight {
+	if s.cmtConsensusParams.Feature.SBTEnableHeight == 0 && req.Height == sbtConsensusParamUpdate {
 		s.cmtConsensusParams.Feature.SBTEnableHeight = sbtEnableHeight
 	}
 
