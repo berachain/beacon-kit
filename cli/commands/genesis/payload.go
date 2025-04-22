@@ -107,14 +107,13 @@ func AddExecutionPayload(chainSpec ChainSpec, elGenesisPath string, config *cmtc
 		return errors.Wrap(err, "failed to unmarshal beacon state")
 	}
 	// Inject the execution payload.
-	eph, err :=
-		executableDataToExecutionPayloadHeader(
-			chainSpec.GenesisForkVersion(),
-			payload,
-			chainSpec.MaxWithdrawalsPerPayload(),
-		)
+	eph, err := executableDataToExecutionPayloadHeader(
+		chainSpec.GenesisForkVersion(),
+		payload,
+		chainSpec.MaxWithdrawalsPerPayload(),
+	)
 	if err != nil {
-		return errors.Wrap(err, "failed to unmarshal beacon state")
+		return errors.Wrap(err, "failed to convert executable data to execution payload header")
 	}
 	if eph == nil {
 		return errors.New("failed to get execution payload header")
@@ -144,61 +143,63 @@ func executableDataToExecutionPayloadHeader(
 	_ uint64,
 ) (*types.ExecutionPayloadHeader, error) {
 	eph := &types.ExecutionPayloadHeader{}
-	switch forkVersion {
-	case version.Deneb(), version.Deneb1(), version.Electra():
-		withdrawals := make(
-			engineprimitives.Withdrawals,
-			len(data.Withdrawals),
-		)
-		for i, withdrawal := range data.Withdrawals {
-			// #nosec:G103 // primitives.Withdrawals is data.Withdrawals with
-			// hard
-			// types.
-			withdrawals[i] = (*engineprimitives.Withdrawal)(
-				unsafe.Pointer(withdrawal),
-			)
-		}
 
-		if len(data.ExtraData) > constants.ExtraDataLength {
-			data.ExtraData = data.ExtraData[:constants.ExtraDataLength]
-		}
-
-		var blobGasUsed uint64
-		if data.BlobGasUsed != nil {
-			blobGasUsed = *data.BlobGasUsed
-		}
-
-		var excessBlobGas uint64
-		if data.ExcessBlobGas != nil {
-			excessBlobGas = *data.ExcessBlobGas
-		}
-
-		baseFeePerGas, err := math.NewU256FromBigInt(data.BaseFeePerGas)
-		if err != nil {
-			return nil, fmt.Errorf("failed baseFeePerGas conversion: %w", err)
-		}
-
-		eph.Versionable = types.NewVersionable(forkVersion)
-		eph.ParentHash = common.ExecutionHash(data.ParentHash)
-		eph.FeeRecipient = common.ExecutionAddress(data.FeeRecipient)
-		eph.StateRoot = common.Bytes32(data.StateRoot)
-		eph.ReceiptsRoot = common.Bytes32(data.ReceiptsRoot)
-		eph.LogsBloom = [256]byte(data.LogsBloom)
-		eph.Random = common.Bytes32(data.Random)
-		eph.Number = math.U64(data.Number)
-		eph.GasLimit = math.U64(data.GasLimit)
-		eph.GasUsed = math.U64(data.GasUsed)
-		eph.Timestamp = math.U64(data.Timestamp)
-		eph.ExtraData = data.ExtraData
-		eph.BaseFeePerGas = baseFeePerGas
-		eph.BlockHash = common.ExecutionHash(data.BlockHash)
-		eph.TransactionsRoot = engineprimitives.Transactions(data.Transactions).HashTreeRoot()
-		eph.WithdrawalsRoot = withdrawals.HashTreeRoot()
-		eph.BlobGasUsed = math.U64(blobGasUsed)
-		eph.ExcessBlobGas = math.U64(excessBlobGas)
-	default:
+	// We do not support fork versions before Deneb and after Electra.
+	if version.IsAfter(forkVersion, version.Electra()) ||
+		version.IsBefore(forkVersion, version.Deneb()) {
 		return nil, types.ErrForkVersionNotSupported
 	}
+
+	withdrawals := make(
+		engineprimitives.Withdrawals,
+		len(data.Withdrawals),
+	)
+	for i, withdrawal := range data.Withdrawals {
+		// #nosec:G103 // primitives.Withdrawals is data.Withdrawals with
+		// hard
+		// types.
+		withdrawals[i] = (*engineprimitives.Withdrawal)(
+			unsafe.Pointer(withdrawal),
+		)
+	}
+
+	if len(data.ExtraData) > constants.ExtraDataLength {
+		data.ExtraData = data.ExtraData[:constants.ExtraDataLength]
+	}
+
+	var blobGasUsed uint64
+	if data.BlobGasUsed != nil {
+		blobGasUsed = *data.BlobGasUsed
+	}
+
+	var excessBlobGas uint64
+	if data.ExcessBlobGas != nil {
+		excessBlobGas = *data.ExcessBlobGas
+	}
+
+	baseFeePerGas, err := math.NewU256FromBigInt(data.BaseFeePerGas)
+	if err != nil {
+		return nil, fmt.Errorf("failed baseFeePerGas conversion: %w", err)
+	}
+
+	eph.Versionable = types.NewVersionable(forkVersion)
+	eph.ParentHash = common.ExecutionHash(data.ParentHash)
+	eph.FeeRecipient = common.ExecutionAddress(data.FeeRecipient)
+	eph.StateRoot = common.Bytes32(data.StateRoot)
+	eph.ReceiptsRoot = common.Bytes32(data.ReceiptsRoot)
+	eph.LogsBloom = [256]byte(data.LogsBloom)
+	eph.Random = common.Bytes32(data.Random)
+	eph.Number = math.U64(data.Number)
+	eph.GasLimit = math.U64(data.GasLimit)
+	eph.GasUsed = math.U64(data.GasUsed)
+	eph.Timestamp = math.U64(data.Timestamp)
+	eph.ExtraData = data.ExtraData
+	eph.BaseFeePerGas = baseFeePerGas
+	eph.BlockHash = common.ExecutionHash(data.BlockHash)
+	eph.TransactionsRoot = engineprimitives.Transactions(data.Transactions).HashTreeRoot()
+	eph.WithdrawalsRoot = withdrawals.HashTreeRoot()
+	eph.BlobGasUsed = math.U64(blobGasUsed)
+	eph.ExcessBlobGas = math.U64(excessBlobGas)
 
 	return eph, nil
 }
