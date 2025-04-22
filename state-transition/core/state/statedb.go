@@ -22,6 +22,7 @@ package state
 
 import (
 	"context"
+	"fmt"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -202,10 +203,10 @@ func (s *StateDB) consumePendingPartialWithdrawals(
 	// We cannot do this check before Electra as Deneb1 did not have a beacon state fork version set.
 	stateFork, forkErr := s.GetFork()
 	if forkErr != nil {
-		return nil, 0, 0, forkErr
+		return nil, 0, 0, fmt.Errorf("consumePendingPartialWithdrawals: failed retrieving fork: %w", forkErr)
 	}
 	if !version.Equals(stateFork.CurrentVersion, timestampFork) {
-		return nil, 0, 0, errors.New("state fork version does not match timestamp fork in expected withdrawals")
+		return nil, 0, 0, errors.New("consumePendingPartialWithdrawals: state fork version does not match timestamp fork")
 	}
 	ppWithdrawals, getErr := s.GetPendingPartialWithdrawals()
 	if getErr != nil {
