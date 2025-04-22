@@ -63,11 +63,11 @@ func (sp *StateProcessor) ProcessFork(
 			"cannot downgrade state from %s to %s", stateFork.CurrentVersion, forkVersion,
 		)
 	} else if slot > 0 && version.Equals(forkVersion, stateFork.CurrentVersion) {
-		// If the fork version remains consistent, do nothing.
+		// If we are past genesis and the fork version remains consistent, do nothing.
 		return nil
 	}
 
-	// If we are moving to a new fork version, upgrade the state.
+	// If we are at genesis or moving to a new fork version, upgrade the state.
 	switch forkVersion {
 	case version.Deneb():
 		// Do nothing to the state. NOTE: Deneb is the genesis version of Berachain mainnet and
