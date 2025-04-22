@@ -69,7 +69,6 @@ func (h *Handler) GetBlockHeaderByID(c handlers.Context) (any, error) {
 	switch req.BlockID {
 	case utils.StateIDGenesis, "0":
 		header = h.backend.GenesisBlockHeader()
-		// TODO: Get genesis block root. Currently it is all zeros.
 		root = h.backend.GenesisBlockRoot()
 	default:
 		slot, errInSlot := utils.SlotFromBlockID(req.BlockID, h.backend)

@@ -67,10 +67,10 @@ func (s *Service) ProcessGenesisData(
 		return nil, nil, common.Root{}, common.Root{}, err
 	}
 
-	genesisBlockRoot, err := genesisState.GetBlockRootAtIndex(0)
-	if err != nil {
-		return nil, nil, common.Root{}, common.Root{}, err
-	}
+	// Return the hash tree root of the genesis header after updating the state root in it.
+	// This is similiar to how we get the block root.
+	genesisHeader.SetStateRoot(genesisState.HashTreeRoot())
+	genesisBlockRoot := genesisHeader.HashTreeRoot()
 
 	// Get the genesis validators root from the state.
 	genesisValidatorsRoot, err := genesisState.GetGenesisValidatorsRoot()
