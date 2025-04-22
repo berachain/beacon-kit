@@ -136,10 +136,6 @@ func (s *Service) nextBlockDelay(req *cmtabci.FinalizeBlockRequest) time.Duratio
 	}
 
 	// c3. current height > SBTEnableHeight
-	if !(req.Height > s.cmtConsensusParams.Feature.SBTEnableHeight) {
-		panic(fmt.Errorf("Expected height %d > SBTEnableHeight: %d", req.Height, s.cmtConsensusParams.Feature.SBTEnableHeight))
-	}
-
 	// c3.1
 	//
 	// The upgrade was successfully applied and the block delay is set.
