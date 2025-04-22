@@ -30,7 +30,7 @@ import (
 )
 
 // Delay to use before the upgrade to SBT.
-const constBlockDelay = 500 * time.Millisecond
+const constBlockDelay = 1 * time.Second
 
 func (s *Service) finalizeBlock(
 	ctx context.Context,
