@@ -39,7 +39,7 @@ type BalancesSpec interface {
 	// calculations.
 	EffectiveBalanceIncrement() uint64
 
-	// MinActivationBalance returns the maximum balance counted in rewards calculations in Gwei.
+	// MinActivationBalance returns the minimum balance required to become an active validator.
 	MinActivationBalance() uint64
 }
 
