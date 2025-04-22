@@ -71,4 +71,4 @@ evm-inflation-per-block-deneb-one = 5750000000
 
 # Electra values
 min-activation-balance = 250000000000000
-min-validator-withdrawability-delay = 32
+min-validator-withdrawability-delay = 256
