@@ -93,8 +93,8 @@ const (
 	mainnetEVMInflationPerBlockDeneb1 = 5.75 * params.GWei
 
 	// mainnetMinValidatorWithdrawabilityDelay is the number of epochs of delay epochs of delay for a balance to be withdrawable.
-	// 32 Epochs equates to roughly ~3.5 hours of withdrawal delay.
-	mainnetMinValidatorWithdrawabilityDelay = 32
+	// 256 Epochs equates to roughly ~27 hours of withdrawal delay. This gives us room to emergency fork if needed.
+	mainnetMinValidatorWithdrawabilityDelay = 256
 )
 
 // MainnetChainSpecData is the chain.SpecData for the Berachain mainnet.
