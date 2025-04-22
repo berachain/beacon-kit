@@ -79,7 +79,7 @@ func (s *StateDB) DecreaseBalance(idx math.ValidatorIndex, delta math.Gwei) erro
 // NOTE: This function is modified from the spec to allow a fixed withdrawal
 // (as the first withdrawal) used for EVM inflation.
 //
-//nolint:gocognit,funlen // TODO(pectra).
+//nolint:gocognit,funlen // spec aligned
 func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.Withdrawals, uint64, error) {
 	var (
 		validator         *ctypes.Validator
