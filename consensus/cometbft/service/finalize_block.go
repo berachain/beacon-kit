@@ -106,34 +106,54 @@ func (s *Service) finalizeBlockInternal(
 }
 
 func (s *Service) nextBlockDelay(req *cmtabci.FinalizeBlockRequest) time.Duration {
-	// TODO: Uncomment after https://github.com/berachain/cometbft/pull/29
-	// switch req.Height {
-	// case s.cmtConsensusParams.Feature.SBTEnableHeight: // the block of the upgrade
-	// 	s.blockDelay = &BlockDelay{
-	// 		PreviousBlockTime: req.Time,
-	// 	}
-	// case s.cmtConsensusParams.Feature.SBTEnableHeight+1: // the following block
-	// 	s.blockDelay.InitialTime = req.Time
-	// 	s.blockDelay.InitialHeight = req.Height
-	// }
-
-	if s.blockDelay == nil {
-		// If the upgrade happened in the past and the block delay is not set (node
-		// restores from the snapshot), set it as if the upgrade happened now.
-		// TODO: Uncomment after https://github.com/berachain/cometbft/pull/29
-		// if req.Height > s.cmtConsensusParams.Feature.SBTEnableHeight {
-		// 	s.blockDelay = &BlockDelay{
-		// 		InitialTime:       req.Time,
-		// 		InitialHeight:     req.Height,
-		// 		PreviousBlockTime: req.Time,
-		// 	}
-		// 	return TargetBlockTime
-		// }
-		// otherwise use the old block delay.
+	// c0. SBT is not enabled => use the old block delay.
+	if s.cmtConsensusParams.Feature.SBTEnableHeight == 0 {
 		return constBlockDelay
 	}
 
-	return s.blockDelay.Next(req.Time, req.Height)
+	// c1. if the block delay is set, use it.
+	if s.blockDelay != nil {
+		return s.blockDelay.Next(req.Time, req.Height)
+	}
+
+	// c2. current height < SBTEnableHeight => wait for the upgrade.
+	if req.Height < s.cmtConsensusParams.Feature.SBTEnableHeight {
+		return constBlockDelay
+	}
+
+	// c3. current height == SBTEnableHeight => initialize the block delay.
+	if req.Height == s.cmtConsensusParams.Feature.SBTEnableHeight {
+		s.blockDelay = &BlockDelay{
+			InitialTime:       req.Time,
+			InitialHeight:     req.Height,
+			PreviousBlockTime: req.Time,
+		}
+		return constBlockDelay
+	}
+
+	// c4. current height > SBTEnableHeight
+	if !(req.Height > s.cmtConsensusParams.Feature.SBTEnableHeight) {
+		panic(fmt.Errorf("Expected height %d > SBTEnableHeight: %d", req.Height, s.cmtConsensusParams.Feature.SBTEnableHeight))
+	}
+
+	// c4.1
+	//
+	// The upgrade was successfully applied and the block delay is set.
+	if s.blockDelay != nil {
+		return s.blockDelay.Next(req.Time, req.Height)
+	} else {
+		// c4.2
+		//
+		// Looks like we've skipped SBTEnableHeight (probably restoring from the
+		// snapshot) => reinitialize the block delay. Treat the current block as a
+		// checkpoint.
+		s.blockDelay = &BlockDelay{
+			InitialTime:       req.Time,
+			InitialHeight:     req.Height,
+			PreviousBlockTime: req.Time,
+		}
+		return constBlockDelay
+	}
 }
 
 // workingHash gets the apphash that will be finalized in commit.
