@@ -121,6 +121,9 @@ func DefaultConsensusParams(consensusKeyAlgo string) *cmttypes.ConsensusParams {
 	res.Synchrony.Precision = precision
 	res.Synchrony.MessageDelay = messageDelay
 
+	// Activete Stable Block Time (SBT) by default.
+	res.Feature.SBTEnableHeight = 1
+
 	if err := res.ValidateBasic(); err != nil {
 		panic(fmt.Errorf("invalid default consensus parameters: %w", err))
 	}

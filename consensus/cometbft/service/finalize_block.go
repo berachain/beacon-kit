@@ -32,6 +32,10 @@ import (
 // Delay to use before the upgrade to SBT.
 const constBlockDelay = 1 * time.Second
 
+// Height to enable SBT. Changes will be applied in the next block after this
+// (10_000_001).
+const sbtEnableHeight = 10_000_000
+
 func (s *Service) finalizeBlock(
 	ctx context.Context,
 	req *cmtabci.FinalizeBlockRequest,
@@ -94,6 +98,10 @@ func (s *Service) finalizeBlockInternal(
 	)
 	if err != nil {
 		return nil, err
+	}
+
+	if req.Height == sbtEnableHeight {
+		s.cmtConsensusParams.Feature.SBTEnableHeight = sbtEnableHeight
 	}
 
 	cp := s.cmtConsensusParams.ToProto()
