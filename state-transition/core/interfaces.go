@@ -68,6 +68,7 @@ type ChainSpec interface {
 	chain.HysteresisSpec
 	chain.BalancesSpec
 	chain.DepositSpec
+	chain.ForkSpec
 	chain.DomainTypeSpec
 	chain.WithdrawalsSpec
 	SlotsPerEpoch() uint64

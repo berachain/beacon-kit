@@ -87,9 +87,18 @@ func (sp *StateProcessor) Transition(
 		return nil, nil
 	}
 
-	// Process the slots.
+	// Process the next slot.
 	validatorUpdates, err := sp.ProcessSlots(st, blk.GetSlot())
 	if err != nil {
+		return nil, err
+	}
+
+	// Prepare the state for the next block's fork version, logging only once during FinalizeBlock.
+	//
+	// TODO: allow the state transition context to directly indicate what stage of block processing
+	// we are in, i.e. ProcessProposal, FinalizeBlock, etc.
+	inFinalizeBlock := ctx.VerifyPayload() && !ctx.VerifyRandao()
+	if err = sp.ProcessFork(st, blk.GetTimestamp(), inFinalizeBlock); err != nil {
 		return nil, err
 	}
 
@@ -151,7 +160,8 @@ func (sp *StateProcessor) ProcessSlots(
 	return res, nil
 }
 
-// processSlot is run when a slot is missed.
+// processSlot as defined in the Ethereum 2.0 Specification:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#beacon-chain-state-transition-function
 func (sp *StateProcessor) processSlot(st *state.StateDB) error {
 	stateSlot, err := st.GetSlot()
 	if err != nil {

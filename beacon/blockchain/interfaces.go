@@ -86,6 +86,10 @@ type StateProcessor interface {
 		*ctypes.ExecutionPayloadHeader,
 		common.Version,
 	) (transition.ValidatorUpdates, error)
+	// ProcessFork prepares the state for the fork version at the given timestamp.
+	ProcessFork(
+		st *statedb.StateDB, timestamp math.U64, logUpgrade bool,
+	) error
 	// ProcessSlots processes the state transition for a range of slots.
 	ProcessSlots(
 		*statedb.StateDB, math.Slot,
