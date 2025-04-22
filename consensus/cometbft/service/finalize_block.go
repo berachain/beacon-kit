@@ -30,7 +30,7 @@ import (
 )
 
 // Delay to use before the upgrade to SBT.
-const constBlockDelay = 1 * time.Second
+const constBlockDelay = 500 * time.Millisecond
 
 // Height to enable SBT. Changes will be applied in the next block after this
 // (10_000_001).
