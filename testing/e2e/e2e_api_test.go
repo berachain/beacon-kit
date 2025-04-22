@@ -295,7 +295,6 @@ func (s *BeaconKitE2ESuite) TestValidatorBalancesGenesis() {
 	balanceMap := balancesResp.Data
 	for _, balance := range balanceMap {
 		s.Require().True(balance > 0, "Validator balance should be positive")
-		fmt.Println("balance in post validator balances for genesis", balance)
 		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
 		s.Require().True(balance <= 4e12, "Validator balance should not exceed 4e12 gwei (4000 BERA)")
 	}

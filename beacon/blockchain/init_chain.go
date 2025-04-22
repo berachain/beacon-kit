@@ -68,7 +68,7 @@ func (s *Service) ProcessGenesisData(
 	}
 
 	// Return the hash tree root of the genesis header after updating the state root in it.
-	// This is similiar to how we get the block root.
+	// This is similar to how we get the block root.
 	genesisHeader.SetStateRoot(genesisState.HashTreeRoot())
 	genesisBlockRoot := genesisHeader.HashTreeRoot()
 
