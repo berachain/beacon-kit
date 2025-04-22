@@ -56,6 +56,7 @@ const (
 	// of Gwei) to be minted per EL block after the Deneb1 fork.
 	devnetEVMInflationPerBlockDeneb1 = 11 * params.GWei
 
+	// devnetMinValidatorWithdrawabilityDelay is the delay (in epochs) before a validator can withdraw their stake.
 	devnetMinValidatorWithdrawabilityDelay = 32
 )
 
