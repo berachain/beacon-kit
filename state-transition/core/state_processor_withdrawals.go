@@ -192,9 +192,9 @@ func (sp *StateProcessor) processWithdrawalRequest(st *state.StateDB, withdrawal
 		return nil
 	}
 	if validator == nil {
-		// This should never occur as we expect ErrNotFound if the validator is not found. As such, we return error here.
-		sp.logger.Warn("Validate withdrawal return nil validator", withdrawalFields(withdrawalRequest, nil)...)
-		return errors.New("unexpected nil validator")
+		// This should never occur as we check in validateWithdrawal for nil, but this is needed to appease nilaway.
+		sp.logger.Warn("processWithdrawalRequest: nil validator", withdrawalFields(withdrawalRequest, nil)...)
+		return errors.New("processWithdrawalRequest: unexpected nil validator")
 	}
 
 	if err = verifyWithdrawalConditions(sp.cs, st, validator); err != nil {
@@ -291,7 +291,8 @@ func validateWithdrawal(st *state.StateDB, withdrawalRequest *ctypes.WithdrawalR
 		return 0, nil, err
 	}
 	if validator == nil {
-		return 0, nil, errors.New("validator does not exist")
+		// This should never occur as we expect ErrNotFound if the validator is not found.
+		return 0, nil, errors.New("validateWithdrawal: validator does not exist")
 	}
 
 	// Verify withdrawal credentials
