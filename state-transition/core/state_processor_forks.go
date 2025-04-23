@@ -22,7 +22,6 @@ package core
 
 import (
 	"fmt"
-	"sync"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -136,7 +135,7 @@ func (sp *StateProcessor) logDeneb1Fork(
 	// Since state fork is not updating to Deneb1, every block observes Deneb1 as "new fork" during
 	// Deneb1. Hence, we must wrap this in a OnceFunc to ensure it is logged only the first time
 	// we process a Deneb1 block.
-	sync.OnceFunc(func() {
+	sp.logDeneb1Once.Do(func() {
 		sp.logger.Info(fmt.Sprintf(`
 
 
@@ -157,7 +156,7 @@ func (sp *StateProcessor) logDeneb1Fork(
 			slot.Unwrap(), timestamp.Unwrap(),
 			sp.cs.SlotToEpoch(slot).Unwrap(),
 		))
-	})()
+	})
 }
 
 // upgradeToElectra upgrades the state to the Electra fork version. It is modified from the ETH 2.0
