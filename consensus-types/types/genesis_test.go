@@ -70,11 +70,9 @@ func TestDefaultGenesis(t *testing.T) {
 
 func TestDefaultGenesisExecutionPayloadHeader(t *testing.T) {
 	t.Parallel()
-	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
-		header, err := types.DefaultGenesisExecutionPayloadHeader(v)
-		require.NoError(t, err)
-		require.NotNil(t, header)
-	})
+	header, err := types.DefaultGenesisExecutionPayloadHeader()
+	require.NoError(t, err)
+	require.NotNil(t, header)
 }
 
 func TestGenesisGetForkVersion(t *testing.T) {

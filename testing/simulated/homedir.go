@@ -80,7 +80,7 @@ func InitializeHomeDir(t *testing.T, chainSpec chain.Spec, tempHomeDir string, e
 	require.NoError(t, err, "failed to set deposit storage")
 
 	// Add the execution payload to the genesis configuration.
-	err = genesis.AddExecutionPayload(chainSpec, path.Join(cometConfig.RootDir, filepath.Base(elGenesisPath)), cometConfig)
+	err = genesis.AddExecutionPayload(path.Join(cometConfig.RootDir, filepath.Base(elGenesisPath)), cometConfig)
 	require.NoError(t, err, "failed to add execution payload")
 
 	// Compute the validators root from the genesis file.
