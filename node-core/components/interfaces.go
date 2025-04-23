@@ -121,10 +121,10 @@ type (
 
 	// StateProcessor defines the interface for processing the state.
 	StateProcessor interface {
-		// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
+		// InitializeBeaconStateFromEth1 initializes the premined beacon
 		// state
 		// from the eth1 deposits.
-		InitializePreminedBeaconStateFromEth1(
+		InitializeBeaconStateFromEth1(
 			*statedb.StateDB,
 			ctypes.Deposits,
 			*ctypes.ExecutionPayloadHeader,

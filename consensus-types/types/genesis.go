@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 )
 
 const (
@@ -95,21 +94,21 @@ func (g *Genesis) UnmarshalJSON(
 }
 
 // DefaultGenesis returns the default genesis.
-func DefaultGenesis() *Genesis {
-	defaultHeader, err := DefaultGenesisExecutionPayloadHeader()
+func DefaultGenesis(v common.Version) *Genesis {
+	defaultHeader, err := DefaultGenesisExecutionPayloadHeader(v)
 	if err != nil {
 		panic(err)
 	}
 
 	return &Genesis{
-		ForkVersion:            version.Genesis(),
+		ForkVersion:            v,
 		Deposits:               make([]*Deposit, 0),
 		ExecutionPayloadHeader: defaultHeader,
 	}
 }
 
 // DefaultGenesisExecutionPayloadHeader returns a default ExecutionPayloadHeader.
-func DefaultGenesisExecutionPayloadHeader() (*ExecutionPayloadHeader, error) {
+func DefaultGenesisExecutionPayloadHeader(v common.Version) (*ExecutionPayloadHeader, error) {
 	stateRoot, err := bytes.ToBytes32(
 		hex.MustToBytes(
 			"0x12965ab9cbe2d2203f61d23636eb7e998f167cb79d02e452f532535641e35bcc",
@@ -136,7 +135,7 @@ func DefaultGenesisExecutionPayloadHeader() (*ExecutionPayloadHeader, error) {
 	}
 
 	return &ExecutionPayloadHeader{
-		Versionable:   NewVersionable(version.Genesis()),
+		Versionable:   NewVersionable(v),
 		ParentHash:    common.ExecutionHash{},
 		FeeRecipient:  common.ExecutionAddress{},
 		StateRoot:     stateRoot,
