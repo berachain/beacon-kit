@@ -23,6 +23,7 @@ package core
 import (
 	"bytes"
 	"fmt"
+	"sync"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
@@ -54,6 +55,8 @@ type StateProcessor struct {
 	ds *depositdb.KVStore
 	// metrics is the metrics for the service.
 	metrics *stateProcessorMetrics
+	// logDeneb1Once enforces logging the Deneb1 fork information at most once.
+	logDeneb1Once sync.Once
 }
 
 // NewStateProcessor creates a new state processor.
