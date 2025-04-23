@@ -22,6 +22,7 @@ package genesis
 
 import (
 	"fmt"
+	"unsafe"
 
 	"github.com/berachain/beacon-kit/cli/context"
 	"github.com/berachain/beacon-kit/consensus-types/types"
@@ -89,7 +90,7 @@ func AddExecutionPayload(elGenesisPath string, config *cmtcfg.Config) error {
 		return errors.Wrap(err, "failed to unmarshal beacon state")
 	}
 
-	// Inject the execution payload from the executable data.
+	// Inject the execution payload headerfrom the executable data.
 	eph, err := executableDataToExecutionPayloadHeader(payload)
 	if err != nil {
 		return errors.Wrap(err, "failed to convert executable data to execution payload header")
@@ -127,15 +128,8 @@ func executableDataToExecutionPayloadHeader(
 		TransactionsRoot: engineprimitives.Transactions(data.Transactions).HashTreeRoot(),
 	}
 
-	withdrawals := make(engineprimitives.Withdrawals, len(data.Withdrawals))
-	for i, withdrawal := range data.Withdrawals {
-		withdrawals[i] = &engineprimitives.Withdrawal{
-			Index:     math.U64(withdrawal.Index),
-			Validator: math.ValidatorIndex(withdrawal.Validator),
-			Address:   common.ExecutionAddress(withdrawal.Address),
-			Amount:    math.Gwei(withdrawal.Amount),
-		}
-	}
+	// Cast the withdrawals to our type.
+	withdrawals := *(*engineprimitives.Withdrawals)(unsafe.Pointer(&data.Withdrawals))
 	eph.WithdrawalsRoot = withdrawals.HashTreeRoot()
 
 	if len(data.ExtraData) > constants.ExtraDataLength {
