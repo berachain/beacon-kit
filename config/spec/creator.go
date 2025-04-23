@@ -135,12 +135,13 @@ func loadSpecData(path string) (*chain.SpecData, error) {
 		"max-blobs-per-block",
 		"field-elements-per-blob",
 		"bytes-per-blob",
-		"kzg-commitment-inclusion-proof-depth",
 		"validator-set-cap",
 		"evm-inflation-address",
 		"evm-inflation-per-block",
 		"evm-inflation-address-deneb-one",
 		"evm-inflation-per-block-deneb-one",
+		"min-activation-balance",
+		"min-validator-withdrawability-delay",
 	}
 
 	// Check if all required keys are set in the config.
