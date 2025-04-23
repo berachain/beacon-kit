@@ -21,13 +21,10 @@
 package core
 
 import (
-	"fmt"
-
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/ethereum/go-ethereum/params"
@@ -56,11 +53,6 @@ func (sp *StateProcessor) processWithdrawals(
 	expectedWithdrawals, processedPartialWithdrawalsCount, err := st.ExpectedWithdrawals(blk.GetTimestamp())
 	if err != nil {
 		return err
-	}
-
-	if version.IsBefore(blk.GetForkVersion(), version.Electra()) && processedPartialWithdrawalsCount != 0 {
-		// This should never happen as we would not add pending partial withdrawals to the beacon state before electra.
-		return fmt.Errorf("there must be no partial withdrawals before electra but found %d", processedPartialWithdrawalsCount)
 	}
 
 	// Common validations
