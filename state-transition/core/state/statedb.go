@@ -25,9 +25,9 @@ import (
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
-	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/storage/beacondb"
 )
 
@@ -69,31 +69,6 @@ func (s *StateDB) DecreaseBalance(idx math.ValidatorIndex, delta math.Gwei) erro
 		return err
 	}
 	return s.SetBalance(idx, balance-min(balance, delta))
-}
-
-// UpdateSlashingAtIndex sets the slashing amount in the store.
-func (s *StateDB) UpdateSlashingAtIndex(index uint64, amount math.Gwei) error {
-	// Update the total slashing amount before overwriting the old amount.
-	total, err := s.GetTotalSlashing()
-	if err != nil {
-		return err
-	}
-
-	oldValue, err := s.GetSlashingAtIndex(index)
-	if err != nil {
-		return err
-	}
-
-	// Defensive check but total - oldValue should never underflow.
-	if oldValue > total {
-		return errors.New("count of total slashing is not up to date")
-	} else if err = s.SetTotalSlashing(
-		total - oldValue + amount,
-	); err != nil {
-		return err
-	}
-
-	return s.SetSlashingAtIndex(index, amount)
 }
 
 // ExpectedWithdrawals as defined in the Ethereum 2.0 Specification:
@@ -212,33 +187,30 @@ func (s *StateDB) EVMInflationWithdrawal(timestamp math.U64) *engineprimitives.W
 //
 //nolint:funlen,gocognit // todo fix somehow
 func (s *StateDB) GetMarshallable() (*ctypes.BeaconState, error) {
-	var empty *ctypes.BeaconState
-
 	slot, err := s.GetSlot()
 	if err != nil {
-		return empty, err
+		return nil, err
 	}
 
 	fork, err := s.GetFork()
 	if err != nil {
-		return empty, err
+		return nil, err
 	}
-
 	genesisValidatorsRoot, err := s.GetGenesisValidatorsRoot()
 	if err != nil {
-		return empty, err
+		return nil, err
 	}
 
 	latestBlockHeader, err := s.GetLatestBlockHeader()
 	if err != nil {
-		return empty, err
+		return nil, err
 	}
 
 	blockRoots := make([]common.Root, s.cs.SlotsPerHistoricalRoot())
 	for i := range s.cs.SlotsPerHistoricalRoot() {
 		blockRoots[i], err = s.GetBlockRootAtIndex(i)
 		if err != nil {
-			return empty, err
+			return nil, err
 		}
 	}
 
@@ -246,81 +218,90 @@ func (s *StateDB) GetMarshallable() (*ctypes.BeaconState, error) {
 	for i := range s.cs.SlotsPerHistoricalRoot() {
 		stateRoots[i], err = s.StateRootAtIndex(i)
 		if err != nil {
-			return empty, err
+			return nil, err
 		}
 	}
 
 	latestExecutionPayloadHeader, err := s.GetLatestExecutionPayloadHeader()
 	if err != nil {
-		return empty, err
+		return nil, err
 	}
 
 	eth1Data, err := s.GetEth1Data()
 	if err != nil {
-		return empty, err
+		return nil, err
 	}
 
 	eth1DepositIndex, err := s.GetEth1DepositIndex()
 	if err != nil {
-		return empty, err
+		return nil, err
 	}
 
 	validators, err := s.GetValidators()
 	if err != nil {
-		return empty, err
+		return nil, err
 	}
 
 	balances, err := s.GetBalances()
 	if err != nil {
-		return empty, err
+		return nil, err
 	}
 
 	randaoMixes := make([]common.Bytes32, s.cs.EpochsPerHistoricalVector())
 	for i := range s.cs.EpochsPerHistoricalVector() {
 		randaoMixes[i], err = s.GetRandaoMixAtIndex(i)
 		if err != nil {
-			return empty, err
+			return nil, err
 		}
 	}
 
 	nextWithdrawalIndex, err := s.GetNextWithdrawalIndex()
 	if err != nil {
-		return empty, err
+		return nil, err
 	}
 
 	nextWithdrawalValidatorIndex, err := s.GetNextWithdrawalValidatorIndex()
 	if err != nil {
-		return empty, err
+		return nil, err
 	}
 
 	slashings, err := s.GetSlashings()
 	if err != nil {
-		return empty, err
+		return nil, err
 	}
 
 	totalSlashings, err := s.GetTotalSlashing()
 	if err != nil {
-		return empty, err
+		return nil, err
 	}
 
-	return &ctypes.BeaconState{
-		Slot:                         slot,
-		GenesisValidatorsRoot:        genesisValidatorsRoot,
-		Fork:                         fork,
-		LatestBlockHeader:            latestBlockHeader,
-		BlockRoots:                   blockRoots,
-		StateRoots:                   stateRoots,
-		LatestExecutionPayloadHeader: latestExecutionPayloadHeader,
-		Eth1Data:                     eth1Data,
-		Eth1DepositIndex:             eth1DepositIndex,
-		Validators:                   validators,
-		Balances:                     balances,
-		RandaoMixes:                  randaoMixes,
-		NextWithdrawalIndex:          nextWithdrawalIndex,
-		NextWithdrawalValidatorIndex: nextWithdrawalValidatorIndex,
-		Slashings:                    slashings,
-		TotalSlashing:                totalSlashings,
-	}, nil
+	beaconState := ctypes.NewEmptyBeaconStateWithVersion(fork.CurrentVersion)
+	beaconState.Slot = slot
+	beaconState.GenesisValidatorsRoot = genesisValidatorsRoot
+	beaconState.Fork = fork
+	beaconState.LatestBlockHeader = latestBlockHeader
+	beaconState.BlockRoots = blockRoots
+	beaconState.StateRoots = stateRoots
+	beaconState.LatestExecutionPayloadHeader = latestExecutionPayloadHeader
+	beaconState.Eth1Data = eth1Data
+	beaconState.Eth1DepositIndex = eth1DepositIndex
+	beaconState.Validators = validators
+	beaconState.Balances = balances
+	beaconState.RandaoMixes = randaoMixes
+	beaconState.NextWithdrawalIndex = nextWithdrawalIndex
+	beaconState.NextWithdrawalValidatorIndex = nextWithdrawalValidatorIndex
+	beaconState.Slashings = slashings
+	beaconState.TotalSlashing = totalSlashings
+
+	if version.EqualsOrIsAfter(beaconState.GetForkVersion(), version.Electra()) {
+		pendingPartialWithdrawals, getErr := s.GetPendingPartialWithdrawals()
+		if getErr != nil {
+			return nil, getErr
+		}
+		beaconState.PendingPartialWithdrawals = pendingPartialWithdrawals
+	}
+
+	return beaconState, nil
 }
 
 // HashTreeRoot is the interface for the beacon store.

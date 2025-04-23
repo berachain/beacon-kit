@@ -38,6 +38,9 @@ const (
 	// of Gwei) that can be staked.
 	devnetMaxStakeAmount = 4000 * params.GWei
 
+	// devnetGenesisTime is the timestamp of devnet genesis.
+	devnetGenesisTime = 0
+
 	// devnetDeneb1ForkTime is the timestamp at which the Deneb1 fork occurs.
 	devnetDeneb1ForkTime = 0
 
@@ -55,7 +58,7 @@ const (
 )
 
 // DevnetChainSpecData is the chain.SpecData for a devnet. It is similar to mainnet but
-// has different values for testing EVM inflation and staking.
+// has different values for testing EVM inflation, staking, and hard forks.
 //
 // TODO: remove modifications from mainnet spec to align with mainnet behavior.
 func DevnetChainSpecData() *chain.SpecData {
@@ -63,6 +66,7 @@ func DevnetChainSpecData() *chain.SpecData {
 	specData.DepositEth1ChainID = DevnetEth1ChainID
 
 	// Fork timings are set to facilitate local testing across fork versions.
+	specData.GenesisTime = devnetGenesisTime
 	specData.Deneb1ForkTime = devnetDeneb1ForkTime
 	specData.ElectraForkTime = devnetElectraForkTime
 

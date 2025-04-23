@@ -22,6 +22,8 @@ package core
 
 import (
 	"bytes"
+	"fmt"
+	"sync"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
@@ -53,6 +55,8 @@ type StateProcessor struct {
 	ds *depositdb.KVStore
 	// metrics is the metrics for the service.
 	metrics *stateProcessorMetrics
+	// logDeneb1Once enforces logging the Deneb1 fork information at most once.
+	logDeneb1Once sync.Once
 }
 
 // NewStateProcessor creates a new state processor.
@@ -86,9 +90,18 @@ func (sp *StateProcessor) Transition(
 		return nil, nil
 	}
 
-	// Process the slots.
+	// Process the next slot.
 	validatorUpdates, err := sp.ProcessSlots(st, blk.GetSlot())
 	if err != nil {
+		return nil, err
+	}
+
+	// Prepare the state for the next block's fork version, logging only once during FinalizeBlock.
+	//
+	// TODO: allow the state transition context to directly indicate what stage of block processing
+	// we are in, i.e. ProcessProposal, FinalizeBlock, etc.
+	inFinalizeBlock := ctx.VerifyPayload() && !ctx.VerifyRandao()
+	if err = sp.ProcessFork(st, blk.GetTimestamp(), inFinalizeBlock); err != nil {
 		return nil, err
 	}
 
@@ -100,9 +113,19 @@ func (sp *StateProcessor) Transition(
 	return validatorUpdates, nil
 }
 
-// ProcessSlots NOTE: if process slots is called across multiple epochs (the given slot is more than 1 multiple
-// ahead of the current state slot), then validator updates will be returned in the order they are
-// processed, which may effectually override each other.
+// ProcessSlots deviates from the ethereum consensus specs `process_slots`. The `process_slots` function must
+// iterate and process slots in which the target `slot` can be several slots ahead of the `stateSlot`. This is because
+// the beacon chain can miss blocks for a given slot, resulting in not processing the slot. For example, the current
+// slot is 100, and no blocks were proposed for slots 101 and 102. Upon receiving a block at slot 103, the beacon state
+// must "catch up" the state and trigger slot and epoch transitions that may have happened during slot 101 and 102.
+//
+// Beacon-kit does not allow missed slots. Each height from cometBFT will always correspond to a beacon block slot, so
+// `ProcessSlots` will always be called at every slot. Thus, we will only process the state up to the next slot.
+// The reasoning behind this deviation is to be explicit in this behavior and also to better support the usage of fork
+// logic in the `processEpoch` function. Since we do not fork by slot but instead fork by timestamp, we must be able to
+// strictly tie each call of `processSlot` and `processEpoch` to a timestamp. Since we don't have beacon blocks during
+// each iteration of the slot loop, we cannot correlate each slot to a timestamp. We instead identify that we process
+// only one slot, allowing us to simply use the fork version from the state.
 func (sp *StateProcessor) ProcessSlots(
 	st *state.StateDB, slot math.Slot,
 ) (transition.ValidatorUpdates, error) {
@@ -112,34 +135,36 @@ func (sp *StateProcessor) ProcessSlots(
 	if err != nil {
 		return nil, err
 	}
+	if slot == stateSlot {
+		return res, nil
+	}
+	if slot != stateSlot+1 {
+		return nil, fmt.Errorf("slot %d does not match expected slot %d", slot, stateSlot+1)
+	}
 
-	// Iterate until we are "caught up".
-	for ; stateSlot < slot; stateSlot++ {
-		if err = sp.processSlot(st); err != nil {
+	if err = sp.processSlot(st); err != nil {
+		return nil, err
+	}
+
+	// Process the Epoch Boundary.
+	if slot.Unwrap()%sp.cs.SlotsPerEpoch() == 0 {
+		var epochUpdates transition.ValidatorUpdates
+		if epochUpdates, err = sp.processEpoch(st); err != nil {
 			return nil, err
 		}
+		res = append(res, epochUpdates...)
+	}
 
-		// Process the Epoch Boundary.
-		boundary := (stateSlot.Unwrap()+1)%sp.cs.SlotsPerEpoch() == 0
-		if boundary {
-			var epochUpdates transition.ValidatorUpdates
-			if epochUpdates, err = sp.processEpoch(st); err != nil {
-				return nil, err
-			}
-			res = append(res, epochUpdates...)
-		}
-
-		// We update on the state because we need to
-		// update the state for calls within processSlot/Epoch().
-		if err = st.SetSlot(stateSlot + 1); err != nil {
-			return nil, err
-		}
+	// Update the state slot.
+	if err = st.SetSlot(slot); err != nil {
+		return nil, err
 	}
 
 	return res, nil
 }
 
-// processSlot is run when a slot is missed.
+// processSlot as defined in the Ethereum 2.0 Specification:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#beacon-chain-state-transition-function
 func (sp *StateProcessor) processSlot(st *state.StateDB) error {
 	stateSlot, err := st.GetSlot()
 	if err != nil {

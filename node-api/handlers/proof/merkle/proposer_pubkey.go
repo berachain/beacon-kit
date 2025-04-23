@@ -18,7 +18,6 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-//nolint:dupl // separate file for ease of future implementation
 package merkle
 
 import (
@@ -26,22 +25,25 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/merkle"
 )
 
-// ProveExecutionNumberInBlock generates a proof for the block number of the
-// latest execution payload header in the beacon block. The proof is then
-// verified against the beacon block root as a sanity check. Returns the proof
-// along with the beacon block root. It uses the fastssz library to generate the
-// proof.
-func ProveExecutionNumberInBlock[
-	BeaconStateMarshallableT types.BeaconStateMarshallable,
-](
+// ProveProposerPubkeyInBlock generates a proof for the proposer pubkey in the
+// beacon block. The proof is then verified against the beacon block root as a
+// sanity check. Returns the proof along with the beacon block root. It uses
+// the fastssz library to generate the proof.
+func ProveProposerPubkeyInBlock(
 	bbh *ctypes.BeaconBlockHeader,
-	bs types.BeaconState[BeaconStateMarshallableT],
+	bsm types.BeaconStateMarshallable,
 ) ([]common.Root, common.Root, error) {
-	// Get the proof of the execution number in the beacon state.
-	numberInStateProof, leaf, err := ProveExecutionNumberInState(bs)
+	forkVersion := bsm.GetForkVersion()
+
+	// Get the proof of the proposer pubkey in the beacon state.
+	proposerOffset := ValidatorPubkeyGIndexOffset * bbh.GetProposerIndex()
+	valPubkeyInStateProof, leaf, err := ProveProposerPubkeyInState(
+		forkVersion, bsm, proposerOffset,
+	)
 	if err != nil {
 		return nil, common.Root{}, err
 	}
@@ -55,8 +57,10 @@ func ProveExecutionNumberInBlock[
 	// Sanity check that the combined proof verifies against our beacon root.
 	//
 	//nolint:gocritic // ok.
-	combinedProof := append(numberInStateProof, stateInBlockProof...)
-	beaconRoot, err := verifyExecutionNumberInBlock(bbh, combinedProof, leaf)
+	combinedProof := append(valPubkeyInStateProof, stateInBlockProof...)
+	beaconRoot, err := verifyProposerInBlock(
+		forkVersion, bbh, proposerOffset, combinedProof, leaf,
+	)
 	if err != nil {
 		return nil, common.Root{}, err
 	}
@@ -64,49 +68,60 @@ func ProveExecutionNumberInBlock[
 	return combinedProof, beaconRoot, nil
 }
 
-// ProveExecutionNumberInState generates a proof for the block number of the
-// execution payload in the beacon state. It uses the fastssz library.
-func ProveExecutionNumberInState[
-	BeaconStateMarshallableT types.BeaconStateMarshallable,
-](
-	bs types.BeaconState[BeaconStateMarshallableT],
+// ProveProposerPubkeyInState generates a proof for the proposer pubkey
+// in the beacon state. It uses the fastssz library to generate the proof.
+func ProveProposerPubkeyInState(
+	forkVersion common.Version,
+	bsm types.BeaconStateMarshallable,
+	proposerOffset math.U64,
 ) ([]common.Root, common.Root, error) {
-	bsm, err := bs.GetMarshallable()
-	if err != nil {
-		return nil, common.Root{}, err
-	}
 	stateProofTree, err := bsm.GetTree()
 	if err != nil {
 		return nil, common.Root{}, err
 	}
 
-	numberInStateProof, err := stateProofTree.Prove(
-		ExecutionNumberGIndexDenebState,
-	)
+	// Determine the correct gIndex based on the fork version.
+	gIndex := int(proposerOffset) // #nosec G115 -- max proposer offset is 8 * (2^40 - 1).
+	zeroValidatorPubkeyGIndexState, err := GetZeroValidatorPubkeyGIndexState(forkVersion)
+	if err != nil {
+		return nil, common.Root{}, err
+	}
+	gIndex += zeroValidatorPubkeyGIndexState
+
+	valPubkeyInStateProof, err := stateProofTree.Prove(gIndex)
 	if err != nil {
 		return nil, common.Root{}, err
 	}
 
-	proof := make([]common.Root, len(numberInStateProof.Hashes))
-	for i, hash := range numberInStateProof.Hashes {
+	proof := make([]common.Root, len(valPubkeyInStateProof.Hashes))
+	for i, hash := range valPubkeyInStateProof.Hashes {
 		proof[i] = common.NewRootFromBytes(hash)
 	}
-	return proof, common.NewRootFromBytes(numberInStateProof.Leaf), nil
+	return proof, common.NewRootFromBytes(valPubkeyInStateProof.Leaf), nil
 }
 
-// verifyExecutionNumberInBlock verifies the execution number in the beacon
-// block, returning the beacon block root used to verify against.
+// verifyProposerInBlock verifies the proposer pubkey in the beacon block,
+// returning the beacon block root used to verify against.
 //
 // TODO: verifying the proof is not absolutely necessary.
-func verifyExecutionNumberInBlock(
+func verifyProposerInBlock(
+	forkVersion common.Version,
 	bbh *ctypes.BeaconBlockHeader,
+	valOffset math.U64,
 	proof []common.Root,
 	leaf common.Root,
 ) (common.Root, error) {
+	zeroValidatorPubkeyGIndexBlock, err := GetZeroValidatorPubkeyGIndexBlock(forkVersion)
+	if err != nil {
+		return common.Root{}, err
+	}
+
 	beaconRoot := bbh.HashTreeRoot()
-	if !merkle.VerifyProof(beaconRoot, leaf, ExecutionNumberGIndexDenebBlock, proof) {
+	if !merkle.VerifyProof(
+		beaconRoot, leaf, zeroValidatorPubkeyGIndexBlock+valOffset.Unwrap(), proof,
+	) {
 		return common.Root{}, errors.Wrapf(
-			errors.New("execution number proof failed to verify against beacon root"),
+			errors.New("proposer pubkey proof failed to verify against beacon root"),
 			"beacon root: 0x%s", beaconRoot,
 		)
 	}

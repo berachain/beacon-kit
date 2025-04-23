@@ -26,15 +26,18 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-func (b Backend) RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes32, error) {
-	st, resolvedSlot, err := b.stateFromSlot(slot)
+func (b *Backend) RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes32, error) {
+	// Get the state at the given slot.
+	st, resolvedSlot, err := b.StateAtSlot(slot)
 	if err != nil {
 		return common.Bytes32{}, errors.Wrapf(err, "failed to get state from slot %d", slot)
 	}
+
 	// Infer the epoch if not provided.
 	if epoch == 0 {
 		epoch = b.cs.SlotToEpoch(resolvedSlot)
 	}
+
 	index := epoch.Unwrap() % b.cs.EpochsPerHistoricalVector()
 	return st.GetRandaoMixAtIndex(index)
 }

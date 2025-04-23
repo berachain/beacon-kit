@@ -39,9 +39,7 @@ func ProveProposerIndexInBlock(
 		return nil, common.Root{}, err
 	}
 
-	proposerIndexProof, err := blockProofTree.Prove(
-		ProposerIndexGIndexDenebBlock,
-	)
+	proposerIndexProof, err := blockProofTree.Prove(ProposerIndexGIndexBlock)
 	if err != nil {
 		return nil, common.Root{}, err
 	}
@@ -68,7 +66,7 @@ func verifyProposerIndexInBlock(
 	bbh *ctypes.BeaconBlockHeader, proof []common.Root, leaf common.Root,
 ) (common.Root, error) {
 	beaconRoot := bbh.HashTreeRoot()
-	if !merkle.VerifyProof(beaconRoot, leaf, ProposerIndexGIndexDenebBlock, proof) {
+	if !merkle.VerifyProof(beaconRoot, leaf, ProposerIndexGIndexBlock, proof) {
 		return common.Root{}, errors.Wrapf(
 			errors.New("proposer index proof failed to verify against beacon root"),
 			"beacon root: 0x%s", beaconRoot,

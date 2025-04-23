@@ -27,52 +27,84 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/merkle"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/merkle/mock"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/stretchr/testify/require"
 )
 
-// TestExecutionNumberProof tests the ProveExecutionNumberInBlock
-// function and that the generated proof correctly verifies.
-func TestExecutionNumberProof(t *testing.T) {
+// TestBlockProposerPubkeyProof tests the ProveProposerPubkeyInBlock function
+// and that the generated proof correctly verifies.
+func TestBlockProposerPubkeyProof(t *testing.T) {
 	t.Parallel()
-	var proof []common.Root
-
 	testCases := []struct {
 		name              string
+		forkVersion       common.Version
+		numValidators     int
 		slot              math.Slot
 		proposerIndex     math.ValidatorIndex
 		parentBlockRoot   common.Root
 		bodyRoot          common.Root
-		executionNumber   math.U64
-		expectedProof     []common.Root
+		pubKey            crypto.BLSPubkey
 		expectedProofFile string
 	}{
 		{
-			name:              "Empty Execution Number",
+			name:              "1 Validator Set - Deneb",
+			forkVersion:       version.Deneb(),
+			numValidators:     1,
 			slot:              4,
 			proposerIndex:     0,
 			parentBlockRoot:   common.Root{1, 2, 3},
 			bodyRoot:          common.Root{3, 2, 1},
-			executionNumber:   0,
-			expectedProofFile: "empty_execution_number_proof.json",
+			pubKey:            [48]byte{9, 8, 7, 6, 5, 4, 3, 2, 1},
+			expectedProofFile: "one_validator_proposer_pubkey_proof_deneb.json",
 		},
 		{
-			name:              "Non-empty Execution Number",
+			name:              "Many Validator Set - Deneb",
+			forkVersion:       version.Deneb(),
+			numValidators:     100,
 			slot:              5,
 			proposerIndex:     95,
 			parentBlockRoot:   common.Root{1, 2, 3, 4, 5, 6},
 			bodyRoot:          common.Root{3, 2, 1, 9, 8, 7},
-			executionNumber:   69420,
-			expectedProofFile: "non_empty_execution_number_proof.json",
+			pubKey:            [48]byte{9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2},
+			expectedProofFile: "many_validators_proposer_pubkey_proof_deneb.json",
+		},
+		{
+			name:              "1 Validator Set - Electra",
+			forkVersion:       version.Electra(),
+			numValidators:     1,
+			slot:              4,
+			proposerIndex:     0,
+			parentBlockRoot:   common.Root{1, 2, 3},
+			bodyRoot:          common.Root{3, 2, 1},
+			pubKey:            [48]byte{9, 8, 7, 6, 5, 4, 3, 2, 1},
+			expectedProofFile: "one_validator_proposer_pubkey_proof_electra.json",
+		},
+		{
+			name:              "Many Validator Set - Electra",
+			forkVersion:       version.Electra(),
+			numValidators:     100,
+			slot:              5,
+			proposerIndex:     95,
+			parentBlockRoot:   common.Root{1, 2, 3, 4, 5, 6},
+			bodyRoot:          common.Root{3, 2, 1, 9, 8, 7},
+			pubKey:            [48]byte{9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2},
+			expectedProofFile: "many_validators_proposer_pubkey_proof_electra.json",
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			bs, err := mock.NewBeaconState(
-				tc.slot, nil, tc.executionNumber, common.ExecutionAddress{},
+			vals := make(types.Validators, tc.numValidators)
+			for i := range vals {
+				vals[i] = &types.Validator{}
+			}
+			vals[tc.proposerIndex] = &types.Validator{Pubkey: tc.pubKey}
+
+			bs := mock.NewBeaconStateWith(
+				tc.slot, vals, 0, common.ExecutionAddress{}, tc.forkVersion,
 			)
-			require.NoError(t, err)
 
 			bbh := types.NewBeaconBlockHeader(
 				tc.slot,
@@ -82,7 +114,7 @@ func TestExecutionNumberProof(t *testing.T) {
 				tc.bodyRoot,
 			)
 
-			proof, _, err = merkle.ProveExecutionNumberInBlock(bbh, bs)
+			proof, _, err := merkle.ProveProposerPubkeyInBlock(bbh, bs)
 			require.NoError(t, err)
 			expectedProof := ReadProofFromFile(t, tc.expectedProofFile)
 			require.Equal(t, expectedProof, proof)
