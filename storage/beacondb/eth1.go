@@ -40,9 +40,10 @@ func (kv *KVStore) GetLatestExecutionPayloadHeader() (
 func (kv *KVStore) SetLatestExecutionPayloadHeader(
 	payloadHeader *ctypes.ExecutionPayloadHeader, forkVersion common.Version,
 ) error {
-	// NOTE: marshalling this struct is NOT affected by it's own fork version. The versioned
-	// codec is left in for backwards compatibility for versions before Electra.
+	// NOTE: marshalling this struct is NOT affected by it's own fork version.
 	if version.IsBefore(forkVersion, version.Electra()) {
+		// The storage value of the fork version is left in for backwards compatibility for
+		// versions before Electra.
 		err := kv.latestExecutionPayloadVersion.Set(kv.ctx, forkVersion.ToUint32())
 		if err != nil {
 			return err
