@@ -22,7 +22,8 @@ package chain
 
 import "github.com/berachain/beacon-kit/primitives/common"
 
-// SpecData is the underlying data structure for chain-specific parameters.
+// SpecData is the underlying data structure for chain-specific parameters. All fields with a
+// `mapstructure` tag are required.
 type SpecData struct {
 	// Gwei value constants.
 	//
@@ -109,14 +110,6 @@ type SpecData struct {
 	// ValidatorRegistryLimit is the maximum number of validators in the
 	// registry.
 	ValidatorRegistryLimit uint64 `mapstructure:"validator-registry-limit"`
-
-	// Rewards and penalties constants.
-	//
-	// InactivityPenaltyQuotient is the inactivity penalty quotient.
-	InactivityPenaltyQuotient uint64 `mapstructure:"inactivity-penalty-quotient"`
-	// ProportionalSlashingMultiplier is the slashing multiplier relative to the
-	// base penalty.
-	ProportionalSlashingMultiplier uint64 `mapstructure:"proportional-slashing-multiplier"`
 
 	// Capella Values
 	//

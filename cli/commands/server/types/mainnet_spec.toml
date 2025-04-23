@@ -25,7 +25,6 @@ domain-type-selection-proof = 5
 domain-type-aggregate-and-proof = 6
 domain-type-application-mask = 16777216
 
-
 # Eth1-related values
 deposit-contract-address = "0x4242424242424242424242424242424242424242"
 max-deposits-per-block = 16
@@ -43,10 +42,6 @@ epochs-per-historical-vector = 8
 epochs-per-slashings-vector = 8
 historical-roots-limit = 8
 validator-registry-limit = 1099511627776
-
-# Rewards and penalties constants
-#inactivity-penalty-quotient = 33554432
-#proportional-slashing-multiplier = 2
 
 # Capella values
 max-withdrawals-per-payload = 16

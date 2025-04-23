@@ -65,9 +65,6 @@ const (
 	defaultHistoricalRootsLimit      = 8
 	defaultValidatorRegistryLimit    = 1099511627776
 
-	// Slashing.
-	defaultProportionalSlashingMultiplier = 1
-
 	// Capella values.
 	defaultMaxWithdrawalsPerPayload         = 16
 	defaultMaxValidatorsPerWithdrawalsSweep = 1 << 14

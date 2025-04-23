@@ -26,7 +26,7 @@ import (
 )
 
 type ChainSpec interface {
-	chain.EVMInflationSpec
+	chain.BerachainSpec
 	chain.WithdrawalsSpec
 	SlotToEpoch(slot math.Slot) math.Epoch
 	SlotsPerHistoricalRoot() uint64
