@@ -22,7 +22,6 @@ package genesis
 
 import (
 	"fmt"
-	"unsafe"
 
 	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	"github.com/berachain/beacon-kit/cli/context"
@@ -34,7 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
@@ -69,14 +67,14 @@ func AddExecutionPayload(chainSpec ChainSpec, elGenesisPath string, config *cmtc
 		return errors.Wrap(err, "failed to read eth1 genesis file")
 	}
 
-	// Unmarshal the genesis file.
+	// Unmarshal the EL genesis file.
 	ethGenesis := &gethprimitives.Genesis{}
 	if err = ethGenesis.UnmarshalJSON(genesisBz); err != nil {
 		return errors.Wrap(err, "failed to unmarshal eth1 genesis")
 	}
 	genesisBlock := ethGenesis.ToBlock()
 
-	// Create the execution payload.
+	// Create the executable data from the EL genesis file.
 	payload := gethprimitives.BlockToExecutableData(
 		genesisBlock,
 		nil,
@@ -84,121 +82,93 @@ func AddExecutionPayload(chainSpec ChainSpec, elGenesisPath string, config *cmtc
 		nil,
 	).ExecutionPayload
 
-	appGenesis, err := genutiltypes.AppGenesisFromFile(
-		config.GenesisFile(),
-	)
+	appGenesis, err := genutiltypes.AppGenesisFromFile(config.GenesisFile())
 	if err != nil {
 		return errors.Wrap(err, "failed to read genesis doc from file")
 	}
 
-	// create the app state
-	appGenesisState, err := genutiltypes.GenesisStateFromAppGenesis(
-		appGenesis,
-	)
+	// Create the app state.
+	appGenesisState, err := genutiltypes.GenesisStateFromAppGenesis(appGenesis)
 	if err != nil {
 		return err
 	}
 
 	genesisInfo := &types.Genesis{}
-
-	if err = json.Unmarshal(
-		appGenesisState["beacon"], genesisInfo,
-	); err != nil {
+	if err = json.Unmarshal(appGenesisState["beacon"], genesisInfo); err != nil {
 		return errors.Wrap(err, "failed to unmarshal beacon state")
 	}
-	// Inject the execution payload.
-	eph, err :=
-		executableDataToExecutionPayloadHeader(
-			chainSpec.GenesisForkVersion(),
-			payload,
-			chainSpec.MaxWithdrawalsPerPayload(),
-		)
+
+	// Inject the execution payload from the executable data.
+	eph, err := executableDataToExecutionPayloadHeader(payload)
 	if err != nil {
 		return errors.Wrap(err, "failed to unmarshal beacon state")
 	}
-	if eph == nil {
-		return errors.New("failed to get execution payload header")
-	}
+	// if eph == nil {
+	// 	return errors.New("failed to get execution payload header")
+	// }
 	genesisInfo.ExecutionPayloadHeader = eph
 
-	appGenesisState["beacon"], err = json.Marshal(genesisInfo)
-	if err != nil {
+	if appGenesisState["beacon"], err = json.Marshal(genesisInfo); err != nil {
 		return errors.Wrap(err, "failed to marshal beacon state")
 	}
 
-	if appGenesis.AppState, err = json.MarshalIndent(
-		appGenesisState, "", "  ",
-	); err != nil {
+	if appGenesis.AppState, err = json.MarshalIndent(appGenesisState, "", "  "); err != nil {
 		return err
 	}
 
 	return genutil.ExportGenesisFile(appGenesis, config.GenesisFile())
 }
 
-// Converts the eth executable data type to the beacon execution payload header
-// interface.
+// Converts the eth executable data type to the beacon execution payload header.
 func executableDataToExecutionPayloadHeader(
-	forkVersion common.Version,
 	data *gethprimitives.ExecutableData,
-	// todo: re-enable when codec supports.
-	_ uint64,
 ) (*types.ExecutionPayloadHeader, error) {
-	eph := &types.ExecutionPayloadHeader{}
-	switch forkVersion {
-	case version.Deneb(), version.Deneb1(), version.Electra():
-		withdrawals := make(
-			engineprimitives.Withdrawals,
-			len(data.Withdrawals),
-		)
-		for i, withdrawal := range data.Withdrawals {
-			// #nosec:G103 // primitives.Withdrawals is data.Withdrawals with
-			// hard
-			// types.
-			withdrawals[i] = (*engineprimitives.Withdrawal)(
-				unsafe.Pointer(withdrawal),
-			)
+	withdrawals := make(engineprimitives.Withdrawals, len(data.Withdrawals))
+	for i, withdrawal := range data.Withdrawals {
+		withdrawals[i] = &engineprimitives.Withdrawal{
+			Index:     math.U64(withdrawal.Index),
+			Validator: math.ValidatorIndex(withdrawal.Validator),
+			Address:   common.ExecutionAddress(withdrawal.Address),
+			Amount:    math.Gwei(withdrawal.Amount),
 		}
-
-		if len(data.ExtraData) > constants.ExtraDataLength {
-			data.ExtraData = data.ExtraData[:constants.ExtraDataLength]
-		}
-
-		var blobGasUsed uint64
-		if data.BlobGasUsed != nil {
-			blobGasUsed = *data.BlobGasUsed
-		}
-
-		var excessBlobGas uint64
-		if data.ExcessBlobGas != nil {
-			excessBlobGas = *data.ExcessBlobGas
-		}
-
-		baseFeePerGas, err := math.NewU256FromBigInt(data.BaseFeePerGas)
-		if err != nil {
-			return nil, fmt.Errorf("failed baseFeePerGas conversion: %w", err)
-		}
-
-		eph.Versionable = types.NewVersionable(forkVersion)
-		eph.ParentHash = common.ExecutionHash(data.ParentHash)
-		eph.FeeRecipient = common.ExecutionAddress(data.FeeRecipient)
-		eph.StateRoot = common.Bytes32(data.StateRoot)
-		eph.ReceiptsRoot = common.Bytes32(data.ReceiptsRoot)
-		eph.LogsBloom = [256]byte(data.LogsBloom)
-		eph.Random = common.Bytes32(data.Random)
-		eph.Number = math.U64(data.Number)
-		eph.GasLimit = math.U64(data.GasLimit)
-		eph.GasUsed = math.U64(data.GasUsed)
-		eph.Timestamp = math.U64(data.Timestamp)
-		eph.ExtraData = data.ExtraData
-		eph.BaseFeePerGas = baseFeePerGas
-		eph.BlockHash = common.ExecutionHash(data.BlockHash)
-		eph.TransactionsRoot = engineprimitives.Transactions(data.Transactions).HashTreeRoot()
-		eph.WithdrawalsRoot = withdrawals.HashTreeRoot()
-		eph.BlobGasUsed = math.U64(blobGasUsed)
-		eph.ExcessBlobGas = math.U64(excessBlobGas)
-	default:
-		return nil, types.ErrForkVersionNotSupported
 	}
 
-	return eph, nil
+	if len(data.ExtraData) > constants.ExtraDataLength {
+		data.ExtraData = data.ExtraData[:constants.ExtraDataLength]
+	}
+
+	var blobGasUsed uint64
+	if data.BlobGasUsed != nil {
+		blobGasUsed = *data.BlobGasUsed
+	}
+
+	var excessBlobGas uint64
+	if data.ExcessBlobGas != nil {
+		excessBlobGas = *data.ExcessBlobGas
+	}
+
+	baseFeePerGas, err := math.NewU256FromBigInt(data.BaseFeePerGas)
+	if err != nil {
+		return nil, fmt.Errorf("failed baseFeePerGas conversion: %w", err)
+	}
+
+	return &types.ExecutionPayloadHeader{
+		ParentHash:       common.ExecutionHash(data.ParentHash),
+		FeeRecipient:     common.ExecutionAddress(data.FeeRecipient),
+		StateRoot:        common.Bytes32(data.StateRoot),
+		ReceiptsRoot:     common.Bytes32(data.ReceiptsRoot),
+		LogsBloom:        [256]byte(data.LogsBloom),
+		Random:           common.Bytes32(data.Random),
+		Number:           math.U64(data.Number),
+		GasLimit:         math.U64(data.GasLimit),
+		GasUsed:          math.U64(data.GasUsed),
+		Timestamp:        math.U64(data.Timestamp),
+		ExtraData:        data.ExtraData,
+		BaseFeePerGas:    baseFeePerGas,
+		BlockHash:        common.ExecutionHash(data.BlockHash),
+		TransactionsRoot: engineprimitives.Transactions(data.Transactions).HashTreeRoot(),
+		WithdrawalsRoot:  withdrawals.HashTreeRoot(),
+		BlobGasUsed:      math.U64(blobGasUsed),
+		ExcessBlobGas:    math.U64(excessBlobGas),
+	}, nil
 }

@@ -254,7 +254,6 @@ func TestExecutionPayload_ToHeader(t *testing.T) {
 	require.Equal(t, payload.GetBlockHash(), header.GetBlockHash())
 	require.Equal(t, payload.GetBlobGasUsed(), header.GetBlobGasUsed())
 	require.Equal(t, payload.GetExcessBlobGas(), header.GetExcessBlobGas())
-	require.Equal(t, payload.GetForkVersion(), header.GetForkVersion())
 
 	require.Equal(t, payload.HashTreeRoot(), header.HashTreeRoot())
 }

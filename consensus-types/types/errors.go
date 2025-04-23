@@ -28,12 +28,9 @@ var (
 	ErrDepositMessage = errors.New("invalid deposit message")
 
 	// ErrInvalidWithdrawalCredentials is an error for when the.
-	ErrInvalidWithdrawalCredentials = errors.New(
-		"invalid withdrawal credentials",
-	)
+	ErrInvalidWithdrawalCredentials = errors.New("invalid withdrawal credentials")
 
-	// ErrForkVersionNotSupported is an error for when the fork
-	// version is not supported.
+	// ErrForkVersionNotSupported is an error for when the fork version is not supported.
 	ErrForkVersionNotSupported = errors.New("fork version not supported")
 
 	// ErrNilValue is an error for when a getter returns nil on a value

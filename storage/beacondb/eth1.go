@@ -22,7 +22,8 @@ package beacondb
 
 import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/primitives/bytes"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/version"
 )
 
 // GetLatestExecutionPayloadHeader retrieves the latest execution payload
@@ -30,30 +31,23 @@ import (
 func (kv *KVStore) GetLatestExecutionPayloadHeader() (
 	*ctypes.ExecutionPayloadHeader, error,
 ) {
-	// NOTE: unmarshalling this struct is NOT affected by it's own fork version. The versioned
-	// codec is left in for backwards compatibility.
-	forkVersion, err := kv.latestExecutionPayloadVersion.Get(kv.ctx)
-	if err != nil {
-		return nil, err
-	}
-	kv.latestExecutionPayloadCodec.SetActiveForkVersion(bytes.FromUint32(forkVersion))
+	// NOTE: unmarshalling this struct is NOT affected by it's own fork version.
 	return kv.latestExecutionPayloadHeader.Get(kv.ctx)
 }
 
 // SetLatestExecutionPayloadHeader sets the latest execution payload header in
 // the BeaconStore.
 func (kv *KVStore) SetLatestExecutionPayloadHeader(
-	payloadHeader *ctypes.ExecutionPayloadHeader,
+	payloadHeader *ctypes.ExecutionPayloadHeader, forkVersion common.Version,
 ) error {
 	// NOTE: marshalling this struct is NOT affected by it's own fork version. The versioned
-	// codec is left in for backwards compatibility.
-	version := payloadHeader.GetForkVersion()
-	if err := kv.latestExecutionPayloadVersion.Set(
-		kv.ctx, version.ToUint32(),
-	); err != nil {
-		return err
+	// codec is left in for backwards compatibility for versions before Electra.
+	if version.IsBefore(forkVersion, version.Electra()) {
+		err := kv.latestExecutionPayloadVersion.Set(kv.ctx, forkVersion.ToUint32())
+		if err != nil {
+			return err
+		}
 	}
-	kv.latestExecutionPayloadCodec.SetActiveForkVersion(version)
 	return kv.latestExecutionPayloadHeader.Set(kv.ctx, payloadHeader)
 }
 

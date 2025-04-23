@@ -42,20 +42,17 @@ func TestStateProcessor_ProcessSlots(t *testing.T) {
 
 	// Initialize state with genesis.
 	genesisTime := time.Now().Truncate(time.Second)
-	var (
-		genDeposits = types.Deposits{
-			{
-				Pubkey:      [48]byte{0x00},
-				Credentials: types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{}),
-				Amount:      math.Gwei(cs.MaxEffectiveBalance()),
-				Index:       0,
-			},
-		}
-		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
-		}
-	)
-	genPayloadHeader.Timestamp = math.U64(genesisTime.Unix())
+	genDeposits := types.Deposits{
+		{
+			Pubkey:      [48]byte{0x00},
+			Credentials: types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{}),
+			Amount:      math.Gwei(cs.MaxEffectiveBalance()),
+			Index:       0,
+		},
+	}
+	genPayloadHeader := &types.ExecutionPayloadHeader{
+		Timestamp: math.U64(genesisTime.Unix()),
+	}
 	_, err := sp.InitializeBeaconStateFromEth1(
 		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
 	)

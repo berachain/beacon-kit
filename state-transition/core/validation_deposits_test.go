@@ -50,22 +50,17 @@ func TestInvalidDeposits(t *testing.T) {
 	)
 
 	// Setup initial state with one validator
-	var (
-		genDeposits = types.Deposits{
-			{
-				Pubkey:      [48]byte{0x00},
-				Credentials: credentials0,
-				Amount:      maxBalance,
-				Index:       0,
-			},
-		}
-		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
-		}
-	)
+	genDeposits := types.Deposits{
+		{
+			Pubkey:      [48]byte{0x00},
+			Credentials: credentials0,
+			Amount:      maxBalance,
+			Index:       0,
+		},
+	}
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 	_, err := sp.InitializeBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
+		st, genDeposits, &types.ExecutionPayloadHeader{}, cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
 
@@ -109,22 +104,17 @@ func TestInvalidDepositsCount(t *testing.T) {
 	)
 
 	// Setup initial state with one validator
-	var (
-		genDeposits = types.Deposits{
-			{
-				Pubkey:      [48]byte{0x00},
-				Credentials: credentials0,
-				Amount:      maxBalance,
-				Index:       0,
-			},
-		}
-		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
-		}
-	)
+	genDeposits := types.Deposits{
+		{
+			Pubkey:      [48]byte{0x00},
+			Credentials: credentials0,
+			Amount:      maxBalance,
+			Index:       0,
+		},
+	}
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 	_, err := sp.InitializeBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
+		st, genDeposits, &types.ExecutionPayloadHeader{}, cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
 
@@ -171,22 +161,17 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 	)
 
 	// Setup initial state with one validator
-	var (
-		genDeposits = types.Deposits{
-			{
-				Pubkey:      [48]byte{0x00},
-				Credentials: credentials0,
-				Amount:      maxBalance,
-				Index:       0,
-			},
-		}
-		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
-		}
-	)
+	genDeposits := types.Deposits{
+		{
+			Pubkey:      [48]byte{0x00},
+			Credentials: credentials0,
+			Amount:      maxBalance,
+			Index:       0,
+		},
+	}
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 	_, err = sp.InitializeBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
+		st, genDeposits, &types.ExecutionPayloadHeader{}, cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
 
@@ -233,22 +218,17 @@ func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
 	)
 
 	// Setup initial state with one validator
-	var (
-		genDeposits = types.Deposits{
-			{
-				Pubkey:      [48]byte{0x00},
-				Credentials: credentials0,
-				Amount:      maxBalance,
-				Index:       0,
-			},
-		}
-		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
-		}
-	)
+	genDeposits := types.Deposits{
+		{
+			Pubkey:      [48]byte{0x00},
+			Credentials: credentials0,
+			Amount:      maxBalance,
+			Index:       0,
+		},
+	}
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 	_, err = sp.InitializeBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
+		st, genDeposits, &types.ExecutionPayloadHeader{}, cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
 

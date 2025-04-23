@@ -128,10 +128,8 @@ func TestInitialize(t *testing.T) {
 					genDeposits[0], genDeposits[1], genDeposits[3],
 					genDeposits[5], genDeposits[6],
 				}
-				executionPayloadHeader = &types.ExecutionPayloadHeader{
-					Versionable: types.NewVersionable(cs.GenesisForkVersion()),
-				}
-				fork = &types.Fork{
+				executionPayloadHeader = &types.ExecutionPayloadHeader{}
+				fork                   = &types.Fork{
 					PreviousVersion: cs.GenesisForkVersion(),
 					CurrentVersion:  cs.GenesisForkVersion(),
 					Epoch:           constants.GenesisEpoch,
