@@ -2,7 +2,6 @@
 
 # Gwei value constants
 max-effective-balance = 10_000_000_000_000_000
-ejection-balance = 240_000_000_000_000
 effective-balance-increment = 10_000_000_000_000
 
 # Hysteresis parameters

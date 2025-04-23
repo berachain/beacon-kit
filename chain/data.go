@@ -28,8 +28,6 @@ type SpecData struct {
 	//
 	// MaxEffectiveBalance is the maximum effective balance allowed for a validator.
 	MaxEffectiveBalance uint64 `mapstructure:"max-effective-balance"`
-	// EjectionBalance is the balance at which a validator is ejected.
-	EjectionBalance uint64 `mapstructure:"ejection-balance"`
 	// EffectiveBalanceIncrement is the effective balance increment.
 	EffectiveBalanceIncrement uint64 `mapstructure:"effective-balance-increment"`
 

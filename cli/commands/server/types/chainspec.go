@@ -101,7 +101,6 @@ func loadSpecData(path string) (*chain.SpecData, error) {
 	// List of required keys as defined by your mapstructure tags.
 	requiredKeys := []string{
 		"max-effective-balance",
-		"ejection-balance",
 		"effective-balance-increment",
 		"hysteresis-quotient",
 		"hysteresis-downward-multiplier",
