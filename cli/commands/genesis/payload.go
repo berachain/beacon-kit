@@ -23,7 +23,6 @@ package genesis
 import (
 	"fmt"
 
-	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	"github.com/berachain/beacon-kit/cli/context"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -40,28 +39,20 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func AddExecutionPayloadCmd(chainSpecCreator servertypes.ChainSpecCreator) *cobra.Command {
+func AddExecutionPayloadCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "execution-payload [eth/genesis/file.json]",
 		Short: "adds the eth1 genesis execution payload to the genesis file",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// Read the genesis file.
-			elGenesisPath := args[0]
-			config := context.GetConfigFromCmd(cmd)
-			v := context.GetViperFromCmd(cmd)
-			chainSpec, err := chainSpecCreator(v)
-			if err != nil {
-				return err
-			}
-			return AddExecutionPayload(chainSpec, elGenesisPath, config)
+			return AddExecutionPayload(args[0], context.GetConfigFromCmd(cmd))
 		},
 	}
 
 	return cmd
 }
 
-func AddExecutionPayload(chainSpec ChainSpec, elGenesisPath string, config *cmtcfg.Config) error {
+func AddExecutionPayload(elGenesisPath string, config *cmtcfg.Config) error {
 	genesisBz, err := afero.ReadFile(afero.NewOsFs(), elGenesisPath)
 	if err != nil {
 		return errors.Wrap(err, "failed to read eth1 genesis file")
@@ -103,9 +94,6 @@ func AddExecutionPayload(chainSpec ChainSpec, elGenesisPath string, config *cmtc
 	if err != nil {
 		return errors.Wrap(err, "failed to convert executable data to execution payload header")
 	}
-	// if eph == nil {
-	// 	return errors.New("failed to get execution payload header")
-	// }
 	genesisInfo.ExecutionPayloadHeader = eph
 
 	if appGenesisState["beacon"], err = json.Marshal(genesisInfo); err != nil {
