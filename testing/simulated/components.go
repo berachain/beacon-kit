@@ -82,6 +82,7 @@ func FixedComponents(t *testing.T) []any {
 func ProvideElectraGenesisChainSpec() (chain.Spec, error) {
 	specData := spec.TestnetChainSpecData()
 	// Both Deneb1 and Electra happen in genesis.
+	specData.GenesisTime = 0
 	specData.Deneb1ForkTime = 0
 	specData.ElectraForkTime = 0
 	chainSpec, err := chain.NewSpec(specData)
@@ -95,6 +96,7 @@ func ProvideElectraGenesisChainSpec() (chain.Spec, error) {
 // Bypasses the need for environment variables.
 func ProvideSimulationChainSpec() (chain.Spec, error) {
 	specData := spec.TestnetChainSpecData()
+	specData.GenesisTime = 0
 	// Arbitrary number
 	specData.Deneb1ForkTime = 30
 	chainSpec, err := chain.NewSpec(specData)
@@ -107,6 +109,7 @@ func ProvideSimulationChainSpec() (chain.Spec, error) {
 // ProvidePectraForkTestChainSpec provides a chain spec with pectra at timestamp 10
 func ProvidePectraForkTestChainSpec() (chain.Spec, error) {
 	specData := spec.TestnetChainSpecData()
+	specData.GenesisTime = 0
 	specData.Deneb1ForkTime = 0
 	specData.ElectraForkTime = 10
 	chainSpec, err := chain.NewSpec(specData)

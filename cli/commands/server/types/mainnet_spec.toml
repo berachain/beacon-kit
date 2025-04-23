@@ -34,8 +34,9 @@ eth1-follow-distance = 1
 target-seconds-per-eth1-block = 2
 
 # Fork-related values
-deneb-one-fork-epoch = 2855
-electra-fork-epoch = 9999999999999999
+genesis-time = 1737381600
+deneb-one-fork-time = 1738415507
+electra-fork-time = 9999999999999999
 
 # State list lengths
 epochs-per-historical-vector = 8

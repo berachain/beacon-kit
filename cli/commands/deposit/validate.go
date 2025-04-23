@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/spf13/cobra"
 )
 
@@ -131,7 +130,7 @@ func ValidateDeposit(
 
 	// All deposits are signed with the genesis version.
 	return depositMessage.VerifyCreateValidator(
-		types.NewForkData(version.Genesis(), genValRoot),
+		types.NewForkData(cs.GenesisForkVersion(), genValRoot),
 		signature,
 		cs.DomainTypeDeposit(),
 		signer.BLSSigner{}.VerifySignature,

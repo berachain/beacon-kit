@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/spf13/cobra"
 )
 
@@ -152,7 +151,7 @@ func CreateDepositMessage(
 ) {
 	// Create and sign the deposit message. All deposits are signed with the genesis version.
 	depositMsg, signature, err := types.CreateAndSignDepositMessage(
-		types.NewForkData(version.Genesis(), genValRoot),
+		types.NewForkData(cs.GenesisForkVersion(), genValRoot),
 		cs.DomainTypeDeposit(),
 		blsSigner,
 		creds,
