@@ -25,6 +25,7 @@ import (
 
 	"cosmossdk.io/collections"
 	"github.com/berachain/beacon-kit/consensus-types/types"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-api/backend/utils"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
@@ -73,6 +74,20 @@ func (f *validatorFilters) parseID(id string) {
 		f.pubkeys = append(f.pubkeys, pubkey)
 	}
 	// Silently skip invalid IDs
+}
+
+// FilteredValidatorsAtGenesis will grab all of the validators from the state at the
+// genesis slot. It will then filter them by the provided ids and statuses.
+func (b *Backend) FilteredValidatorsAtGenesis(
+	validators []*ctypes.Validator,
+	genesisState *statedb.StateDB,
+	ids []string,
+	statuses []string,
+) ([]*beacontypes.ValidatorData, error) {
+	// Parse all IDs and pubkeys once at the start
+	filters := parseValidatorIDs(ids)
+	epoch := b.cs.SlotToEpoch(0)
+	return filterAndBuildValidatorData(genesisState, validators, filters, epoch, statuses)
 }
 
 // FilteredValidators will grab all of the validators from the state at the

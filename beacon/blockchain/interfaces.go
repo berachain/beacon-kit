@@ -138,6 +138,8 @@ type BlockchainI interface {
 		*ctypes.BeaconBlockHeader,
 		common.Root,
 		common.Root,
+		[]*ctypes.Validator,
+		*statedb.StateDB,
 		error,
 	)
 	ProcessProposal(

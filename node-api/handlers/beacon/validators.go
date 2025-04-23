@@ -37,6 +37,20 @@ var ErrNoSlotForStateRoot = errors.New("slot not found at state root")
 // consistency between GetStateValidators and PostStateValidators, since they
 // are intended to behave the same way.
 func (h *Handler) getStateValidators(stateID string, ids []string, statuses []string) (any, error) {
+	if stateID == "genesis" {
+		// Convert consensus validators to API validators
+		genesisValidators := h.backend.GenesisValidators()
+		validators, err := h.backend.FilteredValidatorsAtGenesis(
+			genesisValidators,
+			h.backend.GenesisState(),
+			ids,
+			statuses,
+		)
+		if err != nil {
+			return nil, err
+		}
+		return beacontypes.NewResponse(validators), nil
+	}
 	slot, err := utils.SlotFromStateID(stateID, h.backend)
 	if err != nil {
 		return nil, err
@@ -80,6 +94,9 @@ func (h *Handler) GetStateValidator(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
+	if req.StateID == "genesis" {
+		return beacontypes.NewResponse(h.backend.GenesisValidators()), nil
+	}
 	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
 	switch {
 	case err == nil:
@@ -115,6 +132,10 @@ func (h *Handler) GetStateValidatorBalances(c handlers.Context) (any, error) {
 	)
 	if err != nil {
 		return nil, err
+	}
+
+	if req.StateID == "genesis" {
+		return beacontypes.NewResponse(h.backend.GenesisValidators()), nil
 	}
 	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
 

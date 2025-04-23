@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/node-core/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 )
@@ -48,6 +49,8 @@ type Backend struct {
 	genesisBlockRoot      atomic.Pointer[common.Root]
 	genesisTime           atomic.Pointer[math.U64]
 	genesisForkVersion    atomic.Pointer[common.Version]
+	validators            atomic.Pointer[[]*ctypes.Validator]
+	genesisState          atomic.Pointer[*statedb.StateDB]
 }
 
 // New creates and returns a new Backend instance.
@@ -94,10 +97,14 @@ func (b *Backend) SetGenesisData(
 	genesisHeader *ctypes.BeaconBlockHeader,
 	genesisValidatorsRoot common.Root,
 	genesisBlockRoot common.Root,
+	validators []*ctypes.Validator,
+	genesisState *statedb.StateDB,
 ) {
 	b.genesisHeader.Store(genesisHeader)
 	b.genesisValidatorsRoot.Store(&genesisValidatorsRoot)
 	b.genesisBlockRoot.Store(&genesisBlockRoot)
+	b.validators.Store(&validators)
+	b.genesisState.Store(&genesisState)
 }
 
 // GetSlotByBlockRoot retrieves the slot by a block root from the block store.

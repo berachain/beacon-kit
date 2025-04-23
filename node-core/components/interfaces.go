@@ -545,6 +545,8 @@ type (
 		GenesisTime() math.U64
 		GenesisBlockHeader() *ctypes.BeaconBlockHeader
 		GenesisBlockRoot() common.Root
+		GenesisValidators() []*ctypes.Validator
+		GenesisState() *statedb.StateDB
 	}
 
 	RandaoBackend interface {
@@ -571,6 +573,12 @@ type (
 		) (*types.ValidatorData, error)
 		FilteredValidators(
 			slot math.Slot,
+			ids []string,
+			statuses []string,
+		) ([]*types.ValidatorData, error)
+		FilteredValidatorsAtGenesis(
+			validators []*ctypes.Validator,
+			genesisState *statedb.StateDB,
 			ids []string,
 			statuses []string,
 		) ([]*types.ValidatorData, error)
