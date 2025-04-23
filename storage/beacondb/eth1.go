@@ -31,7 +31,6 @@ import (
 func (kv *KVStore) GetLatestExecutionPayloadHeader() (
 	*ctypes.ExecutionPayloadHeader, error,
 ) {
-	// NOTE: unmarshalling this struct is NOT affected by it's own fork version.
 	return kv.latestExecutionPayloadHeader.Get(kv.ctx)
 }
 
