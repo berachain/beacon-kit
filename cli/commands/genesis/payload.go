@@ -101,7 +101,7 @@ func AddExecutionPayload(chainSpec ChainSpec, elGenesisPath string, config *cmtc
 	// Inject the execution payload from the executable data.
 	eph, err := executableDataToExecutionPayloadHeader(payload)
 	if err != nil {
-		return errors.Wrap(err, "failed to unmarshal beacon state")
+		return errors.Wrap(err, "failed to convert executable data to execution payload header")
 	}
 	// if eph == nil {
 	// 	return errors.New("failed to get execution payload header")
@@ -123,36 +123,7 @@ func AddExecutionPayload(chainSpec ChainSpec, elGenesisPath string, config *cmtc
 func executableDataToExecutionPayloadHeader(
 	data *gethprimitives.ExecutableData,
 ) (*types.ExecutionPayloadHeader, error) {
-	withdrawals := make(engineprimitives.Withdrawals, len(data.Withdrawals))
-	for i, withdrawal := range data.Withdrawals {
-		withdrawals[i] = &engineprimitives.Withdrawal{
-			Index:     math.U64(withdrawal.Index),
-			Validator: math.ValidatorIndex(withdrawal.Validator),
-			Address:   common.ExecutionAddress(withdrawal.Address),
-			Amount:    math.Gwei(withdrawal.Amount),
-		}
-	}
-
-	if len(data.ExtraData) > constants.ExtraDataLength {
-		data.ExtraData = data.ExtraData[:constants.ExtraDataLength]
-	}
-
-	var blobGasUsed uint64
-	if data.BlobGasUsed != nil {
-		blobGasUsed = *data.BlobGasUsed
-	}
-
-	var excessBlobGas uint64
-	if data.ExcessBlobGas != nil {
-		excessBlobGas = *data.ExcessBlobGas
-	}
-
-	baseFeePerGas, err := math.NewU256FromBigInt(data.BaseFeePerGas)
-	if err != nil {
-		return nil, fmt.Errorf("failed baseFeePerGas conversion: %w", err)
-	}
-
-	return &types.ExecutionPayloadHeader{
+	eph := &types.ExecutionPayloadHeader{
 		ParentHash:       common.ExecutionHash(data.ParentHash),
 		FeeRecipient:     common.ExecutionAddress(data.FeeRecipient),
 		StateRoot:        common.Bytes32(data.StateRoot),
@@ -164,11 +135,39 @@ func executableDataToExecutionPayloadHeader(
 		GasUsed:          math.U64(data.GasUsed),
 		Timestamp:        math.U64(data.Timestamp),
 		ExtraData:        data.ExtraData,
-		BaseFeePerGas:    baseFeePerGas,
 		BlockHash:        common.ExecutionHash(data.BlockHash),
 		TransactionsRoot: engineprimitives.Transactions(data.Transactions).HashTreeRoot(),
-		WithdrawalsRoot:  withdrawals.HashTreeRoot(),
-		BlobGasUsed:      math.U64(blobGasUsed),
-		ExcessBlobGas:    math.U64(excessBlobGas),
-	}, nil
+	}
+
+	withdrawals := make(engineprimitives.Withdrawals, len(data.Withdrawals))
+	for i, withdrawal := range data.Withdrawals {
+		withdrawals[i] = &engineprimitives.Withdrawal{
+			Index:     math.U64(withdrawal.Index),
+			Validator: math.ValidatorIndex(withdrawal.Validator),
+			Address:   common.ExecutionAddress(withdrawal.Address),
+			Amount:    math.Gwei(withdrawal.Amount),
+		}
+	}
+	eph.WithdrawalsRoot = withdrawals.HashTreeRoot()
+
+	if len(data.ExtraData) > constants.ExtraDataLength {
+		data.ExtraData = data.ExtraData[:constants.ExtraDataLength]
+	}
+	eph.ExtraData = data.ExtraData
+
+	if data.BlobGasUsed != nil {
+		eph.BlobGasUsed = math.U64(*data.BlobGasUsed)
+	}
+
+	if data.ExcessBlobGas != nil {
+		eph.ExcessBlobGas = math.U64(*data.ExcessBlobGas)
+	}
+
+	baseFeePerGas, err := math.NewU256FromBigInt(data.BaseFeePerGas)
+	if err != nil {
+		return nil, fmt.Errorf("failed baseFeePerGas conversion: %w", err)
+	}
+	eph.BaseFeePerGas = baseFeePerGas
+
+	return eph, nil
 }

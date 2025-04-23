@@ -94,7 +94,15 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	}
 
 	depRoot := append(genDeposits, blkDeposit).HashTreeRoot()
-	blk1 := buildNextBlock(t, cs, st, types.NewEth1Data(depRoot), 10, []*types.Deposit{blkDeposit}, st.EVMInflationWithdrawal(10))
+	blk1 := buildNextBlock(
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		10,
+		[]*types.Deposit{blkDeposit},
+		st.EVMInflationWithdrawal(10),
+	)
 
 	// make sure included deposit is already available in deposit store
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), blk1.Body.Deposits))
@@ -130,7 +138,13 @@ func TestTransitionUpdateValidators(t *testing.T) {
 
 	// finally the block turning epoch
 	blk = buildNextBlock(
-		t, cs, st, types.NewEth1Data(depRoot), blk.GetTimestamp()+1, []*types.Deposit{}, st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		blk.GetTimestamp()+1,
+		[]*types.Deposit{},
+		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
 	)
 
 	valDiff, err = sp.Transition(ctx, st, blk)
@@ -201,7 +215,15 @@ func TestTransitionCreateValidator(t *testing.T) {
 	}
 
 	depRoot := append(genDeposits, blkDeposit).HashTreeRoot()
-	blk1 := buildNextBlock(t, cs, st, types.NewEth1Data(depRoot), 10, []*types.Deposit{blkDeposit}, st.EVMInflationWithdrawal(10))
+	blk1 := buildNextBlock(
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		10,
+		[]*types.Deposit{blkDeposit},
+		st.EVMInflationWithdrawal(10),
+	)
 
 	// make sure included deposit is already available in deposit store
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), blk1.Body.Deposits))
@@ -238,7 +260,13 @@ func TestTransitionCreateValidator(t *testing.T) {
 
 	// finally the block turning epoch
 	blk = buildNextBlock(
-		t, cs, st, types.NewEth1Data(depRoot), blk.GetTimestamp()+1, []*types.Deposit{}, st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		blk.GetTimestamp()+1,
+		[]*types.Deposit{},
+		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
 	)
 
 	valDiff, err = sp.Transition(ctx, st, blk)
@@ -268,7 +296,13 @@ func TestTransitionCreateValidator(t *testing.T) {
 
 	// finally the block turning epoch
 	blk = buildNextBlock(
-		t, cs, st, types.NewEth1Data(depRoot), blk.GetTimestamp()+1, []*types.Deposit{}, st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		blk.GetTimestamp()+1,
+		[]*types.Deposit{},
+		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
 	)
 
 	// run the test
@@ -358,7 +392,15 @@ func TestTransitionWithdrawals(t *testing.T) {
 			Address:   address1,
 		},
 	}
-	blk := buildNextBlock(t, cs, st, types.NewEth1Data(genDeposits.HashTreeRoot()), 10, []*types.Deposit{}, withdrawals...)
+	blk := buildNextBlock(
+		t,
+		cs,
+		st,
+		types.NewEth1Data(genDeposits.HashTreeRoot()),
+		10,
+		[]*types.Deposit{},
+		withdrawals...,
+	)
 
 	// Run the test.
 	_, err = sp.Transition(ctx, st, blk)
@@ -436,7 +478,15 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 			Address:   address0,
 		},
 	}
-	blk := buildNextBlock(t, cs, st, types.NewEth1Data(depRoot), 10, []*types.Deposit{}, withdrawals...)
+	blk := buildNextBlock(
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		10,
+		[]*types.Deposit{},
+		withdrawals...,
+	)
 
 	// Run the test.
 	_, err = sp.Transition(ctx, st, blk)
@@ -470,7 +520,15 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 			Address:   address1,
 		},
 	}
-	blk = buildNextBlock(t, cs, st, types.NewEth1Data(depRoot), blk.GetTimestamp()+1, []*types.Deposit{}, withdrawals...)
+	blk = buildNextBlock(
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		blk.GetTimestamp()+1,
+		[]*types.Deposit{},
+		withdrawals...,
+	)
 	// Run the test.
 	vals, err := sp.Transition(ctx, st, blk)
 
@@ -488,9 +546,8 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 // TestTransitionHittingValidatorsCap shows that the extra
 // validator added when validators set is at cap gets never activated
 // and its deposit is returned at after next epoch starts.
-//
-//nolint:paralleltest // uses envars
 func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
+	t.Parallel()
 	cs := setupChain(t)
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
@@ -514,7 +571,8 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		key, rndSeed = generateTestPK(t, rndSeed)
 		creds, rndSeed = generateTestExecutionAddress(t, rndSeed)
 
-		genDeposits = append(genDeposits,
+		genDeposits = append(
+			genDeposits,
 			&types.Deposit{
 				Pubkey:      key,
 				Credentials: creds,
@@ -546,7 +604,15 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	)
 
 	depRoot := append(genDeposits, extraValDeposit).HashTreeRoot()
-	blk1 := buildNextBlock(t, cs, st, types.NewEth1Data(depRoot), 10, []*types.Deposit{extraValDeposit}, st.EVMInflationWithdrawal(10))
+	blk1 := buildNextBlock(
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		10,
+		[]*types.Deposit{extraValDeposit},
+		st.EVMInflationWithdrawal(10),
+	)
 
 	// make sure included deposit is already available in deposit store
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), blk1.Body.Deposits))
@@ -583,7 +649,13 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 
 	// finally the block turning epoch
 	blk = buildNextBlock(
-		t, cs, st, types.NewEth1Data(depRoot), blk.GetTimestamp()+1, []*types.Deposit{}, st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		blk.GetTimestamp()+1,
+		[]*types.Deposit{},
+		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
 	)
 
 	// run the test
@@ -613,7 +685,13 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 
 	// finally the block turning epoch
 	blk = buildNextBlock(
-		t, cs, st, types.NewEth1Data(depRoot), blk.GetTimestamp()+1, []*types.Deposit{}, st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		blk.GetTimestamp()+1,
+		[]*types.Deposit{},
+		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
 	)
 
 	// run the test
@@ -637,13 +715,25 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	extraValAddr, err := extraValCreds.ToExecutionAddress()
 	require.NoError(t, err)
 	blk = buildNextBlock(
-		t, cs, st, types.NewEth1Data(depRoot), blk.GetTimestamp()+1, []*types.Deposit{}, st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		blk.GetTimestamp()+1,
+		[]*types.Deposit{},
+		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
 	)
 	_, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
 
 	blk = buildNextBlock(
-		t, cs, st, types.NewEth1Data(depRoot), blk.GetTimestamp()+1, []*types.Deposit{}, st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		blk.GetTimestamp()+1,
+		[]*types.Deposit{},
+		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
 	)
 	_, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
@@ -657,7 +747,15 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 			Amount:    extraValDeposit.Amount,
 		},
 	}
-	blk = buildNextBlock(t, cs, st, types.NewEth1Data(depRoot), blk.GetTimestamp()+1, []*types.Deposit{}, withdrawals...)
+	blk = buildNextBlock(
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		blk.GetTimestamp()+1,
+		[]*types.Deposit{},
+		withdrawals...,
+	)
 	_, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
 }
@@ -665,6 +763,8 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 // TestTransitionHittingValidatorsCap shows that if the extra
 // validator added when validators set is at cap improves amount staked
 // an existing validator is removed at the beginning of next epoch.
+//
+//nolint:maintidx // this end‑to‑end staking‑cap scenario is inherently complex
 func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	t.Parallel()
 	cs := setupChain(t)
@@ -690,7 +790,8 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		key, rndSeed = generateTestPK(t, rndSeed)
 		creds, rndSeed = generateTestExecutionAddress(t, rndSeed)
 
-		genDeposits = append(genDeposits,
+		genDeposits = append(
+			genDeposits,
 			&types.Deposit{
 				Pubkey:      key,
 				Credentials: creds,
@@ -725,7 +826,15 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	)
 
 	depRoot := append(genDeposits, extraValDeposit).HashTreeRoot()
-	blk1 := buildNextBlock(t, cs, st, types.NewEth1Data(depRoot), 10, []*types.Deposit{extraValDeposit}, st.EVMInflationWithdrawal(10))
+	blk1 := buildNextBlock(
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		10,
+		[]*types.Deposit{extraValDeposit},
+		st.EVMInflationWithdrawal(10),
+	)
 
 	// make sure included deposit is already available in deposit store
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), blk1.Body.Deposits))
@@ -779,7 +888,11 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 
 	// finally the block turning epoch
 	blk = buildNextBlock(
-		t, cs, st, types.NewEth1Data(depRoot), blk.GetTimestamp()+1, []*types.Deposit{}, st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot), blk.GetTimestamp()+1, []*types.Deposit{},
+		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
 	)
 
 	// run the test
@@ -824,7 +937,13 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 
 	// finally the block turning epoch
 	blk = buildNextBlock(
-		t, cs, st, types.NewEth1Data(depRoot), blk.GetTimestamp()+1, []*types.Deposit{}, st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		blk.GetTimestamp()+1,
+		[]*types.Deposit{},
+		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
 	)
 
 	// run the test
@@ -877,14 +996,26 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 
 	// finally the block turning epoch
 	blk = buildNextBlock(
-		t, cs, st, types.NewEth1Data(depRoot), blk.GetTimestamp()+1, []*types.Deposit{}, st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		blk.GetTimestamp()+1,
+		[]*types.Deposit{},
+		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
 	)
 
 	_, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
 
 	blk = buildNextBlock(
-		t, cs, st, types.NewEth1Data(depRoot), blk.GetTimestamp()+1, []*types.Deposit{}, st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		blk.GetTimestamp()+1,
+		[]*types.Deposit{},
+		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
 	)
 	_, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
@@ -898,7 +1029,15 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 			Amount:    valToEvict.Amount,
 		},
 	}
-	blk = buildNextBlock(t, cs, st, types.NewEth1Data(depRoot), blk.GetTimestamp()+1, []*types.Deposit{}, withdrawals...)
+	blk = buildNextBlock(
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		blk.GetTimestamp()+1,
+		[]*types.Deposit{},
+		withdrawals...,
+	)
 	_, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
 }
@@ -943,7 +1082,15 @@ func TestValidatorNotWithdrawable(t *testing.T) {
 	}
 
 	depRoot := append(genDeposits, blockDeposits...).HashTreeRoot()
-	blk := buildNextBlock(t, cs, st, types.NewEth1Data(depRoot), 10, blockDeposits, st.EVMInflationWithdrawal(10))
+	blk := buildNextBlock(
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		10,
+		blockDeposits,
+		st.EVMInflationWithdrawal(10),
+	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), blockDeposits))
 
 	// Run transition.
