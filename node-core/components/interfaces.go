@@ -583,7 +583,7 @@ type (
 			statuses []string,
 		) ([]*types.ValidatorData, error)
 		ValidatorBalancesByIDs(
-			slot math.Slot,
+			state *statedb.StateDB,
 			ids []string,
 		) ([]*types.ValidatorBalanceData, error)
 	}

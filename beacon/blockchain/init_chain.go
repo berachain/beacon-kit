@@ -106,5 +106,7 @@ func (s *Service) ProcessGenesisData(
 		return nil, nil, common.Root{}, common.Root{}, nil, nil, err
 	}
 
+	// Get the balances from the state.
+	genesisState.GetBalances()
 	return validatorUpdates, genesisHeader, genesisValidatorsRoot, genesisBlockRoot, validators, genesisState, nil
 }

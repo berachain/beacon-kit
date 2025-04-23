@@ -252,13 +252,9 @@ func (b *Backend) ValidatorByID(slot math.Slot, id string) (*beacontypes.Validat
 	}, nil
 }
 
-func (b *Backend) ValidatorBalancesByIDs(slot math.Slot, ids []string) ([]*beacontypes.ValidatorBalanceData, error) {
-	// Get the state at the given slot.
-	st, _, err := b.StateAtSlot(slot)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get state from slot %d", slot)
-	}
-
+// ValidatorBalancesByIDs is being used for both GET and POST requests.
+// This function is being used for both genesis and non-genesis states as now we are passing the state directly.
+func (b *Backend) ValidatorBalancesByIDs(st *statedb.StateDB, ids []string) ([]*beacontypes.ValidatorBalanceData, error) {
 	// If no IDs provided, return all validator balances
 	if len(ids) == 0 {
 		rawBalances, errInBalances := st.GetBalances()
@@ -279,6 +275,7 @@ func (b *Backend) ValidatorBalancesByIDs(slot math.Slot, ids []string) ([]*beaco
 	var (
 		balances = make([]*beacontypes.ValidatorBalanceData, 0, len(ids))
 		index    math.U64
+		err      error
 	)
 	for _, id := range ids {
 		index, err = utils.ValidatorIndexByID(st, id)
