@@ -61,10 +61,10 @@ func (s *Service) ProcessGenesisData(
 			genesisVersion, s.chainSpec.GenesisForkVersion(),
 		)
 	}
-  
-  // Call the state processor to initialize the "premined" (genesis) beacon state.
+
+	// Call the state processor to initialize the "premined" (genesis) beacon state.
 	genesisState := s.storageBackend.StateFromContext(ctx)
-	validatorUpdates, err := s.stateProcessor.InitializePreminedBeaconStateFromEth1(
+	validatorUpdates, err := s.stateProcessor.InitializeBeaconStateFromEth1(
 		genesisState,
 		genesisData.GetDeposits(),
 		execPayloadHeader,
