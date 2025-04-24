@@ -21,6 +21,8 @@
 package constants
 
 import (
+	stdmath "math"
+
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
@@ -32,7 +34,7 @@ const (
 	// GenesisEpoch represents the initial epoch in the system.
 	GenesisEpoch math.Epoch = 0
 	// FarFutureEpoch represents a far future epoch value.
-	FarFutureEpoch = ^uint64(0)
+	FarFutureEpoch math.Epoch = stdmath.MaxUint64
 )
 
 // Electra constants taken from :

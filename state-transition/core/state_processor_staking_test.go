@@ -290,13 +290,13 @@ func TestTransitionCreateValidator(t *testing.T) {
 	require.Equal(t, math.Epoch(1), extraVal.ActivationEligibilityEpoch)
 	require.Equal(
 		t,
-		math.Epoch(constants.FarFutureEpoch),
+		constants.FarFutureEpoch,
 		extraVal.ActivationEpoch,
 	)
-	require.Equal(t, math.Epoch(constants.FarFutureEpoch), extraVal.ExitEpoch)
+	require.Equal(t, constants.FarFutureEpoch, extraVal.ExitEpoch)
 	require.Equal(
 		t,
-		math.Epoch(constants.FarFutureEpoch),
+		constants.FarFutureEpoch,
 		extraVal.WithdrawableEpoch,
 	)
 
@@ -332,10 +332,10 @@ func TestTransitionCreateValidator(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, math.Epoch(1), extraVal.ActivationEligibilityEpoch)
 	require.Equal(t, math.Epoch(2), extraVal.ActivationEpoch)
-	require.Equal(t, math.Epoch(constants.FarFutureEpoch), extraVal.ExitEpoch)
+	require.Equal(t, constants.FarFutureEpoch, extraVal.ExitEpoch)
 	require.Equal(
 		t,
-		math.Epoch(constants.FarFutureEpoch),
+		constants.FarFutureEpoch,
 		extraVal.WithdrawableEpoch,
 	)
 
@@ -652,18 +652,18 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(
 		t,
-		math.Epoch(constants.FarFutureEpoch),
+		constants.FarFutureEpoch,
 		extraVal.ActivationEligibilityEpoch,
 	)
 	require.Equal(
 		t,
-		math.Epoch(constants.FarFutureEpoch),
+		constants.FarFutureEpoch,
 		extraVal.ActivationEpoch,
 	)
-	require.Equal(t, math.Epoch(constants.FarFutureEpoch), extraVal.ExitEpoch)
+	require.Equal(t, constants.FarFutureEpoch, extraVal.ExitEpoch)
 	require.Equal(
 		t,
-		math.Epoch(constants.FarFutureEpoch),
+		constants.FarFutureEpoch,
 		extraVal.WithdrawableEpoch,
 	)
 
@@ -693,13 +693,13 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	require.Equal(t, math.Epoch(1), extraVal.ActivationEligibilityEpoch)
 	require.Equal(
 		t,
-		math.Epoch(constants.FarFutureEpoch),
+		constants.FarFutureEpoch,
 		extraVal.ActivationEpoch,
 	)
-	require.Equal(t, math.Epoch(constants.FarFutureEpoch), extraVal.ExitEpoch)
+	require.Equal(t, constants.FarFutureEpoch, extraVal.ExitEpoch)
 	require.Equal(
 		t,
-		math.Epoch(constants.FarFutureEpoch),
+		constants.FarFutureEpoch,
 		extraVal.WithdrawableEpoch,
 	)
 
@@ -787,7 +787,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 // TestTransitionHittingValidatorsCap shows that if an extra validator is added with a higher amount of stake than the lowest validator
 // when the validator set is at cap, the lowest validator is removed at the beginning of next epoch, i.e. replaced by the new validator.
 //
-//nolint:maintidx // this end‑to‑end staking‑cap scenario is inherently complex
+
 func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	t.Parallel()
 	cs := setupChain(t)
@@ -877,18 +877,18 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(
 		t,
-		math.Epoch(constants.FarFutureEpoch),
+		constants.FarFutureEpoch,
 		extraVal.ActivationEligibilityEpoch,
 	)
 	require.Equal(
 		t,
-		math.Epoch(constants.FarFutureEpoch),
+		constants.FarFutureEpoch,
 		extraVal.ActivationEpoch,
 	)
-	require.Equal(t, math.Epoch(constants.FarFutureEpoch), extraVal.ExitEpoch)
+	require.Equal(t, constants.FarFutureEpoch, extraVal.ExitEpoch)
 	require.Equal(
 		t,
-		math.Epoch(constants.FarFutureEpoch),
+		constants.FarFutureEpoch,
 		extraVal.WithdrawableEpoch,
 	)
 
@@ -900,12 +900,12 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	require.Equal(t, constants.GenesisEpoch, smallestVal.ActivationEpoch)
 	require.Equal(
 		t,
-		math.Epoch(constants.FarFutureEpoch),
+		constants.FarFutureEpoch,
 		smallestVal.ExitEpoch,
 	)
 	require.Equal(
 		t,
-		math.Epoch(constants.FarFutureEpoch),
+		constants.FarFutureEpoch,
 		smallestVal.WithdrawableEpoch,
 	)
 
@@ -933,13 +933,13 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	require.Equal(t, math.Epoch(1), extraVal.ActivationEligibilityEpoch)
 	require.Equal(
 		t,
-		math.Epoch(constants.FarFutureEpoch),
+		constants.FarFutureEpoch,
 		extraVal.ActivationEpoch,
 	)
-	require.Equal(t, math.Epoch(constants.FarFutureEpoch), extraVal.ExitEpoch)
+	require.Equal(t, constants.FarFutureEpoch, extraVal.ExitEpoch)
 	require.Equal(
 		t,
-		math.Epoch(constants.FarFutureEpoch),
+		constants.FarFutureEpoch,
 		extraVal.WithdrawableEpoch,
 	)
 
@@ -949,12 +949,12 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	require.Equal(t, constants.GenesisEpoch, smallestVal.ActivationEpoch)
 	require.Equal(
 		t,
-		math.Epoch(constants.FarFutureEpoch),
+		constants.FarFutureEpoch,
 		smallestVal.ExitEpoch,
 	)
 	require.Equal(
 		t,
-		math.Epoch(constants.FarFutureEpoch),
+		constants.FarFutureEpoch,
 		smallestVal.WithdrawableEpoch,
 	)
 
@@ -998,10 +998,10 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, constants.GenesisEpoch+1, extraVal.ActivationEligibilityEpoch)
 	require.Equal(t, constants.GenesisEpoch+2, extraVal.ActivationEpoch)
-	require.Equal(t, math.Epoch(constants.FarFutureEpoch), extraVal.ExitEpoch)
+	require.Equal(t, constants.FarFutureEpoch, extraVal.ExitEpoch)
 	require.Equal(
 		t,
-		math.Epoch(constants.FarFutureEpoch),
+		constants.FarFutureEpoch,
 		extraVal.WithdrawableEpoch,
 	)
 

@@ -317,7 +317,7 @@ func verifyWithdrawalConditions(chainSpec ChainSpec, st *state.StateDB, validato
 		return errors.New("validator is not active")
 	}
 	// Verify exit has not been initiated
-	if validator.GetExitEpoch() != math.Epoch(constants.FarFutureEpoch) {
+	if validator.GetExitEpoch() != constants.FarFutureEpoch {
 		return errors.New("withdrawal already initiated")
 	}
 	// Verify the validator has been active long enough

@@ -52,5 +52,5 @@ const (
 const (
 	// MaxPendingPartialsPerWithdrawalsSweep is the maximum number of pending partial withdrawals
 	// per sweep.
-	MaxPendingPartialsPerWithdrawalsSweep uint64 = 8
+	MaxPendingPartialsPerWithdrawalsSweep = 8
 )

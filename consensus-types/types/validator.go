@@ -86,10 +86,10 @@ func NewValidatorFromDeposit(
 			maxEffectiveBalance,
 		),
 		Slashed:                    false,
-		ActivationEligibilityEpoch: math.Epoch(constants.FarFutureEpoch),
-		ActivationEpoch:            math.Epoch(constants.FarFutureEpoch),
-		ExitEpoch:                  math.Epoch(constants.FarFutureEpoch),
-		WithdrawableEpoch:          math.Epoch(constants.FarFutureEpoch),
+		ActivationEligibilityEpoch: constants.FarFutureEpoch,
+		ActivationEpoch:            constants.FarFutureEpoch,
+		ExitEpoch:                  constants.FarFutureEpoch,
+		WithdrawableEpoch:          constants.FarFutureEpoch,
 	}
 }
 
@@ -213,17 +213,13 @@ func (v Validator) IsActive(epoch math.Epoch) bool {
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#is_eligible_for_activation_queue
 func (v Validator) IsEligibleForActivation(finalizedEpoch math.Epoch) bool {
 	return v.ActivationEligibilityEpoch <= finalizedEpoch &&
-		v.ActivationEpoch == math.Epoch(constants.FarFutureEpoch)
+		v.ActivationEpoch == constants.FarFutureEpoch
 }
 
-// IsEligibleForActivationQueue is defined slightly differently from Ethereum
-// 2.0 Spec
+// IsEligibleForActivationQueue is defined slightly differently from Ethereum 2.0 Spec
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#is_eligible_for_activation_queue
 func (v Validator) IsEligibleForActivationQueue(threshold math.Gwei) bool {
-	return v.ActivationEligibilityEpoch == math.Epoch(
-		constants.FarFutureEpoch,
-	) &&
-		v.EffectiveBalance >= threshold
+	return v.ActivationEligibilityEpoch == constants.FarFutureEpoch && v.EffectiveBalance >= threshold
 }
 
 // IsSlashable as defined in the Ethereum 2.0 Spec
@@ -333,7 +329,7 @@ func (v Validator) HasCompoundingWithdrawalCredential() bool {
 func (v *Validator) Status(currentEpoch math.Epoch) (string, error) {
 	activationEpoch := v.GetActivationEpoch()
 	activationEligibilityEpoch := v.GetActivationEligibilityEpoch()
-	farFutureEpoch := math.Epoch(constants.FarFutureEpoch)
+	farFutureEpoch := constants.FarFutureEpoch
 	exitEpoch := v.GetExitEpoch()
 	withdrawableEpoch := v.GetWithdrawableEpoch()
 

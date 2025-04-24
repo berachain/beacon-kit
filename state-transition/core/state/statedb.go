@@ -73,11 +73,12 @@ func (s *StateDB) DecreaseBalance(idx math.ValidatorIndex, delta math.Gwei) erro
 	return s.SetBalance(idx, balance-min(balance, delta))
 }
 
-// ExpectedWithdrawals as defined in the Ethereum 2.0 Specification:
+// ExpectedWithdrawals is modified from the ETH2.0 spec:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#new-get_expected_withdrawals
+// to allow a fixed withdrawal (as the first withdrawal) used for EVM inflation.
 //
-// NOTE: This function is modified from the spec to allow a fixed withdrawal
-// (as the first withdrawal) used for EVM inflation.
+// NOTE for caller: ProcessSlots must be called before this function as the "current" slot is
+// retrieved from the state in this function.
 //
 //nolint:gocognit,funlen // spec aligned
 func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.Withdrawals, uint64, error) {
@@ -191,7 +192,7 @@ func (s *StateDB) consumePendingPartialWithdrawals(
 	withdrawals engineprimitives.Withdrawals,
 	withdrawalIndex uint64,
 ) (
-	[]*engineprimitives.Withdrawal,
+	engineprimitives.Withdrawals,
 	uint64, // withdrawalIndex
 	uint64, // processedPartialWithdrawals
 	error,
@@ -202,29 +203,31 @@ func (s *StateDB) consumePendingPartialWithdrawals(
 	if getErr != nil {
 		return nil, 0, 0, fmt.Errorf("consumePendingPartialWithdrawals: failed retrieving pending partial withdrawals: %w", getErr)
 	}
+
 	processedPartialWithdrawals := uint64(0)
+	minActivationBalance := math.Gwei(s.cs.MinActivationBalance())
 
 	for _, withdrawal := range ppWithdrawals {
-		if withdrawal.WithdrawableEpoch > epoch || len(withdrawals) == int(constants.MaxPendingPartialsPerWithdrawalsSweep) {
+		if withdrawal.WithdrawableEpoch > epoch || len(withdrawals) == constants.MaxPendingPartialsPerWithdrawalsSweep {
 			// If the first withdrawal in the queue is not withdrawable, then all subsequent withdrawals will also be in later
 			// epochs and hence are not withdrawable, so we can break early.
 			break
 		}
+
 		validator, err := s.ValidatorByIndex(withdrawal.ValidatorIndex)
 		if err != nil {
 			return nil, 0, 0, err
 		}
-		minActivationBalance := math.Gwei(s.cs.MinActivationBalance())
 		hasSufficientEffectiveBalance := validator.GetEffectiveBalance() >= minActivationBalance
 		balance, err := s.GetBalance(withdrawal.ValidatorIndex)
 		if err != nil {
 			return nil, 0, 0, err
 		}
 		hasExcessBalance := balance > minActivationBalance
-		if validator.ExitEpoch == math.Epoch(constants.FarFutureEpoch) && hasSufficientEffectiveBalance && hasExcessBalance {
+		if validator.GetExitEpoch() == constants.FarFutureEpoch && hasSufficientEffectiveBalance && hasExcessBalance {
 			// A validator can only partial withdraw an amount such that:
 			// 1. never withdraw more than what the validator asked for.
-			// 2. never withdraw so much that the validator’s remaining balance would drop below MIN_ACTIVATION_BALANCE
+			// 2. never withdraw so much that the validator’s remaining balance would drop below MIN_ACTIVATION_BALANCE.
 			withdrawableBalance := min(balance-minActivationBalance, withdrawal.Amount)
 
 			withdrawalAddress, addrErr := validator.WithdrawalCredentials.ToExecutionAddress()
@@ -233,7 +236,12 @@ func (s *StateDB) consumePendingPartialWithdrawals(
 			}
 			withdrawals = append(
 				withdrawals,
-				engineprimitives.NewWithdrawal(math.U64(withdrawalIndex), withdrawal.ValidatorIndex, withdrawalAddress, withdrawableBalance),
+				engineprimitives.NewWithdrawal(
+					math.U64(withdrawalIndex),
+					withdrawal.ValidatorIndex,
+					withdrawalAddress,
+					withdrawableBalance,
+				),
 			)
 			// Increment the withdrawal index to process the next withdrawal.
 			withdrawalIndex++

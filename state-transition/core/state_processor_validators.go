@@ -68,7 +68,8 @@ func (sp *StateProcessor) processRegistryUpdates(st *statedb.StateDB) error {
 			elif is_active_validator(validator, current_epoch) and validator.effective_balance <= config.EJECTION_BALANCE:
 							initiate_validator_exit(state, ValidatorIndex(index))  # [Modified in Electra:EIP7251]
 		*/
-		if val.IsActive(currEpoch) && val.GetEffectiveBalance() <= math.Gwei(sp.cs.MinActivationBalance()-sp.cs.EffectiveBalanceIncrement()) {
+		if val.IsActive(currEpoch) &&
+			val.GetEffectiveBalance() <= math.Gwei(sp.cs.MinActivationBalance()-sp.cs.EffectiveBalanceIncrement()) {
 			sp.logger.Error(
 				"registry update, validator is active but effective balance is too low",
 				"validator_pub_key", val.Pubkey.String(),

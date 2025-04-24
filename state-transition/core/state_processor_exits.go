@@ -41,7 +41,7 @@ func (sp *StateProcessor) InitiateValidatorExit(st *statedb.StateDB, idx math.Va
 	var withdrawableEpoch, exitEpoch math.Epoch
 	if version.EqualsOrIsAfter(fork.CurrentVersion, version.Electra()) {
 		// Return if the validator already initiated an exit, making sure to only exit validators once.
-		if validator.GetExitEpoch() != math.Epoch(constants.FarFutureEpoch) {
+		if validator.GetExitEpoch() != constants.FarFutureEpoch {
 			return nil
 		}
 		slot, slotErr := st.GetSlot()
