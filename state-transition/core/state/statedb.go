@@ -116,8 +116,8 @@ func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.With
 	}
 
 	// [New in Electra:EIP7251] Consume pending partial withdrawals
-	timestampFork := s.cs.ActiveForkVersionForTimestamp(timestamp)
-	if version.EqualsOrIsAfter(timestampFork, version.Electra()) {
+	forkVersion := s.cs.ActiveForkVersionForTimestamp(timestamp)
+	if version.EqualsOrIsAfter(forkVersion, version.Electra()) {
 		withdrawals, withdrawalIndex, processedPartialWithdrawals, err =
 			s.consumePendingPartialWithdrawals(epoch, withdrawals, withdrawalIndex)
 		if err != nil {
