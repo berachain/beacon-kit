@@ -119,7 +119,7 @@ func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.With
 	timestampFork := s.cs.ActiveForkVersionForTimestamp(timestamp)
 	if version.EqualsOrIsAfter(timestampFork, version.Electra()) {
 		withdrawals, withdrawalIndex, processedPartialWithdrawals, err =
-			s.consumePendingPartialWithdrawals(timestampFork, epoch, withdrawals, withdrawalIndex)
+			s.consumePendingPartialWithdrawals(epoch, withdrawals, withdrawalIndex)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -187,7 +187,6 @@ func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.With
 }
 
 func (s *StateDB) consumePendingPartialWithdrawals(
-	timestampFork common.Version,
 	epoch math.Epoch,
 	withdrawals engineprimitives.Withdrawals,
 	withdrawalIndex uint64,
