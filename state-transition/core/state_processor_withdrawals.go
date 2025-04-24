@@ -21,6 +21,8 @@
 package core
 
 import (
+	"fmt"
+
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/errors"
@@ -205,7 +207,7 @@ func (sp *StateProcessor) ExpectedWithdrawals(st *state.StateDB, timestamp math.
 	forkVersion := sp.cs.ActiveForkVersionForTimestamp(timestamp)
 	if version.EqualsOrIsAfter(forkVersion, version.Electra()) {
 		withdrawals, withdrawalIndex, processedPartialWithdrawals, err =
-			st.ConsumePendingPartialWithdrawals(epoch, withdrawals, withdrawalIndex)
+			sp.consumePendingPartialWithdrawals(st, epoch, withdrawals, withdrawalIndex)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -269,6 +271,61 @@ func (sp *StateProcessor) ExpectedWithdrawals(st *state.StateDB, timestamp math.
 		validatorIndex = (validatorIndex + 1) % math.ValidatorIndex(totalValidators)
 	}
 	return withdrawals, processedPartialWithdrawals, nil
+}
+
+func (sp *StateProcessor) consumePendingPartialWithdrawals(
+	s *state.StateDB,
+	epoch math.Epoch,
+	withdrawals engineprimitives.Withdrawals,
+	withdrawalIndex uint64,
+) ([]*engineprimitives.Withdrawal, uint64, uint64, error) {
+	// By this point, if we're post-Electra, the fork version on the BeaconState will have been set as part of `PrepareStateForFork`.
+	// This will fail if the state has not been prepared for a post-Electra fork version.
+	ppWithdrawals, getErr := s.GetPendingPartialWithdrawals()
+	if getErr != nil {
+		return nil, 0, 0, fmt.Errorf("consumePendingPartialWithdrawals: failed retrieving pending partial withdrawals: %w", getErr)
+	}
+	processedPartialWithdrawals := uint64(0)
+
+	for _, withdrawal := range ppWithdrawals {
+		if withdrawal.WithdrawableEpoch > epoch || len(withdrawals) == int(constants.MaxPendingPartialsPerWithdrawalsSweep) {
+			// If the first withdrawal in the queue is not withdrawable, then all subsequent withdrawals will also be in later
+			// epochs and hence are not withdrawable, so we can break early.
+			break
+		}
+		validator, err := s.ValidatorByIndex(withdrawal.ValidatorIndex)
+		if err != nil {
+			return nil, 0, 0, err
+		}
+		minActivationBalance := math.Gwei(sp.cs.MinActivationBalance())
+		hasSufficientEffectiveBalance := validator.GetEffectiveBalance() >= minActivationBalance
+		balance, err := s.GetBalance(withdrawal.ValidatorIndex)
+		if err != nil {
+			return nil, 0, 0, err
+		}
+		hasExcessBalance := balance > minActivationBalance
+		if validator.ExitEpoch == math.Epoch(constants.FarFutureEpoch) && hasSufficientEffectiveBalance && hasExcessBalance {
+			// A validator can only partial withdraw an amount such that:
+			// 1. never withdraw more than what the validator asked for.
+			// 2. never withdraw so much that the validator’s remaining balance would drop below MIN_ACTIVATION_BALANCE
+			withdrawableBalance := min(balance-minActivationBalance, withdrawal.Amount)
+
+			withdrawalAddress, addrErr := validator.WithdrawalCredentials.ToExecutionAddress()
+			if addrErr != nil {
+				return nil, 0, 0, addrErr
+			}
+			withdrawals = append(
+				withdrawals,
+				engineprimitives.NewWithdrawal(math.U64(withdrawalIndex), withdrawal.ValidatorIndex, withdrawalAddress, withdrawableBalance),
+			)
+			// Increment the withdrawal index to process the next withdrawal.
+			withdrawalIndex++
+		}
+		// Even if a withdrawal was not created, e.g. the validator did not have sufficient balance, we will consider
+		// this withdrawal processed (spec defined) and hence increment the processedPartialWithdrawals count.
+		processedPartialWithdrawals++
+	}
+	return withdrawals, withdrawalIndex, processedPartialWithdrawals, nil
 }
 
 // processWithdrawalRequest is the equivalent of process_withdrawal_request as defined in the spec.
