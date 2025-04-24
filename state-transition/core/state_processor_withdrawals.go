@@ -320,6 +320,14 @@ func (sp *StateProcessor) consumePendingPartialWithdrawals(
 			)
 			// Increment the withdrawal index to process the next withdrawal.
 			withdrawalIndex++
+		} else {
+			sp.logger.Info("consumePendingPartialWithdrawals: validator cannot withdraw partial balance",
+				"validator_pubkey", validator.GetPubkey().String(),
+				"balance", balance.Base10(),
+				"exit_epoch", validator.ExitEpoch.Base10(),
+				"has_sufficient_effective_balance", hasSufficientEffectiveBalance,
+				"has_excess_balance", hasExcessBalance,
+			)
 		}
 		// Even if a withdrawal was not created, e.g. the validator did not have sufficient balance, we will consider
 		// this withdrawal processed (spec defined) and hence increment the processedPartialWithdrawals count.
@@ -439,7 +447,7 @@ func (sp *StateProcessor) processPartialWithdrawal(
 		pendingWithdrawals = append(pendingWithdrawals, ppWithdrawal)
 		return st.SetPendingPartialWithdrawals(pendingWithdrawals)
 	}
-	sp.logger.Info("validator cannot withdraw partial balance",
+	sp.logger.Info("processPartialWithdrawal: validator cannot withdraw partial balance",
 		"validator_index", index,
 		"validator_pubkey", validator.GetPubkey().String(),
 		"balance", balance,
