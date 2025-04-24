@@ -55,6 +55,15 @@ func (s *StateDB) Copy(ctx context.Context) *StateDB {
 	return NewBeaconStateFromDB(s.KVStore.Copy(ctx), s.cs)
 }
 
+// GetEpoch returns the current epoch.
+func (s *StateDB) GetEpoch() (math.Epoch, error) {
+	slot, err := s.GetSlot()
+	if err != nil {
+		return 0, err
+	}
+	return s.cs.SlotToEpoch(slot), nil
+}
+
 // IncreaseBalance increases the balance of a validator.
 func (s *StateDB) IncreaseBalance(idx math.ValidatorIndex, delta math.Gwei) error {
 	balance, err := s.GetBalance(idx)

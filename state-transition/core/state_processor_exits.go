@@ -31,13 +31,9 @@ import (
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#initiate-validator-exit
 // to handle pre-Electra validator exit logic.
 func (sp *StateProcessor) InitiateValidatorExit(st *statedb.StateDB, idx math.ValidatorIndex) error {
-	// Return if the validator already initiated an exit, making sure to only exit validators once.
 	validator, err := st.ValidatorByIndex(idx)
 	if err != nil {
 		return err
-	}
-	if validator.GetExitEpoch() != constants.FarFutureEpoch {
-		return nil
 	}
 
 	// We will use the fork version from the state to determine how to exit the validator.
@@ -62,6 +58,11 @@ func (sp *StateProcessor) InitiateValidatorExit(st *statedb.StateDB, idx math.Va
 		// `MinValidatorWithdrawabilityDelay`, but is instead the next epoch after exiting.
 		withdrawableEpoch = exitEpoch + 1
 	} else {
+		// Return if the validator already initiated an exit, so that we only exit validators once.
+		if validator.GetExitEpoch() != constants.FarFutureEpoch {
+			return nil
+		}
+
 		// The withdrawable Epoch is `MinValidatorWithdrawabilityDelay` epoch's after `exitEpoch`.
 		withdrawableEpoch = exitEpoch + sp.cs.MinValidatorWithdrawabilityDelay()
 	}
