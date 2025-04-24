@@ -42,9 +42,9 @@ func TestCreateChainSpec_Devnet(t *testing.T) {
 
 	// Set the app opts to force the devnet branch.
 	opts := dummyAppOptions{values: map[string]interface{}{
-		flags.ChainSpec: spec.DevnetChainSpecType,
+		flags.ChainSpec: "devnet",
 	}}
-	cs, err := spec.CreateChainSpec(opts)
+	cs, err := spec.Create(opts)
 	require.NoError(t, err)
 	require.NotNil(t, cs)
 	devnetSpec, err := spec.DevnetChainSpec()
@@ -54,11 +54,12 @@ func TestCreateChainSpec_Devnet(t *testing.T) {
 
 func TestCreateChainSpec_Testnet(t *testing.T) {
 	t.Parallel()
+
 	// Set the app opts to force the testnet branch.
 	opts := dummyAppOptions{values: map[string]interface{}{
-		flags.ChainSpec: spec.TestnetChainSpecType,
+		flags.ChainSpec: "testnet",
 	}}
-	cs, err := spec.CreateChainSpec(opts)
+	cs, err := spec.Create(opts)
 	require.NoError(t, err)
 	require.NotNil(t, cs)
 	testnetSpec, err := spec.TestnetChainSpec()
@@ -71,9 +72,9 @@ func TestCreateChainSpec_Mainnet(t *testing.T) {
 
 	// Set the app opts to force the mainnet branch.
 	opts := dummyAppOptions{values: map[string]interface{}{
-		flags.ChainSpec: spec.MainnetChainSpecType,
+		flags.ChainSpec: "mainnet",
 	}}
-	cs, err := spec.CreateChainSpec(opts)
+	cs, err := spec.Create(opts)
 	require.NoError(t, err)
 	require.NotNil(t, cs)
 	mainnetSpec, err := spec.MainnetChainSpec()
@@ -86,7 +87,7 @@ func TestCreateChainSpec_Default_NoSpecFlag(t *testing.T) {
 
 	// Provide an empty app opts so that no spec flag is present.
 	opts := dummyAppOptions{values: map[string]interface{}{}}
-	cs, err := spec.CreateChainSpec(opts)
+	cs, err := spec.Create(opts)
 	require.NoError(t, err)
 	mainnetSpec, err := spec.MainnetChainSpec()
 	require.NoError(t, err)
@@ -98,10 +99,10 @@ func TestCreateChainSpec_ConfigurableEnvar_WithSpecFlag(t *testing.T) {
 
 	// Provide a non-empty value for the custom spec file of mainnet.
 	opts := dummyAppOptions{values: map[string]interface{}{
-		flags.ChainSpec:         spec.CustomChainSpecType,
+		flags.ChainSpec:         "custom",
 		flags.ChainSpecFilePath: "../../testing/networks/80094/spec.toml",
 	}}
-	cs, err := spec.CreateChainSpec(opts)
+	cs, err := spec.Create(opts)
 	require.NoError(t, err)
 
 	mainnetSpec, err := spec.MainnetChainSpec()
@@ -109,11 +110,8 @@ func TestCreateChainSpec_ConfigurableEnvar_WithSpecFlag(t *testing.T) {
 	require.Equal(t, mainnetSpec, cs, "the chain spec loaded from TOML does not match the mainnet spec")
 
 	// Provide a non-empty value for the custom spec file of testnet.
-	opts = dummyAppOptions{values: map[string]interface{}{
-		flags.ChainSpec:         spec.CustomChainSpecType,
-		flags.ChainSpecFilePath: "../../testing/networks/80069/spec.toml",
-	}}
-	cs, err = spec.CreateChainSpec(opts)
+	opts.values[flags.ChainSpecFilePath] = "../../testing/networks/80069/spec.toml"
+	cs, err = spec.Create(opts)
 	require.NoError(t, err)
 
 	testnetSpec, err := spec.TestnetChainSpec()

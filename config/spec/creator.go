@@ -27,6 +27,7 @@ import (
 	"strings"
 
 	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/cli/commands/server/types"
 	"github.com/berachain/beacon-kit/cli/flags"
 	viperlib "github.com/berachain/beacon-kit/config/viper"
 	"github.com/mitchellh/mapstructure"
@@ -35,37 +36,27 @@ import (
 )
 
 const (
-	DevnetChainSpecType  = "devnet"
-	MainnetChainSpecType = "mainnet"
-	TestnetChainSpecType = "testnet"
-	CustomChainSpecType  = "custom"
+	devnet  = "devnet"
+	mainnet = "mainnet"
+	testnet = "testnet"
+	custom  = "custom"
 )
 
-type (
-	// AppOptions, usually implemented by Viper, holds the configuration for the application.
-	AppOptions interface {
-		Get(string) interface{}
-	}
-
-	// ChainSpecCreator is a function that allows us to lazily initialize the ChainSpec
-	ChainSpecCreator func(AppOptions) (chain.Spec, error)
-)
-
-// CreateChainSpec creates a chain spec based on the app options config flag for "chain-spec".
+// Create creates a chain spec based on the app options config flag for "chain-spec".
 // If unset, the default of "mainnet" chain spec is used.
-func CreateChainSpec(appOpts AppOptions) (chain.Spec, error) {
+func Create(appOpts types.AppOptions) (chain.Spec, error) {
 	var (
 		chainSpec chain.Spec
 		err       error
 	)
 	switch cast.ToString(appOpts.Get(flags.ChainSpec)) {
-	case CustomChainSpecType:
+	case custom:
 		chainSpec, err = handleCustomChainSpec(appOpts)
-	case DevnetChainSpecType:
+	case devnet:
 		chainSpec, err = DevnetChainSpec()
-	case TestnetChainSpecType:
+	case testnet:
 		chainSpec, err = TestnetChainSpec()
-	case MainnetChainSpecType:
+	case mainnet:
 		fallthrough
 	default:
 		chainSpec, err = MainnetChainSpec()
@@ -80,7 +71,7 @@ func CreateChainSpec(appOpts AppOptions) (chain.Spec, error) {
 }
 
 // handleCustomChainSpec loads a custom chain spec from the given app options.
-func handleCustomChainSpec(appOpts AppOptions) (chain.Spec, error) {
+func handleCustomChainSpec(appOpts types.AppOptions) (chain.Spec, error) {
 	specPath := cast.ToString(appOpts.Get(flags.ChainSpecFilePath))
 	if specPath == "" {
 		return nil, fmt.Errorf("expected flag '%s' for chain spec", flags.ChainSpecFilePath)
