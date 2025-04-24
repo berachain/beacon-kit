@@ -137,8 +137,6 @@ type BlockchainI interface {
 		transition.ValidatorUpdates,
 		*ctypes.BeaconBlockHeader,
 		common.Root,
-		common.Root,
-		[]*ctypes.Validator,
 		*statedb.StateDB,
 		error,
 	)

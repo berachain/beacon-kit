@@ -44,13 +44,11 @@ type Backend struct {
 	node types.ConsensusService
 
 	// the genesis data is cached here, written to once during initialization!
-	genesisHeader         atomic.Pointer[ctypes.BeaconBlockHeader]
-	genesisValidatorsRoot atomic.Pointer[common.Root]
-	genesisBlockRoot      atomic.Pointer[common.Root]
-	genesisTime           atomic.Pointer[math.U64]
-	genesisForkVersion    atomic.Pointer[common.Version]
-	validators            atomic.Pointer[[]*ctypes.Validator]
-	genesisState          atomic.Pointer[*statedb.StateDB]
+	genesisHeader      atomic.Pointer[ctypes.BeaconBlockHeader]
+	genesisBlockRoot   atomic.Pointer[common.Root]
+	genesisTime        atomic.Pointer[math.U64]
+	genesisForkVersion atomic.Pointer[common.Version]
+	genesisState       atomic.Pointer[*statedb.StateDB]
 }
 
 // New creates and returns a new Backend instance.
@@ -95,15 +93,11 @@ func (b *Backend) AttachQueryBackend(node types.ConsensusService) {
 // SetGenesisData sets the genesis data on the API backend.
 func (b *Backend) SetGenesisData(
 	genesisHeader *ctypes.BeaconBlockHeader,
-	genesisValidatorsRoot common.Root,
 	genesisBlockRoot common.Root,
-	validators []*ctypes.Validator,
 	genesisState *statedb.StateDB,
 ) {
 	b.genesisHeader.Store(genesisHeader)
-	b.genesisValidatorsRoot.Store(&genesisValidatorsRoot)
 	b.genesisBlockRoot.Store(&genesisBlockRoot)
-	b.validators.Store(&validators)
 	b.genesisState.Store(&genesisState)
 }
 

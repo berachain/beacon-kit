@@ -26,7 +26,11 @@ import (
 )
 
 func (h *Handler) GetGenesis(_ handlers.Context) (any, error) {
-	genesisRoot := h.backend.GenesisValidatorsRoot()
+	genesisState := h.backend.GenesisState()
+	genesisRoot, err := genesisState.GetGenesisValidatorsRoot()
+	if err != nil {
+		return nil, err
+	}
 
 	genesisForkVersion := h.backend.GenesisForkVersion()
 

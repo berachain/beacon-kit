@@ -36,18 +36,18 @@ import (
 func (s *Service) ProcessGenesisData(
 	ctx context.Context,
 	bytes []byte,
-) (transition.ValidatorUpdates, *ctypes.BeaconBlockHeader, common.Root, common.Root, []*ctypes.Validator, *statedb.StateDB, error) {
+) (transition.ValidatorUpdates, *ctypes.BeaconBlockHeader, common.Root, *statedb.StateDB, error) {
 	// Unmarshal the genesis data.
 	genesisData := ctypes.Genesis{}
 	if err := json.Unmarshal(bytes, &genesisData); err != nil {
 		s.logger.Error("Failed to unmarshal genesis data", "error", err)
-		return nil, nil, common.Root{}, common.Root{}, nil, nil, err
+		return nil, nil, common.Root{}, nil, err
 	}
 
 	// Ensure consistency of the genesis timestamp.
 	execPayloadHeader := genesisData.GetExecutionPayloadHeader()
 	if s.chainSpec.GenesisTime() != execPayloadHeader.GetTimestamp().Unwrap() {
-		return nil, nil, common.Root{}, common.Root{}, nil, nil, fmt.Errorf(
+		return nil, nil, common.Root{}, nil, fmt.Errorf(
 			"mismatch between chain spec genesis time (%d) and execution payload header time (%d)",
 			s.chainSpec.GenesisTime(),
 			execPayloadHeader.GetTimestamp().Unwrap(),
@@ -57,7 +57,7 @@ func (s *Service) ProcessGenesisData(
 	// Ensure consistency of the genesis fork version.
 	genesisVersion := genesisData.GetForkVersion()
 	if !version.Equals(genesisVersion, s.chainSpec.GenesisForkVersion()) {
-		return nil, nil, common.Root{}, common.Root{}, nil, nil, fmt.Errorf(
+		return nil, nil, common.Root{}, nil, fmt.Errorf(
 			"fork mismatch between CL genesis file version (%s) and chain spec genesis version (%s)",
 			genesisVersion, s.chainSpec.GenesisForkVersion(),
 		)
@@ -72,7 +72,7 @@ func (s *Service) ProcessGenesisData(
 		genesisVersion,
 	)
 	if err != nil {
-		return nil, nil, common.Root{}, common.Root{}, nil, nil, err
+		return nil, nil, common.Root{}, nil, err
 	}
 
 	// After deposits are validated, store the genesis deposits in the deposit store.
@@ -80,13 +80,13 @@ func (s *Service) ProcessGenesisData(
 		ctx,
 		genesisData.GetDeposits(),
 	); err != nil {
-		return nil, nil, common.Root{}, common.Root{}, nil, nil, err
+		return nil, nil, common.Root{}, nil, err
 	}
 
 	// Get the genesis beacon block header from the state.
 	genesisHeader, err := genesisState.GetLatestBlockHeader()
 	if err != nil {
-		return nil, nil, common.Root{}, common.Root{}, nil, nil, err
+		return nil, nil, common.Root{}, nil, err
 	}
 
 	// Return the hash tree root of the genesis header after updating the state root in it.
@@ -94,19 +94,5 @@ func (s *Service) ProcessGenesisData(
 	genesisHeader.SetStateRoot(genesisState.HashTreeRoot())
 	genesisBlockRoot := genesisHeader.HashTreeRoot()
 
-	// Get the genesis validators root from the state.
-	genesisValidatorsRoot, err := genesisState.GetGenesisValidatorsRoot()
-	if err != nil {
-		return nil, nil, common.Root{}, common.Root{}, nil, nil, err
-	}
-
-	// Get the validator info from the state.
-	validators, err := genesisState.GetValidators()
-	if err != nil {
-		return nil, nil, common.Root{}, common.Root{}, nil, nil, err
-	}
-
-	// Get the balances from the state.
-	genesisState.GetBalances()
-	return validatorUpdates, genesisHeader, genesisValidatorsRoot, genesisBlockRoot, validators, genesisState, nil
+	return validatorUpdates, genesisHeader, genesisBlockRoot, genesisState, nil
 }

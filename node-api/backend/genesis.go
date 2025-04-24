@@ -32,11 +32,6 @@ func (b *Backend) GenesisBlockHeader() *ctypes.BeaconBlockHeader {
 	return b.genesisHeader.Load()
 }
 
-// GenesisValidatorsRoot returns the genesis validators root of the beacon chain.
-func (b *Backend) GenesisValidatorsRoot() common.Root {
-	return *b.genesisValidatorsRoot.Load()
-}
-
 // GenesisForkVersion returns the genesis fork version of the beacon chain.
 func (b *Backend) GenesisForkVersion() common.Version {
 	return *b.genesisForkVersion.Load()
@@ -50,11 +45,6 @@ func (b *Backend) GenesisTime() math.U64 {
 // GenesisBlockRoot returns the genesis block root of the beacon chain.
 func (b *Backend) GenesisBlockRoot() common.Root {
 	return *b.genesisBlockRoot.Load()
-}
-
-// GenesisValidators returns the genesis validators of the beacon chain.
-func (b *Backend) GenesisValidators() []*ctypes.Validator {
-	return *b.validators.Load()
 }
 
 // GenesisState returns the genesis state of the beacon chain.
