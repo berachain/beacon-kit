@@ -197,7 +197,7 @@ func (s *StateDB) consumePendingPartialWithdrawals(
 	error,
 ) {
 	// By this point, if we're post-Electra, the fork version on the BeaconState will have been set as part of `PrepareStateForFork`.
-	// This will fail if the fork version is not set.
+	// This will fail if the state has not been prepared for a post-Electra fork version.
 	ppWithdrawals, getErr := s.GetPendingPartialWithdrawals()
 	if getErr != nil {
 		return nil, 0, 0, fmt.Errorf("consumePendingPartialWithdrawals: failed retrieving pending partial withdrawals: %w", getErr)
