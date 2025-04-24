@@ -41,11 +41,18 @@ const (
 	CustomChainSpecType  = "custom"
 )
 
-// ChainSpecCreator is a function that allows us to lazily initialize the ChainSpec
-type ChainSpecCreator func(AppOptions) (chain.Spec, error)
+type (
+	// AppOptions, usually implemented by Viper, holds the configuration for the application.
+	AppOptions interface {
+		Get(string) interface{}
+	}
 
-// CreateChainSpec creates a chain spec based on the environment variable CHAIN_SPEC.
-// If the environment variable is not set, the default of "mainnet" chain spec is used.
+	// ChainSpecCreator is a function that allows us to lazily initialize the ChainSpec
+	ChainSpecCreator func(AppOptions) (chain.Spec, error)
+)
+
+// CreateChainSpec creates a chain spec based on the app options config flag for "chain-spec".
+// If unset, the default of "mainnet" chain spec is used.
 func CreateChainSpec(appOpts AppOptions) (chain.Spec, error) {
 	var (
 		chainSpec chain.Spec
@@ -108,10 +115,10 @@ func loadSpecData(path string) (*chain.SpecData, error) {
 		}
 	}
 
-	// Define a decode hook to convert hex string to ExecutionAddress and numerics to DomainType.
+	// Define a decode hook to handle addresses and domain types.
 	decodeHookFunc := mapstructure.ComposeDecodeHookFunc(
-		viperlib.StringToExecutionAddressFunc,
-		viperlib.NumericToDomainTypeFunc,
+		viperlib.StringToExecutionAddressFunc(),
+		viperlib.NumericToDomainTypeFunc(),
 	)
 	if err := v.Unmarshal(&specData, viper.DecodeHook(decodeHookFunc)); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal config into SpecData: %w", err)

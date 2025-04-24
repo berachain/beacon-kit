@@ -37,7 +37,11 @@ import (
 	"github.com/spf13/viper"
 )
 
-const defaultShutdownTimeout = 5 * time.Minute
+const (
+	defaultChainSpec         = "mainnet"
+	defaultChainSpecFilePath = ""
+	defaultShutdownTimeout   = 5 * time.Minute
+)
 
 // AppOptions is from the SDK, we should look to remove its usage.
 type AppOptions interface {
@@ -47,6 +51,8 @@ type AppOptions interface {
 // DefaultConfig returns the default configuration for a BeaconKit chain.
 func DefaultConfig() *Config {
 	return &Config{
+		ChainSpec:         defaultChainSpec,
+		ChainSpecFilePath: defaultChainSpecFilePath,
 		ShutdownTimeout:   defaultShutdownTimeout,
 		Engine:            engineclient.DefaultConfig(),
 		Logger:            log.DefaultConfig(),

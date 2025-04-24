@@ -84,6 +84,8 @@ const (
 // AddBeaconKitFlags implements servertypes.ModuleInitFlags interface.
 func AddBeaconKitFlags(startCmd *cobra.Command) {
 	defaultCfg := config.DefaultConfig()
+	startCmd.Flags().String(ChainSpec, defaultCfg.ChainSpec, "chain spec")
+	startCmd.Flags().String(ChainSpecFilePath, defaultCfg.ChainSpecFilePath, "path to the chain spec file")
 	startCmd.Flags().Duration(
 		ShutdownTimeout,
 		defaultCfg.ShutdownTimeout,

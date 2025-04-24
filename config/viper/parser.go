@@ -39,16 +39,22 @@ func NumericToDomainTypeFunc() mapstructure.DecodeHookFunc {
 		t reflect.Type,
 		data interface{},
 	) (interface{}, error) {
-		if t != reflect.TypeOf(common.DomainType{}) {
+		var dt common.DomainType
+		if t != reflect.TypeOf(dt) {
 			return data, nil
 		}
 
-		num, err := cast.ToUint32E(data)
-		if err != nil {
-			return nil, err
-		}
+		switch f.Kind() {
+		case reflect.String:
+			return dt, dt.UnmarshalText([]byte(data.(string)))
+		default:
+			num, err := cast.ToUint32E(data)
+			if err != nil {
+				return common.DomainType{}, err
+			}
 
-		return bytes.FromUint32(num), nil
+			return bytes.FromUint32(num), nil
+		}
 	}
 }
 

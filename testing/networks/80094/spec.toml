@@ -1,0 +1,69 @@
+# Mainnet Chain Spec Configuration
+
+# Gwei value constants
+max-effective-balance = 10000000000000000
+ejection-balance = 240000000000000
+effective-balance-increment = 10000000000000
+
+# Hysteresis parameters
+hysteresis-quotient = 4
+hysteresis-downward-multiplier = 1
+hysteresis-upward-multiplier = 5
+
+# Time parameters
+slots-per-epoch = 192
+slots-per-historical-root = 8
+min-epochs-to-inactivity-penalty = 4
+
+# Signature domains
+domain-type-beacon-proposer = "0x00000000"
+domain-type-beacon-attester = "0x01000000"
+domain-type-randao = "0x02000000"
+domain-type-deposit = "0x03000000"
+domain-type-voluntary-exit = "0x04000000"
+domain-type-selection-proof = "0x05000000"
+domain-type-aggregate-and-proof = "0x06000000"
+domain-type-application-mask = "0x00000001"
+
+# Eth1-related values
+deposit-contract-address = "0x4242424242424242424242424242424242424242"
+max-deposits-per-block = 16
+deposit-eth1-chain-id = 80094
+eth1-follow-distance = 1
+target-seconds-per-eth1-block = 2
+
+# Fork-related values
+genesis-time = 1737381600
+deneb-one-fork-time = 1738415507
+electra-fork-time = 9999999999999999
+
+# State list lengths
+epochs-per-historical-vector = 8
+epochs-per-slashings-vector = 8
+historical-roots-limit = 8
+validator-registry-limit = 1099511627776
+
+# Capella values
+max-withdrawals-per-payload = 16
+max-validators-per-withdrawals-sweep = 31
+
+# Deneb values
+min-epochs-for-blobs-sidecars-request = 4096
+max-blob-commitments-per-block = 4096
+max-blobs-per-block = 6
+field-elements-per-blob = 4096
+bytes-per-blob = 131072
+kzg-commitment-inclusion-proof-depth = 17
+
+# Berachain genesis values
+validator-set-cap = 69
+evm-inflation-address = "0x0000000000000000000000000000000000000000"
+evm-inflation-per-block = 0
+
+# Deneb1 value changes
+evm-inflation-address-deneb-one = "0x656b95E550C07a9ffe548bd4085c72418Ceb1dba"
+evm-inflation-per-block-deneb-one = 5750000000
+
+# Electra values
+min-activation-balance = 250000000000000
+min-validator-withdrawability-delay = 256
