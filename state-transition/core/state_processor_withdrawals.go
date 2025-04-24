@@ -267,6 +267,14 @@ func (sp *StateProcessor) processPartialWithdrawal(
 		pendingWithdrawals = append(pendingWithdrawals, ppWithdrawal)
 		return st.SetPendingPartialWithdrawals(pendingWithdrawals)
 	}
+	sp.logger.Info("validator cannot withdraw partial balance",
+		"validator_index", index,
+		"validator_pubkey", validator.GetPubkey().String(),
+		"balance", balance,
+		"pending_balance_to_withdraw", pendingBalanceToWithdraw,
+		"has_sufficient", hasSufficient,
+		"has_excess", hasExcess,
+	)
 	return nil
 }
 
