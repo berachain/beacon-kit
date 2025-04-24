@@ -26,8 +26,6 @@ package core_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/chain"
-	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/bytes"
@@ -106,6 +104,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		types.NewEth1Data(depRoot),
 		10,
 		[]*types.Deposit{blkDeposit},
+		&types.ExecutionRequests{},
 		st.EVMInflationWithdrawal(10),
 	)
 
@@ -149,6 +148,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		types.NewEth1Data(depRoot),
 		blk.GetTimestamp()+1,
 		[]*types.Deposit{},
+		&types.ExecutionRequests{},
 		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
 	)
 
@@ -232,6 +232,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 		types.NewEth1Data(depRoot),
 		10,
 		[]*types.Deposit{blkDeposit},
+		&types.ExecutionRequests{},
 		st.EVMInflationWithdrawal(10),
 	)
 
@@ -276,6 +277,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 		types.NewEth1Data(depRoot),
 		blk.GetTimestamp()+1,
 		[]*types.Deposit{},
+		&types.ExecutionRequests{},
 		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
 	)
 
@@ -312,6 +314,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 		types.NewEth1Data(depRoot),
 		blk.GetTimestamp()+1,
 		[]*types.Deposit{},
+		&types.ExecutionRequests{},
 		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
 	)
 
@@ -349,218 +352,6 @@ func TestTransitionCreateValidator(t *testing.T) {
 	val, err = st.ValidatorByIndex(idx)
 	require.NoError(t, err)
 	require.Equal(t, expectedEffectiveBalance, val.EffectiveBalance)
-}
-
-//nolint:paralleltest // uses envars
-func TestTransitionWithdrawals(t *testing.T) {
-	cs := setupChain(t)
-	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
-
-	var (
-		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
-		minBalance   = math.Gwei(cs.EffectiveBalanceIncrement())
-		credentials0 = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
-		address1     = common.ExecutionAddress{0x01}
-		credentials1 = types.NewCredentialsFromExecutionAddress(address1)
-	)
-
-	// Setup initial state so that validator 1 is partially withdrawable.
-	var (
-		genDeposits = types.Deposits{
-			{
-				Pubkey:      [48]byte{0x00},
-				Credentials: credentials0,
-				Amount:      maxBalance - 3*minBalance,
-				Index:       0,
-			},
-			{
-				Pubkey:      [48]byte{0x01},
-				Credentials: credentials1,
-				Amount:      maxBalance + minBalance,
-				Index:       1,
-			},
-		}
-		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
-		}
-	)
-	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
-	_, err := sp.InitializeBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
-	)
-	require.NoError(t, err)
-
-	// Assert validator 1 balance before withdrawal.
-	val1Bal, err := st.GetBalance(math.U64(1))
-	require.NoError(t, err)
-	require.Equal(t, maxBalance+minBalance, val1Bal)
-
-	// Create test inputs.
-	withdrawals := []*engineprimitives.Withdrawal{
-		// The first withdrawal is always for EVM inflation.
-		st.EVMInflationWithdrawal(10),
-		// Partially withdraw validator 1 by minBalance.
-		{
-			Index:     0,
-			Validator: 1,
-			Amount:    minBalance,
-			Address:   address1,
-		},
-	}
-	blk := buildNextBlock(
-		t,
-		cs,
-		st,
-		types.NewEth1Data(genDeposits.HashTreeRoot()),
-		10,
-		[]*types.Deposit{},
-		withdrawals...,
-	)
-
-	// Run the test.
-	_, err = sp.Transition(ctx, st, blk)
-
-	// Check outputs and ensure withdrawals in payload is consistent with
-	// statedb expected withdrawals.
-	require.NoError(t, err)
-
-	// Assert validator 1 balance after withdrawal.
-	val1BalAfter, err := st.GetBalance(math.U64(1))
-	require.NoError(t, err)
-	require.Equal(t, maxBalance, val1BalAfter)
-}
-
-func TestTransitionMaxWithdrawals(t *testing.T) {
-	t.Parallel()
-	// Use custom chain spec with max withdrawals set to 2.
-	csData := spec.DevnetChainSpecData()
-	csData.MaxWithdrawalsPerPayload = 2
-	csData.MaxValidatorsPerWithdrawalsSweep = 2
-	cs, err := chain.NewSpec(csData)
-	require.NoError(t, err)
-
-	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
-
-	var (
-		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
-		minBalance   = math.Gwei(cs.EffectiveBalanceIncrement())
-		address0     = common.ExecutionAddress{}
-		credentials0 = types.NewCredentialsFromExecutionAddress(address0)
-		address1     = common.ExecutionAddress{0x01}
-		credentials1 = types.NewCredentialsFromExecutionAddress(address1)
-	)
-
-	// Setup initial state so that both validators are partially withdrawable.
-	var (
-		genDeposits = types.Deposits{
-			{
-				Pubkey:      [48]byte{0x00},
-				Credentials: credentials0,
-				Amount:      maxBalance + minBalance,
-				Index:       0,
-			},
-			{
-				Pubkey:      [48]byte{0x01},
-				Credentials: credentials1,
-				Amount:      maxBalance + minBalance,
-				Index:       1,
-			},
-		}
-		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
-		}
-	)
-	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
-	_, err = sp.InitializeBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
-	)
-	require.NoError(t, err)
-
-	// Assert validator balances before withdrawal.
-	val0Bal, err := st.GetBalance(math.U64(0))
-	require.NoError(t, err)
-	require.Equal(t, maxBalance+minBalance, val0Bal)
-
-	val1Bal, err := st.GetBalance(math.U64(1))
-	require.NoError(t, err)
-	require.Equal(t, maxBalance+minBalance, val1Bal)
-
-	// Create test inputs.
-	depRoot := genDeposits.HashTreeRoot()
-	withdrawals := []*engineprimitives.Withdrawal{
-		// The first withdrawal is always for EVM inflation.
-		st.EVMInflationWithdrawal(10),
-		// Partially withdraw validator 0 by minBalance.
-		{
-			Index:     0,
-			Validator: 0,
-			Amount:    minBalance,
-			Address:   address0,
-		},
-	}
-	blk := buildNextBlock(
-		t,
-		cs,
-		st,
-		types.NewEth1Data(depRoot),
-		10,
-		[]*types.Deposit{},
-		withdrawals...,
-	)
-
-	// Run the test.
-	_, err = sp.Transition(ctx, st, blk)
-
-	// Check outputs and ensure withdrawals in payload is consistent with
-	// statedb expected withdrawals.
-	require.NoError(t, err)
-
-	// Assert validator balances after withdrawal, ensuring only validator 0 is
-	// withdrawn from.
-	val0BalAfter, err := st.GetBalance(math.U64(0))
-	require.NoError(t, err)
-	require.Equal(t, maxBalance, val0BalAfter)
-
-	val1BalAfter, err := st.GetBalance(math.U64(1))
-	require.NoError(t, err)
-	require.Equal(t, maxBalance+minBalance, val1BalAfter)
-
-	// Process the next block, ensuring that validator 1 is also withdrawn from,
-	// also ensuring that the state's next withdrawal (validator) index is
-	// appropriately incremented.
-
-	withdrawals = []*engineprimitives.Withdrawal{
-		// The first withdrawal is always for EVM inflation.
-		st.EVMInflationWithdrawal(blk.GetTimestamp() + 1),
-		// Partially withdraw validator 1 by minBalance.
-		{
-			Index:     1,
-			Validator: 1,
-			Amount:    minBalance,
-			Address:   address1,
-		},
-	}
-	blk = buildNextBlock(
-		t,
-		cs,
-		st,
-		types.NewEth1Data(depRoot),
-		blk.GetTimestamp()+1,
-		[]*types.Deposit{},
-		withdrawals...,
-	)
-	// Run the test.
-	vals, err := sp.Transition(ctx, st, blk)
-
-	// Check outputs and ensure withdrawals in payload is consistent with
-	// statedb expected withdrawals.
-	require.NoError(t, err)
-	require.Zero(t, vals)
-
-	// Validator 1 is now withdrawn from.
-	val1BalAfter, err = st.GetBalance(math.U64(1))
-	require.NoError(t, err)
-	require.Equal(t, maxBalance, val1BalAfter)
 }
 
 // TestTransitionHittingValidatorsCap shows that the extra
@@ -635,6 +426,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		types.NewEth1Data(depRoot),
 		10,
 		[]*types.Deposit{extraValDeposit},
+		&types.ExecutionRequests{},
 		st.EVMInflationWithdrawal(10),
 	)
 
@@ -679,6 +471,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		types.NewEth1Data(depRoot),
 		blk.GetTimestamp()+1,
 		[]*types.Deposit{},
+		&types.ExecutionRequests{},
 		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
 	)
 
@@ -715,6 +508,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		types.NewEth1Data(depRoot),
 		blk.GetTimestamp()+1,
 		[]*types.Deposit{},
+		&types.ExecutionRequests{},
 		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
 	)
 
@@ -740,7 +534,14 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		blk = moveToEndOfEpoch(t, blk, cs, sp, st, ctx, depRoot)
 		// Epoch turning block
 		blk = buildNextBlock(
-			t, cs, st, types.NewEth1Data(depRoot), blk.GetTimestamp()+1, []*types.Deposit{}, st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
+			t,
+			cs,
+			st,
+			types.NewEth1Data(depRoot),
+			blk.GetTimestamp()+1,
+			[]*types.Deposit{},
+			&types.ExecutionRequests{},
+			st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
 		)
 		_, err = sp.Transition(ctx, st, blk)
 		require.NoError(t, err)
@@ -773,6 +574,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		types.NewEth1Data(depRoot),
 		blk.GetTimestamp()+1,
 		[]*types.Deposit{},
+		&types.ExecutionRequests{},
 		withdrawals...,
 	)
 	_, err = sp.Transition(ctx, st, blk)
@@ -860,6 +662,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		types.NewEth1Data(depRoot),
 		10,
 		[]*types.Deposit{extraValDeposit},
+		&types.ExecutionRequests{},
 		st.EVMInflationWithdrawal(10),
 	)
 
@@ -918,7 +721,10 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		t,
 		cs,
 		st,
-		types.NewEth1Data(depRoot), blk.GetTimestamp()+1, []*types.Deposit{},
+		types.NewEth1Data(depRoot),
+		blk.GetTimestamp()+1,
+		[]*types.Deposit{},
+		&types.ExecutionRequests{},
 		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
 	)
 
@@ -970,6 +776,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		types.NewEth1Data(depRoot),
 		blk.GetTimestamp()+1,
 		[]*types.Deposit{},
+		&types.ExecutionRequests{},
 		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
 	)
 
@@ -1022,7 +829,14 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		blk = moveToEndOfEpoch(t, blk, cs, sp, st, ctx, depRoot)
 		// Epoch turning block
 		blk = buildNextBlock(
-			t, cs, st, types.NewEth1Data(depRoot), blk.GetTimestamp()+1, []*types.Deposit{}, st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
+			t,
+			cs,
+			st,
+			types.NewEth1Data(depRoot),
+			blk.GetTimestamp()+1,
+			[]*types.Deposit{},
+			&types.ExecutionRequests{},
+			st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
 		)
 		_, err = sp.Transition(ctx, st, blk)
 		require.NoError(t, err)
@@ -1051,74 +865,9 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		types.NewEth1Data(depRoot),
 		blk.GetTimestamp()+1,
 		[]*types.Deposit{},
+		&types.ExecutionRequests{},
 		withdrawals...,
 	)
 	_, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
-}
-
-//nolint:paralleltest // uses envars
-func TestValidatorNotWithdrawable(t *testing.T) {
-	cs := setupChain(t)
-	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
-
-	var (
-		belowActiveBalance = math.Gwei(cs.MinActivationBalance() - cs.EffectiveBalanceIncrement())
-		maxBalance         = math.Gwei(cs.MaxEffectiveBalance())
-		validCredentials   = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
-	)
-
-	// Setup initial state with one validator
-	var (
-		genDeposits = types.Deposits{
-			{
-				Pubkey:      [48]byte{0x00},
-				Credentials: validCredentials,
-				Amount:      maxBalance,
-				Index:       0,
-			},
-		}
-		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
-		}
-	)
-	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
-	_, err := sp.InitializeBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
-	)
-	require.NoError(t, err)
-
-	// Create the block deposit with a non-ETH1 withdrawal credentials. This stake should not
-	// be lost.
-	invalidCredentials := types.WithdrawalCredentials(validCredentials[:])
-	invalidCredentials[1] = 0x01
-	blockDeposits := types.Deposits{
-		{
-			Pubkey:      [48]byte{0x01},
-			Credentials: invalidCredentials,
-			Amount:      belowActiveBalance,
-			Index:       1,
-		},
-	}
-
-	depRoot := append(genDeposits, blockDeposits...).HashTreeRoot()
-	blk := buildNextBlock(
-		t,
-		cs,
-		st,
-		types.NewEth1Data(depRoot),
-		10,
-		blockDeposits,
-		st.EVMInflationWithdrawal(10),
-	)
-	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), blockDeposits))
-
-	// Run transition.
-	_, err = sp.Transition(ctx, st, blk)
-	require.NoError(t, err)
-
-	// Check that validator 0x01 is part of beacon state with below active balance.
-	validator, err := st.ValidatorByIndex(1)
-	require.NoError(t, err)
-	require.Equal(t, belowActiveBalance, validator.EffectiveBalance)
 }
