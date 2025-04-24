@@ -36,31 +36,22 @@ NETHER_ETH_GENESIS_PATH = ${HOMEDIR}/eth-nether-genesis.json
 HOMEDIR = .tmp/beacond
 JWT_PATH = ${TESTAPP_FILES_DIR}/jwt.hex
 ETH_DATA_DIR = .tmp/eth-home
-DEVNET_CHAIN_SPEC = devnet
 
 ## Start an ephemeral `beacond` node. Must be run before running the EL to
 ## configure the deposit contract storage slots pre-genesis.
 start: 
 	@JWT_SECRET_PATH=$(JWT_PATH) \
-	CHAIN_SPEC=$(DEVNET_CHAIN_SPEC) \
-	${TESTAPP_FILES_DIR}/entrypoint.sh
+	${TESTAPP_FILES_DIR}/entrypoint.sh devnet
 
 # URLs used for dialing the eth client
 IPC_PATH = .tmp/eth-home/eth-engine.ipc
 IPC_PREFIX = ipc://
 
-# start-ipc is currently only supported while running eth client the host machine
-# Only works with geth-host rn
-start-ipc: ## start a local ephemeral `beacond` node with IPC
+## Start an ephemeral `beacond` node with a custom chain spec. The path to the chain spec
+## file must be passed as an argument. TODO: <file_path_here>
+start-custom:
 	@JWT_SECRET_PATH=$(JWT_PATH) \
-	RPC_DIAL_URL=${IPC_PATH} \
-	RPC_PREFIX=${IPC_PREFIX} \
-	${TESTAPP_FILES_DIR}/entrypoint.sh
-
-start-configurable:
-	@JWT_SECRET_PATH=$(JWT_PATH) \
-	CHAIN_SPEC=configurable \
-	${TESTAPP_FILES_DIR}/entrypoint.sh
+	${TESTAPP_FILES_DIR}/entrypoint.sh file <file_path_here>
 
 ## Start an ephemeral `reth` node
 start-reth: 
@@ -72,22 +63,6 @@ start-reth:
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
 	ghcr.io/paradigmxyz/reth node \
-	--chain ${ETH_GENESIS_PATH} \
-	--http \
-	--http.addr "0.0.0.0" \
-	--http.api eth,net \
-	--authrpc.addr "0.0.0.0" \
-	--authrpc.jwtsecret $(JWT_PATH) \
-	--datadir ${ETH_DATA_DIR} \
-	--ipcpath ${IPC_PATH} \
-	--engine.persistence-threshold 0 \
-	--engine.memory-block-buffer-target 0
-
-## Start a local ephemeral `reth` node on host machine
-start-reth-host: 
-	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
-	reth init --datadir ${ETH_DATA_DIR} --chain ${ETH_GENESIS_PATH}
-	reth node \
 	--chain ${ETH_GENESIS_PATH} \
 	--http \
 	--http.addr "0.0.0.0" \
@@ -125,20 +100,6 @@ start-geth:
 	--authrpc.vhosts "*" \
 	--datadir ${ETH_DATA_DIR} \
 	--ipcpath ${IPC_PATH}
-
-## Start a local ephemeral `geth` node on host machine
-start-geth-host:
-	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
-	geth init --datadir ${ETH_DATA_DIR} ${ETH_GENESIS_PATH}
-	geth \
-	--datadir ${ETH_DATA_DIR} \
-	--ipcpath ${IPC_PATH} \
-	--http \
-	--http.addr 0.0.0.0 \
-	--http.api eth,net \
-	--authrpc.addr 0.0.0.0 \
-	--authrpc.jwtsecret $(JWT_PATH) \
-	--authrpc.vhosts "*"
 
 ## Start an ephemeral `nethermind` node
 start-nethermind: 
@@ -234,14 +195,12 @@ start-ethereumjs:
 #    Bepolia    #
 #################
 
-TESTNET_CHAIN_SPEC = testnet
 BEPOLIA_NETWORK_FILES_DIR = ${TESTAPP_FILES_DIR}/../networks/80069
 BEPOLIA_ETH_GENESIS_PATH = ${BEPOLIA_NETWORK_FILES_DIR}/eth-genesis.json
 
 start-bepolia:
 	@JWT_SECRET_PATH=$(JWT_PATH) \
-	CHAIN_SPEC=$(TESTNET_CHAIN_SPEC) \
-	${TESTAPP_FILES_DIR}/entrypoint.sh
+	${TESTAPP_FILES_DIR}/entrypoint.sh testnet
 
 start-geth-bepolia:
 	# TODO: Update to use latest Geth once ready

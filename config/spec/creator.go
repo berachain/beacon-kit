@@ -39,7 +39,7 @@ const (
 	devnet  = "devnet"
 	mainnet = "mainnet"
 	testnet = "testnet"
-	custom  = "custom"
+	file    = "file"
 )
 
 // Create creates a chain spec based on the app options config flag for "chain-spec".
@@ -50,8 +50,8 @@ func Create(appOpts types.AppOptions) (chain.Spec, error) {
 		err       error
 	)
 	switch cast.ToString(appOpts.Get(flags.ChainSpec)) {
-	case custom:
-		chainSpec, err = handleCustomChainSpec(appOpts)
+	case file:
+		chainSpec, err = handleChainSpecFile(appOpts)
 	case devnet:
 		chainSpec, err = DevnetChainSpec()
 	case testnet:
@@ -70,8 +70,8 @@ func Create(appOpts types.AppOptions) (chain.Spec, error) {
 	return chainSpec, nil
 }
 
-// handleCustomChainSpec loads a custom chain spec from the given app options.
-func handleCustomChainSpec(appOpts types.AppOptions) (chain.Spec, error) {
+// handleChainSpecFile loads a chain spec from the file path given in the app options.
+func handleChainSpecFile(appOpts types.AppOptions) (chain.Spec, error) {
 	specPath := cast.ToString(appOpts.Get(flags.ChainSpecFilePath))
 	if specPath == "" {
 		return nil, fmt.Errorf("expected flag '%s' for chain spec", flags.ChainSpecFilePath)

@@ -14,9 +14,6 @@
                 "--chain-id=beacond-2061",
                 "--home=${workspaceFolder}/.tmp/beacond",
             ],
-            "env": {
-                "CHAIN_SPEC": "devnet"
-            },
             "internalConsoleOptions": "openOnSessionStart",
             "presentation": {
                 "group": "initialize",
@@ -37,9 +34,6 @@
                 "0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4",
                 "--home=${workspaceFolder}/.tmp/beacond",
             ],
-            "env": {
-                "CHAIN_SPEC": "devnet"
-            },
             "internalConsoleOptions": "openOnSessionStart",
             "presentation": {
                 "group": "initialize",
@@ -58,9 +52,6 @@
                 "collect-premined-deposits",
                 "--home=${workspaceFolder}/.tmp/beacond",
             ],
-            "env": {
-                "CHAIN_SPEC": "devnet"
-            },
             "internalConsoleOptions": "openOnSessionStart",
             "presentation": {
                 "group": "initialize",
@@ -80,9 +71,6 @@
                 "${workspaceFolder}/testing/files/eth-genesis.json",
                 "--home=${workspaceFolder}/.tmp/beacond",
             ],
-            "env": {
-                "CHAIN_SPEC": "devnet"
-            },
             "internalConsoleOptions": "openOnSessionStart",
             "presentation": {
                 "group": "initialize",
@@ -102,9 +90,6 @@
                 "${workspaceFolder}/.tmp/beacond/eth-genesis.json",
                 "--home=${workspaceFolder}/.tmp/beacond",
             ],
-            "env": {
-                "CHAIN_SPEC": "devnet"
-            },
             "internalConsoleOptions": "openOnSessionStart",
             "presentation": {
                 "group": "initialize",
@@ -129,9 +114,6 @@
                 "--beacon-kit.node-api.logging",
             ],
             "internalConsoleOptions": "openOnSessionStart",
-            "env": {
-                "CHAIN_SPEC": "mainnet"
-            },
             "presentation": {
                 "group": "run",
                 "order": 1
@@ -156,9 +138,6 @@
                 "--beacon-kit.node-api.logging",
             ],
             "internalConsoleOptions": "openOnSessionStart",
-            "env": {
-                "CHAIN_SPEC": "devnet"
-            },
             "presentation": {
                 "group": "run",
                 "order": 2

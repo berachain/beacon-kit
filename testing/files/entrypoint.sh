@@ -36,6 +36,20 @@ resolve_path() {
     echo "$abs_path"
 }
 
+# Check if the chain spec is provided as an argument.
+CHAIN_SPEC=""
+CHAIN_SPEC_FILE=""
+if [ -z "$1" ]; then
+    echo "No chain spec provided"
+else
+    CHAIN_SPEC="$1"
+	if [ "$CHAIN_SPEC" == "file" ]; then
+		CHAIN_SPEC_FILE=$(resolve_path "$2")
+	fi
+fi
+
+exit 1
+
 CHAINID="beacond-2061"
 MONIKER="localtestnet"
 LOGLEVEL="info"
@@ -63,16 +77,10 @@ else
 overwrite="Y"
 fi
 
-CHAIN_SPEC_ARG=""
-if [ "$CHAIN_SPEC" == "configurable" ]; then
-  CHAIN_SPEC_ARG="--spec=$(resolve_path "./cli/commands/server/types/mainnet_spec.toml")"
-fi
-
-
 # Setup local node if overwrite is set to Yes, otherwise skip setup
 if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	rm -rf $HOMEDIR
-	./build/bin/beacond init $MONIKER --chain-id $CHAINID --home $HOMEDIR $CHAIN_SPEC_ARG
+	./build/bin/beacond init $MONIKER --chain-id $CHAINID --home $HOMEDIR
 
 	if [ "$CHAIN_SPEC" == "testnet" ]; then
 	    network_dir="testing/networks/80069"
@@ -82,14 +90,10 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 		network_dir="testing/networks/80094"
 		cp -f $network_dir/*.toml $network_dir/genesis.json ${HOMEDIR}/config
     	KZG_PATH=$network_dir/kzg-trusted-setup.json
-  elif [ "$CHAIN_SPEC" == "configurable" ]; then
-    network_dir="testing/networks/80094"
-    cp -f $network_dir/*.toml $network_dir/genesis.json ${HOMEDIR}/config
-      KZG_PATH=$network_dir/kzg-trusted-setup.json
 	else
-		./build/bin/beacond genesis add-premined-deposit --home $HOMEDIR $CHAIN_SPEC_ARG \
+		./build/bin/beacond genesis add-premined-deposit --home $HOMEDIR \
 			32000000000 0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4
-		./build/bin/beacond genesis collect-premined-deposits --home $HOMEDIR $CHAIN_SPEC_ARG
+		./build/bin/beacond genesis collect-premined-deposits --home $HOMEDIR
 		./build/bin/beacond genesis set-deposit-storage "$ETH_GENESIS" --home $HOMEDIR $CHAIN_SPEC_ARG
 		./build/bin/beacond genesis set-deposit-storage "$ETH_NETHER_GENESIS" --nethermind --home $HOMEDIR $CHAIN_SPEC_ARG
 		./build/bin/beacond genesis execution-payload "$HOMEDIR/eth-genesis.json" --home $HOMEDIR $CHAIN_SPEC_ARG
