@@ -50,7 +50,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	var (
 		maxBalance       = math.Gwei(cs.MaxEffectiveBalance())
 		increment        = math.Gwei(cs.EffectiveBalanceIncrement())
-		minBalance       = math.Gwei(cs.EjectionBalance())
+		minBalance       = math.Gwei(cs.MinActivationBalance())
 		emptyCredentials = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
 	)
 
@@ -186,7 +186,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 	var (
 		maxBalance       = math.Gwei(cs.MaxEffectiveBalance())
 		increment        = math.Gwei(cs.EffectiveBalanceIncrement())
-		minBalance       = math.Gwei(cs.EjectionBalance())
+		minBalance       = math.Gwei(cs.MinActivationBalance())
 		emptyAddress     = common.ExecutionAddress{}
 		emptyCredentials = types.NewCredentialsFromExecutionAddress(emptyAddress)
 	)
@@ -1063,7 +1063,7 @@ func TestValidatorNotWithdrawable(t *testing.T) {
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
-		belowActiveBalance = math.Gwei(cs.EjectionBalance())
+		belowActiveBalance = math.Gwei(cs.MinActivationBalance() - cs.EffectiveBalanceIncrement())
 		maxBalance         = math.Gwei(cs.MaxEffectiveBalance())
 		validCredentials   = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
 	)

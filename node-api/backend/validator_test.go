@@ -232,7 +232,7 @@ func TestFilteredValidators(t *testing.T) {
 		{
 			ValidatorBalanceData: types.ValidatorBalanceData{
 				Index:   7,
-				Balance: cs.EjectionBalance(),
+				Balance: cs.MinActivationBalance() - cs.EffectiveBalanceIncrement(),
 			},
 			Status: constants.ValidatorStatusWithdrawalPossible,
 			Validator: types.ValidatorFromConsensus(

@@ -32,9 +32,6 @@ type BalancesSpec interface {
 	// MaxEffectiveBalance returns the maximum balance counted in rewards calculations in Gwei.
 	MaxEffectiveBalance() uint64
 
-	// EjectionBalance returns the balance below which a validator is ejected.
-	EjectionBalance() uint64
-
 	// EffectiveBalanceIncrement returns the increment of balance used in reward
 	// calculations.
 	EffectiveBalanceIncrement() uint64
@@ -266,11 +263,6 @@ func (s spec) validate() error {
 // MaxEffectiveBalance returns the maximum effective balance.
 func (s spec) MaxEffectiveBalance() uint64 {
 	return s.Data.MaxEffectiveBalance
-}
-
-// EjectionBalance returns the balance below which a validator is ejected.
-func (s spec) EjectionBalance() uint64 {
-	return s.Data.EjectionBalance
 }
 
 // MinActivationBalance returns the minimum activation balance effective. Introduced in Electra.
