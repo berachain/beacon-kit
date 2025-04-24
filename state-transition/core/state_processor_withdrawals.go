@@ -179,8 +179,6 @@ func (sp *StateProcessor) processWithdrawalRequest(st *state.StateDB, withdrawal
 	if err != nil {
 		sp.logger.Info("Failed to validate withdrawal", withdrawalFields(withdrawalRequest, err)...)
 		// Note that we do not return error on invalid requests as it's a user error and invalid withdrawal requests are simply skipped.
-		// Since we're interacting with the KV Store, i/o errors could occur, but we expect these to be sparse enough
-		// that it won't impact consensus. We could consider returning error on codec.ErrEncoding rather than silencing here.
 		return nil
 	}
 	if validator == nil {
@@ -191,8 +189,6 @@ func (sp *StateProcessor) processWithdrawalRequest(st *state.StateDB, withdrawal
 
 	if err = verifyWithdrawalConditions(sp.cs, st, validator); err != nil {
 		// Note that we do not return error on invalid requests as it's a user error and invalid withdrawal requests are simply skipped.
-		// Since we're interacting with the KV Store, i/o errors could occur, but we expect these to be sparse enough
-		// that it won't impact consensus. We could consider returning error on codec.ErrEncoding rather than silencing here.
 		sp.logger.Info("Failed to verify withdrawal conditions", withdrawalFields(withdrawalRequest, err)...)
 		return nil
 	}
