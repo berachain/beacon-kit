@@ -46,7 +46,7 @@ func NumericToDomainTypeFunc() mapstructure.DecodeHookFunc {
 
 		switch f.Kind() {
 		case reflect.String:
-			return dt, dt.UnmarshalText([]byte(data.(string)))
+			return dt, dt.UnmarshalText([]byte(data.(string))) //nolint:errcheck // Safe to ignore.
 		default:
 			num, err := cast.ToUint32E(data)
 			if err != nil {

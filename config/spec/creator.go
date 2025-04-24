@@ -96,7 +96,7 @@ func loadSpecData(path string) (*chain.SpecData, error) {
 	// Ensure all required fields are set.
 	specData := chain.SpecData{}
 	specType := reflect.TypeOf(specData)
-	for i := 0; i < specType.NumField(); i++ {
+	for i := range specType.NumField() {
 		tag := specType.Field(i).Tag.Get("mapstructure")
 		if tag == "" {
 			continue
