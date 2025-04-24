@@ -55,7 +55,7 @@ func NewAttributesFactory(
 // BuildPayloadAttributes creates a new instance of PayloadAttributes.
 func (f *Factory) BuildPayloadAttributes(
 	st *statedb.StateDB,
-	slot math.U64,
+	slot math.Slot,
 	timestamp math.U64,
 	prevHeadRoot [32]byte,
 	withdrawals engineprimitives.Withdrawals,
