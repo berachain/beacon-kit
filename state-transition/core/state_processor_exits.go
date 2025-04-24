@@ -27,7 +27,9 @@ import (
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-// InitiateValidatorExit initiates the exit of the validator with index `idx`.
+// InitiateValidatorExit initiates the exit of the validator with index `idx`. Modified from ETH 2.0 spec:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#initiate-validator-exit
+// to handle pre-Electra validator exit logic.
 func (sp *StateProcessor) InitiateValidatorExit(st *statedb.StateDB, idx math.ValidatorIndex) error {
 	// Return if the validator already initiated an exit, making sure to only exit validators once.
 	validator, err := st.ValidatorByIndex(idx)
