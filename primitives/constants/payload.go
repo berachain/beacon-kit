@@ -39,10 +39,18 @@ const (
 	MaxBytesPerTx uint64 = 1073741824
 )
 
-// Execution Layer Triggered Requests
+// Execution Layer Triggered Requests:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#execution-layer-triggered-requests
 const (
 	DepositRequestType       = byte(0x00)
 	WithdrawalRequestType    = byte(0x01)
 	ConsolidationRequestType = byte(0x02)
+)
+
+// Withdrawals processing:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#withdrawals-processing
+const (
+	// MaxPendingPartialsPerWithdrawalsSweep is the maximum number of pending partial withdrawals
+	// per sweep.
+	MaxPendingPartialsPerWithdrawalsSweep uint64 = 8
 )
