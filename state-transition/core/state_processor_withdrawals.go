@@ -38,7 +38,7 @@ import (
 // 2. Subsequent withdrawals (if any) are processed as validator withdrawals
 // 3. This modification reduces the maximum validator withdrawals per block by one.
 //
-//nolint:gocognit,funlen // TODO(pectra).
+//nolint:gocognit,funlen // TODO: Consider refactoring
 func (sp *StateProcessor) processWithdrawals(
 	st *state.StateDB, blk *ctypes.BeaconBlock,
 ) error {
