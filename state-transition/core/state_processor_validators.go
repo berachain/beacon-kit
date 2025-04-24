@@ -63,11 +63,19 @@ func (sp *StateProcessor) processRegistryUpdates(st *statedb.StateDB) error {
 		// Even Partial Withdrawals through EIP7002 can only reduce a validator's balance to `MinActivationBalance`,
 		// which is not enough to trigger a validator exit.
 		// A Full Withdrawal through EIP7002 would initiate a validator exit directly and does not rely on `processRegistryUpdates`.
-		// As such, we do not include the logic:
+		// As such, we do not include the logic, but rather log an error if it is observed:
 		/*
 			elif is_active_validator(validator, current_epoch) and validator.effective_balance <= config.EJECTION_BALANCE:
 							initiate_validator_exit(state, ValidatorIndex(index))  # [Modified in Electra:EIP7251]
 		*/
+		if val.IsActive(currEpoch) && val.GetEffectiveBalance() <= math.Gwei(sp.cs.MinActivationBalance()-sp.cs.EffectiveBalanceIncrement()) {
+			sp.logger.Error(
+				"registry update, validator is active but effective balance is too low",
+				"validator_pub_key", val.Pubkey.String(),
+				"effective_balance", val.GetEffectiveBalance().Base10(),
+				"epoch", currEpoch.Base10(),
+			)
+		}
 
 		if val.IsEligibleForActivation(currEpoch) {
 			val.SetActivationEpoch(activationEpoch)
