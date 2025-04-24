@@ -43,6 +43,7 @@ type AttributesFactory interface {
 		slot math.U64,
 		timestamp math.U64,
 		prevHeadRoot [32]byte,
+		withdrawals engineprimitives.Withdrawals,
 	) (*engineprimitives.PayloadAttributes, error)
 }
 

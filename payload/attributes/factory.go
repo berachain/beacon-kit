@@ -55,26 +55,16 @@ func NewAttributesFactory(
 // BuildPayloadAttributes creates a new instance of PayloadAttributes.
 func (f *Factory) BuildPayloadAttributes(
 	st *statedb.StateDB,
-	slot math.Slot,
+	slot math.U64,
 	timestamp math.U64,
 	prevHeadRoot [32]byte,
+	withdrawals engineprimitives.Withdrawals,
 ) (*engineprimitives.PayloadAttributes, error) {
 	var (
 		prevRandao [32]byte
-
-		epoch = f.chainSpec.SlotToEpoch(slot)
+		err        error
+		epoch      = f.chainSpec.SlotToEpoch(slot)
 	)
-
-	// Get the expected withdrawals to include in this payload.
-	withdrawals, _, err := st.ExpectedWithdrawals(timestamp)
-	if err != nil {
-		f.logger.Error(
-			"Could not get expected withdrawals to get payload attribute",
-			"error",
-			err,
-		)
-		return nil, err
-	}
 
 	// Get the previous randao mix.
 	if prevRandao, err = st.GetRandaoMixAtIndex(

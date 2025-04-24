@@ -42,6 +42,7 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 	parentBlockRoot common.Root,
 	headEth1BlockHash common.ExecutionHash,
 	finalEth1BlockHash common.ExecutionHash,
+	withdrawals engineprimitives.Withdrawals,
 ) (*engineprimitives.PayloadID, common.Version, error) {
 	if !pb.Enabled() {
 		return nil, common.Version{}, ErrPayloadBuilderDisabled
@@ -62,6 +63,7 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 		slot,
 		timestamp,
 		parentBlockRoot,
+		withdrawals,
 	)
 	if err != nil {
 		return nil, common.Version{}, err
@@ -101,6 +103,7 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 	parentBlockRoot common.Root,
 	parentEth1Hash common.ExecutionHash,
 	finalBlockHash common.ExecutionHash,
+	withdrawals engineprimitives.Withdrawals,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
 	if !pb.Enabled() {
 		return nil, ErrPayloadBuilderDisabled
@@ -116,6 +119,7 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 		parentBlockRoot,
 		parentEth1Hash,
 		finalBlockHash,
+		withdrawals,
 	)
 	if err != nil {
 		return nil, err

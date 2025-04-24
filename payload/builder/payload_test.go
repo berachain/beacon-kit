@@ -188,6 +188,7 @@ type stubAttributesFactory struct{}
 func (ee *stubAttributesFactory) BuildPayloadAttributes(
 	*statedb.StateDB, math.U64,
 	math.U64, [32]byte,
+	engineprimitives.Withdrawals,
 ) (*engineprimitives.PayloadAttributes, error) {
 	return nil, errStubNotImplemented
 }

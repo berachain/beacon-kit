@@ -71,6 +71,7 @@ type LocalBuilder interface {
 		parentBlockRoot common.Root,
 		headEth1BlockHash common.ExecutionHash,
 		finalEth1BlockHash common.ExecutionHash,
+		withdrawals engineprimitives.Withdrawals,
 	) (*engineprimitives.PayloadID, common.Version, error)
 }
 
@@ -103,6 +104,11 @@ type StateProcessor interface {
 		func(
 			blk *ctypes.BeaconBlock,
 			signature crypto.BLSSignature) error,
+		error,
+	)
+	ExpectedWithdrawals(st *statedb.StateDB, timestamp math.U64) (
+		engineprimitives.Withdrawals,
+		uint64,
 		error,
 	)
 }

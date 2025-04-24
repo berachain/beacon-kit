@@ -22,9 +22,12 @@ package core
 
 import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/ethereum/go-ethereum/params"
@@ -50,7 +53,7 @@ func (sp *StateProcessor) processWithdrawals(
 	)
 
 	// Get the expected withdrawals.
-	expectedWithdrawals, processedPartialWithdrawalsCount, err := st.ExpectedWithdrawals(blk.GetTimestamp())
+	expectedWithdrawals, processedPartialWithdrawalsCount, err := sp.ExpectedWithdrawals(st, blk.GetTimestamp())
 	if err != nil {
 		return err
 	}
@@ -154,6 +157,118 @@ func (sp *StateProcessor) processWithdrawals(
 	)
 
 	return nil
+}
+
+// ExpectedWithdrawals as defined in the Ethereum 2.0 Specification:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#new-get_expected_withdrawals
+//
+// NOTE: This function is modified from the spec to allow a fixed withdrawal
+// (as the first withdrawal) used for EVM inflation.
+//
+//nolint:gocognit,funlen // spec aligned
+func (sp *StateProcessor) ExpectedWithdrawals(st *state.StateDB, timestamp math.U64) (engineprimitives.Withdrawals, uint64, error) {
+	var (
+		validator         *ctypes.Validator
+		balance           math.Gwei
+		withdrawalAddress common.ExecutionAddress
+	)
+
+	processedPartialWithdrawals := uint64(0)
+
+	slot, err := st.GetSlot()
+	if err != nil {
+		return nil, 0, err
+	}
+	epoch := sp.cs.SlotToEpoch(slot)
+	maxWithdrawals := sp.cs.MaxWithdrawalsPerPayload()
+	withdrawals := make([]*engineprimitives.Withdrawal, 0, maxWithdrawals)
+
+	// The first withdrawal is fixed to be the EVM inflation withdrawal.
+	withdrawals = append(withdrawals, st.EVMInflationWithdrawal(timestamp))
+
+	withdrawalIndex, err := st.GetNextWithdrawalIndex()
+	if err != nil {
+		return nil, 0, err
+	}
+
+	validatorIndex, err := st.GetNextWithdrawalValidatorIndex()
+	if err != nil {
+		return nil, 0, err
+	}
+
+	totalValidators, err := st.GetTotalValidators()
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// [New in Electra:EIP7251] Consume pending partial withdrawals
+	forkVersion := sp.cs.ActiveForkVersionForTimestamp(timestamp)
+	if version.EqualsOrIsAfter(forkVersion, version.Electra()) {
+		withdrawals, withdrawalIndex, processedPartialWithdrawals, err =
+			st.ConsumePendingPartialWithdrawals(epoch, withdrawals, withdrawalIndex)
+		if err != nil {
+			return nil, 0, err
+		}
+	}
+
+	bound := min(totalValidators, sp.cs.MaxValidatorsPerWithdrawalsSweep())
+
+	// Iterate through indices to find the next validators to withdraw.
+	for range bound {
+		validator, err = st.ValidatorByIndex(validatorIndex)
+		if err != nil {
+			return nil, 0, err
+		}
+
+		balance, err = st.GetBalance(validatorIndex)
+		if err != nil {
+			return nil, 0, err
+		}
+
+		// Set the amount of the withdrawal depending on the balance of the validator.
+		if validator.IsFullyWithdrawable(balance, epoch) {
+			withdrawalAddress, err = validator.GetWithdrawalCredentials().ToExecutionAddress()
+			if err != nil {
+				return nil, 0, err
+			}
+
+			withdrawals = append(withdrawals, engineprimitives.NewWithdrawal(
+				math.U64(withdrawalIndex),
+				validatorIndex,
+				withdrawalAddress,
+				balance,
+			))
+
+			// Increment the withdrawal index to process the next withdrawal.
+			withdrawalIndex++
+		} else if validator.IsPartiallyWithdrawable(
+			balance, math.Gwei(sp.cs.MaxEffectiveBalance()),
+		) {
+			withdrawalAddress, err = validator.GetWithdrawalCredentials().ToExecutionAddress()
+			if err != nil {
+				return nil, 0, err
+			}
+
+			withdrawals = append(withdrawals, engineprimitives.NewWithdrawal(
+				math.U64(withdrawalIndex),
+				validatorIndex,
+				withdrawalAddress,
+				balance-math.Gwei(sp.cs.MaxEffectiveBalance()),
+			))
+
+			// Increment the withdrawal index to process the next withdrawal.
+			withdrawalIndex++
+		}
+
+		// Cap the number of withdrawals to the maximum allowed per payload.
+		if uint64(len(withdrawals)) == maxWithdrawals {
+			break
+		}
+
+		// Increment the validator index to process the next validator.
+		validatorIndex = (validatorIndex + 1) % math.ValidatorIndex(totalValidators)
+	}
+	return withdrawals, processedPartialWithdrawals, nil
 }
 
 // processWithdrawalRequest is the equivalent of process_withdrawal_request as defined in the spec.

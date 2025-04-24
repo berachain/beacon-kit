@@ -73,120 +73,7 @@ func (s *StateDB) DecreaseBalance(idx math.ValidatorIndex, delta math.Gwei) erro
 	return s.SetBalance(idx, balance-min(balance, delta))
 }
 
-// ExpectedWithdrawals as defined in the Ethereum 2.0 Specification:
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#new-get_expected_withdrawals
-//
-// NOTE: This function is modified from the spec to allow a fixed withdrawal
-// (as the first withdrawal) used for EVM inflation.
-//
-//nolint:gocognit,funlen // spec aligned
-func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.Withdrawals, uint64, error) {
-	var (
-		validator         *ctypes.Validator
-		balance           math.Gwei
-		withdrawalAddress common.ExecutionAddress
-	)
-
-	processedPartialWithdrawals := uint64(0)
-
-	slot, err := s.GetSlot()
-	if err != nil {
-		return nil, 0, err
-	}
-	epoch := s.cs.SlotToEpoch(slot)
-	maxWithdrawals := s.cs.MaxWithdrawalsPerPayload()
-	withdrawals := make([]*engineprimitives.Withdrawal, 0, maxWithdrawals)
-
-	// The first withdrawal is fixed to be the EVM inflation withdrawal.
-	withdrawals = append(withdrawals, s.EVMInflationWithdrawal(timestamp))
-
-	withdrawalIndex, err := s.GetNextWithdrawalIndex()
-	if err != nil {
-		return nil, 0, err
-	}
-
-	validatorIndex, err := s.GetNextWithdrawalValidatorIndex()
-	if err != nil {
-		return nil, 0, err
-	}
-
-	totalValidators, err := s.GetTotalValidators()
-	if err != nil {
-		return nil, 0, err
-	}
-
-	// [New in Electra:EIP7251] Consume pending partial withdrawals
-	forkVersion := s.cs.ActiveForkVersionForTimestamp(timestamp)
-	if version.EqualsOrIsAfter(forkVersion, version.Electra()) {
-		withdrawals, withdrawalIndex, processedPartialWithdrawals, err =
-			s.consumePendingPartialWithdrawals(epoch, withdrawals, withdrawalIndex)
-		if err != nil {
-			return nil, 0, err
-		}
-	}
-
-	bound := min(totalValidators, s.cs.MaxValidatorsPerWithdrawalsSweep())
-
-	// Iterate through indices to find the next validators to withdraw.
-	for range bound {
-		validator, err = s.ValidatorByIndex(validatorIndex)
-		if err != nil {
-			return nil, 0, err
-		}
-
-		balance, err = s.GetBalance(validatorIndex)
-		if err != nil {
-			return nil, 0, err
-		}
-
-		// Set the amount of the withdrawal depending on the balance of the validator.
-		if validator.IsFullyWithdrawable(balance, epoch) {
-			withdrawalAddress, err = validator.GetWithdrawalCredentials().ToExecutionAddress()
-			if err != nil {
-				return nil, 0, err
-			}
-
-			withdrawals = append(withdrawals, engineprimitives.NewWithdrawal(
-				math.U64(withdrawalIndex),
-				validatorIndex,
-				withdrawalAddress,
-				balance,
-			))
-
-			// Increment the withdrawal index to process the next withdrawal.
-			withdrawalIndex++
-		} else if validator.IsPartiallyWithdrawable(
-			balance, math.Gwei(s.cs.MaxEffectiveBalance()),
-		) {
-			withdrawalAddress, err = validator.GetWithdrawalCredentials().ToExecutionAddress()
-			if err != nil {
-				return nil, 0, err
-			}
-
-			withdrawals = append(withdrawals, engineprimitives.NewWithdrawal(
-				math.U64(withdrawalIndex),
-				validatorIndex,
-				withdrawalAddress,
-				balance-math.Gwei(s.cs.MaxEffectiveBalance()),
-			))
-
-			// Increment the withdrawal index to process the next withdrawal.
-			withdrawalIndex++
-		}
-
-		// Cap the number of withdrawals to the maximum allowed per payload.
-		if uint64(len(withdrawals)) == maxWithdrawals {
-			break
-		}
-
-		// Increment the validator index to process the next validator.
-		validatorIndex = (validatorIndex + 1) % math.ValidatorIndex(totalValidators)
-	}
-
-	return withdrawals, processedPartialWithdrawals, nil
-}
-
-func (s *StateDB) consumePendingPartialWithdrawals(
+func (s *StateDB) ConsumePendingPartialWithdrawals(
 	epoch math.Epoch,
 	withdrawals engineprimitives.Withdrawals,
 	withdrawalIndex uint64,
@@ -200,7 +87,7 @@ func (s *StateDB) consumePendingPartialWithdrawals(
 	// This will fail if the state has not been prepared for a post-Electra fork version.
 	ppWithdrawals, getErr := s.GetPendingPartialWithdrawals()
 	if getErr != nil {
-		return nil, 0, 0, fmt.Errorf("consumePendingPartialWithdrawals: failed retrieving pending partial withdrawals: %w", getErr)
+		return nil, 0, 0, fmt.Errorf("ConsumePendingPartialWithdrawals: failed retrieving pending partial withdrawals: %w", getErr)
 	}
 	processedPartialWithdrawals := uint64(0)
 

@@ -254,6 +254,11 @@ func (s *Service) retrieveExecutionPayload(
 		return nil, err
 	}
 
+	withdrawals, _, err := s.stateProcessor.ExpectedWithdrawals(st, nextPayloadTimestamp)
+	if err != nil {
+		return nil, err
+	}
+
 	return s.localPayloadBuilder.RequestPayloadSync(
 		ctx,
 		st,
@@ -262,6 +267,7 @@ func (s *Service) retrieveExecutionPayload(
 		parentBlockRoot,
 		lph.GetBlockHash(),
 		lph.GetParentHash(),
+		withdrawals,
 	)
 }
 

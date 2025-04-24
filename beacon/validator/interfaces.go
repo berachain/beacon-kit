@@ -67,6 +67,7 @@ type PayloadBuilder interface {
 		parentBlockRoot common.Root,
 		headEth1BlockHash common.ExecutionHash,
 		finalEth1BlockHash common.ExecutionHash,
+		withdrawals engineprimitives.Withdrawals,
 	) (ctypes.BuiltExecutionPayloadEnv, error)
 }
 
@@ -86,6 +87,11 @@ type StateProcessor interface {
 		st *statedb.StateDB,
 		blk *ctypes.BeaconBlock,
 	) (transition.ValidatorUpdates, error)
+	ExpectedWithdrawals(st *statedb.StateDB, timestamp math.U64) (
+		engineprimitives.Withdrawals,
+		uint64,
+		error,
+	)
 }
 
 // StorageBackend is the interface for the storage backend.

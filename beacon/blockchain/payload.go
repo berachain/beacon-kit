@@ -191,6 +191,11 @@ func (s *Service) rebuildPayloadForRejectedBlock(
 		return err
 	}
 
+	withdrawals, _, err := s.stateProcessor.ExpectedWithdrawals(st, nextPayloadTimestamp)
+	if err != nil {
+		return err
+	}
+
 	// Submit a request for a new payload.
 	if _, _, err = s.localBuilder.RequestPayloadAsync(
 		ctx,
@@ -207,6 +212,7 @@ func (s *Service) rebuildPayloadForRejectedBlock(
 		// TODO: This is making an assumption about the consensus rules
 		// and possibly should be made more explicit later on.
 		lph.GetParentHash(),
+		withdrawals,
 	); err != nil {
 		s.metrics.markRebuildPayloadForRejectedBlockFailure(stateSlot, err)
 		return err
@@ -266,10 +272,16 @@ func (s *Service) optimisticPayloadBuild(
 		return err
 	}
 
+	withdrawals, _, err := s.stateProcessor.ExpectedWithdrawals(st, nextPayloadTimestamp)
+	if err != nil {
+		return err
+	}
+
 	// We then trigger a request for the next payload.
 	payload := blk.GetBody().GetExecutionPayload()
 	if _, _, err = s.localBuilder.RequestPayloadAsync(
-		ctx, st,
+		ctx,
+		st,
 		slot,
 		nextPayloadTimestamp,
 		// The previous block root is simply the root of the block we just
@@ -282,6 +294,7 @@ func (s *Service) optimisticPayloadBuild(
 		// parent hash was deemed valid by the state transition function we
 		// just processed.
 		payload.GetParentHash(),
+		withdrawals,
 	); err != nil {
 		s.metrics.markOptimisticPayloadBuildFailure(slot, err)
 		return err

@@ -51,6 +51,7 @@ type (
 			slot math.Slot,
 			timestamp math.U64,
 			prevHeadRoot [32]byte,
+			withdrawals engineprimitives.Withdrawals,
 		) (*engineprimitives.PayloadAttributes, error)
 	}
 
@@ -85,6 +86,7 @@ type (
 			parentBlockRoot common.Root,
 			headEth1BlockHash common.ExecutionHash,
 			finalEth1BlockHash common.ExecutionHash,
+			withdrawals engineprimitives.Withdrawals,
 		) (*engineprimitives.PayloadID, common.Version, error)
 		// RetrievePayload retrieves the payload for the given slot.
 		RetrievePayload(
@@ -102,6 +104,7 @@ type (
 			parentBlockRoot common.Root,
 			headEth1BlockHash common.ExecutionHash,
 			finalEth1BlockHash common.ExecutionHash,
+			withdrawals engineprimitives.Withdrawals,
 		) (ctypes.BuiltExecutionPayloadEnv, error)
 	}
 
@@ -146,6 +149,11 @@ type (
 		) (transition.ValidatorUpdates, error)
 		GetSignatureVerifierFn(st *statedb.StateDB) (
 			func(blk *ctypes.BeaconBlock, signature crypto.BLSSignature) error,
+			error,
+		)
+		ExpectedWithdrawals(st *statedb.StateDB, timestamp math.U64) (
+			engineprimitives.Withdrawals,
+			uint64,
 			error,
 		)
 	}
