@@ -90,7 +90,7 @@ const (
 
 	// mainnetMinValidatorWithdrawabilityDelay is the number of epochs of delay epochs of delay for a balance to be withdrawable.
 	// 256 Epochs equates to roughly ~27 hours of withdrawal delay. This gives us room to emergency fork if needed.
-	mainnetMinValidatorWithdrawabilityDelay = 256
+	mainnetMinValidatorWithdrawabilityDelay = defaultMinValidatorWithdrawabilityDelay
 )
 
 // MainnetChainSpecData is the chain.SpecData for the Berachain mainnet.
