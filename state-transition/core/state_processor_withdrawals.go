@@ -252,7 +252,8 @@ func (sp *StateProcessor) processPartialWithdrawal(
 		// `minActivationBalance`. For example, if a validator's balance is already at
 		// `minActivationBalance` (250K BERA on mainnet) and they request a partial withdrawal, the
 		// `toWithdraw` amount will always be zero.
-		withdrawableEpoch := currentEpoch + 1 + sp.cs.MinValidatorWithdrawabilityDelay()
+		nextEpoch := currentEpoch + 1
+		withdrawableEpoch := nextEpoch + sp.cs.MinValidatorWithdrawabilityDelay()
 		ppWithdrawal := &ctypes.PendingPartialWithdrawal{
 			ValidatorIndex:    index,
 			Amount:            toWithdraw,
