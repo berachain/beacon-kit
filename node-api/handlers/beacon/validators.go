@@ -101,9 +101,9 @@ func (h *Handler) GetStateValidator(c handlers.Context) (any, error) {
 	}
 	if req.StateID == utils.StateIDGenesis {
 		st := h.backend.GenesisState()
-		validators, err := st.GetValidators()
-		if err != nil {
-			return nil, err
+		validators, errInGetValidators := st.GetValidators()
+		if errInGetValidators != nil {
+			return nil, errInGetValidators
 		}
 		return beacontypes.NewResponse(validators), nil
 	}
@@ -148,17 +148,17 @@ func (h *Handler) GetStateValidatorBalances(c handlers.Context) (any, error) {
 	if req.StateID == utils.StateIDGenesis {
 		st = h.backend.GenesisState()
 	} else {
-		slot, err := utils.SlotFromStateID(req.StateID, h.backend)
+		slot, errInSlot := utils.SlotFromStateID(req.StateID, h.backend)
 		switch {
-		case err == nil:
-			// No error, continue
-		case errors.Is(err, utils.ErrNoSlotForStateRoot):
+		case errInSlot == nil:
+		// No error, continue
+		case errors.Is(errInSlot, utils.ErrNoSlotForStateRoot):
 			return &handlers.HTTPError{
 				Code:    http.StatusNotFound,
 				Message: "State not found",
 			}, nil
 		default:
-			return nil, err
+			return nil, errInSlot
 		}
 		st, _, err = h.backend.StateAtSlot(slot)
 		if err != nil {
