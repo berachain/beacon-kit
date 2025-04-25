@@ -167,7 +167,7 @@ func (sp *StateProcessor) processWithdrawalRequest(
 
 	// If partial withdrawal queue is full, only full exits are processed
 	if len(pendingPartialWithdrawals) == constants.PendingPartialWithdrawalsLimit && !isFullExitRequest {
-		// TODO: add metrics here.
+		// TODO(pectra): add metrics here.
 		sp.logger.Warn(
 			"skipping processing of withdrawal request as partial withdrawal queue is full",
 			withdrawalFields(withdrawalRequest, nil)...,
@@ -242,7 +242,7 @@ func (sp *StateProcessor) processPartialWithdrawal(
 
 	isWithdrawable := validator.HasCompoundingWithdrawalCredential() && hasSufficient && hasExcess
 	if !isWithdrawable {
-		// TODO: add metrics here.
+		// TODO(pectra): add metrics here.
 		sp.logger.Info("validator cannot withdraw partial balance",
 			"validator_index", index,
 			"validator_pubkey", validator.GetPubkey().String(),
