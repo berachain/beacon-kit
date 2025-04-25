@@ -148,7 +148,8 @@ func (p *PendingPartialWithdrawals) ValidateAfterDecodingSSZ() error {
 	return nil
 }
 
-// PendingBalanceToWithdraw implements get_pending_balance_to_withdraw.
+// PendingBalanceToWithdraw implements get_pending_balance_to_withdraw from the ETH2.0 spec.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#new-get_pending_balance_to_withdraw
 func (p PendingPartialWithdrawals) PendingBalanceToWithdraw(validatorIndex math.ValidatorIndex) math.Gwei {
 	var total math.Gwei
 	for _, withdrawal := range p {

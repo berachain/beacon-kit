@@ -160,13 +160,13 @@ func (sp *StateProcessor) processWithdrawals(
 // It should only be called after the electra hard fork.
 // For invalid withdrawal requests, we return nil, and only return error for system errors.
 func (sp *StateProcessor) processWithdrawalRequest(st *state.StateDB, withdrawalRequest *ctypes.WithdrawalRequest) error {
-	amount := withdrawalRequest.Amount
 	// If the amount is 0, it's a full exit.
-	isFullExitRequest := amount == constants.FullExitRequestAmount
+	isFullExitRequest := withdrawalRequest.Amount == constants.FullExitRequestAmount
 	pendingPartialWithdrawals, err := st.GetPendingPartialWithdrawals()
 	if err != nil {
 		return err
 	}
+
 	// If partial withdrawal queue is full, only full exits are processed
 	if len(pendingPartialWithdrawals) == constants.PendingPartialWithdrawalsLimit && !isFullExitRequest {
 		sp.logger.Warn(
@@ -175,6 +175,7 @@ func (sp *StateProcessor) processWithdrawalRequest(st *state.StateDB, withdrawal
 		)
 		return nil
 	}
+
 	index, validator, err := validateWithdrawal(st, withdrawalRequest)
 	if err != nil {
 		sp.logger.Info("Failed to validate withdrawal", withdrawalFields(withdrawalRequest, err)...)
@@ -322,7 +323,7 @@ func verifyWithdrawalConditions(chainSpec ChainSpec, st *state.StateDB, validato
 	}
 	// Verify the validator has been active long enough
 	// In the spec, config.SHARD_COMMITTEE_PERIOD is added as well, but we ignore this since
-	// it's related to ETH data shards which is no longer planned.
+	// it's related to ETH data shards which is not relevant for us.
 	if currentEpoch < validator.ActivationEpoch {
 		return errors.New("validator not active long enough")
 	}
