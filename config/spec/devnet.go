@@ -46,7 +46,7 @@ const (
 
 	// devnetElectraForkTime is the timestamp at which the Electra fork occurs.
 	// devnet is configured to start on electra.
-	devnetElectraForkTime = 1745576000
+	devnetElectraForkTime = 1745586000
 
 	// devnetEVMInflationAddressDeneb1 is the address of the EVM inflation contract
 	// after the Deneb1 fork.
@@ -57,7 +57,7 @@ const (
 	devnetEVMInflationPerBlockDeneb1 = 11 * params.GWei
 
 	// devnetMinValidatorWithdrawabilityDelay is the delay (in epochs) before a validator can withdraw their stake.
-	devnetMinValidatorWithdrawabilityDelay = 32
+	devnetMinValidatorWithdrawabilityDelay = 8
 )
 
 // DevnetChainSpecData is the chain.SpecData for a devnet. It is similar to mainnet but
