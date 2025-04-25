@@ -55,6 +55,9 @@ const (
 	// devnetEVMInflationPerBlockDeneb1 is the amount of native EVM balance (in units
 	// of Gwei) to be minted per EL block after the Deneb1 fork.
 	devnetEVMInflationPerBlockDeneb1 = 11 * params.GWei
+
+	// devnetMinValidatorWithdrawabilityDelay is the delay (in epochs) before a validator can withdraw their stake.
+	devnetMinValidatorWithdrawabilityDelay = 32
 )
 
 // DevnetChainSpecData is the chain.SpecData for a devnet. It is similar to mainnet but
@@ -80,9 +83,10 @@ func DevnetChainSpecData() *chain.SpecData {
 
 	// Staking is different from mainnet for now.
 	specData.MaxEffectiveBalance = devnetMaxStakeAmount
-	specData.EjectionBalance = defaultEjectionBalance
+	specData.MinActivationBalance = defaultActivationBalance
 	specData.EffectiveBalanceIncrement = defaultEffectiveBalanceIncrement
 	specData.SlotsPerEpoch = defaultSlotsPerEpoch
+	specData.MinValidatorWithdrawabilityDelay = devnetMinValidatorWithdrawabilityDelay
 
 	return specData
 }
