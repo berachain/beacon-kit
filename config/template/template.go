@@ -26,6 +26,12 @@ const TomlTemplate = `
 ###############################################################################
 
 [beacon-kit]
+# ChainSpec is the type of chain spec to use.
+chain-spec = "{{ .BeaconKit.ChainSpec }}"
+
+# ChainSpecFilePath is the path to the chain spec file to use.
+chain-spec-file = "{{ .BeaconKit.ChainSpecFilePath }}"
+
 # ShutdownTimeout is the maximum time to wait for the node to gracefully
 # shutdown before forcing an exit.
 shutdown-timeout = "{{ .BeaconKit.ShutdownTimeout }}"
@@ -82,11 +88,11 @@ payload-timeout = "{{ .BeaconKit.PayloadBuilder.PayloadTimeout }}"
 
 [beacon-kit.validator]
 # Graffiti string that will be included in the graffiti field of the beacon block.
-graffiti = "{{.BeaconKit.Validator.Graffiti}}"
+graffiti = "{{ .BeaconKit.Validator.Graffiti }}"
 
 # EnableOptimisticPayloadBuilds enables building the next block's payload optimistically in
 # process-proposal to allow for the execution client to have more time to assemble the block.
-enable-optimistic-payload-builds = "{{.BeaconKit.Validator.EnableOptimisticPayloadBuilds}}"
+enable-optimistic-payload-builds = "{{ .BeaconKit.Validator.EnableOptimisticPayloadBuilds }}"
 
 [beacon-kit.block-store-service]
 # Enabled determines if the block store service is enabled.

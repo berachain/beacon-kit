@@ -26,6 +26,7 @@ import (
 	"cosmossdk.io/depinject"
 	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	"github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/types"
 	cmtcfg "github.com/cometbft/cometbft/config"
@@ -71,7 +72,7 @@ func (nb *NodeBuilder) Build(
 		config     *config.Config
 	)
 
-	chainSpec, err := servertypes.CreateChainSpec(appOpts)
+	chainSpec, err := spec.Create(appOpts)
 	if err != nil {
 		panic(err)
 	}
