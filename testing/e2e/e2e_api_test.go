@@ -294,6 +294,30 @@ func (s *BeaconKitE2ESuite) TestValidatorBalancesGenesis() {
 
 	balanceMap := balancesResp.Data
 	for _, balance := range balanceMap {
+		fmt.Println("balance in TestValidatorBalancesGenesis", balance)
+		s.Require().True(balance > 0, "Validator balance should be positive")
+		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
+		s.Require().True(balance <= 4e12, "Validator balance should not exceed 4e12 gwei (4000 BERA)")
+	}
+}
+
+// TestValidatorBalancesSlot tests querying validator balances for slot.
+func (s *BeaconKitE2ESuite) TestValidatorBalancesSlot() {
+	client := s.initBeaconTest()
+
+	balancesResp, err := client.ValidatorBalances(s.Ctx(), &beaconapi.ValidatorBalancesOpts{
+		State: "1",
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(balancesResp)
+
+	// Verify the response is not empty
+	s.Require().NotNil(balancesResp.Data)
+	s.Require().NotEmpty(balancesResp.Data)
+
+	balanceMap := balancesResp.Data
+	for _, balance := range balanceMap {
+		fmt.Println("balance in TestValidatorBalancesSlot", balance)
 		s.Require().True(balance > 0, "Validator balance should be positive")
 		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
 		s.Require().True(balance <= 4e12, "Validator balance should not exceed 4e12 gwei (4000 BERA)")
@@ -739,10 +763,27 @@ func (s *BeaconKitE2ESuite) TestGetValidatorBalancesForGenesis() {
 	s.Require().NotEmpty(balancesResp, "balances response should not be empty")
 
 	for _, balance := range *balancesResp {
+		fmt.Println("balance in TestGetValidatorBalancesForGenesis", balance)
 		s.Require().True(balance.Balance > 0, "Validator balance should be positive")
 		// At genesis, the validator balance is 32 BERA.
 		// 32e9 Gwei = 32 * 10^9 Gwei = 32,000,000,000 Gwei = 32 BERA
 		s.Require().True(balance.Balance <= 32e9, "Validator balance should not exceed 32 BERA")
+	}
+}
+
+// TestGetValidatorBalancesSlot tests querying validator balances for slot 1.
+func (s *BeaconKitE2ESuite) TestGetValidatorBalancesSlot() {
+	client := s.initBeaconTest()
+
+	balancesResp, err := client.ValidatorBalances(s.Ctx(), &beaconapi.ValidatorBalancesOpts{
+		State: "1",
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(balancesResp)
+	s.Require().NotEmpty(balancesResp.Data)
+
+	for _, balance := range balancesResp.Data {
+		fmt.Println("balance in TestGetValidatorBalancesSlot", balance)
 	}
 }
 

@@ -49,5 +49,5 @@ func (b *Backend) GenesisBlockRoot() common.Root {
 
 // GenesisState returns the genesis state of the beacon chain.
 func (b *Backend) GenesisState() *statedb.StateDB {
-	return *b.genesisState.Load()
+	return b.genesisState.Load()
 }

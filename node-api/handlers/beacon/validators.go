@@ -39,7 +39,7 @@ var ErrNoSlotForStateRoot = errors.New("slot not found at state root")
 // consistency between GetStateValidators and PostStateValidators, since they
 // are intended to behave the same way.
 func (h *Handler) getStateValidators(stateID string, ids []string, statuses []string) (any, error) {
-	if stateID == utils.StateIDGenesis {
+	if stateID == utils.StateIDGenesis || stateID == "0" {
 		genesisState := h.backend.GenesisState()
 		genesisValidators, err := genesisState.GetValidators()
 		if err != nil {
@@ -99,7 +99,7 @@ func (h *Handler) GetStateValidator(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	if req.StateID == utils.StateIDGenesis {
+	if req.StateID == utils.StateIDGenesis || req.StateID == "0" {
 		st := h.backend.GenesisState()
 		validators, errInGetValidators := st.GetValidators()
 		if errInGetValidators != nil {
@@ -145,7 +145,7 @@ func (h *Handler) GetStateValidatorBalances(c handlers.Context) (any, error) {
 	}
 
 	var st *statedb.StateDB
-	if req.StateID == utils.StateIDGenesis {
+	if req.StateID == utils.StateIDGenesis || req.StateID == "0" {
 		st = h.backend.GenesisState()
 	} else {
 		slot, errInSlot := utils.SlotFromStateID(req.StateID, h.backend)
@@ -193,7 +193,7 @@ func (h *Handler) PostStateValidatorBalances(c handlers.Context) (any, error) {
 
 	var st *statedb.StateDB
 
-	if req.StateID == utils.StateIDGenesis {
+	if req.StateID == utils.StateIDGenesis || req.StateID == "0" {
 		st = h.backend.GenesisState()
 	} else {
 		slot, err := utils.SlotFromStateID(req.StateID, h.backend)

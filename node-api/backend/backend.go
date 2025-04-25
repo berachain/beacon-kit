@@ -48,7 +48,7 @@ type Backend struct {
 	genesisBlockRoot   atomic.Pointer[common.Root]
 	genesisTime        atomic.Pointer[math.U64]
 	genesisForkVersion atomic.Pointer[common.Version]
-	genesisState       atomic.Pointer[*statedb.StateDB]
+	genesisState       atomic.Pointer[statedb.StateDB]
 }
 
 // New creates and returns a new Backend instance.
@@ -98,7 +98,7 @@ func (b *Backend) SetGenesisData(
 ) {
 	b.genesisHeader.Store(genesisHeader)
 	b.genesisBlockRoot.Store(&genesisBlockRoot)
-	b.genesisState.Store(&genesisState)
+	b.genesisState.Store(genesisState)
 }
 
 // GetSlotByBlockRoot retrieves the slot by a block root from the block store.
