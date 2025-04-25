@@ -52,7 +52,6 @@ max-blob-commitments-per-block = 4096
 max-blobs-per-block = 6
 field-elements-per-blob = 4096
 bytes-per-blob = 131072
-kzg-commitment-inclusion-proof-depth = 17
 
 # Berachain genesis values
 validator-set-cap = 69

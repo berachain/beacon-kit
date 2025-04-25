@@ -30,7 +30,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-// handleAppConfig writes the provided <customConfig> to the file at <configDirPath>/app.toml, or 
+// handleAppConfig writes the provided <customConfig> to the file at <configDirPath>/app.toml, or
 // reads it into the provided <viper> instance if it exists.
 func handleAppConfig(
 	viper *viper.Viper,

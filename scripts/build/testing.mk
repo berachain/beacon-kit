@@ -261,14 +261,12 @@ start-reth-bepolia:
 #    Mainnet    #
 #################
 
-MAINNET_CHAIN_SPEC = mainnet
 MAINNET_NETWORK_FILES_DIR = ${TESTAPP_FILES_DIR}/../networks/80094
 MAINNET_ETH_GENESIS_PATH = ${MAINNET_NETWORK_FILES_DIR}/eth-genesis.json
 
 start-mainnet:
 	@JWT_SECRET_PATH=$(JWT_PATH) \
-	CHAIN_SPEC=$(MAINNET_CHAIN_SPEC) \
-	${TESTAPP_FILES_DIR}/entrypoint.sh
+	${TESTAPP_FILES_DIR}/entrypoint.sh mainnet
 
 # NOTE: By default this will use the EL peers as your bootnodes. If you want specific 
 # discovery bootnodes by region, refer to testing/networks/80094/el-bootnodes.txt
