@@ -99,14 +99,14 @@ func TestFilteredValidators(t *testing.T) {
 		{
 			ValidatorBalanceData: types.ValidatorBalanceData{
 				Index:   0,
-				Balance: cs.MaxEffectiveBalance(),
+				Balance: cs.MaxEffectiveBalance().Unwrap(),
 			},
 			Status: constants.ValidatorStatusPendingInitialized,
 			Validator: types.ValidatorFromConsensus(
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x01},
 					WithdrawalCredentials:      [32]byte{0x02},
-					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance()),
+					EffectiveBalance:           cs.MaxEffectiveBalance(),
 					Slashed:                    false,
 					ActivationEligibilityEpoch: constants.FarFutureEpoch,
 					ActivationEpoch:            constants.FarFutureEpoch,
@@ -118,14 +118,14 @@ func TestFilteredValidators(t *testing.T) {
 		{
 			ValidatorBalanceData: types.ValidatorBalanceData{
 				Index:   1,
-				Balance: cs.MaxEffectiveBalance() * 3 / 4,
+				Balance: cs.MaxEffectiveBalance().Unwrap() * 3 / 4,
 			},
 			Status: constants.ValidatorStatusPendingQueued,
 			Validator: types.ValidatorFromConsensus(
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x03},
 					WithdrawalCredentials:      [32]byte{0x04},
-					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 2),
+					EffectiveBalance:           cs.MaxEffectiveBalance() / 2,
 					Slashed:                    false,
 					ActivationEligibilityEpoch: math.Epoch(0),
 					ActivationEpoch:            constants.FarFutureEpoch,
@@ -137,14 +137,14 @@ func TestFilteredValidators(t *testing.T) {
 		{
 			ValidatorBalanceData: types.ValidatorBalanceData{
 				Index:   2,
-				Balance: cs.MaxEffectiveBalance() / 4,
+				Balance: cs.MaxEffectiveBalance().Unwrap() / 4,
 			},
 			Status: constants.ValidatorStatusActiveOngoing,
 			Validator: types.ValidatorFromConsensus(
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x05},
 					WithdrawalCredentials:      [32]byte{0x06},
-					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 3),
+					EffectiveBalance:           cs.MaxEffectiveBalance() / 3,
 					Slashed:                    false,
 					ActivationEligibilityEpoch: math.Epoch(0),
 					ActivationEpoch:            math.Epoch(0),
@@ -156,14 +156,14 @@ func TestFilteredValidators(t *testing.T) {
 		{
 			ValidatorBalanceData: types.ValidatorBalanceData{
 				Index:   3,
-				Balance: cs.MaxEffectiveBalance() / 4,
+				Balance: cs.MaxEffectiveBalance().Unwrap() / 4,
 			},
 			Status: constants.ValidatorStatusActiveSlashed,
 			Validator: types.ValidatorFromConsensus(
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x15},
 					WithdrawalCredentials:      [32]byte{0x16},
-					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 3),
+					EffectiveBalance:           cs.MaxEffectiveBalance() / 3,
 					Slashed:                    true,
 					ActivationEligibilityEpoch: math.Epoch(0),
 					ActivationEpoch:            math.Epoch(0),
@@ -175,14 +175,14 @@ func TestFilteredValidators(t *testing.T) {
 		{
 			ValidatorBalanceData: types.ValidatorBalanceData{
 				Index:   4,
-				Balance: cs.MaxEffectiveBalance() / 4,
+				Balance: cs.MaxEffectiveBalance().Unwrap() / 4,
 			},
 			Status: constants.ValidatorStatusActiveExiting,
 			Validator: types.ValidatorFromConsensus(
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x17},
 					WithdrawalCredentials:      [32]byte{0x18},
-					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 3),
+					EffectiveBalance:           cs.MaxEffectiveBalance() / 3,
 					Slashed:                    false,
 					ActivationEligibilityEpoch: math.Epoch(0),
 					ActivationEpoch:            math.Epoch(0),
@@ -194,14 +194,14 @@ func TestFilteredValidators(t *testing.T) {
 		{
 			ValidatorBalanceData: types.ValidatorBalanceData{
 				Index:   5,
-				Balance: cs.MaxEffectiveBalance() / 2,
+				Balance: cs.MaxEffectiveBalance().Unwrap() / 2,
 			},
 			Status: constants.ValidatorStatusExitedUnslashed,
 			Validator: types.ValidatorFromConsensus(
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x07},
 					WithdrawalCredentials:      [32]byte{0x08},
-					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 4),
+					EffectiveBalance:           cs.MaxEffectiveBalance() / 4,
 					Slashed:                    false,
 					ActivationEligibilityEpoch: math.Epoch(0),
 					ActivationEpoch:            math.Epoch(0),
@@ -213,14 +213,14 @@ func TestFilteredValidators(t *testing.T) {
 		{
 			ValidatorBalanceData: types.ValidatorBalanceData{
 				Index:   6,
-				Balance: cs.MaxEffectiveBalance() / 2,
+				Balance: cs.MaxEffectiveBalance().Unwrap() / 2,
 			},
 			Status: constants.ValidatorStatusExitedSlashed,
 			Validator: types.ValidatorFromConsensus(
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x27},
 					WithdrawalCredentials:      [32]byte{0x28},
-					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 4),
+					EffectiveBalance:           cs.MaxEffectiveBalance() / 4,
 					Slashed:                    true,
 					ActivationEligibilityEpoch: math.Epoch(0),
 					ActivationEpoch:            math.Epoch(0),
@@ -232,14 +232,14 @@ func TestFilteredValidators(t *testing.T) {
 		{
 			ValidatorBalanceData: types.ValidatorBalanceData{
 				Index:   7,
-				Balance: cs.MinActivationBalance() - cs.EffectiveBalanceIncrement(),
+				Balance: cs.MinActivationBalance().Unwrap() - cs.EffectiveBalanceIncrement().Unwrap(),
 			},
 			Status: constants.ValidatorStatusWithdrawalPossible,
 			Validator: types.ValidatorFromConsensus(
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x09},
 					WithdrawalCredentials:      [32]byte{0x10},
-					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 5),
+					EffectiveBalance:           cs.MaxEffectiveBalance() / 5,
 					Slashed:                    false,
 					ActivationEligibilityEpoch: math.Epoch(0),
 					ActivationEpoch:            math.Epoch(0),
@@ -258,7 +258,7 @@ func TestFilteredValidators(t *testing.T) {
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x39},
 					WithdrawalCredentials:      [32]byte{0x40},
-					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 5),
+					EffectiveBalance:           cs.MaxEffectiveBalance() / 5,
 					Slashed:                    false,
 					ActivationEligibilityEpoch: math.Epoch(0),
 					ActivationEpoch:            math.Epoch(0),

@@ -185,7 +185,7 @@ func (sp *StateProcessor) processGenesisActivation(st *statedb.StateDB) error {
 	if err != nil {
 		return fmt.Errorf("genesis activation, failed listing validators: %w", err)
 	}
-	minEffectiveBalance := math.Gwei(sp.cs.MinActivationBalance())
+	minEffectiveBalance := sp.cs.MinActivationBalance()
 
 	var idx math.ValidatorIndex
 	for _, val := range vals {

@@ -250,14 +250,13 @@ func (sp *StateProcessor) ProcessBlock(
 // processEpoch processes the epoch and ensures it matches the local state. Currently
 // beacon-kit does not enforce rewards, penalties, and slashing for validators.
 func (sp *StateProcessor) processEpoch(st *state.StateDB) (transition.ValidatorUpdates, error) {
-	slot, err := st.GetSlot()
+	currentEpoch, err := st.GetEpoch()
 	if err != nil {
 		return nil, err
 	}
 
 	// track validators set before updating it, to be able to
 	// inform consensus of the validators set changes
-	currentEpoch := sp.cs.SlotToEpoch(slot)
 	currentActiveVals, err := getActiveVals(st, currentEpoch)
 	if err != nil {
 		return nil, err
@@ -380,8 +379,8 @@ func (sp *StateProcessor) processEffectiveBalanceUpdates(st *state.StateDB) erro
 	var (
 		effectiveBalanceIncrement = sp.cs.EffectiveBalanceIncrement()
 		hysteresisIncrement       = effectiveBalanceIncrement / sp.cs.HysteresisQuotient()
-		downwardThreshold         = math.Gwei(hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier())
-		upwardThreshold           = math.Gwei(hysteresisIncrement * sp.cs.HysteresisUpwardMultiplier())
+		downwardThreshold         = hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier()
+		upwardThreshold           = hysteresisIncrement * sp.cs.HysteresisUpwardMultiplier()
 
 		idx     math.U64
 		balance math.Gwei
@@ -401,9 +400,7 @@ func (sp *StateProcessor) processEffectiveBalanceUpdates(st *state.StateDB) erro
 		if balance+downwardThreshold < val.GetEffectiveBalance() ||
 			val.GetEffectiveBalance()+upwardThreshold < balance {
 			updatedBalance := ctypes.ComputeEffectiveBalance(
-				balance,
-				math.U64(effectiveBalanceIncrement),
-				math.U64(sp.cs.MaxEffectiveBalance()),
+				balance, effectiveBalanceIncrement, sp.cs.MaxEffectiveBalance(),
 			)
 			val.SetEffectiveBalance(updatedBalance)
 			if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
