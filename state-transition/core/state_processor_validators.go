@@ -45,28 +45,43 @@ func (sp *StateProcessor) processRegistryUpdates(st *statedb.StateDB) error {
 	}
 
 	currEpoch := sp.cs.SlotToEpoch(slot)
-	nextEpoch := currEpoch + 1
-
-	minEffectiveBalance := math.Gwei(
-		sp.cs.EjectionBalance() + sp.cs.EffectiveBalanceIncrement(),
-	)
+	activationEpoch := currEpoch + 1
+	minActivationBalance := math.Gwei(sp.cs.MinActivationBalance())
 
 	// We do not currently have a cap on validator churn,
 	// so we can process validators activations in a single loop
 	var idx math.ValidatorIndex
 	for si, val := range vals {
 		valModified := false
-		if val.IsEligibleForActivationQueue(minEffectiveBalance) {
-			val.SetActivationEligibilityEpoch(nextEpoch)
+		if val.IsEligibleForActivationQueue(minActivationBalance) {
+			val.SetActivationEligibilityEpoch(activationEpoch)
 			valModified = true
 		}
-		if val.IsEligibleForActivation(currEpoch) {
-			val.SetActivationEpoch(nextEpoch)
-			valModified = true
-		}
+
 		// Note: without slashing and voluntary withdrawals, there is no way
-		// for an activa validator to have its balance less or equal to
-		// EjectionBalance
+		// for an active validator to have its balance less or equal to EjectionBalance.
+		// Even Partial Withdrawals through EIP7002 can only reduce a validator's balance to `MinActivationBalance`,
+		// which is not enough to trigger a validator exit.
+		// A Full Withdrawal through EIP7002 would initiate a validator exit directly and does not rely on `processRegistryUpdates`.
+		// As such, we do not include the logic, but rather log an error if it is observed:
+		/*
+			elif is_active_validator(validator, current_epoch) and validator.effective_balance <= config.EJECTION_BALANCE:
+							initiate_validator_exit(state, ValidatorIndex(index))  # [Modified in Electra:EIP7251]
+		*/
+		if val.IsActive(currEpoch) &&
+			val.GetEffectiveBalance() <= math.Gwei(sp.cs.MinActivationBalance()-sp.cs.EffectiveBalanceIncrement()) {
+			sp.logger.Error(
+				"registry update, validator is active but effective balance is too low",
+				"validator_pub_key", val.Pubkey.String(),
+				"effective_balance", val.GetEffectiveBalance().Base10(),
+				"epoch", currEpoch.Base10(),
+			)
+		}
+
+		if val.IsEligibleForActivation(currEpoch) {
+			val.SetActivationEpoch(activationEpoch)
+			valModified = true
+		}
 
 		if valModified {
 			idx, err = st.ValidatorIndexByPubkey(val.GetPubkey())
@@ -145,8 +160,6 @@ func (sp *StateProcessor) processValidatorSetCap(st *statedb.StateDB) error {
 	var idx math.ValidatorIndex
 	for li := range uint64(len(nextEpochVals)) - validatorSetCap {
 		valToEject := nextEpochVals[li]
-		valToEject.SetExitEpoch(nextEpoch)
-		valToEject.SetWithdrawableEpoch(nextEpoch + 1)
 		idx, err = st.ValidatorIndexByPubkey(valToEject.GetPubkey())
 		if err != nil {
 			return fmt.Errorf(
@@ -154,11 +167,11 @@ func (sp *StateProcessor) processValidatorSetCap(st *statedb.StateDB) error {
 				err,
 			)
 		}
-		if err = st.UpdateValidatorAtIndex(idx, valToEject); err != nil {
+		if exitErr := sp.InitiateValidatorExit(st, idx); exitErr != nil {
 			return fmt.Errorf(
 				"validator cap, failed ejecting validator idx %d: %w",
 				li,
-				err,
+				exitErr,
 			)
 		}
 	}

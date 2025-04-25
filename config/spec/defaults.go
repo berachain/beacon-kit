@@ -27,7 +27,7 @@ package spec
 const (
 	// Gwei value constants.
 	defaultMaxEffectiveBalance       = 32e9
-	defaultEjectionBalance           = 16e9
+	defaultActivationBalance         = 32e9
 	defaultEffectiveBalanceIncrement = 1e9
 
 	defaultHysteresisQuotient           = 4
@@ -78,10 +78,12 @@ const (
 	defaultMaxBlobsPerBlock                 = 6
 	defaultFieldElementsPerBlob             = 4096
 	defaultBytesPerBlob                     = 131072
-	defaultKZGCommitmentInclusionProofDepth = 17
 
 	// Berachain values.
 	defaultValidatorSetCap      = 256
 	defaultEVMInflationAddress  = "0x0000000000000000000000000000000000000000"
 	defaultEVMInflationPerBlock = 0
+
+	// Electra values.
+	defaultMinValidatorWithdrawabilityDelay = 256
 )

@@ -55,10 +55,9 @@ const (
 	// (equivalent to the Deposit Contract's MIN_DEPOSIT_AMOUNT).
 	mainnetEffectiveBalanceIncrement = 10_000 * params.GWei
 
-	// mainnetEjectionBalance is 240k BERA, calculated as:
-	// activation_balance - effective_balance_increment = 250k - 10k = 240k BERA.
-	// Activation balance is the min stake of 250k BERA at genesis.
-	mainnetEjectionBalance = 250_000*params.GWei - mainnetEffectiveBalanceIncrement
+	// mainnetMinActivationBalance [New in Electra:EIP7251] Minimum balance for a validator to
+	// become active.
+	mainnetMinActivationBalance = 250_000 * params.GWei
 
 	// mainnetSlotsPerEpoch is 192 to mirror the time of epochs on Ethereum mainnet.
 	mainnetSlotsPerEpoch = 192
@@ -88,6 +87,10 @@ const (
 	// mainnetEVMInflationPerBlockDeneb1 is the amount of native EVM balance (in Gwei) to be
 	// minted to the EVMInflationAddressDeneb1 via a withdrawal every block in the Deneb1 fork.
 	mainnetEVMInflationPerBlockDeneb1 = 5.75 * params.GWei
+
+	// mainnetMinValidatorWithdrawabilityDelay is the number of epochs of delay epochs of delay for a balance to be withdrawable.
+	// 256 Epochs equates to roughly ~27 hours of withdrawal delay. This gives us room to emergency fork if needed.
+	mainnetMinValidatorWithdrawabilityDelay = defaultMinValidatorWithdrawabilityDelay
 )
 
 // MainnetChainSpecData is the chain.SpecData for the Berachain mainnet.
@@ -95,7 +98,6 @@ func MainnetChainSpecData() *chain.SpecData {
 	return &chain.SpecData{
 		// Gwei values constants.
 		MaxEffectiveBalance:       mainnetMaxEffectiveBalance,
-		EjectionBalance:           mainnetEjectionBalance,
 		EffectiveBalanceIncrement: mainnetEffectiveBalanceIncrement,
 
 		HysteresisQuotient:           defaultHysteresisQuotient,
@@ -145,7 +147,6 @@ func MainnetChainSpecData() *chain.SpecData {
 		MaxBlobsPerBlock:                 defaultMaxBlobsPerBlock,
 		FieldElementsPerBlob:             defaultFieldElementsPerBlob,
 		BytesPerBlob:                     defaultBytesPerBlob,
-		KZGCommitmentInclusionProofDepth: defaultKZGCommitmentInclusionProofDepth,
 
 		// Berachain values at genesis.
 		ValidatorSetCap:             mainnetValidatorSetCap,
@@ -155,6 +156,10 @@ func MainnetChainSpecData() *chain.SpecData {
 		// Deneb1 values.
 		EVMInflationAddressDeneb1:  common.NewExecutionAddressFromHex(mainnetEVMInflationAddressDeneb1),
 		EVMInflationPerBlockDeneb1: mainnetEVMInflationPerBlockDeneb1,
+
+		// Electra values.
+		MinActivationBalance:             mainnetMinActivationBalance,
+		MinValidatorWithdrawabilityDelay: mainnetMinValidatorWithdrawabilityDelay,
 	}
 }
 

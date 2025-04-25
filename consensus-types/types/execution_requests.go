@@ -100,7 +100,6 @@ func GetExecutionRequestsList(er *ExecutionRequests) ([]EncodedExecutionRequest,
 }
 
 // DecodeExecutionRequests is used to decode the result from GetPayload into an ExecutionRequests.
-// TODO(pectra): Change this to use []EncodedExecutionRequest as input and fix tests.
 func DecodeExecutionRequests(encodedRequests [][]byte) (*ExecutionRequests, error) {
 	var (
 		result   ExecutionRequests

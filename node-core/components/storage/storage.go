@@ -64,7 +64,7 @@ func (k Backend) AvailabilityStore() *dastore.Store {
 	return k.availabilityStore
 }
 
-// BeaconState returns the beacon state struct initialized with a given
+// StateFromContext returns the beacon state struct initialized with a given
 // context and the store key.
 func (k Backend) StateFromContext(ctx context.Context) *statedb.StateDB {
 	return statedb.NewBeaconStateFromDB(k.kvStore.WithContext(ctx), k.chainSpec)
