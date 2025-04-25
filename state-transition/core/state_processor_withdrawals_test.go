@@ -46,8 +46,8 @@ func TestWithdrawalRequestLifecycle(t *testing.T) {
 	require.Equal(t, version.Electra(), cs.GenesisForkVersion())
 
 	var (
-		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
-		minBalance = math.Gwei(cs.MinActivationBalance())
+		maxBalance = cs.MaxEffectiveBalance()
+		minBalance = cs.MinActivationBalance()
 
 		addr    = common.ExecutionAddress{0x01}
 		creds   = types.NewCredentialsFromExecutionAddress(addr)
@@ -244,8 +244,8 @@ func TestTransitionWithdrawals(t *testing.T) {
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
-		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
-		minBalance   = math.Gwei(cs.EffectiveBalanceIncrement())
+		maxBalance   = cs.MaxEffectiveBalance()
+		minBalance   = cs.EffectiveBalanceIncrement()
 		credentials0 = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
 		address1     = common.ExecutionAddress{0x01}
 		credentials1 = types.NewCredentialsFromExecutionAddress(address1)
@@ -330,8 +330,8 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
-		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
-		minBalance   = math.Gwei(cs.EffectiveBalanceIncrement())
+		maxBalance   = cs.MaxEffectiveBalance()
+		minBalance   = cs.EffectiveBalanceIncrement()
 		address0     = common.ExecutionAddress{}
 		credentials0 = types.NewCredentialsFromExecutionAddress(address0)
 		address1     = common.ExecutionAddress{0x01}
@@ -459,8 +459,8 @@ func TestValidatorNotWithdrawable(t *testing.T) {
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
-		belowActiveBalance = math.Gwei(cs.MinActivationBalance() - cs.EffectiveBalanceIncrement())
-		maxBalance         = math.Gwei(cs.MaxEffectiveBalance())
+		belowActiveBalance = cs.MinActivationBalance() - cs.EffectiveBalanceIncrement()
+		maxBalance         = cs.MaxEffectiveBalance()
 		validCredentials   = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
 	)
 

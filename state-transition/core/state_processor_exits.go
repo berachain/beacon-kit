@@ -27,51 +27,48 @@ import (
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-// InitiateValidatorExit initiates the exit of the validator with index `idx`.
+// InitiateValidatorExit initiates the exit of the validator with index `idx`. Modified from ETH 2.0 spec:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#initiate-validator-exit
+// to handle pre-Electra validator exit logic.
 func (sp *StateProcessor) InitiateValidatorExit(st *statedb.StateDB, idx math.ValidatorIndex) error {
 	validator, err := st.ValidatorByIndex(idx)
 	if err != nil {
 		return err
 	}
-	// By this point, the state should be correctly updated with the fork.
+
+	// We will use the fork version from the state to determine how to exit the validator.
 	fork, err := st.GetFork()
 	if err != nil {
 		return err
 	}
-	var withdrawableEpoch, exitEpoch math.Epoch
-	if version.EqualsOrIsAfter(fork.CurrentVersion, version.Electra()) {
-		// Return if the validator already initiated an exit, making sure to only exit validators once.
-		if validator.GetExitEpoch() != math.Epoch(constants.FarFutureEpoch) {
+	currentEpoch, err := st.GetEpoch()
+	if err != nil {
+		return err
+	}
+
+	// We still have no cap on validator churn, choosing not to adopt any churn-related
+	// Electra changes, so exit epoch is at the next epoch.
+	exitEpoch := currentEpoch + 1
+
+	// The withdrawable epoch is `MinValidatorWithdrawabilityDelay` epoch's after `exitEpoch`.
+	var withdrawableEpoch math.Epoch
+	if version.IsBefore(fork.CurrentVersion, version.Electra()) {
+		// Before Electra, this was the logic for exiting a validator: only trigger if the validator
+		// set cap was reached. The withdrawable epoch does not include
+		// `MinValidatorWithdrawabilityDelay`, but is instead the next epoch after exiting.
+		withdrawableEpoch = exitEpoch + 1
+	} else {
+		// Return if the validator already initiated an exit, so that we only exit validators once.
+		if validator.GetExitEpoch() != constants.FarFutureEpoch {
 			return nil
 		}
-		slot, slotErr := st.GetSlot()
-		if slotErr != nil {
-			return slotErr
-		}
-		nextEpoch := sp.cs.SlotToEpoch(slot) + 1
-		// We continue to have no cap on validator churn, choosing not to adopt any churn-related electra changes.
-		exitEpoch = nextEpoch
+
 		// The withdrawable Epoch is `MinValidatorWithdrawabilityDelay` epoch's after `exitEpoch`.
-		withdrawableEpoch = math.Epoch(uint64(exitEpoch) + sp.cs.MinValidatorWithdrawabilityDelay())
-	} else {
-		// Before Electra, this was the logic for exiting a validator.
-		// It would only be triggered if the maximum validator set size was reached.
-		// It did not add the `MinValidatorWithdrawabilityDelay`.
-		slot, slotErr := st.GetSlot()
-		if slotErr != nil {
-			return slotErr
-		}
-		nextEpoch := sp.cs.SlotToEpoch(slot) + 1
-		exitEpoch = nextEpoch
-		// The withdrawable Epoch is the next epoch after `exitEpoch`.
-		withdrawableEpoch = nextEpoch + 1
+		withdrawableEpoch = exitEpoch + sp.cs.MinValidatorWithdrawabilityDelay()
 	}
 
 	// Set validator exit epoch and withdrawable epoch.
 	validator.SetExitEpoch(exitEpoch)
 	validator.SetWithdrawableEpoch(withdrawableEpoch)
-	if updateErr := st.UpdateValidatorAtIndex(idx, validator); updateErr != nil {
-		return updateErr
-	}
-	return nil
+	return st.UpdateValidatorAtIndex(idx, validator)
 }

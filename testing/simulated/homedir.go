@@ -38,7 +38,6 @@ import (
 	genesisutils "github.com/berachain/beacon-kit/cli/utils/genesis"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/math"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/stretchr/testify/require"
@@ -65,7 +64,7 @@ func InitializeHomeDir(t *testing.T, chainSpec chain.Spec, tempHomeDir string, e
 	blsSigner := GetBlsSigner(cometConfig.RootDir)
 
 	// Set the deposit amount to the maximum effective balance.
-	depositAmount := math.Gwei(chainSpec.MaxEffectiveBalance())
+	depositAmount := chainSpec.MaxEffectiveBalance()
 	// Define an arbitrary withdrawal address.
 	withdrawalAddress := common.NewExecutionAddressFromHex(WithdrawalExecutionAddress)
 

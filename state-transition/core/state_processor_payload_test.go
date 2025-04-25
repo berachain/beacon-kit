@@ -59,7 +59,7 @@ func TestPayloadTimestampVerification(t *testing.T) {
 			{
 				Pubkey:      [48]byte{0x00},
 				Credentials: types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{}),
-				Amount:      math.Gwei(cs.MaxEffectiveBalance()),
+				Amount:      cs.MaxEffectiveBalance(),
 				Index:       0,
 			},
 		}

@@ -34,19 +34,17 @@ import (
 )
 
 func (sp *StateProcessor) processRegistryUpdates(st *statedb.StateDB) error {
-	slot, err := st.GetSlot()
+	currEpoch, err := st.GetEpoch()
 	if err != nil {
 		return fmt.Errorf("registry update, failed loading slot: %w", err)
 	}
+	activationEpoch := currEpoch + 1
+	minActivationBalance := sp.cs.MinActivationBalance()
 
 	vals, err := st.GetValidators()
 	if err != nil {
 		return fmt.Errorf("registry update, failed listing validators: %w", err)
 	}
-
-	currEpoch := sp.cs.SlotToEpoch(slot)
-	activationEpoch := currEpoch + 1
-	minActivationBalance := math.Gwei(sp.cs.MinActivationBalance())
 
 	// We do not currently have a cap on validator churn,
 	// so we can process validators activations in a single loop
@@ -68,7 +66,8 @@ func (sp *StateProcessor) processRegistryUpdates(st *statedb.StateDB) error {
 			elif is_active_validator(validator, current_epoch) and validator.effective_balance <= config.EJECTION_BALANCE:
 							initiate_validator_exit(state, ValidatorIndex(index))  # [Modified in Electra:EIP7251]
 		*/
-		if val.IsActive(currEpoch) && val.GetEffectiveBalance() <= math.Gwei(sp.cs.MinActivationBalance()-sp.cs.EffectiveBalanceIncrement()) {
+		if val.IsActive(currEpoch) &&
+			val.GetEffectiveBalance() <= minActivationBalance-sp.cs.EffectiveBalanceIncrement() {
 			sp.logger.Error(
 				"registry update, validator is active but effective balance is too low",
 				"validator_pub_key", val.Pubkey.String(),
@@ -114,13 +113,12 @@ func (sp *StateProcessor) processValidatorSetCap(st *statedb.StateDB) error {
 	// 2- sorting them by stake
 	// 3- dropping enough validators to fulfill the cap
 
-	slot, err := st.GetSlot()
+	currentEpoch, err := st.GetEpoch()
 	if err != nil {
 		return err
 	}
-	nextEpoch := sp.cs.SlotToEpoch(slot) + 1
 
-	nextEpochVals, err := getActiveVals(st, nextEpoch)
+	nextEpochVals, err := getActiveVals(st, currentEpoch+1)
 	if err != nil {
 		return fmt.Errorf(
 			"registry update, failed retrieving next epoch vals: %w",
