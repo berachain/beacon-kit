@@ -193,9 +193,7 @@ func (sp *StateProcessor) validateStatefulPayload(
 		return err
 	}
 
-	expectedMix, err := st.GetRandaoMixAtIndex(
-		epoch.Unwrap() % sp.cs.EpochsPerHistoricalVector(), // TODO: chain spec type.
-	)
+	expectedMix, err := st.GetRandaoMixAtIndex(epoch.Unwrap() % sp.cs.EpochsPerHistoricalVector())
 	if err != nil {
 		return err
 	}
