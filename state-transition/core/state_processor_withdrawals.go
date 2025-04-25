@@ -174,6 +174,7 @@ func (sp *StateProcessor) processWithdrawalRequest(
 		)
 		return nil
 	}
+
 	index, validator, err := validateWithdrawal(st, withdrawalRequest)
 	if err != nil {
 		sp.logger.Info("Failed to validate withdrawal", withdrawalFields(withdrawalRequest, err)...)

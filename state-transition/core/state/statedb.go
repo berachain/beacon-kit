@@ -219,6 +219,7 @@ func (s *StateDB) consumePendingPartialWithdrawals(
 			// epochs and hence are not withdrawable, so we can break early.
 			break
 		}
+
 		validator, err := s.ValidatorByIndex(withdrawal.ValidatorIndex)
 		if err != nil {
 			return nil, 0, 0, err
