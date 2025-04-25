@@ -24,7 +24,6 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
-	"strings"
 
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/cli/commands/server/types"
@@ -98,10 +97,7 @@ func loadSpecData(path string) (*chain.SpecData, error) {
 	specType := reflect.TypeOf(specData)
 	for i := range specType.NumField() {
 		tag := specType.Field(i).Tag.Get("mapstructure")
-		if tag == "" {
-			continue
-		}
-		if !v.IsSet(strings.Split(tag, ",")[0]) {
+		if !v.IsSet(tag) {
 			return nil, fmt.Errorf("missing required configuration for key: %s", tag)
 		}
 	}
