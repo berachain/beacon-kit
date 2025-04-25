@@ -32,13 +32,14 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/primitives/version"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	"github.com/stretchr/testify/require"
 )
 
 //nolint:paralleltest // uses envars
-func TestWithdrawalRequestLifecycle(t *testing.T) {
+func TestPartialWithdrawalRequestLifecycle(t *testing.T) {
 	cs := setupChain(t)
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
@@ -74,7 +75,7 @@ func TestWithdrawalRequestLifecycle(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 
-	// Send a small withdrawal request and see it being carried out
+	// Send withdrawal requests and see the valid ones being carried out
 	vals, err := st.GetValidators()
 	require.NoError(t, err)
 	require.Len(t, vals, 1)
@@ -101,12 +102,12 @@ func TestWithdrawalRequestLifecycle(t *testing.T) {
 		{ // valid request, largest withdrawable amount
 			SourceAddress:   addr,
 			ValidatorPubKey: genVal.GetPubkey(),
-			Amount:          maxBalance - 1 - 10 - minBalance,
+			Amount:          maxBalance - 1 - 10 - minBalance, // remaining amount to minBalance
 		},
-		{ // invalid request (can't go below min activation balance)
+		{ // invalid request (can't go below min activation balance even by 1 bera)
 			SourceAddress:   addr,
 			ValidatorPubKey: genVal.GetPubkey(),
-			Amount:          minBalance,
+			Amount:          1,
 		},
 		{ // invalid request (full withdraw ignored when partial withdraws are ongoing)
 			SourceAddress:   addr,
@@ -134,7 +135,7 @@ func TestWithdrawalRequestLifecycle(t *testing.T) {
 	require.NoError(t, err)
 
 	// check withdrawal request is enqueued
-	expectedWithdrawalEpoch := math.Epoch(33)
+	expectedWithdrawalEpoch := 1 + cs.MinValidatorWithdrawabilityDelay()
 	pr, err := st.GetPendingPartialWithdrawals()
 	require.NoError(t, err)
 	require.Len(t, pr, 3)
@@ -236,6 +237,187 @@ func TestWithdrawalRequestLifecycle(t *testing.T) {
 	pr, err = st.GetPendingPartialWithdrawals()
 	require.NoError(t, err)
 	require.Empty(t, pr)
+}
+
+//nolint:paralleltest // uses envars
+func TestFullWithdrawalGenesisValidatorsRequestLifecycle(t *testing.T) {
+	cs := setupChain(t)
+	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
+
+	// make sure Electra is active
+	require.Equal(t, version.Electra(), cs.GenesisForkVersion())
+
+	var (
+		maxBalance = cs.MaxEffectiveBalance()
+
+		addr1  = common.ExecutionAddress{0x01}
+		creds1 = types.NewCredentialsFromExecutionAddress(addr1)
+		addr2  = common.ExecutionAddress{0x01}
+		creds2 = types.NewCredentialsFromExecutionAddress(addr2)
+	)
+
+	// Add a couple of validators and full withdraw one of them
+	var (
+		genDeposits = types.Deposits{
+			{
+				Pubkey:      [48]byte{0x00},
+				Credentials: creds1,
+				Amount:      maxBalance,
+				Index:       0,
+			},
+			{
+				Pubkey:      [48]byte{0x01},
+				Credentials: creds2,
+				Amount:      maxBalance,
+				Index:       1,
+			},
+		}
+		genPayloadHeader = &types.ExecutionPayloadHeader{
+			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
+		}
+	)
+	_, err := sp.InitializeBeaconStateFromEth1(
+		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
+	)
+	require.NoError(t, err)
+	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
+
+	vals, err := st.GetValidators()
+	require.NoError(t, err)
+	require.Len(t, vals, 2)
+	valToRm := vals[0]
+
+	wrs := []*types.WithdrawalRequest{
+		{
+			SourceAddress:   addr1,
+			ValidatorPubKey: valToRm.GetPubkey(),
+			Amount:          0,
+		},
+	}
+
+	depRoot := genDeposits.HashTreeRoot()
+	blkTimestamp := math.U64(10)
+	blk := buildNextBlock(
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		blkTimestamp,
+		[]*types.Deposit{},
+		&types.ExecutionRequests{
+			Withdrawals: wrs,
+		},
+		st.EVMInflationWithdrawal(blkTimestamp),
+	)
+
+	// Run the test.
+	valDiff, err := sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+	require.Empty(t, valDiff)
+
+	// check that valToRm has intiaized exit
+	expectedExitEpoch := math.Epoch(1)
+	expectedWithdrawalEpoch := expectedExitEpoch + cs.MinValidatorWithdrawabilityDelay()
+
+	valToRmIdx, err := st.ValidatorIndexByPubkey(valToRm.GetPubkey())
+	require.NoError(t, err)
+	valToRm, err = st.ValidatorByIndex(valToRmIdx)
+	require.NoError(t, err)
+	require.Equal(t, expectedExitEpoch, valToRm.ExitEpoch)
+	require.Equal(t, expectedWithdrawalEpoch, valToRm.WithdrawableEpoch)
+
+	// no pending withdrawals, full withdrawals are executed right away
+	pr, err := st.GetPendingPartialWithdrawals()
+	require.NoError(t, err)
+	require.Empty(t, pr)
+
+	// check the validator duly exits validator set
+	blk = moveToEndOfEpoch(t, blk, cs, sp, st, ctx, depRoot)
+	blkTimestamp = blk.GetTimestamp() + 1
+	blk = buildNextBlock(
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		blkTimestamp,
+		[]*types.Deposit{},
+		&types.ExecutionRequests{},
+		st.EVMInflationWithdrawal(blkTimestamp),
+	)
+	valDiff, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+	require.Equal(t,
+		transition.ValidatorUpdates{
+			{
+				Pubkey:           valToRm.Pubkey,
+				EffectiveBalance: 0,
+			},
+		},
+		valDiff,
+	)
+
+	// check that balance is still locked and it will be
+	// returned after MinValidatorWithdrawabilityDelay epochs
+	// check that the request is eventually fulfilled
+	for range expectedWithdrawalEpoch - 2 {
+		_ = moveToEndOfEpoch(t, blk, cs, sp, st, ctx, depRoot)
+
+		// This is just because we cannot chain moveToEndOfEpoch
+		// back to back. TODO: fix
+		blkTimestamp = blk.GetTimestamp() + 1
+		blk = buildNextBlock(
+			t,
+			cs,
+			st,
+			types.NewEth1Data(depRoot),
+			blkTimestamp,
+			[]*types.Deposit{},
+			&types.ExecutionRequests{},
+			st.EVMInflationWithdrawal(blkTimestamp),
+		)
+		_, err = sp.Transition(ctx, st, blk)
+		require.NoError(t, err)
+	}
+	for range cs.SlotsPerEpoch() - 1 {
+		blkTimestamp = blk.GetTimestamp() + 1
+		blk = buildNextBlock(
+			t,
+			cs,
+			st,
+			types.NewEth1Data(depRoot),
+			blkTimestamp,
+			[]*types.Deposit{},
+			&types.ExecutionRequests{},
+			st.EVMInflationWithdrawal(blkTimestamp),
+		)
+		_, err = sp.Transition(ctx, st, blk)
+		require.NoError(t, err)
+	}
+
+	// finally the withdrawal
+	timestamp := blk.Body.ExecutionPayload.Timestamp + 1
+	withdrawals := []*engineprimitives.Withdrawal{
+		// The first withdrawal is always for EVM inflation.
+		st.EVMInflationWithdrawal(10),
+		{
+			Index:     0,
+			Validator: valToRmIdx,
+			Amount:    valToRm.EffectiveBalance, // wrs request has zero to signal full withdrawal
+			Address:   wrs[0].SourceAddress,
+		},
+	}
+	blk = buildNextBlock(
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		timestamp,
+		[]*types.Deposit{},
+		&types.ExecutionRequests{},
+		withdrawals...,
+	)
+	_, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
 }
 
 //nolint:paralleltest // uses envars
