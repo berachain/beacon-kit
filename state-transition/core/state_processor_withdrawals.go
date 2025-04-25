@@ -128,8 +128,7 @@ func (sp *StateProcessor) processWithdrawals(
 	var nextValidatorIndex math.ValidatorIndex
 	if uint64(numWithdrawals) == sp.cs.MaxWithdrawalsPerPayload() {
 		// Next sweep starts after the latest withdrawal's validator index.
-		nextValidatorIndex = expectedWithdrawals[numWithdrawals-1].GetValidatorIndex() + 1
-		nextValidatorIndex %= totalValidators
+		nextValidatorIndex = (expectedWithdrawals[numWithdrawals-1].GetValidatorIndex() + 1) % totalValidators
 	} else {
 		// Advance sweep by the max length of the sweep if there was not a full set of withdrawals.
 		nextValidatorIndex, err = st.GetNextWithdrawalValidatorIndex()
@@ -274,7 +273,9 @@ func (sp *StateProcessor) processPartialWithdrawal(
 }
 
 // validateWithdrawal checks that the validator exists and that the withdrawal credentials match.
-func validateWithdrawal(st *state.StateDB, withdrawalRequest *ctypes.WithdrawalRequest) (math.ValidatorIndex, *ctypes.Validator, error) {
+func validateWithdrawal(
+	st *state.StateDB, withdrawalRequest *ctypes.WithdrawalRequest,
+) (math.ValidatorIndex, *ctypes.Validator, error) {
 	// Verify pubkey exists
 	index, err := st.ValidatorIndexByPubkey(withdrawalRequest.ValidatorPubKey)
 	if err != nil {
