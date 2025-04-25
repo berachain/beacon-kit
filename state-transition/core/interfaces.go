@@ -32,6 +32,7 @@ import (
 type ReadOnlyBeaconState interface {
 	GetLatestExecutionPayloadHeader() (*ctypes.ExecutionPayloadHeader, error)
 	GetSlot() (math.Slot, error)
+	GetEpoch() (math.Epoch, error)
 	GetRandaoMixAtIndex(uint64) (common.Bytes32, error)
 }
 

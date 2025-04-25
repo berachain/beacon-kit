@@ -30,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/math"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	"github.com/stretchr/testify/require"
 )
@@ -41,8 +40,8 @@ func TestInvalidDeposits(t *testing.T) {
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
-		minBalance   = math.Gwei(cs.MinActivationBalance())
-		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
+		minBalance   = cs.MinActivationBalance()
+		maxBalance   = cs.MaxEffectiveBalance()
 		credentials0 = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
 	)
 
@@ -109,7 +108,7 @@ func TestInvalidDepositsCount(t *testing.T) {
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
-		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
+		maxBalance   = cs.MaxEffectiveBalance()
 		credentials0 = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
 	)
 
@@ -179,7 +178,7 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
-		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
+		maxBalance   = cs.MaxEffectiveBalance()
 		credentials0 = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
 	)
 
@@ -249,7 +248,7 @@ func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
-		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
+		maxBalance   = cs.MaxEffectiveBalance()
 		credentials0 = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
 	)
 

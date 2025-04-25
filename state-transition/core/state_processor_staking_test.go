@@ -48,9 +48,9 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
-		maxBalance       = math.Gwei(cs.MaxEffectiveBalance())
-		increment        = math.Gwei(cs.EffectiveBalanceIncrement())
-		minBalance       = math.Gwei(cs.MinActivationBalance())
+		maxBalance       = cs.MaxEffectiveBalance()
+		increment        = cs.EffectiveBalanceIncrement()
+		minBalance       = cs.MinActivationBalance()
 		emptyCredentials = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
 	)
 
@@ -184,9 +184,9 @@ func TestTransitionCreateValidator(t *testing.T) {
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
-		maxBalance       = math.Gwei(cs.MaxEffectiveBalance())
-		increment        = math.Gwei(cs.EffectiveBalanceIncrement())
-		minBalance       = math.Gwei(cs.MinActivationBalance())
+		maxBalance       = cs.MaxEffectiveBalance()
+		increment        = cs.EffectiveBalanceIncrement()
+		minBalance       = cs.MinActivationBalance()
 		emptyAddress     = common.ExecutionAddress{}
 		emptyCredentials = types.NewCredentialsFromExecutionAddress(emptyAddress)
 	)
@@ -357,8 +357,8 @@ func TestTransitionWithdrawals(t *testing.T) {
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
-		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
-		minBalance   = math.Gwei(cs.EffectiveBalanceIncrement())
+		maxBalance   = cs.MaxEffectiveBalance()
+		minBalance   = cs.EffectiveBalanceIncrement()
 		credentials0 = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
 		address1     = common.ExecutionAddress{0x01}
 		credentials1 = types.NewCredentialsFromExecutionAddress(address1)
@@ -442,8 +442,8 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
-		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
-		minBalance   = math.Gwei(cs.EffectiveBalanceIncrement())
+		maxBalance   = cs.MaxEffectiveBalance()
+		minBalance   = cs.EffectiveBalanceIncrement()
 		address0     = common.ExecutionAddress{}
 		credentials0 = types.NewCredentialsFromExecutionAddress(address0)
 		address1     = common.ExecutionAddress{0x01}
@@ -572,8 +572,8 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
-		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
-		minBalance = math.Gwei(cs.MinActivationBalance())
+		maxBalance = cs.MaxEffectiveBalance()
+		minBalance = cs.MinActivationBalance()
 		rndSeed    = 2024 // seed used to generate unique random value
 	)
 
@@ -729,7 +729,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	require.Equal(t, constants.GenesisEpoch+2, extraVal.ActivationEpoch)
 	require.Equal(t, constants.GenesisEpoch+2, extraVal.ExitEpoch)
 	// After electra, the withdrawable epoch is exitEpoch + sp.cs.MinValidatorWithdrawabilityDelay())
-	require.Equal(t, math.Epoch(cs.MinValidatorWithdrawabilityDelay()+extraVal.ExitEpoch.Unwrap()), extraVal.WithdrawableEpoch)
+	require.Equal(t, cs.MinValidatorWithdrawabilityDelay()+extraVal.ExitEpoch, extraVal.WithdrawableEpoch)
 
 	// STEP 4: move the chain to the MinValidatorWithdrawabilityDelay epoch and show withdrawals
 	// for rejected validator are enqueued then
@@ -747,7 +747,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	}
 
 	epoch = cs.SlotToEpoch(blk.Slot)
-	require.Equal(t, math.Epoch(extraVal.ExitEpoch.Unwrap()+cs.MinValidatorWithdrawabilityDelay()), epoch)
+	require.Equal(t, extraVal.ExitEpoch+cs.MinValidatorWithdrawabilityDelay(), epoch)
 
 	// Extra validator deposits will be withdrawn within 3 blocks (#Validator / MaxValidatorsPerWithdrawalsSweep)
 	extraValAddr, err := extraValCreds.ToExecutionAddress()
@@ -794,8 +794,8 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
-		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
-		minBalance = math.Gwei(cs.MinActivationBalance())
+		maxBalance = cs.MaxEffectiveBalance()
+		minBalance = cs.MinActivationBalance()
 		rndSeed    = 2024 // seed used to generate unique random value
 	)
 
@@ -1010,7 +1010,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	require.Equal(t, constants.GenesisEpoch, smallestVal.ActivationEligibilityEpoch)
 	require.Equal(t, constants.GenesisEpoch, smallestVal.ActivationEpoch)
 	require.Equal(t, constants.GenesisEpoch+2, smallestVal.ExitEpoch)
-	require.Equal(t, math.Epoch(smallestVal.ExitEpoch.Unwrap()+cs.MinValidatorWithdrawabilityDelay()), smallestVal.WithdrawableEpoch)
+	require.Equal(t, smallestVal.ExitEpoch+cs.MinValidatorWithdrawabilityDelay(), smallestVal.WithdrawableEpoch)
 
 	epoch := cs.SlotToEpoch(blk.Slot)
 	require.Equal(t, math.Epoch(2), epoch)
@@ -1029,7 +1029,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	}
 
 	epoch = cs.SlotToEpoch(blk.Slot)
-	require.Equal(t, math.Epoch(smallestVal.ExitEpoch.Unwrap()+cs.MinValidatorWithdrawabilityDelay()), epoch)
+	require.Equal(t, smallestVal.ExitEpoch+cs.MinValidatorWithdrawabilityDelay(), epoch)
 
 	valToEvict := genDeposits[0]
 	valToEvictAddr, err := valToEvict.Credentials.ToExecutionAddress()
@@ -1063,8 +1063,8 @@ func TestValidatorNotWithdrawable(t *testing.T) {
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
-		belowActiveBalance = math.Gwei(cs.MinActivationBalance() - cs.EffectiveBalanceIncrement())
-		maxBalance         = math.Gwei(cs.MaxEffectiveBalance())
+		belowActiveBalance = cs.MinActivationBalance() - cs.EffectiveBalanceIncrement()
+		maxBalance         = cs.MaxEffectiveBalance()
 		validCredentials   = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
 	)
 

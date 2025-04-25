@@ -188,14 +188,12 @@ func (sp *StateProcessor) validateStatefulPayload(
 	}
 
 	// Verify RANDAO
-	slot, err := st.GetSlot()
+	epoch, err := st.GetEpoch()
 	if err != nil {
 		return err
 	}
 
-	expectedMix, err := st.GetRandaoMixAtIndex(
-		sp.cs.SlotToEpoch(slot).Unwrap() % sp.cs.EpochsPerHistoricalVector(),
-	)
+	expectedMix, err := st.GetRandaoMixAtIndex(epoch.Unwrap() % sp.cs.EpochsPerHistoricalVector())
 	if err != nil {
 		return err
 	}

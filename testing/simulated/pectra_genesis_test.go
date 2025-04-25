@@ -210,7 +210,7 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithPartialWithdrawalRequest_IsSu
 	// IterationsToTurn will get us to the slot before the turn of the target
 	epochOfWithdrawalRequest := s.TestNode.ChainSpec.SlotToEpoch(math.Slot(nextBlockHeight))
 	nextEpoch := epochOfWithdrawalRequest + 1
-	targetEpoch := nextEpoch + math.Epoch(s.TestNode.ChainSpec.MinValidatorWithdrawabilityDelay())
+	targetEpoch := nextEpoch + s.TestNode.ChainSpec.MinValidatorWithdrawabilityDelay()
 	iterationsToTurn := (s.TestNode.ChainSpec.SlotsPerEpoch() * uint64(targetEpoch)) - uint64(nextBlockHeight) - 1
 
 	nextBlockHeight += 1
@@ -327,7 +327,7 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithFullWithdrawalRequest_IsSucce
 	// We must progress to Epoch `exitEpoch + MinValidatorWithdrawabilityDelay` before the balance will be removed.
 	// IterationsToTurn will get us to the slot before the turn of the target
 	nextBlockHeight = nextBlockHeight + int64(iterationsToExitEpoch)
-	targetEpoch := exitEpoch + math.Epoch(s.TestNode.ChainSpec.MinValidatorWithdrawabilityDelay())
+	targetEpoch := exitEpoch + s.TestNode.ChainSpec.MinValidatorWithdrawabilityDelay()
 	iterationsToTurn := (s.TestNode.ChainSpec.SlotsPerEpoch() * uint64(targetEpoch)) - uint64(nextBlockHeight)
 	proposals, _, _ = s.MoveChainToHeight(s.T(), nextBlockHeight, int64(iterationsToTurn), blsSigner, time.Now())
 

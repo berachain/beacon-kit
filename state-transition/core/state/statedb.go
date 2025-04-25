@@ -55,6 +55,15 @@ func (s *StateDB) Copy(ctx context.Context) *StateDB {
 	return NewBeaconStateFromDB(s.KVStore.Copy(ctx), s.cs)
 }
 
+// GetEpoch returns the current epoch.
+func (s *StateDB) GetEpoch() (math.Epoch, error) {
+	slot, err := s.GetSlot()
+	if err != nil {
+		return 0, err
+	}
+	return s.cs.SlotToEpoch(slot), nil
+}
+
 // IncreaseBalance increases the balance of a validator.
 func (s *StateDB) IncreaseBalance(idx math.ValidatorIndex, delta math.Gwei) error {
 	balance, err := s.GetBalance(idx)
@@ -80,7 +89,7 @@ func (s *StateDB) DecreaseBalance(idx math.ValidatorIndex, delta math.Gwei) erro
 // NOTE for caller: ProcessSlots must be called before this function as the "current" slot is
 // retrieved from the state in this function.
 //
-//nolint:gocognit,funlen // spec aligned
+//nolint:gocognit // Spec aligned.
 func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.Withdrawals, uint64, error) {
 	var (
 		validator         *ctypes.Validator
@@ -90,11 +99,10 @@ func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.With
 
 	processedPartialWithdrawals := uint64(0)
 
-	slot, err := s.GetSlot()
+	epoch, err := s.GetEpoch()
 	if err != nil {
 		return nil, 0, err
 	}
-	epoch := s.cs.SlotToEpoch(slot)
 	maxWithdrawals := s.cs.MaxWithdrawalsPerPayload()
 	withdrawals := make([]*engineprimitives.Withdrawal, 0, maxWithdrawals)
 
@@ -156,9 +164,7 @@ func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.With
 
 			// Increment the withdrawal index to process the next withdrawal.
 			withdrawalIndex++
-		} else if validator.IsPartiallyWithdrawable(
-			balance, math.Gwei(s.cs.MaxEffectiveBalance()),
-		) {
+		} else if validator.IsPartiallyWithdrawable(balance, s.cs.MaxEffectiveBalance()) {
 			withdrawalAddress, err = validator.GetWithdrawalCredentials().ToExecutionAddress()
 			if err != nil {
 				return nil, 0, err
@@ -168,7 +174,7 @@ func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.With
 				math.U64(withdrawalIndex),
 				validatorIndex,
 				withdrawalAddress,
-				balance-math.Gwei(s.cs.MaxEffectiveBalance()),
+				balance-s.cs.MaxEffectiveBalance(),
 			))
 
 			// Increment the withdrawal index to process the next withdrawal.
@@ -181,7 +187,7 @@ func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.With
 		}
 
 		// Increment the validator index to process the next validator.
-		validatorIndex = (validatorIndex + 1) % math.ValidatorIndex(totalValidators)
+		validatorIndex = (validatorIndex + 1) % totalValidators
 	}
 
 	return withdrawals, processedPartialWithdrawals, nil
@@ -205,7 +211,7 @@ func (s *StateDB) consumePendingPartialWithdrawals(
 	}
 
 	processedPartialWithdrawals := uint64(0)
-	minActivationBalance := math.Gwei(s.cs.MinActivationBalance())
+	minActivationBalance := s.cs.MinActivationBalance()
 
 	for _, withdrawal := range ppWithdrawals {
 		if withdrawal.WithdrawableEpoch > epoch || len(withdrawals) == constants.MaxPendingPartialsPerWithdrawalsSweep {
@@ -262,7 +268,7 @@ func (s *StateDB) EVMInflationWithdrawal(timestamp math.U64) *engineprimitives.W
 		EVMInflationWithdrawalIndex,
 		EVMInflationWithdrawalValidatorIndex,
 		s.cs.EVMInflationAddress(timestamp),
-		math.Gwei(s.cs.EVMInflationPerBlock(timestamp)),
+		s.cs.EVMInflationPerBlock(timestamp),
 	)
 }
 
