@@ -90,6 +90,8 @@ type SpecData struct {
 
 	// Fork-related values.
 	//
+	// GenesisTime is the time at which the genesis block was created.
+	GenesisTime uint64 `mapstructure:"genesis-time"`
 	// Deneb1ForkTime is the time at which the Deneb1 fork is activated.
 	Deneb1ForkTime uint64 `mapstructure:"deneb-one-fork-time"`
 	// ElectraForkTime is the time at which the Electra fork is activated.

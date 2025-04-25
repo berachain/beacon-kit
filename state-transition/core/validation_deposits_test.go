@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	"github.com/stretchr/testify/require"
 )
@@ -61,12 +60,12 @@ func TestInvalidDeposits(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(version.Genesis()),
+			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
 		}
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
-	_, err := sp.InitializePreminedBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, version.Genesis(),
+	_, err := sp.InitializeBeaconStateFromEth1(
+		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
 
@@ -90,6 +89,7 @@ func TestInvalidDeposits(t *testing.T) {
 	depRoot := append(genDeposits, correctDeposit).HashTreeRoot()
 	blk := buildNextBlock(
 		t,
+		cs,
 		st,
 		types.NewEth1Data(depRoot),
 		10,
@@ -127,12 +127,12 @@ func TestInvalidDepositsCount(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(version.Genesis()),
+			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
 		}
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
-	_, err := sp.InitializePreminedBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, version.Genesis(),
+	_, err := sp.InitializeBeaconStateFromEth1(
+		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
 
@@ -156,6 +156,7 @@ func TestInvalidDepositsCount(t *testing.T) {
 	depRoot := append(genDeposits, correctDeposits...).HashTreeRoot()
 	blk := buildNextBlock(
 		t,
+		cs,
 		st,
 		types.NewEth1Data(depRoot),
 		10,
@@ -196,12 +197,12 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(version.Genesis()),
+			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
 		}
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
-	_, err = sp.InitializePreminedBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, version.Genesis(),
+	_, err = sp.InitializeBeaconStateFromEth1(
+		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
 
@@ -219,6 +220,7 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 	depRoot := append(genDeposits, blockDeposits...).HashTreeRoot()
 	blk := buildNextBlock(
 		t,
+		cs,
 		st,
 		types.NewEth1Data(depRoot),
 		10,
@@ -265,12 +267,12 @@ func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(version.Genesis()),
+			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
 		}
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
-	_, err = sp.InitializePreminedBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, version.Genesis(),
+	_, err = sp.InitializeBeaconStateFromEth1(
+		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
 
@@ -296,6 +298,7 @@ func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
 	badDepRoot := append(genDeposits, append(blockDeposits, extraLocalDeposit)...).HashTreeRoot()
 	blk := buildNextBlock(
 		t,
+		cs,
 		st,
 		types.NewEth1Data(badDepRoot),
 		10,

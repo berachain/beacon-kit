@@ -35,7 +35,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
-	"github.com/berachain/beacon-kit/primitives/version"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	"github.com/stretchr/testify/require"
 )
@@ -78,15 +77,15 @@ func TestTransitionUpdateValidators(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(version.Genesis()),
+			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
 		}
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
-	valDiff, err := sp.InitializePreminedBeaconStateFromEth1(
+	valDiff, err := sp.InitializeBeaconStateFromEth1(
 		st,
 		genDeposits,
 		genPayloadHeader,
-		version.Genesis(),
+		cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
 	require.Len(t, valDiff, len(genDeposits))
@@ -102,6 +101,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	depRoot := append(genDeposits, blkDeposit).HashTreeRoot()
 	blk1 := buildNextBlock(
 		t,
+		cs,
 		st,
 		types.NewEth1Data(depRoot),
 		10,
@@ -144,6 +144,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	// finally the block turning epoch
 	blk = buildNextBlock(
 		t,
+		cs,
 		st,
 		types.NewEth1Data(depRoot),
 		blk.GetTimestamp()+1,
@@ -201,16 +202,16 @@ func TestTransitionCreateValidator(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(version.Genesis()),
+			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
 		}
 	)
 
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
-	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
+	genVals, err := sp.InitializeBeaconStateFromEth1(
 		st,
 		genDeposits,
 		genPayloadHeader,
-		version.Genesis(),
+		cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
 	require.Len(t, genVals, len(genDeposits))
@@ -226,6 +227,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 	depRoot := append(genDeposits, blkDeposit).HashTreeRoot()
 	blk1 := buildNextBlock(
 		t,
+		cs,
 		st,
 		types.NewEth1Data(depRoot),
 		10,
@@ -269,6 +271,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 	// finally the block turning epoch
 	blk = buildNextBlock(
 		t,
+		cs,
 		st,
 		types.NewEth1Data(depRoot),
 		blk.GetTimestamp()+1,
@@ -304,6 +307,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 	// finally the block turning epoch
 	blk = buildNextBlock(
 		t,
+		cs,
 		st,
 		types.NewEth1Data(depRoot),
 		blk.GetTimestamp()+1,
@@ -377,12 +381,12 @@ func TestTransitionWithdrawals(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(version.Genesis()),
+			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
 		}
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
-	_, err := sp.InitializePreminedBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, version.Genesis(),
+	_, err := sp.InitializeBeaconStateFromEth1(
+		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
 
@@ -405,6 +409,7 @@ func TestTransitionWithdrawals(t *testing.T) {
 	}
 	blk := buildNextBlock(
 		t,
+		cs,
 		st,
 		types.NewEth1Data(genDeposits.HashTreeRoot()),
 		10,
@@ -462,12 +467,12 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(version.Genesis()),
+			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
 		}
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
-	_, err = sp.InitializePreminedBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, version.Genesis(),
+	_, err = sp.InitializeBeaconStateFromEth1(
+		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
 
@@ -495,6 +500,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	}
 	blk := buildNextBlock(
 		t,
+		cs,
 		st,
 		types.NewEth1Data(depRoot),
 		10,
@@ -536,6 +542,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	}
 	blk = buildNextBlock(
 		t,
+		cs,
 		st,
 		types.NewEth1Data(depRoot),
 		blk.GetTimestamp()+1,
@@ -559,9 +566,8 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 // TestTransitionHittingValidatorsCap shows that the extra
 // validator added when validators set is at cap gets never activated
 // and its deposit is returned at after next epoch starts.
-//
-//nolint:paralleltest // uses envars
 func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
+	t.Parallel()
 	cs := setupChain(t)
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
@@ -577,7 +583,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	var (
 		genDeposits      = make(types.Deposits, 0, cs.ValidatorSetCap())
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(version.Genesis()),
+			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
 		}
 	)
 
@@ -590,7 +596,8 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		key, rndSeed = generateTestPK(t, rndSeed)
 		creds, rndSeed = generateTestExecutionAddress(t, rndSeed)
 
-		genDeposits = append(genDeposits,
+		genDeposits = append(
+			genDeposits,
 			&types.Deposit{
 				Pubkey:      key,
 				Credentials: creds,
@@ -601,11 +608,11 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	}
 
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
-	_, err := sp.InitializePreminedBeaconStateFromEth1(
+	_, err := sp.InitializeBeaconStateFromEth1(
 		st,
 		genDeposits,
 		genPayloadHeader,
-		version.Genesis(),
+		cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
 
@@ -624,6 +631,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	depRoot := append(genDeposits, extraValDeposit).HashTreeRoot()
 	blk1 := buildNextBlock(
 		t,
+		cs,
 		st,
 		types.NewEth1Data(depRoot),
 		10,
@@ -667,6 +675,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	// finally the block turning epoch
 	blk = buildNextBlock(
 		t,
+		cs,
 		st,
 		types.NewEth1Data(depRoot),
 		blk.GetTimestamp()+1,
@@ -702,6 +711,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	// finally the block turning epoch
 	blk = buildNextBlock(
 		t,
+		cs,
 		st,
 		types.NewEth1Data(depRoot),
 		blk.GetTimestamp()+1,
@@ -731,6 +741,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	require.NoError(t, err)
 	blk = buildNextBlock(
 		t,
+		cs,
 		st,
 		types.NewEth1Data(depRoot),
 		blk.GetTimestamp()+1,
@@ -742,6 +753,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 
 	blk = buildNextBlock(
 		t,
+		cs,
 		st,
 		types.NewEth1Data(depRoot),
 		blk.GetTimestamp()+1,
@@ -762,6 +774,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	}
 	blk = buildNextBlock(
 		t,
+		cs,
 		st,
 		types.NewEth1Data(depRoot),
 		blk.GetTimestamp()+1,
@@ -776,8 +789,9 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 // validator added when validators set is at cap improves amount staked
 // an existing validator is removed at the beginning of next epoch.
 //
-//nolint:paralleltest,maintidx // uses envars
+//nolint:maintidx // this end‑to‑end staking‑cap scenario is inherently complex
 func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
+	t.Parallel()
 	cs := setupChain(t)
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
@@ -793,7 +807,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	var (
 		genDeposits      = make(types.Deposits, 0, cs.ValidatorSetCap())
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(version.Genesis()),
+			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
 		}
 	)
 
@@ -806,7 +820,8 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		key, rndSeed = generateTestPK(t, rndSeed)
 		creds, rndSeed = generateTestExecutionAddress(t, rndSeed)
 
-		genDeposits = append(genDeposits,
+		genDeposits = append(
+			genDeposits,
 			&types.Deposit{
 				Pubkey:      key,
 				Credentials: creds,
@@ -819,11 +834,11 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	genDeposits[0].Amount = minBalance
 
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
-	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
+	genVals, err := sp.InitializeBeaconStateFromEth1(
 		st,
 		genDeposits,
 		genPayloadHeader,
-		version.Genesis(),
+		cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
 	require.Len(t, genVals, len(genDeposits))
@@ -843,6 +858,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	depRoot := append(genDeposits, extraValDeposit).HashTreeRoot()
 	blk1 := buildNextBlock(
 		t,
+		cs,
 		st,
 		types.NewEth1Data(depRoot),
 		10,
@@ -903,10 +919,9 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	// finally the block turning epoch
 	blk = buildNextBlock(
 		t,
+		cs,
 		st,
-		types.NewEth1Data(depRoot),
-		blk.GetTimestamp()+1,
-		[]*types.Deposit{},
+		types.NewEth1Data(depRoot), blk.GetTimestamp()+1, []*types.Deposit{},
 		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
 	)
 
@@ -953,6 +968,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	// finally the block turning epoch
 	blk = buildNextBlock(
 		t,
+		cs,
 		st,
 		types.NewEth1Data(depRoot),
 		blk.GetTimestamp()+1,
@@ -1011,17 +1027,20 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	// finally the block turning epoch
 	blk = buildNextBlock(
 		t,
+		cs,
 		st,
 		types.NewEth1Data(depRoot),
 		blk.GetTimestamp()+1,
 		[]*types.Deposit{},
 		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
 	)
+
 	_, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
 
 	blk = buildNextBlock(
 		t,
+		cs,
 		st,
 		types.NewEth1Data(depRoot),
 		blk.GetTimestamp()+1,
@@ -1042,6 +1061,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	}
 	blk = buildNextBlock(
 		t,
+		cs,
 		st,
 		types.NewEth1Data(depRoot),
 		blk.GetTimestamp()+1,
@@ -1074,12 +1094,12 @@ func TestValidatorNotWithdrawable(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(version.Genesis()),
+			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
 		}
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
-	_, err := sp.InitializePreminedBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, version.Genesis(),
+	_, err := sp.InitializeBeaconStateFromEth1(
+		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
 
@@ -1099,6 +1119,7 @@ func TestValidatorNotWithdrawable(t *testing.T) {
 	depRoot := append(genDeposits, blockDeposits...).HashTreeRoot()
 	blk := buildNextBlock(
 		t,
+		cs,
 		st,
 		types.NewEth1Data(depRoot),
 		10,

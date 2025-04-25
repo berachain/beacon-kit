@@ -29,6 +29,9 @@ func TestnetChainSpecData() *chain.SpecData {
 	// Testnet uses chain ID of 80069.
 	specData.DepositEth1ChainID = TestnetEth1ChainID
 
+	// Timestamp of the genesis block of Bepolia testnet.
+	specData.GenesisTime = 1739976735
+
 	// Deneb1 fork timing on Bepolia. This is calculated based on the timestamp of the first bepolia
 	// epoch, block 192, which was used to initiate the fork when beacon-kit forked by epoch instead
 	// of by timestamp.
