@@ -61,20 +61,12 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 					NewCredentialsFromExecutionAddress(
 						common.ExecutionAddress{0x01},
 					),
-				EffectiveBalance: 32e9,
-				Slashed:          false,
-				ActivationEligibilityEpoch: math.Epoch(
-					constants.FarFutureEpoch,
-				),
-				ActivationEpoch: math.Epoch(
-					constants.FarFutureEpoch,
-				),
-				ExitEpoch: math.Epoch(
-					constants.FarFutureEpoch,
-				),
-				WithdrawableEpoch: math.Epoch(
-					constants.FarFutureEpoch,
-				),
+				EffectiveBalance:           32e9,
+				Slashed:                    false,
+				ActivationEligibilityEpoch: constants.FarFutureEpoch,
+				ActivationEpoch:            constants.FarFutureEpoch,
+				ExitEpoch:                  constants.FarFutureEpoch,
+				WithdrawableEpoch:          constants.FarFutureEpoch,
 			},
 		},
 		{
@@ -93,20 +85,12 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 					NewCredentialsFromExecutionAddress(
 						common.ExecutionAddress{0x02},
 					),
-				EffectiveBalance: 32e9,
-				Slashed:          false,
-				ActivationEligibilityEpoch: math.Epoch(
-					constants.FarFutureEpoch,
-				),
-				ActivationEpoch: math.Epoch(
-					constants.FarFutureEpoch,
-				),
-				ExitEpoch: math.Epoch(
-					constants.FarFutureEpoch,
-				),
-				WithdrawableEpoch: math.Epoch(
-					constants.FarFutureEpoch,
-				),
+				EffectiveBalance:           32e9,
+				Slashed:                    false,
+				ActivationEligibilityEpoch: constants.FarFutureEpoch,
+				ActivationEpoch:            constants.FarFutureEpoch,
+				ExitEpoch:                  constants.FarFutureEpoch,
+				WithdrawableEpoch:          constants.FarFutureEpoch,
 			},
 		},
 		{
@@ -125,20 +109,12 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 					NewCredentialsFromExecutionAddress(
 						common.ExecutionAddress{0x03},
 					),
-				EffectiveBalance: 32e9,
-				Slashed:          false,
-				ActivationEligibilityEpoch: math.Epoch(
-					constants.FarFutureEpoch,
-				),
-				ActivationEpoch: math.Epoch(
-					constants.FarFutureEpoch,
-				),
-				ExitEpoch: math.Epoch(
-					constants.FarFutureEpoch,
-				),
-				WithdrawableEpoch: math.Epoch(
-					constants.FarFutureEpoch,
-				),
+				EffectiveBalance:           32e9,
+				Slashed:                    false,
+				ActivationEligibilityEpoch: constants.FarFutureEpoch,
+				ActivationEpoch:            constants.FarFutureEpoch,
+				ExitEpoch:                  constants.FarFutureEpoch,
+				WithdrawableEpoch:          constants.FarFutureEpoch,
 			},
 		},
 	}
@@ -214,9 +190,7 @@ func TestValidator_IsEligibleForActivation(t *testing.T) {
 			finalizedEpoch: 10,
 			validator: &types.Validator{
 				ActivationEligibilityEpoch: 5,
-				ActivationEpoch: math.Epoch(
-					constants.FarFutureEpoch,
-				),
+				ActivationEpoch:            constants.FarFutureEpoch,
 			},
 			want: true,
 		},
@@ -225,9 +199,7 @@ func TestValidator_IsEligibleForActivation(t *testing.T) {
 			finalizedEpoch: 4,
 			validator: &types.Validator{
 				ActivationEligibilityEpoch: 5,
-				ActivationEpoch: math.Epoch(
-					constants.FarFutureEpoch,
-				),
+				ActivationEpoch:            constants.FarFutureEpoch,
 			},
 			want: false,
 		},
@@ -264,10 +236,8 @@ func TestValidator_IsEligibleForActivationQueue(t *testing.T) {
 		{
 			name: "eligible",
 			validator: &types.Validator{
-				ActivationEligibilityEpoch: math.Epoch(
-					constants.FarFutureEpoch,
-				),
-				EffectiveBalance: maxEffectiveBalance,
+				ActivationEligibilityEpoch: constants.FarFutureEpoch,
+				EffectiveBalance:           maxEffectiveBalance,
 			},
 			want: true,
 		},
@@ -282,10 +252,8 @@ func TestValidator_IsEligibleForActivationQueue(t *testing.T) {
 		{
 			name: "not eligible, effective balance too low",
 			validator: &types.Validator{
-				ActivationEligibilityEpoch: math.Epoch(
-					constants.FarFutureEpoch,
-				),
-				EffectiveBalance: maxEffectiveBalance - 1,
+				ActivationEligibilityEpoch: constants.FarFutureEpoch,
+				EffectiveBalance:           maxEffectiveBalance - 1,
 			},
 			want: false,
 		},
@@ -592,20 +560,12 @@ func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 					NewCredentialsFromExecutionAddress(
 						common.ExecutionAddress{0x01},
 					),
-				EffectiveBalance: 32e9,
-				Slashed:          false,
-				ActivationEligibilityEpoch: math.Epoch(
-					constants.FarFutureEpoch,
-				),
-				ActivationEpoch: math.Epoch(
-					constants.FarFutureEpoch,
-				),
-				ExitEpoch: math.Epoch(
-					constants.FarFutureEpoch,
-				),
-				WithdrawableEpoch: math.Epoch(
-					constants.FarFutureEpoch,
-				),
+				EffectiveBalance:           32e9,
+				Slashed:                    false,
+				ActivationEligibilityEpoch: constants.FarFutureEpoch,
+				ActivationEpoch:            constants.FarFutureEpoch,
+				ExitEpoch:                  constants.FarFutureEpoch,
+				WithdrawableEpoch:          constants.FarFutureEpoch,
 			},
 			invalidSSZ: false,
 		},
@@ -634,20 +594,12 @@ func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 					NewCredentialsFromExecutionAddress(
 						common.ExecutionAddress{0x03},
 					),
-				EffectiveBalance: 0,
-				Slashed:          false,
-				ActivationEligibilityEpoch: math.Epoch(
-					constants.FarFutureEpoch,
-				),
-				ActivationEpoch: math.Epoch(
-					constants.FarFutureEpoch,
-				),
-				ExitEpoch: math.Epoch(
-					constants.FarFutureEpoch,
-				),
-				WithdrawableEpoch: math.Epoch(
-					constants.FarFutureEpoch,
-				),
+				EffectiveBalance:           0,
+				Slashed:                    false,
+				ActivationEligibilityEpoch: constants.FarFutureEpoch,
+				ActivationEpoch:            constants.FarFutureEpoch,
+				ExitEpoch:                  constants.FarFutureEpoch,
+				WithdrawableEpoch:          constants.FarFutureEpoch,
 			},
 			invalidSSZ: false,
 		},
@@ -728,20 +680,12 @@ func TestValidator_HashTreeRoot(t *testing.T) {
 					NewCredentialsFromExecutionAddress(
 						common.ExecutionAddress{0x01},
 					),
-				EffectiveBalance: 32e9,
-				Slashed:          false,
-				ActivationEligibilityEpoch: math.Epoch(
-					constants.FarFutureEpoch,
-				),
-				ActivationEpoch: math.Epoch(
-					constants.FarFutureEpoch,
-				),
-				ExitEpoch: math.Epoch(
-					constants.FarFutureEpoch,
-				),
-				WithdrawableEpoch: math.Epoch(
-					constants.FarFutureEpoch,
-				),
+				EffectiveBalance:           32e9,
+				Slashed:                    false,
+				ActivationEligibilityEpoch: constants.FarFutureEpoch,
+				ActivationEpoch:            constants.FarFutureEpoch,
+				ExitEpoch:                  constants.FarFutureEpoch,
+				WithdrawableEpoch:          constants.FarFutureEpoch,
 			},
 		},
 		{
@@ -834,9 +778,9 @@ func TestValidator_GetWithdrawableEpoch(t *testing.T) {
 		{
 			name: "get far future withdrawable epoch",
 			validator: &types.Validator{
-				WithdrawableEpoch: math.Epoch(constants.FarFutureEpoch),
+				WithdrawableEpoch: constants.FarFutureEpoch,
 			},
-			want: math.Epoch(constants.FarFutureEpoch),
+			want: constants.FarFutureEpoch,
 		},
 	}
 	for _, tt := range tests {

@@ -126,12 +126,12 @@ func (kv *KVStore) GetValidators() (
 }
 
 // GetTotalValidators returns the total number of validators.
-func (kv *KVStore) GetTotalValidators() (uint64, error) {
+func (kv *KVStore) GetTotalValidators() (math.U64, error) {
 	validators, err := kv.GetValidators()
 	if err != nil {
 		return 0, err
 	}
-	return uint64(len(validators)), nil
+	return math.U64(len(validators)), nil
 }
 
 // GetBalance returns the balance of a validator.

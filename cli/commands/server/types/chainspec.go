@@ -101,7 +101,6 @@ func loadSpecData(path string) (*chain.SpecData, error) {
 	// List of required keys as defined by your mapstructure tags.
 	requiredKeys := []string{
 		"max-effective-balance",
-		"ejection-balance",
 		"effective-balance-increment",
 		"hysteresis-quotient",
 		"hysteresis-downward-multiplier",
@@ -142,6 +141,8 @@ func loadSpecData(path string) (*chain.SpecData, error) {
 		"evm-inflation-per-block",
 		"evm-inflation-address-deneb-one",
 		"evm-inflation-per-block-deneb-one",
+		"min-activation-balance",
+		"min-validator-withdrawability-delay",
 	}
 
 	// Check if all required keys are set in the config.
