@@ -41,14 +41,14 @@ func (sp *StateProcessor) InitiateValidatorExit(st *statedb.StateDB, idx math.Va
 	if err != nil {
 		return err
 	}
-	slot, err := st.GetSlot()
+	currentEpoch, err := st.GetEpoch()
 	if err != nil {
 		return err
 	}
 
 	// We still have no cap on validator churn, choosing not to adopt any churn-related
 	// Electra changes, so exit epoch is at the next epoch.
-	exitEpoch := sp.cs.SlotToEpoch(slot) + 1
+	exitEpoch := currentEpoch + 1
 
 	// The withdrawable epoch is `MinValidatorWithdrawabilityDelay` epoch's after `exitEpoch`.
 	var withdrawableEpoch math.Epoch

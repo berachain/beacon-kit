@@ -25,7 +25,6 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
-	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/spf13/afero"
 )
 
@@ -64,15 +63,15 @@ func ComputeValidatorsRootFromFile(genesisFile string, cs ChainSpec) (common.Roo
 // and a chain spec.
 func ComputeValidatorsRoot(genesisDeposits types.Deposits, cs ChainSpec) common.Root {
 	validators := make(types.Validators, len(genesisDeposits))
-	minEffectiveBalance := math.Gwei(cs.MinActivationBalance())
+	minEffectiveBalance := cs.MinActivationBalance()
 
 	for i, deposit := range genesisDeposits {
 		val := types.NewValidatorFromDeposit(
 			deposit.Pubkey,
 			deposit.Credentials,
 			deposit.Amount,
-			math.Gwei(cs.EffectiveBalanceIncrement()),
-			math.Gwei(cs.MaxEffectiveBalance()),
+			cs.EffectiveBalanceIncrement(),
+			cs.MaxEffectiveBalance(),
 		)
 
 		// mimic processGenesisActivation

@@ -126,12 +126,10 @@ func (sp *StateProcessor) processWithdrawals(
 
 	// Update the next validator index to start the next withdrawal sweep.
 	var nextValidatorIndex math.ValidatorIndex
-
-	// #nosec G115 -- won't overflow in practice.
-	if numWithdrawals == int(sp.cs.MaxWithdrawalsPerPayload()) {
+	if uint64(numWithdrawals) == sp.cs.MaxWithdrawalsPerPayload() {
 		// Next sweep starts after the latest withdrawal's validator index.
-		nextValidatorIndex = (expectedWithdrawals[numWithdrawals-1].
-			GetValidatorIndex() + 1) % math.ValidatorIndex(totalValidators)
+		nextValidatorIndex = expectedWithdrawals[numWithdrawals-1].GetValidatorIndex() + 1
+		nextValidatorIndex %= totalValidators
 	} else {
 		// Advance sweep by the max length of the sweep if there was not a full
 		// set of withdrawals.
@@ -139,8 +137,8 @@ func (sp *StateProcessor) processWithdrawals(
 		if err != nil {
 			return err
 		}
-		nextValidatorIndex += math.ValidatorIndex(sp.cs.MaxValidatorsPerWithdrawalsSweep())
-		nextValidatorIndex %= math.ValidatorIndex(totalValidators)
+		nextValidatorIndex += sp.cs.MaxValidatorsPerWithdrawalsSweep()
+		nextValidatorIndex %= totalValidators
 	}
 
 	if err = st.SetNextWithdrawalValidatorIndex(nextValidatorIndex); err != nil {
@@ -159,7 +157,9 @@ func (sp *StateProcessor) processWithdrawals(
 // processWithdrawalRequest is the equivalent of process_withdrawal_request as defined in the spec.
 // It should only be called after the electra hard fork.
 // For invalid withdrawal requests, we return nil, and only return error for system errors.
-func (sp *StateProcessor) processWithdrawalRequest(st *state.StateDB, withdrawalRequest *ctypes.WithdrawalRequest) error {
+func (sp *StateProcessor) processWithdrawalRequest(
+	st *state.StateDB, withdrawalRequest *ctypes.WithdrawalRequest,
+) error {
 	// If the amount is 0, it's a full exit.
 	isFullExitRequest := withdrawalRequest.Amount == constants.FullExitRequestAmount
 	pendingPartialWithdrawals, err := st.GetPendingPartialWithdrawals()
@@ -229,33 +229,32 @@ func (sp *StateProcessor) processPartialWithdrawal(
 	req *ctypes.WithdrawalRequest,
 	validator *ctypes.Validator,
 	index math.ValidatorIndex,
-	pendingWithdrawals []*ctypes.PendingPartialWithdrawal,
+	pendingWithdrawals ctypes.PendingPartialWithdrawals,
 ) error {
-	minActivationBalance := math.Gwei(sp.cs.MinActivationBalance())
+	minActivationBalance := sp.cs.MinActivationBalance()
 	hasSufficient := validator.GetEffectiveBalance() >= minActivationBalance
 
 	balance, err := st.GetBalance(index)
 	if err != nil {
 		return err
 	}
-
-	pendingBalanceToWithdraw := ctypes.PendingPartialWithdrawals(pendingWithdrawals).PendingBalanceToWithdraw(index)
-
+	pendingBalanceToWithdraw := pendingWithdrawals.PendingBalanceToWithdraw(index)
 	hasExcess := balance > minActivationBalance+pendingBalanceToWithdraw
 
 	if validator.HasCompoundingWithdrawalCredential() && hasSufficient && hasExcess {
 		toWithdraw := min(balance-minActivationBalance-pendingBalanceToWithdraw, req.Amount)
-		// As long as `processPartialWithdrawal` is called after `processSlots`, this will always return the correct slot.
-		currentSlot, getErr := st.GetSlot()
-		if getErr != nil {
-			return getErr
+		// As long as `processPartialWithdrawal` is called after `processSlots`, this will always
+		// return the correct slot.
+		currentEpoch, err := st.GetEpoch()
+		if err != nil {
+			return err
 		}
-		nextEpoch := sp.cs.SlotToEpoch(currentSlot) + 1
-		// Note that we do not need to set the ExitEpoch anywhere here as Partial withdrawals do not exit the validator
-		// as we enforce that the `toWithdraw` amount is always above the `minActivationBalance`.
-		// For example, if a validator's balance is already at `minActivationBalance` (250K BERA on mainnet)
-		// and they request a partial withdrawal, the `toWithdraw` amount will always be zero.
-		withdrawableEpoch := nextEpoch + sp.cs.MinValidatorWithdrawabilityDelay()
+		// Note that we do not need to set the ExitEpoch anywhere here as Partial withdrawals do not
+		// exit the validator as we enforce that the `toWithdraw` amount is always above the
+		// `minActivationBalance`. For example, if a validator's balance is already at
+		// `minActivationBalance` (250K BERA on mainnet) and they request a partial withdrawal, the
+		// `toWithdraw` amount will always be zero.
+		withdrawableEpoch := currentEpoch + 1 + sp.cs.MinValidatorWithdrawabilityDelay()
 		ppWithdrawal := &ctypes.PendingPartialWithdrawal{
 			ValidatorIndex:    index,
 			Amount:            toWithdraw,
@@ -308,11 +307,10 @@ func validateWithdrawal(st *state.StateDB, withdrawalRequest *ctypes.WithdrawalR
 
 // verifyWithdrawalConditions checks additional conditions like active status, exit not initiated, and minimal activation period.
 func verifyWithdrawalConditions(chainSpec ChainSpec, st *state.StateDB, validator *ctypes.Validator) error {
-	slot, err := st.GetSlot()
+	currentEpoch, err := st.GetEpoch()
 	if err != nil {
 		return err
 	}
-	currentEpoch := chainSpec.SlotToEpoch(slot)
 	// Verify the validator is active
 	if !validator.IsActive(currentEpoch) {
 		return errors.New("validator is not active")

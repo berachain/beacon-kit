@@ -26,7 +26,6 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/ethereum/go-ethereum/params"
@@ -192,8 +191,8 @@ func (sp *StateProcessor) addValidatorToRegistry(st *state.StateDB, dep *ctypes.
 		dep.GetPubkey(),
 		dep.GetWithdrawalCredentials(),
 		dep.GetAmount(),
-		math.Gwei(sp.cs.EffectiveBalanceIncrement()),
-		math.Gwei(sp.cs.MaxEffectiveBalance()),
+		sp.cs.EffectiveBalanceIncrement(),
+		sp.cs.MaxEffectiveBalance(),
 	)
 
 	if err := st.AddValidator(val); err != nil {

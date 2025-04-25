@@ -57,7 +57,7 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 		s.Require().NoError(errBlk)
 
 		payloadTime := payload.Time()
-		inflationPerBlock = chainspec.EVMInflationPerBlock(math.U64(payloadTime))
+		inflationPerBlock = chainspec.EVMInflationPerBlock(math.U64(payloadTime)).Unwrap()
 		inflationAddress = chainspec.EVMInflationAddress(math.U64(payloadTime))
 		if chainspec.Deneb1ForkTime() > 0 && payloadTime >= chainspec.Deneb1ForkTime() {
 			// If we have passed the Deneb1 fork, do some verifications and update inflation values.
