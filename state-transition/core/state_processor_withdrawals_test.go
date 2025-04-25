@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -39,7 +40,7 @@ import (
 )
 
 //nolint:paralleltest // uses envars
-func TestPartialWithdrawalRequestLifecycle(t *testing.T) {
+func TestPartialWithdrawalRequestGenesisValidators(t *testing.T) {
 	cs := setupChain(t)
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
@@ -240,7 +241,7 @@ func TestPartialWithdrawalRequestLifecycle(t *testing.T) {
 }
 
 //nolint:paralleltest // uses envars
-func TestFullWithdrawalGenesisValidatorsRequestLifecycle(t *testing.T) {
+func TestFullWithdrawalRequestGenesisValidators(t *testing.T) {
 	cs := setupChain(t)
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
@@ -356,6 +357,35 @@ func TestFullWithdrawalGenesisValidatorsRequestLifecycle(t *testing.T) {
 		valDiff,
 	)
 
+	// no more partial withdrawals are possible for an exited validator
+	wrs = []*types.WithdrawalRequest{
+		{
+			SourceAddress:   addr1,
+			ValidatorPubKey: valToRm.GetPubkey(),
+			Amount:          1,
+		},
+	}
+	blkTimestamp = blk.GetTimestamp() + 1
+	blk = buildNextBlock(
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		blkTimestamp,
+		[]*types.Deposit{},
+		&types.ExecutionRequests{
+			Withdrawals: wrs,
+		},
+		st.EVMInflationWithdrawal(blkTimestamp),
+	)
+
+	// Run the test.
+	_, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+	pr, err = st.GetPendingPartialWithdrawals()
+	require.NoError(t, err)
+	require.Empty(t, pr)
+
 	// check that balance is still locked and it will be
 	// returned after MinValidatorWithdrawabilityDelay epochs
 	// check that the request is eventually fulfilled
@@ -418,6 +448,258 @@ func TestFullWithdrawalGenesisValidatorsRequestLifecycle(t *testing.T) {
 	)
 	_, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
+}
+
+//nolint:paralleltest // uses envars
+func TestWithdrawalRequestsNonGenesisValidators(t *testing.T) {
+	cs := setupChain(t)
+	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
+
+	// make sure Electra is active
+	require.Equal(t, version.Electra(), cs.GenesisForkVersion())
+
+	var (
+		maxBalance = cs.MaxEffectiveBalance()
+
+		genAddr  = common.ExecutionAddress{0x01}
+		genCreds = types.NewCredentialsFromExecutionAddress(genAddr)
+		valAddr  = common.ExecutionAddress{0x01}
+		valCreds = types.NewCredentialsFromExecutionAddress(valAddr)
+	)
+
+	var (
+		genDeposits = types.Deposits{
+			{
+				Pubkey:      [48]byte{0x00},
+				Credentials: genCreds,
+				Amount:      maxBalance,
+				Index:       0,
+			},
+		}
+		genPayloadHeader = &types.ExecutionPayloadHeader{
+			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
+		}
+	)
+	_, err := sp.InitializeBeaconStateFromEth1(
+		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
+	)
+	require.NoError(t, err)
+	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
+
+	// add a validator and test withdrawals through its lifetime
+	blkDeposit := &types.Deposit{
+		Pubkey:      [48]byte{0xff},
+		Credentials: valCreds,
+		Amount:      maxBalance,
+		Index:       uint64(len(genDeposits)),
+	}
+
+	depRoot := append(genDeposits, blkDeposit).HashTreeRoot()
+	blk := buildNextBlock(
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		10,
+		[]*types.Deposit{blkDeposit},
+		&types.ExecutionRequests{},
+		st.EVMInflationWithdrawal(10),
+	)
+	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), blk.Body.Deposits))
+
+	// run the test
+	_, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+
+	// assert that validator in not even eligible for activation yet
+	idx, err := st.ValidatorIndexByPubkey(blkDeposit.Pubkey)
+	require.NoError(t, err)
+	val, err := st.ValidatorByIndex(idx)
+	require.NoError(t, err)
+	require.Equal(t, constants.FarFutureEpoch, val.ActivationEligibilityEpoch)
+
+	// validator is not even in activation queue, any withdrawal request is dropped
+	wrs := []*types.WithdrawalRequest{
+		{
+			SourceAddress:   valAddr,
+			ValidatorPubKey: val.GetPubkey(),
+			Amount:          1,
+		},
+	}
+	blkTimestamp := blk.GetTimestamp() + 1
+	blk = buildNextBlock(
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		blkTimestamp,
+		[]*types.Deposit{},
+		&types.ExecutionRequests{
+			Withdrawals: wrs,
+		},
+		st.EVMInflationWithdrawal(blkTimestamp),
+	)
+
+	// Show that no withdrawal is enqueued
+	_, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+	pr, err := st.GetPendingPartialWithdrawals()
+	require.NoError(t, err)
+	require.Empty(t, pr)
+
+	// try again with full withdrawal
+	wrs = []*types.WithdrawalRequest{
+		{
+			SourceAddress:   valAddr,
+			ValidatorPubKey: val.GetPubkey(),
+			Amount:          0,
+		},
+	}
+	blkTimestamp = blk.GetTimestamp() + 1
+	blk = buildNextBlock(
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		blkTimestamp,
+		[]*types.Deposit{},
+		&types.ExecutionRequests{
+			Withdrawals: wrs,
+		},
+		st.EVMInflationWithdrawal(blkTimestamp),
+	)
+
+	// Show that validator is not marked for exit
+	_, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+
+	val, err = st.ValidatorByIndex(idx)
+	require.NoError(t, err)
+	require.Equal(t, constants.FarFutureEpoch, val.ActivationEligibilityEpoch)
+	require.Equal(t, constants.FarFutureEpoch, val.ExitEpoch)
+
+	// make validator eligible for activation and show that withdrawals are not yet allowed
+	blk = moveToEndOfEpoch(t, blk, cs, sp, st, ctx, depRoot)
+	blkTimestamp = blk.GetTimestamp() + 1
+	blk = buildNextBlock(
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		blkTimestamp,
+		[]*types.Deposit{},
+		&types.ExecutionRequests{},
+		st.EVMInflationWithdrawal(blkTimestamp),
+	)
+	_, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+
+	val, err = st.ValidatorByIndex(idx)
+	require.NoError(t, err)
+	require.Equal(t, math.Epoch(1), val.ActivationEligibilityEpoch)
+	require.Equal(t, constants.FarFutureEpoch, val.ActivationEpoch)
+
+	// validator eligible for activation but not active yet. Requests dropped
+	wrs = []*types.WithdrawalRequest{
+		{
+			SourceAddress:   valAddr,
+			ValidatorPubKey: val.GetPubkey(),
+			Amount:          1,
+		},
+	}
+	blkTimestamp = blk.GetTimestamp() + 1
+	blk = buildNextBlock(
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		blkTimestamp,
+		[]*types.Deposit{},
+		&types.ExecutionRequests{
+			Withdrawals: wrs,
+		},
+		st.EVMInflationWithdrawal(blkTimestamp),
+	)
+
+	// Show that no withdrawal is enqueued
+	_, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+	pr, err = st.GetPendingPartialWithdrawals()
+	require.NoError(t, err)
+	require.Empty(t, pr)
+
+	// try again with full withdrawal
+	wrs = []*types.WithdrawalRequest{
+		{
+			SourceAddress:   valAddr,
+			ValidatorPubKey: val.GetPubkey(),
+			Amount:          0,
+		},
+	}
+	blkTimestamp = blk.GetTimestamp() + 1
+	blk = buildNextBlock(
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		blkTimestamp,
+		[]*types.Deposit{},
+		&types.ExecutionRequests{
+			Withdrawals: wrs,
+		},
+		st.EVMInflationWithdrawal(blkTimestamp),
+	)
+
+	// Show that validator is not marked for exit
+	_, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+
+	val, err = st.ValidatorByIndex(idx)
+	require.NoError(t, err)
+	require.Equal(t, constants.FarFutureEpoch, val.ActivationEpoch)
+	require.Equal(t, constants.FarFutureEpoch, val.ExitEpoch)
+
+	// finally when validator is active withdrawals will work
+	blk = moveToEndOfEpoch(t, blk, cs, sp, st, ctx, depRoot)
+
+	wrs = []*types.WithdrawalRequest{
+		{
+			SourceAddress:   valAddr,
+			ValidatorPubKey: val.GetPubkey(),
+			Amount:          1,
+		},
+	}
+	blkTimestamp = blk.GetTimestamp() + 1
+	blk = buildNextBlock(
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		blkTimestamp,
+		[]*types.Deposit{},
+		&types.ExecutionRequests{
+			Withdrawals: wrs,
+		},
+		st.EVMInflationWithdrawal(blkTimestamp),
+	)
+
+	// Run the test.
+	_, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+
+	pr, err = st.GetPendingPartialWithdrawals()
+	require.NoError(t, err)
+	require.Len(t, pr, 1)
+	require.Equal(t,
+		[]*types.PendingPartialWithdrawal{
+			{
+				ValidatorIndex:    1,
+				Amount:            wrs[0].Amount,
+				WithdrawableEpoch: 3 + cs.MinValidatorWithdrawabilityDelay(),
+			},
+		},
+		pr,
+	)
 }
 
 //nolint:paralleltest // uses envars

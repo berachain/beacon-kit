@@ -216,7 +216,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, genVals, len(genDeposits))
 
-	// STEP 1: top up a genesis validator balance
+	// STEP 1: create a new validator
 	blkDeposit := &types.Deposit{
 		Pubkey:      [48]byte{0xff}, // a new key for a new validator
 		Credentials: emptyCredentials,
