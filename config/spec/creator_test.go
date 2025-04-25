@@ -94,27 +94,27 @@ func TestCreateChainSpec_Default_NoSpecFlag(t *testing.T) {
 	require.Equal(t, cs, mainnetSpec, "expected mainnet chain spec to match")
 }
 
-func TestCreateChainSpec_ConfigurableEnvar_WithSpecFlag(t *testing.T) {
+func TestCreateChainSpec_File(t *testing.T) {
 	t.Parallel()
 
 	// Provide a non-empty value for the custom spec file of mainnet.
 	opts := dummyAppOptions{values: map[string]interface{}{
-		flags.ChainSpec:         "custom",
+		flags.ChainSpec:         "file",
 		flags.ChainSpecFilePath: "../../testing/networks/80094/spec.toml",
 	}}
-	cs, err := spec.Create(opts)
+	mcs, err := spec.Create(opts)
 	require.NoError(t, err)
 
 	mainnetSpec, err := spec.MainnetChainSpec()
 	require.NoError(t, err)
-	require.Equal(t, mainnetSpec, cs, "the chain spec loaded from TOML does not match the mainnet spec")
+	require.Equal(t, mainnetSpec, mcs, "the chain spec loaded from TOML does not match the mainnet spec")
 
 	// Provide a non-empty value for the custom spec file of testnet.
 	opts.values[flags.ChainSpecFilePath] = "../../testing/networks/80069/spec.toml"
-	cs, err = spec.Create(opts)
+	tcs, err := spec.Create(opts)
 	require.NoError(t, err)
 
 	testnetSpec, err := spec.TestnetChainSpec()
 	require.NoError(t, err)
-	require.Equal(t, testnetSpec, cs, "the chain spec loaded from TOML does not match the testnet spec")
+	require.Equal(t, testnetSpec, tcs, "the chain spec loaded from TOML does not match the testnet spec")
 }

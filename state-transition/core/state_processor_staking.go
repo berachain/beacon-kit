@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/ethereum/go-ethereum/params"
 )
@@ -64,6 +65,19 @@ func (sp *StateProcessor) processOperations(
 	for _, dep := range deposits {
 		if err := sp.processDeposit(st, dep); err != nil {
 			return err
+		}
+	}
+
+	if version.EqualsOrIsAfter(blk.GetForkVersion(), version.Electra()) {
+		// After Electra, validators can request withdrawals through execution requests which must be handled.
+		requests, err := blk.GetBody().GetExecutionRequests()
+		if err != nil {
+			return err
+		}
+		for _, withdrawal := range requests.Withdrawals {
+			if withdrawErr := sp.processWithdrawalRequest(st, withdrawal); withdrawErr != nil {
+				return withdrawErr
+			}
 		}
 	}
 

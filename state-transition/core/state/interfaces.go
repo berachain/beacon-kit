@@ -22,6 +22,7 @@ package state
 
 import (
 	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
@@ -32,4 +33,6 @@ type ChainSpec interface {
 	SlotsPerHistoricalRoot() uint64
 	MaxEffectiveBalance() uint64
 	EpochsPerHistoricalVector() uint64
+	ActiveForkVersionForTimestamp(timestamp math.U64) common.Version
+	MinActivationBalance() uint64
 }
