@@ -51,9 +51,9 @@ func TestInitialize(t *testing.T) {
 			sp, st, _, _, _, _ := statetransition.SetupTestState(t, cs)
 
 			var (
-				maxBalance = math.Gwei(cs.MaxEffectiveBalance())
-				increment  = math.Gwei(cs.EffectiveBalanceIncrement())
-				minBalance = math.Gwei(cs.MinActivationBalance()) - increment
+				maxBalance = cs.MaxEffectiveBalance()
+				increment  = cs.EffectiveBalanceIncrement()
+				minBalance = cs.MinActivationBalance() - increment
 			)
 
 			// create test inputs
@@ -185,9 +185,9 @@ func checkValidator(
 	require.Equal(t, dep.Pubkey, val.Pubkey)
 
 	var (
-		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
-		increment  = math.Gwei(cs.EffectiveBalanceIncrement())
-		minBalance = math.Gwei(cs.MinActivationBalance()) - increment
+		maxBalance = cs.MaxEffectiveBalance()
+		increment  = cs.EffectiveBalanceIncrement()
+		minBalance = cs.MinActivationBalance() - increment
 	)
 	switch {
 	case dep.Amount >= maxBalance:

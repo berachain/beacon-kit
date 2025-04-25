@@ -30,29 +30,30 @@ import (
 
 type BalancesSpec interface {
 	// MaxEffectiveBalance returns the maximum balance counted in rewards calculations in Gwei.
-	MaxEffectiveBalance() uint64
+	MaxEffectiveBalance() math.Gwei
 
-	// EffectiveBalanceIncrement returns the increment of balance used in reward
-	// calculations.
-	EffectiveBalanceIncrement() uint64
+	// EffectiveBalanceIncrement returns the increment of balance used in reward calculations in
+	// Gwei.
+	EffectiveBalanceIncrement() math.Gwei
 
-	// MinActivationBalance returns the minimum balance required to become an active validator.
-	MinActivationBalance() uint64
+	// MinActivationBalance returns the minimum balance required to become an active validator in
+	// Gwei
+	MinActivationBalance() math.Gwei
 }
 
 type HysteresisSpec interface {
 	// HysteresisQuotient returns the quotient used in effective balance
 	// calculations to create hysteresis. This provides resistance to small
 	// balance changes triggering effective balance updates.
-	HysteresisQuotient() uint64
+	HysteresisQuotient() math.U64
 
 	// HysteresisDownwardMultiplier returns the multiplier used when checking
 	// if the effective balance should be decreased.
-	HysteresisDownwardMultiplier() uint64
+	HysteresisDownwardMultiplier() math.U64
 
 	// HysteresisUpwardMultiplier returns the multiplier used when checking
 	// if the effective balance should be increased.
-	HysteresisUpwardMultiplier() uint64
+	HysteresisUpwardMultiplier() math.U64
 }
 
 type DepositSpec interface {
@@ -144,7 +145,7 @@ type BerachainSpec interface {
 
 	// EVMInflationPerBlock returns the amount of native EVM balance (in Gwei)
 	// to be minted to the EVMInflationAddress via a withdrawal every block.
-	EVMInflationPerBlock(timestamp math.U64) uint64
+	EVMInflationPerBlock(timestamp math.U64) math.Gwei
 
 	// ValidatorSetCap retrieves the maximum number of validators allowed in the active set.
 	ValidatorSetCap() uint64
@@ -157,12 +158,12 @@ type WithdrawalsSpec interface {
 
 	// MaxValidatorsPerWithdrawalsSweep returns the maximum number of validators
 	// per withdrawal sweep.
-	MaxValidatorsPerWithdrawalsSweep() uint64
+	MaxValidatorsPerWithdrawalsSweep() math.U64
 
 	// MinValidatorWithdrawabilityDelay - an exited validator remains eligible to be slashed until its withdrawable_epoch,
 	// which is set to MIN_VALIDATOR_WITHDRAWABILITY_DELAY epochs after its exit_epoch.
 	// This is to allow some extra time for any slashable offences by the validator to be detected and reported.
-	MinValidatorWithdrawabilityDelay() uint64
+	MinValidatorWithdrawabilityDelay() math.Epoch
 }
 
 // Spec defines an interface for accessing chain-specific parameters.
@@ -250,30 +251,30 @@ func (s spec) validate() error {
 }
 
 // MaxEffectiveBalance returns the maximum effective balance.
-func (s spec) MaxEffectiveBalance() uint64 {
-	return s.Data.MaxEffectiveBalance
+func (s spec) MaxEffectiveBalance() math.Gwei {
+	return math.Gwei(s.Data.MaxEffectiveBalance)
 }
 
 // MinActivationBalance returns the minimum activation balance effective. Introduced in Electra.
-func (s spec) MinActivationBalance() uint64 {
-	return s.Data.MinActivationBalance
+func (s spec) MinActivationBalance() math.Gwei {
+	return math.Gwei(s.Data.MinActivationBalance)
 }
 
 // EffectiveBalanceIncrement returns the increment of effective balance.
-func (s spec) EffectiveBalanceIncrement() uint64 {
-	return s.Data.EffectiveBalanceIncrement
+func (s spec) EffectiveBalanceIncrement() math.Gwei {
+	return math.Gwei(s.Data.EffectiveBalanceIncrement)
 }
 
-func (s spec) HysteresisQuotient() uint64 {
-	return s.Data.HysteresisQuotient
+func (s spec) HysteresisQuotient() math.U64 {
+	return math.U64(s.Data.HysteresisQuotient)
 }
 
-func (s spec) HysteresisDownwardMultiplier() uint64 {
-	return s.Data.HysteresisDownwardMultiplier
+func (s spec) HysteresisDownwardMultiplier() math.U64 {
+	return math.U64(s.Data.HysteresisDownwardMultiplier)
 }
 
-func (s spec) HysteresisUpwardMultiplier() uint64 {
-	return s.Data.HysteresisUpwardMultiplier
+func (s spec) HysteresisUpwardMultiplier() math.U64 {
+	return math.U64(s.Data.HysteresisUpwardMultiplier)
 }
 
 // SlotsPerEpoch returns the number of slots per epoch.
@@ -401,12 +402,12 @@ func (s spec) MaxWithdrawalsPerPayload() uint64 {
 }
 
 // MaxValidatorsPerWithdrawalsSweep returns the maximum number of validators per withdrawals sweep.
-func (s spec) MaxValidatorsPerWithdrawalsSweep() uint64 {
-	return s.Data.MaxValidatorsPerWithdrawalsSweep
+func (s spec) MaxValidatorsPerWithdrawalsSweep() math.U64 {
+	return math.U64(s.Data.MaxValidatorsPerWithdrawalsSweep)
 }
 
-func (s spec) MinValidatorWithdrawabilityDelay() uint64 {
-	return s.Data.MinValidatorWithdrawabilityDelay
+func (s spec) MinValidatorWithdrawabilityDelay() math.Epoch {
+	return math.Epoch(s.Data.MinValidatorWithdrawabilityDelay)
 }
 
 // MinEpochsForBlobsSidecarsRequest returns the minimum number of epochs for
@@ -457,13 +458,13 @@ func (s spec) EVMInflationAddress(timestamp math.U64) common.ExecutionAddress {
 
 // EVMInflationPerBlock returns the amount of native EVM balance (in Gwei) to
 // be minted to the EVMInflationAddress via a withdrawal every block.
-func (s spec) EVMInflationPerBlock(timestamp math.U64) uint64 {
+func (s spec) EVMInflationPerBlock(timestamp math.U64) math.Gwei {
 	fv := s.ActiveForkVersionForTimestamp(timestamp)
 	switch fv {
 	case version.Deneb1(), version.Electra():
-		return s.Data.EVMInflationPerBlockDeneb1
+		return math.Gwei(s.Data.EVMInflationPerBlockDeneb1)
 	case version.Deneb():
-		return s.Data.EVMInflationPerBlockGenesis
+		return math.Gwei(s.Data.EVMInflationPerBlockGenesis)
 	default:
 		panic(fmt.Sprintf("EVMInflationPerBlock not supported for this fork version: %d", fv))
 	}

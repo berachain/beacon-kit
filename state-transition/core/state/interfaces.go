@@ -31,8 +31,8 @@ type ChainSpec interface {
 	chain.WithdrawalsSpec
 	SlotToEpoch(slot math.Slot) math.Epoch
 	SlotsPerHistoricalRoot() uint64
-	MaxEffectiveBalance() uint64
+	MaxEffectiveBalance() math.Gwei
 	EpochsPerHistoricalVector() uint64
 	ActiveForkVersionForTimestamp(timestamp math.U64) common.Version
-	MinActivationBalance() uint64
+	MinActivationBalance() math.Gwei
 }
