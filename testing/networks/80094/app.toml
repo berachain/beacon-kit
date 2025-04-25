@@ -115,6 +115,12 @@ datadog-hostname = "my_beacond_node"
 ###############################################################################
 
 [beacon-kit]
+# ChainSpec is the type of chain spec to use.
+chain-spec = "mainnet"
+
+# ChainSpecFilePath is the path to the chain spec file to use.
+chain-spec-file = ""
+
 # ShutdownTimeout is the maximum time to wait for the node to gracefully
 # shutdown before forcing an exit.
 shutdown-timeout = "5m0s"
