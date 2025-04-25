@@ -146,7 +146,7 @@ func TestValidators(t *testing.T) {
 
 	valCount, err := store.GetTotalValidators()
 	require.NoError(t, err)
-	require.Equal(t, uint64(2), valCount)
+	require.Equal(t, math.U64(2), valCount)
 
 	res, err = store.GetValidators()
 	require.NoError(t, err)
