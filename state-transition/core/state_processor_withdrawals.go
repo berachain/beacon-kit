@@ -167,6 +167,7 @@ func (sp *StateProcessor) processWithdrawalRequest(
 
 	// If partial withdrawal queue is full, only full exits are processed
 	if len(pendingPartialWithdrawals) == constants.PendingPartialWithdrawalsLimit && !isFullExitRequest {
+		// TODO: add metrics here.
 		sp.logger.Warn(
 			"skipping processing of withdrawal request as partial withdrawal queue is full",
 			withdrawalFields(withdrawalRequest, nil)...,
@@ -239,38 +240,41 @@ func (sp *StateProcessor) processPartialWithdrawal(
 	pendingBalanceToWithdraw := pendingWithdrawals.PendingBalanceToWithdraw(index)
 	hasExcess := balance > minActivationBalance+pendingBalanceToWithdraw
 
-	if validator.HasCompoundingWithdrawalCredential() && hasSufficient && hasExcess {
-		toWithdraw := min(balance-minActivationBalance-pendingBalanceToWithdraw, req.Amount)
-		// As long as `processPartialWithdrawal` is called after `processSlots`, this will always
-		// return the correct slot.
-		currentEpoch, getErr := st.GetEpoch()
-		if getErr != nil {
-			return getErr
-		}
-		// Note that we do not need to set the ExitEpoch anywhere here as Partial withdrawals do not
-		// exit the validator as we enforce that the `toWithdraw` amount is always above the
-		// `minActivationBalance`. For example, if a validator's balance is already at
-		// `minActivationBalance` (250K BERA on mainnet) and they request a partial withdrawal, the
-		// `toWithdraw` amount will always be zero.
-		nextEpoch := currentEpoch + 1
-		withdrawableEpoch := nextEpoch + sp.cs.MinValidatorWithdrawabilityDelay()
-		ppWithdrawal := &ctypes.PendingPartialWithdrawal{
-			ValidatorIndex:    index,
-			Amount:            toWithdraw,
-			WithdrawableEpoch: withdrawableEpoch,
-		}
-		pendingWithdrawals = append(pendingWithdrawals, ppWithdrawal)
-		return st.SetPendingPartialWithdrawals(pendingWithdrawals)
+	isWithdrawable := validator.HasCompoundingWithdrawalCredential() && hasSufficient && hasExcess
+	if !isWithdrawable {
+		// TODO: add metrics here.
+		sp.logger.Info("validator cannot withdraw partial balance",
+			"validator_index", index,
+			"validator_pubkey", validator.GetPubkey().String(),
+			"balance", balance,
+			"pending_balance_to_withdraw", pendingBalanceToWithdraw,
+			"has_sufficient", hasSufficient,
+			"has_excess", hasExcess,
+		)
+		return nil
 	}
-	sp.logger.Info("validator cannot withdraw partial balance",
-		"validator_index", index,
-		"validator_pubkey", validator.GetPubkey().String(),
-		"balance", balance,
-		"pending_balance_to_withdraw", pendingBalanceToWithdraw,
-		"has_sufficient", hasSufficient,
-		"has_excess", hasExcess,
-	)
-	return nil
+
+	toWithdraw := min(balance-minActivationBalance-pendingBalanceToWithdraw, req.Amount)
+	// As long as `processPartialWithdrawal` is called after `processSlots`, this will always
+	// return the correct epoch.
+	currentEpoch, getErr := st.GetEpoch()
+	if getErr != nil {
+		return getErr
+	}
+	// Note that we do not need to set the ExitEpoch anywhere here as Partial withdrawals do not
+	// exit the validator as we enforce that the `toWithdraw` amount is always above the
+	// `minActivationBalance`. For example, if a validator's balance is already at
+	// `minActivationBalance` (250K BERA on mainnet) and they request a partial withdrawal, the
+	// `toWithdraw` amount will always be zero.
+	nextEpoch := currentEpoch + 1
+	withdrawableEpoch := nextEpoch + sp.cs.MinValidatorWithdrawabilityDelay()
+	ppWithdrawal := &ctypes.PendingPartialWithdrawal{
+		ValidatorIndex:    index,
+		Amount:            toWithdraw,
+		WithdrawableEpoch: withdrawableEpoch,
+	}
+	pendingWithdrawals = append(pendingWithdrawals, ppWithdrawal)
+	return st.SetPendingPartialWithdrawals(pendingWithdrawals)
 }
 
 // validateWithdrawal checks that the validator exists and that the withdrawal credentials match.
