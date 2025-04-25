@@ -188,7 +188,7 @@ func (sp *StateProcessor) processWithdrawalRequest(
 		return errors.New("processWithdrawalRequest: unexpected nil validator")
 	}
 
-	if err = verifyWithdrawalConditions(sp.cs, st, validator); err != nil {
+	if err = verifyWithdrawalConditions(st, validator); err != nil {
 		// Note that we do not return error on invalid requests as it's a user error and invalid withdrawal requests are simply skipped.
 		sp.logger.Info("Failed to verify withdrawal conditions", withdrawalFields(withdrawalRequest, err)...)
 		return nil
@@ -245,9 +245,9 @@ func (sp *StateProcessor) processPartialWithdrawal(
 		toWithdraw := min(balance-minActivationBalance-pendingBalanceToWithdraw, req.Amount)
 		// As long as `processPartialWithdrawal` is called after `processSlots`, this will always
 		// return the correct slot.
-		currentEpoch, err := st.GetEpoch()
-		if err != nil {
-			return err
+		currentEpoch, getErr := st.GetEpoch()
+		if getErr != nil {
+			return getErr
 		}
 		// Note that we do not need to set the ExitEpoch anywhere here as Partial withdrawals do not
 		// exit the validator as we enforce that the `toWithdraw` amount is always above the
@@ -305,8 +305,9 @@ func validateWithdrawal(st *state.StateDB, withdrawalRequest *ctypes.WithdrawalR
 	return index, validator, nil
 }
 
-// verifyWithdrawalConditions checks additional conditions like active status, exit not initiated, and minimal activation period.
-func verifyWithdrawalConditions(chainSpec ChainSpec, st *state.StateDB, validator *ctypes.Validator) error {
+// verifyWithdrawalConditions checks additional conditions like active status, exit not initiated,
+// and minimal activation period.
+func verifyWithdrawalConditions(st *state.StateDB, validator *ctypes.Validator) error {
 	currentEpoch, err := st.GetEpoch()
 	if err != nil {
 		return err

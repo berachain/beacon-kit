@@ -89,7 +89,7 @@ func (s *StateDB) DecreaseBalance(idx math.ValidatorIndex, delta math.Gwei) erro
 // NOTE for caller: ProcessSlots must be called before this function as the "current" slot is
 // retrieved from the state in this function.
 //
-//nolint:gocognit,funlen // spec aligned
+//nolint:gocognit // Spec aligned.
 func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.Withdrawals, uint64, error) {
 	var (
 		validator         *ctypes.Validator
@@ -187,7 +187,7 @@ func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.With
 		}
 
 		// Increment the validator index to process the next validator.
-		validatorIndex = (validatorIndex + 1) % math.ValidatorIndex(totalValidators)
+		validatorIndex = (validatorIndex + 1) % totalValidators
 	}
 
 	return withdrawals, processedPartialWithdrawals, nil

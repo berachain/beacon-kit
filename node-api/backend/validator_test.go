@@ -125,7 +125,7 @@ func TestFilteredValidators(t *testing.T) {
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x03},
 					WithdrawalCredentials:      [32]byte{0x04},
-					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 2),
+					EffectiveBalance:           cs.MaxEffectiveBalance() / 2,
 					Slashed:                    false,
 					ActivationEligibilityEpoch: math.Epoch(0),
 					ActivationEpoch:            constants.FarFutureEpoch,
@@ -144,7 +144,7 @@ func TestFilteredValidators(t *testing.T) {
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x05},
 					WithdrawalCredentials:      [32]byte{0x06},
-					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 3),
+					EffectiveBalance:           cs.MaxEffectiveBalance() / 3,
 					Slashed:                    false,
 					ActivationEligibilityEpoch: math.Epoch(0),
 					ActivationEpoch:            math.Epoch(0),
@@ -163,7 +163,7 @@ func TestFilteredValidators(t *testing.T) {
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x15},
 					WithdrawalCredentials:      [32]byte{0x16},
-					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 3),
+					EffectiveBalance:           cs.MaxEffectiveBalance() / 3,
 					Slashed:                    true,
 					ActivationEligibilityEpoch: math.Epoch(0),
 					ActivationEpoch:            math.Epoch(0),
@@ -182,7 +182,7 @@ func TestFilteredValidators(t *testing.T) {
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x17},
 					WithdrawalCredentials:      [32]byte{0x18},
-					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 3),
+					EffectiveBalance:           cs.MaxEffectiveBalance() / 3,
 					Slashed:                    false,
 					ActivationEligibilityEpoch: math.Epoch(0),
 					ActivationEpoch:            math.Epoch(0),
@@ -201,7 +201,7 @@ func TestFilteredValidators(t *testing.T) {
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x07},
 					WithdrawalCredentials:      [32]byte{0x08},
-					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 4),
+					EffectiveBalance:           cs.MaxEffectiveBalance() / 4,
 					Slashed:                    false,
 					ActivationEligibilityEpoch: math.Epoch(0),
 					ActivationEpoch:            math.Epoch(0),
@@ -220,7 +220,7 @@ func TestFilteredValidators(t *testing.T) {
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x27},
 					WithdrawalCredentials:      [32]byte{0x28},
-					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 4),
+					EffectiveBalance:           cs.MaxEffectiveBalance() / 4,
 					Slashed:                    true,
 					ActivationEligibilityEpoch: math.Epoch(0),
 					ActivationEpoch:            math.Epoch(0),
@@ -239,7 +239,7 @@ func TestFilteredValidators(t *testing.T) {
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x09},
 					WithdrawalCredentials:      [32]byte{0x10},
-					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 5),
+					EffectiveBalance:           cs.MaxEffectiveBalance() / 5,
 					Slashed:                    false,
 					ActivationEligibilityEpoch: math.Epoch(0),
 					ActivationEpoch:            math.Epoch(0),
