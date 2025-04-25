@@ -33,7 +33,7 @@ func (sp *StateProcessor) InitiateValidatorExit(st *statedb.StateDB, idx math.Va
 	if err != nil {
 		return err
 	}
-	// By this point, the state should be correctly updated with the fork.
+	// We will use the fork version from the state to determine how to exit the validator.
 	fork, err := st.GetFork()
 	if err != nil {
 		return err
