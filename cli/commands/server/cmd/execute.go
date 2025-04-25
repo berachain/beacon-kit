@@ -54,7 +54,8 @@ func Execute(rootCmd *cobra.Command, envPrefix, defaultHome string) error {
 	rootCmd.PersistentFlags().String(
 		flags.ChainSpec, config.DefaultChainSpec, "chain spec to use")
 	rootCmd.PersistentFlags().String(
-		flags.ChainSpecFilePath, config.DefaultChainSpecFilePath, "path to the chain spec file")
+		flags.ChainSpecFilePath, config.DefaultChainSpecFilePath,
+		"path to the chain spec toml file")
 
 	// Update the global viper with the root command's configuration.
 	viper.SetEnvPrefix(envPrefix)
