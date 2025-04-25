@@ -28,8 +28,6 @@ type SpecData struct {
 	//
 	// MaxEffectiveBalance is the maximum effective balance allowed for a validator.
 	MaxEffectiveBalance uint64 `mapstructure:"max-effective-balance"`
-	// EjectionBalance is the balance at which a validator is ejected.
-	EjectionBalance uint64 `mapstructure:"ejection-balance"`
 	// EffectiveBalanceIncrement is the effective balance increment.
 	EffectiveBalanceIncrement uint64 `mapstructure:"effective-balance-increment"`
 
@@ -142,8 +140,6 @@ type SpecData struct {
 	FieldElementsPerBlob uint64 `mapstructure:"field-elements-per-blob"`
 	// BytesPerBlob denotes the size of EIP-4844 blobs in bytes.
 	BytesPerBlob uint64 `mapstructure:"bytes-per-blob"`
-	// KZGCommitmentInclusionProofDepth is the depth of the KZG inclusion proof.
-	KZGCommitmentInclusionProofDepth uint64 `mapstructure:"kzg-commitment-inclusion-proof-depth"`
 
 	// Berachain Values at genesis
 	//
@@ -166,4 +162,12 @@ type SpecData struct {
 	// EVMInflationPerBlockDeneb1 is the amount of native EVM balance (in Gwei) to be
 	// minted to the EVMInflationAddressDeneb1 via a withdrawal every block in the Deneb1 fork.
 	EVMInflationPerBlockDeneb1 uint64 `mapstructure:"evm-inflation-per-block-deneb-one"`
+
+	// Electra Values
+	//
+	// MinActivationBalance [New in Electra:EIP7251] Minimum balance for a validator to become active
+	MinActivationBalance uint64 `mapstructure:"min-activation-balance"`
+	// MinValidatorWithdrawabilityDelay is defined in the Electra spec and introduces
+	// withdrawability delays to allow for slashing.
+	MinValidatorWithdrawabilityDelay uint64 `mapstructure:"min-validator-withdrawability-delay"`
 }

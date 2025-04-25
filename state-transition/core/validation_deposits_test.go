@@ -41,10 +41,7 @@ func TestInvalidDeposits(t *testing.T) {
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
-		minBalance = math.Gwei(
-			cs.EjectionBalance() +
-				cs.EffectiveBalanceIncrement(),
-		)
+		minBalance   = math.Gwei(cs.MinActivationBalance())
 		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
 		credentials0 = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
 	)

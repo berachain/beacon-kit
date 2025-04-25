@@ -46,6 +46,8 @@ import (
 
 const TestnetBeaconChainID = "testnet-beacon-80069"
 
+const WithdrawalExecutionAddress = "0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4"
+
 // InitializeHomeDir sets up a temporary home directory with the necessary genesis state
 // and configuration files for testing. It returns the configured CometBFT config along with
 // the computed genesis validators root.
@@ -65,7 +67,7 @@ func InitializeHomeDir(t *testing.T, chainSpec chain.Spec, tempHomeDir string, e
 	// Set the deposit amount to the maximum effective balance.
 	depositAmount := math.Gwei(chainSpec.MaxEffectiveBalance())
 	// Define an arbitrary withdrawal address.
-	withdrawalAddress := common.NewExecutionAddressFromHex("0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4")
+	withdrawalAddress := common.NewExecutionAddressFromHex(WithdrawalExecutionAddress)
 
 	// Add a genesis deposit.
 	err := genesis.AddGenesisDeposit(chainSpec, cometConfig, blsSigner, depositAmount, withdrawalAddress, "")

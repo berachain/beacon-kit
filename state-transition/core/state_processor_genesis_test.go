@@ -53,7 +53,7 @@ func TestInitialize(t *testing.T) {
 			var (
 				maxBalance = math.Gwei(cs.MaxEffectiveBalance())
 				increment  = math.Gwei(cs.EffectiveBalanceIncrement())
-				minBalance = math.Gwei(cs.EjectionBalance())
+				minBalance = math.Gwei(cs.MinActivationBalance()) - increment
 			)
 
 			// create test inputs
@@ -185,7 +185,7 @@ func checkValidator(
 	var (
 		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
 		increment  = math.Gwei(cs.EffectiveBalanceIncrement())
-		minBalance = math.Gwei(cs.EjectionBalance())
+		minBalance = math.Gwei(cs.MinActivationBalance()) - increment
 	)
 	switch {
 	case dep.Amount >= maxBalance:

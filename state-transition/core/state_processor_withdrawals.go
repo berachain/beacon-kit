@@ -23,6 +23,7 @@ package core
 import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/davecgh/go-spew/spew"
@@ -37,7 +38,7 @@ import (
 // 2. Subsequent withdrawals (if any) are processed as validator withdrawals
 // 3. This modification reduces the maximum validator withdrawals per block by one.
 //
-
+//nolint:gocognit,funlen // TODO: Consider refactoring
 func (sp *StateProcessor) processWithdrawals(
 	st *state.StateDB, blk *ctypes.BeaconBlock,
 ) error {
@@ -49,7 +50,7 @@ func (sp *StateProcessor) processWithdrawals(
 	)
 
 	// Get the expected withdrawals.
-	expectedWithdrawals, err := st.ExpectedWithdrawals(blk.GetTimestamp())
+	expectedWithdrawals, processedPartialWithdrawalsCount, err := st.ExpectedWithdrawals(blk.GetTimestamp())
 	if err != nil {
 		return err
 	}
@@ -90,6 +91,24 @@ func (sp *StateProcessor) processWithdrawals(
 		); err != nil {
 			return err
 		}
+	}
+
+	// Update pending partial withdrawals [Introduced in Electra:EIP7251]
+	// This case can only be hit after electra.
+	if processedPartialWithdrawalsCount > 0 {
+		ppWithdrawals, getErr := st.GetPendingPartialWithdrawals()
+		if getErr != nil {
+			return getErr
+		}
+		updatedWithdrawals := ppWithdrawals[processedPartialWithdrawalsCount:]
+		if setErr := st.SetPendingPartialWithdrawals(updatedWithdrawals); setErr != nil {
+			return setErr
+		}
+		sp.logger.Info(
+			"pending partial withdrawals found",
+			"original_count", processedPartialWithdrawalsCount,
+			"updated_count", len(updatedWithdrawals),
+		)
 	}
 
 	if numWithdrawals > 1 {
@@ -135,4 +154,191 @@ func (sp *StateProcessor) processWithdrawals(
 	)
 
 	return nil
+}
+
+// processWithdrawalRequest is the equivalent of process_withdrawal_request as defined in the spec.
+// It should only be called after the electra hard fork.
+// For invalid withdrawal requests, we return nil, and only return error for system errors.
+func (sp *StateProcessor) processWithdrawalRequest(st *state.StateDB, withdrawalRequest *ctypes.WithdrawalRequest) error {
+	amount := withdrawalRequest.Amount
+	// If the amount is 0, it's a full exit.
+	isFullExitRequest := amount == constants.FullExitRequestAmount
+	pendingPartialWithdrawals, err := st.GetPendingPartialWithdrawals()
+	if err != nil {
+		return err
+	}
+	// If partial withdrawal queue is full, only full exits are processed
+	if len(pendingPartialWithdrawals) == constants.PendingPartialWithdrawalsLimit && !isFullExitRequest {
+		sp.logger.Warn(
+			"skipping processing of withdrawal request as partial withdrawal queue is full",
+			withdrawalFields(withdrawalRequest, nil)...,
+		)
+		return nil
+	}
+	index, validator, err := validateWithdrawal(st, withdrawalRequest)
+	if err != nil {
+		sp.logger.Info("Failed to validate withdrawal", withdrawalFields(withdrawalRequest, err)...)
+		// Note that we do not return error on invalid requests as it's a user error and invalid withdrawal requests are simply skipped.
+		return nil
+	}
+	if validator == nil {
+		// This should never occur as we check in validateWithdrawal for nil, but this is needed to appease nilaway.
+		sp.logger.Warn("processWithdrawalRequest: nil validator", withdrawalFields(withdrawalRequest, nil)...)
+		return errors.New("processWithdrawalRequest: unexpected nil validator")
+	}
+
+	if err = verifyWithdrawalConditions(sp.cs, st, validator); err != nil {
+		// Note that we do not return error on invalid requests as it's a user error and invalid withdrawal requests are simply skipped.
+		sp.logger.Info("Failed to verify withdrawal conditions", withdrawalFields(withdrawalRequest, err)...)
+		return nil
+	}
+
+	// Process full exit or partial withdrawal.
+	if isFullExitRequest {
+		sp.logger.Info("Processing full exit request", withdrawalFields(withdrawalRequest, nil)...)
+		return sp.processFullExit(st, index, pendingPartialWithdrawals)
+	}
+	sp.logger.Info("Processing partial withdrawal request", withdrawalFields(withdrawalRequest, nil)...)
+	return sp.processPartialWithdrawal(st, withdrawalRequest, validator, index, pendingPartialWithdrawals)
+}
+
+// processFullExit processes the full exit request is not a pending partial withdrawal
+// and has passed validation of `processWithdrawalRequest`.
+func (sp *StateProcessor) processFullExit(
+	st *state.StateDB,
+	index math.ValidatorIndex,
+	pendingPartialWithdrawals ctypes.PendingPartialWithdrawals,
+) error {
+	pendingBalance := pendingPartialWithdrawals.PendingBalanceToWithdraw(index)
+	if pendingBalance == 0 {
+		// Only exit validator if it has no pending withdrawals in the queue
+		return sp.InitiateValidatorExit(st, index)
+	}
+	sp.logger.Info("validator has pending balance and cannot full exit",
+		"validator_index", index,
+		"pending_balance", pendingBalance,
+	)
+	return nil
+}
+
+// processPartialWithdrawal handles the partial withdrawal processing and called after
+// request has passed validation of `processWithdrawalRequest`
+func (sp *StateProcessor) processPartialWithdrawal(
+	st *state.StateDB,
+	req *ctypes.WithdrawalRequest,
+	validator *ctypes.Validator,
+	index math.ValidatorIndex,
+	pendingWithdrawals []*ctypes.PendingPartialWithdrawal,
+) error {
+	minActivationBalance := math.Gwei(sp.cs.MinActivationBalance())
+	hasSufficient := validator.GetEffectiveBalance() >= minActivationBalance
+
+	balance, err := st.GetBalance(index)
+	if err != nil {
+		return err
+	}
+
+	pendingBalanceToWithdraw := ctypes.PendingPartialWithdrawals(pendingWithdrawals).PendingBalanceToWithdraw(index)
+
+	hasExcess := balance > minActivationBalance+pendingBalanceToWithdraw
+
+	if validator.HasCompoundingWithdrawalCredential() && hasSufficient && hasExcess {
+		toWithdraw := min(balance-minActivationBalance-pendingBalanceToWithdraw, req.Amount)
+		// As long as `processPartialWithdrawal` is called after `processSlots`, this will always return the correct slot.
+		currentSlot, getErr := st.GetSlot()
+		if getErr != nil {
+			return getErr
+		}
+		nextEpoch := sp.cs.SlotToEpoch(currentSlot) + 1
+		// Note that we do not need to set the ExitEpoch anywhere here as Partial withdrawals do not exit the validator
+		// as we enforce that the `toWithdraw` amount is always above the `minActivationBalance`.
+		// For example, if a validator's balance is already at `minActivationBalance` (250K BERA on mainnet)
+		// and they request a partial withdrawal, the `toWithdraw` amount will always be zero.
+		withdrawableEpoch := math.Epoch(uint64(nextEpoch) + sp.cs.MinValidatorWithdrawabilityDelay())
+		ppWithdrawal := &ctypes.PendingPartialWithdrawal{
+			ValidatorIndex:    index,
+			Amount:            toWithdraw,
+			WithdrawableEpoch: withdrawableEpoch,
+		}
+		pendingWithdrawals = append(pendingWithdrawals, ppWithdrawal)
+		return st.SetPendingPartialWithdrawals(pendingWithdrawals)
+	}
+	sp.logger.Info("validator cannot withdraw partial balance",
+		"validator_index", index,
+		"validator_pubkey", validator.GetPubkey().String(),
+		"balance", balance,
+		"pending_balance_to_withdraw", pendingBalanceToWithdraw,
+		"has_sufficient", hasSufficient,
+		"has_excess", hasExcess,
+	)
+	return nil
+}
+
+// validateWithdrawal checks that the validator exists and that the withdrawal credentials match.
+func validateWithdrawal(st *state.StateDB, withdrawalRequest *ctypes.WithdrawalRequest) (math.ValidatorIndex, *ctypes.Validator, error) {
+	// Verify pubkey exists
+	index, err := st.ValidatorIndexByPubkey(withdrawalRequest.ValidatorPubKey)
+	if err != nil {
+		return 0, nil, err
+	}
+
+	validator, err := st.ValidatorByIndex(index)
+	if err != nil {
+		return 0, nil, err
+	}
+	if validator == nil {
+		// This should never occur as we expect ErrNotFound if the validator is not found.
+		return 0, nil, errors.New("validateWithdrawal: validator does not exist")
+	}
+
+	// Verify withdrawal credentials
+	if !validator.HasExecutionWithdrawalCredential() {
+		return 0, nil, errors.New("validator does not have execution withdrawal credentials")
+	}
+	correctCred, err := validator.WithdrawalCredentials.ToExecutionAddress()
+	if err != nil {
+		return 0, nil, err
+	}
+	if !withdrawalRequest.SourceAddress.Equals(correctCred) {
+		return 0, nil, errors.New("source address does not match execution withdrawal credential")
+	}
+	return index, validator, nil
+}
+
+// verifyWithdrawalConditions checks additional conditions like active status, exit not initiated, and minimal activation period.
+func verifyWithdrawalConditions(chainSpec ChainSpec, st *state.StateDB, validator *ctypes.Validator) error {
+	slot, err := st.GetSlot()
+	if err != nil {
+		return err
+	}
+	currentEpoch := chainSpec.SlotToEpoch(slot)
+	// Verify the validator is active
+	if !validator.IsActive(currentEpoch) {
+		return errors.New("validator is not active")
+	}
+	// Verify exit has not been initiated
+	if validator.GetExitEpoch() != constants.FarFutureEpoch {
+		return errors.New("withdrawal already initiated")
+	}
+	// Verify the validator has been active long enough
+	// In the spec, config.SHARD_COMMITTEE_PERIOD is added as well, but we ignore this since
+	// it's related to ETH data shards which is no longer planned.
+	if currentEpoch < validator.ActivationEpoch {
+		return errors.New("validator not active long enough")
+	}
+	return nil
+}
+
+// withdrawalFields returns the structured fields for logging any WithdrawalRequest.
+// error is optional
+func withdrawalFields(req *ctypes.WithdrawalRequest, err error) []interface{} {
+	logFields := []interface{}{
+		"source_address", req.SourceAddress.String(),
+		"validator_pubkey", req.ValidatorPubKey.String(),
+		"amount", req.Amount,
+	}
+	if err != nil {
+		logFields = append(logFields, "error", err)
+	}
+	return logFields
 }

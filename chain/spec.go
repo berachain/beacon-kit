@@ -32,12 +32,12 @@ type BalancesSpec interface {
 	// MaxEffectiveBalance returns the maximum balance counted in rewards calculations in Gwei.
 	MaxEffectiveBalance() uint64
 
-	// EjectionBalance returns the balance below which a validator is ejected.
-	EjectionBalance() uint64
-
 	// EffectiveBalanceIncrement returns the increment of balance used in reward
 	// calculations.
 	EffectiveBalanceIncrement() uint64
+
+	// MinActivationBalance returns the minimum balance required to become an active validator.
+	MinActivationBalance() uint64
 }
 
 type HysteresisSpec interface {
@@ -155,6 +155,11 @@ type WithdrawalsSpec interface {
 	// MaxValidatorsPerWithdrawalsSweep returns the maximum number of validators
 	// per withdrawal sweep.
 	MaxValidatorsPerWithdrawalsSweep() uint64
+
+	// MinValidatorWithdrawabilityDelay - an exited validator remains eligible to be slashed until its withdrawable_epoch,
+	// which is set to MIN_VALIDATOR_WITHDRAWABILITY_DELAY epochs after its exit_epoch.
+	// This is to allow some extra time for any slashable offences by the validator to be detected and reported.
+	MinValidatorWithdrawabilityDelay() uint64
 }
 
 // Spec defines an interface for accessing chain-specific parameters.
@@ -260,9 +265,9 @@ func (s spec) MaxEffectiveBalance() uint64 {
 	return s.Data.MaxEffectiveBalance
 }
 
-// EjectionBalance returns the balance below which a validator is ejected.
-func (s spec) EjectionBalance() uint64 {
-	return s.Data.EjectionBalance
+// MinActivationBalance returns the minimum activation balance effective. Introduced in Electra.
+func (s spec) MinActivationBalance() uint64 {
+	return s.Data.MinActivationBalance
 }
 
 // EffectiveBalanceIncrement returns the increment of effective balance.
@@ -419,6 +424,10 @@ func (s spec) MaxWithdrawalsPerPayload() uint64 {
 // MaxValidatorsPerWithdrawalsSweep returns the maximum number of validators per withdrawals sweep.
 func (s spec) MaxValidatorsPerWithdrawalsSweep() uint64 {
 	return s.Data.MaxValidatorsPerWithdrawalsSweep
+}
+
+func (s spec) MinValidatorWithdrawabilityDelay() uint64 {
+	return s.Data.MinValidatorWithdrawabilityDelay
 }
 
 // MinEpochsForBlobsSidecarsRequest returns the minimum number of epochs for

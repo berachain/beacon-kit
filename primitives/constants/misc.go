@@ -21,10 +21,12 @@
 package constants
 
 import (
+	stdmath "math"
+
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-// This file contains various constants as defined:
+// Genesis constants taken from:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#misc
 const (
 	// GenesisSlot represents the initial slot in the system.
@@ -32,7 +34,15 @@ const (
 	// GenesisEpoch represents the initial epoch in the system.
 	GenesisEpoch math.Epoch = 0
 	// FarFutureEpoch represents a far future epoch value.
-	FarFutureEpoch = ^uint64(0)
+	FarFutureEpoch math.Epoch = stdmath.MaxUint64
+)
+
+// Electra constants taken from :
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#misc
+const (
+	// FullExitRequestAmount is the request amount for a full exit request, i.e. when a validator
+	// wants to withdraw its entire balance.
+	FullExitRequestAmount math.Gwei = 0
 )
 
 // Berachain constants.
@@ -44,12 +54,14 @@ const (
 // State list lengths.
 const (
 	// ValidatorsRegistryLimit is the maximum number of validators that can be registered.
-	// https://github.com/ethereum/consensus-specs/blob/dev/presets/mainnet/phase0.yaml#L49
+	// https://github.com/ethereum/consensus-specs/blob/dev/presets/mainnet/phase0.yaml#L55
 	// 2**40 (= 1,099,511,627,776) validator spots.
 	ValidatorsRegistryLimit = 1_099_511_627_776
 
 	// PendingPartialWithdrawalsLimit is the maximum number of pending partial withdrawals.
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#state-list-lengths
 	// 2**27 (= 134,217,728) pending partial withdrawals
+	// If the limit is hit, any new partial withdrawal requests will be dropped. This is not likely to happen but
+	// theoretically possible.
 	PendingPartialWithdrawalsLimit = 134_217_728
 )
