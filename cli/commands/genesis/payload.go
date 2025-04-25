@@ -128,7 +128,7 @@ func executableDataToExecutionPayloadHeader(
 		TransactionsRoot: engineprimitives.Transactions(data.Transactions).HashTreeRoot(),
 	}
 
-	// Cast the withdrawals to our type. //#nosec:G103 // Safe on this type.
+	// #nosec:G103 // engineprimitives.Withdrawals is data.Withdrawals with hard types.
 	withdrawals := *(*engineprimitives.Withdrawals)(unsafe.Pointer(&data.Withdrawals))
 	eph.WithdrawalsRoot = withdrawals.HashTreeRoot()
 
