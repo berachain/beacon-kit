@@ -38,8 +38,8 @@ import (
 )
 
 const (
-	defaultChainSpec         = "mainnet"
-	defaultChainSpecFilePath = ""
+	DefaultChainSpec         = "mainnet"
+	DefaultChainSpecFilePath = ""
 	defaultShutdownTimeout   = 5 * time.Minute
 )
 
@@ -51,8 +51,8 @@ type AppOptions interface {
 // DefaultConfig returns the default configuration for a BeaconKit chain.
 func DefaultConfig() *Config {
 	return &Config{
-		ChainSpec:         defaultChainSpec,
-		ChainSpecFilePath: defaultChainSpecFilePath,
+		ChainSpec:         DefaultChainSpec,
+		ChainSpecFilePath: DefaultChainSpecFilePath,
 		ShutdownTimeout:   defaultShutdownTimeout,
 		Engine:            engineclient.DefaultConfig(),
 		Logger:            log.DefaultConfig(),

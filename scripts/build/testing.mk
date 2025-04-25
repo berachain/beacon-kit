@@ -48,10 +48,10 @@ IPC_PATH = .tmp/eth-home/eth-engine.ipc
 IPC_PREFIX = ipc://
 
 ## Start an ephemeral `beacond` node with a custom chain spec. The path to the chain spec
-## file must be passed as an argument. TODO: <file_path_here>
+## file must be passed as an argument. Usage: make start-custom /path/to/chain/spec.toml
 start-custom:
 	@JWT_SECRET_PATH=$(JWT_PATH) \
-	${TESTAPP_FILES_DIR}/entrypoint.sh file <file_path_here>
+	${TESTAPP_FILES_DIR}/entrypoint.sh file $(word 2,$(MAKECMDGOALS))
 
 ## Start an ephemeral `reth` node
 start-reth: 

@@ -38,17 +38,18 @@ resolve_path() {
 
 # Check if the chain spec is provided as an argument.
 CHAIN_SPEC=""
-CHAIN_SPEC_FILE=""
+CHAIN_SPEC_ARG=""
 if [ -z "$1" ]; then
     echo "No chain spec provided"
+	exit 1
 else
-    CHAIN_SPEC="$1"
+	CHAIN_SPEC="$1"
+    CHAIN_SPEC_ARG="--beacon-kit.chain-spec $CHAIN_SPEC"
 	if [ "$CHAIN_SPEC" == "file" ]; then
 		CHAIN_SPEC_FILE=$(resolve_path "$2")
+		CHAIN_SPEC_ARG="$CHAIN_SPEC_ARG --beacon-kit.chain-spec-file $CHAIN_SPEC_FILE"
 	fi
 fi
-
-exit 1
 
 CHAINID="beacond-2061"
 MONIKER="localtestnet"
@@ -80,7 +81,7 @@ fi
 # Setup local node if overwrite is set to Yes, otherwise skip setup
 if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	rm -rf $HOMEDIR
-	./build/bin/beacond init $MONIKER --chain-id $CHAINID --home $HOMEDIR
+	./build/bin/beacond init $MONIKER --chain-id $CHAINID --home $HOMEDIR $CHAIN_SPEC_ARG
 
 	if [ "$CHAIN_SPEC" == "testnet" ]; then
 	    network_dir="testing/networks/80069"
@@ -92,8 +93,8 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
     	KZG_PATH=$network_dir/kzg-trusted-setup.json
 	else
 		./build/bin/beacond genesis add-premined-deposit --home $HOMEDIR \
-			32000000000 0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4
-		./build/bin/beacond genesis collect-premined-deposits --home $HOMEDIR
+			32000000000 0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4 $CHAIN_SPEC_ARG
+		./build/bin/beacond genesis collect-premined-deposits --home $HOMEDIR $CHAIN_SPEC_ARG
 		./build/bin/beacond genesis set-deposit-storage "$ETH_GENESIS" --home $HOMEDIR $CHAIN_SPEC_ARG
 		./build/bin/beacond genesis set-deposit-storage "$ETH_NETHER_GENESIS" --nethermind --home $HOMEDIR $CHAIN_SPEC_ARG
 		./build/bin/beacond genesis execution-payload "$HOMEDIR/eth-genesis.json" --home $HOMEDIR $CHAIN_SPEC_ARG
