@@ -79,6 +79,7 @@ func buildNextBlock(
 	eth1Data *types.Eth1Data,
 	timestamp math.U64,
 	blockDeposits types.Deposits,
+	executionRequests *types.ExecutionRequests,
 	withdrawals ...*engineprimitives.Withdrawal,
 ) *types.BeaconBlock {
 	t.Helper()
@@ -110,12 +111,6 @@ func buildNextBlock(
 		BaseFeePerGas: math.NewU256(0),
 	}
 	parentBeaconBlockRoot := parentBlkHeader.HashTreeRoot()
-
-	executionRequests := &types.ExecutionRequests{
-		Deposits:       nil,
-		Withdrawals:    nil,
-		Consolidations: nil,
-	}
 
 	var ethBlk *gethprimitives.Block
 	if version.IsBefore(fv, version.Electra()) {
@@ -191,6 +186,7 @@ func moveToEndOfEpoch(
 			types.NewEth1Data(depRoot),
 			timestamp,
 			[]*types.Deposit{},
+			&types.ExecutionRequests{},
 			st.EVMInflationWithdrawal(timestamp),
 		)
 
