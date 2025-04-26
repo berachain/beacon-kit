@@ -254,6 +254,24 @@ func (s *PectraForkSuite) submitTransactions(startNonce uint64, numTransactions 
 	return startNonce + numTransactions
 }
 
+// TestExcessBalanceAtFork this test will demonstrate the systems behaviour when there is withdrawal is
+// initiated before the fork and set to complete after the fork.
+func (s *PectraForkSuite) TestTODO_0() {
+	s.T().Skip("TODO: Implement this test")
+}
+
+// This test will have a proposer propose a valid post-fork block, but one that is never finalized. The round will increase.
+// We should observe that the EL correctly handles this and no execution requests are included in the block.
+func (s *PectraForkSuite) TestTODO_1() {
+	s.T().Skip("TODO: Implement this test")
+}
+
+// A valid proposer will attempt to propose a pre-fork block but with a post-fork consensus timestamp.
+// We expect this to be rejected.
+func (s *PectraForkSuite) TestTODO_2() {
+	s.T().Skip("TODO: Implement this test")
+}
+
 func processFinalizeCommit(
 	t *testing.T,
 	node simulated.SharedAccessors,
