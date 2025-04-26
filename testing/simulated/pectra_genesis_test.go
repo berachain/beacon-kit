@@ -357,3 +357,9 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithFullWithdrawalRequest_IsSucce
 	// The new balance of the validator is updated
 	s.Require().Equal(expectedBalance.String(), afterWithdrawalBalance.ToInt().String())
 }
+
+// TestMaliciousProposer_RemovesExecutionRequestsFromBlock a malicious proposer removes execution requests from the block.
+// These should be rejected by the execution client as part of NewPayload.
+func (s *PectraGenesisSuite) TestMaliciousProposer_RemovesExecutionRequestsFromBlock() {
+	s.T().Skip("TODO: Implement this test")
+}
