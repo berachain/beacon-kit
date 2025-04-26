@@ -39,8 +39,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//nolint:paralleltest // uses envars
 func TestPartialWithdrawalRequestGenesisValidators(t *testing.T) {
+	t.Parallel()
 	cs := setupChain(t)
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
@@ -240,8 +240,8 @@ func TestPartialWithdrawalRequestGenesisValidators(t *testing.T) {
 	require.Empty(t, pr)
 }
 
-//nolint:paralleltest // uses envars
 func TestFullWithdrawalRequestGenesisValidators(t *testing.T) {
+	t.Parallel()
 	cs := setupChain(t)
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
@@ -257,7 +257,7 @@ func TestFullWithdrawalRequestGenesisValidators(t *testing.T) {
 		creds2 = types.NewCredentialsFromExecutionAddress(addr2)
 	)
 
-	// Add a couple of validators and full withdraw one of them
+	// Add a couple of validators and fully withdraw one of them
 	var (
 		genDeposits = types.Deposits{
 			{
@@ -316,7 +316,7 @@ func TestFullWithdrawalRequestGenesisValidators(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, valDiff)
 
-	// check that valToRm has intiaized exit
+	// check that valToRm has initiated exit
 	expectedExitEpoch := math.Epoch(1)
 	expectedWithdrawalEpoch := expectedExitEpoch + cs.MinValidatorWithdrawabilityDelay()
 
@@ -448,10 +448,46 @@ func TestFullWithdrawalRequestGenesisValidators(t *testing.T) {
 	)
 	_, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
+
+	// Check that validator balance is 0
+	valBalance, err := st.GetBalance(valToRmIdx)
+	require.NoError(t, err)
+	require.Equal(t, math.U64(0), valBalance)
+
+	// Check that effective balance has not updated yet. It will update next epoch
+	// as part of processEffectiveBalanceUpdates
+	valToRm, err = st.ValidatorByIndex(valToRmIdx)
+	require.NoError(t, err)
+	require.Equal(t, maxBalance, valToRm.GetEffectiveBalance())
+
+	// Move forward one more epoch to trigger the effective balance update
+	{
+		_ = moveToEndOfEpoch(t, blk, cs, sp, st, ctx, depRoot)
+		// This is just because we cannot chain moveToEndOfEpoch
+		// back to back. TODO: fix
+		blkTimestamp = blk.GetTimestamp() + 1
+		blk = buildNextBlock(
+			t,
+			cs,
+			st,
+			types.NewEth1Data(depRoot),
+			blkTimestamp,
+			[]*types.Deposit{},
+			&types.ExecutionRequests{},
+			st.EVMInflationWithdrawal(blkTimestamp),
+		)
+		_, err = sp.Transition(ctx, st, blk)
+		require.NoError(t, err)
+	}
+
+	// Check that effective balance is now 0
+	valToRm, err = st.ValidatorByIndex(valToRmIdx)
+	require.NoError(t, err)
+	require.Equal(t, math.Gwei(0), valToRm.GetEffectiveBalance())
 }
 
-//nolint:paralleltest // uses envars
 func TestWithdrawalRequestsNonGenesisValidators(t *testing.T) {
+	t.Parallel()
 	cs := setupChain(t)
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
@@ -511,7 +547,7 @@ func TestWithdrawalRequestsNonGenesisValidators(t *testing.T) {
 	_, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
 
-	// assert that validator in not even eligible for activation yet
+	// assert that validator is not even eligible for activation yet
 	idx, err := st.ValidatorIndexByPubkey(blkDeposit.Pubkey)
 	require.NoError(t, err)
 	val, err := st.ValidatorByIndex(idx)
@@ -702,8 +738,8 @@ func TestWithdrawalRequestsNonGenesisValidators(t *testing.T) {
 	)
 }
 
-//nolint:paralleltest // uses envars
-func TestTransitionWithdrawals(t *testing.T) {
+func TestPartialWithdrawalsOfBalanceAboveMaxEffectiveBalance(t *testing.T) {
+	t.Parallel()
 	cs := setupChain(t)
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
@@ -917,8 +953,8 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	require.Equal(t, maxBalance, val1BalAfter)
 }
 
-//nolint:paralleltest // uses envars
 func TestValidatorNotWithdrawable(t *testing.T) {
+	t.Parallel()
 	cs := setupChain(t)
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
