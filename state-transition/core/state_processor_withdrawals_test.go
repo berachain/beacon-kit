@@ -902,6 +902,112 @@ func TestConcurrentAutomaticAndVoluntaryWithdrawalRequests(t *testing.T) {
 	require.Equal(t, expectedWithdrawalEpoch, evictedVal.WithdrawableEpoch)
 }
 
+// Check that two full withdrawals requests issued back to back
+// are idempotent. The second request simply dropped
+func TestDoubleFullWithdrawalRequests(t *testing.T) {
+	t.Parallel()
+	cs := setupChain(t)
+	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
+
+	// make sure Electra is active
+	require.Equal(t, version.Electra(), cs.GenesisForkVersion())
+
+	var (
+		maxBalance = cs.MaxEffectiveBalance()
+
+		addr1  = common.ExecutionAddress{0x01}
+		creds1 = types.NewCredentialsFromExecutionAddress(addr1)
+		addr2  = common.ExecutionAddress{0x01}
+		creds2 = types.NewCredentialsFromExecutionAddress(addr2)
+	)
+
+	// Add a couple of validators and fully withdraw one of them
+	var (
+		genDeposits = types.Deposits{
+			{
+				Pubkey:      [48]byte{0x00},
+				Credentials: creds1,
+				Amount:      maxBalance,
+				Index:       0,
+			},
+			{
+				Pubkey:      [48]byte{0x01},
+				Credentials: creds2,
+				Amount:      maxBalance,
+				Index:       1,
+			},
+		}
+		genPayloadHeader = &types.ExecutionPayloadHeader{
+			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
+		}
+	)
+	_, err := sp.InitializeBeaconStateFromEth1(
+		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
+	)
+	require.NoError(t, err)
+	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
+
+	vals, err := st.GetValidators()
+	require.NoError(t, err)
+	require.Len(t, vals, 2)
+	valToRm := vals[0]
+
+	wrs := []*types.WithdrawalRequest{
+		{
+			SourceAddress:   addr1,
+			ValidatorPubKey: valToRm.GetPubkey(),
+			Amount:          0,
+		},
+	}
+
+	depRoot := genDeposits.HashTreeRoot()
+	blkTimestamp := math.U64(10)
+	blk := buildNextBlock(
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		blkTimestamp,
+		[]*types.Deposit{},
+		&types.ExecutionRequests{
+			Withdrawals: wrs,
+		},
+		st.EVMInflationWithdrawal(blkTimestamp),
+	)
+
+	// Run the test.
+	_, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+
+	// check that valToRm has initiated exit
+	expectedExitEpoch := math.Epoch(1)
+	expectedWithdrawalEpoch := expectedExitEpoch + cs.MinValidatorWithdrawabilityDelay()
+
+	valToRmIdx, err := st.ValidatorIndexByPubkey(valToRm.GetPubkey())
+	require.NoError(t, err)
+	valToRm, err = st.ValidatorByIndex(valToRmIdx)
+	require.NoError(t, err)
+	require.Equal(t, expectedExitEpoch, valToRm.ExitEpoch)
+	require.Equal(t, expectedWithdrawalEpoch, valToRm.WithdrawableEpoch)
+
+	// issue another full withdrawal request, which should be
+	// processed without errors and simply dropped
+	blk = buildNextBlock(
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		blkTimestamp,
+		[]*types.Deposit{},
+		&types.ExecutionRequests{
+			Withdrawals: wrs,
+		},
+		st.EVMInflationWithdrawal(blkTimestamp),
+	)
+	_, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+}
+
 func TestPartialWithdrawalsOfBalanceAboveMaxEffectiveBalance(t *testing.T) {
 	t.Parallel()
 	cs := setupChain(t)
