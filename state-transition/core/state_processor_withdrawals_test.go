@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -736,6 +737,162 @@ func TestWithdrawalRequestsNonGenesisValidators(t *testing.T) {
 		},
 		pr,
 	)
+}
+
+// Check that if the withdrawal request comes for a validator about to
+// be evicted, this double eviction is duly handled
+func TestConcurrentAutomaticAndVoluntaryWithdrawalRequests(t *testing.T) {
+	t.Parallel()
+	cs := setupChain(t)
+	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
+
+	// make sure Electra is active
+	require.Equal(t, version.Electra(), cs.GenesisForkVersion())
+
+	// Make sure we have as many validators as the cap allows
+	var (
+		maxBalance = cs.MaxEffectiveBalance()
+		rndSeed    = 2024 // seed used to generate unique random value
+	)
+
+	var (
+		genDeposits      = make(types.Deposits, 0, cs.ValidatorSetCap())
+		genPayloadHeader = &types.ExecutionPayloadHeader{
+			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
+		}
+	)
+
+	// Step1: let blockchain have as many validators as cap allows
+	for idx := range cs.ValidatorSetCap() {
+		var (
+			key   bytes.B48
+			creds types.WithdrawalCredentials
+		)
+		key, rndSeed = generateTestPK(t, rndSeed)
+		creds, rndSeed = generateTestExecutionAddress(t, rndSeed)
+
+		genDeposits = append(
+			genDeposits,
+			&types.Deposit{
+				Pubkey:      key,
+				Credentials: creds,
+				Amount:      maxBalance,
+				Index:       idx,
+			},
+		)
+	}
+
+	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
+	_, err := sp.InitializeBeaconStateFromEth1(
+		st,
+		genDeposits,
+		genPayloadHeader,
+		cs.GenesisForkVersion(),
+	)
+	require.NoError(t, err)
+
+	// Step 2: add a deposit which will evict one of the existing validators
+	newValKey, rndSeed := generateTestPK(t, rndSeed)
+	newValCreds, _ := generateTestExecutionAddress(t, rndSeed)
+	var (
+		newValDeposit = &types.Deposit{
+			Pubkey:      newValKey,
+			Credentials: newValCreds,
+			Amount:      maxBalance,
+			Index:       uint64(len(genDeposits)),
+		}
+	)
+
+	depRoot := append(genDeposits, newValDeposit).HashTreeRoot()
+	blkTimestamp := math.U64(10)
+	blk := buildNextBlock(
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		blkTimestamp,
+		[]*types.Deposit{newValDeposit},
+		&types.ExecutionRequests{},
+		st.EVMInflationWithdrawal(blkTimestamp),
+	)
+	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), blk.Body.Deposits))
+
+	_, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+
+	// check the deposit has been accepted
+	_, err = st.ValidatorIndexByPubkey(newValDeposit.Pubkey)
+	require.NoError(t, err)
+
+	// move chain on till the new validator is about to be activated
+	_ = moveToEndOfEpoch(t, blk, cs, sp, st, ctx, depRoot)
+	blk = buildNextBlock(
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		blk.GetTimestamp()+1,
+		[]*types.Deposit{},
+		&types.ExecutionRequests{},
+		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
+	)
+	_, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+
+	_ = moveToEndOfEpoch(t, blk, cs, sp, st, ctx, depRoot)
+
+	// right at the block where we a validator will be evicted
+	// we add a full withdrawal request for it. We expect this request
+	// to be simply dropped since the validator is evicted upon ProcessEpoch
+	evictedValAddr, err := genDeposits[0].Credentials.ToExecutionAddress()
+	require.NoError(t, err)
+	blk = buildNextBlock(
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		blk.GetTimestamp()+1,
+		[]*types.Deposit{},
+		&types.ExecutionRequests{
+			Withdrawals: []*types.WithdrawalRequest{
+				{
+					SourceAddress:   evictedValAddr,
+					ValidatorPubKey: genDeposits[0].Pubkey,
+					Amount:          0,
+				},
+			},
+		},
+		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
+	)
+	valDiff, err := sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+	require.Len(t, valDiff, 2)
+	require.Equal(
+		t,
+		&transition.ValidatorUpdate{
+			Pubkey:           newValDeposit.Pubkey,
+			EffectiveBalance: newValDeposit.Amount,
+		},
+		valDiff[0],
+	)
+	require.Equal(
+		t,
+		&transition.ValidatorUpdate{
+			Pubkey:           genDeposits[0].Pubkey,
+			EffectiveBalance: 0,
+		},
+		valDiff[1],
+	)
+
+	evictedValIdx, err := st.ValidatorIndexByPubkey(genDeposits[0].Pubkey)
+	require.NoError(t, err)
+	evictedVal, err := st.ValidatorByIndex(evictedValIdx)
+	require.NoError(t, err)
+
+	expectedExitEpoch := math.Epoch(2)
+	expectedWithdrawalEpoch := math.Epoch(2) + cs.MinValidatorWithdrawabilityDelay()
+	require.Equal(t, expectedExitEpoch, evictedVal.ExitEpoch)
+	require.Equal(t, expectedWithdrawalEpoch, evictedVal.WithdrawableEpoch)
 }
 
 func TestPartialWithdrawalsOfBalanceAboveMaxEffectiveBalance(t *testing.T) {
