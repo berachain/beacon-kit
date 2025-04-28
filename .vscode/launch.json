@@ -11,12 +11,10 @@
             "args": [
                 "init",
                 "localtestnet",
+                "--beacon-kit.chain-spec=devnet",
                 "--chain-id=beacond-2061",
                 "--home=${workspaceFolder}/.tmp/beacond",
             ],
-            "env": {
-                "CHAIN_SPEC": "devnet"
-            },
             "internalConsoleOptions": "openOnSessionStart",
             "presentation": {
                 "group": "initialize",
@@ -35,11 +33,9 @@
                 "add-premined-deposit",
                 "32000000000",
                 "0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4",
+                "--beacon-kit.chain-spec=devnet",
                 "--home=${workspaceFolder}/.tmp/beacond",
             ],
-            "env": {
-                "CHAIN_SPEC": "devnet"
-            },
             "internalConsoleOptions": "openOnSessionStart",
             "presentation": {
                 "group": "initialize",
@@ -56,11 +52,9 @@
             "args": [
                 "genesis",
                 "collect-premined-deposits",
+                "--beacon-kit.chain-spec=devnet",
                 "--home=${workspaceFolder}/.tmp/beacond",
             ],
-            "env": {
-                "CHAIN_SPEC": "devnet"
-            },
             "internalConsoleOptions": "openOnSessionStart",
             "presentation": {
                 "group": "initialize",
@@ -78,11 +72,9 @@
                 "genesis",
                 "set-deposit-storage",
                 "${workspaceFolder}/testing/files/eth-genesis.json",
+                "--beacon-kit.chain-spec=devnet",
                 "--home=${workspaceFolder}/.tmp/beacond",
             ],
-            "env": {
-                "CHAIN_SPEC": "devnet"
-            },
             "internalConsoleOptions": "openOnSessionStart",
             "presentation": {
                 "group": "initialize",
@@ -100,11 +92,9 @@
                 "genesis",
                 "execution-payload",
                 "${workspaceFolder}/.tmp/beacond/eth-genesis.json",
+                "--beacon-kit.chain-spec=devnet",
                 "--home=${workspaceFolder}/.tmp/beacond",
             ],
-            "env": {
-                "CHAIN_SPEC": "devnet"
-            },
             "internalConsoleOptions": "openOnSessionStart",
             "presentation": {
                 "group": "initialize",
@@ -121,6 +111,7 @@
             "args": [
                 "start",
                 "--pruning=nothing",
+                "--beacon-kit.chain-spec=mainnet",
                 "--beacon-kit.logger.log-level=info",
                 "--home=${workspaceFolder}/.tmp/beacond",
                 "--beacon-kit.engine.jwt-secret-path=${workspaceFolder}/testing/files/jwt.hex",
@@ -129,9 +120,6 @@
                 "--beacon-kit.node-api.logging",
             ],
             "internalConsoleOptions": "openOnSessionStart",
-            "env": {
-                "CHAIN_SPEC": "mainnet"
-            },
             "presentation": {
                 "group": "run",
                 "order": 1
@@ -148,6 +136,7 @@
             "args": [
                 "start",
                 "--pruning=nothing",
+                "--beacon-kit.chain-spec=devnet",
                 "--beacon-kit.logger.log-level=info",
                 "--home=${workspaceFolder}/.tmp/beacond",
                 "--beacon-kit.engine.jwt-secret-path=${workspaceFolder}/testing/files/jwt.hex",
@@ -156,9 +145,6 @@
                 "--beacon-kit.node-api.logging",
             ],
             "internalConsoleOptions": "openOnSessionStart",
-            "env": {
-                "CHAIN_SPEC": "devnet"
-            },
             "presentation": {
                 "group": "run",
                 "order": 2

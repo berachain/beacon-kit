@@ -30,17 +30,15 @@ import (
 	"github.com/spf13/viper"
 )
 
-// handleAppConfig writes the provided <customConfig> to the file at
-// <configDirPath>/app.toml, or reads it into the provided <viper> instance
-// if it exists.
+// handleAppConfig writes the provided <customConfig> to the file at <configDirPath>/app.toml, or
+// reads it into the provided <viper> instance if it exists.
 func handleAppConfig(
 	viper *viper.Viper,
 	configDirPath string,
 	customAppTemplate string,
 	appConfig any,
 ) error {
-	// if the app.toml file does not exist, populate it with the values from
-	// <appConfig>
+	// If the app.toml file does not exist, populate it with the values from <appConfig>.
 	appCfgFilePath := filepath.Join(configDirPath, "app.toml")
 	if _, err := os.Stat(appCfgFilePath); os.IsNotExist(err) {
 		return writeAppConfig(
@@ -51,7 +49,7 @@ func handleAppConfig(
 		)
 	}
 
-	// merge the app.toml file into the viper instance
+	// Merge the app.toml file into the viper instance.
 	viper.SetConfigType("toml")
 	viper.SetConfigName("app")
 	viper.AddConfigPath(configDirPath)

@@ -325,12 +325,11 @@ func verifyWithdrawalConditions(st *state.StateDB, validator *ctypes.Validator) 
 	if validator.GetExitEpoch() != constants.FarFutureEpoch {
 		return errors.New("withdrawal already initiated")
 	}
-	// Verify the validator has been active long enough
-	// In the spec, config.SHARD_COMMITTEE_PERIOD is added as well, but we ignore this since
-	// it's related to ETH data shards which is not relevant for us.
-	if currentEpoch < validator.ActivationEpoch {
-		return errors.New("validator not active long enough")
-	}
+
+	// In Ethereum specs here it's checked that
+	// currentEpoch < validator.ActivationEpoch + config.SHARD_COMMITTEE_PERIOD
+	// We ignore config.SHARD_COMMITTEE_PERIOD, since data shards are not relevant for us.
+	// Moreover here validator is active so currentEpoch >= validator.ActivationEpoch
 	return nil
 }
 
