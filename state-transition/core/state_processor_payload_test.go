@@ -146,6 +146,7 @@ func TestPayloadTimestampVerification(t *testing.T) {
 				types.NewEth1Data(genDeposits.HashTreeRoot()),
 				math.U64(tt.payloadTime.Unix()),
 				nil,
+				&types.ExecutionRequests{},
 				testSt.EVMInflationWithdrawal(math.U64(tt.payloadTime.Unix())),
 			)
 
