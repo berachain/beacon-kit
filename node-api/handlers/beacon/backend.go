@@ -48,6 +48,7 @@ type GenesisBackend interface {
 	GenesisBlockHeader() *ctypes.BeaconBlockHeader
 	GenesisBlockRoot() common.Root
 	GenesisState() *statedb.StateDB
+	GenesisValidators() []*ctypes.Validator
 }
 
 type RandaoBackend interface {

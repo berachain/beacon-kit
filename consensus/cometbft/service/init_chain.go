@@ -131,8 +131,14 @@ func (s *Service) initChainer(
 	genesisHeader.SetStateRoot(genesisState.HashTreeRoot())
 	genesisBlockRoot := genesisHeader.HashTreeRoot()
 
+	// Get the validators from the genesis state.
+	validators, err := genesisState.GetValidators()
+	if err != nil {
+		return nil, err
+	}
+
 	// Set the genesis data on the API backend.
-	s.apiBackend.SetGenesisData(genesisHeader, genesisBlockRoot, genesisState)
+	s.apiBackend.SetGenesisData(genesisHeader, genesisBlockRoot, validators, genesisState)
 	return iter.MapErr(
 		valUpdates,
 		convertValidatorUpdate[cmtabci.ValidatorUpdate],

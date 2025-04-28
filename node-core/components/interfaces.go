@@ -544,6 +544,7 @@ type (
 		GenesisBlockHeader() *ctypes.BeaconBlockHeader
 		GenesisBlockRoot() common.Root
 		GenesisState() *statedb.StateDB
+		GenesisValidators() []*ctypes.Validator
 	}
 
 	RandaoBackend interface {

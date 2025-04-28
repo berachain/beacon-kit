@@ -51,3 +51,8 @@ func (b *Backend) GenesisBlockRoot() common.Root {
 func (b *Backend) GenesisState() *statedb.StateDB {
 	return b.genesisState.Load()
 }
+
+// GenesisValidators returns the genesis validators of the beacon chain.
+func (b *Backend) GenesisValidators() []*ctypes.Validator {
+	return *b.genesisValidators.Load()
+}

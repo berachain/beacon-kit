@@ -294,7 +294,7 @@ func (s *BeaconKitE2ESuite) TestValidatorBalancesGenesis() {
 
 	balanceMap := balancesResp.Data
 	for _, balance := range balanceMap {
-		fmt.Println("balance in TestValidatorBalancesGenesis", balance)
+		s.T().Log("balance in TestValidatorBalancesGenesis", balance)
 		s.Require().True(balance > 0, "Validator balance should be positive")
 		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
 		s.Require().True(balance <= 4e12, "Validator balance should not exceed 4e12 gwei (4000 BERA)")
@@ -317,7 +317,7 @@ func (s *BeaconKitE2ESuite) TestValidatorBalancesSlot() {
 
 	balanceMap := balancesResp.Data
 	for _, balance := range balanceMap {
-		fmt.Println("balance in TestValidatorBalancesSlot", balance)
+		s.T().Log("balance in TestValidatorBalancesSlot", balance)
 		s.Require().True(balance > 0, "Validator balance should be positive")
 		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
 		s.Require().True(balance <= 4e12, "Validator balance should not exceed 4e12 gwei (4000 BERA)")
@@ -763,7 +763,7 @@ func (s *BeaconKitE2ESuite) TestGetValidatorBalancesForGenesis() {
 	s.Require().NotEmpty(balancesResp, "balances response should not be empty")
 
 	for _, balance := range *balancesResp {
-		fmt.Println("balance in TestGetValidatorBalancesForGenesis", balance)
+		s.T().Log("balance in TestGetValidatorBalancesForGenesis", balance)
 		s.Require().True(balance.Balance > 0, "Validator balance should be positive")
 		// At genesis, the validator balance is 32 BERA.
 		// 32e9 Gwei = 32 * 10^9 Gwei = 32,000,000,000 Gwei = 32 BERA
@@ -783,7 +783,7 @@ func (s *BeaconKitE2ESuite) TestGetValidatorBalancesSlot() {
 	s.Require().NotEmpty(balancesResp.Data)
 
 	for _, balance := range balancesResp.Data {
-		fmt.Println("balance in TestGetValidatorBalancesSlot", balance)
+		s.T().Log("balance in TestGetValidatorBalancesSlot", balance)
 	}
 }
 

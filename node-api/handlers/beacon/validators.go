@@ -40,11 +40,8 @@ var ErrNoSlotForStateRoot = errors.New("slot not found at state root")
 // are intended to behave the same way.
 func (h *Handler) getStateValidators(stateID string, ids []string, statuses []string) (any, error) {
 	if stateID == utils.StateIDGenesis || stateID == "0" {
+		genesisValidators := h.backend.GenesisValidators()
 		genesisState := h.backend.GenesisState()
-		genesisValidators, err := genesisState.GetValidators()
-		if err != nil {
-			return nil, err
-		}
 		validators, err := h.backend.FilteredValidatorsAtGenesis(
 			genesisValidators,
 			genesisState,
@@ -100,11 +97,7 @@ func (h *Handler) GetStateValidator(c handlers.Context) (any, error) {
 		return nil, err
 	}
 	if req.StateID == utils.StateIDGenesis || req.StateID == "0" {
-		st := h.backend.GenesisState()
-		validators, errInGetValidators := st.GetValidators()
-		if errInGetValidators != nil {
-			return nil, errInGetValidators
-		}
+		validators := h.backend.GenesisValidators()
 		return beacontypes.NewResponse(validators), nil
 	}
 	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
