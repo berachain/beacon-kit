@@ -33,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -85,35 +86,41 @@ func TestPartialWithdrawalRequestGenesisValidators(t *testing.T) {
 	genValIdx, err := st.ValidatorIndexByPubkey(genVal.GetPubkey())
 	require.NoError(t, err)
 
+	genValPubKey := genVal.GetPubkey()
 	wrs := []*types.WithdrawalRequest{
 		{ // valid request
 			SourceAddress:   addr,
-			ValidatorPubKey: genVal.GetPubkey(),
+			ValidatorPubKey: genValPubKey,
 			Amount:          1,
 		},
 		{ // valid request
 			SourceAddress:   addr,
-			ValidatorPubKey: genVal.GetPubkey(),
+			ValidatorPubKey: genValPubKey,
 			Amount:          10,
 		},
 		{ // invalid request, invalid address
 			SourceAddress:   badAddr,
-			ValidatorPubKey: genVal.GetPubkey(),
+			ValidatorPubKey: genValPubKey,
+			Amount:          10,
+		},
+		{ // invalid request, invalid pub key
+			SourceAddress:   addr,
+			ValidatorPubKey: crypto.BLSPubkey(append([]byte{0xff}, genValPubKey[1:]...)),
 			Amount:          10,
 		},
 		{ // valid request, largest withdrawable amount
 			SourceAddress:   addr,
-			ValidatorPubKey: genVal.GetPubkey(),
+			ValidatorPubKey: genValPubKey,
 			Amount:          maxBalance - 1 - 10 - minBalance, // remaining amount to minBalance
 		},
 		{ // invalid request (can't go below min activation balance even by 1 bera)
 			SourceAddress:   addr,
-			ValidatorPubKey: genVal.GetPubkey(),
+			ValidatorPubKey: genValPubKey,
 			Amount:          1,
 		},
 		{ // invalid request (full withdraw ignored when partial withdraws are ongoing)
 			SourceAddress:   addr,
-			ValidatorPubKey: genVal.GetPubkey(),
+			ValidatorPubKey: genValPubKey,
 			Amount:          0,
 		},
 	}
@@ -155,7 +162,7 @@ func TestPartialWithdrawalRequestGenesisValidators(t *testing.T) {
 			},
 			{
 				ValidatorIndex:    0,
-				Amount:            wrs[3].Amount,
+				Amount:            wrs[4].Amount,
 				WithdrawableEpoch: expectedWithdrawalEpoch,
 			},
 		},
@@ -218,8 +225,8 @@ func TestPartialWithdrawalRequestGenesisValidators(t *testing.T) {
 		{
 			Index:     2,
 			Validator: genValIdx,
-			Amount:    wrs[3].Amount,
-			Address:   wrs[3].SourceAddress,
+			Amount:    wrs[4].Amount,
+			Address:   wrs[4].SourceAddress,
 		},
 	}
 	blk = buildNextBlock(
