@@ -22,7 +22,7 @@ package spec
 
 import "github.com/berachain/beacon-kit/chain"
 
-// TestnetChainSpecData is the chain.SpecData for Berachain's public testnet.
+// TestnetChainSpecData is the chain.SpecData for Berachain's public testnet, Bepolia.
 func TestnetChainSpecData() *chain.SpecData {
 	specData := MainnetChainSpecData()
 

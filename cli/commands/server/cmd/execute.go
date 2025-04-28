@@ -25,9 +25,10 @@ import (
 	"context"
 	"strings"
 
-	"github.com/berachain/beacon-kit/cli/commands/server/types"
+	"github.com/berachain/beacon-kit/cli/flags"
+	"github.com/berachain/beacon-kit/config"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
+	sdkflags "github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -46,14 +47,17 @@ func Execute(rootCmd *cobra.Command, envPrefix, defaultHome string) error {
 	// getting and setting the client.Context. Ideally, we utilize
 	// https://github.com/spf13/cobra/pull/1118.
 	ctx := CreateExecuteContext(context.Background())
-	rootCmd.PersistentFlags().
-		StringP(flags.FlagHome, "", defaultHome, "directory for config and data")
 	rootCmd.PersistentFlags().String(
-		types.FlagConfigurableChainSpecPath,
-		"",
-		"Path to custom chain spec if CHAIN_SPEC=configurable envar is set")
+		sdkflags.FlagHome, defaultHome, "directory for config and data")
 
-	// update the global viper with the root command's configuration
+	// Chain Spec flags.
+	rootCmd.PersistentFlags().String(
+		flags.ChainSpec, config.DefaultChainSpec, "chain spec to use")
+	rootCmd.PersistentFlags().String(
+		flags.ChainSpecFilePath, config.DefaultChainSpecFilePath,
+		"path to the chain spec toml file")
+
+	// Update the global viper with the root command's configuration.
 	viper.SetEnvPrefix(envPrefix)
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
 	viper.AutomaticEnv()

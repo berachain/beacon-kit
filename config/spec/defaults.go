@@ -23,7 +23,6 @@ package spec
 // NOTE: Most of these default values are taken from ETH2.0 spec.
 // Some values (mentioned below) are modified to better suit Berachain's system.
 
-//nolint:unused // Keeping values here for reference.
 const (
 	// Gwei value constants.
 	defaultMaxEffectiveBalance       = 32e9
@@ -64,9 +63,6 @@ const (
 	defaultEpochsPerSlashingsVector  = 8
 	defaultHistoricalRootsLimit      = 8
 	defaultValidatorRegistryLimit    = 1099511627776
-
-	// Slashing.
-	defaultProportionalSlashingMultiplier = 1
 
 	// Capella values.
 	defaultMaxWithdrawalsPerPayload         = 16
