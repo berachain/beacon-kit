@@ -59,9 +59,9 @@ const (
 	defaultElectraForkTime = 9999999999999999 // Set as a future timestamp as not yet determined.
 
 	// State list length constants.
-	defaultEpochsPerHistoricalVector = 65536
-	defaultEpochsPerSlashingsVector  = 8192
-	defaultHistoricalRootsLimit      = 16777216
+	defaultEpochsPerHistoricalVector = 8
+	defaultEpochsPerSlashingsVector  = 8
+	defaultHistoricalRootsLimit      = 8
 	defaultValidatorRegistryLimit    = 1099511627776
 
 	// Capella values.
