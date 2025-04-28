@@ -111,12 +111,25 @@ func (s *Service) initChainer(
 	ctx sdk.Context,
 	beaconStateGenesis json.RawMessage,
 ) ([]cmtabci.ValidatorUpdate, error) {
-	valUpdates, genesisHeader, genesisBlockRoot, genesisState, err := s.Blockchain.ProcessGenesisData(
+	valUpdates, genesisState, err := s.Blockchain.ProcessGenesisData(
 		ctx, []byte(beaconStateGenesis),
 	)
 	if err != nil {
 		return nil, err
 	}
+
+	// Here get the data from the genesis state.
+
+	// Get the genesis beacon block header from the state.
+	genesisHeader, err := genesisState.GetLatestBlockHeader()
+	if err != nil {
+		return nil, err
+	}
+
+	// Return the hash tree root of the genesis header after updating the state root in it.
+	// This is similar to how we get the block root.
+	genesisHeader.SetStateRoot(genesisState.HashTreeRoot())
+	genesisBlockRoot := genesisHeader.HashTreeRoot()
 
 	// Set the genesis data on the API backend.
 	s.apiBackend.SetGenesisData(genesisHeader, genesisBlockRoot, genesisState)

@@ -135,8 +135,6 @@ type TelemetrySink interface {
 type BlockchainI interface {
 	ProcessGenesisData(context.Context, []byte) (
 		transition.ValidatorUpdates,
-		*ctypes.BeaconBlockHeader,
-		common.Root,
 		*statedb.StateDB,
 		error,
 	)
