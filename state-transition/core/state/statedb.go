@@ -26,6 +26,7 @@ import (
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -40,19 +41,22 @@ type StateDB struct {
 	beacondb.KVStore
 
 	cs ChainSpec
+	// logger is used for logging.
+	logger log.Logger
 }
 
 // NewBeaconStateFromDB creates a new beacon state from an underlying state db.
-func NewBeaconStateFromDB(bdb *beacondb.KVStore, cs ChainSpec) *StateDB {
+func NewBeaconStateFromDB(bdb *beacondb.KVStore, cs ChainSpec, logger log.Logger) *StateDB {
 	return &StateDB{
 		KVStore: *bdb,
 		cs:      cs,
+		logger:  logger,
 	}
 }
 
 // Copy returns a copy of the beacon state.
 func (s *StateDB) Copy(ctx context.Context) *StateDB {
-	return NewBeaconStateFromDB(s.KVStore.Copy(ctx), s.cs)
+	return NewBeaconStateFromDB(s.KVStore.Copy(ctx), s.cs, s.logger)
 }
 
 // GetEpoch returns the current epoch.

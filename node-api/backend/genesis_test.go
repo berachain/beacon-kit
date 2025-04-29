@@ -69,7 +69,7 @@ func TestGetGenesisData(t *testing.T) {
 
 	// Setup state for genesis tests.
 	setupStateWithGenesisValues(t, cms, kvStore)
-	sb := storage.NewBackend(cs, nil, kvStore, depositStore, nil)
+	sb := storage.NewBackend(cs, nil, kvStore, depositStore, nil, log.NewNopLogger())
 
 	// Create a temporary directory for CometBFT config
 	tmpDir := t.TempDir()
