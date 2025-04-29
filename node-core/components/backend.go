@@ -40,7 +40,7 @@ type StorageBackendInput struct {
 	ChainSpec         chain.Spec
 	DepositStore      *depositdb.KVStore
 	BeaconStore       *beacondb.KVStore
-	logger            *phuslu.Logger
+	Logger            *phuslu.Logger
 }
 
 // ProvideStorageBackend is the depinject provider that returns a beacon storage
@@ -54,6 +54,6 @@ func ProvideStorageBackend(
 		in.BeaconStore,
 		in.DepositStore,
 		in.BlockStore,
-		in.logger,
+		in.Logger,
 	)
 }
