@@ -175,6 +175,7 @@ func (sp *StateProcessor) upgradeToElectra(
 	}
 
 	// Initialize the pending partial withdrawals to an empty array.
+	sp.metrics.gaugePendingPartialWithdrawalsCount(0)
 	if err := st.SetPendingPartialWithdrawals([]*types.PendingPartialWithdrawal{}); err != nil {
 		return err
 	}

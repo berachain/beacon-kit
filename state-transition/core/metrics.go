@@ -58,6 +58,10 @@ func (s *stateProcessorMetrics) gaugeBlockGasUsed(
 	)
 }
 
+func (s *stateProcessorMetrics) gaugePendingPartialWithdrawalsCount(count int) {
+	s.sink.SetGauge("beacon_kit.state.pending_partial_withdrawals_count", int64(count))
+}
+
 func (s *stateProcessorMetrics) gaugeTimestamps(
 	payloadTimestamp uint64,
 	consensusTimestamp uint64,

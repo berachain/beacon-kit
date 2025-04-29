@@ -101,6 +101,7 @@ func (sp *StateProcessor) processWithdrawals(
 			return getErr
 		}
 		updatedWithdrawals := ppWithdrawals[processedPartialWithdrawalsCount:]
+		sp.metrics.gaugePendingPartialWithdrawalsCount(len(updatedWithdrawals))
 		if setErr := st.SetPendingPartialWithdrawals(updatedWithdrawals); setErr != nil {
 			return setErr
 		}
@@ -274,6 +275,7 @@ func (sp *StateProcessor) processPartialWithdrawal(
 		WithdrawableEpoch: withdrawableEpoch,
 	}
 	pendingWithdrawals = append(pendingWithdrawals, ppWithdrawal)
+	sp.metrics.gaugePendingPartialWithdrawalsCount(len(pendingWithdrawals))
 	return st.SetPendingPartialWithdrawals(pendingWithdrawals)
 }
 
