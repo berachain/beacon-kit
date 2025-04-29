@@ -46,7 +46,6 @@ import (
 	"github.com/berachain/beacon-kit/storage/db"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	dbm "github.com/cosmos/cosmos-db"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
@@ -73,7 +72,7 @@ type TestNode struct {
 	StateProcessor  *core.StateProcessor
 	ServiceRegistry *service.Registry
 	KZGVerifier     kzg.BlobProofVerifier
-	ContractBackend bind.ContractBackend
+	ContractBackend *ethclient.Client
 }
 
 // NewTestNode Uses the testnet chainspec.
