@@ -38,24 +38,6 @@ func newStateProcessorMetrics(
 	}
 }
 
-func (s *stateProcessorMetrics) gaugeTimestamps(
-	payloadTimestamp uint64,
-	consensusTimestamp uint64,
-) {
-	// the diff can be positive or negative depending on whether the payload
-	// timestamp is ahead or behind the consensus timestamp
-	diff := int64(payloadTimestamp) - int64(consensusTimestamp) // #nosec G115
-	s.sink.SetGauge("beacon_kit.state.payload_consensus_timestamp_diff", diff)
-}
-
-func (s *stateProcessorMetrics) incrementValidatorNotWithdrawable() {
-	s.sink.IncrementCounter("beacon_kit.state.validator_not_withdrawable")
-}
-
-func (s *stateProcessorMetrics) incrementDepositStakeLost() {
-	s.sink.IncrementCounter("beacon_kit.state.deposit_stake_lost")
-}
-
 func (s *stateProcessorMetrics) gaugeBlockGasUsed(
 	blockNumber math.U64,
 	txGasUsed math.U64,
@@ -74,4 +56,30 @@ func (s *stateProcessorMetrics) gaugeBlockGasUsed(
 		"block_number",
 		blockNumberStr,
 	)
+}
+
+func (s *stateProcessorMetrics) gaugeTimestamps(
+	payloadTimestamp uint64,
+	consensusTimestamp uint64,
+) {
+	// the diff can be positive or negative depending on whether the payload
+	// timestamp is ahead or behind the consensus timestamp
+	diff := int64(payloadTimestamp) - int64(consensusTimestamp) // #nosec G115
+	s.sink.SetGauge("beacon_kit.state.payload_consensus_timestamp_diff", diff)
+}
+
+func (s *stateProcessorMetrics) incrementDepositStakeLost() {
+	s.sink.IncrementCounter("beacon_kit.state.deposit_stake_lost")
+}
+
+func (s *stateProcessorMetrics) incrementPartialWithdrawalRequestDropped() {
+	s.sink.IncrementCounter("beacon_kit.state.partial_withdrawal_request_dropped")
+}
+
+func (s *stateProcessorMetrics) incrementPartialWithdrawalFailed() {
+	s.sink.IncrementCounter("beacon_kit.state.partial_withdrawal_failed")
+}
+
+func (s *stateProcessorMetrics) incrementValidatorNotWithdrawable() {
+	s.sink.IncrementCounter("beacon_kit.state.validator_not_withdrawable")
 }
