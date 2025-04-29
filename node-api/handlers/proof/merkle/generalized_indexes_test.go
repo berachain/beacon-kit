@@ -46,8 +46,8 @@ var (
 			schema.NewField("StateRoot", schema.B32()),
 			schema.NewField("BodyRoot", schema.B32()),
 		)),
-		schema.NewField("BlockRoots", schema.DefineVector(schema.B32(), 8192)),
-		schema.NewField("StateRoots", schema.DefineVector(schema.B32(), 8192)),
+		schema.NewField("BlockRoots", schema.DefineList(schema.B32(), 8192)),
+		schema.NewField("StateRoots", schema.DefineList(schema.B32(), 8192)),
 		schema.NewField("Eth1Data", schema.DefineContainer(
 			schema.NewField("DepositRoot", schema.B32()),
 			schema.NewField("DepositCount", schema.U64()),
