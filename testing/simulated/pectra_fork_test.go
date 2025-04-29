@@ -87,7 +87,7 @@ func (s *PectraForkSuite) SetupTest() {
 	s.Geth.ElHandle = elHandle
 
 	rethNode := execution.NewRethNode(s.Reth.HomeDir, execution.ValidRethImage())
-	rethHandle, rethAuthRPC, _ := rethNode.Start(s.T(), path.Base(elGenesisPath))
+	rethHandle, rethAuthRPC, elRPC := rethNode.Start(s.T(), path.Base(elGenesisPath))
 	s.Reth.ElHandle = rethHandle
 
 	// Prepare a logger backed by a buffer to capture logs for assertions.
@@ -117,6 +117,7 @@ func (s *PectraForkSuite) SetupTest() {
 		TempHomeDir: s.Reth.HomeDir,
 		CometConfig: cometConfig,
 		AuthRPC:     rethAuthRPC,
+		ClientRPC:   elRPC,
 		Logger:      rethLogger,
 		AppOpts:     viper.New(),
 		Components:  components,
