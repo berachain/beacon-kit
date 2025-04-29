@@ -38,4 +38,17 @@ Note: Currently the chainID for this local network is 80087, which is our dev ne
 ## Add your tests
 Add your tests in here like how it is done in `TestBasicStartup()`
 
+## Debugging issues
+
+If you face issues while running E2E test suites. Here are a few steps that can be followed to debug it.
+1) Check the status of the Kurtosis engine. Restart the kurtosis engine.
+
+```bash
+kurtosis engine status
+
+kurtosis engine restart
+```
+2) Upgrade your Docker Desktop setup to the latest version.
+3) If upgrading doesn't help, uninstall and re-install the Docker Desktop setup.
+
 
