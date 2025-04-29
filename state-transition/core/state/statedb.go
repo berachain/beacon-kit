@@ -220,6 +220,10 @@ func (s *StateDB) consumePendingPartialWithdrawals(
 		if withdrawal.WithdrawableEpoch > epoch || len(withdrawals) == constants.MaxPendingPartialsPerWithdrawalsSweep {
 			// If the first withdrawal in the queue is not withdrawable, then all subsequent withdrawals will also be in later
 			// epochs and hence are not withdrawable, so we can break early.
+			s.logger.Debug("consumePendingPartialWithdrawals: early break for partial withdrawals",
+				"current_epoch", epoch.Base10(),
+				"next_withdrawable_epoch", withdrawal.WithdrawableEpoch.Base10(),
+			)
 			break
 		}
 
@@ -233,7 +237,8 @@ func (s *StateDB) consumePendingPartialWithdrawals(
 			return nil, 0, 0, err
 		}
 		hasExcessBalance := balance > minActivationBalance
-		if validator.GetExitEpoch() == constants.FarFutureEpoch && hasSufficientEffectiveBalance && hasExcessBalance {
+		isWithdrawable := validator.GetExitEpoch() == constants.FarFutureEpoch && hasSufficientEffectiveBalance && hasExcessBalance
+		if isWithdrawable {
 			// A validator can only partial withdraw an amount such that:
 			// 1. never withdraw more than what the validator asked for.
 			// 2. never withdraw so much that the validator’s remaining balance would drop below MIN_ACTIVATION_BALANCE.
@@ -254,6 +259,15 @@ func (s *StateDB) consumePendingPartialWithdrawals(
 			)
 			// Increment the withdrawal index to process the next withdrawal.
 			withdrawalIndex++
+		} else {
+			s.logger.Info("consumePendingPartialWithdrawals: validator not withdrawable",
+				"validator_index", withdrawal.ValidatorIndex,
+				"validator_pubkey", validator.GetPubkey().String(),
+				"balance", balance.Base10(),
+				"effective_balance", validator.GetEffectiveBalance().Base10(),
+				"exit_epoch", validator.GetExitEpoch().Base10(),
+				"withdrawable_epoch", withdrawal.WithdrawableEpoch.Base10(),
+			)
 		}
 		// Even if a withdrawal was not created, e.g. the validator did not have sufficient balance, we will consider
 		// this withdrawal processed (spec defined) and hence increment the processedPartialWithdrawals count.
