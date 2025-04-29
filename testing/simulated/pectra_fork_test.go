@@ -83,11 +83,11 @@ func (s *PectraForkSuite) SetupTest() {
 
 	// Start the EL (execution layer) Geth node.
 	gethNode := execution.NewGethNode(s.Geth.HomeDir, execution.ValidGethImage())
-	elHandle, authRPC := gethNode.Start(s.T(), path.Base(elGenesisPath))
+	elHandle, authRPC, elRPC := gethNode.Start(s.T(), path.Base(elGenesisPath))
 	s.Geth.ElHandle = elHandle
 
 	rethNode := execution.NewRethNode(s.Reth.HomeDir, execution.ValidRethImage())
-	rethHandle, rethAuthRPC := rethNode.Start(s.T(), path.Base(elGenesisPath))
+	rethHandle, rethAuthRPC, _ := rethNode.Start(s.T(), path.Base(elGenesisPath))
 	s.Reth.ElHandle = rethHandle
 
 	// Prepare a logger backed by a buffer to capture logs for assertions.
@@ -106,6 +106,7 @@ func (s *PectraForkSuite) SetupTest() {
 		TempHomeDir: s.Geth.HomeDir,
 		CometConfig: cometConfig,
 		AuthRPC:     authRPC,
+		ClientRPC:   elRPC,
 		Logger:      logger,
 		AppOpts:     viper.New(),
 		Components:  components,
@@ -255,7 +256,7 @@ func (s *PectraForkSuite) submitTransactions(startNonce uint64, numTransactions 
 }
 
 // TestExcessBalanceAtFork this test will demonstrate the systems behaviour when there is withdrawal is
-// initiated before the fork and set to complete after the fork.
+// initiated before the fork and set to complete after the fork. The withdrawal is due to excess validators.
 func (s *PectraForkSuite) TestTODO_0() {
 	s.T().Skip("TODO: Implement this test")
 }

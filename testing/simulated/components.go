@@ -123,3 +123,22 @@ func ProvidePectraForkTestChainSpec() (chain.Spec, error) {
 	}
 	return chainSpec, nil
 }
+
+// ProvidePectraWithdrawalTestChainSpec provides a chain spec used for withdrawal testing
+func ProvidePectraWithdrawalTestChainSpec() (chain.Spec, error) {
+	specData := spec.TestnetChainSpecData()
+	specData.GenesisTime = 0
+	specData.Deneb1ForkTime = 0
+	specData.ElectraForkTime = 10
+	// We set slots per epoch to 2 for faster observation of withdrawal behaviour
+	specData.SlotsPerEpoch = 2
+	// We set this to 4 so tests are faster
+	specData.MinValidatorWithdrawabilityDelay = 4
+	// Reduced validator set cap so eviction withdrawals are easier to trigger
+	specData.ValidatorSetCap = 2
+	chainSpec, err := chain.NewSpec(specData)
+	if err != nil {
+		return nil, err
+	}
+	return chainSpec, nil
+}

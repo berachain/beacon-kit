@@ -46,6 +46,8 @@ import (
 	"github.com/berachain/beacon-kit/storage/db"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	dbm "github.com/cosmos/cosmos-db"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 )
@@ -55,6 +57,7 @@ type TestNodeInput struct {
 	TempHomeDir string
 	CometConfig *cmtcfg.Config
 	AuthRPC     *url.ConnectionURL
+	ClientRPC   *url.ConnectionURL
 	Logger      *phuslu.Logger
 	AppOpts     *viper.Viper
 	Components  []any
@@ -70,6 +73,7 @@ type TestNode struct {
 	StateProcessor  *core.StateProcessor
 	ServiceRegistry *service.Registry
 	KZGVerifier     kzg.BlobProofVerifier
+	ContractBackend bind.ContractBackend
 }
 
 // NewTestNode Uses the testnet chainspec.
@@ -78,6 +82,8 @@ func NewTestNode(
 	input TestNodeInput,
 ) TestNode {
 	t.Helper()
+	require.NotNil(t, input.AuthRPC)
+	require.NotNil(t, input.ClientRPC)
 
 	beaconKitConfig := createBeaconKitConfig(t)
 	beaconKitConfig.Engine.RPCDialURL = input.AuthRPC
@@ -96,6 +102,9 @@ func NewTestNode(
 		appOpts,
 		input.Components,
 	)
+	contractBackend, err := ethclient.Dial(input.ClientRPC.String())
+	require.NoError(t, err)
+	node.ContractBackend = contractBackend
 	return node
 }
 

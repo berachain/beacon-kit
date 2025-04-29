@@ -77,7 +77,7 @@ func (s *PectraGenesisSuite) SetupTest() {
 
 	// Start the EL (execution layer) Geth node.
 	elNode := execution.NewGethNode(s.HomeDir, execution.ValidGethImage())
-	elHandle, authRPC := elNode.Start(s.T(), path.Base(elGenesisPath))
+	elHandle, authRPC, elRPC := elNode.Start(s.T(), path.Base(elGenesisPath))
 	s.ElHandle = elHandle
 
 	// Prepare a logger backed by a buffer to capture logs for assertions.
@@ -93,6 +93,7 @@ func (s *PectraGenesisSuite) SetupTest() {
 		TempHomeDir: s.HomeDir,
 		CometConfig: cometConfig,
 		AuthRPC:     authRPC,
+		ClientRPC:   elRPC,
 		Logger:      logger,
 		AppOpts:     viper.New(),
 		Components:  components,
