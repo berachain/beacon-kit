@@ -159,15 +159,19 @@ func NewService(
 		panic(fmt.Errorf("failed loading latest version: %w", err))
 	}
 
-	// Load block delay
+	// Load block delay.
 	//
-	// If not found, we will initialize it in FinalizeBlock.
+	// If not found, we will initialize it in FinalizeBlock once SBTEnableHeight
+	// is reached.
 	bz, err := s.sm.LoadBlockDelay()
 	if err != nil {
 		panic(fmt.Errorf("failed loading block delay: %w", err))
 	}
 	if bz != nil {
-		s.blockDelay = BlockDelayFromBytes(bz)
+		s.blockDelay, err = BlockDelayFromBytes(bz)
+		if err != nil {
+			panic(fmt.Errorf("failed decoding block delay: %w", err))
+		}
 	}
 
 	return s

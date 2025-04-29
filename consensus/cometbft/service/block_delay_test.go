@@ -26,6 +26,7 @@ import (
 
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestBlockDelayFromBytes(t *testing.T) {
@@ -38,7 +39,8 @@ func TestBlockDelayFromBytes(t *testing.T) {
 	}
 
 	b := d1.ToBytes()
-	d2 := cometbft.BlockDelayFromBytes(b)
+	d2, err := cometbft.BlockDelayFromBytes(b)
+	require.NoError(t, err)
 
 	assert.Equal(t, d1.InitialTime.Unix(), d2.InitialTime.Unix())
 	assert.Equal(t, d1.InitialHeight, d2.InitialHeight)

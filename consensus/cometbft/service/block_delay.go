@@ -45,14 +45,34 @@ const (
 	TargetBlockTime = 2 * time.Second
 )
 
+// ErrBlockDelayFromBytes is returned when the block delay can't be read from
+// the buffer.
+type ErrBlockDelayFromBytes struct {
+	field string
+	err error
+}
+
+func (e *ErrBlockDelayFromBytes) Error() string {
+	return fmt.Sprintf("%s: %v", e.field, e.err)
+}
+
+func (e *ErrBlockDelayFromBytes) Unwrap() error {
+	return e.err
+}
+
+// BlockDelay is used to calculate the delay before proposing the next block.
+//
+// The general formula is:
+//
+//   NextBlockTime = InitialTime + TargetBlockTime * (CurrentHeight - InitialHeight)
+//
 type BlockDelay struct {
-	// - genesis time if height is 0 OR
-	// - block time of the last block if height > 0 and time between blocks is
-	// greater than maxDelayBetweenBlocks.
+	// InitialTime is a checkpoint in time from which we start calculating the
+	// next block time.
 	InitialTime time.Time
 
-	// - InitChainRequest.InitialHeight OR
-	// - last block height if time between blocks is greater than maxDelayBetweenBlocks.
+	// InitialHeight is a checkpoint in blockchain's height from which we start
+	// calculating the next block time.
 	InitialHeight int64
 
 	// PreviousBlockTime is the time of the previous block.
@@ -66,32 +86,41 @@ type BlockDelay struct {
 //	InitialTime (int64) | InitialHeight (int64) | PreviousBlockTime (int64)
 //	(little endian)
 //
-// Panics if it fails to read from the buffer.
+// It returns ErrBlockDelayFromBytes if it fails to read from the buffer.
 func BlockDelayFromBytes(
 	bz []byte,
-) *BlockDelay {
+) (*BlockDelay, error) {
 	buf := bytes.NewReader(bz)
 	var initialTime, prevBlockTime int64
 	var initialHeight int64
 
 	err := binary.Read(buf, binary.LittleEndian, &initialTime)
 	if err != nil {
-		panic(fmt.Sprintf("failed to read InitialTime: %v", err))
+		return nil, &ErrBlockDelayFromBytes{
+			field: "InitialTime",
+			err:   err,
+		}
 	}
 	err = binary.Read(buf, binary.LittleEndian, &initialHeight)
 	if err != nil {
-		panic(fmt.Sprintf("failed to read InitialHeight: %v", err))
+		return nil, &ErrBlockDelayFromBytes{
+			field: "InitialHeight",
+			err:   err,
+		}
 	}
 	err = binary.Read(buf, binary.LittleEndian, &prevBlockTime)
 	if err != nil {
-		panic(fmt.Sprintf("failed to read PreviousBlockTime: %v", err))
+		return nil, &ErrBlockDelayFromBytes{
+			field: "PreviousBlockTime",
+			err:   err,
+		}
 	}
 
 	return &BlockDelay{
 		InitialTime:       time.Unix(0, initialTime),
 		InitialHeight:     initialHeight,
 		PreviousBlockTime: time.Unix(0, prevBlockTime),
-	}
+	}, nil
 }
 
 // Next returns the duration to wait before proposing the next block.
