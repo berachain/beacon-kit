@@ -50,5 +50,5 @@ kurtosis engine restart
 ```
 2) Upgrade your Docker Desktop setup to the latest version.
 3) If upgrading doesn't help, uninstall and re-install the Docker Desktop setup.
-
+4) In case your issue still not resolved after following all the above steps, open up a GitHub Issue providing the error and the detailed description.
 
