@@ -82,8 +82,14 @@ func FixedComponents(t *testing.T) []any {
 func ProvideElectraGenesisChainSpec() (chain.Spec, error) {
 	specData := spec.TestnetChainSpecData()
 	// Both Deneb1 and Electra happen in genesis.
+	specData.GenesisTime = 0
 	specData.Deneb1ForkTime = 0
 	specData.ElectraForkTime = 0
+	// We set slots per epoch to 2 for faster observation of withdrawal behaviour
+	specData.SlotsPerEpoch = 2
+	// We set this to 4 so tests are faster
+	specData.MinValidatorWithdrawabilityDelay = 4
+
 	chainSpec, err := chain.NewSpec(specData)
 	if err != nil {
 		return nil, err
@@ -95,6 +101,7 @@ func ProvideElectraGenesisChainSpec() (chain.Spec, error) {
 // Bypasses the need for environment variables.
 func ProvideSimulationChainSpec() (chain.Spec, error) {
 	specData := spec.TestnetChainSpecData()
+	specData.GenesisTime = 0
 	// Arbitrary number
 	specData.Deneb1ForkTime = 30
 	chainSpec, err := chain.NewSpec(specData)
@@ -107,6 +114,7 @@ func ProvideSimulationChainSpec() (chain.Spec, error) {
 // ProvidePectraForkTestChainSpec provides a chain spec with pectra at timestamp 10
 func ProvidePectraForkTestChainSpec() (chain.Spec, error) {
 	specData := spec.TestnetChainSpecData()
+	specData.GenesisTime = 0
 	specData.Deneb1ForkTime = 0
 	specData.ElectraForkTime = 10
 	chainSpec, err := chain.NewSpec(specData)

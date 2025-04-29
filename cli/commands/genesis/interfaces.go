@@ -27,6 +27,7 @@ import (
 
 type ChainSpec interface {
 	genesis.ChainSpec
+	GenesisForkVersion() common.Version
 	DomainTypeDeposit() common.DomainType
 	MaxWithdrawalsPerPayload() uint64
 	DepositContractAddress() common.ExecutionAddress

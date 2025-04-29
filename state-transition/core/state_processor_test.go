@@ -30,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	"github.com/stretchr/testify/require"
 )
@@ -48,17 +47,17 @@ func TestStateProcessor_ProcessSlots(t *testing.T) {
 			{
 				Pubkey:      [48]byte{0x00},
 				Credentials: types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{}),
-				Amount:      math.Gwei(cs.MaxEffectiveBalance()),
+				Amount:      cs.MaxEffectiveBalance(),
 				Index:       0,
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(version.Genesis()),
+			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
 		}
 	)
 	genPayloadHeader.Timestamp = math.U64(genesisTime.Unix())
-	_, err := sp.InitializePreminedBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, version.Genesis(),
+	_, err := sp.InitializeBeaconStateFromEth1(
+		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
 

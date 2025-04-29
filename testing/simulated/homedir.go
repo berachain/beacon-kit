@@ -34,16 +34,18 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/cli/commands/genesis"
 	"github.com/berachain/beacon-kit/cli/commands/initialize"
+	"github.com/berachain/beacon-kit/cli/commands/server/types"
 	genesisutils "github.com/berachain/beacon-kit/cli/utils/genesis"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/math"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/stretchr/testify/require"
 )
 
 const TestnetBeaconChainID = "testnet-beacon-80069"
+
+const WithdrawalExecutionAddress = "0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4"
 
 // InitializeHomeDir sets up a temporary home directory with the necessary genesis state
 // and configuration files for testing. It returns the configured CometBFT config along with
@@ -56,15 +58,15 @@ func InitializeHomeDir(t *testing.T, chainSpec chain.Spec, tempHomeDir string, e
 	cometConfig := createCometConfig(t, tempHomeDir)
 
 	// Run initialization command to mimic 'beacond init'
-	initCommand(t, cometConfig.RootDir)
+	initCommand(t, chainSpec, cometConfig.RootDir)
 
 	// Retrieve the BLS signer from the configured home directory.
 	blsSigner := GetBlsSigner(cometConfig.RootDir)
 
 	// Set the deposit amount to the maximum effective balance.
-	depositAmount := math.Gwei(chainSpec.MaxEffectiveBalance())
+	depositAmount := chainSpec.MaxEffectiveBalance()
 	// Define an arbitrary withdrawal address.
-	withdrawalAddress := common.NewExecutionAddressFromHex("0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4")
+	withdrawalAddress := common.NewExecutionAddressFromHex(WithdrawalExecutionAddress)
 
 	// Add a genesis deposit.
 	err := genesis.AddGenesisDeposit(chainSpec, cometConfig, blsSigner, depositAmount, withdrawalAddress, "")
@@ -108,9 +110,16 @@ func createCometConfig(t *testing.T, tempHomeDir string) *cmtcfg.Config {
 	return cmtCfg
 }
 
+// genesisCreator implements the required interface for the beacond init command, while allowing for a custom
+// fork version in the genesis file.
+type genesisCreator struct {
+	chainSpec    chain.Spec
+	cometService *cometbft.Service
+}
+
 // initCommand runs the initialization command to prepare the home directory.
 // This function emulates the 'beacond init' command.
-func initCommand(t *testing.T, homeDir string) {
+func initCommand(t *testing.T, spec chain.Spec, homeDir string) {
 	t.Helper()
 
 	// Create a Cosmos SDK client context with the provided home directory and chain ID.
@@ -126,7 +135,7 @@ func initCommand(t *testing.T, homeDir string) {
 	require.NoError(t, err, "failed to create data directory")
 
 	// Initialize the command to set up the home directory.
-	initCMD := initialize.InitCmd(&cometbft.Service{})
+	initCMD := initialize.InitCmd(func(_ types.AppOptions) (chain.Spec, error) { return spec, nil }, &cometbft.Service{})
 	initCMD.SetArgs([]string{"test-moniker"})
 
 	// Set the command context; required to work around a Cosmos SDK issue.

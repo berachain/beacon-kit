@@ -23,6 +23,7 @@ package types
 import (
 	"io"
 
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/types"
 	cmtcfg "github.com/cometbft/cometbft/config"
@@ -30,9 +31,15 @@ import (
 )
 
 type (
-	// AppCreator is a function that allows us to lazily initialize an
-	// application using various configurations.
-	AppCreator func(
-		*phuslu.Logger, dbm.DB, io.Writer, *cmtcfg.Config, AppOptions,
-	) types.Node
+	// AppOptions, usually implemented by Viper, holds the configuration for the application.
+	AppOptions interface {
+		Get(string) interface{}
+	}
+
+	// AppCreator is a function that allows us to lazily initialize an application using various
+	// configurations.
+	AppCreator func(*phuslu.Logger, dbm.DB, io.Writer, *cmtcfg.Config, AppOptions) types.Node
+
+	// ChainSpecCreator is a function that allows us to lazily initialize the ChainSpec.
+	ChainSpecCreator func(AppOptions) (chain.Spec, error)
 )
