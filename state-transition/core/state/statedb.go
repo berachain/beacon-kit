@@ -221,8 +221,8 @@ func (s *StateDB) consumePendingPartialWithdrawals(
 			// If the first withdrawal in the queue is not withdrawable, then all subsequent withdrawals will also be in later
 			// epochs and hence are not withdrawable, so we can break early.
 			s.logger.Debug("consumePendingPartialWithdrawals: early break for partial withdrawals",
-				"current_epoch", epoch.Base10(),
-				"next_withdrawable_epoch", withdrawal.WithdrawableEpoch.Base10(),
+				"current_epoch", epoch,
+				"next_withdrawable_epoch", withdrawal.WithdrawableEpoch,
 			)
 			break
 		}
@@ -263,10 +263,10 @@ func (s *StateDB) consumePendingPartialWithdrawals(
 			s.logger.Info("consumePendingPartialWithdrawals: validator not withdrawable",
 				"validator_index", withdrawal.ValidatorIndex,
 				"validator_pubkey", validator.GetPubkey().String(),
-				"balance", balance.Base10(),
-				"effective_balance", validator.GetEffectiveBalance().Base10(),
-				"exit_epoch", validator.GetExitEpoch().Base10(),
-				"withdrawable_epoch", withdrawal.WithdrawableEpoch.Base10(),
+				"balance", balance,
+				"effective_balance", validator.GetEffectiveBalance(),
+				"exit_epoch", validator.GetExitEpoch(),
+				"withdrawable_epoch", withdrawal.WithdrawableEpoch,
 			)
 		}
 		// Even if a withdrawal was not created, e.g. the validator did not have sufficient balance, we will consider
