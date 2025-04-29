@@ -40,8 +40,7 @@ import (
 type StateDB struct {
 	beacondb.KVStore
 
-	cs ChainSpec
-	// logger is used for logging.
+	cs     ChainSpec
 	logger log.Logger
 }
 
