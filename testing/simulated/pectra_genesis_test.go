@@ -30,12 +30,17 @@ import (
 	"testing"
 	"time"
 
+	"github.com/berachain/beacon-kit/beacon/blockchain"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
+	"github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/primitives/eip7002"
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
+	v1 "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -359,8 +364,105 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithFullWithdrawalRequest_IsSucce
 	s.Require().Equal(expectedBalance.String(), afterWithdrawalBalance.ToInt().String())
 }
 
-// TestMaliciousProposer_RemovesExecutionRequestsFromBlock a malicious proposer removes execution requests from the block.
-// These should be rejected by the execution client as part of NewPayload.
-func (s *PectraGenesisSuite) TestMaliciousProposer_RemovesExecutionRequestsFromBlock() {
-	s.T().Skip("TODO: Implement this test")
+// TestMaliciousProposer_AddInvalidExecutionRequests_IsRejected a malicious proposer adds execution requests
+// that were not actually requested.
+func (s *PectraGenesisSuite) TestMaliciousProposer_AddInvalidExecutionRequests_IsRejected() {
+	// Initialize the chain state.
+	s.InitializeChain(s.T())
+
+	// Retrieve the BLS signer and proposer address.
+	blsSigner := simulated.GetBlsSigner(s.HomeDir)
+	pubkey, err := blsSigner.GetPubKey()
+	s.Require().NoError(err)
+
+	nextBlockHeight := int64(1)
+	// We must first move the chain by 1 height such that the withdrawal contract has an updated `EXCESS_INHIBITOR`.
+	{
+		proposals, _, _ := s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
+		s.Require().Len(proposals, 1)
+		nextBlockHeight++
+	}
+
+	// Create a signed block with invalid execution requests.
+	var maliciousSignedBlock *ctypes.SignedBeaconBlock
+	var proposal *v1.PrepareProposalResponse
+	proposalTime := time.Now()
+	{
+		s.LogBuffer.Reset()
+		proposal, err = s.SimComet.Comet.PrepareProposal(s.CtxComet, &v1.PrepareProposalRequest{
+			Height:          nextBlockHeight,
+			Time:            time.Now(),
+			ProposerAddress: pubkey.Address(),
+		})
+		s.Require().NoError(err)
+		s.Require().Len(proposal.Txs, 2)
+		// Unmarshal the proposal block.
+		proposedBlock, unmarshalErr := encoding.UnmarshalBeaconBlockFromABCIRequest(
+			proposal.Txs,
+			blockchain.BeaconBlockTxIndex,
+			s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(math.U64(proposalTime.Unix())),
+		)
+		s.Require().NoError(unmarshalErr)
+
+		// Invalid Execution Request
+		invalidExecutionRequests := &ctypes.ExecutionRequests{
+			Deposits: []*ctypes.DepositRequest{
+				{
+					Pubkey:      [48]byte{0, 1, 2},
+					Credentials: [32]byte{0, 3, 2},
+					Amount:      10000000,
+					Signature:   [96]byte{5, 6, 7},
+					Index:       5,
+				},
+			},
+			Withdrawals:    nil,
+			Consolidations: nil,
+		}
+
+		// Create a malicious block by injecting an invalid Execution Request.
+		maliciousBlock := simulated.ComputeAndSetInvalidExecutionBlock(
+			s.T(), proposedBlock.GetBeaconBlock(), s.TestNode.ChainSpec, nil, invalidExecutionRequests,
+		)
+		// Re-sign the block
+		maliciousSignedBlock, err = ctypes.NewSignedBeaconBlock(
+			maliciousBlock,
+			&ctypes.ForkData{
+				CurrentVersion:        s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(maliciousBlock.GetTimestamp()),
+				GenesisValidatorsRoot: s.GenesisValidatorsRoot,
+			},
+			s.TestNode.ChainSpec,
+			blsSigner,
+		)
+		s.Require().NoError(err)
+
+		// Check that the block contains the invalid execution request.
+		requests, getErr := maliciousSignedBlock.GetBeaconBlock().GetBody().GetExecutionRequests()
+		s.Require().NoError(getErr)
+		s.Require().Len(requests.Deposits, 1)
+
+	}
+	// Propose the invalid block
+	{
+		maliciousBlockBytes, sszErr := maliciousSignedBlock.MarshalSSZ()
+		s.Require().NoError(sszErr)
+
+		// Replace the valid block with the malicious block in the proposal.
+		proposal.Txs[0] = maliciousBlockBytes
+
+		// Reset the log buffer to discard old logs we don't care about
+		s.LogBuffer.Reset()
+		// Process the proposal containing the malicious block.
+		processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &v1.ProcessProposalRequest{
+			Txs:             proposal.Txs,
+			Height:          nextBlockHeight,
+			ProposerAddress: pubkey.Address(),
+			Time:            proposalTime,
+		})
+		s.Require().NoError(err)
+		s.Require().Equal(v1.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
+
+		// Verify that the log contains the expected error message.
+		s.Require().Contains(s.LogBuffer.String(), errors.ErrInvalidPayloadStatus.Error())
+		s.Require().Contains(s.LogBuffer.String(), "invalid requests hash (remote: 33ba74e937423115e3abf4250db02588388b4b3a7918950ed44a28e4bf3428d2 local: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855)")
+	}
 }
