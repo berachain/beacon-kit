@@ -101,7 +101,7 @@ func (sp *StateProcessor) processWithdrawals(
 			return getErr
 		}
 		updatedWithdrawals := ppWithdrawals[processedPartialWithdrawalsCount:]
-		sp.metrics.gaugePendingPartialWithdrawalsCount(len(updatedWithdrawals))
+		sp.metrics.gaugePartialWithdrawalsEnqueued(len(updatedWithdrawals))
 		if setErr := st.SetPendingPartialWithdrawals(updatedWithdrawals); setErr != nil {
 			return setErr
 		}
@@ -251,7 +251,7 @@ func (sp *StateProcessor) processPartialWithdrawal(
 			"has_sufficient", hasSufficient,
 			"has_excess", hasExcess,
 		)
-		sp.metrics.incrementPartialWithdrawalFailed()
+		sp.metrics.incrementPartialWithdrawalRequestInvalid()
 		return nil
 	}
 
@@ -275,7 +275,7 @@ func (sp *StateProcessor) processPartialWithdrawal(
 		WithdrawableEpoch: withdrawableEpoch,
 	}
 	pendingWithdrawals = append(pendingWithdrawals, ppWithdrawal)
-	sp.metrics.gaugePendingPartialWithdrawalsCount(len(pendingWithdrawals))
+	sp.metrics.gaugePartialWithdrawalsEnqueued(len(pendingWithdrawals))
 	return st.SetPendingPartialWithdrawals(pendingWithdrawals)
 }
 

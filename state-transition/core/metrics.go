@@ -30,19 +30,13 @@ type stateProcessorMetrics struct {
 }
 
 // newStateProcessorMetrics creates a new stateProcessorMetrics.
-func newStateProcessorMetrics(
-	sink TelemetrySink,
-) *stateProcessorMetrics {
+func newStateProcessorMetrics(sink TelemetrySink) *stateProcessorMetrics {
 	return &stateProcessorMetrics{
 		sink: sink,
 	}
 }
 
-func (s *stateProcessorMetrics) gaugeBlockGasUsed(
-	blockNumber math.U64,
-	txGasUsed math.U64,
-	blobGasUsed math.U64,
-) {
+func (s *stateProcessorMetrics) gaugeBlockGasUsed(blockNumber, txGasUsed, blobGasUsed math.U64) {
 	blockNumberStr := blockNumber.Base10()
 	s.sink.SetGauge(
 		"beacon_kit.state.block_tx_gas_used",
@@ -58,14 +52,11 @@ func (s *stateProcessorMetrics) gaugeBlockGasUsed(
 	)
 }
 
-func (s *stateProcessorMetrics) gaugePendingPartialWithdrawalsCount(count int) {
-	s.sink.SetGauge("beacon_kit.state.pending_partial_withdrawals_count", int64(count))
+func (s *stateProcessorMetrics) gaugePartialWithdrawalsEnqueued(count int) {
+	s.sink.SetGauge("beacon_kit.state.partial_withdrawals_enqueued", int64(count))
 }
 
-func (s *stateProcessorMetrics) gaugeTimestamps(
-	payloadTimestamp uint64,
-	consensusTimestamp uint64,
-) {
+func (s *stateProcessorMetrics) gaugeTimestamps(payloadTimestamp, consensusTimestamp uint64) {
 	// the diff can be positive or negative depending on whether the payload
 	// timestamp is ahead or behind the consensus timestamp
 	diff := int64(payloadTimestamp) - int64(consensusTimestamp) // #nosec G115
@@ -80,8 +71,8 @@ func (s *stateProcessorMetrics) incrementPartialWithdrawalRequestDropped() {
 	s.sink.IncrementCounter("beacon_kit.state.partial_withdrawal_request_dropped")
 }
 
-func (s *stateProcessorMetrics) incrementPartialWithdrawalFailed() {
-	s.sink.IncrementCounter("beacon_kit.state.partial_withdrawal_failed")
+func (s *stateProcessorMetrics) incrementPartialWithdrawalRequestInvalid() {
+	s.sink.IncrementCounter("beacon_kit.state.partial_withdrawal_request_invalid")
 }
 
 func (s *stateProcessorMetrics) incrementValidatorNotWithdrawable() {
