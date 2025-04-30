@@ -42,6 +42,7 @@ type Backend struct {
 	depositStore      *depositdb.KVStore
 	blockStore        *block.KVStore[*types.BeaconBlock]
 	logger            log.Logger
+	telemetrySink     statedb.TelemetrySink
 }
 
 func NewBackend(
@@ -51,6 +52,7 @@ func NewBackend(
 	depositStore *depositdb.KVStore,
 	blockStore *block.KVStore[*types.BeaconBlock],
 	logger log.Logger,
+	telemetrySink statedb.TelemetrySink,
 ) *Backend {
 	return &Backend{
 		chainSpec:         chainSpec,
@@ -71,7 +73,12 @@ func (k Backend) AvailabilityStore() *dastore.Store {
 // StateFromContext returns the beacon state struct initialized with a given
 // context and the store key.
 func (k Backend) StateFromContext(ctx context.Context) *statedb.StateDB {
-	return statedb.NewBeaconStateFromDB(k.kvStore.WithContext(ctx), k.chainSpec, k.logger)
+	return statedb.NewBeaconStateFromDB(
+		k.kvStore.WithContext(ctx),
+		k.chainSpec,
+		k.logger,
+		k.telemetrySink,
+	)
 }
 
 // BeaconStore returns the beacon store struct.

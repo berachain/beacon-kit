@@ -40,22 +40,26 @@ import (
 type StateDB struct {
 	beacondb.KVStore
 
-	cs     ChainSpec
-	logger log.Logger
+	cs            ChainSpec
+	logger        log.Logger
+	telemetrySink TelemetrySink
 }
 
 // NewBeaconStateFromDB creates a new beacon state from an underlying state db.
-func NewBeaconStateFromDB(bdb *beacondb.KVStore, cs ChainSpec, logger log.Logger) *StateDB {
+func NewBeaconStateFromDB(
+	bdb *beacondb.KVStore, cs ChainSpec, logger log.Logger, telemetrySink TelemetrySink,
+) *StateDB {
 	return &StateDB{
-		KVStore: *bdb,
-		cs:      cs,
-		logger:  logger,
+		KVStore:       *bdb,
+		cs:            cs,
+		logger:        logger,
+		telemetrySink: telemetrySink,
 	}
 }
 
 // Copy returns a copy of the beacon state.
 func (s *StateDB) Copy(ctx context.Context) *StateDB {
-	return NewBeaconStateFromDB(s.KVStore.Copy(ctx), s.cs, s.logger)
+	return NewBeaconStateFromDB(s.KVStore.Copy(ctx), s.cs, s.logger, s.telemetrySink)
 }
 
 // GetEpoch returns the current epoch.
@@ -268,6 +272,7 @@ func (s *StateDB) consumePendingPartialWithdrawals(
 				"exit_epoch", validator.GetExitEpoch(),
 				"withdrawable_epoch", withdrawal.WithdrawableEpoch,
 			)
+			s.incrementPartialWithdrawalRequestInvalid()
 		}
 		// Even if a withdrawal was not created, e.g. the validator did not have sufficient balance, we will consider
 		// this withdrawal processed (spec defined) and hence increment the processedPartialWithdrawals count.

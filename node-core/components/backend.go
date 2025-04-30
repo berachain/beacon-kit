@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	"github.com/berachain/beacon-kit/log/phuslu"
+	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/berachain/beacon-kit/storage/beacondb"
 	"github.com/berachain/beacon-kit/storage/block"
@@ -41,6 +42,7 @@ type StorageBackendInput struct {
 	DepositStore      *depositdb.KVStore
 	BeaconStore       *beacondb.KVStore
 	Logger            *phuslu.Logger
+	TelemetrySink     *metrics.TelemetrySink
 }
 
 // ProvideStorageBackend is the depinject provider that returns a beacon storage
@@ -55,5 +57,6 @@ func ProvideStorageBackend(
 		in.DepositStore,
 		in.BlockStore,
 		in.Logger.With("service", "storage-backend"),
+		in.TelemetrySink,
 	)
 }
