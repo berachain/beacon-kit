@@ -54,6 +54,6 @@ func ProvideStorageBackend(
 		in.BeaconStore,
 		in.DepositStore,
 		in.BlockStore,
-		in.Logger,
+		in.Logger.With("backend", "storage"),
 	)
 }
