@@ -61,6 +61,7 @@ func NewBackend(
 		depositStore:      depositStore,
 		blockStore:        blockStore,
 		logger:            logger,
+		telemetrySink:     telemetrySink,
 	}
 }
 
