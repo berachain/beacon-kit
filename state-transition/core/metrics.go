@@ -37,10 +37,6 @@ func newStateProcessorMetrics(sink TelemetrySink) *stateProcessorMetrics {
 }
 
 func (s *stateProcessorMetrics) gaugeBlockGasUsed(blockNumber, txGasUsed, blobGasUsed math.U64) {
-	if s.sink == nil {
-		return
-	}
-
 	blockNumberStr := blockNumber.Base10()
 	s.sink.SetGauge(
 		"beacon_kit.state.block_tx_gas_used",
@@ -57,18 +53,10 @@ func (s *stateProcessorMetrics) gaugeBlockGasUsed(blockNumber, txGasUsed, blobGa
 }
 
 func (s *stateProcessorMetrics) gaugePartialWithdrawalsEnqueued(count int) {
-	if s.sink == nil {
-		return
-	}
-
 	s.sink.SetGauge("beacon_kit.state.partial_withdrawals_enqueued", int64(count))
 }
 
 func (s *stateProcessorMetrics) gaugeTimestamps(payloadTimestamp, consensusTimestamp uint64) {
-	if s.sink == nil {
-		return
-	}
-
 	// the diff can be positive or negative depending on whether the payload
 	// timestamp is ahead or behind the consensus timestamp
 	diff := int64(payloadTimestamp) - int64(consensusTimestamp) // #nosec G115
@@ -76,33 +64,17 @@ func (s *stateProcessorMetrics) gaugeTimestamps(payloadTimestamp, consensusTimes
 }
 
 func (s *stateProcessorMetrics) incrementDepositStakeLost() {
-	if s.sink == nil {
-		return
-	}
-
 	s.sink.IncrementCounter("beacon_kit.state.deposit_stake_lost")
 }
 
 func (s *stateProcessorMetrics) incrementPartialWithdrawalRequestDropped() {
-	if s.sink == nil {
-		return
-	}
-
 	s.sink.IncrementCounter("beacon_kit.state.partial_withdrawal_request_dropped")
 }
 
 func (s *stateProcessorMetrics) incrementPartialWithdrawalRequestInvalid() {
-	if s.sink == nil {
-		return
-	}
-
 	s.sink.IncrementCounter("beacon_kit.state.partial_withdrawal_request_invalid")
 }
 
 func (s *stateProcessorMetrics) incrementValidatorNotWithdrawable() {
-	if s.sink == nil {
-		return
-	}
-
 	s.sink.IncrementCounter("beacon_kit.state.validator_not_withdrawable")
 }

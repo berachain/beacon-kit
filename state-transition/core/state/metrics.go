@@ -21,9 +21,5 @@
 package state
 
 func (s *StateDB) incrementPartialWithdrawalRequestInvalid() {
-	if s.telemetrySink == nil {
-		return
-	}
-
 	s.telemetrySink.IncrementCounter("beacon_kit.statedb.partial_withdrawal_request_invalid")
 }
