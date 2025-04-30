@@ -390,11 +390,13 @@ func updateBeaconBlockBody(
 	sidecars []*gethtypes.BlobTxSidecar, // adjust type as needed
 	executionRequests *ctypes.ExecutionRequests,
 ) *ctypes.BeaconBlock {
-	encodedExecRequests, err := ctypes.GetExecutionRequestsList(executionRequests)
-	require.NoError(t, err)
 	var erBytes [][]byte
-	for _, er := range encodedExecRequests {
-		erBytes = append(erBytes, er)
+	if version.EqualsOrIsAfter(forkVersion, version.Electra()) {
+		encodedExecRequests, err := ctypes.GetExecutionRequestsList(executionRequests)
+		require.NoError(t, err)
+		for _, er := range encodedExecRequests {
+			erBytes = append(erBytes, er)
+		}
 	}
 	// Convert the Geth block into ExecutableData.
 	execData := gethprimitives.BlockToExecutableData(execBlock, nil, sidecars, erBytes)
@@ -403,7 +405,10 @@ func updateBeaconBlockBody(
 	require.NoError(t, err, "failed to convert executable data")
 	// Update the beacon block with the new execution payload.
 	latestBlock.GetBody().SetExecutionPayload(execPayload)
-	err = latestBlock.GetBody().SetExecutionRequests(executionRequests)
-	require.NoError(t, err)
+
+	if version.EqualsOrIsAfter(forkVersion, version.Electra()) {
+		err = latestBlock.GetBody().SetExecutionRequests(executionRequests)
+		require.NoError(t, err)
+	}
 	return latestBlock
 }
