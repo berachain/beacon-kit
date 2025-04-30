@@ -263,8 +263,9 @@ func ComputeAndSetInvalidExecutionBlock(
 
 	var execBlock *gethtypes.Block
 	var err error
-	if executionRequests != nil {
-		encodedExecRequests, err := ctypes.GetExecutionRequestsList(executionRequests)
+	if version.EqualsOrIsAfter(forkVersion, version.Electra()) {
+		var encodedExecRequests []ctypes.EncodedExecutionRequest
+		encodedExecRequests, err = ctypes.GetExecutionRequestsList(executionRequests)
 		require.NoError(t, err)
 		execBlock, _, err = ctypes.MakeEthBlockWithExecutionRequests(executionPayload, &parentBlockRoot, encodedExecRequests)
 		require.NoError(t, err)
