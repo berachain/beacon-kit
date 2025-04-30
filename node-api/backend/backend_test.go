@@ -48,7 +48,7 @@ func (t *testConsensusService) CreateQueryContext(height int64, _ bool) (sdk.Con
 	sdkCtx := sdk.NewContext(t.cms.CacheMultiStore(), false, log.NewNopLogger())
 
 	// there validations mimics consensus service, not sure if they are necessary
-	tmpState := statedb.NewBeaconStateFromDB(t.kvStore.WithContext(sdkCtx), t.cs)
+	tmpState := statedb.NewBeaconStateFromDB(t.kvStore.WithContext(sdkCtx), t.cs, sdkCtx.Logger())
 	slot, err := tmpState.GetSlot()
 	if err != nil {
 		return sdk.Context{}, sdkerrors.ErrInvalidHeight

@@ -127,7 +127,7 @@ func TestPayloadTimestampVerification(t *testing.T) {
 
 			// create independent states per each test
 			sdkCtx := sdk.NewContext(cms.CacheMultiStore(), true, log.NewNopLogger())
-			testSt := statedb.NewBeaconStateFromDB(st.KVStore.WithContext(sdkCtx), cs)
+			testSt := statedb.NewBeaconStateFromDB(st.KVStore.WithContext(sdkCtx), cs, sdkCtx.Logger())
 
 			tCtx := transition.NewTransitionCtx(
 				sdkCtx,
