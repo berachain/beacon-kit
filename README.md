@@ -83,7 +83,9 @@ Please refer to the [Kurtosis README](https://github.com/berachain/beacon-kit/bl
 
 `beacond start` starts the chain client and begins the syncing process.
 
-The key environment variable is `CHAIN_SPEC`, which can be set to `mainnet`, `testnet`, or `devnet`. This should be set any time when using beacond. It will influence which configuration files you get during `init` and which chain ID beacond will communicate with while running.  
+The key configuration value is the Beacon chain specification ("chainspec")  - analogous to an Eth genesis - is held in a spec.toml file. There are three well-known chainspecs (`mainnet|testnet|devnet`).  Or, a custom file can be provided to provide your own scenario's settings - see this [example using Docker](https://docs.berachain.com/nodes/guides/docker-devnet).
+
+The chainspec is set with the `--beacon-kit.chain-spec` command line option, and if necessary for a custom chainspec, use `--beacon-kit.chain-spec-file`.  If used during `beacond init`, this value is written into app.toml and does not need to be specified anymore.
 
 You can override the default operating directories for beacond with the `--home <path>` option.
 
