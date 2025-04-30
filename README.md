@@ -89,4 +89,10 @@ The chainspec is set with the `--beacon-kit.chain-spec` command line option, and
 
 You can override the default operating directories for beacond with the `--home <path>` option.
 
-The [Berachain Node Quickstart](https://docs.berachain.com/nodes/quickstart) provides a complete example of a functioning setup, suitable for a development system or for experiments.  
+The [Berachain Node Quickstart](https://docs.berachain.com/nodes/quickstart) provides a quick deployment of mainnet or testnet on your desk. 
+
+For developing with beacon-kit, you have options:
+1. see the Makefile for targets to start stand-alone processes
+2. see [an example deploying a team with Docker on a custom chainspec](https://docs.berachain.com/nodes/guides/docker-devnet)
+3. see [a deployment with Kurtosis](https://docs.berachain.com/nodes/guides/kurtosis)
+4. see [an expect script that does a complete cycle of deposits, withdrawal, eviction, voluntary exit](https://github.com/berachain/guides/blob/main/apps/local-docker-devnet/devnet-automation.exp)
