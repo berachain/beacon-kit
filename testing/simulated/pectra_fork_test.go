@@ -228,7 +228,7 @@ func (s *PectraForkSuite) TestTimestampFork_ELAndCLInSync_IsSuccessful() {
 	}
 }
 
-// TestMaliciousUser_MakesConsolidationRequest_IsIgnored a user makes a consolidation request on our chain
+// TestBadUser_MakesConsolidationRequest_IsIgnored a user makes a consolidation request on our chain
 // which isn't supported.
 func (s *PectraForkSuite) TestMaliciousUser_MakesConsolidationRequest_IsIgnored() {
 	// Initialize the chain state.
