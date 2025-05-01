@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package eip7002_test
+package eip7685_test
 
 import (
 	"encoding/hex"
@@ -26,7 +26,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/eip7002"
+	"github.com/berachain/beacon-kit/primitives/eip7685"
 	beaconmath "github.com/berachain/beacon-kit/primitives/math"
 	"github.com/stretchr/testify/require"
 )
@@ -66,7 +66,7 @@ func TestCreateWithdrawalRequestData(t *testing.T) {
 			require.NoError(t, err)
 			blsPubKey := crypto.BLSPubkey(blsPubKeyBytes)
 			// Call the function under test.
-			result, err := eip7002.CreateWithdrawalRequestData(blsPubKey, beaconmath.U64(tt.withdrawAmount))
+			result, err := eip7685.CreateWithdrawalRequestData(blsPubKey, beaconmath.U64(tt.withdrawAmount))
 			require.NoError(t, err)
 			// Compare the resulting bytes with the expected output.
 			require.Equal(t, tt.expected, result.String())
