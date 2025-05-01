@@ -243,7 +243,7 @@ func (s *PectraForkSuite) TestMaliciousUser_MakesConsolidationRequest_IsIgnored(
 	nextBlockHeight := int64(1)
 	// We must first move the chain to the fork height, then an extra block
 	// such that the consolidation contract has an updated `EXCESS_INHIBITOR`.
-	// We set the timestamp such that the fork has occurred (i.e. time.Now)
+	// We set the timestamp such that the fork has occurred (i.e., time.Now)
 	{
 		for i := 0; i < 2; i++ {
 			consensusTime := time.Now()
@@ -306,7 +306,7 @@ func (s *PectraForkSuite) TestMaliciousUser_MakesConsolidationRequest_IsIgnored(
 		err = s.Geth.TestNode.EngineClient.Call(s.Geth.CtxApp, &result, "eth_sendRawTransaction", hexutil.Encode(txBytes))
 		s.Require().NoError(err)
 	}
-	// Move the chain so that tx is included and progresses correctly afterwards.
+	// Move the chain so that tx is included and progresses correctly afterward.
 	{
 		for i := 0; i < 5; i++ {
 			consensusTime := time.Now()
