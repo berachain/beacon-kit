@@ -31,6 +31,7 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/log/phuslu"
+	"github.com/berachain/beacon-kit/primitives/eip7685"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
 	"github.com/cometbft/cometbft/abci/types"
@@ -224,6 +225,121 @@ func (s *PectraForkSuite) TestTimestampFork_ELAndCLInSync_IsSuccessful() {
 		processFinalizeCommit(s.T(), s.Geth, processRequest, finalizeRequest, expectedMessage)
 		processFinalizeCommit(s.T(), s.Reth, processRequest, finalizeRequest, expectedMessage)
 		expectedMessagesIdx++
+	}
+}
+
+// TestMaliciousUser_MakesConsolidationRequest_IsIgnored a user makes a consolidation request on our chain
+// which isn't supported.
+func (s *PectraForkSuite) TestMaliciousUser_MakesConsolidationRequest_IsIgnored() {
+	// Initialize the chain state.
+	s.Geth.InitializeChain(s.T())
+	s.Reth.InitializeChain(s.T())
+
+	// Retrieve the BLS signer and proposer address.
+	blsSigner := simulated.GetBlsSigner(s.Geth.HomeDir)
+	pubkey, err := blsSigner.GetPubKey()
+	s.Require().NoError(err)
+
+	nextBlockHeight := int64(1)
+	// We must first move the chain to the fork height, then an extra block
+	// such that the consolidation contract has an updated `EXCESS_INHIBITOR`.
+	// We set the timestamp such that the fork has occurred (i.e. time.Now)
+	{
+		for i := 0; i < 2; i++ {
+			consensusTime := time.Now()
+			proposal, err := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
+				Height:          nextBlockHeight,
+				Time:            consensusTime,
+				ProposerAddress: pubkey.Address(),
+			})
+			s.Require().NoError(err)
+			s.Require().Len(proposal.Txs, 2)
+
+			processRequest := &types.ProcessProposalRequest{
+				Txs:             proposal.Txs,
+				Height:          nextBlockHeight,
+				ProposerAddress: pubkey.Address(),
+				Time:            consensusTime,
+			}
+
+			finalizeRequest := &types.FinalizeBlockRequest{
+				Txs:             proposal.Txs,
+				Height:          nextBlockHeight,
+				ProposerAddress: pubkey.Address(),
+				Time:            consensusTime,
+			}
+			expectedMsg := "fork=0x05000000"
+			processFinalizeCommit(s.T(), s.Geth, processRequest, finalizeRequest, expectedMsg)
+			processFinalizeCommit(s.T(), s.Reth, processRequest, finalizeRequest, expectedMsg)
+			nextBlockHeight++
+		}
+	}
+	// Next we submit the Consolidation request transaction
+	{
+		// corresponds with the funded address in genesis
+		senderKey, err := crypto.HexToECDSA("fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306")
+		s.Require().NoError(err)
+
+		elChainID := big.NewInt(int64(s.Geth.TestNode.ChainSpec.DepositEth1ChainID()))
+		signer := gethtypes.NewPragueSigner(elChainID)
+
+		fee, feeErr := eip7685.GetConsolidationFee(s.Geth.CtxApp, s.Geth.TestNode.EngineClient)
+		s.Require().NoError(feeErr)
+
+		// The inputs to the request do not necessarily matter, as long as they pass EL validation
+		consolidationTxData, requestErr := eip7685.CreateConsolidationRequestData(blsSigner.PublicKey(), blsSigner.PublicKey())
+		s.Require().NoError(requestErr)
+
+		consolidationTx := gethtypes.MustSignNewTx(senderKey, signer, &gethtypes.DynamicFeeTx{
+			ChainID:   elChainID,
+			Nonce:     0,
+			To:        &params.ConsolidationQueueAddress,
+			Gas:       500_000,
+			GasFeeCap: big.NewInt(1000000000),
+			GasTipCap: big.NewInt(1000000000),
+			Value:     fee,
+			Data:      consolidationTxData,
+		})
+		txBytes, marshalErr := consolidationTx.MarshalBinary()
+		s.Require().NoError(marshalErr)
+		var result interface{}
+		err = s.Geth.TestNode.EngineClient.Call(s.Geth.CtxApp, &result, "eth_sendRawTransaction", hexutil.Encode(txBytes))
+		s.Require().NoError(err)
+	}
+	// Move the chain so that tx is included and progresses correctly afterwards.
+	{
+		for i := 0; i < 5; i++ {
+			consensusTime := time.Now()
+			proposal, err := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
+				Height:          nextBlockHeight,
+				Time:            consensusTime,
+				ProposerAddress: pubkey.Address(),
+			})
+			s.Require().NoError(err)
+			s.Require().Len(proposal.Txs, 2)
+
+			processRequest := &types.ProcessProposalRequest{
+				Txs:             proposal.Txs,
+				Height:          nextBlockHeight,
+				ProposerAddress: pubkey.Address(),
+				Time:            consensusTime,
+			}
+
+			finalizeRequest := &types.FinalizeBlockRequest{
+				Txs:             proposal.Txs,
+				Height:          nextBlockHeight,
+				ProposerAddress: pubkey.Address(),
+				Time:            consensusTime,
+			}
+			var expectedMsg string
+			if i == 0 {
+				// The first block since tx submission will have the consolidation propagated to the CL.
+				expectedMsg = "consolidations=1"
+			}
+			processFinalizeCommit(s.T(), s.Geth, processRequest, finalizeRequest, expectedMsg)
+			processFinalizeCommit(s.T(), s.Reth, processRequest, finalizeRequest, expectedMsg)
+			nextBlockHeight++
+		}
 	}
 }
 
