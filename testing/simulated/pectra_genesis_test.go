@@ -150,101 +150,120 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithoutRequests_IsSuccessful() {
 	s.Require().Len(proposals, coreLoopIterations)
 }
 
-func (s *PectraGenesisSuite) TestFullLifecycle_WithPartialWithdrawalRequest_IsSuccessful() {
+func (s *PectraGenesisSuite) TestFullLifecycle_WithPartialWithdrawalRequests_IsSuccessful() {
 	// Initialize the chain state.
 	s.InitializeChain(s.T())
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
-
 	nextBlockHeight := int64(1)
 	// We must first move the chain by 1 height such that the withdrawal contract has an updated `EXCESS_INHIBITOR`.
-	proposals, _, _ := s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
-	s.Require().Len(proposals, 1)
-	nextBlockHeight = nextBlockHeight + 1
+	{
+		proposals, _, _ := s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
+		s.Require().Len(proposals, 1)
+		nextBlockHeight++
+	}
 
-	// create withdrawal request
-	// corresponds with funded address in genesis `simulated.WithdrawalExecutionAddress`
-	senderKey, err := crypto.HexToECDSA("fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306")
-	s.Require().NoError(err)
+	// create and submit the withdrawal request
+	totalWithdrawalAmount := 3456
+	{
+		// corresponds with the funded address in genesis `simulated.WithdrawalExecutionAddress`
+		senderKey, err := crypto.HexToECDSA("fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306")
+		s.Require().NoError(err)
 
-	elChainID := big.NewInt(int64(s.TestNode.ChainSpec.DepositEth1ChainID()))
-	signer := types.NewPragueSigner(elChainID)
+		elChainID := big.NewInt(int64(s.TestNode.ChainSpec.DepositEth1ChainID()))
+		signer := types.NewPragueSigner(elChainID)
 
-	fee, err := eip7685.GetWithdrawalFee(s.CtxApp, s.TestNode.EngineClient)
-	s.Require().NoError(err)
+		fee, err := eip7685.GetWithdrawalFee(s.CtxApp, s.TestNode.EngineClient)
+		s.Require().NoError(err)
 
-	withdrawalAmount := 3456
-	withdrawalTxData, err := eip7685.CreateWithdrawalRequestData(blsSigner.PublicKey(), math.Gwei(withdrawalAmount))
-	s.Require().NoError(err)
+		totalTxs := 2
+		amountPerTx := totalWithdrawalAmount / totalTxs
+		withdrawalTxData, err := eip7685.CreateWithdrawalRequestData(blsSigner.PublicKey(), math.Gwei(amountPerTx))
+		s.Require().NoError(err)
 
-	withdrawalTx := types.MustSignNewTx(senderKey, signer, &types.DynamicFeeTx{
-		ChainID:   elChainID,
-		Nonce:     0,
-		To:        &params.WithdrawalQueueAddress,
-		Gas:       500_000,
-		GasFeeCap: big.NewInt(1000000000),
-		GasTipCap: big.NewInt(1000000000),
-		Value:     fee,
-		Data:      withdrawalTxData,
-	})
+		// submit 2 txs
+		for i := 0; i < totalTxs; i++ {
+			withdrawalTx := types.MustSignNewTx(senderKey, signer, &types.DynamicFeeTx{
+				ChainID:   elChainID,
+				Nonce:     uint64(i),
+				To:        &params.WithdrawalQueueAddress,
+				Gas:       500_000,
+				GasFeeCap: big.NewInt(1000000000),
+				GasTipCap: big.NewInt(1000000000),
+				Value:     fee,
+				Data:      withdrawalTxData,
+			})
 
-	var balance hexutil.Big
-	err = s.TestNode.EngineClient.Call(s.CtxApp, &balance, "eth_getBalance", simulated.WithdrawalExecutionAddress, "latest")
-	s.T().Logf("Balance before withdrawal request sent: %s", balance.ToInt().String())
+			var balance hexutil.Big
+			err = s.TestNode.EngineClient.Call(s.CtxApp, &balance, "eth_getBalance", simulated.WithdrawalExecutionAddress, "latest")
+			s.T().Logf("Balance before withdrawal request sent: %s", balance.ToInt().String())
 
-	txBytes, err := withdrawalTx.MarshalBinary()
-	s.Require().NoError(err)
+			var txBytes []byte
+			txBytes, err = withdrawalTx.MarshalBinary()
+			s.Require().NoError(err)
 
-	var result interface{}
-	err = s.TestNode.EngineClient.Call(s.CtxApp, &result, "eth_sendRawTransaction", hexutil.Encode(txBytes))
-	s.Require().NoError(err)
+			var result interface{}
+			err = s.TestNode.EngineClient.Call(s.CtxApp, &result, "eth_sendRawTransaction", hexutil.Encode(txBytes))
+			s.Require().NoError(err)
+		}
+	}
 
-	// Go through 1 iteration of the core loop so that the withdrawal tx is included
-	s.LogBuffer.Reset()
-	proposals, _, _ = s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
-	s.Require().Len(proposals, 1)
-	// Log contains 1 withdrawal
-	s.Require().Contains(s.LogBuffer.String(), "Processing execution requests service=state-processor\u001B[0m deposits=0\u001B[0m withdrawals=1\u001B[0m consolidations=0\u001B[0m")
-
-	s.LogBuffer.Reset()
+	// Go through 1 iteration of the core loop so that both withdrawal txs is included
 	var afterRequestBalance hexutil.Big
-	err = s.TestNode.EngineClient.Call(s.CtxApp, &afterRequestBalance, "eth_getBalance", simulated.WithdrawalExecutionAddress, "latest")
-	s.T().Logf("Balance after withdrawal request included in block: %s", afterRequestBalance.ToInt().String())
+	{
+		s.LogBuffer.Reset()
+		proposals, _, _ := s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
+		s.Require().Len(proposals, 1)
+		// Log contains 2 withdrawals
+		s.Require().Contains(s.LogBuffer.String(), "Processing execution requests service=state-processor\u001B[0m deposits=0\u001B[0m withdrawals=2\u001B[0m consolidations=0\u001B[0m")
+
+		s.LogBuffer.Reset()
+		err := s.TestNode.EngineClient.Call(s.CtxApp, &afterRequestBalance, "eth_getBalance", simulated.WithdrawalExecutionAddress, "latest")
+		s.Require().NoError(err)
+		s.T().Logf("Balance after withdrawal request included in block: %s", afterRequestBalance.ToInt().String())
+		nextBlockHeight++
+	}
 
 	// We must progress to Epoch `nextEpoch + MinValidatorWithdrawabilityDelay` before the balance will be removed.
 	// IterationsToTurn will get us to the slot before the turn of the target
-	epochOfWithdrawalRequest := s.TestNode.ChainSpec.SlotToEpoch(math.Slot(nextBlockHeight))
-	nextEpoch := epochOfWithdrawalRequest + 1
-	targetEpoch := nextEpoch + s.TestNode.ChainSpec.MinValidatorWithdrawabilityDelay()
-	iterationsToTurn := (s.TestNode.ChainSpec.SlotsPerEpoch() * uint64(targetEpoch)) - uint64(nextBlockHeight) - 1
-
-	nextBlockHeight += 1
-	proposals, _, _ = s.MoveChainToHeight(s.T(), nextBlockHeight, int64(iterationsToTurn), blsSigner, time.Now())
-
-	s.LogBuffer.Reset()
 	var beforeWithdrawalBalance hexutil.Big
-	err = s.TestNode.EngineClient.Call(s.CtxApp, &beforeWithdrawalBalance, "eth_getBalance", simulated.WithdrawalExecutionAddress, "latest")
-	s.T().Logf("Balance before withdrawal processed: %s", beforeWithdrawalBalance.ToInt().String())
+	{
+		prevBlockHeight := nextBlockHeight - 1
+		epochOfWithdrawalRequest := s.TestNode.ChainSpec.SlotToEpoch(math.Slot(prevBlockHeight))
+		nextEpoch := epochOfWithdrawalRequest + 1
+		targetEpoch := nextEpoch + s.TestNode.ChainSpec.MinValidatorWithdrawabilityDelay()
+		iterationsToTurn := (s.TestNode.ChainSpec.SlotsPerEpoch() * uint64(targetEpoch)) - uint64(prevBlockHeight) - 1
 
-	// Balance should not have changed yet
-	s.Require().Equal(afterRequestBalance.ToInt().String(), beforeWithdrawalBalance.ToInt().String())
+		_, _, _ = s.MoveChainToHeight(s.T(), nextBlockHeight, int64(iterationsToTurn), blsSigner, time.Now())
 
-	// The next block will be the turn of the Epoch, and balance will change
-	nextBlockHeight = nextBlockHeight + int64(iterationsToTurn)
-	proposals, _, _ = s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
+		s.LogBuffer.Reset()
+		err := s.TestNode.EngineClient.Call(s.CtxApp, &beforeWithdrawalBalance, "eth_getBalance", simulated.WithdrawalExecutionAddress, "latest")
+		s.Require().NoError(err)
+		s.T().Logf("Balance before withdrawal processed: %s", beforeWithdrawalBalance.ToInt().String())
 
-	var afterWithdrawalBalance hexutil.Big
-	err = s.TestNode.EngineClient.Call(s.CtxApp, &afterWithdrawalBalance, "eth_getBalance", simulated.WithdrawalExecutionAddress, "latest")
-	s.T().Logf("Balance after withdrawal processed: %s", afterWithdrawalBalance.ToInt().String())
+		// Balance should not have changed yet
+		s.Require().Equal(afterRequestBalance.ToInt().String(), beforeWithdrawalBalance.ToInt().String())
+		nextBlockHeight = nextBlockHeight + int64(iterationsToTurn)
+	}
 
-	withdrawalAmountWei := new(big.Int).Mul(big.NewInt(int64(withdrawalAmount)), big.NewInt(params.GWei))
+	// The next block will be the turn of the Epoch, and the balance will change
+	{
+		_, _, _ = s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
 
-	// Expected balance is balance before withdrawal + withdrawalAmount
-	expectedBalance := new(big.Int).Add(beforeWithdrawalBalance.ToInt(), withdrawalAmountWei)
+		var afterWithdrawalBalance hexutil.Big
+		err := s.TestNode.EngineClient.Call(s.CtxApp, &afterWithdrawalBalance, "eth_getBalance", simulated.WithdrawalExecutionAddress, "latest")
+		s.Require().NoError(err)
+		s.T().Logf("Balance after withdrawal processed: %s", afterWithdrawalBalance.ToInt().String())
 
-	// The new balance of the validator is updated
-	s.Require().Equal(expectedBalance.String(), afterWithdrawalBalance.ToInt().String())
+		withdrawalAmountWei := new(big.Int).Mul(big.NewInt(int64(totalWithdrawalAmount)), big.NewInt(params.GWei))
+
+		// Expected balance is balance before withdrawal + totalWithdrawalAmount
+		expectedBalance := new(big.Int).Add(beforeWithdrawalBalance.ToInt(), withdrawalAmountWei)
+
+		// The new balance of the validator is updated
+		s.Require().Equal(expectedBalance.String(), afterWithdrawalBalance.ToInt().String())
+	}
 }
 
 func (s *PectraGenesisSuite) TestFullLifecycle_WithFullWithdrawalRequest_IsSuccessful() {
@@ -261,7 +280,7 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithFullWithdrawalRequest_IsSucce
 	nextBlockHeight = nextBlockHeight + 1
 
 	// create withdrawal request
-	// corresponds with funded address in genesis `simulated.WithdrawalExecutionAddress`
+	// corresponds with the funded address in genesis `simulated.WithdrawalExecutionAddress`
 	senderKey, err := crypto.HexToECDSA("fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306")
 	s.Require().NoError(err)
 
