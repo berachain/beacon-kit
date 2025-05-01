@@ -50,6 +50,7 @@ func GetConsolidationFee(ctx context.Context, client rpcClient) (*big.Int, error
 }
 
 // CreateConsolidationRequestData returns the request body formatted as defined by the EIP-7251 specification.
+// This is only expected to be used in tests to form test scenarios.
 func CreateConsolidationRequestData(sourcePubKey, targetPubKey crypto.BLSPubkey) (beaconbytes.Bytes, error) {
 	// Create a buffer to hold the packed encoding.
 	var packed bytes.Buffer
