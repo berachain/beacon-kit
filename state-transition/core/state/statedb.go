@@ -96,7 +96,7 @@ func (s *StateDB) DecreaseBalance(idx math.ValidatorIndex, delta math.Gwei) erro
 // NOTE for caller: ProcessSlots must be called before this function as the "current" slot is
 // retrieved from the state in this function.
 //
-//nolint:gocognit // Spec aligned.
+//nolint:gocognit,funlen // Spec aligned.
 func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.Withdrawals, uint64, error) {
 	var (
 		validator         *ctypes.Validator
@@ -155,6 +155,17 @@ func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.With
 			return nil, 0, err
 		}
 
+		if version.EqualsOrIsAfter(forkVersion, version.Electra()) {
+			var totalWithdrawn math.Gwei
+			for _, withdrawal := range withdrawals {
+				if withdrawal.Validator == validatorIndex {
+					totalWithdrawn += withdrawal.Amount
+				}
+			}
+			// After electra, partiallyWithdrawnBalance can be non-zero, which we must account for.
+			balance -= totalWithdrawn
+		}
+
 		// Set the amount of the withdrawal depending on the balance of the validator.
 		if validator.IsFullyWithdrawable(balance, epoch) {
 			withdrawalAddress, err = validator.GetWithdrawalCredentials().ToExecutionAddress()
@@ -200,6 +211,7 @@ func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.With
 	return withdrawals, processedPartialWithdrawals, nil
 }
 
+//nolint:gocognit // Spec aligned.
 func (s *StateDB) consumePendingPartialWithdrawals(
 	epoch math.Epoch,
 	withdrawals engineprimitives.Withdrawals,
@@ -240,6 +252,15 @@ func (s *StateDB) consumePendingPartialWithdrawals(
 		if err != nil {
 			return nil, 0, 0, err
 		}
+
+		var totalWithdrawn math.Gwei
+		for _, w := range withdrawals {
+			if w.Validator == withdrawal.ValidatorIndex {
+				totalWithdrawn += w.Amount
+			}
+		}
+		balance -= totalWithdrawn
+
 		hasExcessBalance := balance > minActivationBalance
 		isWithdrawable := validator.GetExitEpoch() == constants.FarFutureEpoch && hasSufficientEffectiveBalance && hasExcessBalance
 		if isWithdrawable {
