@@ -32,6 +32,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/node-api/backend"
+	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -69,7 +70,9 @@ func TestGetGenesisData(t *testing.T) {
 
 	// Setup state for genesis tests.
 	setupStateWithGenesisValues(t, cms, kvStore)
-	sb := storage.NewBackend(cs, nil, kvStore, depositStore, nil)
+	sb := storage.NewBackend(
+		cs, nil, kvStore, depositStore, nil, log.NewNopLogger(), metrics.NewNoOpTelemetrySink(),
+	)
 
 	// Create a temporary directory for CometBFT config
 	tmpDir := t.TempDir()
