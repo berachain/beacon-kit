@@ -36,6 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/eip7685"
 	beaconmath "github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
@@ -43,8 +44,10 @@ import (
 	"github.com/cometbft/cometbft/types"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	gethcommon "github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	gethcore "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/params"
 	"github.com/prysmaticlabs/prysm/v5/consensus-types/validator"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/suite"
@@ -320,4 +323,206 @@ func (s *PectraWithdrawalSuite) TestExcessValidatorBeforeFork_CorrectlyEvicted()
 		s.Require().Equal(validator.WithdrawalDone.String(), validators[1].Status)
 		nextBlockHeight++
 	}
+}
+
+// Verifies that excess balance is not withdrawn accidentally if a validator has multiple sources of withdrawals.
+func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdrawal_CorrectAmountWithdrawn() {
+	// Initialize the chain state.
+	s.InitializeChain(s.T())
+
+	blsSigner := simulated.GetBlsSigner(s.HomeDir)
+
+	credAddress := common.NewExecutionAddressFromHex(simulated.WithdrawalExecutionAddress)
+	creds := consensustypes.NewCredentialsFromExecutionAddress(credAddress)
+	senderAddress := gethcommon.HexToAddress(credAddress.String())
+	// Hard fork occurs at t=10, so we move passed the pectra hard fork
+	nextBlockHeight := int64(1)
+	{
+		s.LogBuffer.Reset()
+		s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
+		nextBlockHeight++
+	}
+	// Confirm the validator's expected start balance in Wei
+	{
+		// 10 million bera
+		expectedStartBalance, isValid := big.NewInt(0).SetString("10000000000000000000000000", 10)
+		s.Require().True(isValid)
+		startBalance, err := s.TestNode.ContractBackend.BalanceAt(s.CtxApp, senderAddress, big.NewInt(nextBlockHeight-1))
+		s.Require().NoError(err)
+		s.Require().Equal(expectedStartBalance, startBalance)
+		s.T().Logf("balance at start: %s wei", startBalance.String())
+
+		validators, err := s.TestNode.APIBackend.FilteredValidators(beaconmath.Slot(nextBlockHeight-1), nil, nil)
+		s.Require().NoError(err)
+		s.Require().Len(validators, 1)
+		s.T().Logf("staked validator balance at start: %v gwei", validators[0].Validator.EffectiveBalance)
+	}
+
+	// Send the Deposit and progress 1 block so that the deposit is included in the next block
+	depositAmount := beaconmath.Gwei(1_000_000 * 1e9) // 1 million Bera
+	{
+		// Send Deposit Request
+		iterations := int64(2)
+		s.defaultDeposit(blsSigner, creds, depositAmount, true)
+		s.MoveChainToHeight(s.T(), nextBlockHeight, iterations, blsSigner, time.Now())
+		nextBlockHeight += iterations
+	}
+
+	// Create the Partial Withdrawal Request
+	// 11 million BERA partial withdraw request
+	totalWithdrawalAmount := beaconmath.Gwei(15_000_000 * 1e9)
+	{
+		// corresponds with the funded address in genesis `simulated.WithdrawalExecutionAddress`
+		senderKey := simulated.GetTestKey(s.T())
+
+		elChainID := big.NewInt(int64(s.TestNode.ChainSpec.DepositEth1ChainID()))
+		pragueSigner := gethcore.NewPragueSigner(elChainID)
+
+		fee, err := eip7685.GetWithdrawalFee(s.CtxApp, s.TestNode.EngineClient)
+		s.Require().NoError(err)
+
+		withdrawalTxData, err := eip7685.CreateWithdrawalRequestData(blsSigner.PublicKey(), totalWithdrawalAmount)
+		s.Require().NoError(err)
+
+		withdrawalTx := gethcore.MustSignNewTx(senderKey, pragueSigner, &gethcore.DynamicFeeTx{
+			ChainID:   elChainID,
+			Nonce:     1,
+			To:        &params.WithdrawalQueueAddress,
+			Gas:       500_000,
+			GasFeeCap: big.NewInt(1000000000),
+			GasTipCap: big.NewInt(1000000000),
+			Value:     fee,
+			Data:      withdrawalTxData,
+		})
+
+		var balance hexutil.Big
+		err = s.TestNode.EngineClient.Call(s.CtxApp, &balance, "eth_getBalance", simulated.WithdrawalExecutionAddress, "latest")
+		s.T().Logf("Balance before withdrawal request sent: %s", balance.ToInt().String())
+
+		var txBytes []byte
+		txBytes, err = withdrawalTx.MarshalBinary()
+		s.Require().NoError(err)
+
+		var result interface{}
+		err = s.TestNode.EngineClient.Call(s.CtxApp, &result, "eth_sendRawTransaction", hexutil.Encode(txBytes))
+		s.Require().NoError(err)
+	}
+	// Move forward two blocks to include in the chain
+	{
+		s.LogBuffer.Reset()
+		s.MoveChainToHeight(s.T(), nextBlockHeight, 2, blsSigner, time.Now())
+		nextBlockHeight += 2
+	}
+
+	// Send another deposit
+	{
+		s.defaultDeposit(blsSigner, creds, depositAmount, false)
+	}
+
+	// Move the chain by 1 block to include the deposit
+	var balanceAfterDepositTxIncluded *big.Int
+	{
+		s.LogBuffer.Reset()
+		s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
+
+		ds := s.TestNode.StorageBackend.DepositStore()
+		deposits, err := ds.GetDepositsByIndex(s.CtxApp, 0, uint64(nextBlockHeight)*s.TestNode.ChainSpec.MaxDepositsPerBlock())
+		s.Require().NoError(err)
+		// There should be 2 deposits in the store
+		s.Require().Len(deposits, 2)
+
+		balanceAfterDepositTxIncluded, err = s.TestNode.ContractBackend.BalanceAt(s.CtxApp, senderAddress, big.NewInt(nextBlockHeight))
+		s.Require().NoError(err)
+		nextBlockHeight++
+	}
+	// Move the chain by 1 block to Enqueue the deposit
+	{
+		s.LogBuffer.Reset()
+		s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
+
+		ds := s.TestNode.StorageBackend.DepositStore()
+		deposits, err := ds.GetDepositsByIndex(s.CtxApp, 0, uint64(nextBlockHeight)*s.TestNode.ChainSpec.MaxDepositsPerBlock())
+		s.Require().NoError(err)
+		// There should be 3 deposits in the deposit store
+		s.Require().Len(deposits, 3)
+		// Only 1 active validator
+		validators, err := s.TestNode.APIBackend.FilteredValidators(beaconmath.Slot(nextBlockHeight), nil, nil)
+		s.Require().NoError(err)
+		s.Require().Len(validators, 1)
+		s.T().Logf("staked validator balance: %v gwei", validators[0].Validator.EffectiveBalance)
+		nextBlockHeight++
+	}
+	// Move the chain by 1 block trigger the withdrawal.
+	{
+		s.LogBuffer.Reset()
+		s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
+
+		balance, err := s.TestNode.ContractBackend.BalanceAt(s.CtxApp, senderAddress, big.NewInt(nextBlockHeight))
+		s.Require().NoError(err)
+		s.Require().Equal(balanceAfterDepositTxIncluded, balance)
+		// The validator's balance should not have changed yet
+		nextBlockHeight++
+	}
+	// The next block will have both the partial withdrawal request and the excess balance requests and increase the validator's EL balance
+	{
+		s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
+		nextBlockHeight++
+	}
+	{
+		iterations := int64(4)
+		s.MoveChainToHeight(s.T(), nextBlockHeight, iterations, blsSigner, time.Now())
+		nextBlockHeight += iterations
+
+		finalBalance, err := s.TestNode.ContractBackend.BalanceAt(s.CtxApp, senderAddress, big.NewInt(nextBlockHeight-1))
+		s.Require().NoError(err)
+		s.T().Logf("balance at end: %s wei", finalBalance.String())
+
+		validators, err := s.TestNode.APIBackend.FilteredValidators(beaconmath.Slot(nextBlockHeight-1), nil, nil)
+		s.Require().NoError(err)
+		s.Require().Len(validators, 1)
+		s.T().Logf("staked validator balance at end: %v gwei", validators[0].Validator.EffectiveBalance)
+	}
+}
+
+func (s *PectraWithdrawalSuite) defaultDeposit(blsSigner *signer.BLSSigner, creds consensustypes.WithdrawalCredentials, depositAmount beaconmath.Gwei, setOperator bool) {
+	depositContractAddress := gethcommon.Address(s.TestNode.ChainSpec.DepositContractAddress())
+	depositClient, err := deposit.NewDepositContract(depositContractAddress, s.TestNode.ContractBackend)
+	s.Require().NoError(err)
+
+	depositMsg, blsSig, err := depositcli.CreateDepositMessage(
+		s.TestNode.ChainSpec,
+		blsSigner,
+		s.GenesisValidatorsRoot,
+		creds,
+		depositAmount,
+	)
+	s.Require().NoError(err)
+	err = depositcli.ValidateDeposit(
+		s.TestNode.ChainSpec,
+		depositMsg.Pubkey,
+		depositMsg.Credentials,
+		depositMsg.Amount,
+		s.GenesisValidatorsRoot,
+		blsSig,
+	)
+	s.Require().NoError(err)
+
+	elChainID := big.NewInt(int64(s.TestNode.ChainSpec.DepositEth1ChainID()))
+	senderKey := simulated.GetTestKey(s.T())
+	senderAddress := gethcommon.HexToAddress(creds.String())
+	s.Require().NoError(err)
+	operator := senderAddress
+	if !setOperator {
+		operator = gethcommon.HexToAddress("0x0000000000000000000000000000000000000000")
+	}
+	_, err = depositClient.Deposit(&bind.TransactOpts{
+		From: senderAddress,
+		Signer: func(_ gethcommon.Address, tx *gethcore.Transaction) (*gethcore.Transaction, error) {
+			return gethcore.SignTx(
+				tx, gethcore.LatestSignerForChainID(elChainID), senderKey,
+			)
+		},
+		Value: big.NewInt(0).Mul(big.NewInt(int64(depositAmount)), big.NewInt(1e9)),
+	}, depositMsg.Pubkey[:], depositMsg.Credentials[:], blsSig[:], operator)
+	s.Require().NoError(err)
 }
