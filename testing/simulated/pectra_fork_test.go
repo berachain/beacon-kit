@@ -342,6 +342,79 @@ func (s *PectraForkSuite) TestMaliciousUser_MakesConsolidationRequest_IsIgnored(
 	}
 }
 
+// This test will have a proposer propose a valid post-fork block, but one that is never finalized. The round will increase.
+// We should observe that the EL correctly handles this and no execution requests are included in the block.
+func (s *PectraForkSuite) TestTODO_1() {
+	s.T().Skip("TODO: Implement this test")
+}
+
+func (s *PectraForkSuite) TestValidProposer_ProposesPreForkBlockWithPostForkConsensusTimestamp_IsRejected() {
+	// Initialize the chain state.
+	s.Geth.InitializeChain(s.T())
+
+	// Retrieve the BLS signer and proposer address.
+	blsSigner := simulated.GetBlsSigner(s.Geth.HomeDir)
+	pubkey, err := blsSigner.GetPubKey()
+	s.Require().NoError(err)
+
+	nextBlockHeight := int64(1)
+	// The proposer prepares a proposal with a pre-fork timestamp, but a post-fork process proposal consensus time.
+	{
+		// a pre-fork time.
+		consensusTime := time.Unix(2, 0)
+		proposal, err := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
+			Height:          nextBlockHeight,
+			Time:            consensusTime,
+			ProposerAddress: pubkey.Address(),
+		})
+		s.Require().NoError(err)
+		s.Require().Len(proposal.Txs, 2)
+
+		processRequest := &types.ProcessProposalRequest{
+			Txs:             proposal.Txs,
+			Height:          nextBlockHeight,
+			ProposerAddress: pubkey.Address(),
+			Time:            time.Now(),
+		}
+
+		// Process the proposal, expect a reject
+		{
+			s.Geth.LogBuffer.Reset()
+			processResp, err := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
+			s.Require().NoError(err)
+			s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
+			s.Require().Contains(
+				s.Geth.LogBuffer.String(),
+				"failed decoding *types.SignedBeaconBlock: ssz: offset smaller than previous: decoded 392, previous was 396",
+			)
+		}
+	}
+}
+
+func processFinalizeCommit(
+	t *testing.T,
+	node simulated.SharedAccessors,
+	processRequest *types.ProcessProposalRequest,
+	finalizeRequest *types.FinalizeBlockRequest,
+	expectedMessage string,
+) {
+	// Process the proposal
+	processResp, err := node.SimComet.Comet.ProcessProposal(node.CtxComet, processRequest)
+	require.NoError(t, err)
+	require.Equal(t, types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
+
+	// Finalize the block
+	node.LogBuffer.Reset()
+	finalizeResp, err := node.SimComet.Comet.FinalizeBlock(node.CtxComet, finalizeRequest)
+	require.NoError(t, err)
+	require.Contains(t, node.LogBuffer.String(), expectedMessage)
+	require.NotEmpty(t, finalizeResp)
+
+	// Commit the block.
+	_, err = node.SimComet.Comet.Commit(node.CtxComet, &types.CommitRequest{})
+	require.NoError(t, err)
+}
+
 func (s *PectraForkSuite) submitTransactions(startNonce uint64, numTransactions uint64) uint64 {
 	// corresponds with funded address in genesis 0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4
 	senderKey, err := crypto.HexToECDSA("fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306")
@@ -369,40 +442,4 @@ func (s *PectraForkSuite) submitTransactions(startNonce uint64, numTransactions 
 		s.Require().NoError(err)
 	}
 	return startNonce + numTransactions
-}
-
-// This test will have a proposer propose a valid post-fork block, but one that is never finalized. The round will increase.
-// We should observe that the EL correctly handles this and no execution requests are included in the block.
-func (s *PectraForkSuite) TestTODO_1() {
-	s.T().Skip("TODO: Implement this test")
-}
-
-// A valid proposer will attempt to propose a pre-fork block but with a post-fork consensus timestamp.
-// We expect this to be rejected.
-func (s *PectraForkSuite) TestTODO_2() {
-	s.T().Skip("TODO: Implement this test")
-}
-
-func processFinalizeCommit(
-	t *testing.T,
-	node simulated.SharedAccessors,
-	processRequest *types.ProcessProposalRequest,
-	finalizeRequest *types.FinalizeBlockRequest,
-	expectedMessage string,
-) {
-	// Process the proposal
-	processResp, err := node.SimComet.Comet.ProcessProposal(node.CtxComet, processRequest)
-	require.NoError(t, err)
-	require.Equal(t, types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
-
-	// Finalize the block
-	node.LogBuffer.Reset()
-	finalizeResp, err := node.SimComet.Comet.FinalizeBlock(node.CtxComet, finalizeRequest)
-	require.NoError(t, err)
-	require.Contains(t, node.LogBuffer.String(), expectedMessage)
-	require.NotEmpty(t, finalizeResp)
-
-	// Commit the block.
-	_, err = node.SimComet.Comet.Commit(node.CtxComet, &types.CommitRequest{})
-	require.NoError(t, err)
 }
