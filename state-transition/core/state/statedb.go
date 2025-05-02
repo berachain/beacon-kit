@@ -211,6 +211,7 @@ func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.With
 	return withdrawals, processedPartialWithdrawals, nil
 }
 
+//nolint:gocognit // Spec aligned.
 func (s *StateDB) consumePendingPartialWithdrawals(
 	epoch math.Epoch,
 	withdrawals engineprimitives.Withdrawals,
