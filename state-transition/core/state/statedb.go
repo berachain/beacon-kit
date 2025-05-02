@@ -96,7 +96,7 @@ func (s *StateDB) DecreaseBalance(idx math.ValidatorIndex, delta math.Gwei) erro
 // NOTE for caller: ProcessSlots must be called before this function as the "current" slot is
 // retrieved from the state in this function.
 //
-//nolint:gocognit // Spec aligned.
+//nolint:gocognit,funlen // Spec aligned.
 func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.Withdrawals, uint64, error) {
 	var (
 		validator         *ctypes.Validator
@@ -164,7 +164,7 @@ func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.With
 		}
 
 		// After electra, partiallyWithdrawnBalance can be non-zero, which we must account for.
-		balance = balance - partiallyWithdrawnBalance
+		balance -= partiallyWithdrawnBalance
 
 		// Set the amount of the withdrawal depending on the balance of the validator.
 		if validator.IsFullyWithdrawable(balance, epoch) {
