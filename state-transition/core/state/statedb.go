@@ -156,14 +156,14 @@ func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.With
 		}
 
 		if version.EqualsOrIsAfter(forkVersion, version.Electra()) {
-			var partiallyWithdrawnBalance math.Gwei
+			var totalWithdrawn math.Gwei
 			for _, withdrawal := range withdrawals {
 				if withdrawal.Validator == validatorIndex {
-					partiallyWithdrawnBalance += withdrawal.Amount
+					totalWithdrawn += withdrawal.Amount
 				}
 			}
 			// After electra, partiallyWithdrawnBalance can be non-zero, which we must account for.
-			balance -= partiallyWithdrawnBalance
+			balance -= totalWithdrawn
 		}
 
 		// Set the amount of the withdrawal depending on the balance of the validator.
