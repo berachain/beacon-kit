@@ -29,6 +29,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/berachain/beacon-kit/storage/beacondb"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -48,7 +49,9 @@ func (t *testConsensusService) CreateQueryContext(height int64, _ bool) (sdk.Con
 	sdkCtx := sdk.NewContext(t.cms.CacheMultiStore(), false, log.NewNopLogger())
 
 	// there validations mimics consensus service, not sure if they are necessary
-	tmpState := statedb.NewBeaconStateFromDB(t.kvStore.WithContext(sdkCtx), t.cs, sdkCtx.Logger())
+	tmpState := statedb.NewBeaconStateFromDB(
+		t.kvStore.WithContext(sdkCtx), t.cs, sdkCtx.Logger(), metrics.NewNoOpTelemetrySink(),
+	)
 	slot, err := tmpState.GetSlot()
 	if err != nil {
 		return sdk.Context{}, sdkerrors.ErrInvalidHeight
