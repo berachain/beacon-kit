@@ -235,7 +235,7 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithPartialWithdrawalRequests_IsS
 		targetEpoch := nextEpoch + s.TestNode.ChainSpec.MinValidatorWithdrawabilityDelay()
 		iterationsToTurn := (s.TestNode.ChainSpec.SlotsPerEpoch() * uint64(targetEpoch)) - uint64(prevBlockHeight) - 1
 
-		_, _, _ = s.MoveChainToHeight(s.T(), nextBlockHeight, int64(iterationsToTurn), blsSigner, time.Now())
+		s.MoveChainToHeight(s.T(), nextBlockHeight, int64(iterationsToTurn), blsSigner, time.Now())
 
 		s.LogBuffer.Reset()
 		err := s.TestNode.EngineClient.Call(s.CtxApp, &beforeWithdrawalBalance, "eth_getBalance", simulated.WithdrawalExecutionAddress, "latest")
@@ -249,7 +249,7 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithPartialWithdrawalRequests_IsS
 
 	// The next block will be the turn of the Epoch, and the balance will change
 	{
-		_, _, _ = s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
+		s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
 
 		var afterWithdrawalBalance hexutil.Big
 		err := s.TestNode.EngineClient.Call(s.CtxApp, &afterWithdrawalBalance, "eth_getBalance", simulated.WithdrawalExecutionAddress, "latest")
@@ -368,7 +368,7 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithFullWithdrawalRequest_IsSucce
 		// IterationsToTurn will get us to the slot before the turn of the target
 		targetEpoch := exitEpoch + s.TestNode.ChainSpec.MinValidatorWithdrawabilityDelay()
 		iterationsToTurn := (s.TestNode.ChainSpec.SlotsPerEpoch() * uint64(targetEpoch)) - uint64(nextBlockHeight)
-		_, _, _ = s.MoveChainToHeight(s.T(), nextBlockHeight, int64(iterationsToTurn), blsSigner, time.Now())
+		s.MoveChainToHeight(s.T(), nextBlockHeight, int64(iterationsToTurn), blsSigner, time.Now())
 
 		s.LogBuffer.Reset()
 		err := s.TestNode.EngineClient.Call(s.CtxApp, &beforeWithdrawalBalance, "eth_getBalance", simulated.WithdrawalExecutionAddress, "latest")
@@ -382,7 +382,7 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithFullWithdrawalRequest_IsSucce
 
 	// The next block will be the turn of the Epoch, and the balance will change
 	{
-		_, _, _ = s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
+		s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
 		var afterWithdrawalBalance hexutil.Big
 		err := s.TestNode.EngineClient.Call(s.CtxApp, &afterWithdrawalBalance, "eth_getBalance", simulated.WithdrawalExecutionAddress, "latest")
 		s.Require().NoError(err)
