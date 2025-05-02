@@ -290,7 +290,7 @@ func ComputeAndSetValidExecutionBlock(
 ) *ctypes.BeaconBlock {
 	t.Helper()
 	// Check that the fork version is supported
-	if version.IsAfter(latestBlock.GetForkVersion(), version.Electra()) {
+	if version.IsAfter(latestBlock.GetForkVersion(), version.Deneb1()) {
 		t.Fatalf("fork version %s is not supported by this function", latestBlock.GetForkVersion())
 	}
 	// Run simulation to get a simulated block.
