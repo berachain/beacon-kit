@@ -228,7 +228,7 @@ func (s *PectraForkSuite) TestTimestampFork_ELAndCLInSync_IsSuccessful() {
 	}
 }
 
-// TestBadUser_MakesConsolidationRequest_IsIgnored a user makes a consolidation request on our chain which isn't supported.
+// A user makes a consolidation request on our chain which isn't supported.
 func (s *PectraForkSuite) TestMaliciousUser_MakesConsolidationRequest_IsIgnored() {
 	// Initialize the chain state.
 	s.Geth.InitializeChain(s.T())
@@ -343,11 +343,14 @@ func (s *PectraForkSuite) TestMaliciousUser_MakesConsolidationRequest_IsIgnored(
 }
 
 // This test will have a proposer propose a valid post-fork block, but one that is never finalized. The round will increase.
-// We should observe that the EL correctly handles this and no execution requests are included in the block.
-func (s *PectraForkSuite) TestTODO_1() {
+// The next round will propose a valid pre-fork block that gets finalized due to deviance in the consensus timestamp.
+func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_IsSuccessful() {
+
 	s.T().Skip("TODO: Implement this test")
 }
 
+// The proposer prepares a proposal with a pre-fork timestamp, but a post-fork process proposal consensus time.
+// This will be rejected and is expected to occur around the fork for 1 or 2 rounds.
 func (s *PectraForkSuite) TestValidProposer_ProposesPreForkBlockWithPostForkConsensusTimestamp_IsRejected() {
 	// Initialize the chain state.
 	s.Geth.InitializeChain(s.T())
