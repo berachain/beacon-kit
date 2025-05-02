@@ -251,6 +251,15 @@ func (s *StateDB) consumePendingPartialWithdrawals(
 		if err != nil {
 			return nil, 0, 0, err
 		}
+
+		var totalWithdrawn math.Gwei
+		for _, w := range withdrawals {
+			if w.Validator == withdrawal.ValidatorIndex {
+				totalWithdrawn += w.Amount
+			}
+		}
+		balance -= totalWithdrawn
+
 		hasExcessBalance := balance > minActivationBalance
 		isWithdrawable := validator.GetExitEpoch() == constants.FarFutureEpoch && hasSufficientEffectiveBalance && hasExcessBalance
 		if isWithdrawable {
