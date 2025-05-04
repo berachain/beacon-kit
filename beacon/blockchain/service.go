@@ -92,7 +92,7 @@ func NewService(
 		blobProcessor:           blobProcessor,
 		depositContract:         depositContract,
 		eth1FollowDistance:      eth1FollowDistance,
-		failedBlocks:            make(map[math.Slot]struct{}),
+		failedBlocks:            make(map[math.U64]struct{}),
 		logger:                  logger,
 		chainSpec:               chainSpec,
 		executionEngine:         executionEngine,
