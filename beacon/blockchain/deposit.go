@@ -31,9 +31,15 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-// defaultRetryInterval processes a deposit event.
+// defaultRetryInterval is the time between retry attempts for failed deposit fetching operations.
 const defaultRetryInterval = 20 * time.Second
 
+// depositFetcher is called for each new block to fetch and process deposits.
+// It respects the eth1FollowDistance to ensure finality before processing deposits.
+//
+// This function is the entry point for the normal deposit processing flow.
+// If it fails to process deposits from a block, the depositCatchupFetcher will
+// retry those blocks later.
 func (s *Service) depositFetcher(
 	ctx context.Context,
 	blockNum math.U64,
@@ -50,7 +56,13 @@ func (s *Service) depositFetcher(
 	s.fetchAndStoreDeposits(ctx, blockNum-s.eth1FollowDistance)
 }
 
-// fetchAndStoreDeposits processes all deposits at a particular EL block height.
+// fetchAndStoreDeposits processes all deposits at a particular execution layer block height.
+// If the operation fails, the block is added to the failedBlocks map for later retry by
+// the depositCatchupFetcher.
+//
+// This function is the primary method for fetching and storing deposits during normal
+// blockchain operation. It's called by the depositFetcher for each new block.
+//
 // TODO: This could be optimized to process a contiguous range of blocks simultaneously to minimize EL RPC calls.
 func (s *Service) fetchAndStoreDeposits(
 	ctx context.Context,
@@ -95,6 +107,12 @@ func (s *Service) fetchAndStoreDeposits(
 	s.failedBlocksMu.Unlock()
 }
 
+// fetchAndStoreDepositsWithErrorHandling attempts to fetch deposits from a specific block
+// and store them in the deposit store. It returns an error if either operation fails.
+//
+// This function is used by the depositCatchupFetcher to retry processing deposits from
+// blocks that previously failed. It includes proper error handling and metrics tracking.
+// If successful, it removes the block from the failed blocks map.
 func (s *Service) fetchAndStoreDepositsWithErrorHandling(
 	ctx context.Context,
 	blockNum math.U64,
@@ -139,6 +157,13 @@ func (s *Service) fetchAndStoreDepositsWithErrorHandling(
 	return nil
 }
 
+// depositCatchupFetcher is a critical component that periodically retries fetching deposits
+// from blocks that previously failed to be processed. This ensures that all deposits are
+// eventually captured and processed, which is essential for maintaining the integrity of
+// the deposit list required by the consensus protocol.
+//
+// The function runs as a goroutine and continues until the context is canceled.
+// It uses a ticker to periodically check for failed blocks and attempts to reprocess them.
 func (s *Service) depositCatchupFetcher(ctx context.Context) {
 	ticker := time.NewTicker(defaultRetryInterval)
 	defer ticker.Stop()
@@ -170,7 +195,7 @@ func (s *Service) depositCatchupFetcher(ctx context.Context) {
 				fetchCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 				err := s.fetchAndStoreDepositsWithErrorHandling(fetchCtx, blockNum)
 				cancel()
-				
+
 				if err != nil && ctx.Err() == nil { // Only report errors if the parent context is still valid
 					s.errChan <- fmt.Errorf("failed to fetch deposits for block %d: %w", blockNum, err)
 				}

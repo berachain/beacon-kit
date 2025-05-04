@@ -92,7 +92,7 @@ func NewService(
 		blobProcessor:           blobProcessor,
 		depositContract:         depositContract,
 		eth1FollowDistance:      eth1FollowDistance,
-		failedBlocks:            make(map[math.Slot]struct{}),
+		failedBlocks:            make(map[math.U64]struct{}),
 		logger:                  logger,
 		chainSpec:               chainSpec,
 		executionEngine:         executionEngine,
@@ -113,11 +113,12 @@ func (s *Service) Name() string {
 // Start starts the blockchain service.
 func (s *Service) Start(ctx context.Context) error {
 	s.goroutineCtx, s.goroutineCancel = context.WithCancel(ctx)
-	
+
 	// Start monitoring goroutine errors
 	go s.monitorGoroutineErrors()
-	
-	// Catchup deposits for failed blocks.
+
+	// Start the deposit catchup fetcher to retry processing deposits from blocks that failed previously.
+	// This is a critical component for ensuring all deposits are properly captured and processed.
 	go func() {
 		// Use a separate function to handle any panics
 		defer func() {
@@ -126,7 +127,7 @@ func (s *Service) Start(ctx context.Context) error {
 				s.errChan <- fmt.Errorf("depositCatchupFetcher panic: %v", r)
 			}
 		}()
-		
+
 		s.depositCatchupFetcher(s.goroutineCtx)
 	}()
 
@@ -142,7 +143,7 @@ func (s *Service) Stop() error {
 	if s.goroutineCancel != nil {
 		s.goroutineCancel()
 	}
-	
+
 	// Close the error channel
 	if s.errChan != nil {
 		close(s.errChan)
