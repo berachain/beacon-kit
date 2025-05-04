@@ -22,6 +22,7 @@ package blockchain
 
 import (
 	"context"
+	"fmt"
 	"maps"
 	"slices"
 	"strconv"
@@ -94,12 +95,57 @@ func (s *Service) fetchAndStoreDeposits(
 	s.failedBlocksMu.Unlock()
 }
 
+func (s *Service) fetchAndStoreDepositsWithErrorHandling(
+	ctx context.Context,
+	blockNum math.U64,
+) error {
+	blockNumStr := strconv.FormatUint(blockNum.Unwrap(), 10)
+	deposits, err := s.depositContract.ReadDeposits(ctx, blockNum, blockNum)
+	if err != nil {
+		s.logger.Error("Failed to read deposits", "error", err)
+		s.metrics.sink.IncrementCounter(
+			"beacon_kit.execution.deposit.failed_to_get_block_logs",
+			"block_num",
+			blockNumStr,
+		)
+		s.failedBlocksMu.Lock()
+		s.failedBlocks[blockNum] = struct{}{}
+		s.failedBlocksMu.Unlock()
+		return err
+	}
+
+	if len(deposits) > 0 {
+		s.logger.Info(
+			"Found deposits on execution layer",
+			"block", blockNum, "deposits", len(deposits),
+		)
+	}
+
+	if err = s.storageBackend.DepositStore().EnqueueDeposits(ctx, deposits); err != nil {
+		s.logger.Error("Failed to store deposits", "error", err)
+		s.metrics.sink.IncrementCounter(
+			"beacon_kit.execution.deposit.failed_to_enqueue_deposits",
+			"block_num",
+			blockNumStr,
+		)
+		s.failedBlocksMu.Lock()
+		s.failedBlocks[blockNum] = struct{}{}
+		s.failedBlocksMu.Unlock()
+		return err
+	}
+	s.failedBlocksMu.Lock()
+	delete(s.failedBlocks, blockNum)
+	s.failedBlocksMu.Unlock()
+	return nil
+}
+
 func (s *Service) depositCatchupFetcher(ctx context.Context) {
 	ticker := time.NewTicker(defaultRetryInterval)
 	defer ticker.Stop()
 	for {
 		select {
 		case <-ctx.Done():
+			s.logger.Info("depositCatchupFetcher stopping due to context cancellation")
 			return
 		case <-ticker.C:
 			s.failedBlocksMu.RLock()
@@ -111,6 +157,8 @@ func (s *Service) depositCatchupFetcher(ctx context.Context) {
 			s.logger.Warn(
 				"Failed to get deposits from block(s), retrying...",
 				"num_blocks",
+				len(failedBlks),
+				"blocks",
 				failedBlks,
 			)
 
@@ -118,7 +166,14 @@ func (s *Service) depositCatchupFetcher(ctx context.Context) {
 			// TODO: This can be optimized to process all the blocks queried at once by utilizing log query ranges
 			// for contiguous ranges of blocks
 			for _, blockNum := range failedBlks {
-				s.fetchAndStoreDeposits(ctx, blockNum)
+				// Create a timeout context for each fetch operation to prevent blocking indefinitely
+				fetchCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+				err := s.fetchAndStoreDepositsWithErrorHandling(fetchCtx, blockNum)
+				cancel()
+				
+				if err != nil && ctx.Err() == nil { // Only report errors if the parent context is still valid
+					s.errChan <- fmt.Errorf("failed to fetch deposits for block %d: %w", blockNum, err)
+				}
 			}
 		}
 	}

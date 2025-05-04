@@ -22,6 +22,7 @@ package blockchain
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/berachain/beacon-kit/execution/deposit"
@@ -64,6 +65,12 @@ type Service struct {
 	optimisticPayloadBuilds bool
 	// forceStartupSyncOnce is used to force a sync of the startup head.
 	forceStartupSyncOnce *sync.Once
+	// errChan is used to collect errors from background goroutines
+	errChan chan error
+	// goroutineCtx is the context used for all background goroutines
+	goroutineCtx context.Context
+	// goroutineCancel is the cancel function for goroutineCtx
+	goroutineCancel context.CancelFunc
 }
 
 // NewService creates a new validator service.
@@ -94,6 +101,7 @@ func NewService(
 		metrics:                 newChainMetrics(telemetrySink),
 		optimisticPayloadBuilds: optimisticPayloadBuilds,
 		forceStartupSyncOnce:    new(sync.Once),
+		errChan:                 make(chan error, 10), // Buffer size of 10 to avoid blocking
 	}
 }
 
@@ -104,9 +112,25 @@ func (s *Service) Name() string {
 
 // Start starts the blockchain service.
 func (s *Service) Start(ctx context.Context) error {
-	// Catchup deposits for failed blocks. TODO: remove.
-	go s.depositCatchupFetcher(ctx)
+	s.goroutineCtx, s.goroutineCancel = context.WithCancel(ctx)
+	
+	// Start monitoring goroutine errors
+	go s.monitorGoroutineErrors()
+	
+	// Catchup deposits for failed blocks.
+	go func() {
+		// Use a separate function to handle any panics
+		defer func() {
+			if r := recover(); r != nil {
+				s.logger.Error("depositCatchupFetcher panicked", "panic", r)
+				s.errChan <- fmt.Errorf("depositCatchupFetcher panic: %v", r)
+			}
+		}()
+		
+		s.depositCatchupFetcher(s.goroutineCtx)
+	}()
 
+	s.logger.Info("Blockchain service started")
 	return nil
 }
 
@@ -114,6 +138,17 @@ func (s *Service) Start(ctx context.Context) error {
 func (s *Service) Stop() error {
 	s.logger.Info("Stopping blockchain service")
 
+	// Cancel context to stop all background goroutines
+	if s.goroutineCancel != nil {
+		s.goroutineCancel()
+	}
+	
+	// Close the error channel
+	if s.errChan != nil {
+		close(s.errChan)
+	}
+
+	// Close the deposit store
 	err := s.storageBackend.DepositStore().Close()
 	if err != nil {
 		s.logger.Error("failed to close deposit store", "err", err)
@@ -125,4 +160,21 @@ func (s *Service) Stop() error {
 // StorageBackend returns the storage backend.
 func (s *Service) StorageBackend() StorageBackend {
 	return s.storageBackend
+}
+
+// monitorGoroutineErrors monitors the error channel and logs any errors.
+// If a critical error occurs, it can trigger a service shutdown.
+func (s *Service) monitorGoroutineErrors() {
+	for {
+		select {
+		case <-s.goroutineCtx.Done():
+			return
+		case err := <-s.errChan:
+			if err != nil {
+				s.logger.Error("Background goroutine error", "error", err)
+				// Optionally, implement logic to determine if this is a critical error
+				// that should trigger a service shutdown
+			}
+		}
+	}
 }
