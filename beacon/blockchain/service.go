@@ -87,6 +87,10 @@ func NewService(
 	telemetrySink TelemetrySink,
 	optimisticPayloadBuilds bool,
 ) *Service {
+	// Using a modest buffer size of 32 for the error channel to handle potential
+	// error bursts without blocking goroutines, while keeping memory usage reasonable
+	const errorChannelBufferSize = 32
+
 	return &Service{
 		storageBackend:          storageBackend,
 		blobProcessor:           blobProcessor,
@@ -101,7 +105,7 @@ func NewService(
 		metrics:                 newChainMetrics(telemetrySink),
 		optimisticPayloadBuilds: optimisticPayloadBuilds,
 		forceStartupSyncOnce:    new(sync.Once),
-		errChan:                 make(chan error, 10), // Buffer size of 10 to avoid blocking
+		errChan:                 make(chan error, errorChannelBufferSize),
 	}
 }
 
@@ -113,11 +117,12 @@ func (s *Service) Name() string {
 // Start starts the blockchain service.
 func (s *Service) Start(ctx context.Context) error {
 	s.goroutineCtx, s.goroutineCancel = context.WithCancel(ctx)
-	
+
 	// Start monitoring goroutine errors
 	go s.monitorGoroutineErrors()
-	
-	// Catchup deposits for failed blocks.
+
+	// Start the deposit catchup fetcher to retry processing deposits from blocks that failed previously.
+	// This is a critical component for ensuring all deposits are properly captured and processed.
 	go func() {
 		// Use a separate function to handle any panics
 		defer func() {
@@ -126,7 +131,7 @@ func (s *Service) Start(ctx context.Context) error {
 				s.errChan <- fmt.Errorf("depositCatchupFetcher panic: %v", r)
 			}
 		}()
-		
+
 		s.depositCatchupFetcher(s.goroutineCtx)
 	}()
 
@@ -142,7 +147,7 @@ func (s *Service) Stop() error {
 	if s.goroutineCancel != nil {
 		s.goroutineCancel()
 	}
-	
+
 	// Close the error channel
 	if s.errChan != nil {
 		close(s.errChan)
