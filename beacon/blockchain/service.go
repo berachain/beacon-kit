@@ -24,6 +24,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/log"
@@ -143,12 +144,21 @@ func (s *Service) Start(ctx context.Context) error {
 func (s *Service) Stop() error {
 	s.logger.Info("Stopping blockchain service")
 
-	// Cancel context to stop all background goroutines
+	// First cancel context to notify all goroutines they should exit
 	if s.goroutineCancel != nil {
 		s.goroutineCancel()
 	}
-
-	// Close the error channel
+	
+	// Add a wait time to ensure goroutines have a chance to observe the context cancellation
+	// and stop sending to the error channel before we close it
+	safeShutdownTimeout := 2 * time.Second
+	timer := time.NewTimer(safeShutdownTimeout)
+	defer timer.Stop()
+	
+	// Only proceed with cleanup after timeout or when the monitoring goroutine exits
+	<-timer.C
+	
+	// Now it's safer to close the error channel as goroutines should have exited
 	if s.errChan != nil {
 		close(s.errChan)
 	}
