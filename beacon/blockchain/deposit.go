@@ -192,7 +192,7 @@ func (s *Service) depositCatchupFetcher(ctx context.Context) {
 			// for contiguous ranges of blocks
 			for _, blockNum := range failedBlks {
 				// Create a timeout context for each fetch operation to prevent blocking indefinitely
-				fetchCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+				fetchCtx, cancel := context.WithTimeout(ctx, fetchTimeout)
 				err := s.fetchAndStoreDepositsWithErrorHandling(fetchCtx, blockNum)
 				cancel()
 
