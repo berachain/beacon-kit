@@ -57,6 +57,8 @@ type ValidatorTestStruct struct {
 // TODO:
 // 1) Add staking tests for adding a new validator to the network.
 // 2) Add staking tests for hitting the validator set cap and eviction.
+//
+//nolint:maintidx // it's fine
 func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	// TODO: make test use configurable chain spec.
 	chainSpec, err := spec.DevnetChainSpec()
@@ -221,8 +223,8 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	// 1) collect the heights of all the nodes
 	heights := make([]int64, config.NumValidators)
 	for i := range config.NumValidators {
-		resp, err := validators[i].Client.ABCIInfo(s.Ctx())
-		s.Require().NoError(err)
+		resp, respErr := validators[i].Client.ABCIInfo(s.Ctx())
+		s.Require().NoError(respErr)
 		heights[i] = resp.Response.LastBlockHeight
 	}
 
