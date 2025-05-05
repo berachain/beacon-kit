@@ -871,10 +871,12 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	// finally the block turning epoch
 	blk = buildNextBlock(
 		t,
+		cs,
 		st,
 		types.NewEth1Data(depRoot),
 		blk.GetTimestamp()+1,
 		[]*types.Deposit{},
+		&types.ExecutionRequests{},
 		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
 	)
 	_, err = sp.Transition(ctx, st, blk)
@@ -882,10 +884,12 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 
 	blk = buildNextBlock(
 		t,
+		cs,
 		st,
 		types.NewEth1Data(depRoot),
 		blk.GetTimestamp()+1,
 		[]*types.Deposit{},
+		&types.ExecutionRequests{},
 		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
 	)
 	_, err = sp.Transition(ctx, st, blk)
