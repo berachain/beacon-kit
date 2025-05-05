@@ -381,6 +381,27 @@ func (s *KurtosisE2ESuite) WaitForNBlockNumbers(
 	return s.WaitForFinalizedBlockNumber(current + n)
 }
 
+// EnforceValidatorsAreInSync checks the heights of all validators and makes sure they are synced
+func (s *KurtosisE2ESuite) EnforceValidatorsAreInSync() {
+	// 1) collect the heights of all the nodes
+	heights := make([]int64, 0)
+	for _, client := range s.ConsensusClients() {
+		resp, respErr := client.ABCIInfo(s.Ctx())
+		s.Require().NoError(respErr)
+		heights = append(heights, resp.Response.LastBlockHeight)
+	}
+
+	// 2) compare each to the first
+	for i := 1; i < len(heights); i++ {
+		s.Require().InDelta(
+			float64(heights[0]),
+			float64(heights[i]),
+			1, // tolerance of 1 block
+			"validator %d out of sync", i,
+		)
+	}
+}
+
 // TearDownSuite cleans up resources after all tests have been executed.
 // this function executes after all tests executed.
 func (s *KurtosisE2ESuite) TearDownSuite() {

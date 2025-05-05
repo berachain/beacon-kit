@@ -58,7 +58,7 @@ type ValidatorTestStruct struct {
 // 1) Add staking tests for adding a new validator to the network.
 // 2) Add staking tests for hitting the validator set cap and eviction.
 //
-//nolint:maintidx // it's fine
+
 func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	// TODO: make test use configurable chain spec.
 	chainSpec, err := spec.DevnetChainSpec()
@@ -220,29 +220,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	err = s.WaitForNBlockNumbers(NumDepositsLoad / chainSpec.MaxDepositsPerBlock())
 	s.Require().NoError(err)
 
-	// 1) collect the heights of all the nodes
-	heights := make([]int64, config.NumValidators)
-	for i := range config.NumValidators {
-		resp, respErr := validators[i].Client.ABCIInfo(s.Ctx())
-		s.Require().NoError(respErr)
-		heights[i] = resp.Response.LastBlockHeight
-	}
-
-	// 2) compare each to the first
-	for i := 1; i < len(heights); i++ {
-		s.Require().InDelta(
-			float64(heights[0]),
-			float64(heights[i]),
-			1, // tolerance of 1 block
-			"validator %d out of sync", i,
-		)
-	}
-
-	height, err := validators[0].Client.ABCIInfo(s.Ctx())
-	s.Require().NoError(err)
-	height2, err := validators[1].Client.ABCIInfo(s.Ctx())
-	s.Require().NoError(err)
-	s.Require().InDelta(height.Response.LastBlockHeight, height2.Response.LastBlockHeight, 1)
+	s.EnforceValidatorsAreInSync()
 
 	// Check to see if evm balance decreased.
 	postDepositBalance, err := s.JSONRPCBalancer().BalanceAt(s.Ctx(), sender.Address(), nil)
