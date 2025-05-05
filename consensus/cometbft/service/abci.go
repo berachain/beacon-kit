@@ -25,9 +25,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
+	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	sdkversion "github.com/cosmos/cosmos-sdk/version"
 )
 
@@ -143,11 +147,88 @@ func (s *Service) Commit(
 // NOOP methods
 //
 
-func (Service) Query(
-	context.Context,
-	*abci.QueryRequest,
+func (s *Service) Query(
+	_ context.Context,
+	req *abci.QueryRequest,
 ) (*abci.QueryResponse, error) {
-	return &abci.QueryResponse{}, nil
+	resp := &abci.QueryResponse{}
+
+	// add panic recovery for all queries
+	//
+	// Ref: https://github.com/cosmos/cosmos-sdk/pull/8039
+	defer func() {
+		if r := recover(); r != nil {
+			resp = queryResult(errorsmod.Wrapf(sdkerrors.ErrPanic, "%v", r))
+		}
+	}()
+
+	// when a client did not provide a query height, manually inject the latest
+	if req.Height == 0 {
+		req.Height = s.LastBlockHeight()
+	}
+
+	path := SplitABCIQueryPath(req.Path)
+	if len(path) == 0 {
+		return queryResult(errorsmod.Wrap(sdkerrors.ErrUnknownRequest, "no query path provided")), nil
+	}
+
+	switch path[0] {
+	case "store":
+		// "/store" prefix for store queries
+		req.Path = "/" + strings.Join(path[1:], "/")
+		cms := s.sm.GetCommitMultiStore()
+		queryable, ok := cms.(storetypes.Queryable)
+		if !ok {
+			panic(ok)
+		}
+
+		sdkReq := storetypes.RequestQuery(*req)
+		resp, err := queryable.Query(&sdkReq)
+		if err != nil {
+			return queryResult(err), nil
+		}
+		resp.Height = req.Height
+
+		abciResp := abci.QueryResponse(*resp)
+
+		return &abciResp, nil
+
+	default:
+		resp = queryResult(errorsmod.Wrap(sdkerrors.ErrUnknownRequest, "unknown query path"))
+	}
+
+	return resp, nil
+}
+
+// NOTE: Copied from here: https://github.com/cosmos/cosmos-sdk/blob/960d44842b9e313cbe762068a67a894ac82060ab/baseapp/errors.go#L37-L46.
+// This was made public in v0.53, under the sdkerrors module.
+// NOTE: the debug parameter has been removed since Service does not expose this functionality.
+//
+// queryResult returns a ResponseQuery from an error. It will try to parse ABCI
+// info from the error.
+func queryResult(err error) *abci.QueryResponse {
+	space, code, log := errorsmod.ABCIInfo(err, false)
+	return &abci.QueryResponse{
+		Codespace: space,
+		Code:      code,
+		Log:       log,
+	}
+}
+
+// NOTE: Copied from here: https://github.com/cosmos/cosmos-sdk/blob/960d44842b9e313cbe762068a67a894ac82060ab/baseapp/abci.go#L1153-L1165
+//
+// SplitABCIQueryPath splits a string path using the delimiter '/'.
+//
+// e.g. "this/is/funny" becomes []string{"this", "is", "funny"}
+func SplitABCIQueryPath(requestPath string) []string {
+	path := strings.Split(requestPath, "/")
+
+	// first element is empty string
+	if len(path) > 0 && path[0] == "" {
+		path = path[1:]
+	}
+
+	return path
 }
 
 func (Service) ListSnapshots(
