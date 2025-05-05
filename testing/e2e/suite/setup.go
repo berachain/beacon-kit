@@ -390,14 +390,17 @@ func (s *KurtosisE2ESuite) EnforceValidatorsAreInSync() {
 	defer ticker.Stop()
 
 	clients := s.ConsensusClients()
-	s.Require().GreaterOrEqual(len(clients), 1, "Must have at least one validator")
-	// pick first as target
+	if len(clients) == 0 {
+		s.Require().Fail("no consensus clients registered")
+	}
+
+	// pick first map key as our “target”
 	var targetName string
-	var targetClient *types.ConsensusClient
-	for name, c := range clients {
-		targetName, targetClient = name, c
+	for name := range clients {
+		targetName = name
 		break
 	}
+	targetClient := clients[targetName]
 
 	for {
 		// fetch target height
@@ -406,14 +409,14 @@ func (s *KurtosisE2ESuite) EnforceValidatorsAreInSync() {
 		targetH := resp.Response.LastBlockHeight
 		s.Logger().Info("Target height", "validator", targetName, "height", targetH)
 
+		// check everyone else
 		allOK := true
-		// check others
 		for name, c := range clients {
 			if name == targetName {
 				continue
 			}
-			r, abciInfoErr := c.ABCIInfo(s.Ctx())
-			s.Require().NoError(abciInfoErr)
+			r, abciErr := c.ABCIInfo(s.Ctx())
+			s.Require().NoError(abciErr)
 			if h := r.Response.LastBlockHeight; h < targetH-1 {
 				s.Logger().Info("Still behind", "validator", name, "height", h)
 				allOK = false
@@ -426,8 +429,10 @@ func (s *KurtosisE2ESuite) EnforceValidatorsAreInSync() {
 
 		select {
 		case <-ctx.Done():
-			s.Require().NoErrorf(ctx.Err(),
-				"Validators failed to catch up to %q in %s", targetName, DefaultE2ETestTimeout)
+			s.Require().NoErrorf(
+				ctx.Err(),
+				"Validators failed to catch up to %q in %s", targetName, DefaultE2ETestTimeout,
+			)
 			return
 		case <-ticker.C:
 		}
