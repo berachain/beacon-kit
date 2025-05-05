@@ -390,6 +390,7 @@ func (s *KurtosisE2ESuite) EnforceValidatorsAreInSync() {
 	defer ticker.Stop()
 
 	clients := s.ConsensusClients()
+	s.Require().GreaterOrEqual(len(clients), 1, "Must have at least one validator")
 	// pick first as target
 	var targetName string
 	var targetClient *types.ConsensusClient
