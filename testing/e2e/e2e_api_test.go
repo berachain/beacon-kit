@@ -934,3 +934,17 @@ func (s *BeaconKitE2ESuite) TestConfigSpec() {
 	s.Require().Contains(specData, "INACTIVITY_PENALTY_QUOTIENT_ALTAIR")
 	s.Require().Zero(specData["INACTIVITY_PENALTY_QUOTIENT_ALTAIR"])
 }
+
+// TestSyncing tests querying the syncing status of the beacon node.
+func (s *BeaconKitE2ESuite) TestNodeSyncing() {
+	client := s.initBeaconTest()
+
+	resp, err := client.NodeSyncing(s.Ctx())
+	s.Require().NoError(err)
+	s.Require().NotNil(resp)
+
+	s.Require().Equal(resp.Data.HeadSlot, phase0.Slot(0))
+	s.Require().Equal(resp.Data.SyncDistance, phase0.Slot(0))
+	s.Require().Equal(resp.Data.IsSyncing, false)
+	s.Require().Equal(resp.Data.IsOptimistic, false)
+}

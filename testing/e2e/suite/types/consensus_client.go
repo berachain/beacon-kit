@@ -237,5 +237,13 @@ func (cc ConsensusClient) BlockProposerProof(
 	return cc.beaconClient.BlockProposerProof(ctx, timestampID)
 }
 
+// Syncing returns the syncing status of the beacon node.
+func (cc ConsensusClient) NodeSyncing(ctx context.Context) (*beaconapi.Response[*apiv1.SyncState], error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
+	return cc.beaconClient.NodeSyncing(ctx, &beaconapi.NodeSyncingOpts{})
+}
+
 // TODO: Add helpers for the beacon node-api client (converting from
 // go-eth2-client types to beacon-kit consensus types).
