@@ -247,7 +247,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	s.Require().NoError(err)
 	nextEpoch := chainSpec.SlotToEpoch(math.Slot(blkNum)) + 1
 	nextEpochBlockNum := nextEpoch.Unwrap() * chainSpec.SlotsPerEpoch()
-	err = s.WaitForFinalizedBlockNumber(nextEpochBlockNum + 1)
+	err = s.WaitForFinalizedBlockNumber(nextEpochBlockNum + 10)
 	s.Require().NoError(err)
 
 	increaseAmt := new(big.Int).Mul(depositAmountGwei, big.NewInt(int64(NumDepositsLoad/config.NumValidators)))
