@@ -942,6 +942,7 @@ func (s *BeaconKitE2ESuite) TestNodeSyncing() {
 	resp, err := client.NodeSyncing(s.Ctx())
 	s.Require().NoError(err)
 	s.Require().NotNil(resp)
+	s.Require().NotNil(resp.Data)
 
 	s.Require().Equal(resp.Data.HeadSlot, phase0.Slot(0))
 	s.Require().Equal(resp.Data.SyncDistance, phase0.Slot(0))
