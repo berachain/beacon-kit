@@ -218,7 +218,24 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	err = s.WaitForNBlockNumbers(NumDepositsLoad / chainSpec.MaxDepositsPerBlock())
 	s.Require().NoError(err)
 
-	// Compare height of nodes 0 and 1
+	// 1) collect the heights of all the nodes
+	heights := make([]int64, config.NumValidators)
+	for i := range config.NumValidators {
+		resp, err := validators[i].Client.ABCIInfo(s.Ctx())
+		s.Require().NoError(err)
+		heights[i] = resp.Response.LastBlockHeight
+	}
+
+	// 2) compare each to the first
+	for i := 1; i < len(heights); i++ {
+		s.Require().InDelta(
+			float64(heights[0]),
+			float64(heights[i]),
+			1, // tolerance of 1 block
+			"validator %d out of sync", i,
+		)
+	}
+
 	height, err := validators[0].Client.ABCIInfo(s.Ctx())
 	s.Require().NoError(err)
 	height2, err := validators[1].Client.ABCIInfo(s.Ctx())
