@@ -397,13 +397,9 @@ func (s *KurtosisE2ESuite) EnforceValidatorsAreInSync() {
 	// pick first map key as our “target” and guard against nil
 	var targetName string
 	var targetClient *types.ConsensusClient
-	var ok bool
-	for name := range clients {
-		targetName = name
-		targetClient, ok = clients[name]
-		break
-	}
-	s.Require().True(ok && targetClient != nil, "target consensus client missing or nil")
+	targetName = "cl-validator-beaconkit-0"
+	targetClient = clients[targetName]
+	s.Require().True(targetClient != nil, "target consensus client missing or nil")
 
 	for {
 		// fetch target height
