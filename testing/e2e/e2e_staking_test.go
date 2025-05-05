@@ -57,6 +57,7 @@ type ValidatorTestStruct struct {
 // TODO:
 // 1) Add staking tests for adding a new validator to the network.
 // 2) Add staking tests for hitting the validator set cap and eviction.
+
 func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	// TODO: make test use configurable chain spec.
 	chainSpec, err := spec.DevnetChainSpec()
