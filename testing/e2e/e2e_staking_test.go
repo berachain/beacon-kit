@@ -65,8 +65,6 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	weiPerGwei := big.NewInt(1e9)
 
 	// This value is determined by the MIN_DEPOSIT_AMOUNT_IN_GWEI variable from the deposit contract.
-	//
-	// TODO: fix the genesis file to use the correct deposit contract.
 	contractMinDepositAmountWei := big.NewInt(1e9 * 1e9)
 	depositAmountWei := new(big.Int).Mul(contractMinDepositAmountWei, big.NewInt(100))
 	depositAmountGwei := new(big.Int).Div(depositAmountWei, weiPerGwei)
@@ -269,6 +267,15 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 		// TODO: currently the kurtosis devnet sets the withdrawal address the same for all validators.
 		// We simply validate that the balance is NumValidators times larger than we expect it to be.
 		withdrawalDiff.Div(withdrawalDiff, new(big.Int).SetUint64(config.NumValidators))
+
+		/*
+			=== NAME  TestBeaconKitE2ESuite/TestDepositRobustness
+			    e2e_staking_test.go:274:
+			        	Error Trace:	/home/runner/work/beacon-kit/beacon-kit/testing/e2e/e2e_staking_test.go:274
+			        	Error:      	Not equal:
+			        	            	expected: 10000000000000
+			        	            	actual  : 6032000000000
+		*/
 
 		// Verify input balance is equal to the power + withdrawal balances.
 		s.Require().Equal(increaseAmt, new(big.Int).Add(powerDiff, withdrawalDiff))
