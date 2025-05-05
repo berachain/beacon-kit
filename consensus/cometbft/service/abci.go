@@ -143,10 +143,7 @@ func (s *Service) Commit(
 	return s.commit(req)
 }
 
-//
-// NOOP methods
-//
-
+// NOTE: Partially copied from https://github.com/cosmos/cosmos-sdk/blob/960d44842b9e313cbe762068a67a894ac82060ab/baseapp/abci.go#L168
 func (s *Service) Query(
 	_ context.Context,
 	req *abci.QueryRequest,
@@ -167,9 +164,10 @@ func (s *Service) Query(
 		req.Height = s.LastBlockHeight()
 	}
 
-	path := SplitABCIQueryPath(req.Path)
+	path := splitABCIQueryPath(req.Path)
 	if len(path) == 0 {
-		return queryResult(errorsmod.Wrap(sdkerrors.ErrUnknownRequest, "no query path provided")), nil
+		resp = queryResult(errorsmod.Wrap(sdkerrors.ErrUnknownRequest, "no query path provided"))
+		return resp, nil
 	}
 
 	switch path[0] {
@@ -179,19 +177,20 @@ func (s *Service) Query(
 		cms := s.sm.GetCommitMultiStore()
 		queryable, ok := cms.(storetypes.Queryable)
 		if !ok {
-			panic(ok)
+			resp = queryResult(errorsmod.Wrap(sdkerrors.ErrUnknownRequest, "multi-store does not support queries"))
+			return resp, nil
 		}
 
 		sdkReq := storetypes.RequestQuery(*req)
-		resp, err := queryable.Query(&sdkReq)
+		queryResp, err := queryable.Query(&sdkReq)
 		if err != nil {
 			return queryResult(err), nil
 		}
-		resp.Height = req.Height
+		queryResp.Height = req.Height
 
-		abciResp := abci.QueryResponse(*resp)
+		resp := abci.QueryResponse(*queryResp)
 
-		return &abciResp, nil
+		return &resp, nil
 
 	default:
 		resp = queryResult(errorsmod.Wrap(sdkerrors.ErrUnknownRequest, "unknown query path"))
@@ -217,10 +216,10 @@ func queryResult(err error) *abci.QueryResponse {
 
 // NOTE: Copied from here: https://github.com/cosmos/cosmos-sdk/blob/960d44842b9e313cbe762068a67a894ac82060ab/baseapp/abci.go#L1153-L1165
 //
-// SplitABCIQueryPath splits a string path using the delimiter '/'.
+// splitABCIQueryPath splits a string path using the delimiter '/'.
 //
 // e.g. "this/is/funny" becomes []string{"this", "is", "funny"}
-func SplitABCIQueryPath(requestPath string) []string {
+func splitABCIQueryPath(requestPath string) []string {
 	path := strings.Split(requestPath, "/")
 
 	// first element is empty string
@@ -230,6 +229,10 @@ func SplitABCIQueryPath(requestPath string) []string {
 
 	return path
 }
+
+//
+// NOOP methods
+//
 
 func (Service) ListSnapshots(
 	context.Context,
