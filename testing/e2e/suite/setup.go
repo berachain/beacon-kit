@@ -381,24 +381,55 @@ func (s *KurtosisE2ESuite) WaitForNBlockNumbers(
 	return s.WaitForFinalizedBlockNumber(current + n)
 }
 
-// EnforceValidatorsAreInSync checks the heights of all validators and makes sure they are synced
+// EnforceValidatorsAreInSync waits until all validators catch up to
+// the first one (within 1 block), logging progress each second.
 func (s *KurtosisE2ESuite) EnforceValidatorsAreInSync() {
-	// 1) collect the heights of all the nodes
-	heights := make([]int64, 0)
-	for _, client := range s.ConsensusClients() {
-		resp, respErr := client.ABCIInfo(s.Ctx())
-		s.Require().NoError(respErr)
-		heights = append(heights, resp.Response.LastBlockHeight)
+	ctx, cancel := context.WithTimeout(s.ctx, DefaultE2ETestTimeout)
+	defer cancel()
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+
+	clients := s.ConsensusClients()
+	// pick first as target
+	var targetName string
+	var targetClient *types.ConsensusClient
+	for name, c := range clients {
+		targetName, targetClient = name, c
+		break
 	}
 
-	// 2) compare each to the first
-	for i := 1; i < len(heights); i++ {
-		s.Require().InDelta(
-			float64(heights[0]),
-			float64(heights[i]),
-			1, // tolerance of 1 block
-			"validator %d out of sync", i,
-		)
+	for {
+		// fetch target height
+		resp, err := targetClient.ABCIInfo(s.Ctx())
+		s.Require().NoError(err)
+		targetH := resp.Response.LastBlockHeight
+		s.Logger().Info("Target height", "validator", targetName, "height", targetH)
+
+		allOK := true
+		// check others
+		for name, c := range clients {
+			if name == targetName {
+				continue
+			}
+			r, abciInfoErr := c.ABCIInfo(s.Ctx())
+			s.Require().NoError(abciInfoErr)
+			if h := r.Response.LastBlockHeight; h < targetH-1 {
+				s.Logger().Info("Still behind", "validator", name, "height", h)
+				allOK = false
+			}
+		}
+		if allOK {
+			s.Logger().Info("All validators in sync", "height", targetH)
+			return
+		}
+
+		select {
+		case <-ctx.Done():
+			s.Require().NoErrorf(ctx.Err(),
+				"Validators failed to catch up to %q in %s", targetName, DefaultE2ETestTimeout)
+			return
+		case <-ticker.C:
+		}
 	}
 }
 
