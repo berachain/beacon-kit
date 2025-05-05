@@ -63,5 +63,4 @@ func (h *Handler) Syncing(_ handlers.Context) (any, error) {
 	}
 
 	return response, nil
-
 }
