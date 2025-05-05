@@ -394,13 +394,16 @@ func (s *KurtosisE2ESuite) EnforceValidatorsAreInSync() {
 		s.Require().Fail("no consensus clients registered")
 	}
 
-	// pick first map key as our “target”
+	// pick first map key as our “target” and guard against nil
 	var targetName string
+	var targetClient *types.ConsensusClient
+	var ok bool
 	for name := range clients {
 		targetName = name
+		targetClient, ok = clients[name]
 		break
 	}
-	targetClient := clients[targetName]
+	s.Require().True(ok && targetClient != nil, "target consensus client missing or nil")
 
 	for {
 		// fetch target height
@@ -415,8 +418,8 @@ func (s *KurtosisE2ESuite) EnforceValidatorsAreInSync() {
 			if name == targetName {
 				continue
 			}
-			r, abciErr := c.ABCIInfo(s.Ctx())
-			s.Require().NoError(abciErr)
+			r, infoErr := c.ABCIInfo(s.Ctx())
+			s.Require().NoError(infoErr)
 			if h := r.Response.LastBlockHeight; h < targetH-1 {
 				s.Logger().Info("Still behind", "validator", name, "height", h)
 				allOK = false
