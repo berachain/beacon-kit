@@ -33,7 +33,7 @@ var (
 )
 
 // Syncing returns the syncing status of the node.
-func (h *Handler) Syncing(handlers.Context) (any, error) {
+func (h *Handler) Syncing(_ handlers.Context) (any, error) {
 	node := h.backend.GetNode()
 	if node == nil {
 		return nil, errNilNode
@@ -62,5 +62,6 @@ func (h *Handler) Syncing(handlers.Context) (any, error) {
 		response.IsSyncing = true
 	}
 
-	return nodetypes.NewResponse(&response), nil
+	return response, nil
+
 }
