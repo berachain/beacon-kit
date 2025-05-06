@@ -23,10 +23,16 @@ package engineprimitives
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/karalabe/ssz"
 )
 
-// ProperTransactions is a type alias for [][]byte, which is how
+var (
+	_ ssz.DynamicObject       = (*Transactions)(nil)
+	_ constraints.SSZRootable = (*Transactions)(nil)
+)
+
+// Transactions is a type alias for [][]byte, which is how
 // transactions are received in the execution payload.
 type Transactions [][]byte
 

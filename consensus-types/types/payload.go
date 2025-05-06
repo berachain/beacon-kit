@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -33,11 +34,24 @@ import (
 	"github.com/karalabe/ssz"
 )
 
-// ExecutionPayloadStaticSize is the static size of the ExecutionPayload.
-const ExecutionPayloadStaticSize uint32 = 528
+const (
+	// ExecutionPayloadStaticSize is the static size of the ExecutionPayload.
+	ExecutionPayloadStaticSize uint32 = 528
+
+	// ExtraDataSize is the size of ExtraData in bytes.
+	ExtraDataSize = 32
+)
+
+// Compile-time assertions to ensure ExecutionPayload implements necessary interfaces.
+var (
+	_ ssz.DynamicObject                            = (*ExecutionPayload)(nil)
+	_ constraints.SSZVersionedMarshallableRootable = (*ExecutionPayload)(nil)
+)
 
 // ExecutionPayload represents the payload of an execution block.
 type ExecutionPayload struct {
+	constraints.Versionable `json:"-"`
+
 	// ParentHash is the hash of the parent block.
 	ParentHash common.ExecutionHash `json:"parentHash"`
 	// FeeRecipient is the address of the fee recipient.
@@ -72,23 +86,19 @@ type ExecutionPayload struct {
 	BlobGasUsed math.U64 `json:"blobGasUsed"`
 	// ExcessBlobGas is the amount of excess blob gas in the block.
 	ExcessBlobGas math.U64 `json:"excessBlobGas"`
-
-	// EpVersion is the version of the execution payload.
-	// EpVersion must be not serialized, but it's exported
-	// to allow unit tests using reflect on execution payload.
-	EpVersion common.Version `json:"-"`
 }
 
-func EnsureNotNilWithdrawals(p *ExecutionPayload) {
-	// Post Shanghai an EL explicitly check that Withdrawals are not nil
-	// (instead empty slices are fine). Currently BeaconKit duly builds
-	// a block with Withdrawals set to empty slice if there are no
-	// withdrawals) but as soon as the block is returned by CometBFT
-	// for verification, the SSZ decoding sets the empty slice to nil.
-	// This code change solves the issue.
-	if p.Withdrawals == nil {
-		p.Withdrawals = make([]*engineprimitives.Withdrawal, 0)
+func NewEmptyExecutionPayloadWithVersion(forkVersion common.Version) *ExecutionPayload {
+	ep := &ExecutionPayload{
+		Versionable:   NewVersionable(forkVersion),
+		BaseFeePerGas: &math.U256{},
 	}
+
+	// For any fork version Capella onwards, non-nil withdrawals are required.
+	if version.EqualsOrIsAfter(forkVersion, version.Capella()) {
+		ep.Withdrawals = make([]*engineprimitives.Withdrawal, 0)
+	}
+	return ep
 }
 
 /* -------------------------------------------------------------------------- */
@@ -147,10 +157,9 @@ func (p *ExecutionPayload) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineSliceOfStaticObjectsContent(codec, &p.Withdrawals, 16)
 
 	// Note that at this state we don't have any guarantee that
-	// p.Withdrawal is not nil, which we require following Capella
+	// p.Withdrawal is not nil, which we require Capella onwards
 	// (empty list of withdrawals are fine). We ensure non-nillness
-	// in EnsureNotNilWithdrawals which is must be called wherever
-	// we deserialize an execution payload (or anything containing one).
+	// in ValidateAfterDecodingSSZ.
 }
 
 // MarshalSSZ serializes the ExecutionPayload object into a slice of bytes.
@@ -159,9 +168,12 @@ func (p *ExecutionPayload) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, p)
 }
 
-// UnmarshalSSZ unmarshals the ExecutionPayload object from a source array.
-func (p *ExecutionPayload) UnmarshalSSZ(bz []byte) error {
-	return ssz.DecodeFromBytes(bz, p)
+func (p *ExecutionPayload) ValidateAfterDecodingSSZ() error {
+	// For any fork version Capella onwards, non-nil withdrawals are required.
+	if p.Withdrawals == nil && version.EqualsOrIsAfter(p.GetForkVersion(), version.Capella()) {
+		p.Withdrawals = make([]*engineprimitives.Withdrawal, 0)
+	}
+	return nil
 }
 
 // HashTreeRoot returns the hash tree root of the ExecutionPayload.
@@ -466,22 +478,9 @@ func (p *ExecutionPayload) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
-// Empty returns an empty ExecutionPayload for the given fork version.
-func (p *ExecutionPayload) Empty(forkVersion common.Version) *ExecutionPayload {
-	return &ExecutionPayload{
-		EpVersion: forkVersion,
-	}
-}
-
-// Version returns the version of the ExecutionPayload.
-func (p *ExecutionPayload) Version() common.Version {
-	return p.EpVersion
-}
-
-// IsNil checks if the ExecutionPayload is nil.
-func (p *ExecutionPayload) IsNil() bool {
-	return p == nil
-}
+/* -------------------------------------------------------------------------- */
+/*                                   Getters                                  */
+/* -------------------------------------------------------------------------- */
 
 // IsBlinded checks if the ExecutionPayload is blinded.
 func (p *ExecutionPayload) IsBlinded() bool {
@@ -575,12 +574,11 @@ func (p *ExecutionPayload) GetExcessBlobGas() math.U64 {
 
 // ToHeader converts the ExecutionPayload to an ExecutionPayloadHeader.
 func (p *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
-	txsRoot := p.GetTransactions().HashTreeRoot()
-
-	switch p.EpVersion {
-	case version.Deneb(), version.Deneb1():
+	switch p.GetForkVersion() {
+	case version.Deneb(), version.Deneb1(), version.Electra():
 		return &ExecutionPayloadHeader{
-			ParentHash:       p.ParentHash,
+			Versionable:      p.Versionable,
+			ParentHash:       p.GetParentHash(),
 			FeeRecipient:     p.GetFeeRecipient(),
 			StateRoot:        p.GetStateRoot(),
 			ReceiptsRoot:     p.GetReceiptsRoot(),
@@ -592,12 +590,11 @@ func (p *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 			Timestamp:        p.GetTimestamp(),
 			ExtraData:        p.GetExtraData(),
 			BaseFeePerGas:    p.GetBaseFeePerGas(),
-			BlockHash:        p.BlockHash,
-			TransactionsRoot: txsRoot,
+			BlockHash:        p.GetBlockHash(),
+			TransactionsRoot: p.GetTransactions().HashTreeRoot(),
 			WithdrawalsRoot:  p.GetWithdrawals().HashTreeRoot(),
 			BlobGasUsed:      p.GetBlobGasUsed(),
 			ExcessBlobGas:    p.GetExcessBlobGas(),
-			EphVersion:       p.EpVersion,
 		}, nil
 	default:
 		return nil, errors.New("unknown fork version")

@@ -23,11 +23,10 @@ package spec
 // NOTE: Most of these default values are taken from ETH2.0 spec.
 // Some values (mentioned below) are modified to better suit Berachain's system.
 
-//nolint:unused // Keeping values here for reference.
 const (
 	// Gwei value constants.
 	defaultMaxEffectiveBalance       = 32e9
-	defaultEjectionBalance           = 16e9
+	defaultActivationBalance         = 32e9
 	defaultEffectiveBalanceIncrement = 1e9
 
 	defaultHysteresisQuotient           = 4
@@ -57,17 +56,13 @@ const (
 	defaultTargetSecondsPerEth1Block = 2 // Berachain specific.
 
 	// Fork-related values.
-	defaultDeneb1ForkEpoch  = 9999999999999998 // Set as a future epoch as not yet determined.
-	defaultElectraForkEpoch = 9999999999999999 // Set as a future epoch as not yet determined.
+	defaultElectraForkTime = 9999999999999999 // Set as a future timestamp as not yet determined.
 
 	// State list length constants.
 	defaultEpochsPerHistoricalVector = 8
 	defaultEpochsPerSlashingsVector  = 8
 	defaultHistoricalRootsLimit      = 8
 	defaultValidatorRegistryLimit    = 1099511627776
-
-	// Slashing.
-	defaultProportionalSlashingMultiplier = 1
 
 	// Capella values.
 	defaultMaxWithdrawalsPerPayload         = 16
@@ -79,10 +74,12 @@ const (
 	defaultMaxBlobsPerBlock                 = 6
 	defaultFieldElementsPerBlob             = 4096
 	defaultBytesPerBlob                     = 131072
-	defaultKZGCommitmentInclusionProofDepth = 17
 
 	// Berachain values.
 	defaultValidatorSetCap      = 256
 	defaultEVMInflationAddress  = "0x0000000000000000000000000000000000000000"
 	defaultEVMInflationPerBlock = 0
+
+	// Electra values.
+	defaultMinValidatorWithdrawabilityDelay = 256
 )

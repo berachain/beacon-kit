@@ -27,15 +27,3 @@ import "github.com/berachain/beacon-kit/node-api/handlers/types"
 type BlockProposerRequest struct {
 	types.TimestampIDRequest
 }
-
-// ExecutionNumberRequest is the request for the
-// `/proof/execution_number/{timestamp_id}` endpoint.
-type ExecutionNumberRequest struct {
-	types.TimestampIDRequest
-}
-
-// ExecutionFeeRecipientRequest is the request for the
-// `/proof/execution_fee_recipient/{timestamp_id}` endpoint.
-type ExecutionFeeRecipientRequest struct {
-	types.TimestampIDRequest
-}

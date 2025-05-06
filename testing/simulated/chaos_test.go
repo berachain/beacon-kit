@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/cometbft/cometbft/abci/types"
-	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
 // TestProcessProposal_CrashedExecutionClient_Errors effectively serves as a test for how a valid node would react to
@@ -39,20 +38,23 @@ func (s *SimulatedSuite) TestProcessProposal_CrashedExecutionClient_Errors() {
 	const coreLoopIterations = 1
 
 	// Initialize the chain state.
-	s.initializeChain()
+	s.InitializeChain(s.T())
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
 
+	// Test happens post Deneb1 fork.
+	startTime := time.Now()
+
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals := s.moveChainToHeight(blockHeight, coreLoopIterations, blsSigner)
+	proposals, _, proposalTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	currentHeight := int64(blockHeight + coreLoopIterations)
+
 	// Prepare a valid block proposal.
-	proposalTime := time.Now()
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
 		Time:            proposalTime,
@@ -84,15 +86,18 @@ func (s *SimulatedSuite) TestContextHandling_SIGINT_SafeShutdown() {
 	const coreLoopIterations = 1
 
 	// Initialize the chain state.
-	s.initializeChain()
+	s.InitializeChain(s.T())
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
 
+	// Test happens post Deneb1 fork.
+	startTime := time.Now()
+
 	// Run through core loop iterations to bypass any startup edge cases.
-	proposals := s.moveChainToHeight(blockHeight, coreLoopIterations, blsSigner)
+	proposals, _, proposalTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	currentHeight := int64(blockHeight + coreLoopIterations)
@@ -103,13 +108,13 @@ func (s *SimulatedSuite) TestContextHandling_SIGINT_SafeShutdown() {
 	s.Require().NoError(err)
 
 	type proposalResult struct {
-		proposal *cmtabci.PrepareProposalResponse
+		proposal *types.PrepareProposalResponse
 		err      error
 	}
 	// Capture result of prepare proposal
 	resultCh := make(chan proposalResult, 1)
+
 	// Prepare proposal in a separate goroutine since it will block due to retrying on the crashed EL.
-	proposalTime := time.Now()
 	go func() {
 		proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 			Height:          currentHeight,
@@ -144,15 +149,18 @@ func (s *SimulatedSuite) TestContextHandling_CancelledContext_Rejected() {
 	const coreLoopIterations = 1
 
 	// Initialize the chain state.
-	s.initializeChain()
+	s.InitializeChain(s.T())
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
 
+	// Test happens post Deneb1 fork.
+	startTime := time.Now()
+
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals := s.moveChainToHeight(blockHeight, coreLoopIterations, blsSigner)
+	proposals, _, proposalTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	currentHeight := int64(blockHeight + coreLoopIterations)
@@ -165,7 +173,6 @@ func (s *SimulatedSuite) TestContextHandling_CancelledContext_Rejected() {
 	s.CtxAppCancelFn()
 
 	s.LogBuffer.Reset()
-	proposalTime := time.Now()
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
 		Time:            proposalTime,
@@ -187,6 +194,7 @@ func (s *SimulatedSuite) TestContextHandling_CancelledContext_Rejected() {
 		Txs:             proposal.Txs,
 		Height:          currentHeight,
 		ProposerAddress: pubkey.Address(),
+		Time:            proposalTime,
 	})
 	s.Require().Error(err, context.Canceled)
 	s.Require().Nil(finalizeResp)

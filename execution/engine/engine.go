@@ -76,7 +76,7 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 ) (*engineprimitives.PayloadID, error) {
 	var (
 		engineAPIBackoff     = ee.newBackoff()
-		hasPayloadAttributes = !req.PayloadAttributes.IsNil()
+		hasPayloadAttributes = req.PayloadAttributes != nil
 	)
 
 	return backoff.Retry(
@@ -161,13 +161,13 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 //nolint:funlen // error handling and logs
 func (ee *Engine) NotifyNewPayload(
 	ctx context.Context,
-	req *ctypes.NewPayloadRequest,
+	req ctypes.NewPayloadRequest,
 	retryOnSyncingStatus bool,
 ) error {
 	var (
 		engineAPIBackoff  = ee.newBackoff()
-		payloadHash       = req.ExecutionPayload.GetBlockHash()
-		payloadParentHash = req.ExecutionPayload.GetParentHash()
+		payloadHash       = req.GetExecutionPayload().GetBlockHash()
+		payloadParentHash = req.GetExecutionPayload().GetParentHash()
 	)
 
 	_, err := backoff.Retry(
@@ -175,7 +175,7 @@ func (ee *Engine) NotifyNewPayload(
 		func() (*common.ExecutionHash, error) {
 			ee.metrics.markNewPayloadCalled(payloadHash, payloadParentHash)
 			lastValidHash, err := ee.ec.NewPayload(
-				ctx, req.ExecutionPayload, req.VersionedHashes, req.ParentBeaconBlockRoot,
+				ctx, req,
 			)
 
 			// NotifyNewPayload gets called under three circumstances:
@@ -209,7 +209,7 @@ func (ee *Engine) NotifyNewPayload(
 				ee.logger.Warn(
 					"NotifyNewPayload: pushed new payload to SYNCING node.",
 					"error", err,
-					"blockNum", req.ExecutionPayload.GetNumber(),
+					"blockNum", req.GetExecutionPayload().GetNumber(),
 					"blockHash", payloadHash,
 				)
 				return &common.ExecutionHash{}, nil

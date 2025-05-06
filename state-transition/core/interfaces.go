@@ -21,126 +21,63 @@
 package core
 
 import (
+	"context"
+
+	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-type BeaconState interface {
-	ReadOnlyBeaconState
-	WriteOnlyBeaconState
-}
-
-// ReadOnlyBeaconState is the interface for a read-only beacon state.
 type ReadOnlyBeaconState interface {
-	ReadOnlyEth1Data
-	ReadOnlyRandaoMixes
-	ReadOnlyStateRoots
-	ReadOnlyValidators
-	ReadOnlyWithdrawals
-
-	GetBalance(math.ValidatorIndex) (math.Gwei, error)
+	GetLatestExecutionPayloadHeader() (*ctypes.ExecutionPayloadHeader, error)
 	GetSlot() (math.Slot, error)
-	GetFork() (*ctypes.Fork, error)
-	GetGenesisValidatorsRoot() (common.Root, error)
-	GetBlockRootAtIndex(uint64) (common.Root, error)
-	GetLatestBlockHeader() (*ctypes.BeaconBlockHeader, error)
-	GetTotalActiveBalances(uint64) (math.Gwei, error)
-	GetValidators() (ctypes.Validators, error)
-	GetSlashingAtIndex(uint64) (math.Gwei, error)
-	GetTotalSlashing() (math.Gwei, error)
-	GetNextWithdrawalIndex() (uint64, error)
-	GetNextWithdrawalValidatorIndex() (math.ValidatorIndex, error)
-	GetTotalValidators() (uint64, error)
-	GetValidatorsByEffectiveBalance() ([]*ctypes.Validator, error)
-	ValidatorIndexByCometBFTAddress(
-		cometBFTAddress []byte,
-	) (math.ValidatorIndex, error)
-}
-
-// WriteOnlyBeaconState is the interface for a write-only beacon state.
-type WriteOnlyBeaconState interface {
-	WriteOnlyEth1Data
-	WriteOnlyRandaoMixes
-	WriteOnlyStateRoots
-	WriteOnlyValidators
-
-	SetGenesisValidatorsRoot(root common.Root) error
-	SetFork(*ctypes.Fork) error
-	SetSlot(math.Slot) error
-	UpdateBlockRootAtIndex(uint64, common.Root) error
-	SetLatestBlockHeader(*ctypes.BeaconBlockHeader) error
-	IncreaseBalance(math.ValidatorIndex, math.Gwei) error
-	DecreaseBalance(math.ValidatorIndex, math.Gwei) error
-	UpdateSlashingAtIndex(uint64, math.Gwei) error
-	SetNextWithdrawalIndex(uint64) error
-	SetNextWithdrawalValidatorIndex(math.ValidatorIndex) error
-	SetTotalSlashing(math.Gwei) error
-}
-
-// WriteOnlyStateRoots defines a struct which only has write access to state
-// roots methods.
-type WriteOnlyStateRoots interface {
-	UpdateStateRootAtIndex(uint64, common.Root) error
-}
-
-// ReadOnlyStateRoots defines a struct which only has read access to state roots
-// methods.
-type ReadOnlyStateRoots interface {
-	StateRootAtIndex(uint64) (common.Root, error)
-}
-
-// WriteOnlyRandaoMixes defines a struct which only has write access to randao
-// mixes methods.
-type WriteOnlyRandaoMixes interface {
-	UpdateRandaoMixAtIndex(uint64, common.Bytes32) error
-}
-
-// ReadOnlyRandaoMixes defines a struct which only has read access to randao
-// mixes methods.
-type ReadOnlyRandaoMixes interface {
+	GetEpoch() (math.Epoch, error)
 	GetRandaoMixAtIndex(uint64) (common.Bytes32, error)
 }
 
-// WriteOnlyValidators has write access to validator methods.
-type WriteOnlyValidators interface {
-	UpdateValidatorAtIndex(
-		math.ValidatorIndex,
-		*ctypes.Validator,
+// ReadOnlyContext defines an interface for managing state transition context.
+type ReadOnlyContext interface {
+	ConsensusCtx() context.Context
+	ConsensusTime() math.U64
+	ProposerAddress() []byte
+	VerifyPayload() bool
+	VerifyRandao() bool
+	VerifyResult() bool
+	MeterGas() bool
+}
+
+// ExecutionEngine is the interface for the execution engine.
+type ExecutionEngine interface {
+	// NotifyNewPayload notifies the execution client of the new payload.
+	NotifyNewPayload(
+		ctx context.Context,
+		req ctypes.NewPayloadRequest,
+		retryOnSyncingStatus bool,
 	) error
-
-	AddValidator(*ctypes.Validator) error
 }
 
-// ReadOnlyValidators has read access to validator methods.
-type ReadOnlyValidators interface {
-	ValidatorIndexByPubkey(
-		crypto.BLSPubkey,
-	) (math.ValidatorIndex, error)
-
-	ValidatorByIndex(
-		math.ValidatorIndex,
-	) (*ctypes.Validator, error)
+// TelemetrySink is an interface for sending metrics to a telemetry backend.
+type TelemetrySink interface {
+	SetGauge(key string, value int64, args ...string)
+	// IncrementCounter increments the counter identified by
+	// the provided key.
+	IncrementCounter(key string, args ...string)
 }
 
-// WriteOnlyEth1Data has write access to eth1 data.
-type WriteOnlyEth1Data interface {
-	SetEth1Data(*ctypes.Eth1Data) error
-	SetEth1DepositIndex(uint64) error
-	SetLatestExecutionPayloadHeader(*ctypes.ExecutionPayloadHeader) error
-}
-
-// ReadOnlyEth1Data has read access to eth1 data.
-type ReadOnlyEth1Data interface {
-	GetEth1Data() (*ctypes.Eth1Data, error)
-	GetEth1DepositIndex() (uint64, error)
-	GetLatestExecutionPayloadHeader() (*ctypes.ExecutionPayloadHeader, error)
-}
-
-// ReadOnlyWithdrawals only has read access to withdrawal methods.
-type ReadOnlyWithdrawals interface {
-	EVMInflationWithdrawal(math.Slot) *engineprimitives.Withdrawal
-	ExpectedWithdrawals() (engineprimitives.Withdrawals, error)
+type ChainSpec interface {
+	chain.HysteresisSpec
+	chain.BalancesSpec
+	chain.DepositSpec
+	chain.ForkSpec
+	chain.DomainTypeSpec
+	chain.WithdrawalsSpec
+	SlotsPerEpoch() uint64
+	SlotToEpoch(slot math.Slot) math.Epoch
+	SlotsPerHistoricalRoot() uint64
+	EpochsPerHistoricalVector() uint64
+	GenesisForkVersion() common.Version
+	ActiveForkVersionForTimestamp(timestamp math.U64) common.Version
+	ValidatorSetCap() uint64
+	HistoricalRootsLimit() uint64
 }

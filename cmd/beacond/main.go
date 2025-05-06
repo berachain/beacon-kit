@@ -26,13 +26,10 @@ import (
 
 	clibuilder "github.com/berachain/beacon-kit/cli/builder"
 	clicomponents "github.com/berachain/beacon-kit/cli/components"
+	"github.com/berachain/beacon-kit/config/spec"
 	nodebuilder "github.com/berachain/beacon-kit/node-core/builder"
-	nodecomponents "github.com/berachain/beacon-kit/node-core/components"
-	nodetypes "github.com/berachain/beacon-kit/node-core/types"
 	"go.uber.org/automaxprocs/maxprocs"
 )
-
-type Node = nodetypes.Node
 
 // run runs the beacon node.
 func run() error {
@@ -61,15 +58,11 @@ func run() error {
 		),
 		// Set the Runtime Components to the Default.
 		clibuilder.WithComponents(
-			append(
-				clicomponents.DefaultClientComponents(),
-				// TODO: remove these, and eventually pull cfg and chainspec
-				// from built node
-				nodecomponents.ProvideChainSpec,
-			),
+			clicomponents.DefaultClientComponents(),
 		),
 		// Set the NodeBuilderFunc to the NodeBuilder Build.
 		clibuilder.WithNodeBuilderFunc(nb.Build),
+		clibuilder.WithChainSpecBuilderFunc(spec.Create),
 	)
 
 	cmd, err := cb.Build()

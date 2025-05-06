@@ -59,7 +59,7 @@ type Service struct {
 	// are agreed upon by all validators in the network.
 	cmtConsensusParams *cmttypes.ConsensusParams
 
-	// cmtCgf are node-specific settings that influence how
+	// cmtCfg are node-specific settings that influence how
 	// the consensus engine operates on a particular node.
 	// Loaded from config file (config.toml), not part of state.
 	cmtCfg *cmtcfg.Config
@@ -124,12 +124,14 @@ func NewService(
 		panic(err)
 	}
 
+	// some configs, while legit, causes issues if applied
+	// carelessly. We warn about them
+	log := servercmtlog.WrapSDKLogger(logger)
+	warnAboutConfigs(cmtCfg, log)
+
 	s := &Service{
-		logger: logger,
-		sm: statem.NewManager(
-			db,
-			servercmtlog.WrapSDKLogger(logger),
-		),
+		logger:             logger,
+		sm:                 statem.NewManager(db, log),
 		Blockchain:         blockchain,
 		BlockBuilder:       blockBuilder,
 		cmtConsensusParams: cmtConsensusParams,

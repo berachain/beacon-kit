@@ -33,10 +33,6 @@ var (
 	// ErrEmptyPrevRandao indicates that the previous RANDAO value is empty.
 	ErrEmptyPrevRandao = errors.New("empty randao")
 
-	// ErrFailedToUnmarshalTx indicates that the transaction could not be
-	// unmarshaled.
-	ErrFailedToUnmarshalTx = errors.New("failed to unmarshal transaction")
-
 	// ErrInvalidVersionedHash indicates that the versioned hash is invalid.
 	ErrInvalidVersionedHash = errors.New("invalid versioned hash")
 

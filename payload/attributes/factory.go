@@ -21,7 +21,6 @@
 package attributes
 
 import (
-	"github.com/berachain/beacon-kit/chain"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -32,7 +31,7 @@ import (
 // Factory is a factory for creating payload attributes.
 type Factory struct {
 	// chainSpec is the chain spec for the attributes factory.
-	chainSpec chain.Spec
+	chainSpec ChainSpec
 	// logger is the logger for the attributes factory.
 	logger log.Logger
 	// suggestedFeeRecipient is the suggested fee recipient sent to
@@ -42,7 +41,7 @@ type Factory struct {
 
 // NewAttributesFactory creates a new instance of AttributesFactory.
 func NewAttributesFactory(
-	chainSpec chain.Spec,
+	chainSpec ChainSpec,
 	logger log.Logger,
 	suggestedFeeRecipient common.ExecutionAddress,
 ) *Factory {
@@ -57,7 +56,7 @@ func NewAttributesFactory(
 func (f *Factory) BuildPayloadAttributes(
 	st *statedb.StateDB,
 	slot math.Slot,
-	timestamp uint64,
+	timestamp math.U64,
 	prevHeadRoot [32]byte,
 ) (*engineprimitives.PayloadAttributes, error) {
 	var (
@@ -67,7 +66,7 @@ func (f *Factory) BuildPayloadAttributes(
 	)
 
 	// Get the expected withdrawals to include in this payload.
-	withdrawals, err := st.ExpectedWithdrawals()
+	withdrawals, _, err := st.ExpectedWithdrawals(timestamp)
 	if err != nil {
 		f.logger.Error(
 			"Could not get expected withdrawals to get payload attribute",
@@ -85,7 +84,7 @@ func (f *Factory) BuildPayloadAttributes(
 	}
 
 	return engineprimitives.NewPayloadAttributes(
-		f.chainSpec.ActiveForkVersionForEpoch(epoch),
+		f.chainSpec.ActiveForkVersionForTimestamp(timestamp),
 		timestamp,
 		prevRandao,
 		f.suggestedFeeRecipient,
