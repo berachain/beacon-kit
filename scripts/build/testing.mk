@@ -102,7 +102,8 @@ start-geth:
 	--ipcpath ${IPC_PATH}
 
 ## Start an ephemeral `nethermind` node
-start-nethermind: 
+start-nethermind:
+	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
 	docker run \
 	-p 30303:30303 \
 	-p 8545:8545 \
