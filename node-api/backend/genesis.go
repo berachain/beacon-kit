@@ -24,16 +24,12 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // GenesisBlockHeader returns the genesis block header of the beacon chain.
 func (b *Backend) GenesisBlockHeader() *ctypes.BeaconBlockHeader {
 	return b.genesisHeader.Load()
-}
-
-// GenesisValidatorsRoot returns the genesis validators root of the beacon chain.
-func (b *Backend) GenesisValidatorsRoot() common.Root {
-	return *b.genesisValidatorsRoot.Load()
 }
 
 // GenesisForkVersion returns the genesis fork version of the beacon chain.
@@ -49,4 +45,14 @@ func (b *Backend) GenesisTime() math.U64 {
 // GenesisBlockRoot returns the genesis block root of the beacon chain.
 func (b *Backend) GenesisBlockRoot() common.Root {
 	return *b.genesisBlockRoot.Load()
+}
+
+// GenesisState returns the genesis state of the beacon chain.
+func (b *Backend) GenesisState() *statedb.StateDB {
+	return b.genesisState.Load()
+}
+
+// GenesisValidators returns the genesis validators of the beacon chain.
+func (b *Backend) GenesisValidators() []*ctypes.Validator {
+	return *b.genesisValidators.Load()
 }

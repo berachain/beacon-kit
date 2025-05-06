@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/node-core/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 )
@@ -43,11 +44,12 @@ type Backend struct {
 	node types.ConsensusService
 
 	// the genesis data is cached here, written to once during initialization!
-	genesisHeader         atomic.Pointer[ctypes.BeaconBlockHeader]
-	genesisValidatorsRoot atomic.Pointer[common.Root]
-	genesisBlockRoot      atomic.Pointer[common.Root]
-	genesisTime           atomic.Pointer[math.U64]
-	genesisForkVersion    atomic.Pointer[common.Version]
+	genesisHeader      atomic.Pointer[ctypes.BeaconBlockHeader]
+	genesisBlockRoot   atomic.Pointer[common.Root]
+	genesisValidators  atomic.Pointer[[]*ctypes.Validator]
+	genesisTime        atomic.Pointer[math.U64]
+	genesisForkVersion atomic.Pointer[common.Version]
+	genesisState       atomic.Pointer[statedb.StateDB]
 }
 
 // New creates and returns a new Backend instance.
@@ -92,12 +94,14 @@ func (b *Backend) AttachQueryBackend(node types.ConsensusService) {
 // SetGenesisData sets the genesis data on the API backend.
 func (b *Backend) SetGenesisData(
 	genesisHeader *ctypes.BeaconBlockHeader,
-	genesisValidatorsRoot common.Root,
 	genesisBlockRoot common.Root,
+	validators []*ctypes.Validator,
+	genesisState *statedb.StateDB,
 ) {
 	b.genesisHeader.Store(genesisHeader)
-	b.genesisValidatorsRoot.Store(&genesisValidatorsRoot)
 	b.genesisBlockRoot.Store(&genesisBlockRoot)
+	b.genesisValidators.Store(&validators)
+	b.genesisState.Store(genesisState)
 }
 
 // GetSlotByBlockRoot retrieves the slot by a block root from the block store.

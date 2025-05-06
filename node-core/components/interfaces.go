@@ -539,11 +539,12 @@ type (
 	}
 
 	GenesisBackend interface {
-		GenesisValidatorsRoot() common.Root
 		GenesisForkVersion() common.Version
 		GenesisTime() math.U64
 		GenesisBlockHeader() *ctypes.BeaconBlockHeader
 		GenesisBlockRoot() common.Root
+		GenesisState() *statedb.StateDB
+		GenesisValidators() []*ctypes.Validator
 	}
 
 	RandaoBackend interface {
@@ -573,8 +574,14 @@ type (
 			ids []string,
 			statuses []string,
 		) ([]*types.ValidatorData, error)
+		FilteredValidatorsAtGenesis(
+			validators []*ctypes.Validator,
+			genesisState *statedb.StateDB,
+			ids []string,
+			statuses []string,
+		) ([]*types.ValidatorData, error)
 		ValidatorBalancesByIDs(
-			slot math.Slot,
+			state *statedb.StateDB,
 			ids []string,
 		) ([]*types.ValidatorBalanceData, error)
 	}

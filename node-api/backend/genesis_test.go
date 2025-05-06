@@ -119,7 +119,22 @@ func TestGetGenesisData(t *testing.T) {
 		StateRoot:       common.Root{0x1, 0x2, 0x3},
 		BodyRoot:        common.Root{0x1, 0x2, 0x3},
 	}
-	b.SetGenesisData(&bbh, common.Root{0x1, 0x2, 0x3}, common.Root{0x4, 0x5, 0x6})
+	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), false, log.NewNopLogger())
+
+	validators := []*types.Validator{
+		{
+			Pubkey:                     [48]byte{0x01},
+			WithdrawalCredentials:      [32]byte{0x02},
+			EffectiveBalance:           32000000000,
+			Slashed:                    false,
+			ActivationEligibilityEpoch: 1,
+			ActivationEpoch:            2,
+			ExitEpoch:                  18446744073709551615,
+			WithdrawableEpoch:          18446744073709551615,
+		},
+	}
+	state := sb.StateFromContext(sdkCtx)
+	b.SetGenesisData(&bbh, common.Root{0x1, 0x2, 0x3}, validators, state)
 
 	// Test all genesis data.
 	genesisTime := b.GenesisTime()
@@ -128,12 +143,14 @@ func TestGetGenesisData(t *testing.T) {
 	genesisForkVersion := b.GenesisForkVersion()
 	require.Equal(t, version.Deneb(), genesisForkVersion) // Deneb 0x04000000
 
-	genesisValidatorsRoot := b.GenesisValidatorsRoot()
+	genesisState := b.GenesisState()
+	genesisValidatorsRoot, err := genesisState.GetGenesisValidatorsRoot()
+	require.NoError(t, err)
 	require.Equal(t, common.Root{0x1, 0x2, 0x3}, genesisValidatorsRoot)
-
-	genesisBlockRoot := b.GenesisBlockRoot()
-	require.Equal(t, common.Root{0x4, 0x5, 0x6}, genesisBlockRoot)
 
 	genesisBlockHeader := b.GenesisBlockHeader()
 	require.Equal(t, bbh, *genesisBlockHeader)
+
+	genesisValidators := b.GenesisValidators()
+	require.Equal(t, validators, genesisValidators)
 }

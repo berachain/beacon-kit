@@ -25,6 +25,7 @@ import (
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.
@@ -38,7 +39,8 @@ type APIBackend interface {
 	// SetGenesisData sets the genesis data on the API backend.
 	SetGenesisData(
 		genesisHeader *ctypes.BeaconBlockHeader,
-		genesisValidatorsRoot common.Root,
 		genesisBlockRoot common.Root,
+		validators []*ctypes.Validator,
+		genesisState *statedb.StateDB,
 	)
 }
