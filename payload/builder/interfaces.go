@@ -41,7 +41,6 @@ type AttributesFactory interface {
 	BuildPayloadAttributes(
 		st attributes.ReadOnlyBeaconState,
 		timestamp math.U64,
-		prevHeadRoot [32]byte,
 	) (*engineprimitives.PayloadAttributes, error)
 }
 

@@ -258,7 +258,6 @@ func (s *Service) retrieveExecutionPayload(
 		ctx,
 		st,
 		nextPayloadTimestamp,
-		parentBlockRoot,
 		lph.GetBlockHash(),
 		lph.GetParentHash(),
 	)

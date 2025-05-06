@@ -55,7 +55,6 @@ func NewAttributesFactory(
 func (f *Factory) BuildPayloadAttributes(
 	st ReadOnlyBeaconState,
 	timestamp math.U64,
-	prevHeadRoot [32]byte,
 ) (*engineprimitives.PayloadAttributes, error) {
 	// Get the expected withdrawals to include in this payload.
 	withdrawals, _, err := st.ExpectedWithdrawals(timestamp)
@@ -87,6 +86,16 @@ func (f *Factory) BuildPayloadAttributes(
 		)
 		return nil, err
 	}
+
+	latestHeader, err := st.GetLatestBlockHeader()
+	if err != nil {
+		f.logger.Error(
+			"Could not get latest block header to get payload attribute",
+			"error", err,
+		)
+		return nil, err
+	}
+	prevHeadRoot := latestHeader.HashTreeRoot()
 
 	return engineprimitives.NewPayloadAttributes(
 		f.chainSpec.ActiveForkVersionForTimestamp(timestamp),

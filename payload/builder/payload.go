@@ -38,7 +38,6 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 	ctx context.Context,
 	st attributes.ReadOnlyBeaconState,
 	timestamp math.U64,
-	parentBlockRoot common.Root,
 	headEth1BlockHash common.ExecutionHash,
 	finalEth1BlockHash common.ExecutionHash,
 ) (*engineprimitives.PayloadID, common.Version, error) {
@@ -50,6 +49,11 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 	if err != nil {
 		return nil, common.Version{}, fmt.Errorf("RequestPayloadAsync failed retrieving slot: %w", err)
 	}
+	lph, err := st.GetLatestBlockHeader()
+	if err != nil {
+		return nil, common.Version{}, fmt.Errorf("RequestPayloadAsync failed retrieving latest block header: %w", err)
+	}
+	parentBlockRoot := lph.HashTreeRoot()
 
 	if payloadID, found := pb.pc.GetAndEvict(slot, parentBlockRoot); found {
 		pb.logger.Info(
@@ -64,7 +68,6 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 	attrs, err := pb.attributesFactory.BuildPayloadAttributes(
 		st,
 		timestamp,
-		parentBlockRoot,
 	)
 	if err != nil {
 		return nil, common.Version{}, err
@@ -100,7 +103,6 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 	ctx context.Context,
 	st attributes.ReadOnlyBeaconState,
 	timestamp math.U64,
-	parentBlockRoot common.Root,
 	parentEth1Hash common.ExecutionHash,
 	finalBlockHash common.ExecutionHash,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
@@ -114,7 +116,6 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 		ctx,
 		st,
 		timestamp,
-		parentBlockRoot,
 		parentEth1Hash,
 		finalBlockHash,
 	)

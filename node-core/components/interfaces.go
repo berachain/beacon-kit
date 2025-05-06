@@ -50,7 +50,6 @@ type (
 		BuildPayloadAttributes(
 			st attributes.ReadOnlyBeaconState,
 			timestamp math.U64,
-			prevHeadRoot [32]byte,
 		) (*engineprimitives.PayloadAttributes, error)
 	}
 
@@ -81,7 +80,6 @@ type (
 			ctx context.Context,
 			st attributes.ReadOnlyBeaconState,
 			timestamp math.U64,
-			parentBlockRoot common.Root,
 			headEth1BlockHash common.ExecutionHash,
 			finalEth1BlockHash common.ExecutionHash,
 		) (*engineprimitives.PayloadID, common.Version, error)
@@ -97,7 +95,6 @@ type (
 			ctx context.Context,
 			st attributes.ReadOnlyBeaconState,
 			timestamp math.U64,
-			parentBlockRoot common.Root,
 			headEth1BlockHash common.ExecutionHash,
 			finalEth1BlockHash common.ExecutionHash,
 		) (ctypes.BuiltExecutionPayloadEnv, error)

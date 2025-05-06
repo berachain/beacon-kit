@@ -187,7 +187,7 @@ type stubAttributesFactory struct{}
 
 func (ee *stubAttributesFactory) BuildPayloadAttributes(
 	attributes.ReadOnlyBeaconState,
-	math.U64, [32]byte,
+	math.U64,
 ) (*engineprimitives.PayloadAttributes, error) {
 	return nil, errStubNotImplemented
 }
