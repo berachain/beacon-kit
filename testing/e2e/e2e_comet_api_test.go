@@ -59,10 +59,14 @@ func (s *BeaconKitE2ESuite) TestABCIInfo() {
 	}
 
 	// Also retrieve height from the EL client.
-	elClient := s.JSONRPCBalancer()
-	elHeight, err := elClient.BlockNumber(s.Ctx())
-	s.Require().NoError(err)
-	heightsMap.Store("el", int64(elHeight)) // #nosec G115
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		elClient := s.JSONRPCBalancer()
+		elHeight, err := elClient.BlockNumber(s.Ctx())
+		s.Require().NoError(err)
+		heightsMap.Store("el", int64(elHeight)) // #nosec G115
+	}()
 
 	wg.Wait()
 
