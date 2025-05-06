@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/server"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
+	cmtcfg "github.com/cometbft/cometbft/config"
 )
 
 // TODO: we could make engine type configurable
@@ -42,17 +43,17 @@ type NodeAPIBackendInput struct {
 	depinject.In
 
 	ChainSpec      chain.Spec
-	StateProcessor StateProcessor
 	StorageBackend *storage.Backend
+	CometConfig    *cmtcfg.Config
 }
 
 func ProvideNodeAPIBackend(
 	in NodeAPIBackendInput,
-) *backend.Backend {
+) (*backend.Backend, error) {
 	return backend.New(
 		in.StorageBackend,
 		in.ChainSpec,
-		in.StateProcessor,
+		in.CometConfig,
 	)
 }
 

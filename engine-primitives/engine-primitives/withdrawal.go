@@ -31,8 +31,8 @@ import (
 	fastrlp "github.com/umbracle/fastrlp"
 )
 
-// WithdrawalSize is the size of the Withdrawal in bytes.
-const WithdrawalSize = 44
+// withdrawalSize is the size of the Withdrawal in bytes.
+const withdrawalSize = 44
 
 var (
 	_ ssz.StaticObject                    = (*Withdrawal)(nil)
@@ -72,7 +72,7 @@ func NewWithdrawal(
 
 // SizeSSZ returns the size of the Withdrawal in bytes when SSZ encoded.
 func (*Withdrawal) SizeSSZ(*ssz.Sizer) uint32 {
-	return WithdrawalSize
+	return withdrawalSize
 }
 
 // MarshalSSZ marshals the Withdrawal into SSZ format.
@@ -94,10 +94,7 @@ func (w *Withdrawal) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, w)
 }
 
-// UnmarshalSSZ unmarshals the SSZ encoded data to a Withdrawal object.
-func (w *Withdrawal) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, w)
-}
+func (*Withdrawal) ValidateAfterDecodingSSZ() error { return nil }
 
 /* -------------------------------------------------------------------------- */
 /*                                   FastSSZ                                  */

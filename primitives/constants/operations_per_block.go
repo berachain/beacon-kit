@@ -26,4 +26,21 @@ const (
 	MaxAttestations          = 128
 	MaxVoluntaryExits        = 16
 	MaxBlsToExecutionChanges = 16
+
+	// MaxTxsPerPayload is the maximum number of transactions in a execution payload.
+	MaxTxsPerPayload uint64 = 1048576
+
+	// MaxWithdrawalsPerPayload is the maximum number of withdrawals in a execution payload.
+	MaxWithdrawalsPerPayload uint64 = 16
+
+	// MaxWithdrawalRequestsPerPayload is the maximum number of withdrawal requests in a execution
+	// payload.
+	MaxWithdrawalRequestsPerPayload = 16
+
+	// MaxConsolidationRequestsPerPayload is the maximum number of consolidation requests in a
+	// execution payload.
+	MaxConsolidationRequestsPerPayload = 2
+
+	// MaxDepositRequestsPerPayload is the maximum number of deposit requests in a execution payload.
+	MaxDepositRequestsPerPayload = 8192
 )

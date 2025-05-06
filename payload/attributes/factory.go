@@ -56,7 +56,7 @@ func NewAttributesFactory(
 func (f *Factory) BuildPayloadAttributes(
 	st *statedb.StateDB,
 	slot math.Slot,
-	timestamp uint64,
+	timestamp math.U64,
 	prevHeadRoot [32]byte,
 ) (*engineprimitives.PayloadAttributes, error) {
 	var (
@@ -66,7 +66,7 @@ func (f *Factory) BuildPayloadAttributes(
 	)
 
 	// Get the expected withdrawals to include in this payload.
-	withdrawals, err := st.ExpectedWithdrawals()
+	withdrawals, _, err := st.ExpectedWithdrawals(timestamp)
 	if err != nil {
 		f.logger.Error(
 			"Could not get expected withdrawals to get payload attribute",
@@ -84,7 +84,7 @@ func (f *Factory) BuildPayloadAttributes(
 	}
 
 	return engineprimitives.NewPayloadAttributes(
-		f.chainSpec.ActiveForkVersionForEpoch(epoch),
+		f.chainSpec.ActiveForkVersionForTimestamp(timestamp),
 		timestamp,
 		prevRandao,
 		f.suggestedFeeRecipient,

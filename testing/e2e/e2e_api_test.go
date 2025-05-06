@@ -33,8 +33,10 @@ import (
 	beaconapi "github.com/attestantio/go-eth2-client/api"
 	apiv1 "github.com/attestantio/go-eth2-client/api/v1"
 	"github.com/attestantio/go-eth2-client/spec/phase0"
+	"github.com/berachain/beacon-kit/config/spec"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -866,4 +868,69 @@ func (s *BeaconKitE2ESuite) TestGetValidatorsWithStateGenesis() {
 		// 32e9 Gwei = 32 * 10^9 Gwei = 32,000,000,000 Gwei = 32 BERA
 		s.Require().True(validator.Balance <= 32e9, "Validator balance should not exceed 32 BERA")
 	}
+}
+
+// TestGenesis tests querying the genesis of the beacon node.
+func (s *BeaconKitE2ESuite) TestGenesis() {
+	client := s.initBeaconTest()
+
+	genesisResp, err := client.Genesis(s.Ctx(), &beaconapi.GenesisOpts{})
+	s.Require().NoError(err)
+	s.Require().NotNil(genesisResp)
+	s.Require().NotEmpty(genesisResp.Data)
+
+	genesis := genesisResp.Data
+
+	s.Require().NotZero(genesis.GenesisTime, "Genesis time should not be zero")
+	s.Require().True(genesis.GenesisTime.Unix() < time.Now().Unix(), "Genesis time should be in the past")
+
+	s.Require().NotEmpty(genesis.GenesisValidatorsRoot, "Genesis validators root should not be empty")
+	s.Require().NotEmpty(genesis.GenesisForkVersion, "Genesis fork version should not be empty")
+
+	expectedVersion := version.Electra() // TODO: change this back to Deneb once devnet spec is updated.
+	s.Require().Equal(
+		expectedVersion[:],
+		genesis.GenesisForkVersion[:],
+		"Genesis fork version does not match expected value",
+	)
+}
+
+// TestConfigSpec tests querying the config spec.
+func (s *BeaconKitE2ESuite) TestConfigSpec() {
+	client := s.initBeaconTest()
+
+	resp, err := client.Spec(s.Ctx(), &beaconapi.SpecOpts{})
+	s.Require().NoError(err)
+	s.Require().NotNil(resp)
+
+	specData := resp.Data
+	s.Require().NotNil(specData)
+
+	// TODO: make test use configurable chain spec.
+	chainspec, err := spec.DevnetChainSpec()
+	s.Require().NoError(err)
+
+	// Verify essential config parameters exist and have expected types
+	s.Require().Contains(specData, "DEPOSIT_CONTRACT_ADDRESS")
+	addressBytes, ok := specData["DEPOSIT_CONTRACT_ADDRESS"].([]byte)
+	s.Require().True(ok, "DEPOSIT_CONTRACT_ADDRESS should be a byte array")
+	var executionAddress common.Address
+	copy(executionAddress[:], addressBytes)
+
+	// Convert chainspec's ExecutionAddress to common.Address
+	depositAddr := common.Address(chainspec.DepositContractAddress())
+	s.Require().Equal(depositAddr, executionAddress)
+
+	s.Require().Contains(specData, "DEPOSIT_NETWORK_ID")
+	s.Require().Equal(chainspec.DepositEth1ChainID(), specData["DEPOSIT_NETWORK_ID"])
+
+	s.Require().Contains(specData, "DOMAIN_AGGREGATE_AND_PROOF")
+	s.Require().EqualValues(chainspec.DomainTypeAggregateAndProof(), specData["DOMAIN_AGGREGATE_AND_PROOF"])
+
+	// Check penalty quotients
+	s.Require().Contains(specData, "INACTIVITY_PENALTY_QUOTIENT")
+	s.Require().Zero(specData["INACTIVITY_PENALTY_QUOTIENT"])
+
+	s.Require().Contains(specData, "INACTIVITY_PENALTY_QUOTIENT_ALTAIR")
+	s.Require().Zero(specData["INACTIVITY_PENALTY_QUOTIENT_ALTAIR"])
 }

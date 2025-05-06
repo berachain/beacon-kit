@@ -27,6 +27,7 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
@@ -40,7 +41,7 @@ type BlobFactory interface {
 	// BuildSidecars builds sidecars for a given block and blobs bundle.
 	BuildSidecars(
 		signedBlk *ctypes.SignedBeaconBlock,
-		blobs ctypes.BlobsBundle,
+		blobs engineprimitives.BlobsBundle,
 	) (datypes.BlobSidecars, error)
 }
 
@@ -62,7 +63,7 @@ type PayloadBuilder interface {
 		ctx context.Context,
 		st *statedb.StateDB,
 		slot math.Slot,
-		timestamp uint64,
+		timestamp math.U64,
 		parentBlockRoot common.Root,
 		headEth1BlockHash common.ExecutionHash,
 		finalEth1BlockHash common.ExecutionHash,
@@ -71,6 +72,10 @@ type PayloadBuilder interface {
 
 // StateProcessor defines the interface for processing the state.
 type StateProcessor interface {
+	// ProcessFork prepares the state for the fork version at the given timestamp.
+	ProcessFork(
+		st *statedb.StateDB, timestamp math.U64, logUpgrade bool,
+	) error
 	// ProcessSlots processes the slot.
 	ProcessSlots(
 		st *statedb.StateDB, slot math.Slot,
@@ -113,7 +118,7 @@ type ChainSpec interface {
 	SlotsPerHistoricalRoot() uint64
 	DomainTypeRandao() common.DomainType
 	MaxDepositsPerBlock() uint64
-	ActiveForkVersionForSlot(slot math.Slot) common.Version
+	ActiveForkVersionForTimestamp(timestamp math.U64) common.Version
 	SlotToEpoch(slot math.Slot) math.Epoch
 	ctypes.ProposerDomain
 }

@@ -45,39 +45,31 @@ type PayloadAttributes struct {
 	// to the block currently being processed. This field was added for
 	// EIP-4788.
 	ParentBeaconBlockRoot common.Root `json:"parentBeaconBlockRoot"`
-
-	// version is the version of the payload attributes.
-	version common.Version `json:"-"`
 }
 
-// NewPayloadAttributes creates a new empty PayloadAttributes.
+// NewPayloadAttributes creates a new PayloadAttributes and validates it for
+// the given fork version.
 func NewPayloadAttributes(
 	forkVersion common.Version,
-	timestamp uint64,
+	timestamp math.U64,
 	prevRandao common.Bytes32,
 	suggestedFeeRecipient common.ExecutionAddress,
 	withdrawals Withdrawals,
 	parentBeaconBlockRoot common.Root,
 ) (*PayloadAttributes, error) {
 	pa := &PayloadAttributes{
-		Timestamp:             math.U64(timestamp),
+		Timestamp:             timestamp,
 		PrevRandao:            prevRandao,
 		SuggestedFeeRecipient: suggestedFeeRecipient,
 		Withdrawals:           withdrawals,
 		ParentBeaconBlockRoot: parentBeaconBlockRoot,
-		version:               forkVersion,
 	}
 
-	if err := pa.Validate(); err != nil {
+	if err := pa.Validate(forkVersion); err != nil {
 		return nil, err
 	}
 
 	return pa, nil
-}
-
-// IsNil returns true if the PayloadAttributes is nil.
-func (p *PayloadAttributes) IsNil() bool {
-	return p == nil
 }
 
 // GetSuggestedFeeRecipient returns the suggested fee recipient.
@@ -85,13 +77,8 @@ func (p *PayloadAttributes) GetSuggestedFeeRecipient() common.ExecutionAddress {
 	return p.SuggestedFeeRecipient
 }
 
-// Version returns the version of the PayloadAttributes.
-func (p *PayloadAttributes) Version() common.Version {
-	return p.version
-}
-
-// Validate validates the PayloadAttributes.
-func (p *PayloadAttributes) Validate() error {
+// Validate validates the PayloadAttributes for the given fork version.
+func (p *PayloadAttributes) Validate(forkVersion common.Version) error {
 	if p.Timestamp == 0 {
 		return ErrInvalidTimestamp
 	}
@@ -100,16 +87,10 @@ func (p *PayloadAttributes) Validate() error {
 		return ErrEmptyPrevRandao
 	}
 
-	// For any fork version after Bellatrix (Capella onwards), withdrawals are required.
-	if p.Withdrawals == nil && version.IsAfter(p.version, version.Bellatrix()) {
+	// For any fork version Capella onwards, withdrawals are required.
+	if p.Withdrawals == nil && version.EqualsOrIsAfter(forkVersion, version.Capella()) {
 		return ErrNilWithdrawals
 	}
-
-	// TODO: currently beaconBlockRoot is 0x000 on block 1, we need
-	// to fix this, before uncommenting the line below.
-	// if p.ParentBeaconBlockRoot == [32]byte{} {
-	// 	return ErrInvalidParentBeaconBlockRoot
-	// }
 
 	return nil
 }

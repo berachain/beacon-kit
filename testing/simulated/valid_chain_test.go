@@ -57,8 +57,11 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlock_IsSuccessful() {
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
 
+	// Test happens post Deneb1 fork.
+	startTime := time.Now()
+
 	// iterate through the core loop `coreLoopIterations` times, i.e. Propose, Process, Finalize and Commit.
-	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner)
+	proposals, _, _ := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
 
 	// We expect that the number of proposals that were finalized should be `coreLoopIterations`.
 	s.Require().Len(proposals, coreLoopIterations)
@@ -76,14 +79,17 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlock_IsSuccessful() {
 	stateHeader, err := stateDB.GetLatestBlockHeader()
 	s.Require().NoError(err)
 
+	lph, err := stateDB.GetLatestExecutionPayloadHeader()
+	s.Require().NoError(err)
+
 	// Unmarshal the beacon block from the ABCI request.
 	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
 		proposals[len(proposals)-1].Txs,
 		blockchain.BeaconBlockTxIndex,
-		s.TestNode.ChainSpec.ActiveForkVersionForSlot(slot),
+		s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(lph.GetTimestamp()),
 	)
 	s.Require().NoError(err)
-	s.Require().Equal(proposedBlock.Message.GetHeader().GetBodyRoot(), stateHeader.GetBodyRoot())
+	s.Require().Equal(proposedBlock.GetHeader().GetBodyRoot(), stateHeader.GetBodyRoot())
 }
 
 // TestFullLifecycle_ValidBlockWithInjectedTransaction_IsSuccessful effectively serves as a demonstration for how one can
@@ -100,13 +106,17 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
 
+	// Test happens on Deneb, pre Deneb1 fork.
+	startTime := time.Unix(0, 0)
+
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner)
+	proposals, _, consensusTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 
+	// We expected this test to happen during Pre-Deneb1 fork.
 	currentHeight := int64(blockHeight + coreLoopIterations)
+
 	// Prepare a valid block proposal.
-	consensusTime := time.Now()
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
 		Time:            consensusTime,
@@ -119,7 +129,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
 		proposal.Txs,
 		blockchain.BeaconBlockTxIndex,
-		s.TestNode.ChainSpec.ActiveForkVersionForSlot(math.Slot(currentHeight)),
+		s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(math.U64(consensusTime.Unix())),
 	)
 	s.Require().NoError(err)
 
@@ -142,7 +152,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 	validTxs := []*gethprimitives.Transaction{validTx}
 	// Create a new beacon block with the valid transaction.
 	// Note: The beacon block returned here has an incorrect beacon state root, which is fixed in `ComputeAndSetStateRoot`.
-	unsignedBlock := simulated.ComputeAndSetValidExecutionBlock(s.T(), proposedBlock.GetMessage(), s.SimulationClient, s.TestNode.ChainSpec, validTxs)
+	unsignedBlock := simulated.ComputeAndSetValidExecutionBlock(s.T(), proposedBlock.GetBeaconBlock(), s.SimulationClient, s.TestNode.ChainSpec, validTxs)
 
 	proposerAddress, err := crypto.GetAddressFromPubKey(blsSigner.PublicKey())
 	s.Require().NoError(err)
@@ -156,7 +166,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 	newSignedBlock, err := ctypes.NewSignedBeaconBlock(
 		finalBlock,
 		&ctypes.ForkData{
-			CurrentVersion:        s.TestNode.ChainSpec.ActiveForkVersionForSlot(unsignedBlock.GetSlot()),
+			CurrentVersion:        s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(unsignedBlock.GetTimestamp()),
 			GenesisValidatorsRoot: s.GenesisValidatorsRoot,
 		},
 		s.TestNode.ChainSpec,
@@ -187,6 +197,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 		Txs:             proposal.Txs,
 		Height:          currentHeight,
 		ProposerAddress: pubkey.Address(),
+		Time:            consensusTime,
 	})
 	s.Require().NoError(err)
 	s.Require().NotEmpty(finalizeResp)
@@ -209,14 +220,17 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessfu
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
 
+	// Test happens on Deneb, pre Deneb1 fork.
+	startTime := time.Unix(0, 0)
+
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner)
+	proposals, _, consensusTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 
+	// We expected this test to happen during Pre-Deneb1 fork.
 	currentHeight := int64(blockHeight + coreLoopIterations)
 
 	// Prepare a valid block proposal.
-	consensusTime := time.Now()
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
 		Time:            consensusTime,
@@ -229,7 +243,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessfu
 	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
 		proposal.Txs,
 		blockchain.BeaconBlockTxIndex,
-		s.TestNode.ChainSpec.ActiveForkVersionForSlot(blockHeight),
+		s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(math.U64(consensusTime.Unix())),
 	)
 	s.Require().NoError(err)
 
@@ -279,7 +293,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessfu
 
 	proposedBlockMessage := simulated.ComputeAndSetValidExecutionBlock(
 		s.T(),
-		proposedBlock.GetMessage(),
+		proposedBlock.GetBeaconBlock(),
 		s.SimulationClient,
 		s.TestNode.ChainSpec,
 		blobTxs,
@@ -300,7 +314,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessfu
 	newSignedBlock, err := ctypes.NewSignedBeaconBlock(
 		proposedBlockMessage,
 		&ctypes.ForkData{
-			CurrentVersion:        s.TestNode.ChainSpec.ActiveForkVersionForSlot(proposedBlockMessage.GetSlot()),
+			CurrentVersion:        s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(proposedBlockMessage.GetTimestamp()),
 			GenesisValidatorsRoot: s.GenesisValidatorsRoot,
 		},
 		s.TestNode.ChainSpec,
@@ -315,7 +329,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessfu
 
 	// Create the beaconBlock Header for the sidecar
 	blockWithCommitmentsSignedHeader := ctypes.NewSignedBeaconBlockHeader(
-		newSignedBlock.GetMessage().GetHeader(),
+		newSignedBlock.GetHeader(),
 		newSignedBlock.GetSignature(),
 	)
 
@@ -359,6 +373,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessfu
 		Txs:             proposal.Txs,
 		Height:          currentHeight,
 		ProposerAddress: pubkey.Address(),
+		Time:            consensusTime,
 	})
 	s.Require().NoError(err)
 	s.Require().NotEmpty(finalizeResp)

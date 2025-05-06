@@ -102,22 +102,29 @@ func (s *SharedAccessors) InitializeChain(t *testing.T) {
 
 // MoveChainToHeight will iterate through the core loop `iterations` times, i.e. Propose, Process, Finalize and Commit.
 // Returns the list of proposed comet blocks.
-func (s *SharedAccessors) MoveChainToHeight(t *testing.T, startHeight, iterations int64, proposer *signer.BLSSigner) []*types.PrepareProposalResponse {
+func (s *SharedAccessors) MoveChainToHeight(
+	t *testing.T,
+	startHeight,
+	iterations int64,
+	proposer *signer.BLSSigner,
+	startTime time.Time,
+) ([]*types.PrepareProposalResponse, []*types.FinalizeBlockResponse, time.Time) {
 	// Prepare a block proposal.
 	pubkey, err := proposer.GetPubKey()
 	require.NoError(t, err)
 
 	var proposedCometBlocks []*types.PrepareProposalResponse
+	var finalizedResponses []*types.FinalizeBlockResponse
 
+	proposalTime := startTime
 	for currentHeight := startHeight; currentHeight < startHeight+iterations; currentHeight++ {
-		proposalTime := time.Now()
 		proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 			Height:          currentHeight,
 			Time:            proposalTime,
 			ProposerAddress: pubkey.Address(),
 		})
 		require.NoError(t, err)
-		require.NotEmpty(t, proposal)
+		require.Len(t, proposal.Txs, 2)
 
 		// Process the proposal.
 		processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
@@ -134,6 +141,7 @@ func (s *SharedAccessors) MoveChainToHeight(t *testing.T, startHeight, iteration
 			Txs:             proposal.Txs,
 			Height:          currentHeight,
 			ProposerAddress: pubkey.Address(),
+			Time:            proposalTime,
 		})
 		require.NoError(t, err)
 		require.NotEmpty(t, finalizeResp)
@@ -144,8 +152,11 @@ func (s *SharedAccessors) MoveChainToHeight(t *testing.T, startHeight, iteration
 
 		// Record the Commit Block
 		proposedCometBlocks = append(proposedCometBlocks, proposal)
+		finalizedResponses = append(finalizedResponses, finalizeResp)
+
+		proposalTime = proposalTime.Add(time.Duration(s.TestNode.ChainSpec.TargetSecondsPerEth1Block()) * time.Second)
 	}
-	return proposedCometBlocks
+	return proposedCometBlocks, finalizedResponses, proposalTime
 }
 
 // WaitTillServicesStarted waits until the log buffer contains "All services started".
@@ -182,7 +193,12 @@ func GetBlsSigner(tempHomeDir string) *signer.BLSSigner {
 	return signer.NewBLSSigner(privValKeyFile, privValStateFile)
 }
 
-func DefaultSimulationInput(t *testing.T, chainSpec chain.Spec, origBlock *ctypes.BeaconBlock, txs []*gethprimitives.Transaction) *execution.SimOpts {
+func DefaultSimulationInput(
+	t *testing.T,
+	chainSpec chain.Spec,
+	origBlock *ctypes.BeaconBlock,
+	txs []*gethprimitives.Transaction,
+) *execution.SimOpts {
 	t.Helper()
 	overrideTime := hexutil.Uint64(origBlock.GetTimestamp().Unwrap())
 	overrideGasLimit := hexutil.Uint64(30000000)
@@ -229,7 +245,7 @@ func ComputeAndSetInvalidExecutionBlock(
 	txs []*gethprimitives.Transaction,
 ) *ctypes.BeaconBlock {
 	t.Helper()
-	forkVersion := chainSpec.ActiveForkVersionForSlot(latestBlock.GetSlot())
+	forkVersion := chainSpec.ActiveForkVersionForTimestamp(latestBlock.GetTimestamp())
 	_, sidecars := splitTxs(txs)
 	// Use the current execution payload (e.g. for an invalid block, no simulation is done).
 	executionPayload := latestBlock.GetBody().GetExecutionPayload()
@@ -266,7 +282,7 @@ func ComputeAndSetValidExecutionBlock(
 	require.Len(t, simulatedBlocks, 1)
 	simBlock := simulatedBlocks[0]
 
-	forkVersion := chainSpec.ActiveForkVersionForSlot(latestBlock.GetSlot())
+	forkVersion := chainSpec.ActiveForkVersionForTimestamp(latestBlock.GetTimestamp())
 	txsNoSidecar, sidecars := splitTxs(txs)
 	origParent := latestBlock.GetParentBlockRoot()
 
@@ -317,7 +333,11 @@ func ComputeAndSetStateRoot(
 }
 
 // GetProofAndCommitmentsForBlobs will create a commitment and proof for each blob. Technically
-func GetProofAndCommitmentsForBlobs(t *require.Assertions, blobs []*eip4844.Blob, verifier kzg.BlobProofVerifier) ([]eip4844.KZGProof, []eip4844.KZGCommitment) {
+func GetProofAndCommitmentsForBlobs(
+	t *require.Assertions,
+	blobs []*eip4844.Blob,
+	verifier kzg.BlobProofVerifier,
+) ([]eip4844.KZGProof, []eip4844.KZGCommitment) {
 	if verifier.GetImplementation() != gokzg.Implementation {
 		t.Fail("test expects gokzg implementation")
 	}

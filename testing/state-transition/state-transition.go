@@ -18,7 +18,6 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 //go:build test
-// +build test
 
 package statetransition
 
@@ -129,7 +128,9 @@ func SetupTestState(t *testing.T, cs chain.Spec) (
 	require.NoError(t, err)
 
 	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), true, log.NewNopLogger())
-	beaconState := statedb.NewBeaconStateFromDB(kvStore.WithContext(sdkCtx), cs)
+	beaconState := statedb.NewBeaconStateFromDB(
+		kvStore.WithContext(sdkCtx), cs, sdkCtx.Logger(), nodemetrics.NewNoOpTelemetrySink(),
+	)
 
 	sp := core.NewStateProcessor(
 		noop.NewLogger[any](),

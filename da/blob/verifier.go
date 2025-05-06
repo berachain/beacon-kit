@@ -91,11 +91,8 @@ func (bv *verifier) verifySidecars(
 			return fmt.Errorf("invalid sidecar Index: %d", i)
 		}
 
-		// Verify the signature.
-		var sigHeader = s.GetSignedBeaconBlockHeader()
-
 		// Check BlobSidecar.Header equality with BeaconBlockHeader
-		if !sigHeader.GetHeader().Equals(blkHeader) {
+		if !s.GetBeaconBlockHeader().Equals(blkHeader) {
 			return fmt.Errorf("unequal block header: idx: %d", i)
 		}
 	}

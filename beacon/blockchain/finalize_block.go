@@ -39,16 +39,25 @@ func (s *Service) FinalizeBlock(
 	req *cmtabci.FinalizeBlockRequest,
 ) (transition.ValidatorUpdates, error) {
 	// STEP 1: Decode block and blobs.
+	currentForkVersion := s.chainSpec.ActiveForkVersionForTimestamp(math.U64(req.GetTime().Unix())) //#nosec: G115
 	signedBlk, blobs, err := encoding.ExtractBlobsAndBlockFromRequest(
 		req,
 		BeaconBlockTxIndex,
 		BlobSidecarsTxIndex,
-		s.chainSpec.ActiveForkVersionForSlot(math.Slot(req.Height))) // #nosec G115
+		// While req.GetTime() and blk.GetTimestamp() may be different, they are guaranteed
+		// to map to the same forkVersion due to checks during ProcessProposal.
+		currentForkVersion,
+	)
 	if err != nil {
 		s.logger.Error("Failed to decode block and blobs", "error", err)
 		return nil, fmt.Errorf("failed to decode block and blobs: %w", err)
 	}
-	blk := signedBlk.GetMessage()
+	s.logger.Debug(
+		"Finalizing block with fork version",
+		"block", req.Height,
+		"fork", currentForkVersion.String(),
+	)
+	blk := signedBlk.GetBeaconBlock()
 
 	// Send an FCU to force the HEAD of the chain on the EL on startup.
 	var finalizeErr error
@@ -121,7 +130,7 @@ func (s *Service) FinalizeBlock(
 		s.logger.Error("failed to processPruning", "error", err)
 	}
 
-	if err = s.sendPostBlockFCU(ctx, st, consensusBlk); err != nil {
+	if err = s.sendPostBlockFCU(ctx, st); err != nil {
 		return nil, fmt.Errorf("sendPostBlockFCU failed: %w", err)
 	}
 
@@ -138,7 +147,7 @@ func (s *Service) finalizeBeaconBlock(
 	beaconBlk := blk.GetBeaconBlock()
 
 	// If the block is nil, exit early.
-	if beaconBlk.IsNil() {
+	if beaconBlk == nil {
 		return nil, ErrNilBlk
 	}
 

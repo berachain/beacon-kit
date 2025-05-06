@@ -25,8 +25,10 @@ package ethclient
 func BeaconKitSupportedCapabilities() []string {
 	return []string{
 		NewPayloadMethodV3,
+		NewPayloadMethodV4,
 		ForkchoiceUpdatedMethodV3,
 		GetPayloadMethodV3,
+		GetPayloadMethodV4,
 		GetClientVersionV1,
 	}
 }
@@ -35,10 +37,14 @@ func BeaconKitSupportedCapabilities() []string {
 const (
 	// NewPayloadMethodV3 for creating a new payload in Deneb.
 	NewPayloadMethodV3 = "engine_newPayloadV3"
+	// NewPayloadMethodV4 for creating a new payload in Electra.
+	NewPayloadMethodV4 = "engine_newPayloadV4"
 	// ForkchoiceUpdatedMethodV3 for updating fork choice in Deneb.
 	ForkchoiceUpdatedMethodV3 = "engine_forkchoiceUpdatedV3"
 	// GetPayloadMethodV3 for retrieving a payload in Deneb.
 	GetPayloadMethodV3 = "engine_getPayloadV3"
+	// GetPayloadMethodV4 for retrieving a payload in Electra.
+	GetPayloadMethodV4 = "engine_getPayloadV4"
 	// BlockByHashMethod for retrieving a block by its hash.
 	BlockByHashMethod = "eth_getBlockByHash"
 	// BlockByNumberMethod for retrieving a block by its number.

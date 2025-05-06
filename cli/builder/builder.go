@@ -24,7 +24,6 @@ import (
 	"os"
 
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/chain"
 	cmdlib "github.com/berachain/beacon-kit/cli/commands"
 	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	"github.com/berachain/beacon-kit/cli/config"
@@ -46,7 +45,8 @@ type CLIBuilder struct {
 	// nodeBuilderFunc is a function that builds the Node,
 	// eventually called by the cosmos-sdk.
 	// TODO: CLI should not know about the AppCreator
-	nodeBuilderFunc servertypes.AppCreator
+	nodeBuilderFunc      servertypes.AppCreator
+	chainSpecBuilderFunc servertypes.ChainSpecCreator
 }
 
 // New returns a new CLIBuilder with the given options.
@@ -67,7 +67,6 @@ func (cb *CLIBuilder) Build() (*cmdlib.Root, error) {
 	// allocate memory to hold the dependencies
 	var (
 		clientCtx client.Context
-		chainSpec chain.Spec
 		logger    *phuslu.Logger
 	)
 
@@ -81,7 +80,6 @@ func (cb *CLIBuilder) Build() (*cmdlib.Root, error) {
 		),
 		&logger,
 		&clientCtx,
-		&chainSpec,
 	); err != nil {
 		return nil, err
 	}
@@ -99,7 +97,7 @@ func (cb *CLIBuilder) Build() (*cmdlib.Root, error) {
 		rootCmd,
 		&cometbft.Service{},
 		cb.nodeBuilderFunc,
-		chainSpec,
+		cb.chainSpecBuilderFunc,
 	)
 
 	return rootCmd, nil

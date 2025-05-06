@@ -80,8 +80,21 @@
     "muirGlacierBlock": 0,
     "petersburgBlock": 0,
     "shanghaiTime": 0,
+    "pragueTime": 1746633600,
     "terminalTotalDifficulty": 0,
-    "terminalTotalDifficultyPassed": true
+    "terminalTotalDifficultyPassed": true,
+    "blobSchedule": {
+      "cancun": {
+        "target": 3,
+        "max": 6,
+        "baseFeeUpdateFraction": 3338477
+      },
+      "prague": {
+        "target": 3,
+        "max": 6,
+        "baseFeeUpdateFraction": 3338477
+      }
+    }
   },
   "difficulty": "0x01",
   "extraData": "",
