@@ -85,6 +85,7 @@ func TestInvalidDeposits(t *testing.T) {
 		types.NewEth1Data(depRoot),
 		10,
 		[]*types.Deposit{invalidDeposit},
+		&types.ExecutionRequests{},
 		st.EVMInflationWithdrawal(10),
 	)
 
@@ -147,6 +148,7 @@ func TestInvalidDepositsCount(t *testing.T) {
 		types.NewEth1Data(depRoot),
 		10,
 		correctDeposits,
+		&types.ExecutionRequests{},
 		st.EVMInflationWithdrawal(10),
 	)
 
@@ -206,6 +208,7 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 		types.NewEth1Data(depRoot),
 		10,
 		blockDeposits,
+		&types.ExecutionRequests{},
 		st.EVMInflationWithdrawal(10),
 	)
 
@@ -279,6 +282,7 @@ func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
 		types.NewEth1Data(badDepRoot),
 		10,
 		blockDeposits,
+		&types.ExecutionRequests{},
 		st.EVMInflationWithdrawal(10),
 	)
 

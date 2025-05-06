@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # SPDX-License-Identifier: BUSL-1.1
 #
 # Copyright (C) 2025, Berachain Foundation. All rights reserved.

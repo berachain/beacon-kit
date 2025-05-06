@@ -59,11 +59,7 @@ func (s *Service) finalizeBlockInternal(
 		s.finalizeBlockState.SetContext(s.finalizeBlockState.Context().WithContext(ctx))
 	}
 
-	// Iterate over all raw transactions in the proposal and attempt to execute
-	// them, gathering the execution results.
-	//
-	// NOTE: Not all raw transactions may adhere to the sdk.Tx interface, e.g.
-	// vote extensions, so skip those.
+	// This result format is expected by Comet. That actual execution will happen as part of the state transition.
 	txResults := make([]*cmtabci.ExecTxResult, len(req.Txs))
 	for i := range req.Txs {
 		//nolint:mnd // its okay for now.

@@ -18,32 +18,8 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package spec
+package state
 
-import "github.com/berachain/beacon-kit/chain"
-
-// TestnetChainSpecData is the chain.SpecData for Berachain's public testnet, Bepolia.
-func TestnetChainSpecData() *chain.SpecData {
-	specData := MainnetChainSpecData()
-
-	// Testnet uses chain ID of 80069.
-	specData.DepositEth1ChainID = TestnetEth1ChainID
-
-	// Timestamp of the genesis block of Bepolia testnet.
-	specData.GenesisTime = 1739976735
-
-	// Deneb1 fork timing on Bepolia. This is calculated based on the timestamp of the first bepolia
-	// epoch, block 192, which was used to initiate the fork when beacon-kit forked by epoch instead
-	// of by timestamp.
-	specData.Deneb1ForkTime = 1740090694
-
-	// Timestamp of the Electra fork on Bepolia.
-	specData.ElectraForkTime = 1746633600
-
-	return specData
-}
-
-// TestnetChainSpec is the chain.Spec for Berachain's public testnet.
-func TestnetChainSpec() (chain.Spec, error) {
-	return chain.NewSpec(TestnetChainSpecData())
+func (s *StateDB) incrementPartialWithdrawalRequestInvalid() {
+	s.telemetrySink.IncrementCounter("beacon_kit.statedb.partial_withdrawal_request_invalid")
 }

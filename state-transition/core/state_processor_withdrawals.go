@@ -101,6 +101,7 @@ func (sp *StateProcessor) processWithdrawals(
 			return getErr
 		}
 		updatedWithdrawals := ppWithdrawals[processedPartialWithdrawalsCount:]
+		sp.metrics.gaugePartialWithdrawalsEnqueued(len(updatedWithdrawals))
 		if setErr := st.SetPendingPartialWithdrawals(updatedWithdrawals); setErr != nil {
 			return setErr
 		}
@@ -167,11 +168,11 @@ func (sp *StateProcessor) processWithdrawalRequest(
 
 	// If partial withdrawal queue is full, only full exits are processed
 	if len(pendingPartialWithdrawals) == constants.PendingPartialWithdrawalsLimit && !isFullExitRequest {
-		// TODO(pectra): add metrics here.
 		sp.logger.Warn(
 			"skipping processing of withdrawal request as partial withdrawal queue is full",
 			withdrawalFields(withdrawalRequest, nil)...,
 		)
+		sp.metrics.incrementPartialWithdrawalRequestDropped()
 		return nil
 	}
 
@@ -242,7 +243,6 @@ func (sp *StateProcessor) processPartialWithdrawal(
 
 	isWithdrawable := validator.HasCompoundingWithdrawalCredential() && hasSufficient && hasExcess
 	if !isWithdrawable {
-		// TODO(pectra): add metrics here.
 		sp.logger.Info("validator cannot withdraw partial balance",
 			"validator_index", index,
 			"validator_pubkey", validator.GetPubkey().String(),
@@ -251,6 +251,7 @@ func (sp *StateProcessor) processPartialWithdrawal(
 			"has_sufficient", hasSufficient,
 			"has_excess", hasExcess,
 		)
+		sp.metrics.incrementPartialWithdrawalRequestInvalid()
 		return nil
 	}
 
@@ -274,6 +275,7 @@ func (sp *StateProcessor) processPartialWithdrawal(
 		WithdrawableEpoch: withdrawableEpoch,
 	}
 	pendingWithdrawals = append(pendingWithdrawals, ppWithdrawal)
+	sp.metrics.gaugePartialWithdrawalsEnqueued(len(pendingWithdrawals))
 	return st.SetPendingPartialWithdrawals(pendingWithdrawals)
 }
 
@@ -325,12 +327,11 @@ func verifyWithdrawalConditions(st *state.StateDB, validator *ctypes.Validator) 
 	if validator.GetExitEpoch() != constants.FarFutureEpoch {
 		return errors.New("withdrawal already initiated")
 	}
-	// Verify the validator has been active long enough
-	// In the spec, config.SHARD_COMMITTEE_PERIOD is added as well, but we ignore this since
-	// it's related to ETH data shards which is not relevant for us.
-	if currentEpoch < validator.ActivationEpoch {
-		return errors.New("validator not active long enough")
-	}
+
+	// In Ethereum specs here it's checked that
+	// currentEpoch < validator.ActivationEpoch + config.SHARD_COMMITTEE_PERIOD
+	// We ignore config.SHARD_COMMITTEE_PERIOD, since data shards are not relevant for us.
+	// Moreover here validator is active so currentEpoch >= validator.ActivationEpoch
 	return nil
 }
 
