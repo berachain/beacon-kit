@@ -73,7 +73,7 @@ func (s *BeaconKitE2ESuite) TestABCIInfo() {
 	// Check for errors.
 	errorsMap.Range(func(key, value interface{}) bool {
 		name := key.(string) //nolint:errcheck // Safe to ignore.
-		err = value.(error)  //nolint:errcheck // Safe to ignore.
+		err := value.(error) //nolint:errcheck // Safe to ignore.
 		s.Require().NoError(err, "Error getting ABCI info from node %s", name)
 		return true
 	})
