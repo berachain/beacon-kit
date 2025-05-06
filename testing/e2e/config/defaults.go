@@ -115,11 +115,6 @@ func defaultFullNodes() NodeSet {
 				Replicas: 1,
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
-			{
-				ElType:   "besu",
-				Replicas: 1,
-				KZGImpl:  "crate-crypto/go-kzg-4844",
-			},
 		},
 	}
 }
