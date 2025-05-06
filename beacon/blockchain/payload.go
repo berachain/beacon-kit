@@ -161,19 +161,15 @@ func (s *Service) rebuildPayloadForRejectedBlock(
 	// In order to rebuild a payload for the current slot, we need to know the
 	// previous block root, since we know that this is an unmodified state.
 	// We can safely get the latest block header and then rebuild the
-	// previous block and it's root.
+	// previous block and its root, similarly to what we do in processSlot
 	latestHeader, err := st.GetLatestBlockHeader()
 	if err != nil {
 		return err
 	}
-
-	stateSlot, err := st.GetSlot()
-	if err != nil {
-		return err
-	}
-
-	// Set the previous state root on the header.
 	latestHeader.SetStateRoot(st.HashTreeRoot())
+	if err = st.SetLatestBlockHeader(latestHeader); err != nil {
+		return fmt.Errorf("rebuildPayloadForRejectedBlock, failed updating latest block header: %w", err)
+	}
 
 	// We need to get the *last* finalized execution payload, thus
 	// the BeaconState that was passed in must be `unmodified`.
@@ -187,6 +183,11 @@ func (s *Service) rebuildPayloadForRejectedBlock(
 	// confirmed timestamp by the EL, we will assume it to be `nextPayloadTimestamp` to decide
 	// the new block's fork version.
 	err = s.stateProcessor.ProcessFork(st, nextPayloadTimestamp, false)
+	if err != nil {
+		return err
+	}
+
+	stateSlot, err := st.GetSlot()
 	if err != nil {
 		return err
 	}
