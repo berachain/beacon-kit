@@ -63,7 +63,6 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 	// Assemble the payload attributes.
 	attrs, err := pb.attributesFactory.BuildPayloadAttributes(
 		st,
-		slot,
 		timestamp,
 		parentBlockRoot,
 	)

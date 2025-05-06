@@ -186,7 +186,7 @@ func (ee *stubExecutionEngine) NotifyForkchoiceUpdate(
 type stubAttributesFactory struct{}
 
 func (ee *stubAttributesFactory) BuildPayloadAttributes(
-	attributes.ReadOnlyBeaconState, math.U64,
+	attributes.ReadOnlyBeaconState,
 	math.U64, [32]byte,
 ) (*engineprimitives.PayloadAttributes, error) {
 	return nil, errStubNotImplemented

@@ -25,7 +25,6 @@ import (
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // Factory is a factory for creating payload attributes.
@@ -54,17 +53,10 @@ func NewAttributesFactory(
 
 // BuildPayloadAttributes creates a new instance of PayloadAttributes.
 func (f *Factory) BuildPayloadAttributes(
-	st *statedb.StateDB,
-	slot math.Slot,
+	st ReadOnlyBeaconState,
 	timestamp math.U64,
 	prevHeadRoot [32]byte,
 ) (*engineprimitives.PayloadAttributes, error) {
-	var (
-		prevRandao [32]byte
-
-		epoch = f.chainSpec.SlotToEpoch(slot)
-	)
-
 	// Get the expected withdrawals to include in this payload.
 	withdrawals, _, err := st.ExpectedWithdrawals(timestamp)
 	if err != nil {
@@ -77,9 +69,22 @@ func (f *Factory) BuildPayloadAttributes(
 	}
 
 	// Get the previous randao mix.
-	if prevRandao, err = st.GetRandaoMixAtIndex(
-		epoch.Unwrap() % f.chainSpec.EpochsPerHistoricalVector(),
-	); err != nil {
+	slot, err := st.GetSlot()
+	if err != nil {
+		f.logger.Error(
+			"Could not get slot to get payload attribute",
+			"error", err,
+		)
+		return nil, err
+	}
+	epoch := f.chainSpec.SlotToEpoch(slot).Unwrap()
+	prevRandao, err := st.GetRandaoMixAtIndex(epoch % f.chainSpec.EpochsPerHistoricalVector())
+	if err != nil {
+		f.logger.Error(
+			"Could not get randao mix to get payload attribute",
+			"epoch", epoch,
+			"error", err,
+		)
 		return nil, err
 	}
 
