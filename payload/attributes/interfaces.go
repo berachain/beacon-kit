@@ -21,6 +21,8 @@
 package attributes
 
 import (
+	"github.com/berachain/beacon-kit/consensus-types/types"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
@@ -29,4 +31,12 @@ type ChainSpec interface {
 	ActiveForkVersionForTimestamp(timestamp math.U64) common.Version
 	EpochsPerHistoricalVector() uint64
 	SlotToEpoch(slot math.Slot) math.Epoch
+}
+
+// ReadOnlyBeaconState is the interface for a read-only beacon state.
+type ReadOnlyBeaconState interface {
+	GetSlot() (math.Slot, error)
+	ExpectedWithdrawals( /*timestamp*/ math.U64) (engineprimitives.Withdrawals, uint64, error)
+	GetRandaoMixAtIndex(index uint64) (common.Bytes32, error)
+	GetLatestBlockHeader() (*types.BeaconBlockHeader, error)
 }

@@ -29,12 +29,12 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log/noop"
+	"github.com/berachain/beacon-kit/payload/attributes"
 	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/payload/cache"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
-	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/stretchr/testify/require"
 )
 
@@ -186,7 +186,7 @@ func (ee *stubExecutionEngine) NotifyForkchoiceUpdate(
 type stubAttributesFactory struct{}
 
 func (ee *stubAttributesFactory) BuildPayloadAttributes(
-	*statedb.StateDB, math.U64,
+	attributes.ReadOnlyBeaconState, math.U64,
 	math.U64, [32]byte,
 ) (*engineprimitives.PayloadAttributes, error) {
 	return nil, errStubNotImplemented
