@@ -68,8 +68,8 @@ func (s *BeaconKitE2ESuite) TestABCIInfo() {
 
 	// Check for errors.
 	errorsMap.Range(func(key, value interface{}) bool {
-		name := key.(string) //nolint:errcheck
-		err := value.(error) //nolint:errcheck
+		name := key.(string) //nolint:errcheck // Safe to ignore.
+		err := value.(error) //nolint:errcheck // Safe to ignore.
 		s.Require().NoError(err, "Error getting ABCI info from node %s", name)
 		return true
 	})
@@ -77,8 +77,8 @@ func (s *BeaconKitE2ESuite) TestABCIInfo() {
 	// Collect heights into a map for comparison.
 	heights := make(map[string]int64)
 	heightsMap.Range(func(key, value interface{}) bool {
-		name := key.(string)    //nolint:errcheck
-		height := value.(int64) //nolint:errcheck
+		name := key.(string)    //nolint:errcheck // Safe to ignore.
+		height := value.(int64) //nolint:errcheck // Safe to ignore.
 		heights[name] = height
 		return true
 	})
