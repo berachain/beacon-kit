@@ -102,7 +102,8 @@ start-geth:
 	--ipcpath ${IPC_PATH}
 
 ## Start an ephemeral `nethermind` node
-start-nethermind: 
+start-nethermind:
+	# TODO: Update the genesis file to include pre-deploys
 	docker run \
 	-p 30303:30303 \
 	-p 8545:8545 \
