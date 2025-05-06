@@ -102,7 +102,8 @@ start-geth:
 	--ipcpath ${IPC_PATH}
 
 ## Start an ephemeral `nethermind` node
-start-nethermind: 
+start-nethermind:
+	# TODO: Update the genesis file to include pre-deploys
 	docker run \
 	-p 30303:30303 \
 	-p 8545:8545 \
@@ -203,13 +204,12 @@ start-bepolia:
 	${TESTAPP_FILES_DIR}/entrypoint.sh testnet
 
 start-geth-bepolia:
-	# TODO: Update to use latest Geth once ready
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
 	docker run \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	--rm -v $(PWD)/${BEPOLIA_NETWORK_FILES_DIR}:/${BEPOLIA_NETWORK_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	ethereum/client-go:v1.14.13 init \
+	ethereum/client-go init \
 	--datadir ${ETH_DATA_DIR} \
 	${BEPOLIA_ETH_GENESIS_PATH}
 
@@ -223,7 +223,7 @@ start-geth-bepolia:
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	--rm -v $(PWD)/${BEPOLIA_NETWORK_FILES_DIR}:/${BEPOLIA_NETWORK_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	ethereum/client-go:v1.14.13 \
+	ethereum/client-go \
 	--http \
 	--http.addr 0.0.0.0 \
 	--http.api eth,net \

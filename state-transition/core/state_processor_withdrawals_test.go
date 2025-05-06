@@ -30,8 +30,10 @@ import (
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -84,35 +86,41 @@ func TestPartialWithdrawalRequestGenesisValidators(t *testing.T) {
 	genValIdx, err := st.ValidatorIndexByPubkey(genVal.GetPubkey())
 	require.NoError(t, err)
 
+	genValPubKey := genVal.GetPubkey()
 	wrs := []*types.WithdrawalRequest{
 		{ // valid request
 			SourceAddress:   addr,
-			ValidatorPubKey: genVal.GetPubkey(),
+			ValidatorPubKey: genValPubKey,
 			Amount:          1,
 		},
 		{ // valid request
 			SourceAddress:   addr,
-			ValidatorPubKey: genVal.GetPubkey(),
+			ValidatorPubKey: genValPubKey,
 			Amount:          10,
 		},
 		{ // invalid request, invalid address
 			SourceAddress:   badAddr,
-			ValidatorPubKey: genVal.GetPubkey(),
+			ValidatorPubKey: genValPubKey,
+			Amount:          10,
+		},
+		{ // invalid request, invalid pub key
+			SourceAddress:   addr,
+			ValidatorPubKey: crypto.BLSPubkey(append([]byte{0xff}, genValPubKey[1:]...)),
 			Amount:          10,
 		},
 		{ // valid request, largest withdrawable amount
 			SourceAddress:   addr,
-			ValidatorPubKey: genVal.GetPubkey(),
+			ValidatorPubKey: genValPubKey,
 			Amount:          maxBalance - 1 - 10 - minBalance, // remaining amount to minBalance
 		},
 		{ // invalid request (can't go below min activation balance even by 1 bera)
 			SourceAddress:   addr,
-			ValidatorPubKey: genVal.GetPubkey(),
+			ValidatorPubKey: genValPubKey,
 			Amount:          1,
 		},
 		{ // invalid request (full withdraw ignored when partial withdraws are ongoing)
 			SourceAddress:   addr,
-			ValidatorPubKey: genVal.GetPubkey(),
+			ValidatorPubKey: genValPubKey,
 			Amount:          0,
 		},
 	}
@@ -154,7 +162,7 @@ func TestPartialWithdrawalRequestGenesisValidators(t *testing.T) {
 			},
 			{
 				ValidatorIndex:    0,
-				Amount:            wrs[3].Amount,
+				Amount:            wrs[4].Amount,
 				WithdrawableEpoch: expectedWithdrawalEpoch,
 			},
 		},
@@ -217,8 +225,8 @@ func TestPartialWithdrawalRequestGenesisValidators(t *testing.T) {
 		{
 			Index:     2,
 			Validator: genValIdx,
-			Amount:    wrs[3].Amount,
-			Address:   wrs[3].SourceAddress,
+			Amount:    wrs[4].Amount,
+			Address:   wrs[4].SourceAddress,
 		},
 	}
 	blk = buildNextBlock(
@@ -736,6 +744,268 @@ func TestWithdrawalRequestsNonGenesisValidators(t *testing.T) {
 		},
 		pr,
 	)
+}
+
+// Check that if the withdrawal request comes for a validator about to
+// be evicted, this double eviction is duly handled
+func TestConcurrentAutomaticAndVoluntaryWithdrawalRequests(t *testing.T) {
+	t.Parallel()
+	cs := setupChain(t)
+	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
+
+	// make sure Electra is active
+	require.Equal(t, version.Electra(), cs.GenesisForkVersion())
+
+	// Make sure we have as many validators as the cap allows
+	var (
+		maxBalance = cs.MaxEffectiveBalance()
+		rndSeed    = 2024 // seed used to generate unique random value
+	)
+
+	var (
+		genDeposits      = make(types.Deposits, 0, cs.ValidatorSetCap())
+		genPayloadHeader = &types.ExecutionPayloadHeader{
+			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
+		}
+	)
+
+	// Step1: let blockchain have as many validators as cap allows
+	for idx := range cs.ValidatorSetCap() {
+		var (
+			key   bytes.B48
+			creds types.WithdrawalCredentials
+		)
+		key, rndSeed = generateTestPK(t, rndSeed)
+		creds, rndSeed = generateTestExecutionAddress(t, rndSeed)
+
+		genDeposits = append(
+			genDeposits,
+			&types.Deposit{
+				Pubkey:      key,
+				Credentials: creds,
+				Amount:      maxBalance,
+				Index:       idx,
+			},
+		)
+	}
+
+	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
+	_, err := sp.InitializeBeaconStateFromEth1(
+		st,
+		genDeposits,
+		genPayloadHeader,
+		cs.GenesisForkVersion(),
+	)
+	require.NoError(t, err)
+
+	// Step 2: add a deposit which will evict one of the existing validators
+	newValKey, rndSeed := generateTestPK(t, rndSeed)
+	newValCreds, _ := generateTestExecutionAddress(t, rndSeed)
+	var (
+		newValDeposit = &types.Deposit{
+			Pubkey:      newValKey,
+			Credentials: newValCreds,
+			Amount:      maxBalance,
+			Index:       uint64(len(genDeposits)),
+		}
+	)
+
+	depRoot := append(genDeposits, newValDeposit).HashTreeRoot()
+	blkTimestamp := math.U64(10)
+	blk := buildNextBlock(
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		blkTimestamp,
+		[]*types.Deposit{newValDeposit},
+		&types.ExecutionRequests{},
+		st.EVMInflationWithdrawal(blkTimestamp),
+	)
+	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), blk.Body.Deposits))
+
+	_, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+
+	// check the deposit has been accepted
+	_, err = st.ValidatorIndexByPubkey(newValDeposit.Pubkey)
+	require.NoError(t, err)
+
+	// move chain on till the new validator is about to be activated
+	_ = moveToEndOfEpoch(t, blk, cs, sp, st, ctx, depRoot)
+	blk = buildNextBlock(
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		blk.GetTimestamp()+1,
+		[]*types.Deposit{},
+		&types.ExecutionRequests{},
+		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
+	)
+	_, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+
+	_ = moveToEndOfEpoch(t, blk, cs, sp, st, ctx, depRoot)
+
+	// right at the block where we a validator will be evicted
+	// we add a full withdrawal request for it. We expect this request
+	// to be simply dropped since the validator is evicted upon ProcessEpoch
+	evictedValAddr, err := genDeposits[0].Credentials.ToExecutionAddress()
+	require.NoError(t, err)
+	blk = buildNextBlock(
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		blk.GetTimestamp()+1,
+		[]*types.Deposit{},
+		&types.ExecutionRequests{
+			Withdrawals: []*types.WithdrawalRequest{
+				{
+					SourceAddress:   evictedValAddr,
+					ValidatorPubKey: genDeposits[0].Pubkey,
+					Amount:          0,
+				},
+			},
+		},
+		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
+	)
+	valDiff, err := sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+	require.Len(t, valDiff, 2)
+	require.Equal(
+		t,
+		&transition.ValidatorUpdate{
+			Pubkey:           newValDeposit.Pubkey,
+			EffectiveBalance: newValDeposit.Amount,
+		},
+		valDiff[0],
+	)
+	require.Equal(
+		t,
+		&transition.ValidatorUpdate{
+			Pubkey:           genDeposits[0].Pubkey,
+			EffectiveBalance: 0,
+		},
+		valDiff[1],
+	)
+
+	evictedValIdx, err := st.ValidatorIndexByPubkey(genDeposits[0].Pubkey)
+	require.NoError(t, err)
+	evictedVal, err := st.ValidatorByIndex(evictedValIdx)
+	require.NoError(t, err)
+
+	expectedExitEpoch := math.Epoch(2)
+	expectedWithdrawalEpoch := math.Epoch(2) + cs.MinValidatorWithdrawabilityDelay()
+	require.Equal(t, expectedExitEpoch, evictedVal.ExitEpoch)
+	require.Equal(t, expectedWithdrawalEpoch, evictedVal.WithdrawableEpoch)
+}
+
+// Check that two full withdrawals requests issued back to back
+// are idempotent. The second request simply dropped
+func TestDoubleFullWithdrawalRequests(t *testing.T) {
+	t.Parallel()
+	cs := setupChain(t)
+	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
+
+	// make sure Electra is active
+	require.Equal(t, version.Electra(), cs.GenesisForkVersion())
+
+	var (
+		maxBalance = cs.MaxEffectiveBalance()
+
+		addr1  = common.ExecutionAddress{0x01}
+		creds1 = types.NewCredentialsFromExecutionAddress(addr1)
+		addr2  = common.ExecutionAddress{0x01}
+		creds2 = types.NewCredentialsFromExecutionAddress(addr2)
+	)
+
+	// Add a couple of validators and fully withdraw one of them
+	var (
+		genDeposits = types.Deposits{
+			{
+				Pubkey:      [48]byte{0x00},
+				Credentials: creds1,
+				Amount:      maxBalance,
+				Index:       0,
+			},
+			{
+				Pubkey:      [48]byte{0x01},
+				Credentials: creds2,
+				Amount:      maxBalance,
+				Index:       1,
+			},
+		}
+		genPayloadHeader = &types.ExecutionPayloadHeader{
+			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
+		}
+	)
+	_, err := sp.InitializeBeaconStateFromEth1(
+		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
+	)
+	require.NoError(t, err)
+	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
+
+	vals, err := st.GetValidators()
+	require.NoError(t, err)
+	require.Len(t, vals, 2)
+	valToRm := vals[0]
+
+	wrs := []*types.WithdrawalRequest{
+		{
+			SourceAddress:   addr1,
+			ValidatorPubKey: valToRm.GetPubkey(),
+			Amount:          0,
+		},
+	}
+
+	depRoot := genDeposits.HashTreeRoot()
+	blkTimestamp := math.U64(10)
+	blk := buildNextBlock(
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		blkTimestamp,
+		[]*types.Deposit{},
+		&types.ExecutionRequests{
+			Withdrawals: wrs,
+		},
+		st.EVMInflationWithdrawal(blkTimestamp),
+	)
+
+	// Run the test.
+	_, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+
+	// check that valToRm has initiated exit
+	expectedExitEpoch := math.Epoch(1)
+	expectedWithdrawalEpoch := expectedExitEpoch + cs.MinValidatorWithdrawabilityDelay()
+
+	valToRmIdx, err := st.ValidatorIndexByPubkey(valToRm.GetPubkey())
+	require.NoError(t, err)
+	valToRm, err = st.ValidatorByIndex(valToRmIdx)
+	require.NoError(t, err)
+	require.Equal(t, expectedExitEpoch, valToRm.ExitEpoch)
+	require.Equal(t, expectedWithdrawalEpoch, valToRm.WithdrawableEpoch)
+
+	// issue another full withdrawal request, which should be
+	// processed without errors and simply dropped
+	blk = buildNextBlock(
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		blkTimestamp,
+		[]*types.Deposit{},
+		&types.ExecutionRequests{
+			Withdrawals: wrs,
+		},
+		st.EVMInflationWithdrawal(blkTimestamp),
+	)
+	_, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
 }
 
 func TestPartialWithdrawalsOfBalanceAboveMaxEffectiveBalance(t *testing.T) {
