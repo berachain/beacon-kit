@@ -11,6 +11,7 @@ run:
   # Timeout for analysis, e.g. 30s, 5m.
   # Default: 1m
   timeout: 3m
+  build-tags: ["test"]
 
 
 # This file contains only configs which differ from defaults.
@@ -366,6 +367,10 @@ issues:
         - noctx
         - wrapcheck
         - gochecknoglobals
+    # We exclude thelper for consensus types due to the usage of runForAllSupportedVersions where thelper falsely misses the usage of t.Helper()
+    - path: "^consensus-types/types/.*\\.go$"
+      linters:
+        - thelper
   exclude-files:
     - "pkg/cometbft/cli/.*\\.go"
     - "pkg/cometbft/service/server/.*\\.go"

@@ -25,13 +25,14 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/stretchr/testify/require"
 )
 
 type payloadAttributesInput struct {
 	forkVersion           common.Version
-	timestamp             uint64
+	timestamp             math.U64
 	prevRandao            common.Bytes32
 	suggestedFeeRecipient common.ExecutionAddress
 	withdrawals           engineprimitives.Withdrawals
@@ -43,7 +44,7 @@ func TestPayloadAttributes(t *testing.T) {
 	// default valid data
 	validInput := payloadAttributesInput{
 		forkVersion:           version.Altair(),
-		timestamp:             uint64(123456789),
+		timestamp:             math.U64(123456789),
 		prevRandao:            common.Bytes32{1, 2, 3},
 		suggestedFeeRecipient: common.ExecutionAddress{},
 		withdrawals:           engineprimitives.Withdrawals{},
@@ -109,15 +110,14 @@ func TestPayloadAttributes(t *testing.T) {
 				require.NoError(t, err)
 				require.NotNil(t, got)
 
-				require.False(t, got.IsNil())
-				require.NoError(t, got.Validate())
+				require.NotNil(t, got)
+				require.NoError(t, got.Validate(in.forkVersion))
 
 				require.Equal(
 					t,
 					in.suggestedFeeRecipient,
 					got.GetSuggestedFeeRecipient(),
 				)
-				require.Equal(t, in.forkVersion, got.Version())
 			}
 		})
 	}

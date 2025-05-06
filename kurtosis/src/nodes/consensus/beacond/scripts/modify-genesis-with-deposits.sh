@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # SPDX-License-Identifier: BUSL-1.1
 #
 # Copyright (C) 2025, Berachain Foundation. All rights reserved.
@@ -21,13 +21,13 @@
 
 
 # Sets the deposit storage in the the new eth-genesis file in the home directory.
-/usr/bin/beacond genesis set-deposit-storage $ETH_GENESIS --home /tmp/config_genesis/.beacond
+/usr/bin/beacond genesis set-deposit-storage $ETH_GENESIS --beacon-kit.chain-spec $CHAIN_SPEC --home /tmp/config_genesis/.beacond
 
 # Get values directly from the storage fields
 DEPOSIT_COUNT=$(jq -r '.alloc["0x4242424242424242424242424242424242424242"].storage["0x0000000000000000000000000000000000000000000000000000000000000000"]' /tmp/config_genesis/.beacond/genesis.json)
 DEPOSIT_ROOT=$(jq -r '.alloc["0x4242424242424242424242424242424242424242"].storage["0x0000000000000000000000000000000000000000000000000000000000000001"]' /tmp/config_genesis/.beacond/genesis.json)
 
-/usr/bin/beacond genesis execution-payload /tmp/config_genesis/.beacond/genesis.json --home /tmp/config_genesis/.beacond
+/usr/bin/beacond genesis execution-payload /tmp/config_genesis/.beacond/genesis.json --beacon-kit.chain-spec $CHAIN_SPEC --home /tmp/config_genesis/.beacond
 
 # Write each value to separate files for easier parsing
 mkdir -p /tmp/values

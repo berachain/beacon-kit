@@ -36,6 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	"github.com/berachain/beacon-kit/primitives/version"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
@@ -61,20 +62,43 @@ func (s *Service) BuildBlockAndSidecars(
 	// and safe block hashes to the execution client.
 	st := s.sb.StateFromContext(ctx)
 
-	// we introduce hard forks with the expectation that the height set for the
-	// hard fork is the first height at which new rules apply. So we need to make
-	// sure that when building blocks, we pick the right height. blkSlots is the
-	// height for the next block, which consensus is requesting BeaconKit to build.
+	// blkSlot is the height for the next block, which consensus is requesting BeaconKit to build.
 	blkSlot := slotData.GetSlot()
 
-	// Prepare the state such that it is ready to build a block for
-	// the requested slot
+	// Prepare the state such that it is ready to build a block for the requested slot.
 	if _, err := s.stateProcessor.ProcessSlots(st, blkSlot); err != nil {
 		return nil, nil, err
 	}
 
-	// Build forkdata used for the signing root of the reveal and the sidecars
-	forkData, err := s.buildForkData(st, blkSlot)
+	// Grab parent block root for payload request.
+	parentBlockRoot, err := st.GetBlockRootAtIndex(
+		(blkSlot.Unwrap() - 1) % s.chainSpec.SlotsPerHistoricalRoot(),
+	)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Get the payload for the block.
+	envelope, err := s.retrieveExecutionPayload(ctx, st, parentBlockRoot, slotData)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed retrieving execution payload: %w", err)
+	}
+
+	// We introduce hard forks with the expectation that the first block proposed after the
+	// hard fork timestamp is when new rules apply. When building blocks, we provide the Execution
+	// Layer client with a timestamp, and it will create its payload based on that timestamp. We
+	// must use this same timestamp from the payload to build the beacon block. This ensures that
+	// we are building on the same fork version as the Execution Layer.
+	timestamp := envelope.GetExecutionPayload().GetTimestamp()
+
+	// Build forkdata used for the signing root of the reveal and the sidecars.
+	forkData, err := s.buildForkData(st, timestamp)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Create a new empty block from the current state.
+	blk, err := s.getEmptyBeaconBlockForSlot(st, blkSlot, forkData.CurrentVersion, parentBlockRoot)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -84,18 +108,6 @@ func (s *Service) BuildBlockAndSidecars(
 	reveal, err := s.buildRandaoReveal(forkData, blkSlot)
 	if err != nil {
 		return nil, nil, err
-	}
-
-	// Create a new empty block from the current state.
-	blk, err := s.getEmptyBeaconBlockForSlot(st, blkSlot)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	// Get the payload for the block.
-	envelope, err := s.retrieveExecutionPayload(ctx, st, blk, slotData)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed retrieving execution payload: %w", err)
 	}
 
 	// We have to assemble the block body prior to producing the sidecars
@@ -149,15 +161,8 @@ func (s *Service) BuildBlockAndSidecars(
 // getEmptyBeaconBlockForSlot creates a new empty block.
 func (s *Service) getEmptyBeaconBlockForSlot(
 	st *statedb.StateDB, requestedSlot math.Slot,
+	forkVersion common.Version, parentBlockRoot common.Root,
 ) (*ctypes.BeaconBlock, error) {
-	// Create a new block.
-	parentBlockRoot, err := st.GetBlockRootAtIndex(
-		(requestedSlot.Unwrap() - 1) % s.chainSpec.SlotsPerHistoricalRoot(),
-	)
-	if err != nil {
-		return nil, err
-	}
-
 	// Get the proposer index for the slot.
 	proposerIndex, err := st.ValidatorIndexByPubkey(
 		s.signer.PublicKey(),
@@ -166,22 +171,23 @@ func (s *Service) getEmptyBeaconBlockForSlot(
 		return nil, err
 	}
 
+	// Create a new block.
 	return ctypes.NewBeaconBlockWithVersion(
 		requestedSlot,
 		proposerIndex,
 		parentBlockRoot,
-		s.chainSpec.ActiveForkVersionForSlot(requestedSlot),
+		forkVersion,
 	)
 }
 
-func (s *Service) buildForkData(st *statedb.StateDB, slot math.Slot) (*ctypes.ForkData, error) {
+func (s *Service) buildForkData(st *statedb.StateDB, timestamp math.U64) (*ctypes.ForkData, error) {
 	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
 	if err != nil {
 		return nil, err
 	}
 
 	return ctypes.NewForkData(
-		s.chainSpec.ActiveForkVersionForSlot(slot),
+		s.chainSpec.ActiveForkVersionForTimestamp(timestamp),
 		genesisValidatorsRoot,
 	), nil
 }
@@ -205,18 +211,14 @@ func (s *Service) buildRandaoReveal(
 func (s *Service) retrieveExecutionPayload(
 	ctx context.Context,
 	st *statedb.StateDB,
-	blk *ctypes.BeaconBlock,
+	parentBlockRoot common.Root,
 	slotData *types.SlotData,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
-	//
 	// TODO: Add external block builders to this flow.
 	//
 	// Get the payload for the block.
-	envelope, err := s.localPayloadBuilder.RetrievePayload(
-		ctx,
-		blk.GetSlot(),
-		blk.GetParentBlockRoot(),
-	)
+	slot := slotData.GetSlot()
+	envelope, err := s.localPayloadBuilder.RetrievePayload(ctx, slot, parentBlockRoot)
 	if err == nil {
 		return envelope, nil
 	}
@@ -229,11 +231,7 @@ func (s *Service) retrieveExecutionPayload(
 	// call that needs to be called before requesting the Payload.
 	// TODO: We should decouple the PayloadBuilder from BeaconState to make
 	// this less confusing.
-
-	s.metrics.failedToRetrievePayload(
-		blk.GetSlot(),
-		err,
-	)
+	s.metrics.failedToRetrievePayload(slot, err)
 
 	// The latest execution payload header will be from the previous block
 	// during the block building phase.
@@ -242,16 +240,26 @@ func (s *Service) retrieveExecutionPayload(
 		return nil, err
 	}
 
+	// We must prepare the state for the fork version of the new block being built to handle
+	// the case where the new block is on a new fork version. Although we do not have the
+	// confirmed timestamp by the EL, we will assume it to be `nextPayloadTimestamp` to decide
+	// the new block's fork version.
+	nextPayloadTimestamp := payloadtime.Next(
+		slotData.GetConsensusTime(),
+		lph.GetTimestamp(),
+		false, // buildOptimistically
+	)
+	err = s.stateProcessor.ProcessFork(st, nextPayloadTimestamp, false)
+	if err != nil {
+		return nil, err
+	}
+
 	return s.localPayloadBuilder.RequestPayloadSync(
 		ctx,
 		st,
-		blk.GetSlot(),
-		payloadtime.Next(
-			slotData.GetConsensusTime(),
-			lph.GetTimestamp(),
-			false, // buildOptimistically
-		).Unwrap(),
-		blk.GetParentBlockRoot(),
+		slot,
+		nextPayloadTimestamp,
+		parentBlockRoot,
 		lph.GetBlockHash(),
 		lph.GetParentHash(),
 	)
@@ -267,7 +275,7 @@ func (s *Service) buildBlockBody(
 ) error {
 	// Assemble a new block with the payload.
 	body := blk.GetBody()
-	if body.IsNil() {
+	if body == nil {
 		return ErrNilBlkBody
 	}
 
@@ -327,6 +335,22 @@ func (s *Service) buildBlockBody(
 
 	// Set the execution payload on the block body.
 	body.SetExecutionPayload(envelope.GetExecutionPayload())
+
+	if version.EqualsOrIsAfter(body.GetForkVersion(), version.Electra()) {
+		encodedReqs := envelope.GetEncodedExecutionRequests()
+		result := make([][]byte, len(encodedReqs))
+		for i, req := range encodedReqs {
+			result[i] = req // conversion from ExecutionRequest to []byte
+		}
+
+		var requests *ctypes.ExecutionRequests
+		if requests, err = ctypes.DecodeExecutionRequests(result); err != nil {
+			return err
+		}
+		if err = body.SetExecutionRequests(requests); err != nil {
+			return err
+		}
+	}
 
 	return nil
 }

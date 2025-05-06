@@ -124,12 +124,14 @@ func NewService(
 		panic(err)
 	}
 
+	// some configs, while legit, causes issues if applied
+	// carelessly. We warn about them
+	log := servercmtlog.WrapSDKLogger(logger)
+	warnAboutConfigs(cmtCfg, log)
+
 	s := &Service{
-		logger: logger,
-		sm: statem.NewManager(
-			db,
-			servercmtlog.WrapSDKLogger(logger),
-		),
+		logger:             logger,
+		sm:                 statem.NewManager(db, log),
 		Blockchain:         blockchain,
 		BlockBuilder:       blockBuilder,
 		cmtConsensusParams: cmtConsensusParams,

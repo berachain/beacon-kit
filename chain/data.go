@@ -22,14 +22,13 @@ package chain
 
 import "github.com/berachain/beacon-kit/primitives/common"
 
-// SpecData is the underlying data structure for chain-specific parameters.
+// SpecData is the underlying data structure for chain-specific parameters. All fields with a
+// `mapstructure` tag are required.
 type SpecData struct {
 	// Gwei value constants.
 	//
 	// MaxEffectiveBalance is the maximum effective balance allowed for a validator.
 	MaxEffectiveBalance uint64 `mapstructure:"max-effective-balance"`
-	// EjectionBalance is the balance at which a validator is ejected.
-	EjectionBalance uint64 `mapstructure:"ejection-balance"`
 	// EffectiveBalanceIncrement is the effective balance increment.
 	EffectiveBalanceIncrement uint64 `mapstructure:"effective-balance-increment"`
 
@@ -90,10 +89,12 @@ type SpecData struct {
 
 	// Fork-related values.
 	//
-	// Deneb1ForkEpoch is the epoch at which the Deneb1 fork is activated.
-	Deneb1ForkEpoch uint64 `mapstructure:"deneb-one-fork-epoch"`
-	// ElectraForkEpoch is the epoch at which the Electra fork is activated.
-	ElectraForkEpoch uint64 `mapstructure:"electra-fork-epoch"`
+	// GenesisTime is the time at which the genesis block was created.
+	GenesisTime uint64 `mapstructure:"genesis-time"`
+	// Deneb1ForkTime is the time at which the Deneb1 fork is activated.
+	Deneb1ForkTime uint64 `mapstructure:"deneb-one-fork-time"`
+	// ElectraForkTime is the time at which the Electra fork is activated.
+	ElectraForkTime uint64 `mapstructure:"electra-fork-time"`
 
 	// State list lengths
 	//
@@ -107,14 +108,6 @@ type SpecData struct {
 	// ValidatorRegistryLimit is the maximum number of validators in the
 	// registry.
 	ValidatorRegistryLimit uint64 `mapstructure:"validator-registry-limit"`
-
-	// Rewards and penalties constants.
-	//
-	// InactivityPenaltyQuotient is the inactivity penalty quotient.
-	InactivityPenaltyQuotient uint64 `mapstructure:"inactivity-penalty-quotient"`
-	// ProportionalSlashingMultiplier is the slashing multiplier relative to the
-	// base penalty.
-	ProportionalSlashingMultiplier uint64 `mapstructure:"proportional-slashing-multiplier"`
 
 	// Capella Values
 	//
@@ -140,8 +133,6 @@ type SpecData struct {
 	FieldElementsPerBlob uint64 `mapstructure:"field-elements-per-blob"`
 	// BytesPerBlob denotes the size of EIP-4844 blobs in bytes.
 	BytesPerBlob uint64 `mapstructure:"bytes-per-blob"`
-	// KZGCommitmentInclusionProofDepth is the depth of the KZG inclusion proof.
-	KZGCommitmentInclusionProofDepth uint64 `mapstructure:"kzg-commitment-inclusion-proof-depth"`
 
 	// Berachain Values at genesis
 	//
@@ -164,4 +155,12 @@ type SpecData struct {
 	// EVMInflationPerBlockDeneb1 is the amount of native EVM balance (in Gwei) to be
 	// minted to the EVMInflationAddressDeneb1 via a withdrawal every block in the Deneb1 fork.
 	EVMInflationPerBlockDeneb1 uint64 `mapstructure:"evm-inflation-per-block-deneb-one"`
+
+	// Electra Values
+	//
+	// MinActivationBalance [New in Electra:EIP7251] Minimum balance for a validator to become active
+	MinActivationBalance uint64 `mapstructure:"min-activation-balance"`
+	// MinValidatorWithdrawabilityDelay is defined in the Electra spec and introduces
+	// withdrawability delays to allow for slashing.
+	MinValidatorWithdrawabilityDelay uint64 `mapstructure:"min-validator-withdrawability-delay"`
 }

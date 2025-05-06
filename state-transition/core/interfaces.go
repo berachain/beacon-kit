@@ -32,6 +32,7 @@ import (
 type ReadOnlyBeaconState interface {
 	GetLatestExecutionPayloadHeader() (*ctypes.ExecutionPayloadHeader, error)
 	GetSlot() (math.Slot, error)
+	GetEpoch() (math.Epoch, error)
 	GetRandaoMixAtIndex(uint64) (common.Bytes32, error)
 }
 
@@ -51,7 +52,7 @@ type ExecutionEngine interface {
 	// NotifyNewPayload notifies the execution client of the new payload.
 	NotifyNewPayload(
 		ctx context.Context,
-		req *ctypes.NewPayloadRequest,
+		req ctypes.NewPayloadRequest,
 		retryOnSyncingStatus bool,
 	) error
 }
@@ -68,14 +69,15 @@ type ChainSpec interface {
 	chain.HysteresisSpec
 	chain.BalancesSpec
 	chain.DepositSpec
+	chain.ForkSpec
 	chain.DomainTypeSpec
 	chain.WithdrawalsSpec
 	SlotsPerEpoch() uint64
 	SlotToEpoch(slot math.Slot) math.Epoch
 	SlotsPerHistoricalRoot() uint64
 	EpochsPerHistoricalVector() uint64
-	ActiveForkVersionForSlot(slot math.Slot) common.Version
-	ActiveForkVersionForEpoch(epoch math.Epoch) common.Version
+	GenesisForkVersion() common.Version
+	ActiveForkVersionForTimestamp(timestamp math.U64) common.Version
 	ValidatorSetCap() uint64
 	HistoricalRootsLimit() uint64
 }

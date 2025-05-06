@@ -25,6 +25,7 @@ import (
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/types"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -50,7 +51,7 @@ func NewSidecarFactory(
 // BuildSidecars builds a sidecar.
 func (f *SidecarFactory) BuildSidecars(
 	signedBlk *ctypes.SignedBeaconBlock,
-	bundle ctypes.BlobsBundle,
+	bundle engineprimitives.BlobsBundle,
 ) (types.BlobSidecars, error) {
 	var (
 		blobs       = bundle.GetBlobs()
@@ -58,7 +59,7 @@ func (f *SidecarFactory) BuildSidecars(
 		proofs      = bundle.GetProofs()
 		numBlobs    = uint64(len(blobs))
 		sidecars    = make([]*types.BlobSidecar, numBlobs)
-		blk         = signedBlk.GetMessage()
+		blk         = signedBlk.GetBeaconBlock()
 		body        = blk.GetBody()
 		header      = blk.GetHeader()
 		g           = errgroup.Group{}
@@ -127,15 +128,19 @@ func (f *SidecarFactory) BuildBlockBodyProof(
 ) ([]common.Root, error) {
 	startTime := time.Now()
 	defer f.metrics.measureBuildBlockBodyProofDuration(startTime)
+	tlrs, err := body.GetTopLevelRoots()
+	if err != nil {
+		return nil, err
+	}
 	tree, err := merkle.NewTreeWithMaxLeaves[common.Root](
-		body.GetTopLevelRoots(),
+		tlrs,
 		body.Length()-1,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	return tree.MerkleProof(ctypes.KZGPositionDeneb)
+	return tree.MerkleProof(ctypes.KZGPosition)
 }
 
 // BuildCommitmentProof builds a commitment proof.

@@ -23,6 +23,7 @@ package components
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
@@ -48,7 +49,7 @@ type (
 		BuildPayloadAttributes(
 			st *statedb.StateDB,
 			slot math.Slot,
-			timestamp uint64,
+			timestamp math.U64,
 			prevHeadRoot [32]byte,
 		) (*engineprimitives.PayloadAttributes, error)
 	}
@@ -80,11 +81,11 @@ type (
 			ctx context.Context,
 			st *statedb.StateDB,
 			slot math.Slot,
-			timestamp uint64,
+			timestamp math.U64,
 			parentBlockRoot common.Root,
 			headEth1BlockHash common.ExecutionHash,
 			finalEth1BlockHash common.ExecutionHash,
-		) (*engineprimitives.PayloadID, error)
+		) (*engineprimitives.PayloadID, common.Version, error)
 		// RetrievePayload retrieves the payload for the given slot.
 		RetrievePayload(
 			ctx context.Context,
@@ -97,7 +98,7 @@ type (
 			ctx context.Context,
 			st *statedb.StateDB,
 			slot math.Slot,
-			timestamp uint64,
+			timestamp math.U64,
 			parentBlockRoot common.Root,
 			headEth1BlockHash common.ExecutionHash,
 			finalEth1BlockHash common.ExecutionHash,
@@ -120,15 +121,19 @@ type (
 
 	// StateProcessor defines the interface for processing the state.
 	StateProcessor interface {
-		// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
+		// InitializeBeaconStateFromEth1 initializes the premined beacon
 		// state
 		// from the eth1 deposits.
-		InitializePreminedBeaconStateFromEth1(
+		InitializeBeaconStateFromEth1(
 			*statedb.StateDB,
 			ctypes.Deposits,
 			*ctypes.ExecutionPayloadHeader,
 			common.Version,
 		) (transition.ValidatorUpdates, error)
+		// ProcessFork prepares the state for the fork version at the given timestamp.
+		ProcessFork(
+			st *statedb.StateDB, timestamp math.U64, logUpgrade bool,
+		) error
 		// ProcessSlot processes the slot.
 		ProcessSlots(
 			st *statedb.StateDB, slot math.Slot,
@@ -149,7 +154,7 @@ type (
 		// BuildSidecars builds sidecars for a given block and blobs bundle.
 		BuildSidecars(
 			signedBlk *ctypes.SignedBeaconBlock,
-			blobs ctypes.BlobsBundle,
+			blobs engineprimitives.BlobsBundle,
 		) (datypes.BlobSidecars, error)
 	}
 
@@ -340,8 +345,6 @@ type (
 		GetSlashingAtIndex(index uint64) (math.Gwei, error)
 		// GetTotalValidators retrieves the total validators.
 		GetTotalValidators() (uint64, error)
-		// GetTotalActiveBalances retrieves the total active balances.
-		GetTotalActiveBalances(uint64) (math.Gwei, error)
 		// ValidatorByIndex retrieves the validator at the given index.
 		ValidatorByIndex(index math.ValidatorIndex) (*ctypes.Validator, error)
 		// UpdateBlockRootAtIndex updates the block root at the given index.
@@ -367,9 +370,6 @@ type (
 		ValidatorIndexByCometBFTAddress(
 			cometBFTAddress []byte,
 		) (math.ValidatorIndex, error)
-		// GetValidatorsByEffectiveBalance retrieves validators by effective
-		// balance.
-		GetValidatorsByEffectiveBalance() ([]*ctypes.Validator, error)
 	}
 
 	// ReadOnlyBeaconState is the interface for a read-only beacon state.
@@ -388,14 +388,12 @@ type (
 		GetGenesisValidatorsRoot() (common.Root, error)
 		GetBlockRootAtIndex(uint64) (common.Root, error)
 		GetLatestBlockHeader() (*ctypes.BeaconBlockHeader, error)
-		GetTotalActiveBalances(uint64) (math.Gwei, error)
 		GetValidators() (ctypes.Validators, error)
 		GetSlashingAtIndex(uint64) (math.Gwei, error)
 		GetTotalSlashing() (math.Gwei, error)
 		GetNextWithdrawalIndex() (uint64, error)
 		GetNextWithdrawalValidatorIndex() (math.ValidatorIndex, error)
 		GetTotalValidators() (uint64, error)
-		GetValidatorsByEffectiveBalance() ([]*ctypes.Validator, error)
 		ValidatorIndexByCometBFTAddress(
 			cometBFTAddress []byte,
 		) (math.ValidatorIndex, error)
@@ -415,7 +413,6 @@ type (
 		SetLatestBlockHeader(*ctypes.BeaconBlockHeader) error
 		IncreaseBalance(math.ValidatorIndex, math.Gwei) error
 		DecreaseBalance(math.ValidatorIndex, math.Gwei) error
-		UpdateSlashingAtIndex(uint64, math.Gwei) error
 		SetNextWithdrawalIndex(uint64) error
 		SetNextWithdrawalValidatorIndex(math.ValidatorIndex) error
 		SetTotalSlashing(math.Gwei) error
@@ -485,7 +482,6 @@ type (
 	// ReadOnlyWithdrawals only has read access to withdrawal methods.
 	ReadOnlyWithdrawals interface {
 		EVMInflationWithdrawal(math.Slot) *engineprimitives.Withdrawal
-		ExpectedWithdrawals() (engineprimitives.Withdrawals, error)
 	}
 )
 
@@ -514,6 +510,7 @@ type (
 
 		NodeAPIBeaconBackend
 		NodeAPIProofBackend
+		NodeAPIConfigBackend
 	}
 
 	// NodeAPIBackend is the interface for backend of the beacon API.
@@ -524,11 +521,15 @@ type (
 		RandaoBackend
 		StateBackend
 		ValidatorBackend
-		HistoricalBackend
 		// GetSlotByBlockRoot retrieves the slot by a given root from the store.
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		// GetSlotByStateRoot retrieves the slot by a given root from the store.
 		GetSlotByStateRoot(root common.Root) (math.Slot, error)
+	}
+
+	// NodeAPIConfigBackend is the interface for backend of the config API.
+	NodeAPIConfigBackend interface {
+		Spec() (chain.Spec, error)
 	}
 
 	// NodeAPIProofBackend is the interface for backend of the proof API.
@@ -539,12 +540,9 @@ type (
 	}
 
 	GenesisBackend interface {
-		GenesisValidatorsRoot(slot math.Slot) (common.Root, error)
-	}
-
-	HistoricalBackend interface {
-		StateRootAtSlot(slot math.Slot) (common.Root, error)
-		StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error)
+		GenesisValidatorsRoot() (common.Root, error)
+		GenesisForkVersion() (common.Version, error)
+		GenesisTime() (math.U64, error)
 	}
 
 	RandaoBackend interface {
@@ -562,10 +560,7 @@ type (
 	}
 
 	StateBackend interface {
-		StateRootAtSlot(slot math.Slot) (common.Root, error)
-		StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error)
-		StateFromSlotForProof(slot math.Slot) (*statedb.StateDB, math.Slot, error)
-		StateAtSlot(slot math.Slot) (*statedb.StateDB, error)
+		StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error)
 	}
 
 	ValidatorBackend interface {
