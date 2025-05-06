@@ -23,19 +23,17 @@ package e2e_test
 import (
 	"sync"
 
+	sdkcollections "cosmossdk.io/collections"
+	"github.com/berachain/beacon-kit/storage/beacondb/keys"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
 	rpcclient "github.com/cometbft/cometbft/rpc/client"
-
-	sdkcollections "cosmossdk.io/collections"
-	"github.com/berachain/beacon-kit/storage/beacondb/keys"
 )
 
 // TestABCIInfo compares the ABCI info response among all nodes and cross-checks with the EL.
 func (s *BeaconKitE2ESuite) TestABCIInfo() {
 	// Wait for execution block 5 to ensure nodes have progressed.
-	err := s.WaitForFinalizedBlockNumber(5)
-	s.Require().NoError(err)
+	s.Require().NoError(s.WaitForFinalizedBlockNumber(5))
 
 	// Get all consensus clients.
 	clients := s.ConsensusClients()
@@ -56,7 +54,7 @@ func (s *BeaconKitE2ESuite) TestABCIInfo() {
 				errorsMap.Store(name, err)
 				return
 			}
-			heightsMap.Store(name, abciInfo.Response.LastBlockHeight)
+			heightsMap.Store(name, abciInfo.LastBlockHeight)
 		}(name, client)
 	}
 
@@ -70,8 +68,8 @@ func (s *BeaconKitE2ESuite) TestABCIInfo() {
 
 	// Check for errors.
 	errorsMap.Range(func(key, value interface{}) bool {
-		name := key.(string)
-		err := value.(error)
+		name := key.(string) //nolint:errcheck
+		err := value.(error) //nolint:errcheck
 		s.Require().NoError(err, "Error getting ABCI info from node %s", name)
 		return true
 	})
@@ -79,10 +77,9 @@ func (s *BeaconKitE2ESuite) TestABCIInfo() {
 	// Collect heights into a map for comparison.
 	heights := make(map[string]int64)
 	heightsMap.Range(func(key, value interface{}) bool {
-		name := key.(string)
-		height := value.(int64)
+		name := key.(string)    //nolint:errcheck
+		height := value.(int64) //nolint:errcheck
 		heights[name] = height
-		s.Logger().Info("Node height", "node", name, "height", height)
 		return true
 	})
 
@@ -110,8 +107,7 @@ func (s *BeaconKitE2ESuite) TestABCIInfo() {
 // TODO: verify the proof to ensure full validity.
 func (s *BeaconKitE2ESuite) TestABCIQuery() {
 	// Wait for execution block 5 to ensure nodes have progressed.
-	err := s.WaitForFinalizedBlockNumber(5)
-	s.Require().NoError(err)
+	s.Require().NoError(s.WaitForFinalizedBlockNumber(5))
 
 	// Get all consensus clients.
 	clients := s.ConsensusClients()
