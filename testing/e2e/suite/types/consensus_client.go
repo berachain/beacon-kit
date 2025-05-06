@@ -30,6 +30,7 @@ import (
 	"github.com/attestantio/go-eth2-client/spec/deneb"
 	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/berachain/beacon-kit/errors"
+	ptypes "github.com/berachain/beacon-kit/node-api/handlers/proof/types"
 	rpcclient "github.com/cometbft/cometbft/rpc/client"
 	httpclient "github.com/cometbft/cometbft/rpc/client/http"
 	ctypes "github.com/cometbft/cometbft/rpc/core/types"
@@ -203,6 +204,17 @@ func (cc ConsensusClient) ValidatorBalances(
 	return cc.beaconClient.ValidatorBalances(ctx, opts)
 }
 
+// Genesis returns the genesis of the beacon node.
+func (cc ConsensusClient) Genesis(
+	ctx context.Context,
+	opts *beaconapi.GenesisOpts,
+) (*beaconapi.Response[*apiv1.Genesis], error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
+	return cc.beaconClient.Genesis(ctx, opts)
+}
+
 // Spec returns the spec of the beacon node.
 func (cc ConsensusClient) Spec(
 	ctx context.Context,
@@ -212,6 +224,17 @@ func (cc ConsensusClient) Spec(
 		return nil, errors.New("beacon client is not initialized")
 	}
 	return cc.beaconClient.Spec(ctx, opts)
+}
+
+// BlockProposerProof returns the block proposer proof for a given timestamp id.
+func (cc ConsensusClient) BlockProposerProof(
+	ctx context.Context,
+	timestampID string,
+) (*ptypes.BlockProposerResponse, error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
+	return cc.beaconClient.BlockProposerProof(ctx, timestampID)
 }
 
 // TODO: Add helpers for the beacon node-api client (converting from

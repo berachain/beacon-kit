@@ -23,7 +23,8 @@
 package backend_test
 
 import (
-	"context"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"cosmossdk.io/log"
@@ -31,25 +32,20 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/errors"
-	"github.com/berachain/beacon-kit/log/noop"
 	"github.com/berachain/beacon-kit/node-api/backend"
 	types "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	nodemetrics "github.com/berachain/beacon-kit/node-core/components/metrics"
+	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
-	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
-	cryptomocks "github.com/berachain/beacon-kit/primitives/crypto/mocks"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
-	"github.com/berachain/beacon-kit/state-transition/core"
-	"github.com/berachain/beacon-kit/state-transition/core/mocks"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/berachain/beacon-kit/storage/beacondb"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
+	cmtcfg "github.com/cometbft/cometbft/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -62,19 +58,32 @@ func TestFilteredValidators(t *testing.T) {
 	require.NoError(t, err)
 	cms, kvStore, depositStore, err := statetransition.BuildTestStores()
 	require.NoError(t, err)
-	sb := storage.NewBackend(cs, nil, kvStore, depositStore, nil)
-
-	sp := core.NewStateProcessor(
-		noop.NewLogger[any](),
-		cs,
-		mocks.NewExecutionEngine(t),
-		depositStore,
-		&cryptomocks.BLSSigner{},
-		func(bytes.B48) ([]byte, error) { return nil, nil },
-		nodemetrics.NewNoOpTelemetrySink(),
+	sb := storage.NewBackend(
+		cs, nil, kvStore, depositStore, nil, log.NewNopLogger(), metrics.NewNoOpTelemetrySink(),
 	)
 
-	b := backend.New(sb, cs, sp)
+	// Create a temporary directory for CometBFT config
+	tmpDir := t.TempDir()
+
+	// Create CometBFT config with temporary directory
+	cmtCfg := cmtcfg.DefaultConfig()
+	cmtCfg.SetRoot(tmpDir)
+
+	// Create config directory
+	configDir := filepath.Join(tmpDir, "config")
+	err = os.MkdirAll(configDir, 0o755)
+	require.NoError(t, err)
+
+	// Create app genesis
+	appGenesis := genutiltypes.NewAppGenesisWithVersion("test-chain", []byte("{}"))
+
+	// Save genesis file to the config directory
+	genesisFile := filepath.Join(configDir, "genesis.json")
+	err = appGenesis.SaveAs(genesisFile)
+	require.NoError(t, err)
+
+	b, err := backend.New(sb, cs, cmtCfg)
+	require.NoError(t, err)
 	tcs := &testConsensusService{
 		cms:     cms,
 		kvStore: kvStore,
@@ -93,147 +102,147 @@ func TestFilteredValidators(t *testing.T) {
 		{
 			ValidatorBalanceData: types.ValidatorBalanceData{
 				Index:   0,
-				Balance: cs.MaxEffectiveBalance(),
+				Balance: cs.MaxEffectiveBalance().Unwrap(),
 			},
 			Status: constants.ValidatorStatusPendingInitialized,
 			Validator: types.ValidatorFromConsensus(
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x01},
 					WithdrawalCredentials:      [32]byte{0x02},
-					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance()),
+					EffectiveBalance:           cs.MaxEffectiveBalance(),
 					Slashed:                    false,
-					ActivationEligibilityEpoch: math.Epoch(constants.FarFutureEpoch),
-					ActivationEpoch:            math.Epoch(constants.FarFutureEpoch),
-					ExitEpoch:                  math.Epoch(constants.FarFutureEpoch),
-					WithdrawableEpoch:          math.Epoch(constants.FarFutureEpoch),
+					ActivationEligibilityEpoch: constants.FarFutureEpoch,
+					ActivationEpoch:            constants.FarFutureEpoch,
+					ExitEpoch:                  constants.FarFutureEpoch,
+					WithdrawableEpoch:          constants.FarFutureEpoch,
 				},
 			),
 		},
 		{
 			ValidatorBalanceData: types.ValidatorBalanceData{
 				Index:   1,
-				Balance: cs.MaxEffectiveBalance() * 3 / 4,
+				Balance: cs.MaxEffectiveBalance().Unwrap() * 3 / 4,
 			},
 			Status: constants.ValidatorStatusPendingQueued,
 			Validator: types.ValidatorFromConsensus(
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x03},
 					WithdrawalCredentials:      [32]byte{0x04},
-					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 2),
+					EffectiveBalance:           cs.MaxEffectiveBalance() / 2,
 					Slashed:                    false,
 					ActivationEligibilityEpoch: math.Epoch(0),
-					ActivationEpoch:            math.Epoch(constants.FarFutureEpoch),
-					ExitEpoch:                  math.Epoch(constants.FarFutureEpoch),
-					WithdrawableEpoch:          math.Epoch(constants.FarFutureEpoch),
+					ActivationEpoch:            constants.FarFutureEpoch,
+					ExitEpoch:                  constants.FarFutureEpoch,
+					WithdrawableEpoch:          constants.FarFutureEpoch,
 				},
 			),
 		},
 		{
 			ValidatorBalanceData: types.ValidatorBalanceData{
 				Index:   2,
-				Balance: cs.MaxEffectiveBalance() / 4,
+				Balance: cs.MaxEffectiveBalance().Unwrap() / 4,
 			},
 			Status: constants.ValidatorStatusActiveOngoing,
 			Validator: types.ValidatorFromConsensus(
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x05},
 					WithdrawalCredentials:      [32]byte{0x06},
-					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 3),
+					EffectiveBalance:           cs.MaxEffectiveBalance() / 3,
 					Slashed:                    false,
 					ActivationEligibilityEpoch: math.Epoch(0),
 					ActivationEpoch:            math.Epoch(0),
-					ExitEpoch:                  math.Epoch(constants.FarFutureEpoch),
-					WithdrawableEpoch:          math.Epoch(constants.FarFutureEpoch),
+					ExitEpoch:                  constants.FarFutureEpoch,
+					WithdrawableEpoch:          constants.FarFutureEpoch,
 				},
 			),
 		},
 		{
 			ValidatorBalanceData: types.ValidatorBalanceData{
 				Index:   3,
-				Balance: cs.MaxEffectiveBalance() / 4,
+				Balance: cs.MaxEffectiveBalance().Unwrap() / 4,
 			},
 			Status: constants.ValidatorStatusActiveSlashed,
 			Validator: types.ValidatorFromConsensus(
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x15},
 					WithdrawalCredentials:      [32]byte{0x16},
-					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 3),
+					EffectiveBalance:           cs.MaxEffectiveBalance() / 3,
 					Slashed:                    true,
 					ActivationEligibilityEpoch: math.Epoch(0),
 					ActivationEpoch:            math.Epoch(0),
 					ExitEpoch:                  math.Epoch(5),
-					WithdrawableEpoch:          math.Epoch(constants.FarFutureEpoch),
+					WithdrawableEpoch:          constants.FarFutureEpoch,
 				},
 			),
 		},
 		{
 			ValidatorBalanceData: types.ValidatorBalanceData{
 				Index:   4,
-				Balance: cs.MaxEffectiveBalance() / 4,
+				Balance: cs.MaxEffectiveBalance().Unwrap() / 4,
 			},
 			Status: constants.ValidatorStatusActiveExiting,
 			Validator: types.ValidatorFromConsensus(
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x17},
 					WithdrawalCredentials:      [32]byte{0x18},
-					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 3),
+					EffectiveBalance:           cs.MaxEffectiveBalance() / 3,
 					Slashed:                    false,
 					ActivationEligibilityEpoch: math.Epoch(0),
 					ActivationEpoch:            math.Epoch(0),
 					ExitEpoch:                  math.Epoch(5),
-					WithdrawableEpoch:          math.Epoch(constants.FarFutureEpoch),
+					WithdrawableEpoch:          constants.FarFutureEpoch,
 				},
 			),
 		},
 		{
 			ValidatorBalanceData: types.ValidatorBalanceData{
 				Index:   5,
-				Balance: cs.MaxEffectiveBalance() / 2,
+				Balance: cs.MaxEffectiveBalance().Unwrap() / 2,
 			},
 			Status: constants.ValidatorStatusExitedUnslashed,
 			Validator: types.ValidatorFromConsensus(
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x07},
 					WithdrawalCredentials:      [32]byte{0x08},
-					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 4),
+					EffectiveBalance:           cs.MaxEffectiveBalance() / 4,
 					Slashed:                    false,
 					ActivationEligibilityEpoch: math.Epoch(0),
 					ActivationEpoch:            math.Epoch(0),
 					ExitEpoch:                  math.Epoch(0),
-					WithdrawableEpoch:          math.Epoch(constants.FarFutureEpoch),
+					WithdrawableEpoch:          constants.FarFutureEpoch,
 				},
 			),
 		},
 		{
 			ValidatorBalanceData: types.ValidatorBalanceData{
 				Index:   6,
-				Balance: cs.MaxEffectiveBalance() / 2,
+				Balance: cs.MaxEffectiveBalance().Unwrap() / 2,
 			},
 			Status: constants.ValidatorStatusExitedSlashed,
 			Validator: types.ValidatorFromConsensus(
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x27},
 					WithdrawalCredentials:      [32]byte{0x28},
-					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 4),
+					EffectiveBalance:           cs.MaxEffectiveBalance() / 4,
 					Slashed:                    true,
 					ActivationEligibilityEpoch: math.Epoch(0),
 					ActivationEpoch:            math.Epoch(0),
 					ExitEpoch:                  math.Epoch(0),
-					WithdrawableEpoch:          math.Epoch(constants.FarFutureEpoch),
+					WithdrawableEpoch:          constants.FarFutureEpoch,
 				},
 			),
 		},
 		{
 			ValidatorBalanceData: types.ValidatorBalanceData{
 				Index:   7,
-				Balance: cs.EjectionBalance(),
+				Balance: cs.MinActivationBalance().Unwrap() - cs.EffectiveBalanceIncrement().Unwrap(),
 			},
 			Status: constants.ValidatorStatusWithdrawalPossible,
 			Validator: types.ValidatorFromConsensus(
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x09},
 					WithdrawalCredentials:      [32]byte{0x10},
-					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 5),
+					EffectiveBalance:           cs.MaxEffectiveBalance() / 5,
 					Slashed:                    false,
 					ActivationEligibilityEpoch: math.Epoch(0),
 					ActivationEpoch:            math.Epoch(0),
@@ -252,7 +261,7 @@ func TestFilteredValidators(t *testing.T) {
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x39},
 					WithdrawalCredentials:      [32]byte{0x40},
-					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 5),
+					EffectiveBalance:           cs.MaxEffectiveBalance() / 5,
 					Slashed:                    false,
 					ActivationEligibilityEpoch: math.Epoch(0),
 					ActivationEpoch:            math.Epoch(0),
@@ -265,7 +274,7 @@ func TestFilteredValidators(t *testing.T) {
 	setupTestFilteredValidatorsState(
 		t,
 		cms, kvStore, cs,
-		stateValidators,
+		stateValidators, refSlot,
 	)
 
 	// test cases
@@ -352,11 +361,13 @@ func setupTestFilteredValidatorsState(
 	kvStore *beacondb.KVStore,
 	cs chain.Spec,
 	stateValidators []*types.ValidatorData,
+	dummySlot math.Slot,
 ) {
 	t.Helper()
-
 	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), true, log.NewNopLogger())
-	st := statedb.NewBeaconStateFromDB(kvStore.WithContext(sdkCtx), cs)
+	st := statedb.NewBeaconStateFromDB(
+		kvStore.WithContext(sdkCtx), cs, sdkCtx.Logger(), metrics.NewNoOpTelemetrySink(),
+	)
 
 	for _, in := range stateValidators {
 		val, err := types.ValidatorToConsensus(in.Validator)
@@ -366,19 +377,18 @@ func setupTestFilteredValidatorsState(
 		require.NoError(t, st.SetBalance(math.ValidatorIndex(in.Index), math.Gwei(in.Balance)))
 	}
 
-	setupStateDummyParts(t, cs, st)
+	setupStateDummyParts(t, cs, st, dummySlot)
 
 	// finally write it all to underlying cms
 	//nolint:errcheck // false positive as this has no return value
 	sdkCtx.MultiStore().(storetypes.CacheMultiStore).Write()
 }
 
-func setupStateDummyParts(t *testing.T, cs chain.Spec, st *statedb.StateDB) {
+func setupStateDummyParts(t *testing.T, cs chain.Spec, st *statedb.StateDB, dummySlot math.Slot) {
 	t.Helper()
-	dummySlot := math.Slot(2025)
 	require.NoError(t, st.SetSlot(dummySlot))
 
-	fork := ctypes.NewFork(version.Genesis(), version.Genesis(), constants.GenesisEpoch)
+	fork := ctypes.NewFork(version.Deneb(), version.Deneb(), constants.GenesisEpoch)
 	require.NoError(t, st.SetFork(fork))
 
 	require.NoError(t, st.SetGenesisValidatorsRoot(common.Root{}))
@@ -397,7 +407,7 @@ func setupStateDummyParts(t *testing.T, cs chain.Spec, st *statedb.StateDB) {
 		require.NoError(t, st.UpdateStateRootAtIndex(i, common.Root{}))
 	}
 
-	payload, err := ctypes.DefaultGenesisExecutionPayloadHeader()
+	payload, err := ctypes.DefaultGenesisExecutionPayloadHeader(version.Deneb())
 	require.NoError(t, err)
 	require.NoError(t, st.SetLatestExecutionPayloadHeader(payload))
 
@@ -419,46 +429,4 @@ func setupStateDummyParts(t *testing.T, cs chain.Spec, st *statedb.StateDB) {
 	require.NoError(t, st.SetNextWithdrawalIndex(0))
 	require.NoError(t, st.SetNextWithdrawalValidatorIndex(0))
 	require.NoError(t, st.SetTotalSlashing(0))
-}
-
-var errTestMemberNotImplemented = errors.New("not implemented")
-
-// testConsensusService stubs consensus service
-type testConsensusService struct {
-	cms     storetypes.CommitMultiStore
-	kvStore *beacondb.KVStore
-	cs      chain.Spec
-}
-
-func (t *testConsensusService) CreateQueryContext(height int64, _ bool) (sdk.Context, error) {
-	sdkCtx := sdk.NewContext(t.cms.CacheMultiStore(), true, log.NewNopLogger())
-
-	// there validations mimics consensus service, not sure if they are necessary
-	tmpState := statedb.NewBeaconStateFromDB(t.kvStore.WithContext(sdkCtx), t.cs)
-	slot, err := tmpState.GetSlot()
-	if err != nil {
-		return sdk.Context{}, sdkerrors.ErrInvalidHeight
-	}
-	if height > int64(slot.Unwrap()) {
-		return sdk.Context{}, sdkerrors.ErrInvalidHeight
-	}
-	// end of possibly unnecessary validations
-
-	return sdkCtx, nil
-}
-
-func (t *testConsensusService) Start(_ context.Context) error {
-	return errTestMemberNotImplemented
-}
-
-func (t *testConsensusService) Stop() error {
-	return errTestMemberNotImplemented
-}
-
-func (t *testConsensusService) Name() string {
-	panic(errTestMemberNotImplemented)
-}
-
-func (t *testConsensusService) LastBlockHeight() int64 {
-	panic(errTestMemberNotImplemented)
 }

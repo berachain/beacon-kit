@@ -163,7 +163,7 @@ type container struct {
 	FieldIndex map[string]uint64
 }
 
-func DefineContainer(fields ...*Field[SSZType]) SSZType {
+func DefineContainer(fields ...*Field) SSZType {
 	fieldIndex := make(map[string]uint64)
 	types := make([]SSZType, len(fields))
 	for i, f := range fields {

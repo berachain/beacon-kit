@@ -31,10 +31,10 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
-	"github.com/berachain/beacon-kit/primitives/version"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -53,24 +53,24 @@ func TestPayloadTimestampVerification(t *testing.T) {
 
 	// process genesis before any other block
 	genesisTime := time.Now().Truncate(time.Second)
+	genesisFork := cs.ActiveForkVersionForTimestamp(math.U64(genesisTime.Unix()))
+	require.Equal(t, genesisFork, cs.GenesisForkVersion())
 	var (
 		genDeposits = types.Deposits{
 			{
 				Pubkey:      [48]byte{0x00},
 				Credentials: types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{}),
-				Amount:      math.Gwei(cs.MaxEffectiveBalance()),
+				Amount:      cs.MaxEffectiveBalance(),
 				Index:       0,
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(version.Genesis()),
+			Versionable: types.NewVersionable(genesisFork),
 		}
 	)
 	genPayloadHeader.Timestamp = math.U64(genesisTime.Unix())
 
-	_, err := sp.InitializePreminedBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, version.Genesis(),
-	)
+	_, err := sp.InitializeBeaconStateFromEth1(st, genDeposits, genPayloadHeader, genesisFork)
 	require.NoError(t, err)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 
@@ -128,7 +128,9 @@ func TestPayloadTimestampVerification(t *testing.T) {
 
 			// create independent states per each test
 			sdkCtx := sdk.NewContext(cms.CacheMultiStore(), true, log.NewNopLogger())
-			testSt := statedb.NewBeaconStateFromDB(st.KVStore.WithContext(sdkCtx), cs)
+			testSt := statedb.NewBeaconStateFromDB(
+				st.KVStore.WithContext(sdkCtx), cs, sdkCtx.Logger(), metrics.NewNoOpTelemetrySink(),
+			)
 
 			tCtx := transition.NewTransitionCtx(
 				sdkCtx,
@@ -142,10 +144,12 @@ func TestPayloadTimestampVerification(t *testing.T) {
 
 			blk := buildNextBlock(
 				t,
+				cs,
 				testSt,
 				types.NewEth1Data(genDeposits.HashTreeRoot()),
 				math.U64(tt.payloadTime.Unix()),
 				nil,
+				&types.ExecutionRequests{},
 				testSt.EVMInflationWithdrawal(math.U64(tt.payloadTime.Unix())),
 			)
 
