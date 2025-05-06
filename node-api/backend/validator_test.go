@@ -34,6 +34,7 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-api/backend"
 	types "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
@@ -57,7 +58,9 @@ func TestFilteredValidators(t *testing.T) {
 	require.NoError(t, err)
 	cms, kvStore, depositStore, err := statetransition.BuildTestStores()
 	require.NoError(t, err)
-	sb := storage.NewBackend(cs, nil, kvStore, depositStore, nil)
+	sb := storage.NewBackend(
+		cs, nil, kvStore, depositStore, nil, log.NewNopLogger(), metrics.NewNoOpTelemetrySink(),
+	)
 
 	// Create a temporary directory for CometBFT config
 	tmpDir := t.TempDir()
@@ -361,9 +364,10 @@ func setupTestFilteredValidatorsState(
 	dummySlot math.Slot,
 ) {
 	t.Helper()
-
 	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), true, log.NewNopLogger())
-	st := statedb.NewBeaconStateFromDB(kvStore.WithContext(sdkCtx), cs)
+	st := statedb.NewBeaconStateFromDB(
+		kvStore.WithContext(sdkCtx), cs, sdkCtx.Logger(), metrics.NewNoOpTelemetrySink(),
+	)
 
 	for _, in := range stateValidators {
 		val, err := types.ValidatorToConsensus(in.Validator)
