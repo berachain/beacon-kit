@@ -37,7 +37,7 @@ func (s *Service) handleQueryStore(path []string, req abci.QueryRequest) *abci.Q
 		return queryResult(errorsmod.Wrap(sdkerrors.ErrUnknownRequest, "multi-store does not support queries"))
 	}
 
-	req.Path = "/" + strings.Join(path[1:], "/")
+	req.Path = "/" + strings.Join(path[1:], "/") // req.Path == "/beacon"
 
 	if req.Height <= 1 && req.Prove {
 		return queryResult(

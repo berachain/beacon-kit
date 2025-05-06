@@ -25,6 +25,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
@@ -161,6 +162,10 @@ func (s *Service) Query(
 	if req.Height == 0 {
 		req.Height = s.LastBlockHeight()
 	}
+
+	s.telemetrySink.IncrementCounter("beacon_kit.comet.query_count", req.Path)
+	startTime := time.Now()
+	defer s.telemetrySink.MeasureSince("beacon_kit.comet.query_duration", startTime, req.Path)
 
 	path := splitABCIQueryPath(req.Path)
 	if len(path) == 0 {
