@@ -114,7 +114,7 @@ eth_json_rpc_endpoints:
 additional_services:
   - name: "spamoor"
   - name: "tx-fuzz"
-    replicas: 16
+    replicas: 8
   - name: "prometheus"
   - name: "grafana"
   - name: "pyroscope"
