@@ -158,7 +158,7 @@ func (st *BeaconState) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineUint64(codec, &st.NextWithdrawalIndex)
 	ssz.DefineUint64(codec, &st.NextWithdrawalValidatorIndex)
 
-	// // Slashing
+	// Slashing
 	ssz.DefineSliceOfUint64sOffset(codec, &st.Slashings, 1099511627776)
 	ssz.DefineUint64(codec, (*uint64)(&st.TotalSlashing))
 

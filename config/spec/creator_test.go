@@ -117,4 +117,13 @@ func TestCreateChainSpec_File(t *testing.T) {
 	testnetSpec, err := spec.TestnetChainSpec()
 	require.NoError(t, err)
 	require.Equal(t, testnetSpec, tcs, "the chain spec loaded from TOML does not match the testnet spec")
+
+	// Provide a non-empty value for the custom spec file of devnet.
+	opts.values[flags.ChainSpecFilePath] = "../../testing/files/spec.toml"
+	dcs, err := spec.Create(opts)
+	require.NoError(t, err)
+
+	devnetSpec, err := spec.DevnetChainSpec()
+	require.NoError(t, err)
+	require.Equal(t, devnetSpec, dcs, "the chain spec loaded from TOML does not match the devnet spec")
 }
