@@ -67,7 +67,6 @@ type LocalBuilder interface {
 	RequestPayloadAsync(
 		ctx context.Context,
 		st attributes.ReadOnlyBeaconState,
-		slot math.Slot,
 		timestamp math.U64,
 		parentBlockRoot common.Root,
 		headEth1BlockHash common.ExecutionHash,

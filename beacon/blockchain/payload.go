@@ -195,8 +195,6 @@ func (s *Service) rebuildPayloadForRejectedBlock(
 	if _, _, err = s.localBuilder.RequestPayloadAsync(
 		ctx,
 		st,
-		// We are rebuilding for the current slot.
-		stateSlot,
 		nextPayloadTimestamp,
 		// We set the parent root to the previous block root. The HashTreeRoot
 		// of the header is the same as the HashTreeRoot of the block.
@@ -270,7 +268,6 @@ func (s *Service) optimisticPayloadBuild(
 	payload := blk.GetBody().GetExecutionPayload()
 	if _, _, err = s.localBuilder.RequestPayloadAsync(
 		ctx, st,
-		slot,
 		nextPayloadTimestamp,
 		// The previous block root is simply the root of the block we just
 		// processed.
