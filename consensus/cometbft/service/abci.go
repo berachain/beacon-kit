@@ -25,10 +25,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 
 	errorsmod "cosmossdk.io/errors"
-	storetypes "cosmossdk.io/store/types"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -148,7 +146,7 @@ func (s *Service) Query(
 	_ context.Context,
 	req *abci.QueryRequest,
 ) (*abci.QueryResponse, error) {
-	resp := &abci.QueryResponse{}
+	var resp *abci.QueryResponse
 
 	// add panic recovery for all queries
 	//
@@ -170,64 +168,14 @@ func (s *Service) Query(
 		return resp, nil
 	}
 
-	switch path[0] {
-	case "store":
-		// "/store" prefix for store queries
-		req.Path = "/" + strings.Join(path[1:], "/")
-		cms := s.sm.GetCommitMultiStore()
-		queryable, ok := cms.(storetypes.Queryable)
-		if !ok {
-			resp = queryResult(errorsmod.Wrap(sdkerrors.ErrUnknownRequest, "multi-store does not support queries"))
-			return resp, nil
-		}
-
-		sdkReq := storetypes.RequestQuery(*req)
-		queryResp, err := queryable.Query(&sdkReq)
-		if err != nil {
-			return queryResult(err), nil
-		}
-		queryResp.Height = req.Height
-
-		resp := abci.QueryResponse(*queryResp)
-
-		return &resp, nil
-
-	default:
-		resp = queryResult(errorsmod.Wrap(sdkerrors.ErrUnknownRequest, "unknown query path"))
+	// Only "/store" prefix for store queries are supported.
+	if path[0] != "store" {
+		resp = queryResult(errorsmod.Wrap(sdkerrors.ErrNotSupported, "unsupported query path"))
+		return resp, nil
 	}
 
+	resp = s.handleQueryStore(path, *req)
 	return resp, nil
-}
-
-// NOTE: Copied from here: https://github.com/cosmos/cosmos-sdk/blob/960d44842b9e313cbe762068a67a894ac82060ab/baseapp/errors.go#L37-L46.
-// This was made public in v0.53, under the sdkerrors module.
-// NOTE: the debug parameter has been removed since Service does not expose this functionality.
-//
-// queryResult returns a ResponseQuery from an error. It will try to parse ABCI
-// info from the error.
-func queryResult(err error) *abci.QueryResponse {
-	space, code, log := errorsmod.ABCIInfo(err, false)
-	return &abci.QueryResponse{
-		Codespace: space,
-		Code:      code,
-		Log:       log,
-	}
-}
-
-// NOTE: Copied from here: https://github.com/cosmos/cosmos-sdk/blob/960d44842b9e313cbe762068a67a894ac82060ab/baseapp/abci.go#L1153-L1165
-//
-// splitABCIQueryPath splits a string path using the delimiter '/'.
-//
-// e.g. "this/is/funny" becomes []string{"this", "is", "funny"}
-func splitABCIQueryPath(requestPath string) []string {
-	path := strings.Split(requestPath, "/")
-
-	// first element is empty string
-	if len(path) > 0 && path[0] == "" {
-		path = path[1:]
-	}
-
-	return path
 }
 
 //
