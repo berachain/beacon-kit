@@ -65,10 +65,7 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 	}
 
 	// Assemble the payload attributes.
-	attrs, err := pb.attributesFactory.BuildPayloadAttributes(
-		st,
-		timestamp,
-	)
+	attrs, err := pb.attributesFactory.BuildPayloadAttributes(st, timestamp)
 	if err != nil {
 		return nil, common.Version{}, err
 	}
