@@ -44,14 +44,19 @@ func (h *Handler) GetPendingPartialWithdrawals(c handlers.Context) (any, error) 
 		return nil, err
 	}
 
-	// Get the genesis fork version.
-	genesisForkVersion, err := h.backend.GenesisForkVersion()
+	st, _, err := h.backend.StateAtSlot(slot)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get the fork version.
+	forkVersion, err := st.GetFork()
 	if err != nil {
 		return nil, err
 	}
 
 	return beacontypes.NewPendingPartialWithdrawalsResponse(
-		genesisForkVersion,
+		forkVersion.CurrentVersion,
 		partialWithdrawals,
 	), nil
 }
