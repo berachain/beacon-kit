@@ -1,6 +1,7 @@
 module github.com/berachain/beacon-kit
 
 go 1.23.6
+toolchain go1.24.1
 
 replace (
 	github.com/cometbft/cometbft => github.com/berachain/cometbft v1.0.1-0.20250416103256-c547460cd751
@@ -40,7 +41,7 @@ require (
 	github.com/phuslu/log v1.0.113
 	github.com/pkg/errors v0.9.1
 	github.com/prysmaticlabs/gohashtree v0.0.4-beta.0.20240624100937-73632381301b
-	github.com/prysmaticlabs/prysm/v5 v5.3.0
+	github.com/prysmaticlabs/prysm/v5 v5.3.3
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/cast v1.7.0
@@ -248,9 +249,10 @@ require (
 	gitlab.com/yawning/tuplehash v0.0.0-20230713102510-df83abbf9a02 // indirect
 	go.etcd.io/bbolt v1.4.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	go.opentelemetry.io/otel v1.32.0 // indirect
-	go.opentelemetry.io/otel/metric v1.32.0 // indirect
-	go.opentelemetry.io/otel/trace v1.32.0 // indirect
+	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
+	go.opentelemetry.io/otel v1.34.0 // indirect
+	go.opentelemetry.io/otel/metric v1.34.0 // indirect
+	go.opentelemetry.io/otel/trace v1.34.0 // indirect
 	golang.org/x/arch v0.12.0 // indirect
 	golang.org/x/exp v0.0.0-20250106191152-7588d65b2ba8 // indirect
 	golang.org/x/net v0.38.0 // indirect
