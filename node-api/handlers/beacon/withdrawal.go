@@ -54,5 +54,4 @@ func (h *Handler) GetPendingPartialWithdrawals(c handlers.Context) (any, error) 
 		genesisForkVersion,
 		partialWithdrawals,
 	), nil
-
 }
