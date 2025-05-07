@@ -517,12 +517,12 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPreForkBlockWithPostForkCons
 	{
 		// a pre-fork time.
 		consensusTime := time.Unix(2, 0)
-		proposal, err := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
+		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
 			ProposerAddress: pubkey.Address(),
 		})
-		s.Require().NoError(err)
+		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
 
 		processRequest := &types.ProcessProposalRequest{
