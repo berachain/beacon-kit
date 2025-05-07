@@ -21,8 +21,10 @@
 package backend
 
 import (
-	"github.com/berachain/beacon-kit/consensus-types/types"
+	"fmt"
+
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
@@ -33,9 +35,19 @@ func (b *Backend) PendingPartialWithdrawalsAtSlot(slot math.Slot) ([]*types.Pend
 		return nil, errors.Wrapf(err, "failed to get state from slot %d", slot)
 	}
 
-	partialWithdrawals, err := st.GetPendingPartialWithdrawals()
+	cTypePartialWithdrawals, err := st.GetPendingPartialWithdrawals()
 	if err != nil {
 		return nil, err
+	}
+
+	// Convert from ctypes.PendingPartialWithdrawal to types.PendingPartialWithdrawal
+	partialWithdrawals := make([]*types.PendingPartialWithdrawal, len(cTypePartialWithdrawals))
+	for i, cTypeWithdrawal := range cTypePartialWithdrawals {
+		partialWithdrawals[i] = &types.PendingPartialWithdrawal{
+			ValidatorIndex:  cTypeWithdrawal.ValidatorIndex.Unwrap(),
+			Amount:          cTypeWithdrawal.Amount.Unwrap(),
+			WithdrawalEpoch: fmt.Sprintf("%d", cTypeWithdrawal.WithdrawableEpoch),
+		}
 	}
 
 	return partialWithdrawals, nil
