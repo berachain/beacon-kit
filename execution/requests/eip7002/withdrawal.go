@@ -38,6 +38,7 @@ type feeOpts struct {
 }
 
 // GetWithdrawalFee returns the withdrawal fee in wei. See https://eips.ethereum.org/EIPS/eip-7002 for more.
+// Only expected to be used in test cases.
 func GetWithdrawalFee(ctx context.Context, client rpcClient) (*big.Int, error) {
 	var result string
 	feeInput := &feeOpts{
@@ -55,6 +56,7 @@ func GetWithdrawalFee(ctx context.Context, client rpcClient) (*big.Int, error) {
 }
 
 // CreateWithdrawalRequestData returns the request body formatted as defined by the EIP-7002 specification.
+// Only expected to be used in test cases.
 func CreateWithdrawalRequestData(blsPubKey crypto.BLSPubkey, withdrawAmount math.Gwei) (beaconbytes.Bytes, error) {
 	// Create a buffer to hold the packed encoding.
 	var packed bytes.Buffer

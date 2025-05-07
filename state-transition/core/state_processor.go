@@ -247,8 +247,10 @@ func (sp *StateProcessor) ProcessBlock(
 	return nil
 }
 
-// processEpoch processes the epoch and ensures it matches the local state. Currently
-// beacon-kit does not enforce rewards, penalties, and slashing for validators.
+// processEpoch processes the epoch and ensures it matches the local state.
+// Currently, beacon-kit does not enforce rewards, penalties, and slashing for validators.
+// Extra caution is required when any fork-specific logic is added within the scope of this method
+// as epochs and fork slots may not always neatly overlap.
 func (sp *StateProcessor) processEpoch(st *state.StateDB) (transition.ValidatorUpdates, error) {
 	currentEpoch, err := st.GetEpoch()
 	if err != nil {
