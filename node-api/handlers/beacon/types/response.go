@@ -143,6 +143,8 @@ type SidecarsResponse struct {
 	Data []*Sidecar `json:"data"`
 }
 
+// PendingPartialWithdrawalsResponse has a version field to indicate the fork version.
+// https://ethereum.github.io/beacon-APIs/#/Beacon/getPendingPartialWithdrawals
 type PendingPartialWithdrawalsResponse struct {
 	Version string `json:"version"`
 	GenericResponse

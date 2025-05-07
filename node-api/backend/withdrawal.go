@@ -37,7 +37,7 @@ func (b *Backend) PendingPartialWithdrawalsAtSlot(slot math.Slot) ([]*types.Pend
 
 	cTypePartialWithdrawals, err := st.GetPendingPartialWithdrawals()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "failed to get pending partial withdrawals from state")
 	}
 
 	// Convert from ctypes.PendingPartialWithdrawal to types.PendingPartialWithdrawal
