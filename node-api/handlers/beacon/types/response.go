@@ -141,3 +141,16 @@ type Sidecar struct {
 type SidecarsResponse struct {
 	Data []*Sidecar `json:"data"`
 }
+
+type PendingPartialWithdrawalsResponse struct {
+	Version             string                      `json:"version"`
+	ExecutionOptimistic bool                        `json:"execution_optimistic"`
+	Finalized           bool                        `json:"finalized"`
+	Data                []*PendingPartialWithdrawal `json:"data"`
+}
+
+type PendingPartialWithdrawal struct {
+	ValidatorIndex  uint64 `json:"validator_index,string"`
+	Amount          uint64 `json:"amount,string"`
+	WithdrawalEpoch string `json:"withdrawal_epoch"`
+}
