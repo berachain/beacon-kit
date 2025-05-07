@@ -64,13 +64,13 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 	// Assemble the payload attributes.
 	attrs, err := pb.attributesFactory.BuildPayloadAttributes(st, timestamp)
 	if err != nil {
-		return nil, common.Version{}, err
+		return nil, common.Version{}, fmt.Errorf("RequestPayloadAsync building payload attributes: %w", err)
 	}
 
 	// Submit the forkchoice update to the execution client.
 	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
-		return nil, common.Version{}, err
+		return nil, common.Version{}, fmt.Errorf("RequestPayloadAsync failed retrieving latest payload: %w", err)
 	}
 
 	forkVersion := pb.chainSpec.ActiveForkVersionForTimestamp(timestamp)
