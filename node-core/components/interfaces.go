@@ -565,7 +565,7 @@ type (
 	}
 
 	WithdrawalBackend interface {
-		PendingPartialWithdrawalsAtSlot(slot math.Slot) ([]*types.PendingPartialWithdrawal, error)
+		PendingPartialWithdrawalsAtSlot(slot math.Slot) ([]*types.PendingPartialWithdrawalData, error)
 	}
 
 	ValidatorBackend interface {

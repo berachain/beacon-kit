@@ -143,14 +143,20 @@ type SidecarsResponse struct {
 }
 
 type PendingPartialWithdrawalsResponse struct {
-	Version             string                      `json:"version"`
-	ExecutionOptimistic bool                        `json:"execution_optimistic"`
-	Finalized           bool                        `json:"finalized"`
-	Data                []*PendingPartialWithdrawal `json:"data"`
+	Version string `json:"version"`
+	GenericResponse
 }
 
-type PendingPartialWithdrawal struct {
+type PendingPartialWithdrawalData struct {
 	ValidatorIndex  uint64 `json:"validator_index,string"`
 	Amount          uint64 `json:"amount,string"`
 	WithdrawalEpoch string `json:"withdrawal_epoch"`
+}
+
+// NewPendingPartialWithdrawalsResponse creates a typed response with PendingPartialWithdrawal data
+func NewPendingPartialWithdrawalsResponse(version string, withdrawals []*PendingPartialWithdrawalData) PendingPartialWithdrawalsResponse {
+	return PendingPartialWithdrawalsResponse{
+		Version:         version,
+		GenericResponse: NewResponse(withdrawals),
+	}
 }

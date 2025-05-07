@@ -28,7 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-func (b *Backend) PendingPartialWithdrawalsAtSlot(slot math.Slot) ([]*types.PendingPartialWithdrawal, error) {
+func (b *Backend) PendingPartialWithdrawalsAtSlot(slot math.Slot) ([]*types.PendingPartialWithdrawalData, error) {
 	// Get the state at the given slot.
 	st, _, err := b.StateAtSlot(slot)
 	if err != nil {
@@ -41,9 +41,9 @@ func (b *Backend) PendingPartialWithdrawalsAtSlot(slot math.Slot) ([]*types.Pend
 	}
 
 	// Convert from ctypes.PendingPartialWithdrawal to types.PendingPartialWithdrawal
-	partialWithdrawals := make([]*types.PendingPartialWithdrawal, len(cTypePartialWithdrawals))
+	partialWithdrawals := make([]*types.PendingPartialWithdrawalData, len(cTypePartialWithdrawals))
 	for i, cTypeWithdrawal := range cTypePartialWithdrawals {
-		partialWithdrawals[i] = &types.PendingPartialWithdrawal{
+		partialWithdrawals[i] = &types.PendingPartialWithdrawalData{
 			ValidatorIndex:  cTypeWithdrawal.ValidatorIndex.Unwrap(),
 			Amount:          cTypeWithdrawal.Amount.Unwrap(),
 			WithdrawalEpoch: fmt.Sprintf("%d", cTypeWithdrawal.WithdrawableEpoch),

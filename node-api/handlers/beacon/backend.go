@@ -68,7 +68,7 @@ type StateBackend interface {
 }
 
 type WithdrawalBackend interface {
-	PendingPartialWithdrawalsAtSlot(slot math.Slot) ([]*types.PendingPartialWithdrawal, error)
+	PendingPartialWithdrawalsAtSlot(slot math.Slot) ([]*types.PendingPartialWithdrawalData, error)
 }
 
 type ValidatorBackend interface {
