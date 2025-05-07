@@ -81,8 +81,6 @@ type (
 			ctx context.Context,
 			st builder.ReadOnlyBeaconState,
 			timestamp math.U64,
-			headEth1BlockHash common.ExecutionHash,
-			finalEth1BlockHash common.ExecutionHash,
 		) (*engineprimitives.PayloadID, common.Version, error)
 		// RetrievePayload retrieves the payload for the given slot.
 		RetrievePayload(
@@ -96,8 +94,6 @@ type (
 			ctx context.Context,
 			st builder.ReadOnlyBeaconState,
 			timestamp math.U64,
-			headEth1BlockHash common.ExecutionHash,
-			finalEth1BlockHash common.ExecutionHash,
 		) (ctypes.BuiltExecutionPayloadEnv, error)
 	}
 

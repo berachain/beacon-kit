@@ -37,8 +37,6 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 	ctx context.Context,
 	st ReadOnlyBeaconState,
 	timestamp math.U64,
-	headEth1BlockHash common.ExecutionHash,
-	finalEth1BlockHash common.ExecutionHash,
 ) (*engineprimitives.PayloadID, common.Version, error) {
 	if !pb.Enabled() {
 		return nil, common.Version{}, ErrPayloadBuilderDisabled
@@ -69,13 +67,18 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 		return nil, common.Version{}, err
 	}
 
-	forkVersion := pb.chainSpec.ActiveForkVersionForTimestamp(timestamp)
 	// Submit the forkchoice update to the execution client.
+	lph, err := st.GetLatestExecutionPayloadHeader()
+	if err != nil {
+		return nil, common.Version{}, err
+	}
+
+	forkVersion := pb.chainSpec.ActiveForkVersionForTimestamp(timestamp)
 	req := ctypes.BuildForkchoiceUpdateRequest(
 		&engineprimitives.ForkchoiceStateV1{
-			HeadBlockHash:      headEth1BlockHash,
-			SafeBlockHash:      finalEth1BlockHash,
-			FinalizedBlockHash: finalEth1BlockHash,
+			HeadBlockHash:      lph.GetBlockHash(),
+			SafeBlockHash:      lph.GetParentHash(),
+			FinalizedBlockHash: lph.GetParentHash(),
 		},
 		attrs,
 		forkVersion,
@@ -99,8 +102,6 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 	ctx context.Context,
 	st ReadOnlyBeaconState,
 	timestamp math.U64,
-	parentEth1Hash common.ExecutionHash,
-	finalBlockHash common.ExecutionHash,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
 	if !pb.Enabled() {
 		return nil, ErrPayloadBuilderDisabled
@@ -112,8 +113,6 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 		ctx,
 		st,
 		timestamp,
-		parentEth1Hash,
-		finalBlockHash,
 	)
 	if err != nil {
 		return nil, err
