@@ -21,9 +21,13 @@
 package beacon
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/primitives/version"
 )
 
 func (h *Handler) GetPendingPartialWithdrawals(c handlers.Context) (any, error) {
@@ -39,11 +43,6 @@ func (h *Handler) GetPendingPartialWithdrawals(c handlers.Context) (any, error) 
 		return nil, err
 	}
 
-	partialWithdrawals, err := h.backend.PendingPartialWithdrawalsAtSlot(slot)
-	if err != nil {
-		return nil, err
-	}
-
 	st, _, err := h.backend.StateAtSlot(slot)
 	if err != nil {
 		return nil, err
@@ -51,6 +50,15 @@ func (h *Handler) GetPendingPartialWithdrawals(c handlers.Context) (any, error) 
 
 	// Get the fork version.
 	forkVersion, err := st.GetFork()
+	if err != nil {
+		return nil, err
+	}
+
+	if version.IsBefore(forkVersion.CurrentVersion, version.Electra()) {
+		return nil, fmt.Errorf("%w: Electra fork not active yet", types.ErrInvalidRequest)
+	}
+
+	partialWithdrawals, err := h.backend.PendingPartialWithdrawalsAtSlot(slot)
 	if err != nil {
 		return nil, err
 	}
