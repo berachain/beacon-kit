@@ -48,11 +48,11 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 	if err != nil {
 		return nil, common.Version{}, fmt.Errorf("RequestPayloadAsync failed retrieving slot: %w", err)
 	}
-	lph, err := st.GetLatestBlockHeader()
+	latestHeader, err := st.GetLatestBlockHeader()
 	if err != nil {
 		return nil, common.Version{}, fmt.Errorf("RequestPayloadAsync failed retrieving latest block header: %w", err)
 	}
-	parentBlockRoot := lph.HashTreeRoot()
+	parentBlockRoot := latestHeader.HashTreeRoot()
 
 	if payloadID, found := pb.pc.GetAndEvict(slot, parentBlockRoot); found {
 		pb.logger.Info(
