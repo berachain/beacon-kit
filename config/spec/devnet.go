@@ -46,7 +46,7 @@ const (
 
 	// devnetElectraForkTime is the timestamp at which the Electra fork occurs.
 	// devnet is configured to start on electra.
-	devnetElectraForkTime = 0
+	devnetElectraForkTime = 1746628000
 
 	// devnetEVMInflationAddressDeneb1 is the address of the EVM inflation contract
 	// after the Deneb1 fork.
