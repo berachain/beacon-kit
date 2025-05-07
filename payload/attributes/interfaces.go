@@ -36,7 +36,7 @@ type ChainSpec interface {
 // ReadOnlyBeaconState is the interface for a read-only beacon state.
 type ReadOnlyBeaconState interface {
 	GetSlot() (math.Slot, error)
-	ExpectedWithdrawals( /*timestamp*/ math.U64) (engineprimitives.Withdrawals, uint64, error)
+	ExpectedWithdrawals(timestamp math.U64) (engineprimitives.Withdrawals, uint64, error)
 	GetRandaoMixAtIndex(index uint64) (common.Bytes32, error)
 	GetLatestBlockHeader() (*types.BeaconBlockHeader, error)
 }

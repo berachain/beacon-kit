@@ -36,6 +36,13 @@ type PayloadCache interface {
 	Set(slot math.Slot, stateRoot common.Root, pid engineprimitives.PayloadID, version common.Version)
 }
 
+type ReadOnlyBeaconState interface {
+	GetSlot() (math.Slot, error)
+	ExpectedWithdrawals(timestamp math.U64) (engineprimitives.Withdrawals, uint64, error)
+	GetRandaoMixAtIndex(index uint64) (common.Bytes32, error)
+	GetLatestBlockHeader() (*ctypes.BeaconBlockHeader, error)
+}
+
 // AttributesFactory is the interface for the attributes factory.
 type AttributesFactory interface {
 	BuildPayloadAttributes(

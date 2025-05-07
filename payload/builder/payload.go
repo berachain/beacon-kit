@@ -27,7 +27,6 @@ import (
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
-	"github.com/berachain/beacon-kit/payload/attributes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
@@ -36,7 +35,7 @@ import (
 // returns the payload ID.
 func (pb *PayloadBuilder) RequestPayloadAsync(
 	ctx context.Context,
-	st attributes.ReadOnlyBeaconState,
+	st ReadOnlyBeaconState,
 	timestamp math.U64,
 	headEth1BlockHash common.ExecutionHash,
 	finalEth1BlockHash common.ExecutionHash,
@@ -98,7 +97,7 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 // blocks until the payload is delivered.
 func (pb *PayloadBuilder) RequestPayloadSync(
 	ctx context.Context,
-	st attributes.ReadOnlyBeaconState,
+	st ReadOnlyBeaconState,
 	timestamp math.U64,
 	parentEth1Hash common.ExecutionHash,
 	finalBlockHash common.ExecutionHash,
