@@ -18,21 +18,8 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package state
 
-import (
-	"io"
-
-	"github.com/berachain/beacon-kit/log/phuslu"
-	"github.com/berachain/beacon-kit/node-core/types"
-	cmtcfg "github.com/cometbft/cometbft/config"
-	dbm "github.com/cosmos/cosmos-db"
-)
-
-type (
-	// AppCreator is a function that allows us to lazily initialize an
-	// application using various configurations.
-	AppCreator func(
-		*phuslu.Logger, dbm.DB, io.Writer, *cmtcfg.Config, AppOptions,
-	) types.Node
-)
+func (s *StateDB) incrementPartialWithdrawalRequestInvalid() {
+	s.telemetrySink.IncrementCounter("beacon_kit.statedb.partial_withdrawal_request_invalid")
+}

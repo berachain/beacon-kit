@@ -31,6 +31,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
@@ -127,7 +128,9 @@ func TestPayloadTimestampVerification(t *testing.T) {
 
 			// create independent states per each test
 			sdkCtx := sdk.NewContext(cms.CacheMultiStore(), true, log.NewNopLogger())
-			testSt := statedb.NewBeaconStateFromDB(st.KVStore.WithContext(sdkCtx), cs)
+			testSt := statedb.NewBeaconStateFromDB(
+				st.KVStore.WithContext(sdkCtx), cs, sdkCtx.Logger(), metrics.NewNoOpTelemetrySink(),
+			)
 
 			tCtx := transition.NewTransitionCtx(
 				sdkCtx,
@@ -146,6 +149,7 @@ func TestPayloadTimestampVerification(t *testing.T) {
 				types.NewEth1Data(genDeposits.HashTreeRoot()),
 				math.U64(tt.payloadTime.Unix()),
 				nil,
+				&types.ExecutionRequests{},
 				testSt.EVMInflationWithdrawal(math.U64(tt.payloadTime.Unix())),
 			)
 

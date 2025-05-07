@@ -26,6 +26,7 @@ import (
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -39,20 +40,26 @@ import (
 type StateDB struct {
 	beacondb.KVStore
 
-	cs ChainSpec
+	cs            ChainSpec
+	logger        log.Logger
+	telemetrySink TelemetrySink
 }
 
 // NewBeaconStateFromDB creates a new beacon state from an underlying state db.
-func NewBeaconStateFromDB(bdb *beacondb.KVStore, cs ChainSpec) *StateDB {
+func NewBeaconStateFromDB(
+	bdb *beacondb.KVStore, cs ChainSpec, logger log.Logger, telemetrySink TelemetrySink,
+) *StateDB {
 	return &StateDB{
-		KVStore: *bdb,
-		cs:      cs,
+		KVStore:       *bdb,
+		cs:            cs,
+		logger:        logger,
+		telemetrySink: telemetrySink,
 	}
 }
 
 // Copy returns a copy of the beacon state.
 func (s *StateDB) Copy(ctx context.Context) *StateDB {
-	return NewBeaconStateFromDB(s.KVStore.Copy(ctx), s.cs)
+	return NewBeaconStateFromDB(s.KVStore.Copy(ctx), s.cs, s.logger, s.telemetrySink)
 }
 
 // GetEpoch returns the current epoch.
@@ -89,7 +96,7 @@ func (s *StateDB) DecreaseBalance(idx math.ValidatorIndex, delta math.Gwei) erro
 // NOTE for caller: ProcessSlots must be called before this function as the "current" slot is
 // retrieved from the state in this function.
 //
-//nolint:gocognit // Spec aligned.
+//nolint:gocognit,funlen // Spec aligned.
 func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.Withdrawals, uint64, error) {
 	var (
 		validator         *ctypes.Validator
@@ -148,6 +155,17 @@ func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.With
 			return nil, 0, err
 		}
 
+		if version.EqualsOrIsAfter(forkVersion, version.Electra()) {
+			var totalWithdrawn math.Gwei
+			for _, withdrawal := range withdrawals {
+				if withdrawal.Validator == validatorIndex {
+					totalWithdrawn += withdrawal.Amount
+				}
+			}
+			// After electra, partiallyWithdrawnBalance can be non-zero, which we must account for.
+			balance -= totalWithdrawn
+		}
+
 		// Set the amount of the withdrawal depending on the balance of the validator.
 		if validator.IsFullyWithdrawable(balance, epoch) {
 			withdrawalAddress, err = validator.GetWithdrawalCredentials().ToExecutionAddress()
@@ -193,6 +211,7 @@ func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.With
 	return withdrawals, processedPartialWithdrawals, nil
 }
 
+//nolint:gocognit // Spec aligned.
 func (s *StateDB) consumePendingPartialWithdrawals(
 	epoch math.Epoch,
 	withdrawals engineprimitives.Withdrawals,
@@ -217,6 +236,10 @@ func (s *StateDB) consumePendingPartialWithdrawals(
 		if withdrawal.WithdrawableEpoch > epoch || len(withdrawals) == constants.MaxPendingPartialsPerWithdrawalsSweep {
 			// If the first withdrawal in the queue is not withdrawable, then all subsequent withdrawals will also be in later
 			// epochs and hence are not withdrawable, so we can break early.
+			s.logger.Debug("consumePendingPartialWithdrawals: early break for partial withdrawals",
+				"current_epoch", epoch,
+				"next_withdrawable_epoch", withdrawal.WithdrawableEpoch,
+			)
 			break
 		}
 
@@ -229,8 +252,18 @@ func (s *StateDB) consumePendingPartialWithdrawals(
 		if err != nil {
 			return nil, 0, 0, err
 		}
+
+		var totalWithdrawn math.Gwei
+		for _, w := range withdrawals {
+			if w.Validator == withdrawal.ValidatorIndex {
+				totalWithdrawn += w.Amount
+			}
+		}
+		balance -= totalWithdrawn
+
 		hasExcessBalance := balance > minActivationBalance
-		if validator.GetExitEpoch() == constants.FarFutureEpoch && hasSufficientEffectiveBalance && hasExcessBalance {
+		isWithdrawable := validator.GetExitEpoch() == constants.FarFutureEpoch && hasSufficientEffectiveBalance && hasExcessBalance
+		if isWithdrawable {
 			// A validator can only partial withdraw an amount such that:
 			// 1. never withdraw more than what the validator asked for.
 			// 2. never withdraw so much that the validator’s remaining balance would drop below MIN_ACTIVATION_BALANCE.
@@ -251,6 +284,16 @@ func (s *StateDB) consumePendingPartialWithdrawals(
 			)
 			// Increment the withdrawal index to process the next withdrawal.
 			withdrawalIndex++
+		} else {
+			s.logger.Info("consumePendingPartialWithdrawals: validator not withdrawable",
+				"validator_index", withdrawal.ValidatorIndex,
+				"validator_pubkey", validator.GetPubkey().String(),
+				"balance", balance,
+				"effective_balance", validator.GetEffectiveBalance(),
+				"exit_epoch", validator.GetExitEpoch(),
+				"withdrawable_epoch", withdrawal.WithdrawableEpoch,
+			)
+			s.incrementPartialWithdrawalRequestInvalid()
 		}
 		// Even if a withdrawal was not created, e.g. the validator did not have sufficient balance, we will consider
 		// this withdrawal processed (spec defined) and hence increment the processedPartialWithdrawals count.

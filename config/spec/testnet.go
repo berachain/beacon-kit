@@ -22,7 +22,7 @@ package spec
 
 import "github.com/berachain/beacon-kit/chain"
 
-// TestnetChainSpecData is the chain.SpecData for Berachain's public testnet.
+// TestnetChainSpecData is the chain.SpecData for Berachain's public testnet, Bepolia.
 func TestnetChainSpecData() *chain.SpecData {
 	specData := MainnetChainSpecData()
 
@@ -36,6 +36,9 @@ func TestnetChainSpecData() *chain.SpecData {
 	// epoch, block 192, which was used to initiate the fork when beacon-kit forked by epoch instead
 	// of by timestamp.
 	specData.Deneb1ForkTime = 1740090694
+
+	// Timestamp of the Electra fork on Bepolia.
+	specData.ElectraForkTime = 1746633600
 
 	return specData
 }

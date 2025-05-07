@@ -137,7 +137,7 @@ type ForkVersionSpec interface {
 	ActiveForkVersionForTimestamp(timestamp math.U64) common.Version
 }
 
-type EVMInflationSpec interface {
+type BerachainSpec interface {
 	// EVMInflationAddress returns the address on the EVM which will receive
 	// the inflation amount of native EVM balance through a withdrawal every
 	// block.
@@ -146,6 +146,9 @@ type EVMInflationSpec interface {
 	// EVMInflationPerBlock returns the amount of native EVM balance (in Gwei)
 	// to be minted to the EVMInflationAddress via a withdrawal every block.
 	EVMInflationPerBlock(timestamp math.U64) math.Gwei
+
+	// ValidatorSetCap retrieves the maximum number of validators allowed in the active set.
+	ValidatorSetCap() uint64
 }
 
 type WithdrawalsSpec interface {
@@ -172,10 +175,13 @@ type Spec interface {
 	ForkSpec
 	BlobSpec
 	ForkVersionSpec
-	EVMInflationSpec
+	BerachainSpec
 	WithdrawalsSpec
 
 	// Time parameters constants.
+
+	// SlotToEpoch converts a slot number to an epoch number.
+	SlotToEpoch(slot math.Slot) math.Epoch
 
 	// SlotsPerEpoch returns the number of slots in an epoch.
 	SlotsPerEpoch() uint64
@@ -214,23 +220,6 @@ type Spec interface {
 	// ValidatorRegistryLimit returns the maximum number of validators in the
 	// registry.
 	ValidatorRegistryLimit() uint64
-
-	// Rewards and Penalties
-
-	// InactivityPenaltyQuotient returns the inactivity penalty quotient.
-	InactivityPenaltyQuotient() uint64
-
-	// ProportionalSlashingMultiplier returns the multiplier for calculating
-	// slashing penalties.
-	ProportionalSlashingMultiplier() uint64
-
-	// SlotToEpoch converts a slot number to an epoch number.
-	SlotToEpoch(slot math.Slot) math.Epoch
-
-	// Berachain Values
-
-	// ValidatorSetCap retrieves the maximum number of validators allowed in the active set.
-	ValidatorSetCap() uint64
 }
 
 // spec is a concrete implementation of the Spec interface, holding the actual data.
@@ -404,16 +393,6 @@ func (s spec) HistoricalRootsLimit() uint64 {
 // ValidatorRegistryLimit returns the limit of the validator registry.
 func (s spec) ValidatorRegistryLimit() uint64 {
 	return s.Data.ValidatorRegistryLimit
-}
-
-// InactivityPenaltyQuotient returns the inactivity penalty quotient.
-func (s spec) InactivityPenaltyQuotient() uint64 {
-	return s.Data.InactivityPenaltyQuotient
-}
-
-// ProportionalSlashingMultiplier returns the proportional slashing multiplier.
-func (s spec) ProportionalSlashingMultiplier() uint64 {
-	return s.Data.ProportionalSlashingMultiplier
 }
 
 // MaxWithdrawalsPerPayload returns the maximum number of withdrawals per

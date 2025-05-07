@@ -20,14 +20,26 @@
 
 package types
 
-// AppOptions defines an interface that is passed into an application
-// constructor, typically used to set BaseApp options that are either
-// supplied via config file or through CLI arguments/flags. The underlying
-// implementation
-// is defined by the server package and is typically implemented via a Viper
-// literal defined on the server Context. Note, casting Get calls may not
-// yield the expected types and could result in type assertion errors. It is
-// recommended to either use the cast package or perform manual conversion for safety.
-type AppOptions interface {
-	Get(string) interface{}
-}
+import (
+	"io"
+
+	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/log/phuslu"
+	"github.com/berachain/beacon-kit/node-core/types"
+	cmtcfg "github.com/cometbft/cometbft/config"
+	dbm "github.com/cosmos/cosmos-db"
+)
+
+type (
+	// AppOptions, usually implemented by Viper, holds the configuration for the application.
+	AppOptions interface {
+		Get(string) interface{}
+	}
+
+	// AppCreator is a function that allows us to lazily initialize an application using various
+	// configurations.
+	AppCreator func(*phuslu.Logger, dbm.DB, io.Writer, *cmtcfg.Config, AppOptions) types.Node
+
+	// ChainSpecCreator is a function that allows us to lazily initialize the ChainSpec.
+	ChainSpecCreator func(AppOptions) (chain.Spec, error)
+)
