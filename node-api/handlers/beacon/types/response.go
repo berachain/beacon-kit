@@ -155,7 +155,10 @@ type PendingPartialWithdrawalData struct {
 }
 
 // NewPendingPartialWithdrawalsResponse creates a typed response with PendingPartialWithdrawal data
-func NewPendingPartialWithdrawalsResponse(forkVersion common.Version, withdrawals []*PendingPartialWithdrawalData) PendingPartialWithdrawalsResponse {
+func NewPendingPartialWithdrawalsResponse(
+	forkVersion common.Version,
+	withdrawals []*PendingPartialWithdrawalData,
+) PendingPartialWithdrawalsResponse {
 	return PendingPartialWithdrawalsResponse{
 		// Version is the name of the fork version.
 		Version:         version.Name(forkVersion),
