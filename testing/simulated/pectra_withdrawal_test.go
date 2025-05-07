@@ -326,6 +326,9 @@ func (s *PectraWithdrawalSuite) TestExcessValidatorBeforeFork_CorrectlyEvicted()
 }
 
 // Verifies that excess balance is not withdrawn accidentally if a validator has multiple sources of withdrawals.
+// Both the partial withdrawal and the excess balance withdrawal will occur simultaneously in a block.
+// Multiple deposits are sent so that Consensus Layer has a higher balance when the withdrawal request is processed.
+// This also served as a PoC for a now patched bug.
 func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdrawal_CorrectAmountWithdrawn() {
 	// Initialize the chain state.
 	s.InitializeChain(s.T())
@@ -342,11 +345,11 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdra
 		s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
 		nextBlockHeight++
 	}
+	// 10 million bera on EL at the start.
+	expectedStartBalance, isValid := big.NewInt(0).SetString("10000000000000000000000000", 10)
+	s.Require().True(isValid)
 	// Confirm the validator's expected start balance in Wei
 	{
-		// 10 million bera
-		expectedStartBalance, isValid := big.NewInt(0).SetString("10000000000000000000000000", 10)
-		s.Require().True(isValid)
 		startBalance, err := s.TestNode.ContractBackend.BalanceAt(s.CtxApp, senderAddress, big.NewInt(nextBlockHeight-1))
 		s.Require().NoError(err)
 		s.Require().Equal(expectedStartBalance, startBalance)
@@ -356,6 +359,8 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdra
 		s.Require().NoError(err)
 		s.Require().Len(validators, 1)
 		s.T().Logf("staked validator balance at start: %v gwei", validators[0].Validator.EffectiveBalance)
+		// Starts with 10000000000000000 gwei / 10 million BERA staked.
+		s.Require().Equal("10000000000000000", validators[0].Validator.EffectiveBalance)
 	}
 
 	// Send the Deposit and progress 1 block so that the deposit is included in the next block
@@ -368,8 +373,8 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdra
 		nextBlockHeight += iterations
 	}
 
-	// Create the Partial Withdrawal Request
-	// 11 million BERA partial withdraw request
+	// Create the Partial Withdrawal Request for a large amount above the MaxEffectiveBalance.
+	// It will be reduced to the maximum possible amount above the MinActivationBalance as part of the processing logic.
 	totalWithdrawalAmount := beaconmath.Gwei(15_000_000 * 1e9)
 	{
 		// corresponds with the funded address in genesis `simulated.WithdrawalExecutionAddress`
@@ -463,7 +468,7 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdra
 		// The validator's balance should not have changed yet
 		nextBlockHeight++
 	}
-	// The next block will have both the partial withdrawal request and the excess balance requests and increase the validator's EL balance
+	// The next block will have both the partial withdrawal and the excess balance withdrawal and increase the validator's EL balance
 	{
 		s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
 		nextBlockHeight++
@@ -476,11 +481,25 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdra
 		finalBalance, err := s.TestNode.ContractBackend.BalanceAt(s.CtxApp, senderAddress, big.NewInt(nextBlockHeight-1))
 		s.Require().NoError(err)
 		s.T().Logf("balance at end: %s wei", finalBalance.String())
+		finalBalanceGwei, convertErr := beaconmath.GweiFromWei(finalBalance)
+		s.Require().NoError(convertErr)
+		expectedStartBalanceGwei, convertErr := beaconmath.GweiFromWei(expectedStartBalance)
+		s.Require().NoError(convertErr)
+		s.Require().InDelta(
+			uint64(expectedStartBalanceGwei)+
+				uint64(
+					s.TestNode.ChainSpec.MaxEffectiveBalance()-
+						s.TestNode.ChainSpec.MinActivationBalance(),
+				),
+			uint64(finalBalanceGwei),
+			500_000, // maximum 0.0005 BERA or 500000 Gwei delta
+		)
 
 		validators, err := s.TestNode.APIBackend.FilteredValidators(beaconmath.Slot(nextBlockHeight-1), nil, nil)
 		s.Require().NoError(err)
 		s.Require().Len(validators, 1)
 		s.T().Logf("staked validator balance at end: %v gwei", validators[0].Validator.EffectiveBalance)
+		s.Require().Equal(s.TestNode.ChainSpec.MinActivationBalance().Base10(), validators[0].Validator.EffectiveBalance)
 	}
 }
 
