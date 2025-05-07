@@ -50,7 +50,7 @@ func (h *Handler) GetPendingPartialWithdrawals(c handlers.Context) (any, error) 
 	}
 
 	response := beacontypes.NewPendingPartialWithdrawalsResponse(
-		genesisForkVersion.String(),
+		genesisForkVersion,
 		partialWithdrawals,
 	)
 

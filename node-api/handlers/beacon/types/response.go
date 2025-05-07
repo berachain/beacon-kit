@@ -22,6 +22,7 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/version"
 )
 
 type GenericResponse struct {
@@ -154,9 +155,10 @@ type PendingPartialWithdrawalData struct {
 }
 
 // NewPendingPartialWithdrawalsResponse creates a typed response with PendingPartialWithdrawal data
-func NewPendingPartialWithdrawalsResponse(version string, withdrawals []*PendingPartialWithdrawalData) PendingPartialWithdrawalsResponse {
+func NewPendingPartialWithdrawalsResponse(forkVersion common.Version, withdrawals []*PendingPartialWithdrawalData) PendingPartialWithdrawalsResponse {
 	return PendingPartialWithdrawalsResponse{
-		Version:         version,
+		// Version is the name of the fork version.
+		Version:         version.Name(forkVersion),
 		GenericResponse: NewResponse(withdrawals),
 	}
 }
