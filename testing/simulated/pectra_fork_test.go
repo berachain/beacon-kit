@@ -589,8 +589,8 @@ func (s *PectraForkSuite) submitTransactions(startNonce uint64, numTransactions 
 			Data:      nil,
 		})
 
-		txBytes, err := transaction.MarshalBinary()
-		s.Require().NoError(err)
+		txBytes, marshalErr := transaction.MarshalBinary()
+		s.Require().NoError(marshalErr)
 
 		var result interface{}
 		err = s.Geth.TestNode.EngineClient.Call(s.Geth.CtxApp, &result, "eth_sendRawTransaction", hexutil.Encode(txBytes))
