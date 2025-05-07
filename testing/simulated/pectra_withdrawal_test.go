@@ -32,11 +32,11 @@ import (
 
 	depositcli "github.com/berachain/beacon-kit/cli/commands/deposit"
 	consensustypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/execution/requests/eip7002"
 	"github.com/berachain/beacon-kit/geth-primitives/deposit"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/eip7685"
 	beaconmath "github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
@@ -378,10 +378,10 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdra
 		elChainID := big.NewInt(int64(s.TestNode.ChainSpec.DepositEth1ChainID()))
 		pragueSigner := gethcore.NewPragueSigner(elChainID)
 
-		fee, err := eip7685.GetWithdrawalFee(s.CtxApp, s.TestNode.EngineClient)
+		fee, err := eip7002.GetWithdrawalFee(s.CtxApp, s.TestNode.EngineClient)
 		s.Require().NoError(err)
 
-		withdrawalTxData, err := eip7685.CreateWithdrawalRequestData(blsSigner.PublicKey(), totalWithdrawalAmount)
+		withdrawalTxData, err := eip7002.CreateWithdrawalRequestData(blsSigner.PublicKey(), totalWithdrawalAmount)
 		s.Require().NoError(err)
 
 		withdrawalTx := gethcore.MustSignNewTx(senderKey, pragueSigner, &gethcore.DynamicFeeTx{

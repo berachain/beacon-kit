@@ -30,8 +30,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/berachain/beacon-kit/execution/requests/eip7251"
 	"github.com/berachain/beacon-kit/log/phuslu"
-	"github.com/berachain/beacon-kit/primitives/eip7685"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
 	"github.com/cometbft/cometbft/abci/types"
@@ -282,11 +282,11 @@ func (s *PectraForkSuite) TestMaliciousUser_MakesConsolidationRequest_IsIgnored(
 		elChainID := big.NewInt(int64(s.Geth.TestNode.ChainSpec.DepositEth1ChainID()))
 		signer := gethtypes.NewPragueSigner(elChainID)
 
-		fee, feeErr := eip7685.GetConsolidationFee(s.Geth.CtxApp, s.Geth.TestNode.EngineClient)
+		fee, feeErr := eip7251.GetConsolidationFee(s.Geth.CtxApp, s.Geth.TestNode.EngineClient)
 		s.Require().NoError(feeErr)
 
 		// The inputs to the request do not necessarily matter, as long as they pass EL validation
-		consolidationTxData, requestErr := eip7685.CreateConsolidationRequestData(blsSigner.PublicKey(), blsSigner.PublicKey())
+		consolidationTxData, requestErr := eip7251.CreateConsolidationRequestData(blsSigner.PublicKey(), blsSigner.PublicKey())
 		s.Require().NoError(requestErr)
 
 		consolidationTx := gethtypes.MustSignNewTx(senderKey, signer, &gethtypes.DynamicFeeTx{

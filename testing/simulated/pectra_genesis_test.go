@@ -34,8 +34,8 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/engine-primitives/errors"
+	"github.com/berachain/beacon-kit/execution/requests/eip7002"
 	"github.com/berachain/beacon-kit/log/phuslu"
-	"github.com/berachain/beacon-kit/primitives/eip7685"
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/testing/simulated"
@@ -174,12 +174,12 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithPartialWithdrawalRequests_IsS
 		elChainID := big.NewInt(int64(s.TestNode.ChainSpec.DepositEth1ChainID()))
 		signer := types.NewPragueSigner(elChainID)
 
-		fee, err := eip7685.GetWithdrawalFee(s.CtxApp, s.TestNode.EngineClient)
+		fee, err := eip7002.GetWithdrawalFee(s.CtxApp, s.TestNode.EngineClient)
 		s.Require().NoError(err)
 
 		totalTxs := 2
 		amountPerTx := totalWithdrawalAmount / totalTxs
-		withdrawalTxData, err := eip7685.CreateWithdrawalRequestData(blsSigner.PublicKey(), math.Gwei(amountPerTx))
+		withdrawalTxData, err := eip7002.CreateWithdrawalRequestData(blsSigner.PublicKey(), math.Gwei(amountPerTx))
 		s.Require().NoError(err)
 
 		// submit 2 txs
@@ -290,12 +290,12 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithFullWithdrawalRequest_IsSucce
 		elChainID := big.NewInt(int64(s.TestNode.ChainSpec.DepositEth1ChainID()))
 		signer := types.NewPragueSigner(elChainID)
 
-		fee, err := eip7685.GetWithdrawalFee(s.CtxApp, s.TestNode.EngineClient)
+		fee, err := eip7002.GetWithdrawalFee(s.CtxApp, s.TestNode.EngineClient)
 		s.Require().NoError(err)
 
 		// 0 amount will correspond with a full withdrawal request.
 		withdrawalAmount := 0
-		withdrawalTxData, err := eip7685.CreateWithdrawalRequestData(blsSigner.PublicKey(), math.Gwei(withdrawalAmount))
+		withdrawalTxData, err := eip7002.CreateWithdrawalRequestData(blsSigner.PublicKey(), math.Gwei(withdrawalAmount))
 		s.Require().NoError(err)
 
 		withdrawalTx := types.MustSignNewTx(senderKey, signer, &types.DynamicFeeTx{

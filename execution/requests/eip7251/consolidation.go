@@ -18,18 +18,16 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package eip7685
+package eip7251
 
 import (
 	"bytes"
 	"context"
-	"encoding/binary"
 	"math/big"
 
 	"github.com/berachain/beacon-kit/errors"
 	beaconbytes "github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/ethereum/go-ethereum/params"
 )
 
@@ -37,11 +35,12 @@ type feeOpts struct {
 	To string `json:"to"`
 }
 
-// GetWithdrawalFee returns the withdrawal fee in wei. See https://eips.ethereum.org/EIPS/eip-7002 for more.
-func GetWithdrawalFee(ctx context.Context, client rpcClient) (*big.Int, error) {
+// GetConsolidationFee returns the consolidation fee in wei. See https://eips.ethereum.org/EIPS/eip-7251 for more.
+// This is only expected to be used in tests to form test scenarios.
+func GetConsolidationFee(ctx context.Context, client rpcClient) (*big.Int, error) {
 	var result string
 	feeInput := &feeOpts{
-		To: params.WithdrawalQueueAddress.String(),
+		To: params.ConsolidationQueueAddress.String(),
 	}
 	err := client.Call(ctx, &result, "eth_call", feeInput)
 	if err != nil {
@@ -54,15 +53,15 @@ func GetWithdrawalFee(ctx context.Context, client rpcClient) (*big.Int, error) {
 	return n, nil
 }
 
-// CreateWithdrawalRequestData returns the request body formatted as defined by the EIP-7002 specification.
-func CreateWithdrawalRequestData(blsPubKey crypto.BLSPubkey, withdrawAmount math.Gwei) (beaconbytes.Bytes, error) {
+// CreateConsolidationRequestData returns the request body formatted as defined by the EIP-7251 specification.
+// This is only expected to be used in tests to form test scenarios.
+func CreateConsolidationRequestData(sourcePubKey, targetPubKey crypto.BLSPubkey) (beaconbytes.Bytes, error) {
 	// Create a buffer to hold the packed encoding.
 	var packed bytes.Buffer
-	if _, err := packed.Write(blsPubKey[:]); err != nil {
+	if _, err := packed.Write(sourcePubKey[:]); err != nil {
 		return nil, err
 	}
-	// Write the uint64 value in big-endian order.
-	if err := binary.Write(&packed, binary.BigEndian, withdrawAmount); err != nil {
+	if _, err := packed.Write(targetPubKey[:]); err != nil {
 		return nil, err
 	}
 	return packed.Bytes(), nil
