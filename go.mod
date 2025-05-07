@@ -62,7 +62,7 @@ require (
 	github.com/kurtosis-tech/kurtosis/api/golang v1.4.3
 	github.com/protolambda/zrnt v0.32.3
 	github.com/protolambda/ztyp v0.2.2
-	github.com/rs/zerolog v1.33.0
+	github.com/rs/zerolog v1.34.0
 	github.com/stretchr/testify v1.10.0
 )
 
