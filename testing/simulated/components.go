@@ -104,6 +104,7 @@ func ProvideSimulationChainSpec() (chain.Spec, error) {
 	specData.GenesisTime = 0
 	// Arbitrary number
 	specData.Deneb1ForkTime = 30
+	specData.ElectraForkTime = 9999999999999999
 	chainSpec, err := chain.NewSpec(specData)
 	if err != nil {
 		return nil, err
