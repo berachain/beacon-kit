@@ -153,7 +153,7 @@ type PendingPartialWithdrawalsResponse struct {
 type PendingPartialWithdrawalData struct {
 	ValidatorIndex  uint64 `json:"validator_index,string"`
 	Amount          uint64 `json:"amount,string"`
-	WithdrawalEpoch string `json:"withdrawal_epoch"`
+	WithdrawalEpoch uint64 `json:"withdrawal_epoch,string"`
 }
 
 // NewPendingPartialWithdrawalsResponse creates a typed response with PendingPartialWithdrawal data

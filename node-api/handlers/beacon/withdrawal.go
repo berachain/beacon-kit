@@ -43,7 +43,7 @@ func (h *Handler) GetPendingPartialWithdrawals(c handlers.Context) (any, error) 
 		return nil, err
 	}
 
-	st, _, err := h.backend.StateAtSlot(slot)
+	st, resolvedSlot, err := h.backend.StateAtSlot(slot)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func (h *Handler) GetPendingPartialWithdrawals(c handlers.Context) (any, error) 
 		return nil, fmt.Errorf("%w: Electra fork not active yet", types.ErrInvalidRequest)
 	}
 
-	partialWithdrawals, err := h.backend.PendingPartialWithdrawalsAtSlot(slot)
+	partialWithdrawals, err := h.backend.PendingPartialWithdrawalsAtSlot(resolvedSlot)
 	if err != nil {
 		return nil, err
 	}

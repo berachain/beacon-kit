@@ -21,8 +21,6 @@
 package backend
 
 import (
-	"fmt"
-
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -46,7 +44,7 @@ func (b *Backend) PendingPartialWithdrawalsAtSlot(slot math.Slot) ([]*types.Pend
 		partialWithdrawals[i] = &types.PendingPartialWithdrawalData{
 			ValidatorIndex:  cTypeWithdrawal.ValidatorIndex.Unwrap(),
 			Amount:          cTypeWithdrawal.Amount.Unwrap(),
-			WithdrawalEpoch: fmt.Sprintf("%d", cTypeWithdrawal.WithdrawableEpoch),
+			WithdrawalEpoch: cTypeWithdrawal.WithdrawableEpoch.Unwrap(),
 		}
 	}
 
