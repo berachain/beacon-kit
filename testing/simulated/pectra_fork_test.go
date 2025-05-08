@@ -379,7 +379,7 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 		s.Require().NoError(respErr)
 		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
 	}
-	// The proposer prepares and pre fork block with finalization. The first pre-fork block it proposes will be rejected
+	// The proposer prepares a pre-fork block with finalization. The first pre-fork block it proposes will be rejected
 	// As it will propose a post-fork block due to retrieving an Execution Payload in the PayloadCache.
 	{
 		consensusTime := time.Unix(int64(s.Geth.TestNode.ChainSpec.ElectraForkTime())-2, 0)
