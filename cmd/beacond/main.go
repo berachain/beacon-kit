@@ -25,8 +25,8 @@ import (
 	"os"
 
 	clibuilder "github.com/berachain/beacon-kit/cli/builder"
-	"github.com/berachain/beacon-kit/cli/commands/server/types"
 	clicomponents "github.com/berachain/beacon-kit/cli/components"
+	"github.com/berachain/beacon-kit/config/spec"
 	nodebuilder "github.com/berachain/beacon-kit/node-core/builder"
 	"go.uber.org/automaxprocs/maxprocs"
 )
@@ -62,7 +62,7 @@ func run() error {
 		),
 		// Set the NodeBuilderFunc to the NodeBuilder Build.
 		clibuilder.WithNodeBuilderFunc(nb.Build),
-		clibuilder.WithChainSpecBuilderFunc(types.CreateChainSpec),
+		clibuilder.WithChainSpecBuilderFunc(spec.Create),
 	)
 
 	cmd, err := cb.Build()

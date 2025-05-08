@@ -27,6 +27,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -37,13 +38,16 @@ import (
 )
 
 // DefaultGenesis returns the default genesis state for the application.
-func (s *Service) DefaultGenesis() map[string]json.RawMessage {
+func (s *Service) DefaultGenesis(spec chain.Spec) map[string]json.RawMessage {
 	// Implement the default genesis state for the application.
 	// This should return a map of module names to their respective default
 	// genesis states.
 	gen := make(map[string]json.RawMessage)
+
+	defaultGenesis := types.DefaultGenesis(spec.GenesisForkVersion())
+
 	var err error
-	gen["beacon"], err = json.Marshal(types.DefaultGenesis())
+	gen["beacon"], err = json.Marshal(defaultGenesis)
 	if err != nil {
 		panic(err)
 	}

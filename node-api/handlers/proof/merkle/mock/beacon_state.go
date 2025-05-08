@@ -21,93 +21,51 @@
 package mock
 
 import (
-	"errors"
-
 	"github.com/berachain/beacon-kit/consensus-types/types"
-	ptypes "github.com/berachain/beacon-kit/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/holiman/uint256"
+	"github.com/berachain/beacon-kit/primitives/version"
 )
 
-// Compile time check to ensure BeaconState implements the methods
-// required by the BeaconState for proofs.
-var _ ptypes.BeaconState[*BeaconStateMarshallable] = (*BeaconState)(nil)
-
-// BeaconState is a mock implementation of the proof BeaconState interface
-// using the default BeaconState type that is marshallable.
-type (
-	BeaconStateMarshallable = types.BeaconState
-
-	BeaconState struct {
-		*BeaconStateMarshallable
-	}
-)
-
-// NewBeaconState creates a new mock beacon state, with only the given slot,
-// validators, execution number, and execution fee recipient.
-func NewBeaconState(
+// NewBeaconStateWith creates a new mock beacon state with only the given fork version,
+// slot, validators, execution number, and execution fee recipient populated.
+func NewBeaconStateWith(
 	slot math.Slot,
 	vals types.Validators,
 	executionNumber math.U64,
 	executionFeeRecipient common.ExecutionAddress,
-) (*BeaconState, error) {
+	forkVersion common.Version,
+) *types.BeaconState {
 	// If no validators are provided, create an empty slice.
 	if len(vals) == 0 {
 		vals = make(types.Validators, 0)
 	}
 
 	// Create an empty execution payload header with the given execution number and fee recipient.
-	execPayloadHeader := &types.ExecutionPayloadHeader{
-		Number:        executionNumber,
-		FeeRecipient:  executionFeeRecipient,
-		BaseFeePerGas: &uint256.Int{},
+	execPayloadHeader := types.NewEmptyExecutionPayloadHeaderWithVersion(forkVersion)
+	execPayloadHeader.Number = executionNumber
+	execPayloadHeader.FeeRecipient = executionFeeRecipient
+
+	bsm := types.NewEmptyBeaconStateWithVersion(forkVersion)
+	bsm.Slot = slot
+	bsm.GenesisValidatorsRoot = common.Root{}
+	bsm.Fork = &types.Fork{}
+	bsm.LatestBlockHeader = types.NewEmptyBeaconBlockHeader()
+	bsm.BlockRoots = []common.Root{}
+	bsm.StateRoots = []common.Root{}
+	bsm.LatestExecutionPayloadHeader = execPayloadHeader
+	bsm.Eth1Data = &types.Eth1Data{}
+	bsm.Eth1DepositIndex = 0
+	bsm.Validators = vals
+	bsm.Balances = []uint64{}
+	bsm.RandaoMixes = []common.Bytes32{}
+	bsm.NextWithdrawalIndex = 0
+	bsm.NextWithdrawalValidatorIndex = 0
+	bsm.Slashings = []math.Gwei{}
+	bsm.TotalSlashing = 0
+	if version.EqualsOrIsAfter(bsm.GetForkVersion(), version.Electra()) {
+		bsm.PendingPartialWithdrawals = []*types.PendingPartialWithdrawal{}
 	}
 
-	bsm := &BeaconStateMarshallable{
-		Slot:                         slot,
-		GenesisValidatorsRoot:        common.Root{},
-		Fork:                         &types.Fork{},
-		LatestBlockHeader:            &types.BeaconBlockHeader{},
-		BlockRoots:                   []common.Root{},
-		StateRoots:                   []common.Root{},
-		LatestExecutionPayloadHeader: execPayloadHeader,
-		Eth1Data:                     &types.Eth1Data{},
-		Eth1DepositIndex:             0,
-		Validators:                   vals,
-		Balances:                     []uint64{},
-		RandaoMixes:                  []common.Bytes32{},
-		NextWithdrawalIndex:          0,
-		NextWithdrawalValidatorIndex: 0,
-		Slashings:                    []math.Gwei{},
-		TotalSlashing:                0,
-	}
-
-	return &BeaconState{BeaconStateMarshallable: bsm}, nil
-}
-
-// GetLatestExecutionPayloadHeader implements proof BeaconState.
-func (m *BeaconState) GetLatestExecutionPayloadHeader() (
-	*types.ExecutionPayloadHeader, error,
-) {
-	return m.BeaconStateMarshallable.LatestExecutionPayloadHeader, nil
-}
-
-// GetMarshallable implements proof BeaconState.
-func (m *BeaconState) GetMarshallable() (
-	*BeaconStateMarshallable, error,
-) {
-	return m.BeaconStateMarshallable, nil
-}
-
-// ValidatorByIndex implements proof BeaconState.
-func (m *BeaconState) ValidatorByIndex(
-	index math.ValidatorIndex,
-) (*types.Validator, error) {
-	vals := m.BeaconStateMarshallable.Validators
-	if index >= math.ValidatorIndex(len(vals)) {
-		return nil, errors.New("validator index out of range")
-	}
-
-	return vals[index], nil
+	return bsm
 }

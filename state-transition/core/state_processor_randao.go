@@ -39,7 +39,7 @@ func (sp *StateProcessor) processRandaoReveal(
 	st *statedb.StateDB,
 	blk *ctypes.BeaconBlock,
 ) error {
-	slot, err := st.GetSlot()
+	epoch, err := st.GetEpoch()
 	if err != nil {
 		return err
 	}
@@ -55,9 +55,7 @@ func (sp *StateProcessor) processRandaoReveal(
 		return err
 	}
 
-	epoch := sp.cs.SlotToEpoch(slot)
 	body := blk.GetBody()
-
 	timestamp := blk.GetTimestamp()
 	fd := ctypes.NewForkData(sp.cs.ActiveForkVersionForTimestamp(timestamp), genesisValidatorsRoot)
 
@@ -89,12 +87,11 @@ func (sp *StateProcessor) processRandaoReveal(
 func (sp *StateProcessor) processRandaoMixesReset(
 	st *statedb.StateDB,
 ) error {
-	slot, err := st.GetSlot()
+	epoch, err := st.GetEpoch()
 	if err != nil {
 		return err
 	}
 
-	epoch := sp.cs.SlotToEpoch(slot)
 	mix, err := st.GetRandaoMixAtIndex(epoch.Unwrap() % sp.cs.EpochsPerHistoricalVector())
 	if err != nil {
 		return err
