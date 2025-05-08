@@ -171,13 +171,6 @@ func (s *Service) rebuildPayloadForRejectedBlock(
 		return fmt.Errorf("rebuildPayloadForRejectedBlock, failed updating latest block header: %w", err)
 	}
 
-	// We need to get the *last* finalized execution payload, thus
-	// the BeaconState that was passed in must be `unmodified`.
-	lph, err := st.GetLatestExecutionPayloadHeader()
-	if err != nil {
-		return err
-	}
-
 	// We must prepare the state for the fork version of the new block being built to handle
 	// the case where the new block is on a new fork version. Although we do not have the
 	// confirmed timestamp by the EL, we will assume it to be `nextPayloadTimestamp` to decide
@@ -197,12 +190,6 @@ func (s *Service) rebuildPayloadForRejectedBlock(
 		ctx,
 		st,
 		nextPayloadTimestamp,
-		// We set the head of our chain to the previous finalized block.
-		lph.GetBlockHash(),
-		// We can say that the payload from the previous block is *finalized*,
-		// TODO: This is making an assumption about the consensus rules
-		// and possibly should be made more explicit later on.
-		lph.GetParentHash(),
 	); err != nil {
 		s.metrics.markRebuildPayloadForRejectedBlockFailure(stateSlot, err)
 		return err
@@ -263,17 +250,9 @@ func (s *Service) optimisticPayloadBuild(
 	}
 
 	// We then trigger a request for the next payload.
-	payload := blk.GetBody().GetExecutionPayload()
 	if _, _, err = s.localBuilder.RequestPayloadAsync(
 		ctx, st,
 		nextPayloadTimestamp,
-		// We set the head of our chain to the block we just processed.
-		payload.GetBlockHash(),
-		// We can say that the payload from the previous block is *finalized*,
-		// This is safe to do since this block was accepted and the thus the
-		// parent hash was deemed valid by the state transition function we
-		// just processed.
-		payload.GetParentHash(),
 	); err != nil {
 		s.metrics.markOptimisticPayloadBuildFailure(slot, err)
 		return err
