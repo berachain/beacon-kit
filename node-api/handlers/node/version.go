@@ -22,32 +22,7 @@ package node
 
 import "github.com/berachain/beacon-kit/node-api/handlers"
 
-// Syncing is a placeholder so that beacon API clients don't break.
-//
-// TODO: Implement with real data.
-func (h *Handler) Syncing(handlers.Context) (any, error) {
-	type SyncingResponse struct {
-		Data struct {
-			HeadSlot     string `json:"head_slot"`
-			SyncDistance string `json:"sync_distance"`
-			IsSyncing    bool   `json:"is_syncing"`
-			IsOptimistic bool   `json:"is_optimistic"`
-			ELOffline    bool   `json:"el_offline"`
-		} `json:"data"`
-	}
-
-	response := SyncingResponse{}
-	response.Data.HeadSlot = "0"
-	response.Data.SyncDistance = "1"
-	response.Data.IsSyncing = false
-	response.Data.IsOptimistic = true
-	response.Data.ELOffline = false
-
-	return response, nil
-}
-
 // Version is a placeholder so that beacon API clients don't break.
-//
 // TODO: Implement with real data.
 func (h *Handler) Version(handlers.Context) (any, error) {
 	type VersionResponse struct {

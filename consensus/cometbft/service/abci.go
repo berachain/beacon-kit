@@ -28,6 +28,7 @@ import (
 
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
+	"github.com/cometbft/cometbft/node"
 	sdkversion "github.com/cosmos/cosmos-sdk/version"
 )
 
@@ -197,4 +198,9 @@ func (*Service) CheckTx(
 	*abci.CheckTxRequest,
 ) (*abci.CheckTxResponse, error) {
 	return &abci.CheckTxResponse{}, nil
+}
+
+// GetCometNode returns the concrete CometBFT node.
+func (s *Service) GetCometNode() *node.Node {
+	return s.node
 }
