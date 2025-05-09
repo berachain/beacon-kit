@@ -3,8 +3,8 @@ module github.com/berachain/beacon-kit
 go 1.23.6
 
 replace (
-	github.com/cometbft/cometbft => github.com/berachain/cometbft v1.0.1-0.20250416103256-c547460cd751
-	github.com/cometbft/cometbft/api => github.com/berachain/cometbft/api v1.0.1-0.20250416103256-c547460cd751
+	github.com/cometbft/cometbft => github.com/berachain/cometbft v1.0.1-0.20250424093341-6fe80335f54a
+	github.com/cometbft/cometbft/api => github.com/berachain/cometbft/api v1.0.1-0.20250424093341-6fe80335f54a
 	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.52.0-rc.1
 	github.com/karalabe/ssz => github.com/berachain/karalabe-ssz v0.3.0-alpha.0
 )
