@@ -20,7 +20,7 @@ require (
 	github.com/cenkalti/backoff/v5 v5.0.2
 	github.com/cometbft/cometbft v1.0.1-0.20241220100824-07c737de00ff
 	github.com/cometbft/cometbft/api v1.0.1-0.20241220100824-07c737de00ff
-	github.com/cosmos/cosmos-db v1.1.0
+	github.com/cosmos/cosmos-db v1.1.1
 	github.com/cosmos/cosmos-sdk v0.53.0
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/crate-crypto/go-kzg-4844 v1.1.0
@@ -43,7 +43,7 @@ require (
 	github.com/prysmaticlabs/prysm/v5 v5.3.0
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8
 	github.com/spf13/afero v1.14.0
-	github.com/spf13/cast v1.7.0
+	github.com/spf13/cast v1.7.1
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/pflag v1.0.6
 	github.com/spf13/viper v1.19.0
