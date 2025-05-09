@@ -147,14 +147,14 @@ func (s *Service) Query(
 	_ context.Context,
 	req *abci.QueryRequest,
 ) (*abci.QueryResponse, error) {
-	var resp *abci.QueryResponse
+	resp := new(abci.QueryResponse)
 
 	// add panic recovery for all queries
 	//
 	// Ref: https://github.com/cosmos/cosmos-sdk/pull/8039
 	defer func() {
 		if r := recover(); r != nil {
-			resp = queryResult(errorsmod.Wrapf(sdkerrors.ErrPanic, "%v", r))
+			*resp = queryResult(errorsmod.Wrapf(sdkerrors.ErrPanic, "%v", r))
 		}
 	}()
 
@@ -163,23 +163,25 @@ func (s *Service) Query(
 		req.Height = s.LastBlockHeight()
 	}
 
-	s.telemetrySink.IncrementCounter("beacon_kit.comet.query_count", req.Path)
+	s.telemetrySink.IncrementCounter("beacon_kit.comet.query_count", "path", req.Path)
 	startTime := time.Now()
-	defer s.telemetrySink.MeasureSince("beacon_kit.comet.query_duration", startTime, req.Path)
+	defer s.telemetrySink.MeasureSince(
+		"beacon_kit.comet.query_duration", startTime, "path", req.Path,
+	)
 
 	path := splitABCIQueryPath(req.Path)
 	if len(path) == 0 {
-		resp = queryResult(errorsmod.Wrap(sdkerrors.ErrUnknownRequest, "no query path provided"))
+		*resp = queryResult(errorsmod.Wrap(sdkerrors.ErrUnknownRequest, "no query path provided"))
 		return resp, nil
 	}
 
 	// Only "/store" prefix for store queries are supported.
 	if path[0] != "store" {
-		resp = queryResult(errorsmod.Wrap(sdkerrors.ErrNotSupported, "unsupported query path"))
+		*resp = queryResult(errorsmod.Wrap(sdkerrors.ErrNotSupported, "unsupported query path"))
 		return resp, nil
 	}
 
-	resp = s.handleQueryStore(path, *req)
+	*resp = s.handleQueryStore(path, req)
 	return resp, nil
 }
 

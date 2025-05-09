@@ -31,10 +31,12 @@ import (
 )
 
 // NOTE: Partially copied from: https://github.com/cosmos/cosmos-sdk/blob/960d44842b9e313cbe762068a67a894ac82060ab/baseapp/abci.go#L1098
-func (s *Service) handleQueryStore(path []string, req abci.QueryRequest) *abci.QueryResponse {
+func (s *Service) handleQueryStore(path []string, req *abci.QueryRequest) abci.QueryResponse {
 	queryable, ok := s.sm.GetCommitMultiStore().(storetypes.Queryable)
 	if !ok {
-		return queryResult(errorsmod.Wrap(sdkerrors.ErrUnknownRequest, "multi-store does not support queries"))
+		return queryResult(
+			errorsmod.Wrap(sdkerrors.ErrUnknownRequest, "multi-store does not support queries"),
+		)
 	}
 
 	req.Path = "/" + strings.Join(path[1:], "/") // req.Path == "/beacon"
@@ -47,16 +49,14 @@ func (s *Service) handleQueryStore(path []string, req abci.QueryRequest) *abci.Q
 			))
 	}
 
-	sdkReq := storetypes.RequestQuery(req)
+	sdkReq := storetypes.RequestQuery(*req)
 	resp, err := queryable.Query(&sdkReq)
 	if err != nil {
 		return queryResult(err)
 	}
 	resp.Height = req.Height
 
-	abciResp := abci.QueryResponse(*resp)
-
-	return &abciResp
+	return abci.QueryResponse(*resp)
 }
 
 // NOTE: Copied from here: https://github.com/cosmos/cosmos-sdk/blob/960d44842b9e313cbe762068a67a894ac82060ab/baseapp/errors.go#L37-L46.
@@ -65,9 +65,9 @@ func (s *Service) handleQueryStore(path []string, req abci.QueryRequest) *abci.Q
 //
 // queryResult returns a ResponseQuery from an error. It will try to parse ABCI
 // info from the error.
-func queryResult(err error) *abci.QueryResponse {
+func queryResult(err error) abci.QueryResponse {
 	space, code, log := errorsmod.ABCIInfo(err, false)
-	return &abci.QueryResponse{
+	return abci.QueryResponse{
 		Codespace: space,
 		Code:      code,
 		Log:       log,
