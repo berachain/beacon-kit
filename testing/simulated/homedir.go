@@ -110,13 +110,6 @@ func createCometConfig(t *testing.T, tempHomeDir string) *cmtcfg.Config {
 	return cmtCfg
 }
 
-// genesisCreator implements the required interface for the beacond init command, while allowing for a custom
-// fork version in the genesis file.
-type genesisCreator struct {
-	chainSpec    chain.Spec
-	cometService *cometbft.Service
-}
-
 // initCommand runs the initialization command to prepare the home directory.
 // This function emulates the 'beacond init' command.
 func initCommand(t *testing.T, spec chain.Spec, homeDir string) {
