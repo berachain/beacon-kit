@@ -226,6 +226,17 @@ func (cc ConsensusClient) Spec(
 	return cc.beaconClient.Spec(ctx, opts)
 }
 
+// BeaconBlockHeader returns the beacon block header for a given block ID.
+func (cc ConsensusClient) BeaconBlockHeader(
+	ctx context.Context,
+	opts *beaconapi.BeaconBlockHeaderOpts,
+) (*beaconapi.Response[*apiv1.BeaconBlockHeader], error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
+	return cc.beaconClient.BeaconBlockHeader(ctx, opts)
+}
+
 // BlockProposerProof returns the block proposer proof for a given timestamp id.
 func (cc ConsensusClient) BlockProposerProof(
 	ctx context.Context,
