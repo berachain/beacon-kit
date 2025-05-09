@@ -328,7 +328,7 @@ func (s *PectraWithdrawalSuite) TestExcessValidatorBeforeFork_CorrectlyEvicted()
 // Verifies that excess balance is not withdrawn accidentally if a validator has multiple sources of withdrawals.
 // Both the partial withdrawal and the excess balance withdrawal will occur simultaneously in a block.
 // Multiple deposits are sent so that Consensus Layer has a higher balance when the withdrawal request is processed.
-// This also served as a PoC for a now patched bug.
+// This also served as a PoC for a now patched bug (see https://github.com/berachain/beacon-kit/pull/2723).
 func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdrawal_CorrectAmountWithdrawn() {
 	// Initialize the chain state.
 	s.InitializeChain(s.T())
