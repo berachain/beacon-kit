@@ -43,6 +43,10 @@ type GetFinalityCheckpointsRequest struct {
 	types.StateIDRequest
 }
 
+type GetPendingPartialWithdrawalsRequest struct {
+	types.StateIDRequest
+}
+
 type GetStateValidatorsRequest struct {
 	types.StateIDRequest
 	IDs      []string `query:"id"     validate:"dive,validator_id"`

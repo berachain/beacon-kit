@@ -106,7 +106,7 @@ func (h *Handler) RegisterRoutes(
 		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/beacon/states/:state_id/pending_partial_withdrawals",
-			Handler: h.NotImplemented,
+			Handler: h.GetPendingPartialWithdrawals,
 		},
 		{
 			Method:  http.MethodGet,
