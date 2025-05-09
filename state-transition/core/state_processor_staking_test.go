@@ -849,6 +849,33 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	valToEvictAddr, err := valToEvict.Credentials.ToExecutionAddress()
 	require.NoError(t, err)
 
+	// finally the block turning epoch
+	blk = buildNextBlock(
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		blk.GetTimestamp()+1,
+		[]*types.Deposit{},
+		&types.ExecutionRequests{},
+		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
+	)
+	_, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+
+	blk = buildNextBlock(
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		blk.GetTimestamp()+1,
+		[]*types.Deposit{},
+		&types.ExecutionRequests{},
+		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
+	)
+	_, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+
 	withdrawals := []*engineprimitives.Withdrawal{
 		st.EVMInflationWithdrawal(blk.GetTimestamp() + 1),
 		{

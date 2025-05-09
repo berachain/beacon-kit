@@ -24,11 +24,6 @@ package spec
 // Some values (mentioned below) are modified to better suit Berachain's system.
 
 const (
-	// Gwei value constants.
-	defaultMaxEffectiveBalance       = 32e9
-	defaultActivationBalance         = 32e9
-	defaultEffectiveBalanceIncrement = 1e9
-
 	defaultHysteresisQuotient           = 4
 	defaultHysteresisDownwardMultiplier = 1
 	defaultHysteresisUpwardMultiplier   = 5

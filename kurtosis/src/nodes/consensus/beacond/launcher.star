@@ -71,7 +71,7 @@ def get_config(node_struct, engine_dial_url, chain_id, chain_spec, genesis_depos
             "CHAIN_SPEC": chain_spec,
             "BEACOND_CHAIN_SPEC": chain_spec,
             "WITHDRAWAL_ADDRESS": "0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4",
-            "DEPOSIT_AMOUNT": "32000000000",
+            "DEPOSIT_AMOUNT": "250000000000000",
             "GENESIS_DEPOSIT_COUNT_HEX": genesis_deposit_count_hex,
             "GENESIS_DEPOSITS_ROOT": genesis_deposits_root,
         },
