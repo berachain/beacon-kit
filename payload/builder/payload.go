@@ -29,23 +29,30 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // RequestPayloadAsync builds a payload for the given slot and
 // returns the payload ID.
 func (pb *PayloadBuilder) RequestPayloadAsync(
 	ctx context.Context,
-	st *statedb.StateDB,
-	slot math.Slot,
+	st ReadOnlyBeaconState,
 	timestamp math.U64,
-	parentBlockRoot common.Root,
 	headEth1BlockHash common.ExecutionHash,
 	finalEth1BlockHash common.ExecutionHash,
 ) (*engineprimitives.PayloadID, common.Version, error) {
 	if !pb.Enabled() {
 		return nil, common.Version{}, ErrPayloadBuilderDisabled
 	}
+
+	slot, err := st.GetSlot()
+	if err != nil {
+		return nil, common.Version{}, fmt.Errorf("RequestPayloadAsync failed retrieving slot: %w", err)
+	}
+	latestHeader, err := st.GetLatestBlockHeader()
+	if err != nil {
+		return nil, common.Version{}, fmt.Errorf("RequestPayloadAsync failed retrieving latest block header: %w", err)
+	}
+	parentBlockRoot := latestHeader.HashTreeRoot()
 
 	if payloadID, found := pb.pc.GetAndEvict(slot, parentBlockRoot); found {
 		pb.logger.Info(
@@ -57,12 +64,7 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 	}
 
 	// Assemble the payload attributes.
-	attrs, err := pb.attributesFactory.BuildPayloadAttributes(
-		st,
-		slot,
-		timestamp,
-		parentBlockRoot,
-	)
+	attrs, err := pb.attributesFactory.BuildPayloadAttributes(st, timestamp)
 	if err != nil {
 		return nil, common.Version{}, err
 	}
@@ -95,10 +97,8 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 // blocks until the payload is delivered.
 func (pb *PayloadBuilder) RequestPayloadSync(
 	ctx context.Context,
-	st *statedb.StateDB,
-	slot math.Slot,
+	st ReadOnlyBeaconState,
 	timestamp math.U64,
-	parentBlockRoot common.Root,
 	parentEth1Hash common.ExecutionHash,
 	finalBlockHash common.ExecutionHash,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
@@ -111,9 +111,7 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 	payloadID, forkVersion, err := pb.RequestPayloadAsync(
 		ctx,
 		st,
-		slot,
 		timestamp,
-		parentBlockRoot,
 		parentEth1Hash,
 		finalBlockHash,
 	)
@@ -122,6 +120,11 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 	}
 	if payloadID == nil {
 		return nil, ErrNilPayloadID
+	}
+
+	slot, err := st.GetSlot()
+	if err != nil {
+		return nil, fmt.Errorf("RequestPayloadAsync failed retrieving slot: %w", err)
 	}
 
 	// Wait for the payload to be delivered to the execution client.

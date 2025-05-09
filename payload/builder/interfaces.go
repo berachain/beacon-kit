@@ -25,10 +25,10 @@ import (
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	"github.com/berachain/beacon-kit/payload/attributes"
 	"github.com/berachain/beacon-kit/payload/cache"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 type PayloadCache interface {
@@ -36,13 +36,18 @@ type PayloadCache interface {
 	Set(slot math.Slot, stateRoot common.Root, pid engineprimitives.PayloadID, version common.Version)
 }
 
+type ReadOnlyBeaconState interface {
+	GetSlot() (math.Slot, error)
+	ExpectedWithdrawals(timestamp math.U64) (engineprimitives.Withdrawals, uint64, error)
+	GetRandaoMixAtIndex(index uint64) (common.Bytes32, error)
+	GetLatestBlockHeader() (*ctypes.BeaconBlockHeader, error)
+}
+
 // AttributesFactory is the interface for the attributes factory.
 type AttributesFactory interface {
 	BuildPayloadAttributes(
-		st *statedb.StateDB,
-		slot math.U64,
+		st attributes.ReadOnlyBeaconState,
 		timestamp math.U64,
-		prevHeadRoot [32]byte,
 	) (*engineprimitives.PayloadAttributes, error)
 }
 
