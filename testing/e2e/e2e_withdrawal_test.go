@@ -22,15 +22,17 @@ package e2e_test
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"math/big"
 	"net/http"
 	"time"
 
 	beaconapi "github.com/attestantio/go-eth2-client/api"
 	"github.com/berachain/beacon-kit/execution/requests/eip7002"
-	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	beaconmath "github.com/berachain/beacon-kit/primitives/math"
@@ -108,8 +110,8 @@ func (s *BeaconKitE2ESuite) getPendingPartialWithdrawals(stateID string) (*http.
 }
 
 // decodePendingPartialWithdrawalsResponse decodes a response containing pending partial withdrawals.
-func (s *BeaconKitE2ESuite) decodePendingPartialWithdrawalsResponse(resp *http.Response) (*beacontypes.PendingPartialWithdrawalsResponse, error) {
-	partialWithdrawals, err := decodeResponse[beacontypes.PendingPartialWithdrawalsResponse](resp)
+func (s *BeaconKitE2ESuite) decodePendingPartialWithdrawalsResponse(resp *http.Response) (*types.PendingPartialWithdrawalsResponse, error) {
+	partialWithdrawals, err := decodeResponse[types.PendingPartialWithdrawalsResponse](resp)
 	if err != nil {
 		return nil, err
 	}
@@ -118,19 +120,59 @@ func (s *BeaconKitE2ESuite) decodePendingPartialWithdrawalsResponse(resp *http.R
 }
 
 // checkPendingPartialWithdrawals checks if there are pending partial withdrawals
-func (s *BeaconKitE2ESuite) checkPendingPartialWithdrawals(stateID string) (*[]beacontypes.PendingPartialWithdrawalsData, error) {
+func (s *BeaconKitE2ESuite) checkPendingPartialWithdrawals(stateID string) ([]types.PendingPartialWithdrawalData, error) {
 	resp, err := s.getPendingPartialWithdrawals(stateID)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	partialWithdrawals, err := s.decodePendingPartialWithdrawalsResponse(resp)
+	// partialWithdrawals, err := s.decodePendingPartialWithdrawalsResponse(resp)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// return partialWithdrawals, nil
+
+	// Read the raw response body for debugging
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
 
-	return partialWithdrawals, nil
+	// For debugging
+	s.T().Logf("Raw getPendingPartialWithdrawals response: %s", string(body))
+
+	// Parse the response manually to verify the format
+	var genericResp struct {
+		Version             string          `json:"version"`
+		ExecutionOptimistic bool            `json:"execution_optimistic"`
+		Finalized           bool            `json:"finalized"`
+		Data                json.RawMessage `json:"data"`
+	}
+
+	err = json.Unmarshal(body, &genericResp)
+	if err != nil {
+		return nil, err
+	}
+
+	// Verify the envelope format
+	s.Require().NotEmpty(genericResp.Version, "Response should have a version field")
+	s.T().Logf("Response version: %s", genericResp.Version)
+	s.T().Logf("Response execution_optimistic: %v", genericResp.ExecutionOptimistic)
+	s.T().Logf("Response finalized: %v", genericResp.Finalized)
+
+	// Parse the actual withdrawals data
+	var withdrawals []types.PendingPartialWithdrawalData
+	err = json.Unmarshal(genericResp.Data, &withdrawals)
+	if err != nil {
+		return nil, err
+	}
+
+	// Even if there are no pending withdrawals, the format should be valid
+	s.T().Logf("Number of pending partial withdrawals: %d", len(withdrawals))
+
+	return withdrawals, nil
 }
 
 // getCurrentBlockNumber gets the current block number
@@ -265,8 +307,8 @@ func (s *BeaconKitE2ESuite) TestSubmitPartialWithdrawalTransaction() {
 	s.T().Logf("Withdrawal transaction included in block: %d", blockNum)
 
 	// Check for pending partial withdrawals - might take a few blocks to appear
-	var pendingWithdrawals *beacontypes.PendingPartialWithdrawalsResponse
-	// var withdrawalFound bool
+	var pendingWithdrawals []types.PendingPartialWithdrawalData
+	var withdrawalFound bool
 
 	for attempts := 0; attempts < 10; attempts++ {
 		// Wait for a few blocks
@@ -278,38 +320,30 @@ func (s *BeaconKitE2ESuite) TestSubmitPartialWithdrawalTransaction() {
 			continue
 		}
 
-		// Get the length of the pending withdrawals
-		len(pendingWithdrawals.Data)	
-		s.T().Logf("Pending withdrawals length: %d", len)
-
-		// Convert the Data field to a slice of PendingPartialWithdrawalData
-		// pendingWithdrawalsData, ok := pendingWithdrawals.Data.([]beacontypes.PendingPartialWithdrawalData)
-		// s.Require().True(ok, "Data should be a slice of PendingPartialWithdrawalData")
-
 		// Look for our withdrawal
-		// for _, withdrawal := range pendingWithdrawalsData {
-		// 	if fmt.Sprintf("%d", withdrawal.ValidatorIndex) == validatorIndex {
-		// 		withdrawalFound = true
-		// 		s.T().Logf("Found pending withdrawal for validator %s: %d Gwei (attempt %d)",
-		// 			validatorIndex, withdrawal.Amount, attempts+1)
-		// 		break
-		// 	}
-		// }
+		for _, withdrawal := range pendingWithdrawals {
+			if fmt.Sprintf("%d", withdrawal.ValidatorIndex) == validatorIndex {
+				withdrawalFound = true
+				s.T().Logf("Found pending withdrawal for validator %s: %d Gwei (attempt %d)",
+					validatorIndex, withdrawal.Amount, attempts+1)
+				break
+			}
+		}
 
-		// if withdrawalFound {
-		// 	break
-		// }
+		if withdrawalFound {
+			break
+		}
 
-		// Get current block number to show progress
-		// currentBlockNum, err := s.getCurrentBlockNumber(rpcClient)
-		// if err == nil {
-		// 	s.T().Logf("Current block: %d, Blocks since withdrawal tx: %d (attempt %d)",
-		// 		currentBlockNum, currentBlockNum-blockNum, attempts+1)
-		// } else {
-		// 	s.T().Logf("Error getting current block number: %v", err)
-		// }
+		//Get current block number to show progress
+		currentBlockNum, err := s.getCurrentBlockNumber(rpcClient)
+		if err == nil {
+			s.T().Logf("Current block: %d, Blocks since withdrawal tx: %d (attempt %d)",
+				currentBlockNum, currentBlockNum-blockNum, attempts+1)
+		} else {
+			s.T().Logf("Error getting current block number: %v", err)
+		}
 
-		// s.T().Logf("Pending withdrawal not found yet (attempt %d), waiting...", attempts+1)
+		s.T().Logf("Pending withdrawal not found yet (attempt %d), waiting...", attempts+1)
 	}
 
 	// Get the current block number after all checks
@@ -345,4 +379,46 @@ func (s *BeaconKitE2ESuite) waitForTransaction(txHash common.Hash, rpcClient *rp
 
 	s.T().Logf("Timed out waiting for transaction to be mined")
 	return nil
+}
+
+// GetPendingPartialWithdrawalsAPI verifies the pending partial withdrawals API response format
+func (s *BeaconKitE2ESuite) GetPendingPartialWithdrawalsAPI() {
+	s.initBeaconTest()
+
+	// Make a request to the getPendingPartialWithdrawals endpoint
+	resp, err := s.getPendingPartialWithdrawals(utils.StateIDHead)
+	s.Require().NoError(err)
+	defer resp.Body.Close()
+
+	// Read the raw response body for debugging
+	body, err := io.ReadAll(resp.Body)
+	s.Require().NoError(err)
+
+	// For debugging
+	s.T().Logf("Raw getPendingPartialWithdrawals response: %s", string(body))
+
+	// Parse the response manually to verify the format
+	var genericResp struct {
+		Version             string          `json:"version"`
+		ExecutionOptimistic bool            `json:"execution_optimistic"`
+		Finalized           bool            `json:"finalized"`
+		Data                json.RawMessage `json:"data"`
+	}
+
+	err = json.Unmarshal(body, &genericResp)
+	s.Require().NoError(err, "Failed to parse the response envelope")
+
+	// Verify the envelope format
+	s.Require().NotEmpty(genericResp.Version, "Response should have a version field")
+	s.T().Logf("Response version: %s", genericResp.Version)
+	s.T().Logf("Response execution_optimistic: %v", genericResp.ExecutionOptimistic)
+	s.T().Logf("Response finalized: %v", genericResp.Finalized)
+
+	// Parse the actual withdrawals data
+	var withdrawals []*types.PendingPartialWithdrawalData
+	err = json.Unmarshal(genericResp.Data, &withdrawals)
+	s.Require().NoError(err, "Failed to parse the withdrawals data")
+
+	// Even if there are no pending withdrawals, the format should be valid
+	s.T().Logf("Number of pending partial withdrawals: %d", len(withdrawals))
 }
