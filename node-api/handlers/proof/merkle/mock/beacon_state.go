@@ -42,7 +42,7 @@ func NewBeaconStateWith(
 	}
 
 	// Create an empty execution payload header with the given execution number and fee recipient.
-	execPayloadHeader := types.NewEmptyExecutionPayloadHeaderWithVersion(forkVersion)
+	execPayloadHeader := types.NewEmptyExecutionPayloadHeader()
 	execPayloadHeader.Number = executionNumber
 	execPayloadHeader.FeeRecipient = executionFeeRecipient
 
