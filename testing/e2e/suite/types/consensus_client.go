@@ -31,9 +31,9 @@ import (
 	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/berachain/beacon-kit/errors"
 	ptypes "github.com/berachain/beacon-kit/node-api/handlers/proof/types"
+	abcitypes "github.com/cometbft/cometbft/abci/types"
 	rpcclient "github.com/cometbft/cometbft/rpc/client"
 	httpclient "github.com/cometbft/cometbft/rpc/client/http"
-	ctypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
 	"github.com/rs/zerolog"
 )
@@ -156,8 +156,32 @@ func (cc *ConsensusClient) IsActive(ctx context.Context) (bool, error) {
 // ABCIInfo returns the ABCI info of the node.
 func (cc ConsensusClient) ABCIInfo(
 	ctx context.Context,
-) (*ctypes.ResultABCIInfo, error) {
-	return cc.cometClient.ABCIInfo(ctx)
+) (*abcitypes.InfoResponse, error) {
+	if cc.cometClient == nil {
+		return nil, errors.New("comet client is not initialized")
+	}
+	resp, err := cc.cometClient.ABCIInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &resp.Response, nil
+}
+
+// ABCIQuery returns the ABCI query from the comet node.
+func (cc ConsensusClient) ABCIQuery(
+	ctx context.Context,
+	path string,
+	data []byte,
+	opts rpcclient.ABCIQueryOptions,
+) (*abcitypes.QueryResponse, error) {
+	if cc.cometClient == nil {
+		return nil, errors.New("comet client is not initialized")
+	}
+	resp, err := cc.cometClient.ABCIQueryWithOptions(ctx, path, data, opts)
+	if err != nil {
+		return nil, err
+	}
+	return &resp.Response, nil
 }
 
 // BeaconStateRoot returns the beacon state root of the node.
