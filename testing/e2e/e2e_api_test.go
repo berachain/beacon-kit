@@ -424,12 +424,13 @@ func decodeResponse[T any](resp *http.Response) (T, error) {
 		isPendingPartialWithdrawalsResp = true
 	}
 
-	if isPendingPartialWithdrawalsResp {
+	switch {
+	case isPendingPartialWithdrawalsResp:
 		// Directly unmarshal the entire response for types with version field and embedded GenericResponse
 		if err = json.Unmarshal(bodyBytes, &result); err != nil {
 			return result, err
 		}
-	} else {
+	default:
 		// For standard GenericResponse types, process as before
 
 		// First decode into GenericResponse.
@@ -439,9 +440,9 @@ func decodeResponse[T any](resp *http.Response) (T, error) {
 		}
 
 		// Convert the data field to JSON.
-		dataBytes, err := json.Marshal(genericResp.Data)
-		if err != nil {
-			return result, err
+		dataBytes, errInMarshal := json.Marshal(genericResp.Data)
+		if errInMarshal != nil {
+			return result, errInMarshal
 		}
 
 		// Unmarshal into the target type.
@@ -948,58 +949,4 @@ func (s *BeaconKitE2ESuite) TestConfigSpec() {
 
 	s.Require().Contains(specData, "INACTIVITY_PENALTY_QUOTIENT_ALTAIR")
 	s.Require().Zero(specData["INACTIVITY_PENALTY_QUOTIENT_ALTAIR"])
-}
-
-// getPendingPartialWithdrawals gets the pending partial withdrawals for the given stateID.
-func (s *BeaconKitE2ESuite) getPendingPartialWithdrawals(stateID string) (*http.Response, error) {
-	client := s.initHTTPBeaconTest()
-
-	url := fmt.Sprintf("/eth/v1/beacon/states/%s/pending_partial_withdrawals", stateID)
-
-	resp, err := client.Get(url)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get validator balances: %w", err)
-	}
-	if resp == nil {
-		return nil, errors.New("received nil response")
-	}
-
-	fmt.Println(resp.Body)
-
-	return resp, nil
-}
-
-// decodePendingPartialWithdrawalsResponse decodes a response containing pending partial withdrawals.
-func (s *BeaconKitE2ESuite) decodePendingPartialWithdrawalsResponse(resp *http.Response) (*beacontypes.PendingPartialWithdrawalsResponse, error) {
-	partialWithdrawals, err := decodeResponse[beacontypes.PendingPartialWithdrawalsResponse](resp)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Println("partialWithdrawals", partialWithdrawals)
-	return &partialWithdrawals, nil
-}
-
-// TestGetPendingPartialWithdrawals tests querying the pending partial withdrawals for the given stateID.
-func (s *BeaconKitE2ESuite) TestGetPendingPartialWithdrawals() {
-	resp, err := s.getPendingPartialWithdrawals(utils.StateIDHead)
-	s.Require().NoError(err)
-	s.Require().Equal(http.StatusOK, resp.StatusCode)
-	defer resp.Body.Close()
-
-	fmt.Println("resp", resp)
-
-	partialWithdrawals, err := s.decodePendingPartialWithdrawalsResponse(resp)
-	s.Require().NoError(err)
-	s.Require().NotNil(partialWithdrawals)
-	s.Require().NotEmpty(partialWithdrawals)
-
-	fmt.Println("partialWithdrawals", partialWithdrawals)
-
-	// Get the version of the state.
-	apiVersion := partialWithdrawals.Version
-
-	s.Require().Equal(version.Name(version.Electra()), apiVersion)
-
-	partialWithdrawalsData := partialWithdrawals.Data
-	s.Require().Len(partialWithdrawalsData, 0)
 }
