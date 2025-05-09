@@ -17,7 +17,7 @@ require (
 	cosmossdk.io/log v1.5.0
 	cosmossdk.io/math v1.5.3
 	cosmossdk.io/store v1.10.0-rc.1.0.20241218084712-ca559989da43
-	github.com/cenkalti/backoff/v5 v5.0.1
+	github.com/cenkalti/backoff/v5 v5.0.2
 	github.com/cometbft/cometbft v1.0.1-0.20241220100824-07c737de00ff
 	github.com/cometbft/cometbft/api v1.0.1-0.20241220100824-07c737de00ff
 	github.com/cosmos/cosmos-db v1.1.0
@@ -37,12 +37,12 @@ require (
 	github.com/minio/sha256-simd v1.0.1
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/ory/dockertest v3.3.5+incompatible
-	github.com/phuslu/log v1.0.113
+	github.com/phuslu/log v1.0.117
 	github.com/pkg/errors v0.9.1
 	github.com/prysmaticlabs/gohashtree v0.0.4-beta.0.20240624100937-73632381301b
 	github.com/prysmaticlabs/prysm/v5 v5.3.0
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8
-	github.com/spf13/afero v1.11.0
+	github.com/spf13/afero v1.14.0
 	github.com/spf13/cast v1.7.0
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/pflag v1.0.6
@@ -60,9 +60,9 @@ require (
 	github.com/ethereum/go-ethereum v1.15.5
 	github.com/ferranbt/fastssz v0.1.5-0.20240903094032-455b54c08c81
 	github.com/kurtosis-tech/kurtosis/api/golang v1.4.3
-	github.com/protolambda/zrnt v0.32.3
+	github.com/protolambda/zrnt v0.34.1
 	github.com/protolambda/ztyp v0.2.2
-	github.com/rs/zerolog v1.33.0
+	github.com/rs/zerolog v1.34.0
 	github.com/stretchr/testify v1.10.0
 )
 
