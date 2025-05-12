@@ -26,7 +26,6 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
-	"net/http"
 	"strconv"
 
 	beaconapi "github.com/attestantio/go-eth2-client/api"
@@ -68,8 +67,9 @@ func (r *rpcWrapper) Call(ctx context.Context, target any, method string, params
 	return r.Client.CallContext(ctx, target, method, params...)
 }
 
-// getPendingPartialWithdrawals gets the pending partial withdrawals for the given stateID.
-func (s *BeaconKitE2ESuite) getPendingPartialWithdrawals(stateID string) (*http.Response, error) {
+// getPendingPartialWithdrawals calls the beacon node's /eth/v1/beacon/states/{state_id}/pending_partial_withdrawals endpoint
+// and returns the list of pending withdrawals data if any
+func (s *BeaconKitE2ESuite) getPendingPartialWithdrawals(stateID string) ([]types.PendingPartialWithdrawalData, error) {
 	client := s.initHTTPBeaconTest()
 
 	url := fmt.Sprintf("/eth/v1/beacon/states/%s/pending_partial_withdrawals", stateID)
@@ -82,16 +82,6 @@ func (s *BeaconKitE2ESuite) getPendingPartialWithdrawals(stateID string) (*http.
 		return nil, errors.New("received nil response")
 	}
 
-	return resp, nil
-}
-
-// checkPendingPartialWithdrawals checks if there are pending partial withdrawals
-// and returns the list of pending withdrawals if any
-func (s *BeaconKitE2ESuite) checkPendingPartialWithdrawals(stateID string) ([]types.PendingPartialWithdrawalData, error) {
-	resp, err := s.getPendingPartialWithdrawals(stateID)
-	if err != nil {
-		return nil, err
-	}
 	defer resp.Body.Close()
 
 	var response types.PendingPartialWithdrawalsResponse
@@ -183,7 +173,7 @@ func (s *BeaconKitE2ESuite) TestSubmitPartialWithdrawalTransaction() {
 	s.T().Logf("Block number before withdrawal: %d", blkNum)
 
 	// Check for pending partial withdrawals before submitting the transaction
-	pendingWithdrawalsBefore, err := s.checkPendingPartialWithdrawals(utils.StateIDHead)
+	pendingWithdrawalsBefore, err := s.getPendingPartialWithdrawals(utils.StateIDHead)
 	s.Require().NoError(err)
 	s.Require().Len(pendingWithdrawalsBefore, 0, "Expected no pending withdrawals initially")
 
@@ -251,7 +241,7 @@ func (s *BeaconKitE2ESuite) TestSubmitPartialWithdrawalTransaction() {
 	s.T().Logf("Withdrawal transaction included in block: %d", blockNum)
 
 	// Check for pending partial withdrawals after submitting the transaction
-	pendingWithdrawalsAfter, err := s.checkPendingPartialWithdrawals(utils.StateIDHead)
+	pendingWithdrawalsAfter, err := s.getPendingPartialWithdrawals(utils.StateIDHead)
 	s.Require().NoError(err)
 	s.Require().Len(pendingWithdrawalsAfter, 1, "Expected one pending withdrawal after transaction")
 
