@@ -425,9 +425,9 @@ func decodeResponse[T any](resp *http.Response) (T, error) {
 	}
 
 	// Convert the data field to JSON.
-	dataBytes, errInMarshal := json.Marshal(genericResp.Data)
-	if errInMarshal != nil {
-		return result, errInMarshal
+	dataBytes, err := json.Marshal(genericResp.Data)
+	if err != nil {
+		return result, err
 	}
 
 	// Unmarshal into the target type.
