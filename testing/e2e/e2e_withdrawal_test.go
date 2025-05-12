@@ -29,6 +29,7 @@ import (
 	"strconv"
 
 	beaconapi "github.com/attestantio/go-eth2-client/api"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/execution/requests/eip7002"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
@@ -132,7 +133,13 @@ func (s *BeaconKitE2ESuite) findValidatorWithExecutionCredentials(client *e2etyp
 	var blsPubkey crypto.BLSPubkey
 	for _, validator := range validatorsResp.Data {
 		credentials := validator.Validator.WithdrawalCredentials
-		if len(credentials) >= 2 && credentials[0] == 0x01 {
+
+		// Create beacon-kit's WithdrawalCredentials type
+		var beaconKitCredentials ctypes.WithdrawalCredentials
+		copy(beaconKitCredentials[:], credentials)
+
+		// Check if it has execution withdrawal credentials
+		if beaconKitCredentials.IsValidEth1WithdrawalCredentials() {
 			validatorIndex = fmt.Sprintf("%d", validator.Index)
 			// Convert the phase0.BLSPubKey to our crypto.BLSPubkey type
 			copy(blsPubkey[:], validator.Validator.PublicKey[:])
