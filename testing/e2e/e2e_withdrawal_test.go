@@ -28,6 +28,7 @@ import (
 	"io"
 	"math/big"
 	"net/http"
+	"strconv"
 
 	beaconapi "github.com/attestantio/go-eth2-client/api"
 	"github.com/berachain/beacon-kit/execution/requests/eip7002"
@@ -232,6 +233,6 @@ func (s *BeaconKitE2ESuite) TestSubmitPartialWithdrawalTransaction() {
 	pendingWithdrawalsAfter, err := s.checkPendingPartialWithdrawals(utils.StateIDHead)
 	s.Require().NoError(err)
 	s.Require().Len(pendingWithdrawalsAfter, 1)
-	s.Require().Equal(validatorIndex, fmt.Sprintf("%d", pendingWithdrawalsAfter[0].ValidatorIndex))
+	s.Require().Equal(validatorIndex, strconv.FormatUint(pendingWithdrawalsAfter[0].ValidatorIndex, 10))
 	s.Require().Equal(uint64(withdrawalAmount), pendingWithdrawalsAfter[0].Amount)
 }

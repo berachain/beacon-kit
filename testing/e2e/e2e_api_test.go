@@ -418,37 +418,21 @@ func decodeResponse[T any](resp *http.Response) (T, error) {
 		return result, err
 	}
 
-	// Check if the type T is PendingPartialWithdrawalsResponse which has a different structure
-	var isPendingPartialWithdrawalsResp bool
-	if _, ok := any(result).(beacontypes.PendingPartialWithdrawalsResponse); ok {
-		isPendingPartialWithdrawalsResp = true
+	// First decode into GenericResponse.
+	var genericResp beacontypes.GenericResponse
+	if err = json.Unmarshal(bodyBytes, &genericResp); err != nil {
+		return result, err
 	}
 
-	switch {
-	case isPendingPartialWithdrawalsResp:
-		// Directly unmarshal the entire response for types with version field and embedded GenericResponse
-		if err = json.Unmarshal(bodyBytes, &result); err != nil {
-			return result, err
-		}
-	default:
-		// For standard GenericResponse types, process as before
+	// Convert the data field to JSON.
+	dataBytes, errInMarshal := json.Marshal(genericResp.Data)
+	if errInMarshal != nil {
+		return result, errInMarshal
+	}
 
-		// First decode into GenericResponse.
-		var genericResp beacontypes.GenericResponse
-		if err = json.Unmarshal(bodyBytes, &genericResp); err != nil {
-			return result, err
-		}
-
-		// Convert the data field to JSON.
-		dataBytes, errInMarshal := json.Marshal(genericResp.Data)
-		if errInMarshal != nil {
-			return result, errInMarshal
-		}
-
-		// Unmarshal into the target type.
-		if err = json.Unmarshal(dataBytes, &result); err != nil {
-			return result, err
-		}
+	// Unmarshal into the target type.
+	if err = json.Unmarshal(dataBytes, &result); err != nil {
+		return result, err
 	}
 
 	return result, nil
