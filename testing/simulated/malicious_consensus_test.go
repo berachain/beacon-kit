@@ -23,9 +23,10 @@
 package simulated_test
 
 import (
-	"github.com/berachain/beacon-kit/primitives/math"
 	"math/big"
 	"time"
+
+	"github.com/berachain/beacon-kit/primitives/math"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
@@ -98,7 +99,9 @@ func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_Errors() {
 	maliciousTxs := []*gethprimitives.Transaction{maliciousTx}
 
 	// Create a malicious block by injecting an invalid transaction.
-	maliciousBlock := simulated.ComputeAndSetInvalidExecutionBlock(s.T(), proposedBlock.GetBeaconBlock(), s.TestNode.ChainSpec, maliciousTxs)
+	maliciousBlock := simulated.ComputeAndSetInvalidExecutionBlock(
+		s.T(), proposedBlock.GetBeaconBlock(), s.TestNode.ChainSpec, maliciousTxs, nil,
+	)
 
 	// Re-sign the block
 	maliciousBlockSigned, err := ctypes.NewSignedBeaconBlock(
