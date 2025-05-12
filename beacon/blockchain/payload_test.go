@@ -48,7 +48,7 @@ import (
 )
 
 // When we reject a block and we have optimistic payload building enabled
-// We must make sure that Latest Execution Payload Header is duly pre-processed
+// we must make sure that a few beacon state quantities are duly pre-processed
 // before building the block. (case for accepted block below)
 func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 	t.Parallel()
@@ -70,8 +70,8 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 
 	chain := blockchain.NewService(
 		sb,
-		nil, // blockchain.BlobProcessor
-		nil, // deposit.Contract
+		nil, // blockchain.BlobProcessor unused in this test
+		nil, // deposit.Contract unused in this test
 		logger,
 		cs,
 		eng,
@@ -129,7 +129,8 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 	}
 
 	// register async call to block building
-	var wg sync.WaitGroup // useful to make test wait on async checks
+	var wg sync.WaitGroup          // useful to make test wait on async checks
+	stateRoot := st.HashTreeRoot() // track state root before the changes done by optimistic build
 	b.EXPECT().RequestPayloadAsync(
 		mock.Anything, mock.Anything, mock.Anything,
 		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
@@ -138,13 +139,16 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 			_ context.Context,
 			st *state.StateDB,
 			slot, timestamp math.U64,
-			_ /*parentBlockRoot*/ common.Root,
+			_ common.Root, // parentBlockRoot
 			headEth1BlockHash, finalEth1BlockHash common.ExecutionHash,
 		) {
 			defer wg.Done()
+			genesisHeader := genesisData.ExecutionPayloadHeader
+			genesisBlkHeader := core.GenesisBlockHeader(cs.GenesisForkVersion())
+			genesisBlkHeader.SetStateRoot(stateRoot)
+
 			require.Equal(t, timestamp, consensusTime+1)
 
-			genesisHeader := genesisData.ExecutionPayloadHeader
 			require.Equal(t, genesisHeader.GetBlockHash(), headEth1BlockHash)
 
 			require.Empty(t, finalEth1BlockHash)          // this is first block post genesis
