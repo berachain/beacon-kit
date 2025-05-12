@@ -37,12 +37,25 @@ import (
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	beaconmath "github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
+	"github.com/berachain/beacon-kit/testing/e2e/suite"
+	e2etypes "github.com/berachain/beacon-kit/testing/e2e/suite/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	gethcore "github.com/ethereum/go-ethereum/core/types"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rpc"
+)
+
+const (
+	// DefaultWithdrawalAmount is the default withdrawal amount in Gwei for testing
+	DefaultWithdrawalAmount = 1_000_000_000 // 1 BERA (10^9 Gwei)
+
+	// WithdrawalTxGasLimit is the gas limit for withdrawal transactions
+	WithdrawalTxGasLimit = 500_000
+
+	// BlocksToWaitAfterWithdrawal is the number of blocks to wait after a withdrawal
+	BlocksToWaitAfterWithdrawal = 3
 )
 
 // rpcWrapper wraps an rpc.Client and implements the rpcClient interface required by eip7002
@@ -63,7 +76,7 @@ func (s *BeaconKitE2ESuite) getPendingPartialWithdrawals(stateID string) (*http.
 
 	resp, err := client.Get(url)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get validator balances: %w", err)
+		return nil, fmt.Errorf("failed to get pending partial withdrawals: %w", err)
 	}
 	if resp == nil {
 		return nil, errors.New("received nil response")
@@ -73,6 +86,7 @@ func (s *BeaconKitE2ESuite) getPendingPartialWithdrawals(stateID string) (*http.
 }
 
 // checkPendingPartialWithdrawals checks if there are pending partial withdrawals
+// and returns the list of pending withdrawals if any
 func (s *BeaconKitE2ESuite) checkPendingPartialWithdrawals(stateID string) ([]types.PendingPartialWithdrawalData, error) {
 	resp, err := s.getPendingPartialWithdrawals(stateID)
 	if err != nil {
@@ -82,7 +96,7 @@ func (s *BeaconKitE2ESuite) checkPendingPartialWithdrawals(stateID string) ([]ty
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
 	// For debugging
@@ -92,9 +106,10 @@ func (s *BeaconKitE2ESuite) checkPendingPartialWithdrawals(stateID string) ([]ty
 
 	err = json.Unmarshal(body, &pendingPartialWithdrawals)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 	}
 
+	// Validate response fields
 	s.Require().Equal(pendingPartialWithdrawals.Version, version.Name(version.Electra()))
 	s.Require().False(pendingPartialWithdrawals.ExecutionOptimistic)
 	s.Require().True(pendingPartialWithdrawals.Finalized)
@@ -104,24 +119,22 @@ func (s *BeaconKitE2ESuite) checkPendingPartialWithdrawals(stateID string) ([]ty
 
 	dataBytes, err := json.Marshal(pendingPartialWithdrawals.Data)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to marshal data: %w", err)
 	}
 
 	err = json.Unmarshal(dataBytes, &withdrawals)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to unmarshal withdrawals: %w", err)
 	}
 
-	// Even if there are no pending withdrawals, the format should be valid
+	// Log the number of pending withdrawals
 	s.T().Logf("Number of pending partial withdrawals: %d", len(withdrawals))
 
 	return withdrawals, nil
 }
 
-// TestSubmitPartialWithdrawalTransaction tests submitting a partial withdrawal transaction via the withdrawal contract
-func (s *BeaconKitE2ESuite) TestSubmitPartialWithdrawalTransaction() {
-	client := s.initBeaconTest()
-
+// findValidatorWithExecutionCredentials finds a validator with execution credentials
+func (s *BeaconKitE2ESuite) findValidatorWithExecutionCredentials(client *e2etypes.ConsensusClient) (string, crypto.BLSPubkey, error) {
 	// Get the validators to identify one with execution credentials (0x01)
 	validatorsResp, err := client.Validators(
 		s.Ctx(),
@@ -129,8 +142,12 @@ func (s *BeaconKitE2ESuite) TestSubmitPartialWithdrawalTransaction() {
 			State: utils.StateIDHead,
 		},
 	)
-	s.Require().NoError(err)
-	s.Require().NotEmpty(validatorsResp.Data)
+	if err != nil {
+		return "", crypto.BLSPubkey{}, fmt.Errorf("failed to get validators: %w", err)
+	}
+	if len(validatorsResp.Data) == 0 {
+		return "", crypto.BLSPubkey{}, errors.New("no validators found")
+	}
 
 	// Find a validator with execution withdrawal credentials (starting with 0x01)
 	var validatorIndex string
@@ -141,29 +158,49 @@ func (s *BeaconKitE2ESuite) TestSubmitPartialWithdrawalTransaction() {
 			validatorIndex = fmt.Sprintf("%d", validator.Index)
 			// Convert the phase0.BLSPubKey to our crypto.BLSPubkey type
 			copy(blsPubkey[:], validator.Validator.PublicKey[:])
-			break
+			return validatorIndex, blsPubkey, nil
 		}
 	}
-	s.Require().NotEmpty(validatorIndex, "No validator with execution withdrawal credentials found")
 
-	// Set withdrawal amount (in Gwei) - requesting 1 BERA (10^9 Gwei)
-	withdrawalAmount := beaconmath.Gwei(1_000_000_000)
+	return "", crypto.BLSPubkey{}, errors.New("no validator with execution withdrawal credentials found")
+}
+
+// TestSubmitPartialWithdrawalTransaction tests submitting a partial withdrawal transaction via the withdrawal contract
+func (s *BeaconKitE2ESuite) TestSubmitPartialWithdrawalTransaction() {
+	// Use timeout context to better control the test
+	ctx, cancel := context.WithTimeout(s.Ctx(), suite.DefaultE2ETestTimeout)
+	defer cancel()
+
+	// Initialize test client
+	client := s.initBeaconTest()
+
+	// Find a validator with execution credentials
+	validatorIndex, blsPubkey, err := s.findValidatorWithExecutionCredentials(client)
+	s.Require().NoError(err)
+	s.T().Logf("Found validator with index %s for withdrawal test", validatorIndex)
+
+	// Set withdrawal amount
+	withdrawalAmount := beaconmath.Gwei(DefaultWithdrawalAmount)
 
 	// Create an rpc client using the load balancer URL
 	rpcClient, err := rpc.Dial(s.JSONRPCBalancer().URL())
 	s.Require().NoError(err)
 	defer rpcClient.Close()
 
-	// Wrap the RPC client
 	rpcWrapper := &rpcWrapper{Client: rpcClient}
 
 	// Get current block number before withdrawal
-	blkNum, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
+	blkNum, err := s.JSONRPCBalancer().BlockNumber(ctx)
 	s.Require().NoError(err)
 	s.T().Logf("Block number before withdrawal: %d", blkNum)
 
+	// Check for pending partial withdrawals before submitting the transaction
+	pendingWithdrawalsBefore, err := s.checkPendingPartialWithdrawals(utils.StateIDHead)
+	s.Require().NoError(err)
+	s.Require().Len(pendingWithdrawalsBefore, 0, "Expected no pending withdrawals initially")
+
 	// Get the withdrawal fee
-	fee, err := eip7002.GetWithdrawalFee(s.Ctx(), rpcWrapper)
+	fee, err := eip7002.GetWithdrawalFee(ctx, rpcWrapper)
 	s.Require().NoError(err)
 	s.T().Logf("Withdrawal fee: %s wei", fee.String())
 
@@ -175,22 +212,23 @@ func (s *BeaconKitE2ESuite) TestSubmitPartialWithdrawalTransaction() {
 	privateKey, err := ethcrypto.HexToECDSA("fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306")
 	s.Require().NoError(err)
 
-	chainID, err := s.JSONRPCBalancer().ChainID(s.Ctx())
+	chainID, err := s.JSONRPCBalancer().ChainID(ctx)
 	s.Require().NoError(err)
 	signer := gethcore.NewPragueSigner(chainID)
 
 	// Get the sender's nonce
 	var nonce hexutil.Uint64
-	err = rpcClient.CallContext(s.Ctx(), &nonce, "eth_getTransactionCount",
+	err = rpcClient.CallContext(ctx, &nonce, "eth_getTransactionCount",
 		common.HexToAddress("0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4"), "latest",
 	)
 	s.Require().NoError(err)
 
+	// Create and sign the transaction
 	tx := gethcore.MustSignNewTx(privateKey, signer, &gethcore.DynamicFeeTx{
 		ChainID:   chainID,
 		Nonce:     uint64(nonce),
 		To:        &params.WithdrawalQueueAddress,
-		Gas:       500_000,
+		Gas:       WithdrawalTxGasLimit,
 		GasFeeCap: big.NewInt(1000000000),
 		GasTipCap: big.NewInt(1000000000),
 		Value:     fee,
@@ -201,25 +239,19 @@ func (s *BeaconKitE2ESuite) TestSubmitPartialWithdrawalTransaction() {
 	txBytes, err := tx.MarshalBinary()
 	s.Require().NoError(err)
 
-	// Check for pending partial withdrawals before submitting the transaction.
-	// This is to ensure that the withdrawal is not already in the queue.
-	pendingWithdrawalsBefore, err := s.checkPendingPartialWithdrawals(utils.StateIDHead)
-	s.Require().NoError(err)
-	s.Require().Len(pendingWithdrawalsBefore, 0)
-
 	// Send the transaction
 	var txHash common.Hash
-	err = rpcClient.CallContext(s.Ctx(), &txHash, "eth_sendRawTransaction", hexutil.Encode(txBytes))
+	err = rpcClient.CallContext(ctx, &txHash, "eth_sendRawTransaction", hexutil.Encode(txBytes))
 	s.Require().NoError(err)
 	s.T().Logf("Withdrawal transaction submitted: %s", txHash.Hex())
 
-	// wait for 3 blocks to be mined after submitting the transaction
-	err = s.WaitForNBlockNumbers(3)
+	// Wait for blocks to be mined after submitting the transaction
+	err = s.WaitForNBlockNumbers(BlocksToWaitAfterWithdrawal)
 	s.Require().NoError(err)
 
-	// Now get the transaction receipt
+	// Get the transaction receipt
 	var receipt map[string]interface{}
-	err = rpcClient.CallContext(s.Ctx(), &receipt, "eth_getTransactionReceipt", txHash.Hex())
+	err = rpcClient.CallContext(ctx, &receipt, "eth_getTransactionReceipt", txHash.Hex())
 	s.Require().NoError(err)
 	s.Require().NotNil(receipt, "Transaction receipt should not be nil")
 
@@ -230,9 +262,14 @@ func (s *BeaconKitE2ESuite) TestSubmitPartialWithdrawalTransaction() {
 	s.Require().NoError(err)
 	s.T().Logf("Withdrawal transaction included in block: %d", blockNum)
 
+	// Check for pending partial withdrawals after submitting the transaction
 	pendingWithdrawalsAfter, err := s.checkPendingPartialWithdrawals(utils.StateIDHead)
 	s.Require().NoError(err)
-	s.Require().Len(pendingWithdrawalsAfter, 1)
-	s.Require().Equal(validatorIndex, strconv.FormatUint(pendingWithdrawalsAfter[0].ValidatorIndex, 10))
-	s.Require().Equal(uint64(withdrawalAmount), pendingWithdrawalsAfter[0].Amount)
+	s.Require().Len(pendingWithdrawalsAfter, 1, "Expected one pending withdrawal after transaction")
+
+	// Verify the withdrawal details
+	s.Require().Equal(validatorIndex, strconv.FormatUint(pendingWithdrawalsAfter[0].ValidatorIndex, 10),
+		"Validator index mismatch in pending withdrawal")
+	s.Require().Equal(uint64(withdrawalAmount), pendingWithdrawalsAfter[0].Amount,
+		"Withdrawal amount mismatch in pending withdrawal")
 }
