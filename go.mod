@@ -12,7 +12,7 @@ replace (
 require (
 	cosmossdk.io/collections v1.2.0
 	cosmossdk.io/core v1.0.0
-	cosmossdk.io/depinject v1.1.0
+	cosmossdk.io/depinject v1.2.0
 	cosmossdk.io/errors v1.0.2
 	cosmossdk.io/log v1.5.0
 	cosmossdk.io/math v1.5.3
@@ -260,14 +260,14 @@ require (
 	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
 	google.golang.org/genproto v0.0.0-20240624140628-dc46fd24d27d // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250106144421-5f5ef82da422 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250303144028-a0af3efb3deb // indirect
-	google.golang.org/grpc v1.71.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250324211829-b45e905df463 // indirect
+	google.golang.org/grpc v1.71.1 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
 	gopkg.in/Knetic/govaluate.v3 v3.0.0 // indirect
 	gopkg.in/cenkalti/backoff.v1 v1.1.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	gotest.tools/v3 v3.5.1 // indirect
+	gotest.tools/v3 v3.5.2 // indirect
 	pgregory.net/rapid v1.2.0 // indirect
 	rsc.io/tmplfunc v0.0.3 // indirect
 )
