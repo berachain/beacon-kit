@@ -43,6 +43,9 @@ type ReadOnlyBeaconState interface {
 	ExpectedWithdrawals(timestamp math.U64) (engineprimitives.Withdrawals, uint64, error)
 	GetRandaoMixAtIndex(index uint64) (common.Bytes32, error)
 	GetLatestBlockHeader() (*ctypes.BeaconBlockHeader, error)
+
+	GetLatestExecutionPayloadHeader() (*ctypes.ExecutionPayloadHeader, error) // needed for UTs
+	EVMInflationWithdrawal(math.Slot) *engineprimitives.Withdrawal            // needed for UTs
 }
 
 // AttributesFactory is the interface for the attributes factory.
