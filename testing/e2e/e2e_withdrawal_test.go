@@ -25,7 +25,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"math/big"
 	"net/http"
 	"strconv"
@@ -58,12 +57,13 @@ const (
 	BlocksToWaitAfterWithdrawal = 3
 )
 
-// rpcWrapper wraps an rpc.Client and implements the rpcClient interface required by eip7002
+// rpcWrapper wraps an rpc.Client and implements the rpcClient interface required by EIP7002.
+// EIP7002 requires a Call method that returns an error.
 type rpcWrapper struct {
 	*rpc.Client
 }
 
-// Call implements the rpcClient interface
+// Call implements the rpcClient interface.
 func (r *rpcWrapper) Call(ctx context.Context, target any, method string, params ...any) error {
 	return r.Client.CallContext(ctx, target, method, params...)
 }
@@ -94,41 +94,29 @@ func (s *BeaconKitE2ESuite) checkPendingPartialWithdrawals(stateID string) ([]ty
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response body: %w", err)
-	}
-
-	// For debugging
-	s.T().Logf("Raw getPendingPartialWithdrawals response: %s", string(body))
-
-	var pendingPartialWithdrawals types.PendingPartialWithdrawalsResponse
-
-	err = json.Unmarshal(body, &pendingPartialWithdrawals)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
+	var response types.PendingPartialWithdrawalsResponse
+	decoder := json.NewDecoder(resp.Body)
+	if err := decoder.Decode(&response); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
 	// Validate response fields
-	s.Require().Equal(pendingPartialWithdrawals.Version, version.Name(version.Electra()))
-	s.Require().False(pendingPartialWithdrawals.ExecutionOptimistic)
-	s.Require().True(pendingPartialWithdrawals.Finalized)
+	s.Require().Equal(response.Version, version.Name(version.Electra()))
+	s.Require().False(response.ExecutionOptimistic)
+	s.Require().True(response.Finalized)
 
-	// Parse the actual withdrawals data
-	var withdrawals []types.PendingPartialWithdrawalData
+	withdrawals, ok := response.Data.([]types.PendingPartialWithdrawalData)
+	if !ok {
+		// Only if direct type assertion fails, fall back to JSON remarshal
+		dataBytes, err := json.Marshal(response.Data)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal data: %w", err)
+		}
 
-	dataBytes, err := json.Marshal(pendingPartialWithdrawals.Data)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal data: %w", err)
+		if err := json.Unmarshal(dataBytes, &withdrawals); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal withdrawals: %w", err)
+		}
 	}
-
-	err = json.Unmarshal(dataBytes, &withdrawals)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal withdrawals: %w", err)
-	}
-
-	// Log the number of pending withdrawals
-	s.T().Logf("Number of pending partial withdrawals: %d", len(withdrawals))
 
 	return withdrawals, nil
 }
