@@ -21,7 +21,9 @@
 package blockchain_test
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"testing"
 	"time"
 
@@ -30,11 +32,12 @@ import (
 	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
-	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/node-api/backend/mocks"
 	nodemetrics "github.com/berachain/beacon-kit/node-core/components/metrics"
+	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/state-transition/core"
 	depositstore "github.com/berachain/beacon-kit/storage/deposit"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
@@ -59,24 +62,25 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 	sb := mocks.NewStorageBackend(t)
 	sb.EXPECT().StateFromContext(mock.Anything).Return(st)
 	sb.EXPECT().DepositStore().RunAndReturn(func() *depositstore.KVStore { return depStore })
-	var (
-		blobProcessor   blockchain.BlobProcessor
-		depositContract deposit.Contract
-		localBuilder    blockchain.LocalBuilder
-	)
+
+	fb := &fakeBuilder{
+		enabled: optimisticPayloadBuilds,
+	}
 
 	chain := blockchain.NewService(
 		sb,
-		blobProcessor,
-		depositContract,
+		nil, // blockchain.BlobProcessor
+		nil, // deposit.Contract
 		logger,
 		cs,
 		eng,
-		localBuilder,
+		fb,
 		sp,
 		ts,
 		optimisticPayloadBuilds,
 	)
+	// Note: test avoid calling chain.Start since it only starts the deposits
+	// goroutine which is not really relevant for this test
 
 	// Before processing any block it is mandatory to handle genesis
 	// TODO: I had to manually align default genesis and cs specs
@@ -130,4 +134,22 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 		proposerAddress,
 	)
 	require.ErrorIs(t, err, core.ErrProposerMismatch)
+}
+
+var _ blockchain.LocalBuilder = (*fakeBuilder)(nil)
+
+type fakeBuilder struct {
+	enabled bool
+}
+
+func (fb *fakeBuilder) Enabled() bool { return fb.enabled }
+
+func (fb *fakeBuilder) RequestPayloadAsync(
+	_ context.Context,
+	_ builder.ReadOnlyBeaconState,
+	_ math.U64,
+	_ common.ExecutionHash,
+	_ common.ExecutionHash,
+) (*engineprimitives.PayloadID, common.Version, error) {
+	return nil, version.Electra(), errors.New("NOT IMPLEMENTED YET")
 }
