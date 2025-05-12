@@ -58,12 +58,13 @@ const (
 )
 
 // rpcWrapper wraps an rpc.Client and implements the rpcClient interface required by EIP7002.
-// EIP7002 requires a Call method that returns an error.
+// Referenced from execution/requests/eip7002/interfaces.go
 type rpcWrapper struct {
 	*rpc.Client
 }
 
 // Call implements the rpcClient interface.
+// Referenced from execution/requests/eip7002/interfaces.go
 func (r *rpcWrapper) Call(ctx context.Context, target any, method string, params ...any) error {
 	return r.Client.CallContext(ctx, target, method, params...)
 }
@@ -113,6 +114,7 @@ func (s *BeaconKitE2ESuite) getPendingPartialWithdrawals(stateID string) ([]type
 }
 
 // findValidatorWithExecutionCredentials finds a validator with execution credentials
+// It returns the validator index and the BLS public key of the validator with execution credentials
 func (s *BeaconKitE2ESuite) findValidatorWithExecutionCredentials(client *e2etypes.ConsensusClient) (string, crypto.BLSPubkey, error) {
 	// Get the validators to identify one with execution credentials (0x01)
 	validatorsResp, err := client.Validators(
