@@ -96,7 +96,7 @@ func (s *BeaconKitE2ESuite) checkPendingPartialWithdrawals(stateID string) ([]ty
 
 	var response types.PendingPartialWithdrawalsResponse
 	decoder := json.NewDecoder(resp.Body)
-	if err := decoder.Decode(&response); err != nil {
+	if err = decoder.Decode(&response); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
@@ -108,13 +108,13 @@ func (s *BeaconKitE2ESuite) checkPendingPartialWithdrawals(stateID string) ([]ty
 	withdrawals, ok := response.Data.([]types.PendingPartialWithdrawalData)
 	if !ok {
 		// Only if direct type assertion fails, fall back to JSON remarshal
-		dataBytes, err := json.Marshal(response.Data)
-		if err != nil {
-			return nil, fmt.Errorf("failed to marshal data: %w", err)
+		dataBytes, errInMarshal := json.Marshal(response.Data)
+		if errInMarshal != nil {
+			return nil, fmt.Errorf("failed to marshal data: %w", errInMarshal)
 		}
 
-		if err := json.Unmarshal(dataBytes, &withdrawals); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal withdrawals: %w", err)
+		if errInUnmarshal := json.Unmarshal(dataBytes, &withdrawals); errInUnmarshal != nil {
+			return nil, fmt.Errorf("failed to unmarshal withdrawals: %w", errInUnmarshal)
 		}
 	}
 
