@@ -24,6 +24,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"sync"
 	"testing"
 	"time"
 
@@ -64,6 +65,7 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 	sb.EXPECT().DepositStore().RunAndReturn(func() *depositstore.KVStore { return depStore })
 
 	fb := &fakeBuilder{
+		t:       t,
 		enabled: optimisticPayloadBuilds,
 	}
 
@@ -127,6 +129,9 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 		},
 	}
 
+	// register async call to block building
+	fb.wg.Add(1)
+
 	err = chain.VerifyIncomingBlock(
 		ctx.ConsensusCtx(),
 		invalidBlk,
@@ -134,12 +139,17 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 		proposerAddress,
 	)
 	require.ErrorIs(t, err, core.ErrProposerMismatch)
+
+	// wait on the block building goroutine checks
+	fb.wg.Wait()
 }
 
 var _ blockchain.LocalBuilder = (*fakeBuilder)(nil)
 
 type fakeBuilder struct {
+	t       *testing.T
 	enabled bool
+	wg      sync.WaitGroup // useful to make test wait on async checks
 }
 
 func (fb *fakeBuilder) Enabled() bool { return fb.enabled }
@@ -153,5 +163,9 @@ func (fb *fakeBuilder) RequestPayloadAsync(
 	_ common.ExecutionHash,
 	_ common.ExecutionHash,
 ) (*engineprimitives.PayloadID, common.Version, error) {
-	return nil, version.Electra(), errors.New("NOT IMPLEMENTED YET")
+	defer fb.wg.Done() // to be done first otherwise a failed check would leave the test hanging.
+
+	dummyErr := errors.New("NOT IMPLEMENTED YET") // Just check require below is evaluated
+	require.NoError(fb.t, dummyErr)
+	return nil, version.Electra(), dummyErr
 }
