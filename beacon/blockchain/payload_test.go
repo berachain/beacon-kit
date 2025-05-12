@@ -38,6 +38,7 @@ import (
 	nodemetrics "github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/state-transition/core"
 	depositstore "github.com/berachain/beacon-kit/storage/deposit"
@@ -47,7 +48,7 @@ import (
 )
 
 // When we reject a block and we have optimistic payload building enabled
-// We must make sure that Latest Execution Payload Header is duly pre-processed
+// we must make sure that a few beacon state quantities are duly pre-processed
 // before building the block. (case for accepted block below)
 func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 	t.Parallel()
@@ -69,8 +70,8 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 
 	chain := blockchain.NewService(
 		sb,
-		nil, // blockchain.BlobProcessor
-		nil, // deposit.Contract
+		nil, // blockchain.BlobProcessor unused in this test
+		nil, // deposit.Contract unused in this test
 		logger,
 		cs,
 		eng,
@@ -128,13 +129,17 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 	}
 
 	// register async call to block building
-	var wg sync.WaitGroup // useful to make test wait on async checks
+	var wg sync.WaitGroup          // useful to make test wait on async checks
+	stateRoot := st.HashTreeRoot() // track state root before the changes done by optimistic build
 	b.EXPECT().RequestPayloadAsync(mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Run(
 		func(_ context.Context, st builder.ReadOnlyBeaconState, timestamp math.U64, headEth1BlockHash, finalEth1BlockHash common.ExecutionHash) {
 			defer wg.Done()
+			genesisHeader := genesisData.ExecutionPayloadHeader.GetBlockHash()
+			genesisBlkHeader := core.GenesisBlockHeader(cs.GenesisForkVersion())
+			genesisBlkHeader.SetStateRoot(stateRoot)
+
 			require.Equal(t, timestamp, consensusTime+1)
 
-			genesisHeader := genesisData.ExecutionPayloadHeader.BlockHash
 			require.Equal(t, genesisHeader, headEth1BlockHash)
 
 			require.Empty(t, finalEth1BlockHash) // this is first block post genesis
@@ -142,7 +147,12 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 			var slot math.Slot
 			slot, err = st.GetSlot()
 			require.NoError(t, err)
-			require.Equal(t, math.Slot(0), slot) // genesis slot in state
+			require.Equal(t, constants.GenesisSlot, slot) // genesis slot in state
+
+			var lph *ctypes.BeaconBlockHeader
+			lph, err = st.GetLatestBlockHeader()
+			require.NoError(t, err)
+			require.Equal(t, genesisBlkHeader, lph)
 		},
 	).Return(nil, common.Version{0xff}, errors.New("does not matter")) // return values do not really matter in this test
 	wg.Add(1)

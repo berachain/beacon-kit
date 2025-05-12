@@ -37,6 +37,8 @@ type PayloadCache interface {
 }
 
 type ReadOnlyBeaconState interface {
+	common.SSZRootable // needed for UTs
+
 	GetSlot() (math.Slot, error)
 	ExpectedWithdrawals(timestamp math.U64) (engineprimitives.Withdrawals, uint64, error)
 	GetRandaoMixAtIndex(index uint64) (common.Bytes32, error)
