@@ -23,23 +23,24 @@ package blockchain_test
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"sync"
 	"testing"
 	"time"
 
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
+	bmocks "github.com/berachain/beacon-kit/beacon/blockchain/mocks"
 	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-api/backend/mocks"
 	nodemetrics "github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/state-transition/core"
-	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
+	"github.com/berachain/beacon-kit/state-transition/core/state"
 	depositstore "github.com/berachain/beacon-kit/storage/deposit"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	"github.com/stretchr/testify/mock"
@@ -64,10 +65,8 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 	sb.EXPECT().StateFromContext(mock.Anything).Return(st)
 	sb.EXPECT().DepositStore().RunAndReturn(func() *depositstore.KVStore { return depStore })
 
-	fb := &fakeBuilder{
-		t:       t,
-		enabled: optimisticPayloadBuilds,
-	}
+	b := bmocks.NewLocalBuilder(t)
+	b.EXPECT().Enabled().Return(optimisticPayloadBuilds)
 
 	chain := blockchain.NewService(
 		sb,
@@ -76,7 +75,7 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 		logger,
 		cs,
 		eng,
-		fb,
+		b,
 		sp,
 		ts,
 		optimisticPayloadBuilds,
@@ -130,7 +129,33 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 	}
 
 	// register async call to block building
-	fb.wg.Add(1)
+	var wg sync.WaitGroup // useful to make test wait on async checks
+	b.EXPECT().RequestPayloadAsync(
+		mock.Anything, mock.Anything, mock.Anything,
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+	).Run(
+		func(
+			_ context.Context,
+			st *state.StateDB,
+			slot, timestamp math.U64,
+			_ /*parentBlockRoot*/ common.Root,
+			headEth1BlockHash, finalEth1BlockHash common.ExecutionHash,
+		) {
+			defer wg.Done()
+			require.Equal(t, timestamp, consensusTime+1)
+
+			genesisHeader := genesisData.ExecutionPayloadHeader
+			require.Equal(t, genesisHeader.GetBlockHash(), headEth1BlockHash)
+
+			require.Empty(t, finalEth1BlockHash)          // this is first block post genesis
+			require.Equal(t, constants.GenesisSlot, slot) // genesis slot in state
+			var stateSlot math.Slot
+			stateSlot, err = st.GetSlot()
+			require.NoError(t, err)
+			require.Equal(t, constants.GenesisSlot, stateSlot)
+		},
+	).Return(nil, common.Version{0xff}, errors.New("does not matter")) // return values do not really matter in this test
+	wg.Add(1)
 
 	err = chain.VerifyIncomingBlock(
 		ctx.ConsensusCtx(),
@@ -141,31 +166,5 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 	require.ErrorIs(t, err, core.ErrProposerMismatch)
 
 	// wait on the block building goroutine checks
-	fb.wg.Wait()
-}
-
-var _ blockchain.LocalBuilder = (*fakeBuilder)(nil)
-
-type fakeBuilder struct {
-	t       *testing.T
-	enabled bool
-	wg      sync.WaitGroup // useful to make test wait on async checks
-}
-
-func (fb *fakeBuilder) Enabled() bool { return fb.enabled }
-
-func (fb *fakeBuilder) RequestPayloadAsync(
-	_ context.Context,
-	_ *statedb.StateDB,
-	_ math.Slot,
-	_ math.U64,
-	_ common.Root,
-	_ common.ExecutionHash,
-	_ common.ExecutionHash,
-) (*engineprimitives.PayloadID, common.Version, error) {
-	defer fb.wg.Done() // to be done first otherwise a failed check would leave the test hanging.
-
-	dummyErr := errors.New("NOT IMPLEMENTED YET") // Just check require below is evaluated
-	require.NoError(fb.t, dummyErr)
-	return nil, version.Electra(), dummyErr
+	wg.Wait()
 }
