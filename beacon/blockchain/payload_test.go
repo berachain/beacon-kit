@@ -137,6 +137,10 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 	// register async call to block building
 	var wg sync.WaitGroup          // useful to make test wait on async checks
 	stateRoot := st.HashTreeRoot() // track state root before the changes done by optimistic build
+	latestHeader, err := st.GetLatestBlockHeader()
+	require.NoError(t, err)
+	latestHeader.SetStateRoot(st.HashTreeRoot())
+
 	b.EXPECT().RequestPayloadAsync(
 		mock.Anything, mock.Anything, mock.Anything,
 		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
@@ -145,7 +149,7 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 			_ context.Context,
 			st *state.StateDB,
 			slot, timestamp math.U64,
-			_ common.Root, // parentBlockRoot
+			parentBlockRoot common.Root,
 			headEth1BlockHash, finalEth1BlockHash common.ExecutionHash,
 		) {
 			defer wg.Done()
@@ -156,6 +160,8 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 			require.Equal(t, timestamp, consensusTime+1)
 
 			require.Equal(t, genesisHeader.GetBlockHash(), headEth1BlockHash)
+
+			require.Equal(t, latestHeader.HashTreeRoot(), parentBlockRoot)
 
 			require.Empty(t, finalEth1BlockHash)          // this is first block post genesis
 			require.Equal(t, constants.GenesisSlot, slot) // genesis slot in state
@@ -294,7 +300,7 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 			_ context.Context,
 			st *state.StateDB,
 			slot, timestamp math.U64,
-			_ common.Root, // parentBlockRoot
+			parentBlockRoot common.Root,
 			headEth1BlockHash, finalEth1BlockHash common.ExecutionHash,
 		) {
 			defer wg.Done()
@@ -308,6 +314,8 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 
 			genesisHeader := genesisData.ExecutionPayloadHeader.GetBlockHash()
 			require.Equal(t, genesisHeader, finalEth1BlockHash)
+
+			require.Equal(t, validBlk.HashTreeRoot(), parentBlockRoot)
 
 			var stateSlot math.Slot
 			stateSlot, err = st.GetSlot()
