@@ -5,6 +5,8 @@ package mocks
 import (
 	context "context"
 
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+
 	mock "github.com/stretchr/testify/mock"
 
 	types "github.com/berachain/beacon-kit/consensus-types/types"
@@ -21,6 +23,65 @@ type ExecutionEngine_Expecter struct {
 
 func (_m *ExecutionEngine) EXPECT() *ExecutionEngine_Expecter {
 	return &ExecutionEngine_Expecter{mock: &_m.Mock}
+}
+
+// NotifyForkchoiceUpdate provides a mock function with given fields: ctx, req
+func (_m *ExecutionEngine) NotifyForkchoiceUpdate(ctx context.Context, req *types.ForkchoiceUpdateRequest) (*engineprimitives.PayloadID, error) {
+	ret := _m.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NotifyForkchoiceUpdate")
+	}
+
+	var r0 *engineprimitives.PayloadID
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *types.ForkchoiceUpdateRequest) (*engineprimitives.PayloadID, error)); ok {
+		return rf(ctx, req)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *types.ForkchoiceUpdateRequest) *engineprimitives.PayloadID); ok {
+		r0 = rf(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*engineprimitives.PayloadID)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *types.ForkchoiceUpdateRequest) error); ok {
+		r1 = rf(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ExecutionEngine_NotifyForkchoiceUpdate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NotifyForkchoiceUpdate'
+type ExecutionEngine_NotifyForkchoiceUpdate_Call struct {
+	*mock.Call
+}
+
+// NotifyForkchoiceUpdate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *types.ForkchoiceUpdateRequest
+func (_e *ExecutionEngine_Expecter) NotifyForkchoiceUpdate(ctx interface{}, req interface{}) *ExecutionEngine_NotifyForkchoiceUpdate_Call {
+	return &ExecutionEngine_NotifyForkchoiceUpdate_Call{Call: _e.mock.On("NotifyForkchoiceUpdate", ctx, req)}
+}
+
+func (_c *ExecutionEngine_NotifyForkchoiceUpdate_Call) Run(run func(ctx context.Context, req *types.ForkchoiceUpdateRequest)) *ExecutionEngine_NotifyForkchoiceUpdate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*types.ForkchoiceUpdateRequest))
+	})
+	return _c
+}
+
+func (_c *ExecutionEngine_NotifyForkchoiceUpdate_Call) Return(_a0 *engineprimitives.PayloadID, _a1 error) *ExecutionEngine_NotifyForkchoiceUpdate_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ExecutionEngine_NotifyForkchoiceUpdate_Call) RunAndReturn(run func(context.Context, *types.ForkchoiceUpdateRequest) (*engineprimitives.PayloadID, error)) *ExecutionEngine_NotifyForkchoiceUpdate_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // NotifyNewPayload provides a mock function with given fields: ctx, req, retryOnSyncingStatus
