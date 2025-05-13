@@ -143,16 +143,8 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 	latestHeader.SetStateRoot(st.HashTreeRoot())
 	expectedParentBlockRoot := latestHeader.HashTreeRoot()
 
-	b.EXPECT().RequestPayloadAsync(
-		mock.Anything, mock.Anything,
-		mock.Anything, mock.Anything, mock.Anything,
-	).Run(
-		func(
-			_ context.Context,
-			st builder.ReadOnlyBeaconState,
-			timestamp math.U64,
-			headEth1BlockHash, finalEth1BlockHash common.ExecutionHash,
-		) {
+	b.EXPECT().RequestPayloadAsync(mock.Anything, mock.Anything, mock.Anything).Run(
+		func(_ context.Context, st builder.ReadOnlyBeaconState, timestamp math.U64) {
 			defer wg.Done()
 			genesisHeader := genesisData.ExecutionPayloadHeader
 			genesisBlkHeader := core.GenesisBlockHeader(cs.GenesisForkVersion())
@@ -160,7 +152,11 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 
 			require.Equal(t, timestamp, consensusTime+1)
 
-			require.Equal(t, genesisHeader.GetBlockHash(), headEth1BlockHash)
+			var lph *ctypes.ExecutionPayloadHeader
+			lph, err = st.GetLatestExecutionPayloadHeader()
+			require.NoError(t, err)
+
+			require.Equal(t, genesisHeader.GetBlockHash(), lph.GetBlockHash())
 
 			var postLatestHeader *ctypes.BeaconBlockHeader
 			postLatestHeader, err = st.GetLatestBlockHeader()
@@ -168,7 +164,7 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 			parentBlockRoot := postLatestHeader.HashTreeRoot()
 			require.Equal(t, expectedParentBlockRoot, parentBlockRoot)
 
-			require.Empty(t, finalEth1BlockHash) // this is first block post genesis
+			require.Empty(t, lph.GetParentHash()) // this is first block post genesis
 
 			var stateSlot math.Slot
 			stateSlot, err = st.GetSlot()
@@ -297,27 +293,23 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 
 	// register async call to block building
 	var wg sync.WaitGroup // useful to make test wait on async checks
-	b.EXPECT().RequestPayloadAsync(
-		mock.Anything, mock.Anything,
-		mock.Anything, mock.Anything, mock.Anything,
-	).Run(
-		func(
-			_ context.Context,
-			st builder.ReadOnlyBeaconState,
-			timestamp math.U64,
-			headEth1BlockHash, finalEth1BlockHash common.ExecutionHash,
-		) {
+	b.EXPECT().RequestPayloadAsync(mock.Anything, mock.Anything, mock.Anything).Run(
+		func(_ context.Context, st builder.ReadOnlyBeaconState, timestamp math.U64) {
 			defer wg.Done()
 			require.Equal(t, timestamp, consensusTime+1)
+
+			var lph *ctypes.ExecutionPayloadHeader
+			lph, err = st.GetLatestExecutionPayloadHeader()
+			require.NoError(t, err)
 
 			require.Equal(
 				t,
 				validBlk.GetBody().GetExecutionPayload().GetBlockHash(),
-				headEth1BlockHash,
+				lph.GetBlockHash(),
 			)
 
 			genesisHeader := genesisData.ExecutionPayloadHeader.GetBlockHash()
-			require.Equal(t, genesisHeader, finalEth1BlockHash)
+			require.Equal(t, genesisHeader, lph.GetParentHash())
 
 			var postLatestHeader *ctypes.BeaconBlockHeader
 			postLatestHeader, err = st.GetLatestBlockHeader()

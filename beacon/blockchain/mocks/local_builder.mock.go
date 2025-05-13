@@ -6,8 +6,6 @@ import (
 	builder "github.com/berachain/beacon-kit/payload/builder"
 	bytes "github.com/berachain/beacon-kit/primitives/bytes"
 
-	common "github.com/berachain/beacon-kit/primitives/common"
-
 	context "context"
 
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -75,9 +73,9 @@ func (_c *LocalBuilder_Enabled_Call) RunAndReturn(run func() bool) *LocalBuilder
 	return _c
 }
 
-// RequestPayloadAsync provides a mock function with given fields: ctx, st, timestamp, headEth1BlockHash, finalEth1BlockHash
-func (_m *LocalBuilder) RequestPayloadAsync(ctx context.Context, st builder.ReadOnlyBeaconState, timestamp math.U64, headEth1BlockHash common.ExecutionHash, finalEth1BlockHash common.ExecutionHash) (*engineprimitives.PayloadID, bytes.B4, error) {
-	ret := _m.Called(ctx, st, timestamp, headEth1BlockHash, finalEth1BlockHash)
+// RequestPayloadAsync provides a mock function with given fields: ctx, st, timestamp
+func (_m *LocalBuilder) RequestPayloadAsync(ctx context.Context, st builder.ReadOnlyBeaconState, timestamp math.U64) (*engineprimitives.PayloadID, bytes.B4, error) {
+	ret := _m.Called(ctx, st, timestamp)
 
 	if len(ret) == 0 {
 		panic("no return value specified for RequestPayloadAsync")
@@ -86,27 +84,27 @@ func (_m *LocalBuilder) RequestPayloadAsync(ctx context.Context, st builder.Read
 	var r0 *engineprimitives.PayloadID
 	var r1 bytes.B4
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, builder.ReadOnlyBeaconState, math.U64, common.ExecutionHash, common.ExecutionHash) (*engineprimitives.PayloadID, bytes.B4, error)); ok {
-		return rf(ctx, st, timestamp, headEth1BlockHash, finalEth1BlockHash)
+	if rf, ok := ret.Get(0).(func(context.Context, builder.ReadOnlyBeaconState, math.U64) (*engineprimitives.PayloadID, bytes.B4, error)); ok {
+		return rf(ctx, st, timestamp)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, builder.ReadOnlyBeaconState, math.U64, common.ExecutionHash, common.ExecutionHash) *engineprimitives.PayloadID); ok {
-		r0 = rf(ctx, st, timestamp, headEth1BlockHash, finalEth1BlockHash)
+	if rf, ok := ret.Get(0).(func(context.Context, builder.ReadOnlyBeaconState, math.U64) *engineprimitives.PayloadID); ok {
+		r0 = rf(ctx, st, timestamp)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*engineprimitives.PayloadID)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, builder.ReadOnlyBeaconState, math.U64, common.ExecutionHash, common.ExecutionHash) bytes.B4); ok {
-		r1 = rf(ctx, st, timestamp, headEth1BlockHash, finalEth1BlockHash)
+	if rf, ok := ret.Get(1).(func(context.Context, builder.ReadOnlyBeaconState, math.U64) bytes.B4); ok {
+		r1 = rf(ctx, st, timestamp)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(bytes.B4)
 		}
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, builder.ReadOnlyBeaconState, math.U64, common.ExecutionHash, common.ExecutionHash) error); ok {
-		r2 = rf(ctx, st, timestamp, headEth1BlockHash, finalEth1BlockHash)
+	if rf, ok := ret.Get(2).(func(context.Context, builder.ReadOnlyBeaconState, math.U64) error); ok {
+		r2 = rf(ctx, st, timestamp)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -123,15 +121,13 @@ type LocalBuilder_RequestPayloadAsync_Call struct {
 //   - ctx context.Context
 //   - st builder.ReadOnlyBeaconState
 //   - timestamp math.U64
-//   - headEth1BlockHash common.ExecutionHash
-//   - finalEth1BlockHash common.ExecutionHash
-func (_e *LocalBuilder_Expecter) RequestPayloadAsync(ctx interface{}, st interface{}, timestamp interface{}, headEth1BlockHash interface{}, finalEth1BlockHash interface{}) *LocalBuilder_RequestPayloadAsync_Call {
-	return &LocalBuilder_RequestPayloadAsync_Call{Call: _e.mock.On("RequestPayloadAsync", ctx, st, timestamp, headEth1BlockHash, finalEth1BlockHash)}
+func (_e *LocalBuilder_Expecter) RequestPayloadAsync(ctx interface{}, st interface{}, timestamp interface{}) *LocalBuilder_RequestPayloadAsync_Call {
+	return &LocalBuilder_RequestPayloadAsync_Call{Call: _e.mock.On("RequestPayloadAsync", ctx, st, timestamp)}
 }
 
-func (_c *LocalBuilder_RequestPayloadAsync_Call) Run(run func(ctx context.Context, st builder.ReadOnlyBeaconState, timestamp math.U64, headEth1BlockHash common.ExecutionHash, finalEth1BlockHash common.ExecutionHash)) *LocalBuilder_RequestPayloadAsync_Call {
+func (_c *LocalBuilder_RequestPayloadAsync_Call) Run(run func(ctx context.Context, st builder.ReadOnlyBeaconState, timestamp math.U64)) *LocalBuilder_RequestPayloadAsync_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(builder.ReadOnlyBeaconState), args[2].(math.U64), args[3].(common.ExecutionHash), args[4].(common.ExecutionHash))
+		run(args[0].(context.Context), args[1].(builder.ReadOnlyBeaconState), args[2].(math.U64))
 	})
 	return _c
 }
@@ -141,7 +137,7 @@ func (_c *LocalBuilder_RequestPayloadAsync_Call) Return(_a0 *engineprimitives.Pa
 	return _c
 }
 
-func (_c *LocalBuilder_RequestPayloadAsync_Call) RunAndReturn(run func(context.Context, builder.ReadOnlyBeaconState, math.U64, common.ExecutionHash, common.ExecutionHash) (*engineprimitives.PayloadID, bytes.B4, error)) *LocalBuilder_RequestPayloadAsync_Call {
+func (_c *LocalBuilder_RequestPayloadAsync_Call) RunAndReturn(run func(context.Context, builder.ReadOnlyBeaconState, math.U64) (*engineprimitives.PayloadID, bytes.B4, error)) *LocalBuilder_RequestPayloadAsync_Call {
 	_c.Call.Return(run)
 	return _c
 }
