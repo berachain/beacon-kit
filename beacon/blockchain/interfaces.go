@@ -171,4 +171,6 @@ type ServiceChainSpec interface {
 	chain.BlobSpec
 	chain.ForkSpec
 	chain.ForkVersionSpec
+
+	Eth1FollowDistance() uint64
 }
