@@ -64,8 +64,6 @@ type PayloadBuilder interface {
 		ctx context.Context,
 		st builder.ReadOnlyBeaconState,
 		timestamp math.U64,
-		headEth1BlockHash common.ExecutionHash,
-		finalEth1BlockHash common.ExecutionHash,
 	) (ctypes.BuiltExecutionPayloadEnv, error)
 }
 
