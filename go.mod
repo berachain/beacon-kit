@@ -58,6 +58,7 @@ require (
 require (
 	github.com/attestantio/go-eth2-client v0.23.0
 	github.com/ethereum/go-ethereum v1.15.5
+	github.com/cosmos/ics23/go v0.11.0
 	github.com/ferranbt/fastssz v0.1.5-0.20240903094032-455b54c08c81
 	github.com/kurtosis-tech/kurtosis/api/golang v1.4.3
 	github.com/protolambda/zrnt v0.34.1

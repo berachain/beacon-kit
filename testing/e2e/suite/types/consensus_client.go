@@ -34,6 +34,7 @@ import (
 	abcitypes "github.com/cometbft/cometbft/abci/types"
 	rpcclient "github.com/cometbft/cometbft/rpc/client"
 	httpclient "github.com/cometbft/cometbft/rpc/client/http"
+	coretypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
 	"github.com/rs/zerolog"
 )
@@ -259,6 +260,17 @@ func (cc ConsensusClient) BlockProposerProof(
 		return nil, errors.New("beacon client is not initialized")
 	}
 	return cc.beaconClient.BlockProposerProof(ctx, timestampID)
+}
+
+// Commit returns the commit for a block.
+func (cc ConsensusClient) Commit(
+	ctx context.Context,
+	height *int64,
+) (*coretypes.ResultCommit, error) {
+	if cc.cometClient == nil {
+		return nil, errors.New("comet client is not initialized")
+	}
+	return cc.cometClient.Commit(ctx, height)
 }
 
 // TODO: Add helpers for the beacon node-api client (converting from
