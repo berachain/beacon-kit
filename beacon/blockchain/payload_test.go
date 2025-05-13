@@ -140,6 +140,7 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 	latestHeader, err := st.GetLatestBlockHeader()
 	require.NoError(t, err)
 	latestHeader.SetStateRoot(st.HashTreeRoot())
+	expectedParentBlockRoot := latestHeader.HashTreeRoot()
 
 	b.EXPECT().RequestPayloadAsync(
 		mock.Anything, mock.Anything, mock.Anything,
@@ -161,7 +162,7 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 
 			require.Equal(t, genesisHeader.GetBlockHash(), headEth1BlockHash)
 
-			require.Equal(t, latestHeader.HashTreeRoot(), parentBlockRoot)
+			require.Equal(t, expectedParentBlockRoot, parentBlockRoot)
 
 			require.Empty(t, finalEth1BlockHash)          // this is first block post genesis
 			require.Equal(t, constants.GenesisSlot, slot) // genesis slot in state
