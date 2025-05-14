@@ -195,7 +195,7 @@ func (s *BeaconKitE2ESuite) TestSubmitPartialWithdrawalTransaction() {
 	withdrawalTxData, err := eip7002.CreateWithdrawalRequestData(blsPubkey, withdrawalAmount)
 	s.Require().NoError(err)
 
-	// Use a pre-loaded key that has funds
+	// Use the private key of the withdrawal address of the validator used to submit the transaction
 	privateKey, err := ethcrypto.HexToECDSA("fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306")
 	s.Require().NoError(err)
 
@@ -205,6 +205,8 @@ func (s *BeaconKitE2ESuite) TestSubmitPartialWithdrawalTransaction() {
 
 	// Get the sender's nonce
 	var nonce hexutil.Uint64
+	// Use the address derived from the validator's withdrawal credentials.
+	// In kurtosis we use the same withdrawal address for all validators.
 	err = rpcClient.CallContext(ctx, &nonce, "eth_getTransactionCount",
 		common.HexToAddress("0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4"), "latest",
 	)
