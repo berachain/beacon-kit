@@ -23,17 +23,10 @@ package backend
 import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	"github.com/berachain/beacon-kit/primitives/math"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-func (b *Backend) PendingPartialWithdrawalsAtSlot(resolvedSlot math.Slot) ([]*types.PendingPartialWithdrawalData, error) {
-	// Get the state at the resolved slot.
-	st, _, err := b.StateAtSlot(resolvedSlot)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get state from slot %d", resolvedSlot)
-	}
-
-	// Get the pending partial withdrawals from the state.
+func (b *Backend) PendingPartialWithdrawalsAtState(st *statedb.StateDB) ([]*types.PendingPartialWithdrawalData, error) {
 	cTypePartialWithdrawals, err := st.GetPendingPartialWithdrawals()
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get pending partial withdrawals from state")
