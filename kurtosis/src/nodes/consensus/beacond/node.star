@@ -62,7 +62,7 @@ def get_genesis_env_vars(cl_service_name, chain_id, chain_spec):
         # In production, each validator should use an address derived from their own withdrawal credentials.
         # This is fine for a local development network.
         "WITHDRAWAL_ADDRESS": "0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4",
-        "DEPOSIT_AMOUNT": "32000000000",
+        "DEPOSIT_AMOUNT": "250000000000000",
         "BEACOND_CHAIN_SPEC": chain_spec,
         "CHAIN_SPEC": chain_spec,
     }
