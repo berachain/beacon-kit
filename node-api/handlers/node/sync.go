@@ -21,22 +21,46 @@
 package node
 
 import (
+	"errors"
+
 	"github.com/berachain/beacon-kit/node-api/handlers"
+	nodetypes "github.com/berachain/beacon-kit/node-api/handlers/node/types"
 )
 
-// Handler is the handler for the node API.
-type Handler struct {
-	*handlers.BaseHandler
-	backend Backend
-}
+var (
+	errNilBlockStore = errors.New("block store is nil")
+	errNilNode       = errors.New("node is nil")
+)
 
-// NewHandler creates a new handler for the node API.
-func NewHandler(backend Backend) *Handler {
-	h := &Handler{
-		BaseHandler: handlers.NewBaseHandler(
-			handlers.NewRouteSet(""),
-		),
-		backend: backend,
+// Syncing returns the syncing status of the node.
+func (h *Handler) Syncing(_ handlers.Context) (any, error) {
+	node := h.backend.GetNode()
+	if node == nil {
+		return nil, errNilNode
 	}
-	return h
+
+	// Get blockStore for heights
+	blockStore := node.BlockStore()
+	if blockStore == nil {
+		return nil, errNilBlockStore
+	}
+
+	latestHeight := blockStore.Height()
+	baseHeight := blockStore.Base()
+
+	response := nodetypes.SyncingData{
+		HeadSlot:     latestHeight,
+		IsOptimistic: true,
+		ELOffline:    false,
+	}
+
+	// Calculate sync distance using block heights
+	response.SyncDistance = latestHeight - baseHeight
+	// If SyncDistance is greater than 0,
+	// we consider the node to be syncing
+	if response.SyncDistance > 0 {
+		response.IsSyncing = true
+	}
+
+	return response, nil
 }
