@@ -120,7 +120,6 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 
 	// Since this is the first block called post genesis
 	// forceSyncUponProcess will be called.
-	// TODO: Make sure request matches expectations
 	dummyPayloadID := &engineprimitives.PayloadID{1, 2, 3}
 	eng.EXPECT().NotifyForkchoiceUpdate(mock.Anything, mock.Anything).Return(dummyPayloadID, nil)
 
@@ -137,6 +136,7 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 
 	// register async call to block building
 	var wg sync.WaitGroup          // useful to make test wait on async checks
+	var ch = make(chan struct{})   // useful to serialize build block goroutine and avoid data races
 	stateRoot := st.HashTreeRoot() // track state root before the changes done by optimistic build
 	latestHeader, err := st.GetLatestBlockHeader()
 	require.NoError(t, err)
@@ -154,6 +154,7 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 			headEth1BlockHash, finalEth1BlockHash common.ExecutionHash,
 		) {
 			defer wg.Done()
+			<-ch // wait for block verification to finish. This avoids data races over state reads
 			genesisHeader := genesisData.ExecutionPayloadHeader
 			genesisBlkHeader := core.GenesisBlockHeader(cs.GenesisForkVersion())
 			genesisBlkHeader.SetStateRoot(stateRoot)
@@ -186,7 +187,9 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 	)
 	require.ErrorIs(t, err, core.ErrProposerMismatch)
 
-	// wait on the block building goroutine checks
+	// unlock checks on block building goroutine and
+	// wait for it to carry out all the checks
+	ch <- struct{}{}
 	wg.Wait()
 }
 
@@ -260,7 +263,6 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 
 	// Since this is the first block called post genesis
 	// forceSyncUponProcess will be called.
-	// TODO: Make sure request matches expectations
 	dummyPayloadID := &engineprimitives.PayloadID{1, 2, 3}
 	eng.EXPECT().NotifyForkchoiceUpdate(mock.Anything, mock.Anything).Return(dummyPayloadID, nil)
 
@@ -296,7 +298,8 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 	// end of BUILD A VALID BLOCK
 
 	// register async call to block building
-	var wg sync.WaitGroup // useful to make test wait on async checks
+	var wg sync.WaitGroup        // useful to make test wait on async checks
+	var ch = make(chan struct{}) // useful to serialize build block goroutine and avoid data races
 	b.EXPECT().RequestPayloadAsync(
 		mock.Anything, mock.Anything,
 		mock.Anything, mock.Anything, mock.Anything,
@@ -308,6 +311,7 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 			headEth1BlockHash, finalEth1BlockHash common.ExecutionHash,
 		) {
 			defer wg.Done()
+			<-ch // wait for block verification to finish. This avoids data races over state reads
 			require.Equal(t, timestamp, consensusTime+1)
 
 			require.Equal(
@@ -343,7 +347,9 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	// wait on the block building goroutine checks
+	// unlock checks on block building goroutine and
+	// wait for it to carry out all the checks
+	ch <- struct{}{}
 	wg.Wait()
 }
 
