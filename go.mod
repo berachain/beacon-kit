@@ -14,7 +14,7 @@ require (
 	cosmossdk.io/core v1.0.0
 	cosmossdk.io/depinject v1.2.0
 	cosmossdk.io/errors v1.0.2
-	cosmossdk.io/log v1.5.1
+	cosmossdk.io/log v1.6.0
 	cosmossdk.io/math v1.5.3
 	cosmossdk.io/store v1.10.0-rc.1.0.20241218084712-ca559989da43
 	github.com/cenkalti/backoff/v5 v5.0.2
