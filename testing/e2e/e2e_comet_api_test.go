@@ -143,9 +143,10 @@ func (s *BeaconKitE2ESuite) TestABCIQuery() {
 
 	proofs := make([]*ics23.CommitmentProof, len(abciQuery.ProofOps.Ops))
 
-	for i := 0; i < len(abciQuery.ProofOps.Ops); i++ {
+	for i := range abciQuery.ProofOps.Ops {
 		proofs[i] = &ics23.CommitmentProof{}
-		proofs[i].Unmarshal(abciQuery.ProofOps.Ops[i].Data)
+		err = proofs[i].Unmarshal(abciQuery.ProofOps.Ops[i].Data)
+		s.Require().NoError(err)
 	}
 
 	verifyChainedMembershipProof(
@@ -184,9 +185,10 @@ func (s *BeaconKitE2ESuite) TestABCIQuery() {
 
 	proofs = make([]*ics23.CommitmentProof, len(abciQuery.ProofOps.Ops))
 
-	for i := 0; i < len(abciQuery.ProofOps.Ops); i++ {
+	for i := range abciQuery.ProofOps.Ops {
 		proofs[i] = &ics23.CommitmentProof{}
-		proofs[i].Unmarshal(abciQuery.ProofOps.Ops[i].Data)
+		err = proofs[i].Unmarshal(abciQuery.ProofOps.Ops[i].Data)
+		s.Require().NoError(err)
 	}
 
 	verifyNonMembership(
@@ -198,7 +200,14 @@ func (s *BeaconKitE2ESuite) TestABCIQuery() {
 }
 
 // https://github.com/cosmos/ibc-go/blob/20326046a09330898fac90540134d8556f4506cc/modules/core/23-commitment/types/merkle.go#L143-L189
-func verifyChainedMembershipProof(root []byte, specs []*ics23.ProofSpec, proofs []*ics23.CommitmentProof, keys [][]byte, value []byte, index int) {
+func verifyChainedMembershipProof(
+	root []byte,
+	specs []*ics23.ProofSpec,
+	proofs []*ics23.CommitmentProof,
+	keys [][]byte,
+	value []byte,
+	index int,
+) {
 	var (
 		subroot []byte
 		err     error
@@ -215,10 +224,7 @@ func verifyChainedMembershipProof(root []byte, specs []*ics23.ProofSpec, proofs 
 
 		// Since keys are passed in from highest to lowest, we must grab their indices in reverse order
 		// from the proofs and specs which are lowest to highest
-		key := keys[uint64(len(keys)-1-i)]
-		if err != nil {
-			panic(fmt.Sprintf("could not retrieve key bytes for key %s: %v", keys[len(keys)-1-i], err))
-		}
+		key := keys[len(keys)-1-i]
 
 		ep := proofs[i].GetExist()
 		if ep == nil {
@@ -226,7 +232,7 @@ func verifyChainedMembershipProof(root []byte, specs []*ics23.ProofSpec, proofs 
 		}
 
 		// verify membership of the proof at this index with appropriate key and value
-		if err := ep.Verify(specs[i], subroot, key, value); err != nil {
+		if err = ep.Verify(specs[i], subroot, key, value); err != nil {
 			panic(fmt.Sprintf("failed to verify membership proof at index %d: %v", i, err))
 		}
 		// Set value to subroot so that we verify next proof in chain commits to this subroot
@@ -235,7 +241,7 @@ func verifyChainedMembershipProof(root []byte, specs []*ics23.ProofSpec, proofs 
 
 	// Check that chained proof root equals passed-in root
 	if !bytes.Equal(root, subroot) {
-		panic(fmt.Sprintf("proof did not commit to expected root: %X, got: %X. Please ensure proof was submitted with correct proofHeight and to the correct chain.", root, subroot))
+		panic(fmt.Sprintf("proof did not commit to expected root: %X, got: %X.", root, subroot))
 	}
 }
 
@@ -255,7 +261,7 @@ func verifyNonMembership(proofs []*ics23.CommitmentProof, specs []*ics23.ProofSp
 		panic(fmt.Sprintf("commitment proof must be non-existence proof for verifying non-membership. got: %T", proofs[0]))
 	}
 
-	if err := np.Verify(specs[0], subroot, key); err != nil {
+	if err = np.Verify(specs[0], subroot, key); err != nil {
 		panic(fmt.Sprintf("failed to verify non-membership proof with key %s: %v", string(key), err))
 	}
 
