@@ -225,7 +225,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	s.Require().NoError(err)
 	height2, err := validators[1].Client.ABCIInfo(s.Ctx())
 	s.Require().NoError(err)
-	s.Require().InDelta(height.Response.LastBlockHeight, height2.Response.LastBlockHeight, 1)
+	s.Require().InDelta(height.LastBlockHeight, height2.LastBlockHeight, 1)
 
 	// Check to see if evm balance decreased.
 	postDepositBalance, err := s.JSONRPCBalancer().BalanceAt(s.Ctx(), sender.Address(), nil)
