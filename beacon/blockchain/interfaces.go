@@ -47,7 +47,7 @@ type ExecutionEngine interface {
 	// NotifyNewPayload notifies the execution client of new payload.
 	NotifyNewPayload(
 		ctx context.Context,
-		req *ctypes.NewPayloadRequest,
+		req ctypes.NewPayloadRequest,
 		retryOnSyncingStatus bool,
 	) error
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
@@ -67,25 +67,28 @@ type LocalBuilder interface {
 		ctx context.Context,
 		st *statedb.StateDB,
 		slot math.Slot,
-		timestamp uint64,
+		timestamp math.U64,
 		parentBlockRoot common.Root,
 		headEth1BlockHash common.ExecutionHash,
 		finalEth1BlockHash common.ExecutionHash,
-	) (*engineprimitives.PayloadID, error)
+	) (*engineprimitives.PayloadID, common.Version, error)
 }
 
 // StateProcessor defines the interface for processing various state transitions
 // in the beacon chain.
 type StateProcessor interface {
-	// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
-	// state
-	// from the eth1 deposits.
-	InitializePreminedBeaconStateFromEth1(
+	// InitializeBeaconStateFromEth1 initializes the premined beacon
+	// state from the eth1 deposits.
+	InitializeBeaconStateFromEth1(
 		*statedb.StateDB,
 		ctypes.Deposits,
 		*ctypes.ExecutionPayloadHeader,
 		common.Version,
 	) (transition.ValidatorUpdates, error)
+	// ProcessFork prepares the state for the fork version at the given timestamp.
+	ProcessFork(
+		st *statedb.StateDB, timestamp math.U64, logUpgrade bool,
+	) error
 	// ProcessSlots processes the state transition for a range of slots.
 	ProcessSlots(
 		*statedb.StateDB, math.Slot,
@@ -167,5 +170,6 @@ type PruningChainSpec interface {
 type ServiceChainSpec interface {
 	PruningChainSpec
 	chain.BlobSpec
-	ActiveForkVersionForSlot(slot math.Slot) common.Version
+	chain.ForkSpec
+	chain.ForkVersionSpec
 }

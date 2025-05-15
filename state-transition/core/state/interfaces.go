@@ -22,14 +22,22 @@ package state
 
 import (
 	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 type ChainSpec interface {
-	chain.EVMInflationSpec
+	chain.BerachainSpec
 	chain.WithdrawalsSpec
 	SlotToEpoch(slot math.Slot) math.Epoch
 	SlotsPerHistoricalRoot() uint64
-	MaxEffectiveBalance() uint64
+	MaxEffectiveBalance() math.Gwei
 	EpochsPerHistoricalVector() uint64
+	ActiveForkVersionForTimestamp(timestamp math.U64) common.Version
+	MinActivationBalance() math.Gwei
+}
+
+// TelemetrySink is an interface for sending metrics to a telemetry backend.
+type TelemetrySink interface {
+	IncrementCounter(key string, args ...string)
 }

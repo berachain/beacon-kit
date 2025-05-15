@@ -45,30 +45,27 @@ type PayloadAttributes struct {
 	// to the block currently being processed. This field was added for
 	// EIP-4788.
 	ParentBeaconBlockRoot common.Root `json:"parentBeaconBlockRoot"`
-
-	// forkVersion is the forkVersion of the payload attributes.
-	forkVersion common.Version
 }
 
-// NewPayloadAttributes creates a new empty PayloadAttributes.
+// NewPayloadAttributes creates a new PayloadAttributes and validates it for
+// the given fork version.
 func NewPayloadAttributes(
 	forkVersion common.Version,
-	timestamp uint64,
+	timestamp math.U64,
 	prevRandao common.Bytes32,
 	suggestedFeeRecipient common.ExecutionAddress,
 	withdrawals Withdrawals,
 	parentBeaconBlockRoot common.Root,
 ) (*PayloadAttributes, error) {
 	pa := &PayloadAttributes{
-		Timestamp:             math.U64(timestamp),
+		Timestamp:             timestamp,
 		PrevRandao:            prevRandao,
 		SuggestedFeeRecipient: suggestedFeeRecipient,
 		Withdrawals:           withdrawals,
 		ParentBeaconBlockRoot: parentBeaconBlockRoot,
-		forkVersion:           forkVersion,
 	}
 
-	if err := pa.Validate(); err != nil {
+	if err := pa.Validate(forkVersion); err != nil {
 		return nil, err
 	}
 
@@ -80,13 +77,8 @@ func (p *PayloadAttributes) GetSuggestedFeeRecipient() common.ExecutionAddress {
 	return p.SuggestedFeeRecipient
 }
 
-// GetForkVersion returns the forkVersion of the PayloadAttributes.
-func (p *PayloadAttributes) GetForkVersion() common.Version {
-	return p.forkVersion
-}
-
-// Validate validates the PayloadAttributes.
-func (p *PayloadAttributes) Validate() error {
+// Validate validates the PayloadAttributes for the given fork version.
+func (p *PayloadAttributes) Validate(forkVersion common.Version) error {
 	if p.Timestamp == 0 {
 		return ErrInvalidTimestamp
 	}
@@ -95,8 +87,8 @@ func (p *PayloadAttributes) Validate() error {
 		return ErrEmptyPrevRandao
 	}
 
-	// For any fork version after Bellatrix (Capella onwards), withdrawals are required.
-	if p.Withdrawals == nil && version.IsAfter(p.forkVersion, version.Bellatrix()) {
+	// For any fork version Capella onwards, withdrawals are required.
+	if p.Withdrawals == nil && version.EqualsOrIsAfter(forkVersion, version.Capella()) {
 		return ErrNilWithdrawals
 	}
 

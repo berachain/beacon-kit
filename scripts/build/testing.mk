@@ -36,26 +36,22 @@ NETHER_ETH_GENESIS_PATH = ${HOMEDIR}/eth-nether-genesis.json
 HOMEDIR = .tmp/beacond
 JWT_PATH = ${TESTAPP_FILES_DIR}/jwt.hex
 ETH_DATA_DIR = .tmp/eth-home
-DEVNET_CHAIN_SPEC = devnet
 
 ## Start an ephemeral `beacond` node. Must be run before running the EL to
 ## configure the deposit contract storage slots pre-genesis.
 start: 
 	@JWT_SECRET_PATH=$(JWT_PATH) \
-	CHAIN_SPEC=$(DEVNET_CHAIN_SPEC) \
-	${TESTAPP_FILES_DIR}/entrypoint.sh
+	${TESTAPP_FILES_DIR}/entrypoint.sh devnet
 
 # URLs used for dialing the eth client
 IPC_PATH = .tmp/eth-home/eth-engine.ipc
 IPC_PREFIX = ipc://
 
-# start-ipc is currently only supported while running eth client the host machine
-# Only works with geth-host rn
-start-ipc: ## start a local ephemeral `beacond` node with IPC
+## Start an ephemeral `beacond` node with a custom chain spec. The path to the chain spec
+## file must be passed as an argument. Usage: make start-custom /path/to/chain/spec.toml
+start-custom:
 	@JWT_SECRET_PATH=$(JWT_PATH) \
-	RPC_DIAL_URL=${IPC_PATH} \
-	RPC_PREFIX=${IPC_PREFIX} \
-	${TESTAPP_FILES_DIR}/entrypoint.sh
+	${TESTAPP_FILES_DIR}/entrypoint.sh file $(word 2,$(MAKECMDGOALS))
 
 ## Start an ephemeral `reth` node
 start-reth: 
@@ -74,21 +70,9 @@ start-reth:
 	--authrpc.addr "0.0.0.0" \
 	--authrpc.jwtsecret $(JWT_PATH) \
 	--datadir ${ETH_DATA_DIR} \
-	--ipcpath ${IPC_PATH}
-
-## Start a local ephemeral `reth` node on host machine
-start-reth-host: 
-	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
-	reth init --datadir ${ETH_DATA_DIR} --chain ${ETH_GENESIS_PATH}
-	reth node \
-	--chain ${ETH_GENESIS_PATH} \
-	--http \
-	--http.addr "0.0.0.0" \
-	--http.api eth,net \
-	--authrpc.addr "0.0.0.0" \
-	--authrpc.jwtsecret $(JWT_PATH) \
-	--datadir ${ETH_DATA_DIR} \
-	--ipcpath ${IPC_PATH}
+	--ipcpath ${IPC_PATH} \
+	--engine.persistence-threshold 0 \
+	--engine.memory-block-buffer-target 0
 
 ## Start an ephemeral `geth` node with docker
 start-geth: 
@@ -117,22 +101,9 @@ start-geth:
 	--datadir ${ETH_DATA_DIR} \
 	--ipcpath ${IPC_PATH}
 
-## Start a local ephemeral `geth` node on host machine
-start-geth-host: 
-	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
-	geth init --datadir ${ETH_DATA_DIR} ${ETH_GENESIS_PATH}
-	geth \
-	--datadir ${ETH_DATA_DIR} \
-	--ipcpath ${IPC_PATH} \
-	--http \
-	--http.addr 0.0.0.0 \
-	--http.api eth,net \
-	--authrpc.addr 0.0.0.0 \
-	--authrpc.jwtsecret $(JWT_PATH) \
-	--authrpc.vhosts "*"
-
 ## Start an ephemeral `nethermind` node
-start-nethermind: 
+start-nethermind:
+	# TODO: Update the genesis file to include pre-deploys
 	docker run \
 	-p 30303:30303 \
 	-p 8545:8545 \
@@ -207,29 +178,25 @@ start-erigon:
 #    Bepolia    #
 #################
 
-TESTNET_CHAIN_SPEC = testnet
 BEPOLIA_NETWORK_FILES_DIR = ${TESTAPP_FILES_DIR}/../networks/80069
 BEPOLIA_ETH_GENESIS_PATH = ${BEPOLIA_NETWORK_FILES_DIR}/eth-genesis.json
 
 start-bepolia:
 	@JWT_SECRET_PATH=$(JWT_PATH) \
-	CHAIN_SPEC=$(TESTNET_CHAIN_SPEC) \
-	${TESTAPP_FILES_DIR}/entrypoint.sh
+	${TESTAPP_FILES_DIR}/entrypoint.sh testnet
 
-# NOTE: Peers are used as bootnodes for the Geth node.
 start-geth-bepolia:
-	# TODO: Update to use latest Geth once ready
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
 	docker run \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	--rm -v $(PWD)/${BEPOLIA_NETWORK_FILES_DIR}:/${BEPOLIA_NETWORK_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	ethereum/client-go:v1.14.13 init \
+	ethereum/client-go init \
 	--datadir ${ETH_DATA_DIR} \
 	${BEPOLIA_ETH_GENESIS_PATH}
 
 	@# Read bootnodes from the file; the file is mounted into the container.
-	@bootnodes=`cat $(PWD)/$(BEPOLIA_NETWORK_FILES_DIR)/el-peers.txt`; \
+	@bootnodes=`cat $(PWD)/$(BEPOLIA_NETWORK_FILES_DIR)/el-bootnodes.txt`; \
 	echo "Using bootnodes: $$bootnodes"; \
 	docker run \
 	-p 30303:30303 \
@@ -238,7 +205,7 @@ start-geth-bepolia:
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	--rm -v $(PWD)/${BEPOLIA_NETWORK_FILES_DIR}:/${BEPOLIA_NETWORK_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	ethereum/client-go:v1.14.13 \
+	ethereum/client-go \
 	--http \
 	--http.addr 0.0.0.0 \
 	--http.api eth,net \
@@ -276,14 +243,12 @@ start-reth-bepolia:
 #    Mainnet    #
 #################
 
-MAINNET_CHAIN_SPEC = mainnet
 MAINNET_NETWORK_FILES_DIR = ${TESTAPP_FILES_DIR}/../networks/80094
 MAINNET_ETH_GENESIS_PATH = ${MAINNET_NETWORK_FILES_DIR}/eth-genesis.json
 
 start-mainnet:
 	@JWT_SECRET_PATH=$(JWT_PATH) \
-	CHAIN_SPEC=$(MAINNET_CHAIN_SPEC) \
-	${TESTAPP_FILES_DIR}/entrypoint.sh
+	${TESTAPP_FILES_DIR}/entrypoint.sh mainnet
 
 # NOTE: By default this will use the EL peers as your bootnodes. If you want specific 
 # discovery bootnodes by region, refer to testing/networks/80094/el-bootnodes.txt

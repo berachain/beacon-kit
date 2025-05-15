@@ -95,6 +95,7 @@ node_settings:
     images:
       besu: hyperledger/besu:24.5.4
       erigon: erigontech/erigon:v2.60.9
+      erigon: erigontech/erigon:latest
       geth: ethereum/client-go:latest
       nethermind: nethermind/nethermind:latest
       reth: ghcr.io/paradigmxyz/reth:latest

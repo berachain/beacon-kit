@@ -27,5 +27,6 @@ import (
 
 type ChainSpec interface {
 	DomainTypeDeposit() common.DomainType
+	GenesisForkVersion() common.Version
 	genesis.ChainSpec
 }

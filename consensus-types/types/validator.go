@@ -35,8 +35,8 @@ const ValidatorSize = 121
 
 // Compile-time checks for the Validator struct.
 var (
-	_ ssz.StaticObject                                = (*Validator)(nil)
-	_ constraints.SSZMarshallableRootable[*Validator] = (*Validator)(nil)
+	_ ssz.StaticObject                    = (*Validator)(nil)
+	_ constraints.SSZMarshallableRootable = (*Validator)(nil)
 )
 
 // Validator as defined in the Ethereum 2.0 Spec
@@ -86,11 +86,15 @@ func NewValidatorFromDeposit(
 			maxEffectiveBalance,
 		),
 		Slashed:                    false,
-		ActivationEligibilityEpoch: math.Epoch(constants.FarFutureEpoch),
-		ActivationEpoch:            math.Epoch(constants.FarFutureEpoch),
-		ExitEpoch:                  math.Epoch(constants.FarFutureEpoch),
-		WithdrawableEpoch:          math.Epoch(constants.FarFutureEpoch),
+		ActivationEligibilityEpoch: constants.FarFutureEpoch,
+		ActivationEpoch:            constants.FarFutureEpoch,
+		ExitEpoch:                  constants.FarFutureEpoch,
+		WithdrawableEpoch:          constants.FarFutureEpoch,
 	}
+}
+
+func NewEmptyValidator() *Validator {
+	return &Validator{}
 }
 
 func ComputeEffectiveBalance(
@@ -131,13 +135,7 @@ func (v *Validator) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, v)
 }
 
-// NewFromSSZ creates a new Validator object from SSZ format.
-func (v *Validator) NewFromSSZ(buf []byte) (*Validator, error) {
-	if v == nil {
-		v = &Validator{}
-	}
-	return v, ssz.DecodeFromBytes(buf, v)
-}
+func (*Validator) ValidateAfterDecodingSSZ() error { return nil }
 
 /* -------------------------------------------------------------------------- */
 /*                                   FastSSZ                                  */
@@ -215,17 +213,13 @@ func (v Validator) IsActive(epoch math.Epoch) bool {
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#is_eligible_for_activation_queue
 func (v Validator) IsEligibleForActivation(finalizedEpoch math.Epoch) bool {
 	return v.ActivationEligibilityEpoch <= finalizedEpoch &&
-		v.ActivationEpoch == math.Epoch(constants.FarFutureEpoch)
+		v.ActivationEpoch == constants.FarFutureEpoch
 }
 
-// IsEligibleForActivationQueue is defined slightly differently from Ethereum
-// 2.0 Spec
+// IsEligibleForActivationQueue is defined slightly differently from Ethereum 2.0 Spec
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#is_eligible_for_activation_queue
 func (v Validator) IsEligibleForActivationQueue(threshold math.Gwei) bool {
-	return v.ActivationEligibilityEpoch == math.Epoch(
-		constants.FarFutureEpoch,
-	) &&
-		v.EffectiveBalance >= threshold
+	return v.ActivationEligibilityEpoch == constants.FarFutureEpoch && v.EffectiveBalance >= threshold
 }
 
 // IsSlashable as defined in the Ethereum 2.0 Spec
@@ -264,6 +258,12 @@ func (v Validator) IsPartiallyWithdrawable(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/validator.md#eth1_address_withdrawal_prefix
 func (v Validator) HasEth1WithdrawalCredentials() bool {
 	return v.WithdrawalCredentials.IsValidEth1WithdrawalCredentials()
+}
+
+// HasExecutionWithdrawalCredential deviated from `has_execution_withdrawal_credential` by not checking for
+// compounding withdrawal credentials, i.e 0x02.
+func (v Validator) HasExecutionWithdrawalCredential() bool {
+	return v.HasEth1WithdrawalCredentials()
 }
 
 // HasMaxEffectiveBalance determines if the validator has the maximum effective
@@ -316,13 +316,20 @@ func (v Validator) GetWithdrawalCredentials() WithdrawalCredentials {
 	return v.WithdrawalCredentials
 }
 
+// HasCompoundingWithdrawalCredential is equivalent to has_compounding_withdrawal_credential.
+// On Berachain, all validators are considered to be 'compounding' validators, regardless of whether
+// they have the '0x2' prefix. We introduce this for spec parity.
+func (v Validator) HasCompoundingWithdrawalCredential() bool {
+	return true
+}
+
 // Status returns the current validator status based on its set epoch values.
 // This function taken from Prysm:
 // https://github.com/prysmaticlabs/prysm/blob/0229a2055e6349655a471b2427f349e40c275cee/beacon-chain/rpc/eth/helpers/validator_status.go#L31
 func (v *Validator) Status(currentEpoch math.Epoch) (string, error) {
 	activationEpoch := v.GetActivationEpoch()
 	activationEligibilityEpoch := v.GetActivationEligibilityEpoch()
-	farFutureEpoch := math.Epoch(constants.FarFutureEpoch)
+	farFutureEpoch := constants.FarFutureEpoch
 	exitEpoch := v.GetExitEpoch()
 	withdrawableEpoch := v.GetWithdrawableEpoch()
 

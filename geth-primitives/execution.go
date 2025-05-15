@@ -58,4 +58,5 @@ var (
 	DeriveSha             = coretypes.DeriveSha
 	EmptyUncleHash        = coretypes.EmptyUncleHash
 	NewStackTrie          = trie.NewStackTrie
+	CalcRequestsHash      = coretypes.CalcRequestsHash
 )

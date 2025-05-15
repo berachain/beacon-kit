@@ -26,6 +26,7 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
@@ -72,11 +73,10 @@ func (s *Store) GetBlobSidecars(slot math.Slot) (types.BlobSidecars, error) {
 		return nil, err
 	}
 
-	var sidecar *types.BlobSidecar
 	sidecars := make(types.BlobSidecars, 0, len(sidecarBzs))
 	for _, sidecarBz := range sidecarBzs {
-		sidecar, err = sidecar.NewFromSSZ(sidecarBz)
-		if err != nil {
+		sidecar := new(types.BlobSidecar)
+		if err = ssz.Unmarshal(sidecarBz, sidecar); err != nil {
 			return sidecars, err
 		}
 		sidecars = append(sidecars, sidecar)

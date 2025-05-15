@@ -95,8 +95,8 @@ func transformExecutableDataToExecutionPayload(
 	forkVersion libcommon.Version,
 	data *gethprimitives.ExecutableData,
 ) (*ctypes.ExecutionPayload, error) {
-	// Check that the fork version is supported (pre-Deneb1).
-	if !version.IsBefore(forkVersion, version.Deneb1()) {
+	// Check that the fork version is supported
+	if version.IsAfter(forkVersion, version.Electra()) {
 		return nil, ctypes.ErrForkVersionNotSupported
 	}
 

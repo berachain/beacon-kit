@@ -31,13 +31,13 @@ import (
 
 // Compile-time assertions to ensure ProposerSlashing implements necessary interfaces.
 var (
-	_ ssz.StaticObject                                       = (*ProposerSlashing)(nil)
-	_ constraints.SSZMarshallableRootable[*ProposerSlashing] = (*ProposerSlashing)(nil)
-	_ UnusedEnforcer                                         = (*ProposerSlashings)(nil)
+	_ ssz.StaticObject                    = (*ProposerSlashing)(nil)
+	_ constraints.SSZMarshallableRootable = (*ProposerSlashing)(nil)
+	_ common.UnusedEnforcer               = (*ProposerSlashings)(nil)
 )
 
 type (
-	ProposerSlashing  = UnusedType
+	ProposerSlashing  = common.UnusedType
 	ProposerSlashings []*ProposerSlashing
 )
 

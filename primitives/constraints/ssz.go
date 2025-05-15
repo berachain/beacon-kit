@@ -22,32 +22,26 @@ package constraints
 
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/karalabe/ssz"
 )
 
-// sszMarshaler is an interface for objects that can be
+// SSZMarshaler is an interface for objects that can be
 // marshaled to SSZ format.
-type sszMarshaler interface {
+type SSZMarshaler interface {
 	// MarshalSSZ marshals the object into SSZ format.
 	MarshalSSZ() ([]byte, error)
 }
 
-// sszUnmarshaler is an interface for objects that can be unmarshaled from SSZ format.
-type sszUnmarshaler[SelfT any] interface {
-	// NewFromSSZ creates a new object from SSZ format.
-	NewFromSSZ(bz []byte) (SelfT, error)
+// SSZUnmarshaler is an interface for objects that can be unmarshaled from SSZ format.
+type SSZUnmarshaler interface {
+	ssz.Object
+	ValidateAfterDecodingSSZ() error // once unmarshalled we will check whether type syntax is correct
 }
 
-// sszVersionedUnmarshaler is an interface for objects that can be
-// unmarshaled from SSZ format for specific versions.
-type sszVersionedUnmarshaler[SelfT any] interface {
-	// NewFromSSZ creates a new object from SSZ format with the given version.
-	NewFromSSZ(bz []byte, version common.Version) (SelfT, error)
-}
-
-// SSZMarshallable is an interface that combines sszMarshaler and sszUnmarshaler.
-type SSZMarshallable[SelfT any] interface {
-	sszMarshaler
-	sszUnmarshaler[SelfT]
+// SSZMarshallable is an interface that combines SSZMarshaler and SSZUnmarshaler.
+type SSZMarshallable interface {
+	SSZMarshaler
+	SSZUnmarshaler
 }
 
 // Versionable is a constraint that requires a type to have a GetForkVersion method.
@@ -56,10 +50,9 @@ type Versionable interface {
 }
 
 // SSZVersionable is an interface that combines SSZMarshallable and Versionable.
-type SSZVersionedMarshallable[SelfT any] interface {
+type SSZVersionedMarshallable interface {
 	Versionable
-	sszMarshaler
-	sszVersionedUnmarshaler[SelfT]
+	SSZMarshallable
 }
 
 // SSZRootable is an interface for objects that can compute their hash tree root.
@@ -70,14 +63,14 @@ type SSZRootable interface {
 
 // SSZMarshallableRootable is an interface that combines
 // sszMarshaler, sszUnmarshaler, and SSZRootable.
-type SSZMarshallableRootable[SelfT any] interface {
-	SSZMarshallable[SelfT]
+type SSZMarshallableRootable interface {
+	SSZMarshallable
 	SSZRootable
 }
 
 // SSZVersionedMarshallableRootable is an interface that combines
 // SSZVersionedMarshallable and SSZRootable.
-type SSZVersionedMarshallableRootable[SelfT any] interface {
-	SSZVersionedMarshallable[SelfT]
+type SSZVersionedMarshallableRootable interface {
+	SSZVersionedMarshallable
 	SSZRootable
 }

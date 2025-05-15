@@ -33,8 +33,8 @@ import (
 
 // Compile-time assertions to ensure SignedBeaconBlock implements necessary interfaces.
 var (
-	_ ssz.DynamicObject                                                = (*SignedBeaconBlock)(nil)
-	_ constraints.SSZVersionedMarshallableRootable[*SignedBeaconBlock] = (*SignedBeaconBlock)(nil)
+	_ ssz.DynamicObject                            = (*SignedBeaconBlock)(nil)
+	_ constraints.SSZVersionedMarshallableRootable = (*SignedBeaconBlock)(nil)
 )
 
 // SignedBeaconBlock is a struct that contains a BeaconBlock and a BLSSignature.
@@ -48,34 +48,6 @@ type SignedBeaconBlock struct {
 /* -------------------------------------------------------------------------- */
 /*                                 Constructors                               */
 /* -------------------------------------------------------------------------- */
-
-// NewSignedBeaconBlockFromSSZ creates a new beacon block from the given SSZ bytes.
-func NewSignedBeaconBlockFromSSZ(
-	bz []byte,
-	forkVersion common.Version,
-) (*SignedBeaconBlock, error) {
-	var (
-		block *SignedBeaconBlock
-		err   error
-	)
-
-	switch forkVersion {
-	case version.Deneb(), version.Deneb1():
-		block, err = block.NewFromSSZ(bz, forkVersion)
-		if err != nil {
-			return nil, err
-		}
-
-		// Make sure Withdrawals in execution payload are not nil.
-		block.Body.ExecutionPayload.EnsureNotNilWithdrawals()
-	default:
-		// We return a non-nil block here to appease nilaway.
-		block = &SignedBeaconBlock{}
-		err = errors.Wrapf(ErrForkVersionNotSupported, "fork %d", forkVersion)
-	}
-
-	return block, err
-}
 
 // NewSignedBeaconBlock signs the provided BeaconBlock and populates the receiver.
 //
@@ -96,6 +68,18 @@ func NewSignedBeaconBlock(
 	}, nil
 }
 
+func NewEmptySignedBeaconBlockWithVersion(forkVersion common.Version) (*SignedBeaconBlock, error) {
+	switch forkVersion {
+	case version.Deneb(), version.Deneb1(), version.Electra():
+		return &SignedBeaconBlock{
+			BeaconBlock: NewEmptyBeaconBlockWithVersion(forkVersion),
+		}, nil
+	default:
+		// We return a non-nil block here to appease nilaway.
+		return nil, errors.Wrapf(ErrForkVersionNotSupported, "fork %d", forkVersion)
+	}
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                     SSZ                                    */
 /* -------------------------------------------------------------------------- */
@@ -104,7 +88,7 @@ func NewSignedBeaconBlock(
 // in SSZ encoding.
 // Total size: MessageOffset (4) + Signature (96) + MessageContentDynamic.
 func (b *SignedBeaconBlock) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
-	var size = uint32(constants.SSZOffsetSize + bytes.B96Size)
+	size := constants.SSZOffsetSize + bytes.B96Size
 	if fixed {
 		return size
 	}
@@ -127,20 +111,8 @@ func (b *SignedBeaconBlock) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 
-// empty creates a new SignedBeaconBlock with empty values.
-func (*SignedBeaconBlock) empty(version common.Version) *SignedBeaconBlock {
-	var bb *BeaconBlock
-	return &SignedBeaconBlock{
-		BeaconBlock: bb.empty(version),
-	}
-}
-
-// NewFromSSZ creates a new SignedBeaconBlock from SSZ format.
-func (b *SignedBeaconBlock) NewFromSSZ(
-	buf []byte, version common.Version,
-) (*SignedBeaconBlock, error) {
-	b = b.empty(version)
-	return b, ssz.DecodeFromBytes(buf, b)
+func (b *SignedBeaconBlock) ValidateAfterDecodingSSZ() error {
+	return b.BeaconBlock.ValidateAfterDecodingSSZ()
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the

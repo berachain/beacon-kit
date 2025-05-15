@@ -29,8 +29,8 @@ import (
 
 // Compile-time assertions to ensure SignedBeaconBlockHeader implements necessary interfaces.
 var (
-	_ ssz.StaticObject                                              = (*SignedBeaconBlockHeader)(nil)
-	_ constraints.SSZMarshallableRootable[*SignedBeaconBlockHeader] = (*SignedBeaconBlockHeader)(nil)
+	_ ssz.StaticObject                    = (*SignedBeaconBlockHeader)(nil)
+	_ constraints.SSZMarshallableRootable = (*SignedBeaconBlockHeader)(nil)
 )
 
 // SignedBeaconBlockHeader is a struct that contains a BeaconBlockHeader and a BLSSignature.
@@ -79,13 +79,7 @@ func (b *SignedBeaconBlockHeader) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 
-// NewFromSSZ creates a new SignedBeaconBlockHeader from SSZ format.
-func (b *SignedBeaconBlockHeader) NewFromSSZ(buf []byte) (*SignedBeaconBlockHeader, error) {
-	if b == nil {
-		b = &SignedBeaconBlockHeader{}
-	}
-	return b, ssz.DecodeFromBytes(buf, b)
-}
+func (*SignedBeaconBlockHeader) ValidateAfterDecodingSSZ() error { return nil }
 
 // HashTreeRoot computes the SSZ hash tree root of the
 // SignedBeaconBlockHeader object.

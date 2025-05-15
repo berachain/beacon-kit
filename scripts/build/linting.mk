@@ -48,12 +48,12 @@ license-install:
 
 license: license-install
 	@echo "--> Running addlicense with -check"
-	(addlicense -check -v -f $(ROOT_DIR)/LICENSE.header -ignore "contracts/**" .) || exit 1;
+	(addlicense -check -v -f $(ROOT_DIR)/LICENSE.header -ignore "contracts/**" -ignore ".idea/**" .) || exit 1;
 	@printf "License check complete\n"
 
 license-fix: license-install
 	echo "--> Running addlicense"
-	(addlicense -v -f $(ROOT_DIR)/LICENSE.header -ignore "contracts/**" .) || exit 1;
+	(addlicense -v -f $(ROOT_DIR)/LICENSE.header -ignore "contracts/**" -ignore ".idea/**" .) || exit 1;
 	@printf "License check complete\n"
 
 #################
@@ -65,7 +65,7 @@ nilaway-install:
 
 nilaway: nilaway-install
 	@echo "--> Running nilaway"
-	(nilaway -exclude-errors-in-files "geth-primitives/deposit/" -v ./...) || exit 1;
+	(nilaway -test=false -exclude-errors-in-files "geth-primitives/deposit/","geth-primitives/ssztest/" -v ./...) || exit 1;
 	@printf "Nilaway check complete\n"
 
 #################
