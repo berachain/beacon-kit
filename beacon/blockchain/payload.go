@@ -161,19 +161,15 @@ func (s *Service) rebuildPayloadForRejectedBlock(
 	// In order to rebuild a payload for the current slot, we need to know the
 	// previous block root, since we know that this is an unmodified state.
 	// We can safely get the latest block header and then rebuild the
-	// previous block and it's root.
+	// previous block and its root, similarly to what we do in processSlot
 	latestHeader, err := st.GetLatestBlockHeader()
 	if err != nil {
 		return err
 	}
-
-	stateSlot, err := st.GetSlot()
-	if err != nil {
-		return err
-	}
-
-	// Set the previous state root on the header.
 	latestHeader.SetStateRoot(st.HashTreeRoot())
+	if err = st.SetLatestBlockHeader(latestHeader); err != nil {
+		return fmt.Errorf("rebuildPayloadForRejectedBlock, failed updating latest block header: %w", err)
+	}
 
 	// We need to get the *last* finalized execution payload, thus
 	// the BeaconState that was passed in must be `unmodified`.
@@ -191,16 +187,16 @@ func (s *Service) rebuildPayloadForRejectedBlock(
 		return err
 	}
 
+	stateSlot, err := st.GetSlot()
+	if err != nil {
+		return err
+	}
+
 	// Submit a request for a new payload.
 	if _, _, err = s.localBuilder.RequestPayloadAsync(
 		ctx,
 		st,
-		// We are rebuilding for the current slot.
-		stateSlot,
 		nextPayloadTimestamp,
-		// We set the parent root to the previous block root. The HashTreeRoot
-		// of the header is the same as the HashTreeRoot of the block.
-		latestHeader.HashTreeRoot(),
 		// We set the head of our chain to the previous finalized block.
 		lph.GetBlockHash(),
 		// We can say that the payload from the previous block is *finalized*,
@@ -270,11 +266,7 @@ func (s *Service) optimisticPayloadBuild(
 	payload := blk.GetBody().GetExecutionPayload()
 	if _, _, err = s.localBuilder.RequestPayloadAsync(
 		ctx, st,
-		slot,
 		nextPayloadTimestamp,
-		// The previous block root is simply the root of the block we just
-		// processed.
-		blk.HashTreeRoot(),
 		// We set the head of our chain to the block we just processed.
 		payload.GetBlockHash(),
 		// We can say that the payload from the previous block is *finalized*,
