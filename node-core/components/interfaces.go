@@ -509,7 +509,7 @@ type (
 		NodeAPIConfigBackend
 	}
 
-	// NodeAPIBackend is the interface for backend of the beacon API.
+	// NodeAPIBeaconBackend is the interface for backend of the beacon API.
 	NodeAPIBeaconBackend interface {
 		GenesisBackend
 		BlobBackend
@@ -517,6 +517,7 @@ type (
 		RandaoBackend
 		StateBackend
 		ValidatorBackend
+		WithdrawalBackend
 		// GetSlotByBlockRoot retrieves the slot by a given root from the store.
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		// GetSlotByStateRoot retrieves the slot by a given root from the store.
@@ -557,6 +558,10 @@ type (
 
 	StateBackend interface {
 		StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error)
+	}
+
+	WithdrawalBackend interface {
+		PendingPartialWithdrawalsAtState(*statedb.StateDB) ([]*types.PendingPartialWithdrawalData, error)
 	}
 
 	ValidatorBackend interface {
