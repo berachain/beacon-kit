@@ -26,12 +26,15 @@ import (
 	"sync"
 
 	sdkcollections "cosmossdk.io/collections"
+	coreStore "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
 	"cosmossdk.io/store"
 	"cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/storage/encoding"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -55,20 +58,35 @@ type KVStore struct {
 }
 
 func NewStore(
-	db dbm.DB,
+	baseDB dbm.DB,
 	metrics metrics.StoreMetrics,
-	closeFunc CloseFunc,
 ) *KVStore {
+	db := NewSynced(baseDB)
+	closeFn := db.Close
+
 	// TODO ABENEGIA: fix logging
 	cms := store.NewCommitMultiStore(db, log.NewNopLogger(), metrics)
 	cms.MountStoreWithDB(DepositStoreKey, storetypes.StoreTypeIAVL, nil)
-
 	if err := cms.LoadLatestVersion(); err != nil {
 		panic(fmt.Errorf("deposit store v2: failed loading latest version: %w", err))
 	}
+
+	var kvsp coreStore.KVStoreService
+	schemaBuilder := sdkcollections.NewSchemaBuilder(kvsp)
+	store := sdkcollections.NewMap(
+		schemaBuilder,
+		sdkcollections.NewPrefix(0),
+		"deposits store",
+		sdkcollections.Uint64Key,
+		encoding.SSZValueCodec[*ctypes.Deposit]{
+			NewEmptyF: ctypes.NewEmptyDeposit,
+		},
+	)
+
 	return &KVStore{
+		store:     store,
 		cms:       cms,
-		closeFunc: closeFunc,
+		closeFunc: closeFn,
 	}
 }
 
@@ -114,7 +132,7 @@ func (kv *KVStore) GetDepositsByIndex(
 	depRange uint64,
 ) (
 	ctypes.Deposits,
-	[]byte, // merkle root of deposits store
+	common.Root, // deposits common root
 	error,
 ) {
 	kv.mu.RLock()
@@ -124,7 +142,15 @@ func (kv *KVStore) GetDepositsByIndex(
 		endIdx   = startIndex + depRange
 	)
 
-	depositsRoot := kv.cms.WorkingHash()
+	// TODO ABENEGIA: find a better way to enforce deposit root length
+	rootBytes := kv.cms.WorkingHash()
+	if len(rootBytes) != len(common.Root{}) {
+		panic(fmt.Sprintf(
+			"working has length %d not compatible with common Root",
+			len(rootBytes),
+		))
+	}
+	depositsRoot := common.Root(rootBytes)
 
 	for i := startIndex; i < endIdx; i++ {
 		deposit, err := kv.store.Get(ctx, i)
@@ -134,7 +160,7 @@ func (kv *KVStore) GetDepositsByIndex(
 		case errors.Is(err, sdkcollections.ErrNotFound):
 			return deposits, depositsRoot, nil
 		default:
-			return deposits, nil, errors.Wrapf(
+			return deposits, depositsRoot, errors.Wrapf(
 				err, "failed to get deposit %d, start: %d, end: %d", i, startIndex, endIdx,
 			)
 		}
