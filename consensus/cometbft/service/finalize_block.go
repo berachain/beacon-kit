@@ -23,10 +23,19 @@ package cometbft
 import (
 	"context"
 	"fmt"
+	"time"
 
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/sourcegraph/conc/iter"
 )
+
+// Delay to use before the upgrade to SBT.
+const constBlockDelay = 500 * time.Millisecond
+
+// Height to enable SBT. Changes will be applied in the next block after this
+// (10_000_001).
+const sbtEnableHeight = 10_000_100
+const sbtConsensusParamUpdate = 10_000_000
 
 func (s *Service) finalizeBlock(
 	ctx context.Context,
@@ -88,12 +97,54 @@ func (s *Service) finalizeBlockInternal(
 		return nil, err
 	}
 
+	if s.cmtConsensusParams.Feature.SBTEnableHeight == 0 && req.Height == sbtConsensusParamUpdate {
+		s.cmtConsensusParams.Feature.SBTEnableHeight = sbtEnableHeight
+	}
+
 	cp := s.cmtConsensusParams.ToProto()
 	return &cmtabci.FinalizeBlockResponse{
 		TxResults:             txResults,
 		ValidatorUpdates:      valUpdates,
 		ConsensusParamUpdates: &cp,
+		NextBlockDelay:        s.nextBlockDelay(req),
 	}, nil
+}
+
+func (s *Service) nextBlockDelay(req *cmtabci.FinalizeBlockRequest) time.Duration {
+	// c0. SBT is not enabled => use the old block delay.
+	if s.cmtConsensusParams.Feature.SBTEnableHeight <= 0 {
+		return constBlockDelay
+	}
+
+	// c1. current height < SBTEnableHeight => wait for the upgrade.
+	if req.Height < s.cmtConsensusParams.Feature.SBTEnableHeight {
+		return constBlockDelay
+	}
+
+	// c2. current height == SBTEnableHeight => initialize the block delay.
+	if req.Height == s.cmtConsensusParams.Feature.SBTEnableHeight {
+		s.blockDelay = &BlockDelay{
+			InitialTime:       req.Time,
+			InitialHeight:     req.Height,
+			PreviousBlockTime: req.Time,
+		}
+		return constBlockDelay
+	}
+
+	// c3. current height > SBTEnableHeight
+	// c3.1
+	//
+	// The upgrade was successfully applied and the block delay is set.
+	if s.blockDelay != nil {
+		return s.blockDelay.Next(req.Time, req.Height)
+	} else {
+		// c3.2
+		//
+		// Looks like we've skipped SBTEnableHeight (probably restoring from the
+		// snapshot) => panic.
+		panic(fmt.Sprintf("nil block delay at height %d past SBTEnableHeight %d. This is only possible w/ statesync, which is not supported by SBT atm",
+			req.Height, s.cmtConsensusParams.Feature.SBTEnableHeight))
+	}
 }
 
 // workingHash gets the apphash that will be finalized in commit.
