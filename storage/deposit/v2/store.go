@@ -26,13 +26,13 @@ import (
 	"sync"
 
 	sdkcollections "cosmossdk.io/collections"
-	coreStore "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
 	"cosmossdk.io/store"
 	"cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/storage/encoding"
 	dbm "github.com/cosmos/cosmos-db"
@@ -71,7 +71,7 @@ func NewStore(
 		panic(fmt.Errorf("deposit store v2: failed loading latest version: %w", err))
 	}
 
-	var kvsp coreStore.KVStoreService
+	kvsp := storage.NewKVStoreProvider(db)
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kvsp)
 	store := sdkcollections.NewMap(
 		schemaBuilder,
