@@ -127,8 +127,8 @@ func (kv *KVStore) EnqueueDeposits(_ context.Context, deposits []*ctypes.Deposit
 	defer kv.mu.Unlock()
 
 	// create context out of commit multistore, simiarly to what we do in consensus service
-	// ms := kv.cms.CacheMultiStore()
-	sdkCtx := sdk.NewContext(kv.cms /*ms*/, false, sdklog.NewNopLogger()) // .WithContext(ctx)
+	ms := kv.cms.CacheMultiStore()
+	sdkCtx := sdk.NewContext(ms, false, sdklog.NewNopLogger()) // .WithContext(ctx)
 
 	for _, deposit := range deposits {
 		idx := deposit.GetIndex().Unwrap()
@@ -137,10 +137,10 @@ func (kv *KVStore) EnqueueDeposits(_ context.Context, deposits []*ctypes.Deposit
 			return errors.Wrapf(err, "failed to enqueue deposit %d", idx)
 		}
 	}
-	// ms.Write()
-	kv.cms.Commit()
+	ms.Write()
+	commit := kv.cms.Commit()
 
-	root, err := bytesToRoot(kv.cms.WorkingHash())
+	root, err := bytesToRoot(commit.Hash)
 	if err != nil {
 		panic(err)
 	}
