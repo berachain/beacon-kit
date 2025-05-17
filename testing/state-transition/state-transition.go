@@ -44,6 +44,7 @@ import (
 	"github.com/berachain/beacon-kit/storage"
 	"github.com/berachain/beacon-kit/storage/beacondb"
 	"github.com/berachain/beacon-kit/storage/db"
+	"github.com/berachain/beacon-kit/storage/deposit"
 	depositstorev1 "github.com/berachain/beacon-kit/storage/deposit/v1"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -75,7 +76,7 @@ var (
 func BuildTestStores() (
 	storetypes.CommitMultiStore,
 	*beacondb.KVStore,
-	*depositstorev1.KVStore,
+	deposit.Store,
 	error,
 ) {
 	db, err := db.OpenDB("", dbm.MemDBBackend)
@@ -109,7 +110,7 @@ func BuildTestStores() (
 func SetupTestState(t *testing.T, cs chain.Spec) (
 	*TestStateProcessorT,
 	*TestBeaconStateT,
-	*depositstorev1.KVStore,
+	deposit.Store,
 	core.ReadOnlyContext,
 	storetypes.CommitMultiStore,
 	*mocks.ExecutionEngine,

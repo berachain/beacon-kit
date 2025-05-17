@@ -40,7 +40,7 @@ import (
 	"github.com/berachain/beacon-kit/state-transition/core"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/berachain/beacon-kit/storage/block"
-	depositdbv1 "github.com/berachain/beacon-kit/storage/deposit/v1"
+	"github.com/berachain/beacon-kit/storage/deposit"
 )
 
 type (
@@ -163,7 +163,7 @@ type (
 	StorageBackend interface {
 		AvailabilityStore() *dastore.Store
 		BlockStore() *block.KVStore[*ctypes.BeaconBlock]
-		DepositStore() *depositdbv1.KVStore
+		DepositStore() deposit.Store
 		// StateFromContext retrieves the beacon state from the given context.
 		StateFromContext(context.Context) *statedb.StateDB
 	}

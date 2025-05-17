@@ -33,7 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/state-transition/core/state"
-	depositdbv1 "github.com/berachain/beacon-kit/storage/deposit/v1"
+	"github.com/berachain/beacon-kit/storage/deposit"
 )
 
 // StateProcessor is a basic Processor, which takes care of the
@@ -52,7 +52,7 @@ type StateProcessor struct {
 	// executionEngine is the engine responsible for executing transactions.
 	executionEngine ExecutionEngine
 	// ds allows checking payload deposits against the deposit contract
-	ds *depositdbv1.KVStore
+	ds deposit.Store
 	// metrics is the metrics for the service.
 	metrics *stateProcessorMetrics
 	// logDeneb1Once enforces logging the Deneb1 fork information at most once.
@@ -64,7 +64,7 @@ func NewStateProcessor(
 	logger log.Logger,
 	cs ChainSpec,
 	executionEngine ExecutionEngine,
-	ds *depositdbv1.KVStore,
+	ds deposit.Store,
 	signer crypto.BLSSigner,
 	fGetAddressFromPubKey func(crypto.BLSPubkey) ([]byte, error),
 	telemetrySink TelemetrySink,

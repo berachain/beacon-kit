@@ -28,7 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/state-transition/core"
-	depositdbv1 "github.com/berachain/beacon-kit/storage/deposit/v1"
+	"github.com/berachain/beacon-kit/storage/deposit"
 )
 
 // StateProcessorInput is the input for the state processor for the depinject
@@ -38,7 +38,7 @@ type StateProcessorInput struct {
 	Logger          *phuslu.Logger
 	ChainSpec       chain.Spec
 	ExecutionEngine *engine.Engine
-	DepositStore    *depositdbv1.KVStore
+	DepositStore    deposit.Store
 	Signer          crypto.BLSSigner
 	TelemetrySink   *metrics.TelemetrySink
 }

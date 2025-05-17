@@ -29,7 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
-	depositdbv1 "github.com/berachain/beacon-kit/storage/deposit/v1"
+	"github.com/berachain/beacon-kit/storage/deposit"
 )
 
 func validateGenesisDeposits(
@@ -73,7 +73,7 @@ func validateGenesisDeposits(
 func ValidateNonGenesisDeposits(
 	ctx context.Context,
 	st *statedb.StateDB,
-	depositStore *depositdbv1.KVStore,
+	depositStore deposit.Store,
 	maxDepositsPerBlock uint64,
 	blkDeposits []*ctypes.Deposit,
 	blkDepositRoot common.Root,

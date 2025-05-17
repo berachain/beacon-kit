@@ -30,7 +30,7 @@ import (
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/berachain/beacon-kit/storage/beacondb"
 	"github.com/berachain/beacon-kit/storage/block"
-	depositdbv1 "github.com/berachain/beacon-kit/storage/deposit/v1"
+	"github.com/berachain/beacon-kit/storage/deposit"
 )
 
 // Backend is a struct that holds the storage backend. It provides a simple
@@ -39,7 +39,7 @@ type Backend struct {
 	chainSpec         chain.Spec
 	availabilityStore *dastore.Store
 	kvStore           *beacondb.KVStore
-	depositStore      *depositdbv1.KVStore
+	depositStore      deposit.Store
 	blockStore        *block.KVStore[*types.BeaconBlock]
 	logger            log.Logger
 	telemetrySink     statedb.TelemetrySink
@@ -49,7 +49,7 @@ func NewBackend(
 	chainSpec chain.Spec,
 	availabilityStore *dastore.Store,
 	kvStore *beacondb.KVStore,
-	depositStore *depositdbv1.KVStore,
+	depositStore deposit.Store,
 	blockStore *block.KVStore[*types.BeaconBlock],
 	logger log.Logger,
 	telemetrySink statedb.TelemetrySink,
@@ -92,6 +92,6 @@ func (k Backend) BlockStore() *block.KVStore[*types.BeaconBlock] {
 }
 
 // DepositStore returns the deposit store struct initialized with a.
-func (k Backend) DepositStore() *depositdbv1.KVStore {
+func (k Backend) DepositStore() deposit.Store {
 	return k.depositStore
 }
