@@ -26,7 +26,7 @@ import (
 	"sync"
 
 	sdkcollections "cosmossdk.io/collections"
-	coreStore "cosmossdk.io/core/store"
+	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
 	"cosmossdk.io/store"
 	"cosmossdk.io/store/metrics"
@@ -34,13 +34,24 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/storage"
 	"github.com/berachain/beacon-kit/storage/encoding"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 //nolint:gochecknoglobals // storeKey is a singleton.
-var DepositStoreKey = storetypes.NewKVStoreKey("deposits")
+var (
+	DepositStoreKey    = storetypes.NewKVStoreKey("deposits")
+	depositStorePrefix = sdkcollections.NewPrefix(0)
+	depositStoreName   = "deposits"
+)
+
+type KVStoreService struct{}
+
+func (k KVStoreService) OpenKVStore(ctx context.Context) corestore.KVStore {
+	return storage.NewKVStore(sdk.UnwrapSDKContext(ctx).KVStore(DepositStoreKey))
+}
 
 // closure type for closing the store.
 // TODO: consider integrating this store into consensus service one (separate store)
@@ -55,6 +66,8 @@ type KVStore struct {
 
 	closeFunc CloseFunc
 	once      sync.Once
+
+	depositsRoot common.Root
 }
 
 func NewStore(
@@ -71,22 +84,29 @@ func NewStore(
 		panic(fmt.Errorf("deposit store v2: failed loading latest version: %w", err))
 	}
 
-	var kvsp coreStore.KVStoreService
-	schemaBuilder := sdkcollections.NewSchemaBuilder(kvsp)
+	schemaBuilder := sdkcollections.NewSchemaBuilder(KVStoreService{})
 	store := sdkcollections.NewMap(
 		schemaBuilder,
-		sdkcollections.NewPrefix(0),
-		"deposits store",
+		depositStorePrefix,
+		depositStoreName,
 		sdkcollections.Uint64Key,
 		encoding.SSZValueCodec[*ctypes.Deposit]{
 			NewEmptyF: ctypes.NewEmptyDeposit,
 		},
 	)
+	if _, err := schemaBuilder.Build(); err != nil {
+		panic(fmt.Errorf("failed building deposits store schema: %w", err))
+	}
+	root, err := bytesToRoot(cms.WorkingHash())
+	if err != nil {
+		panic(err)
+	}
 
 	return &KVStore{
-		store:     store,
-		cms:       cms,
-		closeFunc: closeFn,
+		store:        store,
+		cms:          cms,
+		closeFunc:    closeFn,
+		depositsRoot: root,
 	}
 }
 
@@ -98,23 +118,28 @@ func (kv *KVStore) Close() error {
 	return err
 }
 
-func (kv *KVStore) EnqueueDeposits(ctx context.Context, deposits []*ctypes.Deposit) error {
+func (kv *KVStore) EnqueueDeposits( /*ctx context.Context,*/ deposits []*ctypes.Deposit) error {
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
 
 	// create context out of commit multistore, simiarly to what we do in consensus service
-	ms := kv.cms.CacheMultiStore()
-
-	newCtx := sdk.NewContext(ms, false, log.NewNopLogger()).WithContext(ctx)
+	// ms := kv.cms.CacheMultiStore()
+	sdkCtx := sdk.NewContext(kv.cms /*ms*/, false, log.NewNopLogger()) // .WithContext(ctx)
 
 	for _, deposit := range deposits {
 		idx := deposit.GetIndex().Unwrap()
-		//nolint:contextcheck // newCtx includes ctx
-		if err := kv.store.Set(newCtx, idx, deposit); err != nil {
+		if err := kv.store.Set(sdkCtx, idx, deposit); err != nil {
 			return errors.Wrapf(err, "failed to enqueue deposit %d", idx)
 		}
 	}
+	// ms.Write()
 	kv.cms.Commit()
+
+	root, err := bytesToRoot(kv.cms.WorkingHash())
+	if err != nil {
+		panic(err)
+	}
+	kv.depositsRoot = root
 
 	// TODO ABENEGIA: re-add logging
 	// if len(deposits) > 0 {
@@ -127,7 +152,7 @@ func (kv *KVStore) EnqueueDeposits(ctx context.Context, deposits []*ctypes.Depos
 }
 
 func (kv *KVStore) GetDepositsByIndex(
-	ctx context.Context,
+	// ctx context.Context, // we use the internal context here
 	startIndex uint64,
 	depRange uint64,
 ) (
@@ -140,17 +165,8 @@ func (kv *KVStore) GetDepositsByIndex(
 	var (
 		deposits = make(ctypes.Deposits, 0, depRange)
 		endIdx   = startIndex + depRange
+		ctx      = sdk.NewContext(kv.cms, false, log.NewNopLogger())
 	)
-
-	// TODO ABENEGIA: find a better way to enforce deposit root length
-	rootBytes := kv.cms.WorkingHash()
-	if len(rootBytes) != len(common.Root{}) {
-		panic(fmt.Sprintf(
-			"working has length %d not compatible with common Root",
-			len(rootBytes),
-		))
-	}
-	depositsRoot := common.Root(rootBytes)
 
 	for i := startIndex; i < endIdx; i++ {
 		deposit, err := kv.store.Get(ctx, i)
@@ -158,9 +174,9 @@ func (kv *KVStore) GetDepositsByIndex(
 		case err == nil:
 			deposits = append(deposits, deposit)
 		case errors.Is(err, sdkcollections.ErrNotFound):
-			return deposits, depositsRoot, nil
+			return deposits, kv.depositsRoot, nil
 		default:
-			return deposits, depositsRoot, errors.Wrapf(
+			return deposits, kv.depositsRoot, errors.Wrapf(
 				err, "failed to get deposit %d, start: %d, end: %d", i, startIndex, endIdx,
 			)
 		}
@@ -168,5 +184,15 @@ func (kv *KVStore) GetDepositsByIndex(
 
 	// TODO ABENEGIA: re-add logging
 	// kv.logger.Debug("GetDepositsByIndex", "start", startIndex, "end", endIdx)
-	return deposits, depositsRoot, nil
+	return deposits, kv.depositsRoot, nil
+}
+
+func bytesToRoot(b []byte) (common.Root, error) {
+	if len(b) != len(common.Root{}) {
+		return common.Root{}, fmt.Errorf(
+			"working has length %d not compatible with common Root",
+			len(b),
+		)
+	}
+	return common.Root(b), nil
 }
