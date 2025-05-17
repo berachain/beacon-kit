@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	depositstorev1 "github.com/berachain/beacon-kit/storage/deposit/v1"
 	depositstorev2 "github.com/berachain/beacon-kit/storage/deposit/v2"
+	dbm "github.com/cosmos/cosmos-db"
 )
 
 type Store interface {
@@ -53,20 +54,24 @@ type generalStore struct {
 
 	storeV1 *depositstorev1.KVStore
 
-	//nolint:unused // TODO ABENEGIA: wip, the the whole point of generalStore is to switch among store versions
 	storeV2 *depositstorev2.KVStore
 }
 
 func NewStore(
 	cs chain.Spec,
-	kvsp store.KVStoreService,
-	closeFunc CloseFunc,
+	kvspV1 store.KVStoreService,
+	closeFuncV1 CloseFunc,
+
+	dbV2 dbm.DB,
+
 	logger log.Logger,
 ) Store {
-	storeV1 := depositstorev1.NewStore(kvsp, depositstorev1.CloseFunc(closeFunc), logger)
+	storeV1 := depositstorev1.NewStore(kvspV1, depositstorev1.CloseFunc(closeFuncV1), logger)
+	storeV2 := depositstorev2.NewStore(dbV2, logger)
 	return &generalStore{
 		cs:      cs,
 		storeV1: storeV1,
+		storeV2: storeV2,
 	}
 }
 

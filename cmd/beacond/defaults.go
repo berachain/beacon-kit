@@ -37,7 +37,7 @@ func DefaultComponents() []any {
 		components.ProvideNode,
 		components.ProvideConfig,
 		components.ProvideServerConfig,
-		components.ProvideDepositStoreV1,
+		components.ProvideDepositStore,
 		components.ProvideEngineClient,
 		components.ProvideExecutionEngine,
 		components.ProvideJWTSecret,

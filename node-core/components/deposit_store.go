@@ -41,25 +41,31 @@ type DepositStoreInput struct {
 	AppOpts config.AppOptions
 }
 
-// ProvideDepositStoreV1 is a function that provides the module to the
-// application.
-func ProvideDepositStoreV1(in DepositStoreInput) (deposit.Store, error) {
+// ProvideDepositStore is a function that provides the module to the application.
+func ProvideDepositStore(in DepositStoreInput) (deposit.Store, error) {
 	var (
 		rootDir = cast.ToString(in.AppOpts.Get(flags.FlagHome))
 		dataDir = filepath.Join(rootDir, "data")
-		name    = "deposits"
+		nameV1  = "deposits"
+		nameV2  = "depositsV2"
 	)
 
-	pdb, err := dbm.NewDB(name, dbm.PebbleDBBackend, dataDir)
+	dbV1, err := dbm.NewDB(nameV1, dbm.PebbleDBBackend, dataDir)
 	if err != nil {
 		return nil, err
 	}
-	spdb := depositstorev1.NewSynced(pdb)
+	spdbV1 := depositstorev1.NewSynced(dbV1)
+
+	dbV2, err := dbm.NewDB(nameV2, dbm.PebbleDBBackend, dataDir)
+	if err != nil {
+		return nil, err
+	}
 
 	return deposit.NewStore(
 		nil,
-		storage.NewKVStoreProvider(spdb),
-		spdb.Close,
+		storage.NewKVStoreProvider(spdbV1),
+		spdbV1.Close,
+		dbV2,
 		in.Logger.With("service", "deposit-store"),
 	), nil
 }

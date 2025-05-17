@@ -25,7 +25,6 @@ import (
 	"testing"
 
 	"cosmossdk.io/log"
-	"cosmossdk.io/store/metrics"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -41,13 +40,12 @@ func TestSimpleInsertionAndRetrieval(t *testing.T) {
 	baseDB, err := db.OpenDB("", dbm.MemDBBackend)
 	require.NoError(t, err)
 
-	nopMetrics := metrics.NewNoOpMetrics()
 	nopLog := log.NewNopLogger()
 	dummyCtx := context.Background()
 
 	var store *deposit.KVStore
 	require.NotPanics(t, func() {
-		store = deposit.NewStore(baseDB, nopMetrics, nopLog)
+		store = deposit.NewStore(baseDB, nopLog)
 	})
 
 	ins := []*types.Deposit{
@@ -89,11 +87,9 @@ func TestSimpleInsertionAndRetrieval(t *testing.T) {
 	require.NoError(t, store.Close())
 
 	// repoen the store and check that data can be retrieved again
-	nopMetrics = metrics.NewNoOpMetrics()
 	var newStore *deposit.KVStore
-
 	require.NotPanics(t, func() {
-		newStore = deposit.NewStore(baseDB, nopMetrics, nopLog)
+		newStore = deposit.NewStore(baseDB, nopLog)
 	})
 
 	outs2, root2, err := newStore.GetDepositsByIndex(dummyCtx, ins[0].Index, uint64(len(ins)))

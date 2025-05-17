@@ -27,12 +27,13 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	corestore "cosmossdk.io/core/store"
-	"cosmossdk.io/log"
+	sdklog "cosmossdk.io/log"
 	"cosmossdk.io/store"
-	"cosmossdk.io/store/metrics"
+	storemetrics "cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/storage"
 	"github.com/berachain/beacon-kit/storage/encoding"
@@ -74,14 +75,13 @@ type KVStore struct {
 
 func NewStore(
 	baseDB dbm.DB,
-	metrics metrics.StoreMetrics,
 	logger log.Logger,
 ) *KVStore {
 	db := NewSynced(baseDB)
 	closeFn := db.Close
 
 	// TODO ABENEGIA: fix logging
-	cms := store.NewCommitMultiStore(db, log.NewNopLogger(), metrics)
+	cms := store.NewCommitMultiStore(db, sdklog.NewNopLogger(), storemetrics.NewNoOpMetrics())
 	cms.MountStoreWithDB(DepositStoreKey, storetypes.StoreTypeIAVL, nil)
 	if err := cms.LoadLatestVersion(); err != nil {
 		panic(fmt.Errorf("deposit store v2: failed loading latest version: %w", err))
@@ -128,7 +128,7 @@ func (kv *KVStore) EnqueueDeposits(_ context.Context, deposits []*ctypes.Deposit
 
 	// create context out of commit multistore, simiarly to what we do in consensus service
 	// ms := kv.cms.CacheMultiStore()
-	sdkCtx := sdk.NewContext(kv.cms /*ms*/, false, log.NewNopLogger()) // .WithContext(ctx)
+	sdkCtx := sdk.NewContext(kv.cms /*ms*/, false, sdklog.NewNopLogger()) // .WithContext(ctx)
 
 	for _, deposit := range deposits {
 		idx := deposit.GetIndex().Unwrap()
@@ -169,7 +169,7 @@ func (kv *KVStore) GetDepositsByIndex(
 	var (
 		deposits = make(ctypes.Deposits, 0, depRange)
 		endIdx   = startIndex + depRange
-		sdkCtx   = sdk.NewContext(kv.cms, false, log.NewNopLogger())
+		sdkCtx   = sdk.NewContext(kv.cms, false, sdklog.NewNopLogger())
 	)
 
 	for i := startIndex; i < endIdx; i++ {
