@@ -84,7 +84,7 @@ func ValidateNonGenesisDeposits(
 	}
 
 	// Grab all previous deposits from genesis up to the current index + max deposits per block.
-	localDeposits, err := depositStore.GetDepositsByIndex(
+	localDeposits, _, err := depositStore.GetDepositsByIndex(
 		ctx,
 		constants.FirstDepositIndex,
 		depositIndex+maxDepositsPerBlock,

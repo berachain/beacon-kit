@@ -298,7 +298,7 @@ func (s *Service) buildBlockBody(
 	}
 
 	// Grab all previous deposits from genesis up to the current index + max deposits per block.
-	deposits, err := s.sb.DepositStore().GetDepositsByIndex(
+	deposits, _, err := s.sb.DepositStore().GetDepositsByIndex(
 		ctx,
 		constants.FirstDepositIndex,
 		depositIndex+s.chainSpec.MaxDepositsPerBlock(),

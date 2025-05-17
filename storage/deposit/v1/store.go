@@ -29,6 +29,7 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/storage"
 	"github.com/berachain/beacon-kit/storage/encoding"
 )
@@ -97,7 +98,7 @@ func (kv *KVStore) GetDepositsByIndex(
 	ctx context.Context,
 	startIndex uint64,
 	depRange uint64,
-) (ctypes.Deposits, error) {
+) (ctypes.Deposits, common.Root, error) {
 	kv.mu.RLock()
 	defer kv.mu.RUnlock()
 	var (
@@ -111,16 +112,16 @@ func (kv *KVStore) GetDepositsByIndex(
 		case err == nil:
 			deposits = append(deposits, deposit)
 		case errors.Is(err, sdkcollections.ErrNotFound):
-			return deposits, nil
+			return deposits, common.Root{}, nil
 		default:
-			return deposits, errors.Wrapf(
+			return deposits, common.Root{}, errors.Wrapf(
 				err, "failed to get deposit %d, start: %d, end: %d", i, startIndex, endIdx,
 			)
 		}
 	}
 
 	kv.logger.Debug("GetDepositsByIndex", "start", startIndex, "end", endIdx)
-	return deposits, nil
+	return deposits, common.Root{}, nil
 }
 
 // EnqueueDeposits pushes multiple deposits to the queue.

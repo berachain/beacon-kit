@@ -122,7 +122,7 @@ func (kv *KVStore) Close() error {
 	return err
 }
 
-func (kv *KVStore) EnqueueDeposits( /*ctx context.Context,*/ deposits []*ctypes.Deposit) error {
+func (kv *KVStore) EnqueueDeposits(_ context.Context, deposits []*ctypes.Deposit) error {
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
 
@@ -132,6 +132,7 @@ func (kv *KVStore) EnqueueDeposits( /*ctx context.Context,*/ deposits []*ctypes.
 
 	for _, deposit := range deposits {
 		idx := deposit.GetIndex().Unwrap()
+		//nolint:contextcheck // TODO ABENEGIA: to be fixed
 		if err := kv.store.Set(sdkCtx, idx, deposit); err != nil {
 			return errors.Wrapf(err, "failed to enqueue deposit %d", idx)
 		}
@@ -155,7 +156,7 @@ func (kv *KVStore) EnqueueDeposits( /*ctx context.Context,*/ deposits []*ctypes.
 }
 
 func (kv *KVStore) GetDepositsByIndex(
-	// ctx context.Context, // we use the internal context here
+	_ context.Context, // we use the internal context here
 	startIndex uint64,
 	depRange uint64,
 ) (
@@ -168,11 +169,12 @@ func (kv *KVStore) GetDepositsByIndex(
 	var (
 		deposits = make(ctypes.Deposits, 0, depRange)
 		endIdx   = startIndex + depRange
-		ctx      = sdk.NewContext(kv.cms, false, log.NewNopLogger())
+		sdkCtx   = sdk.NewContext(kv.cms, false, log.NewNopLogger())
 	)
 
 	for i := startIndex; i < endIdx; i++ {
-		deposit, err := kv.store.Get(ctx, i)
+		//nolint:contextcheck // TODO ABENEGIA: to be fixed
+		deposit, err := kv.store.Get(sdkCtx, i)
 		switch {
 		case err == nil:
 			deposits = append(deposits, deposit)
@@ -187,6 +189,11 @@ func (kv *KVStore) GetDepositsByIndex(
 
 	kv.logger.Debug("GetDepositsByIndex", "start", startIndex, "end", endIdx)
 	return deposits, kv.depositsRoot, nil
+}
+
+func (kv *KVStore) Prune(_ context.Context, start, end uint64) error {
+	kv.logger.Debug("GetDepositsByIndex", "start", start, "end", end)
+	return nil
 }
 
 func bytesToRoot(b []byte) (common.Root, error) {

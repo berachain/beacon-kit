@@ -21,6 +21,7 @@
 package deposit_test
 
 import (
+	"context"
 	"testing"
 
 	"cosmossdk.io/log"
@@ -42,6 +43,7 @@ func TestSimpleInsertionAndRetrieval(t *testing.T) {
 
 	nopMetrics := metrics.NewNoOpMetrics()
 	nopLog := log.NewNopLogger()
+	dummyCtx := context.Background()
 
 	var store *deposit.KVStore
 	require.NotPanics(t, func() {
@@ -72,9 +74,9 @@ func TestSimpleInsertionAndRetrieval(t *testing.T) {
 		},
 	}
 
-	require.NoError(t, store.EnqueueDeposits(ins))
+	require.NoError(t, store.EnqueueDeposits(dummyCtx, ins))
 
-	outs, root, err := store.GetDepositsByIndex(ins[0].Index, uint64(len(ins)))
+	outs, root, err := store.GetDepositsByIndex(dummyCtx, ins[0].Index, uint64(len(ins)))
 	require.NoError(t, err)
 
 	// inputs and outputs have slightly different types, so we compare them explicitly
@@ -94,7 +96,7 @@ func TestSimpleInsertionAndRetrieval(t *testing.T) {
 		newStore = deposit.NewStore(baseDB, nopMetrics, nopLog)
 	})
 
-	outs2, root2, err := newStore.GetDepositsByIndex(ins[0].Index, uint64(len(ins)))
+	outs2, root2, err := newStore.GetDepositsByIndex(dummyCtx, ins[0].Index, uint64(len(ins)))
 	require.NoError(t, err)
 
 	// inputs and outputs have slightly different types, so we compare them explicitly

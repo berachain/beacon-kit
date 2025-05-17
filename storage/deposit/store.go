@@ -27,12 +27,13 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/primitives/common"
 	depositstorev1 "github.com/berachain/beacon-kit/storage/deposit/v1"
 	depositstorev2 "github.com/berachain/beacon-kit/storage/deposit/v2"
 )
 
 type Store interface {
-	GetDepositsByIndex(ctx context.Context, startIndex uint64, depRange uint64) (ctypes.Deposits, error)
+	GetDepositsByIndex(ctx context.Context, startIndex uint64, depRange uint64) (ctypes.Deposits, common.Root, error)
 	EnqueueDeposits(ctx context.Context, deposits []*ctypes.Deposit) error
 	Prune(ctx context.Context, start, end uint64) error
 	Close() error
@@ -40,7 +41,7 @@ type Store interface {
 
 var (
 	_ Store = (*depositstorev1.KVStore)(nil)
-	// _ Store = (*depositstorev2.KVStore)(nil)
+	_ Store = (*depositstorev2.KVStore)(nil)
 )
 
 type CloseFunc func() error
@@ -51,6 +52,8 @@ type generalStore struct {
 	cs chain.Spec
 
 	storeV1 *depositstorev1.KVStore
+
+	//nolint:unused // TODO ABENEGIA: wip, the the whole point of generalStore is to switch among store versions
 	storeV2 *depositstorev2.KVStore
 }
 
@@ -71,7 +74,7 @@ func (gs *generalStore) GetDepositsByIndex(
 	ctx context.Context,
 	startIndex uint64,
 	depRange uint64,
-) (ctypes.Deposits, error) {
+) (ctypes.Deposits, common.Root, error) {
 	// TODO ABENEGIA: add switch at Electra fork
 	return gs.storeV1.GetDepositsByIndex(ctx, startIndex, depRange)
 }
