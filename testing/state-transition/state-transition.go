@@ -44,7 +44,7 @@ import (
 	"github.com/berachain/beacon-kit/storage"
 	"github.com/berachain/beacon-kit/storage/beacondb"
 	"github.com/berachain/beacon-kit/storage/db"
-	depositstore "github.com/berachain/beacon-kit/storage/deposit"
+	depositstorev1 "github.com/berachain/beacon-kit/storage/deposit/v1"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/mock"
@@ -75,7 +75,7 @@ var (
 func BuildTestStores() (
 	storetypes.CommitMultiStore,
 	*beacondb.KVStore,
-	*depositstore.KVStore,
+	*depositstorev1.KVStore,
 	error,
 ) {
 	db, err := db.OpenDB("", dbm.MemDBBackend)
@@ -102,14 +102,14 @@ func BuildTestStores() (
 	testStoreService := &testKVStoreService{}
 	return cms,
 		beacondb.New(testStoreService),
-		depositstore.NewStore(testStoreService, noopCloseFunc, nopLog),
+		depositstorev1.NewStore(testStoreService, noopCloseFunc, nopLog),
 		nil
 }
 
 func SetupTestState(t *testing.T, cs chain.Spec) (
 	*TestStateProcessorT,
 	*TestBeaconStateT,
-	*depositstore.KVStore,
+	*depositstorev1.KVStore,
 	core.ReadOnlyContext,
 	storetypes.CommitMultiStore,
 	*mocks.ExecutionEngine,

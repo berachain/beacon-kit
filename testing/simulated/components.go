@@ -44,7 +44,7 @@ func FixedComponents(t *testing.T) []any {
 		components.ProvideNode,
 		components.ProvideConfig,
 		components.ProvideServerConfig,
-		components.ProvideDepositStore,
+		components.ProvideDepositStoreV1,
 		components.ProvideEngineClient,
 		components.ProvideExecutionEngine,
 		components.ProvideJWTSecret,

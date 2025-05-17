@@ -27,7 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
-	depositstore "github.com/berachain/beacon-kit/storage/deposit"
+	depositstorev1 "github.com/berachain/beacon-kit/storage/deposit/v1"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cast"
@@ -40,9 +40,9 @@ type DepositStoreInput struct {
 	AppOpts config.AppOptions
 }
 
-// ProvideDepositStore is a function that provides the module to the
+// ProvideDepositStoreV1 is a function that provides the module to the
 // application.
-func ProvideDepositStore(in DepositStoreInput) (*depositstore.KVStore, error) {
+func ProvideDepositStoreV1(in DepositStoreInput) (*depositstorev1.KVStore, error) {
 	var (
 		rootDir = cast.ToString(in.AppOpts.Get(flags.FlagHome))
 		dataDir = filepath.Join(rootDir, "data")
@@ -53,9 +53,9 @@ func ProvideDepositStore(in DepositStoreInput) (*depositstore.KVStore, error) {
 	if err != nil {
 		return nil, err
 	}
-	spdb := depositstore.NewSynced(pdb)
+	spdb := depositstorev1.NewSynced(pdb)
 
-	return depositstore.NewStore(
+	return depositstorev1.NewStore(
 		storage.NewKVStoreProvider(spdb),
 		spdb.Close,
 		in.Logger.With("service", "deposit-store"),

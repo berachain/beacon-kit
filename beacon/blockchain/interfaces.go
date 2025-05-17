@@ -37,7 +37,7 @@ import (
 	"github.com/berachain/beacon-kit/state-transition/core"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/berachain/beacon-kit/storage/block"
-	depositdb "github.com/berachain/beacon-kit/storage/deposit"
+	depositdbv1 "github.com/berachain/beacon-kit/storage/deposit/v1"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -115,7 +115,7 @@ type StorageBackend interface {
 	// StateFromContext retrieves the beacon state from the given context.
 	StateFromContext(context.Context) *statedb.StateDB
 	// DepositStore retrieves the deposit store.
-	DepositStore() *depositdb.KVStore
+	DepositStore() *depositdbv1.KVStore
 	// BlockStore retrieves the block store.
 	BlockStore() *block.KVStore[*ctypes.BeaconBlock]
 }

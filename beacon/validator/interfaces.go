@@ -33,7 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/state-transition/core"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
-	depositdb "github.com/berachain/beacon-kit/storage/deposit"
+	depositdbv1 "github.com/berachain/beacon-kit/storage/deposit/v1"
 )
 
 // BlobFactory represents a blob factory interface.
@@ -91,7 +91,7 @@ type StateProcessor interface {
 // StorageBackend is the interface for the storage backend.
 type StorageBackend interface {
 	// DepositStore retrieves the deposit store.
-	DepositStore() *depositdb.KVStore
+	DepositStore() *depositdbv1.KVStore
 	// StateFromContext retrieves the beacon state from the context.
 	StateFromContext(context.Context) *statedb.StateDB
 }

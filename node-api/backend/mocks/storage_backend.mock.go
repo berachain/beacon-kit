@@ -7,7 +7,7 @@ import (
 
 	block "github.com/berachain/beacon-kit/storage/block"
 
-	deposit "github.com/berachain/beacon-kit/storage/deposit"
+	deposit "github.com/berachain/beacon-kit/storage/deposit/v1"
 
 	mock "github.com/stretchr/testify/mock"
 
