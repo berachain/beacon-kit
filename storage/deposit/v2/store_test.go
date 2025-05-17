@@ -23,6 +23,7 @@ package deposit_test
 import (
 	"testing"
 
+	"cosmossdk.io/log"
 	"cosmossdk.io/store/metrics"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -40,10 +41,11 @@ func TestSimpleInsertionAndRetrieval(t *testing.T) {
 	require.NoError(t, err)
 
 	nopMetrics := metrics.NewNoOpMetrics()
-	var store *deposit.KVStore
+	nopLog := log.NewNopLogger()
 
+	var store *deposit.KVStore
 	require.NotPanics(t, func() {
-		store = deposit.NewStore(baseDB, nopMetrics)
+		store = deposit.NewStore(baseDB, nopMetrics, nopLog)
 	})
 
 	ins := []*types.Deposit{
@@ -89,7 +91,7 @@ func TestSimpleInsertionAndRetrieval(t *testing.T) {
 	var newStore *deposit.KVStore
 
 	require.NotPanics(t, func() {
-		newStore = deposit.NewStore(baseDB, nopMetrics)
+		newStore = deposit.NewStore(baseDB, nopMetrics, nopLog)
 	})
 
 	outs2, root2, err := newStore.GetDepositsByIndex(ins[0].Index, uint64(len(ins)))

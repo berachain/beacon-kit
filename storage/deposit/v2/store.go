@@ -67,12 +67,15 @@ type KVStore struct {
 	closeFunc CloseFunc
 	once      sync.Once
 
+	logger log.Logger
+
 	depositsRoot common.Root
 }
 
 func NewStore(
 	baseDB dbm.DB,
 	metrics metrics.StoreMetrics,
+	logger log.Logger,
 ) *KVStore {
 	db := NewSynced(baseDB)
 	closeFn := db.Close
@@ -106,6 +109,7 @@ func NewStore(
 		store:        store,
 		cms:          cms,
 		closeFunc:    closeFn,
+		logger:       logger,
 		depositsRoot: root,
 	}
 }
@@ -141,13 +145,12 @@ func (kv *KVStore) EnqueueDeposits( /*ctx context.Context,*/ deposits []*ctypes.
 	}
 	kv.depositsRoot = root
 
-	// TODO ABENEGIA: re-add logging
-	// if len(deposits) > 0 {
-	// 	kv.logger.Debug(
-	// 		"EnqueueDeposit", "enqueued", len(deposits),
-	// 		"start", deposits[0].GetIndex(), "end", deposits[len(deposits)-1].GetIndex(),
-	// 	)
-	// }
+	if len(deposits) > 0 {
+		kv.logger.Debug(
+			"EnqueueDeposit", "enqueued", len(deposits),
+			"start", deposits[0].GetIndex(), "end", deposits[len(deposits)-1].GetIndex(),
+		)
+	}
 	return nil
 }
 
@@ -182,8 +185,7 @@ func (kv *KVStore) GetDepositsByIndex(
 		}
 	}
 
-	// TODO ABENEGIA: re-add logging
-	// kv.logger.Debug("GetDepositsByIndex", "start", startIndex, "end", endIdx)
+	kv.logger.Debug("GetDepositsByIndex", "start", startIndex, "end", endIdx)
 	return deposits, kv.depositsRoot, nil
 }
 
