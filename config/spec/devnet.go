@@ -63,7 +63,7 @@ const (
 	devnetMinValidatorWithdrawabilityDelay = 32
 
 	// DepositsV2ActivationSlot returns the slot store v2 is activated
-	devnetDepositsV2ActivationSlot = math.Slot(stdmath.MaxUint64)
+	devnetDepositsV2ActivationSlot = math.Slot(stdmath.MaxInt64)
 )
 
 // DevnetChainSpecData is the chain.SpecData for a devnet. It is similar to mainnet but

@@ -50,26 +50,40 @@ func (sp *StateProcessor) processOperations(
 	}
 
 	// Instead we directly compare block deposits with our local store ones.
-	if err := ValidateNonGenesisDepositsPreElectra(
-		ctx.ConsensusCtx(),
-		st,
-		sp.ds,
-		sp.cs.MaxDepositsPerBlock(),
-		deposits,
-		blk.GetBody().GetEth1Data().DepositRoot,
-	); err != nil {
+	var err error
+	if sp.cs.DepositsV2ActivationSlot() < blk.GetSlot() {
+		err = ValidateNonGenesisDepositsV2(
+			ctx.ConsensusCtx(),
+			st,
+			sp.ds,
+			sp.cs.MaxDepositsPerBlock(),
+			deposits,
+			blk.GetBody().GetEth1Data().DepositRoot,
+		)
+	} else {
+		err = ValidateNonGenesisDepositsV1(
+			ctx.ConsensusCtx(),
+			st,
+			sp.ds,
+			sp.cs.MaxDepositsPerBlock(),
+			deposits,
+			blk.GetBody().GetEth1Data().DepositRoot,
+		)
+	}
+	if err != nil {
 		return err
 	}
 
 	for _, dep := range deposits {
-		if err := sp.processDeposit(st, dep); err != nil {
+		if err = sp.processDeposit(st, dep); err != nil {
 			return err
 		}
 	}
 
 	if version.EqualsOrIsAfter(blk.GetForkVersion(), version.Electra()) {
 		// After Electra, validators can request withdrawals through execution requests which must be handled.
-		requests, err := blk.GetBody().GetExecutionRequests()
+		var requests *ctypes.ExecutionRequests
+		requests, err = blk.GetBody().GetExecutionRequests()
 		if err != nil {
 			return err
 		}

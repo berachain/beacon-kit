@@ -28,6 +28,7 @@ domain-type-application-mask = "0x00000001"
 deposit-contract-address = "0x4242424242424242424242424242424242424242"
 max-deposits-per-block = 16
 deposit-eth1-chain-id = 80087
+deposit-v2-activation-slot = 9223372036854775807 # MaxUint64 TODO ABENEGIA: fix this
 eth1-follow-distance = 1
 target-seconds-per-eth1-block = 2
 

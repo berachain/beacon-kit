@@ -60,7 +60,11 @@ func GetDBCheckCmd(appCreator servertypes.AppCreator) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if err = core.ValidateNonGenesisDepositsPreElectra(
+
+			// TODO ABENEGIA: this is should only be performed if V2 is not activated,
+			// assuming V2 DB will be consolidated into add DB. For the time being, postponing
+			// upgrading this command.
+			if err = core.ValidateNonGenesisDepositsV1(
 				ctx,
 				beaconState,
 				depositStore,

@@ -73,7 +73,7 @@ func validateGenesisDeposits(
 // Post Electra we introduced a more efficient way to calculate depositRoot
 // that relies on IAVL db instead of explicitly loading full deposits list
 // as it happened pre Electra
-func ValidateNonGenesisDepositsPostElectra(
+func ValidateNonGenesisDepositsV2(
 	ctx context.Context,
 	st *statedb.StateDB,
 	depositStore deposit.StoreManager,
@@ -132,7 +132,7 @@ func ValidateNonGenesisDepositsPostElectra(
 	return nil
 }
 
-func ValidateNonGenesisDepositsPreElectra(
+func ValidateNonGenesisDepositsV1(
 	ctx context.Context,
 	st *statedb.StateDB,
 	depositStore deposit.StoreManager,

@@ -96,7 +96,7 @@ const (
 	mainnetMinValidatorWithdrawabilityDelay = defaultMinValidatorWithdrawabilityDelay
 
 	// DepositsV2ActivationSlot returns the slot store v2 is activated
-	mainnetDepositsV2ActivationSlot = math.Slot(stdmath.MaxUint64)
+	mainnetDepositsV2ActivationSlot = math.Slot(stdmath.MaxInt64)
 )
 
 // MainnetChainSpecData is the chain.SpecData for the Berachain mainnet.
