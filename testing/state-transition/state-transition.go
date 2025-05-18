@@ -105,7 +105,7 @@ func BuildTestStores() (
 	}
 
 	depositStore := deposit.NewStore(depositsDB, depositsDB, nopLog)
-	err = depositStore.SelectVersion(deposit.V1) // TODO ABENEGIA: duly select version
+	err = depositStore.SelectVersion(deposit.V2) // TODO ABENEGIA: duly select version
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to select deposit store version: %w", err)
 	}

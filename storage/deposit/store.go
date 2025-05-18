@@ -111,7 +111,6 @@ func (gs *generalStore) EnqueueDeposits(ctx context.Context, deposits []*ctypes.
 	}
 }
 func (gs *generalStore) Close() error {
-	// TODO ABENEGIA: add switch at Electra fork
 	return errors.Join(
 		gs.storeV1.Close(),
 		gs.storeV2.Close(),
