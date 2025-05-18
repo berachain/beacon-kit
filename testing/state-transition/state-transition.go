@@ -107,7 +107,7 @@ func BuildTestStores() (
 	testStoreService := &testKVStoreService{}
 	return cms,
 		beacondb.New(testStoreService),
-		deposit.NewStore(nil, depositsDB, depositsDB, nopLog),
+		deposit.NewStore(depositsDB, depositsDB, nopLog),
 		nil
 }
 

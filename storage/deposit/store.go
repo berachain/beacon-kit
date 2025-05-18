@@ -23,7 +23,6 @@ package deposit
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -33,6 +32,7 @@ import (
 )
 
 type Store interface {
+	// TODO ABENEGIA: consider having a GetDepositsByIndex and GetDepositsUpToIndex methods
 	GetDepositsByIndex(ctx context.Context, startIndex uint64, depRange uint64) (ctypes.Deposits, common.Root, error)
 	EnqueueDeposits(ctx context.Context, deposits []*ctypes.Deposit) error
 	Prune(ctx context.Context, start, end uint64) error
@@ -44,19 +44,16 @@ var (
 	_ Store = (*depositstorev2.KVStore)(nil)
 )
 
-type CloseFunc func() error
-
 // We have changed in time the way we stored deposits. generalStore is meant to offer
 // a single way to access deposits and to handle the data migration among versions when needed
 type generalStore struct {
-	cs chain.Spec
+	// cs chain.Spec TODO ABENEGIA: add and control data migration
 
 	storeV1 *depositstorev1.KVStore
 	storeV2 *depositstorev2.KVStore
 }
 
 func NewStore(
-	cs chain.Spec,
 	dbV1 dbm.DB,
 	dbV2 dbm.DB,
 
@@ -65,7 +62,6 @@ func NewStore(
 	storeV1 := depositstorev1.NewStore(dbV1, logger)
 	storeV2 := depositstorev2.NewStore(dbV2, logger)
 	return &generalStore{
-		cs:      cs,
 		storeV1: storeV1,
 		storeV2: storeV2,
 	}

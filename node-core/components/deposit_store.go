@@ -53,13 +53,14 @@ func ProvideDepositStore(in DepositStoreInput) (deposit.Store, error) {
 		return nil, err
 	}
 
+	// TODO ABENEGIA: consider merging this with the main app DB
+	// so to eliminate any atomicity issue
 	dbV2, err := dbm.NewDB(nameV2, dbm.PebbleDBBackend, dataDir)
 	if err != nil {
 		return nil, err
 	}
 
 	return deposit.NewStore(
-		nil,
 		dbV1,
 		dbV2,
 		in.Logger.With("service", "deposit-store"),
