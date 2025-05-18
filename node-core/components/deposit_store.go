@@ -60,9 +60,10 @@ func ProvideDepositStore(in DepositStoreInput) (deposit.Store, error) {
 		return nil, err
 	}
 
-	return deposit.NewStore(
+	store := deposit.NewStore(
 		dbV1,
 		dbV2,
 		in.Logger.With("service", "deposit-store"),
-	), nil
+	)
+	return store, store.SelectVersion(deposit.V1) // TODO ABENEGIA: Change to load proper version
 }

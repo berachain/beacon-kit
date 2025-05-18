@@ -104,10 +104,15 @@ func BuildTestStores() (
 		return nil, nil, nil, fmt.Errorf("failed to load latest version: %w", err)
 	}
 
-	testStoreService := &testKVStoreService{}
+	depositStore := deposit.NewStore(depositsDB, depositsDB, nopLog)
+	err = depositStore.SelectVersion(deposit.V1) // TODO ABENEGIA: duly select version
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("failed to select deposit store version: %w", err)
+	}
+
 	return cms,
-		beacondb.New(testStoreService),
-		deposit.NewStore(depositsDB, depositsDB, nopLog),
+		beacondb.New(&testKVStoreService{}),
+		depositStore,
 		nil
 }
 
