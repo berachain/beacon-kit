@@ -36,6 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/storage"
+	depositstorecommon "github.com/berachain/beacon-kit/storage/deposit/common"
 	"github.com/berachain/beacon-kit/storage/encoding"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -77,7 +78,7 @@ func NewStore(
 	baseDB dbm.DB,
 	logger log.Logger,
 ) *KVStore {
-	db := NewSynced(baseDB)
+	db := depositstorecommon.NewSynced(baseDB)
 	closeFn := db.Close
 
 	// TODO ABENEGIA: fix logging

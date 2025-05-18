@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/storage/deposit"
+	depositstorecommon "github.com/berachain/beacon-kit/storage/deposit/common"
 	depositstorev1 "github.com/berachain/beacon-kit/storage/deposit/v1"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -53,7 +54,7 @@ func ProvideDepositStore(in DepositStoreInput) (deposit.Store, error) {
 	if err != nil {
 		return nil, err
 	}
-	spdbV1 := depositstorev1.NewSynced(dbV1)
+	spdbV1 := depositstorecommon.NewSynced(dbV1)
 
 	dbV2, err := dbm.NewDB(nameV2, dbm.PebbleDBBackend, dataDir)
 	if err != nil {
