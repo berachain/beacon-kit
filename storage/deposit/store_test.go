@@ -107,3 +107,66 @@ func TestDataMigration(t *testing.T) {
 	require.Equal(t, root, root2)
 	require.NoError(t, store.Close())
 }
+
+// Try migrating storeV1 content to storeV2 twice and show that
+// data migration is carried out only once
+func TestDataMigrationIsIdempotent(t *testing.T) {
+	t.Parallel()
+
+	dbV1, err := db.OpenDB("testV1", dbm.MemDBBackend)
+	require.NoError(t, err)
+
+	dbV2, err := db.OpenDB("testV2", dbm.MemDBBackend)
+	require.NoError(t, err)
+
+	nopLog := log.NewNopLogger()
+	dummyCtx := context.Background()
+
+	var store deposit.StoreManager
+	require.NotPanics(t, func() {
+		store = deposit.NewStore(dbV1, dbV2, nopLog)
+	})
+
+	// add data to migrate
+	ins0 := []*types.Deposit{
+		{
+			Pubkey:      [48]byte{0x01},
+			Credentials: types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{0x01}),
+			Amount:      2025,
+			Signature:   crypto.BLSSignature{0x01},
+			Index:       0,
+		},
+	}
+
+	require.NoError(t, store.SelectVersion(deposit.V1))
+	require.NoError(t, store.EnqueueDeposits(dummyCtx, ins0))
+	require.NoError(t, store.MigrateV1ToV2())
+
+	require.NoError(t, store.SelectVersion(deposit.V2))
+	outs0, root0, err := store.GetDepositsByIndex(dummyCtx, ins0[0].Index, uint64(len(ins0)))
+	require.NoError(t, err)
+	require.Len(t, outs0, len(ins0))
+	require.Equal(t, ins0[0], outs0[0])
+
+	// try to migrate again with different data
+	ins1 := []*types.Deposit{
+		{
+			Pubkey:      [48]byte{0xff},
+			Credentials: types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{0xff}),
+			Amount:      2052,
+			Signature:   crypto.BLSSignature{0xff},
+			Index:       1987,
+		},
+	}
+	require.NoError(t, store.SelectVersion(deposit.V1))
+	require.NoError(t, store.EnqueueDeposits(dummyCtx, ins1))
+
+	require.NoError(t, store.MigrateV1ToV2())
+
+	// show that new data are not migrated
+	require.NoError(t, store.SelectVersion(deposit.V2))
+	outs1, root1, err := store.GetDepositsByIndex(dummyCtx, ins0[0].Index, uint64(len(ins0)+len(ins1)))
+	require.NoError(t, err)
+	require.Equal(t, outs0, outs1)
+	require.Equal(t, root0, root1)
+}

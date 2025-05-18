@@ -41,7 +41,6 @@ const (
 )
 
 type Store interface {
-	// TODO ABENEGIA: consider having a GetDepositsByIndex and GetDepositsUpToIndex methods
 	GetDepositsByIndex(ctx context.Context, startIndex uint64, depRange uint64) (ctypes.Deposits, common.Root, error)
 	EnqueueDeposits(ctx context.Context, deposits []*ctypes.Deposit) error
 	Prune(ctx context.Context, start, end uint64) error
@@ -141,12 +140,26 @@ func (gs *generalStore) SelectVersion(v uint8) error {
 // which is contiguous and starts from zero
 func (gs *generalStore) MigrateV1ToV2() error {
 	ctx := context.TODO()
+
+	done, err := gs.storeV2.HasMigrationFromV1Completed(ctx)
+	if err != nil {
+		return fmt.Errorf("failed checking whether migration has completed: %w", err)
+	}
+	if done {
+		return nil // nothing else to do
+	}
+
+	if err = gs.storeV2.MarkMigrationFromV1Started(ctx); err != nil {
+		return fmt.Errorf("failed starting deposits store migration: %w", err)
+	}
+
 	// Note: under the hood GetDepositsByIndex allocates a slice up to depRange.
 	// So we cannot just get all deposits from zero up to math.MaxUint64
 	const span = 69
 	var startIdx = constants.FirstDepositIndex
 	for {
-		v1Deposits, _, err := gs.storeV1.GetDepositsByIndex(ctx, startIdx, span)
+		var v1Deposits ctypes.Deposits
+		v1Deposits, _, err = gs.storeV1.GetDepositsByIndex(ctx, startIdx, span)
 		if err != nil {
 			return fmt.Errorf(
 				"failed loading v1 deposits from %d to %d: %w",
@@ -164,5 +177,10 @@ func (gs *generalStore) MigrateV1ToV2() error {
 		}
 		startIdx += span
 	}
+
+	if err = gs.storeV2.MarkMigrationFromV1Done(ctx); err != nil {
+		return fmt.Errorf("failed completing deposits store migration: %w", err)
+	}
+
 	return nil
 }

@@ -23,6 +23,7 @@ package deposit
 import (
 	"context"
 	"fmt"
+	"math"
 	"sync"
 
 	sdkcollections "cosmossdk.io/collections"
@@ -35,6 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/storage"
 	depositstorecommon "github.com/berachain/beacon-kit/storage/deposit/common"
 	"github.com/berachain/beacon-kit/storage/encoding"
@@ -47,6 +49,13 @@ var (
 	DepositStoreKey    = storetypes.NewKVStoreKey("deposits")
 	depositStorePrefix = sdkcollections.NewPrefix(0)
 	depositStoreName   = "deposits"
+
+	// migrationFlagDeposit is used to understand whether migration
+	// from storeV1 is ongoing. The flag deposit has an index high enough
+	// so that it could only be a placeholder
+	migrationFlagDeposit = &ctypes.Deposit{
+		Index: math.MaxUint64,
+	}
 )
 
 type KVStoreService struct{}
@@ -205,4 +214,52 @@ func bytesToRoot(b []byte) (common.Root, error) {
 		)
 	}
 	return common.Root(b), nil
+}
+
+func (kv *KVStore) MarkMigrationFromV1Started(ctx context.Context) error {
+	founds, _, err := kv.GetDepositsByIndex(ctx, migrationFlagDeposit.Index, 1)
+	if err != nil {
+		return fmt.Errorf("failed checking whether migration has started: %w", err)
+	}
+
+	if len(founds) != 0 {
+		kv.logger.Warn("Deposit DB  migration already started")
+		return nil
+	}
+
+	toEnqueue := []*ctypes.Deposit{migrationFlagDeposit}
+	if err = kv.EnqueueDeposits(ctx, toEnqueue); err != nil {
+		return fmt.Errorf("failed marking migration has started: %w", err)
+	}
+	return nil
+}
+
+func (kv *KVStore) MarkMigrationFromV1Done(_ context.Context) error {
+	sdkCtx := sdk.NewContext(kv.cms, false, sdklog.NewNopLogger())
+	//nolint:contextcheck // TODO ABENEGIA: to be fixed
+	if err := kv.store.Remove(sdkCtx, migrationFlagDeposit.Index); err != nil {
+		return fmt.Errorf("failed marking migration has completed: %w", err)
+	}
+	return nil
+}
+
+func (kv *KVStore) HasMigrationFromV1Completed(ctx context.Context) (bool, error) {
+	// Check whether migration is ongoing
+	founds, _, err := kv.GetDepositsByIndex(ctx, migrationFlagDeposit.Index, 1)
+	if err != nil {
+		return false, fmt.Errorf("failed checking whether migration has started: %w", err)
+	}
+
+	if len(founds) != 0 {
+		kv.logger.Warn("Deposit DB  migration already started but not completed")
+		return false, nil
+	}
+
+	// Migration has happened if there is at least one deposit in the store
+	founds, _, err = kv.GetDepositsByIndex(ctx, constants.FirstDepositIndex, 1)
+	if err != nil {
+		return false, fmt.Errorf("failed checking whether first deposit is present: %w", err)
+	}
+
+	return len(founds) != 0, nil
 }
