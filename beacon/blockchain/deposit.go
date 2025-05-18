@@ -77,7 +77,21 @@ func (s *Service) fetchAndStoreDeposits(
 		)
 	}
 
-	if err = s.storageBackend.DepositStore().EnqueueDeposits(ctx, deposits); err != nil {
+	// before enqueuing deposits verify we are using the right deposit store version
+	depositsStore := s.storageBackend.DepositStore()
+	if s.chainSpec.DepositsV2ActivationSlot() == blockNum {
+		if err = depositsStore.MigrateV1ToV2(); err != nil {
+			s.logger.Error("fetch store deposits, failed migration", "error", err)
+			s.metrics.sink.IncrementCounter(
+				"beacon_kit.execution.deposit.failed_to_enqueue_deposits",
+				"block_num",
+				blockNumStr,
+			)
+			return
+		}
+	}
+
+	if err = depositsStore.EnqueueDeposits(ctx, deposits); err != nil {
 		s.logger.Error("Failed to store deposits", "error", err)
 		s.metrics.sink.IncrementCounter(
 			"beacon_kit.execution.deposit.failed_to_enqueue_deposits",
