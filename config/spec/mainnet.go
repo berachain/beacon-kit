@@ -21,9 +21,12 @@
 package spec
 
 import (
+	stdmath "math"
+
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/ethereum/go-ethereum/params"
 )
 
@@ -91,6 +94,9 @@ const (
 	// mainnetMinValidatorWithdrawabilityDelay is the number of epochs of delay epochs of delay for a balance to be withdrawable.
 	// 256 Epochs equates to roughly ~27 hours of withdrawal delay. This gives us room to emergency fork if needed.
 	mainnetMinValidatorWithdrawabilityDelay = defaultMinValidatorWithdrawabilityDelay
+
+	// DepositsV2ActivationSlot returns the slot store v2 is activated
+	mainnetDepositsV2ActivationSlot = math.Slot(stdmath.MaxUint64)
 )
 
 // MainnetChainSpecData is the chain.SpecData for the Berachain mainnet.
@@ -123,6 +129,7 @@ func MainnetChainSpecData() *chain.SpecData {
 		DepositContractAddress:    common.NewExecutionAddressFromHex(mainnetDepositContractAddress),
 		MaxDepositsPerBlock:       defaultMaxDepositsPerBlock,
 		DepositEth1ChainID:        MainnetEth1ChainID,
+		DepositsV2ActivationSlot:  mainnetDepositsV2ActivationSlot,
 		Eth1FollowDistance:        defaultEth1FollowDistance,
 		TargetSecondsPerEth1Block: defaultTargetSecondsPerEth1Block,
 

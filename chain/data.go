@@ -20,7 +20,10 @@
 
 package chain
 
-import "github.com/berachain/beacon-kit/primitives/common"
+import (
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/math"
+)
 
 // SpecData is the underlying data structure for chain-specific parameters. All fields with a
 // `mapstructure` tag are required.
@@ -81,6 +84,8 @@ type SpecData struct {
 	MaxDepositsPerBlock uint64 `mapstructure:"max-deposits-per-block"`
 	// DepositEth1ChainID is the chain ID of the execution client.
 	DepositEth1ChainID uint64 `mapstructure:"deposit-eth1-chain-id"`
+	// DepositsV2ActivationSlot returns the slot store v2 is activated
+	DepositsV2ActivationSlot math.Slot `mapstructure:"deposit-v2-activation-slot"`
 	// Eth1FollowDistance is the distance between the eth1 chain and the beacon
 	// chain with respect to reading deposits.
 	Eth1FollowDistance uint64 `mapstructure:"eth1-follow-distance"`

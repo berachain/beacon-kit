@@ -63,6 +63,10 @@ type DepositSpec interface {
 
 	// DepositEth1ChainID returns the chain ID of the deposit contract.
 	DepositEth1ChainID() uint64
+
+	// DepositsV2ActivationSlot returns the slot were we should carry out
+	// data migration from deposit store v1 to v2 and start using v2 instead of v1.
+	DepositsV2ActivationSlot() math.Slot
 }
 
 type DomainTypeSpec interface {
@@ -347,6 +351,11 @@ func (s spec) MaxDepositsPerBlock() uint64 {
 // DepositEth1ChainID returns the chain ID of the execution chain.
 func (s spec) DepositEth1ChainID() uint64 {
 	return s.Data.DepositEth1ChainID
+}
+
+// DepositsV2ActivationSlot returns the slot store v2 is activated
+func (s spec) DepositsV2ActivationSlot() math.Slot {
+	return s.Data.DepositsV2ActivationSlot
 }
 
 // Eth1FollowDistance returns the distance between the eth1 chain and the beacon
