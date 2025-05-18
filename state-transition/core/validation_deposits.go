@@ -116,10 +116,10 @@ func ValidateNonGenesisDepositsV2(
 			)
 		}
 
-		if !localDeposits[blkDepositIndex].Equals(blkDeposit) {
+		if !localDeposits[i].Equals(blkDeposit) {
 			return errors.Wrapf(ErrDepositMismatch,
 				"deposit index: %d, expected deposit: %+v, actual deposit: %+v",
-				blkDepositIndex, *localDeposits[blkDepositIndex], *blkDeposit,
+				blkDepositIndex, *localDeposits[i], *blkDeposit,
 			)
 		}
 	}

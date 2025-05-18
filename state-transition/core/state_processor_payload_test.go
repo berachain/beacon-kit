@@ -33,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
@@ -142,11 +143,15 @@ func TestPayloadTimestampVerification(t *testing.T) {
 				WithVerifyResult(false).
 				WithMeterGas(false)
 
+			var depRoot common.Root
+			_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), constants.FirstDepositIndex, uint64(len(genDeposits)))
+			require.NoError(t, err)
+
 			blk := buildNextBlock(
 				t,
 				cs,
 				testSt,
-				types.NewEth1Data(genDeposits.HashTreeRoot()),
+				types.NewEth1Data(depRoot),
 				math.U64(tt.payloadTime.Unix()),
 				nil,
 				&types.ExecutionRequests{},

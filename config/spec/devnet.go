@@ -21,11 +21,9 @@
 package spec
 
 import (
-	stdmath "math"
-
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/ethereum/go-ethereum/params"
 )
 
@@ -63,7 +61,7 @@ const (
 	devnetMinValidatorWithdrawabilityDelay = 32
 
 	// DepositsV2ActivationSlot returns the slot store v2 is activated
-	devnetDepositsV2ActivationSlot = math.Slot(stdmath.MaxInt64)
+	devnetDepositsV2ActivationSlot = constants.GenesisSlot
 )
 
 // DevnetChainSpecData is the chain.SpecData for a devnet. It is similar to mainnet but

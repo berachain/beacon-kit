@@ -125,7 +125,10 @@ func TestPartialWithdrawalRequestGenesisValidators(t *testing.T) {
 		},
 	}
 
-	depRoot := genDeposits.HashTreeRoot()
+	var depRoot common.Root
+	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), 0, uint64(len(genDeposits)))
+	require.NoError(t, err)
+
 	blk := buildNextBlock(
 		t,
 		cs,
@@ -304,7 +307,10 @@ func TestFullWithdrawalRequestGenesisValidators(t *testing.T) {
 		},
 	}
 
-	depRoot := genDeposits.HashTreeRoot()
+	var depRoot common.Root
+	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), 0, uint64(len(genDeposits)))
+	require.NoError(t, err)
+
 	blkTimestamp := math.U64(10)
 	blk := buildNextBlock(
 		t,
@@ -523,6 +529,7 @@ func TestWithdrawalRequestsNonGenesisValidators(t *testing.T) {
 		genPayloadHeader = &types.ExecutionPayloadHeader{
 			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
 		}
+		totalDepositsCount = uint64(len(genDeposits))
 	)
 	_, err := sp.InitializeBeaconStateFromEth1(
 		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
@@ -537,19 +544,24 @@ func TestWithdrawalRequestsNonGenesisValidators(t *testing.T) {
 		Amount:      maxBalance,
 		Index:       uint64(len(genDeposits)),
 	}
+	blkDeposits := []*types.Deposit{blkDeposit}
+	totalDepositsCount++
 
-	depRoot := append(genDeposits, blkDeposit).HashTreeRoot()
+	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), blkDeposits))
+	var depRoot common.Root
+	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), uint64(len(genDeposits)), totalDepositsCount)
+	require.NoError(t, err)
+
 	blk := buildNextBlock(
 		t,
 		cs,
 		st,
 		types.NewEth1Data(depRoot),
 		10,
-		[]*types.Deposit{blkDeposit},
+		blkDeposits,
 		&types.ExecutionRequests{},
 		st.EVMInflationWithdrawal(10),
 	)
-	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), blk.Body.Deposits))
 
 	// run the test
 	_, err = sp.Transition(ctx, st, blk)
@@ -767,6 +779,7 @@ func TestConcurrentAutomaticAndVoluntaryWithdrawalRequests(t *testing.T) {
 		genPayloadHeader = &types.ExecutionPayloadHeader{
 			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
 		}
+		totalDepositsCount = cs.ValidatorSetCap()
 	)
 
 	// Step1: let blockchain have as many validators as cap allows
@@ -808,9 +821,15 @@ func TestConcurrentAutomaticAndVoluntaryWithdrawalRequests(t *testing.T) {
 			Amount:      maxBalance,
 			Index:       uint64(len(genDeposits)),
 		}
+		blkDeposits = []*types.Deposit{newValDeposit}
 	)
+	totalDepositsCount++
 
-	depRoot := append(genDeposits, newValDeposit).HashTreeRoot()
+	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), blkDeposits))
+	var depRoot common.Root
+	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), uint64(len(genDeposits)), totalDepositsCount)
+	require.NoError(t, err)
+
 	blkTimestamp := math.U64(10)
 	blk := buildNextBlock(
 		t,
@@ -818,7 +837,7 @@ func TestConcurrentAutomaticAndVoluntaryWithdrawalRequests(t *testing.T) {
 		st,
 		types.NewEth1Data(depRoot),
 		blkTimestamp,
-		[]*types.Deposit{newValDeposit},
+		blkDeposits,
 		&types.ExecutionRequests{},
 		st.EVMInflationWithdrawal(blkTimestamp),
 	)
@@ -960,7 +979,10 @@ func TestDoubleFullWithdrawalRequests(t *testing.T) {
 		},
 	}
 
-	depRoot := genDeposits.HashTreeRoot()
+	var depRoot common.Root
+	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), 0, uint64(len(genDeposits)))
+	require.NoError(t, err)
+
 	blkTimestamp := math.U64(10)
 	blk := buildNextBlock(
 		t,
@@ -1064,11 +1086,16 @@ func TestPartialWithdrawalsOfBalanceAboveMaxEffectiveBalance(t *testing.T) {
 			Address:   address1,
 		},
 	}
+
+	var depRoot common.Root
+	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), 0, uint64(len(genDeposits)))
+	require.NoError(t, err)
+
 	blk := buildNextBlock(
 		t,
 		cs,
 		st,
-		types.NewEth1Data(genDeposits.HashTreeRoot()),
+		types.NewEth1Data(depRoot),
 		10,
 		[]*types.Deposit{},
 		&types.ExecutionRequests{},
@@ -1144,7 +1171,6 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	require.Equal(t, maxBalance+minBalance, val1Bal)
 
 	// Create test inputs.
-	depRoot := genDeposits.HashTreeRoot()
 	withdrawals := []*engineprimitives.Withdrawal{
 		// The first withdrawal is always for EVM inflation.
 		st.EVMInflationWithdrawal(10),
@@ -1156,6 +1182,11 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 			Address:   address0,
 		},
 	}
+
+	var depRoot common.Root
+	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), 0, uint64(len(genDeposits)))
+	require.NoError(t, err)
+
 	blk := buildNextBlock(
 		t,
 		cs,
@@ -1247,6 +1278,7 @@ func TestValidatorNotWithdrawable(t *testing.T) {
 		genPayloadHeader = &types.ExecutionPayloadHeader{
 			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
 		}
+		totalDepositsCount = uint64(len(genDeposits))
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 	_, err := sp.InitializeBeaconStateFromEth1(
@@ -1258,27 +1290,30 @@ func TestValidatorNotWithdrawable(t *testing.T) {
 	// be lost.
 	invalidCredentials := types.WithdrawalCredentials(validCredentials[:])
 	invalidCredentials[1] = 0x01
-	blockDeposits := types.Deposits{
-		{
-			Pubkey:      [48]byte{0x01},
-			Credentials: invalidCredentials,
-			Amount:      belowActiveBalance,
-			Index:       1,
-		},
+	blkDeposit := &types.Deposit{
+		Pubkey:      [48]byte{0x01},
+		Credentials: invalidCredentials,
+		Amount:      belowActiveBalance,
+		Index:       1,
 	}
+	blkDeposits := []*types.Deposit{blkDeposit}
+	totalDepositsCount++
 
-	depRoot := append(genDeposits, blockDeposits...).HashTreeRoot()
+	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), blkDeposits))
+	var depRoot common.Root
+	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), uint64(len(genDeposits)), totalDepositsCount)
+	require.NoError(t, err)
+
 	blk := buildNextBlock(
 		t,
 		cs,
 		st,
 		types.NewEth1Data(depRoot),
 		10,
-		blockDeposits,
+		blkDeposits,
 		&types.ExecutionRequests{},
 		st.EVMInflationWithdrawal(10),
 	)
-	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), blockDeposits))
 
 	// Run transition.
 	_, err = sp.Transition(ctx, st, blk)
