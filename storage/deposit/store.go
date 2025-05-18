@@ -50,7 +50,9 @@ type Store interface {
 type StoreManager interface {
 	Store
 	MigrateV1ToV2() error
-	SelectVersion(uint8) error
+
+	// Mostly used in test, should never used in prod
+	UnsafeSelectVersion(uint8) error
 }
 
 var (
@@ -77,8 +79,17 @@ func NewStore(
 ) StoreManager {
 	storeV1 := depositstorev1.NewStore(dbV1, logger)
 	storeV2 := depositstorev2.NewStore(dbV2, logger)
+
+	currentVersion := V1
+	migrated, err := storeV2.HasMigrationFromV1Completed(context.Background())
+	if err != nil {
+		panic(fmt.Errorf("failed checking whether migration completed: %w", err))
+	}
+	if migrated {
+		currentVersion = V2
+	}
 	return &generalStore{
-		currentVersion: unset,
+		currentVersion: currentVersion,
 		storeV1:        storeV1,
 		storeV2:        storeV2,
 	}
@@ -127,7 +138,7 @@ func (gs *generalStore) Prune(ctx context.Context, start, end uint64) error {
 	}
 }
 
-func (gs *generalStore) SelectVersion(v uint8) error {
+func (gs *generalStore) UnsafeSelectVersion(v uint8) error {
 	if v != V1 && v != V2 {
 		return fmt.Errorf("%w, version %d", ErrUnknownStoreVersion, v)
 	}
@@ -146,7 +157,8 @@ func (gs *generalStore) MigrateV1ToV2() error {
 		return fmt.Errorf("failed checking whether migration has completed: %w", err)
 	}
 	if done {
-		return nil // nothing else to do
+		gs.currentVersion = V2 // guard against UnsafeSelectVersion
+		return nil             // nothing else to do
 	}
 
 	if err = gs.storeV2.MarkMigrationFromV1Started(ctx); err != nil {
@@ -181,6 +193,7 @@ func (gs *generalStore) MigrateV1ToV2() error {
 	if err = gs.storeV2.MarkMigrationFromV1Done(ctx); err != nil {
 		return fmt.Errorf("failed completing deposits store migration: %w", err)
 	}
+	gs.currentVersion = V2
 
 	return nil
 }

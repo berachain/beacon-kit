@@ -75,14 +75,11 @@ func TestDataMigration(t *testing.T) {
 			Index:       2,
 		},
 	}
-
-	require.NoError(t, store.SelectVersion(deposit.V1))
 	require.NoError(t, store.EnqueueDeposits(dummyCtx, ins))
 
 	// carry out migration
 	require.NoError(t, store.MigrateV1ToV2())
 
-	require.NoError(t, store.SelectVersion(deposit.V2))
 	outs, root, err := store.GetDepositsByIndex(dummyCtx, ins[0].Index, uint64(len(ins)))
 	require.NoError(t, err)
 
@@ -100,7 +97,6 @@ func TestDataMigration(t *testing.T) {
 		store = deposit.NewStore(dbV1, dbV2, nopLog)
 	})
 
-	require.NoError(t, store.SelectVersion(deposit.V2))
 	outs2, root2, err := store.GetDepositsByIndex(dummyCtx, ins[0].Index, uint64(len(ins)))
 	require.NoError(t, err)
 	require.Equal(t, outs, outs2)
@@ -138,11 +134,9 @@ func TestDataMigrationIsIdempotent(t *testing.T) {
 		},
 	}
 
-	require.NoError(t, store.SelectVersion(deposit.V1))
 	require.NoError(t, store.EnqueueDeposits(dummyCtx, ins0))
 	require.NoError(t, store.MigrateV1ToV2())
 
-	require.NoError(t, store.SelectVersion(deposit.V2))
 	outs0, root0, err := store.GetDepositsByIndex(dummyCtx, ins0[0].Index, uint64(len(ins0)))
 	require.NoError(t, err)
 	require.Len(t, outs0, len(ins0))
@@ -158,13 +152,14 @@ func TestDataMigrationIsIdempotent(t *testing.T) {
 			Index:       1987,
 		},
 	}
-	require.NoError(t, store.SelectVersion(deposit.V1))
+
+	// temporary break version controls to push some extra deposit to v1 store
+	require.NoError(t, store.UnsafeSelectVersion(deposit.V1))
 	require.NoError(t, store.EnqueueDeposits(dummyCtx, ins1))
 
 	require.NoError(t, store.MigrateV1ToV2())
 
 	// show that new data are not migrated
-	require.NoError(t, store.SelectVersion(deposit.V2))
 	outs1, root1, err := store.GetDepositsByIndex(dummyCtx, ins0[0].Index, uint64(len(ins0)+len(ins1)))
 	require.NoError(t, err)
 	require.Equal(t, outs0, outs1)
