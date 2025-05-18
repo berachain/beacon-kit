@@ -47,13 +47,12 @@ var (
 
 type CloseFunc func() error
 
-// We have changed in time the way we stored deposits. store is meant to offer
-// a single way to access deposits
+// We have changed in time the way we stored deposits. generalStore is meant to offer
+// a single way to access deposits and to handle the data migration among versions when needed
 type generalStore struct {
 	cs chain.Spec
 
 	storeV1 *depositstorev1.KVStore
-
 	storeV2 *depositstorev2.KVStore
 }
 

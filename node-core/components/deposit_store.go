@@ -26,7 +26,6 @@ import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/log/phuslu"
-	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/berachain/beacon-kit/storage/deposit"
 	depositstorev1 "github.com/berachain/beacon-kit/storage/deposit/v1"
 	dbm "github.com/cosmos/cosmos-db"
@@ -63,7 +62,7 @@ func ProvideDepositStore(in DepositStoreInput) (deposit.Store, error) {
 
 	return deposit.NewStore(
 		nil,
-		storage.NewKVStoreProvider(spdbV1),
+		depositstorev1.NewKVStoreProvider(spdbV1),
 		spdbV1.Close,
 		dbV2,
 		in.Logger.With("service", "deposit-store"),
