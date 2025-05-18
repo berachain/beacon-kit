@@ -23,7 +23,6 @@ package deposit
 import (
 	"context"
 
-	"cosmossdk.io/core/store"
 	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/log"
@@ -58,14 +57,12 @@ type generalStore struct {
 
 func NewStore(
 	cs chain.Spec,
-	kvspV1 store.KVStoreService,
-	closeFuncV1 CloseFunc,
-
+	dbV1 dbm.DB,
 	dbV2 dbm.DB,
 
 	logger log.Logger,
 ) Store {
-	storeV1 := depositstorev1.NewStore(kvspV1, depositstorev1.CloseFunc(closeFuncV1), logger)
+	storeV1 := depositstorev1.NewStore(dbV1, logger)
 	storeV2 := depositstorev2.NewStore(dbV2, logger)
 	return &generalStore{
 		cs:      cs,

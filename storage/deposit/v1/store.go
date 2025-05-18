@@ -25,13 +25,14 @@ import (
 	"sync"
 
 	sdkcollections "cosmossdk.io/collections"
-	"cosmossdk.io/core/store"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/storage"
+	depositstorecommon "github.com/berachain/beacon-kit/storage/deposit/common"
 	"github.com/berachain/beacon-kit/storage/encoding"
+	dbm "github.com/cosmos/cosmos-db"
 )
 
 const KeyDepositPrefix = "deposit"
@@ -59,10 +60,13 @@ type CloseFunc func() error
 
 // NewStore creates a new deposit store.
 func NewStore(
-	kvsp store.KVStoreService,
-	closeFunc CloseFunc,
+	baseDB dbm.DB,
 	logger log.Logger,
 ) *KVStore {
+	spdbV1 := depositstorecommon.NewSynced(baseDB)
+	kvsp := NewKVStoreProvider(spdbV1)
+	closeFunc := spdbV1.Close
+
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kvsp)
 	res := &KVStore{
 		store: sdkcollections.NewMap(
