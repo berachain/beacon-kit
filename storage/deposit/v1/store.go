@@ -98,6 +98,8 @@ func (kv *KVStore) Close() error {
 // GetDepositsByIndex returns the first N deposits starting from the given
 // index. If N is greater than the number of deposits, it returns up to the
 // last deposit.
+// NOTE: common.Root is already empty here. It is only included to satisfy
+// the deposit.Store interface
 func (kv *KVStore) GetDepositsByIndex(
 	ctx context.Context,
 	startIndex uint64,

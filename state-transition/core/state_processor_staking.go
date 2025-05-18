@@ -50,7 +50,7 @@ func (sp *StateProcessor) processOperations(
 	}
 
 	// Instead we directly compare block deposits with our local store ones.
-	if err := ValidateNonGenesisDeposits(
+	if err := ValidateNonGenesisDepositsPreElectra(
 		ctx.ConsensusCtx(),
 		st,
 		sp.ds,

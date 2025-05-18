@@ -70,7 +70,69 @@ func validateGenesisDeposits(
 	return nil
 }
 
-func ValidateNonGenesisDeposits(
+// Post Electra we introduced a more efficient way to calculate depositRoot
+// that relies on IAVL db instead of explicitly loading full deposits list
+// as it happened pre Electra
+func ValidateNonGenesisDepositsPostElectra(
+	ctx context.Context,
+	st *statedb.StateDB,
+	depositStore deposit.Store,
+	maxDepositsPerBlock uint64,
+	blkDeposits []*ctypes.Deposit,
+	blkDepositRoot common.Root,
+) error {
+	depositIndex, err := st.GetEth1DepositIndex()
+	if err != nil {
+		return err
+	}
+
+	// Grab all possible deposits that could be included in the block
+	// This allows to spot deposits omissions
+	localDeposits, fullDepositsRoot, err := depositStore.GetDepositsByIndex(
+		ctx,
+		depositIndex,
+		maxDepositsPerBlock,
+	)
+	if err != nil {
+		return err
+	}
+
+	// First verify that the number of block deposits matches the number of local deposits.
+	if len(localDeposits) != len(blkDeposits) {
+		return errors.Wrapf(ErrDepositsLengthMismatch,
+			"block deposit count: %d, expected deposit count: %d",
+			len(blkDeposits), len(localDeposits),
+		)
+	}
+
+	// Then check that the block's deposits 1) have contiguous indices and 2) match the local
+	// view of the block's deposits.
+	for i, blkDeposit := range blkDeposits {
+		blkDepositIndex := blkDeposit.GetIndex().Unwrap()
+		//#nosec:G115 // won't overflow in practice.
+		if blkDepositIndex != depositIndex+uint64(i) {
+			return errors.Wrapf(ErrDepositIndexOutOfOrder,
+				"deposit index: %d, expected index: %d", blkDepositIndex, i,
+			)
+		}
+
+		if !localDeposits[blkDepositIndex].Equals(blkDeposit) {
+			return errors.Wrapf(ErrDepositMismatch,
+				"deposit index: %d, expected deposit: %+v, actual deposit: %+v",
+				blkDepositIndex, *localDeposits[blkDepositIndex], *blkDeposit,
+			)
+		}
+	}
+
+	// Finally check that the historical deposits root matches locally what's on the beacon block.
+	if !fullDepositsRoot.Equals(blkDepositRoot) {
+		return ErrDepositsRootMismatch
+	}
+
+	return nil
+}
+
+func ValidateNonGenesisDepositsPreElectra(
 	ctx context.Context,
 	st *statedb.StateDB,
 	depositStore deposit.Store,
