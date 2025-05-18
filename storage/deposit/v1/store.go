@@ -48,9 +48,6 @@ type KVStore struct {
 	closeFunc CloseFunc
 	once      sync.Once
 
-	// mu protects store for concurrent access
-	mu sync.RWMutex
-
 	// logger is used for logging information and errors.
 	logger log.Logger
 }
@@ -105,8 +102,6 @@ func (kv *KVStore) GetDepositsByIndex(
 	startIndex uint64,
 	depRange uint64,
 ) (ctypes.Deposits, common.Root, error) {
-	kv.mu.RLock()
-	defer kv.mu.RUnlock()
 	var (
 		deposits = make(ctypes.Deposits, 0, depRange)
 		endIdx   = startIndex + depRange
@@ -132,9 +127,6 @@ func (kv *KVStore) GetDepositsByIndex(
 
 // EnqueueDeposits pushes multiple deposits to the queue.
 func (kv *KVStore) EnqueueDeposits(ctx context.Context, deposits []*ctypes.Deposit) error {
-	kv.mu.Lock()
-	defer kv.mu.Unlock()
-
 	for _, deposit := range deposits {
 		idx := deposit.GetIndex().Unwrap()
 		if err := kv.store.Set(ctx, idx, deposit); err != nil {
@@ -158,8 +150,6 @@ func (kv *KVStore) Prune(ctx context.Context, start, end uint64) error {
 			storage.ErrInvalidRange, "DepositKVStore Prune start: %d, end: %d", start, end)
 	}
 
-	kv.mu.Lock()
-	defer kv.mu.Unlock()
 	for i := range end {
 		// This only errors if the key passed in cannot be encoded.
 		if err := kv.store.Remove(ctx, start+i); err != nil {

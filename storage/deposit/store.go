@@ -24,6 +24,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/log"
@@ -67,8 +68,12 @@ var (
 // a single way to access deposits and to handle the data migration among versions when needed
 type generalStore struct {
 	currentVersion uint8
-	storeV1        *depositstorev1.KVStore
-	storeV2        *depositstorev2.KVStore
+
+	// mu protects storex for concurrent access
+	mu sync.RWMutex
+
+	storeV1 *depositstorev1.KVStore
+	storeV2 *depositstorev2.KVStore
 }
 
 func NewStore(dbV1, dbV2 dbm.DB, logger log.Logger) StoreManager {
@@ -95,6 +100,9 @@ func (gs *generalStore) GetDepositsByIndex(
 	startIndex uint64,
 	depRange uint64,
 ) (ctypes.Deposits, common.Root, error) {
+	gs.mu.RLock()
+	defer gs.mu.RUnlock()
+
 	switch gs.currentVersion {
 	case V1:
 		return gs.storeV1.GetDepositsByIndex(ctx, startIndex, depRange)
@@ -106,6 +114,9 @@ func (gs *generalStore) GetDepositsByIndex(
 }
 
 func (gs *generalStore) EnqueueDeposits(ctx context.Context, deposits []*ctypes.Deposit) error {
+	gs.mu.Lock()
+	defer gs.mu.Unlock()
+
 	switch gs.currentVersion {
 	case V1:
 		return gs.storeV1.EnqueueDeposits(ctx, deposits)
@@ -115,7 +126,11 @@ func (gs *generalStore) EnqueueDeposits(ctx context.Context, deposits []*ctypes.
 		return fmt.Errorf("%w, version %d", ErrUnknownStoreVersion, gs.currentVersion)
 	}
 }
+
 func (gs *generalStore) Close() error {
+	gs.mu.Lock()
+	defer gs.mu.Unlock()
+
 	return errors.Join(
 		gs.storeV1.Close(),
 		gs.storeV2.Close(),
@@ -123,6 +138,9 @@ func (gs *generalStore) Close() error {
 }
 
 func (gs *generalStore) Prune(ctx context.Context, start, end uint64) error {
+	gs.mu.Lock()
+	defer gs.mu.Unlock()
+
 	switch gs.currentVersion {
 	case V1:
 		return gs.storeV1.Prune(ctx, start, end)
@@ -134,6 +152,9 @@ func (gs *generalStore) Prune(ctx context.Context, start, end uint64) error {
 }
 
 func (gs *generalStore) UnsafeSelectVersion(v uint8) error {
+	gs.mu.Lock()
+	defer gs.mu.Unlock()
+
 	if v != V1 && v != V2 {
 		return fmt.Errorf("%w, version %d", ErrUnknownStoreVersion, v)
 	}
@@ -145,7 +166,10 @@ func (gs *generalStore) UnsafeSelectVersion(v uint8) error {
 // Relies heavily on the fact that deposits are indexed by Deposit.Index
 // which is contiguous and starts from zero
 func (gs *generalStore) MigrateV1ToV2() error {
-	ctx := context.TODO()
+	gs.mu.Lock()
+	defer gs.mu.Unlock()
+
+	ctx := context.TODO() // TODO ABENEGIA: should this come from caller?
 
 	done, err := gs.storeV2.HasMigrationFromV1Completed(ctx)
 	if err != nil {
