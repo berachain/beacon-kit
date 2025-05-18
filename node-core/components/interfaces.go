@@ -163,7 +163,7 @@ type (
 	StorageBackend interface {
 		AvailabilityStore() *dastore.Store
 		BlockStore() *block.KVStore[*ctypes.BeaconBlock]
-		DepositStore() deposit.Store
+		DepositStore() deposit.StoreManager
 		// StateFromContext retrieves the beacon state from the given context.
 		StateFromContext(context.Context) *statedb.StateDB
 	}

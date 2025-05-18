@@ -38,7 +38,7 @@ type StateProcessorInput struct {
 	Logger          *phuslu.Logger
 	ChainSpec       chain.Spec
 	ExecutionEngine *engine.Engine
-	DepositStore    deposit.Store
+	DepositStore    deposit.StoreManager
 	Signer          crypto.BLSSigner
 	TelemetrySink   *metrics.TelemetrySink
 }

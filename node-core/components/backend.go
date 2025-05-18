@@ -39,7 +39,7 @@ type StorageBackendInput struct {
 	AvailabilityStore *dastore.Store
 	BlockStore        *block.KVStore[*types.BeaconBlock]
 	ChainSpec         chain.Spec
-	DepositStore      deposit.Store
+	DepositStore      deposit.StoreManager
 	BeaconStore       *beacondb.KVStore
 	Logger            *phuslu.Logger
 	TelemetrySink     *metrics.TelemetrySink

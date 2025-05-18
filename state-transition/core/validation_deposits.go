@@ -76,7 +76,7 @@ func validateGenesisDeposits(
 func ValidateNonGenesisDepositsPostElectra(
 	ctx context.Context,
 	st *statedb.StateDB,
-	depositStore deposit.Store,
+	depositStore deposit.StoreManager,
 	maxDepositsPerBlock uint64,
 	blkDeposits []*ctypes.Deposit,
 	blkDepositRoot common.Root,
@@ -135,7 +135,7 @@ func ValidateNonGenesisDepositsPostElectra(
 func ValidateNonGenesisDepositsPreElectra(
 	ctx context.Context,
 	st *statedb.StateDB,
-	depositStore deposit.Store,
+	depositStore deposit.StoreManager,
 	maxDepositsPerBlock uint64,
 	blkDeposits []*ctypes.Deposit,
 	blkDepositRoot common.Root,

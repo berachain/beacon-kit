@@ -26,6 +26,7 @@ import (
 	"fmt"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/primitives/version"
 )
@@ -61,9 +62,10 @@ func (s *Service) ProcessGenesisData(
 	}
 
 	// Initialize the beacon state from the genesis deposits.
+	genDeposits := genesisData.GetDeposits()
 	validatorUpdates, err := s.stateProcessor.InitializeBeaconStateFromEth1(
 		s.storageBackend.StateFromContext(ctx),
-		genesisData.GetDeposits(),
+		genDeposits,
 		execPayloadHeader,
 		genesisVersion,
 	)
@@ -71,12 +73,17 @@ func (s *Service) ProcessGenesisData(
 		return nil, err
 	}
 
+	// before enqueuing deposits verify we are using the right deposit store version
+	depositsStore := s.storageBackend.DepositStore()
+	if s.chainSpec.DepositsV2ActivationSlot() == constants.GenesisSlot {
+		if err = depositsStore.MigrateV1ToV2(); err != nil {
+			return nil, fmt.Errorf("process genesis data, failed migration: %w", err)
+		}
+	}
+
 	// After deposits are validated, store the genesis deposits in the deposit store.
-	if err = s.storageBackend.DepositStore().EnqueueDeposits(
-		ctx,
-		genesisData.GetDeposits(),
-	); err != nil {
-		return nil, err
+	if err = depositsStore.EnqueueDeposits(ctx, genDeposits); err != nil {
+		return nil, fmt.Errorf("process genesis data, failed deposits enqueuing: %w", err)
 	}
 
 	return validatorUpdates, nil

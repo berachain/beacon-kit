@@ -40,7 +40,7 @@ type DepositStoreInput struct {
 }
 
 // ProvideDepositStore is a function that provides the module to the application.
-func ProvideDepositStore(in DepositStoreInput) (deposit.Store, error) {
+func ProvideDepositStore(in DepositStoreInput) (deposit.StoreManager, error) {
 	var (
 		rootDir = cast.ToString(in.AppOpts.Get(flags.FlagHome))
 		dataDir = filepath.Join(rootDir, "data")

@@ -75,7 +75,7 @@ var (
 func BuildTestStores() (
 	storetypes.CommitMultiStore,
 	*beacondb.KVStore,
-	deposit.Store,
+	deposit.StoreManager,
 	error,
 ) {
 	appDB, err := db.OpenDB("app", dbm.MemDBBackend)
@@ -114,7 +114,7 @@ func BuildTestStores() (
 func SetupTestState(t *testing.T, cs chain.Spec) (
 	*TestStateProcessorT,
 	*TestBeaconStateT,
-	deposit.Store,
+	deposit.StoreManager,
 	core.ReadOnlyContext,
 	storetypes.CommitMultiStore,
 	*mocks.ExecutionEngine,

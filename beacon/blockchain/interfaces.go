@@ -115,7 +115,7 @@ type StorageBackend interface {
 	// StateFromContext retrieves the beacon state from the given context.
 	StateFromContext(context.Context) *statedb.StateDB
 	// DepositStore retrieves the deposit store.
-	DepositStore() deposit.Store
+	DepositStore() deposit.StoreManager
 	// BlockStore retrieves the block store.
 	BlockStore() *block.KVStore[*ctypes.BeaconBlock]
 }
@@ -169,6 +169,7 @@ type PruningChainSpec interface {
 
 type ServiceChainSpec interface {
 	PruningChainSpec
+	chain.DepositSpec
 	chain.BlobSpec
 	chain.ForkSpec
 	chain.ForkVersionSpec

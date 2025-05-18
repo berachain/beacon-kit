@@ -52,7 +52,7 @@ type StateProcessor struct {
 	// executionEngine is the engine responsible for executing transactions.
 	executionEngine ExecutionEngine
 	// ds allows checking payload deposits against the deposit contract
-	ds deposit.Store
+	ds deposit.StoreManager
 	// metrics is the metrics for the service.
 	metrics *stateProcessorMetrics
 	// logDeneb1Once enforces logging the Deneb1 fork information at most once.
@@ -64,7 +64,7 @@ func NewStateProcessor(
 	logger log.Logger,
 	cs ChainSpec,
 	executionEngine ExecutionEngine,
-	ds deposit.Store,
+	ds deposit.StoreManager,
 	signer crypto.BLSSigner,
 	fGetAddressFromPubKey func(crypto.BLSPubkey) ([]byte, error),
 	telemetrySink TelemetrySink,

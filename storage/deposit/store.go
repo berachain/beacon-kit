@@ -71,12 +71,7 @@ type generalStore struct {
 	storeV2        *depositstorev2.KVStore
 }
 
-func NewStore(
-	dbV1 dbm.DB,
-	dbV2 dbm.DB,
-
-	logger log.Logger,
-) StoreManager {
+func NewStore(dbV1, dbV2 dbm.DB, logger log.Logger) StoreManager {
 	storeV1 := depositstorev1.NewStore(dbV1, logger)
 	storeV2 := depositstorev2.NewStore(dbV2, logger)
 

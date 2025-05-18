@@ -91,7 +91,7 @@ type StateProcessor interface {
 // StorageBackend is the interface for the storage backend.
 type StorageBackend interface {
 	// DepositStore retrieves the deposit store.
-	DepositStore() deposit.Store
+	DepositStore() deposit.StoreManager
 	// StateFromContext retrieves the beacon state from the context.
 	StateFromContext(context.Context) *statedb.StateDB
 }
