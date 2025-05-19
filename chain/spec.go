@@ -164,6 +164,10 @@ type WithdrawalsSpec interface {
 	// which is set to MIN_VALIDATOR_WITHDRAWABILITY_DELAY epochs after its exit_epoch.
 	// This is to allow some extra time for any slashable offences by the validator to be detected and reported.
 	MinValidatorWithdrawabilityDelay() math.Epoch
+
+	// WithdrawalsEnabled is a switch that can be used to freeze withdrawals in an emergency scenario.
+	// An exception is made for the EVM inflation withdrawal which is always active.
+	WithdrawalsEnabled(timestamp math.U64) bool
 }
 
 // Spec defines an interface for accessing chain-specific parameters.
@@ -375,6 +379,11 @@ func (s spec) ElectraForkTime() uint64 {
 	return s.Data.ElectraForkTime
 }
 
+// Electra1ForkTime returns the epoch of the Electra fork.
+func (s spec) Electra1ForkTime() uint64 {
+	return s.Data.Electra1ForkTime
+}
+
 // EpochsPerHistoricalVector returns the number of epochs per historical vector.
 func (s spec) EpochsPerHistoricalVector() uint64 {
 	return s.Data.EpochsPerHistoricalVector
@@ -468,4 +477,19 @@ func (s spec) EVMInflationPerBlock(timestamp math.U64) math.Gwei {
 	default:
 		panic(fmt.Sprintf("EVMInflationPerBlock not supported for this fork version: %d", fv))
 	}
+}
+
+// WithdrawalsEnabled is a switch that can be used to freeze withdrawals in an emergency scenario.
+// An exception is made for the EVM inflation withdrawal which is always active.
+func (s spec) WithdrawalsEnabled(_ math.U64) bool {
+	return true
+	/*
+		Example:
+			 fv := s.ActiveForkVersionForTimestamp(timestamp)
+			 switch fv {
+			 case version.Electra1():
+				 return false
+			 default:
+			 	return true
+	*/
 }

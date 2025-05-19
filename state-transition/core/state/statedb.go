@@ -116,6 +116,10 @@ func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.With
 	// The first withdrawal is fixed to be the EVM inflation withdrawal.
 	withdrawals = append(withdrawals, s.EVMInflationWithdrawal(timestamp))
 
+	if !s.cs.WithdrawalsEnabled(timestamp) {
+		return withdrawals, processedPartialWithdrawals, nil
+	}
+
 	withdrawalIndex, err := s.GetNextWithdrawalIndex()
 	if err != nil {
 		return nil, 0, err
