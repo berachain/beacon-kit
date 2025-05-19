@@ -74,6 +74,8 @@ type generalStore struct {
 
 	storeV1 *depositstorev1.KVStore
 	storeV2 *depositstorev2.KVStore
+
+	logger log.Logger
 }
 
 func NewStore(dbV1, dbV2 dbm.DB, logger log.Logger) StoreManager {
@@ -92,6 +94,7 @@ func NewStore(dbV1, dbV2 dbm.DB, logger log.Logger) StoreManager {
 		currentVersion: currentVersion,
 		storeV1:        storeV1,
 		storeV2:        storeV2,
+		logger:         logger,
 	}
 }
 
@@ -171,6 +174,7 @@ func (gs *generalStore) MigrateV1ToV2() error {
 
 	ctx := context.TODO() // TODO ABENEGIA: should this come from caller?
 
+	gs.logger.Info("Deposit store migration attempted")
 	done, err := gs.storeV2.HasMigrationFromV1Completed(ctx)
 	if err != nil {
 		return fmt.Errorf("failed checking whether migration has completed: %w", err)
@@ -213,6 +217,6 @@ func (gs *generalStore) MigrateV1ToV2() error {
 		return fmt.Errorf("failed completing deposits store migration: %w", err)
 	}
 	gs.currentVersion = V2
-
+	gs.logger.Info("Deposit store migration completed")
 	return nil
 }
