@@ -25,8 +25,8 @@ import (
 	"math"
 	"testing"
 
+	"github.com/berachain/beacon-kit/execution/requests/eip7002"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/eip7002"
 	beaconmath "github.com/berachain/beacon-kit/primitives/math"
 	"github.com/stretchr/testify/require"
 )

@@ -152,8 +152,8 @@ func (sp *StateProcessor) processValidatorSetCap(st *statedb.StateDB) error {
 		}
 	})
 
-	// We do not currently have a cap on validators churn, so we stop
-	// validators next epoch and we withdraw them the epoch after
+	// We do not currently have a cap on validators churn, so we exit
+	// validators in the next epoch, and we withdraw them after a delay depending on the fork.
 	var idx math.ValidatorIndex
 	for li := range uint64(len(nextEpochVals)) - validatorSetCap {
 		valToEject := nextEpochVals[li]
