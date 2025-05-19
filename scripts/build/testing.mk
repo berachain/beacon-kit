@@ -174,6 +174,43 @@ start-nethermind-1.31.9-docker:
 	--JsonRpc.JwtSecretFile ../$(JWT_PATH) \
 	--Sync.PivotNumber 0 \
 	--Init.ChainSpecPath ../$(NETHER_ETH_GENESIS_PATH)
+
+# State root error 
+start-nethermind-1.31.10-docker:
+	docker run \
+	-p 30303:30303 \
+	-p 8545:8545 \
+	-p 8551:8551 \
+	-v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	-v $(PWD)/${HOMEDIR}:/${HOMEDIR} \
+	nethermind/nethermind:1.31.10 \
+	--JsonRpc.Port 8545 \
+	--JsonRpc.EngineEnabledModules "eth,net,engine" \
+	--JsonRpc.EnginePort 8551 \
+	--JsonRpc.EngineHost 0.0.0.0 \
+	--JsonRpc.Host 0.0.0.0 \
+	--JsonRpc.JwtSecretFile ../$(JWT_PATH) \
+	--Sync.PivotNumber 0 \
+	--Init.ChainSpecPath ../$(NETHER_ETH_GENESIS_PATH)
+
+# works
+start-nethermind-1.32.0-rc-docker:
+	docker run \
+	-p 30303:30303 \
+	-p 8545:8545 \
+	-p 8551:8551 \
+	-v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	-v $(PWD)/${HOMEDIR}:/${HOMEDIR} \
+	nethermind/nethermind:1.32.0-rc \
+	--JsonRpc.Port 8545 \
+	--JsonRpc.EngineEnabledModules "eth,net,engine" \
+	--JsonRpc.EnginePort 8551 \
+	--JsonRpc.EngineHost 0.0.0.0 \
+	--JsonRpc.Host 0.0.0.0 \
+	--JsonRpc.JwtSecretFile ../$(JWT_PATH) \
+	--Sync.PivotNumber 0 \
+	--Init.ChainSpecPath ../$(NETHER_ETH_GENESIS_PATH)
+
 ## Start an ephemeral `besu` node
 start-besu: 
 	$(call ask_reset_dir_func, .tmp/besu)
