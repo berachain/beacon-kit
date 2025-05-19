@@ -379,11 +379,6 @@ func (s spec) ElectraForkTime() uint64 {
 	return s.Data.ElectraForkTime
 }
 
-// Electra1ForkTime returns the epoch of the Electra fork.
-func (s spec) Electra1ForkTime() uint64 {
-	return s.Data.Electra1ForkTime
-}
-
 // EpochsPerHistoricalVector returns the number of epochs per historical vector.
 func (s spec) EpochsPerHistoricalVector() uint64 {
 	return s.Data.EpochsPerHistoricalVector

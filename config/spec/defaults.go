@@ -56,8 +56,7 @@ const (
 	defaultTargetSecondsPerEth1Block = 2 // Berachain specific.
 
 	// Fork-related values.
-	defaultElectraForkTime  = 9999999999999999 // Set as a future timestamp as not yet determined.
-	default1ElectraForkTime = 9999999999999999 // Set as a future timestamp as not yet determined.
+	defaultElectraForkTime = 9999999999999999 // Set as a future timestamp as not yet determined.
 
 	// State list length constants.
 	defaultEpochsPerHistoricalVector = 8
