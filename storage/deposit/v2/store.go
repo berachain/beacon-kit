@@ -73,7 +73,6 @@ type KVStore struct {
 
 	// TODO ABENEGIA: consolidate within consensus service multistore
 	cms storetypes.CommitMultiStore
-	mu  sync.RWMutex // mu protects store for concurrent access
 
 	closeFunc CloseFunc
 	once      sync.Once
@@ -133,9 +132,6 @@ func (kv *KVStore) Close() error {
 }
 
 func (kv *KVStore) EnqueueDeposits(_ context.Context, deposits []*ctypes.Deposit) error {
-	kv.mu.Lock()
-	defer kv.mu.Unlock()
-
 	// create context out of commit multistore, simiarly to what we do in consensus service
 	ms := kv.cms.CacheMultiStore()
 	sdkCtx := sdk.NewContext(ms, false, sdklog.NewNopLogger()) // .WithContext(ctx)
@@ -174,8 +170,6 @@ func (kv *KVStore) GetDepositsByIndex(
 	common.Root, // deposits common root
 	error,
 ) {
-	kv.mu.RLock()
-	defer kv.mu.RUnlock()
 	var (
 		deposits = make(ctypes.Deposits, 0, depRange)
 		endIdx   = startIndex + depRange
