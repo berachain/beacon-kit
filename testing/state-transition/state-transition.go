@@ -72,7 +72,7 @@ var (
 	DummyProposerAddr = []byte{0xff}
 )
 
-func BuildTestStores() (
+func BuildTestStores(cs chain.Spec) (
 	storetypes.CommitMultiStore,
 	*beacondb.KVStore,
 	deposit.StoreManager,
@@ -105,6 +105,11 @@ func BuildTestStores() (
 	}
 
 	depositStore := deposit.NewStore(depositsDB, depositsDB, nopLog)
+	if cs.DepositsV2ActivationSlot() == 0 {
+		if err = depositStore.MigrateV1ToV2(); err != nil {
+			return nil, nil, nil, fmt.Errorf("failed deposits store migration: %w", err)
+		}
+	}
 	return cms,
 		beacondb.New(&testKVStoreService{}),
 		depositStore,
@@ -129,7 +134,7 @@ func SetupTestState(t *testing.T, cs chain.Spec) (
 		mock.Anything, mock.Anything, mock.Anything,
 	).Return(nil)
 
-	cms, kvStore, depositStore, err := BuildTestStores()
+	cms, kvStore, depositStore, err := BuildTestStores(cs)
 	require.NoError(t, err)
 
 	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), true, log.NewNopLogger())

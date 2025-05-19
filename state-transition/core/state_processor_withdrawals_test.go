@@ -841,7 +841,6 @@ func TestConcurrentAutomaticAndVoluntaryWithdrawalRequests(t *testing.T) {
 		&types.ExecutionRequests{},
 		st.EVMInflationWithdrawal(blkTimestamp),
 	)
-	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), blk.Body.Deposits))
 
 	_, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
