@@ -27,7 +27,6 @@ import (
 	"sync"
 
 	sdkcollections "cosmossdk.io/collections"
-	corestore "cosmossdk.io/core/store"
 	sdklog "cosmossdk.io/log"
 	"cosmossdk.io/store"
 	storemetrics "cosmossdk.io/store/metrics"
@@ -57,12 +56,6 @@ var (
 		Index: math.MaxUint64,
 	}
 )
-
-type KVStoreService struct{}
-
-func (k KVStoreService) OpenKVStore(ctx context.Context) corestore.KVStore {
-	return storage.NewKVStore(sdk.UnwrapSDKContext(ctx).KVStore(DepositStoreKey))
-}
 
 // closure type for closing the store.
 // TODO: consider integrating this store into consensus service one (separate store)
@@ -96,7 +89,8 @@ func NewStore(
 		panic(fmt.Errorf("deposit store v2: failed loading latest version: %w", err))
 	}
 
-	schemaBuilder := sdkcollections.NewSchemaBuilder(KVStoreService{})
+	kss := &storage.KVStoreService{Key: DepositStoreKey}
+	schemaBuilder := sdkcollections.NewSchemaBuilder(kss)
 	store := sdkcollections.NewMap(
 		schemaBuilder,
 		depositStorePrefix,
