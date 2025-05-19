@@ -145,6 +145,10 @@ func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.With
 
 	// Iterate through indices to find the next validators to withdraw.
 	for range bound {
+		// Cap the number of withdrawals to the maximum allowed per payload.
+		if uint64(len(withdrawals)) == maxWithdrawals {
+			break
+		}
 		validator, err = s.ValidatorByIndex(validatorIndex)
 		if err != nil {
 			return nil, 0, err
@@ -197,11 +201,6 @@ func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.With
 
 			// Increment the withdrawal index to process the next withdrawal.
 			withdrawalIndex++
-		}
-
-		// Cap the number of withdrawals to the maximum allowed per payload.
-		if uint64(len(withdrawals)) == maxWithdrawals {
-			break
 		}
 
 		// Increment the validator index to process the next validator.
