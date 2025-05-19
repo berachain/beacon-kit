@@ -71,8 +71,6 @@ type KVStore struct {
 	once      sync.Once
 
 	logger log.Logger
-
-	depositsRoot common.Root
 }
 
 func NewStore(
@@ -103,17 +101,12 @@ func NewStore(
 	if _, err := schemaBuilder.Build(); err != nil {
 		panic(fmt.Errorf("failed building deposits store schema: %w", err))
 	}
-	root, err := bytesToRoot(cms.WorkingHash())
-	if err != nil {
-		panic(err)
-	}
 
 	return &KVStore{
-		store:        store,
-		cms:          cms,
-		closeFunc:    closeFn,
-		logger:       logger,
-		depositsRoot: root,
+		store:     store,
+		cms:       cms,
+		closeFunc: closeFn,
+		logger:    logger,
 	}
 }
 
@@ -138,13 +131,7 @@ func (kv *KVStore) EnqueueDeposits(_ context.Context, deposits []*ctypes.Deposit
 		}
 	}
 	ms.Write()
-	commit := kv.cms.Commit()
-
-	root, err := bytesToRoot(commit.Hash)
-	if err != nil {
-		panic(err)
-	}
-	kv.depositsRoot = root
+	kv.cms.Commit()
 
 	if len(deposits) > 0 {
 		kv.logger.Debug(
@@ -170,23 +157,29 @@ func (kv *KVStore) GetDepositsByIndex(
 		sdkCtx   = sdk.NewContext(kv.cms, false, sdklog.NewNopLogger())
 	)
 
+	depositsRoot, err := bytesToRoot(kv.cms.WorkingHash())
+	if err != nil {
+		return deposits, common.Root{}, fmt.Errorf("failed calculating deposits root: %w", err)
+	}
+
 	for i := startIndex; i < endIdx; i++ {
+		var deposit *ctypes.Deposit
 		//nolint:contextcheck // TODO ABENEGIA: to be fixed
-		deposit, err := kv.store.Get(sdkCtx, i)
+		deposit, err = kv.store.Get(sdkCtx, i)
 		switch {
 		case err == nil:
 			deposits = append(deposits, deposit)
 		case errors.Is(err, sdkcollections.ErrNotFound):
-			return deposits, kv.depositsRoot, nil
+			return deposits, depositsRoot, nil
 		default:
-			return deposits, kv.depositsRoot, errors.Wrapf(
+			return deposits, depositsRoot, errors.Wrapf(
 				err, "failed to get deposit %d, start: %d, end: %d", i, startIndex, endIdx,
 			)
 		}
 	}
 
 	kv.logger.Debug("GetDepositsByIndex", "start", startIndex, "end", endIdx)
-	return deposits, kv.depositsRoot, nil
+	return deposits, depositsRoot, nil
 }
 
 func (kv *KVStore) Prune(_ context.Context, start, end uint64) error {
@@ -223,11 +216,14 @@ func (kv *KVStore) MarkMigrationFromV1Started(ctx context.Context) error {
 }
 
 func (kv *KVStore) MarkMigrationFromV1Done(_ context.Context) error {
-	sdkCtx := sdk.NewContext(kv.cms, false, sdklog.NewNopLogger())
+	ms := kv.cms.CacheMultiStore()
+	sdkCtx := sdk.NewContext(ms, false, sdklog.NewNopLogger()) // .WithContext(ctx)
 	//nolint:contextcheck // TODO ABENEGIA: to be fixed
 	if err := kv.store.Remove(sdkCtx, migrationFlagDeposit.Index); err != nil {
 		return fmt.Errorf("failed marking migration has completed: %w", err)
 	}
+	ms.Write()
+	kv.cms.Commit()
 	return nil
 }
 
