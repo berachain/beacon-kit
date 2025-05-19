@@ -95,8 +95,8 @@ func (kv *KVStore) Close() error {
 // GetDepositsByIndex returns the first N deposits starting from the given
 // index. If N is greater than the number of deposits, it returns up to the
 // last deposit.
-// NOTE: common.Root is already empty here. It is only included to satisfy
-// the deposit.Store interface
+// Note: we return the hash root of the selected deposits to simplify block
+// building pre migration to deposit store V2.
 func (kv *KVStore) GetDepositsByIndex(
 	ctx context.Context,
 	startIndex uint64,
@@ -113,7 +113,7 @@ func (kv *KVStore) GetDepositsByIndex(
 		case err == nil:
 			deposits = append(deposits, deposit)
 		case errors.Is(err, sdkcollections.ErrNotFound):
-			return deposits, common.Root{}, nil
+			return deposits, deposits.HashTreeRoot(), nil
 		default:
 			return deposits, common.Root{}, errors.Wrapf(
 				err, "failed to get deposit %d, start: %d, end: %d", i, startIndex, endIdx,
@@ -122,7 +122,7 @@ func (kv *KVStore) GetDepositsByIndex(
 	}
 
 	kv.logger.Debug("GetDepositsByIndex", "start", startIndex, "end", endIdx)
-	return deposits, common.Root{}, nil
+	return deposits, deposits.HashTreeRoot(), nil
 }
 
 // EnqueueDeposits pushes multiple deposits to the queue.

@@ -297,10 +297,12 @@ func (s *Service) buildBlockBody(
 		return fmt.Errorf("failed loading eth1 deposit index: %w", err)
 	}
 
-	// Grab the deposits needed to calculate their merkle root
+	// Load deposits and their root
 	startIdx := constants.FirstDepositIndex
 	depRange := depositIndex + s.chainSpec.MaxDepositsPerBlock()
-	if s.chainSpec.DepositsV2ActivationSlot() > blk.GetSlot() {
+	depositMigrationDone := s.chainSpec.DepositsV2ActivationSlot() < blk.GetSlot()
+	if depositMigrationDone {
+		// migration must have done, just load strictly necessary deposits
 		startIdx = depositIndex
 		depRange = s.chainSpec.MaxDepositsPerBlock()
 	}
@@ -310,24 +312,19 @@ func (s *Service) buildBlockBody(
 		return err
 	}
 
-	if s.chainSpec.DepositsV2ActivationSlot() > blk.GetSlot() {
-		s.logger.Info(
-			"Building block body with local deposits",
-			"start_index", depositIndex, "num_deposits", uint64(len(deposits)),
-		)
-	} else {
+	if !depositMigrationDone {
 		if uint64(len(deposits)) < depositIndex {
 			return errors.Wrapf(ErrDepositStoreIncomplete,
 				"all historical deposits not available, expected: %d, got: %d",
 				depositIndex, len(deposits),
 			)
 		}
-		s.logger.Info(
-			"Building block body with local deposits",
-			"start_index", depositIndex, "num_deposits", uint64(len(deposits))-depositIndex,
-		)
 		deposits = deposits[depositIndex:]
 	}
+	s.logger.Info(
+		"Building block body with local deposits",
+		"start_index", depositIndex, "num_deposits", uint64(len(deposits)),
+	)
 
 	eth1Data := ctypes.NewEth1Data(depRoot)
 	body.SetEth1Data(eth1Data)
