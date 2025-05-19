@@ -27,79 +27,13 @@ import (
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/storage/db"
-	"github.com/berachain/beacon-kit/storage/deposit/v2"
+	"github.com/berachain/beacon-kit/storage/deposit/v1"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/stretchr/testify/require"
 )
-
-func TestSimpleInsertionAndRetrieval(t *testing.T) {
-	t.Parallel()
-
-	baseDB, err := db.OpenDB("", dbm.MemDBBackend)
-	require.NoError(t, err)
-
-	nopLog := log.NewNopLogger()
-	dummyCtx := context.Background()
-
-	var store *deposit.KVStore
-	require.NotPanics(t, func() {
-		store = deposit.NewStore(baseDB, nopLog)
-	})
-
-	ins := []*types.Deposit{
-		{
-			Pubkey:      [48]byte{0x01},
-			Credentials: types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{0x01}),
-			Amount:      2025,
-			Signature:   crypto.BLSSignature{0x01},
-			Index:       1,
-		},
-		{
-			Pubkey:      [48]byte{0x02},
-			Credentials: types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{0x02}),
-			Amount:      2026,
-			Signature:   crypto.BLSSignature{0x02},
-			Index:       2,
-		},
-		{
-			Pubkey:      [48]byte{0x03},
-			Credentials: types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{0x03}),
-			Amount:      2027,
-			Signature:   crypto.BLSSignature{0x03},
-			Index:       3,
-		},
-	}
-
-	require.NoError(t, store.EnqueueDeposits(dummyCtx, ins))
-
-	outs, root, err := store.GetDepositsByIndex(dummyCtx, ins[0].Index, uint64(len(ins)))
-	require.NoError(t, err)
-
-	// inputs and outputs have slightly different types, so we compare them explicitly
-	require.Equal(t, len(ins), len(outs))
-	for i, d := range outs {
-		require.Equal(t, ins[i], d)
-	}
-
-	require.NotEmpty(t, root)
-	require.NoError(t, store.Close())
-
-	// repoen the store and check that data can be retrieved again
-	var newStore *deposit.KVStore
-	require.NotPanics(t, func() {
-		newStore = deposit.NewStore(baseDB, nopLog)
-	})
-
-	outs2, root2, err := newStore.GetDepositsByIndex(dummyCtx, ins[0].Index, uint64(len(ins)))
-	require.NoError(t, err)
-
-	// inputs and outputs have slightly different types, so we compare them explicitly
-	require.Equal(t, outs, outs2)
-	require.Equal(t, root, root2)
-	require.NoError(t, newStore.Close())
-}
 
 func BenchmarkDepositsInsertion(b *testing.B) {
 	baseDB, err := db.OpenDB("", dbm.MemDBBackend)
@@ -113,7 +47,7 @@ func BenchmarkDepositsInsertion(b *testing.B) {
 		store = deposit.NewStore(baseDB, nopLog)
 	})
 
-	inputSize := 200_000
+	inputSize := 5_000
 	inputs := make([][]*types.Deposit, 0, inputSize)
 	for i := range inputSize {
 		b := uint8(i % 255)
@@ -134,7 +68,11 @@ func BenchmarkDepositsInsertion(b *testing.B) {
 	for range b.N {
 		for i, d := range inputs {
 			require.NoError(b, store.EnqueueDeposits(dummyCtx, d))
-			_, root, err = store.GetDepositsByIndex(dummyCtx, uint64(i), 16)
+
+			// this is why v1 is less efficient than v2. To get the historical root we need to
+			// load all depoisits from genesis and hash them together. Here I allocate up to i+1
+			// so as least as possible.
+			_, root, err = store.GetDepositsByIndex(dummyCtx, constants.FirstDepositIndex, uint64(i+1))
 			require.NoError(b, err)
 			_ = root // an attempt to avoid compiler optimizations
 		}
