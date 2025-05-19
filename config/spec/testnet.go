@@ -40,9 +40,6 @@ func TestnetChainSpecData() *chain.SpecData {
 	// Timestamp of the Electra fork on Bepolia.
 	specData.ElectraForkTime = 1746633600
 
-	// Far future timestamp not yet determined.
-	specData.Electra1ForkTime = default1ElectraForkTime
-
 	return specData
 }
 
