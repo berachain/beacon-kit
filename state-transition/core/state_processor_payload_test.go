@@ -143,7 +143,11 @@ func TestPayloadTimestampVerification(t *testing.T) {
 				WithMeterGas(false)
 
 			var depRoot common.Root
-			_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), uint64(len(genDeposits)), cs.MaxDepositsPerBlock())
+			_, depRoot, err = ds.GetDepositsByIndex(
+				ctx.ConsensusCtx(),
+				uint64(len(genDeposits)),
+				cs.MaxDepositsPerBlock(),
+			)
 			require.NoError(t, err)
 
 			blk := buildNextBlock(

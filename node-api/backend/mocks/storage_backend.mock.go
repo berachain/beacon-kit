@@ -7,7 +7,7 @@ import (
 
 	block "github.com/berachain/beacon-kit/storage/block"
 
-	deposit "github.com/berachain/beacon-kit/storage/deposit/v1"
+	deposit "github.com/berachain/beacon-kit/storage/deposit"
 
 	mock "github.com/stretchr/testify/mock"
 
@@ -126,19 +126,19 @@ func (_c *StorageBackend_BlockStore_Call) RunAndReturn(run func() *block.KVStore
 }
 
 // DepositStore provides a mock function with given fields:
-func (_m *StorageBackend) DepositStore() *deposit.KVStore {
+func (_m *StorageBackend) DepositStore() deposit.StoreManager {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
 		panic("no return value specified for DepositStore")
 	}
 
-	var r0 *deposit.KVStore
-	if rf, ok := ret.Get(0).(func() *deposit.KVStore); ok {
+	var r0 deposit.StoreManager
+	if rf, ok := ret.Get(0).(func() deposit.StoreManager); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*deposit.KVStore)
+			r0 = ret.Get(0).(deposit.StoreManager)
 		}
 	}
 
@@ -162,12 +162,12 @@ func (_c *StorageBackend_DepositStore_Call) Run(run func()) *StorageBackend_Depo
 	return _c
 }
 
-func (_c *StorageBackend_DepositStore_Call) Return(_a0 *deposit.KVStore) *StorageBackend_DepositStore_Call {
+func (_c *StorageBackend_DepositStore_Call) Return(_a0 deposit.StoreManager) *StorageBackend_DepositStore_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *StorageBackend_DepositStore_Call) RunAndReturn(run func() *deposit.KVStore) *StorageBackend_DepositStore_Call {
+func (_c *StorageBackend_DepositStore_Call) RunAndReturn(run func() deposit.StoreManager) *StorageBackend_DepositStore_Call {
 	_c.Call.Return(run)
 	return _c
 }

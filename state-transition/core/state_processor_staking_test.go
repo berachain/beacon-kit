@@ -77,7 +77,6 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		genPayloadHeader = &types.ExecutionPayloadHeader{
 			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
 		}
-		totalDepositsCount = uint64(len(genDeposits))
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 	valDiff, err := sp.InitializeBeaconStateFromEth1(
@@ -97,12 +96,11 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		Index:       uint64(len(genDeposits)),
 	}
 	blkDeposits := []*types.Deposit{blkDeposit}
-	totalDepositsCount++
 
 	// make sure included deposit is already available in deposit store
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), blkDeposits))
 	var depRoot common.Root
-	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), uint64(len(genDeposits)), totalDepositsCount)
+	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), uint64(len(genDeposits)), cs.MaxDepositsPerBlock())
 	require.NoError(t, err)
 
 	blk1 := buildNextBlock(
@@ -209,7 +207,6 @@ func TestTransitionCreateValidator(t *testing.T) {
 		genPayloadHeader = &types.ExecutionPayloadHeader{
 			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
 		}
-		totalDepositsCount = uint64(len(genDeposits))
 	)
 
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
@@ -230,12 +227,11 @@ func TestTransitionCreateValidator(t *testing.T) {
 		Index:       uint64(len(genDeposits)),
 	}
 	blkDeposits := []*types.Deposit{blkDeposit}
-	totalDepositsCount++
 
 	// make sure included deposit is already available in deposit store
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), blkDeposits))
 	var depRoot common.Root
-	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), uint64(len(genDeposits)), totalDepositsCount)
+	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), uint64(len(genDeposits)), cs.MaxDepositsPerBlock())
 	require.NoError(t, err)
 
 	blk1 := buildNextBlock(
@@ -385,7 +381,6 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		genPayloadHeader = &types.ExecutionPayloadHeader{
 			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
 		}
-		totalDepositsCount = cs.ValidatorSetCap()
 	)
 
 	// let genesis define all available validators
@@ -429,12 +424,11 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		}
 		blkDeposits = []*types.Deposit{extraValDeposit}
 	)
-	totalDepositsCount++
 
 	// make sure included deposit is already available in deposit store
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), blkDeposits))
 	var depRoot common.Root
-	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), uint64(len(genDeposits)), totalDepositsCount)
+	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), uint64(len(genDeposits)), cs.MaxDepositsPerBlock())
 	require.NoError(t, err)
 
 	blk1 := buildNextBlock(
@@ -623,7 +617,6 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		genPayloadHeader = &types.ExecutionPayloadHeader{
 			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
 		}
-		totalDepositsCount = cs.ValidatorSetCap()
 	)
 
 	// let genesis define all available validators
@@ -670,12 +663,11 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		}
 		blkDeposits = []*types.Deposit{extraValDeposit}
 	)
-	totalDepositsCount++
 
 	// make sure included deposit is already available in deposit store
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), blkDeposits))
 	var depRoot common.Root
-	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), uint64(len(genDeposits)), totalDepositsCount)
+	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), uint64(len(genDeposits)), cs.MaxDepositsPerBlock())
 	require.NoError(t, err)
 
 	blk1 := buildNextBlock(

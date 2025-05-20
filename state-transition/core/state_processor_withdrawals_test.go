@@ -529,7 +529,6 @@ func TestWithdrawalRequestsNonGenesisValidators(t *testing.T) {
 		genPayloadHeader = &types.ExecutionPayloadHeader{
 			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
 		}
-		totalDepositsCount = uint64(len(genDeposits))
 	)
 	_, err := sp.InitializeBeaconStateFromEth1(
 		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
@@ -545,11 +544,10 @@ func TestWithdrawalRequestsNonGenesisValidators(t *testing.T) {
 		Index:       uint64(len(genDeposits)),
 	}
 	blkDeposits := []*types.Deposit{blkDeposit}
-	totalDepositsCount++
 
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), blkDeposits))
 	var depRoot common.Root
-	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), uint64(len(genDeposits)), totalDepositsCount)
+	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), uint64(len(genDeposits)), cs.MaxDepositsPerBlock())
 	require.NoError(t, err)
 
 	blk := buildNextBlock(
@@ -779,7 +777,6 @@ func TestConcurrentAutomaticAndVoluntaryWithdrawalRequests(t *testing.T) {
 		genPayloadHeader = &types.ExecutionPayloadHeader{
 			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
 		}
-		totalDepositsCount = cs.ValidatorSetCap()
 	)
 
 	// Step1: let blockchain have as many validators as cap allows
@@ -823,11 +820,10 @@ func TestConcurrentAutomaticAndVoluntaryWithdrawalRequests(t *testing.T) {
 		}
 		blkDeposits = []*types.Deposit{newValDeposit}
 	)
-	totalDepositsCount++
 
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), blkDeposits))
 	var depRoot common.Root
-	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), uint64(len(genDeposits)), totalDepositsCount)
+	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), uint64(len(genDeposits)), cs.MaxDepositsPerBlock())
 	require.NoError(t, err)
 
 	blkTimestamp := math.U64(10)
@@ -1277,7 +1273,6 @@ func TestValidatorNotWithdrawable(t *testing.T) {
 		genPayloadHeader = &types.ExecutionPayloadHeader{
 			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
 		}
-		totalDepositsCount = uint64(len(genDeposits))
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 	_, err := sp.InitializeBeaconStateFromEth1(
@@ -1296,11 +1291,10 @@ func TestValidatorNotWithdrawable(t *testing.T) {
 		Index:       1,
 	}
 	blkDeposits := []*types.Deposit{blkDeposit}
-	totalDepositsCount++
 
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), blkDeposits))
 	var depRoot common.Root
-	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), uint64(len(genDeposits)), totalDepositsCount)
+	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), uint64(len(genDeposits)), cs.MaxDepositsPerBlock())
 	require.NoError(t, err)
 
 	blk := buildNextBlock(
