@@ -33,13 +33,17 @@ import (
 
 // GetDBCheckCmd returns a command for checking that the deposit store
 // is in sync with the beacon state.
-func GetDBCheckCmd(appCreator servertypes.AppCreator) *cobra.Command {
+func GetDBCheckCmd(chainSpecCreator servertypes.ChainSpecCreator, appCreator servertypes.AppCreator) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "db-check",
 		Short: `Checks if the deposit store is in sync with the beacon state. Fails if either of the beacon or deposit DBs are not available.`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			// Create the application from home directory configs and data.
 			v := clicontext.GetViperFromCmd(cmd)
+			cs, err := chainSpecCreator(v)
+			if err != nil {
+				return err
+			}
 			logger := clicontext.GetLoggerFromCmd(cmd)
 			cfg := clicontext.GetConfigFromCmd(cmd)
 			db, err := db.OpenDB(cfg.RootDir, dbm.PebbleDBBackend)
@@ -60,24 +64,43 @@ func GetDBCheckCmd(appCreator servertypes.AppCreator) *cobra.Command {
 			if err != nil {
 				return err
 			}
+			stateSlot, err := beaconState.GetSlot()
+			if err != nil {
+				return err
+			}
 
-			// TODO ABENEGIA: this is should only be performed if V2 is not activated,
-			// assuming V2 DB will be consolidated into add DB. For the time being, postponing
-			// upgrading this command.
-			if err = core.ValidateNonGenesisDepositsV1(
-				ctx,
-				beaconState,
-				depositStore,
-				// maxDepositsPerBlock: 0
-				// In this snapshotted state, we will check up to the existing deposits and not any more.
-				0,
-				// blkDeposits: nil
-				// There are no new block deposits as we are checking at this snapshotted state.
-				nil,
-				// blkDepositRoot: eth1Data.DepositRoot
-				// We will compare against the beacon state's deposit root at this snapshotted state.
-				eth1Data.DepositRoot,
-			); err != nil {
+			if cs.DepositsV2ActivationSlot() < stateSlot {
+				err = core.ValidateNonGenesisDepositsV2(
+					ctx,
+					beaconState,
+					depositStore,
+					// maxDepositsPerBlock: 0
+					// In this snapshotted state, we will check up to the existing deposits and not any more.
+					0,
+					// blkDeposits: nil
+					// There are no new block deposits as we are checking at this snapshotted state.
+					nil,
+					// blkDepositRoot: eth1Data.DepositRoot
+					// We will compare against the beacon state's deposit root at this snapshotted state.
+					eth1Data.DepositRoot,
+				)
+			} else {
+				err = core.ValidateNonGenesisDepositsV1(
+					ctx,
+					beaconState,
+					depositStore,
+					// maxDepositsPerBlock: 0
+					// In this snapshotted state, we will check up to the existing deposits and not any more.
+					0,
+					// blkDeposits: nil
+					// There are no new block deposits as we are checking at this snapshotted state.
+					nil,
+					// blkDepositRoot: eth1Data.DepositRoot
+					// We will compare against the beacon state's deposit root at this snapshotted state.
+					eth1Data.DepositRoot,
+				)
+			}
+			if err != nil {
 				return err
 			}
 
