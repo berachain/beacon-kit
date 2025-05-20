@@ -142,11 +142,15 @@ func TestPayloadTimestampVerification(t *testing.T) {
 				WithVerifyResult(false).
 				WithMeterGas(false)
 
+			var depRoot common.Root
+			_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), uint64(len(genDeposits)), cs.MaxDepositsPerBlock())
+			require.NoError(t, err)
+
 			blk := buildNextBlock(
 				t,
 				cs,
 				testSt,
-				types.NewEth1Data(genDeposits.HashTreeRoot()),
+				types.NewEth1Data(depRoot),
 				math.U64(tt.payloadTime.Unix()),
 				nil,
 				&types.ExecutionRequests{},
