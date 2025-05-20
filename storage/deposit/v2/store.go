@@ -64,7 +64,6 @@ type CloseFunc func() error
 type KVStore struct {
 	store sdkcollections.Map[uint64, *ctypes.Deposit]
 
-	// TODO ABENEGIA: consolidate within consensus service multistore
 	cms storetypes.CommitMultiStore
 
 	closeFunc CloseFunc
@@ -118,14 +117,14 @@ func (kv *KVStore) Close() error {
 	return err
 }
 
-func (kv *KVStore) EnqueueDeposits(_ context.Context, deposits []*ctypes.Deposit) error {
+func (kv *KVStore) EnqueueDeposits(ctx context.Context, deposits []*ctypes.Deposit) error {
 	// create context out of commit multistore, simiarly to what we do in consensus service
 	ms := kv.cms.CacheMultiStore()
-	sdkCtx := sdk.NewContext(ms, false, sdklog.NewNopLogger()) // .WithContext(ctx)
+	sdkCtx := sdk.NewContext(ms, false, sdklog.NewNopLogger()).WithContext(ctx)
 
 	for _, deposit := range deposits {
 		idx := deposit.GetIndex().Unwrap()
-		//nolint:contextcheck // TODO ABENEGIA: to be fixed
+		//nolint:contextcheck // already in sdkCtx
 		if err := kv.store.Set(sdkCtx, idx, deposit); err != nil {
 			return errors.Wrapf(err, "failed to enqueue deposit %d", idx)
 		}
@@ -143,7 +142,7 @@ func (kv *KVStore) EnqueueDeposits(_ context.Context, deposits []*ctypes.Deposit
 }
 
 func (kv *KVStore) GetDepositsByIndex(
-	_ context.Context, // we use the internal context here
+	ctx context.Context, // we use the internal context here
 	startIndex uint64,
 	depRange uint64,
 ) (
@@ -154,7 +153,7 @@ func (kv *KVStore) GetDepositsByIndex(
 	var (
 		deposits = make(ctypes.Deposits, 0, depRange)
 		endIdx   = startIndex + depRange
-		sdkCtx   = sdk.NewContext(kv.cms, false, sdklog.NewNopLogger())
+		sdkCtx   = sdk.NewContext(kv.cms, false, sdklog.NewNopLogger()).WithContext(ctx)
 	)
 
 	depositsRoot, err := bytesToRoot(kv.cms.WorkingHash())
@@ -164,7 +163,7 @@ func (kv *KVStore) GetDepositsByIndex(
 
 	for i := startIndex; i < endIdx; i++ {
 		var deposit *ctypes.Deposit
-		//nolint:contextcheck // TODO ABENEGIA: to be fixed
+		//nolint:contextcheck // already in sdkCtx
 		deposit, err = kv.store.Get(sdkCtx, i)
 		switch {
 		case err == nil:
@@ -215,10 +214,10 @@ func (kv *KVStore) MarkMigrationFromV1Started(ctx context.Context) error {
 	return nil
 }
 
-func (kv *KVStore) MarkMigrationFromV1Done(_ context.Context) error {
+func (kv *KVStore) MarkMigrationFromV1Done(ctx context.Context) error {
 	ms := kv.cms.CacheMultiStore()
-	sdkCtx := sdk.NewContext(ms, false, sdklog.NewNopLogger()) // .WithContext(ctx)
-	//nolint:contextcheck // TODO ABENEGIA: to be fixed
+	sdkCtx := sdk.NewContext(ms, false, sdklog.NewNopLogger()).WithContext(ctx)
+	//nolint:contextcheck // already in sdkCtx
 	if err := kv.store.Remove(sdkCtx, migrationFlagDeposit.Index); err != nil {
 		return fmt.Errorf("failed marking migration has completed: %w", err)
 	}

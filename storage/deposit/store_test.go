@@ -78,7 +78,7 @@ func TestDataMigration(t *testing.T) {
 	require.NoError(t, store.EnqueueDeposits(dummyCtx, ins))
 
 	// carry out migration
-	require.NoError(t, store.MigrateV1ToV2())
+	require.NoError(t, store.MigrateV1ToV2(dummyCtx))
 
 	outs, root, err := store.GetDepositsByIndex(dummyCtx, ins[0].Index, uint64(len(ins)))
 	require.NoError(t, err)
@@ -135,7 +135,7 @@ func TestDataMigrationIsIdempotent(t *testing.T) {
 	}
 
 	require.NoError(t, store.EnqueueDeposits(dummyCtx, ins0))
-	require.NoError(t, store.MigrateV1ToV2())
+	require.NoError(t, store.MigrateV1ToV2(dummyCtx))
 
 	outs0, root0, err := store.GetDepositsByIndex(dummyCtx, ins0[0].Index, uint64(len(ins0)))
 	require.NoError(t, err)
@@ -157,7 +157,7 @@ func TestDataMigrationIsIdempotent(t *testing.T) {
 	require.NoError(t, store.UnsafeSelectVersion(deposit.V1))
 	require.NoError(t, store.EnqueueDeposits(dummyCtx, ins1))
 
-	require.NoError(t, store.MigrateV1ToV2())
+	require.NoError(t, store.MigrateV1ToV2(dummyCtx))
 
 	// show that new data are not migrated
 	outs1, root1, err := store.GetDepositsByIndex(dummyCtx, ins0[0].Index, uint64(len(ins0)+len(ins1)))

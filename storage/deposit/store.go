@@ -50,7 +50,7 @@ type Store interface {
 
 type StoreManager interface {
 	Store
-	MigrateV1ToV2() error
+	MigrateV1ToV2(ctx context.Context) error
 
 	// Mostly used in test, should never used in prod
 	UnsafeSelectVersion(uint8) error
@@ -168,11 +168,9 @@ func (gs *generalStore) UnsafeSelectVersion(v uint8) error {
 // Simply copies over storeV1 content to storeV2 content when called
 // Relies heavily on the fact that deposits are indexed by Deposit.Index
 // which is contiguous and starts from zero
-func (gs *generalStore) MigrateV1ToV2() error {
+func (gs *generalStore) MigrateV1ToV2(ctx context.Context) error {
 	gs.mu.Lock()
 	defer gs.mu.Unlock()
-
-	ctx := context.TODO() // TODO ABENEGIA: should this come from caller?
 
 	gs.logger.Info("Deposit store migration attempted")
 	done, err := gs.storeV2.HasMigrationFromV1Completed(ctx)
