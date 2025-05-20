@@ -72,6 +72,8 @@ func DevnetChainSpecData() *chain.SpecData {
 	specData.GenesisTime = devnetGenesisTime
 	specData.Deneb1ForkTime = devnetDeneb1ForkTime
 	specData.ElectraForkTime = devnetElectraForkTime
+	specData.ElectraDisableWithdrawalsForkTime = defaultFarFutureTimestamp
+	specData.ElectraEnableWithdrawalsForkTime = defaultFarFutureTimestamp
 
 	// EVM inflation is different from mainnet to test.
 	specData.EVMInflationAddressGenesis = common.NewExecutionAddressFromHex(devnetEVMInflationAddress)
