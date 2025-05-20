@@ -102,7 +102,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	// make sure included deposit is already available in deposit store
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), blkDeposits))
 	var depRoot common.Root
-	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), uint64(len(genDeposits)), totalDepositsCount)
+	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), constants.FirstDepositIndex, totalDepositsCount)
 	require.NoError(t, err)
 
 	blk1 := buildNextBlock(
@@ -235,7 +235,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 	// make sure included deposit is already available in deposit store
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), blkDeposits))
 	var depRoot common.Root
-	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), uint64(len(genDeposits)), totalDepositsCount)
+	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), constants.FirstDepositIndex, totalDepositsCount)
 	require.NoError(t, err)
 
 	blk1 := buildNextBlock(
@@ -434,7 +434,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	// make sure included deposit is already available in deposit store
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), blkDeposits))
 	var depRoot common.Root
-	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), uint64(len(genDeposits)), totalDepositsCount)
+	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), constants.FirstDepositIndex, totalDepositsCount)
 	require.NoError(t, err)
 
 	blk1 := buildNextBlock(
@@ -675,7 +675,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	// make sure included deposit is already available in deposit store
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), blkDeposits))
 	var depRoot common.Root
-	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), uint64(len(genDeposits)), totalDepositsCount)
+	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), constants.FirstDepositIndex, totalDepositsCount)
 	require.NoError(t, err)
 
 	blk1 := buildNextBlock(

@@ -549,7 +549,7 @@ func TestWithdrawalRequestsNonGenesisValidators(t *testing.T) {
 
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), blkDeposits))
 	var depRoot common.Root
-	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), uint64(len(genDeposits)), totalDepositsCount)
+	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), constants.FirstDepositIndex, totalDepositsCount)
 	require.NoError(t, err)
 
 	blk := buildNextBlock(
@@ -827,7 +827,7 @@ func TestConcurrentAutomaticAndVoluntaryWithdrawalRequests(t *testing.T) {
 
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), blkDeposits))
 	var depRoot common.Root
-	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), uint64(len(genDeposits)), totalDepositsCount)
+	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), constants.FirstDepositIndex, totalDepositsCount)
 	require.NoError(t, err)
 
 	blkTimestamp := math.U64(10)
@@ -1300,7 +1300,7 @@ func TestValidatorNotWithdrawable(t *testing.T) {
 
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), blkDeposits))
 	var depRoot common.Root
-	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), uint64(len(genDeposits)), totalDepositsCount)
+	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), constants.FirstDepositIndex, totalDepositsCount)
 	require.NoError(t, err)
 
 	blk := buildNextBlock(
