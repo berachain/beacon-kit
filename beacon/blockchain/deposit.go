@@ -80,7 +80,7 @@ func (s *Service) fetchAndStoreDeposits(
 	// before enqueuing deposits verify we are using the right deposit store version
 	depositsStore := s.storageBackend.DepositStore()
 	if s.chainSpec.DepositsV2ActivationSlot() == blockNum {
-		if err = depositsStore.MigrateV1ToV2(); err != nil {
+		if err = depositsStore.MigrateV1ToV2(ctx); err != nil {
 			s.logger.Error("fetch store deposits, failed migration", "error", err)
 			s.metrics.sink.IncrementCounter(
 				"beacon_kit.execution.deposit.failed_to_enqueue_deposits",

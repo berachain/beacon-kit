@@ -106,7 +106,7 @@ func BuildTestStores(cs chain.Spec) (
 
 	depositStore := deposit.NewStore(depositsDB, depositsDB, nopLog)
 	if cs.DepositsV2ActivationSlot() == 0 {
-		if err = depositStore.MigrateV1ToV2(); err != nil {
+		if err = depositStore.MigrateV1ToV2(context.Background()); err != nil {
 			return nil, nil, nil, fmt.Errorf("failed deposits store migration: %w", err)
 		}
 	}

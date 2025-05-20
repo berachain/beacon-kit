@@ -76,7 +76,7 @@ func (s *Service) ProcessGenesisData(
 	// before enqueuing deposits verify we are using the right deposit store version
 	depositsStore := s.storageBackend.DepositStore()
 	if s.chainSpec.DepositsV2ActivationSlot() == constants.GenesisSlot {
-		if err = depositsStore.MigrateV1ToV2(); err != nil {
+		if err = depositsStore.MigrateV1ToV2(ctx); err != nil {
 			return nil, fmt.Errorf("process genesis data, failed migration: %w", err)
 		}
 	}
