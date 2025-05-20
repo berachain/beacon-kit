@@ -56,8 +56,8 @@ const (
 	defaultTargetSecondsPerEth1Block = 2 // Berachain specific.
 
 	// Fork-related values.
-	defaultFarFutureTimestamp                = 9999999999999999
-	defaultElectraForkTime                   = defaultFarFutureTimestamp // Set as a future timestamp as not yet determined.
+	defaultFarFutureTimestamp                = 9999999999999999 // a future timestamp as not yet determined.
+	defaultElectraForkTime                   = defaultFarFutureTimestamp
 	defaultElectraDisableWithdrawalsForkTime = defaultFarFutureTimestamp
 	defaultElectraEnableWithdrawalsForkTime  = defaultFarFutureTimestamp
 
