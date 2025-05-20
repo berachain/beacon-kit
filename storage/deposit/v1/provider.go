@@ -18,43 +18,29 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package deposit
 
 import (
-	"path/filepath"
+	"context"
 
-	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/config"
-	"github.com/berachain/beacon-kit/log/phuslu"
-	"github.com/berachain/beacon-kit/storage/deposit"
-	dbm "github.com/cosmos/cosmos-db"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/spf13/cast"
+	"cosmossdk.io/core/store"
 )
 
-// DepositStoreInput is the input for the dep inject framework.
-type DepositStoreInput struct {
-	depinject.In
-	Logger  *phuslu.Logger
-	AppOpts config.AppOptions
+var _ store.KVStoreService = (*KVStoreProvider)(nil)
+
+// KVStoreProvider is a provider for a KV store.
+type KVStoreProvider struct {
+	store.KVStoreWithBatch
 }
 
-// ProvideDepositStore is a function that provides the module to the
-// application.
-func ProvideDepositStore(in DepositStoreInput) (deposit.StoreManager, error) {
-	var (
-		rootDir = cast.ToString(in.AppOpts.Get(flags.FlagHome))
-		dataDir = filepath.Join(rootDir, "data")
-		nameV1  = "deposits"
-	)
-
-	dbV1, err := dbm.NewDB(nameV1, dbm.PebbleDBBackend, dataDir)
-	if err != nil {
-		return nil, err
+// NewKVStoreProvider creates a new KV store provider.
+func NewKVStoreProvider(kvsb store.KVStoreWithBatch) *KVStoreProvider {
+	return &KVStoreProvider{
+		KVStoreWithBatch: kvsb,
 	}
+}
 
-	return deposit.NewStore(
-		dbV1,
-		in.Logger.With("service", "deposit-store"),
-	), nil
+// OpenKVStore opens a new KV store.
+func (p *KVStoreProvider) OpenKVStore(context.Context) store.KVStore {
+	return p.KVStoreWithBatch
 }

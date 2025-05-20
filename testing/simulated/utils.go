@@ -92,7 +92,7 @@ func (s *SharedAccessors) InitializeChain(t *testing.T) {
 	require.Len(t, initResp.Validators, 1, "Expected 1 validator")
 
 	// Verify that the deposit store contains the expected deposits.
-	deposits, err := s.TestNode.StorageBackend.DepositStore().GetDepositsByIndex(
+	deposits, _, err := s.TestNode.StorageBackend.DepositStore().GetDepositsByIndex(
 		s.CtxApp,
 		constants.FirstDepositIndex,
 		constants.FirstDepositIndex+s.TestNode.ChainSpec.MaxDepositsPerBlock(),
