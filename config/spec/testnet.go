@@ -40,6 +40,10 @@ func TestnetChainSpecData() *chain.SpecData {
 	// Timestamp of the Electra fork on Bepolia.
 	specData.ElectraForkTime = 1746633600
 
+	// Override the mainnet configuration for timestamps so it is not accidentally set on testnet a mainnet update.
+	specData.ElectraDisableWithdrawalsForkTime = defaultFarFutureTimestamp
+	specData.ElectraEnableWithdrawalsForkTime = defaultFarFutureTimestamp
+
 	return specData
 }
 

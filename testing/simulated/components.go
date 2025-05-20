@@ -28,7 +28,6 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/node-core/components"
-	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 func FixedComponents(t *testing.T) []any {
@@ -146,20 +145,6 @@ func ProvidePectraWithdrawalTestChainSpec() (chain.Spec, error) {
 	return chainSpec, nil
 }
 
-// frozenWithdrawalsSpec is used in ProvideFreezeWithdrawalsChainSpec as a chain spec with withdrawals disabled
-// after a certain time, then renabled
-type frozenWithdrawalsSpec struct {
-	chain.Spec
-}
-
-func (s frozenWithdrawalsSpec) WithdrawalsEnabled(timestamp math.U64) bool {
-	// withdrawals disabled from timestamp 10 to 30
-	if timestamp >= 10 && timestamp < 30 {
-		return false
-	}
-	return true
-}
-
 // ProvideFreezeWithdrawalsChainSpec provides a chain spec with pectra as the genesis, but with the
 // withdrawals disabled and then re-enabled.
 func ProvideFreezeWithdrawalsChainSpec() (chain.Spec, error) {
@@ -175,10 +160,14 @@ func ProvideFreezeWithdrawalsChainSpec() (chain.Spec, error) {
 	// Reduced validator set cap so eviction withdrawals are easier to trigger
 	specData.ValidatorSetCap = 1
 
+	// Disable and Enable withdrawals.
+	specData.ElectraDisableWithdrawalsForkTime = 10
+	specData.ElectraEnableWithdrawalsForkTime = 30
+
 	chainSpec, err := chain.NewSpec(specData)
 	if err != nil {
 		return nil, err
 	}
 
-	return frozenWithdrawalsSpec{chainSpec}, nil
+	return chainSpec, nil
 }

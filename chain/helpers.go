@@ -27,6 +27,12 @@ import (
 )
 
 // ActiveForkVersionForTimestamp returns the active fork version for a given timestamp.
+// Note that ActiveForkVersionForTimestamp will NOT check for
+//   - ElectraDisableWithdrawalsForkTime
+//   - ElectraEnableWithdrawalsForkTime
+//
+// As there is no logic that relies on the above forks that goes through ActiveForkVersionForTimestamp.
+// It also gives flexibility for these forks to occur at any point after Electra, e.g. after Electra1.
 func (s spec) ActiveForkVersionForTimestamp(timestamp math.U64) common.Version {
 	time := timestamp.Unwrap()
 	if time >= s.ElectraForkTime() {
@@ -36,6 +42,16 @@ func (s spec) ActiveForkVersionForTimestamp(timestamp math.U64) common.Version {
 		return version.Deneb1()
 	}
 	return version.Deneb()
+}
+
+// WithdrawalsEnabled is a switch that can be used to freeze withdrawals in an emergency scenario.
+// An exception is made for the EVM inflation withdrawal which is always active.
+func (s spec) WithdrawalsEnabled(timestamp math.U64) bool {
+	time := timestamp.Unwrap()
+	if time >= s.ElectraDisableWithdrawalsForkTime() && time < s.ElectraEnableWithdrawalsForkTime() {
+		return false
+	}
+	return true
 }
 
 // GenesisForkVersion returns the fork version at genesis.
