@@ -30,13 +30,8 @@ import (
 	"testing"
 	"time"
 
-	depositcli "github.com/berachain/beacon-kit/cli/commands/deposit"
-	consensustypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/execution/requests/eip7002"
-	"github.com/berachain/beacon-kit/geth-primitives/bind"
-	"github.com/berachain/beacon-kit/geth-primitives/deposit"
 	"github.com/berachain/beacon-kit/log/phuslu"
-	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	beaconmath "github.com/berachain/beacon-kit/primitives/math"
@@ -244,45 +239,107 @@ func (s *PectraFreezeWithdrawalsSuite) TestWithdrawals_FullWithdrawal_WhileWithd
 	s.Require().Equal(expected, delta, "expected withdrawal of 10_000_000 BERA, got %s", delta)
 }
 
-func (s *PectraFreezeWithdrawalsSuite) defaultDeposit(blsSigner *signer.BLSSigner, creds consensustypes.WithdrawalCredentials, depositAmount beaconmath.Gwei, setOperator bool) {
-	depositContractAddress := gethcommon.Address(s.TestNode.ChainSpec.DepositContractAddress())
-	depositClient, err := deposit.NewDepositContract(depositContractAddress, s.TestNode.ContractBackend)
-	s.Require().NoError(err)
+// Test partial withdrawal while withdrawals are frozen
+func (s *PectraFreezeWithdrawalsSuite) TestWithdrawals_PartialWithdrawal_WhileWithdrawalsFrozen() {
+	// Initialize chain and signer
+	s.InitializeChain(s.T())
+	blsSigner := simulated.GetBlsSigner(s.HomeDir)
 
-	depositMsg, blsSig, err := depositcli.CreateDepositMessage(
-		s.TestNode.ChainSpec,
-		blsSigner,
-		s.GenesisValidatorsRoot,
-		creds,
-		depositAmount,
-	)
-	s.Require().NoError(err)
-	err = depositcli.ValidateDeposit(
-		s.TestNode.ChainSpec,
-		depositMsg.Pubkey,
-		depositMsg.Credentials,
-		depositMsg.Amount,
-		s.GenesisValidatorsRoot,
-		blsSig,
-	)
-	s.Require().NoError(err)
+	// Execution address and sender
+	execAddr := simulated.WithdrawalExecutionAddress
+	senderAddress := gethcommon.HexToAddress(common.NewExecutionAddressFromHex(execAddr).String())
 
-	elChainID := big.NewInt(int64(s.TestNode.ChainSpec.DepositEth1ChainID()))
-	senderKey := simulated.GetTestKey(s.T())
-	senderAddress := gethcommon.HexToAddress(creds.String())
-	s.Require().NoError(err)
-	operator := senderAddress
-	if !setOperator {
-		operator = gethcommon.HexToAddress("0x0000000000000000000000000000000000000000")
+	var nextBlockHeight int64 = 1
+
+	// 1. Advance one block to bump EXCESS_INHIBITOR
+	proposals, _, _ := s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Unix(nextBlockHeight*2, 0))
+	s.Require().Len(proposals, 1)
+	nextBlockHeight++
+
+	// 2. Submit a partial withdrawal request (e.g. 5 M BERA)
+	totalWithdrawalGwei := beaconmath.Gwei(5_000_000 * 1e9)
+	{
+		senderKey := simulated.GetTestKey(s.T())
+		chainID := big.NewInt(int64(s.TestNode.ChainSpec.DepositEth1ChainID()))
+		signer := gethcore.NewPragueSigner(chainID)
+
+		// Fetch withdrawal fee
+		fee, err := eip7002.GetWithdrawalFee(s.CtxApp, s.TestNode.EngineClient)
+		s.Require().NoError(err)
+
+		// Build request data
+		txData, err := eip7002.CreateWithdrawalRequestData(blsSigner.PublicKey(), totalWithdrawalGwei)
+		s.Require().NoError(err)
+
+		tx := gethcore.MustSignNewTx(senderKey, signer, &gethcore.DynamicFeeTx{
+			ChainID:   chainID,
+			Nonce:     0,
+			To:        &params.WithdrawalQueueAddress,
+			Gas:       500_000,
+			GasFeeCap: big.NewInt(1e9),
+			GasTipCap: big.NewInt(1e9),
+			Value:     fee,
+			Data:      txData,
+		})
+
+		// Send tx
+		txBytes, err := tx.MarshalBinary()
+		s.Require().NoError(err)
+
+		var result interface{}
+		err = s.TestNode.EngineClient.Call(s.CtxApp, &result, "eth_sendRawTransaction", hexutil.Encode(txBytes))
+		s.Require().NoError(err)
 	}
-	_, err = depositClient.Deposit(&bind.TransactOpts{
-		From: senderAddress,
-		Signer: func(_ gethcommon.Address, tx *gethcore.Transaction) (*gethcore.Transaction, error) {
-			return gethcore.SignTx(
-				tx, gethcore.LatestSignerForChainID(elChainID), senderKey,
-			)
-		},
-		Value: big.NewInt(0).Mul(big.NewInt(int64(depositAmount)), big.NewInt(1e9)),
-	}, depositMsg.Pubkey[:], depositMsg.Credentials[:], blsSig[:], operator)
-	s.Require().NoError(err)
+
+	// 3. Mine 2 blocks to include the request
+	{
+		iters := int64(2)
+		s.LogBuffer.Reset()
+		s.MoveChainToHeight(s.T(), nextBlockHeight, iters, blsSigner, time.Unix(nextBlockHeight*2, 0))
+		nextBlockHeight += iters
+	}
+
+	// 4. Advance past withdrawability delay but before re-activation
+	{
+		delay := int64(s.TestNode.ChainSpec.MinValidatorWithdrawabilityDelay().Unwrap()) + 2
+		s.LogBuffer.Reset()
+		s.MoveChainToHeight(s.T(), nextBlockHeight, delay, blsSigner, time.Unix(nextBlockHeight*2, 0))
+		nextBlockHeight += delay
+
+		// Validator should be withdrawable
+		validators, apiErr := s.TestNode.APIBackend.FilteredValidators(beaconmath.Slot(nextBlockHeight-1), nil, nil)
+		s.Require().NoError(apiErr)
+		s.Require().Len(validators, 1)
+		//s.Require().Equal(constants.ValidatorStatusWithdrawalPossible, validators[0].Status)
+	}
+
+	// 5. Get balance before re-activation
+	var beforeBalance *big.Int
+	{
+		var err error
+		beforeBalance, err = s.TestNode.ContractBackend.BalanceAt(s.CtxApp, senderAddress, big.NewInt(nextBlockHeight-1))
+		s.Require().NoError(err)
+		s.T().Logf("Balance before re-activation: %s wei", beforeBalance)
+	}
+
+	// 6. Activate withdrawals at 30s
+	{
+		s.LogBuffer.Reset()
+		s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Unix(30, 0))
+		nextBlockHeight++
+	}
+
+	// 7. Get balance after partial withdrawal
+	var afterBalance *big.Int
+	{
+		var err error
+		afterBalance, err = s.TestNode.ContractBackend.BalanceAt(s.CtxApp, senderAddress, big.NewInt(nextBlockHeight-1))
+		s.Require().NoError(err)
+		s.T().Logf("Balance after withdrawal: %s wei", afterBalance)
+	}
+
+	// 8. Verify withdrawal equals 5M BERA
+	delta := new(big.Int).Sub(afterBalance, beforeBalance)
+	expected := new(big.Int).Mul(big.NewInt(5_000_000), big.NewInt(1e18))
+	s.Require().Equal(expected.String(), delta.String(), "expected withdrawal of %d wei, got %s", expected.String(), delta)
 }
