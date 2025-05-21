@@ -71,7 +71,7 @@ const (
 func DevnetChainSpecData() *chain.SpecData {
 	specData := MainnetChainSpecData()
 	specData.DepositEth1ChainID = DevnetEth1ChainID
-	specData.DepositsV2ActivationSlot = devnetDepositsV2ActivationSlot
+	specData.DepositsV2ActivationSlot = 7660
 
 	// Fork timings are set to facilitate local testing across fork versions.
 	specData.GenesisTime = devnetGenesisTime
