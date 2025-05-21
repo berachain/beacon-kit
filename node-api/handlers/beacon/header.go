@@ -34,9 +34,16 @@ func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	slot, err := math.U64FromString(req.Slot)
-	if err != nil {
-		return nil, err
+
+	var slot math.U64
+	// If no query params are provided, use the latest slot. This is as per the API spec.
+	if req.Slot == "" && req.ParentRoot == "" {
+		slot = 0
+	} else {
+		slot, err = math.U64FromString(req.Slot)
+		if err != nil {
+			return nil, err
+		}
 	}
 	header, err := h.backend.BlockHeaderAtSlot(slot)
 	if err != nil {
