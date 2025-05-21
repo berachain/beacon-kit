@@ -40,6 +40,7 @@ func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 	if req.Slot == "" && req.ParentRoot == "" {
 		slot = 0
 	} else {
+		// TODO: Fix the case when we query only with parent root.
 		slot, err = math.U64FromString(req.Slot)
 		if err != nil {
 			return nil, err
@@ -49,14 +50,20 @@ func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return beacontypes.NewResponse(&beacontypes.BlockHeaderResponse{
+
+	// Create a slice with a single header response
+	// This is as per the API spec.
+	// https://ethereum.github.io/beacon-APIs/?urls.primaryName=v3.1.0#/Beacon/getBlockHeader
+	headers := []beacontypes.BlockHeaderResponse{{
 		Root:      header.GetBodyRoot(),
 		Canonical: true,
 		Header: &beacontypes.SignedBeaconBlockHeader{
 			Message:   beacontypes.BeaconBlockHeaderFromConsensus(header),
 			Signature: "", // TODO: implement
 		},
-	}), nil
+	}}
+
+	return beacontypes.NewResponse(headers), nil
 }
 
 func (h *Handler) GetBlockHeaderByID(c handlers.Context) (any, error) {
