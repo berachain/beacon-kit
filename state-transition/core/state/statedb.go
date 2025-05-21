@@ -122,7 +122,7 @@ func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.With
 	// 2. Validators whose balance is above MAX_EFFECTIVE_BALANCE will not be withdrawn till re-enabled.
 	// 3. Validators who have initiated a full withdrawal will not be withdrawn till re-enabled.
 	// 4. Validators who have been kicked out due to validator set cap will not be withdrawn till re-enabled.
-	if !s.cs.WithdrawalsEnabled(timestamp) {
+	if s.cs.WithdrawalsDisabled(timestamp) {
 		return withdrawals, processedPartialWithdrawals, nil
 	}
 

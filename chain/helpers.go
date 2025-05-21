@@ -44,14 +44,11 @@ func (s spec) ActiveForkVersionForTimestamp(timestamp math.U64) common.Version {
 	return version.Deneb()
 }
 
-// WithdrawalsEnabled is a switch that can be used to freeze withdrawals in an emergency scenario.
+// WithdrawalsDisabled is a switch that can be used to freeze withdrawals in an emergency scenario.
 // An exception is made for the EVM inflation withdrawal which is always active.
-func (s spec) WithdrawalsEnabled(timestamp math.U64) bool {
+func (s spec) WithdrawalsDisabled(timestamp math.U64) bool {
 	time := timestamp.Unwrap()
-	if time >= s.ElectraDisableWithdrawalsForkTime() && time < s.ElectraEnableWithdrawalsForkTime() {
-		return false
-	}
-	return true
+	return time >= s.ElectraDisableWithdrawalsForkTime() && time < s.ElectraEnableWithdrawalsForkTime()
 }
 
 // GenesisForkVersion returns the fork version at genesis.

@@ -165,9 +165,9 @@ type WithdrawalsSpec interface {
 	// This is to allow some extra time for any slashable offences by the validator to be detected and reported.
 	MinValidatorWithdrawabilityDelay() math.Epoch
 
-	// WithdrawalsEnabled is a switch that can be used to freeze withdrawals in an emergency scenario.
+	// WithdrawalsDisabled is a switch that can be used to freeze withdrawals in an emergency scenario.
 	// An exception is made for the EVM inflation withdrawal which is always active.
-	WithdrawalsEnabled(timestamp math.U64) bool
+	WithdrawalsDisabled(timestamp math.U64) bool
 }
 
 // Spec defines an interface for accessing chain-specific parameters.
