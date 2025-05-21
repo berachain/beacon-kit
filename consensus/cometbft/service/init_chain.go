@@ -118,27 +118,8 @@ func (s *Service) initChainer(
 		return nil, err
 	}
 
-	// Here get the data from the genesis state.
-
-	// Get the genesis beacon block header from the state.
-	genesisHeader, err := genesisState.GetLatestBlockHeader()
-	if err != nil {
-		return nil, err
-	}
-
-	// Return the hash tree root of the genesis header after updating the state root in it.
-	// This is similar to how we get the block root.
-	genesisHeader.SetStateRoot(genesisState.HashTreeRoot())
-	genesisBlockRoot := genesisHeader.HashTreeRoot()
-
-	// Get the validators from the genesis state.
-	validators, err := genesisState.GetValidators()
-	if err != nil {
-		return nil, err
-	}
-
-	// Set the genesis data on the API backend.
-	s.apiBackend.SetGenesisData(genesisHeader, genesisBlockRoot, validators, genesisState)
+	// Set the genesis state on the API backend.
+	s.apiBackend.SetGenesisState(genesisState)
 	return iter.MapErr(
 		valUpdates,
 		convertValidatorUpdate[cmtabci.ValidatorUpdate],

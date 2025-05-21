@@ -27,32 +27,67 @@ import (
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-// GenesisBlockHeader returns the genesis block header of the beacon chain.
-func (b *Backend) GenesisBlockHeader() *ctypes.BeaconBlockHeader {
-	return b.genesisHeader.Load()
-}
-
-// GenesisForkVersion returns the genesis fork version of the beacon chain.
-func (b *Backend) GenesisForkVersion() common.Version {
-	return *b.genesisForkVersion.Load()
-}
-
 // GenesisTime returns the genesis time of the beacon chain.
 func (b *Backend) GenesisTime() math.U64 {
 	return *b.genesisTime.Load()
 }
 
-// GenesisBlockRoot returns the genesis block root of the beacon chain.
-func (b *Backend) GenesisBlockRoot() common.Root {
-	return *b.genesisBlockRoot.Load()
-}
-
 // GenesisState returns the genesis state of the beacon chain.
 func (b *Backend) GenesisState() *statedb.StateDB {
-	return b.genesisState.Load()
+	return b.stateFetcher.GetGenesisState()
+}
+
+// GenesisBlockHeader returns the genesis block header of the beacon chain.
+func (b *Backend) GenesisBlockHeader() *ctypes.BeaconBlockHeader {
+	genesisState := b.GenesisState()
+	if genesisState == nil {
+		return nil
+	}
+
+	// For genesis state, the latest block header is the genesis block header
+	header, err := genesisState.GetLatestBlockHeader()
+	if err != nil {
+		return nil
+	}
+	return header
+}
+
+// GenesisForkVersion returns the genesis fork version of the beacon chain.
+func (b *Backend) GenesisForkVersion() common.Version {
+	// Derive the genesis fork version from the genesis time.
+	genesisTime := b.GenesisTime()
+	cs, err := b.Spec()
+	if err != nil {
+		return common.Version{}
+	}
+	return cs.ActiveForkVersionForTimestamp(genesisTime)
+}
+
+// GenesisBlockRoot returns the genesis block root of the beacon chain.
+func (b *Backend) GenesisBlockRoot() common.Root {
+	genesisState := b.GenesisState()
+	if genesisState == nil {
+		return common.Root{}
+	}
+	// Return the hash tree root of the genesis header after updating the state root in it.
+	// This is similar to how we get the block root.
+	genesisHeader, err := genesisState.GetLatestBlockHeader()
+	if err != nil {
+		return common.Root{}
+	}
+	genesisHeader.SetStateRoot(genesisState.HashTreeRoot())
+	return genesisHeader.HashTreeRoot()
 }
 
 // GenesisValidators returns the genesis validators of the beacon chain.
 func (b *Backend) GenesisValidators() []*ctypes.Validator {
-	return *b.genesisValidators.Load()
+	genesisState := b.GenesisState()
+	if genesisState == nil {
+		return nil
+	}
+	validators, err := genesisState.GetValidators()
+	if err != nil {
+		return nil
+	}
+	return validators
 }

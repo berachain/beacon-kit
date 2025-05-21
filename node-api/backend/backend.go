@@ -24,7 +24,6 @@ import (
 	"sync/atomic"
 
 	"github.com/berachain/beacon-kit/chain"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/berachain/beacon-kit/node-core/types"
@@ -43,13 +42,12 @@ type Backend struct {
 	cs   chain.Spec
 	node types.ConsensusService
 
-	// the genesis data is cached here, written to once during initialization!
-	genesisHeader      atomic.Pointer[ctypes.BeaconBlockHeader]
-	genesisBlockRoot   atomic.Pointer[common.Root]
-	genesisValidators  atomic.Pointer[[]*ctypes.Validator]
-	genesisTime        atomic.Pointer[math.U64]
-	genesisForkVersion atomic.Pointer[common.Version]
-	genesisState       atomic.Pointer[statedb.StateDB]
+	// the genesis state and time is cached here, written to once during initialization!
+	genesisTime  atomic.Pointer[math.U64]
+	genesisState atomic.Pointer[statedb.StateDB]
+
+	// stateFetcher handles state retrieval operations
+	stateFetcher StateFetcher
 }
 
 // New creates and returns a new Backend instance.
@@ -78,9 +76,8 @@ func New(
 	genesisTime := math.U64(gen.GenesisTime.Unix())
 	b.genesisTime.Store(&genesisTime)
 
-	// Derive the genesis fork version from the genesis time.
-	genesisForkVersion := cs.ActiveForkVersionForTimestamp(genesisTime)
-	b.genesisForkVersion.Store(&genesisForkVersion)
+	// Initialize the state fetcher.
+	b.stateFetcher = NewStateFetcher(b)
 
 	return b, nil
 }
@@ -91,16 +88,8 @@ func (b *Backend) AttachQueryBackend(node types.ConsensusService) {
 	b.node = node
 }
 
-// SetGenesisData sets the genesis data on the API backend.
-func (b *Backend) SetGenesisData(
-	genesisHeader *ctypes.BeaconBlockHeader,
-	genesisBlockRoot common.Root,
-	validators []*ctypes.Validator,
-	genesisState *statedb.StateDB,
-) {
-	b.genesisHeader.Store(genesisHeader)
-	b.genesisBlockRoot.Store(&genesisBlockRoot)
-	b.genesisValidators.Store(&validators)
+// SetGenesisState sets the genesis state on the API backend.
+func (b *Backend) SetGenesisState(genesisState *statedb.StateDB) {
 	b.genesisState.Store(genesisState)
 }
 
