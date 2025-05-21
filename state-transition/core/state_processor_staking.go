@@ -68,8 +68,6 @@ func (sp *StateProcessor) processOperations(
 	}
 
 	// After Electra, validators can request withdrawals through execution requests which must be handled.
-	// If withdrawals are enabled, process the withdrawals. Otherwise, the withdrawal requests are ignored
-	// to prevent withdrawals from excessively queuing up.
 	if version.EqualsOrIsAfter(blk.GetForkVersion(), version.Electra()) {
 		requests, err := blk.GetBody().GetExecutionRequests()
 		if err != nil {
