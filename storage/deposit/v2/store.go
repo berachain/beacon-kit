@@ -30,6 +30,7 @@ import (
 	sdklog "cosmossdk.io/log"
 	"cosmossdk.io/store"
 	storemetrics "cosmossdk.io/store/metrics"
+	pruningtypes "cosmossdk.io/store/pruning/types"
 	storetypes "cosmossdk.io/store/types"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
@@ -81,6 +82,8 @@ func NewStore(
 
 	// TODO: fix logging
 	cms := store.NewCommitMultiStore(db, sdklog.NewNopLogger(), storemetrics.NewNoOpMetrics())
+	cms.SetPruning(pruningtypes.NewPruningOptions(pruningtypes.PruningEverything))
+
 	cms.MountStoreWithDB(DepositStoreKey, storetypes.StoreTypeIAVL, nil)
 	if err := cms.LoadLatestVersion(); err != nil {
 		panic(fmt.Errorf("deposit store v2: failed loading latest version: %w", err))
