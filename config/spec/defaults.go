@@ -57,7 +57,6 @@ const (
 
 	// Fork-related values.
 	defaultFarFutureTimestamp                = 9999999999999999 // a future timestamp as not yet determined.
-	defaultElectraForkTime                   = defaultFarFutureTimestamp
 	defaultElectraDisableWithdrawalsForkTime = defaultFarFutureTimestamp
 	defaultElectraEnableWithdrawalsForkTime  = defaultFarFutureTimestamp
 
