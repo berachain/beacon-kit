@@ -34,7 +34,7 @@ target-seconds-per-eth1-block = 2
 # Fork-related values
 genesis-time = 1_737_381_600
 deneb-one-fork-time = 1_738_415_507
-electra-fork-time = 9_999_999_999_999_999
+electra-fork-time = 1_748_451_600
 
 # State list lengths
 epochs-per-historical-vector = 8
