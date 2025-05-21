@@ -77,8 +77,8 @@ func DevnetChainSpecData() *chain.SpecData {
 	specData.GenesisTime = devnetGenesisTime
 	specData.Deneb1ForkTime = devnetDeneb1ForkTime
 	specData.ElectraForkTime = devnetElectraForkTime
-	specData.ElectraDisableWithdrawalsForkTime = devnetElectraDisableWithdrawalsForkTime
-	specData.ElectraEnableWithdrawalsForkTime = devnetElectraEnableWithdrawalsForkTime
+	specData.ElectraDisableWithdrawalsForkTime = 1747832054
+	specData.ElectraEnableWithdrawalsForkTime = 1747832354 // re-enable after 5 mins
 
 	// EVM inflation is different from mainnet to test.
 	specData.EVMInflationAddressGenesis = common.NewExecutionAddressFromHex(devnetEVMInflationAddress)
@@ -93,7 +93,7 @@ func DevnetChainSpecData() *chain.SpecData {
 	specData.MinActivationBalance = defaultActivationBalance
 	specData.EffectiveBalanceIncrement = defaultEffectiveBalanceIncrement
 	specData.SlotsPerEpoch = defaultSlotsPerEpoch
-	specData.MinValidatorWithdrawabilityDelay = devnetMinValidatorWithdrawabilityDelay
+	specData.MinValidatorWithdrawabilityDelay = 1
 
 	return specData
 }
