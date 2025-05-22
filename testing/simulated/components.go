@@ -144,3 +144,30 @@ func ProvidePectraWithdrawalTestChainSpec() (chain.Spec, error) {
 	}
 	return chainSpec, nil
 }
+
+// ProvideFreezeWithdrawalsChainSpec provides a chain spec with pectra as the genesis, but with the
+// withdrawals disabled and then re-enabled.
+func ProvideFreezeWithdrawalsChainSpec() (chain.Spec, error) {
+	specData := spec.TestnetChainSpecData()
+	// Both Deneb1 and Electra happen in genesis.
+	specData.GenesisTime = 0
+	specData.Deneb1ForkTime = 0
+	specData.ElectraForkTime = 0
+	// We set slots per epoch to 1 for faster observation of withdrawal behaviour
+	specData.SlotsPerEpoch = 1
+	// We set this to 4 so tests are faster
+	specData.MinValidatorWithdrawabilityDelay = 4
+	// Reduced validator set cap so eviction withdrawals are easier to trigger
+	specData.ValidatorSetCap = 1
+
+	// Disable and Enable withdrawals.
+	specData.ElectraDisableWithdrawalsForkTime = 10
+	specData.ElectraEnableWithdrawalsForkTime = 30
+
+	chainSpec, err := chain.NewSpec(specData)
+	if err != nil {
+		return nil, err
+	}
+
+	return chainSpec, nil
+}

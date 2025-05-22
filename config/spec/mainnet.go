@@ -130,9 +130,11 @@ func MainnetChainSpecData() *chain.SpecData {
 		TargetSecondsPerEth1Block: defaultTargetSecondsPerEth1Block,
 
 		// Fork-related values.
-		GenesisTime:     mainnetGenesisTime,
-		Deneb1ForkTime:  mainnetDeneb1ForkTime,
-		ElectraForkTime: mainnetElectraForkTime,
+		GenesisTime:                       mainnetGenesisTime,
+		Deneb1ForkTime:                    mainnetDeneb1ForkTime,
+		ElectraForkTime:                   mainnetElectraForkTime,
+		ElectraDisableWithdrawalsForkTime: defaultElectraDisableWithdrawalsForkTime,
+		ElectraEnableWithdrawalsForkTime:  defaultElectraEnableWithdrawalsForkTime,
 
 		// State list length constants.
 		EpochsPerHistoricalVector: defaultEpochsPerHistoricalVector,

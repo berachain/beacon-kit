@@ -116,6 +116,16 @@ func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.With
 	// The first withdrawal is fixed to be the EVM inflation withdrawal.
 	withdrawals = append(withdrawals, s.EVMInflationWithdrawal(timestamp))
 
+	// If withdrawals are not enabled, return only the inflation withdrawal.
+	// Once withdrawals are re-enabled, all pending withdrawals will be processed.
+	// 1. Partial Withdrawal Requests will remain untouched and will be handled after re-enabling.
+	// 2. Validators whose balance is above MAX_EFFECTIVE_BALANCE will not be withdrawn till re-enabled.
+	// 3. Validators who have initiated a full withdrawal will not be withdrawn till re-enabled.
+	// 4. Validators who have been kicked out due to validator set cap will not be withdrawn till re-enabled.
+	if s.cs.WithdrawalsDisabled(timestamp) {
+		return withdrawals, processedPartialWithdrawals, nil
+	}
+
 	withdrawalIndex, err := s.GetNextWithdrawalIndex()
 	if err != nil {
 		return nil, 0, err
