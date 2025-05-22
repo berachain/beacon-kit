@@ -468,7 +468,8 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdra
 		// The validator's balance should not have changed yet
 		nextBlockHeight++
 	}
-	// The next block will have both the partial withdrawal and the excess balance withdrawal and increase the validator's EL balance
+	// The next block will have the partial withdrawal, but not the excess balance withdrawal and increase the validator's EL balance
+	// Before the fix, it would also have the excess balance withdrawal.
 	{
 		s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
 		nextBlockHeight++
@@ -503,7 +504,7 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdra
 	}
 }
 
-func (s *PectraWithdrawalSuite) TestDeposits_Spam() {
+func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_HasCorrectWithdrawalAmount() {
 	// Initialize the chain state.
 	s.InitializeChain(s.T())
 
@@ -527,28 +528,29 @@ func (s *PectraWithdrawalSuite) TestDeposits_Spam() {
 		startBalance, err := s.TestNode.ContractBackend.BalanceAt(s.CtxApp, senderAddress, big.NewInt(nextBlockHeight-1))
 		s.Require().NoError(err)
 		s.Require().Equal(expectedStartBalance, startBalance)
-		s.T().Logf("balance at start: %s wei", startBalance.String())
 
 		validators, err := s.TestNode.APIBackend.FilteredValidators(beaconmath.Slot(nextBlockHeight-1), nil, nil)
 		s.Require().NoError(err)
 		s.Require().Len(validators, 1)
-		s.T().Logf("staked validator balance at start: %v gwei", validators[0].Validator.EffectiveBalance)
 		// Starts with 10000000000000000 gwei / 10 million BERA staked.
 		s.Require().Equal("10000000000000000", validators[0].Validator.EffectiveBalance)
 	}
 
 	// Send the Deposit and progress 1 block so that the deposit is included in the next block
-	depositAmount := beaconmath.Gwei(10_000_000_000)
+	depositAmount := beaconmath.Gwei(10_000 * 1e9) // 10K BERA
 	{
-		// Send Deposit Request
+		// Send Deposit Requests
 		iterations := int64(10)
 		s.defaultDepositWithNonce(blsSigner, creds, depositAmount, true, big.NewInt(0))
 		for i := 1; i < 30; i++ {
 			s.defaultDepositWithNonce(blsSigner, creds, depositAmount, false, big.NewInt(int64(i)))
 		}
 
+		s.LogBuffer.Reset()
 		s.MoveChainToHeight(s.T(), nextBlockHeight, iterations, blsSigner, time.Now())
 		nextBlockHeight += iterations
+		// We expect that withdrawals due to excess balance were created
+		s.Require().Contains(s.LogBuffer.String(), "expectedWithdrawals: validator withdrawal due to excess balance")
 
 		deposits, err := s.TestNode.StorageBackend.DepositStore().GetDepositsByIndex(
 			s.CtxApp, 0, uint64(nextBlockHeight)*s.TestNode.ChainSpec.MaxDepositsPerBlock(),
@@ -556,11 +558,22 @@ func (s *PectraWithdrawalSuite) TestDeposits_Spam() {
 		s.Require().Len(deposits, 31)
 		s.Require().NoError(err)
 	}
-	// Confirm the validator's end start balance in Wei
+	// Confirm the validator's end balance on EL is similar to the start balance on EL
+	// Confirm the validator's end balance on CL is still at the cap, i.e., 10 Mil BERA.
 	{
 		endBalance, err := s.TestNode.ContractBackend.BalanceAt(s.CtxApp, senderAddress, big.NewInt(nextBlockHeight-1))
 		s.Require().NoError(err)
-		s.T().Logf("balance at end: %s wei", endBalance.String())
+		finalBalanceGwei, convertErr := beaconmath.GweiFromWei(endBalance)
+		s.Require().NoError(convertErr)
+		expectedStartBalanceGwei, convertErr := beaconmath.GweiFromWei(expectedStartBalance)
+		s.Require().NoError(convertErr)
+		s.Require().InDelta(finalBalanceGwei.Unwrap(), expectedStartBalanceGwei.Unwrap(), 2_000_000) // maximum 2_000_000 Gwei delta
+
+		validators, err := s.TestNode.APIBackend.FilteredValidators(beaconmath.Slot(nextBlockHeight-1), nil, nil)
+		s.Require().NoError(err)
+		s.Require().Len(validators, 1)
+		// Ends with 10000000000000000 gwei / 10 million BERA staked.
+		s.Require().Equal("10000000000000000", validators[0].Validator.EffectiveBalance)
 	}
 }
 
