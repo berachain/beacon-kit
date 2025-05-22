@@ -244,8 +244,8 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 			gasFeeCap := new(big.Int).Add(
 				gasTipCap, big.NewInt(0).SetUint64(TenGwei))
 			nonceToSubmit := nonce.Add(1) - 1
-			//nolint:mnd // 20000 Ether
-			value := new(big.Int).Mul(big.NewInt(200000), big.NewInt(Ether))
+			//nolint:mnd // 2_000_000_000 Ether
+			value := new(big.Int).Mul(big.NewInt(2_000_000_000), big.NewInt(Ether))
 			dest := account.Address()
 			var signedTx *ethtypes.Transaction
 			if signedTx, err = s.genesisAccount.SignTx(
