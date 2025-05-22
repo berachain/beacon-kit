@@ -50,7 +50,7 @@ func (s *Service) processProposal(
 	// called
 	// again in a subsequent round. However, we only want to do this after we've
 	// processed the first block, as we want to avoid overwriting the
-	// finalizeState
+	// finalizeBlockState
 	// after state changes during InitChain.
 	s.processProposalState = s.resetState(ctx)
 	if req.Height > s.initialHeight {

@@ -56,7 +56,7 @@ func TestFilteredValidators(t *testing.T) {
 	// Build backend to test
 	cs, err := spec.MainnetChainSpec()
 	require.NoError(t, err)
-	cms, kvStore, depositStore, err := statetransition.BuildTestStores()
+	cms, kvStore, depositStore, err := statetransition.BuildTestStores(cs)
 	require.NoError(t, err)
 	sb := storage.NewBackend(
 		cs, nil, kvStore, depositStore, nil, log.NewNopLogger(), metrics.NewNoOpTelemetrySink(),
