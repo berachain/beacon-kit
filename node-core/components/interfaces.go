@@ -526,6 +526,8 @@ type (
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		// GetSlotByStateRoot retrieves the slot by a given root from the store.
 		GetSlotByStateRoot(root common.Root) (math.Slot, error)
+		// GetSlotByParentRoot retrieves the slot by a given parent root from the store.
+		GetSlotByParentRoot(root common.Root) (math.Slot, error)
 	}
 
 	// NodeAPIConfigBackend is the interface for backend of the config API.

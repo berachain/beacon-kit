@@ -113,3 +113,8 @@ func (b *Backend) Spec() (chain.Spec, error) {
 	}
 	return b.cs, nil
 }
+
+// GetSlotByParentRoot retrieves the slot by a given parent root from the block store.
+func (b *Backend) GetSlotByParentRoot(root common.Root) (math.Slot, error) {
+	return b.sb.BlockStore().GetSlotByParentRoot(root)
+}
