@@ -100,6 +100,7 @@ IMAGE_NAME ?= $(TESTAPP)
 
 # Docker Paths
 DOCKERFILE = ./Dockerfile
+DOCKERFILE_E2E = ./Dockerfile.e2e
 
 build-docker: ## build a docker image containing `beacond`
 	@echo "Build a release docker image for the Cosmos SDK chain..."
@@ -118,3 +119,10 @@ push-docker-github: ## push the docker image to the ghcr registry
 	@echo "Push the release docker image to the ghcr registry..."
 	docker tag $(IMAGE_NAME):$(VERSION) ghcr.io/berachain/beacon-kit:$(VERSION)
 	docker push ghcr.io/berachain/beacon-kit:$(VERSION)
+
+build-docker-e2e: ## build a docker image containing `beacond` used in the e2e tests
+	@echo "Build an e2e docker image..."
+	docker build \
+	-f ${DOCKERFILE_E2E} \
+	-t cometbft/e2e-node:local-version \
+	./testing # work around .dockerignore restrictions in the root folder

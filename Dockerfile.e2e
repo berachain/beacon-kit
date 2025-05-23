@@ -1,0 +1,62 @@
+# syntax=docker/dockerfile:1
+# check=skip=SecretsUsedInArgOrEnv
+#
+# Copyright (C) 2022, Berachain Foundation. All rights reserved.
+# See the file LICENSE for licensing terms.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+#######################################################
+###           Stage 0 - Build Arguments             ###
+#######################################################
+
+ARG IMAGE_NAME=beacond
+ARG VERSION=local-version
+
+FROM ${IMAGE_NAME}:${VERSION}
+
+###########################################################################
+###         Stage 1 - Add entrypoint.sh requirements to beacond         ###
+###########################################################################
+
+# Copy beacond because entrypoint.sh searches in ./build/bin
+RUN mkdir -p /build/bin && cp /usr/bin/beacond /build/bin
+
+# Add files used by entrypoint.sh. Start the build process from the testing folder.
+COPY files/ /testing/files/
+COPY networks/ /testing/networks/
+COPY files/entrypoint.sh /usr/bin/entrypoint-builtin
+
+# Configure entrypoint.sh
+ENV RPC_PREFIX="http://"
+ENV RPC_DIAL_URL="host.docker.internal:8551"
+ENV NON_INTERACTIVE=1
+ENV JWT_SECRET_PATH="/testing/files/jwt.hex"
+
+###########################################################################
+###         Stage 2 - Add consensus e2e test details to beacond         ###
+###########################################################################
+
+# Add iputils-ping and iproute2 for simulated network delay.
+RUN apk add --no-cache iputils-ping iproute2
+
+# Set up runtime directory.
+WORKDIR /
+VOLUME /cometbft
+ENV CMTHOME=/cometbft
+ENV HOMEDIR=/cometbft
+ENV GORACE="halt_on_error=1"
+
+EXPOSE 26656 26657 26660 6060
+ENTRYPOINT ["/testing/files/entrypoint.sh"]
+CMD ["devnet"]
+STOPSIGNAL SIGTERM
