@@ -1040,3 +1040,51 @@ func (s *BeaconKitE2ESuite) TestGetBeaconBlockHeadersWithSlot() {
 	s.Require().NotNil(message.StateRoot)
 	s.Require().NotNil(message.BodyRoot)
 }
+
+// TestGetBeaconBlockHeadersWithParentRoot tests querying the beacon block header with parent root parameter.
+func (s *BeaconKitE2ESuite) TestGetBeaconBlockHeadersWithParentRoot() {
+	// get the parent root of slot 5
+	fiveSlot := "5"
+	resp, err := s.getBeaconBlockHeaders(BeaconBlockHeadersParams{
+		Slot: fiveSlot,
+	})
+	s.Require().NoError(err)
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+	defer resp.Body.Close()
+
+	headers, err := s.decodeBeaconBlockHeadersResponse(resp)
+	s.Require().NoError(err)
+	s.Require().NotNil(headers)
+	s.Require().Len(*headers, 1)
+
+	header := (*headers)[0]
+
+	parentRoot := header.Header.Message.ParentRoot
+
+	// get the beacon block header with the parent root
+	resp, err = s.getBeaconBlockHeaders(BeaconBlockHeadersParams{
+		ParentRoot: parentRoot,
+	})
+	s.Require().NoError(err)
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+	defer resp.Body.Close()
+
+	headers, err = s.decodeBeaconBlockHeadersResponse(resp)
+	s.Require().NoError(err)
+	s.Require().NotNil(headers)
+	s.Require().Len(*headers, 1)
+
+	header = (*headers)[0]
+	message := header.Header.Message
+
+	// check it parent root is as expected
+	s.Require().Equal(parentRoot, message.ParentRoot)
+
+	// check it slot is 5
+	slot, err := strconv.ParseUint(message.Slot, 10, 64)
+	s.Require().NoError(err)
+	s.Require().Equal(fiveSlot, strconv.FormatUint(slot, 10))
+
+	s.Require().NotNil(message.StateRoot)
+	s.Require().NotNil(message.BodyRoot)
+}
