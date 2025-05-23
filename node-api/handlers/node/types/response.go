@@ -18,25 +18,12 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package node
+package types
 
-import (
-	"github.com/berachain/beacon-kit/node-api/handlers"
-)
-
-// Handler is the handler for the node API.
-type Handler struct {
-	*handlers.BaseHandler
-	backend Backend
-}
-
-// NewHandler creates a new handler for the node API.
-func NewHandler(backend Backend) *Handler {
-	h := &Handler{
-		BaseHandler: handlers.NewBaseHandler(
-			handlers.NewRouteSet(""),
-		),
-		backend: backend,
-	}
-	return h
+type SyncingData struct {
+	HeadSlot     int64 `json:"head_slot"`
+	SyncDistance int64 `json:"sync_distance"`
+	IsSyncing    bool  `json:"is_syncing"`
+	IsOptimistic bool  `json:"is_optimistic"`
+	ELOffline    bool  `json:"el_offline"`
 }
