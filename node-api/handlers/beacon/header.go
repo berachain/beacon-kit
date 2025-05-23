@@ -29,6 +29,12 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
+// determineSlot determines the slot based on the query params.
+// If both slot and parent_root are provided, it verifies that the provided slot
+// and parent root match.
+// If only slot is provided, it returns the slot.
+// If only parent_root is provided, it returns the slot for the parent root.
+// If neither slot nor parent_root is provided, it returns 0 so that the latest slot is fetched.
 func (h *Handler) determineSlot(req *beacontypes.GetBlockHeadersRequest) (math.Slot, error) {
 	var parentRoot common.Root
 	switch {
@@ -91,6 +97,7 @@ func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 		return nil, err
 	}
 
+	// Determine the slot based on the query params.
 	slot, err := h.determineSlot(&req)
 	if err != nil {
 		return nil, err
