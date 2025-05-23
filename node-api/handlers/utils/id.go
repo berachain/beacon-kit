@@ -41,6 +41,9 @@ var ErrNoSlotForStateRoot = errors.New("slot not found at state root")
 func SlotFromStateID[StorageBackendT interface {
 	GetSlotByStateRoot(root common.Root) (math.Slot, error)
 }](stateID string, storage StorageBackendT) (math.Slot, error) {
+	if stateID == StateIDGenesis {
+		return 0, errors.New("genesis slot not supported")
+	}
 	if slot, err := slotFromStateID(stateID); err == nil {
 		return slot, nil
 	}
@@ -112,14 +115,10 @@ func IsTimestampIDPrefix(timestampID string) bool {
 }
 
 // slotFromStateID returns a slot number from the given state ID.
-// In case of genesis, we will return 1 as the slot number. This is to ensure
-// validator API endpoints return a valid slot number for genesis.
 func slotFromStateID(id string) (math.Slot, error) {
 	switch id {
 	case StateIDFinalized, StateIDJustified, StateIDHead:
 		return Head, nil
-	case StateIDGenesis:
-		return 1, nil
 	default:
 		return math.U64FromString(id)
 	}

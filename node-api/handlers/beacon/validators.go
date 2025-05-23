@@ -24,11 +24,13 @@ import (
 	"errors"
 	"net/http"
 
+	cerrors "github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-api/backend"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	types "github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 var ErrNoSlotForStateRoot = errors.New("slot not found at state root")
@@ -37,6 +39,20 @@ var ErrNoSlotForStateRoot = errors.New("slot not found at state root")
 // consistency between GetStateValidators and PostStateValidators, since they
 // are intended to behave the same way.
 func (h *Handler) getStateValidators(stateID string, ids []string, statuses []string) (any, error) {
+	if stateID == utils.StateIDGenesis || stateID == "0" {
+		genesisValidators := h.backend.GenesisValidators()
+		genesisState := h.backend.GenesisState()
+		validators, err := h.backend.FilteredValidatorsAtGenesis(
+			genesisValidators,
+			genesisState,
+			ids,
+			statuses,
+		)
+		if err != nil {
+			return nil, err
+		}
+		return beacontypes.NewResponse(validators), nil
+	}
 	slot, err := utils.SlotFromStateID(stateID, h.backend)
 	if err != nil {
 		return nil, err
@@ -80,6 +96,10 @@ func (h *Handler) GetStateValidator(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
+	if req.StateID == utils.StateIDGenesis || req.StateID == "0" {
+		validators := h.backend.GenesisValidators()
+		return beacontypes.NewResponse(validators), nil
+	}
 	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
 	switch {
 	case err == nil:
@@ -116,21 +136,31 @@ func (h *Handler) GetStateValidatorBalances(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
 
-	switch {
-	case err == nil:
+	var st *statedb.StateDB
+	if req.StateID == utils.StateIDGenesis || req.StateID == "0" {
+		st = h.backend.GenesisState()
+	} else {
+		slot, errInSlot := utils.SlotFromStateID(req.StateID, h.backend)
+		switch {
+		case errInSlot == nil:
 		// No error, continue
-	case errors.Is(err, utils.ErrNoSlotForStateRoot):
-		return &handlers.HTTPError{
-			Code:    http.StatusNotFound,
-			Message: "State not found",
-		}, nil
-	default:
-		return nil, err
+		case errors.Is(errInSlot, utils.ErrNoSlotForStateRoot):
+			return &handlers.HTTPError{
+				Code:    http.StatusNotFound,
+				Message: "State not found",
+			}, nil
+		default:
+			return nil, errInSlot
+		}
+		st, _, err = h.backend.StateAtSlot(slot)
+		if err != nil {
+			return nil, cerrors.Wrapf(err, "failed to get state from slot %d", slot)
+		}
 	}
+
 	balances, err := h.backend.ValidatorBalancesByIDs(
-		slot,
+		st,
 		req.IDs,
 	)
 	if err != nil {
@@ -154,20 +184,31 @@ func (h *Handler) PostStateValidatorBalances(c handlers.Context) (any, error) {
 		return nil, types.ErrInvalidRequest
 	}
 
-	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
-	switch {
-	case err == nil:
-		// No error, continue
-	case errors.Is(err, utils.ErrNoSlotForStateRoot):
-		return &handlers.HTTPError{
-			Code:    http.StatusNotFound,
-			Message: "State not found",
-		}, nil
-	default:
-		return nil, err
+	var st *statedb.StateDB
+
+	if req.StateID == utils.StateIDGenesis || req.StateID == "0" {
+		st = h.backend.GenesisState()
+	} else {
+		slot, err := utils.SlotFromStateID(req.StateID, h.backend)
+		switch {
+		case err == nil:
+			// No error, continue
+		case errors.Is(err, utils.ErrNoSlotForStateRoot):
+			return &handlers.HTTPError{
+				Code:    http.StatusNotFound,
+				Message: "State not found",
+			}, nil
+		default:
+			return nil, err
+		}
+		st, _, err = h.backend.StateAtSlot(slot)
+		if err != nil {
+			return nil, cerrors.Wrapf(err, "failed to get state from slot %d", slot)
+		}
 	}
+
 	balances, err := h.backend.ValidatorBalancesByIDs(
-		slot,
+		st,
 		req.IDs,
 	)
 	if err != nil {

@@ -75,6 +75,20 @@ func (f *validatorFilters) parseID(id string) {
 	// Silently skip invalid IDs
 }
 
+// FilteredValidatorsAtGenesis will grab all of the validators from the state at the
+// genesis slot. It will then filter them by the provided ids and statuses.
+func (b *Backend) FilteredValidatorsAtGenesis(
+	validators []*types.Validator,
+	genesisState *statedb.StateDB,
+	ids []string,
+	statuses []string,
+) ([]*beacontypes.ValidatorData, error) {
+	// Parse all IDs and pubkeys once at the start
+	filters := parseValidatorIDs(ids)
+	epoch := b.cs.SlotToEpoch(0)
+	return filterAndBuildValidatorData(genesisState, validators, filters, epoch, statuses)
+}
+
 // FilteredValidators will grab all of the validators from the state at the
 // given slot. It will then filter them by the provided ids and statuses.
 func (b *Backend) FilteredValidators(
@@ -237,13 +251,9 @@ func (b *Backend) ValidatorByID(slot math.Slot, id string) (*beacontypes.Validat
 	}, nil
 }
 
-func (b *Backend) ValidatorBalancesByIDs(slot math.Slot, ids []string) ([]*beacontypes.ValidatorBalanceData, error) {
-	// Get the state at the given slot.
-	st, _, err := b.StateAtSlot(slot)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get state from slot %d", slot)
-	}
-
+// ValidatorBalancesByIDs is being used for both GET and POST requests.
+// This function is being used for both genesis and non-genesis states as now we are passing the state directly.
+func (b *Backend) ValidatorBalancesByIDs(st *statedb.StateDB, ids []string) ([]*beacontypes.ValidatorBalanceData, error) {
 	// If no IDs provided, return all validator balances
 	if len(ids) == 0 {
 		rawBalances, errInBalances := st.GetBalances()
@@ -264,6 +274,7 @@ func (b *Backend) ValidatorBalancesByIDs(slot math.Slot, ids []string) ([]*beaco
 	var (
 		balances = make([]*beacontypes.ValidatorBalanceData, 0, len(ids))
 		index    math.U64
+		err      error
 	)
 	for _, id := range ids {
 		index, err = utils.ValidatorIndexByID(st, id)
