@@ -37,7 +37,7 @@ def get_default_service_config(plan, node_struct, node_module, chain_id, chain_s
         files_dict["/home/erigon/genesis"] = Directory(
             artifact_names = [default_genesis_file],
         )
-    elif "besu" in node_struct.el_image or "ethereumjs" in node_struct.el_image:
+    elif "besu" in node_struct.el_image:
         files_dict["/app/genesis"] = Directory(
             artifact_names = [default_genesis_file],
         )
@@ -168,10 +168,9 @@ def generate_node_config(plan, node_modules, node_struct, chain_id, chain_spec, 
     return el_service_config_dict
 
 def add_metrics(metrics_enabled_services, node, el_service_name, el_client_service, node_modules):
-    if node.el_type != "ethereumjs":
-        metrics_enabled_services.append({
-            "name": el_service_name,
-            "service": el_client_service,
-            "metrics_path": node_modules[node.el_type].METRICS_PATH,
-        })
+    metrics_enabled_services.append({
+        "name": el_service_name,
+        "service": el_client_service,
+        "metrics_path": node_modules[node.el_type].METRICS_PATH,
+    })
     return metrics_enabled_services
