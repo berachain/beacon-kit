@@ -22,6 +22,7 @@ package phuslu
 
 import (
 	"io"
+	"maps"
 
 	"github.com/phuslu/log"
 )
@@ -96,9 +97,7 @@ func (l Logger) With(keyVals ...any) *Logger {
 
 	// Perform a deep copy of the map with preallocated size.
 	newLogger.context = make(log.Fields, len(l.context)+len(keyVals)/2)
-	for k, v := range l.context {
-		newLogger.context[k] = v
-	}
+	maps.Copy(newLogger.context, l.context)
 
 	// Add the new context to the existing context.
 	for i := 0; i < len(keyVals); i += 2 {
