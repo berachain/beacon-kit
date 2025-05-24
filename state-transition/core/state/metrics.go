@@ -27,5 +27,5 @@ func (s *StateDB) incrementPartialWithdrawalRequestInvalid() {
 // incrementExcessValidatorStakeWithdrawal increments the telemetry counter when a withdrawal is created
 // because a validator's stake went over the MaxEffectiveBalance.
 func (s *StateDB) incrementExcessStakePartialWithdrawal() {
-	s.telemetrySink.IncrementCounter("beacon_kit.statedb.excess_validator_stake_withdrawal")
+	s.telemetrySink.IncrementCounter("beacon_kit.statedb.excess_stake_partial_withdrawal")
 }

@@ -202,7 +202,7 @@ func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.With
 				"exit_epoch", validator.GetExitEpoch(),
 				"withdrawal_credentials", validator.GetWithdrawalCredentials().String(),
 			)
-			s.incrementExcessValidatorStakeWithdrawal()
+			s.incrementExcessStakePartialWithdrawal()
 
 			// Increment the withdrawal index to process the next withdrawal.
 			withdrawalIndex++
