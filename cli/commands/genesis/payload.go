@@ -24,7 +24,6 @@ import (
 	"fmt"
 	"unsafe"
 
-	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	"github.com/berachain/beacon-kit/cli/context"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -34,7 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
@@ -42,41 +40,33 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func AddExecutionPayloadCmd(chainSpecCreator servertypes.ChainSpecCreator) *cobra.Command {
+func AddExecutionPayloadCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "execution-payload [eth/genesis/file.json]",
 		Short: "adds the eth1 genesis execution payload to the genesis file",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// Read the genesis file.
-			elGenesisPath := args[0]
-			config := context.GetConfigFromCmd(cmd)
-			v := context.GetViperFromCmd(cmd)
-			chainSpec, err := chainSpecCreator(v)
-			if err != nil {
-				return err
-			}
-			return AddExecutionPayload(chainSpec, elGenesisPath, config)
+			return AddExecutionPayload(args[0], context.GetConfigFromCmd(cmd))
 		},
 	}
 
 	return cmd
 }
 
-func AddExecutionPayload(chainSpec ChainSpec, elGenesisPath string, config *cmtcfg.Config) error {
+func AddExecutionPayload(elGenesisPath string, config *cmtcfg.Config) error {
 	genesisBz, err := afero.ReadFile(afero.NewOsFs(), elGenesisPath)
 	if err != nil {
 		return errors.Wrap(err, "failed to read eth1 genesis file")
 	}
 
-	// Unmarshal the genesis file.
+	// Unmarshal the EL genesis file.
 	ethGenesis := &gethprimitives.Genesis{}
 	if err = ethGenesis.UnmarshalJSON(genesisBz); err != nil {
 		return errors.Wrap(err, "failed to unmarshal eth1 genesis")
 	}
 	genesisBlock := ethGenesis.ToBlock()
 
-	// Create the execution payload.
+	// Create the executable data from the EL genesis file.
 	payload := gethprimitives.BlockToExecutableData(
 		genesisBlock,
 		nil,
@@ -84,122 +74,82 @@ func AddExecutionPayload(chainSpec ChainSpec, elGenesisPath string, config *cmtc
 		nil,
 	).ExecutionPayload
 
-	appGenesis, err := genutiltypes.AppGenesisFromFile(
-		config.GenesisFile(),
-	)
+	appGenesis, err := genutiltypes.AppGenesisFromFile(config.GenesisFile())
 	if err != nil {
 		return errors.Wrap(err, "failed to read genesis doc from file")
 	}
 
-	// create the app state
-	appGenesisState, err := genutiltypes.GenesisStateFromAppGenesis(
-		appGenesis,
-	)
+	// Create the app state.
+	appGenesisState, err := genutiltypes.GenesisStateFromAppGenesis(appGenesis)
 	if err != nil {
 		return err
 	}
 
 	genesisInfo := &types.Genesis{}
-
-	if err = json.Unmarshal(
-		appGenesisState["beacon"], genesisInfo,
-	); err != nil {
+	if err = json.Unmarshal(appGenesisState["beacon"], genesisInfo); err != nil {
 		return errors.Wrap(err, "failed to unmarshal beacon state")
 	}
-	// Inject the execution payload.
-	eph, err := executableDataToExecutionPayloadHeader(
-		chainSpec.GenesisForkVersion(),
-		payload,
-		chainSpec.MaxWithdrawalsPerPayload(),
-	)
+
+	// Inject the execution payload headerfrom the executable data.
+	eph, err := executableDataToExecutionPayloadHeader(payload)
 	if err != nil {
 		return errors.Wrap(err, "failed to convert executable data to execution payload header")
 	}
-	if eph == nil {
-		return errors.New("failed to get execution payload header")
-	}
 	genesisInfo.ExecutionPayloadHeader = eph
 
-	appGenesisState["beacon"], err = json.Marshal(genesisInfo)
-	if err != nil {
+	if appGenesisState["beacon"], err = json.Marshal(genesisInfo); err != nil {
 		return errors.Wrap(err, "failed to marshal beacon state")
 	}
 
-	if appGenesis.AppState, err = json.MarshalIndent(
-		appGenesisState, "", "  ",
-	); err != nil {
+	if appGenesis.AppState, err = json.MarshalIndent(appGenesisState, "", "  "); err != nil {
 		return err
 	}
 
 	return genutil.ExportGenesisFile(appGenesis, config.GenesisFile())
 }
 
-// Converts the eth executable data type to the beacon execution payload header
-// interface.
+// Converts the eth executable data type to the beacon execution payload header.
 func executableDataToExecutionPayloadHeader(
-	forkVersion common.Version,
 	data *gethprimitives.ExecutableData,
-	// todo: re-enable when codec supports.
-	_ uint64,
 ) (*types.ExecutionPayloadHeader, error) {
-	eph := &types.ExecutionPayloadHeader{}
-
-	// We do not support fork versions before Deneb and after Electra.
-	if version.IsAfter(forkVersion, version.Electra()) ||
-		version.IsBefore(forkVersion, version.Deneb()) {
-		return nil, types.ErrForkVersionNotSupported
+	eph := &types.ExecutionPayloadHeader{
+		ParentHash:       common.ExecutionHash(data.ParentHash),
+		FeeRecipient:     common.ExecutionAddress(data.FeeRecipient),
+		StateRoot:        common.Bytes32(data.StateRoot),
+		ReceiptsRoot:     common.Bytes32(data.ReceiptsRoot),
+		LogsBloom:        [256]byte(data.LogsBloom),
+		Random:           common.Bytes32(data.Random),
+		Number:           math.U64(data.Number),
+		GasLimit:         math.U64(data.GasLimit),
+		GasUsed:          math.U64(data.GasUsed),
+		Timestamp:        math.U64(data.Timestamp),
+		ExtraData:        data.ExtraData,
+		BlockHash:        common.ExecutionHash(data.BlockHash),
+		TransactionsRoot: engineprimitives.Transactions(data.Transactions).HashTreeRoot(),
 	}
 
-	withdrawals := make(
-		engineprimitives.Withdrawals,
-		len(data.Withdrawals),
-	)
-	for i, withdrawal := range data.Withdrawals {
-		// #nosec:G103 // primitives.Withdrawals is data.Withdrawals with
-		// hard
-		// types.
-		withdrawals[i] = (*engineprimitives.Withdrawal)(
-			unsafe.Pointer(withdrawal),
-		)
-	}
+	// #nosec:G103 // engineprimitives.Withdrawals is data.Withdrawals with hard types.
+	withdrawals := *(*engineprimitives.Withdrawals)(unsafe.Pointer(&data.Withdrawals))
+	eph.WithdrawalsRoot = withdrawals.HashTreeRoot()
 
 	if len(data.ExtraData) > constants.ExtraDataLength {
 		data.ExtraData = data.ExtraData[:constants.ExtraDataLength]
 	}
+	eph.ExtraData = data.ExtraData
 
-	var blobGasUsed uint64
 	if data.BlobGasUsed != nil {
-		blobGasUsed = *data.BlobGasUsed
+		eph.BlobGasUsed = math.U64(*data.BlobGasUsed)
 	}
 
-	var excessBlobGas uint64
 	if data.ExcessBlobGas != nil {
-		excessBlobGas = *data.ExcessBlobGas
+		eph.ExcessBlobGas = math.U64(*data.ExcessBlobGas)
 	}
 
 	baseFeePerGas, err := math.NewU256FromBigInt(data.BaseFeePerGas)
 	if err != nil {
 		return nil, fmt.Errorf("failed baseFeePerGas conversion: %w", err)
 	}
-
-	eph.Versionable = types.NewVersionable(forkVersion)
-	eph.ParentHash = common.ExecutionHash(data.ParentHash)
-	eph.FeeRecipient = common.ExecutionAddress(data.FeeRecipient)
-	eph.StateRoot = common.Bytes32(data.StateRoot)
-	eph.ReceiptsRoot = common.Bytes32(data.ReceiptsRoot)
-	eph.LogsBloom = [256]byte(data.LogsBloom)
-	eph.Random = common.Bytes32(data.Random)
-	eph.Number = math.U64(data.Number)
-	eph.GasLimit = math.U64(data.GasLimit)
-	eph.GasUsed = math.U64(data.GasUsed)
-	eph.Timestamp = math.U64(data.Timestamp)
-	eph.ExtraData = data.ExtraData
 	eph.BaseFeePerGas = baseFeePerGas
-	eph.BlockHash = common.ExecutionHash(data.BlockHash)
-	eph.TransactionsRoot = engineprimitives.Transactions(data.Transactions).HashTreeRoot()
-	eph.WithdrawalsRoot = withdrawals.HashTreeRoot()
-	eph.BlobGasUsed = math.U64(blobGasUsed)
-	eph.ExcessBlobGas = math.U64(excessBlobGas)
 
 	return eph, nil
 }

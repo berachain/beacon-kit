@@ -97,7 +97,7 @@ func (sp *StateProcessor) processExecutionPayload(
 	}
 
 	// Set the latest execution payload header.
-	return st.SetLatestExecutionPayloadHeader(header)
+	return st.SetLatestExecutionPayloadHeader(header, payload.GetForkVersion())
 }
 
 // validateExecutionPayload validates the execution payload against both local
