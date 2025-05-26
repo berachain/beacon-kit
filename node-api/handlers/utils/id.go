@@ -41,9 +41,6 @@ var ErrNoSlotForStateRoot = errors.New("slot not found at state root")
 func SlotFromStateID[StorageBackendT interface {
 	GetSlotByStateRoot(root common.Root) (math.Slot, error)
 }](stateID string, storage StorageBackendT) (math.Slot, error) {
-	if stateID == StateIDGenesis {
-		return 0, errors.New("genesis slot not supported")
-	}
 	if slot, err := slotFromStateID(stateID); err == nil {
 		return slot, nil
 	}
