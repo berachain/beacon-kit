@@ -552,7 +552,7 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_HasCorrectWithdraw
 		// We expect that withdrawals due to excess balance were created
 		s.Require().Contains(s.LogBuffer.String(), "expectedWithdrawals: validator withdrawal due to excess balance")
 
-		deposits, err := s.TestNode.StorageBackend.DepositStore().GetDepositsByIndex(
+		deposits, _, err := s.TestNode.StorageBackend.DepositStore().GetDepositsByIndex(
 			s.CtxApp, 0, uint64(nextBlockHeight)*s.TestNode.ChainSpec.MaxDepositsPerBlock(),
 		)
 		s.Require().Len(deposits, 31)
