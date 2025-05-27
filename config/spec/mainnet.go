@@ -81,7 +81,7 @@ const (
 	mainnetDeneb1ForkTime = 1738415507
 
 	// mainnetElectraForkTime is the timestamp at which the Electra fork occurs.
-	mainnetElectraForkTime = 1748451600
+	mainnetElectraForkTime = 1749056400
 
 	// mainnetEVMInflationAddressDeneb1 is the address on the EVM which will receive the
 	// inflation amount of native EVM balance through a withdrawal every block in the Deneb1 fork.
