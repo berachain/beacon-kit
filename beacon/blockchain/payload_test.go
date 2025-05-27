@@ -30,14 +30,14 @@ import (
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
-	bmocks "github.com/berachain/beacon-kit/beacon/blockchain/mocks"
+	bcmocks "github.com/berachain/beacon-kit/beacon/blockchain/mocks"
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/errors"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
-	"github.com/berachain/beacon-kit/node-api/backend/mocks"
+	bemocks "github.com/berachain/beacon-kit/node-api/backend/mocks"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
@@ -45,6 +45,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/state-transition/core"
+	stmocks "github.com/berachain/beacon-kit/state-transition/core/mocks"
 	"github.com/berachain/beacon-kit/state-transition/core/state"
 	depositstore "github.com/berachain/beacon-kit/storage/deposit"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
@@ -63,52 +64,16 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 	cs, err := spec.MainnetChainSpec()
 	require.NoError(t, err)
 
-	sp, st, depStore, ctx, _, eng := statetransition.SetupTestState(t, cs)
-
-	logger := log.NewNopLogger()
-	ts := metrics.NewNoOpTelemetrySink()
-	sb := mocks.NewStorageBackend(t)
+	chain, st, _, ctx, _, b, sb, eng, depStore := setupOptimisticPayloadTests(t, cs, optimisticPayloadBuilds)
 	sb.EXPECT().StateFromContext(mock.Anything).Return(st)
 	sb.EXPECT().DepositStore().RunAndReturn(func() *depositstore.KVStore { return depStore })
-
-	b := bmocks.NewLocalBuilder(t)
 	b.EXPECT().Enabled().Return(optimisticPayloadBuilds)
 
-	chain := blockchain.NewService(
-		sb,
-		nil, // blockchain.BlobProcessor unused in this test
-		nil, // deposit.Contract unused in this test
-		logger,
-		cs,
-		eng,
-		b,
-		sp,
-		ts,
-		optimisticPayloadBuilds,
-	)
 	// Note: test avoid calling chain.Start since it only starts the deposits
 	// goroutine which is not really relevant for this test
 
 	// Before processing any block it is mandatory to handle genesis
-	// TODO: I had to manually align default genesis and cs specs
-	// Check if this is correct/necessary
-	genesisData := ctypes.DefaultGenesis(cs.GenesisForkVersion())
-
-	genesisData.ExecutionPayloadHeader.Timestamp = math.U64(cs.GenesisTime())
-	genesisData.Deposits = []*ctypes.Deposit{
-		{
-			Pubkey: [48]byte{0x01},
-			Amount: cs.MaxEffectiveBalance(),
-			Credentials: ctypes.NewCredentialsFromExecutionAddress(
-				common.ExecutionAddress{0x01},
-			),
-			Index: uint64(0),
-		},
-	}
-	genBytes, err := json.Marshal(genesisData)
-	require.NoError(t, err)
-	_, err = chain.ProcessGenesisData(ctx.ConsensusCtx(), genBytes)
-	require.NoError(t, err)
+	genesisData := testProcessGenesis(t, cs, chain, ctx)
 
 	// Finally create a block that will be rejected and
 	// verify the state on top of which is next payload built
@@ -199,52 +164,13 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 	cs, err := spec.MainnetChainSpec()
 	require.NoError(t, err)
 
-	sp, st, depStore, ctx, cms, eng := statetransition.SetupTestState(t, cs)
-
-	logger := log.NewNopLogger()
-	ts := metrics.NewNoOpTelemetrySink()
-	sb := mocks.NewStorageBackend(t)
+	chain, st, cms, ctx, sp, b, sb, eng, depStore := setupOptimisticPayloadTests(t, cs, optimisticPayloadBuilds)
 	sb.EXPECT().StateFromContext(mock.Anything).Return(st).Times(1) // only for genesis
 	sb.EXPECT().DepositStore().RunAndReturn(func() *depositstore.KVStore { return depStore })
-
-	b := bmocks.NewLocalBuilder(t)
 	b.EXPECT().Enabled().Return(optimisticPayloadBuilds)
 
-	chain := blockchain.NewService(
-		sb,
-		nil, // blockchain.BlobProcessor unused in this test
-		nil, // deposit.Contract unused in this test
-		logger,
-		cs,
-		eng,
-		b,
-		sp,
-		ts,
-		optimisticPayloadBuilds,
-	)
-	// Note: test avoid calling chain.Start since it only starts the deposits
-	// goroutine which is not really relevant for this test
-
 	// Before processing any block it is mandatory to handle genesis
-	// TODO: I had to manually align default genesis and cs specs
-	// Check if this is correct/necessary
-	genesisData := ctypes.DefaultGenesis(cs.GenesisForkVersion())
-
-	genesisData.ExecutionPayloadHeader.Timestamp = math.U64(cs.GenesisTime())
-	genesisData.Deposits = []*ctypes.Deposit{
-		{
-			Pubkey: [48]byte{0x01},
-			Amount: cs.MaxEffectiveBalance(),
-			Credentials: ctypes.NewCredentialsFromExecutionAddress(
-				common.ExecutionAddress{0x01},
-			),
-			Index: uint64(0),
-		},
-	}
-	genBytes, err := json.Marshal(genesisData)
-	require.NoError(t, err)
-	_, err = chain.ProcessGenesisData(ctx.ConsensusCtx(), genBytes)
-	require.NoError(t, err)
+	genesisData := testProcessGenesis(t, cs, chain, ctx)
 
 	// write genesis changes to make them available for next block
 	//nolint:errcheck // false positive as this has no return value
@@ -345,6 +271,69 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 	// wait for it to carry out all the checks
 	ch <- struct{}{}
 	wg.Wait()
+}
+
+func setupOptimisticPayloadTests(t *testing.T, cs chain.Spec, optimisticPayloadBuilds bool) (
+	*blockchain.Service,
+	*statetransition.TestBeaconStateT,
+	storetypes.CommitMultiStore,
+	core.ReadOnlyContext,
+	*statetransition.TestStateProcessorT,
+	*bcmocks.LocalBuilder,
+	*bemocks.StorageBackend,
+	*stmocks.ExecutionEngine,
+	*depositstore.KVStore,
+) {
+	t.Helper()
+	sp, st, depStore, ctx, cms, eng := statetransition.SetupTestState(t, cs)
+
+	logger := log.NewNopLogger()
+	ts := metrics.NewNoOpTelemetrySink()
+	sb := bemocks.NewStorageBackend(t)
+	b := bcmocks.NewLocalBuilder(t)
+
+	chain := blockchain.NewService(
+		sb,
+		nil, // blockchain.BlobProcessor unused in this test
+		nil, // deposit.Contract unused in this test
+		logger,
+		cs,
+		eng,
+		b,
+		sp,
+		ts,
+		optimisticPayloadBuilds,
+	)
+	return chain, st, cms, ctx, sp, b, sb, eng, depStore
+}
+
+func testProcessGenesis(
+	t *testing.T,
+	cs chain.Spec,
+	chain *blockchain.Service,
+	ctx core.ReadOnlyContext,
+) *ctypes.Genesis {
+	t.Helper()
+
+	// TODO: I had to manually align default genesis and cs specs
+	// Check if this is correct/necessary
+	genesisData := ctypes.DefaultGenesis(cs.GenesisForkVersion())
+	genesisData.ExecutionPayloadHeader.Timestamp = math.U64(cs.GenesisTime())
+	genesisData.Deposits = []*ctypes.Deposit{
+		{
+			Pubkey: [48]byte{0x01},
+			Amount: cs.MaxEffectiveBalance(),
+			Credentials: ctypes.NewCredentialsFromExecutionAddress(
+				common.ExecutionAddress{0x01},
+			),
+			Index: uint64(0),
+		},
+	}
+	genBytes, err := json.Marshal(genesisData)
+	require.NoError(t, err)
+	_, err = chain.ProcessGenesisData(ctx.ConsensusCtx(), genBytes)
+	require.NoError(t, err)
+	return genesisData
 }
 
 func buildNextBlock(
