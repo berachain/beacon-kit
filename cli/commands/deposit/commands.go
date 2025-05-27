@@ -40,7 +40,7 @@ func Commands(chainSpecCreator servertypes.ChainSpecCreator, appCreator serverty
 		GetValidateDepositCmd(chainSpecCreator),
 		GetCreateValidatorCmd(chainSpecCreator),
 		GetValidatorKeysCmd(),
-		GetDBCheckCmd(appCreator),
+		GetDBCheckCmd(chainSpecCreator, appCreator),
 	)
 
 	return cmd
