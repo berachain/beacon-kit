@@ -83,9 +83,6 @@ const (
 	// was used to initiate the fork when beacon-kit forked by epoch instead of by timestamp.
 	mainnetDeneb1ForkTime = 1738415507
 
-	// mainnetElectraForkTime is the timestamp at which the Electra fork occurs.
-	mainnetElectraForkTime = 1748451600
-
 	// mainnetEVMInflationAddressDeneb1 is the address on the EVM which will receive the
 	// inflation amount of native EVM balance through a withdrawal every block in the Deneb1 fork.
 	mainnetEVMInflationAddressDeneb1 = "0x656b95E550C07a9ffe548bd4085c72418Ceb1dba"
@@ -139,7 +136,7 @@ func MainnetChainSpecData() *chain.SpecData {
 		// Fork-related values.
 		GenesisTime:     mainnetGenesisTime,
 		Deneb1ForkTime:  mainnetDeneb1ForkTime,
-		ElectraForkTime: mainnetElectraForkTime,
+		ElectraForkTime: defaultElectraForkTime,
 
 		// State list length constants.
 		EpochsPerHistoricalVector: defaultEpochsPerHistoricalVector,
