@@ -59,14 +59,11 @@ var (
 // We have changed in time the way we stored deposits. generalStore is meant to offer
 // a single way to access deposits and to handle the data migration among versions when needed
 type generalStore struct {
-	currentVersion uint8
-
 	// mu protects storex for concurrent access
-	mu sync.RWMutex
-
-	storeV1 *depositstorev1.KVStore
-
-	logger log.Logger
+	mu             sync.RWMutex
+	currentVersion uint8
+	storeV1        *depositstorev1.KVStore
+	logger         log.Logger
 }
 
 func NewStore(dbV1 dbm.DB, logger log.Logger) StoreManager {
