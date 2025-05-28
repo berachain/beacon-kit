@@ -35,7 +35,7 @@ import (
 
 const (
 	unset uint8 = 0
-	V1    uint8 = 1
+	v1    uint8 = 1
 )
 
 type Store interface {
@@ -69,7 +69,7 @@ type generalStore struct {
 func NewStore(dbV1 dbm.DB, logger log.Logger) StoreManager {
 	storeV1 := depositstorev1.NewStore(dbV1, logger)
 
-	currentVersion := V1
+	currentVersion := v1
 	return &generalStore{
 		currentVersion: currentVersion,
 		storeV1:        storeV1,
@@ -86,7 +86,7 @@ func (gs *generalStore) GetDepositsByIndex(
 	defer gs.mu.RUnlock()
 
 	switch gs.currentVersion {
-	case V1:
+	case v1:
 		return gs.storeV1.GetDepositsByIndex(ctx, startIndex, depRange)
 	default:
 		return nil, common.Root{}, fmt.Errorf("%w, version %d", ErrUnknownStoreVersion, gs.currentVersion)
@@ -98,7 +98,7 @@ func (gs *generalStore) EnqueueDeposits(ctx context.Context, deposits []*ctypes.
 	defer gs.mu.Unlock()
 
 	switch gs.currentVersion {
-	case V1:
+	case v1:
 		return gs.storeV1.EnqueueDeposits(ctx, deposits)
 	default:
 		return fmt.Errorf("%w, version %d", ErrUnknownStoreVersion, gs.currentVersion)
@@ -117,7 +117,7 @@ func (gs *generalStore) Prune(ctx context.Context, start, end uint64) error {
 	defer gs.mu.Unlock()
 
 	switch gs.currentVersion {
-	case V1:
+	case v1:
 		return gs.storeV1.Prune(ctx, start, end)
 	default:
 		return fmt.Errorf("%w, version %d", ErrUnknownStoreVersion, gs.currentVersion)
