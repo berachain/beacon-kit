@@ -140,7 +140,7 @@ func TestBlockDelayNext_Catchup(t *testing.T) {
 	// height 6 -> 5*2 = 10
 	// height 7 -> 6*2 = 12
 
-	curBlockHeight = curBlockHeight + 1
+	curBlockHeight++
 	curBlockTime = genesisTime.Add(8 * time.Second)
 	// T(h4) = 8s
 	// delay = 1us
@@ -153,7 +153,7 @@ func TestBlockDelayNext_Catchup(t *testing.T) {
 	delay = d.Next(curBlockTime, curBlockHeight)
 	assert.Equal(t, 1*time.Microsecond, delay)
 
-	for curBlockHeight = curBlockHeight + 1; curBlockHeight < 7; curBlockHeight = curBlockHeight + 1 {
+	for curBlockHeight++; curBlockHeight < 7; curBlockHeight++ {
 		curBlockTime = curBlockTime.Add(1 * time.Second)
 		delay = d.Next(curBlockTime, curBlockHeight)
 		assert.Equal(t, 1*time.Microsecond, delay)

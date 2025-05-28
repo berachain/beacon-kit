@@ -45,18 +45,18 @@ const (
 	TargetBlockTime = 2 * time.Second
 )
 
-// ErrBlockDelayFromBytes is returned when the block delay can't be read from
+// BlockDelayFromBytesError is returned when the block delay can't be read from
 // the buffer.
-type ErrBlockDelayFromBytes struct {
+type BlockDelayFromBytesError struct {
 	field string
-	err error
+	err   error
 }
 
-func (e *ErrBlockDelayFromBytes) Error() string {
+func (e *BlockDelayFromBytesError) Error() string {
 	return fmt.Sprintf("%s: %v", e.field, e.err)
 }
 
-func (e *ErrBlockDelayFromBytes) Unwrap() error {
+func (e *BlockDelayFromBytesError) Unwrap() error {
 	return e.err
 }
 
@@ -64,8 +64,7 @@ func (e *ErrBlockDelayFromBytes) Unwrap() error {
 //
 // The general formula is:
 //
-//   NextBlockTime = InitialTime + TargetBlockTime * (CurrentHeight - InitialHeight)
-//
+//	NextBlockTime = InitialTime + TargetBlockTime * (CurrentHeight - InitialHeight)
 type BlockDelay struct {
 	// InitialTime is a checkpoint in time from which we start calculating the
 	// next block time.
@@ -96,21 +95,21 @@ func BlockDelayFromBytes(
 
 	err := binary.Read(buf, binary.LittleEndian, &initialTime)
 	if err != nil {
-		return nil, &ErrBlockDelayFromBytes{
+		return nil, &BlockDelayFromBytesError{
 			field: "InitialTime",
 			err:   err,
 		}
 	}
 	err = binary.Read(buf, binary.LittleEndian, &initialHeight)
 	if err != nil {
-		return nil, &ErrBlockDelayFromBytes{
+		return nil, &BlockDelayFromBytesError{
 			field: "InitialHeight",
 			err:   err,
 		}
 	}
 	err = binary.Read(buf, binary.LittleEndian, &prevBlockTime)
 	if err != nil {
-		return nil, &ErrBlockDelayFromBytes{
+		return nil, &BlockDelayFromBytesError{
 			field: "PreviousBlockTime",
 			err:   err,
 		}
