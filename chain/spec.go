@@ -246,6 +246,24 @@ func (s spec) validate() error {
 
 	// EVM Inflation values can be zero or non-zero, no validation needed.
 
+	// Enforce ordering of the forks. Like most chains, BeaconKit does not support arbitrary ordering of forks.
+	// Fork times here are in chronological order
+	orderedForkTimes := []uint64{
+		s.Data.GenesisTime,
+		s.Data.Deneb1ForkTime,
+		s.Data.ElectraForkTime,
+	}
+	for i := 1; i < len(orderedForkTimes); i++ {
+		prev, cur := orderedForkTimes[i-1], orderedForkTimes[i]
+		// must not go backwards
+		if prev > cur {
+			return fmt.Errorf(
+				"fork ordering violation: timestamp at index %d (%d) > index %d (%d)",
+				i-1, prev, i, cur,
+			)
+		}
+	}
+
 	// TODO: Add more validation rules here.
 	return nil
 }
