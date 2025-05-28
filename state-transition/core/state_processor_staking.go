@@ -68,30 +68,32 @@ func (sp *StateProcessor) processOperations(
 				return err
 			}
 		}
-	} else {
-		// After Electra, validators increase/decrease stake through execution requests which must
-		// be handled.
-		requests, err := blk.GetBody().GetExecutionRequests()
-		if err != nil {
-			return err
-		}
 
-		// EIP-7002 Withdrawals.
-		for _, withdrawal := range requests.Withdrawals {
-			if withdrawErr := sp.processWithdrawalRequest(st, withdrawal); withdrawErr != nil {
-				return withdrawErr
-			}
-		}
+		return st.SetEth1Data(blk.GetBody().Eth1Data)
+	}
 
-		// EIP-6110 Deposits.
-		for _, dep := range requests.Deposits {
-			if err := sp.processDeposit(st, dep); err != nil {
-				return err
-			}
+	// After Electra, validators increase/decrease stake through execution requests which must
+	// be handled.
+	requests, err := blk.GetBody().GetExecutionRequests()
+	if err != nil {
+		return err
+	}
+
+	// EIP-7002 Withdrawals.
+	for _, withdrawal := range requests.Withdrawals {
+		if withdrawErr := sp.processWithdrawalRequest(st, withdrawal); withdrawErr != nil {
+			return withdrawErr
 		}
 	}
 
-	return st.SetEth1Data(blk.GetBody().Eth1Data)
+	// EIP-6110 Deposits.
+	for _, dep := range requests.Deposits {
+		if err := sp.processDeposit(st, dep); err != nil {
+			return err
+		}
+	}
+
+	return st.SetEth1Data(ctypes.NewEmptyEth1Data())
 }
 
 // processDeposit processes the deposit and ensures it matches the local state.
