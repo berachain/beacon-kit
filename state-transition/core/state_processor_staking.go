@@ -88,7 +88,7 @@ func (sp *StateProcessor) processOperations(
 
 	// EIP-6110 Deposits.
 	for _, dep := range requests.Deposits {
-		if err := sp.processDeposit(st, dep); err != nil {
+		if err = sp.processDeposit(st, dep); err != nil {
 			return err
 		}
 	}
