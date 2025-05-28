@@ -22,6 +22,7 @@ package errors
 
 import (
 	stderrors "errors"
+	"slices"
 
 	"github.com/pkg/errors"
 )
@@ -107,13 +108,7 @@ func IsFatal(err error) bool {
 // JoinFatal checks if any of the provided errors is a
 // DetailedError and if it is fatal.
 func JoinFatal(errs ...error) error {
-	fatal := false
-	for _, err := range errs {
-		if IsFatal(err) {
-			fatal = true
-			break
-		}
-	}
+	fatal := slices.ContainsFunc(errs, IsFatal)
 	retErr := stderrors.Join(errs...)
 	if fatal {
 		return WrapFatal(retErr)
