@@ -246,7 +246,7 @@ func (s spec) validate() error {
 
 	// EVM Inflation values can be zero or non-zero, no validation needed.
 
-	// Enforce ordering of the forks. Like most chains, Beacon does not support arbitrary ordering of forks.
+	// Enforce ordering of the forks. Like most chains, BeaconKit does not support arbitrary ordering of forks.
 	// Fork times here are in chronological order
 	orderedForkTimes := []uint64{
 		s.Data.GenesisTime,
