@@ -37,45 +37,56 @@ func (sp *StateProcessor) processOperations(
 	st *state.StateDB,
 	blk *ctypes.BeaconBlock,
 ) error {
-	// Verify that outstanding deposits are processed up to the maximum number of deposits.
-	//
-	// Unlike Eth 2.0 specs we don't check that
-	// `len(body.deposits) ==  min(MAX_DEPOSITS, state.eth1_data.deposit_count - state.eth1_deposit_index)`
-	deposits := blk.GetBody().GetDeposits()
-	if uint64(len(deposits)) > sp.cs.MaxDepositsPerBlock() {
-		return errors.Wrapf(
-			ErrExceedsBlockDepositLimit, "expected: %d, got: %d",
-			sp.cs.MaxDepositsPerBlock(), len(deposits),
-		)
-	}
+	if version.IsBefore(blk.GetForkVersion(), version.Electra()) {
 
-	// Instead we directly compare block deposits with our local store ones.
-	if err := ValidateNonGenesisDeposits(
-		ctx.ConsensusCtx(),
-		st,
-		sp.ds,
-		sp.cs.MaxDepositsPerBlock(),
-		deposits,
-		blk.GetBody().GetEth1Data().DepositRoot,
-	); err != nil {
-		return err
-	}
+		// Verify that outstanding deposits are processed up to the maximum number of deposits.
+		//
+		// Unlike Eth 2.0 specs we don't check that
+		// `len(body.deposits) ==  min(MAX_DEPOSITS, state.eth1_data.deposit_count - state.eth1_deposit_index)`
+		deposits := blk.GetBody().GetDeposits()
+		if uint64(len(deposits)) > sp.cs.MaxDepositsPerBlock() {
+			return errors.Wrapf(
+				ErrExceedsBlockDepositLimit, "expected: %d, got: %d",
+				sp.cs.MaxDepositsPerBlock(), len(deposits),
+			)
+		}
 
-	for _, dep := range deposits {
-		if err := sp.processDeposit(st, dep); err != nil {
+		// Instead we directly compare block deposits with our local store ones.
+		if err := ValidateNonGenesisDeposits(
+			ctx.ConsensusCtx(),
+			st,
+			sp.ds,
+			sp.cs.MaxDepositsPerBlock(),
+			deposits,
+			blk.GetBody().GetEth1Data().DepositRoot,
+		); err != nil {
 			return err
 		}
-	}
 
-	if version.EqualsOrIsAfter(blk.GetForkVersion(), version.Electra()) {
-		// After Electra, validators can request withdrawals through execution requests which must be handled.
+		for _, dep := range deposits {
+			if err := sp.processDeposit(st, dep); err != nil {
+				return err
+			}
+		}
+	} else {
+		// After Electra, validators can request withdrawals through execution requests which must
+		// be handled.
 		requests, err := blk.GetBody().GetExecutionRequests()
 		if err != nil {
 			return err
 		}
+
+		// EIP-7002 Withdrawals.
 		for _, withdrawal := range requests.Withdrawals {
 			if withdrawErr := sp.processWithdrawalRequest(st, withdrawal); withdrawErr != nil {
 				return withdrawErr
+			}
+		}
+
+		// EIP-6110 Deposits.
+		for _, dep := range requests.Deposits {
+			if err := sp.processDeposit(st, dep); err != nil {
+				return err
 			}
 		}
 	}
