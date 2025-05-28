@@ -37,10 +37,10 @@ func (sp *StateProcessor) processOperations(
 	st *state.StateDB,
 	blk *ctypes.BeaconBlock,
 ) error {
-	if version.IsBefore(blk.GetForkVersion(), version.Electra()) {
-		// Before Electra, deposits are processed from the beacon block body directly.
-		//
+	// Before Electra1, deposits are processed from the beacon block body directly.
+	if version.IsBefore(blk.GetForkVersion(), version.Electra1()) {
 		// Verify that outstanding deposits are processed up to the maximum number of deposits.
+		//
 		// Unlike Ethereum 2.0 specs, we don't check that
 		// `len(body.deposits) ==  min(MAX_DEPOSITS, state.eth1_data.deposit_count - state.eth1_deposit_index)`.
 		deposits := blk.GetBody().GetDeposits()
@@ -72,7 +72,7 @@ func (sp *StateProcessor) processOperations(
 		return st.SetEth1Data(blk.GetBody().Eth1Data)
 	}
 
-	// After Electra, validators increase/decrease stake through execution requests which must
+	// After Electra1, validators increase/decrease stake through execution requests which must
 	// be handled.
 	requests, err := blk.GetBody().GetExecutionRequests()
 	if err != nil {

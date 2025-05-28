@@ -291,36 +291,39 @@ func (s *Service) buildBlockBody(
 	// Set the KZG commitments on the block body.
 	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
 
-	// Dequeue deposits from the state.
-	depositIndex, err := st.GetEth1DepositIndex()
-	if err != nil {
-		return fmt.Errorf("failed loading eth1 deposit index: %w", err)
-	}
+	// Before Electra1, deposits are processed from the beacon block body directly.
+	if version.IsBefore(body.GetForkVersion(), version.Electra1()) {
+		// Dequeue deposits from the state.
+		depositIndex, err := st.GetEth1DepositIndex()
+		if err != nil {
+			return fmt.Errorf("failed loading eth1 deposit index: %w", err)
+		}
 
-	// Grab all previous deposits from genesis up to the current index + max deposits per block.
-	deposits, err := s.sb.DepositStore().GetDepositsByIndex(
-		ctx,
-		constants.FirstDepositIndex,
-		depositIndex+s.chainSpec.MaxDepositsPerBlock(),
-	)
-	if err != nil {
-		return err
-	}
-	if uint64(len(deposits)) < depositIndex {
-		return errors.Wrapf(ErrDepositStoreIncomplete,
-			"all historical deposits not available, expected: %d, got: %d",
-			depositIndex, len(deposits),
+		// Grab all previous deposits from genesis up to the current index + max deposits per block.
+		deposits, err := s.sb.DepositStore().GetDepositsByIndex(
+			ctx,
+			constants.FirstDepositIndex,
+			depositIndex+s.chainSpec.MaxDepositsPerBlock(),
 		)
+		if err != nil {
+			return err
+		}
+		if uint64(len(deposits)) < depositIndex {
+			return errors.Wrapf(ErrDepositStoreIncomplete,
+				"all historical deposits not available, expected: %d, got: %d",
+				depositIndex, len(deposits),
+			)
+		}
+
+		eth1Data := ctypes.NewEth1Data(deposits.HashTreeRoot())
+		body.SetEth1Data(eth1Data)
+
+		s.logger.Info(
+			"Building block body with local deposits",
+			"start_index", depositIndex, "num_deposits", uint64(len(deposits))-depositIndex,
+		)
+		body.SetDeposits(deposits[depositIndex:])
 	}
-
-	eth1Data := ctypes.NewEth1Data(deposits.HashTreeRoot())
-	body.SetEth1Data(eth1Data)
-
-	s.logger.Info(
-		"Building block body with local deposits",
-		"start_index", depositIndex, "num_deposits", uint64(len(deposits))-depositIndex,
-	)
-	body.SetDeposits(deposits[depositIndex:])
 
 	// Set the graffiti on the block body.
 	sizedGraffiti := bytes.ExtendToSize([]byte(s.cfg.Graffiti), bytes.B32Size)

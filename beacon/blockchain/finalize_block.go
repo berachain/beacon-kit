@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus/types"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	"github.com/berachain/beacon-kit/primitives/version"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -109,9 +110,12 @@ func (s *Service) FinalizeBlock(
 
 	// STEP 4: Post Finalizations cleanups.
 
-	// Fetch and store the deposit for the block.
-	blockNum := blk.GetBody().GetExecutionPayload().GetNumber()
-	s.depositFetcher(ctx, blockNum)
+	// Before Electra1, deposits must be fetched from the EL directly in the CL.
+	if version.IsBefore(blk.GetForkVersion(), version.Electra1()) {
+		// Fetch and store the deposit for the block.
+		blockNum := blk.GetBody().GetExecutionPayload().GetNumber()
+		s.depositFetcher(ctx, blockNum)
+	}
 
 	// Store the finalized block in the KVStore.
 	//
