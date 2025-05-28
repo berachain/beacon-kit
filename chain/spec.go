@@ -256,6 +256,8 @@ func (s spec) validate() error {
 		s.Data.GenesisTime,
 		s.Data.Deneb1ForkTime,
 		s.Data.ElectraForkTime,
+		s.Data.ElectraDisableWithdrawalsForkTime,
+		s.Data.ElectraEnableWithdrawalsForkTime,
 	}
 	for i := 1; i < len(orderedForkTimes); i++ {
 		prev, cur := orderedForkTimes[i-1], orderedForkTimes[i]
