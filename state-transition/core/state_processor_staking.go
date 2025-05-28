@@ -38,11 +38,11 @@ func (sp *StateProcessor) processOperations(
 	blk *ctypes.BeaconBlock,
 ) error {
 	if version.IsBefore(blk.GetForkVersion(), version.Electra()) {
-
-		// Verify that outstanding deposits are processed up to the maximum number of deposits.
+		// Before Electra, deposits are processed from the beacon block body directly.
 		//
-		// Unlike Eth 2.0 specs we don't check that
-		// `len(body.deposits) ==  min(MAX_DEPOSITS, state.eth1_data.deposit_count - state.eth1_deposit_index)`
+		// Verify that outstanding deposits are processed up to the maximum number of deposits.
+		// Unlike Ethereum 2.0 specs, we don't check that
+		// `len(body.deposits) ==  min(MAX_DEPOSITS, state.eth1_data.deposit_count - state.eth1_deposit_index)`.
 		deposits := blk.GetBody().GetDeposits()
 		if uint64(len(deposits)) > sp.cs.MaxDepositsPerBlock() {
 			return errors.Wrapf(
@@ -51,7 +51,7 @@ func (sp *StateProcessor) processOperations(
 			)
 		}
 
-		// Instead we directly compare block deposits with our local store ones.
+		// Instead, we directly compare block deposits with our local store ones.
 		if err := ValidateNonGenesisDeposits(
 			ctx.ConsensusCtx(),
 			st,
