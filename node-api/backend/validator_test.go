@@ -407,9 +407,9 @@ func setupStateDummyParts(t *testing.T, cs chain.Spec, st *statedb.StateDB, dumm
 		require.NoError(t, st.UpdateStateRootAtIndex(i, common.Root{}))
 	}
 
-	payload, err := ctypes.DefaultGenesisExecutionPayloadHeader(version.Deneb())
+	payload, err := ctypes.DefaultGenesisExecutionPayloadHeader()
 	require.NoError(t, err)
-	require.NoError(t, st.SetLatestExecutionPayloadHeader(payload))
+	require.NoError(t, st.SetLatestExecutionPayloadHeader(payload, version.Deneb()))
 
 	eth1Data := &ctypes.Eth1Data{
 		DepositRoot:  common.Root{},

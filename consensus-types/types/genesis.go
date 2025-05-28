@@ -82,7 +82,7 @@ func (g *Genesis) UnmarshalJSON(
 		return err
 	}
 
-	payloadHeader := NewEmptyExecutionPayloadHeaderWithVersion(g2.ForkVersion)
+	payloadHeader := NewEmptyExecutionPayloadHeader()
 	if err := json.Unmarshal(g2.ExecutionPayloadHeader, payloadHeader); err != nil {
 		return err
 	}
@@ -95,7 +95,7 @@ func (g *Genesis) UnmarshalJSON(
 
 // DefaultGenesis returns the default genesis.
 func DefaultGenesis(v common.Version) *Genesis {
-	defaultHeader, err := DefaultGenesisExecutionPayloadHeader(v)
+	defaultHeader, err := DefaultGenesisExecutionPayloadHeader()
 	if err != nil {
 		panic(err)
 	}
@@ -108,7 +108,7 @@ func DefaultGenesis(v common.Version) *Genesis {
 }
 
 // DefaultGenesisExecutionPayloadHeader returns a default ExecutionPayloadHeader.
-func DefaultGenesisExecutionPayloadHeader(v common.Version) (*ExecutionPayloadHeader, error) {
+func DefaultGenesisExecutionPayloadHeader() (*ExecutionPayloadHeader, error) {
 	stateRoot, err := bytes.ToBytes32(
 		hex.MustToBytes(
 			"0x12965ab9cbe2d2203f61d23636eb7e998f167cb79d02e452f532535641e35bcc",
@@ -135,7 +135,6 @@ func DefaultGenesisExecutionPayloadHeader(v common.Version) (*ExecutionPayloadHe
 	}
 
 	return &ExecutionPayloadHeader{
-		Versionable:   NewVersionable(v),
 		ParentHash:    common.ExecutionHash{},
 		FeeRecipient:  common.ExecutionAddress{},
 		StateRoot:     stateRoot,

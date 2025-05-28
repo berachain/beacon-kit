@@ -53,36 +53,31 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	)
 
 	// STEP 0: Setup initial state via genesis
-	var (
-		genDeposits = types.Deposits{
-			{
-				Pubkey:      [48]byte{0x00},
-				Credentials: emptyCredentials,
-				Amount:      minBalance + increment,
-				Index:       uint64(0),
-			},
-			{
-				Pubkey:      [48]byte{0x01},
-				Credentials: emptyCredentials,
-				Amount:      maxBalance - 6*increment,
-				Index:       uint64(1),
-			},
-			{
-				Pubkey:      [48]byte{0x03},
-				Credentials: emptyCredentials,
-				Amount:      maxBalance - 3*increment,
-				Index:       uint64(2),
-			},
-		}
-		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
-		}
-	)
+	genDeposits := types.Deposits{
+		{
+			Pubkey:      [48]byte{0x00},
+			Credentials: emptyCredentials,
+			Amount:      minBalance + increment,
+			Index:       uint64(0),
+		},
+		{
+			Pubkey:      [48]byte{0x01},
+			Credentials: emptyCredentials,
+			Amount:      maxBalance - 6*increment,
+			Index:       uint64(1),
+		},
+		{
+			Pubkey:      [48]byte{0x03},
+			Credentials: emptyCredentials,
+			Amount:      maxBalance - 3*increment,
+			Index:       uint64(2),
+		},
+	}
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 	valDiff, err := sp.InitializeBeaconStateFromEth1(
 		st,
 		genDeposits,
-		genPayloadHeader,
+		&types.ExecutionPayloadHeader{},
 		cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
@@ -192,25 +187,20 @@ func TestTransitionCreateValidator(t *testing.T) {
 	)
 
 	// STEP 0: Setup initial state via genesis
-	var (
-		genDeposits = types.Deposits{
-			{
-				Pubkey:      [48]byte{0x01},
-				Credentials: emptyCredentials,
-				Amount:      minBalance + increment,
-				Index:       uint64(0),
-			},
-		}
-		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
-		}
-	)
+	genDeposits := types.Deposits{
+		{
+			Pubkey:      [48]byte{0x01},
+			Credentials: emptyCredentials,
+			Amount:      minBalance + increment,
+			Index:       uint64(0),
+		},
+	}
 
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 	genVals, err := sp.InitializeBeaconStateFromEth1(
 		st,
 		genDeposits,
-		genPayloadHeader,
+		&types.ExecutionPayloadHeader{},
 		cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
@@ -370,12 +360,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 
 	// STEP 0: Setup genesis with GetValidatorSetCap validators
 	// TODO: consider instead setting state artificially
-	var (
-		genDeposits      = make(types.Deposits, 0, cs.ValidatorSetCap())
-		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
-		}
-	)
+	genDeposits := make(types.Deposits, 0, cs.ValidatorSetCap())
 
 	// let genesis define all available validators
 	for idx := range cs.ValidatorSetCap() {
@@ -401,7 +386,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	_, err := sp.InitializeBeaconStateFromEth1(
 		st,
 		genDeposits,
-		genPayloadHeader,
+		&types.ExecutionPayloadHeader{},
 		cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
@@ -603,12 +588,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 
 	// STEP 0: Setup genesis with GetValidatorSetCap validators
 	// TODO: consider instead setting state artificially
-	var (
-		genDeposits      = make(types.Deposits, 0, cs.ValidatorSetCap())
-		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
-		}
-	)
+	genDeposits := make(types.Deposits, 0, cs.ValidatorSetCap())
 
 	// let genesis define all available validators
 	for idx := range cs.ValidatorSetCap() {
@@ -636,7 +616,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	genVals, err := sp.InitializeBeaconStateFromEth1(
 		st,
 		genDeposits,
-		genPayloadHeader,
+		&types.ExecutionPayloadHeader{},
 		cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)

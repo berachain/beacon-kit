@@ -36,22 +36,12 @@ const ExecutionPayloadHeaderStaticSize uint32 = 584
 
 // Compile-time assertions to ensure ExecutionPayloadHeader implements necessary interfaces.
 var (
-	_ ssz.DynamicObject                            = (*ExecutionPayloadHeader)(nil)
-	_ constraints.SSZVersionedMarshallableRootable = (*ExecutionPayloadHeader)(nil)
+	_ ssz.DynamicObject                   = (*ExecutionPayloadHeader)(nil)
+	_ constraints.SSZMarshallableRootable = (*ExecutionPayloadHeader)(nil)
 )
 
 // ExecutionPayloadHeader represents the payload header of an execution block.
 type ExecutionPayloadHeader struct {
-	// NOTE: This version is not required but left in for backwards compatibility.
-	//
-	// A recommended alternative to `GetForkVersion()` on this struct would be to use the chain
-	// spec's `ActiveForkVersionForTimestamp()` on the value of `GetTimestamp()`.
-	//
-	// This version should still be set to the correct value to avoid potential inconsistencies.
-	constraints.Versionable
-
-	// Contents
-	//
 	// ParentHash is the hash of the parent block.
 	ParentHash common.ExecutionHash `json:"parentHash"`
 	// FeeRecipient is the address of the fee recipient.
@@ -88,9 +78,9 @@ type ExecutionPayloadHeader struct {
 	ExcessBlobGas math.U64 `json:"excessBlobGas"`
 }
 
-func NewEmptyExecutionPayloadHeaderWithVersion(version common.Version) *ExecutionPayloadHeader {
+// NewEmptyExecutionPayloadHeader creates a new empty ExecutionPayloadHeader.
+func NewEmptyExecutionPayloadHeader() *ExecutionPayloadHeader {
 	return &ExecutionPayloadHeader{
-		Versionable:   NewVersionable(version),
 		BaseFeePerGas: &math.U256{},
 	}
 }

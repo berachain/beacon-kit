@@ -85,7 +85,7 @@ func (sp *StateProcessor) InitializeBeaconStateFromEth1(
 		return nil, err
 	}
 
-	if err = st.SetLatestExecutionPayloadHeader(execPayloadHeader); err != nil {
+	if err = st.SetLatestExecutionPayloadHeader(execPayloadHeader, genesisVersion); err != nil {
 		return nil, err
 	}
 

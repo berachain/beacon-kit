@@ -57,11 +57,8 @@ type KVStore struct {
 	// eth1DepositIndex is the index of the latest eth1 deposit.
 	eth1DepositIndex sdkcollections.Item[uint64]
 	// latestExecutionPayloadVersion stores the latest execution payload
-	// version.
+	// version. Kept for backwards compatibility for versions before Electra.
 	latestExecutionPayloadVersion sdkcollections.Item[uint32]
-	// latestExecutionPayloadCodec is the codec for the latest execution
-	// payload, it allows us to update the codec with the latest version.
-	latestExecutionPayloadCodec *encoding.SSZVersionedValueCodec[*ctypes.ExecutionPayloadHeader]
 	// latestExecutionPayloadHeader stores the latest execution payload header.
 	latestExecutionPayloadHeader sdkcollections.Item[*ctypes.ExecutionPayloadHeader]
 	// Registry
@@ -105,9 +102,6 @@ type KVStore struct {
 func New(kss store.KVStoreService) *KVStore {
 	var (
 		schemaBuilder = sdkcollections.NewSchemaBuilder(kss)
-		payloadCodec  = &encoding.SSZVersionedValueCodec[*ctypes.ExecutionPayloadHeader]{
-			NewEmptyF: ctypes.NewEmptyExecutionPayloadHeaderWithVersion,
-		}
 	)
 
 	res := &KVStore{
@@ -168,14 +162,15 @@ func New(kss store.KVStoreService) *KVStore {
 			keys.LatestExecutionPayloadVersionPrefixHumanReadable,
 			sdkcollections.Uint32Value,
 		),
-		latestExecutionPayloadCodec: payloadCodec,
 		latestExecutionPayloadHeader: sdkcollections.NewItem(
 			schemaBuilder,
 			sdkcollections.NewPrefix(
 				[]byte{keys.LatestExecutionPayloadHeaderPrefix},
 			),
 			keys.LatestExecutionPayloadHeaderPrefixHumanReadable,
-			payloadCodec,
+			encoding.SSZValueCodec[*ctypes.ExecutionPayloadHeader]{
+				NewEmptyF: ctypes.NewEmptyExecutionPayloadHeader,
+			},
 		),
 		validatorIndex: sdkcollections.NewSequence(
 			schemaBuilder,

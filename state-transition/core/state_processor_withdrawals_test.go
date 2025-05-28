@@ -59,21 +59,16 @@ func TestPartialWithdrawalRequestGenesisValidators(t *testing.T) {
 	)
 
 	// Add a single validator to which we will target withdrawal requests
-	var (
-		genDeposits = types.Deposits{
-			{
-				Pubkey:      [48]byte{0x00},
-				Credentials: creds,
-				Amount:      maxBalance,
-				Index:       0,
-			},
-		}
-		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
-		}
-	)
+	genDeposits := types.Deposits{
+		{
+			Pubkey:      [48]byte{0x00},
+			Credentials: creds,
+			Amount:      maxBalance,
+			Index:       0,
+		},
+	}
 	_, err := sp.InitializeBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
+		st, genDeposits, &types.ExecutionPayloadHeader{}, cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
@@ -266,27 +261,22 @@ func TestFullWithdrawalRequestGenesisValidators(t *testing.T) {
 	)
 
 	// Add a couple of validators and fully withdraw one of them
-	var (
-		genDeposits = types.Deposits{
-			{
-				Pubkey:      [48]byte{0x00},
-				Credentials: creds1,
-				Amount:      maxBalance,
-				Index:       0,
-			},
-			{
-				Pubkey:      [48]byte{0x01},
-				Credentials: creds2,
-				Amount:      maxBalance,
-				Index:       1,
-			},
-		}
-		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
-		}
-	)
+	genDeposits := types.Deposits{
+		{
+			Pubkey:      [48]byte{0x00},
+			Credentials: creds1,
+			Amount:      maxBalance,
+			Index:       0,
+		},
+		{
+			Pubkey:      [48]byte{0x01},
+			Credentials: creds2,
+			Amount:      maxBalance,
+			Index:       1,
+		},
+	}
 	_, err := sp.InitializeBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
+		st, genDeposits, &types.ExecutionPayloadHeader{}, cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
@@ -511,21 +501,16 @@ func TestWithdrawalRequestsNonGenesisValidators(t *testing.T) {
 		valCreds = types.NewCredentialsFromExecutionAddress(valAddr)
 	)
 
-	var (
-		genDeposits = types.Deposits{
-			{
-				Pubkey:      [48]byte{0x00},
-				Credentials: genCreds,
-				Amount:      maxBalance,
-				Index:       0,
-			},
-		}
-		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
-		}
-	)
+	genDeposits := types.Deposits{
+		{
+			Pubkey:      [48]byte{0x00},
+			Credentials: genCreds,
+			Amount:      maxBalance,
+			Index:       0,
+		},
+	}
 	_, err := sp.InitializeBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
+		st, genDeposits, &types.ExecutionPayloadHeader{}, cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
@@ -762,12 +747,7 @@ func TestConcurrentAutomaticAndVoluntaryWithdrawalRequests(t *testing.T) {
 		rndSeed    = 2024 // seed used to generate unique random value
 	)
 
-	var (
-		genDeposits      = make(types.Deposits, 0, cs.ValidatorSetCap())
-		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
-		}
-	)
+	genDeposits := make(types.Deposits, 0, cs.ValidatorSetCap())
 
 	// Step1: let blockchain have as many validators as cap allows
 	for idx := range cs.ValidatorSetCap() {
@@ -793,7 +773,7 @@ func TestConcurrentAutomaticAndVoluntaryWithdrawalRequests(t *testing.T) {
 	_, err := sp.InitializeBeaconStateFromEth1(
 		st,
 		genDeposits,
-		genPayloadHeader,
+		&types.ExecutionPayloadHeader{},
 		cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
@@ -922,27 +902,22 @@ func TestDoubleFullWithdrawalRequests(t *testing.T) {
 	)
 
 	// Add a couple of validators and fully withdraw one of them
-	var (
-		genDeposits = types.Deposits{
-			{
-				Pubkey:      [48]byte{0x00},
-				Credentials: creds1,
-				Amount:      maxBalance,
-				Index:       0,
-			},
-			{
-				Pubkey:      [48]byte{0x01},
-				Credentials: creds2,
-				Amount:      maxBalance,
-				Index:       1,
-			},
-		}
-		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
-		}
-	)
+	genDeposits := types.Deposits{
+		{
+			Pubkey:      [48]byte{0x00},
+			Credentials: creds1,
+			Amount:      maxBalance,
+			Index:       0,
+		},
+		{
+			Pubkey:      [48]byte{0x01},
+			Credentials: creds2,
+			Amount:      maxBalance,
+			Index:       1,
+		},
+	}
 	_, err := sp.InitializeBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
+		st, genDeposits, &types.ExecutionPayloadHeader{}, cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
@@ -1022,28 +997,23 @@ func TestPartialWithdrawalsOfBalanceAboveMaxEffectiveBalance(t *testing.T) {
 	)
 
 	// Setup initial state so that validator 1 is partially withdrawable.
-	var (
-		genDeposits = types.Deposits{
-			{
-				Pubkey:      [48]byte{0x00},
-				Credentials: credentials0,
-				Amount:      maxBalance - 3*minBalance,
-				Index:       0,
-			},
-			{
-				Pubkey:      [48]byte{0x01},
-				Credentials: credentials1,
-				Amount:      maxBalance + minBalance,
-				Index:       1,
-			},
-		}
-		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
-		}
-	)
+	genDeposits := types.Deposits{
+		{
+			Pubkey:      [48]byte{0x00},
+			Credentials: credentials0,
+			Amount:      maxBalance - 3*minBalance,
+			Index:       0,
+		},
+		{
+			Pubkey:      [48]byte{0x01},
+			Credentials: credentials1,
+			Amount:      maxBalance + minBalance,
+			Index:       1,
+		},
+	}
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 	_, err := sp.InitializeBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
+		st, genDeposits, &types.ExecutionPayloadHeader{}, cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
 
@@ -1109,28 +1079,23 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	)
 
 	// Setup initial state so that both validators are partially withdrawable.
-	var (
-		genDeposits = types.Deposits{
-			{
-				Pubkey:      [48]byte{0x00},
-				Credentials: credentials0,
-				Amount:      maxBalance + minBalance,
-				Index:       0,
-			},
-			{
-				Pubkey:      [48]byte{0x01},
-				Credentials: credentials1,
-				Amount:      maxBalance + minBalance,
-				Index:       1,
-			},
-		}
-		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
-		}
-	)
+	genDeposits := types.Deposits{
+		{
+			Pubkey:      [48]byte{0x00},
+			Credentials: credentials0,
+			Amount:      maxBalance + minBalance,
+			Index:       0,
+		},
+		{
+			Pubkey:      [48]byte{0x01},
+			Credentials: credentials1,
+			Amount:      maxBalance + minBalance,
+			Index:       1,
+		},
+	}
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 	_, err = sp.InitializeBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
+		st, genDeposits, &types.ExecutionPayloadHeader{}, cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
 
@@ -1235,22 +1200,17 @@ func TestValidatorNotWithdrawable(t *testing.T) {
 	)
 
 	// Setup initial state with one validator
-	var (
-		genDeposits = types.Deposits{
-			{
-				Pubkey:      [48]byte{0x00},
-				Credentials: validCredentials,
-				Amount:      maxBalance,
-				Index:       0,
-			},
-		}
-		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
-		}
-	)
+	genDeposits := types.Deposits{
+		{
+			Pubkey:      [48]byte{0x00},
+			Credentials: validCredentials,
+			Amount:      maxBalance,
+			Index:       0,
+		},
+	}
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 	_, err := sp.InitializeBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
+		st, genDeposits, &types.ExecutionPayloadHeader{}, cs.GenesisForkVersion(),
 	)
 	require.NoError(t, err)
 

@@ -266,7 +266,7 @@ func (st *BeaconState) HashTreeRootWith(
 
 	// Field (8) 'LatestExecutionPayloadHeader'
 	if st.LatestExecutionPayloadHeader == nil {
-		st.LatestExecutionPayloadHeader = NewEmptyExecutionPayloadHeaderWithVersion(st.GetForkVersion())
+		st.LatestExecutionPayloadHeader = NewEmptyExecutionPayloadHeader()
 	}
 	if err := st.LatestExecutionPayloadHeader.HashTreeRootWith(hh); err != nil {
 		return err
