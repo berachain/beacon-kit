@@ -22,7 +22,9 @@ package chain
 
 import (
 	"fmt"
+	"time"
 
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -168,6 +170,7 @@ type WithdrawalsSpec interface {
 
 // Spec defines an interface for accessing chain-specific parameters.
 type Spec interface {
+	delay.ConfigGetter
 	DepositSpec
 	BalancesSpec
 	HysteresisSpec
@@ -266,6 +269,22 @@ func (s spec) validate() error {
 
 	// TODO: Add more validation rules here.
 	return nil
+}
+
+func (s spec) SbtMaxDelayBetweenBlocks() time.Duration {
+	return s.Data.MaxDelay
+}
+func (s spec) SbtTargetBlockTime() time.Duration {
+	return s.Data.TargetBlockTime
+}
+func (s spec) SbtConstBlockDelay() time.Duration {
+	return s.Data.ConstBlockDelay
+}
+func (s spec) SbtConsensusParamUpdate() int64 {
+	return s.Data.ConsensusUpdateHeight
+}
+func (s spec) SbtConsensusEnableHeight() int64 {
+	return s.Data.ConsensusEnableHeight
 }
 
 // MaxEffectiveBalance returns the maximum effective balance.

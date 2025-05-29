@@ -25,17 +25,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/sourcegraph/conc/iter"
 )
-
-// Delay to use before the upgrade to SBT.
-const constBlockDelay = 500 * time.Millisecond
-
-// Height to enable SBT. Changes will be applied in the next block after this
-// (10_000_001).
-const sbtEnableHeight = 10_000_100
-const sbtConsensusParamUpdate = 10_000_000
 
 func (s *Service) finalizeBlock(
 	ctx context.Context,
@@ -97,8 +90,8 @@ func (s *Service) finalizeBlockInternal(
 		return nil, err
 	}
 
-	if s.cmtConsensusParams.Feature.SBTEnableHeight == 0 && req.Height == sbtConsensusParamUpdate {
-		s.cmtConsensusParams.Feature.SBTEnableHeight = sbtEnableHeight
+	if s.cmtConsensusParams.Feature.SBTEnableHeight == 0 && req.Height == s.delayCfg.SbtConsensusParamUpdate() {
+		s.cmtConsensusParams.Feature.SBTEnableHeight = s.delayCfg.SbtConsensusEnableHeight()
 	}
 
 	cp := s.cmtConsensusParams.ToProto()
@@ -114,22 +107,22 @@ func (s *Service) finalizeBlockInternal(
 func (s *Service) nextBlockDelay(req *cmtabci.FinalizeBlockRequest) time.Duration {
 	// c0. SBT is not enabled => use the old block delay.
 	if s.cmtConsensusParams.Feature.SBTEnableHeight <= 0 {
-		return constBlockDelay
+		return s.delayCfg.SbtConstBlockDelay()
 	}
 
 	// c1. current height < SBTEnableHeight => wait for the upgrade.
 	if req.Height < s.cmtConsensusParams.Feature.SBTEnableHeight {
-		return constBlockDelay
+		return s.delayCfg.SbtConstBlockDelay()
 	}
 
 	// c2. current height == SBTEnableHeight => initialize the block delay.
 	if req.Height == s.cmtConsensusParams.Feature.SBTEnableHeight {
-		s.blockDelay = &BlockDelay{
+		s.blockDelay = &delay.BlockDelay{
 			InitialTime:       req.Time,
 			InitialHeight:     req.Height,
 			PreviousBlockTime: req.Time,
 		}
-		return constBlockDelay
+		return s.delayCfg.SbtConstBlockDelay()
 	}
 
 	// c3. current height > SBTEnableHeight
@@ -137,7 +130,7 @@ func (s *Service) nextBlockDelay(req *cmtabci.FinalizeBlockRequest) time.Duratio
 	//
 	// The upgrade was successfully applied and the block delay is set.
 	if s.blockDelay != nil {
-		return s.blockDelay.Next(req.Time, req.Height)
+		return s.blockDelay.Next(s.delayCfg, req.Time, req.Height)
 	}
 	// c3.2
 	//

@@ -18,28 +18,34 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package cometbft_test
+package delay_test
 
 import (
 	"testing"
 	"time"
 
-	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
+var testCfg = delay.Config{
+	MaxDelay:        5 * time.Minute,
+	TargetBlockTime: 2 * time.Second,
+	ConstBlockDelay: 500 * time.Millisecond,
+}
+
 func TestBlockDelayFromBytes(t *testing.T) {
 	t.Parallel()
 
-	d1 := &cometbft.BlockDelay{
+	d1 := &delay.BlockDelay{
 		InitialTime:       time.Now().Add(-10 * time.Minute),
 		InitialHeight:     5,
 		PreviousBlockTime: time.Now().Add(-5 * time.Minute),
 	}
 
 	b := d1.ToBytes()
-	d2, err := cometbft.BlockDelayFromBytes(b)
+	d2, err := delay.FromBytes(b)
 	require.NoError(t, err)
 
 	assert.Equal(t, d1.InitialTime.Unix(), d2.InitialTime.Unix())
@@ -52,7 +58,7 @@ func TestBlockDelayNext_NoDelay(t *testing.T) {
 
 	genesisTime := time.Now()
 	initialHeight := int64(1)
-	d := &cometbft.BlockDelay{
+	d := &delay.BlockDelay{
 		InitialTime:       genesisTime,
 		InitialHeight:     initialHeight,
 		PreviousBlockTime: genesisTime,
@@ -61,7 +67,7 @@ func TestBlockDelayNext_NoDelay(t *testing.T) {
 	curBlockTime := genesisTime.Add(10 * time.Second)
 	curBlockHeight := int64(2)
 
-	delay := d.Next(curBlockTime, curBlockHeight)
+	delay := d.Next(testCfg, curBlockTime, curBlockHeight)
 
 	assert.Equal(t, 1*time.Microsecond, delay)
 
@@ -76,7 +82,7 @@ func TestBlockDelayNext_WithDelay(t *testing.T) {
 
 	genesisTime := time.Now()
 	initialHeight := int64(1)
-	d := &cometbft.BlockDelay{
+	d := &delay.BlockDelay{
 		InitialTime:       genesisTime,
 		InitialHeight:     initialHeight,
 		PreviousBlockTime: genesisTime,
@@ -85,7 +91,7 @@ func TestBlockDelayNext_WithDelay(t *testing.T) {
 	curBlockTime := genesisTime.Add(2 * time.Second)
 	curBlockHeight := int64(3)
 
-	delay := d.Next(curBlockTime, curBlockHeight)
+	delay := d.Next(testCfg, curBlockTime, curBlockHeight)
 
 	assert.Equal(t, 2*time.Second, delay)
 
@@ -100,20 +106,20 @@ func TestBlockDelayNext_ResetOnStall(t *testing.T) {
 
 	genesisTime := time.Now()
 	initialHeight := int64(1)
-	d := &cometbft.BlockDelay{
+	d := &delay.BlockDelay{
 		InitialTime:       genesisTime,
 		InitialHeight:     initialHeight,
 		PreviousBlockTime: genesisTime,
 	}
 
-	curBlockTime := genesisTime.Add(cometbft.MaxDelayBetweenBlocks + 1*time.Minute)
+	curBlockTime := genesisTime.Add(testCfg.MaxDelay + 1*time.Minute)
 	curBlockHeight := int64(10)
 
-	delay := d.Next(curBlockTime, curBlockHeight)
+	nextBlockDelay := d.Next(testCfg, curBlockTime, curBlockHeight)
 
 	assert.Equal(t, d.InitialTime, curBlockTime)
 	assert.Equal(t, d.InitialHeight, curBlockHeight)
-	assert.Equal(t, cometbft.TargetBlockTime, delay)
+	assert.Equal(t, testCfg.TargetBlockTime, nextBlockDelay)
 }
 
 func TestBlockDelayNext_Catchup(t *testing.T) {
@@ -121,7 +127,7 @@ func TestBlockDelayNext_Catchup(t *testing.T) {
 
 	genesisTime := time.Now()
 	initialHeight := int64(1)
-	d := &cometbft.BlockDelay{
+	d := &delay.BlockDelay{
 		InitialTime:       genesisTime,
 		InitialHeight:     initialHeight,
 		PreviousBlockTime: genesisTime,
@@ -130,7 +136,7 @@ func TestBlockDelayNext_Catchup(t *testing.T) {
 	curBlockTime := genesisTime.Add(2 * time.Second)
 	curBlockHeight := int64(3)
 
-	delay := d.Next(curBlockTime, curBlockHeight)
+	delay := d.Next(testCfg, curBlockTime, curBlockHeight)
 
 	assert.Equal(t, 2*time.Second, delay)
 
@@ -150,16 +156,16 @@ func TestBlockDelayNext_Catchup(t *testing.T) {
 	// delay = 1us
 	// T(h7) = 11s
 	// delay = 1
-	delay = d.Next(curBlockTime, curBlockHeight)
+	delay = d.Next(testCfg, curBlockTime, curBlockHeight)
 	assert.Equal(t, 1*time.Microsecond, delay)
 
 	for curBlockHeight++; curBlockHeight < 7; curBlockHeight++ {
 		curBlockTime = curBlockTime.Add(1 * time.Second)
-		delay = d.Next(curBlockTime, curBlockHeight)
+		delay = d.Next(testCfg, curBlockTime, curBlockHeight)
 		assert.Equal(t, 1*time.Microsecond, delay)
 	}
 	curBlockTime = curBlockTime.Add(1 * time.Second)
-	delay = d.Next(curBlockTime, curBlockHeight)
+	delay = d.Next(testCfg, curBlockTime, curBlockHeight)
 
 	assert.Equal(t, 1*time.Second, delay)
 }

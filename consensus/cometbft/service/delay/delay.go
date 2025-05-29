@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package cometbft
+package delay
 
 import (
 	"bytes"
@@ -26,39 +26,6 @@ import (
 	"fmt"
 	"time"
 )
-
-const (
-	// MaxDelayBetweenBlocks is the maximum delay between two consecutive blocks.
-	// If the last block time minus the previous block time is greater than
-	// MaxDelayBetweenBlocks, then we reset `FinalizeBlockResponse.NextBlockDelay`
-	// to default.
-	//
-	// This is needed because the network may stall for a long time and we don't
-	// want to rush in new blocks as the network resumes its operation.
-	MaxDelayBetweenBlocks = 5 * time.Minute
-
-	// TargetBlockTime is the desired block time.
-	//
-	// Note that it CAN'T be lower than the minimal (floor) block time in the
-	// network, which is comprised of the time to a) propose a new block b)
-	// gather 2/3+ prevotes c) gather 2/3+ precommits.
-	TargetBlockTime = 2 * time.Second
-)
-
-// BlockDelayFromBytesError is returned when the block delay can't be read from
-// the buffer.
-type BlockDelayFromBytesError struct {
-	field string
-	err   error
-}
-
-func (e *BlockDelayFromBytesError) Error() string {
-	return fmt.Sprintf("%s: %v", e.field, e.err)
-}
-
-func (e *BlockDelayFromBytesError) Unwrap() error {
-	return e.err
-}
 
 // BlockDelay is used to calculate the delay before proposing the next block.
 //
@@ -78,7 +45,7 @@ type BlockDelay struct {
 	PreviousBlockTime time.Time
 }
 
-// BlockDelayFromBytes converts the bytes to a blockDelay.
+// FromBytes converts the bytes to a blockDelay.
 //
 // Expected format:
 //
@@ -86,9 +53,7 @@ type BlockDelay struct {
 //	(little endian)
 //
 // It returns ErrBlockDelayFromBytes if it fails to read from the buffer.
-func BlockDelayFromBytes(
-	bz []byte,
-) (*BlockDelay, error) {
+func FromBytes(bz []byte) (*BlockDelay, error) {
 	buf := bytes.NewReader(bz)
 	var initialTime, prevBlockTime int64
 	var initialHeight int64
@@ -123,26 +88,20 @@ func BlockDelayFromBytes(
 }
 
 // Next returns the duration to wait before proposing the next block.
-func (d *BlockDelay) Next(curBlockTime time.Time, curBlockHeight int64) time.Duration {
-	// Until `timeout_commit` is removed from the CometBFT config,
-	// `FinalizeBlockResponse.NextBlockDelay` can't be exactly 0. If it's set to
-	// 0, then `timeout_commit` from the config will be used, which is not what
-	// we want since we're trying to control the block time.
-	const noDelay = 1 * time.Microsecond
-
+func (d *BlockDelay) Next(cfg ConfigGetter, curBlockTime time.Time, curBlockHeight int64) time.Duration {
 	// Reset the initial time and height if the time between blocks is greater
 	// than MaxDelayBetweenBlocks. This makes the current time and height the
 	// initial one as if the upgrade happened just now.
-	if curBlockTime.Sub(d.PreviousBlockTime) > MaxDelayBetweenBlocks {
+	if curBlockTime.Sub(d.PreviousBlockTime) > cfg.SbtMaxDelayBetweenBlocks() {
 		d.InitialTime = curBlockTime
 		d.InitialHeight = curBlockHeight
 		d.PreviousBlockTime = curBlockTime
-		return TargetBlockTime
+		return cfg.SbtTargetBlockTime()
 	}
 
 	d.PreviousBlockTime = curBlockTime
 
-	t := d.InitialTime.Add(TargetBlockTime * time.Duration(curBlockHeight-d.InitialHeight))
+	t := d.InitialTime.Add(cfg.SbtTargetBlockTime() * time.Duration(curBlockHeight-d.InitialHeight))
 	if curBlockTime.Before(t) {
 		return t.Sub(curBlockTime)
 	}
