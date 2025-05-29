@@ -37,50 +37,63 @@ func (sp *StateProcessor) processOperations(
 	st *state.StateDB,
 	blk *ctypes.BeaconBlock,
 ) error {
-	// Verify that outstanding deposits are processed up to the maximum number of deposits.
-	//
-	// Unlike Eth 2.0 specs we don't check that
-	// `len(body.deposits) ==  min(MAX_DEPOSITS, state.eth1_data.deposit_count - state.eth1_deposit_index)`
-	deposits := blk.GetBody().GetDeposits()
-	if uint64(len(deposits)) > sp.cs.MaxDepositsPerBlock() {
-		return errors.Wrapf(
-			ErrExceedsBlockDepositLimit, "expected: %d, got: %d",
-			sp.cs.MaxDepositsPerBlock(), len(deposits),
-		)
+	// Before Electra1, deposits are processed from the beacon block body directly.
+	if version.IsBefore(blk.GetForkVersion(), version.Electra1()) {
+		// Verify that outstanding deposits are processed up to the maximum number of deposits.
+		//
+		// Unlike Ethereum 2.0 specs, we don't check that
+		// `len(body.deposits) ==  min(MAX_DEPOSITS, state.eth1_data.deposit_count - state.eth1_deposit_index)`.
+		deposits := blk.GetBody().GetDeposits()
+		if uint64(len(deposits)) > sp.cs.MaxDepositsPerBlock() {
+			return errors.Wrapf(
+				ErrExceedsBlockDepositLimit, "expected: %d, got: %d",
+				sp.cs.MaxDepositsPerBlock(), len(deposits),
+			)
+		}
+
+		// Instead, we directly compare block deposits with our local store ones.
+		if err := ValidateNonGenesisDeposits(
+			ctx.ConsensusCtx(),
+			st,
+			sp.ds,
+			sp.cs.MaxDepositsPerBlock(),
+			deposits,
+			blk.GetBody().GetEth1Data().DepositRoot,
+		); err != nil {
+			return err
+		}
+
+		for _, dep := range deposits {
+			if err := sp.processDeposit(st, dep); err != nil {
+				return err
+			}
+		}
+
+		return st.SetEth1Data(blk.GetBody().Eth1Data)
 	}
 
-	// Instead we directly compare block deposits with our local store ones.
-	if err := ValidateNonGenesisDeposits(
-		ctx.ConsensusCtx(),
-		st,
-		sp.ds,
-		sp.cs.MaxDepositsPerBlock(),
-		deposits,
-		blk.GetBody().GetEth1Data().DepositRoot,
-	); err != nil {
+	// After Electra1, validators increase/decrease stake through execution requests which must
+	// be handled.
+	requests, err := blk.GetBody().GetExecutionRequests()
+	if err != nil {
 		return err
 	}
 
-	for _, dep := range deposits {
-		if err := sp.processDeposit(st, dep); err != nil {
+	// EIP-7002 Withdrawals.
+	for _, withdrawal := range requests.Withdrawals {
+		if withdrawErr := sp.processWithdrawalRequest(st, withdrawal); withdrawErr != nil {
+			return withdrawErr
+		}
+	}
+
+	// EIP-6110 Deposits.
+	for _, dep := range requests.Deposits {
+		if err = sp.processDeposit(st, dep); err != nil {
 			return err
 		}
 	}
 
-	if version.EqualsOrIsAfter(blk.GetForkVersion(), version.Electra()) {
-		// After Electra, validators can request withdrawals through execution requests which must be handled.
-		requests, err := blk.GetBody().GetExecutionRequests()
-		if err != nil {
-			return err
-		}
-		for _, withdrawal := range requests.Withdrawals {
-			if withdrawErr := sp.processWithdrawalRequest(st, withdrawal); withdrawErr != nil {
-				return withdrawErr
-			}
-		}
-	}
-
-	return st.SetEth1Data(blk.GetBody().Eth1Data)
+	return st.SetEth1Data(ctypes.NewEmptyEth1Data())
 }
 
 // processDeposit processes the deposit and ensures it matches the local state.
