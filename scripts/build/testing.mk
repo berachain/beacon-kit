@@ -407,3 +407,14 @@ test-e2e-deposits: ## run e2e tests
 
 test-e2e-deposits-no-build:
 	go test -timeout 0 -tags e2e,bls12381,test ./testing/e2e/. -v -testify.m TestDepositRobustness
+
+###############################################################################
+###                          E2E Framework Testing                          ###
+###############################################################################
+
+test-e2e-single: ## run e2e single node test
+	@$(MAKE) build-e2e test-e2e-single-no-build
+
+test-e2e-single-no-build:
+	mkdir -p monitoring
+	testing/files/run-multiple.sh testing/networks/single.toml

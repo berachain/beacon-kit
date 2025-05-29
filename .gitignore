@@ -238,3 +238,6 @@ temp-test-unit-cover.txt
 
 # server dev env for Air
 .air.toml
+
+# e2e framework
+monitoring/
