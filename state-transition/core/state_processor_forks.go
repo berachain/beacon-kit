@@ -94,6 +94,15 @@ func (sp *StateProcessor) ProcessFork(
 		if logUpgrade {
 			sp.logElectraFork(stateFork.PreviousVersion, timestamp, slot)
 		}
+	case version.Electra1():
+		if err = sp.upgradeToElectra1(st, stateFork, slot); err != nil {
+			return err
+		}
+
+		// Log the upgrade to Electra1 if requested.
+		if logUpgrade {
+			sp.logElectra1Fork(stateFork.PreviousVersion, timestamp, slot)
+		}
 	default:
 		panic(fmt.Sprintf("unsupported fork version: %s", forkVersion))
 	}
@@ -204,6 +213,43 @@ func (sp *StateProcessor) logElectraFork(
 `,
 		version.Name(previousVersion), previousVersion.String(),
 		sp.cs.ElectraForkTime(),
+		slot.Unwrap(), timestamp.Unwrap(),
+		sp.cs.SlotToEpoch(slot).Unwrap(),
+	))
+}
+
+// upgradeToElectra1 upgrades the state to the Electra1 fork version. It just sets the Fork struct
+// in the BeaconState.
+func (sp *StateProcessor) upgradeToElectra1(
+	st *statedb.StateDB, fork *types.Fork, slot math.Slot,
+) error {
+	// Set the fork on BeaconState.
+	fork.PreviousVersion = fork.CurrentVersion
+	fork.CurrentVersion = version.Electra1()
+	fork.Epoch = sp.cs.SlotToEpoch(slot)
+	return st.SetFork(fork)
+}
+
+// logElectra1Fork logs information about the Electra1 fork.
+func (sp *StateProcessor) logElectra1Fork(
+	previousVersion common.Version, timestamp math.U64, slot math.Slot,
+) {
+	sp.logger.Info(fmt.Sprintf(`
+
+
+	⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️
+
+	+ ✅  welcome to the electra1 (0x05010000) fork! 🎉
+	+ 🚝  previous fork: %s (%s)
+	+ ⏱️   electra1 fork time: %d
+	+ 🍴  first slot / timestamp of electra1: %d / %d
+	+ ⛓️   current beacon epoch: %d
+
+	⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️
+	
+`,
+		version.Name(previousVersion), previousVersion.String(),
+		sp.cs.Electra1ForkTime(),
 		slot.Unwrap(), timestamp.Unwrap(),
 		sp.cs.SlotToEpoch(slot).Unwrap(),
 	))

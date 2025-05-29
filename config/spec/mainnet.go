@@ -133,6 +133,7 @@ func MainnetChainSpecData() *chain.SpecData {
 		GenesisTime:     mainnetGenesisTime,
 		Deneb1ForkTime:  mainnetDeneb1ForkTime,
 		ElectraForkTime: mainnetElectraForkTime,
+		Electra1ForkTime: 9999999999999999999,
 
 		// State list length constants.
 		EpochsPerHistoricalVector: defaultEpochsPerHistoricalVector,
