@@ -94,6 +94,8 @@ const (
 	// mainnetMinValidatorWithdrawabilityDelay is the number of epochs of delay epochs of delay for a balance to be withdrawable.
 	// 256 Epochs equates to roughly ~27 hours of withdrawal delay. This gives us room to emergency fork if needed.
 	mainnetMinValidatorWithdrawabilityDelay = defaultMinValidatorWithdrawabilityDelay
+
+	farFutureElectra1ForkTime = 9999999999999999999
 )
 
 // MainnetChainSpecData is the chain.SpecData for the Berachain mainnet.
@@ -130,10 +132,10 @@ func MainnetChainSpecData() *chain.SpecData {
 		TargetSecondsPerEth1Block: defaultTargetSecondsPerEth1Block,
 
 		// Fork-related values.
-		GenesisTime:     mainnetGenesisTime,
-		Deneb1ForkTime:  mainnetDeneb1ForkTime,
-		ElectraForkTime: mainnetElectraForkTime,
-		Electra1ForkTime: 9999999999999999999,
+		GenesisTime:      mainnetGenesisTime,
+		Deneb1ForkTime:   mainnetDeneb1ForkTime,
+		ElectraForkTime:  mainnetElectraForkTime,
+		Electra1ForkTime: farFutureElectra1ForkTime,
 
 		// State list length constants.
 		EpochsPerHistoricalVector: defaultEpochsPerHistoricalVector,
