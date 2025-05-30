@@ -331,7 +331,7 @@ func testProcessGenesis(
 	}
 	genBytes, err := json.Marshal(genesisData)
 	require.NoError(t, err)
-	_, err = chain.ProcessGenesisData(ctx.ConsensusCtx(), genBytes)
+	_, _, err = chain.ProcessGenesisData(ctx.ConsensusCtx(), genBytes)
 	require.NoError(t, err)
 	return genesisData
 }

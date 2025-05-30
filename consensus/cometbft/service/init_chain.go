@@ -111,15 +111,15 @@ func (s *Service) initChainer(
 	ctx sdk.Context,
 	beaconStateGenesis json.RawMessage,
 ) ([]cmtabci.ValidatorUpdate, error) {
-	valUpdates, genesisHeader, genesisValidatorsRoot, genesisBlockRoot, err := s.Blockchain.ProcessGenesisData(
+	valUpdates, genesisState, err := s.Blockchain.ProcessGenesisData(
 		ctx, []byte(beaconStateGenesis),
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	// Set the genesis data on the API backend.
-	s.apiBackend.SetGenesisData(genesisHeader, genesisValidatorsRoot, genesisBlockRoot)
+	// Set the genesis state on the API backend.
+	s.apiBackend.SetGenesisState(genesisState)
 	return iter.MapErr(
 		valUpdates,
 		convertValidatorUpdate[cmtabci.ValidatorUpdate],
