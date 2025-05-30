@@ -107,13 +107,14 @@ func (kv *KVStore) GetDepositsByIndex(
 		endIdx   = startIndex + depRange
 	)
 
-	for i := startIndex; i < endIdx; i++ {
+	done := false
+	for i := startIndex; i < endIdx && !done; i++ {
 		deposit, err := kv.store.Get(ctx, i)
 		switch {
 		case err == nil:
 			deposits = append(deposits, deposit)
 		case errors.Is(err, sdkcollections.ErrNotFound):
-			return deposits, deposits.HashTreeRoot(), nil
+			done = true // normal happy path, there are less than max allowed deposits
 		default:
 			return deposits, common.Root{}, errors.Wrapf(
 				err, "failed to get deposit %d, start: %d, end: %d", i, startIndex, endIdx,
