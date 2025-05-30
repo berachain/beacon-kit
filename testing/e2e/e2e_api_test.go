@@ -294,7 +294,6 @@ func (s *BeaconKitE2ESuite) TestValidatorBalancesGenesis() {
 
 	balanceMap := balancesResp.Data
 	for _, balance := range balanceMap {
-		s.T().Log("balance in TestValidatorBalancesGenesis", balance)
 		s.Require().True(balance > 0, "Validator balance should be positive")
 		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
 		s.Require().True(balance <= 4e12, "Validator balance should not exceed 4e12 gwei (4000 BERA)")
@@ -317,7 +316,6 @@ func (s *BeaconKitE2ESuite) TestValidatorBalancesSlot() {
 
 	balanceMap := balancesResp.Data
 	for _, balance := range balanceMap {
-		s.T().Log("balance in TestValidatorBalancesSlot", balance)
 		s.Require().True(balance > 0, "Validator balance should be positive")
 		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
 		s.Require().True(balance <= 4e12, "Validator balance should not exceed 4e12 gwei (4000 BERA)")
@@ -763,29 +761,12 @@ func (s *BeaconKitE2ESuite) TestGetValidatorBalancesForGenesis() {
 	s.Require().NotEmpty(balancesResp, "balances response should not be empty")
 
 	for _, balance := range *balancesResp {
-		s.T().Log("balance in TestGetValidatorBalancesForGenesis", balance)
 		s.Require().True(balance.Balance > 0, "Validator balance should be positive")
 		// At genesis, the validator balance is 32 BERA.
 		// 32e9 Gwei = 32 * 10^9 Gwei = 32,000,000,000 Gwei = 32 BERA
 		// TODO: Seems there is some discrepancy at the genesis state, fix this test.
 		// For now, will check if balance is less than 4000 BERA.
 		s.Require().True(balance.Balance <= 4000e9, "Validator balance should not exceed 4000 BERA")
-	}
-}
-
-// TestGetValidatorBalancesSlot tests querying validator balances for slot 1.
-func (s *BeaconKitE2ESuite) TestGetValidatorBalancesSlot() {
-	client := s.initBeaconTest()
-
-	balancesResp, err := client.ValidatorBalances(s.Ctx(), &beaconapi.ValidatorBalancesOpts{
-		State: "1",
-	})
-	s.Require().NoError(err)
-	s.Require().NotNil(balancesResp)
-	s.Require().NotEmpty(balancesResp.Data)
-
-	for _, balance := range balancesResp.Data {
-		s.T().Log("balance in TestGetValidatorBalancesSlot", balance)
 	}
 }
 
