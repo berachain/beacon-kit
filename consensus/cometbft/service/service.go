@@ -105,6 +105,11 @@ type Service struct {
 	// TODO: We must use this as a workaround for now until CometBFT properly
 	// generates contexts that inherit from the parent context we provide.
 	ctx context.Context
+
+	// calculates block delay for the next block
+	//
+	// NOTE: may be nil until either InitChain or FinalizeBlock is called.
+	blockDelay *BlockDelay
 }
 
 func NewService(
@@ -152,6 +157,21 @@ func NewService(
 	// Load latest height, once all stores have been set
 	if err = s.sm.LoadLatestVersion(); err != nil {
 		panic(fmt.Errorf("failed loading latest version: %w", err))
+	}
+
+	// Load block delay.
+	//
+	// If not found, we will initialize it in FinalizeBlock once SBTEnableHeight
+	// is reached.
+	bz, err := s.sm.LoadBlockDelay()
+	if err != nil {
+		panic(fmt.Errorf("failed loading block delay: %w", err))
+	}
+	if bz != nil {
+		s.blockDelay, err = BlockDelayFromBytes(bz)
+		if err != nil {
+			panic(fmt.Errorf("failed decoding block delay: %w", err))
+		}
 	}
 
 	return s
