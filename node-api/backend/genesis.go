@@ -56,11 +56,8 @@ func (b *Backend) GenesisBlockHeader() *ctypes.BeaconBlockHeader {
 func (b *Backend) GenesisForkVersion() common.Version {
 	// Derive the genesis fork version from the genesis time.
 	genesisTime := b.GenesisTime()
-	cs, err := b.Spec()
-	if err != nil {
-		return common.Version{}
-	}
-	return cs.ActiveForkVersionForTimestamp(genesisTime)
+
+	return b.cs.ActiveForkVersionForTimestamp(genesisTime)
 }
 
 // GenesisBlockRoot returns the genesis block root of the beacon chain.
