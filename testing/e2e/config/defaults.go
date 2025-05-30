@@ -155,7 +155,6 @@ func defaultExecutionSettings() ExecutionSettings {
 		Images: map[string]string{
 			"besu":       "hyperledger/besu:24.5.4",
 			"erigon":     "erigontech/erigon:latest",
-			"ethereumjs": "ethpandaops/ethereumjs:stable",
 			"geth":       "ethereum/client-go:stable",
 			"nethermind": "nethermind/nethermind:latest",
 			"reth":       "ghcr.io/paradigmxyz/reth:latest",
