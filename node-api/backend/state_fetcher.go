@@ -70,16 +70,5 @@ func (sf *stateFetcher) GetStateAtSlot(slot math.Slot) (*statedb.StateDB, math.S
 
 // GetGenesisState returns the genesis state.
 func (sf *stateFetcher) GetGenesisState() *statedb.StateDB {
-	// nids
-	state := sf.backend.genesisState.Load()
-	if state != nil {
-		slot, err := state.GetSlot()
-		if err != nil {
-			fmt.Println("Error getting slot in GetGenesisState:", err)
-			return state
-		}
-		fmt.Println("Getting genesis state with slot:", slot)
-	}
-	return state
-	// return sf.backend.genesisState.Load()
+	return sf.backend.genesisState.Load()
 }
