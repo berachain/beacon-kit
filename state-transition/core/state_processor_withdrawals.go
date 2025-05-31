@@ -144,7 +144,7 @@ func (sp *StateProcessor) processWithdrawals(
 		return err
 	}
 
-	sp.logger.Info(
+	sp.logger.Debug(
 		"Processed withdrawals",
 		"num_withdrawals", numWithdrawals,
 		"evm_inflation", float64(payloadWithdrawals[0].GetAmount().Unwrap())/params.GWei,
