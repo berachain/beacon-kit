@@ -220,7 +220,7 @@ func (s *PectraWithdrawalSuite) TestExcessValidatorBeforeFork_CorrectlyEvicted()
 		s.Require().Equal(int64(2)*nextBlockHeight, nextBlockTime.Unix())
 
 		ds := s.TestNode.StorageBackend.DepositStore()
-		deposits, err := ds.GetDepositsByIndex(s.CtxApp, 0, uint64(nextBlockHeight)*s.TestNode.ChainSpec.MaxDepositsPerBlock())
+		deposits, _, err := ds.GetDepositsByIndex(s.CtxApp, 0, uint64(nextBlockHeight)*s.TestNode.ChainSpec.MaxDepositsPerBlock())
 		s.Require().NoError(err)
 		// There should only be 1 deposit in the deposit store from genesis
 		s.Require().Len(deposits, 1)
@@ -233,7 +233,7 @@ func (s *PectraWithdrawalSuite) TestExcessValidatorBeforeFork_CorrectlyEvicted()
 		s.Require().Equal(int64(2)*nextBlockHeight, nextBlockTime.Unix())
 
 		ds := s.TestNode.StorageBackend.DepositStore()
-		deposits, err := ds.GetDepositsByIndex(s.CtxApp, 0, uint64(nextBlockHeight)*s.TestNode.ChainSpec.MaxDepositsPerBlock())
+		deposits, _, err := ds.GetDepositsByIndex(s.CtxApp, 0, uint64(nextBlockHeight)*s.TestNode.ChainSpec.MaxDepositsPerBlock())
 		s.Require().NoError(err)
 		// There should be 2 deposits in the deposit store
 		s.Require().Len(deposits, 2)
@@ -431,7 +431,7 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdra
 		s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
 
 		ds := s.TestNode.StorageBackend.DepositStore()
-		deposits, err := ds.GetDepositsByIndex(s.CtxApp, 0, uint64(nextBlockHeight)*s.TestNode.ChainSpec.MaxDepositsPerBlock())
+		deposits, _, err := ds.GetDepositsByIndex(s.CtxApp, 0, uint64(nextBlockHeight)*s.TestNode.ChainSpec.MaxDepositsPerBlock())
 		s.Require().NoError(err)
 		// There should be 2 deposits in the store
 		s.Require().Len(deposits, 2)
@@ -446,7 +446,7 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdra
 		s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
 
 		ds := s.TestNode.StorageBackend.DepositStore()
-		deposits, err := ds.GetDepositsByIndex(s.CtxApp, 0, uint64(nextBlockHeight)*s.TestNode.ChainSpec.MaxDepositsPerBlock())
+		deposits, _, err := ds.GetDepositsByIndex(s.CtxApp, 0, uint64(nextBlockHeight)*s.TestNode.ChainSpec.MaxDepositsPerBlock())
 		s.Require().NoError(err)
 		// There should be 3 deposits in the deposit store
 		s.Require().Len(deposits, 3)
@@ -552,7 +552,7 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_HasCorrectWithdraw
 		// We expect that withdrawals due to excess balance were created
 		s.Require().Contains(s.LogBuffer.String(), "expectedWithdrawals: validator withdrawal due to excess balance")
 
-		deposits, err := s.TestNode.StorageBackend.DepositStore().GetDepositsByIndex(
+		deposits, _, err := s.TestNode.StorageBackend.DepositStore().GetDepositsByIndex(
 			s.CtxApp, 0, uint64(nextBlockHeight)*s.TestNode.ChainSpec.MaxDepositsPerBlock(),
 		)
 		s.Require().Len(deposits, 31)
