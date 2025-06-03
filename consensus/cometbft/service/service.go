@@ -28,7 +28,6 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/validator"
-	"github.com/berachain/beacon-kit/consensus/cometbft/service/commitmultistore"
 	servercmtlog "github.com/berachain/beacon-kit/consensus/cometbft/service/log"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/state"
 	errorsmod "github.com/berachain/beacon-kit/errors"
@@ -68,7 +67,7 @@ type Service struct {
 	telemetrySink TelemetrySink
 
 	logger       *phuslu.Logger
-	sm           *commitmultistore.Manager
+	sm           *state.Manager
 	Blockchain   blockchain.BlockchainI
 	BlockBuilder validator.BlockBuilderI
 
@@ -132,7 +131,7 @@ func NewService(
 
 	s := &Service{
 		logger:             logger,
-		sm:                 commitmultistore.NewManager(db, log),
+		sm:                 state.NewManager(db, log),
 		Blockchain:         blockchain,
 		BlockBuilder:       blockBuilder,
 		cmtConsensusParams: cmtConsensusParams,
