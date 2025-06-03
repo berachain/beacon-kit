@@ -42,6 +42,7 @@ func TestValidate_ForkOrder_Success(t *testing.T) {
 	data.GenesisTime = 10
 	data.Deneb1ForkTime = 20
 	data.ElectraForkTime = 30
+	data.Electra1ForkTime = 40
 
 	_, err := chain.NewSpec(data)
 	require.NoError(t, err)
