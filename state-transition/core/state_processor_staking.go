@@ -43,13 +43,17 @@ func (sp *StateProcessor) processOperations(
 		return err
 	}
 
-	if version.IsBefore(blk.GetForkVersion(), version.Electra1()) {
-		// Before Electra1 however, deposits are processed from the beacon block body directly.
+	var deposits []*ctypes.Deposit
+	if version.EqualsOrIsAfter(blk.GetForkVersion(), version.Electra1()) {
+		// Starting in Electra1, EIP-6110 style deposit requests are used.
+		deposits = requests.Deposits
+	} else {
+		// Before Electra1 however, deposits are taken from the beacon block body directly.
 		//
 		// Verify that outstanding deposits are processed up to the maximum number of deposits.
 		// Unlike Ethereum 2.0 specs, we don't check that
 		// `len(body.deposits) ==  min(MAX_DEPOSITS, state.eth1_data.deposit_count - state.eth1_deposit_index)`.
-		deposits := blk.GetBody().GetDeposits()
+		deposits = blk.GetBody().GetDeposits()
 		if uint64(len(deposits)) > sp.cs.MaxDepositsPerBlock() {
 			return errors.Wrapf(
 				ErrExceedsBlockDepositLimit, "expected: %d, got: %d",
@@ -68,33 +72,32 @@ func (sp *StateProcessor) processOperations(
 		); err != nil {
 			return err
 		}
+	}
 
-		for _, dep := range deposits {
-			if err = sp.processDeposit(st, dep); err != nil {
-				return err
-			}
-		}
-
-		if err = st.SetEth1Data(blk.GetBody().Eth1Data); err != nil {
+	// Process the deposits.
+	for _, dep := range deposits {
+		if err = sp.processDeposit(st, dep); err != nil {
 			return err
-		}
-	} else {
-		// Starting in Electra1, deposits are processed from the execution requests (EIP-6110 style).
-		for _, dep := range requests.Deposits {
-			if err = sp.processDeposit(st, dep); err != nil {
-				return err
-			}
 		}
 	}
 
-	// EIP-7002 Withdrawals.
+	// Process the EIP-7002 withdrawal requests.
 	for _, withdrawal := range requests.Withdrawals {
 		if err = sp.processWithdrawalRequest(st, withdrawal); err != nil {
 			return err
 		}
 	}
 
-	return st.SetEth1Data(ctypes.NewEmptyEth1Data())
+	// Set the eth1 data to state.
+	var eth1Data *ctypes.Eth1Data
+	if version.EqualsOrIsAfter(blk.GetForkVersion(), version.Electra1()) {
+		// Starting in Electra1, the eth1 data is unused so set in state as empty.
+		eth1Data = ctypes.NewEmptyEth1Data()
+	} else {
+		// Before Electra1 however, the eth1 data is applied to state from the beacon block body.
+		eth1Data = blk.GetBody().Eth1Data
+	}
+	return st.SetEth1Data(eth1Data)
 }
 
 // processDeposit processes the deposit and ensures it matches the local state.
