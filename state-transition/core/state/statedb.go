@@ -195,6 +195,15 @@ func (s *StateDB) ExpectedWithdrawals(timestamp math.U64) (engineprimitives.With
 				balance-s.cs.MaxEffectiveBalance(),
 			))
 
+			s.logger.Info("expectedWithdrawals: validator withdrawal due to excess balance",
+				"validator_pubkey", validator.GetPubkey().String(),
+				"balance", balance,
+				"effective_balance", validator.GetEffectiveBalance(),
+				"exit_epoch", validator.GetExitEpoch(),
+				"withdrawal_credentials", validator.GetWithdrawalCredentials().String(),
+			)
+			s.incrementExcessStakePartialWithdrawal()
+
 			// Increment the withdrawal index to process the next withdrawal.
 			withdrawalIndex++
 		}
