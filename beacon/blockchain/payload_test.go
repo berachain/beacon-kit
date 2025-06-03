@@ -47,7 +47,7 @@ import (
 	"github.com/berachain/beacon-kit/state-transition/core"
 	stmocks "github.com/berachain/beacon-kit/state-transition/core/mocks"
 	"github.com/berachain/beacon-kit/state-transition/core/state"
-	depositstore "github.com/berachain/beacon-kit/storage/deposit"
+	"github.com/berachain/beacon-kit/storage/deposit"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/mock"
@@ -66,7 +66,7 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 
 	chain, st, _, ctx, _, b, sb, eng, depStore := setupOptimisticPayloadTests(t, cs, optimisticPayloadBuilds)
 	sb.EXPECT().StateFromContext(mock.Anything).Return(st)
-	sb.EXPECT().DepositStore().RunAndReturn(func() *depositstore.KVStore { return depStore })
+	sb.EXPECT().DepositStore().RunAndReturn(func() deposit.StoreManager { return depStore })
 	b.EXPECT().Enabled().Return(optimisticPayloadBuilds)
 
 	// Note: test avoid calling chain.Start since it only starts the deposits
@@ -166,7 +166,7 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 
 	chain, st, cms, ctx, sp, b, sb, eng, depStore := setupOptimisticPayloadTests(t, cs, optimisticPayloadBuilds)
 	sb.EXPECT().StateFromContext(mock.Anything).Return(st).Times(1) // only for genesis
-	sb.EXPECT().DepositStore().RunAndReturn(func() *depositstore.KVStore { return depStore })
+	sb.EXPECT().DepositStore().RunAndReturn(func() deposit.StoreManager { return depStore })
 	b.EXPECT().Enabled().Return(optimisticPayloadBuilds)
 
 	// Before processing any block it is mandatory to handle genesis
@@ -282,7 +282,7 @@ func setupOptimisticPayloadTests(t *testing.T, cs chain.Spec, optimisticPayloadB
 	*bcmocks.LocalBuilder,
 	*bemocks.StorageBackend,
 	*stmocks.ExecutionEngine,
-	*depositstore.KVStore,
+	deposit.StoreManager,
 ) {
 	t.Helper()
 	sp, st, depStore, ctx, cms, eng := statetransition.SetupTestState(t, cs)
