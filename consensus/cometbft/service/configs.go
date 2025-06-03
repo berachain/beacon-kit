@@ -83,7 +83,7 @@ func DefaultConfig() *cmtcfg.Config {
 	consensus.TimeoutPropose = minTimeoutPropose
 	consensus.TimeoutPrevote = minTimeoutPrevote
 	consensus.TimeoutPrecommit = minTimeoutPrecommit
-	// DEPRECATED: we use NextBlockDelay now
+	//nolint:staticcheck // we use NextBlockDelay now
 	consensus.TimeoutCommit = 0
 
 	cfg.Storage.DiscardABCIResponses = true

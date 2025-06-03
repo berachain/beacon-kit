@@ -298,7 +298,7 @@ func (s *Service) buildBlockBody(
 	}
 
 	// Grab all previous deposits from genesis up to the current index + max deposits per block.
-	deposits, err := s.sb.DepositStore().GetDepositsByIndex(
+	deposits, localDepositRoot, err := s.sb.DepositStore().GetDepositsByIndex(
 		ctx,
 		constants.FirstDepositIndex,
 		depositIndex+s.chainSpec.MaxDepositsPerBlock(),
@@ -312,14 +312,13 @@ func (s *Service) buildBlockBody(
 			depositIndex, len(deposits),
 		)
 	}
-
-	eth1Data := ctypes.NewEth1Data(deposits.HashTreeRoot())
-	body.SetEth1Data(eth1Data)
-
 	s.logger.Info(
 		"Building block body with local deposits",
 		"start_index", depositIndex, "num_deposits", uint64(len(deposits))-depositIndex,
 	)
+
+	eth1Data := ctypes.NewEth1Data(localDepositRoot)
+	body.SetEth1Data(eth1Data)
 	body.SetDeposits(deposits[depositIndex:])
 
 	// Set the graffiti on the block body.

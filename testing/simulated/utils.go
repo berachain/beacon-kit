@@ -45,6 +45,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/state-transition/core"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
 	"github.com/cometbft/cometbft/abci/types"
@@ -91,7 +92,7 @@ func (s *SharedAccessors) InitializeChain(t *testing.T) {
 	require.Len(t, initResp.Validators, 1, "Expected 1 validator")
 
 	// Verify that the deposit store contains the expected deposits.
-	deposits, err := s.TestNode.StorageBackend.DepositStore().GetDepositsByIndex(
+	deposits, _, err := s.TestNode.StorageBackend.DepositStore().GetDepositsByIndex(
 		s.CtxApp,
 		constants.FirstDepositIndex,
 		constants.FirstDepositIndex+s.TestNode.ChainSpec.MaxDepositsPerBlock(),
@@ -243,6 +244,7 @@ func ComputeAndSetInvalidExecutionBlock(
 	latestBlock *ctypes.BeaconBlock,
 	chainSpec chain.Spec,
 	txs []*gethprimitives.Transaction,
+	executionRequests *ctypes.ExecutionRequests,
 ) *ctypes.BeaconBlock {
 	t.Helper()
 	forkVersion := chainSpec.ActiveForkVersionForTimestamp(latestBlock.GetTimestamp())
@@ -258,9 +260,21 @@ func ComputeAndSetInvalidExecutionBlock(
 	}
 	executionPayload.Transactions = txsBytesArray
 	parentBlockRoot := latestBlock.GetParentBlockRoot()
-	execBlock, _, err := ctypes.MakeEthBlock(executionPayload, &parentBlockRoot)
-	require.NoError(t, err)
-	return setExecutionPayload(t, latestBlock, forkVersion, execBlock, sidecars)
+
+	var execBlock *gethtypes.Block
+	var err error
+	if version.EqualsOrIsAfter(forkVersion, version.Electra()) {
+		var encodedExecRequests []ctypes.EncodedExecutionRequest
+		encodedExecRequests, err = ctypes.GetExecutionRequestsList(executionRequests)
+		require.NoError(t, err)
+		execBlock, _, err = ctypes.MakeEthBlockWithExecutionRequests(executionPayload, &parentBlockRoot, encodedExecRequests)
+		require.NoError(t, err)
+	} else {
+		execBlock, _, err = ctypes.MakeEthBlock(executionPayload, &parentBlockRoot)
+		require.NoError(t, err)
+	}
+
+	return updateBeaconBlockBody(t, latestBlock, forkVersion, execBlock, sidecars, executionRequests)
 }
 
 // ComputeAndSetValidExecutionBlock simulates a new execution payload based on the provided transactions,
@@ -274,6 +288,11 @@ func ComputeAndSetValidExecutionBlock(
 	chainSpec chain.Spec,
 	txs []*gethprimitives.Transaction,
 ) *ctypes.BeaconBlock {
+	t.Helper()
+	// Check that the fork version is supported
+	if version.IsAfter(latestBlock.GetForkVersion(), version.Deneb1()) {
+		t.Fatalf("fork version %s is not supported by this function", latestBlock.GetForkVersion())
+	}
 	// Run simulation to get a simulated block.
 	baseHeight := int64(latestBlock.GetSlot().Unwrap()) - 1
 	simInput := DefaultSimulationInput(t, chainSpec, latestBlock, txs)
@@ -288,7 +307,8 @@ func ComputeAndSetValidExecutionBlock(
 
 	// Transform the simulated block into a Geth block.
 	execBlock := transformSimulatedBlockToGethBlock(simBlock, txsNoSidecar, origParent)
-	return setExecutionPayload(t, latestBlock, forkVersion, execBlock, sidecars)
+	// TODO: Add support for execution requests before allowing electra
+	return updateBeaconBlockBody(t, latestBlock, forkVersion, execBlock, sidecars, nil)
 }
 
 // ComputeAndSetStateRoot applies a state transition to the given beacon block.
@@ -359,22 +379,36 @@ func GetProofAndCommitmentsForBlobs(
 	return proofs, commitments
 }
 
-// setExecutionPayload converts the given Geth-style block into executable data,
+// updateBeaconBlockBody converts the given Geth-style block into executable data,
 // converts that into an ExecutionPayload using the given fork version, and then
 // sets that payload into latestBlock. It returns the updated block.
-func setExecutionPayload(
+func updateBeaconBlockBody(
 	t *testing.T,
 	latestBlock *ctypes.BeaconBlock,
 	forkVersion common.Version,
 	execBlock *gethtypes.Block,
 	sidecars []*gethtypes.BlobTxSidecar, // adjust type as needed
+	executionRequests *ctypes.ExecutionRequests,
 ) *ctypes.BeaconBlock {
+	var erBytes [][]byte
+	if version.EqualsOrIsAfter(forkVersion, version.Electra()) {
+		encodedExecRequests, err := ctypes.GetExecutionRequestsList(executionRequests)
+		require.NoError(t, err)
+		for _, er := range encodedExecRequests {
+			erBytes = append(erBytes, er)
+		}
+	}
 	// Convert the Geth block into ExecutableData.
-	execData := gethprimitives.BlockToExecutableData(execBlock, nil, sidecars, nil)
+	execData := gethprimitives.BlockToExecutableData(execBlock, nil, sidecars, erBytes)
 	// Convert the ExecutableData into our internal ExecutionPayload type.
 	execPayload, err := transformExecutableDataToExecutionPayload(forkVersion, execData.ExecutionPayload)
 	require.NoError(t, err, "failed to convert executable data")
 	// Update the beacon block with the new execution payload.
 	latestBlock.GetBody().SetExecutionPayload(execPayload)
+
+	if version.EqualsOrIsAfter(forkVersion, version.Electra()) {
+		err = latestBlock.GetBody().SetExecutionRequests(executionRequests)
+		require.NoError(t, err)
+	}
 	return latestBlock
 }

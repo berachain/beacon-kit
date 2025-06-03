@@ -28,6 +28,8 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/validator"
+	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
 	servercmtlog "github.com/berachain/beacon-kit/consensus/cometbft/service/log"
 	statem "github.com/berachain/beacon-kit/consensus/cometbft/service/state"
 	errorsmod "github.com/berachain/beacon-kit/errors"
@@ -54,6 +56,8 @@ const (
 
 type Service struct {
 	node *node.Node
+
+	delayCfg delay.ConfigGetter
 
 	// cmtConsensusParams are part of the blockchain state and
 	// are agreed upon by all validators in the network.
@@ -109,7 +113,7 @@ type Service struct {
 	// calculates block delay for the next block
 	//
 	// NOTE: may be nil until either InitChain or FinalizeBlock is called.
-	blockDelay *BlockDelay
+	blockDelay *delay.BlockDelay
 }
 
 func NewService(
@@ -117,6 +121,7 @@ func NewService(
 	db dbm.DB,
 	blockchain blockchain.BlockchainI,
 	blockBuilder validator.BlockBuilderI,
+	cs chain.Spec,
 	cmtCfg *cmtcfg.Config,
 	telemetrySink TelemetrySink,
 	options ...func(*Service),
@@ -139,6 +144,7 @@ func NewService(
 		sm:                 statem.NewManager(db, log),
 		Blockchain:         blockchain,
 		BlockBuilder:       blockBuilder,
+		delayCfg:           cs,
 		cmtConsensusParams: cmtConsensusParams,
 		cmtCfg:             cmtCfg,
 		telemetrySink:      telemetrySink,
@@ -168,7 +174,7 @@ func NewService(
 		panic(fmt.Errorf("failed loading block delay: %w", err))
 	}
 	if bz != nil {
-		s.blockDelay, err = BlockDelayFromBytes(bz)
+		s.blockDelay, err = delay.FromBytes(bz)
 		if err != nil {
 			panic(fmt.Errorf("failed decoding block delay: %w", err))
 		}

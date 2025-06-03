@@ -22,7 +22,9 @@ package chain
 
 import (
 	"fmt"
+	"time"
 
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -168,6 +170,7 @@ type WithdrawalsSpec interface {
 
 // Spec defines an interface for accessing chain-specific parameters.
 type Spec interface {
+	delay.ConfigGetter
 	DepositSpec
 	BalancesSpec
 	HysteresisSpec
@@ -246,8 +249,42 @@ func (s spec) validate() error {
 
 	// EVM Inflation values can be zero or non-zero, no validation needed.
 
+	// Enforce ordering of the forks. Like most chains, BeaconKit does not support arbitrary ordering of forks.
+	// Fork times here are in chronological order
+	orderedForkTimes := []uint64{
+		s.Data.GenesisTime,
+		s.Data.Deneb1ForkTime,
+		s.Data.ElectraForkTime,
+	}
+	for i := 1; i < len(orderedForkTimes); i++ {
+		prev, cur := orderedForkTimes[i-1], orderedForkTimes[i]
+		// must not go backwards
+		if prev > cur {
+			return fmt.Errorf(
+				"fork ordering violation: timestamp at index %d (%d) > index %d (%d)",
+				i-1, prev, i, cur,
+			)
+		}
+	}
+
 	// TODO: Add more validation rules here.
 	return nil
+}
+
+func (s spec) SbtMaxDelayBetweenBlocks() time.Duration {
+	return s.Data.MaxDelay
+}
+func (s spec) SbtTargetBlockTime() time.Duration {
+	return s.Data.TargetBlockTime
+}
+func (s spec) SbtConstBlockDelay() time.Duration {
+	return s.Data.ConstBlockDelay
+}
+func (s spec) SbtConsensusParamUpdate() int64 {
+	return s.Data.ConsensusUpdateHeight
+}
+func (s spec) SbtConsensusEnableHeight() int64 {
+	return s.Data.ConsensusEnableHeight
 }
 
 // MaxEffectiveBalance returns the maximum effective balance.
