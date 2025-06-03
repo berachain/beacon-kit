@@ -37,10 +37,16 @@ func (sp *StateProcessor) processOperations(
 	st *state.StateDB,
 	blk *ctypes.BeaconBlock,
 ) error {
-	// Before Electra1, deposits are processed from the beacon block body directly.
+	// Validators increase/decrease stake through execution requests starting in Electra.
+	requests, err := blk.GetBody().GetExecutionRequests()
+	if err != nil {
+		return err
+	}
+
 	if version.IsBefore(blk.GetForkVersion(), version.Electra1()) {
-		// Verify that outstanding deposits are processed up to the maximum number of deposits.
+		// Before Electra1 however, deposits are processed from the beacon block body directly.
 		//
+		// Verify that outstanding deposits are processed up to the maximum number of deposits.
 		// Unlike Ethereum 2.0 specs, we don't check that
 		// `len(body.deposits) ==  min(MAX_DEPOSITS, state.eth1_data.deposit_count - state.eth1_deposit_index)`.
 		deposits := blk.GetBody().GetDeposits()
@@ -52,7 +58,7 @@ func (sp *StateProcessor) processOperations(
 		}
 
 		// Instead, we directly compare block deposits with our local store ones.
-		if err := ValidateNonGenesisDeposits(
+		if err = ValidateNonGenesisDeposits(
 			ctx.ConsensusCtx(),
 			st,
 			sp.ds,
@@ -64,31 +70,26 @@ func (sp *StateProcessor) processOperations(
 		}
 
 		for _, dep := range deposits {
-			if err := sp.processDeposit(st, dep); err != nil {
+			if err = sp.processDeposit(st, dep); err != nil {
 				return err
 			}
 		}
 
-		return st.SetEth1Data(blk.GetBody().Eth1Data)
-	}
-
-	// After Electra1, validators increase/decrease stake through execution requests which must
-	// be handled.
-	requests, err := blk.GetBody().GetExecutionRequests()
-	if err != nil {
-		return err
+		if err = st.SetEth1Data(blk.GetBody().Eth1Data); err != nil {
+			return err
+		}
+	} else {
+		// Starting in Electra1, deposits are processed from the execution requests (EIP-6110 style).
+		for _, dep := range requests.Deposits {
+			if err = sp.processDeposit(st, dep); err != nil {
+				return err
+			}
+		}
 	}
 
 	// EIP-7002 Withdrawals.
 	for _, withdrawal := range requests.Withdrawals {
-		if withdrawErr := sp.processWithdrawalRequest(st, withdrawal); withdrawErr != nil {
-			return withdrawErr
-		}
-	}
-
-	// EIP-6110 Deposits.
-	for _, dep := range requests.Deposits {
-		if err = sp.processDeposit(st, dep); err != nil {
+		if err = sp.processWithdrawalRequest(st, withdrawal); err != nil {
 			return err
 		}
 	}
