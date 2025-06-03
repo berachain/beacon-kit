@@ -44,10 +44,7 @@ func (sp *StateProcessor) processOperations(
 	}
 
 	var deposits []*ctypes.Deposit
-	if version.EqualsOrIsAfter(blk.GetForkVersion(), version.Electra1()) {
-		// Starting in Electra1, EIP-6110 style deposit requests are used.
-		deposits = requests.Deposits
-	} else {
+	if version.IsBefore(blk.GetForkVersion(), version.Electra1()) {
 		// Before Electra1 however, deposits are taken from the beacon block body directly.
 		//
 		// Verify that outstanding deposits are processed up to the maximum number of deposits.
@@ -72,6 +69,9 @@ func (sp *StateProcessor) processOperations(
 		); err != nil {
 			return err
 		}
+	} else {
+		// Starting in Electra1, EIP-6110 style deposit requests are used.
+		deposits = requests.Deposits
 	}
 
 	// Process the deposits.
@@ -90,12 +90,12 @@ func (sp *StateProcessor) processOperations(
 
 	// Set the eth1 data to state.
 	var eth1Data *ctypes.Eth1Data
-	if version.EqualsOrIsAfter(blk.GetForkVersion(), version.Electra1()) {
-		// Starting in Electra1, the eth1 data is unused so set in state as empty.
-		eth1Data = ctypes.NewEmptyEth1Data()
-	} else {
+	if version.IsBefore(blk.GetForkVersion(), version.Electra1()) {
 		// Before Electra1 however, the eth1 data is applied to state from the beacon block body.
 		eth1Data = blk.GetBody().Eth1Data
+	} else {
+		// Starting in Electra1, the eth1 data is unused so set in state as empty.
+		eth1Data = ctypes.NewEmptyEth1Data()
 	}
 	return st.SetEth1Data(eth1Data)
 }
