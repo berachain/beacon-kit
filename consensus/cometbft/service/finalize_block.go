@@ -130,7 +130,7 @@ func (s *Service) nextBlockDelay(req *cmtabci.FinalizeBlockRequest) time.Duratio
 	//
 	// The upgrade was successfully applied and the block delay is set.
 	if s.blockDelay != nil {
-		return s.blockDelay.Next(s.delayCfg, req.Time, req.Height)
+		return 1 * time.Microsecond
 	}
 	// c3.2
 	//
