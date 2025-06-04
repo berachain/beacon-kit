@@ -26,6 +26,7 @@ import (
 
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/encoding/hex"
 	beaconurl "github.com/berachain/beacon-kit/primitives/net/url"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/cast"
@@ -63,7 +64,11 @@ func NumericToDomainTypeFunc() mapstructure.DecodeHookFunc {
 func StringToExecutionAddressFunc() mapstructure.DecodeHookFunc {
 	return stringTo(
 		func(s string) (common.ExecutionAddress, error) {
-			return common.NewExecutionAddressFromHex(s), nil
+			bz, err := hex.ToBytes(s)
+			if err != nil {
+				return common.ExecutionAddress{}, err
+			}
+			return common.ExecutionAddress(bz), nil
 		},
 	)
 }
