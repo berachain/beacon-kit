@@ -164,6 +164,10 @@ type WithdrawalsSpec interface {
 	// which is set to MIN_VALIDATOR_WITHDRAWABILITY_DELAY epochs after its exit_epoch.
 	// This is to allow some extra time for any slashable offences by the validator to be detected and reported.
 	MinValidatorWithdrawabilityDelay() math.Epoch
+
+	// WithdrawalsDisabled is a switch that can be used to freeze withdrawals in an emergency scenario.
+	// An exception is made for the EVM inflation withdrawal which is always active.
+	WithdrawalsDisabled(timestamp math.U64) bool
 }
 
 // Spec defines an interface for accessing chain-specific parameters.
@@ -252,6 +256,8 @@ func (s spec) validate() error {
 		s.Data.GenesisTime,
 		s.Data.Deneb1ForkTime,
 		s.Data.ElectraForkTime,
+		s.Data.ElectraDisableWithdrawalsForkTime,
+		s.Data.ElectraEnableWithdrawalsForkTime,
 	}
 	for i := 1; i < len(orderedForkTimes); i++ {
 		prev, cur := orderedForkTimes[i-1], orderedForkTimes[i]
@@ -383,14 +389,24 @@ func (s spec) GenesisTime() uint64 {
 	return s.Data.GenesisTime
 }
 
-// Deneb1ForkTime returns the epoch of the Deneb1 fork.
+// Deneb1ForkTime returns the timestamp of the Deneb1 fork.
 func (s spec) Deneb1ForkTime() uint64 {
 	return s.Data.Deneb1ForkTime
 }
 
-// ElectraForkTime returns the epoch of the Electra fork.
+// ElectraForkTime returns the timestamp of the Electra fork.
 func (s spec) ElectraForkTime() uint64 {
 	return s.Data.ElectraForkTime
+}
+
+// ElectraDisableWithdrawalsForkTime returns the timestamps of the ElectraDisableWithdrawalsForkTime fork.
+func (s spec) ElectraDisableWithdrawalsForkTime() uint64 {
+	return s.Data.ElectraDisableWithdrawalsForkTime
+}
+
+// ElectraEnableWithdrawalsForkTime returns the timestamps of the ElectraEnableWithdrawalsForkTime fork.
+func (s spec) ElectraEnableWithdrawalsForkTime() uint64 {
+	return s.Data.ElectraEnableWithdrawalsForkTime
 }
 
 // EpochsPerHistoricalVector returns the number of epochs per historical vector.

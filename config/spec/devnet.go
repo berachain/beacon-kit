@@ -48,6 +48,11 @@ const (
 	// devnet is configured to start on electra.
 	devnetElectraForkTime = 0
 
+	// devnetElectraDisableWithdrawalsForkTime is the start time at which withdrawals are disabled
+	devnetElectraDisableWithdrawalsForkTime = defaultFarFutureTimestamp
+	// devnetElectraEnableWithdrawalsForkTime is the start time at which withdrawals are re-enabled
+	devnetElectraEnableWithdrawalsForkTime = defaultFarFutureTimestamp
+
 	// devnetEVMInflationAddressDeneb1 is the address of the EVM inflation contract
 	// after the Deneb1 fork.
 	devnetEVMInflationAddressDeneb1 = "0x4206942069420694206942069420694206942069"
@@ -72,6 +77,8 @@ func DevnetChainSpecData() *chain.SpecData {
 	specData.GenesisTime = devnetGenesisTime
 	specData.Deneb1ForkTime = devnetDeneb1ForkTime
 	specData.ElectraForkTime = devnetElectraForkTime
+	specData.ElectraDisableWithdrawalsForkTime = devnetElectraDisableWithdrawalsForkTime
+	specData.ElectraEnableWithdrawalsForkTime = devnetElectraEnableWithdrawalsForkTime
 
 	// EVM inflation is different from mainnet to test.
 	specData.EVMInflationAddressGenesis = common.NewExecutionAddressFromHex(devnetEVMInflationAddress)
