@@ -141,7 +141,6 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
             configs = full_node_configs,
         )
     for n, full_node in enumerate(full_nodes):
-        # excluding ethereumjs from metrics as it is the last full node in the args file beaconkit-all.yaml, TO-DO: to improve this later
         peer_info = beacond.get_peer_info(plan, full_node.cl_service_name)
         all_consensus_peering_info[full_node.cl_service_name] = peer_info
         metrics_enabled_services.append({
