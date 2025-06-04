@@ -32,4 +32,5 @@ type BeaconBlock interface {
 	HashTreeRoot() common.Root
 	GetTimestamp() math.U64
 	GetStateRoot() common.Root
+	GetParentBlockRoot() common.Root
 }
