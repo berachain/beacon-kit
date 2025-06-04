@@ -37,10 +37,16 @@ func (sp *StateProcessor) processOperations(
 	st *state.StateDB,
 	blk *ctypes.BeaconBlock,
 ) error {
-	// Validators increase/decrease stake through execution requests starting in Electra.
-	requests, err := blk.GetBody().GetExecutionRequests()
-	if err != nil {
-		return err
+	var (
+		requests *ctypes.ExecutionRequests
+		err      error
+	)
+	if version.EqualsOrIsAfter(blk.GetForkVersion(), version.Electra()) {
+		// Validators increase/decrease stake through execution requests starting in Electra.
+		requests, err = blk.GetBody().GetExecutionRequests()
+		if err != nil {
+			return err
+		}
 	}
 
 	var deposits []*ctypes.Deposit
@@ -69,7 +75,7 @@ func (sp *StateProcessor) processOperations(
 		); err != nil {
 			return err
 		}
-	} else {
+	} else if requests != nil {
 		// Starting in Electra1, EIP-6110 style deposit requests are used.
 		deposits = requests.Deposits
 	}
@@ -81,10 +87,12 @@ func (sp *StateProcessor) processOperations(
 		}
 	}
 
-	// Process the EIP-7002 withdrawal requests.
-	for _, withdrawal := range requests.Withdrawals {
-		if err = sp.processWithdrawalRequest(st, withdrawal); err != nil {
-			return err
+	// Starting in Electra, process the EIP-7002 withdrawal requests.
+	if requests != nil {
+		for _, withdrawal := range requests.Withdrawals {
+			if err = sp.processWithdrawalRequest(st, withdrawal); err != nil {
+				return err
+			}
 		}
 	}
 
