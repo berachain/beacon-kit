@@ -89,6 +89,9 @@ type Service struct {
 	// on InitChain and FinalizeBlock and set to nil on Commit.
 	finalizeBlockState *state.State
 
+	// ideally where all states from blocks being verified or finalized should go
+	statesCollection *state.States
+
 	interBlockCache storetypes.MultiStorePersistentCache
 
 	// initialHeight is the initial height at which we start the node
@@ -137,6 +140,7 @@ func NewService(
 		cmtConsensusParams: cmtConsensusParams,
 		cmtCfg:             cmtCfg,
 		telemetrySink:      telemetrySink,
+		statesCollection:   state.NewStates(),
 	}
 
 	s.MountStore(storage.StoreKey, storetypes.StoreTypeIAVL)
