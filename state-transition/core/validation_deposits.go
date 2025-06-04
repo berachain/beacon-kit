@@ -70,6 +70,7 @@ func validateGenesisDeposits(
 	return nil
 }
 
+// NOTE: only used before Electra1.
 func ValidateNonGenesisDeposits(
 	ctx context.Context,
 	st *statedb.StateDB,

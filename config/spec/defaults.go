@@ -79,4 +79,7 @@ const (
 
 	// Electra values.
 	defaultMinValidatorWithdrawabilityDelay = 256
+
+	// Misc values.
+	defaultFarFutureTime = 9999999999999999
 )
