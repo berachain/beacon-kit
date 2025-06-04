@@ -56,7 +56,7 @@ require (
 
 // build/test dependencies
 require (
-	github.com/attestantio/go-eth2-client v0.25.0
+	github.com/attestantio/go-eth2-client v0.25.2
 	github.com/ethereum/go-ethereum v1.15.5
 	github.com/ferranbt/fastssz v0.1.5-0.20240903094032-455b54c08c81
 	github.com/kurtosis-tech/kurtosis/api/golang v1.4.3
