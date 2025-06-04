@@ -68,6 +68,9 @@ func DevnetChainSpecData() *chain.SpecData {
 	specData := MainnetChainSpecData()
 	specData.DepositEth1ChainID = DevnetEth1ChainID
 
+	specData.Config.ConsensusUpdateHeight = 1
+	specData.Config.ConsensusEnableHeight = 1
+
 	// Fork timings are set to facilitate local testing across fork versions.
 	specData.GenesisTime = devnetGenesisTime
 	specData.Deneb1ForkTime = devnetDeneb1ForkTime

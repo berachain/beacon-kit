@@ -38,7 +38,6 @@ const ( // appeases mnd
 	minTimeoutPropose   = 2000 * time.Millisecond
 	minTimeoutPrevote   = 2000 * time.Millisecond
 	minTimeoutPrecommit = 2000 * time.Millisecond
-	minTimeoutCommit    = 500 * time.Millisecond
 
 	maxBlockSize = 100 * 1024 * 1024
 
@@ -84,7 +83,8 @@ func DefaultConfig() *cmtcfg.Config {
 	consensus.TimeoutPropose = minTimeoutPropose
 	consensus.TimeoutPrevote = minTimeoutPrevote
 	consensus.TimeoutPrecommit = minTimeoutPrecommit
-	consensus.TimeoutCommit = minTimeoutCommit
+	//nolint:staticcheck // we use NextBlockDelay now
+	consensus.TimeoutCommit = 0
 
 	cfg.Storage.DiscardABCIResponses = true
 
@@ -121,6 +121,9 @@ func DefaultConsensusParams(consensusKeyAlgo string) *cmttypes.ConsensusParams {
 	res.Synchrony.Precision = precision
 	res.Synchrony.MessageDelay = messageDelay
 
+	// Activete Stable Block Time (SBT) by default.
+	res.Feature.SBTEnableHeight = 1
+
 	if err := res.ValidateBasic(); err != nil {
 		panic(fmt.Errorf("invalid default consensus parameters: %w", err))
 	}
@@ -150,14 +153,6 @@ func validateConfig(cfg *cmtcfg.Config) error {
 			ErrInvalidaConfig,
 			cfg.Consensus.TimeoutPrecommit,
 			minTimeoutPrecommit,
-		)
-	}
-
-	if cfg.Consensus.TimeoutCommit < minTimeoutCommit {
-		return fmt.Errorf("%w, config timeout propose %v, min requested %v",
-			ErrInvalidaConfig,
-			cfg.Consensus.TimeoutCommit,
-			minTimeoutCommit,
 		)
 	}
 
