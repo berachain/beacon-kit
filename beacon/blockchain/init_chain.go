@@ -26,6 +26,7 @@ import (
 	"fmt"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/primitives/version"
 )
@@ -34,17 +35,18 @@ import (
 func (s *Service) ProcessGenesisData(
 	ctx context.Context,
 	bytes []byte,
-) (transition.ValidatorUpdates, error) {
+) (transition.ValidatorUpdates, *ctypes.BeaconBlockHeader, common.Root, common.Root, error) {
+	// Unmarshal the genesis data.
 	genesisData := ctypes.Genesis{}
 	if err := json.Unmarshal(bytes, &genesisData); err != nil {
 		s.logger.Error("Failed to unmarshal genesis data", "error", err)
-		return nil, err
+		return nil, nil, common.Root{}, common.Root{}, err
 	}
 
 	// Ensure consistency of the genesis timestamp.
 	execPayloadHeader := genesisData.GetExecutionPayloadHeader()
 	if s.chainSpec.GenesisTime() != execPayloadHeader.GetTimestamp().Unwrap() {
-		return nil, fmt.Errorf(
+		return nil, nil, common.Root{}, common.Root{}, fmt.Errorf(
 			"mismatch between chain spec genesis time (%d) and execution payload header time (%d)",
 			s.chainSpec.GenesisTime(),
 			execPayloadHeader.GetTimestamp().Unwrap(),
@@ -54,21 +56,22 @@ func (s *Service) ProcessGenesisData(
 	// Ensure consistency of the genesis fork version.
 	genesisVersion := genesisData.GetForkVersion()
 	if !version.Equals(genesisVersion, s.chainSpec.GenesisForkVersion()) {
-		return nil, fmt.Errorf(
+		return nil, nil, common.Root{}, common.Root{}, fmt.Errorf(
 			"fork mismatch between CL genesis file version (%s) and chain spec genesis version (%s)",
 			genesisVersion, s.chainSpec.GenesisForkVersion(),
 		)
 	}
 
-	// Initialize the beacon state from the genesis deposits.
+	// Call the state processor to initialize the "premined" (genesis) beacon state.
+	genesisState := s.storageBackend.StateFromContext(ctx)
 	validatorUpdates, err := s.stateProcessor.InitializeBeaconStateFromEth1(
-		s.storageBackend.StateFromContext(ctx),
+		genesisState,
 		genesisData.GetDeposits(),
 		execPayloadHeader,
 		genesisVersion,
 	)
 	if err != nil {
-		return nil, err
+		return nil, nil, common.Root{}, common.Root{}, err
 	}
 
 	// After deposits are validated, store the genesis deposits in the deposit store.
@@ -76,8 +79,25 @@ func (s *Service) ProcessGenesisData(
 		ctx,
 		genesisData.GetDeposits(),
 	); err != nil {
-		return nil, err
+		return nil, nil, common.Root{}, common.Root{}, err
 	}
 
-	return validatorUpdates, nil
+	// Get the genesis beacon block header from the state.
+	genesisHeader, err := genesisState.GetLatestBlockHeader()
+	if err != nil {
+		return nil, nil, common.Root{}, common.Root{}, err
+	}
+
+	// Return the hash tree root of the genesis header after updating the state root in it.
+	// This is similar to how we get the block root.
+	genesisHeader.SetStateRoot(genesisState.HashTreeRoot())
+	genesisBlockRoot := genesisHeader.HashTreeRoot()
+
+	// Get the genesis validators root from the state.
+	genesisValidatorsRoot, err := genesisState.GetGenesisValidatorsRoot()
+	if err != nil {
+		return nil, nil, common.Root{}, common.Root{}, err
+	}
+
+	return validatorUpdates, genesisHeader, genesisValidatorsRoot, genesisBlockRoot, nil
 }
