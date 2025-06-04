@@ -71,12 +71,6 @@ type Service struct {
 	Blockchain   blockchain.BlockchainI
 	BlockBuilder validator.BlockBuilderI
 
-	// prepareProposalState is used for PrepareProposal, which is set based on
-	// the previous block's state. This state is never committed. In case of
-	// multiple consensus rounds, the state is always reset to the previous
-	// block's state.
-	prepareProposalState *state.State
-
 	// processProposalState is used for ProcessProposal, which is set based on
 	// the previous block's state. This state is never committed. In case of
 	// multiple consensus rounds, the state is always reset to the previous
