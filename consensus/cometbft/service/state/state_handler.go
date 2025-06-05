@@ -56,7 +56,7 @@ func (h *FinalizedStateHandler) ResetState(ctx context.Context) {
 	h.finalizeBlockState = NewState(ms, newCtx)
 }
 
-func (h *FinalizedStateHandler) NewSDKContext() (sdk.Context, error) {
+func (h *FinalizedStateHandler) SpecialCaseFirstBlockSdkContext() (sdk.Context, error) {
 	if h.finalizeBlockState == nil {
 		return sdk.Context{}, ErrNilFinalizeBlockState
 	}

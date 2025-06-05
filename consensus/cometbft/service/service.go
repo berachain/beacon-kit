@@ -328,7 +328,7 @@ func (s *Service) getContextForProposal(
 		return ctx
 	}
 
-	newCtx, err := s.stateHandler.NewSDKContext()
+	newCtx, err := s.stateHandler.SpecialCaseFirstBlockSdkContext()
 	if err != nil {
 		panic(fmt.Errorf("getContextForProposal: %w", err))
 	}
