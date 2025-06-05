@@ -52,7 +52,7 @@ const (
 )
 
 // pregeneratedEthAddresses returns an address defined in testing/files/eth-genesis.json
-func pregeneratedEthAddresses(i int) string {
+func pregeneratedEthAddresses(i uint64) string {
 	addresses := []string{
 		"0x0474f52d25529c4db5f4E72F43303dA71B3541C6",
 		"0x0e10cDAd84D788843aF48673C5b260A02ef78742",
@@ -159,7 +159,7 @@ func pregeneratedEthAddresses(i int) string {
 		"0xf6B6A52aA9BD788837c6682f47ACE009BD84b6fc",
 		"0xf97a36c417D33D1fC60a9163A8715e1aecb29102",
 	}
-	if i < 0 || i >= len(addresses) {
+	if i >= uint64(len(addresses)) {
 		panic(fmt.Sprintf("invalid eth address index %d", i))
 	}
 	return addresses[i]
@@ -312,7 +312,7 @@ func MakeGenesis(testnet *e2e.Testnet) (types.GenesisDoc, error) {
 		forkData := beaconkitconsensustypes.NewForkData(chainSpec.GenesisForkVersion(), common.Root{})
 		domainType := chainSpec.DomainTypeDeposit()
 
-		i := 0
+		var i uint64 = 0
 		for validator := range testnet.Validators {
 			executionAddress := common.NewExecutionAddressFromHex(pregeneratedEthAddresses(i))
 			credentials := beaconkitconsensustypes.NewCredentialsFromExecutionAddress(executionAddress)
@@ -334,6 +334,7 @@ func MakeGenesis(testnet *e2e.Testnet) (types.GenesisDoc, error) {
 				Amount:      amount,
 				Signature:   signature,
 				Credentials: credentials,
+				Index:       i,
 			}
 
 			appState.Deposits = append(appState.Deposits, deposit)
