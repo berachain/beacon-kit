@@ -45,33 +45,29 @@ func (s *Service) processProposal(
 		)
 	}
 
+	// processProposalState is used for ProcessProposal, which is set based on
+	// the previous block's state. This state is never committed. In case of
+	// multiple consensus rounds, the state is always reset to the previous
+	// block's state.
 	// Since the application can get access to FinalizeBlock state and write to
 	// it, we must be sure to reset it in case ProcessProposal timeouts and is
-	// called
-	// again in a subsequent round. However, we only want to do this after we've
+	// called again in a subsequent round. However, we only want to do this after we've
 	// processed the first block, as we want to avoid overwriting the
-	// finalizeState
-	// after state changes during InitChain.
-	s.processProposalState = s.resetState(ctx)
+	// finalizeState after state changes during InitChain.
+	processProposalState := s.resetState(ctx)
 	if req.Height > s.initialHeight {
 		s.stateHandler.ResetState(ctx)
 	}
-
-	s.processProposalState.SetContext(
-		s.getContextForProposal(
-			s.processProposalState.Context(),
-			req.Height,
-		),
+	stateCtx := s.getContextForProposal(
+		processProposalState.Context(),
+		req.Height,
 	)
 
 	// errors to consensus indicate that the node was not able to understand
 	// whether the block was valid or not. Viceversa, we signal that a block
 	// is invalid by its status, but we do return nil error in such a case.
 	status := cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
-	err := s.Blockchain.ProcessProposal(
-		s.processProposalState.Context(),
-		req,
-	)
+	err := s.Blockchain.ProcessProposal(stateCtx, req)
 	if err != nil {
 		status = cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
 		s.logger.Error(
