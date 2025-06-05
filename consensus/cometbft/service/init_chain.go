@@ -24,6 +24,7 @@ import (
 	"context"
 	"fmt"
 
+	statem "github.com/berachain/beacon-kit/consensus/cometbft/service/state"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -83,7 +84,7 @@ func (s *Service) initChain(
 		}
 	}
 
-	s.stateHandler.ResetState(ctx)
+	_ = s.stateHandler.ResetState(ctx, statem.CandidateFinal)
 	stateCtx, err := s.stateHandler.GetSDKContext()
 	if err != nil {
 		return nil, err

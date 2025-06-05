@@ -31,6 +31,13 @@ import (
 
 var ErrNilFinalizeBlockState = errors.New("finalizeBlockState is nil")
 
+type Type uint8
+
+const (
+	Ephemeral Type = iota
+	CandidateFinal
+)
+
 // For now, just embed finalize state and make a proper interface for it.
 // We will take care later on to cache states from processProposals
 type FinalizedStateHandler struct {
@@ -46,14 +53,18 @@ func NewFinalizeStateHandler(manager *Manager, logger *phuslu.Logger) *Finalized
 	}
 }
 
-func (h *FinalizedStateHandler) ResetState(ctx context.Context) {
+func (h *FinalizedStateHandler) ResetState(ctx context.Context, st Type) *State {
 	var (
 		log    = servercmtlog.WrapSDKLogger(h.logger)
 		ms     = h.manager.GetCommitMultiStore().CacheMultiStore()
 		newCtx = sdk.NewContext(ms, false, log).WithContext(ctx)
 	)
 
-	h.finalizeBlockState = NewState(ms, newCtx)
+	res := NewState(ms, newCtx)
+	if st == CandidateFinal {
+		h.finalizeBlockState = NewState(ms, newCtx)
+	}
+	return res
 }
 
 func (h *FinalizedStateHandler) SpecialCaseFirstBlockSdkContext() (sdk.Context, error) {

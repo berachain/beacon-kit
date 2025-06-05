@@ -269,22 +269,6 @@ func (s *Service) setInterBlockCache(
 	s.interBlockCache = cache
 }
 
-// resetState provides a fresh state which can be used to reset
-// prepareProposal/processProposal/finalizeBlock State.
-// A state is explicitly returned to avoid false positives from
-// nilaway tool.
-func (s *Service) resetState(ctx context.Context) *statem.State {
-	ms := s.sm.GetCommitMultiStore().CacheMultiStore()
-
-	newCtx := sdk.NewContext(
-		ms,
-		false,
-		servercmtlog.WrapSDKLogger(s.logger),
-	).WithContext(ctx)
-
-	return statem.NewState(ms, newCtx)
-}
-
 // convertValidatorUpdate abstracts the conversion of a
 // transition.ValidatorUpdate to an appmodulev2.ValidatorUpdate.
 // TODO: this is so hood, bktypes -> sdktypes -> generic is crazy

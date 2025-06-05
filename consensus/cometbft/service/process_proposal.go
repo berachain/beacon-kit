@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"time"
 
+	statem "github.com/berachain/beacon-kit/consensus/cometbft/service/state"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
@@ -54,9 +55,9 @@ func (s *Service) processProposal(
 	// called again in a subsequent round. However, we only want to do this after we've
 	// processed the first block, as we want to avoid overwriting the
 	// finalizeState after state changes during InitChain.
-	processProposalState := s.resetState(ctx)
+	processProposalState := s.stateHandler.ResetState(ctx, statem.Ephemeral)
 	if req.Height > s.initialHeight {
-		s.stateHandler.ResetState(ctx)
+		_ = s.stateHandler.ResetState(ctx, statem.CandidateFinal)
 	}
 	stateCtx := s.getContextForProposal(
 		processProposalState.Context(),

@@ -60,7 +60,7 @@ func (s *Service) finalizeBlockInternal(
 		// Preserve the CosmosSDK context while using the correct base ctx.
 		stateCtx = stateCtx.WithContext(ctx)
 	case errors.Is(err, statem.ErrNilFinalizeBlockState):
-		s.stateHandler.ResetState(ctx)
+		_ = s.stateHandler.ResetState(ctx, statem.CandidateFinal)
 		stateCtx, _ = s.stateHandler.GetSDKContext()
 	default:
 		panic(fmt.Errorf("finalize block: failed retrieving state context: %w", err))

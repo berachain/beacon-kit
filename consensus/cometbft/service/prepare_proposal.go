@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/state"
 	"github.com/berachain/beacon-kit/consensus/types"
 	"github.com/berachain/beacon-kit/primitives/math"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
@@ -52,7 +53,7 @@ func (s *Service) prepareProposal(
 	// multiple consensus rounds, the state is always reset to the previous
 	// block's state. Always reset state given that PrepareProposal can timeout
 	// and be called again in a subsequent round.
-	prepareProposalState := s.resetState(ctx)
+	prepareProposalState := s.stateHandler.ResetState(ctx, state.Ephemeral)
 	stateCtx := s.getContextForProposal(
 		prepareProposalState.Context(),
 		req.Height,
