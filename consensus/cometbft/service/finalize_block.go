@@ -113,7 +113,7 @@ func (s *Service) workingHash() []byte {
 		// internalFinalizeBlock. Panic appeases nilaway.
 		panic(fmt.Errorf("workingHash: %w", errNilFinalizeBlockState))
 	}
-	s.finalizeBlockState.ms.Write()
+	s.finalizeBlockState.Write()
 
 	// Get the hash of all writes in order to return the apphash to the comet in
 	// finalizeBlock.

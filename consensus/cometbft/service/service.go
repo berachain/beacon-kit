@@ -75,19 +75,19 @@ type Service struct {
 	// the previous block's state. This state is never committed. In case of
 	// multiple consensus rounds, the state is always reset to the previous
 	// block's state.
-	prepareProposalState *state
+	prepareProposalState *statem.State
 
 	// processProposalState is used for ProcessProposal, which is set based on
 	// the previous block's state. This state is never committed. In case of
 	// multiple consensus rounds, the state is always reset to the previous
 	// block's state.
-	processProposalState *state
+	processProposalState *statem.State
 
 	// finalizeBlockState is used for FinalizeBlock, which is set based on the
 	// previous block's state. This state is committed. finalizeBlockState is
 	// set
 	// on InitChain and FinalizeBlock and set to nil on Commit.
-	finalizeBlockState *state
+	finalizeBlockState *statem.State
 
 	interBlockCache storetypes.MultiStorePersistentCache
 
@@ -287,7 +287,7 @@ func (s *Service) setInterBlockCache(
 // prepareProposal/processProposal/finalizeBlock State.
 // A state is explicitly returned to avoid false positives from
 // nilaway tool.
-func (s *Service) resetState(ctx context.Context) *state {
+func (s *Service) resetState(ctx context.Context) *statem.State {
 	ms := s.sm.GetCommitMultiStore().CacheMultiStore()
 
 	newCtx := sdk.NewContext(
@@ -296,10 +296,7 @@ func (s *Service) resetState(ctx context.Context) *state {
 		servercmtlog.WrapSDKLogger(s.logger),
 	).WithContext(ctx)
 
-	return &state{
-		ms:  ms,
-		ctx: newCtx,
-	}
+	return statem.NewState(ms, newCtx)
 }
 
 // convertValidatorUpdate abstracts the conversion of a

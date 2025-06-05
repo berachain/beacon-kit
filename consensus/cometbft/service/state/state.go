@@ -21,73 +21,46 @@
 package state
 
 import (
-	"fmt"
+	"sync"
 
-	"cosmossdk.io/log"
-	"cosmossdk.io/store"
-	storemetrics "cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
-	dbm "github.com/cosmos/cosmos-db"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-type Manager struct {
-	db  dbm.DB
-	cms storetypes.CommitMultiStore
+type State struct {
+	ms storetypes.CacheMultiStore
+
+	mtx sync.RWMutex
+	ctx sdk.Context
 }
 
-// NewManager creates a new Manager.
-func NewManager(
-	db dbm.DB,
-	logger log.Logger,
-	opts ...func(*Manager),
-) *Manager {
-	sm := &Manager{
-		db: db,
-		cms: store.NewCommitMultiStore(
-			db,
-			logger,
-			storemetrics.NewNoOpMetrics(),
-		),
+func NewState(ms storetypes.CacheMultiStore, ctx sdk.Context) *State {
+	return &State{
+		ms:  ms,
+		ctx: ctx,
 	}
-
-	for _, opt := range opts {
-		opt(sm)
-	}
-
-	// TODO: Kill KVStoreService and register here.
-	// sm.cms.MountStoreWithDB(
-	// 	storetypes.NewKVStoreKey("beacon"),
-	// 	storetypes.StoreTypeIAVL,
-	// 	db,
-	// )
-
-	return sm
 }
 
-func (sm *Manager) LoadVersion(version int64) error {
-	err := sm.GetCommitMultiStore().LoadVersion(version)
-	if err != nil {
-		return fmt.Errorf("failed to load version %d: %w", version, err)
-	}
-
-	// Validate Pruning settings.
-	return sm.GetCommitMultiStore().GetPruning().Validate()
+// CacheMultiStore calls and returns a CacheMultiStore on the state's underling
+// CacheMultiStore.
+func (st *State) CacheMultiStore() storetypes.CacheMultiStore {
+	return st.ms.CacheMultiStore()
 }
 
-func (sm *Manager) LoadLatestVersion() error {
-	if err := sm.cms.LoadLatestVersion(); err != nil {
-		return fmt.Errorf("failed to load latest version: %w", err)
-	}
-
-	// Validator pruning settings.
-	return sm.cms.GetPruning().Validate()
+// SetContext updates the state's context to the context provided.
+func (st *State) SetContext(ctx sdk.Context) {
+	st.mtx.Lock()
+	defer st.mtx.Unlock()
+	st.ctx = ctx
 }
 
-func (sm *Manager) Close() error {
-	return sm.db.Close()
+// Context returns the Context of the state.
+func (st *State) Context() sdk.Context {
+	st.mtx.RLock()
+	defer st.mtx.RUnlock()
+	return st.ctx
 }
 
-// GetCommitMultiStore returns the CommitMultiStore of the Manager.
-func (sm *Manager) GetCommitMultiStore() storetypes.CommitMultiStore {
-	return sm.cms
+func (st *State) Write() {
+	st.ms.Write()
 }
