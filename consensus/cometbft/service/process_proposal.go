@@ -50,15 +50,7 @@ func (s *Service) processProposal(
 	// the previous block's state. This state is never committed. In case of
 	// multiple consensus rounds, the state is always reset to the previous
 	// block's state.
-	// Since the application can get access to FinalizeBlock state and write to
-	// it, we must be sure to reset it in case ProcessProposal timeouts and is
-	// called again in a subsequent round. However, we only want to do this after we've
-	// processed the first block, as we want to avoid overwriting the
-	// finalizeState after state changes during InitChain.
 	processProposalState := s.stateHandler.ResetState(ctx, statem.Ephemeral)
-	if req.Height > statem.InitialHeight {
-		_ = s.stateHandler.ResetState(ctx, statem.CandidateFinal)
-	}
 	stateCtx, err := s.stateHandler.GetContextForProposal(processProposalState.Context(), req.Height)
 	if err != nil {
 		panic(fmt.Errorf("GetContextForProposal: %w", err))
