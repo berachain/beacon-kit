@@ -56,19 +56,19 @@ func (s *Service) processProposal(
 	// processed the first block, as we want to avoid overwriting the
 	// finalizeState after state changes during InitChain.
 	processProposalState := s.stateHandler.ResetState(ctx, statem.Ephemeral)
-	if req.Height > initialHeight {
+	if req.Height > statem.InitialHeight {
 		_ = s.stateHandler.ResetState(ctx, statem.CandidateFinal)
 	}
-	stateCtx := s.getContextForProposal(
-		processProposalState.Context(),
-		req.Height,
-	)
+	stateCtx, err := s.stateHandler.GetContextForProposal(processProposalState.Context(), req.Height)
+	if err != nil {
+		panic(fmt.Errorf("GetContextForProposal: %w", err))
+	}
 
 	// errors to consensus indicate that the node was not able to understand
 	// whether the block was valid or not. Viceversa, we signal that a block
 	// is invalid by its status, but we do return nil error in such a case.
 	status := cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
-	err := s.Blockchain.ProcessProposal(stateCtx, req)
+	err = s.Blockchain.ProcessProposal(stateCtx, req)
 	if err != nil {
 		status = cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
 		s.logger.Error(

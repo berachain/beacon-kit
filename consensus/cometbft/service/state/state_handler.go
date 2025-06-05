@@ -36,6 +36,8 @@ type Type uint8
 const (
 	Ephemeral Type = iota
 	CandidateFinal
+
+	InitialHeight int64 = 1
 )
 
 // For now, just embed finalize state and make a proper interface for it.
@@ -67,7 +69,17 @@ func (h *FinalizedStateHandler) ResetState(ctx context.Context, st Type) *State 
 	return res
 }
 
-func (h *FinalizedStateHandler) SpecialCaseFirstBlockSdkContext() (sdk.Context, error) {
+// GetContextForProposal returns the correct Context for PrepareProposal and
+// ProcessProposal. We use finalizeBlockState on the first block to be able to
+// access any state changes made in InitChain.
+func (h *FinalizedStateHandler) GetContextForProposal(
+	ctx sdk.Context,
+	height int64,
+) (sdk.Context, error) {
+	if height != InitialHeight {
+		return ctx, nil
+	}
+
 	if h.finalizeBlockState == nil {
 		return sdk.Context{}, ErrNilFinalizeBlockState
 	}

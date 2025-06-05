@@ -50,8 +50,6 @@ import (
 const (
 	initialAppVersion uint64 = 0
 	AppName           string = "beacond"
-
-	initialHeight int64 = 1
 )
 
 type Service struct {
@@ -287,24 +285,6 @@ func convertValidatorUpdate[ValidatorUpdateT any](
 		PubKeyType:  crypto.CometBLSType,
 		Power:       int64(update.EffectiveBalance.Unwrap()), // #nosec G115 -- this is safe.
 	}).(ValidatorUpdateT), nil
-}
-
-// getContextForProposal returns the correct Context for PrepareProposal and
-// ProcessProposal. We use finalizeBlockState on the first block to be able to
-// access any state changes made in InitChain.
-func (s *Service) getContextForProposal(
-	ctx sdk.Context,
-	height int64,
-) sdk.Context {
-	if height != initialHeight {
-		return ctx
-	}
-
-	newCtx, err := s.stateHandler.SpecialCaseFirstBlockSdkContext()
-	if err != nil {
-		panic(fmt.Errorf("getContextForProposal: %w", err))
-	}
-	return newCtx
 }
 
 // CreateQueryContext creates a new sdk.Context for a query, taking as args

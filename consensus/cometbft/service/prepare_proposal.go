@@ -54,10 +54,10 @@ func (s *Service) prepareProposal(
 	// block's state. Always reset state given that PrepareProposal can timeout
 	// and be called again in a subsequent round.
 	prepareProposalState := s.stateHandler.ResetState(ctx, state.Ephemeral)
-	stateCtx := s.getContextForProposal(
-		prepareProposalState.Context(),
-		req.Height,
-	)
+	stateCtx, err := s.stateHandler.GetContextForProposal(prepareProposalState.Context(), req.Height)
+	if err != nil {
+		panic(fmt.Errorf("GetContextForProposal: %w", err))
+	}
 
 	slotData := types.NewSlotData(
 		math.Slot(req.GetHeight()), // #nosec G115
