@@ -83,11 +83,7 @@ type Service struct {
 	// block's state.
 	processProposalState *statem.State
 
-	// finalizeBlockState is used for FinalizeBlock, which is set based on the
-	// previous block's state. This state is committed. finalizeBlockState is
-	// set
-	// on InitChain and FinalizeBlock and set to nil on Commit.
-	finalizeBlockState *statem.State
+	stateHandler *statem.FinalizedStateHandler
 
 	interBlockCache storetypes.MultiStorePersistentCache
 
@@ -129,11 +125,13 @@ func NewService(
 	log := servercmtlog.WrapSDKLogger(logger)
 	warnAboutConfigs(cmtCfg, log)
 
+	sm := statem.NewManager(db, log)
 	s := &Service{
 		logger:             logger,
-		sm:                 statem.NewManager(db, log),
+		sm:                 sm,
 		Blockchain:         blockchain,
 		BlockBuilder:       blockBuilder,
+		stateHandler:       statem.NewFinalizeStateHandler(sm, logger),
 		cmtConsensusParams: cmtConsensusParams,
 		cmtCfg:             cmtCfg,
 		telemetrySink:      telemetrySink,
@@ -330,14 +328,11 @@ func (s *Service) getContextForProposal(
 		return ctx
 	}
 
-	if s.finalizeBlockState == nil {
-		// this is unexpected since cometBFT won't call PrepareProposal
-		// on initialHeight. Panic appeases nilaway.
-		panic(fmt.Errorf("getContextForProposal: %w", errNilFinalizeBlockState))
+	newCtx, err := s.stateHandler.NewContext()
+	if err != nil {
+		panic(fmt.Errorf("getContextForProposal: %w", err))
 	}
-	newCtx, _ := s.finalizeBlockState.Context().CacheContext()
-	// Preserve the CosmosSDK context while using the correct base ctx.
-	return newCtx.WithContext(ctx.Context())
+	return newCtx
 }
 
 // CreateQueryContext creates a new sdk.Context for a query, taking as args

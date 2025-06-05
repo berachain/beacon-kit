@@ -31,12 +31,13 @@ import (
 func (s *Service) commit(
 	*cmtabci.CommitRequest,
 ) (*cmtabci.CommitResponse, error) {
-	if s.finalizeBlockState == nil {
+	finalizeBlockState := s.stateHandler.GetFinalizeState()
+	if finalizeBlockState == nil {
 		// This is unexpected since CometBFT should call Commit only
 		// after FinalizeBlock has been called. Panic appeases nilaway.
 		panic(fmt.Errorf("commit: %w", errNilFinalizeBlockState))
 	}
-	header := s.finalizeBlockState.Context().BlockHeader()
+	header := finalizeBlockState.Context().BlockHeader()
 	retainHeight := s.GetBlockRetentionHeight(header.Height)
 
 	rms, ok := s.sm.GetCommitMultiStore().(*rootmulti.Store)
@@ -45,7 +46,7 @@ func (s *Service) commit(
 	}
 	s.sm.GetCommitMultiStore().Commit()
 
-	s.finalizeBlockState = nil
+	s.stateHandler.WipeState()
 
 	return &cmtabci.CommitResponse{
 		RetainHeight: retainHeight,
@@ -110,7 +111,8 @@ func (s *Service) GetBlockRetentionHeight(commitHeight int64) int64 {
 	// based
 	// on the unbonding period and block commitment time as the two should be
 	// equivalent.
-	if s.finalizeBlockState == nil {
+	finalizeBlockState := s.stateHandler.GetFinalizeState()
+	if finalizeBlockState == nil {
 		return 0
 	}
 	cp := s.cmtConsensusParams.ToProto()

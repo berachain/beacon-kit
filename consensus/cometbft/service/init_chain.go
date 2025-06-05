@@ -83,13 +83,11 @@ func (s *Service) initChain(
 		}
 	}
 
-	s.finalizeBlockState = s.resetState(ctx)
+	s.stateHandler.ResetState(ctx)
+	stateCtx := s.stateHandler.GetFinalizeState().Context()
 
 	//nolint:contextcheck // ctx already passed via resetState
-	resValidators, err := s.initChainer(
-		s.finalizeBlockState.Context(),
-		req.AppStateBytes,
-	)
+	resValidators, err := s.initChainer(stateCtx, req.AppStateBytes)
 	if err != nil {
 		return nil, err
 	}

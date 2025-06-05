@@ -52,11 +52,13 @@ func (s *Service) finalizeBlockInternal(
 	// is nil, it means we are replaying this block and we need to set the state
 	// here given that during block replay ProcessProposal is not executed by
 	// CometBFT.
-	if s.finalizeBlockState == nil {
-		s.finalizeBlockState = s.resetState(ctx)
+	finalizeBlockState := s.stateHandler.GetFinalizeState()
+	if finalizeBlockState == nil {
+		s.stateHandler.ResetState(ctx)
+		finalizeBlockState = s.stateHandler.GetFinalizeState()
 	} else {
 		// Preserve the CosmosSDK context while using the correct base ctx.
-		s.finalizeBlockState.SetContext(s.finalizeBlockState.Context().WithContext(ctx))
+		finalizeBlockState.SetContext(finalizeBlockState.Context().WithContext(ctx))
 	}
 
 	// This result format is expected by Comet. That actual execution will happen as part of the state transition.
@@ -73,7 +75,7 @@ func (s *Service) finalizeBlockInternal(
 	}
 
 	finalizeBlock, err := s.Blockchain.FinalizeBlock(
-		s.finalizeBlockState.Context(),
+		finalizeBlockState.Context(),
 		req,
 	)
 	if err != nil {
@@ -108,12 +110,13 @@ func (s *Service) workingHash() []byte {
 	// MultiStore. The write to the FinalizeBlock state writes all state
 	// transitions to the root MultiStore (s.sm.GetCommitMultiStore())
 	// so when Commit() is called it persists those values.
-	if s.finalizeBlockState == nil {
+	finalizeBlockState := s.stateHandler.GetFinalizeState()
+	if finalizeBlockState == nil {
 		// this is unexpected since workingHash is called only after
 		// internalFinalizeBlock. Panic appeases nilaway.
 		panic(fmt.Errorf("workingHash: %w", errNilFinalizeBlockState))
 	}
-	s.finalizeBlockState.Write()
+	finalizeBlockState.Write()
 
 	// Get the hash of all writes in order to return the apphash to the comet in
 	// finalizeBlock.

@@ -46,14 +46,14 @@ func NewFinalizeStateHandler(manager *Manager, logger *phuslu.Logger) *Finalized
 	}
 }
 
-func (h *FinalizedStateHandler) NewState(ctx context.Context) *State {
+func (h *FinalizedStateHandler) ResetState(ctx context.Context) {
 	var (
 		log    = servercmtlog.WrapSDKLogger(h.logger)
 		ms     = h.manager.GetCommitMultiStore().CacheMultiStore()
 		newCtx = sdk.NewContext(ms, false, log).WithContext(ctx)
 	)
 
-	return NewState(ms, newCtx)
+	h.finalizeBlockState = NewState(ms, newCtx)
 }
 
 func (h *FinalizedStateHandler) NewContext() (sdk.Context, error) {
@@ -68,6 +68,6 @@ func (h *FinalizedStateHandler) GetFinalizeState() *State {
 	return h.finalizeBlockState
 }
 
-func (h *FinalizedStateHandler) ResetFinalizeState() {
+func (h *FinalizedStateHandler) WipeState() {
 	h.finalizeBlockState = nil
 }
