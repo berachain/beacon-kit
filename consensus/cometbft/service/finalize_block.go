@@ -22,8 +22,10 @@ package cometbft
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	statem "github.com/berachain/beacon-kit/consensus/cometbft/service/state"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/sourcegraph/conc/iter"
 )
@@ -52,13 +54,16 @@ func (s *Service) finalizeBlockInternal(
 	// is nil, it means we are replaying this block and we need to set the state
 	// here given that during block replay ProcessProposal is not executed by
 	// CometBFT.
-	finalizeBlockState := s.stateHandler.GetFinalizeState()
-	if finalizeBlockState == nil {
-		s.stateHandler.ResetState(ctx)
-		finalizeBlockState = s.stateHandler.GetFinalizeState()
-	} else {
+	sdkCtx, err := s.stateHandler.GetSDKContext()
+	switch {
+	case err == nil:
 		// Preserve the CosmosSDK context while using the correct base ctx.
-		finalizeBlockState.SetContext(finalizeBlockState.Context().WithContext(ctx))
+		sdkCtx = sdkCtx.WithContext(ctx)
+	case errors.Is(err, statem.ErrNilFinalizeBlockState):
+		s.stateHandler.ResetState(ctx)
+		sdkCtx, _ = s.stateHandler.GetSDKContext()
+	default:
+		panic(fmt.Errorf("finalize block: failed retrieving state context: %w", err))
 	}
 
 	// This result format is expected by Comet. That actual execution will happen as part of the state transition.
@@ -74,10 +79,7 @@ func (s *Service) finalizeBlockInternal(
 		}
 	}
 
-	finalizeBlock, err := s.Blockchain.FinalizeBlock(
-		finalizeBlockState.Context(),
-		req,
-	)
+	finalizeBlock, err := s.Blockchain.FinalizeBlock(sdkCtx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -110,21 +112,16 @@ func (s *Service) workingHash() []byte {
 	// MultiStore. The write to the FinalizeBlock state writes all state
 	// transitions to the root MultiStore (s.sm.GetCommitMultiStore())
 	// so when Commit() is called it persists those values.
-	finalizeBlockState := s.stateHandler.GetFinalizeState()
-	if finalizeBlockState == nil {
-		// this is unexpected since workingHash is called only after
-		// internalFinalizeBlock. Panic appeases nilaway.
-		panic(fmt.Errorf("workingHash: %w", errNilFinalizeBlockState))
+	commitHash, err := s.stateHandler.WriteFinalizeState()
+	if err != nil {
+		panic(fmt.Errorf("workingHash: %w", err))
 	}
-	finalizeBlockState.Write()
 
 	// Get the hash of all writes in order to return the apphash to the comet in
 	// finalizeBlock.
-	commitHash := s.sm.GetCommitMultiStore().WorkingHash()
 	s.logger.Debug(
 		"hash of all writes",
-		"workingHash",
-		fmt.Sprintf("%X", commitHash),
+		"workingHash", fmt.Sprintf("%X", commitHash),
 	)
 
 	return commitHash

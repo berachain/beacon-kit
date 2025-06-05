@@ -56,7 +56,7 @@ func (h *FinalizedStateHandler) ResetState(ctx context.Context) {
 	h.finalizeBlockState = NewState(ms, newCtx)
 }
 
-func (h *FinalizedStateHandler) NewContext() (sdk.Context, error) {
+func (h *FinalizedStateHandler) NewSDKContext() (sdk.Context, error) {
 	if h.finalizeBlockState == nil {
 		return sdk.Context{}, ErrNilFinalizeBlockState
 	}
@@ -64,10 +64,26 @@ func (h *FinalizedStateHandler) NewContext() (sdk.Context, error) {
 	return newCtx, nil
 }
 
-func (h *FinalizedStateHandler) GetFinalizeState() *State {
-	return h.finalizeBlockState
+func (h *FinalizedStateHandler) GetSDKContext() (sdk.Context, error) {
+	if h.finalizeBlockState == nil {
+		return sdk.Context{}, ErrNilFinalizeBlockState
+	}
+	return h.finalizeBlockState.Context(), nil
+}
+
+func (h *FinalizedStateHandler) HasFinalizeState() bool {
+	return h.finalizeBlockState != nil
 }
 
 func (h *FinalizedStateHandler) WipeState() {
 	h.finalizeBlockState = nil
+}
+
+func (h *FinalizedStateHandler) WriteFinalizeState() ([]byte, error) {
+	if h.finalizeBlockState == nil {
+		return nil, ErrNilFinalizeBlockState
+	}
+	h.finalizeBlockState.Write()
+	commitHash := h.manager.GetCommitMultiStore().WorkingHash()
+	return commitHash, nil
 }
