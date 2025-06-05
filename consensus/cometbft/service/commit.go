@@ -28,14 +28,12 @@ import (
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
-func (s *Service) commit(
-	*cmtabci.CommitRequest,
-) (*cmtabci.CommitResponse, error) {
-	sdkCtx, err := s.stateHandler.GetSDKContext()
+func (s *Service) commit(*cmtabci.CommitRequest) (*cmtabci.CommitResponse, error) {
+	stateCtx, err := s.stateHandler.GetSDKContext()
 	if err != nil {
 		panic(fmt.Errorf("commit failed retrieving sdk context: %w", err))
 	}
-	header := sdkCtx.BlockHeader()
+	header := stateCtx.BlockHeader()
 	retainHeight := s.GetBlockRetentionHeight(header.Height)
 
 	rms, ok := s.sm.GetCommitMultiStore().(*rootmulti.Store)

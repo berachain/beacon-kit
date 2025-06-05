@@ -54,14 +54,14 @@ func (s *Service) finalizeBlockInternal(
 	// is nil, it means we are replaying this block and we need to set the state
 	// here given that during block replay ProcessProposal is not executed by
 	// CometBFT.
-	sdkCtx, err := s.stateHandler.GetSDKContext()
+	stateCtx, err := s.stateHandler.GetSDKContext()
 	switch {
 	case err == nil:
 		// Preserve the CosmosSDK context while using the correct base ctx.
-		sdkCtx = sdkCtx.WithContext(ctx)
+		stateCtx = stateCtx.WithContext(ctx)
 	case errors.Is(err, statem.ErrNilFinalizeBlockState):
 		s.stateHandler.ResetState(ctx)
-		sdkCtx, _ = s.stateHandler.GetSDKContext()
+		stateCtx, _ = s.stateHandler.GetSDKContext()
 	default:
 		panic(fmt.Errorf("finalize block: failed retrieving state context: %w", err))
 	}
@@ -79,7 +79,7 @@ func (s *Service) finalizeBlockInternal(
 		}
 	}
 
-	finalizeBlock, err := s.Blockchain.FinalizeBlock(sdkCtx, req)
+	finalizeBlock, err := s.Blockchain.FinalizeBlock(stateCtx, req)
 	if err != nil {
 		return nil, err
 	}

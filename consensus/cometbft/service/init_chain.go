@@ -84,13 +84,13 @@ func (s *Service) initChain(
 	}
 
 	s.stateHandler.ResetState(ctx)
-	sdkCtx, err := s.stateHandler.GetSDKContext()
+	stateCtx, err := s.stateHandler.GetSDKContext()
 	if err != nil {
 		return nil, err
 	}
 
 	//nolint:contextcheck // ctx already passed via resetState
-	resValidators, err := s.initChainer(sdkCtx, req.AppStateBytes)
+	resValidators, err := s.initChainer(stateCtx, req.AppStateBytes)
 	if err != nil {
 		return nil, err
 	}
