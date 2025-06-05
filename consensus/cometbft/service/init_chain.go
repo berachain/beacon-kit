@@ -71,8 +71,7 @@ func (s *Service) initChain(
 	// Set the initial height, which will be used to determine if we are
 	// proposing
 	// or processing the first block or not.
-	s.initialHeight = req.InitialHeight
-	if s.initialHeight != 1 {
+	if req.InitialHeight != initialHeight {
 		return nil, fmt.Errorf("%w: got %d, want %d", ErrUnexpectedInitialHeight, req.InitialHeight, 1)
 	}
 

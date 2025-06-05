@@ -50,6 +50,8 @@ import (
 const (
 	initialAppVersion uint64 = 0
 	AppName           string = "beacond"
+
+	initialHeight int64 = 1
 )
 
 type Service struct {
@@ -75,8 +77,6 @@ type Service struct {
 
 	interBlockCache storetypes.MultiStorePersistentCache
 
-	// initialHeight is the initial height at which we start the node
-	initialHeight   int64
 	minRetainBlocks uint64
 
 	chainID string
@@ -296,7 +296,7 @@ func (s *Service) getContextForProposal(
 	ctx sdk.Context,
 	height int64,
 ) sdk.Context {
-	if height != s.initialHeight {
+	if height != initialHeight {
 		return ctx
 	}
 

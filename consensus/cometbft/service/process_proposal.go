@@ -56,7 +56,7 @@ func (s *Service) processProposal(
 	// processed the first block, as we want to avoid overwriting the
 	// finalizeState after state changes during InitChain.
 	processProposalState := s.stateHandler.ResetState(ctx, statem.Ephemeral)
-	if req.Height > s.initialHeight {
+	if req.Height > initialHeight {
 		_ = s.stateHandler.ResetState(ctx, statem.CandidateFinal)
 	}
 	stateCtx := s.getContextForProposal(
