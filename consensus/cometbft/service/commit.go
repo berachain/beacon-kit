@@ -29,7 +29,7 @@ import (
 )
 
 func (s *Service) commit(*cmtabci.CommitRequest) (*cmtabci.CommitResponse, error) {
-	stateCtx, err := s.stateHandler.GetSDKContext()
+	stateCtx, err := s.stateHandler.GetFinalizeStateContext()
 	if err != nil {
 		panic(fmt.Errorf("commit failed retrieving sdk context: %w", err))
 	}

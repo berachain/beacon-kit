@@ -75,8 +75,8 @@ func (s *Service) initChain(
 		return nil, fmt.Errorf("%w: got %d, want %d", ErrUnexpectedInitialHeight, req.InitialHeight, 1)
 	}
 
-	_ = s.stateHandler.ResetState(ctx, statem.CandidateFinal)
-	stateCtx, err := s.stateHandler.GetSDKContext()
+	s.stateHandler.ResetFinalizeState(ctx)
+	stateCtx, err := s.stateHandler.GetFinalizeStateContext()
 	if err != nil {
 		return nil, err
 	}

@@ -24,6 +24,7 @@ import (
 	"context"
 	"errors"
 
+	"cosmossdk.io/store/types"
 	servercmtlog "github.com/berachain/beacon-kit/consensus/cometbft/service/log"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -31,14 +32,7 @@ import (
 
 var ErrNilFinalizeBlockState = errors.New("finalizeBlockState is nil")
 
-type Type uint8
-
-const (
-	Ephemeral Type = iota
-	CandidateFinal
-
-	InitialHeight int64 = 1
-)
+const InitialHeight int64 = 1
 
 // For now, just embed finalize state and make a proper interface for it.
 // We will take care later on to cache states from processProposals
@@ -55,29 +49,18 @@ func NewFinalizeStateHandler(manager *Manager, logger *phuslu.Logger) *Finalized
 	}
 }
 
-func (h *FinalizedStateHandler) ResetState(ctx context.Context, st Type) *State {
-	var (
-		log    = servercmtlog.WrapSDKLogger(h.logger)
-		ms     = h.manager.GetCommitMultiStore().CacheMultiStore()
-		newCtx = sdk.NewContext(ms, false, log).WithContext(ctx)
-	)
-
-	res := NewState(ms, newCtx)
-	if st == CandidateFinal {
-		h.finalizeBlockState = NewState(ms, newCtx)
-	}
-	return res
+func (h *FinalizedStateHandler) ResetFinalizeState(ctx context.Context) {
+	newCtx, ms := h.newCtx(ctx)
+	h.finalizeBlockState = NewState(ms, newCtx)
 }
 
-// GetContextForProposal returns the correct Context for PrepareProposal and
+// NewEphemeralStateCtx returns the correct Context for PrepareProposal and
 // ProcessProposal. We use finalizeBlockState on the first block to be able to
 // access any state changes made in InitChain.
-func (h *FinalizedStateHandler) GetContextForProposal(
-	ctx sdk.Context,
-	height int64,
-) (sdk.Context, error) {
+func (h *FinalizedStateHandler) NewEphemeralStateCtx(ctx context.Context, height int64) (sdk.Context, error) {
 	if height != InitialHeight {
-		return ctx, nil
+		newCtx, _ := h.newCtx(ctx)
+		return newCtx, nil
 	}
 
 	if h.finalizeBlockState == nil {
@@ -87,7 +70,14 @@ func (h *FinalizedStateHandler) GetContextForProposal(
 	return newCtx, nil
 }
 
-func (h *FinalizedStateHandler) GetSDKContext() (sdk.Context, error) {
+func (h *FinalizedStateHandler) newCtx(ctx context.Context) (sdk.Context, types.CacheMultiStore) {
+	log := servercmtlog.WrapSDKLogger(h.logger)
+	ms := h.manager.GetCommitMultiStore().CacheMultiStore()
+	newCtx := sdk.NewContext(ms, false, log).WithContext(ctx)
+	return newCtx, ms
+}
+
+func (h *FinalizedStateHandler) GetFinalizeStateContext() (sdk.Context, error) {
 	if h.finalizeBlockState == nil {
 		return sdk.Context{}, ErrNilFinalizeBlockState
 	}

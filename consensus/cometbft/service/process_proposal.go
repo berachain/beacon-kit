@@ -25,7 +25,6 @@ import (
 	"fmt"
 	"time"
 
-	statem "github.com/berachain/beacon-kit/consensus/cometbft/service/state"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
@@ -50,8 +49,7 @@ func (s *Service) processProposal(
 	// the previous block's state. This state is never committed. In case of
 	// multiple consensus rounds, the state is always reset to the previous
 	// block's state.
-	processProposalState := s.stateHandler.ResetState(ctx, statem.Ephemeral)
-	stateCtx, err := s.stateHandler.GetContextForProposal(processProposalState.Context(), req.Height)
+	stateCtx, err := s.stateHandler.NewEphemeralStateCtx(ctx, req.Height)
 	if err != nil {
 		panic(fmt.Errorf("GetContextForProposal: %w", err))
 	}
