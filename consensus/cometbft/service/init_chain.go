@@ -72,7 +72,11 @@ func (s *Service) initChain(
 	// proposing
 	// or processing the first block or not.
 	if req.InitialHeight != statem.InitialHeight {
-		return nil, fmt.Errorf("%w: got %d, want %d", ErrUnexpectedInitialHeight, req.InitialHeight, 1)
+		return nil, fmt.Errorf(
+			"%w: got %d, want %d",
+			ErrUnexpectedInitialHeight,
+			req.InitialHeight, statem.InitialHeight,
+		)
 	}
 
 	s.stateHandler.ResetFinalizeState(ctx)

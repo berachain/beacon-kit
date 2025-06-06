@@ -316,7 +316,7 @@ func (s *Service) CreateQueryContext(
 		height = lastBlockHeight
 	}
 
-	if height <= 1 && prove {
+	if height <= statem.InitialHeight && prove {
 		return sdk.Context{},
 			errorsmod.Wrap(
 				sdkerrors.ErrInvalidRequest,

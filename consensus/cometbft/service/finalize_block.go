@@ -133,7 +133,7 @@ func (s *Service) workingHash() []byte {
 func (s *Service) validateFinalizeBlockHeight(
 	req *cmtabci.FinalizeBlockRequest,
 ) error {
-	if req.Height < 1 {
+	if req.Height < statem.InitialHeight {
 		return fmt.Errorf(
 			"finalizeBlock at height %v: %w",
 			req.Height,

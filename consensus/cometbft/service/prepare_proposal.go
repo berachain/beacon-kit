@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"time"
 
+	statem "github.com/berachain/beacon-kit/consensus/cometbft/service/state"
 	"github.com/berachain/beacon-kit/consensus/types"
 	"github.com/berachain/beacon-kit/primitives/math"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
@@ -39,7 +40,7 @@ func (s *Service) prepareProposal(
 		"beacon_kit.runtime.prepare_proposal_duration", startTime)
 
 	// CometBFT must never call PrepareProposal with a height of 0.
-	if req.Height < 1 {
+	if req.Height < statem.InitialHeight {
 		return nil, fmt.Errorf(
 			"prepareProposal at height %v: %w",
 			req.Height,
