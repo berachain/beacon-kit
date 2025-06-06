@@ -22,8 +22,10 @@ package cometbft
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	statem "github.com/berachain/beacon-kit/consensus/cometbft/service/state"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/sourcegraph/conc/iter"
 )
@@ -52,11 +54,19 @@ func (s *Service) finalizeBlockInternal(
 	// is nil, it means we are replaying this block and we need to set the state
 	// here given that during block replay ProcessProposal is not executed by
 	// CometBFT.
-	if s.finalizeBlockState == nil {
-		s.finalizeBlockState = s.resetState(ctx)
-	} else {
+	stateCtx, err := s.stateHandler.GetFinalizeStateContext()
+	switch {
+	case err == nil:
 		// Preserve the CosmosSDK context while using the correct base ctx.
-		s.finalizeBlockState.SetContext(s.finalizeBlockState.Context().WithContext(ctx))
+		stateCtx = stateCtx.WithContext(ctx)
+	case errors.Is(err, statem.ErrNilFinalizeBlockState):
+		s.stateHandler.ResetFinalizeState(ctx)
+		stateCtx, err = s.stateHandler.GetFinalizeStateContext() // guaranteed not to err
+		if err != nil {
+			panic(fmt.Errorf("finalize block: failed retrieving state context after reset: %w", err))
+		}
+	default:
+		panic(fmt.Errorf("finalize block: failed retrieving state context: %w", err))
 	}
 
 	// This result format is expected by Comet. That actual execution will happen as part of the state transition.
@@ -72,10 +82,7 @@ func (s *Service) finalizeBlockInternal(
 		}
 	}
 
-	finalizeBlock, err := s.Blockchain.FinalizeBlock(
-		s.finalizeBlockState.Context(),
-		req,
-	)
+	finalizeBlock, err := s.Blockchain.FinalizeBlock(stateCtx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -108,20 +115,16 @@ func (s *Service) workingHash() []byte {
 	// MultiStore. The write to the FinalizeBlock state writes all state
 	// transitions to the root MultiStore (s.sm.GetCommitMultiStore())
 	// so when Commit() is called it persists those values.
-	if s.finalizeBlockState == nil {
-		// this is unexpected since workingHash is called only after
-		// internalFinalizeBlock. Panic appeases nilaway.
-		panic(fmt.Errorf("workingHash: %w", errNilFinalizeBlockState))
+	commitHash, err := s.stateHandler.WriteFinalizeState()
+	if err != nil {
+		panic(fmt.Errorf("workingHash: %w", err))
 	}
-	s.finalizeBlockState.ms.Write()
 
 	// Get the hash of all writes in order to return the apphash to the comet in
 	// finalizeBlock.
-	commitHash := s.sm.GetCommitMultiStore().WorkingHash()
 	s.logger.Debug(
 		"hash of all writes",
-		"workingHash",
-		fmt.Sprintf("%X", commitHash),
+		"workingHash", fmt.Sprintf("%X", commitHash),
 	)
 
 	return commitHash
@@ -130,7 +133,7 @@ func (s *Service) workingHash() []byte {
 func (s *Service) validateFinalizeBlockHeight(
 	req *cmtabci.FinalizeBlockRequest,
 ) error {
-	if req.Height < 1 {
+	if req.Height < statem.InitialHeight {
 		return fmt.Errorf(
 			"finalizeBlock at height %v: %w",
 			req.Height,
@@ -138,23 +141,9 @@ func (s *Service) validateFinalizeBlockHeight(
 		)
 	}
 
-	lastBlockHeight := s.LastBlockHeight()
-
 	// expectedHeight holds the expected height to validate
-	var expectedHeight int64
-	if lastBlockHeight == 0 && s.initialHeight > 1 {
-		// In this case, we're validating the first block of the chain, i.e no
-		// previous commit. The height we're expecting is the initial height.
-		expectedHeight = s.initialHeight
-	} else {
-		// This case can mean two things:
-		//
-		// - Either there was already a previous commit in the store, in which
-		// case we increment the version from there.
-		// - Or there was no previous commit, in which case we start at version
-		// 1.
-		expectedHeight = lastBlockHeight + 1
-	}
+	lastBlockHeight := s.LastBlockHeight()
+	expectedHeight := lastBlockHeight + 1
 
 	if req.Height != expectedHeight {
 		return fmt.Errorf(
