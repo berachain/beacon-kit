@@ -49,22 +49,20 @@ func NewFinalizeStateHandler(manager *Manager, logger *phuslu.Logger) *Finalized
 	}
 }
 
-func (h *FinalizedStateHandler) ResetFinalizeState(ctx context.Context) {
-	newCtx, ms := h.newCtx(ctx)
-	h.finalizeBlockState = NewState(ms, newCtx)
-}
-
-// NewEphemeralStateCtx returns the correct Context for PrepareProposal and
+// NewStateCtx returns the correct Context for PrepareProposal and
 // ProcessProposal. We use finalizeBlockState on the first block to be able to
 // access any state changes made in InitChain.
-func (h *FinalizedStateHandler) NewEphemeralStateCtx(ctx context.Context, height int64) (sdk.Context, error) {
+func (h *FinalizedStateHandler) NewStateCtx(ctx context.Context, height int64) (sdk.Context, error) {
 	if height != InitialHeight {
 		newCtx, _ := h.newCtx(ctx)
 		return newCtx, nil
 	}
 
+	// hereinafter height is InitialHeight
 	if h.finalizeBlockState == nil {
-		return sdk.Context{}, ErrNilFinalizeBlockState
+		newCtx, ms := h.newCtx(ctx)
+		h.finalizeBlockState = NewState(ms, newCtx)
+		return newCtx, nil
 	}
 	newCtx, _ := h.finalizeBlockState.Context().CacheContext()
 	return newCtx, nil

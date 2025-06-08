@@ -50,7 +50,7 @@ func (s *Service) processProposal(
 	// the previous block's state. This state is never committed. In case of
 	// multiple consensus rounds, the state is always reset to the previous
 	// block's state.
-	stateCtx, err := s.stateHandler.NewEphemeralStateCtx(ctx, req.Height)
+	stateCtx, err := s.stateHandler.NewStateCtx(ctx, req.Height)
 	if err != nil {
 		panic(fmt.Errorf("process proposal, failed generating ephemeral context: %w", err))
 	}
