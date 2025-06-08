@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"time"
 
+	statem "github.com/berachain/beacon-kit/consensus/cometbft/service/state"
 	"github.com/berachain/beacon-kit/consensus/types"
 	"github.com/berachain/beacon-kit/primitives/math"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
@@ -39,7 +40,7 @@ func (s *Service) prepareProposal(
 		"beacon_kit.runtime.prepare_proposal_duration", startTime)
 
 	// CometBFT must never call PrepareProposal with a height of 0.
-	if req.Height < 1 {
+	if req.Height < statem.InitialHeight {
 		return nil, fmt.Errorf(
 			"prepareProposal at height %v: %w",
 			req.Height,
@@ -47,16 +48,15 @@ func (s *Service) prepareProposal(
 		)
 	}
 
-	// Always reset state given that PrepareProposal can timeout
+	// prepareProposalState is used for PrepareProposal, which is set based on
+	// the previous block's state. This state is never committed. In case of
+	// multiple consensus rounds, the state is always reset to the previous
+	// block's state. Always reset state given that PrepareProposal can timeout
 	// and be called again in a subsequent round.
-	s.prepareProposalState = s.resetState(ctx)
-	//nolint:contextcheck // ctx already passed via resetState
-	s.prepareProposalState.SetContext(
-		s.getContextForProposal(
-			s.prepareProposalState.Context(),
-			req.Height,
-		),
-	)
+	stateCtx, err := s.stateHandler.NewEphemeralStateCtx(ctx, req.Height)
+	if err != nil {
+		panic(fmt.Errorf("prepare proposal, failed generating ephemeral context: %w", err))
+	}
 
 	slotData := types.NewSlotData(
 		math.Slot(req.GetHeight()), // #nosec G115
@@ -67,10 +67,7 @@ func (s *Service) prepareProposal(
 	)
 
 	//nolint:contextcheck // ctx already passed via resetState
-	blkBz, sidecarsBz, err := s.BlockBuilder.BuildBlockAndSidecars(
-		s.prepareProposalState.Context(),
-		slotData,
-	)
+	blkBz, sidecarsBz, err := s.BlockBuilder.BuildBlockAndSidecars(stateCtx, slotData)
 	if err != nil {
 		s.logger.Error(
 			"failed to prepare proposal",

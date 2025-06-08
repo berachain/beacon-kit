@@ -71,28 +71,10 @@ type Service struct {
 	Blockchain   blockchain.BlockchainI
 	BlockBuilder validator.BlockBuilderI
 
-	// prepareProposalState is used for PrepareProposal, which is set based on
-	// the previous block's state. This state is never committed. In case of
-	// multiple consensus rounds, the state is always reset to the previous
-	// block's state.
-	prepareProposalState *state
-
-	// processProposalState is used for ProcessProposal, which is set based on
-	// the previous block's state. This state is never committed. In case of
-	// multiple consensus rounds, the state is always reset to the previous
-	// block's state.
-	processProposalState *state
-
-	// finalizeBlockState is used for FinalizeBlock, which is set based on the
-	// previous block's state. This state is committed. finalizeBlockState is
-	// set
-	// on InitChain and FinalizeBlock and set to nil on Commit.
-	finalizeBlockState *state
+	stateHandler *statem.FinalizedStateHandler
 
 	interBlockCache storetypes.MultiStorePersistentCache
 
-	// initialHeight is the initial height at which we start the node
-	initialHeight   int64
 	minRetainBlocks uint64
 
 	chainID string
@@ -129,11 +111,13 @@ func NewService(
 	log := servercmtlog.WrapSDKLogger(logger)
 	warnAboutConfigs(cmtCfg, log)
 
+	sm := statem.NewManager(db, log)
 	s := &Service{
 		logger:             logger,
-		sm:                 statem.NewManager(db, log),
+		sm:                 sm,
 		Blockchain:         blockchain,
 		BlockBuilder:       blockBuilder,
+		stateHandler:       statem.NewFinalizeStateHandler(sm, logger),
 		cmtConsensusParams: cmtConsensusParams,
 		cmtCfg:             cmtCfg,
 		telemetrySink:      telemetrySink,
@@ -283,25 +267,6 @@ func (s *Service) setInterBlockCache(
 	s.interBlockCache = cache
 }
 
-// resetState provides a fresh state which can be used to reset
-// prepareProposal/processProposal/finalizeBlock State.
-// A state is explicitly returned to avoid false positives from
-// nilaway tool.
-func (s *Service) resetState(ctx context.Context) *state {
-	ms := s.sm.GetCommitMultiStore().CacheMultiStore()
-
-	newCtx := sdk.NewContext(
-		ms,
-		false,
-		servercmtlog.WrapSDKLogger(s.logger),
-	).WithContext(ctx)
-
-	return &state{
-		ms:  ms,
-		ctx: newCtx,
-	}
-}
-
 // convertValidatorUpdate abstracts the conversion of a
 // transition.ValidatorUpdate to an appmodulev2.ValidatorUpdate.
 // TODO: this is so hood, bktypes -> sdktypes -> generic is crazy
@@ -320,27 +285,6 @@ func convertValidatorUpdate[ValidatorUpdateT any](
 		PubKeyType:  crypto.CometBLSType,
 		Power:       int64(update.EffectiveBalance.Unwrap()), // #nosec G115 -- this is safe.
 	}).(ValidatorUpdateT), nil
-}
-
-// getContextForProposal returns the correct Context for PrepareProposal and
-// ProcessProposal. We use finalizeBlockState on the first block to be able to
-// access any state changes made in InitChain.
-func (s *Service) getContextForProposal(
-	ctx sdk.Context,
-	height int64,
-) sdk.Context {
-	if height != s.initialHeight {
-		return ctx
-	}
-
-	if s.finalizeBlockState == nil {
-		// this is unexpected since cometBFT won't call PrepareProposal
-		// on initialHeight. Panic appeases nilaway.
-		panic(fmt.Errorf("getContextForProposal: %w", errNilFinalizeBlockState))
-	}
-	newCtx, _ := s.finalizeBlockState.Context().CacheContext()
-	// Preserve the CosmosSDK context while using the correct base ctx.
-	return newCtx.WithContext(ctx.Context())
 }
 
 // CreateQueryContext creates a new sdk.Context for a query, taking as args
@@ -372,7 +316,7 @@ func (s *Service) CreateQueryContext(
 		height = lastBlockHeight
 	}
 
-	if height <= 1 && prove {
+	if height <= statem.InitialHeight && prove {
 		return sdk.Context{},
 			errorsmod.Wrap(
 				sdkerrors.ErrInvalidRequest,

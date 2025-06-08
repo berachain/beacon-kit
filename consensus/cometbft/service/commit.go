@@ -28,15 +28,12 @@ import (
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
-func (s *Service) commit(
-	*cmtabci.CommitRequest,
-) (*cmtabci.CommitResponse, error) {
-	if s.finalizeBlockState == nil {
-		// This is unexpected since CometBFT should call Commit only
-		// after FinalizeBlock has been called. Panic appeases nilaway.
-		panic(fmt.Errorf("commit: %w", errNilFinalizeBlockState))
+func (s *Service) commit(*cmtabci.CommitRequest) (*cmtabci.CommitResponse, error) {
+	stateCtx, err := s.stateHandler.GetFinalizeStateContext()
+	if err != nil {
+		panic(fmt.Errorf("commit failed retrieving sdk context: %w", err))
 	}
-	header := s.finalizeBlockState.Context().BlockHeader()
+	header := stateCtx.BlockHeader()
 	retainHeight := s.GetBlockRetentionHeight(header.Height)
 
 	rms, ok := s.sm.GetCommitMultiStore().(*rootmulti.Store)
@@ -45,7 +42,7 @@ func (s *Service) commit(
 	}
 	s.sm.GetCommitMultiStore().Commit()
 
-	s.finalizeBlockState = nil
+	s.stateHandler.WipeState()
 
 	return &cmtabci.CommitResponse{
 		RetainHeight: retainHeight,
@@ -104,15 +101,10 @@ func (s *Service) GetBlockRetentionHeight(commitHeight int64) int64 {
 	var retentionHeight int64
 
 	// Define the number of blocks needed to protect against misbehaving
-	// validators
-	// which allows light clients to operate safely. Note, we piggy back of the
-	// evidence parameters instead of computing an estimated number of blocks
-	// based
-	// on the unbonding period and block commitment time as the two should be
-	// equivalent.
-	if s.finalizeBlockState == nil {
-		return 0
-	}
+	// validators which allows light clients to operate safely. Note,
+	// we piggy back of the evidence parameters instead of computing
+	// an estimated number of blocks based on the unbonding period and
+	// block commitment time as the two should be equivalent.
 	cp := s.cmtConsensusParams.ToProto()
 	if cp.Evidence != nil && cp.Evidence.MaxAgeNumBlocks > 0 {
 		retentionHeight = commitHeight - cp.Evidence.MaxAgeNumBlocks
