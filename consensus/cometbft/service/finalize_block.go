@@ -34,18 +34,6 @@ func (s *Service) finalizeBlock(
 	ctx context.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (*cmtabci.FinalizeBlockResponse, error) {
-	res, err := s.finalizeBlockInternal(ctx, req)
-	if res != nil {
-		res.AppHash = s.workingHash()
-	}
-
-	return res, err
-}
-
-func (s *Service) finalizeBlockInternal(
-	ctx context.Context,
-	req *cmtabci.FinalizeBlockRequest,
-) (*cmtabci.FinalizeBlockResponse, error) {
 	if err := s.validateFinalizeBlockHeight(req); err != nil {
 		return nil, err
 	}
@@ -96,11 +84,14 @@ func (s *Service) finalizeBlockInternal(
 	}
 
 	cp := s.cmtConsensusParams.ToProto()
-	return &cmtabci.FinalizeBlockResponse{
+	appHash := s.workingHash() // to be done only if no errors above
+	res := &cmtabci.FinalizeBlockResponse{
 		TxResults:             txResults,
 		ValidatorUpdates:      valUpdates,
 		ConsensusParamUpdates: &cp,
-	}, nil
+		AppHash:               appHash,
+	}
+	return res, nil
 }
 
 // workingHash gets the apphash that will be finalized in commit.
@@ -130,9 +121,7 @@ func (s *Service) workingHash() []byte {
 	return commitHash
 }
 
-func (s *Service) validateFinalizeBlockHeight(
-	req *cmtabci.FinalizeBlockRequest,
-) error {
+func (s *Service) validateFinalizeBlockHeight(req *cmtabci.FinalizeBlockRequest) error {
 	if req.Height < statem.InitialHeight {
 		return fmt.Errorf(
 			"finalizeBlock at height %v: %w",

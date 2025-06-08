@@ -71,9 +71,11 @@ func (h *FinalizedStateHandler) NewEphemeralStateCtx(ctx context.Context, height
 }
 
 func (h *FinalizedStateHandler) newCtx(ctx context.Context) (sdk.Context, types.CacheMultiStore) {
-	log := servercmtlog.WrapSDKLogger(h.logger)
-	ms := h.manager.GetCommitMultiStore().CacheMultiStore()
-	newCtx := sdk.NewContext(ms, false, log).WithContext(ctx)
+	var (
+		log    = servercmtlog.WrapSDKLogger(h.logger)
+		ms     = h.manager.GetCommitMultiStore().CacheMultiStore()
+		newCtx = sdk.NewContext(ms, false, log).WithContext(ctx)
+	)
 	return newCtx, ms
 }
 
@@ -84,14 +86,6 @@ func (h *FinalizedStateHandler) GetFinalizeStateContext() (sdk.Context, error) {
 	return h.finalizeBlockState.Context(), nil
 }
 
-func (h *FinalizedStateHandler) HasFinalizeState() bool {
-	return h.finalizeBlockState != nil
-}
-
-func (h *FinalizedStateHandler) WipeState() {
-	h.finalizeBlockState = nil
-}
-
 func (h *FinalizedStateHandler) WriteFinalizeState() ([]byte, error) {
 	if h.finalizeBlockState == nil {
 		return nil, ErrNilFinalizeBlockState
@@ -99,4 +93,8 @@ func (h *FinalizedStateHandler) WriteFinalizeState() ([]byte, error) {
 	h.finalizeBlockState.Write()
 	commitHash := h.manager.GetCommitMultiStore().WorkingHash()
 	return commitHash, nil
+}
+
+func (h *FinalizedStateHandler) WipeState() {
+	h.finalizeBlockState = nil
 }

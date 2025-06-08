@@ -52,7 +52,7 @@ func (s *Service) processProposal(
 	// block's state.
 	stateCtx, err := s.stateHandler.NewEphemeralStateCtx(ctx, req.Height)
 	if err != nil {
-		panic(fmt.Errorf("GetContextForProposal: %w", err))
+		panic(fmt.Errorf("process proposal, failed generating ephemeral context: %w", err))
 	}
 
 	// errors to consensus indicate that the node was not able to understand

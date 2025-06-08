@@ -55,7 +55,7 @@ func (s *Service) prepareProposal(
 	// and be called again in a subsequent round.
 	stateCtx, err := s.stateHandler.NewEphemeralStateCtx(ctx, req.Height)
 	if err != nil {
-		panic(fmt.Errorf("GetContextForProposal: %w", err))
+		panic(fmt.Errorf("prepare proposal, failed generating ephemeral context: %w", err))
 	}
 
 	slotData := types.NewSlotData(

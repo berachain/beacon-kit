@@ -101,15 +101,10 @@ func (s *Service) GetBlockRetentionHeight(commitHeight int64) int64 {
 	var retentionHeight int64
 
 	// Define the number of blocks needed to protect against misbehaving
-	// validators
-	// which allows light clients to operate safely. Note, we piggy back of the
-	// evidence parameters instead of computing an estimated number of blocks
-	// based
-	// on the unbonding period and block commitment time as the two should be
-	// equivalent.
-	if !s.stateHandler.HasFinalizeState() {
-		return 0
-	}
+	// validators which allows light clients to operate safely. Note,
+	// we piggy back of the evidence parameters instead of computing
+	// an estimated number of blocks based on the unbonding period and
+	// block commitment time as the two should be equivalent.
 	cp := s.cmtConsensusParams.ToProto()
 	if cp.Evidence != nil && cp.Evidence.MaxAgeNumBlocks > 0 {
 		retentionHeight = commitHeight - cp.Evidence.MaxAgeNumBlocks
