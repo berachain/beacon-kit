@@ -60,9 +60,9 @@ const (
 func (s *Service) ProcessProposal(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
-) error {
+) (transition.ValidatorUpdates, error) {
 	if countTx := len(req.Txs); countTx > MaxConsensusTxsCount {
-		return fmt.Errorf("max expected %d, got %d: %w",
+		return nil, fmt.Errorf("max expected %d, got %d: %w",
 			MaxConsensusTxsCount, countTx,
 			ErrTooManyConsensusTxs,
 		)
@@ -77,19 +77,19 @@ func (s *Service) ProcessProposal(
 		forkVersion,
 	)
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("failed extracting blocks and blobs: %w", err)
 	}
 	if signedBlk == nil {
 		s.logger.Warn(
 			"Aborting block verification - beacon block not found in proposal",
 		)
-		return ErrNilBlk
+		return nil, ErrNilBlk
 	}
 	if sidecars == nil {
 		s.logger.Warn(
 			"Aborting block verification - blob sidecars not found in proposal",
 		)
-		return ErrNilBlob
+		return nil, ErrNilBlob
 	}
 
 	blk := signedBlk.GetBeaconBlock()
@@ -109,7 +109,7 @@ func (s *Service) ProcessProposal(
 	// proposal or two at the start of the fork.
 	blkVersion := s.chainSpec.ActiveForkVersionForTimestamp(blk.GetTimestamp())
 	if !version.Equals(blkVersion, forkVersion) {
-		return fmt.Errorf("CometBFT version %v, BeaconBlock version %v: %w",
+		return nil, fmt.Errorf("CometBFT version %v, BeaconBlock version %v: %w",
 			forkVersion, blkVersion,
 			ErrVersionMismatch,
 		)
@@ -119,13 +119,13 @@ func (s *Service) ProcessProposal(
 	blobKzgCommitments := blk.GetBody().GetBlobKzgCommitments()
 	numCommitments := len(blobKzgCommitments)
 	if numCommitments != len(sidecars) {
-		return fmt.Errorf("expected %d sidecars, got %d: %w",
+		return nil, fmt.Errorf("expected %d sidecars, got %d: %w",
 			numCommitments, len(sidecars),
 			ErrSidecarCommitmentMismatch,
 		)
 	}
 	if uint64(numCommitments) > s.chainSpec.MaxBlobsPerBlock() {
-		return fmt.Errorf("expected less than %d sidecars, got %d: %w",
+		return nil, fmt.Errorf("expected less than %d sidecars, got %d: %w",
 			s.chainSpec.MaxBlobsPerBlock(), numCommitments,
 			core.ErrExceedsBlockBlobLimit,
 		)
@@ -137,12 +137,12 @@ func (s *Service) ProcessProposal(
 	for i, sidecar := range sidecars {
 		sidecarSignature := sidecar.GetSignature()
 		if !bytes.Equal(blkSignature[:], sidecarSignature[:]) {
-			return fmt.Errorf("%w, idx: %d", ErrSidecarSignatureMismatch, i)
+			return nil, fmt.Errorf("%w, idx: %d", ErrSidecarSignatureMismatch, i)
 		}
 	}
 	err = s.VerifyIncomingBlockSignature(ctx, blk, signedBlk.GetSignature())
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if numCommitments > 0 {
@@ -157,7 +157,7 @@ func (s *Service) ProcessProposal(
 		err = s.VerifyIncomingBlobSidecars(ctx, sidecars, blk.GetHeader(), blobKzgCommitments)
 		if err != nil {
 			s.logger.Error("failed to verify incoming blob sidecars", "error", err)
-			return err
+			return nil, err
 		}
 	}
 
@@ -167,7 +167,7 @@ func (s *Service) ProcessProposal(
 		req.GetProposerAddress(),
 		req.GetTime(),
 	)
-	err = s.VerifyIncomingBlock(
+	valUpdates, err := s.VerifyIncomingBlock(
 		ctx,
 		consensusBlk.GetBeaconBlock(),
 		consensusBlk.GetConsensusTime(),
@@ -175,10 +175,10 @@ func (s *Service) ProcessProposal(
 	)
 	if err != nil {
 		s.logger.Error("failed to verify incoming block", "error", err)
-		return err
+		return nil, err
 	}
 
-	return nil
+	return valUpdates, nil
 }
 
 func (s *Service) VerifyIncomingBlockSignature(
@@ -234,7 +234,7 @@ func (s *Service) VerifyIncomingBlock(
 	beaconBlk *ctypes.BeaconBlock,
 	consensusTime math.U64,
 	proposerAddress []byte,
-) error {
+) (transition.ValidatorUpdates, error) {
 	// Grab a copy of the state to verify the incoming block.
 	preState := s.storageBackend.StateFromContext(ctx)
 
@@ -266,7 +266,7 @@ func (s *Service) VerifyIncomingBlock(
 			"failed loading state slot to verify block slot",
 			"reason", err,
 		)
-		return err
+		return nil, err
 	}
 
 	blkSlot := beaconBlk.GetSlot()
@@ -277,11 +277,11 @@ func (s *Service) VerifyIncomingBlock(
 			"block slot", blkSlot.Base10(),
 			"reason", ErrUnexpectedBlockSlot.Error(),
 		)
-		return ErrUnexpectedBlockSlot
+		return nil, ErrUnexpectedBlockSlot
 	}
 
 	// Verify the state root of the incoming block.
-	err = s.verifyStateRoot(
+	valUpdates, err := s.verifyStateRoot(
 		ctx,
 		postState,
 		beaconBlk,
@@ -297,7 +297,7 @@ func (s *Service) VerifyIncomingBlock(
 		if s.shouldBuildOptimisticPayloads() {
 			lph, lphErr := preState.GetLatestExecutionPayloadHeader()
 			if lphErr != nil {
-				return errors.Join(
+				return nil, errors.Join(
 					err,
 					fmt.Errorf("failed getting LatestExecutionPayloadHeader: %w", lphErr),
 				)
@@ -316,7 +316,7 @@ func (s *Service) VerifyIncomingBlock(
 			)
 		}
 
-		return err
+		return nil, err
 	}
 
 	s.logger.Info(
@@ -328,7 +328,7 @@ func (s *Service) VerifyIncomingBlock(
 	if s.shouldBuildOptimisticPayloads() {
 		lph, lphErr := postState.GetLatestExecutionPayloadHeader()
 		if lphErr != nil {
-			return fmt.Errorf("failed loading LatestExecutionPayloadHeader: %w", lphErr)
+			return nil, fmt.Errorf("failed loading LatestExecutionPayloadHeader: %w", lphErr)
 		}
 
 		go s.handleOptimisticPayloadBuild(
@@ -343,7 +343,7 @@ func (s *Service) VerifyIncomingBlock(
 		)
 	}
 
-	return nil
+	return valUpdates, nil
 }
 
 // verifyStateRoot verifies the state root of an incoming block.
@@ -353,7 +353,7 @@ func (s *Service) verifyStateRoot(
 	blk *ctypes.BeaconBlock,
 	consensusTime math.U64,
 	proposerAddress []byte,
-) error {
+) (transition.ValidatorUpdates, error) {
 	startTime := time.Now()
 	defer s.metrics.measureStateRootVerificationTime(startTime)
 
@@ -367,8 +367,11 @@ func (s *Service) verifyStateRoot(
 		WithVerifyResult(true).
 		WithMeterGas(false)
 
-	_, err := s.stateProcessor.Transition(txCtx, st, blk)
-	return err
+	valUpdates, err := s.stateProcessor.Transition(txCtx, st, blk)
+	if err != nil {
+		return nil, err
+	}
+	return valUpdates.CanonicalSort(), err
 }
 
 // shouldBuildOptimisticPayloads returns true if optimistic

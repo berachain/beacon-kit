@@ -59,7 +59,7 @@ func (s *Service) processProposal(
 	// whether the block was valid or not. Viceversa, we signal that a block
 	// is invalid by its status, but we do return nil error in such a case.
 	status := cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
-	err = s.Blockchain.ProcessProposal(stateCtx, req)
+	valUpdates, err := s.Blockchain.ProcessProposal(stateCtx, req)
 	if err != nil {
 		status = cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
 		s.logger.Error(
@@ -70,5 +70,18 @@ func (s *Service) processProposal(
 			"err", err,
 		)
 	}
+
+	err = s.stateHandler.CachePostProcessBlockData(req.Hash, valUpdates)
+	if err != nil {
+		status = cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
+		s.logger.Error(
+			"failed to cache post block data",
+			"height", req.Height,
+			"time", req.Time,
+			"hash", fmt.Sprintf("%X", req.Hash),
+			"err", err,
+		)
+	}
+
 	return &cmtabci.ProcessProposalResponse{Status: status}, nil
 }

@@ -42,18 +42,21 @@ func (s *Service) finalizeBlock(
 	// is nil, it means we are replaying this block and we need to set the state
 	// here given that during block replay ProcessProposal is not executed by
 	// CometBFT.
+	var keyBlockHash []byte
 	stateCtx, err := s.stateHandler.GetFinalizeStateContext()
 	switch {
 	case err == nil:
+		keyBlockHash = nil
 		// Preserve the CosmosSDK context while using the correct base ctx.
 		// Here no need to invoke MarkStateAsFinal since we reuse genesis state
 		stateCtx = stateCtx.WithContext(ctx)
 	case errors.Is(err, statem.ErrNilFinalizeBlockState):
-		stateCtx, err = s.stateHandler.NewStateCtx(ctx, req.Height, req.Hash, statem.Cache)
+		keyBlockHash = req.Hash
+		stateCtx, err = s.stateHandler.NewStateCtx(ctx, req.Height, keyBlockHash, statem.Cache)
 		if err != nil {
 			panic(fmt.Errorf("finalize block: failed retrieving state context after reset: %w", err))
 		}
-		if err = s.stateHandler.MarkStateAsFinal(req.Hash); err != nil {
+		if err = s.stateHandler.MarkStateAsFinal(keyBlockHash); err != nil {
 			panic(err)
 		}
 	default:
@@ -73,13 +76,16 @@ func (s *Service) finalizeBlock(
 		}
 	}
 
-	finalizeBlock, err := s.Blockchain.FinalizeBlock(stateCtx, req)
+	valUpdates, err := s.Blockchain.FinalizeBlock(stateCtx, req)
 	if err != nil {
 		return nil, err
 	}
+	if err = s.stateHandler.CachePostProcessBlockData(keyBlockHash, valUpdates); err != nil {
+		return nil, err
+	}
 
-	valUpdates, err := iter.MapErr(
-		finalizeBlock,
+	valUpdatesFormatted, err := iter.MapErr(
+		valUpdates,
 		convertValidatorUpdate[cmtabci.ValidatorUpdate],
 	)
 	if err != nil {
@@ -90,7 +96,7 @@ func (s *Service) finalizeBlock(
 	appHash := s.workingHash() // to be done only if no errors above
 	res := &cmtabci.FinalizeBlockResponse{
 		TxResults:             txResults,
-		ValidatorUpdates:      valUpdates,
+		ValidatorUpdates:      valUpdatesFormatted,
 		ConsensusParamUpdates: &cp,
 		AppHash:               appHash,
 	}

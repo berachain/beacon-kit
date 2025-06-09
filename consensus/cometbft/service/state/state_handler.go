@@ -27,6 +27,7 @@ import (
 
 	servercmtlog "github.com/berachain/beacon-kit/consensus/cometbft/service/log"
 	"github.com/berachain/beacon-kit/log/phuslu"
+	"github.com/berachain/beacon-kit/primitives/transition"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -41,21 +42,26 @@ const (
 	Cache
 )
 
+type CacheElement struct {
+	state      *State
+	valUpdates transition.ValidatorUpdates
+}
+
 // For now, just embed finalize state and make a proper interface for it.
 // We will take care later on to cache states from processProposals
 type FinalizedStateHandler struct {
 	manager *Manager
 	logger  *phuslu.Logger
 
-	candidateStates    map[string]*State
-	finalizeBlockState *State
+	candidates map[string]*CacheElement
+	finalized  *CacheElement
 }
 
 func NewFinalizeStateHandler(manager *Manager, logger *phuslu.Logger) *FinalizedStateHandler {
 	return &FinalizedStateHandler{
-		manager:         manager,
-		logger:          logger,
-		candidateStates: make(map[string]*State),
+		manager:    manager,
+		logger:     logger,
+		candidates: make(map[string]*CacheElement),
 	}
 }
 
@@ -77,58 +83,73 @@ func (h *FinalizedStateHandler) NewStateCtx(
 
 	if height != InitialHeight {
 		if cd == Cache {
-			h.candidateStates[string(blkHash)] = NewState(ms, newCtx)
+			h.candidates[string(blkHash)] = &CacheElement{
+				state: NewState(ms, newCtx),
+			}
 		}
 		return newCtx, nil
 	}
 
 	// hereinafter height is InitialHeight
-	if h.finalizeBlockState == nil {
+	if h.finalized == nil {
 		// here we are processing genesis via init chain or replaying blocks.
 		// In any case this state will be final, but we will mark it as such
 		// in MarkStateAsFinal
 		if cd != Cache {
 			return sdk.Context{}, errors.New("finalize state not yet initialized but state not cachable")
 		}
-		h.candidateStates[string(blkHash)] = NewState(ms, newCtx)
+		h.candidates[string(blkHash)] = &CacheElement{
+			state: NewState(ms, newCtx),
+		}
 		return newCtx, nil
 	}
 
 	// this is the special case of a block built at InitialHeight. We provide a cached context
 	// to allow access to genesis state and resuse the multistore in State
-	newCtx, _ = h.finalizeBlockState.Context().CacheContext()
+	newCtx, _ = h.finalized.state.Context().CacheContext()
 	if cd == Cache {
-		h.candidateStates[string(blkHash)] = NewState(h.finalizeBlockState.ms, newCtx)
+		h.candidates[string(blkHash)] = &CacheElement{
+			state: NewState(h.finalized.state.ms, newCtx),
+		}
 	}
 	return newCtx, nil
 }
 
+func (h *FinalizedStateHandler) CachePostProcessBlockData(blkHash []byte, valUpdate transition.ValidatorUpdates) error {
+	s, found := h.candidates[string(blkHash)]
+	if !found {
+		return fmt.Errorf("attempt at caching post block data for unknown state, blkHash %x", blkHash)
+	}
+	s.valUpdates = valUpdate
+	return nil
+}
+
 func (h *FinalizedStateHandler) MarkStateAsFinal(blkHash []byte) error {
-	s, found := h.candidateStates[string(blkHash)]
+	s, found := h.candidates[string(blkHash)]
 	if !found {
 		return fmt.Errorf("attempt to make unknown state as final, blkHash %x", blkHash)
 	}
-	h.finalizeBlockState = s
+	h.finalized = s
 	return nil
 }
 
 func (h *FinalizedStateHandler) GetFinalizeStateContext() (sdk.Context, error) {
-	if h.finalizeBlockState == nil {
+	if h.finalized == nil {
 		return sdk.Context{}, ErrNilFinalizeBlockState
 	}
-	return h.finalizeBlockState.Context(), nil
+	return h.finalized.state.Context(), nil
 }
 
 func (h *FinalizedStateHandler) WriteFinalizeState() ([]byte, error) {
-	if h.finalizeBlockState == nil {
+	if h.finalized == nil {
 		return nil, ErrNilFinalizeBlockState
 	}
-	h.finalizeBlockState.Write()
+	h.finalized.state.Write()
 	commitHash := h.manager.GetCommitMultiStore().WorkingHash()
 	return commitHash, nil
 }
 
 func (h *FinalizedStateHandler) WipeState() {
-	h.finalizeBlockState = nil
-	h.candidateStates = make(map[string]*State)
+	h.finalized = nil
+	h.candidates = make(map[string]*CacheElement)
 }
