@@ -26,6 +26,7 @@ import (
 	"fmt"
 
 	statem "github.com/berachain/beacon-kit/consensus/cometbft/service/state"
+	"github.com/berachain/beacon-kit/primitives/transition"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/sourcegraph/conc/iter"
 )
@@ -42,22 +43,34 @@ func (s *Service) finalizeBlock(
 	// is nil, it means we are replaying this block and we need to set the state
 	// here given that during block replay ProcessProposal is not executed by
 	// CometBFT.
-	var keyBlockHash []byte
-	stateCtx, err := s.stateHandler.GetFinalizeStateContext()
-	switch {
+	var valUpdates transition.ValidatorUpdates
+	switch stateCtx, err := s.stateHandler.GetFinalizeStateContext(); {
 	case err == nil:
-		keyBlockHash = nil
 		// Preserve the CosmosSDK context while using the correct base ctx.
 		// Here no need to invoke MarkStateAsFinal since we reuse genesis state
 		stateCtx = stateCtx.WithContext(ctx)
+		valUpdates, err = s.Blockchain.FinalizeBlock(stateCtx, req)
+		if err != nil {
+			return nil, err
+		}
+		if err = s.stateHandler.CachePostProcessBlockData(nil /*not req.Hash!!!*/, valUpdates); err != nil {
+			return nil, err
+		}
+
 	case errors.Is(err, statem.ErrNilFinalizeBlockState):
-		keyBlockHash = req.Hash
-		stateCtx, err = s.stateHandler.NewStateCtx(ctx, req.Height, keyBlockHash, statem.Cache)
+		stateCtx, err = s.stateHandler.NewStateCtx(ctx, req.Height, req.Hash, statem.Cache)
 		if err != nil {
 			panic(fmt.Errorf("finalize block: failed retrieving state context after reset: %w", err))
 		}
-		if err = s.stateHandler.MarkStateAsFinal(keyBlockHash); err != nil {
+		if err = s.stateHandler.MarkStateAsFinal(req.Hash); err != nil {
 			panic(err)
+		}
+		valUpdates, err = s.Blockchain.FinalizeBlock(stateCtx, req)
+		if err != nil {
+			return nil, err
+		}
+		if err = s.stateHandler.CachePostProcessBlockData(req.Hash, valUpdates); err != nil {
+			return nil, err
 		}
 	default:
 		panic(fmt.Errorf("finalize block: failed retrieving state context: %w", err))
@@ -74,14 +87,6 @@ func (s *Service) finalizeBlock(
 			GasWanted: 0,
 			GasUsed:   0,
 		}
-	}
-
-	valUpdates, err := s.Blockchain.FinalizeBlock(stateCtx, req)
-	if err != nil {
-		return nil, err
-	}
-	if err = s.stateHandler.CachePostProcessBlockData(keyBlockHash, valUpdates); err != nil {
-		return nil, err
 	}
 
 	valUpdatesFormatted, err := iter.MapErr(

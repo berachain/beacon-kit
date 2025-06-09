@@ -25,6 +25,7 @@ import (
 	"errors"
 	"fmt"
 
+	"cosmossdk.io/store/types"
 	servercmtlog "github.com/berachain/beacon-kit/consensus/cometbft/service/log"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/primitives/transition"
@@ -76,40 +77,38 @@ func (h *FinalizedStateHandler) NewStateCtx(
 	cd CacheDirective,
 ) (sdk.Context, error) {
 	var (
-		log    = servercmtlog.WrapSDKLogger(h.logger)
-		ms     = h.manager.GetCommitMultiStore().CacheMultiStore()
-		newCtx = sdk.NewContext(ms, false, log).WithContext(ctx)
+		log = servercmtlog.WrapSDKLogger(h.logger)
+
+		ms     types.CacheMultiStore
+		newCtx sdk.Context
 	)
+	switch {
+	case height != InitialHeight: // the normal case
+		ms = h.manager.GetCommitMultiStore().CacheMultiStore()
+		newCtx = sdk.NewContext(ms, false, log).WithContext(ctx)
 
-	if height != InitialHeight {
-		if cd == Cache {
-			h.candidates[string(blkHash)] = &CacheElement{
-				state: NewState(ms, newCtx),
-			}
-		}
-		return newCtx, nil
-	}
-
-	// hereinafter height is InitialHeight
-	if h.finalized == nil {
+	case h.finalized == nil:
+		// here height is InitialHeight. Also
 		// here we are processing genesis via init chain or replaying blocks.
 		// In any case this state will be final, but we will mark it as such
 		// in MarkStateAsFinal
+		ms = h.manager.GetCommitMultiStore().CacheMultiStore()
+		newCtx = sdk.NewContext(ms, false, log).WithContext(ctx)
 		if cd != Cache {
 			return sdk.Context{}, errors.New("finalize state not yet initialized but state not cachable")
 		}
-		h.candidates[string(blkHash)] = &CacheElement{
-			state: NewState(ms, newCtx),
-		}
-		return newCtx, nil
+
+	default:
+		// this is the special case of a block built at InitialHeight.
+		// We provide a cached context to allow access to
+		// genesis state and resuse the multistore in State
+		ms = h.finalized.state.ms
+		newCtx, _ = h.finalized.state.Context().CacheContext()
 	}
 
-	// this is the special case of a block built at InitialHeight. We provide a cached context
-	// to allow access to genesis state and resuse the multistore in State
-	newCtx, _ = h.finalized.state.Context().CacheContext()
 	if cd == Cache {
 		h.candidates[string(blkHash)] = &CacheElement{
-			state: NewState(h.finalized.state.ms, newCtx),
+			state: NewState(ms, newCtx),
 		}
 	}
 	return newCtx, nil
@@ -129,6 +128,9 @@ func (h *FinalizedStateHandler) MarkStateAsFinal(blkHash []byte) error {
 	if !found {
 		return fmt.Errorf("attempt to make unknown state as final, blkHash %x", blkHash)
 	}
+
+	// note: we dont' purge s from candidate states in case CachePostProcessBlockData
+	// is called on it after it is marked as final
 	h.finalized = s
 	return nil
 }
