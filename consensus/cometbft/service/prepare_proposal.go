@@ -53,7 +53,7 @@ func (s *Service) prepareProposal(
 	// multiple consensus rounds, the state is always reset to the previous
 	// block's state. Always reset state given that PrepareProposal can timeout
 	// and be called again in a subsequent round.
-	stateCtx, err := s.stateHandler.NewStateCtx(ctx, req.Height)
+	stateCtx, err := s.stateHandler.NewStateCtx(ctx, req.Height, nil, statem.DoNotCache)
 	if err != nil {
 		panic(fmt.Errorf("prepare proposal, failed generating ephemeral context: %w", err))
 	}

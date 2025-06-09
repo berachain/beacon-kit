@@ -46,11 +46,15 @@ func (s *Service) finalizeBlock(
 	switch {
 	case err == nil:
 		// Preserve the CosmosSDK context while using the correct base ctx.
+		// Here no need to invoke MarkStateAsFinal since we reuse genesis state
 		stateCtx = stateCtx.WithContext(ctx)
 	case errors.Is(err, statem.ErrNilFinalizeBlockState):
-		stateCtx, err = s.stateHandler.NewStateCtx(ctx, req.Height)
+		stateCtx, err = s.stateHandler.NewStateCtx(ctx, req.Height, req.Hash, statem.Cache)
 		if err != nil {
 			panic(fmt.Errorf("finalize block: failed retrieving state context after reset: %w", err))
+		}
+		if err = s.stateHandler.MarkStateAsFinal(req.Hash); err != nil {
+			panic(err)
 		}
 	default:
 		panic(fmt.Errorf("finalize block: failed retrieving state context: %w", err))

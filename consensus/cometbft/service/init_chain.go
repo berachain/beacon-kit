@@ -79,8 +79,11 @@ func (s *Service) initChain(
 		)
 	}
 
-	stateCtx, err := s.stateHandler.NewStateCtx(ctx, req.InitialHeight)
+	stateCtx, err := s.stateHandler.NewStateCtx(ctx, req.InitialHeight, nil, statem.Cache)
 	if err != nil {
+		return nil, err
+	}
+	if err = s.stateHandler.MarkStateAsFinal(nil); err != nil {
 		return nil, err
 	}
 
