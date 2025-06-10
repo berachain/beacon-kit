@@ -34,6 +34,7 @@ func (s *Service) processProposal(
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
 	startTime := time.Now()
+	cachePolicy := statem.Cache
 	defer s.telemetrySink.MeasureSince(
 		"beacon_kit.runtime.process_proposal_duration", startTime)
 
@@ -50,7 +51,7 @@ func (s *Service) processProposal(
 	// the previous block's state. This state is never committed. In case of
 	// multiple consensus rounds, the state is always reset to the previous
 	// block's state.
-	stateCtx, err := s.stateHandler.NewStateCtx(ctx, req.Height, req.Hash, statem.Cache)
+	stateCtx, err := s.stateHandler.NewStateCtx(ctx, req.Height, req.Hash, cachePolicy)
 	if err != nil {
 		panic(fmt.Errorf("process proposal, failed generating ephemeral context: %w", err))
 	}
@@ -58,10 +59,13 @@ func (s *Service) processProposal(
 	// errors to consensus indicate that the node was not able to understand
 	// whether the block was valid or not. Viceversa, we signal that a block
 	// is invalid by its status, but we do return nil error in such a case.
-	status := cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
+	var status cmtabci.ProcessProposalStatus
 	valUpdates, err := s.Blockchain.ProcessProposal(stateCtx, req)
 	if err != nil {
 		status = cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
+		if cachePolicy == statem.Cache && s.stateHandler.PurgeState(req.Hash) != nil {
+			panic(fmt.Errorf("process proposal, failed purging state of rejected block: %w", err))
+		}
 		s.logger.Error(
 			"failed to process proposal",
 			"height", req.Height,
@@ -69,18 +73,18 @@ func (s *Service) processProposal(
 			"hash", fmt.Sprintf("%X", req.Hash),
 			"err", err,
 		)
-	}
-
-	err = s.stateHandler.CachePostProcessBlockData(req.Hash, valUpdates)
-	if err != nil {
-		status = cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
-		s.logger.Error(
-			"failed to cache post block data",
-			"height", req.Height,
-			"time", req.Time,
-			"hash", fmt.Sprintf("%X", req.Hash),
-			"err", err,
-		)
+	} else {
+		status = cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
+		if cachePolicy == statem.Cache && s.stateHandler.CachePostProcessBlockData(req.Hash, valUpdates) != nil {
+			status = cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
+			s.logger.Error(
+				"failed to cache post block data",
+				"height", req.Height,
+				"time", req.Time,
+				"hash", fmt.Sprintf("%X", req.Hash),
+				"err", err,
+			)
+		}
 	}
 
 	return &cmtabci.ProcessProposalResponse{Status: status}, nil

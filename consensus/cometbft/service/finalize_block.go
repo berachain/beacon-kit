@@ -43,9 +43,12 @@ func (s *Service) finalizeBlock(
 	// is nil, it means we are replaying this block and we need to set the state
 	// here given that during block replay ProcessProposal is not executed by
 	// CometBFT.
-	var valUpdates transition.ValidatorUpdates
-	switch stateCtx, err := s.stateHandler.GetFinalizeStateContext(); {
-	case err == nil:
+	var (
+		valUpdates transition.ValidatorUpdates
+		err        error
+	)
+	switch stateCtx, errCtx := s.stateHandler.GetFinalizeStateContext(); {
+	case errCtx == nil:
 		// Preserve the CosmosSDK context while using the correct base ctx.
 		// Here no need to invoke MarkStateAsFinal since we reuse genesis state
 		stateCtx = stateCtx.WithContext(ctx)
@@ -57,7 +60,7 @@ func (s *Service) finalizeBlock(
 			return nil, err
 		}
 
-	case errors.Is(err, statem.ErrNilFinalizeBlockState):
+	case errors.Is(errCtx, statem.ErrNilFinalizeBlockState):
 		stateCtx, err = s.stateHandler.NewStateCtx(ctx, req.Height, req.Hash, statem.Cache)
 		if err != nil {
 			panic(fmt.Errorf("finalize block: failed retrieving state context after reset: %w", err))
@@ -73,7 +76,7 @@ func (s *Service) finalizeBlock(
 			return nil, err
 		}
 	default:
-		panic(fmt.Errorf("finalize block: failed retrieving state context: %w", err))
+		panic(fmt.Errorf("finalize block: failed retrieving state context: %w", errCtx))
 	}
 
 	// This result format is expected by Comet. That actual execution will happen as part of the state transition.
