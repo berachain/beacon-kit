@@ -32,7 +32,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-var ErrNilFinalizeBlockState = errors.New("finalizeBlockState is nil")
+var (
+	ErrUnknownStateMarkedAsFinal = errors.New("unknown state marked as final")
+	ErrNilFinalizeBlockState     = errors.New("finalizeBlockState is nil")
+)
 
 type CacheDirective uint8
 
@@ -114,6 +117,19 @@ func (h *FinalizedStateHandler) NewStateCtx(
 	return newCtx, nil
 }
 
+func (h *FinalizedStateHandler) PurgeState(blkHash []byte) error {
+	k := string(blkHash)
+	s, found := h.candidates[k]
+	if !found {
+		return nil // nothing to do
+	}
+	if h.finalized == s { // comparing pointers here, not content
+		return fmt.Errorf("attempt at purging finalized state, blkHash %x", blkHash)
+	}
+	delete(h.candidates, k)
+	return nil
+}
+
 func (h *FinalizedStateHandler) CachePostProcessBlockData(blkHash []byte, valUpdate transition.ValidatorUpdates) error {
 	s, found := h.candidates[string(blkHash)]
 	if !found {
@@ -123,10 +139,18 @@ func (h *FinalizedStateHandler) CachePostProcessBlockData(blkHash []byte, valUpd
 	return nil
 }
 
+func (h *FinalizedStateHandler) GetPostProcessBlockData(blkHash []byte) (transition.ValidatorUpdates, error) {
+	s, found := h.candidates[string(blkHash)]
+	if !found {
+		return nil, fmt.Errorf("unknown state %x", blkHash)
+	}
+	return s.valUpdates, nil
+}
+
 func (h *FinalizedStateHandler) MarkStateAsFinal(blkHash []byte) error {
 	s, found := h.candidates[string(blkHash)]
 	if !found {
-		return fmt.Errorf("attempt to make unknown state as final, blkHash %x", blkHash)
+		return fmt.Errorf("%w, blkHash %x", ErrUnknownStateMarkedAsFinal, blkHash)
 	}
 
 	// note: we dont' purge s from candidate states in case CachePostProcessBlockData
