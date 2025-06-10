@@ -79,9 +79,11 @@ func (s *Service) initChain(
 		)
 	}
 
-	s.stateHandler.ResetFinalizeState(ctx)
-	stateCtx, err := s.stateHandler.GetFinalizeStateContext()
+	stateCtx, err := s.stateHandler.NewStateCtx(ctx, req.InitialHeight, nil, statem.Cache)
 	if err != nil {
+		return nil, err
+	}
+	if err = s.stateHandler.MarkStateAsFinal(nil); err != nil {
 		return nil, err
 	}
 

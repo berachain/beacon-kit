@@ -26,6 +26,7 @@ import (
 	"fmt"
 
 	statem "github.com/berachain/beacon-kit/consensus/cometbft/service/state"
+	"github.com/berachain/beacon-kit/primitives/transition"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/sourcegraph/conc/iter"
 )
@@ -42,19 +43,40 @@ func (s *Service) finalizeBlock(
 	// is nil, it means we are replaying this block and we need to set the state
 	// here given that during block replay ProcessProposal is not executed by
 	// CometBFT.
-	stateCtx, err := s.stateHandler.GetFinalizeStateContext()
-	switch {
-	case err == nil:
+	var (
+		valUpdates transition.ValidatorUpdates
+		err        error
+	)
+	switch stateCtx, errCtx := s.stateHandler.GetFinalizeStateContext(); {
+	case errCtx == nil:
 		// Preserve the CosmosSDK context while using the correct base ctx.
+		// Here no need to invoke MarkStateAsFinal since we reuse genesis state
 		stateCtx = stateCtx.WithContext(ctx)
-	case errors.Is(err, statem.ErrNilFinalizeBlockState):
-		s.stateHandler.ResetFinalizeState(ctx)
-		stateCtx, err = s.stateHandler.GetFinalizeStateContext() // guaranteed not to err
+		valUpdates, err = s.Blockchain.FinalizeBlock(stateCtx, req)
+		if err != nil {
+			return nil, err
+		}
+		if err = s.stateHandler.CachePostProcessBlockData(nil /*not req.Hash!!!*/, valUpdates); err != nil {
+			return nil, err
+		}
+
+	case errors.Is(errCtx, statem.ErrNilFinalizeBlockState):
+		stateCtx, err = s.stateHandler.NewStateCtx(ctx, req.Height, req.Hash, statem.Cache)
 		if err != nil {
 			panic(fmt.Errorf("finalize block: failed retrieving state context after reset: %w", err))
 		}
+		if err = s.stateHandler.MarkStateAsFinal(req.Hash); err != nil {
+			panic(err)
+		}
+		valUpdates, err = s.Blockchain.FinalizeBlock(stateCtx, req)
+		if err != nil {
+			return nil, err
+		}
+		if err = s.stateHandler.CachePostProcessBlockData(req.Hash, valUpdates); err != nil {
+			return nil, err
+		}
 	default:
-		panic(fmt.Errorf("finalize block: failed retrieving state context: %w", err))
+		panic(fmt.Errorf("finalize block: failed retrieving state context: %w", errCtx))
 	}
 
 	// This result format is expected by Comet. That actual execution will happen as part of the state transition.
@@ -70,13 +92,8 @@ func (s *Service) finalizeBlock(
 		}
 	}
 
-	finalizeBlock, err := s.Blockchain.FinalizeBlock(stateCtx, req)
-	if err != nil {
-		return nil, err
-	}
-
-	valUpdates, err := iter.MapErr(
-		finalizeBlock,
+	valUpdatesFormatted, err := iter.MapErr(
+		valUpdates,
 		convertValidatorUpdate[cmtabci.ValidatorUpdate],
 	)
 	if err != nil {
@@ -87,7 +104,7 @@ func (s *Service) finalizeBlock(
 	appHash := s.workingHash() // to be done only if no errors above
 	res := &cmtabci.FinalizeBlockResponse{
 		TxResults:             txResults,
-		ValidatorUpdates:      valUpdates,
+		ValidatorUpdates:      valUpdatesFormatted,
 		ConsensusParamUpdates: &cp,
 		AppHash:               appHash,
 	}

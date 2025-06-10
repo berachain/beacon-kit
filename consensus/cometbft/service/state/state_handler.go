@@ -23,78 +23,159 @@ package state
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"cosmossdk.io/store/types"
 	servercmtlog "github.com/berachain/beacon-kit/consensus/cometbft/service/log"
 	"github.com/berachain/beacon-kit/log/phuslu"
+	"github.com/berachain/beacon-kit/primitives/transition"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-var ErrNilFinalizeBlockState = errors.New("finalizeBlockState is nil")
+var (
+	ErrUnknownStateMarkedAsFinal = errors.New("unknown state marked as final")
+	ErrNilFinalizeBlockState     = errors.New("finalizeBlockState is nil")
+)
 
-const InitialHeight int64 = 1
+type CacheDirective uint8
+
+const (
+	InitialHeight int64 = 1
+
+	DoNotCache CacheDirective = iota
+	Cache
+)
+
+type CacheElement struct {
+	state      *State
+	valUpdates transition.ValidatorUpdates
+}
 
 // For now, just embed finalize state and make a proper interface for it.
 // We will take care later on to cache states from processProposals
 type FinalizedStateHandler struct {
-	manager            *Manager
-	logger             *phuslu.Logger
-	finalizeBlockState *State
+	manager *Manager
+	logger  *phuslu.Logger
+
+	candidates map[string]*CacheElement
+	finalized  *CacheElement
 }
 
 func NewFinalizeStateHandler(manager *Manager, logger *phuslu.Logger) *FinalizedStateHandler {
 	return &FinalizedStateHandler{
-		manager: manager,
-		logger:  logger,
+		manager:    manager,
+		logger:     logger,
+		candidates: make(map[string]*CacheElement),
 	}
 }
 
-func (h *FinalizedStateHandler) ResetFinalizeState(ctx context.Context) {
-	newCtx, ms := h.newCtx(ctx)
-	h.finalizeBlockState = NewState(ms, newCtx)
-}
+// NewStateCtx returns the correct Context for relevant CometBFT callbacks.
+// We use finalizeBlockState on the first block to be able to
+// access any state changes made in InitChain. Also we properly cache a state
+// indexed by the blkHash.
+func (h *FinalizedStateHandler) NewStateCtx(
+	ctx context.Context,
+	height int64,
+	blkHash []byte,
+	cd CacheDirective,
+) (sdk.Context, error) {
+	var (
+		log = servercmtlog.WrapSDKLogger(h.logger)
 
-// NewEphemeralStateCtx returns the correct Context for PrepareProposal and
-// ProcessProposal. We use finalizeBlockState on the first block to be able to
-// access any state changes made in InitChain.
-func (h *FinalizedStateHandler) NewEphemeralStateCtx(ctx context.Context, height int64) (sdk.Context, error) {
-	if height != InitialHeight {
-		newCtx, _ := h.newCtx(ctx)
-		return newCtx, nil
+		ms     types.CacheMultiStore
+		newCtx sdk.Context
+	)
+	switch {
+	case height != InitialHeight: // the normal case
+		ms = h.manager.GetCommitMultiStore().CacheMultiStore()
+		newCtx = sdk.NewContext(ms, false, log).WithContext(ctx)
+
+	case h.finalized == nil:
+		// here height is InitialHeight. Also
+		// here we are processing genesis via init chain or replaying blocks.
+		// In any case this state will be final, but we will mark it as such
+		// in MarkStateAsFinal
+		ms = h.manager.GetCommitMultiStore().CacheMultiStore()
+		newCtx = sdk.NewContext(ms, false, log).WithContext(ctx)
+		if cd != Cache {
+			return sdk.Context{}, errors.New("finalize state not yet initialized but state not cachable")
+		}
+
+	default:
+		// this is the special case of a block built at InitialHeight.
+		// We provide a cached context to allow access to
+		// genesis state and resuse the multistore in State
+		ms = h.finalized.state.ms
+		newCtx, _ = h.finalized.state.Context().CacheContext()
 	}
 
-	if h.finalizeBlockState == nil {
-		return sdk.Context{}, ErrNilFinalizeBlockState
+	if cd == Cache {
+		h.candidates[string(blkHash)] = &CacheElement{
+			state: NewState(ms, newCtx),
+		}
 	}
-	newCtx, _ := h.finalizeBlockState.Context().CacheContext()
 	return newCtx, nil
 }
 
-func (h *FinalizedStateHandler) newCtx(ctx context.Context) (sdk.Context, types.CacheMultiStore) {
-	var (
-		log    = servercmtlog.WrapSDKLogger(h.logger)
-		ms     = h.manager.GetCommitMultiStore().CacheMultiStore()
-		newCtx = sdk.NewContext(ms, false, log).WithContext(ctx)
-	)
-	return newCtx, ms
+func (h *FinalizedStateHandler) PurgeState(blkHash []byte) error {
+	k := string(blkHash)
+	s, found := h.candidates[k]
+	if !found {
+		return nil // nothing to do
+	}
+	if h.finalized == s { // comparing pointers here, not content
+		return fmt.Errorf("attempt at purging finalized state, blkHash %x", blkHash)
+	}
+	delete(h.candidates, k)
+	return nil
+}
+
+func (h *FinalizedStateHandler) CachePostProcessBlockData(blkHash []byte, valUpdate transition.ValidatorUpdates) error {
+	s, found := h.candidates[string(blkHash)]
+	if !found {
+		return fmt.Errorf("attempt at caching post block data for unknown state, blkHash %x", blkHash)
+	}
+	s.valUpdates = valUpdate
+	return nil
+}
+
+func (h *FinalizedStateHandler) GetPostProcessBlockData(blkHash []byte) (transition.ValidatorUpdates, error) {
+	s, found := h.candidates[string(blkHash)]
+	if !found {
+		return nil, fmt.Errorf("unknown state %x", blkHash)
+	}
+	return s.valUpdates, nil
+}
+
+func (h *FinalizedStateHandler) MarkStateAsFinal(blkHash []byte) error {
+	s, found := h.candidates[string(blkHash)]
+	if !found {
+		return fmt.Errorf("%w, blkHash %x", ErrUnknownStateMarkedAsFinal, blkHash)
+	}
+
+	// note: we dont' purge s from candidate states in case CachePostProcessBlockData
+	// is called on it after it is marked as final
+	h.finalized = s
+	return nil
 }
 
 func (h *FinalizedStateHandler) GetFinalizeStateContext() (sdk.Context, error) {
-	if h.finalizeBlockState == nil {
+	if h.finalized == nil {
 		return sdk.Context{}, ErrNilFinalizeBlockState
 	}
-	return h.finalizeBlockState.Context(), nil
+	return h.finalized.state.Context(), nil
 }
 
 func (h *FinalizedStateHandler) WriteFinalizeState() ([]byte, error) {
-	if h.finalizeBlockState == nil {
+	if h.finalized == nil {
 		return nil, ErrNilFinalizeBlockState
 	}
-	h.finalizeBlockState.Write()
+	h.finalized.state.Write()
 	commitHash := h.manager.GetCommitMultiStore().WorkingHash()
 	return commitHash, nil
 }
 
 func (h *FinalizedStateHandler) WipeState() {
-	h.finalizeBlockState = nil
+	h.finalized = nil
+	h.candidates = make(map[string]*CacheElement)
 }

@@ -140,7 +140,7 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 	).Return(nil, common.Version{0xff}, errors.New("does not matter")) // return values do not really matter in this test
 	wg.Add(1)
 
-	err = chain.VerifyIncomingBlock(
+	_, err = chain.VerifyIncomingBlock(
 		ctx.ConsensusCtx(),
 		invalidBlk,
 		consensusTime,
@@ -259,7 +259,7 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 
 	eng.EXPECT().NotifyNewPayload(mock.Anything, mock.Anything, mock.Anything).Return(nil)
 	sb.EXPECT().StateFromContext(mock.Anything).Return(st).Times(1)
-	err = chain.VerifyIncomingBlock(
+	_, err = chain.VerifyIncomingBlock(
 		ctx.ConsensusCtx(),
 		validBlk,
 		consensusTime,
