@@ -118,8 +118,13 @@ func (s *Service) initChainer(
 		return nil, err
 	}
 
-	// Set the genesis state on the API backend.
-	s.apiBackend.SetGenesisState(genesisState)
+	// Set a copy of the genesis state on the API backend to preserve the original genesis state.
+	// This ensures the "genesis state" remains immutable at slot 0 while the actual state
+	// continues to be mutated as blocks are processed.
+	genesisStateCopy := genesisState.Copy(ctx)
+
+	// Check the header in the copy immediately after copying
+	s.apiBackend.SetGenesisState(genesisStateCopy)
 	return iter.MapErr(
 		valUpdates,
 		convertValidatorUpdate[cmtabci.ValidatorUpdate],

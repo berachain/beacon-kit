@@ -1024,9 +1024,7 @@ func (s *BeaconKitE2ESuite) TestBeaconBlockHeaderByGenesis() {
 	s.Require().NotNil(header)
 
 	// Verify genesis header fields
-	s.Require().NotNil(header.Root, "Genesis block root should not be nil")
-	// TODO: fix this test.
-	s.Require().False(header.Root.IsZero(), "Genesis block root should not be zero")
+	s.Require().NotZero(header.Root, "Genesis block root should not be zero")
 
 	s.Require().NotNil(header.Header, "Genesis header should not be nil")
 	s.Require().NotNil(header.Header.Message, "Genesis header message should not be nil")
@@ -1034,10 +1032,10 @@ func (s *BeaconKitE2ESuite) TestBeaconBlockHeaderByGenesis() {
 	message := header.Header.Message
 	s.Require().Equal(phase0.Slot(0), message.Slot, "Genesis slot should be 0")
 	s.Require().NotNil(message.ProposerIndex, "Genesis proposer index should not be nil")
-	s.Require().GreaterOrEqual(message.ProposerIndex, phase0.ValidatorIndex(0), "Genesis proposer index should be greater than 0")
-	s.Require().NotNil(message.ParentRoot, "Genesis parent root should not be nil")
-	s.Require().NotNil(message.StateRoot, "Genesis state root should not be nil")
-	s.Require().NotNil(message.BodyRoot, "Genesis body root should not be nil")
+	s.Require().Equal(message.ProposerIndex, phase0.ValidatorIndex(0), "Genesis proposer index should be 0")
+	s.Require().Zero(message.ParentRoot, "Genesis parent root should be zero")
+	s.Require().NotZero(message.StateRoot, "Genesis state root should not be zero")
+	s.Require().NotZero(message.BodyRoot, "Genesis body root should not be zero")
 }
 
 // TestBeaconBlockHeaderBySlot tests querying the beacon block header by a specific slot.

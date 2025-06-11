@@ -34,7 +34,12 @@ func (b *Backend) GenesisTime() math.U64 {
 
 // GenesisState returns the genesis state of the beacon chain.
 func (b *Backend) GenesisState() *statedb.StateDB {
-	return b.stateFetcher.GetGenesisState()
+	return b.genesisState.Load()
+}
+
+// GenesisForkVersion returns the genesis fork version.
+func (b *Backend) GenesisForkVersion() common.Version {
+	return b.cs.GenesisForkVersion()
 }
 
 // GenesisBlockHeader returns the genesis block header of the beacon chain.
@@ -44,20 +49,14 @@ func (b *Backend) GenesisBlockHeader() *ctypes.BeaconBlockHeader {
 		return nil
 	}
 
-	// For genesis state, the latest block header is the genesis block header
-	header, err := genesisState.GetLatestBlockHeader()
+	genesisHeader, err := genesisState.GetLatestBlockHeader()
 	if err != nil {
 		return nil
 	}
-	return header
-}
 
-// GenesisForkVersion returns the genesis fork version of the beacon chain.
-func (b *Backend) GenesisForkVersion() common.Version {
-	// Derive the genesis fork version from the genesis time.
-	genesisTime := b.GenesisTime()
+	genesisHeader.SetStateRoot(genesisState.HashTreeRoot())
 
-	return b.cs.ActiveForkVersionForTimestamp(genesisTime)
+	return genesisHeader
 }
 
 // GenesisBlockRoot returns the genesis block root of the beacon chain.
@@ -68,10 +67,12 @@ func (b *Backend) GenesisBlockRoot() common.Root {
 	}
 	// Return the hash tree root of the genesis header after updating the state root in it.
 	// This is similar to how we get the block root.
-	genesisHeader, err := genesisState.GetLatestBlockHeader()
-	if err != nil {
+	genesisHeader := b.GenesisBlockHeader()
+	if genesisHeader == nil {
 		return common.Root{}
 	}
+
+	// Ensure genesis header has the correct state root before calculating block root
 	genesisHeader.SetStateRoot(genesisState.HashTreeRoot())
 	return genesisHeader.HashTreeRoot()
 }
