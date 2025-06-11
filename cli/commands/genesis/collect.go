@@ -59,11 +59,18 @@ func CollectGenesisDeposits(config *cmtcfg.Config) error {
 	}
 
 	// create the app state
-	appGenesisState, err := genutiltypes.GenesisStateFromAppGenesis(
-		appGenesis,
-	)
+	appGenesisState, err := genutiltypes.GenesisStateFromAppGenesis(appGenesis)
 	if err != nil {
 		return err
+	}
+
+	// Ensure the map is initialized before it is indexed below. If the
+	// underlying function returned a nil map with a nil error (which is
+	// permissible in Go), we defensively allocate an empty map to avoid
+	// potential nil dereference panics that static analysis (nilaway)
+	// rightfully complains about.
+	if appGenesisState == nil {
+		appGenesisState = make(map[string]json.RawMessage)
 	}
 
 	var deposits []*types.Deposit
