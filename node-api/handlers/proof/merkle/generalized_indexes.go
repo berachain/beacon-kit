@@ -64,6 +64,22 @@ const (
 	// GIndices. To get the GIndex of the pubkey of validator at index n, the formula is:
 	// GIndex = ZeroValidatorPubkeyGIndexElectraBlock + (ValidatorPubkeyGIndexOffset * n)
 	ZeroValidatorPubkeyGIndexElectraBlock = 6350779162034176
+
+	// ZeroValidatorWithdrawalCredentialsGIndexElectraState is the generalized index of the 0
+	// validator's withdrawal credentials in the beacon state in the Electra forks. To get the
+	// GIndex of the withdrawal credentials of validator at index n, the formula is:
+	// GIndex = ZeroValidatorWithdrawalCredentialsGIndexElectraState + (ValidatorWithdrawalCredentialsGIndexOffset * n)
+	ZeroValidatorWithdrawalCredentialsGIndexElectraState = 721279627821057
+
+	// ZeroValidatorWithdrawalCredentialsGIndexElectraBlock is the generalized index of the 0
+	// validator's withdrawal credentials in the beacon block in the Electra forks. This is
+	// calculated by concatenating the (ZeroValidatorWithdrawalCredentialsGIndexElectraState, StateGIndexBlock)
+	// GIndices. To get the GIndex of the withdrawal credentials of validator at index n, the formula is:
+	// GIndex = ZeroValidatorWithdrawalCredentialsGIndexElectraBlock + (ValidatorWithdrawalCredentialsGIndexOffset * n)
+	ZeroValidatorWithdrawalCredentialsGIndexElectraBlock = 6350779162034177
+
+	// ValidatorWithdrawalCredentialsGIndexOffset is the offset of a validator withdrawal credentials GIndex.
+	ValidatorWithdrawalCredentialsGIndexOffset = 8
 )
 
 // GetZeroValidatorPubkeyGIndexState determines the generalized index of the 0

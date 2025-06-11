@@ -266,3 +266,47 @@ func TestGIndicesValidatorPubkeyElectra(t *testing.T) {
 		int(oneValidatorPubkeyGIndexState-zeroValidatorPubkeyGIndexState),
 	)
 }
+
+func TestValidatorWithdrawalCredentialsGIndexElectra(t *testing.T) {
+	t.Parallel()
+
+	// GIndex of the 0 validator's withdrawal credentials in the state.
+	_, zeroValidatorWithdrawalCredentialsGIndexState, _, err := mlib.ObjectPath(
+		"Validators/0/WithdrawalCredentials",
+	).GetGeneralizedIndex(beaconStateSchemaElectra)
+	require.NoError(t, err)
+	require.Equal(t,
+		merkle.ZeroValidatorWithdrawalCredentialsGIndexElectraState,
+		int(zeroValidatorWithdrawalCredentialsGIndexState),
+	)
+
+	// GIndex of the 0 validator's withdrawal credentials in the block.
+	_, zeroValidatorWithdrawalCredentialsGIndexBlock, _, err := mlib.ObjectPath(
+		"State/Validators/0/WithdrawalCredentials",
+	).GetGeneralizedIndex(beaconHeaderSchemaElectra)
+	require.NoError(t, err)
+	require.Equal(t,
+		merkle.ZeroValidatorWithdrawalCredentialsGIndexElectraBlock,
+		int(zeroValidatorWithdrawalCredentialsGIndexBlock),
+	)
+
+	// Concatenation is consistent.
+	concatValidatorWithdrawalCredentialsStateToBlock := mlib.GeneralizedIndices{
+		mlib.GeneralizedIndex(merkle.StateGIndexBlock),
+		mlib.GeneralizedIndex(zeroValidatorWithdrawalCredentialsGIndexState),
+	}.Concat()
+	require.Equal(t,
+		zeroValidatorWithdrawalCredentialsGIndexBlock,
+		uint64(concatValidatorWithdrawalCredentialsStateToBlock),
+	)
+
+	// GIndex offset of the next validator's withdrawal credentials.
+	_, oneValidatorWithdrawalCredentialsGIndexState, _, err := mlib.ObjectPath(
+		"Validators/1/WithdrawalCredentials",
+	).GetGeneralizedIndex(beaconStateSchemaElectra)
+	require.NoError(t, err)
+	require.Equal(t,
+		merkle.ValidatorWithdrawalCredentialsGIndexOffset,
+		int(oneValidatorWithdrawalCredentialsGIndexState-zeroValidatorWithdrawalCredentialsGIndexState),
+	)
+}
