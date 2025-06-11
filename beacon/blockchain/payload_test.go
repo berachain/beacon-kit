@@ -331,8 +331,11 @@ func testProcessGenesis(
 	}
 	genBytes, err := json.Marshal(genesisData)
 	require.NoError(t, err)
-	_, err = chain.ProcessGenesisData(ctx.ConsensusCtx(), genBytes)
+	_, genesisHeader, _, genesisBlockRoot, err := chain.ProcessGenesisData(ctx.ConsensusCtx(), genBytes)
 	require.NoError(t, err)
+	// Verify that genesis processing returned valid data
+	require.NotNil(t, genesisHeader)
+	require.NotEqual(t, common.Root{}, genesisBlockRoot)
 	return genesisData
 }
 
