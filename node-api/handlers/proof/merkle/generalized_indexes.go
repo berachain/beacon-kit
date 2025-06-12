@@ -49,8 +49,8 @@ const (
 	// GIndex = ZeroValidatorPubkeyGIndexDenebBlock + (ValidatorPubkeyGIndexOffset * n)
 	ZeroValidatorPubkeyGIndexDenebBlock = 3254554418216960
 
-	// ValidatorPubkeyGIndexOffset is the offset of a validator pubkey GIndex.
-	ValidatorPubkeyGIndexOffset = 8
+	// ValidatorGIndexOffset is the offset of a validator's GIndex.
+	ValidatorGIndexOffset = 8
 
 	// ZeroValidatorPubkeyGIndexElectraState is the generalized index of the 0
 	// validator's pubkey in the beacon state in the Electra forks. To get the
@@ -65,21 +65,18 @@ const (
 	// GIndex = ZeroValidatorPubkeyGIndexElectraBlock + (ValidatorPubkeyGIndexOffset * n)
 	ZeroValidatorPubkeyGIndexElectraBlock = 6350779162034176
 
-	// ZeroValidatorWithdrawalCredentialsGIndexElectraState is the generalized index of the 0
+	// ZeroValidatoCredentialsGIndexElectraState is the generalized index of the 0
 	// validator's withdrawal credentials in the beacon state in the Electra forks. To get the
 	// GIndex of the withdrawal credentials of validator at index n, the formula is:
-	// GIndex = ZeroValidatorWithdrawalCredentialsGIndexElectraState + (ValidatorWithdrawalCredentialsGIndexOffset * n)
-	ZeroValidatorWithdrawalCredentialsGIndexElectraState = 721279627821057
+	// GIndex = ZeroValidatorCredentialsGIndexElectraState + (ValidatorGIndexOffset * n)
+	ZeroValidatorCredentialsGIndexElectraState = 721279627821057
 
-	// ZeroValidatorWithdrawalCredentialsGIndexElectraBlock is the generalized index of the 0
+	// ZeroValidatorCredentialsGIndexElectraBlock is the generalized index of the 0
 	// validator's withdrawal credentials in the beacon block in the Electra forks. This is
-	// calculated by concatenating the (ZeroValidatorWithdrawalCredentialsGIndexElectraState, StateGIndexBlock)
+	// calculated by concatenating the (ZeroValidatorCredentialsGIndexElectraState, StateGIndexBlock)
 	// GIndices. To get the GIndex of the withdrawal credentials of validator at index n, the formula is:
-	// GIndex = ZeroValidatorWithdrawalCredentialsGIndexElectraBlock + (ValidatorWithdrawalCredentialsGIndexOffset * n)
-	ZeroValidatorWithdrawalCredentialsGIndexElectraBlock = 6350779162034177
-
-	// ValidatorWithdrawalCredentialsGIndexOffset is the offset of a validator withdrawal credentials GIndex.
-	ValidatorWithdrawalCredentialsGIndexOffset = 8
+	// GIndex = ZeroValidatorCredentialsGIndexElectraBlock + (ValidatorGIndexOffset * n)
+	ZeroValidatorCredentialsGIndexElectraBlock = 6350779162034177
 )
 
 // GetZeroValidatorPubkeyGIndexState determines the generalized index of the 0
@@ -104,22 +101,22 @@ func GetZeroValidatorPubkeyGIndexBlock(forkVersion common.Version) (uint64, erro
 	return 0, fmt.Errorf("unsupported fork version: %s", forkVersion)
 }
 
-// GetZeroValidatorWithdrawalCredentialsGIndexState determines the generalized
+// GetZeroValidatorCredentialsGIndexState determines the generalized
 // index of the 0-th validator's withdrawal credentials in the beacon state
 // based on the fork version.
-func GetZeroValidatorWithdrawalCredentialsGIndexState(forkVersion common.Version) (int, error) {
+func GetZeroValidatorCredentialsGIndexState(forkVersion common.Version) (int, error) {
 	if version.EqualsOrIsAfter(forkVersion, version.Electra()) {
-		return ZeroValidatorWithdrawalCredentialsGIndexElectraState, nil
+		return ZeroValidatorCredentialsGIndexElectraState, nil
 	}
 	return 0, fmt.Errorf("unsupported fork version: %s", forkVersion)
 }
 
-// GetZeroValidatorWithdrawalCredentialsGIndexBlock determines the generalized
+// GetZeroValidatorCredentialsGIndexBlock determines the generalized
 // index of the 0-th validator's withdrawal credentials in the beacon block
 // based on the fork version.
-func GetZeroValidatorWithdrawalCredentialsGIndexBlock(forkVersion common.Version) (uint64, error) {
+func GetZeroValidatorCredentialsGIndexBlock(forkVersion common.Version) (uint64, error) {
 	if version.EqualsOrIsAfter(forkVersion, version.Electra()) {
-		return ZeroValidatorWithdrawalCredentialsGIndexElectraBlock, nil
+		return ZeroValidatorCredentialsGIndexElectraBlock, nil
 	}
 	return 0, fmt.Errorf("unsupported fork version: %s", forkVersion)
 }

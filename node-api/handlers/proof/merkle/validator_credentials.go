@@ -48,7 +48,7 @@ func ProveWithdrawalCredentialsInState(
 
 	// Determine the starting generalized index for the 0-th validator's
 	// withdrawal credentials for this fork.
-	zeroWithdrawalGIndexState, err := GetZeroValidatorWithdrawalCredentialsGIndexState(forkVersion)
+	zeroWithdrawalGIndexState, err := GetZeroValidatorCredentialsGIndexState(forkVersion)
 	if err != nil {
 		return nil, common.Root{}, err
 	}
@@ -82,7 +82,7 @@ func ProveWithdrawalCredentialsInBlock(
 	forkVersion := bsm.GetForkVersion()
 
 	// Calculate the validator-specific offset.
-	validatorOffset := ValidatorWithdrawalCredentialsGIndexOffset * validatorIndex
+	validatorOffset := ValidatorGIndexOffset * validatorIndex
 
 	// 1. Proof inside the state.
 	withdrawalInStateProof, leaf, err := ProveWithdrawalCredentialsInState(
@@ -126,7 +126,7 @@ func verifyWithdrawalCredentialsInBlock(
 	proof []common.Root,
 	leaf common.Root,
 ) (common.Root, error) {
-	zeroWithdrawalGIndexBlock, err := GetZeroValidatorWithdrawalCredentialsGIndexBlock(forkVersion)
+	zeroWithdrawalGIndexBlock, err := GetZeroValidatorCredentialsGIndexBlock(forkVersion)
 	if err != nil {
 		return common.Root{}, err
 	}

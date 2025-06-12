@@ -209,7 +209,7 @@ func TestGIndicesValidatorPubkeyDeneb(t *testing.T) {
 	).GetGeneralizedIndex(beaconStateSchemaDeneb)
 	require.NoError(t, err)
 	require.Equal(t,
-		merkle.ValidatorPubkeyGIndexOffset,
+		merkle.ValidatorGIndexOffset,
 		int(oneValidatorPubkeyGIndexState-zeroValidatorPubkeyGIndexState),
 	)
 }
@@ -262,7 +262,7 @@ func TestGIndicesValidatorPubkeyElectra(t *testing.T) {
 	).GetGeneralizedIndex(beaconStateSchemaElectra)
 	require.NoError(t, err)
 	require.Equal(t,
-		merkle.ValidatorPubkeyGIndexOffset,
+		merkle.ValidatorGIndexOffset,
 		int(oneValidatorPubkeyGIndexState-zeroValidatorPubkeyGIndexState),
 	)
 }
@@ -276,7 +276,7 @@ func TestValidatorWithdrawalCredentialsGIndexElectra(t *testing.T) {
 	).GetGeneralizedIndex(beaconStateSchemaElectra)
 	require.NoError(t, err)
 	require.Equal(t,
-		merkle.ZeroValidatorWithdrawalCredentialsGIndexElectraState,
+		merkle.ZeroValidatorCredentialsGIndexElectraState,
 		int(zeroValidatorWithdrawalCredentialsGIndexState),
 	)
 
@@ -286,7 +286,7 @@ func TestValidatorWithdrawalCredentialsGIndexElectra(t *testing.T) {
 	).GetGeneralizedIndex(beaconHeaderSchemaElectra)
 	require.NoError(t, err)
 	require.Equal(t,
-		merkle.ZeroValidatorWithdrawalCredentialsGIndexElectraBlock,
+		merkle.ZeroValidatorCredentialsGIndexElectraBlock,
 		int(zeroValidatorWithdrawalCredentialsGIndexBlock),
 	)
 
@@ -306,7 +306,7 @@ func TestValidatorWithdrawalCredentialsGIndexElectra(t *testing.T) {
 	).GetGeneralizedIndex(beaconStateSchemaElectra)
 	require.NoError(t, err)
 	require.Equal(t,
-		merkle.ValidatorWithdrawalCredentialsGIndexOffset,
+		merkle.ValidatorGIndexOffset,
 		int(oneValidatorWithdrawalCredentialsGIndexState-zeroValidatorWithdrawalCredentialsGIndexState),
 	)
 }
