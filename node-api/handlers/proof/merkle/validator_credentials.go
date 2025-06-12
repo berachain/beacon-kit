@@ -100,6 +100,8 @@ func ProveWithdrawalCredentialsInBlock(
 
 	// 3. Combine proofs: state-level hashes come first, followed by block-level
 	// hashes (same order as ProveProposerPubkeyInBlock).
+	//
+	//nolint:gocritic // ok.
 	combinedProof := append(withdrawalInStateProof, stateInBlockProof...)
 
 	// 4. Verify the combined proof against the beacon block root.
