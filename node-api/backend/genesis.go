@@ -24,29 +24,68 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
-
-// GenesisBlockHeader returns the genesis block header of the beacon chain.
-func (b *Backend) GenesisBlockHeader() *ctypes.BeaconBlockHeader {
-	return b.genesisHeader.Load()
-}
-
-// GenesisValidatorsRoot returns the genesis validators root of the beacon chain.
-func (b *Backend) GenesisValidatorsRoot() common.Root {
-	return *b.genesisValidatorsRoot.Load()
-}
-
-// GenesisForkVersion returns the genesis fork version of the beacon chain.
-func (b *Backend) GenesisForkVersion() common.Version {
-	return *b.genesisForkVersion.Load()
-}
 
 // GenesisTime returns the genesis time of the beacon chain.
 func (b *Backend) GenesisTime() math.U64 {
 	return *b.genesisTime.Load()
 }
 
+// GenesisState returns the genesis state of the beacon chain.
+func (b *Backend) GenesisState() *statedb.StateDB {
+	return b.genesisState.Load()
+}
+
+// GenesisForkVersion returns the genesis fork version.
+func (b *Backend) GenesisForkVersion() common.Version {
+	return b.cs.GenesisForkVersion()
+}
+
+// GenesisBlockHeader returns the genesis block header of the beacon chain.
+func (b *Backend) GenesisBlockHeader() *ctypes.BeaconBlockHeader {
+	genesisState := b.GenesisState()
+	if genesisState == nil {
+		return nil
+	}
+
+	genesisHeader, err := genesisState.GetLatestBlockHeader()
+	if err != nil {
+		return nil
+	}
+
+	genesisHeader.SetStateRoot(genesisState.HashTreeRoot())
+
+	return genesisHeader
+}
+
 // GenesisBlockRoot returns the genesis block root of the beacon chain.
 func (b *Backend) GenesisBlockRoot() common.Root {
-	return *b.genesisBlockRoot.Load()
+	genesisState := b.GenesisState()
+	if genesisState == nil {
+		return common.Root{}
+	}
+	// Return the hash tree root of the genesis header after updating the state root in it.
+	// This is similar to how we get the block root.
+	genesisHeader := b.GenesisBlockHeader()
+	if genesisHeader == nil {
+		return common.Root{}
+	}
+
+	// Ensure genesis header has the correct state root before calculating block root
+	genesisHeader.SetStateRoot(genesisState.HashTreeRoot())
+	return genesisHeader.HashTreeRoot()
+}
+
+// GenesisValidators returns the genesis validators of the beacon chain.
+func (b *Backend) GenesisValidators() []*ctypes.Validator {
+	genesisState := b.GenesisState()
+	if genesisState == nil {
+		return nil
+	}
+	validators, err := genesisState.GetValidators()
+	if err != nil {
+		return nil
+	}
+	return validators
 }

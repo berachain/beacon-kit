@@ -112,14 +112,10 @@ func IsTimestampIDPrefix(timestampID string) bool {
 }
 
 // slotFromStateID returns a slot number from the given state ID.
-// In case of genesis, we will return 1 as the slot number. This is to ensure
-// validator API endpoints return a valid slot number for genesis.
 func slotFromStateID(id string) (math.Slot, error) {
 	switch id {
 	case StateIDFinalized, StateIDJustified, StateIDHead:
 		return Head, nil
-	case StateIDGenesis:
-		return 1, nil
 	default:
 		return math.U64FromString(id)
 	}

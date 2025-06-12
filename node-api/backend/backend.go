@@ -24,12 +24,12 @@ import (
 	"sync/atomic"
 
 	"github.com/berachain/beacon-kit/chain"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/berachain/beacon-kit/node-core/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 )
@@ -42,12 +42,12 @@ type Backend struct {
 	cs   chain.Spec
 	node types.ConsensusService
 
-	// the genesis data is cached here, written to once during initialization!
-	genesisHeader         atomic.Pointer[ctypes.BeaconBlockHeader]
-	genesisValidatorsRoot atomic.Pointer[common.Root]
-	genesisBlockRoot      atomic.Pointer[common.Root]
-	genesisTime           atomic.Pointer[math.U64]
-	genesisForkVersion    atomic.Pointer[common.Version]
+	// the genesis state and time is cached here, written to once during initialization!
+	genesisTime  atomic.Pointer[math.U64]
+	genesisState atomic.Pointer[statedb.StateDB]
+
+	// stateFetcher handles state retrieval operations
+	stateFetcher StateFetcher
 }
 
 // New creates and returns a new Backend instance.
@@ -76,9 +76,8 @@ func New(
 	genesisTime := math.U64(gen.GenesisTime.Unix())
 	b.genesisTime.Store(&genesisTime)
 
-	// Derive the genesis fork version from the genesis time.
-	genesisForkVersion := cs.ActiveForkVersionForTimestamp(genesisTime)
-	b.genesisForkVersion.Store(&genesisForkVersion)
+	// Initialize the state fetcher.
+	b.stateFetcher = NewStateFetcher(b)
 
 	return b, nil
 }
@@ -89,15 +88,9 @@ func (b *Backend) AttachQueryBackend(node types.ConsensusService) {
 	b.node = node
 }
 
-// SetGenesisData sets the genesis data on the API backend.
-func (b *Backend) SetGenesisData(
-	genesisHeader *ctypes.BeaconBlockHeader,
-	genesisValidatorsRoot common.Root,
-	genesisBlockRoot common.Root,
-) {
-	b.genesisHeader.Store(genesisHeader)
-	b.genesisValidatorsRoot.Store(&genesisValidatorsRoot)
-	b.genesisBlockRoot.Store(&genesisBlockRoot)
+// SetGenesisState sets the genesis state on the API backend.
+func (b *Backend) SetGenesisState(genesisState *statedb.StateDB) {
+	b.genesisState.Store(genesisState)
 }
 
 // GetSlotByBlockRoot retrieves the slot by a block root from the block store.
