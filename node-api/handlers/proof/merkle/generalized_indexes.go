@@ -103,3 +103,23 @@ func GetZeroValidatorPubkeyGIndexBlock(forkVersion common.Version) (uint64, erro
 	}
 	return 0, fmt.Errorf("unsupported fork version: %s", forkVersion)
 }
+
+// GetZeroValidatorWithdrawalCredentialsGIndexState determines the generalized
+// index of the 0-th validator's withdrawal credentials in the beacon state
+// based on the fork version.
+func GetZeroValidatorWithdrawalCredentialsGIndexState(forkVersion common.Version) (int, error) {
+	if version.EqualsOrIsAfter(forkVersion, version.Electra()) {
+		return ZeroValidatorWithdrawalCredentialsGIndexElectraState, nil
+	}
+	return 0, fmt.Errorf("unsupported fork version: %s", forkVersion)
+}
+
+// GetZeroValidatorWithdrawalCredentialsGIndexBlock determines the generalized
+// index of the 0-th validator's withdrawal credentials in the beacon block
+// based on the fork version.
+func GetZeroValidatorWithdrawalCredentialsGIndexBlock(forkVersion common.Version) (uint64, error) {
+	if version.EqualsOrIsAfter(forkVersion, version.Electra()) {
+		return ZeroValidatorWithdrawalCredentialsGIndexElectraBlock, nil
+	}
+	return 0, fmt.Errorf("unsupported fork version: %s", forkVersion)
+}
