@@ -158,7 +158,7 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 
 	// Calculate the validator pubkey GIndex based on fork version.
 	gIndex := zeroValidatorPubkeyGIndex +
-		(blockProposerResp.BeaconBlockHeader.ProposerIndex.Unwrap() * merkle.ValidatorPubkeyGIndexOffset)
+		(blockProposerResp.BeaconBlockHeader.ProposerIndex.Unwrap() * merkle.ValidatorGIndexOffset)
 
 	// Next verify the validator pubkey proof.
 	validatorPubkeyProof := make([][32]byte, len(blockProposerResp.ValidatorPubkeyProof))

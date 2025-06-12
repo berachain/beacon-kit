@@ -49,3 +49,23 @@ type BlockProposerResponse struct {
 	// a Generalized Index of 9 in the Deneb fork.
 	ProposerIndexProof []common.Root `json:"proposer_index_proof"`
 }
+
+// ValidatorWithdrawalCredentialsResponse is the response for the
+// `/proof/validator_withdrawal_credentials/{timestamp_id}/{validator_index}` endpoint.
+type ValidatorWithdrawalCredentialsResponse struct {
+	// BeaconBlockHeader is the block header of which the hash tree root is the
+	// beacon block root to verify against.
+	BeaconBlockHeader *ctypes.BeaconBlockHeader `json:"beacon_block_header"`
+
+	// BeaconBlockRoot is the beacon block root for this slot.
+	BeaconBlockRoot common.Root `json:"beacon_block_root"`
+
+	// WithdrawalCredentials are the credentials of the requested validator.
+	ValidatorWithdrawalCredentials ctypes.WithdrawalCredentials `json:"validator_withdrawal_credentials"`
+
+	// WithdrawalCredentialsProof can be verified against the beacon block root.
+	// Use a Generalized Index of `z + (8 * ValidatorIndex)`, where z is the
+	// Generalized Index of the 0 validator withdrawal credentials in the beacon
+	// block. In the Electra fork, z is 6350779162034177.
+	WithdrawalCredentialsProof []common.Root `json:"withdrawal_credentials_proof"`
+}

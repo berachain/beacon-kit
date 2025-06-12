@@ -27,3 +27,10 @@ import "github.com/berachain/beacon-kit/node-api/handlers/types"
 type BlockProposerRequest struct {
 	types.TimestampIDRequest
 }
+
+// ValidatorCredentialsRequest is the request for the
+// `/proof/validator_credentials/{timestamp_id}/{validator_index}` endpoint.
+type ValidatorCredentialsRequest struct {
+	types.TimestampIDRequest
+	ValidatorIndex string `param:"validator_index" validate:"required,numeric"`
+}
