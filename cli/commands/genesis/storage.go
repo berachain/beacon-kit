@@ -127,7 +127,7 @@ func SetDepositStorage(
 	}
 
 	depositAddr := common.Address(chainSpec.DepositContractAddress())
-	allocs := writeDepositStorage(elGenesis, depositAddr, count, root)
+	allocs := WriteDepositStorage(elGenesis, depositAddr, count, root)
 
 	// Get just the filename from the path
 	filename := filepath.Base(elGenesisFilePath)
@@ -141,7 +141,7 @@ func SetDepositStorage(
 	return nil
 }
 
-func writeDepositStorage(
+func WriteDepositStorage(
 	elGenesis types.EthGenesis,
 	depositAddr common.Address,
 	depositsCount *big.Int,

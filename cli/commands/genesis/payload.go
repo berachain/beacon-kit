@@ -107,7 +107,7 @@ func AddExecutionPayload(chainSpec ChainSpec, elGenesisPath string, config *cmtc
 		return errors.Wrap(err, "failed to unmarshal beacon state")
 	}
 	// Inject the execution payload.
-	eph, err := executableDataToExecutionPayloadHeader(
+	eph, err := ExecutableDataToExecutionPayloadHeader(
 		chainSpec.GenesisForkVersion(),
 		payload,
 		chainSpec.MaxWithdrawalsPerPayload(),
@@ -136,7 +136,7 @@ func AddExecutionPayload(chainSpec ChainSpec, elGenesisPath string, config *cmtc
 
 // Converts the eth executable data type to the beacon execution payload header
 // interface.
-func executableDataToExecutionPayloadHeader(
+func ExecutableDataToExecutionPayloadHeader(
 	forkVersion common.Version,
 	data *gethprimitives.ExecutableData,
 	// todo: re-enable when codec supports.

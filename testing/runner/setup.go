@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/big"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -16,9 +17,12 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
+	beaconkitgenesiscli "github.com/berachain/beacon-kit/cli/commands/genesis"
+	beaconkitgenesisclitypes "github.com/berachain/beacon-kit/cli/commands/genesis/types"
 	"github.com/berachain/beacon-kit/config/spec"
 	beaconkitconsensustypes "github.com/berachain/beacon-kit/consensus-types/types"
 	beaconkitconsensus "github.com/berachain/beacon-kit/consensus/cometbft/service"
+	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -31,7 +35,9 @@ import (
 	e2e "github.com/cometbft/cometbft/test/e2e/pkg"
 	"github.com/cometbft/cometbft/test/e2e/pkg/infra"
 	"github.com/cometbft/cometbft/types"
+	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/go-viper/mapstructure/v2"
+	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 )
 
@@ -49,6 +55,9 @@ const (
 	PrometheusConfigFile = "monitoring/prometheus.yml"
 
 	depositAmount = 32000000000
+
+	// Todo: parameterize this in the manifest
+	elGenesisFilePath = "testing/files/eth-genesis.json"
 )
 
 // pregeneratedEthAddresses returns an address defined in testing/files/eth-genesis.json
@@ -174,6 +183,23 @@ func Setup(testnet *e2e.Testnet, infp infra.Provider) error {
 	}
 
 	genesis, err := MakeGenesis(testnet)
+	if err != nil {
+		return err
+	}
+
+	// Create eth-genesis.json and set deposit storage.
+	ethGenesisBz, err := MakeEthGenesis(genesis, elGenesisFilePath)
+	if err != nil {
+		return err
+	}
+	// EthGenesis.SaveAs
+	err = os.WriteFile(filepath.Join(testnet.Dir, "eth-genesis.json"), ethGenesisBz, 0o644)
+	if err != nil {
+		return err
+	}
+
+	// Set execution payload
+	genesis, err = UpdateGenesis(genesis, ethGenesisBz)
 	if err != nil {
 		return err
 	}
@@ -378,6 +404,149 @@ func MakeGenesis(testnet *e2e.Testnet) (types.GenesisDoc, error) {
 	}
 
 	return genesis, genesis.ValidateAndComplete()
+}
+
+// MakeEthGenesis generates an eth-genesis document for a geth node.
+func MakeEthGenesis(genesis types.GenesisDoc, elGenesisPath string) (json.RawMessage, error) {
+	bz, _ := json.RawMessage{}.MarshalJSON()
+
+	// Read existing el genesis file
+	elGenesisBz, err := afero.ReadFile(afero.NewOsFs(), elGenesisPath)
+	if err != nil {
+		return bz, fmt.Errorf("error reading eth-genesis at %s", elGenesisPath)
+	}
+
+	// Read app state from AppGenesis
+	var gen map[string]json.RawMessage
+	err = json.Unmarshal(genesis.AppState, &gen)
+	if err != nil {
+		return bz, errors.New("error reading app state from genesis")
+	}
+	appStateJson, exists := gen["beacon"]
+	if !exists {
+		return bz, errors.New("beacon key not found in genesis app state")
+	}
+
+	// Get deposits from app state
+	var beaconState struct {
+		Deposits beaconkitconsensustypes.Deposits `json:"deposits"`
+	}
+	err = json.Unmarshal(appStateJson, &beaconState)
+	if err != nil {
+		return bz, errors.New("deposits not found in genesis app state")
+	}
+	deposits := beaconState.Deposits
+
+	// Set the storage of the deposit contract with deposits count and root.
+	count := big.NewInt(int64(len(deposits)))
+	root := deposits.HashTreeRoot()
+
+	// Get allocs key and unmarshal eth-genesis file.
+	allocsKey := beaconkitgenesisclitypes.DefaultAllocsKey
+	elGenesis := &beaconkitgenesisclitypes.DefaultEthGenesisJSON{}
+	if err = json.Unmarshal(elGenesisBz, elGenesis); err != nil {
+		return bz, errors.New("error unmarshalling eth-genesis")
+	}
+
+	// Generate deposit storage
+	chainSpec, err := spec.DevnetChainSpec()
+	if err != nil {
+		return bz, err
+	}
+	depositAddr := ethcommon.Address(chainSpec.DepositContractAddress())
+	updatedAllocs := beaconkitgenesiscli.WriteDepositStorage(elGenesis, depositAddr, count, root)
+
+	// Unmarshal eth-genesis for update
+	var existingGenesis map[string]interface{}
+	if err = json.Unmarshal(elGenesisBz, &existingGenesis); err != nil {
+		return bz, err
+	}
+
+	// Get existing alloc.
+	existingAllocs, ok := existingGenesis[allocsKey].(map[string]interface{})
+	if !ok {
+		return bz, errors.New("invalid alloc format in genesis file")
+	}
+
+	// Update only the deposit contract entry
+	if account, exists := updatedAllocs[depositAddr]; exists {
+		existingAllocs[depositAddr.Hex()] = account
+	} else {
+		return bz, errors.New("updated allocs could not be set")
+	}
+
+	// Marshal updated eth-genesis
+	bz, err = json.MarshalIndent(existingGenesis, "", "  ")
+	if err != nil {
+		return bz, err
+	}
+
+	return bz, nil
+}
+
+// UpdateGenesis updates the application genesis execution payload.
+func UpdateGenesis(genesis types.GenesisDoc, ethGenesisBz json.RawMessage) (types.GenesisDoc, error) {
+	// Unmarshal the eth-genesis file.
+	ethGenesis := &gethprimitives.Genesis{}
+	if err := ethGenesis.UnmarshalJSON(ethGenesisBz); err != nil {
+		return types.GenesisDoc{}, fmt.Errorf("failed to unmarshal eth1 genesis %v", err)
+	}
+	genesisBlock := ethGenesis.ToBlock()
+
+	// Create the execution payload.
+	payload := gethprimitives.BlockToExecutableData(
+		genesisBlock,
+		nil,
+		nil,
+		nil,
+	).ExecutionPayload
+
+	// Inject the execution payload.
+	chainSpec, err := spec.DevnetChainSpec()
+	if err != nil {
+		return types.GenesisDoc{}, err
+	}
+	eph, err := beaconkitgenesiscli.ExecutableDataToExecutionPayloadHeader(
+		chainSpec.GenesisForkVersion(),
+		payload,
+		chainSpec.MaxWithdrawalsPerPayload(),
+	)
+	if err != nil {
+		return types.GenesisDoc{}, fmt.Errorf("failed to convert executable data to execution payload header: %v", err)
+	}
+	if eph == nil {
+		return types.GenesisDoc{}, errors.New("failed to get execution payload header")
+	}
+
+	// Unmarshal app genesis
+	var appState map[string]json.RawMessage
+	err = json.Unmarshal(genesis.AppState, &appState)
+	if err != nil {
+		return types.GenesisDoc{}, err
+	}
+
+	// Get beacon state
+	genesisInfo := &beaconkitconsensustypes.Genesis{}
+	if err = json.Unmarshal(appState["beacon"], genesisInfo); err != nil {
+		return types.GenesisDoc{}, fmt.Errorf("failed to unmarshal beacon state: %v", err)
+	}
+
+	// Update execution payload header in app genesis
+	genesisInfo.ExecutionPayloadHeader = eph
+
+	// Marshal beacon state
+	appState["beacon"], err = json.Marshal(genesisInfo)
+	if err != nil {
+		return types.GenesisDoc{}, fmt.Errorf("failed to marshal beacon state: %v", err)
+	}
+
+	// Marshal app genesis
+	genesis.AppState, err = json.MarshalIndent(appState, "", "  ")
+	if err != nil {
+		return types.GenesisDoc{}, err
+	}
+
+	return genesis, nil
 }
 
 // MakeConfig generates a CometBFT config for a node.
