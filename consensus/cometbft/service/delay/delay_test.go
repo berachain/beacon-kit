@@ -30,7 +30,7 @@ import (
 )
 
 var testCfg = delay.Config{
-	MaxDelay:        5 * time.Minute,
+	MaxBlockDelay:   5 * time.Minute,
 	TargetBlockTime: 2 * time.Second,
 	ConstBlockDelay: 500 * time.Millisecond,
 }
@@ -112,7 +112,7 @@ func TestBlockDelayNext_ResetOnStall(t *testing.T) {
 		PreviousBlockTime: genesisTime,
 	}
 
-	curBlockTime := genesisTime.Add(testCfg.MaxDelay + 1*time.Minute)
+	curBlockTime := genesisTime.Add(testCfg.MaxBlockDelay + 1*time.Minute)
 	curBlockHeight := int64(10)
 
 	nextBlockDelay := d.Next(testCfg, curBlockTime, curBlockHeight)

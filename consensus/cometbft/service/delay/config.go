@@ -59,24 +59,28 @@ const (
 )
 
 type ConfigGetter interface {
-	SbtMaxDelayBetweenBlocks() time.Duration
+	SbtMaxBlockDelay() time.Duration
 	SbtTargetBlockTime() time.Duration
 	SbtConstBlockDelay() time.Duration
-	SbtConsensusParamUpdate() int64
+	SbtConsensusUpdateHeight() int64
 	SbtConsensusEnableHeight() int64
 }
 
 type Config struct {
-	MaxDelay              time.Duration `mapstructure:"max-delay"`
-	TargetBlockTime       time.Duration `mapstructure:"target-block-time"`
-	ConstBlockDelay       time.Duration `mapstructure:"const-block-delay"`
-	ConsensusUpdateHeight int64         `mapstructure:"consensus-update-height"`
-	ConsensusEnableHeight int64         `mapstructure:"consensus-enable-height"`
+	MaxBlockDelay   time.Duration `mapstructure:"max-block-delay"`
+	TargetBlockTime time.Duration `mapstructure:"target-block-time"`
+	ConstBlockDelay time.Duration `mapstructure:"const-block-delay"`
+
+	// ConsensusParamUpdate decides the height where we set the ConsensusEnableHeight
+	// In turn ConsensusEnableHeight, initializes the BlockDelay struct which will then
+	// be used to calculate block delay in the next height.
+	ConsensusUpdateHeight int64 `mapstructure:"consensus-update-height"`
+	ConsensusEnableHeight int64 `mapstructure:"consensus-enable-height"`
 }
 
 func DefaultConfig() Config {
 	return Config{
-		MaxDelay:              maxDelayBetweenBlocks,
+		MaxBlockDelay:         maxDelayBetweenBlocks,
 		TargetBlockTime:       targetBlockTime,
 		ConstBlockDelay:       constBlockDelay,
 		ConsensusUpdateHeight: sbtConsensusParamUpdate,
@@ -84,8 +88,8 @@ func DefaultConfig() Config {
 	}
 }
 
-func (c Config) SbtMaxDelayBetweenBlocks() time.Duration {
-	return c.MaxDelay
+func (c Config) SbtMaxBlockDelay() time.Duration {
+	return c.MaxBlockDelay
 }
 func (c Config) SbtTargetBlockTime() time.Duration {
 	return c.TargetBlockTime
@@ -93,7 +97,7 @@ func (c Config) SbtTargetBlockTime() time.Duration {
 func (c Config) SbtConstBlockDelay() time.Duration {
 	return c.ConstBlockDelay
 }
-func (c Config) SbtConsensusParamUpdate() int64 {
+func (c Config) SbtConsensusUpdateHeight() int64 {
 	return c.ConsensusUpdateHeight
 }
 func (c Config) SbtConsensusEnableHeight() int64 {

@@ -45,6 +45,28 @@ type BlockDelay struct {
 	PreviousBlockTime time.Time
 }
 
+// Next returns the duration to wait before proposing the next block.
+func (d *BlockDelay) Next(cfg ConfigGetter, curBlockTime time.Time, curBlockHeight int64) time.Duration {
+	// Reset the initial time and height if the time between blocks is greater
+	// than MaxDelayBetweenBlocks. This makes the current time and height the
+	// initial one as if the upgrade happened just now.
+	if curBlockTime.Sub(d.PreviousBlockTime) > cfg.SbtMaxBlockDelay() {
+		d.InitialTime = curBlockTime
+		d.InitialHeight = curBlockHeight
+		d.PreviousBlockTime = curBlockTime
+		return cfg.SbtTargetBlockTime()
+	}
+
+	d.PreviousBlockTime = curBlockTime
+
+	t := d.InitialTime.Add(cfg.SbtTargetBlockTime() * time.Duration(curBlockHeight-d.InitialHeight))
+	if curBlockTime.Before(t) {
+		nextBlockDelay := t.Sub(curBlockTime)
+		return nextBlockDelay
+	}
+	return noDelay
+}
+
 // FromBytes converts the bytes to a blockDelay.
 //
 // Expected format:
@@ -85,27 +107,6 @@ func FromBytes(bz []byte) (*BlockDelay, error) {
 		InitialHeight:     initialHeight,
 		PreviousBlockTime: time.Unix(0, prevBlockTime),
 	}, nil
-}
-
-// Next returns the duration to wait before proposing the next block.
-func (d *BlockDelay) Next(cfg ConfigGetter, curBlockTime time.Time, curBlockHeight int64) time.Duration {
-	// Reset the initial time and height if the time between blocks is greater
-	// than MaxDelayBetweenBlocks. This makes the current time and height the
-	// initial one as if the upgrade happened just now.
-	if curBlockTime.Sub(d.PreviousBlockTime) > cfg.SbtMaxDelayBetweenBlocks() {
-		d.InitialTime = curBlockTime
-		d.InitialHeight = curBlockHeight
-		d.PreviousBlockTime = curBlockTime
-		return cfg.SbtTargetBlockTime()
-	}
-
-	d.PreviousBlockTime = curBlockTime
-
-	t := d.InitialTime.Add(cfg.SbtTargetBlockTime() * time.Duration(curBlockHeight-d.InitialHeight))
-	if curBlockTime.Before(t) {
-		return t.Sub(curBlockTime)
-	}
-	return noDelay
 }
 
 // ToBytes converts the blockDelay to bytes.

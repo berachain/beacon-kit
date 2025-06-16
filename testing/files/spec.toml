@@ -67,8 +67,8 @@ min-activation-balance = 32_000_000_000
 min-validator-withdrawability-delay = 32
 
 [block-delay-configuration]
-max-delay = 300_000_000_000
+max-block-delay = 300_000_000_000
 target-block-time = 2_000_000_000
 const-block-delay = 500_000_000
 consensus-update-height = 1
-consensus-enable-height = 1
+consensus-enable-height = 2
