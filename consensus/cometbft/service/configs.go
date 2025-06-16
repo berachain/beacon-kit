@@ -83,7 +83,8 @@ func DefaultConfig() *cmtcfg.Config {
 	consensus.TimeoutPropose = minTimeoutPropose
 	consensus.TimeoutPrevote = minTimeoutPrevote
 	consensus.TimeoutPrecommit = minTimeoutPrecommit
-	//nolint:staticcheck // we use NextBlockDelay now
+
+	//nolint:staticcheck // setting to zero because it's deprecated
 	consensus.TimeoutCommit = 0
 
 	cfg.Storage.DiscardABCIResponses = true
@@ -121,7 +122,7 @@ func DefaultConsensusParams(consensusKeyAlgo string) *cmttypes.ConsensusParams {
 	res.Synchrony.Precision = precision
 	res.Synchrony.MessageDelay = messageDelay
 
-	// Activete Stable Block Time (SBT) by default.
+	// Activate Stable Block Time (SBT) by default.
 	res.Feature.SBTEnableHeight = 1
 
 	if err := res.ValidateBasic(); err != nil {

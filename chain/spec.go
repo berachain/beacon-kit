@@ -271,8 +271,8 @@ func (s spec) validate() error {
 	return nil
 }
 
-func (s spec) SbtMaxDelayBetweenBlocks() time.Duration {
-	return s.Data.MaxDelay
+func (s spec) SbtMaxBlockDelay() time.Duration {
+	return s.Data.MaxBlockDelay
 }
 func (s spec) SbtTargetBlockTime() time.Duration {
 	return s.Data.TargetBlockTime
@@ -280,7 +280,7 @@ func (s spec) SbtTargetBlockTime() time.Duration {
 func (s spec) SbtConstBlockDelay() time.Duration {
 	return s.Data.ConstBlockDelay
 }
-func (s spec) SbtConsensusParamUpdate() int64 {
+func (s spec) SbtConsensusUpdateHeight() int64 {
 	return s.Data.ConsensusUpdateHeight
 }
 func (s spec) SbtConsensusEnableHeight() int64 {
