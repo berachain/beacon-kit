@@ -1,5 +1,3 @@
-package merkle
-
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2025, Berachain Foundation. All rights reserved.
@@ -20,9 +18,7 @@ package merkle
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-// This file contains helper functions to generate and optionally verify Merkle
-// proofs for a validator's withdrawal credentials, both in the beacon state and
-// in the beacon block. The pattern follows that of proposer-pubkey proofs.
+package merkle
 
 import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
