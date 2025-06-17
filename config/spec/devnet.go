@@ -21,6 +21,8 @@
 package spec
 
 import (
+	"math"
+
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/ethereum/go-ethereum/params"
@@ -48,6 +50,10 @@ const (
 	// devnet is configured to start on electra.
 	devnetElectraForkTime = 0
 
+	// devnetElectra1ForkTime is the timestamp at which the Electra fork occurs.
+	// devnet is configured to start on electra.
+	devnetElectra1ForkTime = math.MaxInt64
+
 	// devnetEVMInflationAddressDeneb1 is the address of the EVM inflation contract
 	// after the Deneb1 fork.
 	devnetEVMInflationAddressDeneb1 = "0x4206942069420694206942069420694206942069"
@@ -72,6 +78,7 @@ func DevnetChainSpecData() *chain.SpecData {
 	specData.GenesisTime = devnetGenesisTime
 	specData.Deneb1ForkTime = devnetDeneb1ForkTime
 	specData.ElectraForkTime = devnetElectraForkTime
+	specData.Electra1ForkTime = devnetElectra1ForkTime
 
 	// EVM inflation is different from mainnet to test.
 	specData.EVMInflationAddressGenesis = common.NewExecutionAddressFromHex(devnetEVMInflationAddress)

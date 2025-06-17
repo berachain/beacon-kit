@@ -20,7 +20,11 @@
 
 package spec
 
-import "github.com/berachain/beacon-kit/chain"
+import (
+	"math"
+
+	"github.com/berachain/beacon-kit/chain"
+)
 
 // TestnetChainSpecData is the chain.SpecData for Berachain's public testnet, Bepolia.
 func TestnetChainSpecData() *chain.SpecData {
@@ -39,6 +43,9 @@ func TestnetChainSpecData() *chain.SpecData {
 
 	// Timestamp of the Electra fork on Bepolia.
 	specData.ElectraForkTime = 1746633600
+
+	// Timestamp of the Electra fork on Bepolia.
+	specData.Electra1ForkTime = math.MaxInt64
 
 	return specData
 }
