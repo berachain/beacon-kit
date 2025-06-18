@@ -32,5 +32,4 @@ const (
 
 const (
 	Head math.Slot = iota
-	Genesis
 )
