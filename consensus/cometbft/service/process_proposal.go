@@ -62,13 +62,12 @@ func (s *Service) processProposal(
 	// errors to consensus indicate that the node was not able to understand
 	// whether the block was valid or not. Viceversa, we signal that a block
 	// is invalid by its status, but we do return nil error in such a case.
-	status := cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
-	/*valUpdates*/ _, err := s.Blockchain.ProcessProposal(
+	valUpdates, err := s.Blockchain.ProcessProposal(
 		processProposalState.Context(),
 		req,
 	)
 	if err != nil {
-		status = cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
+		status := cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
 		s.logger.Error(
 			"failed to process proposal",
 			"height", req.Height,
@@ -76,6 +75,15 @@ func (s *Service) processProposal(
 			"hash", fmt.Sprintf("%X", req.Hash),
 			"err", err,
 		)
+		return &cmtabci.ProcessProposalResponse{Status: status}, nil
 	}
+
+	if req.Height > s.initialHeight+10 { // TODO: consider how low can we go
+		s.candidateStates[string(req.Hash)] = &CacheElement{
+			state:      processProposalState,
+			valUpdates: valUpdates,
+		}
+	}
+	status := cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
 	return &cmtabci.ProcessProposalResponse{Status: status}, nil
 }

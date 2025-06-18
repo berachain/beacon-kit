@@ -40,6 +40,7 @@ func (s *Service) finalizeBlock(
 	return res, err
 }
 
+//nolint:nestif // make it work, make it right, make it fast
 func (s *Service) finalizeBlockInternal(
 	ctx context.Context,
 	req *cmtabci.FinalizeBlockRequest,
@@ -56,23 +57,6 @@ func (s *Service) finalizeBlockInternal(
 		finalizeBlockState *state
 		stateHash          = string(req.Hash)
 	)
-	if s.finalStateHash != nil {
-		// Preserve the CosmosSDK context while using the correct base ctx.
-		st, found := s.candidateStates[*s.finalStateHash]
-		if !found {
-			panic(fmt.Errorf("missing candidate state for hash %s", *s.finalStateHash))
-		}
-		stateHash = *s.finalStateHash
-		st.state.SetContext(st.state.Context().WithContext(ctx))
-		finalizeBlockState = st.state
-	} else {
-		finalizeBlockState = s.resetState(ctx)
-
-		s.finalStateHash = &stateHash
-		s.candidateStates[stateHash] = &CacheElement{
-			state: finalizeBlockState,
-		}
-	}
 
 	// This result format is expected by Comet. That actual execution will happen as part of the state transition.
 	txResults := make([]*cmtabci.ExecTxResult, len(req.Txs))
@@ -84,6 +68,41 @@ func (s *Service) finalizeBlockInternal(
 			Log:       "skip decoding",
 			GasWanted: 0,
 			GasUsed:   0,
+		}
+	}
+
+	if s.finalStateHash != nil {
+		// Preserve the CosmosSDK context while using the correct base ctx.
+		st, found := s.candidateStates[*s.finalStateHash]
+		if !found {
+			panic(fmt.Errorf("missing candidate state for hash %s", *s.finalStateHash))
+		}
+		stateHash = *s.finalStateHash
+		st.state.SetContext(st.state.Context().WithContext(ctx))
+		finalizeBlockState = st.state
+	} else {
+		s.finalStateHash = &stateHash
+
+		if cached, found := s.candidateStates[stateHash]; found {
+			formattedValUpdates, err := iter.MapErr(
+				cached.valUpdates,
+				convertValidatorUpdate[cmtabci.ValidatorUpdate],
+			)
+			if err != nil {
+				return nil, err
+			}
+
+			cp := s.cmtConsensusParams.ToProto()
+			return &cmtabci.FinalizeBlockResponse{
+				TxResults:             txResults,
+				ValidatorUpdates:      formattedValUpdates,
+				ConsensusParamUpdates: &cp,
+			}, nil
+		}
+
+		finalizeBlockState = s.resetState(ctx)
+		s.candidateStates[stateHash] = &CacheElement{
+			state: finalizeBlockState,
 		}
 	}
 
