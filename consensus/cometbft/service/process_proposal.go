@@ -45,19 +45,16 @@ func (s *Service) processProposal(
 		)
 	}
 
-	// Since the application can get access to FinalizeBlock state and write to
-	// it, we must be sure to reset it in case ProcessProposal timeouts and is
-	// called
-	// again in a subsequent round. However, we only want to do this after we've
-	// processed the first block, as we want to avoid overwriting the
-	// finalizeState
-	// after state changes during InitChain.
-	s.processProposalState = s.resetState(ctx)
+	// processProposalState is used for ProcessProposal, which is set based on
+	// the previous block's state. This state is never committed. In case of
+	// multiple consensus rounds, the state is always reset to the previous
+	// block's state.
+	processProposalState := s.resetState(ctx)
 
 	//nolint:contextcheck // ctx already passed via resetState
-	s.processProposalState.SetContext(
+	processProposalState.SetContext(
 		s.getContextForProposal(
-			s.processProposalState.Context(),
+			processProposalState.Context(),
 			req.Height,
 		),
 	)
@@ -67,7 +64,7 @@ func (s *Service) processProposal(
 	// is invalid by its status, but we do return nil error in such a case.
 	status := cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
 	/*valUpdates*/ _, err := s.Blockchain.ProcessProposal(
-		s.processProposalState.Context(),
+		processProposalState.Context(),
 		req,
 	)
 	if err != nil {
