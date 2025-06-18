@@ -66,7 +66,7 @@ func (s *Service) processProposal(
 	// whether the block was valid or not. Viceversa, we signal that a block
 	// is invalid by its status, but we do return nil error in such a case.
 	status := cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
-	err := s.Blockchain.ProcessProposal(
+	/*valUpdates*/ _, err := s.Blockchain.ProcessProposal(
 		s.processProposalState.Context(),
 		req,
 	)

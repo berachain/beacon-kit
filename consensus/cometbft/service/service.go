@@ -86,7 +86,6 @@ type Service struct {
 	////// NEW ELEMENTS TO CACHE STATES
 	candidateStates map[string]*CacheElement
 	finalStateHash  *string
-
 	////// END OF NEW ELEMENTS TO CACHE STATES
 
 	interBlockCache storetypes.MultiStorePersistentCache
