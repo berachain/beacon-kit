@@ -52,19 +52,26 @@ func (s *Service) finalizeBlockInternal(
 	// is nil, it means we are replaying this block and we need to set the state
 	// here given that during block replay ProcessProposal is not executed by
 	// CometBFT.
-	var finalizeBlockState *state
-	if s.finalStateHash == nil {
-		finalizeBlockState = s.resetState(ctx)
-	} else {
+	var (
+		finalizeBlockState *state
+		stateHash          = string(req.Hash)
+	)
+	if s.finalStateHash != nil {
 		// Preserve the CosmosSDK context while using the correct base ctx.
-
 		st, found := s.candidateStates[*s.finalStateHash]
 		if !found {
 			panic(fmt.Errorf("missing candidate state for hash %s", *s.finalStateHash))
 		}
+		stateHash = *s.finalStateHash
 		st.state.SetContext(st.state.Context().WithContext(ctx))
-		stateHash := string(req.Hash)
+		finalizeBlockState = st.state
+	} else {
+		finalizeBlockState = s.resetState(ctx)
+
 		s.finalStateHash = &stateHash
+		s.candidateStates[stateHash] = &CacheElement{
+			state: finalizeBlockState,
+		}
 	}
 
 	// This result format is expected by Comet. That actual execution will happen as part of the state transition.
@@ -84,10 +91,7 @@ func (s *Service) finalizeBlockInternal(
 	if err != nil {
 		return nil, err
 	}
-	s.candidateStates[string(req.Hash)] = &CacheElement{
-		state:      finalizeBlockState,
-		valUpdates: valUpdates,
-	}
+	s.candidateStates[stateHash].valUpdates = valUpdates
 
 	formattedValUpdates, err := iter.MapErr(
 		valUpdates,

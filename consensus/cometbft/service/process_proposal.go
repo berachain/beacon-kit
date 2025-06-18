@@ -53,9 +53,6 @@ func (s *Service) processProposal(
 	// finalizeState
 	// after state changes during InitChain.
 	s.processProposalState = s.resetState(ctx)
-	if req.Height > s.initialHeight {
-		s.finalizeBlockState = s.resetState(ctx)
-	}
 
 	//nolint:contextcheck // ctx already passed via resetState
 	s.processProposalState.SetContext(

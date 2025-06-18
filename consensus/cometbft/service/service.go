@@ -83,12 +83,6 @@ type Service struct {
 	// block's state.
 	processProposalState *state
 
-	// finalizeBlockState is used for FinalizeBlock, which is set based on the
-	// previous block's state. This state is committed. finalizeBlockState is
-	// set
-	// on InitChain and FinalizeBlock and set to nil on Commit.
-	finalizeBlockState *state
-
 	////// NEW ELEMENTS TO CACHE STATES
 	candidateStates map[string]*CacheElement
 	finalStateHash  *string
@@ -342,12 +336,12 @@ func (s *Service) getContextForProposal(
 		return ctx
 	}
 
-	if s.finalizeBlockState == nil {
+	if s.finalStateHash == nil {
 		// this is unexpected since cometBFT won't call PrepareProposal
 		// on initialHeight. Panic appeases nilaway.
 		panic(fmt.Errorf("getContextForProposal: %w", errNilFinalizeBlockState))
 	}
-	newCtx, _ := s.finalizeBlockState.Context().CacheContext()
+	newCtx, _ := s.candidateStates[*s.finalStateHash].state.Context().CacheContext()
 	// Preserve the CosmosSDK context while using the correct base ctx.
 	return newCtx.WithContext(ctx.Context())
 }

@@ -45,7 +45,8 @@ func (s *Service) commit(
 	}
 	s.sm.GetCommitMultiStore().Commit()
 
-	s.finalizeBlockState = nil
+	delete(s.candidateStates, *s.finalStateHash)
+	s.finalStateHash = nil
 
 	return &cmtabci.CommitResponse{
 		RetainHeight: retainHeight,
@@ -110,7 +111,7 @@ func (s *Service) GetBlockRetentionHeight(commitHeight int64) int64 {
 	// based
 	// on the unbonding period and block commitment time as the two should be
 	// equivalent.
-	if s.finalizeBlockState == nil {
+	if s.finalStateHash == nil {
 		return 0
 	}
 	cp := s.cmtConsensusParams.ToProto()
