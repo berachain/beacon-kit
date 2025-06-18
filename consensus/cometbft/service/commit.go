@@ -36,7 +36,14 @@ func (s *Service) commit(
 		// after FinalizeBlock has been called. Panic appeases nilaway.
 		panic(fmt.Errorf("commit: %w", errNilFinalizeBlockState))
 	}
-	header := s.candidateStates[*s.finalStateHash].state.Context().BlockHeader()
+	cached, found := s.candidateStates[*s.finalStateHash]
+	if !found {
+		// This is unexpected since CometBFT should call Commit only
+		// after FinalizeBlock has been called. Panic appeases nilaway.
+		panic(fmt.Errorf("commit: %w", errNilFinalizeBlockState))
+	}
+
+	header := cached.state.Context().BlockHeader()
 	retainHeight := s.GetBlockRetentionHeight(header.Height)
 
 	rms, ok := s.sm.GetCommitMultiStore().(*rootmulti.Store)

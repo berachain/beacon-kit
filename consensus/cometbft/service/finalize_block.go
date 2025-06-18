@@ -110,6 +110,10 @@ func (s *Service) finalizeBlockInternal(
 	if err != nil {
 		return nil, err
 	}
+	if _, found := s.candidateStates[stateHash]; !found {
+		// TODO: remove. Annoying, just to appease nilaway
+		panic(fmt.Errorf("missing candidate state for hash %s", *s.finalStateHash))
+	}
 	s.candidateStates[stateHash].valUpdates = valUpdates
 
 	formattedValUpdates, err := iter.MapErr(
@@ -145,7 +149,12 @@ func (s *Service) workingHash() []byte {
 		// internalFinalizeBlock. Panic appeases nilaway.
 		panic(fmt.Errorf("workingHash: %w", errNilFinalizeBlockState))
 	}
-	s.candidateStates[*s.finalStateHash].state.ms.Write()
+	cached, found := s.candidateStates[*s.finalStateHash]
+	if !found {
+		// TODO: remove. Annoying, just to appease nilaway
+		panic(fmt.Errorf("missing candidate state for hash %s", *s.finalStateHash))
+	}
+	cached.state.ms.Write()
 
 	// Get the hash of all writes in order to return the apphash to the comet in
 	// finalizeBlock.

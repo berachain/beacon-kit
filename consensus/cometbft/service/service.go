@@ -328,7 +328,12 @@ func (s *Service) getContextForProposal(
 		// on initialHeight. Panic appeases nilaway.
 		panic(fmt.Errorf("getContextForProposal: %w", errNilFinalizeBlockState))
 	}
-	newCtx, _ := s.candidateStates[*s.finalStateHash].state.Context().CacheContext()
+	cached, found := s.candidateStates[*s.finalStateHash]
+	if !found {
+		// TODO: remove. Annoying, just to appease nilaway
+		panic(fmt.Errorf("getContextForProposal: %w", errNilFinalizeBlockState))
+	}
+	newCtx, _ := cached.state.Context().CacheContext()
 	// Preserve the CosmosSDK context while using the correct base ctx.
 	return newCtx.WithContext(ctx.Context())
 }
