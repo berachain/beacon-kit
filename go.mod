@@ -10,7 +10,7 @@ replace (
 )
 
 require (
-	cosmossdk.io/collections v1.2.1
+	cosmossdk.io/collections v1.3.1
 	cosmossdk.io/core v1.0.0
 	cosmossdk.io/depinject v1.2.0
 	cosmossdk.io/errors v1.0.2
@@ -20,7 +20,7 @@ require (
 	github.com/cenkalti/backoff/v5 v5.0.2
 	github.com/cometbft/cometbft v1.0.1-0.20241220100824-07c737de00ff
 	github.com/cometbft/cometbft/api v1.0.1-0.20241220100824-07c737de00ff
-	github.com/cosmos/cosmos-db v1.1.1
+	github.com/cosmos/cosmos-db v1.1.3
 	github.com/cosmos/cosmos-sdk v0.53.0
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/crate-crypto/go-kzg-4844 v1.1.0
@@ -80,7 +80,7 @@ require (
 	github.com/99designs/keyring v1.2.2 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 // indirect
 	github.com/DataDog/datadog-go v4.8.3+incompatible // indirect
-	github.com/DataDog/zstd v1.5.6 // indirect
+	github.com/DataDog/zstd v1.5.7 // indirect
 	github.com/Masterminds/semver/v3 v3.3.1 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5 // indirect
@@ -98,7 +98,7 @@ require (
 	github.com/cockroachdb/errors v1.12.0 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240816210425-c5d0cb0b6fc0 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20241215232642-bb51bb14a506 // indirect
-	github.com/cockroachdb/pebble v1.1.4 // indirect
+	github.com/cockroachdb/pebble v1.1.5 // indirect
 	github.com/cockroachdb/redact v1.1.6 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
 	github.com/cometbft/cometbft-db v1.0.4 // indirect
@@ -129,7 +129,7 @@ require (
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
-	github.com/getsentry/sentry-go v0.32.0 // indirect
+	github.com/getsentry/sentry-go v0.33.0 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
@@ -173,7 +173,7 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/kilic/bls12-381 v0.1.0 // indirect
-	github.com/klauspost/compress v1.17.11 // indirect
+	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.10 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
