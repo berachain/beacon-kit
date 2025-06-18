@@ -35,6 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	statem "github.com/berachain/beacon-kit/consensus/cometbft/service/state"
 	"github.com/berachain/beacon-kit/da/kzg"
 	"github.com/berachain/beacon-kit/da/kzg/gokzg"
 	"github.com/berachain/beacon-kit/errors"
@@ -87,6 +88,7 @@ func (s *SharedAccessors) InitializeChain(t *testing.T) {
 	initResp, err := s.SimComet.Comet.InitChain(s.CtxComet, &types.InitChainRequest{
 		ChainId:       TestnetBeaconChainID,
 		AppStateBytes: appGenesis.AppState,
+		InitialHeight: statem.InitialHeight,
 	})
 	require.NoError(t, err)
 	require.Len(t, initResp.Validators, 1, "Expected 1 validator")

@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"time"
 
+	statem "github.com/berachain/beacon-kit/consensus/cometbft/service/state"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
@@ -37,7 +38,7 @@ func (s *Service) processProposal(
 		"beacon_kit.runtime.process_proposal_duration", startTime)
 
 	// CometBFT must never call ProcessProposal with a height of 0.
-	if req.Height < 1 {
+	if req.Height < statem.InitialHeight {
 		return nil, fmt.Errorf(
 			"processProposal at height %v: %w",
 			req.Height,
@@ -45,34 +46,20 @@ func (s *Service) processProposal(
 		)
 	}
 
-	// Since the application can get access to FinalizeBlock state and write to
-	// it, we must be sure to reset it in case ProcessProposal timeouts and is
-	// called
-	// again in a subsequent round. However, we only want to do this after we've
-	// processed the first block, as we want to avoid overwriting the
-	// finalizeState
-	// after state changes during InitChain.
-	s.processProposalState = s.resetState(ctx)
-	if req.Height > s.initialHeight {
-		s.finalizeBlockState = s.resetState(ctx)
+	// processProposalState is used for ProcessProposal, which is set based on
+	// the previous block's state. This state is never committed. In case of
+	// multiple consensus rounds, the state is always reset to the previous
+	// block's state.
+	stateCtx, err := s.stateHandler.NewEphemeralStateCtx(ctx, req.Height)
+	if err != nil {
+		panic(fmt.Errorf("process proposal, failed generating ephemeral context: %w", err))
 	}
-
-	//nolint:contextcheck // ctx already passed via resetState
-	s.processProposalState.SetContext(
-		s.getContextForProposal(
-			s.processProposalState.Context(),
-			req.Height,
-		),
-	)
 
 	// errors to consensus indicate that the node was not able to understand
 	// whether the block was valid or not. Viceversa, we signal that a block
 	// is invalid by its status, but we do return nil error in such a case.
 	status := cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
-	err := s.Blockchain.ProcessProposal(
-		s.processProposalState.Context(),
-		req,
-	)
+	err = s.Blockchain.ProcessProposal(stateCtx, req)
 	if err != nil {
 		status = cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
 		s.logger.Error(
