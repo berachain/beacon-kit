@@ -78,7 +78,7 @@ func (s *Service) processProposal(
 		return &cmtabci.ProcessProposalResponse{Status: status}, nil
 	}
 
-	if req.Height > s.initialHeight+10 { // TODO: consider how low can we go
+	if req.Height > s.initialHeight {
 		s.candidateStates[string(req.Hash)] = &CacheElement{
 			state:      processProposalState,
 			valUpdates: valUpdates,

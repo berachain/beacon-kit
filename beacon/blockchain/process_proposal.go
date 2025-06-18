@@ -238,7 +238,7 @@ func (s *Service) VerifyIncomingBlock(
 	proposerAddress []byte,
 ) (transition.ValidatorUpdates, error) {
 	// Grab a copy of the state to verify the incoming block.
-	preState := s.storageBackend.StateFromContext(ctx)
+	state := s.storageBackend.StateFromContext(ctx)
 
 	// Force a sync of the startup head if we haven't done so already.
 	// TODO: Address the need for calling forceStartupSyncOnce in ProcessProposal. On a running
@@ -247,7 +247,7 @@ func (s *Service) VerifyIncomingBlock(
 	// into this case during the first block after genesis.
 	// TODO: Consider panicing here if this fails. If our node cannot successfully run
 	// forceStartupSync, then we should shut down the node and fix the problem.
-	s.forceStartupSyncOnce.Do(func() { s.forceSyncUponProcess(ctx, preState) })
+	s.forceStartupSyncOnce.Do(func() { s.forceSyncUponProcess(ctx, state) })
 
 	s.logger.Info(
 		"Received incoming beacon block",
@@ -259,10 +259,10 @@ func (s *Service) VerifyIncomingBlock(
 	// to avoid modifying the underlying state, for the event in which
 	// we have to rebuild a payload for this slot again, if we do not agree
 	// with the incoming block.
-	postState := preState.Copy(ctx)
+	copiedState := state.Copy(ctx)
 
 	// verify block slot
-	stateSlot, err := postState.GetSlot()
+	stateSlot, err := copiedState.GetSlot()
 	if err != nil {
 		s.logger.Error(
 			"failed loading state slot to verify block slot",
@@ -286,7 +286,7 @@ func (s *Service) VerifyIncomingBlock(
 	var valUpdates transition.ValidatorUpdates
 	valUpdates, err = s.verifyStateRoot(
 		ctx,
-		postState,
+		state,
 		beaconBlk,
 		consensusTime,
 		proposerAddress)
@@ -298,7 +298,7 @@ func (s *Service) VerifyIncomingBlock(
 		)
 
 		if s.shouldBuildOptimisticPayloads() {
-			lph, lphErr := preState.GetLatestExecutionPayloadHeader()
+			lph, lphErr := copiedState.GetLatestExecutionPayloadHeader()
 			if lphErr != nil {
 				return nil, errors.Join(
 					err,
@@ -310,7 +310,7 @@ func (s *Service) VerifyIncomingBlock(
 			// payload for this slot (in case we are selected as the next proposer for this slot).
 			go s.handleRebuildPayloadForRejectedBlock(
 				ctx,
-				preState,
+				copiedState,
 				payloadtime.Next(
 					consensusTime,
 					lph.GetTimestamp(),
@@ -329,14 +329,14 @@ func (s *Service) VerifyIncomingBlock(
 	)
 
 	if s.shouldBuildOptimisticPayloads() {
-		lph, lphErr := postState.GetLatestExecutionPayloadHeader()
+		lph, lphErr := state.GetLatestExecutionPayloadHeader()
 		if lphErr != nil {
 			return nil, fmt.Errorf("failed loading LatestExecutionPayloadHeader: %w", lphErr)
 		}
 
 		go s.handleOptimisticPayloadBuild(
 			ctx,
-			postState,
+			state,
 			beaconBlk,
 			payloadtime.Next(
 				consensusTime,
