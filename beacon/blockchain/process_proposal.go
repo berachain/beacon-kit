@@ -262,7 +262,7 @@ func (s *Service) VerifyIncomingBlock(
 	copiedState := state.Copy(ctx)
 
 	// verify block slot
-	stateSlot, err := copiedState.GetSlot()
+	stateSlot, err := state.GetSlot()
 	if err != nil {
 		s.logger.Error(
 			"failed loading state slot to verify block slot",
