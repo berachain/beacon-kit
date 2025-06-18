@@ -63,7 +63,7 @@ type PectraWithdrawalSuite struct {
 	simulated.SharedAccessors
 }
 
-// TestSimulatedCometComponent runs the test suite.
+// TestPectraWithdrawalSuite runs the test suite.
 func TestPectraWithdrawalSuite(t *testing.T) {
 	suite.Run(t, new(PectraWithdrawalSuite))
 }
