@@ -52,11 +52,19 @@ func (s *Service) finalizeBlockInternal(
 	// is nil, it means we are replaying this block and we need to set the state
 	// here given that during block replay ProcessProposal is not executed by
 	// CometBFT.
-	if s.finalizeBlockState == nil {
-		s.finalizeBlockState = s.resetState(ctx)
+	var finalizeBlockState *state
+	if s.finalStateHash == nil {
+		finalizeBlockState = s.resetState(ctx)
 	} else {
 		// Preserve the CosmosSDK context while using the correct base ctx.
-		s.finalizeBlockState.SetContext(s.finalizeBlockState.Context().WithContext(ctx))
+
+		st, found := s.candidateStates[*s.finalStateHash]
+		if !found {
+			panic(fmt.Errorf("missing candidate state for hash %s", *s.finalStateHash))
+		}
+		st.state.SetContext(st.state.Context().WithContext(ctx))
+		stateHash := string(req.Hash)
+		s.finalStateHash = &stateHash
 	}
 
 	// This result format is expected by Comet. That actual execution will happen as part of the state transition.
@@ -72,16 +80,17 @@ func (s *Service) finalizeBlockInternal(
 		}
 	}
 
-	finalizeBlock, err := s.Blockchain.FinalizeBlock(
-		s.finalizeBlockState.Context(),
-		req,
-	)
+	valUpdates, err := s.Blockchain.FinalizeBlock(finalizeBlockState.Context(), req)
 	if err != nil {
 		return nil, err
 	}
+	s.candidateStates[string(req.Hash)] = &CacheElement{
+		state:      finalizeBlockState,
+		valUpdates: valUpdates,
+	}
 
-	valUpdates, err := iter.MapErr(
-		finalizeBlock,
+	formattedValUpdates, err := iter.MapErr(
+		valUpdates,
 		convertValidatorUpdate[cmtabci.ValidatorUpdate],
 	)
 	if err != nil {
@@ -91,7 +100,7 @@ func (s *Service) finalizeBlockInternal(
 	cp := s.cmtConsensusParams.ToProto()
 	return &cmtabci.FinalizeBlockResponse{
 		TxResults:             txResults,
-		ValidatorUpdates:      valUpdates,
+		ValidatorUpdates:      formattedValUpdates,
 		ConsensusParamUpdates: &cp,
 	}, nil
 }
@@ -108,12 +117,12 @@ func (s *Service) workingHash() []byte {
 	// MultiStore. The write to the FinalizeBlock state writes all state
 	// transitions to the root MultiStore (s.sm.GetCommitMultiStore())
 	// so when Commit() is called it persists those values.
-	if s.finalizeBlockState == nil {
+	if s.finalStateHash == nil {
 		// this is unexpected since workingHash is called only after
 		// internalFinalizeBlock. Panic appeases nilaway.
 		panic(fmt.Errorf("workingHash: %w", errNilFinalizeBlockState))
 	}
-	s.finalizeBlockState.ms.Write()
+	s.candidateStates[*s.finalStateHash].state.ms.Write()
 
 	// Get the hash of all writes in order to return the apphash to the comet in
 	// finalizeBlock.

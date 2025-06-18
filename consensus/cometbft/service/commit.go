@@ -31,12 +31,12 @@ import (
 func (s *Service) commit(
 	*cmtabci.CommitRequest,
 ) (*cmtabci.CommitResponse, error) {
-	if s.finalizeBlockState == nil {
+	if s.finalStateHash == nil {
 		// This is unexpected since CometBFT should call Commit only
 		// after FinalizeBlock has been called. Panic appeases nilaway.
 		panic(fmt.Errorf("commit: %w", errNilFinalizeBlockState))
 	}
-	header := s.finalizeBlockState.Context().BlockHeader()
+	header := s.candidateStates[*s.finalStateHash].state.Context().BlockHeader()
 	retainHeight := s.GetBlockRetentionHeight(header.Height)
 
 	rms, ok := s.sm.GetCommitMultiStore().(*rootmulti.Store)
