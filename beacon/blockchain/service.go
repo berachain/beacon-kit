@@ -79,6 +79,7 @@ func NewService(
 	telemetrySink TelemetrySink,
 	optimisticPayloadBuilds bool,
 ) *Service {
+	logger.Info("Initializing blockchain service", "optimistic_payload_builds", optimisticPayloadBuilds)
 	return &Service{
 		storageBackend:          storageBackend,
 		blobProcessor:           blobProcessor,
