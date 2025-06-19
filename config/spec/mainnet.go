@@ -85,7 +85,7 @@ const (
 	// mainnetElectraForkTime is the timestamp at which the Electra fork occurs.
 	mainnetElectraForkTime = 1749056400
 
-	// mainnetElectra1ForkTime is the timestamp at which the Electra fork occurs.
+	// mainnetElectra1ForkTime is the timestamp at which the Electra1 fork occurs.
 	mainnetElectra1ForkTime = math.MaxInt64
 
 	// mainnetEVMInflationAddressDeneb1 is the address on the EVM which will receive the

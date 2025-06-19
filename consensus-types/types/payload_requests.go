@@ -68,7 +68,7 @@ func BuildNewPayloadRequestFromFork(blk *BeaconBlock) (NewPayloadRequest, error)
 			parentBeaconBlockRoot: &parentBeaconBlockRoot,
 		}, nil
 	}
-	if version.Equals(blk.GetForkVersion(), version.Electra()) {
+	if version.Equals(blk.GetForkVersion(), version.Electra()) || version.Equals(blk.GetForkVersion(), version.Electra1()) {
 		// If we're post-electra, we set execution requests.
 		executionRequests, err := body.GetExecutionRequests()
 		if err != nil {
