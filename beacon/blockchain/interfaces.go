@@ -147,6 +147,12 @@ type BlockchainI interface {
 		sdk.Context,
 		*cmtabci.ProcessProposalRequest,
 	) (transition.ValidatorUpdates, error)
+	FinalizeSidecars(
+		ctx sdk.Context,
+		syncingToHeight int64,
+		blk *ctypes.BeaconBlock,
+		blobs datypes.BlobSidecars,
+	) error
 	FinalizeBlock(
 		sdk.Context,
 		*cmtabci.FinalizeBlockRequest,

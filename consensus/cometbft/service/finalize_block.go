@@ -40,7 +40,7 @@ func (s *Service) finalizeBlock(
 	return res, err
 }
 
-//nolint:nestif // make it work, make it right, make it fast
+//nolint:nestif,funlen // make it work, make it right, make it fast
 func (s *Service) finalizeBlockInternal(
 	ctx context.Context,
 	req *cmtabci.FinalizeBlockRequest,
@@ -85,13 +85,23 @@ func (s *Service) finalizeBlockInternal(
 
 		if cached, found := s.candidateStates[stateHash]; found {
 			finalizeBlockState = cached.state
-			signedBlk, _, err := s.Blockchain.ParseBeaconBlock(req)
+			signedBlk, sidecars, err := s.Blockchain.ParseBeaconBlock(req)
 			if err != nil {
 				return nil, fmt.Errorf("finalize block: failed parsing block: %w", err)
 			}
+			blk := signedBlk.GetBeaconBlock()
+
+			if err = s.Blockchain.FinalizeSidecars(
+				finalizeBlockState.Context(),
+				req.SyncingToHeight,
+				blk,
+				sidecars,
+			); err != nil {
+				return nil, fmt.Errorf("failed finalizing sidecars: %w", err)
+			}
 			if err = s.Blockchain.PostFinalizeBlockOps(
 				finalizeBlockState.Context(),
-				signedBlk.GetBeaconBlock(),
+				blk,
 			); err != nil {
 				return nil, fmt.Errorf("finalize block: failed post finalize block ops: %w", err)
 			}
