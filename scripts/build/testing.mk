@@ -54,7 +54,9 @@ start-custom:
 	${TESTAPP_FILES_DIR}/entrypoint.sh file $(word 2,$(MAKECMDGOALS))
 
 ## Start an ephemeral `reth` node
-## Note: bera-reth requires absolute paths (/) in container due to path resolution difference from reth
+## Note: bera-reth requires absolute paths (/) in container due to path resolution bug
+## See: https://github.com/rezbera/reth/blob/basefee/centralize-with-rose/crates/cli/cli/src/chainspec.rs#L71
+## The parse_genesis function uses shellexpand::full() but doesn't resolve relative paths to absolute paths
 start-reth: 
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
 	@docker run \
