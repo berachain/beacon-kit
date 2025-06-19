@@ -78,12 +78,14 @@ func (s *Service) processProposal(
 		return &cmtabci.ProcessProposalResponse{Status: status}, nil
 	}
 
-	if req.Height > s.initialHeight {
+	if req.Height > 300 {
 		s.candidateStates[string(req.Hash)] = &CacheElement{
 			state:      processProposalState,
 			valUpdates: valUpdates,
 		}
 	}
+	s.logger.Info("cachesize", "size", len(s.candidateStates))
+
 	status := cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
 	return &cmtabci.ProcessProposalResponse{Status: status}, nil
 }
