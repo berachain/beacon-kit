@@ -1,0 +1,42 @@
+# syntax=docker/dockerfile:1
+#
+# Copyright (C) 2022, Berachain Foundation. All rights reserved.
+# See the file LICENSE for licensing terms.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+#######################################################
+###           Stage 0 - Build Arguments             ###
+#######################################################
+
+FROM alpine
+ARG VERSION=v0.1.79
+ARG AMD64_SHA=f399c83b4bb339a32e6eac80614fab82644e7a8f5e03a47d8f708fd0fe649308
+
+###########################################################################
+###                  Stage 1 - Download polycli release                 ###
+###########################################################################
+
+RUN echo "${AMD64_SHA}  polycli_${VERSION}_linux_amd64.tar.gz" > amd64.sha && \
+    wget https://github.com/0xPolygon/polygon-cli/releases/download/${VERSION}/polycli_${VERSION}_linux_amd64.tar.gz && \
+    sha256sum -c amd64.sha && \
+    tar -xvzf polycli_${VERSION}_linux_amd64.tar.gz -C /usr/bin && \
+    mv /usr/bin/polycli_${VERSION}_linux_amd64 /usr/bin/polycli && \
+    rm -f polycli_${VERSION}_linux_amd64.tar.gz amd64.sha
+
+###########################################################################
+###                        Stage 2 - Run polycli                        ###
+###########################################################################
+
+ENTRYPOINT ["/usr/bin/polycli"]
+CMD ["--help"]
+STOPSIGNAL SIGTERM

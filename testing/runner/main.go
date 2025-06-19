@@ -122,17 +122,6 @@ func NewCLI() *CLI {
 
 			r := rand.New(rand.NewSource(randomSeed)) //nolint: gosec
 
-			chLoadResult := make(chan error)
-			ctx, loadCancel := context.WithCancel(context.Background())
-			defer loadCancel()
-			go func() {
-				err := Load(ctx, cli.testnet, false)
-				if err != nil {
-					logger.Error(fmt.Sprintf("Transaction load failed: %v", err.Error()))
-				}
-				chLoadResult <- err
-			}()
-
 			if err := Start(cmd.Context(), cli.testnet, cli.infp); err != nil {
 				return err
 			}
@@ -151,7 +140,7 @@ func NewCLI() *CLI {
 			}
 
 			if cli.testnet.Evidence > 0 {
-				if err := InjectEvidence(ctx, r, cli.testnet, cli.testnet.Evidence); err != nil {
+				if err := InjectEvidence(cmd.Context(), r, cli.testnet, cli.testnet.Evidence); err != nil {
 					return err
 				}
 				if err := Wait(cmd.Context(), cli.testnet, 5); err != nil { // ensure chain progress
@@ -159,10 +148,7 @@ func NewCLI() *CLI {
 				}
 			}
 
-			loadCancel()
-			if err := <-chLoadResult; err != nil {
-				return err
-			}
+			// Todo: docker compose down load
 			if err := Wait(cmd.Context(), cli.testnet, 5); err != nil { // wait for network to settle before tests
 				return err
 			}
@@ -247,7 +233,7 @@ func NewCLI() *CLI {
 			if err != nil {
 				return err
 			}
-			return Load(context.Background(), cli.testnet, useInternalIP)
+			return errors.New("TODO: reimplement the load command using polycli")
 		},
 	}
 	loadCmd.PersistentFlags().BoolVar(&useInternalIP, "internal-ip", false,
@@ -385,17 +371,6 @@ Does not run any perturbations.
 				return err
 			}
 
-			chLoadResult := make(chan error)
-			ctx, loadCancel := context.WithCancel(cmd.Context())
-			defer loadCancel()
-			go func() {
-				err := Load(ctx, cli.testnet, false)
-				if err != nil {
-					logger.Error(fmt.Sprintf("Transaction load errored: %v", err.Error()))
-				}
-				chLoadResult <- err
-			}()
-
 			if err := Start(cmd.Context(), cli.testnet, cli.infp); err != nil {
 				return err
 			}
@@ -409,10 +384,7 @@ Does not run any perturbations.
 				return err
 			}
 
-			loadCancel()
-			if err := <-chLoadResult; err != nil {
-				return err
-			}
+			// Todo: docker compose down load
 
 			return Cleanup(cli.testnet)
 		},

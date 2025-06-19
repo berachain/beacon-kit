@@ -101,6 +101,7 @@ IMAGE_NAME ?= $(TESTAPP)
 # Docker Paths
 DOCKERFILE = ./Dockerfile
 DOCKERFILE_E2E = ./Dockerfile.e2e
+DOCKERFILE_POLYCLI = ./Dockerfile.polycli
 
 build-docker: ## build a docker image containing `beacond`
 	@echo "Build a release docker image for the Cosmos SDK chain..."
@@ -128,10 +129,18 @@ build-docker-e2e: ## build a docker image containing `beacond` used in the e2e t
 	./testing # work around .dockerignore restrictions in the root folder
 
 build-runner: ## build e2e runner
-		@echo "Build the e2e runner..."
-		@go build -mod=readonly -o $(OUT_DIR)/runner ./testing/runner
+	@echo "Build the e2e runner..."
+	@go build -mod=readonly -o $(OUT_DIR)/runner ./testing/runner
+
+build-polycli:
+	@echo "Build e2e polycli docker image..."
+	docker build \
+	-f ${DOCKERFILE_POLYCLI} \
+	-t polycli \
+	.
 
 build-e2e:
 	@$(MAKE) build-docker VERSION=local-version \
 		build-docker-e2e \
-		build-runner
+		build-runner \
+		build-polycli

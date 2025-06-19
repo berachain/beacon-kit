@@ -42,7 +42,7 @@ func Start(ctx context.Context, testnet *e2e.Testnet, p infra.Provider) error {
 	}
 
 	// Start geth node in docker - Todo: add geth node to manifest so it can also run in Digital Ocean
-	err := docker.ExecCompose(ctx, testnet.Dir, []string{"up", "-d", "geth"}...)
+	err := docker.ExecCompose(ctx, testnet.Dir, []string{"up", "-d", "geth", "load"}...)
 	if err != nil {
 		return err
 	}
