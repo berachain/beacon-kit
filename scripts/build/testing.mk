@@ -234,6 +234,7 @@ start-geth-bepolia:
 	--syncmode=full \
 	--bootnodes $$bootnodes
 
+# TODO(prague1): Update to bera-reth once production ready
 start-reth-bepolia:
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
 	@trustedpeers=`cat $(PWD)/$(BEPOLIA_NETWORK_FILES_DIR)/el-peers.txt`; \
@@ -302,6 +303,7 @@ start-geth-mainnet:
 	--syncmode=full \
 	--bootnodes $$bootnodes
 
+# TODO(prague1): Update to bera-reth once production ready
 start-reth-mainnet:
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
 	@trustedpeers=`cat $(PWD)/$(MAINNET_NETWORK_FILES_DIR)/el-peers.txt`; \
