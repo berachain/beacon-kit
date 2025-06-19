@@ -95,6 +95,10 @@ func (sp *StateProcessor) ProcessFork(
 			sp.logElectraFork(stateFork.PreviousVersion, timestamp, slot)
 		}
 	case version.Electra1():
+		if err = sp.upgradeToElectra1(st, stateFork, slot); err != nil {
+			return err
+		}
+
 		// Log the upgrade to Electra1 if requested.
 		if logUpgrade {
 			sp.logElectra1Fork(stateFork.PreviousVersion, timestamp, slot)
@@ -154,7 +158,7 @@ func (sp *StateProcessor) logDeneb1Fork(
 	+ ⛓️   current beacon epoch: %d
 
 	⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️
-	
+
 
 `,
 			version.Name(previousVersion), previousVersion.String(),
@@ -189,6 +193,20 @@ func (sp *StateProcessor) upgradeToElectra(
 	return nil
 }
 
+func (sp *StateProcessor) upgradeToElectra1(st *statedb.StateDB, fork *types.Fork, slot math.Slot) error {
+	// Set the fork on BeaconState.
+	fork.PreviousVersion = fork.CurrentVersion
+	fork.CurrentVersion = version.Electra1()
+	fork.Epoch = sp.cs.SlotToEpoch(slot)
+	if err := st.SetFork(fork); err != nil {
+		return err
+	}
+
+	// TODO: implement state changes for Electra1.
+
+	return nil
+}
+
 // logElectraFork logs information about the Electra fork.
 func (sp *StateProcessor) logElectraFork(
 	previousVersion common.Version, timestamp math.U64, slot math.Slot,
@@ -215,7 +233,7 @@ func (sp *StateProcessor) logElectraFork(
 	))
 }
 
-// logElectraFork logs information about the Electra fork.
+// logElectra1Fork logs information about the Electra1 fork.
 func (sp *StateProcessor) logElectra1Fork(
 	previousVersion common.Version, timestamp math.U64, slot math.Slot,
 ) {
@@ -235,7 +253,7 @@ func (sp *StateProcessor) logElectra1Fork(
 
 `,
 		version.Name(previousVersion), previousVersion.String(),
-		sp.cs.ElectraForkTime(),
+		sp.cs.Electra1ForkTime(),
 		slot.Unwrap(), timestamp.Unwrap(),
 		sp.cs.SlotToEpoch(slot).Unwrap(),
 	))

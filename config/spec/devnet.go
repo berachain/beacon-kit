@@ -50,7 +50,7 @@ const (
 	// devnet is configured to start on electra.
 	devnetElectraForkTime = 0
 
-	// devnetElectra1ForkTime is the timestamp at which the Electra fork occurs.
+	// devnetElectra1ForkTime is the timestamp at which the Electra1 fork occurs.
 	// devnet is configured to start on electra.
 	devnetElectra1ForkTime = math.MaxInt64
 

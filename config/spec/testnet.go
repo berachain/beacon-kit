@@ -44,7 +44,7 @@ func TestnetChainSpecData() *chain.SpecData {
 	// Timestamp of the Electra fork on Bepolia.
 	specData.ElectraForkTime = 1746633600
 
-	// Timestamp of the Electra fork on Bepolia.
+	// Timestamp of the Electra1 fork on Bepolia.
 	specData.Electra1ForkTime = math.MaxInt64
 
 	return specData
