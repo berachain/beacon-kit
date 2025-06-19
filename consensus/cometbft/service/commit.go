@@ -52,7 +52,7 @@ func (s *Service) commit(
 	}
 	s.sm.GetCommitMultiStore().Commit()
 
-	delete(s.candidateStates, *s.finalStateHash)
+	s.candidateStates = make(map[string]*CacheElement)
 	s.finalStateHash = nil
 
 	return &cmtabci.CommitResponse{
