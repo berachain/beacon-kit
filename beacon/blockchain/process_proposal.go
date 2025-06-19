@@ -232,7 +232,7 @@ func (s *Service) VerifyIncomingBlock(
 	// to avoid modifying the underlying state, for the event in which
 	// we have to rebuild a payload for this slot again, if we do not agree
 	// with the incoming block.
-	copiedState := state.Copy(ctx)
+	copiedPreState := state.Copy(ctx)
 
 	// verify block slot
 	stateSlot, err := state.GetSlot()
@@ -271,7 +271,7 @@ func (s *Service) VerifyIncomingBlock(
 		)
 
 		if s.shouldBuildOptimisticPayloads() {
-			lph, lphErr := copiedState.GetLatestExecutionPayloadHeader()
+			lph, lphErr := copiedPreState.GetLatestExecutionPayloadHeader()
 			if lphErr != nil {
 				return nil, errors.Join(
 					err,
@@ -283,7 +283,7 @@ func (s *Service) VerifyIncomingBlock(
 			// payload for this slot (in case we are selected as the next proposer for this slot).
 			go s.handleRebuildPayloadForRejectedBlock(
 				ctx,
-				copiedState,
+				copiedPreState,
 				payloadtime.Next(
 					consensusTime,
 					lph.GetTimestamp(),
@@ -302,14 +302,15 @@ func (s *Service) VerifyIncomingBlock(
 	)
 
 	if s.shouldBuildOptimisticPayloads() {
-		lph, lphErr := state.GetLatestExecutionPayloadHeader()
+		copiedPostState := state.Copy(ctx)
+		lph, lphErr := copiedPostState.GetLatestExecutionPayloadHeader()
 		if lphErr != nil {
 			return nil, fmt.Errorf("failed loading LatestExecutionPayloadHeader: %w", lphErr)
 		}
 
 		go s.handleOptimisticPayloadBuild(
 			ctx,
-			state,
+			copiedPostState,
 			beaconBlk,
 			payloadtime.Next(
 				consensusTime,
