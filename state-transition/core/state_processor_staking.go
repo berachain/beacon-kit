@@ -67,8 +67,8 @@ func (sp *StateProcessor) processOperations(
 		}
 	}
 
+	// After Electra, validators can request withdrawals through execution requests which must be handled.
 	if version.EqualsOrIsAfter(blk.GetForkVersion(), version.Electra()) {
-		// After Electra, validators can request withdrawals through execution requests which must be handled.
 		requests, err := blk.GetBody().GetExecutionRequests()
 		if err != nil {
 			return err
