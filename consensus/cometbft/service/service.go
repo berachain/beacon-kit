@@ -71,23 +71,10 @@ type Service struct {
 	Blockchain   blockchain.BlockchainI
 	BlockBuilder validator.BlockBuilderI
 
-	// prepareProposalState is used for PrepareProposal, which is set based on
-	// the previous block's state. This state is never committed. In case of
-	// multiple consensus rounds, the state is always reset to the previous
-	// block's state.
-	prepareProposalState *state
-
-	// processProposalState is used for ProcessProposal, which is set based on
-	// the previous block's state. This state is never committed. In case of
-	// multiple consensus rounds, the state is always reset to the previous
-	// block's state.
-	processProposalState *state
-
-	// finalizeBlockState is used for FinalizeBlock, which is set based on the
-	// previous block's state. This state is committed. finalizeBlockState is
-	// set
-	// on InitChain and FinalizeBlock and set to nil on Commit.
-	finalizeBlockState *state
+	////// NEW ELEMENTS TO CACHE STATES
+	candidateStates map[string]*CacheElement
+	finalStateHash  *string
+	////// END OF NEW ELEMENTS TO CACHE STATES
 
 	interBlockCache storetypes.MultiStorePersistentCache
 
@@ -137,6 +124,9 @@ func NewService(
 		cmtConsensusParams: cmtConsensusParams,
 		cmtCfg:             cmtCfg,
 		telemetrySink:      telemetrySink,
+
+		candidateStates: map[string]*CacheElement{},
+		finalStateHash:  nil,
 	}
 
 	s.MountStore(storage.StoreKey, storetypes.StoreTypeIAVL)
@@ -333,12 +323,17 @@ func (s *Service) getContextForProposal(
 		return ctx
 	}
 
-	if s.finalizeBlockState == nil {
+	if s.finalStateHash == nil {
 		// this is unexpected since cometBFT won't call PrepareProposal
 		// on initialHeight. Panic appeases nilaway.
 		panic(fmt.Errorf("getContextForProposal: %w", errNilFinalizeBlockState))
 	}
-	newCtx, _ := s.finalizeBlockState.Context().CacheContext()
+	cached, found := s.candidateStates[*s.finalStateHash]
+	if !found {
+		// TODO: remove. Annoying, just to appease nilaway
+		panic(fmt.Errorf("getContextForProposal: %w", errNilFinalizeBlockState))
+	}
+	newCtx, _ := cached.state.Context().CacheContext()
 	// Preserve the CosmosSDK context while using the correct base ctx.
 	return newCtx.WithContext(ctx.Context())
 }

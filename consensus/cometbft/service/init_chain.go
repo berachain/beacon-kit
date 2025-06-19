@@ -83,11 +83,16 @@ func (s *Service) initChain(
 		}
 	}
 
-	s.finalizeBlockState = s.resetState(ctx)
+	genesisHash := ""
+	genesisFinalState := s.resetState(ctx)
+	s.candidateStates[genesisHash] = &CacheElement{
+		state: genesisFinalState,
+	}
+	s.finalStateHash = &genesisHash
 
 	//nolint:contextcheck // ctx already passed via resetState
 	resValidators, err := s.initChainer(
-		s.finalizeBlockState.Context(),
+		genesisFinalState.Context(),
 		req.AppStateBytes,
 	)
 	if err != nil {

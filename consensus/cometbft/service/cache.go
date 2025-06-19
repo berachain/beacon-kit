@@ -17,14 +17,13 @@
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
+//
 
-package encoding
+package cometbft
 
-import "time"
+import "github.com/berachain/beacon-kit/primitives/transition"
 
-// ABCIRequest represents the interface for an ABCI request.
-type ABCIRequest interface {
-	// GetTxs returns the transactions included in the request.
-	GetTxs() [][]byte
-	GetTime() time.Time
+type CacheElement struct {
+	state      *state
+	valUpdates transition.ValidatorUpdates
 }

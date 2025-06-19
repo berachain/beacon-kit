@@ -40,6 +40,7 @@ func (s *Service) finalizeBlock(
 	return res, err
 }
 
+//nolint:nestif,funlen // make it work, make it right, make it fast
 func (s *Service) finalizeBlockInternal(
 	ctx context.Context,
 	req *cmtabci.FinalizeBlockRequest,
@@ -52,12 +53,10 @@ func (s *Service) finalizeBlockInternal(
 	// is nil, it means we are replaying this block and we need to set the state
 	// here given that during block replay ProcessProposal is not executed by
 	// CometBFT.
-	if s.finalizeBlockState == nil {
-		s.finalizeBlockState = s.resetState(ctx)
-	} else {
-		// Preserve the CosmosSDK context while using the correct base ctx.
-		s.finalizeBlockState.SetContext(s.finalizeBlockState.Context().WithContext(ctx))
-	}
+	var (
+		finalizeBlockState *state
+		stateHash          = string(req.Hash)
+	)
 
 	// This result format is expected by Comet. That actual execution will happen as part of the state transition.
 	txResults := make([]*cmtabci.ExecTxResult, len(req.Txs))
@@ -72,16 +71,75 @@ func (s *Service) finalizeBlockInternal(
 		}
 	}
 
-	finalizeBlock, err := s.Blockchain.FinalizeBlock(
-		s.finalizeBlockState.Context(),
-		req,
-	)
+	if s.finalStateHash != nil {
+		// Preserve the CosmosSDK context while using the correct base ctx.
+		st, found := s.candidateStates[*s.finalStateHash]
+		if !found {
+			panic(fmt.Errorf("missing candidate state for hash %s", *s.finalStateHash))
+		}
+		stateHash = *s.finalStateHash
+		st.state.SetContext(st.state.Context().WithContext(ctx))
+		finalizeBlockState = st.state
+	} else {
+		s.finalStateHash = &stateHash
+
+		if cached, found := s.candidateStates[stateHash]; found {
+			finalizeBlockState = cached.state
+			signedBlk, sidecars, err := s.Blockchain.ParseBeaconBlock(req)
+			if err != nil {
+				return nil, fmt.Errorf("finalize block: failed parsing block: %w", err)
+			}
+			blk := signedBlk.GetBeaconBlock()
+
+			if err = s.Blockchain.FinalizeSidecars(
+				finalizeBlockState.Context(),
+				req.SyncingToHeight,
+				blk,
+				sidecars,
+			); err != nil {
+				return nil, fmt.Errorf("failed finalizing sidecars: %w", err)
+			}
+			if err = s.Blockchain.PostFinalizeBlockOps(
+				finalizeBlockState.Context(),
+				blk,
+			); err != nil {
+				return nil, fmt.Errorf("finalize block: failed post finalize block ops: %w", err)
+			}
+
+			formattedValUpdates, err := iter.MapErr(
+				cached.valUpdates,
+				convertValidatorUpdate[cmtabci.ValidatorUpdate],
+			)
+			if err != nil {
+				return nil, err
+			}
+
+			cp := s.cmtConsensusParams.ToProto()
+			return &cmtabci.FinalizeBlockResponse{
+				TxResults:             txResults,
+				ValidatorUpdates:      formattedValUpdates,
+				ConsensusParamUpdates: &cp,
+			}, nil
+		}
+
+		finalizeBlockState = s.resetState(ctx)
+		s.candidateStates[stateHash] = &CacheElement{
+			state: finalizeBlockState,
+		}
+	}
+
+	valUpdates, err := s.Blockchain.FinalizeBlock(finalizeBlockState.Context(), req)
 	if err != nil {
 		return nil, err
 	}
+	if _, found := s.candidateStates[stateHash]; !found {
+		// TODO: remove. Annoying, just to appease nilaway
+		panic(fmt.Errorf("missing candidate state for hash %s", *s.finalStateHash))
+	}
+	s.candidateStates[stateHash].valUpdates = valUpdates
 
-	valUpdates, err := iter.MapErr(
-		finalizeBlock,
+	formattedValUpdates, err := iter.MapErr(
+		valUpdates,
 		convertValidatorUpdate[cmtabci.ValidatorUpdate],
 	)
 	if err != nil {
@@ -91,7 +149,7 @@ func (s *Service) finalizeBlockInternal(
 	cp := s.cmtConsensusParams.ToProto()
 	return &cmtabci.FinalizeBlockResponse{
 		TxResults:             txResults,
-		ValidatorUpdates:      valUpdates,
+		ValidatorUpdates:      formattedValUpdates,
 		ConsensusParamUpdates: &cp,
 	}, nil
 }
@@ -108,12 +166,17 @@ func (s *Service) workingHash() []byte {
 	// MultiStore. The write to the FinalizeBlock state writes all state
 	// transitions to the root MultiStore (s.sm.GetCommitMultiStore())
 	// so when Commit() is called it persists those values.
-	if s.finalizeBlockState == nil {
+	if s.finalStateHash == nil {
 		// this is unexpected since workingHash is called only after
 		// internalFinalizeBlock. Panic appeases nilaway.
 		panic(fmt.Errorf("workingHash: %w", errNilFinalizeBlockState))
 	}
-	s.finalizeBlockState.ms.Write()
+	cached, found := s.candidateStates[*s.finalStateHash]
+	if !found {
+		// TODO: remove. Annoying, just to appease nilaway
+		panic(fmt.Errorf("missing candidate state for hash %s", *s.finalStateHash))
+	}
+	cached.state.ms.Write()
 
 	// Get the hash of all writes in order to return the apphash to the comet in
 	// finalizeBlock.

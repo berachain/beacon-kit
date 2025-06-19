@@ -113,7 +113,7 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 	).Run(
 		func(
 			_ context.Context,
-			st *state.StateDB,
+			preState *state.StateDB,
 			slot, timestamp math.U64,
 			parentBlockRoot common.Root,
 			headEth1BlockHash, finalEth1BlockHash common.ExecutionHash,
@@ -133,14 +133,14 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 			require.Empty(t, finalEth1BlockHash)          // this is first block post genesis
 			require.Equal(t, constants.GenesisSlot, slot) // genesis slot in state
 			var stateSlot math.Slot
-			stateSlot, err = st.GetSlot()
+			stateSlot, err = preState.GetSlot()
 			require.NoError(t, err)
 			require.Equal(t, constants.GenesisSlot, stateSlot)
 		},
 	).Return(nil, common.Version{0xff}, errors.New("does not matter")) // return values do not really matter in this test
 	wg.Add(1)
 
-	err = chain.VerifyIncomingBlock(
+	_, err = chain.VerifyIncomingBlock(
 		ctx.ConsensusCtx(),
 		invalidBlk,
 		consensusTime,
@@ -228,7 +228,7 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 	).Run(
 		func(
 			_ context.Context,
-			st *state.StateDB,
+			postState *state.StateDB,
 			slot, timestamp math.U64,
 			parentBlockRoot common.Root,
 			headEth1BlockHash, finalEth1BlockHash common.ExecutionHash,
@@ -249,7 +249,7 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 			require.Equal(t, validBlk.HashTreeRoot(), parentBlockRoot)
 
 			var stateSlot math.Slot
-			stateSlot, err = st.GetSlot()
+			stateSlot, err = postState.GetSlot()
 			require.NoError(t, err)
 			require.Equal(t, validBlk.Slot+1, stateSlot)
 			require.Equal(t, slot, stateSlot)
@@ -259,7 +259,7 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 
 	eng.EXPECT().NotifyNewPayload(mock.Anything, mock.Anything, mock.Anything).Return(nil)
 	sb.EXPECT().StateFromContext(mock.Anything).Return(st).Times(1)
-	err = chain.VerifyIncomingBlock(
+	_, err = chain.VerifyIncomingBlock(
 		ctx.ConsensusCtx(),
 		validBlk,
 		consensusTime,
