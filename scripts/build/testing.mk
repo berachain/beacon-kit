@@ -54,6 +54,7 @@ start-custom:
 	${TESTAPP_FILES_DIR}/entrypoint.sh file $(word 2,$(MAKECMDGOALS))
 
 ## Start an ephemeral `reth` node
+## Note: bera-reth requires absolute paths (/) in container due to path resolution difference from reth
 start-reth: 
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
 	@docker run \
