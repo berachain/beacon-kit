@@ -62,15 +62,15 @@ start-reth:
 	-p 8551:8551 \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	ghcr.io/paradigmxyz/reth node \
-	--chain ${ETH_GENESIS_PATH} \
+	ghcr.io/berachain/bera-reth:nightly node \
+	--chain /${ETH_GENESIS_PATH} \
 	--http \
 	--http.addr "0.0.0.0" \
 	--http.api eth,net \
 	--authrpc.addr "0.0.0.0" \
-	--authrpc.jwtsecret $(JWT_PATH) \
-	--datadir ${ETH_DATA_DIR} \
-	--ipcpath ${IPC_PATH} \
+	--authrpc.jwtsecret /$(JWT_PATH) \
+	--datadir /${ETH_DATA_DIR} \
+	--ipcpath /${IPC_PATH} \
 	--engine.persistence-threshold 0 \
 	--engine.memory-block-buffer-target 0
 
@@ -81,7 +81,7 @@ start-geth:
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
 	ethereum/client-go init \
-	--datadir ${ETH_DATA_DIR} \
+	--datadir /${ETH_DATA_DIR} \
 	${ETH_GENESIS_PATH}
 
 	docker run \
@@ -96,9 +96,9 @@ start-geth:
 	--http.addr 0.0.0.0 \
 	--http.api eth,net \
 	--authrpc.addr 0.0.0.0 \
-	--authrpc.jwtsecret $(JWT_PATH) \
+	--authrpc.jwtsecret /$(JWT_PATH) \
 	--authrpc.vhosts "*" \
-	--datadir ${ETH_DATA_DIR} \
+	--datadir /${ETH_DATA_DIR} \
 	--ipcpath ${IPC_PATH}
 
 ## Start an ephemeral `nethermind` node
@@ -209,7 +209,7 @@ start-geth-bepolia:
 	--rm -v $(PWD)/${BEPOLIA_NETWORK_FILES_DIR}:/${BEPOLIA_NETWORK_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
 	ethereum/client-go init \
-	--datadir ${ETH_DATA_DIR} \
+	--datadir /${ETH_DATA_DIR} \
 	${BEPOLIA_ETH_GENESIS_PATH}
 
 	@# Read bootnodes from the file; the file is mounted into the container.
@@ -227,10 +227,10 @@ start-geth-bepolia:
 	--http.addr 0.0.0.0 \
 	--http.api eth,net \
 	--authrpc.addr 0.0.0.0 \
-	--authrpc.jwtsecret $(JWT_PATH) \
+	--authrpc.jwtsecret /$(JWT_PATH) \
 	--authrpc.vhosts "*" \
-	--datadir ${ETH_DATA_DIR} \
-	--ipcpath ${IPC_PATH} \
+	--datadir /${ETH_DATA_DIR} \
+	--ipcpath /${IPC_PATH} \
 	--syncmode=full \
 	--bootnodes $$bootnodes
 
@@ -245,15 +245,15 @@ start-reth-bepolia:
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	--rm -v $(PWD)/${BEPOLIA_NETWORK_FILES_DIR}:/${BEPOLIA_NETWORK_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	ghcr.io/paradigmxyz/reth node \
-	--chain ${BEPOLIA_ETH_GENESIS_PATH} \
+	ghcr.io/berachain/bera-reth:nightly node \
+	--chain /${BEPOLIA_ETH_GENESIS_PATH} \
 	--http \
 	--http.addr "0.0.0.0" \
 	--http.api eth,net \
 	--authrpc.addr "0.0.0.0" \
-	--authrpc.jwtsecret $(JWT_PATH) \
-	--datadir ${ETH_DATA_DIR} \
-	--ipcpath ${IPC_PATH} \
+	--authrpc.jwtsecret /$(JWT_PATH) \
+	--datadir /${ETH_DATA_DIR} \
+	--ipcpath /${IPC_PATH} \
 	--trusted-peers $$trustedpeers
 
 #################
@@ -277,7 +277,7 @@ start-geth-mainnet:
 	--rm -v $(PWD)/${MAINNET_NETWORK_FILES_DIR}:/${MAINNET_NETWORK_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
 	ethereum/client-go:v1.14.13 init \
-	--datadir ${ETH_DATA_DIR} \
+	--datadir /${ETH_DATA_DIR} \
 	${MAINNET_ETH_GENESIS_PATH}
 
 	@# Read bootnodes from the file; the file is mounted into the container.
@@ -295,10 +295,10 @@ start-geth-mainnet:
 	--http.addr 0.0.0.0 \
 	--http.api eth,net \
 	--authrpc.addr 0.0.0.0 \
-	--authrpc.jwtsecret $(JWT_PATH) \
+	--authrpc.jwtsecret /$(JWT_PATH) \
 	--authrpc.vhosts "*" \
-	--datadir ${ETH_DATA_DIR} \
-	--ipcpath ${IPC_PATH} \
+	--datadir /${ETH_DATA_DIR} \
+	--ipcpath /${IPC_PATH} \
 	--syncmode=full \
 	--bootnodes $$bootnodes
 
@@ -313,15 +313,15 @@ start-reth-mainnet:
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	--rm -v $(PWD)/${MAINNET_NETWORK_FILES_DIR}:/${MAINNET_NETWORK_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	ghcr.io/paradigmxyz/reth node \
-	--chain ${MAINNET_ETH_GENESIS_PATH} \
+	ghcr.io/berachain/bera-reth:nightly node \
+	--chain /${MAINNET_ETH_GENESIS_PATH} \
 	--http \
 	--http.addr "0.0.0.0" \
 	--http.api eth,net \
 	--authrpc.addr "0.0.0.0" \
-	--authrpc.jwtsecret $(JWT_PATH) \
-	--datadir ${ETH_DATA_DIR} \
-	--ipcpath ${IPC_PATH} \
+	--authrpc.jwtsecret /$(JWT_PATH) \
+	--datadir /${ETH_DATA_DIR} \
+	--ipcpath /${IPC_PATH} \
 	--trusted-peers $$trustedpeers
 
 #################

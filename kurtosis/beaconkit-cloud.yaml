@@ -102,7 +102,7 @@ node_settings:
       ethereumjs: ethpandaops/ethereumjs:stable
       geth: ethereum/client-go:latest
       nethermind: nethermind/nethermind:latest
-      reth: ghcr.io/paradigmxyz/reth:latest
+      reth: ghcr.io/berachain/bera-reth:nightly
 eth_json_rpc_endpoints:
   # type has to be either blutgang or nginx
   - type: blutgang

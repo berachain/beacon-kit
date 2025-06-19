@@ -36,8 +36,8 @@ func NewRethNode(homeDir string, image docker.PullImageOptions) *ExecNode {
 // ValidRethImage returns the default Docker image options for the Reth node.
 func ValidRethImage() docker.PullImageOptions {
 	return docker.PullImageOptions{
-		Repository: "ghcr.io/paradigmxyz/reth",
-		Tag:        "latest",
+		Repository: "ghcr.io/berachain/bera-reth",
+		Tag:        "nightly",
 	}
 }
 

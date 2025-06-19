@@ -158,7 +158,7 @@ func defaultExecutionSettings() ExecutionSettings {
 			"ethereumjs": "ethpandaops/ethereumjs:stable",
 			"geth":       "ethereum/client-go:stable",
 			"nethermind": "nethermind/nethermind:latest",
-			"reth":       "ghcr.io/paradigmxyz/reth:latest",
+			"reth":       "ghcr.io/berachain/bera-reth:nightly",
 		},
 	}
 }
