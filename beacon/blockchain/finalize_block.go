@@ -25,7 +25,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
@@ -39,24 +39,11 @@ func (s *Service) FinalizeBlock(
 	req *cmtabci.FinalizeBlockRequest,
 ) (transition.ValidatorUpdates, error) {
 	// STEP 1: Decode block and blobs.
-	currentForkVersion := s.chainSpec.ActiveForkVersionForTimestamp(math.U64(req.GetTime().Unix())) //#nosec: G115
-	signedBlk, blobs, err := encoding.ExtractBlobsAndBlockFromRequest(
-		req,
-		BeaconBlockTxIndex,
-		BlobSidecarsTxIndex,
-		// While req.GetTime() and blk.GetTimestamp() may be different, they are guaranteed
-		// to map to the same forkVersion due to checks during ProcessProposal.
-		currentForkVersion,
-	)
+	signedBlk, blobs, err := s.ParseBeaconBlock(req)
 	if err != nil {
 		s.logger.Error("Failed to decode block and blobs", "error", err)
 		return nil, fmt.Errorf("failed to decode block and blobs: %w", err)
 	}
-	s.logger.Debug(
-		"Finalizing block with fork version",
-		"block", req.Height,
-		"fork", currentForkVersion.String(),
-	)
 	blk := signedBlk.GetBeaconBlock()
 
 	// Send an FCU to force the HEAD of the chain on the EL on startup.
@@ -108,6 +95,12 @@ func (s *Service) FinalizeBlock(
 	}
 
 	// STEP 4: Post Finalizations cleanups.
+	return valUpdates, s.PostFinalizeBlockOps(ctx, blk)
+}
+
+func (s *Service) PostFinalizeBlockOps(ctx sdk.Context, blk *ctypes.BeaconBlock) error {
+	// TODO ABENEGIA: verify whether this is correct in the face of the extra copies
+	st := s.storageBackend.StateFromContext(ctx)
 
 	// Fetch and store the deposit for the block.
 	blockNum := blk.GetBody().GetExecutionPayload().GetNumber()
@@ -117,24 +110,23 @@ func (s *Service) FinalizeBlock(
 	//
 	// TODO: Store full SignedBeaconBlock with all data in storage
 	slot := blk.GetSlot()
-	if err = s.storageBackend.BlockStore().Set(blk); err != nil {
+	if err := s.storageBackend.BlockStore().Set(blk); err != nil {
 		s.logger.Error(
 			"failed to store block", "slot", slot, "error", err,
 		)
-		return nil, err
+		return err
 	}
 
 	// Prune the availability and deposit store.
-	err = s.processPruning(ctx, blk)
-	if err != nil {
+	if err := s.processPruning(ctx, blk); err != nil {
 		s.logger.Error("failed to processPruning", "error", err)
 	}
 
-	if err = s.sendPostBlockFCU(ctx, st); err != nil {
-		return nil, fmt.Errorf("sendPostBlockFCU failed: %w", err)
+	if err := s.sendPostBlockFCU(ctx, st); err != nil {
+		return fmt.Errorf("sendPostBlockFCU failed: %w", err)
 	}
 
-	return valUpdates, nil
+	return nil
 }
 
 // finalizeBeaconBlock receives an incoming beacon block, it first validates

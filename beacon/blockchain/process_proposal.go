@@ -28,7 +28,6 @@ import (
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/consensus/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/errors"
@@ -56,42 +55,15 @@ const (
 	MaxConsensusTxsCount = 2
 )
 
-//nolint:funlen // not an issue
 func (s *Service) ProcessProposal(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (transition.ValidatorUpdates, error) {
-	if countTx := len(req.Txs); countTx > MaxConsensusTxsCount {
-		return nil, fmt.Errorf("max expected %d, got %d: %w",
-			MaxConsensusTxsCount, countTx,
-			ErrTooManyConsensusTxs,
-		)
-	}
-
-	forkVersion := s.chainSpec.ActiveForkVersionForTimestamp(math.U64(req.GetTime().Unix())) //#nosec: G115
-	// Decode signed block and sidecars.
-	signedBlk, sidecars, err := encoding.ExtractBlobsAndBlockFromRequest(
-		req,
-		BeaconBlockTxIndex,
-		BlobSidecarsTxIndex,
-		forkVersion,
-	)
+	signedBlk, sidecars, err := s.ParseBeaconBlock(req)
 	if err != nil {
-		return nil, err
+		s.logger.Error("Failed to decode block and blobs", "error", err)
+		return nil, fmt.Errorf("failed to decode block and blobs: %w", err)
 	}
-	if signedBlk == nil {
-		s.logger.Warn(
-			"Aborting block verification - beacon block not found in proposal",
-		)
-		return nil, ErrNilBlk
-	}
-	if sidecars == nil {
-		s.logger.Warn(
-			"Aborting block verification - blob sidecars not found in proposal",
-		)
-		return nil, ErrNilBlob
-	}
-
 	blk := signedBlk.GetBeaconBlock()
 
 	// There are two different timestamps:
@@ -107,6 +79,7 @@ func (s *Service) ProcessProposal(
 	// determine the current fork version. Since the two timestamps could be different, we need to
 	// ensure that the fork version for these timestamps are the same. This may result in a failed
 	// proposal or two at the start of the fork.
+	forkVersion := s.chainSpec.ActiveForkVersionForTimestamp(math.U64(req.GetTime().Unix())) //#nosec: G115
 	blkVersion := s.chainSpec.ActiveForkVersionForTimestamp(blk.GetTimestamp())
 	if !version.Equals(blkVersion, forkVersion) {
 		return nil, fmt.Errorf("CometBFT version %v, BeaconBlock version %v: %w",

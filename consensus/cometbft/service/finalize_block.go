@@ -84,6 +84,18 @@ func (s *Service) finalizeBlockInternal(
 		s.finalStateHash = &stateHash
 
 		if cached, found := s.candidateStates[stateHash]; found {
+			finalizeBlockState = cached.state
+			signedBlk, _, err := s.Blockchain.ParseBeaconBlock(req)
+			if err != nil {
+				return nil, fmt.Errorf("finalize block: failed parsing block: %w", err)
+			}
+			if err = s.Blockchain.PostFinalizeBlockOps(
+				finalizeBlockState.Context(),
+				signedBlk.GetBeaconBlock(),
+			); err != nil {
+				return nil, fmt.Errorf("finalize block: failed post finalize block ops: %w", err)
+			}
+
 			formattedValUpdates, err := iter.MapErr(
 				cached.valUpdates,
 				convertValidatorUpdate[cmtabci.ValidatorUpdate],
