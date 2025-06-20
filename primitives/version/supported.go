@@ -27,6 +27,7 @@ var supportedVersions = []common.Version{
 	deneb,
 	deneb1,
 	electra,
+	electra1,
 }
 
 // GetSupportedVersions returns the supported versions of beacon-kit.

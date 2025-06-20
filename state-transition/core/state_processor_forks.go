@@ -21,8 +21,10 @@
 package core
 
 import (
+	"errors"
 	"fmt"
 
+	"cosmossdk.io/collections"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
@@ -94,6 +96,15 @@ func (sp *StateProcessor) ProcessFork(
 		if logUpgrade {
 			sp.logElectraFork(stateFork.PreviousVersion, timestamp, slot)
 		}
+	case version.Electra1():
+		if err = sp.upgradeToElectra1(st, stateFork, slot); err != nil {
+			return err
+		}
+
+		// Log the upgrade to Electra1 if requested.
+		if logUpgrade {
+			sp.logElectra1Fork(stateFork.PreviousVersion, timestamp, slot)
+		}
 	default:
 		panic(fmt.Sprintf("unsupported fork version: %s", forkVersion))
 	}
@@ -148,7 +159,7 @@ func (sp *StateProcessor) logDeneb1Fork(
 	+ ⛓️   current beacon epoch: %d
 
 	⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️
-	
+
 
 `,
 			version.Name(previousVersion), previousVersion.String(),
@@ -176,11 +187,7 @@ func (sp *StateProcessor) upgradeToElectra(
 
 	// Initialize the pending partial withdrawals to an empty array.
 	sp.metrics.gaugePartialWithdrawalsEnqueued(0)
-	if err := st.SetPendingPartialWithdrawals([]*types.PendingPartialWithdrawal{}); err != nil {
-		return err
-	}
-
-	return nil
+	return st.SetPendingPartialWithdrawals([]*types.PendingPartialWithdrawal{})
 }
 
 // logElectraFork logs information about the Electra fork.
@@ -204,6 +211,55 @@ func (sp *StateProcessor) logElectraFork(
 `,
 		version.Name(previousVersion), previousVersion.String(),
 		sp.cs.ElectraForkTime(),
+		slot.Unwrap(), timestamp.Unwrap(),
+		sp.cs.SlotToEpoch(slot).Unwrap(),
+	))
+}
+
+// upgradeToElectra1 upgrades the state to the Electra1 fork version. It is modified from the ETH
+// 2.0 spec (https://ethereum.github.io/consensus-specs/specs/electra/fork/#upgrading-the-state) to:
+//   - update the Fork struct in the BeaconState
+//   - initialize the pending partial withdrawals to an empty array (if not already initialized)
+func (sp *StateProcessor) upgradeToElectra1(
+	st *statedb.StateDB, fork *types.Fork, slot math.Slot,
+) error {
+	// Set the fork on BeaconState.
+	fork.PreviousVersion = fork.CurrentVersion
+	fork.CurrentVersion = version.Electra1()
+	fork.Epoch = sp.cs.SlotToEpoch(slot)
+	if err := st.SetFork(fork); err != nil {
+		return err
+	}
+
+	// Initialize the pending partial withdrawals to an empty array if not already initialized.
+	if _, err := st.GetPendingPartialWithdrawals(); errors.Is(err, collections.ErrNotFound) {
+		sp.metrics.gaugePartialWithdrawalsEnqueued(0)
+		return st.SetPendingPartialWithdrawals([]*types.PendingPartialWithdrawal{})
+	}
+
+	return nil
+}
+
+// logElectra1Fork logs information about the Electra1 fork.
+func (sp *StateProcessor) logElectra1Fork(
+	previousVersion common.Version, timestamp math.U64, slot math.Slot,
+) {
+	sp.logger.Info(fmt.Sprintf(`
+
+
+	⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️
+
+	+ ✅  welcome to the electra1 (0x05010000) fork! 🎉
+	+ 🚝  previous fork: %s (%s)
+	+ ⏱️   electra1 fork time: %d
+	+ 🍴  first slot / timestamp of electra1: %d / %d
+	+ ⛓️   current beacon epoch: %d
+
+	⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️
+
+`,
+		version.Name(previousVersion), previousVersion.String(),
+		sp.cs.Electra1ForkTime(),
 		slot.Unwrap(), timestamp.Unwrap(),
 		sp.cs.SlotToEpoch(slot).Unwrap(),
 	))
