@@ -54,9 +54,6 @@ start-custom:
 	${TESTAPP_FILES_DIR}/entrypoint.sh file $(word 2,$(MAKECMDGOALS))
 
 ## Start an ephemeral `reth` node
-## Note: bera-reth requires absolute paths (/) in container due to path resolution bug
-## See: https://github.com/rezbera/reth/blob/basefee/centralize-with-rose/crates/cli/cli/src/chainspec.rs#L71
-## The parse_genesis function uses shellexpand::full() but doesn't resolve relative paths to absolute paths
 start-reth: 
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
 	@docker run \
@@ -66,14 +63,14 @@ start-reth:
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
 	ghcr.io/berachain/bera-reth:nightly node \
-	--chain /${ETH_GENESIS_PATH} \
+	--chain ${ETH_GENESIS_PATH} \
 	--http \
 	--http.addr "0.0.0.0" \
 	--http.api eth,net \
 	--authrpc.addr "0.0.0.0" \
-	--authrpc.jwtsecret /$(JWT_PATH) \
-	--datadir /${ETH_DATA_DIR} \
-	--ipcpath /${IPC_PATH} \
+	--authrpc.jwtsecret $(JWT_PATH) \
+	--datadir ${ETH_DATA_DIR} \
+	--ipcpath ${IPC_PATH} \
 	--engine.persistence-threshold 0 \
 	--engine.memory-block-buffer-target 0
 
@@ -84,7 +81,7 @@ start-geth:
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
 	ethereum/client-go init \
-	--datadir /${ETH_DATA_DIR} \
+	--datadir ${ETH_DATA_DIR} \
 	${ETH_GENESIS_PATH}
 
 	docker run \
@@ -99,9 +96,9 @@ start-geth:
 	--http.addr 0.0.0.0 \
 	--http.api eth,net \
 	--authrpc.addr 0.0.0.0 \
-	--authrpc.jwtsecret /$(JWT_PATH) \
+	--authrpc.jwtsecret $(JWT_PATH) \
 	--authrpc.vhosts "*" \
-	--datadir /${ETH_DATA_DIR} \
+	--datadir ${ETH_DATA_DIR} \
 	--ipcpath ${IPC_PATH}
 
 ## Start an ephemeral `nethermind` node
@@ -170,7 +167,7 @@ start-erigon:
 	--http.corsdomain "*" \
 	--http.port 8545 \
 	--authrpc.addr	0.0.0.0 \
-	--authrpc.jwtsecret /$(JWT_PATH) \
+	--authrpc.jwtsecret $(JWT_PATH) \
 	--authrpc.vhosts "*" \
 	--networkid 80087 \
 	--db.size.limit	3000MB \
@@ -212,7 +209,7 @@ start-geth-bepolia:
 	--rm -v $(PWD)/${BEPOLIA_NETWORK_FILES_DIR}:/${BEPOLIA_NETWORK_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
 	ethereum/client-go init \
-	--datadir /${ETH_DATA_DIR} \
+	--datadir ${ETH_DATA_DIR} \
 	${BEPOLIA_ETH_GENESIS_PATH}
 
 	@# Read bootnodes from the file; the file is mounted into the container.
@@ -230,10 +227,10 @@ start-geth-bepolia:
 	--http.addr 0.0.0.0 \
 	--http.api eth,net \
 	--authrpc.addr 0.0.0.0 \
-	--authrpc.jwtsecret /$(JWT_PATH) \
+	--authrpc.jwtsecret $(JWT_PATH) \
 	--authrpc.vhosts "*" \
-	--datadir /${ETH_DATA_DIR} \
-	--ipcpath /${IPC_PATH} \
+	--datadir ${ETH_DATA_DIR} \
+	--ipcpath ${IPC_PATH} \
 	--syncmode=full \
 	--bootnodes $$bootnodes
 
@@ -255,9 +252,9 @@ start-reth-bepolia:
 	--http.addr "0.0.0.0" \
 	--http.api eth,net \
 	--authrpc.addr "0.0.0.0" \
-	--authrpc.jwtsecret /$(JWT_PATH) \
-	--datadir /${ETH_DATA_DIR} \
-	--ipcpath /${IPC_PATH} \
+	--authrpc.jwtsecret $(JWT_PATH) \
+	--datadir ${ETH_DATA_DIR} \
+	--ipcpath ${IPC_PATH} \
 	--trusted-peers $$trustedpeers
 
 #################
@@ -281,7 +278,7 @@ start-geth-mainnet:
 	--rm -v $(PWD)/${MAINNET_NETWORK_FILES_DIR}:/${MAINNET_NETWORK_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
 	ethereum/client-go:v1.14.13 init \
-	--datadir /${ETH_DATA_DIR} \
+	--datadir ${ETH_DATA_DIR} \
 	${MAINNET_ETH_GENESIS_PATH}
 
 	@# Read bootnodes from the file; the file is mounted into the container.
@@ -299,10 +296,10 @@ start-geth-mainnet:
 	--http.addr 0.0.0.0 \
 	--http.api eth,net \
 	--authrpc.addr 0.0.0.0 \
-	--authrpc.jwtsecret /$(JWT_PATH) \
+	--authrpc.jwtsecret $(JWT_PATH) \
 	--authrpc.vhosts "*" \
-	--datadir /${ETH_DATA_DIR} \
-	--ipcpath /${IPC_PATH} \
+	--datadir ${ETH_DATA_DIR} \
+	--ipcpath ${IPC_PATH} \
 	--syncmode=full \
 	--bootnodes $$bootnodes
 
@@ -324,9 +321,9 @@ start-reth-mainnet:
 	--http.addr "0.0.0.0" \
 	--http.api eth,net \
 	--authrpc.addr "0.0.0.0" \
-	--authrpc.jwtsecret /$(JWT_PATH) \
-	--datadir /${ETH_DATA_DIR} \
-	--ipcpath /${IPC_PATH} \
+	--authrpc.jwtsecret $(JWT_PATH) \
+	--datadir ${ETH_DATA_DIR} \
+	--ipcpath ${IPC_PATH} \
 	--trusted-peers $$trustedpeers
 
 #################
