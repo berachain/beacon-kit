@@ -167,7 +167,7 @@ start-erigon:
 	--http.corsdomain "*" \
 	--http.port 8545 \
 	--authrpc.addr	0.0.0.0 \
-	--authrpc.jwtsecret $(JWT_PATH) \
+	--authrpc.jwtsecret /$(JWT_PATH) \
 	--authrpc.vhosts "*" \
 	--networkid 80087 \
 	--db.size.limit	3000MB \
@@ -234,7 +234,6 @@ start-geth-bepolia:
 	--syncmode=full \
 	--bootnodes $$bootnodes
 
-# TODO(prague1): Update to bera-reth once production ready
 start-reth-bepolia:
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
 	@trustedpeers=`cat $(PWD)/$(BEPOLIA_NETWORK_FILES_DIR)/el-peers.txt`; \
@@ -246,7 +245,7 @@ start-reth-bepolia:
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	--rm -v $(PWD)/${BEPOLIA_NETWORK_FILES_DIR}:/${BEPOLIA_NETWORK_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	ghcr.io/paradigmxyz/reth node \
+	ghcr.io/berachain/bera-reth:nightly node \
 	--chain ${BEPOLIA_ETH_GENESIS_PATH} \
 	--http \
 	--http.addr "0.0.0.0" \
@@ -303,7 +302,6 @@ start-geth-mainnet:
 	--syncmode=full \
 	--bootnodes $$bootnodes
 
-# TODO(prague1): Update to bera-reth once production ready
 start-reth-mainnet:
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
 	@trustedpeers=`cat $(PWD)/$(MAINNET_NETWORK_FILES_DIR)/el-peers.txt`; \
@@ -315,7 +313,7 @@ start-reth-mainnet:
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	--rm -v $(PWD)/${MAINNET_NETWORK_FILES_DIR}:/${MAINNET_NETWORK_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	ghcr.io/paradigmxyz/reth node \
+	ghcr.io/berachain/bera-reth:nightly node \
 	--chain ${MAINNET_ETH_GENESIS_PATH} \
 	--http \
 	--http.addr "0.0.0.0" \
