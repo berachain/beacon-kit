@@ -234,6 +234,7 @@ start-geth-bepolia:
 	--syncmode=full \
 	--bootnodes $$bootnodes
 
+# TODO(prague1): Update to bera-reth once production ready
 start-reth-bepolia:
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
 	@trustedpeers=`cat $(PWD)/$(BEPOLIA_NETWORK_FILES_DIR)/el-peers.txt`; \
@@ -245,7 +246,7 @@ start-reth-bepolia:
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	--rm -v $(PWD)/${BEPOLIA_NETWORK_FILES_DIR}:/${BEPOLIA_NETWORK_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	ghcr.io/berachain/bera-reth:nightly node \
+	ghcr.io/paradigmxyz/reth node \
 	--chain ${BEPOLIA_ETH_GENESIS_PATH} \
 	--http \
 	--http.addr "0.0.0.0" \
@@ -302,6 +303,7 @@ start-geth-mainnet:
 	--syncmode=full \
 	--bootnodes $$bootnodes
 
+# TODO(prague1): Update to bera-reth once production ready
 start-reth-mainnet:
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
 	@trustedpeers=`cat $(PWD)/$(MAINNET_NETWORK_FILES_DIR)/el-peers.txt`; \
@@ -313,7 +315,7 @@ start-reth-mainnet:
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	--rm -v $(PWD)/${MAINNET_NETWORK_FILES_DIR}:/${MAINNET_NETWORK_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	ghcr.io/berachain/bera-reth:nightly node \
+	ghcr.io/paradigmxyz/reth node \
 	--chain ${MAINNET_ETH_GENESIS_PATH} \
 	--http \
 	--http.addr "0.0.0.0" \
