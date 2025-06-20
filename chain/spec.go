@@ -383,12 +383,12 @@ func (s spec) GenesisTime() uint64 {
 	return s.Data.GenesisTime
 }
 
-// Deneb1ForkTime returns the epoch of the Deneb1 fork.
+// Deneb1ForkTime returns the timestamp of the Deneb1 fork.
 func (s spec) Deneb1ForkTime() uint64 {
 	return s.Data.Deneb1ForkTime
 }
 
-// ElectraForkTime returns the epoch of the Electra fork.
+// ElectraForkTime returns the timestamp of the Electra fork.
 func (s spec) ElectraForkTime() uint64 {
 	return s.Data.ElectraForkTime
 }
