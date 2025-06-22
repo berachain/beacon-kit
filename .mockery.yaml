@@ -27,7 +27,7 @@ dir: "{{.InterfaceDir}}/mocks"
 mockname: "{{.InterfaceNameCamel}}"
 filename: "{{.InterfaceNameSnake}}.mock.go"
 outpkg: "mocks"
-resolve-type-alias: False # see https://vektra.github.io/mockery/latest/deprecations/#resolve-type-alias
+resolve-type-alias: False # see https://vektra.github.io/mockery/v2.29/features/#replace-types
 issue-845-fix: True # see https://vektra.github.io/mockery/latest/deprecations/#issue-845-fix
 packages:
   github.com/berachain/beacon-kit/execution/client/ethclient:
