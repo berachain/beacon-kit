@@ -235,7 +235,6 @@ func (s *Service) VerifyIncomingBlock(
 	consensusTime math.U64,
 	proposerAddress []byte,
 ) error {
-	// Grab a copy of the state to verify the incoming block.
 	preState := s.storageBackend.StateFromContext(ctx)
 
 	// Force a sync of the startup head if we haven't done so already.
@@ -258,6 +257,11 @@ func (s *Service) VerifyIncomingBlock(
 	// we have to rebuild a payload for this slot again, if we do not agree
 	// with the incoming block.
 	postState := preState.Copy(ctx)
+
+	preFetchSuccessData, err := s.preFetchBuildDataForSuccess(preState, beaconBlk, consensusTime)
+	if err != nil {
+		return fmt.Errorf("failed preFetching data for success: %w", err)
+	}
 
 	// verify block slot
 	stateSlot, err := postState.GetSlot()
@@ -326,21 +330,7 @@ func (s *Service) VerifyIncomingBlock(
 	)
 
 	if s.shouldBuildOptimisticPayloads() {
-		lph, lphErr := postState.GetLatestExecutionPayloadHeader()
-		if lphErr != nil {
-			return fmt.Errorf("failed loading LatestExecutionPayloadHeader: %w", lphErr)
-		}
-
-		go s.handleOptimisticPayloadBuild(
-			ctx,
-			postState,
-			beaconBlk,
-			payloadtime.Next(
-				consensusTime,
-				lph.GetTimestamp(),
-				true, // buildOptimistically
-			),
-		)
+		go s.handleOptimisticPayloadBuild(ctx, preFetchSuccessData)
 	}
 
 	return nil
