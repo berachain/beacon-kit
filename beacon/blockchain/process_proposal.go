@@ -26,7 +26,6 @@ import (
 	"fmt"
 	"time"
 
-	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/consensus/types"
@@ -227,15 +226,13 @@ func (s *Service) VerifyIncomingBlobSidecars(
 
 // VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
-//
-//nolint:funlen // not an issue
 func (s *Service) VerifyIncomingBlock(
 	ctx context.Context,
 	beaconBlk *ctypes.BeaconBlock,
 	consensusTime math.U64,
 	proposerAddress []byte,
 ) error {
-	preState := s.storageBackend.StateFromContext(ctx)
+	state := s.storageBackend.StateFromContext(ctx)
 
 	// Force a sync of the startup head if we haven't done so already.
 	// TODO: Address the need for calling forceStartupSyncOnce in ProcessProposal. On a running
@@ -244,7 +241,7 @@ func (s *Service) VerifyIncomingBlock(
 	// into this case during the first block after genesis.
 	// TODO: Consider panicing here if this fails. If our node cannot successfully run
 	// forceStartupSync, then we should shut down the node and fix the problem.
-	s.forceStartupSyncOnce.Do(func() { s.forceSyncUponProcess(ctx, preState) })
+	s.forceStartupSyncOnce.Do(func() { s.forceSyncUponProcess(ctx, state) })
 
 	s.logger.Info(
 		"Received incoming beacon block",
@@ -252,19 +249,8 @@ func (s *Service) VerifyIncomingBlock(
 		"slot", beaconBlk.GetSlot(),
 	)
 
-	// We purposefully make a copy of the BeaconState in order
-	// to avoid modifying the underlying state, for the event in which
-	// we have to rebuild a payload for this slot again, if we do not agree
-	// with the incoming block.
-	postState := preState.Copy(ctx)
-
-	preFetchSuccessData, err := s.preFetchBuildDataForSuccess(preState, beaconBlk, consensusTime)
-	if err != nil {
-		return fmt.Errorf("failed preFetching data for success: %w", err)
-	}
-
 	// verify block slot
-	stateSlot, err := postState.GetSlot()
+	stateSlot, err := state.GetSlot()
 	if err != nil {
 		s.logger.Error(
 			"failed loading state slot to verify block slot",
@@ -284,10 +270,18 @@ func (s *Service) VerifyIncomingBlock(
 		return ErrUnexpectedBlockSlot
 	}
 
+	var preFetchFailureData *preFetchedBuildData
+	if s.shouldBuildOptimisticPayloads() {
+		preFetchFailureData, err = s.preFetchBuildDataForRejection(state, beaconBlk, consensusTime)
+		if err != nil {
+			return fmt.Errorf("failed preFetching data for rejection: %w", err)
+		}
+	}
+
 	// Verify the state root of the incoming block.
 	err = s.verifyStateRoot(
 		ctx,
-		postState,
+		state,
 		beaconBlk,
 		consensusTime,
 		proposerAddress)
@@ -299,37 +293,24 @@ func (s *Service) VerifyIncomingBlock(
 		)
 
 		if s.shouldBuildOptimisticPayloads() {
-			lph, lphErr := preState.GetLatestExecutionPayloadHeader()
-			if lphErr != nil {
-				return errors.Join(
-					err,
-					fmt.Errorf("failed getting LatestExecutionPayloadHeader: %w", lphErr),
-				)
-			}
-
 			// If we are rejecting the incoming block, let's optimistically build a candidate
 			// payload for this slot (in case we are selected as the next proposer for this slot).
-			go s.handleRebuildPayloadForRejectedBlock(
-				ctx,
-				preState,
-				payloadtime.Next(
-					consensusTime,
-					lph.GetTimestamp(),
-					true, // buildOptimistically
-				),
-			)
+			go s.handleRebuildPayloadForRejectedBlock(ctx, preFetchFailureData)
 		}
 
 		return err
 	}
 
-	s.logger.Info(
-		"State root verification succeeded - accepting incoming beacon block",
-		"state_root",
-		beaconBlk.GetStateRoot(),
+	s.logger.Info("State root verification succeeded - accepting incoming beacon block",
+		"state_root", beaconBlk.GetStateRoot(),
 	)
 
 	if s.shouldBuildOptimisticPayloads() {
+		var preFetchSuccessData *preFetchedBuildData
+		preFetchSuccessData, err = s.preFetchBuildDataForSuccess(state, beaconBlk, consensusTime)
+		if err != nil {
+			return fmt.Errorf("failed preFetching data for success: %w", err)
+		}
 		go s.handleOptimisticPayloadBuild(ctx, preFetchSuccessData)
 	}
 
