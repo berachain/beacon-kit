@@ -272,7 +272,8 @@ func (s *Service) VerifyIncomingBlock(
 
 	var preFetchFailureData *preFetchedBuildData
 	if s.shouldBuildOptimisticPayloads() {
-		preFetchFailureData, err = s.preFetchBuildDataForRejection(state, consensusTime)
+		copiedState := state.Copy(ctx)
+		preFetchFailureData, err = s.preFetchBuildDataForRejection(copiedState, consensusTime)
 		if err != nil {
 			return fmt.Errorf("failed preFetching data for rejection: %w", err)
 		}

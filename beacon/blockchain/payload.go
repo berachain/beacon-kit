@@ -199,7 +199,7 @@ func (s *Service) preFetchBuildDataForRejection(
 	}
 
 	return &preFetchedBuildData{
-		nextBlockSlot:        stateSlot + 1,
+		nextBlockSlot:        stateSlot,
 		nextPayloadTimestamp: nextPayloadTimestamp,
 		withdrawals:          payloadWithdrawals,
 		prevRandao:           prevRandao,
