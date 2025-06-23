@@ -56,11 +56,30 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 		return &payloadID.PayloadID, payloadID.ForkVersion, nil
 	}
 
+	// Expected payloadWithdrawals to include in this payload.
+	payloadWithdrawals, _, err := st.ExpectedWithdrawals(timestamp)
+	if err != nil {
+		pb.logger.Error(
+			"Could not get expected withdrawals to get payload attribute",
+			"error",
+			err,
+		)
+		return nil, common.Version{}, err
+	}
+	// Get the previous randao mix.
+	epoch := pb.chainSpec.SlotToEpoch(slot)
+	prevRandao, err := st.GetRandaoMixAtIndex(
+		epoch.Unwrap() % pb.chainSpec.EpochsPerHistoricalVector(),
+	)
+	if err != nil {
+		return nil, common.Version{}, err
+	}
+
 	// Assemble the payload attributes.
 	attrs, err := pb.attributesFactory.BuildPayloadAttributes(
-		st,
-		slot,
 		timestamp,
+		payloadWithdrawals,
+		prevRandao,
 		parentBlockRoot,
 	)
 	if err != nil {

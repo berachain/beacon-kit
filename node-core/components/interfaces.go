@@ -47,10 +47,10 @@ type (
 	// AttributesFactory is the interface for the attributes factory.
 	AttributesFactory interface {
 		BuildPayloadAttributes(
-			st *statedb.StateDB,
-			slot math.Slot,
 			timestamp math.U64,
-			prevHeadRoot [32]byte,
+			payloadWithdrawals engineprimitives.Withdrawals,
+			prevRandao common.Bytes32,
+			prevHeadRoot common.Root,
 		) (*engineprimitives.PayloadAttributes, error)
 	}
 
