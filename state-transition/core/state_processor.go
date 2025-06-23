@@ -100,8 +100,8 @@ func (sp *StateProcessor) Transition(
 	//
 	// TODO: allow the state transition context to directly indicate what stage of block processing
 	// we are in, i.e. ProcessProposal, FinalizeBlock, etc.
-	inFinalizeBlock := ctx.VerifyPayload() && !ctx.VerifyRandao()
-	if err = sp.ProcessFork(st, blk.GetTimestamp(), inFinalizeBlock); err != nil {
+	processingOrFinalizingBlock := ctx.VerifyPayload()
+	if err = sp.ProcessFork(st, blk.GetTimestamp(), processingOrFinalizingBlock); err != nil {
 		return nil, err
 	}
 

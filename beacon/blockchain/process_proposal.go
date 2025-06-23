@@ -55,6 +55,7 @@ const (
 	MaxConsensusTxsCount = 2
 )
 
+//nolint:funlen // it's fine
 func (s *Service) ProcessProposal(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
@@ -135,6 +136,11 @@ func (s *Service) ProcessProposal(
 	}
 
 	// Process the block.
+	s.logger.Debug( // needed for some checks in sim tests
+		"Processing block with fork version",
+		"block", req.Height,
+		"fork", blkVersion.String(),
+	)
 	consensusBlk := types.NewConsensusBlock(
 		blk,
 		req.GetProposerAddress(),
