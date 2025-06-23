@@ -44,6 +44,8 @@ var (
 	electra = common.Version{0x05, 0x00, 0x00, 0x00}
 	// electra1 is the first hardfork of Electra on Berachain mainnet.
 	electra1 = common.Version{0x05, 0x01, 0x00, 0x00}
+	// TBD if used but kept as an example.
+	electra2 = common.Version{0x05, 0x02, 0x00, 0x00}
 )
 
 // Phase0 returns phase0 as a common.Version.
@@ -85,4 +87,9 @@ func Electra() common.Version {
 // Electra1 returns electra1 as a common.Version.
 func Electra1() common.Version {
 	return electra1
+}
+
+// Electra1 returns electra1 as a common.Version.
+func Electra2() common.Version {
+	return electra2
 }
