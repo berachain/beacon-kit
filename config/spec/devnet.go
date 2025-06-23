@@ -21,8 +21,6 @@
 package spec
 
 import (
-	"math"
-
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/ethereum/go-ethereum/params"
@@ -52,7 +50,7 @@ const (
 
 	// devnetElectra1ForkTime is the timestamp at which the Electra1 fork occurs.
 	// devnet is configured to start on electra.
-	devnetElectra1ForkTime = math.MaxInt64
+	devnetElectra1ForkTime = 0
 
 	// devnetEVMInflationAddressDeneb1 is the address of the EVM inflation contract
 	// after the Deneb1 fork.

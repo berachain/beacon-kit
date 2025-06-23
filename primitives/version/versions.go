@@ -89,7 +89,7 @@ func Electra1() common.Version {
 	return electra1
 }
 
-// Electra1 returns electra1 as a common.Version.
+// Electra2 returns electra1 as a common.Version.
 func Electra2() common.Version {
 	return electra2
 }
