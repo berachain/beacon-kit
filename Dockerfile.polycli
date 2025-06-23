@@ -19,8 +19,8 @@
 #######################################################
 
 FROM alpine
-ARG VERSION=v0.1.79
-ARG AMD64_SHA=f399c83b4bb339a32e6eac80614fab82644e7a8f5e03a47d8f708fd0fe649308
+ARG VERSION=v0.1.82
+ARG AMD64_SHA=3f9a84cee678d0c0f568f1744040e337662782dce6c8054d1ca2fbbfbbcadf46
 
 ###########################################################################
 ###                  Stage 1 - Download polycli release                 ###
