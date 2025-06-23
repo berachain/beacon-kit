@@ -29,7 +29,6 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // RequestPayloadAsync builds a payload for the given slot and
@@ -96,34 +95,16 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 // blocks until the payload is delivered.
 func (pb *PayloadBuilder) RequestPayloadSync(
 	ctx context.Context,
-	st *statedb.StateDB,
 	slot math.Slot,
 	timestamp math.U64,
+	payloadWithdrawals engineprimitives.Withdrawals,
+	prevRandao common.Bytes32,
 	parentBlockRoot common.Root,
 	parentEth1Hash common.ExecutionHash,
 	finalBlockHash common.ExecutionHash,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
 	if !pb.Enabled() {
 		return nil, ErrPayloadBuilderDisabled
-	}
-
-	// Expected payloadWithdrawals to include in this payload.
-	payloadWithdrawals, _, err := st.ExpectedWithdrawals(timestamp)
-	if err != nil {
-		pb.logger.Error(
-			"Could not get expected withdrawals to get payload attribute",
-			"error",
-			err,
-		)
-		return nil, err
-	}
-	// Get the previous randao mix.
-	epoch := pb.chainSpec.SlotToEpoch(slot)
-	prevRandao, err := st.GetRandaoMixAtIndex(
-		epoch.Unwrap() % pb.chainSpec.EpochsPerHistoricalVector(),
-	)
-	if err != nil {
-		return nil, err
 	}
 
 	// Build the payload and wait for the execution client to

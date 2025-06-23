@@ -61,12 +61,13 @@ type PayloadBuilder interface {
 	// blocks until the payload is delivered.
 	RequestPayloadSync(
 		ctx context.Context,
-		st *statedb.StateDB,
 		slot math.Slot,
 		timestamp math.U64,
+		payloadWithdrawals engineprimitives.Withdrawals,
+		prevRandao common.Bytes32,
 		parentBlockRoot common.Root,
-		headEth1BlockHash common.ExecutionHash,
-		finalEth1BlockHash common.ExecutionHash,
+		parentEth1Hash common.ExecutionHash,
+		finalBlockHash common.ExecutionHash,
 	) (ctypes.BuiltExecutionPayloadEnv, error)
 }
 
@@ -120,5 +121,7 @@ type ChainSpec interface {
 	MaxDepositsPerBlock() uint64
 	ActiveForkVersionForTimestamp(timestamp math.U64) common.Version
 	SlotToEpoch(slot math.Slot) math.Epoch
+	EpochsPerHistoricalVector() uint64
+
 	ctypes.ProposerDomain
 }
