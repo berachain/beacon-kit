@@ -29,16 +29,16 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // RequestPayloadAsync builds a payload for the given slot and
 // returns the payload ID.
 func (pb *PayloadBuilder) RequestPayloadAsync(
 	ctx context.Context,
-	st *statedb.StateDB,
 	slot math.Slot,
 	timestamp math.U64,
+	payloadWithdrawals engineprimitives.Withdrawals,
+	prevRandao common.Bytes32,
 	parentBlockRoot common.Root,
 	headEth1BlockHash common.ExecutionHash,
 	finalEth1BlockHash common.ExecutionHash,
@@ -58,9 +58,9 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 
 	// Assemble the payload attributes.
 	attrs, err := pb.attributesFactory.BuildPayloadAttributes(
-		st,
-		slot,
 		timestamp,
+		payloadWithdrawals,
+		prevRandao,
 		parentBlockRoot,
 	)
 	if err != nil {
@@ -95,9 +95,10 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 // blocks until the payload is delivered.
 func (pb *PayloadBuilder) RequestPayloadSync(
 	ctx context.Context,
-	st *statedb.StateDB,
 	slot math.Slot,
 	timestamp math.U64,
+	payloadWithdrawals engineprimitives.Withdrawals,
+	prevRandao common.Bytes32,
 	parentBlockRoot common.Root,
 	parentEth1Hash common.ExecutionHash,
 	finalBlockHash common.ExecutionHash,
@@ -110,9 +111,10 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 	// return the payload ID.
 	payloadID, forkVersion, err := pb.RequestPayloadAsync(
 		ctx,
-		st,
 		slot,
 		timestamp,
+		payloadWithdrawals,
+		prevRandao,
 		parentBlockRoot,
 		parentEth1Hash,
 		finalBlockHash,

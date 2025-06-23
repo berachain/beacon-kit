@@ -47,10 +47,10 @@ type (
 	// AttributesFactory is the interface for the attributes factory.
 	AttributesFactory interface {
 		BuildPayloadAttributes(
-			st *statedb.StateDB,
-			slot math.Slot,
 			timestamp math.U64,
-			prevHeadRoot [32]byte,
+			payloadWithdrawals engineprimitives.Withdrawals,
+			prevRandao common.Bytes32,
+			prevHeadRoot common.Root,
 		) (*engineprimitives.PayloadAttributes, error)
 	}
 
@@ -79,9 +79,10 @@ type (
 		// RequestPayloadAsync requests a new payload for the given slot.
 		RequestPayloadAsync(
 			ctx context.Context,
-			st *statedb.StateDB,
 			slot math.Slot,
 			timestamp math.U64,
+			payloadWithdrawals engineprimitives.Withdrawals,
+			prevRandao common.Bytes32,
 			parentBlockRoot common.Root,
 			headEth1BlockHash common.ExecutionHash,
 			finalEth1BlockHash common.ExecutionHash,
@@ -96,12 +97,13 @@ type (
 		// blocks until the payload is delivered.
 		RequestPayloadSync(
 			ctx context.Context,
-			st *statedb.StateDB,
 			slot math.Slot,
 			timestamp math.U64,
+			payloadWithdrawals engineprimitives.Withdrawals,
+			prevRandao common.Bytes32,
 			parentBlockRoot common.Root,
-			headEth1BlockHash common.ExecutionHash,
-			finalEth1BlockHash common.ExecutionHash,
+			parentEth1Hash common.ExecutionHash,
+			finalBlockHash common.ExecutionHash,
 		) (ctypes.BuiltExecutionPayloadEnv, error)
 	}
 

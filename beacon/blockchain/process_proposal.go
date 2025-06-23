@@ -26,7 +26,6 @@ import (
 	"fmt"
 	"time"
 
-	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
@@ -208,15 +207,12 @@ func (s *Service) VerifyIncomingBlobSidecars(
 
 // VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
-//
-//nolint:funlen // not an issue
 func (s *Service) VerifyIncomingBlock(
 	ctx context.Context,
 	beaconBlk *ctypes.BeaconBlock,
 	consensusTime math.U64,
 	proposerAddress []byte,
 ) (transition.ValidatorUpdates, error) {
-	// Grab a copy of the state to verify the incoming block.
 	state := s.storageBackend.StateFromContext(ctx)
 
 	// Force a sync of the startup head if we haven't done so already.
@@ -233,12 +229,6 @@ func (s *Service) VerifyIncomingBlock(
 		"state_root", beaconBlk.GetStateRoot(),
 		"slot", beaconBlk.GetSlot(),
 	)
-
-	// We purposefully make a copy of the BeaconState in order
-	// to avoid modifying the underlying state, for the event in which
-	// we have to rebuild a payload for this slot again, if we do not agree
-	// with the incoming block.
-	copiedPreState := state.Copy(ctx)
 
 	// verify block slot
 	stateSlot, err := state.GetSlot()
@@ -261,6 +251,15 @@ func (s *Service) VerifyIncomingBlock(
 		return nil, ErrUnexpectedBlockSlot
 	}
 
+	var preFetchFailureData *preFetchedBuildData
+	if s.shouldBuildOptimisticPayloads() {
+		copiedState := state.Copy(ctx)
+		preFetchFailureData, err = s.preFetchBuildDataForRejection(copiedState, consensusTime)
+		if err != nil {
+			return nil, fmt.Errorf("failed preFetching data for rejection: %w", err)
+		}
+	}
+
 	// Verify the state root of the incoming block.
 	var valUpdates transition.ValidatorUpdates
 	valUpdates, err = s.verifyStateRoot(
@@ -277,53 +276,28 @@ func (s *Service) VerifyIncomingBlock(
 		)
 
 		if s.shouldBuildOptimisticPayloads() {
-			lph, lphErr := copiedPreState.GetLatestExecutionPayloadHeader()
-			if lphErr != nil {
-				return nil, errors.Join(
-					err,
-					fmt.Errorf("failed getting LatestExecutionPayloadHeader: %w", lphErr),
-				)
+			if preFetchFailureData == nil {
+				panic("nil preFetchFailureData") // appease nilaway
 			}
-
 			// If we are rejecting the incoming block, let's optimistically build a candidate
 			// payload for this slot (in case we are selected as the next proposer for this slot).
-			go s.handleRebuildPayloadForRejectedBlock(
-				ctx,
-				copiedPreState,
-				payloadtime.Next(
-					consensusTime,
-					lph.GetTimestamp(),
-					true, // buildOptimistically
-				),
-			)
+			go s.handleRebuildPayloadForRejectedBlock(ctx, preFetchFailureData)
 		}
 
 		return nil, err
 	}
 
-	s.logger.Info(
-		"State root verification succeeded - accepting incoming beacon block",
-		"state_root",
-		beaconBlk.GetStateRoot(),
+	s.logger.Info("State root verification succeeded - accepting incoming beacon block",
+		"state_root", beaconBlk.GetStateRoot(),
 	)
 
 	if s.shouldBuildOptimisticPayloads() {
-		copiedPostState := state.Copy(ctx)
-		lph, lphErr := copiedPostState.GetLatestExecutionPayloadHeader()
-		if lphErr != nil {
-			return nil, fmt.Errorf("failed loading LatestExecutionPayloadHeader: %w", lphErr)
+		var preFetchSuccessData *preFetchedBuildData
+		preFetchSuccessData, err = s.preFetchBuildDataForSuccess(state, beaconBlk, consensusTime)
+		if err != nil {
+			return nil, fmt.Errorf("failed preFetching data for success: %w", err)
 		}
-
-		go s.handleOptimisticPayloadBuild(
-			ctx,
-			copiedPostState,
-			beaconBlk,
-			payloadtime.Next(
-				consensusTime,
-				lph.GetTimestamp(),
-				true, // buildOptimistically
-			),
-		)
+		go s.handleOptimisticPayloadBuild(ctx, preFetchSuccessData)
 	}
 
 	return valUpdates, nil

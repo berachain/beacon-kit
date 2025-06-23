@@ -39,6 +39,7 @@ import (
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	bemocks "github.com/berachain/beacon-kit/node-api/backend/mocks"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
+	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -99,9 +100,7 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 	}
 
 	// register async call to block building
-	var wg sync.WaitGroup        // useful to make test wait on async checks
-	var ch = make(chan struct{}) // useful to serialize build block goroutine and avoid data races
-
+	var wg sync.WaitGroup          // useful to make test wait on async checks
 	stateRoot := st.HashTreeRoot() // track state root before the changes done by optimistic build
 	latestHeader, err := st.GetLatestBlockHeader()
 	require.NoError(t, err)
@@ -109,18 +108,18 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 	expectedParentBlockRoot := latestHeader.HashTreeRoot()
 
 	b.EXPECT().RequestPayloadAsync(
-		mock.Anything, mock.Anything, mock.Anything,
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
 		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
 	).Run(
 		func(
 			_ context.Context,
-			preState *state.StateDB,
 			slot, timestamp math.U64,
+			_ engineprimitives.Withdrawals,
+			_ bytes.B32,
 			parentBlockRoot common.Root,
 			headEth1BlockHash, finalEth1BlockHash common.ExecutionHash,
 		) {
 			defer wg.Done()
-			<-ch // wait for block verification to finish. This avoids data races over state reads
 			genesisHeader := genesisData.ExecutionPayloadHeader
 			genesisBlkHeader := core.GenesisBlockHeader(cs.GenesisForkVersion())
 			genesisBlkHeader.SetStateRoot(stateRoot)
@@ -133,10 +132,6 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 
 			require.Empty(t, finalEth1BlockHash)          // this is first block post genesis
 			require.Equal(t, constants.GenesisSlot, slot) // genesis slot in state
-			var stateSlot math.Slot
-			stateSlot, err = preState.GetSlot()
-			require.NoError(t, err)
-			require.Equal(t, constants.GenesisSlot, stateSlot)
 		},
 	).Return(nil, common.Version{0xff}, errors.New("does not matter")) // return values do not really matter in this test
 	wg.Add(1)
@@ -149,9 +144,7 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 	)
 	require.ErrorIs(t, err, core.ErrProposerMismatch)
 
-	// unlock checks on block building goroutine and
-	// wait for it to carry out all the checks
-	ch <- struct{}{}
+	// wait for block building goroutine to carry out all the checks
 	wg.Wait()
 }
 
@@ -221,21 +214,20 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 	// end of BUILD A VALID BLOCK
 
 	// register async call to block building
-	var wg sync.WaitGroup        // useful to make test wait on async checks
-	var ch = make(chan struct{}) // useful to serialize build block goroutine and avoid data races
+	var wg sync.WaitGroup // useful to make test wait on async checks
 	b.EXPECT().RequestPayloadAsync(
-		mock.Anything, mock.Anything, mock.Anything,
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
 		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
 	).Run(
 		func(
 			_ context.Context,
-			postState *state.StateDB,
-			slot, timestamp math.U64,
+			nextBlkSlot, timestamp math.U64,
+			_ engineprimitives.Withdrawals,
+			_ bytes.B32,
 			parentBlockRoot common.Root,
 			headEth1BlockHash, finalEth1BlockHash common.ExecutionHash,
 		) {
 			defer wg.Done()
-			<-ch // wait for block verification to finish. This avoids data races over state reads
 			require.Equal(t, timestamp, consensusTime+1)
 
 			require.Equal(
@@ -248,12 +240,7 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 			require.Equal(t, genesisHeader, finalEth1BlockHash)
 
 			require.Equal(t, validBlk.HashTreeRoot(), parentBlockRoot)
-
-			var stateSlot math.Slot
-			stateSlot, err = postState.GetSlot()
-			require.NoError(t, err)
-			require.Equal(t, validBlk.Slot+1, stateSlot)
-			require.Equal(t, slot, stateSlot)
+			require.Equal(t, validBlk.Slot+1, nextBlkSlot)
 		},
 	).Return(nil, common.Version{0xff}, errors.New("does not matter")) // return values do not really matter in this test
 	wg.Add(1)
@@ -268,9 +255,7 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	// unlock checks on block building goroutine and
-	// wait for it to carry out all the checks
-	ch <- struct{}{}
+	// wait for block building goroutine to carry out all the checks
 	wg.Wait()
 }
 

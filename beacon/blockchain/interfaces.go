@@ -66,9 +66,10 @@ type LocalBuilder interface {
 	// RequestPayloadAsync requests a new payload for the given slot.
 	RequestPayloadAsync(
 		ctx context.Context,
-		st *statedb.StateDB,
 		slot math.Slot,
 		timestamp math.U64,
+		payloadWithdrawals engineprimitives.Withdrawals,
+		prevRandao common.Bytes32,
 		parentBlockRoot common.Root,
 		headEth1BlockHash common.ExecutionHash,
 		finalEth1BlockHash common.ExecutionHash,
@@ -191,5 +192,7 @@ type ServiceChainSpec interface {
 	chain.ForkSpec
 	chain.ForkVersionSpec
 
+	EpochsPerHistoricalVector() uint64
+	SlotToEpoch(slot math.Slot) math.Epoch
 	Eth1FollowDistance() uint64
 }
