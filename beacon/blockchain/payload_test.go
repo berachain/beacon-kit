@@ -99,12 +99,13 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 	}
 
 	// register async call to block building
-	var wg sync.WaitGroup          // useful to make test wait on async checks
-	var ch = make(chan struct{})   // useful to serialize build block goroutine and avoid data races
+	var wg sync.WaitGroup        // useful to make test wait on async checks
+	var ch = make(chan struct{}) // useful to serialize build block goroutine and avoid data races
+
 	stateRoot := st.HashTreeRoot() // track state root before the changes done by optimistic build
 	latestHeader, err := st.GetLatestBlockHeader()
 	require.NoError(t, err)
-	latestHeader.SetStateRoot(st.HashTreeRoot())
+	latestHeader.SetStateRoot(stateRoot)
 	expectedParentBlockRoot := latestHeader.HashTreeRoot()
 
 	b.EXPECT().RequestPayloadAsync(
