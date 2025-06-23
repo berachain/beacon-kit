@@ -36,9 +36,10 @@ import (
 // returns the payload ID.
 func (pb *PayloadBuilder) RequestPayloadAsync(
 	ctx context.Context,
-	st *statedb.StateDB,
 	slot math.Slot,
 	timestamp math.U64,
+	payloadWithdrawals engineprimitives.Withdrawals,
+	prevRandao common.Bytes32,
 	parentBlockRoot common.Root,
 	headEth1BlockHash common.ExecutionHash,
 	finalEth1BlockHash common.ExecutionHash,
@@ -54,25 +55,6 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 			"parent_block_root", parentBlockRoot,
 		)
 		return &payloadID.PayloadID, payloadID.ForkVersion, nil
-	}
-
-	// Expected payloadWithdrawals to include in this payload.
-	payloadWithdrawals, _, err := st.ExpectedWithdrawals(timestamp)
-	if err != nil {
-		pb.logger.Error(
-			"Could not get expected withdrawals to get payload attribute",
-			"error",
-			err,
-		)
-		return nil, common.Version{}, err
-	}
-	// Get the previous randao mix.
-	epoch := pb.chainSpec.SlotToEpoch(slot)
-	prevRandao, err := st.GetRandaoMixAtIndex(
-		epoch.Unwrap() % pb.chainSpec.EpochsPerHistoricalVector(),
-	)
-	if err != nil {
-		return nil, common.Version{}, err
 	}
 
 	// Assemble the payload attributes.
@@ -125,13 +107,33 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 		return nil, ErrPayloadBuilderDisabled
 	}
 
+	// Expected payloadWithdrawals to include in this payload.
+	payloadWithdrawals, _, err := st.ExpectedWithdrawals(timestamp)
+	if err != nil {
+		pb.logger.Error(
+			"Could not get expected withdrawals to get payload attribute",
+			"error",
+			err,
+		)
+		return nil, err
+	}
+	// Get the previous randao mix.
+	epoch := pb.chainSpec.SlotToEpoch(slot)
+	prevRandao, err := st.GetRandaoMixAtIndex(
+		epoch.Unwrap() % pb.chainSpec.EpochsPerHistoricalVector(),
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	// Build the payload and wait for the execution client to
 	// return the payload ID.
 	payloadID, forkVersion, err := pb.RequestPayloadAsync(
 		ctx,
-		st,
 		slot,
 		timestamp,
+		payloadWithdrawals,
+		prevRandao,
 		parentBlockRoot,
 		parentEth1Hash,
 		finalBlockHash,

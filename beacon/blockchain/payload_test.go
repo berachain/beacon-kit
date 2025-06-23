@@ -39,6 +39,7 @@ import (
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	bemocks "github.com/berachain/beacon-kit/node-api/backend/mocks"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
+	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -108,13 +109,14 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 	expectedParentBlockRoot := latestHeader.HashTreeRoot()
 
 	b.EXPECT().RequestPayloadAsync(
-		mock.Anything, mock.Anything, mock.Anything,
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
 		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
 	).Run(
 		func(
 			_ context.Context,
-			st *state.StateDB,
 			slot, timestamp math.U64,
+			_ engineprimitives.Withdrawals,
+			_ bytes.B32,
 			parentBlockRoot common.Root,
 			headEth1BlockHash, finalEth1BlockHash common.ExecutionHash,
 		) {
@@ -132,10 +134,6 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 
 			require.Empty(t, finalEth1BlockHash)          // this is first block post genesis
 			require.Equal(t, constants.GenesisSlot, slot) // genesis slot in state
-			var stateSlot math.Slot
-			stateSlot, err = st.GetSlot()
-			require.NoError(t, err)
-			require.Equal(t, constants.GenesisSlot, stateSlot)
 		},
 	).Return(nil, common.Version{0xff}, errors.New("does not matter")) // return values do not really matter in this test
 	wg.Add(1)
@@ -223,13 +221,14 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 	var wg sync.WaitGroup        // useful to make test wait on async checks
 	var ch = make(chan struct{}) // useful to serialize build block goroutine and avoid data races
 	b.EXPECT().RequestPayloadAsync(
-		mock.Anything, mock.Anything, mock.Anything,
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
 		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
 	).Run(
 		func(
 			_ context.Context,
-			st *state.StateDB,
-			slot, timestamp math.U64,
+			nextBlkSlot, timestamp math.U64,
+			_ engineprimitives.Withdrawals,
+			_ bytes.B32,
 			parentBlockRoot common.Root,
 			headEth1BlockHash, finalEth1BlockHash common.ExecutionHash,
 		) {
@@ -247,12 +246,7 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 			require.Equal(t, genesisHeader, finalEth1BlockHash)
 
 			require.Equal(t, validBlk.HashTreeRoot(), parentBlockRoot)
-
-			var stateSlot math.Slot
-			stateSlot, err = st.GetSlot()
-			require.NoError(t, err)
-			require.Equal(t, validBlk.Slot+1, stateSlot)
-			require.Equal(t, slot, stateSlot)
+			require.Equal(t, validBlk.Slot+1, nextBlkSlot)
 		},
 	).Return(nil, common.Version{0xff}, errors.New("does not matter")) // return values do not really matter in this test
 	wg.Add(1)

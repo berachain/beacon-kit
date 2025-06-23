@@ -191,13 +191,33 @@ func (s *Service) rebuildPayloadForRejectedBlock(
 		return err
 	}
 
+	// Expected payloadWithdrawals to include in this payload.
+	payloadWithdrawals, _, err := st.ExpectedWithdrawals(nextPayloadTimestamp)
+	if err != nil {
+		s.logger.Error(
+			"Could not get expected withdrawals to get payload attribute",
+			"error",
+			err,
+		)
+		return err
+	}
+	// Get the previous randao mix.
+	epoch := s.chainSpec.SlotToEpoch(stateSlot)
+	prevRandao, err := st.GetRandaoMixAtIndex(
+		epoch.Unwrap() % s.chainSpec.EpochsPerHistoricalVector(),
+	)
+	if err != nil {
+		return err
+	}
+
 	// Submit a request for a new payload.
 	if _, _, err = s.localBuilder.RequestPayloadAsync(
 		ctx,
-		st,
 		// We are rebuilding for the current slot.
 		stateSlot,
 		nextPayloadTimestamp,
+		payloadWithdrawals,
+		prevRandao,
 		// We set the parent root to the previous block root. The HashTreeRoot
 		// of the header is the same as the HashTreeRoot of the block.
 		latestHeader.HashTreeRoot(),
@@ -266,12 +286,33 @@ func (s *Service) optimisticPayloadBuild(
 		return err
 	}
 
+	// Expected payloadWithdrawals to include in this payload.
+	payloadWithdrawals, _, err := st.ExpectedWithdrawals(nextPayloadTimestamp)
+	if err != nil {
+		s.logger.Error(
+			"Could not get expected withdrawals to get payload attribute",
+			"error",
+			err,
+		)
+		return err
+	}
+	// Get the previous randao mix.
+	epoch := s.chainSpec.SlotToEpoch(slot)
+	prevRandao, err := st.GetRandaoMixAtIndex(
+		epoch.Unwrap() % s.chainSpec.EpochsPerHistoricalVector(),
+	)
+	if err != nil {
+		return err
+	}
+
 	// We then trigger a request for the next payload.
 	payload := blk.GetBody().GetExecutionPayload()
 	if _, _, err = s.localBuilder.RequestPayloadAsync(
-		ctx, st,
+		ctx,
 		slot,
 		nextPayloadTimestamp,
+		payloadWithdrawals,
+		prevRandao,
 		// The previous block root is simply the root of the block we just
 		// processed.
 		blk.HashTreeRoot(),
