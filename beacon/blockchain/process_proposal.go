@@ -272,7 +272,7 @@ func (s *Service) VerifyIncomingBlock(
 
 	var preFetchFailureData *preFetchedBuildData
 	if s.shouldBuildOptimisticPayloads() {
-		preFetchFailureData, err = s.preFetchBuildDataForRejection(state, beaconBlk, consensusTime)
+		preFetchFailureData, err = s.preFetchBuildDataForRejection(state, consensusTime)
 		if err != nil {
 			return fmt.Errorf("failed preFetching data for rejection: %w", err)
 		}
@@ -293,6 +293,9 @@ func (s *Service) VerifyIncomingBlock(
 		)
 
 		if s.shouldBuildOptimisticPayloads() {
+			if preFetchFailureData == nil {
+				panic("nil preFetchFailureData") // appease nilaway
+			}
 			// If we are rejecting the incoming block, let's optimistically build a candidate
 			// payload for this slot (in case we are selected as the next proposer for this slot).
 			go s.handleRebuildPayloadForRejectedBlock(ctx, preFetchFailureData)

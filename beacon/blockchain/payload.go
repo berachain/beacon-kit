@@ -138,7 +138,6 @@ type preFetchedBuildData struct {
 
 func (s *Service) preFetchBuildDataForRejection(
 	st *statedb.StateDB,
-	blk *ctypes.BeaconBlock,
 	currentTime math.U64,
 ) (
 	*preFetchedBuildData,
@@ -200,7 +199,7 @@ func (s *Service) preFetchBuildDataForRejection(
 	}
 
 	return &preFetchedBuildData{
-		nextBlockSlot:        blk.GetSlot(),
+		nextBlockSlot:        stateSlot + 1,
 		nextPayloadTimestamp: nextPayloadTimestamp,
 		withdrawals:          payloadWithdrawals,
 		prevRandao:           prevRandao,
@@ -238,14 +237,14 @@ func (s *Service) rebuildPayloadForRejectedBlock(
 
 	// Submit a request for a new lph.
 	lph := buildData.parentPayloadHeader
+	nextBlkSlot := buildData.nextBlockSlot
 	if _, _, err := s.localBuilder.RequestPayloadAsync(
 		ctx,
-		// We are rebuilding for the current slot.
-		buildData.nextBlockSlot,
+		nextBlkSlot,
 		buildData.nextPayloadTimestamp,
-		buildData.withdrawals,     // payloadWithdrawals,
-		buildData.prevRandao,      // prevRandao,
-		buildData.parentBlockRoot, // latestHeader.HashTreeRoot(),
+		buildData.withdrawals,
+		buildData.prevRandao,
+		buildData.parentBlockRoot,
 		// We set the head of our chain to the previous finalized block.
 		lph.GetBlockHash(),
 		// We can say that the payload from the previous block is *finalized*,
@@ -253,10 +252,10 @@ func (s *Service) rebuildPayloadForRejectedBlock(
 		// and possibly should be made more explicit later on.
 		lph.GetParentHash(),
 	); err != nil {
-		s.metrics.markRebuildPayloadForRejectedBlockFailure(buildData.nextBlockSlot, err)
+		s.metrics.markRebuildPayloadForRejectedBlockFailure(nextBlkSlot, err)
 		return err
 	}
-	s.metrics.markRebuildPayloadForRejectedBlockSuccess(buildData.nextBlockSlot)
+	s.metrics.markRebuildPayloadForRejectedBlockSuccess(nextBlkSlot)
 	return nil
 }
 
