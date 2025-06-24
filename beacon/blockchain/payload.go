@@ -157,6 +157,7 @@ func (s *Service) preFetchBuildDataForRejection(
 	if err != nil {
 		return nil, err
 	}
+	blkSlot := stateSlot + 1
 
 	// Set the previous state root on the header.
 	latestHeader.SetStateRoot(st.HashTreeRoot())
@@ -181,7 +182,7 @@ func (s *Service) preFetchBuildDataForRejection(
 		return nil, err
 	}
 	// Get the previous randao mix.
-	epoch := s.chainSpec.SlotToEpoch(stateSlot)
+	epoch := s.chainSpec.SlotToEpoch(blkSlot)
 	prevRandao, err := st.GetRandaoMixAtIndex(
 		epoch.Unwrap() % s.chainSpec.EpochsPerHistoricalVector(),
 	)
@@ -190,7 +191,7 @@ func (s *Service) preFetchBuildDataForRejection(
 	}
 
 	return &builder.RequestPayloadData{
-		Slot:               stateSlot,
+		Slot:               blkSlot,
 		Timestamp:          nextPayloadTimestamp,
 		PayloadWithdrawals: payloadWithdrawals,
 		PrevRandao:         prevRandao,
