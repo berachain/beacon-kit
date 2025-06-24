@@ -86,7 +86,7 @@ node_settings:
       max_num_outbound_peers: 10
     app:
       payload_timeout: 850ms
-      enable_optimistic_payload_builds: false
+      enable_optimistic_payload_builds: true
   execution_settings:
     specs:
       min_cpu: 0
