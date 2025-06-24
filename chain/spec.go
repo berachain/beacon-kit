@@ -105,6 +105,9 @@ type ForkSpec interface {
 
 	// ElectraForkTime returns the time at which the Electra fork takes effect.
 	ElectraForkTime() uint64
+
+	// Electra1ForkTime returns the time at which the Electra1 fork takes effect.
+	Electra1ForkTime() uint64
 }
 
 type BlobSpec interface {
@@ -255,6 +258,7 @@ func (s spec) validate() error {
 		s.Data.GenesisTime,
 		s.Data.Deneb1ForkTime,
 		s.Data.ElectraForkTime,
+		s.Data.Electra1ForkTime,
 	}
 	for i := 1; i < len(orderedForkTimes); i++ {
 		prev, cur := orderedForkTimes[i-1], orderedForkTimes[i]
@@ -412,6 +416,11 @@ func (s spec) ElectraForkTime() uint64 {
 	return s.Data.ElectraForkTime
 }
 
+// Electra1ForkTime returns the epoch of the Electra1 fork.
+func (s spec) Electra1ForkTime() uint64 {
+	return s.Data.Electra1ForkTime
+}
+
 // EpochsPerHistoricalVector returns the number of epochs per historical vector.
 func (s spec) EpochsPerHistoricalVector() uint64 {
 	return s.Data.EpochsPerHistoricalVector
@@ -484,7 +493,7 @@ func (s spec) ValidatorSetCap() uint64 {
 func (s spec) EVMInflationAddress(timestamp math.U64) common.ExecutionAddress {
 	fv := s.ActiveForkVersionForTimestamp(timestamp)
 	switch fv {
-	case version.Deneb1(), version.Electra():
+	case version.Deneb1(), version.Electra(), version.Electra1():
 		return s.Data.EVMInflationAddressDeneb1
 	case version.Deneb():
 		return s.Data.EVMInflationAddressGenesis
@@ -498,7 +507,7 @@ func (s spec) EVMInflationAddress(timestamp math.U64) common.ExecutionAddress {
 func (s spec) EVMInflationPerBlock(timestamp math.U64) math.Gwei {
 	fv := s.ActiveForkVersionForTimestamp(timestamp)
 	switch fv {
-	case version.Deneb1(), version.Electra():
+	case version.Deneb1(), version.Electra(), version.Electra1():
 		return math.Gwei(s.Data.EVMInflationPerBlockDeneb1)
 	case version.Deneb():
 		return math.Gwei(s.Data.EVMInflationPerBlockGenesis)
