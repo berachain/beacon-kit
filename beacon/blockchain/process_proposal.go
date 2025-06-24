@@ -271,11 +271,11 @@ func (s *Service) VerifyIncomingBlock(
 		return ErrUnexpectedBlockSlot
 	}
 
-	var preFetchFailureData *builder.RequestPayloadData
+	var nextBlockData *builder.RequestPayloadData
 	if s.shouldBuildOptimisticPayloads() {
 		// state copy makes sure that preFetchBuildDataForSuccess does not affect state
 		copiedState := state.Copy(ctx)
-		preFetchFailureData, err = s.preFetchBuildData(copiedState, consensusTime)
+		nextBlockData, err = s.preFetchBuildData(copiedState, consensusTime)
 		if err != nil {
 			return fmt.Errorf("failed preFetching data for rejection: %w", err)
 		}
@@ -296,12 +296,12 @@ func (s *Service) VerifyIncomingBlock(
 		)
 
 		if s.shouldBuildOptimisticPayloads() {
-			if preFetchFailureData == nil {
+			if nextBlockData == nil {
 				panic("nil preFetchFailureData") // appease nilaway
 			}
 			// If we are rejecting the incoming block, let's optimistically build a candidate
 			// payload for this slot (in case we are selected as the next proposer for this slot).
-			go s.handleRebuildPayloadForRejectedBlock(ctx, preFetchFailureData)
+			go s.handleRebuildPayloadForRejectedBlock(ctx, nextBlockData)
 		}
 
 		return err
@@ -314,11 +314,11 @@ func (s *Service) VerifyIncomingBlock(
 	if s.shouldBuildOptimisticPayloads() {
 		// state copy makes sure that preFetchBuildDataForSuccess does not affect state
 		copiedState := state.Copy(ctx)
-		preFetchSuccessData, errSuccess := s.preFetchBuildData(copiedState, consensusTime)
-		if errSuccess != nil {
+		nextBlockData, err = s.preFetchBuildData(copiedState, consensusTime)
+		if err != nil {
 			return fmt.Errorf("failed preFetching data for success: %w", err)
 		}
-		go s.handleOptimisticPayloadBuild(ctx, preFetchSuccessData)
+		go s.handleOptimisticPayloadBuild(ctx, nextBlockData)
 	}
 
 	return nil
