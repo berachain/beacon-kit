@@ -46,7 +46,7 @@ func (s *Client) NewPayload(
 		// Versions before Deneb are not supported for calling NewPayload.
 		return nil, ErrInvalidVersion
 
-	case version.Equals(forkVersion, version.Deneb()) || version.Equals(forkVersion, version.Deneb1()):
+	case version.Equals(forkVersion, version.Deneb()), version.Equals(forkVersion, version.Deneb1()):
 		// Use V3 for Deneb versions (Deneb and Deneb1).
 		return s.NewPayloadV3(
 			ctx,
@@ -55,7 +55,7 @@ func (s *Client) NewPayload(
 			req.GetParentBeaconBlockRoot(),
 		)
 
-	case version.Equals(forkVersion, version.Electra()) || version.Equals(forkVersion, version.Electra1()):
+	case version.Equals(forkVersion, version.Electra()), version.Equals(forkVersion, version.Electra1()):
 		// Use V4 for Electra versions.
 		executionRequests, err := req.GetEncodedExecutionRequests()
 		if err != nil {
@@ -162,10 +162,10 @@ func (s *Client) GetPayload(
 		// Versions before Deneb are not supported for calling GetPayload.
 		return nil, ErrInvalidVersion
 
-	case version.Equals(forkVersion, version.Deneb()) || version.Equals(forkVersion, version.Deneb1()):
+	case version.Equals(forkVersion, version.Deneb()), version.Equals(forkVersion, version.Deneb1()):
 		return s.GetPayloadV3(ctx, payloadID, forkVersion)
 
-	case version.Equals(forkVersion, version.Electra()) || version.Equals(forkVersion, version.Electra1()):
+	case version.Equals(forkVersion, version.Electra()), version.Equals(forkVersion, version.Electra1()):
 		return s.GetPayloadV4(ctx, payloadID, forkVersion)
 
 	default:
