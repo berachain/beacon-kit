@@ -56,7 +56,7 @@ type PectraGenesisSuite struct {
 	simulated.SharedAccessors
 }
 
-// TestSimulatedCometComponent runs the test suite.
+// TestPectraSuite runs the test suite.
 func TestPectraSuite(t *testing.T) {
 	suite.Run(t, new(PectraGenesisSuite))
 }
