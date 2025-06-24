@@ -275,7 +275,7 @@ func (s *Service) VerifyIncomingBlock(
 	if s.shouldBuildOptimisticPayloads() {
 		// state copy makes sure that preFetchBuildDataForSuccess does not affect state
 		copiedState := state.Copy(ctx)
-		preFetchFailureData, err = s.preFetchBuildDataForRejection(copiedState, consensusTime)
+		preFetchFailureData, err = s.preFetchBuildData(copiedState, consensusTime)
 		if err != nil {
 			return fmt.Errorf("failed preFetching data for rejection: %w", err)
 		}
@@ -314,7 +314,7 @@ func (s *Service) VerifyIncomingBlock(
 	if s.shouldBuildOptimisticPayloads() {
 		// state copy makes sure that preFetchBuildDataForSuccess does not affect state
 		copiedState := state.Copy(ctx)
-		preFetchSuccessData, errSuccess := s.preFetchBuildDataForSuccess(copiedState, beaconBlk, consensusTime)
+		preFetchSuccessData, errSuccess := s.preFetchBuildData(copiedState, consensusTime)
 		if errSuccess != nil {
 			return fmt.Errorf("failed preFetching data for success: %w", err)
 		}

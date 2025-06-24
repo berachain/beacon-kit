@@ -127,7 +127,7 @@ func (s *Service) forceSyncUponFinalize(
 	}
 }
 
-func (s *Service) preFetchBuildDataForRejection(
+func (s *Service) preFetchBuildData(
 	st *statedb.StateDB,
 	currentTime math.U64,
 ) (
@@ -144,48 +144,35 @@ func (s *Service) preFetchBuildDataForRejection(
 		true, // buildOptimistically
 	)
 
-	// In order to rebuild a payload for the current slot, we need to know the
-	// previous block root, since we know that this is an unmodified state.
-	// We can safely get the latest block header and then rebuild the
-	// previous block and it's root.
-	latestHeader, err := st.GetLatestBlockHeader()
-	if err != nil {
-		return nil, err
-	}
-
 	stateSlot, err := st.GetSlot()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed retrieving slot from state: %w", err)
 	}
 	blkSlot := stateSlot + 1
 
-	// Set the previous state root on the header.
-	latestHeader.SetStateRoot(st.HashTreeRoot())
-
-	// We must prepare the state for the fork version of the new block being built to handle
-	// the case where the new block is on a new fork version. Although we do not have the
-	// confirmed timestamp by the EL, we will assume it to be `nextPayloadTimestamp` to decide
-	// the new block's fork version.
-	err = s.stateProcessor.ProcessFork(st, nextPayloadTimestamp, false)
-	if err != nil {
-		return nil, err
+	// Carry out on the support state st all the operations needed to
+	// process a new payload, namely ProcessSlots and ProcessFork
+	if _, err = s.stateProcessor.ProcessSlots(st, blkSlot); err != nil {
+		return nil, fmt.Errorf("failed processing block slot: %w", err)
+	}
+	if err = s.stateProcessor.ProcessFork(st, nextPayloadTimestamp, false); err != nil {
+		return nil, fmt.Errorf("failed processing fork: %w", err)
 	}
 
-	// Expected payloadWithdrawals to include in this payload.
+	// Once the state is ready, extract relevant data to build next payload
 	payloadWithdrawals, _, err := st.ExpectedWithdrawals(nextPayloadTimestamp)
 	if err != nil {
-		s.logger.Error(
-			"Could not get expected withdrawals to get payload attribute",
-			"error",
-			err,
-		)
-		return nil, err
+		return nil, fmt.Errorf("failed computing expected withdrawals: %w", err)
 	}
-	// Get the previous randao mix.
 	epoch := s.chainSpec.SlotToEpoch(blkSlot)
 	prevRandao, err := st.GetRandaoMixAtIndex(
 		epoch.Unwrap() % s.chainSpec.EpochsPerHistoricalVector(),
 	)
+	if err != nil {
+		return nil, fmt.Errorf("failed retrieving randao: %w", err)
+	}
+
+	latestHeader, err := st.GetLatestBlockHeader()
 	if err != nil {
 		return nil, err
 	}
@@ -196,7 +183,12 @@ func (s *Service) preFetchBuildDataForRejection(
 		PayloadWithdrawals: payloadWithdrawals,
 		PrevRandao:         prevRandao,
 		ParentBlockRoot:    latestHeader.HashTreeRoot(),
-		HeadEth1BlockHash:  lph.GetBlockHash(),
+
+		// We set the head of our chain to the latest verified block (whether it is final or not)
+		HeadEth1BlockHash: lph.GetBlockHash(),
+
+		// Assumuming consensus guarantees single slot finality, the parent
+		// of the latest block we verified must be final already.
 		FinalEth1BlockHash: lph.GetParentHash(),
 	}, nil
 }
@@ -219,76 +211,6 @@ func (s *Service) handleRebuildPayloadForRejectedBlock(
 	}
 
 	s.metrics.markRebuildPayloadForRejectedBlockSuccess(nextBlkSlot)
-}
-
-func (s *Service) preFetchBuildDataForSuccess(
-	st *statedb.StateDB,
-	blk *ctypes.BeaconBlock,
-	currentTime math.U64,
-) (
-	*builder.RequestPayloadData,
-	error,
-) {
-	lph, err := st.GetLatestExecutionPayloadHeader()
-	if err != nil {
-		return nil, fmt.Errorf("failed retrieving latest execution payload header: %w", err)
-	}
-	nextPayloadTimestamp := payloadtime.Next(
-		currentTime,
-		lph.GetTimestamp(),
-		true, // buildOptimistically
-	)
-
-	stateSlot, err := st.GetSlot()
-	if err != nil {
-		return nil, fmt.Errorf("failed retrieving slot from state: %w", err)
-	}
-	blkSlot := stateSlot + 1
-
-	// We process the slot to update any RANDAO values.
-	if _, err = s.stateProcessor.ProcessSlots(st, blkSlot); err != nil {
-		return nil, fmt.Errorf("failed processing block slot: %w", err)
-	}
-
-	// We must prepare the state for the fork version of the new block being built to handle
-	// the case where the new block is on a new fork version. Although we do not have the
-	// confirmed timestamp by the EL, we will assume it to be `nextPayloadTimestamp` to decide
-	// the new block's fork version.
-	err = s.stateProcessor.ProcessFork(st, nextPayloadTimestamp, false)
-	if err != nil {
-		return nil, fmt.Errorf("failed processing fork: %w", err)
-	}
-
-	// Expected payloadWithdrawals to include in this payload.
-	payloadWithdrawals, _, err := st.ExpectedWithdrawals(nextPayloadTimestamp)
-	if err != nil {
-		return nil, fmt.Errorf("failed computing expected withdrawals: %w", err)
-	}
-	// Get the previous randao mix.
-	epoch := s.chainSpec.SlotToEpoch(blkSlot)
-	prevRandao, err := st.GetRandaoMixAtIndex(
-		epoch.Unwrap() % s.chainSpec.EpochsPerHistoricalVector(),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed retrieving randao: %w", err)
-	}
-
-	return &builder.RequestPayloadData{
-		Slot:               blkSlot,
-		Timestamp:          nextPayloadTimestamp,
-		PayloadWithdrawals: payloadWithdrawals,
-		PrevRandao:         prevRandao,
-		// The previous block root is simply the root of
-		// the block we just verified.
-		ParentBlockRoot: blk.HashTreeRoot(),
-
-		// We set the head of our chain to the block we just verified (the latest)
-		HeadEth1BlockHash: lph.GetBlockHash(),
-
-		// Assumuming consensus guarantees single slot finality, the parent
-		// of the latest block we verified must be final already.
-		FinalEth1BlockHash: lph.GetParentHash(),
-	}, nil
 }
 
 // handleOptimisticPayloadBuild handles optimistically
