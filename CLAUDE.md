@@ -179,10 +179,12 @@ BeaconKit implements a modular EVM consensus client using a modified CometBFT fo
                 │  (Consensus orchestrator via P2P)   │
                 │  ┌─────────────────────────────┐    │
                 │  │ ABCI++ Interface:           │    │
+                │  │ • Info                      │    │
                 │  │ • InitChain                 │    │
                 │  │ • PrepareProposal           │    │
                 │  │ • ProcessProposal           │    │
                 │  │ • FinalizeBlock             │    │
+                │  │ • Commit                    │    │
                 │  └─────────────────────────────┘    │
                 └───────────────┬─────────────────────┘
                                 │
@@ -265,7 +267,6 @@ Async Background Process:
   - Payload building coordination with execution client
   - Blob sidecar creation and bundling
   - Block proposal generation for CometBFT
-- `payload-time/`: Timing utilities for payload handling
 
 **state-transition/** - Beacon chain state transitions
 - Core state machine implementing Ethereum consensus specs
@@ -325,10 +326,11 @@ Async Background Process:
 #### Block Production Flow
 1. CometBFT calls `PrepareProposal` when node is proposer
 2. Validator service initiates payload building:
-   - Sends FCU with payload attributes to execution engine
+   - Checks for cached FCU response first
+   - If no cache: sends FCU with payload attributes to execution engine
    - Receives payload ID for tracking
-3. Parallel block assembly:
-   - Calls `getPayload` to retrieve execution payload
+3. Block assembly:
+   - Waits briefly then calls `getPayload` to retrieve execution payload
    - Creates blob sidecars from blob transactions
    - Assembles beacon block with payload
 4. Returns complete block to CometBFT for proposal
@@ -339,7 +341,7 @@ Async Background Process:
 3. Blob processor verifies:
    - KZG proofs for all blobs
    - Blob count within limits
-4. State processor performs lightweight validation
+4. State processor performs validation
 5. Execution engine validates via `newPayload`
 6. Vote to accept/reject returned to CometBFT
 
@@ -460,10 +462,11 @@ State transitions follow a specific pattern:
 // State transition pipeline
 ctx := state.Context()
 state = processSlots(state, targetSlot)
-state = processBlock(state, block)
 if isEpochEnd(slot) {
     state = processEpoch(state)
 }
+state = processBlock(state, block)
+// Changes are cached and only flushed to disk on Finalize/Commit
 storage.SetState(ctx, state)
 ```
 
@@ -533,13 +536,13 @@ This section describes how BeaconKit processes blocks using CometBFT's Tendermin
 - **Height = Slot**: CometBFT height maps 1:1 to beacon slot number
 
 ### Consensus Timing Configuration
-BeaconKit enforces minimum timeout values for CometBFT consensus:
-- **TimeoutPropose**: 2000ms minimum - Initial proposal timeout
-- **TimeoutPrevote**: 2000ms minimum - Prevote collection timeout
-- **TimeoutPrecommit**: 2000ms minimum - Precommit collection timeout
-- **TimeoutCommit**: 500ms minimum - Post-commit wait time
+BeaconKit configures timeout values for CometBFT consensus:
+- **TimeoutCommit**: 500ms minimum - Post-commit wait time (enforced minimum)
+- **TimeoutPropose**: 2000ms maximum - Initial proposal timeout (enforced maximum)
+- **TimeoutPrevote**: 2000ms maximum - Prevote collection timeout (enforced maximum)
+- **TimeoutPrecommit**: 2000ms maximum - Precommit collection timeout (enforced maximum)
 
-These are **enforced minimums**, not targets. The cumulative timeouts effectively create a minimum block time, but actual block times depend on:
+**Note**: Only TimeoutCommit has an enforced minimum. The other timeouts have enforced maximums. Actual block times depend on:
 - Network latency and message propagation
 - Number of consensus rounds needed (failed rounds extend time)
 - Execution client response times
