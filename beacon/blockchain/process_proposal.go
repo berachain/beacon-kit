@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
@@ -251,7 +252,7 @@ func (s *Service) VerifyIncomingBlock(
 		return nil, ErrUnexpectedBlockSlot
 	}
 
-	var preFetchFailureData *preFetchedBuildData
+	var preFetchFailureData *builder.RequestPayloadData
 	if s.shouldBuildOptimisticPayloads() {
 		copiedState := state.Copy(ctx)
 		preFetchFailureData, err = s.preFetchBuildDataForRejection(copiedState, consensusTime)
@@ -292,7 +293,7 @@ func (s *Service) VerifyIncomingBlock(
 	)
 
 	if s.shouldBuildOptimisticPayloads() {
-		var preFetchSuccessData *preFetchedBuildData
+		var preFetchSuccessData *builder.RequestPayloadData
 		preFetchSuccessData, err = s.preFetchBuildDataForSuccess(state, beaconBlk, consensusTime)
 		if err != nil {
 			return nil, fmt.Errorf("failed preFetching data for success: %w", err)

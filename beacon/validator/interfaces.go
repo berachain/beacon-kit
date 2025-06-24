@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
@@ -61,13 +62,7 @@ type PayloadBuilder interface {
 	// blocks until the payload is delivered.
 	RequestPayloadSync(
 		ctx context.Context,
-		slot math.Slot,
-		timestamp math.U64,
-		payloadWithdrawals engineprimitives.Withdrawals,
-		prevRandao common.Bytes32,
-		parentBlockRoot common.Root,
-		parentEth1Hash common.ExecutionHash,
-		finalBlockHash common.ExecutionHash,
+		r *builder.RequestPayloadData,
 	) (ctypes.BuiltExecutionPayloadEnv, error)
 }
 

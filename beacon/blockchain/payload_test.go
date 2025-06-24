@@ -39,7 +39,7 @@ import (
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	bemocks "github.com/berachain/beacon-kit/node-api/backend/mocks"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
-	"github.com/berachain/beacon-kit/primitives/bytes"
+	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -107,31 +107,21 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 	latestHeader.SetStateRoot(stateRoot)
 	expectedParentBlockRoot := latestHeader.HashTreeRoot()
 
-	b.EXPECT().RequestPayloadAsync(
-		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
-		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
-	).Run(
-		func(
-			_ context.Context,
-			slot, timestamp math.U64,
-			_ engineprimitives.Withdrawals,
-			_ bytes.B32,
-			parentBlockRoot common.Root,
-			headEth1BlockHash, finalEth1BlockHash common.ExecutionHash,
-		) {
+	b.EXPECT().RequestPayloadAsync(mock.Anything, mock.Anything).Run(
+		func(_ context.Context, r *builder.RequestPayloadData) {
 			defer wg.Done()
 			genesisHeader := genesisData.ExecutionPayloadHeader
 			genesisBlkHeader := core.GenesisBlockHeader(cs.GenesisForkVersion())
 			genesisBlkHeader.SetStateRoot(stateRoot)
 
-			require.Equal(t, timestamp, consensusTime+1)
+			require.Equal(t, r.Timestamp, consensusTime+1)
 
-			require.Equal(t, genesisHeader.GetBlockHash(), headEth1BlockHash)
+			require.Equal(t, genesisHeader.GetBlockHash(), r.HeadEth1BlockHash)
 
-			require.Equal(t, expectedParentBlockRoot, parentBlockRoot)
+			require.Equal(t, expectedParentBlockRoot, r.ParentBlockRoot)
 
-			require.Empty(t, finalEth1BlockHash)          // this is first block post genesis
-			require.Equal(t, constants.GenesisSlot, slot) // genesis slot in state
+			require.Empty(t, r.FinalEth1BlockHash)          // this is first block post genesis
+			require.Equal(t, constants.GenesisSlot, r.Slot) // genesis slot in state
 		},
 	).Return(nil, common.Version{0xff}, errors.New("does not matter")) // return values do not really matter in this test
 	wg.Add(1)
@@ -215,32 +205,22 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 
 	// register async call to block building
 	var wg sync.WaitGroup // useful to make test wait on async checks
-	b.EXPECT().RequestPayloadAsync(
-		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
-		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
-	).Run(
-		func(
-			_ context.Context,
-			nextBlkSlot, timestamp math.U64,
-			_ engineprimitives.Withdrawals,
-			_ bytes.B32,
-			parentBlockRoot common.Root,
-			headEth1BlockHash, finalEth1BlockHash common.ExecutionHash,
-		) {
+	b.EXPECT().RequestPayloadAsync(mock.Anything, mock.Anything).Run(
+		func(_ context.Context, r *builder.RequestPayloadData) {
 			defer wg.Done()
-			require.Equal(t, timestamp, consensusTime+1)
+			require.Equal(t, r.Timestamp, consensusTime+1)
 
 			require.Equal(
 				t,
 				validBlk.GetBody().GetExecutionPayload().GetBlockHash(),
-				headEth1BlockHash,
+				r.HeadEth1BlockHash,
 			)
 
 			genesisHeader := genesisData.ExecutionPayloadHeader.GetBlockHash()
-			require.Equal(t, genesisHeader, finalEth1BlockHash)
+			require.Equal(t, genesisHeader, r.FinalEth1BlockHash)
 
-			require.Equal(t, validBlk.HashTreeRoot(), parentBlockRoot)
-			require.Equal(t, validBlk.Slot+1, nextBlkSlot)
+			require.Equal(t, validBlk.HashTreeRoot(), r.ParentBlockRoot)
+			require.Equal(t, validBlk.Slot+1, r.Slot)
 		},
 	).Return(nil, common.Version{0xff}, errors.New("does not matter")) // return values do not really matter in this test
 	wg.Add(1)

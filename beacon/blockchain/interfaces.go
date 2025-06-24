@@ -30,6 +30,7 @@ import (
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
@@ -66,13 +67,7 @@ type LocalBuilder interface {
 	// RequestPayloadAsync requests a new payload for the given slot.
 	RequestPayloadAsync(
 		ctx context.Context,
-		slot math.Slot,
-		timestamp math.U64,
-		payloadWithdrawals engineprimitives.Withdrawals,
-		prevRandao common.Bytes32,
-		parentBlockRoot common.Root,
-		headEth1BlockHash common.ExecutionHash,
-		finalEth1BlockHash common.ExecutionHash,
+		r *builder.RequestPayloadData,
 	) (*engineprimitives.PayloadID, common.Version, error)
 }
 
