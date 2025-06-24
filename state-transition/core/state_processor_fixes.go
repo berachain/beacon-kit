@@ -32,20 +32,21 @@ import (
 
 // TODO: confirm data
 const (
-	fixForkChainID    = uint64(80094) // avoid import cycle
-	fixLuganodePubKey = "0xafd0ad061f698eae0d483098948e26e254f4b7089244bda897895257c668196ffd5e2ddf458fdf8bcea295b7d47a5b37"
-	fixLuganodeAmount = 900_000 * params.GWei
+	forkChainID     = uint64(80094) // avoid import cycle
+	luganodesPubKey = "0xafd0ad061f698eae0d483098948e26e254f4b7089244bda897895257c668196ffd5e2ddf458fdf8bcea295b7d47a5b37"
+	luganodesCreds  = "0x010000000000000000000000b0c615224a053236ac7d1c239f6c1b5fbf8f0617"
+	luganodesAmount = 901_393_690_000_000 * params.Wei // 901_393.69 Gwei
 )
 
 //nolint:gochecknoglobals // unexported
 var (
-	fixCredentials         = ctypes.WithdrawalCredentials{0x00} // TODO: update this to a correct value
-	fixLuganodePubKeyBytes = hex.MustToBytes(fixLuganodePubKey) // parsed at init time to avoid panic
+	luganodesCredentials = ctypes.WithdrawalCredentials(hex.MustToBytes(luganodesCreds))
+	luganodesPubKeyBytes = crypto.BLSPubkey(hex.MustToBytes(luganodesPubKey))
 )
 
 // processElectra1Fixes handles some fixes made necessary by accidents or wrong validator choices in mainnet
 func (sp *StateProcessor) processElectra1Fixes(st *state.StateDB) error {
-	if sp.cs.DepositEth1ChainID() != fixForkChainID {
+	if sp.cs.DepositEth1ChainID() != forkChainID {
 		return nil
 	}
 
@@ -56,25 +57,25 @@ func (sp *StateProcessor) processElectra1Fixes(st *state.StateDB) error {
 }
 
 func (sp *StateProcessor) processLuganodesRecovery(st *state.StateDB) error {
-	sp.logger.Info("Luganode recovery - creating deposit")
+	sp.logger.Info("Luganodes recovery - creating deposit")
 
 	// Make a one-time hardcoded deposit
 	deposit := ctypes.Deposit{
-		Pubkey:      crypto.BLSPubkey(fixLuganodePubKeyBytes),
-		Credentials: fixCredentials,
-		Amount:      fixLuganodeAmount,
+		Pubkey:      luganodesPubKeyBytes,
+		Credentials: luganodesCredentials,
+		Amount:      luganodesAmount,
 	}
 	sp.logger.Info(
-		"Luganode deposit",
+		"Luganodes deposit",
 		"pubkey", deposit.GetPubkey().String(),
 		"amount", deposit.GetAmount().Unwrap(),
 		"credentials", deposit.GetWithdrawalCredentials().String(),
 	)
 
 	if err := sp.addValidatorToRegistry(st, &deposit); err != nil {
-		return fmt.Errorf("failed to add Luganode validator: %w", err)
+		return fmt.Errorf("failed to add Luganodes validator: %w", err)
 	}
 
-	sp.logger.Info("Luganode recovery - created deposit")
+	sp.logger.Info("Luganodes recovery - created deposit")
 	return nil
 }
