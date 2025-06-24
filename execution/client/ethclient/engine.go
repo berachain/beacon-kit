@@ -41,23 +41,22 @@ func (s *Client) NewPayload(
 	req ctypes.NewPayloadRequest,
 ) (*engineprimitives.PayloadStatusV1, error) {
 	forkVersion := req.GetForkVersion()
-	// Versions before Deneb are not supported for calling NewPayload.
-	if version.IsBefore(forkVersion, version.Deneb()) {
+	switch {
+	case version.IsBefore(forkVersion, version.Deneb()):
+		// Versions before Deneb are not supported for calling NewPayload.
 		return nil, ErrInvalidVersion
-	}
 
-	// Use V3 for Deneb versions (Deneb and Deneb1).
-	if version.Equals(forkVersion, version.Deneb()) || version.Equals(forkVersion, version.Deneb1()) {
+	case version.Equals(forkVersion, version.Deneb()), version.Equals(forkVersion, version.Deneb1()):
+		// Use V3 for Deneb versions (Deneb and Deneb1).
 		return s.NewPayloadV3(
 			ctx,
 			req.GetExecutionPayload(),
 			req.GetVersionedHashes(),
 			req.GetParentBeaconBlockRoot(),
 		)
-	}
 
-	// Use V4 for Electra versions.
-	if version.Equals(forkVersion, version.Electra()) {
+	case version.Equals(forkVersion, version.Electra()), version.Equals(forkVersion, version.Electra1()):
+		// Use V4 for Electra versions.
 		executionRequests, err := req.GetEncodedExecutionRequests()
 		if err != nil {
 			return nil, err
@@ -69,9 +68,10 @@ func (s *Client) NewPayload(
 			req.GetParentBeaconBlockRoot(),
 			executionRequests,
 		)
-	}
 
-	return nil, ErrInvalidVersion
+	default:
+		return nil, ErrInvalidVersion
+	}
 }
 
 // NewPayloadV3 calls the engine_newPayloadV3 via JSON-RPC.
@@ -157,17 +157,20 @@ func (s *Client) GetPayload(
 	payloadID engineprimitives.PayloadID,
 	forkVersion common.Version,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
-	// Versions before Deneb are not supported for calling GetPayload.
-	if version.IsBefore(forkVersion, version.Deneb()) {
+	switch {
+	case version.IsBefore(forkVersion, version.Deneb()):
+		// Versions before Deneb are not supported for calling GetPayload.
+		return nil, ErrInvalidVersion
+
+	case version.Equals(forkVersion, version.Deneb()), version.Equals(forkVersion, version.Deneb1()):
+		return s.GetPayloadV3(ctx, payloadID, forkVersion)
+
+	case version.Equals(forkVersion, version.Electra()), version.Equals(forkVersion, version.Electra1()):
+		return s.GetPayloadV4(ctx, payloadID, forkVersion)
+
+	default:
 		return nil, ErrInvalidVersion
 	}
-	if version.Equals(forkVersion, version.Deneb()) || version.Equals(forkVersion, version.Deneb1()) {
-		return s.GetPayloadV3(ctx, payloadID, forkVersion)
-	}
-	if version.Equals(forkVersion, version.Electra()) {
-		return s.GetPayloadV4(ctx, payloadID, forkVersion)
-	}
-	return nil, ErrInvalidVersion
 }
 
 // GetPayloadV3 calls the engine_getPayloadV3 method via JSON-RPC.
