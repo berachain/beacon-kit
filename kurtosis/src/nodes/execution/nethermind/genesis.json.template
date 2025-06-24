@@ -73,6 +73,13 @@
         "max": 6,
         "baseFeeUpdateFraction":  "0x32f0ed"
       }
+    },
+    "berachain": {
+      "prague1": {
+        "time": 17446744073709551614,
+        "baseFeeChangeDenominator": 48,
+        "minimumBaseFeeWei": 1000000000
+      }
     }
   },
   "genesis": {
