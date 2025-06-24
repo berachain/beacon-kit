@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	nodecoretypes "github.com/berachain/beacon-kit/node-core/types"
+	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
@@ -79,13 +80,7 @@ type (
 		// RequestPayloadAsync requests a new payload for the given slot.
 		RequestPayloadAsync(
 			ctx context.Context,
-			slot math.Slot,
-			timestamp math.U64,
-			payloadWithdrawals engineprimitives.Withdrawals,
-			prevRandao common.Bytes32,
-			parentBlockRoot common.Root,
-			headEth1BlockHash common.ExecutionHash,
-			finalEth1BlockHash common.ExecutionHash,
+			r *builder.RequestPayloadData,
 		) (*engineprimitives.PayloadID, common.Version, error)
 		// RetrievePayload retrieves the payload for the given slot.
 		RetrievePayload(
@@ -97,13 +92,7 @@ type (
 		// blocks until the payload is delivered.
 		RequestPayloadSync(
 			ctx context.Context,
-			slot math.Slot,
-			timestamp math.U64,
-			payloadWithdrawals engineprimitives.Withdrawals,
-			prevRandao common.Bytes32,
-			parentBlockRoot common.Root,
-			parentEth1Hash common.ExecutionHash,
-			finalBlockHash common.ExecutionHash,
+			r *builder.RequestPayloadData,
 		) (ctypes.BuiltExecutionPayloadEnv, error)
 	}
 

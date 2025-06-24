@@ -273,16 +273,16 @@ func (s *Service) retrieveExecutionPayload(
 		return nil, err
 	}
 
-	return s.localPayloadBuilder.RequestPayloadSync(
-		ctx,
-		slot,
-		nextPayloadTimestamp,
-		payloadWithdrawals,
-		prevRandao,
-		parentBlockRoot,
-		lph.GetBlockHash(),
-		lph.GetParentHash(),
-	)
+	r := &builder.RequestPayloadData{
+		Slot:               slot,
+		Timestamp:          nextPayloadTimestamp,
+		PayloadWithdrawals: payloadWithdrawals,
+		PrevRandao:         prevRandao,
+		ParentBlockRoot:    parentBlockRoot,
+		HeadEth1BlockHash:  lph.GetBlockHash(),
+		FinalEth1BlockHash: lph.GetParentHash(),
+	}
+	return s.localPayloadBuilder.RequestPayloadSync(ctx, r)
 }
 
 // BuildBlockBody assembles the block body with necessary components.

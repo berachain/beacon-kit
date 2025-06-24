@@ -31,49 +31,53 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
+type RequestPayloadData struct {
+	Slot               math.Slot
+	Timestamp          math.U64
+	PayloadWithdrawals engineprimitives.Withdrawals
+	PrevRandao         common.Bytes32
+	ParentBlockRoot    common.Root
+	HeadEth1BlockHash  common.ExecutionHash
+	FinalEth1BlockHash common.ExecutionHash
+}
+
 // RequestPayloadAsync builds a payload for the given slot and
 // returns the payload ID.
 func (pb *PayloadBuilder) RequestPayloadAsync(
 	ctx context.Context,
-	slot math.Slot,
-	timestamp math.U64,
-	payloadWithdrawals engineprimitives.Withdrawals,
-	prevRandao common.Bytes32,
-	parentBlockRoot common.Root,
-	headEth1BlockHash common.ExecutionHash,
-	finalEth1BlockHash common.ExecutionHash,
+	r *RequestPayloadData,
 ) (*engineprimitives.PayloadID, common.Version, error) {
 	if !pb.Enabled() {
 		return nil, common.Version{}, ErrPayloadBuilderDisabled
 	}
 
-	if payloadID, found := pb.pc.GetAndEvict(slot, parentBlockRoot); found {
+	if payloadID, found := pb.pc.GetAndEvict(r.Slot, r.ParentBlockRoot); found {
 		pb.logger.Info(
 			"aborting payload build; payload already exists in cache",
-			"for_slot", slot.Base10(),
-			"parent_block_root", parentBlockRoot,
+			"for_slot", r.Slot.Base10(),
+			"parent_block_root", r.ParentBlockRoot,
 		)
 		return &payloadID.PayloadID, payloadID.ForkVersion, nil
 	}
 
 	// Assemble the payload attributes.
 	attrs, err := pb.attributesFactory.BuildPayloadAttributes(
-		timestamp,
-		payloadWithdrawals,
-		prevRandao,
-		parentBlockRoot,
+		r.Timestamp,
+		r.PayloadWithdrawals,
+		r.PrevRandao,
+		r.ParentBlockRoot,
 	)
 	if err != nil {
 		return nil, common.Version{}, err
 	}
 
-	forkVersion := pb.chainSpec.ActiveForkVersionForTimestamp(timestamp)
+	forkVersion := pb.chainSpec.ActiveForkVersionForTimestamp(r.Timestamp)
 	// Submit the forkchoice update to the execution client.
 	req := ctypes.BuildForkchoiceUpdateRequest(
 		&engineprimitives.ForkchoiceStateV1{
-			HeadBlockHash:      headEth1BlockHash,
-			SafeBlockHash:      finalEth1BlockHash,
-			FinalizedBlockHash: finalEth1BlockHash,
+			HeadBlockHash:      r.HeadEth1BlockHash,
+			SafeBlockHash:      r.FinalEth1BlockHash,
+			FinalizedBlockHash: r.FinalEth1BlockHash,
 		},
 		attrs,
 		forkVersion,
@@ -85,7 +89,7 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 
 	// Only add to cache if we received back a payload ID.
 	if payloadID != nil {
-		pb.pc.Set(slot, parentBlockRoot, *payloadID, forkVersion)
+		pb.pc.Set(r.Slot, r.ParentBlockRoot, *payloadID, forkVersion)
 	}
 
 	return payloadID, forkVersion, nil
@@ -95,13 +99,7 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 // blocks until the payload is delivered.
 func (pb *PayloadBuilder) RequestPayloadSync(
 	ctx context.Context,
-	slot math.Slot,
-	timestamp math.U64,
-	payloadWithdrawals engineprimitives.Withdrawals,
-	prevRandao common.Bytes32,
-	parentBlockRoot common.Root,
-	parentEth1Hash common.ExecutionHash,
-	finalBlockHash common.ExecutionHash,
+	r *RequestPayloadData,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
 	if !pb.Enabled() {
 		return nil, ErrPayloadBuilderDisabled
@@ -109,16 +107,7 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 
 	// Build the payload and wait for the execution client to
 	// return the payload ID.
-	payloadID, forkVersion, err := pb.RequestPayloadAsync(
-		ctx,
-		slot,
-		timestamp,
-		payloadWithdrawals,
-		prevRandao,
-		parentBlockRoot,
-		parentEth1Hash,
-		finalBlockHash,
-	)
+	payloadID, forkVersion, err := pb.RequestPayloadAsync(ctx, r)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +118,7 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 	// Wait for the payload to be delivered to the execution client.
 	pb.logger.Info(
 		"Waiting for local payload to be delivered to execution client",
-		"for_slot", slot.Base10(), "timeout", pb.cfg.PayloadTimeout.String(),
+		"for_slot", r.Slot.Base10(), "timeout", pb.cfg.PayloadTimeout.String(),
 	)
 	select {
 	case <-time.After(pb.cfg.PayloadTimeout):

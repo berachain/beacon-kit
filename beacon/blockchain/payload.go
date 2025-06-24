@@ -29,7 +29,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/errors"
-	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
@@ -127,20 +127,11 @@ func (s *Service) forceSyncUponFinalize(
 	}
 }
 
-type preFetchedBuildData struct {
-	nextBlockSlot        math.Slot
-	nextPayloadTimestamp math.U64
-	withdrawals          engineprimitives.Withdrawals
-	prevRandao           common.Bytes32
-	parentBlockRoot      common.Root
-	parentPayloadHeader  *ctypes.ExecutionPayloadHeader
-}
-
 func (s *Service) preFetchBuildDataForRejection(
 	st *statedb.StateDB,
 	currentTime math.U64,
 ) (
-	*preFetchedBuildData,
+	*builder.RequestPayloadData,
 	error,
 ) {
 	lph, err := st.GetLatestExecutionPayloadHeader()
@@ -198,13 +189,14 @@ func (s *Service) preFetchBuildDataForRejection(
 		return nil, err
 	}
 
-	return &preFetchedBuildData{
-		nextBlockSlot:        stateSlot,
-		nextPayloadTimestamp: nextPayloadTimestamp,
-		withdrawals:          payloadWithdrawals,
-		prevRandao:           prevRandao,
-		parentBlockRoot:      latestHeader.HashTreeRoot(),
-		parentPayloadHeader:  lph,
+	return &builder.RequestPayloadData{
+		Slot:               stateSlot,
+		Timestamp:          nextPayloadTimestamp,
+		PayloadWithdrawals: payloadWithdrawals,
+		PrevRandao:         prevRandao,
+		ParentBlockRoot:    latestHeader.HashTreeRoot(),
+		HeadEth1BlockHash:  lph.GetBlockHash(),
+		FinalEth1BlockHash: lph.GetParentHash(),
 	}, nil
 }
 
@@ -212,11 +204,11 @@ func (s *Service) preFetchBuildDataForRejection(
 // block was rejected and we need to rebuild the payload for the current slot.
 func (s *Service) handleRebuildPayloadForRejectedBlock(
 	ctx context.Context,
-	buildData *preFetchedBuildData,
+	buildData *builder.RequestPayloadData,
 ) {
 	s.logger.Info("Rebuilding payload for rejected block ⏳ ")
-	nextBlkSlot := buildData.nextBlockSlot
-	if err := s.requestBlock(ctx, buildData); err != nil {
+	nextBlkSlot := buildData.Slot
+	if _, _, err := s.localBuilder.RequestPayloadAsync(ctx, buildData); err != nil {
 		s.metrics.markRebuildPayloadForRejectedBlockFailure(nextBlkSlot, err)
 		s.logger.Error(
 			"failed to rebuild payload for nil block",
@@ -233,7 +225,7 @@ func (s *Service) preFetchBuildDataForSuccess(
 	blk *ctypes.BeaconBlock,
 	currentTime math.U64,
 ) (
-	*preFetchedBuildData,
+	*builder.RequestPayloadData,
 	error,
 ) {
 	lph, err := st.GetLatestExecutionPayloadHeader()
@@ -280,20 +272,21 @@ func (s *Service) preFetchBuildDataForSuccess(
 		return nil, fmt.Errorf("failed retrieving randao: %w", err)
 	}
 
-	blkHeader, err := blk.Body.ExecutionPayload.ToHeader()
-	if err != nil {
-		return nil, fmt.Errorf("failed calculating payload header: %w", err)
-	}
-
-	return &preFetchedBuildData{
-		nextBlockSlot:        blkSlot,
-		nextPayloadTimestamp: nextPayloadTimestamp,
-		withdrawals:          payloadWithdrawals,
-		prevRandao:           prevRandao,
+	return &builder.RequestPayloadData{
+		Slot:               blkSlot,
+		Timestamp:          nextPayloadTimestamp,
+		PayloadWithdrawals: payloadWithdrawals,
+		PrevRandao:         prevRandao,
 		// The previous block root is simply the root of
-		// the block we just processed.
-		parentBlockRoot:     blk.HashTreeRoot(),
-		parentPayloadHeader: blkHeader,
+		// the block we just verified.
+		ParentBlockRoot: blk.HashTreeRoot(),
+
+		// We set the head of our chain to the block we just verified (the latest)
+		HeadEth1BlockHash: lph.GetBlockHash(),
+
+		// Assumuming consensus guarantees single slot finality, the parent
+		// of the latest block we verified must be final already.
+		FinalEth1BlockHash: lph.GetParentHash(),
 	}, nil
 }
 
@@ -301,43 +294,21 @@ func (s *Service) preFetchBuildDataForSuccess(
 // building for the next slot.
 func (s *Service) handleOptimisticPayloadBuild(
 	ctx context.Context,
-	buildData *preFetchedBuildData,
+	buildData *builder.RequestPayloadData,
 ) {
 	s.logger.Info(
 		"Optimistically triggering payload build for next slot 🛩️ ",
-		"next_slot", buildData.nextBlockSlot.Base10(),
+		"next_slot", buildData.Slot.Base10(),
 	)
-	if err := s.requestBlock(ctx, buildData); err != nil {
-		s.metrics.markOptimisticPayloadBuildFailure(buildData.nextBlockSlot, err)
+	if _, _, err := s.localBuilder.RequestPayloadAsync(ctx, buildData); err != nil {
+		s.metrics.markOptimisticPayloadBuildFailure(buildData.Slot, err)
 		s.logger.Error(
 			"Failed to build optimistic payload",
-			"for_slot", buildData.nextBlockSlot.Base10(),
+			"for_slot", buildData.Slot.Base10(),
 			"error", err,
 		)
 		return
 	}
 
-	s.metrics.markOptimisticPayloadBuildSuccess(buildData.nextBlockSlot)
-}
-
-func (s *Service) requestBlock(
-	ctx context.Context,
-	buildData *preFetchedBuildData,
-) error {
-	// Submit a request for a new lph.
-	lph := buildData.parentPayloadHeader
-	_, _, err := s.localBuilder.RequestPayloadAsync(
-		ctx,
-		buildData.nextBlockSlot,
-		buildData.nextPayloadTimestamp,
-		buildData.withdrawals,
-		buildData.prevRandao,
-		buildData.parentBlockRoot,
-		// We set the head of our chain to the latest verified block (finalized or not)
-		lph.GetBlockHash(),
-		// Assumuming consensus guarantees single slot finality, the parent
-		// of the latest block we verified must be final already.
-		lph.GetParentHash(),
-	)
-	return err
+	s.metrics.markOptimisticPayloadBuildSuccess(buildData.Slot)
 }
