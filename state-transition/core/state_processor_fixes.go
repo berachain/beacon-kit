@@ -38,11 +38,14 @@ const (
 )
 
 //nolint:gochecknoglobals // unexported
-var fixCredentials = ctypes.WithdrawalCredentials{0x00} // TODO: update this to a correct value
+var (
+	fixCredentials         = ctypes.WithdrawalCredentials{0x00} // TODO: update this to a correct value
+	fixLuganodePubKeyBytes = hex.MustToBytes(fixLuganodePubKey) // parsed at init time to avoid panic
+)
 
 // processElectra1Fixes handles some fixes made necessary by accidents or wrong validator choices in mainnet
 func (sp *StateProcessor) processElectra1Fixes(st *state.StateDB) error {
-	if sp.cs.DepositEth1ChainID() == fixForkChainID {
+	if sp.cs.DepositEth1ChainID() != fixForkChainID {
 		return nil
 	}
 
@@ -57,7 +60,7 @@ func (sp *StateProcessor) processLuganodesRecovery(st *state.StateDB) error {
 
 	// Make a one-time hardcoded deposit
 	deposit := ctypes.Deposit{
-		Pubkey:      crypto.BLSPubkey(hex.MustToBytes(fixLuganodePubKey)),
+		Pubkey:      crypto.BLSPubkey(fixLuganodePubKeyBytes),
 		Credentials: fixCredentials,
 		Amount:      fixLuganodeAmount,
 	}
