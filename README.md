@@ -30,14 +30,10 @@ The framework offers the most user-friendly way to build and operate an EVM bloc
 ## Supported Execution Clients
 
 Through utilizing the [Ethereum Engine API](https://github.com/ethereum/execution-apis/blob/main/src/engine)
-BeaconKit is able to support all 6 major Ethereum execution clients:
+BeaconKit supports the following execution clients:
 
 - [**Geth**](https://geth.ethereum.org/): Official Go implementation of the Ethereum protocol.
-- [**Erigon**](https://erigon.tech/): More performant, feature-rich client forked from `go-ethereum`.
-- [**Nethermind**](https://www.nethermind.io/): .NET based client with full support for Ethereum protocols.
-- [**Besu**](https://www.lfdecentralizedtrust.org/projects/besu): Enterprise-grade client, Apache 2.0 licensed, written in Java.
 - [**Reth**](https://reth.rs/): Rust-based client focusing on performance and reliability.
-- [**Ethereumjs**](https://ethereumjs.readthedocs.io/en/latest/#): Javascript based client managed by the Ethereum Foundation.
 
 ## Running a Local Development Network
 
@@ -63,7 +59,7 @@ eth-genesis file used by the Execution Client.
 
 ```bash
 # Start an Ethereum Execution Client:
-make start-reth # or start-geth start-besu start-erigon start-nethermind start-ethereumjs
+make start-reth # or start-geth
 ```
 
 The account with
