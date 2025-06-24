@@ -37,7 +37,7 @@ network_configuration:
         replicas: 2
       - el_type: geth
         kzg_impl: crate-crypto/go-kzg-4844
-        replicas: 2
+        replicas: 3
   full_nodes:
     type: "full"
     nodes:
@@ -46,7 +46,7 @@ network_configuration:
         replicas: 2
       - el_type: geth
         kzg_impl: crate-crypto/go-kzg-4844
-        replicas: 1
+        replicas: 2
   seed_nodes:
     type: "seed"
     nodes:

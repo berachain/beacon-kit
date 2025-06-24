@@ -63,12 +63,12 @@ func defaultValidators() NodeSet {
 		Nodes: []Node{
 			{
 				ElType:   "geth",
-				Replicas: 2, //nolint:mnd // we want two replicas here
+				Replicas: 3, //nolint:mnd // we want 3 replicas here
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
 				ElType:   "reth",
-				Replicas: 3, //nolint:mnd // we want three replicas here
+				Replicas: 2, //nolint:mnd // we want 2 replicas here
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 		},
@@ -81,12 +81,12 @@ func defaultFullNodes() NodeSet {
 		Nodes: []Node{
 			{
 				ElType:   "reth",
-				Replicas: 1,
+				Replicas: 2,
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
 				ElType:   "geth",
-				Replicas: 1,
+				Replicas: 2,
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 		},
@@ -167,8 +167,7 @@ func defaultEthJSONRPCEndpoints() []EthJSONRPCEndpoint {
 		{
 			Type: "blutgang",
 			Clients: []string{
-				"el-full-reth-0",
-				"el-full-geth-1",
+				"el-full-geth-2",
 			},
 		},
 	}
