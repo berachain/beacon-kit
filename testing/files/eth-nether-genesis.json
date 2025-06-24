@@ -85,7 +85,7 @@
     },
     "berachain": {
       "prague1": {
-        "time": 17446744073709551614,
+        "time": 9223372036854775807,
         "baseFeeChangeDenominator": 48,
         "minimumBaseFeeWei": 1000000000
       }
