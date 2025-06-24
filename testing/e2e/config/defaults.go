@@ -81,12 +81,12 @@ func defaultFullNodes() NodeSet {
 		Nodes: []Node{
 			{
 				ElType:   "reth",
-				Replicas: 2,
+				Replicas: 2, //nolint:mnd // we want 2 replicas here
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
 				ElType:   "geth",
-				Replicas: 2,
+				Replicas: 2, //nolint:mnd // we want 2 replicas here
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 		},
