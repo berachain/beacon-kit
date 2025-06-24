@@ -126,6 +126,11 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 	).Return(nil, common.Version{0xff}, errors.New("does not matter")) // return values do not really matter in this test
 	wg.Add(1)
 
+	// check slot pre test
+	slot, err := st.GetSlot()
+	require.NoError(t, err)
+	require.Equal(t, constants.GenesisSlot, slot)
+
 	_, err = chain.VerifyIncomingBlock(
 		ctx.ConsensusCtx(),
 		invalidBlk,
@@ -136,6 +141,9 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 
 	// wait for block building goroutine to carry out all the checks
 	wg.Wait()
+
+	// No checks on state st post block. The block is invalid so
+	// its state will be dropped and its content does not matter
 }
 
 // When we verify successfully a block and we have optimistic payload building enabled
@@ -225,6 +233,11 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 	).Return(nil, common.Version{0xff}, errors.New("does not matter")) // return values do not really matter in this test
 	wg.Add(1)
 
+	// check slot pre test
+	slot, err := st.GetSlot()
+	require.NoError(t, err)
+	require.Equal(t, constants.GenesisSlot, slot)
+
 	eng.EXPECT().NotifyNewPayload(mock.Anything, mock.Anything, mock.Anything).Return(nil)
 	sb.EXPECT().StateFromContext(mock.Anything).Return(st).Times(1)
 	_, err = chain.VerifyIncomingBlock(
@@ -237,6 +250,11 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 
 	// wait for block building goroutine to carry out all the checks
 	wg.Wait()
+
+	// check slot post test
+	slot, err = st.GetSlot()
+	require.NoError(t, err)
+	require.Equal(t, validBlk.GetSlot(), slot)
 }
 
 func setupOptimisticPayloadTests(t *testing.T, cs chain.Spec, optimisticPayloadBuilds bool) (
