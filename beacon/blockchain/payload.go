@@ -214,49 +214,18 @@ func (s *Service) handleRebuildPayloadForRejectedBlock(
 	ctx context.Context,
 	buildData *preFetchedBuildData,
 ) {
-	if err := s.rebuildPayloadForRejectedBlock(ctx, buildData); err != nil {
+	s.logger.Info("Rebuilding payload for rejected block ⏳ ")
+	nextBlkSlot := buildData.nextBlockSlot
+	if err := s.requestBlock(ctx, buildData); err != nil {
+		s.metrics.markRebuildPayloadForRejectedBlockFailure(nextBlkSlot, err)
 		s.logger.Error(
 			"failed to rebuild payload for nil block",
 			"error", err,
 		)
+		return
 	}
-}
 
-// rebuildPayloadForRejectedBlock rebuilds a payload for the current
-// slot, if the incoming block was rejected.
-//
-// NOTE: We cannot use any data off the incoming block and must recompute
-// any required information from our local state. We do this since we have
-// rejected the incoming block and it would be unsafe to use any
-// information from it.
-func (s *Service) rebuildPayloadForRejectedBlock(
-	ctx context.Context,
-	buildData *preFetchedBuildData,
-) error {
-	s.logger.Info("Rebuilding payload for rejected block ⏳ ")
-
-	// Submit a request for a new lph.
-	lph := buildData.parentPayloadHeader
-	nextBlkSlot := buildData.nextBlockSlot
-	if _, _, err := s.localBuilder.RequestPayloadAsync(
-		ctx,
-		nextBlkSlot,
-		buildData.nextPayloadTimestamp,
-		buildData.withdrawals,
-		buildData.prevRandao,
-		buildData.parentBlockRoot,
-		// We set the head of our chain to the previous finalized block.
-		lph.GetBlockHash(),
-		// We can say that the payload from the previous block is *finalized*,
-		// TODO: This is making an assumption about the consensus rules
-		// and possibly should be made more explicit later on.
-		lph.GetParentHash(),
-	); err != nil {
-		s.metrics.markRebuildPayloadForRejectedBlockFailure(nextBlkSlot, err)
-		return err
-	}
 	s.metrics.markRebuildPayloadForRejectedBlockSuccess(nextBlkSlot)
-	return nil
 }
 
 func (s *Service) preFetchBuildDataForSuccess(
@@ -334,44 +303,41 @@ func (s *Service) handleOptimisticPayloadBuild(
 	ctx context.Context,
 	buildData *preFetchedBuildData,
 ) {
-	if err := s.optimisticPayloadBuild(ctx, buildData); err != nil {
+	s.logger.Info(
+		"Optimistically triggering payload build for next slot 🛩️ ",
+		"next_slot", buildData.nextBlockSlot.Base10(),
+	)
+	if err := s.requestBlock(ctx, buildData); err != nil {
+		s.metrics.markOptimisticPayloadBuildFailure(buildData.nextBlockSlot, err)
 		s.logger.Error(
 			"Failed to build optimistic payload",
 			"for_slot", buildData.nextBlockSlot.Base10(),
 			"error", err,
 		)
+		return
 	}
+
+	s.metrics.markOptimisticPayloadBuildSuccess(buildData.nextBlockSlot)
 }
 
-// optimisticPayloadBuild builds a payload for the next slot.
-func (s *Service) optimisticPayloadBuild(
+func (s *Service) requestBlock(
 	ctx context.Context,
 	buildData *preFetchedBuildData,
 ) error {
-	s.logger.Info(
-		"Optimistically triggering payload build for next slot 🛩️ ", "next_slot", buildData.nextBlockSlot.Base10(),
-	)
-
-	// We then trigger a request for the next lph.
+	// Submit a request for a new lph.
 	lph := buildData.parentPayloadHeader
-	if _, _, err := s.localBuilder.RequestPayloadAsync(
+	_, _, err := s.localBuilder.RequestPayloadAsync(
 		ctx,
 		buildData.nextBlockSlot,
 		buildData.nextPayloadTimestamp,
 		buildData.withdrawals,
 		buildData.prevRandao,
 		buildData.parentBlockRoot,
-		// We set the head of our chain to the block we just processed.
+		// We set the head of our chain to the latest verified block (finalized or not)
 		lph.GetBlockHash(),
-		// We can say that the payload from the previous block is *finalized*,
-		// This is safe to do since this block was accepted and the thus the
-		// parent hash was deemed valid by the state transition function we
-		// just processed.
+		// Assumuming consensus guarantees single slot finality, the parent
+		// of the latest block we verified must be final already.
 		lph.GetParentHash(),
-	); err != nil {
-		s.metrics.markOptimisticPayloadBuildFailure(buildData.nextBlockSlot, err)
-		return err
-	}
-	s.metrics.markOptimisticPayloadBuildSuccess(buildData.nextBlockSlot)
-	return nil
+	)
+	return err
 }
