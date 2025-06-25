@@ -32,11 +32,7 @@ EXECUTION_DEFAULT_SETTINGS = {
         "max_memory": 2048,
     },
     "images": {
-        "besu": "hyperledger/besu:latest",
-        "erigon": "erigontech/erigon:latest",
-        "ethereumjs": "ethpandaops/ethereumjs:stable",
         "geth": "ethereum/client-go:latest",
-        "nethermind": "nethermind/nethermind:latest",
         "reth": "ghcr.io/paradigmxyz/reth:latest",
     },
     "labels": {},
@@ -236,19 +232,7 @@ def create_genesis_files_part1(plan, chain_id):
 
     genesis_files = {}
 
-    # Render Nethermind genesis
-    nethermind_artifact = render_genesis_template(
-        plan,
-        "execution/nethermind/genesis.json.template",
-        chain_id,
-        chain_id_hex,
-        "0x0000000000000000000000000000000000000000000000000000000000000000",
-        "0x0000000000000000000000000000000000000000000000000000000000000000",
-    )
-
-    genesis_files["nethermind"] = nethermind_artifact
-
-    # Render default genesis for other clients
+    # Render default genesis for all clients
     default_artifact = render_genesis_template(
         plan,
         "../networks/kurtosis-devnet/network-configs/genesis.json.template",
@@ -270,19 +254,7 @@ def create_genesis_files_part2(plan, chain_id, genesis_deposits_root, genesis_de
 
     genesis_files = {}
 
-    # Render Nethermind genesis
-    nethermind_artifact = render_genesis_template(
-        plan,
-        "execution/nethermind/genesis.json.template",
-        chain_id,
-        chain_id_hex,
-        genesis_deposits_root,
-        genesis_deposit_count_hex,
-    )
-
-    genesis_files["nethermind"] = nethermind_artifact
-
-    # Render default genesis for other clients
+    # Render default genesis for all clients
     default_artifact = render_genesis_template(
         plan,
         "../networks/kurtosis-devnet/network-configs/genesis.json.template",
