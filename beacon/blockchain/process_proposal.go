@@ -309,7 +309,7 @@ func (s *Service) VerifyIncomingBlock(
 		)
 
 		if s.shouldBuildOptimisticPayloads() {
-			if nextBlockData != nil {
+			if nextBlockData == nil {
 				// Failed fetching data to build next block. Just return block error
 				return err
 			}
@@ -337,7 +337,7 @@ func (s *Service) VerifyIncomingBlock(
 				"case", "block success",
 				"err", errFetch,
 			)
-			return nil //nolint:nilerr // we return block error not fetching error
+			return nil
 		}
 		go s.handleOptimisticPayloadBuild(ctx, nextBlockData)
 	}
