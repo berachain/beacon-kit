@@ -93,7 +93,7 @@ func (s *BeaconKitE2ESuite) getPendingPartialWithdrawals(stateID string) ([]type
 	}
 
 	// Validate response fields
-	s.Require().Equal(response.Version, version.Name(version.Electra()))
+	s.Require().Equal(response.Version, version.Name(version.Electra1())) // TODO: assert this is after Electra
 	s.Require().False(response.ExecutionOptimistic)
 	s.Require().True(response.Finalized)
 
