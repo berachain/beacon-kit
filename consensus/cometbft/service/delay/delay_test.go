@@ -67,7 +67,7 @@ func TestBlockDelayNext_NoDelay(t *testing.T) {
 	curBlockTime := genesisTime.Add(10 * time.Second)
 	curBlockHeight := int64(2)
 
-	delay := d.Next(testCfg, curBlockTime, curBlockHeight)
+	delay := d.ComputeNext(testCfg, curBlockTime, curBlockHeight)
 
 	assert.Equal(t, 1*time.Microsecond, delay)
 
@@ -91,7 +91,7 @@ func TestBlockDelayNext_WithDelay(t *testing.T) {
 	curBlockTime := genesisTime.Add(2 * time.Second)
 	curBlockHeight := int64(3)
 
-	delay := d.Next(testCfg, curBlockTime, curBlockHeight)
+	delay := d.ComputeNext(testCfg, curBlockTime, curBlockHeight)
 
 	assert.Equal(t, 2*time.Second, delay)
 
@@ -115,7 +115,7 @@ func TestBlockDelayNext_ResetOnStall(t *testing.T) {
 	curBlockTime := genesisTime.Add(testCfg.MaxBlockDelay + 1*time.Minute)
 	curBlockHeight := int64(10)
 
-	nextBlockDelay := d.Next(testCfg, curBlockTime, curBlockHeight)
+	nextBlockDelay := d.ComputeNext(testCfg, curBlockTime, curBlockHeight)
 
 	assert.Equal(t, d.InitialTime, curBlockTime)
 	assert.Equal(t, d.InitialHeight, curBlockHeight)
@@ -136,7 +136,7 @@ func TestBlockDelayNext_Catchup(t *testing.T) {
 	curBlockTime := genesisTime.Add(2 * time.Second)
 	curBlockHeight := int64(3)
 
-	delay := d.Next(testCfg, curBlockTime, curBlockHeight)
+	delay := d.ComputeNext(testCfg, curBlockTime, curBlockHeight)
 
 	assert.Equal(t, 2*time.Second, delay)
 
@@ -156,16 +156,16 @@ func TestBlockDelayNext_Catchup(t *testing.T) {
 	// delay = 1us
 	// T(h7) = 11s
 	// delay = 1
-	delay = d.Next(testCfg, curBlockTime, curBlockHeight)
+	delay = d.ComputeNext(testCfg, curBlockTime, curBlockHeight)
 	assert.Equal(t, 1*time.Microsecond, delay)
 
 	for curBlockHeight++; curBlockHeight < 7; curBlockHeight++ {
 		curBlockTime = curBlockTime.Add(1 * time.Second)
-		delay = d.Next(testCfg, curBlockTime, curBlockHeight)
+		delay = d.ComputeNext(testCfg, curBlockTime, curBlockHeight)
 		assert.Equal(t, 1*time.Microsecond, delay)
 	}
 	curBlockTime = curBlockTime.Add(1 * time.Second)
-	delay = d.Next(testCfg, curBlockTime, curBlockHeight)
+	delay = d.ComputeNext(testCfg, curBlockTime, curBlockHeight)
 
 	assert.Equal(t, 1*time.Second, delay)
 }

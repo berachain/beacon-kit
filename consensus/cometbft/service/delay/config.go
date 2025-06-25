@@ -46,10 +46,10 @@ const (
 	constBlockDelay = 500 * time.Millisecond
 
 	// Height to enable SBT. Changes will be applied in the next block after this
-	// (10_000_001).
 	sbtEnableHeight = math.MaxInt64
 
-	sbtConsensusParamUpdate = math.MaxInt64
+	// Height at which consensus params are upgraded to use SBT
+	sbtConsensusParamUpdate = 0
 
 	// Until `timeout_commit` is removed from the CometBFT config,
 	// `FinalizeBlockResponse.NextBlockDelay` can't be exactly 0. If it's set to

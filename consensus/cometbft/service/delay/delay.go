@@ -32,6 +32,8 @@ import (
 // The general formula is:
 //
 //	NextBlockTime = InitialTime + TargetBlockTime * (CurrentHeight - InitialHeight)
+//
+// Initial Time and Height are reset is the chain stops for too long.
 type BlockDelay struct {
 	// InitialTime is a checkpoint in time from which we start calculating the
 	// next block time.
@@ -45,8 +47,8 @@ type BlockDelay struct {
 	PreviousBlockTime time.Time
 }
 
-// Next returns the duration to wait before proposing the next block.
-func (d *BlockDelay) Next(cfg ConfigGetter, curBlockTime time.Time, curBlockHeight int64) time.Duration {
+// ComputeNext returns the duration to wait before proposing the next block.
+func (d *BlockDelay) ComputeNext(cfg ConfigGetter, curBlockTime time.Time, curBlockHeight int64) time.Duration {
 	// Reset the initial time and height if the time between blocks is greater
 	// than MaxDelayBetweenBlocks. This makes the current time and height the
 	// initial one as if the upgrade happened just now.
