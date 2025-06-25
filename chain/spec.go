@@ -271,6 +271,15 @@ func (s spec) validate() error {
 		}
 	}
 
+	if s.Data.ConsensusUpdateHeight != 0 {
+		if s.Data.ConsensusUpdateHeight >= s.Data.ConsensusEnableHeight {
+			return fmt.Errorf(
+				"stable block time parameters violation: ConsensusUpdateHeight %d must be smaller than ConsensusEnableHeight %d",
+				s.Data.ConsensusUpdateHeight, s.Data.ConsensusEnableHeight,
+			)
+		}
+	}
+
 	// TODO: Add more validation rules here.
 	return nil
 }
