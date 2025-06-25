@@ -26,8 +26,7 @@ import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/log/phuslu"
-	"github.com/berachain/beacon-kit/node-core/components/storage"
-	depositstore "github.com/berachain/beacon-kit/storage/deposit"
+	"github.com/berachain/beacon-kit/storage/deposit"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cast"
@@ -42,22 +41,20 @@ type DepositStoreInput struct {
 
 // ProvideDepositStore is a function that provides the module to the
 // application.
-func ProvideDepositStore(in DepositStoreInput) (*depositstore.KVStore, error) {
+func ProvideDepositStore(in DepositStoreInput) (deposit.StoreManager, error) {
 	var (
 		rootDir = cast.ToString(in.AppOpts.Get(flags.FlagHome))
 		dataDir = filepath.Join(rootDir, "data")
-		name    = "deposits"
+		nameV1  = "deposits"
 	)
 
-	pdb, err := dbm.NewDB(name, dbm.PebbleDBBackend, dataDir)
+	dbV1, err := dbm.NewDB(nameV1, dbm.PebbleDBBackend, dataDir)
 	if err != nil {
 		return nil, err
 	}
-	spdb := depositstore.NewSynced(pdb)
 
-	return depositstore.NewStore(
-		storage.NewKVStoreProvider(spdb),
-		spdb.Close,
+	return deposit.NewStore(
+		dbV1,
 		in.Logger.With("service", "deposit-store"),
 	), nil
 }

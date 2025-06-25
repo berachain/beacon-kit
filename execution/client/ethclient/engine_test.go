@@ -76,7 +76,7 @@ func TestNewPayloadWithInvalidVersion(t *testing.T) {
 	ctx := context.Background()
 
 	n := mocks.NewPayloadRequest{}
-	n.On("GetForkVersion").Return(version.Electra1())
+	n.On("GetForkVersion").Return(version.Electra2())
 	_, err := c.NewPayload(ctx, &n)
 	require.ErrorIs(t, err, ethclient.ErrInvalidVersion)
 }

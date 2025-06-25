@@ -887,7 +887,7 @@ func (s *BeaconKitE2ESuite) TestGenesis() {
 	s.Require().NotEmpty(genesis.GenesisValidatorsRoot, "Genesis validators root should not be empty")
 	s.Require().NotEmpty(genesis.GenesisForkVersion, "Genesis fork version should not be empty")
 
-	expectedVersion := version.Electra() // TODO: change this back to Deneb once devnet spec is updated.
+	expectedVersion := version.Electra1() // TODO: change this back to Deneb once devnet spec is updated.
 	s.Require().Equal(
 		expectedVersion[:],
 		genesis.GenesisForkVersion[:],

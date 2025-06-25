@@ -40,7 +40,7 @@ func ProveProposerPubkeyInBlock(
 	forkVersion := bsm.GetForkVersion()
 
 	// Get the proof of the proposer pubkey in the beacon state.
-	proposerOffset := ValidatorPubkeyGIndexOffset * bbh.GetProposerIndex()
+	proposerOffset := ValidatorGIndexOffset * bbh.GetProposerIndex()
 	valPubkeyInStateProof, leaf, err := ProveProposerPubkeyInState(
 		forkVersion, bsm, proposerOffset,
 	)
