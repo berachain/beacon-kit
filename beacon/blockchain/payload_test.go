@@ -114,14 +114,14 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 			genesisBlkHeader := core.GenesisBlockHeader(cs.GenesisForkVersion())
 			genesisBlkHeader.SetStateRoot(stateRoot)
 
-			require.Equal(t, r.Timestamp, consensusTime+1)
+			require.Equal(t, consensusTime+1, r.Timestamp)
 
 			require.Equal(t, genesisHeader.GetBlockHash(), r.HeadEth1BlockHash)
 
 			require.Equal(t, expectedParentBlockRoot, r.ParentBlockRoot)
 
-			require.Empty(t, r.FinalEth1BlockHash)          // this is first block post genesis
-			require.Equal(t, constants.GenesisSlot, r.Slot) // genesis slot in state
+			require.Empty(t, r.FinalEth1BlockHash)            // this is first block post genesis
+			require.Equal(t, constants.GenesisSlot+1, r.Slot) // rebuild block on top of genesis
 		},
 	).Return(nil, common.Version{0xff}, errors.New("does not matter")) // return values do not really matter in this test
 	wg.Add(1)
@@ -216,7 +216,7 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 	b.EXPECT().RequestPayloadAsync(mock.Anything, mock.Anything).Run(
 		func(_ context.Context, r *builder.RequestPayloadData) {
 			defer wg.Done()
-			require.Equal(t, r.Timestamp, consensusTime+1)
+			require.Equal(t, consensusTime+1, r.Timestamp)
 
 			require.Equal(
 				t,

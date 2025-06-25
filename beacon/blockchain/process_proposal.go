@@ -208,6 +208,8 @@ func (s *Service) VerifyIncomingBlobSidecars(
 
 // VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
+//
+//nolint:funlen // abundantly commented
 func (s *Service) VerifyIncomingBlock(
 	ctx context.Context,
 	beaconBlk *ctypes.BeaconBlock,
@@ -252,13 +254,24 @@ func (s *Service) VerifyIncomingBlock(
 		return nil, ErrUnexpectedBlockSlot
 	}
 
-	var preFetchFailureData *builder.RequestPayloadData
+	var (
+		nextBlockData *builder.RequestPayloadData
+		errFetch      error
+	)
+
 	if s.shouldBuildOptimisticPayloads() {
-		// state copy makes sure that preFetchBuildDataForSuccess does not affect state
+		// state copy makes sure that preFetchBuildData does not affect state
 		copiedState := state.Copy(ctx)
-		preFetchFailureData, err = s.preFetchBuildDataForRejection(copiedState, consensusTime)
-		if err != nil {
-			return nil, fmt.Errorf("failed preFetching data for rejection: %w", err)
+		nextBlockData, errFetch = s.preFetchBuildData(copiedState, consensusTime)
+		if errFetch != nil {
+			// We don't return with err if pre-fetch fails. Instead we log the issue
+			// and still move to process the current block. Next block can always be
+			// built right after current height is finalized.
+			s.logger.Warn(
+				"Failed pre fetching data for optimistic block building",
+				"case", "block rejectiong",
+				"err", errFetch,
+			)
 		}
 	}
 
@@ -278,29 +291,37 @@ func (s *Service) VerifyIncomingBlock(
 		)
 
 		if s.shouldBuildOptimisticPayloads() {
-			if preFetchFailureData == nil {
-				panic("nil preFetchFailureData") // appease nilaway
+			if nextBlockData == nil {
+				// Failed fetching data to build next block. Just return block error
+				return nil, err
 			}
-			// If we are rejecting the incoming block, let's optimistically build a candidate
-			// payload for this slot (in case we are selected as the next proposer for this slot).
-			go s.handleRebuildPayloadForRejectedBlock(ctx, preFetchFailureData)
+			go s.handleRebuildPayloadForRejectedBlock(ctx, nextBlockData)
 		}
 
 		return nil, err
 	}
 
-	s.logger.Info("State root verification succeeded - accepting incoming beacon block",
+	s.logger.Info(
+		"State root verification succeeded - accepting incoming beacon block",
 		"state_root", beaconBlk.GetStateRoot(),
 	)
 
 	if s.shouldBuildOptimisticPayloads() {
 		// state copy makes sure that preFetchBuildDataForSuccess does not affect state
 		copiedState := state.Copy(ctx)
-		preFetchSuccessData, errSuccess := s.preFetchBuildDataForSuccess(copiedState, beaconBlk, consensusTime)
-		if errSuccess != nil {
-			return nil, fmt.Errorf("failed preFetching data for success: %w", err)
+		nextBlockData, errFetch = s.preFetchBuildData(copiedState, consensusTime)
+		if errFetch != nil {
+			// We don't mark the block as rejected if it is valid but pre-fetch fails.
+			// Instead we log the issue and move to process the current block.
+			// Next block can always be built right after current height is finalized.
+			s.logger.Warn(
+				"Failed pre fetching data for optimistic block building",
+				"case", "block success",
+				"err", errFetch,
+			)
+			return valUpdates, nil
 		}
-		go s.handleOptimisticPayloadBuild(ctx, preFetchSuccessData)
+		go s.handleOptimisticPayloadBuild(ctx, nextBlockData)
 	}
 
 	return valUpdates, nil
