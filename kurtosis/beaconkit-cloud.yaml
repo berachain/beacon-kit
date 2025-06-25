@@ -32,23 +32,12 @@ network_configuration:
   validators:
     type: "validator"
     nodes:
-      - el_type: besu
-        kzg_impl: crate-crypto/go-kzg-4844
-        replicas: 0
-      - el_type: nethermind
-        kzg_impl: crate-crypto/go-kzg-4844
-        replicas: 0
       - el_type: reth
         kzg_impl: crate-crypto/go-kzg-4844
         replicas: 2
       - el_type: geth
         kzg_impl: crate-crypto/go-kzg-4844
-        replicas: 2
-      - el_type: erigon
-        kzg_impl: crate-crypto/go-kzg-4844
-        replicas: 1
-      - el_type: ethereumjs
-        replicas: 0
+        replicas: 3
   full_nodes:
     type: "full"
     nodes:
@@ -57,15 +46,7 @@ network_configuration:
         replicas: 2
       - el_type: geth
         kzg_impl: crate-crypto/go-kzg-4844
-        replicas: 1
-      - el_type: nethermind
-        replicas: 0
-      - el_type: besu
-        replicas: 0
-      - el_type: erigon
-        replicas: 1
-      - el_type: ethereumjs
-        replicas: 0
+        replicas: 2
   seed_nodes:
     type: "seed"
     nodes:
@@ -97,11 +78,7 @@ node_settings:
       min_memory: 1024
       max_memory: 2048
     images:
-      besu: hyperledger/besu:24.5.4
-      erigon: erigontech/erigon:latest
-      ethereumjs: ethpandaops/ethereumjs:stable
       geth: ethereum/client-go:latest
-      nethermind: nethermind/nethermind:latest
       reth: ghcr.io/berachain/bera-reth:nightly
 eth_json_rpc_endpoints:
   # type has to be either blutgang or nginx
@@ -110,10 +87,6 @@ eth_json_rpc_endpoints:
       - el-full-reth-0
       - el-full-reth-1
       - el-full-geth-2
-      # - el-full-nethermind-3
-      # - el-full-besu-4
-      # - el-full-erigon-5
-      # - el-full-ethereumjs-6
 additional_services:
   - name: "spamoor"
   - name: "tx-fuzz"
