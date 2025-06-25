@@ -575,7 +575,7 @@ func (p *ExecutionPayload) GetExcessBlobGas() math.U64 {
 // ToHeader converts the ExecutionPayload to an ExecutionPayloadHeader.
 func (p *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 	switch p.GetForkVersion() {
-	case version.Deneb(), version.Deneb1(), version.Electra():
+	case version.Deneb(), version.Deneb1(), version.Electra(), version.Electra1():
 		return &ExecutionPayloadHeader{
 			Versionable:      p.Versionable,
 			ParentHash:       p.GetParentHash(),

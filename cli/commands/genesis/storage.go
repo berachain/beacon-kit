@@ -21,6 +21,8 @@
 package genesis
 
 import (
+	"bytes"
+	"encoding/json"
 	"math/big"
 	"path/filepath"
 
@@ -31,7 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	libcommon "github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -175,9 +176,11 @@ func writeGenesisAllocToFile(
 		return err
 	}
 
-	// Unmarshal existing genesis
+	// Unmarshal existing genesis using json.Number to preserve integer precision
 	var existingGenesis map[string]interface{}
-	if err = json.Unmarshal(existingBz, &existingGenesis); err != nil {
+	decoder := json.NewDecoder(bytes.NewReader(existingBz))
+	decoder.UseNumber()
+	if err = decoder.Decode(&existingGenesis); err != nil {
 		return err
 	}
 

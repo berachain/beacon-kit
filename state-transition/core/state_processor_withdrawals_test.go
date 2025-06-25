@@ -47,7 +47,7 @@ func TestPartialWithdrawalRequestGenesisValidators(t *testing.T) {
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	// make sure Electra is active
-	require.Equal(t, version.Electra(), cs.GenesisForkVersion())
+	require.True(t, version.EqualsOrIsAfter(cs.GenesisForkVersion(), version.Electra()))
 
 	var (
 		maxBalance = cs.MaxEffectiveBalance()
@@ -257,7 +257,7 @@ func TestFullWithdrawalRequestGenesisValidators(t *testing.T) {
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	// make sure Electra is active
-	require.Equal(t, version.Electra(), cs.GenesisForkVersion())
+	require.True(t, version.EqualsOrIsAfter(cs.GenesisForkVersion(), version.Electra()))
 
 	var (
 		maxBalance = cs.MaxEffectiveBalance()
@@ -506,7 +506,7 @@ func TestWithdrawalRequestsNonGenesisValidators(t *testing.T) {
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	// make sure Electra is active
-	require.Equal(t, version.Electra(), cs.GenesisForkVersion())
+	require.True(t, version.EqualsOrIsAfter(cs.GenesisForkVersion(), version.Electra()))
 
 	var (
 		maxBalance = cs.MaxEffectiveBalance()
@@ -766,7 +766,7 @@ func TestConcurrentAutomaticAndVoluntaryWithdrawalRequests(t *testing.T) {
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	// make sure Electra is active
-	require.Equal(t, version.Electra(), cs.GenesisForkVersion())
+	require.True(t, version.EqualsOrIsAfter(cs.GenesisForkVersion(), version.Electra()))
 
 	// Make sure we have as many validators as the cap allows
 	var (
@@ -928,7 +928,7 @@ func TestDoubleFullWithdrawalRequests(t *testing.T) {
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	// make sure Electra is active
-	require.Equal(t, version.Electra(), cs.GenesisForkVersion())
+	require.True(t, version.EqualsOrIsAfter(cs.GenesisForkVersion(), version.Electra()))
 
 	var (
 		maxBalance = cs.MaxEffectiveBalance()
