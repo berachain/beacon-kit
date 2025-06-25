@@ -60,15 +60,16 @@ func BuildNewPayloadRequestFromFork(blk *BeaconBlock) (NewPayloadRequest, error)
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
 	parentBeaconBlockRoot := blk.GetParentBlockRoot()
-	if version.Equals(blk.GetForkVersion(), version.Deneb()) || version.Equals(blk.GetForkVersion(), version.Deneb1()) {
+	switch v := blk.GetForkVersion(); {
+	case version.Equals(v, version.Deneb()) || version.Equals(v, version.Deneb1()):
 		return &newPayloadRequest{
 			Versionable:           NewVersionable(payload.GetForkVersion()),
 			executionPayload:      payload,
 			versionedHashes:       body.GetBlobKzgCommitments().ToVersionedHashes(),
 			parentBeaconBlockRoot: &parentBeaconBlockRoot,
 		}, nil
-	}
-	if version.Equals(blk.GetForkVersion(), version.Electra()) {
+
+	case version.Equals(v, version.Electra()) || version.Equals(v, version.Electra1()):
 		// If we're post-electra, we set execution requests.
 		executionRequests, err := body.GetExecutionRequests()
 		if err != nil {
@@ -85,8 +86,10 @@ func BuildNewPayloadRequestFromFork(blk *BeaconBlock) (NewPayloadRequest, error)
 			parentBeaconBlockRoot: &parentBeaconBlockRoot,
 			executionRequests:     executionRequestsList,
 		}, nil
+
+	default:
+		return nil, ErrForkVersionNotSupported
 	}
-	return nil, ErrForkVersionNotSupported
 }
 
 func (n *newPayloadRequest) GetExecutionPayload() *ExecutionPayload {
