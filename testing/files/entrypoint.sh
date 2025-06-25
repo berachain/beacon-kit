@@ -60,7 +60,6 @@ HOMEDIR="./.tmp/beacond"
 GENESIS=$HOMEDIR/config/genesis.json
 TMP_GENESIS=$HOMEDIR/config/tmp_genesis.json
 ETH_GENESIS=$(resolve_path "./testing/files/eth-genesis.json")
-ETH_NETHER_GENESIS=$(resolve_path "./testing/files/eth-nether-genesis.json")
 KZG_PATH=$(resolve_path "./testing/files/kzg-trusted-setup.json")
 
 # used to exit on first error (any non-zero exit code)
@@ -96,7 +95,6 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 			32000000000 0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4 $CHAIN_SPEC_ARG
 		./build/bin/beacond genesis collect-premined-deposits --home $HOMEDIR $CHAIN_SPEC_ARG
 		./build/bin/beacond genesis set-deposit-storage "$ETH_GENESIS" --home $HOMEDIR $CHAIN_SPEC_ARG
-		./build/bin/beacond genesis set-deposit-storage "$ETH_NETHER_GENESIS" --nethermind --home $HOMEDIR $CHAIN_SPEC_ARG
 		./build/bin/beacond genesis execution-payload "$HOMEDIR/eth-genesis.json" --home $HOMEDIR $CHAIN_SPEC_ARG
 	fi
 fi
