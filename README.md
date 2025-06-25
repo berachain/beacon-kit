@@ -32,8 +32,8 @@ The framework offers the most user-friendly way to build and operate an EVM bloc
 Through utilizing the [Ethereum Engine API](https://github.com/ethereum/execution-apis/blob/main/src/engine)
 BeaconKit supports the following execution clients:
 
-- [**Geth**](https://geth.ethereum.org/): Official Go implementation of the Ethereum protocol.
-- [**Reth**](https://reth.rs/): Rust-based client focusing on performance and reliability.
+- [**Bera-Geth**](https://github.com/berachain/bera-geth): Official Go implementation of the Berachain protocol.
+- [**Bera-Reth**](https://github.com/berachain/bera-reth): Rust-based client focusing on performance and reliability.
 
 ## Running a Local Development Network
 
