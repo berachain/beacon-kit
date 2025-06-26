@@ -55,7 +55,6 @@ const (
 	MaxConsensusTxsCount = 2
 )
 
-//nolint:funlen // it's fine
 func (s *Service) ProcessProposal(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
@@ -148,18 +147,13 @@ func (s *Service) ProcessProposal(
 	)
 
 	var valUpdates transition.ValidatorUpdates
-	valUpdates, err = s.VerifyIncomingBlock(
-		ctx,
-		consensusBlk.GetBeaconBlock(),
-		consensusBlk.GetConsensusTime(),
-		consensusBlk.GetProposerAddress(),
-	)
+	valUpdates, err = s.VerifyIncomingBlock(ctx, consensusBlk)
 	if err != nil {
 		s.logger.Error("failed to verify incoming block", "error", err)
 		return nil, err
 	}
 
-	return valUpdates, nil
+	return valUpdates.CanonicalSort(), nil
 }
 
 func (s *Service) VerifyIncomingBlockSignature(
@@ -212,10 +206,9 @@ func (s *Service) VerifyIncomingBlobSidecars(
 //nolint:funlen // abundantly commented
 func (s *Service) VerifyIncomingBlock(
 	ctx context.Context,
-	beaconBlk *ctypes.BeaconBlock,
-	consensusTime math.U64,
-	proposerAddress []byte,
+	blk *types.ConsensusBlock,
 ) (transition.ValidatorUpdates, error) {
+	beaconBlk := blk.GetBeaconBlock()
 	state := s.storageBackend.StateFromContext(ctx)
 
 	// Force a sync of the startup head if we haven't done so already.
@@ -262,7 +255,7 @@ func (s *Service) VerifyIncomingBlock(
 	if s.shouldBuildOptimisticPayloads() {
 		// state copy makes sure that preFetchBuildData does not affect state
 		copiedState := state.Copy(ctx)
-		nextBlockData, errFetch = s.preFetchBuildData(copiedState, consensusTime)
+		nextBlockData, errFetch = s.preFetchBuildData(copiedState, blk.GetConsensusTime())
 		if errFetch != nil {
 			// We don't return with err if pre-fetch fails. Instead we log the issue
 			// and still move to process the current block. Next block can always be
@@ -277,12 +270,7 @@ func (s *Service) VerifyIncomingBlock(
 
 	// Verify the state root of the incoming block.
 	var valUpdates transition.ValidatorUpdates
-	valUpdates, err = s.verifyStateRoot(
-		ctx,
-		state,
-		beaconBlk,
-		consensusTime,
-		proposerAddress)
+	valUpdates, err = s.verifyStateRoot(ctx, state, blk)
 	if err != nil {
 		s.logger.Error(
 			"Rejecting incoming beacon block ❌ ",
@@ -309,7 +297,7 @@ func (s *Service) VerifyIncomingBlock(
 	if s.shouldBuildOptimisticPayloads() {
 		// state copy makes sure that preFetchBuildDataForSuccess does not affect state
 		copiedState := state.Copy(ctx)
-		nextBlockData, errFetch = s.preFetchBuildData(copiedState, consensusTime)
+		nextBlockData, errFetch = s.preFetchBuildData(copiedState, blk.GetConsensusTime())
 		if errFetch != nil {
 			// We don't mark the block as rejected if it is valid but pre-fetch fails.
 			// Instead we log the issue and move to process the current block.
@@ -331,24 +319,22 @@ func (s *Service) VerifyIncomingBlock(
 func (s *Service) verifyStateRoot(
 	ctx context.Context,
 	st *statedb.StateDB,
-	blk *ctypes.BeaconBlock,
-	consensusTime math.U64,
-	proposerAddress []byte,
+	blk *types.ConsensusBlock,
 ) (transition.ValidatorUpdates, error) {
 	startTime := time.Now()
-	defer s.metrics.measureStateRootVerificationTime(startTime)
+	defer s.metrics.measureStateTransitionDuration(startTime)
 
 	txCtx := transition.NewTransitionCtx(
 		ctx,
-		consensusTime,
-		proposerAddress,
+		blk.GetConsensusTime(),
+		blk.GetProposerAddress(),
 	).
 		WithVerifyPayload(true).
 		WithVerifyRandao(true).
 		WithVerifyResult(true).
-		WithMeterGas(false)
+		WithMeterGas(true)
 
-	valUpdates, err := s.stateProcessor.Transition(txCtx, st, blk)
+	valUpdates, err := s.stateProcessor.Transition(txCtx, st, blk.GetBeaconBlock())
 	return valUpdates, err
 }
 

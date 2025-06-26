@@ -34,6 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/errors"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
@@ -79,7 +80,7 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 	// Finally create a block that will be rejected and
 	// verify the state on top of which is next payload built
 	var (
-		consensusTime   = math.U64(time.Now().Unix())
+		consensusTime   = time.Now()
 		proposerAddress = []byte{'d', 'u', 'm', 'm', 'y'} // this will err on purpose
 	)
 
@@ -114,7 +115,7 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 			genesisBlkHeader := core.GenesisBlockHeader(cs.GenesisForkVersion())
 			genesisBlkHeader.SetStateRoot(stateRoot)
 
-			require.Equal(t, consensusTime+1, r.Timestamp)
+			require.Equal(t, math.U64(consensusTime.Unix())+1, r.Timestamp)
 
 			require.Equal(t, genesisHeader.GetBlockHash(), r.HeadEth1BlockHash)
 
@@ -133,9 +134,7 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 
 	_, err = chain.VerifyIncomingBlock(
 		ctx.ConsensusCtx(),
-		invalidBlk,
-		consensusTime,
-		proposerAddress,
+		types.NewConsensusBlock(invalidBlk, proposerAddress, consensusTime),
 	)
 	require.ErrorIs(t, err, core.ErrProposerMismatch)
 
@@ -171,7 +170,7 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 	// Finally create a block that will be rejected and
 	// verify the state on top of which is next payload built
 	var (
-		consensusTime = math.U64(time.Now().Unix())
+		consensusTime = time.Now()
 		proposer      = ctx.ProposerAddress()
 	)
 
@@ -202,7 +201,7 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 	stateRoot, err := computeStateRoot( // fix state root in block
 		ctx.ConsensusCtx(),
 		proposer,
-		consensusTime,
+		math.U64(consensusTime.Unix()),
 		sp,
 		buildState,
 		validBlk,
@@ -216,7 +215,7 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 	b.EXPECT().RequestPayloadAsync(mock.Anything, mock.Anything).Run(
 		func(_ context.Context, r *builder.RequestPayloadData) {
 			defer wg.Done()
-			require.Equal(t, consensusTime+1, r.Timestamp)
+			require.Equal(t, math.U64(consensusTime.Unix())+1, r.Timestamp)
 
 			require.Equal(
 				t,
@@ -242,9 +241,7 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 	sb.EXPECT().StateFromContext(mock.Anything).Return(st).Times(1)
 	_, err = chain.VerifyIncomingBlock(
 		ctx.ConsensusCtx(),
-		validBlk,
-		consensusTime,
-		ctx.ProposerAddress(),
+		types.NewConsensusBlock(validBlk, ctx.ProposerAddress(), consensusTime),
 	)
 	require.NoError(t, err)
 
