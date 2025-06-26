@@ -123,7 +123,7 @@ func defaultExecutionSettings() ExecutionSettings {
 		},
 		Images: map[string]string{
 			"geth": "ethereum/client-go:stable",
-			"reth": "ghcr.io/paradigmxyz/reth:latest",
+			"reth": "ghcr.io/berachain/bera-reth:nightly",
 		},
 	}
 }

@@ -28,6 +28,13 @@
         "max": 6,
         "baseFeeUpdateFraction": 3338477
       }
+    },
+    "berachain": {
+      "prague1": {
+        "time": 9223372036854775807,
+        "baseFeeChangeDenominator": 48,
+        "minimumBaseFeeWei": 1000000000
+      }
     }
   },
   "coinbase": "0x0000000000000000000000000000000000000000",
