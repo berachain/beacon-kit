@@ -40,7 +40,7 @@ func (s *Service) finalizeBlock(
 	return res, err
 }
 
-//nolint:nestif,funlen // make it work, make it right, make it fast
+//nolint:funlen // make it work, make it right, make it fast
 func (s *Service) finalizeBlockInternal(
 	ctx context.Context,
 	req *cmtabci.FinalizeBlockRequest,
@@ -49,10 +49,6 @@ func (s *Service) finalizeBlockInternal(
 		return nil, err
 	}
 
-	// finalizeBlockState should be set on InitChain or ProcessProposal. If it
-	// is nil, it means we are replaying this block and we need to set the state
-	// here given that during block replay ProcessProposal is not executed by
-	// CometBFT.
 	var (
 		finalizeBlockState *state
 		stateHash          = string(req.Hash)
@@ -71,6 +67,51 @@ func (s *Service) finalizeBlockInternal(
 		}
 	}
 
+	// Check whether currently block hash is already available. If so we can speed up
+	// block finalization. Correctness of this check at this point in time relies on the
+	// fact that first block post initial height is not cached even if processed.
+	if cached, found := s.candidateStates[stateHash]; found {
+		s.finalStateHash = &stateHash
+		finalizeBlockState = cached.state
+		signedBlk, sidecars, err := s.Blockchain.ParseBeaconBlock(req)
+		if err != nil {
+			return nil, fmt.Errorf("finalize block: failed parsing block: %w", err)
+		}
+		blk := signedBlk.GetBeaconBlock()
+
+		if err = s.Blockchain.FinalizeSidecars(
+			finalizeBlockState.Context(),
+			req.SyncingToHeight,
+			blk,
+			sidecars,
+		); err != nil {
+			return nil, fmt.Errorf("failed finalizing sidecars: %w", err)
+		}
+		if err = s.Blockchain.PostFinalizeBlockOps(
+			finalizeBlockState.Context(),
+			blk,
+		); err != nil {
+			return nil, fmt.Errorf("finalize block: failed post finalize block ops: %w", err)
+		}
+
+		formattedValUpdates, err := iter.MapErr(
+			cached.valUpdates,
+			convertValidatorUpdate[cmtabci.ValidatorUpdate],
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		cp := s.cmtConsensusParams.ToProto()
+		return &cmtabci.FinalizeBlockResponse{
+			TxResults:             txResults,
+			ValidatorUpdates:      formattedValUpdates,
+			ConsensusParamUpdates: &cp,
+		}, nil
+	}
+
+	// Block has not been cached already. Normally we would directly process it but
+	// first block post initial height has a special handling.
 	if s.finalStateHash != nil {
 		// Preserve the CosmosSDK context while using the correct base ctx.
 		st, found := s.candidateStates[*s.finalStateHash]
@@ -82,45 +123,6 @@ func (s *Service) finalizeBlockInternal(
 		finalizeBlockState = st.state
 	} else {
 		s.finalStateHash = &stateHash
-
-		if cached, found := s.candidateStates[stateHash]; found {
-			finalizeBlockState = cached.state
-			signedBlk, sidecars, err := s.Blockchain.ParseBeaconBlock(req)
-			if err != nil {
-				return nil, fmt.Errorf("finalize block: failed parsing block: %w", err)
-			}
-			blk := signedBlk.GetBeaconBlock()
-
-			if err = s.Blockchain.FinalizeSidecars(
-				finalizeBlockState.Context(),
-				req.SyncingToHeight,
-				blk,
-				sidecars,
-			); err != nil {
-				return nil, fmt.Errorf("failed finalizing sidecars: %w", err)
-			}
-			if err = s.Blockchain.PostFinalizeBlockOps(
-				finalizeBlockState.Context(),
-				blk,
-			); err != nil {
-				return nil, fmt.Errorf("finalize block: failed post finalize block ops: %w", err)
-			}
-
-			formattedValUpdates, err := iter.MapErr(
-				cached.valUpdates,
-				convertValidatorUpdate[cmtabci.ValidatorUpdate],
-			)
-			if err != nil {
-				return nil, err
-			}
-
-			cp := s.cmtConsensusParams.ToProto()
-			return &cmtabci.FinalizeBlockResponse{
-				TxResults:             txResults,
-				ValidatorUpdates:      formattedValUpdates,
-				ConsensusParamUpdates: &cp,
-			}, nil
-		}
 
 		finalizeBlockState = s.resetState(ctx)
 		s.candidateStates[stateHash] = &CacheElement{
