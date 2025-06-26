@@ -22,8 +22,11 @@ package cometbft
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	cmttypes "github.com/cometbft/cometbft/types"
@@ -54,59 +57,80 @@ func (s *Service) finalizeBlockInternal(
 	// block finalization. Correctness of this check at this point in the codebase relies
 	// on the fact that first block post initial height is not cached even if processed.
 	hash := string(req.Hash)
-	if cached, found := s.candidateStates[hash]; found && (req.Height > s.initialHeight) {
-		s.finalStateHash = &hash
+	switch cached, err := s.cachedStates.getState(hash); {
+	case err == nil:
+		if req.Height > s.initialHeight {
+			if err = s.cachedStates.markAsFinal(hash); err != nil {
+				return nil, fmt.Errorf("failed marking state as final, hash %s, height %d: %w", hash, req.Height, err)
+			}
 
-		finalizeBlockState := cached.state
-		signedBlk, sidecars, err := s.Blockchain.ParseBeaconBlock(req)
-		if err != nil {
-			return nil, fmt.Errorf("finalize block: failed parsing block: %w", err)
-		}
-		blk := signedBlk.GetBeaconBlock()
+			finalizeBlockState := cached.state
+			var (
+				signedBlk *ctypes.SignedBeaconBlock
+				sidecars  datypes.BlobSidecars
+			)
+			signedBlk, sidecars, err = s.Blockchain.ParseBeaconBlock(req)
+			if err != nil {
+				return nil, fmt.Errorf("finalize block: failed parsing block: %w", err)
+			}
+			blk := signedBlk.GetBeaconBlock()
 
-		if err = s.Blockchain.FinalizeSidecars(
-			finalizeBlockState.Context(),
-			req.SyncingToHeight,
-			blk,
-			sidecars,
-		); err != nil {
-			return nil, fmt.Errorf("failed finalizing sidecars: %w", err)
-		}
-		if err = s.Blockchain.PostFinalizeBlockOps(
-			finalizeBlockState.Context(),
-			blk,
-		); err != nil {
-			return nil, fmt.Errorf("finalize block: failed post finalize block ops: %w", err)
+			if err = s.Blockchain.FinalizeSidecars(
+				finalizeBlockState.Context(),
+				req.SyncingToHeight,
+				blk,
+				sidecars,
+			); err != nil {
+				return nil, fmt.Errorf("failed finalizing sidecars: %w", err)
+			}
+			if err = s.Blockchain.PostFinalizeBlockOps(
+				finalizeBlockState.Context(),
+				blk,
+			); err != nil {
+				return nil, fmt.Errorf("finalize block: failed post finalize block ops: %w", err)
+			}
+			return formatFinalizeBlockResponse(cached.valUpdates, len(req.Txs), s.cmtConsensusParams)
 		}
 
-		return formatFinalizeBlockResponse(cached.valUpdates, len(req.Txs), s.cmtConsensusParams)
+	case errors.Is(err, ErrStateNotFound):
+		// this is a benign error, it just signal it's the first time we see the block being finalized
+		// Keep processing below
+
+	default:
+		return nil, fmt.Errorf("failed checking cached state, hash %s, height %d: %w", hash, req.Height, err)
 	}
 
 	// Block has not been cached already, as it happens when we block sync.
 	//  Normally we would directly process it but first block post initial height
 	// needs special handling.
 	var finalizeBlockState *state
-	if s.finalStateHash != nil {
+	cachedFinalHash, cachedFinalState, err := s.cachedStates.getFinalState()
+	switch {
+	case err == nil:
+		hash = cachedFinalHash
+		finalizeBlockState = cachedFinalState
+
 		// Preserve the CosmosSDK context while using the correct base ctx.
-		st, found := s.candidateStates[*s.finalStateHash]
-		if !found {
-			panic(fmt.Errorf("missing candidate state for hash %s", *s.finalStateHash))
-		}
-		hash = *s.finalStateHash
-		st.state.SetContext(st.state.Context().WithContext(ctx))
-		finalizeBlockState = st.state
-	} else {
-		s.finalStateHash = &hash
+		cachedFinalState.SetContext(cachedFinalState.Context().WithContext(ctx))
+
+	case errors.Is(err, ErrNoFinalState):
+		hash = string(req.Hash) // not necessary but clarifies intent
 		finalizeBlockState = s.resetState(ctx)
+
+	default:
+		return nil, fmt.Errorf("failed checking cached final state, hash %s, height %d: %w", hash, req.Height, err)
 	}
 
 	valUpdates, err := s.Blockchain.FinalizeBlock(finalizeBlockState.Context(), req)
 	if err != nil {
 		return nil, err
 	}
-	s.candidateStates[hash] = &CacheElement{
+	s.cachedStates.cache(hash, &CacheElement{
 		state:      finalizeBlockState,
 		valUpdates: valUpdates,
+	})
+	if err = s.cachedStates.markAsFinal(hash); err != nil {
+		return nil, fmt.Errorf("failed marking state as final, hash %s, height %d: %w", hash, req.Height, err)
 	}
 
 	return formatFinalizeBlockResponse(valUpdates, len(req.Txs), s.cmtConsensusParams)
@@ -124,17 +148,13 @@ func (s *Service) workingHash() []byte {
 	// MultiStore. The write to the FinalizeBlock state writes all state
 	// transitions to the root MultiStore (s.sm.GetCommitMultiStore())
 	// so when Commit() is called it persists those values.
-	if s.finalStateHash == nil {
-		// this is unexpected since workingHash is called only after
-		// internalFinalizeBlock. Panic appeases nilaway.
-		panic(fmt.Errorf("workingHash: %w", errNilFinalizeBlockState))
+	_, finalState, err := s.cachedStates.getFinalState()
+	if err != nil {
+		// This is unexpected since CometBFT should call Commit only
+		// after FinalizeBlock has been called. Panic appeases nilaway.
+		panic(fmt.Errorf("workingHash: %w", err))
 	}
-	cached, found := s.candidateStates[*s.finalStateHash]
-	if !found {
-		// TODO: remove. Annoying, just to appease nilaway
-		panic(fmt.Errorf("missing candidate state for hash %s", *s.finalStateHash))
-	}
-	cached.state.ms.Write()
+	finalState.ms.Write()
 
 	// Get the hash of all writes in order to return the apphash to the comet in
 	// finalizeBlock.

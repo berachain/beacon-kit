@@ -81,10 +81,12 @@ func (s *Service) processProposal(
 	// We must not cache execution of the first block post initialHeight
 	// because its state must be handled in a different way
 	if req.Height > s.initialHeight {
-		s.candidateStates[string(req.Hash)] = &CacheElement{
+		stateHash := string(req.Hash)
+		toCache := &CacheElement{
 			state:      processProposalState,
 			valUpdates: valUpdates,
 		}
+		s.cachedStates.cache(stateHash, toCache)
 	}
 	status := cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
 	return &cmtabci.ProcessProposalResponse{Status: status}, nil

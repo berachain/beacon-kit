@@ -85,10 +85,12 @@ func (s *Service) initChain(
 
 	genesisHash := ""
 	genesisFinalState := s.resetState(ctx)
-	s.candidateStates[genesisHash] = &CacheElement{
+	s.cachedStates.cache(genesisHash, &CacheElement{
 		state: genesisFinalState,
+	})
+	if err = s.cachedStates.markAsFinal(genesisHash); err != nil {
+		return nil, err
 	}
-	s.finalStateHash = &genesisHash
 
 	//nolint:contextcheck // ctx already passed via resetState
 	resValidators, err := s.initChainer(

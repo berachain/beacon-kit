@@ -21,9 +21,69 @@
 
 package cometbft
 
-import "github.com/berachain/beacon-kit/primitives/transition"
+import (
+	"errors"
+
+	"github.com/berachain/beacon-kit/primitives/transition"
+)
+
+var (
+	ErrStateNotFound          = errors.New("state not found")
+	ErrNoFinalState           = errors.New("no state marked as final")
+	ErrFinalStateIsNil        = errors.New("state marked as final is nil")
+	ErrFinalizingUnknownState = errors.New("attempt at finalizing unknown state")
+)
 
 type CacheElement struct {
 	state      *state
 	valUpdates transition.ValidatorUpdates
+}
+
+type candidateStates struct {
+	states         map[string]*CacheElement
+	finalStateHash *string
+}
+
+func newCandidateStates() *candidateStates {
+	return &candidateStates{
+		states:         make(map[string]*CacheElement),
+		finalStateHash: nil,
+	}
+}
+
+func (cs *candidateStates) cache(hash string, toCache *CacheElement) {
+	cs.states[hash] = toCache
+}
+
+func (cs *candidateStates) getState(hash string) (*CacheElement, error) {
+	cached, found := cs.states[hash]
+	if !found {
+		return nil, ErrStateNotFound
+	}
+	return cached, nil
+}
+
+func (cs *candidateStates) markAsFinal(hash string) error {
+	_, found := cs.states[hash]
+	if !found {
+		return ErrFinalizingUnknownState
+	}
+	cs.finalStateHash = &hash
+	return nil
+}
+
+func (cs *candidateStates) getFinalState() (string, *state, error) {
+	if cs.finalStateHash == nil {
+		return "", nil, ErrNoFinalState
+	}
+	cached, found := cs.states[*cs.finalStateHash]
+	if !found {
+		return "", nil, ErrFinalStateIsNil
+	}
+	return *cs.finalStateHash, cached.state, nil
+}
+
+func (cs *candidateStates) reset() {
+	cs.states = make(map[string]*CacheElement)
+	cs.finalStateHash = nil
 }

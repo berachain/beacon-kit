@@ -71,10 +71,10 @@ type Service struct {
 	Blockchain   blockchain.BlockchainI
 	BlockBuilder validator.BlockBuilderI
 
-	////// NEW ELEMENTS TO CACHE STATES
-	candidateStates map[string]*CacheElement
-	finalStateHash  *string
-	////// END OF NEW ELEMENTS TO CACHE STATES
+	// cachedStates tracks in memory the post block states
+	// of blocks which were successfully verified. It allows
+	// finalizing without re-execution
+	cachedStates *candidateStates
 
 	interBlockCache storetypes.MultiStorePersistentCache
 
@@ -124,9 +124,7 @@ func NewService(
 		cmtConsensusParams: cmtConsensusParams,
 		cmtCfg:             cmtCfg,
 		telemetrySink:      telemetrySink,
-
-		candidateStates: map[string]*CacheElement{},
-		finalStateHash:  nil,
+		cachedStates:       newCandidateStates(),
 	}
 
 	s.MountStore(storage.StoreKey, storetypes.StoreTypeIAVL)
@@ -323,17 +321,13 @@ func (s *Service) getContextForProposal(
 		return ctx
 	}
 
-	if s.finalStateHash == nil {
+	_, finalState, err := s.cachedStates.getFinalState()
+	if err != nil {
 		// this is unexpected since cometBFT won't call PrepareProposal
 		// on initialHeight. Panic appeases nilaway.
-		panic(fmt.Errorf("getContextForProposal: %w", errNilFinalizeBlockState))
+		panic(fmt.Errorf("getContextForProposal: %w", err))
 	}
-	cached, found := s.candidateStates[*s.finalStateHash]
-	if !found {
-		// TODO: remove. Annoying, just to appease nilaway
-		panic(fmt.Errorf("getContextForProposal: %w", errNilFinalizeBlockState))
-	}
-	newCtx, _ := cached.state.Context().CacheContext()
+	newCtx, _ := finalState.Context().CacheContext()
 	// Preserve the CosmosSDK context while using the correct base ctx.
 	return newCtx.WithContext(ctx.Context())
 }
