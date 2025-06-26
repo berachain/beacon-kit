@@ -121,7 +121,6 @@ func (s *Service) nextBlockDelay(req *cmtabci.FinalizeBlockRequest) time.Duratio
 			InitialTime:       req.Time,
 			InitialHeight:     req.Height,
 			PreviousBlockTime: req.Time,
-			Logger:            s.logger,
 		}
 		return s.delayCfg.SbtConstBlockDelay()
 	}
@@ -133,12 +132,10 @@ func (s *Service) nextBlockDelay(req *cmtabci.FinalizeBlockRequest) time.Duratio
 	if s.blockDelay != nil {
 		prevBlkTime := s.blockDelay.PreviousBlockTime // note it down before ComputeNext changes it
 		delay := s.blockDelay.ComputeNext(s.delayCfg, req.Time, req.Height)
-		s.logger.Info("Stable block time",
+		s.logger.Debug("Stable block time",
 			"previous block time", prevBlkTime.String(),
 			"current block time", req.Time.String(),
-			"target block time", s.delayCfg.SbtTargetBlockTime().String(),
-			"delay", delay.String(),
-			"expected next time", req.Time.Add(delay).String(),
+			"next delay", delay.String(),
 		)
 		return delay
 	}

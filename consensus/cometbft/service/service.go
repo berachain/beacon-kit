@@ -178,7 +178,6 @@ func NewService(
 		if err != nil {
 			panic(fmt.Errorf("failed decoding block delay: %w", err))
 		}
-		s.blockDelay.Logger = logger
 	}
 
 	return s
