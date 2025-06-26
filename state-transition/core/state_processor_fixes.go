@@ -23,6 +23,7 @@ package core
 import (
 	"fmt"
 
+	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
@@ -32,21 +33,14 @@ import (
 
 // TODO: confirm data
 const (
-	forkChainID     = uint64(80094) // avoid import cycle
 	luganodesPubKey = "0xafd0ad061f698eae0d483098948e26e254f4b7089244bda897895257c668196ffd5e2ddf458fdf8bcea295b7d47a5b37"
 	luganodesCreds  = "0x010000000000000000000000b0c615224a053236ac7d1c239f6c1b5fbf8f0617"
 	luganodesAmount = 901_393_690_000_000 * params.Wei // 901_393.69 Gwei
 )
 
-//nolint:gochecknoglobals // unexported
-var (
-	luganodesCredentials = ctypes.WithdrawalCredentials(hex.MustToBytes(luganodesCreds))
-	luganodesPubKeyBytes = crypto.BLSPubkey(hex.MustToBytes(luganodesPubKey))
-)
-
 // processElectra1Fixes handles some fixes made necessary by accidents or wrong validator choices in mainnet
 func (sp *StateProcessor) processElectra1Fixes(st *state.StateDB) error {
-	if sp.cs.DepositEth1ChainID() != forkChainID {
+	if sp.cs.DepositEth1ChainID() != chain.MainnetEth1ChainID {
 		return nil
 	}
 
@@ -61,8 +55,8 @@ func (sp *StateProcessor) processLuganodesRecovery(st *state.StateDB) error {
 
 	// Make a one-time hardcoded deposit
 	deposit := ctypes.Deposit{
-		Pubkey:      luganodesPubKeyBytes,
-		Credentials: luganodesCredentials,
+		Pubkey:      crypto.BLSPubkey(hex.MustToBytes(luganodesPubKey)),
+		Credentials: ctypes.WithdrawalCredentials(hex.MustToBytes(luganodesCreds)),
 		Amount:      luganodesAmount,
 	}
 	sp.logger.Info(

@@ -18,15 +18,18 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package spec
+package chain
 
+// Chain IDs that must be used for specific networks.
 const (
-	// DevnetEth1ChainID is the chain ID for a local devnet. Used by `make start` and unit tests.
+	// DevnetEth1ChainID is the chain ID for a local devnet. Used by `make start`, e2e tests, and
+	// many unit tests.
 	DevnetEth1ChainID uint64 = 80087
 
 	// MainnetEth1ChainID is the chain ID for the Berachain mainnet.
 	MainnetEth1ChainID uint64 = 80094
 
-	// TestnetEth1ChainID is the chain ID for the Berachain public testnet.
+	// TestnetEth1ChainID is the chain ID for the Berachain public testnet, Bepolia. Also used by
+	// simulated tests.
 	TestnetEth1ChainID uint64 = 80069
 )
