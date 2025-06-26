@@ -23,7 +23,6 @@ package e2e_test
 import (
 	"math/big"
 	"strconv"
-	"time"
 
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/geth-primitives/ssztest"
@@ -79,8 +78,6 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 	)
 	s.Require().NoError(err)
 	s.Require().NotNil(nextHeader)
-
-	time.Sleep(5 * time.Second)
 
 	// Get the block proposer proof for the current timestamp and enforce equality.
 	blockProposerResp2, err := s.ConsensusClients()[config.ClientValidator0].BlockProposerProof(
