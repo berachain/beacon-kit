@@ -74,7 +74,7 @@ type Service struct {
 	// cachedStates tracks in memory the post block states
 	// of blocks which were successfully verified. It allows
 	// finalizing without re-execution
-	cachedStates *candidateStates
+	cachedStates StatesCache
 
 	interBlockCache storetypes.MultiStorePersistentCache
 
@@ -321,7 +321,7 @@ func (s *Service) getContextForProposal(
 		return ctx
 	}
 
-	_, finalState, err := s.cachedStates.getFinalState()
+	_, finalState, err := s.cachedStates.GetFinal()
 	if err != nil {
 		// this is unexpected since cometBFT won't call PrepareProposal
 		// on initialHeight. Panic appeases nilaway.

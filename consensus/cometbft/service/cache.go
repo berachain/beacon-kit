@@ -28,15 +28,27 @@ import (
 )
 
 var (
+	_ StatesCache = (*candidateStates)(nil)
+
 	ErrStateNotFound          = errors.New("state not found")
 	ErrNoFinalState           = errors.New("no state marked as final")
 	ErrFinalStateIsNil        = errors.New("state marked as final is nil")
 	ErrFinalizingUnknownState = errors.New("attempt at finalizing unknown state")
 )
 
+type StatesCache interface {
+	Cache(hash string, toCache *CacheElement)
+	GetCached(hash string) (*CacheElement, error)
+
+	MarkAsFinal(hash string) error
+	GetFinal() (string, *state, error)
+
+	Reset()
+}
+
 type CacheElement struct {
-	state      *state
-	valUpdates transition.ValidatorUpdates
+	State      *state
+	ValUpdates transition.ValidatorUpdates
 }
 
 type candidateStates struct {
@@ -44,18 +56,18 @@ type candidateStates struct {
 	finalStateHash *string
 }
 
-func newCandidateStates() *candidateStates {
+func newCandidateStates() StatesCache {
 	return &candidateStates{
 		states:         make(map[string]*CacheElement),
 		finalStateHash: nil,
 	}
 }
 
-func (cs *candidateStates) cache(hash string, toCache *CacheElement) {
+func (cs *candidateStates) Cache(hash string, toCache *CacheElement) {
 	cs.states[hash] = toCache
 }
 
-func (cs *candidateStates) getState(hash string) (*CacheElement, error) {
+func (cs *candidateStates) GetCached(hash string) (*CacheElement, error) {
 	cached, found := cs.states[hash]
 	if !found {
 		return nil, ErrStateNotFound
@@ -63,7 +75,7 @@ func (cs *candidateStates) getState(hash string) (*CacheElement, error) {
 	return cached, nil
 }
 
-func (cs *candidateStates) markAsFinal(hash string) error {
+func (cs *candidateStates) MarkAsFinal(hash string) error {
 	_, found := cs.states[hash]
 	if !found {
 		return ErrFinalizingUnknownState
@@ -72,7 +84,7 @@ func (cs *candidateStates) markAsFinal(hash string) error {
 	return nil
 }
 
-func (cs *candidateStates) getFinalState() (string, *state, error) {
+func (cs *candidateStates) GetFinal() (string, *state, error) {
 	if cs.finalStateHash == nil {
 		return "", nil, ErrNoFinalState
 	}
@@ -80,10 +92,10 @@ func (cs *candidateStates) getFinalState() (string, *state, error) {
 	if !found {
 		return "", nil, ErrFinalStateIsNil
 	}
-	return *cs.finalStateHash, cached.state, nil
+	return *cs.finalStateHash, cached.State, nil
 }
 
-func (cs *candidateStates) reset() {
+func (cs *candidateStates) Reset() {
 	cs.states = make(map[string]*CacheElement)
 	cs.finalStateHash = nil
 }

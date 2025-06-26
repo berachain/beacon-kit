@@ -85,10 +85,10 @@ func (s *Service) initChain(
 
 	genesisHash := ""
 	genesisFinalState := s.resetState(ctx)
-	s.cachedStates.cache(genesisHash, &CacheElement{
-		state: genesisFinalState,
+	s.cachedStates.Cache(genesisHash, &CacheElement{
+		State: genesisFinalState,
 	})
-	if err = s.cachedStates.markAsFinal(genesisHash); err != nil {
+	if err = s.cachedStates.MarkAsFinal(genesisHash); err != nil {
 		return nil, err
 	}
 

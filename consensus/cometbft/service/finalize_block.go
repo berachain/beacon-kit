@@ -57,14 +57,14 @@ func (s *Service) finalizeBlockInternal(
 	// block finalization. Correctness of this check at this point in the codebase relies
 	// on the fact that first block post initial height is not cached even if processed.
 	hash := string(req.Hash)
-	switch cached, err := s.cachedStates.getState(hash); {
+	switch cached, err := s.cachedStates.GetCached(hash); {
 	case err == nil:
 		if req.Height > s.initialHeight {
-			if err = s.cachedStates.markAsFinal(hash); err != nil {
+			if err = s.cachedStates.MarkAsFinal(hash); err != nil {
 				return nil, fmt.Errorf("failed marking state as final, hash %s, height %d: %w", hash, req.Height, err)
 			}
 
-			finalizeBlockState := cached.state
+			finalizeBlockState := cached.State
 			var (
 				signedBlk *ctypes.SignedBeaconBlock
 				sidecars  datypes.BlobSidecars
@@ -89,7 +89,7 @@ func (s *Service) finalizeBlockInternal(
 			); err != nil {
 				return nil, fmt.Errorf("finalize block: failed post finalize block ops: %w", err)
 			}
-			return formatFinalizeBlockResponse(cached.valUpdates, len(req.Txs), s.cmtConsensusParams)
+			return formatFinalizeBlockResponse(cached.ValUpdates, len(req.Txs), s.cmtConsensusParams)
 		}
 
 	case errors.Is(err, ErrStateNotFound):
@@ -104,7 +104,7 @@ func (s *Service) finalizeBlockInternal(
 	//  Normally we would directly process it but first block post initial height
 	// needs special handling.
 	var finalizeBlockState *state
-	cachedFinalHash, cachedFinalState, err := s.cachedStates.getFinalState()
+	cachedFinalHash, cachedFinalState, err := s.cachedStates.GetFinal()
 	switch {
 	case err == nil:
 		hash = cachedFinalHash
@@ -125,11 +125,11 @@ func (s *Service) finalizeBlockInternal(
 	if err != nil {
 		return nil, err
 	}
-	s.cachedStates.cache(hash, &CacheElement{
-		state:      finalizeBlockState,
-		valUpdates: valUpdates,
+	s.cachedStates.Cache(hash, &CacheElement{
+		State:      finalizeBlockState,
+		ValUpdates: valUpdates,
 	})
-	if err = s.cachedStates.markAsFinal(hash); err != nil {
+	if err = s.cachedStates.MarkAsFinal(hash); err != nil {
 		return nil, fmt.Errorf("failed marking state as final, hash %s, height %d: %w", hash, req.Height, err)
 	}
 
@@ -148,7 +148,7 @@ func (s *Service) workingHash() []byte {
 	// MultiStore. The write to the FinalizeBlock state writes all state
 	// transitions to the root MultiStore (s.sm.GetCommitMultiStore())
 	// so when Commit() is called it persists those values.
-	_, finalState, err := s.cachedStates.getFinalState()
+	_, finalState, err := s.cachedStates.GetFinal()
 	if err != nil {
 		// This is unexpected since CometBFT should call Commit only
 		// after FinalizeBlock has been called. Panic appeases nilaway.

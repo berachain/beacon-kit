@@ -83,10 +83,10 @@ func (s *Service) processProposal(
 	if req.Height > s.initialHeight {
 		stateHash := string(req.Hash)
 		toCache := &CacheElement{
-			state:      processProposalState,
-			valUpdates: valUpdates,
+			State:      processProposalState,
+			ValUpdates: valUpdates,
 		}
-		s.cachedStates.cache(stateHash, toCache)
+		s.cachedStates.Cache(stateHash, toCache)
 	}
 	status := cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
 	return &cmtabci.ProcessProposalResponse{Status: status}, nil
