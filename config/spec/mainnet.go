@@ -21,6 +21,8 @@
 package spec
 
 import (
+	"math"
+
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -80,6 +82,12 @@ const (
 	// was used to initiate the fork when beacon-kit forked by epoch instead of by timestamp.
 	mainnetDeneb1ForkTime = 1738415507
 
+	// mainnetElectraForkTime is the timestamp at which the Electra fork occurs.
+	mainnetElectraForkTime = 1749056400
+
+	// mainnetElectra1ForkTime is the timestamp at which the Electra1 fork occurs.
+	mainnetElectra1ForkTime = math.MaxInt64
+
 	// mainnetEVMInflationAddressDeneb1 is the address on the EVM which will receive the
 	// inflation amount of native EVM balance through a withdrawal every block in the Deneb1 fork.
 	mainnetEVMInflationAddressDeneb1 = "0x656b95E550C07a9ffe548bd4085c72418Ceb1dba"
@@ -127,9 +135,10 @@ func MainnetChainSpecData() *chain.SpecData {
 		TargetSecondsPerEth1Block: defaultTargetSecondsPerEth1Block,
 
 		// Fork-related values.
-		GenesisTime:     mainnetGenesisTime,
-		Deneb1ForkTime:  mainnetDeneb1ForkTime,
-		ElectraForkTime: defaultElectraForkTime,
+		GenesisTime:      mainnetGenesisTime,
+		Deneb1ForkTime:   mainnetDeneb1ForkTime,
+		ElectraForkTime:  mainnetElectraForkTime,
+		Electra1ForkTime: mainnetElectra1ForkTime,
 
 		// State list length constants.
 		EpochsPerHistoricalVector: defaultEpochsPerHistoricalVector,

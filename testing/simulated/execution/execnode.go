@@ -54,7 +54,7 @@ func NewExecNode(homeDir string, image docker.PullImageOptions, builder func(gen
 
 // Start launches the execution client container using dockertest, waits until the client is ready,
 // and returns the container resource along with the connection URL for the Auth RPC endpoint.
-func (e *ExecNode) Start(t *testing.T, genesisFile string) (*Resource, *url.ConnectionURL) {
+func (e *ExecNode) Start(t *testing.T, genesisFile string) (*Resource, *url.ConnectionURL, *url.ConnectionURL) {
 	t.Helper()
 
 	// Create a new Docker pool.
@@ -116,5 +116,5 @@ func (e *ExecNode) Start(t *testing.T, genesisFile string) (*Resource, *url.Conn
 	})
 	require.NoError(t, err, "Container did not become ready in time")
 
-	return &Resource{Resource: resource}, authRPC
+	return &Resource{Resource: resource}, authRPC, elRPC
 }

@@ -40,7 +40,7 @@ import (
 	"github.com/berachain/beacon-kit/state-transition/core"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/berachain/beacon-kit/storage/block"
-	depositdb "github.com/berachain/beacon-kit/storage/deposit"
+	"github.com/berachain/beacon-kit/storage/deposit"
 )
 
 type (
@@ -163,7 +163,7 @@ type (
 	StorageBackend interface {
 		AvailabilityStore() *dastore.Store
 		BlockStore() *block.KVStore[*ctypes.BeaconBlock]
-		DepositStore() *depositdb.KVStore
+		DepositStore() deposit.StoreManager
 		// StateFromContext retrieves the beacon state from the given context.
 		StateFromContext(context.Context) *statedb.StateDB
 	}
@@ -513,7 +513,7 @@ type (
 		NodeAPIConfigBackend
 	}
 
-	// NodeAPIBackend is the interface for backend of the beacon API.
+	// NodeAPIBeaconBackend is the interface for backend of the beacon API.
 	NodeAPIBeaconBackend interface {
 		GenesisBackend
 		BlobBackend
@@ -521,6 +521,7 @@ type (
 		RandaoBackend
 		StateBackend
 		ValidatorBackend
+		WithdrawalBackend
 		// GetSlotByBlockRoot retrieves the slot by a given root from the store.
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		// GetSlotByStateRoot retrieves the slot by a given root from the store.
@@ -561,6 +562,10 @@ type (
 
 	StateBackend interface {
 		StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error)
+	}
+
+	WithdrawalBackend interface {
+		PendingPartialWithdrawalsAtState(*statedb.StateDB) ([]*types.PendingPartialWithdrawalData, error)
 	}
 
 	ValidatorBackend interface {

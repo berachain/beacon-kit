@@ -77,7 +77,7 @@ func InitializeHomeDir(t *testing.T, chainSpec chain.Spec, tempHomeDir string, e
 	require.NoError(t, err, "failed to collect genesis deposits")
 
 	// Update the execution layer deposit storage with the eth-genesis file.
-	err = genesis.SetDepositStorage(chainSpec, cometConfig, elGenesisPath, false)
+	err = genesis.SetDepositStorage(chainSpec, cometConfig, elGenesisPath)
 	require.NoError(t, err, "failed to set deposit storage")
 
 	// Add the execution payload to the genesis configuration.
@@ -108,13 +108,6 @@ func createCometConfig(t *testing.T, tempHomeDir string) *cmtcfg.Config {
 	cmtCfg := cometbft.DefaultConfig()
 	cmtCfg.RootDir = tempHomeDir
 	return cmtCfg
-}
-
-// genesisCreator implements the required interface for the beacond init command, while allowing for a custom
-// fork version in the genesis file.
-type genesisCreator struct {
-	chainSpec    chain.Spec
-	cometService *cometbft.Service
 }
 
 // initCommand runs the initialization command to prepare the home directory.

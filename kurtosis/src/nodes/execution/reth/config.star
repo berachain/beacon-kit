@@ -30,14 +30,14 @@ FILES = {
     "/jwt": "jwt_file",
 }
 CMD = [
-    "reth",
+    "bera-reth",
     "init",
     "--datadir",
     EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER,
     "--chain",
     "/root/genesis/{}".format(GENESIS_FILENAME),
     "&&",
-    "reth",
+    "bera-reth",
     "node",
     "--datadir",
     EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER,

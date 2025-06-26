@@ -30,6 +30,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/berachain/beacon-kit/execution/requests/eip7251"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
@@ -50,7 +51,7 @@ type PectraForkSuite struct {
 	Reth simulated.SharedAccessors
 }
 
-// TestSimulatedCometComponent runs the test suite.
+// TestPectraForkSuite runs the test suite.
 func TestPectraForkSuite(t *testing.T) {
 	suite.Run(t, new(PectraForkSuite))
 }
@@ -83,11 +84,11 @@ func (s *PectraForkSuite) SetupTest() {
 
 	// Start the EL (execution layer) Geth node.
 	gethNode := execution.NewGethNode(s.Geth.HomeDir, execution.ValidGethImage())
-	elHandle, authRPC := gethNode.Start(s.T(), path.Base(elGenesisPath))
+	elHandle, authRPC, elRPC := gethNode.Start(s.T(), path.Base(elGenesisPath))
 	s.Geth.ElHandle = elHandle
 
 	rethNode := execution.NewRethNode(s.Reth.HomeDir, execution.ValidRethImage())
-	rethHandle, rethAuthRPC := rethNode.Start(s.T(), path.Base(elGenesisPath))
+	rethHandle, rethAuthRPC, elRPC := rethNode.Start(s.T(), path.Base(elGenesisPath))
 	s.Reth.ElHandle = rethHandle
 
 	// Prepare a logger backed by a buffer to capture logs for assertions.
@@ -106,6 +107,7 @@ func (s *PectraForkSuite) SetupTest() {
 		TempHomeDir: s.Geth.HomeDir,
 		CometConfig: cometConfig,
 		AuthRPC:     authRPC,
+		ClientRPC:   elRPC,
 		Logger:      logger,
 		AppOpts:     viper.New(),
 		Components:  components,
@@ -116,6 +118,7 @@ func (s *PectraForkSuite) SetupTest() {
 		TempHomeDir: s.Reth.HomeDir,
 		CometConfig: cometConfig,
 		AuthRPC:     rethAuthRPC,
+		ClientRPC:   elRPC,
 		Logger:      rethLogger,
 		AppOpts:     viper.New(),
 		Components:  components,
@@ -225,33 +228,322 @@ func (s *PectraForkSuite) TestTimestampFork_ELAndCLInSync_IsSuccessful() {
 	}
 }
 
-func (s *PectraForkSuite) submitTransactions(startNonce uint64, numTransactions uint64) uint64 {
-	// corresponds with funded address in genesis 0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4
-	senderKey, err := crypto.HexToECDSA("fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306")
-	s.Require().NoError(err)
-	elChainID := big.NewInt(int64(s.Geth.TestNode.ChainSpec.DepositEth1ChainID()))
-	signer := gethtypes.NewPragueSigner(elChainID)
+// A user makes a consolidation request on our chain which isn't supported.
+func (s *PectraForkSuite) TestMaliciousUser_MakesConsolidationRequest_IsIgnored() {
+	// Initialize the chain state.
+	s.Geth.InitializeChain(s.T())
+	s.Reth.InitializeChain(s.T())
 
-	for i := startNonce; i < startNonce+numTransactions; i++ {
-		transaction := gethtypes.MustSignNewTx(senderKey, signer, &gethtypes.DynamicFeeTx{
+	// Retrieve the BLS signer and proposer address.
+	blsSigner := simulated.GetBlsSigner(s.Geth.HomeDir)
+	pubkey, err := blsSigner.GetPubKey()
+	s.Require().NoError(err)
+
+	nextBlockHeight := int64(1)
+	// We must first move the chain to the fork height, then an extra block
+	// such that the consolidation contract has an updated `EXCESS_INHIBITOR`.
+	// We set the timestamp such that the fork has occurred (i.e., time.Now)
+	{
+		for i := 0; i < 2; i++ {
+			consensusTime := time.Now()
+			proposal, err := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
+				Height:          nextBlockHeight,
+				Time:            consensusTime,
+				ProposerAddress: pubkey.Address(),
+			})
+			s.Require().NoError(err)
+			s.Require().Len(proposal.Txs, 2)
+
+			processRequest := &types.ProcessProposalRequest{
+				Txs:             proposal.Txs,
+				Height:          nextBlockHeight,
+				ProposerAddress: pubkey.Address(),
+				Time:            consensusTime,
+			}
+
+			finalizeRequest := &types.FinalizeBlockRequest{
+				Txs:             proposal.Txs,
+				Height:          nextBlockHeight,
+				ProposerAddress: pubkey.Address(),
+				Time:            consensusTime,
+			}
+			expectedMsg := "fork=0x05000000"
+			processFinalizeCommit(s.T(), s.Geth, processRequest, finalizeRequest, expectedMsg)
+			processFinalizeCommit(s.T(), s.Reth, processRequest, finalizeRequest, expectedMsg)
+			nextBlockHeight++
+		}
+	}
+	// Next we submit the Consolidation request transaction
+	{
+		// corresponds with the funded address in genesis
+		senderKey, err := crypto.HexToECDSA("fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306")
+		s.Require().NoError(err)
+
+		elChainID := big.NewInt(int64(s.Geth.TestNode.ChainSpec.DepositEth1ChainID()))
+		signer := gethtypes.NewPragueSigner(elChainID)
+
+		fee, feeErr := eip7251.GetConsolidationFee(s.Geth.CtxApp, s.Geth.TestNode.EngineClient)
+		s.Require().NoError(feeErr)
+
+		// The inputs to the request do not necessarily matter, as long as they pass EL validation
+		consolidationTxData, requestErr := eip7251.CreateConsolidationRequestData(blsSigner.PublicKey(), blsSigner.PublicKey())
+		s.Require().NoError(requestErr)
+
+		consolidationTx := gethtypes.MustSignNewTx(senderKey, signer, &gethtypes.DynamicFeeTx{
 			ChainID:   elChainID,
-			Nonce:     i,
-			To:        &params.BeaconRootsAddress, // any address
+			Nonce:     0,
+			To:        &params.ConsolidationQueueAddress,
 			Gas:       500_000,
 			GasFeeCap: big.NewInt(1000000000),
 			GasTipCap: big.NewInt(1000000000),
-			Value:     big.NewInt(0),
-			Data:      nil,
+			Value:     fee,
+			Data:      consolidationTxData,
 		})
-
-		txBytes, err := transaction.MarshalBinary()
-		s.Require().NoError(err)
-
+		txBytes, marshalErr := consolidationTx.MarshalBinary()
+		s.Require().NoError(marshalErr)
 		var result interface{}
 		err = s.Geth.TestNode.EngineClient.Call(s.Geth.CtxApp, &result, "eth_sendRawTransaction", hexutil.Encode(txBytes))
 		s.Require().NoError(err)
 	}
-	return startNonce + numTransactions
+	// Move the chain so that tx is included and progresses correctly afterward.
+	{
+		for i := 0; i < 5; i++ {
+			consensusTime := time.Now()
+			proposal, err := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
+				Height:          nextBlockHeight,
+				Time:            consensusTime,
+				ProposerAddress: pubkey.Address(),
+			})
+			s.Require().NoError(err)
+			s.Require().Len(proposal.Txs, 2)
+
+			processRequest := &types.ProcessProposalRequest{
+				Txs:             proposal.Txs,
+				Height:          nextBlockHeight,
+				ProposerAddress: pubkey.Address(),
+				Time:            consensusTime,
+			}
+
+			finalizeRequest := &types.FinalizeBlockRequest{
+				Txs:             proposal.Txs,
+				Height:          nextBlockHeight,
+				ProposerAddress: pubkey.Address(),
+				Time:            consensusTime,
+			}
+			var expectedMsg string
+			if i == 0 {
+				// The first block since tx submission will have the consolidation propagated to the CL.
+				expectedMsg = "consolidations=1"
+			}
+			processFinalizeCommit(s.T(), s.Geth, processRequest, finalizeRequest, expectedMsg)
+			processFinalizeCommit(s.T(), s.Reth, processRequest, finalizeRequest, expectedMsg)
+			nextBlockHeight++
+		}
+	}
+}
+
+// This test will have a proposer propose a valid post-fork block, but one that is not finalized.
+// The next round will propose a valid pre-fork block that gets finalized due to deviance in the consensus timestamp.
+// The proposer will then propose a valid post-fork block that is correctly finalized.
+func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_IsSuccessful() {
+	// Initialize the chain state.
+	s.Geth.InitializeChain(s.T())
+
+	// Retrieve the BLS signer and proposer address.
+	blsSigner := simulated.GetBlsSigner(s.Geth.HomeDir)
+	pubkey, err := blsSigner.GetPubKey()
+	s.Require().NoError(err)
+
+	nextBlockHeight := int64(1)
+	// The proposer prepares and proposes a post-fork block without finalizing
+	{
+		consensusTime := time.Unix(int64(s.Geth.TestNode.ChainSpec.ElectraForkTime()), 0)
+		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
+			Height:          nextBlockHeight,
+			Time:            consensusTime,
+			ProposerAddress: pubkey.Address(),
+		})
+		s.Require().NoError(prepareErr)
+		s.Require().Len(proposal.Txs, 2)
+
+		processRequest := &types.ProcessProposalRequest{
+			Txs:             proposal.Txs,
+			Height:          nextBlockHeight,
+			ProposerAddress: pubkey.Address(),
+			Time:            consensusTime,
+		}
+
+		// Process the proposal
+		s.Geth.LogBuffer.Reset()
+		processResp, respErr := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
+		s.Require().NoError(respErr)
+		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
+	}
+	// The proposer prepares a pre-fork block with finalization. The first pre-fork block it proposes will be rejected
+	// As it will propose a post-fork block due to retrieving an Execution Payload in the PayloadCache.
+	{
+		consensusTime := time.Unix(int64(s.Geth.TestNode.ChainSpec.ElectraForkTime())-2, 0)
+		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
+			Height:          nextBlockHeight,
+			Time:            consensusTime,
+			ProposerAddress: pubkey.Address(),
+		})
+		s.Require().NoError(prepareErr)
+		s.Require().Len(proposal.Txs, 2)
+
+		processRequest := &types.ProcessProposalRequest{
+			Txs:             proposal.Txs,
+			Height:          nextBlockHeight,
+			ProposerAddress: pubkey.Address(),
+			Time:            consensusTime,
+		}
+
+		// Process the proposal
+		s.Geth.LogBuffer.Reset()
+		processResp, processErr := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
+		s.Require().NoError(processErr)
+		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
+		s.Require().Contains(
+			s.Geth.LogBuffer.String(),
+			"failed decoding *types.SignedBeaconBlock: ssz: offset smaller than previous",
+		)
+	}
+	// The next block the proposer proposes with a pre-fork timestamp will actually have a pre-fork time
+	// Since the previous payload in cache has been evicted and a new payload is retrieved.
+	{
+		consensusTime := time.Unix(int64(s.Geth.TestNode.ChainSpec.ElectraForkTime())-2, 0)
+		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
+			Height:          nextBlockHeight,
+			Time:            consensusTime,
+			ProposerAddress: pubkey.Address(),
+		})
+		s.Require().NoError(prepareErr)
+		s.Require().Len(proposal.Txs, 2)
+
+		processRequest := &types.ProcessProposalRequest{
+			Txs:             proposal.Txs,
+			Height:          nextBlockHeight,
+			ProposerAddress: pubkey.Address(),
+			Time:            consensusTime,
+		}
+
+		// Process the proposal
+		s.Geth.LogBuffer.Reset()
+		processResp, processErr := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
+		s.Require().NoError(processErr)
+		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
+	}
+
+	// The next block the proposer proposes with a pre-fork timestamp will actually have a pre-fork time
+	// Since the previous payload in cache has been evicted and a new payload is retrieved.
+	{
+		consensusTime := time.Unix(int64(s.Geth.TestNode.ChainSpec.ElectraForkTime())-2, 0)
+		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
+			Height:          nextBlockHeight,
+			Time:            consensusTime,
+			ProposerAddress: pubkey.Address(),
+		})
+		s.Require().NoError(prepareErr)
+		s.Require().Len(proposal.Txs, 2)
+
+		processRequest := &types.ProcessProposalRequest{
+			Txs:             proposal.Txs,
+			Height:          nextBlockHeight,
+			ProposerAddress: pubkey.Address(),
+			Time:            consensusTime,
+		}
+
+		// Process the proposal
+		s.Geth.LogBuffer.Reset()
+		processResp, processErr := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
+		s.Require().NoError(processErr)
+		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
+
+		// Finalize the block
+		finalizeRequest := &types.FinalizeBlockRequest{
+			Txs:             proposal.Txs,
+			Height:          nextBlockHeight,
+			ProposerAddress: pubkey.Address(),
+			Time:            consensusTime,
+		}
+		_, finalizeErr := s.Geth.SimComet.Comet.FinalizeBlock(s.Geth.CtxComet, finalizeRequest)
+		s.Require().NoError(finalizeErr)
+
+		// Commit the block.
+		_, err = s.Geth.SimComet.Comet.Commit(s.Geth.CtxComet, &types.CommitRequest{})
+		s.Require().NoError(err)
+
+		nextBlockHeight++
+	}
+	// Finally, we cross the fork and show no issues
+	{
+		consensusTime := time.Unix(int64(s.Geth.TestNode.ChainSpec.ElectraForkTime())+2, 0)
+		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
+			Height:          nextBlockHeight,
+			Time:            consensusTime,
+			ProposerAddress: pubkey.Address(),
+		})
+		s.Require().NoError(prepareErr)
+		s.Require().Len(proposal.Txs, 2)
+
+		processRequest := &types.ProcessProposalRequest{
+			Txs:             proposal.Txs,
+			Height:          nextBlockHeight,
+			ProposerAddress: pubkey.Address(),
+			Time:            consensusTime,
+		}
+		// Process the proposal
+		s.Geth.LogBuffer.Reset()
+		processResp, processErr := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
+		s.Require().NoError(processErr)
+		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
+		s.Require().Contains(s.Geth.LogBuffer.String(), "Processing execution requests")
+	}
+}
+
+// The proposer prepares a proposal with a pre-fork timestamp, but a post-fork process proposal consensus time.
+// This will be rejected and is expected to occur around the fork for 1 or 2 rounds.
+func (s *PectraForkSuite) TestValidProposer_ProposesPreForkBlockWithPostForkConsensusTimestamp_IsRejected() {
+	// Initialize the chain state.
+	s.Geth.InitializeChain(s.T())
+
+	// Retrieve the BLS signer and proposer address.
+	blsSigner := simulated.GetBlsSigner(s.Geth.HomeDir)
+	pubkey, err := blsSigner.GetPubKey()
+	s.Require().NoError(err)
+
+	nextBlockHeight := int64(1)
+	// The proposer prepares a proposal with a pre-fork timestamp, but a post-fork process proposal consensus time.
+	{
+		// a pre-fork time.
+		consensusTime := time.Unix(2, 0)
+		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
+			Height:          nextBlockHeight,
+			Time:            consensusTime,
+			ProposerAddress: pubkey.Address(),
+		})
+		s.Require().NoError(prepareErr)
+		s.Require().Len(proposal.Txs, 2)
+
+		processRequest := &types.ProcessProposalRequest{
+			Txs:             proposal.Txs,
+			Height:          nextBlockHeight,
+			ProposerAddress: pubkey.Address(),
+			Time:            time.Now(),
+		}
+
+		// Process the proposal, expect a reject
+		{
+			s.Geth.LogBuffer.Reset()
+			processResp, err := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
+			s.Require().NoError(err)
+			s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
+			s.Require().Contains(
+				s.Geth.LogBuffer.String(),
+				"failed decoding *types.SignedBeaconBlock: ssz: offset smaller than previous: decoded 392, previous was 396",
+			)
+		}
+	}
 }
 
 func processFinalizeCommit(
@@ -276,4 +568,33 @@ func processFinalizeCommit(
 	// Commit the block.
 	_, err = node.SimComet.Comet.Commit(node.CtxComet, &types.CommitRequest{})
 	require.NoError(t, err)
+}
+
+func (s *PectraForkSuite) submitTransactions(startNonce uint64, numTransactions uint64) uint64 {
+	// corresponds with funded address in genesis 0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4
+	senderKey, err := crypto.HexToECDSA("fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306")
+	s.Require().NoError(err)
+	elChainID := big.NewInt(int64(s.Geth.TestNode.ChainSpec.DepositEth1ChainID()))
+	signer := gethtypes.NewPragueSigner(elChainID)
+
+	for i := startNonce; i < startNonce+numTransactions; i++ {
+		transaction := gethtypes.MustSignNewTx(senderKey, signer, &gethtypes.DynamicFeeTx{
+			ChainID:   elChainID,
+			Nonce:     i,
+			To:        &params.BeaconRootsAddress, // any address
+			Gas:       500_000,
+			GasFeeCap: big.NewInt(1000000000),
+			GasTipCap: big.NewInt(1000000000),
+			Value:     big.NewInt(0),
+			Data:      nil,
+		})
+
+		txBytes, marshalErr := transaction.MarshalBinary()
+		s.Require().NoError(marshalErr)
+
+		var result interface{}
+		err = s.Geth.TestNode.EngineClient.Call(s.Geth.CtxApp, &result, "eth_sendRawTransaction", hexutil.Encode(txBytes))
+		s.Require().NoError(err)
+	}
+	return startNonce + numTransactions
 }
