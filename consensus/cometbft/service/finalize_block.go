@@ -49,11 +49,6 @@ func (s *Service) finalizeBlockInternal(
 		return nil, err
 	}
 
-	var (
-		finalizeBlockState *state
-		stateHash          = string(req.Hash)
-	)
-
 	// This result format is expected by Comet. That actual execution will happen as part of the state transition.
 	txResults := make([]*cmtabci.ExecTxResult, len(req.Txs))
 	for i := range req.Txs {
@@ -70,9 +65,11 @@ func (s *Service) finalizeBlockInternal(
 	// Check whether currently block hash is already available. If so we can speed up
 	// block finalization. Correctness of this check at this point in time relies on the
 	// fact that first block post initial height is not cached even if processed.
-	if cached, found := s.candidateStates[stateHash]; found {
-		s.finalStateHash = &stateHash
-		finalizeBlockState = cached.state
+	hash := string(req.Hash)
+	if cached, found := s.candidateStates[hash]; found {
+		s.finalStateHash = &hash
+
+		finalizeBlockState := cached.state
 		signedBlk, sidecars, err := s.Blockchain.ParseBeaconBlock(req)
 		if err != nil {
 			return nil, fmt.Errorf("finalize block: failed parsing block: %w", err)
@@ -110,22 +107,24 @@ func (s *Service) finalizeBlockInternal(
 		}, nil
 	}
 
-	// Block has not been cached already. Normally we would directly process it but
-	// first block post initial height has a special handling.
+	// Block has not been cached already, as it happens when we block sync.
+	//  Normally we would directly process it but first block post initial height
+	// needs special handling.
+	var finalizeBlockState *state
 	if s.finalStateHash != nil {
 		// Preserve the CosmosSDK context while using the correct base ctx.
 		st, found := s.candidateStates[*s.finalStateHash]
 		if !found {
 			panic(fmt.Errorf("missing candidate state for hash %s", *s.finalStateHash))
 		}
-		stateHash = *s.finalStateHash
+		hash = *s.finalStateHash
 		st.state.SetContext(st.state.Context().WithContext(ctx))
 		finalizeBlockState = st.state
 	} else {
-		s.finalStateHash = &stateHash
+		s.finalStateHash = &hash
 
 		finalizeBlockState = s.resetState(ctx)
-		s.candidateStates[stateHash] = &CacheElement{
+		s.candidateStates[hash] = &CacheElement{
 			state: finalizeBlockState,
 		}
 	}
@@ -134,11 +133,11 @@ func (s *Service) finalizeBlockInternal(
 	if err != nil {
 		return nil, err
 	}
-	if _, found := s.candidateStates[stateHash]; !found {
+	if _, found := s.candidateStates[hash]; !found {
 		// TODO: remove. Annoying, just to appease nilaway
 		panic(fmt.Errorf("missing candidate state for hash %s", *s.finalStateHash))
 	}
-	s.candidateStates[stateHash].valUpdates = valUpdates
+	s.candidateStates[hash].valUpdates = valUpdates
 
 	formattedValUpdates, err := iter.MapErr(
 		valUpdates,
