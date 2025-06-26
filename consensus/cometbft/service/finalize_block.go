@@ -130,7 +130,14 @@ func (s *Service) nextBlockDelay(req *cmtabci.FinalizeBlockRequest) time.Duratio
 	//
 	// The upgrade was successfully applied and the block delay is set.
 	if s.blockDelay != nil {
-		return s.blockDelay.ComputeNext(s.delayCfg, req.Time, req.Height)
+		prevBlkTime := s.blockDelay.PreviousBlockTime // note it down before ComputeNext changes it
+		delay := s.blockDelay.ComputeNext(s.delayCfg, req.Time, req.Height)
+		s.logger.Debug("Stable block time",
+			"previous block time", prevBlkTime.String(),
+			"current block time", req.Time.String(),
+			"next delay", delay.String(),
+		)
+		return delay
 	}
 	// c3.2
 	//

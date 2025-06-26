@@ -25,6 +25,7 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -277,6 +278,13 @@ func (s spec) validate() error {
 				"stable block time parameters violation: ConsensusUpdateHeight %d must be smaller than ConsensusEnableHeight %d",
 				s.Data.ConsensusUpdateHeight, s.Data.ConsensusEnableHeight,
 			)
+		}
+
+		if s.Data.MaxBlockDelay == 0 {
+			return errors.New("max block delay can't be zero")
+		}
+		if s.Data.TargetBlockTime == 0 {
+			return errors.New("target block time can't be zero")
 		}
 	}
 
