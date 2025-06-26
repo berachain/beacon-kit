@@ -97,11 +97,7 @@ func (s *Service) finalizeBlockInternal(
 		finalizeBlockState = st.state
 	} else {
 		s.finalStateHash = &hash
-
 		finalizeBlockState = s.resetState(ctx)
-		s.candidateStates[hash] = &CacheElement{
-			state: finalizeBlockState,
-		}
 	}
 
 	valUpdates, err := s.Blockchain.FinalizeBlock(finalizeBlockState.Context(), req)
