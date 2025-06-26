@@ -19,7 +19,7 @@
 // TITLE.
 //
 
-package cometbft
+package cache
 
 import (
 	"errors"
@@ -28,7 +28,7 @@ import (
 )
 
 var (
-	_ StatesCache = (*candidateStates)(nil)
+	_ States = (*candidateStates)(nil)
 
 	ErrStateNotFound          = errors.New("state not found")
 	ErrNoFinalState           = errors.New("no state marked as final")
@@ -36,38 +36,38 @@ var (
 	ErrFinalizingUnknownState = errors.New("attempt at finalizing unknown state")
 )
 
-type StatesCache interface {
-	Cache(hash string, toCache *CacheElement)
-	GetCached(hash string) (*CacheElement, error)
+type States interface {
+	Cache(hash string, toCache *Element)
+	GetCached(hash string) (*Element, error)
 
 	MarkAsFinal(hash string) error
-	GetFinal() (string, *state, error)
+	GetFinal() (string, *State, error)
 
 	Reset()
 }
 
-type CacheElement struct {
-	State      *state
+type Element struct {
+	State      *State
 	ValUpdates transition.ValidatorUpdates
 }
 
 type candidateStates struct {
-	states         map[string]*CacheElement
+	states         map[string]*Element
 	finalStateHash *string
 }
 
-func newCandidateStates() StatesCache {
+func New() States {
 	return &candidateStates{
-		states:         make(map[string]*CacheElement),
+		states:         make(map[string]*Element),
 		finalStateHash: nil,
 	}
 }
 
-func (cs *candidateStates) Cache(hash string, toCache *CacheElement) {
+func (cs *candidateStates) Cache(hash string, toCache *Element) {
 	cs.states[hash] = toCache
 }
 
-func (cs *candidateStates) GetCached(hash string) (*CacheElement, error) {
+func (cs *candidateStates) GetCached(hash string) (*Element, error) {
 	cached, found := cs.states[hash]
 	if !found {
 		return nil, ErrStateNotFound
@@ -84,7 +84,7 @@ func (cs *candidateStates) MarkAsFinal(hash string) error {
 	return nil
 }
 
-func (cs *candidateStates) GetFinal() (string, *state, error) {
+func (cs *candidateStates) GetFinal() (string, *State, error) {
 	if cs.finalStateHash == nil {
 		return "", nil, ErrNoFinalState
 	}
@@ -96,6 +96,6 @@ func (cs *candidateStates) GetFinal() (string, *state, error) {
 }
 
 func (cs *candidateStates) Reset() {
-	cs.states = make(map[string]*CacheElement)
+	cs.states = make(map[string]*Element)
 	cs.finalStateHash = nil
 }

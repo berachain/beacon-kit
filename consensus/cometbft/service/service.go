@@ -28,6 +28,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/validator"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/cache"
 	servercmtlog "github.com/berachain/beacon-kit/consensus/cometbft/service/log"
 	statem "github.com/berachain/beacon-kit/consensus/cometbft/service/state"
 	errorsmod "github.com/berachain/beacon-kit/errors"
@@ -74,7 +75,7 @@ type Service struct {
 	// cachedStates tracks in memory the post block states
 	// of blocks which were successfully verified. It allows
 	// finalizing without re-execution
-	cachedStates StatesCache
+	cachedStates cache.States
 
 	interBlockCache storetypes.MultiStorePersistentCache
 
@@ -124,7 +125,7 @@ func NewService(
 		cmtConsensusParams: cmtConsensusParams,
 		cmtCfg:             cmtCfg,
 		telemetrySink:      telemetrySink,
-		cachedStates:       newCandidateStates(),
+		cachedStates:       cache.New(),
 	}
 
 	s.MountStore(storage.StoreKey, storetypes.StoreTypeIAVL)
@@ -275,7 +276,7 @@ func (s *Service) setInterBlockCache(
 // prepareProposal/processProposal/finalizeBlock State.
 // A state is explicitly returned to avoid false positives from
 // nilaway tool.
-func (s *Service) resetState(ctx context.Context) *state {
+func (s *Service) resetState(ctx context.Context) *cache.State {
 	ms := s.sm.GetCommitMultiStore().CacheMultiStore()
 
 	newCtx := sdk.NewContext(
@@ -284,10 +285,7 @@ func (s *Service) resetState(ctx context.Context) *state {
 		servercmtlog.WrapSDKLogger(s.logger),
 	).WithContext(ctx)
 
-	return &state{
-		ms:  ms,
-		ctx: newCtx,
-	}
+	return cache.NewState(ms, newCtx)
 }
 
 // convertValidatorUpdate abstracts the conversion of a

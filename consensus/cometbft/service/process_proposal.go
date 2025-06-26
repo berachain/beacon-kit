@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/cache"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
@@ -82,7 +83,7 @@ func (s *Service) processProposal(
 	// because its state must be handled in a different way
 	if req.Height > s.initialHeight {
 		stateHash := string(req.Hash)
-		toCache := &CacheElement{
+		toCache := &cache.Element{
 			State:      processProposalState,
 			ValUpdates: valUpdates,
 		}

@@ -26,6 +26,7 @@ import (
 	"fmt"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/cache"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
@@ -92,7 +93,7 @@ func (s *Service) finalizeBlockInternal(
 			return formatFinalizeBlockResponse(cached.ValUpdates, len(req.Txs), s.cmtConsensusParams)
 		}
 
-	case errors.Is(err, ErrStateNotFound):
+	case errors.Is(err, cache.ErrStateNotFound):
 		// this is a benign error, it just signal it's the first time we see the block being finalized
 		// Keep processing below
 
@@ -103,7 +104,7 @@ func (s *Service) finalizeBlockInternal(
 	// Block has not been cached already, as it happens when we block sync.
 	//  Normally we would directly process it but first block post initial height
 	// needs special handling.
-	var finalizeBlockState *state
+	var finalizeBlockState *cache.State
 	cachedFinalHash, cachedFinalState, err := s.cachedStates.GetFinal()
 	switch {
 	case err == nil:
@@ -113,7 +114,7 @@ func (s *Service) finalizeBlockInternal(
 		// Preserve the CosmosSDK context while using the correct base ctx.
 		cachedFinalState.SetContext(cachedFinalState.Context().WithContext(ctx))
 
-	case errors.Is(err, ErrNoFinalState):
+	case errors.Is(err, cache.ErrNoFinalState):
 		hash = string(req.Hash) // not necessary but clarifies intent
 		finalizeBlockState = s.resetState(ctx)
 
@@ -125,7 +126,7 @@ func (s *Service) finalizeBlockInternal(
 	if err != nil {
 		return nil, err
 	}
-	s.cachedStates.Cache(hash, &CacheElement{
+	s.cachedStates.Cache(hash, &cache.Element{
 		State:      finalizeBlockState,
 		ValUpdates: valUpdates,
 	})
@@ -154,7 +155,7 @@ func (s *Service) workingHash() []byte {
 		// after FinalizeBlock has been called. Panic appeases nilaway.
 		panic(fmt.Errorf("workingHash: %w", err))
 	}
-	finalState.ms.Write()
+	finalState.Write()
 
 	// Get the hash of all writes in order to return the apphash to the comet in
 	// finalizeBlock.
