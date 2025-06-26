@@ -92,14 +92,10 @@ func loadSpecData(path string) (*chain.SpecData, error) {
 		return nil, fmt.Errorf("failed to read config: %w", err)
 	}
 
-	// Ensure all required fields are set.
+	// Ensure all required fields are set, including embedded structs.
 	specData := chain.SpecData{}
-	specType := reflect.TypeOf(specData)
-	for i := range specType.NumField() {
-		tag := specType.Field(i).Tag.Get("mapstructure")
-		if !v.IsSet(tag) {
-			return nil, fmt.Errorf("missing required configuration for key: %s", tag)
-		}
+	if err := validateRequiredFields(reflect.TypeOf(specData), v, ""); err != nil {
+		return nil, err
 	}
 
 	// Define a decode hook to handle addresses and domain types.
@@ -112,4 +108,60 @@ func loadSpecData(path string) (*chain.SpecData, error) {
 	}
 
 	return &specData, nil
+}
+
+// validateRequiredFields validates that all fields with mapstructure tags are present in
+// the configuration. This includes fields in embedded structs.
+//
+//nolint:gocognit
+func validateRequiredFields(t reflect.Type, v *viper.Viper, prefix string) error {
+	// Handle pointer types
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+
+	// Only process struct types
+	if t.Kind() != reflect.Struct {
+		return nil
+	}
+
+	for i := range t.NumField() {
+		field := t.Field(i)
+		tag := field.Tag.Get("mapstructure")
+
+		// Skip fields without mapstructure tag
+		if tag == "" {
+			// Check if this is an embedded struct that might have its own fields
+			if field.Anonymous && field.Type.Kind() == reflect.Struct {
+				// For embedded structs without a tag, check their fields directly
+				if err := validateRequiredFields(field.Type, v, prefix); err != nil {
+					return err
+				}
+			}
+			continue
+		}
+
+		// Build the full key path
+		fullKey := tag
+		if prefix != "" {
+			fullKey = prefix + "." + tag
+		}
+
+		// For embedded structs with mapstructure tags, validate their sub-fields
+		if field.Anonymous || field.Type.Kind() == reflect.Struct {
+			// This is an embedded struct with its own mapstructure tag
+			// Validate its sub-fields with the tag as prefix
+			if err := validateRequiredFields(field.Type, v, tag); err != nil {
+				return err
+			}
+			continue
+		}
+
+		// Regular field - check if it's set in the config
+		if !v.IsSet(fullKey) {
+			return fmt.Errorf("missing required configuration for key: %s", fullKey)
+		}
+	}
+
+	return nil
 }
