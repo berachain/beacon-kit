@@ -25,6 +25,8 @@ import (
 	"encoding/binary"
 	"fmt"
 	"time"
+
+	"github.com/berachain/beacon-kit/log/phuslu"
 )
 
 // BlockDelay is used to calculate the delay before proposing the next block.
@@ -45,10 +47,24 @@ type BlockDelay struct {
 
 	// PreviousBlockTime is the time of the previous block.
 	PreviousBlockTime time.Time
+
+	Logger *phuslu.Logger
 }
 
 // ComputeNext returns the duration to wait before proposing the next block.
 func (d *BlockDelay) ComputeNext(cfg ConfigGetter, curBlockTime time.Time, curBlockHeight int64) time.Duration {
+	if d.Logger != nil {
+		d.Logger.Info("compute next time info",
+			"current block time", curBlockTime.String(),
+			"previous block time", d.PreviousBlockTime.String(),
+			"current previous diff", curBlockTime.Sub(d.PreviousBlockTime).String(),
+			"max block delay", cfg.SbtMaxBlockDelay().String(),
+			"current block height", curBlockHeight,
+			"initial block height", d.InitialHeight,
+			"expected time current block", d.InitialTime.Add(cfg.SbtTargetBlockTime()*time.Duration(curBlockHeight-d.InitialHeight)).String(),
+		)
+	}
+
 	// Reset the initial time and height if the time between blocks is greater
 	// than MaxDelayBetweenBlocks. This makes the current time and height the
 	// initial one as if the upgrade happened just now.

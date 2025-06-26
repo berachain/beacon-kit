@@ -121,6 +121,7 @@ func (s *Service) nextBlockDelay(req *cmtabci.FinalizeBlockRequest) time.Duratio
 			InitialTime:       req.Time,
 			InitialHeight:     req.Height,
 			PreviousBlockTime: req.Time,
+			Logger:            s.logger,
 		}
 		return s.delayCfg.SbtConstBlockDelay()
 	}
