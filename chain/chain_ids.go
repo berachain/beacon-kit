@@ -20,7 +20,7 @@
 
 package chain
 
-// Chain IDs that must be used for specific networks.
+// Chain IDs that must be used for specific Berachain networks.
 const (
 	// DevnetEth1ChainID is the chain ID for a local devnet. Used by `make start`, e2e tests, and
 	// many unit tests.

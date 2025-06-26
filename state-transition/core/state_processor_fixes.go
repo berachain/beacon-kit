@@ -23,7 +23,6 @@ package core
 import (
 	"fmt"
 
-	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
@@ -40,7 +39,7 @@ const (
 
 // processElectra1Fixes handles some fixes made necessary by accidents or wrong validator choices in mainnet
 func (sp *StateProcessor) processElectra1Fixes(st *state.StateDB) error {
-	if sp.cs.DepositEth1ChainID() != chain.MainnetEth1ChainID {
+	if !sp.cs.IsMainnet() {
 		return nil
 	}
 
