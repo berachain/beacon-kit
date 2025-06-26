@@ -54,18 +54,20 @@ func (s *Service) finalizeBlockInternal(
 		return nil, err
 	}
 
-	// Check whether currently block hash is already available. If so we can speed up
-	// block finalization. Correctness of this check at this point in the codebase relies
-	// on the fact that first block post initial height is not cached even if processed.
+	// Check whether currently block hash is already available. If so
+	// we may speed up block finalization.
 	hash := string(req.Hash)
 	switch cached, err := s.cachedStates.GetCached(hash); {
 	case err == nil:
+		// Block with height equal to initial height is special and we can't rely on its cache.
+		// This is because Genesis state is cached but not committed (and purged from s.cachedStates)
+		// We handle the case below.
 		if req.Height > s.initialHeight {
 			if err = s.cachedStates.MarkAsFinal(hash); err != nil {
 				return nil, fmt.Errorf("failed marking state as final, hash %s, height %d: %w", hash, req.Height, err)
 			}
 
-			finalizeBlockState := cached.State
+			finalState := cached.State
 			var (
 				signedBlk *ctypes.SignedBeaconBlock
 				sidecars  datypes.BlobSidecars
@@ -77,7 +79,7 @@ func (s *Service) finalizeBlockInternal(
 			blk := signedBlk.GetBeaconBlock()
 
 			if err = s.Blockchain.FinalizeSidecars(
-				finalizeBlockState.Context(),
+				finalState.Context(),
 				req.SyncingToHeight,
 				blk,
 				sidecars,
@@ -85,7 +87,7 @@ func (s *Service) finalizeBlockInternal(
 				return nil, fmt.Errorf("failed finalizing sidecars: %w", err)
 			}
 			if err = s.Blockchain.PostFinalizeBlockOps(
-				finalizeBlockState.Context(),
+				finalState.Context(),
 				blk,
 			); err != nil {
 				return nil, fmt.Errorf("finalize block: failed post finalize block ops: %w", err)
@@ -102,32 +104,34 @@ func (s *Service) finalizeBlockInternal(
 	}
 
 	// Block has not been cached already, as it happens when we block sync.
-	//  Normally we would directly process it but first block post initial height
+	// Normally we would directly process it but first block post initial height
 	// needs special handling.
-	var finalizeBlockState *cache.State
+	var finalState *cache.State
 	cachedFinalHash, cachedFinalState, err := s.cachedStates.GetFinal()
 	switch {
-	case err == nil:
-		hash = cachedFinalHash
-		finalizeBlockState = cachedFinalState
-
-		// Preserve the CosmosSDK context while using the correct base ctx.
-		cachedFinalState.SetContext(cachedFinalState.Context().WithContext(ctx))
-
 	case errors.Is(err, cache.ErrNoFinalState):
 		hash = string(req.Hash) // not necessary but clarifies intent
-		finalizeBlockState = s.resetState(ctx)
+		finalState = s.resetState(ctx)
+
+	case err == nil:
+		hash = cachedFinalHash
+		finalState = cachedFinalState
+
+		// Preserve the CosmosSDK context while using the correct base ctx.
+		finalState.SetContext(finalState.Context().WithContext(ctx))
 
 	default:
 		return nil, fmt.Errorf("failed checking cached final state, hash %s, height %d: %w", hash, req.Height, err)
 	}
 
-	valUpdates, err := s.Blockchain.FinalizeBlock(finalizeBlockState.Context(), req)
+	valUpdates, err := s.Blockchain.FinalizeBlock(finalState.Context(), req)
 	if err != nil {
 		return nil, err
 	}
+
+	// Cache and mark state as final
 	s.cachedStates.Cache(hash, &cache.Element{
-		State:      finalizeBlockState,
+		State:      finalState,
 		ValUpdates: valUpdates,
 	})
 	if err = s.cachedStates.MarkAsFinal(hash); err != nil {
