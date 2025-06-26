@@ -54,7 +54,7 @@ func (s *Service) finalizeBlockInternal(
 	// block finalization. Correctness of this check at this point in the codebase relies
 	// on the fact that first block post initial height is not cached even if processed.
 	hash := string(req.Hash)
-	if cached, found := s.candidateStates[hash]; found {
+	if cached, found := s.candidateStates[hash]; found && (req.Height > s.initialHeight) {
 		s.finalStateHash = &hash
 
 		finalizeBlockState := cached.state
