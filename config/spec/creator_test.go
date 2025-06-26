@@ -21,10 +21,13 @@
 package spec_test
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/berachain/beacon-kit/cli/flags"
 	"github.com/berachain/beacon-kit/config/spec"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -126,4 +129,61 @@ func TestCreateChainSpec_File(t *testing.T) {
 	devnetSpec, err := spec.DevnetChainSpec()
 	require.NoError(t, err)
 	require.Equal(t, devnetSpec, dcs, "the chain spec loaded from TOML does not match the devnet spec")
+}
+
+func TestCreateChainSpec_MissingRequiredFields(t *testing.T) {
+	t.Parallel()
+
+	// Create a temporary directory for test files
+	tempDir, err := os.MkdirTemp("", "spec-test")
+	require.NoError(t, err)
+	defer os.RemoveAll(tempDir)
+
+	tests := []struct {
+		name        string
+		specContent string
+		wantErr     string
+	}{
+		{
+			name:        "empty spec file",
+			specContent: "",
+			wantErr:     "missing required configuration for key:",
+		},
+		{
+			name: "partial block-delay-configuration",
+			specContent: `[block-delay-configuration]
+max-block-delay = 300_000_000_000
+`,
+			wantErr: "missing required configuration for key: block-delay-configuration.target-block-time",
+		},
+		{
+			name: "missing max-effective-balance after block-delay-configuration",
+			specContent: `[block-delay-configuration]
+max-block-delay = 300_000_000_000
+target-block-time = 2_000_000_000
+const-block-delay = 500_000_000
+consensus-update-height = 1
+consensus-enable-height = 2
+`,
+			wantErr: "missing required configuration for key: max-effective-balance",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Write the spec file
+			specFile := filepath.Join(tempDir, tt.name+".toml")
+			writeErr := os.WriteFile(specFile, []byte(tt.specContent), 0644)
+			require.NoError(t, writeErr)
+
+			// Test loading - should fail
+			opts := dummyAppOptions{values: map[string]interface{}{
+				flags.ChainSpec:         "file",
+				flags.ChainSpecFilePath: specFile,
+			}}
+			_, err = spec.Create(opts)
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), tt.wantErr)
+		})
+	}
 }
