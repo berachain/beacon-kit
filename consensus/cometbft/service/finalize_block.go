@@ -24,7 +24,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/berachain/beacon-kit/primitives/transition"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
+	cmttypes "github.com/cometbft/cometbft/types"
 	"github.com/sourcegraph/conc/iter"
 )
 
@@ -40,7 +42,6 @@ func (s *Service) finalizeBlock(
 	return res, err
 }
 
-//nolint:funlen // make it work, make it right, make it fast
 func (s *Service) finalizeBlockInternal(
 	ctx context.Context,
 	req *cmtabci.FinalizeBlockRequest,
@@ -49,22 +50,9 @@ func (s *Service) finalizeBlockInternal(
 		return nil, err
 	}
 
-	// This result format is expected by Comet. That actual execution will happen as part of the state transition.
-	txResults := make([]*cmtabci.ExecTxResult, len(req.Txs))
-	for i := range req.Txs {
-		//nolint:mnd // its okay for now.
-		txResults[i] = &cmtabci.ExecTxResult{
-			Codespace: "sdk",
-			Code:      2,
-			Log:       "skip decoding",
-			GasWanted: 0,
-			GasUsed:   0,
-		}
-	}
-
 	// Check whether currently block hash is already available. If so we can speed up
-	// block finalization. Correctness of this check at this point in time relies on the
-	// fact that first block post initial height is not cached even if processed.
+	// block finalization. Correctness of this check at this point in the codebase relies
+	// on the fact that first block post initial height is not cached even if processed.
 	hash := string(req.Hash)
 	if cached, found := s.candidateStates[hash]; found {
 		s.finalStateHash = &hash
@@ -91,20 +79,7 @@ func (s *Service) finalizeBlockInternal(
 			return nil, fmt.Errorf("finalize block: failed post finalize block ops: %w", err)
 		}
 
-		formattedValUpdates, err := iter.MapErr(
-			cached.valUpdates,
-			convertValidatorUpdate[cmtabci.ValidatorUpdate],
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		cp := s.cmtConsensusParams.ToProto()
-		return &cmtabci.FinalizeBlockResponse{
-			TxResults:             txResults,
-			ValidatorUpdates:      formattedValUpdates,
-			ConsensusParamUpdates: &cp,
-		}, nil
+		return formatFinalizeBlockResponse(cached.valUpdates, len(req.Txs), s.cmtConsensusParams)
 	}
 
 	// Block has not been cached already, as it happens when we block sync.
@@ -133,26 +108,12 @@ func (s *Service) finalizeBlockInternal(
 	if err != nil {
 		return nil, err
 	}
-	if _, found := s.candidateStates[hash]; !found {
-		// TODO: remove. Annoying, just to appease nilaway
-		panic(fmt.Errorf("missing candidate state for hash %s", *s.finalStateHash))
-	}
-	s.candidateStates[hash].valUpdates = valUpdates
-
-	formattedValUpdates, err := iter.MapErr(
-		valUpdates,
-		convertValidatorUpdate[cmtabci.ValidatorUpdate],
-	)
-	if err != nil {
-		return nil, err
+	s.candidateStates[hash] = &CacheElement{
+		state:      finalizeBlockState,
+		valUpdates: valUpdates,
 	}
 
-	cp := s.cmtConsensusParams.ToProto()
-	return &cmtabci.FinalizeBlockResponse{
-		TxResults:             txResults,
-		ValidatorUpdates:      formattedValUpdates,
-		ConsensusParamUpdates: &cp,
-	}, nil
+	return formatFinalizeBlockResponse(valUpdates, len(req.Txs), s.cmtConsensusParams)
 }
 
 // workingHash gets the apphash that will be finalized in commit.
@@ -229,4 +190,38 @@ func (s *Service) validateFinalizeBlockHeight(
 	}
 
 	return nil
+}
+
+func formatFinalizeBlockResponse(
+	valUpdates transition.ValidatorUpdates,
+	txsLen int,
+	cmtConsensusParams *cmttypes.ConsensusParams,
+) (*cmtabci.FinalizeBlockResponse, error) {
+	// This result format is expected by Comet. That actual execution will happen as part of the state transition.
+	txResults := make([]*cmtabci.ExecTxResult, txsLen)
+	for i := range txsLen {
+		//nolint:mnd // its okay for now.
+		txResults[i] = &cmtabci.ExecTxResult{
+			Codespace: "sdk",
+			Code:      2,
+			Log:       "skip decoding",
+			GasWanted: 0,
+			GasUsed:   0,
+		}
+	}
+
+	formattedValUpdates, err := iter.MapErr(
+		valUpdates,
+		convertValidatorUpdate[cmtabci.ValidatorUpdate],
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	cp := cmtConsensusParams.ToProto()
+	return &cmtabci.FinalizeBlockResponse{
+		TxResults:             txResults,
+		ValidatorUpdates:      formattedValUpdates,
+		ConsensusParamUpdates: &cp,
+	}, nil
 }
