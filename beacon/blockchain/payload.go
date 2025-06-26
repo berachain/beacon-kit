@@ -127,10 +127,11 @@ func (s *Service) forceSyncUponFinalize(
 	}
 }
 
-func (s *Service) preFetchBuildData(
-	st *statedb.StateDB,
-	currentTime math.U64,
-) (
+// Once you provide the right state, we really need to carry out the very same operations
+// to extract the data necessary to build the next block, whether current block is
+// being rejected or accepted. This is way there can be (and so should be)
+// a single function doing these ops. preFetchBuildData is that function.
+func (s *Service) preFetchBuildData(st *statedb.StateDB, currentTime math.U64) (
 	*builder.RequestPayloadData,
 	error,
 ) {
