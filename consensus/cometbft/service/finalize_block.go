@@ -155,8 +155,8 @@ func (s *Service) workingHash() []byte {
 	// so when Commit() is called it persists those values.
 	_, finalState, err := s.cachedStates.GetFinal()
 	if err != nil {
-		// This is unexpected since CometBFT should call Commit only
-		// after FinalizeBlock has been called. Panic appeases nilaway.
+		// this is unexpected since workingHash is called only after
+		// internalFinalizeBlock. Panic appeases nilaway.
 		panic(fmt.Errorf("workingHash: %w", err))
 	}
 	finalState.Write()
