@@ -18,11 +18,8 @@ def get_default_service_config(plan, node_struct, node_module, chain_id, chain_s
     node_labels = dict(settings.labels)
     node_labels["node_type"] = "execution"
 
-    # Get the appropriate genesis file based on el_image
-    if "nethermind" in node_struct.el_image.lower():
-        nethermind_genesis_file = genesis_files["nethermind"]
-    else:
-        default_genesis_file = genesis_files["default"]
+    # Get the default genesis file
+    default_genesis_file = genesis_files["default"]
 
     # Create a copy of the module files
     files_dict = dict(node_module.FILES)
@@ -32,24 +29,10 @@ def get_default_service_config(plan, node_struct, node_module, chain_id, chain_s
             artifact_names = [geth_config_artifact],
         )
 
-    # Handle client-specific paths for genesis file
-    if "erigon" in node_struct.el_image:
-        files_dict["/home/erigon/genesis"] = Directory(
-            artifact_names = [default_genesis_file],
-        )
-    elif "besu" in node_struct.el_image or "ethereumjs" in node_struct.el_image:
-        files_dict["/app/genesis"] = Directory(
-            artifact_names = [default_genesis_file],
-        )
-    elif "nethermind" in node_struct.el_image:
-        files_dict["/root/genesis"] = Directory(
-            artifact_names = [nethermind_genesis_file],
-        )
-    else:
-        # Default path for other clients
-        files_dict["/root/genesis"] = Directory(
-            artifact_names = [default_genesis_file],
-        )
+    # Default path for all supported clients
+    files_dict["/root/genesis"] = Directory(
+        artifact_names = [default_genesis_file],
+    )
 
     # Define common parameters
     common_params = {
@@ -70,14 +53,6 @@ def get_default_service_config(plan, node_struct, node_module, chain_id, chain_s
         "labels": node_labels,
         "node_selectors": settings.node_selectors,
     }
-
-    # Check if the node_struct.el_image has erigon keyword in it
-    # For otterscan, we need erigon RPC URL to connect to. By default, kurtosis assigns random public port to the service.
-    # We need to assign a specific port to the service to connect to the RPC URL.
-    # Note : public port is not supported on kubenernetes
-    if "erigon" in node_struct.el_image:
-        # Update common parameters with erigon-specific ones
-        common_params["public_ports"] = {"eth-json-rpc": port_spec_lib.get_port_spec_template(PUBLIC_RPC_PORT_NUM, shared_utils.TCP_PROTOCOL)}
 
     # Get the service config template
     sc = service_config_lib.get_service_config_template(**common_params)
@@ -168,10 +143,9 @@ def generate_node_config(plan, node_modules, node_struct, chain_id, chain_spec, 
     return el_service_config_dict
 
 def add_metrics(metrics_enabled_services, node, el_service_name, el_client_service, node_modules):
-    if node.el_type != "ethereumjs":
-        metrics_enabled_services.append({
-            "name": el_service_name,
-            "service": el_client_service,
-            "metrics_path": node_modules[node.el_type].METRICS_PATH,
-        })
+    metrics_enabled_services.append({
+        "name": el_service_name,
+        "service": el_client_service,
+        "metrics_path": node_modules[node.el_type].METRICS_PATH,
+    })
     return metrics_enabled_services

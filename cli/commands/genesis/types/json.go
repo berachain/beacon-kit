@@ -33,11 +33,3 @@ type DefaultEthGenesisJSON struct {
 func (g *DefaultEthGenesisJSON) Alloc() gethprimitives.GenesisAlloc {
 	return g.Allocs
 }
-
-type NethermindEthGenesisJSON struct {
-	Accounts gethprimitives.GenesisAlloc `json:"accounts"`
-}
-
-func (g *NethermindEthGenesisJSON) Alloc() gethprimitives.GenesisAlloc {
-	return g.Accounts
-}
