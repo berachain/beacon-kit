@@ -37,6 +37,12 @@ const (
 	luganodesAmount = 901_393_690_000_000 * params.Wei // 901_393.69 Gwei
 )
 
+//nolint:gochecknoglobals // unexported
+var (
+	luganodesCredentials = ctypes.WithdrawalCredentials(hex.MustToBytes(luganodesCreds))
+	luganodesPubKeyBytes = crypto.BLSPubkey(hex.MustToBytes(luganodesPubKey))
+)
+
 // processElectra1Fixes handles some fixes made necessary by accidents or wrong validator choices in mainnet
 func (sp *StateProcessor) processElectra1Fixes(st *state.StateDB) error {
 	if !sp.cs.IsMainnet() {
@@ -54,8 +60,8 @@ func (sp *StateProcessor) processLuganodesRecovery(st *state.StateDB) error {
 
 	// Make a one-time hardcoded deposit
 	deposit := ctypes.Deposit{
-		Pubkey:      crypto.BLSPubkey(hex.MustToBytes(luganodesPubKey)),
-		Credentials: ctypes.WithdrawalCredentials(hex.MustToBytes(luganodesCreds)),
+		Pubkey:      luganodesPubKeyBytes,
+		Credentials: luganodesCredentials,
 		Amount:      luganodesAmount,
 	}
 	sp.logger.Info(
