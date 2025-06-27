@@ -22,9 +22,15 @@ package cometbft
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/cache"
+	datypes "github.com/berachain/beacon-kit/da/types"
+	"github.com/berachain/beacon-kit/primitives/transition"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
+	cmttypes "github.com/cometbft/cometbft/types"
 	"github.com/sourcegraph/conc/iter"
 )
 
@@ -48,52 +54,91 @@ func (s *Service) finalizeBlockInternal(
 		return nil, err
 	}
 
-	// finalizeBlockState should be set on InitChain or ProcessProposal. If it
-	// is nil, it means we are replaying this block and we need to set the state
-	// here given that during block replay ProcessProposal is not executed by
-	// CometBFT.
-	if s.finalizeBlockState == nil {
-		s.finalizeBlockState = s.resetState(ctx)
-	} else {
-		// Preserve the CosmosSDK context while using the correct base ctx.
-		s.finalizeBlockState.SetContext(s.finalizeBlockState.Context().WithContext(ctx))
-	}
+	// Check whether currently block hash is already available. If so
+	// we may speed up block finalization.
+	hash := string(req.Hash)
+	switch cached, err := s.cachedStates.GetCached(hash); {
+	case err == nil:
+		// Block with height equal to initial height is special and we can't rely on its cache.
+		// This is because Genesis state is cached but not committed (and purged from s.cachedStates)
+		// We handle the case below.
+		if req.Height > s.initialHeight {
+			if err = s.cachedStates.MarkAsFinal(hash); err != nil {
+				return nil, fmt.Errorf("failed marking state as final, hash %s, height %d: %w", hash, req.Height, err)
+			}
 
-	// This result format is expected by Comet. That actual execution will happen as part of the state transition.
-	txResults := make([]*cmtabci.ExecTxResult, len(req.Txs))
-	for i := range req.Txs {
-		//nolint:mnd // its okay for now.
-		txResults[i] = &cmtabci.ExecTxResult{
-			Codespace: "sdk",
-			Code:      2,
-			Log:       "skip decoding",
-			GasWanted: 0,
-			GasUsed:   0,
+			finalState := cached.State
+			var (
+				signedBlk *ctypes.SignedBeaconBlock
+				sidecars  datypes.BlobSidecars
+			)
+			signedBlk, sidecars, err = s.Blockchain.ParseBeaconBlock(req)
+			if err != nil {
+				return nil, fmt.Errorf("finalize block: failed parsing block: %w", err)
+			}
+			blk := signedBlk.GetBeaconBlock()
+
+			if err = s.Blockchain.FinalizeSidecars(
+				finalState.Context(),
+				req.SyncingToHeight,
+				blk,
+				sidecars,
+			); err != nil {
+				return nil, fmt.Errorf("failed finalizing sidecars: %w", err)
+			}
+			if err = s.Blockchain.PostFinalizeBlockOps(
+				finalState.Context(),
+				blk,
+			); err != nil {
+				return nil, fmt.Errorf("finalize block: failed post finalize block ops: %w", err)
+			}
+			return formatFinalizeBlockResponse(cached.ValUpdates, len(req.Txs), s.cmtConsensusParams)
 		}
+
+	case errors.Is(err, cache.ErrStateNotFound):
+		// this is a benign error, it just signal it's the first time we see the block being finalized
+		// Keep processing below
+
+	default:
+		return nil, fmt.Errorf("failed checking cached state, hash %s, height %d: %w", hash, req.Height, err)
 	}
 
-	finalizeBlock, err := s.Blockchain.FinalizeBlock(
-		s.finalizeBlockState.Context(),
-		req,
-	)
+	// Block has not been cached already, as it happens when we block sync.
+	// Normally we would directly process it but first block post initial height
+	// needs special handling.
+	var finalState *cache.State
+	cachedFinalHash, cachedFinalState, err := s.cachedStates.GetFinal()
+	switch {
+	case errors.Is(err, cache.ErrNoFinalState):
+		hash = string(req.Hash) // not necessary but clarifies intent
+		finalState = s.resetState(ctx)
+
+	case err == nil:
+		hash = cachedFinalHash
+		finalState = cachedFinalState
+
+		// Preserve the CosmosSDK context while using the correct base ctx.
+		finalState.SetContext(finalState.Context().WithContext(ctx))
+
+	default:
+		return nil, fmt.Errorf("failed checking cached final state, hash %s, height %d: %w", hash, req.Height, err)
+	}
+
+	valUpdates, err := s.Blockchain.FinalizeBlock(finalState.Context(), req)
 	if err != nil {
 		return nil, err
 	}
 
-	valUpdates, err := iter.MapErr(
-		finalizeBlock,
-		convertValidatorUpdate[cmtabci.ValidatorUpdate],
-	)
-	if err != nil {
-		return nil, err
+	// Cache and mark state as final
+	s.cachedStates.Cache(hash, &cache.Element{
+		State:      finalState,
+		ValUpdates: valUpdates,
+	})
+	if err = s.cachedStates.MarkAsFinal(hash); err != nil {
+		return nil, fmt.Errorf("failed marking state as final, hash %s, height %d: %w", hash, req.Height, err)
 	}
 
-	cp := s.cmtConsensusParams.ToProto()
-	return &cmtabci.FinalizeBlockResponse{
-		TxResults:             txResults,
-		ValidatorUpdates:      valUpdates,
-		ConsensusParamUpdates: &cp,
-	}, nil
+	return formatFinalizeBlockResponse(valUpdates, len(req.Txs), s.cmtConsensusParams)
 }
 
 // workingHash gets the apphash that will be finalized in commit.
@@ -108,12 +153,13 @@ func (s *Service) workingHash() []byte {
 	// MultiStore. The write to the FinalizeBlock state writes all state
 	// transitions to the root MultiStore (s.sm.GetCommitMultiStore())
 	// so when Commit() is called it persists those values.
-	if s.finalizeBlockState == nil {
+	_, finalState, err := s.cachedStates.GetFinal()
+	if err != nil {
 		// this is unexpected since workingHash is called only after
 		// internalFinalizeBlock. Panic appeases nilaway.
-		panic(fmt.Errorf("workingHash: %w", errNilFinalizeBlockState))
+		panic(fmt.Errorf("workingHash: %w", err))
 	}
-	s.finalizeBlockState.ms.Write()
+	finalState.Write()
 
 	// Get the hash of all writes in order to return the apphash to the comet in
 	// finalizeBlock.
@@ -165,4 +211,38 @@ func (s *Service) validateFinalizeBlockHeight(
 	}
 
 	return nil
+}
+
+func formatFinalizeBlockResponse(
+	valUpdates transition.ValidatorUpdates,
+	txsLen int,
+	cmtConsensusParams *cmttypes.ConsensusParams,
+) (*cmtabci.FinalizeBlockResponse, error) {
+	// This result format is expected by Comet. That actual execution will happen as part of the state transition.
+	txResults := make([]*cmtabci.ExecTxResult, txsLen)
+	for i := range txsLen {
+		//nolint:mnd // its okay for now.
+		txResults[i] = &cmtabci.ExecTxResult{
+			Codespace: "sdk",
+			Code:      2,
+			Log:       "skip decoding",
+			GasWanted: 0,
+			GasUsed:   0,
+		}
+	}
+
+	formattedValUpdates, err := iter.MapErr(
+		valUpdates,
+		convertValidatorUpdate[cmtabci.ValidatorUpdate],
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	cp := cmtConsensusParams.ToProto()
+	return &cmtabci.FinalizeBlockResponse{
+		TxResults:             txResults,
+		ValidatorUpdates:      formattedValUpdates,
+		ConsensusParamUpdates: &cp,
+	}, nil
 }
