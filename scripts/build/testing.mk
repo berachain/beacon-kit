@@ -416,19 +416,28 @@ test-e2e-single: ## run e2e single node test
 	@$(MAKE) build-e2e test-e2e-single-no-build
 
 test-e2e-single-no-build:
-	mkdir -p monitoring
 	testing/files/run-multiple.sh testing/networks/single.toml
 
 test-e2e-simple: ## run e2e single node test
 	@$(MAKE) build-e2e test-e2e-simple-no-build
 
 test-e2e-simple-no-build:
-	mkdir -p monitoring
 	testing/files/run-multiple.sh testing/networks/simple.toml
 
 test-e2e-ci: ## run e2e single node test
 	@$(MAKE) build-e2e test-e2e-ci-no-build
 
 test-e2e-ci-no-build:
-	mkdir -p monitoring
 	testing/files/run-multiple.sh testing/networks/ci.toml
+
+start-monitoring:
+	@echo "Starting local prometheus and grafana..."
+	@if [ ! -f testing/monitoring/prometheus.yml ]; then \
+	  echo "Prometheus configuration file not found. Please create one using `build/bin/runner -f testing/networks/<youtest>.toml setup`."; \
+	  exit 1; \
+	fi
+	@cd testing/monitoring && docker compose up -d
+
+stop-monitoring:
+	@echo "Stopping local prometheus and grafana..."
+	cd testing/monitoring && docker compose down
