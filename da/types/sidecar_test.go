@@ -25,18 +25,18 @@ import (
 	"testing"
 	"time"
 
-	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/blob"
 	"github.com/berachain/beacon-kit/da/types"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	byteslib "github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
+	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/math/log"
 	"github.com/berachain/beacon-kit/primitives/version"
+	"github.com/berachain/beacon-kit/testing/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -73,8 +73,8 @@ func TestSidecarMarshalling(t *testing.T) {
 	require.NotNil(t, marshalled, "Marshalling should produce a result")
 
 	// Unmarshal the sidecar
-	unmarshalled := &types.BlobSidecar{}
-	err = unmarshalled.UnmarshalSSZ(marshalled)
+	unmarshalled := new(types.BlobSidecar)
+	err = ssz.Unmarshal(marshalled, unmarshalled)
 	require.NoError(t, err, "Unmarshalling should not produce an error")
 
 	// Compare the original and unmarshalled sidecars
@@ -86,65 +86,12 @@ func TestSidecarMarshalling(t *testing.T) {
 	)
 }
 
-func generateValidBeaconBlock(t *testing.T) *ctypes.BeaconBlock {
-	t.Helper()
-
-	// Initialize your block here
-	deneb1 := version.Deneb1()
-	beaconBlock, err := ctypes.NewBeaconBlockWithVersion(
-		math.Slot(10),
-		math.ValidatorIndex(5),
-		common.Root{1, 2, 3, 4, 5}, // parent root
-		deneb1,
-	)
-	require.NoError(t, err)
-
-	beaconBlock.StateRoot = common.Root{5, 4, 3, 2, 1}
-	beaconBlock.Body = &ctypes.BeaconBlockBody{
-		ExecutionPayload: &ctypes.ExecutionPayload{
-			Timestamp: 10,
-			ExtraData: []byte("dummy extra data for testing"),
-			Transactions: [][]byte{
-				[]byte("tx1"),
-				[]byte("tx2"),
-				[]byte("tx3"),
-			},
-			Withdrawals: engineprimitives.Withdrawals{
-				{Index: 0, Amount: 100},
-				{Index: 1, Amount: 200},
-			},
-			BaseFeePerGas: math.NewU256(0),
-			EpVersion:     deneb1,
-		},
-		Eth1Data: &ctypes.Eth1Data{},
-		Deposits: []*ctypes.Deposit{
-			{
-				Index: 1,
-			},
-		},
-		BlobKzgCommitments: []eip4844.KZGCommitment{
-			{0xab, 0xab, 0xab, 0xab, 0xab, 0xab, 0xab, 0xab}, {2}, {0x69},
-		},
-	}
-
-	body := beaconBlock.GetBody()
-	body.SetProposerSlashings(ctypes.ProposerSlashings{})
-	body.SetAttesterSlashings(ctypes.AttesterSlashings{})
-	body.SetAttestations(ctypes.Attestations{})
-	body.SetSyncAggregate(&ctypes.SyncAggregate{})
-	body.SetVoluntaryExits(ctypes.VoluntaryExits{})
-	body.SetBlsToExecutionChanges(ctypes.BlsToExecutionChanges{})
-	return beaconBlock
-}
-
 type InclusionSink struct{}
 
 func (is InclusionSink) MeasureSince(_ string, _ time.Time, _ ...string) {}
 
 func TestHasValidInclusionProof(t *testing.T) {
 	t.Parallel()
-	spec, err := spec.DevnetChainSpec()
-	require.NoError(t, err)
 
 	sink := InclusionSink{}
 	tests := []struct {
@@ -200,9 +147,9 @@ func TestHasValidInclusionProof(t *testing.T) {
 			name: "Valid inclusion proof",
 			sidecars: func(t *testing.T) types.BlobSidecars {
 				t.Helper()
-				block := generateValidBeaconBlock(t)
+				block := utils.GenerateValidBeaconBlock(t, version.Electra())
 
-				sidecarFactory := blob.NewSidecarFactory(spec, sink)
+				sidecarFactory := blob.NewSidecarFactory(sink)
 				numBlobs := len(block.GetBody().GetBlobKzgCommitments())
 				sidecars := make(types.BlobSidecars, numBlobs)
 				for i := range numBlobs {
@@ -246,16 +193,16 @@ func TestHasValidInclusionProof(t *testing.T) {
 func Test_KZGRootIndex(t *testing.T) {
 	t.Parallel()
 	// Level of the KZG commitment root's parent.
-	kzgParentRootLevel := log.ILog2Ceil(ctypes.KZGPositionDeneb)
+	kzgParentRootLevel := log.ILog2Ceil(ctypes.KZGPosition)
 	require.NotEqual(t, 0, kzgParentRootLevel)
 	// Merkle index of the KZG commitment root's parent.
 	// The parent's left child is the KZG commitment root,
 	// and its right child is the KZG commitment size.
-	kzgParentRootIndex := ctypes.KZGPositionDeneb + (1 << kzgParentRootLevel)
+	kzgParentRootIndex := ctypes.KZGPosition + (1 << kzgParentRootLevel)
 	require.Equal(t, uint64(ctypes.KZGGeneralizedIndex), kzgParentRootIndex)
 	// The KZG commitment root is the left child of its parent.
 	// Its Merkle index is the double of its parent's Merkle index.
-	require.Equal(t, 2*kzgParentRootIndex, uint64(ctypes.KZGRootIndexDeneb))
+	require.Equal(t, 2*kzgParentRootIndex, uint64(ctypes.KZGRootIndex))
 }
 
 func TestHashTreeRoot(t *testing.T) {

@@ -23,15 +23,20 @@
 package simulated_test
 
 import (
+	"math/big"
 	"time"
 
+	"github.com/berachain/beacon-kit/primitives/math"
+
 	"github.com/berachain/beacon-kit/beacon/blockchain"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/engine-primitives/errors"
-	"github.com/berachain/beacon-kit/primitives/math"
+	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/cometbft/cometbft/abci/types"
-	"github.com/stretchr/testify/require"
+	gethcommon "github.com/ethereum/go-ethereum/common"
+	gethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
 // TestFinalizeBlock_BadBlock_Errors effectively serves as a test for how a valid node would react to
@@ -41,20 +46,24 @@ func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_Errors() {
 	const coreLoopIterations = 1
 
 	// Initialize the chain state.
-	s.initializeChain()
+	s.InitializeChain(s.T())
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
 
+	// Test happens on Deneb, pre Deneb1 fork.
+	startTime := time.Unix(0, 0)
+
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals := s.moveChainToHeight(blockHeight, coreLoopIterations, blsSigner)
+	proposals, _, proposalTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 
+	// We expected this test to happen during Pre-Deneb1 fork.
 	currentHeight := int64(blockHeight + coreLoopIterations)
-	// Prepare a valid block proposal.
-	proposalTime := time.Now()
+
+	// Prepare a block proposal.
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
 		Time:            proposalTime,
@@ -67,13 +76,46 @@ func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_Errors() {
 	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
 		proposal.Txs,
 		blockchain.BeaconBlockTxIndex,
-		s.TestNode.ChainSpec.ActiveForkVersionForSlot(math.Slot(currentHeight)),
+		s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(math.U64(proposalTime.Unix())),
 	)
 	s.Require().NoError(err)
 
+	// Sign a malicious transaction that is expected to fail.
+	maliciousTx, err := gethtypes.SignNewTx(
+		simulated.GetTestKey(s.T()),
+		gethtypes.NewCancunSigner(big.NewInt(int64(s.TestNode.ChainSpec.DepositEth1ChainID()))),
+		&gethtypes.DynamicFeeTx{
+			Nonce:     0,
+			To:        &gethcommon.Address{1},
+			Value:     big.NewInt(100000000000),
+			Gas:       21000,
+			GasTipCap: big.NewInt(10000000),
+			GasFeeCap: big.NewInt(10000000),
+			Data:      []byte{},
+		},
+	)
+	s.Require().NoError(err, "failed to sign malicious transaction")
+	// Initialize the slice with the malicious transaction.
+	maliciousTxs := []*gethprimitives.Transaction{maliciousTx}
+
 	// Create a malicious block by injecting an invalid transaction.
-	maliciousBlock := simulated.CreateInvalidBlock(require.New(s.T()), proposedBlock, blsSigner, s.TestNode.ChainSpec, s.GenesisValidatorsRoot)
-	maliciousBlockBytes, err := maliciousBlock.MarshalSSZ()
+	maliciousBlock := simulated.ComputeAndSetInvalidExecutionBlock(
+		s.T(), proposedBlock.GetBeaconBlock(), s.TestNode.ChainSpec, maliciousTxs, nil,
+	)
+
+	// Re-sign the block
+	maliciousBlockSigned, err := ctypes.NewSignedBeaconBlock(
+		maliciousBlock,
+		&ctypes.ForkData{
+			CurrentVersion:        s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(maliciousBlock.GetTimestamp()),
+			GenesisValidatorsRoot: s.GenesisValidatorsRoot,
+		},
+		s.TestNode.ChainSpec,
+		blsSigner,
+	)
+	s.Require().NoError(err)
+
+	maliciousBlockBytes, err := maliciousBlockSigned.MarshalSSZ()
 	s.Require().NoError(err)
 
 	// Replace the valid block with the malicious block in the proposal.
@@ -90,5 +132,5 @@ func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_Errors() {
 	})
 	s.Require().ErrorIs(err, errors.ErrInvalidPayloadStatus)
 	s.Require().Nil(finalizeResp)
-	s.Require().Contains(s.LogBuffer.String(), "max fee per gas less than block base fee: address 0x71562b71999873DB5b286dF957af199Ec94617F7, maxFeePerGas: 10000000, baseFee: 765625000")
+	s.Require().Contains(s.LogBuffer.String(), "max fee per gas less than block base fee: address 0x20f33CE90A13a4b5E7697E3544c3083B8F8A51D4, maxFeePerGas: 10000000, baseFee: 765625000")
 }

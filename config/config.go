@@ -21,6 +21,8 @@
 package config
 
 import (
+	"time"
+
 	"github.com/berachain/beacon-kit/beacon/validator"
 	"github.com/berachain/beacon-kit/config/template"
 	viperlib "github.com/berachain/beacon-kit/config/viper"
@@ -35,6 +37,12 @@ import (
 	"github.com/spf13/viper"
 )
 
+const (
+	DefaultChainSpec         = "mainnet"
+	DefaultChainSpecFilePath = ""
+	defaultShutdownTimeout   = 5 * time.Minute
+)
+
 // AppOptions is from the SDK, we should look to remove its usage.
 type AppOptions interface {
 	Get(string) interface{}
@@ -43,6 +51,9 @@ type AppOptions interface {
 // DefaultConfig returns the default configuration for a BeaconKit chain.
 func DefaultConfig() *Config {
 	return &Config{
+		ChainSpec:         DefaultChainSpec,
+		ChainSpecFilePath: DefaultChainSpecFilePath,
+		ShutdownTimeout:   defaultShutdownTimeout,
 		Engine:            engineclient.DefaultConfig(),
 		Logger:            log.DefaultConfig(),
 		KZG:               kzg.DefaultConfig(),
@@ -55,6 +66,13 @@ func DefaultConfig() *Config {
 
 // Config is the main configuration struct for the BeaconKit chain.
 type Config struct {
+	// ChainSpec is the type of chain spec to use.
+	ChainSpec string `mapstructure:"chain-spec"`
+	// ChainSpecFilePath is the path to the chain spec file to use.
+	ChainSpecFilePath string `mapstructure:"chain-spec-file"`
+	// ShutdownTimeout is the maximum time to wait for the node to gracefully shutdown before
+	// forcing an exit.
+	ShutdownTimeout time.Duration `mapstructure:"shutdown-timeout"`
 	// Engine is the configuration for the execution client.
 	Engine engineclient.Config `mapstructure:"engine"`
 	// Logger is the configuration for the logger.

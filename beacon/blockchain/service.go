@@ -24,8 +24,6 @@ import (
 	"context"
 	"sync"
 
-	"github.com/berachain/beacon-kit/chain"
-	"github.com/berachain/beacon-kit/da/da"
 	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -36,7 +34,7 @@ type Service struct {
 	// storageBackend represents the backend storage for not state-enforced data.
 	storageBackend StorageBackend
 	// blobProcessor is used for processing sidecars.
-	blobProcessor da.BlobProcessor
+	blobProcessor BlobProcessor
 	// depositContract is the contract interface for interacting with the
 	// deposit contract.
 	depositContract deposit.Contract
@@ -50,7 +48,7 @@ type Service struct {
 	// logger is used for logging messages in the service.
 	logger log.Logger
 	// chainSpec holds the chain specifications.
-	chainSpec chain.Spec
+	chainSpec ServiceChainSpec
 	// executionEngine is the execution engine responsible for processing
 	//
 	// execution payloads.
@@ -71,11 +69,10 @@ type Service struct {
 // NewService creates a new validator service.
 func NewService(
 	storageBackend StorageBackend,
-	blobProcessor da.BlobProcessor,
+	blobProcessor BlobProcessor,
 	depositContract deposit.Contract,
-	eth1FollowDistance math.U64,
 	logger log.Logger,
-	chainSpec chain.Spec,
+	chainSpec ServiceChainSpec,
 	executionEngine ExecutionEngine,
 	localBuilder LocalBuilder,
 	stateProcessor StateProcessor,
@@ -86,7 +83,7 @@ func NewService(
 		storageBackend:          storageBackend,
 		blobProcessor:           blobProcessor,
 		depositContract:         depositContract,
-		eth1FollowDistance:      eth1FollowDistance,
+		eth1FollowDistance:      math.U64(chainSpec.Eth1FollowDistance()),
 		failedBlocks:            make(map[math.Slot]struct{}),
 		logger:                  logger,
 		chainSpec:               chainSpec,

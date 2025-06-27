@@ -28,14 +28,12 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
-	"github.com/berachain/beacon-kit/primitives/version"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-// InitializePreminedBeaconStateFromEth1 initializes the beacon state.
-//
-//nolint:gocognit,funlen // todo fix.
-func (sp *StateProcessor) InitializePreminedBeaconStateFromEth1(
+// InitializeBeaconStateFromEth1 initializes the beacon state. Modified from the ETH 2.0 spec:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#genesis
+func (sp *StateProcessor) InitializeBeaconStateFromEth1(
 	st *statedb.StateDB,
 	deposits ctypes.Deposits,
 	execPayloadHeader *ctypes.ExecutionPayloadHeader,
@@ -49,6 +47,9 @@ func (sp *StateProcessor) InitializePreminedBeaconStateFromEth1(
 	if err := st.SetFork(fork); err != nil {
 		return nil, err
 	}
+	if err := sp.ProcessFork(st, execPayloadHeader.GetTimestamp(), true); err != nil {
+		return nil, err
+	}
 
 	eth1Data := &ctypes.Eth1Data{
 		DepositRoot:  deposits.HashTreeRoot(),
@@ -59,52 +60,20 @@ func (sp *StateProcessor) InitializePreminedBeaconStateFromEth1(
 		return nil, err
 	}
 
-	if !version.Equals(genesisVersion, version.Genesis()) {
-		return nil, fmt.Errorf("fork version not supported: %s", genesisVersion)
-	}
-	blkBody := &ctypes.BeaconBlockBody{
-		Eth1Data: &ctypes.Eth1Data{},
-		ExecutionPayload: &ctypes.ExecutionPayload{
-			ExtraData: make([]byte, ctypes.ExtraDataSize),
-			EpVersion: version.Genesis(),
-		},
-	}
-
-	blkHeader := &ctypes.BeaconBlockHeader{
-		Slot:            constants.GenesisSlot,
-		ProposerIndex:   0,
-		ParentBlockRoot: common.Root{},
-		StateRoot:       common.Root{},
-		BodyRoot:        blkBody.HashTreeRoot(),
-	}
+	blkHeader := GenesisBlockHeader(genesisVersion)
 	if err := st.SetLatestBlockHeader(blkHeader); err != nil {
 		return nil, err
 	}
 
-	for i := range sp.cs.EpochsPerHistoricalVector() {
-		if err := st.UpdateRandaoMixAtIndex(
-			i,
-			common.Bytes32(execPayloadHeader.GetBlockHash()),
-		); err != nil {
-			return nil, err
-		}
-	}
-
-	// Before processing deposits, set the eth1 deposit index to 0.
-	if err := st.SetEth1DepositIndex(constants.FirstDepositIndex); err != nil {
+	if err := sp.seedRandaoMix(
+		st,
+		execPayloadHeader.GetBlockHash(),
+	); err != nil {
 		return nil, err
 	}
-	if err := validateGenesisDeposits(st, deposits, sp.cs.ValidatorSetCap()); err != nil {
-		return nil, err
-	}
-	for _, deposit := range deposits {
-		if err := sp.processDeposit(st, deposit); err != nil {
-			return nil, err
-		}
-	}
 
-	// process activations
-	if err := sp.processGenesisActivation(st); err != nil {
+	// ingest deposits & do genesis‐activation
+	if err := sp.processGenesisDepositsAndActivations(st, deposits); err != nil {
 		return nil, err
 	}
 
@@ -120,14 +89,9 @@ func (sp *StateProcessor) InitializePreminedBeaconStateFromEth1(
 		return nil, err
 	}
 
-	// Setup a bunch of 0s to prime the DB.
-	for i := range sp.cs.HistoricalRootsLimit() {
-		if err = st.UpdateBlockRootAtIndex(i, common.Root{}); err != nil {
-			return nil, err
-		}
-		if err = st.UpdateStateRootAtIndex(i, common.Root{}); err != nil {
-			return nil, err
-		}
+	// seed historical block‑ and state‑roots
+	if err = sp.seedHistoricalRoots(st); err != nil {
+		return nil, err
 	}
 
 	if err = st.SetNextWithdrawalIndex(0); err != nil {
@@ -149,15 +113,63 @@ func (sp *StateProcessor) InitializePreminedBeaconStateFromEth1(
 	return validatorSetsDiffs(nil, activeVals), nil
 }
 
+// seedRandaoMix writes the initial RANDAO mixes.
+func (sp *StateProcessor) seedRandaoMix(
+	st *statedb.StateDB,
+	hash common.ExecutionHash,
+) error {
+	for i := range sp.cs.EpochsPerHistoricalVector() {
+		if err := st.UpdateRandaoMixAtIndex(
+			i, common.Bytes32(hash),
+		); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// seedHistoricalRoots zero‑primes the block and state‐roots.
+func (sp *StateProcessor) seedHistoricalRoots(st *statedb.StateDB) error {
+	for i := range sp.cs.HistoricalRootsLimit() {
+		if err := st.UpdateBlockRootAtIndex(i, common.Root{}); err != nil {
+			return err
+		}
+		if err := st.UpdateStateRootAtIndex(i, common.Root{}); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// processGenesisDepositsAndActivations handles the eth1 deposit index,
+// validates and ingests each deposit, then does the genesis activation pass.
+func (sp *StateProcessor) processGenesisDepositsAndActivations(
+	st *statedb.StateDB,
+	deposits ctypes.Deposits,
+) error {
+	// Before processing deposits, set the eth1 deposit index to 0.
+	if err := st.SetEth1DepositIndex(constants.FirstDepositIndex); err != nil {
+		return err
+	}
+	if err := validateGenesisDeposits(
+		st, deposits, sp.cs.ValidatorSetCap(),
+	); err != nil {
+		return err
+	}
+	for _, dep := range deposits {
+		if err := sp.processDeposit(st, dep); err != nil {
+			return err
+		}
+	}
+	return sp.processGenesisActivation(st)
+}
+
 func (sp *StateProcessor) processGenesisActivation(st *statedb.StateDB) error {
 	vals, err := st.GetValidators()
 	if err != nil {
 		return fmt.Errorf("genesis activation, failed listing validators: %w", err)
 	}
-	minEffectiveBalance := math.Gwei(
-		sp.cs.EjectionBalance() +
-			sp.cs.EffectiveBalanceIncrement(),
-	)
+	minEffectiveBalance := sp.cs.MinActivationBalance()
 
 	var idx math.ValidatorIndex
 	for _, val := range vals {
@@ -176,4 +188,25 @@ func (sp *StateProcessor) processGenesisActivation(st *statedb.StateDB) error {
 	}
 
 	return nil
+}
+
+func GenesisBlockHeader(genesisVersion common.Version) *ctypes.BeaconBlockHeader {
+	versionable := ctypes.NewVersionable(genesisVersion)
+	blkBody := &ctypes.BeaconBlockBody{
+		Versionable: versionable,
+		Eth1Data:    &ctypes.Eth1Data{},
+		ExecutionPayload: &ctypes.ExecutionPayload{
+			Versionable: versionable,
+			ExtraData:   make([]byte, ctypes.ExtraDataSize),
+		},
+	}
+
+	blkHeader := &ctypes.BeaconBlockHeader{
+		Slot:            constants.GenesisSlot,
+		ProposerIndex:   0,
+		ParentBlockRoot: common.Root{},
+		StateRoot:       common.Root{},
+		BodyRoot:        blkBody.HashTreeRoot(),
+	}
+	return blkHeader
 }

@@ -27,28 +27,36 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/eip4844"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
+	"github.com/berachain/beacon-kit/testing/utils"
 	"github.com/stretchr/testify/require"
 )
 
-func TestBuildNewPayloadRequest(t *testing.T) {
+func TestBuildNewPayloadRequestFromFork(t *testing.T) {
 	t.Parallel()
-	var (
-		executionPayload      = (&types.ExecutionPayload{}).Empty(version.Deneb1())
-		versionedHashes       []common.ExecutionHash
-		parentBeaconBlockRoot = common.Root{}
-	)
 
-	request := types.BuildNewPayloadRequest(
-		executionPayload,
-		versionedHashes,
-		&parentBeaconBlockRoot,
-	)
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		block := utils.GenerateValidBeaconBlock(t, v)
 
-	require.NotNil(t, request)
-	require.Equal(t, executionPayload, request.ExecutionPayload)
-	require.Equal(t, versionedHashes, request.VersionedHashes)
-	require.Equal(t, &parentBeaconBlockRoot, request.ParentBeaconBlockRoot)
+		request, err := types.BuildNewPayloadRequestFromFork(block)
+		require.NoError(t, err)
+		require.NotNil(t, request)
+		require.Equal(t, block.GetBody().GetExecutionPayload(), request.GetExecutionPayload())
+		require.Equal(t, block.GetBody().GetBlobKzgCommitments().ToVersionedHashes(), request.GetVersionedHashes())
+		require.Equal(t, block.GetParentBlockRoot(), *request.GetParentBeaconBlockRoot())
+
+		if version.EqualsOrIsAfter(v, version.Electra()) {
+			requests, getErr := block.GetBody().GetExecutionRequests()
+			require.NoError(t, getErr)
+			list, getErr := types.GetExecutionRequestsList(requests)
+			require.NoError(t, getErr)
+			executionRequests, getErr := request.GetEncodedExecutionRequests()
+			require.NoError(t, getErr)
+			require.Equal(t, list, executionRequests)
+		}
+	})
 }
 
 func TestBuildForkchoiceUpdateRequest(t *testing.T) {
@@ -59,7 +67,7 @@ func TestBuildForkchoiceUpdateRequest(t *testing.T) {
 	)
 	payloadAttributes, err := engineprimitives.NewPayloadAttributes(
 		forkVersion,
-		uint64(time.Now().Truncate(time.Second).Unix()),
+		math.U64(time.Now().Truncate(time.Second).Unix()),
 		common.Bytes32{0x01},
 		common.ExecutionAddress{},
 		engineprimitives.Withdrawals{},
@@ -93,36 +101,50 @@ func TestBuildGetPayloadRequest(t *testing.T) {
 
 func TestHasValidVersionedAndBlockHashesPayloadError(t *testing.T) {
 	t.Parallel()
-	var (
-		executionPayload      = (&types.ExecutionPayload{}).Empty(version.Deneb1())
-		versionedHashes       = []common.ExecutionHash{}
-		parentBeaconBlockRoot = common.Root{}
-	)
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		block := utils.GenerateValidBeaconBlock(t, v)
+		// Remove txs and kzg commitments from body cos not valid
+		block.GetBody().SetExecutionPayload(&types.ExecutionPayload{
+			Versionable: types.NewVersionable(v),
+		})
+		block.GetBody().SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash]{})
 
-	request := types.BuildNewPayloadRequest(
-		executionPayload,
-		versionedHashes,
-		&parentBeaconBlockRoot,
-	)
+		request, err := types.BuildNewPayloadRequestFromFork(block)
+		require.NoError(t, err)
+		require.NotNil(t, request)
+		require.Equal(t, block.GetBody().GetExecutionPayload(), request.GetExecutionPayload())
+		require.Equal(t, block.GetBody().GetBlobKzgCommitments().ToVersionedHashes(), request.GetVersionedHashes())
+		require.Equal(t, block.GetParentBlockRoot(), *request.GetParentBeaconBlockRoot())
 
-	err := request.HasValidVersionedAndBlockHashes()
-	require.ErrorIs(t, err, engineprimitives.ErrPayloadBlockHashMismatch)
+		if version.EqualsOrIsAfter(v, version.Electra()) {
+			requests, getErr := block.GetBody().GetExecutionRequests()
+			require.NoError(t, getErr)
+			list, getErr := types.GetExecutionRequestsList(requests)
+			require.NoError(t, getErr)
+			executionRequests, getErr := request.GetEncodedExecutionRequests()
+			require.NoError(t, getErr)
+			require.Equal(t, list, executionRequests)
+		}
+		err = request.HasValidVersionedAndBlockHashes()
+		require.ErrorIs(t, err, engineprimitives.ErrPayloadBlockHashMismatch)
+	})
 }
 
 func TestHasValidVersionedAndBlockHashesMismatchedHashes(t *testing.T) {
 	t.Parallel()
-	var (
-		executionPayload      = (&types.ExecutionPayload{}).Empty(version.Deneb1())
-		versionedHashes       = []common.ExecutionHash{{}}
-		parentBeaconBlockRoot = common.Root{}
-	)
 
-	request := types.BuildNewPayloadRequest(
-		executionPayload,
-		versionedHashes,
-		&parentBeaconBlockRoot,
-	)
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		block := utils.GenerateValidBeaconBlock(t, v)
+		// Remove txs and kzg commitments from body cos not valid
+		block.GetBody().SetExecutionPayload(&types.ExecutionPayload{
+			Versionable: types.NewVersionable(v),
+		})
+		block.GetBody().SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash]{{}})
 
-	err := request.HasValidVersionedAndBlockHashes()
-	require.ErrorIs(t, err, engineprimitives.ErrMismatchedNumVersionedHashes)
+		request, err := types.BuildNewPayloadRequestFromFork(block)
+		require.NoError(t, err)
+
+		err = request.HasValidVersionedAndBlockHashes()
+		require.ErrorIs(t, err, engineprimitives.ErrMismatchedNumVersionedHashes)
+	})
 }

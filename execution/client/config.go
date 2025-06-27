@@ -27,11 +27,11 @@ import (
 )
 
 const (
+	MinRPCTimeout = 2 * time.Second
+
 	defaultDialURL                 = "http://localhost:8551"
-	defaultRPCRetries              = 0
 	defaultRPCRetryInterval        = 100 * time.Millisecond
 	defaultRPCMaxRetryInterval     = 10 * time.Second
-	defaultRPCTimeout              = 900 * time.Millisecond
 	defaultRPCStartupCheckInterval = 3 * time.Second
 	defaultRPCJWTRefreshInterval   = 30 * time.Second
 	//#nosec:G101 // false positive.
@@ -44,10 +44,9 @@ func DefaultConfig() Config {
 	dialURL, _ := url.NewFromRaw(defaultDialURL)
 	return Config{
 		RPCDialURL:              dialURL,
-		RPCRetries:              defaultRPCRetries,
 		RPCRetryInterval:        defaultRPCRetryInterval,
 		RPCMaxRetryInterval:     defaultRPCMaxRetryInterval,
-		RPCTimeout:              defaultRPCTimeout,
+		RPCTimeout:              MinRPCTimeout,
 		RPCStartupCheckInterval: defaultRPCStartupCheckInterval,
 		RPCJWTRefreshInterval:   defaultRPCJWTRefreshInterval,
 		JWTSecretPath:           defaultJWTSecretPath,
@@ -58,9 +57,8 @@ func DefaultConfig() Config {
 type Config struct {
 	// RPCDialURL is the HTTP url of the execution client JSON-RPC endpoint.
 	RPCDialURL *url.ConnectionURL `mapstructure:"rpc-dial-url"`
-	// RPCRetries is the number of retries before shutting down consensus
-	// client. A value of 0 will retry infinitely.
-	RPCRetries uint64 `mapstructure:"rpc-retries"`
+	// DeprecatedRPCRetries is deprecated.
+	DeprecatedRPCRetries uint64 `mapstructure:"rpc-retries"`
 	// RPCRetryInterval is the initial RPC backoff for repeated execution client calls.
 	RPCRetryInterval time.Duration `mapstructure:"rpc-retry-interval"`
 	// MaxRPCRetryInterval is the maximum RPC backoff for repeated execution client calls.

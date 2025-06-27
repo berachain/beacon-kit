@@ -24,104 +24,13 @@ package execution
 
 import (
 	"fmt"
-	"net/http"
-	"path/filepath"
-	"testing"
 
-	"github.com/berachain/beacon-kit/primitives/net/url"
-	"github.com/ory/dockertest"
 	"github.com/ory/dockertest/docker"
-	"github.com/stretchr/testify/require"
 )
 
-// GethNode represents a test instance of a Geth node configured
-// to run inside a Docker container.
-type GethNode struct {
-	homeDir string
-	image   docker.PullImageOptions
-}
-
-// NewGethNode returns a new GethNode instance configured with the given
-// home directory and Docker image options.
-func NewGethNode(homeDir string, image docker.PullImageOptions) *GethNode {
-	return &GethNode{
-		homeDir: homeDir,
-		image:   image,
-	}
-}
-
-// Start launches the Geth node container using dockertest, waits until the node is ready,
-// and returns the container resource and the connection URL for the Auth RPC endpoint.
-func (g *GethNode) Start(t *testing.T) (*Resource, *url.ConnectionURL) {
-	t.Helper()
-
-	// Create a new Docker pool.
-	pool, err := dockertest.NewPool("")
-	require.NoError(t, err, "failed to create Docker pool")
-	require.NotNil(t, pool, "Docker pool is nil")
-
-	// Verify that we can connect to the Docker daemon.
-	err = pool.Client.Ping()
-	require.NoErrorf(t, err, "could not connect to Docker: %s", err)
-
-	// Pull the Geth image if it is not already present.
-	err = pool.Client.PullImage(g.image, docker.AuthConfiguration{})
-	require.NoError(t, err, "failed to pull Geth image")
-
-	// Resolve the absolute path to the local test files.
-	absPath, err := filepath.Abs("../files")
-	require.NoError(t, err, "failed to determine absolute path for test files")
-
-	// Run the container with custom commands that initialize and run Geth.
-	resource, err := pool.RunWithOptions(&dockertest.RunOptions{
-		Repository: g.image.Repository,
-		Tag:        g.image.Tag,
-		// Override the default entrypoint to use /bin/sh so we can chain commands.
-		Entrypoint: []string{"/bin/sh"},
-		Cmd: []string{
-			"-c",
-			`
-			geth init --datadir /tmp/gethdata /testdata/eth-genesis.json && 
-			geth --http --http.addr 0.0.0.0 --http.api eth,net,web3 \
-				 --authrpc.addr 0.0.0.0 \
-				 --authrpc.jwtsecret /testing/files/jwt.hex \
-				 --authrpc.vhosts '*' \
-				 --datadir /tmp/gethdata \
-				 --ipcpath /tmp/gethdata/geth.ipc \
-				 --syncmode full \
-				 --verbosity 4
-			`,
-		},
-		// Expose required ports for EL RPC, Auth RPC, and P2P communication.
-		ExposedPorts: []string{"8545/tcp", "8551/tcp", "30303/tcp"},
-		// Bind mount the local test data and JWT files to the container.
-		Mounts: []string{
-			fmt.Sprintf("%s:/%s", g.homeDir, "testdata"),
-			fmt.Sprintf("%s:/%s", absPath, "testing/files"),
-		},
-	})
-	require.NoError(t, err, "failed to run Geth container")
-
-	// Build the connection URLs for EL RPC and Auth RPC.
-	elRPC, err := url.NewFromRaw("http://" + resource.GetHostPort("8545/tcp"))
-	require.NoError(t, err, "failed to create EL RPC URL")
-	authRPC, err := url.NewFromRaw("http://" + resource.GetHostPort("8551/tcp"))
-	require.NoError(t, err, "failed to create Auth RPC URL")
-
-	t.Logf("Auth RPC URL: %s", authRPC.String())
-
-	// Wait until the EL RPC endpoint is available by retrying HTTP GET requests.
-	err = pool.Retry(func() error {
-		resp, httpErr := http.Get(elRPC.String())
-		if httpErr != nil {
-			return httpErr
-		}
-		defer resp.Body.Close()
-		return nil
-	})
-	require.NoError(t, err, "Geth container did not become ready in time")
-
-	return &Resource{Resource: resource}, authRPC
+// NewGethNode creates a new execution node configured for Geth by using the default Geth command builder.
+func NewGethNode(homeDir string, image docker.PullImageOptions) *ExecNode {
+	return NewExecNode(homeDir, image, defaultGethCmdStrBuilder)
 }
 
 // ValidGethImage returns the default Docker image options for the Geth node.
@@ -130,4 +39,20 @@ func ValidGethImage() docker.PullImageOptions {
 		Repository: "ethereum/client-go",
 		Tag:        "latest",
 	}
+}
+
+// defaultGethCmdStrBuilder returns a command string tailored for running a Geth node.
+func defaultGethCmdStrBuilder(genesisFile string) string {
+	return fmt.Sprintf(`
+		geth init --datadir /tmp/gethdata /testdata/%s && 
+		geth --http --http.addr 0.0.0.0 --http.api eth,net,web3,debug \
+			 --authrpc.addr 0.0.0.0 \
+			 --authrpc.jwtsecret /testing/files/jwt.hex \
+			 --authrpc.vhosts '*' \
+			 --datadir /tmp/gethdata \
+			 --ipcpath /tmp/gethdata/geth.ipc \
+			 --syncmode full \
+			 --verbosity 4 \
+			 --nodiscover
+	`, genesisFile)
 }

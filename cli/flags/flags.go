@@ -27,8 +27,10 @@ import (
 
 const (
 	// Beacon Kit Root Flag.
-	beaconKitRoot      = "beacon-kit."
-	BeaconKitAcceptTos = beaconKitRoot + "accept-tos"
+	beaconKitRoot     = "beacon-kit."
+	ChainSpec         = beaconKitRoot + "chain-spec"
+	ChainSpecFilePath = beaconKitRoot + "chain-spec-file"
+	ShutdownTimeout   = beaconKitRoot + "shutdown-timeout"
 
 	// Builder Config.
 	builderRoot           = beaconKitRoot + "payload-builder."
@@ -43,7 +45,6 @@ const (
 	// Engine Config.
 	engineRoot              = beaconKitRoot + "engine."
 	RPCDialURL              = engineRoot + "rpc-dial-url"
-	RPCRetries              = engineRoot + "rpc-retries"
 	RPCRetryInterval        = engineRoot + "rpc-retry-interval"
 	RPCMaxRetryInterval     = engineRoot + "rpc-max-retry-interval"
 	RPCTimeout              = engineRoot + "rpc-timeout"
@@ -83,6 +84,11 @@ const (
 // AddBeaconKitFlags implements servertypes.ModuleInitFlags interface.
 func AddBeaconKitFlags(startCmd *cobra.Command) {
 	defaultCfg := config.DefaultConfig()
+	startCmd.Flags().Duration(
+		ShutdownTimeout,
+		defaultCfg.ShutdownTimeout,
+		"maximum time to wait for the node to gracefully shutdown before forcing an exit",
+	)
 	startCmd.Flags().String(
 		JWTSecretPath,
 		defaultCfg.Engine.JWTSecretPath,
@@ -90,9 +96,6 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 	)
 	startCmd.Flags().String(
 		RPCDialURL, defaultCfg.Engine.RPCDialURL.String(), "rpc dial url",
-	)
-	startCmd.Flags().Uint64(
-		RPCRetries, defaultCfg.Engine.RPCRetries, "rpc retries",
 	)
 	startCmd.Flags().Duration(
 		RPCRetryInterval, defaultCfg.Engine.RPCRetryInterval, "initial rpc retry interval",

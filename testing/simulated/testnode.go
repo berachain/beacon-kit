@@ -35,15 +35,18 @@ import (
 	"github.com/berachain/beacon-kit/cli/flags"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/da/kzg"
+	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	nodecomponents "github.com/berachain/beacon-kit/node-core/components"
 	service "github.com/berachain/beacon-kit/node-core/services/registry"
 	nodetypes "github.com/berachain/beacon-kit/node-core/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/net/url"
+	"github.com/berachain/beacon-kit/state-transition/core"
 	"github.com/berachain/beacon-kit/storage/db"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	dbm "github.com/cosmos/cosmos-db"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 )
@@ -53,6 +56,7 @@ type TestNodeInput struct {
 	TempHomeDir string
 	CometConfig *cmtcfg.Config
 	AuthRPC     *url.ConnectionURL
+	ClientRPC   *url.ConnectionURL
 	Logger      *phuslu.Logger
 	AppOpts     *viper.Viper
 	Components  []any
@@ -64,7 +68,11 @@ type TestNode struct {
 	ChainSpec       chain.Spec
 	APIBackend      nodecomponents.NodeAPIBackend
 	SimComet        *SimComet
+	EngineClient    *client.EngineClient
+	StateProcessor  *core.StateProcessor
 	ServiceRegistry *service.Registry
+	KZGVerifier     kzg.BlobProofVerifier
+	ContractBackend *ethclient.Client
 }
 
 // NewTestNode Uses the testnet chainspec.
@@ -73,6 +81,8 @@ func NewTestNode(
 	input TestNodeInput,
 ) TestNode {
 	t.Helper()
+	require.NotNil(t, input.AuthRPC)
+	require.NotNil(t, input.ClientRPC)
 
 	beaconKitConfig := createBeaconKitConfig(t)
 	beaconKitConfig.Engine.RPCDialURL = input.AuthRPC
@@ -91,6 +101,9 @@ func NewTestNode(
 		appOpts,
 		input.Components,
 	)
+	contractBackend, err := ethclient.Dial(input.ClientRPC.String())
+	require.NoError(t, err)
+	node.ContractBackend = contractBackend
 	return node
 }
 
@@ -111,7 +124,10 @@ func buildNode(
 		config          *config.Config
 		storageBackend  blockchain.StorageBackend
 		chainSpec       chain.Spec
+		engineClient    *client.EngineClient
+		stateProcessor  *core.StateProcessor
 		serviceRegistry *service.Registry
+		kzgVerifier     kzg.BlobProofVerifier
 	)
 
 	// build all node components using depinject
@@ -133,7 +149,10 @@ func buildNode(
 		&config,
 		&storageBackend,
 		&chainSpec,
+		&engineClient,
+		&stateProcessor,
 		&serviceRegistry,
+		&kzgVerifier,
 	); err != nil {
 		panic(err)
 	}
@@ -152,7 +171,10 @@ func buildNode(
 		ChainSpec:       chainSpec,
 		APIBackend:      apiBackend,
 		SimComet:        simComet,
+		EngineClient:    engineClient,
+		StateProcessor:  stateProcessor,
 		ServiceRegistry: serviceRegistry,
+		KZGVerifier:     kzgVerifier,
 	}
 }
 

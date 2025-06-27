@@ -33,7 +33,7 @@ func (h *Handler) RegisterRoutes(logger log.Logger) {
 		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/builder/states/:state_id/expected_withdrawals",
-			Handler: h.NotImplemented,
+			Handler: h.Deprecated,
 		},
 	})
 }

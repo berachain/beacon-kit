@@ -21,6 +21,7 @@
 package config
 
 import (
+	"github.com/berachain/beacon-kit/beacon/validator"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/payload/builder"
 )
@@ -61,29 +62,13 @@ func defaultValidators() NodeSet {
 		Type: "validator",
 		Nodes: []Node{
 			{
-				ElType: "nethermind",
-				// TODO: restore once we solve https://github.com/berachain/beacon-kit/issues/2177
-				Replicas: 0, // nethermind cannot keep up with deposits checks
-				KZGImpl:  "crate-crypto/go-kzg-4844",
-			},
-			{
 				ElType:   "geth",
-				Replicas: 2, //nolint:mnd // we want two replicas here
+				Replicas: 3, //nolint:mnd // we want 3 replicas here
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
 				ElType:   "reth",
-				Replicas: 2, //nolint:mnd // we want two replicas here
-				KZGImpl:  "crate-crypto/go-kzg-4844",
-			},
-			{
-				ElType:   "erigon",
-				Replicas: 1,
-				KZGImpl:  "crate-crypto/go-kzg-4844",
-			},
-			{
-				ElType:   "besu",
-				Replicas: 0, // Besu causing flakey tests.
+				Replicas: 2, //nolint:mnd // we want 2 replicas here
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 		},
@@ -95,28 +80,13 @@ func defaultFullNodes() NodeSet {
 		Type: "full",
 		Nodes: []Node{
 			{
-				ElType:   "nethermind",
-				Replicas: 1,
-				KZGImpl:  "crate-crypto/go-kzg-4844",
-			},
-			{
 				ElType:   "reth",
-				Replicas: 1,
+				Replicas: 2, //nolint:mnd // we want 2 replicas here
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
 				ElType:   "geth",
-				Replicas: 1,
-				KZGImpl:  "crate-crypto/go-kzg-4844",
-			},
-			{
-				ElType:   "erigon",
-				Replicas: 1,
-				KZGImpl:  "crate-crypto/go-kzg-4844",
-			},
-			{
-				ElType:   "besu",
-				Replicas: 1,
+				Replicas: 2, //nolint:mnd // we want 2 replicas here
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 		},
@@ -152,23 +122,19 @@ func defaultExecutionSettings() ExecutionSettings {
 			MaxMemory: 2048, //nolint:mnd // 2 GB
 		},
 		Images: map[string]string{
-			"besu":       "hyperledger/besu:24.5.4",
-			"erigon":     "erigontech/erigon:v2.60.9",
-			"ethereumjs": "ethpandaops/ethereumjs:stable",
-			"geth":       "ethereum/client-go:stable",
-			"nethermind": "nethermind/nethermind:latest",
-			"reth":       "ghcr.io/paradigmxyz/reth:latest",
+			"geth": "ethereum/client-go:stable",
+			"reth": "ghcr.io/berachain/bera-reth:nightly",
 		},
 	}
 }
 
 func defaultConsensusSettings() ConsensusSettings {
 	var (
-		defaultCfg = cometbft.DefaultConfig()
-		consensus  = defaultCfg.Consensus
-		p2p        = defaultCfg.P2P
-
-		builderCfg = builder.DefaultConfig()
+		builderCfg   = builder.DefaultConfig()
+		defaultCfg   = cometbft.DefaultConfig()
+		validatorCfg = validator.DefaultConfig()
+		consensus    = defaultCfg.Consensus
+		p2p          = defaultCfg.P2P
 	)
 
 	return ConsensusSettings{
@@ -191,7 +157,7 @@ func defaultConsensusSettings() ConsensusSettings {
 		},
 		AppConfig: AppConfig{
 			PayloadTimeout:                builderCfg.PayloadTimeout.String(),
-			EnableOptimisticPayloadBuilds: builderCfg.Enabled,
+			EnableOptimisticPayloadBuilds: validatorCfg.EnableOptimisticPayloadBuilds,
 		},
 	}
 }
@@ -201,13 +167,7 @@ func defaultEthJSONRPCEndpoints() []EthJSONRPCEndpoint {
 		{
 			Type: "blutgang",
 			Clients: []string{
-				// "el-full-nethermind-0",
-				// "el-full-reth-0",
 				"el-full-geth-2",
-				// "el-full-erigon-3",
-				// "el-full-erigon-3",
-				// Besu causing flakey tests.
-				// "el-full-besu-4",
 			},
 		},
 	}

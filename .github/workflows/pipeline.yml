@@ -87,7 +87,7 @@ jobs:
       - name: Setup Golang
         uses: actions/setup-go@v5
         with:
-          go-version: "1.23.5"
+          go-version: "1.23.6"
           check-latest: true
           cache-dependency-path: "**/*.sum"
         if: ${{ !(matrix.args == 'test-forge-cover' || matrix.args == 'test-forge-fuzz') }}
@@ -135,16 +135,23 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: recursive
+      - name: Check if Docker Hub credentials exist
+        id: check-docker-credentials
+        run: |
+          if [ "${{ secrets.DOCKERHUB_USERNAME }}" != "" ] && [ "${{ secrets.DOCKERHUB_TOKEN }}" != "" ]; then
+            echo "has_credentials=true" >> $GITHUB_OUTPUT
+          fi
+        shell: bash
       - name: Login to Docker Hub
-        uses: docker/login-action@v3
+        uses: docker/login-action@v3.4.0
+        if: steps.check-docker-credentials.outputs.has_credentials == 'true'
         with:
-          registry: https://index.docker.io/v1/
           username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Setup Golang
         uses: actions/setup-go@v5
         with:
-          go-version: "1.23.5"
+          go-version: "1.23.6"
           check-latest: true
           cache-dependency-path: "**/*.sum"
       - name: Set up QEMU
@@ -158,6 +165,10 @@ jobs:
           echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
           sudo apt update
           sudo apt install kurtosis-cli=$(go list -m -f '{{.Version}}' github.com/kurtosis-tech/kurtosis/api/golang | sed 's/^v//') -y
+          docker info
+          for img in kurtosistech/engine:1.4.3 timberio/vector:0.31.0-debian traefik:2.10.6 alpine:3.17; do
+            docker pull $img
+          done
           kurtosis engine start
         if: ${{ matrix.args == 'test-e2e' }}
       - name: Run ${{ matrix.args }}

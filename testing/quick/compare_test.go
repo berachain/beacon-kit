@@ -24,84 +24,27 @@ package compare_test
 
 import (
 	"bytes"
-	"slices"
 	"testing"
 	"testing/quick"
-	"unsafe"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
-	"github.com/berachain/beacon-kit/primitives/math"
-	zcommon "github.com/protolambda/zrnt/eth2/beacon/common"
-	zdeneb "github.com/protolambda/zrnt/eth2/beacon/deneb"
 	zspec "github.com/protolambda/zrnt/eth2/configs"
 	ztree "github.com/protolambda/ztyp/tree"
-	zview "github.com/protolambda/ztyp/view"
 	pprim "github.com/prysmaticlabs/prysm/v5/consensus-types/primitives"
 	pethpb "github.com/prysmaticlabs/prysm/v5/proto/prysm/v1alpha1"
 )
 
 var (
-	c    = quick.Config{MaxCount: 5_000}
+	c    = quick.Config{MaxCount: 10_000}
 	hFn  = ztree.GetHashFn()
 	spec = zspec.Mainnet
 )
 
-func TestExecutionPayloadHashTreeRootZrnt(t *testing.T) {
-	t.Parallel()
-	f := func(payload *ctypes.ExecutionPayload, logsBloom [256]byte) bool {
-		// skip these cases lest we trigger a
-		// nil-pointer dereference in fastssz
-		if payload == nil ||
-			payload.Withdrawals == nil ||
-			slices.Contains(payload.Withdrawals, nil) ||
-			payload.Transactions == nil ||
-			slices.ContainsFunc(payload.Transactions, func(e []byte) bool {
-				return e == nil
-			}) {
-			return true
-		}
-
-		payload.LogsBloom = logsBloom
-		payload.BaseFeePerGas = math.NewU256(123)
-		typeRoot := payload.HashTreeRoot()
-
-		baseFeePerGas := zview.Uint256View{}
-		baseFeePerGas.SetFromBig(payload.BaseFeePerGas.ToBig())
-		zpayload := zdeneb.ExecutionPayload{
-			ParentHash:    ztree.Root(payload.ParentHash),
-			FeeRecipient:  zcommon.Eth1Address(payload.FeeRecipient),
-			StateRoot:     ztree.Root(payload.StateRoot),
-			ReceiptsRoot:  ztree.Root(payload.ReceiptsRoot),
-			LogsBloom:     zcommon.LogsBloom(payload.LogsBloom),
-			PrevRandao:    ztree.Root(payload.Random),
-			BlockNumber:   zview.Uint64View(payload.Number),
-			GasLimit:      zview.Uint64View(payload.GasLimit),
-			GasUsed:       zview.Uint64View(payload.GasUsed),
-			Timestamp:     zcommon.Timestamp(payload.Timestamp),
-			ExtraData:     []byte(payload.ExtraData),
-			BaseFeePerGas: baseFeePerGas,
-			BlockHash:     ztree.Root(payload.BlockHash),
-			Transactions: *(*zcommon.PayloadTransactions)(
-				unsafe.Pointer(&payload.Transactions)),
-			Withdrawals:   *(*zcommon.Withdrawals)(unsafe.Pointer(&payload.Withdrawals)),
-			BlobGasUsed:   zview.Uint64View(payload.BlobGasUsed.Unwrap()),
-			ExcessBlobGas: zview.Uint64View(payload.ExcessBlobGas.Unwrap()),
-		}
-
-		zRoot := zpayload.HashTreeRoot(spec, hFn)
-		containerRoot := payload.HashTreeRoot()
-
-		return bytes.Equal(typeRoot[:], containerRoot[:]) &&
-			bytes.Equal(typeRoot[:], zRoot[:])
-	}
-	if err := quick.Check(f, &c); err != nil {
-		t.Error(err)
-	}
-}
-
+// TODO: None of the iterations makes it to `HashTreeRoot` as they all get caught by the nil checks.
+// A custom generator is required like TestExecPayload. Test is skipped for now as it is not useful as is.
 func TestBlobSidecarTreeRootPrysm(t *testing.T) {
 	t.Parallel()
+	t.Skip()
 	f := func(sidecar *datypes.BlobSidecar) bool {
 		// skip these cases lest we trigger a
 		// nil-pointer dereference in fastssz

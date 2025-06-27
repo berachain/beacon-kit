@@ -24,7 +24,6 @@ import (
 	"testing"
 
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
@@ -36,7 +35,7 @@ import (
 
 func setSlot(scs datypes.BlobSidecars, slot math.Slot) {
 	for _, sc := range scs {
-		hdr := sc.GetSignedBeaconBlockHeader().GetHeader()
+		hdr := sc.GetBeaconBlockHeader()
 		hdr.SetSlot(slot)
 	}
 }
@@ -47,8 +46,6 @@ func TestStore_PersistRace(t *testing.T) {
 	tmpFilePath := t.TempDir()
 
 	logger := log.NewNopLogger()
-	chainSpec, err := spec.DevnetChainSpec()
-	require.NoError(t, err)
 
 	// Create the DB
 	s := store.New(
@@ -60,7 +57,6 @@ func TestStore_PersistRace(t *testing.T) {
 			),
 		),
 		logger.With("service", "da-store"),
-		chainSpec,
 	)
 
 	// This many blobs is not currently possible, but it doesn't hurt eh
@@ -78,7 +74,7 @@ func TestStore_PersistRace(t *testing.T) {
 
 	// Multiple writes to DB
 	setSlot(sidecars, 0)
-	err = s.Persist(sidecars)
+	err := s.Persist(sidecars)
 	require.NoError(t, err)
 	setSlot(sidecars, 1)
 	err = s.Persist(sidecars)

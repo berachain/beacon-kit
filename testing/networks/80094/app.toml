@@ -114,16 +114,23 @@ datadog-hostname = "my_beacond_node"
 ###                                BeaconKit                                ###
 ###############################################################################
 
+[beacon-kit]
+# ChainSpec is the type of chain spec to use.
+chain-spec = "mainnet"
+
+# ChainSpecFilePath is the path to the chain spec file to use.
+chain-spec-file = ""
+
+# ShutdownTimeout is the maximum time to wait for the node to gracefully
+# shutdown before forcing an exit.
+shutdown-timeout = "5m0s"
+
 [beacon-kit.engine]
 # HTTP url of the execution client JSON-RPC endpoint.
 rpc-dial-url = "http://localhost:8551"
 
-# Number of retries before shutting down consensus client.
-# A value of 0 will retry infinitely.
-rpc-retries = "0"
-
 # RPC timeout for execution client requests.
-rpc-timeout = "900ms"
+rpc-timeout = "2s"
 
 # RPC retry interval for execution client requests.
 rpc-retry-interval = "100ms"
