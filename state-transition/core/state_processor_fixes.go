@@ -32,7 +32,6 @@ import (
 
 // TODO: confirm data
 const (
-	forkChainID     = uint64(80094) // avoid import cycle
 	luganodesPubKey = "0xafd0ad061f698eae0d483098948e26e254f4b7089244bda897895257c668196ffd5e2ddf458fdf8bcea295b7d47a5b37"
 	luganodesCreds  = "0x010000000000000000000000b0c615224a053236ac7d1c239f6c1b5fbf8f0617"
 	luganodesAmount = 901_393_690_000_000 * params.Wei // 901_393.69 Gwei
@@ -46,7 +45,7 @@ var (
 
 // processElectra1Fixes handles some fixes made necessary by accidents or wrong validator choices in mainnet
 func (sp *StateProcessor) processElectra1Fixes(st *state.StateDB) error {
-	if sp.cs.DepositEth1ChainID() != forkChainID {
+	if !sp.cs.IsMainnet() {
 		return nil
 	}
 
