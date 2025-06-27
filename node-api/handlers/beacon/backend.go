@@ -44,9 +44,11 @@ type Backend interface {
 }
 
 type GenesisBackend interface {
-	GenesisValidatorsRoot() (common.Root, error)
-	GenesisForkVersion() (common.Version, error)
-	GenesisTime() (math.U64, error)
+	GenesisValidatorsRoot() common.Root
+	GenesisForkVersion() common.Version
+	GenesisTime() math.U64
+	GenesisBlockHeader() *ctypes.BeaconBlockHeader
+	GenesisBlockRoot() common.Root
 }
 
 type RandaoBackend interface {
