@@ -29,17 +29,14 @@ import (
 )
 
 // TODO: confirm data
-const (
-	fixForkChainID  = uint64(80094) // avoid import cycle
-	fixSmileePubKey = "0x84acfd38a13af12add8d82e1ef0842c4dfc1e4175fae5b8ab73770f9050cbf673cafdbf6d8ab679fe9ea13208f50b485"
-)
+const fixSmileePubKey = "0x84acfd38a13af12add8d82e1ef0842c4dfc1e4175fae5b8ab73770f9050cbf673cafdbf6d8ab679fe9ea13208f50b485"
 
 //nolint:gochecknoglobals // unexported
 var smileePubKey = crypto.BLSPubkey(hex.MustToBytes(fixSmileePubKey))
 
 // processElectra1Fixes handles some fixes made necessary by accidents or wrong validator choices in mainnet
 func (sp *StateProcessor) processElectra1Fixes(st *state.StateDB) error {
-	if sp.cs.DepositEth1ChainID() == fixForkChainID {
+	if !sp.cs.IsMainnet() {
 		return nil
 	}
 
