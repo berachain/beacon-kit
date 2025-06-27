@@ -26,7 +26,8 @@ import "github.com/berachain/beacon-kit/primitives/common"
 var supportedVersions = []common.Version{
 	deneb,
 	deneb1,
-	// TODO(pectra): Add electra here
+	electra,
+	electra1,
 }
 
 // GetSupportedVersions returns the supported versions of beacon-kit.

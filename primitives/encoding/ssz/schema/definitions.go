@@ -24,9 +24,11 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/berachain/beacon-kit/primitives/encoding/ssz/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
+
+// BytesPerChunk is the number of bytes per chunk.
+const BytesPerChunk = 32
 
 /* -------------------------------------------------------------------------- */
 /*                                    Basic                                   */
@@ -73,7 +75,7 @@ func DefineByteVector(length uint64) SSZType {
 
 func (v vector) ID() ID { return Vector }
 
-func (v vector) ItemLength() uint64 { return constants.BytesPerChunk }
+func (v vector) ItemLength() uint64 { return BytesPerChunk }
 
 func (v vector) ItemPosition(p string) (uint64, uint8, uint8, error) {
 	i, err := math.U64FromString(p)
@@ -81,15 +83,15 @@ func (v vector) ItemPosition(p string) (uint64, uint8, uint8, error) {
 		return 0, 0, 0, fmt.Errorf("expected index, got name %s", p)
 	}
 	start := i.Unwrap() * v.elementType.ItemLength()
-	return start / constants.BytesPerChunk,
-		uint8(start % constants.BytesPerChunk), // #nosec G115 -- can't overflow.
-		uint8(start%constants.BytesPerChunk + v.ItemLength()), // #nosec G115 -- can't overflow.
+	return start / BytesPerChunk,
+		uint8(start % BytesPerChunk), // #nosec G115 -- can't overflow.
+		uint8(start%BytesPerChunk + v.ItemLength()), // #nosec G115 -- can't overflow.
 		nil
 }
 
 func (v vector) HashChunkCount() uint64 {
 	totalBytes := v.Length() * v.elementType.ItemLength()
-	chunks := (totalBytes + constants.BytesPerChunk - 1) / constants.BytesPerChunk
+	chunks := (totalBytes + BytesPerChunk - 1) / BytesPerChunk
 	return chunks
 }
 
@@ -126,7 +128,7 @@ func (l list) ItemLength() uint64 { return l.elementType.ItemLength() }
 
 func (l list) HashChunkCount() uint64 {
 	totalBytes := l.Length() * l.elementType.ItemLength()
-	chunks := (totalBytes + constants.BytesPerChunk - 1) / constants.BytesPerChunk
+	chunks := (totalBytes + BytesPerChunk - 1) / BytesPerChunk
 	return chunks
 }
 
@@ -146,9 +148,9 @@ func (l list) ItemPosition(p string) (uint64, uint8, uint8, error) {
 		return 0, 0, 0, fmt.Errorf("expected index, got name %s", p)
 	}
 	start := i.Unwrap() * l.elementType.ItemLength()
-	return start / constants.BytesPerChunk,
-		uint8(start % constants.BytesPerChunk), // #nosec G115 -- can't overflow.
-		uint8(start%constants.BytesPerChunk + l.ItemLength()), // #nosec G115 -- can't overflow.
+	return start / BytesPerChunk,
+		uint8(start % BytesPerChunk), // #nosec G115 -- can't overflow.
+		uint8(start%BytesPerChunk + l.ItemLength()), // #nosec G115 -- can't overflow.
 		nil
 }
 
@@ -161,7 +163,7 @@ type container struct {
 	FieldIndex map[string]uint64
 }
 
-func DefineContainer(fields ...*Field[SSZType]) SSZType {
+func DefineContainer(fields ...*Field) SSZType {
 	fieldIndex := make(map[string]uint64)
 	types := make([]SSZType, len(fields))
 	for i, f := range fields {
@@ -173,7 +175,7 @@ func DefineContainer(fields ...*Field[SSZType]) SSZType {
 
 func (c container) ID() ID { return Container }
 
-func (c container) ItemLength() uint64 { return constants.BytesPerChunk }
+func (c container) ItemLength() uint64 { return BytesPerChunk }
 
 func (c container) ItemPosition(p string) (uint64, uint8, uint8, error) {
 	pos, ok := c.FieldIndex[p]

@@ -29,6 +29,7 @@ import (
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
@@ -37,7 +38,7 @@ import (
 	"github.com/berachain/beacon-kit/state-transition/core"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/berachain/beacon-kit/storage/block"
-	depositdb "github.com/berachain/beacon-kit/storage/deposit"
+	"github.com/berachain/beacon-kit/storage/deposit"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -47,7 +48,7 @@ type ExecutionEngine interface {
 	// NotifyNewPayload notifies the execution client of new payload.
 	NotifyNewPayload(
 		ctx context.Context,
-		req *ctypes.NewPayloadRequest,
+		req ctypes.NewPayloadRequest,
 		retryOnSyncingStatus bool,
 	) error
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
@@ -65,27 +66,25 @@ type LocalBuilder interface {
 	// RequestPayloadAsync requests a new payload for the given slot.
 	RequestPayloadAsync(
 		ctx context.Context,
-		st *statedb.StateDB,
-		slot math.Slot,
-		timestamp uint64,
-		parentBlockRoot common.Root,
-		headEth1BlockHash common.ExecutionHash,
-		finalEth1BlockHash common.ExecutionHash,
-	) (*engineprimitives.PayloadID, error)
+		r *builder.RequestPayloadData,
+	) (*engineprimitives.PayloadID, common.Version, error)
 }
 
 // StateProcessor defines the interface for processing various state transitions
 // in the beacon chain.
 type StateProcessor interface {
-	// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
-	// state
-	// from the eth1 deposits.
-	InitializePreminedBeaconStateFromEth1(
+	// InitializeBeaconStateFromEth1 initializes the premined beacon
+	// state from the eth1 deposits.
+	InitializeBeaconStateFromEth1(
 		*statedb.StateDB,
 		ctypes.Deposits,
 		*ctypes.ExecutionPayloadHeader,
 		common.Version,
 	) (transition.ValidatorUpdates, error)
+	// ProcessFork prepares the state for the fork version at the given timestamp.
+	ProcessFork(
+		st *statedb.StateDB, timestamp math.U64, logUpgrade bool,
+	) error
 	// ProcessSlots processes the state transition for a range of slots.
 	ProcessSlots(
 		*statedb.StateDB, math.Slot,
@@ -112,7 +111,7 @@ type StorageBackend interface {
 	// StateFromContext retrieves the beacon state from the given context.
 	StateFromContext(context.Context) *statedb.StateDB
 	// DepositStore retrieves the deposit store.
-	DepositStore() *depositdb.KVStore
+	DepositStore() deposit.StoreManager
 	// BlockStore retrieves the block store.
 	BlockStore() *block.KVStore[*ctypes.BeaconBlock]
 }
@@ -167,5 +166,10 @@ type PruningChainSpec interface {
 type ServiceChainSpec interface {
 	PruningChainSpec
 	chain.BlobSpec
-	ActiveForkVersionForSlot(slot math.Slot) common.Version
+	chain.ForkSpec
+	chain.ForkVersionSpec
+
+	EpochsPerHistoricalVector() uint64
+	SlotToEpoch(slot math.Slot) math.Epoch
+	Eth1FollowDistance() uint64
 }

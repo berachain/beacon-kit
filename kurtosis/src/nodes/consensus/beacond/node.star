@@ -33,7 +33,8 @@ def start(persistent_peers, is_seed, validator_index, config_settings, app_setti
         set_config += '\nsed -i "s/^max_num_inbound_peers = 40$/max_num_inbound_peers = {}/" {}/config/config.toml'.format(config_settings.max_num_inbound_peers, "$BEACOND_HOME")
         set_config += '\nsed -i "s/^max_num_outbound_peers = 10$/max_num_outbound_peers = {}/" {}/config/config.toml'.format(config_settings.max_num_outbound_peers, "$BEACOND_HOME")
 
-    start_node = "CHAIN_SPEC={} /usr/bin/beacond start --rpc.laddr tcp://0.0.0.0:26657 \
+    start_node = "/usr/bin/beacond start --rpc.laddr tcp://0.0.0.0:26657 \
+    --beacon-kit.chain-spec={} \
     --beacon-kit.engine.jwt-secret-path=/root/jwt/jwt-secret.hex \
     --beacon-kit.kzg.trusted-setup-path=/root/kzg/kzg-trusted-setup.json \
     --beacon-kit.kzg.implementation={} \
@@ -57,6 +58,9 @@ def get_genesis_env_vars(cl_service_name, chain_id, chain_spec):
         "BEACOND_ETH_CHAIN_ID": str(chain_id),
         "BEACOND_ENABLE_PROMETHEUS": "true",
         "ETH_GENESIS": "/root/eth_genesis/genesis.json",
+        # For devnet/testing purposes, we use the same withdrawal address for all validators.
+        # In production, each validator should use an address derived from their own withdrawal credentials.
+        # This is fine for a local development network.
         "WITHDRAWAL_ADDRESS": "0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4",
         "DEPOSIT_AMOUNT": "32000000000",
         "BEACOND_CHAIN_SPEC": chain_spec,

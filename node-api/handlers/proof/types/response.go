@@ -24,7 +24,6 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // BlockProposerResponse is the response for the
@@ -51,9 +50,9 @@ type BlockProposerResponse struct {
 	ProposerIndexProof []common.Root `json:"proposer_index_proof"`
 }
 
-// ExecutionNumberResponse is the response for the
-// `/proof/execution_number/{timestamp_id}` endpoint.
-type ExecutionNumberResponse struct {
+// ValidatorWithdrawalCredentialsResponse is the response for the
+// `/proof/validator_withdrawal_credentials/{timestamp_id}/{validator_index}` endpoint.
+type ValidatorWithdrawalCredentialsResponse struct {
 	// BeaconBlockHeader is the block header of which the hash tree root is the
 	// beacon block root to verify against.
 	BeaconBlockHeader *ctypes.BeaconBlockHeader `json:"beacon_block_header"`
@@ -61,30 +60,12 @@ type ExecutionNumberResponse struct {
 	// BeaconBlockRoot is the beacon block root for this slot.
 	BeaconBlockRoot common.Root `json:"beacon_block_root"`
 
-	// ExecutionNumber is the block number from the execution payload.
-	ExecutionNumber math.U64 `json:"execution_number"`
+	// WithdrawalCredentials are the credentials of the requested validator.
+	ValidatorWithdrawalCredentials ctypes.WithdrawalCredentials `json:"validator_withdrawal_credentials"`
 
-	// ExecutionNumberProof can be verified against the beacon block root using
-	// a Generalized Index of 5894 in the Deneb fork.
-	ExecutionNumberProof []common.Root `json:"execution_number_proof"`
-}
-
-// ExecutionFeeRecipientResponse is the response for the
-// `/proof/execution_fee_recipient/{timestamp_id}` endpoint.
-type ExecutionFeeRecipientResponse struct {
-	// BeaconBlockHeader is the block header of which the hash tree root is the
-	// beacon block root to verify against.
-	BeaconBlockHeader *ctypes.BeaconBlockHeader `json:"beacon_block_header"`
-
-	// BeaconBlockRoot is the beacon block root for this slot.
-	BeaconBlockRoot common.Root `json:"beacon_block_root"`
-
-	// ExecutionFeeRecipient is the fee recipient from the execution payload.
-	//
-
-	ExecutionFeeRecipient common.ExecutionAddress `json:"execution_fee_recipient"`
-
-	// ExecutionFeeRecipientProof can be verified against the beacon block root
-	// using a Generalized Index of 5894 in the Deneb fork.
-	ExecutionFeeRecipientProof []common.Root `json:"execution_fee_recipient_proof"`
+	// WithdrawalCredentialsProof can be verified against the beacon block root.
+	// Use a Generalized Index of `z + (8 * ValidatorIndex)`, where z is the
+	// Generalized Index of the 0 validator withdrawal credentials in the beacon
+	// block. In the Electra fork, z is 6350779162034177.
+	WithdrawalCredentialsProof []common.Root `json:"withdrawal_credentials_proof"`
 }

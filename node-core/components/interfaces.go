@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	nodecoretypes "github.com/berachain/beacon-kit/node-core/types"
+	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
@@ -40,17 +41,17 @@ import (
 	"github.com/berachain/beacon-kit/state-transition/core"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/berachain/beacon-kit/storage/block"
-	depositdb "github.com/berachain/beacon-kit/storage/deposit"
+	"github.com/berachain/beacon-kit/storage/deposit"
 )
 
 type (
 	// AttributesFactory is the interface for the attributes factory.
 	AttributesFactory interface {
 		BuildPayloadAttributes(
-			st *statedb.StateDB,
-			slot math.Slot,
-			timestamp uint64,
-			prevHeadRoot [32]byte,
+			timestamp math.U64,
+			payloadWithdrawals engineprimitives.Withdrawals,
+			prevRandao common.Bytes32,
+			prevHeadRoot common.Root,
 		) (*engineprimitives.PayloadAttributes, error)
 	}
 
@@ -79,13 +80,8 @@ type (
 		// RequestPayloadAsync requests a new payload for the given slot.
 		RequestPayloadAsync(
 			ctx context.Context,
-			st *statedb.StateDB,
-			slot math.Slot,
-			timestamp uint64,
-			parentBlockRoot common.Root,
-			headEth1BlockHash common.ExecutionHash,
-			finalEth1BlockHash common.ExecutionHash,
-		) (*engineprimitives.PayloadID, error)
+			r *builder.RequestPayloadData,
+		) (*engineprimitives.PayloadID, common.Version, error)
 		// RetrievePayload retrieves the payload for the given slot.
 		RetrievePayload(
 			ctx context.Context,
@@ -96,12 +92,7 @@ type (
 		// blocks until the payload is delivered.
 		RequestPayloadSync(
 			ctx context.Context,
-			st *statedb.StateDB,
-			slot math.Slot,
-			timestamp uint64,
-			parentBlockRoot common.Root,
-			headEth1BlockHash common.ExecutionHash,
-			finalEth1BlockHash common.ExecutionHash,
+			r *builder.RequestPayloadData,
 		) (ctypes.BuiltExecutionPayloadEnv, error)
 	}
 
@@ -121,15 +112,19 @@ type (
 
 	// StateProcessor defines the interface for processing the state.
 	StateProcessor interface {
-		// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
+		// InitializeBeaconStateFromEth1 initializes the premined beacon
 		// state
 		// from the eth1 deposits.
-		InitializePreminedBeaconStateFromEth1(
+		InitializeBeaconStateFromEth1(
 			*statedb.StateDB,
 			ctypes.Deposits,
 			*ctypes.ExecutionPayloadHeader,
 			common.Version,
 		) (transition.ValidatorUpdates, error)
+		// ProcessFork prepares the state for the fork version at the given timestamp.
+		ProcessFork(
+			st *statedb.StateDB, timestamp math.U64, logUpgrade bool,
+		) error
 		// ProcessSlot processes the slot.
 		ProcessSlots(
 			st *statedb.StateDB, slot math.Slot,
@@ -159,7 +154,7 @@ type (
 	StorageBackend interface {
 		AvailabilityStore() *dastore.Store
 		BlockStore() *block.KVStore[*ctypes.BeaconBlock]
-		DepositStore() *depositdb.KVStore
+		DepositStore() deposit.StoreManager
 		// StateFromContext retrieves the beacon state from the given context.
 		StateFromContext(context.Context) *statedb.StateDB
 	}
@@ -341,8 +336,6 @@ type (
 		GetSlashingAtIndex(index uint64) (math.Gwei, error)
 		// GetTotalValidators retrieves the total validators.
 		GetTotalValidators() (uint64, error)
-		// GetTotalActiveBalances retrieves the total active balances.
-		GetTotalActiveBalances(uint64) (math.Gwei, error)
 		// ValidatorByIndex retrieves the validator at the given index.
 		ValidatorByIndex(index math.ValidatorIndex) (*ctypes.Validator, error)
 		// UpdateBlockRootAtIndex updates the block root at the given index.
@@ -368,9 +361,6 @@ type (
 		ValidatorIndexByCometBFTAddress(
 			cometBFTAddress []byte,
 		) (math.ValidatorIndex, error)
-		// GetValidatorsByEffectiveBalance retrieves validators by effective
-		// balance.
-		GetValidatorsByEffectiveBalance() ([]*ctypes.Validator, error)
 	}
 
 	// ReadOnlyBeaconState is the interface for a read-only beacon state.
@@ -389,14 +379,12 @@ type (
 		GetGenesisValidatorsRoot() (common.Root, error)
 		GetBlockRootAtIndex(uint64) (common.Root, error)
 		GetLatestBlockHeader() (*ctypes.BeaconBlockHeader, error)
-		GetTotalActiveBalances(uint64) (math.Gwei, error)
 		GetValidators() (ctypes.Validators, error)
 		GetSlashingAtIndex(uint64) (math.Gwei, error)
 		GetTotalSlashing() (math.Gwei, error)
 		GetNextWithdrawalIndex() (uint64, error)
 		GetNextWithdrawalValidatorIndex() (math.ValidatorIndex, error)
 		GetTotalValidators() (uint64, error)
-		GetValidatorsByEffectiveBalance() ([]*ctypes.Validator, error)
 		ValidatorIndexByCometBFTAddress(
 			cometBFTAddress []byte,
 		) (math.ValidatorIndex, error)
@@ -416,7 +404,6 @@ type (
 		SetLatestBlockHeader(*ctypes.BeaconBlockHeader) error
 		IncreaseBalance(math.ValidatorIndex, math.Gwei) error
 		DecreaseBalance(math.ValidatorIndex, math.Gwei) error
-		UpdateSlashingAtIndex(uint64, math.Gwei) error
 		SetNextWithdrawalIndex(uint64) error
 		SetNextWithdrawalValidatorIndex(math.ValidatorIndex) error
 		SetTotalSlashing(math.Gwei) error
@@ -486,7 +473,6 @@ type (
 	// ReadOnlyWithdrawals only has read access to withdrawal methods.
 	ReadOnlyWithdrawals interface {
 		EVMInflationWithdrawal(math.Slot) *engineprimitives.Withdrawal
-		ExpectedWithdrawals() (engineprimitives.Withdrawals, error)
 	}
 )
 
@@ -518,7 +504,7 @@ type (
 		NodeAPIConfigBackend
 	}
 
-	// NodeAPIBackend is the interface for backend of the beacon API.
+	// NodeAPIBeaconBackend is the interface for backend of the beacon API.
 	NodeAPIBeaconBackend interface {
 		GenesisBackend
 		BlobBackend
@@ -526,7 +512,7 @@ type (
 		RandaoBackend
 		StateBackend
 		ValidatorBackend
-		HistoricalBackend
+		WithdrawalBackend
 		// GetSlotByBlockRoot retrieves the slot by a given root from the store.
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		// GetSlotByStateRoot retrieves the slot by a given root from the store.
@@ -546,12 +532,9 @@ type (
 	}
 
 	GenesisBackend interface {
-		GenesisValidatorsRoot(slot math.Slot) (common.Root, error)
-	}
-
-	HistoricalBackend interface {
-		StateRootAtSlot(slot math.Slot) (common.Root, error)
-		StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error)
+		GenesisValidatorsRoot() (common.Root, error)
+		GenesisForkVersion() (common.Version, error)
+		GenesisTime() (math.U64, error)
 	}
 
 	RandaoBackend interface {
@@ -569,10 +552,11 @@ type (
 	}
 
 	StateBackend interface {
-		StateRootAtSlot(slot math.Slot) (common.Root, error)
-		StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error)
-		StateFromSlotForProof(slot math.Slot) (*statedb.StateDB, math.Slot, error)
-		StateAtSlot(slot math.Slot) (*statedb.StateDB, error)
+		StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error)
+	}
+
+	WithdrawalBackend interface {
+		PendingPartialWithdrawalsAtState(*statedb.StateDB) ([]*types.PendingPartialWithdrawalData, error)
 	}
 
 	ValidatorBackend interface {

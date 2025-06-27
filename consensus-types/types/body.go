@@ -96,7 +96,7 @@ type BeaconBlockBody struct {
 	blsToExecutionChanges []*BlsToExecutionChange
 	// BlobKzgCommitments is the list of KZG commitments for the EIP-4844 blobs.
 	BlobKzgCommitments []eip4844.KZGCommitment
-	// executionRequests is introduced in electra. We keep this private so that it must go through Getter/Setter
+	// executionRequests is introduced in Electra. We keep this private so that it must go through Getter/Setter
 	// which does a forkVersion check.
 	executionRequests *ExecutionRequests
 }
@@ -107,12 +107,11 @@ type BeaconBlockBody struct {
 
 // SizeSSZ returns the size of the BeaconBlockBody in SSZ.
 func (b *BeaconBlockBody) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
-	syncSize := b.syncAggregate.SizeSSZ(siz)
-	var size = 96 + 72 + 32 + 4 + 4 + 4 + 4 + 4 + syncSize + 4 + 4 + 4
+	var size = 96 + 72 + 32 + 4 + 4 + 4 + 4 + 4 + b.syncAggregate.SizeSSZ(siz) + 4 + 4 + 4
 	includeExecRequest := version.EqualsOrIsAfter(b.GetForkVersion(), version.Electra())
 	if includeExecRequest {
 		// Add 4 for the offset of dynamic field ExecutionRequests
-		size += sszDynamicObjectOffset
+		size += constants.SSZOffsetSize
 	}
 
 	if fixed {

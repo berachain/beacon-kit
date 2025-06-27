@@ -28,15 +28,15 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/blob"
 	"github.com/berachain/beacon-kit/da/types"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	byteslib "github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
+	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/math/log"
 	"github.com/berachain/beacon-kit/primitives/version"
+	"github.com/berachain/beacon-kit/testing/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -74,7 +74,7 @@ func TestSidecarMarshalling(t *testing.T) {
 
 	// Unmarshal the sidecar
 	unmarshalled := new(types.BlobSidecar)
-	err = constraints.SSZUnmarshal(marshalled, unmarshalled)
+	err = ssz.Unmarshal(marshalled, unmarshalled)
 	require.NoError(t, err, "Unmarshalling should not produce an error")
 
 	// Compare the original and unmarshalled sidecars
@@ -84,58 +84,6 @@ func TestSidecarMarshalling(t *testing.T) {
 		unmarshalled,
 		"The original and unmarshalled sidecars should be equal",
 	)
-}
-
-// TODO(pectra): Update to take in version
-func generateValidBeaconBlock(t *testing.T) *ctypes.BeaconBlock {
-	t.Helper()
-
-	// Initialize your block here
-	deneb1 := version.Deneb1()
-	beaconBlock, err := ctypes.NewBeaconBlockWithVersion(
-		math.Slot(10),
-		math.ValidatorIndex(5),
-		common.Root{1, 2, 3, 4, 5}, // parent root
-		deneb1,
-	)
-	require.NoError(t, err)
-
-	beaconBlock.StateRoot = common.Root{5, 4, 3, 2, 1}
-	beaconBlock.Body = &ctypes.BeaconBlockBody{
-		Versionable: beaconBlock,
-		ExecutionPayload: &ctypes.ExecutionPayload{
-			Versionable: beaconBlock,
-			Timestamp:   10,
-			ExtraData:   []byte("dummy extra data for testing"),
-			Transactions: [][]byte{
-				[]byte("tx1"),
-				[]byte("tx2"),
-				[]byte("tx3"),
-			},
-			Withdrawals: engineprimitives.Withdrawals{
-				{Index: 0, Amount: 100},
-				{Index: 1, Amount: 200},
-			},
-			BaseFeePerGas: math.NewU256(0),
-		},
-		Eth1Data: &ctypes.Eth1Data{},
-		Deposits: []*ctypes.Deposit{
-			{
-				Index: 1,
-			},
-		},
-		BlobKzgCommitments: []eip4844.KZGCommitment{
-			{0xab, 0xab, 0xab, 0xab, 0xab, 0xab, 0xab, 0xab}, {2}, {0x69},
-		},
-	}
-	body := beaconBlock.GetBody()
-	body.SetProposerSlashings(ctypes.ProposerSlashings{})
-	body.SetAttesterSlashings(ctypes.AttesterSlashings{})
-	body.SetAttestations(ctypes.Attestations{})
-	body.SetSyncAggregate(&ctypes.SyncAggregate{})
-	body.SetVoluntaryExits(ctypes.VoluntaryExits{})
-	body.SetBlsToExecutionChanges(ctypes.BlsToExecutionChanges{})
-	return beaconBlock
 }
 
 type InclusionSink struct{}
@@ -199,7 +147,7 @@ func TestHasValidInclusionProof(t *testing.T) {
 			name: "Valid inclusion proof",
 			sidecars: func(t *testing.T) types.BlobSidecars {
 				t.Helper()
-				block := generateValidBeaconBlock(t)
+				block := utils.GenerateValidBeaconBlock(t, version.Electra())
 
 				sidecarFactory := blob.NewSidecarFactory(sink)
 				numBlobs := len(block.GetBody().GetBlobKzgCommitments())

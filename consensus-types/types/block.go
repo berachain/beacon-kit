@@ -61,7 +61,7 @@ func NewBeaconBlockWithVersion(
 	forkVersion common.Version,
 ) (*BeaconBlock, error) {
 	switch forkVersion {
-	case version.Deneb(), version.Deneb1():
+	case version.Deneb(), version.Deneb1(), version.Electra(), version.Electra1():
 		block := NewEmptyBeaconBlockWithVersion(forkVersion)
 		block.Slot = slot
 		block.ProposerIndex = proposerIndex
@@ -141,6 +141,11 @@ func (b *BeaconBlock) GetProposerIndex() math.ValidatorIndex {
 // GetParentBlockRoot retrieves the parent block root of the BeaconBlockBase.
 func (b *BeaconBlock) GetParentBlockRoot() common.Root {
 	return b.ParentRoot
+}
+
+// SetParentBlockRoot sets the parent block root of the BeaconBlockBase.
+func (b *BeaconBlock) SetParentBlockRoot(parentBlockRoot common.Root) {
+	b.ParentRoot = parentBlockRoot
 }
 
 // GetStateRoot retrieves the state root of the BeaconBlock.

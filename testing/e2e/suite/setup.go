@@ -231,8 +231,7 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 			if gasTipCap, err = s.JSONRPCBalancer().SuggestGasTipCap(ctx); err != nil {
 				var rpcErr rpc.Error
 				if errors.As(err, &rpcErr) && rpcErr.ErrorCode() == -32601 {
-					// Besu does not support eth_maxPriorityFeePerGas
-					// so we use a default value of 10 Gwei.
+					// Fallback to default value of 10 Gwei if method not supported
 					gasTipCap = big.NewInt(0).SetUint64(TenGwei)
 				} else {
 					return nil, err
@@ -242,8 +241,8 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 			gasFeeCap := new(big.Int).Add(
 				gasTipCap, big.NewInt(0).SetUint64(TenGwei))
 			nonceToSubmit := nonce.Add(1) - 1
-			//nolint:mnd // 20000 Ether
-			value := new(big.Int).Mul(big.NewInt(200000), big.NewInt(Ether))
+			//nolint:mnd // 2_000_000_000 Ether
+			value := new(big.Int).Mul(big.NewInt(2_000_000_000), big.NewInt(Ether))
 			dest := account.Address()
 			var signedTx *ethtypes.Transaction
 			if signedTx, err = s.genesisAccount.SignTx(
