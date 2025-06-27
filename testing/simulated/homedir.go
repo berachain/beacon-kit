@@ -77,7 +77,7 @@ func InitializeHomeDir(t *testing.T, chainSpec chain.Spec, tempHomeDir string, e
 	require.NoError(t, err, "failed to collect genesis deposits")
 
 	// Update the execution layer deposit storage with the eth-genesis file.
-	err = genesis.SetDepositStorage(chainSpec, cometConfig, elGenesisPath, false)
+	err = genesis.SetDepositStorage(chainSpec, cometConfig, elGenesisPath)
 	require.NoError(t, err, "failed to set deposit storage")
 
 	// Add the execution payload to the genesis configuration.
