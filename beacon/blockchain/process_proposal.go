@@ -27,6 +27,7 @@ import (
 	"time"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/cache"
 	"github.com/berachain/beacon-kit/consensus/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/errors"
@@ -322,7 +323,15 @@ func (s *Service) verifyStateRoot(
 	blk *types.ConsensusBlock,
 ) (transition.ValidatorUpdates, error) {
 	startTime := time.Now()
-	defer s.metrics.measureStateTransitionDuration(startTime)
+
+	isCacheActive := cache.IsStateCachingActive(blk.GetBeaconBlock().GetSlot())
+	if isCacheActive {
+		// Re-use finalize block metrics if caching is active
+		defer s.metrics.measureStateTransitionDuration(startTime)
+	} else {
+		// Keep ProcessProposal specific metrics before fork is active
+		defer s.metrics.measureStateRootVerificationTime(startTime)
+	}
 
 	txCtx := transition.NewTransitionCtx(
 		ctx,
@@ -332,7 +341,7 @@ func (s *Service) verifyStateRoot(
 		WithVerifyPayload(true).
 		WithVerifyRandao(true).
 		WithVerifyResult(true).
-		WithMeterGas(true)
+		WithMeterGas(isCacheActive)
 
 	valUpdates, err := s.stateProcessor.Transition(txCtx, st, blk.GetBeaconBlock())
 	return valUpdates, err

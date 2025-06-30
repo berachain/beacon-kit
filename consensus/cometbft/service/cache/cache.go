@@ -24,8 +24,19 @@ package cache
 import (
 	"errors"
 
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 )
+
+// TODO: Replace this with stable block time activation height to make sure
+// chains does not get faster before SBT is activated. Once activated, we
+// can drop the activation height and act as if the activation height is 2
+// (Can't be one!!!)
+const activationHeight = math.Slot(2)
+
+func IsStateCachingActive(height math.Slot) bool {
+	return height >= activationHeight
+}
 
 var (
 	_ States = (*candidateStates)(nil)

@@ -26,6 +26,7 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/cache"
+	"github.com/berachain/beacon-kit/primitives/math"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
@@ -81,7 +82,10 @@ func (s *Service) processProposal(
 
 	// We must not cache execution of the first block post initialHeight
 	// because its state must be handled in a different way
-	if req.Height > s.initialHeight {
+	// TODO: before Stable block time activation we keep caching off
+	// to make sure chain does not get faster. Once activated, we can
+	// actve as if cache was always active.
+	if cache.IsStateCachingActive(math.Slot(req.Height)) {
 		stateHash := string(req.Hash)
 		toCache := &cache.Element{
 			State:      processProposalState,
