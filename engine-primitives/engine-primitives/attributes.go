@@ -49,7 +49,7 @@ type PayloadAttributes struct {
 
 	// PrevProposerPubKey carries the public key of previous block proposed
 	// Needed to enshrine distributeFor in EVM
-	PrevProposerPubKey crypto.BLSPubkey
+	PrevProposerPubKey crypto.BLSPubkey `json:"prevProposerPubKey"`
 }
 
 // NewPayloadAttributes creates a new PayloadAttributes and validates it for
