@@ -34,23 +34,23 @@ import (
 
 func TestFork_Serialization(t *testing.T) {
 	t.Parallel()
-	original := types.NewFork(
+	fork := types.NewFork(
 		common.Version{1, 2, 3, 4},
 		common.Version{5, 6, 7, 8},
 		math.Epoch(1000),
 	)
 
-	data, err := original.MarshalSSZ()
+	data, err := fork.MarshalSSZ()
 	require.NotNil(t, data)
 	require.NoError(t, err)
 
-	unmarshalled := new(types.Fork)
-	err = ssz.Unmarshal(data, unmarshalled)
+	var unmarshalled types.Fork
+	err = ssz.Unmarshal(data, &unmarshalled)
 	require.NoError(t, err)
-	require.Equal(t, original, unmarshalled)
+	require.Equal(t, fork, &unmarshalled)
 
 	var buf []byte
-	buf, err = original.MarshalSSZTo(buf)
+	buf, err = fork.MarshalSSZTo(buf)
 	require.NoError(t, err)
 
 	// The two byte slices should be equal
@@ -102,4 +102,29 @@ func TestFork_UnmarshalSSZ_ErrSize(t *testing.T) {
 	unmarshalled := new(types.Fork)
 	err := ssz.Unmarshal(buf, unmarshalled)
 	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
+}
+
+func TestFork_SerializationFormat(t *testing.T) {
+	t.Parallel()
+
+	fork := &types.Fork{
+		PreviousVersion: common.Version{0x01, 0x02, 0x03, 0x04},
+		CurrentVersion:  common.Version{0x05, 0x06, 0x07, 0x08},
+		Epoch:           math.Epoch(0x1234567890ABCDEF),
+	}
+
+	data, err := fork.MarshalSSZ()
+	require.NoError(t, err)
+
+	// Document the expected SSZ format:
+	// PreviousVersion: 4 bytes
+	// CurrentVersion: 4 bytes
+	// Epoch: 8 bytes (little-endian)
+	expectedBytes := []byte{
+		0x01, 0x02, 0x03, 0x04, // PreviousVersion
+		0x05, 0x06, 0x07, 0x08, // CurrentVersion
+		0xEF, 0xCD, 0xAB, 0x90, 0x78, 0x56, 0x34, 0x12, // Epoch (little-endian)
+	}
+
+	require.Equal(t, expectedBytes, data, "Serialization format should match SSZ specification")
 }

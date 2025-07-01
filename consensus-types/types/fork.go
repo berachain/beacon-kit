@@ -33,7 +33,6 @@ import (
 const ForkSize = 16
 
 var (
-	_ ssz.StaticObject                    = (*Fork)(nil)
 	_ constraints.SSZMarshallableRootable = (*Fork)(nil)
 )
 
@@ -73,29 +72,51 @@ func NewEmptyFork() *Fork {
 /*                                     SSZ                                    */
 /* -------------------------------------------------------------------------- */
 
+// MarshalSSZ marshals the Fork object to SSZ format.
+func (f *Fork) MarshalSSZ() ([]byte, error) {
+	return f.MarshalSSZTo(nil)
+}
+
+// UnmarshalSSZ unmarshals the Fork object from SSZ format.
+func (f *Fork) UnmarshalSSZ(buf []byte) error {
+	if len(buf) < ForkSize {
+		return fastssz.ErrSize
+	}
+
+	// Field (0) 'PreviousVersion'
+	copy(f.PreviousVersion[:], buf[0:4])
+
+	// Field (1) 'CurrentVersion'
+	copy(f.CurrentVersion[:], buf[4:8])
+
+	// Field (2) 'Epoch'
+	f.Epoch = math.Epoch(fastssz.UnmarshallUint64(buf[8:16]))
+
+	return nil
+}
+
 // SizeSSZ returns the SSZ encoded size of the Fork object in bytes.
 func (f *Fork) SizeSSZ(*ssz.Sizer) uint32 {
 	return ForkSize
 }
 
-// DefineSSZ defines the SSZ encoding for the Fork object.
+// DefineSSZ defines the SSZ encoding (required for SSZMarshallable interface).
+// Provides backward compatibility for code that still uses karalabe/ssz for unmarshaling.
 func (f *Fork) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineStaticBytes(codec, &f.PreviousVersion)
 	ssz.DefineStaticBytes(codec, &f.CurrentVersion)
 	ssz.DefineUint64(codec, &f.Epoch)
 }
 
-// MarshalSSZ marshals the Fork object to SSZ format.
-func (f *Fork) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(f))
-	return buf, ssz.EncodeToBytes(buf, f)
-}
-
 func (*Fork) ValidateAfterDecodingSSZ() error { return nil }
 
 // HashTreeRoot computes the SSZ hash tree root of the Fork object.
 func (f *Fork) HashTreeRoot() common.Root {
-	return ssz.HashSequential(f)
+	hh := fastssz.NewHasher()
+	if err := f.HashTreeRootWith(hh); err != nil {
+		panic(err)
+	}
+	return common.Root(hh.Hash())
 }
 
 /* -------------------------------------------------------------------------- */
@@ -104,12 +125,16 @@ func (f *Fork) HashTreeRoot() common.Root {
 
 // MarshalSSZTo ssz marshals the Fork object to a target array.
 func (f *Fork) MarshalSSZTo(buf []byte) ([]byte, error) {
-	bz, err := f.MarshalSSZ()
-	if err != nil {
-		return nil, err
-	}
+	// Field (0) 'PreviousVersion'
+	buf = append(buf, f.PreviousVersion[:]...)
 
-	return append(buf, bz...), nil
+	// Field (1) 'CurrentVersion'
+	buf = append(buf, f.CurrentVersion[:]...)
+
+	// Field (2) 'Epoch'
+	buf = fastssz.MarshalUint64(buf, uint64(f.Epoch))
+
+	return buf, nil
 }
 
 // HashTreeRootWith ssz hashes the Fork object with a hasher.
