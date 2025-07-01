@@ -30,6 +30,7 @@ import (
 	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/payload/builder"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -180,7 +181,7 @@ func (s *Service) preFetchBuildData(st *statedb.StateDB, currentTime math.U64) (
 		return nil, err
 	}
 
-	prevProposerPubKey, err := prevBlockProposerPubKey(st, s.chainSpec, nextPayloadTimestamp)
+	prevProposerPubKey, err := PrevBlockProposerPubKey(st, s.chainSpec, nextPayloadTimestamp)
 	if err != nil {
 		return nil, fmt.Errorf("failed retrieving previous proposer public key: %w", err)
 	}
@@ -246,7 +247,11 @@ func (s *Service) handleOptimisticPayloadBuild(
 	s.metrics.markOptimisticPayloadBuildSuccess(buildData.Slot)
 }
 
-func prevBlockProposerPubKey(st *statedb.StateDB, cs ServiceChainSpec, nextPayloadTimestamp math.U64) (crypto.BLSPubkey, error) {
+func PrevBlockProposerPubKey[
+	ForkChainSpec interface {
+		ActiveForkVersionForTimestamp(timestamp math.U64) common.Version
+	},
+](st *statedb.StateDB, cs ForkChainSpec, nextPayloadTimestamp math.U64) (crypto.BLSPubkey, error) {
 	var (
 		forkVersion        = cs.ActiveForkVersionForTimestamp(nextPayloadTimestamp)
 		prevProposerPubKey crypto.BLSPubkey

@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/berachain/beacon-kit/beacon/blockchain"
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
@@ -273,7 +274,7 @@ func (s *Service) retrieveExecutionPayload(
 		return nil, err
 	}
 
-	prevProposerPubKey, err := prevBlockProposerPubKey(st, s.chainSpec, nextPayloadTimestamp)
+	prevProposerPubKey, err := blockchain.PrevBlockProposerPubKey(st, s.chainSpec, nextPayloadTimestamp)
 	if err != nil {
 		return nil, fmt.Errorf("failed retrieving previous proposer public key: %w", err)
 	}
@@ -289,25 +290,6 @@ func (s *Service) retrieveExecutionPayload(
 		PrevProposerPubKey: prevProposerPubKey,
 	}
 	return s.localPayloadBuilder.RequestPayloadSync(ctx, r)
-}
-
-func prevBlockProposerPubKey(st *statedb.StateDB, cs ChainSpec, nextPayloadTimestamp math.U64) (crypto.BLSPubkey, error) {
-	var (
-		forkVersion        = cs.ActiveForkVersionForTimestamp(nextPayloadTimestamp)
-		prevProposerPubKey = crypto.BLSPubkey{}
-	)
-	if version.EqualsOrIsAfter(forkVersion, version.Electra1()) {
-		latestBlockHeader, err := st.GetLatestBlockHeader()
-		if err != nil {
-			return crypto.BLSPubkey{}, fmt.Errorf("failed retrieving latest block header: %w", err)
-		}
-		prevProposer, err := st.ValidatorByIndex(latestBlockHeader.GetProposerIndex())
-		if err != nil {
-			return crypto.BLSPubkey{}, fmt.Errorf("failed retrieving prev proposer: %w", err)
-		}
-		prevProposerPubKey = prevProposer.GetPubkey()
-	}
-	return prevProposerPubKey, nil
 }
 
 // BuildBlockBody assembles the block body with necessary components.
