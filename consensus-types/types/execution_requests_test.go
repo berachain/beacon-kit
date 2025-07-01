@@ -28,7 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
+	"github.com/berachain/beacon-kit/primitives/encoding/sszutil"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/prysmaticlabs/prysm/v5/config/params"
 	"github.com/prysmaticlabs/prysm/v5/encoding/bytesutil"
@@ -237,7 +237,7 @@ func TestExecutionRequests_ValidValuesSSZ(t *testing.T) {
 
 			// Unmarshal back into a new ExecutionRequests.
 			var recomputedER types.ExecutionRequests
-			err = ssz.Unmarshal(prysmERBytes, &recomputedER)
+			err = sszutil.Unmarshal(prysmERBytes, &recomputedER)
 			require.NoError(t, err)
 
 			// Compare that the original and recomputed ExecutionRequests match.
@@ -300,7 +300,7 @@ func TestExecutionRequests_InvalidValuesUnmarshalSSZ(t *testing.T) {
 			// Ensure that calling UnmarshalSSZ with an invalid payload does not panic
 			// and returns a non-nil error.
 			require.NotPanics(t, func() {
-				err := ssz.Unmarshal(payload, &er)
+				err := sszutil.Unmarshal(payload, &er)
 				require.Error(t, err, "Expected error for payload %v", payload)
 			})
 		})
@@ -462,7 +462,7 @@ func TestDecodeExecutionRequests(t *testing.T) {
 				Index:                 456,
 			}
 		}
-		by, err := ssz.MarshalItemsEIP7685(requests)
+		by, err := sszutil.MarshalItemsEIP7685(requests)
 		require.NoError(t, err)
 		ebe := &enginev1.ExecutionBundleElectra{
 			ExecutionRequests: [][]byte{
@@ -481,7 +481,7 @@ func TestDecodeExecutionRequests(t *testing.T) {
 				Amount:          55555,
 			}
 		}
-		by, err := ssz.MarshalItemsEIP7685(requests)
+		by, err := sszutil.MarshalItemsEIP7685(requests)
 		require.NoError(t, err)
 		ebe := &enginev1.ExecutionBundleElectra{
 			ExecutionRequests: [][]byte{
@@ -500,7 +500,7 @@ func TestDecodeExecutionRequests(t *testing.T) {
 				TargetPubkey:  bytesutil.PadTo([]byte("pk"), 48),
 			}
 		}
-		by, err := ssz.MarshalItemsEIP7685(requests)
+		by, err := sszutil.MarshalItemsEIP7685(requests)
 		require.NoError(t, err)
 		ebe := &enginev1.ExecutionBundleElectra{
 			ExecutionRequests: [][]byte{

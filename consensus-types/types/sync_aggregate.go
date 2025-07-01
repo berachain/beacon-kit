@@ -25,7 +25,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/encoding/ssz/schema"
+	"github.com/berachain/beacon-kit/primitives/encoding/sszutil/schema"
 	"github.com/karalabe/ssz"
 )
 

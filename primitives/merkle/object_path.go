@@ -24,7 +24,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/berachain/beacon-kit/primitives/encoding/ssz/schema"
+	"github.com/berachain/beacon-kit/primitives/encoding/sszutil/schema"
 	"github.com/berachain/beacon-kit/primitives/math/pow"
 )
 

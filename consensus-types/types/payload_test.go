@@ -29,7 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
-	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
+	"github.com/berachain/beacon-kit/primitives/encoding/sszutil"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	karalabessz "github.com/karalabe/ssz"
@@ -81,7 +81,7 @@ func TestExecutionPayload_Serialization(t *testing.T) {
 	require.NotNil(t, data)
 
 	unmarshalled := types.NewEmptyExecutionPayloadWithVersion(original.GetForkVersion())
-	err = ssz.Unmarshal(data, unmarshalled)
+	err = sszutil.Unmarshal(data, unmarshalled)
 	require.NoError(t, err)
 	require.Equal(t, original, unmarshalled)
 
@@ -100,7 +100,7 @@ func TestExecutionPayload_SizeSSZ(t *testing.T) {
 	require.Equal(t, uint32(578), size)
 
 	unmarshalledBody := types.NewEmptyExecutionPayloadWithVersion(version.Deneb1())
-	err := ssz.Unmarshal(
+	err := sszutil.Unmarshal(
 		[]byte{0x01, 0x02, 0x03}, // Invalid data
 		unmarshalledBody,
 	)

@@ -26,7 +26,7 @@ import (
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
+	"github.com/berachain/beacon-kit/primitives/encoding/sszutil"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/prysmaticlabs/prysm/v5/encoding/bytesutil"
 	enginev1 "github.com/prysmaticlabs/prysm/v5/proto/engine/v1"
@@ -195,7 +195,7 @@ func TestDepositRequest_ValidValuesSSZ(t *testing.T) {
 
 			// Unmarshal back into a new DepositRequest.
 			var recomputedDepositRequest types.DepositRequest
-			err = ssz.Unmarshal(prysmDepositBytes, &recomputedDepositRequest)
+			err = sszutil.Unmarshal(prysmDepositBytes, &recomputedDepositRequest)
 			require.NoError(t, err)
 
 			// Compare that the original and recomputed deposit requests match.
@@ -268,7 +268,7 @@ func TestDepositRequest_InvalidValuesUnmarshalSSZ(t *testing.T) {
 		t.Run(fmt.Sprintf("invalidPayload_%d", i), func(t *testing.T) {
 			require.NotPanics(t, func() {
 				var d types.DepositRequest
-				err = ssz.Unmarshal(payload, &d)
+				err = sszutil.Unmarshal(payload, &d)
 				// We expect an error for every invalid payload.
 				require.Error(t, err, "expected error for payload %v", payload)
 			})
@@ -357,7 +357,7 @@ func TestUnmarshalItems_OK(t *testing.T) {
 	drb, err := hexutil.Decode(depositRequestsSSZHex)
 	require.NoError(t, err)
 	exampleRequest := &types.DepositRequest{}
-	depositRequests, err := ssz.UnmarshalItemsEIP7685(
+	depositRequests, err := sszutil.UnmarshalItemsEIP7685(
 		drb,
 		int(exampleRequest.SizeSSZ(nil)),
 		func() *types.DepositRequest { return &types.DepositRequest{} })
@@ -396,7 +396,7 @@ func TestMarshalItems_OK(t *testing.T) {
 		Signature:   crypto.BLSSignature(bytesutil.PadTo([]byte("sig"), 96)),
 		Index:       32,
 	}
-	drbs, err := ssz.MarshalItemsEIP7685([]*types.DepositRequest{exampleRequest1, exampleRequest2})
+	drbs, err := sszutil.MarshalItemsEIP7685([]*types.DepositRequest{exampleRequest1, exampleRequest2})
 	require.NoError(t, err)
 	require.Equal(t, depositRequestsSSZHex, hexutil.Encode(drbs))
 }

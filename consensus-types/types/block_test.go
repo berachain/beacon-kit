@@ -26,7 +26,7 @@ import (
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
+	"github.com/berachain/beacon-kit/primitives/encoding/sszutil"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/testing/utils"
@@ -85,7 +85,7 @@ func TestBeaconBlock_MarshalUnmarshalSSZ(t *testing.T) {
 		require.NotNil(t, sszBlock)
 
 		unmarshalledBlock := types.NewEmptyBeaconBlockWithVersion(v)
-		err = ssz.Unmarshal(sszBlock, unmarshalledBlock)
+		err = sszutil.Unmarshal(sszBlock, unmarshalledBlock)
 		require.NoError(t, err)
 		require.Equal(t, block, unmarshalledBlock)
 	})

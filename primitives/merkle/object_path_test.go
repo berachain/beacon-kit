@@ -24,7 +24,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/berachain/beacon-kit/primitives/encoding/ssz/schema"
+	"github.com/berachain/beacon-kit/primitives/encoding/sszutil/schema"
 	"github.com/berachain/beacon-kit/primitives/merkle"
 	"github.com/stretchr/testify/require"
 )

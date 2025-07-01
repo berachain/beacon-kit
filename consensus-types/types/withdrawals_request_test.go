@@ -27,7 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
+	"github.com/berachain/beacon-kit/primitives/encoding/sszutil"
 	enginev1 "github.com/prysmaticlabs/prysm/v5/proto/engine/v1"
 	"github.com/stretchr/testify/require"
 )
@@ -137,7 +137,7 @@ func TestWithdrawalRequest_ValidValuesSSZ(t *testing.T) {
 
 			// Unmarshal back into a new WithdrawalRequest.
 			var recomputedWithdrawalRequest types.WithdrawalRequest
-			err = ssz.Unmarshal(prysmWithdrawalBytes, &recomputedWithdrawalRequest)
+			err = sszutil.Unmarshal(prysmWithdrawalBytes, &recomputedWithdrawalRequest)
 			require.NoError(t, err)
 
 			// Compare that the original and recomputed values match.
@@ -192,7 +192,7 @@ func TestWithdrawalRequest_InvalidValuesUnmarshalSSZ(t *testing.T) {
 			// Ensure that calling UnmarshalSSZ does not panic and returns an error.
 			require.NotPanics(t, func() {
 				var w types.WithdrawalRequest
-				err = ssz.Unmarshal(payload, &w)
+				err = sszutil.Unmarshal(payload, &w)
 				require.Error(t, err, "expected error for payload %v", payload)
 			})
 		})
