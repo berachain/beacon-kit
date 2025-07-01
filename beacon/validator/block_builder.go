@@ -254,15 +254,35 @@ func (s *Service) retrieveExecutionPayload(
 		return nil, err
 	}
 
-	return s.localPayloadBuilder.RequestPayloadSync(
-		ctx,
-		st,
-		slot,
-		nextPayloadTimestamp,
-		parentBlockRoot,
-		lph.GetBlockHash(),
-		lph.GetParentHash(),
+	// Expected payloadWithdrawals to include in this payload.
+	payloadWithdrawals, _, err := st.ExpectedWithdrawals(nextPayloadTimestamp)
+	if err != nil {
+		s.logger.Error(
+			"Could not get expected withdrawals to get payload attribute",
+			"error",
+			err,
+		)
+		return nil, err
+	}
+	// Get the previous randao mix.
+	epoch := s.chainSpec.SlotToEpoch(slot)
+	prevRandao, err := st.GetRandaoMixAtIndex(
+		epoch.Unwrap() % s.chainSpec.EpochsPerHistoricalVector(),
 	)
+	if err != nil {
+		return nil, err
+	}
+
+	r := &builder.RequestPayloadData{
+		Slot:               slot,
+		Timestamp:          nextPayloadTimestamp,
+		PayloadWithdrawals: payloadWithdrawals,
+		PrevRandao:         prevRandao,
+		ParentBlockRoot:    parentBlockRoot,
+		HeadEth1BlockHash:  lph.GetBlockHash(),
+		FinalEth1BlockHash: lph.GetParentHash(),
+	}
+	return s.localPayloadBuilder.RequestPayloadSync(ctx, r)
 }
 
 // BuildBlockBody assembles the block body with necessary components.

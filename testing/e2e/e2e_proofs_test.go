@@ -70,6 +70,7 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 	)
 	s.Require().NoError(err)
 	s.Require().NotNil(blockProposerResp)
+	s.Require().NotNil(blockProposerResp.BeaconBlockHeader)
 
 	// Get the current block header.
 	nextHeader, err := s.JSONRPCBalancer().HeaderByNumber(
@@ -84,6 +85,7 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 	)
 	s.Require().NoError(err)
 	s.Require().NotNil(blockProposerResp2)
+	s.Require().NotNil(blockProposerResp2.BeaconBlockHeader)
 	s.Require().Equal(*blockProposerResp.BeaconBlockHeader, *blockProposerResp2.BeaconBlockHeader)
 	s.Require().Equal(blockProposerResp.BeaconBlockRoot, blockProposerResp2.BeaconBlockRoot)
 	s.Require().Equal(blockProposerResp.ValidatorPubkey, blockProposerResp2.ValidatorPubkey)
