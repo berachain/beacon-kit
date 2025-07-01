@@ -36,7 +36,7 @@ func NewGethNode(homeDir string, image docker.PullImageOptions) *ExecNode {
 // ValidGethImage returns the default Docker image options for the Geth node.
 func ValidGethImage() docker.PullImageOptions {
 	return docker.PullImageOptions{
-		Repository: "ethereum/client-go",
+		Repository: "ghcr.io/berachain/bera-geth",
 		Tag:        "latest",
 	}
 }
