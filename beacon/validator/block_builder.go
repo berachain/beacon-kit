@@ -273,6 +273,11 @@ func (s *Service) retrieveExecutionPayload(
 		return nil, err
 	}
 
+	prevProposerPubKey, err := prevBlockProposerPubKey(st, s.chainSpec, nextPayloadTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("failed retrieving previous proposer public key: %w", err)
+	}
+
 	r := &builder.RequestPayloadData{
 		Slot:               slot,
 		Timestamp:          nextPayloadTimestamp,
@@ -281,8 +286,28 @@ func (s *Service) retrieveExecutionPayload(
 		ParentBlockRoot:    parentBlockRoot,
 		HeadEth1BlockHash:  lph.GetBlockHash(),
 		FinalEth1BlockHash: lph.GetParentHash(),
+		PrevProposerPubKey: prevProposerPubKey,
 	}
 	return s.localPayloadBuilder.RequestPayloadSync(ctx, r)
+}
+
+func prevBlockProposerPubKey(st *statedb.StateDB, cs ChainSpec, nextPayloadTimestamp math.U64) (crypto.BLSPubkey, error) {
+	var (
+		forkVersion        = cs.ActiveForkVersionForTimestamp(nextPayloadTimestamp)
+		prevProposerPubKey = crypto.BLSPubkey{}
+	)
+	if version.EqualsOrIsAfter(forkVersion, version.Electra1()) {
+		latestBlockHeader, err := st.GetLatestBlockHeader()
+		if err != nil {
+			return crypto.BLSPubkey{}, fmt.Errorf("failed retrieving latest block header: %w", err)
+		}
+		prevProposer, err := st.ValidatorByIndex(latestBlockHeader.GetProposerIndex())
+		if err != nil {
+			return crypto.BLSPubkey{}, fmt.Errorf("failed retrieving prev proposer: %w", err)
+		}
+		prevProposerPubKey = prevProposer.GetPubkey()
+	}
+	return prevProposerPubKey, nil
 }
 
 // BuildBlockBody assembles the block body with necessary components.

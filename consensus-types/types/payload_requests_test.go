@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -72,6 +73,7 @@ func TestBuildForkchoiceUpdateRequest(t *testing.T) {
 		common.ExecutionAddress{},
 		engineprimitives.Withdrawals{},
 		common.Root{},
+		crypto.BLSPubkey{},
 	)
 	require.NoError(t, err)
 

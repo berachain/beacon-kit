@@ -22,6 +22,7 @@ package engineprimitives
 
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 )
@@ -45,6 +46,10 @@ type PayloadAttributes struct {
 	// to the block currently being processed. This field was added for
 	// EIP-4788.
 	ParentBeaconBlockRoot common.Root `json:"parentBeaconBlockRoot"`
+
+	// PrevProposerPubKey carries the public key of previous block proposed
+	// Needed to enshrine distributeFor in EVM
+	PrevProposerPubKey crypto.BLSPubkey
 }
 
 // NewPayloadAttributes creates a new PayloadAttributes and validates it for
@@ -56,6 +61,7 @@ func NewPayloadAttributes(
 	suggestedFeeRecipient common.ExecutionAddress,
 	withdrawals Withdrawals,
 	parentBeaconBlockRoot common.Root,
+	prevProposerPubKey crypto.BLSPubkey,
 ) (*PayloadAttributes, error) {
 	pa := &PayloadAttributes{
 		Timestamp:             timestamp,
@@ -63,6 +69,7 @@ func NewPayloadAttributes(
 		SuggestedFeeRecipient: suggestedFeeRecipient,
 		Withdrawals:           withdrawals,
 		ParentBeaconBlockRoot: parentBeaconBlockRoot,
+		PrevProposerPubKey:    prevProposerPubKey,
 	}
 
 	if err := pa.Validate(forkVersion); err != nil {
@@ -90,6 +97,17 @@ func (p *PayloadAttributes) Validate(forkVersion common.Version) error {
 	// For any fork version Capella onwards, withdrawals are required.
 	if p.Withdrawals == nil && version.EqualsOrIsAfter(forkVersion, version.Capella()) {
 		return ErrNilWithdrawals
+	}
+
+	emptyBLSPubKey := crypto.BLSPubkey{}
+	if version.IsBefore(forkVersion, version.Electra1()) {
+		if p.PrevProposerPubKey != emptyBLSPubKey {
+			return ErrNonEmptyPrevProposerPubKey
+		}
+	} else {
+		if p.PrevProposerPubKey == emptyBLSPubKey {
+			return ErrEmptyPrevProposerPubKey
+		}
 	}
 
 	return nil
