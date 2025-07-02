@@ -129,8 +129,13 @@ type TelemetrySink interface {
 
 //nolint:revive // its ok
 type BlockchainI interface {
-	ProcessGenesisData(
-		context.Context, []byte) (transition.ValidatorUpdates, error)
+	ProcessGenesisData(context.Context, []byte) (
+		transition.ValidatorUpdates,
+		*ctypes.BeaconBlockHeader,
+		common.Root,
+		common.Root,
+		error,
+	)
 	ProcessProposal(
 		sdk.Context,
 		*cmtabci.ProcessProposalRequest,

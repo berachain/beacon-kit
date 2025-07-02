@@ -24,6 +24,7 @@ import (
 	"sync/atomic"
 
 	"github.com/berachain/beacon-kit/chain"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/berachain/beacon-kit/node-core/types"
@@ -41,14 +42,12 @@ type Backend struct {
 	cs   chain.Spec
 	node types.ConsensusService
 
-	// genesisValidatorsRoot is cached in the backend.
+	// the genesis data is cached here, written to once during initialization!
+	genesisHeader         atomic.Pointer[ctypes.BeaconBlockHeader]
 	genesisValidatorsRoot atomic.Pointer[common.Root]
-
-	// genesisTime is cached here, written to once during initialization!
-	genesisTime atomic.Pointer[math.U64]
-
-	// genesisForkVersion is cached here, written to once during initialization!
-	genesisForkVersion atomic.Pointer[common.Version]
+	genesisBlockRoot      atomic.Pointer[common.Root]
+	genesisTime           atomic.Pointer[math.U64]
+	genesisForkVersion    atomic.Pointer[common.Version]
 }
 
 // New creates and returns a new Backend instance.
@@ -88,6 +87,17 @@ func New(
 // querying historical heights.
 func (b *Backend) AttachQueryBackend(node types.ConsensusService) {
 	b.node = node
+}
+
+// SetGenesisData sets the genesis data on the API backend.
+func (b *Backend) SetGenesisData(
+	genesisHeader *ctypes.BeaconBlockHeader,
+	genesisValidatorsRoot common.Root,
+	genesisBlockRoot common.Root,
+) {
+	b.genesisHeader.Store(genesisHeader)
+	b.genesisValidatorsRoot.Store(&genesisValidatorsRoot)
+	b.genesisBlockRoot.Store(&genesisBlockRoot)
 }
 
 // GetSlotByBlockRoot retrieves the slot by a block root from the block store.

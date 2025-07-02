@@ -70,6 +70,7 @@ type Service struct {
 	sm           *statem.Manager
 	Blockchain   blockchain.BlockchainI
 	BlockBuilder validator.BlockBuilderI
+	apiBackend   APIBackend
 
 	// prepareProposalState is used for PrepareProposal, which is set based on
 	// the previous block's state. This state is never committed. In case of
@@ -112,6 +113,7 @@ func NewService(
 	db dbm.DB,
 	blockchain blockchain.BlockchainI,
 	blockBuilder validator.BlockBuilderI,
+	apiBackend APIBackend,
 	cmtCfg *cmtcfg.Config,
 	telemetrySink TelemetrySink,
 	options ...func(*Service),
@@ -134,6 +136,7 @@ func NewService(
 		sm:                 statem.NewManager(db, log),
 		Blockchain:         blockchain,
 		BlockBuilder:       blockBuilder,
+		apiBackend:         apiBackend,
 		cmtConsensusParams: cmtConsensusParams,
 		cmtCfg:             cmtCfg,
 		telemetrySink:      telemetrySink,
