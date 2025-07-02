@@ -21,14 +21,12 @@
 package types_test
 
 import (
-	"io"
 	"testing"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/encoding/sszutil"
 	"github.com/berachain/beacon-kit/primitives/math"
-	karalabessz "github.com/karalabe/ssz"
+	ssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -45,7 +43,7 @@ func TestFork_Serialization(t *testing.T) {
 	require.NoError(t, err)
 
 	unmarshalled := new(types.Fork)
-	err = sszutil.Unmarshal(data, unmarshalled)
+	err = unmarshalled.UnmarshalSSZ(data)
 	require.NoError(t, err)
 	require.Equal(t, original, unmarshalled)
 
@@ -57,18 +55,6 @@ func TestFork_Serialization(t *testing.T) {
 	require.Equal(t, data, buf)
 }
 
-func TestFork_SizeSSZ(t *testing.T) {
-	t.Parallel()
-	fork := &types.Fork{
-		PreviousVersion: common.Version{1, 2, 3, 4},
-		CurrentVersion:  common.Version{5, 6, 7, 8},
-		Epoch:           math.Epoch(1000),
-	}
-
-	size := karalabessz.Size(fork)
-	require.Equal(t, uint32(16), size)
-}
-
 func TestFork_HashTreeRoot(t *testing.T) {
 	t.Parallel()
 	fork := &types.Fork{
@@ -78,7 +64,7 @@ func TestFork_HashTreeRoot(t *testing.T) {
 	}
 
 	require.NotPanics(t, func() {
-		_ = fork.HashTreeRoot()
+		_, _ = fork.HashTreeRoot()
 	})
 }
 
@@ -100,6 +86,6 @@ func TestFork_UnmarshalSSZ_ErrSize(t *testing.T) {
 	buf := make([]byte, 10) // size less than 16
 
 	unmarshalled := new(types.Fork)
-	err := sszutil.Unmarshal(buf, unmarshalled)
-	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
+	err := unmarshalled.UnmarshalSSZ(buf)
+	require.ErrorIs(t, err, ssz.ErrSize)
 }

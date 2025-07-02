@@ -135,7 +135,7 @@ func (st *BeaconState) DefineSSZ(codec *ssz.Codec) {
 	// Versioning
 	ssz.DefineStaticBytes(codec, &st.GenesisValidatorsRoot)
 	ssz.DefineUint64(codec, &st.Slot)
-	ssz.DefineStaticObject(codec, &st.Fork)
+	//ssz.DefineStaticObject(codec, &st.Fork)
 
 	// History
 	ssz.DefineStaticObject(codec, &st.LatestBlockHeader)
