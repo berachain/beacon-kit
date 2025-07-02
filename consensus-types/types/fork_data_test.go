@@ -21,14 +21,11 @@
 package types_test
 
 import (
-	"io"
 	"testing"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/encoding/sszutil"
 	"github.com/berachain/beacon-kit/primitives/math"
-	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -44,7 +41,7 @@ func TestForkData_Serialization(t *testing.T) {
 	require.NotNil(t, data)
 
 	unmarshalled := new(types.ForkData)
-	err = sszutil.Unmarshal(data, unmarshalled)
+	err = unmarshalled.UnmarshalSSZ(data)
 	require.NoError(t, err)
 
 	require.Equal(t, original, unmarshalled)
@@ -53,8 +50,9 @@ func TestForkData_Serialization(t *testing.T) {
 func TestForkData_Unmarshal(t *testing.T) {
 	t.Parallel()
 	unmarshalled := new(types.ForkData)
-	err := sszutil.Unmarshal([]byte{}, unmarshalled)
-	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
+	err := unmarshalled.UnmarshalSSZ([]byte{})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "incorrect size")
 }
 
 func TestForkData_SizeSSZ(t *testing.T) {
@@ -64,8 +62,8 @@ func TestForkData_SizeSSZ(t *testing.T) {
 		GenesisValidatorsRoot: common.Root{},
 	}
 
-	size := karalabessz.Size(forkData)
-	require.Equal(t, uint32(36), size)
+	size := forkData.SizeSSZ()
+	require.Equal(t, 36, size)
 }
 
 func TestForkData_HashTreeRoot(t *testing.T) {
@@ -75,7 +73,7 @@ func TestForkData_HashTreeRoot(t *testing.T) {
 		GenesisValidatorsRoot: common.Root{},
 	}
 	require.NotPanics(t, func() {
-		_ = forkData.HashTreeRoot()
+		_, _ = forkData.HashTreeRoot()
 	})
 }
 

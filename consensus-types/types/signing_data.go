@@ -25,55 +25,17 @@ import (
 
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
-	"github.com/berachain/beacon-kit/primitives/constraints"
-	"github.com/karalabe/ssz"
 )
 
-var (
-	_ ssz.StaticObject                    = (*SigningData)(nil)
-	_ constraints.SSZMarshallableRootable = (*SigningData)(nil)
-)
+//go:generate sszgen --path . --include ../../primitives/common,../../primitives/bytes --objs SigningData --output signing_data_sszgen.go
 
 // SigningData as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#signingdata
 type SigningData struct {
 	// ObjectRoot is the hash tree root of the object being signed.
-	ObjectRoot common.Root
+	ObjectRoot common.Root `ssz-size:"32"`
 	// Domain is the domain the object is being signed in.
-	Domain common.Domain
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                     SSZ                                    */
-/* -------------------------------------------------------------------------- */
-
-// SizeSSZ returns the size of the SigningData object in SSZ encoding.
-func (*SigningData) SizeSSZ(_ *ssz.Sizer) uint32 {
-	//nolint:mnd // 32*2 = 64.
-	return 64
-}
-
-// DefineSSZ defines the SSZ encoding for the SigningData object.
-func (s *SigningData) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineStaticBytes(codec, &s.ObjectRoot)
-	ssz.DefineStaticBytes(codec, &s.Domain)
-}
-
-// HashTreeRoot computes the SSZ hash tree root of the SigningData object.
-func (s *SigningData) HashTreeRoot() common.Root {
-	return ssz.HashSequential(s)
-}
-
-// MarshalSSZTo marshals the SigningData object to SSZ format into the provided
-// buffer.
-func (s *SigningData) MarshalSSZTo(buf []byte) ([]byte, error) {
-	return buf, ssz.EncodeToBytes(buf, s)
-}
-
-// MarshalSSZ marshals the SigningData object to SSZ format.
-func (s *SigningData) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(s))
-	return s.MarshalSSZTo(buf)
+	Domain common.Domain `ssz-size:"32"`
 }
 
 func (*SigningData) ValidateAfterDecodingSSZ() error { return nil }
@@ -84,10 +46,30 @@ func ComputeSigningRoot(
 	sszObject interface{ HashTreeRoot() common.Root },
 	domain common.Domain,
 ) common.Root {
-	return (&SigningData{
-		ObjectRoot: sszObject.HashTreeRoot(),
+	htr := sszObject.HashTreeRoot()
+	root, err := (&SigningData{
+		ObjectRoot: htr,
 		Domain:     domain,
 	}).HashTreeRoot()
+	if err != nil {
+		panic(err)
+	}
+	return common.Root(root)
+}
+
+// ComputeSigningRootFromHTR computes the signing root from a pre-computed hash tree root.
+func ComputeSigningRootFromHTR(
+	htr [32]byte,
+	domain common.Domain,
+) common.Root {
+	root, err := (&SigningData{
+		ObjectRoot: common.Root(htr),
+		Domain:     domain,
+	}).HashTreeRoot()
+	if err != nil {
+		panic(err)
+	}
+	return common.Root(root)
 }
 
 // ComputeSigningRootUInt64 computes the signing root of a uint64 value.
@@ -98,8 +80,12 @@ func ComputeSigningRootUInt64(
 ) common.Root {
 	bz := make([]byte, constants.RootLength)
 	binary.LittleEndian.PutUint64(bz, value)
-	return (&SigningData{
+	root, err := (&SigningData{
 		ObjectRoot: common.Root(bz),
 		Domain:     domain,
 	}).HashTreeRoot()
+	if err != nil {
+		panic(err)
+	}
+	return common.Root(root)
 }

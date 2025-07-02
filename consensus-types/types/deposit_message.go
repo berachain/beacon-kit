@@ -25,18 +25,19 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/karalabe/ssz"
 )
+
+//go:generate sszgen --path . --include ../../primitives/common,../../primitives/bytes,../../primitives/math,../../primitives/crypto --objs DepositMessage --output deposit_message_sszgen.go
 
 // DepositMessage represents a deposit message as defined in the Ethereum 2.0
 // specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#depositmessage
 type DepositMessage struct {
 	// Public key of the validator specified in the deposit.
-	Pubkey crypto.BLSPubkey `json:"pubkey"`
+	Pubkey crypto.BLSPubkey `json:"pubkey" ssz-size:"48"`
 	// A staking credentials with
 	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
-	Credentials WithdrawalCredentials `json:"credentials"`
+	Credentials WithdrawalCredentials `json:"credentials" ssz-size:"32"`
 	// Deposit amount in gwei.
 	Amount math.Gwei `json:"amount"`
 }
@@ -55,7 +56,11 @@ func CreateAndSignDepositMessage(
 		Credentials: credentials,
 		Amount:      amount,
 	}
-	signingRoot := ComputeSigningRoot(depositMessage, domain)
+	hashTreeRoot, err := depositMessage.HashTreeRoot()
+	if err != nil {
+		return nil, crypto.BLSSignature{}, err
+	}
+	signingRoot := ComputeSigningRootFromHTR(hashTreeRoot, domain)
 	signature, err := signer.Sign(signingRoot[:])
 	if err != nil {
 		return nil, crypto.BLSSignature{}, err
@@ -64,45 +69,6 @@ func CreateAndSignDepositMessage(
 	return depositMessage, signature, nil
 }
 
-/* -------------------------------------------------------------------------- */
-/*                                     SSZ                                    */
-/* -------------------------------------------------------------------------- */
-
-// SizeSSZ returns the size of the DepositMessage object in SSZ encoding.
-func (*DepositMessage) SizeSSZ(*ssz.Sizer) uint32 {
-	//nolint:mnd // 48 + 32 + 8 = 88.
-	return 88
-}
-
-// DefineSSZ defines the SSZ encoding for the DepositMessage object.
-func (dm *DepositMessage) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineStaticBytes(codec, &dm.Pubkey)
-	ssz.DefineStaticBytes(codec, &dm.Credentials)
-	ssz.DefineUint64(codec, &dm.Amount)
-}
-
-// HashTreeRoot computes the SSZ hash tree root of the DepositMessage object.
-func (dm *DepositMessage) HashTreeRoot() common.Root {
-	return ssz.HashSequential(dm)
-}
-
-// MarshalSSZTo marshals the DepositMessage object to SSZ format into the
-// provided
-// buffer.
-func (dm *DepositMessage) MarshalSSZTo(buf []byte) ([]byte, error) {
-	return buf, ssz.EncodeToBytes(buf, dm)
-}
-
-// MarshalSSZ marshals the DepositMessage object to SSZ format.
-func (dm *DepositMessage) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(dm))
-	return dm.MarshalSSZTo(buf)
-}
-
-// UnmarshalSSZ unmarshals the DepositMessage object from SSZ format.
-func (dm *DepositMessage) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, dm)
-}
 
 // VerifyCreateValidator verifies the deposit data when attempting to create a
 // new validator from a given deposit.
@@ -114,8 +80,12 @@ func (dm *DepositMessage) VerifyCreateValidator(
 		pubkey crypto.BLSPubkey, message []byte, signature crypto.BLSSignature,
 	) error,
 ) error {
-	signingRoot := ComputeSigningRoot(
-		dm, forkData.ComputeDomain(domainType))
+	hashTreeRoot, err := dm.HashTreeRoot()
+	if err != nil {
+		return err
+	}
+	signingRoot := ComputeSigningRootFromHTR(
+		hashTreeRoot, forkData.ComputeDomain(domainType))
 	if err := signatureVerificationFn(
 		dm.Pubkey, signingRoot[:], signature,
 	); err != nil {
