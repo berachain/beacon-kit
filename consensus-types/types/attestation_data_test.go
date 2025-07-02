@@ -21,12 +21,10 @@
 package types_test
 
 import (
-	"io"
 	"testing"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/encoding/sszutil"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/stretchr/testify/require"
 )
@@ -74,7 +72,7 @@ func TestAttestationData_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 			name:     "Invalid Buffer Size",
 			data:     generateAttestationData(),
 			expected: nil,
-			err:      io.ErrUnexpectedEOF,
+			err:      nil, // error check is done inline
 		},
 	}
 
@@ -87,10 +85,11 @@ func TestAttestationData_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 
 			unmarshalled := new(types.AttestationData)
 			if tc.name == "Invalid Buffer Size" {
-				err = sszutil.Unmarshal(data[:32], unmarshalled)
-				require.ErrorIs(t, err, tc.err)
+				err = unmarshalled.UnmarshalSSZ(data[:32])
+				require.Error(t, err)
+				require.Contains(t, err.Error(), "incorrect size")
 			} else {
-				err = sszutil.Unmarshal(data, unmarshalled)
+				err = unmarshalled.UnmarshalSSZ(data)
 				require.NoError(t, err)
 				require.Equal(t, tc.expected, unmarshalled)
 
@@ -113,7 +112,8 @@ func TestAttestationData_GetTree(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, tree)
 
-	expectedRoot := data.HashTreeRoot()
+	expectedRoot, err := data.HashTreeRoot()
+	require.NoError(t, err)
 
 	// Compare the tree root with the expected root
 	actualRoot := tree.Hash()

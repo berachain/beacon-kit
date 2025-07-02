@@ -21,11 +21,9 @@
 package types_test
 
 import (
-	"io"
 	"testing"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/primitives/encoding/sszutil"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/stretchr/testify/require"
 )
@@ -67,7 +65,7 @@ func TestSlashingInfo_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 			name:     "Invalid Buffer Size",
 			data:     generateSlashingInfo(),
 			expected: nil,
-			err:      io.ErrUnexpectedEOF,
+			err:      nil, // error check is done inline
 		},
 	}
 
@@ -80,10 +78,11 @@ func TestSlashingInfo_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 
 			unmarshalled := new(types.SlashingInfo)
 			if tc.name == "Invalid Buffer Size" {
-				err = sszutil.Unmarshal(data[:8], unmarshalled)
-				require.ErrorIs(t, err, tc.err)
+				err = unmarshalled.UnmarshalSSZ(data[:8])
+				require.Error(t, err)
+				require.Contains(t, err.Error(), "incorrect size")
 			} else {
-				err = sszutil.Unmarshal(data, unmarshalled)
+				err = unmarshalled.UnmarshalSSZ(data)
 				require.NoError(t, err)
 				require.Equal(t, tc.expected, unmarshalled)
 
@@ -106,7 +105,8 @@ func TestSlashingInfo_GetTree(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, tree)
 
-	expectedRoot := data.HashTreeRoot()
+	expectedRoot, err := data.HashTreeRoot()
+	require.NoError(t, err)
 	actualRoot := tree.Hash()
 	require.Equal(t, string(expectedRoot[:]), string(actualRoot))
 }
