@@ -85,4 +85,5 @@ type ChainSpec interface {
 	ActiveForkVersionForTimestamp(timestamp math.U64) common.Version
 	ValidatorSetCap() uint64
 	HistoricalRootsLimit() uint64
+	IsMainnet() bool
 }

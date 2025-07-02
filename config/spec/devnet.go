@@ -69,7 +69,7 @@ const (
 // TODO: remove modifications from mainnet spec to align with mainnet behavior.
 func DevnetChainSpecData() *chain.SpecData {
 	specData := MainnetChainSpecData()
-	specData.DepositEth1ChainID = DevnetEth1ChainID
+	specData.DepositEth1ChainID = chain.DevnetEth1ChainID
 
 	// Fork timings are set to facilitate local testing across fork versions.
 	specData.GenesisTime = devnetGenesisTime
