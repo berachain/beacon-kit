@@ -270,8 +270,7 @@ func (s *Service) VerifyIncomingBlock(
 	}
 
 	// Verify the state root of the incoming block.
-	var valUpdates transition.ValidatorUpdates
-	valUpdates, err = s.verifyStateRoot(ctx, state, blk)
+	valUpdates, err := s.verifyStateRoot(ctx, state, blk)
 	if err != nil {
 		s.logger.Error(
 			"Rejecting incoming beacon block ❌ ",
