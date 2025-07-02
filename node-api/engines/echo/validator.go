@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/encoding/hex"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
@@ -69,6 +70,7 @@ func ConstructValidator() *validator.Validate {
 		"epoch":            ValidateUint64,
 		"slot":             ValidateUint64,
 		"validator_status": ValidateValidatorStatus,
+		"hex":              ValidateHex,
 	}
 	validate := validator.New()
 	for tag, fn := range validators {
@@ -189,4 +191,9 @@ func validateStateBlockIDs(value string, allowedValues map[string]bool) bool {
 		return true
 	}
 	return false
+}
+
+func ValidateHex(fl validator.FieldLevel) bool {
+	_, err := hex.IsValidHex(fl.Field().String())
+	return err == nil
 }
