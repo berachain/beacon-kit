@@ -20,8 +20,11 @@
 
 package encoding
 
+import "time"
+
 // ABCIRequest represents the interface for an ABCI request.
 type ABCIRequest interface {
 	// GetTxs returns the transactions included in the request.
 	GetTxs() [][]byte
+	GetTime() time.Time
 }
