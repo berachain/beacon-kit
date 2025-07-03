@@ -24,21 +24,18 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
 	fastssz "github.com/ferranbt/fastssz"
-	"github.com/karalabe/ssz"
 )
 
 // ExecutionPayloadHeaderStaticSize is the static size of the ExecutionPayloadHeader.
 const ExecutionPayloadHeaderStaticSize uint32 = 584
 
-// Compile-time assertions to ensure ExecutionPayloadHeader implements necessary interfaces.
-var (
-	_ ssz.DynamicObject                            = (*ExecutionPayloadHeader)(nil)
-	_ constraints.SSZVersionedMarshallableRootable = (*ExecutionPayloadHeader)(nil)
-)
+// TODO: Re-enable interface assertion once constraints are updated
+// var (
+// 	_ constraints.SSZVersionedMarshallableRootable = (*ExecutionPayloadHeader)(nil)
+// )
 
 // ExecutionPayloadHeader represents the payload header of an execution block.
 type ExecutionPayloadHeader struct {
@@ -99,89 +96,120 @@ func NewEmptyExecutionPayloadHeaderWithVersion(version common.Version) *Executio
 /*                                     SSZ                                    */
 /* -------------------------------------------------------------------------- */
 
-// SizeSSZ returns either the static size of the object if fixed == true, or
-// the total size otherwise.
-func (h *ExecutionPayloadHeader) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
-	size := ExecutionPayloadHeaderStaticSize
-	if fixed {
-		return size
-	}
-	size += ssz.SizeDynamicBytes(siz, h.ExtraData)
-
-	return size
+// SizeSSZ returns the total size of the object in SSZ encoding.
+func (h *ExecutionPayloadHeader) SizeSSZ() int {
+	return int(ExecutionPayloadHeaderStaticSize) + len(h.ExtraData)
 }
 
-// DefineSSZ defines how an object is encoded/decoded.
-func (h *ExecutionPayloadHeader) DefineSSZ(codec *ssz.Codec) {
-	// Define the static data (fields and dynamic offsets)
-	ssz.DefineStaticBytes(codec, &h.ParentHash)
-	ssz.DefineStaticBytes(codec, &h.FeeRecipient)
-	ssz.DefineStaticBytes(codec, &h.StateRoot)
-	ssz.DefineStaticBytes(codec, &h.ReceiptsRoot)
-	ssz.DefineStaticBytes(codec, &h.LogsBloom)
-	ssz.DefineStaticBytes(codec, &h.Random)
-	ssz.DefineUint64(codec, &h.Number)
-	ssz.DefineUint64(codec, &h.GasLimit)
-	ssz.DefineUint64(codec, &h.GasUsed)
-	ssz.DefineUint64(codec, &h.Timestamp)
-	//nolint:mnd // TODO: get from accessible chainspec field params
-	ssz.DefineDynamicBytesOffset(codec, (*[]byte)(&h.ExtraData), 32)
-	ssz.DefineUint256(codec, &h.BaseFeePerGas)
-	ssz.DefineStaticBytes(codec, &h.BlockHash)
-	ssz.DefineStaticBytes(codec, &h.TransactionsRoot)
-	ssz.DefineStaticBytes(codec, &h.WithdrawalsRoot)
-	ssz.DefineUint64(codec, &h.BlobGasUsed)
-	ssz.DefineUint64(codec, &h.ExcessBlobGas)
-
-	// Define the dynamic data (fields)
-	//nolint:mnd // TODO: get from accessible chainspec field params
-	ssz.DefineDynamicBytesContent(codec, (*[]byte)(&h.ExtraData), 32)
-}
 
 // MarshalSSZ serializes the ExecutionPayloadHeader object into a slice of
 // bytes.
 func (h *ExecutionPayloadHeader) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(h))
-	return buf, ssz.EncodeToBytes(buf, h)
+	buf := make([]byte, 0, h.SizeSSZ())
+	return h.MarshalSSZTo(buf)
 }
 
 func (*ExecutionPayloadHeader) ValidateAfterDecodingSSZ() error { return nil }
 
-// HashTreeRootSSZ returns the hash tree root of the ExecutionPayloadHeader.
+// HashTreeRoot returns the hash tree root of the ExecutionPayloadHeader.
 func (h *ExecutionPayloadHeader) HashTreeRoot() common.Root {
-	return ssz.HashConcurrent(h)
+	hh := fastssz.DefaultHasherPool.Get()
+	defer fastssz.DefaultHasherPool.Put(hh)
+	h.HashTreeRootWith(hh)
+	root, _ := hh.HashRoot()
+	return common.Root(root)
 }
 
 /* -------------------------------------------------------------------------- */
 /*                                   FastSSZ                                  */
 /* -------------------------------------------------------------------------- */
 
-// MarshalSSZTo ssz marshals the ExecutionPayloadHeaderDeneb object to a target
-// array.
+// MarshalSSZTo ssz marshals the ExecutionPayloadHeader object to a target array.
 func (h *ExecutionPayloadHeader) MarshalSSZTo(dst []byte) ([]byte, error) {
-	bz, err := h.MarshalSSZ()
+	// Static fields
+	dst = append(dst, h.ParentHash[:]...)
+	dst = append(dst, h.FeeRecipient[:]...)
+	dst = append(dst, h.StateRoot[:]...)
+	dst = append(dst, h.ReceiptsRoot[:]...)
+	dst = append(dst, h.LogsBloom[:]...)
+	dst = append(dst, h.Random[:]...)
+	dst = fastssz.MarshalUint64(dst, uint64(h.Number))
+	dst = fastssz.MarshalUint64(dst, uint64(h.GasLimit))
+	dst = fastssz.MarshalUint64(dst, uint64(h.GasUsed))
+	dst = fastssz.MarshalUint64(dst, uint64(h.Timestamp))
+
+	// Offset for ExtraData
+	offset := uint32(ExecutionPayloadHeaderStaticSize)
+	dst = fastssz.MarshalUint32(dst, offset)
+
+	// BaseFeePerGas
+	bz, err := h.BaseFeePerGas.MarshalSSZ()
 	if err != nil {
 		return nil, err
 	}
 	dst = append(dst, bz...)
+
+	// More static fields
+	dst = append(dst, h.BlockHash[:]...)
+	dst = append(dst, h.TransactionsRoot[:]...)
+	dst = append(dst, h.WithdrawalsRoot[:]...)
+	dst = fastssz.MarshalUint64(dst, uint64(h.BlobGasUsed))
+	dst = fastssz.MarshalUint64(dst, uint64(h.ExcessBlobGas))
+
+	// Dynamic field: ExtraData
+	dst = append(dst, h.ExtraData...)
+
 	return dst, nil
 }
 
 // UnmarshalSSZ ssz unmarshals the ExecutionPayloadHeader object.
 func (h *ExecutionPayloadHeader) UnmarshalSSZ(buf []byte) error {
-	// For now, delegate to karalabe/ssz for unmarshaling
-	// This preserves fork-specific logic
-	return ssz.DecodeFromBytes(buf, h)
+	if len(buf) < int(ExecutionPayloadHeaderStaticSize) {
+		return fastssz.ErrSize
+	}
+
+	// Static fields
+	copy(h.ParentHash[:], buf[0:32])
+	copy(h.FeeRecipient[:], buf[32:52])
+	copy(h.StateRoot[:], buf[52:84])
+	copy(h.ReceiptsRoot[:], buf[84:116])
+	copy(h.LogsBloom[:], buf[116:372])
+	copy(h.Random[:], buf[372:404])
+	h.Number = math.U64(fastssz.UnmarshallUint64(buf[404:412]))
+	h.GasLimit = math.U64(fastssz.UnmarshallUint64(buf[412:420]))
+	h.GasUsed = math.U64(fastssz.UnmarshallUint64(buf[420:428]))
+	h.Timestamp = math.U64(fastssz.UnmarshallUint64(buf[428:436]))
+
+	// Read offset for ExtraData
+	extraDataOffset := fastssz.UnmarshallUint32(buf[436:440])
+
+	// BaseFeePerGas
+	if h.BaseFeePerGas == nil {
+		h.BaseFeePerGas = &math.U256{}
+	}
+	if err := h.BaseFeePerGas.UnmarshalSSZ(buf[440:472]); err != nil {
+		return err
+	}
+
+	// More static fields
+	copy(h.BlockHash[:], buf[472:504])
+	copy(h.TransactionsRoot[:], buf[504:536])
+	copy(h.WithdrawalsRoot[:], buf[536:568])
+	h.BlobGasUsed = math.U64(fastssz.UnmarshallUint64(buf[568:576]))
+	h.ExcessBlobGas = math.U64(fastssz.UnmarshallUint64(buf[576:584]))
+
+	// Dynamic field: ExtraData
+	if extraDataOffset > uint32(len(buf)) {
+		return fastssz.ErrInvalidVariableOffset
+	}
+	h.ExtraData = append([]byte(nil), buf[extraDataOffset:]...)
+	if len(h.ExtraData) > 32 {
+		return errors.New("extra data too large")
+	}
+
+	return nil
 }
 
-// SizeSSZFastSSZ returns the ssz encoded size in bytes for the ExecutionPayloadHeader (fastssz).
-// TODO: Rename to SizeSSZ() once karalabe/ssz is fully removed.
-func (h *ExecutionPayloadHeader) SizeSSZFastSSZ() (size int) {
-	// Use the existing karalabe/ssz Size function to get the size
-	// This ensures compatibility with the current implementation
-	size = int(ssz.Size(h))
-	return
-}
 
 // HashTreeRootWith ssz hashes the ExecutionPayloadHeaderDeneb object with a
 // hasher

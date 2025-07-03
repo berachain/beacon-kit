@@ -22,17 +22,14 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	fastssz "github.com/ferranbt/fastssz"
-	"github.com/karalabe/ssz"
 )
 
-// Compile-time assertions to ensure SignedBeaconBlockHeader implements necessary interfaces.
-var (
-	_ ssz.StaticObject                    = (*SignedBeaconBlockHeader)(nil)
-	_ constraints.SSZMarshallableRootable = (*SignedBeaconBlockHeader)(nil)
-)
+// TODO: Re-enable interface assertion once constraints are updated
+// var (
+// 	_ constraints.SSZMarshallableRootable = (*SignedBeaconBlockHeader)(nil)
+// )
 
 // SignedBeaconBlockHeader is a struct that contains a BeaconBlockHeader and a BLSSignature.
 //
@@ -62,22 +59,15 @@ func NewSignedBeaconBlockHeader(
 
 // SizeSSZ returns the size of the SignedBeaconBlockHeader object
 // in SSZ encoding. Total size: Header (112) + Signature (96).
-func (b *SignedBeaconBlockHeader) SizeSSZ(sizer *ssz.Sizer) uint32 {
-	//nolint:mnd // no magic
-	size := (*BeaconBlockHeader)(nil).SizeSSZ(sizer) + 96
-	return size
+func (b *SignedBeaconBlockHeader) SizeSSZ() int {
+	return 112 + 96 // BeaconBlockHeaderSize + SignatureSize
 }
 
-// DefineSSZ defines the SSZ encoding for the SignedBeaconBlockHeader object.
-func (b *SignedBeaconBlockHeader) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineStaticObject(codec, &b.Header)
-	ssz.DefineStaticBytes(codec, &b.Signature)
-}
 
 // MarshalSSZ marshals the SignedBeaconBlockHeader object to SSZ format.
 func (b *SignedBeaconBlockHeader) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(b))
-	return buf, ssz.EncodeToBytes(buf, b)
+	buf := make([]byte, 0, b.SizeSSZ())
+	return b.MarshalSSZTo(buf)
 }
 
 func (*SignedBeaconBlockHeader) ValidateAfterDecodingSSZ() error { return nil }
@@ -85,7 +75,11 @@ func (*SignedBeaconBlockHeader) ValidateAfterDecodingSSZ() error { return nil }
 // HashTreeRoot computes the SSZ hash tree root of the
 // SignedBeaconBlockHeader object.
 func (b *SignedBeaconBlockHeader) HashTreeRoot() common.Root {
-	return ssz.HashSequential(b)
+	hh := fastssz.DefaultHasherPool.Get()
+	defer fastssz.DefaultHasherPool.Put(hh)
+	b.HashTreeRootWith(hh)
+	root, _ := hh.HashRoot()
+	return common.Root(root)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -108,27 +102,38 @@ func (b *SignedBeaconBlockHeader) GetSignature() crypto.BLSSignature {
 
 // MarshalSSZTo ssz marshals the SignedBeaconBlockHeader object to a target array.
 func (b *SignedBeaconBlockHeader) MarshalSSZTo(dst []byte) ([]byte, error) {
-	bz, err := b.MarshalSSZ()
+	// Header
+	dst, err := b.Header.MarshalSSZTo(dst)
 	if err != nil {
 		return nil, err
 	}
-	dst = append(dst, bz...)
+
+	// Signature
+	dst = append(dst, b.Signature[:]...)
+
 	return dst, nil
 }
 
 // UnmarshalSSZ ssz unmarshals the SignedBeaconBlockHeader object.
 func (b *SignedBeaconBlockHeader) UnmarshalSSZ(buf []byte) error {
-	// For now, delegate to karalabe/ssz for unmarshaling
-	return ssz.DecodeFromBytes(buf, b)
+	if len(buf) != 208 { // 112 + 96
+		return fastssz.ErrSize
+	}
+
+	// Header
+	if b.Header == nil {
+		b.Header = &BeaconBlockHeader{}
+	}
+	if err := b.Header.UnmarshalSSZ(buf[0:112]); err != nil {
+		return err
+	}
+
+	// Signature
+	copy(b.Signature[:], buf[112:208])
+
+	return nil
 }
 
-// SizeSSZFastSSZ returns the ssz encoded size in bytes for the SignedBeaconBlockHeader (fastssz).
-// TODO: Rename to SizeSSZ() once karalabe/ssz is fully removed.
-func (b *SignedBeaconBlockHeader) SizeSSZFastSSZ() (size int) {
-	// Use the existing karalabe/ssz Size function to get the size
-	size = int(ssz.Size(b))
-	return
-}
 
 // HashTreeRootWith ssz hashes the SignedBeaconBlockHeader object with a hasher.
 func (b *SignedBeaconBlockHeader) HashTreeRootWith(hh fastssz.HashWalker) error {

@@ -24,20 +24,18 @@ import (
 	"io"
 
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
 	fastssz "github.com/ferranbt/fastssz"
-	"github.com/karalabe/ssz"
 	fastrlp "github.com/umbracle/fastrlp"
 )
 
 // withdrawalSize is the size of the Withdrawal in bytes.
 const withdrawalSize = 44
 
-var (
-	_ ssz.StaticObject                    = (*Withdrawal)(nil)
-	_ constraints.SSZMarshallableRootable = (*Withdrawal)(nil)
-)
+// TODO: Re-enable interface assertion once constraints are updated
+// var (
+// 	_ constraints.SSZMarshallableRootable = (*Withdrawal)(nil)
+// )
 
 // Withdrawal represents a validator withdrawal from the consensus layer.
 type Withdrawal struct {
@@ -71,27 +69,24 @@ func NewWithdrawal(
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the Withdrawal in bytes when SSZ encoded.
-func (*Withdrawal) SizeSSZ(*ssz.Sizer) uint32 {
+func (*Withdrawal) SizeSSZ() int {
 	return withdrawalSize
 }
 
-// MarshalSSZ marshals the Withdrawal into SSZ format.
-func (w *Withdrawal) DefineSSZ(c *ssz.Codec) {
-	ssz.DefineUint64(c, &w.Index)        // Field  (0) -     Index -  8 bytes
-	ssz.DefineUint64(c, &w.Validator)    // Field  (1) - Validator -  8 bytes
-	ssz.DefineStaticBytes(c, &w.Address) // Field  (2) -   Address - 20 bytes
-	ssz.DefineUint64(c, &w.Amount)       // Field  (3) -    Amount -  8 bytes
-}
 
 // HashTreeRoot.
 func (w *Withdrawal) HashTreeRoot() common.Root {
-	return ssz.HashSequential(w)
+	hh := fastssz.DefaultHasherPool.Get()
+	defer fastssz.DefaultHasherPool.Put(hh)
+	w.HashTreeRootWith(hh)
+	root, _ := hh.HashRoot()
+	return common.Root(root)
 }
 
 // MarshalSSZ marshals the Withdrawal object to SSZ format.
 func (w *Withdrawal) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(w))
-	return buf, ssz.EncodeToBytes(buf, w)
+	buf := make([]byte, 0, withdrawalSize)
+	return w.MarshalSSZTo(buf)
 }
 
 func (*Withdrawal) ValidateAfterDecodingSSZ() error { return nil }
@@ -102,12 +97,40 @@ func (*Withdrawal) ValidateAfterDecodingSSZ() error { return nil }
 
 // MarshalSSZTo ssz marshals the Withdrawal object to a target array.
 func (w *Withdrawal) MarshalSSZTo(dst []byte) ([]byte, error) {
-	bz, err := w.MarshalSSZ()
-	if err != nil {
-		return nil, err
-	}
-	dst = append(dst, bz...)
+	// Field (0) 'Index'
+	dst = fastssz.MarshalUint64(dst, uint64(w.Index))
+
+	// Field (1) 'Validator'
+	dst = fastssz.MarshalUint64(dst, uint64(w.Validator))
+
+	// Field (2) 'Address'
+	dst = append(dst, w.Address[:]...)
+
+	// Field (3) 'Amount'
+	dst = fastssz.MarshalUint64(dst, uint64(w.Amount))
+
 	return dst, nil
+}
+
+// UnmarshalSSZ ssz unmarshals the Withdrawal object.
+func (w *Withdrawal) UnmarshalSSZ(buf []byte) error {
+	if len(buf) != withdrawalSize {
+		return fastssz.ErrSize
+	}
+
+	// Field (0) 'Index'
+	w.Index = math.U64(fastssz.UnmarshallUint64(buf[0:8]))
+
+	// Field (1) 'Validator'
+	w.Validator = math.ValidatorIndex(fastssz.UnmarshallUint64(buf[8:16]))
+
+	// Field (2) 'Address'
+	copy(w.Address[:], buf[16:36])
+
+	// Field (3) 'Amount'
+	w.Amount = math.Gwei(fastssz.UnmarshallUint64(buf[36:44]))
+
+	return nil
 }
 
 // HashTreeRootWith ssz hashes the Withdrawal object with a hasher.

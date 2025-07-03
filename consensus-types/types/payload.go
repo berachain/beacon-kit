@@ -277,7 +277,7 @@ func (p *ExecutionPayload) UnmarshalSSZ(buf []byte) error {
 			return fastssz.ErrInvalidVariableOffset
 		}
 		numTxs := int((firstTxOffset - transactionsOffset) / 4)
-		if numTxs > constants.MaxTxsPerPayload {
+		if numTxs > int(constants.MaxTxsPerPayload) {
 			return errors.New("too many transactions")
 		}
 
@@ -297,7 +297,7 @@ func (p *ExecutionPayload) UnmarshalSSZ(buf []byte) error {
 				return fastssz.ErrInvalidVariableOffset
 			}
 			p.Transactions[i] = append([]byte(nil), buf[start:end]...)
-			if len(p.Transactions[i]) > constants.MaxBytesPerTx {
+			if len(p.Transactions[i]) > int(constants.MaxBytesPerTx) {
 				return errors.New("transaction too large")
 			}
 		}
