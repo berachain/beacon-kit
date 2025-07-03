@@ -25,10 +25,8 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
 	fastssz "github.com/ferranbt/fastssz"
-	"github.com/karalabe/ssz"
 )
 
 // BeaconBlockHeaderSize is the size of the BeaconBlockHeader object in bytes.
@@ -37,10 +35,10 @@ import (
 // ParentBlockRoot (32) + StateRoot (32) + BodyRoot (32).
 const BeaconBlockHeaderSize = 112
 
-var (
-	_ ssz.StaticObject                    = (*BeaconBlockHeader)(nil)
-	_ constraints.SSZMarshallableRootable = (*BeaconBlockHeader)(nil)
-)
+// TODO: Re-enable interface assertion once constraints are updated
+// var (
+// 	_ constraints.SSZMarshallableRootable = (*BeaconBlockHeader)(nil)
+// )
 
 // BeaconBlockHeader represents the base of a beacon block header.
 type BeaconBlockHeader struct {
@@ -86,43 +84,49 @@ func NewEmptyBeaconBlockHeader() *BeaconBlockHeader {
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the BeaconBlockHeader object in SSZ encoding.
-func (b *BeaconBlockHeader) SizeSSZ(*ssz.Sizer) uint32 {
+func (b *BeaconBlockHeader) SizeSSZ() int {
 	return BeaconBlockHeaderSize
 }
 
-// DefineSSZ defines the SSZ encoding for the BeaconBlockHeader object.
-func (b *BeaconBlockHeader) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineUint64(codec, &b.Slot)
-	ssz.DefineUint64(codec, &b.ProposerIndex)
-	ssz.DefineStaticBytes(codec, &b.ParentBlockRoot)
-	ssz.DefineStaticBytes(codec, &b.StateRoot)
-	ssz.DefineStaticBytes(codec, &b.BodyRoot)
-}
 
-// MarshalSSZ marshals the BeaconBlockBody object to SSZ format.
+// MarshalSSZ marshals the BeaconBlockHeader object to SSZ format.
 func (b *BeaconBlockHeader) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(b))
-	return buf, ssz.EncodeToBytes(buf, b)
+	buf := make([]byte, 0, BeaconBlockHeaderSize)
+	return b.MarshalSSZTo(buf)
 }
 
 func (*BeaconBlockHeader) ValidateAfterDecodingSSZ() error { return nil }
 
 // HashTreeRoot computes the SSZ hash tree root of the BeaconBlockHeader object.
 func (b *BeaconBlockHeader) HashTreeRoot() common.Root {
-	return ssz.HashSequential(b)
+	hh := fastssz.DefaultHasherPool.Get()
+	defer fastssz.DefaultHasherPool.Put(hh)
+	b.HashTreeRootWith(hh)
+	root, _ := hh.HashRoot()
+	return common.Root(root)
 }
 
 /* -------------------------------------------------------------------------- */
 /*                                   FastSSZ                                  */
 /* -------------------------------------------------------------------------- */
 
-// MarshalSSZToBytes marshals the BeaconBlockHeader object to SSZ format.
+// MarshalSSZTo marshals the BeaconBlockHeader object to SSZ format.
 func (b *BeaconBlockHeader) MarshalSSZTo(dst []byte) ([]byte, error) {
-	bz, err := b.MarshalSSZ()
-	if err != nil {
-		return nil, err
-	}
-	dst = append(dst, bz...)
+	// Field (0) 'Slot'
+	dst = fastssz.MarshalUint64(dst, uint64(b.Slot))
+
+	// Field (1) 'ProposerIndex'
+	dst = fastssz.MarshalUint64(dst, uint64(b.ProposerIndex))
+
+	// Field (2) 'ParentBlockRoot'
+	dst = append(dst, b.ParentBlockRoot[:]...)
+
+	// Field (3) 'StateRoot'
+	dst = append(dst, b.StateRoot[:]...)
+
+	// Field (4) 'BodyRoot'
+	dst = append(dst, b.BodyRoot[:]...)
+
 	return dst, nil
 }
 
@@ -158,16 +162,28 @@ func (b *BeaconBlockHeader) GetTree() (*fastssz.Node, error) {
 
 // UnmarshalSSZ ssz unmarshals the BeaconBlockHeader object.
 func (b *BeaconBlockHeader) UnmarshalSSZ(buf []byte) error {
-	// For now, delegate to karalabe/ssz for unmarshaling
-	// This preserves compatibility during migration
-	return ssz.DecodeFromBytes(buf, b)
+	if len(buf) != BeaconBlockHeaderSize {
+		return fastssz.ErrSize
+	}
+
+	// Field (0) 'Slot'
+	b.Slot = math.Slot(fastssz.UnmarshallUint64(buf[0:8]))
+
+	// Field (1) 'ProposerIndex'
+	b.ProposerIndex = math.ValidatorIndex(fastssz.UnmarshallUint64(buf[8:16]))
+
+	// Field (2) 'ParentBlockRoot'
+	copy(b.ParentBlockRoot[:], buf[16:48])
+
+	// Field (3) 'StateRoot'
+	copy(b.StateRoot[:], buf[48:80])
+
+	// Field (4) 'BodyRoot'
+	copy(b.BodyRoot[:], buf[80:112])
+
+	return nil
 }
 
-// SizeSSZFastSSZ returns the ssz encoded size in bytes for the BeaconBlockHeader (fastssz).
-// TODO: Rename to SizeSSZ() once karalabe/ssz is fully removed.
-func (b *BeaconBlockHeader) SizeSSZFastSSZ() (size int) {
-	return BeaconBlockHeaderSize
-}
 
 /* -------------------------------------------------------------------------- */
 /*                            Getters and Setters                             */

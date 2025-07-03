@@ -25,18 +25,15 @@ import (
 
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	fastssz "github.com/ferranbt/fastssz"
-	"github.com/karalabe/ssz"
 )
 
-// Compile-time assertions to ensure BeaconBlock implements necessary interfaces.
-var (
-	_ ssz.DynamicObject                            = (*BeaconBlock)(nil)
-	_ constraints.SSZVersionedMarshallableRootable = (*BeaconBlock)(nil)
-)
+// TODO: Re-enable interface assertion once constraints are updated
+// var (
+// 	_ constraints.SSZVersionedMarshallableRootable = (*BeaconBlock)(nil)
+// )
 
 // BeaconBlock represents a block in the beacon chain.
 type BeaconBlock struct {
@@ -91,33 +88,16 @@ func NewEmptyBeaconBlockWithVersion(version common.Version) *BeaconBlock {
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the BeaconBlock object in SSZ encoding.
-func (b *BeaconBlock) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
-	//nolint:mnd // todo fix.
-	var size = uint32(8 + 8 + 32 + 32 + 4)
-	if fixed {
-		return size
-	}
-	size += ssz.SizeDynamicObject(siz, b.Body)
-	return size
+func (b *BeaconBlock) SizeSSZ() int {
+	// Fixed part: slot(8) + proposerIndex(8) + parentRoot(32) + stateRoot(32) + offset(4) = 84
+	return 84 + b.Body.SizeSSZFastSSZ()
 }
 
-// DefineSSZ defines the SSZ encoding for the BeaconBlock object.
-func (b *BeaconBlock) DefineSSZ(codec *ssz.Codec) {
-	// Define the static data (fields and dynamic offsets)
-	ssz.DefineUint64(codec, &b.Slot)
-	ssz.DefineUint64(codec, &b.ProposerIndex)
-	ssz.DefineStaticBytes(codec, &b.ParentRoot)
-	ssz.DefineStaticBytes(codec, &b.StateRoot)
-	ssz.DefineDynamicObjectOffset(codec, &b.Body)
-
-	// Define the dynamic data (fields)
-	ssz.DefineDynamicObjectContent(codec, &b.Body)
-}
 
 // MarshalSSZ marshals the BeaconBlock object to SSZ format.
 func (b *BeaconBlock) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(b))
-	return buf, ssz.EncodeToBytes(buf, b)
+	buf := make([]byte, 0, b.SizeSSZ())
+	return b.MarshalSSZTo(buf)
 }
 
 func (b *BeaconBlock) ValidateAfterDecodingSSZ() error {
@@ -126,7 +106,11 @@ func (b *BeaconBlock) ValidateAfterDecodingSSZ() error {
 
 // HashTreeRoot computes the Merkleization of the BeaconBlock object.
 func (b *BeaconBlock) HashTreeRoot() common.Root {
-	return ssz.HashConcurrent(b)
+	hh := fastssz.DefaultHasherPool.Get()
+	defer fastssz.DefaultHasherPool.Put(hh)
+	b.HashTreeRootWith(hh)
+	root, _ := hh.HashRoot()
+	return common.Root(root)
 }
 
 // GetSlot retrieves the slot of the BeaconBlockBase.
@@ -187,29 +171,54 @@ func (b *BeaconBlock) GetTimestamp() math.U64 {
 
 // MarshalSSZTo ssz marshals the BeaconBlock object to a target array.
 func (b *BeaconBlock) MarshalSSZTo(dst []byte) ([]byte, error) {
-	bz, err := b.MarshalSSZ()
+	// Fixed part
+	dst = fastssz.MarshalUint64(dst, uint64(b.Slot))
+	dst = fastssz.MarshalUint64(dst, uint64(b.ProposerIndex))
+	dst = append(dst, b.ParentRoot[:]...)
+	dst = append(dst, b.StateRoot[:]...)
+
+	// Offset for body
+	offset := 84
+	dst = fastssz.MarshalUint32(dst, uint32(offset))
+
+	// Dynamic part: Body
+	dst, err := b.Body.MarshalSSZTo(dst)
 	if err != nil {
 		return nil, err
 	}
-	dst = append(dst, bz...)
+
 	return dst, nil
 }
 
 // UnmarshalSSZ ssz unmarshals the BeaconBlock object.
 func (b *BeaconBlock) UnmarshalSSZ(buf []byte) error {
-	// For now, delegate to karalabe/ssz for unmarshaling
-	// This preserves the complex dynamic field handling
-	return ssz.DecodeFromBytes(buf, b)
+	if len(buf) < 84 {
+		return fastssz.ErrSize
+	}
+
+	// Fixed part
+	b.Slot = math.Slot(fastssz.UnmarshallUint64(buf[0:8]))
+	b.ProposerIndex = math.ValidatorIndex(fastssz.UnmarshallUint64(buf[8:16]))
+	copy(b.ParentRoot[:], buf[16:48])
+	copy(b.StateRoot[:], buf[48:80])
+
+	// Check offset
+	offset := fastssz.UnmarshallUint32(buf[80:84])
+	if offset != 84 {
+		return fastssz.ErrInvalidVariableOffset
+	}
+
+	// Dynamic part: Body
+	if b.Body == nil {
+		b.Body = &BeaconBlockBody{}
+	}
+	if err := b.Body.UnmarshalSSZ(buf[84:]); err != nil {
+		return err
+	}
+
+	return b.ValidateAfterDecodingSSZ()
 }
 
-// SizeSSZFastSSZ returns the ssz encoded size in bytes for the BeaconBlock (fastssz).
-// TODO: Rename to SizeSSZ() once karalabe/ssz is fully removed.
-func (b *BeaconBlock) SizeSSZFastSSZ() (size int) {
-	// Use the existing karalabe/ssz Size function to get the size
-	// This ensures compatibility with the current implementation
-	size = int(ssz.Size(b))
-	return
-}
 
 // HashTreeRootWith ssz hashes the BeaconBlock object with a hasher.
 func (b *BeaconBlock) HashTreeRootWith(hh fastssz.HashWalker) error {

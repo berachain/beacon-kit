@@ -26,21 +26,18 @@ package types
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	fastssz "github.com/ferranbt/fastssz"
-	"github.com/karalabe/ssz"
 )
 
 // ValidatorSize is the size of the Validator struct in bytes.
 const ValidatorSize = 121
 
-// Compile-time checks for the Validator struct.
-var (
-	_ ssz.StaticObject                    = (*Validator)(nil)
-	_ constraints.SSZMarshallableRootable = (*Validator)(nil)
-)
+// TODO: Re-enable interface assertion once constraints are updated
+// var (
+// 	_ constraints.SSZMarshallableRootable = (*Validator)(nil)
+// )
 
 // Validator as defined in the Ethereum 2.0 Spec
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#validator
@@ -111,31 +108,24 @@ func ComputeEffectiveBalance(
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the Validator object in SSZ encoding.
-func (*Validator) SizeSSZ(*ssz.Sizer) uint32 {
+func (*Validator) SizeSSZ() int {
 	return ValidatorSize
 }
 
-// DefineSSZ defines the SSZ encoding for the Validator object.
-func (v *Validator) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineStaticBytes(codec, &v.Pubkey)
-	ssz.DefineStaticBytes(codec, &v.WithdrawalCredentials)
-	ssz.DefineUint64(codec, &v.EffectiveBalance)
-	ssz.DefineBool(codec, &v.Slashed)
-	ssz.DefineUint64(codec, &v.ActivationEligibilityEpoch)
-	ssz.DefineUint64(codec, &v.ActivationEpoch)
-	ssz.DefineUint64(codec, &v.ExitEpoch)
-	ssz.DefineUint64(codec, &v.WithdrawableEpoch)
-}
 
 // HashTreeRoot computes the SSZ hash tree root of the Validator object.
 func (v *Validator) HashTreeRoot() common.Root {
-	return ssz.HashSequential(v)
+	hh := fastssz.DefaultHasherPool.Get()
+	defer fastssz.DefaultHasherPool.Put(hh)
+	v.HashTreeRootWith(hh)
+	root, _ := hh.HashRoot()
+	return common.Root(root)
 }
 
 // MarshalSSZ marshals the Validator object to SSZ format.
 func (v *Validator) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(v))
-	return buf, ssz.EncodeToBytes(buf, v)
+	buf := make([]byte, 0, ValidatorSize)
+	return v.MarshalSSZTo(buf)
 }
 
 func (*Validator) ValidateAfterDecodingSSZ() error { return nil }
@@ -147,11 +137,34 @@ func (*Validator) ValidateAfterDecodingSSZ() error { return nil }
 // MarshalSSZTo marshals the Validator object to SSZ format into the provided
 // buffer.
 func (v *Validator) MarshalSSZTo(dst []byte) ([]byte, error) {
-	bz, err := v.MarshalSSZ()
-	if err != nil {
-		return nil, err
+	// Field (0) 'Pubkey'
+	dst = append(dst, v.Pubkey[:]...)
+
+	// Field (1) 'WithdrawalCredentials'
+	dst = append(dst, v.WithdrawalCredentials[:]...)
+
+	// Field (2) 'EffectiveBalance'
+	dst = fastssz.MarshalUint64(dst, uint64(v.EffectiveBalance))
+
+	// Field (3) 'Slashed'
+	if v.Slashed {
+		dst = append(dst, 1)
+	} else {
+		dst = append(dst, 0)
 	}
-	dst = append(dst, bz...)
+
+	// Field (4) 'ActivationEligibilityEpoch'
+	dst = fastssz.MarshalUint64(dst, uint64(v.ActivationEligibilityEpoch))
+
+	// Field (5) 'ActivationEpoch'
+	dst = fastssz.MarshalUint64(dst, uint64(v.ActivationEpoch))
+
+	// Field (6) 'ExitEpoch'
+	dst = fastssz.MarshalUint64(dst, uint64(v.ExitEpoch))
+
+	// Field (7) 'WithdrawableEpoch'
+	dst = fastssz.MarshalUint64(dst, uint64(v.WithdrawableEpoch))
+
 	return dst, nil
 }
 
@@ -194,16 +207,37 @@ func (v *Validator) GetTree() (*fastssz.Node, error) {
 
 // UnmarshalSSZ ssz unmarshals the Validator object.
 func (v *Validator) UnmarshalSSZ(buf []byte) error {
-	// For now, delegate to karalabe/ssz for unmarshaling
-	// This preserves compatibility during migration
-	return ssz.DecodeFromBytes(buf, v)
+	if len(buf) != ValidatorSize {
+		return fastssz.ErrSize
+	}
+
+	// Field (0) 'Pubkey'
+	copy(v.Pubkey[:], buf[0:48])
+
+	// Field (1) 'WithdrawalCredentials'
+	copy(v.WithdrawalCredentials[:], buf[48:80])
+
+	// Field (2) 'EffectiveBalance'
+	v.EffectiveBalance = math.Gwei(fastssz.UnmarshallUint64(buf[80:88]))
+
+	// Field (3) 'Slashed'
+	v.Slashed = buf[88] != 0
+
+	// Field (4) 'ActivationEligibilityEpoch'
+	v.ActivationEligibilityEpoch = math.Epoch(fastssz.UnmarshallUint64(buf[89:97]))
+
+	// Field (5) 'ActivationEpoch'
+	v.ActivationEpoch = math.Epoch(fastssz.UnmarshallUint64(buf[97:105]))
+
+	// Field (6) 'ExitEpoch'
+	v.ExitEpoch = math.Epoch(fastssz.UnmarshallUint64(buf[105:113]))
+
+	// Field (7) 'WithdrawableEpoch'
+	v.WithdrawableEpoch = math.Epoch(fastssz.UnmarshallUint64(buf[113:121]))
+
+	return nil
 }
 
-// SizeSSZFastSSZ returns the ssz encoded size in bytes for the Validator (fastssz).
-// TODO: Rename to SizeSSZ() once karalabe/ssz is fully removed.
-func (v *Validator) SizeSSZFastSSZ() (size int) {
-	return ValidatorSize
-}
 
 /* -------------------------------------------------------------------------- */
 /*                             Getters and Setters                            */

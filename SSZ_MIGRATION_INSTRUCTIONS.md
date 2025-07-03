@@ -3,6 +3,13 @@
 ## Overview
 Migration from karalabe/ssz to fastssz for BeaconKit consensus types.
 
+### Current Status (As of Phase 8 Completion)
+- ✅ **All types that marshal with SSZ now have fastssz methods**
+- ✅ **Dual interface compatibility maintained** - both karalabe/ssz and fastssz work
+- ⚠️ **Still using karalabe/ssz for actual encoding/decoding in many places**
+- ⚠️ **51 files still import karalabe/ssz**
+- ⚠️ **Cannot use sszgen effectively due to method signature conflicts**
+
 ## Completed Migrations ✅
 
 ### Fully Migrated to fastssz
@@ -206,4 +213,130 @@ BeaconState (fork-specific)
   - ✅ BeaconBlockHeader: Added UnmarshalSSZ and SizeSSZFastSSZ methods
   - ✅ Validator: Added UnmarshalSSZ and SizeSSZFastSSZ methods
   - All types now have complete fastssz support while maintaining karalabe/ssz compatibility
-- **Note**: Some types maintain temporary karalabe/ssz compatibility stubs until full migration is complete
+- **Note**: All types maintain temporary karalabe/ssz compatibility stubs until full migration is complete
+
+## Phase 9: Complete Removal of karalabe/ssz Dependency 🚀
+
+### Overview
+This is the final major phase to completely remove karalabe/ssz and migrate fully to fastssz. Once complete, we can use sszgen for most types without conflicts.
+
+### Step 1: Replace All karalabe/ssz Usage with fastssz
+1. **Replace ssz.EncodeToBytes calls**
+   - Find all `ssz.EncodeToBytes(buf, obj)` calls
+   - Replace with `obj.MarshalSSZ()` or `obj.MarshalSSZTo(buf)`
+
+2. **Replace ssz.DecodeFromBytes calls**
+   - Find all `ssz.DecodeFromBytes(buf, obj)` calls
+   - Replace with `obj.UnmarshalSSZ(buf)`
+
+3. **Replace hash functions**
+   - Replace `ssz.HashSequential(obj)` with:
+     ```go
+     root, _ := obj.HashTreeRoot()
+     return common.Root(root)
+     ```
+   - Replace `ssz.HashConcurrent(obj)` similarly
+
+4. **Update ssz.Size() calls**
+   - Replace `ssz.Size(obj)` with `obj.SizeSSZ()`
+
+### Step 2: Remove karalabe/ssz Methods from Types
+1. **Remove from each type:**
+   - `DefineSSZ(codec *ssz.Codec)` method
+   - `SizeSSZ(siz *ssz.Sizer) uint32` method (keep the fastssz version)
+   - Any karalabe/ssz specific validation
+
+2. **Rename temporary methods:**
+   - `SizeSSZFastSSZ() int` → `SizeSSZ() int`
+   - `HashTreeRootCommon() common.Root` → Keep as wrapper if needed
+
+### Step 3: Update Interfaces and Constraints
+1. **Update constraints/ssz.go:**
+   - Remove dependency on `ssz.Object`
+   - Update `SSZUnmarshaler` interface to not embed `ssz.Object`
+   - Create new interface that matches fastssz requirements
+
+2. **Update compile-time assertions:**
+   - Remove `_ ssz.StaticObject = (*Type)(nil)`
+   - Remove `_ ssz.DynamicObject = (*Type)(nil)`
+   - Add fastssz interface assertions if needed
+
+### Step 4: Run sszgen for All Types
+Once karalabe/ssz is removed, we can run sszgen for most types:
+
+1. **Types ready for sszgen** (currently have manual implementations):
+   - Validator
+   - BeaconBlockHeader
+   - Eth1Data
+   - Deposit
+   - SyncAggregate
+   - PendingPartialWithdrawal
+   - ExecutionPayload (if no fork logic needed)
+   - ExecutionPayloadHeader (if no fork logic needed)
+   - BeaconBlock
+   - BeaconBlockBody (if fork logic can be handled)
+   - BeaconState (if fork logic can be handled)
+
+2. **Types that may need manual implementation:**
+   - Types with complex fork-specific logic
+   - Types with special validation requirements
+   - Collection types (may keep manual implementations)
+
+### Step 5: Cleanup and Optimization
+1. **Remove karalabe/ssz dependency:**
+   ```bash
+   go get -u github.com/berachain/karalabe-ssz@none
+   ```
+
+2. **Update go.mod and go.sum**
+
+3. **Run tests to ensure everything works**
+
+4. **Performance optimization:**
+   - Profile SSZ operations
+   - Optimize hot paths
+   - Consider using object pools for frequently marshaled types
+
+### Migration Order (Critical Path)
+To avoid breaking the build, migrate in this order:
+
+1. **Update all direct usage** (Step 1)
+   - Start with leaf types that don't have dependencies
+   - Work up to complex types
+
+2. **Update interfaces** (Step 3)
+   - This may temporarily break compilation
+   - Fix all compile errors before proceeding
+
+3. **Remove karalabe methods** (Step 2)
+   - Do this after interfaces are updated
+   - Types can be done incrementally
+
+4. **Run sszgen** (Step 4)
+   - Start with simple types
+   - Test each type after generation
+
+### Testing Strategy
+1. **Create compatibility tests:**
+   - Ensure fastssz produces same serialization as karalabe/ssz
+   - Test hash tree roots match
+   - Test round-trip serialization
+
+2. **Benchmark before and after:**
+   - Measure serialization performance
+   - Measure deserialization performance
+   - Measure hash tree root computation
+
+3. **Integration tests:**
+   - Run full consensus tests
+   - Test with real chain data
+   - Verify no regressions
+
+### Risk Mitigation
+1. **Create a migration branch**
+2. **Make incremental commits** for easy rollback
+3. **Run extensive tests** after each major change
+4. **Consider a phased rollout:**
+   - Migrate non-critical types first
+   - Test in devnet before mainnet
+   - Have rollback plan ready

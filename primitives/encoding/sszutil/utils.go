@@ -24,13 +24,18 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/primitives/constraints"
-	"github.com/karalabe/ssz"
 )
+
+// FastSSZUnmarshaler is a minimal interface for types that can unmarshal from fastssz.
+type FastSSZUnmarshaler interface {
+	UnmarshalSSZ([]byte) error
+	ValidateAfterDecodingSSZ() error
+}
 
 // Unmarshal is the way we build objects from byte formatted in SSZ encoding.
 // This function highlights the common template for SSZ decoding different objects.
-func Unmarshal[T constraints.SSZUnmarshaler](buf []byte, v T) error {
-	if err := ssz.DecodeFromBytes(buf, v); err != nil {
+func Unmarshal[T FastSSZUnmarshaler](buf []byte, v T) error {
+	if err := v.UnmarshalSSZ(buf); err != nil {
 		return fmt.Errorf("failed decoding %T: %w", v, err)
 	}
 
@@ -57,7 +62,7 @@ func MarshalItemsEIP7685[T constraints.SSZMarshaler](items []T) ([]byte, error) 
 // UnmarshalItemsEIP7685 decodes a slice of items from the provided data according
 // to the EIP-7685 standard. It assumes that each item is encoded into a fixed number
 // of bytes (itemSize) and that newItem returns a new instance of the item.
-func UnmarshalItemsEIP7685[T constraints.SSZUnmarshaler](
+func UnmarshalItemsEIP7685[T FastSSZUnmarshaler](
 	data []byte,
 	itemSize int,
 	newItem func() T,

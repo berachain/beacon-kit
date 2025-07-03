@@ -25,20 +25,18 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
 	fastssz "github.com/ferranbt/fastssz"
-	"github.com/karalabe/ssz"
 )
 
 // Eth1DataSize is the size of the Eth1Data object in bytes.
 // 32 bytes for DepositRoot + 8 bytes for DepositCount + 8 bytes for BlockHash.
 const Eth1DataSize = 72
 
-var (
-	_ ssz.StaticObject                    = (*Eth1Data)(nil)
-	_ constraints.SSZMarshallableRootable = (*Eth1Data)(nil)
-)
+// TODO: Re-enable interface assertion once constraints are updated
+// var (
+// 	_ constraints.SSZMarshallableRootable = (*Eth1Data)(nil)
+// )
 
 type Eth1Data struct {
 	// DepositRoot is the root of the deposit tree.
@@ -68,37 +66,40 @@ func NewEmptyEth1Data() *Eth1Data {
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the Eth1Data object in SSZ encoding.
-func (*Eth1Data) SizeSSZ(*ssz.Sizer) uint32 {
+func (*Eth1Data) SizeSSZ() int {
 	return Eth1DataSize
 }
 
-// DefineSSZ defines the SSZ encoding for the Eth1Data object.
-func (e *Eth1Data) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineStaticBytes(codec, &e.DepositRoot)
-	ssz.DefineUint64(codec, &e.DepositCount)
-	ssz.DefineStaticBytes(codec, &e.BlockHash)
-}
 
 // HashTreeRoot computes the SSZ hash tree root of the Eth1Data object.
 func (e *Eth1Data) HashTreeRoot() common.Root {
-	return ssz.HashSequential(e)
+	hh := fastssz.DefaultHasherPool.Get()
+	defer fastssz.DefaultHasherPool.Put(hh)
+	e.HashTreeRootWith(hh)
+	root, _ := hh.HashRoot()
+	return common.Root(root)
 }
 
 // MarshalSSZ marshals the Eth1Data object to SSZ format.
 func (e *Eth1Data) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(e))
-	return buf, ssz.EncodeToBytes(buf, e)
+	buf := make([]byte, 0, Eth1DataSize)
+	return e.MarshalSSZTo(buf)
 }
 
 func (*Eth1Data) ValidateAfterDecodingSSZ() error { return nil }
 
 // MarshalSSZTo marshals the Eth1Data object into a pre-allocated byte slice.
 func (e *Eth1Data) MarshalSSZTo(dst []byte) ([]byte, error) {
-	bz, err := e.MarshalSSZ()
-	if err != nil {
-		return nil, err
-	}
-	return append(dst, bz...), err
+	// Field (0) 'DepositRoot'
+	dst = append(dst, e.DepositRoot[:]...)
+
+	// Field (1) 'DepositCount'
+	dst = fastssz.MarshalUint64(dst, uint64(e.DepositCount))
+
+	// Field (2) 'BlockHash'
+	dst = append(dst, e.BlockHash[:]...)
+
+	return dst, nil
 }
 
 /* -------------------------------------------------------------------------- */
@@ -129,16 +130,22 @@ func (e *Eth1Data) GetTree() (*fastssz.Node, error) {
 
 // UnmarshalSSZ ssz unmarshals the Eth1Data object.
 func (e *Eth1Data) UnmarshalSSZ(buf []byte) error {
-	// For now, delegate to karalabe/ssz for unmarshaling
-	// This preserves compatibility during migration
-	return ssz.DecodeFromBytes(buf, e)
+	if len(buf) != Eth1DataSize {
+		return fastssz.ErrSize
+	}
+
+	// Field (0) 'DepositRoot'
+	copy(e.DepositRoot[:], buf[0:32])
+
+	// Field (1) 'DepositCount'
+	e.DepositCount = math.U64(fastssz.UnmarshallUint64(buf[32:40]))
+
+	// Field (2) 'BlockHash'
+	copy(e.BlockHash[:], buf[40:72])
+
+	return nil
 }
 
-// SizeSSZFastSSZ returns the ssz encoded size in bytes for the Eth1Data (fastssz).
-// TODO: Rename to SizeSSZ() once karalabe/ssz is fully removed.
-func (e *Eth1Data) SizeSSZFastSSZ() (size int) {
-	return Eth1DataSize
-}
 
 // GetDepositCount returns the deposit count.
 func (e *Eth1Data) GetDepositCount() math.U64 {

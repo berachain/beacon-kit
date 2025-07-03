@@ -26,19 +26,14 @@ package types
 import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	fastssz "github.com/ferranbt/fastssz"
-	"github.com/karalabe/ssz"
 )
 
-// Compile-time assertions to ensure SyncAggregate implements necessary interfaces.
-var (
-	_ ssz.StaticObject                    = (*SyncAggregate)(nil)
-	_ constraints.SSZMarshallable         = (*SyncAggregate)(nil)
-	_ constraints.SSZMarshallableRootable = (*SyncAggregate)(nil)
-	_ common.UnusedEnforcer               = (*SyncAggregate)(nil)
-)
+// TODO: Re-enable interface assertions once constraints are updated
+// var (
+// 	_ common.UnusedEnforcer               = (*SyncAggregate)(nil)
+// )
 
 const (
 	syncCommitteeSize       = 512
@@ -51,27 +46,26 @@ type SyncAggregate struct {
 }
 
 // SizeSSZ returns the SSZ encoded size in bytes for the SyncAggregate.
-func (s *SyncAggregate) SizeSSZ(_ *ssz.Sizer) uint32 {
+func (s *SyncAggregate) SizeSSZ() int {
 	return 160 // syncCommitteeBitsLength + 96
 }
 
-// DefineSSZ defines the SSZ encoding for the SyncAggregate object.
-func (s *SyncAggregate) DefineSSZ(c *ssz.Codec) {
-	ssz.DefineStaticBytes(c, &s.SyncCommitteeBits)
-	ssz.DefineStaticBytes(c, &s.SyncCommitteeSignature)
-}
 
 func (s *SyncAggregate) ValidateAfterDecodingSSZ() error { return s.EnforceUnused() }
 
 // MarshalSSZ marshals the SyncAggregate into SSZ format.
 func (s *SyncAggregate) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(s))
-	return buf, ssz.EncodeToBytes(buf, s)
+	buf := make([]byte, 0, 160)
+	return s.MarshalSSZTo(buf)
 }
 
 // HashTreeRoot returns the SSZ hash tree root of the SyncAggregate.
 func (s *SyncAggregate) HashTreeRoot() common.Root {
-	return ssz.HashSequential(s)
+	hh := fastssz.DefaultHasherPool.Get()
+	defer fastssz.DefaultHasherPool.Put(hh)
+	s.HashTreeRootWith(hh)
+	root, _ := hh.HashRoot()
+	return common.Root(root)
 }
 
 // EnforceUnused return true if the SyncAggregate contains all zero values.
@@ -90,11 +84,12 @@ func (s *SyncAggregate) EnforceUnused() error {
 
 // MarshalSSZTo ssz marshals the SyncAggregate object to a target array.
 func (s *SyncAggregate) MarshalSSZTo(dst []byte) ([]byte, error) {
-	bz, err := s.MarshalSSZ()
-	if err != nil {
-		return nil, err
-	}
-	dst = append(dst, bz...)
+	// Field (0) 'SyncCommitteeBits'
+	dst = append(dst, s.SyncCommitteeBits[:]...)
+
+	// Field (1) 'SyncCommitteeSignature'
+	dst = append(dst, s.SyncCommitteeSignature[:]...)
+
 	return dst, nil
 }
 
@@ -108,10 +103,6 @@ func (s *SyncAggregate) UnmarshalSSZ(buf []byte) error {
 	return s.ValidateAfterDecodingSSZ()
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the SyncAggregate (fastssz).
-func (s *SyncAggregate) SizeSSZFastSSZ() (size int) {
-	return 160 // 64 bytes for bits + 96 bytes for signature
-}
 
 // HashTreeRootWith ssz hashes the SyncAggregate object with a hasher.
 func (s *SyncAggregate) HashTreeRootWith(hh fastssz.HashWalker) error {

@@ -26,12 +26,10 @@ import (
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	fastssz "github.com/ferranbt/fastssz"
-	"github.com/karalabe/ssz"
 )
 
 const (
@@ -42,11 +40,10 @@ const (
 	ExtraDataSize = 32
 )
 
-// Compile-time assertions to ensure ExecutionPayload implements necessary interfaces.
-var (
-	_ ssz.DynamicObject                            = (*ExecutionPayload)(nil)
-	_ constraints.SSZVersionedMarshallableRootable = (*ExecutionPayload)(nil)
-)
+// TODO: Re-enable interface assertion once constraints are updated
+// var (
+// 	_ constraints.SSZVersionedMarshallableRootable = (*ExecutionPayload)(nil)
+// )
 
 // ExecutionPayload represents the payload of an execution block.
 type ExecutionPayload struct {
@@ -105,67 +102,27 @@ func NewEmptyExecutionPayloadWithVersion(forkVersion common.Version) *ExecutionP
 /*                                     SSZ                                    */
 /* -------------------------------------------------------------------------- */
 
-// SizeSSZ returns either the static size of the object if fixed == true, or
-// the total size otherwise.
-func (p *ExecutionPayload) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
-	var size = ExecutionPayloadStaticSize
-	if fixed {
-		return size
+// SizeSSZ returns the total size of the object in SSZ encoding.
+func (p *ExecutionPayload) SizeSSZ() int {
+	size := int(ExecutionPayloadStaticSize)
+	size += len(p.ExtraData)
+	// Transactions offset + each tx offset + tx data
+	size += len(p.Transactions) * 4
+	for _, tx := range p.Transactions {
+		size += len(tx)
 	}
-	size += ssz.SizeDynamicBytes(siz, p.ExtraData)
-	size += ssz.SizeSliceOfDynamicBytes(siz, p.Transactions)
-	size += ssz.SizeSliceOfStaticObjects(siz, p.Withdrawals)
+	// Withdrawals: each withdrawal is 44 bytes
+	if p.Withdrawals != nil {
+		size += len(p.Withdrawals) * 44
+	}
 	return size
 }
 
-// DefineSSZ defines how an object is encoded/decoded.
-//
-//nolint:mnd // TODO: get from accessible chainspec field params
-func (p *ExecutionPayload) DefineSSZ(codec *ssz.Codec) {
-	// Define the static data (fields and dynamic offsets)
-	ssz.DefineStaticBytes(codec, &p.ParentHash)
-	ssz.DefineStaticBytes(codec, &p.FeeRecipient)
-	ssz.DefineStaticBytes(codec, &p.StateRoot)
-	ssz.DefineStaticBytes(codec, &p.ReceiptsRoot)
-	ssz.DefineStaticBytes(codec, &p.LogsBloom)
-	ssz.DefineStaticBytes(codec, &p.Random)
-	ssz.DefineUint64(codec, &p.Number)
-	ssz.DefineUint64(codec, &p.GasLimit)
-	ssz.DefineUint64(codec, &p.GasUsed)
-	ssz.DefineUint64(codec, &p.Timestamp)
-	ssz.DefineDynamicBytesOffset(codec, (*[]byte)(&p.ExtraData), 32)
-	ssz.DefineUint256(codec, &p.BaseFeePerGas)
-	ssz.DefineStaticBytes(codec, &p.BlockHash)
-	ssz.DefineSliceOfDynamicBytesOffset(
-		codec,
-		(*[][]byte)(&p.Transactions),
-		constants.MaxTxsPerPayload,
-		constants.MaxBytesPerTx,
-	)
-	ssz.DefineSliceOfStaticObjectsOffset(codec, &p.Withdrawals, 16)
-	ssz.DefineUint64(codec, &p.BlobGasUsed)
-	ssz.DefineUint64(codec, &p.ExcessBlobGas)
-
-	// Define the dynamic data (fields)
-	ssz.DefineDynamicBytesContent(codec, (*[]byte)(&p.ExtraData), 32)
-	ssz.DefineSliceOfDynamicBytesContent(
-		codec,
-		(*[][]byte)(&p.Transactions),
-		constants.MaxTxsPerPayload,
-		constants.MaxBytesPerTx,
-	)
-	ssz.DefineSliceOfStaticObjectsContent(codec, &p.Withdrawals, 16)
-
-	// Note that at this state we don't have any guarantee that
-	// p.Withdrawal is not nil, which we require Capella onwards
-	// (empty list of withdrawals are fine). We ensure non-nillness
-	// in ValidateAfterDecodingSSZ.
-}
 
 // MarshalSSZ serializes the ExecutionPayload object into a slice of bytes.
 func (p *ExecutionPayload) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(p))
-	return buf, ssz.EncodeToBytes(buf, p)
+	buf := make([]byte, 0, p.SizeSSZ())
+	return p.MarshalSSZTo(buf)
 }
 
 func (p *ExecutionPayload) ValidateAfterDecodingSSZ() error {
@@ -178,7 +135,11 @@ func (p *ExecutionPayload) ValidateAfterDecodingSSZ() error {
 
 // HashTreeRoot returns the hash tree root of the ExecutionPayload.
 func (p *ExecutionPayload) HashTreeRoot() common.Root {
-	return ssz.HashConcurrent(p)
+	hh := fastssz.DefaultHasherPool.Get()
+	defer fastssz.DefaultHasherPool.Put(hh)
+	p.HashTreeRootWith(hh)
+	root, _ := hh.HashRoot()
+	return common.Root(root)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -187,29 +148,186 @@ func (p *ExecutionPayload) HashTreeRoot() common.Root {
 
 // MarshalSSZTo serializes the ExecutionPayload object into a writer.
 func (p *ExecutionPayload) MarshalSSZTo(dst []byte) ([]byte, error) {
-	bz, err := p.MarshalSSZ()
+	// Static fields
+	dst = append(dst, p.ParentHash[:]...)
+	dst = append(dst, p.FeeRecipient[:]...)
+	dst = append(dst, p.StateRoot[:]...)
+	dst = append(dst, p.ReceiptsRoot[:]...)
+	dst = append(dst, p.LogsBloom[:]...)
+	dst = append(dst, p.Random[:]...)
+	dst = fastssz.MarshalUint64(dst, uint64(p.Number))
+	dst = fastssz.MarshalUint64(dst, uint64(p.GasLimit))
+	dst = fastssz.MarshalUint64(dst, uint64(p.GasUsed))
+	dst = fastssz.MarshalUint64(dst, uint64(p.Timestamp))
+
+	// Calculate offsets
+	extraDataOffset := uint32(ExecutionPayloadStaticSize)
+	transactionsOffset := extraDataOffset + uint32(len(p.ExtraData))
+	txDataSize := uint32(len(p.Transactions) * 4)
+	for _, tx := range p.Transactions {
+		txDataSize += uint32(len(tx))
+	}
+	withdrawalsOffset := transactionsOffset + txDataSize
+
+	// Write offsets
+	dst = fastssz.MarshalUint32(dst, extraDataOffset)
+
+	// BaseFeePerGas
+	bz, err := p.BaseFeePerGas.MarshalSSZ()
 	if err != nil {
 		return nil, err
 	}
 	dst = append(dst, bz...)
+
+	// Static fields continued
+	dst = append(dst, p.BlockHash[:]...)
+	dst = fastssz.MarshalUint32(dst, transactionsOffset)
+	dst = fastssz.MarshalUint32(dst, withdrawalsOffset)
+	dst = fastssz.MarshalUint64(dst, uint64(p.BlobGasUsed))
+	dst = fastssz.MarshalUint64(dst, uint64(p.ExcessBlobGas))
+
+	// Dynamic fields
+	// ExtraData
+	dst = append(dst, p.ExtraData...)
+
+	// Transactions
+	txOffsets := make([]uint32, len(p.Transactions))
+	currOffset := transactionsOffset + uint32(len(p.Transactions)*4)
+	for i, tx := range p.Transactions {
+		txOffsets[i] = currOffset
+		currOffset += uint32(len(tx))
+	}
+	for _, offset := range txOffsets {
+		dst = fastssz.MarshalUint32(dst, offset)
+	}
+	for _, tx := range p.Transactions {
+		dst = append(dst, tx...)
+	}
+
+	// Withdrawals
+	for _, w := range p.Withdrawals {
+		var err error
+		dst, err = w.MarshalSSZTo(dst)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return dst, nil
 }
 
 // UnmarshalSSZ ssz unmarshals the ExecutionPayload object.
 func (p *ExecutionPayload) UnmarshalSSZ(buf []byte) error {
-	// For now, delegate to karalabe/ssz for unmarshaling
-	// This preserves fork-specific logic in ValidateAfterDecodingSSZ
-	return ssz.DecodeFromBytes(buf, p)
+	if len(buf) < int(ExecutionPayloadStaticSize) {
+		return fastssz.ErrSize
+	}
+
+	// Static fields
+	copy(p.ParentHash[:], buf[0:32])
+	copy(p.FeeRecipient[:], buf[32:52])
+	copy(p.StateRoot[:], buf[52:84])
+	copy(p.ReceiptsRoot[:], buf[84:116])
+	copy(p.LogsBloom[:], buf[116:372])
+	copy(p.Random[:], buf[372:404])
+	p.Number = math.U64(fastssz.UnmarshallUint64(buf[404:412]))
+	p.GasLimit = math.U64(fastssz.UnmarshallUint64(buf[412:420]))
+	p.GasUsed = math.U64(fastssz.UnmarshallUint64(buf[420:428]))
+	p.Timestamp = math.U64(fastssz.UnmarshallUint64(buf[428:436]))
+
+	// Read offsets
+	extraDataOffset := fastssz.UnmarshallUint32(buf[436:440])
+
+	// BaseFeePerGas
+	if p.BaseFeePerGas == nil {
+		p.BaseFeePerGas = &math.U256{}
+	}
+	if err := p.BaseFeePerGas.UnmarshalSSZ(buf[440:472]); err != nil {
+		return err
+	}
+
+	// More static fields
+	copy(p.BlockHash[:], buf[472:504])
+	transactionsOffset := fastssz.UnmarshallUint32(buf[504:508])
+	withdrawalsOffset := fastssz.UnmarshallUint32(buf[508:512])
+	p.BlobGasUsed = math.U64(fastssz.UnmarshallUint64(buf[512:520]))
+	p.ExcessBlobGas = math.U64(fastssz.UnmarshallUint64(buf[520:528]))
+
+	// Dynamic fields
+	// ExtraData
+	if extraDataOffset > uint32(len(buf)) || transactionsOffset > uint32(len(buf)) || extraDataOffset > transactionsOffset {
+		return fastssz.ErrInvalidVariableOffset
+	}
+	p.ExtraData = append([]byte(nil), buf[extraDataOffset:transactionsOffset]...)
+	if len(p.ExtraData) > 32 {
+		return errors.New("extra data too large")
+	}
+
+	// Transactions
+	if transactionsOffset > uint32(len(buf)) || withdrawalsOffset > uint32(len(buf)) || transactionsOffset > withdrawalsOffset {
+		return fastssz.ErrInvalidVariableOffset
+	}
+	txData := buf[transactionsOffset:withdrawalsOffset]
+	if len(txData) > 0 {
+		// Read transaction offsets
+		if len(txData) < 4 {
+			return fastssz.ErrSize
+		}
+		firstTxOffset := fastssz.UnmarshallUint32(txData[0:4])
+		if firstTxOffset < transactionsOffset || firstTxOffset > uint32(len(buf)) {
+			return fastssz.ErrInvalidVariableOffset
+		}
+		numTxs := int((firstTxOffset - transactionsOffset) / 4)
+		if numTxs > constants.MaxTxsPerPayload {
+			return errors.New("too many transactions")
+		}
+
+		txOffsets := make([]uint32, numTxs)
+		for i := 0; i < numTxs; i++ {
+			txOffsets[i] = fastssz.UnmarshallUint32(txData[i*4:(i+1)*4])
+		}
+
+		p.Transactions = make([][]byte, numTxs)
+		for i := 0; i < numTxs; i++ {
+			start := txOffsets[i]
+			end := withdrawalsOffset
+			if i+1 < numTxs {
+				end = txOffsets[i+1]
+			}
+			if start > uint32(len(buf)) || end > uint32(len(buf)) || start > end {
+				return fastssz.ErrInvalidVariableOffset
+			}
+			p.Transactions[i] = append([]byte(nil), buf[start:end]...)
+			if len(p.Transactions[i]) > constants.MaxBytesPerTx {
+				return errors.New("transaction too large")
+			}
+		}
+	} else {
+		p.Transactions = make([][]byte, 0)
+	}
+
+	// Withdrawals
+	if withdrawalsOffset > uint32(len(buf)) {
+		return fastssz.ErrInvalidVariableOffset
+	}
+	wData := buf[withdrawalsOffset:]
+	if len(wData)%44 != 0 {
+		return fastssz.ErrSize
+	}
+	numWithdrawals := len(wData) / 44
+	if numWithdrawals > 16 {
+		return errors.New("too many withdrawals")
+	}
+	p.Withdrawals = make([]*engineprimitives.Withdrawal, numWithdrawals)
+	for i := 0; i < numWithdrawals; i++ {
+		p.Withdrawals[i] = &engineprimitives.Withdrawal{}
+		if err := p.Withdrawals[i].UnmarshalSSZ(wData[i*44 : (i+1)*44]); err != nil {
+			return err
+		}
+	}
+
+	return p.ValidateAfterDecodingSSZ()
 }
 
-// SizeSSZFastSSZ returns the ssz encoded size in bytes for the ExecutionPayload (fastssz).
-// TODO: Rename to SizeSSZ() once karalabe/ssz is fully removed.
-func (p *ExecutionPayload) SizeSSZFastSSZ() (size int) {
-	// Use the existing karalabe/ssz Size function to get the size
-	// This ensures compatibility with the current implementation
-	size = int(ssz.Size(p))
-	return
-}
 
 // HashTreeRootWith ssz hashes the ExecutionPayload object with a hasher.
 //

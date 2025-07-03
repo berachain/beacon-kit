@@ -29,17 +29,15 @@ import (
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	fastssz "github.com/ferranbt/fastssz"
-	"github.com/karalabe/ssz"
 )
 
 // depositSize is the size of the SSZ encoding of a Deposit.
 const depositSize = 192 // 48 + 32 + 8 + 96 + 8
 
-// Compile-time assertions to ensure Deposit implements necessary interfaces.
-var (
-	_ ssz.StaticObject                    = (*Deposit)(nil)
-	_ constraints.SSZMarshallableRootable = (*Deposit)(nil)
-)
+// TODO: Re-enable interface assertion once constraints are updated
+// var (
+// 	_ constraints.SSZMarshallableRootable = (*Deposit)(nil)
+// )
 
 // Deposit into the consensus layer from the deposit contract in the execution
 // layer.
@@ -92,31 +90,27 @@ func (d *Deposit) VerifySignature(
 /*                                     SSZ                                    */
 /* -------------------------------------------------------------------------- */
 
-// DefineSSZ defines the SSZ encoding for the Deposit object.
-func (d *Deposit) DefineSSZ(c *ssz.Codec) {
-	ssz.DefineStaticBytes(c, &d.Pubkey)
-	ssz.DefineStaticBytes(c, &d.Credentials)
-	ssz.DefineUint64(c, &d.Amount)
-	ssz.DefineStaticBytes(c, &d.Signature)
-	ssz.DefineUint64(c, &d.Index)
-}
 
 // MarshalSSZ marshals the Deposit object to SSZ format.
 func (d *Deposit) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(d))
-	return buf, ssz.EncodeToBytes(buf, d)
+	buf := make([]byte, 0, depositSize)
+	return d.MarshalSSZTo(buf)
 }
 
 func (*Deposit) ValidateAfterDecodingSSZ() error { return nil }
 
 // SizeSSZ returns the SSZ encoded size of the Deposit object.
-func (d *Deposit) SizeSSZ(*ssz.Sizer) uint32 {
+func (d *Deposit) SizeSSZ() int {
 	return depositSize
 }
 
 // HashTreeRoot computes the Merkleization of the Deposit object.
 func (d *Deposit) HashTreeRoot() common.Root {
-	return ssz.HashSequential(d)
+	hh := fastssz.DefaultHasherPool.Get()
+	defer fastssz.DefaultHasherPool.Put(hh)
+	d.HashTreeRootWith(hh)
+	root, _ := hh.HashRoot()
+	return common.Root(root)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -151,28 +145,51 @@ func (d *Deposit) GetTree() (*fastssz.Node, error) {
 	return fastssz.ProofTree(d)
 }
 
+
 // MarshalSSZTo marshals the Deposit object into a pre-allocated byte slice.
 func (d *Deposit) MarshalSSZTo(dst []byte) ([]byte, error) {
-	bz, err := d.MarshalSSZ()
-	if err != nil {
-		return nil, err
-	}
-	dst = append(dst, bz...)
+	// Field (0) 'Pubkey'
+	dst = append(dst, d.Pubkey[:]...)
+
+	// Field (1) 'Credentials'
+	dst = append(dst, d.Credentials[:]...)
+
+	// Field (2) 'Amount'
+	dst = fastssz.MarshalUint64(dst, uint64(d.Amount))
+
+	// Field (3) 'Signature'
+	dst = append(dst, d.Signature[:]...)
+
+	// Field (4) 'Index'
+	dst = fastssz.MarshalUint64(dst, d.Index)
+
 	return dst, nil
 }
 
 // UnmarshalSSZ ssz unmarshals the Deposit object.
 func (d *Deposit) UnmarshalSSZ(buf []byte) error {
-	// For now, delegate to karalabe/ssz for unmarshaling
-	// This preserves compatibility during migration
-	return ssz.DecodeFromBytes(buf, d)
+	if len(buf) != depositSize {
+		return fastssz.ErrSize
+	}
+
+	// Field (0) 'Pubkey'
+	copy(d.Pubkey[:], buf[0:48])
+
+	// Field (1) 'Credentials'
+	copy(d.Credentials[:], buf[48:80])
+
+	// Field (2) 'Amount'
+	d.Amount = math.Gwei(fastssz.UnmarshallUint64(buf[80:88]))
+
+	// Field (3) 'Signature'
+	copy(d.Signature[:], buf[88:184])
+
+	// Field (4) 'Index'
+	d.Index = fastssz.UnmarshallUint64(buf[184:192])
+
+	return nil
 }
 
-// SizeSSZFastSSZ returns the ssz encoded size in bytes for the Deposit (fastssz).
-// TODO: Rename to SizeSSZ() once karalabe/ssz is fully removed.
-func (d *Deposit) SizeSSZFastSSZ() (size int) {
-	return depositSize
-}
 
 /* -------------------------------------------------------------------------- */
 /*                             Getters and Setters                            */

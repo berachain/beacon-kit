@@ -22,7 +22,6 @@ package constraints
 
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/karalabe/ssz"
 )
 
 // SSZMarshaler is an interface for objects that can be
@@ -34,7 +33,7 @@ type SSZMarshaler interface {
 
 // SSZUnmarshaler is an interface for objects that can be unmarshaled from SSZ format.
 type SSZUnmarshaler interface {
-	ssz.Object
+	UnmarshalSSZ([]byte) error
 	ValidateAfterDecodingSSZ() error // once unmarshalled we will check whether type syntax is correct
 }
 
