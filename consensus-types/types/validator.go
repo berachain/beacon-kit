@@ -18,6 +18,9 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
+// TODO: Validator needs manual fastssz migration to handle dual interface compatibility
+// go:generate sszgen -path . -objs Validator -output validator_sszgen.go -include ../../primitives/common,../../primitives/crypto,../../primitives/math,../../primitives/bytes
+
 package types
 
 import (

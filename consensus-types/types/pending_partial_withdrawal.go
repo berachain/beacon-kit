@@ -18,6 +18,9 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
+// TODO: PendingPartialWithdrawal ready for full fastssz migration (already has all needed methods)
+// go:generate sszgen -path . -objs PendingPartialWithdrawal -output pending_partial_withdrawal_sszgen.go -include ../../primitives/common,../../primitives/math
+
 package types
 
 import (
@@ -107,6 +110,21 @@ func (p *PendingPartialWithdrawal) HashTreeRootWith(hh fastssz.HashWalker) error
 
 	hh.Merkleize(indx)
 	return nil
+}
+
+// GetTree ssz hashes the PendingPartialWithdrawal object.
+func (p *PendingPartialWithdrawal) GetTree() (*fastssz.Node, error) {
+	return fastssz.ProofTree(p)
+}
+
+// MarshalSSZTo marshals the PendingPartialWithdrawal object into a pre-allocated byte slice.
+func (p *PendingPartialWithdrawal) MarshalSSZTo(dst []byte) ([]byte, error) {
+	bz, err := p.MarshalSSZ()
+	if err != nil {
+		return nil, err
+	}
+	dst = append(dst, bz...)
+	return dst, nil
 }
 
 // PendingPartialWithdrawals is a SSZ list of PendingPartialWithdrawal containers.
