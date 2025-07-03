@@ -347,10 +347,9 @@ func (b *BeaconBlockBody) HashTreeRootWith(hh fastssz.HashWalker) error {
 	}
 
 	// Field (8) 'SyncAggregate'
-	// SyncAggregate needs to implement HashTreeRootWith
-	// For now, we use the root from karalabe/ssz
-	root := b.syncAggregate.HashTreeRoot()
-	hh.PutBytes(root[:])
+	if err := b.syncAggregate.HashTreeRootWith(hh); err != nil {
+		return err
+	}
 
 	// Field (9) 'ExecutionPayload'
 	if err := b.ExecutionPayload.HashTreeRootWith(hh); err != nil {

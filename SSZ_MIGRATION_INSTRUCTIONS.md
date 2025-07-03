@@ -17,10 +17,15 @@ Migration from karalabe/ssz to fastssz for BeaconKit consensus types.
 - [x] Created concrete Versionable struct for SSZ compatibility
 - [x] All types updated to use concrete Versionable
 
+### Phase 2 Migrations
+- [x] SyncAggregate - Manual fastssz implementation with karalabe/ssz compatibility
+- [x] WithdrawalCredentials - Inherits fastssz from bytes.B32
+- [x] Added fastssz methods to bytes.B32 and bytes.B96 types
+
 ## Remaining Work
 
 ### Simple Types (Can Migrate Independently)
-- [ ] WithdrawalCredentials - Type alias to common.Bytes32 (has custom SSZ methods)
+- [x] WithdrawalCredentials - Type alias to common.Bytes32 (inherits fastssz from B32) ✅
 
 ### Types Blocked by UnusedType Dependency
 These types are currently type aliases to common.UnusedType, which still uses karalabe/ssz:
@@ -34,12 +39,13 @@ These types are currently type aliases to common.UnusedType, which still uses ka
 - [ ] DepositRequest - Type alias to Deposit (must migrate Deposit first)
 
 ### Types Blocked by Incomplete Primitive Support
-These types use math.Gwei (U64) which lacks MarshalSSZ/UnmarshalSSZ methods:
-- [ ] WithdrawalRequest - Uses ExecutionAddress, BLSPubkey, and math.Gwei
-- [ ] ConsolidationRequest - Uses ExecutionAddress and BLSPubkey fields
+These types need additional fastssz support:
+- [ ] WithdrawalRequest - Needs fastssz support for ExecutionAddress and BLSPubkey (B48)
+- [ ] ConsolidationRequest - Needs fastssz support for ExecutionAddress and BLSPubkey (B48)
+- [x] math.Gwei (U64) - Now has full fastssz support ✅
 
 ### Types Still Using karalabe/ssz
-- [ ] SyncAggregate - No dependencies, used in BeaconBlockBody
+- [x] SyncAggregate - Migrated to fastssz with manual implementation ✅
 - [ ] ExecutionRequests - Blocked by WithdrawalRequest/ConsolidationRequest which need Gwei support
 
 ### Types with Mixed SSZ Support (Already have fastssz methods)
@@ -114,12 +120,16 @@ BeaconState (fork-specific)
   - UnusedType now has full fastssz support: MarshalSSZTo, UnmarshalSSZ, HashTreeRootWith, etc.
   - All aliases (ProposerSlashing, AttesterSlashing, VoluntaryExit, BLSToExecutionChange, Attestation) automatically inherit fastssz methods
   - Tests confirm all aliases work correctly with fastssz and maintain zero-value enforcement
-- [ ] **Phase 2**: Migrate truly independent types:
-  - WithdrawalCredentials (simple type alias)
-  - SyncAggregate (no type dependencies)
-- [ ] **Phase 3**: Add SSZ methods to math.U64/Gwei to unblock:
+- [x] **Phase 2**: Migrate truly independent types: ✅
+  - WithdrawalCredentials (inherits fastssz from B32)
+  - SyncAggregate (manual fastssz implementation)
+- [x] **Phase 3**: Add SSZ methods to math.U64/Gwei to unblock: ✅
   - WithdrawalRequest, ConsolidationRequest
   - ExecutionRequests (depends on the above)
+  - **Status**: U64/Gwei now has full fastssz support (HashTreeRootWith, GetTree)
+  - **Additional Requirements Found**: 
+    - bytes.B48 needs fastssz support for BLSPubkey fields
+    - common.ExecutionAddress needs fastssz support
 - [ ] **Phase 4**: Complete migration of mixed support types (including Deposit to unblock DepositRequest)
 - [ ] **Phase 5**: Implement manual fastssz for fork-specific types (ExecutionPayload, ExecutionPayloadHeader, BeaconState)
 - [ ] **Phase 6**: Migrate complex chains (BeaconBlock, BeaconState) and BlobSidecar once all dependencies ready
@@ -148,4 +158,13 @@ BeaconState (fork-specific)
   - UnusedType has manual fastssz implementation with zero-value enforcement
   - Type aliases automatically inherit all fastssz methods from UnusedType
   - BeaconBlockBody can now use these types with either karalabe/ssz or fastssz
-- **Next**: Phase 2 - Migrate WithdrawalCredentials and SyncAggregate
+- ✅ **Phase 2 Complete**: WithdrawalCredentials and SyncAggregate migrated to fastssz
+  - WithdrawalCredentials automatically works with fastssz through B32 type
+  - SyncAggregate has manual fastssz implementation maintaining karalabe/ssz compatibility
+  - Added fastssz methods to bytes.B32 and bytes.B96 to support type aliases
+- ✅ **Phase 3 Complete**: Added fastssz methods to math.U64/Gwei
+  - U64 now has HashTreeRootWith and GetTree methods
+  - All type aliases (Gwei, Slot, ValidatorIndex, etc.) inherit fastssz support
+  - Tests confirm compatibility with existing HashTreeRoot implementation
+  - Discovered additional dependencies: B48 and ExecutionAddress need fastssz support
+- **Next**: Add fastssz support to bytes.B48 and common.ExecutionAddress before proceeding with WithdrawalRequest/ConsolidationRequest migration
