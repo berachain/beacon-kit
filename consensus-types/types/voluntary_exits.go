@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
+	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
 )
 
@@ -62,6 +63,31 @@ func (vs VoluntaryExits) DefineSSZ(c *ssz.Codec) {
 // HashTreeRoot returns the hash tree root of the VoluntaryExits.
 func (vs VoluntaryExits) HashTreeRoot() common.Root {
 	return ssz.HashSequential(vs)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
+
+// HashTreeRootWith ssz hashes the VoluntaryExits object with a hasher.
+func (vs VoluntaryExits) HashTreeRootWith(hh fastssz.HashWalker) error {
+	indx := hh.Index()
+	num := uint64(len(vs))
+	if num > constants.MaxVoluntaryExits {
+		return fastssz.ErrIncorrectListSize
+	}
+	for _, elem := range vs {
+		if err := elem.HashTreeRootWith(hh); err != nil {
+			return err
+		}
+	}
+	hh.MerkleizeWithMixin(indx, num, constants.MaxVoluntaryExits)
+	return nil
+}
+
+// GetTree ssz hashes the VoluntaryExits object.
+func (vs VoluntaryExits) GetTree() (*fastssz.Node, error) {
+	return fastssz.ProofTree(vs)
 }
 
 // EnforceUnused return true if the length of the VoluntaryExits is 0.

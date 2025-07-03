@@ -133,8 +133,9 @@ BeaconState (fork-specific)
     - bytes.B48 needs fastssz support for BLSPubkey fields
     - common.ExecutionAddress needs fastssz support
 - [x] **Phase 4**: Complete migration of mixed support types (including Deposit to unblock DepositRequest) ✅
-- [ ] **Phase 5**: Implement manual fastssz for fork-specific types (ExecutionPayload, ExecutionPayloadHeader, BeaconState)
-- [ ] **Phase 6**: Migrate complex chains (BeaconBlock, BeaconState) and BlobSidecar once all dependencies ready
+- [x] **Phase 5**: Implement manual fastssz for fork-specific types (ExecutionPayload, ExecutionPayloadHeader, BeaconState) ✅
+- [x] **Phase 6**: Migrate complex chains (BeaconBlock, BeaconState) and BlobSidecar once all dependencies ready ✅
+- [x] **Phase 7**: Migrate all collection types and SignedBeaconBlock ✅
 
 ## Technical Notes
 - Types used by karalabe/ssz types must keep karalabe methods
@@ -187,10 +188,15 @@ BeaconState (fork-specific)
   - ✅ ExecutionPayloadHeader: Added fastssz methods (UnmarshalSSZ, SizeSSZFastSSZ, MarshalSSZTo)
   - ✅ BeaconState: Added fastssz methods; already had fork-specific logic for PendingPartialWithdrawals (Electra+ only)
   - All three types now have complete fastssz support while maintaining backward compatibility
-- **Phase 6 In Progress**: Migrating complex dependency chains
-  - ✅ ExecutionRequests: Added basic fastssz support with stub methods
+- ✅ **Phase 6 Complete**: Complex dependency chains and critical types
+  - ✅ ExecutionRequests: Added full fastssz implementation with proper offset-based encoding
   - ✅ WithdrawalRequest: Generated fastssz code using sszgen
   - ✅ ConsolidationRequest: Generated fastssz code using sszgen
-  - [ ] BeaconBlock: Depends on BeaconBlockBody (already has partial fastssz)
-  - [ ] BlobSidecar: Critical DA type, still uses karalabe/ssz
+  - ✅ BeaconBlock: Added fastssz methods (MarshalSSZTo, UnmarshalSSZ, SizeSSZFastSSZ, HashTreeRootWith)
+  - ✅ SignedBeaconBlockHeader: Added fastssz support
+  - ✅ BlobSidecar: Added fastssz support
+- ✅ **Phase 7 Complete**: Migrated all slice/collection types and SignedBeaconBlock
+  - ✅ Collection types: Deposits, Validators, Attestations, ProposerSlashings, AttesterSlashings, VoluntaryExits, BLSToExecutionChanges
+  - ✅ SignedBeaconBlock: Added full fastssz support with dynamic object handling
+  - All collection types now have HashTreeRootWith and GetTree methods
 - **Note**: Some types maintain temporary karalabe/ssz compatibility stubs until full migration is complete

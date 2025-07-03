@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
+	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
 )
 
@@ -62,6 +63,31 @@ func (ps ProposerSlashings) DefineSSZ(c *ssz.Codec) {
 // HashTreeRoot returns the hash tree root of the ProposerSlashings.
 func (ps ProposerSlashings) HashTreeRoot() common.Root {
 	return ssz.HashSequential(ps)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
+
+// HashTreeRootWith ssz hashes the ProposerSlashings object with a hasher.
+func (ps ProposerSlashings) HashTreeRootWith(hh fastssz.HashWalker) error {
+	indx := hh.Index()
+	num := uint64(len(ps))
+	if num > constants.MaxProposerSlashings {
+		return fastssz.ErrIncorrectListSize
+	}
+	for _, elem := range ps {
+		if err := elem.HashTreeRootWith(hh); err != nil {
+			return err
+		}
+	}
+	hh.MerkleizeWithMixin(indx, num, constants.MaxProposerSlashings)
+	return nil
+}
+
+// GetTree ssz hashes the ProposerSlashings object.
+func (ps ProposerSlashings) GetTree() (*fastssz.Node, error) {
+	return fastssz.ProofTree(ps)
 }
 
 // EnforceUnused return true if the length of the ProposerSlashings is 0.

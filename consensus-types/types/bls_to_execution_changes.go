@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
+	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
 )
 
@@ -62,6 +63,31 @@ func (bs BlsToExecutionChanges) DefineSSZ(c *ssz.Codec) {
 // HashTreeRoot returns the hash tree root of the BlsToExecutionChanges.
 func (bs BlsToExecutionChanges) HashTreeRoot() common.Root {
 	return ssz.HashSequential(bs)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
+
+// HashTreeRootWith ssz hashes the BlsToExecutionChanges object with a hasher.
+func (bs BlsToExecutionChanges) HashTreeRootWith(hh fastssz.HashWalker) error {
+	indx := hh.Index()
+	num := uint64(len(bs))
+	if num > constants.MaxBlsToExecutionChanges {
+		return fastssz.ErrIncorrectListSize
+	}
+	for _, elem := range bs {
+		if err := elem.HashTreeRootWith(hh); err != nil {
+			return err
+		}
+	}
+	hh.MerkleizeWithMixin(indx, num, constants.MaxBlsToExecutionChanges)
+	return nil
+}
+
+// GetTree ssz hashes the BlsToExecutionChanges object.
+func (bs BlsToExecutionChanges) GetTree() (*fastssz.Node, error) {
+	return fastssz.ProofTree(bs)
 }
 
 // EnforceUnused return true if the length of the BlsToExecutionChanges is 0.

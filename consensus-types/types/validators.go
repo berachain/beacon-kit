@@ -24,6 +24,7 @@ package types
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
+	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
 )
 
@@ -56,4 +57,29 @@ func (vs Validators) DefineSSZ(c *ssz.Codec) {
 // HashTreeRoot returns the SSZ hash tree root for the Validators object.
 func (vs Validators) HashTreeRoot() common.Root {
 	return ssz.HashSequential(vs)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
+
+// HashTreeRootWith ssz hashes the Validators object with a hasher.
+func (vs Validators) HashTreeRootWith(hh fastssz.HashWalker) error {
+	indx := hh.Index()
+	num := uint64(len(vs))
+	if num > constants.ValidatorsRegistryLimit {
+		return fastssz.ErrIncorrectListSize
+	}
+	for _, elem := range vs {
+		if err := elem.HashTreeRootWith(hh); err != nil {
+			return err
+		}
+	}
+	hh.MerkleizeWithMixin(indx, num, constants.ValidatorsRegistryLimit)
+	return nil
+}
+
+// GetTree ssz hashes the Validators object.
+func (vs Validators) GetTree() (*fastssz.Node, error) {
+	return fastssz.ProofTree(vs)
 }

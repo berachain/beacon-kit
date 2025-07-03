@@ -24,6 +24,7 @@ package types
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
+	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
 )
 
@@ -57,4 +58,29 @@ func (ds Deposits) DefineSSZ(c *ssz.Codec) {
 func (ds Deposits) HashTreeRoot() common.Root {
 	// TODO: determine if using HashConcurrent optimizes performance.
 	return ssz.HashSequential(ds)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
+
+// HashTreeRootWith ssz hashes the Deposits object with a hasher.
+func (ds Deposits) HashTreeRootWith(hh fastssz.HashWalker) error {
+	indx := hh.Index()
+	num := uint64(len(ds))
+	if num > constants.MaxDeposits {
+		return fastssz.ErrIncorrectListSize
+	}
+	for _, elem := range ds {
+		if err := elem.HashTreeRootWith(hh); err != nil {
+			return err
+		}
+	}
+	hh.MerkleizeWithMixin(indx, num, constants.MaxDeposits)
+	return nil
+}
+
+// GetTree ssz hashes the Deposits object.
+func (ds Deposits) GetTree() (*fastssz.Node, error) {
+	return fastssz.ProofTree(ds)
 }

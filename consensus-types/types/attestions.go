@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
+	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
 )
 
@@ -62,6 +63,31 @@ func (as Attestations) DefineSSZ(c *ssz.Codec) {
 // HashTreeRoot returns the hash tree root of the Attestations.
 func (as Attestations) HashTreeRoot() common.Root {
 	return ssz.HashSequential(as)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
+
+// HashTreeRootWith ssz hashes the Attestations object with a hasher.
+func (as Attestations) HashTreeRootWith(hh fastssz.HashWalker) error {
+	indx := hh.Index()
+	num := uint64(len(as))
+	if num > constants.MaxAttestations {
+		return fastssz.ErrIncorrectListSize
+	}
+	for _, elem := range as {
+		if err := elem.HashTreeRootWith(hh); err != nil {
+			return err
+		}
+	}
+	hh.MerkleizeWithMixin(indx, num, constants.MaxAttestations)
+	return nil
+}
+
+// GetTree ssz hashes the Attestations object.
+func (as Attestations) GetTree() (*fastssz.Node, error) {
+	return fastssz.ProofTree(as)
 }
 
 // EnforceUnused return true if the length of the Attestations is 0.
