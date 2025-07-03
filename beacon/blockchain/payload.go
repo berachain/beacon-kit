@@ -181,7 +181,7 @@ func (s *Service) preFetchBuildData(st *statedb.StateDB, currentTime math.U64) (
 		return nil, err
 	}
 
-	prevProposerPubKey, err := PrevBlockProposerPubKey(st, s.chainSpec, nextPayloadTimestamp)
+	parentProposerPubKey, err := PrevBlockProposerPubKey(st, s.chainSpec, nextPayloadTimestamp)
 	if err != nil {
 		return nil, fmt.Errorf("failed retrieving previous proposer public key: %w", err)
 	}
@@ -200,7 +200,7 @@ func (s *Service) preFetchBuildData(st *statedb.StateDB, currentTime math.U64) (
 		// of the latest block we verified must be final already.
 		FinalEth1BlockHash: lph.GetParentHash(),
 
-		PrevProposerPubKey: prevProposerPubKey,
+		ParentProposerPubKey: parentProposerPubKey,
 	}, nil
 }
 
@@ -253,8 +253,8 @@ func PrevBlockProposerPubKey[
 	},
 ](st *statedb.StateDB, cs ForkChainSpec, nextPayloadTimestamp math.U64) (crypto.BLSPubkey, error) {
 	var (
-		forkVersion        = cs.ActiveForkVersionForTimestamp(nextPayloadTimestamp)
-		prevProposerPubKey crypto.BLSPubkey
+		forkVersion          = cs.ActiveForkVersionForTimestamp(nextPayloadTimestamp)
+		parentProposerPubKey crypto.BLSPubkey
 	)
 	if version.EqualsOrIsAfter(forkVersion, version.Electra1()) {
 		latestBlockHeader, err := st.GetLatestBlockHeader()
@@ -265,7 +265,7 @@ func PrevBlockProposerPubKey[
 		if err != nil {
 			return crypto.BLSPubkey{}, fmt.Errorf("failed retrieving prev proposer: %w", err)
 		}
-		prevProposerPubKey = prevProposer.GetPubkey()
+		parentProposerPubKey = prevProposer.GetPubkey()
 	}
-	return prevProposerPubKey, nil
+	return parentProposerPubKey, nil
 }

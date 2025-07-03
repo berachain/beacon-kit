@@ -274,20 +274,20 @@ func (s *Service) retrieveExecutionPayload(
 		return nil, err
 	}
 
-	prevProposerPubKey, err := blockchain.PrevBlockProposerPubKey(st, s.chainSpec, nextPayloadTimestamp)
+	parentProposerPubKey, err := blockchain.PrevBlockProposerPubKey(st, s.chainSpec, nextPayloadTimestamp)
 	if err != nil {
 		return nil, fmt.Errorf("failed retrieving previous proposer public key: %w", err)
 	}
 
 	r := &builder.RequestPayloadData{
-		Slot:               slot,
-		Timestamp:          nextPayloadTimestamp,
-		PayloadWithdrawals: payloadWithdrawals,
-		PrevRandao:         prevRandao,
-		ParentBlockRoot:    parentBlockRoot,
-		HeadEth1BlockHash:  lph.GetBlockHash(),
-		FinalEth1BlockHash: lph.GetParentHash(),
-		PrevProposerPubKey: prevProposerPubKey,
+		Slot:                 slot,
+		Timestamp:            nextPayloadTimestamp,
+		PayloadWithdrawals:   payloadWithdrawals,
+		PrevRandao:           prevRandao,
+		ParentBlockRoot:      parentBlockRoot,
+		HeadEth1BlockHash:    lph.GetBlockHash(),
+		FinalEth1BlockHash:   lph.GetParentHash(),
+		ParentProposerPubKey: parentProposerPubKey,
 	}
 	return s.localPayloadBuilder.RequestPayloadSync(ctx, r)
 }

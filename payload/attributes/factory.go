@@ -58,7 +58,7 @@ func (f *Factory) BuildPayloadAttributes(
 	payloadWithdrawals engineprimitives.Withdrawals,
 	prevRandao common.Bytes32,
 	prevHeadRoot common.Root,
-	prevProposerPubKey crypto.BLSPubkey,
+	parentProposerPubKey crypto.BLSPubkey,
 ) (*engineprimitives.PayloadAttributes, error) {
 	return engineprimitives.NewPayloadAttributes(
 		f.chainSpec.ActiveForkVersionForTimestamp(timestamp),
@@ -67,6 +67,6 @@ func (f *Factory) BuildPayloadAttributes(
 		f.suggestedFeeRecipient,
 		payloadWithdrawals,
 		prevHeadRoot,
-		prevProposerPubKey,
+		parentProposerPubKey,
 	)
 }

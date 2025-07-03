@@ -52,7 +52,7 @@ type (
 			payloadWithdrawals engineprimitives.Withdrawals,
 			prevRandao common.Bytes32,
 			prevHeadRoot common.Root,
-			prevProposerPubKey crypto.BLSPubkey,
+			parentProposerPubKey crypto.BLSPubkey,
 		) (*engineprimitives.PayloadAttributes, error)
 	}
 

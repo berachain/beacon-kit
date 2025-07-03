@@ -47,9 +47,9 @@ type PayloadAttributes struct {
 	// EIP-4788.
 	ParentBeaconBlockRoot common.Root `json:"parentBeaconBlockRoot"`
 
-	// PrevProposerPubKey carries the public key of previous block proposed
-	// Needed to enshrine distributeFor in EVM
-	PrevProposerPubKey crypto.BLSPubkey `json:"prevProposerPubKey"`
+	// ParentProposerPubKey carries the public key of previous block proposed
+	// This field was added for BRIP-0004.
+	ParentProposerPubKey crypto.BLSPubkey `json:"parentProposerPubKey"`
 }
 
 // NewPayloadAttributes creates a new PayloadAttributes and validates it for
@@ -61,7 +61,7 @@ func NewPayloadAttributes(
 	suggestedFeeRecipient common.ExecutionAddress,
 	withdrawals Withdrawals,
 	parentBeaconBlockRoot common.Root,
-	prevProposerPubKey crypto.BLSPubkey,
+	parentProposerPubKey crypto.BLSPubkey,
 ) (*PayloadAttributes, error) {
 	pa := &PayloadAttributes{
 		Timestamp:             timestamp,
@@ -69,7 +69,7 @@ func NewPayloadAttributes(
 		SuggestedFeeRecipient: suggestedFeeRecipient,
 		Withdrawals:           withdrawals,
 		ParentBeaconBlockRoot: parentBeaconBlockRoot,
-		PrevProposerPubKey:    prevProposerPubKey,
+		ParentProposerPubKey:  parentProposerPubKey,
 	}
 
 	if err := pa.Validate(forkVersion); err != nil {
@@ -101,11 +101,11 @@ func (p *PayloadAttributes) Validate(forkVersion common.Version) error {
 
 	emptyBLSPubKey := crypto.BLSPubkey{}
 	if version.IsBefore(forkVersion, version.Electra1()) {
-		if p.PrevProposerPubKey != emptyBLSPubKey {
+		if p.ParentProposerPubKey != emptyBLSPubKey {
 			return ErrNonEmptyPrevProposerPubKey
 		}
 	} else {
-		if p.PrevProposerPubKey == emptyBLSPubKey {
+		if p.ParentProposerPubKey == emptyBLSPubKey {
 			return ErrEmptyPrevProposerPubKey
 		}
 	}
