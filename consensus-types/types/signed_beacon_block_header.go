@@ -24,6 +24,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
+	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
 )
 
@@ -99,4 +100,53 @@ func (b *SignedBeaconBlockHeader) GetHeader() *BeaconBlockHeader {
 // GetSignature retrieves the Signature of the SignedBeaconBlockHeader.
 func (b *SignedBeaconBlockHeader) GetSignature() crypto.BLSSignature {
 	return b.Signature
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
+
+// MarshalSSZTo ssz marshals the SignedBeaconBlockHeader object to a target array.
+func (b *SignedBeaconBlockHeader) MarshalSSZTo(dst []byte) ([]byte, error) {
+	bz, err := b.MarshalSSZ()
+	if err != nil {
+		return nil, err
+	}
+	dst = append(dst, bz...)
+	return dst, nil
+}
+
+// UnmarshalSSZ ssz unmarshals the SignedBeaconBlockHeader object.
+func (b *SignedBeaconBlockHeader) UnmarshalSSZ(buf []byte) error {
+	// For now, delegate to karalabe/ssz for unmarshaling
+	return ssz.DecodeFromBytes(buf, b)
+}
+
+// SizeSSZFastSSZ returns the ssz encoded size in bytes for the SignedBeaconBlockHeader (fastssz).
+// TODO: Rename to SizeSSZ() once karalabe/ssz is fully removed.
+func (b *SignedBeaconBlockHeader) SizeSSZFastSSZ() (size int) {
+	// Use the existing karalabe/ssz Size function to get the size
+	size = int(ssz.Size(b))
+	return
+}
+
+// HashTreeRootWith ssz hashes the SignedBeaconBlockHeader object with a hasher.
+func (b *SignedBeaconBlockHeader) HashTreeRootWith(hh fastssz.HashWalker) error {
+	indx := hh.Index()
+
+	// Field (0) 'Header'
+	if err := b.Header.HashTreeRootWith(hh); err != nil {
+		return err
+	}
+
+	// Field (1) 'Signature'
+	hh.PutBytes(b.Signature[:])
+
+	hh.Merkleize(indx)
+	return nil
+}
+
+// GetTree ssz hashes the SignedBeaconBlockHeader object.
+func (b *SignedBeaconBlockHeader) GetTree() (*fastssz.Node, error) {
+	return fastssz.ProofTree(b)
 }

@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/merkle"
+	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
 )
 
@@ -186,4 +187,65 @@ func (b *BlobSidecar) MarshalSSZTo(buf []byte) ([]byte, error) {
 // HashTreeRoot computes the SSZ hash tree root of the BlobSidecar object.
 func (b *BlobSidecar) HashTreeRoot() common.Root {
 	return ssz.HashSequential(b)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
+
+// UnmarshalSSZ ssz unmarshals the BlobSidecar object.
+func (b *BlobSidecar) UnmarshalSSZ(buf []byte) error {
+	// For now, delegate to karalabe/ssz for unmarshaling
+	return ssz.DecodeFromBytes(buf, b)
+}
+
+// SizeSSZFastSSZ returns the ssz encoded size in bytes for the BlobSidecar (fastssz).
+// TODO: Rename to SizeSSZ() once karalabe/ssz is fully removed.
+func (b *BlobSidecar) SizeSSZFastSSZ() (size int) {
+	// Use the existing karalabe/ssz Size function to get the size
+	size = int(ssz.Size(b))
+	return
+}
+
+// HashTreeRootWith ssz hashes the BlobSidecar object with a hasher.
+func (b *BlobSidecar) HashTreeRootWith(hh fastssz.HashWalker) error {
+	indx := hh.Index()
+
+	// Field (0) 'Index'
+	hh.PutUint64(b.Index)
+
+	// Field (1) 'Blob' (131072 bytes)
+	hh.PutBytes(b.Blob[:])
+
+	// Field (2) 'KzgCommitment' (48 bytes)
+	hh.PutBytes(b.KzgCommitment[:])
+
+	// Field (3) 'KzgProof' (48 bytes)
+	hh.PutBytes(b.KzgProof[:])
+
+	// Field (4) 'SignedBeaconBlockHeader'
+	if b.SignedBeaconBlockHeader == nil {
+		return errors.New("SignedBeaconBlockHeader is nil")
+	}
+	if err := b.SignedBeaconBlockHeader.HashTreeRootWith(hh); err != nil {
+		return err
+	}
+
+	// Field (5) 'InclusionProof' (vector of 17 roots)
+	{
+		if len(b.InclusionProof) != ctypes.KZGInclusionProofDepth {
+			return fmt.Errorf("expected %d roots in InclusionProof, got %d", ctypes.KZGInclusionProofDepth, len(b.InclusionProof))
+		}
+		for i := 0; i < ctypes.KZGInclusionProofDepth; i++ {
+			hh.PutBytes(b.InclusionProof[i][:])
+		}
+	}
+
+	hh.Merkleize(indx)
+	return nil
+}
+
+// GetTree ssz hashes the BlobSidecar object.
+func (b *BlobSidecar) GetTree() (*fastssz.Node, error) {
+	return fastssz.ProofTree(b)
 }

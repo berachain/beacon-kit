@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
+	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
 )
 
@@ -178,4 +179,64 @@ func (b *BeaconBlock) GetHeader() *BeaconBlockHeader {
 // the ExecutionPayload.
 func (b *BeaconBlock) GetTimestamp() math.U64 {
 	return b.Body.ExecutionPayload.Timestamp
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
+
+// MarshalSSZTo ssz marshals the BeaconBlock object to a target array.
+func (b *BeaconBlock) MarshalSSZTo(dst []byte) ([]byte, error) {
+	bz, err := b.MarshalSSZ()
+	if err != nil {
+		return nil, err
+	}
+	dst = append(dst, bz...)
+	return dst, nil
+}
+
+// UnmarshalSSZ ssz unmarshals the BeaconBlock object.
+func (b *BeaconBlock) UnmarshalSSZ(buf []byte) error {
+	// For now, delegate to karalabe/ssz for unmarshaling
+	// This preserves the complex dynamic field handling
+	return ssz.DecodeFromBytes(buf, b)
+}
+
+// SizeSSZFastSSZ returns the ssz encoded size in bytes for the BeaconBlock (fastssz).
+// TODO: Rename to SizeSSZ() once karalabe/ssz is fully removed.
+func (b *BeaconBlock) SizeSSZFastSSZ() (size int) {
+	// Use the existing karalabe/ssz Size function to get the size
+	// This ensures compatibility with the current implementation
+	size = int(ssz.Size(b))
+	return
+}
+
+// HashTreeRootWith ssz hashes the BeaconBlock object with a hasher.
+func (b *BeaconBlock) HashTreeRootWith(hh fastssz.HashWalker) error {
+	indx := hh.Index()
+
+	// Field (0) 'Slot'
+	hh.PutUint64(uint64(b.Slot))
+
+	// Field (1) 'ProposerIndex'
+	hh.PutUint64(uint64(b.ProposerIndex))
+
+	// Field (2) 'ParentRoot'
+	hh.PutBytes(b.ParentRoot[:])
+
+	// Field (3) 'StateRoot'
+	hh.PutBytes(b.StateRoot[:])
+
+	// Field (4) 'Body'
+	if err := b.Body.HashTreeRootWith(hh); err != nil {
+		return err
+	}
+
+	hh.Merkleize(indx)
+	return nil
+}
+
+// GetTree ssz hashes the BeaconBlock object.
+func (b *BeaconBlock) GetTree() (*fastssz.Node, error) {
+	return fastssz.ProofTree(b)
 }

@@ -187,4 +187,10 @@ BeaconState (fork-specific)
   - ✅ ExecutionPayloadHeader: Added fastssz methods (UnmarshalSSZ, SizeSSZFastSSZ, MarshalSSZTo)
   - ✅ BeaconState: Added fastssz methods; already had fork-specific logic for PendingPartialWithdrawals (Electra+ only)
   - All three types now have complete fastssz support while maintaining backward compatibility
-- **Next**: Phase 6 - Migrate complex chains (BeaconBlock, BeaconState, BlobSidecar) once all dependencies ready
+- **Phase 6 In Progress**: Migrating complex dependency chains
+  - ✅ ExecutionRequests: Added basic fastssz support with stub methods
+  - ✅ WithdrawalRequest: Generated fastssz code using sszgen
+  - ✅ ConsolidationRequest: Generated fastssz code using sszgen
+  - [ ] BeaconBlock: Depends on BeaconBlockBody (already has partial fastssz)
+  - [ ] BlobSidecar: Critical DA type, still uses karalabe/ssz
+- **Note**: Some types maintain temporary karalabe/ssz compatibility stubs until full migration is complete

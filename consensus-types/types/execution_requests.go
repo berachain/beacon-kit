@@ -21,25 +21,57 @@
 package types
 
 import (
+	"encoding/binary"
 	"fmt"
 
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/encoding/sszutil"
+	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
 )
 
 // 3 since three dynamic objects (Deposits, Withdrawals, Consolidations)
 const dynamicFieldsInExecutionRequests = 3
 
-// Compile-time check to ensure ExecutionRequests implements the necessary interfaces.
-var (
-	_ ssz.DynamicObject                   = (*ExecutionRequests)(nil)
-	_ constraints.SSZMarshallableRootable = (*ExecutionRequests)(nil)
-)
+
+// DefineSSZ defines the SSZ encoding for ExecutionRequests.
+// TODO: Remove once BeaconBlockBody is fully migrated to fastssz
+func (e *ExecutionRequests) DefineSSZ(codec *ssz.Codec) {
+	// Define offsets for dynamic fields
+	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Deposits, constants.MaxDepositRequestsPerPayload)
+	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Withdrawals, constants.MaxWithdrawalRequestsPerPayload)
+	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Consolidations, constants.MaxConsolidationRequestsPerPayload)
+	
+	// Define content for dynamic fields
+	ssz.DefineSliceOfStaticObjectsContent(codec, &e.Deposits, constants.MaxDepositRequestsPerPayload)
+	ssz.DefineSliceOfStaticObjectsContent(codec, &e.Withdrawals, constants.MaxWithdrawalRequestsPerPayload)
+	ssz.DefineSliceOfStaticObjectsContent(codec, &e.Consolidations, constants.MaxConsolidationRequestsPerPayload)
+}
+
+// SizeSSZ returns the size for karalabe/ssz compatibility.
+// TODO: Remove once fully migrated to fastssz
+func (e *ExecutionRequests) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
+	size := constants.SSZOffsetSize * dynamicFieldsInExecutionRequests
+	if fixed {
+		return size
+	}
+	
+	// Add dynamic sizes
+	for range e.Deposits {
+		size += 192 // deposit size
+	}
+	for range e.Withdrawals {
+		size += 76 // withdrawal request size
+	}
+	for range e.Consolidations {
+		size += 116 // consolidation request size
+	}
+	
+	return size
+}
 
 // EncodedExecutionRequest is the result of GetExecutionRequestsList which is spec defined.
 type EncodedExecutionRequest = bytes.Bytes
@@ -146,37 +178,247 @@ func DecodeExecutionRequests(encodedRequests [][]byte) (*ExecutionRequests, erro
 	return &result, nil
 }
 
-/* -------------------------------------------------------------------------- */
-/*                       Execution Requests SSZ                               */
-/* -------------------------------------------------------------------------- */
 
-func (e *ExecutionRequests) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Deposits, constants.MaxDepositRequestsPerPayload)
-	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Withdrawals, constants.MaxWithdrawalRequestsPerPayload)
-	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Consolidations, constants.MaxConsolidationRequestsPerPayload)
-
-	ssz.DefineSliceOfStaticObjectsContent(codec, &e.Deposits, constants.MaxDepositRequestsPerPayload)
-	ssz.DefineSliceOfStaticObjectsContent(codec, &e.Withdrawals, constants.MaxWithdrawalRequestsPerPayload)
-	ssz.DefineSliceOfStaticObjectsContent(codec, &e.Consolidations, constants.MaxConsolidationRequestsPerPayload)
-}
-
-func (e *ExecutionRequests) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
-	size := constants.SSZOffsetSize * dynamicFieldsInExecutionRequests
-	if fixed {
-		return size
-	}
-	size += ssz.SizeSliceOfStaticObjects(siz, e.Deposits)
-	size += ssz.SizeSliceOfStaticObjects(siz, e.Withdrawals)
-	size += ssz.SizeSliceOfStaticObjects(siz, e.Consolidations)
-	return size
-}
-
-func (e *ExecutionRequests) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(e))
-	return buf, ssz.EncodeToBytes(buf, e)
-}
-
-// HashTreeRoot returns the hash tree root of the Deposits.
+// HashTreeRoot returns the hash tree root of the ExecutionRequests.
 func (e *ExecutionRequests) HashTreeRoot() common.Root {
 	return ssz.HashSequential(e)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
+
+// MarshalSSZ marshals the ExecutionRequests object.
+func (e *ExecutionRequests) MarshalSSZ() ([]byte, error) {
+	// Initialize empty slices if nil
+	if e.Deposits == nil {
+		e.Deposits = make([]*DepositRequest, 0)
+	}
+	if e.Withdrawals == nil {
+		e.Withdrawals = make([]*WithdrawalRequest, 0)
+	}
+	if e.Consolidations == nil {
+		e.Consolidations = make([]*ConsolidationRequest, 0)
+	}
+
+	// Calculate size
+	size := 12 // 3 fields * 4 bytes offset each
+	
+	// Add dynamic content sizes
+	for _, d := range e.Deposits {
+		depositBytes, err := d.MarshalSSZ()
+		if err != nil {
+			return nil, err
+		}
+		size += len(depositBytes)
+	}
+	for _, w := range e.Withdrawals {
+		withdrawalBytes, err := w.MarshalSSZ()
+		if err != nil {
+			return nil, err
+		}
+		size += len(withdrawalBytes)
+	}
+	for _, c := range e.Consolidations {
+		consolidationBytes, err := c.MarshalSSZ()
+		if err != nil {
+			return nil, err
+		}
+		size += len(consolidationBytes)
+	}
+
+	// Create buffer
+	buf := make([]byte, size)
+	offset := 12
+	
+	// Write offsets
+	// Deposits offset
+	binary.LittleEndian.PutUint32(buf[0:4], uint32(offset))
+	for _, d := range e.Deposits {
+		depositBytes, _ := d.MarshalSSZ()
+		offset += len(depositBytes)
+	}
+	
+	// Withdrawals offset
+	binary.LittleEndian.PutUint32(buf[4:8], uint32(offset))
+	for _, w := range e.Withdrawals {
+		withdrawalBytes, _ := w.MarshalSSZ()
+		offset += len(withdrawalBytes)
+	}
+	
+	// Consolidations offset
+	binary.LittleEndian.PutUint32(buf[8:12], uint32(offset))
+	
+	// Write content
+	offset = 12
+	for _, d := range e.Deposits {
+		depositBytes, _ := d.MarshalSSZ()
+		copy(buf[offset:], depositBytes)
+		offset += len(depositBytes)
+	}
+	for _, w := range e.Withdrawals {
+		withdrawalBytes, _ := w.MarshalSSZ()
+		copy(buf[offset:], withdrawalBytes)
+		offset += len(withdrawalBytes)
+	}
+	for _, c := range e.Consolidations {
+		consolidationBytes, _ := c.MarshalSSZ()
+		copy(buf[offset:], consolidationBytes)
+		offset += len(consolidationBytes)
+	}
+	
+	return buf, nil
+}
+
+// MarshalSSZTo ssz marshals the ExecutionRequests object to a target array.
+func (e *ExecutionRequests) MarshalSSZTo(dst []byte) ([]byte, error) {
+	bz, err := e.MarshalSSZ()
+	if err != nil {
+		return nil, err
+	}
+	dst = append(dst, bz...)
+	return dst, nil
+}
+
+// UnmarshalSSZ ssz unmarshals the ExecutionRequests object.
+func (e *ExecutionRequests) UnmarshalSSZ(buf []byte) error {
+	if len(buf) < 12 {
+		return errors.New("buffer too short for ExecutionRequests")
+	}
+
+	// Initialize empty slices
+	e.Deposits = make([]*DepositRequest, 0)
+	e.Withdrawals = make([]*WithdrawalRequest, 0)
+	e.Consolidations = make([]*ConsolidationRequest, 0)
+
+	// Read offsets
+	depositsOffset := binary.LittleEndian.Uint32(buf[0:4])
+	withdrawalsOffset := binary.LittleEndian.Uint32(buf[4:8])
+	consolidationsOffset := binary.LittleEndian.Uint32(buf[8:12])
+
+	// Validate offsets
+	if depositsOffset < 12 || depositsOffset > uint32(len(buf)) {
+		return errors.New("invalid deposits offset")
+	}
+	if withdrawalsOffset < depositsOffset || withdrawalsOffset > uint32(len(buf)) {
+		return errors.New("invalid withdrawals offset")
+	}
+	if consolidationsOffset < withdrawalsOffset || consolidationsOffset > uint32(len(buf)) {
+		return errors.New("invalid consolidations offset")
+	}
+
+	// Unmarshal deposits
+	if depositsOffset < withdrawalsOffset {
+		depositsData := buf[depositsOffset:withdrawalsOffset]
+		if len(depositsData) > 0 {
+			deposits, err := DecodeDepositRequests(depositsData)
+			if err != nil {
+				return err
+			}
+			e.Deposits = deposits
+		}
+	}
+
+	// Unmarshal withdrawals
+	if withdrawalsOffset < consolidationsOffset {
+		withdrawalsData := buf[withdrawalsOffset:consolidationsOffset]
+		if len(withdrawalsData) > 0 {
+			withdrawals, err := DecodeWithdrawalRequests(withdrawalsData)
+			if err != nil {
+				return err
+			}
+			e.Withdrawals = withdrawals
+		}
+	}
+
+	// Unmarshal consolidations
+	if consolidationsOffset < uint32(len(buf)) {
+		consolidationsData := buf[consolidationsOffset:]
+		if len(consolidationsData) > 0 {
+			consolidations, err := DecodeConsolidationRequests(consolidationsData)
+			if err != nil {
+				return err
+			}
+			e.Consolidations = consolidations
+		}
+	}
+
+	return nil
+}
+
+// SizeSSZFastSSZ returns the ssz encoded size in bytes for the ExecutionRequests (fastssz).
+// TODO: Rename to SizeSSZ() once karalabe/ssz is fully removed.
+func (e *ExecutionRequests) SizeSSZFastSSZ() (size int) {
+	size = 12 // 3 fields * 4 bytes offset each
+	
+	// Add dynamic sizes
+	for range e.Deposits {
+		size += 192 // deposit size
+	}
+	for range e.Withdrawals {
+		size += 76 // withdrawal request size
+	}
+	for range e.Consolidations {
+		size += 116 // consolidation request size
+	}
+	
+	return
+}
+
+// HashTreeRootWith ssz hashes the ExecutionRequests object with a hasher.
+func (e *ExecutionRequests) HashTreeRootWith(hh fastssz.HashWalker) error {
+	indx := hh.Index()
+
+	// Field (0) 'Deposits'
+	{
+		subIndx := hh.Index()
+		num := uint64(len(e.Deposits))
+		if num > constants.MaxDepositRequestsPerPayload {
+			return fastssz.ErrIncorrectListSize
+		}
+		for _, elem := range e.Deposits {
+			if err := elem.HashTreeRootWith(hh); err != nil {
+				return err
+			}
+		}
+		hh.MerkleizeWithMixin(subIndx, num, constants.MaxDepositRequestsPerPayload)
+	}
+
+	// Field (1) 'Withdrawals'
+	{
+		subIndx := hh.Index()
+		num := uint64(len(e.Withdrawals))
+		if num > constants.MaxWithdrawalRequestsPerPayload {
+			return fastssz.ErrIncorrectListSize
+		}
+		for _, elem := range e.Withdrawals {
+			if err := elem.HashTreeRootWith(hh); err != nil {
+				return err
+			}
+		}
+		hh.MerkleizeWithMixin(subIndx, num, constants.MaxWithdrawalRequestsPerPayload)
+	}
+
+	// Field (2) 'Consolidations'
+	{
+		subIndx := hh.Index()
+		num := uint64(len(e.Consolidations))
+		if num > constants.MaxConsolidationRequestsPerPayload {
+			return fastssz.ErrIncorrectListSize
+		}
+		for _, elem := range e.Consolidations {
+			if err := elem.HashTreeRootWith(hh); err != nil {
+				return err
+			}
+		}
+		hh.MerkleizeWithMixin(subIndx, num, constants.MaxConsolidationRequestsPerPayload)
+	}
+
+	hh.Merkleize(indx)
+	return nil
+}
+
+// GetTree ssz hashes the ExecutionRequests object.
+func (e *ExecutionRequests) GetTree() (*fastssz.Node, error) {
+	return fastssz.ProofTree(e)
 }
