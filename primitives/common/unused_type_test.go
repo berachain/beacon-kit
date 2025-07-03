@@ -24,6 +24,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/primitives/common"
+	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
@@ -82,4 +83,101 @@ func TestEncodeUnusedTypeEquality(t *testing.T) {
 			require.Equal(t, want, got)
 		})
 	}
+}
+
+// TestUnusedTypeFastSSZ tests the fastssz methods of UnusedType.
+func TestUnusedTypeFastSSZ(t *testing.T) {
+	t.Run("ValidUnusedType", func(t *testing.T) {
+		ut := common.UnusedType(0)
+
+		// Test MarshalSSZTo
+		dst := make([]byte, 0)
+		result, err := ut.MarshalSSZTo(dst)
+		require.NoError(t, err)
+		require.Equal(t, []byte{0}, result)
+
+		// Test UnmarshalSSZ
+		var ut2 common.UnusedType
+		err = ut2.UnmarshalSSZ([]byte{0})
+		require.NoError(t, err)
+		require.Equal(t, ut, ut2)
+
+		// Test SizeSSZFastSSZ
+		size := ut.SizeSSZFastSSZ()
+		require.Equal(t, 1, size)
+
+		// Test HashTreeRootWith
+		hh := fastssz.NewHasher()
+		err = ut.HashTreeRootWith(hh)
+		require.NoError(t, err)
+
+		// Test GetTree
+		tree, err := ut.GetTree()
+		require.NoError(t, err)
+		require.NotNil(t, tree)
+
+		// Test HashTreeRootFastSSZ
+		root, err := ut.HashTreeRootFastSSZ()
+		require.NoError(t, err)
+		var expectedRoot [32]byte
+		require.Equal(t, expectedRoot, root)
+	})
+
+	t.Run("InvalidUnusedType", func(t *testing.T) {
+		// Test unmarshaling non-zero value
+		var ut common.UnusedType
+		err := ut.UnmarshalSSZ([]byte{1})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "UnusedType must be unused")
+
+		// Test unmarshaling wrong size
+		err = ut.UnmarshalSSZ([]byte{0, 0})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "expected buffer of length 1")
+
+		// Test empty buffer
+		err = ut.UnmarshalSSZ([]byte{})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "expected buffer of length 1")
+	})
+
+	t.Run("CompareHashTreeRoot", func(t *testing.T) {
+		ut := common.UnusedType(0)
+
+		// Compare karalabe/ssz HashTreeRoot with fastssz HashTreeRootWith
+		karalabRoot := ut.HashTreeRoot()
+
+		hh := fastssz.NewHasher()
+		err := ut.HashTreeRootWith(hh)
+		require.NoError(t, err)
+		fastsszRoot, err := hh.HashRoot()
+		require.NoError(t, err)
+
+		require.Equal(t, karalabRoot[:], fastsszRoot[:],
+			"HashTreeRoot results should match between karalabe/ssz and fastssz")
+
+		// Also compare with HashTreeRootFastSSZ
+		directRoot, err := ut.HashTreeRootFastSSZ()
+		require.NoError(t, err)
+		require.Equal(t, karalabRoot[:], directRoot[:],
+			"HashTreeRoot results should match with direct fastssz method")
+	})
+}
+
+// TestEnforceAllUnused tests the EnforceAllUnused helper function.
+func TestEnforceAllUnused(t *testing.T) {
+	t.Run("AllUnused", func(t *testing.T) {
+		ut1 := common.UnusedType(0)
+		ut2 := common.UnusedType(0)
+		err := common.EnforceAllUnused(&ut1, &ut2)
+		require.NoError(t, err)
+	})
+
+	t.Run("SomeUsed", func(t *testing.T) {
+		ut1 := common.UnusedType(0)
+		ut2 := common.UnusedType(1)
+		err := common.EnforceAllUnused(&ut1, &ut2)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "UnusedType must be unused")
+	})
 }

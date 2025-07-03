@@ -33,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/math/log"
 	"github.com/berachain/beacon-kit/primitives/version"
+	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
@@ -161,6 +162,62 @@ func TestBeaconBlockBody_MarshalSSZ(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, data)
 	})
+}
+
+// TestBeaconBlockBody_FastSSZ tests the fastssz methods of BeaconBlockBody.
+func TestBeaconBlockBody_FastSSZ(t *testing.T) {
+	t.Parallel()
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		body := generateBeaconBlockBody(t, v)
+
+		t.Run("MarshalSSZTo", func(t *testing.T) {
+			dst := make([]byte, 0)
+			result, err := body.MarshalSSZTo(dst)
+			require.NoError(t, err)
+			require.NotNil(t, result)
+			require.Greater(t, len(result), 0)
+		})
+
+		t.Run("SizeSSZFastSSZ", func(t *testing.T) {
+			size := body.SizeSSZFastSSZ()
+			require.Greater(t, size, 0)
+		})
+
+		t.Run("HashTreeRootWith", func(t *testing.T) {
+			hh := fastssz.NewHasher()
+			err := body.HashTreeRootWith(hh)
+			require.NoError(t, err)
+		})
+
+		t.Run("GetTree", func(t *testing.T) {
+			tree, err := body.GetTree()
+			require.NoError(t, err)
+			require.NotNil(t, tree)
+		})
+
+		t.Run("CompareHashTreeRoot", func(t *testing.T) {
+			// Compare karalabe/ssz HashTreeRoot with fastssz HashTreeRootWith
+			karalabRoot := body.HashTreeRoot()
+
+			hh := fastssz.NewHasher()
+			err := body.HashTreeRootWith(hh)
+			require.NoError(t, err)
+			fastsszRoot, err := hh.HashRoot()
+			require.NoError(t, err)
+
+			require.Equal(t, karalabRoot[:], fastsszRoot[:],
+				"HashTreeRoot results should match between karalabe/ssz and fastssz")
+		})
+	})
+}
+
+// TestBeaconBlockBody_UnmarshalSSZ tests that UnmarshalSSZ returns an error as expected.
+func TestBeaconBlockBody_UnmarshalSSZ(t *testing.T) {
+	t.Parallel()
+	body := &types.BeaconBlockBody{}
+	err := body.UnmarshalSSZ([]byte{})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "UnmarshalSSZ not implemented")
 }
 
 func TestBeaconBlockBody_GetTopLevelRoots(t *testing.T) {

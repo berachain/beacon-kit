@@ -1,343 +1,151 @@
-# SSZ Migration Instructions: karalabe/ssz → fastssz
-
-This guide documents the process of migrating types from `karalabe/ssz` to `fastssz` with auto-generated code using `sszgen`. The migration maintains full compatibility while improving performance and reducing manual code maintenance.
+# SSZ Migration Plan
 
 ## Overview
+Migration from karalabe/ssz to fastssz for BeaconKit consensus types.
 
-The migration involves:
-1. Removing manual SSZ implementations using karalabe/ssz
-2. Adding go:generate directives for sszgen
-3. Auto-generating SSZ methods using fastssz
-4. Creating compatibility tests to ensure backward compatibility
+## Completed Migrations ✅
 
-## Step-by-Step Migration Process
+### Fully Migrated to fastssz
+- [x] AttestationData
+- [x] SlashingInfo
+- [x] SigningData
+- [x] DepositMessage
+- [x] ForkData
+- [x] Fork
 
-### Step 1: Analyze the Existing Type
+### Foundation Work
+- [x] Created concrete Versionable struct for SSZ compatibility
+- [x] All types updated to use concrete Versionable
 
-First, identify the type to migrate and understand its structure. Look for:
-- Field types and their SSZ encodings
-- Any custom SSZ tags (though fastssz uses different tags)
-- The computed SSZ size of the type
+## Remaining Work
 
-Example from Fork type:
-```go
-type Fork struct {
-    PreviousVersion common.Version `json:"previous_version"`  // 4 bytes
-    CurrentVersion  common.Version `json:"current_version"`   // 4 bytes  
-    Epoch          math.Epoch     `json:"epoch"`             // 8 bytes
-}
-// Total size: 16 bytes
+### Simple Types (Can Migrate Independently)
+- [ ] WithdrawalCredentials - Type alias to common.Bytes32 (has custom SSZ methods)
+
+### Types Blocked by UnusedType Dependency
+These types are currently type aliases to common.UnusedType, which still uses karalabe/ssz:
+- [ ] ProposerSlashing - Type alias to UnusedType
+- [ ] AttesterSlashing - Type alias to UnusedType
+- [ ] VoluntaryExit - Type alias to UnusedType
+- [ ] BLSToExecutionChange - Type alias to UnusedType
+- [ ] Attestation - Type alias to UnusedType (affects Attestations[] in BeaconBlockBody)
+
+### Types Blocked by Other Dependencies
+- [ ] DepositRequest - Type alias to Deposit (must migrate Deposit first)
+
+### Types Blocked by Incomplete Primitive Support
+These types use math.Gwei (U64) which lacks MarshalSSZ/UnmarshalSSZ methods:
+- [ ] WithdrawalRequest - Uses ExecutionAddress, BLSPubkey, and math.Gwei
+- [ ] ConsolidationRequest - Uses ExecutionAddress and BLSPubkey fields
+
+### Types Still Using karalabe/ssz
+- [ ] SyncAggregate - No dependencies, used in BeaconBlockBody
+- [ ] ExecutionRequests - Blocked by WithdrawalRequest/ConsolidationRequest which need Gwei support
+
+### Types with Mixed SSZ Support (Already have fastssz methods)
+- [ ] Validator - Has HashTreeRootWith
+- [ ] Eth1Data - Has HashTreeRootWith
+- [ ] Deposit - Has HashTreeRootWith
+- [ ] BeaconBlockHeader - Has HashTreeRootWith
+- [ ] PendingPartialWithdrawal - Has HashTreeRootWith
+
+### Fork-Specific Types (Need Manual fastssz Implementation)
+These types have fork-specific serialization logic that changes based on fork version:
+
+- [ ] **ExecutionPayload** - Withdrawals nil check for pre-Capella
+- [ ] **ExecutionPayloadHeader** - Same withdrawals handling
+- [ ] **BeaconBlockBody** - ExecutionRequests only for Electra+
+- [ ] **BeaconState** - PendingPartialWithdrawals only for Electra+
+
+### Additional Complex Types
+- [ ] BeaconBlock - Depends on BeaconBlockBody
+- [ ] BlobSidecar - Critical DA type, uses karalabe/ssz
+
+### Complex Dependency Chains
+
+#### BeaconBlock Chain (Must Migrate Together)
+```
+BeaconBlock
+└── BeaconBlockBody
+    ├── ExecutionPayload (fork-specific)
+    ├── ExecutionRequests (Electra+, uses karalabe/ssz)
+    ├── Eth1Data (has partial fastssz)
+    ├── Deposits[] (Deposit has partial fastssz)
+    ├── ProposerSlashings[] (blocked by UnusedType)
+    ├── AttesterSlashings[] (blocked by UnusedType)
+    ├── Attestations[] (blocked by UnusedType)
+    ├── VoluntaryExits[] (blocked by UnusedType)
+    ├── SyncAggregate (uses karalabe/ssz)
+    └── BlobKzgCommitments ([]eip4844.KZGCommitment - not a custom type)
 ```
 
-### Step 2: Remove karalabe/ssz Implementation
-
-Remove all karalabe/ssz-specific code from your type file:
-
-1. **Remove interface assertions:**
-   ```go
-   // Remove these:
-   var (
-       _ ssz.StaticObject                    = (*Fork)(nil)
-       _ constraints.SSZMarshallableRootable = (*Fork)(nil)
-   )
-   ```
-
-2. **Remove SSZ method implementations:**
-   - `SizeSSZ(*ssz.Sizer) uint32`
-   - `DefineSSZ(*ssz.Codec)`
-   - `MarshalSSZ() ([]byte, error)`
-   - `HashTreeRoot() common.Root`
-   - Any other karalabe/ssz specific methods
-
-3. **Remove imports:**
-   ```go
-   // Remove:
-   import "github.com/karalabe/ssz"
-   ```
-
-4. **Keep important bits:**
-   - Keep the type definition unchanged
-   - Keep any constructors (e.g., `NewFork()`)
-   - Keep any validation methods (e.g., `ValidateAfterDecodingSSZ()`)
-   - Keep size constants if they're used elsewhere
-
-### Step 3: Add go:generate Directive
-
-Add a go:generate directive before your type definition:
-
-```go
-//go:generate sszgen --path . --include ../../primitives/common,../../primitives/bytes,../../primitives/math --objs Fork --output fork_sszgen.go
+#### BeaconState Chain
+```
+BeaconState (fork-specific)
+├── Fork (✅ already migrated to fastssz)
+├── BeaconBlockHeader (has partial fastssz)
+├── Validators[] (Validator has partial fastssz)
+├── Eth1Data (has partial fastssz)
+├── ExecutionPayloadHeader (fork-specific)
+└── PendingPartialWithdrawals[] (Electra+, has partial fastssz)
 ```
 
-Breaking down the directive:
-- `--path .`: Generate in the current directory
-- `--include`: Add import paths for custom types used in your struct
-- `--objs`: The type name(s) to generate SSZ for (comma-separated for multiple)
-- `--output`: The output filename (convention: `<type>_sszgen.go`)
+#### Signed Types (Depend on Base Types)
+- [ ] SignedBeaconBlock → BeaconBlock
+- [ ] SignedBeaconBlockHeader → BeaconBlockHeader
 
-### Step 4: Add SSZ Size Tags
+## Migration Strategy
 
-fastssz uses struct tags to specify sizes for certain types:
+### SSZ Code Generation Approach
+- **Primary Method**: Use `sszgen` to auto-generate serialization code for all types
+- **Manual Implementation**: Only when sszgen cannot handle fork-specific logic:
+  1. Run sszgen to generate initial code
+  2. Rename generated file (remove `_sszgen` suffix)
+  3. Make minimal manual changes for fork-specific logic
+  4. Types requiring manual work: ExecutionPayload, ExecutionPayloadHeader, BeaconBlockBody, BeaconState
 
-```go
-type Fork struct {
-    PreviousVersion common.Version `json:"previous_version" ssz-size:"4"`
-    CurrentVersion  common.Version `json:"current_version" ssz-size:"4"`
-    Epoch          math.Epoch     `json:"epoch"`
-}
-```
+### Migration Phases
+- [x] **Phase 0**: Migrate BeaconBlockBody to fastssz (critical blocker) ✅
+  - BeaconBlockBody now supports both karalabe/ssz and fastssz interfaces
+  - Manual implementation added to handle fork-specific logic (ExecutionRequests for Electra+)
+  - Tests confirm fastssz HashTreeRootWith produces same results as karalabe/ssz
+  - BeaconBlockBody must keep karalabe/ssz methods until BeaconBlock is migrated
+- [x] **Phase 1**: Migrate UnusedType and its aliases from karalabe/ssz to fastssz ✅
+  - UnusedType now has full fastssz support: MarshalSSZTo, UnmarshalSSZ, HashTreeRootWith, etc.
+  - All aliases (ProposerSlashing, AttesterSlashing, VoluntaryExit, BLSToExecutionChange, Attestation) automatically inherit fastssz methods
+  - Tests confirm all aliases work correctly with fastssz and maintain zero-value enforcement
+- [ ] **Phase 2**: Migrate truly independent types:
+  - WithdrawalCredentials (simple type alias)
+  - SyncAggregate (no type dependencies)
+- [ ] **Phase 3**: Add SSZ methods to math.U64/Gwei to unblock:
+  - WithdrawalRequest, ConsolidationRequest
+  - ExecutionRequests (depends on the above)
+- [ ] **Phase 4**: Complete migration of mixed support types (including Deposit to unblock DepositRequest)
+- [ ] **Phase 5**: Implement manual fastssz for fork-specific types (ExecutionPayload, ExecutionPayloadHeader, BeaconState)
+- [ ] **Phase 6**: Migrate complex chains (BeaconBlock, BeaconState) and BlobSidecar once all dependencies ready
 
-Common tags:
-- `ssz-size:"N"`: For fixed-size byte arrays
-- `ssz-max:"N"`: For variable-length slices/arrays
+## Technical Notes
+- Types used by karalabe/ssz types must keep karalabe methods
+- Fork-specific logic requires manual HashTreeRootWith implementation
+- Complex types with many dependencies should be migrated together to avoid build breaks
+- **Critical Discovery**: BeaconBlockBody must be migrated to fastssz BEFORE UnusedType can be migrated
+  - BeaconBlockBody embeds ProposerSlashing, AttesterSlashing, etc. fields
+  - These are type aliases to UnusedType
+  - BeaconBlockBody's DefineSSZ method expects these types to implement karalabe/ssz.StaticObject
+  - If UnusedType is migrated to fastssz first, it breaks BeaconBlockBody compilation
+- UnusedType is a simple uint8 that enforces zero value - requires manual fastssz implementation (sszgen doesn't support type aliases)
+- **Note**: common.Bytes32 (bytes.B32) has custom SSZ methods independent of both libraries - no migration needed
+- **Gwei/U64 Issue**: math.Gwei (alias to math.U64) only has HashTreeRoot() but lacks MarshalSSZ/UnmarshalSSZ methods, blocking migration of WithdrawalRequest, ConsolidationRequest, and ExecutionRequests
+- **Collection Types**: Types like Deposits, Validators, Attestations etc. are slice wrappers that will automatically work once their element types are migrated
 
-### Step 5: Generate SSZ Code
-
-Run the code generation:
-
-```bash
-go generate ./...
-# or specifically:
-go generate ./consensus-types/types
-```
-
-This creates a `*_sszgen.go` file with:
-- `MarshalSSZ() ([]byte, error)`
-- `MarshalSSZTo(buf []byte) ([]byte, error)`
-- `UnmarshalSSZ(buf []byte) error`
-- `SizeSSZ() int`
-- `HashTreeRoot() ([32]byte, error)`
-- `HashTreeRootWith(hh ssz.HashWalker) error`
-- `GetTree() (*ssz.Node, error)`
-
-### Step 6: Create Compatibility Test
-
-Create a test file `<type>_ssz_compatibility_test.go` to verify the migration maintains compatibility:
-
-```go
-package types
-
-import (
-    "testing"
-    
-    "github.com/berachain/beacon-kit/primitives/common"
-    "github.com/berachain/beacon-kit/primitives/math"
-    "github.com/karalabe/ssz"
-    "github.com/stretchr/testify/require"
-)
-
-// Create a wrapper type with karalabe/ssz methods
-type KaralabeFork struct {
-    Fork  // Embed to avoid duplicating fields
-}
-
-// Copy the original karalabe/ssz methods
-func (f *KaralabeFork) SizeSSZ(*ssz.Sizer) uint32 {
-    return 16  // Or use a constant
-}
-
-func (f *KaralabeFork) DefineSSZ(codec *ssz.Codec) {
-    ssz.DefineStaticBytes(codec, &f.PreviousVersion)
-    ssz.DefineStaticBytes(codec, &f.CurrentVersion)
-    ssz.DefineUint64(codec, &f.Epoch)
-}
-
-func (f *KaralabeFork) MarshalSSZ() ([]byte, error) {
-    buf := make([]byte, ssz.Size(f))
-    return buf, ssz.EncodeToBytes(buf, f)
-}
-
-func (f *KaralabeFork) HashTreeRoot() common.Root {
-    return ssz.HashSequential(f)
-}
-
-// Test all operations produce identical results
-func TestForkSSZCompatibility(t *testing.T) {
-    // Test various scenarios...
-}
-```
-
-Key test cases to include:
-1. **Marshaling compatibility** - Both produce identical bytes
-2. **Unmarshaling compatibility** - Can unmarshal bytes from either implementation
-3. **Size calculation** - Both report the same size
-4. **Hash tree root** - Both produce the same root (may need type conversion)
-5. **Error cases** - Both handle errors similarly
-
-### Step 7: Handle Type Differences
-
-Common compatibility issues and solutions:
-
-1. **Hash Tree Root return types:**
-   - karalabe: Often returns custom types like `common.Root`
-   - fastssz: Returns `[32]byte`
-   - Solution: Use type conversion in tests
-
-2. **Method signatures:**
-   - karalabe: `SizeSSZ(*ssz.Sizer) uint32`
-   - fastssz: `SizeSSZ() int`
-   - Solution: Adapt in test wrapper
-
-3. **Error handling:**
-   - Verify both handle malformed input similarly
-
-### Step 8: Update Build and CI
-
-1. **Add sszgen to build tools:**
-   ```bash
-   go install github.com/ferranbt/fastssz/sszgen@latest
-   ```
-
-2. **Update Makefile/build scripts:**
-   ```makefile
-   generate:
-       go generate ./...
-   ```
-
-3. **Add generated files to git:**
-   - Commit the `*_sszgen.go` files
-   - They should be regenerated in CI to verify consistency
-
-4. **Update .gitignore if needed:**
-   - Don't ignore `*_sszgen.go` files
-
-## Migration Checklist
-
-### General Steps for Each Type
-- [ ] Identify all karalabe/ssz imports and methods
-- [ ] Remove karalabe/ssz implementation
-- [ ] Add go:generate directive with correct paths
-- [ ] Add ssz struct tags where needed
-- [ ] Run go generate
-- [ ] Create compatibility test
-- [ ] Verify all tests pass
-- [ ] Update any code that depends on specific return types
-- [ ] Commit both the modified source and generated files
-- [ ] Update documentation if the type is part of public API
-
-### Types to Migrate
-
-#### consensus-types/types (29 types)
-- [x] Fork (completed)
-- [ ] AttestationData
-- [ ] AttesterSlashings (slice type)
-- [ ] Attestations (slice type)
-- [ ] BeaconBlock (complex, has DefineSSZ)
-- [ ] BeaconBlockBody (complex, has DefineSSZ)
-- [ ] BeaconBlockHeader
-- [ ] BlsToExecutionChanges (slice type)
-- [ ] ConsolidationRequest
-- [ ] Deposit
-- [ ] DepositMessage
-- [ ] Deposits (slice type)
-- [ ] Eth1Data
-- [ ] ExecutionPayloadHeader (complex, has DefineSSZ)
-- [ ] ExecutionPayload (complex, has DefineSSZ)
-- [ ] ExecutionRequests (complex, has DefineSSZ)
-- [ ] ForkData
-- [ ] PendingPartialWithdrawal
-- [ ] ProposerSlashings (slice type)
-- [ ] SignedBeaconBlock (complex, has DefineSSZ)
-- [ ] SignedBeaconBlockHeader
-- [ ] SigningData
-- [ ] SlashingInfo
-- [ ] BeaconState (very complex, has DefineSSZ)
-- [ ] SyncAggregate
-- [ ] Validator
-- [ ] Validators (slice type)
-- [ ] VoluntaryExits (slice type)
-- [ ] WithdrawalRequest
-
-#### da/types (2 types)
-- [ ] BlobSidecar
-- [ ] BlobSidecars (complex, has DefineSSZ)
-
-#### engine-primitives/engine-primitives (3 types)
-- [ ] Withdrawal
-- [ ] Withdrawals (slice type)
-- [ ] Transactions (slice type, has DefineSSZ)
-
-#### primitives/common (1 type)
-- [ ] UnusedType (test/utility type)
-
-### Migration Priority
-
-Consider migrating in this order:
-
-1. **Simple types first**: Types that only implement StaticObject without custom DefineSSZ
-   - AttestationData, BeaconBlockHeader, ConsolidationRequest, Deposit, DepositMessage, 
-   - Eth1Data, ForkData, PendingPartialWithdrawal, SignedBeaconBlockHeader, SigningData,
-   - SlashingInfo, SyncAggregate, Validator, WithdrawalRequest, Withdrawal
-
-2. **Slice types**: Dynamic arrays that need ssz-max tags
-   - AttesterSlashings, Attestations, BlsToExecutionChanges, Deposits, ProposerSlashings,
-   - Validators, VoluntaryExits, Withdrawals, Transactions
-
-3. **Complex types**: Types with custom DefineSSZ methods
-   - BeaconBlock, BeaconBlockBody, ExecutionPayloadHeader, ExecutionPayload,
-   - ExecutionRequests, SignedBeaconBlock, BlobSidecars
-
-4. **State types last**: Large complex structures
-   - BeaconState (most complex, do last)
-
-### Infrastructure Updates
-- [x] Create storage/encoding/fastssz.go (in progress)
-- [x] Create primitives/constraints/fastssz.go (in progress)
-- [ ] Update primitives/encoding/sszutil/utils.go for fastssz
-- [ ] Update build tools to include sszgen
-- [ ] Update CI/CD pipeline for code generation
-
-## Common Patterns for Complex Types
-
-### Types with Slices
-```go
-//go:generate sszgen --path . --objs MyType --output mytype_sszgen.go
-
-type MyType struct {
-    FixedArray [32]byte     `ssz-size:"32"`
-    VarSlice   []byte       `ssz-max:"1024"`  
-    Validators []Validator  `ssz-max:"1000000"`
-}
-```
-
-### Nested Types
-Ensure all nested types also implement SSZ. You may need to:
-1. Generate SSZ for nested types first
-2. Include their paths in the --include flag
-3. Order go:generate directives correctly
-
-### Union Types
-For types that can be one of several options, you'll need custom handling as sszgen doesn't directly support unions.
-
-## Troubleshooting
-
-### "Type not found" errors
-- Ensure --include paths are correct
-- Check that imported types have SSZ methods
-
-### Size mismatches
-- Verify ssz-size tags match actual type sizes
-- Check that all fields are accounted for
-
-### Hash tree root differences
-- Ensure field ordering is identical
-- Verify no fields were missed
-- Check for default values affecting hashing
-
-## Benefits of Migration
-
-1. **Performance**: fastssz is optimized for speed
-2. **Maintenance**: Auto-generated code reduces errors
-3. **Consistency**: Generated code follows same patterns
-4. **Type Safety**: Compile-time verification of sizes
-5. **Testing**: Generated code includes comprehensive methods
-
-## Next Steps
-
-After migrating a type:
-1. Look for other types that depend on it
-2. Consider migrating related types together
-3. Update any benchmarks to compare performance
-4. Document any breaking changes for API users
-
-Remember: The goal is maintaining 100% compatibility while gaining the benefits of code generation and improved performance.
+## Current Migration Status
+- ✅ **Phase 0 Complete**: BeaconBlockBody now has fastssz support
+  - Added manual fastssz methods: MarshalSSZTo, HashTreeRootWith, GetTree, SizeSSZFastSSZ
+  - Maintains backward compatibility with karalabe/ssz for BeaconBlock dependency
+  - Fork-specific logic for ExecutionRequests (Electra+) properly handled
+  - All tests passing - fastssz produces identical hash roots to karalabe/ssz
+- ✅ **Phase 1 Complete**: UnusedType and all aliases migrated to fastssz
+  - UnusedType has manual fastssz implementation with zero-value enforcement
+  - Type aliases automatically inherit all fastssz methods from UnusedType
+  - BeaconBlockBody can now use these types with either karalabe/ssz or fastssz
+- **Next**: Phase 2 - Migrate WithdrawalCredentials and SyncAggregate
