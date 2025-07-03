@@ -192,6 +192,19 @@ func (v *Validator) GetTree() (*fastssz.Node, error) {
 	return fastssz.ProofTree(v)
 }
 
+// UnmarshalSSZ ssz unmarshals the Validator object.
+func (v *Validator) UnmarshalSSZ(buf []byte) error {
+	// For now, delegate to karalabe/ssz for unmarshaling
+	// This preserves compatibility during migration
+	return ssz.DecodeFromBytes(buf, v)
+}
+
+// SizeSSZFastSSZ returns the ssz encoded size in bytes for the Validator (fastssz).
+// TODO: Rename to SizeSSZ() once karalabe/ssz is fully removed.
+func (v *Validator) SizeSSZFastSSZ() (size int) {
+	return ValidatorSize
+}
+
 /* -------------------------------------------------------------------------- */
 /*                             Getters and Setters                            */
 /* -------------------------------------------------------------------------- */

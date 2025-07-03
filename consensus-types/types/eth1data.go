@@ -127,6 +127,19 @@ func (e *Eth1Data) GetTree() (*fastssz.Node, error) {
 	return fastssz.ProofTree(e)
 }
 
+// UnmarshalSSZ ssz unmarshals the Eth1Data object.
+func (e *Eth1Data) UnmarshalSSZ(buf []byte) error {
+	// For now, delegate to karalabe/ssz for unmarshaling
+	// This preserves compatibility during migration
+	return ssz.DecodeFromBytes(buf, e)
+}
+
+// SizeSSZFastSSZ returns the ssz encoded size in bytes for the Eth1Data (fastssz).
+// TODO: Rename to SizeSSZ() once karalabe/ssz is fully removed.
+func (e *Eth1Data) SizeSSZFastSSZ() (size int) {
+	return Eth1DataSize
+}
+
 // GetDepositCount returns the deposit count.
 func (e *Eth1Data) GetDepositCount() math.U64 {
 	return e.DepositCount

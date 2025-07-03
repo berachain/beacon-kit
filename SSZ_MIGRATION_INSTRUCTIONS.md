@@ -136,6 +136,7 @@ BeaconState (fork-specific)
 - [x] **Phase 5**: Implement manual fastssz for fork-specific types (ExecutionPayload, ExecutionPayloadHeader, BeaconState) ✅
 - [x] **Phase 6**: Migrate complex chains (BeaconBlock, BeaconState) and BlobSidecar once all dependencies ready ✅
 - [x] **Phase 7**: Migrate all collection types and SignedBeaconBlock ✅
+- [x] **Phase 8**: Complete fastssz support for remaining types (Deposit, Eth1Data, BeaconBlockHeader, Validator) ✅
 
 ## Technical Notes
 - Types used by karalabe/ssz types must keep karalabe methods
@@ -199,4 +200,10 @@ BeaconState (fork-specific)
   - ✅ Collection types: Deposits, Validators, Attestations, ProposerSlashings, AttesterSlashings, VoluntaryExits, BLSToExecutionChanges
   - ✅ SignedBeaconBlock: Added full fastssz support with dynamic object handling
   - All collection types now have HashTreeRootWith and GetTree methods
+- ✅ **Phase 8 Complete**: Added UnmarshalSSZ methods to complete fastssz support
+  - ✅ Deposit: Added UnmarshalSSZ and SizeSSZFastSSZ methods
+  - ✅ Eth1Data: Added UnmarshalSSZ and SizeSSZFastSSZ methods
+  - ✅ BeaconBlockHeader: Added UnmarshalSSZ and SizeSSZFastSSZ methods
+  - ✅ Validator: Added UnmarshalSSZ and SizeSSZFastSSZ methods
+  - All types now have complete fastssz support while maintaining karalabe/ssz compatibility
 - **Note**: Some types maintain temporary karalabe/ssz compatibility stubs until full migration is complete

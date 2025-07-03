@@ -161,6 +161,19 @@ func (d *Deposit) MarshalSSZTo(dst []byte) ([]byte, error) {
 	return dst, nil
 }
 
+// UnmarshalSSZ ssz unmarshals the Deposit object.
+func (d *Deposit) UnmarshalSSZ(buf []byte) error {
+	// For now, delegate to karalabe/ssz for unmarshaling
+	// This preserves compatibility during migration
+	return ssz.DecodeFromBytes(buf, d)
+}
+
+// SizeSSZFastSSZ returns the ssz encoded size in bytes for the Deposit (fastssz).
+// TODO: Rename to SizeSSZ() once karalabe/ssz is fully removed.
+func (d *Deposit) SizeSSZFastSSZ() (size int) {
+	return depositSize
+}
+
 /* -------------------------------------------------------------------------- */
 /*                             Getters and Setters                            */
 /* -------------------------------------------------------------------------- */

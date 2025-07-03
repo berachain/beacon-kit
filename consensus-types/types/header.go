@@ -156,6 +156,19 @@ func (b *BeaconBlockHeader) GetTree() (*fastssz.Node, error) {
 	return fastssz.ProofTree(b)
 }
 
+// UnmarshalSSZ ssz unmarshals the BeaconBlockHeader object.
+func (b *BeaconBlockHeader) UnmarshalSSZ(buf []byte) error {
+	// For now, delegate to karalabe/ssz for unmarshaling
+	// This preserves compatibility during migration
+	return ssz.DecodeFromBytes(buf, b)
+}
+
+// SizeSSZFastSSZ returns the ssz encoded size in bytes for the BeaconBlockHeader (fastssz).
+// TODO: Rename to SizeSSZ() once karalabe/ssz is fully removed.
+func (b *BeaconBlockHeader) SizeSSZFastSSZ() (size int) {
+	return BeaconBlockHeaderSize
+}
+
 /* -------------------------------------------------------------------------- */
 /*                            Getters and Setters                             */
 /* -------------------------------------------------------------------------- */
