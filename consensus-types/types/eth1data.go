@@ -18,6 +18,9 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
+// TODO: Eth1Data needs manual fastssz migration to handle dual interface compatibility
+// go:generate sszgen -path . -objs Eth1Data -output eth1data_sszgen.go -include ../../primitives/common,../../primitives/math
+
 package types
 
 import (

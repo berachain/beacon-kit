@@ -18,6 +18,9 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
+// TODO: Deposit needs manual fastssz migration to handle dual interface compatibility (like BeaconBlockBody)
+// go:generate sszgen -path . -objs Deposit -output deposit_sszgen.go -include ../../primitives/common,../../primitives/crypto,../../primitives/math,../../primitives/bytes
+
 package types
 
 import (
@@ -120,16 +123,6 @@ func (d *Deposit) HashTreeRoot() common.Root {
 /*                                   FastSSZ                                  */
 /* -------------------------------------------------------------------------- */
 
-// MarshalSSZTo marshals the Deposit object into a pre-allocated byte slice.
-func (d *Deposit) MarshalSSZTo(dst []byte) ([]byte, error) {
-	bz, err := d.MarshalSSZ()
-	if err != nil {
-		return nil, err
-	}
-	dst = append(dst, bz...)
-	return dst, nil
-}
-
 // HashTreeRootWith ssz hashes the Deposit object with a hasher.
 func (d *Deposit) HashTreeRootWith(hh fastssz.HashWalker) error {
 	indx := hh.Index()
@@ -156,6 +149,16 @@ func (d *Deposit) HashTreeRootWith(hh fastssz.HashWalker) error {
 // GetTree ssz hashes the Deposit object.
 func (d *Deposit) GetTree() (*fastssz.Node, error) {
 	return fastssz.ProofTree(d)
+}
+
+// MarshalSSZTo marshals the Deposit object into a pre-allocated byte slice.
+func (d *Deposit) MarshalSSZTo(dst []byte) ([]byte, error) {
+	bz, err := d.MarshalSSZ()
+	if err != nil {
+		return nil, err
+	}
+	dst = append(dst, bz...)
+	return dst, nil
 }
 
 /* -------------------------------------------------------------------------- */

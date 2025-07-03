@@ -52,8 +52,8 @@ These types need additional fastssz support:
 
 ### Types with Mixed SSZ Support (Already have fastssz methods)
 - [ ] Validator - Has HashTreeRootWith
-- [ ] Eth1Data - Has HashTreeRootWith
-- [ ] Deposit - Has HashTreeRootWith
+- [x] Eth1Data - Has HashTreeRootWith, ready for fastssz but needs manual migration ⚠️
+- [x] Deposit - Has HashTreeRootWith, ready for fastssz but needs manual migration ⚠️
 - [ ] BeaconBlockHeader - Has HashTreeRootWith
 - [ ] PendingPartialWithdrawal - Has HashTreeRootWith
 
@@ -149,6 +149,10 @@ BeaconState (fork-specific)
 - **Note**: common.Bytes32 (bytes.B32) has custom SSZ methods independent of both libraries - no migration needed
 - **Gwei/U64 Issue**: math.Gwei (alias to math.U64) only has HashTreeRoot() but lacks MarshalSSZ/UnmarshalSSZ methods, blocking migration of WithdrawalRequest, ConsolidationRequest, and ExecutionRequests
 - **Collection Types**: Types like Deposits, Validators, Attestations etc. are slice wrappers that will automatically work once their element types are migrated
+- **Interface Conflicts**: Some types (Deposit, Eth1Data) implement both karalabe/ssz and fastssz methods with conflicting signatures:
+  - `SizeSSZ()` returns `int` in fastssz but `uint32` in karalabe/ssz
+  - `HashTreeRoot()` returns `([32]byte, error)` in fastssz but `common.Root` in karalabe/ssz
+  - These types need manual migration similar to BeaconBlockBody to maintain dual compatibility
 
 ## Current Migration Status
 - ✅ **Phase 0 Complete**: BeaconBlockBody now has fastssz support
@@ -173,4 +177,8 @@ BeaconState (fork-specific)
   - bytes.B48 now has full fastssz support (MarshalSSZTo, UnmarshalSSZ, HashTreeRootWith, GetTree)
   - common.ExecutionAddress now has full fastssz support
   - WithdrawalRequest and ConsolidationRequest are ready for fastssz but blocked by ExecutionRequests
-- **Next**: ExecutionRequests needs to be migrated to fastssz to unblock WithdrawalRequest/ConsolidationRequest
+- **Phase 4 In Progress**: Working on types with mixed SSZ support
+  - Deposit and Eth1Data have been prepared for fastssz generation
+  - Both require manual migration to handle dual interface compatibility (like BeaconBlockBody)
+  - These types implement both karalabe/ssz and fastssz interfaces but with conflicting method signatures
+- **Next**: Complete manual migration of Deposit/Eth1Data or move to simpler types without interface conflicts
