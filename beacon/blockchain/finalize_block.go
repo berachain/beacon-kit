@@ -116,7 +116,7 @@ func (s *Service) FinalizeSidecars(
 }
 
 func (s *Service) PostFinalizeBlockOps(ctx sdk.Context, blk *ctypes.BeaconBlock) error {
-	// TODO ABENEGIA: verify whether this is correct in the face of the extra copies
+	// TODO: consider extracting LatestExecutionPayloadHeader instead of using state here
 	st := s.storageBackend.StateFromContext(ctx)
 
 	// Fetch and store the deposit for the block.
