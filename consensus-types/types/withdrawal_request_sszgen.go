@@ -59,9 +59,10 @@ func (w *WithdrawalRequest) UnmarshalSSZ(buf []byte) error {
 // }
 
 // HashTreeRoot ssz hashes the WithdrawalRequest object
-func (w *WithdrawalRequest) HashTreeRoot() ([32]byte, error) {
-	return ssz.HashWithDefaultHasher(w)
-}
+// NOTE: Commented out to avoid conflict with manual implementation
+// func (w *WithdrawalRequest) HashTreeRoot() ([32]byte, error) {
+// 	return ssz.HashWithDefaultHasher(w)
+// }
 
 // HashTreeRootWith ssz hashes the WithdrawalRequest object with a hasher
 func (w *WithdrawalRequest) HashTreeRootWith(hh ssz.HashWalker) (err error) {

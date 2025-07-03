@@ -229,9 +229,19 @@ func (b *BeaconBlockBody) MarshalSSZTo(dst []byte) ([]byte, error) {
 	offset += len(b.voluntaryExits) * 16
 
 	// SyncAggregate
-	syncBytes, err := b.syncAggregate.MarshalSSZ()
-	if err != nil {
-		return nil, err
+	var syncBytes []byte
+	if b.syncAggregate == nil {
+		// For nil SyncAggregate, use empty SyncAggregate
+		emptySyncAgg := &SyncAggregate{}
+		syncBytes, err = emptySyncAgg.MarshalSSZ()
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		syncBytes, err = b.syncAggregate.MarshalSSZ()
+		if err != nil {
+			return nil, err
+		}
 	}
 	dst = append(dst, syncBytes...)
 
@@ -618,8 +628,16 @@ func (b *BeaconBlockBody) HashTreeRootWith(hh fastssz.HashWalker) error {
 	}
 
 	// Field (8) 'SyncAggregate'
-	if err := b.syncAggregate.HashTreeRootWith(hh); err != nil {
-		return err
+	if b.syncAggregate == nil {
+		// For nil SyncAggregate, use empty SyncAggregate
+		emptySyncAgg := &SyncAggregate{}
+		if err := emptySyncAgg.HashTreeRootWith(hh); err != nil {
+			return err
+		}
+	} else {
+		if err := b.syncAggregate.HashTreeRootWith(hh); err != nil {
+			return err
+		}
 	}
 
 	// Field (9) 'ExecutionPayload'

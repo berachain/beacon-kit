@@ -30,7 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/encoding/sszutil"
-	"github.com/karalabe/ssz"
+	fastssz "github.com/ferranbt/fastssz"
 )
 
 const sszConsolidationRequestSize = 116
@@ -49,25 +49,14 @@ func (c *ConsolidationRequest) ValidateAfterDecodingSSZ() error {
 	return nil
 }
 
-// DefineSSZ defines the SSZ encoding for ConsolidationRequest (temporary for karalabe/ssz compatibility).
-// TODO: Remove once fully migrated to fastssz
-func (c *ConsolidationRequest) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineStaticBytes(codec, &c.SourceAddress)
-	ssz.DefineStaticBytes(codec, &c.SourcePubKey)
-	ssz.DefineStaticBytes(codec, &c.TargetPubKey)
-}
-
-// SizeSSZ returns the size for karalabe/ssz compatibility.
-// TODO: Remove once fully migrated to fastssz
-func (c *ConsolidationRequest) SizeSSZ(_ *ssz.Sizer) uint32 {
-	return sszConsolidationRequestSize
-}
 
 
-// HashTreeRootCommon returns the hash tree root of the ConsolidationRequest as common.Root.
-// This is a wrapper around the generated HashTreeRoot method.
-func (c *ConsolidationRequest) HashTreeRootCommon() common.Root {
-	root, _ := c.HashTreeRoot()
+// HashTreeRoot returns the SSZ hash tree root for the ConsolidationRequest object.
+func (c *ConsolidationRequest) HashTreeRoot() common.Root {
+	hh := fastssz.DefaultHasherPool.Get()
+	defer fastssz.DefaultHasherPool.Put(hh)
+	c.HashTreeRootWith(hh)
+	root, _ := hh.HashRoot()
 	return common.Root(root)
 }
 

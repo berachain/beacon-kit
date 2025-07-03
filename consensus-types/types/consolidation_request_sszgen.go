@@ -58,9 +58,10 @@ func (c *ConsolidationRequest) UnmarshalSSZ(buf []byte) error {
 // }
 
 // HashTreeRoot ssz hashes the ConsolidationRequest object
-func (c *ConsolidationRequest) HashTreeRoot() ([32]byte, error) {
-	return ssz.HashWithDefaultHasher(c)
-}
+// NOTE: Commented out to avoid conflict with manual implementation
+// func (c *ConsolidationRequest) HashTreeRoot() ([32]byte, error) {
+// 	return ssz.HashWithDefaultHasher(c)
+// }
 
 // HashTreeRootWith ssz hashes the ConsolidationRequest object with a hasher
 func (c *ConsolidationRequest) HashTreeRootWith(hh ssz.HashWalker) (err error) {

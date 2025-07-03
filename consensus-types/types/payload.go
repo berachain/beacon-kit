@@ -173,9 +173,16 @@ func (p *ExecutionPayload) MarshalSSZTo(dst []byte) ([]byte, error) {
 	dst = fastssz.MarshalUint32(dst, extraDataOffset)
 
 	// BaseFeePerGas
-	bz, err := p.BaseFeePerGas.MarshalSSZ()
-	if err != nil {
-		return nil, err
+	var bz []byte
+	if p.BaseFeePerGas == nil {
+		// Use zero value for nil BaseFeePerGas
+		bz = make([]byte, 32)
+	} else {
+		var err error
+		bz, err = p.BaseFeePerGas.MarshalSSZ()
+		if err != nil {
+			return nil, err
+		}
 	}
 	dst = append(dst, bz...)
 
@@ -206,6 +213,9 @@ func (p *ExecutionPayload) MarshalSSZTo(dst []byte) ([]byte, error) {
 
 	// Withdrawals
 	for _, w := range p.Withdrawals {
+		if w == nil {
+			return nil, errors.New("nil withdrawal in ExecutionPayload")
+		}
 		var err error
 		dst, err = w.MarshalSSZTo(dst)
 		if err != nil {
@@ -377,11 +387,16 @@ func (p *ExecutionPayload) HashTreeRootWith(hh fastssz.HashWalker) error {
 	}
 
 	// Field (11) 'BaseFeePerGas'
-	bz, err := p.BaseFeePerGas.MarshalSSZ()
-	if err != nil {
-		return err
+	if p.BaseFeePerGas == nil {
+		// Use zero value for nil BaseFeePerGas
+		hh.PutBytes(make([]byte, 32))
+	} else {
+		bz, err := p.BaseFeePerGas.MarshalSSZ()
+		if err != nil {
+			return err
+		}
+		hh.PutBytes(bz)
 	}
-	hh.PutBytes(bz)
 
 	// Field (12) 'BlockHash'
 	hh.PutBytes(p.BlockHash[:])
@@ -415,7 +430,10 @@ func (p *ExecutionPayload) HashTreeRootWith(hh fastssz.HashWalker) error {
 			return fastssz.ErrIncorrectListSize
 		}
 		for _, elem := range p.Withdrawals {
-			if err = elem.HashTreeRootWith(hh); err != nil {
+			if elem == nil {
+				return errors.New("nil withdrawal in ExecutionPayload")
+			}
+			if err := elem.HashTreeRootWith(hh); err != nil {
 				return err
 			}
 		}

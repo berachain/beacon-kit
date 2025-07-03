@@ -31,7 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/encoding/sszutil"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/karalabe/ssz"
+	fastssz "github.com/ferranbt/fastssz"
 )
 
 const sszWithdrawRequestSize = 76 // ExecutionAddress = 20, ValidatorPubKey = 48, Amount = 8
@@ -49,27 +49,15 @@ func (w *WithdrawalRequest) ValidateAfterDecodingSSZ() error {
 	return nil
 }
 
-// DefineSSZ defines the SSZ encoding for WithdrawalRequest (temporary for karalabe/ssz compatibility).
-// TODO: Remove once fully migrated to fastssz
-func (w *WithdrawalRequest) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineStaticBytes(codec, &w.SourceAddress)
-	ssz.DefineStaticBytes(codec, &w.ValidatorPubKey)
-	ssz.DefineUint64(codec, &w.Amount)
-}
-
-// SizeSSZ returns the size for karalabe/ssz compatibility.
-// TODO: Remove once fully migrated to fastssz
-func (w *WithdrawalRequest) SizeSSZ(_ *ssz.Sizer) uint32 {
-	return sszWithdrawRequestSize
-}
-
-
-// HashTreeRootCommon returns the hash tree root of the WithdrawalRequest as common.Root.
-// This is a wrapper around the generated HashTreeRoot method.
-func (w *WithdrawalRequest) HashTreeRootCommon() common.Root {
-	root, _ := w.HashTreeRoot()
+// HashTreeRoot returns the SSZ hash tree root for the WithdrawalRequest object.
+func (w *WithdrawalRequest) HashTreeRoot() common.Root {
+	hh := fastssz.DefaultHasherPool.Get()
+	defer fastssz.DefaultHasherPool.Put(hh)
+	w.HashTreeRootWith(hh)
+	root, _ := hh.HashRoot()
 	return common.Root(root)
 }
+
 
 
 

@@ -24,16 +24,17 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
-	"github.com/karalabe/ssz"
+	fastssz "github.com/ferranbt/fastssz"
 	"github.com/sourcegraph/conc/iter"
 )
 
 // Compile-time check to ensure BlobSidecars implements the necessary interfaces.
 var (
-	_ ssz.DynamicObject           = (*BlobSidecars)(nil)
 	_ constraints.SSZMarshallable = (*BlobSidecars)(nil)
+	_ constraints.SSZRootable     = (*BlobSidecars)(nil)
 )
 
 // Sidecars is a slice of blob side cars to be included in the block.
@@ -78,28 +79,16 @@ func (bs *BlobSidecars) VerifyInclusionProofs() error {
 	)...)
 }
 
-// DefineSSZ defines the SSZ encoding for the BlobSidecars object.
-func (bs *BlobSidecars) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineSliceOfStaticObjectsOffset(
-		codec, (*[]*BlobSidecar)(bs), constants.MaxBlobSidecarsPerBlock,
-	)
-	ssz.DefineSliceOfStaticObjectsContent(
-		codec, (*[]*BlobSidecar)(bs), constants.MaxBlobSidecarsPerBlock,
-	)
-}
-
 // SizeSSZ returns the size of the BlobSidecars object in SSZ encoding.
-func (bs *BlobSidecars) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
-	if fixed {
-		return constants.SSZOffsetSize
-	}
-	return constants.SSZOffsetSize + ssz.SizeSliceOfStaticObjects(siz, *bs)
+func (bs *BlobSidecars) SizeSSZ() int {
+	// BlobSidecar size: 8 + 131072 + 48 + 48 + 208 + 17*32 = 131720 bytes
+	blobSidecarSize := 131720
+	return 4 + len(*bs)*blobSidecarSize // offset + each blob sidecar
 }
 
 // MarshalSSZ marshals the BlobSidecars object to SSZ format.
 func (bs *BlobSidecars) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(bs))
-	return buf, ssz.EncodeToBytes(buf, bs)
+	return bs.MarshalSSZTo(make([]byte, 0, bs.SizeSSZ()))
 }
 
 func (bs *BlobSidecars) ValidateAfterDecodingSSZ() error {
@@ -110,4 +99,98 @@ func (bs *BlobSidecars) ValidateAfterDecodingSSZ() error {
 		)
 	}
 	return nil
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                     SSZ                                    */
+/* -------------------------------------------------------------------------- */
+
+// MarshalSSZTo marshals the BlobSidecars object to a target array.
+func (bs *BlobSidecars) MarshalSSZTo(dst []byte) ([]byte, error) {
+	// Write offset
+	offset := 4
+	dst = fastssz.MarshalUint32(dst, uint32(offset))
+	
+	// Write sidecars
+	for _, sidecar := range *bs {
+		var err error
+		dst, err = sidecar.MarshalSSZTo(dst)
+		if err != nil {
+			return nil, err
+		}
+	}
+	
+	return dst, nil
+}
+
+// UnmarshalSSZ ssz unmarshals the BlobSidecars object.
+func (bs *BlobSidecars) UnmarshalSSZ(buf []byte) error {
+	if len(buf) < 4 {
+		return fastssz.ErrSize
+	}
+	
+	// Read offset
+	offset := fastssz.UnmarshallUint32(buf[0:4])
+	if offset != 4 {
+		return fastssz.ErrInvalidVariableOffset
+	}
+	
+	// Calculate number of sidecars
+	blobSidecarSize := 131720 // 8 + 131072 + 48 + 48 + 208 + 17*32
+	remaining := len(buf) - 4
+	if remaining%blobSidecarSize != 0 {
+		return errors.New("invalid buffer size for blob sidecars")
+	}
+	
+	count := remaining / blobSidecarSize
+	if count > constants.MaxBlobSidecarsPerBlock {
+		return fmt.Errorf("too many blob sidecars: %d > %d", count, constants.MaxBlobSidecarsPerBlock)
+	}
+	
+	// Unmarshal each sidecar
+	*bs = make(BlobSidecars, count)
+	for i := 0; i < count; i++ {
+		(*bs)[i] = &BlobSidecar{}
+		start := 4 + i*blobSidecarSize
+		end := start + blobSidecarSize
+		if err := (*bs)[i].UnmarshalSSZ(buf[start:end]); err != nil {
+			return err
+		}
+	}
+	
+	return bs.ValidateAfterDecodingSSZ()
+}
+
+// HashTreeRoot returns the hash tree root of the BlobSidecars.
+func (bs *BlobSidecars) HashTreeRoot() common.Root {
+	hh := fastssz.DefaultHasherPool.Get()
+	defer fastssz.DefaultHasherPool.Put(hh)
+	bs.HashTreeRootWith(hh)
+	root, _ := hh.HashRoot()
+	return common.Root(root)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
+
+// HashTreeRootWith ssz hashes the BlobSidecars object with a hasher.
+func (bs *BlobSidecars) HashTreeRootWith(hh fastssz.HashWalker) error {
+	indx := hh.Index()
+	num := uint64(len(*bs))
+	if num > constants.MaxBlobSidecarsPerBlock {
+		return fastssz.ErrIncorrectListSize
+	}
+	for _, elem := range *bs {
+		if err := elem.HashTreeRootWith(hh); err != nil {
+			return err
+		}
+	}
+	hh.MerkleizeWithMixin(indx, num, constants.MaxBlobSidecarsPerBlock)
+	return nil
+}
+
+// GetTree ssz hashes the BlobSidecars object.
+func (bs *BlobSidecars) GetTree() (*fastssz.Node, error) {
+	return fastssz.ProofTree(bs)
 }
