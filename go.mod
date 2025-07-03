@@ -27,7 +27,7 @@ require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/ethereum/c-kzg-4844 v1.0.3
 	github.com/go-faster/xor v1.0.0
-	github.com/go-playground/validator/v10 v10.26.0
+	github.com/go-playground/validator/v10 v10.27.0
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/hashicorp/go-metrics v0.5.4
 	github.com/hashicorp/golang-lru/v2 v2.0.7
