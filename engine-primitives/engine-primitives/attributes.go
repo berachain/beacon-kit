@@ -72,7 +72,7 @@ func NewPayloadAttributes(
 		ParentProposerPubKey:  parentProposerPubKey,
 	}
 
-	if err := pa.Validate(forkVersion); err != nil {
+	if err := pa.validate(forkVersion); err != nil {
 		return nil, err
 	}
 
@@ -85,7 +85,7 @@ func (p *PayloadAttributes) GetSuggestedFeeRecipient() common.ExecutionAddress {
 }
 
 // Validate validates the PayloadAttributes for the given fork version.
-func (p *PayloadAttributes) Validate(forkVersion common.Version) error {
+func (p *PayloadAttributes) validate(forkVersion common.Version) error {
 	if p.Timestamp == 0 {
 		return ErrInvalidTimestamp
 	}

@@ -111,10 +111,6 @@ func TestPayloadAttributes(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 				require.NotNil(t, got)
-
-				require.NotNil(t, got)
-				require.NoError(t, got.Validate(in.forkVersion))
-
 				require.Equal(
 					t,
 					in.suggestedFeeRecipient,
