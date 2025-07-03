@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/berachain/beacon-kit/beacon/blockchain"
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
@@ -273,14 +274,20 @@ func (s *Service) retrieveExecutionPayload(
 		return nil, err
 	}
 
+	parentProposerPubKey, err := blockchain.PrevBlockProposerPubKey(st, s.chainSpec, nextPayloadTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("failed retrieving previous proposer public key: %w", err)
+	}
+
 	r := &builder.RequestPayloadData{
-		Slot:               slot,
-		Timestamp:          nextPayloadTimestamp,
-		PayloadWithdrawals: payloadWithdrawals,
-		PrevRandao:         prevRandao,
-		ParentBlockRoot:    parentBlockRoot,
-		HeadEth1BlockHash:  lph.GetBlockHash(),
-		FinalEth1BlockHash: lph.GetParentHash(),
+		Slot:                 slot,
+		Timestamp:            nextPayloadTimestamp,
+		PayloadWithdrawals:   payloadWithdrawals,
+		PrevRandao:           prevRandao,
+		ParentBlockRoot:      parentBlockRoot,
+		HeadEth1BlockHash:    lph.GetBlockHash(),
+		FinalEth1BlockHash:   lph.GetParentHash(),
+		ParentProposerPubKey: parentProposerPubKey,
 	}
 	return s.localPayloadBuilder.RequestPayloadSync(ctx, r)
 }

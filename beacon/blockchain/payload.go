@@ -30,7 +30,10 @@ import (
 	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/payload/builder"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
@@ -178,6 +181,11 @@ func (s *Service) preFetchBuildData(st *statedb.StateDB, currentTime math.U64) (
 		return nil, err
 	}
 
+	parentProposerPubKey, err := PrevBlockProposerPubKey(st, s.chainSpec, nextPayloadTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("failed retrieving previous proposer public key: %w", err)
+	}
+
 	return &builder.RequestPayloadData{
 		Slot:               blkSlot,
 		Timestamp:          nextPayloadTimestamp,
@@ -191,6 +199,8 @@ func (s *Service) preFetchBuildData(st *statedb.StateDB, currentTime math.U64) (
 		// Assumuming consensus guarantees single slot finality, the parent
 		// of the latest block we verified must be final already.
 		FinalEth1BlockHash: lph.GetParentHash(),
+
+		ParentProposerPubKey: parentProposerPubKey,
 	}, nil
 }
 
@@ -235,4 +245,27 @@ func (s *Service) handleOptimisticPayloadBuild(
 	}
 
 	s.metrics.markOptimisticPayloadBuildSuccess(buildData.Slot)
+}
+
+func PrevBlockProposerPubKey[
+	ForkChainSpec interface {
+		ActiveForkVersionForTimestamp(timestamp math.U64) common.Version
+	},
+](st *statedb.StateDB, cs ForkChainSpec, nextPayloadTimestamp math.U64) (crypto.BLSPubkey, error) {
+	var (
+		forkVersion          = cs.ActiveForkVersionForTimestamp(nextPayloadTimestamp)
+		parentProposerPubKey crypto.BLSPubkey
+	)
+	if version.EqualsOrIsAfter(forkVersion, version.Electra1()) {
+		latestBlockHeader, err := st.GetLatestBlockHeader()
+		if err != nil {
+			return crypto.BLSPubkey{}, fmt.Errorf("failed retrieving latest block header: %w", err)
+		}
+		prevProposer, err := st.ValidatorByIndex(latestBlockHeader.GetProposerIndex())
+		if err != nil {
+			return crypto.BLSPubkey{}, fmt.Errorf("failed retrieving prev proposer: %w", err)
+		}
+		parentProposerPubKey = prevProposer.GetPubkey()
+	}
+	return parentProposerPubKey, nil
 }

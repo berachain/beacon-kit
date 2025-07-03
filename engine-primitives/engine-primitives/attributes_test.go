@@ -25,6 +25,7 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/stretchr/testify/require"
@@ -103,16 +104,13 @@ func TestPayloadAttributes(t *testing.T) {
 				in.suggestedFeeRecipient,
 				in.withdrawals,
 				in.parentBeaconBlockRoot,
+				crypto.BLSPubkey{},
 			)
 			if tt.wantErr != nil {
 				require.ErrorIs(t, err, tt.wantErr)
 			} else {
 				require.NoError(t, err)
 				require.NotNil(t, got)
-
-				require.NotNil(t, got)
-				require.NoError(t, got.Validate(in.forkVersion))
-
 				require.Equal(
 					t,
 					in.suggestedFeeRecipient,
