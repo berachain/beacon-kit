@@ -27,12 +27,10 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	fastssz "github.com/ferranbt/fastssz"
-	"github.com/karalabe/ssz"
 )
 
 // Compile-time assertions to ensure AttesterSlashing implements necessary interfaces.
 var (
-	_ ssz.StaticObject                    = (*AttesterSlashing)(nil)
 	_ constraints.SSZMarshallableRootable = (*AttesterSlashing)(nil)
 	_ common.UnusedEnforcer               = (*AttesterSlashings)(nil)
 )
@@ -43,26 +41,18 @@ type (
 )
 
 // SizeSSZ returns the SSZ encoded size in bytes for the AttesterSlashings.
-func (ass AttesterSlashings) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {
-	return ssz.SizeSliceOfStaticObjects(siz, ass)
+func (ass AttesterSlashings) SizeSSZ() int {
+	return 4 + len(ass)*16 // offset + each attester slashing size (UnusedType is 16 bytes)
 }
 
-// DefineSSZ defines the SSZ encoding for the AttesterSlashings object.
-func (ass AttesterSlashings) DefineSSZ(c *ssz.Codec) {
-	c.DefineDecoder(func(*ssz.Decoder) {
-		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*AttesterSlashing)(&ass), constants.MaxAttesterSlashings)
-	})
-	c.DefineEncoder(func(*ssz.Encoder) {
-		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*AttesterSlashing)(&ass), constants.MaxAttesterSlashings)
-	})
-	c.DefineHasher(func(*ssz.Hasher) {
-		ssz.DefineSliceOfStaticObjectsOffset(c, (*[]*AttesterSlashing)(&ass), constants.MaxAttesterSlashings)
-	})
-}
 
 // HashTreeRoot returns the hash tree root of the AttesterSlashings.
 func (ass AttesterSlashings) HashTreeRoot() common.Root {
-	return ssz.HashSequential(ass)
+	hh := fastssz.DefaultHasherPool.Get()
+	defer fastssz.DefaultHasherPool.Put(hh)
+	ass.HashTreeRootWith(hh)
+	root, _ := hh.HashRoot()
+	return common.Root(root)
 }
 
 /* -------------------------------------------------------------------------- */

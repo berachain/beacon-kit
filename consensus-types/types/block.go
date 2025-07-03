@@ -90,7 +90,7 @@ func NewEmptyBeaconBlockWithVersion(version common.Version) *BeaconBlock {
 // SizeSSZ returns the size of the BeaconBlock object in SSZ encoding.
 func (b *BeaconBlock) SizeSSZ() int {
 	// Fixed part: slot(8) + proposerIndex(8) + parentRoot(32) + stateRoot(32) + offset(4) = 84
-	return 84 + b.Body.SizeSSZFastSSZ()
+	return 84 + b.Body.SizeSSZ()
 }
 
 

@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/version"
 	fastssz "github.com/ferranbt/fastssz"
-	"github.com/karalabe/ssz"
 )
 
 const (
@@ -64,9 +63,7 @@ const (
 
 // Compile-time assertions to ensure BeaconBlockBody implements necessary interfaces.
 var (
-	_ ssz.DynamicObject                            = (*BeaconBlockBody)(nil)
 	_ constraints.SSZVersionedMarshallableRootable = (*BeaconBlockBody)(nil)
-	// Note: fastssz.Marshaler is not enforced due to method signature conflicts during migration
 )
 
 // BeaconBlockBody represents the body of a beacon block.
@@ -108,68 +105,29 @@ type BeaconBlockBody struct {
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the BeaconBlockBody in SSZ.
-// This method is kept for compatibility with karalabe/ssz.
-func (b *BeaconBlockBody) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
-	var size = 96 + 72 + 32 + 4 + 4 + 4 + 4 + 4 + b.syncAggregate.SizeSSZ(siz) + 4 + 4 + 4
+func (b *BeaconBlockBody) SizeSSZ() int {
+	var size = 96 + 72 + 32 + 4 + 4 + 4 + 4 + 4 + 160 + 4 + 4 + 4 // sync aggregate is 160 bytes
 	includeExecRequest := version.EqualsOrIsAfter(b.GetForkVersion(), version.Electra())
 	if includeExecRequest {
 		// Add 4 for the offset of dynamic field ExecutionRequests
-		size += constants.SSZOffsetSize
+		size += int(constants.SSZOffsetSize)
 	}
 
-	if fixed {
-		return size
-	}
-
-	size += ssz.SizeSliceOfStaticObjects(siz, b.proposerSlashings)
-	size += ssz.SizeSliceOfStaticObjects(siz, b.attesterSlashings)
-	size += ssz.SizeSliceOfStaticObjects(siz, b.attestations)
-	size += ssz.SizeSliceOfStaticObjects(siz, b.Deposits)
-	size += ssz.SizeSliceOfStaticObjects(siz, b.voluntaryExits)
-	size += ssz.SizeDynamicObject(siz, b.ExecutionPayload)
-	size += ssz.SizeSliceOfStaticObjects(siz, b.blsToExecutionChanges)
-	size += ssz.SizeSliceOfStaticBytes(siz, b.BlobKzgCommitments)
-	if includeExecRequest {
-		size += ssz.SizeDynamicObject(siz, b.executionRequests)
+	// Dynamic fields
+	size += len(b.proposerSlashings) * 16 // UnusedType
+	size += len(b.attesterSlashings) * 16 // UnusedType
+	size += len(b.attestations) * 16 // UnusedType
+	size += len(b.Deposits) * 192 // Deposit
+	size += len(b.voluntaryExits) * 16 // UnusedType
+	size += b.ExecutionPayload.SizeSSZ()
+	size += len(b.blsToExecutionChanges) * 16 // UnusedType
+	size += len(b.BlobKzgCommitments) * 48 // KZGCommitment
+	if includeExecRequest && b.executionRequests != nil {
+		size += b.executionRequests.SizeSSZ()
 	}
 	return size
 }
 
-// DefineSSZ defines the SSZ serialization of the BeaconBlockBody.
-//
-//nolint:mnd // TODO: get from accessible chainspec field params
-func (b *BeaconBlockBody) DefineSSZ(codec *ssz.Codec) {
-	// Define the static data (fields and dynamic offsets)
-	ssz.DefineStaticBytes(codec, &b.RandaoReveal)
-	ssz.DefineStaticObject(codec, &b.Eth1Data)
-	ssz.DefineStaticBytes(codec, &b.Graffiti)
-	ssz.DefineSliceOfStaticObjectsOffset(codec, &b.proposerSlashings, constants.MaxProposerSlashings)
-	ssz.DefineSliceOfStaticObjectsOffset(codec, &b.attesterSlashings, constants.MaxAttesterSlashings)
-	ssz.DefineSliceOfStaticObjectsOffset(codec, &b.attestations, constants.MaxAttestations)
-	ssz.DefineSliceOfStaticObjectsOffset(codec, &b.Deposits, constants.MaxDeposits)
-	ssz.DefineSliceOfStaticObjectsOffset(codec, &b.voluntaryExits, constants.MaxVoluntaryExits)
-	ssz.DefineStaticObject(codec, &b.syncAggregate)
-	ssz.DefineDynamicObjectOffset(codec, &b.ExecutionPayload)
-	ssz.DefineSliceOfStaticObjectsOffset(codec, &b.blsToExecutionChanges, constants.MaxBlsToExecutionChanges)
-	ssz.DefineSliceOfStaticBytesOffset(codec, &b.BlobKzgCommitments, 4096)
-	includeExecRequest := version.EqualsOrIsAfter(b.GetForkVersion(), version.Electra())
-	if includeExecRequest {
-		ssz.DefineDynamicObjectOffset(codec, &b.executionRequests)
-	}
-
-	// Define the dynamic data (fields)
-	ssz.DefineSliceOfStaticObjectsContent(codec, &b.proposerSlashings, constants.MaxProposerSlashings)
-	ssz.DefineSliceOfStaticObjectsContent(codec, &b.attesterSlashings, constants.MaxAttesterSlashings)
-	ssz.DefineSliceOfStaticObjectsContent(codec, &b.attestations, constants.MaxAttestations)
-	ssz.DefineSliceOfStaticObjectsContent(codec, &b.Deposits, constants.MaxDeposits)
-	ssz.DefineSliceOfStaticObjectsContent(codec, &b.voluntaryExits, constants.MaxVoluntaryExits)
-	ssz.DefineDynamicObjectContent(codec, &b.ExecutionPayload)
-	ssz.DefineSliceOfStaticObjectsContent(codec, &b.blsToExecutionChanges, constants.MaxBlsToExecutionChanges)
-	ssz.DefineSliceOfStaticBytesContent(codec, &b.BlobKzgCommitments, 4096)
-	if includeExecRequest {
-		ssz.DefineDynamicObjectContent(codec, &b.executionRequests)
-	}
-}
 
 // MarshalSSZ serializes the BeaconBlockBody to SSZ-encoded bytes.
 func (b *BeaconBlockBody) MarshalSSZ() ([]byte, error) {
@@ -184,8 +142,7 @@ func (b *BeaconBlockBody) MarshalSSZ() ([]byte, error) {
 	if err != nil {
 		return []byte{}, err
 	}
-	buf := make([]byte, ssz.Size(b))
-	return buf, ssz.EncodeToBytes(buf, b)
+	return b.MarshalSSZTo(make([]byte, 0, b.SizeSSZ()))
 }
 
 func NewEmptyBeaconBlockBodyWithVersion(version common.Version) *BeaconBlockBody {
@@ -214,7 +171,11 @@ func (b *BeaconBlockBody) ValidateAfterDecodingSSZ() error {
 
 // HashTreeRoot returns the SSZ hash tree root of the BeaconBlockBody.
 func (b *BeaconBlockBody) HashTreeRoot() common.Root {
-	return ssz.HashConcurrent(b)
+	hh := fastssz.DefaultHasherPool.Get()
+	defer fastssz.DefaultHasherPool.Put(hh)
+	b.HashTreeRootWith(hh)
+	root, _ := hh.HashRoot()
+	return common.Root(root)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -227,30 +188,340 @@ func (b *BeaconBlockBody) HashTreeRoot() common.Root {
 
 // MarshalSSZTo ssz marshals the BeaconBlockBody object to a target array.
 func (b *BeaconBlockBody) MarshalSSZTo(dst []byte) ([]byte, error) {
-	bz, err := b.MarshalSSZ()
+	// Calculate offsets
+	offset := 96 + 72 + 32 + 4 + 4 + 4 + 4 + 4 + 160 + 4 + 4 + 4 // Fixed part size
+	includeExecRequest := version.EqualsOrIsAfter(b.GetForkVersion(), version.Electra())
+	if includeExecRequest {
+		offset += 4 // ExecutionRequests offset
+	}
+
+	// Static fields
+	dst = append(dst, b.RandaoReveal[:]...)
+
+	// Eth1Data
+	eth1Bytes, err := b.Eth1Data.MarshalSSZ()
 	if err != nil {
 		return nil, err
 	}
-	dst = append(dst, bz...)
+	dst = append(dst, eth1Bytes...)
+
+	dst = append(dst, b.Graffiti[:]...)
+
+	// Offsets for dynamic fields
+	// ProposerSlashings offset
+	dst = fastssz.MarshalUint32(dst, uint32(offset))
+	offset += len(b.proposerSlashings) * 16
+
+	// AttesterSlashings offset
+	dst = fastssz.MarshalUint32(dst, uint32(offset))
+	offset += len(b.attesterSlashings) * 16
+
+	// Attestations offset
+	dst = fastssz.MarshalUint32(dst, uint32(offset))
+	offset += len(b.attestations) * 16
+
+	// Deposits offset
+	dst = fastssz.MarshalUint32(dst, uint32(offset))
+	offset += len(b.Deposits) * 192
+
+	// VoluntaryExits offset
+	dst = fastssz.MarshalUint32(dst, uint32(offset))
+	offset += len(b.voluntaryExits) * 16
+
+	// SyncAggregate
+	syncBytes, err := b.syncAggregate.MarshalSSZ()
+	if err != nil {
+		return nil, err
+	}
+	dst = append(dst, syncBytes...)
+
+	// ExecutionPayload offset
+	dst = fastssz.MarshalUint32(dst, uint32(offset))
+	offset += b.ExecutionPayload.SizeSSZ()
+
+	// BlsToExecutionChanges offset
+	dst = fastssz.MarshalUint32(dst, uint32(offset))
+	offset += len(b.blsToExecutionChanges) * 16
+
+	// BlobKzgCommitments offset
+	dst = fastssz.MarshalUint32(dst, uint32(offset))
+	offset += len(b.BlobKzgCommitments) * 48
+
+	// ExecutionRequests offset (Electra+)
+	if includeExecRequest {
+		dst = fastssz.MarshalUint32(dst, uint32(offset))
+	}
+
+	// Dynamic fields
+	// ProposerSlashings
+	for _, ps := range b.proposerSlashings {
+		psBytes, err := ps.MarshalSSZ()
+		if err != nil {
+			return nil, err
+		}
+		dst = append(dst, psBytes...)
+	}
+
+	// AttesterSlashings
+	for _, as := range b.attesterSlashings {
+		asBytes, err := as.MarshalSSZ()
+		if err != nil {
+			return nil, err
+		}
+		dst = append(dst, asBytes...)
+	}
+
+	// Attestations
+	for _, att := range b.attestations {
+		attBytes, err := att.MarshalSSZ()
+		if err != nil {
+			return nil, err
+		}
+		dst = append(dst, attBytes...)
+	}
+
+	// Deposits
+	for _, dep := range b.Deposits {
+		depBytes, err := dep.MarshalSSZ()
+		if err != nil {
+			return nil, err
+		}
+		dst = append(dst, depBytes...)
+	}
+
+	// VoluntaryExits
+	for _, ve := range b.voluntaryExits {
+		veBytes, err := ve.MarshalSSZ()
+		if err != nil {
+			return nil, err
+		}
+		dst = append(dst, veBytes...)
+	}
+
+	// ExecutionPayload
+	dst, err = b.ExecutionPayload.MarshalSSZTo(dst)
+	if err != nil {
+		return nil, err
+	}
+
+	// BlsToExecutionChanges
+	for _, bec := range b.blsToExecutionChanges {
+		becBytes, err := bec.MarshalSSZ()
+		if err != nil {
+			return nil, err
+		}
+		dst = append(dst, becBytes...)
+	}
+
+	// BlobKzgCommitments
+	for _, comm := range b.BlobKzgCommitments {
+		dst = append(dst, comm[:]...)
+	}
+
+	// ExecutionRequests (Electra+)
+	if includeExecRequest && b.executionRequests != nil {
+		erBytes, err := b.executionRequests.MarshalSSZ()
+		if err != nil {
+			return nil, err
+		}
+		dst = append(dst, erBytes...)
+	}
+
 	return dst, nil
 }
 
 // UnmarshalSSZ ssz unmarshals the BeaconBlockBody object.
 func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte) error {
-	// This method is not implemented yet as it requires significant logic
-	// to handle the fork-specific fields and dynamic offsets.
-	// For now, we delegate to the existing karalabe/ssz implementation.
-	return errors.New("UnmarshalSSZ not implemented for BeaconBlockBody")
+	if len(buf) < 388 { // Minimum size without Electra
+		return fastssz.ErrSize
+	}
+
+	includeExecRequest := version.EqualsOrIsAfter(b.GetForkVersion(), version.Electra())
+	if includeExecRequest && len(buf) < 392 { // Minimum size with Electra
+		return fastssz.ErrSize
+	}
+
+	var err error
+	size := uint32(len(buf))
+	offset := 0
+
+	// Field (0) 'RandaoReveal'
+	copy(b.RandaoReveal[:], buf[0:96])
+	offset += 96
+
+	// Field (1) 'Eth1Data'
+	if b.Eth1Data == nil {
+		b.Eth1Data = &Eth1Data{}
+	}
+	if err = b.Eth1Data.UnmarshalSSZ(buf[offset:offset+72]); err != nil {
+		return err
+	}
+	offset += 72
+
+	// Field (2) 'Graffiti'
+	copy(b.Graffiti[:], buf[offset:offset+32])
+	offset += 32
+
+	// Read offsets
+	proposerSlashingsOffset := fastssz.UnmarshallUint32(buf[offset:offset+4])
+	offset += 4
+	attesterSlashingsOffset := fastssz.UnmarshallUint32(buf[offset:offset+4])
+	offset += 4
+	attestationsOffset := fastssz.UnmarshallUint32(buf[offset:offset+4])
+	offset += 4
+	depositsOffset := fastssz.UnmarshallUint32(buf[offset:offset+4])
+	offset += 4
+	voluntaryExitsOffset := fastssz.UnmarshallUint32(buf[offset:offset+4])
+	offset += 4
+
+	// Field (8) 'SyncAggregate'
+	if b.syncAggregate == nil {
+		b.syncAggregate = &SyncAggregate{}
+	}
+	if err = b.syncAggregate.UnmarshalSSZ(buf[offset:offset+160]); err != nil {
+		return err
+	}
+	offset += 160
+
+	executionPayloadOffset := fastssz.UnmarshallUint32(buf[offset:offset+4])
+	offset += 4
+	blsToExecutionChangesOffset := fastssz.UnmarshallUint32(buf[offset:offset+4])
+	offset += 4
+	blobKzgCommitmentsOffset := fastssz.UnmarshallUint32(buf[offset:offset+4])
+	offset += 4
+
+	var executionRequestsOffset uint32
+	if includeExecRequest {
+		executionRequestsOffset = fastssz.UnmarshallUint32(buf[offset:offset+4])
+		offset += 4
+	}
+
+	// Validate offsets
+	if proposerSlashingsOffset > size || attesterSlashingsOffset > size ||
+		attestationsOffset > size || depositsOffset > size ||
+		voluntaryExitsOffset > size || executionPayloadOffset > size ||
+		blsToExecutionChangesOffset > size || blobKzgCommitmentsOffset > size ||
+		(includeExecRequest && executionRequestsOffset > size) {
+		return fastssz.ErrInvalidVariableOffset
+	}
+
+	// Unmarshal dynamic fields
+	// ProposerSlashings
+	if proposerSlashingsOffset < attesterSlashingsOffset {
+		count := (attesterSlashingsOffset - proposerSlashingsOffset) / 16
+		b.proposerSlashings = make([]*ProposerSlashing, count)
+		for i := uint32(0); i < count; i++ {
+			ps := ProposerSlashing(0)
+			b.proposerSlashings[i] = &ps
+			if err = b.proposerSlashings[i].UnmarshalSSZ(buf[proposerSlashingsOffset+i*16 : proposerSlashingsOffset+(i+1)*16]); err != nil {
+				return err
+			}
+		}
+	}
+
+	// AttesterSlashings
+	if attesterSlashingsOffset < attestationsOffset {
+		count := (attestationsOffset - attesterSlashingsOffset) / 16
+		b.attesterSlashings = make([]*AttesterSlashing, count)
+		for i := uint32(0); i < count; i++ {
+			as := AttesterSlashing(0)
+			b.attesterSlashings[i] = &as
+			if err = b.attesterSlashings[i].UnmarshalSSZ(buf[attesterSlashingsOffset+i*16 : attesterSlashingsOffset+(i+1)*16]); err != nil {
+				return err
+			}
+		}
+	}
+
+	// Attestations
+	if attestationsOffset < depositsOffset {
+		count := (depositsOffset - attestationsOffset) / 16
+		b.attestations = make([]*Attestation, count)
+		for i := uint32(0); i < count; i++ {
+			att := Attestation(0)
+			b.attestations[i] = &att
+			if err = b.attestations[i].UnmarshalSSZ(buf[attestationsOffset+i*16 : attestationsOffset+(i+1)*16]); err != nil {
+				return err
+			}
+		}
+	}
+
+	// Deposits
+	if depositsOffset < voluntaryExitsOffset {
+		count := (voluntaryExitsOffset - depositsOffset) / 192
+		b.Deposits = make([]*Deposit, count)
+		for i := uint32(0); i < count; i++ {
+			b.Deposits[i] = &Deposit{}
+			if err = b.Deposits[i].UnmarshalSSZ(buf[depositsOffset+i*192 : depositsOffset+(i+1)*192]); err != nil {
+				return err
+			}
+		}
+	}
+
+	// VoluntaryExits
+	if voluntaryExitsOffset < executionPayloadOffset {
+		count := (executionPayloadOffset - voluntaryExitsOffset) / 16
+		b.voluntaryExits = make([]*VoluntaryExit, count)
+		for i := uint32(0); i < count; i++ {
+			ve := VoluntaryExit(0)
+			b.voluntaryExits[i] = &ve
+			if err = b.voluntaryExits[i].UnmarshalSSZ(buf[voluntaryExitsOffset+i*16 : voluntaryExitsOffset+(i+1)*16]); err != nil {
+				return err
+			}
+		}
+	}
+
+	// ExecutionPayload
+	if b.ExecutionPayload == nil {
+		b.ExecutionPayload = NewEmptyExecutionPayloadWithVersion(b.GetForkVersion())
+	}
+	if executionPayloadOffset < blsToExecutionChangesOffset {
+		if err = b.ExecutionPayload.UnmarshalSSZ(buf[executionPayloadOffset:blsToExecutionChangesOffset]); err != nil {
+			return err
+		}
+	}
+
+	// BlsToExecutionChanges
+	if blsToExecutionChangesOffset < blobKzgCommitmentsOffset {
+		count := (blobKzgCommitmentsOffset - blsToExecutionChangesOffset) / 16
+		b.blsToExecutionChanges = make([]*BlsToExecutionChange, count)
+		for i := uint32(0); i < count; i++ {
+			bec := BlsToExecutionChange(0)
+			b.blsToExecutionChanges[i] = &bec
+			if err = b.blsToExecutionChanges[i].UnmarshalSSZ(buf[blsToExecutionChangesOffset+i*16 : blsToExecutionChangesOffset+(i+1)*16]); err != nil {
+				return err
+			}
+		}
+	}
+
+	// BlobKzgCommitments
+	var endOffset uint32
+	if includeExecRequest {
+		endOffset = executionRequestsOffset
+	} else {
+		endOffset = size
+	}
+
+	if blobKzgCommitmentsOffset < endOffset {
+		count := (endOffset - blobKzgCommitmentsOffset) / 48
+		b.BlobKzgCommitments = make([]eip4844.KZGCommitment, count)
+		for i := uint32(0); i < count; i++ {
+			copy(b.BlobKzgCommitments[i][:], buf[blobKzgCommitmentsOffset+i*48:blobKzgCommitmentsOffset+(i+1)*48])
+		}
+	}
+
+	// ExecutionRequests (Electra+)
+	if includeExecRequest && executionRequestsOffset < size {
+		if b.executionRequests == nil {
+			b.executionRequests = &ExecutionRequests{}
+		}
+		if err = b.executionRequests.UnmarshalSSZ(buf[executionRequestsOffset:]); err != nil {
+			return err
+		}
+	}
+
+	return b.ValidateAfterDecodingSSZ()
 }
 
-// SizeSSZFastSSZ returns the ssz encoded size in bytes for the BeaconBlockBody (fastssz).
-// TODO: Rename to SizeSSZ() once karalabe/ssz is fully removed.
-func (b *BeaconBlockBody) SizeSSZFastSSZ() (size int) {
-	// Use the existing karalabe/ssz Size function to get the size
-	// This ensures compatibility with the current implementation
-	size = int(ssz.Size(b))
-	return
-}
 
 // HashTreeRootWith ssz hashes the BeaconBlockBody object with a hasher.
 func (b *BeaconBlockBody) HashTreeRootWith(hh fastssz.HashWalker) error {

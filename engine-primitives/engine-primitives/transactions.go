@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -24,11 +24,10 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
-	"github.com/karalabe/ssz"
+	fastssz "github.com/ferranbt/fastssz"
 )
 
 var (
-	_ ssz.DynamicObject       = (*Transactions)(nil)
 	_ constraints.SSZRootable = (*Transactions)(nil)
 )
 
@@ -41,42 +40,79 @@ type Transactions [][]byte
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the SSZ encoded size in bytes for the Transactions.
-func (txs Transactions) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {
-	return ssz.SizeSliceOfDynamicBytes(siz, txs)
-}
-
-// DefineSSZ defines the SSZ encoding for the Transactions object.
-// TODO: This can accidentally decouple from the definition in
-// ExecutionPayload and we should be cognizant of that and/or
-// make a PR to allow for them to be defined in one place.
-func (txs Transactions) DefineSSZ(codec *ssz.Codec) {
-	codec.DefineEncoder(func(*ssz.Encoder) {
-		ssz.DefineSliceOfDynamicBytesContent(
-			codec,
-			(*[][]byte)(&txs),
-			constants.MaxTxsPerPayload,
-			constants.MaxBytesPerTx,
-		)
-	})
-	codec.DefineDecoder(func(*ssz.Decoder) {
-		ssz.DefineSliceOfDynamicBytesContent(
-			codec,
-			(*[][]byte)(&txs),
-			constants.MaxTxsPerPayload,
-			constants.MaxBytesPerTx,
-		)
-	})
-	codec.DefineHasher(func(*ssz.Hasher) {
-		ssz.DefineSliceOfDynamicBytesOffset(
-			codec,
-			(*[][]byte)(&txs),
-			constants.MaxTxsPerPayload,
-			constants.MaxBytesPerTx,
-		)
-	})
+func (txs Transactions) SizeSSZ() int {
+	size := 4 // List offset
+	for _, tx := range txs {
+		size += 4 + len(tx) // Offset + transaction bytes
+	}
+	return size
 }
 
 // HashTreeRoot returns the hash tree root of the Transactions object.
 func (txs Transactions) HashTreeRoot() common.Root {
-	return ssz.HashConcurrent(txs)
+	hh := fastssz.DefaultHasherPool.Get()
+	defer fastssz.DefaultHasherPool.Put(hh)
+	txs.HashTreeRootWith(hh)
+	root, _ := hh.HashRoot()
+	return common.Root(root)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
+
+// HashTreeRootWith ssz hashes the Transactions object with a hasher.
+func (txs Transactions) HashTreeRootWith(hh fastssz.HashWalker) error {
+	indx := hh.Index()
+	num := uint64(len(txs))
+	if num > constants.MaxTxsPerPayload {
+		return fastssz.ErrIncorrectListSize
+	}
+	for _, tx := range txs {
+		if len(tx) > int(constants.MaxBytesPerTx) {
+			return fastssz.ErrBytesLength
+		}
+		// Each transaction is hashed as bytes
+		root := merkleizeBytesN(tx)
+		hh.AppendBytes32(root[:])
+	}
+	hh.MerkleizeWithMixin(indx, num, constants.MaxTxsPerPayload)
+	return nil
+}
+
+// GetTree ssz hashes the Transactions object.
+func (txs Transactions) GetTree() (*fastssz.Node, error) {
+	return fastssz.ProofTree(txs)
+}
+
+// merkleizeBytesN returns the hash tree root of a byte slice.
+func merkleizeBytesN(data []byte) [32]byte {
+	// Merkleize bytes by padding to chunks
+	chunkCount := (len(data) + 31) / 32
+	if chunkCount == 0 {
+		chunkCount = 1
+	}
+	
+	// Create a temporary hasher
+	hh := fastssz.DefaultHasherPool.Get()
+	defer fastssz.DefaultHasherPool.Put(hh)
+	
+	// Start merkleization
+	indx := hh.Index()
+	
+	// Append data in 32-byte chunks
+	for i := 0; i < len(data); i += 32 {
+		var chunk [32]byte
+		end := i + 32
+		if end > len(data) {
+			end = len(data)
+		}
+		copy(chunk[:], data[i:end])
+		hh.Append(chunk[:])
+	}
+	
+	// Merkleize with length mixin
+	hh.MerkleizeWithMixin(indx, uint64(len(data)), uint64(len(data)))
+	root, _ := hh.HashRoot()
+	return root
 }

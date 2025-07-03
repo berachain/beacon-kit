@@ -27,12 +27,10 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	fastssz "github.com/ferranbt/fastssz"
-	"github.com/karalabe/ssz"
 )
 
 // Compile-time assertions to ensure BlsToExecutionChange implements necessary interfaces.
 var (
-	_ ssz.StaticObject                    = (*BlsToExecutionChange)(nil)
 	_ constraints.SSZMarshallableRootable = (*BlsToExecutionChange)(nil)
 	_ common.UnusedEnforcer               = (*BlsToExecutionChanges)(nil)
 )
@@ -43,26 +41,18 @@ type (
 )
 
 // SizeSSZ returns the SSZ encoded size in bytes for the BlsToExecutionChanges.
-func (bs BlsToExecutionChanges) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {
-	return ssz.SizeSliceOfStaticObjects(siz, bs)
+func (bs BlsToExecutionChanges) SizeSSZ() int {
+	return 4 + len(bs)*16 // offset + each change size (UnusedType is 16 bytes)
 }
 
-// DefineSSZ defines the SSZ encoding for the BlsToExecutionChanges object.
-func (bs BlsToExecutionChanges) DefineSSZ(c *ssz.Codec) {
-	c.DefineDecoder(func(*ssz.Decoder) {
-		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*BlsToExecutionChange)(&bs), constants.MaxBlsToExecutionChanges)
-	})
-	c.DefineEncoder(func(*ssz.Encoder) {
-		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*BlsToExecutionChange)(&bs), constants.MaxBlsToExecutionChanges)
-	})
-	c.DefineHasher(func(*ssz.Hasher) {
-		ssz.DefineSliceOfStaticObjectsOffset(c, (*[]*BlsToExecutionChange)(&bs), constants.MaxBlsToExecutionChanges)
-	})
-}
 
 // HashTreeRoot returns the hash tree root of the BlsToExecutionChanges.
 func (bs BlsToExecutionChanges) HashTreeRoot() common.Root {
-	return ssz.HashSequential(bs)
+	hh := fastssz.DefaultHasherPool.Get()
+	defer fastssz.DefaultHasherPool.Put(hh)
+	bs.HashTreeRootWith(hh)
+	root, _ := hh.HashRoot()
+	return common.Root(root)
 }
 
 /* -------------------------------------------------------------------------- */

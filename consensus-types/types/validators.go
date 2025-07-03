@@ -25,38 +25,24 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	fastssz "github.com/ferranbt/fastssz"
-	"github.com/karalabe/ssz"
 )
 
 // Validators is a type alias for a SSZ list of Validator containers.
 type Validators []*Validator
 
 // SizeSSZ returns the SSZ encoded size in bytes for the Validators.
-func (vs Validators) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {
-	return ssz.SizeSliceOfStaticObjects(siz, ([]*Validator)(vs))
+func (vs Validators) SizeSSZ() int {
+	return 4 + len(vs)*121 // offset + each validator is 121 bytes
 }
 
-// DefineSSZ defines the SSZ encoding for the Validators object.
-// TODO: get from accessible chainspec field params.
-func (vs Validators) DefineSSZ(c *ssz.Codec) {
-	c.DefineDecoder(func(*ssz.Decoder) {
-		ssz.DefineSliceOfStaticObjectsContent(
-			c, (*[]*Validator)(&vs), constants.ValidatorsRegistryLimit)
-	})
-	c.DefineEncoder(func(*ssz.Encoder) {
-		ssz.DefineSliceOfStaticObjectsContent(
-			c, (*[]*Validator)(&vs), constants.ValidatorsRegistryLimit)
-	})
-
-	c.DefineHasher(func(*ssz.Hasher) {
-		ssz.DefineSliceOfStaticObjectsOffset(
-			c, (*[]*Validator)(&vs), constants.ValidatorsRegistryLimit)
-	})
-}
 
 // HashTreeRoot returns the SSZ hash tree root for the Validators object.
 func (vs Validators) HashTreeRoot() common.Root {
-	return ssz.HashSequential(vs)
+	hh := fastssz.DefaultHasherPool.Get()
+	defer fastssz.DefaultHasherPool.Put(hh)
+	vs.HashTreeRootWith(hh)
+	root, _ := hh.HashRoot()
+	return common.Root(root)
 }
 
 /* -------------------------------------------------------------------------- */

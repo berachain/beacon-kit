@@ -23,7 +23,6 @@ package common
 import (
 	"github.com/berachain/beacon-kit/errors"
 	fastssz "github.com/ferranbt/fastssz"
-	"github.com/karalabe/ssz"
 )
 
 // UnusedEnforcer is an interface that asserts that a type is unused.
@@ -33,29 +32,21 @@ type UnusedEnforcer interface {
 
 // Compile-time assertions to ensure UnusedType implements necessary interfaces.
 var (
-	_ ssz.StaticObject        = (*UnusedType)(nil)
 	_ SSZMarshallableRootable = (*UnusedType)(nil)
 	_ UnusedEnforcer          = (*UnusedType)(nil)
-	// Note: fastssz interfaces are not enforced due to method signature conflicts during migration
 )
 
 type UnusedType uint8
 
-// SizeSSZInternal returns the SSZ encoded size in bytes for the UnusedType.
-// This method is kept for compatibility with karalabe/ssz.
-func (ut *UnusedType) SizeSSZ(_ *ssz.Sizer) uint32 {
+// SizeSSZ returns the SSZ encoded size in bytes for the UnusedType.
+func (ut *UnusedType) SizeSSZ() int {
 	return 1
 }
 
-// DefineSSZ defines the SSZ encoding for the UnusedType object.
-func (ut *UnusedType) DefineSSZ(c *ssz.Codec) {
-	ssz.DefineUint8(c, ut)
-}
 
 // MarshalSSZ marshals the UnusedType object to SSZ format.
 func (ut *UnusedType) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(ut))
-	return buf, ssz.EncodeToBytes(buf, ut)
+	return []byte{byte(*ut)}, nil
 }
 
 func (ut *UnusedType) ValidateAfterDecodingSSZ() error {
@@ -64,7 +55,11 @@ func (ut *UnusedType) ValidateAfterDecodingSSZ() error {
 
 // HashTreeRoot returns the hash tree root of the UnusedType.
 func (ut *UnusedType) HashTreeRoot() Root {
-	return ssz.HashSequential(ut)
+	hh := fastssz.DefaultHasherPool.Get()
+	defer fastssz.DefaultHasherPool.Put(hh)
+	ut.HashTreeRootWith(hh)
+	root, _ := hh.HashRoot()
+	return Root(root)
 }
 
 // EnforceUnused return true if the UnusedType contains all zero values.
@@ -97,19 +92,7 @@ func (ut *UnusedType) UnmarshalSSZ(buf []byte) error {
 	return ut.EnforceUnused()
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the UnusedType (fastssz).
-func (ut *UnusedType) SizeSSZFastSSZ() (size int) {
-	return 1
-}
 
-// HashTreeRoot calculates the SSZ hash tree root of the UnusedType.
-// This method satisfies the fastssz.HashRoot interface.
-func (ut *UnusedType) HashTreeRootFastSSZ() ([32]byte, error) {
-	// UnusedType is a uint8, so its hash tree root is the value padded to 32 bytes
-	var root [32]byte
-	root[0] = byte(*ut)
-	return root, nil
-}
 
 // HashTreeRootWith ssz hashes the UnusedType object with a hasher.
 func (ut *UnusedType) HashTreeRootWith(hh fastssz.HashWalker) error {

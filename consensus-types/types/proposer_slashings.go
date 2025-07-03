@@ -27,12 +27,10 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	fastssz "github.com/ferranbt/fastssz"
-	"github.com/karalabe/ssz"
 )
 
 // Compile-time assertions to ensure ProposerSlashing implements necessary interfaces.
 var (
-	_ ssz.StaticObject                    = (*ProposerSlashing)(nil)
 	_ constraints.SSZMarshallableRootable = (*ProposerSlashing)(nil)
 	_ common.UnusedEnforcer               = (*ProposerSlashings)(nil)
 )
@@ -43,26 +41,18 @@ type (
 )
 
 // SizeSSZ returns the SSZ encoded size in bytes for the ProposerSlashings.
-func (ps ProposerSlashings) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {
-	return ssz.SizeSliceOfStaticObjects(siz, ps)
+func (ps ProposerSlashings) SizeSSZ() int {
+	return 4 + len(ps)*16 // offset + each proposer slashing size (UnusedType is 16 bytes)
 }
 
-// DefineSSZ defines the SSZ encoding for the ProposerSlashings object.
-func (ps ProposerSlashings) DefineSSZ(c *ssz.Codec) {
-	c.DefineDecoder(func(*ssz.Decoder) {
-		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*ProposerSlashing)(&ps), constants.MaxProposerSlashings)
-	})
-	c.DefineEncoder(func(*ssz.Encoder) {
-		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*ProposerSlashing)(&ps), constants.MaxProposerSlashings)
-	})
-	c.DefineHasher(func(*ssz.Hasher) {
-		ssz.DefineSliceOfStaticObjectsOffset(c, (*[]*ProposerSlashing)(&ps), constants.MaxProposerSlashings)
-	})
-}
 
 // HashTreeRoot returns the hash tree root of the ProposerSlashings.
 func (ps ProposerSlashings) HashTreeRoot() common.Root {
-	return ssz.HashSequential(ps)
+	hh := fastssz.DefaultHasherPool.Get()
+	defer fastssz.DefaultHasherPool.Put(hh)
+	ps.HashTreeRootWith(hh)
+	root, _ := hh.HashRoot()
+	return common.Root(root)
 }
 
 /* -------------------------------------------------------------------------- */

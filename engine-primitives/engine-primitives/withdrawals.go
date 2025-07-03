@@ -26,11 +26,10 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
-	"github.com/karalabe/ssz"
+	fastssz "github.com/ferranbt/fastssz"
 )
 
 var (
-	_ ssz.StaticObject        = (*Withdrawals)(nil)
 	_ constraints.SSZRootable = (*Withdrawals)(nil)
 )
 
@@ -42,29 +41,43 @@ type Withdrawals []*Withdrawal
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the SSZ encoded size in bytes for the Withdrawals.
-func (w Withdrawals) SizeSSZ(siz *ssz.Sizer) uint32 {
-	return ssz.SizeSliceOfStaticObjects(siz, w)
+func (w Withdrawals) SizeSSZ() int {
+	return 4 + len(w)*44 // offset + each withdrawal is 44 bytes
 }
 
-// DefineSSZ defines the SSZ encoding for the Withdrawals object.
-func (w Withdrawals) DefineSSZ(codec *ssz.Codec) {
-	codec.DefineEncoder(func(*ssz.Encoder) {
-		ssz.DefineSliceOfStaticObjectsContent(
-			codec, (*[]*Withdrawal)(&w), constants.MaxWithdrawalsPerPayload)
-	})
-	codec.DefineDecoder(func(*ssz.Decoder) {
-		ssz.DefineSliceOfStaticObjectsContent(
-			codec, (*[]*Withdrawal)(&w), constants.MaxWithdrawalsPerPayload)
-	})
-	codec.DefineHasher(func(*ssz.Hasher) {
-		ssz.DefineSliceOfStaticObjectsOffset(
-			codec, (*[]*Withdrawal)(&w), constants.MaxWithdrawalsPerPayload)
-	})
-}
 
 // HashTreeRoot returns the hash tree root of the Withdrawals.
 func (w Withdrawals) HashTreeRoot() common.Root {
-	return ssz.HashSequential(w)
+	hh := fastssz.DefaultHasherPool.Get()
+	defer fastssz.DefaultHasherPool.Put(hh)
+	w.HashTreeRootWith(hh)
+	root, _ := hh.HashRoot()
+	return common.Root(root)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
+
+// HashTreeRootWith ssz hashes the Withdrawals object with a hasher.
+func (w Withdrawals) HashTreeRootWith(hh fastssz.HashWalker) error {
+	indx := hh.Index()
+	num := uint64(len(w))
+	if num > constants.MaxWithdrawalsPerPayload {
+		return fastssz.ErrIncorrectListSize
+	}
+	for _, elem := range w {
+		if err := elem.HashTreeRootWith(hh); err != nil {
+			return err
+		}
+	}
+	hh.MerkleizeWithMixin(indx, num, constants.MaxWithdrawalsPerPayload)
+	return nil
+}
+
+// GetTree ssz hashes the Withdrawals object.
+func (w Withdrawals) GetTree() (*fastssz.Node, error) {
+	return fastssz.ProofTree(w)
 }
 
 /* -------------------------------------------------------------------------- */

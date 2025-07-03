@@ -25,7 +25,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	fastssz "github.com/ferranbt/fastssz"
-	"github.com/karalabe/ssz"
 )
 
 // Deposits is a type alias for a SSZ list of Deposit containers.
@@ -36,28 +35,18 @@ type Deposits []*Deposit
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the SSZ encoded size in bytes for the Deposits.
-func (ds Deposits) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {
-	return ssz.SizeSliceOfStaticObjects(siz, ([]*Deposit)(ds))
+func (ds Deposits) SizeSSZ() int {
+	return 4 + len(ds)*192 // offset + each deposit is 192 bytes
 }
 
-// DefineSSZ defines the SSZ encoding for the Deposits object.
-// TODO: get from accessible chainspec field params.
-func (ds Deposits) DefineSSZ(c *ssz.Codec) {
-	c.DefineDecoder(func(*ssz.Decoder) {
-		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*Deposit)(&ds), constants.MaxDeposits)
-	})
-	c.DefineEncoder(func(*ssz.Encoder) {
-		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*Deposit)(&ds), constants.MaxDeposits)
-	})
-	c.DefineHasher(func(*ssz.Hasher) {
-		ssz.DefineSliceOfStaticObjectsOffset(c, (*[]*Deposit)(&ds), constants.MaxDeposits)
-	})
-}
 
 // HashTreeRoot returns the hash tree root of the Deposits.
 func (ds Deposits) HashTreeRoot() common.Root {
-	// TODO: determine if using HashConcurrent optimizes performance.
-	return ssz.HashSequential(ds)
+	hh := fastssz.DefaultHasherPool.Get()
+	defer fastssz.DefaultHasherPool.Put(hh)
+	ds.HashTreeRootWith(hh)
+	root, _ := hh.HashRoot()
+	return common.Root(root)
 }
 
 /* -------------------------------------------------------------------------- */

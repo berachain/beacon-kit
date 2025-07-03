@@ -30,46 +30,18 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/encoding/sszutil"
 	fastssz "github.com/ferranbt/fastssz"
-	"github.com/karalabe/ssz"
 )
 
 // 3 since three dynamic objects (Deposits, Withdrawals, Consolidations)
 const dynamicFieldsInExecutionRequests = 3
 
 
-// DefineSSZ defines the SSZ encoding for ExecutionRequests.
-// TODO: Remove once BeaconBlockBody is fully migrated to fastssz
-func (e *ExecutionRequests) DefineSSZ(codec *ssz.Codec) {
-	// Define offsets for dynamic fields
-	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Deposits, constants.MaxDepositRequestsPerPayload)
-	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Withdrawals, constants.MaxWithdrawalRequestsPerPayload)
-	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Consolidations, constants.MaxConsolidationRequestsPerPayload)
-	
-	// Define content for dynamic fields
-	ssz.DefineSliceOfStaticObjectsContent(codec, &e.Deposits, constants.MaxDepositRequestsPerPayload)
-	ssz.DefineSliceOfStaticObjectsContent(codec, &e.Withdrawals, constants.MaxWithdrawalRequestsPerPayload)
-	ssz.DefineSliceOfStaticObjectsContent(codec, &e.Consolidations, constants.MaxConsolidationRequestsPerPayload)
-}
-
-// SizeSSZ returns the size for karalabe/ssz compatibility.
-// TODO: Remove once fully migrated to fastssz
-func (e *ExecutionRequests) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
-	size := constants.SSZOffsetSize * dynamicFieldsInExecutionRequests
-	if fixed {
-		return size
-	}
-	
-	// Add dynamic sizes
-	for range e.Deposits {
-		size += 192 // deposit size
-	}
-	for range e.Withdrawals {
-		size += 76 // withdrawal request size
-	}
-	for range e.Consolidations {
-		size += 116 // consolidation request size
-	}
-	
+// SizeSSZ returns the SSZ encoded size in bytes.
+func (e *ExecutionRequests) SizeSSZ() int {
+	size := int(constants.SSZOffsetSize * dynamicFieldsInExecutionRequests)
+	size += len(e.Deposits) * 192 // Each deposit request is 192 bytes
+	size += len(e.Withdrawals) * 76 // Each withdrawal request is 76 bytes
+	size += len(e.Consolidations) * 116 // Each consolidation request is 116 bytes
 	return size
 }
 
@@ -181,7 +153,11 @@ func DecodeExecutionRequests(encodedRequests [][]byte) (*ExecutionRequests, erro
 
 // HashTreeRoot returns the hash tree root of the ExecutionRequests.
 func (e *ExecutionRequests) HashTreeRoot() common.Root {
-	return ssz.HashSequential(e)
+	hh := fastssz.DefaultHasherPool.Get()
+	defer fastssz.DefaultHasherPool.Put(hh)
+	e.HashTreeRootWith(hh)
+	root, _ := hh.HashRoot()
+	return common.Root(root)
 }
 
 /* -------------------------------------------------------------------------- */

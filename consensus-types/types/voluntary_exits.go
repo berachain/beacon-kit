@@ -27,12 +27,10 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	fastssz "github.com/ferranbt/fastssz"
-	"github.com/karalabe/ssz"
 )
 
 // Compile-time assertions to ensure VoluntaryExit implements necessary interfaces.
 var (
-	_ ssz.StaticObject                    = (*VoluntaryExit)(nil)
 	_ constraints.SSZMarshallableRootable = (*VoluntaryExit)(nil)
 	_ common.UnusedEnforcer               = (*VoluntaryExits)(nil)
 )
@@ -43,26 +41,18 @@ type (
 )
 
 // SizeSSZ returns the SSZ encoded size in bytes for the VoluntaryExits.
-func (vs VoluntaryExits) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {
-	return ssz.SizeSliceOfStaticObjects(siz, vs)
+func (vs VoluntaryExits) SizeSSZ() int {
+	return 4 + len(vs)*16 // offset + each voluntary exit size (UnusedType is 16 bytes)
 }
 
-// DefineSSZ defines the SSZ encoding for the VoluntaryExits object.
-func (vs VoluntaryExits) DefineSSZ(c *ssz.Codec) {
-	c.DefineDecoder(func(*ssz.Decoder) {
-		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*VoluntaryExit)(&vs), constants.MaxVoluntaryExits)
-	})
-	c.DefineEncoder(func(*ssz.Encoder) {
-		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*VoluntaryExit)(&vs), constants.MaxVoluntaryExits)
-	})
-	c.DefineHasher(func(*ssz.Hasher) {
-		ssz.DefineSliceOfStaticObjectsOffset(c, (*[]*VoluntaryExit)(&vs), constants.MaxVoluntaryExits)
-	})
-}
 
 // HashTreeRoot returns the hash tree root of the VoluntaryExits.
 func (vs VoluntaryExits) HashTreeRoot() common.Root {
-	return ssz.HashSequential(vs)
+	hh := fastssz.DefaultHasherPool.Get()
+	defer fastssz.DefaultHasherPool.Put(hh)
+	vs.HashTreeRootWith(hh)
+	root, _ := hh.HashRoot()
+	return common.Root(root)
 }
 
 /* -------------------------------------------------------------------------- */

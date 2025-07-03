@@ -27,12 +27,10 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	fastssz "github.com/ferranbt/fastssz"
-	"github.com/karalabe/ssz"
 )
 
 // Compile-time assertions to ensure Attestation implements necessary interfaces.
 var (
-	_ ssz.StaticObject                    = (*Attestation)(nil)
 	_ constraints.SSZMarshallableRootable = (*Attestation)(nil)
 	_ common.UnusedEnforcer               = (*Attestations)(nil)
 )
@@ -43,26 +41,18 @@ type (
 )
 
 // SizeSSZ returns the SSZ encoded size in bytes for the Attestations.
-func (as Attestations) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {
-	return ssz.SizeSliceOfStaticObjects(siz, as)
+func (as Attestations) SizeSSZ() int {
+	return 4 + len(as)*16 // offset + each attestation size (UnusedType is 16 bytes)
 }
 
-// DefineSSZ defines the SSZ encoding for the Attestations object.
-func (as Attestations) DefineSSZ(c *ssz.Codec) {
-	c.DefineDecoder(func(*ssz.Decoder) {
-		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*Attestation)(&as), constants.MaxAttestations)
-	})
-	c.DefineEncoder(func(*ssz.Encoder) {
-		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*Attestation)(&as), constants.MaxAttestations)
-	})
-	c.DefineHasher(func(*ssz.Hasher) {
-		ssz.DefineSliceOfStaticObjectsOffset(c, (*[]*Attestation)(&as), constants.MaxAttestations)
-	})
-}
 
 // HashTreeRoot returns the hash tree root of the Attestations.
 func (as Attestations) HashTreeRoot() common.Root {
-	return ssz.HashSequential(as)
+	hh := fastssz.DefaultHasherPool.Get()
+	defer fastssz.DefaultHasherPool.Put(hh)
+	as.HashTreeRootWith(hh)
+	root, _ := hh.HashRoot()
+	return common.Root(root)
 }
 
 /* -------------------------------------------------------------------------- */

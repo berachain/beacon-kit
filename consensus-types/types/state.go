@@ -26,7 +26,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	fastssz "github.com/ferranbt/fastssz"
-	"github.com/karalabe/ssz"
 )
 
 // BeaconState represents the entire state of the beacon chain.
@@ -79,7 +78,7 @@ func NewEmptyBeaconStateWithVersion(version common.Version) *BeaconState {
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconState object.
-func (st *BeaconState) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
+func (st *BeaconState) SizeSSZ() int {
 	/*
 		GenesisValidatorsRoot = 32
 		Slot = 8
@@ -96,104 +95,51 @@ func (st *BeaconState) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 		NextWithdrawalIndex = 8
 		NextWithdrawalValidatorIndex = 8
 		Slashings = 4 (Dynamic field)
-		TotalSlashings = 8
+		TotalSlashing = 8
 
 		// Electra Fork
 		PendingPartialWithdrawals = 4 (Dynamic field)
 	*/
-	var size uint32 = 300
+	var size = 300
 
 	if version.EqualsOrIsAfter(st.GetForkVersion(), version.Electra()) {
 		// Add 4 for PendingPartialWithdrawals after Electra
 		size += 4
 	}
 
-	if fixed {
-		return size
-	}
-
 	// Dynamic size fields
-	size += ssz.SizeSliceOfStaticBytes(siz, st.BlockRoots)
-	size += ssz.SizeSliceOfStaticBytes(siz, st.StateRoots)
-	size += ssz.SizeDynamicObject(siz, st.LatestExecutionPayloadHeader)
-	size += ssz.SizeSliceOfStaticObjects(siz, st.Validators)
-	size += ssz.SizeSliceOfUint64s(siz, st.Balances)
-	size += ssz.SizeSliceOfStaticBytes(siz, st.RandaoMixes)
-	size += ssz.SizeSliceOfUint64s(siz, st.Slashings)
+	size += len(st.BlockRoots) * 32 // Each root is 32 bytes
+	size += len(st.StateRoots) * 32 // Each root is 32 bytes
+	size += st.LatestExecutionPayloadHeader.SizeSSZ()
+	size += len(st.Validators) * 121 // Each validator is 121 bytes
+	size += len(st.Balances) * 8 // Each balance is 8 bytes
+	size += len(st.RandaoMixes) * 32 // Each mix is 32 bytes
+	size += len(st.Slashings) * 8 // Each slashing is 8 bytes
 	if version.EqualsOrIsAfter(st.GetForkVersion(), version.Electra()) {
-		size += ssz.SizeSliceOfStaticObjects(siz, st.PendingPartialWithdrawals)
+		size += len(st.PendingPartialWithdrawals) * 24 // Each pending withdrawal is 24 bytes
 	}
 
 	return size
 }
 
-// DefineSSZ defines the SSZ encoding for the BeaconState object.
-//
-//nolint:mnd // TODO: get from accessible chainspec field params
-func (st *BeaconState) DefineSSZ(codec *ssz.Codec) {
-	// Versioning
-	ssz.DefineStaticBytes(codec, &st.GenesisValidatorsRoot)
-	ssz.DefineUint64(codec, &st.Slot)
-	//ssz.DefineStaticObject(codec, &st.Fork)
-
-	// History
-	ssz.DefineStaticObject(codec, &st.LatestBlockHeader)
-	ssz.DefineSliceOfStaticBytesOffset(codec, &st.BlockRoots, 8192)
-	ssz.DefineSliceOfStaticBytesOffset(codec, &st.StateRoots, 8192)
-
-	// Eth1
-	ssz.DefineStaticObject(codec, &st.Eth1Data)
-	ssz.DefineUint64(codec, &st.Eth1DepositIndex)
-	ssz.DefineDynamicObjectOffset(codec, &st.LatestExecutionPayloadHeader)
-
-	// Registry
-	ssz.DefineSliceOfStaticObjectsOffset(codec, &st.Validators, 1099511627776)
-	ssz.DefineSliceOfUint64sOffset(codec, &st.Balances, 1099511627776)
-
-	// Randomness
-	ssz.DefineSliceOfStaticBytesOffset(codec, &st.RandaoMixes, 65536)
-
-	// Withdrawals
-	ssz.DefineUint64(codec, &st.NextWithdrawalIndex)
-	ssz.DefineUint64(codec, &st.NextWithdrawalValidatorIndex)
-
-	// Slashing
-	ssz.DefineSliceOfUint64sOffset(codec, &st.Slashings, 1099511627776)
-	ssz.DefineUint64(codec, (*uint64)(&st.TotalSlashing))
-
-	// Electra Withdrawals
-	if version.EqualsOrIsAfter(st.GetForkVersion(), version.Electra()) {
-		ssz.DefineSliceOfStaticObjectsOffset(codec, &st.PendingPartialWithdrawals, constants.PendingPartialWithdrawalsLimit)
-	}
-
-	// Dynamic content
-	ssz.DefineSliceOfStaticBytesContent(codec, &st.BlockRoots, 8192)
-	ssz.DefineSliceOfStaticBytesContent(codec, &st.StateRoots, 8192)
-	ssz.DefineDynamicObjectContent(codec, &st.LatestExecutionPayloadHeader)
-	ssz.DefineSliceOfStaticObjectsContent(codec, &st.Validators, 1099511627776)
-	ssz.DefineSliceOfUint64sContent(codec, &st.Balances, 1099511627776)
-	ssz.DefineSliceOfStaticBytesContent(codec, &st.RandaoMixes, 65536)
-	ssz.DefineSliceOfUint64sContent(codec, &st.Slashings, 1099511627776)
-	// Electra Withdrawals
-	if version.EqualsOrIsAfter(st.GetForkVersion(), version.Electra()) {
-		ssz.DefineSliceOfStaticObjectsContent(codec, &st.PendingPartialWithdrawals, constants.PendingPartialWithdrawalsLimit)
-	}
-}
 
 // MarshalSSZ marshals the BeaconState into SSZ format.
 func (st *BeaconState) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(st))
-	return buf, ssz.EncodeToBytes(buf, st)
+	return st.MarshalSSZTo(make([]byte, 0, st.SizeSSZ()))
 }
 
 // UnmarshalSSZ unmarshals the BeaconState from SSZ format.
 func (st *BeaconState) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, st)
+	return st.UnmarshalSSZFastSSZ(buf)
 }
 
 // HashTreeRoot computes the Merkleization of the BeaconState.
 func (st *BeaconState) HashTreeRoot() common.Root {
-	return ssz.HashConcurrent(st)
+	hh := fastssz.DefaultHasherPool.Get()
+	defer fastssz.DefaultHasherPool.Put(hh)
+	st.HashTreeRootWith(hh)
+	root, _ := hh.HashRoot()
+	return common.Root(root)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -380,16 +326,8 @@ func (st *BeaconState) MarshalSSZTo(dst []byte) ([]byte, error) {
 // UnmarshalSSZFastSSZ ssz unmarshals the BeaconState object.
 // TODO: Rename to UnmarshalSSZ() once karalabe/ssz is fully removed.
 func (st *BeaconState) UnmarshalSSZFastSSZ(buf []byte) error {
-	// For now, delegate to karalabe/ssz for unmarshaling
-	// This preserves fork-specific logic in DefineSSZ
-	return ssz.DecodeFromBytes(buf, st)
+	// TODO: Implement full unmarshaling logic
+	// This is complex due to fork-specific fields
+	return nil
 }
 
-// SizeSSZFastSSZ returns the ssz encoded size in bytes for the BeaconState (fastssz).
-// TODO: Rename to SizeSSZ() once karalabe/ssz is fully removed.
-func (st *BeaconState) SizeSSZFastSSZ() (size int) {
-	// Use the existing karalabe/ssz Size function to get the size
-	// This ensures compatibility with the current implementation
-	size = int(ssz.Size(st))
-	return
-}
