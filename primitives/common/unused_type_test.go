@@ -25,7 +25,6 @@ import (
 
 	"github.com/berachain/beacon-kit/primitives/common"
 	fastssz "github.com/ferranbt/fastssz"
-	"github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -47,7 +46,7 @@ func TestDecodeUnusedTypeEquality(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := new(common.UnusedType)
-			if err := ssz.DecodeFromBytes(tt.buf, got); err != nil {
+			if err := got.UnmarshalSSZ(tt.buf); err != nil {
 				if tt.wantErr {
 					return
 				}
@@ -102,8 +101,8 @@ func TestUnusedTypeFastSSZ(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, ut, ut2)
 
-		// Test SizeSSZFastSSZ
-		size := ut.SizeSSZFastSSZ()
+		// Test SizeSSZ
+		size := ut.SizeSSZ()
 		require.Equal(t, 1, size)
 
 		// Test HashTreeRootWith
@@ -116,9 +115,8 @@ func TestUnusedTypeFastSSZ(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, tree)
 
-		// Test HashTreeRootFastSSZ
-		root, err := ut.HashTreeRootFastSSZ()
-		require.NoError(t, err)
+		// Test HashTreeRoot
+		root := ut.HashTreeRoot()
 		var expectedRoot [32]byte
 		require.Equal(t, expectedRoot, root)
 	})
@@ -156,9 +154,8 @@ func TestUnusedTypeFastSSZ(t *testing.T) {
 		require.Equal(t, karalabRoot[:], fastsszRoot[:],
 			"HashTreeRoot results should match between karalabe/ssz and fastssz")
 
-		// Also compare with HashTreeRootFastSSZ
-		directRoot, err := ut.HashTreeRootFastSSZ()
-		require.NoError(t, err)
+		// Also compare with HashTreeRoot
+		directRoot := ut.HashTreeRoot()
 		require.Equal(t, karalabRoot[:], directRoot[:],
 			"HashTreeRoot results should match with direct fastssz method")
 	})

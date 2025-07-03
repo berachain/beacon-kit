@@ -28,7 +28,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/encoding/sszutil"
 	"github.com/berachain/beacon-kit/primitives/math"
-	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -56,8 +55,8 @@ func TestSignedBeaconBlockHeader_Serialization(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, orig, unmarshalled)
 
-	buf := make([]byte, karalabessz.Size(orig))
-	err = karalabessz.EncodeToBytes(buf, orig)
+	// Test that MarshalSSZ works correctly
+	buf, err := orig.MarshalSSZ()
 	require.NoError(t, err)
 
 	// The two byte slices should be equal
@@ -79,8 +78,8 @@ func TestSignedBeaconBlockHeader_EmptySerialization(t *testing.T) {
 	require.NotNil(t, unmarshalled.GetSignature())
 	require.Equal(t, &types.BeaconBlockHeader{}, unmarshalled.GetHeader())
 
-	buf := make([]byte, karalabessz.Size(orig))
-	err = karalabessz.EncodeToBytes(buf, orig)
+	// Test that MarshalSSZ works correctly
+	buf, err := orig.MarshalSSZ()
 	require.NoError(t, err)
 
 	// The two byte slices should be equal
@@ -100,8 +99,8 @@ func TestSignedBeaconBlockHeader_SizeSSZ(t *testing.T) {
 		crypto.BLSSignature{0xff},
 	)
 
-	size := karalabessz.Size(sigHeader)
-	require.Equal(t, uint32(208), size)
+	size := sigHeader.SizeSSZ()
+	require.Equal(t, 208, size)
 }
 
 func TestSignedBeaconBlockHeader_HashTreeRoot(t *testing.T) {

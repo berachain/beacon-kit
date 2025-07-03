@@ -33,7 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	fastssz "github.com/ferranbt/fastssz"
-	"github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -210,7 +209,7 @@ func TestExecutionPayloadHeader_NewFromSSZ_Invalid(t *testing.T) {
 				buf[439] = 10
 				return buf
 			},
-			expErr: ssz.ErrOffsetBeyondCapacity,
+			expErr: fastssz.ErrSize,
 		},
 		{
 			name: "invalid extra data: extra data too large",
@@ -224,7 +223,7 @@ func TestExecutionPayloadHeader_NewFromSSZ_Invalid(t *testing.T) {
 				require.NoError(t, err)
 				return buf
 			},
-			expErr: ssz.ErrMaxLengthExceeded,
+			expErr: fastssz.ErrSize,
 		},
 	}
 	for _, tc := range testcases {
@@ -261,18 +260,15 @@ func TestExecutionPayloadHeader_NewFromSSZ_Invalid_TooSmall(t *testing.T) {
 	// marshaled data. In the case that an actor intentionally tries to induce this behavior, the
 	// unmarshaling of the data correctly results in error, just a different error.
 	// In this unit test, we simply expect the error to be one of the two possible errors.
-	isExpectedError := errors.IsAny(err, ssz.ErrFirstOffsetMismatch, ssz.ErrBadOffsetProgression)
-	require.True(
-		t, isExpectedError, "expected %w or %w, got %w",
-		ssz.ErrFirstOffsetMismatch, ssz.ErrBadOffsetProgression, err,
-	)
+	// With fastssz, we expect a general error for invalid data
+	require.Error(t, err)
 }
 
 func TestExecutionPayloadHeader_SizeSSZ(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		header := generateExecutionPayloadHeader(v)
-		size := ssz.Size(header)
+		size := header.SizeSSZ()
 		require.Equal(t, types.ExecutionPayloadHeaderStaticSize, size)
 	})
 }

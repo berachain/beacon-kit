@@ -34,7 +34,6 @@ import (
 	cmtcrypto "github.com/cometbft/cometbft/crypto"
 	"github.com/cometbft/cometbft/crypto/bls12381"
 	"github.com/cometbft/cometbft/privval"
-	"github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -177,7 +176,7 @@ func TestSignedBeaconBlock_SizeSSZ(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		sBlk := generateFakeSignedBeaconBlock(t, v)
-		size := ssz.Size(sBlk)
+		size := sBlk.SizeSSZ()
 		require.Positive(t, size)
 	})
 }
@@ -199,8 +198,8 @@ func TestSignedBeaconBlock_EmptySerialization(t *testing.T) {
 		require.NotNil(t, unmarshalled.GetBeaconBlock())
 		require.NotNil(t, unmarshalled.GetSignature())
 
-		buf := make([]byte, ssz.Size(orig))
-		err = ssz.EncodeToBytes(buf, orig)
+		// Test that MarshalSSZ works correctly
+		buf, err := orig.MarshalSSZ()
 		require.NoError(t, err)
 
 		// The two byte slices should be equal

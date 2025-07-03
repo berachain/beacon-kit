@@ -26,7 +26,6 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	karalabessz "github.com/karalabe/ssz"
 	zrntcommon "github.com/protolambda/zrnt/eth2/beacon/common"
 	zspec "github.com/protolambda/zrnt/eth2/configs"
 	ztree "github.com/protolambda/ztyp/tree"
@@ -41,7 +40,7 @@ func TestWithdrawals(t *testing.T) {
 			{Index: 1, Validator: 2, Address: [20]byte{1, 2, 3}, Amount: 100},
 			{Index: 3, Validator: 4, Address: [20]byte{4, 5, 6}, Amount: 200},
 		}
-		require.Equal(t, uint32(len(withdrawals))*44, karalabessz.Size(withdrawals))
+		require.Equal(t, len(withdrawals)*44, withdrawals.SizeSSZ())
 	})
 
 	t.Run("HashTreeRoot", func(t *testing.T) {

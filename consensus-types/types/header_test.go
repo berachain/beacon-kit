@@ -28,7 +28,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/encoding/sszutil"
 	"github.com/berachain/beacon-kit/primitives/math"
-	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -151,8 +150,8 @@ func TestBeaconBlockHeader_SizeSSZ(t *testing.T) {
 		common.Root{},
 	)
 
-	size := karalabessz.Size(header)
-	require.Equal(t, uint32(112), size)
+	size := header.SizeSSZ()
+	require.Equal(t, 112, size)
 }
 
 func TestBeaconBlockHeader_HashTreeRoot(t *testing.T) {

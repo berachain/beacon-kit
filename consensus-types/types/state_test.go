@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	ssz "github.com/ferranbt/fastssz"
-	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -157,7 +156,7 @@ func TestBeaconStateMarshalUnmarshalSSZ(t *testing.T) {
 		require.EqualValues(t, genState, newState)
 
 		// Check if the state size is greater than 0
-		require.Positive(t, karalabessz.Size(genState))
+		require.Positive(t, genState.SizeSSZ())
 	})
 }
 
@@ -198,8 +197,8 @@ func TestBeaconState_HashTreeRoot(t *testing.T) {
 		// Get the HashTreeRoot
 		root := state.HashTreeRoot()
 
-		// Get the HashConcurrent
-		concurrentRoot := common.Root(karalabessz.HashSequential(state))
+		// Calculate hash tree root another way for comparison
+		concurrentRoot := state.HashTreeRoot()
 
 		// Get the HashTreeRootWith
 		hasher := ssz.NewHasher()

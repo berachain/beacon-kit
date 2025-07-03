@@ -34,7 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math/log"
 	"github.com/berachain/beacon-kit/primitives/version"
 	fastssz "github.com/ferranbt/fastssz"
-	"github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -178,8 +177,8 @@ func TestBeaconBlockBody_FastSSZ(t *testing.T) {
 			require.Greater(t, len(result), 0)
 		})
 
-		t.Run("SizeSSZFastSSZ", func(t *testing.T) {
-			size := body.SizeSSZFastSSZ()
+		t.Run("SizeSSZ", func(t *testing.T) {
+			size := body.SizeSSZ()
 			require.Greater(t, size, 0)
 		})
 
@@ -254,8 +253,7 @@ func TestBeaconBlockBody_UnusedProposerSlashingsEnforcement(t *testing.T) {
 		_, err := blockBody.MarshalSSZ()
 		require.Error(t, err)
 
-		buf := make([]byte, ssz.Size(&blockBody))
-		err = ssz.EncodeToBytes(buf, &blockBody)
+		buf, err := blockBody.MarshalSSZ()
 		require.NoError(t, err)
 
 		unmarshalledBody := types.NewEmptyBeaconBlockBodyWithVersion(v)
@@ -277,8 +275,7 @@ func TestBeaconBlockBody_UnusedAttesterSlashingsEnforcement(t *testing.T) {
 		_, err := blockBody.MarshalSSZ()
 		require.Error(t, err)
 
-		buf := make([]byte, ssz.Size(&blockBody))
-		err = ssz.EncodeToBytes(buf, &blockBody)
+		buf, err := blockBody.MarshalSSZ()
 		require.NoError(t, err)
 
 		unmarshalledBody := types.NewEmptyBeaconBlockBodyWithVersion(v)
@@ -300,8 +297,7 @@ func TestBeaconBlockBody_UnusedAttestationsEnforcement(t *testing.T) {
 		_, err := blockBody.MarshalSSZ()
 		require.Error(t, err)
 
-		buf := make([]byte, ssz.Size(&blockBody))
-		err = ssz.EncodeToBytes(buf, &blockBody)
+		buf, err := blockBody.MarshalSSZ()
 		require.NoError(t, err)
 
 		unmarshalledBody := types.NewEmptyBeaconBlockBodyWithVersion(v)
@@ -323,8 +319,7 @@ func TestBeaconBlockBody_UnusedVoluntaryExitsEnforcement(t *testing.T) {
 		_, err := blockBody.MarshalSSZ()
 		require.Error(t, err)
 
-		buf := make([]byte, ssz.Size(&blockBody))
-		err = ssz.EncodeToBytes(buf, &blockBody)
+		buf, err := blockBody.MarshalSSZ()
 		require.NoError(t, err)
 
 		unmarshalledBody := types.NewEmptyBeaconBlockBodyWithVersion(v)
@@ -346,8 +341,7 @@ func TestBeaconBlockBody_UnusedBlsToExecutionChangesEnforcement(t *testing.T) {
 		_, err := blockBody.MarshalSSZ()
 		require.Error(t, err)
 
-		buf := make([]byte, ssz.Size(&blockBody))
-		err = ssz.EncodeToBytes(buf, &blockBody)
+		buf, err := blockBody.MarshalSSZ()
 		require.NoError(t, err)
 
 		unmarshalledBody := types.NewEmptyBeaconBlockBodyWithVersion(v)

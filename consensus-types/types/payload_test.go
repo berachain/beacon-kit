@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/encoding/sszutil"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
-	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -96,7 +95,7 @@ func TestExecutionPayload_Serialization(t *testing.T) {
 func TestExecutionPayload_SizeSSZ(t *testing.T) {
 	t.Parallel()
 	payload := generateExecutionPayload()
-	size := karalabessz.Size(payload)
+	size := payload.SizeSSZ()
 	require.Equal(t, uint32(578), size)
 
 	unmarshalledBody := types.NewEmptyExecutionPayloadWithVersion(version.Deneb1())
