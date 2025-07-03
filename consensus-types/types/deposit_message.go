@@ -69,7 +69,6 @@ func CreateAndSignDepositMessage(
 	return depositMessage, signature, nil
 }
 
-
 // VerifyCreateValidator verifies the deposit data when attempting to create a
 // new validator from a given deposit.
 func (dm *DepositMessage) VerifyCreateValidator(

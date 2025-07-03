@@ -50,7 +50,7 @@ var (
 
 // ExecutionPayload represents the payload of an execution block.
 type ExecutionPayload struct {
-	constraints.Versionable `json:"-"`
+	Versionable `json:"-"`
 
 	// ParentHash is the hash of the parent block.
 	ParentHash common.ExecutionHash `json:"parentHash"`

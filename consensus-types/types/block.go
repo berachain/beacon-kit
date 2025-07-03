@@ -39,7 +39,7 @@ var (
 
 // BeaconBlock represents a block in the beacon chain.
 type BeaconBlock struct {
-	constraints.Versionable `json:"-"`
+	Versionable `json:"-"`
 
 	// Slot represents the position of the block in the chain.
 	Slot math.Slot `json:"slot"`

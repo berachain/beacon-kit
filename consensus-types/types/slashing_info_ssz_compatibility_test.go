@@ -172,10 +172,10 @@ func TestSlashingInfoSSZCompatibility(t *testing.T) {
 		// Test setters
 		newSlot := math.Slot(99999)
 		newIndex := math.U64(11111)
-		
+
 		slashingInfo.SetSlot(newSlot)
 		slashingInfo.SetIndex(newIndex)
-		
+
 		require.Equal(t, newSlot, slashingInfo.GetSlot())
 		require.Equal(t, newIndex, slashingInfo.GetIndex())
 	})

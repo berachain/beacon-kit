@@ -48,7 +48,7 @@ type ExecutionPayloadHeader struct {
 	// spec's `ActiveForkVersionForTimestamp()` on the value of `GetTimestamp()`.
 	//
 	// This version should still be set to the correct value to avoid potential inconsistencies.
-	constraints.Versionable
+	Versionable
 
 	// Contents
 	//

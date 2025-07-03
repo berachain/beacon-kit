@@ -70,7 +70,7 @@ var (
 // BeaconBlockBody represents the body of a beacon block.
 type BeaconBlockBody struct {
 	// Must be available within the object to satisfy signature required for SizeSSZ and DefineSSZ.
-	constraints.Versionable `json:"-"`
+	Versionable `json:"-"`
 
 	// RandaoReveal is the reveal of the RANDAO.
 	RandaoReveal crypto.BLSSignature
