@@ -18,6 +18,9 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
+// TODO: Enable fastssz generation once ExecutionRequests is migrated to fastssz
+// go:generate sszgen -path consolidation_request.go -objs ConsolidationRequest -output consolidation_request_ssz.go -include ../../primitives/common,../../primitives/crypto,../../primitives/bytes
+
 package types
 
 import (

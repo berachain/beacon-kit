@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"golang.org/x/crypto/sha3"
+	fastssz "github.com/ferranbt/fastssz"
 )
 
 var (
@@ -176,4 +177,55 @@ func (a *ExecutionAddress) checksumHex() []byte {
 		}
 	}
 	return buf
+}
+
+/* -------------------------------------------------------------------------- */
+/*                   SSZ Methods for ExecutionAddress                        */
+/* -------------------------------------------------------------------------- */
+
+// SizeSSZ returns the ssz encoded size in bytes for the ExecutionAddress object.
+func (a ExecutionAddress) SizeSSZ() int {
+	return 20
+}
+
+// MarshalSSZ marshals the ExecutionAddress to SSZ format.
+func (a ExecutionAddress) MarshalSSZ() ([]byte, error) {
+	return a[:], nil
+}
+
+// MarshalSSZTo ssz marshals the ExecutionAddress object to a target array.
+func (a ExecutionAddress) MarshalSSZTo(buf []byte) ([]byte, error) {
+	dst := buf
+	dst = append(dst, a[:]...)
+	return dst, nil
+}
+
+// UnmarshalSSZ ssz unmarshals the ExecutionAddress object.
+func (a *ExecutionAddress) UnmarshalSSZ(buf []byte) error {
+	if len(buf) != 20 {
+		return fastssz.ErrSize
+	}
+	copy(a[:], buf)
+	return nil
+}
+
+// HashTreeRoot returns the hash tree root of the ExecutionAddress.
+func (a ExecutionAddress) HashTreeRoot() bytes.B32 {
+	var root bytes.B32
+	copy(root[:20], a[:])
+	// The rest of the bytes remain zero
+	return root
+}
+
+// HashTreeRootWith ssz hashes the ExecutionAddress object with a hasher.
+func (a ExecutionAddress) HashTreeRootWith(hh fastssz.HashWalker) error {
+	indx := hh.Index()
+	hh.PutBytes(a[:])
+	hh.Merkleize(indx)
+	return nil
+}
+
+// GetTree ssz hashes the ExecutionAddress object.
+func (a *ExecutionAddress) GetTree() (*fastssz.Node, error) {
+	return fastssz.ProofTree(a)
 }

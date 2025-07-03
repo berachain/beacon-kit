@@ -18,6 +18,9 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
+// TODO: Enable fastssz generation once ExecutionRequests is migrated to fastssz
+// go:generate sszgen -path withdrawal_request.go -objs WithdrawalRequest -output withdrawal_request_ssz.go -include ../../primitives/common,../../primitives/crypto,../../primitives/math,../../primitives/bytes
+
 package types
 
 import (
@@ -51,26 +54,30 @@ type WithdrawalRequest struct {
 /*                        Withdrawal Request SSZ                              */
 /* -------------------------------------------------------------------------- */
 
+// ValidateAfterDecodingSSZ validates the withdrawal request after decoding.
 func (w *WithdrawalRequest) ValidateAfterDecodingSSZ() error {
 	return nil
 }
 
+// DefineSSZ defines the SSZ encoding for WithdrawalRequest (required for karalabe/ssz compatibility).
 func (w *WithdrawalRequest) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineStaticBytes(codec, &w.SourceAddress)
 	ssz.DefineStaticBytes(codec, &w.ValidatorPubKey)
 	ssz.DefineUint64(codec, &w.Amount)
 }
 
-func (w *WithdrawalRequest) SizeSSZ(_ *ssz.Sizer) uint32 {
+// SizeSSZ returns the fixed size of WithdrawalRequest in SSZ encoding (required for karalabe/ssz compatibility).
+func (w *WithdrawalRequest) SizeSSZ(siz *ssz.Sizer) uint32 {
 	return sszWithdrawRequestSize
 }
 
+// MarshalSSZ marshals the WithdrawalRequest to SSZ format.
 func (w *WithdrawalRequest) MarshalSSZ() ([]byte, error) {
 	buf := make([]byte, ssz.Size(w))
 	return buf, ssz.EncodeToBytes(buf, w)
 }
 
-// HashTreeRoot returns the hash tree root of the Deposits.
+// HashTreeRoot returns the hash tree root of the WithdrawalRequest.
 func (w *WithdrawalRequest) HashTreeRoot() common.Root {
 	return ssz.HashSequential(w)
 }

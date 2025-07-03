@@ -40,13 +40,15 @@ These types are currently type aliases to common.UnusedType, which still uses ka
 
 ### Types Blocked by Incomplete Primitive Support
 These types need additional fastssz support:
-- [ ] WithdrawalRequest - Needs fastssz support for ExecutionAddress and BLSPubkey (B48)
-- [ ] ConsolidationRequest - Needs fastssz support for ExecutionAddress and BLSPubkey (B48)
+- [x] WithdrawalRequest - Has all primitive support but blocked by ExecutionRequests using karalabe/ssz ⚠️
+- [x] ConsolidationRequest - Has all primitive support but blocked by ExecutionRequests using karalabe/ssz ⚠️
 - [x] math.Gwei (U64) - Now has full fastssz support ✅
+- [x] bytes.B48 - Now has full fastssz support ✅
+- [x] common.ExecutionAddress - Now has full fastssz support ✅
 
 ### Types Still Using karalabe/ssz
 - [x] SyncAggregate - Migrated to fastssz with manual implementation ✅
-- [ ] ExecutionRequests - Blocked by WithdrawalRequest/ConsolidationRequest which need Gwei support
+- [ ] ExecutionRequests - Needs migration to fastssz (currently blocks WithdrawalRequest/ConsolidationRequest from full migration)
 
 ### Types with Mixed SSZ Support (Already have fastssz methods)
 - [ ] Validator - Has HashTreeRootWith
@@ -167,4 +169,8 @@ BeaconState (fork-specific)
   - All type aliases (Gwei, Slot, ValidatorIndex, etc.) inherit fastssz support
   - Tests confirm compatibility with existing HashTreeRoot implementation
   - Discovered additional dependencies: B48 and ExecutionAddress need fastssz support
-- **Next**: Add fastssz support to bytes.B48 and common.ExecutionAddress before proceeding with WithdrawalRequest/ConsolidationRequest migration
+- ✅ **Phase 3.5 Complete**: Added fastssz support to remaining primitives
+  - bytes.B48 now has full fastssz support (MarshalSSZTo, UnmarshalSSZ, HashTreeRootWith, GetTree)
+  - common.ExecutionAddress now has full fastssz support
+  - WithdrawalRequest and ConsolidationRequest are ready for fastssz but blocked by ExecutionRequests
+- **Next**: ExecutionRequests needs to be migrated to fastssz to unblock WithdrawalRequest/ConsolidationRequest

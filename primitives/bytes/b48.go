@@ -26,6 +26,7 @@ import (
 
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
 	"github.com/prysmaticlabs/gohashtree"
+	fastssz "github.com/ferranbt/fastssz"
 )
 
 const (
@@ -95,4 +96,42 @@ func (h B48) HashTreeRoot() B32 {
 	copy(result[1][:], h[32:48])
 	gohashtree.HashChunks(result, result)
 	return result[0]
+}
+
+/* -------------------------------------------------------------------------- */
+/*                              FastSSZ Methods                               */
+/* -------------------------------------------------------------------------- */
+
+// MarshalSSZTo ssz marshals the B48 object to a target array.
+func (h B48) MarshalSSZTo(buf []byte) ([]byte, error) {
+	dst := buf
+	dst = append(dst, h[:]...)
+	return dst, nil
+}
+
+// UnmarshalSSZ ssz unmarshals the B48 object.
+func (h *B48) UnmarshalSSZ(buf []byte) error {
+	if len(buf) != B48Size {
+		return fastssz.ErrSize
+	}
+	copy(h[:], buf)
+	return nil
+}
+
+// SizeSSZ returns the ssz encoded size in bytes for the B48 object.
+func (h B48) SizeSSZ() int {
+	return B48Size
+}
+
+// HashTreeRootWith ssz hashes the B48 object with a hasher.
+func (h B48) HashTreeRootWith(hh fastssz.HashWalker) error {
+	indx := hh.Index()
+	hh.PutBytes(h[:])
+	hh.Merkleize(indx)
+	return nil
+}
+
+// GetTree ssz hashes the B48 object.
+func (h *B48) GetTree() (*fastssz.Node, error) {
+	return fastssz.ProofTree(h)
 }
