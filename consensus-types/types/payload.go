@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -40,10 +41,9 @@ const (
 	ExtraDataSize = 32
 )
 
-// TODO: Re-enable interface assertion once constraints are updated
-// var (
-// 	_ constraints.SSZVersionedMarshallableRootable = (*ExecutionPayload)(nil)
-// )
+var (
+	_ constraints.SSZVersionedMarshallableRootable = (*ExecutionPayload)(nil)
+)
 
 // ExecutionPayload represents the payload of an execution block.
 type ExecutionPayload struct {

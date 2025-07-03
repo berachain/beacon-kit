@@ -68,7 +68,7 @@ var (
 
 // BeaconBlockBody represents the body of a beacon block.
 type BeaconBlockBody struct {
-	// Must be available within the object to satisfy signature required for SizeSSZ and DefineSSZ.
+	// Must be available within the object to satisfy signature required for SizeSSZ.
 	Versionable `json:"-"`
 
 	// RandaoReveal is the reveal of the RANDAO.
@@ -181,10 +181,7 @@ func (b *BeaconBlockBody) HashTreeRoot() common.Root {
 /* -------------------------------------------------------------------------- */
 /*                                   FastSSZ                                  */
 /* -------------------------------------------------------------------------- */
-// NOTE: BeaconBlockBody is in a transitional state during the SSZ migration.
-// It currently implements both karalabe/ssz and partial fastssz interfaces.
-// The fastssz methods below are manually implemented to handle fork-specific logic.
-// Once all dependent types are migrated, the karalabe/ssz methods above can be removed.
+// NOTE: The fastssz methods below are manually implemented to handle fork-specific logic.
 
 // MarshalSSZTo ssz marshals the BeaconBlockBody object to a target array.
 func (b *BeaconBlockBody) MarshalSSZTo(dst []byte) ([]byte, error) {
@@ -556,8 +553,7 @@ func (b *BeaconBlockBody) HashTreeRootWith(hh fastssz.HashWalker) error {
 			return fastssz.ErrIncorrectListSize
 		}
 		for _, elem := range b.proposerSlashings {
-			// ProposerSlashing needs to implement HashTreeRootWith
-			// For now, we use the root from karalabe/ssz
+			// ProposerSlashing uses UnusedType which inherits HashTreeRoot from common.UnusedType
 			root := elem.HashTreeRoot()
 			hh.PutBytes(root[:])
 		}
@@ -572,8 +568,7 @@ func (b *BeaconBlockBody) HashTreeRootWith(hh fastssz.HashWalker) error {
 			return fastssz.ErrIncorrectListSize
 		}
 		for _, elem := range b.attesterSlashings {
-			// AttesterSlashing needs to implement HashTreeRootWith
-			// For now, we use the root from karalabe/ssz
+			// AttesterSlashing uses UnusedType which inherits HashTreeRoot from common.UnusedType
 			root := elem.HashTreeRoot()
 			hh.PutBytes(root[:])
 		}
@@ -588,8 +583,7 @@ func (b *BeaconBlockBody) HashTreeRootWith(hh fastssz.HashWalker) error {
 			return fastssz.ErrIncorrectListSize
 		}
 		for _, elem := range b.attestations {
-			// Attestation needs to implement HashTreeRootWith
-			// For now, we use the root from karalabe/ssz
+			// Attestation uses UnusedType which inherits HashTreeRoot from common.UnusedType
 			root := elem.HashTreeRoot()
 			hh.PutBytes(root[:])
 		}
@@ -619,8 +613,7 @@ func (b *BeaconBlockBody) HashTreeRootWith(hh fastssz.HashWalker) error {
 			return fastssz.ErrIncorrectListSize
 		}
 		for _, elem := range b.voluntaryExits {
-			// VoluntaryExit needs to implement HashTreeRootWith
-			// For now, we use the root from karalabe/ssz
+			// VoluntaryExit uses UnusedType which inherits HashTreeRoot from common.UnusedType
 			root := elem.HashTreeRoot()
 			hh.PutBytes(root[:])
 		}
@@ -653,8 +646,7 @@ func (b *BeaconBlockBody) HashTreeRootWith(hh fastssz.HashWalker) error {
 			return fastssz.ErrIncorrectListSize
 		}
 		for _, elem := range b.blsToExecutionChanges {
-			// BlsToExecutionChange needs to implement HashTreeRootWith
-			// For now, we use the root from karalabe/ssz
+			// BlsToExecutionChange uses UnusedType which inherits HashTreeRoot from common.UnusedType
 			root := elem.HashTreeRoot()
 			hh.PutBytes(root[:])
 		}
@@ -678,7 +670,7 @@ func (b *BeaconBlockBody) HashTreeRootWith(hh fastssz.HashWalker) error {
 	if version.EqualsOrIsAfter(b.GetForkVersion(), version.Electra()) {
 		if b.executionRequests != nil {
 			// ExecutionRequests doesn't have HashTreeRootWith yet
-			// Use the root from karalabe/ssz
+			// Use the HashTreeRoot method from ExecutionRequests
 			root := b.executionRequests.HashTreeRoot()
 			hh.PutBytes(root[:])
 		} else {

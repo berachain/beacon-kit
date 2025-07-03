@@ -25,15 +25,15 @@ import (
 
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	fastssz "github.com/ferranbt/fastssz"
 )
 
-// TODO: Re-enable interface assertion once constraints are updated
-// var (
-// 	_ constraints.SSZVersionedMarshallableRootable = (*BeaconBlock)(nil)
-// )
+var (
+	_ constraints.SSZVersionedMarshallableRootable = (*BeaconBlock)(nil)
+)
 
 // BeaconBlock represents a block in the beacon chain.
 type BeaconBlock struct {

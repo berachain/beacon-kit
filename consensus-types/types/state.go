@@ -128,10 +128,6 @@ func (st *BeaconState) MarshalSSZ() ([]byte, error) {
 	return st.MarshalSSZTo(make([]byte, 0, st.SizeSSZ()))
 }
 
-// UnmarshalSSZ unmarshals the BeaconState from SSZ format.
-func (st *BeaconState) UnmarshalSSZ(buf []byte) error {
-	return st.UnmarshalSSZFastSSZ(buf)
-}
 
 // HashTreeRoot computes the Merkleization of the BeaconState.
 func (st *BeaconState) HashTreeRoot() common.Root {
@@ -323,9 +319,8 @@ func (st *BeaconState) MarshalSSZTo(dst []byte) ([]byte, error) {
 	return dst, nil
 }
 
-// UnmarshalSSZFastSSZ ssz unmarshals the BeaconState object.
-// TODO: Rename to UnmarshalSSZ() once karalabe/ssz is fully removed.
-func (st *BeaconState) UnmarshalSSZFastSSZ(buf []byte) error {
+// UnmarshalSSZ ssz unmarshals the BeaconState object.
+func (st *BeaconState) UnmarshalSSZ(buf []byte) error {
 	// TODO: Implement full unmarshaling logic
 	// This is complex due to fork-specific fields
 	return nil

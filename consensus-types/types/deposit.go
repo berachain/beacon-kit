@@ -25,6 +25,7 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	fastssz "github.com/ferranbt/fastssz"
@@ -33,10 +34,9 @@ import (
 // depositSize is the size of the SSZ encoding of a Deposit.
 const depositSize = 192 // 48 + 32 + 8 + 96 + 8
 
-// TODO: Re-enable interface assertion once constraints are updated
-// var (
-// 	_ constraints.SSZMarshallableRootable = (*Deposit)(nil)
-// )
+var (
+	_ constraints.SSZMarshallableRootable = (*Deposit)(nil)
+)
 
 // Deposit into the consensus layer from the deposit contract in the execution
 // layer.
