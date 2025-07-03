@@ -366,3 +366,30 @@ func (st *BeaconState) HashTreeRootWith(
 func (st *BeaconState) GetTree() (*fastssz.Node, error) {
 	return fastssz.ProofTree(st)
 }
+
+// MarshalSSZTo ssz marshals the BeaconState object to a target array.
+func (st *BeaconState) MarshalSSZTo(dst []byte) ([]byte, error) {
+	bz, err := st.MarshalSSZ()
+	if err != nil {
+		return nil, err
+	}
+	dst = append(dst, bz...)
+	return dst, nil
+}
+
+// UnmarshalSSZFastSSZ ssz unmarshals the BeaconState object.
+// TODO: Rename to UnmarshalSSZ() once karalabe/ssz is fully removed.
+func (st *BeaconState) UnmarshalSSZFastSSZ(buf []byte) error {
+	// For now, delegate to karalabe/ssz for unmarshaling
+	// This preserves fork-specific logic in DefineSSZ
+	return ssz.DecodeFromBytes(buf, st)
+}
+
+// SizeSSZFastSSZ returns the ssz encoded size in bytes for the BeaconState (fastssz).
+// TODO: Rename to SizeSSZ() once karalabe/ssz is fully removed.
+func (st *BeaconState) SizeSSZFastSSZ() (size int) {
+	// Use the existing karalabe/ssz Size function to get the size
+	// This ensures compatibility with the current implementation
+	size = int(ssz.Size(st))
+	return
+}

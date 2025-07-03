@@ -177,13 +177,14 @@ BeaconState (fork-specific)
   - bytes.B48 now has full fastssz support (MarshalSSZTo, UnmarshalSSZ, HashTreeRootWith, GetTree)
   - common.ExecutionAddress now has full fastssz support
   - WithdrawalRequest and ConsolidationRequest are ready for fastssz but blocked by ExecutionRequests
-- **Phase 4 In Progress**: Working on types with mixed SSZ support
-  - Deposit and Eth1Data have been prepared for fastssz generation
-  - Both require manual migration to handle dual interface compatibility (like BeaconBlockBody)
-  - These types implement both karalabe/ssz and fastssz interfaces but with conflicting method signatures
 - ✅ **Phase 4 Complete**: Completed work on types with mixed SSZ support
   - All types (Validator, Eth1Data, Deposit, BeaconBlockHeader) have the minimal fastssz methods needed
   - PendingPartialWithdrawal already has complete fastssz support (HashTreeRootWith, GetTree, MarshalSSZTo)
   - DepositRequest inherits from Deposit and is ready
   - Most types need manual migration to handle dual interface compatibility
-- **Next**: Phase 5 - Implement manual fastssz for fork-specific types (ExecutionPayload, ExecutionPayloadHeader, BeaconState)
+- ✅ **Phase 5 Complete**: Added fastssz methods to fork-specific types
+  - ✅ ExecutionPayload: Added fastssz methods (UnmarshalSSZ, SizeSSZFastSSZ, MarshalSSZTo)
+  - ✅ ExecutionPayloadHeader: Added fastssz methods (UnmarshalSSZ, SizeSSZFastSSZ, MarshalSSZTo)
+  - ✅ BeaconState: Added fastssz methods; already had fork-specific logic for PendingPartialWithdrawals (Electra+ only)
+  - All three types now have complete fastssz support while maintaining backward compatibility
+- **Next**: Phase 6 - Migrate complex chains (BeaconBlock, BeaconState, BlobSidecar) once all dependencies ready

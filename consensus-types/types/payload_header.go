@@ -167,6 +167,22 @@ func (h *ExecutionPayloadHeader) MarshalSSZTo(dst []byte) ([]byte, error) {
 	return dst, nil
 }
 
+// UnmarshalSSZ ssz unmarshals the ExecutionPayloadHeader object.
+func (h *ExecutionPayloadHeader) UnmarshalSSZ(buf []byte) error {
+	// For now, delegate to karalabe/ssz for unmarshaling
+	// This preserves fork-specific logic
+	return ssz.DecodeFromBytes(buf, h)
+}
+
+// SizeSSZFastSSZ returns the ssz encoded size in bytes for the ExecutionPayloadHeader (fastssz).
+// TODO: Rename to SizeSSZ() once karalabe/ssz is fully removed.
+func (h *ExecutionPayloadHeader) SizeSSZFastSSZ() (size int) {
+	// Use the existing karalabe/ssz Size function to get the size
+	// This ensures compatibility with the current implementation
+	size = int(ssz.Size(h))
+	return
+}
+
 // HashTreeRootWith ssz hashes the ExecutionPayloadHeaderDeneb object with a
 // hasher
 //
