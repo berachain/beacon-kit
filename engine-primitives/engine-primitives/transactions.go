@@ -21,7 +21,6 @@
 package engineprimitives
 
 import (
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	fastssz "github.com/ferranbt/fastssz"
@@ -49,12 +48,13 @@ func (txs Transactions) SizeSSZ() int {
 }
 
 // HashTreeRoot returns the hash tree root of the Transactions object.
-func (txs Transactions) HashTreeRoot() common.Root {
+func (txs Transactions) HashTreeRoot() ([32]byte, error) {
 	hh := fastssz.DefaultHasherPool.Get()
 	defer fastssz.DefaultHasherPool.Put(hh)
-	txs.HashTreeRootWith(hh)
-	root, _ := hh.HashRoot()
-	return common.Root(root)
+	if err := txs.HashTreeRootWith(hh); err != nil {
+		return [32]byte{}, err
+	}
+	return hh.HashRoot()
 }
 
 /* -------------------------------------------------------------------------- */

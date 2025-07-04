@@ -199,8 +199,17 @@ func executableDataToExecutionPayloadHeader(
 	eph.ExtraData = data.ExtraData
 	eph.BaseFeePerGas = baseFeePerGas
 	eph.BlockHash = common.ExecutionHash(data.BlockHash)
-	eph.TransactionsRoot = engineprimitives.Transactions(data.Transactions).HashTreeRoot()
-	eph.WithdrawalsRoot = withdrawals.HashTreeRoot()
+	transactionsRoot, err := engineprimitives.Transactions(data.Transactions).HashTreeRoot()
+	if err != nil {
+		return nil, fmt.Errorf("failed to compute transactions root: %w", err)
+	}
+	eph.TransactionsRoot = common.Root(transactionsRoot)
+	
+	withdrawalsRoot, err := withdrawals.HashTreeRoot()
+	if err != nil {
+		return nil, fmt.Errorf("failed to compute withdrawals root: %w", err)
+	}
+	eph.WithdrawalsRoot = common.Root(withdrawalsRoot)
 	eph.BlobGasUsed = math.U64(blobGasUsed)
 	eph.ExcessBlobGas = math.U64(excessBlobGas)
 

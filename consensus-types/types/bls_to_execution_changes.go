@@ -47,12 +47,14 @@ func (bs BlsToExecutionChanges) SizeSSZ() int {
 
 
 // HashTreeRoot returns the hash tree root of the BlsToExecutionChanges.
-func (bs BlsToExecutionChanges) HashTreeRoot() common.Root {
+func (bs BlsToExecutionChanges) HashTreeRoot() ([32]byte, error) {
 	hh := fastssz.DefaultHasherPool.Get()
 	defer fastssz.DefaultHasherPool.Put(hh)
-	bs.HashTreeRootWith(hh)
-	root, _ := hh.HashRoot()
-	return common.Root(root)
+	if err := bs.HashTreeRootWith(hh); err != nil {
+		return [32]byte{}, err
+	}
+	return hh.HashRoot()
+	
 }
 
 /* -------------------------------------------------------------------------- */

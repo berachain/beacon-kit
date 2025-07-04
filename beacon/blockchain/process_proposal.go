@@ -130,7 +130,12 @@ func (s *Service) ProcessProposal(
 		// the currently active fork). ProcessProposal should only
 		// keep the state changes as candidates (which is what we do in
 		// VerifyIncomingBlock).
-		err = s.VerifyIncomingBlobSidecars(ctx, sidecars, blk.GetHeader(), blobKzgCommitments)
+		header, err := blk.GetHeader()
+		if err != nil {
+			s.logger.Error("failed to get block header", "error", err)
+			return err
+		}
+		err = s.VerifyIncomingBlobSidecars(ctx, sidecars, header, blobKzgCommitments)
 		if err != nil {
 			s.logger.Error("failed to verify incoming blob sidecars", "error", err)
 			return nil, err

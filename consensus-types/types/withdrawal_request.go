@@ -50,12 +50,13 @@ func (w *WithdrawalRequest) ValidateAfterDecodingSSZ() error {
 }
 
 // HashTreeRoot returns the SSZ hash tree root for the WithdrawalRequest object.
-func (w *WithdrawalRequest) HashTreeRoot() common.Root {
+func (w *WithdrawalRequest) HashTreeRoot() ([32]byte, error) {
 	hh := fastssz.DefaultHasherPool.Get()
 	defer fastssz.DefaultHasherPool.Put(hh)
-	w.HashTreeRootWith(hh)
-	root, _ := hh.HashRoot()
-	return common.Root(root)
+	if err := w.HashTreeRootWith(hh); err != nil {
+		return [32]byte{}, err
+	}
+	return hh.HashRoot()
 }
 
 

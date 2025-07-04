@@ -21,6 +21,8 @@
 package types
 
 import (
+	"fmt"
+
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/bytes"
@@ -134,12 +136,13 @@ func (p *ExecutionPayload) ValidateAfterDecodingSSZ() error {
 }
 
 // HashTreeRoot returns the hash tree root of the ExecutionPayload.
-func (p *ExecutionPayload) HashTreeRoot() common.Root {
+func (p *ExecutionPayload) HashTreeRoot() ([32]byte, error) {
 	hh := fastssz.DefaultHasherPool.Get()
 	defer fastssz.DefaultHasherPool.Put(hh)
-	p.HashTreeRootWith(hh)
-	root, _ := hh.HashRoot()
-	return common.Root(root)
+	if err := p.HashTreeRootWith(hh); err != nil {
+		return [32]byte{}, err
+	}
+	return hh.HashRoot()
 }
 
 /* -------------------------------------------------------------------------- */
@@ -728,6 +731,18 @@ func (p *ExecutionPayload) GetExcessBlobGas() math.U64 {
 func (p *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 	switch p.GetForkVersion() {
 	case version.Deneb(), version.Deneb1(), version.Electra(), version.Electra1():
+		// Compute transactions root
+		transactionsRoot, err := computeTransactionsRoot(p.GetTransactions())
+		if err != nil {
+			return nil, err
+		}
+
+		// Compute withdrawals root
+		withdrawalsRoot, err := computeWithdrawalsRoot(p.GetWithdrawals())
+		if err != nil {
+			return nil, err
+		}
+
 		return &ExecutionPayloadHeader{
 			Versionable:      p.Versionable,
 			ParentHash:       p.GetParentHash(),
@@ -743,12 +758,36 @@ func (p *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 			ExtraData:        p.GetExtraData(),
 			BaseFeePerGas:    p.GetBaseFeePerGas(),
 			BlockHash:        p.GetBlockHash(),
-			TransactionsRoot: p.GetTransactions().HashTreeRoot(),
-			WithdrawalsRoot:  p.GetWithdrawals().HashTreeRoot(),
+			TransactionsRoot: transactionsRoot,
+			WithdrawalsRoot:  withdrawalsRoot,
 			BlobGasUsed:      p.GetBlobGasUsed(),
 			ExcessBlobGas:    p.GetExcessBlobGas(),
 		}, nil
 	default:
 		return nil, errors.New("unknown fork version")
 	}
+}
+
+// computeTransactionsRoot returns the hash tree root of transactions.
+func computeTransactionsRoot(transactions engineprimitives.Transactions) (common.Root, error) {
+	if transactions == nil {
+		return common.Root{}, nil
+	}
+	root, err := transactions.HashTreeRoot()
+	if err != nil {
+		return common.Root{}, fmt.Errorf("failed to compute transactions root: %w", err)
+	}
+	return common.Root(root), nil
+}
+
+// computeWithdrawalsRoot returns the hash tree root of withdrawals.
+func computeWithdrawalsRoot(withdrawals engineprimitives.Withdrawals) (common.Root, error) {
+	if withdrawals == nil {
+		return common.Root{}, nil
+	}
+	root, err := withdrawals.HashTreeRoot()
+	if err != nil {
+		return common.Root{}, fmt.Errorf("failed to compute withdrawals root: %w", err)
+	}
+	return common.Root(root), nil
 }

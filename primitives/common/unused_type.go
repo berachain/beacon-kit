@@ -54,12 +54,13 @@ func (ut *UnusedType) ValidateAfterDecodingSSZ() error {
 }
 
 // HashTreeRoot returns the hash tree root of the UnusedType.
-func (ut *UnusedType) HashTreeRoot() Root {
+func (ut *UnusedType) HashTreeRoot() ([32]byte, error) {
 	hh := fastssz.DefaultHasherPool.Get()
 	defer fastssz.DefaultHasherPool.Put(hh)
-	ut.HashTreeRootWith(hh)
-	root, _ := hh.HashRoot()
-	return Root(root)
+	if err := ut.HashTreeRootWith(hh); err != nil {
+		return [32]byte{}, err
+	}
+	return hh.HashRoot()
 }
 
 // EnforceUnused return true if the UnusedType contains all zero values.

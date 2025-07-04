@@ -18,8 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-// TODO: Deposit needs manual fastssz migration to handle dual interface compatibility (like BeaconBlockBody)
-// go:generate sszgen -path . -objs Deposit -output deposit_sszgen.go -include ../../primitives/common,../../primitives/crypto,../../primitives/math,../../primitives/bytes
+//go:generate sszgen -path deposit.go -objs Deposit -output deposit_sszgen.go -include ../../primitives/common,../../primitives/crypto,../../primitives/math
 
 package types
 
@@ -85,68 +84,23 @@ func (d *Deposit) VerifySignature(
 	)
 }
 
-/* -------------------------------------------------------------------------- */
-/*                                     SSZ                                    */
-/* -------------------------------------------------------------------------- */
-
-
-// MarshalSSZ marshals the Deposit object to SSZ format.
-func (d *Deposit) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, 0, depositSize)
-	return d.MarshalSSZTo(buf)
-}
-
+// ValidateAfterDecodingSSZ validates the Deposit after decoding SSZ.
 func (*Deposit) ValidateAfterDecodingSSZ() error { return nil }
 
-// SizeSSZ returns the SSZ encoded size of the Deposit object.
+// SizeSSZ returns the ssz encoded size in bytes for the Deposit object
 func (d *Deposit) SizeSSZ() int {
 	return depositSize
 }
 
-// HashTreeRoot computes the Merkleization of the Deposit object.
-func (d *Deposit) HashTreeRoot() common.Root {
-	hh := fastssz.DefaultHasherPool.Get()
-	defer fastssz.DefaultHasherPool.Put(hh)
-	d.HashTreeRootWith(hh)
-	root, _ := hh.HashRoot()
-	return common.Root(root)
+// MarshalSSZ ssz marshals the Deposit object
+func (d *Deposit) MarshalSSZ() ([]byte, error) {
+	return fastssz.MarshalSSZ(d)
 }
 
-/* -------------------------------------------------------------------------- */
-/*                                   FastSSZ                                  */
-/* -------------------------------------------------------------------------- */
+// MarshalSSZTo ssz marshals the Deposit object to a target array
+func (d *Deposit) MarshalSSZTo(buf []byte) (dst []byte, err error) {
+	dst = buf
 
-// HashTreeRootWith ssz hashes the Deposit object with a hasher.
-func (d *Deposit) HashTreeRootWith(hh fastssz.HashWalker) error {
-	indx := hh.Index()
-
-	// Field (0) 'Pubkey'
-	hh.PutBytes(d.Pubkey[:])
-
-	// Field (1) 'Credentials'
-	hh.PutBytes(d.Credentials[:])
-
-	// Field (2) 'Amount'
-	hh.PutUint64(uint64(d.Amount))
-
-	// Field (3) 'Signature'
-	hh.PutBytes(d.Signature[:])
-
-	// Field (4) 'Index'
-	hh.PutUint64(d.Index)
-
-	hh.Merkleize(indx)
-	return nil
-}
-
-// GetTree ssz hashes the Deposit object.
-func (d *Deposit) GetTree() (*fastssz.Node, error) {
-	return fastssz.ProofTree(d)
-}
-
-
-// MarshalSSZTo marshals the Deposit object into a pre-allocated byte slice.
-func (d *Deposit) MarshalSSZTo(dst []byte) ([]byte, error) {
 	// Field (0) 'Pubkey'
 	dst = append(dst, d.Pubkey[:]...)
 
@@ -162,10 +116,10 @@ func (d *Deposit) MarshalSSZTo(dst []byte) ([]byte, error) {
 	// Field (4) 'Index'
 	dst = fastssz.MarshalUint64(dst, d.Index)
 
-	return dst, nil
+	return
 }
 
-// UnmarshalSSZ ssz unmarshals the Deposit object.
+// UnmarshalSSZ ssz unmarshals the Deposit object
 func (d *Deposit) UnmarshalSSZ(buf []byte) error {
 	if len(buf) != depositSize {
 		return fastssz.ErrSize
@@ -186,8 +140,42 @@ func (d *Deposit) UnmarshalSSZ(buf []byte) error {
 	// Field (4) 'Index'
 	d.Index = fastssz.UnmarshallUint64(buf[184:192])
 
-	return nil
+	return d.ValidateAfterDecodingSSZ()
 }
+
+// HashTreeRoot ssz hashes the Deposit object
+func (d *Deposit) HashTreeRoot() ([32]byte, error) {
+	return fastssz.HashWithDefaultHasher(d)
+}
+
+// HashTreeRootWith ssz hashes the Deposit object with a hasher
+func (d *Deposit) HashTreeRootWith(hh fastssz.HashWalker) (err error) {
+	indx := hh.Index()
+
+	// Field (0) 'Pubkey'
+	hh.PutBytes(d.Pubkey[:])
+
+	// Field (1) 'Credentials'
+	hh.PutBytes(d.Credentials[:])
+
+	// Field (2) 'Amount'
+	hh.PutUint64(uint64(d.Amount))
+
+	// Field (3) 'Signature'
+	hh.PutBytes(d.Signature[:])
+
+	// Field (4) 'Index'
+	hh.PutUint64(d.Index)
+
+	hh.Merkleize(indx)
+	return
+}
+
+// GetTree ssz hashes the Deposit object
+func (d *Deposit) GetTree() (*fastssz.Node, error) {
+	return fastssz.ProofTree(d)
+}
+
 
 
 /* -------------------------------------------------------------------------- */

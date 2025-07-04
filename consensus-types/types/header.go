@@ -98,12 +98,13 @@ func (b *BeaconBlockHeader) MarshalSSZ() ([]byte, error) {
 func (*BeaconBlockHeader) ValidateAfterDecodingSSZ() error { return nil }
 
 // HashTreeRoot computes the SSZ hash tree root of the BeaconBlockHeader object.
-func (b *BeaconBlockHeader) HashTreeRoot() common.Root {
+func (b *BeaconBlockHeader) HashTreeRoot() ([32]byte, error) {
 	hh := fastssz.DefaultHasherPool.Get()
 	defer fastssz.DefaultHasherPool.Put(hh)
-	b.HashTreeRootWith(hh)
-	root, _ := hh.HashRoot()
-	return common.Root(root)
+	if err := b.HashTreeRootWith(hh); err != nil {
+		return [32]byte{}, err
+	}
+	return hh.HashRoot()
 }
 
 /* -------------------------------------------------------------------------- */

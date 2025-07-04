@@ -112,9 +112,9 @@ func (st *BeaconState) SizeSSZ() int {
 	size += len(st.StateRoots) * 32 // Each root is 32 bytes
 	size += st.LatestExecutionPayloadHeader.SizeSSZ()
 	size += len(st.Validators) * 121 // Each validator is 121 bytes
-	size += len(st.Balances) * 8 // Each balance is 8 bytes
+	size += len(st.Balances) * 8     // Each balance is 8 bytes
 	size += len(st.RandaoMixes) * 32 // Each mix is 32 bytes
-	size += len(st.Slashings) * 8 // Each slashing is 8 bytes
+	size += len(st.Slashings) * 8    // Each slashing is 8 bytes
 	if version.EqualsOrIsAfter(st.GetForkVersion(), version.Electra()) {
 		size += len(st.PendingPartialWithdrawals) * 24 // Each pending withdrawal is 24 bytes
 	}
@@ -122,20 +122,20 @@ func (st *BeaconState) SizeSSZ() int {
 	return size
 }
 
-
 // MarshalSSZ marshals the BeaconState into SSZ format.
 func (st *BeaconState) MarshalSSZ() ([]byte, error) {
 	return st.MarshalSSZTo(make([]byte, 0, st.SizeSSZ()))
 }
 
-
 // HashTreeRoot computes the Merkleization of the BeaconState.
-func (st *BeaconState) HashTreeRoot() common.Root {
+func (st *BeaconState) HashTreeRoot() ([32]byte, error) {
 	hh := fastssz.DefaultHasherPool.Get()
 	defer fastssz.DefaultHasherPool.Put(hh)
-	st.HashTreeRootWith(hh)
-	root, _ := hh.HashRoot()
-	return common.Root(root)
+	if err := st.HashTreeRootWith(hh); err != nil {
+		return [32]byte{}, err
+	}
+	return hh.HashRoot()
+
 }
 
 /* -------------------------------------------------------------------------- */
@@ -325,4 +325,3 @@ func (st *BeaconState) UnmarshalSSZ(buf []byte) error {
 	// This is complex due to fork-specific fields
 	return nil
 }
-

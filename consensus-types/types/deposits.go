@@ -22,7 +22,6 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	fastssz "github.com/ferranbt/fastssz"
 )
@@ -39,14 +38,14 @@ func (ds Deposits) SizeSSZ() int {
 	return 4 + len(ds)*192 // offset + each deposit is 192 bytes
 }
 
-
 // HashTreeRoot returns the hash tree root of the Deposits.
-func (ds Deposits) HashTreeRoot() common.Root {
+func (ds Deposits) HashTreeRoot() ([32]byte, error) {
 	hh := fastssz.DefaultHasherPool.Get()
 	defer fastssz.DefaultHasherPool.Put(hh)
-	ds.HashTreeRootWith(hh)
-	root, _ := hh.HashRoot()
-	return common.Root(root)
+	if err := ds.HashTreeRootWith(hh); err != nil {
+		return [32]byte{}, err
+	}
+	return hh.HashRoot()
 }
 
 /* -------------------------------------------------------------------------- */

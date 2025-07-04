@@ -30,6 +30,7 @@ import (
 	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/payload/builder"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
@@ -184,13 +185,19 @@ func (s *Service) preFetchBuildData(st *statedb.StateDB, currentTime math.U64) (
 	if err != nil {
 		return nil, fmt.Errorf("failed retrieving previous proposer public key: %w", err)
 	}
+	// Compute the parent block root
+	root, err := latestHeader.HashTreeRoot()
+	if err != nil {
+		return nil, fmt.Errorf("failed to compute parent block root: %w", err)
+	}
+	parentBlockRoot := common.NewRootFromBytes(root[:])
 
 	return &builder.RequestPayloadData{
 		Slot:               blkSlot,
 		Timestamp:          nextPayloadTimestamp,
 		PayloadWithdrawals: payloadWithdrawals,
 		PrevRandao:         prevRandao,
-		ParentBlockRoot:    latestHeader.HashTreeRoot(),
+		ParentBlockRoot:    parentBlockRoot,
 
 		// We set the head of our chain to the latest verified block (whether it is final or not)
 		HeadEth1BlockHash: lph.GetBlockHash(),

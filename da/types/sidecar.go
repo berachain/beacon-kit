@@ -84,8 +84,12 @@ func BuildBlobSidecar(
 // blob in the beacon body.
 func (b *BlobSidecar) HasValidInclusionProof() bool {
 	header := b.GetBeaconBlockHeader()
+	commitmentRoot, err := b.KzgCommitment.HashTreeRoot()
+	if err != nil {
+		return false
+	}
 	return header != nil && merkle.IsValidMerkleBranch(
-		b.KzgCommitment.HashTreeRoot(),
+		common.Root(commitmentRoot),
 		b.InclusionProof,
 		ctypes.KZGInclusionProofDepth,
 		ctypes.KZGOffset+b.Index,
@@ -201,12 +205,13 @@ func (b *BlobSidecar) MarshalSSZTo(dst []byte) ([]byte, error) {
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the BlobSidecar object.
-func (b *BlobSidecar) HashTreeRoot() common.Root {
+func (b *BlobSidecar) HashTreeRoot() ([32]byte, error) {
 	hh := fastssz.DefaultHasherPool.Get()
 	defer fastssz.DefaultHasherPool.Put(hh)
-	b.HashTreeRootWith(hh)
-	root, _ := hh.HashRoot()
-	return common.Root(root)
+	if err := b.HashTreeRootWith(hh); err != nil {
+		return [32]byte{}, err
+	}
+	return hh.HashRoot()
 }
 
 /* -------------------------------------------------------------------------- */

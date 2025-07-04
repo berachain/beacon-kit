@@ -47,12 +47,14 @@ func (ps ProposerSlashings) SizeSSZ() int {
 
 
 // HashTreeRoot returns the hash tree root of the ProposerSlashings.
-func (ps ProposerSlashings) HashTreeRoot() common.Root {
+func (ps ProposerSlashings) HashTreeRoot() ([32]byte, error) {
 	hh := fastssz.DefaultHasherPool.Get()
 	defer fastssz.DefaultHasherPool.Put(hh)
-	ps.HashTreeRootWith(hh)
-	root, _ := hh.HashRoot()
-	return common.Root(root)
+	if err := ps.HashTreeRootWith(hh); err != nil {
+		return [32]byte{}, err
+	}
+	return hh.HashRoot()
+	
 }
 
 /* -------------------------------------------------------------------------- */

@@ -52,12 +52,14 @@ func (c *ConsolidationRequest) ValidateAfterDecodingSSZ() error {
 
 
 // HashTreeRoot returns the SSZ hash tree root for the ConsolidationRequest object.
-func (c *ConsolidationRequest) HashTreeRoot() common.Root {
+func (c *ConsolidationRequest) HashTreeRoot() ([32]byte, error) {
 	hh := fastssz.DefaultHasherPool.Get()
 	defer fastssz.DefaultHasherPool.Put(hh)
-	c.HashTreeRootWith(hh)
-	root, _ := hh.HashRoot()
-	return common.Root(root)
+	if err := c.HashTreeRootWith(hh); err != nil {
+		return [32]byte{}, err
+	}
+	return hh.HashRoot()
+	
 }
 
 /* -------------------------------------------------------------------------- */

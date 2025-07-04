@@ -170,12 +170,13 @@ func (b *BeaconBlockBody) ValidateAfterDecodingSSZ() error {
 }
 
 // HashTreeRoot returns the SSZ hash tree root of the BeaconBlockBody.
-func (b *BeaconBlockBody) HashTreeRoot() common.Root {
+func (b *BeaconBlockBody) HashTreeRoot() ([32]byte, error) {
 	hh := fastssz.DefaultHasherPool.Get()
 	defer fastssz.DefaultHasherPool.Put(hh)
-	b.HashTreeRootWith(hh)
-	root, _ := hh.HashRoot()
-	return common.Root(root)
+	if err := b.HashTreeRootWith(hh); err != nil {
+		return [32]byte{}, err
+	}
+	return hh.HashRoot()
 }
 
 /* -------------------------------------------------------------------------- */
@@ -554,7 +555,10 @@ func (b *BeaconBlockBody) HashTreeRootWith(hh fastssz.HashWalker) error {
 		}
 		for _, elem := range b.proposerSlashings {
 			// ProposerSlashing uses UnusedType which inherits HashTreeRoot from common.UnusedType
-			root := elem.HashTreeRoot()
+			root, err := elem.HashTreeRoot()
+			if err != nil {
+				return err
+			}
 			hh.PutBytes(root[:])
 		}
 		hh.MerkleizeWithMixin(subIndx, num, constants.MaxProposerSlashings)
@@ -569,7 +573,10 @@ func (b *BeaconBlockBody) HashTreeRootWith(hh fastssz.HashWalker) error {
 		}
 		for _, elem := range b.attesterSlashings {
 			// AttesterSlashing uses UnusedType which inherits HashTreeRoot from common.UnusedType
-			root := elem.HashTreeRoot()
+			root, err := elem.HashTreeRoot()
+			if err != nil {
+				return err
+			}
 			hh.PutBytes(root[:])
 		}
 		hh.MerkleizeWithMixin(subIndx, num, constants.MaxAttesterSlashings)
@@ -584,7 +591,10 @@ func (b *BeaconBlockBody) HashTreeRootWith(hh fastssz.HashWalker) error {
 		}
 		for _, elem := range b.attestations {
 			// Attestation uses UnusedType which inherits HashTreeRoot from common.UnusedType
-			root := elem.HashTreeRoot()
+			root, err := elem.HashTreeRoot()
+			if err != nil {
+				return err
+			}
 			hh.PutBytes(root[:])
 		}
 		hh.MerkleizeWithMixin(subIndx, num, constants.MaxAttestations)
@@ -614,7 +624,10 @@ func (b *BeaconBlockBody) HashTreeRootWith(hh fastssz.HashWalker) error {
 		}
 		for _, elem := range b.voluntaryExits {
 			// VoluntaryExit uses UnusedType which inherits HashTreeRoot from common.UnusedType
-			root := elem.HashTreeRoot()
+			root, err := elem.HashTreeRoot()
+			if err != nil {
+				return err
+			}
 			hh.PutBytes(root[:])
 		}
 		hh.MerkleizeWithMixin(subIndx, num, constants.MaxVoluntaryExits)
@@ -647,7 +660,10 @@ func (b *BeaconBlockBody) HashTreeRootWith(hh fastssz.HashWalker) error {
 		}
 		for _, elem := range b.blsToExecutionChanges {
 			// BlsToExecutionChange uses UnusedType which inherits HashTreeRoot from common.UnusedType
-			root := elem.HashTreeRoot()
+			root, err := elem.HashTreeRoot()
+			if err != nil {
+				return err
+			}
 			hh.PutBytes(root[:])
 		}
 		hh.MerkleizeWithMixin(subIndx, num, constants.MaxBlsToExecutionChanges)
@@ -671,7 +687,10 @@ func (b *BeaconBlockBody) HashTreeRootWith(hh fastssz.HashWalker) error {
 		if b.executionRequests != nil {
 			// ExecutionRequests doesn't have HashTreeRootWith yet
 			// Use the HashTreeRoot method from ExecutionRequests
-			root := b.executionRequests.HashTreeRoot()
+			root, err := b.executionRequests.HashTreeRoot()
+			if err != nil {
+				return err
+			}
 			hh.PutBytes(root[:])
 		} else {
 			// If executionRequests is nil but we're in Electra+, we need to handle this
@@ -695,30 +714,60 @@ func (b *BeaconBlockBody) GetTree() (*fastssz.Node, error) {
 
 // GetTopLevelRoots returns the top-level roots of the BeaconBlockBody.
 func (b *BeaconBlockBody) GetTopLevelRoots() ([]common.Root, error) {
-	tlrs := []common.Root{
-		common.Root(b.GetRandaoReveal().HashTreeRoot()),
-		b.Eth1Data.HashTreeRoot(),
-		common.Root(b.GetGraffiti().HashTreeRoot()),
-		b.GetProposerSlashings().HashTreeRoot(),
-		b.GetAttesterSlashings().HashTreeRoot(),
-		b.GetAttestations().HashTreeRoot(),
-		b.GetDeposits().HashTreeRoot(),
-		b.GetVoluntaryExits().HashTreeRoot(),
-		b.syncAggregate.HashTreeRoot(),
-		b.GetExecutionPayload().HashTreeRoot(),
-		b.GetBlsToExecutionChanges().HashTreeRoot(),
-		// KzgCommitments intentionally left blank - included separately for inclusion proof
-		{},
+	var tlrs []common.Root
+	var root [32]byte
+	var err error
+
+	// RandaoReveal
+	tlrs = append(tlrs, common.Root(b.GetRandaoReveal().HashTreeRoot()))
+
+	// Eth1Data
+	root, err = b.Eth1Data.HashTreeRoot()
+	if err != nil {
+		return nil, err
 	}
+	tlrs = append(tlrs, common.Root(root))
+
+	// Graffiti
+	tlrs = append(tlrs, common.Root(b.GetGraffiti().HashTreeRoot()))
+
+	// Collections
+	collections := []func() ([32]byte, error){
+		b.GetProposerSlashings().HashTreeRoot,
+		b.GetAttesterSlashings().HashTreeRoot,
+		b.GetAttestations().HashTreeRoot,
+		b.GetDeposits().HashTreeRoot,
+		b.GetVoluntaryExits().HashTreeRoot,
+		b.syncAggregate.HashTreeRoot,
+		b.GetExecutionPayload().HashTreeRoot,
+		b.GetBlsToExecutionChanges().HashTreeRoot,
+	}
+
+	for _, fn := range collections {
+		root, err = fn()
+		if err != nil {
+			return nil, err
+		}
+		tlrs = append(tlrs, common.Root(root))
+	}
+
+	// KzgCommitments intentionally left blank
+	tlrs = append(tlrs, common.Root{})
+
+	// ExecutionRequests for Electra+
 	if version.EqualsOrIsAfter(b.GetForkVersion(), version.Electra()) {
 		er, err := b.GetExecutionRequests()
 		if err != nil {
 			return nil, err
 		}
-		tlrs = append(tlrs, er.HashTreeRoot())
+		root, err = er.HashTreeRoot()
+		if err != nil {
+			return nil, err
+		}
+		tlrs = append(tlrs, common.Root(root))
 	}
 
-	// Ensure that the length returned is correct according to the fork version.
+	// Verify length
 	if uint64(len(tlrs)) != b.Length() {
 		return nil, fmt.Errorf(
 			"top-level roots length (%d) does not match expected body length (%d)",

@@ -105,12 +105,13 @@ func (b *BeaconBlock) ValidateAfterDecodingSSZ() error {
 }
 
 // HashTreeRoot computes the Merkleization of the BeaconBlock object.
-func (b *BeaconBlock) HashTreeRoot() common.Root {
+func (b *BeaconBlock) HashTreeRoot() ([32]byte, error) {
 	hh := fastssz.DefaultHasherPool.Get()
 	defer fastssz.DefaultHasherPool.Put(hh)
-	b.HashTreeRootWith(hh)
-	root, _ := hh.HashRoot()
-	return common.Root(root)
+	if err := b.HashTreeRootWith(hh); err != nil {
+		return [32]byte{}, err
+	}
+	return hh.HashRoot()
 }
 
 // GetSlot retrieves the slot of the BeaconBlockBase.
@@ -149,14 +150,18 @@ func (b *BeaconBlock) GetBody() *BeaconBlockBody {
 }
 
 // GetHeader builds a BeaconBlockHeader from the BeaconBlock.
-func (b *BeaconBlock) GetHeader() *BeaconBlockHeader {
+func (b *BeaconBlock) GetHeader() (*BeaconBlockHeader, error) {
+	bodyRoot, err := b.GetBody().HashTreeRoot()
+	if err != nil {
+		return nil, err
+	}
 	return &BeaconBlockHeader{
 		Slot:            b.Slot,
 		ProposerIndex:   b.ProposerIndex,
 		ParentBlockRoot: b.ParentRoot,
 		StateRoot:       b.StateRoot,
-		BodyRoot:        b.GetBody().HashTreeRoot(),
-	}
+		BodyRoot:        common.Root(bodyRoot),
+	}, nil
 }
 
 // GetTimestamp retrieves the timestamp of the BeaconBlock from

@@ -23,7 +23,6 @@ package engineprimitives
 import (
 	"bytes"
 
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	fastssz "github.com/ferranbt/fastssz"
@@ -47,12 +46,13 @@ func (w Withdrawals) SizeSSZ() int {
 
 
 // HashTreeRoot returns the hash tree root of the Withdrawals.
-func (w Withdrawals) HashTreeRoot() common.Root {
+func (w Withdrawals) HashTreeRoot() ([32]byte, error) {
 	hh := fastssz.DefaultHasherPool.Get()
 	defer fastssz.DefaultHasherPool.Put(hh)
-	w.HashTreeRootWith(hh)
-	root, _ := hh.HashRoot()
-	return common.Root(root)
+	if err := w.HashTreeRootWith(hh); err != nil {
+		return [32]byte{}, err
+	}
+	return hh.HashRoot()
 }
 
 /* -------------------------------------------------------------------------- */

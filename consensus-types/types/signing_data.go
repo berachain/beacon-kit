@@ -43,12 +43,15 @@ func (*SigningData) ValidateAfterDecodingSSZ() error { return nil }
 // ComputeSigningRoot as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#compute_signing_root
 func ComputeSigningRoot(
-	sszObject interface{ HashTreeRoot() common.Root },
+	sszObject interface{ HashTreeRoot() ([32]byte, error) },
 	domain common.Domain,
 ) common.Root {
-	htr := sszObject.HashTreeRoot()
+	htr, err := sszObject.HashTreeRoot()
+	if err != nil {
+		panic(err)
+	}
 	root, err := (&SigningData{
-		ObjectRoot: htr,
+		ObjectRoot: common.Root(htr),
 		Domain:     domain,
 	}).HashTreeRoot()
 	if err != nil {

@@ -24,7 +24,6 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -114,12 +113,13 @@ func (*Validator) SizeSSZ() int {
 
 
 // HashTreeRoot computes the SSZ hash tree root of the Validator object.
-func (v *Validator) HashTreeRoot() common.Root {
+func (v *Validator) HashTreeRoot() ([32]byte, error) {
 	hh := fastssz.DefaultHasherPool.Get()
 	defer fastssz.DefaultHasherPool.Put(hh)
-	v.HashTreeRootWith(hh)
-	root, _ := hh.HashRoot()
-	return common.Root(root)
+	if err := v.HashTreeRootWith(hh); err != nil {
+		return [32]byte{}, err
+	}
+	return hh.HashRoot()
 }
 
 // MarshalSSZ marshals the Validator object to SSZ format.

@@ -99,12 +99,14 @@ func (b *SignedBeaconBlock) ValidateAfterDecodingSSZ() error {
 
 // HashTreeRoot computes the SSZ hash tree root of the
 // SignedBeaconBlock object.
-func (b *SignedBeaconBlock) HashTreeRoot() common.Root {
+func (b *SignedBeaconBlock) HashTreeRoot() ([32]byte, error) {
 	hh := fastssz.DefaultHasherPool.Get()
 	defer fastssz.DefaultHasherPool.Put(hh)
-	b.HashTreeRootWith(hh)
-	root, _ := hh.HashRoot()
-	return common.Root(root)
+	if err := b.HashTreeRootWith(hh); err != nil {
+		return [32]byte{}, err
+	}
+	return hh.HashRoot()
+	
 }
 
 /* -------------------------------------------------------------------------- */

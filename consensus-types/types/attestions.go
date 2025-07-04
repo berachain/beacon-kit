@@ -47,12 +47,14 @@ func (as Attestations) SizeSSZ() int {
 
 
 // HashTreeRoot returns the hash tree root of the Attestations.
-func (as Attestations) HashTreeRoot() common.Root {
+func (as Attestations) HashTreeRoot() ([32]byte, error) {
 	hh := fastssz.DefaultHasherPool.Get()
 	defer fastssz.DefaultHasherPool.Put(hh)
-	as.HashTreeRootWith(hh)
-	root, _ := hh.HashRoot()
-	return common.Root(root)
+	if err := as.HashTreeRootWith(hh); err != nil {
+		return [32]byte{}, err
+	}
+	return hh.HashRoot()
+	
 }
 
 /* -------------------------------------------------------------------------- */

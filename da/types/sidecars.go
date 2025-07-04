@@ -50,9 +50,17 @@ func (bs *BlobSidecars) ValidateBlockRoots() error {
 	// We only need to check if there is more than
 	// a single blob in the sidecar.
 	if len(sidecars) > 1 {
-		firstHtr := sidecars[0].SignedBeaconBlockHeader.HashTreeRoot()
+		firstHtrBytes, err := sidecars[0].SignedBeaconBlockHeader.HashTreeRoot()
+		if err != nil {
+			return err
+		}
+		firstHtr := common.NewRootFromBytes(firstHtrBytes[:])
 		for i := 1; i < len(sidecars); i++ {
-			if firstHtr != sidecars[i].SignedBeaconBlockHeader.HashTreeRoot() {
+			htrBytes, err := sidecars[i].SignedBeaconBlockHeader.HashTreeRoot()
+			if err != nil {
+				return err
+			}
+			if firstHtr != common.NewRootFromBytes(htrBytes[:]) {
 				return ErrSidecarContainsDifferingBlockRoots
 			}
 		}
@@ -162,12 +170,13 @@ func (bs *BlobSidecars) UnmarshalSSZ(buf []byte) error {
 }
 
 // HashTreeRoot returns the hash tree root of the BlobSidecars.
-func (bs *BlobSidecars) HashTreeRoot() common.Root {
+func (bs *BlobSidecars) HashTreeRoot() ([32]byte, error) {
 	hh := fastssz.DefaultHasherPool.Get()
 	defer fastssz.DefaultHasherPool.Put(hh)
-	bs.HashTreeRootWith(hh)
-	root, _ := hh.HashRoot()
-	return common.Root(root)
+	if err := bs.HashTreeRootWith(hh); err != nil {
+		return [32]byte{}, err
+	}
+	return hh.HashRoot()
 }
 
 /* -------------------------------------------------------------------------- */

@@ -25,7 +25,6 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/errors"
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	fastssz "github.com/ferranbt/fastssz"
@@ -67,7 +66,6 @@ func (p *PendingPartialWithdrawal) ValidateAfterDecodingSSZ() error {
 	return nil
 }
 
-
 // SizeSSZ returns the fixed size of the SSZ serialization for PendingPartialWithdrawal.
 func (p *PendingPartialWithdrawal) SizeSSZ() int {
 	return sszPendingPartialWithdrawalSize
@@ -80,12 +78,14 @@ func (p *PendingPartialWithdrawal) MarshalSSZ() ([]byte, error) {
 }
 
 // HashTreeRoot computes and returns the hash tree root for the PendingPartialWithdrawal.
-func (p *PendingPartialWithdrawal) HashTreeRoot() common.Root {
+func (p *PendingPartialWithdrawal) HashTreeRoot() ([32]byte, error) {
 	hh := fastssz.DefaultHasherPool.Get()
 	defer fastssz.DefaultHasherPool.Put(hh)
-	p.HashTreeRootWith(hh)
-	root, _ := hh.HashRoot()
-	return common.Root(root)
+	if err := p.HashTreeRootWith(hh); err != nil {
+		return [32]byte{}, err
+	}
+	return hh.HashRoot()
+
 }
 
 // HashTreeRootWith SSZ hashes the Deposit object with a hasher. Needed for BeaconState SSZ.
@@ -149,7 +149,6 @@ type PendingPartialWithdrawals []*PendingPartialWithdrawal
 func NewEmptyPendingPartialWithdrawals() *PendingPartialWithdrawals {
 	return &PendingPartialWithdrawals{}
 }
-
 
 // SizeSSZ returns the size of the PendingPartialWithdrawals list.
 func (p *PendingPartialWithdrawals) SizeSSZ() int {
@@ -216,12 +215,14 @@ func (p *PendingPartialWithdrawals) UnmarshalSSZ(buf []byte) error {
 }
 
 // HashTreeRoot computes the hash tree root for PendingPartialWithdrawals.
-func (p *PendingPartialWithdrawals) HashTreeRoot() common.Root {
+func (p *PendingPartialWithdrawals) HashTreeRoot() ([32]byte, error) {
 	hh := fastssz.DefaultHasherPool.Get()
 	defer fastssz.DefaultHasherPool.Put(hh)
-	p.HashTreeRootWith(hh)
-	root, _ := hh.HashRoot()
-	return common.Root(root)
+	if err := p.HashTreeRootWith(hh); err != nil {
+		return [32]byte{}, err
+	}
+	return hh.HashRoot()
+
 }
 
 // HashTreeRootWith ssz hashes the PendingPartialWithdrawals object with a hasher.

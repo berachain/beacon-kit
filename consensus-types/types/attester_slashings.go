@@ -47,12 +47,14 @@ func (ass AttesterSlashings) SizeSSZ() int {
 
 
 // HashTreeRoot returns the hash tree root of the AttesterSlashings.
-func (ass AttesterSlashings) HashTreeRoot() common.Root {
+func (ass AttesterSlashings) HashTreeRoot() ([32]byte, error) {
 	hh := fastssz.DefaultHasherPool.Get()
 	defer fastssz.DefaultHasherPool.Put(hh)
-	ass.HashTreeRootWith(hh)
-	root, _ := hh.HashRoot()
-	return common.Root(root)
+	if err := ass.HashTreeRootWith(hh); err != nil {
+		return [32]byte{}, err
+	}
+	return hh.HashRoot()
+	
 }
 
 /* -------------------------------------------------------------------------- */

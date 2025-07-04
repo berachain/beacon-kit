@@ -26,7 +26,6 @@ import (
 
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/bytes"
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/encoding/sszutil"
 	fastssz "github.com/ferranbt/fastssz"
@@ -35,12 +34,11 @@ import (
 // 3 since three dynamic objects (Deposits, Withdrawals, Consolidations)
 const dynamicFieldsInExecutionRequests = 3
 
-
 // SizeSSZ returns the SSZ encoded size in bytes.
 func (e *ExecutionRequests) SizeSSZ() int {
 	size := int(constants.SSZOffsetSize * dynamicFieldsInExecutionRequests)
-	size += len(e.Deposits) * 192 // Each deposit request is 192 bytes
-	size += len(e.Withdrawals) * 76 // Each withdrawal request is 76 bytes
+	size += len(e.Deposits) * 192       // Each deposit request is 192 bytes
+	size += len(e.Withdrawals) * 76     // Each withdrawal request is 76 bytes
 	size += len(e.Consolidations) * 116 // Each consolidation request is 116 bytes
 	return size
 }
@@ -150,14 +148,15 @@ func DecodeExecutionRequests(encodedRequests [][]byte) (*ExecutionRequests, erro
 	return &result, nil
 }
 
-
 // HashTreeRoot returns the hash tree root of the ExecutionRequests.
-func (e *ExecutionRequests) HashTreeRoot() common.Root {
+func (e *ExecutionRequests) HashTreeRoot() ([32]byte, error) {
 	hh := fastssz.DefaultHasherPool.Get()
 	defer fastssz.DefaultHasherPool.Put(hh)
-	e.HashTreeRootWith(hh)
-	root, _ := hh.HashRoot()
-	return common.Root(root)
+	if err := e.HashTreeRootWith(hh); err != nil {
+		return [32]byte{}, err
+	}
+	return hh.HashRoot()
+
 }
 
 /* -------------------------------------------------------------------------- */
@@ -179,7 +178,7 @@ func (e *ExecutionRequests) MarshalSSZ() ([]byte, error) {
 
 	// Calculate size
 	size := 12 // 3 fields * 4 bytes offset each
-	
+
 	// Add dynamic content sizes
 	for _, d := range e.Deposits {
 		depositBytes, err := d.MarshalSSZ()
@@ -206,7 +205,7 @@ func (e *ExecutionRequests) MarshalSSZ() ([]byte, error) {
 	// Create buffer
 	buf := make([]byte, size)
 	offset := 12
-	
+
 	// Write offsets
 	// Deposits offset
 	binary.LittleEndian.PutUint32(buf[0:4], uint32(offset))
@@ -214,17 +213,17 @@ func (e *ExecutionRequests) MarshalSSZ() ([]byte, error) {
 		depositBytes, _ := d.MarshalSSZ()
 		offset += len(depositBytes)
 	}
-	
+
 	// Withdrawals offset
 	binary.LittleEndian.PutUint32(buf[4:8], uint32(offset))
 	for _, w := range e.Withdrawals {
 		withdrawalBytes, _ := w.MarshalSSZ()
 		offset += len(withdrawalBytes)
 	}
-	
+
 	// Consolidations offset
 	binary.LittleEndian.PutUint32(buf[8:12], uint32(offset))
-	
+
 	// Write content
 	offset = 12
 	for _, d := range e.Deposits {
@@ -242,7 +241,7 @@ func (e *ExecutionRequests) MarshalSSZ() ([]byte, error) {
 		copy(buf[offset:], consolidationBytes)
 		offset += len(consolidationBytes)
 	}
-	
+
 	return buf, nil
 }
 
@@ -326,7 +325,7 @@ func (e *ExecutionRequests) UnmarshalSSZ(buf []byte) error {
 // TODO: Rename to SizeSSZ() once karalabe/ssz is fully removed.
 func (e *ExecutionRequests) SizeSSZFastSSZ() (size int) {
 	size = 12 // 3 fields * 4 bytes offset each
-	
+
 	// Add dynamic sizes
 	for range e.Deposits {
 		size += 192 // deposit size
@@ -337,7 +336,7 @@ func (e *ExecutionRequests) SizeSSZFastSSZ() (size int) {
 	for range e.Consolidations {
 		size += 116 // consolidation request size
 	}
-	
+
 	return
 }
 

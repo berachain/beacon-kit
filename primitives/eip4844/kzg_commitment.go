@@ -52,9 +52,9 @@ func (c KZGCommitment) ToHashChunks() [][32]byte {
 }
 
 // HashTreeRoot returns the hash tree root of the commitment.
-func (c KZGCommitment) HashTreeRoot() common.Root {
+func (c KZGCommitment) HashTreeRoot() ([32]byte, error) {
 	chunks := c.ToHashChunks()
-	return chunks[0]
+	return chunks[0], nil
 }
 
 // UnmarshalJSON parses a commitment in hex syntax.
@@ -90,7 +90,9 @@ func (c KZGCommitments[HashT]) ToVersionedHashes() []HashT {
 func (c KZGCommitments[HashT]) Leafify() []common.Root {
 	leaves := make([]common.Root, len(c))
 	for i, commitment := range c {
-		leaves[i] = commitment.HashTreeRoot()
+		// KZGCommitment.HashTreeRoot() never returns an error
+		root, _ := commitment.HashTreeRoot()
+		leaves[i] = common.Root(root)
 	}
 	return leaves
 }

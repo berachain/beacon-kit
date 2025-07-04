@@ -43,7 +43,7 @@ type SSZMarshallable interface {
 // SSZRootable is an interface for objects that can compute their hash tree root.
 type SSZRootable interface {
 	// HashTreeRoot computes the hash tree root of the object.
-	HashTreeRoot() Root
+	HashTreeRoot() ([32]byte, error)
 }
 
 // SSZMarshallableRootable is an interface that combines
