@@ -46,6 +46,13 @@ These have dynamic fields but no fork-specific logic:
   - No fork-specific logic
   - Migrated to sszgen
 
+## Migration Complete ✅
+
+All simple types that can be migrated to sszgen have been successfully migrated. The migration included:
+- 7 types migrated from manual SSZ to sszgen
+- Added SSZ methods to supporting types (WithdrawalCredentials, KZGCommitment)
+- Identified types that cannot be migrated due to architectural constraints
+
 ## Types That MUST Keep Manual Implementation
 
 ### Fork-Specific Logic Required ❌
@@ -85,19 +92,22 @@ These contain other types that have fork-specific logic:
   - Contains BeaconBlock which contains BeaconBlockBody
   - Might need manual implementation
 
-### Special Collection Types ⚠️
-These use custom EIP-7685 marshaling or have special requirements:
+### Special Collection Types ❌ Cannot Migrate
+These are slice type aliases, not structs, so sszgen cannot be used:
 
 - **ExecutionRequests** (execution_requests.go)
   - Custom list encoding for EIP-7685
   - **Keep manual implementation**
 
-- **Deposits** (deposits.go)
-  - Simple collection, could potentially use sszgen
-  - Check if custom ValidateAfterDecodingSSZ is needed
+- **Deposits** (deposits.go) ❌ CANNOT MIGRATE
+  - Type alias for slice: `type Deposits []*Deposit`
+  - sszgen only works on structs, not slice types
+  - Must keep partial manual implementation
 
-- **Validators** (validators.go)
-  - Simple collection, could potentially use sszgen
+- **Validators** (validators.go) ❌ CANNOT MIGRATE
+  - Type alias for slice: `type Validators []*Validator`
+  - sszgen only works on structs, not slice types
+  - Must keep partial manual implementation
 
 ## Types Already Using sszgen ✅
 These already have generated code:
@@ -111,24 +121,33 @@ These already have generated code:
 - SlashingInfo (slashing_info_sszgen.go)
 - WithdrawalRequest (withdrawal_request_sszgen.go)
 
-## Migration Priority
+## Migration Summary
 
-### High Priority (Simple types, clear benefit):
-1. Deposit
-2. Eth1Data
-3. Validator
-4. BeaconBlockHeader
-5. SyncAggregate
+### Successfully Migrated ✅
+The following types have been migrated from manual SSZ to sszgen:
+1. **Deposit** - Fixed size struct (192 bytes)
+2. **Eth1Data** - Fixed size struct (72 bytes)
+3. **Validator** - Fixed size struct (121 bytes)
+4. **BeaconBlockHeader** - Fixed size struct
+5. **PendingPartialWithdrawal** - Fixed size struct
+6. **SyncAggregate** - Fixed size struct (160 bytes)
+7. **SignedBeaconBlockHeader** - Variable size struct
 
-### Medium Priority (Need investigation):
-1. SignedBeaconBlockHeader
-2. PendingPartialWithdrawal
-3. Deposits (collection)
-4. Validators (collection)
+### Cannot Migrate ❌
+The following types cannot be migrated due to architectural constraints:
+1. **Deposits** - Slice type alias, not a struct
+2. **Validators** - Slice type alias, not a struct
+3. **BeaconBlockBody** - Fork-specific conditional logic
+4. **BeaconState** - Fork-specific conditional logic
+5. **ExecutionPayload** - Fork-specific validation
+6. **ExecutionPayloadHeader** - Fork-specific logic
+7. **ExecutionRequests** - Custom EIP-7685 encoding
+8. **BeaconBlock** - Contains fork-specific BeaconBlockBody
+9. **SignedBeaconBlock** - Contains fork-specific BeaconBlock
 
-### Low Priority (Complex, may not benefit):
-1. BeaconBlock (depends on BeaconBlockBody)
-2. SignedBeaconBlock (depends on BeaconBlock)
+### Supporting Changes
+- **WithdrawalCredentials** - Added SSZ methods to support Deposit/Validator migration
+- **KZGCommitment** - Changed from `[48]byte` to `bytes.B48` with proper SSZ methods
 
 ## Reference sszgen Files for Manual Implementations
 
