@@ -128,7 +128,8 @@ func TestConsolidationRequest_ValidValuesSSZ(t *testing.T) {
 
 			prysmHTR, err := prysmCR.HashTreeRoot()
 			require.NoError(t, err)
-			crHTR := tc.consolidationRequest.HashTreeRoot()
+			crHTR, err := tc.consolidationRequest.HashTreeRoot()
+			require.NoError(t, err)
 
 			// Compare the HashTreeRoots. This effectively tests that all fields were encoded correctly.
 			require.Equal(t, crHTR[:], prysmHTR[:])

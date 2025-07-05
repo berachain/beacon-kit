@@ -185,7 +185,8 @@ func TestDepositRequest_ValidValuesSSZ(t *testing.T) {
 			// Compare the HashTreeRoots: first compute the HTRs.
 			prysmHTR, err := prysmDeposit.HashTreeRoot()
 			require.NoError(t, err)
-			depositHTR := tc.depositRequest.HashTreeRoot()
+			depositHTR, err := tc.depositRequest.HashTreeRoot()
+			require.NoError(t, err)
 			// Compare the HashTreeRoots to ensure all fields were correctly interpreted.
 			require.Equal(t, depositHTR[:], prysmHTR[:])
 
@@ -359,7 +360,7 @@ func TestUnmarshalItems_OK(t *testing.T) {
 	exampleRequest := &types.DepositRequest{}
 	depositRequests, err := sszutil.UnmarshalItemsEIP7685(
 		drb,
-		int(exampleRequest.SizeSSZ(nil)),
+		exampleRequest.SizeSSZ(),
 		func() *types.DepositRequest { return &types.DepositRequest{} })
 	require.NoError(t, err)
 

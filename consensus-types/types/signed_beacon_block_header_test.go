@@ -115,5 +115,5 @@ func TestSignedBeaconBlockHeader_HashTreeRoot(t *testing.T) {
 		),
 		crypto.BLSSignature{0xff},
 	)
-	_ = sigHeader.HashTreeRoot()
+	_, _ = sigHeader.HashTreeRoot()
 }

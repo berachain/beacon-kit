@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
+	"github.com/berachain/beacon-kit/primitives/math"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	"github.com/stretchr/testify/require"
 )
@@ -57,7 +58,8 @@ func TestInvalidDeposits(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
+			Versionable:   types.NewVersionable(cs.GenesisForkVersion()),
+			BaseFeePerGas: math.NewU256(0),
 		}
 		totalDepositsCount = uint64(len(genDeposits))
 	)
@@ -130,7 +132,8 @@ func TestInvalidDepositsCount(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
+			Versionable:   types.NewVersionable(cs.GenesisForkVersion()),
+			BaseFeePerGas: math.NewU256(0),
 		}
 		totalDepositsCount = uint64(len(genDeposits))
 	)
@@ -205,7 +208,8 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
+			Versionable:   types.NewVersionable(cs.GenesisForkVersion()),
+			BaseFeePerGas: math.NewU256(0),
 		}
 		totalDepositsCount = uint64(len(genDeposits))
 	)
@@ -278,7 +282,8 @@ func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
+			Versionable:   types.NewVersionable(cs.GenesisForkVersion()),
+			BaseFeePerGas: math.NewU256(0),
 		}
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
@@ -306,7 +311,8 @@ func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
 
 	// Now, the block proposer ends up adding the correct 1 deposit per block, BUT spoofs the
 	// deposits root to use the entire deposits list.
-	badDepRoot := append(genDeposits, append(blockDeposits, extraLocalDeposit)...).HashTreeRoot()
+	badDepRoot, err := append(genDeposits, append(blockDeposits, extraLocalDeposit)...).HashTreeRoot()
+	require.NoError(t, err)
 	blk := buildNextBlock(
 		t,
 		cs,

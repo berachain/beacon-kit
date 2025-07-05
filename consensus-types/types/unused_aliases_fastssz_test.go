@@ -24,7 +24,6 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/primitives/common"
 	fastssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/require"
 )
@@ -39,10 +38,10 @@ func TestUnusedTypeAliasesFastSSZ(t *testing.T) {
 		create func() interface {
 			MarshalSSZTo([]byte) ([]byte, error)
 			UnmarshalSSZ([]byte) error
-			SizeSSZFastSSZ() int
+			SizeSSZ() int
 			HashTreeRootWith(fastssz.HashWalker) error
 			GetTree() (*fastssz.Node, error)
-			HashTreeRoot() common.Root
+			HashTreeRoot() ([32]byte, error)
 		}
 	}{
 		{
@@ -50,10 +49,10 @@ func TestUnusedTypeAliasesFastSSZ(t *testing.T) {
 			create: func() interface {
 				MarshalSSZTo([]byte) ([]byte, error)
 				UnmarshalSSZ([]byte) error
-				SizeSSZFastSSZ() int
+				SizeSSZ() int
 				HashTreeRootWith(fastssz.HashWalker) error
 				GetTree() (*fastssz.Node, error)
-				HashTreeRoot() common.Root
+				HashTreeRoot() ([32]byte, error)
 			} {
 				v := types.ProposerSlashing(0)
 				return &v
@@ -64,10 +63,10 @@ func TestUnusedTypeAliasesFastSSZ(t *testing.T) {
 			create: func() interface {
 				MarshalSSZTo([]byte) ([]byte, error)
 				UnmarshalSSZ([]byte) error
-				SizeSSZFastSSZ() int
+				SizeSSZ() int
 				HashTreeRootWith(fastssz.HashWalker) error
 				GetTree() (*fastssz.Node, error)
-				HashTreeRoot() common.Root
+				HashTreeRoot() ([32]byte, error)
 			} {
 				v := types.AttesterSlashing(0)
 				return &v
@@ -78,10 +77,10 @@ func TestUnusedTypeAliasesFastSSZ(t *testing.T) {
 			create: func() interface {
 				MarshalSSZTo([]byte) ([]byte, error)
 				UnmarshalSSZ([]byte) error
-				SizeSSZFastSSZ() int
+				SizeSSZ() int
 				HashTreeRootWith(fastssz.HashWalker) error
 				GetTree() (*fastssz.Node, error)
-				HashTreeRoot() common.Root
+				HashTreeRoot() ([32]byte, error)
 			} {
 				v := types.VoluntaryExit(0)
 				return &v
@@ -92,10 +91,10 @@ func TestUnusedTypeAliasesFastSSZ(t *testing.T) {
 			create: func() interface {
 				MarshalSSZTo([]byte) ([]byte, error)
 				UnmarshalSSZ([]byte) error
-				SizeSSZFastSSZ() int
+				SizeSSZ() int
 				HashTreeRootWith(fastssz.HashWalker) error
 				GetTree() (*fastssz.Node, error)
-				HashTreeRoot() common.Root
+				HashTreeRoot() ([32]byte, error)
 			} {
 				v := types.BlsToExecutionChange(0)
 				return &v
@@ -106,10 +105,10 @@ func TestUnusedTypeAliasesFastSSZ(t *testing.T) {
 			create: func() interface {
 				MarshalSSZTo([]byte) ([]byte, error)
 				UnmarshalSSZ([]byte) error
-				SizeSSZFastSSZ() int
+				SizeSSZ() int
 				HashTreeRootWith(fastssz.HashWalker) error
 				GetTree() (*fastssz.Node, error)
-				HashTreeRoot() common.Root
+				HashTreeRoot() ([32]byte, error)
 			} {
 				v := types.Attestation(0)
 				return &v
@@ -131,8 +130,8 @@ func TestUnusedTypeAliasesFastSSZ(t *testing.T) {
 			err = obj.UnmarshalSSZ([]byte{0})
 			require.NoError(t, err)
 
-			// Test SizeSSZFastSSZ
-			size := obj.SizeSSZFastSSZ()
+			// Test SizeSSZ
+			size := obj.SizeSSZ()
 			require.Equal(t, 1, size)
 
 			// Test HashTreeRootWith
@@ -146,14 +145,15 @@ func TestUnusedTypeAliasesFastSSZ(t *testing.T) {
 			require.NotNil(t, tree)
 
 			// Compare hash tree roots
-			karalabRoot := obj.HashTreeRoot()
+			sszRoot, err := obj.HashTreeRoot()
+			require.NoError(t, err)
 			hh = fastssz.NewHasher()
 			err = obj.HashTreeRootWith(hh)
 			require.NoError(t, err)
 			fastsszRoot, err := hh.HashRoot()
 			require.NoError(t, err)
-			require.Equal(t, karalabRoot[:], fastsszRoot[:],
-				"HashTreeRoot results should match between karalabe/ssz and fastssz for %s", tt.name)
+			require.Equal(t, sszRoot[:], fastsszRoot[:],
+				"HashTreeRoot results should match between ssz and fastssz for %s", tt.name)
 		})
 	}
 }

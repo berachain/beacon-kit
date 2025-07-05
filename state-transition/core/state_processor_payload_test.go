@@ -66,7 +66,8 @@ func TestPayloadTimestampVerification(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(genesisFork),
+			Versionable:   types.NewVersionable(genesisFork),
+			BaseFeePerGas: math.NewU256(0),
 		}
 	)
 	genPayloadHeader.Timestamp = math.U64(genesisTime.Unix())

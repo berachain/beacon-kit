@@ -40,7 +40,7 @@ func TestWithdrawals(t *testing.T) {
 			{Index: 1, Validator: 2, Address: [20]byte{1, 2, 3}, Amount: 100},
 			{Index: 3, Validator: 4, Address: [20]byte{4, 5, 6}, Amount: 200},
 		}
-		require.Equal(t, len(withdrawals)*44, withdrawals.SizeSSZ())
+		require.Equal(t, 4+len(withdrawals)*44, withdrawals.SizeSSZ())
 	})
 
 	t.Run("HashTreeRoot", func(t *testing.T) {
@@ -49,7 +49,8 @@ func TestWithdrawals(t *testing.T) {
 			{Index: 1, Validator: 2, Address: [20]byte{1, 2, 3}, Amount: 100},
 			{Index: 3, Validator: 4, Address: [20]byte{4, 5, 6}, Amount: 200},
 		}
-		root := withdrawals.HashTreeRoot()
+		root, err := withdrawals.HashTreeRoot()
+		require.NoError(t, err)
 		require.NotEmpty(t, root)
 	})
 
@@ -66,7 +67,8 @@ func TestWithdrawals(t *testing.T) {
 				Amount:         zrntcommon.Gwei(withdrawals[0].Amount),
 			},
 		}
-		root := withdrawals.HashTreeRoot()
+		root, err := withdrawals.HashTreeRoot()
+		require.NoError(t, err)
 		hFn := ztree.GetHashFn()
 		spec := zspec.Mainnet
 		zroot := zwithdrawals.HashTreeRoot(spec, hFn)
@@ -91,12 +93,14 @@ func TestWithdrawals(t *testing.T) {
 			},
 		}
 
-		root := withdrawals.HashTreeRoot()
+		root, err := withdrawals.HashTreeRoot()
+		require.NoError(t, err)
 		require.NotEmpty(t, root)
 
 		// Verify that the root changes when the withdrawals change
 		withdrawals[0].Amount = math.Gwei(150)
-		newRoot := withdrawals.HashTreeRoot()
+		newRoot, err := withdrawals.HashTreeRoot()
+		require.NoError(t, err)
 		require.NotEqual(t, root, newRoot)
 
 		// Verify that the order of withdrawals matters
@@ -104,14 +108,16 @@ func TestWithdrawals(t *testing.T) {
 			withdrawals[1],
 			withdrawals[0],
 		}
-		reversedRoot := reversedWithdrawals.HashTreeRoot()
+		reversedRoot, err := reversedWithdrawals.HashTreeRoot()
+		require.NoError(t, err)
 		require.NotEqual(t, newRoot, reversedRoot)
 	})
 
 	t.Run("HashTreeRoot of Empty List", func(t *testing.T) {
 		t.Parallel()
 		emptyWithdrawals := engineprimitives.Withdrawals{}
-		emptyRoot := emptyWithdrawals.HashTreeRoot()
+		emptyRoot, err := emptyWithdrawals.HashTreeRoot()
+		require.NoError(t, err)
 		require.NotEmpty(t, emptyRoot)
 
 		// Verify that the root of an empty list is different from a non-empty
@@ -124,7 +130,8 @@ func TestWithdrawals(t *testing.T) {
 				Amount:    math.Gwei(100),
 			},
 		}
-		nonEmptyRoot := nonEmptyWithdrawals.HashTreeRoot()
+		nonEmptyRoot, err := nonEmptyWithdrawals.HashTreeRoot()
+		require.NoError(t, err)
 		require.NotEqual(t, emptyRoot, nonEmptyRoot)
 	})
 }

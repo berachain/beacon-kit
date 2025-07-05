@@ -311,12 +311,9 @@ func (st *BeaconState) GetTree() (*fastssz.Node, error) {
 
 // MarshalSSZTo ssz marshals the BeaconState object to a target array.
 func (st *BeaconState) MarshalSSZTo(dst []byte) ([]byte, error) {
-	bz, err := st.MarshalSSZ()
-	if err != nil {
-		return nil, err
-	}
-	dst = append(dst, bz...)
-	return dst, nil
+	// TODO: Implement proper SSZ marshaling for BeaconState
+	// For now, return an error to avoid infinite recursion
+	return nil, fastssz.ErrSize
 }
 
 // UnmarshalSSZ ssz unmarshals the BeaconState object.

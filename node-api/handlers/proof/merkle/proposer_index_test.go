@@ -77,7 +77,9 @@ func TestBlockProposerIndexProof(t *testing.T) {
 			proof, beaconRoot, err := merkle.ProveProposerIndexInBlock(bbh)
 			require.NoError(t, err)
 
-			require.Equal(t, bbh.HashTreeRoot(), beaconRoot)
+			bbhRoot, err := bbh.HashTreeRoot()
+			require.NoError(t, err)
+			require.Equal(t, common.Root(bbhRoot), beaconRoot)
 
 			expectedProof := ReadProofFromFile(t, tc.expectedProofFile)
 			require.Equal(t, expectedProof, proof)

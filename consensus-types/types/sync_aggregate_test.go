@@ -61,7 +61,7 @@ func TestSyncAggregate_FastSSZ(t *testing.T) {
 		newSA := &types.SyncAggregate{}
 		err := newSA.UnmarshalSSZ(buf)
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "expected buffer of length 160")
+		require.Contains(t, err.Error(), "incorrect size")
 	})
 
 	t.Run("UnmarshalSSZ_NonZeroData", func(t *testing.T) {
@@ -74,8 +74,8 @@ func TestSyncAggregate_FastSSZ(t *testing.T) {
 		require.Contains(t, err.Error(), "SyncAggregate must be unused")
 	})
 
-	t.Run("SizeSSZFastSSZ", func(t *testing.T) {
-		size := sa.SizeSSZFastSSZ()
+	t.Run("SizeSSZ", func(t *testing.T) {
+		size := sa.SizeSSZ()
 		require.Equal(t, 160, size)
 	})
 
@@ -93,10 +93,11 @@ func TestSyncAggregate_FastSSZ(t *testing.T) {
 
 	t.Run("CompareHashTreeRoot", func(t *testing.T) {
 		// Compare karalabe/ssz HashTreeRoot with fastssz HashTreeRootWith
-		karalabRoot := sa.HashTreeRoot()
+		karalabRoot, err := sa.HashTreeRoot()
+		require.NoError(t, err)
 
 		hh := fastssz.NewHasher()
-		err := sa.HashTreeRootWith(hh)
+		err = sa.HashTreeRootWith(hh)
 		require.NoError(t, err)
 		fastsszRoot, err := hh.HashRoot()
 		require.NoError(t, err)

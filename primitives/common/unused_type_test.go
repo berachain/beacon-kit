@@ -28,32 +28,35 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Verify that DecodeFromBytes produces the same UnusedType obj as the previous implementation
-// defined by *v = UnusedType(buf[0])
+// Verify that UnmarshalSSZ properly enforces the UnusedType constraint
 func TestDecodeUnusedTypeEquality(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name    string
 		buf     []byte
 		wantErr bool
+		errMsg  string
 	}{
 		{name: "decode-unused-type-empty", buf: []byte{0x00}, wantErr: false},
-		{name: "decode-unused-type-one", buf: []byte{0x01}, wantErr: false},
-		{name: "decode-unused-type-max", buf: []byte{0xff}, wantErr: false},
-		{name: "decode-unused-type-too-long", buf: []byte{0xff, 0xff}, wantErr: true},
-		{name: "decode-unused-type-too-short", buf: []byte{}, wantErr: true},
+		{name: "decode-unused-type-one", buf: []byte{0x01}, wantErr: true, errMsg: "UnusedType must be unused"},
+		{name: "decode-unused-type-max", buf: []byte{0xff}, wantErr: true, errMsg: "UnusedType must be unused"},
+		{name: "decode-unused-type-too-long", buf: []byte{0xff, 0xff}, wantErr: true, errMsg: "expected buffer of length 1"},
+		{name: "decode-unused-type-too-short", buf: []byte{}, wantErr: true, errMsg: "expected buffer of length 1"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := new(common.UnusedType)
-			if err := got.UnmarshalSSZ(tt.buf); err != nil {
-				if tt.wantErr {
-					return
+			err := got.UnmarshalSSZ(tt.buf)
+			if tt.wantErr {
+				require.Error(t, err)
+				if tt.errMsg != "" {
+					require.Contains(t, err.Error(), tt.errMsg)
 				}
-				t.Errorf("DecodeFromBytes() error = %v", err)
+			} else {
+				require.NoError(t, err)
+				want := common.UnusedType(0)
+				require.Equal(t, &want, got)
 			}
-			want := common.UnusedType(tt.buf[0])
-			require.Equal(t, &want, got)
 		})
 	}
 }
@@ -116,7 +119,8 @@ func TestUnusedTypeFastSSZ(t *testing.T) {
 		require.NotNil(t, tree)
 
 		// Test HashTreeRoot
-		root := ut.HashTreeRoot()
+		root, err := ut.HashTreeRoot()
+		require.NoError(t, err)
 		var expectedRoot [32]byte
 		require.Equal(t, expectedRoot, root)
 	})
@@ -142,21 +146,23 @@ func TestUnusedTypeFastSSZ(t *testing.T) {
 	t.Run("CompareHashTreeRoot", func(t *testing.T) {
 		ut := common.UnusedType(0)
 
-		// Compare karalabe/ssz HashTreeRoot with fastssz HashTreeRootWith
-		karalabRoot := ut.HashTreeRoot()
+		// Compare HashTreeRoot with fastssz HashTreeRootWith
+		sszRoot, err := ut.HashTreeRoot()
+		require.NoError(t, err)
 
 		hh := fastssz.NewHasher()
-		err := ut.HashTreeRootWith(hh)
+		err = ut.HashTreeRootWith(hh)
 		require.NoError(t, err)
 		fastsszRoot, err := hh.HashRoot()
 		require.NoError(t, err)
 
-		require.Equal(t, karalabRoot[:], fastsszRoot[:],
-			"HashTreeRoot results should match between karalabe/ssz and fastssz")
+		require.Equal(t, sszRoot[:], fastsszRoot[:],
+			"HashTreeRoot results should match between ssz and fastssz")
 
 		// Also compare with HashTreeRoot
-		directRoot := ut.HashTreeRoot()
-		require.Equal(t, karalabRoot[:], directRoot[:],
+		directRoot, err := ut.HashTreeRoot()
+		require.NoError(t, err)
+		require.Equal(t, sszRoot[:], directRoot[:],
 			"HashTreeRoot results should match with direct fastssz method")
 	})
 }

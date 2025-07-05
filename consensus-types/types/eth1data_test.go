@@ -21,7 +21,6 @@
 package types_test
 
 import (
-	"io"
 	"testing"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
@@ -55,7 +54,8 @@ func TestEth1Data_UnmarshalError(t *testing.T) {
 
 	var unmarshalled types.Eth1Data
 	err := sszutil.Unmarshal([]byte{}, &unmarshalled)
-	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "incorrect size")
 }
 
 func TestEth1Data_SizeSSZ(t *testing.T) {
@@ -70,7 +70,7 @@ func TestEth1Data_HashTreeRoot(t *testing.T) {
 	eth1Data := types.NewEth1Data(common.Root{})
 
 	require.NotPanics(t, func() {
-		_ = eth1Data.HashTreeRoot()
+		_, _ = eth1Data.HashTreeRoot()
 	})
 }
 

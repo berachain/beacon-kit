@@ -21,7 +21,6 @@
 package types_test
 
 import (
-	"io"
 	"testing"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
@@ -164,7 +163,7 @@ func TestBeaconBlockHeader_HashTreeRoot(t *testing.T) {
 		common.Root{},
 	)
 
-	_ = header.HashTreeRoot()
+	_, _ = header.HashTreeRoot()
 }
 
 func TestBeaconBlockHeader_GetTree(t *testing.T) {
@@ -268,5 +267,6 @@ func TestBeaconBlockHeader_UnmarshalSSZ_ErrSize(t *testing.T) {
 
 	unmarshalled := new(types.BeaconBlockHeader)
 	err := sszutil.Unmarshal(buf, unmarshalled)
-	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "incorrect size")
 }

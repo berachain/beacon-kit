@@ -527,6 +527,23 @@ func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte) error {
 		}
 	}
 
+	// Initialize nil slices to empty slices for consistency
+	if b.proposerSlashings == nil {
+		b.proposerSlashings = make([]*ProposerSlashing, 0)
+	}
+	if b.attesterSlashings == nil {
+		b.attesterSlashings = make([]*AttesterSlashing, 0)
+	}
+	if b.attestations == nil {
+		b.attestations = make([]*Attestation, 0)
+	}
+	if b.voluntaryExits == nil {
+		b.voluntaryExits = make([]*VoluntaryExit, 0)
+	}
+	if b.blsToExecutionChanges == nil {
+		b.blsToExecutionChanges = make([]*BlsToExecutionChange, 0)
+	}
+
 	return b.ValidateAfterDecodingSSZ()
 }
 

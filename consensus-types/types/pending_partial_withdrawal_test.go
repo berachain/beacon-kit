@@ -85,7 +85,8 @@ func TestPendingPartialWithdrawal_ValidValuesSSZ(t *testing.T) {
 			require.NoError(t, err)
 
 			// Compare the HashTreeRoots.
-			originalHTR := tc.pending.HashTreeRoot()
+			originalHTR, err := tc.pending.HashTreeRoot()
+			require.NoError(t, err)
 			prysmHTR, err := prysmType.HashTreeRoot()
 			require.NoError(t, err)
 			require.Equal(t, originalHTR[:], prysmHTR[:])

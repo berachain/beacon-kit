@@ -21,7 +21,6 @@
 package types_test
 
 import (
-	"io"
 	"testing"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
@@ -635,7 +634,8 @@ func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 				invalidSizeData := make([]byte, 120)
 				unmarshalled := new(types.Validator)
 				err := sszutil.Unmarshal(invalidSizeData, unmarshalled)
-				require.ErrorIs(t, err, io.ErrUnexpectedEOF, "Test case: %s", tt.name)
+				require.Error(t, err)
+				require.Contains(t, err.Error(), "incorrect size", "Test case: %s", tt.name)
 			} else {
 				// Marshal the validator
 				marshaled, err := tt.validator.MarshalSSZ()
@@ -710,12 +710,13 @@ func TestValidator_HashTreeRoot(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			// Test HashTreeRoot
-			root := tt.validator.HashTreeRoot()
+			root, err := tt.validator.HashTreeRoot()
+			require.NoError(t, err)
 			require.NotEqual(t, [32]byte{}, root)
 
 			// Test HashTreeRootWith
 			hh := fastssz.NewHasher()
-			err := tt.validator.HashTreeRootWith(hh)
+			err = tt.validator.HashTreeRootWith(hh)
 			require.NoError(t, err)
 
 			// Test GetTree

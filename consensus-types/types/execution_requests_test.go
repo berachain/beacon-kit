@@ -226,7 +226,8 @@ func TestExecutionRequests_ValidValuesSSZ(t *testing.T) {
 
 			prysmHTR, err := prysmER.HashTreeRoot()
 			require.NoError(t, err)
-			execReqHTR := tc.executionRequests.HashTreeRoot()
+			execReqHTR, err := tc.executionRequests.HashTreeRoot()
+			require.NoError(t, err)
 
 			// Compare the HashTreeRoots to ensure encoding was correct.
 			require.Equal(t, execReqHTR[:], prysmHTR[:])

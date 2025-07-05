@@ -126,7 +126,8 @@ func TestWithdrawalRequest_ValidValuesSSZ(t *testing.T) {
 
 			prysmHTR, err := prysmWithdrawal.HashTreeRoot()
 			require.NoError(t, err)
-			withdrawalHTR := tc.withdrawalRequest.HashTreeRoot()
+			withdrawalHTR, err := tc.withdrawalRequest.HashTreeRoot()
+			require.NoError(t, err)
 
 			// Compare the HashTreeRoots. Effectively a test for comparing all field values.
 			require.Equal(t, withdrawalHTR[:], prysmHTR[:])

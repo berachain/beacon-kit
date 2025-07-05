@@ -39,6 +39,11 @@ func (s *SyncAggregate) UnmarshalSSZ(buf []byte) error {
 	// Field (1) 'SyncCommitteeSignature'
 	copy(s.SyncCommitteeSignature[:], buf[64:160])
 
+	// Validate after decoding
+	if err = s.ValidateAfterDecodingSSZ(); err != nil {
+		return err
+	}
+
 	return err
 }
 

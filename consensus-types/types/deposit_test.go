@@ -21,7 +21,6 @@
 package types_test
 
 import (
-	"io"
 	"testing"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
@@ -119,7 +118,7 @@ func TestDeposit_HashTreeRoot(t *testing.T) {
 	t.Parallel()
 	deposit := generateValidDeposit()
 	require.NotPanics(t, func() {
-		_ = deposit.HashTreeRoot()
+		_, _ = deposit.HashTreeRoot()
 	})
 }
 
@@ -154,7 +153,8 @@ func TestDeposit_UnmarshalSSZ_ErrSize(t *testing.T) {
 
 	var unmarshalledDeposit types.Deposit
 	err := sszutil.Unmarshal(buf, &unmarshalledDeposit)
-	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "incorrect size")
 }
 
 func TestDeposit_VerifySignature(t *testing.T) {
