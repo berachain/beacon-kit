@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/encoding/sszutil"
 	"github.com/berachain/beacon-kit/primitives/math"
-	fastssz "github.com/ferranbt/fastssz"
 )
 
 const sszWithdrawRequestSize = 76 // ExecutionAddress = 20, ValidatorPubKey = 48, Amount = 8
@@ -49,15 +48,6 @@ func (w *WithdrawalRequest) ValidateAfterDecodingSSZ() error {
 	return nil
 }
 
-// HashTreeRoot returns the SSZ hash tree root for the WithdrawalRequest object.
-func (w *WithdrawalRequest) HashTreeRoot() ([32]byte, error) {
-	hh := fastssz.DefaultHasherPool.Get()
-	defer fastssz.DefaultHasherPool.Put(hh)
-	if err := w.HashTreeRootWith(hh); err != nil {
-		return [32]byte{}, err
-	}
-	return hh.HashRoot()
-}
 
 
 

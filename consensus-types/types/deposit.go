@@ -18,7 +18,8 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-//go:generate sszgen -path deposit.go -objs Deposit -output deposit_sszgen.go -include ../../primitives/common,../../primitives/crypto,../../primitives/math
+// NOTE: SSZ marshaling for Deposit is manually implemented in deposit_ssz.go
+// because sszgen cannot resolve the WithdrawalCredentials type definition from another file.
 
 package types
 
@@ -27,11 +28,8 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
-	fastssz "github.com/ferranbt/fastssz"
 )
 
-// depositSize is the size of the SSZ encoding of a Deposit.
-const depositSize = 192 // 48 + 32 + 8 + 96 + 8
 
 var (
 	_ constraints.SSZMarshallableRootable = (*Deposit)(nil)
@@ -41,14 +39,14 @@ var (
 // layer.
 type Deposit struct {
 	// Public key of the validator specified in the deposit.
-	Pubkey crypto.BLSPubkey `json:"pubkey"`
+	Pubkey crypto.BLSPubkey `json:"pubkey" ssz-size:"48"`
 	// A staking credentials with
 	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
-	Credentials WithdrawalCredentials `json:"credentials"`
+	Credentials WithdrawalCredentials `json:"credentials" ssz-size:"32"`
 	// Deposit amount in gwei.
 	Amount math.Gwei `json:"amount"`
 	// Signature of the deposit data.
-	Signature crypto.BLSSignature `json:"signature"`
+	Signature crypto.BLSSignature `json:"signature" ssz-size:"96"`
 	// Index of the deposit in the deposit contract.
 	Index uint64 `json:"index"`
 }
@@ -86,95 +84,6 @@ func (d *Deposit) VerifySignature(
 
 // ValidateAfterDecodingSSZ validates the Deposit after decoding SSZ.
 func (*Deposit) ValidateAfterDecodingSSZ() error { return nil }
-
-// SizeSSZ returns the ssz encoded size in bytes for the Deposit object
-func (d *Deposit) SizeSSZ() int {
-	return depositSize
-}
-
-// MarshalSSZ ssz marshals the Deposit object
-func (d *Deposit) MarshalSSZ() ([]byte, error) {
-	return fastssz.MarshalSSZ(d)
-}
-
-// MarshalSSZTo ssz marshals the Deposit object to a target array
-func (d *Deposit) MarshalSSZTo(buf []byte) (dst []byte, err error) {
-	dst = buf
-
-	// Field (0) 'Pubkey'
-	dst = append(dst, d.Pubkey[:]...)
-
-	// Field (1) 'Credentials'
-	dst = append(dst, d.Credentials[:]...)
-
-	// Field (2) 'Amount'
-	dst = fastssz.MarshalUint64(dst, uint64(d.Amount))
-
-	// Field (3) 'Signature'
-	dst = append(dst, d.Signature[:]...)
-
-	// Field (4) 'Index'
-	dst = fastssz.MarshalUint64(dst, d.Index)
-
-	return
-}
-
-// UnmarshalSSZ ssz unmarshals the Deposit object
-func (d *Deposit) UnmarshalSSZ(buf []byte) error {
-	if len(buf) != depositSize {
-		return fastssz.ErrSize
-	}
-
-	// Field (0) 'Pubkey'
-	copy(d.Pubkey[:], buf[0:48])
-
-	// Field (1) 'Credentials'
-	copy(d.Credentials[:], buf[48:80])
-
-	// Field (2) 'Amount'
-	d.Amount = math.Gwei(fastssz.UnmarshallUint64(buf[80:88]))
-
-	// Field (3) 'Signature'
-	copy(d.Signature[:], buf[88:184])
-
-	// Field (4) 'Index'
-	d.Index = fastssz.UnmarshallUint64(buf[184:192])
-
-	return d.ValidateAfterDecodingSSZ()
-}
-
-// HashTreeRoot ssz hashes the Deposit object
-func (d *Deposit) HashTreeRoot() ([32]byte, error) {
-	return fastssz.HashWithDefaultHasher(d)
-}
-
-// HashTreeRootWith ssz hashes the Deposit object with a hasher
-func (d *Deposit) HashTreeRootWith(hh fastssz.HashWalker) (err error) {
-	indx := hh.Index()
-
-	// Field (0) 'Pubkey'
-	hh.PutBytes(d.Pubkey[:])
-
-	// Field (1) 'Credentials'
-	hh.PutBytes(d.Credentials[:])
-
-	// Field (2) 'Amount'
-	hh.PutUint64(uint64(d.Amount))
-
-	// Field (3) 'Signature'
-	hh.PutBytes(d.Signature[:])
-
-	// Field (4) 'Index'
-	hh.PutUint64(d.Index)
-
-	hh.Merkleize(indx)
-	return
-}
-
-// GetTree ssz hashes the Deposit object
-func (d *Deposit) GetTree() (*fastssz.Node, error) {
-	return fastssz.ProofTree(d)
-}
 
 
 

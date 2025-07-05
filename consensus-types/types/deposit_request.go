@@ -28,6 +28,9 @@ import (
 	"github.com/berachain/beacon-kit/primitives/encoding/sszutil"
 )
 
+// depositSize is the size of the SSZ encoding of a Deposit.
+const depositSize = 192 // 48 + 32 + 8 + 96 + 8
+
 // DepositRequest is introduced in EIP6110 which is currently not processed.
 type DepositRequest = Deposit
 

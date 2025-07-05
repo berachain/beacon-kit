@@ -21,6 +21,8 @@
 package eip4844
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
@@ -29,12 +31,12 @@ import (
 )
 
 // KZGCommitment is a KZG commitment.
-type KZGCommitment [48]byte
+type KZGCommitment bytes.B48
 
 // ToVersionedHash converts this KZG commitment into a versioned hash
 // as per the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/beacon-chain.md#kzg_commitment_to_versioned_hash
-func (c KZGCommitment) ToVersionedHash() [32]byte {
+func (c KZGCommitment) ToVersionedHash() common.Hash32 {
 	sum := sha256.Hash(c[:])
 	// Prefix the hash with the BlobCommitmentVersion
 	// to create a versioned hash.
@@ -53,21 +55,44 @@ func (c KZGCommitment) ToHashChunks() [][32]byte {
 
 // HashTreeRoot returns the hash tree root of the commitment.
 func (c KZGCommitment) HashTreeRoot() ([32]byte, error) {
-	chunks := c.ToHashChunks()
-	return chunks[0], nil
+	// B48 already has a HashTreeRoot method that returns B32
+	// which is aliased to Hash32
+	return [32]byte(bytes.B48(c).HashTreeRoot()), nil
 }
 
 // UnmarshalJSON parses a commitment in hex syntax.
 func (c *KZGCommitment) UnmarshalJSON(input []byte) error {
-	return bytes.UnmarshalFixedJSON(
-		input,
-		c[:],
-	)
+	var b48 bytes.B48
+	err := b48.UnmarshalJSON(input)
+	if err != nil {
+		return err
+	}
+	*c = KZGCommitment(b48)
+	return nil
 }
 
 // MarshalText returns the hex representation of c.
 func (c KZGCommitment) MarshalText() ([]byte, error) {
-	return bytes.Bytes(c[:]).MarshalText()
+	return bytes.B48(c).MarshalText()
+}
+
+// MarshalSSZ implements the SSZ marshaling for KZGCommitment.
+func (c KZGCommitment) MarshalSSZ() ([]byte, error) {
+	return bytes.B48(c).MarshalSSZ()
+}
+
+// UnmarshalSSZ implements the SSZ unmarshaling for KZGCommitment.
+func (c *KZGCommitment) UnmarshalSSZ(buf []byte) error {
+	if len(buf) != 48 {
+		return fmt.Errorf("invalid buffer length for KZGCommitment: expected 48, got %d", len(buf))
+	}
+	copy((*c)[:], buf)
+	return nil
+}
+
+// SizeSSZ returns the size of the KZGCommitment in bytes.
+func (c KZGCommitment) SizeSSZ() int {
+	return 48
 }
 
 // KZGCommitments represents a slice of KZG commitments.
@@ -80,7 +105,7 @@ type KZGCommitments[HashT ~[32]byte] []KZGCommitment
 func (c KZGCommitments[HashT]) ToVersionedHashes() []HashT {
 	hashes := make([]HashT, len(c))
 	for i, bz := range c {
-		hashes[i] = bz.ToVersionedHash()
+		hashes[i] = HashT(bz.ToVersionedHash())
 	}
 	return hashes
 }

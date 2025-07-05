@@ -18,27 +18,20 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-// TODO: BeaconBlockHeader needs manual fastssz migration to handle dual interface compatibility
-// go:generate sszgen -path . -objs BeaconBlockHeader -output header_sszgen.go -include ../../primitives/common,../../primitives/math
+//go:generate sszgen -path header.go -objs BeaconBlockHeader -output header_sszgen.go -include ../../primitives/common,../../primitives/math
 
 package types
 
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
-	fastssz "github.com/ferranbt/fastssz"
 )
 
-// BeaconBlockHeaderSize is the size of the BeaconBlockHeader object in bytes.
-//
-// Total size: Slot (8) + ProposerIndex (8) +
-// ParentBlockRoot (32) + StateRoot (32) + BodyRoot (32).
-const BeaconBlockHeaderSize = 112
 
-// TODO: Re-enable interface assertion once constraints are updated
-// var (
-// 	_ constraints.SSZMarshallableRootable = (*BeaconBlockHeader)(nil)
-// )
+var (
+	_ constraints.SSZMarshallableRootable = (*BeaconBlockHeader)(nil)
+)
 
 // BeaconBlockHeader represents the base of a beacon block header.
 type BeaconBlockHeader struct {
@@ -47,11 +40,11 @@ type BeaconBlockHeader struct {
 	// ProposerIndex is the index of the validator who proposed the block.
 	ProposerIndex math.ValidatorIndex `json:"proposer_index"`
 	// ParentBlockRoot is the hash of the parent block
-	ParentBlockRoot common.Root `json:"parent_block_root"`
+	ParentBlockRoot common.Root `json:"parent_block_root" ssz-size:"32"`
 	// StateRoot is the hash of the state at the block.
-	StateRoot common.Root `json:"state_root"`
+	StateRoot common.Root `json:"state_root" ssz-size:"32"`
 	// BodyRoot is the root of the block body.
-	BodyRoot common.Root `json:"body_root"`
+	BodyRoot common.Root `json:"body_root" ssz-size:"32"`
 }
 
 /* -------------------------------------------------------------------------- */
@@ -79,111 +72,7 @@ func NewEmptyBeaconBlockHeader() *BeaconBlockHeader {
 	return &BeaconBlockHeader{}
 }
 
-/* -------------------------------------------------------------------------- */
-/*                                     SSZ                                    */
-/* -------------------------------------------------------------------------- */
-
-// SizeSSZ returns the size of the BeaconBlockHeader object in SSZ encoding.
-func (b *BeaconBlockHeader) SizeSSZ() int {
-	return BeaconBlockHeaderSize
-}
-
-
-// MarshalSSZ marshals the BeaconBlockHeader object to SSZ format.
-func (b *BeaconBlockHeader) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, 0, BeaconBlockHeaderSize)
-	return b.MarshalSSZTo(buf)
-}
-
 func (*BeaconBlockHeader) ValidateAfterDecodingSSZ() error { return nil }
-
-// HashTreeRoot computes the SSZ hash tree root of the BeaconBlockHeader object.
-func (b *BeaconBlockHeader) HashTreeRoot() ([32]byte, error) {
-	hh := fastssz.DefaultHasherPool.Get()
-	defer fastssz.DefaultHasherPool.Put(hh)
-	if err := b.HashTreeRootWith(hh); err != nil {
-		return [32]byte{}, err
-	}
-	return hh.HashRoot()
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                   FastSSZ                                  */
-/* -------------------------------------------------------------------------- */
-
-// MarshalSSZTo marshals the BeaconBlockHeader object to SSZ format.
-func (b *BeaconBlockHeader) MarshalSSZTo(dst []byte) ([]byte, error) {
-	// Field (0) 'Slot'
-	dst = fastssz.MarshalUint64(dst, uint64(b.Slot))
-
-	// Field (1) 'ProposerIndex'
-	dst = fastssz.MarshalUint64(dst, uint64(b.ProposerIndex))
-
-	// Field (2) 'ParentBlockRoot'
-	dst = append(dst, b.ParentBlockRoot[:]...)
-
-	// Field (3) 'StateRoot'
-	dst = append(dst, b.StateRoot[:]...)
-
-	// Field (4) 'BodyRoot'
-	dst = append(dst, b.BodyRoot[:]...)
-
-	return dst, nil
-}
-
-// HashTreeRootWith ssz hashes the BeaconBlockHeader object with a hasher.
-func (b *BeaconBlockHeader) HashTreeRootWith(
-	hh fastssz.HashWalker,
-) error {
-	indx := hh.Index()
-
-	// Field (0) 'Slot'
-	hh.PutUint64(uint64(b.Slot))
-
-	// Field (1) 'ProposerIndex'
-	hh.PutUint64(uint64(b.ProposerIndex))
-
-	// Field (2) 'ParentBlockRoot'
-	hh.PutBytes(b.ParentBlockRoot[:])
-
-	// Field (3) 'StateRoot'
-	hh.PutBytes(b.StateRoot[:])
-
-	// Field (4) 'BodyRoot'
-	hh.PutBytes(b.BodyRoot[:])
-
-	hh.Merkleize(indx)
-	return nil
-}
-
-// GetTree ssz hashes the BeaconBlockHeader object.
-func (b *BeaconBlockHeader) GetTree() (*fastssz.Node, error) {
-	return fastssz.ProofTree(b)
-}
-
-// UnmarshalSSZ ssz unmarshals the BeaconBlockHeader object.
-func (b *BeaconBlockHeader) UnmarshalSSZ(buf []byte) error {
-	if len(buf) != BeaconBlockHeaderSize {
-		return fastssz.ErrSize
-	}
-
-	// Field (0) 'Slot'
-	b.Slot = math.Slot(fastssz.UnmarshallUint64(buf[0:8]))
-
-	// Field (1) 'ProposerIndex'
-	b.ProposerIndex = math.ValidatorIndex(fastssz.UnmarshallUint64(buf[8:16]))
-
-	// Field (2) 'ParentBlockRoot'
-	copy(b.ParentBlockRoot[:], buf[16:48])
-
-	// Field (3) 'StateRoot'
-	copy(b.StateRoot[:], buf[48:80])
-
-	// Field (4) 'BodyRoot'
-	copy(b.BodyRoot[:], buf[80:112])
-
-	return nil
-}
 
 
 /* -------------------------------------------------------------------------- */

@@ -30,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/encoding/sszutil"
-	fastssz "github.com/ferranbt/fastssz"
 )
 
 const sszConsolidationRequestSize = 116
@@ -51,16 +50,6 @@ func (c *ConsolidationRequest) ValidateAfterDecodingSSZ() error {
 
 
 
-// HashTreeRoot returns the SSZ hash tree root for the ConsolidationRequest object.
-func (c *ConsolidationRequest) HashTreeRoot() ([32]byte, error) {
-	hh := fastssz.DefaultHasherPool.Get()
-	defer fastssz.DefaultHasherPool.Put(hh)
-	if err := c.HashTreeRootWith(hh); err != nil {
-		return [32]byte{}, err
-	}
-	return hh.HashRoot()
-	
-}
 
 /* -------------------------------------------------------------------------- */
 /*                       Consolidation Requests SSZ                           */

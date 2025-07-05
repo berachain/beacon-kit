@@ -18,33 +18,30 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-// TODO: Validator needs manual fastssz migration to handle dual interface compatibility
-// go:generate sszgen -path . -objs Validator -output validator_sszgen.go -include ../../primitives/common,../../primitives/crypto,../../primitives/math,../../primitives/bytes
+// NOTE: SSZ marshaling for Validator is manually implemented in validator_ssz.go
+// because sszgen cannot resolve the WithdrawalCredentials type definition from another file.
 
 package types
 
 import (
 	"github.com/berachain/beacon-kit/primitives/constants"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
-	fastssz "github.com/ferranbt/fastssz"
 )
 
-// ValidatorSize is the size of the Validator struct in bytes.
-const ValidatorSize = 121
 
-// TODO: Re-enable interface assertion once constraints are updated
-// var (
-// 	_ constraints.SSZMarshallableRootable = (*Validator)(nil)
-// )
+var (
+	_ constraints.SSZMarshallableRootable = (*Validator)(nil)
+)
 
 // Validator as defined in the Ethereum 2.0 Spec
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#validator
 type Validator struct {
 	// Pubkey is the validator's 48-byte BLS public key.
-	Pubkey crypto.BLSPubkey `json:"pubkey"`
+	Pubkey crypto.BLSPubkey `json:"pubkey" ssz-size:"48"`
 	// WithdrawalCredentials are an address that controls the validator.
-	WithdrawalCredentials WithdrawalCredentials `json:"withdrawalCredentials"`
+	WithdrawalCredentials WithdrawalCredentials `json:"withdrawalCredentials" ssz-size:"32"`
 	// EffectiveBalance is the validator's current effective balance in gwei.
 	EffectiveBalance math.Gwei `json:"effectiveBalance"`
 	// Slashed indicates whether the validator has been slashed.
@@ -102,141 +99,7 @@ func ComputeEffectiveBalance(
 	return min(amount-amount%effectiveBalanceIncrement, maxEffectiveBalance)
 }
 
-/* -------------------------------------------------------------------------- */
-/*                                     SSZ                                    */
-/* -------------------------------------------------------------------------- */
-
-// SizeSSZ returns the size of the Validator object in SSZ encoding.
-func (*Validator) SizeSSZ() int {
-	return ValidatorSize
-}
-
-
-// HashTreeRoot computes the SSZ hash tree root of the Validator object.
-func (v *Validator) HashTreeRoot() ([32]byte, error) {
-	hh := fastssz.DefaultHasherPool.Get()
-	defer fastssz.DefaultHasherPool.Put(hh)
-	if err := v.HashTreeRootWith(hh); err != nil {
-		return [32]byte{}, err
-	}
-	return hh.HashRoot()
-}
-
-// MarshalSSZ marshals the Validator object to SSZ format.
-func (v *Validator) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, 0, ValidatorSize)
-	return v.MarshalSSZTo(buf)
-}
-
 func (*Validator) ValidateAfterDecodingSSZ() error { return nil }
-
-/* -------------------------------------------------------------------------- */
-/*                                   FastSSZ                                  */
-/* -------------------------------------------------------------------------- */
-
-// MarshalSSZTo marshals the Validator object to SSZ format into the provided
-// buffer.
-func (v *Validator) MarshalSSZTo(dst []byte) ([]byte, error) {
-	// Field (0) 'Pubkey'
-	dst = append(dst, v.Pubkey[:]...)
-
-	// Field (1) 'WithdrawalCredentials'
-	dst = append(dst, v.WithdrawalCredentials[:]...)
-
-	// Field (2) 'EffectiveBalance'
-	dst = fastssz.MarshalUint64(dst, uint64(v.EffectiveBalance))
-
-	// Field (3) 'Slashed'
-	if v.Slashed {
-		dst = append(dst, 1)
-	} else {
-		dst = append(dst, 0)
-	}
-
-	// Field (4) 'ActivationEligibilityEpoch'
-	dst = fastssz.MarshalUint64(dst, uint64(v.ActivationEligibilityEpoch))
-
-	// Field (5) 'ActivationEpoch'
-	dst = fastssz.MarshalUint64(dst, uint64(v.ActivationEpoch))
-
-	// Field (6) 'ExitEpoch'
-	dst = fastssz.MarshalUint64(dst, uint64(v.ExitEpoch))
-
-	// Field (7) 'WithdrawableEpoch'
-	dst = fastssz.MarshalUint64(dst, uint64(v.WithdrawableEpoch))
-
-	return dst, nil
-}
-
-// HashTreeRootWith ssz hashes the Validator object with a hasher.
-func (v *Validator) HashTreeRootWith(hh fastssz.HashWalker) error {
-	indx := hh.Index()
-
-	// Field (0) 'Pubkey'
-	hh.PutBytes(v.Pubkey[:])
-
-	// Field (1) 'WithdrawalCredentials'
-	hh.PutBytes(v.WithdrawalCredentials[:])
-
-	// Field (2) 'EffectiveBalance'
-	hh.PutUint64(uint64(v.EffectiveBalance))
-
-	// Field (3) 'Slashed'
-	hh.PutBool(v.Slashed)
-
-	// Field (4) 'ActivationEligibilityEpoch'
-	hh.PutUint64(uint64(v.ActivationEligibilityEpoch))
-
-	// Field (5) 'ActivationEpoch'
-	hh.PutUint64(uint64(v.ActivationEpoch))
-
-	// Field (6) 'ExitEpoch'
-	hh.PutUint64(uint64(v.ExitEpoch))
-
-	// Field (7) 'WithdrawableEpoch'
-	hh.PutUint64(uint64(v.WithdrawableEpoch))
-
-	hh.Merkleize(indx)
-	return nil
-}
-
-// GetTree ssz hashes the Validator object.
-func (v *Validator) GetTree() (*fastssz.Node, error) {
-	return fastssz.ProofTree(v)
-}
-
-// UnmarshalSSZ ssz unmarshals the Validator object.
-func (v *Validator) UnmarshalSSZ(buf []byte) error {
-	if len(buf) != ValidatorSize {
-		return fastssz.ErrSize
-	}
-
-	// Field (0) 'Pubkey'
-	copy(v.Pubkey[:], buf[0:48])
-
-	// Field (1) 'WithdrawalCredentials'
-	copy(v.WithdrawalCredentials[:], buf[48:80])
-
-	// Field (2) 'EffectiveBalance'
-	v.EffectiveBalance = math.Gwei(fastssz.UnmarshallUint64(buf[80:88]))
-
-	// Field (3) 'Slashed'
-	v.Slashed = buf[88] != 0
-
-	// Field (4) 'ActivationEligibilityEpoch'
-	v.ActivationEligibilityEpoch = math.Epoch(fastssz.UnmarshallUint64(buf[89:97]))
-
-	// Field (5) 'ActivationEpoch'
-	v.ActivationEpoch = math.Epoch(fastssz.UnmarshallUint64(buf[97:105]))
-
-	// Field (6) 'ExitEpoch'
-	v.ExitEpoch = math.Epoch(fastssz.UnmarshallUint64(buf[105:113]))
-
-	// Field (7) 'WithdrawableEpoch'
-	v.WithdrawableEpoch = math.Epoch(fastssz.UnmarshallUint64(buf[113:121]))
-
-	return nil
-}
 
 
 /* -------------------------------------------------------------------------- */

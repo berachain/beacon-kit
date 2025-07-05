@@ -8,43 +8,43 @@ This document tracks the migration from manually written SSZ code to sszgen-gene
 ### Simple Fixed-Size Types ✅ Ready for sszgen
 These have manual implementations but no fork-specific logic:
 
-- [ ] **Deposit** (deposit.go)
+- [x] **Deposit** (deposit.go) ✅ MIGRATED
   - Fixed size: 192 bytes
   - Simple fields: Pubkey, Credentials, Amount, Signature, Index
-  - Currently has manual implementation
+  - Migrated to sszgen (with WithdrawalCredentials type alias workaround)
   
-- [ ] **Eth1Data** (eth1data.go)
+- [x] **Eth1Data** (eth1data.go) ✅ MIGRATED
   - Fixed size: 72 bytes
   - Simple fields: DepositRoot, DepositCount, BlockHash
-  - Currently has manual implementation
+  - Migrated to sszgen
 
-- [ ] **Validator** (validator.go)
+- [x] **Validator** (validator.go) ✅ MIGRATED
   - Fixed size: 121 bytes
   - Simple fields with no conditional logic
-  - Currently has manual implementation
+  - Migrated to sszgen
 
-- [ ] **BeaconBlockHeader** (header.go)
+- [x] **BeaconBlockHeader** (header.go) ✅ MIGRATED
   - Fixed size structure
   - Simple fields: Slot, ProposerIndex, ParentBlockRoot, StateRoot, BodyRoot
-  - Currently has manual implementation
+  - Migrated to sszgen
 
-- [ ] **PendingPartialWithdrawal** (pending_partial_withdrawal.go)
+- [x] **PendingPartialWithdrawal** (pending_partial_withdrawal.go) ✅ MIGRATED
   - Fixed size structure
-  - Simple fields: Index, Epoch, Withdrawable, Amount, Withdrawn
-  - Currently has manual implementation
+  - Simple fields: ValidatorIndex, Amount, WithdrawableEpoch
+  - Migrated to sszgen
 
-- [ ] **SyncAggregate** (sync_aggregate.go)
+- [x] **SyncAggregate** (sync_aggregate.go) ✅ MIGRATED
   - Fixed size: 160 bytes
   - Simple arrays: SyncCommitteeBits, SyncCommitteeSignature
-  - Currently has manual implementation
+  - Migrated to sszgen
 
 ### Variable-Size Types ✅ Ready for sszgen
 These have dynamic fields but no fork-specific logic:
 
-- [ ] **SignedBeaconBlockHeader** (signed_beacon_block_header.go)
+- [x] **SignedBeaconBlockHeader** (signed_beacon_block_header.go) ✅ MIGRATED
   - Contains: Header (BeaconBlockHeader) + Signature
   - No fork-specific logic
-  - Currently has manual implementation
+  - Migrated to sszgen
 
 ## Types That MUST Keep Manual Implementation
 
