@@ -69,3 +69,30 @@ type ValidatorWithdrawalCredentialsResponse struct {
 	// block. In the Electra fork, z is 6350779162034177.
 	WithdrawalCredentialsProof []common.Root `json:"withdrawal_credentials_proof"`
 }
+
+// ValidatorBalanceResponse is the response for the
+// `/proof/validator_balance/{timestamp_id}/{validator_index}` endpoint.
+type ValidatorBalanceResponse struct {
+	// BeaconBlockHeader is the block header of which the hash tree root is the
+	// beacon block root to verify against.
+	BeaconBlockHeader *ctypes.BeaconBlockHeader `json:"beacon_block_header"`
+
+	// BeaconBlockRoot is the beacon block root for this slot.
+	BeaconBlockRoot common.Root `json:"beacon_block_root"`
+
+	// ValidatorBalance is the balance of the requested validator.
+	ValidatorBalance uint64 `json:"validator_balance"`
+
+	// ValidatorIndex is the index of the validator (included for verification).
+	ValidatorIndex uint64 `json:"validator_index"`
+
+	// BalanceLeaf is the leaf containing the validator's balance along with up
+	// to 3 other validators' balances (packed 4 per leaf).
+	BalanceLeaf common.Root `json:"balance_leaf"`
+
+	// BalanceProof can be verified against the beacon block root.
+	// Use a Generalized Index of `z + (1 * (ValidatorIndex / 4))`, where z is the
+	// Generalized Index of the 0-3 validators' balances in the beacon block.
+	// In the Electra fork, z is 199011604627456.
+	BalanceProof []common.Root `json:"balance_proof"`
+}

@@ -34,3 +34,10 @@ type ValidatorCredentialsRequest struct {
 	types.TimestampIDRequest
 	ValidatorIndex string `param:"validator_index" validate:"required,numeric"`
 }
+
+// ValidatorBalanceRequest is the request for the
+// `/proof/validator_balance/{timestamp_id}/{validator_index}` endpoint.
+type ValidatorBalanceRequest struct {
+	types.TimestampIDRequest
+	ValidatorIndex string `param:"validator_index" validate:"required,numeric"`
+}

@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -94,6 +94,12 @@ type BeaconKitNodeClient interface {
 	BlockProposerProof(
 		ctx context.Context, timestampID string,
 	) (*ptypes.BlockProposerResponse, error)
+
+	// ValidatorBalanceProof calls `bkit/v1/proof/validator_balance/:timestamp_id/:validator_index` endpoint to get
+	// the merkle proofs that can be used to verify the validator balance for a given timestamp id and validator index.
+	ValidatorBalanceProof(
+		ctx context.Context, timestampID string, validatorIndex string,
+	) (*ptypes.ValidatorBalanceResponse, error)
 }
 
 // customBeaconClient is a custom implementation of the BeaconKitNodeClient interface
@@ -237,6 +243,35 @@ func (c *customBeaconClient) BlockProposerProof(
 	defer resp.Body.Close()
 
 	var result ptypes.BlockProposerResponse
+	if err = json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	return &result, nil
+}
+
+// ValidatorBalanceProof calls `bkit/v1/proof/validator_balance/:timestamp_id/:validator_index` endpoint to get
+// the merkle proofs that can be used to verify the validator balance for a given timestamp id and validator index.
+func (c *customBeaconClient) ValidatorBalanceProof(
+	ctx context.Context, timestampID string, validatorIndex string,
+) (*ptypes.ValidatorBalanceResponse, error) {
+	url := fmt.Sprintf("%s/bkit/v1/proof/validator_balance/%s/%s", c.address, timestampID, validatorIndex)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send request: %w", err)
+	}
+	if resp == nil {
+		return nil, errors.New("received nil response")
+	}
+	defer resp.Body.Close()
+
+	var result ptypes.ValidatorBalanceResponse
 	if err = json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}

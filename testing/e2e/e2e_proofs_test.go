@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -174,6 +174,90 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 		validatorPubkeyProof,
 		blockProposerResp.BeaconBlockRoot,
 		blockProposerResp.ValidatorPubkey.HashTreeRoot(),
+		new(big.Int).SetUint64(gIndex),
+	)
+	s.Require().NoError(err)
+}
+
+// TestValidatorBalanceProof tests the validator balance proof endpoint by fetching and verifying
+// validator balance proofs against the SSZTest contract.
+func (s *BeaconKitE2ESuite) TestValidatorBalanceProof() {
+	// Sender account
+	sender := s.TestAccounts()[0]
+
+	// Get the chain ID.
+	chainID, err := s.JSONRPCBalancer().ChainID(s.Ctx())
+	s.Require().NoError(err)
+
+	// Deploy the SSZTest contract to verify the validator balance proof.
+	addr, tx, sszTest, err := ssztest.DeploySSZTest(&bind.TransactOpts{
+		From:     sender.Address(),
+		Signer:   sender.SignerFunc(chainID),
+		GasLimit: 1000000,
+		Context:  s.Ctx(),
+	}, s.JSONRPCBalancer())
+	s.Require().NoError(err)
+
+	// Confirm deployment.
+	receipt, err := bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
+	s.Require().NoError(err)
+	s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
+	s.Logger().Info("SSZTest contract deployed successfully", "address", addr.Hex())
+
+	// Get the current block number.
+	blockNumber, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
+	s.Require().NoError(err)
+
+	// Get the validator balance proof for validator 0 at the parent block number.
+	validatorIndex := uint64(0)
+	balanceResp, err := s.ConsensusClients()[config.ClientValidator0].ValidatorBalanceProof(
+		s.Ctx(), strconv.FormatUint(blockNumber-1, 10), strconv.FormatUint(validatorIndex, 10),
+	)
+	s.Require().NoError(err)
+	s.Require().NotNil(balanceResp)
+	s.Require().NotNil(balanceResp.BeaconBlockHeader)
+
+	// Verify the beacon block root is equal to HTR(BeaconBlockHeader).
+	s.Require().Equal(
+		balanceResp.BeaconBlockRoot, balanceResp.BeaconBlockHeader.HashTreeRoot(),
+	)
+
+	// Verify the slot is equal to the requested block number.
+	s.Require().Equal(balanceResp.BeaconBlockHeader.Slot.Unwrap(), blockNumber-1)
+
+	// Verify the validator index is equal to the requested index.
+	s.Require().Equal(balanceResp.ValidatorIndex, validatorIndex)
+
+	// Get the chain spec to determine the fork version.
+	cs, err := spec.DevnetChainSpec()
+	s.Require().NoError(err)
+
+	// Get the fork version based on the block's timestamp.
+	header, err := s.JSONRPCBalancer().HeaderByNumber(
+		s.Ctx(), new(big.Int).SetUint64(blockNumber-1),
+	)
+	s.Require().NoError(err)
+	forkVersion := cs.ActiveForkVersionForTimestamp(math.U64(header.Time))
+	zeroValidatorBalanceGIndex, err := merkle.GetZeroValidatorBalanceGIndexBlock(forkVersion)
+	s.Require().NoError(err)
+
+	// Calculate the balance GIndex based on fork version.
+	// Balances are packed 4 per leaf, so we need to divide by 4.
+	leafIndex := validatorIndex / 4
+	gIndex := zeroValidatorBalanceGIndex + (leafIndex * merkle.BalanceGIndexOffset)
+
+	// Verify the validator balance proof.
+	balanceProof := make([][32]byte, len(balanceResp.BalanceProof))
+	for i, proofItem := range balanceResp.BalanceProof {
+		balanceProof[i] = proofItem
+	}
+	err = sszTest.MustVerifyProof(
+		&bind.CallOpts{
+			Context: s.Ctx(),
+		},
+		balanceProof,
+		balanceResp.BeaconBlockRoot,
+		balanceResp.BalanceLeaf, // The leaf contains 4 packed balances
 		new(big.Int).SetUint64(gIndex),
 	)
 	s.Require().NoError(err)

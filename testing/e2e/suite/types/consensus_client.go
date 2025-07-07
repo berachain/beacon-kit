@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -235,6 +235,18 @@ func (cc ConsensusClient) BlockProposerProof(
 		return nil, errors.New("beacon client is not initialized")
 	}
 	return cc.beaconClient.BlockProposerProof(ctx, timestampID)
+}
+
+// ValidatorBalanceProof returns the validator balance proof for a given timestamp id and validator index.
+func (cc ConsensusClient) ValidatorBalanceProof(
+	ctx context.Context,
+	timestampID string,
+	validatorIndex string,
+) (*ptypes.ValidatorBalanceResponse, error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
+	return cc.beaconClient.ValidatorBalanceProof(ctx, timestampID, validatorIndex)
 }
 
 // TODO: Add helpers for the beacon node-api client (converting from
