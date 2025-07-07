@@ -26,12 +26,12 @@ import (
 	"fmt"
 	"time"
 
-	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/consensus/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
@@ -228,15 +228,14 @@ func (s *Service) VerifyIncomingBlobSidecars(
 // VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
 //
-//nolint:funlen // not an issue
+//nolint:funlen // abundantly commented
 func (s *Service) VerifyIncomingBlock(
 	ctx context.Context,
 	beaconBlk *ctypes.BeaconBlock,
 	consensusTime math.U64,
 	proposerAddress []byte,
 ) error {
-	// Grab a copy of the state to verify the incoming block.
-	preState := s.storageBackend.StateFromContext(ctx)
+	state := s.storageBackend.StateFromContext(ctx)
 
 	// Force a sync of the startup head if we haven't done so already.
 	// TODO: Address the need for calling forceStartupSyncOnce in ProcessProposal. On a running
@@ -245,7 +244,7 @@ func (s *Service) VerifyIncomingBlock(
 	// into this case during the first block after genesis.
 	// TODO: Consider panicing here if this fails. If our node cannot successfully run
 	// forceStartupSync, then we should shut down the node and fix the problem.
-	s.forceStartupSyncOnce.Do(func() { s.forceSyncUponProcess(ctx, preState) })
+	s.forceStartupSyncOnce.Do(func() { s.forceSyncUponProcess(ctx, state) })
 
 	s.logger.Info(
 		"Received incoming beacon block",
@@ -253,14 +252,8 @@ func (s *Service) VerifyIncomingBlock(
 		"slot", beaconBlk.GetSlot(),
 	)
 
-	// We purposefully make a copy of the BeaconState in order
-	// to avoid modifying the underlying state, for the event in which
-	// we have to rebuild a payload for this slot again, if we do not agree
-	// with the incoming block.
-	postState := preState.Copy(ctx)
-
 	// verify block slot
-	stateSlot, err := postState.GetSlot()
+	stateSlot, err := state.GetSlot()
 	if err != nil {
 		s.logger.Error(
 			"failed loading state slot to verify block slot",
@@ -280,10 +273,31 @@ func (s *Service) VerifyIncomingBlock(
 		return ErrUnexpectedBlockSlot
 	}
 
+	var (
+		nextBlockData *builder.RequestPayloadData
+		errFetch      error
+	)
+
+	if s.shouldBuildOptimisticPayloads() {
+		// state copy makes sure that preFetchBuildData does not affect state
+		copiedState := state.Copy(ctx)
+		nextBlockData, errFetch = s.preFetchBuildData(copiedState, consensusTime)
+		if errFetch != nil {
+			// We don't return with err if pre-fetch fails. Instead we log the issue
+			// and still move to process the current block. Next block can always be
+			// built right after current height is finalized.
+			s.logger.Warn(
+				"Failed pre fetching data for optimistic block building",
+				"case", "block rejectiong",
+				"err", errFetch,
+			)
+		}
+	}
+
 	// Verify the state root of the incoming block.
 	err = s.verifyStateRoot(
 		ctx,
-		postState,
+		state,
 		beaconBlk,
 		consensusTime,
 		proposerAddress)
@@ -295,25 +309,11 @@ func (s *Service) VerifyIncomingBlock(
 		)
 
 		if s.shouldBuildOptimisticPayloads() {
-			lph, lphErr := preState.GetLatestExecutionPayloadHeader()
-			if lphErr != nil {
-				return errors.Join(
-					err,
-					fmt.Errorf("failed getting LatestExecutionPayloadHeader: %w", lphErr),
-				)
+			if nextBlockData == nil {
+				// Failed fetching data to build next block. Just return block error
+				return err
 			}
-
-			// If we are rejecting the incoming block, let's optimistically build a candidate
-			// payload for this slot (in case we are selected as the next proposer for this slot).
-			go s.handleRebuildPayloadForRejectedBlock(
-				ctx,
-				preState,
-				payloadtime.Next(
-					consensusTime,
-					lph.GetTimestamp(),
-					true, // buildOptimistically
-				),
-			)
+			go s.handleRebuildPayloadForRejectedBlock(ctx, nextBlockData)
 		}
 
 		return err
@@ -321,26 +321,25 @@ func (s *Service) VerifyIncomingBlock(
 
 	s.logger.Info(
 		"State root verification succeeded - accepting incoming beacon block",
-		"state_root",
-		beaconBlk.GetStateRoot(),
+		"state_root", beaconBlk.GetStateRoot(),
 	)
 
 	if s.shouldBuildOptimisticPayloads() {
-		lph, lphErr := postState.GetLatestExecutionPayloadHeader()
-		if lphErr != nil {
-			return fmt.Errorf("failed loading LatestExecutionPayloadHeader: %w", lphErr)
+		// state copy makes sure that preFetchBuildDataForSuccess does not affect state
+		copiedState := state.Copy(ctx)
+		nextBlockData, errFetch = s.preFetchBuildData(copiedState, consensusTime)
+		if errFetch != nil {
+			// We don't mark the block as rejected if it is valid but pre-fetch fails.
+			// Instead we log the issue and move to process the current block.
+			// Next block can always be built right after current height is finalized.
+			s.logger.Warn(
+				"Failed pre fetching data for optimistic block building",
+				"case", "block success",
+				"err", errFetch,
+			)
+			return nil
 		}
-
-		go s.handleOptimisticPayloadBuild(
-			ctx,
-			postState,
-			beaconBlk,
-			payloadtime.Next(
-				consensusTime,
-				lph.GetTimestamp(),
-				true, // buildOptimistically
-			),
-		)
+		go s.handleOptimisticPayloadBuild(ctx, nextBlockData)
 	}
 
 	return nil

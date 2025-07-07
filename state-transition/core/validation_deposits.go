@@ -146,7 +146,7 @@ func ValidateNonGenesisDepositsV1(
 	}
 
 	// Grab all previous deposits from genesis up to the current index + max deposits per block.
-	localDeposits, depRoot, err := depositStore.GetDepositsByIndex(
+	localDeposits, localDepositRoot, err := depositStore.GetDepositsByIndex(
 		ctx,
 		constants.FirstDepositIndex,
 		depositIndex+maxDepositsPerBlock,
@@ -184,7 +184,7 @@ func ValidateNonGenesisDepositsV1(
 	}
 
 	// Finally check that the historical deposits root matches locally what's on the beacon block.
-	if !depRoot.Equals(blkDepositRoot) {
+	if !localDepositRoot.Equals(blkDepositRoot) {
 		return ErrDepositsRootMismatch
 	}
 

@@ -100,6 +100,8 @@ type SpecData struct {
 	Deneb1ForkTime uint64 `mapstructure:"deneb-one-fork-time"`
 	// ElectraForkTime is the time at which the Electra fork is activated.
 	ElectraForkTime uint64 `mapstructure:"electra-fork-time"`
+	// Electra1ForkTime is the time at which the Electra1 fork is activated.
+	Electra1ForkTime uint64 `mapstructure:"electra-one-fork-time"`
 
 	// State list lengths
 	//

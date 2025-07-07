@@ -25,6 +25,7 @@ import (
 
 	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
@@ -49,6 +50,10 @@ type ReadOnlyContext interface {
 
 // ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine interface {
+	NotifyForkchoiceUpdate( // added to simplify mocks
+		ctx context.Context,
+		req *ctypes.ForkchoiceUpdateRequest,
+	) (*engineprimitives.PayloadID, error)
 	// NotifyNewPayload notifies the execution client of the new payload.
 	NotifyNewPayload(
 		ctx context.Context,
