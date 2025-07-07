@@ -412,9 +412,8 @@ test-e2e-deposits-no-build:
 ###                       CometBFT  E2E Framework Testing                          ###
 ###############################################################################
 
-test-e2e-single: ## run e2e single node test
-	@$(MAKE) build-e2e test-e2e-single-no-build
+test-cmt-e2e-single-run: ## run e2e single node test
+	@$(MAKE) build-cmt-e2e test-e2e-single-no-build
 
-test-e2e-single-no-build:
-	mkdir -p monitoring
+test-cmt-e2e-single-no-build:
 	testing/files/run-multiple.sh testing/networks/single.toml
