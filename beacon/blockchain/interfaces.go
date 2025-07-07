@@ -165,6 +165,7 @@ type PruningChainSpec interface {
 
 type ServiceChainSpec interface {
 	PruningChainSpec
+	chain.DepositSpec
 	chain.BlobSpec
 	chain.ForkSpec
 	chain.ForkVersionSpec

@@ -21,9 +21,10 @@
 package spec
 
 import (
-	"math"
+	stdmath "math"
 
 	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // TestnetChainSpecData is the chain.SpecData for Berachain's public testnet, Bepolia.
@@ -32,6 +33,8 @@ func TestnetChainSpecData() *chain.SpecData {
 
 	// Testnet uses chain ID of 80069.
 	specData.DepositEth1ChainID = TestnetEth1ChainID
+
+	specData.DepositsV2ActivationSlot = math.Slot(stdmath.MaxInt64) // TODO: set right value
 
 	// Timestamp of the genesis block of Bepolia testnet.
 	specData.GenesisTime = 1739976735
@@ -45,7 +48,7 @@ func TestnetChainSpecData() *chain.SpecData {
 	specData.ElectraForkTime = 1746633600
 
 	// Timestamp of the Electra1 fork on Bepolia.
-	specData.Electra1ForkTime = math.MaxInt64
+	specData.Electra1ForkTime = stdmath.MaxInt64
 
 	return specData
 }
