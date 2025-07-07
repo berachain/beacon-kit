@@ -120,7 +120,7 @@ push-docker-github: ## push the docker image to the ghcr registry
 	docker tag $(IMAGE_NAME):$(VERSION) ghcr.io/berachain/beacon-kit:$(VERSION)
 	docker push ghcr.io/berachain/beacon-kit:$(VERSION)
 
-build-docker-e2e: ## build a docker image containing `beacond` used in the e2e tests
+build-docker-cmt-e2e: ## build a docker image containing `beacond` used in the e2e tests
 	@echo "Build an e2e docker image..."
 	docker build \
 	-f ${DOCKERFILE_E2E} \
