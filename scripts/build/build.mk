@@ -120,18 +120,18 @@ push-docker-github: ## push the docker image to the ghcr registry
 	docker tag $(IMAGE_NAME):$(VERSION) ghcr.io/berachain/beacon-kit:$(VERSION)
 	docker push ghcr.io/berachain/beacon-kit:$(VERSION)
 
-build-docker-e2e: ## build a docker image containing `beacond` used in the e2e tests
+build-docker-cmt-e2e: ## build a docker image containing `beacond` used in the e2e tests
 	@echo "Build an e2e docker image..."
 	docker build \
 	-f ${DOCKERFILE_E2E} \
 	-t cometbft/e2e-node:local-version \
 	./testing # work around .dockerignore restrictions in the root folder
 
-build-runner: ## build e2e runner
+build-cmt-e2e-runner: ## build e2e runner
 		@echo "Build the e2e runner..."
 		@go build -mod=readonly -o $(OUT_DIR)/runner ./testing/runner
 
-build-e2e:
+build-cmt-e2e:
 	@$(MAKE) build-docker VERSION=local-version \
 		build-docker-e2e \
 		build-runner
