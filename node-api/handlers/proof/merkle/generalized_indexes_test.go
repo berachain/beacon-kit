@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -21,6 +21,7 @@
 package merkle_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/merkle"
@@ -308,5 +309,56 @@ func TestValidatorWithdrawalCredentialsGIndexElectra(t *testing.T) {
 	require.Equal(t,
 		merkle.ValidatorGIndexOffset,
 		int(oneValidatorWithdrawalCredentialsGIndexState-zeroValidatorWithdrawalCredentialsGIndexState),
+	)
+}
+
+func TestValidatorBalanceGIndexElectra(t *testing.T) {
+	t.Parallel()
+
+	// GIndex of the 0 validator's balance in the state.
+	_, zeroValidatorBalanceGIndexState, _, err := mlib.ObjectPath(
+		"Balances/0",
+	).GetGeneralizedIndex(beaconStateSchemaElectra)
+	require.NoError(t, err)
+	require.Equal(t,
+		merkle.ZeroValidatorBalanceGIndexElectraState,
+		int(zeroValidatorBalanceGIndexState),
+	)
+
+	// GIndex of the 0 validator's balance in the block.
+	_, zeroValidatorBalanceGIndexBlock, _, err := mlib.ObjectPath(
+		"State/Balances/0",
+	).GetGeneralizedIndex(beaconHeaderSchemaElectra)
+	require.NoError(t, err)
+	require.Equal(t,
+		merkle.ZeroValidatorBalanceGIndexElectraBlock,
+		int(zeroValidatorBalanceGIndexBlock),
+	)
+
+	// Concatenation is consistent.
+	concatValidatorBalanceStateToBlock := mlib.GeneralizedIndices{
+		mlib.GeneralizedIndex(merkle.StateGIndexBlock),
+		mlib.GeneralizedIndex(zeroValidatorBalanceGIndexState),
+	}.Concat()
+	require.Equal(t,
+		zeroValidatorBalanceGIndexBlock,
+		uint64(concatValidatorBalanceStateToBlock),
+	)
+
+	// Verify that balances 0-3 share the same GIndex (packed in same leaf)
+	for i := 0; i < 4; i++ {
+		path := fmt.Sprintf("Balances/%d", i)
+		_, balanceGIndex, _, err := mlib.ObjectPath(path).GetGeneralizedIndex(beaconStateSchemaElectra)
+		require.NoError(t, err)
+		require.Equal(t, zeroValidatorBalanceGIndexState, balanceGIndex)
+	}
+	
+	// GIndex offset of the next validator's balance.
+	// Balances are packed 4 per leaf (uint64 values, 32 bytes per leaf)
+	_, balanceGIndex4, _, err := mlib.ObjectPath("Balances/4").GetGeneralizedIndex(beaconStateSchemaElectra)
+	require.NoError(t, err)
+	require.Equal(t,
+		merkle.BalanceGIndexOffset,
+		int(balanceGIndex4-zeroValidatorBalanceGIndexState),
 	)
 }
