@@ -126,3 +126,12 @@ build-docker-cmt-e2e: ## build a docker image containing `beacond` used in the e
 	-f ${DOCKERFILE_E2E} \
 	-t cometbft/e2e-node:local-version \
 	./testing # work around .dockerignore restrictions in the root folder
+
+build-cmt-e2e-runner: ## build e2e runner
+		@echo "Build the e2e runner..."
+		@go build -mod=readonly -o $(OUT_DIR)/runner ./testing/runner
+
+build-cmt-e2e:
+	@$(MAKE) build-docker VERSION=local-version \
+		build-docker-e2e \
+		build-runner
