@@ -24,6 +24,7 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // BlockProposerResponse is the response for the
@@ -68,4 +69,23 @@ type ValidatorWithdrawalCredentialsResponse struct {
 	// Generalized Index of the 0 validator withdrawal credentials in the beacon
 	// block. In the Electra fork, z is 6350779162034177.
 	WithdrawalCredentialsProof []common.Root `json:"withdrawal_credentials_proof"`
+}
+
+// ValidatorBalanceResponse is the response for the
+// `/proof/validator_balance/{timestamp_id}/{validator_index}` endpoint.
+type ValidatorBalanceResponse struct {
+	// BeaconBlockHeader is the block header of which the hash tree root is the
+	// beacon block root to verify against.
+	BeaconBlockHeader *ctypes.BeaconBlockHeader `json:"beacon_block_header"`
+
+	// BeaconBlockRoot is the beacon block root for this slot.
+	BeaconBlockRoot common.Root `json:"beacon_block_root"`
+
+	// Balance is the balance of the requested validator in gwei.
+	Balance math.Gwei `json:"balance,string"`
+
+	// BalanceProof can be verified against the beacon block root.
+	// Use a Generalized Index of `z + (8 * ValidatorIndex)`, where z is the
+	// Generalized Index of the 0 validator balance in the beacon block.
+	BalanceProof []common.Root `json:"balance_proof"`
 }

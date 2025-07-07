@@ -77,6 +77,32 @@ const (
 	// GIndices. To get the GIndex of the withdrawal credentials of validator at index n, the formula is:
 	// GIndex = ZeroValidatorCredentialsGIndexElectraBlock + (ValidatorGIndexOffset * n)
 	ZeroValidatorCredentialsGIndexElectraBlock = 6350779162034177
+
+	// ZeroValidatorBalanceGIndexDenebState is the generalized index of the 0
+	// validator's balance in the beacon state in the Deneb forks. To get the
+	// GIndex of the balance of validator at index n, the formula is:
+	// GIndex = ZeroValidatorBalanceGIndexDenebState + (ValidatorGIndexOffset * n)
+	ZeroValidatorBalanceGIndexDenebState = 14293651161088
+
+	// ZeroValidatorBalanceGIndexDenebBlock is the generalized index of the 0
+	// validator's balance in the beacon block in the Deneb forks. This is
+	// calculated by concatenating the (ZeroValidatorBalanceGIndexDenebState, StateGIndexBlock)
+	// GIndices. To get the GIndex of the balance of validator at index n, the formula is:
+	// GIndex = ZeroValidatorBalanceGIndexDenebBlock + (ValidatorGIndexOffset * n)
+	ZeroValidatorBalanceGIndexDenebBlock = 102254581383168
+
+	// ZeroValidatorBalanceGIndexElectraState is the generalized index of the 0
+	// validator's balance in the beacon state in the Electra forks. To get the
+	// GIndex of the balance of validator at index n, the formula is:
+	// GIndex = ZeroValidatorBalanceGIndexElectraState + (ValidatorGIndexOffset * n)
+	ZeroValidatorBalanceGIndexElectraState = 23089744183296
+
+	// ZeroValidatorBalanceGIndexElectraBlock is the generalized index of the 0
+	// validator's balance in the beacon block in the Electra forks. This is
+	// calculated by concatenating the (ZeroValidatorBalanceGIndexElectraState, StateGIndexBlock)
+	// GIndices. To get the GIndex of the balance of validator at index n, the formula is:
+	// GIndex = ZeroValidatorBalanceGIndexElectraBlock + (ValidatorGIndexOffset * n)
+	ZeroValidatorBalanceGIndexElectraBlock = 199011604627456
 )
 
 // GetZeroValidatorPubkeyGIndexState determines the generalized index of the 0
@@ -117,6 +143,28 @@ func GetZeroValidatorCredentialsGIndexState(forkVersion common.Version) (int, er
 func GetZeroValidatorCredentialsGIndexBlock(forkVersion common.Version) (uint64, error) {
 	if version.EqualsOrIsAfter(forkVersion, version.Electra()) {
 		return ZeroValidatorCredentialsGIndexElectraBlock, nil
+	}
+	return 0, fmt.Errorf("unsupported fork version: %s", forkVersion)
+}
+
+// GetZeroValidatorBalanceGIndexState determines the generalized index of the 0
+// validator's balance in the beacon state based on the fork version.
+func GetZeroValidatorBalanceGIndexState(forkVersion common.Version) (int, error) {
+	if version.EqualsOrIsAfter(forkVersion, version.Electra()) {
+		return ZeroValidatorBalanceGIndexElectraState, nil
+	} else if version.EqualsOrIsAfter(forkVersion, version.Deneb()) {
+		return ZeroValidatorBalanceGIndexDenebState, nil
+	}
+	return 0, fmt.Errorf("unsupported fork version: %s", forkVersion)
+}
+
+// GetZeroValidatorBalanceGIndexBlock determines the generalized index of the 0
+// validator's balance in the beacon block based on the fork version.
+func GetZeroValidatorBalanceGIndexBlock(forkVersion common.Version) (uint64, error) {
+	if version.EqualsOrIsAfter(forkVersion, version.Electra()) {
+		return ZeroValidatorBalanceGIndexElectraBlock, nil
+	} else if version.EqualsOrIsAfter(forkVersion, version.Deneb()) {
+		return ZeroValidatorBalanceGIndexDenebBlock, nil
 	}
 	return 0, fmt.Errorf("unsupported fork version: %s", forkVersion)
 }
