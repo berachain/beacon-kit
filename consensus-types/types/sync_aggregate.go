@@ -44,7 +44,9 @@ type SyncAggregate struct {
 	SyncCommitteeSignature crypto.BLSSignature `ssz-size:"96"`
 }
 
-func (s *SyncAggregate) ValidateAfterDecodingSSZ() error { return s.EnforceUnused() }
+func (s *SyncAggregate) ValidateAfterDecodingSSZ() error { 
+	return s.EnforceUnused()
+}
 
 // EnforceUnused return true if the SyncAggregate contains all zero values.
 // As long as this type remains unused and unvalidated by consensus,
@@ -55,4 +57,3 @@ func (s *SyncAggregate) EnforceUnused() error {
 	}
 	return nil
 }
-
