@@ -26,9 +26,53 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
+
+// Compile-time assertions to ensure SlashingInfoKaralabe implements necessary interfaces.
+var _ ssz.StaticObject = (*SlashingInfoKaralabe)(nil)
+
+// SlashingInfoKaralabe represents a slashing info - exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
+type SlashingInfoKaralabe struct {
+	// Slot is the slot number of the slashing info.
+	Slot math.Slot
+	// ValidatorIndex is the validator index of the slashing info.
+	Index math.U64
+}
+
+// SizeSSZ returns the size of the SlashingInfo object in SSZ encoding.
+func (*SlashingInfoKaralabe) SizeSSZ() uint32 {
+	return 16 // 8 bytes for Slot + 8 bytes for Index
+}
+
+// DefineSSZ defines the SSZ encoding for the SlashingInfo object.
+// Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
+func (s *SlashingInfoKaralabe) DefineSSZ(codec *ssz.Codec) {
+	ssz.DefineUint64(codec, &s.Slot)
+	ssz.DefineUint64(codec, &s.Index)
+}
+
+// HashTreeRoot computes the SSZ hash tree root of the SlashingInfo object.
+// Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
+func (s *SlashingInfoKaralabe) HashTreeRoot() common.Root {
+	return ssz.HashSequential(s)
+}
+
+// MarshalSSZ marshals the SlashingInfo object to SSZ format.
+// Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
+func (s *SlashingInfoKaralabe) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, ssz.Size(s))
+	return buf, ssz.EncodeToBytes(buf, s)
+}
+
+// UnmarshalSSZ unmarshals the SlashingInfo object from SSZ format.
+// Adding this method for completeness
+func (s *SlashingInfoKaralabe) UnmarshalSSZ(buf []byte) error {
+	return ssz.DecodeFromBytes(buf, s)
+}
 
 // TestSlashingInfoSSZRegression ensures that the SSZ encoding for SlashingInfo
 // remains stable and backward compatible.
@@ -317,5 +361,109 @@ func TestSlashingInfoSSZFuzz(t *testing.T) {
 		root2, err := decoded.HashTreeRoot()
 		require.NoError(t, err, "iteration %d: decoded HashTreeRoot should not error", i)
 		require.Equal(t, root1, root2, "iteration %d: hash tree roots should match", i)
+	}
+}
+
+// TestSlashingInfoCompatibility tests that current and karalabe implementations produce identical results
+func TestSlashingInfoCompatibility(t *testing.T) {
+	testCases := []struct {
+		name string
+		setup func() (*types.SlashingInfo, *SlashingInfoKaralabe)
+	}{
+		{
+			name: "zero values",
+			setup: func() (*types.SlashingInfo, *SlashingInfoKaralabe) {
+				return &types.SlashingInfo{},
+					&SlashingInfoKaralabe{}
+			},
+		},
+		{
+			name: "typical slashing info",
+			setup: func() (*types.SlashingInfo, *SlashingInfoKaralabe) {
+				slot := math.Slot(12345)
+				index := math.U64(67890)
+				
+				current := &types.SlashingInfo{
+					Slot:  slot,
+					Index: index,
+				}
+				karalabe := &SlashingInfoKaralabe{
+					Slot:  slot,
+					Index: index,
+				}
+				return current, karalabe
+			},
+		},
+		{
+			name: "maximum values",
+			setup: func() (*types.SlashingInfo, *SlashingInfoKaralabe) {
+				slot := math.Slot(^uint64(0))
+				index := math.U64(^uint64(0))
+				
+				current := &types.SlashingInfo{
+					Slot:  slot,
+					Index: index,
+				}
+				karalabe := &SlashingInfoKaralabe{
+					Slot:  slot,
+					Index: index,
+				}
+				return current, karalabe
+			},
+		},
+		{
+			name: "specific values",
+			setup: func() (*types.SlashingInfo, *SlashingInfoKaralabe) {
+				slot := math.Slot(1000000)
+				index := math.U64(999)
+				
+				current := &types.SlashingInfo{
+					Slot:  slot,
+					Index: index,
+				}
+				karalabe := &SlashingInfoKaralabe{
+					Slot:  slot,
+					Index: index,
+				}
+				return current, karalabe
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			current, karalabe := tc.setup()
+
+			// Test Marshal
+			currentBytes, err1 := current.MarshalSSZ()
+			require.NoError(t, err1, "current MarshalSSZ should not error")
+			
+			karalabeBytes, err2 := karalabe.MarshalSSZ()
+			require.NoError(t, err2, "karalabe MarshalSSZ should not error")
+			
+			require.Equal(t, karalabeBytes, currentBytes, "marshaled bytes should be identical")
+
+			// Test Size
+			require.Equal(t, types.SlashingInfoSize, current.SizeSSZ(), "current size should be 16")
+			require.Equal(t, uint32(16), karalabe.SizeSSZ(), "karalabe size should be 16")
+
+			// Test Unmarshal with karalabe marshaled data
+			newCurrent := &types.SlashingInfo{}
+			err := newCurrent.UnmarshalSSZ(karalabeBytes)
+			require.NoError(t, err, "unmarshal karalabe data into current should not error")
+			require.Equal(t, current, newCurrent, "unmarshaled current should match original")
+
+			// Test Unmarshal with current marshaled data
+			newKaralabe := &SlashingInfoKaralabe{}
+			err = newKaralabe.UnmarshalSSZ(currentBytes)
+			require.NoError(t, err, "unmarshal current data into karalabe should not error")
+			require.Equal(t, karalabe, newKaralabe, "unmarshaled karalabe should match original")
+
+			// Test HashTreeRoot
+			currentRoot, err := current.HashTreeRoot()
+			require.NoError(t, err, "current HashTreeRoot should not error")
+			karalabeRoot := karalabe.HashTreeRoot()
+			require.Equal(t, [32]byte(karalabeRoot), currentRoot, "hash tree roots should be identical")
+		})
 	}
 }

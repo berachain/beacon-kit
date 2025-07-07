@@ -18,6 +18,12 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
+// NOTE: WithdrawalRequests is a slice type that uses EIP-7685 encoding format.
+// While the individual WithdrawalRequest elements were using karalabe/ssz,
+// the slice encoding follows a different format specified by EIP-7685. These tests
+// focus on the encoding/decoding functions rather than direct SSZ compatibility.
+// The individual element type (WithdrawalRequest) has its own compatibility test.
+
 //go:build test
 
 package types_test

@@ -373,3 +373,144 @@ func TestWithdrawalRequestsSSZInvalidData(t *testing.T) {
 		})
 	}
 }
+
+// TestWithdrawalRequestCompatibility tests that current and karalabe implementations produce identical results
+func TestWithdrawalRequestCompatibility(t *testing.T) {
+	testCases := []struct {
+		name string
+		setup func() (*types.WithdrawalRequest, *WithdrawalRequestKaralabe)
+	}{
+		{
+			name: "zero values",
+			setup: func() (*types.WithdrawalRequest, *WithdrawalRequestKaralabe) {
+				return &types.WithdrawalRequest{},
+					&WithdrawalRequestKaralabe{}
+			},
+		},
+		{
+			name: "typical withdrawal request",
+			setup: func() (*types.WithdrawalRequest, *WithdrawalRequestKaralabe) {
+				sourceAddr := common.ExecutionAddress{
+					0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88,
+					0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x00,
+					0x11, 0x22, 0x33, 0x44,
+				}
+				pubkey := crypto.BLSPubkey{
+					0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
+					0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10,
+					0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18,
+					0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f, 0x20,
+					0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28,
+					0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f, 0x30,
+				}
+				amount := math.Gwei(32000000000) // 32 ETH
+				
+				current := &types.WithdrawalRequest{
+					SourceAddress:   sourceAddr,
+					ValidatorPubKey: pubkey,
+					Amount:          amount,
+				}
+				karalabe := &WithdrawalRequestKaralabe{
+					SourceAddress:   sourceAddr,
+					ValidatorPubKey: pubkey,
+					Amount:          amount,
+				}
+				return current, karalabe
+			},
+		},
+		{
+			name: "maximum values",
+			setup: func() (*types.WithdrawalRequest, *WithdrawalRequestKaralabe) {
+				var sourceAddr common.ExecutionAddress
+				var pubkey crypto.BLSPubkey
+				for i := range sourceAddr {
+					sourceAddr[i] = 0xFF
+				}
+				for i := range pubkey {
+					pubkey[i] = 0xFF
+				}
+				amount := math.Gwei(^uint64(0))
+				
+				current := &types.WithdrawalRequest{
+					SourceAddress:   sourceAddr,
+					ValidatorPubKey: pubkey,
+					Amount:          amount,
+				}
+				karalabe := &WithdrawalRequestKaralabe{
+					SourceAddress:   sourceAddr,
+					ValidatorPubKey: pubkey,
+					Amount:          amount,
+				}
+				return current, karalabe
+			},
+		},
+		{
+			name: "partial withdrawal",
+			setup: func() (*types.WithdrawalRequest, *WithdrawalRequestKaralabe) {
+				sourceAddr := common.ExecutionAddress{
+					0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbe,
+					0xfa, 0xce, 0xdb, 0xad, 0xde, 0xed, 0xbe, 0xef,
+					0x12, 0x34, 0x56, 0x78,
+				}
+				pubkey := crypto.BLSPubkey{
+					0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x11, 0x22,
+					0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0x00,
+					0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0,
+					0x0f, 0x1e, 0x2d, 0x3c, 0x4b, 0x5a, 0x69, 0x78,
+					0x87, 0x96, 0xa5, 0xb4, 0xc3, 0xd2, 0xe1, 0xf0,
+					0xff, 0xee, 0xdd, 0xcc, 0xbb, 0xaa, 0x99, 0x88,
+				}
+				amount := math.Gwei(1_000_000_000) // 1 ETH
+				
+				current := &types.WithdrawalRequest{
+					SourceAddress:   sourceAddr,
+					ValidatorPubKey: pubkey,
+					Amount:          amount,
+				}
+				karalabe := &WithdrawalRequestKaralabe{
+					SourceAddress:   sourceAddr,
+					ValidatorPubKey: pubkey,
+					Amount:          amount,
+				}
+				return current, karalabe
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			current, karalabe := tc.setup()
+
+			// Test Marshal
+			currentBytes, err1 := current.MarshalSSZ()
+			require.NoError(t, err1, "current MarshalSSZ should not error")
+			
+			karalabeBytes, err2 := karalabe.MarshalSSZ()
+			require.NoError(t, err2, "karalabe MarshalSSZ should not error")
+			
+			require.Equal(t, karalabeBytes, currentBytes, "marshaled bytes should be identical")
+
+			// Test Size
+			require.Equal(t, 76, current.SizeSSZ(), "current size should be 76")
+			require.Equal(t, uint32(76), karalabe.SizeSSZ(), "karalabe size should be 76")
+
+			// Test Unmarshal with karalabe marshaled data
+			newCurrent := &types.WithdrawalRequest{}
+			err := newCurrent.UnmarshalSSZ(karalabeBytes)
+			require.NoError(t, err, "unmarshal karalabe data into current should not error")
+			require.Equal(t, current, newCurrent, "unmarshaled current should match original")
+
+			// Test Unmarshal with current marshaled data
+			newKaralabe := &WithdrawalRequestKaralabe{}
+			err = newKaralabe.UnmarshalSSZ(currentBytes)
+			require.NoError(t, err, "unmarshal current data into karalabe should not error")
+			require.Equal(t, karalabe, newKaralabe, "unmarshaled karalabe should match original")
+
+			// Test HashTreeRoot
+			currentRoot, err := current.HashTreeRoot()
+			require.NoError(t, err, "current HashTreeRoot should not error")
+			karalabeRoot := karalabe.HashTreeRoot()
+			require.Equal(t, [32]byte(karalabeRoot), currentRoot, "hash tree roots should be identical")
+		})
+	}
+}

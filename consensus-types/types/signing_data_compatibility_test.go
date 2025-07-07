@@ -27,8 +27,49 @@ import (
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
+
+// Compile-time assertions to ensure SigningDataKaralabe implements necessary interfaces.
+var _ ssz.StaticObject = (*SigningDataKaralabe)(nil)
+
+// SigningDataKaralabe as defined in the Ethereum 2.0 specification - exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#signingdata
+type SigningDataKaralabe struct {
+	// ObjectRoot is the hash tree root of the object being signed.
+	ObjectRoot common.Root
+	// Domain is the domain the object is being signed in.
+	Domain common.Domain
+}
+
+// SizeSSZ returns the size of the SigningData object in SSZ encoding.
+func (*SigningDataKaralabe) SizeSSZ() uint32 {
+	//nolint:mnd // 32*2 = 64.
+	return 64
+}
+
+// DefineSSZ defines the SSZ encoding for the SigningData object.
+func (s *SigningDataKaralabe) DefineSSZ(codec *ssz.Codec) {
+	ssz.DefineStaticBytes(codec, &s.ObjectRoot)
+	ssz.DefineStaticBytes(codec, &s.Domain)
+}
+
+// HashTreeRoot computes the SSZ hash tree root of the SigningData object.
+func (s *SigningDataKaralabe) HashTreeRoot() common.Root {
+	return ssz.HashSequential(s)
+}
+
+// MarshalSSZ marshals the SigningData object to SSZ format.
+func (s *SigningDataKaralabe) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, ssz.Size(s))
+	return buf, ssz.EncodeToBytes(buf, s)
+}
+
+// UnmarshalSSZ unmarshals the SigningData object from SSZ format.
+func (s *SigningDataKaralabe) UnmarshalSSZ(buf []byte) error {
+	return ssz.DecodeFromBytes(buf, s)
+}
 
 // TestSigningDataSSZRegression ensures that the SSZ encoding for SigningData
 // remains stable and backward compatible.
@@ -404,6 +445,138 @@ func TestSigningDataComputeSigningRootUInt64(t *testing.T) {
 			differentDomain[0] ^= 0xff
 			differentRoot := types.ComputeSigningRootUInt64(tc.value, differentDomain)
 			require.NotEqual(t, signingRoot, differentRoot, "different domains should produce different roots")
+		})
+	}
+}
+
+// TestSigningDataCompatibility tests that current and karalabe implementations produce identical results
+func TestSigningDataCompatibility(t *testing.T) {
+	testCases := []struct {
+		name string
+		setup func() (*types.SigningData, *SigningDataKaralabe)
+	}{
+		{
+			name: "zero values",
+			setup: func() (*types.SigningData, *SigningDataKaralabe) {
+				return &types.SigningData{},
+					&SigningDataKaralabe{}
+			},
+		},
+		{
+			name: "typical signing data",
+			setup: func() (*types.SigningData, *SigningDataKaralabe) {
+				objectRoot := common.Root{
+					0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
+					0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10,
+					0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18,
+					0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f, 0x20,
+				}
+				domain := common.Domain{
+					0x07, 0x00, 0x00, 0x00, // Domain type beacon proposer
+					0x01, 0x02, 0x03, 0x04, // Fork version
+					0xa1, 0xa2, 0xa3, 0xa4, 0xa5, 0xa6, 0xa7, 0xa8, // Genesis validators root
+					0xb1, 0xb2, 0xb3, 0xb4, 0xb5, 0xb6, 0xb7, 0xb8,
+					0xc1, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7, 0xc8,
+				}
+				
+				current := &types.SigningData{
+					ObjectRoot: objectRoot,
+					Domain:     domain,
+				}
+				karalabe := &SigningDataKaralabe{
+					ObjectRoot: objectRoot,
+					Domain:     domain,
+				}
+				return current, karalabe
+			},
+		},
+		{
+			name: "maximum values",
+			setup: func() (*types.SigningData, *SigningDataKaralabe) {
+				var objectRoot common.Root
+				var domain common.Domain
+				for i := range objectRoot {
+					objectRoot[i] = 0xFF
+				}
+				for i := range domain {
+					domain[i] = 0xFF
+				}
+				
+				current := &types.SigningData{
+					ObjectRoot: objectRoot,
+					Domain:     domain,
+				}
+				karalabe := &SigningDataKaralabe{
+					ObjectRoot: objectRoot,
+					Domain:     domain,
+				}
+				return current, karalabe
+			},
+		},
+		{
+			name: "specific values",
+			setup: func() (*types.SigningData, *SigningDataKaralabe) {
+				objectRoot := common.Root{
+					0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbe,
+					0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
+					0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff,
+					0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0,
+				}
+				domain := common.Domain{
+					0x00, 0x00, 0x00, 0x00, // Domain type beacon proposer
+					0xaa, 0xbb, 0xcc, 0xdd, // Fork version
+					0x11, 0x11, 0x11, 0x11, 0x22, 0x22, 0x22, 0x22, // Genesis validators root
+					0x33, 0x33, 0x33, 0x33, 0x44, 0x44, 0x44, 0x44,
+					0x55, 0x55, 0x55, 0x55, 0x66, 0x66, 0x66, 0x66,
+				}
+				
+				current := &types.SigningData{
+					ObjectRoot: objectRoot,
+					Domain:     domain,
+				}
+				karalabe := &SigningDataKaralabe{
+					ObjectRoot: objectRoot,
+					Domain:     domain,
+				}
+				return current, karalabe
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			current, karalabe := tc.setup()
+
+			// Test Marshal
+			currentBytes, err1 := current.MarshalSSZ()
+			require.NoError(t, err1, "current MarshalSSZ should not error")
+			
+			karalabeBytes, err2 := karalabe.MarshalSSZ()
+			require.NoError(t, err2, "karalabe MarshalSSZ should not error")
+			
+			require.Equal(t, karalabeBytes, currentBytes, "marshaled bytes should be identical")
+
+			// Test Size
+			require.Equal(t, 64, current.SizeSSZ(), "current size should be 64")
+			require.Equal(t, uint32(64), karalabe.SizeSSZ(), "karalabe size should be 64")
+
+			// Test Unmarshal with karalabe marshaled data
+			newCurrent := &types.SigningData{}
+			err := newCurrent.UnmarshalSSZ(karalabeBytes)
+			require.NoError(t, err, "unmarshal karalabe data into current should not error")
+			require.Equal(t, current, newCurrent, "unmarshaled current should match original")
+
+			// Test Unmarshal with current marshaled data
+			newKaralabe := &SigningDataKaralabe{}
+			err = newKaralabe.UnmarshalSSZ(currentBytes)
+			require.NoError(t, err, "unmarshal current data into karalabe should not error")
+			require.Equal(t, karalabe, newKaralabe, "unmarshaled karalabe should match original")
+
+			// Test HashTreeRoot
+			currentRoot, err := current.HashTreeRoot()
+			require.NoError(t, err, "current HashTreeRoot should not error")
+			karalabeRoot := karalabe.HashTreeRoot()
+			require.Equal(t, [32]byte(karalabeRoot), currentRoot, "hash tree roots should be identical")
 		})
 	}
 }
