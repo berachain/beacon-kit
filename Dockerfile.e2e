@@ -35,6 +35,7 @@ RUN mkdir -p /build/bin && cp /usr/bin/beacond /build/bin
 COPY files/ /testing/files/
 COPY networks/ /testing/networks/
 COPY files/entrypoint_cmt_e2e.sh /usr/bin/entrypoint-builtin
+RUN chmod +x /usr/bin/entrypoint-builtin
 
 # Configure entrypoint_cmt_e2e.sh
 ENV RPC_PREFIX="http://"

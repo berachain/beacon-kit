@@ -413,7 +413,7 @@ test-e2e-deposits-no-build:
 ###############################################################################
 
 test-cmt-e2e-single-run: ## run e2e single node test
-	@$(MAKE) build-cmt-e2e test-e2e-single-no-build
+	@$(MAKE) build-cmt-e2e test-cmt-e2e-single-no-build
 
 test-cmt-e2e-single-no-build:
 	testing/files/run-multiple.sh testing/networks/single.toml
