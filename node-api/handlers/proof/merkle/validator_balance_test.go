@@ -93,7 +93,7 @@ func TestValidatorBalanceProof_Comparison(t *testing.T) {
 				tc.bodyRoot,
 			)
 
-			proof, _, err := merkle.ProveBalanceInBlock(tc.valIndex, bbh, bs)
+			proof, _, _, err := merkle.ProveBalanceInBlock(tc.valIndex, bbh, bs, bs.Balances)
 			require.NoError(t, err)
 			expectedProof := ReadProofFromFile(t, tc.expectedProofFile)
 			require.Equal(t, expectedProof, proof)
@@ -180,10 +180,11 @@ func TestValidatorBalanceProof(t *testing.T) {
 			)
 
 			// Generate the proof
-			proof, beaconRoot, err := merkle.ProveBalanceInBlock(
+			proof, _, beaconRoot, err := merkle.ProveBalanceInBlock(
 				tt.validatorIndex,
 				bbh,
 				bs,
+				bs.Balances,
 			)
 			require.NoError(t, err)
 			require.NotEmpty(t, proof)
@@ -242,10 +243,11 @@ func TestValidatorBalanceProofEdgeCases(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			proof, beaconRoot, err := merkle.ProveBalanceInBlock(
+			proof, _, beaconRoot, err := merkle.ProveBalanceInBlock(
 				tc.validatorIndex,
 				bbh,
 				bs,
+				bs.Balances,
 			)
 			require.NoError(t, err)
 			require.NotEmpty(t, proof)

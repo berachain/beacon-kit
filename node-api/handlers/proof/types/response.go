@@ -24,6 +24,7 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // BlockProposerResponse is the response for the
@@ -81,7 +82,7 @@ type ValidatorBalanceResponse struct {
 	BeaconBlockRoot common.Root `json:"beacon_block_root"`
 
 	// ValidatorBalance is the balance of the requested validator.
-	ValidatorBalance uint64 `json:"validator_balance"`
+	ValidatorBalance math.Gwei `json:"validator_balance"`
 
 	// BalanceLeaf is the leaf containing the validator's balance along with up
 	// to 3 other validators' balances (packed 4 per leaf).

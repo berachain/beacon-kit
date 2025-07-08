@@ -28,13 +28,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-const (
-	// balancesPerLeaf is the number of validator balances packed into a single leaf.
-	balancesPerLeaf = 4
-	// bytesPerBalance is the number of bytes in a single balance.
-	bytesPerBalance = 8
-)
-
 // GetValidatorBalance returns the balance of a validator along with a
 // Merkle proof that can be verified against the beacon block root.
 func (h *Handler) GetValidatorBalance(c handlers.Context) (any, error) {
@@ -55,7 +48,7 @@ func (h *Handler) GetValidatorBalance(c handlers.Context) (any, error) {
 	}
 
 	h.Logger().Info(
-		"Generating balance proofs", "slot", slot, "validator_index", validatorIndex,
+		"Generating balance proof", "slot", slot, "validator_index", validatorIndex,
 	)
 
 	// Generate proof for balance in the block.
@@ -64,8 +57,15 @@ func (h *Handler) GetValidatorBalance(c handlers.Context) (any, error) {
 		return nil, err
 	}
 
-	balanceProof, beaconBlockRoot, err := merkle.ProveBalanceInBlock(
-		validatorIndex, blockHeader, bsm,
+	// Fetch all balances from state and construct the balance leaf using the
+	// helper in the merkle package.
+	allBalances, err := beaconState.GetBalances()
+	if err != nil {
+		return nil, err
+	}
+
+	balanceProof, balanceLeaf, beaconBlockRoot, err := merkle.ProveBalanceInBlock(
+		validatorIndex, blockHeader, bsm, allBalances,
 	)
 	if err != nil {
 		return nil, err
@@ -77,38 +77,11 @@ func (h *Handler) GetValidatorBalance(c handlers.Context) (any, error) {
 		return nil, err
 	}
 
-	// Calculate which leaf contains this validator's balance
-	leafIndex := validatorIndex / balancesPerLeaf
-
-	// The leaf is included in the proof. Since balances are packed 4 per leaf,
-	// we need to reconstruct the leaf from the balances.
-	startIdx := leafIndex * balancesPerLeaf
-
-	// Get all balances in this leaf
-	allBalances, err := beaconState.GetBalances()
-	if err != nil {
-		return nil, err
-	}
-
-	// Create the leaf by packing 4 uint64 balances
-	var leafBytes [32]byte
-	for i := range balancesPerLeaf {
-		idx := startIdx.Unwrap() + uint64(i) // #nosec G115
-		if idx < uint64(len(allBalances)) {
-			// Pack uint64 as little-endian bytes
-			bal := allBalances[idx]
-			for j := range bytesPerBalance {
-				// #nosec G115
-				leafBytes[uint64(i)*bytesPerBalance+uint64(j)] = byte(bal >> (uint64(j) * bytesPerBalance))
-			}
-		}
-	}
-
 	return types.ValidatorBalanceResponse{
 		BeaconBlockHeader: blockHeader,
 		BeaconBlockRoot:   beaconBlockRoot,
-		ValidatorBalance:  balance.Unwrap(),
-		BalanceLeaf:       leafBytes,
+		ValidatorBalance:  balance,
+		BalanceLeaf:       balanceLeaf,
 		BalanceProof:      balanceProof,
 	}, nil
 }

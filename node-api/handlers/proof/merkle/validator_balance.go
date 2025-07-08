@@ -21,6 +21,8 @@
 package merkle
 
 import (
+	"fmt"
+
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -29,10 +31,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-const (
-	// balancesPerLeaf is the number of validator balances packed into a single leaf.
-	balancesPerLeaf = 4
-)
+// bytesPerBalance is the number of bytes in a single balance (uint64).
+const bytesPerBalance uint64 = 8
 
 // ProveBalanceInState generates a proof for a validator's balance in the beacon state.
 func ProveBalanceInState(
@@ -53,13 +53,12 @@ func ProveBalanceInState(
 	}
 
 	// Since balances are packed 4 per leaf, calculate the leaf offset
-	leafOffset := validatorIndex / balancesPerLeaf
-	balanceOffset := BalanceLeafGIndexOffset * leafOffset
+	leafOffset := validatorIndex / BalancesPerLeaf
 
 	// Calculate the generalized index for the target validator's balance leaf.
 	// The offset multiplication is bounded by the number of validators, so
 	// converting to int is safe on 64-bit architectures.
-	gIndex := zeroBalanceGIndexState + int(balanceOffset) // #nosec G115
+	gIndex := zeroBalanceGIndexState + int(leafOffset) // #nosec G115
 
 	balanceProof, err := stateProofTree.Prove(gIndex)
 	if err != nil {
@@ -76,11 +75,13 @@ func ProveBalanceInState(
 }
 
 // ProveBalanceInBlock generates a proof for a validator's balance in the beacon block.
+// Returns the proof, the leaf containing the packed balances, and the beacon block root.
 func ProveBalanceInBlock(
 	validatorIndex math.U64,
 	bbh *ctypes.BeaconBlockHeader,
 	bsm types.BeaconStateMarshallable,
-) ([]common.Root, common.Root, error) {
+	allBalances []uint64,
+) ([]common.Root, common.Root, common.Root, error) {
 	forkVersion := bsm.GetForkVersion()
 
 	// 1. Proof inside the state.
@@ -88,32 +89,66 @@ func ProveBalanceInBlock(
 		forkVersion, bsm, validatorIndex,
 	)
 	if err != nil {
-		return nil, common.Root{}, err
+		return nil, common.Root{}, common.Root{}, err
 	}
 
-	// 2. Proof of the state inside the block.
+	// 2. Build the balance leaf and assert that it matches the proof's leaf.
+	builtLeaf := buildBalanceLeaf(allBalances, validatorIndex)
+	if !leaf.Equals(builtLeaf) {
+		return nil, common.Root{}, common.Root{}, fmt.Errorf(
+			"balance leaf mismatch -- proof tree leaf: 0x%s, built leaf: 0x%s", leaf, builtLeaf,
+		)
+	}
+
+	// 3. Proof of the state inside the block.
 	stateInBlockProof, err := ProveBeaconStateInBlock(bbh, false)
 	if err != nil {
-		return nil, common.Root{}, err
+		return nil, common.Root{}, common.Root{}, err
 	}
 
-	// 3. Combine proofs: state-level hashes come first, followed by block-level
+	// 4. Combine proofs: state-level hashes come first, followed by block-level
 	// hashes (same order as ProveProposerPubkeyInBlock).
 	//
 	//nolint:gocritic // ok.
 	combinedProof := append(balanceInStateProof, stateInBlockProof...)
 
-	// 4. Verify the combined proof against the beacon block root.
+	// 5. Verify the combined proof against the beacon block root.
 	// Since balances are packed 4 per leaf, calculate the leaf offset.
-	leafOffset := validatorIndex / balancesPerLeaf
+	leafOffset := validatorIndex / BalancesPerLeaf
 	beaconRoot, err := verifyBalanceInBlock(
 		forkVersion, bbh, leafOffset.Unwrap(), combinedProof, leaf,
 	)
 	if err != nil {
-		return nil, common.Root{}, err
+		return nil, common.Root{}, common.Root{}, err
 	}
 
-	return combinedProof, beaconRoot, nil
+	return combinedProof, leaf, beaconRoot, nil
+}
+
+// buildBalanceLeaf constructs the 32-byte leaf containing the packed balances
+// for the group of validators that includes `validatorIndex`. Balances are
+// packed 4 per leaf (little-endian uint64s).
+func buildBalanceLeaf(allBalances []uint64, validatorIndex math.U64) common.Root {
+	var leafBytes common.Root
+
+	// Determine which leaf the validator belongs to and the starting index in
+	// the balances slice.
+	leafIndex := validatorIndex / BalancesPerLeaf
+	startIdx := leafIndex * BalancesPerLeaf
+
+	// Pack up to 4 balances (little-endian) into the 32-byte array.
+	for i := uint64(0); i < BalancesPerLeaf; i++ {
+		idx := startIdx.Unwrap() + i
+		if idx >= uint64(len(allBalances)) {
+			break
+		}
+		bal := allBalances[idx]
+		for j := range bytesPerBalance {
+			leafBytes[i*bytesPerBalance+j] = byte(bal >> (j * 8))
+		}
+	}
+
+	return leafBytes
 }
 
 // verifyBalanceInBlock verifies the provided Merkle proof of a
