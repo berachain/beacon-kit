@@ -92,9 +92,9 @@ const (
 	// GIndex = ZeroValidatorBalanceGIndexElectraBlock + (BalanceGIndexOffset * (n / 4))
 	ZeroValidatorBalanceGIndexElectraBlock = 199011604627456
 
-	// BalanceGIndexOffset is the offset between different balance leaf GIndices.
+	// BalanceLeafGIndexOffset is the offset between different balance leaf GIndices.
 	// Since balances are packed 4 per leaf, this offset applies between leaves.
-	BalanceGIndexOffset = 1
+	BalanceLeafGIndexOffset = 1
 )
 
 // GetZeroValidatorPubkeyGIndexState determines the generalized index of the 0

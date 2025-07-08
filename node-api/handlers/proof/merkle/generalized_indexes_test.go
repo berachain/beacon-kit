@@ -346,19 +346,19 @@ func TestValidatorBalanceGIndexElectra(t *testing.T) {
 	)
 
 	// Verify that balances 0-3 share the same GIndex (packed in same leaf)
-	for i := 0; i < 4; i++ {
+	for i := range 4 {
 		path := fmt.Sprintf("Balances/%d", i)
 		_, balanceGIndex, _, err := mlib.ObjectPath(path).GetGeneralizedIndex(beaconStateSchemaElectra)
 		require.NoError(t, err)
 		require.Equal(t, zeroValidatorBalanceGIndexState, balanceGIndex)
 	}
-	
+
 	// GIndex offset of the next validator's balance.
 	// Balances are packed 4 per leaf (uint64 values, 32 bytes per leaf)
 	_, balanceGIndex4, _, err := mlib.ObjectPath("Balances/4").GetGeneralizedIndex(beaconStateSchemaElectra)
 	require.NoError(t, err)
-	require.Equal(t,
-		merkle.BalanceGIndexOffset,
-		int(balanceGIndex4-zeroValidatorBalanceGIndexState),
-	)
+	require.Equal(t, 1, int(balanceGIndex4-zeroValidatorBalanceGIndexState))
+	_, balanceGIndex8, _, err := mlib.ObjectPath("Balances/8").GetGeneralizedIndex(beaconStateSchemaElectra)
+	require.NoError(t, err)
+	require.Equal(t, 1, int(balanceGIndex8-balanceGIndex4))
 }

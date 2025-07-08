@@ -23,6 +23,7 @@ package merkle_test
 import (
 	"testing"
 
+	"github.com/berachain/beacon-kit/consensus-types/types"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/merkle"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/merkle/mock"
@@ -31,6 +32,75 @@ import (
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/stretchr/testify/require"
 )
+
+// TestValidatorBalanceProof_Comparison tests the balance function
+// and that the generated proof matches the expected proof.
+func TestValidatorBalanceProof_Comparison(t *testing.T) {
+	t.Parallel()
+	testCases := []struct {
+		name              string
+		forkVersion       common.Version
+		numValidators     int
+		slot              math.Slot
+		valIndex          math.ValidatorIndex
+		parentBlockRoot   common.Root
+		bodyRoot          common.Root
+		balance           uint64
+		expectedProofFile string
+	}{
+		{
+			name:              "1 Validator Set",
+			forkVersion:       version.Electra(),
+			numValidators:     1,
+			slot:              4,
+			valIndex:          0,
+			parentBlockRoot:   common.Root{1, 2, 3},
+			bodyRoot:          common.Root{3, 2, 1},
+			balance:           1000000000000000000,
+			expectedProofFile: "one_validator_validator_balance_proof.json",
+		},
+		{
+			name:              "Many Validator Set",
+			forkVersion:       version.Electra(),
+			numValidators:     100,
+			slot:              5,
+			valIndex:          95,
+			parentBlockRoot:   common.Root{1, 2, 3, 4, 5, 6},
+			bodyRoot:          common.Root{3, 2, 1, 9, 8, 7},
+			balance:           2000000000000000000,
+			expectedProofFile: "many_validators_validator_balance_proof.json",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			vals := make(types.Validators, tc.numValidators)
+			for i := range vals {
+				vals[i] = &types.Validator{}
+			}
+
+			bs := mock.NewBeaconStateWith(
+				tc.slot, vals, 0, common.ExecutionAddress{}, tc.forkVersion,
+			)
+
+			bs.Balances = make([]uint64, tc.numValidators)
+			bs.Balances[tc.valIndex] = tc.balance
+
+			bbh := types.NewBeaconBlockHeader(
+				tc.slot,
+				tc.valIndex,
+				tc.parentBlockRoot,
+				bs.HashTreeRoot(),
+				tc.bodyRoot,
+			)
+
+			proof, _, err := merkle.ProveBalanceInBlock(tc.valIndex, bbh, bs)
+			require.NoError(t, err)
+			expectedProof := ReadProofFromFile(t, tc.expectedProofFile)
+			require.Equal(t, expectedProof, proof)
+		})
+	}
+}
 
 func TestValidatorBalanceProof(t *testing.T) {
 	t.Parallel()
@@ -133,7 +203,7 @@ func TestValidatorBalanceProofEdgeCases(t *testing.T) {
 
 	// Test with validators at leaf boundaries
 	numValidators := 17 // This gives us 5 leaves (0-3, 4-7, 8-11, 12-15, 16)
-	
+
 	vals := make(ctypes.Validators, numValidators)
 	for i := 0; i < numValidators; i++ {
 		vals[i] = &ctypes.Validator{}
@@ -142,7 +212,7 @@ func TestValidatorBalanceProofEdgeCases(t *testing.T) {
 	bs := mock.NewBeaconStateWith(
 		10, vals, 0, common.ExecutionAddress{}, version.Electra(),
 	)
-	
+
 	// Set balances
 	bs.Balances = make([]uint64, numValidators)
 	for i := 0; i < numValidators; i++ {

@@ -49,7 +49,7 @@ func ProveBalanceInState(
 
 	// Since balances are packed 4 per leaf, calculate the leaf offset
 	leafOffset := validatorIndex / 4
-	balanceOffset := BalanceGIndexOffset * leafOffset
+	balanceOffset := BalanceLeafGIndexOffset * leafOffset
 
 	// Calculate the generalized index for the target validator's balance leaf.
 	// The offset multiplication is bounded by the number of validators, so
@@ -99,12 +99,10 @@ func ProveBalanceInBlock(
 	combinedProof := append(balanceInStateProof, stateInBlockProof...)
 
 	// 4. Verify the combined proof against the beacon block root.
-	// Since balances are packed 4 per leaf, calculate the leaf offset
+	// Since balances are packed 4 per leaf, calculate the leaf offset.
 	leafOffset := validatorIndex / 4
-	balanceOffset := BalanceGIndexOffset * leafOffset
-
 	beaconRoot, err := verifyBalanceInBlock(
-		forkVersion, bbh, balanceOffset.Unwrap(), combinedProof, leaf,
+		forkVersion, bbh, leafOffset.Unwrap(), combinedProof, leaf,
 	)
 	if err != nil {
 		return nil, common.Root{}, err
