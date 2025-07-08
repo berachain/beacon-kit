@@ -107,7 +107,7 @@ func AddExecutionPayload(chainSpec ChainSpec, elGenesisPath string, config *cmtc
 		return errors.Wrap(err, "failed to unmarshal beacon state")
 	}
 	// Inject the execution payload.
-	eph, err := ExecutableDataToExecutionPayloadHeader(
+	eph, err := executableDataToExecutionPayloadHeader(
 		chainSpec.GenesisForkVersion(),
 		payload,
 		chainSpec.MaxWithdrawalsPerPayload(),
@@ -134,9 +134,24 @@ func AddExecutionPayload(chainSpec ChainSpec, elGenesisPath string, config *cmtc
 	return genutil.ExportGenesisFile(appGenesis, config.GenesisFile())
 }
 
+func PublicExecutableDataToExecutionPayloadHeader(forkVersion common.Version,
+	data *gethprimitives.ExecutableData,
+	// todo: re-enable when codec supports.
+	unused uint64,
+) (*types.ExecutionPayloadHeader, error) {
+	// This function is a public version of executableDataToExecutionPayloadHeader
+	// that does not require the context of the CLI command.
+	// It is used to convert the eth executable data type to the beacon execution}
+
+	return executableDataToExecutionPayloadHeader(
+		forkVersion,
+		data, unused)
+
+}
+
 // Converts the eth executable data type to the beacon execution payload header
 // interface.
-func ExecutableDataToExecutionPayloadHeader(
+func executableDataToExecutionPayloadHeader(
 	forkVersion common.Version,
 	data *gethprimitives.ExecutableData,
 	// todo: re-enable when codec supports.

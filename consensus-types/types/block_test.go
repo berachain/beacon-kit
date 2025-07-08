@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/testing/utils"
+
 	"github.com/stretchr/testify/require"
 )
 
