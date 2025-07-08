@@ -506,7 +506,7 @@ func UpdateGenesis(genesis types.GenesisDoc, ethGenesisBz json.RawMessage) (type
 	if err != nil {
 		return types.GenesisDoc{}, err
 	}
-	eph, err := beaconkitgenesiscli.PublicExecutableDataToExecutionPayloadHeader(
+	eph, err := beaconkitgenesiscli.ExecutableDataToExecutionPayloadHeader(
 		chainSpec.GenesisForkVersion(),
 		payload,
 		chainSpec.MaxWithdrawalsPerPayload(),

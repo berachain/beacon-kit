@@ -134,7 +134,7 @@ func AddExecutionPayload(chainSpec ChainSpec, elGenesisPath string, config *cmtc
 	return genutil.ExportGenesisFile(appGenesis, config.GenesisFile())
 }
 
-func PublicExecutableDataToExecutionPayloadHeader(forkVersion common.Version,
+func ExecutableDataToExecutionPayloadHeader(forkVersion common.Version,
 	data *gethprimitives.ExecutableData,
 	// todo: re-enable when codec supports.
 	unused uint64,
