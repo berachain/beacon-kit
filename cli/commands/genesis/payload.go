@@ -134,6 +134,7 @@ func AddExecutionPayload(chainSpec ChainSpec, elGenesisPath string, config *cmtc
 	return genutil.ExportGenesisFile(appGenesis, config.GenesisFile())
 }
 
+// Exported function to convert the eth executable data type to the beacon execution
 func ExecutableDataToExecutionPayloadHeader(forkVersion common.Version,
 	data *gethprimitives.ExecutableData,
 	// todo: re-enable when codec supports.

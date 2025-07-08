@@ -141,6 +141,7 @@ func SetDepositStorage(
 	return nil
 }
 
+// Exported function to write deposit storage to genesis alloc.
 func WriteDepositStorage(
 	elGenesis types.EthGenesis,
 	depositAddr common.Address,
