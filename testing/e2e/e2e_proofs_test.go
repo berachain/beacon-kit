@@ -262,3 +262,111 @@ func (s *BeaconKitE2ESuite) TestValidatorBalanceProof() {
 	)
 	s.Require().NoError(err)
 }
+
+// TestValidatorCredentialsProof tests the validator withdrawal credentials proof endpoint by fetching
+// and verifying withdrawal credentials proofs against the SSZTest contract.
+func (s *BeaconKitE2ESuite) TestValidatorCredentialsProof() {
+	// Sender account
+	sender := s.TestAccounts()[0]
+
+	// Get the chain ID.
+	chainID, err := s.JSONRPCBalancer().ChainID(s.Ctx())
+	s.Require().NoError(err)
+
+	// Deploy the SSZTest contract to verify the validator credentials proof.
+	addr, tx, sszTest, err := ssztest.DeploySSZTest(&bind.TransactOpts{
+		From:     sender.Address(),
+		Signer:   sender.SignerFunc(chainID),
+		GasLimit: 1000000,
+		Context:  s.Ctx(),
+	}, s.JSONRPCBalancer())
+	s.Require().NoError(err)
+
+	// Confirm deployment.
+	receipt, err := bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
+	s.Require().NoError(err)
+	s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
+	s.Logger().Info("SSZTest contract deployed successfully", "address", addr.Hex())
+
+	// Get the current block number.
+	blockNumber, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
+	s.Require().NoError(err)
+
+	// Get the validator credentials proof for validator 0 at the parent block number.
+	validatorIndex := uint64(0)
+	credsResp, err := s.ConsensusClients()[config.ClientValidator0].ValidatorCredentialsProof(
+		s.Ctx(), strconv.FormatUint(blockNumber-1, 10), strconv.FormatUint(validatorIndex, 10),
+	)
+	s.Require().NoError(err)
+	s.Require().NotNil(credsResp)
+	s.Require().NotNil(credsResp.BeaconBlockHeader)
+
+	// Verify the beacon block root is equal to HTR(BeaconBlockHeader).
+	s.Require().Equal(
+		credsResp.BeaconBlockRoot, credsResp.BeaconBlockHeader.HashTreeRoot(),
+	)
+
+	// Verify the slot is equal to the requested block number.
+	s.Require().Equal(credsResp.BeaconBlockHeader.Slot.Unwrap(), blockNumber-1)
+
+	// Get the chain spec to determine the fork version.
+	cs, err := spec.DevnetChainSpec()
+	s.Require().NoError(err)
+
+	// Get the fork version based on the block's timestamp.
+	header, err := s.JSONRPCBalancer().HeaderByNumber(
+		s.Ctx(), new(big.Int).SetUint64(blockNumber-1),
+	)
+	s.Require().NoError(err)
+	forkVersion := cs.ActiveForkVersionForTimestamp(math.U64(header.Time))
+	
+	// Only Electra fork and later support withdrawal credentials proofs
+	zeroValidatorCredentialsGIndex, err := merkle.GetZeroValidatorCredentialsGIndexBlock(forkVersion)
+	s.Require().NoError(err)
+
+	// Calculate the credentials GIndex based on fork version.
+	gIndex := zeroValidatorCredentialsGIndex + (validatorIndex * merkle.ValidatorGIndexOffset)
+
+	// Verify the validator withdrawal credentials proof.
+	credentialsProof := make([][32]byte, len(credsResp.WithdrawalCredentialsProof))
+	for i, proofItem := range credsResp.WithdrawalCredentialsProof {
+		credentialsProof[i] = proofItem
+	}
+	err = sszTest.MustVerifyProof(
+		&bind.CallOpts{
+			Context: s.Ctx(),
+		},
+		credentialsProof,
+		credsResp.BeaconBlockRoot,
+		credsResp.ValidatorWithdrawalCredentials.HashTreeRoot(),
+		new(big.Int).SetUint64(gIndex),
+	)
+	s.Require().NoError(err)
+
+	// Test with a different validator index
+	validatorIndex2 := uint64(1)
+	credsResp2, err := s.ConsensusClients()[config.ClientValidator0].ValidatorCredentialsProof(
+		s.Ctx(), strconv.FormatUint(blockNumber-1, 10), strconv.FormatUint(validatorIndex2, 10),
+	)
+	s.Require().NoError(err)
+	s.Require().NotNil(credsResp2)
+
+	// Calculate the credentials GIndex for validator 1
+	gIndex2 := zeroValidatorCredentialsGIndex + (validatorIndex2 * merkle.ValidatorGIndexOffset)
+
+	// Verify the validator withdrawal credentials proof for validator 1
+	credentialsProof2 := make([][32]byte, len(credsResp2.WithdrawalCredentialsProof))
+	for i, proofItem := range credsResp2.WithdrawalCredentialsProof {
+		credentialsProof2[i] = proofItem
+	}
+	err = sszTest.MustVerifyProof(
+		&bind.CallOpts{
+			Context: s.Ctx(),
+		},
+		credentialsProof2,
+		credsResp2.BeaconBlockRoot,
+		credsResp2.ValidatorWithdrawalCredentials.HashTreeRoot(),
+		new(big.Int).SetUint64(gIndex2),
+	)
+	s.Require().NoError(err)
+}

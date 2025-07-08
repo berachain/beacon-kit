@@ -249,5 +249,17 @@ func (cc ConsensusClient) ValidatorBalanceProof(
 	return cc.beaconClient.ValidatorBalanceProof(ctx, timestampID, validatorIndex)
 }
 
+// ValidatorCredentialsProof returns the validator withdrawal credentials proof for a given timestamp id and validator index.
+func (cc ConsensusClient) ValidatorCredentialsProof(
+	ctx context.Context,
+	timestampID string,
+	validatorIndex string,
+) (*ptypes.ValidatorWithdrawalCredentialsResponse, error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
+	return cc.beaconClient.ValidatorCredentialsProof(ctx, timestampID, validatorIndex)
+}
+
 // TODO: Add helpers for the beacon node-api client (converting from
 // go-eth2-client types to beacon-kit consensus types).
