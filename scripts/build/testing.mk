@@ -58,6 +58,7 @@ start-reth:
 	@docker run \
 	-p 30303:30303 \
 	-p 8545:8545 \
+	-p 8546:8546 \
 	-p 8551:8551 \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
@@ -71,7 +72,11 @@ start-reth:
 	--datadir ${ETH_DATA_DIR} \
 	--ipcpath ${IPC_PATH} \
 	--engine.persistence-threshold 0 \
-	--engine.memory-block-buffer-target 0
+	--engine.memory-block-buffer-target 0 \
+	--ws \
+	--ws.port 8546 \
+	--ws.addr 0.0.0.0 \
+	--ws.api eth,net
 
 ## Start an ephemeral `geth` node with docker
 start-geth: 
