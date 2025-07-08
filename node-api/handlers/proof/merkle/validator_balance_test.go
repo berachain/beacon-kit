@@ -23,7 +23,6 @@ package merkle_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/consensus-types/types"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/merkle"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/merkle/mock"
@@ -74,9 +73,9 @@ func TestValidatorBalanceProof_Comparison(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			vals := make(types.Validators, tc.numValidators)
+			vals := make(ctypes.Validators, tc.numValidators)
 			for i := range vals {
-				vals[i] = &types.Validator{}
+				vals[i] = &ctypes.Validator{}
 			}
 
 			bs := mock.NewBeaconStateWith(
@@ -86,7 +85,7 @@ func TestValidatorBalanceProof_Comparison(t *testing.T) {
 			bs.Balances = make([]uint64, tc.numValidators)
 			bs.Balances[tc.valIndex] = tc.balance
 
-			bbh := types.NewBeaconBlockHeader(
+			bbh := ctypes.NewBeaconBlockHeader(
 				tc.slot,
 				tc.valIndex,
 				tc.parentBlockRoot,
@@ -156,7 +155,7 @@ func TestValidatorBalanceProof(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Create validators
 			vals := make(ctypes.Validators, tt.numValidators)
-			for i := 0; i < tt.numValidators; i++ {
+			for i := range tt.numValidators {
 				vals[i] = &ctypes.Validator{}
 			}
 
@@ -167,7 +166,7 @@ func TestValidatorBalanceProof(t *testing.T) {
 
 			// Set balances manually since the mock doesn't set them
 			bs.Balances = make([]uint64, tt.numValidators)
-			for i := 0; i < tt.numValidators; i++ {
+			for i := range tt.numValidators {
 				bs.Balances[i] = uint64(32000000000 + i*1000000000) // 32 ETH + i ETH
 			}
 
@@ -205,7 +204,7 @@ func TestValidatorBalanceProofEdgeCases(t *testing.T) {
 	numValidators := 17 // This gives us 5 leaves (0-3, 4-7, 8-11, 12-15, 16)
 
 	vals := make(ctypes.Validators, numValidators)
-	for i := 0; i < numValidators; i++ {
+	for i := range numValidators {
 		vals[i] = &ctypes.Validator{}
 	}
 
@@ -215,7 +214,7 @@ func TestValidatorBalanceProofEdgeCases(t *testing.T) {
 
 	// Set balances
 	bs.Balances = make([]uint64, numValidators)
-	for i := 0; i < numValidators; i++ {
+	for i := range numValidators {
 		bs.Balances[i] = uint64(32000000000)
 	}
 

@@ -348,8 +348,8 @@ func TestValidatorBalanceGIndexElectra(t *testing.T) {
 	// Verify that balances 0-3 share the same GIndex (packed in same leaf)
 	for i := range 4 {
 		path := fmt.Sprintf("Balances/%d", i)
-		_, balanceGIndex, _, err := mlib.ObjectPath(path).GetGeneralizedIndex(beaconStateSchemaElectra)
-		require.NoError(t, err)
+		_, balanceGIndex, _, gIndexErr := mlib.ObjectPath(path).GetGeneralizedIndex(beaconStateSchemaElectra)
+		require.NoError(t, gIndexErr)
 		require.Equal(t, zeroValidatorBalanceGIndexState, balanceGIndex)
 	}
 

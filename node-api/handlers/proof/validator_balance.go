@@ -28,6 +28,13 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
+const (
+	// balancesPerLeaf is the number of validator balances packed into a single leaf.
+	balancesPerLeaf = 4
+	// bytesPerBalance is the number of bytes in a single balance.
+	bytesPerBalance = 8
+)
+
 // GetValidatorBalance returns the balance of a validator along with a
 // Merkle proof that can be verified against the beacon block root.
 func (h *Handler) GetValidatorBalance(c handlers.Context) (any, error) {
@@ -71,11 +78,11 @@ func (h *Handler) GetValidatorBalance(c handlers.Context) (any, error) {
 	}
 
 	// Calculate which leaf contains this validator's balance
-	leafIndex := validatorIndex / 4
+	leafIndex := validatorIndex / balancesPerLeaf
 
 	// The leaf is included in the proof. Since balances are packed 4 per leaf,
 	// we need to reconstruct the leaf from the balances.
-	startIdx := leafIndex * 4
+	startIdx := leafIndex * balancesPerLeaf
 
 	// Get all balances in this leaf
 	allBalances, err := beaconState.GetBalances()
@@ -85,13 +92,14 @@ func (h *Handler) GetValidatorBalance(c handlers.Context) (any, error) {
 
 	// Create the leaf by packing 4 uint64 balances
 	var leafBytes [32]byte
-	for i := uint64(0); i < 4; i++ {
-		idx := startIdx.Unwrap() + i
+	for i := range balancesPerLeaf {
+		idx := startIdx.Unwrap() + uint64(i) // #nosec G115
 		if idx < uint64(len(allBalances)) {
 			// Pack uint64 as little-endian bytes
 			bal := allBalances[idx]
-			for j := 0; j < 8; j++ {
-				leafBytes[i*8+uint64(j)] = byte(bal >> (j * 8))
+			for j := range bytesPerBalance {
+				// #nosec G115
+				leafBytes[uint64(i)*bytesPerBalance+uint64(j)] = byte(bal >> (uint64(j) * bytesPerBalance))
 			}
 		}
 	}

@@ -29,6 +29,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	// balancesPerLeaf is the number of validator balances packed into a single leaf.
+	balancesPerLeaf = 4
+)
+
 // ProveBalanceInState generates a proof for a validator's balance in the beacon state.
 func ProveBalanceInState(
 	forkVersion common.Version,
@@ -48,7 +53,7 @@ func ProveBalanceInState(
 	}
 
 	// Since balances are packed 4 per leaf, calculate the leaf offset
-	leafOffset := validatorIndex / 4
+	leafOffset := validatorIndex / balancesPerLeaf
 	balanceOffset := BalanceLeafGIndexOffset * leafOffset
 
 	// Calculate the generalized index for the target validator's balance leaf.
@@ -100,7 +105,7 @@ func ProveBalanceInBlock(
 
 	// 4. Verify the combined proof against the beacon block root.
 	// Since balances are packed 4 per leaf, calculate the leaf offset.
-	leafOffset := validatorIndex / 4
+	leafOffset := validatorIndex / balancesPerLeaf
 	beaconRoot, err := verifyBalanceInBlock(
 		forkVersion, bbh, leafOffset.Unwrap(), combinedProof, leaf,
 	)
