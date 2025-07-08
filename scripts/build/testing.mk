@@ -90,6 +90,7 @@ start-geth:
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
 	ghcr.io/berachain/bera-geth:latest \
+	--miner.gasprice 1 \
 	--syncmode=full \
 	--http \
 	--http.addr 0.0.0.0 \
