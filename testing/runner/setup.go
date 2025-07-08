@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	_ "embed"
 	"encoding/base64"
 	"encoding/json"
@@ -34,6 +35,7 @@ import (
 	"github.com/cometbft/cometbft/privval"
 	e2e "github.com/cometbft/cometbft/test/e2e/pkg"
 	"github.com/cometbft/cometbft/test/e2e/pkg/infra"
+	"github.com/cometbft/cometbft/test/e2e/pkg/infra/docker"
 	"github.com/cometbft/cometbft/types"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/go-viper/mapstructure/v2"
@@ -181,6 +183,13 @@ func Setup(testnet *e2e.Testnet, infp infra.Provider) error {
 	if err := os.MkdirAll(testnet.Dir, os.ModePerm); err != nil {
 		return err
 	}
+	gethDir, err := filepath.Abs(filepath.Join(testnet.Dir, "geth"))
+	if err != nil {
+		return fmt.Errorf("error getting absolute path for geth directory: %w", err)
+	}
+	if err := os.MkdirAll(gethDir, os.ModePerm); err != nil {
+		return err
+	}
 
 	genesis, err := MakeGenesis(testnet)
 	if err != nil {
@@ -193,7 +202,7 @@ func Setup(testnet *e2e.Testnet, infp infra.Provider) error {
 		return err
 	}
 	// EthGenesis.SaveAs
-	err = os.WriteFile(filepath.Join(testnet.Dir, "eth-genesis.json"), ethGenesisBz, 0o644)
+	err = os.WriteFile(filepath.Join(gethDir, "eth-genesis.json"), ethGenesisBz, 0o644)
 	if err != nil {
 		return err
 	}
@@ -297,6 +306,68 @@ func Setup(testnet *e2e.Testnet, infp infra.Provider) error {
 		return err
 	}
 
+	/////
+	// Adding geth node to docker configuration
+	/////
+	// Todo: Change the template in CometBFT test/e2e/pkg/infra/docker.go and add the geth node statically
+
+	// Todo: Add geth node to digitalocean infrastructure provider in CometBFT.
+	if infp.GetInfrastructureData().Provider != "docker" {
+		return errors.New("provider must be docker for now")
+	}
+
+	// copy jwt.hex
+	jwtHexSourcePath := "testing/files/jwt.hex" // Todo: do not hard code the path
+	jwtHexPath := filepath.Join(gethDir, "jwt.hex")
+	jwt, err := os.ReadFile(jwtHexSourcePath)
+	if err != nil {
+		return fmt.Errorf("error reading jwt hex file %s: %w", jwtHexSourcePath, err)
+	}
+	err = os.WriteFile(jwtHexPath, jwt, 0o644)
+	if err != nil {
+		return fmt.Errorf("error creating jwt hex file %s: %w", jwtHexPath, err)
+	}
+
+	// geth init
+	err = docker.Exec(context.Background(), "run", "--rm", "-v", fmt.Sprintf("%s:/.tmp", gethDir),
+		"ethereum/client-go", "init", "--datadir", "/.tmp", "/.tmp/eth-genesis.json")
+	if err != nil {
+		return fmt.Errorf("error during geth init: %w", err)
+	}
+
+	// geth service compose
+	path := filepath.Join(testnet.Dir, "compose.yaml")
+	compose, err := os.ReadFile(path)
+	if err != nil {
+		return fmt.Errorf("error reading compose.yaml file %s: %w", path, err)
+	}
+	gethService := fmt.Sprintf(`services:
+  geth:
+    image: ethereum/client-go
+    labels:
+      e2e: true
+    ports:
+    - 30303:30303
+    - 8545:8545
+    - 8551:8551
+    command: >
+      --syncmode=full
+      --http
+      --http.addr 0.0.0.0
+      --http.api eth,net
+      --authrpc.addr 0.0.0.0
+      --authrpc.jwtsecret /.tmp/jwt.hex
+      --authrpc.vhosts "*"
+      --datadir /.tmp
+      --ipcpath /.tmp/eth-engine.ipc
+    volumes:
+    - %s:/.tmp
+`, gethDir)
+	updated := bytes.Replace(compose, []byte("services:\n"), []byte(gethService), 1)
+	err = os.WriteFile(path, updated, 0o644)
+	if err != nil {
+		return fmt.Errorf("error writing compose.yaml file %s: %w", path, err)
+	}
 	return nil
 }
 

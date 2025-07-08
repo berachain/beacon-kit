@@ -9,6 +9,7 @@ import (
 	"github.com/cometbft/cometbft/libs/log"
 	e2e "github.com/cometbft/cometbft/test/e2e/pkg"
 	"github.com/cometbft/cometbft/test/e2e/pkg/infra"
+	"github.com/cometbft/cometbft/test/e2e/pkg/infra/docker"
 )
 
 func Start(ctx context.Context, testnet *e2e.Testnet, p infra.Provider) error {
@@ -40,6 +41,12 @@ func Start(ctx context.Context, testnet *e2e.Testnet, p infra.Provider) error {
 		return errors.New("no initial nodes in testnet")
 	}
 
+	// Start geth node in docker - Todo: add geth node to manifest so it can also run in Digital Ocean
+	err := docker.ExecCompose(ctx, testnet.Dir, []string{"up", "-d", "geth"}...)
+	if err != nil {
+		return err
+	}
+
 	// Start initial nodes (StartAt: 0)
 	logger.Info("Starting initial network nodes...")
 	nodesAtZero := make([]*e2e.Node, 0)
@@ -47,7 +54,7 @@ func Start(ctx context.Context, testnet *e2e.Testnet, p infra.Provider) error {
 		nodesAtZero = append(nodesAtZero, nodeQueue[0])
 		nodeQueue = nodeQueue[1:]
 	}
-	err := p.StartNodes(context.Background(), nodesAtZero...)
+	err = p.StartNodes(context.Background(), nodesAtZero...)
 	if err != nil {
 		return err
 	}
