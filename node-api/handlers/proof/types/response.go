@@ -83,9 +83,6 @@ type ValidatorBalanceResponse struct {
 	// ValidatorBalance is the balance of the requested validator.
 	ValidatorBalance uint64 `json:"validator_balance"`
 
-	// ValidatorIndex is the index of the validator (included for verification).
-	ValidatorIndex uint64 `json:"validator_index"`
-
 	// BalanceLeaf is the leaf containing the validator's balance along with up
 	// to 3 other validators' balances (packed 4 per leaf).
 	BalanceLeaf common.Root `json:"balance_leaf"`

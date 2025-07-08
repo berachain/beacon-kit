@@ -72,17 +72,17 @@ func (h *Handler) GetValidatorBalance(c handlers.Context) (any, error) {
 
 	// Calculate which leaf contains this validator's balance
 	leafIndex := validatorIndex / 4
-	
+
 	// The leaf is included in the proof. Since balances are packed 4 per leaf,
 	// we need to reconstruct the leaf from the balances.
 	startIdx := leafIndex * 4
-	
+
 	// Get all balances in this leaf
 	allBalances, err := beaconState.GetBalances()
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Create the leaf by packing 4 uint64 balances
 	var leafBytes [32]byte
 	for i := uint64(0); i < 4; i++ {
@@ -95,12 +95,11 @@ func (h *Handler) GetValidatorBalance(c handlers.Context) (any, error) {
 			}
 		}
 	}
-	
+
 	return types.ValidatorBalanceResponse{
 		BeaconBlockHeader: blockHeader,
 		BeaconBlockRoot:   beaconBlockRoot,
 		ValidatorBalance:  balance.Unwrap(),
-		ValidatorIndex:    validatorIndex.Unwrap(),
 		BalanceLeaf:       leafBytes,
 		BalanceProof:      balanceProof,
 	}, nil

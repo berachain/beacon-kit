@@ -72,14 +72,14 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 	s.Require().NotNil(blockProposerResp)
 	s.Require().NotNil(blockProposerResp.BeaconBlockHeader)
 
-	// Get the current block header.
+	// Get the next block header.
 	nextHeader, err := s.JSONRPCBalancer().HeaderByNumber(
 		s.Ctx(), new(big.Int).SetUint64(blockNumber),
 	)
 	s.Require().NoError(err)
 	s.Require().NotNil(nextHeader)
 
-	// Get the block proposer proof for the current timestamp and enforce equality.
+	// Get the block proposer proof for the next timestamp and enforce equality.
 	blockProposerResp2, err := s.ConsensusClients()[config.ClientValidator0].BlockProposerProof(
 		s.Ctx(), "t"+strconv.FormatUint(nextHeader.Time, 10),
 	)
@@ -216,17 +216,38 @@ func (s *BeaconKitE2ESuite) TestValidatorBalanceProof() {
 	s.Require().NoError(err)
 	s.Require().NotNil(balanceResp)
 	s.Require().NotNil(balanceResp.BeaconBlockHeader)
-
-	// Verify the beacon block root is equal to HTR(BeaconBlockHeader).
-	s.Require().Equal(
-		balanceResp.BeaconBlockRoot, balanceResp.BeaconBlockHeader.HashTreeRoot(),
-	)
-
-	// Verify the slot is equal to the requested block number.
+	s.Require().Equal(balanceResp.BeaconBlockRoot, balanceResp.BeaconBlockHeader.HashTreeRoot())
 	s.Require().Equal(balanceResp.BeaconBlockHeader.Slot.Unwrap(), blockNumber-1)
 
-	// Verify the validator index is equal to the requested index.
-	s.Require().Equal(balanceResp.ValidatorIndex, validatorIndex)
+	// Get the next block header.
+	nextHeader, err := s.JSONRPCBalancer().HeaderByNumber(s.Ctx(), new(big.Int).SetUint64(blockNumber))
+	s.Require().NoError(err)
+	s.Require().NotNil(nextHeader)
+
+	// Get the block proposer proof for the next timestamp and enforce equality.
+	balanceResp2, err := s.ConsensusClients()[config.ClientValidator0].ValidatorBalanceProof(
+		s.Ctx(), "t"+strconv.FormatUint(nextHeader.Time, 10), strconv.FormatUint(validatorIndex, 10),
+	)
+	s.Require().NoError(err)
+	s.Require().NotNil(balanceResp2)
+	s.Require().NotNil(balanceResp2.BeaconBlockHeader)
+	s.Require().Equal(*balanceResp.BeaconBlockHeader, *balanceResp2.BeaconBlockHeader)
+	s.Require().Equal(balanceResp.BeaconBlockRoot, balanceResp2.BeaconBlockRoot)
+	s.Require().Equal(balanceResp.BalanceLeaf, balanceResp2.BalanceLeaf)
+	s.Require().ElementsMatch(
+		balanceResp.BalanceProof, balanceResp2.BalanceProof,
+	)
+
+	// Get the parent beacon block root of the current timestamp using EIP-4788 Beacon Roots
+	// and verify equal to what is returned by the API proof/ endpoint.
+	parentBlockRoot4788, err := sszTest.GetParentBlockRootAt(
+		&bind.CallOpts{
+			Context: s.Ctx(),
+		},
+		nextHeader.Time,
+	)
+	s.Require().NoError(err)
+	s.Require().Equal(common.Root(parentBlockRoot4788), balanceResp.BeaconBlockRoot)
 
 	// Get the chain spec to determine the fork version.
 	cs, err := spec.DevnetChainSpec()
@@ -244,7 +265,7 @@ func (s *BeaconKitE2ESuite) TestValidatorBalanceProof() {
 	// Calculate the balance GIndex based on fork version.
 	// Balances are packed 4 per leaf, so we need to divide by 4.
 	leafIndex := validatorIndex / 4
-	gIndex := zeroValidatorBalanceGIndex + (leafIndex * merkle.BalanceGIndexOffset)
+	gIndex := zeroValidatorBalanceGIndex + leafIndex
 
 	// Verify the validator balance proof.
 	balanceProof := make([][32]byte, len(balanceResp.BalanceProof))
@@ -300,14 +321,36 @@ func (s *BeaconKitE2ESuite) TestValidatorCredentialsProof() {
 	s.Require().NoError(err)
 	s.Require().NotNil(credsResp)
 	s.Require().NotNil(credsResp.BeaconBlockHeader)
-
-	// Verify the beacon block root is equal to HTR(BeaconBlockHeader).
-	s.Require().Equal(
-		credsResp.BeaconBlockRoot, credsResp.BeaconBlockHeader.HashTreeRoot(),
-	)
-
-	// Verify the slot is equal to the requested block number.
+	s.Require().Equal(credsResp.BeaconBlockRoot, credsResp.BeaconBlockHeader.HashTreeRoot())
 	s.Require().Equal(credsResp.BeaconBlockHeader.Slot.Unwrap(), blockNumber-1)
+
+	// Get the next block header.
+	nextHeader, err := s.JSONRPCBalancer().HeaderByNumber(s.Ctx(), new(big.Int).SetUint64(blockNumber))
+	s.Require().NoError(err)
+	s.Require().NotNil(nextHeader)
+
+	// Get the block proposer proof for the next timestamp and enforce equality.
+	credsResp1, err := s.ConsensusClients()[config.ClientValidator0].ValidatorCredentialsProof(
+		s.Ctx(), "t"+strconv.FormatUint(nextHeader.Time, 10), strconv.FormatUint(validatorIndex, 10),
+	)
+	s.Require().NoError(err)
+	s.Require().NotNil(credsResp1)
+	s.Require().NotNil(credsResp1.BeaconBlockHeader)
+	s.Require().Equal(*credsResp.BeaconBlockHeader, *credsResp1.BeaconBlockHeader)
+	s.Require().Equal(credsResp.BeaconBlockRoot, credsResp1.BeaconBlockRoot)
+	s.Require().Equal(credsResp.ValidatorWithdrawalCredentials, credsResp1.ValidatorWithdrawalCredentials)
+	s.Require().ElementsMatch(credsResp.WithdrawalCredentialsProof, credsResp1.WithdrawalCredentialsProof)
+
+	// Get the parent beacon block root of the current timestamp using EIP-4788 Beacon Roots
+	// and verify equal to what is returned by the API proof/ endpoint.
+	parentBlockRoot4788, err := sszTest.GetParentBlockRootAt(
+		&bind.CallOpts{
+			Context: s.Ctx(),
+		},
+		nextHeader.Time,
+	)
+	s.Require().NoError(err)
+	s.Require().Equal(common.Root(parentBlockRoot4788), credsResp.BeaconBlockRoot)
 
 	// Get the chain spec to determine the fork version.
 	cs, err := spec.DevnetChainSpec()
@@ -319,8 +362,6 @@ func (s *BeaconKitE2ESuite) TestValidatorCredentialsProof() {
 	)
 	s.Require().NoError(err)
 	forkVersion := cs.ActiveForkVersionForTimestamp(math.U64(header.Time))
-	
-	// Only Electra fork and later support withdrawal credentials proofs
 	zeroValidatorCredentialsGIndex, err := merkle.GetZeroValidatorCredentialsGIndexBlock(forkVersion)
 	s.Require().NoError(err)
 
@@ -338,7 +379,7 @@ func (s *BeaconKitE2ESuite) TestValidatorCredentialsProof() {
 		},
 		credentialsProof,
 		credsResp.BeaconBlockRoot,
-		credsResp.ValidatorWithdrawalCredentials.HashTreeRoot(),
+		common.Root(credsResp.ValidatorWithdrawalCredentials),
 		new(big.Int).SetUint64(gIndex),
 	)
 	s.Require().NoError(err)
@@ -365,7 +406,7 @@ func (s *BeaconKitE2ESuite) TestValidatorCredentialsProof() {
 		},
 		credentialsProof2,
 		credsResp2.BeaconBlockRoot,
-		credsResp2.ValidatorWithdrawalCredentials.HashTreeRoot(),
+		common.Root(credsResp2.ValidatorWithdrawalCredentials),
 		new(big.Int).SetUint64(gIndex2),
 	)
 	s.Require().NoError(err)
