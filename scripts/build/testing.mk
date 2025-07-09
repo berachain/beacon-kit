@@ -66,7 +66,7 @@ start-reth:
 	--chain ${ETH_GENESIS_PATH} \
 	--http \
 	--http.addr "0.0.0.0" \
-	--http.api eth,net \
+	--http.api eth,net,txpool \
 	--authrpc.addr "0.0.0.0" \
 	--authrpc.jwtsecret $(JWT_PATH) \
 	--datadir ${ETH_DATA_DIR} \
@@ -76,7 +76,7 @@ start-reth:
 	--ws \
 	--ws.port 8546 \
 	--ws.addr 0.0.0.0 \
-	--ws.api eth,net
+	--ws.api eth,net,txpool
 
 ## Start an ephemeral `geth` node with docker
 start-geth: 
@@ -91,6 +91,7 @@ start-geth:
 	docker run \
 	-p 30303:30303 \
 	-p 8545:8545 \
+	-p 8546:8546 \
 	-p 8551:8551 \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
@@ -99,12 +100,16 @@ start-geth:
 	--syncmode=full \
 	--http \
 	--http.addr 0.0.0.0 \
-	--http.api eth,net \
+	--http.api eth,net,txpool \
 	--authrpc.addr 0.0.0.0 \
 	--authrpc.jwtsecret $(JWT_PATH) \
 	--authrpc.vhosts "*" \
 	--datadir ${ETH_DATA_DIR} \
-	--ipcpath ${IPC_PATH}
+	--ipcpath ${IPC_PATH} \
+	--ws \
+	--ws.port 8546 \
+	--ws.addr 0.0.0.0 \
+	--ws.api eth,net,txpool
 
 
 #################
