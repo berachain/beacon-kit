@@ -417,3 +417,17 @@ test-cmt-e2e-single-run: ## run e2e single node test
 
 test-cmt-e2e-single-no-build:
 	testing/files/run-multiple.sh testing/networks/single.toml
+
+test-e2e-simple: ## run e2e single node test
+	@$(MAKE) build-cmt-e2e test-e2e-simple-no-build
+
+test-e2e-simple-no-build:
+	mkdir -p monitoring
+	testing/files/run-multiple.sh testing/networks/simple.toml
+
+test-e2e-ci: ## run e2e single node test
+	@$(MAKE) build-cmt-e2e test-e2e-ci-no-build
+
+test-e2e-ci-no-build:
+	mkdir -p monitoring
+	testing/files/run-multiple.sh testing/networks/ci.toml

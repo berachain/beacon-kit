@@ -214,6 +214,9 @@ func Setup(testnet *e2e.Testnet, infp infra.Provider) error {
 	}
 
 	for _, node := range testnet.Nodes {
+		if node.Mode == e2e.ModeLight {
+			return errors.New("light clients are not supported, please remove them from the manifest")
+		}
 		nodeDir := filepath.Join(testnet.Dir, node.Name)
 
 		dirs := []string{
@@ -378,12 +381,11 @@ func Setup(testnet *e2e.Testnet, infp infra.Provider) error {
       --concurrency 1
       --requests 600
       --rate-limit 100
+      --sending-address-count 10
+      --pre-fund-sending-addresses
       --summarize
 `, gethDir)
-	/* When polycli v0.1.80 is released, these additional parameters should be added:
-	   --sending-address-count 10
-	   --pre-fund-sending-addresses
-	*/
+
 	updated := bytes.Replace(compose, []byte("services:\n"), []byte(gethService), 1)
 	err = os.WriteFile(path, updated, 0o644)
 	if err != nil {
@@ -410,65 +412,85 @@ func MakeGenesis(testnet *e2e.Testnet) (types.GenesisDoc, error) {
 	if testnet.VoteExtensionsUpdateHeight == -1 {
 		genesis.ConsensusParams.Feature.VoteExtensionsEnableHeight = testnet.VoteExtensionsEnableHeight
 	}
-	if testnet.PbtsUpdateHeight == -1 {
-		genesis.ConsensusParams.Feature.PbtsEnableHeight = testnet.PbtsEnableHeight
+	if testnet.PbtsUpdateHeight > 0 {
+		return genesis, errors.New("pbts_update_height not supported, please remove it from the manifest")
 	}
-	if len(testnet.InitialState) > 0 { //nolint:nestif
-		appState, err := json.Marshal(testnet.InitialState)
-		if err != nil {
-			return genesis, err
-		}
-		genesis.AppState = appState
-	} else {
-		chainSpec, err := spec.DevnetChainSpec()
-		if err != nil {
-			return genesis, err
-		}
-
-		appState := beaconkitconsensustypes.DefaultGenesis(chainSpec.GenesisForkVersion())
-		amount := math.Gwei(depositAmount)
-		forkData := beaconkitconsensustypes.NewForkData(chainSpec.GenesisForkVersion(), common.Root{})
-		domainType := chainSpec.DomainTypeDeposit()
-
-		var i uint64 = 0
-		for validator := range testnet.Validators {
-			executionAddress := common.NewExecutionAddressFromHex(pregeneratedEthAddresses(i))
-			credentials := beaconkitconsensustypes.NewCredentialsFromExecutionAddress(executionAddress)
-			blsSigner := signer.BLSSigner{PrivValidator: types.MockPV{PrivKey: validator.PrivvalKey}}
-
-			var signature crypto.BLSSignature
-			_, signature, err = beaconkitconsensustypes.CreateAndSignDepositMessage(
-				forkData,
-				domainType,
-				blsSigner,
-				credentials,
-				amount)
-			if err != nil {
-				return genesis, err
-			}
-
-			deposit := &beaconkitconsensustypes.Deposit{
-				Pubkey:      blsSigner.PublicKey(), // compressed public key
-				Amount:      amount,
-				Signature:   signature,
-				Credentials: credentials,
-				Index:       i,
-			}
-
-			appState.Deposits = append(appState.Deposits, deposit)
-			i++
-		}
-		gen := make(map[string]json.RawMessage)
-		gen["beacon"], err = json.Marshal(appState)
-		if err != nil {
-			return genesis, err
-		}
-		appStateJson, err := json.Marshal(gen)
-		if err != nil {
-			return genesis, err
-		}
-		genesis.AppState = appStateJson
+	if testnet.PbtsEnableHeight > 0 {
+		return genesis, errors.New("pbts_enable_height not supported, please remove it from the manifest")
 	}
+	genesis.ConsensusParams.Feature.PbtsEnableHeight = 1
+
+	if len(testnet.InitialState) > 0 {
+		return genesis, errors.New("initial_state is not supported, please remove it from the manifest")
+	}
+	if testnet.InitialHeight > 1 {
+		return genesis, errors.New("initial_height is not supported, please remove it from the manifest")
+	}
+
+	chainSpec, err := spec.DevnetChainSpec()
+	if err != nil {
+		return genesis, err
+	}
+
+	appState := beaconkitconsensustypes.DefaultGenesis(chainSpec.GenesisForkVersion())
+	amount := math.Gwei(depositAmount)
+	forkData := beaconkitconsensustypes.NewForkData(chainSpec.GenesisForkVersion(), common.Root{})
+	domainType := chainSpec.DomainTypeDeposit()
+
+	// Sanity checks for beacond specifics
+	if len(testnet.ValidatorUpdates) != 0 {
+		return genesis, errors.New("validator_update is not supported, please remove it from the manifest")
+	}
+	for _, node := range testnet.Nodes {
+		if node.PrivvalProtocol != e2e.ProtocolFile {
+			return genesis, errors.New("privval_protocol is not supported, remove it from the manifest")
+		}
+		if node.Database != "pebbledb" && node.Database != "goleveldb" && node.Database != "memdb" {
+			return genesis, errors.New("database only supports pebbledb and goleveldb, change it in the manifest")
+		}
+		if node.StateSync {
+			return genesis, errors.New("state_sync is not supported, please remove it from the manifest")
+		}
+	}
+
+	var i uint64
+	for validator := range testnet.Validators {
+		executionAddress := common.NewExecutionAddressFromHex(pregeneratedEthAddresses(i))
+		credentials := beaconkitconsensustypes.NewCredentialsFromExecutionAddress(executionAddress)
+		blsSigner := signer.BLSSigner{PrivValidator: types.MockPV{PrivKey: validator.PrivvalKey}}
+
+		var signature crypto.BLSSignature
+		_, signature, err = beaconkitconsensustypes.CreateAndSignDepositMessage(
+			forkData,
+			domainType,
+			blsSigner,
+			credentials,
+			amount)
+		if err != nil {
+			return genesis, err
+		}
+
+		deposit := &beaconkitconsensustypes.Deposit{
+			Pubkey:      blsSigner.PublicKey(), // compressed public key
+			Amount:      amount,
+			Signature:   signature,
+			Credentials: credentials,
+			Index:       i,
+		}
+
+		appState.Deposits = append(appState.Deposits, deposit)
+		i++
+	}
+	gen := make(map[string]json.RawMessage)
+	gen["beacon"], err = json.Marshal(appState)
+	if err != nil {
+		return genesis, err
+	}
+	appStateJson, err := json.Marshal(gen)
+	if err != nil {
+		return genesis, err
+	}
+	genesis.AppState = appStateJson
 
 	// Customized genesis fields provided in the manifest
 	if len(testnet.Genesis) > 0 {
