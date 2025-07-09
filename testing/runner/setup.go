@@ -54,7 +54,7 @@ const (
 	PrivvalDummyKeyFile   = "config/dummy_validator_key.json"
 	PrivvalDummyStateFile = "data/dummy_validator_state.json"
 
-	PrometheusConfigFile = "monitoring/prometheus.yml"
+	PrometheusConfigFile = "testing/monitoring/prometheus.yml"
 
 	depositAmount = 32000000000
 
