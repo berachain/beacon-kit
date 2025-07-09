@@ -213,6 +213,21 @@ start-geth-mainnet:
 	--syncmode=full \
 	--bootnodes $$bootnodes
 
+start-reth-mainnet-local:
+	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
+	@trusted_peers="$$(cat $(PWD)/$(MAINNET_NETWORK_FILES_DIR)/el-peers.txt)"; \
+	echo "Using trusted peers: $$trusted_peers"; \
+	../bera-reth/target/release/bera-reth node \
+	  --chain $(MAINNET_ETH_GENESIS_PATH) \
+	  --http \
+	  --http.addr "0.0.0.0" \
+	  --http.api eth,net \
+	  --authrpc.addr "0.0.0.0" \
+	  --authrpc.jwtsecret $(JWT_PATH) \
+	  --datadir $(ETH_DATA_DIR) \
+	  --ipcpath $(IPC_PATH) \
+	  --trusted-peers "$$trusted_peers"
+
 # TODO(prague1): Update to bera-reth once production ready
 start-reth-mainnet:
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
