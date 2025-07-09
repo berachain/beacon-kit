@@ -1,5 +1,4 @@
 # syntax=docker/dockerfile:1
-# check=skip=SecretsUsedInArgOrEnv
 #
 # Copyright (C) 2022, Berachain Foundation. All rights reserved.
 # See the file LICENSE for licensing terms.
@@ -19,45 +18,25 @@
 ###           Stage 0 - Build Arguments             ###
 #######################################################
 
-ARG IMAGE_NAME=beacond
-ARG VERSION=local-version
-
-FROM ${IMAGE_NAME}:${VERSION}
-
-###########################################################################
-###         Stage 1 - Add entrypoint_cmt_e2e.sh requirements to beacond         ###
-###########################################################################
-
-# Copy beacond because entrypoint_cmt_e2e.sh searches in ./build/bin
-RUN mkdir -p /build/bin && cp /usr/bin/beacond /build/bin
-
-# Add files used by entrypoint_cmt_e2e.sh. Start the build process from the testing folder.
-COPY files/ /testing/files/
-COPY networks/ /testing/networks/
-COPY files/entrypoint_cmt_e2e.sh /usr/bin/entrypoint-builtin
-RUN chmod +x /usr/bin/entrypoint-builtin
-
-# Configure entrypoint_cmt_e2e.sh
-ENV RPC_PREFIX="http://"
-ENV RPC_DIAL_URL="host.docker.internal:8551"
-ENV NON_INTERACTIVE=1
-ENV JWT_SECRET_PATH="/testing/files/jwt.hex"
+FROM alpine
+ARG VERSION=v0.1.82
+ARG AMD64_SHA=3f9a84cee678d0c0f568f1744040e337662782dce6c8054d1ca2fbbfbbcadf46
 
 ###########################################################################
-###         Stage 2 - Add consensus e2e test details to beacond         ###
+###                  Stage 1 - Download polycli release                 ###
 ###########################################################################
 
-# Add iputils-ping and iproute2 for simulated network delay.
-RUN apk add --no-cache iputils-ping iproute2
+RUN echo "${AMD64_SHA}  polycli_${VERSION}_linux_amd64.tar.gz" > amd64.sha && \
+    wget https://github.com/0xPolygon/polygon-cli/releases/download/${VERSION}/polycli_${VERSION}_linux_amd64.tar.gz && \
+    sha256sum -c amd64.sha && \
+    tar -xvzf polycli_${VERSION}_linux_amd64.tar.gz -C /usr/bin && \
+    mv /usr/bin/polycli_${VERSION}_linux_amd64 /usr/bin/polycli && \
+    rm -f polycli_${VERSION}_linux_amd64.tar.gz amd64.sha
 
-# Set up runtime directory.
-WORKDIR /
-VOLUME /cometbft
-ENV CMTHOME=/cometbft
-ENV HOMEDIR=/cometbft
-ENV GORACE="halt_on_error=1"
+###########################################################################
+###                        Stage 2 - Run polycli                        ###
+###########################################################################
 
-EXPOSE 26656 26657 26660 6060
-ENTRYPOINT ["/testing/files/entrypoint_cmt_e2e.sh"]
-CMD ["devnet"]
+ENTRYPOINT ["/usr/bin/polycli"]
+CMD ["--help"]
 STOPSIGNAL SIGTERM

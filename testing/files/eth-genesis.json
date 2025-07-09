@@ -368,6 +368,9 @@
     "0xb87fb371Bd3C2093b608cd0E7a8dDD60Bb05C995": {
       "balance": "0x12345000000000000000000"
     },
+    "0x85da99c8a7c2c95964c8efd687e95e632fc533d6": {
+      "balance": "0xfffffffffffffffffffffffffffffffffffff"
+    },
     "0x000F3df6D732807Ef1319fB7B8bB8522d0Beac02": {
       "balance": "0x0",
       "nonce": "0x1",

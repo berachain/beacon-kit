@@ -122,20 +122,14 @@ func NewCLI() *CLI {
 
 			r := rand.New(rand.NewSource(randomSeed)) //nolint: gosec
 
-			chLoadResult := make(chan error)
-			ctx, loadCancel := context.WithCancel(context.Background())
-			defer loadCancel()
-			go func() {
-				err := Load(ctx, cli.testnet, false)
-				if err != nil {
-					logger.Error(fmt.Sprintf("Transaction load failed: %v", err.Error()))
-				}
-				chLoadResult <- err
-			}()
-
 			if err := Start(cmd.Context(), cli.testnet, cli.infp); err != nil {
 				return err
 			}
+
+			if err := Load(cmd.Context(), cli.testnet, false); err != nil {
+				return err
+			}
+			logger.Info("Waiting for nodes to catch up after load generation...")
 
 			if err := Wait(cmd.Context(), cli.testnet, 5); err != nil { // allow some txs to go through
 				return err
@@ -151,7 +145,7 @@ func NewCLI() *CLI {
 			}
 
 			if cli.testnet.Evidence > 0 {
-				if err := InjectEvidence(ctx, r, cli.testnet, cli.testnet.Evidence); err != nil {
+				if err := InjectEvidence(cmd.Context(), r, cli.testnet, cli.testnet.Evidence); err != nil {
 					return err
 				}
 				if err := Wait(cmd.Context(), cli.testnet, 5); err != nil { // ensure chain progress
@@ -159,10 +153,12 @@ func NewCLI() *CLI {
 				}
 			}
 
-			loadCancel()
-			if err := <-chLoadResult; err != nil {
+			if err := LoadStop(cmd.Context(), cli.testnet, false); err != nil {
 				return err
 			}
+
+			logger.Info("Stopped load...")
+
 			if err := Wait(cmd.Context(), cli.testnet, 5); err != nil { // wait for network to settle before tests
 				return err
 			}
@@ -247,7 +243,13 @@ func NewCLI() *CLI {
 			if err != nil {
 				return err
 			}
-			return Load(context.Background(), cli.testnet, useInternalIP)
+
+			err = Load(context.Background(), cli.testnet, false)
+			if err != nil {
+				return err
+			}
+
+			return nil
 		},
 	}
 	loadCmd.PersistentFlags().BoolVar(&useInternalIP, "internal-ip", false,
@@ -385,20 +387,14 @@ Does not run any perturbations.
 				return err
 			}
 
-			chLoadResult := make(chan error)
-			ctx, loadCancel := context.WithCancel(cmd.Context())
-			defer loadCancel()
-			go func() {
-				err := Load(ctx, cli.testnet, false)
-				if err != nil {
-					logger.Error(fmt.Sprintf("Transaction load errored: %v", err.Error()))
-				}
-				chLoadResult <- err
-			}()
-
 			if err := Start(cmd.Context(), cli.testnet, cli.infp); err != nil {
 				return err
 			}
+
+			if err := Load(cmd.Context(), cli.testnet, false); err != nil {
+				return err
+			}
+			logger.Info("Waiting for nodes to catch up after load generation...")
 
 			if err := Wait(cmd.Context(), cli.testnet, 5); err != nil { // allow some txs to go through
 				return err
@@ -409,10 +405,7 @@ Does not run any perturbations.
 				return err
 			}
 
-			loadCancel()
-			if err := <-chLoadResult; err != nil {
-				return err
-			}
+			// Todo: docker compose down load
 
 			return Cleanup(cli.testnet)
 		},

@@ -355,6 +355,7 @@ func Setup(testnet *e2e.Testnet, infp infra.Provider) error {
       --http
       --http.addr 0.0.0.0
       --http.api eth,net
+      --http.vhosts "*"
       --authrpc.addr 0.0.0.0
       --authrpc.jwtsecret /.tmp/jwt.hex
       --authrpc.vhosts "*"
@@ -362,7 +363,27 @@ func Setup(testnet *e2e.Testnet, infp infra.Provider) error {
       --ipcpath /.tmp/eth-engine.ipc
     volumes:
     - %s:/.tmp
+  load:
+    image: polycli:latest
+    depends_on:
+      - geth
+    #restart: on-failure:1
+    labels:
+      e2e: true
+    command: >
+      loadtest
+      --verbosity 700
+      --rpc-url http://geth:8545
+      --mode random
+      --concurrency 1
+      --requests 600
+      --rate-limit 100
+      --summarize
 `, gethDir)
+	/* When polycli v0.1.80 is released, these additional parameters should be added:
+	   --sending-address-count 10
+	   --pre-fund-sending-addresses
+	*/
 	updated := bytes.Replace(compose, []byte("services:\n"), []byte(gethService), 1)
 	err = os.WriteFile(path, updated, 0o644)
 	if err != nil {

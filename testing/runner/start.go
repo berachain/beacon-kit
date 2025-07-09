@@ -46,6 +46,10 @@ func Start(ctx context.Context, testnet *e2e.Testnet, p infra.Provider) error {
 	if err != nil {
 		return err
 	}
+	// err = docker.ExecCompose(ctx, testnet.Dir, []string{"up", "-d", "load"}...)
+	// if err != nil {
+	// 	return err
+	// }
 
 	// Start initial nodes (StartAt: 0)
 	logger.Info("Starting initial network nodes...")
