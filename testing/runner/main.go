@@ -391,6 +391,11 @@ Does not run any perturbations.
 				return err
 			}
 
+			if err := Load(cmd.Context(), cli.testnet, false); err != nil {
+				return err
+			}
+			logger.Info("Waiting for nodes to catch up after load generation...")
+
 			if err := Wait(cmd.Context(), cli.testnet, 5); err != nil { // allow some txs to go through
 				return err
 			}
