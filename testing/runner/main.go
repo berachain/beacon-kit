@@ -126,6 +126,11 @@ func NewCLI() *CLI {
 				return err
 			}
 
+			if err := Load(cmd.Context(), cli.testnet, false); err != nil {
+				return err
+			}
+			logger.Info("Waiting for nodes to catch up after load generation...")
+
 			if err := Wait(cmd.Context(), cli.testnet, 5); err != nil { // allow some txs to go through
 				return err
 			}
@@ -148,7 +153,12 @@ func NewCLI() *CLI {
 				}
 			}
 
-			// Todo: docker compose down load
+			if err := LoadStop(cmd.Context(), cli.testnet, false); err != nil {
+				return err
+			}
+
+			logger.Info("Stopped load...")
+
 			if err := Wait(cmd.Context(), cli.testnet, 5); err != nil { // wait for network to settle before tests
 				return err
 			}
@@ -233,7 +243,13 @@ func NewCLI() *CLI {
 			if err != nil {
 				return err
 			}
-			return errors.New("TODO: reimplement the load command using polycli")
+
+			err = Load(context.Background(), cli.testnet, false)
+			if err != nil {
+				return err
+			}
+
+			return nil
 		},
 	}
 	loadCmd.PersistentFlags().BoolVar(&useInternalIP, "internal-ip", false,

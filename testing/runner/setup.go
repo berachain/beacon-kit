@@ -381,8 +381,8 @@ func Setup(testnet *e2e.Testnet, infp infra.Provider) error {
       --summarize
 `, gethDir)
 	/* When polycli v0.1.80 is released, these additional parameters should be added:
-	      --sending-address-count 10
-	      --pre-fund-sending-addresses
+	   --sending-address-count 10
+	   --pre-fund-sending-addresses
 	*/
 	updated := bytes.Replace(compose, []byte("services:\n"), []byte(gethService), 1)
 	err = os.WriteFile(path, updated, 0o644)
