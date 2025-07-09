@@ -409,23 +409,23 @@ test-e2e-deposits-no-build:
 	go test -timeout 0 -tags e2e,bls12381,test ./testing/e2e/. -v -testify.m TestDepositRobustness
 
 ###############################################################################
-###                          E2E Framework Testing                          ###
+###                       CometBFT  E2E Framework Testing                          ###
 ###############################################################################
 
-test-e2e-single: ## run e2e single node test
-	@$(MAKE) build-e2e test-e2e-single-no-build
+test-cmt-e2e-single-run: ## run e2e single node test
+	@$(MAKE) build-cmt-e2e test-cmt-e2e-single-no-build
 
-test-e2e-single-no-build:
+test-cmt-e2e-single-no-build:
 	testing/files/run-multiple.sh testing/networks/single.toml
 
 test-e2e-simple: ## run e2e single node test
-	@$(MAKE) build-e2e test-e2e-simple-no-build
+	@$(MAKE) build-cmt-e2e test-e2e-simple-no-build
 
 test-e2e-simple-no-build:
 	testing/files/run-multiple.sh testing/networks/simple.toml
 
 test-e2e-ci: ## run e2e single node test
-	@$(MAKE) build-e2e test-e2e-ci-no-build
+	@$(MAKE) build-cmt-e2e test-e2e-ci-no-build
 
 test-e2e-ci-no-build:
 	testing/files/run-multiple.sh testing/networks/ci.toml
