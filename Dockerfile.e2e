@@ -25,18 +25,19 @@ ARG VERSION=local-version
 FROM ${IMAGE_NAME}:${VERSION}
 
 ###########################################################################
-###         Stage 1 - Add entrypoint.sh requirements to beacond         ###
+###         Stage 1 - Add entrypoint_cmt_e2e.sh requirements to beacond         ###
 ###########################################################################
 
-# Copy beacond because entrypoint.sh searches in ./build/bin
+# Copy beacond because entrypoint_cmt_e2e.sh searches in ./build/bin
 RUN mkdir -p /build/bin && cp /usr/bin/beacond /build/bin
 
-# Add files used by entrypoint.sh. Start the build process from the testing folder.
+# Add files used by entrypoint_cmt_e2e.sh. Start the build process from the testing folder.
 COPY files/ /testing/files/
 COPY networks/ /testing/networks/
-COPY files/entrypoint.sh /usr/bin/entrypoint-builtin
+COPY files/entrypoint_cmt_e2e.sh /usr/bin/entrypoint-builtin
+RUN chmod +x /usr/bin/entrypoint-builtin
 
-# Configure entrypoint.sh
+# Configure entrypoint_cmt_e2e.sh
 ENV RPC_PREFIX="http://"
 ENV RPC_DIAL_URL="host.docker.internal:8551"
 ENV NON_INTERACTIVE=1
@@ -57,6 +58,6 @@ ENV HOMEDIR=/cometbft
 ENV GORACE="halt_on_error=1"
 
 EXPOSE 26656 26657 26660 6060
-ENTRYPOINT ["/testing/files/entrypoint.sh"]
+ENTRYPOINT ["/testing/files/entrypoint_cmt_e2e.sh"]
 CMD ["devnet"]
 STOPSIGNAL SIGTERM
