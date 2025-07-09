@@ -137,14 +137,14 @@ func buildBalanceLeaf(allBalances []uint64, validatorIndex math.U64) common.Root
 	startIdx := leafIndex * BalancesPerLeaf
 
 	// Pack up to 4 balances (little-endian) into the 32-byte array.
-	for i := uint64(0); i < BalancesPerLeaf; i++ {
+	for i := range uint64(BalancesPerLeaf) {
 		idx := startIdx.Unwrap() + i
 		if idx >= uint64(len(allBalances)) {
 			break
 		}
 		bal := allBalances[idx]
 		for j := range bytesPerBalance {
-			leafBytes[i*bytesPerBalance+j] = byte(bal >> (j * 8))
+			leafBytes[i*bytesPerBalance+j] = byte(bal >> (j * bytesPerBalance))
 		}
 	}
 
