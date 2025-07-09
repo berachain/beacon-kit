@@ -22,7 +22,9 @@ package genesis
 
 import (
 	"bytes"
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"math/big"
 	"path/filepath"
 
@@ -32,12 +34,13 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
-	libcommon "github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
+	"golang.org/x/crypto/sha3"
 )
 
 // SetDepositStorageCmd sets deposit contract storage in genesis alloc file.
@@ -99,10 +102,6 @@ func SetDepositStorage(
 	}
 	deposits := beaconState.Deposits
 
-	// Set the storage of the deposit contract with deposits count and root.
-	count := big.NewInt(int64(len(deposits)))
-	root := deposits.HashTreeRoot()
-
 	// Unmarshal the genesis file.
 	elGenesis := &types.DefaultEthGenesisJSON{}
 	allocsKey := types.DefaultAllocsKey
@@ -111,7 +110,7 @@ func SetDepositStorage(
 	}
 
 	depositAddr := common.Address(chainSpec.DepositContractAddress())
-	allocs := writeDepositStorage(elGenesis, depositAddr, count, root)
+	allocs := writeDepositStorage(elGenesis, deposits, depositAddr)
 
 	// Get just the filename from the path
 	filename := filepath.Base(elGenesisFilePath)
@@ -127,12 +126,14 @@ func SetDepositStorage(
 
 func writeDepositStorage(
 	elGenesis types.EthGenesis,
+	deposits ctypes.Deposits,
 	depositAddr common.Address,
-	depositsCount *big.Int,
-	depositsRoot libcommon.Root,
 ) gethprimitives.GenesisAlloc {
 	slot0 := common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000")
 	slot1 := common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000001")
+
+	depositsCount := big.NewInt(int64(len(deposits)))
+	depositsRoot := deposits.HashTreeRoot()
 
 	allocs := elGenesis.Alloc()
 	if entry, ok := allocs[depositAddr]; ok {
@@ -142,8 +143,37 @@ func writeDepositStorage(
 		entry.Storage[slot0] = common.BigToHash(depositsCount)
 		entry.Storage[slot1] = common.BytesToHash(depositsRoot[:])
 		allocs[depositAddr] = entry
+
+		// Store operators keys for each validator, reusing their BLS key
+		for i, d := range deposits {
+			storageKey := keccak256EncodePacked(d.Pubkey, common.Big2)
+			operatorAddr, err := crypto.GetAddressFromPubKey(d.Pubkey) // reuse val BLS key for simplicity
+			if err != nil {
+				panic(fmt.Errorf("failed getting address from validator %d pub key: %w", i, err))
+			}
+
+			k := common.BytesToHash([]byte(storageKey))
+			v := common.BytesToHash(operatorAddr)
+			entry.Storage[k] = v
+		}
 	}
 	return allocs
+}
+
+// keccak256EncodePacked mimics Solidity's keccak256(abi.encodePacked(...)) for:
+// - pubKey: 48-byte public key
+// - baseSlot: 32-byte storage slot
+//
+//nolint:mnd // TO BE FIXED
+func keccak256EncodePacked(pubkey crypto.BLSPubkey, baseSlot *big.Int) string {
+	pubKeyInt := new(big.Int).SetBytes(pubkey[:])
+	bytes := pubKeyInt.FillBytes(make([]byte, 48))    // left-padded to 48 bytes
+	slotBytes := baseSlot.FillBytes(make([]byte, 32)) // left-padded to 32 bytes
+	bytes = append(bytes, slotBytes...)
+
+	hash := sha3.NewLegacyKeccak256()
+	hash.Write(bytes)
+	return "0x" + hex.EncodeToString(hash.Sum(nil))
 }
 
 func writeGenesisAllocToFile(
