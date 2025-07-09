@@ -364,7 +364,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 	require.Equal(t, expectedEffectiveBalance, val.EffectiveBalance)
 }
 
-// TestTransitionHittingValidatorsCap shows that the extra
+// TestTransitionHittingValidatorsCap_ExtraSmall shows that the extra
 // validator added when validators set is at cap gets never activated
 // and its deposit is returned at after next epoch starts.
 func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
@@ -601,7 +601,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	require.Equal(t, extraValBalance, math.Gwei(0))
 }
 
-// TestTransitionHittingValidatorsCap shows that if an extra validator is added with a higher amount of stake than the lowest validator
+// TestTransitionHittingValidatorsCap_ExtraBig shows that if an extra validator is added with a higher amount of stake than the lowest validator
 // when the validator set is at cap, the lowest validator is removed at the beginning of next epoch, i.e. replaced by the new validator.
 //
 //nolint:maintidx // this end‑to‑end staking‑cap scenario is inherently complex
