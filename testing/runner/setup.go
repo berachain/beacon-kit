@@ -385,6 +385,7 @@ func Setup(testnet *e2e.Testnet, infp infra.Provider) error {
       --pre-fund-sending-addresses
       --summarize
 `, gethDir)
+
 	updated := bytes.Replace(compose, []byte("services:\n"), []byte(gethService), 1)
 	err = os.WriteFile(path, updated, 0o644)
 	if err != nil {
