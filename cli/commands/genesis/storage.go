@@ -146,13 +146,13 @@ func writeDepositStorage(
 
 		// Store operators keys for each validator, reusing their BLS key
 		for i, d := range deposits {
-			storageKey := keccak256EncodePacked(d.Pubkey, common.Big2)
+			storageKey := encodeSlot(d.Pubkey)
 			operatorAddr, err := crypto.GetAddressFromPubKey(d.Pubkey) // reuse val BLS key for simplicity
 			if err != nil {
 				panic(fmt.Errorf("failed getting address from validator %d pub key: %w", i, err))
 			}
 
-			k := common.BytesToHash([]byte(storageKey))
+			k := common.BytesToHash(storageKey)
 			v := common.BytesToHash(operatorAddr)
 			entry.Storage[k] = v
 		}
@@ -160,20 +160,33 @@ func writeDepositStorage(
 	return allocs
 }
 
-// keccak256EncodePacked mimics Solidity's keccak256(abi.encodePacked(...)) for:
+// encodeSlot mimics Solidity's keccak256(abi.encodePacked(...)) for:
 // - pubKey: 48-byte public key
 // - baseSlot: 32-byte storage slot
 //
 //nolint:mnd // TO BE FIXED
-func keccak256EncodePacked(pubkey crypto.BLSPubkey, baseSlot *big.Int) string {
-	pubKeyInt := new(big.Int).SetBytes(pubkey[:])
-	bytes := pubKeyInt.FillBytes(make([]byte, 48))    // left-padded to 48 bytes
-	slotBytes := baseSlot.FillBytes(make([]byte, 32)) // left-padded to 32 bytes
-	bytes = append(bytes, slotBytes...)
+func encodeSlot(pubkey crypto.BLSPubkey) []byte {
+	// Decode pubkey
+	pubKeyStr := pubkey.String()
+	packed, err := hex.DecodeString(pubKeyStr[2:])
+	if err != nil {
+		panic(err)
+	}
+	if len(packed) != 48 {
+		panic(fmt.Errorf("expected 48-byte pubkey, got %d", len(packed)))
+	}
 
+	// Convert mapping slot (uint256) to 32-byte left-padded value
+	const mappintStorageBaseSlot = 2
+	slotBytes := new(big.Int).SetUint64(mappintStorageBaseSlot).FillBytes(make([]byte, 32))
+
+	// abi.encodePacked => direct byte concatenation
+	packed = append(packed, slotBytes...)
+
+	// keccak256 hash
 	hash := sha3.NewLegacyKeccak256()
-	hash.Write(bytes)
-	return "0x" + hex.EncodeToString(hash.Sum(nil))
+	hash.Write(packed)
+	return hash.Sum(nil)
 }
 
 func writeGenesisAllocToFile(
