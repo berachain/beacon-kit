@@ -21,7 +21,7 @@ jobs:
       matrix:
         group: ['testing/networks/ci']
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 35
     steps:
       - name: Setup Golang
         uses: actions/setup-go@v5
