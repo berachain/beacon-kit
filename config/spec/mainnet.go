@@ -21,7 +21,10 @@
 package spec
 
 import (
+	"math"
+
 	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/ethereum/go-ethereum/params"
@@ -83,6 +86,9 @@ const (
 	// mainnetElectraForkTime is the timestamp at which the Electra fork occurs.
 	mainnetElectraForkTime = 1749056400
 
+	// mainnetElectra1ForkTime is the timestamp at which the Electra1 fork occurs.
+	mainnetElectra1ForkTime = math.MaxInt64
+
 	// mainnetEVMInflationAddressDeneb1 is the address on the EVM which will receive the
 	// inflation amount of native EVM balance through a withdrawal every block in the Deneb1 fork.
 	mainnetEVMInflationAddressDeneb1 = "0x656b95E550C07a9ffe548bd4085c72418Ceb1dba"
@@ -99,6 +105,8 @@ const (
 // MainnetChainSpecData is the chain.SpecData for the Berachain mainnet.
 func MainnetChainSpecData() *chain.SpecData {
 	return &chain.SpecData{
+		Config: delay.DefaultConfig(),
+
 		// Gwei values constants.
 		MaxEffectiveBalance:       mainnetMaxEffectiveBalance,
 		EffectiveBalanceIncrement: mainnetEffectiveBalanceIncrement,
@@ -130,9 +138,10 @@ func MainnetChainSpecData() *chain.SpecData {
 		TargetSecondsPerEth1Block: defaultTargetSecondsPerEth1Block,
 
 		// Fork-related values.
-		GenesisTime:     mainnetGenesisTime,
-		Deneb1ForkTime:  mainnetDeneb1ForkTime,
-		ElectraForkTime: mainnetElectraForkTime,
+		GenesisTime:      mainnetGenesisTime,
+		Deneb1ForkTime:   mainnetDeneb1ForkTime,
+		ElectraForkTime:  mainnetElectraForkTime,
+		Electra1ForkTime: mainnetElectra1ForkTime,
 
 		// State list length constants.
 		EpochsPerHistoricalVector: defaultEpochsPerHistoricalVector,

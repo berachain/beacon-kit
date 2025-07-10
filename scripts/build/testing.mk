@@ -31,7 +31,6 @@ endef
 # Use the genesis file from the beacond folder as it has been modified by 
 # beacond genesis set-deposit-storage.
 ETH_GENESIS_PATH = ${HOMEDIR}/eth-genesis.json
-NETHER_ETH_GENESIS_PATH = ${HOMEDIR}/eth-nether-genesis.json
 
 HOMEDIR = .tmp/beacond
 JWT_PATH = ${TESTAPP_FILES_DIR}/jwt.hex
@@ -62,7 +61,7 @@ start-reth:
 	-p 8551:8551 \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	ghcr.io/paradigmxyz/reth node \
+	ghcr.io/berachain/bera-reth:nightly node \
 	--chain ${ETH_GENESIS_PATH} \
 	--http \
 	--http.addr "0.0.0.0" \
@@ -80,7 +79,7 @@ start-geth:
 	docker run \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	ethereum/client-go init \
+	ghcr.io/berachain/bera-geth:latest init \
 	--datadir ${ETH_DATA_DIR} \
 	${ETH_GENESIS_PATH}
 
@@ -90,7 +89,7 @@ start-geth:
 	-p 8551:8551 \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	ethereum/client-go \
+	ghcr.io/berachain/bera-geth:latest \
 	--syncmode=full \
 	--http \
 	--http.addr 0.0.0.0 \
@@ -101,95 +100,6 @@ start-geth:
 	--datadir ${ETH_DATA_DIR} \
 	--ipcpath ${IPC_PATH}
 
-## Start an ephemeral `nethermind` node
-start-nethermind:
-	docker run \
-	-p 30303:30303 \
-	-p 8545:8545 \
-	-p 8551:8551 \
-	-v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
-	-v $(PWD)/${HOMEDIR}:/${HOMEDIR} \
-	nethermind/nethermind \
-	--JsonRpc.Port 8545 \
-	--JsonRpc.EngineEnabledModules "eth,net,engine" \
-	--JsonRpc.EnginePort 8551 \
-	--JsonRpc.EngineHost 0.0.0.0 \
-	--JsonRpc.Host 0.0.0.0 \
-	--JsonRpc.JwtSecretFile ../$(JWT_PATH) \
-	--Sync.PivotNumber 0 \
-	--Init.ChainSpecPath ../$(NETHER_ETH_GENESIS_PATH)
-
-## Start an ephemeral `besu` node
-start-besu: 
-	$(call ask_reset_dir_func, .tmp/besu)
-	docker run \
-	-p 30303:30303 \
-	-p 8545:8545 \
-	-p 8551:8551 \
-	-v $(PWD)/.tmp:/.tmp \
-	-v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
-	hyperledger/besu:latest \
-	--data-path=/.tmp/besu \
-	--genesis-file=../../${ETH_GENESIS_PATH} \
-	--rpc-http-enabled \
-	--rpc-http-api=ETH,NET,ENGINE,DEBUG,NET,WEB3 \
-	--host-allowlist="*" \
-	--rpc-http-cors-origins="all" \
-	--engine-rpc-port=8551 \
-	--engine-rpc-enabled \
-	--engine-host-allowlist="*" \
-	--engine-jwt-secret=../../${JWT_PATH}
-
-## Start an ephemeral `erigon` node
-start-erigon: 
-	$(call ask_reset_dir_func, .tmp/erigon)
-	docker run \
-	--user 1000:1000 \
-	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
-	-v $(PWD)/.tmp:/.tmp \
-	erigontech/erigon:latest init \
-	--datadir /.tmp/erigon \
-	/${ETH_GENESIS_PATH}
-
-	docker run \
-	-p 30303:30303 \
-	-p 8545:8545 \
-	-p 8551:8551 \
-	--user 1000:1000 \
-	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
-	-v $(PWD)/.tmp:/.tmp \
-	erigontech/erigon:latest \
-	--http \
-	--http.addr 0.0.0.0 \
-	--http.api eth,erigon,engine,web3,net,debug,trace,txpool,admin,ots \
-	--http.vhosts "*" \
-	--port 30303 \
-	--http.corsdomain "*" \
-	--http.port 8545 \
-	--authrpc.addr	0.0.0.0 \
-	--authrpc.jwtsecret /$(JWT_PATH) \
-	--authrpc.vhosts "*" \
-	--networkid 80087 \
-	--db.size.limit	3000MB \
-	--datadir /.tmp/erigon
-
-start-ethereumjs:
-	$(call ask_reset_dir_func, .tmp/ethereumjs)
-	docker run \
-	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
-	-v $(PWD)/.tmp:/.tmp \
-	-p 30303:30303 \
-	-p 8545:8545 \
-	-p 8551:8551 \
-	ethpandaops/ethereumjs:master \
-	--gethGenesis ../../${ETH_GENESIS_PATH} \
-	--rpcEngine \
-	--jwtSecret ../../$(JWT_PATH) \
-	--rpcEngineAddr 0.0.0.0 \
-	--dataDir ../../.tmp/ethereumjs \
-	--isSingleNode \
-	--rpc \
-	--rpcAddr 0.0.0.0
 
 #################
 #    Bepolia    #
@@ -208,7 +118,7 @@ start-geth-bepolia:
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	--rm -v $(PWD)/${BEPOLIA_NETWORK_FILES_DIR}:/${BEPOLIA_NETWORK_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	ethereum/client-go init \
+	ghcr.io/berachain/bera-geth:latest init \
 	--datadir ${ETH_DATA_DIR} \
 	${BEPOLIA_ETH_GENESIS_PATH}
 
@@ -222,7 +132,7 @@ start-geth-bepolia:
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	--rm -v $(PWD)/${BEPOLIA_NETWORK_FILES_DIR}:/${BEPOLIA_NETWORK_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	ethereum/client-go \
+	ghcr.io/berachain/bera-geth:latest \
 	--http \
 	--http.addr 0.0.0.0 \
 	--http.api eth,net \
@@ -234,6 +144,7 @@ start-geth-bepolia:
 	--syncmode=full \
 	--bootnodes $$bootnodes
 
+# TODO(prague1): Update to bera-reth once production ready
 start-reth-bepolia:
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
 	@trustedpeers=`cat $(PWD)/$(BEPOLIA_NETWORK_FILES_DIR)/el-peers.txt`; \
@@ -276,7 +187,7 @@ start-geth-mainnet:
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	--rm -v $(PWD)/${MAINNET_NETWORK_FILES_DIR}:/${MAINNET_NETWORK_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	ethereum/client-go:v1.14.13 init \
+	ghcr.io/berachain/bera-geth:latest init \
 	--datadir ${ETH_DATA_DIR} \
 	${MAINNET_ETH_GENESIS_PATH}
 
@@ -290,7 +201,7 @@ start-geth-mainnet:
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	--rm -v $(PWD)/${BEPOLIA_NETWORK_FILES_DIR}:/${BEPOLIA_NETWORK_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	ethereum/client-go:v1.14.13 \
+	ghcr.io/berachain/bera-geth:latest \
 	--http \
 	--http.addr 0.0.0.0 \
 	--http.api eth,net \
@@ -302,6 +213,7 @@ start-geth-mainnet:
 	--syncmode=full \
 	--bootnodes $$bootnodes
 
+# TODO(prague1): Update to bera-reth once production ready
 start-reth-mainnet:
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
 	@trustedpeers=`cat $(PWD)/$(MAINNET_NETWORK_FILES_DIR)/el-peers.txt`; \
