@@ -6,7 +6,7 @@ Prometheus and Grafana server for E2E testnets.
 
 First, `prometheus.yml` must exist in this directory. For example, generate one:
 ```bash
-make build-e2e
+make build-cmt-e2e
 build/bin/runner -f testing/networks/simple.toml setup
 ```
 
