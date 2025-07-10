@@ -103,7 +103,7 @@ func (sp *StateProcessor) Transition(
 	// Post activation we log every time we verify a block
 	logForkProcessing := ctx.VerifyPayload() && !ctx.VerifyRandao()
 
-	if cache.IsStateCachingActive(blk.Slot) {
+	if cache.IsStateCachingActive(sp.cs, blk.Slot) {
 		logForkProcessing = ctx.VerifyPayload()
 	}
 	if err = sp.ProcessFork(st, blk.GetTimestamp(), logForkProcessing); err != nil {

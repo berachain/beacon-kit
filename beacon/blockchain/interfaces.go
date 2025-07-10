@@ -26,6 +26,7 @@ import (
 
 	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
@@ -186,6 +187,7 @@ type ServiceChainSpec interface {
 	chain.BlobSpec
 	chain.ForkSpec
 	chain.ForkVersionSpec
+	delay.ConfigGetter
 
 	EpochsPerHistoricalVector() uint64
 	SlotToEpoch(slot math.Slot) math.Epoch

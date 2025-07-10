@@ -323,7 +323,7 @@ func (s *Service) verifyStateRoot(
 ) (transition.ValidatorUpdates, error) {
 	startTime := time.Now()
 
-	isCacheActive := cache.IsStateCachingActive(blk.GetBeaconBlock().GetSlot())
+	isCacheActive := cache.IsStateCachingActive(s.chainSpec, blk.GetBeaconBlock().GetSlot())
 	if isCacheActive {
 		// Re-use finalize block metrics if caching is active
 		defer s.metrics.measureStateTransitionDuration(startTime)
