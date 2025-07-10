@@ -76,10 +76,10 @@ github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
-github.com/berachain/cometbft v1.0.1-0.20250416103256-c547460cd751 h1:rlQDJRNRdvfZNZ0WnpZo6Uykci/GqRf7onUQh8wqvMQ=
-github.com/berachain/cometbft v1.0.1-0.20250416103256-c547460cd751/go.mod h1:uKedkByrSmZ65iEiuFCu9oqmQdZEIf6O0nfez2h7YE8=
-github.com/berachain/cometbft/api v1.0.1-0.20250416103256-c547460cd751 h1:5DApYyaRFyQxIaLo2rATqgX4FiKKz7K4al+et2cdnNc=
-github.com/berachain/cometbft/api v1.0.1-0.20250416103256-c547460cd751/go.mod h1:QaK8NCB4rHDs0MdS+L+QOQsL4UM3YJ9OMCNrH+CGdA0=
+github.com/berachain/cometbft v1.0.1-0.20250424093341-6fe80335f54a h1:5cRfclogbkW5zXltmjEWA57d9nxT291xmUF5CTebaMY=
+github.com/berachain/cometbft v1.0.1-0.20250424093341-6fe80335f54a/go.mod h1:AB3j5W0TQmQSuwRdzWvIBQPAKquFo7VnckwETlAsuwk=
+github.com/berachain/cometbft/api v1.0.1-0.20250424093341-6fe80335f54a h1:N50BIVr7zco5GIZT74ktNTKUbwF5u5Ix1GjveQ+pDIU=
+github.com/berachain/cometbft/api v1.0.1-0.20250424093341-6fe80335f54a/go.mod h1:QaK8NCB4rHDs0MdS+L+QOQsL4UM3YJ9OMCNrH+CGdA0=
 github.com/berachain/karalabe-ssz v0.3.0-alpha.0 h1:SVMU5PSuMB2fgmFTf1rSBY9rEHpQv24DJcqxSrD7jf8=
 github.com/berachain/karalabe-ssz v0.3.0-alpha.0/go.mod h1:7BZG/jckt43eKw7sl/AF6gTcL0oxgFPme39m54v8rDI=
 github.com/bgentry/speakeasy v0.2.0 h1:tgObeVOf8WAvtuAX6DhJ4xks4CFNwPDZiqzGqIHE51E=
@@ -276,8 +276,8 @@ github.com/go-playground/universal-translator v0.17.0/go.mod h1:UkSxE5sNxxRwHyU+
 github.com/go-playground/universal-translator v0.18.1 h1:Bcnm0ZwsGyWbCzImXv+pAJnYK9S473LQFuzCbDbfSFY=
 github.com/go-playground/universal-translator v0.18.1/go.mod h1:xekY+UJKNuX9WP91TpwSH2VMlDf28Uj24BCp08ZFTUY=
 github.com/go-playground/validator/v10 v10.4.1/go.mod h1:nlOn6nFhuKACm19sB/8EGNn9GlaMV7XkbRSipzJ0Ii4=
-github.com/go-playground/validator/v10 v10.26.0 h1:SP05Nqhjcvz81uJaRfEV0YBSSSGMc/iMaVtFbr3Sw2k=
-github.com/go-playground/validator/v10 v10.26.0/go.mod h1:I5QpIEbmr8On7W0TktmJAumgzX4CA1XNl4ZmDuVHKKo=
+github.com/go-playground/validator/v10 v10.27.0 h1:w8+XrWVMhGkxOaaowyKH35gFydVHOvC0/uWoy2Fzwn4=
+github.com/go-playground/validator/v10 v10.27.0/go.mod h1:I5QpIEbmr8On7W0TktmJAumgzX4CA1XNl4ZmDuVHKKo=
 github.com/go-stack/stack v1.8.0/go.mod h1:v0f6uXyyMGvRgIKkXu+yp6POWl0qKG85gN/melR3HDY=
 github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0/go.mod h1:fyg7847qk6SyHyPtNmDHnmrv/HOrqktSC+C9fM+CJOE=
 github.com/go-viper/mapstructure/v2 v2.3.0 h1:27XbWsHIqhbdR5TIC911OfYvgSaW93HM+dX7970Q7jk=
