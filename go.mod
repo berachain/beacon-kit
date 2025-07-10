@@ -6,6 +6,7 @@ replace (
 	github.com/cometbft/cometbft => github.com/berachain/cometbft v1.0.1-0.20250416103256-c547460cd751
 	github.com/cometbft/cometbft/api => github.com/berachain/cometbft/api v1.0.1-0.20250416103256-c547460cd751
 	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.52.0-rc.1
+	github.com/ethereum/go-ethereum => ../bera-geth
 	github.com/karalabe/ssz => github.com/berachain/karalabe-ssz v0.3.0-alpha.0
 )
 
@@ -88,7 +89,7 @@ require (
 	github.com/adrg/xdg v0.4.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/speakeasy v0.2.0 // indirect
-	github.com/bits-and-blooms/bitset v1.17.0 // indirect
+	github.com/bits-and-blooms/bitset v1.20.0 // indirect
 	github.com/bufbuild/protocompile v0.14.1 // indirect
 	github.com/bytedance/sonic v1.13.1 // indirect
 	github.com/bytedance/sonic/loader v0.2.4 // indirect
@@ -102,8 +103,7 @@ require (
 	github.com/cockroachdb/redact v1.1.6 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
 	github.com/cometbft/cometbft-db v1.0.4 // indirect
-	github.com/consensys/bavard v0.1.22 // indirect
-	github.com/consensys/gnark-crypto v0.14.0 // indirect
+	github.com/consensys/gnark-crypto v0.18.0 // indirect
 	github.com/containerd/continuity v0.4.4 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5 // indirect
@@ -112,6 +112,7 @@ require (
 	github.com/cosmos/iavl v1.3.4 // indirect
 	github.com/cosmos/ics23/go v0.11.0 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.13.3 // indirect
+	github.com/crate-crypto/go-eth-kzg v1.3.0 // indirect
 	github.com/crate-crypto/go-ipa v0.0.0-20240724233137-53bbb0ceb27a // indirect
 	github.com/danieljoos/wincred v1.2.1 // indirect
 	github.com/deckarep/golang-set/v2 v2.6.0 // indirect
@@ -124,6 +125,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/dvsekhvalnov/jose2go v1.7.0 // indirect
 	github.com/emicklei/dot v1.6.4 // indirect
+	github.com/ethereum/c-kzg-4844/v2 v2.1.0 // indirect
 	github.com/ethereum/go-verkle v0.2.2 // indirect
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
@@ -191,7 +193,6 @@ require (
 	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/mholt/archiver v3.1.1+incompatible // indirect
 	github.com/minio/highwayhash v1.0.3 // indirect
-	github.com/mmcloughlin/addchain v0.4.0 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/mtibben/percent v0.2.1 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
@@ -269,5 +270,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gotest.tools/v3 v3.5.2 // indirect
 	pgregory.net/rapid v1.2.0 // indirect
-	rsc.io/tmplfunc v0.0.3 // indirect
 )
