@@ -49,6 +49,12 @@ func (s *Service) commit(
 
 	s.cachedStates.Reset()
 
+	if s.blockDelay != nil {
+		if err = s.sm.SaveBlockDelay(s.blockDelay.ToBytes()); err != nil {
+			panic(fmt.Errorf("failed to save block delay: %w", err))
+		}
+	}
+
 	return &cmtabci.CommitResponse{
 		RetainHeight: retainHeight,
 	}, nil

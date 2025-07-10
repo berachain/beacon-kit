@@ -24,13 +24,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/cache"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
-	cmttypes "github.com/cometbft/cometbft/types"
 	"github.com/sourcegraph/conc/iter"
 )
 
@@ -92,7 +93,7 @@ func (s *Service) finalizeBlockInternal(
 			); err != nil {
 				return nil, fmt.Errorf("finalize block: failed post finalize block ops: %w", err)
 			}
-			return formatFinalizeBlockResponse(cached.ValUpdates, len(req.Txs), s.cmtConsensusParams)
+			return s.formatFinalizeBlockResponse(req, cached.ValUpdates)
 		}
 
 	case errors.Is(err, cache.ErrStateNotFound):
@@ -138,7 +139,51 @@ func (s *Service) finalizeBlockInternal(
 		return nil, fmt.Errorf("failed marking state as final, hash %s, height %d: %w", hash, req.Height, err)
 	}
 
-	return formatFinalizeBlockResponse(valUpdates, len(req.Txs), s.cmtConsensusParams)
+	return s.formatFinalizeBlockResponse(req, valUpdates)
+}
+
+//nolint:lll // long message on one line for readability.
+func (s *Service) nextBlockDelay(req *cmtabci.FinalizeBlockRequest) time.Duration {
+	// c0. SBT is not enabled => use the old block delay.
+	if s.cmtConsensusParams.Feature.SBTEnableHeight <= 0 {
+		return s.delayCfg.SbtConstBlockDelay()
+	}
+
+	// c1. current height < SBTEnableHeight => wait for the upgrade.
+	if req.Height < s.cmtConsensusParams.Feature.SBTEnableHeight {
+		return s.delayCfg.SbtConstBlockDelay()
+	}
+
+	// c2. current height == SBTEnableHeight => initialize the block delay.
+	if req.Height == s.cmtConsensusParams.Feature.SBTEnableHeight {
+		s.blockDelay = &delay.BlockDelay{
+			InitialTime:       req.Time,
+			InitialHeight:     req.Height,
+			PreviousBlockTime: req.Time,
+		}
+		return s.delayCfg.SbtConstBlockDelay()
+	}
+
+	// c3. current height > SBTEnableHeight
+	// c3.1
+	//
+	// The upgrade was successfully applied and the block delay is set.
+	if s.blockDelay != nil {
+		prevBlkTime := s.blockDelay.PreviousBlockTime // note it down before ComputeNext changes it
+		delay := s.blockDelay.ComputeNext(s.delayCfg, req.Time, req.Height)
+		s.logger.Debug("Stable block time",
+			"previous block time", prevBlkTime.String(),
+			"current block time", req.Time.String(),
+			"next delay", delay.String(),
+		)
+		return delay
+	}
+	// c3.2
+	//
+	// Looks like we've skipped SBTEnableHeight (probably restoring from the
+	// snapshot) => panic.
+	panic(fmt.Sprintf("nil block delay at height %d past SBTEnableHeight %d. This is only possible w/ statesync, which is not supported by SBT atm",
+		req.Height, s.cmtConsensusParams.Feature.SBTEnableHeight))
 }
 
 // workingHash gets the apphash that will be finalized in commit.
@@ -213,12 +258,18 @@ func (s *Service) validateFinalizeBlockHeight(
 	return nil
 }
 
-func formatFinalizeBlockResponse(
+func (s *Service) formatFinalizeBlockResponse(
+	req *cmtabci.FinalizeBlockRequest,
 	valUpdates transition.ValidatorUpdates,
-	txsLen int,
-	cmtConsensusParams *cmttypes.ConsensusParams,
 ) (*cmtabci.FinalizeBlockResponse, error) {
+	// Update Stable block time related data
+	if s.cmtConsensusParams.Feature.SBTEnableHeight == 0 && req.Height == s.delayCfg.SbtConsensusUpdateHeight() {
+		s.cmtConsensusParams.Feature.SBTEnableHeight = s.delayCfg.SbtConsensusEnableHeight()
+	}
+	nextBlockTime := s.nextBlockDelay(req)
+
 	// This result format is expected by Comet. That actual execution will happen as part of the state transition.
+	txsLen := len(req.Txs)
 	txResults := make([]*cmtabci.ExecTxResult, txsLen)
 	for i := range txsLen {
 		//nolint:mnd // its okay for now.
@@ -239,10 +290,11 @@ func formatFinalizeBlockResponse(
 		return nil, err
 	}
 
-	cp := cmtConsensusParams.ToProto()
+	cp := s.cmtConsensusParams.ToProto()
 	return &cmtabci.FinalizeBlockResponse{
 		TxResults:             txResults,
 		ValidatorUpdates:      formattedValUpdates,
 		ConsensusParamUpdates: &cp,
+		NextBlockDelay:        nextBlockTime,
 	}, nil
 }
