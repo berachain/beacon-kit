@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	nodecoretypes "github.com/berachain/beacon-kit/node-core/types"
+	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
@@ -40,17 +41,17 @@ import (
 	"github.com/berachain/beacon-kit/state-transition/core"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/berachain/beacon-kit/storage/block"
-	depositdb "github.com/berachain/beacon-kit/storage/deposit"
+	"github.com/berachain/beacon-kit/storage/deposit"
 )
 
 type (
 	// AttributesFactory is the interface for the attributes factory.
 	AttributesFactory interface {
 		BuildPayloadAttributes(
-			st *statedb.StateDB,
-			slot math.Slot,
 			timestamp math.U64,
-			prevHeadRoot [32]byte,
+			payloadWithdrawals engineprimitives.Withdrawals,
+			prevRandao common.Bytes32,
+			prevHeadRoot common.Root,
 		) (*engineprimitives.PayloadAttributes, error)
 	}
 
@@ -79,12 +80,7 @@ type (
 		// RequestPayloadAsync requests a new payload for the given slot.
 		RequestPayloadAsync(
 			ctx context.Context,
-			st *statedb.StateDB,
-			slot math.Slot,
-			timestamp math.U64,
-			parentBlockRoot common.Root,
-			headEth1BlockHash common.ExecutionHash,
-			finalEth1BlockHash common.ExecutionHash,
+			r *builder.RequestPayloadData,
 		) (*engineprimitives.PayloadID, common.Version, error)
 		// RetrievePayload retrieves the payload for the given slot.
 		RetrievePayload(
@@ -96,12 +92,7 @@ type (
 		// blocks until the payload is delivered.
 		RequestPayloadSync(
 			ctx context.Context,
-			st *statedb.StateDB,
-			slot math.Slot,
-			timestamp math.U64,
-			parentBlockRoot common.Root,
-			headEth1BlockHash common.ExecutionHash,
-			finalEth1BlockHash common.ExecutionHash,
+			r *builder.RequestPayloadData,
 		) (ctypes.BuiltExecutionPayloadEnv, error)
 	}
 
@@ -163,7 +154,7 @@ type (
 	StorageBackend interface {
 		AvailabilityStore() *dastore.Store
 		BlockStore() *block.KVStore[*ctypes.BeaconBlock]
-		DepositStore() *depositdb.KVStore
+		DepositStore() deposit.StoreManager
 		// StateFromContext retrieves the beacon state from the given context.
 		StateFromContext(context.Context) *statedb.StateDB
 	}

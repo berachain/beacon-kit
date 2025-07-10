@@ -23,7 +23,4 @@ package types
 const (
 	// DefaultAllocsKey is the key for the allocs in the default genesis file.
 	DefaultAllocsKey = "alloc"
-
-	// NethermindAllocsKey is the key for the allocs in the nethermind genesis file.
-	NethermindAllocsKey = "accounts"
 )

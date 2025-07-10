@@ -29,6 +29,7 @@ import (
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
@@ -37,7 +38,7 @@ import (
 	"github.com/berachain/beacon-kit/state-transition/core"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/berachain/beacon-kit/storage/block"
-	depositdb "github.com/berachain/beacon-kit/storage/deposit"
+	"github.com/berachain/beacon-kit/storage/deposit"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -65,12 +66,7 @@ type LocalBuilder interface {
 	// RequestPayloadAsync requests a new payload for the given slot.
 	RequestPayloadAsync(
 		ctx context.Context,
-		st *statedb.StateDB,
-		slot math.Slot,
-		timestamp math.U64,
-		parentBlockRoot common.Root,
-		headEth1BlockHash common.ExecutionHash,
-		finalEth1BlockHash common.ExecutionHash,
+		r *builder.RequestPayloadData,
 	) (*engineprimitives.PayloadID, common.Version, error)
 }
 
@@ -115,7 +111,7 @@ type StorageBackend interface {
 	// StateFromContext retrieves the beacon state from the given context.
 	StateFromContext(context.Context) *statedb.StateDB
 	// DepositStore retrieves the deposit store.
-	DepositStore() *depositdb.KVStore
+	DepositStore() deposit.StoreManager
 	// BlockStore retrieves the block store.
 	BlockStore() *block.KVStore[*ctypes.BeaconBlock]
 }
@@ -172,4 +168,8 @@ type ServiceChainSpec interface {
 	chain.BlobSpec
 	chain.ForkSpec
 	chain.ForkVersionSpec
+
+	EpochsPerHistoricalVector() uint64
+	SlotToEpoch(slot math.Slot) math.Epoch
+	Eth1FollowDistance() uint64
 }
