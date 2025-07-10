@@ -36,4 +36,4 @@ jobs:
 
       - name: Run "${{ matrix.group }}" testnet
         working-directory: .
-        run: make test-e2e-ci-no-build
+        run: make test-cmt-e2e-single-no-build
