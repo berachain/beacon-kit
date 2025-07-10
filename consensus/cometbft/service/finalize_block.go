@@ -218,9 +218,7 @@ func (s *Service) workingHash() []byte {
 	return commitHash
 }
 
-func (s *Service) validateFinalizeBlockHeight(
-	req *cmtabci.FinalizeBlockRequest,
-) error {
+func (s *Service) validateFinalizeBlockHeight(req *cmtabci.FinalizeBlockRequest) error {
 	if req.Height < 1 {
 		return fmt.Errorf(
 			"finalizeBlock at height %v: %w",
