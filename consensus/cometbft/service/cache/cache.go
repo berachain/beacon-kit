@@ -48,13 +48,31 @@ var (
 	ErrFinalizingUnknownState = errors.New("attempt at finalizing unknown state")
 )
 
+// States is the interface controlling the caching of state and metadata once a block
+// has been succeesfully executed once. States assumes that consensus allows no forks,
+// and that no blocks at height H+1 is ever processed if height H has not been finalized.
 type States interface {
+	// SetCached allows caching state and metadata once a block has been executed.
+	// It should be called for blocks which successfully pass PrepareProposal.
+	// toCache is simply cached without checks, since CometBFT should guarantee that
+	// blocks are verified at most once.
 	SetCached(hash string, toCache *Element)
+
+	// GetCached allows retrieval of cached state and metadata.
+	// It should be called by FinalizedBlock to verify whether the block
+	// has already been executed
 	GetCached(hash string) (*Element, error)
 
+	// MarkAsFinal allows marking one of the cached states as the one to be finalized and committed.
+	// It should be called upon FinalizeBlock to then allow Commit to store the state.
+	// It errs if we attempt to finalize a state which was not previously cached
 	MarkAsFinal(hash string) error
+
+	// GetFinal allows to retrieve state and stateHash marked as final.
+	// Is should be call by Commit to retrieve the state finalized in FinalizeBlock
 	GetFinal() (string, *State, error)
 
+	// Reset allows wiping out all the verified states once one of the has been committed
 	Reset()
 }
 
