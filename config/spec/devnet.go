@@ -27,9 +27,6 @@ import (
 )
 
 const (
-	// devnetEVMInflationAddress is the address of the EVM inflation contract.
-	devnetEVMInflationAddress = "0x6942069420694206942069420694206942069420"
-
 	// devnetEVMInflationPerBlock is the amount of native EVM balance (in units
 	// of Gwei) to be minted per EL block.
 	devnetEVMInflationPerBlock = 10 * params.GWei
@@ -50,10 +47,6 @@ const (
 	// devnetElectra1ForkTime is the timestamp at which the Electra1 fork occurs.
 	// devnet is configured to start on electra1.
 	devnetElectra1ForkTime = 0
-
-	// devnetEVMInflationAddressDeneb1 is the address of the EVM inflation contract
-	// after the Deneb1 fork.
-	devnetEVMInflationAddressDeneb1 = "0x4206942069420694206942069420694206942069"
 
 	// devnetEVMInflationPerBlockDeneb1 is the amount of native EVM balance (in units
 	// of Gwei) to be minted per EL block after the Deneb1 fork.
@@ -81,11 +74,11 @@ func DevnetChainSpecData() *chain.SpecData {
 	specData.Electra1ForkTime = devnetElectra1ForkTime
 
 	// EVM inflation is different from mainnet to test.
-	specData.EVMInflationAddressGenesis = common.NewExecutionAddressFromHex(devnetEVMInflationAddress)
+	specData.EVMInflationAddressGenesis = common.NewExecutionAddressFromHex(defaultEVMInflationAddress)
 	specData.EVMInflationPerBlockGenesis = devnetEVMInflationPerBlock
 
 	// EVM inflation is different from mainnet for now, after the Deneb1 fork.
-	specData.EVMInflationAddressDeneb1 = common.NewExecutionAddressFromHex(devnetEVMInflationAddressDeneb1)
+	specData.EVMInflationAddressDeneb1 = common.NewExecutionAddressFromHex(mainnetEVMInflationAddressDeneb1)
 	specData.EVMInflationPerBlockDeneb1 = devnetEVMInflationPerBlockDeneb1
 
 	// Staking is different from mainnet for now.
