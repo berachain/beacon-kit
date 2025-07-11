@@ -49,7 +49,7 @@ var (
 )
 
 type States interface {
-	Cache(hash string, toCache *Element)
+	SetCached(hash string, toCache *Element)
 	GetCached(hash string) (*Element, error)
 
 	MarkAsFinal(hash string) error
@@ -75,7 +75,7 @@ func New() States {
 	}
 }
 
-func (cs *candidateStates) Cache(hash string, toCache *Element) {
+func (cs *candidateStates) SetCached(hash string, toCache *Element) {
 	cs.states[hash] = toCache
 }
 

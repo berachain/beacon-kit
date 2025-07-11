@@ -91,7 +91,7 @@ func (s *Service) processProposal(
 			State:      processProposalState,
 			ValUpdates: valUpdates,
 		}
-		s.cachedStates.Cache(stateHash, toCache)
+		s.cachedStates.SetCached(stateHash, toCache)
 	}
 	status := cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
 	return &cmtabci.ProcessProposalResponse{Status: status}, nil

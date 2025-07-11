@@ -131,7 +131,7 @@ func (s *Service) finalizeBlockInternal(
 	}
 
 	// Cache and mark state as final
-	s.cachedStates.Cache(hash, &cache.Element{
+	s.cachedStates.SetCached(hash, &cache.Element{
 		State:      finalState,
 		ValUpdates: valUpdates,
 	})

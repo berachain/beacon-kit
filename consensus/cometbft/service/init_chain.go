@@ -86,7 +86,7 @@ func (s *Service) initChain(
 
 	genesisHash := ""
 	genesisFinalState := s.resetState(ctx)
-	s.cachedStates.Cache(genesisHash, &cache.Element{
+	s.cachedStates.SetCached(genesisHash, &cache.Element{
 		State: genesisFinalState,
 	})
 	if err = s.cachedStates.MarkAsFinal(genesisHash); err != nil {
