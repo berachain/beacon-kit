@@ -50,7 +50,7 @@ require (
 	github.com/umbracle/fastrlp v0.1.0
 	go.uber.org/automaxprocs v1.6.0
 	golang.org/x/crypto v0.39.0
-	golang.org/x/sync v0.15.0
+	golang.org/x/sync v0.16.0
 	sigs.k8s.io/yaml v1.5.0
 )
 
