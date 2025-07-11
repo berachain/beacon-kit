@@ -89,7 +89,7 @@ const (
 	// validators' balances in the beacon block in the Electra forks. This is
 	// calculated by concatenating the (ZeroValidatorBalanceGIndexElectraState, StateGIndexBlock)
 	// GIndices. To get the GIndex of the balance of validator at index n, the formula is:
-	// GIndex = ZeroValidatorBalanceGIndexElectraBlock + (BalanceGIndexOffset * (n / 4))
+	// GIndex = ZeroValidatorBalanceGIndexElectraBlock + (n / 4)
 	ZeroValidatorBalanceGIndexElectraBlock = 199011604627456
 
 	// BalancesPerLeaf is the number of validator balances packed into a single leaf.
