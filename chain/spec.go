@@ -155,6 +155,15 @@ type BerachainSpec interface {
 
 	// ValidatorSetCap retrieves the maximum number of validators allowed in the active set.
 	ValidatorSetCap() uint64
+
+	// IsMainnet returns true if the chain is running with the mainnet chain ID.
+	IsMainnet() bool
+
+	// IsTestnet returns true if the chain is running with the testnet chain ID.
+	IsTestnet() bool
+
+	// IsDevnet returns true if the chain is running with the devnet chain ID.
+	IsDevnet() bool
 }
 
 type WithdrawalsSpec interface {
