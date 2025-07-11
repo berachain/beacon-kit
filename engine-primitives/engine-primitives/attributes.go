@@ -22,6 +22,7 @@ package engineprimitives
 
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 )
@@ -45,6 +46,10 @@ type PayloadAttributes struct {
 	// to the block currently being processed. This field was added for
 	// EIP-4788.
 	ParentBeaconBlockRoot common.Root `json:"parentBeaconBlockRoot"`
+
+	// ParentProposerPubKey carries the public key of previous block proposed
+	// This field was added for BRIP-0004.
+	ParentProposerPubKey crypto.BLSPubkey `json:"parentProposerPubKey"`
 }
 
 // NewPayloadAttributes creates a new PayloadAttributes and validates it for
@@ -56,6 +61,7 @@ func NewPayloadAttributes(
 	suggestedFeeRecipient common.ExecutionAddress,
 	withdrawals Withdrawals,
 	parentBeaconBlockRoot common.Root,
+	parentProposerPubKey crypto.BLSPubkey,
 ) (*PayloadAttributes, error) {
 	pa := &PayloadAttributes{
 		Timestamp:             timestamp,
@@ -63,9 +69,10 @@ func NewPayloadAttributes(
 		SuggestedFeeRecipient: suggestedFeeRecipient,
 		Withdrawals:           withdrawals,
 		ParentBeaconBlockRoot: parentBeaconBlockRoot,
+		ParentProposerPubKey:  parentProposerPubKey,
 	}
 
-	if err := pa.Validate(forkVersion); err != nil {
+	if err := pa.validate(forkVersion); err != nil {
 		return nil, err
 	}
 
@@ -78,7 +85,7 @@ func (p *PayloadAttributes) GetSuggestedFeeRecipient() common.ExecutionAddress {
 }
 
 // Validate validates the PayloadAttributes for the given fork version.
-func (p *PayloadAttributes) Validate(forkVersion common.Version) error {
+func (p *PayloadAttributes) validate(forkVersion common.Version) error {
 	if p.Timestamp == 0 {
 		return ErrInvalidTimestamp
 	}
@@ -90,6 +97,17 @@ func (p *PayloadAttributes) Validate(forkVersion common.Version) error {
 	// For any fork version Capella onwards, withdrawals are required.
 	if p.Withdrawals == nil && version.EqualsOrIsAfter(forkVersion, version.Capella()) {
 		return ErrNilWithdrawals
+	}
+
+	emptyBLSPubKey := crypto.BLSPubkey{}
+	if version.IsBefore(forkVersion, version.Electra1()) {
+		if p.ParentProposerPubKey != emptyBLSPubKey {
+			return ErrNonEmptyPrevProposerPubKey
+		}
+	} else {
+		if p.ParentProposerPubKey == emptyBLSPubKey {
+			return ErrEmptyPrevProposerPubKey
+		}
 	}
 
 	return nil

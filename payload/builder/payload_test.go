@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/payload/cache"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/stretchr/testify/require"
@@ -185,7 +186,7 @@ func (ee *stubExecutionEngine) NotifyForkchoiceUpdate(
 type stubAttributesFactory struct{}
 
 func (ee *stubAttributesFactory) BuildPayloadAttributes(
-	math.U64, engineprimitives.Withdrawals, common.Bytes32, common.Root,
+	math.U64, engineprimitives.Withdrawals, common.Bytes32, common.Root, crypto.BLSPubkey,
 ) (*engineprimitives.PayloadAttributes, error) {
 	return nil, errStubNotImplemented
 }
