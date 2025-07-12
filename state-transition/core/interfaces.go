@@ -25,6 +25,7 @@ import (
 
 	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -77,6 +78,8 @@ type ChainSpec interface {
 	chain.ForkSpec
 	chain.DomainTypeSpec
 	chain.WithdrawalsSpec
+	delay.ConfigGetter
+
 	SlotsPerEpoch() uint64
 	SlotToEpoch(slot math.Slot) math.Epoch
 	SlotsPerHistoricalRoot() uint64

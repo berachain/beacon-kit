@@ -26,6 +26,7 @@ import (
 	"sync"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/cache"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -96,12 +97,16 @@ func (sp *StateProcessor) Transition(
 		return nil, err
 	}
 
-	// Prepare the state for the next block's fork version, logging only once during FinalizeBlock.
-	//
-	// TODO: allow the state transition context to directly indicate what stage of block processing
-	// we are in, i.e. ProcessProposal, FinalizeBlock, etc.
-	inFinalizeBlock := ctx.VerifyPayload() && !ctx.VerifyRandao()
-	if err = sp.ProcessFork(st, blk.GetTimestamp(), inFinalizeBlock); err != nil {
+	// Prepare the state for the next block's fork version.
+	// Ideally we want to log only in case we are processing the
+	// block to be finalized. Pre cache activation this is easy.
+	// Post activation we log every time we verify a block
+	logForkProcessing := ctx.VerifyPayload() && !ctx.VerifyRandao()
+
+	if cache.IsStateCachingActive(sp.cs, blk.Slot) {
+		logForkProcessing = ctx.VerifyPayload()
+	}
+	if err = sp.ProcessFork(st, blk.GetTimestamp(), logForkProcessing); err != nil {
 		return nil, err
 	}
 
