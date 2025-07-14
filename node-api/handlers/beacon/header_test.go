@@ -34,13 +34,14 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/mocks"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	handlertypes "github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetBlockHeaders(t *testing.T) {
+func TestGetBlockHeadersBySlot(t *testing.T) {
 	t.Parallel()
 
 	// setup test
@@ -49,20 +50,18 @@ func TestGetBlockHeaders(t *testing.T) {
 	h.SetLogger(noop.NewLogger[log.Logger]())
 
 	// define input data
-	inputSlot := math.Slot(10)
-	input := beacontypes.GetBlockHeadersRequest{
-		SlotRequest: beacontypes.SlotRequest{
-			Slot: inputSlot.Base10(),
-		},
-		ParentRoot: "",
-	}
-
 	header := &types.BeaconBlockHeader{
-		Slot:            inputSlot,
+		Slot:            math.Slot(10),
 		ProposerIndex:   math.ValidatorIndex(1234),
 		ParentBlockRoot: common.Root{'d', 'u', 'm', 'm', 'y', ' ', 'b', 'l', 'o', 'c', 'k', 'r', 'o', 'o', 't'},
 		StateRoot:       common.Root{'d', 'u', 'm', 'm', 'y', ' ', 's', 't', 'a', 't', 'e', 'r', 'o', 'o', 't'},
 		BodyRoot:        common.Root{'d', 'u', 'm', 'm', 'y', ' ', 'r', 'o', 'o', 't'},
+	}
+	input := beacontypes.GetBlockHeadersRequest{
+		SlotRequest: beacontypes.SlotRequest{
+			Slot: header.Slot.Base10(),
+		},
+		ParentRoot: "",
 	}
 
 	// create API inputs
@@ -79,7 +78,7 @@ func TestGetBlockHeaders(t *testing.T) {
 	c := e.NewContext(req, httptest.NewRecorder())
 
 	// setup mocks
-	backend.EXPECT().BlockHeaderAtSlot(inputSlot).Return(header, nil)
+	backend.EXPECT().BlockHeaderAtSlot(header.Slot).Return(header, nil)
 
 	// test
 	res, err := h.GetBlockHeaders(c)
@@ -101,4 +100,43 @@ func TestGetBlockHeaders(t *testing.T) {
 		BodyRoot:      header.BodyRoot.Hex(),
 	}
 	require.Equal(t, expectedHeader, data.Header.Message)
+}
+
+func TestGetBlockHeadersByParentBlockHash(t *testing.T) {
+	t.Parallel()
+
+	// setup test
+	backend := mocks.NewBackend(t)
+	h := beacon.NewHandler(backend)
+	h.SetLogger(noop.NewLogger[log.Logger]())
+
+	// define input data
+	header := &types.BeaconBlockHeader{
+		ParentBlockRoot: common.Root{'d', 'u', 'm', 'm', 'y', ' ', 'b', 'l', 'o', 'c', 'k', 'r', 'o', 'o', 't'},
+		StateRoot:       common.Root{'d', 'u', 'm', 'm', 'y', ' ', 's', 't', 'a', 't', 'e', 'r', 'o', 'o', 't'},
+		BodyRoot:        common.Root{'d', 'u', 'm', 'm', 'y', ' ', 'r', 'o', 'o', 't'},
+	}
+	input := beacontypes.GetBlockHeadersRequest{
+		SlotRequest: beacontypes.SlotRequest{},
+		ParentRoot:  header.ParentBlockRoot.Hex(),
+	}
+
+	// create API inputs
+	e := echo.New()
+	e.Validator = &beaconecho.CustomValidator{
+		Validator: beaconecho.ConstructValidator(),
+	}
+
+	inputBytes, err := json.Marshal(input) //nolint:musttag //  TODO:fix
+	require.NoError(t, err)
+	body := strings.NewReader(string(inputBytes))
+	req := httptest.NewRequest(http.MethodGet, "/", body)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON) // otherwise code=415, message=Unsupported Media Type
+	c := e.NewContext(req, httptest.NewRecorder())
+
+	// test
+	_, err = h.GetBlockHeaders(c)
+
+	// checks
+	require.ErrorIs(t, err, handlertypes.ErrInvalidRequest)
 }
