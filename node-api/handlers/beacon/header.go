@@ -21,6 +21,7 @@
 package beacon
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/berachain/beacon-kit/node-api/handlers"
@@ -29,16 +30,35 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
+var ErrMismatchedSlotAndParentBlock = errors.New("slot does not match with parent block")
+
 func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetBlockHeadersRequest](c, h.Logger())
 	if err != nil {
 		return nil, err
 	}
-	slot, err := math.U64FromString(req.Slot)
-	if err != nil {
-		return nil, fmt.Errorf("failed formatting request slot to type: %w", err)
+
+	var (
+		slot, errSlot         = math.U64FromString(req.Slot)
+		parentSlot, errParent = utils.SlotFromBlockID(req.ParentRoot, h.backend)
+	)
+
+	switch {
+	case errSlot == nil && errParent != nil:
+		return makeBlockHeaderResponse(h.backend, slot)
+
+	case errSlot != nil && errParent == nil:
+		return makeBlockHeaderResponse(h.backend, parentSlot+1)
+
+	case errSlot == nil && errParent == nil:
+		if slot != parentSlot+1 {
+			return nil, fmt.Errorf("%w: request slot %d, parent block slot %d", ErrMismatchedSlotAndParentBlock, slot, parentSlot)
+		}
+		return makeBlockHeaderResponse(h.backend, slot)
+
+	default:
+		return nil, fmt.Errorf("failed retrieving slot from input parameters: %w, %w", errSlot, errParent)
 	}
-	return makeBlockHeaderResponse(h.backend, slot)
 }
 
 func (h *Handler) GetBlockHeaderByID(c handlers.Context) (any, error) {

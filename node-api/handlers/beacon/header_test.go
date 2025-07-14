@@ -42,17 +42,26 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+//nolint:maintidx // multiple test cases
 func TestGetBlockHeaders(t *testing.T) {
 	t.Parallel()
 
 	// a test testHeader to build test cases on top of
-	testHeader := &types.BeaconBlockHeader{
+	testParentHeader := &types.BeaconBlockHeader{
 		Slot:            math.Slot(10),
 		ProposerIndex:   math.ValidatorIndex(1234),
-		ParentBlockRoot: common.Root{'d', 'u', 'm', 'm', 'y', ' ', 'b', 'l', 'o', 'c', 'k', 'r', 'o', 'o', 't'},
-		StateRoot:       common.Root{'d', 'u', 'm', 'm', 'y', ' ', 's', 't', 'a', 't', 'e', 'r', 'o', 'o', 't'},
-		BodyRoot:        common.Root{'d', 'u', 'm', 'm', 'y', ' ', 'r', 'o', 'o', 't'},
+		ParentBlockRoot: common.Root{'p', 'a', 'r', 'e', 'n', 't', 'b', 'l', 'o', 'c', 'k', 'r', 'o', 'o', 't'},
+		StateRoot:       common.Root{'p', 'a', 'r', 'e', 'n', 't', 's', 't', 'a', 't', 'e', 'r', 'o', 'o', 't'},
+		BodyRoot:        common.Root{'p', 'a', 'r', 'e', 'n', 't', 'r', 'o', 'o', 't'},
 	}
+	testHeader := &types.BeaconBlockHeader{
+		Slot:            testParentHeader.Slot + 1,
+		ProposerIndex:   math.ValidatorIndex(5678),
+		ParentBlockRoot: testParentHeader.BodyRoot,
+		StateRoot:       common.Root{'d', 'u', 'm', 'm', 'y', 's', 't', 'a', 't', 'e', 'r', 'o', 'o', 't'},
+		BodyRoot:        common.Root{'d', 'u', 'm', 'm', 'y', 'r', 'o', 'o', 't'},
+	}
+	wrongSlot := testHeader.Slot + 1234
 	errTestHeaderNotFound := errors.New("test header not found error")
 
 	testCases := []struct {
@@ -62,7 +71,7 @@ func TestGetBlockHeaders(t *testing.T) {
 		check               func(t *testing.T, res any, err error)
 	}{
 		{
-			name: "GetBlockHeaders by slot - known slot",
+			name: "GetBlockHeaders - success - slot only",
 			inputs: func() beacontypes.GetBlockHeadersRequest {
 				return beacontypes.GetBlockHeadersRequest{
 					SlotRequest: beacontypes.SlotRequest{
@@ -96,7 +105,25 @@ func TestGetBlockHeaders(t *testing.T) {
 			},
 		},
 		{
-			name: "GetBlockHeaders by slot - unknown slot",
+			name: "GetBlockHeaders - failure - invalid slot",
+			inputs: func() beacontypes.GetBlockHeadersRequest {
+				return beacontypes.GetBlockHeadersRequest{
+					SlotRequest: beacontypes.SlotRequest{
+						Slot: "AAAA",
+					},
+					ParentRoot: "",
+				}
+			},
+			setMockExpectations: func(*mocks.Backend) {
+				// nothing to set here, slot is invalid
+			},
+			check: func(t *testing.T, _ any, err error) {
+				t.Helper()
+				require.ErrorIs(t, err, handlertypes.ErrInvalidRequest)
+			},
+		},
+		{
+			name: "GetBlockHeaders - failure - unindexed slot",
 			inputs: func() beacontypes.GetBlockHeadersRequest {
 				return beacontypes.GetBlockHeadersRequest{
 					SlotRequest: beacontypes.SlotRequest{
@@ -114,20 +141,122 @@ func TestGetBlockHeaders(t *testing.T) {
 			},
 		},
 		{
-			name: "GetBlockHeaders by parent block hash does not work currently",
+			name: "GetBlockHeaders - success - parent root only",
 			inputs: func() beacontypes.GetBlockHeadersRequest {
 				return beacontypes.GetBlockHeadersRequest{
 					SlotRequest: beacontypes.SlotRequest{},
 					ParentRoot:  testHeader.ParentBlockRoot.Hex(),
 				}
 			},
+			setMockExpectations: func(b *mocks.Backend) {
+				b.EXPECT().GetSlotByBlockRoot(testParentHeader.BodyRoot).Return(testParentHeader.Slot, nil)
+				b.EXPECT().BlockHeaderAtSlot(testHeader.Slot).Return(testHeader, nil)
+			},
+			check: func(t *testing.T, res any, err error) {
+				t.Helper()
+
+				require.NoError(t, err)
+				require.NotNil(t, res)
+				require.IsType(t, beacontypes.GenericResponse{}, res)
+				gr, _ := res.(beacontypes.GenericResponse)
+				require.IsType(t, &beacontypes.BlockHeaderResponse{}, gr.Data)
+				data, _ := gr.Data.(*beacontypes.BlockHeaderResponse)
+
+				require.Equal(t, testHeader.BodyRoot, data.Root)
+				expectedHeader := &beacontypes.BeaconBlockHeader{
+					Slot:          testHeader.Slot.Base10(),
+					ProposerIndex: testHeader.ProposerIndex.Base10(),
+					ParentRoot:    testHeader.ParentBlockRoot.Hex(),
+					StateRoot:     testHeader.StateRoot.Hex(),
+					BodyRoot:      testHeader.BodyRoot.Hex(),
+				}
+				require.Equal(t, expectedHeader, data.Header.Message)
+			},
+		},
+		{
+			name: "GetBlockHeaders - failure - invalid parent root",
+			inputs: func() beacontypes.GetBlockHeadersRequest {
+				return beacontypes.GetBlockHeadersRequest{
+					SlotRequest: beacontypes.SlotRequest{},
+					ParentRoot:  "AN-INVALID-HEX",
+				}
+			},
 			setMockExpectations: func(*mocks.Backend) {
-				// nothing to do, currently this is not implemented
+				// nothing to set here, slot is invalid
 			},
 			check: func(t *testing.T, _ any, err error) {
 				t.Helper()
-
 				require.ErrorIs(t, err, handlertypes.ErrInvalidRequest)
+			},
+		},
+		{
+			name: "GetBlockHeaders - failure - unindexed parent block",
+			inputs: func() beacontypes.GetBlockHeadersRequest {
+				return beacontypes.GetBlockHeadersRequest{
+					SlotRequest: beacontypes.SlotRequest{},
+					ParentRoot:  testHeader.ParentBlockRoot.Hex(),
+				}
+			},
+			setMockExpectations: func(b *mocks.Backend) {
+				// Assume parent header is not known
+				b.EXPECT().GetSlotByBlockRoot(testParentHeader.BodyRoot).Return(0, errTestHeaderNotFound)
+			},
+			check: func(t *testing.T, _ any, err error) {
+				t.Helper()
+				require.ErrorIs(t, err, errTestHeaderNotFound)
+			},
+		},
+		{
+			name: "GetBlockHeaders - success - slot and parent root",
+			inputs: func() beacontypes.GetBlockHeadersRequest {
+				return beacontypes.GetBlockHeadersRequest{
+					SlotRequest: beacontypes.SlotRequest{
+						Slot: testHeader.Slot.Base10(),
+					},
+					ParentRoot: testHeader.ParentBlockRoot.Hex(),
+				}
+			},
+			setMockExpectations: func(b *mocks.Backend) {
+				b.EXPECT().GetSlotByBlockRoot(testParentHeader.BodyRoot).Return(testParentHeader.Slot, nil)
+				b.EXPECT().BlockHeaderAtSlot(testHeader.Slot).Return(testHeader, nil)
+			},
+			check: func(t *testing.T, res any, err error) {
+				t.Helper()
+
+				require.NoError(t, err)
+				require.NotNil(t, res)
+				require.IsType(t, beacontypes.GenericResponse{}, res)
+				gr, _ := res.(beacontypes.GenericResponse)
+				require.IsType(t, &beacontypes.BlockHeaderResponse{}, gr.Data)
+				data, _ := gr.Data.(*beacontypes.BlockHeaderResponse)
+
+				require.Equal(t, testHeader.BodyRoot, data.Root)
+				expectedHeader := &beacontypes.BeaconBlockHeader{
+					Slot:          testHeader.Slot.Base10(),
+					ProposerIndex: testHeader.ProposerIndex.Base10(),
+					ParentRoot:    testHeader.ParentBlockRoot.Hex(),
+					StateRoot:     testHeader.StateRoot.Hex(),
+					BodyRoot:      testHeader.BodyRoot.Hex(),
+				}
+				require.Equal(t, expectedHeader, data.Header.Message)
+			},
+		},
+		{
+			name: "GetBlockHeaders - failure - mismatched slot and parent root",
+			inputs: func() beacontypes.GetBlockHeadersRequest {
+				return beacontypes.GetBlockHeadersRequest{
+					SlotRequest: beacontypes.SlotRequest{
+						Slot: wrongSlot.Base10(),
+					},
+					ParentRoot: testHeader.ParentBlockRoot.Hex(),
+				}
+			},
+			setMockExpectations: func(b *mocks.Backend) {
+				b.EXPECT().GetSlotByBlockRoot(testParentHeader.BodyRoot).Return(testParentHeader.Slot, nil)
+			},
+			check: func(t *testing.T, _ any, err error) {
+				t.Helper()
+				require.ErrorIs(t, err, beacon.ErrMismatchedSlotAndParentBlock)
 			},
 		},
 	}
@@ -147,7 +276,6 @@ func TestGetBlockHeaders(t *testing.T) {
 			}
 
 			// create API inputs
-
 			input := tc.inputs()
 			inputBytes, err := json.Marshal(input) //nolint:musttag //  TODO:fix
 			require.NoError(t, err)
@@ -156,11 +284,13 @@ func TestGetBlockHeaders(t *testing.T) {
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON) // otherwise code=415, message=Unsupported Media Type
 			c := e.NewContext(req, httptest.NewRecorder())
 
+			// set expectations
 			tc.setMockExpectations(backend)
 
 			// test
 			res, err := h.GetBlockHeaders(c)
 
+			// finally do checks
 			tc.check(t, res, err)
 		})
 	}
