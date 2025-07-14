@@ -69,7 +69,7 @@ func Start(ctx context.Context, testnet *e2e.Testnet, p infra.Provider) error {
 	}()
 	for _, node := range nodesAtZero {
 		if _, err := waitForNode(ctx, node, 0, 60*time.Second); err != nil {
-			logger.Error("error in running geth", "err", err)
+			logger.Error("error in waiting for node", "err", err)
 			return err
 		}
 		if node.PrometheusProxyPort > 0 {
