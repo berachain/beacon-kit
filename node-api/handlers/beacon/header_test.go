@@ -41,15 +41,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetBlockHeadersBySlot(t *testing.T) {
+func TestGetBlockHeaders(t *testing.T) {
 	t.Parallel()
 
-	// setup test
-	backend := mocks.NewBackend(t)
-	h := beacon.NewHandler(backend)
-	h.SetLogger(noop.NewLogger[log.Logger]())
-
-	// define input data
+	// a test header to build test cases on top of
 	header := &types.BeaconBlockHeader{
 		Slot:            math.Slot(10),
 		ProposerIndex:   math.ValidatorIndex(1234),
@@ -57,86 +52,96 @@ func TestGetBlockHeadersBySlot(t *testing.T) {
 		StateRoot:       common.Root{'d', 'u', 'm', 'm', 'y', ' ', 's', 't', 'a', 't', 'e', 'r', 'o', 'o', 't'},
 		BodyRoot:        common.Root{'d', 'u', 'm', 'm', 'y', ' ', 'r', 'o', 'o', 't'},
 	}
-	input := beacontypes.GetBlockHeadersRequest{
-		SlotRequest: beacontypes.SlotRequest{
-			Slot: header.Slot.Base10(),
+
+	testCases := []struct {
+		name                string
+		inputs              func() beacontypes.GetBlockHeadersRequest
+		setMockExpectations func(*mocks.Backend)
+		check               func(t *testing.T, res any, err error)
+	}{
+		{
+			name: "GetBlockHeaders by slot",
+			inputs: func() beacontypes.GetBlockHeadersRequest {
+				return beacontypes.GetBlockHeadersRequest{
+					SlotRequest: beacontypes.SlotRequest{
+						Slot: header.Slot.Base10(),
+					},
+					ParentRoot: "",
+				}
+			},
+			setMockExpectations: func(b *mocks.Backend) {
+				b.EXPECT().BlockHeaderAtSlot(header.Slot).Return(header, nil)
+			},
+			check: func(t *testing.T, res any, err error) {
+				t.Helper()
+
+				require.NoError(t, err)
+				require.NotNil(t, res)
+				require.IsType(t, beacontypes.GenericResponse{}, res)
+				gr, _ := res.(beacontypes.GenericResponse)
+				require.IsType(t, &beacontypes.BlockHeaderResponse{}, gr.Data)
+				data, _ := gr.Data.(*beacontypes.BlockHeaderResponse)
+
+				require.Equal(t, header.BodyRoot, data.Root)
+				expectedHeader := &beacontypes.BeaconBlockHeader{
+					Slot:          header.Slot.Base10(),
+					ProposerIndex: header.ProposerIndex.Base10(),
+					ParentRoot:    header.ParentBlockRoot.Hex(),
+					StateRoot:     header.StateRoot.Hex(),
+					BodyRoot:      header.BodyRoot.Hex(),
+				}
+				require.Equal(t, expectedHeader, data.Header.Message)
+			},
 		},
-		ParentRoot: "",
+		{
+			name: "GetBlockHeaders by parent block hash does not work currently",
+			inputs: func() beacontypes.GetBlockHeadersRequest {
+				return beacontypes.GetBlockHeadersRequest{
+					SlotRequest: beacontypes.SlotRequest{},
+					ParentRoot:  header.ParentBlockRoot.Hex(),
+				}
+			},
+			setMockExpectations: func(*mocks.Backend) {
+				// nothing to do, currently this is not implemented
+			},
+			check: func(t *testing.T, _ any, err error) {
+				t.Helper()
+
+				require.ErrorIs(t, err, handlertypes.ErrInvalidRequest)
+			},
+		},
 	}
 
-	// create API inputs
-	e := echo.New()
-	e.Validator = &beaconecho.CustomValidator{
-		Validator: beaconecho.ConstructValidator(),
+	for _, tc := range testCases {
+		tc := tc // capture range variable
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			// setup test
+			backend := mocks.NewBackend(t)
+			h := beacon.NewHandler(backend)
+			h.SetLogger(noop.NewLogger[log.Logger]())
+			e := echo.New()
+			e.Validator = &beaconecho.CustomValidator{
+				Validator: beaconecho.ConstructValidator(),
+			}
+
+			// create API inputs
+
+			input := tc.inputs()
+			inputBytes, err := json.Marshal(input) //nolint:musttag //  TODO:fix
+			require.NoError(t, err)
+			body := strings.NewReader(string(inputBytes))
+			req := httptest.NewRequest(http.MethodGet, "/", body)
+			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON) // otherwise code=415, message=Unsupported Media Type
+			c := e.NewContext(req, httptest.NewRecorder())
+
+			tc.setMockExpectations(backend)
+
+			// test
+			res, err := h.GetBlockHeaders(c)
+
+			tc.check(t, res, err)
+		})
 	}
-
-	inputBytes, err := json.Marshal(input) //nolint:musttag //  TODO:fix
-	require.NoError(t, err)
-	body := strings.NewReader(string(inputBytes))
-	req := httptest.NewRequest(http.MethodGet, "/", body)
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON) // otherwise code=415, message=Unsupported Media Type
-	c := e.NewContext(req, httptest.NewRecorder())
-
-	// setup mocks
-	backend.EXPECT().BlockHeaderAtSlot(header.Slot).Return(header, nil)
-
-	// test
-	res, err := h.GetBlockHeaders(c)
-
-	// checks
-	require.NoError(t, err)
-	require.NotNil(t, res)
-	require.IsType(t, beacontypes.GenericResponse{}, res)
-	gr, _ := res.(beacontypes.GenericResponse)
-	require.IsType(t, &beacontypes.BlockHeaderResponse{}, gr.Data)
-	data, _ := gr.Data.(*beacontypes.BlockHeaderResponse)
-
-	require.Equal(t, header.BodyRoot, data.Root)
-	expectedHeader := &beacontypes.BeaconBlockHeader{
-		Slot:          header.Slot.Base10(),
-		ProposerIndex: header.ProposerIndex.Base10(),
-		ParentRoot:    header.ParentBlockRoot.Hex(),
-		StateRoot:     header.StateRoot.Hex(),
-		BodyRoot:      header.BodyRoot.Hex(),
-	}
-	require.Equal(t, expectedHeader, data.Header.Message)
-}
-
-func TestGetBlockHeadersByParentBlockHash(t *testing.T) {
-	t.Parallel()
-
-	// setup test
-	backend := mocks.NewBackend(t)
-	h := beacon.NewHandler(backend)
-	h.SetLogger(noop.NewLogger[log.Logger]())
-
-	// define input data
-	header := &types.BeaconBlockHeader{
-		ParentBlockRoot: common.Root{'d', 'u', 'm', 'm', 'y', ' ', 'b', 'l', 'o', 'c', 'k', 'r', 'o', 'o', 't'},
-		StateRoot:       common.Root{'d', 'u', 'm', 'm', 'y', ' ', 's', 't', 'a', 't', 'e', 'r', 'o', 'o', 't'},
-		BodyRoot:        common.Root{'d', 'u', 'm', 'm', 'y', ' ', 'r', 'o', 'o', 't'},
-	}
-	input := beacontypes.GetBlockHeadersRequest{
-		SlotRequest: beacontypes.SlotRequest{},
-		ParentRoot:  header.ParentBlockRoot.Hex(),
-	}
-
-	// create API inputs
-	e := echo.New()
-	e.Validator = &beaconecho.CustomValidator{
-		Validator: beaconecho.ConstructValidator(),
-	}
-
-	inputBytes, err := json.Marshal(input) //nolint:musttag //  TODO:fix
-	require.NoError(t, err)
-	body := strings.NewReader(string(inputBytes))
-	req := httptest.NewRequest(http.MethodGet, "/", body)
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON) // otherwise code=415, message=Unsupported Media Type
-	c := e.NewContext(req, httptest.NewRecorder())
-
-	// test
-	_, err = h.GetBlockHeaders(c)
-
-	// checks
-	require.ErrorIs(t, err, handlertypes.ErrInvalidRequest)
 }
