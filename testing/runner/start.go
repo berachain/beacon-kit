@@ -61,10 +61,12 @@ func Start(ctx context.Context, testnet *e2e.Testnet, p infra.Provider) error {
 		return err
 	}
 	logger.Info("Started")
-	err = docker.ExecCompose(ctx, testnet.Dir, []string{"up", "-d", "geth"}...)
-	if err != nil {
-		return err
-	}
+	go func() {
+		err = docker.ExecCompose(ctx, testnet.Dir, []string{"up", "-d", "geth"}...)
+		if err != nil {
+			logger.Error("error in running geth", "err", err)
+		}
+	}()
 	for _, node := range nodesAtZero {
 		if _, err := waitForNode(ctx, node, 0, 60*time.Second); err != nil {
 			return err
