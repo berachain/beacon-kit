@@ -28,9 +28,7 @@ import (
 )
 
 func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
-	req, err := utils.BindAndValidate[beacontypes.GetBlockHeadersRequest](
-		c, h.Logger(),
-	)
+	req, err := utils.BindAndValidate[beacontypes.GetBlockHeadersRequest](c, h.Logger())
 	if err != nil {
 		return nil, err
 	}
@@ -54,9 +52,7 @@ func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 }
 
 func (h *Handler) GetBlockHeaderByID(c handlers.Context) (any, error) {
-	req, err := utils.BindAndValidate[beacontypes.GetBlockHeaderRequest](
-		c, h.Logger(),
-	)
+	req, err := utils.BindAndValidate[beacontypes.GetBlockHeaderRequest](c, h.Logger())
 	if err != nil {
 		return nil, err
 	}
@@ -68,12 +64,13 @@ func (h *Handler) GetBlockHeaderByID(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return beacontypes.NewResponse(&beacontypes.BlockHeaderResponse{
-		Root:      header.GetBodyRoot(),
-		Canonical: true,
-		Header: &beacontypes.SignedBeaconBlockHeader{
-			Message:   beacontypes.BeaconBlockHeaderFromConsensus(header),
-			Signature: "", // TODO: implement
-		},
-	}), nil
+	return beacontypes.NewResponse(
+		&beacontypes.BlockHeaderResponse{
+			Root:      header.GetBodyRoot(),
+			Canonical: true,
+			Header: &beacontypes.SignedBeaconBlockHeader{
+				Message:   beacontypes.BeaconBlockHeaderFromConsensus(header),
+				Signature: "", // TODO: implement
+			},
+		}), nil
 }
