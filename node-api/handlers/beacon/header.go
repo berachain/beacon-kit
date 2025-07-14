@@ -42,14 +42,15 @@ func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return beacontypes.NewResponse(&beacontypes.BlockHeaderResponse{
-		Root:      header.GetBodyRoot(),
-		Canonical: true,
-		Header: &beacontypes.SignedBeaconBlockHeader{
-			Message:   beacontypes.BeaconBlockHeaderFromConsensus(header),
-			Signature: "", // TODO: implement
-		},
-	}), nil
+	return beacontypes.NewResponse(
+		&beacontypes.BlockHeaderResponse{
+			Root:      header.GetBodyRoot(),
+			Canonical: true,
+			Header: &beacontypes.SignedBeaconBlockHeader{
+				Message:   beacontypes.BeaconBlockHeaderFromConsensus(header),
+				Signature: "", // TODO: implement
+			},
+		}), nil
 }
 
 func (h *Handler) GetBlockHeaderByID(c handlers.Context) (any, error) {
