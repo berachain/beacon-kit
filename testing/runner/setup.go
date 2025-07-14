@@ -304,6 +304,11 @@ func Setup(testnet *e2e.Testnet, infp infra.Provider) error {
 		}
 	}
 
+	//nolint: revive
+	if err := infp.Setup(); err != nil {
+		return err
+	}
+
 	/////
 	// Adding geth node to docker configuration
 	/////
@@ -387,10 +392,6 @@ func Setup(testnet *e2e.Testnet, infp infra.Provider) error {
 	err = os.WriteFile(path, updated, 0o644)
 	if err != nil {
 		return fmt.Errorf("error writing compose.yaml file %s: %w", path, err)
-	}
-	//nolint: revive
-	if err := infp.Setup(); err != nil {
-		return err
 	}
 
 	return nil
