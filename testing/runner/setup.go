@@ -341,6 +341,7 @@ func Setup(testnet *e2e.Testnet, infp infra.Provider) error {
 	// geth service compose
 	path := filepath.Join(testnet.Dir, "compose.yaml")
 	compose, err := os.ReadFile(path)
+	logger.Info("compose", "file", compose)
 	if err != nil {
 		return fmt.Errorf("error reading compose.yaml file %s: %w", path, err)
 	}
@@ -387,10 +388,12 @@ func Setup(testnet *e2e.Testnet, infp infra.Provider) error {
 `, gethDir)
 
 	updated := bytes.Replace(compose, []byte("services:\n"), []byte(gethService), 1)
+	logger.Info("compose", "file", updated)
 	err = os.WriteFile(path, updated, 0o644)
 	if err != nil {
 		return fmt.Errorf("error writing compose.yaml file %s: %w", path, err)
 	}
+
 	return nil
 }
 
