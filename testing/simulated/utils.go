@@ -208,7 +208,7 @@ func DefaultSimulationInput(
 	overrideBaseFeePerGas := origBlock.GetBody().GetExecutionPayload().GetBaseFeePerGas().ToBig()
 	overrideBeaconRoot := gethcommon.HexToHash(origBlock.GetParentBlockRoot().Hex())
 	origWithdrawls := origBlock.GetBody().GetExecutionPayload().GetWithdrawals()
-	overrideWithdrawals := *(*gethtypes.Withdrawals)(unsafe.Pointer(&origWithdrawls))
+	overrideWithdrawals := (*gethtypes.Withdrawals)(unsafe.Pointer(&origWithdrawls))
 
 	calls, err := execution.TxsToTransactionArgs(chainSpec.DepositEth1ChainID(), txs)
 	require.NoError(t, err)
@@ -224,6 +224,7 @@ func DefaultSimulationInput(
 					BaseFeePerGas: (*hexutil.Big)(overrideBaseFeePerGas),
 					BeaconRoot:    &overrideBeaconRoot,
 					Withdrawals:   overrideWithdrawals,
+					// TODO: Get the override proposer pubkey from beacon state.
 					// TODO: Do we need to override blob base fee?
 				},
 			},
