@@ -42,10 +42,7 @@ func Start(ctx context.Context, testnet *e2e.Testnet, p infra.Provider) error {
 	}
 
 	// Start geth node in docker - Todo: add geth node to manifest so it can also run in Digital Ocean
-	err := docker.ExecCompose(ctx, testnet.Dir, []string{"up", "-d", "geth"}...)
-	if err != nil {
-		return err
-	}
+
 	// err = docker.ExecCompose(ctx, testnet.Dir, []string{"up", "-d", "load"}...)
 	// if err != nil {
 	// 	return err
@@ -58,12 +55,16 @@ func Start(ctx context.Context, testnet *e2e.Testnet, p infra.Provider) error {
 		nodesAtZero = append(nodesAtZero, nodeQueue[0])
 		nodeQueue = nodeQueue[1:]
 	}
-	err = p.StartNodes(context.Background(), nodesAtZero...)
+	err := p.StartNodes(context.Background(), nodesAtZero...)
+	if err != nil {
+		return err
+	}
+	err = docker.ExecCompose(ctx, testnet.Dir, []string{"up", "-d", "geth"}...)
 	if err != nil {
 		return err
 	}
 	for _, node := range nodesAtZero {
-		if _, err := waitForNode(ctx, node, 0, 15*time.Second); err != nil {
+		if _, err := waitForNode(ctx, node, 0, 60*time.Second); err != nil {
 			return err
 		}
 		if node.PrometheusProxyPort > 0 {

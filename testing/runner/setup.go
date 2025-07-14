@@ -347,8 +347,6 @@ func Setup(testnet *e2e.Testnet, infp infra.Provider) error {
 	gethService := fmt.Sprintf(`services:
   geth:
     image: ethereum/client-go
-	depends_on:
-      - validator
     labels:
       e2e: true
     ports:
