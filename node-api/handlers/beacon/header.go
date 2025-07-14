@@ -21,6 +21,8 @@
 package beacon
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
@@ -34,21 +36,9 @@ func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 	}
 	slot, err := math.U64FromString(req.Slot)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed formatting request slot to type: %w", err)
 	}
-	header, err := h.backend.BlockHeaderAtSlot(slot)
-	if err != nil {
-		return nil, err
-	}
-	return beacontypes.NewResponse(
-		&beacontypes.BlockHeaderResponse{
-			Root:      header.GetBodyRoot(),
-			Canonical: true,
-			Header: &beacontypes.SignedBeaconBlockHeader{
-				Message:   beacontypes.BeaconBlockHeaderFromConsensus(header),
-				Signature: "", // TODO: implement
-			},
-		}), nil
+	return makeBlockHeaderResponse(h.backend, slot)
 }
 
 func (h *Handler) GetBlockHeaderByID(c handlers.Context) (any, error) {
@@ -58,12 +48,18 @@ func (h *Handler) GetBlockHeaderByID(c handlers.Context) (any, error) {
 	}
 	slot, err := utils.SlotFromBlockID(req.BlockID, h.backend)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed retrieving slot from block ID %s: %w", req.BlockID, err)
 	}
-	header, err := h.backend.BlockHeaderAtSlot(slot)
+
+	return makeBlockHeaderResponse(h.backend, slot)
+}
+
+func makeBlockHeaderResponse(backend Backend, slot math.Slot) (any, error) {
+	header, err := backend.BlockHeaderAtSlot(slot)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed retrieving header at slot %d: %w", slot, err)
 	}
+
 	return beacontypes.NewResponse(
 		&beacontypes.BlockHeaderResponse{
 			Root:      header.GetBodyRoot(),
