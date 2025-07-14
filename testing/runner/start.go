@@ -57,8 +57,10 @@ func Start(ctx context.Context, testnet *e2e.Testnet, p infra.Provider) error {
 	}
 	err := p.StartNodes(context.Background(), nodesAtZero...)
 	if err != nil {
+		logger.Error("error in runing ", "err", err)
 		return err
 	}
+	logger.Info("Started")
 	err = docker.ExecCompose(ctx, testnet.Dir, []string{"up", "-d", "geth"}...)
 	if err != nil {
 		return err
