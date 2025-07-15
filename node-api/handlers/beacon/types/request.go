@@ -94,9 +94,6 @@ type GetRandaoRequest struct {
 type GetBlockHeadersRequest struct {
 	SlotRequest
 
-	// TODO: unlock use. Current implementation allow block headers retrieval
-	// only by their slot. Until we complete this API we enforce ParentRoot to
-	// be empty
 	ParentRoot string `query:"parent_root" validate:"omitempty,hex"`
 }
 
