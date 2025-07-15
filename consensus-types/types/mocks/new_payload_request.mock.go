@@ -6,6 +6,8 @@ import (
 	bytes "github.com/berachain/beacon-kit/primitives/bytes"
 	common "github.com/berachain/beacon-kit/primitives/common"
 
+	crypto "github.com/berachain/beacon-kit/primitives/crypto"
+
 	mock "github.com/stretchr/testify/mock"
 
 	types "github.com/berachain/beacon-kit/consensus-types/types"
@@ -218,6 +220,53 @@ func (_c *NewPayloadRequest_GetParentBeaconBlockRoot_Call) Return(_a0 *common.Ro
 }
 
 func (_c *NewPayloadRequest_GetParentBeaconBlockRoot_Call) RunAndReturn(run func() *common.Root) *NewPayloadRequest_GetParentBeaconBlockRoot_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetParentProposerPubKey provides a mock function with given fields:
+func (_m *NewPayloadRequest) GetParentProposerPubKey() crypto.BLSPubkey {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetParentProposerPubKey")
+	}
+
+	var r0 crypto.BLSPubkey
+	if rf, ok := ret.Get(0).(func() crypto.BLSPubkey); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(crypto.BLSPubkey)
+		}
+	}
+
+	return r0
+}
+
+// NewPayloadRequest_GetParentProposerPubKey_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetParentProposerPubKey'
+type NewPayloadRequest_GetParentProposerPubKey_Call struct {
+	*mock.Call
+}
+
+// GetParentProposerPubKey is a helper method to define mock.On call
+func (_e *NewPayloadRequest_Expecter) GetParentProposerPubKey() *NewPayloadRequest_GetParentProposerPubKey_Call {
+	return &NewPayloadRequest_GetParentProposerPubKey_Call{Call: _e.mock.On("GetParentProposerPubKey")}
+}
+
+func (_c *NewPayloadRequest_GetParentProposerPubKey_Call) Run(run func()) *NewPayloadRequest_GetParentProposerPubKey_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *NewPayloadRequest_GetParentProposerPubKey_Call) Return(_a0 crypto.BLSPubkey) *NewPayloadRequest_GetParentProposerPubKey_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *NewPayloadRequest_GetParentProposerPubKey_Call) RunAndReturn(run func() crypto.BLSPubkey) *NewPayloadRequest_GetParentProposerPubKey_Call {
 	_c.Call.Return(run)
 	return _c
 }

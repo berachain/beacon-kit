@@ -29,6 +29,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/execution/client/ethclient"
 	"github.com/berachain/beacon-kit/execution/client/ethclient/rpc"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/testing/utils"
 	"github.com/stretchr/testify/require"
@@ -61,7 +62,7 @@ func TestNewPayloadWithValidVersion(t *testing.T) {
 
 	block := utils.GenerateValidBeaconBlock(t, version.Deneb1())
 
-	newPayloadRequest, err := ctypes.BuildNewPayloadRequestFromFork(block)
+	newPayloadRequest, err := ctypes.BuildNewPayloadRequestFromFork(block, crypto.BLSPubkey{})
 	if err != nil {
 		return
 	}

@@ -27,6 +27,7 @@ import (
 
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/consensus/types"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
@@ -34,6 +35,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+//nolint:funlen // abundantly commented
 func (s *Service) FinalizeBlock(
 	ctx sdk.Context,
 	req *cmtabci.FinalizeBlockRequest,
@@ -58,11 +60,18 @@ func (s *Service) FinalizeBlock(
 		"fork", currentForkVersion.String(),
 	)
 	blk := signedBlk.GetBeaconBlock()
+	st := s.storageBackend.StateFromContext(ctx)
 
 	// Send an FCU to force the HEAD of the chain on the EL on startup.
 	var finalizeErr error
 	s.forceStartupSyncOnce.Do(func() {
-		finalizeErr = s.forceSyncUponFinalize(ctx, blk)
+		var parentProposerPubKey crypto.BLSPubkey
+		parentProposerPubKey, finalizeErr = st.PrevBlockProposerPubKey(blk.GetTimestamp())
+		if err != nil {
+			finalizeErr = fmt.Errorf("force sync upon finalize: failed retrieving parent proposer key: %w", finalizeErr)
+		} else {
+			finalizeErr = s.forceSyncUponFinalize(ctx, blk, parentProposerPubKey)
+		}
 	})
 	if finalizeErr != nil {
 		return nil, finalizeErr
@@ -98,7 +107,6 @@ func (s *Service) FinalizeBlock(
 
 	// STEP 3: Finalize the block.
 	consensusBlk := types.NewConsensusBlock(blk, req.GetProposerAddress(), req.GetTime())
-	st := s.storageBackend.StateFromContext(ctx)
 	valUpdates, err := s.finalizeBeaconBlock(ctx, st, consensusBlk)
 	if err != nil {
 		s.logger.Error("Failed to process verified beacon block",

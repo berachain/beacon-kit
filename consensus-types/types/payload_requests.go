@@ -29,6 +29,7 @@ import (
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/version"
 )
 
@@ -41,6 +42,7 @@ type NewPayloadRequest interface {
 	GetVersionedHashes() []common.ExecutionHash
 	GetParentBeaconBlockRoot() *common.Root
 	GetEncodedExecutionRequests() ([]EncodedExecutionRequest, error)
+	GetParentProposerPubKey() crypto.BLSPubkey
 }
 
 type newPayloadRequest struct {
@@ -53,10 +55,12 @@ type newPayloadRequest struct {
 	parentBeaconBlockRoot *common.Root
 	// ExecutionRequests is introduced in Pectra. It is only non-nil after Pectra.
 	executionRequests []EncodedExecutionRequest
+	// ParentProposerPubKey is introduced in Pectra1. It is only non-nil after Pectra1.
+	parentProposerPubKey crypto.BLSPubkey
 }
 
 // BuildNewPayloadRequestFromFork will build a NewPayloadRequest
-func BuildNewPayloadRequestFromFork(blk *BeaconBlock) (NewPayloadRequest, error) {
+func BuildNewPayloadRequestFromFork(blk *BeaconBlock, parentProposerPubKey crypto.BLSPubkey) (NewPayloadRequest, error) {
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
 	parentBeaconBlockRoot := blk.GetParentBlockRoot()
@@ -85,6 +89,7 @@ func BuildNewPayloadRequestFromFork(blk *BeaconBlock) (NewPayloadRequest, error)
 			versionedHashes:       body.GetBlobKzgCommitments().ToVersionedHashes(),
 			parentBeaconBlockRoot: &parentBeaconBlockRoot,
 			executionRequests:     executionRequestsList,
+			parentProposerPubKey:  parentProposerPubKey,
 		}, nil
 
 	default:
@@ -102,6 +107,10 @@ func (n *newPayloadRequest) GetVersionedHashes() []common.ExecutionHash {
 
 func (n *newPayloadRequest) GetParentBeaconBlockRoot() *common.Root {
 	return n.parentBeaconBlockRoot
+}
+
+func (n *newPayloadRequest) GetParentProposerPubKey() crypto.BLSPubkey {
+	return n.parentProposerPubKey
 }
 
 func (n *newPayloadRequest) GetEncodedExecutionRequests() ([]EncodedExecutionRequest, error) {

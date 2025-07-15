@@ -41,7 +41,7 @@ func TestBuildNewPayloadRequestFromFork(t *testing.T) {
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		block := utils.GenerateValidBeaconBlock(t, v)
 
-		request, err := types.BuildNewPayloadRequestFromFork(block)
+		request, err := types.BuildNewPayloadRequestFromFork(block, crypto.BLSPubkey{})
 		require.NoError(t, err)
 		require.NotNil(t, request)
 		require.Equal(t, block.GetBody().GetExecutionPayload(), request.GetExecutionPayload())
@@ -111,7 +111,7 @@ func TestHasValidVersionedAndBlockHashesPayloadError(t *testing.T) {
 		})
 		block.GetBody().SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash]{})
 
-		request, err := types.BuildNewPayloadRequestFromFork(block)
+		request, err := types.BuildNewPayloadRequestFromFork(block, crypto.BLSPubkey{})
 		require.NoError(t, err)
 		require.NotNil(t, request)
 		require.Equal(t, block.GetBody().GetExecutionPayload(), request.GetExecutionPayload())
@@ -143,7 +143,7 @@ func TestHasValidVersionedAndBlockHashesMismatchedHashes(t *testing.T) {
 		})
 		block.GetBody().SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash]{{}})
 
-		request, err := types.BuildNewPayloadRequestFromFork(block)
+		request, err := types.BuildNewPayloadRequestFromFork(block, crypto.BLSPubkey{})
 		require.NoError(t, err)
 
 		err = request.HasValidVersionedAndBlockHashes()

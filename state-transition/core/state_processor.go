@@ -208,23 +208,30 @@ func (sp *StateProcessor) ProcessBlock(
 	st *state.StateDB,
 	blk *ctypes.BeaconBlock,
 ) error {
-	if err := sp.processBlockHeader(ctx, st, blk); err != nil {
+	// Before processing block header, we need to retrieve public key of
+	// parent block proposer to be able to inform the EL client.
+	parentProposerPubKey, err := st.PrevBlockProposerPubKey(blk.GetTimestamp())
+	if err != nil {
 		return err
 	}
 
-	if err := sp.processExecutionPayload(ctx, st, blk); err != nil {
+	if err = sp.processBlockHeader(ctx, st, blk); err != nil {
 		return err
 	}
 
-	if err := sp.processWithdrawals(st, blk); err != nil {
+	if err = sp.processExecutionPayload(ctx, st, blk, parentProposerPubKey); err != nil {
 		return err
 	}
 
-	if err := sp.processRandaoReveal(ctx, st, blk); err != nil {
+	if err = sp.processWithdrawals(st, blk); err != nil {
 		return err
 	}
 
-	if err := sp.processOperations(ctx, st, blk); err != nil {
+	if err = sp.processRandaoReveal(ctx, st, blk); err != nil {
+		return err
+	}
+
+	if err = sp.processOperations(ctx, st, blk); err != nil {
 		return err
 	}
 

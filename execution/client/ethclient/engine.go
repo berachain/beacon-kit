@@ -27,6 +27,7 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/ethereum/go-ethereum/beacon/engine"
 )
@@ -66,6 +67,7 @@ func (s *Client) NewPayload(
 			req.GetExecutionPayload(),
 			req.GetVersionedHashes(),
 			req.GetParentBeaconBlockRoot(),
+			req.GetParentProposerPubKey(),
 			executionRequests,
 		)
 
@@ -96,11 +98,12 @@ func (s *Client) NewPayloadV4(
 	payload *ctypes.ExecutionPayload,
 	versionedHashes []common.ExecutionHash,
 	parentBlockRoot *common.Root,
+	parentProposerPubKey crypto.BLSPubkey,
 	executionRequests []ctypes.EncodedExecutionRequest,
 ) (*engineprimitives.PayloadStatusV1, error) {
 	result := &engineprimitives.PayloadStatusV1{}
 	if err := s.Call(
-		ctx, result, NewPayloadMethodV4, payload, versionedHashes, parentBlockRoot, executionRequests,
+		ctx, result, NewPayloadMethodV4, payload, versionedHashes, parentBlockRoot, executionRequests, parentProposerPubKey,
 	); err != nil {
 		return nil, err
 	}
