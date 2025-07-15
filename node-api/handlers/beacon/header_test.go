@@ -90,10 +90,11 @@ func TestGetBlockHeaders(t *testing.T) {
 				require.NotNil(t, res)
 				require.IsType(t, beacontypes.GenericResponse{}, res)
 				gr, _ := res.(beacontypes.GenericResponse)
-				require.IsType(t, &beacontypes.BlockHeaderResponse{}, gr.Data)
-				data, _ := gr.Data.(*beacontypes.BlockHeaderResponse)
+				require.IsType(t, []beacontypes.BlockHeaderResponse{}, gr.Data)
+				data, _ := gr.Data.([]beacontypes.BlockHeaderResponse)
+				require.Len(t, data, 1)
 
-				require.Equal(t, testHeader.BodyRoot, data.Root)
+				require.Equal(t, testHeader.BodyRoot, data[0].Root)
 				expectedHeader := &beacontypes.BeaconBlockHeader{
 					Slot:          testHeader.Slot.Base10(),
 					ProposerIndex: testHeader.ProposerIndex.Base10(),
@@ -101,7 +102,7 @@ func TestGetBlockHeaders(t *testing.T) {
 					StateRoot:     testHeader.StateRoot.Hex(),
 					BodyRoot:      testHeader.BodyRoot.Hex(),
 				}
-				require.Equal(t, expectedHeader, data.Header.Message)
+				require.Equal(t, expectedHeader, data[0].Header.Message)
 			},
 		},
 		{
@@ -159,10 +160,11 @@ func TestGetBlockHeaders(t *testing.T) {
 				require.NotNil(t, res)
 				require.IsType(t, beacontypes.GenericResponse{}, res)
 				gr, _ := res.(beacontypes.GenericResponse)
-				require.IsType(t, &beacontypes.BlockHeaderResponse{}, gr.Data)
-				data, _ := gr.Data.(*beacontypes.BlockHeaderResponse)
+				require.IsType(t, []beacontypes.BlockHeaderResponse{}, gr.Data)
+				data, _ := gr.Data.([]beacontypes.BlockHeaderResponse)
+				require.Len(t, data, 1)
 
-				require.Equal(t, testHeader.BodyRoot, data.Root)
+				require.Equal(t, testHeader.BodyRoot, data[0].Root)
 				expectedHeader := &beacontypes.BeaconBlockHeader{
 					Slot:          testHeader.Slot.Base10(),
 					ProposerIndex: testHeader.ProposerIndex.Base10(),
@@ -170,7 +172,7 @@ func TestGetBlockHeaders(t *testing.T) {
 					StateRoot:     testHeader.StateRoot.Hex(),
 					BodyRoot:      testHeader.BodyRoot.Hex(),
 				}
-				require.Equal(t, expectedHeader, data.Header.Message)
+				require.Equal(t, expectedHeader, data[0].Header.Message)
 			},
 		},
 		{
@@ -227,10 +229,11 @@ func TestGetBlockHeaders(t *testing.T) {
 				require.NotNil(t, res)
 				require.IsType(t, beacontypes.GenericResponse{}, res)
 				gr, _ := res.(beacontypes.GenericResponse)
-				require.IsType(t, &beacontypes.BlockHeaderResponse{}, gr.Data)
-				data, _ := gr.Data.(*beacontypes.BlockHeaderResponse)
+				require.IsType(t, []beacontypes.BlockHeaderResponse{}, gr.Data)
+				data, _ := gr.Data.([]beacontypes.BlockHeaderResponse)
+				require.Len(t, data, 1)
 
-				require.Equal(t, testHeader.BodyRoot, data.Root)
+				require.Equal(t, testHeader.BodyRoot, data[0].Root)
 				expectedHeader := &beacontypes.BeaconBlockHeader{
 					Slot:          testHeader.Slot.Base10(),
 					ProposerIndex: testHeader.ProposerIndex.Base10(),
@@ -238,7 +241,7 @@ func TestGetBlockHeaders(t *testing.T) {
 					StateRoot:     testHeader.StateRoot.Hex(),
 					BodyRoot:      testHeader.BodyRoot.Hex(),
 				}
-				require.Equal(t, expectedHeader, data.Header.Message)
+				require.Equal(t, expectedHeader, data[0].Header.Message)
 			},
 		},
 		{

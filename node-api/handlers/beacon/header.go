@@ -45,16 +45,16 @@ func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 
 	switch {
 	case errSlot == nil && errParent != nil:
-		return makeBlockHeaderResponse(h.backend, slot)
+		return makeBlockHeaderResponse(h.backend, slot, true /*resultsInList*/)
 
 	case errSlot != nil && errParent == nil:
-		return makeBlockHeaderResponse(h.backend, parentSlot+1)
+		return makeBlockHeaderResponse(h.backend, parentSlot+1, true /*resultsInList*/)
 
 	case errSlot == nil && errParent == nil:
 		if slot != parentSlot+1 {
 			return nil, fmt.Errorf("%w: request slot %d, parent block slot %d", ErrMismatchedSlotAndParentBlock, slot, parentSlot)
 		}
-		return makeBlockHeaderResponse(h.backend, slot)
+		return makeBlockHeaderResponse(h.backend, slot, true /*resultsInList*/)
 
 	default:
 		return nil, fmt.Errorf("failed retrieving slot from input parameters: %w, %w", errSlot, errParent)
@@ -71,22 +71,34 @@ func (h *Handler) GetBlockHeaderByID(c handlers.Context) (any, error) {
 		return nil, fmt.Errorf("failed retrieving slot from block ID %s: %w", req.BlockID, err)
 	}
 
-	return makeBlockHeaderResponse(h.backend, slot)
+	return makeBlockHeaderResponse(h.backend, slot, false /*resultsInList*/)
 }
 
-func makeBlockHeaderResponse(backend Backend, slot math.Slot) (any, error) {
+func makeBlockHeaderResponse(backend Backend, slot math.Slot, resultsInList bool) (any, error) {
 	header, err := backend.BlockHeaderAtSlot(slot)
 	if err != nil {
 		return nil, fmt.Errorf("failed retrieving header at slot %d: %w", slot, err)
 	}
 
-	return beacontypes.NewResponse(
-		&beacontypes.BlockHeaderResponse{
-			Root:      header.GetBodyRoot(),
-			Canonical: true,
-			Header: &beacontypes.SignedBeaconBlockHeader{
-				Message:   beacontypes.BeaconBlockHeaderFromConsensus(header),
-				Signature: "", // TODO: implement
-			},
-		}), nil
+	// While an Ethereum node may have multiple blocks per slot, BeaconKit
+	// will access only one, given single slot finality and the fact that we only
+	// access finalized blocks in this APIs. Still we may return a list of responses
+	// to be compliant with API specs https://ethereum.github.io/beacon-APIs/?urls.primaryName=v3.1.0#/Beacon/getBlockHeader
+	headerResp := beacontypes.BlockHeaderResponse{
+		Root:      header.GetBodyRoot(),
+		Canonical: true,
+		Header: &beacontypes.SignedBeaconBlockHeader{
+			Message:   beacontypes.BeaconBlockHeaderFromConsensus(header),
+			Signature: "", // TODO: implement
+		},
+	}
+
+	if !resultsInList {
+		return beacontypes.NewResponse(&headerResp), nil
+	}
+
+	res := []beacontypes.BlockHeaderResponse{
+		headerResp,
+	}
+	return beacontypes.NewResponse(res), nil
 }
