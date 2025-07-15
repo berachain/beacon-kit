@@ -71,6 +71,41 @@ func TestGetBlockHeaders(t *testing.T) {
 		check               func(t *testing.T, res any, err error)
 	}{
 		{
+			name: "GetBlockHeaders - success - no query params",
+			inputs: func() beacontypes.GetBlockHeadersRequest {
+				return beacontypes.GetBlockHeadersRequest{
+					SlotRequest: beacontypes.SlotRequest{},
+					ParentRoot:  "",
+				}
+			},
+			setMockExpectations: func(b *mocks.Backend) {
+				// math.Slot(0) is a special parametere as it indicates head should be picked.
+				// For these tests we return testHeader as head
+				b.EXPECT().BlockHeaderAtSlot(math.Slot(0)).Return(testHeader, nil)
+			},
+			check: func(t *testing.T, res any, err error) {
+				t.Helper()
+
+				require.NoError(t, err)
+				require.NotNil(t, res)
+				require.IsType(t, beacontypes.GenericResponse{}, res)
+				gr, _ := res.(beacontypes.GenericResponse)
+				require.IsType(t, []beacontypes.BlockHeaderResponse{}, gr.Data)
+				data, _ := gr.Data.([]beacontypes.BlockHeaderResponse)
+				require.Len(t, data, 1)
+
+				require.Equal(t, testHeader.BodyRoot, data[0].Root)
+				expectedHeader := &beacontypes.BeaconBlockHeader{
+					Slot:          testHeader.Slot.Base10(),
+					ProposerIndex: testHeader.ProposerIndex.Base10(),
+					ParentRoot:    testHeader.ParentBlockRoot.Hex(),
+					StateRoot:     testHeader.StateRoot.Hex(),
+					BodyRoot:      testHeader.BodyRoot.Hex(),
+				}
+				require.Equal(t, expectedHeader, data[0].Header.Message)
+			},
+		},
+		{
 			name: "GetBlockHeaders - success - slot only",
 			inputs: func() beacontypes.GetBlockHeadersRequest {
 				return beacontypes.GetBlockHeadersRequest{

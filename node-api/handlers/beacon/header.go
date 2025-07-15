@@ -38,6 +38,12 @@ func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 		return nil, err
 	}
 
+	if len(req.Slot) == 0 && len(req.ParentRoot) == 0 {
+		// no parameter specified, pick chain HEAD
+		// by requesting special slot 0.
+		return makeBlockHeaderResponse(h.backend, 0, true /*resultsInList*/)
+	}
+
 	var (
 		slot, errSlot         = math.U64FromString(req.Slot)
 		parentSlot, errParent = utils.SlotFromBlockID(req.ParentRoot, h.backend)
@@ -57,6 +63,7 @@ func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 		return makeBlockHeaderResponse(h.backend, slot, true /*resultsInList*/)
 
 	default:
+
 		return nil, fmt.Errorf("failed retrieving slot from input parameters: %w, %w", errSlot, errParent)
 	}
 }
