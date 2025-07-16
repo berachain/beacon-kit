@@ -62,7 +62,7 @@ const (
 // TODO: remove modifications from mainnet spec to align with mainnet behavior.
 func DevnetChainSpecData() *chain.SpecData {
 	specData := MainnetChainSpecData()
-	specData.DepositEth1ChainID = DevnetEth1ChainID
+	specData.DepositEth1ChainID = chain.DevnetEth1ChainID
 
 	specData.Config.ConsensusUpdateHeight = 1
 	specData.Config.ConsensusEnableHeight = 2
