@@ -38,6 +38,7 @@ type payloadAttributesInput struct {
 	suggestedFeeRecipient common.ExecutionAddress
 	withdrawals           engineprimitives.Withdrawals
 	parentBeaconBlockRoot common.Root
+	parentProposerPubKey  *crypto.BLSPubkey
 }
 
 func TestPayloadAttributes(t *testing.T) {
@@ -50,6 +51,7 @@ func TestPayloadAttributes(t *testing.T) {
 		suggestedFeeRecipient: common.ExecutionAddress{},
 		withdrawals:           engineprimitives.Withdrawals{},
 		parentBeaconBlockRoot: common.Root{},
+		parentProposerPubKey:  nil,
 	}
 	tests := []struct {
 		name    string
@@ -91,6 +93,25 @@ func TestPayloadAttributes(t *testing.T) {
 			},
 			wantErr: engineprimitives.ErrNilWithdrawals,
 		},
+		{
+			name: "Invalid - parent proposer pubkey before Electra1",
+			input: func() payloadAttributesInput {
+				res := validInput
+				res.forkVersion = version.Electra()
+				res.parentProposerPubKey = &crypto.BLSPubkey{0x01}
+				return res
+			},
+			wantErr: engineprimitives.ErrNonEmptyPrevProposerPubKey,
+		},
+		{
+			name: "Invalid - no parent proposer pubkey after Electra1",
+			input: func() payloadAttributesInput {
+				res := validInput
+				res.forkVersion = version.Electra1()
+				return res
+			},
+			wantErr: engineprimitives.ErrEmptyPrevProposerPubKey,
+		},
 	}
 
 	for _, tt := range tests {
@@ -104,7 +125,7 @@ func TestPayloadAttributes(t *testing.T) {
 				in.suggestedFeeRecipient,
 				in.withdrawals,
 				in.parentBeaconBlockRoot,
-				crypto.BLSPubkey{},
+				in.parentProposerPubKey,
 			)
 			if tt.wantErr != nil {
 				require.ErrorIs(t, err, tt.wantErr)

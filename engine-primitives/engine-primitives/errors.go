@@ -46,7 +46,9 @@ var (
 	// in the payload does not match from the assembled block.
 	ErrPayloadBlockHashMismatch = errors.New("block hash in payload does not match assembled block")
 
+	// ErrEmptyPrevProposerPubKey indicates that the previous proposer public key is empty.
 	ErrEmptyPrevProposerPubKey = errors.New("empty public key for previous block proposer")
 
+	// ErrNonEmptyPrevProposerPubKey indicates that the previous proposer public key is non-empty.
 	ErrNonEmptyPrevProposerPubKey = errors.New("non-empty public key for previous block proposer")
 )

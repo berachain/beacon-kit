@@ -41,12 +41,16 @@ func TestBuildNewPayloadRequestFromFork(t *testing.T) {
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		block := utils.GenerateValidBeaconBlock(t, v)
 
-		request, err := types.BuildNewPayloadRequestFromFork(block, crypto.BLSPubkey{})
+		var parentProposerPubKey *crypto.BLSPubkey
+		if version.EqualsOrIsAfter(v, version.Electra1()) {
+			parentProposerPubKey = &crypto.BLSPubkey{0x01}
+		}
+		request, err := types.BuildNewPayloadRequestFromFork(block, parentProposerPubKey)
 		require.NoError(t, err)
 		require.NotNil(t, request)
 		require.Equal(t, block.GetBody().GetExecutionPayload(), request.GetExecutionPayload())
 		require.Equal(t, block.GetBody().GetBlobKzgCommitments().ToVersionedHashes(), request.GetVersionedHashes())
-		require.Equal(t, block.GetParentBlockRoot(), *request.GetParentBeaconBlockRoot())
+		require.Equal(t, block.GetParentBlockRoot(), request.GetParentBeaconBlockRoot())
 
 		if version.EqualsOrIsAfter(v, version.Electra()) {
 			requests, getErr := block.GetBody().GetExecutionRequests()
@@ -73,7 +77,7 @@ func TestBuildForkchoiceUpdateRequest(t *testing.T) {
 		common.ExecutionAddress{},
 		engineprimitives.Withdrawals{},
 		common.Root{},
-		crypto.BLSPubkey{},
+		nil,
 	)
 	require.NoError(t, err)
 
@@ -111,12 +115,16 @@ func TestHasValidVersionedAndBlockHashesPayloadError(t *testing.T) {
 		})
 		block.GetBody().SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash]{})
 
-		request, err := types.BuildNewPayloadRequestFromFork(block, crypto.BLSPubkey{})
+		var parentProposerPubKey *crypto.BLSPubkey
+		if version.EqualsOrIsAfter(v, version.Electra1()) {
+			parentProposerPubKey = &crypto.BLSPubkey{0x01}
+		}
+		request, err := types.BuildNewPayloadRequestFromFork(block, parentProposerPubKey)
 		require.NoError(t, err)
 		require.NotNil(t, request)
 		require.Equal(t, block.GetBody().GetExecutionPayload(), request.GetExecutionPayload())
 		require.Equal(t, block.GetBody().GetBlobKzgCommitments().ToVersionedHashes(), request.GetVersionedHashes())
-		require.Equal(t, block.GetParentBlockRoot(), *request.GetParentBeaconBlockRoot())
+		require.Equal(t, block.GetParentBlockRoot(), request.GetParentBeaconBlockRoot())
 
 		if version.EqualsOrIsAfter(v, version.Electra()) {
 			requests, getErr := block.GetBody().GetExecutionRequests()
@@ -143,7 +151,11 @@ func TestHasValidVersionedAndBlockHashesMismatchedHashes(t *testing.T) {
 		})
 		block.GetBody().SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash]{{}})
 
-		request, err := types.BuildNewPayloadRequestFromFork(block, crypto.BLSPubkey{})
+		var parentProposerPubKey *crypto.BLSPubkey
+		if version.EqualsOrIsAfter(v, version.Electra1()) {
+			parentProposerPubKey = &crypto.BLSPubkey{0x01}
+		}
+		request, err := types.BuildNewPayloadRequestFromFork(block, parentProposerPubKey)
 		require.NoError(t, err)
 
 		err = request.HasValidVersionedAndBlockHashes()

@@ -273,7 +273,7 @@ func (s *Service) retrieveExecutionPayload(
 		return nil, err
 	}
 
-	parentProposerPubKey, err := st.PrevBlockProposerPubKey(nextPayloadTimestamp)
+	parentProposerPubkey, err := st.ParentProposerPubkey(nextPayloadTimestamp)
 	if err != nil {
 		return nil, fmt.Errorf("failed retrieving previous proposer public key: %w", err)
 	}
@@ -286,7 +286,7 @@ func (s *Service) retrieveExecutionPayload(
 		ParentBlockRoot:      parentBlockRoot,
 		HeadEth1BlockHash:    lph.GetBlockHash(),
 		FinalEth1BlockHash:   lph.GetParentHash(),
-		ParentProposerPubKey: parentProposerPubKey,
+		ParentProposerPubkey: parentProposerPubkey,
 	}
 	return s.localPayloadBuilder.RequestPayloadSync(ctx, r)
 }

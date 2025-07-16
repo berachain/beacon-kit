@@ -186,7 +186,7 @@ func (ee *stubExecutionEngine) NotifyForkchoiceUpdate(
 type stubAttributesFactory struct{}
 
 func (ee *stubAttributesFactory) BuildPayloadAttributes(
-	math.U64, engineprimitives.Withdrawals, common.Bytes32, common.Root, crypto.BLSPubkey,
+	math.U64, engineprimitives.Withdrawals, common.Bytes32, common.Root, *crypto.BLSPubkey,
 ) (*engineprimitives.PayloadAttributes, error) {
 	return nil, errStubNotImplemented
 }

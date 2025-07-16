@@ -40,7 +40,7 @@ type RequestPayloadData struct {
 	ParentBlockRoot      common.Root
 	HeadEth1BlockHash    common.ExecutionHash
 	FinalEth1BlockHash   common.ExecutionHash
-	ParentProposerPubKey crypto.BLSPubkey
+	ParentProposerPubkey *crypto.BLSPubkey // nil for fork versions before Electra1
 }
 
 // RequestPayloadAsync builds a payload for the given slot and
@@ -68,7 +68,7 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 		r.PayloadWithdrawals,
 		r.PrevRandao,
 		r.ParentBlockRoot,
-		r.ParentProposerPubKey,
+		r.ParentProposerPubkey,
 	)
 	if err != nil {
 		return nil, common.Version{}, err

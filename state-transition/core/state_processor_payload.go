@@ -39,7 +39,7 @@ func (sp *StateProcessor) processExecutionPayload(
 	txCtx ReadOnlyContext,
 	st *statedb.StateDB,
 	blk *ctypes.BeaconBlock,
-	parentProposerPubKey crypto.BLSPubkey,
+	parentProposerPubkey *crypto.BLSPubkey,
 ) error {
 	var (
 		body    = blk.GetBody()
@@ -77,7 +77,7 @@ func (sp *StateProcessor) processExecutionPayload(
 	// Perform payload verification only if the context is configured as such.
 	if txCtx.VerifyPayload() {
 		g.Go(func() error {
-			return sp.validateExecutionPayload(ctx, txCtx.ConsensusTime(), st, blk, parentProposerPubKey)
+			return sp.validateExecutionPayload(ctx, txCtx.ConsensusTime(), st, blk, parentProposerPubkey)
 		})
 	}
 
@@ -109,12 +109,12 @@ func (sp *StateProcessor) validateExecutionPayload(
 	consensusTime math.U64,
 	st ReadOnlyBeaconState,
 	blk *ctypes.BeaconBlock,
-	parentProposerPubKey crypto.BLSPubkey,
+	parentProposerPubkey *crypto.BLSPubkey,
 ) error {
 	if err := sp.validateStatelessPayload(blk); err != nil {
 		return err
 	}
-	return sp.validateStatefulPayload(ctx, consensusTime, st, blk, parentProposerPubKey)
+	return sp.validateStatefulPayload(ctx, consensusTime, st, blk, parentProposerPubkey)
 }
 
 // validateStatelessPayload performs stateless checks on the execution payload.
@@ -143,7 +143,7 @@ func (sp *StateProcessor) validateStatefulPayload(
 	consensusTime math.U64,
 	st ReadOnlyBeaconState,
 	blk *ctypes.BeaconBlock,
-	parentProposerPubKey crypto.BLSPubkey,
+	parentProposerPubkey *crypto.BLSPubkey,
 ) error {
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
@@ -173,7 +173,7 @@ func (sp *StateProcessor) validateStatefulPayload(
 		return err
 	}
 
-	payloadReq, err := ctypes.BuildNewPayloadRequestFromFork(blk, parentProposerPubKey)
+	payloadReq, err := ctypes.BuildNewPayloadRequestFromFork(blk, parentProposerPubkey)
 	if err != nil {
 		return err
 	}

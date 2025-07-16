@@ -46,10 +46,10 @@ type PayloadAttributes struct {
 	// to the block currently being processed. This field was added for
 	// EIP-4788.
 	ParentBeaconBlockRoot common.Root `json:"parentBeaconBlockRoot"`
-
-	// ParentProposerPubKey carries the public key of previous block proposed
-	// This field was added for BRIP-0004.
-	ParentProposerPubKey crypto.BLSPubkey `json:"parentProposerPubKey"`
+	// ParentProposerPubkey carries the public key of previous block proposed
+	// This field was added for BRIP-0004. Should be nil for fork versions
+	// before Electra1.
+	ParentProposerPubkey *crypto.BLSPubkey `json:"parentProposerPubKey"`
 }
 
 // NewPayloadAttributes creates a new PayloadAttributes and validates it for
@@ -61,7 +61,7 @@ func NewPayloadAttributes(
 	suggestedFeeRecipient common.ExecutionAddress,
 	withdrawals Withdrawals,
 	parentBeaconBlockRoot common.Root,
-	parentProposerPubKey crypto.BLSPubkey,
+	parentProposerPubkey *crypto.BLSPubkey,
 ) (*PayloadAttributes, error) {
 	pa := &PayloadAttributes{
 		Timestamp:             timestamp,
@@ -69,7 +69,7 @@ func NewPayloadAttributes(
 		SuggestedFeeRecipient: suggestedFeeRecipient,
 		Withdrawals:           withdrawals,
 		ParentBeaconBlockRoot: parentBeaconBlockRoot,
-		ParentProposerPubKey:  parentProposerPubKey,
+		ParentProposerPubkey:  parentProposerPubkey,
 	}
 
 	if err := pa.validate(forkVersion); err != nil {
@@ -99,13 +99,13 @@ func (p *PayloadAttributes) validate(forkVersion common.Version) error {
 		return ErrNilWithdrawals
 	}
 
-	emptyBLSPubKey := crypto.BLSPubkey{}
+	// For any fork version Electra1 onwards, the parent proposer pubkey is required.
 	if version.IsBefore(forkVersion, version.Electra1()) {
-		if p.ParentProposerPubKey != emptyBLSPubKey {
+		if p.ParentProposerPubkey != nil {
 			return ErrNonEmptyPrevProposerPubKey
 		}
 	} else {
-		if p.ParentProposerPubKey == emptyBLSPubKey {
+		if p.ParentProposerPubkey == nil {
 			return ErrEmptyPrevProposerPubKey
 		}
 	}

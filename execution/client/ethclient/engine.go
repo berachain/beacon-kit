@@ -56,7 +56,7 @@ func (s *Client) NewPayload(
 			req.GetParentBeaconBlockRoot(),
 		)
 
-	case version.Equals(forkVersion, version.Electra()), version.Equals(forkVersion, version.Electra1()):
+	case version.Equals(forkVersion, version.Electra()):
 		// Use V4 for Electra versions.
 		executionRequests, err := req.GetEncodedExecutionRequests()
 		if err != nil {
@@ -67,8 +67,27 @@ func (s *Client) NewPayload(
 			req.GetExecutionPayload(),
 			req.GetVersionedHashes(),
 			req.GetParentBeaconBlockRoot(),
-			req.GetParentProposerPubKey(),
 			executionRequests,
+			nil,
+		)
+
+	case version.Equals(forkVersion, version.Electra1()):
+		// Use V4 for Electra1 versions. // TODO: make V5 for Electra1.
+		executionRequests, err := req.GetEncodedExecutionRequests()
+		if err != nil {
+			return nil, err
+		}
+		parentProposerPubKey, err := req.GetParentProposerPubkey()
+		if err != nil {
+			return nil, err
+		}
+		return s.NewPayloadV4(
+			ctx,
+			req.GetExecutionPayload(),
+			req.GetVersionedHashes(),
+			req.GetParentBeaconBlockRoot(),
+			executionRequests,
+			parentProposerPubKey,
 		)
 
 	default:
@@ -81,7 +100,7 @@ func (s *Client) NewPayloadV3(
 	ctx context.Context,
 	payload *ctypes.ExecutionPayload,
 	versionedHashes []common.ExecutionHash,
-	parentBlockRoot *common.Root,
+	parentBlockRoot common.Root,
 ) (*engineprimitives.PayloadStatusV1, error) {
 	result := &engineprimitives.PayloadStatusV1{}
 	if err := s.Call(
@@ -97,9 +116,9 @@ func (s *Client) NewPayloadV4(
 	ctx context.Context,
 	payload *ctypes.ExecutionPayload,
 	versionedHashes []common.ExecutionHash,
-	parentBlockRoot *common.Root,
-	parentProposerPubKey crypto.BLSPubkey,
+	parentBlockRoot common.Root,
 	executionRequests []ctypes.EncodedExecutionRequest,
+	parentProposerPubKey *crypto.BLSPubkey,
 ) (*engineprimitives.PayloadStatusV1, error) {
 	result := &engineprimitives.PayloadStatusV1{}
 	if err := s.Call(

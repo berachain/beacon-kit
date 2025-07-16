@@ -28,21 +28,21 @@ import (
 	"github.com/berachain/beacon-kit/primitives/version"
 )
 
-func (s *StateDB) PrevBlockProposerPubKey(nextPayloadTimestamp math.U64) (crypto.BLSPubkey, error) {
-	var (
-		forkVersion          = s.cs.ActiveForkVersionForTimestamp(nextPayloadTimestamp)
-		parentProposerPubKey crypto.BLSPubkey
-	)
-	if version.EqualsOrIsAfter(forkVersion, version.Electra1()) {
-		latestBlockHeader, err := s.GetLatestBlockHeader()
-		if err != nil {
-			return crypto.BLSPubkey{}, fmt.Errorf("failed retrieving latest block header: %w", err)
-		}
-		prevProposer, err := s.ValidatorByIndex(latestBlockHeader.GetProposerIndex())
-		if err != nil {
-			return crypto.BLSPubkey{}, fmt.Errorf("failed retrieving prev proposer: %w", err)
-		}
-		parentProposerPubKey = prevProposer.GetPubkey()
+// ParentProposerPubkey returns the parent proposer pubkey for the given timestamp.
+// It returns nil if we are before Electra1.
+func (s *StateDB) ParentProposerPubkey(timestamp math.U64) (*crypto.BLSPubkey, error) {
+	if version.IsBefore(s.cs.ActiveForkVersionForTimestamp(timestamp), version.Electra1()) {
+		return nil, nil
 	}
-	return parentProposerPubKey, nil
+
+	latestBlockHeader, err := s.GetLatestBlockHeader()
+	if err != nil {
+		return nil, fmt.Errorf("failed retrieving latest block header: %w", err)
+	}
+	prevProposer, err := s.ValidatorByIndex(latestBlockHeader.GetProposerIndex())
+	if err != nil {
+		return nil, fmt.Errorf("failed retrieving prev proposer: %w", err)
+	}
+	p := prevProposer.GetPubkey()
+	return &p, nil
 }

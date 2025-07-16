@@ -65,12 +65,12 @@ func (s *Service) FinalizeBlock(
 	// Send an FCU to force the HEAD of the chain on the EL on startup.
 	var finalizeErr error
 	s.forceStartupSyncOnce.Do(func() {
-		var parentProposerPubKey crypto.BLSPubkey
-		parentProposerPubKey, finalizeErr = st.PrevBlockProposerPubKey(blk.GetTimestamp())
+		var parentProposerPubkey *crypto.BLSPubkey
+		parentProposerPubkey, finalizeErr = st.ParentProposerPubkey(blk.GetTimestamp())
 		if err != nil {
-			finalizeErr = fmt.Errorf("force sync upon finalize: failed retrieving parent proposer key: %w", finalizeErr)
+			finalizeErr = fmt.Errorf("force sync upon finalize: failed retrieving parent proposer pubkey: %w", finalizeErr)
 		} else {
-			finalizeErr = s.forceSyncUponFinalize(ctx, blk, parentProposerPubKey)
+			finalizeErr = s.forceSyncUponFinalize(ctx, blk, parentProposerPubkey)
 		}
 	})
 	if finalizeErr != nil {

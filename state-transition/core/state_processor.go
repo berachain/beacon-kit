@@ -210,7 +210,7 @@ func (sp *StateProcessor) ProcessBlock(
 ) error {
 	// Before processing block header, we need to retrieve public key of
 	// parent block proposer to be able to inform the EL client.
-	parentProposerPubKey, err := st.PrevBlockProposerPubKey(blk.GetTimestamp())
+	parentProposerPubkey, err := st.ParentProposerPubkey(blk.GetTimestamp())
 	if err != nil {
 		return err
 	}
@@ -219,7 +219,7 @@ func (sp *StateProcessor) ProcessBlock(
 		return err
 	}
 
-	if err = sp.processExecutionPayload(ctx, st, blk, parentProposerPubKey); err != nil {
+	if err = sp.processExecutionPayload(ctx, st, blk, parentProposerPubkey); err != nil {
 		return err
 	}
 
