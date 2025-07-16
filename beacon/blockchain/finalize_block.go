@@ -59,15 +59,6 @@ func (s *Service) FinalizeBlock(
 	)
 	blk := signedBlk.GetBeaconBlock()
 
-	// Send an FCU to force the HEAD of the chain on the EL on startup.
-	var finalizeErr error
-	s.forceStartupSyncOnce.Do(func() {
-		finalizeErr = s.forceSyncUponFinalize(ctx, blk)
-	})
-	if finalizeErr != nil {
-		return nil, finalizeErr
-	}
-
 	// STEP 2: Finalize sidecars first (block will check for sidecar availability).
 	// SyncingToHeight is always the tip of the chain both during sync and when
 	// caught up. We don't need to process sidecars unless they are within DA period.

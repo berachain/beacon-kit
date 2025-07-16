@@ -106,7 +106,7 @@ func (sp *StateProcessor) Transition(
 	}
 
 	// Process the block.
-	if err = sp.ProcessBlock(ctx, st, blk); err != nil {
+	if err = sp.ProcessBlock(ctx, st, blk, inFinalizeBlock); err != nil {
 		return nil, err
 	}
 
@@ -207,12 +207,13 @@ func (sp *StateProcessor) ProcessBlock(
 	ctx ReadOnlyContext,
 	st *state.StateDB,
 	blk *ctypes.BeaconBlock,
+	inFinalizeBlock bool,
 ) error {
 	if err := sp.processBlockHeader(ctx, st, blk); err != nil {
 		return err
 	}
 
-	if err := sp.processExecutionPayload(ctx, st, blk); err != nil {
+	if err := sp.processExecutionPayload(ctx, st, blk, inFinalizeBlock); err != nil {
 		return err
 	}
 
