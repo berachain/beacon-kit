@@ -21,7 +21,7 @@ export FOUNDRY_PROFILE="deploy";
 export IS_TESTNET=false;
 export USE_SOFTWARE_WALLET=true;
 export ETH_FROM="0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4";
-export RPC_URL="<http://localhost:8545>";
+export RPC_URL="http://localhost:8545";
 export ETH_FROM_PK="0xfffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306";
 ```
 
