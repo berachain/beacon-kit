@@ -1,44 +1,35 @@
-name: comet-e2e
-# Runs the CI end-to-end test network on all pushes to main or release branches
-# and every pull request, but only if any Go files have been changed.
+name: Run Multiple Single Network
+
 on:
-  workflow_dispatch:  # allow running workflow manually
-  pull_request:
-  merge_group:
+  workflow_dispatch:
   push:
     branches:
       - greg/e2e-framework
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+  pull_request:
 
 jobs:
-  e2e-test:
-    # Run two parallel jobs: for `ci.toml`, and for the regression manifests
-    strategy:
-      fail-fast: false
-      matrix:
-        group: ['testing/networks/ci']
+  run-multiple-single:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 30
     steps:
-      - name: Setup Golang
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: "1.23.6"
-          
-      - uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-        with:
-          driver-opts: network=host
-          
-      - name: Build
-        working-directory: .
+      - name: Show Docker and Docker Compose version
+        run: |
+          docker --version
+          docker compose version
+
+      - name: Build cmt-e2e
         run: make build-cmt-e2e
 
-      - name: Run "${{ matrix.group }}" testnet
-        working-directory: .
-        run: make test-cmt-e2e-single-no-build
+      - name: Set execute permission on run-multiple.sh
+        run: chmod +x ./run-multiple.sh
+
+      - name: Run run-multiple.sh with single.toml
+        run: ./run-multiple.sh testing/networks/single.toml
