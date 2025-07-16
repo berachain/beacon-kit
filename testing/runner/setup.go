@@ -334,7 +334,7 @@ func Setup(testnet *e2e.Testnet, infp infra.Provider) error {
 
 	// geth init
 	err = docker.Exec(context.Background(), "run", "--rm", "-v", fmt.Sprintf("%s:/.tmp", gethDir),
-		"ethereum/client-go", "init", "--datadir", "/.tmp", "/.tmp/eth-genesis.json")
+		"ethereum/client-go", "init", "--datadir", "/.tmp", "/.tmp/eth-genesis.json", "--add-host=host.docker.internal:host-gateway")
 	if err != nil {
 		return fmt.Errorf("error during geth init: %w", err)
 	}
