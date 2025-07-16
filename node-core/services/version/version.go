@@ -152,6 +152,7 @@ func (rs *ReportingService) printToConsole(
 	+ 💾 Your system: %-57s+
 	+ 🍴 Deneb1 Fork Time: %-52d+
 	+ 🍴 Electra Fork Time: %-51d+
+	+ 🍴 Electra1 Fork Time: %-50d+
 	+ 🦺 Please report issues @ https://github.com/berachain/beacon-kit/issues +
 	+==========================================================================+
 
@@ -162,6 +163,7 @@ func (rs *ReportingService) printToConsole(
 		runtime.GOOS+"/"+runtime.GOARCH,
 		rs.forkSpec.Deneb1ForkTime(),
 		rs.forkSpec.ElectraForkTime(),
+		rs.forkSpec.Electra1ForkTime(),
 	))
 }
 
