@@ -28,8 +28,5 @@ jobs:
       - name: Build cmt-e2e
         run: make build-cmt-e2e
 
-      - name: Set execute permission on run-multiple.sh
-        run: chmod +x ./run-multiple.sh
-
       - name: Run run-multiple.sh with single.toml
-        run: ./run-multiple.sh testing/networks/single.toml
+        run: make test-cmt-e2e-single-no-build
