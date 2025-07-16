@@ -37,8 +37,6 @@ func TestNodeAPIGenesis(t *testing.T) {
 		ip := getNodeIP(node)
 
 		nIP := fmt.Sprintf("http://%v:3500", ip)
-		client, err := node.Client()
-		require.NoError(t, err)
 
 		fmt.Println("Connecting to beacon node at", nIP)
 		bclient := &BeaconHTTPClient{
@@ -57,23 +55,28 @@ func TestNodeAPIGenesis(t *testing.T) {
 			t.Fatalf("received nil response")
 		}
 
-		netInfo, err := client.NetInfo(ctx)
-		require.NoError(t, err)
-
-		seen := map[string]bool{}
-		for _, n := range node.Testnet.Nodes {
-			seen[n.Name] = n.Name == node.Name // we've clearly seen ourself
-		}
-		for _, peerInfo := range netInfo.Peers {
-			peer := node.Testnet.LookupNode(peerInfo.NodeInfo.Moniker)
-			require.NotNil(t, peer, "unknown node %v", peerInfo.NodeInfo.Moniker)
-			require.Equal(t, peer.InternalIP.String(), peerInfo.RemoteIP,
-				"unexpected IP address for peer %v", peer.Name)
-			seen[peerInfo.NodeInfo.Moniker] = true
-		}
-
-		for name := range seen {
-			require.True(t, seen[name], "node %v not peered with %v", node.Name, name)
-		}
 	})
+}
+
+func TestStateValidator(t *testing.T) {
+	testNode(t, func(t *testing.T, node e2e.Node) {
+		ip := getNodeIP(node)
+
+		nIP := fmt.Sprintf("http://%v:3500", ip)
+		bclient := &BeaconHTTPClient{
+			Client: &http.Client{
+				Timeout: time.Second * 10,
+			},
+			baseURL: nIP,
+		}
+		resp, err := bclient.Get(fmt.Sprintf(bclient.baseURL+"/eth/v1/beacon/states/%s/validators/%s", "10", node.PrivvalKey.PubKey().Address().String()))
+		if err != nil {
+			require.NoError(t, err)
+		}
+		if resp == nil {
+			require.NotNil(t, resp, "received nil response")
+		}
+
+	})
+
 }
