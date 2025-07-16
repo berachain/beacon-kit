@@ -397,6 +397,20 @@ func Setup(testnet *e2e.Testnet, infp infra.Provider) error {
 		return fmt.Errorf("error writing compose.yaml file %s: %w", path, err)
 	}
 
+	portString := `- 2345
+    - 2346`
+
+	portString2 := `- 2345
+    - 2346
+    - 3500:3500`
+
+	updated = bytes.Replace(updated, []byte(portString), []byte(portString2), 1)
+
+	err = os.WriteFile(path, updated, 0o644)
+	if err != nil {
+		return fmt.Errorf("error writing compose.yaml file %s: %w", path, err)
+	}
+
 	return nil
 }
 
