@@ -24,6 +24,7 @@ import (
 	beaconkitconsensustypes "github.com/berachain/beacon-kit/consensus-types/types"
 	beaconkitconsensus "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
+
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -833,6 +834,7 @@ func MakeConfig(node *e2e.Node) (*config.Config, error) {
 
 // MakeAppConfig generates an ABCI application config for a node.
 func MakeAppConfig(node *e2e.Node) ([]byte, error) {
+
 	cfg := map[string]any{
 		"chain_id":                      node.Testnet.Name,
 		"dir":                           "data/app",
@@ -854,6 +856,10 @@ func MakeAppConfig(node *e2e.Node) ([]byte, error) {
 		"abci_requests_logging_enabled": node.Testnet.ABCITestsEnabled,
 		"pbts_enable_height":            node.Testnet.PbtsEnableHeight,
 		"pbts_update_height":            node.Testnet.PbtsUpdateHeight,
+		"beacon-kit.node-api": map[string]any{
+			"enabled": "true",
+			"address": "0.0.0.0:3500",
+		},
 	}
 	switch node.ABCIProtocol {
 	case e2e.ProtocolUNIX:

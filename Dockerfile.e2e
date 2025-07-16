@@ -57,7 +57,7 @@ ENV CMTHOME=/cometbft
 ENV HOMEDIR=/cometbft
 ENV GORACE="halt_on_error=1"
 
-EXPOSE 26656 26657 26660 6060
+EXPOSE 26656 26657 26660 6060 3500
 ENTRYPOINT ["/testing/files/entrypoint_cmt_e2e.sh"]
 CMD ["devnet"]
 STOPSIGNAL SIGTERM
