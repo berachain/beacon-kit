@@ -26,6 +26,7 @@ import (
 
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	handlertypes "github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
@@ -33,38 +34,44 @@ import (
 var ErrMismatchedSlotAndParentBlock = errors.New("slot does not match with parent block")
 
 func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
-	req, err := utils.BindAndValidate[beacontypes.GetBlockHeadersRequest](c, h.Logger())
-	if err != nil {
-		return nil, err
+	req, errReq := utils.BindAndValidate[beacontypes.GetBlockHeadersRequest](c, h.Logger())
+	if errReq != nil {
+		return nil, errReq
 	}
 
-	if len(req.Slot) == 0 && len(req.ParentRoot) == 0 {
+	switch {
+	case len(req.Slot) == 0 && len(req.ParentRoot) == 0:
 		// no parameter specified, pick chain HEAD
 		// by requesting special slot 0.
 		return makeBlockHeaderResponse(h.backend, 0, true /*resultsInList*/)
-	}
 
-	var (
-		slot, errSlot         = math.U64FromString(req.Slot)
-		parentSlot, errParent = utils.SlotFromBlockID(req.ParentRoot, h.backend)
-	)
-
-	switch {
-	case errSlot == nil && errParent != nil:
+	case len(req.Slot) != 0 && len(req.ParentRoot) == 0:
+		slot, errSlot := math.U64FromString(req.Slot)
+		// errSlot should always be nil since we validated slots in BindAndValidate.
+		if errSlot != nil {
+			return nil, fmt.Errorf("failed retrieving slot from input parameters: %w", errSlot)
+		}
 		return makeBlockHeaderResponse(h.backend, slot, true /*resultsInList*/)
 
-	case errSlot != nil && errParent == nil:
+	case len(req.Slot) == 0 && len(req.ParentRoot) != 0:
+		parentSlot, errParent := utils.SlotFromBlockID(req.ParentRoot, h.backend)
+		if errParent != nil {
+			return nil, fmt.Errorf("%w, failed retrieving parent root with error: %w", handlertypes.ErrNotFound, errParent)
+		}
 		return makeBlockHeaderResponse(h.backend, parentSlot+1, true /*resultsInList*/)
 
-	case errSlot == nil && errParent == nil:
+	default:
+		var (
+			slot, errSlot         = math.U64FromString(req.Slot)
+			parentSlot, errParent = utils.SlotFromBlockID(req.ParentRoot, h.backend)
+		)
+		if err := errors.Join(errSlot, errParent); err != nil {
+			return nil, err
+		}
 		if slot != parentSlot+1 {
 			return nil, fmt.Errorf("%w: request slot %d, parent block slot %d", ErrMismatchedSlotAndParentBlock, slot, parentSlot)
 		}
 		return makeBlockHeaderResponse(h.backend, slot, true /*resultsInList*/)
-
-	default:
-
-		return nil, fmt.Errorf("failed retrieving slot from input parameters: %w, %w", errSlot, errParent)
 	}
 }
 
@@ -84,7 +91,7 @@ func (h *Handler) GetBlockHeaderByID(c handlers.Context) (any, error) {
 func makeBlockHeaderResponse(backend Backend, slot math.Slot, resultsInList bool) (any, error) {
 	header, err := backend.BlockHeaderAtSlot(slot)
 	if err != nil {
-		return nil, fmt.Errorf("failed retrieving header at slot %d: %w", slot, err)
+		return nil, fmt.Errorf("%w: failed retrieving header at slot %d: %w", handlertypes.ErrNotFound, slot, err)
 	}
 
 	// While an Ethereum node may have multiple blocks per slot, BeaconKit

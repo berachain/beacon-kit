@@ -173,7 +173,9 @@ func TestGetBlockHeaders(t *testing.T) {
 			},
 			check: func(t *testing.T, _ any, err error) {
 				t.Helper()
-				require.ErrorIs(t, err, errTestHeaderNotFound)
+				// Implicitly ensuring that 404 error code is returned
+				// (see responseFromError implementation)
+				require.ErrorIs(t, err, handlertypes.ErrNotFound)
 			},
 		},
 		{
@@ -240,7 +242,9 @@ func TestGetBlockHeaders(t *testing.T) {
 			},
 			check: func(t *testing.T, _ any, err error) {
 				t.Helper()
-				require.ErrorIs(t, err, errTestHeaderNotFound)
+				// Implicitly ensuring that 404 error code is returned
+				// (see responseFromError implementation)
+				require.ErrorIs(t, err, handlertypes.ErrNotFound)
 			},
 		},
 		{
@@ -417,7 +421,10 @@ func TestGetBlockHeaderByID(t *testing.T) {
 			},
 			check: func(t *testing.T, _ any, err error) {
 				t.Helper()
-				require.ErrorIs(t, err, errTestHeaderNotFound)
+
+				// Implicitly ensuring that 404 error code is returned
+				// (see responseFromError implementation)
+				require.ErrorIs(t, err, handlertypes.ErrNotFound)
 			},
 		},
 		{
