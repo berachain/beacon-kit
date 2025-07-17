@@ -177,8 +177,32 @@ func pregeneratedEthAddresses(i uint64) string {
 	return addresses[i]
 }
 
+// For number of nodes < 100
+func getValidatorName(idx int, testnet *e2e.Testnet) string {
+
+	if idx < 10 {
+		return fmt.Sprintf("validator0%d", idx)
+	}
+	return fmt.Sprintf("validator%d", idx)
+}
+
+func extractValidatorIndices(s string) int {
+	re := regexp.MustCompile(`validator(\d+)`)
+	matches := re.FindAllStringSubmatch(s, -1)
+	var indices int
+	for _, match := range matches {
+		if len(match) > 1 {
+			var idx int
+			fmt.Sscanf(match[1], "%d", &idx)
+			indices = idx
+		}
+	}
+	return indices
+}
+
 // Setup sets up the testnet configuration.
 func Setup(testnet *e2e.Testnet, infp infra.Provider) error {
+
 	logger.Info("setup", "msg", log.NewLazySprintf("Generating testnet files in %#q", testnet.Dir))
 
 	if err := os.MkdirAll(testnet.Dir, os.ModePerm); err != nil {
@@ -214,6 +238,7 @@ func Setup(testnet *e2e.Testnet, infp infra.Provider) error {
 		return err
 	}
 
+	idx := 0
 	for _, node := range testnet.Nodes {
 		if node.Mode == e2e.ModeLight {
 			return errors.New("light clients are not supported, please remove them from the manifest")
@@ -399,13 +424,29 @@ func Setup(testnet *e2e.Testnet, infp infra.Provider) error {
 
 	portString := `- 2345
     - 2346`
-
 	portString2 := `- 2345
     - 2346
-    - 3500:3500`
+	- 3500:3500`
+	updated = bytes.Replace(updated, []byte(portString), []byte(portString2), len(testnet.Nodes))
 
-	updated = bytes.Replace(updated, []byte(portString), []byte(portString2), 1)
+	idx = 0
+	portString = `- 2345
+    - 2346
+	- 3500:3500`
+	for i := 1; i < len(testnet.Nodes)+1; i++ {
+		if testnet.Nodes[i-1].Mode == e2e.ModeValidator {
+			portString2 := `- 2345
+    - 2346` +
+				fmt.Sprintf("\n    - %d:3500", 3500+extractValidatorIndices(testnet.Nodes[i-1].Name))
+			updated = bytes.Replace(updated, []byte(portString), []byte(portString2), 1)
 
+			idx += 1
+		} else {
+			portString2 := `- 2345
+    - 2346`
+			updated = bytes.Replace(updated, []byte(portString), []byte(portString2), 1)
+		}
+	}
 	err = os.WriteFile(path, updated, 0o644)
 	if err != nil {
 		return fmt.Errorf("error writing compose.yaml file %s: %w", path, err)

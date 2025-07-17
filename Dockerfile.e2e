@@ -41,6 +41,8 @@ RUN chmod +x /usr/bin/entrypoint-builtin
 ENV RPC_PREFIX="http://"
 ENV RPC_DIAL_URL="172.17.0.1:8551" 
 #"host.docker.internal:8551"
+#"172.17.0.1:8551" 
+
 ENV NON_INTERACTIVE=1
 ENV JWT_SECRET_PATH="/testing/files/jwt.hex"
 

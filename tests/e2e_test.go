@@ -2,8 +2,10 @@ package e2e_test
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 	"testing"
@@ -34,6 +36,20 @@ var (
 	blocksCache     = map[string][]*types.Block{}
 	blocksCacheMtx  = sync.Mutex{}
 )
+
+func extractValidatorIndices(s string) int {
+	re := regexp.MustCompile(`validator(\d+)`)
+	matches := re.FindAllStringSubmatch(s, -1)
+	var indices int
+	for _, match := range matches {
+		if len(match) > 1 {
+			var idx int
+			fmt.Sscanf(match[1], "%d", &idx)
+			indices = idx
+		}
+	}
+	return indices
+}
 
 // testNode runs tests for testnet nodes. The callback function is given a
 // single node to test, running as a subtest in parallel with other subtests.

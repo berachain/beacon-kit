@@ -30,13 +30,13 @@ func TestNodeAPIGenesis(t *testing.T) {
 		t.Log("Testing node-api genesis for node", node.Name)
 		t.Helper()
 		// Seed nodes shouldn't necessarily mesh with the entire network.
-		if node.Mode == e2e.ModeSeed {
+		if node.Mode == e2e.ModeSeed || node.Mode == e2e.ModeFull {
 			return
 		}
 		fmt.Println("Testing node-api genesis for node", node.Name)
 		ip := getNodeIP(node)
 
-		nIP := fmt.Sprintf("http://%v:3500", ip)
+		nIP := fmt.Sprintf("http://%v:350%d", ip, extractValidatorIndices(node.Name))
 
 		fmt.Println("Connecting to beacon node at", nIP)
 		bclient := &BeaconHTTPClient{
@@ -46,7 +46,7 @@ func TestNodeAPIGenesis(t *testing.T) {
 			baseURL: nIP,
 		}
 
-		resp, err := bclient.Get(bclient.baseURL + "/eth/v1/beacon/genesis") //fmt.Sprintf("/eth/v1/beacon/states/%s/validators/%s", "10", node.PrivvalKey.PubKey().Address().String()))
+		resp, err := bclient.Get(bclient.baseURL + "/eth/v1/beacon/genesis")
 		if err != nil {
 			t.Log(err)
 			t.Fatalf("failed to get validator info")
@@ -60,9 +60,12 @@ func TestNodeAPIGenesis(t *testing.T) {
 
 func TestStateValidator(t *testing.T) {
 	testNode(t, func(t *testing.T, node e2e.Node) {
+		if node.Mode == e2e.ModeSeed || node.Mode == e2e.ModeFull {
+			return
+		}
 		ip := getNodeIP(node)
 
-		nIP := fmt.Sprintf("http://%v:3500", ip)
+		nIP := fmt.Sprintf("http://%v:350%d", ip, extractValidatorIndices(node.Name))
 		bclient := &BeaconHTTPClient{
 			Client: &http.Client{
 				Timeout: time.Second * 10,

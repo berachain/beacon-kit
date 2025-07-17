@@ -28,5 +28,5 @@ jobs:
       - name: Build cmt-e2e
         run: make build-cmt-e2e
 
-      - name: Run run-multiple.sh with single.toml
-        run: make test-cmt-e2e-single-no-build
+      - name: Run run-multiple.sh with ci.toml
+        run: make test-e2e-ci-no-build
