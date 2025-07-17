@@ -133,7 +133,7 @@ func MainnetChainSpecData() *chain.SpecData {
 		// Eth1-related values.
 		DepositContractAddress:    common.NewExecutionAddressFromHex(mainnetDepositContractAddress),
 		MaxDepositsPerBlock:       defaultMaxDepositsPerBlock,
-		DepositEth1ChainID:        MainnetEth1ChainID,
+		DepositEth1ChainID:        chain.MainnetEth1ChainID,
 		Eth1FollowDistance:        defaultEth1FollowDistance,
 		TargetSecondsPerEth1Block: defaultTargetSecondsPerEth1Block,
 
