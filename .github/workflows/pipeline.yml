@@ -187,6 +187,8 @@ jobs:
     permissions:
       id-token: write
       contents: read
+      packages: write
+      attestations: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -221,7 +223,7 @@ jobs:
         with:
           registry: ${{ env.GHCR_REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - if: ${{ env.PUSH_DOCKER_IMAGE == 'true' }}
         name: Push Docker image
