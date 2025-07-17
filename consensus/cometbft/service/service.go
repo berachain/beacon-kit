@@ -39,6 +39,7 @@ import (
 	"github.com/berachain/beacon-kit/storage"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	cmtcfg "github.com/cometbft/cometbft/config"
+	cmtcrypto "github.com/cometbft/cometbft/crypto"
 	"github.com/cometbft/cometbft/node"
 	"github.com/cometbft/cometbft/p2p"
 	pvm "github.com/cometbft/cometbft/privval"
@@ -55,7 +56,8 @@ const (
 )
 
 type Service struct {
-	node *node.Node
+	node        *node.Node
+	nodeAddress cmtcrypto.Address
 
 	delayCfg delay.ConfigGetter
 
@@ -217,6 +219,12 @@ func (s *Service) Start(
 	if err != nil {
 		return err
 	}
+
+	pubKey, errPk := s.node.PrivValidator().GetPubKey()
+	if errPk != nil {
+		return fmt.Errorf("failed retrieving pub key: %w", err)
+	}
+	s.nodeAddress = pubKey.Address()
 
 	started := make(chan struct{})
 

@@ -134,6 +134,7 @@ type BlockchainI interface {
 	ProcessProposal(
 		sdk.Context,
 		*cmtabci.ProcessProposalRequest,
+		[]byte, // this node address
 	) error
 	FinalizeBlock(
 		sdk.Context,

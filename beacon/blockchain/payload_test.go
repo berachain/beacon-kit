@@ -136,6 +136,7 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 		invalidBlk,
 		consensusTime,
 		proposerAddress,
+		true, // this block is next block proposer
 	)
 	require.ErrorIs(t, err, core.ErrProposerMismatch)
 
@@ -245,6 +246,7 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 		validBlk,
 		consensusTime,
 		ctx.ProposerAddress(),
+		true, // this block is next block proposer
 	)
 	require.NoError(t, err)
 
