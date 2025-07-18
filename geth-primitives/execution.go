@@ -36,19 +36,21 @@ type (
 	ExecutionAddress = common.Address
 	// ExecutionHash represents a hash on the execution layer which is
 	// currently a Keccak256 hash.
-	ExecutionHash  = common.Hash
-	ExecutableData = engine.ExecutableData
-	Genesis        = core.Genesis
-	GenesisAlloc   = coretypes.GenesisAlloc
-	Block          = coretypes.Block
-	Body           = coretypes.Body
-	Log            = coretypes.Log
-	LogsBloom      = coretypes.Bloom
-	Header         = coretypes.Header
-	Receipt        = coretypes.Receipt
-	Transaction    = coretypes.Transaction
-	Transactions   = coretypes.Transactions
-	Withdrawals    = coretypes.Withdrawals
+	ExecutionHash = common.Hash
+	// ExecutionPubkey represents a BLS12-381 public key on the execution layer.
+	ExecutionPubkey = common.Pubkey
+	ExecutableData  = engine.ExecutableData
+	Genesis         = core.Genesis
+	GenesisAlloc    = coretypes.GenesisAlloc
+	Block           = coretypes.Block
+	Body            = coretypes.Body
+	Log             = coretypes.Log
+	LogsBloom       = coretypes.Bloom
+	Header          = coretypes.Header
+	Receipt         = coretypes.Receipt
+	Transaction     = coretypes.Transaction
+	Transactions    = coretypes.Transactions
+	Withdrawals     = coretypes.Withdrawals
 )
 
 //nolint:gochecknoglobals // alias.

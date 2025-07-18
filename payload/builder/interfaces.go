@@ -27,6 +27,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/payload/cache"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
@@ -42,6 +43,7 @@ type AttributesFactory interface {
 		payloadWithdrawals engineprimitives.Withdrawals,
 		prevRandao common.Bytes32,
 		prevHeadRoot common.Root,
+		parentProposerPubkey *crypto.BLSPubkey,
 	) (*engineprimitives.PayloadAttributes, error)
 }
 

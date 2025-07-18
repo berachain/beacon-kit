@@ -30,6 +30,7 @@ import (
 	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/payload/builder"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
@@ -79,10 +80,11 @@ func (s *Service) forceSyncUponProcess(
 func (s *Service) forceSyncUponFinalize(
 	ctx context.Context,
 	beaconBlock *ctypes.BeaconBlock,
+	parentProposerPubkey *crypto.BLSPubkey,
 ) error {
 	// NewPayload call first to load payload into EL client.
 	executionPayload := beaconBlock.GetBody().GetExecutionPayload()
-	payloadReq, err := ctypes.BuildNewPayloadRequestFromFork(beaconBlock)
+	payloadReq, err := ctypes.BuildNewPayloadRequestFromFork(beaconBlock, parentProposerPubkey)
 	if err != nil {
 		return err
 	}
@@ -178,6 +180,11 @@ func (s *Service) preFetchBuildData(st *statedb.StateDB, currentTime math.U64) (
 		return nil, err
 	}
 
+	parentProposerPubkey, err := st.ParentProposerPubkey(nextPayloadTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("failed retrieving previous proposer public key: %w", err)
+	}
+
 	return &builder.RequestPayloadData{
 		Slot:               blkSlot,
 		Timestamp:          nextPayloadTimestamp,
@@ -191,6 +198,8 @@ func (s *Service) preFetchBuildData(st *statedb.StateDB, currentTime math.U64) (
 		// Assumuming consensus guarantees single slot finality, the parent
 		// of the latest block we verified must be final already.
 		FinalEth1BlockHash: lph.GetParentHash(),
+
+		ParentProposerPubkey: parentProposerPubkey,
 	}, nil
 }
 

@@ -273,14 +273,20 @@ func (s *Service) retrieveExecutionPayload(
 		return nil, err
 	}
 
+	parentProposerPubkey, err := st.ParentProposerPubkey(nextPayloadTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("failed retrieving previous proposer public key: %w", err)
+	}
+
 	r := &builder.RequestPayloadData{
-		Slot:               slot,
-		Timestamp:          nextPayloadTimestamp,
-		PayloadWithdrawals: payloadWithdrawals,
-		PrevRandao:         prevRandao,
-		ParentBlockRoot:    parentBlockRoot,
-		HeadEth1BlockHash:  lph.GetBlockHash(),
-		FinalEth1BlockHash: lph.GetParentHash(),
+		Slot:                 slot,
+		Timestamp:            nextPayloadTimestamp,
+		PayloadWithdrawals:   payloadWithdrawals,
+		PrevRandao:           prevRandao,
+		ParentBlockRoot:      parentBlockRoot,
+		HeadEth1BlockHash:    lph.GetBlockHash(),
+		FinalEth1BlockHash:   lph.GetParentHash(),
+		ParentProposerPubkey: parentProposerPubkey,
 	}
 	return s.localPayloadBuilder.RequestPayloadSync(ctx, r)
 }
