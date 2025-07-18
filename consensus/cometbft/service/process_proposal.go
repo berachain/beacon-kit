@@ -72,6 +72,7 @@ func (s *Service) processProposal(
 	err := s.Blockchain.ProcessProposal(
 		s.processProposalState.Context(),
 		req,
+		s.nodeAddress[:],
 	)
 	if err != nil {
 		status = cmtabci.PROCESS_PROPOSAL_STATUS_REJECT

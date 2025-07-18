@@ -20,7 +20,7 @@ CONSENSUS_DEFAULT_SETTINGS = {
     },
     "app": {
         "payload-timeout": "1.5s",
-        "enable_optimistic_payload_builds": "false",
+        "enable_optimistic_payload_builds": "true",
     },
 }
 
