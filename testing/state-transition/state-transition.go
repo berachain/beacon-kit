@@ -104,7 +104,7 @@ func BuildTestStores() (
 		return nil, nil, nil, fmt.Errorf("failed to load latest version: %w", err)
 	}
 
-	depositStore := deposit.NewStore(depositsDB, nopLog)
+	depositStore := deposit.NewStore(depositsDB, depositsDB, nopLog)
 	return cms,
 		beacondb.New(&testKVStoreService{}),
 		depositStore,
