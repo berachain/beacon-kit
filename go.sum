@@ -76,8 +76,8 @@ github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
-github.com/berachain/bera-geth v0.0.0-20250721021002-1008f01ab1ad h1:qnbKt+M3An0hnVXC5NxgRoxrBXQDY8xLxZQEvSMJEkM=
-github.com/berachain/bera-geth v0.0.0-20250721021002-1008f01ab1ad/go.mod h1:ngYIvmMAYdo4sGW9cGzLvSsPGhDOOzL0jK5S5iXpj0g=
+github.com/berachain/bera-geth v0.0.0-20250721211541-88a3626f73ad h1:vZ5DGIUvD6T7PEbrmCKbdEh9u4w6VvjTTEkxnchHcvw=
+github.com/berachain/bera-geth v0.0.0-20250721211541-88a3626f73ad/go.mod h1:ngYIvmMAYdo4sGW9cGzLvSsPGhDOOzL0jK5S5iXpj0g=
 github.com/berachain/cometbft v1.0.1-0.20250718121541-9671b1dc07e5 h1:EXClm1TIdD7dyOKdmdag55lzfx2IpPZkhRSJNkrpNXA=
 github.com/berachain/cometbft v1.0.1-0.20250718121541-9671b1dc07e5/go.mod h1:AB3j5W0TQmQSuwRdzWvIBQPAKquFo7VnckwETlAsuwk=
 github.com/berachain/cometbft/api v1.0.1-0.20250718121541-9671b1dc07e5 h1:bAE3ji9X3FOyPCiblIzwF8OKv3Bx6iEdpLt9IFeD32Y=
