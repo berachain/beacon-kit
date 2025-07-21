@@ -65,7 +65,7 @@ func TestGetGenesisData(t *testing.T) {
 	// Build backend to test
 	cs, err := spec.MainnetChainSpec()
 	require.NoError(t, err)
-	cms, kvStore, depositStore, err := statetransition.BuildTestStores()
+	cms, kvStore, depositStore, err := statetransition.BuildTestStores(cs)
 	require.NoError(t, err)
 
 	// Setup state for genesis tests.

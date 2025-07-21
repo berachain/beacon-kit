@@ -30,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constants"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	"github.com/stretchr/testify/require"
 )
@@ -59,7 +58,6 @@ func TestInvalidDeposits(t *testing.T) {
 		genPayloadHeader = &types.ExecutionPayloadHeader{
 			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
 		}
-		totalDepositsCount = uint64(len(genDeposits))
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 	_, err := sp.InitializeBeaconStateFromEth1(
@@ -74,7 +72,6 @@ func TestInvalidDeposits(t *testing.T) {
 		Amount:      minBalance,
 		Index:       1,
 	}
-	totalDepositsCount++
 
 	// Create an invalid deposit with extra balance going to pubkey 1
 	invalidDeposit := &types.Deposit{
@@ -88,7 +85,7 @@ func TestInvalidDeposits(t *testing.T) {
 	// make sure included deposit is already available in deposit store
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), []*types.Deposit{correctDeposit}))
 	var depRoot common.Root
-	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), constants.FirstDepositIndex, totalDepositsCount)
+	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), uint64(len(genDeposits)), cs.MaxDepositsPerBlock())
 	require.NoError(t, err)
 
 	// Create test block with invalid deposit, BUT the correct deposit for pubkey 1.
@@ -132,7 +129,6 @@ func TestInvalidDepositsCount(t *testing.T) {
 		genPayloadHeader = &types.ExecutionPayloadHeader{
 			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
 		}
-		totalDepositsCount = uint64(len(genDeposits))
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 	_, err := sp.InitializeBeaconStateFromEth1(
@@ -155,12 +151,11 @@ func TestInvalidDepositsCount(t *testing.T) {
 			Index:       2,
 		},
 	}
-	totalDepositsCount += uint64(len(correctDeposits))
 
 	// Add JUST 1 correct deposit to local store. This node SHOULD fail to verify.
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), []*types.Deposit{correctDeposits[0]}))
 	var depRoot common.Root
-	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), constants.FirstDepositIndex, totalDepositsCount)
+	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), uint64(len(genDeposits)), cs.MaxDepositsPerBlock())
 	require.NoError(t, err)
 
 	// Create test block with the correct deposits.
@@ -207,7 +202,6 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 		genPayloadHeader = &types.ExecutionPayloadHeader{
 			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
 		}
-		totalDepositsCount = uint64(len(genDeposits))
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 	_, err = sp.InitializeBeaconStateFromEth1(
@@ -229,12 +223,11 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 		Amount:      maxBalance,
 		Index:       2,
 	}
-	totalDepositsCount += 2
 
 	// make sure included deposit is already available in deposit store
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), []*types.Deposit{&blockDeposit, extraLocalDeposit}))
 	var depRoot common.Root
-	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), constants.FirstDepositIndex, totalDepositsCount-1)
+	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), uint64(len(genDeposits)), cs.MaxDepositsPerBlock())
 	require.NoError(t, err)
 
 	// Create test block with the correct deposits.

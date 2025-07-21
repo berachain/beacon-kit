@@ -23,6 +23,7 @@ package spec
 import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/ethereum/go-ethereum/params"
 )
 
@@ -61,6 +62,9 @@ const (
 
 	// devnetMinValidatorWithdrawabilityDelay is the delay (in epochs) before a validator can withdraw their stake.
 	devnetMinValidatorWithdrawabilityDelay = 32
+
+	// DepositsV2ActivationSlot returns the slot store v2 is activated
+	devnetDepositsV2ActivationSlot = constants.GenesisSlot
 )
 
 // DevnetChainSpecData is the chain.SpecData for a devnet. It is similar to mainnet but
@@ -70,6 +74,7 @@ const (
 func DevnetChainSpecData() *chain.SpecData {
 	specData := MainnetChainSpecData()
 	specData.DepositEth1ChainID = chain.DevnetEth1ChainID
+	specData.DepositsV2ActivationSlot = devnetDepositsV2ActivationSlot
 
 	specData.Config.ConsensusUpdateHeight = 1
 	specData.Config.ConsensusEnableHeight = 2
