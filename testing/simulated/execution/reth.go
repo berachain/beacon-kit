@@ -37,7 +37,7 @@ func NewRethNode(homeDir string, image docker.PullImageOptions) *ExecNode {
 func ValidRethImage() docker.PullImageOptions {
 	return docker.PullImageOptions{
 		Repository: "ghcr.io/berachain/bera-reth",
-		Tag:        "nightly",
+		Tag:        "v1.0.0-rc.1",
 	}
 }
 

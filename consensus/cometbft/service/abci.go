@@ -34,10 +34,7 @@ import (
 	sdkversion "github.com/cosmos/cosmos-sdk/version"
 )
 
-var (
-	errInvalidHeight         = errors.New("invalid height")
-	errNilFinalizeBlockState = errors.New("finalizeBlockState is nil")
-)
+var errInvalidHeight = errors.New("invalid height")
 
 func (s *Service) InitChain(
 	_ context.Context,
