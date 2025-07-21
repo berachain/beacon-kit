@@ -50,7 +50,7 @@ func (s *Service) finalizeBlock(
 	case err == nil:
 		// Block with height equal to initial height is special and we can't rely on its cache.
 		// This is because Genesis state is cached but not committed (and purged from s.cachedStates)
-		// We handle the case below.
+		// We handle the case outside of this switch, via the s.Blockchain.FinalizeBlock below.
 		if req.Height > s.initialHeight {
 			if err = s.cachedStates.MarkAsFinal(hash); err != nil {
 				return nil, fmt.Errorf("failed marking state as final, hash %s, height %d: %w", hash, req.Height, err)
