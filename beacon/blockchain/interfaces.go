@@ -143,6 +143,7 @@ type BlockchainI interface {
 	ProcessProposal(
 		sdk.Context,
 		*cmtabci.ProcessProposalRequest,
+		[]byte, // this node address
 	) (transition.ValidatorUpdates, error)
 	FinalizeSidecars(
 		ctx sdk.Context,

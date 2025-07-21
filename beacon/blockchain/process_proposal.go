@@ -56,9 +56,11 @@ const (
 	MaxConsensusTxsCount = 2
 )
 
+//nolint:funlen // abundantly commented
 func (s *Service) ProcessProposal(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
+	thisNodeAddress []byte,
 ) (transition.ValidatorUpdates, error) {
 	signedBlk, sidecars, err := s.ParseBeaconBlock(req)
 	if err != nil {
@@ -148,7 +150,11 @@ func (s *Service) ProcessProposal(
 	)
 
 	var valUpdates transition.ValidatorUpdates
-	valUpdates, err = s.VerifyIncomingBlock(ctx, consensusBlk)
+	valUpdates, err = s.VerifyIncomingBlock(
+		ctx,
+		consensusBlk,
+		bytes.Equal(thisNodeAddress, req.NextProposerAddress),
+	)
 	if err != nil {
 		s.logger.Error("failed to verify incoming block", "error", err)
 		return nil, err
@@ -208,6 +214,7 @@ func (s *Service) VerifyIncomingBlobSidecars(
 func (s *Service) VerifyIncomingBlock(
 	ctx context.Context,
 	blk *types.ConsensusBlock,
+	isNextBlockProposer bool,
 ) (transition.ValidatorUpdates, error) {
 	beaconBlk := blk.GetBeaconBlock()
 	state := s.storageBackend.StateFromContext(ctx)
@@ -249,11 +256,12 @@ func (s *Service) VerifyIncomingBlock(
 	}
 
 	var (
-		nextBlockData *builder.RequestPayloadData
-		errFetch      error
+		nextBlockData        *builder.RequestPayloadData
+		errFetch             error
+		shouldBuildNextBlock = s.shouldBuildOptimisticPayloads(isNextBlockProposer)
 	)
 
-	if s.shouldBuildOptimisticPayloads() {
+	if shouldBuildNextBlock {
 		// state copy makes sure that preFetchBuildData does not affect state
 		copiedState := state.Copy(ctx)
 		nextBlockData, errFetch = s.preFetchBuildData(copiedState, blk.GetConsensusTime())
@@ -278,7 +286,7 @@ func (s *Service) VerifyIncomingBlock(
 			"reason", err,
 		)
 
-		if s.shouldBuildOptimisticPayloads() {
+		if shouldBuildNextBlock {
 			if nextBlockData == nil {
 				// Failed fetching data to build next block. Just return block error
 				return nil, err
@@ -294,7 +302,7 @@ func (s *Service) VerifyIncomingBlock(
 		"state_root", beaconBlk.GetStateRoot(),
 	)
 
-	if s.shouldBuildOptimisticPayloads() {
+	if shouldBuildNextBlock {
 		// state copy makes sure that preFetchBuildDataForSuccess does not affect state
 		copiedState := state.Copy(ctx)
 		nextBlockData, errFetch = s.preFetchBuildData(copiedState, blk.GetConsensusTime())
@@ -348,6 +356,6 @@ func (s *Service) verifyStateRoot(
 
 // shouldBuildOptimisticPayloads returns true if optimistic
 // payload builds are enabled.
-func (s *Service) shouldBuildOptimisticPayloads() bool {
-	return s.optimisticPayloadBuilds && s.localBuilder.Enabled()
+func (s *Service) shouldBuildOptimisticPayloads(isNextBlockProposer bool) bool {
+	return isNextBlockProposer && s.optimisticPayloadBuilds && s.localBuilder.Enabled()
 }

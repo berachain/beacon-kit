@@ -135,6 +135,7 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 	_, err = chain.VerifyIncomingBlock(
 		ctx.ConsensusCtx(),
 		types.NewConsensusBlock(invalidBlk, proposerAddress, consensusTime),
+		true, // this block is next block proposer
 	)
 	require.ErrorIs(t, err, core.ErrProposerMismatch)
 
@@ -242,6 +243,7 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 	_, err = chain.VerifyIncomingBlock(
 		ctx.ConsensusCtx(),
 		types.NewConsensusBlock(validBlk, ctx.ProposerAddress(), consensusTime),
+		true, // this block is next block proposer
 	)
 	require.NoError(t, err)
 
