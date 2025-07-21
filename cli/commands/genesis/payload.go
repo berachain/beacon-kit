@@ -69,7 +69,7 @@ func AddExecutionPayload(chainSpec ChainSpec, elGenesisPath string, config *cmtc
 		return errors.Wrap(err, "failed to read eth1 genesis file")
 	}
 
-	// Unmarshal the genesis file.  
+	// Unmarshal the genesis file.
 	ethGenesis := &gethprimitives.Genesis{}
 	if err = ethGenesis.UnmarshalJSON(genesisBz); err != nil {
 		return errors.Wrap(err, "failed to unmarshal eth1 genesis")

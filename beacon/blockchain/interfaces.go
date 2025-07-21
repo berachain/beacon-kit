@@ -26,6 +26,8 @@ import (
 
 	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -130,15 +132,33 @@ type TelemetrySink interface {
 //nolint:revive // its ok
 type BlockchainI interface {
 	ProcessGenesisData(
-		context.Context, []byte) (transition.ValidatorUpdates, error)
+		context.Context,
+		[]byte,
+	) (transition.ValidatorUpdates, error)
+	ParseBeaconBlock(req encoding.ABCIRequest) (
+		*ctypes.SignedBeaconBlock,
+		datypes.BlobSidecars,
+		error,
+	)
 	ProcessProposal(
 		sdk.Context,
 		*cmtabci.ProcessProposalRequest,
+		[]byte, // this node address
+	) (transition.ValidatorUpdates, error)
+	FinalizeSidecars(
+		ctx sdk.Context,
+		syncingToHeight int64,
+		blk *ctypes.BeaconBlock,
+		blobs datypes.BlobSidecars,
 	) error
 	FinalizeBlock(
 		sdk.Context,
 		*cmtabci.FinalizeBlockRequest,
 	) (transition.ValidatorUpdates, error)
+	PostFinalizeBlockOps(
+		sdk.Context,
+		*ctypes.BeaconBlock,
+	) error
 }
 
 // BlobProcessor is the interface for the blobs processor.
@@ -168,6 +188,7 @@ type ServiceChainSpec interface {
 	chain.BlobSpec
 	chain.ForkSpec
 	chain.ForkVersionSpec
+	delay.ConfigGetter
 
 	EpochsPerHistoricalVector() uint64
 	SlotToEpoch(slot math.Slot) math.Epoch

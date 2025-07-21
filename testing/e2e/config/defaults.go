@@ -123,7 +123,7 @@ func defaultExecutionSettings() ExecutionSettings {
 		},
 		Images: map[string]string{
 			"geth": "ghcr.io/berachain/bera-geth:v1.011511.0-rc2",
-			"reth": "ghcr.io/berachain/bera-reth:nightly",
+			"reth": "ghcr.io/berachain/bera-reth:v1.0.0-rc.1",
 		},
 	}
 }

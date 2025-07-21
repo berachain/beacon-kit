@@ -30,6 +30,8 @@ import (
 
 // ParentProposerPubkey returns the parent proposer pubkey for the given timestamp.
 // It returns nil if we are before Electra1.
+//
+//nolint:nilnil // TODO: consider addressing this
 func (s *StateDB) ParentProposerPubkey(timestamp math.U64) (*crypto.BLSPubkey, error) {
 	if version.IsBefore(s.cs.ActiveForkVersionForTimestamp(timestamp), version.Electra1()) {
 		return nil, nil

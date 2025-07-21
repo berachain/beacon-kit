@@ -20,7 +20,7 @@ CONSENSUS_DEFAULT_SETTINGS = {
     },
     "app": {
         "payload-timeout": "1.5s",
-        "enable_optimistic_payload_builds": "false",
+        "enable_optimistic_payload_builds": "true",
     },
 }
 
@@ -33,7 +33,7 @@ EXECUTION_DEFAULT_SETTINGS = {
     },
     "images": {
         "geth": "ghcr.io/berachain/bera-geth:v1.011511.0-rc2",
-        "reth": "ghcr.io/berachain/bera-reth:nightly",
+        "reth": "ghcr.io/berachain/bera-reth:v1.0.0-rc.1",
     },
     "labels": {},
     "node_selectors": {},
