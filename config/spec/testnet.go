@@ -32,7 +32,7 @@ func TestnetChainSpecData() *chain.SpecData {
 	specData := MainnetChainSpecData()
 
 	// Testnet uses chain ID of 80069.
-	specData.DepositEth1ChainID = TestnetEth1ChainID
+	specData.DepositEth1ChainID = chain.TestnetEth1ChainID
 
 	specData.DepositsV2ActivationSlot = math.Slot(stdmath.MaxInt64) // TODO: set right value
 

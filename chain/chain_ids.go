@@ -18,25 +18,18 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package utils
+package chain
 
-import (
-	"fmt"
+// Chain IDs that must be used for specific Berachain networks.
+const (
+	// DevnetEth1ChainID is the chain ID for a local devnet. Used by `make start`, e2e tests, and
+	// many unit tests.
+	DevnetEth1ChainID uint64 = 80087
 
-	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/node-api/handlers"
-	"github.com/berachain/beacon-kit/node-api/handlers/types"
+	// MainnetEth1ChainID is the chain ID for the Berachain mainnet.
+	MainnetEth1ChainID uint64 = 80094
+
+	// TestnetEth1ChainID is the chain ID for the Berachain public testnet, Bepolia. Also used by
+	// simulated tests.
+	TestnetEth1ChainID uint64 = 80069
 )
-
-// BindAndValidate binds the request to the context and validates it.
-func BindAndValidate[RequestT any](c handlers.Context, logger log.Logger) (RequestT, error) {
-	var req RequestT
-	if err := c.Bind(&req); err != nil {
-		return req, fmt.Errorf("%w: failed to bind request: %s", types.ErrInvalidRequest, err.Error())
-	}
-	if err := c.Validate(&req); err != nil {
-		return req, fmt.Errorf("%w: failed to validate request: %s", types.ErrInvalidRequest, err.Error())
-	}
-	logger.Info("Request validation successful", "params", req)
-	return req, nil
-}

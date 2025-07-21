@@ -21,6 +21,7 @@
 package chain
 
 import (
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
@@ -28,6 +29,8 @@ import (
 // SpecData is the underlying data structure for chain-specific parameters. All fields with a
 // `mapstructure` tag are required.
 type SpecData struct {
+	delay.Config `mapstructure:"block-delay-configuration"`
+
 	// Gwei value constants.
 	//
 	// MaxEffectiveBalance is the maximum effective balance allowed for a validator.
