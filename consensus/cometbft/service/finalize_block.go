@@ -81,7 +81,7 @@ func (s *Service) finalizeBlock(
 			); err != nil {
 				return nil, fmt.Errorf("finalize block: failed post finalize block ops: %w", err)
 			}
-			return s.formatFinalizeBlockResponse(req, cached.ValUpdates)
+			return s.calculateFinalizeBlockResponse(req, cached.ValUpdates)
 		}
 
 	case errors.Is(err, cache.ErrStateNotFound):
@@ -127,7 +127,7 @@ func (s *Service) finalizeBlock(
 		return nil, fmt.Errorf("failed marking state as final, hash %s, height %d: %w", hash, req.Height, err)
 	}
 
-	return s.formatFinalizeBlockResponse(req, valUpdates)
+	return s.calculateFinalizeBlockResponse(req, valUpdates)
 }
 
 //nolint:lll // long message on one line for readability.
@@ -244,7 +244,7 @@ func (s *Service) validateFinalizeBlockHeight(req *cmtabci.FinalizeBlockRequest)
 	return nil
 }
 
-func (s *Service) formatFinalizeBlockResponse(
+func (s *Service) calculateFinalizeBlockResponse(
 	req *cmtabci.FinalizeBlockRequest,
 	valUpdates transition.ValidatorUpdates,
 ) (*cmtabci.FinalizeBlockResponse, error) {
