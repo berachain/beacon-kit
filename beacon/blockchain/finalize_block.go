@@ -47,15 +47,6 @@ func (s *Service) FinalizeBlock(
 	}
 	blk := signedBlk.GetBeaconBlock()
 
-	// Send an FCU to force the HEAD of the chain on the EL on startup.
-	var finalizeErr error
-	s.forceStartupSyncOnce.Do(func() {
-		finalizeErr = s.forceSyncUponFinalize(ctx, blk)
-	})
-	if finalizeErr != nil {
-		return nil, finalizeErr
-	}
-
 	// STEP 2: Finalize sidecars first (block will check for sidecar availability).
 	if err = s.FinalizeSidecars(ctx, req.SyncingToHeight, blk, blobs); err != nil {
 		return nil, fmt.Errorf("failed finalizing sidecars: %w", err)

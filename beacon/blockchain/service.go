@@ -63,7 +63,7 @@ type Service struct {
 	// builder is enabled.
 	optimisticPayloadBuilds bool
 	// forceStartupSyncOnce is used to force a sync of the startup head.
-	forceStartupSyncOnce *sync.Once
+	forceStartupSyncOnce sync.Once
 }
 
 // NewService creates a new validator service.
@@ -92,7 +92,6 @@ func NewService(
 		stateProcessor:          stateProcessor,
 		metrics:                 newChainMetrics(telemetrySink),
 		optimisticPayloadBuilds: optimisticPayloadBuilds,
-		forceStartupSyncOnce:    new(sync.Once),
 	}
 }
 
