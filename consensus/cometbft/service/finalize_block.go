@@ -39,18 +39,6 @@ func (s *Service) finalizeBlock(
 	ctx context.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (*cmtabci.FinalizeBlockResponse, error) {
-	res, err := s.finalizeBlockInternal(ctx, req)
-	if res != nil {
-		res.AppHash = s.workingHash()
-	}
-
-	return res, err
-}
-
-func (s *Service) finalizeBlockInternal(
-	ctx context.Context,
-	req *cmtabci.FinalizeBlockRequest,
-) (*cmtabci.FinalizeBlockResponse, error) {
 	if err := s.validateFinalizeBlockHeight(req); err != nil {
 		return nil, err
 	}
@@ -293,6 +281,7 @@ func (s *Service) formatFinalizeBlockResponse(
 		TxResults:             txResults,
 		ValidatorUpdates:      formattedValUpdates,
 		ConsensusParamUpdates: &cp,
+		AppHash:               s.workingHash(),
 		NextBlockDelay:        nextBlockTime,
 	}, nil
 }
