@@ -25,9 +25,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	sdkversion "github.com/cosmos/cosmos-sdk/version"
 )
 
@@ -136,16 +139,52 @@ func (s *Service) Commit(
 	return s.commit(req)
 }
 
+// NOTE: Partially copied from https://github.com/cosmos/cosmos-sdk/blob/960d44842b9e313cbe762068a67a894ac82060ab/baseapp/abci.go#L168
+func (s *Service) Query(
+	_ context.Context,
+	req *abci.QueryRequest,
+) (*abci.QueryResponse, error) {
+	resp := new(abci.QueryResponse)
+
+	// add panic recovery for all queries
+	//
+	// Ref: https://github.com/cosmos/cosmos-sdk/pull/8039
+	defer func() {
+		if r := recover(); r != nil {
+			*resp = queryResult(errorsmod.Wrapf(sdkerrors.ErrPanic, "%v", r))
+		}
+	}()
+
+	// when a client did not provide a query height, manually inject the latest
+	if req.Height == 0 {
+		req.Height = s.LastBlockHeight()
+	}
+
+	s.telemetrySink.IncrementCounter("beacon_kit.comet.query_count", "path", req.Path)
+	startTime := time.Now()
+	defer s.telemetrySink.MeasureSince(
+		"beacon_kit.comet.query_duration", startTime, "path", req.Path,
+	)
+
+	path := splitABCIQueryPath(req.Path)
+	if len(path) == 0 {
+		*resp = queryResult(errorsmod.Wrap(sdkerrors.ErrUnknownRequest, "no query path provided"))
+		return resp, nil
+	}
+
+	// Only "/store" prefix for store queries are supported.
+	if path[0] != "store" {
+		*resp = queryResult(errorsmod.Wrap(sdkerrors.ErrNotSupported, "unsupported query path"))
+		return resp, nil
+	}
+
+	*resp = s.handleQueryStore(path, req)
+	return resp, nil
+}
+
 //
 // NOOP methods
 //
-
-func (Service) Query(
-	context.Context,
-	*abci.QueryRequest,
-) (*abci.QueryResponse, error) {
-	return &abci.QueryResponse{}, nil
-}
 
 func (Service) ListSnapshots(
 	context.Context,
