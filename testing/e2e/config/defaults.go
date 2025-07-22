@@ -123,7 +123,7 @@ func defaultExecutionSettings() ExecutionSettings {
 		},
 		Images: map[string]string{
 			"geth": "ghcr.io/berachain/bera-geth:latest",
-			"reth": "ghcr.io/berachain/bera-reth:v1.0.0-rc.1",
+			"reth": "ghcr.io/berachain/bera-reth:nightly",
 		},
 	}
 }
@@ -152,7 +152,6 @@ func defaultConsensusSettings() ConsensusSettings {
 			TimeoutPrevote:   consensus.TimeoutPrevote.String(),
 			TimeoutPrecommit: consensus.TimeoutPrecommit.String(),
 
-			//nolint:staticcheck // setting to zero because it's deprecated
 			TimeoutCommit:       consensus.TimeoutCommit.String(),
 			MaxNumInboundPeers:  p2p.MaxNumInboundPeers,
 			MaxNumOutboundPeers: p2p.MaxNumOutboundPeers,
