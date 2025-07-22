@@ -79,7 +79,7 @@ start-geth:
 	docker run \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	ethereum/client-go init \
+	ghcr.io/berachain/bera-geth:latest init \
 	--datadir ${ETH_DATA_DIR} \
 	${ETH_GENESIS_PATH}
 
@@ -89,7 +89,7 @@ start-geth:
 	-p 8551:8551 \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	ethereum/client-go \
+	ghcr.io/berachain/bera-geth:latest \
 	--syncmode=full \
 	--http \
 	--http.addr 0.0.0.0 \
@@ -118,7 +118,7 @@ start-geth-bepolia:
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	--rm -v $(PWD)/${BEPOLIA_NETWORK_FILES_DIR}:/${BEPOLIA_NETWORK_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	ethereum/client-go init \
+	ghcr.io/berachain/bera-geth:latest init \
 	--datadir ${ETH_DATA_DIR} \
 	${BEPOLIA_ETH_GENESIS_PATH}
 
@@ -132,7 +132,7 @@ start-geth-bepolia:
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	--rm -v $(PWD)/${BEPOLIA_NETWORK_FILES_DIR}:/${BEPOLIA_NETWORK_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	ethereum/client-go \
+	ghcr.io/berachain/bera-geth:latest \
 	--http \
 	--http.addr 0.0.0.0 \
 	--http.api eth,net \
@@ -187,7 +187,7 @@ start-geth-mainnet:
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	--rm -v $(PWD)/${MAINNET_NETWORK_FILES_DIR}:/${MAINNET_NETWORK_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	ethereum/client-go:v1.14.13 init \
+	ghcr.io/berachain/bera-geth:latest init \
 	--datadir ${ETH_DATA_DIR} \
 	${MAINNET_ETH_GENESIS_PATH}
 
@@ -199,9 +199,9 @@ start-geth-mainnet:
 	-p 8545:8545 \
 	-p 8551:8551 \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
-	--rm -v $(PWD)/${BEPOLIA_NETWORK_FILES_DIR}:/${BEPOLIA_NETWORK_FILES_DIR} \
+	--rm -v $(PWD)/${MAINNET_NETWORK_FILES_DIR}:/${MAINNET_NETWORK_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	ethereum/client-go:v1.14.13 \
+	ghcr.io/berachain/bera-geth:latest \
 	--http \
 	--http.addr 0.0.0.0 \
 	--http.api eth,net \

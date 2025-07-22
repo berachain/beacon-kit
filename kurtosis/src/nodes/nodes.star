@@ -20,7 +20,7 @@ CONSENSUS_DEFAULT_SETTINGS = {
     },
     "app": {
         "payload-timeout": "1.5s",
-        "enable_optimistic_payload_builds": "false",
+        "enable_optimistic_payload_builds": "true",
     },
 }
 
@@ -32,7 +32,7 @@ EXECUTION_DEFAULT_SETTINGS = {
         "max_memory": 2048,
     },
     "images": {
-        "geth": "ethereum/client-go:latest",
+        "geth": "ghcr.io/berachain/bera-geth:latest",
         "reth": "ghcr.io/berachain/bera-reth:nightly",
     },
     "labels": {},

@@ -18,15 +18,49 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package spec
+package cache
 
-const (
-	// DevnetEth1ChainID is the chain ID for a local devnet. Used by `make start` and unit tests.
-	DevnetEth1ChainID uint64 = 80087
+import (
+	"sync"
 
-	// MainnetEth1ChainID is the chain ID for the Berachain mainnet.
-	MainnetEth1ChainID uint64 = 80094
-
-	// TestnetEth1ChainID is the chain ID for the Berachain public testnet.
-	TestnetEth1ChainID uint64 = 80069
+	storetypes "cosmossdk.io/store/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
+
+type State struct {
+	ms storetypes.CacheMultiStore
+
+	mtx sync.RWMutex
+	ctx sdk.Context
+}
+
+func NewState(ms storetypes.CacheMultiStore, ctx sdk.Context) *State {
+	return &State{
+		ms:  ms,
+		ctx: ctx,
+	}
+}
+
+// CacheMultiStore calls and returns a CacheMultiStore on the state's underling
+// CacheMultiStore.
+func (st *State) CacheMultiStore() storetypes.CacheMultiStore {
+	return st.ms.CacheMultiStore()
+}
+
+// SetContext updates the state's context to the context provided.
+func (st *State) SetContext(ctx sdk.Context) {
+	st.mtx.Lock()
+	defer st.mtx.Unlock()
+	st.ctx = ctx
+}
+
+// Context returns the Context of the state.
+func (st *State) Context() sdk.Context {
+	st.mtx.RLock()
+	defer st.mtx.RUnlock()
+	return st.ctx
+}
+
+func (st *State) Write() {
+	st.ms.Write()
+}

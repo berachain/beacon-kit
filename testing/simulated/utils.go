@@ -261,18 +261,17 @@ func ComputeAndSetInvalidExecutionBlock(
 	executionPayload.Transactions = txsBytesArray
 	parentBlockRoot := latestBlock.GetParentBlockRoot()
 
-	var execBlock *gethtypes.Block
-	var err error
+	var (
+		execBlock           *gethtypes.Block
+		encodedExecRequests []ctypes.EncodedExecutionRequest
+		err                 error
+	)
 	if version.EqualsOrIsAfter(forkVersion, version.Electra()) {
-		var encodedExecRequests []ctypes.EncodedExecutionRequest
 		encodedExecRequests, err = ctypes.GetExecutionRequestsList(executionRequests)
 		require.NoError(t, err)
-		execBlock, _, err = ctypes.MakeEthBlockWithExecutionRequests(executionPayload, &parentBlockRoot, encodedExecRequests)
-		require.NoError(t, err)
-	} else {
-		execBlock, _, err = ctypes.MakeEthBlock(executionPayload, &parentBlockRoot)
-		require.NoError(t, err)
 	}
+	execBlock, _, err = ctypes.MakeEthBlock(executionPayload, parentBlockRoot, encodedExecRequests, nil)
+	require.NoError(t, err)
 
 	return updateBeaconBlockBody(t, latestBlock, forkVersion, execBlock, sidecars, executionRequests)
 }
