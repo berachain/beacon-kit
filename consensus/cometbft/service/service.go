@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/validator"
 	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/cache"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
 	servercmtlog "github.com/berachain/beacon-kit/consensus/cometbft/service/log"
 	statem "github.com/berachain/beacon-kit/consensus/cometbft/service/state"
@@ -39,6 +40,7 @@ import (
 	"github.com/berachain/beacon-kit/storage"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	cmtcfg "github.com/cometbft/cometbft/config"
+	cmtcrypto "github.com/cometbft/cometbft/crypto"
 	"github.com/cometbft/cometbft/node"
 	"github.com/cometbft/cometbft/p2p"
 	pvm "github.com/cometbft/cometbft/privval"
@@ -55,7 +57,8 @@ const (
 )
 
 type Service struct {
-	node *node.Node
+	node        *node.Node
+	nodeAddress cmtcrypto.Address
 
 	delayCfg delay.ConfigGetter
 
@@ -75,23 +78,10 @@ type Service struct {
 	Blockchain   blockchain.BlockchainI
 	BlockBuilder validator.BlockBuilderI
 
-	// prepareProposalState is used for PrepareProposal, which is set based on
-	// the previous block's state. This state is never committed. In case of
-	// multiple consensus rounds, the state is always reset to the previous
-	// block's state.
-	prepareProposalState *state
-
-	// processProposalState is used for ProcessProposal, which is set based on
-	// the previous block's state. This state is never committed. In case of
-	// multiple consensus rounds, the state is always reset to the previous
-	// block's state.
-	processProposalState *state
-
-	// finalizeBlockState is used for FinalizeBlock, which is set based on the
-	// previous block's state. This state is committed. finalizeBlockState is
-	// set
-	// on InitChain and FinalizeBlock and set to nil on Commit.
-	finalizeBlockState *state
+	// cachedStates tracks in memory the post block states
+	// of blocks which were successfully verified. It allows
+	// finalizing without re-execution
+	cachedStates cache.States
 
 	interBlockCache storetypes.MultiStorePersistentCache
 
@@ -148,6 +138,7 @@ func NewService(
 		cmtConsensusParams: cmtConsensusParams,
 		cmtCfg:             cmtCfg,
 		telemetrySink:      telemetrySink,
+		cachedStates:       cache.New(),
 	}
 
 	s.MountStore(storage.StoreKey, storetypes.StoreTypeIAVL)
@@ -217,6 +208,12 @@ func (s *Service) Start(
 	if err != nil {
 		return err
 	}
+
+	pubKey, errPk := s.node.PrivValidator().GetPubKey()
+	if errPk != nil {
+		return fmt.Errorf("failed retrieving pub key: %w", err)
+	}
+	s.nodeAddress = pubKey.Address()
 
 	started := make(chan struct{})
 
@@ -313,7 +310,7 @@ func (s *Service) setInterBlockCache(
 // prepareProposal/processProposal/finalizeBlock State.
 // A state is explicitly returned to avoid false positives from
 // nilaway tool.
-func (s *Service) resetState(ctx context.Context) *state {
+func (s *Service) resetState(ctx context.Context) *cache.State {
 	ms := s.sm.GetCommitMultiStore().CacheMultiStore()
 
 	newCtx := sdk.NewContext(
@@ -322,10 +319,7 @@ func (s *Service) resetState(ctx context.Context) *state {
 		servercmtlog.WrapSDKLogger(s.logger),
 	).WithContext(ctx)
 
-	return &state{
-		ms:  ms,
-		ctx: newCtx,
-	}
+	return cache.NewState(ms, newCtx)
 }
 
 // convertValidatorUpdate abstracts the conversion of a
@@ -359,12 +353,13 @@ func (s *Service) getContextForProposal(
 		return ctx
 	}
 
-	if s.finalizeBlockState == nil {
+	_, finalState, err := s.cachedStates.GetFinal()
+	if err != nil {
 		// this is unexpected since cometBFT won't call PrepareProposal
 		// on initialHeight. Panic appeases nilaway.
-		panic(fmt.Errorf("getContextForProposal: %w", errNilFinalizeBlockState))
+		panic(fmt.Errorf("getContextForProposal: %w", err))
 	}
-	newCtx, _ := s.finalizeBlockState.Context().CacheContext()
+	newCtx, _ := finalState.Context().CacheContext()
 	// Preserve the CosmosSDK context while using the correct base ctx.
 	return newCtx.WithContext(ctx.Context())
 }
