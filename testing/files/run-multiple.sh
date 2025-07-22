@@ -16,7 +16,7 @@ if [[ $# == 0 ]]; then
 fi
 
 FAILED=()
-RUNNER="${RUNNER:-build/bin/runner}"
+RUNNER="${RUNNER:-build/bin/cmt_e2e/runner}"
 
 for MANIFEST in "$@"; do
 	START=$SECONDS

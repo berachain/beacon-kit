@@ -433,7 +433,7 @@ test-e2e-ci-no-build:
 start-monitoring:
 	@echo "Starting local prometheus and grafana..."
 	@if [ ! -f testing/monitoring/prometheus.yml ]; then \
-	  echo "Prometheus configuration file not found. Please create one using `build/bin/runner -f testing/networks/<youtest>.toml setup`."; \
+	  echo "Prometheus configuration file not found. Please create one using `build/bin/cmt_e2e/runner -f testing/networks/<youtest>.toml setup`."; \
 	  exit 1; \
 	fi
 	@cd testing/monitoring && docker compose up -d

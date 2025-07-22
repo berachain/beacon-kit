@@ -126,9 +126,9 @@ func loadTestnet(t *testing.T) e2e.Testnet {
 	if manifestFile == "" {
 		t.Skip("E2E_MANIFEST not set, not an end-to-end test run")
 	}
-	if !filepath.IsAbs(manifestFile) {
-		manifestFile = filepath.Join("../../", manifestFile)
-	}
+	//if !filepath.IsAbs(manifestFile) {
+	manifestFile = filepath.Join("../../..", manifestFile)
+	//}
 	ifdType := os.Getenv("INFRASTRUCTURE_TYPE")
 	ifdFile := os.Getenv("INFRASTRUCTURE_FILE")
 	if ifdType != "docker" && ifdFile == "" {

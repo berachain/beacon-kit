@@ -29,7 +29,7 @@ FROM ${IMAGE_NAME}:${VERSION}
 ###########################################################################
 
 # Copy beacond because entrypoint_cmt_e2e.sh searches in ./build/bin
-RUN mkdir -p /build/bin && cp /usr/bin/beacond /build/bin
+RUN mkdir -p /build/bin && cp /usr/bin/beacond /build/bin 
 
 # Add files used by entrypoint_cmt_e2e.sh. Start the build process from the testing folder.
 COPY files/ /testing/files/
@@ -39,8 +39,10 @@ RUN chmod +x /usr/bin/entrypoint-builtin
 
 # Configure entrypoint_cmt_e2e.sh
 ENV RPC_PREFIX="http://"
-ENV RPC_DIAL_URL="172.17.0.1:8551" 
-#"host.docker.internal:8551"
+ENV RPC_DIAL_URL="host.docker.internal:8551"
+# For local runs on macos:
+#"host.docker.internal:8551" 
+# for CI this is the address of the docker host:
 #"172.17.0.1:8551" 
 
 ENV NON_INTERACTIVE=1
