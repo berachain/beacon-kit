@@ -73,23 +73,6 @@ start-reth:
 	--engine.persistence-threshold 0 \
 	--engine.memory-block-buffer-target 0
 
-
-
-start-reth-mainnet-local:
-	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
-	@trusted_peers="$$(cat $(PWD)/$(MAINNET_NETWORK_FILES_DIR)/el-peers.txt)"; \
-	echo "Using trusted peers: $$trusted_peers"; \
-	../bera-reth/target/release/bera-reth node \
-	  --chain $(MAINNET_ETH_GENESIS_PATH) \
-	  --http \
-	  --http.addr "0.0.0.0" \
-	  --http.api eth,net \
-	  --authrpc.addr "0.0.0.0" \
-	  --authrpc.jwtsecret $(JWT_PATH) \
-	  --datadir $(ETH_DATA_DIR) \
-	  --ipcpath $(IPC_PATH) \
-	  --trusted-peers "$$trusted_peers"
-
 ## Start an ephemeral `geth` node with docker
 start-geth: 
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
