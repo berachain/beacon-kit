@@ -54,7 +54,7 @@ func (s *Service) FinalizeBlock(
 	s.forceStartupSyncOnce.Do(func() {
 		var parentProposerPubkey *crypto.BLSPubkey
 		parentProposerPubkey, finalizeErr = st.ParentProposerPubkey(blk.GetTimestamp())
-		if err != nil {
+		if finalizeErr != nil {
 			finalizeErr = fmt.Errorf("force sync upon finalize: failed retrieving parent proposer pubkey: %w", finalizeErr)
 		} else {
 			finalizeErr = s.forceSyncUponFinalize(ctx, blk, parentProposerPubkey)
