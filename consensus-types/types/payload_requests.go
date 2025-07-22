@@ -42,7 +42,7 @@ type NewPayloadRequest interface {
 	GetVersionedHashes() []common.ExecutionHash
 	GetParentBeaconBlockRoot() common.Root
 	GetEncodedExecutionRequests() ([]EncodedExecutionRequest, error)
-	GetParentProposerPubkey() (*crypto.BLSPubkey, error)
+	GetParentProposerPubkey() *crypto.BLSPubkey
 }
 
 type newPayloadRequest struct {
@@ -116,17 +116,10 @@ func (n *newPayloadRequest) GetParentBeaconBlockRoot() common.Root {
 	return n.parentBeaconBlockRoot
 }
 
-func (n *newPayloadRequest) GetParentProposerPubkey() (*crypto.BLSPubkey, error) {
-	if version.IsBefore(n.GetForkVersion(), version.Electra1()) {
-		return nil, errors.Wrap(
-			ErrForkVersionNotSupported,
-			"parent proposer pubkey not supported in newPayloadRequest before electra",
-		)
-	}
-	if n.parentProposerPubkey == nil {
-		return nil, errors.Wrap(ErrNilValue, "parent proposer pubkey cannot be nil")
-	}
-	return n.parentProposerPubkey, nil
+// GetParentProposerPubkey may return a nil parent pub key. See BuildNewPayloadRequestFromFork
+// to understand how parentProposerPubkey gets populated
+func (n *newPayloadRequest) GetParentProposerPubkey() *crypto.BLSPubkey {
+	return n.parentProposerPubkey
 }
 
 func (n *newPayloadRequest) GetEncodedExecutionRequests() ([]EncodedExecutionRequest, error) {
@@ -148,30 +141,19 @@ func (n *newPayloadRequest) GetEncodedExecutionRequests() ([]EncodedExecutionReq
 // https://github.com/ethereum/consensus-specs/blob/v1.4.0-beta.2/specs/deneb/beacon-chain.md#is_valid_block_hash
 // https://github.com/ethereum/consensus-specs/blob/v1.4.0-beta.2/specs/deneb/beacon-chain.md#is_valid_versioned_hashes
 func (n *newPayloadRequest) HasValidVersionedAndBlockHashes() error {
-	var (
-		executionRequests    []EncodedExecutionRequest
-		parentProposerPubKey *crypto.BLSPubkey
-		block                *gethprimitives.Block
-		blobHashes           []gethprimitives.ExecutionHash
-		err                  error
-	)
+	var executionRequests []EncodedExecutionRequest
 	if version.EqualsOrIsAfter(n.GetForkVersion(), version.Electra()) {
+		var err error
 		executionRequests, err = n.GetEncodedExecutionRequests()
 		if err != nil {
 			return err
 		}
 	}
-	if version.EqualsOrIsAfter(n.GetForkVersion(), version.Electra1()) {
-		parentProposerPubKey, err = n.GetParentProposerPubkey()
-		if err != nil {
-			return err
-		}
-	}
-	block, blobHashes, err = MakeEthBlock(
+	block, blobHashes, err := MakeEthBlock(
 		n.GetExecutionPayload(),
 		n.GetParentBeaconBlockRoot(),
 		executionRequests,
-		parentProposerPubKey,
+		n.GetParentProposerPubkey(),
 	)
 	if err != nil {
 		return err

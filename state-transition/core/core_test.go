@@ -34,7 +34,6 @@ import (
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/state-transition/core"
@@ -122,11 +121,8 @@ func buildNextBlock(
 		require.NoError(t, erErr)
 		require.NotNil(t, encodedER)
 
-		var parentProposerPubkey *crypto.BLSPubkey
-		if version.EqualsOrIsAfter(fv, version.Electra1()) {
-			parentProposerPubkey, err = beaconState.ParentProposerPubkey(timestamp)
-			require.NoError(t, err)
-		}
+		parentProposerPubkey, errPk := beaconState.ParentProposerPubkey(timestamp)
+		require.NoError(t, errPk)
 
 		ethBlk, _, err = types.MakeEthBlock(payload, parentBeaconBlockRoot, encodedER, parentProposerPubkey)
 		require.NoError(t, err)

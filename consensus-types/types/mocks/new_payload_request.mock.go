@@ -225,7 +225,7 @@ func (_c *NewPayloadRequest_GetParentBeaconBlockRoot_Call) RunAndReturn(run func
 }
 
 // GetParentProposerPubkey provides a mock function with given fields:
-func (_m *NewPayloadRequest) GetParentProposerPubkey() (*crypto.BLSPubkey, error) {
+func (_m *NewPayloadRequest) GetParentProposerPubkey() *crypto.BLSPubkey {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
@@ -233,10 +233,6 @@ func (_m *NewPayloadRequest) GetParentProposerPubkey() (*crypto.BLSPubkey, error
 	}
 
 	var r0 *crypto.BLSPubkey
-	var r1 error
-	if rf, ok := ret.Get(0).(func() (*crypto.BLSPubkey, error)); ok {
-		return rf()
-	}
 	if rf, ok := ret.Get(0).(func() *crypto.BLSPubkey); ok {
 		r0 = rf()
 	} else {
@@ -245,13 +241,7 @@ func (_m *NewPayloadRequest) GetParentProposerPubkey() (*crypto.BLSPubkey, error
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
 // NewPayloadRequest_GetParentProposerPubkey_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetParentProposerPubkey'
@@ -271,12 +261,12 @@ func (_c *NewPayloadRequest_GetParentProposerPubkey_Call) Run(run func()) *NewPa
 	return _c
 }
 
-func (_c *NewPayloadRequest_GetParentProposerPubkey_Call) Return(_a0 *crypto.BLSPubkey, _a1 error) *NewPayloadRequest_GetParentProposerPubkey_Call {
-	_c.Call.Return(_a0, _a1)
+func (_c *NewPayloadRequest_GetParentProposerPubkey_Call) Return(_a0 *crypto.BLSPubkey) *NewPayloadRequest_GetParentProposerPubkey_Call {
+	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *NewPayloadRequest_GetParentProposerPubkey_Call) RunAndReturn(run func() (*crypto.BLSPubkey, error)) *NewPayloadRequest_GetParentProposerPubkey_Call {
+func (_c *NewPayloadRequest_GetParentProposerPubkey_Call) RunAndReturn(run func() *crypto.BLSPubkey) *NewPayloadRequest_GetParentProposerPubkey_Call {
 	_c.Call.Return(run)
 	return _c
 }

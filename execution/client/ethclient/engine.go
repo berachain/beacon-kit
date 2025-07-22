@@ -76,17 +76,13 @@ func (s *Client) NewPayload(
 		if err != nil {
 			return nil, err
 		}
-		parentProposerPubKey, err := req.GetParentProposerPubkey()
-		if err != nil {
-			return nil, err
-		}
 		return s.NewPayloadV4P11(
 			ctx,
 			req.GetExecutionPayload(),
 			req.GetVersionedHashes(),
 			req.GetParentBeaconBlockRoot(),
 			executionRequests,
-			parentProposerPubKey,
+			req.GetParentProposerPubkey(),
 		)
 
 	default:
