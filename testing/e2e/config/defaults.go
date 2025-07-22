@@ -122,7 +122,7 @@ func defaultExecutionSettings() ExecutionSettings {
 			MaxMemory: 2048, //nolint:mnd // 2 GB
 		},
 		Images: map[string]string{
-			"geth": "ghcr.io/berachain/bera-geth:v1.011511.0-rc3",
+			"geth": "ghcr.io/berachain/bera-geth:latest",
 			"reth": "ghcr.io/berachain/bera-reth:v1.0.0-rc.1",
 		},
 	}

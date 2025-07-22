@@ -79,7 +79,7 @@ start-geth:
 	docker run \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	ghcr.io/berachain/bera-geth:v1.011511.0-rc3 init \
+	ghcr.io/berachain/bera-geth:latest init \
 	--datadir ${ETH_DATA_DIR} \
 	${ETH_GENESIS_PATH}
 
@@ -89,7 +89,7 @@ start-geth:
 	-p 8551:8551 \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	ghcr.io/berachain/bera-geth:v1.011511.0-rc3 \
+	ghcr.io/berachain/bera-geth:latest \
 	--syncmode=full \
 	--http \
 	--http.addr 0.0.0.0 \
