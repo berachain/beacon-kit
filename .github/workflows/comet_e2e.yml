@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - greg/e2e-framework
+      - main
   pull_request:
 
 jobs:
