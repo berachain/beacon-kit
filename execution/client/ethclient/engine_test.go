@@ -61,7 +61,7 @@ func TestNewPayloadWithValidVersion(t *testing.T) {
 
 	block := utils.GenerateValidBeaconBlock(t, version.Deneb1())
 
-	newPayloadRequest, err := ctypes.BuildNewPayloadRequestFromFork(block)
+	newPayloadRequest, err := ctypes.BuildNewPayloadRequestFromFork(block, nil)
 	if err != nil {
 		return
 	}

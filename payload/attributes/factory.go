@@ -24,6 +24,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
@@ -57,6 +58,7 @@ func (f *Factory) BuildPayloadAttributes(
 	payloadWithdrawals engineprimitives.Withdrawals,
 	prevRandao common.Bytes32,
 	prevHeadRoot common.Root,
+	parentProposerPubkey *crypto.BLSPubkey,
 ) (*engineprimitives.PayloadAttributes, error) {
 	return engineprimitives.NewPayloadAttributes(
 		f.chainSpec.ActiveForkVersionForTimestamp(timestamp),
@@ -65,5 +67,6 @@ func (f *Factory) BuildPayloadAttributes(
 		f.suggestedFeeRecipient,
 		payloadWithdrawals,
 		prevHeadRoot,
+		parentProposerPubkey,
 	)
 }

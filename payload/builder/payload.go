@@ -28,17 +28,19 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 type RequestPayloadData struct {
-	Slot               math.Slot
-	Timestamp          math.U64
-	PayloadWithdrawals engineprimitives.Withdrawals
-	PrevRandao         common.Bytes32
-	ParentBlockRoot    common.Root
-	HeadEth1BlockHash  common.ExecutionHash
-	FinalEth1BlockHash common.ExecutionHash
+	Slot                 math.Slot
+	Timestamp            math.U64
+	PayloadWithdrawals   engineprimitives.Withdrawals
+	PrevRandao           common.Bytes32
+	ParentBlockRoot      common.Root
+	HeadEth1BlockHash    common.ExecutionHash
+	FinalEth1BlockHash   common.ExecutionHash
+	ParentProposerPubkey *crypto.BLSPubkey // nil for fork versions before Electra1
 }
 
 // RequestPayloadAsync builds a payload for the given slot and
@@ -66,6 +68,7 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 		r.PayloadWithdrawals,
 		r.PrevRandao,
 		r.ParentBlockRoot,
+		r.ParentProposerPubkey,
 	)
 	if err != nil {
 		return nil, common.Version{}, err
