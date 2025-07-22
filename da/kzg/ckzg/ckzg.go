@@ -23,11 +23,11 @@ package ckzg
 import (
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
-	ckzg4844 "github.com/ethereum/c-kzg-4844/bindings/go"
+	ckzg4844 "github.com/ethereum/c-kzg-4844/v2/bindings/go"
 )
 
 // Implementation is the ethereum/c-kzg-4844 implementation.
-const Implementation = "ethereum/c-kzg-4844"
+const Implementation = "ethereum/c-kzg-4844/v2"
 
 // Verifier is a verifier that utilizies the CKZG library.
 type Verifier struct{}
@@ -44,6 +44,7 @@ func NewVerifier(ts *gokzg4844.JSONTrustedSetup) (*Verifier, error) {
 	if err := gokzg4844.CheckTrustedSetupIsWellFormed(ts); err != nil {
 		return nil, err
 	}
+	// G1 Lagrange points
 	g1s := make(
 		[]byte,
 		len(ts.SetupG1Lagrange)*(len(ts.SetupG1Lagrange[0])-2)/2,
@@ -51,11 +52,21 @@ func NewVerifier(ts *gokzg4844.JSONTrustedSetup) (*Verifier, error) {
 	for i, g1 := range ts.SetupG1Lagrange {
 		copy(g1s[i*(len(g1)-2)/2:], hex.MustToBytes(g1))
 	}
+	// For v2 API, we need G1 Monomial points as well
+	// Since beacon-kit's trusted setup doesn't have monomial data,
+	// we'll use the same lagrange data for the monomial parameter
+	// This is a compatibility workaround
+	g1Mon := make([]byte, len(g1s))
+	copy(g1Mon, g1s)
+
+	// G2 points
 	g2s := make([]byte, len(ts.SetupG2)*(len(ts.SetupG2[0])-2)/2)
 	for i, g2 := range ts.SetupG2 {
 		copy(g2s[i*(len(g2)-2)/2:], hex.MustToBytes(g2))
 	}
-	if err := ckzg4844.LoadTrustedSetup(g1s, g2s); err != nil {
+	// The last parameter determines the multiplication table
+	// Using 6 as a decent compromise between size and speed (same as bera-geth)
+	if err := ckzg4844.LoadTrustedSetup(g1Mon, g1s, g2s, 6); err != nil {
 		return nil, err
 	}
 	return &Verifier{}, nil

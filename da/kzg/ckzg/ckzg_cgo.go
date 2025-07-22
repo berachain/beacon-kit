@@ -27,7 +27,7 @@ import (
 
 	"github.com/berachain/beacon-kit/da/kzg/types"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
-	ckzg4844 "github.com/ethereum/c-kzg-4844/bindings/go"
+	ckzg4844 "github.com/ethereum/c-kzg-4844/v2/bindings/go"
 )
 
 // VerifyProof verifies the KZG proof that the polynomial represented by the

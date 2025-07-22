@@ -170,5 +170,5 @@ func TestVerifyBlobKZGInvalidProof(t *testing.T) {
 func TestGetImplementation(t *testing.T) {
 	t.Parallel()
 	require.NotNil(t, globalVerifier)
-	require.Equal(t, "ethereum/c-kzg-4844", globalVerifier.GetImplementation())
+	require.Equal(t, "ethereum/c-kzg-4844/v2", globalVerifier.GetImplementation())
 }
