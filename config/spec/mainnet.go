@@ -24,6 +24,7 @@ import (
 	"math"
 
 	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/ethereum/go-ethereum/params"
@@ -104,6 +105,8 @@ const (
 // MainnetChainSpecData is the chain.SpecData for the Berachain mainnet.
 func MainnetChainSpecData() *chain.SpecData {
 	return &chain.SpecData{
+		Config: delay.DefaultConfig(),
+
 		// Gwei values constants.
 		MaxEffectiveBalance:       mainnetMaxEffectiveBalance,
 		EffectiveBalanceIncrement: mainnetEffectiveBalanceIncrement,
@@ -130,7 +133,7 @@ func MainnetChainSpecData() *chain.SpecData {
 		// Eth1-related values.
 		DepositContractAddress:    common.NewExecutionAddressFromHex(mainnetDepositContractAddress),
 		MaxDepositsPerBlock:       defaultMaxDepositsPerBlock,
-		DepositEth1ChainID:        MainnetEth1ChainID,
+		DepositEth1ChainID:        chain.MainnetEth1ChainID,
 		Eth1FollowDistance:        defaultEth1FollowDistance,
 		TargetSecondsPerEth1Block: defaultTargetSecondsPerEth1Block,
 

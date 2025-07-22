@@ -218,8 +218,8 @@ func (s *BeaconKitE2ESuite) TestSubmitPartialWithdrawalTransaction() {
 		Nonce:     uint64(nonce),
 		To:        &params.WithdrawalQueueAddress,
 		Gas:       WithdrawalTxGasLimit,
-		GasFeeCap: big.NewInt(1000000000),
-		GasTipCap: big.NewInt(1000000000),
+		GasFeeCap: big.NewInt(10000000000),
+		GasTipCap: big.NewInt(10000000000),
 		Value:     fee,
 		Data:      withdrawalTxData,
 	})
