@@ -18,38 +18,33 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package cometbft
+package state
 
 import (
-	"sync"
+	"fmt"
 
-	storetypes "cosmossdk.io/store/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 )
 
-type state struct {
-	ms storetypes.CacheMultiStore
+// ParentProposerPubkey returns the parent proposer pubkey for the given timestamp.
+// It must return nil if we are before Electra1.
+//
+//nolint:nilnil // TODO: consider addressing this
+func (s *StateDB) ParentProposerPubkey(timestamp math.U64) (*crypto.BLSPubkey, error) {
+	if version.IsBefore(s.cs.ActiveForkVersionForTimestamp(timestamp), version.Electra1()) {
+		return nil, nil
+	}
 
-	mtx sync.RWMutex
-	ctx sdk.Context
-}
-
-// CacheMultiStore calls and returns a CacheMultiStore on the state's underling
-// CacheMultiStore.
-func (st *state) CacheMultiStore() storetypes.CacheMultiStore {
-	return st.ms.CacheMultiStore()
-}
-
-// SetContext updates the state's context to the context provided.
-func (st *state) SetContext(ctx sdk.Context) {
-	st.mtx.Lock()
-	defer st.mtx.Unlock()
-	st.ctx = ctx
-}
-
-// Context returns the Context of the state.
-func (st *state) Context() sdk.Context {
-	st.mtx.RLock()
-	defer st.mtx.RUnlock()
-	return st.ctx
+	latestBlockHeader, err := s.GetLatestBlockHeader()
+	if err != nil {
+		return nil, fmt.Errorf("failed retrieving latest block header: %w", err)
+	}
+	prevProposer, err := s.ValidatorByIndex(latestBlockHeader.GetProposerIndex())
+	if err != nil {
+		return nil, fmt.Errorf("failed retrieving prev proposer: %w", err)
+	}
+	p := prevProposer.GetPubkey()
+	return &p, nil
 }

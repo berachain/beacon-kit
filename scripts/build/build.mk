@@ -44,7 +44,7 @@ build_tags += blst
 build_tags += bls12381
 
 # always include ckzg
-build_tags += ckzg
+# build_tags += ckzg
 build_tags += cgo
 
 whitespace :=

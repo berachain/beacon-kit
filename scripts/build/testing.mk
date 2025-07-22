@@ -210,7 +210,7 @@ start-geth-mainnet:
 	-p 8545:8545 \
 	-p 8551:8551 \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
-	--rm -v $(PWD)/${BEPOLIA_NETWORK_FILES_DIR}:/${BEPOLIA_NETWORK_FILES_DIR} \
+	--rm -v $(PWD)/${MAINNET_NETWORK_FILES_DIR}:/${MAINNET_NETWORK_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
 	ghcr.io/berachain/bera-geth:latest \
 	--http \

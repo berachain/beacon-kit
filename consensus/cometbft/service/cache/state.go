@@ -18,25 +18,49 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package utils
+package cache
 
 import (
-	"fmt"
+	"sync"
 
-	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/node-api/handlers"
-	"github.com/berachain/beacon-kit/node-api/handlers/types"
+	storetypes "cosmossdk.io/store/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// BindAndValidate binds the request to the context and validates it.
-func BindAndValidate[RequestT any](c handlers.Context, logger log.Logger) (RequestT, error) {
-	var req RequestT
-	if err := c.Bind(&req); err != nil {
-		return req, fmt.Errorf("%w: failed to bind request: %s", types.ErrInvalidRequest, err.Error())
+type State struct {
+	ms storetypes.CacheMultiStore
+
+	mtx sync.RWMutex
+	ctx sdk.Context
+}
+
+func NewState(ms storetypes.CacheMultiStore, ctx sdk.Context) *State {
+	return &State{
+		ms:  ms,
+		ctx: ctx,
 	}
-	if err := c.Validate(&req); err != nil {
-		return req, fmt.Errorf("%w: failed to validate request: %s", types.ErrInvalidRequest, err.Error())
-	}
-	logger.Info("Request validation successful", "params", req)
-	return req, nil
+}
+
+// CacheMultiStore calls and returns a CacheMultiStore on the state's underling
+// CacheMultiStore.
+func (st *State) CacheMultiStore() storetypes.CacheMultiStore {
+	return st.ms.CacheMultiStore()
+}
+
+// SetContext updates the state's context to the context provided.
+func (st *State) SetContext(ctx sdk.Context) {
+	st.mtx.Lock()
+	defer st.mtx.Unlock()
+	st.ctx = ctx
+}
+
+// Context returns the Context of the state.
+func (st *State) Context() sdk.Context {
+	st.mtx.RLock()
+	defer st.mtx.RUnlock()
+	return st.ctx
+}
+
+func (st *State) Write() {
+	st.ms.Write()
 }
