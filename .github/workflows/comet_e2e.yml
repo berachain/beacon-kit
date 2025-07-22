@@ -1,0 +1,32 @@
+name: Run Multiple Single Network
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  run-multiple-single:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.6"
+
+      - name: Show Docker and Docker Compose version
+        run: |
+          docker --version
+          docker compose version
+
+      - name: Build cmt-e2e
+        run: make build-cmt-e2e
+
+      - name: Run run-multiple.sh with ci.toml
+        run: make test-e2e-ci-no-build

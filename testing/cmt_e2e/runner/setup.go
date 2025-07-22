@@ -24,6 +24,7 @@ import (
 	beaconkitconsensustypes "github.com/berachain/beacon-kit/consensus-types/types"
 	beaconkitconsensus "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
+
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -176,8 +177,32 @@ func pregeneratedEthAddresses(i uint64) string {
 	return addresses[i]
 }
 
+// For number of nodes < 100
+func getValidatorName(idx int, testnet *e2e.Testnet) string {
+
+	if idx < 10 {
+		return fmt.Sprintf("validator0%d", idx)
+	}
+	return fmt.Sprintf("validator%d", idx)
+}
+
+func extractValidatorIndices(s string) int {
+	re := regexp.MustCompile(`validator(\d+)`)
+	matches := re.FindAllStringSubmatch(s, -1)
+	var indices int
+	for _, match := range matches {
+		if len(match) > 1 {
+			var idx int
+			fmt.Sscanf(match[1], "%d", &idx)
+			indices = idx
+		}
+	}
+	return indices
+}
+
 // Setup sets up the testnet configuration.
 func Setup(testnet *e2e.Testnet, infp infra.Provider) error {
+
 	logger.Info("setup", "msg", log.NewLazySprintf("Generating testnet files in %#q", testnet.Dir))
 
 	if err := os.MkdirAll(testnet.Dir, os.ModePerm); err != nil {
@@ -213,6 +238,7 @@ func Setup(testnet *e2e.Testnet, infp infra.Provider) error {
 		return err
 	}
 
+	idx := 0
 	for _, node := range testnet.Nodes {
 		if node.Mode == e2e.ModeLight {
 			return errors.New("light clients are not supported, please remove them from the manifest")
@@ -341,6 +367,7 @@ func Setup(testnet *e2e.Testnet, infp infra.Provider) error {
 	// geth service compose
 	path := filepath.Join(testnet.Dir, "compose.yaml")
 	compose, err := os.ReadFile(path)
+
 	if err != nil {
 		return fmt.Errorf("error reading compose.yaml file %s: %w", path, err)
 	}
@@ -349,6 +376,8 @@ func Setup(testnet *e2e.Testnet, infp infra.Provider) error {
     image: ethereum/client-go
     labels:
       e2e: true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
     - 30303:30303
     - 8545:8545
@@ -385,12 +414,44 @@ func Setup(testnet *e2e.Testnet, infp infra.Provider) error {
       --pre-fund-sending-addresses
       --summarize
 `, gethDir)
-
+	logger.Info("GETHCDIR ", "dir", gethDir, "path", path)
 	updated := bytes.Replace(compose, []byte("services:\n"), []byte(gethService), 1)
+
 	err = os.WriteFile(path, updated, 0o644)
 	if err != nil {
 		return fmt.Errorf("error writing compose.yaml file %s: %w", path, err)
 	}
+
+	portString := `- 2345
+    - 2346`
+	portString2 := `- 2345
+    - 2346
+	- 3500:3500`
+	updated = bytes.Replace(updated, []byte(portString), []byte(portString2), len(testnet.Nodes))
+
+	idx = 0
+	portString = `- 2345
+    - 2346
+	- 3500:3500`
+	for i := 1; i < len(testnet.Nodes)+1; i++ {
+		if testnet.Nodes[i-1].Mode == e2e.ModeValidator {
+			portString2 := `- 2345
+    - 2346` +
+				fmt.Sprintf("\n    - %d:3500", 3500+extractValidatorIndices(testnet.Nodes[i-1].Name))
+			updated = bytes.Replace(updated, []byte(portString), []byte(portString2), 1)
+
+			idx += 1
+		} else {
+			portString2 := `- 2345
+    - 2346`
+			updated = bytes.Replace(updated, []byte(portString), []byte(portString2), 1)
+		}
+	}
+	err = os.WriteFile(path, updated, 0o644)
+	if err != nil {
+		return fmt.Errorf("error writing compose.yaml file %s: %w", path, err)
+	}
+
 	return nil
 }
 
@@ -830,6 +891,7 @@ func MakeConfig(node *e2e.Node) (*config.Config, error) {
 
 // MakeAppConfig generates an ABCI application config for a node.
 func MakeAppConfig(node *e2e.Node) ([]byte, error) {
+
 	cfg := map[string]any{
 		"chain_id":                      node.Testnet.Name,
 		"dir":                           "data/app",
@@ -851,6 +913,10 @@ func MakeAppConfig(node *e2e.Node) ([]byte, error) {
 		"abci_requests_logging_enabled": node.Testnet.ABCITestsEnabled,
 		"pbts_enable_height":            node.Testnet.PbtsEnableHeight,
 		"pbts_update_height":            node.Testnet.PbtsUpdateHeight,
+		"beacon-kit.node-api": map[string]any{
+			"enabled": "true",
+			"address": "0.0.0.0:3500",
+		},
 	}
 	switch node.ABCIProtocol {
 	case e2e.ProtocolUNIX:

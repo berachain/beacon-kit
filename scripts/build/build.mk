@@ -130,7 +130,7 @@ build-docker-cmt-e2e: ## build a docker image containing `beacond` used in the e
 
 build-cmt-e2e-runner: ## build e2e runner
 		@echo "Build the e2e runner..."
-		@go build -mod=readonly -o $(OUT_DIR)/runner ./testing/runner
+		@go build -mod=readonly -o $(OUT_DIR)/cmt_e2e/runner ./testing/cmt_e2e/runner
 
 build-polycli:
 	@echo "Build e2e polycli docker image..."

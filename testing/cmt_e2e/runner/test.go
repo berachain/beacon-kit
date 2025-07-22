@@ -35,7 +35,7 @@ func Test(testnet *e2e.Testnet, ifd *e2e.InfrastructureData) error {
 	if verbose == "1" {
 		cmd = append(cmd, "-v")
 	}
-	cmd = append(cmd, "./tests/...")
+	cmd = append(cmd, "./testing/cmt_e2e/tests/...")
 
 	tests := "all tests"
 	runTest := os.Getenv("RUN_TEST")
@@ -44,7 +44,7 @@ func Test(testnet *e2e.Testnet, ifd *e2e.InfrastructureData) error {
 		tests = fmt.Sprintf("%q", runTest)
 	}
 
-	logger.Info(fmt.Sprintf("Running %s in ./tests/...", tests))
+	logger.Info(fmt.Sprintf("Running %s in .//testing/cmt_e2e/tests/...", tests))
 
 	return exec.CommandVerbose(context.Background(), cmd...)
 }
