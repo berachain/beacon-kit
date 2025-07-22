@@ -34,11 +34,13 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/errors"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	bemocks "github.com/berachain/beacon-kit/node-api/backend/mocks"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
+	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -78,7 +80,7 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 	// Finally create a block that will be rejected and
 	// verify the state on top of which is next payload built
 	var (
-		consensusTime   = math.U64(time.Now().Unix())
+		consensusTime   = time.Now()
 		proposerAddress = []byte{'d', 'u', 'm', 'm', 'y'} // this will err on purpose
 	)
 
@@ -100,58 +102,48 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 
 	// register async call to block building
 	var wg sync.WaitGroup          // useful to make test wait on async checks
-	var ch = make(chan struct{})   // useful to serialize build block goroutine and avoid data races
 	stateRoot := st.HashTreeRoot() // track state root before the changes done by optimistic build
 	latestHeader, err := st.GetLatestBlockHeader()
 	require.NoError(t, err)
-	latestHeader.SetStateRoot(st.HashTreeRoot())
+	latestHeader.SetStateRoot(stateRoot)
 	expectedParentBlockRoot := latestHeader.HashTreeRoot()
 
-	b.EXPECT().RequestPayloadAsync(
-		mock.Anything, mock.Anything, mock.Anything,
-		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
-	).Run(
-		func(
-			_ context.Context,
-			st *state.StateDB,
-			slot, timestamp math.U64,
-			parentBlockRoot common.Root,
-			headEth1BlockHash, finalEth1BlockHash common.ExecutionHash,
-		) {
+	b.EXPECT().RequestPayloadAsync(mock.Anything, mock.Anything).Run(
+		func(_ context.Context, r *builder.RequestPayloadData) {
 			defer wg.Done()
-			<-ch // wait for block verification to finish. This avoids data races over state reads
 			genesisHeader := genesisData.ExecutionPayloadHeader
 			genesisBlkHeader := core.GenesisBlockHeader(cs.GenesisForkVersion())
 			genesisBlkHeader.SetStateRoot(stateRoot)
 
-			require.Equal(t, timestamp, consensusTime+1)
+			require.Equal(t, math.U64(consensusTime.Unix())+1, r.Timestamp)
 
-			require.Equal(t, genesisHeader.GetBlockHash(), headEth1BlockHash)
+			require.Equal(t, genesisHeader.GetBlockHash(), r.HeadEth1BlockHash)
 
-			require.Equal(t, expectedParentBlockRoot, parentBlockRoot)
+			require.Equal(t, expectedParentBlockRoot, r.ParentBlockRoot)
 
-			require.Empty(t, finalEth1BlockHash)          // this is first block post genesis
-			require.Equal(t, constants.GenesisSlot, slot) // genesis slot in state
-			var stateSlot math.Slot
-			stateSlot, err = st.GetSlot()
-			require.NoError(t, err)
-			require.Equal(t, constants.GenesisSlot, stateSlot)
+			require.Empty(t, r.FinalEth1BlockHash)            // this is first block post genesis
+			require.Equal(t, constants.GenesisSlot+1, r.Slot) // rebuild block on top of genesis
 		},
 	).Return(nil, common.Version{0xff}, errors.New("does not matter")) // return values do not really matter in this test
 	wg.Add(1)
 
-	err = chain.VerifyIncomingBlock(
+	// check slot pre test
+	slot, err := st.GetSlot()
+	require.NoError(t, err)
+	require.Equal(t, constants.GenesisSlot, slot)
+
+	_, err = chain.VerifyIncomingBlock(
 		ctx.ConsensusCtx(),
-		invalidBlk,
-		consensusTime,
-		proposerAddress,
+		types.NewConsensusBlock(invalidBlk, proposerAddress, consensusTime),
+		true, // this block is next block proposer
 	)
 	require.ErrorIs(t, err, core.ErrProposerMismatch)
 
-	// unlock checks on block building goroutine and
-	// wait for it to carry out all the checks
-	ch <- struct{}{}
+	// wait for block building goroutine to carry out all the checks
 	wg.Wait()
+
+	// No checks on state st post block. The block is invalid so
+	// its state will be dropped and its content does not matter
 }
 
 // When we verify successfully a block and we have optimistic payload building enabled
@@ -179,7 +171,7 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 	// Finally create a block that will be rejected and
 	// verify the state on top of which is next payload built
 	var (
-		consensusTime = math.U64(time.Now().Unix())
+		consensusTime = time.Now()
 		proposer      = ctx.ProposerAddress()
 	)
 
@@ -210,7 +202,7 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 	stateRoot, err := computeStateRoot( // fix state root in block
 		ctx.ConsensusCtx(),
 		proposer,
-		consensusTime,
+		math.U64(consensusTime.Unix()),
 		sp,
 		buildState,
 		validBlk,
@@ -220,57 +212,48 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 	// end of BUILD A VALID BLOCK
 
 	// register async call to block building
-	var wg sync.WaitGroup        // useful to make test wait on async checks
-	var ch = make(chan struct{}) // useful to serialize build block goroutine and avoid data races
-	b.EXPECT().RequestPayloadAsync(
-		mock.Anything, mock.Anything, mock.Anything,
-		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
-	).Run(
-		func(
-			_ context.Context,
-			st *state.StateDB,
-			slot, timestamp math.U64,
-			parentBlockRoot common.Root,
-			headEth1BlockHash, finalEth1BlockHash common.ExecutionHash,
-		) {
+	var wg sync.WaitGroup // useful to make test wait on async checks
+	b.EXPECT().RequestPayloadAsync(mock.Anything, mock.Anything).Run(
+		func(_ context.Context, r *builder.RequestPayloadData) {
 			defer wg.Done()
-			<-ch // wait for block verification to finish. This avoids data races over state reads
-			require.Equal(t, timestamp, consensusTime+1)
+			require.Equal(t, math.U64(consensusTime.Unix())+1, r.Timestamp)
 
 			require.Equal(
 				t,
 				validBlk.GetBody().GetExecutionPayload().GetBlockHash(),
-				headEth1BlockHash,
+				r.HeadEth1BlockHash,
 			)
 
 			genesisHeader := genesisData.ExecutionPayloadHeader.GetBlockHash()
-			require.Equal(t, genesisHeader, finalEth1BlockHash)
+			require.Equal(t, genesisHeader, r.FinalEth1BlockHash)
 
-			require.Equal(t, validBlk.HashTreeRoot(), parentBlockRoot)
-
-			var stateSlot math.Slot
-			stateSlot, err = st.GetSlot()
-			require.NoError(t, err)
-			require.Equal(t, validBlk.Slot+1, stateSlot)
-			require.Equal(t, slot, stateSlot)
+			require.Equal(t, validBlk.HashTreeRoot(), r.ParentBlockRoot)
+			require.Equal(t, validBlk.Slot+1, r.Slot)
 		},
 	).Return(nil, common.Version{0xff}, errors.New("does not matter")) // return values do not really matter in this test
 	wg.Add(1)
 
+	// check slot pre test
+	slot, err := st.GetSlot()
+	require.NoError(t, err)
+	require.Equal(t, constants.GenesisSlot, slot)
+
 	eng.EXPECT().NotifyNewPayload(mock.Anything, mock.Anything, mock.Anything).Return(nil)
 	sb.EXPECT().StateFromContext(mock.Anything).Return(st).Times(1)
-	err = chain.VerifyIncomingBlock(
+	_, err = chain.VerifyIncomingBlock(
 		ctx.ConsensusCtx(),
-		validBlk,
-		consensusTime,
-		ctx.ProposerAddress(),
+		types.NewConsensusBlock(validBlk, ctx.ProposerAddress(), consensusTime),
+		true, // this block is next block proposer
 	)
 	require.NoError(t, err)
 
-	// unlock checks on block building goroutine and
-	// wait for it to carry out all the checks
-	ch <- struct{}{}
+	// wait for block building goroutine to carry out all the checks
 	wg.Wait()
+
+	// check slot post test
+	slot, err = st.GetSlot()
+	require.NoError(t, err)
+	require.Equal(t, validBlk.GetSlot(), slot)
 }
 
 func setupOptimisticPayloadTests(t *testing.T, cs chain.Spec, optimisticPayloadBuilds bool) (

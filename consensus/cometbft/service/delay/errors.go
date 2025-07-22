@@ -18,15 +18,21 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package spec
+package delay
 
-const (
-	// DevnetEth1ChainID is the chain ID for a local devnet. Used by `make start` and unit tests.
-	DevnetEth1ChainID uint64 = 80087
+import "fmt"
 
-	// MainnetEth1ChainID is the chain ID for the Berachain mainnet.
-	MainnetEth1ChainID uint64 = 80094
+// BlockDelayFromBytesError is returned when the block delay can't be read from
+// the buffer.
+type BlockDelayFromBytesError struct {
+	field string
+	err   error
+}
 
-	// TestnetEth1ChainID is the chain ID for the Berachain public testnet.
-	TestnetEth1ChainID uint64 = 80069
-)
+func (e *BlockDelayFromBytesError) Error() string {
+	return fmt.Sprintf("%s: %v", e.field, e.err)
+}
+
+func (e *BlockDelayFromBytesError) Unwrap() error {
+	return e.err
+}

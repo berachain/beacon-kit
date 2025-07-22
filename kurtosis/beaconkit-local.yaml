@@ -67,7 +67,7 @@ node_settings:
       max_num_outbound_peers: 10
     app:
       payload_timeout: 850ms
-      enable_optimistic_payload_builds: false
+      enable_optimistic_payload_builds: true
   execution_settings:
     specs:
       min_cpu: 0
@@ -75,7 +75,7 @@ node_settings:
       min_memory: 0
       max_memory: 2048
     images:
-      geth: ethereum/client-go:latest
+      geth: ghcr.io/berachain/bera-geth:latest
       reth: ghcr.io/berachain/bera-reth:nightly
 eth_json_rpc_endpoints:
   # type has to be either blutgang or nginx
