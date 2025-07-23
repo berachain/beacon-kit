@@ -53,6 +53,12 @@ func (sp *StateProcessor) processRegistryUpdates(st *statedb.StateDB) error {
 		valModified := false
 		if val.IsEligibleForActivationQueue(minActivationBalance) {
 			val.SetActivationEligibilityEpoch(activationEpoch)
+			sp.logger.Warn("validator eligible for activation queue",
+				"validator_pubkey", val.GetPubkey().String(),
+				"effective_balance", val.GetEffectiveBalance(),
+				"current_epoch", currEpoch,
+				"activation_eligibility_epoch", activationEpoch,
+			)
 			valModified = true
 		}
 
@@ -77,6 +83,13 @@ func (sp *StateProcessor) processRegistryUpdates(st *statedb.StateDB) error {
 		}
 
 		if val.IsEligibleForActivation(currEpoch) {
+			sp.metrics.incrementValidatorActivated()
+			sp.logger.Warn("activating validator",
+				"validator_pubkey", val.GetPubkey().String(),
+				"effective_balance", val.GetEffectiveBalance(),
+				"current_epoch", currEpoch,
+				"activation_epoch", activationEpoch,
+			)
 			val.SetActivationEpoch(activationEpoch)
 			valModified = true
 		}

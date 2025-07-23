@@ -77,7 +77,8 @@ func (sp *StateProcessor) InitiateValidatorExit(st *statedb.StateDB, idx math.Va
 	validator.SetExitEpoch(exitEpoch)
 	validator.SetWithdrawableEpoch(withdrawableEpoch)
 
-	sp.logger.Warn("initiated validator exit",
+	sp.metrics.incrementValidatorExited()
+	sp.logger.Warn("exiting validator",
 		"validator_index", idx,
 		"validator_pubkey", validator.GetPubkey().String(),
 		"effective_balance", validator.GetEffectiveBalance(),

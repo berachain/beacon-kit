@@ -78,3 +78,11 @@ func (s *stateProcessorMetrics) incrementPartialWithdrawalRequestInvalid() {
 func (s *stateProcessorMetrics) incrementValidatorNotWithdrawable() {
 	s.sink.IncrementCounter("beacon_kit.state.validator_not_withdrawable")
 }
+
+func (s *stateProcessorMetrics) incrementValidatorActivated() {
+	s.sink.IncrementCounter("beacon_kit.state.validator_activated")
+}
+
+func (s *stateProcessorMetrics) incrementValidatorExited() {
+	s.sink.IncrementCounter("beacon_kit.state.validator_exited")
+}
