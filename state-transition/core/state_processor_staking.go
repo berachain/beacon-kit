@@ -94,7 +94,7 @@ func (sp *StateProcessor) processDeposit(st *state.StateDB, dep *ctypes.Deposit)
 		return err
 	}
 
-	sp.logger.Info(
+	sp.logger.Debug(
 		"Processed deposit to set Eth 1 deposit index",
 		"previous", eth1DepositIndex, "new", eth1DepositIndex+1,
 	)
@@ -108,7 +108,7 @@ func (sp *StateProcessor) processDeposit(st *state.StateDB, dep *ctypes.Deposit)
 func (sp *StateProcessor) applyDeposit(st *state.StateDB, dep *ctypes.Deposit) error {
 	idx, err := st.ValidatorIndexByPubkey(dep.GetPubkey())
 	if err != nil {
-		sp.logger.Info("Validator does not exist so creating",
+		sp.logger.Warn("Creating new validator",
 			"pubkey", dep.GetPubkey(), "index", dep.GetIndex(), "deposit_amount", dep.GetAmount())
 		// If the validator does not exist, we add the validator.
 		// TODO: improve error handling by distinguishing
@@ -121,7 +121,7 @@ func (sp *StateProcessor) applyDeposit(st *state.StateDB, dep *ctypes.Deposit) e
 		return err
 	}
 
-	sp.logger.Info(
+	sp.logger.Warn(
 		"Processed deposit to increase balance",
 		"deposit_amount", float64(dep.GetAmount().Unwrap())/params.GWei,
 		"validator_index", idx,
@@ -205,7 +205,7 @@ func (sp *StateProcessor) addValidatorToRegistry(st *state.StateDB, dep *ctypes.
 	if err = st.IncreaseBalance(idx, dep.GetAmount()); err != nil {
 		return err
 	}
-	sp.logger.Info(
+	sp.logger.Warn(
 		"Processed deposit to create new validator",
 		"deposit_amount", float64(dep.GetAmount().Unwrap())/params.GWei,
 		"validator_index", idx, "withdrawal_epoch", val.GetWithdrawableEpoch(),

@@ -178,7 +178,7 @@ func (sp *StateProcessor) processWithdrawalRequest(
 
 	index, validator, err := validateWithdrawal(st, withdrawalRequest)
 	if err != nil {
-		sp.logger.Info("Failed to validate withdrawal", withdrawalFields(withdrawalRequest, err)...)
+		sp.logger.Warn("Failed to validate withdrawal", withdrawalFields(withdrawalRequest, err)...)
 		// Note that we do not return error on invalid requests as it's a user error and invalid withdrawal requests are simply skipped.
 		return nil
 	}
@@ -190,16 +190,16 @@ func (sp *StateProcessor) processWithdrawalRequest(
 
 	if err = verifyWithdrawalConditions(st, validator); err != nil {
 		// Note that we do not return error on invalid requests as it's a user error and invalid withdrawal requests are simply skipped.
-		sp.logger.Info("Failed to verify withdrawal conditions", withdrawalFields(withdrawalRequest, err)...)
+		sp.logger.Warn("Failed to verify withdrawal conditions", withdrawalFields(withdrawalRequest, err)...)
 		return nil
 	}
 
 	// Process full exit or partial withdrawal.
 	if isFullExitRequest {
-		sp.logger.Info("Processing full exit request", withdrawalFields(withdrawalRequest, nil)...)
+		sp.logger.Warn("Processing full exit request", withdrawalFields(withdrawalRequest, nil)...)
 		return sp.processFullExit(st, index, pendingPartialWithdrawals)
 	}
-	sp.logger.Info("Processing partial withdrawal request", withdrawalFields(withdrawalRequest, nil)...)
+	sp.logger.Warn("Processing partial withdrawal request", withdrawalFields(withdrawalRequest, nil)...)
 	return sp.processPartialWithdrawal(st, withdrawalRequest, validator, index, pendingPartialWithdrawals)
 }
 
@@ -215,7 +215,7 @@ func (sp *StateProcessor) processFullExit(
 		// Only exit validator if it has no pending withdrawals in the queue
 		return sp.InitiateValidatorExit(st, index)
 	}
-	sp.logger.Info("validator has pending balance and cannot full exit",
+	sp.logger.Warn("validator has pending balance and cannot full exit",
 		"validator_index", index,
 		"pending_balance", pendingBalance,
 	)
@@ -243,7 +243,7 @@ func (sp *StateProcessor) processPartialWithdrawal(
 
 	isWithdrawable := validator.HasCompoundingWithdrawalCredential() && hasSufficient && hasExcess
 	if !isWithdrawable {
-		sp.logger.Info("validator cannot withdraw partial balance",
+		sp.logger.Warn("validator cannot withdraw partial balance",
 			"validator_index", index,
 			"validator_pubkey", validator.GetPubkey().String(),
 			"balance", balance,

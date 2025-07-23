@@ -132,6 +132,14 @@ func (sp *StateProcessor) processValidatorSetCap(st *statedb.StateDB) error {
 		return nil
 	}
 
+	numToEject := uint64(len(nextEpochVals)) - validatorSetCap
+	sp.logger.Warn("validator set cap exceeded, ejecting validators",
+		"current_epoch", currentEpoch,
+		"next_epoch_validators", len(nextEpochVals),
+		"validator_set_cap", validatorSetCap,
+		"validators_to_eject", numToEject,
+	)
+
 	slices.SortFunc(nextEpochVals, func(lhs, rhs *ctypes.Validator) int {
 		var (
 			val1Stake = lhs.GetEffectiveBalance()
@@ -164,6 +172,15 @@ func (sp *StateProcessor) processValidatorSetCap(st *statedb.StateDB) error {
 				err,
 			)
 		}
+
+		sp.logger.Warn("ejecting validator due to set cap exceeded",
+			"validator_index", idx,
+			"validator_pubkey", valToEject.GetPubkey().String(),
+			"effective_balance", valToEject.GetEffectiveBalance(),
+			"ejection_order", li+1,
+			"total_ejections", numToEject,
+		)
+
 		if exitErr := sp.InitiateValidatorExit(st, idx); exitErr != nil {
 			return fmt.Errorf(
 				"validator cap, failed ejecting validator idx %d: %w",

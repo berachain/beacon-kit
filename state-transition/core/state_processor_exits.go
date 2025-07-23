@@ -60,6 +60,12 @@ func (sp *StateProcessor) InitiateValidatorExit(st *statedb.StateDB, idx math.Va
 	} else {
 		// Return if the validator already initiated an exit, so that we only exit validators once.
 		if validator.GetExitEpoch() != constants.FarFutureEpoch {
+			sp.logger.Warn("validator exit already initiated, skipping",
+				"validator_index", idx,
+				"validator_pubkey", validator.GetPubkey().String(),
+				"current_epoch", currentEpoch,
+				"existing_exit_epoch", validator.GetExitEpoch(),
+			)
 			return nil
 		}
 
@@ -70,5 +76,16 @@ func (sp *StateProcessor) InitiateValidatorExit(st *statedb.StateDB, idx math.Va
 	// Set validator exit epoch and withdrawable epoch.
 	validator.SetExitEpoch(exitEpoch)
 	validator.SetWithdrawableEpoch(withdrawableEpoch)
+
+	sp.logger.Warn("initiated validator exit",
+		"validator_index", idx,
+		"validator_pubkey", validator.GetPubkey().String(),
+		"effective_balance", validator.GetEffectiveBalance(),
+		"current_epoch", currentEpoch,
+		"exit_epoch", exitEpoch,
+		"withdrawable_epoch", withdrawableEpoch,
+		"fork_version", fork.CurrentVersion,
+	)
+
 	return st.UpdateValidatorAtIndex(idx, validator)
 }
