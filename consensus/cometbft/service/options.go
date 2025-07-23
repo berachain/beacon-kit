@@ -35,7 +35,7 @@ func SetPruning(opts pruningtypes.PruningOptions) func(*Service) {
 	return func(bs *Service) {
 		if opts.Strategy == pruningtypes.PruningNothing {
 			bs.logger.Warn(
-				"State pruning disabled. This may increase memory footprint considerable.",
+				"State pruning disabled. This may increase memory footprint considerably.",
 				"strategy", pruningtypes.PruningOptionNothing,
 				"recommended strategies", fmt.Sprintf("%s or %s",
 					pruningtypes.PruningOptionEverything,
