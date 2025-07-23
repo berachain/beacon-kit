@@ -51,7 +51,7 @@ func (sp *StateProcessor) processExecutionPayload(
 
 	sp.metrics.gaugeTimestamps(payloadTimestamp, consensusTimestamp)
 
-	sp.logger.Debug("processExecutionPayload",
+	sp.logger.Info("processExecutionPayload",
 		"consensus height", blk.GetSlot().Unwrap(),
 		"payload height", payload.GetNumber().Unwrap(),
 		"payload timestamp", payloadTimestamp,

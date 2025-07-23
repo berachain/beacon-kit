@@ -106,7 +106,7 @@ func (sp *StateProcessor) processWithdrawals(
 			return setErr
 		}
 		sp.logger.Info(
-			"partial withdrawals found",
+			"pending partial withdrawals found",
 			"original_count", processedPartialWithdrawalsCount,
 			"updated_count", len(updatedWithdrawals),
 		)
@@ -144,7 +144,7 @@ func (sp *StateProcessor) processWithdrawals(
 		return err
 	}
 
-	sp.logger.Debug(
+	sp.logger.Info(
 		"Processed withdrawals",
 		"num_withdrawals", numWithdrawals,
 		"evm_inflation", float64(payloadWithdrawals[0].GetAmount().Unwrap())/params.GWei,
