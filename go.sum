@@ -76,8 +76,8 @@ github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
-github.com/berachain/bera-geth v0.0.0-20250721211541-88a3626f73ad h1:vZ5DGIUvD6T7PEbrmCKbdEh9u4w6VvjTTEkxnchHcvw=
-github.com/berachain/bera-geth v0.0.0-20250721211541-88a3626f73ad/go.mod h1:ngYIvmMAYdo4sGW9cGzLvSsPGhDOOzL0jK5S5iXpj0g=
+github.com/berachain/bera-geth v0.0.0-20250722192516-7ce36c5a40aa h1:vqAiipubg1gLrwwRv8lDqvQv4I57zKxLlgP/uaNGt6E=
+github.com/berachain/bera-geth v0.0.0-20250722192516-7ce36c5a40aa/go.mod h1:X5CIOyo8SuK1Q5GnaEizQVLHT/DfsiGWuNeVdQcEMNA=
 github.com/berachain/cometbft v1.0.1-0.20250718121541-9671b1dc07e5 h1:EXClm1TIdD7dyOKdmdag55lzfx2IpPZkhRSJNkrpNXA=
 github.com/berachain/cometbft v1.0.1-0.20250718121541-9671b1dc07e5/go.mod h1:AB3j5W0TQmQSuwRdzWvIBQPAKquFo7VnckwETlAsuwk=
 github.com/berachain/cometbft/api v1.0.1-0.20250718121541-9671b1dc07e5 h1:bAE3ji9X3FOyPCiblIzwF8OKv3Bx6iEdpLt9IFeD32Y=
@@ -219,8 +219,6 @@ github.com/envoyproxy/go-control-plane v0.9.9-0.20201210154907-fd9021fe5dad/go.m
 github.com/envoyproxy/go-control-plane v0.9.10-0.20210907150352-cf90f659a021/go.mod h1:AFq3mo9L8Lqqiid3OhADV3RfLJnjiw63cSpi+fDTRC0=
 github.com/envoyproxy/go-control-plane v0.10.2-0.20220325020618-49ff273808a1/go.mod h1:KJwIaB5Mv44NWtYuAOFCVOjcI94vtpEz2JU/D2v6IjE=
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
-github.com/ethereum/c-kzg-4844 v1.0.3 h1:IEnbOHwjixW2cTvKRUlAAUOeleV7nNM/umJR+qy4WDs=
-github.com/ethereum/c-kzg-4844 v1.0.3/go.mod h1:VewdlzQmpT5QSrVhbBuGoCdFJkpaJlO1aQputP83wc0=
 github.com/ethereum/c-kzg-4844/v2 v2.1.0 h1:gQropX9YFBhl3g4HYhwE70zq3IHFRgbbNPw0Shwzf5w=
 github.com/ethereum/c-kzg-4844/v2 v2.1.0/go.mod h1:TC48kOKjJKPbN7C++qIgt0TJzZ70QznYR7Ob+WXl57E=
 github.com/ethereum/go-verkle v0.2.2 h1:I2W0WjnrFUIzzVPwm8ykY+7pL2d4VhlsePn4j7cnFk8=

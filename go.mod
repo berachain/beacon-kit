@@ -6,7 +6,7 @@ replace (
 	github.com/cometbft/cometbft => github.com/berachain/cometbft v1.0.1-0.20250718121541-9671b1dc07e5
 	github.com/cometbft/cometbft/api => github.com/berachain/cometbft/api v1.0.1-0.20250718121541-9671b1dc07e5
 	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.52.0-rc.1
-	github.com/ethereum/go-ethereum => github.com/berachain/bera-geth v0.0.0-20250721211541-88a3626f73ad
+	github.com/ethereum/go-ethereum => github.com/berachain/bera-geth v0.0.0-20250722192516-7ce36c5a40aa
 	github.com/karalabe/ssz => github.com/berachain/karalabe-ssz v0.3.0-alpha.0
 )
 
@@ -26,7 +26,6 @@ require (
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/crate-crypto/go-kzg-4844 v1.1.0
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
-	github.com/ethereum/c-kzg-4844 v1.0.3
 	github.com/go-faster/xor v1.0.0
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/golang-jwt/jwt/v5 v5.2.3
