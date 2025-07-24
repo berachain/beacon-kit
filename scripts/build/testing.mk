@@ -93,7 +93,7 @@ start-geth:
 	--syncmode=full \
 	--http \
 	--http.addr 0.0.0.0 \
-	--http.api eth,net \
+	--http.api eth,net,debug,trace \
 	--authrpc.addr 0.0.0.0 \
 	--authrpc.jwtsecret $(JWT_PATH) \
 	--authrpc.vhosts "*" \
