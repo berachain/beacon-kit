@@ -151,7 +151,6 @@ func defaultConsensusSettings() ConsensusSettings {
 			TimeoutPropose:   consensus.TimeoutPropose.String(),
 			TimeoutPrevote:   consensus.TimeoutPrevote.String(),
 			TimeoutPrecommit: consensus.TimeoutPrecommit.String(),
-
 			//nolint:staticcheck // setting to zero because it's deprecated
 			TimeoutCommit:       consensus.TimeoutCommit.String(),
 			MaxNumInboundPeers:  p2p.MaxNumInboundPeers,

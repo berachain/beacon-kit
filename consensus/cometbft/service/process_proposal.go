@@ -25,6 +25,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/cache"
+	"github.com/berachain/beacon-kit/primitives/math"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
@@ -45,22 +47,16 @@ func (s *Service) processProposal(
 		)
 	}
 
-	// Since the application can get access to FinalizeBlock state and write to
-	// it, we must be sure to reset it in case ProcessProposal timeouts and is
-	// called
-	// again in a subsequent round. However, we only want to do this after we've
-	// processed the first block, as we want to avoid overwriting the
-	// finalizeState
-	// after state changes during InitChain.
-	s.processProposalState = s.resetState(ctx)
-	if req.Height > s.initialHeight {
-		s.finalizeBlockState = s.resetState(ctx)
-	}
+	// processProposalState is used for ProcessProposal, which is set based on
+	// the previous block's state. This state is never committed. In case of
+	// multiple consensus rounds, the state is always reset to the previous
+	// block's state.
+	processProposalState := s.resetState(ctx)
 
 	//nolint:contextcheck // ctx already passed via resetState
-	s.processProposalState.SetContext(
+	processProposalState.SetContext(
 		s.getContextForProposal(
-			s.processProposalState.Context(),
+			processProposalState.Context(),
 			req.Height,
 		),
 	)
@@ -68,13 +64,13 @@ func (s *Service) processProposal(
 	// errors to consensus indicate that the node was not able to understand
 	// whether the block was valid or not. Viceversa, we signal that a block
 	// is invalid by its status, but we do return nil error in such a case.
-	status := cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
-	err := s.Blockchain.ProcessProposal(
-		s.processProposalState.Context(),
+	valUpdates, err := s.Blockchain.ProcessProposal(
+		processProposalState.Context(),
 		req,
+		s.nodeAddress[:],
 	)
 	if err != nil {
-		status = cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
+		status := cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
 		s.logger.Error(
 			"failed to process proposal",
 			"height", req.Height,
@@ -82,6 +78,22 @@ func (s *Service) processProposal(
 			"hash", fmt.Sprintf("%X", req.Hash),
 			"err", err,
 		)
+		return &cmtabci.ProcessProposalResponse{Status: status}, nil
 	}
+
+	// We must not cache execution of the first block post initialHeight
+	// because its state must be handled in a different way
+	// TODO: before Stable block time activation we keep caching off
+	// to make sure chain does not get faster. Once activated, we can
+	// actve as if cache was always active.
+	if cache.IsStateCachingActive(s.delayCfg, math.Slot(req.Height)) {
+		stateHash := string(req.Hash)
+		toCache := &cache.Element{
+			State:      processProposalState,
+			ValUpdates: valUpdates,
+		}
+		s.cachedStates.SetCached(stateHash, toCache)
+	}
+	status := cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
 	return &cmtabci.ProcessProposalResponse{Status: status}, nil
 }

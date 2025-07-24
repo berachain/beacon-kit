@@ -93,7 +93,8 @@ type GetRandaoRequest struct {
 
 type GetBlockHeadersRequest struct {
 	SlotRequest
-	ParentRoot string `query:"parent_root" validate:"hex"`
+
+	ParentRoot string `query:"parent_root" validate:"omitempty,hex"`
 }
 
 type GetBlockHeaderRequest struct {

@@ -31,7 +31,7 @@ func TestnetChainSpecData() *chain.SpecData {
 	specData := MainnetChainSpecData()
 
 	// Testnet uses chain ID of 80069.
-	specData.DepositEth1ChainID = TestnetEth1ChainID
+	specData.DepositEth1ChainID = chain.TestnetEth1ChainID
 
 	// Timestamp of the genesis block of Bepolia testnet.
 	specData.GenesisTime = 1739976735
