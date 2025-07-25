@@ -155,7 +155,6 @@ start-geth-bepolia:
 	--syncmode=full \
 	--bootnodes $$bootnodes
 
-# TODO(prague1): Update to bera-reth once production ready
 start-reth-bepolia:
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
 	@trustedpeers=`cat $(PWD)/$(BEPOLIA_NETWORK_FILES_DIR)/el-peers.txt`; \
@@ -167,7 +166,7 @@ start-reth-bepolia:
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	--rm -v $(PWD)/${BEPOLIA_NETWORK_FILES_DIR}:/${BEPOLIA_NETWORK_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	ghcr.io/paradigmxyz/reth node \
+	ghcr.io/berachain/bera-reth:nightly node \
 	--chain ${BEPOLIA_ETH_GENESIS_PATH} \
 	--http \
 	--http.addr "0.0.0.0" \
@@ -192,7 +191,6 @@ start-mainnet:
 # NOTE: By default this will use the EL peers as your bootnodes. If you want specific 
 # discovery bootnodes by region, refer to testing/networks/80094/el-bootnodes.txt
 start-geth-mainnet:
-	# TODO: Update to use latest Geth once ready
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
 	docker run \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
@@ -224,7 +222,6 @@ start-geth-mainnet:
 	--syncmode=full \
 	--bootnodes $$bootnodes
 
-# TODO(prague1): Update to bera-reth once production ready
 start-reth-mainnet:
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
 	@trustedpeers=`cat $(PWD)/$(MAINNET_NETWORK_FILES_DIR)/el-peers.txt`; \
@@ -236,7 +233,7 @@ start-reth-mainnet:
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	--rm -v $(PWD)/${MAINNET_NETWORK_FILES_DIR}:/${MAINNET_NETWORK_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	ghcr.io/paradigmxyz/reth node \
+	ghcr.io/berachain/bera-reth:nightly node \
 	--chain ${MAINNET_ETH_GENESIS_PATH} \
 	--http \
 	--http.addr "0.0.0.0" \

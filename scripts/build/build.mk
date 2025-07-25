@@ -43,8 +43,7 @@ build_tags += pebbledb
 build_tags += blst
 build_tags += bls12381
 
-# always include ckzg
-# build_tags += ckzg
+# always include cgo
 build_tags += cgo
 
 whitespace :=
