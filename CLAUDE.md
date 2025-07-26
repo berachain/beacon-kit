@@ -732,7 +732,6 @@ func ProvideBlockchainService(
 
 ### Build Tags
 - `bls12381` - BLS cryptography
-- `ckzg` - KZG blob commitments
 - `test` - Testing utilities
 - `e2e` - End-to-end tests
 - `simulated` - Simulation tests
