@@ -367,10 +367,10 @@ func GetProofAndCommitmentsForBlobs(
 	commitments := make([]eip4844.KZGCommitment, len(blobs))
 	proofs := make([]eip4844.KZGProof, len(blobs))
 	for i, blob := range blobs {
-		ckzgBlob := (*gokzg4844.Blob)(blob)
-		commitment, err := gokzgVerifier.BlobToKZGCommitment(ckzgBlob, 1)
+		kzgBlob := (*gokzg4844.Blob)(blob)
+		commitment, err := gokzgVerifier.BlobToKZGCommitment(kzgBlob, 1)
 		t.NoError(err)
-		proof, err := gokzgVerifier.ComputeBlobKZGProof(ckzgBlob, commitment, 1)
+		proof, err := gokzgVerifier.ComputeBlobKZGProof(kzgBlob, commitment, 1)
 		t.NoError(err)
 		commitments[i] = eip4844.KZGCommitment(commitment)
 		proofs[i] = eip4844.KZGProof(proof)

@@ -46,13 +46,13 @@ func defaultGethCmdStrBuilder(genesisFile string) string {
 	return fmt.Sprintf(`
 		geth init --datadir /tmp/gethdata /testdata/%s && 
 		geth --http --http.addr 0.0.0.0 --http.api eth,net,web3,debug \
-			 --authrpc.addr 0.0.0.0 \
-			 --authrpc.jwtsecret /testing/files/jwt.hex \
-			 --authrpc.vhosts '*' \
-			 --datadir /tmp/gethdata \
-			 --ipcpath /tmp/gethdata/geth.ipc \
-			 --syncmode full \
-			 --verbosity 4 \
-			 --nodiscover
+			--authrpc.addr 0.0.0.0 \
+			--authrpc.jwtsecret /testing/files/jwt.hex \
+			--authrpc.vhosts '*' \
+			--datadir /tmp/gethdata \
+			--ipcpath /tmp/gethdata/bera-geth.ipc \
+			--syncmode full \
+			--verbosity 4 \
+			--nodiscover
 	`, genesisFile)
 }
