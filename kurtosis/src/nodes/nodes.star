@@ -202,7 +202,7 @@ def int_to_hex(plan, n):
     )
     return str(result.output.strip())
 
-def render_genesis_template(plan, template_path, chain_id, chain_id_hex, genesis_deposits_root, genesis_deposit_count_hex):
+def render_genesis_template(plan, template_path, chain_id, chain_id_hex, genesis_deposits_root, genesis_deposit_count_hex, genesis_pol_keys):
     """Helper function to render a specific genesis template"""
     genesis_template = read_file(src = template_path)
 
@@ -215,6 +215,7 @@ def render_genesis_template(plan, template_path, chain_id, chain_id_hex, genesis
                     "CHAIN_ID_HEX": chain_id_hex,
                     "GENESIS_DEPOSIT_COUNT_HEX": genesis_deposit_count_hex,
                     "GENESIS_DEPOSITS_ROOT": genesis_deposits_root,
+                    "GENESIS_POL_KEYS": genesis_pol_keys,
                 },
             ),
         },
@@ -223,6 +224,7 @@ def render_genesis_template(plan, template_path, chain_id, chain_id_hex, genesis
         description = "Rendering genesis.json template",
     )
     return artifact
+
 
 def create_genesis_files_part1(plan, chain_id):
     """Creates genesis files for all client types and returns them as a dict"""
@@ -240,13 +242,14 @@ def create_genesis_files_part1(plan, chain_id):
         chain_id_hex,
         "0x0000000000000000000000000000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "",  # No pol keys
     )
     genesis_files["default"] = default_artifact
 
     return genesis_files
 
 # This has the deposit contract storage slots and we need to modify the eth genesis files with them.
-def create_genesis_files_part2(plan, chain_id, genesis_deposits_root, genesis_deposit_count_hex):
+def create_genesis_files_part2(plan, chain_id, genesis_deposits_root, genesis_deposit_count_hex, genesis_pol_keys):
     """Creates genesis files for all client types and returns them as a dict"""
 
     # Convert chain_id to hexadecimal string
@@ -262,6 +265,7 @@ def create_genesis_files_part2(plan, chain_id, genesis_deposits_root, genesis_de
         chain_id_hex,
         genesis_deposits_root,
         genesis_deposit_count_hex,
+        "," + genesis_pol_keys,
     )
     genesis_files["default"] = default_artifact
 

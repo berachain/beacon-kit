@@ -72,9 +72,10 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
     # Extract values from env_vars
     genesis_deposits_root = env_vars.get("GENESIS_DEPOSITS_ROOT")
     genesis_deposit_count_hex = env_vars.get("GENESIS_DEPOSIT_COUNT_HEX")
+    genesis_pol_keys = env_vars.get("GENESIS_POL_KEYS")
 
     # 4c. Modify the eth genesis files with the ENV VARS
-    genesis_files = nodes.create_genesis_files_part2(plan, chain_id, genesis_deposits_root, genesis_deposit_count_hex)
+    genesis_files = nodes.create_genesis_files_part2(plan, chain_id, genesis_deposits_root, genesis_deposit_count_hex, genesis_pol_keys)
 
     el_enode_addrs = []
     metrics_enabled_services = metrics_enabled_services[:]

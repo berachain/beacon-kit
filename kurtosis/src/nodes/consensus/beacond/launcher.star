@@ -139,7 +139,11 @@ def modify_genesis_files_deposits(plan, validators, genesis_files, chain_id, cha
         src = "/tmp/values/deposit_root.txt",
         name = "deposit-root",
     )
-
+    pol_keys_store = StoreSpec(
+        src = "/tmp/values/pol_keys.txt",
+        name = "pol-keys",
+    )
+    
     # Run the script and store the output files
     result = plan.run_sh(
         run = "chmod +x /app/scripts/modify-genesis-with-deposits.sh && /app/scripts/modify-genesis-with-deposits.sh",
@@ -150,7 +154,7 @@ def modify_genesis_files_deposits(plan, validators, genesis_files, chain_id, cha
             "/tmp/config_genesis/.beacond/config": "cosmos-genesis-final",
         },
         env_vars = genesis_env_vars,
-        store = [deposit_count_store, deposit_root_store, stored_configs[num_validators]],
+        store = [deposit_count_store, deposit_root_store, pol_keys_store, stored_configs[num_validators]],
         description = "Running modify genesis with deposits",
     )
 
@@ -178,9 +182,22 @@ def modify_genesis_files_deposits(plan, validators, genesis_files, chain_id, cha
     deposit_root = result_two.output.strip().rstrip("\n")
     plan.print("Deposit root:", deposit_root)
 
+    # Fourth operation: Read extra keys  
+    result_three = plan.run_sh(
+        run = "cat /tmp/values/pol_keys.txt",
+        image = validators[0].cl_image,
+        files = {
+            "/tmp/values": "pol-keys",
+        },
+        description = "Reading pol keys",
+    )
+    pol_keys = result_three.output.strip().rstrip("\n")
+    plan.print("Pol keys:", pol_keys)
+
     # Update env vars with parsed values
     genesis_env_vars["GENESIS_DEPOSIT_COUNT_HEX"] = deposit_count
     genesis_env_vars["GENESIS_DEPOSITS_ROOT"] = deposit_root
+    genesis_env_vars["GENESIS_POL_KEYS"] = pol_keys
     return genesis_env_vars
 
 def get_persistent_peers(plan, peers):
