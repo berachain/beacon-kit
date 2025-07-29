@@ -106,6 +106,7 @@ func ProvideSimulationChainSpec() (chain.Spec, error) {
 	specData.Deneb1ForkTime = 30
 	// High number as we don't want to activate electra.
 	specData.ElectraForkTime = 9999999999999999
+	specData.Electra1ForkTime = 9999999999999999
 	chainSpec, err := chain.NewSpec(specData)
 	if err != nil {
 		return nil, err
