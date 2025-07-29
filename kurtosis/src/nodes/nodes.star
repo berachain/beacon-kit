@@ -202,7 +202,7 @@ def int_to_hex(plan, n):
     )
     return str(result.output.strip())
 
-def render_genesis_template(plan, template_path, chain_id, chain_id_hex, deposit_contract_storage = "{}", name_suffix=""):
+def render_genesis_template(plan, template_path, chain_id, chain_id_hex, deposit_contract_storage = "{}", name_suffix = ""):
     """Helper function to render a specific genesis template"""
     genesis_template = read_file(src = template_path)
 
@@ -222,7 +222,6 @@ def render_genesis_template(plan, template_path, chain_id, chain_id_hex, deposit
         description = "Rendering genesis.json template",
     )
     return artifact
-
 
 def create_genesis_files_part1(plan, chain_id):
     """Creates genesis files for all client types and returns them as a dict"""
@@ -246,5 +245,3 @@ def create_genesis_files_part1(plan, chain_id):
     genesis_files["default"] = default_artifact
 
     return genesis_files
-
-

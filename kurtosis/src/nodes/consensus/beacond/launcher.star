@@ -151,7 +151,6 @@ def modify_genesis_files_deposits(plan, validators, genesis_files, chain_id, cha
     # Return the artifact name containing the complete genesis
     return "genesis-with-storage"
 
-
 def get_persistent_peers(plan, peers):
     persistent_peers = peers[:]
     for i in range(len(persistent_peers)):
