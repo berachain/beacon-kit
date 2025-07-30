@@ -116,18 +116,17 @@ func (b *BeaconBlockBody) SizeSSZ() int {
 	// Dynamic fields
 	size += len(b.proposerSlashings) * 16 // UnusedType
 	size += len(b.attesterSlashings) * 16 // UnusedType
-	size += len(b.attestations) * 16 // UnusedType
-	size += len(b.Deposits) * 192 // Deposit
-	size += len(b.voluntaryExits) * 16 // UnusedType
+	size += len(b.attestations) * 16      // UnusedType
+	size += len(b.Deposits) * 192         // Deposit
+	size += len(b.voluntaryExits) * 16    // UnusedType
 	size += b.ExecutionPayload.SizeSSZ()
 	size += len(b.blsToExecutionChanges) * 16 // UnusedType
-	size += len(b.BlobKzgCommitments) * 48 // KZGCommitment
+	size += len(b.BlobKzgCommitments) * 48    // KZGCommitment
 	if includeExecRequest && b.executionRequests != nil {
 		size += b.executionRequests.SizeSSZ()
 	}
 	return size
 }
-
 
 // MarshalSSZ serializes the BeaconBlockBody to SSZ-encoded bytes.
 func (b *BeaconBlockBody) MarshalSSZ() ([]byte, error) {
@@ -361,7 +360,7 @@ func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte) error {
 	if b.Eth1Data == nil {
 		b.Eth1Data = &Eth1Data{}
 	}
-	if err = b.Eth1Data.UnmarshalSSZ(buf[offset:offset+72]); err != nil {
+	if err = b.Eth1Data.UnmarshalSSZ(buf[offset : offset+72]); err != nil {
 		return err
 	}
 	offset += 72
@@ -371,36 +370,36 @@ func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte) error {
 	offset += 32
 
 	// Read offsets
-	proposerSlashingsOffset := fastssz.UnmarshallUint32(buf[offset:offset+4])
+	proposerSlashingsOffset := fastssz.UnmarshallUint32(buf[offset : offset+4])
 	offset += 4
-	attesterSlashingsOffset := fastssz.UnmarshallUint32(buf[offset:offset+4])
+	attesterSlashingsOffset := fastssz.UnmarshallUint32(buf[offset : offset+4])
 	offset += 4
-	attestationsOffset := fastssz.UnmarshallUint32(buf[offset:offset+4])
+	attestationsOffset := fastssz.UnmarshallUint32(buf[offset : offset+4])
 	offset += 4
-	depositsOffset := fastssz.UnmarshallUint32(buf[offset:offset+4])
+	depositsOffset := fastssz.UnmarshallUint32(buf[offset : offset+4])
 	offset += 4
-	voluntaryExitsOffset := fastssz.UnmarshallUint32(buf[offset:offset+4])
+	voluntaryExitsOffset := fastssz.UnmarshallUint32(buf[offset : offset+4])
 	offset += 4
 
 	// Field (8) 'SyncAggregate'
 	if b.syncAggregate == nil {
 		b.syncAggregate = &SyncAggregate{}
 	}
-	if err = b.syncAggregate.UnmarshalSSZ(buf[offset:offset+160]); err != nil {
+	if err = b.syncAggregate.UnmarshalSSZ(buf[offset : offset+160]); err != nil {
 		return err
 	}
 	offset += 160
 
-	executionPayloadOffset := fastssz.UnmarshallUint32(buf[offset:offset+4])
+	executionPayloadOffset := fastssz.UnmarshallUint32(buf[offset : offset+4])
 	offset += 4
-	blsToExecutionChangesOffset := fastssz.UnmarshallUint32(buf[offset:offset+4])
+	blsToExecutionChangesOffset := fastssz.UnmarshallUint32(buf[offset : offset+4])
 	offset += 4
-	blobKzgCommitmentsOffset := fastssz.UnmarshallUint32(buf[offset:offset+4])
+	blobKzgCommitmentsOffset := fastssz.UnmarshallUint32(buf[offset : offset+4])
 	offset += 4
 
 	var executionRequestsOffset uint32
 	if includeExecRequest {
-		executionRequestsOffset = fastssz.UnmarshallUint32(buf[offset:offset+4])
+		executionRequestsOffset = fastssz.UnmarshallUint32(buf[offset : offset+4])
 		offset += 4
 	}
 
@@ -546,7 +545,6 @@ func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte) error {
 
 	return b.ValidateAfterDecodingSSZ()
 }
-
 
 // HashTreeRootWith ssz hashes the BeaconBlockBody object with a hasher.
 func (b *BeaconBlockBody) HashTreeRootWith(hh fastssz.HashWalker) error {

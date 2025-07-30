@@ -77,12 +77,12 @@ func TestDepositRequestsCompatibility(t *testing.T) {
 			name: "multiple deposit requests",
 			setup: func() types.DepositRequests {
 				deposits := make(types.DepositRequests, 5)
-				
+
 				for i := 0; i < 5; i++ {
 					pubkey := crypto.BLSPubkey{}
 					creds := types.WithdrawalCredentials{}
 					sig := crypto.BLSSignature{}
-					
+
 					// Fill with unique data for each deposit
 					for j := range pubkey {
 						pubkey[j] = byte(i*48 + j)
@@ -94,10 +94,10 @@ func TestDepositRequestsCompatibility(t *testing.T) {
 					for j := range sig {
 						sig[j] = byte(i*96 + j)
 					}
-					
+
 					amount := math.Gwei(32000000000 + uint64(i)*1000000000)
 					index := uint64(i * 1000)
-					
+
 					deposits[i] = &types.DepositRequest{
 						Pubkey:      pubkey,
 						Credentials: creds,
@@ -106,7 +106,7 @@ func TestDepositRequestsCompatibility(t *testing.T) {
 						Index:       index,
 					}
 				}
-				
+
 				return deposits
 			},
 		},
@@ -114,17 +114,17 @@ func TestDepositRequestsCompatibility(t *testing.T) {
 			name: "deposits with various amounts",
 			setup: func() types.DepositRequests {
 				amounts := []uint64{
-					1000000000,    // 1 ETH
-					16000000000,   // 16 ETH
-					32000000000,   // 32 ETH
-					100000000000,  // 100 ETH
+					1000000000,   // 1 ETH
+					16000000000,  // 16 ETH
+					32000000000,  // 32 ETH
+					100000000000, // 100 ETH
 				}
-				
+
 				deposits := make(types.DepositRequests, len(amounts))
 				for i, amount := range amounts {
 					pubkey := crypto.BLSPubkey{}
 					pubkey[0] = byte(i)
-					
+
 					deposits[i] = &types.DepositRequest{
 						Pubkey:      pubkey,
 						Credentials: types.WithdrawalCredentials{0x01},
@@ -133,7 +133,7 @@ func TestDepositRequestsCompatibility(t *testing.T) {
 						Index:       uint64(i * 100),
 					}
 				}
-				
+
 				return deposits
 			},
 		},
@@ -150,10 +150,10 @@ func TestDepositRequestsCompatibility(t *testing.T) {
 			// Test Decode (which is the unmarshal operation for this type)
 			decoded, err := types.DecodeDepositRequests(marshaled)
 			require.NoError(t, err, "DecodeDepositRequests should not error")
-			
+
 			// Verify lengths match
 			require.Equal(t, len(deposits), len(decoded), "decoded length should match original")
-			
+
 			// Verify each deposit matches
 			for i := range deposits {
 				require.Equal(t, deposits[i].Pubkey, decoded[i].Pubkey, "pubkey at index %d should match", i)
@@ -177,7 +177,7 @@ func TestDepositRequestsEmptySlice(t *testing.T) {
 	marshaled, err := empty.MarshalSSZ()
 	require.NoError(t, err)
 	require.Equal(t, 0, len(marshaled), "empty slice should marshal to empty bytes")
-	
+
 	// But decoding empty bytes fails due to validation
 	_, err = types.DecodeDepositRequests(marshaled)
 	require.Error(t, err, "decoding empty bytes should error")
@@ -194,21 +194,21 @@ func TestDepositRequestsEIP7685Encoding(t *testing.T) {
 		Signature:   crypto.BLSSignature{4, 5, 6},
 		Index:       100,
 	}
-	
+
 	deposits := types.DepositRequests{deposit}
-	
+
 	// Marshal using EIP-7685 format
 	marshaled, err := deposits.MarshalSSZ()
 	require.NoError(t, err)
-	
+
 	// Verify the marshaled data is exactly 192 bytes (one deposit)
 	require.Equal(t, 192, len(marshaled), "single deposit should be 192 bytes")
-	
+
 	// Test with multiple deposits
 	deposits = types.DepositRequests{deposit, deposit, deposit}
 	marshaled, err = deposits.MarshalSSZ()
 	require.NoError(t, err)
-	
+
 	// Verify the marshaled data is exactly 576 bytes (three deposits)
 	require.Equal(t, 576, len(marshaled), "three deposits should be 576 bytes")
 }
@@ -226,11 +226,11 @@ func TestDepositRequestsValidation(t *testing.T) {
 			Index:       uint64(i),
 		}
 	}
-	
+
 	// This should validate successfully
 	err := maxDeposits.ValidateAfterDecodingSSZ()
 	require.NoError(t, err, "max deposits should validate successfully")
-	
+
 	// Create one more than allowed
 	tooManyDeposits := append(maxDeposits, &types.DepositRequest{
 		Pubkey:      crypto.BLSPubkey{255},
@@ -239,7 +239,7 @@ func TestDepositRequestsValidation(t *testing.T) {
 		Signature:   crypto.BLSSignature{},
 		Index:       9999,
 	})
-	
+
 	// This should fail validation
 	err = tooManyDeposits.ValidateAfterDecodingSSZ()
 	require.Error(t, err, "too many deposits should fail validation")
@@ -287,7 +287,7 @@ func TestDepositRequestsDecodeErrors(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			decoded, err := types.DecodeDepositRequests(tc.data)
-			
+
 			if tc.expectError {
 				require.Error(t, err, "should error")
 				if tc.errorContains != "" {
@@ -309,15 +309,15 @@ func TestDepositRequestsOrdering(t *testing.T) {
 	// Create deposits with specific ordering based on index
 	count := 10
 	deposits := make(types.DepositRequests, count)
-	
+
 	for i := 0; i < count; i++ {
 		pubkey := crypto.BLSPubkey{}
 		// Make pubkey based on reverse order to ensure ordering is preserved
 		pubkey[0] = byte(count - i - 1)
-		
+
 		// Use descending indices to test ordering
 		index := uint64((count - i) * 1000)
-		
+
 		deposits[i] = &types.DepositRequest{
 			Pubkey:      pubkey,
 			Credentials: types.WithdrawalCredentials{0x01},
@@ -326,22 +326,22 @@ func TestDepositRequestsOrdering(t *testing.T) {
 			Index:       index,
 		}
 	}
-	
+
 	// Marshal
 	marshaled, err := deposits.MarshalSSZ()
 	require.NoError(t, err)
-	
+
 	// Decode
 	decoded, err := types.DecodeDepositRequests(marshaled)
 	require.NoError(t, err)
-	
+
 	// Verify ordering is preserved
 	require.Equal(t, count, len(decoded))
-	
+
 	for i := 0; i < count; i++ {
 		expectedPubkeyByte := byte(count - i - 1)
 		expectedIndex := uint64((count - i) * 1000)
-		
+
 		require.Equal(t, expectedPubkeyByte, decoded[i].Pubkey[0], "ordering preserved at index %d", i)
 		require.Equal(t, expectedIndex, decoded[i].Index, "index preserved at index %d", i)
 	}

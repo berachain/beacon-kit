@@ -66,12 +66,12 @@ func TestConsolidationRequestsCompatibility(t *testing.T) {
 			name: "multiple consolidation requests",
 			setup: func() types.ConsolidationRequests {
 				consolidations := make(types.ConsolidationRequests, 2) // Max is 2
-				
+
 				for i := 0; i < 2; i++ {
 					addr := common.ExecutionAddress{}
 					srcPubkey := crypto.BLSPubkey{}
 					tgtPubkey := crypto.BLSPubkey{}
-					
+
 					// Fill with unique data for each consolidation
 					for j := range addr {
 						addr[j] = byte(i*20 + j)
@@ -82,14 +82,14 @@ func TestConsolidationRequestsCompatibility(t *testing.T) {
 					for j := range tgtPubkey {
 						tgtPubkey[j] = byte(i*48 + j + 100)
 					}
-					
+
 					consolidations[i] = &types.ConsolidationRequest{
 						SourceAddress: addr,
 						SourcePubKey:  srcPubkey,
 						TargetPubKey:  tgtPubkey,
 					}
 				}
-				
+
 				return consolidations
 			},
 		},
@@ -123,10 +123,10 @@ func TestConsolidationRequestsCompatibility(t *testing.T) {
 			// Test Decode (which is the unmarshal operation for this type)
 			decoded, err := types.DecodeConsolidationRequests(marshaled)
 			require.NoError(t, err, "DecodeConsolidationRequests should not error")
-			
+
 			// Verify lengths match
 			require.Equal(t, len(consolidations), len(decoded), "decoded length should match original")
-			
+
 			// Verify each consolidation matches
 			for i := range consolidations {
 				require.Equal(t, consolidations[i].SourceAddress, decoded[i].SourceAddress, "source address at index %d should match", i)
@@ -148,7 +148,7 @@ func TestConsolidationRequestsEmptySlice(t *testing.T) {
 	marshaled, err := empty.MarshalSSZ()
 	require.NoError(t, err)
 	require.Equal(t, 0, len(marshaled), "empty slice should marshal to empty bytes")
-	
+
 	// But decoding empty bytes fails due to validation
 	_, err = types.DecodeConsolidationRequests(marshaled)
 	require.Error(t, err, "decoding empty bytes should error")
@@ -163,21 +163,21 @@ func TestConsolidationRequestsEIP7685Encoding(t *testing.T) {
 		SourcePubKey:  crypto.BLSPubkey{1, 2, 3},
 		TargetPubKey:  crypto.BLSPubkey{4, 5, 6},
 	}
-	
+
 	consolidations := types.ConsolidationRequests{consolidation}
-	
+
 	// Marshal using EIP-7685 format
 	marshaled, err := consolidations.MarshalSSZ()
 	require.NoError(t, err)
-	
+
 	// Verify the marshaled data is exactly 116 bytes (one consolidation)
 	require.Equal(t, 116, len(marshaled), "single consolidation should be 116 bytes")
-	
+
 	// Test with maximum consolidations (2)
 	consolidations = types.ConsolidationRequests{consolidation, consolidation}
 	marshaled, err = consolidations.MarshalSSZ()
 	require.NoError(t, err)
-	
+
 	// Verify the marshaled data is exactly 232 bytes (two consolidations)
 	require.Equal(t, 232, len(marshaled), "two consolidations should be 232 bytes")
 }
@@ -189,25 +189,25 @@ func TestConsolidationRequestsValidation(t *testing.T) {
 	for i := range maxConsolidations {
 		addr := common.ExecutionAddress{}
 		addr[0] = byte(i)
-		
+
 		maxConsolidations[i] = &types.ConsolidationRequest{
 			SourceAddress: addr,
 			SourcePubKey:  crypto.BLSPubkey{byte(i)},
 			TargetPubKey:  crypto.BLSPubkey{byte(i + 100)},
 		}
 	}
-	
+
 	// This should validate successfully
 	err := maxConsolidations.ValidateAfterDecodingSSZ()
 	require.NoError(t, err, "max consolidations should validate successfully")
-	
+
 	// Create one more than allowed
 	tooManyConsolidations := append(maxConsolidations, &types.ConsolidationRequest{
 		SourceAddress: common.ExecutionAddress{255},
 		SourcePubKey:  crypto.BLSPubkey{255},
 		TargetPubKey:  crypto.BLSPubkey{254},
 	})
-	
+
 	// This should fail validation
 	err = tooManyConsolidations.ValidateAfterDecodingSSZ()
 	require.Error(t, err, "too many consolidations should fail validation")
@@ -261,7 +261,7 @@ func TestConsolidationRequestsDecodeErrors(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			decoded, err := types.DecodeConsolidationRequests(tc.data)
-			
+
 			if tc.expectError {
 				require.Error(t, err, "should error")
 				if tc.errorContains != "" {
@@ -293,15 +293,15 @@ func TestConsolidationRequestsOrdering(t *testing.T) {
 			TargetPubKey:  crypto.BLSPubkey{101},
 		},
 	}
-	
+
 	// Marshal
 	marshaled, err := consolidations.MarshalSSZ()
 	require.NoError(t, err)
-	
+
 	// Decode
 	decoded, err := types.DecodeConsolidationRequests(marshaled)
 	require.NoError(t, err)
-	
+
 	// Verify ordering is preserved
 	require.Equal(t, 2, len(decoded))
 	require.Equal(t, byte(100), decoded[0].SourceAddress[0], "first consolidation address should be preserved")
@@ -325,15 +325,15 @@ func TestConsolidationRequestsRoundTrip(t *testing.T) {
 			TargetPubKey:  crypto.BLSPubkey{150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177},
 		},
 	}
-	
+
 	// Marshal
 	marshaled, err := original.MarshalSSZ()
 	require.NoError(t, err)
-	
+
 	// Decode
 	decoded, err := types.DecodeConsolidationRequests(marshaled)
 	require.NoError(t, err)
-	
+
 	// Verify round trip preserved all data
 	require.Equal(t, len(original), len(decoded), "lengths should match")
 	for i := range original {
@@ -351,18 +351,18 @@ func TestConsolidationRequestsBoundaryValues(t *testing.T) {
 		SourcePubKey:  crypto.BLSPubkey{},
 		TargetPubKey:  crypto.BLSPubkey{},
 	}
-	
+
 	consolidations := types.ConsolidationRequests{zeroConsolidation}
 	marshaled, err := consolidations.MarshalSSZ()
 	require.NoError(t, err)
-	
+
 	decoded, err := types.DecodeConsolidationRequests(marshaled)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(decoded))
 	require.Equal(t, zeroConsolidation.SourceAddress, decoded[0].SourceAddress)
 	require.Equal(t, zeroConsolidation.SourcePubKey, decoded[0].SourcePubKey)
 	require.Equal(t, zeroConsolidation.TargetPubKey, decoded[0].TargetPubKey)
-	
+
 	// Test with all max values (0xFF)
 	maxConsolidation := &types.ConsolidationRequest{}
 	for i := range maxConsolidation.SourceAddress {
@@ -374,11 +374,11 @@ func TestConsolidationRequestsBoundaryValues(t *testing.T) {
 	for i := range maxConsolidation.TargetPubKey {
 		maxConsolidation.TargetPubKey[i] = 0xFF
 	}
-	
+
 	consolidations = types.ConsolidationRequests{maxConsolidation}
 	marshaled, err = consolidations.MarshalSSZ()
 	require.NoError(t, err)
-	
+
 	decoded, err = types.DecodeConsolidationRequests(marshaled)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(decoded))

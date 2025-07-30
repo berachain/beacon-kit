@@ -211,7 +211,7 @@ func TestConsolidationRequestSSZRegression(t *testing.T) {
 // TestConsolidationRequestCompatibility tests that current and karalabe implementations produce identical results
 func TestConsolidationRequestCompatibility(t *testing.T) {
 	testCases := []struct {
-		name string
+		name  string
 		setup func() (*types.ConsolidationRequest, *ConsolidationRequestKaralabe)
 	}{
 		{
@@ -227,7 +227,7 @@ func TestConsolidationRequestCompatibility(t *testing.T) {
 				sourceAddr := common.ExecutionAddress{1, 2, 3, 4, 5}
 				sourcePubkey := crypto.BLSPubkey{6, 7, 8, 9, 10}
 				targetPubkey := crypto.BLSPubkey{11, 12, 13, 14, 15}
-				
+
 				current := &types.ConsolidationRequest{
 					SourceAddress: sourceAddr,
 					SourcePubKey:  sourcePubkey,
@@ -255,7 +255,7 @@ func TestConsolidationRequestCompatibility(t *testing.T) {
 				for i := range targetPubkey {
 					targetPubkey[i] = 0xFF
 				}
-				
+
 				current := &types.ConsolidationRequest{
 					SourceAddress: sourceAddr,
 					SourcePubKey:  sourcePubkey,
@@ -278,10 +278,10 @@ func TestConsolidationRequestCompatibility(t *testing.T) {
 			// Test Marshal
 			currentBytes, err1 := current.MarshalSSZ()
 			require.NoError(t, err1, "current MarshalSSZ should not error")
-			
+
 			karalabeBytes, err2 := karalabe.MarshalSSZ()
 			require.NoError(t, err2, "karalabe MarshalSSZ should not error")
-			
+
 			require.Equal(t, karalabeBytes, currentBytes, "marshaled bytes should be identical")
 
 			// Test Size

@@ -30,10 +30,9 @@ import (
 	fastssz "github.com/ferranbt/fastssz"
 )
 
-
 var (
 	_ constraints.SSZMarshallableRootable = (*PendingPartialWithdrawal)(nil)
-	_ constraints.SSZMarshallable = (*PendingPartialWithdrawals)(nil)
+	_ constraints.SSZMarshallable         = (*PendingPartialWithdrawals)(nil)
 )
 
 // PendingPartialWithdrawal reflects the following spec:

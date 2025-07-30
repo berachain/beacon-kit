@@ -112,7 +112,7 @@ func TestDepositMessageSSZRegression(t *testing.T) {
 					0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f, 0x30,
 				},
 				Credentials: types.WithdrawalCredentials{
-					0x00, // ETH1 withdrawal credentials prefix
+					0x00,                                                             // ETH1 withdrawal credentials prefix
 					0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // 11 bytes padding
 					0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x00, 0x11, 0x22, 0x33, 0x44, // 20 bytes address
 				},
@@ -131,7 +131,7 @@ func TestDepositMessageSSZRegression(t *testing.T) {
 				})
 				// Credentials
 				copy(ssz[48:80], []byte{
-					0x00, // ETH1 withdrawal credentials prefix
+					0x00,                                                             // ETH1 withdrawal credentials prefix
 					0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // 11 bytes padding
 					0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x00, 0x11, 0x22, 0x33, 0x44, // 20 bytes address
 				})
@@ -220,7 +220,7 @@ func TestDepositMessageSSZRegression(t *testing.T) {
 // TestDepositMessageCompatibility tests that current and karalabe implementations produce identical results
 func TestDepositMessageCompatibility(t *testing.T) {
 	testCases := []struct {
-		name string
+		name  string
 		setup func() (*types.DepositMessage, *DepositMessageKaralabe)
 	}{
 		{
@@ -236,7 +236,7 @@ func TestDepositMessageCompatibility(t *testing.T) {
 				pubkey := crypto.BLSPubkey{1, 2, 3, 4, 5, 6}
 				creds := types.WithdrawalCredentials{7, 8, 9, 10}
 				amount := math.Gwei(32000000000) // 32 ETH
-				
+
 				current := &types.DepositMessage{
 					Pubkey:      pubkey,
 					Credentials: creds,
@@ -262,7 +262,7 @@ func TestDepositMessageCompatibility(t *testing.T) {
 					creds[i] = 0xFF
 				}
 				amount := math.Gwei(^uint64(0))
-				
+
 				current := &types.DepositMessage{
 					Pubkey:      pubkey,
 					Credentials: creds,
@@ -285,10 +285,10 @@ func TestDepositMessageCompatibility(t *testing.T) {
 			// Test Marshal
 			currentBytes, err1 := current.MarshalSSZ()
 			require.NoError(t, err1, "current MarshalSSZ should not error")
-			
+
 			karalabeBytes, err2 := karalabe.MarshalSSZ()
 			require.NoError(t, err2, "karalabe MarshalSSZ should not error")
-			
+
 			require.Equal(t, karalabeBytes, currentBytes, "marshaled bytes should be identical")
 
 			// Test Size
@@ -394,7 +394,7 @@ func TestDepositMessageSSZRoundTrip(t *testing.T) {
 						0xff, 0xee, 0xdd, 0xcc, 0xbb, 0xaa, 0x99, 0x88,
 					},
 					Credentials: types.WithdrawalCredentials{
-						0x00, // ETH1 prefix
+						0x00,                                                             // ETH1 prefix
 						0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // padding
 						0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbe, 0xfa, 0xce, 0xdb, 0xad, 0xde, 0xed, 0xbe, 0xef, 0x12, 0x34, 0x56, 0x78,
 					},

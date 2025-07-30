@@ -204,7 +204,7 @@ func executableDataToExecutionPayloadHeader(
 		return nil, fmt.Errorf("failed to compute transactions root: %w", err)
 	}
 	eph.TransactionsRoot = common.Root(transactionsRoot)
-	
+
 	withdrawalsRoot, err := withdrawals.HashTreeRoot()
 	if err != nil {
 		return nil, fmt.Errorf("failed to compute withdrawals root: %w", err)

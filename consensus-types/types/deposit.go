@@ -30,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-
 var (
 	_ constraints.SSZMarshallableRootable = (*Deposit)(nil)
 )
@@ -84,8 +83,6 @@ func (d *Deposit) VerifySignature(
 
 // ValidateAfterDecodingSSZ validates the Deposit after decoding SSZ.
 func (*Deposit) ValidateAfterDecodingSSZ() error { return nil }
-
-
 
 /* -------------------------------------------------------------------------- */
 /*                             Getters and Setters                            */

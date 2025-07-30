@@ -28,8 +28,8 @@ import (
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
-	"golang.org/x/crypto/sha3"
 	fastssz "github.com/ferranbt/fastssz"
+	"golang.org/x/crypto/sha3"
 )
 
 var (

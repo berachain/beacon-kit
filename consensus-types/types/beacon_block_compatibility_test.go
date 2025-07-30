@@ -96,10 +96,10 @@ func TestBeaconBlockSSZRoundTrip(t *testing.T) {
 			// Test 5: HashTreeRoot
 			htr1, err := block.HashTreeRoot()
 			require.NoError(t, err)
-			
+
 			htr2, err := newBlock.HashTreeRoot()
 			require.NoError(t, err)
-			
+
 			require.Equal(t, htr1, htr2)
 		})
 	}
@@ -132,7 +132,7 @@ func TestBeaconBlockSSZEdgeCases(t *testing.T) {
 		// Test with maximum values
 		slot := math.Slot(^uint64(0))
 		proposerIndex := math.ValidatorIndex(^uint64(0))
-		
+
 		// Fill roots with max values
 		var maxRoot common.Root
 		for i := range maxRoot {
@@ -160,15 +160,15 @@ func TestBeaconBlockSSZEdgeCases(t *testing.T) {
 	t.Run("InvalidUnmarshal", func(t *testing.T) {
 		// Test unmarshaling invalid data
 		block := NewEmptyBeaconBlockWithVersion(forkVersion)
-		
+
 		// Too short
 		err := block.UnmarshalSSZ(make([]byte, 50))
 		require.Error(t, err)
-		
+
 		// Empty
 		err = block.UnmarshalSSZ([]byte{})
 		require.Error(t, err)
-		
+
 		// Invalid offset
 		invalidData := make([]byte, 84)
 		// Set an invalid offset at position 80-84
@@ -194,12 +194,12 @@ func TestBeaconBlockSSZConsistency(t *testing.T) {
 		forkVersion,
 	)
 	require.NoError(t, err)
-	
+
 	// Set additional fields
 	block.StateRoot = common.Root{10, 20, 30, 40, 50}
 	block.Body.RandaoReveal = [96]byte{100, 101, 102}
 	block.Body.Graffiti = [32]byte{200, 201, 202}
-	
+
 	// Set execution payload fields
 	block.Body.ExecutionPayload.ParentHash = common.ExecutionHash{1, 1, 1}
 	block.Body.ExecutionPayload.FeeRecipient = common.ExecutionAddress{2, 2, 2}
@@ -213,14 +213,14 @@ func TestBeaconBlockSSZConsistency(t *testing.T) {
 	block.Body.ExecutionPayload.Timestamp = 1234567890
 	block.Body.ExecutionPayload.BlockHash = common.ExecutionHash{7, 7, 7}
 	block.Body.ExecutionPayload.BaseFeePerGas = math.NewU256(1000000000)
-	
+
 	// Add some transactions
 	block.Body.ExecutionPayload.Transactions = [][]byte{
 		{0x01, 0x02, 0x03},
 		{0x04, 0x05, 0x06, 0x07},
 		{0x08, 0x09},
 	}
-	
+
 	// Add deposits
 	block.Body.Deposits = []*Deposit{
 		{
@@ -237,28 +237,28 @@ func TestBeaconBlockSSZConsistency(t *testing.T) {
 		// Marshal
 		bytes, err := block.MarshalSSZ()
 		require.NoError(t, err)
-		
+
 		// Create new block and unmarshal
 		newBlock := NewEmptyBeaconBlockWithVersion(forkVersion)
 		err = newBlock.UnmarshalSSZ(bytes)
 		require.NoError(t, err)
-		
+
 		// Marshal again
 		newBytes, err := newBlock.MarshalSSZ()
 		require.NoError(t, err)
-		
+
 		// Bytes should be identical
 		require.Equal(t, bytes, newBytes, "Round trip %d produced different bytes", i)
-		
+
 		// HashTreeRoot should be identical
 		htr1, err := block.HashTreeRoot()
 		require.NoError(t, err)
-		
+
 		htr2, err := newBlock.HashTreeRoot()
 		require.NoError(t, err)
-		
+
 		require.Equal(t, htr1, htr2, "Round trip %d produced different HTR", i)
-		
+
 		// Use the new block for the next iteration
 		block = newBlock
 	}

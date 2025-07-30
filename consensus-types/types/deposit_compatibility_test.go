@@ -144,7 +144,7 @@ func TestDepositCompatibility(t *testing.T) {
 				var pubkey crypto.BLSPubkey
 				var creds types.WithdrawalCredentials
 				var sig crypto.BLSSignature
-				
+
 				// Fill with max values
 				for i := range pubkey {
 					pubkey[i] = 0xFF
@@ -155,9 +155,9 @@ func TestDepositCompatibility(t *testing.T) {
 				for i := range sig {
 					sig[i] = 0xFF
 				}
-				
+
 				amount := math.Gwei(^uint64(0)) // max uint64
-				index := ^uint64(0)              // max uint64
+				index := ^uint64(0)             // max uint64
 
 				current := &types.Deposit{
 					Pubkey:      pubkey,
@@ -215,10 +215,10 @@ func TestDepositCompatibility(t *testing.T) {
 			// Test Marshal
 			currentBytes, err1 := current.MarshalSSZ()
 			require.NoError(t, err1, "current MarshalSSZ should not error")
-			
+
 			karalableBytes, err2 := karalabe.MarshalSSZ()
 			require.NoError(t, err2, "karalabe MarshalSSZ should not error")
-			
+
 			require.Equal(t, karalableBytes, currentBytes, "marshaled bytes should be identical")
 
 			// Test Size
@@ -254,18 +254,18 @@ func TestDepositCompatibilityFuzz(t *testing.T) {
 		var pubkey crypto.BLSPubkey
 		var creds types.WithdrawalCredentials
 		var sig crypto.BLSSignature
-		
+
 		// Use deterministic "random" data based on iteration
 		for j := range pubkey {
 			pubkey[j] = byte((i + j) % 256)
 		}
 		for j := range creds {
-			creds[j] = byte((i * 2 + j) % 256)
+			creds[j] = byte((i*2 + j) % 256)
 		}
 		for j := range sig {
-			sig[j] = byte((i * 3 + j) % 256)
+			sig[j] = byte((i*3 + j) % 256)
 		}
-		
+
 		amount := math.Gwei(uint64(i) * 1000000000)
 		index := uint64(i * 12345)
 
@@ -327,11 +327,11 @@ func TestDepositCompatibilityInvalidData(t *testing.T) {
 			// Test unmarshal with current implementation
 			current := &types.Deposit{}
 			currentErr := current.UnmarshalSSZ(tc.data)
-			
+
 			// Test unmarshal with karalabe implementation
 			karalabe := &DepositKaralabe{}
 			karalabelErr := karalabe.UnmarshalSSZ(tc.data)
-			
+
 			// Both should handle errors consistently
 			if currentErr != nil && karalabelErr != nil {
 				// Both errored, which is expected for invalid data
@@ -383,10 +383,10 @@ func TestDepositCompatibilityRoundTrip(t *testing.T) {
 
 	// Verify round trip preserved all data
 	require.Equal(t, original, roundTrip, "round trip should preserve all data")
-	
+
 	// Verify both serializations are identical
 	require.Equal(t, currentBytes, karalableBytes, "both serializations should be identical")
-	
+
 	// Verify hash roots match throughout
 	originalRoot, err := original.HashTreeRoot()
 	require.NoError(t, err)

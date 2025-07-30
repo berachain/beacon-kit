@@ -120,7 +120,6 @@ func (p *ExecutionPayload) SizeSSZ() int {
 	return size
 }
 
-
 // MarshalSSZ serializes the ExecutionPayload object into a slice of bytes.
 func (p *ExecutionPayload) MarshalSSZ() ([]byte, error) {
 	buf := make([]byte, 0, p.SizeSSZ())
@@ -296,7 +295,7 @@ func (p *ExecutionPayload) UnmarshalSSZ(buf []byte) error {
 
 		txOffsets := make([]uint32, numTxs)
 		for i := 0; i < numTxs; i++ {
-			txOffsets[i] = fastssz.UnmarshallUint32(txData[i*4:(i+1)*4])
+			txOffsets[i] = fastssz.UnmarshallUint32(txData[i*4 : (i+1)*4])
 		}
 
 		p.Transactions = make([][]byte, numTxs)
@@ -340,7 +339,6 @@ func (p *ExecutionPayload) UnmarshalSSZ(buf []byte) error {
 
 	return p.ValidateAfterDecodingSSZ()
 }
-
 
 // HashTreeRootWith ssz hashes the ExecutionPayload object with a hasher.
 //

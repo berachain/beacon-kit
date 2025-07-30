@@ -117,7 +117,7 @@ func TestSignedBeaconBlockHeaderCompatibility(t *testing.T) {
 					StateRoot:       common.Root{32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1},
 					BodyRoot:        common.Root{16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47},
 				}
-				
+
 				var sig crypto.BLSSignature
 				for i := range sig {
 					sig[i] = byte(i % 256)
@@ -139,7 +139,7 @@ func TestSignedBeaconBlockHeaderCompatibility(t *testing.T) {
 			setup: func() (*types.SignedBeaconBlockHeader, *SignedBeaconBlockHeaderKaralabe) {
 				var parentRoot, stateRoot, bodyRoot common.Root
 				var sig crypto.BLSSignature
-				
+
 				// Fill with max values
 				for i := range parentRoot {
 					parentRoot[i] = 0xFF
@@ -193,7 +193,7 @@ func TestSignedBeaconBlockHeaderCompatibility(t *testing.T) {
 					StateRoot:       common.Root{0x01},
 					BodyRoot:        common.Root{0x02},
 				}
-				
+
 				// Empty signature for genesis
 				var sig crypto.BLSSignature
 
@@ -217,10 +217,10 @@ func TestSignedBeaconBlockHeaderCompatibility(t *testing.T) {
 			// Test Marshal
 			currentBytes, err1 := current.MarshalSSZ()
 			require.NoError(t, err1, "current MarshalSSZ should not error")
-			
+
 			karalableBytes, err2 := karalabe.MarshalSSZ()
 			require.NoError(t, err2, "karalabe MarshalSSZ should not error")
-			
+
 			require.Equal(t, karalableBytes, currentBytes, "marshaled bytes should be identical")
 
 			// Test Size - SignedBeaconBlockHeader has size 208 (112 header + 96 signature)
@@ -265,15 +265,15 @@ func TestSignedBeaconBlockHeaderCompatibilityFuzz(t *testing.T) {
 		// Create random but valid signed header data
 		var parentRoot, stateRoot, bodyRoot common.Root
 		var sig crypto.BLSSignature
-		
+
 		// Use deterministic "random" data based on iteration
 		for j := range parentRoot {
 			parentRoot[j] = byte((i + j) % 256)
-			stateRoot[j] = byte((i * 2 + j) % 256)
-			bodyRoot[j] = byte((i * 3 + j) % 256)
+			stateRoot[j] = byte((i*2 + j) % 256)
+			bodyRoot[j] = byte((i*3 + j) % 256)
 		}
 		for j := range sig {
-			sig[j] = byte((i * 4 + j) % 256)
+			sig[j] = byte((i*4 + j) % 256)
 		}
 
 		header := &types.BeaconBlockHeader{
@@ -347,11 +347,11 @@ func TestSignedBeaconBlockHeaderCompatibilityInvalidData(t *testing.T) {
 			// Test unmarshal with current implementation
 			current := &types.SignedBeaconBlockHeader{}
 			currentErr := current.UnmarshalSSZ(tc.data)
-			
+
 			// Test unmarshal with karalabe implementation
 			karalabe := &SignedBeaconBlockHeaderKaralabe{}
 			karalabelErr := karalabe.UnmarshalSSZ(tc.data)
-			
+
 			// Both should handle errors consistently
 			if currentErr != nil && karalabelErr != nil {
 				// Both errored, which is expected for invalid data
@@ -384,12 +384,12 @@ func TestSignedBeaconBlockHeaderCompatibilityRoundTrip(t *testing.T) {
 		StateRoot:       common.Root{7, 6, 5, 4, 3, 2, 1, 250, 240, 230, 220, 210, 200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10},
 		BodyRoot:        common.Root{100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131},
 	}
-	
+
 	var sig crypto.BLSSignature
 	for i := range sig {
 		sig[i] = byte(255 - i)
 	}
-	
+
 	original := &types.SignedBeaconBlockHeader{
 		Header:    header,
 		Signature: sig,
@@ -420,10 +420,10 @@ func TestSignedBeaconBlockHeaderCompatibilityRoundTrip(t *testing.T) {
 	require.Equal(t, original.Header.StateRoot, roundTrip.Header.StateRoot)
 	require.Equal(t, original.Header.BodyRoot, roundTrip.Header.BodyRoot)
 	require.Equal(t, original.Signature, roundTrip.Signature)
-	
+
 	// Verify both serializations are identical
 	require.Equal(t, currentBytes, karalableBytes, "both serializations should be identical")
-	
+
 	// Verify hash roots match throughout
 	originalRoot, err := original.HashTreeRoot()
 	require.NoError(t, err)
@@ -458,44 +458,44 @@ func TestSignedBeaconBlockHeaderCompatibilityFieldOrdering(t *testing.T) {
 			0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33,
 		},
 	}
-	
+
 	var sig crypto.BLSSignature
 	for i := range sig {
 		sig[i] = 0x44 // All signature bytes are 0x44
 	}
-	
+
 	current := &types.SignedBeaconBlockHeader{
 		Header:    header,
 		Signature: sig,
 	}
-	
+
 	// Marshal and verify field ordering
 	bytes, err := current.MarshalSSZ()
 	require.NoError(t, err)
 	require.Len(t, bytes, 208, "marshaled size should be 208 bytes")
-	
+
 	// Verify header fields are in correct order and little-endian
 	// Slot (8 bytes, little-endian) at offset 0
 	require.Equal(t, []byte{0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01}, bytes[0:8], "slot should be at offset 0 in little-endian")
-	
+
 	// ProposerIndex (8 bytes, little-endian) at offset 8
 	require.Equal(t, []byte{0x10, 0x0F, 0x0E, 0x0D, 0x0C, 0x0B, 0x0A, 0x09}, bytes[8:16], "proposer index should be at offset 8 in little-endian")
-	
+
 	// ParentBlockRoot (32 bytes) at offset 16
 	for i := 0; i < 32; i++ {
 		require.Equal(t, byte(0x11), bytes[16+i], "parent block root byte %d should be 0x11", i)
 	}
-	
+
 	// StateRoot (32 bytes) at offset 48
 	for i := 0; i < 32; i++ {
 		require.Equal(t, byte(0x22), bytes[48+i], "state root byte %d should be 0x22", i)
 	}
-	
+
 	// BodyRoot (32 bytes) at offset 80
 	for i := 0; i < 32; i++ {
 		require.Equal(t, byte(0x33), bytes[80+i], "body root byte %d should be 0x33", i)
 	}
-	
+
 	// Signature (96 bytes) at offset 112
 	for i := 0; i < 96; i++ {
 		require.Equal(t, byte(0x44), bytes[112+i], "signature byte %d should be 0x44", i)

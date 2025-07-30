@@ -83,26 +83,26 @@ func (w *WithdrawalRequestKaralabe) ValidateAfterDecodingSSZ() error { return ni
 // SizeSSZ returns the SSZ encoded size in bytes for the ExecutionRequestsKaralabe.
 func (e *ExecutionRequestsKaralabe) SizeSSZ(fixed bool) uint32 {
 	size := uint32(12) // 3 fields * 4 bytes offset each
-	
+
 	if fixed {
 		return size
 	}
-	
+
 	// Add dynamic sizes
-	size += uint32(len(e.Deposits) * 192)      // Each deposit is 192 bytes
-	size += uint32(len(e.Withdrawals) * 76)    // Each withdrawal is 76 bytes
+	size += uint32(len(e.Deposits) * 192)       // Each deposit is 192 bytes
+	size += uint32(len(e.Withdrawals) * 76)     // Each withdrawal is 76 bytes
 	size += uint32(len(e.Consolidations) * 116) // Each consolidation is 116 bytes
-	
+
 	return size
 }
 
 // DefineSSZ defines the SSZ encoding for the ExecutionRequestsKaralabe object.
 func (e *ExecutionRequestsKaralabe) DefineSSZ(codec *ssz.Codec) {
 	// Define offsets for dynamic fields
-	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Deposits, 8192)           // MaxDepositRequestsPerPayload
-	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Withdrawals, 16)          // MaxWithdrawalRequestsPerPayload
-	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Consolidations, 2)        // MaxConsolidationRequestsPerPayload
-	
+	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Deposits, 8192)    // MaxDepositRequestsPerPayload
+	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Withdrawals, 16)   // MaxWithdrawalRequestsPerPayload
+	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Consolidations, 2) // MaxConsolidationRequestsPerPayload
+
 	// Define content for dynamic fields
 	ssz.DefineSliceOfStaticObjectsContent(codec, &e.Deposits, 8192)
 	ssz.DefineSliceOfStaticObjectsContent(codec, &e.Withdrawals, 16)
@@ -156,7 +156,7 @@ func TestExecutionRequestsCompatibility(t *testing.T) {
 				for i := 1; i < 32; i++ {
 					creds[i] = byte(i)
 				}
-				
+
 				currentDep := &types.Deposit{
 					Pubkey:      pubkey,
 					Credentials: creds,
@@ -171,7 +171,7 @@ func TestExecutionRequestsCompatibility(t *testing.T) {
 					Signature:   crypto.BLSSignature{9, 10, 11, 12},
 					Index:       100,
 				}
-				
+
 				return &types.ExecutionRequests{
 						Deposits:       []*types.DepositRequest{currentDep},
 						Withdrawals:    []*types.WithdrawalRequest{},
@@ -189,7 +189,7 @@ func TestExecutionRequestsCompatibility(t *testing.T) {
 				addr := common.ExecutionAddress{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20}
 				pubkey := crypto.BLSPubkey{20, 21, 22, 23, 24}
 				amount := math.Gwei(1000000000)
-				
+
 				currentWithdrawal := &types.WithdrawalRequest{
 					SourceAddress:   addr,
 					ValidatorPubKey: pubkey,
@@ -200,7 +200,7 @@ func TestExecutionRequestsCompatibility(t *testing.T) {
 					ValidatorPubKey: pubkey,
 					Amount:          amount,
 				}
-				
+
 				return &types.ExecutionRequests{
 						Deposits:       []*types.DepositRequest{},
 						Withdrawals:    []*types.WithdrawalRequest{currentWithdrawal},
@@ -218,7 +218,7 @@ func TestExecutionRequestsCompatibility(t *testing.T) {
 				addr := common.ExecutionAddress{30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49}
 				srcPubkey := crypto.BLSPubkey{50, 51, 52, 53, 54}
 				tgtPubkey := crypto.BLSPubkey{60, 61, 62, 63, 64}
-				
+
 				currentCons := &types.ConsolidationRequest{
 					SourceAddress: addr,
 					SourcePubKey:  srcPubkey,
@@ -229,7 +229,7 @@ func TestExecutionRequestsCompatibility(t *testing.T) {
 					SourcePubKey:  srcPubkey,
 					TargetPubKey:  tgtPubkey,
 				}
-				
+
 				return &types.ExecutionRequests{
 						Deposits:       []*types.DepositRequest{},
 						Withdrawals:    []*types.WithdrawalRequest{},
@@ -251,7 +251,7 @@ func TestExecutionRequestsCompatibility(t *testing.T) {
 					pubkey := crypto.BLSPubkey{}
 					creds := types.WithdrawalCredentials{}
 					sig := crypto.BLSSignature{}
-					
+
 					for j := range pubkey {
 						pubkey[j] = byte(i*48 + j)
 					}
@@ -262,7 +262,7 @@ func TestExecutionRequestsCompatibility(t *testing.T) {
 					for j := range sig {
 						sig[j] = byte(i*96 + j)
 					}
-					
+
 					currentDeps[i] = &types.Deposit{
 						Pubkey:      pubkey,
 						Credentials: creds,
@@ -278,20 +278,20 @@ func TestExecutionRequestsCompatibility(t *testing.T) {
 						Index:       uint64(i * 100),
 					}
 				}
-				
+
 				currentWithdrawals := make([]*types.WithdrawalRequest, 3)
 				karalabeWithdrawals := make([]*WithdrawalRequestKaralabe, 3)
 				for i := 0; i < 3; i++ {
 					addr := common.ExecutionAddress{}
 					pubkey := crypto.BLSPubkey{}
-					
+
 					for j := range addr {
 						addr[j] = byte(i*20 + j)
 					}
 					for j := range pubkey {
 						pubkey[j] = byte(i*48 + j + 100)
 					}
-					
+
 					currentWithdrawals[i] = &types.WithdrawalRequest{
 						SourceAddress:   addr,
 						ValidatorPubKey: pubkey,
@@ -303,7 +303,7 @@ func TestExecutionRequestsCompatibility(t *testing.T) {
 						Amount:          math.Gwei(1000000000 * uint64(i+1)),
 					}
 				}
-				
+
 				currentCons := make([]*types.ConsolidationRequest, 1)
 				karalabeCons := make([]*ConsolidationRequestKaralabe, 1)
 				addr := common.ExecutionAddress{}
@@ -328,7 +328,7 @@ func TestExecutionRequestsCompatibility(t *testing.T) {
 					SourcePubKey:  srcPubkey,
 					TargetPubKey:  tgtPubkey,
 				}
-				
+
 				return &types.ExecutionRequests{
 						Deposits:       currentDeps,
 						Withdrawals:    currentWithdrawals,
@@ -344,16 +344,16 @@ func TestExecutionRequestsCompatibility(t *testing.T) {
 			name: "maximum elements",
 			setup: func() (*types.ExecutionRequests, *ExecutionRequestsKaralabe) {
 				// Test with maximum allowed elements (using smaller numbers for testing)
-				maxDeps := 5  // Using smaller number for test
+				maxDeps := 5 // Using smaller number for test
 				maxWithdrawals := 4
 				maxCons := 2
-				
+
 				currentDeps := make([]*types.DepositRequest, maxDeps)
 				karalabeDeps := make([]*DepositKaralabe, maxDeps)
 				for i := 0; i < maxDeps; i++ {
 					pubkey := crypto.BLSPubkey{}
 					pubkey[0] = byte(i)
-					
+
 					currentDeps[i] = &types.Deposit{
 						Pubkey:      pubkey,
 						Credentials: types.WithdrawalCredentials{0x01},
@@ -369,7 +369,7 @@ func TestExecutionRequestsCompatibility(t *testing.T) {
 						Index:       uint64(i),
 					}
 				}
-				
+
 				currentWithdrawals := make([]*types.WithdrawalRequest, maxWithdrawals)
 				karalabeWithdrawals := make([]*WithdrawalRequestKaralabe, maxWithdrawals)
 				for i := 0; i < maxWithdrawals; i++ {
@@ -377,7 +377,7 @@ func TestExecutionRequestsCompatibility(t *testing.T) {
 					addr[0] = byte(i)
 					pubkey := crypto.BLSPubkey{}
 					pubkey[0] = byte(i + 50)
-					
+
 					currentWithdrawals[i] = &types.WithdrawalRequest{
 						SourceAddress:   addr,
 						ValidatorPubKey: pubkey,
@@ -389,7 +389,7 @@ func TestExecutionRequestsCompatibility(t *testing.T) {
 						Amount:          1000000000,
 					}
 				}
-				
+
 				currentCons := make([]*types.ConsolidationRequest, maxCons)
 				karalabeCons := make([]*ConsolidationRequestKaralabe, maxCons)
 				for i := 0; i < maxCons; i++ {
@@ -399,7 +399,7 @@ func TestExecutionRequestsCompatibility(t *testing.T) {
 					srcPubkey[0] = byte(i + 120)
 					tgtPubkey := crypto.BLSPubkey{}
 					tgtPubkey[0] = byte(i + 140)
-					
+
 					currentCons[i] = &types.ConsolidationRequest{
 						SourceAddress: addr,
 						SourcePubKey:  srcPubkey,
@@ -411,7 +411,7 @@ func TestExecutionRequestsCompatibility(t *testing.T) {
 						TargetPubKey:  tgtPubkey,
 					}
 				}
-				
+
 				return &types.ExecutionRequests{
 						Deposits:       currentDeps,
 						Withdrawals:    currentWithdrawals,
@@ -432,10 +432,10 @@ func TestExecutionRequestsCompatibility(t *testing.T) {
 			// Test Marshal
 			currentBytes, err1 := current.MarshalSSZ()
 			require.NoError(t, err1, "current MarshalSSZ should not error")
-			
+
 			karalabelBytes, err2 := karalabe.MarshalSSZ()
 			require.NoError(t, err2, "karalabe MarshalSSZ should not error")
-			
+
 			require.Equal(t, karalabelBytes, currentBytes, "marshaled bytes should be identical")
 
 			// Test Size
@@ -448,7 +448,7 @@ func TestExecutionRequestsCompatibility(t *testing.T) {
 			require.Equal(t, len(current.Deposits), len(newCurrent.Deposits), "deposits lengths should match")
 			require.Equal(t, len(current.Withdrawals), len(newCurrent.Withdrawals), "withdrawals lengths should match")
 			require.Equal(t, len(current.Consolidations), len(newCurrent.Consolidations), "consolidations lengths should match")
-			
+
 			// Compare each element
 			for i := range current.Deposits {
 				require.Equal(t, current.Deposits[i], newCurrent.Deposits[i], "deposit at index %d should match", i)
@@ -501,13 +501,13 @@ func TestExecutionRequestsCompatibilityEdgeCases(t *testing.T) {
 			expectError: false,
 		},
 		{
-			name: "invalid offset ordering",
-			data: []byte{20, 0, 0, 0, 16, 0, 0, 0, 12, 0, 0, 0}, // Offsets not in ascending order
+			name:        "invalid offset ordering",
+			data:        []byte{20, 0, 0, 0, 16, 0, 0, 0, 12, 0, 0, 0}, // Offsets not in ascending order
 			expectError: true,
 		},
 		{
-			name: "offset beyond data",
-			data: []byte{255, 255, 255, 255, 12, 0, 0, 0, 12, 0, 0, 0}, // First offset way too large
+			name:        "offset beyond data",
+			data:        []byte{255, 255, 255, 255, 12, 0, 0, 0, 12, 0, 0, 0}, // First offset way too large
 			expectError: true,
 		},
 	}
@@ -517,11 +517,11 @@ func TestExecutionRequestsCompatibilityEdgeCases(t *testing.T) {
 			// Test with current implementation
 			current := &types.ExecutionRequests{}
 			currentErr := current.UnmarshalSSZ(tc.data)
-			
+
 			// Test with karalabe implementation
 			karalabe := &ExecutionRequestsKaralabe{}
 			karalabelErr := karalabe.UnmarshalSSZ(tc.data)
-			
+
 			// Both should behave the same way
 			if tc.expectError {
 				require.Error(t, currentErr, "current should error")
@@ -547,12 +547,12 @@ func TestExecutionRequestsCompatibilityOrdering(t *testing.T) {
 		Withdrawals:    make([]*WithdrawalRequestKaralabe, 2),
 		Consolidations: make([]*ConsolidationRequestKaralabe, 1),
 	}
-	
+
 	// Create deposits with decreasing indices to test ordering
 	for i := 0; i < 3; i++ {
 		pubkey := crypto.BLSPubkey{}
 		pubkey[0] = byte(3 - i) // Reverse order
-		
+
 		current.Deposits[i] = &types.Deposit{
 			Pubkey:      pubkey,
 			Credentials: types.WithdrawalCredentials{0x01},
@@ -568,12 +568,12 @@ func TestExecutionRequestsCompatibilityOrdering(t *testing.T) {
 			Index:       uint64(1000 - i*100),
 		}
 	}
-	
+
 	// Create withdrawals with specific amounts
 	for i := 0; i < 2; i++ {
 		addr := common.ExecutionAddress{}
 		addr[0] = byte(100 - i*10)
-		
+
 		current.Withdrawals[i] = &types.WithdrawalRequest{
 			SourceAddress:   addr,
 			ValidatorPubKey: crypto.BLSPubkey{byte(50 - i*10)},
@@ -585,7 +585,7 @@ func TestExecutionRequestsCompatibilityOrdering(t *testing.T) {
 			Amount:          math.Gwei(5000000000 - uint64(i)*1000000000),
 		}
 	}
-	
+
 	// Create single consolidation
 	current.Consolidations[0] = &types.ConsolidationRequest{
 		SourceAddress: common.ExecutionAddress{200},
@@ -597,36 +597,36 @@ func TestExecutionRequestsCompatibilityOrdering(t *testing.T) {
 		SourcePubKey:  crypto.BLSPubkey{201},
 		TargetPubKey:  crypto.BLSPubkey{202},
 	}
-	
+
 	// Marshal both
 	currentBytes, err := current.MarshalSSZ()
 	require.NoError(t, err)
 	karalabelBytes, err := karalabe.MarshalSSZ()
 	require.NoError(t, err)
-	
+
 	// Unmarshal into new objects
 	newCurrent := &types.ExecutionRequests{}
 	err = newCurrent.UnmarshalSSZ(karalabelBytes)
 	require.NoError(t, err)
-	
+
 	newKaralabe := &ExecutionRequestsKaralabe{}
 	err = newKaralabe.UnmarshalSSZ(currentBytes)
 	require.NoError(t, err)
-	
+
 	// Verify ordering is preserved for deposits
 	for i := 0; i < 3; i++ {
 		require.Equal(t, byte(3-i), newCurrent.Deposits[i].Pubkey[0], "current deposit ordering preserved at index %d", i)
 		require.Equal(t, uint64(1000-i*100), newCurrent.Deposits[i].Index, "current deposit index preserved at index %d", i)
-		
+
 		require.Equal(t, byte(3-i), newKaralabe.Deposits[i].Pubkey[0], "karalabe deposit ordering preserved at index %d", i)
 		require.Equal(t, uint64(1000-i*100), newKaralabe.Deposits[i].Index, "karalabe deposit index preserved at index %d", i)
 	}
-	
+
 	// Verify ordering for withdrawals
 	for i := 0; i < 2; i++ {
 		require.Equal(t, byte(100-i*10), newCurrent.Withdrawals[i].SourceAddress[0], "current withdrawal ordering preserved at index %d", i)
 		require.Equal(t, math.Gwei(5000000000-uint64(i)*1000000000), newCurrent.Withdrawals[i].Amount, "current withdrawal amount preserved at index %d", i)
-		
+
 		require.Equal(t, byte(100-i*10), newKaralabe.Withdrawals[i].SourceAddress[0], "karalabe withdrawal ordering preserved at index %d", i)
 		require.Equal(t, math.Gwei(5000000000-uint64(i)*1000000000), newKaralabe.Withdrawals[i].Amount, "karalabe withdrawal amount preserved at index %d", i)
 	}
@@ -688,7 +688,7 @@ func TestExecutionRequestsCompatibilityRoundTrip(t *testing.T) {
 	require.Equal(t, len(original.Deposits), len(roundTrip.Deposits), "deposits length should match")
 	require.Equal(t, len(original.Withdrawals), len(roundTrip.Withdrawals), "withdrawals length should match")
 	require.Equal(t, len(original.Consolidations), len(roundTrip.Consolidations), "consolidations length should match")
-	
+
 	// Verify each element
 	for i := range original.Deposits {
 		require.Equal(t, original.Deposits[i], roundTrip.Deposits[i], "deposit %d should match after round trip", i)
@@ -699,10 +699,10 @@ func TestExecutionRequestsCompatibilityRoundTrip(t *testing.T) {
 	for i := range original.Consolidations {
 		require.Equal(t, original.Consolidations[i], roundTrip.Consolidations[i], "consolidation %d should match after round trip", i)
 	}
-	
+
 	// Verify both serializations are identical
 	require.Equal(t, currentBytes, karalabelBytes, "both serializations should be identical")
-	
+
 	// Verify hash roots match throughout
 	originalRoot, err := original.HashTreeRoot()
 	require.NoError(t, err)

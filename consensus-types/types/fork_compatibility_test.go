@@ -171,7 +171,7 @@ func (fd *ForkDataKaralabe) UnmarshalSSZ(buf []byte) error {
 // produces identical SSZ encoding/decoding results as the original karalabe/ssz implementation.
 func TestForkCompatibility(t *testing.T) {
 	testCases := []struct {
-		name string
+		name  string
 		setup func() (*types.Fork, *ForkKaralabe)
 	}{
 		{
@@ -263,10 +263,10 @@ func TestForkCompatibility(t *testing.T) {
 			// Test Marshal
 			currentBytes, err := current.MarshalSSZ()
 			require.NoError(t, err, "current MarshalSSZ should not error")
-			
+
 			karalabelBytes, err := karalabe.MarshalSSZ()
 			require.NoError(t, err, "karalabe MarshalSSZ should not error")
-			
+
 			require.Equal(t, karalabelBytes, currentBytes, "marshaled bytes should be identical")
 
 			// Test Unmarshal
@@ -302,7 +302,7 @@ func TestForkCompatibility(t *testing.T) {
 // produces identical SSZ encoding/decoding results as the original karalabe/ssz implementation.
 func TestForkDataCompatibility(t *testing.T) {
 	testCases := []struct {
-		name string
+		name  string
 		setup func() (*types.ForkData, *ForkDataKaralabe)
 	}{
 		{
@@ -402,10 +402,10 @@ func TestForkDataCompatibility(t *testing.T) {
 			// Test Marshal
 			currentBytes, err := current.MarshalSSZ()
 			require.NoError(t, err, "current MarshalSSZ should not error")
-			
+
 			karalabelBytes, err := karalabe.MarshalSSZ()
 			require.NoError(t, err, "karalabe MarshalSSZ should not error")
-			
+
 			require.Equal(t, karalabelBytes, currentBytes, "marshaled bytes should be identical")
 
 			// Test Unmarshal
@@ -452,7 +452,7 @@ func TestForkCompatibilityFuzz(t *testing.T) {
 		require.NoError(t, err)
 		karalabelBytes, err := karalabe.MarshalSSZ()
 		require.NoError(t, err)
-		
+
 		// They should be identical
 		require.Equal(t, karalabelBytes, currentBytes, "fuzzing: marshaled bytes should be identical for iteration %d", i)
 	}
@@ -483,7 +483,7 @@ func TestForkDataCompatibilityFuzz(t *testing.T) {
 		require.NoError(t, err)
 		karalabelBytes, err := karalabe.MarshalSSZ()
 		require.NoError(t, err)
-		
+
 		// They should be identical
 		require.Equal(t, karalabelBytes, currentBytes, "fuzzing: marshaled bytes should be identical for iteration %d", i)
 	}
@@ -498,35 +498,35 @@ func TestForkCompatibilityRoundTrip(t *testing.T) {
 
 	// Create using current implementation
 	current := types.NewFork(prevVersion, currVersion, epoch)
-	
+
 	// Marshal with current
 	currentBytes, err := current.MarshalSSZ()
 	require.NoError(t, err)
-	
+
 	// Unmarshal with karalabe
 	karalabe := &ForkKaralabe{}
 	err = karalabe.UnmarshalSSZ(currentBytes)
 	require.NoError(t, err)
-	
+
 	// Verify values
 	require.Equal(t, prevVersion, karalabe.PreviousVersion)
 	require.Equal(t, currVersion, karalabe.CurrentVersion)
 	require.Equal(t, epoch, karalabe.Epoch)
-	
+
 	// Marshal with karalabe
 	karalabelBytes, err := karalabe.MarshalSSZ()
 	require.NoError(t, err)
-	
+
 	// Unmarshal with current
 	newCurrent := &types.Fork{}
 	err = newCurrent.UnmarshalSSZ(karalabelBytes)
 	require.NoError(t, err)
-	
+
 	// Verify values
 	require.Equal(t, prevVersion, newCurrent.PreviousVersion)
 	require.Equal(t, currVersion, newCurrent.CurrentVersion)
 	require.Equal(t, epoch, newCurrent.Epoch)
-	
+
 	// Bytes should be identical
 	require.Equal(t, currentBytes, karalabelBytes)
 }
@@ -545,33 +545,33 @@ func TestForkDataCompatibilityRoundTrip(t *testing.T) {
 		CurrentVersion:        version,
 		GenesisValidatorsRoot: root,
 	}
-	
+
 	// Marshal with current
 	currentBytes, err := current.MarshalSSZ()
 	require.NoError(t, err)
-	
+
 	// Unmarshal with karalabe
 	karalabe := &ForkDataKaralabe{}
 	err = karalabe.UnmarshalSSZ(currentBytes)
 	require.NoError(t, err)
-	
+
 	// Verify values
 	require.Equal(t, version, karalabe.CurrentVersion)
 	require.Equal(t, root, karalabe.GenesisValidatorsRoot)
-	
+
 	// Marshal with karalabe
 	karalabelBytes, err := karalabe.MarshalSSZ()
 	require.NoError(t, err)
-	
+
 	// Unmarshal with current
 	newCurrent := &types.ForkData{}
 	err = newCurrent.UnmarshalSSZ(karalabelBytes)
 	require.NoError(t, err)
-	
+
 	// Verify values
 	require.Equal(t, version, newCurrent.CurrentVersion)
 	require.Equal(t, root, newCurrent.GenesisValidatorsRoot)
-	
+
 	// Bytes should be identical
 	require.Equal(t, currentBytes, karalabelBytes)
 }

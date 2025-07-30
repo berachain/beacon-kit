@@ -99,10 +99,10 @@ func TestSignedBeaconBlockSSZRoundTrip(t *testing.T) {
 			// Test 5: HashTreeRoot
 			htr1, err := signedBlock.HashTreeRoot()
 			require.NoError(t, err)
-			
+
 			htr2, err := newSignedBlock.HashTreeRoot()
 			require.NoError(t, err)
-			
+
 			require.Equal(t, htr1, htr2)
 		})
 	}
@@ -160,15 +160,15 @@ func TestSignedBeaconBlockSSZEdgeCases(t *testing.T) {
 		// Test unmarshaling invalid data
 		signedBlock, err := NewEmptySignedBeaconBlockWithVersion(forkVersion)
 		require.NoError(t, err)
-		
+
 		// Too short
 		err = signedBlock.UnmarshalSSZ(make([]byte, 50))
 		require.Error(t, err)
-		
+
 		// Empty
 		err = signedBlock.UnmarshalSSZ([]byte{})
 		require.Error(t, err)
-		
+
 		// Invalid offset (less than minimum required for offset + signature)
 		invalidData := make([]byte, 100)
 		// Set an invalid offset at position 0-4
@@ -184,17 +184,17 @@ func TestSignedBeaconBlockSSZEdgeCases(t *testing.T) {
 		// Test with more complex nested data
 		slot := math.Slot(999999)
 		proposerIndex := math.ValidatorIndex(12345)
-		
+
 		// Create block with nested data
 		block, err := NewBeaconBlockWithVersion(slot, proposerIndex, common.Root{}, forkVersion)
 		require.NoError(t, err)
-		
+
 		// Add blob commitments
 		block.Body.BlobKzgCommitments = []eip4844.KZGCommitment{
 			{1, 2, 3},
 			{4, 5, 6},
 		}
-		
+
 		// Add deposits
 		block.Body.Deposits = []*Deposit{
 			{
@@ -240,12 +240,12 @@ func TestSignedBeaconBlockSSZConsistency(t *testing.T) {
 		forkVersion,
 	)
 	require.NoError(t, err)
-	
+
 	// Set additional fields
 	block.StateRoot = common.Root{10, 20, 30, 40, 50}
 	block.Body.RandaoReveal = [96]byte{100, 101, 102}
 	block.Body.Graffiti = [32]byte{200, 201, 202}
-	
+
 	// Create signed block
 	signedBlock := &SignedBeaconBlock{
 		BeaconBlock: block,
@@ -257,29 +257,29 @@ func TestSignedBeaconBlockSSZConsistency(t *testing.T) {
 		// Marshal
 		bytes, err := signedBlock.MarshalSSZ()
 		require.NoError(t, err)
-		
+
 		// Create new signed block and unmarshal
 		newSignedBlock, err := NewEmptySignedBeaconBlockWithVersion(forkVersion)
 		require.NoError(t, err)
 		err = newSignedBlock.UnmarshalSSZ(bytes)
 		require.NoError(t, err)
-		
+
 		// Marshal again
 		newBytes, err := newSignedBlock.MarshalSSZ()
 		require.NoError(t, err)
-		
+
 		// Bytes should be identical
 		require.Equal(t, bytes, newBytes, "Round trip %d produced different bytes", i)
-		
+
 		// HashTreeRoot should be identical
 		htr1, err := signedBlock.HashTreeRoot()
 		require.NoError(t, err)
-		
+
 		htr2, err := newSignedBlock.HashTreeRoot()
 		require.NoError(t, err)
-		
+
 		require.Equal(t, htr1, htr2, "Round trip %d produced different HTR", i)
-		
+
 		// Use the new signed block for the next iteration
 		signedBlock = newSignedBlock
 	}

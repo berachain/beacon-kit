@@ -35,7 +35,6 @@ import (
 
 const sszWithdrawRequestSize = 76 // ExecutionAddress = 20, ValidatorPubKey = 48, Amount = 8
 
-
 // WithdrawalRequest is introduced in EIP7002 which we use for withdrawals.
 type WithdrawalRequest struct {
 	SourceAddress   common.ExecutionAddress
@@ -47,11 +46,6 @@ type WithdrawalRequest struct {
 func (w *WithdrawalRequest) ValidateAfterDecodingSSZ() error {
 	return nil
 }
-
-
-
-
-
 
 /* -------------------------------------------------------------------------- */
 /*                       Withdrawal Requests SSZ                              */

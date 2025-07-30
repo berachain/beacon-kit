@@ -25,8 +25,8 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
-	"github.com/prysmaticlabs/gohashtree"
 	fastssz "github.com/ferranbt/fastssz"
+	"github.com/prysmaticlabs/gohashtree"
 )
 
 const (

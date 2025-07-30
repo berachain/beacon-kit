@@ -43,7 +43,6 @@ func (ut *UnusedType) SizeSSZ() int {
 	return 1
 }
 
-
 // MarshalSSZ marshals the UnusedType object to SSZ format.
 func (ut *UnusedType) MarshalSSZ() ([]byte, error) {
 	return []byte{byte(*ut)}, nil
@@ -92,8 +91,6 @@ func (ut *UnusedType) UnmarshalSSZ(buf []byte) error {
 	// Validate after unmarshaling
 	return ut.EnforceUnused()
 }
-
-
 
 // HashTreeRootWith ssz hashes the UnusedType object with a hasher.
 func (ut *UnusedType) HashTreeRootWith(hh fastssz.HashWalker) error {

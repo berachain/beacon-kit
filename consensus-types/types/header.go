@@ -28,7 +28,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-
 var (
 	_ constraints.SSZMarshallableRootable = (*BeaconBlockHeader)(nil)
 )
@@ -73,7 +72,6 @@ func NewEmptyBeaconBlockHeader() *BeaconBlockHeader {
 }
 
 func (*BeaconBlockHeader) ValidateAfterDecodingSSZ() error { return nil }
-
 
 /* -------------------------------------------------------------------------- */
 /*                            Getters and Setters                             */

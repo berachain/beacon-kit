@@ -101,7 +101,6 @@ func (h *ExecutionPayloadHeader) SizeSSZ() int {
 	return int(ExecutionPayloadHeaderStaticSize) + len(h.ExtraData)
 }
 
-
 // MarshalSSZ serializes the ExecutionPayloadHeader object into a slice of
 // bytes.
 func (h *ExecutionPayloadHeader) MarshalSSZ() ([]byte, error) {
@@ -119,7 +118,7 @@ func (h *ExecutionPayloadHeader) HashTreeRoot() ([32]byte, error) {
 		return [32]byte{}, err
 	}
 	return hh.HashRoot()
-	
+
 }
 
 /* -------------------------------------------------------------------------- */
@@ -211,7 +210,6 @@ func (h *ExecutionPayloadHeader) UnmarshalSSZ(buf []byte) error {
 
 	return nil
 }
-
 
 // HashTreeRootWith ssz hashes the ExecutionPayloadHeaderDeneb object with a
 // hasher

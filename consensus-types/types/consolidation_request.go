@@ -34,7 +34,6 @@ import (
 
 const sszConsolidationRequestSize = 116
 
-
 // ConsolidationRequest is introduced in Pectra but not used by us.
 // We keep it so we can maintain parity tests with other SSZ implementations.
 type ConsolidationRequest struct {
@@ -47,9 +46,6 @@ type ConsolidationRequest struct {
 func (c *ConsolidationRequest) ValidateAfterDecodingSSZ() error {
 	return nil
 }
-
-
-
 
 /* -------------------------------------------------------------------------- */
 /*                       Consolidation Requests SSZ                           */

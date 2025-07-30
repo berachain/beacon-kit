@@ -377,7 +377,7 @@ func TestWithdrawalRequestsSSZInvalidData(t *testing.T) {
 // TestWithdrawalRequestCompatibility tests that current and karalabe implementations produce identical results
 func TestWithdrawalRequestCompatibility(t *testing.T) {
 	testCases := []struct {
-		name string
+		name  string
 		setup func() (*types.WithdrawalRequest, *WithdrawalRequestKaralabe)
 	}{
 		{
@@ -404,7 +404,7 @@ func TestWithdrawalRequestCompatibility(t *testing.T) {
 					0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f, 0x30,
 				}
 				amount := math.Gwei(32000000000) // 32 ETH
-				
+
 				current := &types.WithdrawalRequest{
 					SourceAddress:   sourceAddr,
 					ValidatorPubKey: pubkey,
@@ -430,7 +430,7 @@ func TestWithdrawalRequestCompatibility(t *testing.T) {
 					pubkey[i] = 0xFF
 				}
 				amount := math.Gwei(^uint64(0))
-				
+
 				current := &types.WithdrawalRequest{
 					SourceAddress:   sourceAddr,
 					ValidatorPubKey: pubkey,
@@ -461,7 +461,7 @@ func TestWithdrawalRequestCompatibility(t *testing.T) {
 					0xff, 0xee, 0xdd, 0xcc, 0xbb, 0xaa, 0x99, 0x88,
 				}
 				amount := math.Gwei(1_000_000_000) // 1 ETH
-				
+
 				current := &types.WithdrawalRequest{
 					SourceAddress:   sourceAddr,
 					ValidatorPubKey: pubkey,
@@ -484,10 +484,10 @@ func TestWithdrawalRequestCompatibility(t *testing.T) {
 			// Test Marshal
 			currentBytes, err1 := current.MarshalSSZ()
 			require.NoError(t, err1, "current MarshalSSZ should not error")
-			
+
 			karalabeBytes, err2 := karalabe.MarshalSSZ()
 			require.NoError(t, err2, "karalabe MarshalSSZ should not error")
-			
+
 			require.Equal(t, karalabeBytes, currentBytes, "marshaled bytes should be identical")
 
 			// Test Size

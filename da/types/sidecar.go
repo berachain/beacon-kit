@@ -133,7 +133,6 @@ func (b *BlobSidecar) GetSignature() crypto.BLSSignature {
 /*                                     SSZ                                    */
 /* -------------------------------------------------------------------------- */
 
-
 // SizeSSZ returns the size of the BlobSidecar object in SSZ encoding.
 func (b *BlobSidecar) SizeSSZ() int {
 	return 8 + // Index
@@ -261,7 +260,6 @@ func (b *BlobSidecar) UnmarshalSSZ(buf []byte) error {
 
 	return b.ValidateAfterDecodingSSZ()
 }
-
 
 // HashTreeRootWith ssz hashes the BlobSidecar object with a hasher.
 func (b *BlobSidecar) HashTreeRootWith(hh fastssz.HashWalker) error {

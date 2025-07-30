@@ -92,14 +92,14 @@ func merkleizeBytesN(data []byte) [32]byte {
 	if chunkCount == 0 {
 		chunkCount = 1
 	}
-	
+
 	// Create a temporary hasher
 	hh := fastssz.DefaultHasherPool.Get()
 	defer fastssz.DefaultHasherPool.Put(hh)
-	
+
 	// Start merkleization
 	indx := hh.Index()
-	
+
 	// Append data in 32-byte chunks
 	for i := 0; i < len(data); i += 32 {
 		var chunk [32]byte
@@ -110,7 +110,7 @@ func merkleizeBytesN(data []byte) [32]byte {
 		copy(chunk[:], data[i:end])
 		hh.Append(chunk[:])
 	}
-	
+
 	// Merkleize with length mixin
 	hh.MerkleizeWithMixin(indx, uint64(len(data)), uint64(len(data)))
 	root, _ := hh.HashRoot()

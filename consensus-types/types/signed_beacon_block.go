@@ -86,7 +86,6 @@ func (b *SignedBeaconBlock) SizeSSZ() int {
 	return 4 + 96 + b.BeaconBlock.SizeSSZ()
 }
 
-
 // MarshalSSZ marshals the SignedBeaconBlock object to SSZ format.
 func (b *SignedBeaconBlock) MarshalSSZ() ([]byte, error) {
 	buf := make([]byte, 0, b.SizeSSZ())
@@ -106,7 +105,7 @@ func (b *SignedBeaconBlock) HashTreeRoot() ([32]byte, error) {
 		return [32]byte{}, err
 	}
 	return hh.HashRoot()
-	
+
 }
 
 /* -------------------------------------------------------------------------- */
@@ -168,7 +167,6 @@ func (b *SignedBeaconBlock) UnmarshalSSZ(buf []byte) error {
 
 	return b.ValidateAfterDecodingSSZ()
 }
-
 
 // HashTreeRootWith ssz hashes the SignedBeaconBlock object with a hasher.
 func (b *SignedBeaconBlock) HashTreeRootWith(hh fastssz.HashWalker) error {

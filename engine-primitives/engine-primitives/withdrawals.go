@@ -44,7 +44,6 @@ func (w Withdrawals) SizeSSZ() int {
 	return 4 + len(w)*44 // offset + each withdrawal is 44 bytes
 }
 
-
 // HashTreeRoot returns the hash tree root of the Withdrawals.
 func (w Withdrawals) HashTreeRoot() ([32]byte, error) {
 	hh := fastssz.DefaultHasherPool.Get()

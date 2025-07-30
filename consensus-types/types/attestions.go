@@ -45,7 +45,6 @@ func (as Attestations) SizeSSZ() int {
 	return 4 + len(as)*16 // offset + each attestation size (UnusedType is 16 bytes)
 }
 
-
 // HashTreeRoot returns the hash tree root of the Attestations.
 func (as Attestations) HashTreeRoot() ([32]byte, error) {
 	hh := fastssz.DefaultHasherPool.Get()
@@ -54,7 +53,7 @@ func (as Attestations) HashTreeRoot() ([32]byte, error) {
 		return [32]byte{}, err
 	}
 	return hh.HashRoot()
-	
+
 }
 
 /* -------------------------------------------------------------------------- */

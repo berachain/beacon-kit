@@ -123,7 +123,7 @@ func TestEth1DataCompatibility(t *testing.T) {
 			setup: func() (*types.Eth1Data, *Eth1DataKaralabe) {
 				var depositRoot common.Root
 				var blockHash common.ExecutionHash
-				
+
 				// Fill with max values
 				for i := range depositRoot {
 					depositRoot[i] = 0xFF
@@ -131,7 +131,7 @@ func TestEth1DataCompatibility(t *testing.T) {
 				for i := range blockHash {
 					blockHash[i] = 0xFF
 				}
-				
+
 				depositCount := math.U64(^uint64(0)) // max uint64
 
 				current := &types.Eth1Data{
@@ -153,7 +153,7 @@ func TestEth1DataCompatibility(t *testing.T) {
 				// Create a specific pattern for testing
 				var depositRoot common.Root
 				var blockHash common.ExecutionHash
-				
+
 				// Alternating pattern
 				for i := range depositRoot {
 					if i%2 == 0 {
@@ -162,12 +162,12 @@ func TestEth1DataCompatibility(t *testing.T) {
 						depositRoot[i] = 0x55
 					}
 				}
-				
+
 				// Sequential pattern
 				for i := range blockHash {
 					blockHash[i] = byte(i)
 				}
-				
+
 				depositCount := math.U64(123456789)
 
 				current := &types.Eth1Data{
@@ -187,8 +187,8 @@ func TestEth1DataCompatibility(t *testing.T) {
 			name: "genesis eth1 data",
 			setup: func() (*types.Eth1Data, *Eth1DataKaralabe) {
 				// Simulate genesis eth1 data
-				depositRoot := common.Root{} // zero root
-				depositCount := math.U64(0)  // no deposits
+				depositRoot := common.Root{}        // zero root
+				depositCount := math.U64(0)         // no deposits
 				blockHash := common.ExecutionHash{} // zero hash
 
 				current := &types.Eth1Data{
@@ -213,10 +213,10 @@ func TestEth1DataCompatibility(t *testing.T) {
 			// Test Marshal
 			currentBytes, err1 := current.MarshalSSZ()
 			require.NoError(t, err1, "current MarshalSSZ should not error")
-			
+
 			karalableBytes, err2 := karalabe.MarshalSSZ()
 			require.NoError(t, err2, "karalabe MarshalSSZ should not error")
-			
+
 			require.Equal(t, karalableBytes, currentBytes, "marshaled bytes should be identical")
 
 			// Test Size
@@ -251,15 +251,15 @@ func TestEth1DataCompatibilityFuzz(t *testing.T) {
 		// Create random but valid eth1 data
 		var depositRoot common.Root
 		var blockHash common.ExecutionHash
-		
+
 		// Use deterministic "random" data based on iteration
 		for j := range depositRoot {
 			depositRoot[j] = byte((i + j) % 256)
 		}
 		for j := range blockHash {
-			blockHash[j] = byte((i * 2 + j) % 256)
+			blockHash[j] = byte((i*2 + j) % 256)
 		}
-		
+
 		depositCount := math.U64(uint64(i) * 999)
 
 		current := &types.Eth1Data{
@@ -302,7 +302,7 @@ func TestEth1DataCompatibilityInvalidData(t *testing.T) {
 			data: make([]byte, 40), // Only deposit root (32) + count (8), missing block hash
 		},
 		{
-			name: "insufficient data - partial block hash", 
+			name: "insufficient data - partial block hash",
 			data: make([]byte, 60), // deposit root (32) + count (8) + partial block hash (20)
 		},
 		{
@@ -320,11 +320,11 @@ func TestEth1DataCompatibilityInvalidData(t *testing.T) {
 			// Test unmarshal with current implementation
 			current := &types.Eth1Data{}
 			currentErr := current.UnmarshalSSZ(tc.data)
-			
+
 			// Test unmarshal with karalabe implementation
 			karalabe := &Eth1DataKaralabe{}
 			karalabelErr := karalabe.UnmarshalSSZ(tc.data)
-			
+
 			// Both should handle errors consistently
 			if currentErr != nil && karalabelErr != nil {
 				// Both errored, which is expected for invalid data
@@ -371,10 +371,10 @@ func TestEth1DataCompatibilityRoundTrip(t *testing.T) {
 
 	// Verify round trip preserved all data
 	require.Equal(t, original, roundTrip, "round trip should preserve all data")
-	
+
 	// Verify both serializations are identical
 	require.Equal(t, currentBytes, karalableBytes, "both serializations should be identical")
-	
+
 	// Verify hash roots match throughout
 	originalRoot, err := original.HashTreeRoot()
 	require.NoError(t, err)
@@ -388,29 +388,29 @@ func TestEth1DataCompatibilityRoundTrip(t *testing.T) {
 func TestEth1DataCompatibilityEndianness(t *testing.T) {
 	// Create eth1 data with a specific deposit count that shows endianness
 	depositCount := math.U64(0x0102030405060708) // This will show byte order clearly
-	
+
 	current := &types.Eth1Data{
 		DepositRoot:  common.Root{},
 		DepositCount: depositCount,
 		BlockHash:    common.ExecutionHash{},
 	}
-	
+
 	karalabe := &Eth1DataKaralabe{
 		DepositRoot:  common.Root{},
-		DepositCount: depositCount, 
+		DepositCount: depositCount,
 		BlockHash:    common.ExecutionHash{},
 	}
 
 	// Marshal both
 	currentBytes, err := current.MarshalSSZ()
 	require.NoError(t, err)
-	
+
 	karalableBytes, err := karalabe.MarshalSSZ()
 	require.NoError(t, err)
-	
+
 	// Verify they're identical
 	require.Equal(t, karalableBytes, currentBytes, "endianness encoding should be identical")
-	
+
 	// Verify the deposit count is encoded in little-endian at offset 32
 	// Offset 32 = after DepositRoot (32 bytes)
 	expectedLE := []byte{0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01}

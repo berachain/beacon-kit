@@ -41,14 +41,14 @@ import (
 // in beacon-kit-karalabe at path consensus-types/types/state.go
 type SimplifiedBeaconStateKaralabe struct {
 	constraints.Versionable `json:"-"`
-	
+
 	// Core fields (simplified to focus on fork logic)
-	Slot              math.Slot       `json:"slot,omitempty"`
-	TotalSlashing     math.Gwei       `json:"total_slashing,omitempty"`
-	
+	Slot          math.Slot `json:"slot,omitempty"`
+	TotalSlashing math.Gwei `json:"total_slashing,omitempty"`
+
 	// Dynamic field to represent other fields without implementing full SSZ
-	DummyDynamicField []uint64        `json:"dummy_dynamic_field,omitempty"`
-	
+	DummyDynamicField []uint64 `json:"dummy_dynamic_field,omitempty"`
+
 	// Fork-specific field: only present in Electra and later
 	PendingPartialWithdrawals []*PendingPartialWithdrawalKaralabe `json:"pending_partial_withdrawals,omitempty"`
 }
@@ -90,18 +90,18 @@ func (st *SimplifiedBeaconStateKaralabe) DefineSSZ(codec *ssz.Codec) {
 	// Fixed fields
 	ssz.DefineUint64(codec, &st.Slot)
 	ssz.DefineUint64(codec, (*uint64)(&st.TotalSlashing))
-	
+
 	// Dynamic field offset
 	ssz.DefineSliceOfUint64sOffset(codec, &st.DummyDynamicField, 100)
-	
+
 	// Electra-specific offset
 	if version.EqualsOrIsAfter(st.GetForkVersion(), version.Electra()) {
 		ssz.DefineSliceOfStaticObjectsOffset(codec, &st.PendingPartialWithdrawals, constants.PendingPartialWithdrawalsLimit)
 	}
-	
+
 	// Dynamic content
 	ssz.DefineSliceOfUint64sContent(codec, &st.DummyDynamicField, 100)
-	
+
 	// Electra-specific content
 	if version.EqualsOrIsAfter(st.GetForkVersion(), version.Electra()) {
 		ssz.DefineSliceOfStaticObjectsContent(codec, &st.PendingPartialWithdrawals, constants.PendingPartialWithdrawalsLimit)
@@ -130,14 +130,14 @@ func (st *SimplifiedBeaconStateKaralabe) ValidateAfterDecodingSSZ() error { retu
 // that focuses on the fork-specific SSZ logic for testing compatibility
 type SimplifiedBeaconState struct {
 	types.Versionable `json:"-"`
-	
+
 	// Core fields (simplified to focus on fork logic)
-	Slot              math.Slot       `json:"slot,omitempty"`
-	TotalSlashing     math.Gwei       `json:"total_slashing,omitempty"`
-	
+	Slot          math.Slot `json:"slot,omitempty"`
+	TotalSlashing math.Gwei `json:"total_slashing,omitempty"`
+
 	// Dynamic field to represent other fields without implementing full SSZ
-	DummyDynamicField []uint64        `json:"dummy_dynamic_field,omitempty"`
-	
+	DummyDynamicField []uint64 `json:"dummy_dynamic_field,omitempty"`
+
 	// Fork-specific field: only present in Electra and later
 	PendingPartialWithdrawals []*types.PendingPartialWithdrawal `json:"pending_partial_withdrawals,omitempty"`
 }
@@ -177,30 +177,30 @@ func (st *SimplifiedBeaconState) MarshalSSZ() ([]byte, error) {
 func (st *SimplifiedBeaconState) MarshalSSZTo(buf []byte) ([]byte, error) {
 	// Encode Slot
 	buf = fastssz.MarshalUint64(buf, uint64(st.Slot))
-	
+
 	// Encode TotalSlashing
 	buf = fastssz.MarshalUint64(buf, uint64(st.TotalSlashing))
-	
+
 	// Calculate offsets
 	offset := uint32(20) // After fixed fields
 	if version.EqualsOrIsAfter(st.GetForkVersion(), version.Electra()) {
 		offset += 4
 	}
-	
+
 	// Write DummyDynamicField offset
 	buf = fastssz.MarshalUint32(buf, offset)
 	offset += uint32(len(st.DummyDynamicField) * 8)
-	
+
 	// Write PendingPartialWithdrawals offset if Electra
 	if version.EqualsOrIsAfter(st.GetForkVersion(), version.Electra()) {
 		buf = fastssz.MarshalUint32(buf, offset)
 	}
-	
+
 	// Write DummyDynamicField content
 	for _, val := range st.DummyDynamicField {
 		buf = fastssz.MarshalUint64(buf, val)
 	}
-	
+
 	// Write PendingPartialWithdrawals content if Electra
 	if version.EqualsOrIsAfter(st.GetForkVersion(), version.Electra()) {
 		for _, ppw := range st.PendingPartialWithdrawals {
@@ -211,7 +211,7 @@ func (st *SimplifiedBeaconState) MarshalSSZTo(buf []byte) ([]byte, error) {
 			buf = append(buf, ppwBytes...)
 		}
 	}
-	
+
 	return buf, nil
 }
 
@@ -219,31 +219,31 @@ func (st *SimplifiedBeaconState) MarshalSSZTo(buf []byte) ([]byte, error) {
 func (st *SimplifiedBeaconState) UnmarshalSSZ(buf []byte) error {
 	// This is a simplified implementation for testing
 	// A full implementation would handle all fields properly
-	
+
 	expectedMinSize := 20
 	if version.EqualsOrIsAfter(st.GetForkVersion(), version.Electra()) {
 		expectedMinSize = 24
 	}
-	
+
 	if len(buf) < expectedMinSize {
 		return fastssz.ErrSize
 	}
-	
+
 	// Decode Slot
 	st.Slot = math.Slot(fastssz.UnmarshallUint64(buf[0:8]))
-	
+
 	// Decode TotalSlashing
 	st.TotalSlashing = math.Gwei(fastssz.UnmarshallUint64(buf[8:16]))
-	
+
 	// Decode DummyDynamicField offset
 	dummyOffset := fastssz.UnmarshallUint32(buf[16:20])
-	
+
 	// Decode PendingPartialWithdrawals offset if Electra
 	var ppwOffset uint32
 	if version.EqualsOrIsAfter(st.GetForkVersion(), version.Electra()) {
 		ppwOffset = fastssz.UnmarshallUint32(buf[20:24])
 	}
-	
+
 	// Decode DummyDynamicField
 	if version.EqualsOrIsAfter(st.GetForkVersion(), version.Electra()) {
 		if ppwOffset > dummyOffset {
@@ -254,7 +254,7 @@ func (st *SimplifiedBeaconState) UnmarshalSSZ(buf []byte) error {
 				st.DummyDynamicField[i] = fastssz.UnmarshallUint64(buf[start : start+8])
 			}
 		}
-		
+
 		// Decode PendingPartialWithdrawals
 		if ppwOffset < uint32(len(buf)) {
 			remaining := buf[ppwOffset:]
@@ -278,7 +278,7 @@ func (st *SimplifiedBeaconState) UnmarshalSSZ(buf []byte) error {
 			}
 		}
 	}
-	
+
 	return nil
 }
 
@@ -305,12 +305,12 @@ func TestBeaconStateCompatibility(t *testing.T) {
 				current.Slot = 12345
 				current.TotalSlashing = 1000000
 				current.DummyDynamicField = []uint64{1, 2, 3, 4, 5}
-				
+
 				karalabe := NewEmptySimplifiedBeaconStateWithVersionKaralabe(version.Deneb())
 				karalabe.Slot = 12345
 				karalabe.TotalSlashing = 1000000
 				karalabe.DummyDynamicField = []uint64{1, 2, 3, 4, 5}
-				
+
 				return current, karalabe
 			},
 		},
@@ -323,13 +323,13 @@ func TestBeaconStateCompatibility(t *testing.T) {
 				current.TotalSlashing = 2000000
 				current.DummyDynamicField = []uint64{10, 20, 30}
 				current.PendingPartialWithdrawals = []*types.PendingPartialWithdrawal{}
-				
+
 				karalabe := NewEmptySimplifiedBeaconStateWithVersionKaralabe(version.Electra())
 				karalabe.Slot = 54321
 				karalabe.TotalSlashing = 2000000
 				karalabe.DummyDynamicField = []uint64{10, 20, 30}
 				karalabe.PendingPartialWithdrawals = []*PendingPartialWithdrawalKaralabe{}
-				
+
 				return current, karalabe
 			},
 		},
@@ -347,7 +347,7 @@ func TestBeaconStateCompatibility(t *testing.T) {
 					Amount:            75000000,
 					WithdrawableEpoch: 2000,
 				}
-				
+
 				ppw1Karalabe := &PendingPartialWithdrawalKaralabe{
 					ValidatorIndex:    100,
 					Amount:            50000000,
@@ -358,41 +358,41 @@ func TestBeaconStateCompatibility(t *testing.T) {
 					Amount:            75000000,
 					WithdrawableEpoch: 2000,
 				}
-				
+
 				current := NewEmptySimplifiedBeaconStateWithVersion(version.Electra())
 				current.Slot = 99999
 				current.TotalSlashing = 3000000
 				current.DummyDynamicField = []uint64{100, 200}
 				current.PendingPartialWithdrawals = []*types.PendingPartialWithdrawal{ppw1, ppw2}
-				
+
 				karalabe := NewEmptySimplifiedBeaconStateWithVersionKaralabe(version.Electra())
 				karalabe.Slot = 99999
 				karalabe.TotalSlashing = 3000000
 				karalabe.DummyDynamicField = []uint64{100, 200}
 				karalabe.PendingPartialWithdrawals = []*PendingPartialWithdrawalKaralabe{ppw1Karalabe, ppw2Karalabe}
-				
+
 				return current, karalabe
 			},
 		},
 	}
-	
+
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			current, karalabe := tc.setup()
-			
+
 			// Test Marshal
 			currentBytes, err1 := current.MarshalSSZ()
 			require.NoError(t, err1, "current MarshalSSZ should not error")
-			
+
 			karalabelBytes, err2 := karalabe.MarshalSSZ()
 			require.NoError(t, err2, "karalabe MarshalSSZ should not error")
-			
+
 			require.Equal(t, karalabelBytes, currentBytes, "marshaled bytes should be identical")
-			
+
 			// Test Size
 			karalabelSize := karalabe.SizeSSZ(false)
 			require.Equal(t, int(karalabelSize), current.SizeSSZ(), "sizes should match")
-			
+
 			// Test Unmarshal with karalabe marshaled data
 			newCurrent := NewEmptySimplifiedBeaconStateWithVersion(tc.version)
 			err := newCurrent.UnmarshalSSZ(karalabelBytes)
@@ -401,7 +401,7 @@ func TestBeaconStateCompatibility(t *testing.T) {
 			require.Equal(t, current.TotalSlashing, newCurrent.TotalSlashing, "total slashing should match after unmarshal")
 			require.Equal(t, current.DummyDynamicField, newCurrent.DummyDynamicField, "dummy field should match after unmarshal")
 			require.Equal(t, len(current.PendingPartialWithdrawals), len(newCurrent.PendingPartialWithdrawals), "pending withdrawals count should match")
-			
+
 			// Test Unmarshal with current marshaled data
 			newKaralabe := NewEmptySimplifiedBeaconStateWithVersionKaralabe(tc.version)
 			err = newKaralabe.UnmarshalSSZ(currentBytes)
@@ -410,7 +410,7 @@ func TestBeaconStateCompatibility(t *testing.T) {
 			require.Equal(t, karalabe.TotalSlashing, newKaralabe.TotalSlashing, "total slashing should match after unmarshal")
 			require.Equal(t, karalabe.DummyDynamicField, newKaralabe.DummyDynamicField, "dummy field should match after unmarshal")
 			require.Equal(t, len(karalabe.PendingPartialWithdrawals), len(newKaralabe.PendingPartialWithdrawals), "pending withdrawals count should match")
-			
+
 			// For Electra, verify PendingPartialWithdrawals content
 			if tc.version == version.Electra() && len(current.PendingPartialWithdrawals) > 0 {
 				for i, ppw := range current.PendingPartialWithdrawals {
@@ -430,51 +430,51 @@ func TestBeaconStateCompatibilityForkTransition(t *testing.T) {
 	denebCurrent.Slot = 8888
 	denebCurrent.TotalSlashing = 500000
 	denebCurrent.DummyDynamicField = []uint64{7, 8, 9}
-	
+
 	denebKaralabe := NewEmptySimplifiedBeaconStateWithVersionKaralabe(version.Deneb())
 	denebKaralabe.Slot = 8888
 	denebKaralabe.TotalSlashing = 500000
 	denebKaralabe.DummyDynamicField = []uint64{7, 8, 9}
-	
+
 	// Marshal Deneb states
 	denebCurrentBytes, err := denebCurrent.MarshalSSZ()
 	require.NoError(t, err)
-	
+
 	denebKaralabelBytes, err := denebKaralabe.MarshalSSZ()
 	require.NoError(t, err)
-	
+
 	// Verify Deneb encoding is identical
 	require.Equal(t, denebKaralabelBytes, denebCurrentBytes, "Deneb marshaled bytes should be identical")
-	
+
 	// Verify Deneb has no PendingPartialWithdrawals offset (20 bytes base + dynamic content)
 	require.Equal(t, 20, len(denebCurrentBytes)-len(denebCurrent.DummyDynamicField)*8, "Deneb should have 20 bytes of fixed fields + offsets")
-	
+
 	// Create an Electra state with same base fields
 	electraCurrent := NewEmptySimplifiedBeaconStateWithVersion(version.Electra())
 	electraCurrent.Slot = 8888
 	electraCurrent.TotalSlashing = 500000
 	electraCurrent.DummyDynamicField = []uint64{7, 8, 9}
 	electraCurrent.PendingPartialWithdrawals = []*types.PendingPartialWithdrawal{} // Empty but present
-	
+
 	electraKaralabe := NewEmptySimplifiedBeaconStateWithVersionKaralabe(version.Electra())
 	electraKaralabe.Slot = 8888
 	electraKaralabe.TotalSlashing = 500000
 	electraKaralabe.DummyDynamicField = []uint64{7, 8, 9}
 	electraKaralabe.PendingPartialWithdrawals = []*PendingPartialWithdrawalKaralabe{} // Empty but present
-	
+
 	// Marshal Electra states
 	electraCurrentBytes, err := electraCurrent.MarshalSSZ()
 	require.NoError(t, err)
-	
+
 	electraKaralabelBytes, err := electraKaralabe.MarshalSSZ()
 	require.NoError(t, err)
-	
+
 	// Verify Electra encoding is identical
 	require.Equal(t, electraKaralabelBytes, electraCurrentBytes, "Electra marshaled bytes should be identical")
-	
+
 	// Verify Electra has PendingPartialWithdrawals offset (24 bytes base + dynamic content)
 	require.Equal(t, 24, len(electraCurrentBytes)-len(electraCurrent.DummyDynamicField)*8, "Electra should have 24 bytes of fixed fields + offsets")
-	
+
 	// Verify Deneb and Electra encodings are different due to fork-specific field
 	require.NotEqual(t, denebCurrentBytes, electraCurrentBytes, "Deneb and Electra encodings should differ")
 }
@@ -505,19 +505,19 @@ func TestBeaconStateCompatibilityEdgeCases(t *testing.T) {
 						WithdrawableEpoch: math.Epoch(i * 100),
 					})
 				}
-				
+
 				current := NewEmptySimplifiedBeaconStateWithVersion(version.Electra())
 				current.Slot = 77777
 				current.TotalSlashing = 9999999
 				current.DummyDynamicField = []uint64{}
 				current.PendingPartialWithdrawals = ppws
-				
+
 				karalabe := NewEmptySimplifiedBeaconStateWithVersionKaralabe(version.Electra())
 				karalabe.Slot = 77777
 				karalabe.TotalSlashing = 9999999
 				karalabe.DummyDynamicField = []uint64{}
 				karalabe.PendingPartialWithdrawals = ppwsKaralabe
-				
+
 				return current, karalabe
 			},
 		},
@@ -536,10 +536,10 @@ func TestBeaconStateCompatibilityEdgeCases(t *testing.T) {
 			setup: func() (*SimplifiedBeaconState, *SimplifiedBeaconStateKaralabe) {
 				current := NewEmptySimplifiedBeaconStateWithVersion(version.Electra())
 				current.PendingPartialWithdrawals = []*types.PendingPartialWithdrawal{}
-				
+
 				karalabe := NewEmptySimplifiedBeaconStateWithVersionKaralabe(version.Electra())
 				karalabe.PendingPartialWithdrawals = []*PendingPartialWithdrawalKaralabe{}
-				
+
 				return current, karalabe
 			},
 		},
@@ -558,7 +558,7 @@ func TestBeaconStateCompatibilityEdgeCases(t *testing.T) {
 						WithdrawableEpoch: math.Epoch(^uint64(0)),
 					},
 				}
-				
+
 				karalabe := NewEmptySimplifiedBeaconStateWithVersionKaralabe(version.Electra())
 				karalabe.Slot = math.Slot(^uint64(0))
 				karalabe.TotalSlashing = math.Gwei(^uint64(0))
@@ -570,30 +570,30 @@ func TestBeaconStateCompatibilityEdgeCases(t *testing.T) {
 						WithdrawableEpoch: math.Epoch(^uint64(0)),
 					},
 				}
-				
+
 				return current, karalabe
 			},
 		},
 	}
-	
+
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			current, karalabe := tc.setup()
-			
+
 			// Test Marshal
 			currentBytes, err1 := current.MarshalSSZ()
 			require.NoError(t, err1, "current MarshalSSZ should not error")
-			
+
 			karalabelBytes, err2 := karalabe.MarshalSSZ()
 			require.NoError(t, err2, "karalabe MarshalSSZ should not error")
-			
+
 			require.Equal(t, karalabelBytes, currentBytes, "marshaled bytes should be identical")
-			
+
 			// Test round-trip
 			newCurrent := NewEmptySimplifiedBeaconStateWithVersion(tc.version)
 			err := newCurrent.UnmarshalSSZ(currentBytes)
 			require.NoError(t, err, "unmarshal should not error")
-			
+
 			// Re-marshal and verify it's still the same
 			newCurrentBytes, err := newCurrent.MarshalSSZ()
 			require.NoError(t, err, "re-marshal should not error")

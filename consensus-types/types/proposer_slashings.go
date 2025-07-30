@@ -45,7 +45,6 @@ func (ps ProposerSlashings) SizeSSZ() int {
 	return 4 + len(ps)*16 // offset + each proposer slashing size (UnusedType is 16 bytes)
 }
 
-
 // HashTreeRoot returns the hash tree root of the ProposerSlashings.
 func (ps ProposerSlashings) HashTreeRoot() ([32]byte, error) {
 	hh := fastssz.DefaultHasherPool.Get()
@@ -54,7 +53,7 @@ func (ps ProposerSlashings) HashTreeRoot() ([32]byte, error) {
 		return [32]byte{}, err
 	}
 	return hh.HashRoot()
-	
+
 }
 
 /* -------------------------------------------------------------------------- */

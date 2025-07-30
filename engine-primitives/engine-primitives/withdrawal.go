@@ -73,7 +73,6 @@ func (*Withdrawal) SizeSSZ() int {
 	return withdrawalSize
 }
 
-
 // HashTreeRoot returns the SSZ hash tree root of the Withdrawal.
 func (w *Withdrawal) HashTreeRoot() ([32]byte, error) {
 	hh := fastssz.DefaultHasherPool.Get()

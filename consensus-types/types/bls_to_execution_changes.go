@@ -45,7 +45,6 @@ func (bs BlsToExecutionChanges) SizeSSZ() int {
 	return 4 + len(bs)*16 // offset + each change size (UnusedType is 16 bytes)
 }
 
-
 // HashTreeRoot returns the hash tree root of the BlsToExecutionChanges.
 func (bs BlsToExecutionChanges) HashTreeRoot() ([32]byte, error) {
 	hh := fastssz.DefaultHasherPool.Get()
@@ -54,7 +53,7 @@ func (bs BlsToExecutionChanges) HashTreeRoot() ([32]byte, error) {
 		return [32]byte{}, err
 	}
 	return hh.HashRoot()
-	
+
 }
 
 /* -------------------------------------------------------------------------- */

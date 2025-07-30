@@ -465,7 +465,7 @@ func TestExecutionPayloadHeaderCompatibility(t *testing.T) {
 			newCurrent := types.NewEmptyExecutionPayloadHeaderWithVersion(tc.version)
 			err := newCurrent.UnmarshalSSZ(karalableBytes)
 			require.NoError(t, err, "unmarshal karalabe data into current should not error")
-			
+
 			// Normalize ExtraData field for comparison (nil vs empty slice)
 			if newCurrent.ExtraData == nil && len(current.ExtraData) == 0 {
 				newCurrent.ExtraData = []byte{}
@@ -476,7 +476,7 @@ func TestExecutionPayloadHeaderCompatibility(t *testing.T) {
 			newKaralabe := NewEmptyExecutionPayloadHeaderWithVersionKaralabe(tc.version)
 			err = newKaralabe.UnmarshalSSZ(currentBytes)
 			require.NoError(t, err, "unmarshal current data into karalabe should not error")
-			
+
 			// Normalize ExtraData field for comparison (nil vs empty slice)
 			if newKaralabe.ExtraData == nil && len(karalabe.ExtraData) == 0 {
 				newKaralabe.ExtraData = []byte{}

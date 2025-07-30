@@ -167,7 +167,7 @@ func TestBeaconBlockHeaderCompatibility(t *testing.T) {
 				// Genesis typically has slot 0 and special root values
 				slot := math.Slot(0)
 				proposerIndex := math.ValidatorIndex(0)
-				parentRoot := common.Root{} // Zero root for genesis
+				parentRoot := common.Root{}    // Zero root for genesis
 				stateRoot := common.Root{0x01} // Some genesis state root
 				bodyRoot := common.Root{0x02}  // Some genesis body root
 
@@ -197,10 +197,10 @@ func TestBeaconBlockHeaderCompatibility(t *testing.T) {
 			// Test Marshal
 			currentBytes, err1 := current.MarshalSSZ()
 			require.NoError(t, err1, "current MarshalSSZ should not error")
-			
+
 			karalableBytes, err2 := karalabe.MarshalSSZ()
 			require.NoError(t, err2, "karalabe MarshalSSZ should not error")
-			
+
 			require.Equal(t, karalableBytes, currentBytes, "marshaled bytes should be identical")
 
 			// Test Size
@@ -235,13 +235,13 @@ func TestBeaconBlockHeaderCompatibilityFuzz(t *testing.T) {
 		// Create random but valid header data
 		slot := math.Slot(uint64(i) * 12345)
 		proposerIndex := math.ValidatorIndex(uint64(i) % 1000)
-		
+
 		var parentRoot, stateRoot, bodyRoot common.Root
 		// Use deterministic "random" data based on iteration
 		for j := range parentRoot {
 			parentRoot[j] = byte((i + j) % 256)
-			stateRoot[j] = byte((i * 2 + j) % 256)
-			bodyRoot[j] = byte((i * 3 + j) % 256)
+			stateRoot[j] = byte((i*2 + j) % 256)
+			bodyRoot[j] = byte((i*3 + j) % 256)
 		}
 
 		current := &types.BeaconBlockHeader{
@@ -302,11 +302,11 @@ func TestBeaconBlockHeaderCompatibilityInvalidData(t *testing.T) {
 			// Test unmarshal with current implementation
 			current := &types.BeaconBlockHeader{}
 			currentErr := current.UnmarshalSSZ(tc.data)
-			
+
 			// Test unmarshal with karalabe implementation
 			karalabe := &BeaconBlockHeaderKaralabe{}
 			karalabelErr := karalabe.UnmarshalSSZ(tc.data)
-			
+
 			// Both should handle errors consistently
 			if currentErr != nil && karalabelErr != nil {
 				// Both errored, which is expected for invalid data
@@ -357,10 +357,10 @@ func TestBeaconBlockHeaderCompatibilityRoundTrip(t *testing.T) {
 
 	// Verify round trip preserved all data
 	require.Equal(t, original, roundTrip, "round trip should preserve all data")
-	
+
 	// Verify both serializations are identical
 	require.Equal(t, currentBytes, karalableBytes, "both serializations should be identical")
-	
+
 	// Verify hash roots match throughout
 	originalRoot, err := original.HashTreeRoot()
 	require.NoError(t, err)

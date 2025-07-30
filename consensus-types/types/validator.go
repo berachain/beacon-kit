@@ -30,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-
 var (
 	_ constraints.SSZMarshallableRootable = (*Validator)(nil)
 )
@@ -100,7 +99,6 @@ func ComputeEffectiveBalance(
 }
 
 func (*Validator) ValidateAfterDecodingSSZ() error { return nil }
-
 
 /* -------------------------------------------------------------------------- */
 /*                             Getters and Setters                            */

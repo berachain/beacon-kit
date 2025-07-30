@@ -118,7 +118,7 @@ func (bs *BlobSidecars) MarshalSSZTo(dst []byte) ([]byte, error) {
 	// Write offset
 	offset := 4
 	dst = fastssz.MarshalUint32(dst, uint32(offset))
-	
+
 	// Write sidecars
 	for _, sidecar := range *bs {
 		var err error
@@ -127,7 +127,7 @@ func (bs *BlobSidecars) MarshalSSZTo(dst []byte) ([]byte, error) {
 			return nil, err
 		}
 	}
-	
+
 	return dst, nil
 }
 
@@ -136,25 +136,25 @@ func (bs *BlobSidecars) UnmarshalSSZ(buf []byte) error {
 	if len(buf) < 4 {
 		return fastssz.ErrSize
 	}
-	
+
 	// Read offset
 	offset := fastssz.UnmarshallUint32(buf[0:4])
 	if offset != 4 {
 		return fastssz.ErrInvalidVariableOffset
 	}
-	
+
 	// Calculate number of sidecars
 	blobSidecarSize := 131720 // 8 + 131072 + 48 + 48 + 208 + 17*32
 	remaining := len(buf) - 4
 	if remaining%blobSidecarSize != 0 {
 		return errors.New("invalid buffer size for blob sidecars")
 	}
-	
+
 	count := remaining / blobSidecarSize
 	if count > constants.MaxBlobSidecarsPerBlock {
 		return fmt.Errorf("too many blob sidecars: %d > %d", count, constants.MaxBlobSidecarsPerBlock)
 	}
-	
+
 	// Unmarshal each sidecar
 	*bs = make(BlobSidecars, count)
 	for i := 0; i < count; i++ {
@@ -165,7 +165,7 @@ func (bs *BlobSidecars) UnmarshalSSZ(buf []byte) error {
 			return err
 		}
 	}
-	
+
 	return bs.ValidateAfterDecodingSSZ()
 }
 

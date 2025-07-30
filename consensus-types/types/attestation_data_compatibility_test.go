@@ -102,7 +102,7 @@ func TestAttestationDataCompatibility(t *testing.T) {
 			name: "typical attestation data",
 			setup: func() (*types.AttestationData, *AttestationDataKaralabe) {
 				root := common.Root{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32}
-				
+
 				current := &types.AttestationData{
 					Slot:            math.U64(12345),
 					Index:           math.U64(67890),
@@ -123,7 +123,7 @@ func TestAttestationDataCompatibility(t *testing.T) {
 				for i := range root {
 					root[i] = 0xFF
 				}
-				
+
 				current := &types.AttestationData{
 					Slot:            math.U64(^uint64(0)),
 					Index:           math.U64(^uint64(0)),
@@ -146,7 +146,7 @@ func TestAttestationDataCompatibility(t *testing.T) {
 					0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff,
 					0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0,
 				}
-				
+
 				current := &types.AttestationData{
 					Slot:            math.U64(1000),
 					Index:           math.U64(5),
@@ -169,10 +169,10 @@ func TestAttestationDataCompatibility(t *testing.T) {
 			// Test Marshal
 			currentBytes, err1 := current.MarshalSSZ()
 			require.NoError(t, err1, "current MarshalSSZ should not error")
-			
+
 			karalableBytes, err2 := karalabe.MarshalSSZ()
 			require.NoError(t, err2, "karalabe MarshalSSZ should not error")
-			
+
 			require.Equal(t, karalableBytes, currentBytes, "marshaled bytes should be identical")
 
 			// Test Size
@@ -206,12 +206,12 @@ func TestAttestationDataCompatibilityFuzz(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		// Create random but valid attestation data
 		var root common.Root
-		
+
 		// Use deterministic "random" data based on iteration
 		for j := range root {
 			root[j] = byte((i + j) % 256)
 		}
-		
+
 		slot := math.U64(uint64(i) * 12345)
 		index := math.U64(uint64(i) * 67)
 
@@ -269,11 +269,11 @@ func TestAttestationDataCompatibilityInvalidData(t *testing.T) {
 			// Test unmarshal with current implementation
 			current := &types.AttestationData{}
 			currentErr := current.UnmarshalSSZ(tc.data)
-			
+
 			// Test unmarshal with karalabe implementation
 			karalabe := &AttestationDataKaralabe{}
 			karalabelErr := karalabe.UnmarshalSSZ(tc.data)
-			
+
 			// Both should handle errors consistently
 			if currentErr != nil && karalabelErr != nil {
 				// Both errored, which is expected for invalid data
@@ -325,10 +325,10 @@ func TestAttestationDataCompatibilityRoundTrip(t *testing.T) {
 
 	// Verify round trip preserved all data
 	require.Equal(t, original, roundTrip, "round trip should preserve all data")
-	
+
 	// Verify both serializations are identical
 	require.Equal(t, currentBytes, karalableBytes, "both serializations should be identical")
-	
+
 	// Verify hash roots match throughout
 	originalRoot, err := original.HashTreeRoot()
 	require.NoError(t, err)

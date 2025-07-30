@@ -45,7 +45,6 @@ func (ass AttesterSlashings) SizeSSZ() int {
 	return 4 + len(ass)*16 // offset + each attester slashing size (UnusedType is 16 bytes)
 }
 
-
 // HashTreeRoot returns the hash tree root of the AttesterSlashings.
 func (ass AttesterSlashings) HashTreeRoot() ([32]byte, error) {
 	hh := fastssz.DefaultHasherPool.Get()
@@ -54,7 +53,7 @@ func (ass AttesterSlashings) HashTreeRoot() ([32]byte, error) {
 		return [32]byte{}, err
 	}
 	return hh.HashRoot()
-	
+
 }
 
 /* -------------------------------------------------------------------------- */

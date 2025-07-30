@@ -67,11 +67,11 @@ func TestWithdrawalRequestsCompatibility(t *testing.T) {
 			name: "multiple withdrawal requests",
 			setup: func() types.WithdrawalRequests {
 				withdrawals := make(types.WithdrawalRequests, 5)
-				
+
 				for i := 0; i < 5; i++ {
 					addr := common.ExecutionAddress{}
 					pubkey := crypto.BLSPubkey{}
-					
+
 					// Fill with unique data for each withdrawal
 					for j := range addr {
 						addr[j] = byte(i*20 + j)
@@ -79,16 +79,16 @@ func TestWithdrawalRequestsCompatibility(t *testing.T) {
 					for j := range pubkey {
 						pubkey[j] = byte(i*48 + j)
 					}
-					
+
 					amount := math.Gwei(1000000000 * uint64(i+1)) // Varying amounts
-					
+
 					withdrawals[i] = &types.WithdrawalRequest{
 						SourceAddress:   addr,
 						ValidatorPubKey: pubkey,
 						Amount:          amount,
 					}
 				}
-				
+
 				return withdrawals
 			},
 		},
@@ -96,26 +96,26 @@ func TestWithdrawalRequestsCompatibility(t *testing.T) {
 			name: "withdrawals with various amounts",
 			setup: func() types.WithdrawalRequests {
 				amounts := []uint64{
-					0,             // Full exit request
-					1000000000,    // 1 ETH
-					16000000000,   // 16 ETH
-					32000000000,   // 32 ETH
+					0,           // Full exit request
+					1000000000,  // 1 ETH
+					16000000000, // 16 ETH
+					32000000000, // 32 ETH
 				}
-				
+
 				withdrawals := make(types.WithdrawalRequests, len(amounts))
 				for i, amount := range amounts {
 					addr := common.ExecutionAddress{}
 					addr[0] = byte(i)
 					pubkey := crypto.BLSPubkey{}
 					pubkey[0] = byte(i + 50)
-					
+
 					withdrawals[i] = &types.WithdrawalRequest{
 						SourceAddress:   addr,
 						ValidatorPubKey: pubkey,
 						Amount:          math.Gwei(amount),
 					}
 				}
-				
+
 				return withdrawals
 			},
 		},
@@ -127,7 +127,7 @@ func TestWithdrawalRequestsCompatibility(t *testing.T) {
 				for i := range maxWithdrawals {
 					addr := common.ExecutionAddress{}
 					pubkey := crypto.BLSPubkey{}
-					
+
 					// Use different patterns for variety
 					for j := range addr {
 						addr[j] = byte((i + j) % 256)
@@ -135,14 +135,14 @@ func TestWithdrawalRequestsCompatibility(t *testing.T) {
 					for j := range pubkey {
 						pubkey[j] = byte((i*2 + j) % 256)
 					}
-					
+
 					maxWithdrawals[i] = &types.WithdrawalRequest{
 						SourceAddress:   addr,
 						ValidatorPubKey: pubkey,
 						Amount:          math.Gwei(1000000000 * uint64(i+1)),
 					}
 				}
-				
+
 				return maxWithdrawals
 			},
 		},
@@ -159,10 +159,10 @@ func TestWithdrawalRequestsCompatibility(t *testing.T) {
 			// Test Decode (which is the unmarshal operation for this type)
 			decoded, err := types.DecodeWithdrawalRequests(marshaled)
 			require.NoError(t, err, "DecodeWithdrawalRequests should not error")
-			
+
 			// Verify lengths match
 			require.Equal(t, len(withdrawals), len(decoded), "decoded length should match original")
-			
+
 			// Verify each withdrawal matches
 			for i := range withdrawals {
 				require.Equal(t, withdrawals[i].SourceAddress, decoded[i].SourceAddress, "source address at index %d should match", i)
@@ -184,7 +184,7 @@ func TestWithdrawalRequestsEmptySlice(t *testing.T) {
 	marshaled, err := empty.MarshalSSZ()
 	require.NoError(t, err)
 	require.Equal(t, 0, len(marshaled), "empty slice should marshal to empty bytes")
-	
+
 	// But decoding empty bytes fails due to validation
 	_, err = types.DecodeWithdrawalRequests(marshaled)
 	require.Error(t, err, "decoding empty bytes should error")
@@ -199,21 +199,21 @@ func TestWithdrawalRequestsEIP7685Encoding(t *testing.T) {
 		ValidatorPubKey: crypto.BLSPubkey{1, 2, 3},
 		Amount:          32000000000,
 	}
-	
+
 	withdrawals := types.WithdrawalRequests{withdrawal}
-	
+
 	// Marshal using EIP-7685 format
 	marshaled, err := withdrawals.MarshalSSZ()
 	require.NoError(t, err)
-	
+
 	// Verify the marshaled data is exactly 76 bytes (one withdrawal)
 	require.Equal(t, 76, len(marshaled), "single withdrawal should be 76 bytes")
-	
+
 	// Test with multiple withdrawals
 	withdrawals = types.WithdrawalRequests{withdrawal, withdrawal, withdrawal}
 	marshaled, err = withdrawals.MarshalSSZ()
 	require.NoError(t, err)
-	
+
 	// Verify the marshaled data is exactly 228 bytes (three withdrawals)
 	require.Equal(t, 228, len(marshaled), "three withdrawals should be 228 bytes")
 }
@@ -225,25 +225,25 @@ func TestWithdrawalRequestsValidation(t *testing.T) {
 	for i := range maxWithdrawals {
 		addr := common.ExecutionAddress{}
 		addr[0] = byte(i)
-		
+
 		maxWithdrawals[i] = &types.WithdrawalRequest{
 			SourceAddress:   addr,
 			ValidatorPubKey: crypto.BLSPubkey{byte(i)},
 			Amount:          32000000000,
 		}
 	}
-	
+
 	// This should validate successfully
 	err := maxWithdrawals.ValidateAfterDecodingSSZ()
 	require.NoError(t, err, "max withdrawals should validate successfully")
-	
+
 	// Create one more than allowed
 	tooManyWithdrawals := append(maxWithdrawals, &types.WithdrawalRequest{
 		SourceAddress:   common.ExecutionAddress{255},
 		ValidatorPubKey: crypto.BLSPubkey{255},
 		Amount:          32000000000,
 	})
-	
+
 	// This should fail validation
 	err = tooManyWithdrawals.ValidateAfterDecodingSSZ()
 	require.Error(t, err, "too many withdrawals should fail validation")
@@ -297,7 +297,7 @@ func TestWithdrawalRequestsDecodeErrors(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			decoded, err := types.DecodeWithdrawalRequests(tc.data)
-			
+
 			if tc.expectError {
 				require.Error(t, err, "should error")
 				if tc.errorContains != "" {
@@ -319,40 +319,40 @@ func TestWithdrawalRequestsOrdering(t *testing.T) {
 	// Create withdrawals with specific ordering based on amount
 	count := 10
 	withdrawals := make(types.WithdrawalRequests, count)
-	
+
 	for i := 0; i < count; i++ {
 		addr := common.ExecutionAddress{}
 		pubkey := crypto.BLSPubkey{}
-		
+
 		// Make address based on reverse order to ensure ordering is preserved
 		addr[0] = byte(count - i - 1)
 		pubkey[0] = byte(count - i - 1)
-		
+
 		// Use descending amounts to test ordering
 		amount := math.Gwei(uint64(count-i) * 1000000000)
-		
+
 		withdrawals[i] = &types.WithdrawalRequest{
 			SourceAddress:   addr,
 			ValidatorPubKey: pubkey,
 			Amount:          amount,
 		}
 	}
-	
+
 	// Marshal
 	marshaled, err := withdrawals.MarshalSSZ()
 	require.NoError(t, err)
-	
+
 	// Decode
 	decoded, err := types.DecodeWithdrawalRequests(marshaled)
 	require.NoError(t, err)
-	
+
 	// Verify ordering is preserved
 	require.Equal(t, count, len(decoded))
-	
+
 	for i := 0; i < count; i++ {
 		expectedByte := byte(count - i - 1)
 		expectedAmount := math.Gwei(uint64(count-i) * 1000000000)
-		
+
 		require.Equal(t, expectedByte, decoded[i].SourceAddress[0], "address ordering preserved at index %d", i)
 		require.Equal(t, expectedByte, decoded[i].ValidatorPubKey[0], "pubkey ordering preserved at index %d", i)
 		require.Equal(t, expectedAmount, decoded[i].Amount, "amount ordering preserved at index %d", i)
@@ -379,15 +379,15 @@ func TestWithdrawalRequestsRoundTrip(t *testing.T) {
 			Amount:          32000000000, // 32 ETH
 		},
 	}
-	
+
 	// Marshal
 	marshaled, err := original.MarshalSSZ()
 	require.NoError(t, err)
-	
+
 	// Decode
 	decoded, err := types.DecodeWithdrawalRequests(marshaled)
 	require.NoError(t, err)
-	
+
 	// Verify round trip preserved all data
 	require.Equal(t, len(original), len(decoded), "lengths should match")
 	for i := range original {

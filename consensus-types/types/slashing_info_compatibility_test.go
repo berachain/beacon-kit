@@ -78,9 +78,9 @@ func (s *SlashingInfoKaralabe) UnmarshalSSZ(buf []byte) error {
 // remains stable and backward compatible.
 func TestSlashingInfoSSZRegression(t *testing.T) {
 	testCases := []struct {
-		name        string
+		name         string
 		slashingInfo *types.SlashingInfo
-		expectedSSZ []byte // Pre-computed expected SSZ encoding
+		expectedSSZ  []byte // Pre-computed expected SSZ encoding
 	}{
 		{
 			name: "zero values",
@@ -367,7 +367,7 @@ func TestSlashingInfoSSZFuzz(t *testing.T) {
 // TestSlashingInfoCompatibility tests that current and karalabe implementations produce identical results
 func TestSlashingInfoCompatibility(t *testing.T) {
 	testCases := []struct {
-		name string
+		name  string
 		setup func() (*types.SlashingInfo, *SlashingInfoKaralabe)
 	}{
 		{
@@ -382,7 +382,7 @@ func TestSlashingInfoCompatibility(t *testing.T) {
 			setup: func() (*types.SlashingInfo, *SlashingInfoKaralabe) {
 				slot := math.Slot(12345)
 				index := math.U64(67890)
-				
+
 				current := &types.SlashingInfo{
 					Slot:  slot,
 					Index: index,
@@ -399,7 +399,7 @@ func TestSlashingInfoCompatibility(t *testing.T) {
 			setup: func() (*types.SlashingInfo, *SlashingInfoKaralabe) {
 				slot := math.Slot(^uint64(0))
 				index := math.U64(^uint64(0))
-				
+
 				current := &types.SlashingInfo{
 					Slot:  slot,
 					Index: index,
@@ -416,7 +416,7 @@ func TestSlashingInfoCompatibility(t *testing.T) {
 			setup: func() (*types.SlashingInfo, *SlashingInfoKaralabe) {
 				slot := math.Slot(1000000)
 				index := math.U64(999)
-				
+
 				current := &types.SlashingInfo{
 					Slot:  slot,
 					Index: index,
@@ -437,10 +437,10 @@ func TestSlashingInfoCompatibility(t *testing.T) {
 			// Test Marshal
 			currentBytes, err1 := current.MarshalSSZ()
 			require.NoError(t, err1, "current MarshalSSZ should not error")
-			
+
 			karalabeBytes, err2 := karalabe.MarshalSSZ()
 			require.NoError(t, err2, "karalabe MarshalSSZ should not error")
-			
+
 			require.Equal(t, karalabeBytes, currentBytes, "marshaled bytes should be identical")
 
 			// Test Size

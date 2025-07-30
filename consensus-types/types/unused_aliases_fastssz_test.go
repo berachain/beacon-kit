@@ -34,7 +34,7 @@ func TestUnusedTypeAliasesFastSSZ(t *testing.T) {
 
 	// Test all the UnusedType aliases
 	aliases := []struct {
-		name string
+		name   string
 		create func() interface {
 			MarshalSSZTo([]byte) ([]byte, error)
 			UnmarshalSSZ([]byte) error
@@ -164,7 +164,7 @@ func TestUnusedTypeAliasesEnforcement(t *testing.T) {
 
 	// Test that unmarshaling non-zero values fails
 	testCases := []struct {
-		name string
+		name      string
 		unmarshal func([]byte) error
 	}{
 		{

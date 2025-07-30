@@ -198,10 +198,10 @@ func TestPendingPartialWithdrawalCompatibility(t *testing.T) {
 			// Test Marshal
 			currentBytes, err1 := current.MarshalSSZ()
 			require.NoError(t, err1, "current MarshalSSZ should not error")
-			
+
 			karalableBytes, err2 := karalabe.MarshalSSZ()
 			require.NoError(t, err2, "karalabe MarshalSSZ should not error")
-			
+
 			require.Equal(t, karalableBytes, currentBytes, "marshaled bytes should be identical")
 
 			// Test Size
@@ -292,11 +292,11 @@ func TestPendingPartialWithdrawalCompatibilityInvalidData(t *testing.T) {
 			// Test unmarshal with current implementation
 			current := &types.PendingPartialWithdrawal{}
 			currentErr := current.UnmarshalSSZ(tc.data)
-			
+
 			// Test unmarshal with karalabe implementation
 			karalabe := &PendingPartialWithdrawalKaralabe{}
 			karalabelErr := karalabe.UnmarshalSSZ(tc.data)
-			
+
 			// Both should handle errors consistently
 			if currentErr != nil && karalabelErr != nil {
 				// Both errored, which is expected for invalid data
@@ -343,10 +343,10 @@ func TestPendingPartialWithdrawalCompatibilityRoundTrip(t *testing.T) {
 
 	// Verify round trip preserved all data
 	require.Equal(t, original, roundTrip, "round trip should preserve all data")
-	
+
 	// Verify both serializations are identical
 	require.Equal(t, currentBytes, karalableBytes, "both serializations should be identical")
-	
+
 	// Verify hash roots match throughout
 	originalRoot, err := original.HashTreeRoot()
 	require.NoError(t, err)
@@ -364,7 +364,7 @@ func TestPendingPartialWithdrawalCompatibilityEndianness(t *testing.T) {
 		Amount:            math.Gwei(0x090A0B0C0D0E0F10),
 		WithdrawableEpoch: math.Epoch(0x1112131415161718),
 	}
-	
+
 	karalabe := &PendingPartialWithdrawalKaralabe{
 		ValidatorIndex:    math.ValidatorIndex(0x0102030405060708),
 		Amount:            math.Gwei(0x090A0B0C0D0E0F10),
@@ -374,22 +374,22 @@ func TestPendingPartialWithdrawalCompatibilityEndianness(t *testing.T) {
 	// Marshal both
 	currentBytes, err := current.MarshalSSZ()
 	require.NoError(t, err)
-	
+
 	karalableBytes, err := karalabe.MarshalSSZ()
 	require.NoError(t, err)
-	
+
 	// Verify they're identical
 	require.Equal(t, karalableBytes, currentBytes, "endianness encoding should be identical")
-	
+
 	// Verify the fields are encoded in little-endian at correct offsets
 	// ValidatorIndex at offset 0
 	expectedValidatorIndex := []byte{0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01}
 	require.Equal(t, expectedValidatorIndex, currentBytes[0:8], "validator index should be little-endian")
-	
+
 	// Amount at offset 8
 	expectedAmount := []byte{0x10, 0x0F, 0x0E, 0x0D, 0x0C, 0x0B, 0x0A, 0x09}
 	require.Equal(t, expectedAmount, currentBytes[8:16], "amount should be little-endian")
-	
+
 	// WithdrawableEpoch at offset 16
 	expectedEpoch := []byte{0x18, 0x17, 0x16, 0x15, 0x14, 0x13, 0x12, 0x11}
 	require.Equal(t, expectedEpoch, currentBytes[16:24], "withdrawable epoch should be little-endian")

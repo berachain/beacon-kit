@@ -335,7 +335,7 @@ func TestSigningDataComputeSigningRoot(t *testing.T) {
 	type testObject struct {
 		value uint64
 	}
-	
+
 	// Simple HashTreeRoot implementation for testing
 	// This mimics how a real object would compute its hash tree root
 	hashTreeRootFunc := func(obj *testObject) ([32]byte, error) {
@@ -452,7 +452,7 @@ func TestSigningDataComputeSigningRootUInt64(t *testing.T) {
 // TestSigningDataCompatibility tests that current and karalabe implementations produce identical results
 func TestSigningDataCompatibility(t *testing.T) {
 	testCases := []struct {
-		name string
+		name  string
 		setup func() (*types.SigningData, *SigningDataKaralabe)
 	}{
 		{
@@ -478,7 +478,7 @@ func TestSigningDataCompatibility(t *testing.T) {
 					0xb1, 0xb2, 0xb3, 0xb4, 0xb5, 0xb6, 0xb7, 0xb8,
 					0xc1, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7, 0xc8,
 				}
-				
+
 				current := &types.SigningData{
 					ObjectRoot: objectRoot,
 					Domain:     domain,
@@ -501,7 +501,7 @@ func TestSigningDataCompatibility(t *testing.T) {
 				for i := range domain {
 					domain[i] = 0xFF
 				}
-				
+
 				current := &types.SigningData{
 					ObjectRoot: objectRoot,
 					Domain:     domain,
@@ -529,7 +529,7 @@ func TestSigningDataCompatibility(t *testing.T) {
 					0x33, 0x33, 0x33, 0x33, 0x44, 0x44, 0x44, 0x44,
 					0x55, 0x55, 0x55, 0x55, 0x66, 0x66, 0x66, 0x66,
 				}
-				
+
 				current := &types.SigningData{
 					ObjectRoot: objectRoot,
 					Domain:     domain,
@@ -550,10 +550,10 @@ func TestSigningDataCompatibility(t *testing.T) {
 			// Test Marshal
 			currentBytes, err1 := current.MarshalSSZ()
 			require.NoError(t, err1, "current MarshalSSZ should not error")
-			
+
 			karalabeBytes, err2 := karalabe.MarshalSSZ()
 			require.NoError(t, err2, "karalabe MarshalSSZ should not error")
-			
+
 			require.Equal(t, karalabeBytes, currentBytes, "marshaled bytes should be identical")
 
 			// Test Size

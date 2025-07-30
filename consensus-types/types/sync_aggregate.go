@@ -44,7 +44,7 @@ type SyncAggregate struct {
 	SyncCommitteeSignature crypto.BLSSignature `ssz-size:"96"`
 }
 
-func (s *SyncAggregate) ValidateAfterDecodingSSZ() error { 
+func (s *SyncAggregate) ValidateAfterDecodingSSZ() error {
 	return s.EnforceUnused()
 }
 

@@ -171,7 +171,7 @@ func TestValidatorCompatibility(t *testing.T) {
 				slashed := true
 				activationEligibilityEpoch := math.Epoch(50)
 				activationEpoch := math.Epoch(55)
-				exitEpoch := math.Epoch(200)           // forced exit due to slashing
+				exitEpoch := math.Epoch(200)               // forced exit due to slashing
 				withdrawableEpoch := math.Epoch(200 + 256) // slashed validators have longer withdrawal delay
 
 				current := &types.Validator{
@@ -240,7 +240,7 @@ func TestValidatorCompatibility(t *testing.T) {
 			setup: func() (*types.Validator, *ValidatorKaralabe) {
 				var pubkey crypto.BLSPubkey
 				var creds types.WithdrawalCredentials
-				
+
 				// Fill with max values
 				for i := range pubkey {
 					pubkey[i] = 0xFF
@@ -248,13 +248,13 @@ func TestValidatorCompatibility(t *testing.T) {
 				for i := range creds {
 					creds[i] = 0xFF
 				}
-				
-				effectiveBalance := math.Gwei(^uint64(0))           // max uint64
+
+				effectiveBalance := math.Gwei(^uint64(0)) // max uint64
 				slashed := true
 				activationEligibilityEpoch := math.Epoch(^uint64(0)) // max uint64
 				activationEpoch := math.Epoch(^uint64(0))            // max uint64
 				exitEpoch := math.Epoch(^uint64(0))                  // max uint64
-				withdrawableEpoch := math.Epoch(^uint64(0))           // max uint64
+				withdrawableEpoch := math.Epoch(^uint64(0))          // max uint64
 
 				current := &types.Validator{
 					Pubkey:                     pubkey,
@@ -288,10 +288,10 @@ func TestValidatorCompatibility(t *testing.T) {
 			// Test Marshal
 			currentBytes, err1 := current.MarshalSSZ()
 			require.NoError(t, err1, "current MarshalSSZ should not error")
-			
+
 			karalableBytes, err2 := karalabe.MarshalSSZ()
 			require.NoError(t, err2, "karalabe MarshalSSZ should not error")
-			
+
 			require.Equal(t, karalableBytes, currentBytes, "marshaled bytes should be identical")
 
 			// Test Size
@@ -326,15 +326,15 @@ func TestValidatorCompatibilityFuzz(t *testing.T) {
 		// Create random but valid validator data
 		var pubkey crypto.BLSPubkey
 		var creds types.WithdrawalCredentials
-		
+
 		// Use deterministic "random" data based on iteration
 		for j := range pubkey {
 			pubkey[j] = byte((i + j) % 256)
 		}
 		for j := range creds {
-			creds[j] = byte((i * 2 + j) % 256)
+			creds[j] = byte((i*2 + j) % 256)
 		}
-		
+
 		effectiveBalance := math.Gwei(uint64(i) * 1000000000)
 		slashed := i%2 == 0
 		activationEligibilityEpoch := math.Epoch(uint64(i))
@@ -406,11 +406,11 @@ func TestValidatorCompatibilityInvalidData(t *testing.T) {
 			// Test unmarshal with current implementation
 			current := &types.Validator{}
 			currentErr := current.UnmarshalSSZ(tc.data)
-			
+
 			// Test unmarshal with karalabe implementation
 			karalabe := &ValidatorKaralabe{}
 			karalabelErr := karalabe.UnmarshalSSZ(tc.data)
-			
+
 			// Both should handle errors consistently
 			if currentErr != nil && karalabelErr != nil {
 				// Both errored, which is expected for invalid data
@@ -467,10 +467,10 @@ func TestValidatorCompatibilityRoundTrip(t *testing.T) {
 
 	// Verify round trip preserved all data
 	require.Equal(t, original, roundTrip, "round trip should preserve all data")
-	
+
 	// Verify both serializations are identical
 	require.Equal(t, currentBytes, karalableBytes, "both serializations should be identical")
-	
+
 	// Verify hash roots match throughout
 	originalRoot, err := original.HashTreeRoot()
 	require.NoError(t, err)
@@ -490,19 +490,19 @@ func TestValidatorCompatibilityBooleanEncoding(t *testing.T) {
 	notSlashedKaralabe := &ValidatorKaralabe{
 		Slashed: false,
 	}
-	
+
 	notSlashedBytes, err := notSlashed.MarshalSSZ()
 	require.NoError(t, err)
 	notSlashedKaralableBytes, err := notSlashedKaralabe.MarshalSSZ()
 	require.NoError(t, err)
-	
+
 	// Verify they're identical
 	require.Equal(t, notSlashedKaralableBytes, notSlashedBytes, "boolean false encoding should be identical")
-	
+
 	// Verify the boolean is encoded as 0x00 at offset 88
 	// Offset 88 = after Pubkey (48) + WithdrawalCredentials (32) + EffectiveBalance (8)
 	require.Equal(t, byte(0x00), notSlashedBytes[88], "slashed=false should be encoded as 0x00")
-	
+
 	// Test true encoding
 	slashed := &types.Validator{
 		Slashed: true,
@@ -511,15 +511,15 @@ func TestValidatorCompatibilityBooleanEncoding(t *testing.T) {
 	slashedKaralabe := &ValidatorKaralabe{
 		Slashed: true,
 	}
-	
+
 	slashedBytes, err := slashed.MarshalSSZ()
 	require.NoError(t, err)
 	slashedKaralableBytes, err := slashedKaralabe.MarshalSSZ()
 	require.NoError(t, err)
-	
+
 	// Verify they're identical
 	require.Equal(t, slashedKaralableBytes, slashedBytes, "boolean true encoding should be identical")
-	
+
 	// Verify the boolean is encoded as 0x01 at offset 88
 	require.Equal(t, byte(0x01), slashedBytes[88], "slashed=true should be encoded as 0x01")
 }

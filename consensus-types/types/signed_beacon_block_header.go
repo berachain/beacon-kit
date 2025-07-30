@@ -70,4 +70,3 @@ func (b *SignedBeaconBlockHeader) GetHeader() *BeaconBlockHeader {
 func (b *SignedBeaconBlockHeader) GetSignature() crypto.BLSSignature {
 	return b.Signature
 }
-
