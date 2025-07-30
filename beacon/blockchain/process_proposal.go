@@ -133,7 +133,7 @@ func (s *Service) ProcessProposal(
 		header, err := blk.GetHeader()
 		if err != nil {
 			s.logger.Error("failed to get block header", "error", err)
-			return err
+			return nil, err
 		}
 		err = s.VerifyIncomingBlobSidecars(ctx, sidecars, header, blobKzgCommitments)
 		if err != nil {
