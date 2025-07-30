@@ -75,7 +75,7 @@ node_settings:
       min_memory: 0
       max_memory: 2048
     images:
-      geth: ghcr.io/berachain/bera-geth:v1.011602.0-rc1
+      geth: ghcr.io/berachain/bera-geth:latest
       reth: ghcr.io/berachain/bera-reth:nightly
 eth_json_rpc_endpoints:
   # type has to be either blutgang or nginx

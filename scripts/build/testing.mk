@@ -62,7 +62,7 @@ start-reth:
 	-p 8551:8551 \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	ghcr.io/berachain/bera-reth:v1.0.0-rc.7 node \
+	ghcr.io/berachain/bera-reth:nightly node \
 	--chain ${ETH_GENESIS_PATH} \
 	--http \
 	--http.addr "0.0.0.0" \
@@ -84,7 +84,7 @@ start-geth:
 	docker run \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	ghcr.io/berachain/bera-geth:v1.011602.0-rc1 init \
+	ghcr.io/berachain/bera-geth:latest init \
 	--datadir ${ETH_DATA_DIR} \
 	${ETH_GENESIS_PATH}
 
@@ -95,7 +95,7 @@ start-geth:
 	-p 8551:8551 \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	ghcr.io/berachain/bera-geth:v1.011602.0-rc1 \
+	ghcr.io/berachain/bera-geth:latest \
 	--miner.gasprice 1 \
 	--syncmode=full \
 	--http \
