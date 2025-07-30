@@ -33,7 +33,7 @@ EXECUTION_DEFAULT_SETTINGS = {
     },
     "images": {
         "geth": "ghcr.io/berachain/bera-geth:latest",
-        "reth": "ghcr.io/berachain/bera-reth:v1.0.0-rc.1",
+        "reth": "ghcr.io/berachain/bera-reth:nightly",
     },
     "labels": {},
     "node_selectors": {},
