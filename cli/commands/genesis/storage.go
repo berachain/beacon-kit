@@ -145,6 +145,9 @@ func writeDepositStorage(
 		allocs[depositAddr] = entry
 
 		// Store operators keys for each validator, reusing their BLS key
+		// TODO: this is good enough for testing over devnets, but we may
+		// want to extend the command to be able to explicitly pass a list
+		// of pre-arranged operator keys.
 		for i, d := range deposits {
 			storageKey := encodeSlot(d.Pubkey)
 			operatorAddr, err := crypto.GetAddressFromPubKey(d.Pubkey) // reuse val BLS key for simplicity
