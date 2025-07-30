@@ -202,7 +202,7 @@ def int_to_hex(plan, n):
     )
     return str(result.output.strip())
 
-def render_genesis_template(plan, template_path, chain_id, chain_id_hex, genesis_deposits_root, genesis_deposit_count_hex, genesis_pol_keys):
+def render_genesis_template(plan, template_path, chain_id, chain_id_hex, deposit_contract_storage = "{}", name_suffix = ""):
     """Helper function to render a specific genesis template"""
     genesis_template = read_file(src = template_path)
 
@@ -213,18 +213,15 @@ def render_genesis_template(plan, template_path, chain_id, chain_id_hex, genesis
                 data = {
                     "CHAIN_ID": chain_id,
                     "CHAIN_ID_HEX": chain_id_hex,
-                    "GENESIS_DEPOSIT_COUNT_HEX": genesis_deposit_count_hex,
-                    "GENESIS_DEPOSITS_ROOT": genesis_deposits_root,
-                    "GENESIS_POL_KEYS": genesis_pol_keys,
+                    "DEPOSIT_CONTRACT_STORAGE": deposit_contract_storage,
                 },
             ),
         },
-        # As we are rendering the template twice, add GENESIS_DEPOSITS_ROOT to the name
-        name = template_path + "_" + genesis_deposits_root,
+        # Use a unique name with suffix
+        name = "genesis_" + str(chain_id) + name_suffix,
         description = "Rendering genesis.json template",
     )
     return artifact
-
 
 def create_genesis_files_part1(plan, chain_id):
     """Creates genesis files for all client types and returns them as a dict"""
@@ -234,38 +231,16 @@ def create_genesis_files_part1(plan, chain_id):
 
     genesis_files = {}
 
-    # Render default genesis for all clients
+    # Render default genesis for all clients with minimal storage
+    default_storage = '{"0x0000000000000000000000000000000000000000000000000000000000000000":"0x0000000000000000000000000000000000000000000000000000000000000000","0x0000000000000000000000000000000000000000000000000000000000000001":"0x0000000000000000000000000000000000000000000000000000000000000000"}'
+
     default_artifact = render_genesis_template(
         plan,
-        "../networks/kurtosis-devnet/network-configs/genesis.json.template",
+        "../networks/kurtosis-devnet/network-configs/genesis.json.tmpl",
         chain_id,
         chain_id_hex,
-        "0x0000000000000000000000000000000000000000000000000000000000000000",
-        "0x0000000000000000000000000000000000000000000000000000000000000000",
-        "",  # No pol keys
-    )
-    genesis_files["default"] = default_artifact
-
-    return genesis_files
-
-# This has the deposit contract storage slots and we need to modify the eth genesis files with them.
-def create_genesis_files_part2(plan, chain_id, genesis_deposits_root, genesis_deposit_count_hex, genesis_pol_keys):
-    """Creates genesis files for all client types and returns them as a dict"""
-
-    # Convert chain_id to hexadecimal string
-    chain_id_hex = int_to_hex(plan, int(chain_id))
-
-    genesis_files = {}
-
-    # Render default genesis for all clients
-    default_artifact = render_genesis_template(
-        plan,
-        "../networks/kurtosis-devnet/network-configs/genesis.json.template",
-        chain_id,
-        chain_id_hex,
-        genesis_deposits_root,
-        genesis_deposit_count_hex,
-        "," + genesis_pol_keys,
+        default_storage,
+        "",
     )
     genesis_files["default"] = default_artifact
 

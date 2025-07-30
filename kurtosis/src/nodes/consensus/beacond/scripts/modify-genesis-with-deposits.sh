@@ -20,29 +20,12 @@
 # TITLE.
 
 
-# Sets the deposit storage in the the new eth-genesis file in the home directory.
+# Sets the deposit storage in the new eth-genesis file in the home directory.
+# This creates genesis.json from $ETH_GENESIS
 /usr/bin/beacond genesis set-deposit-storage $ETH_GENESIS --beacon-kit.chain-spec $CHAIN_SPEC --home /tmp/config_genesis/.beacond
 
-# Get values directly from the storage fields
-DEPOSIT_COUNT=$(jq -r '.alloc["0x4242424242424242424242424242424242424242"].storage["0x0000000000000000000000000000000000000000000000000000000000000000"]' /tmp/config_genesis/.beacond/genesis.json)
-DEPOSIT_ROOT=$(jq -r '.alloc["0x4242424242424242424242424242424242424242"].storage["0x0000000000000000000000000000000000000000000000000000000000000001"]' /tmp/config_genesis/.beacond/genesis.json)
+# The output file is "genesis.json"
+ETH_GENESIS_OUTPUT="/tmp/config_genesis/.beacond/genesis.json"
 
-# Notes on the jq commands below, helpful to extract the operators key values pairs
-# .alloc["0x..."].storage: Accesses the storage map for the specified address.
-# to_entries[2:]: Converts the object to an array of {key, value} and skips the first two.
-# map(...): formats each entry as "key": "value"
-# join(",\n"): joins all formatted entries with commas and newlines — but crucially no trailing comma
-POL_FORMATTED=$(jq -r '
-  .alloc["0x4242424242424242424242424242424242424242"].storage 
-  | to_entries[2:] 
-  | map("\"" + .key + "\": \"" + .value + "\"") 
-  | join(",\n")
-' /tmp/config_genesis/.beacond/genesis.json)
-
-/usr/bin/beacond genesis execution-payload /tmp/config_genesis/.beacond/genesis.json --beacon-kit.chain-spec $CHAIN_SPEC --home /tmp/config_genesis/.beacond
-
-# Write each value to separate files for easier parsing
-mkdir -p /tmp/values
-printf "%s" "$DEPOSIT_COUNT" > /tmp/values/deposit_count.txt
-printf "%s" "$DEPOSIT_ROOT" > /tmp/values/deposit_root.txt
-printf "%s" "$POL_FORMATTED" > /tmp/values/pol_keys.txt
+# Generate the execution payload - this populates the deposit contract storage with POL operator keys
+/usr/bin/beacond genesis execution-payload $ETH_GENESIS_OUTPUT --beacon-kit.chain-spec $CHAIN_SPEC --home /tmp/config_genesis/.beacond
