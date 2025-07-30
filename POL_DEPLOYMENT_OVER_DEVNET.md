@@ -41,7 +41,7 @@ and copy the output in the file `script/pol/POLAddresses.sol` file. Usually just
 Run
 
 ```bash
-cast balance <BGT_CONTRACT_ADDRESS>
+cast balance <BGT_CONTRACT_ADDRESS> --rpc-url $RPC_URL
 ```
 
 and observe the balance going up every time the validator produces a block.
@@ -103,7 +103,7 @@ forge script script/pol/actions/SetDefaultRewardAllocation.s.sol:WhitelistIncent
 Post Pectra11 fork, BGT distribution is automatically carried out by the execution layer. A way to check distribution is happening is checking that the validator producing blocks is receiving its base-rate BGTs via
 
 ```bash
-cast call <BGT_CONTRACT_ADDRESS> "balanceOf(address)(uint256)" <OPERATOR_ADDRESS>
+cast call <BGT_CONTRACT_ADDRESS> "balanceOf(address)(uint256)" <OPERATOR_ADDRESS> --rpc-url $RPC_URL  
 ```
 
 [^1]: You may consider renaming the tokens with `LP_TOKEN_1`, `LP_TOKEN_2`, ... `LP_TOKEN_5`.
