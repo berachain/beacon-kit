@@ -31,7 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/encoding/sszutil"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
-	fastssz "github.com/ferranbt/fastssz"
+	ssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -209,7 +209,7 @@ func TestExecutionPayloadHeader_NewFromSSZ_Invalid(t *testing.T) {
 				buf[439] = 10
 				return buf
 			},
-			expErr: fastssz.ErrSize,
+			expErr: ssz.ErrSize,
 		},
 		{
 			name: "invalid extra data: extra data too large",
@@ -223,7 +223,7 @@ func TestExecutionPayloadHeader_NewFromSSZ_Invalid(t *testing.T) {
 				require.NoError(t, err)
 				return buf
 			},
-			expErr: fastssz.ErrSize,
+			expErr: ssz.ErrSize,
 		},
 	}
 	for _, tc := range testcases {
@@ -421,14 +421,14 @@ func TestExecutablePayloadHeader_HashTreeRootWith(t *testing.T) {
 					header.ExtraData = make([]byte, 50)
 					return header
 				},
-				expErr: fastssz.ErrIncorrectListSize,
+				expErr: ssz.ErrIncorrectListSize,
 			},
 		}
 
 		for _, tc := range testcases {
 			t.Run(tc.name, func(t *testing.T) {
 				t.Parallel()
-				hh := fastssz.DefaultHasherPool.Get()
+				hh := ssz.DefaultHasherPool.Get()
 				header := tc.malleate()
 				err := header.HashTreeRootWith(hh)
 				require.Equal(t, tc.expErr, err)
@@ -458,13 +458,13 @@ func TestExecutionPayloadHeader_NewFromSSZ(t *testing.T) {
 			{
 				name:           "Invalid SSZ data",
 				data:           []byte{0x01, 0x02},
-				expErr:         fastssz.ErrSize,
+				expErr:         ssz.ErrSize,
 				expectedHeader: nil,
 			},
 			{
 				name:           "Empty SSZ data",
 				data:           []byte{},
-				expErr:         fastssz.ErrSize,
+				expErr:         ssz.ErrSize,
 				expectedHeader: nil,
 			},
 		}

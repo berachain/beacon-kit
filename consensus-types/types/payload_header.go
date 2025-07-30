@@ -26,7 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
-	fastssz "github.com/ferranbt/fastssz"
+	ssz "github.com/ferranbt/fastssz"
 )
 
 // ExecutionPayloadHeaderStaticSize is the static size of the ExecutionPayloadHeader.
@@ -112,8 +112,8 @@ func (*ExecutionPayloadHeader) ValidateAfterDecodingSSZ() error { return nil }
 
 // HashTreeRoot returns the hash tree root of the ExecutionPayloadHeader.
 func (h *ExecutionPayloadHeader) HashTreeRoot() ([32]byte, error) {
-	hh := fastssz.DefaultHasherPool.Get()
-	defer fastssz.DefaultHasherPool.Put(hh)
+	hh := ssz.DefaultHasherPool.Get()
+	defer ssz.DefaultHasherPool.Put(hh)
 	if err := h.HashTreeRootWith(hh); err != nil {
 		return [32]byte{}, err
 	}
@@ -134,14 +134,14 @@ func (h *ExecutionPayloadHeader) MarshalSSZTo(dst []byte) ([]byte, error) {
 	dst = append(dst, h.ReceiptsRoot[:]...)
 	dst = append(dst, h.LogsBloom[:]...)
 	dst = append(dst, h.Random[:]...)
-	dst = fastssz.MarshalUint64(dst, uint64(h.Number))
-	dst = fastssz.MarshalUint64(dst, uint64(h.GasLimit))
-	dst = fastssz.MarshalUint64(dst, uint64(h.GasUsed))
-	dst = fastssz.MarshalUint64(dst, uint64(h.Timestamp))
+	dst = ssz.MarshalUint64(dst, uint64(h.Number))
+	dst = ssz.MarshalUint64(dst, uint64(h.GasLimit))
+	dst = ssz.MarshalUint64(dst, uint64(h.GasUsed))
+	dst = ssz.MarshalUint64(dst, uint64(h.Timestamp))
 
 	// Offset for ExtraData
 	offset := uint32(ExecutionPayloadHeaderStaticSize)
-	dst = fastssz.MarshalUint32(dst, offset)
+	dst = ssz.MarshalUint32(dst, offset)
 
 	// BaseFeePerGas
 	bz, err := h.BaseFeePerGas.MarshalSSZ()
@@ -154,8 +154,8 @@ func (h *ExecutionPayloadHeader) MarshalSSZTo(dst []byte) ([]byte, error) {
 	dst = append(dst, h.BlockHash[:]...)
 	dst = append(dst, h.TransactionsRoot[:]...)
 	dst = append(dst, h.WithdrawalsRoot[:]...)
-	dst = fastssz.MarshalUint64(dst, uint64(h.BlobGasUsed))
-	dst = fastssz.MarshalUint64(dst, uint64(h.ExcessBlobGas))
+	dst = ssz.MarshalUint64(dst, uint64(h.BlobGasUsed))
+	dst = ssz.MarshalUint64(dst, uint64(h.ExcessBlobGas))
 
 	// Dynamic field: ExtraData
 	dst = append(dst, h.ExtraData...)
@@ -166,7 +166,7 @@ func (h *ExecutionPayloadHeader) MarshalSSZTo(dst []byte) ([]byte, error) {
 // UnmarshalSSZ ssz unmarshals the ExecutionPayloadHeader object.
 func (h *ExecutionPayloadHeader) UnmarshalSSZ(buf []byte) error {
 	if len(buf) < int(ExecutionPayloadHeaderStaticSize) {
-		return fastssz.ErrSize
+		return ssz.ErrSize
 	}
 
 	// Static fields
@@ -176,13 +176,13 @@ func (h *ExecutionPayloadHeader) UnmarshalSSZ(buf []byte) error {
 	copy(h.ReceiptsRoot[:], buf[84:116])
 	copy(h.LogsBloom[:], buf[116:372])
 	copy(h.Random[:], buf[372:404])
-	h.Number = math.U64(fastssz.UnmarshallUint64(buf[404:412]))
-	h.GasLimit = math.U64(fastssz.UnmarshallUint64(buf[412:420]))
-	h.GasUsed = math.U64(fastssz.UnmarshallUint64(buf[420:428]))
-	h.Timestamp = math.U64(fastssz.UnmarshallUint64(buf[428:436]))
+	h.Number = math.U64(ssz.UnmarshallUint64(buf[404:412]))
+	h.GasLimit = math.U64(ssz.UnmarshallUint64(buf[412:420]))
+	h.GasUsed = math.U64(ssz.UnmarshallUint64(buf[420:428]))
+	h.Timestamp = math.U64(ssz.UnmarshallUint64(buf[428:436]))
 
 	// Read offset for ExtraData
-	extraDataOffset := fastssz.UnmarshallUint32(buf[436:440])
+	extraDataOffset := ssz.UnmarshallUint32(buf[436:440])
 
 	// BaseFeePerGas
 	if h.BaseFeePerGas == nil {
@@ -196,12 +196,12 @@ func (h *ExecutionPayloadHeader) UnmarshalSSZ(buf []byte) error {
 	copy(h.BlockHash[:], buf[472:504])
 	copy(h.TransactionsRoot[:], buf[504:536])
 	copy(h.WithdrawalsRoot[:], buf[536:568])
-	h.BlobGasUsed = math.U64(fastssz.UnmarshallUint64(buf[568:576]))
-	h.ExcessBlobGas = math.U64(fastssz.UnmarshallUint64(buf[576:584]))
+	h.BlobGasUsed = math.U64(ssz.UnmarshallUint64(buf[568:576]))
+	h.ExcessBlobGas = math.U64(ssz.UnmarshallUint64(buf[576:584]))
 
 	// Dynamic field: ExtraData
 	if extraDataOffset > uint32(len(buf)) {
-		return fastssz.ErrInvalidVariableOffset
+		return ssz.ErrInvalidVariableOffset
 	}
 	h.ExtraData = append([]byte(nil), buf[extraDataOffset:]...)
 	if len(h.ExtraData) > 32 {
@@ -214,8 +214,8 @@ func (h *ExecutionPayloadHeader) UnmarshalSSZ(buf []byte) error {
 // HashTreeRootWith ssz hashes the ExecutionPayloadHeaderDeneb object with a
 // hasher
 //
-//nolint:mnd // from fastssz.
-func (h *ExecutionPayloadHeader) HashTreeRootWith(hh fastssz.HashWalker) error {
+//nolint:mnd // from ssz.
+func (h *ExecutionPayloadHeader) HashTreeRootWith(hh ssz.HashWalker) error {
 	indx := hh.Index()
 
 	// Field (0) 'ParentHash'
@@ -232,7 +232,7 @@ func (h *ExecutionPayloadHeader) HashTreeRootWith(hh fastssz.HashWalker) error {
 
 	// Field (4) 'LogsBloom'
 	if size := len(h.LogsBloom); size != 256 {
-		return fastssz.ErrBytesLengthFn(
+		return ssz.ErrBytesLengthFn(
 			"ExecutionPayloadHeaderDeneb.LogsBloom",
 			size,
 			256,
@@ -260,7 +260,7 @@ func (h *ExecutionPayloadHeader) HashTreeRootWith(hh fastssz.HashWalker) error {
 		elemIndx := hh.Index()
 		byteLen := uint64(len(h.ExtraData))
 		if byteLen > 32 {
-			return fastssz.ErrIncorrectListSize
+			return ssz.ErrIncorrectListSize
 		}
 		hh.Append(h.ExtraData)
 		hh.MerkleizeWithMixin(elemIndx, byteLen, (32+31)/32)
@@ -293,8 +293,8 @@ func (h *ExecutionPayloadHeader) HashTreeRootWith(hh fastssz.HashWalker) error {
 }
 
 // GetTree ssz hashes the ExecutionPayloadHeaderDeneb object.
-func (h *ExecutionPayloadHeader) GetTree() (*fastssz.Node, error) {
-	return fastssz.ProofTree(h)
+func (h *ExecutionPayloadHeader) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(h)
 }
 
 /* -------------------------------------------------------------------------- */

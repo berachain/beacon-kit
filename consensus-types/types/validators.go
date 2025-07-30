@@ -23,7 +23,7 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/primitives/constants"
-	fastssz "github.com/ferranbt/fastssz"
+	ssz "github.com/ferranbt/fastssz"
 )
 
 // Validators is a type alias for a SSZ list of Validator containers.
@@ -36,8 +36,8 @@ func (vs Validators) SizeSSZ() int {
 
 // HashTreeRoot returns the SSZ hash tree root for the Validators object.
 func (vs Validators) HashTreeRoot() ([32]byte, error) {
-	hh := fastssz.DefaultHasherPool.Get()
-	defer fastssz.DefaultHasherPool.Put(hh)
+	hh := ssz.DefaultHasherPool.Get()
+	defer ssz.DefaultHasherPool.Put(hh)
 	if err := vs.HashTreeRootWith(hh); err != nil {
 		return [32]byte{}, err
 	}
@@ -50,11 +50,11 @@ func (vs Validators) HashTreeRoot() ([32]byte, error) {
 /* -------------------------------------------------------------------------- */
 
 // HashTreeRootWith ssz hashes the Validators object with a hasher.
-func (vs Validators) HashTreeRootWith(hh fastssz.HashWalker) error {
+func (vs Validators) HashTreeRootWith(hh ssz.HashWalker) error {
 	indx := hh.Index()
 	num := uint64(len(vs))
 	if num > constants.ValidatorsRegistryLimit {
-		return fastssz.ErrIncorrectListSize
+		return ssz.ErrIncorrectListSize
 	}
 	for _, elem := range vs {
 		if err := elem.HashTreeRootWith(hh); err != nil {
@@ -66,6 +66,6 @@ func (vs Validators) HashTreeRootWith(hh fastssz.HashWalker) error {
 }
 
 // GetTree ssz hashes the Validators object.
-func (vs Validators) GetTree() (*fastssz.Node, error) {
-	return fastssz.ProofTree(vs)
+func (vs Validators) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(vs)
 }

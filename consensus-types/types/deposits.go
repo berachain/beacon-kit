@@ -23,7 +23,7 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/primitives/constants"
-	fastssz "github.com/ferranbt/fastssz"
+	ssz "github.com/ferranbt/fastssz"
 )
 
 // Deposits is a type alias for a SSZ list of Deposit containers.
@@ -40,8 +40,8 @@ func (ds Deposits) SizeSSZ() int {
 
 // HashTreeRoot returns the hash tree root of the Deposits.
 func (ds Deposits) HashTreeRoot() ([32]byte, error) {
-	hh := fastssz.DefaultHasherPool.Get()
-	defer fastssz.DefaultHasherPool.Put(hh)
+	hh := ssz.DefaultHasherPool.Get()
+	defer ssz.DefaultHasherPool.Put(hh)
 	if err := ds.HashTreeRootWith(hh); err != nil {
 		return [32]byte{}, err
 	}
@@ -53,11 +53,11 @@ func (ds Deposits) HashTreeRoot() ([32]byte, error) {
 /* -------------------------------------------------------------------------- */
 
 // HashTreeRootWith ssz hashes the Deposits object with a hasher.
-func (ds Deposits) HashTreeRootWith(hh fastssz.HashWalker) error {
+func (ds Deposits) HashTreeRootWith(hh ssz.HashWalker) error {
 	indx := hh.Index()
 	num := uint64(len(ds))
 	if num > constants.MaxDeposits {
-		return fastssz.ErrIncorrectListSize
+		return ssz.ErrIncorrectListSize
 	}
 	for _, elem := range ds {
 		if err := elem.HashTreeRootWith(hh); err != nil {
@@ -69,6 +69,6 @@ func (ds Deposits) HashTreeRootWith(hh fastssz.HashWalker) error {
 }
 
 // GetTree ssz hashes the Deposits object.
-func (ds Deposits) GetTree() (*fastssz.Node, error) {
-	return fastssz.ProofTree(ds)
+func (ds Deposits) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(ds)
 }

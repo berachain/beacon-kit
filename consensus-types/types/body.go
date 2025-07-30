@@ -30,7 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/version"
-	fastssz "github.com/ferranbt/fastssz"
+	ssz "github.com/ferranbt/fastssz"
 )
 
 const (
@@ -170,8 +170,8 @@ func (b *BeaconBlockBody) ValidateAfterDecodingSSZ() error {
 
 // HashTreeRoot returns the SSZ hash tree root of the BeaconBlockBody.
 func (b *BeaconBlockBody) HashTreeRoot() ([32]byte, error) {
-	hh := fastssz.DefaultHasherPool.Get()
-	defer fastssz.DefaultHasherPool.Put(hh)
+	hh := ssz.DefaultHasherPool.Get()
+	defer ssz.DefaultHasherPool.Put(hh)
 	if err := b.HashTreeRootWith(hh); err != nil {
 		return [32]byte{}, err
 	}
@@ -206,23 +206,23 @@ func (b *BeaconBlockBody) MarshalSSZTo(dst []byte) ([]byte, error) {
 
 	// Offsets for dynamic fields
 	// ProposerSlashings offset
-	dst = fastssz.MarshalUint32(dst, uint32(offset))
+	dst = ssz.MarshalUint32(dst, uint32(offset))
 	offset += len(b.proposerSlashings) * 16
 
 	// AttesterSlashings offset
-	dst = fastssz.MarshalUint32(dst, uint32(offset))
+	dst = ssz.MarshalUint32(dst, uint32(offset))
 	offset += len(b.attesterSlashings) * 16
 
 	// Attestations offset
-	dst = fastssz.MarshalUint32(dst, uint32(offset))
+	dst = ssz.MarshalUint32(dst, uint32(offset))
 	offset += len(b.attestations) * 16
 
 	// Deposits offset
-	dst = fastssz.MarshalUint32(dst, uint32(offset))
+	dst = ssz.MarshalUint32(dst, uint32(offset))
 	offset += len(b.Deposits) * 192
 
 	// VoluntaryExits offset
-	dst = fastssz.MarshalUint32(dst, uint32(offset))
+	dst = ssz.MarshalUint32(dst, uint32(offset))
 	offset += len(b.voluntaryExits) * 16
 
 	// SyncAggregate
@@ -243,20 +243,20 @@ func (b *BeaconBlockBody) MarshalSSZTo(dst []byte) ([]byte, error) {
 	dst = append(dst, syncBytes...)
 
 	// ExecutionPayload offset
-	dst = fastssz.MarshalUint32(dst, uint32(offset))
+	dst = ssz.MarshalUint32(dst, uint32(offset))
 	offset += b.ExecutionPayload.SizeSSZ()
 
 	// BlsToExecutionChanges offset
-	dst = fastssz.MarshalUint32(dst, uint32(offset))
+	dst = ssz.MarshalUint32(dst, uint32(offset))
 	offset += len(b.blsToExecutionChanges) * 16
 
 	// BlobKzgCommitments offset
-	dst = fastssz.MarshalUint32(dst, uint32(offset))
+	dst = ssz.MarshalUint32(dst, uint32(offset))
 	offset += len(b.BlobKzgCommitments) * 48
 
 	// ExecutionRequests offset (Electra+)
 	if includeExecRequest {
-		dst = fastssz.MarshalUint32(dst, uint32(offset))
+		dst = ssz.MarshalUint32(dst, uint32(offset))
 	}
 
 	// Dynamic fields
@@ -340,12 +340,12 @@ func (b *BeaconBlockBody) MarshalSSZTo(dst []byte) ([]byte, error) {
 // UnmarshalSSZ ssz unmarshals the BeaconBlockBody object.
 func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte) error {
 	if len(buf) < 388 { // Minimum size without Electra
-		return fastssz.ErrSize
+		return ssz.ErrSize
 	}
 
 	includeExecRequest := version.EqualsOrIsAfter(b.GetForkVersion(), version.Electra())
 	if includeExecRequest && len(buf) < 392 { // Minimum size with Electra
-		return fastssz.ErrSize
+		return ssz.ErrSize
 	}
 
 	var err error
@@ -370,15 +370,15 @@ func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte) error {
 	offset += 32
 
 	// Read offsets
-	proposerSlashingsOffset := fastssz.UnmarshallUint32(buf[offset : offset+4])
+	proposerSlashingsOffset := ssz.UnmarshallUint32(buf[offset : offset+4])
 	offset += 4
-	attesterSlashingsOffset := fastssz.UnmarshallUint32(buf[offset : offset+4])
+	attesterSlashingsOffset := ssz.UnmarshallUint32(buf[offset : offset+4])
 	offset += 4
-	attestationsOffset := fastssz.UnmarshallUint32(buf[offset : offset+4])
+	attestationsOffset := ssz.UnmarshallUint32(buf[offset : offset+4])
 	offset += 4
-	depositsOffset := fastssz.UnmarshallUint32(buf[offset : offset+4])
+	depositsOffset := ssz.UnmarshallUint32(buf[offset : offset+4])
 	offset += 4
-	voluntaryExitsOffset := fastssz.UnmarshallUint32(buf[offset : offset+4])
+	voluntaryExitsOffset := ssz.UnmarshallUint32(buf[offset : offset+4])
 	offset += 4
 
 	// Field (8) 'SyncAggregate'
@@ -390,16 +390,16 @@ func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte) error {
 	}
 	offset += 160
 
-	executionPayloadOffset := fastssz.UnmarshallUint32(buf[offset : offset+4])
+	executionPayloadOffset := ssz.UnmarshallUint32(buf[offset : offset+4])
 	offset += 4
-	blsToExecutionChangesOffset := fastssz.UnmarshallUint32(buf[offset : offset+4])
+	blsToExecutionChangesOffset := ssz.UnmarshallUint32(buf[offset : offset+4])
 	offset += 4
-	blobKzgCommitmentsOffset := fastssz.UnmarshallUint32(buf[offset : offset+4])
+	blobKzgCommitmentsOffset := ssz.UnmarshallUint32(buf[offset : offset+4])
 	offset += 4
 
 	var executionRequestsOffset uint32
 	if includeExecRequest {
-		executionRequestsOffset = fastssz.UnmarshallUint32(buf[offset : offset+4])
+		executionRequestsOffset = ssz.UnmarshallUint32(buf[offset : offset+4])
 		offset += 4
 	}
 
@@ -409,7 +409,7 @@ func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte) error {
 		voluntaryExitsOffset > size || executionPayloadOffset > size ||
 		blsToExecutionChangesOffset > size || blobKzgCommitmentsOffset > size ||
 		(includeExecRequest && executionRequestsOffset > size) {
-		return fastssz.ErrInvalidVariableOffset
+		return ssz.ErrInvalidVariableOffset
 	}
 
 	// Unmarshal dynamic fields
@@ -547,7 +547,7 @@ func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte) error {
 }
 
 // HashTreeRootWith ssz hashes the BeaconBlockBody object with a hasher.
-func (b *BeaconBlockBody) HashTreeRootWith(hh fastssz.HashWalker) error {
+func (b *BeaconBlockBody) HashTreeRootWith(hh ssz.HashWalker) error {
 	indx := hh.Index()
 
 	// Field (0) 'RandaoReveal'
@@ -566,7 +566,7 @@ func (b *BeaconBlockBody) HashTreeRootWith(hh fastssz.HashWalker) error {
 		subIndx := hh.Index()
 		num := uint64(len(b.proposerSlashings))
 		if num > constants.MaxProposerSlashings {
-			return fastssz.ErrIncorrectListSize
+			return ssz.ErrIncorrectListSize
 		}
 		for _, elem := range b.proposerSlashings {
 			// ProposerSlashing uses UnusedType which inherits HashTreeRoot from common.UnusedType
@@ -584,7 +584,7 @@ func (b *BeaconBlockBody) HashTreeRootWith(hh fastssz.HashWalker) error {
 		subIndx := hh.Index()
 		num := uint64(len(b.attesterSlashings))
 		if num > constants.MaxAttesterSlashings {
-			return fastssz.ErrIncorrectListSize
+			return ssz.ErrIncorrectListSize
 		}
 		for _, elem := range b.attesterSlashings {
 			// AttesterSlashing uses UnusedType which inherits HashTreeRoot from common.UnusedType
@@ -602,7 +602,7 @@ func (b *BeaconBlockBody) HashTreeRootWith(hh fastssz.HashWalker) error {
 		subIndx := hh.Index()
 		num := uint64(len(b.attestations))
 		if num > constants.MaxAttestations {
-			return fastssz.ErrIncorrectListSize
+			return ssz.ErrIncorrectListSize
 		}
 		for _, elem := range b.attestations {
 			// Attestation uses UnusedType which inherits HashTreeRoot from common.UnusedType
@@ -620,7 +620,7 @@ func (b *BeaconBlockBody) HashTreeRootWith(hh fastssz.HashWalker) error {
 		subIndx := hh.Index()
 		num := uint64(len(b.Deposits))
 		if num > constants.MaxDeposits {
-			return fastssz.ErrIncorrectListSize
+			return ssz.ErrIncorrectListSize
 		}
 		for _, elem := range b.Deposits {
 			if err := elem.HashTreeRootWith(hh); err != nil {
@@ -635,7 +635,7 @@ func (b *BeaconBlockBody) HashTreeRootWith(hh fastssz.HashWalker) error {
 		subIndx := hh.Index()
 		num := uint64(len(b.voluntaryExits))
 		if num > constants.MaxVoluntaryExits {
-			return fastssz.ErrIncorrectListSize
+			return ssz.ErrIncorrectListSize
 		}
 		for _, elem := range b.voluntaryExits {
 			// VoluntaryExit uses UnusedType which inherits HashTreeRoot from common.UnusedType
@@ -671,7 +671,7 @@ func (b *BeaconBlockBody) HashTreeRootWith(hh fastssz.HashWalker) error {
 		subIndx := hh.Index()
 		num := uint64(len(b.blsToExecutionChanges))
 		if num > constants.MaxBlsToExecutionChanges {
-			return fastssz.ErrIncorrectListSize
+			return ssz.ErrIncorrectListSize
 		}
 		for _, elem := range b.blsToExecutionChanges {
 			// BlsToExecutionChange uses UnusedType which inherits HashTreeRoot from common.UnusedType
@@ -689,7 +689,7 @@ func (b *BeaconBlockBody) HashTreeRootWith(hh fastssz.HashWalker) error {
 		subIndx := hh.Index()
 		num := uint64(len(b.BlobKzgCommitments))
 		if num > 4096 {
-			return fastssz.ErrIncorrectListSize
+			return ssz.ErrIncorrectListSize
 		}
 		for _, elem := range b.BlobKzgCommitments {
 			hh.PutBytes(elem[:])
@@ -719,8 +719,8 @@ func (b *BeaconBlockBody) HashTreeRootWith(hh fastssz.HashWalker) error {
 }
 
 // GetTree ssz hashes the BeaconBlockBody object.
-func (b *BeaconBlockBody) GetTree() (*fastssz.Node, error) {
-	return fastssz.ProofTree(b)
+func (b *BeaconBlockBody) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(b)
 }
 
 /* -------------------------------------------------------------------------- */

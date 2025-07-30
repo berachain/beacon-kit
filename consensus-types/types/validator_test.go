@@ -29,7 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/encoding/sszutil"
 	"github.com/berachain/beacon-kit/primitives/math"
-	fastssz "github.com/ferranbt/fastssz"
+	ssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -715,7 +715,7 @@ func TestValidator_HashTreeRoot(t *testing.T) {
 			require.NotEqual(t, [32]byte{}, root)
 
 			// Test HashTreeRootWith
-			hh := fastssz.NewHasher()
+			hh := ssz.NewHasher()
 			err = tt.validator.HashTreeRootWith(hh)
 			require.NoError(t, err)
 

@@ -28,7 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/encoding/sszutil"
-	fastssz "github.com/ferranbt/fastssz"
+	ssz "github.com/ferranbt/fastssz"
 )
 
 // 3 since three dynamic objects (Deposits, Withdrawals, Consolidations)
@@ -150,8 +150,8 @@ func DecodeExecutionRequests(encodedRequests [][]byte) (*ExecutionRequests, erro
 
 // HashTreeRoot returns the hash tree root of the ExecutionRequests.
 func (e *ExecutionRequests) HashTreeRoot() ([32]byte, error) {
-	hh := fastssz.DefaultHasherPool.Get()
-	defer fastssz.DefaultHasherPool.Put(hh)
+	hh := ssz.DefaultHasherPool.Get()
+	defer ssz.DefaultHasherPool.Put(hh)
 	if err := e.HashTreeRootWith(hh); err != nil {
 		return [32]byte{}, err
 	}
@@ -341,7 +341,7 @@ func (e *ExecutionRequests) SizeSSZFastSSZ() (size int) {
 }
 
 // HashTreeRootWith ssz hashes the ExecutionRequests object with a hasher.
-func (e *ExecutionRequests) HashTreeRootWith(hh fastssz.HashWalker) error {
+func (e *ExecutionRequests) HashTreeRootWith(hh ssz.HashWalker) error {
 	indx := hh.Index()
 
 	// Field (0) 'Deposits'
@@ -349,7 +349,7 @@ func (e *ExecutionRequests) HashTreeRootWith(hh fastssz.HashWalker) error {
 		subIndx := hh.Index()
 		num := uint64(len(e.Deposits))
 		if num > constants.MaxDepositRequestsPerPayload {
-			return fastssz.ErrIncorrectListSize
+			return ssz.ErrIncorrectListSize
 		}
 		for _, elem := range e.Deposits {
 			if err := elem.HashTreeRootWith(hh); err != nil {
@@ -364,7 +364,7 @@ func (e *ExecutionRequests) HashTreeRootWith(hh fastssz.HashWalker) error {
 		subIndx := hh.Index()
 		num := uint64(len(e.Withdrawals))
 		if num > constants.MaxWithdrawalRequestsPerPayload {
-			return fastssz.ErrIncorrectListSize
+			return ssz.ErrIncorrectListSize
 		}
 		for _, elem := range e.Withdrawals {
 			if err := elem.HashTreeRootWith(hh); err != nil {
@@ -379,7 +379,7 @@ func (e *ExecutionRequests) HashTreeRootWith(hh fastssz.HashWalker) error {
 		subIndx := hh.Index()
 		num := uint64(len(e.Consolidations))
 		if num > constants.MaxConsolidationRequestsPerPayload {
-			return fastssz.ErrIncorrectListSize
+			return ssz.ErrIncorrectListSize
 		}
 		for _, elem := range e.Consolidations {
 			if err := elem.HashTreeRootWith(hh); err != nil {
@@ -394,6 +394,6 @@ func (e *ExecutionRequests) HashTreeRootWith(hh fastssz.HashWalker) error {
 }
 
 // GetTree ssz hashes the ExecutionRequests object.
-func (e *ExecutionRequests) GetTree() (*fastssz.Node, error) {
-	return fastssz.ProofTree(e)
+func (e *ExecutionRequests) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(e)
 }

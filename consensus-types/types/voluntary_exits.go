@@ -26,7 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
-	fastssz "github.com/ferranbt/fastssz"
+	ssz "github.com/ferranbt/fastssz"
 )
 
 // Compile-time assertions to ensure VoluntaryExit implements necessary interfaces.
@@ -47,8 +47,8 @@ func (vs VoluntaryExits) SizeSSZ() int {
 
 // HashTreeRoot returns the hash tree root of the VoluntaryExits.
 func (vs VoluntaryExits) HashTreeRoot() ([32]byte, error) {
-	hh := fastssz.DefaultHasherPool.Get()
-	defer fastssz.DefaultHasherPool.Put(hh)
+	hh := ssz.DefaultHasherPool.Get()
+	defer ssz.DefaultHasherPool.Put(hh)
 	if err := vs.HashTreeRootWith(hh); err != nil {
 		return [32]byte{}, err
 	}
@@ -61,11 +61,11 @@ func (vs VoluntaryExits) HashTreeRoot() ([32]byte, error) {
 /* -------------------------------------------------------------------------- */
 
 // HashTreeRootWith ssz hashes the VoluntaryExits object with a hasher.
-func (vs VoluntaryExits) HashTreeRootWith(hh fastssz.HashWalker) error {
+func (vs VoluntaryExits) HashTreeRootWith(hh ssz.HashWalker) error {
 	indx := hh.Index()
 	num := uint64(len(vs))
 	if num > constants.MaxVoluntaryExits {
-		return fastssz.ErrIncorrectListSize
+		return ssz.ErrIncorrectListSize
 	}
 	for _, elem := range vs {
 		if err := elem.HashTreeRootWith(hh); err != nil {
@@ -77,8 +77,8 @@ func (vs VoluntaryExits) HashTreeRootWith(hh fastssz.HashWalker) error {
 }
 
 // GetTree ssz hashes the VoluntaryExits object.
-func (vs VoluntaryExits) GetTree() (*fastssz.Node, error) {
-	return fastssz.ProofTree(vs)
+func (vs VoluntaryExits) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(vs)
 }
 
 // EnforceUnused return true if the length of the VoluntaryExits is 0.

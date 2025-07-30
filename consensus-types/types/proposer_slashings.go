@@ -26,7 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
-	fastssz "github.com/ferranbt/fastssz"
+	ssz "github.com/ferranbt/fastssz"
 )
 
 // Compile-time assertions to ensure ProposerSlashing implements necessary interfaces.
@@ -47,8 +47,8 @@ func (ps ProposerSlashings) SizeSSZ() int {
 
 // HashTreeRoot returns the hash tree root of the ProposerSlashings.
 func (ps ProposerSlashings) HashTreeRoot() ([32]byte, error) {
-	hh := fastssz.DefaultHasherPool.Get()
-	defer fastssz.DefaultHasherPool.Put(hh)
+	hh := ssz.DefaultHasherPool.Get()
+	defer ssz.DefaultHasherPool.Put(hh)
 	if err := ps.HashTreeRootWith(hh); err != nil {
 		return [32]byte{}, err
 	}
@@ -61,11 +61,11 @@ func (ps ProposerSlashings) HashTreeRoot() ([32]byte, error) {
 /* -------------------------------------------------------------------------- */
 
 // HashTreeRootWith ssz hashes the ProposerSlashings object with a hasher.
-func (ps ProposerSlashings) HashTreeRootWith(hh fastssz.HashWalker) error {
+func (ps ProposerSlashings) HashTreeRootWith(hh ssz.HashWalker) error {
 	indx := hh.Index()
 	num := uint64(len(ps))
 	if num > constants.MaxProposerSlashings {
-		return fastssz.ErrIncorrectListSize
+		return ssz.ErrIncorrectListSize
 	}
 	for _, elem := range ps {
 		if err := elem.HashTreeRootWith(hh); err != nil {
@@ -77,8 +77,8 @@ func (ps ProposerSlashings) HashTreeRootWith(hh fastssz.HashWalker) error {
 }
 
 // GetTree ssz hashes the ProposerSlashings object.
-func (ps ProposerSlashings) GetTree() (*fastssz.Node, error) {
-	return fastssz.ProofTree(ps)
+func (ps ProposerSlashings) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(ps)
 }
 
 // EnforceUnused return true if the length of the ProposerSlashings is 0.

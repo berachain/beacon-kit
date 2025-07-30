@@ -27,7 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
-	fastssz "github.com/ferranbt/fastssz"
+	ssz "github.com/ferranbt/fastssz"
 )
 
 var (
@@ -76,7 +76,7 @@ func (p *PendingPartialWithdrawals) MarshalSSZ() ([]byte, error) {
 func (p *PendingPartialWithdrawals) MarshalSSZTo(dst []byte) ([]byte, error) {
 	// Write offset
 	offset := 4
-	dst = fastssz.MarshalUint32(dst, uint32(offset))
+	dst = ssz.MarshalUint32(dst, uint32(offset))
 
 	// Write elements
 	for _, elem := range *p {
@@ -93,18 +93,18 @@ func (p *PendingPartialWithdrawals) MarshalSSZTo(dst []byte) ([]byte, error) {
 // UnmarshalSSZ ssz unmarshals the PendingPartialWithdrawals list.
 func (p *PendingPartialWithdrawals) UnmarshalSSZ(buf []byte) error {
 	if len(buf) < 4 {
-		return fastssz.ErrSize
+		return ssz.ErrSize
 	}
 
 	// Read offset
-	offset := fastssz.UnmarshallUint32(buf[0:4])
+	offset := ssz.UnmarshallUint32(buf[0:4])
 	if offset != 4 {
-		return fastssz.ErrInvalidVariableOffset
+		return ssz.ErrInvalidVariableOffset
 	}
 
 	// Read elements
 	if (len(buf)-4)%24 != 0 {
-		return fastssz.ErrSize
+		return ssz.ErrSize
 	}
 
 	numItems := (len(buf) - 4) / 24
@@ -127,8 +127,8 @@ func (p *PendingPartialWithdrawals) UnmarshalSSZ(buf []byte) error {
 
 // HashTreeRoot computes the hash tree root for PendingPartialWithdrawals.
 func (p *PendingPartialWithdrawals) HashTreeRoot() ([32]byte, error) {
-	hh := fastssz.DefaultHasherPool.Get()
-	defer fastssz.DefaultHasherPool.Put(hh)
+	hh := ssz.DefaultHasherPool.Get()
+	defer ssz.DefaultHasherPool.Put(hh)
 	if err := p.HashTreeRootWith(hh); err != nil {
 		return [32]byte{}, err
 	}
@@ -137,11 +137,11 @@ func (p *PendingPartialWithdrawals) HashTreeRoot() ([32]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the PendingPartialWithdrawals object with a hasher.
-func (p *PendingPartialWithdrawals) HashTreeRootWith(hh fastssz.HashWalker) error {
+func (p *PendingPartialWithdrawals) HashTreeRootWith(hh ssz.HashWalker) error {
 	indx := hh.Index()
 	num := uint64(len(*p))
 	if num > constants.PendingPartialWithdrawalsLimit {
-		return fastssz.ErrIncorrectListSize
+		return ssz.ErrIncorrectListSize
 	}
 	for _, elem := range *p {
 		if err := elem.HashTreeRootWith(hh); err != nil {
@@ -153,8 +153,8 @@ func (p *PendingPartialWithdrawals) HashTreeRootWith(hh fastssz.HashWalker) erro
 }
 
 // GetTree ssz hashes the PendingPartialWithdrawals object.
-func (p *PendingPartialWithdrawals) GetTree() (*fastssz.Node, error) {
-	return fastssz.ProofTree(p)
+func (p *PendingPartialWithdrawals) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(p)
 }
 
 // ValidateAfterDecodingSSZ validates the PendingPartialWithdrawals list after decoding from SSZ.

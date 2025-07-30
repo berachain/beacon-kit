@@ -33,7 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/math/log"
 	"github.com/berachain/beacon-kit/primitives/version"
-	fastssz "github.com/ferranbt/fastssz"
+	ssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -183,7 +183,7 @@ func TestBeaconBlockBody_FastSSZ(t *testing.T) {
 		})
 
 		t.Run("HashTreeRootWith", func(t *testing.T) {
-			hh := fastssz.NewHasher()
+			hh := ssz.NewHasher()
 			err := body.HashTreeRootWith(hh)
 			require.NoError(t, err)
 		})

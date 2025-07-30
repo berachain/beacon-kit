@@ -31,7 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
-	fastssz "github.com/ferranbt/fastssz"
+	ssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
@@ -176,10 +176,10 @@ func (st *SimplifiedBeaconState) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo marshals the SimplifiedBeaconState to a target array.
 func (st *SimplifiedBeaconState) MarshalSSZTo(buf []byte) ([]byte, error) {
 	// Encode Slot
-	buf = fastssz.MarshalUint64(buf, uint64(st.Slot))
+	buf = ssz.MarshalUint64(buf, uint64(st.Slot))
 
 	// Encode TotalSlashing
-	buf = fastssz.MarshalUint64(buf, uint64(st.TotalSlashing))
+	buf = ssz.MarshalUint64(buf, uint64(st.TotalSlashing))
 
 	// Calculate offsets
 	offset := uint32(20) // After fixed fields
@@ -188,17 +188,17 @@ func (st *SimplifiedBeaconState) MarshalSSZTo(buf []byte) ([]byte, error) {
 	}
 
 	// Write DummyDynamicField offset
-	buf = fastssz.MarshalUint32(buf, offset)
+	buf = ssz.MarshalUint32(buf, offset)
 	offset += uint32(len(st.DummyDynamicField) * 8)
 
 	// Write PendingPartialWithdrawals offset if Electra
 	if version.EqualsOrIsAfter(st.GetForkVersion(), version.Electra()) {
-		buf = fastssz.MarshalUint32(buf, offset)
+		buf = ssz.MarshalUint32(buf, offset)
 	}
 
 	// Write DummyDynamicField content
 	for _, val := range st.DummyDynamicField {
-		buf = fastssz.MarshalUint64(buf, val)
+		buf = ssz.MarshalUint64(buf, val)
 	}
 
 	// Write PendingPartialWithdrawals content if Electra
@@ -226,22 +226,22 @@ func (st *SimplifiedBeaconState) UnmarshalSSZ(buf []byte) error {
 	}
 
 	if len(buf) < expectedMinSize {
-		return fastssz.ErrSize
+		return ssz.ErrSize
 	}
 
 	// Decode Slot
-	st.Slot = math.Slot(fastssz.UnmarshallUint64(buf[0:8]))
+	st.Slot = math.Slot(ssz.UnmarshallUint64(buf[0:8]))
 
 	// Decode TotalSlashing
-	st.TotalSlashing = math.Gwei(fastssz.UnmarshallUint64(buf[8:16]))
+	st.TotalSlashing = math.Gwei(ssz.UnmarshallUint64(buf[8:16]))
 
 	// Decode DummyDynamicField offset
-	dummyOffset := fastssz.UnmarshallUint32(buf[16:20])
+	dummyOffset := ssz.UnmarshallUint32(buf[16:20])
 
 	// Decode PendingPartialWithdrawals offset if Electra
 	var ppwOffset uint32
 	if version.EqualsOrIsAfter(st.GetForkVersion(), version.Electra()) {
-		ppwOffset = fastssz.UnmarshallUint32(buf[20:24])
+		ppwOffset = ssz.UnmarshallUint32(buf[20:24])
 	}
 
 	// Decode DummyDynamicField
@@ -251,7 +251,7 @@ func (st *SimplifiedBeaconState) UnmarshalSSZ(buf []byte) error {
 			st.DummyDynamicField = make([]uint64, numDummy)
 			for i := uint32(0); i < numDummy; i++ {
 				start := dummyOffset + i*8
-				st.DummyDynamicField[i] = fastssz.UnmarshallUint64(buf[start : start+8])
+				st.DummyDynamicField[i] = ssz.UnmarshallUint64(buf[start : start+8])
 			}
 		}
 
@@ -274,7 +274,7 @@ func (st *SimplifiedBeaconState) UnmarshalSSZ(buf []byte) error {
 			numDummy := len(remaining) / 8
 			st.DummyDynamicField = make([]uint64, numDummy)
 			for i := 0; i < numDummy; i++ {
-				st.DummyDynamicField[i] = fastssz.UnmarshallUint64(remaining[i*8 : (i+1)*8])
+				st.DummyDynamicField[i] = ssz.UnmarshallUint64(remaining[i*8 : (i+1)*8])
 			}
 		}
 	}
@@ -285,7 +285,7 @@ func (st *SimplifiedBeaconState) UnmarshalSSZ(buf []byte) error {
 // HashTreeRoot computes the hash tree root of the SimplifiedBeaconState.
 func (st *SimplifiedBeaconState) HashTreeRoot() ([32]byte, error) {
 	// For testing purposes, we'll use a simplified hash
-	// The actual implementation would use fastssz.HashTreeRoot
+	// The actual implementation would use ssz.HashTreeRoot
 	return [32]byte{}, nil
 }
 

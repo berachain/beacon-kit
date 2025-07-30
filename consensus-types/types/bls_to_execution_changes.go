@@ -26,7 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
-	fastssz "github.com/ferranbt/fastssz"
+	ssz "github.com/ferranbt/fastssz"
 )
 
 // Compile-time assertions to ensure BlsToExecutionChange implements necessary interfaces.
@@ -47,8 +47,8 @@ func (bs BlsToExecutionChanges) SizeSSZ() int {
 
 // HashTreeRoot returns the hash tree root of the BlsToExecutionChanges.
 func (bs BlsToExecutionChanges) HashTreeRoot() ([32]byte, error) {
-	hh := fastssz.DefaultHasherPool.Get()
-	defer fastssz.DefaultHasherPool.Put(hh)
+	hh := ssz.DefaultHasherPool.Get()
+	defer ssz.DefaultHasherPool.Put(hh)
 	if err := bs.HashTreeRootWith(hh); err != nil {
 		return [32]byte{}, err
 	}
@@ -61,11 +61,11 @@ func (bs BlsToExecutionChanges) HashTreeRoot() ([32]byte, error) {
 /* -------------------------------------------------------------------------- */
 
 // HashTreeRootWith ssz hashes the BlsToExecutionChanges object with a hasher.
-func (bs BlsToExecutionChanges) HashTreeRootWith(hh fastssz.HashWalker) error {
+func (bs BlsToExecutionChanges) HashTreeRootWith(hh ssz.HashWalker) error {
 	indx := hh.Index()
 	num := uint64(len(bs))
 	if num > constants.MaxBlsToExecutionChanges {
-		return fastssz.ErrIncorrectListSize
+		return ssz.ErrIncorrectListSize
 	}
 	for _, elem := range bs {
 		if err := elem.HashTreeRootWith(hh); err != nil {
@@ -77,8 +77,8 @@ func (bs BlsToExecutionChanges) HashTreeRootWith(hh fastssz.HashWalker) error {
 }
 
 // GetTree ssz hashes the BlsToExecutionChanges object.
-func (bs BlsToExecutionChanges) GetTree() (*fastssz.Node, error) {
-	return fastssz.ProofTree(bs)
+func (bs BlsToExecutionChanges) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(bs)
 }
 
 // EnforceUnused return true if the length of the BlsToExecutionChanges is 0.

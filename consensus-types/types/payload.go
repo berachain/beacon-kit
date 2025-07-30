@@ -32,7 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
-	fastssz "github.com/ferranbt/fastssz"
+	ssz "github.com/ferranbt/fastssz"
 )
 
 const (
@@ -136,8 +136,8 @@ func (p *ExecutionPayload) ValidateAfterDecodingSSZ() error {
 
 // HashTreeRoot returns the hash tree root of the ExecutionPayload.
 func (p *ExecutionPayload) HashTreeRoot() ([32]byte, error) {
-	hh := fastssz.DefaultHasherPool.Get()
-	defer fastssz.DefaultHasherPool.Put(hh)
+	hh := ssz.DefaultHasherPool.Get()
+	defer ssz.DefaultHasherPool.Put(hh)
 	if err := p.HashTreeRootWith(hh); err != nil {
 		return [32]byte{}, err
 	}
@@ -157,10 +157,10 @@ func (p *ExecutionPayload) MarshalSSZTo(dst []byte) ([]byte, error) {
 	dst = append(dst, p.ReceiptsRoot[:]...)
 	dst = append(dst, p.LogsBloom[:]...)
 	dst = append(dst, p.Random[:]...)
-	dst = fastssz.MarshalUint64(dst, uint64(p.Number))
-	dst = fastssz.MarshalUint64(dst, uint64(p.GasLimit))
-	dst = fastssz.MarshalUint64(dst, uint64(p.GasUsed))
-	dst = fastssz.MarshalUint64(dst, uint64(p.Timestamp))
+	dst = ssz.MarshalUint64(dst, uint64(p.Number))
+	dst = ssz.MarshalUint64(dst, uint64(p.GasLimit))
+	dst = ssz.MarshalUint64(dst, uint64(p.GasUsed))
+	dst = ssz.MarshalUint64(dst, uint64(p.Timestamp))
 
 	// Calculate offsets
 	extraDataOffset := uint32(ExecutionPayloadStaticSize)
@@ -172,7 +172,7 @@ func (p *ExecutionPayload) MarshalSSZTo(dst []byte) ([]byte, error) {
 	withdrawalsOffset := transactionsOffset + txDataSize
 
 	// Write offsets
-	dst = fastssz.MarshalUint32(dst, extraDataOffset)
+	dst = ssz.MarshalUint32(dst, extraDataOffset)
 
 	// BaseFeePerGas
 	var bz []byte
@@ -190,10 +190,10 @@ func (p *ExecutionPayload) MarshalSSZTo(dst []byte) ([]byte, error) {
 
 	// Static fields continued
 	dst = append(dst, p.BlockHash[:]...)
-	dst = fastssz.MarshalUint32(dst, transactionsOffset)
-	dst = fastssz.MarshalUint32(dst, withdrawalsOffset)
-	dst = fastssz.MarshalUint64(dst, uint64(p.BlobGasUsed))
-	dst = fastssz.MarshalUint64(dst, uint64(p.ExcessBlobGas))
+	dst = ssz.MarshalUint32(dst, transactionsOffset)
+	dst = ssz.MarshalUint32(dst, withdrawalsOffset)
+	dst = ssz.MarshalUint64(dst, uint64(p.BlobGasUsed))
+	dst = ssz.MarshalUint64(dst, uint64(p.ExcessBlobGas))
 
 	// Dynamic fields
 	// ExtraData
@@ -207,7 +207,7 @@ func (p *ExecutionPayload) MarshalSSZTo(dst []byte) ([]byte, error) {
 		currOffset += uint32(len(tx))
 	}
 	for _, offset := range txOffsets {
-		dst = fastssz.MarshalUint32(dst, offset)
+		dst = ssz.MarshalUint32(dst, offset)
 	}
 	for _, tx := range p.Transactions {
 		dst = append(dst, tx...)
@@ -231,7 +231,7 @@ func (p *ExecutionPayload) MarshalSSZTo(dst []byte) ([]byte, error) {
 // UnmarshalSSZ ssz unmarshals the ExecutionPayload object.
 func (p *ExecutionPayload) UnmarshalSSZ(buf []byte) error {
 	if len(buf) < int(ExecutionPayloadStaticSize) {
-		return fastssz.ErrSize
+		return ssz.ErrSize
 	}
 
 	// Static fields
@@ -241,13 +241,13 @@ func (p *ExecutionPayload) UnmarshalSSZ(buf []byte) error {
 	copy(p.ReceiptsRoot[:], buf[84:116])
 	copy(p.LogsBloom[:], buf[116:372])
 	copy(p.Random[:], buf[372:404])
-	p.Number = math.U64(fastssz.UnmarshallUint64(buf[404:412]))
-	p.GasLimit = math.U64(fastssz.UnmarshallUint64(buf[412:420]))
-	p.GasUsed = math.U64(fastssz.UnmarshallUint64(buf[420:428]))
-	p.Timestamp = math.U64(fastssz.UnmarshallUint64(buf[428:436]))
+	p.Number = math.U64(ssz.UnmarshallUint64(buf[404:412]))
+	p.GasLimit = math.U64(ssz.UnmarshallUint64(buf[412:420]))
+	p.GasUsed = math.U64(ssz.UnmarshallUint64(buf[420:428]))
+	p.Timestamp = math.U64(ssz.UnmarshallUint64(buf[428:436]))
 
 	// Read offsets
-	extraDataOffset := fastssz.UnmarshallUint32(buf[436:440])
+	extraDataOffset := ssz.UnmarshallUint32(buf[436:440])
 
 	// BaseFeePerGas
 	if p.BaseFeePerGas == nil {
@@ -259,15 +259,15 @@ func (p *ExecutionPayload) UnmarshalSSZ(buf []byte) error {
 
 	// More static fields
 	copy(p.BlockHash[:], buf[472:504])
-	transactionsOffset := fastssz.UnmarshallUint32(buf[504:508])
-	withdrawalsOffset := fastssz.UnmarshallUint32(buf[508:512])
-	p.BlobGasUsed = math.U64(fastssz.UnmarshallUint64(buf[512:520]))
-	p.ExcessBlobGas = math.U64(fastssz.UnmarshallUint64(buf[520:528]))
+	transactionsOffset := ssz.UnmarshallUint32(buf[504:508])
+	withdrawalsOffset := ssz.UnmarshallUint32(buf[508:512])
+	p.BlobGasUsed = math.U64(ssz.UnmarshallUint64(buf[512:520]))
+	p.ExcessBlobGas = math.U64(ssz.UnmarshallUint64(buf[520:528]))
 
 	// Dynamic fields
 	// ExtraData
 	if extraDataOffset > uint32(len(buf)) || transactionsOffset > uint32(len(buf)) || extraDataOffset > transactionsOffset {
-		return fastssz.ErrInvalidVariableOffset
+		return ssz.ErrInvalidVariableOffset
 	}
 	p.ExtraData = append([]byte(nil), buf[extraDataOffset:transactionsOffset]...)
 	if len(p.ExtraData) > 32 {
@@ -276,17 +276,17 @@ func (p *ExecutionPayload) UnmarshalSSZ(buf []byte) error {
 
 	// Transactions
 	if transactionsOffset > uint32(len(buf)) || withdrawalsOffset > uint32(len(buf)) || transactionsOffset > withdrawalsOffset {
-		return fastssz.ErrInvalidVariableOffset
+		return ssz.ErrInvalidVariableOffset
 	}
 	txData := buf[transactionsOffset:withdrawalsOffset]
 	if len(txData) > 0 {
 		// Read transaction offsets
 		if len(txData) < 4 {
-			return fastssz.ErrSize
+			return ssz.ErrSize
 		}
-		firstTxOffset := fastssz.UnmarshallUint32(txData[0:4])
+		firstTxOffset := ssz.UnmarshallUint32(txData[0:4])
 		if firstTxOffset < transactionsOffset || firstTxOffset > uint32(len(buf)) {
-			return fastssz.ErrInvalidVariableOffset
+			return ssz.ErrInvalidVariableOffset
 		}
 		numTxs := int((firstTxOffset - transactionsOffset) / 4)
 		if numTxs > int(constants.MaxTxsPerPayload) {
@@ -295,7 +295,7 @@ func (p *ExecutionPayload) UnmarshalSSZ(buf []byte) error {
 
 		txOffsets := make([]uint32, numTxs)
 		for i := 0; i < numTxs; i++ {
-			txOffsets[i] = fastssz.UnmarshallUint32(txData[i*4 : (i+1)*4])
+			txOffsets[i] = ssz.UnmarshallUint32(txData[i*4 : (i+1)*4])
 		}
 
 		p.Transactions = make([][]byte, numTxs)
@@ -306,7 +306,7 @@ func (p *ExecutionPayload) UnmarshalSSZ(buf []byte) error {
 				end = txOffsets[i+1]
 			}
 			if start > uint32(len(buf)) || end > uint32(len(buf)) || start > end {
-				return fastssz.ErrInvalidVariableOffset
+				return ssz.ErrInvalidVariableOffset
 			}
 			p.Transactions[i] = append([]byte(nil), buf[start:end]...)
 			if len(p.Transactions[i]) > int(constants.MaxBytesPerTx) {
@@ -319,11 +319,11 @@ func (p *ExecutionPayload) UnmarshalSSZ(buf []byte) error {
 
 	// Withdrawals
 	if withdrawalsOffset > uint32(len(buf)) {
-		return fastssz.ErrInvalidVariableOffset
+		return ssz.ErrInvalidVariableOffset
 	}
 	wData := buf[withdrawalsOffset:]
 	if len(wData)%44 != 0 {
-		return fastssz.ErrSize
+		return ssz.ErrSize
 	}
 	numWithdrawals := len(wData) / 44
 	if numWithdrawals > 16 {
@@ -343,7 +343,7 @@ func (p *ExecutionPayload) UnmarshalSSZ(buf []byte) error {
 // HashTreeRootWith ssz hashes the ExecutionPayload object with a hasher.
 //
 //nolint:mnd // will be deprecated eventually.
-func (p *ExecutionPayload) HashTreeRootWith(hh fastssz.HashWalker) error {
+func (p *ExecutionPayload) HashTreeRootWith(hh ssz.HashWalker) error {
 	indx := hh.Index()
 
 	// Field (0) 'ParentHash'
@@ -381,7 +381,7 @@ func (p *ExecutionPayload) HashTreeRootWith(hh fastssz.HashWalker) error {
 		elemIndx := hh.Index()
 		byteLen := uint64(len(p.ExtraData))
 		if byteLen > 32 {
-			return fastssz.ErrIncorrectListSize
+			return ssz.ErrIncorrectListSize
 		}
 		hh.Append(p.ExtraData)
 		hh.MerkleizeWithMixin(elemIndx, byteLen, (32+31)/32)
@@ -407,14 +407,14 @@ func (p *ExecutionPayload) HashTreeRootWith(hh fastssz.HashWalker) error {
 		subIndx := hh.Index()
 		num := uint64(len(p.Transactions))
 		if num > 1048576 {
-			return fastssz.ErrIncorrectListSize
+			return ssz.ErrIncorrectListSize
 		}
 		for _, elem := range p.Transactions {
 			{
 				elemIndx := hh.Index()
 				byteLen := uint64(len(elem))
 				if byteLen > 1073741824 {
-					return fastssz.ErrIncorrectListSize
+					return ssz.ErrIncorrectListSize
 				}
 				hh.AppendBytes32(elem)
 				hh.MerkleizeWithMixin(elemIndx, byteLen, (1073741824+31)/32)
@@ -428,7 +428,7 @@ func (p *ExecutionPayload) HashTreeRootWith(hh fastssz.HashWalker) error {
 		subIndx := hh.Index()
 		num := uint64(len(p.Withdrawals))
 		if num > 16 {
-			return fastssz.ErrIncorrectListSize
+			return ssz.ErrIncorrectListSize
 		}
 		for _, elem := range p.Withdrawals {
 			if elem == nil {
@@ -452,8 +452,8 @@ func (p *ExecutionPayload) HashTreeRootWith(hh fastssz.HashWalker) error {
 }
 
 // GetTree ssz hashes the ExecutionPayload object.
-func (p *ExecutionPayload) GetTree() (*fastssz.Node, error) {
-	return fastssz.ProofTree(p)
+func (p *ExecutionPayload) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(p)
 }
 
 /* -------------------------------------------------------------------------- */

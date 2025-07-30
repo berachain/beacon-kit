@@ -25,7 +25,7 @@ import (
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	fastssz "github.com/ferranbt/fastssz"
+	ssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -80,7 +80,7 @@ func TestSyncAggregate_FastSSZ(t *testing.T) {
 	})
 
 	t.Run("HashTreeRootWith", func(t *testing.T) {
-		hh := fastssz.NewHasher()
+		hh := ssz.NewHasher()
 		err := sa.HashTreeRootWith(hh)
 		require.NoError(t, err)
 	})

@@ -26,7 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
-	fastssz "github.com/ferranbt/fastssz"
+	ssz "github.com/ferranbt/fastssz"
 )
 
 // Compile-time assertions to ensure Attestation implements necessary interfaces.
@@ -47,8 +47,8 @@ func (as Attestations) SizeSSZ() int {
 
 // HashTreeRoot returns the hash tree root of the Attestations.
 func (as Attestations) HashTreeRoot() ([32]byte, error) {
-	hh := fastssz.DefaultHasherPool.Get()
-	defer fastssz.DefaultHasherPool.Put(hh)
+	hh := ssz.DefaultHasherPool.Get()
+	defer ssz.DefaultHasherPool.Put(hh)
 	if err := as.HashTreeRootWith(hh); err != nil {
 		return [32]byte{}, err
 	}
@@ -61,11 +61,11 @@ func (as Attestations) HashTreeRoot() ([32]byte, error) {
 /* -------------------------------------------------------------------------- */
 
 // HashTreeRootWith ssz hashes the Attestations object with a hasher.
-func (as Attestations) HashTreeRootWith(hh fastssz.HashWalker) error {
+func (as Attestations) HashTreeRootWith(hh ssz.HashWalker) error {
 	indx := hh.Index()
 	num := uint64(len(as))
 	if num > constants.MaxAttestations {
-		return fastssz.ErrIncorrectListSize
+		return ssz.ErrIncorrectListSize
 	}
 	for _, elem := range as {
 		if err := elem.HashTreeRootWith(hh); err != nil {
@@ -77,8 +77,8 @@ func (as Attestations) HashTreeRootWith(hh fastssz.HashWalker) error {
 }
 
 // GetTree ssz hashes the Attestations object.
-func (as Attestations) GetTree() (*fastssz.Node, error) {
-	return fastssz.ProofTree(as)
+func (as Attestations) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(as)
 }
 
 // EnforceUnused return true if the length of the Attestations is 0.

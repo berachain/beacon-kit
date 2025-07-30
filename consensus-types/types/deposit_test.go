@@ -28,7 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/encoding/sszutil"
 	"github.com/berachain/beacon-kit/primitives/math"
-	fastssz "github.com/ferranbt/fastssz"
+	ssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -133,7 +133,7 @@ func TestDeposit_HashTreeRootWith(t *testing.T) {
 	t.Parallel()
 	deposit := generateValidDeposit()
 	require.NotNil(t, deposit)
-	hasher := fastssz.NewHasher()
+	hasher := ssz.NewHasher()
 	require.NotNil(t, hasher)
 	err := deposit.HashTreeRootWith(hasher)
 	require.NoError(t, err)

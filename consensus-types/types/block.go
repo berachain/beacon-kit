@@ -28,7 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
-	fastssz "github.com/ferranbt/fastssz"
+	ssz "github.com/ferranbt/fastssz"
 )
 
 var (
@@ -105,8 +105,8 @@ func (b *BeaconBlock) ValidateAfterDecodingSSZ() error {
 
 // HashTreeRoot computes the Merkleization of the BeaconBlock object.
 func (b *BeaconBlock) HashTreeRoot() ([32]byte, error) {
-	hh := fastssz.DefaultHasherPool.Get()
-	defer fastssz.DefaultHasherPool.Put(hh)
+	hh := ssz.DefaultHasherPool.Get()
+	defer ssz.DefaultHasherPool.Put(hh)
 	if err := b.HashTreeRootWith(hh); err != nil {
 		return [32]byte{}, err
 	}
@@ -176,14 +176,14 @@ func (b *BeaconBlock) GetTimestamp() math.U64 {
 // MarshalSSZTo ssz marshals the BeaconBlock object to a target array.
 func (b *BeaconBlock) MarshalSSZTo(dst []byte) ([]byte, error) {
 	// Fixed part
-	dst = fastssz.MarshalUint64(dst, uint64(b.Slot))
-	dst = fastssz.MarshalUint64(dst, uint64(b.ProposerIndex))
+	dst = ssz.MarshalUint64(dst, uint64(b.Slot))
+	dst = ssz.MarshalUint64(dst, uint64(b.ProposerIndex))
 	dst = append(dst, b.ParentRoot[:]...)
 	dst = append(dst, b.StateRoot[:]...)
 
 	// Offset for body
 	offset := 84
-	dst = fastssz.MarshalUint32(dst, uint32(offset))
+	dst = ssz.MarshalUint32(dst, uint32(offset))
 
 	// Dynamic part: Body
 	dst, err := b.Body.MarshalSSZTo(dst)
@@ -197,19 +197,19 @@ func (b *BeaconBlock) MarshalSSZTo(dst []byte) ([]byte, error) {
 // UnmarshalSSZ ssz unmarshals the BeaconBlock object.
 func (b *BeaconBlock) UnmarshalSSZ(buf []byte) error {
 	if len(buf) < 84 {
-		return fastssz.ErrSize
+		return ssz.ErrSize
 	}
 
 	// Fixed part
-	b.Slot = math.Slot(fastssz.UnmarshallUint64(buf[0:8]))
-	b.ProposerIndex = math.ValidatorIndex(fastssz.UnmarshallUint64(buf[8:16]))
+	b.Slot = math.Slot(ssz.UnmarshallUint64(buf[0:8]))
+	b.ProposerIndex = math.ValidatorIndex(ssz.UnmarshallUint64(buf[8:16]))
 	copy(b.ParentRoot[:], buf[16:48])
 	copy(b.StateRoot[:], buf[48:80])
 
 	// Check offset
-	offset := fastssz.UnmarshallUint32(buf[80:84])
+	offset := ssz.UnmarshallUint32(buf[80:84])
 	if offset != 84 {
-		return fastssz.ErrInvalidVariableOffset
+		return ssz.ErrInvalidVariableOffset
 	}
 
 	// Dynamic part: Body
@@ -224,7 +224,7 @@ func (b *BeaconBlock) UnmarshalSSZ(buf []byte) error {
 }
 
 // HashTreeRootWith ssz hashes the BeaconBlock object with a hasher.
-func (b *BeaconBlock) HashTreeRootWith(hh fastssz.HashWalker) error {
+func (b *BeaconBlock) HashTreeRootWith(hh ssz.HashWalker) error {
 	indx := hh.Index()
 
 	// Field (0) 'Slot'
@@ -249,6 +249,6 @@ func (b *BeaconBlock) HashTreeRootWith(hh fastssz.HashWalker) error {
 }
 
 // GetTree ssz hashes the BeaconBlock object.
-func (b *BeaconBlock) GetTree() (*fastssz.Node, error) {
-	return fastssz.ProofTree(b)
+func (b *BeaconBlock) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(b)
 }

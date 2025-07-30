@@ -25,7 +25,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
-	fastssz "github.com/ferranbt/fastssz"
+	ssz "github.com/ferranbt/fastssz"
 )
 
 // BeaconState represents the entire state of the beacon chain.
@@ -129,8 +129,8 @@ func (st *BeaconState) MarshalSSZ() ([]byte, error) {
 
 // HashTreeRoot computes the Merkleization of the BeaconState.
 func (st *BeaconState) HashTreeRoot() ([32]byte, error) {
-	hh := fastssz.DefaultHasherPool.Get()
-	defer fastssz.DefaultHasherPool.Put(hh)
+	hh := ssz.DefaultHasherPool.Get()
+	defer ssz.DefaultHasherPool.Put(hh)
 	if err := st.HashTreeRootWith(hh); err != nil {
 		return [32]byte{}, err
 	}
@@ -146,7 +146,7 @@ func (st *BeaconState) HashTreeRoot() ([32]byte, error) {
 //
 //nolint:mnd,funlen,gocognit // todo fix.
 func (st *BeaconState) HashTreeRootWith(
-	hh fastssz.HashWalker,
+	hh ssz.HashWalker,
 ) error {
 	indx := hh.Index()
 
@@ -174,7 +174,7 @@ func (st *BeaconState) HashTreeRootWith(
 
 	// Field (4) 'BlockRoots'
 	if size := len(st.BlockRoots); size > 8192 {
-		return fastssz.ErrListTooBigFn("BeaconState.BlockRoots", size, 8192)
+		return ssz.ErrListTooBigFn("BeaconState.BlockRoots", size, 8192)
 	}
 	subIndx := hh.Index()
 	for _, i := range st.BlockRoots {
@@ -185,7 +185,7 @@ func (st *BeaconState) HashTreeRootWith(
 
 	// Field (5) 'StateRoots'
 	if size := len(st.StateRoots); size > 8192 {
-		return fastssz.ErrListTooBigFn("BeaconState.StateRoots", size, 8192)
+		return ssz.ErrListTooBigFn("BeaconState.StateRoots", size, 8192)
 	}
 	subIndx = hh.Index()
 	for _, i := range st.StateRoots {
@@ -217,7 +217,7 @@ func (st *BeaconState) HashTreeRootWith(
 	subIndx = hh.Index()
 	num := uint64(len(st.Validators))
 	if num > 1099511627776 {
-		return fastssz.ErrIncorrectListSize
+		return ssz.ErrIncorrectListSize
 	}
 	for _, elem := range st.Validators {
 		if err := elem.HashTreeRootWith(hh); err != nil {
@@ -228,7 +228,7 @@ func (st *BeaconState) HashTreeRootWith(
 
 	// Field (10) 'Balances'
 	if size := len(st.Balances); size > 1099511627776 {
-		return fastssz.ErrListTooBigFn(
+		return ssz.ErrListTooBigFn(
 			"BeaconState.Balances",
 			size,
 			1099511627776,
@@ -243,12 +243,12 @@ func (st *BeaconState) HashTreeRootWith(
 	hh.MerkleizeWithMixin(
 		subIndx,
 		numItems,
-		fastssz.CalculateLimit(1099511627776, numItems, 8),
+		ssz.CalculateLimit(1099511627776, numItems, 8),
 	)
 
 	// Field (11) 'RandaoMixes'
 	if size := len(st.RandaoMixes); size > 65536 {
-		return fastssz.ErrListTooBigFn("BeaconState.RandaoMixes", size, 65536)
+		return ssz.ErrListTooBigFn("BeaconState.RandaoMixes", size, 65536)
 	}
 	subIndx = hh.Index()
 	for _, i := range st.RandaoMixes {
@@ -265,7 +265,7 @@ func (st *BeaconState) HashTreeRootWith(
 
 	// Field (14) 'Slashings'
 	if size := len(st.Slashings); size > 1099511627776 {
-		return fastssz.ErrListTooBigFn(
+		return ssz.ErrListTooBigFn(
 			"BeaconState.Slashings",
 			size,
 			1099511627776,
@@ -280,7 +280,7 @@ func (st *BeaconState) HashTreeRootWith(
 	hh.MerkleizeWithMixin(
 		subIndx,
 		numItems,
-		fastssz.CalculateLimit(1099511627776, numItems, 8),
+		ssz.CalculateLimit(1099511627776, numItems, 8),
 	)
 
 	// Field (15) 'TotalSlashing'
@@ -291,7 +291,7 @@ func (st *BeaconState) HashTreeRootWith(
 		subIndx = hh.Index()
 		numPPW := uint64(len(st.PendingPartialWithdrawals))
 		if numPPW > constants.PendingPartialWithdrawalsLimit {
-			return fastssz.ErrIncorrectListSize
+			return ssz.ErrIncorrectListSize
 		}
 		for _, elem := range st.PendingPartialWithdrawals {
 			if err := elem.HashTreeRootWith(hh); err != nil {
@@ -305,15 +305,15 @@ func (st *BeaconState) HashTreeRootWith(
 }
 
 // GetTree ssz hashes the BeaconState object.
-func (st *BeaconState) GetTree() (*fastssz.Node, error) {
-	return fastssz.ProofTree(st)
+func (st *BeaconState) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(st)
 }
 
 // MarshalSSZTo ssz marshals the BeaconState object to a target array.
 func (st *BeaconState) MarshalSSZTo(dst []byte) ([]byte, error) {
 	// TODO: Implement proper SSZ marshaling for BeaconState
 	// For now, return an error to avoid infinite recursion
-	return nil, fastssz.ErrSize
+	return nil, ssz.ErrSize
 }
 
 // UnmarshalSSZ ssz unmarshals the BeaconState object.

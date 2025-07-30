@@ -25,7 +25,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/version"
-	fastssz "github.com/ferranbt/fastssz"
+	ssz "github.com/ferranbt/fastssz"
 )
 
 // TODO: Re-enable interface assertion once constraints are updated
@@ -99,8 +99,8 @@ func (b *SignedBeaconBlock) ValidateAfterDecodingSSZ() error {
 // HashTreeRoot computes the SSZ hash tree root of the
 // SignedBeaconBlock object.
 func (b *SignedBeaconBlock) HashTreeRoot() ([32]byte, error) {
-	hh := fastssz.DefaultHasherPool.Get()
-	defer fastssz.DefaultHasherPool.Put(hh)
+	hh := ssz.DefaultHasherPool.Get()
+	defer ssz.DefaultHasherPool.Put(hh)
 	if err := b.HashTreeRootWith(hh); err != nil {
 		return [32]byte{}, err
 	}
@@ -128,7 +128,7 @@ func (b *SignedBeaconBlock) GetSignature() crypto.BLSSignature {
 func (b *SignedBeaconBlock) MarshalSSZTo(dst []byte) ([]byte, error) {
 	// Offset for BeaconBlock
 	offset := 100 // 4 + 96
-	dst = fastssz.MarshalUint32(dst, uint32(offset))
+	dst = ssz.MarshalUint32(dst, uint32(offset))
 
 	// Signature
 	dst = append(dst, b.Signature[:]...)
@@ -145,13 +145,13 @@ func (b *SignedBeaconBlock) MarshalSSZTo(dst []byte) ([]byte, error) {
 // UnmarshalSSZ ssz unmarshals the SignedBeaconBlock object.
 func (b *SignedBeaconBlock) UnmarshalSSZ(buf []byte) error {
 	if len(buf) < 100 {
-		return fastssz.ErrSize
+		return ssz.ErrSize
 	}
 
 	// Read offset
-	offset := fastssz.UnmarshallUint32(buf[0:4])
+	offset := ssz.UnmarshallUint32(buf[0:4])
 	if offset != 100 {
-		return fastssz.ErrInvalidVariableOffset
+		return ssz.ErrInvalidVariableOffset
 	}
 
 	// Signature
@@ -169,7 +169,7 @@ func (b *SignedBeaconBlock) UnmarshalSSZ(buf []byte) error {
 }
 
 // HashTreeRootWith ssz hashes the SignedBeaconBlock object with a hasher.
-func (b *SignedBeaconBlock) HashTreeRootWith(hh fastssz.HashWalker) error {
+func (b *SignedBeaconBlock) HashTreeRootWith(hh ssz.HashWalker) error {
 	indx := hh.Index()
 
 	// Field (0) 'Message' (BeaconBlock)
@@ -185,6 +185,6 @@ func (b *SignedBeaconBlock) HashTreeRootWith(hh fastssz.HashWalker) error {
 }
 
 // GetTree ssz hashes the SignedBeaconBlock object.
-func (b *SignedBeaconBlock) GetTree() (*fastssz.Node, error) {
-	return fastssz.ProofTree(b)
+func (b *SignedBeaconBlock) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(b)
 }
