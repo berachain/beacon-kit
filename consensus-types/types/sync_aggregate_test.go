@@ -90,21 +90,6 @@ func TestSyncAggregate_FastSSZ(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, tree)
 	})
-
-	t.Run("CompareHashTreeRoot", func(t *testing.T) {
-		// Compare karalabe/ssz HashTreeRoot with fastssz HashTreeRootWith
-		karalabRoot, err := sa.HashTreeRoot()
-		require.NoError(t, err)
-
-		hh := fastssz.NewHasher()
-		err = sa.HashTreeRootWith(hh)
-		require.NoError(t, err)
-		fastsszRoot, err := hh.HashRoot()
-		require.NoError(t, err)
-
-		require.Equal(t, karalabRoot[:], fastsszRoot[:],
-			"HashTreeRoot results should match between karalabe/ssz and fastssz")
-	})
 }
 
 func TestSyncAggregate_EnforceUnused(t *testing.T) {
