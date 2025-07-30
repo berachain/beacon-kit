@@ -163,7 +163,7 @@ style = "pretty"
 trusted-setup-path = "~/.beacond/config/kzg-trusted-setup.json"
 
 # KZG implementation to use.
-# Options are "crate-crypto/go-kzg-4844" or "ethereum/c-kzg-4844".
+# Options are "crate-crypto/go-kzg-4844".
 implementation = "crate-crypto/go-kzg-4844"
 
 [beacon-kit.payload-builder]
