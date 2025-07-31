@@ -7,7 +7,6 @@ replace (
 	github.com/cometbft/cometbft/api => github.com/berachain/cometbft/api v1.0.1-0.20250718121541-9671b1dc07e5
 	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.52.0-rc.1
 	github.com/ethereum/go-ethereum => github.com/berachain/bera-geth v0.0.0-20250722192516-7ce36c5a40aa
-	github.com/karalabe/ssz => github.com/berachain/karalabe-ssz v0.3.0-alpha.0
 )
 
 require (
@@ -32,7 +31,7 @@ require (
 	github.com/hashicorp/go-metrics v0.5.4
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/holiman/uint256 v1.3.2
-	github.com/karalabe/ssz v0.2.1-0.20240724074312-3d1ff7a6f7c4
+	github.com/karalabe/ssz v0.2.0
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/minio/sha256-simd v1.0.1
 	github.com/mitchellh/mapstructure v1.5.0

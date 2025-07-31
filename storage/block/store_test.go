@@ -38,8 +38,8 @@ func (m MockBeaconBlock) GetSlot() math.Slot {
 	return m.slot
 }
 
-func (m MockBeaconBlock) HashTreeRoot() common.Root {
-	return [32]byte{byte(m.slot)}
+func (m MockBeaconBlock) HashTreeRoot() ([32]byte, error) {
+	return [32]byte{byte(m.slot)}, nil
 }
 
 func (m MockBeaconBlock) GetTimestamp() math.U64 {

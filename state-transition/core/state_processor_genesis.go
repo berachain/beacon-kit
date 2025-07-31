@@ -51,8 +51,12 @@ func (sp *StateProcessor) InitializeBeaconStateFromEth1(
 		return nil, err
 	}
 
+	depositRootBytes, err := deposits.HashTreeRoot()
+	if err != nil {
+		return nil, err
+	}
 	eth1Data := &ctypes.Eth1Data{
-		DepositRoot:  deposits.HashTreeRoot(),
+		DepositRoot:  common.NewRootFromBytes(depositRootBytes[:]),
 		DepositCount: 0,
 		BlockHash:    execPayloadHeader.GetBlockHash(),
 	}
@@ -81,7 +85,11 @@ func (sp *StateProcessor) InitializeBeaconStateFromEth1(
 	if err != nil {
 		return nil, err
 	}
-	if err = st.SetGenesisValidatorsRoot(validators.HashTreeRoot()); err != nil {
+	validatorsRootBytes, err := validators.HashTreeRoot()
+	if err != nil {
+		return nil, err
+	}
+	if err = st.SetGenesisValidatorsRoot(common.NewRootFromBytes(validatorsRootBytes[:])); err != nil {
 		return nil, err
 	}
 
@@ -201,12 +209,18 @@ func GenesisBlockHeader(genesisVersion common.Version) *ctypes.BeaconBlockHeader
 		},
 	}
 
+	bodyRootBytes, err := blkBody.HashTreeRoot()
+	if err != nil {
+		// For genesis block header, we can't return error from this function
+		// so we'll panic as this should never fail for a valid block body
+		panic(err)
+	}
 	blkHeader := &ctypes.BeaconBlockHeader{
 		Slot:            constants.GenesisSlot,
 		ProposerIndex:   0,
 		ParentBlockRoot: common.Root{},
 		StateRoot:       common.Root{},
-		BodyRoot:        blkBody.HashTreeRoot(),
+		BodyRoot:        common.NewRootFromBytes(bodyRootBytes[:]),
 	}
 	return blkHeader
 }

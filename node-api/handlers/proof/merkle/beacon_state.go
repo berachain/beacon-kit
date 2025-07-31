@@ -64,7 +64,11 @@ func ProveBeaconStateInBlock(
 func verifyBeaconStateInBlock(
 	bbh *ctypes.BeaconBlockHeader, proof []common.Root, leaf common.Root,
 ) error {
-	beaconRoot := bbh.HashTreeRoot()
+	beaconRootBytes, err := bbh.HashTreeRoot()
+	if err != nil {
+		return err
+	}
+	beaconRoot := common.NewRootFromBytes(beaconRootBytes[:])
 	if !merkle.VerifyProof(beaconRoot, leaf, StateGIndexBlock, proof) {
 		return errors.Wrapf(
 			errors.New("beacon stateproof failed to verify against beacon root"),

@@ -21,15 +21,15 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/karalabe/ssz"
 )
 
-// Compile-time assertions to ensure SignedBeaconBlockHeader implements necessary interfaces.
+// NOTE: sszgen generation requires special handling to avoid generating duplicate BeaconBlockHeader methods.
+// The generated file needs manual cleanup to remove BeaconBlockHeader methods.
+// go:generate sszgen -path . -objs SignedBeaconBlockHeader -output signed_beacon_block_header_sszgen.go -include ../../primitives/common,../../primitives/crypto,../../primitives/math,../../primitives/bytes -exclude-objs BeaconBlockBody,BeaconState,ExecutionPayload,ExecutionPayloadHeader,BeaconBlock,SignedBeaconBlock
+
 var (
-	_ ssz.StaticObject                    = (*SignedBeaconBlockHeader)(nil)
 	_ constraints.SSZMarshallableRootable = (*SignedBeaconBlockHeader)(nil)
 )
 
@@ -37,8 +37,8 @@ var (
 //
 // NOTE: This struct is only ever (un)marshalled with SSZ and NOT with JSON.
 type SignedBeaconBlockHeader struct {
-	Header    *BeaconBlockHeader
-	Signature crypto.BLSSignature
+	Header    *BeaconBlockHeader  `ssz-size:"112"`
+	Signature crypto.BLSSignature `ssz-size:"96"`
 }
 
 /* -------------------------------------------------------------------------- */
@@ -55,37 +55,7 @@ func NewSignedBeaconBlockHeader(
 	}
 }
 
-/* -------------------------------------------------------------------------- */
-/*                                     SSZ                                    */
-/* -------------------------------------------------------------------------- */
-
-// SizeSSZ returns the size of the SignedBeaconBlockHeader object
-// in SSZ encoding. Total size: Header (112) + Signature (96).
-func (b *SignedBeaconBlockHeader) SizeSSZ(sizer *ssz.Sizer) uint32 {
-	//nolint:mnd // no magic
-	size := (*BeaconBlockHeader)(nil).SizeSSZ(sizer) + 96
-	return size
-}
-
-// DefineSSZ defines the SSZ encoding for the SignedBeaconBlockHeader object.
-func (b *SignedBeaconBlockHeader) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineStaticObject(codec, &b.Header)
-	ssz.DefineStaticBytes(codec, &b.Signature)
-}
-
-// MarshalSSZ marshals the SignedBeaconBlockHeader object to SSZ format.
-func (b *SignedBeaconBlockHeader) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(b))
-	return buf, ssz.EncodeToBytes(buf, b)
-}
-
 func (*SignedBeaconBlockHeader) ValidateAfterDecodingSSZ() error { return nil }
-
-// HashTreeRoot computes the SSZ hash tree root of the
-// SignedBeaconBlockHeader object.
-func (b *SignedBeaconBlockHeader) HashTreeRoot() common.Root {
-	return ssz.HashSequential(b)
-}
 
 /* -------------------------------------------------------------------------- */
 /*                            Getters and Setters                             */

@@ -31,12 +31,11 @@ import (
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/merkle"
-	"github.com/karalabe/ssz"
+	fastssz "github.com/ferranbt/fastssz"
 )
 
 // Compile-time assertions to ensure BlobSidecar implements necessary interfaces.
 var (
-	_ ssz.StaticObject                    = (*BlobSidecar)(nil)
 	_ constraints.SSZMarshallableRootable = (*BlobSidecar)(nil)
 )
 
@@ -85,8 +84,12 @@ func BuildBlobSidecar(
 // blob in the beacon body.
 func (b *BlobSidecar) HasValidInclusionProof() bool {
 	header := b.GetBeaconBlockHeader()
+	commitmentRoot, err := b.KzgCommitment.HashTreeRoot()
+	if err != nil {
+		return false
+	}
 	return header != nil && merkle.IsValidMerkleBranch(
-		b.KzgCommitment.HashTreeRoot(),
+		common.Root(commitmentRoot),
 		b.InclusionProof,
 		ctypes.KZGInclusionProofDepth,
 		ctypes.KZGOffset+b.Index,
@@ -130,25 +133,13 @@ func (b *BlobSidecar) GetSignature() crypto.BLSSignature {
 /*                                     SSZ                                    */
 /* -------------------------------------------------------------------------- */
 
-// DefineSSZ defines the SSZ encoding for the BlobSidecar object.
-func (b *BlobSidecar) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineUint64(codec, &b.Index)
-	ssz.DefineStaticBytes(codec, &b.Blob)
-	ssz.DefineStaticBytes(codec, &b.KzgCommitment)
-	ssz.DefineStaticBytes(codec, &b.KzgProof)
-	ssz.DefineStaticObject(codec, &b.SignedBeaconBlockHeader)
-	ssz.DefineCheckedArrayOfStaticBytes(codec, &b.InclusionProof, ctypes.KZGInclusionProofDepth)
-}
-
 // SizeSSZ returns the size of the BlobSidecar object in SSZ encoding.
-// TODO: get from accessible chainspec field params.
-func (b *BlobSidecar) SizeSSZ(sizer *ssz.Sizer) uint32 {
-	ssize := (*ctypes.SignedBeaconBlockHeader)(nil).SizeSSZ(sizer)
+func (b *BlobSidecar) SizeSSZ() int {
 	return 8 + // Index
 		131072 + // Blob
 		48 + // KzgCommitment
 		48 + // KzgProof
-		ssize + // SignedBeaconBlockHeader
+		208 + // SignedBeaconBlockHeader (112 + 96)
 		ctypes.KZGInclusionProofDepth*32 // InclusionProof
 }
 
@@ -157,8 +148,7 @@ func (b *BlobSidecar) MarshalSSZ() ([]byte, error) {
 	if len(b.InclusionProof) != ctypes.KZGInclusionProofDepth {
 		return []byte{}, errors.New("invalid inclusion proof length")
 	}
-	buf := make([]byte, ssz.Size(b))
-	return buf, ssz.EncodeToBytes(buf, b)
+	return b.MarshalSSZTo(make([]byte, 0, b.SizeSSZ()))
 }
 
 func (b *BlobSidecar) ValidateAfterDecodingSSZ() error {
@@ -179,11 +169,137 @@ func (b *BlobSidecar) ValidateAfterDecodingSSZ() error {
 
 // MarshalSSZTo marshals the BlobSidecar object to the provided buffer in SSZ
 // format.
-func (b *BlobSidecar) MarshalSSZTo(buf []byte) ([]byte, error) {
-	return buf, ssz.EncodeToBytes(buf, b)
+func (b *BlobSidecar) MarshalSSZTo(dst []byte) ([]byte, error) {
+	if len(b.InclusionProof) != ctypes.KZGInclusionProofDepth {
+		return nil, errors.New("invalid inclusion proof length")
+	}
+
+	// Field (0) 'Index'
+	dst = fastssz.MarshalUint64(dst, b.Index)
+
+	// Field (1) 'Blob' (131072 bytes)
+	dst = append(dst, b.Blob[:]...)
+
+	// Field (2) 'KzgCommitment' (48 bytes)
+	dst = append(dst, b.KzgCommitment[:]...)
+
+	// Field (3) 'KzgProof' (48 bytes)
+	dst = append(dst, b.KzgProof[:]...)
+
+	// Field (4) 'SignedBeaconBlockHeader'
+	if b.SignedBeaconBlockHeader == nil {
+		return nil, errors.New("SignedBeaconBlockHeader is nil")
+	}
+	dst, err := b.SignedBeaconBlockHeader.MarshalSSZTo(dst)
+	if err != nil {
+		return nil, err
+	}
+
+	// Field (5) 'InclusionProof' (vector of 17 roots)
+	for i := 0; i < ctypes.KZGInclusionProofDepth; i++ {
+		dst = append(dst, b.InclusionProof[i][:]...)
+	}
+
+	return dst, nil
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the BlobSidecar object.
-func (b *BlobSidecar) HashTreeRoot() common.Root {
-	return ssz.HashSequential(b)
+func (b *BlobSidecar) HashTreeRoot() ([32]byte, error) {
+	hh := fastssz.DefaultHasherPool.Get()
+	defer fastssz.DefaultHasherPool.Put(hh)
+	if err := b.HashTreeRootWith(hh); err != nil {
+		return [32]byte{}, err
+	}
+	return hh.HashRoot()
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
+
+// UnmarshalSSZ ssz unmarshals the BlobSidecar object.
+func (b *BlobSidecar) UnmarshalSSZ(buf []byte) error {
+	expectedSize := 8 + 131072 + 48 + 48 + 208 + ctypes.KZGInclusionProofDepth*32
+	if len(buf) != expectedSize {
+		return fastssz.ErrSize
+	}
+
+	var offset int
+
+	// Field (0) 'Index'
+	b.Index = fastssz.UnmarshallUint64(buf[offset : offset+8])
+	offset += 8
+
+	// Field (1) 'Blob' (131072 bytes)
+	copy(b.Blob[:], buf[offset:offset+131072])
+	offset += 131072
+
+	// Field (2) 'KzgCommitment' (48 bytes)
+	copy(b.KzgCommitment[:], buf[offset:offset+48])
+	offset += 48
+
+	// Field (3) 'KzgProof' (48 bytes)
+	copy(b.KzgProof[:], buf[offset:offset+48])
+	offset += 48
+
+	// Field (4) 'SignedBeaconBlockHeader'
+	if b.SignedBeaconBlockHeader == nil {
+		b.SignedBeaconBlockHeader = &ctypes.SignedBeaconBlockHeader{}
+	}
+	if err := b.SignedBeaconBlockHeader.UnmarshalSSZ(buf[offset : offset+208]); err != nil {
+		return err
+	}
+	offset += 208
+
+	// Field (5) 'InclusionProof' (vector of 17 roots)
+	b.InclusionProof = make([]common.Root, ctypes.KZGInclusionProofDepth)
+	for i := 0; i < ctypes.KZGInclusionProofDepth; i++ {
+		copy(b.InclusionProof[i][:], buf[offset:offset+32])
+		offset += 32
+	}
+
+	return b.ValidateAfterDecodingSSZ()
+}
+
+// HashTreeRootWith ssz hashes the BlobSidecar object with a hasher.
+func (b *BlobSidecar) HashTreeRootWith(hh fastssz.HashWalker) error {
+	indx := hh.Index()
+
+	// Field (0) 'Index'
+	hh.PutUint64(b.Index)
+
+	// Field (1) 'Blob' (131072 bytes)
+	hh.PutBytes(b.Blob[:])
+
+	// Field (2) 'KzgCommitment' (48 bytes)
+	hh.PutBytes(b.KzgCommitment[:])
+
+	// Field (3) 'KzgProof' (48 bytes)
+	hh.PutBytes(b.KzgProof[:])
+
+	// Field (4) 'SignedBeaconBlockHeader'
+	if b.SignedBeaconBlockHeader == nil {
+		return errors.New("SignedBeaconBlockHeader is nil")
+	}
+	if err := b.SignedBeaconBlockHeader.HashTreeRootWith(hh); err != nil {
+		return err
+	}
+
+	// Field (5) 'InclusionProof' (vector of 17 roots)
+	{
+		if len(b.InclusionProof) != ctypes.KZGInclusionProofDepth {
+			return fmt.Errorf("expected %d roots in InclusionProof, got %d", ctypes.KZGInclusionProofDepth, len(b.InclusionProof))
+		}
+		for i := 0; i < ctypes.KZGInclusionProofDepth; i++ {
+			hh.PutBytes(b.InclusionProof[i][:])
+		}
+	}
+
+	hh.Merkleize(indx)
+	return nil
+}
+
+// GetTree ssz hashes the BlobSidecar object.
+func (b *BlobSidecar) GetTree() (*fastssz.Node, error) {
+	return fastssz.ProofTree(b)
 }

@@ -18,6 +18,8 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
+//go:generate sszgen -path withdrawal_request.go -objs WithdrawalRequest -output withdrawal_request_sszgen.go -include ../../primitives/common,../../primitives/crypto,../../primitives/math,../../primitives/bytes
+
 package types
 
 import (
@@ -27,18 +29,11 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	sszutil "github.com/berachain/beacon-kit/primitives/encoding/ssz"
+	"github.com/berachain/beacon-kit/primitives/encoding/sszutil"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/karalabe/ssz"
 )
 
 const sszWithdrawRequestSize = 76 // ExecutionAddress = 20, ValidatorPubKey = 48, Amount = 8
-
-// Compile-time check to ensure WithdrawalRequest implements the necessary interfaces.
-var (
-	_ ssz.StaticObject            = (*WithdrawalRequest)(nil)
-	_ constraints.SSZMarshallable = (*WithdrawalRequest)(nil)
-)
 
 // WithdrawalRequest is introduced in EIP7002 which we use for withdrawals.
 type WithdrawalRequest struct {
@@ -47,32 +42,9 @@ type WithdrawalRequest struct {
 	Amount          math.Gwei
 }
 
-/* -------------------------------------------------------------------------- */
-/*                        Withdrawal Request SSZ                              */
-/* -------------------------------------------------------------------------- */
-
+// ValidateAfterDecodingSSZ validates the withdrawal request after decoding.
 func (w *WithdrawalRequest) ValidateAfterDecodingSSZ() error {
 	return nil
-}
-
-func (w *WithdrawalRequest) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineStaticBytes(codec, &w.SourceAddress)
-	ssz.DefineStaticBytes(codec, &w.ValidatorPubKey)
-	ssz.DefineUint64(codec, &w.Amount)
-}
-
-func (w *WithdrawalRequest) SizeSSZ(_ *ssz.Sizer) uint32 {
-	return sszWithdrawRequestSize
-}
-
-func (w *WithdrawalRequest) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(w))
-	return buf, ssz.EncodeToBytes(buf, w)
-}
-
-// HashTreeRoot returns the hash tree root of the Deposits.
-func (w *WithdrawalRequest) HashTreeRoot() common.Root {
-	return ssz.HashSequential(w)
 }
 
 /* -------------------------------------------------------------------------- */

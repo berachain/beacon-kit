@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math/log"
 	"github.com/berachain/beacon-kit/primitives/math/pow"
 	"github.com/ethereum/go-ethereum/params"
+	fastssz "github.com/ferranbt/fastssz"
 )
 
 type (
@@ -175,4 +176,49 @@ func GweiFromWei(i *big.Int) (Gwei, error) {
 // ToWei converts a value from Gwei to Wei.
 func (u Gwei) ToWei() *U256 {
 	return (&U256{}).Mul(NewU256(uint64(u)), NewU256(params.GWei))
+}
+
+// ----------------------- SSZ Methods for U64 -----------------------
+
+// SizeSSZ returns the size of U64 in SSZ encoding, which is always 8 bytes.
+func (u U64) SizeSSZ() int {
+	return 8
+}
+
+// MarshalSSZ marshals the U64 value to SSZ format (little-endian).
+func (u U64) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, 8)
+	binary.LittleEndian.PutUint64(buf, uint64(u))
+	return buf, nil
+}
+
+// MarshalSSZTo marshals the U64 value to the provided buffer in SSZ format.
+func (u U64) MarshalSSZTo(buf []byte) ([]byte, error) {
+	b := make([]byte, 8)
+	binary.LittleEndian.PutUint64(b, uint64(u))
+	return append(buf, b...), nil
+}
+
+// UnmarshalSSZ unmarshals a U64 value from SSZ format.
+func (u *U64) UnmarshalSSZ(buf []byte) error {
+	if len(buf) < 8 {
+		return errors.New("insufficient buffer size for U64")
+	}
+	*u = U64(binary.LittleEndian.Uint64(buf[:8]))
+	return nil
+}
+
+// ----------------------- FastSSZ Methods for U64 -----------------------
+
+// HashTreeRootWith ssz hashes the U64 object with a hasher.
+func (u U64) HashTreeRootWith(hh fastssz.HashWalker) error {
+	indx := hh.Index()
+	hh.PutUint64(uint64(u))
+	hh.Merkleize(indx)
+	return nil
+}
+
+// GetTree ssz hashes the U64 object.
+func (u *U64) GetTree() (*fastssz.Node, error) {
+	return fastssz.ProofTree(u)
 }
