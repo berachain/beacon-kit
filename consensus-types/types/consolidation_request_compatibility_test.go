@@ -28,14 +28,14 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/karalabe/ssz"
+	karalabe "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
 const sszConsolidationRequestSizeKaralabe = 116
 
 // Compile-time check to ensure ConsolidationRequestKaralabe implements the necessary interfaces.
-var _ ssz.StaticObject = (*ConsolidationRequestKaralabe)(nil)
+var _ karalabe.StaticObject = (*ConsolidationRequestKaralabe)(nil)
 
 // ConsolidationRequestKaralabe is introduced in Pectra but not used by us.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
@@ -45,10 +45,10 @@ type ConsolidationRequestKaralabe struct {
 	TargetPubKey  crypto.BLSPubkey
 }
 
-func (c *ConsolidationRequestKaralabe) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineStaticBytes(codec, &c.SourceAddress)
-	ssz.DefineStaticBytes(codec, &c.SourcePubKey)
-	ssz.DefineStaticBytes(codec, &c.TargetPubKey)
+func (c *ConsolidationRequestKaralabe) DefineSSZ(codec *karalabe.Codec) {
+	karalabe.DefineStaticBytes(codec, &c.SourceAddress)
+	karalabe.DefineStaticBytes(codec, &c.SourcePubKey)
+	karalabe.DefineStaticBytes(codec, &c.TargetPubKey)
 }
 
 func (c *ConsolidationRequestKaralabe) SizeSSZ() uint32 {
@@ -56,17 +56,17 @@ func (c *ConsolidationRequestKaralabe) SizeSSZ() uint32 {
 }
 
 func (c *ConsolidationRequestKaralabe) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(c))
-	return buf, ssz.EncodeToBytes(buf, c)
+	buf := make([]byte, karalabe.Size(c))
+	return buf, karalabe.EncodeToBytes(buf, c)
 }
 
 // HashTreeRoot returns the hash tree root of the ConsolidationRequest.
 func (c *ConsolidationRequestKaralabe) HashTreeRoot() common.Root {
-	return ssz.HashSequential(c)
+	return karalabe.HashSequential(c)
 }
 
 func (c *ConsolidationRequestKaralabe) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, c)
+	return karalabe.DecodeFromBytes(buf, c)
 }
 
 // TestConsolidationRequestSSZRegression ensures that the SSZ encoding for ConsolidationRequest

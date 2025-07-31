@@ -28,7 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/karalabe/ssz"
+	karalabe "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -39,7 +39,7 @@ import (
 const BeaconBlockHeaderSizeKaralabe = 112
 
 // Compile-time assertions to ensure BeaconBlockHeaderKaralabe implements necessary interfaces.
-var _ ssz.StaticObject = (*BeaconBlockHeaderKaralabe)(nil)
+var _ karalabe.StaticObject = (*BeaconBlockHeaderKaralabe)(nil)
 
 // BeaconBlockHeaderKaralabe is an exact copy of BeaconBlockHeader from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 // BeaconBlockHeader represents the base of a beacon block header.
@@ -64,19 +64,19 @@ func (b *BeaconBlockHeaderKaralabe) SizeSSZ() uint32 {
 
 // DefineSSZ defines the SSZ encoding for the BeaconBlockHeader object.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
-func (b *BeaconBlockHeaderKaralabe) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineUint64(codec, &b.Slot)
-	ssz.DefineUint64(codec, &b.ProposerIndex)
-	ssz.DefineStaticBytes(codec, &b.ParentBlockRoot)
-	ssz.DefineStaticBytes(codec, &b.StateRoot)
-	ssz.DefineStaticBytes(codec, &b.BodyRoot)
+func (b *BeaconBlockHeaderKaralabe) DefineSSZ(codec *karalabe.Codec) {
+	karalabe.DefineUint64(codec, &b.Slot)
+	karalabe.DefineUint64(codec, &b.ProposerIndex)
+	karalabe.DefineStaticBytes(codec, &b.ParentBlockRoot)
+	karalabe.DefineStaticBytes(codec, &b.StateRoot)
+	karalabe.DefineStaticBytes(codec, &b.BodyRoot)
 }
 
 // MarshalSSZ marshals the BeaconBlockBody object to SSZ format.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 func (b *BeaconBlockHeaderKaralabe) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(b))
-	return buf, ssz.EncodeToBytes(buf, b)
+	buf := make([]byte, karalabe.Size(b))
+	return buf, karalabe.EncodeToBytes(buf, b)
 }
 
 func (*BeaconBlockHeaderKaralabe) ValidateAfterDecodingSSZ() error { return nil }
@@ -84,13 +84,13 @@ func (*BeaconBlockHeaderKaralabe) ValidateAfterDecodingSSZ() error { return nil 
 // HashTreeRoot computes the SSZ hash tree root of the BeaconBlockHeader object.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 func (b *BeaconBlockHeaderKaralabe) HashTreeRoot() common.Root {
-	return ssz.HashSequential(b)
+	return karalabe.HashSequential(b)
 }
 
 // UnmarshalSSZ unmarshals the BeaconBlockHeader object from SSZ format.
-// Note: karalabe/ssz doesn't have explicit UnmarshalSSZ, we use ssz.DecodeFromBytes
+// Note: karalabe/ssz doesn't have explicit UnmarshalSSZ, we use karalabe.DecodeFromBytes
 func (b *BeaconBlockHeaderKaralabe) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, b)
+	return karalabe.DecodeFromBytes(buf, b)
 }
 
 // TestBeaconBlockHeaderCompatibility tests that the current BeaconBlockHeader implementation

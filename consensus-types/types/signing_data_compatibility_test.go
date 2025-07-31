@@ -27,12 +27,12 @@ import (
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/karalabe/ssz"
+	karalabe "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
 // Compile-time assertions to ensure SigningDataKaralabe implements necessary interfaces.
-var _ ssz.StaticObject = (*SigningDataKaralabe)(nil)
+var _ karalabe.StaticObject = (*SigningDataKaralabe)(nil)
 
 // SigningDataKaralabe as defined in the Ethereum 2.0 specification - exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#signingdata
@@ -50,25 +50,25 @@ func (*SigningDataKaralabe) SizeSSZ() uint32 {
 }
 
 // DefineSSZ defines the SSZ encoding for the SigningData object.
-func (s *SigningDataKaralabe) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineStaticBytes(codec, &s.ObjectRoot)
-	ssz.DefineStaticBytes(codec, &s.Domain)
+func (s *SigningDataKaralabe) DefineSSZ(codec *karalabe.Codec) {
+	karalabe.DefineStaticBytes(codec, &s.ObjectRoot)
+	karalabe.DefineStaticBytes(codec, &s.Domain)
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the SigningData object.
 func (s *SigningDataKaralabe) HashTreeRoot() common.Root {
-	return ssz.HashSequential(s)
+	return karalabe.HashSequential(s)
 }
 
 // MarshalSSZ marshals the SigningData object to SSZ format.
 func (s *SigningDataKaralabe) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(s))
-	return buf, ssz.EncodeToBytes(buf, s)
+	buf := make([]byte, karalabe.Size(s))
+	return buf, karalabe.EncodeToBytes(buf, s)
 }
 
 // UnmarshalSSZ unmarshals the SigningData object from SSZ format.
 func (s *SigningDataKaralabe) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, s)
+	return karalabe.DecodeFromBytes(buf, s)
 }
 
 // TestSigningDataSSZRegression ensures that the SSZ encoding for SigningData

@@ -29,12 +29,12 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/karalabe/ssz"
+	karalabe "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
 // Compile-time assertions to ensure DepositMessageKaralabe implements necessary interfaces.
-var _ ssz.StaticObject = (*DepositMessageKaralabe)(nil)
+var _ karalabe.StaticObject = (*DepositMessageKaralabe)(nil)
 
 // DepositMessageKaralabe represents a deposit message as defined in the Ethereum 2.0
 // specification - exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
@@ -57,29 +57,29 @@ func (*DepositMessageKaralabe) SizeSSZ() uint32 {
 
 // DefineSSZ defines the SSZ encoding for the DepositMessage object.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
-func (dm *DepositMessageKaralabe) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineStaticBytes(codec, &dm.Pubkey)
-	ssz.DefineStaticBytes(codec, &dm.Credentials)
-	ssz.DefineUint64(codec, &dm.Amount)
+func (dm *DepositMessageKaralabe) DefineSSZ(codec *karalabe.Codec) {
+	karalabe.DefineStaticBytes(codec, &dm.Pubkey)
+	karalabe.DefineStaticBytes(codec, &dm.Credentials)
+	karalabe.DefineUint64(codec, &dm.Amount)
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the DepositMessage object.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 func (dm *DepositMessageKaralabe) HashTreeRoot() common.Root {
-	return ssz.HashSequential(dm)
+	return karalabe.HashSequential(dm)
 }
 
 // MarshalSSZ marshals the DepositMessage object to SSZ format.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 func (dm *DepositMessageKaralabe) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(dm))
-	return buf, ssz.EncodeToBytes(buf, dm)
+	buf := make([]byte, karalabe.Size(dm))
+	return buf, karalabe.EncodeToBytes(buf, dm)
 }
 
 // UnmarshalSSZ unmarshals the DepositMessage object from SSZ format.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 func (dm *DepositMessageKaralabe) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, dm)
+	return karalabe.DecodeFromBytes(buf, dm)
 }
 
 // TestDepositMessageSSZRegression ensures that the SSZ encoding for DepositMessage

@@ -30,7 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/karalabe/ssz"
+	karalabe "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -38,7 +38,7 @@ import (
 const ValidatorSizeKaralabe = 121
 
 // Compile-time assertions to ensure ValidatorKaralabe implements necessary interfaces.
-var _ ssz.StaticObject = (*ValidatorKaralabe)(nil)
+var _ karalabe.StaticObject = (*ValidatorKaralabe)(nil)
 
 // ValidatorKaralabe is an exact copy of Validator from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 // Validator as defined in the Ethereum 2.0 Spec
@@ -71,36 +71,36 @@ func (*ValidatorKaralabe) SizeSSZ() uint32 {
 
 // DefineSSZ defines the SSZ encoding for the Validator object.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
-func (v *ValidatorKaralabe) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineStaticBytes(codec, &v.Pubkey)
-	ssz.DefineStaticBytes(codec, &v.WithdrawalCredentials)
-	ssz.DefineUint64(codec, &v.EffectiveBalance)
-	ssz.DefineBool(codec, &v.Slashed)
-	ssz.DefineUint64(codec, &v.ActivationEligibilityEpoch)
-	ssz.DefineUint64(codec, &v.ActivationEpoch)
-	ssz.DefineUint64(codec, &v.ExitEpoch)
-	ssz.DefineUint64(codec, &v.WithdrawableEpoch)
+func (v *ValidatorKaralabe) DefineSSZ(codec *karalabe.Codec) {
+	karalabe.DefineStaticBytes(codec, &v.Pubkey)
+	karalabe.DefineStaticBytes(codec, &v.WithdrawalCredentials)
+	karalabe.DefineUint64(codec, &v.EffectiveBalance)
+	karalabe.DefineBool(codec, &v.Slashed)
+	karalabe.DefineUint64(codec, &v.ActivationEligibilityEpoch)
+	karalabe.DefineUint64(codec, &v.ActivationEpoch)
+	karalabe.DefineUint64(codec, &v.ExitEpoch)
+	karalabe.DefineUint64(codec, &v.WithdrawableEpoch)
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the Validator object.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 func (v *ValidatorKaralabe) HashTreeRoot() common.Root {
-	return ssz.HashSequential(v)
+	return karalabe.HashSequential(v)
 }
 
 // MarshalSSZ marshals the Validator object to SSZ format.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 func (v *ValidatorKaralabe) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(v))
-	return buf, ssz.EncodeToBytes(buf, v)
+	buf := make([]byte, karalabe.Size(v))
+	return buf, karalabe.EncodeToBytes(buf, v)
 }
 
 func (*ValidatorKaralabe) ValidateAfterDecodingSSZ() error { return nil }
 
 // UnmarshalSSZ unmarshals the Validator object from SSZ format.
-// Note: karalabe/ssz doesn't have explicit UnmarshalSSZ, we use ssz.DecodeFromBytes
+// Note: karalabe/ssz doesn't have explicit UnmarshalSSZ, we use karalabe.DecodeFromBytes
 func (v *ValidatorKaralabe) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, v)
+	return karalabe.DecodeFromBytes(buf, v)
 }
 
 // TestValidatorCompatibility tests that the current Validator implementation

@@ -28,7 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/karalabe/ssz"
+	karalabe "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -37,7 +37,7 @@ import (
 const AttestationDataSize = 48
 
 // Compile-time assertions to ensure AttestationDataKaralabe implements necessary interfaces.
-var _ ssz.StaticObject = (*AttestationDataKaralabe)(nil)
+var _ karalabe.StaticObject = (*AttestationDataKaralabe)(nil)
 
 // AttestationDataKaralabe represents an attestation data.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
@@ -58,31 +58,31 @@ func (*AttestationDataKaralabe) SizeSSZ() uint32 {
 
 // DefineSSZ defines the SSZ encoding for the AttestationData object.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
-func (a *AttestationDataKaralabe) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineUint64(codec, &a.Slot)
-	ssz.DefineUint64(codec, &a.Index)
-	ssz.DefineStaticBytes(codec, &a.BeaconBlockRoot)
+func (a *AttestationDataKaralabe) DefineSSZ(codec *karalabe.Codec) {
+	karalabe.DefineUint64(codec, &a.Slot)
+	karalabe.DefineUint64(codec, &a.Index)
+	karalabe.DefineStaticBytes(codec, &a.BeaconBlockRoot)
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the AttestationData object.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 func (a *AttestationDataKaralabe) HashTreeRoot() common.Root {
-	return ssz.HashSequential(a)
+	return karalabe.HashSequential(a)
 }
 
 // MarshalSSZ marshals the AttestationData object to SSZ format.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 func (a *AttestationDataKaralabe) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(a))
-	return buf, ssz.EncodeToBytes(buf, a)
+	buf := make([]byte, karalabe.Size(a))
+	return buf, karalabe.EncodeToBytes(buf, a)
 }
 
 func (*AttestationDataKaralabe) ValidateAfterDecodingSSZ() error { return nil }
 
 // UnmarshalSSZ unmarshals the AttestationData object from SSZ format.
-// Note: karalabe/ssz doesn't have explicit UnmarshalSSZ, we use ssz.DecodeFromBytes
+// Note: karalabe/ssz doesn't have explicit UnmarshalSSZ, we use karalabe.DecodeFromBytes
 func (a *AttestationDataKaralabe) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, a)
+	return karalabe.DecodeFromBytes(buf, a)
 }
 
 // TestAttestationDataCompatibility tests that the current AttestationData implementation

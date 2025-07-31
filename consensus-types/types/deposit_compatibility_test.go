@@ -29,7 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/karalabe/ssz"
+	karalabe "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -37,7 +37,7 @@ import (
 const depositSizeKaralabe = 192 // 48 + 32 + 8 + 96 + 8
 
 // Compile-time assertions to ensure DepositKaralabe implements necessary interfaces.
-var _ ssz.StaticObject = (*DepositKaralabe)(nil)
+var _ karalabe.StaticObject = (*DepositKaralabe)(nil)
 
 // DepositKaralabe is an exact copy of Deposit from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 // This type uses karalabe/ssz for SSZ operations to ensure compatibility testing.
@@ -57,19 +57,19 @@ type DepositKaralabe struct {
 
 // DefineSSZ defines the SSZ encoding for the Deposit object.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
-func (d *DepositKaralabe) DefineSSZ(c *ssz.Codec) {
-	ssz.DefineStaticBytes(c, &d.Pubkey)
-	ssz.DefineStaticBytes(c, &d.Credentials)
-	ssz.DefineUint64(c, &d.Amount)
-	ssz.DefineStaticBytes(c, &d.Signature)
-	ssz.DefineUint64(c, &d.Index)
+func (d *DepositKaralabe) DefineSSZ(c *karalabe.Codec) {
+	karalabe.DefineStaticBytes(c, &d.Pubkey)
+	karalabe.DefineStaticBytes(c, &d.Credentials)
+	karalabe.DefineUint64(c, &d.Amount)
+	karalabe.DefineStaticBytes(c, &d.Signature)
+	karalabe.DefineUint64(c, &d.Index)
 }
 
 // MarshalSSZ marshals the Deposit object to SSZ format.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 func (d *DepositKaralabe) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(d))
-	return buf, ssz.EncodeToBytes(buf, d)
+	buf := make([]byte, karalabe.Size(d))
+	return buf, karalabe.EncodeToBytes(buf, d)
 }
 
 func (*DepositKaralabe) ValidateAfterDecodingSSZ() error { return nil }
@@ -83,13 +83,13 @@ func (d *DepositKaralabe) SizeSSZ() uint32 {
 // HashTreeRoot computes the Merkleization of the Deposit object.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 func (d *DepositKaralabe) HashTreeRoot() common.Root {
-	return ssz.HashSequential(d)
+	return karalabe.HashSequential(d)
 }
 
 // UnmarshalSSZ unmarshals the Deposit object from SSZ format.
-// Note: karalabe/ssz doesn't have explicit UnmarshalSSZ, we use ssz.DecodeFromBytes
+// Note: karalabe/ssz doesn't have explicit UnmarshalSSZ, we use karalabe.DecodeFromBytes
 func (d *DepositKaralabe) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, d)
+	return karalabe.DecodeFromBytes(buf, d)
 }
 
 // TestDepositCompatibility tests that the current Deposit implementation

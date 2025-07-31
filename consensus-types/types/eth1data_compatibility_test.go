@@ -28,7 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/karalabe/ssz"
+	karalabe "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -37,7 +37,7 @@ import (
 const Eth1DataSizeKaralabe = 72
 
 // Compile-time assertions to ensure Eth1DataKaralabe implements necessary interfaces.
-var _ ssz.StaticObject = (*Eth1DataKaralabe)(nil)
+var _ karalabe.StaticObject = (*Eth1DataKaralabe)(nil)
 
 // Eth1DataKaralabe is an exact copy of Eth1Data from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 // This type uses karalabe/ssz for SSZ operations to ensure compatibility testing.
@@ -58,31 +58,31 @@ func (*Eth1DataKaralabe) SizeSSZ() uint32 {
 
 // DefineSSZ defines the SSZ encoding for the Eth1Data object.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
-func (e *Eth1DataKaralabe) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineStaticBytes(codec, &e.DepositRoot)
-	ssz.DefineUint64(codec, &e.DepositCount)
-	ssz.DefineStaticBytes(codec, &e.BlockHash)
+func (e *Eth1DataKaralabe) DefineSSZ(codec *karalabe.Codec) {
+	karalabe.DefineStaticBytes(codec, &e.DepositRoot)
+	karalabe.DefineUint64(codec, &e.DepositCount)
+	karalabe.DefineStaticBytes(codec, &e.BlockHash)
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the Eth1Data object.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 func (e *Eth1DataKaralabe) HashTreeRoot() common.Root {
-	return ssz.HashSequential(e)
+	return karalabe.HashSequential(e)
 }
 
 // MarshalSSZ marshals the Eth1Data object to SSZ format.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 func (e *Eth1DataKaralabe) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(e))
-	return buf, ssz.EncodeToBytes(buf, e)
+	buf := make([]byte, karalabe.Size(e))
+	return buf, karalabe.EncodeToBytes(buf, e)
 }
 
 func (*Eth1DataKaralabe) ValidateAfterDecodingSSZ() error { return nil }
 
 // UnmarshalSSZ unmarshals the Eth1Data object from SSZ format.
-// Note: karalabe/ssz doesn't have explicit UnmarshalSSZ, we use ssz.DecodeFromBytes
+// Note: karalabe/ssz doesn't have explicit UnmarshalSSZ, we use karalabe.DecodeFromBytes
 func (e *Eth1DataKaralabe) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, e)
+	return karalabe.DecodeFromBytes(buf, e)
 }
 
 // TestEth1DataCompatibility tests that the current Eth1Data implementation

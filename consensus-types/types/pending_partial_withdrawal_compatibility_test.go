@@ -28,7 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/karalabe/ssz"
+	karalabe "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -41,7 +41,7 @@ import (
 const sszPendingPartialWithdrawalSizeKaralabe = 24
 
 // Compile-time check to ensure PendingPartialWithdrawalKaralabe implements the necessary interfaces.
-var _ ssz.StaticObject = (*PendingPartialWithdrawalKaralabe)(nil)
+var _ karalabe.StaticObject = (*PendingPartialWithdrawalKaralabe)(nil)
 
 // PendingPartialWithdrawalKaralabe is an exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 // PendingPartialWithdrawal reflects the following spec:
@@ -65,10 +65,10 @@ func (p *PendingPartialWithdrawalKaralabe) ValidateAfterDecodingSSZ() error {
 
 // DefineSSZ registers the SSZ encoding for each field in PendingPartialWithdrawal.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
-func (p *PendingPartialWithdrawalKaralabe) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineUint64(codec, &p.ValidatorIndex)
-	ssz.DefineUint64(codec, &p.Amount)
-	ssz.DefineUint64(codec, &p.WithdrawableEpoch)
+func (p *PendingPartialWithdrawalKaralabe) DefineSSZ(codec *karalabe.Codec) {
+	karalabe.DefineUint64(codec, &p.ValidatorIndex)
+	karalabe.DefineUint64(codec, &p.Amount)
+	karalabe.DefineUint64(codec, &p.WithdrawableEpoch)
 }
 
 // SizeSSZ returns the fixed size of the SSZ serialization for PendingPartialWithdrawal.
@@ -80,20 +80,20 @@ func (p *PendingPartialWithdrawalKaralabe) SizeSSZ() uint32 {
 // MarshalSSZ returns the SSZ encoding of the PendingPartialWithdrawal.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 func (p *PendingPartialWithdrawalKaralabe) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(p))
-	return buf, ssz.EncodeToBytes(buf, p)
+	buf := make([]byte, karalabe.Size(p))
+	return buf, karalabe.EncodeToBytes(buf, p)
 }
 
 // HashTreeRoot computes and returns the hash tree root for the PendingPartialWithdrawal.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 func (p *PendingPartialWithdrawalKaralabe) HashTreeRoot() common.Root {
-	return ssz.HashSequential(p)
+	return karalabe.HashSequential(p)
 }
 
 // UnmarshalSSZ unmarshals the PendingPartialWithdrawal object from SSZ format.
-// Note: karalabe/ssz doesn't have explicit UnmarshalSSZ, we use ssz.DecodeFromBytes
+// Note: karalabe/ssz doesn't have explicit UnmarshalSSZ, we use karalabe.DecodeFromBytes
 func (p *PendingPartialWithdrawalKaralabe) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, p)
+	return karalabe.DecodeFromBytes(buf, p)
 }
 
 // TestPendingPartialWithdrawalCompatibility tests that the current PendingPartialWithdrawal implementation

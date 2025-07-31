@@ -31,7 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
-	"github.com/karalabe/ssz"
+	karalabe "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -39,7 +39,7 @@ import (
 const ExecutionPayloadHeaderStaticSizeKaralabe uint32 = 584
 
 // Compile-time assertions to ensure ExecutionPayloadHeaderKaralabe implements necessary interfaces.
-var _ ssz.DynamicObject = (*ExecutionPayloadHeaderKaralabe)(nil)
+var _ karalabe.DynamicObject = (*ExecutionPayloadHeaderKaralabe)(nil)
 
 // versionableKaralabeHeader is a helper struct that implements the Versionable interface.
 type versionableKaralabeHeader struct {
@@ -124,38 +124,38 @@ func (h *ExecutionPayloadHeaderKaralabe) SizeSSZ(fixed bool) uint32 {
 
 // DefineSSZ defines how an object is encoded/decoded.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
-func (h *ExecutionPayloadHeaderKaralabe) DefineSSZ(codec *ssz.Codec) {
+func (h *ExecutionPayloadHeaderKaralabe) DefineSSZ(codec *karalabe.Codec) {
 	// Define the static data (fields and dynamic offsets)
-	ssz.DefineStaticBytes(codec, &h.ParentHash)
-	ssz.DefineStaticBytes(codec, &h.FeeRecipient)
-	ssz.DefineStaticBytes(codec, &h.StateRoot)
-	ssz.DefineStaticBytes(codec, &h.ReceiptsRoot)
-	ssz.DefineStaticBytes(codec, &h.LogsBloom)
-	ssz.DefineStaticBytes(codec, &h.Random)
-	ssz.DefineUint64(codec, &h.Number)
-	ssz.DefineUint64(codec, &h.GasLimit)
-	ssz.DefineUint64(codec, &h.GasUsed)
-	ssz.DefineUint64(codec, &h.Timestamp)
+	karalabe.DefineStaticBytes(codec, &h.ParentHash)
+	karalabe.DefineStaticBytes(codec, &h.FeeRecipient)
+	karalabe.DefineStaticBytes(codec, &h.StateRoot)
+	karalabe.DefineStaticBytes(codec, &h.ReceiptsRoot)
+	karalabe.DefineStaticBytes(codec, &h.LogsBloom)
+	karalabe.DefineStaticBytes(codec, &h.Random)
+	karalabe.DefineUint64(codec, &h.Number)
+	karalabe.DefineUint64(codec, &h.GasLimit)
+	karalabe.DefineUint64(codec, &h.GasUsed)
+	karalabe.DefineUint64(codec, &h.Timestamp)
 	//nolint:mnd // TODO: get from accessible chainspec field params
-	ssz.DefineDynamicBytesOffset(codec, (*[]byte)(&h.ExtraData), 32)
-	ssz.DefineUint256(codec, &h.BaseFeePerGas)
-	ssz.DefineStaticBytes(codec, &h.BlockHash)
-	ssz.DefineStaticBytes(codec, &h.TransactionsRoot)
-	ssz.DefineStaticBytes(codec, &h.WithdrawalsRoot)
-	ssz.DefineUint64(codec, &h.BlobGasUsed)
-	ssz.DefineUint64(codec, &h.ExcessBlobGas)
+	karalabe.DefineDynamicBytesOffset(codec, (*[]byte)(&h.ExtraData), 32)
+	karalabe.DefineUint256(codec, &h.BaseFeePerGas)
+	karalabe.DefineStaticBytes(codec, &h.BlockHash)
+	karalabe.DefineStaticBytes(codec, &h.TransactionsRoot)
+	karalabe.DefineStaticBytes(codec, &h.WithdrawalsRoot)
+	karalabe.DefineUint64(codec, &h.BlobGasUsed)
+	karalabe.DefineUint64(codec, &h.ExcessBlobGas)
 
 	// Define the dynamic data (fields)
 	//nolint:mnd // TODO: get from accessible chainspec field params
-	ssz.DefineDynamicBytesContent(codec, (*[]byte)(&h.ExtraData), 32)
+	karalabe.DefineDynamicBytesContent(codec, (*[]byte)(&h.ExtraData), 32)
 }
 
 // MarshalSSZ serializes the ExecutionPayloadHeader object into a slice of
 // bytes.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 func (h *ExecutionPayloadHeaderKaralabe) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(h))
-	return buf, ssz.EncodeToBytes(buf, h)
+	buf := make([]byte, karalabe.Size(h))
+	return buf, karalabe.EncodeToBytes(buf, h)
 }
 
 func (*ExecutionPayloadHeaderKaralabe) ValidateAfterDecodingSSZ() error { return nil }
@@ -163,13 +163,13 @@ func (*ExecutionPayloadHeaderKaralabe) ValidateAfterDecodingSSZ() error { return
 // HashTreeRoot returns the hash tree root of the ExecutionPayloadHeader.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 func (h *ExecutionPayloadHeaderKaralabe) HashTreeRoot() common.Root {
-	return ssz.HashConcurrent(h)
+	return karalabe.HashConcurrent(h)
 }
 
 // UnmarshalSSZ unmarshals the ExecutionPayloadHeader object from SSZ format.
-// Note: karalabe/ssz doesn't have explicit UnmarshalSSZ, we use ssz.DecodeFromBytes
+// Note: karalabe/ssz doesn't have explicit UnmarshalSSZ, we use karalabe.DecodeFromBytes
 func (h *ExecutionPayloadHeaderKaralabe) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, h)
+	return karalabe.DecodeFromBytes(buf, h)
 }
 
 // TestExecutionPayloadHeaderCompatibility tests that the current ExecutionPayloadHeader implementation

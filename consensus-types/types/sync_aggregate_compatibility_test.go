@@ -28,7 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/karalabe/ssz"
+	karalabe "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -38,7 +38,7 @@ const (
 )
 
 // Compile-time assertions to ensure SyncAggregateKaralabe implements necessary interfaces.
-var _ ssz.StaticObject = (*SyncAggregateKaralabe)(nil)
+var _ karalabe.StaticObject = (*SyncAggregateKaralabe)(nil)
 
 // SyncAggregateKaralabe is an exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 type SyncAggregateKaralabe struct {
@@ -54,16 +54,16 @@ func (s *SyncAggregateKaralabe) SizeSSZ() uint32 {
 
 // DefineSSZ defines the SSZ encoding for the SyncAggregate object.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
-func (s *SyncAggregateKaralabe) DefineSSZ(c *ssz.Codec) {
-	ssz.DefineStaticBytes(c, &s.SyncCommitteeBits)
-	ssz.DefineStaticBytes(c, &s.SyncCommitteeSignature)
+func (s *SyncAggregateKaralabe) DefineSSZ(c *karalabe.Codec) {
+	karalabe.DefineStaticBytes(c, &s.SyncCommitteeBits)
+	karalabe.DefineStaticBytes(c, &s.SyncCommitteeSignature)
 }
 
 // MarshalSSZ marshals the SyncAggregate object to SSZ format.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 func (s *SyncAggregateKaralabe) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(s))
-	return buf, ssz.EncodeToBytes(buf, s)
+	buf := make([]byte, karalabe.Size(s))
+	return buf, karalabe.EncodeToBytes(buf, s)
 }
 
 func (*SyncAggregateKaralabe) ValidateAfterDecodingSSZ() error { return nil }
@@ -71,14 +71,14 @@ func (*SyncAggregateKaralabe) ValidateAfterDecodingSSZ() error { return nil }
 // HashTreeRoot returns the hash tree root of the Deposits.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 func (s *SyncAggregateKaralabe) HashTreeRoot() common.Root {
-	htr := ssz.HashSequential(s)
+	htr := karalabe.HashSequential(s)
 	return htr
 }
 
 // UnmarshalSSZ unmarshals the SyncAggregate object from SSZ format.
-// Note: karalabe/ssz doesn't have explicit UnmarshalSSZ, we use ssz.DecodeFromBytes
+// Note: karalabe/ssz doesn't have explicit UnmarshalSSZ, we use karalabe.DecodeFromBytes
 func (s *SyncAggregateKaralabe) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, s)
+	return karalabe.DecodeFromBytes(buf, s)
 }
 
 // TestSyncAggregateCompatibility tests that the current SyncAggregate implementation

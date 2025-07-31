@@ -29,12 +29,12 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/karalabe/ssz"
+	karalabe "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
 // Compile-time assertions to ensure SignedBeaconBlockHeaderKaralabe implements necessary interfaces.
-var _ ssz.StaticObject = (*SignedBeaconBlockHeaderKaralabe)(nil)
+var _ karalabe.StaticObject = (*SignedBeaconBlockHeaderKaralabe)(nil)
 
 // SignedBeaconBlockHeaderKaralabe is an exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 // SignedBeaconBlockHeader is a struct that contains a BeaconBlockHeader and a BLSSignature.
@@ -56,31 +56,31 @@ func (b *SignedBeaconBlockHeaderKaralabe) SizeSSZ() uint32 {
 
 // DefineSSZ defines the SSZ encoding for the SignedBeaconBlockHeader object.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
-func (b *SignedBeaconBlockHeaderKaralabe) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineStaticObject(codec, &b.Header)
-	ssz.DefineStaticBytes(codec, &b.Signature)
+func (b *SignedBeaconBlockHeaderKaralabe) DefineSSZ(codec *karalabe.Codec) {
+	karalabe.DefineStaticObject(codec, &b.Header)
+	karalabe.DefineStaticBytes(codec, &b.Signature)
 }
 
 // MarshalSSZ marshals the SignedBeaconBlockHeader object to SSZ format.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 func (b *SignedBeaconBlockHeaderKaralabe) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(b))
-	return buf, ssz.EncodeToBytes(buf, b)
+	buf := make([]byte, karalabe.Size(b))
+	return buf, karalabe.EncodeToBytes(buf, b)
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the
 // SignedBeaconBlockHeader object.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 func (b *SignedBeaconBlockHeaderKaralabe) HashTreeRoot() common.Root {
-	return ssz.HashSequential(b)
+	return karalabe.HashSequential(b)
 }
 
 func (*SignedBeaconBlockHeaderKaralabe) ValidateAfterDecodingSSZ() error { return nil }
 
 // UnmarshalSSZ unmarshals the SignedBeaconBlockHeader object from SSZ format.
-// Note: karalabe/ssz doesn't have explicit UnmarshalSSZ, we use ssz.DecodeFromBytes
+// Note: karalabe/ssz doesn't have explicit UnmarshalSSZ, we use karalabe.DecodeFromBytes
 func (b *SignedBeaconBlockHeaderKaralabe) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, b)
+	return karalabe.DecodeFromBytes(buf, b)
 }
 
 // TestSignedBeaconBlockHeaderCompatibility tests that the current SignedBeaconBlockHeader implementation

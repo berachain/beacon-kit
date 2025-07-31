@@ -32,7 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	ssz "github.com/ferranbt/fastssz"
-	"github.com/karalabe/ssz"
+	karalabe "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -76,9 +76,9 @@ func (st *SimplifiedBeaconStateKaralabe) SizeSSZ(fixed bool) uint32 {
 	}
 
 	// Dynamic size fields
-	size += ssz.SizeSliceOfUint64s(st.DummyDynamicField)
+	size += karalabe.SizeSliceOfUint64s(st.DummyDynamicField)
 	if version.EqualsOrIsAfter(st.GetForkVersion(), version.Electra()) {
-		size += ssz.SizeSliceOfStaticObjects(st.PendingPartialWithdrawals)
+		size += karalabe.SizeSliceOfStaticObjects(st.PendingPartialWithdrawals)
 	}
 
 	return size
@@ -86,42 +86,42 @@ func (st *SimplifiedBeaconStateKaralabe) SizeSSZ(fixed bool) uint32 {
 
 // DefineSSZ defines the SSZ encoding for the SimplifiedBeaconStateKaralabe object.
 // Fork-specific logic extracted from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
-func (st *SimplifiedBeaconStateKaralabe) DefineSSZ(codec *ssz.Codec) {
+func (st *SimplifiedBeaconStateKaralabe) DefineSSZ(codec *karalabe.Codec) {
 	// Fixed fields
-	ssz.DefineUint64(codec, &st.Slot)
-	ssz.DefineUint64(codec, (*uint64)(&st.TotalSlashing))
+	karalabe.DefineUint64(codec, &st.Slot)
+	karalabe.DefineUint64(codec, (*uint64)(&st.TotalSlashing))
 
 	// Dynamic field offset
-	ssz.DefineSliceOfUint64sOffset(codec, &st.DummyDynamicField, 100)
+	karalabe.DefineSliceOfUint64sOffset(codec, &st.DummyDynamicField, 100)
 
 	// Electra-specific offset
 	if version.EqualsOrIsAfter(st.GetForkVersion(), version.Electra()) {
-		ssz.DefineSliceOfStaticObjectsOffset(codec, &st.PendingPartialWithdrawals, constants.PendingPartialWithdrawalsLimit)
+		karalabe.DefineSliceOfStaticObjectsOffset(codec, &st.PendingPartialWithdrawals, constants.PendingPartialWithdrawalsLimit)
 	}
 
 	// Dynamic content
-	ssz.DefineSliceOfUint64sContent(codec, &st.DummyDynamicField, 100)
+	karalabe.DefineSliceOfUint64sContent(codec, &st.DummyDynamicField, 100)
 
 	// Electra-specific content
 	if version.EqualsOrIsAfter(st.GetForkVersion(), version.Electra()) {
-		ssz.DefineSliceOfStaticObjectsContent(codec, &st.PendingPartialWithdrawals, constants.PendingPartialWithdrawalsLimit)
+		karalabe.DefineSliceOfStaticObjectsContent(codec, &st.PendingPartialWithdrawals, constants.PendingPartialWithdrawalsLimit)
 	}
 }
 
 // MarshalSSZ marshals the SimplifiedBeaconStateKaralabe into SSZ format.
 func (st *SimplifiedBeaconStateKaralabe) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(st))
-	return buf, ssz.EncodeToBytes(buf, st)
+	buf := make([]byte, karalabe.Size(st))
+	return buf, karalabe.EncodeToBytes(buf, st)
 }
 
 // UnmarshalSSZ unmarshals the SimplifiedBeaconStateKaralabe from SSZ format.
 func (st *SimplifiedBeaconStateKaralabe) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, st)
+	return karalabe.DecodeFromBytes(buf, st)
 }
 
 // HashTreeRoot computes the Merkleization of the SimplifiedBeaconStateKaralabe.
 func (st *SimplifiedBeaconStateKaralabe) HashTreeRoot() common.Root {
-	return ssz.HashSequential(st)
+	return karalabe.HashSequential(st)
 }
 
 func (st *SimplifiedBeaconStateKaralabe) ValidateAfterDecodingSSZ() error { return nil }

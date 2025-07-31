@@ -28,7 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/karalabe/ssz"
+	karalabe "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -38,7 +38,7 @@ const ForkSizeKaralabe = 16
 
 // Compile-time assertions to ensure ForkKaralabe implements necessary interfaces.
 var (
-	_ ssz.StaticObject = (*ForkKaralabe)(nil)
+	_ karalabe.StaticObject = (*ForkKaralabe)(nil)
 )
 
 // ForkKaralabe is an exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
@@ -75,17 +75,17 @@ func (f *ForkKaralabe) SizeSSZ() uint32 {
 
 // DefineSSZ defines the SSZ encoding for the Fork object.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
-func (f *ForkKaralabe) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineStaticBytes(codec, &f.PreviousVersion)
-	ssz.DefineStaticBytes(codec, &f.CurrentVersion)
-	ssz.DefineUint64(codec, &f.Epoch)
+func (f *ForkKaralabe) DefineSSZ(codec *karalabe.Codec) {
+	karalabe.DefineStaticBytes(codec, &f.PreviousVersion)
+	karalabe.DefineStaticBytes(codec, &f.CurrentVersion)
+	karalabe.DefineUint64(codec, &f.Epoch)
 }
 
 // MarshalSSZ marshals the Fork object to SSZ format.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 func (f *ForkKaralabe) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(f))
-	return buf, ssz.EncodeToBytes(buf, f)
+	buf := make([]byte, karalabe.Size(f))
+	return buf, karalabe.EncodeToBytes(buf, f)
 }
 
 // ValidateAfterDecodingSSZ validates the fork after decoding.
@@ -95,18 +95,18 @@ func (*ForkKaralabe) ValidateAfterDecodingSSZ() error { return nil }
 // HashTreeRoot computes the SSZ hash tree root of the Fork object.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 func (f *ForkKaralabe) HashTreeRoot() common.Root {
-	return ssz.HashSequential(f)
+	return karalabe.HashSequential(f)
 }
 
 // UnmarshalSSZ unmarshals the Fork object from SSZ format.
-// Note: karalabe/ssz doesn't have explicit UnmarshalSSZ, we use ssz.DecodeFromBytes
+// Note: karalabe/ssz doesn't have explicit UnmarshalSSZ, we use karalabe.DecodeFromBytes
 func (f *ForkKaralabe) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, f)
+	return karalabe.DecodeFromBytes(buf, f)
 }
 
 // Compile-time assertions to ensure ForkDataKaralabe implements necessary interfaces.
 var (
-	_ ssz.StaticObject = (*ForkDataKaralabe)(nil)
+	_ karalabe.StaticObject = (*ForkDataKaralabe)(nil)
 )
 
 // ForkDataKaralabe is an exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
@@ -139,22 +139,22 @@ func (*ForkDataKaralabe) SizeSSZ() uint32 {
 
 // DefineSSZ defines the SSZ encoding for the ForkData object.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
-func (fd *ForkDataKaralabe) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineStaticBytes(codec, &fd.CurrentVersion)
-	ssz.DefineStaticBytes(codec, &fd.GenesisValidatorsRoot)
+func (fd *ForkDataKaralabe) DefineSSZ(codec *karalabe.Codec) {
+	karalabe.DefineStaticBytes(codec, &fd.CurrentVersion)
+	karalabe.DefineStaticBytes(codec, &fd.GenesisValidatorsRoot)
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the ForkData object.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 func (fd *ForkDataKaralabe) HashTreeRoot() common.Root {
-	return ssz.HashSequential(fd)
+	return karalabe.HashSequential(fd)
 }
 
 // MarshalSSZ marshals the ForkData object to SSZ format.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 func (fd *ForkDataKaralabe) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(fd))
-	return buf, ssz.EncodeToBytes(buf, fd)
+	buf := make([]byte, karalabe.Size(fd))
+	return buf, karalabe.EncodeToBytes(buf, fd)
 }
 
 // ValidateAfterDecodingSSZ validates the fork data after decoding.
@@ -162,9 +162,9 @@ func (fd *ForkDataKaralabe) MarshalSSZ() ([]byte, error) {
 func (*ForkDataKaralabe) ValidateAfterDecodingSSZ() error { return nil }
 
 // UnmarshalSSZ unmarshals the ForkData object from SSZ format.
-// Note: karalabe/ssz doesn't have explicit UnmarshalSSZ, we use ssz.DecodeFromBytes
+// Note: karalabe/ssz doesn't have explicit UnmarshalSSZ, we use karalabe.DecodeFromBytes
 func (fd *ForkDataKaralabe) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, fd)
+	return karalabe.DecodeFromBytes(buf, fd)
 }
 
 // TestForkCompatibility tests that the current Fork implementation

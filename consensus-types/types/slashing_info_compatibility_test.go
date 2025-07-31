@@ -28,12 +28,12 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/karalabe/ssz"
+	karalabe "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
 // Compile-time assertions to ensure SlashingInfoKaralabe implements necessary interfaces.
-var _ ssz.StaticObject = (*SlashingInfoKaralabe)(nil)
+var _ karalabe.StaticObject = (*SlashingInfoKaralabe)(nil)
 
 // SlashingInfoKaralabe represents a slashing info - exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 type SlashingInfoKaralabe struct {
@@ -50,28 +50,28 @@ func (*SlashingInfoKaralabe) SizeSSZ() uint32 {
 
 // DefineSSZ defines the SSZ encoding for the SlashingInfo object.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
-func (s *SlashingInfoKaralabe) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineUint64(codec, &s.Slot)
-	ssz.DefineUint64(codec, &s.Index)
+func (s *SlashingInfoKaralabe) DefineSSZ(codec *karalabe.Codec) {
+	karalabe.DefineUint64(codec, &s.Slot)
+	karalabe.DefineUint64(codec, &s.Index)
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the SlashingInfo object.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 func (s *SlashingInfoKaralabe) HashTreeRoot() common.Root {
-	return ssz.HashSequential(s)
+	return karalabe.HashSequential(s)
 }
 
 // MarshalSSZ marshals the SlashingInfo object to SSZ format.
 // Exact copy from commit 787c4675581b3281fbaf45ca8d8c26ae6cd72934
 func (s *SlashingInfoKaralabe) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(s))
-	return buf, ssz.EncodeToBytes(buf, s)
+	buf := make([]byte, karalabe.Size(s))
+	return buf, karalabe.EncodeToBytes(buf, s)
 }
 
 // UnmarshalSSZ unmarshals the SlashingInfo object from SSZ format.
 // Adding this method for completeness
 func (s *SlashingInfoKaralabe) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, s)
+	return karalabe.DecodeFromBytes(buf, s)
 }
 
 // TestSlashingInfoSSZRegression ensures that the SSZ encoding for SlashingInfo

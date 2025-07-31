@@ -29,12 +29,12 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/karalabe/ssz"
+	karalabe "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
 // Compile-time assertions to ensure ExecutionRequestsKaralabe implements necessary interfaces.
-var _ ssz.DynamicObject = (*ExecutionRequestsKaralabe)(nil)
+var _ karalabe.DynamicObject = (*ExecutionRequestsKaralabe)(nil)
 
 // ExecutionRequestsKaralabe is a karalabe/ssz version of ExecutionRequests for compatibility testing.
 type ExecutionRequestsKaralabe struct {
@@ -51,21 +51,21 @@ type WithdrawalRequestKaralabe struct {
 }
 
 // DefineSSZ defines the SSZ encoding for WithdrawalRequestKaralabe.
-func (w *WithdrawalRequestKaralabe) DefineSSZ(c *ssz.Codec) {
-	ssz.DefineStaticBytes(c, &w.SourceAddress)
-	ssz.DefineStaticBytes(c, &w.ValidatorPubKey)
-	ssz.DefineUint64(c, &w.Amount)
+func (w *WithdrawalRequestKaralabe) DefineSSZ(c *karalabe.Codec) {
+	karalabe.DefineStaticBytes(c, &w.SourceAddress)
+	karalabe.DefineStaticBytes(c, &w.ValidatorPubKey)
+	karalabe.DefineUint64(c, &w.Amount)
 }
 
 // MarshalSSZ marshals the WithdrawalRequestKaralabe to SSZ format.
 func (w *WithdrawalRequestKaralabe) MarshalSSZ() ([]byte, error) {
 	buf := make([]byte, 76) // 20 + 48 + 8
-	return buf, ssz.EncodeToBytes(buf, w)
+	return buf, karalabe.EncodeToBytes(buf, w)
 }
 
 // UnmarshalSSZ unmarshals the WithdrawalRequestKaralabe from SSZ format.
 func (w *WithdrawalRequestKaralabe) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, w)
+	return karalabe.DecodeFromBytes(buf, w)
 }
 
 // SizeSSZ returns the size of the WithdrawalRequestKaralabe in SSZ format.
@@ -75,7 +75,7 @@ func (w *WithdrawalRequestKaralabe) SizeSSZ() uint32 {
 
 // HashTreeRoot computes the hash tree root of the WithdrawalRequestKaralabe.
 func (w *WithdrawalRequestKaralabe) HashTreeRoot() common.Root {
-	return ssz.HashSequential(w)
+	return karalabe.HashSequential(w)
 }
 
 func (w *WithdrawalRequestKaralabe) ValidateAfterDecodingSSZ() error { return nil }
@@ -97,32 +97,32 @@ func (e *ExecutionRequestsKaralabe) SizeSSZ(fixed bool) uint32 {
 }
 
 // DefineSSZ defines the SSZ encoding for the ExecutionRequestsKaralabe object.
-func (e *ExecutionRequestsKaralabe) DefineSSZ(codec *ssz.Codec) {
+func (e *ExecutionRequestsKaralabe) DefineSSZ(codec *karalabe.Codec) {
 	// Define offsets for dynamic fields
-	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Deposits, 8192)    // MaxDepositRequestsPerPayload
-	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Withdrawals, 16)   // MaxWithdrawalRequestsPerPayload
-	ssz.DefineSliceOfStaticObjectsOffset(codec, &e.Consolidations, 2) // MaxConsolidationRequestsPerPayload
+	karalabe.DefineSliceOfStaticObjectsOffset(codec, &e.Deposits, 8192)    // MaxDepositRequestsPerPayload
+	karalabe.DefineSliceOfStaticObjectsOffset(codec, &e.Withdrawals, 16)   // MaxWithdrawalRequestsPerPayload
+	karalabe.DefineSliceOfStaticObjectsOffset(codec, &e.Consolidations, 2) // MaxConsolidationRequestsPerPayload
 
 	// Define content for dynamic fields
-	ssz.DefineSliceOfStaticObjectsContent(codec, &e.Deposits, 8192)
-	ssz.DefineSliceOfStaticObjectsContent(codec, &e.Withdrawals, 16)
-	ssz.DefineSliceOfStaticObjectsContent(codec, &e.Consolidations, 2)
+	karalabe.DefineSliceOfStaticObjectsContent(codec, &e.Deposits, 8192)
+	karalabe.DefineSliceOfStaticObjectsContent(codec, &e.Withdrawals, 16)
+	karalabe.DefineSliceOfStaticObjectsContent(codec, &e.Consolidations, 2)
 }
 
 // MarshalSSZ marshals the ExecutionRequestsKaralabe to SSZ format.
 func (e *ExecutionRequestsKaralabe) MarshalSSZ() ([]byte, error) {
 	buf := make([]byte, e.SizeSSZ(false))
-	return buf, ssz.EncodeToBytes(buf, e)
+	return buf, karalabe.EncodeToBytes(buf, e)
 }
 
 // UnmarshalSSZ unmarshals the ExecutionRequestsKaralabe from SSZ format.
 func (e *ExecutionRequestsKaralabe) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, e)
+	return karalabe.DecodeFromBytes(buf, e)
 }
 
 // HashTreeRoot computes the Merkleization of the ExecutionRequestsKaralabe.
 func (e *ExecutionRequestsKaralabe) HashTreeRoot() common.Root {
-	return ssz.HashConcurrent(e)
+	return karalabe.HashConcurrent(e)
 }
 
 func (e *ExecutionRequestsKaralabe) ValidateAfterDecodingSSZ() error { return nil }
