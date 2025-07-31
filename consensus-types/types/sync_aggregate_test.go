@@ -70,7 +70,8 @@ func TestSyncAggregate_FastSSZ(t *testing.T) {
 		buf[0] = 1 // Set a non-zero bit
 		newSA := &types.SyncAggregate{}
 		err := newSA.UnmarshalSSZ(buf)
-		require.Error(t, err)
+		require.NoError(t, err)
+		err = newSA.EnforceUnused()
 		require.Contains(t, err.Error(), "SyncAggregate must be unused")
 	})
 

@@ -388,6 +388,9 @@ func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte) error {
 	if err = b.syncAggregate.UnmarshalSSZ(buf[offset : offset+160]); err != nil {
 		return err
 	}
+	if err = b.syncAggregate.EnforceUnused(); err != nil {
+		return err
+	}
 	offset += 160
 
 	executionPayloadOffset := ssz.UnmarshallUint32(buf[offset : offset+4])
