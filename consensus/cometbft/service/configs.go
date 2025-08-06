@@ -26,6 +26,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/log"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	cmttypes "github.com/cometbft/cometbft/types"
@@ -107,7 +108,7 @@ func DefaultConfig() *cmtcfg.Config {
 // DefaultConsensusParams returns the default consensus parameters
 // shared by every node in the network. Consensus parameters are
 // inscripted in genesis.
-func DefaultConsensusParams(consensusKeyAlgo string) *cmttypes.ConsensusParams {
+func DefaultConsensusParams(consensusKeyAlgo string, cs chain.Spec) *cmttypes.ConsensusParams {
 	res := cmttypes.DefaultConsensusParams()
 	res.Validator.PubKeyTypes = []string{consensusKeyAlgo}
 
@@ -121,9 +122,7 @@ func DefaultConsensusParams(consensusKeyAlgo string) *cmttypes.ConsensusParams {
 	res.Feature.PbtsEnableHeight = 1
 	res.Synchrony.Precision = precision
 	res.Synchrony.MessageDelay = messageDelay
-
-	// Activate Stable Block Time (SBT) by default.
-	res.Feature.SBTEnableHeight = 1
+	res.Feature.SBTEnableHeight = cs.SbtConsensusEnableHeight()
 
 	if err := res.ValidateBasic(); err != nil {
 		panic(fmt.Errorf("invalid default consensus parameters: %w", err))
