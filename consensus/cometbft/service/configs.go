@@ -26,7 +26,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
 	"github.com/berachain/beacon-kit/log"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	cmttypes "github.com/cometbft/cometbft/types"
@@ -181,7 +180,7 @@ func warnAboutConfigs(
 // extractConsensusParams pull consensus parameters (not config) set in
 // genesis. They are mostly used to (not) update consensus parameters once
 // a block is finalized.
-func extractConsensusParams(cmtCfg *cmtcfg.Config, cs delay.ConfigGetter) (*cmttypes.ConsensusParams, error) {
+func extractConsensusParams(cmtCfg *cmtcfg.Config) (*cmttypes.ConsensusParams, error) {
 	genFunc := GetGenDocProvider(cmtCfg)
 	genDoc, err := genFunc()
 	if err != nil {
@@ -190,7 +189,6 @@ func extractConsensusParams(cmtCfg *cmtcfg.Config, cs delay.ConfigGetter) (*cmtt
 
 	// Todo: add validation for genesis params by chainID
 	cmtConsensusParams := genDoc.GenesisDoc.ConsensusParams
-	cmtConsensusParams.Feature.SBTEnableHeight = cs.SbtConsensusEnableHeight() // align consensus params with chain spec
 	return cmtConsensusParams, validateConsensusParams(cmtConsensusParams)
 }
 

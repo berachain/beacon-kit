@@ -119,7 +119,7 @@ func NewService(
 	if err := validateConfig(cmtCfg); err != nil {
 		panic(err)
 	}
-	cmtConsensusParams, err := extractConsensusParams(cmtCfg, cs)
+	cmtConsensusParams, err := extractConsensusParams(cmtCfg)
 	if err != nil {
 		panic(err)
 	}
@@ -154,6 +154,13 @@ func NewService(
 	// Load latest height, once all stores have been set
 	if err = s.sm.LoadLatestVersion(); err != nil {
 		panic(fmt.Errorf("failed loading latest version: %w", err))
+	}
+
+	// Update Stable block time related data
+	lastCommitID := s.sm.GetCommitMultiStore().LastCommitID()
+	lastBlockHeight := lastCommitID.Version
+	if lastBlockHeight >= s.delayCfg.SbtConsensusUpdateHeight() {
+		s.cmtConsensusParams.Feature.SBTEnableHeight = s.delayCfg.SbtConsensusEnableHeight()
 	}
 
 	// Load block delay.
