@@ -47,7 +47,7 @@ func TestnetChainSpecData() *chain.SpecData {
 	specData.Config.ConsensusEnableHeight = 7_768_335
 
 	// Timestamp of the Electra1 fork on Bepolia.
-	specData.Electra1ForkTime = 1754496000
+	specData.Electra1ForkTime = 1754607600
 
 	return specData
 }
