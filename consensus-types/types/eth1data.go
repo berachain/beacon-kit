@@ -18,14 +18,14 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
+//go:generate sszgen -path eth1data.go -objs Eth1Data -output eth1data_sszgen.go -include ../../primitives/common,../../primitives/math
+
 package types
 
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
-	fastssz "github.com/ferranbt/fastssz"
-	"github.com/karalabe/ssz"
 )
 
 // Eth1DataSize is the size of the Eth1Data object in bytes.
@@ -33,7 +33,6 @@ import (
 const Eth1DataSize = 72
 
 var (
-	_ ssz.StaticObject                    = (*Eth1Data)(nil)
 	_ constraints.SSZMarshallableRootable = (*Eth1Data)(nil)
 )
 
@@ -60,69 +59,8 @@ func NewEmptyEth1Data() *Eth1Data {
 	return &Eth1Data{}
 }
 
-/* -------------------------------------------------------------------------- */
-/*                                     SSZ                                    */
-/* -------------------------------------------------------------------------- */
-
-// SizeSSZ returns the size of the Eth1Data object in SSZ encoding.
-func (*Eth1Data) SizeSSZ(*ssz.Sizer) uint32 {
-	return Eth1DataSize
-}
-
-// DefineSSZ defines the SSZ encoding for the Eth1Data object.
-func (e *Eth1Data) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineStaticBytes(codec, &e.DepositRoot)
-	ssz.DefineUint64(codec, &e.DepositCount)
-	ssz.DefineStaticBytes(codec, &e.BlockHash)
-}
-
-// HashTreeRoot computes the SSZ hash tree root of the Eth1Data object.
-func (e *Eth1Data) HashTreeRoot() common.Root {
-	return ssz.HashSequential(e)
-}
-
-// MarshalSSZ marshals the Eth1Data object to SSZ format.
-func (e *Eth1Data) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(e))
-	return buf, ssz.EncodeToBytes(buf, e)
-}
-
+// ValidateAfterDecodingSSZ validates the Eth1Data after decoding SSZ.
 func (*Eth1Data) ValidateAfterDecodingSSZ() error { return nil }
-
-// MarshalSSZTo marshals the Eth1Data object into a pre-allocated byte slice.
-func (e *Eth1Data) MarshalSSZTo(dst []byte) ([]byte, error) {
-	bz, err := e.MarshalSSZ()
-	if err != nil {
-		return nil, err
-	}
-	return append(dst, bz...), err
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                   FastSSZ                                  */
-/* -------------------------------------------------------------------------- */
-
-// HashTreeRootWith ssz hashes the Eth1Data object with a hasher.
-func (e *Eth1Data) HashTreeRootWith(hh fastssz.HashWalker) error {
-	indx := hh.Index()
-
-	// Field (0) 'DepositRoot'
-	hh.PutBytes(e.DepositRoot[:])
-
-	// Field (1) 'DepositCount'
-	hh.PutUint64(uint64(e.DepositCount))
-
-	// Field (2) 'BlockHash'
-	hh.PutBytes(e.BlockHash[:])
-
-	hh.Merkleize(indx)
-	return nil
-}
-
-// GetTree ssz hashes the Eth1Data object.
-func (e *Eth1Data) GetTree() (*fastssz.Node, error) {
-	return fastssz.ProofTree(e)
-}
 
 // GetDepositCount returns the deposit count.
 func (e *Eth1Data) GetDepositCount() math.U64 {

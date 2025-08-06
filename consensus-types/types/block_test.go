@@ -26,7 +26,7 @@ import (
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
+	"github.com/berachain/beacon-kit/primitives/encoding/sszutil"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/testing/utils"
@@ -65,7 +65,8 @@ func TestBeaconBlock(t *testing.T) {
 		require.Equal(t, newStateRoot, [32]byte(block.StateRoot))
 
 		// Test the GetHeader method
-		header := block.GetHeader()
+		header, err := block.GetHeader()
+		require.NoError(t, err)
 		require.NotNil(t, header)
 		require.Equal(t, block.Slot, header.Slot)
 		require.Equal(t, block.ProposerIndex, header.ProposerIndex)
@@ -85,7 +86,7 @@ func TestBeaconBlock_MarshalUnmarshalSSZ(t *testing.T) {
 		require.NotNil(t, sszBlock)
 
 		unmarshalledBlock := types.NewEmptyBeaconBlockWithVersion(v)
-		err = ssz.Unmarshal(sszBlock, unmarshalledBlock)
+		err = sszutil.Unmarshal(sszBlock, unmarshalledBlock)
 		require.NoError(t, err)
 		require.Equal(t, block, unmarshalledBlock)
 	})
@@ -95,7 +96,8 @@ func TestBeaconBlock_HashTreeRoot(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		block := utils.GenerateValidBeaconBlock(t, v)
-		hashRoot := block.HashTreeRoot()
+		hashRoot, err := block.HashTreeRoot()
+		require.NoError(t, err)
 		require.NotNil(t, hashRoot)
 	})
 }
@@ -159,7 +161,19 @@ func TestPropertyBlockRootAndBlockHeaderRootEquivalence(t *testing.T) {
 				v,
 			)
 			require.NoError(t, err)
-			return blk.GetHeader().HashTreeRoot().Equals(blk.HashTreeRoot())
+			header, err := blk.GetHeader()
+			if err != nil {
+				return false
+			}
+			headerRoot, err := header.HashTreeRoot()
+			if err != nil {
+				return false
+			}
+			blockRoot, err := blk.HashTreeRoot()
+			if err != nil {
+				return false
+			}
+			return headerRoot == blockRoot
 		}
 		require.NoError(t, quick.Check(f, qc))
 	})

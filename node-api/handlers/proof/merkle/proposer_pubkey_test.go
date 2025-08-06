@@ -106,11 +106,13 @@ func TestBlockProposerPubkeyProof(t *testing.T) {
 				tc.slot, vals, 0, common.ExecutionAddress{}, tc.forkVersion,
 			)
 
+			stateRoot, err := bs.HashTreeRoot()
+			require.NoError(t, err)
 			bbh := types.NewBeaconBlockHeader(
 				tc.slot,
 				tc.proposerIndex,
 				tc.parentBlockRoot,
-				bs.HashTreeRoot(),
+				stateRoot,
 				tc.bodyRoot,
 			)
 

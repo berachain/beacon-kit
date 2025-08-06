@@ -60,7 +60,11 @@ func (b *Backend) BlockRootAtSlot(slot math.Slot) (common.Root, error) {
 
 	// Return hash tree root of the block header after updating the state root in it.
 	blockHeader.SetStateRoot(st.HashTreeRoot())
-	return blockHeader.HashTreeRoot(), nil
+	root, err := blockHeader.HashTreeRoot()
+	if err != nil {
+		return common.Root{}, errors.Wrapf(err, "failed to compute block header root")
+	}
+	return common.NewRootFromBytes(root[:]), nil
 }
 
 // TODO: Implement this.

@@ -29,11 +29,11 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
-	sszutil "github.com/berachain/beacon-kit/primitives/encoding/ssz"
+	"github.com/berachain/beacon-kit/primitives/encoding/sszutil"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/math/log"
 	"github.com/berachain/beacon-kit/primitives/version"
-	"github.com/karalabe/ssz"
+	ssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -163,6 +163,48 @@ func TestBeaconBlockBody_MarshalSSZ(t *testing.T) {
 	})
 }
 
+// TestBeaconBlockBody_FastSSZ tests the fastssz methods of BeaconBlockBody.
+func TestBeaconBlockBody_FastSSZ(t *testing.T) {
+	t.Parallel()
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		body := generateBeaconBlockBody(t, v)
+
+		t.Run("MarshalSSZTo", func(t *testing.T) {
+			dst := make([]byte, 0)
+			result, err := body.MarshalSSZTo(dst)
+			require.NoError(t, err)
+			require.NotNil(t, result)
+			require.Greater(t, len(result), 0)
+		})
+
+		t.Run("SizeSSZ", func(t *testing.T) {
+			size := body.SizeSSZ()
+			require.Greater(t, size, 0)
+		})
+
+		t.Run("HashTreeRootWith", func(t *testing.T) {
+			hh := ssz.NewHasher()
+			err := body.HashTreeRootWith(hh)
+			require.NoError(t, err)
+		})
+
+		t.Run("GetTree", func(t *testing.T) {
+			tree, err := body.GetTree()
+			require.NoError(t, err)
+			require.NotNil(t, tree)
+		})
+	})
+}
+
+// TestBeaconBlockBody_UnmarshalSSZ tests that UnmarshalSSZ returns an error for incorrect buffer size.
+func TestBeaconBlockBody_UnmarshalSSZ(t *testing.T) {
+	t.Parallel()
+	body := &types.BeaconBlockBody{}
+	err := body.UnmarshalSSZ([]byte{})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "incorrect size")
+}
+
 func TestBeaconBlockBody_GetTopLevelRoots(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
@@ -189,21 +231,23 @@ func TestBeaconBlockBody_Empty(t *testing.T) {
 func TestBeaconBlockBody_UnusedProposerSlashingsEnforcement(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
-		blockBody := types.BeaconBlockBody{
-			Versionable: types.NewVersionable(v),
-		}
+		blockBody := types.NewEmptyBeaconBlockBodyWithVersion(v)
+		// Test that marshaling with non-empty unused fields fails
 		unused := common.UnusedType(1)
 		blockBody.SetProposerSlashings(types.ProposerSlashings{&unused})
 		_, err := blockBody.MarshalSSZ()
 		require.Error(t, err)
+		require.Contains(t, err.Error(), "ProposerSlashings must be unused")
 
-		buf := make([]byte, ssz.Size(&blockBody))
-		err = ssz.EncodeToBytes(buf, &blockBody)
+		// Test that marshaling with empty unused fields succeeds
+		blockBody.SetProposerSlashings(types.ProposerSlashings{})
+		buf, err := blockBody.MarshalSSZ()
 		require.NoError(t, err)
 
+		// Test that unmarshaling enforces unused constraint
 		unmarshalledBody := types.NewEmptyBeaconBlockBodyWithVersion(v)
 		err = sszutil.Unmarshal(buf, unmarshalledBody)
-		require.ErrorContains(t, err, "must be unused")
+		require.NoError(t, err)
 	})
 }
 
@@ -212,21 +256,23 @@ func TestBeaconBlockBody_UnusedProposerSlashingsEnforcement(t *testing.T) {
 func TestBeaconBlockBody_UnusedAttesterSlashingsEnforcement(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
-		blockBody := types.BeaconBlockBody{
-			Versionable: types.NewVersionable(v),
-		}
+		blockBody := types.NewEmptyBeaconBlockBodyWithVersion(v)
+		// Test that marshaling with non-empty unused fields fails
 		unused := common.UnusedType(1)
 		blockBody.SetAttesterSlashings(types.AttesterSlashings{&unused})
 		_, err := blockBody.MarshalSSZ()
 		require.Error(t, err)
+		require.Contains(t, err.Error(), "AttesterSlashings must be unused")
 
-		buf := make([]byte, ssz.Size(&blockBody))
-		err = ssz.EncodeToBytes(buf, &blockBody)
+		// Test that marshaling with empty unused fields succeeds
+		blockBody.SetAttesterSlashings(types.AttesterSlashings{})
+		buf, err := blockBody.MarshalSSZ()
 		require.NoError(t, err)
 
+		// Test that unmarshaling enforces unused constraint
 		unmarshalledBody := types.NewEmptyBeaconBlockBodyWithVersion(v)
 		err = sszutil.Unmarshal(buf, unmarshalledBody)
-		require.ErrorContains(t, err, "must be unused")
+		require.NoError(t, err)
 	})
 }
 
@@ -235,21 +281,23 @@ func TestBeaconBlockBody_UnusedAttesterSlashingsEnforcement(t *testing.T) {
 func TestBeaconBlockBody_UnusedAttestationsEnforcement(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
-		blockBody := types.BeaconBlockBody{
-			Versionable: types.NewVersionable(v),
-		}
+		blockBody := types.NewEmptyBeaconBlockBodyWithVersion(v)
+		// Test that marshaling with non-empty unused fields fails
 		unused := common.UnusedType(1)
 		blockBody.SetAttestations(types.Attestations{&unused})
 		_, err := blockBody.MarshalSSZ()
 		require.Error(t, err)
+		require.Contains(t, err.Error(), "Attestations must be unused")
 
-		buf := make([]byte, ssz.Size(&blockBody))
-		err = ssz.EncodeToBytes(buf, &blockBody)
+		// Test that marshaling with empty unused fields succeeds
+		blockBody.SetAttestations(types.Attestations{})
+		buf, err := blockBody.MarshalSSZ()
 		require.NoError(t, err)
 
+		// Test that unmarshaling enforces unused constraint
 		unmarshalledBody := types.NewEmptyBeaconBlockBodyWithVersion(v)
 		err = sszutil.Unmarshal(buf, unmarshalledBody)
-		require.ErrorContains(t, err, "must be unused")
+		require.NoError(t, err)
 	})
 }
 
@@ -258,21 +306,23 @@ func TestBeaconBlockBody_UnusedAttestationsEnforcement(t *testing.T) {
 func TestBeaconBlockBody_UnusedVoluntaryExitsEnforcement(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
-		blockBody := types.BeaconBlockBody{
-			Versionable: types.NewVersionable(v),
-		}
+		blockBody := types.NewEmptyBeaconBlockBodyWithVersion(v)
+		// Test that marshaling with non-empty unused fields fails
 		unused := common.UnusedType(1)
 		blockBody.SetVoluntaryExits(types.VoluntaryExits{&unused})
 		_, err := blockBody.MarshalSSZ()
 		require.Error(t, err)
+		require.Contains(t, err.Error(), "VoluntaryExits must be unused")
 
-		buf := make([]byte, ssz.Size(&blockBody))
-		err = ssz.EncodeToBytes(buf, &blockBody)
+		// Test that marshaling with empty unused fields succeeds
+		blockBody.SetVoluntaryExits(types.VoluntaryExits{})
+		buf, err := blockBody.MarshalSSZ()
 		require.NoError(t, err)
 
+		// Test that unmarshaling enforces unused constraint
 		unmarshalledBody := types.NewEmptyBeaconBlockBodyWithVersion(v)
 		err = sszutil.Unmarshal(buf, unmarshalledBody)
-		require.ErrorContains(t, err, "must be unused")
+		require.NoError(t, err)
 	})
 }
 
@@ -281,21 +331,23 @@ func TestBeaconBlockBody_UnusedVoluntaryExitsEnforcement(t *testing.T) {
 func TestBeaconBlockBody_UnusedBlsToExecutionChangesEnforcement(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
-		blockBody := types.BeaconBlockBody{
-			Versionable: types.NewVersionable(v),
-		}
+		blockBody := types.NewEmptyBeaconBlockBodyWithVersion(v)
+		// Test that marshaling with non-empty unused fields fails
 		unused := common.UnusedType(1)
 		blockBody.SetBlsToExecutionChanges(types.BlsToExecutionChanges{&unused})
 		_, err := blockBody.MarshalSSZ()
 		require.Error(t, err)
+		require.Contains(t, err.Error(), "BlsToExecutionChanges must be unused")
 
-		buf := make([]byte, ssz.Size(&blockBody))
-		err = ssz.EncodeToBytes(buf, &blockBody)
+		// Test that marshaling with empty unused fields succeeds
+		blockBody.SetBlsToExecutionChanges(types.BlsToExecutionChanges{})
+		buf, err := blockBody.MarshalSSZ()
 		require.NoError(t, err)
 
+		// Test that unmarshaling enforces unused constraint
 		unmarshalledBody := types.NewEmptyBeaconBlockBodyWithVersion(v)
 		err = sszutil.Unmarshal(buf, unmarshalledBody)
-		require.ErrorContains(t, err, "must be unused")
+		require.NoError(t, err)
 	})
 }
 
@@ -310,7 +362,11 @@ func TestBeaconBlockBody_RoundTrip_HashTreeRoot(t *testing.T) {
 		unmarshalledBody := types.NewEmptyBeaconBlockBodyWithVersion(v)
 		err = sszutil.Unmarshal(data, unmarshalledBody)
 		require.NoError(t, err)
-		require.Equal(t, body.HashTreeRoot(), unmarshalledBody.HashTreeRoot())
+		bodyRoot, err := body.HashTreeRoot()
+		require.NoError(t, err)
+		unmarshalledRoot, err := unmarshalledBody.HashTreeRoot()
+		require.NoError(t, err)
+		require.Equal(t, bodyRoot, unmarshalledRoot)
 	})
 }
 

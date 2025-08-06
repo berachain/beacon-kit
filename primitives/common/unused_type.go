@@ -22,7 +22,7 @@ package common
 
 import (
 	"github.com/berachain/beacon-kit/errors"
-	"github.com/karalabe/ssz"
+	fastssz "github.com/ferranbt/fastssz"
 )
 
 // UnusedEnforcer is an interface that asserts that a type is unused.
@@ -32,7 +32,6 @@ type UnusedEnforcer interface {
 
 // Compile-time assertions to ensure UnusedType implements necessary interfaces.
 var (
-	_ ssz.StaticObject        = (*UnusedType)(nil)
 	_ SSZMarshallableRootable = (*UnusedType)(nil)
 	_ UnusedEnforcer          = (*UnusedType)(nil)
 )
@@ -40,28 +39,27 @@ var (
 type UnusedType uint8
 
 // SizeSSZ returns the SSZ encoded size in bytes for the UnusedType.
-func (ut *UnusedType) SizeSSZ(_ *ssz.Sizer) uint32 {
+func (ut *UnusedType) SizeSSZ() int {
 	return 1
-}
-
-// DefineSSZ defines the SSZ encoding for the UnusedType object.
-func (ut *UnusedType) DefineSSZ(c *ssz.Codec) {
-	ssz.DefineUint8(c, ut)
 }
 
 // MarshalSSZ marshals the UnusedType object to SSZ format.
 func (ut *UnusedType) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(ut))
-	return buf, ssz.EncodeToBytes(buf, ut)
+	return []byte{byte(*ut)}, nil
 }
 
 func (ut *UnusedType) ValidateAfterDecodingSSZ() error {
 	return ut.EnforceUnused()
 }
 
-// HashTreeRoot returns the hash tree root of the Deposits.
-func (ut *UnusedType) HashTreeRoot() Root {
-	return ssz.HashSequential(ut)
+// HashTreeRoot returns the hash tree root of the UnusedType.
+func (ut *UnusedType) HashTreeRoot() ([32]byte, error) {
+	hh := fastssz.DefaultHasherPool.Get()
+	defer fastssz.DefaultHasherPool.Put(hh)
+	if err := ut.HashTreeRootWith(hh); err != nil {
+		return [32]byte{}, err
+	}
+	return hh.HashRoot()
 }
 
 // EnforceUnused return true if the UnusedType contains all zero values.
@@ -72,6 +70,37 @@ func (ut *UnusedType) EnforceUnused() error {
 		return errors.New("UnusedType must be unused")
 	}
 	return nil
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
+
+// MarshalSSZTo ssz marshals the UnusedType object to a target array.
+func (ut *UnusedType) MarshalSSZTo(dst []byte) ([]byte, error) {
+	dst = append(dst, byte(*ut))
+	return dst, nil
+}
+
+// UnmarshalSSZ ssz unmarshals the UnusedType object.
+func (ut *UnusedType) UnmarshalSSZ(buf []byte) error {
+	if len(buf) != 1 {
+		return errors.Wrapf(fastssz.ErrSize, "expected buffer of length 1, received %d", len(buf))
+	}
+	*ut = UnusedType(buf[0])
+	// Validate after unmarshaling
+	return ut.EnforceUnused()
+}
+
+// HashTreeRootWith ssz hashes the UnusedType object with a hasher.
+func (ut *UnusedType) HashTreeRootWith(hh fastssz.HashWalker) error {
+	hh.PutUint8(uint8(*ut))
+	return nil
+}
+
+// GetTree ssz hashes the UnusedType object.
+func (ut *UnusedType) GetTree() (*fastssz.Node, error) {
+	return fastssz.ProofTree(ut)
 }
 
 func EnforceAllUnused(enforcers ...UnusedEnforcer) error {
