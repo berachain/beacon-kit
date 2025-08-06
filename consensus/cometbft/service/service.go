@@ -119,7 +119,7 @@ func NewService(
 	if err := validateConfig(cmtCfg); err != nil {
 		panic(err)
 	}
-	cmtConsensusParams, err := extractConsensusParams(cmtCfg)
+	cmtConsensusParams, err := extractConsensusParams(cmtCfg, cs)
 	if err != nil {
 		panic(err)
 	}
