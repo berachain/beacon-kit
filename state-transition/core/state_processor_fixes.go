@@ -28,7 +28,6 @@ import (
 	"github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-// TODO: confirm data
 const fixSmileePubKey = "0x84acfd38a13af12add8d82e1ef0842c4dfc1e4175fae5b8ab73770f9050cbf673cafdbf6d8ab679fe9ea13208f50b485"
 
 //nolint:gochecknoglobals // unexported
@@ -47,7 +46,7 @@ func (sp *StateProcessor) processElectra1Fixes(st *state.StateDB) error {
 }
 
 func (sp *StateProcessor) processSmileeFix(st *state.StateDB) error {
-	sp.logger.Info("Smilee fix - forcing validator exit")
+	sp.logger.Info("smilee fix - forcing validator exit")
 	idx, err := st.ValidatorIndexByPubkey(smileePubKey)
 	if err != nil {
 		return fmt.Errorf("smilee fix - failed retrieving validator index: %w", err)
@@ -61,11 +60,11 @@ func (sp *StateProcessor) processSmileeFix(st *state.StateDB) error {
 		return fmt.Errorf("smilee fix - failed initiating validator exit: %w", err)
 	}
 	sp.logger.Info(
-		"Smilee validator",
+		"smilee validator",
 		"pubkey", val.Pubkey.String(),
 		"amount", val.EffectiveBalance.Unwrap(),
 		"credentials", val.WithdrawalCredentials.String(),
 	)
-	sp.logger.Info("Smilee fix - successfully forced validator exit")
+	sp.logger.Info("smilee fix - successfully forced validator exit")
 	return nil
 }
