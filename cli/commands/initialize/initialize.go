@@ -215,7 +215,7 @@ func InitCmd(creator clitypes.ChainSpecCreator, mm interface {
 			appGenesis.InitialHeight = initHeight
 			appGenesis.Consensus = &types.ConsensusGenesis{
 				Validators: nil,
-				Params:     cometbft.DefaultConsensusParams(consensusKeyAlgo),
+				Params:     cometbft.DefaultConsensusParams(consensusKeyAlgo, chainSpec),
 			}
 
 			if err = genutil.ExportGenesisFile(appGenesis, genFile); err != nil {

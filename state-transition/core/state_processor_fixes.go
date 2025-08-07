@@ -35,12 +35,16 @@ const (
 	luganodesPubKey = "0xafd0ad061f698eae0d483098948e26e254f4b7089244bda897895257c668196ffd5e2ddf458fdf8bcea295b7d47a5b37"
 	luganodesCreds  = "0x010000000000000000000000b0c615224a053236ac7d1c239f6c1b5fbf8f0617"
 	luganodesAmount = 901_393_690_000_000 * params.Wei // 901_393.69 Gwei
+
+	fixSmileePubKey = "0x84acfd38a13af12add8d82e1ef0842c4dfc1e4175fae5b8ab73770f9050cbf673cafdbf6d8ab679fe9ea13208f50b485"
 )
 
 //nolint:gochecknoglobals // unexported
 var (
 	luganodesCredentials = ctypes.WithdrawalCredentials(hex.MustToBytes(luganodesCreds))
 	luganodesPubKeyBytes = crypto.BLSPubkey(hex.MustToBytes(luganodesPubKey))
+
+	smileePubKey = crypto.BLSPubkey(hex.MustToBytes(fixSmileePubKey))
 )
 
 // processElectra1Fixes handles some fixes made necessary by accidents or wrong validator choices in mainnet
@@ -52,7 +56,8 @@ func (sp *StateProcessor) processElectra1Fixes(st *state.StateDB) error {
 	if err := sp.processLuganodesRecovery(st); err != nil {
 		return err
 	}
-	return nil
+
+	return sp.processSmileeFix(st)
 }
 
 func (sp *StateProcessor) processLuganodesRecovery(st *state.StateDB) error {
@@ -76,5 +81,29 @@ func (sp *StateProcessor) processLuganodesRecovery(st *state.StateDB) error {
 	}
 
 	sp.logger.Info("Luganodes recovery - created deposit")
+	return nil
+}
+
+func (sp *StateProcessor) processSmileeFix(st *state.StateDB) error {
+	sp.logger.Info("smilee fix - forcing validator exit")
+	idx, err := st.ValidatorIndexByPubkey(smileePubKey)
+	if err != nil {
+		return fmt.Errorf("smilee fix - failed retrieving validator index: %w", err)
+	}
+	val, err := st.ValidatorByIndex(idx)
+	if err != nil {
+		return fmt.Errorf("smilee fix - failed retrieving validator: %w", err)
+	}
+
+	if err = sp.InitiateValidatorExit(st, idx); err != nil {
+		return fmt.Errorf("smilee fix - failed initiating validator exit: %w", err)
+	}
+	sp.logger.Info(
+		"smilee validator",
+		"pubkey", val.Pubkey.String(),
+		"amount", val.EffectiveBalance.Unwrap(),
+		"credentials", val.WithdrawalCredentials.String(),
+	)
+	sp.logger.Info("smilee fix - successfully forced validator exit")
 	return nil
 }
