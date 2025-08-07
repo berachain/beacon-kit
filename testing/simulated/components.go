@@ -135,6 +135,7 @@ func ProvidePectraWithdrawalTestChainSpec() (chain.Spec, error) {
 	specData.GenesisTime = 0
 	specData.Deneb1ForkTime = 0
 	specData.ElectraForkTime = 10
+	specData.Electra1ForkTime = 9223372036854775807
 	// We set slots per epoch to 1 for faster observation of withdrawal behaviour
 	specData.SlotsPerEpoch = 1
 	// We set this to 4 so tests are faster
