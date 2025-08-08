@@ -23,15 +23,29 @@ package core
 import (
 	"fmt"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
 	"github.com/berachain/beacon-kit/state-transition/core/state"
+	"github.com/ethereum/go-ethereum/params"
 )
 
-const fixSmileePubKey = "0x84acfd38a13af12add8d82e1ef0842c4dfc1e4175fae5b8ab73770f9050cbf673cafdbf6d8ab679fe9ea13208f50b485"
+// TODO: confirm data
+const (
+	luganodesPubKey = "0xafd0ad061f698eae0d483098948e26e254f4b7089244bda897895257c668196ffd5e2ddf458fdf8bcea295b7d47a5b37"
+	luganodesCreds  = "0x010000000000000000000000b0c615224a053236ac7d1c239f6c1b5fbf8f0617"
+	luganodesAmount = 901_393_690_000_000 * params.Wei // 901_393.69 Gwei
+
+	fixSmileePubKey = "0x84acfd38a13af12add8d82e1ef0842c4dfc1e4175fae5b8ab73770f9050cbf673cafdbf6d8ab679fe9ea13208f50b485"
+)
 
 //nolint:gochecknoglobals // unexported
-var smileePubKey = crypto.BLSPubkey(hex.MustToBytes(fixSmileePubKey))
+var (
+	luganodesCredentials = ctypes.WithdrawalCredentials(hex.MustToBytes(luganodesCreds))
+	luganodesPubKeyBytes = crypto.BLSPubkey(hex.MustToBytes(luganodesPubKey))
+
+	smileePubKey = crypto.BLSPubkey(hex.MustToBytes(fixSmileePubKey))
+)
 
 // processElectra1Fixes handles some fixes made necessary by accidents or wrong validator choices in mainnet
 func (sp *StateProcessor) processElectra1Fixes(st *state.StateDB) error {
@@ -39,9 +53,34 @@ func (sp *StateProcessor) processElectra1Fixes(st *state.StateDB) error {
 		return nil
 	}
 
-	if err := sp.processSmileeFix(st); err != nil {
+	if err := sp.processLuganodesRecovery(st); err != nil {
 		return err
 	}
+
+	return sp.processSmileeFix(st)
+}
+
+func (sp *StateProcessor) processLuganodesRecovery(st *state.StateDB) error {
+	sp.logger.Info("Luganodes recovery - creating deposit")
+
+	// Make a one-time hardcoded deposit
+	deposit := ctypes.Deposit{
+		Pubkey:      luganodesPubKeyBytes,
+		Credentials: luganodesCredentials,
+		Amount:      luganodesAmount,
+	}
+	sp.logger.Info(
+		"Luganodes deposit",
+		"pubkey", deposit.GetPubkey().String(),
+		"amount", deposit.GetAmount().Unwrap(),
+		"credentials", deposit.GetWithdrawalCredentials().String(),
+	)
+
+	if err := sp.addValidatorToRegistry(st, &deposit); err != nil {
+		return fmt.Errorf("failed to add Luganodes validator: %w", err)
+	}
+
+	sp.logger.Info("Luganodes recovery - created deposit")
 	return nil
 }
 
