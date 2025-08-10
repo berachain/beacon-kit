@@ -368,7 +368,7 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdra
 	{
 		// Send Deposit Request
 		iterations := int64(2)
-		s.defaultDeposit(blsSigner, creds, depositAmount, true)
+		s.defaultDeposit(blsSigner, creds, depositAmount)
 		s.MoveChainToHeight(s.T(), nextBlockHeight, iterations, blsSigner, time.Now())
 		nextBlockHeight += iterations
 	}
@@ -421,7 +421,7 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdra
 
 	// Send another deposit
 	{
-		s.defaultDeposit(blsSigner, creds, depositAmount, false)
+		s.defaultDeposit(blsSigner, creds, depositAmount)
 	}
 
 	// Move the chain by 1 block to include the deposit
@@ -541,9 +541,8 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_HasCorrectWithdraw
 	{
 		// Send Deposit Requests
 		iterations := int64(10)
-		s.defaultDepositWithNonce(blsSigner, creds, depositAmount, true, big.NewInt(0))
-		for i := 1; i < 30; i++ {
-			s.defaultDepositWithNonce(blsSigner, creds, depositAmount, false, big.NewInt(int64(i)))
+		for i := 0; i < 30; i++ {
+			s.defaultDepositWithNonce(blsSigner, creds, depositAmount, big.NewInt(int64(i)))
 		}
 
 		s.LogBuffer.Reset()
@@ -555,8 +554,8 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_HasCorrectWithdraw
 		deposits, _, err := s.TestNode.StorageBackend.DepositStore().GetDepositsByIndex(
 			s.CtxApp, 0, uint64(nextBlockHeight)*s.TestNode.ChainSpec.MaxDepositsPerBlock(),
 		)
-		s.Require().Len(deposits, 31)
 		s.Require().NoError(err)
+		s.Require().Len(deposits, 31)
 	}
 	// Confirm the validator's end balance on EL is similar to the start balance on EL
 	// Confirm the validator's end balance on CL is still at the cap, i.e., 10 Mil BERA.
@@ -578,7 +577,7 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_HasCorrectWithdraw
 }
 
 func (s *PectraWithdrawalSuite) defaultDepositWithNonce(
-	blsSigner *signer.BLSSigner, creds consensustypes.WithdrawalCredentials, depositAmount beaconmath.Gwei, setOperator bool, nonce *big.Int) {
+	blsSigner *signer.BLSSigner, creds consensustypes.WithdrawalCredentials, depositAmount beaconmath.Gwei, nonce *big.Int) {
 	depositContractAddress := gethcommon.Address(s.TestNode.ChainSpec.DepositContractAddress())
 	depositClient, err := deposit.NewDepositContract(depositContractAddress, s.TestNode.ContractBackend)
 	s.Require().NoError(err)
@@ -605,10 +604,7 @@ func (s *PectraWithdrawalSuite) defaultDepositWithNonce(
 	senderKey := simulated.GetTestKey(s.T())
 	senderAddress := gethcommon.HexToAddress(creds.String())
 	s.Require().NoError(err)
-	operator := senderAddress
-	if !setOperator {
-		operator = gethcommon.HexToAddress("0x0000000000000000000000000000000000000000")
-	}
+	operator := gethcommon.HexToAddress("0x0000000000000000000000000000000000000000")
 
 	txOpts := &bind.TransactOpts{
 		From: senderAddress,
@@ -629,6 +625,6 @@ func (s *PectraWithdrawalSuite) defaultDepositWithNonce(
 	s.Require().NoError(err)
 }
 
-func (s *PectraWithdrawalSuite) defaultDeposit(blsSigner *signer.BLSSigner, creds consensustypes.WithdrawalCredentials, depositAmount beaconmath.Gwei, setOperator bool) {
-	s.defaultDepositWithNonce(blsSigner, creds, depositAmount, setOperator, nil)
+func (s *PectraWithdrawalSuite) defaultDeposit(blsSigner *signer.BLSSigner, creds consensustypes.WithdrawalCredentials, depositAmount beaconmath.Gwei) {
+	s.defaultDepositWithNonce(blsSigner, creds, depositAmount, nil)
 }

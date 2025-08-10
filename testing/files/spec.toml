@@ -56,11 +56,11 @@ bytes-per-blob = 131072
 
 # Berachain genesis values
 validator-set-cap = 69
-evm-inflation-address = "0x6942069420694206942069420694206942069420"
+evm-inflation-address = "0x0000000000000000000000000000000000000000"
 evm-inflation-per-block = 10_000_000_000
 
 # Deneb1 value changes
-evm-inflation-address-deneb-one = "0x4206942069420694206942069420694206942069"
+evm-inflation-address-deneb-one = "0x656b95E550C07a9ffe548bd4085c72418Ceb1dba"
 evm-inflation-per-block-deneb-one = 11_000_000_000
 
 # Electra values

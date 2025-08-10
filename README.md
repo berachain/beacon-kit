@@ -70,3 +70,7 @@ preloaded with the native EVM token.
 ## Multinode Local Devnet
 
 Please refer to the [Kurtosis README](https://github.com/berachain/beacon-kit/blob/main/kurtosis/README.md) for more information on how to run a multinode local devnet.
+
+## Proof of liquidity deployment instructions
+
+You can find instructions to deploy Proof of Liquidity smart contracts over a devnet in [contracts README](https://github.com/berachain/beacon-kit/blob/main/contracts/README.md).
