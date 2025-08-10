@@ -101,6 +101,10 @@ func (sp *StateProcessor) ProcessFork(
 			return err
 		}
 
+		if err = sp.processElectra1Fixes(st); err != nil {
+			return err
+		}
+
 		// Log the upgrade to Electra1 if requested.
 		if logUpgrade {
 			sp.logElectra1Fork(stateFork.PreviousVersion, timestamp, slot)

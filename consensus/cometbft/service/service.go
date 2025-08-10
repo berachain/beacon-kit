@@ -156,6 +156,14 @@ func NewService(
 		panic(fmt.Errorf("failed loading latest version: %w", err))
 	}
 
+	// Make sure that SBT consensus parameters are duly set when the node restart.
+	// Note that we can't rely on genesis.json having these parameters set right
+	// because we introduced stable block time post (mainnet) genesis.
+	lastBlockHeight := s.sm.GetCommitMultiStore().LastCommitID().Version
+	if lastBlockHeight >= s.delayCfg.SbtConsensusUpdateHeight() {
+		s.cmtConsensusParams.Feature.SBTEnableHeight = s.delayCfg.SbtConsensusEnableHeight()
+	}
+
 	// Load block delay.
 	//
 	// If not found, we will initialize it in FinalizeBlock once SBTEnableHeight
