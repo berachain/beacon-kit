@@ -39,13 +39,13 @@ FILES = {
     "/jwt": "jwt_file",
 }
 CMD = [
-    "geth",
+    "bera-geth",
     "init",
     "--datadir",
     EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER,
     "/root/genesis/{}".format(GENESIS_FILENAME),
     "&&",
-    "geth",
+    "bera-geth",
     "--config",
     CONFIG_LOCATION,
     "--nat",
