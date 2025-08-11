@@ -5,8 +5,8 @@ pragma solidity 0.8.26;
 import "./MockValidatorRegistry.sol";
 
 /// @title RevertingPoLDistributor
-/// @notice Simple mock PoL distributor for testing bera-reth. Reverts after 10 distributions for testing purposes.
-/// @dev Updated to interact with ValidatorRegistry to test multi-contract state changes
+/// @notice Mock PoL distributor that reverts after 10 distributions for testing
+/// @dev Interacts with ValidatorRegistry to test multi-contract state changes
 contract RevertingPoLDistributor {
     /// @notice System address that can call distributeFor (execution layer client)
     address private constant SYSTEM_ADDRESS = 0xffffFFFfFFffffffffffffffFfFFFfffFFFfFFfE;
@@ -23,8 +23,7 @@ contract RevertingPoLDistributor {
     /// @notice Error thrown when caller is not the system address
     error NotSystemAddress();
     
-    /// @dev Modifier to restrict function access to system address.
-    /// @dev This ensures only the execution layer client can call `distributeFor` function.
+    /// @dev Restricts access to system address (execution layer client only)
     modifier onlySystemCall() {
         if (msg.sender != SYSTEM_ADDRESS) {
             revert NotSystemAddress();
@@ -32,16 +31,12 @@ contract RevertingPoLDistributor {
         _;
     }
     
-    /// @notice Main function that bera-reth will call
+    /// @notice Main function called by execution client
     /// @param pubkey The validator public key
-    /// @dev Now calls the ValidatorRegistry to test multi-contract state changes
+    /// @dev Calls ValidatorRegistry to test multi-contract state changes
     function distributeFor(bytes calldata pubkey) external onlySystemCall {
         require(totalDistributions < 10, "Max distributions reached");
-        // Update state in this contract
         totalDistributions++;
-        
-        // Call another contract to update its state
-        // This tests whether system calls properly capture state changes from multiple contracts
         VALIDATOR_REGISTRY.recordValidatorActivity(pubkey);
         
         emit PoLDistributed(pubkey);

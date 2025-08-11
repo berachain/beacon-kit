@@ -2,16 +2,16 @@
 pragma solidity 0.8.26;
 
 /// @title ValidatorRegistry
-/// @notice A simple registry contract that increments a counter when called
-/// @dev This contract will be called by SimplePoLDistributor to test multi-contract state changes
+/// @notice Simple registry contract for testing multi-contract state changes
+/// @dev Called by PoL distributors to increment activity counter
 contract ValidatorRegistry {
-    /// @notice Simple counter that increments on each call
+    /// @notice Activity counter incremented on each call
     uint256 public callCount;
     
-    /// @notice Event emitted when the contract is called
+    /// @notice Event emitted when activity is recorded
     event RegistryCalled(uint256 newCount);
     
-    /// @notice Records activity - simply increments counter and emits event
+    /// @notice Records validator activity by incrementing counter
     function recordValidatorActivity(bytes calldata /* pubkey */) external {
         callCount++;
         emit RegistryCalled(callCount);
