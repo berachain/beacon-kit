@@ -39,7 +39,7 @@
       "prague1": {
         "time": 0,
         "baseFeeChangeDenominator": 48,
-        "minimumBaseFeeWei": 10000000000,
+        "minimumBaseFeeWei": 1000000000,
         "polDistributorAddress": "0x4200000000000000000000000000000000000042"
       }
     }
