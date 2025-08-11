@@ -1,0 +1,1 @@
+To generate the bytecode for the MockPol contract, run `forge script script/GetBytecode.s.sol`
