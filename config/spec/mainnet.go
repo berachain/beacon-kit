@@ -98,11 +98,15 @@ const (
 	// mainnetMinValidatorWithdrawabilityDelay is the number of epochs of delay epochs of delay for a balance to be withdrawable.
 	// 256 Epochs equates to roughly ~27 hours of withdrawal delay. This gives us room to emergency fork if needed.
 	mainnetMinValidatorWithdrawabilityDelay = defaultMinValidatorWithdrawabilityDelay
+
+	// These are the heights at which SBT is activated on mainnet.
+	mainnetSBTConsensusUpdateHeight = 9_702_579
+	mainnetSBTConsensusEnableHeight = 9_702_580
 )
 
 // MainnetChainSpecData is the chain.SpecData for the Berachain mainnet.
 func MainnetChainSpecData() *chain.SpecData {
-	return &chain.SpecData{
+	specData := &chain.SpecData{
 		Config: delay.DefaultConfig(),
 
 		// Gwei values constants.
@@ -171,6 +175,11 @@ func MainnetChainSpecData() *chain.SpecData {
 		MinActivationBalance:             mainnetMinActivationBalance,
 		MinValidatorWithdrawabilityDelay: mainnetMinValidatorWithdrawabilityDelay,
 	}
+
+	specData.Config.ConsensusUpdateHeight = mainnetSBTConsensusUpdateHeight
+	specData.Config.ConsensusEnableHeight = mainnetSBTConsensusEnableHeight
+
+	return specData
 }
 
 // MainnetChainSpec is the ChainSpec for the Berachain mainnet.
