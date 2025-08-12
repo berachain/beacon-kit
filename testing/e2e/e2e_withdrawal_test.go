@@ -239,17 +239,10 @@ func (s *BeaconKitE2ESuite) TestSubmitPartialWithdrawalTransaction() {
 	s.Require().NoError(err)
 
 	// Get the transaction receipt
-	var receipt map[string]interface{}
-	err = rpcClient.CallContext(ctx, &receipt, "eth_getTransactionReceipt", txHash.Hex())
+	receipt, err := s.JSONRPCBalancer().TransactionReceipt(ctx, txHash)
 	s.Require().NoError(err)
 	s.Require().NotNil(receipt, "Transaction receipt should not be nil")
-
-	// Get block number where the withdrawal transaction was included
-	blockNumStr, ok := receipt["blockNumber"].(string)
-	s.Require().True(ok, "Block number should be a string")
-	blockNum, err := hexutil.DecodeUint64(blockNumStr)
-	s.Require().NoError(err)
-	s.T().Logf("Withdrawal transaction included in block: %d", blockNum)
+	s.T().Logf("Withdrawal transaction included in block: %d", receipt.BlockNumber)
 
 	// Check for pending partial withdrawals after submitting the transaction
 	pendingWithdrawalsAfter, err := s.getPendingPartialWithdrawals(utils.StateIDHead)

@@ -21,8 +21,6 @@
 package spec
 
 import (
-	"math"
-
 	"github.com/berachain/beacon-kit/chain"
 )
 
@@ -44,8 +42,12 @@ func TestnetChainSpecData() *chain.SpecData {
 	// Timestamp of the Electra fork on Bepolia.
 	specData.ElectraForkTime = 1746633600
 
+	// Enable stable block time before the Electra1 fork.
+	specData.Config.ConsensusUpdateHeight = 7_768_334
+	specData.Config.ConsensusEnableHeight = 7_768_335
+
 	// Timestamp of the Electra1 fork on Bepolia.
-	specData.Electra1ForkTime = math.MaxInt64
+	specData.Electra1ForkTime = 1754496000
 
 	return specData
 }
