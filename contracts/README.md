@@ -15,11 +15,12 @@ forge build
 # Extract SimplePoLDistributor bytecode
 cat out/MockPoL.sol/SimplePoLDistributor.json | jq -r .deployedBytecode.object
 
-# Extract ValidatorRegistry bytecode  
+# Extract ValidatorRegistry bytecode
 cat out/MockValidatorRegistry.sol/ValidatorRegistry.json | jq -r .deployedBytecode.object
 ```
 
-The same pattern can be used to extract bytecode for other contracts in the `brip0004/` directory.
+The same pattern can be used to extract bytecode for other contracts in the
+`brip0004/` directory.
 
 ### Contracts
 
