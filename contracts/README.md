@@ -9,8 +9,17 @@ Mock Proof-of-Liquidity contracts for testing execution client integration.
 Generate bytecode for genesis deployment:
 
 ```bash
-forge script script/GetBytecode.s.sol
+# Build contracts
+forge build
+
+# Extract SimplePoLDistributor bytecode
+cat out/MockPoL.sol/SimplePoLDistributor.json | jq -r .deployedBytecode.object
+
+# Extract ValidatorRegistry bytecode  
+cat out/MockValidatorRegistry.sol/ValidatorRegistry.json | jq -r .deployedBytecode.object
 ```
+
+The same pattern can be used to extract bytecode for other contracts in the `brip0004/` directory.
 
 ### Contracts
 
