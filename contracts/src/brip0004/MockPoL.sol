@@ -33,6 +33,7 @@ contract SimplePoLDistributor {
     /// @notice Main function called by execution client
     /// @param pubkey The validator public key
     /// @dev Calls ValidatorRegistry to test multi-contract state changes
+    // slither-disable-next-line reentrancy-events
     function distributeFor(bytes calldata pubkey) external onlySystemCall {
         require(totalDistributions < 10, "Max distributions reached");
         totalDistributions++;
