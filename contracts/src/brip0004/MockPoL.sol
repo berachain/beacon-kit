@@ -8,20 +8,22 @@ import "./MockValidatorRegistry.sol";
 /// @dev Interacts with ValidatorRegistry to test multi-contract state changes
 contract SimplePoLDistributor {
     /// @notice System address that can call distributeFor (execution layer client)
-    address private constant SYSTEM_ADDRESS = 0xffffFFFfFFffffffffffffffFfFFFfffFFFfFFfE;
-    
+    address private constant SYSTEM_ADDRESS =
+        0xffffFFFfFFffffffffffffffFfFFFfffFFFfFFfE;
+
     /// @notice The validator registry contract address (hardcoded for genesis deployment)
-    ValidatorRegistry private constant VALIDATOR_REGISTRY = ValidatorRegistry(0x4200000000000000000000000000000000000043);
-    
+    ValidatorRegistry private constant VALIDATOR_REGISTRY =
+        ValidatorRegistry(0x4200000000000000000000000000000000000043);
+
     /// @notice Event emitted when distributeFor is called
     event PoLDistributed(bytes pubkey);
-    
+
     /// @notice Counter for total distributions
     uint256 public totalDistributions;
-    
+
     /// @notice Error thrown when caller is not the system address
     error NotSystemAddress();
-    
+
     /// @dev Restricts access to system address (execution layer client only)
     modifier onlySystemCall() {
         if (msg.sender != SYSTEM_ADDRESS) {
@@ -29,7 +31,7 @@ contract SimplePoLDistributor {
         }
         _;
     }
-    
+
     /// @notice Main function called by execution client
     /// @param pubkey The validator public key
     /// @dev Calls ValidatorRegistry to test multi-contract state changes
@@ -38,7 +40,7 @@ contract SimplePoLDistributor {
         require(totalDistributions < 10, "Max distributions reached");
         totalDistributions++;
         VALIDATOR_REGISTRY.recordValidatorActivity(pubkey);
-        
+
         emit PoLDistributed(pubkey);
     }
 }
