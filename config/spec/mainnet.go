@@ -21,8 +21,6 @@
 package spec
 
 import (
-	"math"
-
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
 	"github.com/berachain/beacon-kit/primitives/bytes"
@@ -87,7 +85,7 @@ const (
 	mainnetElectraForkTime = 1749056400
 
 	// mainnetElectra1ForkTime is the timestamp at which the Electra1 fork occurs.
-	mainnetElectra1ForkTime = math.MaxInt64
+	mainnetElectra1ForkTime = 1756310400
 
 	// mainnetEVMInflationAddressDeneb1 is the address on the EVM which will receive the
 	// inflation amount of native EVM balance through a withdrawal every block in the Deneb1 fork.
@@ -100,11 +98,15 @@ const (
 	// mainnetMinValidatorWithdrawabilityDelay is the number of epochs of delay epochs of delay for a balance to be withdrawable.
 	// 256 Epochs equates to roughly ~27 hours of withdrawal delay. This gives us room to emergency fork if needed.
 	mainnetMinValidatorWithdrawabilityDelay = defaultMinValidatorWithdrawabilityDelay
+
+	// These are the heights at which SBT is activated on mainnet.
+	mainnetSBTConsensusUpdateHeight = 9_702_579
+	mainnetSBTConsensusEnableHeight = 9_702_580
 )
 
 // MainnetChainSpecData is the chain.SpecData for the Berachain mainnet.
 func MainnetChainSpecData() *chain.SpecData {
-	return &chain.SpecData{
+	specData := &chain.SpecData{
 		Config: delay.DefaultConfig(),
 
 		// Gwei values constants.
@@ -173,6 +175,11 @@ func MainnetChainSpecData() *chain.SpecData {
 		MinActivationBalance:             mainnetMinActivationBalance,
 		MinValidatorWithdrawabilityDelay: mainnetMinValidatorWithdrawabilityDelay,
 	}
+
+	specData.Config.ConsensusUpdateHeight = mainnetSBTConsensusUpdateHeight
+	specData.Config.ConsensusEnableHeight = mainnetSBTConsensusEnableHeight
+
+	return specData
 }
 
 // MainnetChainSpec is the ChainSpec for the Berachain mainnet.
