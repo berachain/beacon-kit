@@ -74,18 +74,18 @@ const (
 	mainnetDepositContractAddress = defaultDepositContractAddress
 
 	// mainnetGenesisTime is the timestamp of the Berachain mainnet genesis block.
-	mainnetGenesisTime = 1737381600
+	mainnetGenesisTime = 1_737_381_600
 
 	// mainnetDeneb1ForkTime is the timestamp at which the Deneb1 fork occurs.
 	// This is calculated based on the timestamp of the 2855th mainnet epoch, block 548160, which
 	// was used to initiate the fork when beacon-kit forked by epoch instead of by timestamp.
-	mainnetDeneb1ForkTime = 1738415507
+	mainnetDeneb1ForkTime = 1_738_415_507
 
 	// mainnetElectraForkTime is the timestamp at which the Electra fork occurs.
-	mainnetElectraForkTime = 1749056400
+	mainnetElectraForkTime = 1_749_056_400
 
 	// mainnetElectra1ForkTime is the timestamp at which the Electra1 fork occurs.
-	mainnetElectra1ForkTime = 1756310400
+	mainnetElectra1ForkTime = 1_756_915_200
 
 	// mainnetEVMInflationAddressDeneb1 is the address on the EVM which will receive the
 	// inflation amount of native EVM balance through a withdrawal every block in the Deneb1 fork.
@@ -100,8 +100,8 @@ const (
 	mainnetMinValidatorWithdrawabilityDelay = defaultMinValidatorWithdrawabilityDelay
 
 	// These are the heights at which SBT is activated on mainnet.
-	mainnetSBTConsensusUpdateHeight = 9_702_579
-	mainnetSBTConsensusEnableHeight = 9_702_580
+	mainnetSBTConsensusUpdateHeight = 9_983_085
+	mainnetSBTConsensusEnableHeight = 9_983_086
 )
 
 // MainnetChainSpecData is the chain.SpecData for the Berachain mainnet.
