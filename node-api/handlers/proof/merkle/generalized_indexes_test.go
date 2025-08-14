@@ -25,7 +25,7 @@ import (
 
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/merkle"
 	"github.com/berachain/beacon-kit/primitives/constants"
-	"github.com/berachain/beacon-kit/primitives/encoding/ssz/schema"
+	"github.com/berachain/beacon-kit/primitives/encoding/sszutil/schema"
 	mlib "github.com/berachain/beacon-kit/primitives/merkle"
 	"github.com/stretchr/testify/require"
 )

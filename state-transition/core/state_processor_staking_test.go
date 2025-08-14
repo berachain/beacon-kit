@@ -75,7 +75,8 @@ func TestTransitionUpdateValidators(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
+			Versionable:   types.NewVersionable(cs.GenesisForkVersion()),
+			BaseFeePerGas: math.NewU256(0),
 		}
 		totalDepositsCount = uint64(len(genDeposits))
 	)
@@ -207,7 +208,8 @@ func TestTransitionCreateValidator(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
+			Versionable:   types.NewVersionable(cs.GenesisForkVersion()),
+			BaseFeePerGas: math.NewU256(0),
 		}
 		totalDepositsCount = uint64(len(genDeposits))
 	)
@@ -383,7 +385,8 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	var (
 		genDeposits      = make(types.Deposits, 0, cs.ValidatorSetCap())
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
+			Versionable:   types.NewVersionable(cs.GenesisForkVersion()),
+			BaseFeePerGas: math.NewU256(0),
 		}
 		totalDepositsCount = cs.ValidatorSetCap()
 	)
@@ -621,7 +624,8 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	var (
 		genDeposits      = make(types.Deposits, 0, cs.ValidatorSetCap())
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
+			Versionable:   types.NewVersionable(cs.GenesisForkVersion()),
+			BaseFeePerGas: math.NewU256(0),
 		}
 		totalDepositsCount = cs.ValidatorSetCap()
 	)

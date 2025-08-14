@@ -26,12 +26,11 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
-	"github.com/karalabe/ssz"
+	ssz "github.com/ferranbt/fastssz"
 )
 
 // Compile-time assertions to ensure ProposerSlashing implements necessary interfaces.
 var (
-	_ ssz.StaticObject                    = (*ProposerSlashing)(nil)
 	_ constraints.SSZMarshallableRootable = (*ProposerSlashing)(nil)
 	_ common.UnusedEnforcer               = (*ProposerSlashings)(nil)
 )
@@ -42,26 +41,44 @@ type (
 )
 
 // SizeSSZ returns the SSZ encoded size in bytes for the ProposerSlashings.
-func (ps ProposerSlashings) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {
-	return ssz.SizeSliceOfStaticObjects(siz, ps)
-}
-
-// DefineSSZ defines the SSZ encoding for the ProposerSlashings object.
-func (ps ProposerSlashings) DefineSSZ(c *ssz.Codec) {
-	c.DefineDecoder(func(*ssz.Decoder) {
-		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*ProposerSlashing)(&ps), constants.MaxProposerSlashings)
-	})
-	c.DefineEncoder(func(*ssz.Encoder) {
-		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*ProposerSlashing)(&ps), constants.MaxProposerSlashings)
-	})
-	c.DefineHasher(func(*ssz.Hasher) {
-		ssz.DefineSliceOfStaticObjectsOffset(c, (*[]*ProposerSlashing)(&ps), constants.MaxProposerSlashings)
-	})
+func (ps ProposerSlashings) SizeSSZ() int {
+	return 4 + len(ps)*16 // offset + each proposer slashing size (UnusedType is 16 bytes)
 }
 
 // HashTreeRoot returns the hash tree root of the ProposerSlashings.
-func (ps ProposerSlashings) HashTreeRoot() common.Root {
-	return ssz.HashSequential(ps)
+func (ps ProposerSlashings) HashTreeRoot() ([32]byte, error) {
+	hh := ssz.DefaultHasherPool.Get()
+	defer ssz.DefaultHasherPool.Put(hh)
+	if err := ps.HashTreeRootWith(hh); err != nil {
+		return [32]byte{}, err
+	}
+	return hh.HashRoot()
+
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
+
+// HashTreeRootWith ssz hashes the ProposerSlashings object with a hasher.
+func (ps ProposerSlashings) HashTreeRootWith(hh ssz.HashWalker) error {
+	indx := hh.Index()
+	num := uint64(len(ps))
+	if num > constants.MaxProposerSlashings {
+		return ssz.ErrIncorrectListSize
+	}
+	for _, elem := range ps {
+		if err := elem.HashTreeRootWith(hh); err != nil {
+			return err
+		}
+	}
+	hh.MerkleizeWithMixin(indx, num, constants.MaxProposerSlashings)
+	return nil
+}
+
+// GetTree ssz hashes the ProposerSlashings object.
+func (ps ProposerSlashings) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(ps)
 }
 
 // EnforceUnused return true if the length of the ProposerSlashings is 0.
