@@ -29,6 +29,7 @@ import (
 
 	"github.com/berachain/beacon-kit/execution/client"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -66,16 +67,17 @@ type TransactionArgs struct {
 
 // BlockOverrides holds optional block-level overrides for simulation.
 type BlockOverrides struct {
-	Number        *hexutil.Big    `json:"number,omitempty"`
-	Difficulty    *hexutil.Big    `json:"difficulty,omitempty"`
-	Time          *hexutil.Uint64 `json:"time,omitempty"`
-	GasLimit      *hexutil.Uint64 `json:"gasLimit,omitempty"`
-	FeeRecipient  *common.Address `json:"feeRecipient,omitempty"`
-	PrevRandao    *common.Hash    `json:"prevRandao,omitempty"`
-	BaseFeePerGas *hexutil.Big    `json:"baseFeePerGas,omitempty"`
-	BlobBaseFee   *hexutil.Big    `json:"blobBaseFee,omitempty"`
-	BeaconRoot    *common.Hash    `json:"beaconRoot,omitempty"`
-	Withdrawals   gethprimitives.Withdrawals
+	Number         *hexutil.Big    `json:"number,omitempty"`
+	Difficulty     *hexutil.Big    `json:"difficulty,omitempty"`
+	Time           *hexutil.Uint64 `json:"time,omitempty"`
+	GasLimit       *hexutil.Uint64 `json:"gasLimit,omitempty"`
+	FeeRecipient   *common.Address `json:"feeRecipient,omitempty"`
+	PrevRandao     *common.Hash    `json:"prevRandao,omitempty"`
+	BaseFeePerGas  *hexutil.Big    `json:"baseFeePerGas,omitempty"`
+	BlobBaseFee    *hexutil.Big    `json:"blobBaseFee,omitempty"`
+	BeaconRoot     *common.Hash    `json:"beaconRoot,omitempty"`
+	Withdrawals    *gethprimitives.Withdrawals
+	ProposerPubkey *crypto.BLSPubkey
 }
 
 // SimBlock is a block containing calls and optional overrides for simulation.
