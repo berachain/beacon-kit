@@ -45,7 +45,7 @@ func responseMiddleware(handler *handlers.Route) echo.HandlerFunc {
 	}
 }
 
-// responseFromErr converts an error to an HTTP status code and response. If
+// responseFromError converts an error to an HTTP status code and response. If
 // the error is nil, the response is returned as is.
 func responseFromError(data any, err error) (int, any) {
 	switch {
