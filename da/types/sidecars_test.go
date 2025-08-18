@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
+	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/stretchr/testify/require"
 )
@@ -71,7 +72,8 @@ func TestEmptySidecarMarshalling(t *testing.T) {
 	)
 
 	// Unmarshal the empty sidecar
-	unmarshalled, err := (&types.BlobSidecar{}).NewFromSSZ(marshalled)
+	unmarshalled := new(types.BlobSidecar)
+	err = ssz.Unmarshal(marshalled, unmarshalled)
 	require.NoError(
 		t,
 		err,

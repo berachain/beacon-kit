@@ -80,8 +80,29 @@
     "muirGlacierBlock": 0,
     "petersburgBlock": 0,
     "shanghaiTime": 0,
+    "pragueTime": 1746633600,
     "terminalTotalDifficulty": 0,
-    "terminalTotalDifficultyPassed": true
+    "terminalTotalDifficultyPassed": true,
+    "blobSchedule": {
+      "cancun": {
+        "target": 3,
+        "max": 6,
+        "baseFeeUpdateFraction": 3338477
+      },
+      "prague": {
+        "target": 3,
+        "max": 6,
+        "baseFeeUpdateFraction": 3338477
+      }
+    },
+    "berachain": {
+      "prague1": {
+        "time": 1754496000,
+        "baseFeeChangeDenominator": 48,
+        "minimumBaseFeeWei": 10000000000,
+        "polDistributorAddress": "0xD2f19a79b026Fb636A7c300bF5947df113940761"
+      }
+    }
   },
   "difficulty": "0x01",
   "extraData": "",

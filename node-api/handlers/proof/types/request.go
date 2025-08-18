@@ -28,14 +28,9 @@ type BlockProposerRequest struct {
 	types.TimestampIDRequest
 }
 
-// ExecutionNumberRequest is the request for the
-// `/proof/execution_number/{timestamp_id}` endpoint.
-type ExecutionNumberRequest struct {
+// ValidatorCredentialsRequest is the request for the
+// `/proof/validator_credentials/{timestamp_id}/{validator_index}` endpoint.
+type ValidatorCredentialsRequest struct {
 	types.TimestampIDRequest
-}
-
-// ExecutionFeeRecipientRequest is the request for the
-// `/proof/execution_fee_recipient/{timestamp_id}` endpoint.
-type ExecutionFeeRecipientRequest struct {
-	types.TimestampIDRequest
+	ValidatorIndex string `param:"validator_index" validate:"required,numeric"`
 }

@@ -25,6 +25,8 @@ package simulated
 import (
 	"testing"
 
+	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/node-core/components"
 )
 
@@ -40,7 +42,6 @@ func FixedComponents(t *testing.T) []any {
 		components.ProvideBlobProofVerifier,
 		components.ProvideChainService,
 		components.ProvideNode,
-		components.ProvideChainSpec,
 		components.ProvideConfig,
 		components.ProvideServerConfig,
 		components.ProvideDepositStore,
@@ -75,4 +76,75 @@ func FixedComponents(t *testing.T) []any {
 		components.ProvideNodeAPIProofHandler,
 	)
 	return c
+}
+
+// ProvideElectraGenesisChainSpec provides a chain spec with pectra as the genesis.
+func ProvideElectraGenesisChainSpec() (chain.Spec, error) {
+	specData := spec.TestnetChainSpecData()
+	// Both Deneb1 and Electra happen in genesis.
+	specData.GenesisTime = 0
+	specData.Deneb1ForkTime = 0
+	specData.ElectraForkTime = 0
+	specData.Electra1ForkTime = 9223372036854775807
+	// We set slots per epoch to 2 for faster observation of withdrawal behaviour
+	specData.SlotsPerEpoch = 2
+	// We set this to 4 so tests are faster
+	specData.MinValidatorWithdrawabilityDelay = 4
+
+	chainSpec, err := chain.NewSpec(specData)
+	if err != nil {
+		return nil, err
+	}
+	return chainSpec, nil
+}
+
+// ProvideSimulationChainSpec provides a default chain-spec equivalent to testnet.
+// Bypasses the need for environment variables.
+func ProvideSimulationChainSpec() (chain.Spec, error) {
+	specData := spec.TestnetChainSpecData()
+	specData.GenesisTime = 0
+	// Arbitrary number
+	specData.Deneb1ForkTime = 30
+	// High number as we don't want to activate electra.
+	specData.ElectraForkTime = 9999999999999999
+	specData.Electra1ForkTime = 9999999999999999
+	chainSpec, err := chain.NewSpec(specData)
+	if err != nil {
+		return nil, err
+	}
+	return chainSpec, nil
+}
+
+// ProvidePectraForkTestChainSpec provides a chain spec with pectra at timestamp 10
+func ProvidePectraForkTestChainSpec() (chain.Spec, error) {
+	specData := spec.TestnetChainSpecData()
+	specData.GenesisTime = 0
+	specData.Deneb1ForkTime = 0
+	specData.ElectraForkTime = 10
+	specData.Electra1ForkTime = 9223372036854775807
+	chainSpec, err := chain.NewSpec(specData)
+	if err != nil {
+		return nil, err
+	}
+	return chainSpec, nil
+}
+
+// ProvidePectraWithdrawalTestChainSpec provides a chain spec used for withdrawal testing
+func ProvidePectraWithdrawalTestChainSpec() (chain.Spec, error) {
+	specData := spec.TestnetChainSpecData()
+	specData.GenesisTime = 0
+	specData.Deneb1ForkTime = 0
+	specData.ElectraForkTime = 10
+	specData.Electra1ForkTime = 9223372036854775807
+	// We set slots per epoch to 1 for faster observation of withdrawal behaviour
+	specData.SlotsPerEpoch = 1
+	// We set this to 4 so tests are faster
+	specData.MinValidatorWithdrawabilityDelay = 4
+	// Reduced validator set cap so eviction withdrawals are easier to trigger
+	specData.ValidatorSetCap = 1
+	chainSpec, err := chain.NewSpec(specData)
+	if err != nil {
+		return nil, err
+	}
+	return chainSpec, nil
 }

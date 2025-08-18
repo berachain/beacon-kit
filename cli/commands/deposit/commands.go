@@ -27,7 +27,7 @@ import (
 )
 
 // Commands creates a new command for deposit related actions.
-func Commands(chainSpec ChainSpec, appCreator servertypes.AppCreator) *cobra.Command {
+func Commands(chainSpecCreator servertypes.ChainSpecCreator, appCreator servertypes.AppCreator) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "deposit",
 		Short:                      "deposit subcommands",
@@ -37,8 +37,8 @@ func Commands(chainSpec ChainSpec, appCreator servertypes.AppCreator) *cobra.Com
 	}
 
 	cmd.AddCommand(
-		GetValidateDepositCmd(chainSpec),
-		GetCreateValidatorCmd(chainSpec),
+		GetValidateDepositCmd(chainSpecCreator),
+		GetCreateValidatorCmd(chainSpecCreator),
 		GetValidatorKeysCmd(),
 		GetDBCheckCmd(appCreator),
 	)

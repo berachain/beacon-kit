@@ -21,16 +21,18 @@
 package genesis
 
 import (
+	"bytes"
+	"encoding/json"
 	"math/big"
 	"path/filepath"
 
 	"github.com/berachain/beacon-kit/cli/commands/genesis/types"
+	clitypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	"github.com/berachain/beacon-kit/cli/context"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	libcommon "github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -41,7 +43,7 @@ import (
 // SetDepositStorageCmd sets deposit contract storage in genesis alloc file.
 //
 //nolint:lll // reads better if long description is one line
-func SetDepositStorageCmd(chainSpec ChainSpec) *cobra.Command {
+func SetDepositStorageCmd(chainSpecCreator clitypes.ChainSpecCreator) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "set-deposit-storage [eth/genesis/file.json]",
 		Short: "sets deposit contract storage in eth genesis",
@@ -50,20 +52,17 @@ func SetDepositStorageCmd(chainSpec ChainSpec) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Read the EL genesis file.
 			elGenesisFilePath := args[0]
-			isNethermind, err := cmd.Flags().GetBool(nethermindGenesis)
+			// Get the deposits from the beacon chain genesis appstate.
+			config := context.GetConfigFromCmd(cmd)
+			appOpts := context.GetViperFromCmd(cmd)
+			chainSpec, err := chainSpecCreator(appOpts)
 			if err != nil {
 				return err
 			}
-			// Get the deposits from the beacon chain genesis appstate.
-			config := context.GetConfigFromCmd(cmd)
-			return SetDepositStorage(chainSpec, config, elGenesisFilePath, isNethermind)
+			return SetDepositStorage(chainSpec, config, elGenesisFilePath)
 		},
 	}
 
-	cmd.Flags().BoolP(
-		nethermindGenesis, nethermindGenesisShorthand,
-		nethermindGenesisDefault, nethermindGenesisMsg,
-	)
 	return cmd
 }
 
@@ -71,7 +70,6 @@ func SetDepositStorage(
 	chainSpec ChainSpec,
 	config *cmtcfg.Config,
 	elGenesisFilePath string,
-	isNethermind bool,
 ) error {
 	elGenesisBz, err := afero.ReadFile(afero.NewOsFs(), elGenesisFilePath)
 	if err != nil {
@@ -105,17 +103,9 @@ func SetDepositStorage(
 	count := big.NewInt(int64(len(deposits)))
 	root := deposits.HashTreeRoot()
 
-	var allocsKey string
-
 	// Unmarshal the genesis file.
-	var elGenesis types.EthGenesis
-	if isNethermind {
-		elGenesis = &types.NethermindEthGenesisJSON{}
-		allocsKey = types.NethermindAllocsKey
-	} else {
-		elGenesis = &types.DefaultEthGenesisJSON{}
-		allocsKey = types.DefaultAllocsKey
-	}
+	elGenesis := &types.DefaultEthGenesisJSON{}
+	allocsKey := types.DefaultAllocsKey
 	if err = json.Unmarshal(elGenesisBz, elGenesis); err != nil {
 		return errors.Wrap(err, "failed to unmarshal eth1 genesis")
 	}
@@ -169,9 +159,11 @@ func writeGenesisAllocToFile(
 		return err
 	}
 
-	// Unmarshal existing genesis
+	// Unmarshal existing genesis using json.Number to preserve integer precision
 	var existingGenesis map[string]interface{}
-	if err = json.Unmarshal(existingBz, &existingGenesis); err != nil {
+	decoder := json.NewDecoder(bytes.NewReader(existingBz))
+	decoder.UseNumber()
+	if err = decoder.Decode(&existingGenesis); err != nil {
 		return err
 	}
 

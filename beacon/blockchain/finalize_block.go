@@ -25,8 +25,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
+	datypes "github.com/berachain/beacon-kit/da/types"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
@@ -39,57 +41,36 @@ func (s *Service) FinalizeBlock(
 	req *cmtabci.FinalizeBlockRequest,
 ) (transition.ValidatorUpdates, error) {
 	// STEP 1: Decode block and blobs.
-	signedBlk, blobs, err := encoding.ExtractBlobsAndBlockFromRequest(
-		req,
-		BeaconBlockTxIndex,
-		BlobSidecarsTxIndex,
-		s.chainSpec.ActiveForkVersionForSlot(math.Slot(req.Height))) // #nosec G115
+	signedBlk, blobs, err := s.ParseBeaconBlock(req)
 	if err != nil {
 		s.logger.Error("Failed to decode block and blobs", "error", err)
 		return nil, fmt.Errorf("failed to decode block and blobs: %w", err)
 	}
 	blk := signedBlk.GetBeaconBlock()
+	st := s.storageBackend.StateFromContext(ctx)
 
 	// Send an FCU to force the HEAD of the chain on the EL on startup.
 	var finalizeErr error
 	s.forceStartupSyncOnce.Do(func() {
-		finalizeErr = s.forceSyncUponFinalize(ctx, blk)
+		var parentProposerPubkey *crypto.BLSPubkey
+		parentProposerPubkey, finalizeErr = st.ParentProposerPubkey(blk.GetTimestamp())
+		if finalizeErr != nil {
+			finalizeErr = fmt.Errorf("force sync upon finalize: failed retrieving parent proposer pubkey: %w", finalizeErr)
+		} else {
+			finalizeErr = s.forceSyncUponFinalize(ctx, blk, parentProposerPubkey)
+		}
 	})
 	if finalizeErr != nil {
 		return nil, finalizeErr
 	}
 
 	// STEP 2: Finalize sidecars first (block will check for sidecar availability).
-	// SyncingToHeight is always the tip of the chain both during sync and when
-	// caught up. We don't need to process sidecars unless they are within DA period.
-	//
-	//#nosec: G115 // SyncingToHeight will never be negative.
-	if s.chainSpec.WithinDAPeriod(blk.GetSlot(), math.Slot(req.SyncingToHeight)) {
-		err = s.blobProcessor.ProcessSidecars(
-			s.storageBackend.AvailabilityStore(),
-			blobs,
-		)
-		if err != nil {
-			s.logger.Error("Failed to process blob sidecars", "error", err)
-			return nil, fmt.Errorf("failed to process blob sidecars: %w", err)
-		}
-
-		// Ensure we can access the data using the commitments from the block.
-		if !s.storageBackend.AvailabilityStore().IsDataAvailable(
-			ctx, blk.GetSlot(), blk.GetBody(),
-		) {
-			return nil, ErrDataNotAvailable
-		}
-	} else if len(blobs) > 0 {
-		s.logger.Info(
-			"Skipping blob processing outside of Data Availability Period",
-			"slot", blk.GetSlot().Base10(), "head", req.SyncingToHeight,
-		)
+	if err = s.FinalizeSidecars(ctx, req.SyncingToHeight, blk, blobs); err != nil {
+		return nil, fmt.Errorf("failed finalizing sidecars: %w", err)
 	}
 
 	// STEP 3: Finalize the block.
 	consensusBlk := types.NewConsensusBlock(blk, req.GetProposerAddress(), req.GetTime())
-	st := s.storageBackend.StateFromContext(ctx)
 	valUpdates, err := s.finalizeBeaconBlock(ctx, st, consensusBlk)
 	if err != nil {
 		s.logger.Error("Failed to process verified beacon block",
@@ -99,6 +80,51 @@ func (s *Service) FinalizeBlock(
 	}
 
 	// STEP 4: Post Finalizations cleanups.
+	return valUpdates, s.PostFinalizeBlockOps(ctx, blk)
+}
+
+func (s *Service) FinalizeSidecars(
+	ctx sdk.Context,
+	syncingToHeight int64,
+	blk *ctypes.BeaconBlock,
+	blobs datypes.BlobSidecars,
+) error {
+	// SyncingToHeight is always the tip of the chain both during sync and when
+	// caught up. We don't need to process sidecars unless they are within DA period.
+	//
+	//#nosec: G115 // SyncingToHeight will never be negative.
+	if s.chainSpec.WithinDAPeriod(blk.GetSlot(), math.Slot(syncingToHeight)) {
+		err := s.blobProcessor.ProcessSidecars(
+			s.storageBackend.AvailabilityStore(),
+			blobs,
+		)
+		if err != nil {
+			s.logger.Error("Failed to process blob sidecars", "error", err)
+			return fmt.Errorf("failed to process blob sidecars: %w", err)
+		}
+
+		// Ensure we can access the data using the commitments from the block.
+		if !s.storageBackend.AvailabilityStore().IsDataAvailable(
+			ctx, blk.GetSlot(), blk.GetBody(),
+		) {
+			return ErrDataNotAvailable
+		}
+		return nil
+	}
+
+	// Here outside Data Availability window. Just log if needed
+	if len(blobs) > 0 {
+		s.logger.Info(
+			"Skipping blob processing outside of Data Availability Period",
+			"slot", blk.GetSlot().Base10(), "head", syncingToHeight,
+		)
+	}
+	return nil
+}
+
+func (s *Service) PostFinalizeBlockOps(ctx sdk.Context, blk *ctypes.BeaconBlock) error {
+	// TODO: consider extracting LatestExecutionPayloadHeader instead of using state here
+	st := s.storageBackend.StateFromContext(ctx)
 
 	// Fetch and store the deposit for the block.
 	blockNum := blk.GetBody().GetExecutionPayload().GetNumber()
@@ -108,24 +134,23 @@ func (s *Service) FinalizeBlock(
 	//
 	// TODO: Store full SignedBeaconBlock with all data in storage
 	slot := blk.GetSlot()
-	if err = s.storageBackend.BlockStore().Set(blk); err != nil {
+	if err := s.storageBackend.BlockStore().Set(blk); err != nil {
 		s.logger.Error(
 			"failed to store block", "slot", slot, "error", err,
 		)
-		return nil, err
+		return err
 	}
 
 	// Prune the availability and deposit store.
-	err = s.processPruning(ctx, blk)
-	if err != nil {
+	if err := s.processPruning(ctx, blk); err != nil {
 		s.logger.Error("failed to processPruning", "error", err)
 	}
 
-	if err = s.sendPostBlockFCU(ctx, st, consensusBlk); err != nil {
-		return nil, fmt.Errorf("sendPostBlockFCU failed: %w", err)
+	if err := s.sendPostBlockFCU(ctx, st); err != nil {
+		return fmt.Errorf("sendPostBlockFCU failed: %w", err)
 	}
 
-	return valUpdates, nil
+	return nil
 }
 
 // finalizeBeaconBlock receives an incoming beacon block, it first validates

@@ -22,6 +22,8 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	fastssz "github.com/ferranbt/fastssz"
@@ -30,6 +32,8 @@ import (
 
 // BeaconState represents the entire state of the beacon chain.
 type BeaconState struct {
+	constraints.Versionable `json:"-"`
+
 	// Versioning
 	GenesisValidatorsRoot common.Root `json:"genesis_validators_root,omitempty"`
 	Slot                  math.Slot   `json:"slot,omitempty"`
@@ -59,6 +63,16 @@ type BeaconState struct {
 	// Slashing
 	Slashings     []math.Gwei `json:"slashings,omitempty"`
 	TotalSlashing math.Gwei   `json:"total_slashing,omitempty"`
+
+	// PendingPartialWithdrawals is introduced in electra
+	PendingPartialWithdrawals []*PendingPartialWithdrawal `json:"pending_partial_withdrawals,omitempty"`
+}
+
+// NewEmptyBeaconStateWithVersion returns a new empty BeaconState with the given fork version.
+func NewEmptyBeaconStateWithVersion(version common.Version) *BeaconState {
+	return &BeaconState{
+		Versionable: NewVersionable(version),
+	}
 }
 
 /* -------------------------------------------------------------------------- */
@@ -67,7 +81,33 @@ type BeaconState struct {
 
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconState object.
 func (st *BeaconState) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
+	/*
+		GenesisValidatorsRoot = 32
+		Slot = 8
+		Fork = 4 + 4 + 8 = 16
+		LatestBlockHeader = 8 + 8 + 32 + 32 + 32 = 112
+		BlockRoots = 4 (Dynamic field)
+		StateRoots = 4 (Dynamic field)
+		Eth1Data = 32 + 8 + 32 = 72
+		Eth1DepositIndex = 8
+		LatestExecutionPayloadHeader = 4 (Dynamic field)
+		Validators = 4 (Dynamic field)
+		Balances = 4 (Dynamic field)
+		RandaoMixes = 4 (Dynamic field)
+		NextWithdrawalIndex = 8
+		NextWithdrawalValidatorIndex = 8
+		Slashings = 4 (Dynamic field)
+		TotalSlashings = 8
+
+		// Electra Fork
+		PendingPartialWithdrawals = 4 (Dynamic field)
+	*/
 	var size uint32 = 300
+
+	if version.EqualsOrIsAfter(st.GetForkVersion(), version.Electra()) {
+		// Add 4 for PendingPartialWithdrawals after Electra
+		size += 4
+	}
 
 	if fixed {
 		return size
@@ -81,6 +121,9 @@ func (st *BeaconState) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 	size += ssz.SizeSliceOfUint64s(siz, st.Balances)
 	size += ssz.SizeSliceOfStaticBytes(siz, st.RandaoMixes)
 	size += ssz.SizeSliceOfUint64s(siz, st.Slashings)
+	if version.EqualsOrIsAfter(st.GetForkVersion(), version.Electra()) {
+		size += ssz.SizeSliceOfStaticObjects(siz, st.PendingPartialWithdrawals)
+	}
 
 	return size
 }
@@ -115,9 +158,14 @@ func (st *BeaconState) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineUint64(codec, &st.NextWithdrawalIndex)
 	ssz.DefineUint64(codec, &st.NextWithdrawalValidatorIndex)
 
-	// // Slashing
+	// Slashing
 	ssz.DefineSliceOfUint64sOffset(codec, &st.Slashings, 1099511627776)
 	ssz.DefineUint64(codec, (*uint64)(&st.TotalSlashing))
+
+	// Electra Withdrawals
+	if version.EqualsOrIsAfter(st.GetForkVersion(), version.Electra()) {
+		ssz.DefineSliceOfStaticObjectsOffset(codec, &st.PendingPartialWithdrawals, constants.PendingPartialWithdrawalsLimit)
+	}
 
 	// Dynamic content
 	ssz.DefineSliceOfStaticBytesContent(codec, &st.BlockRoots, 8192)
@@ -127,6 +175,10 @@ func (st *BeaconState) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineSliceOfUint64sContent(codec, &st.Balances, 1099511627776)
 	ssz.DefineSliceOfStaticBytesContent(codec, &st.RandaoMixes, 65536)
 	ssz.DefineSliceOfUint64sContent(codec, &st.Slashings, 1099511627776)
+	// Electra Withdrawals
+	if version.EqualsOrIsAfter(st.GetForkVersion(), version.Electra()) {
+		ssz.DefineSliceOfStaticObjectsContent(codec, &st.PendingPartialWithdrawals, constants.PendingPartialWithdrawalsLimit)
+	}
 }
 
 // MarshalSSZ marshals the BeaconState into SSZ format.
@@ -148,17 +200,6 @@ func (st *BeaconState) HashTreeRoot() common.Root {
 /* -------------------------------------------------------------------------- */
 /*                                   FastSSZ                                  */
 /* -------------------------------------------------------------------------- */
-
-func (st *BeaconState) MarshalSSZTo(
-	dst []byte,
-) ([]byte, error) {
-	bz, err := st.MarshalSSZ()
-	if err != nil {
-		return nil, err
-	}
-	dst = append(dst, bz...)
-	return dst, nil
-}
 
 // HashTreeRootWith ssz hashes the BeaconState object with a hasher.
 //
@@ -225,8 +266,7 @@ func (st *BeaconState) HashTreeRootWith(
 
 	// Field (8) 'LatestExecutionPayloadHeader'
 	if st.LatestExecutionPayloadHeader == nil {
-		// TODO(pectra): Remove the hardcoded Deneb value and use a retrieved time from beaconState
-		st.LatestExecutionPayloadHeader = st.LatestExecutionPayloadHeader.empty(version.Deneb())
+		st.LatestExecutionPayloadHeader = NewEmptyExecutionPayloadHeaderWithVersion(st.GetForkVersion())
 	}
 	if err := st.LatestExecutionPayloadHeader.HashTreeRootWith(hh); err != nil {
 		return err
@@ -305,6 +345,20 @@ func (st *BeaconState) HashTreeRootWith(
 	// Field (15) 'TotalSlashing'
 	hh.PutUint64(uint64(st.TotalSlashing))
 
+	// Field (16) 'PendingPartialWithdrawals' post-electra
+	if version.EqualsOrIsAfter(st.GetForkVersion(), version.Electra()) {
+		subIndx = hh.Index()
+		numPPW := uint64(len(st.PendingPartialWithdrawals))
+		if numPPW > constants.PendingPartialWithdrawalsLimit {
+			return fastssz.ErrIncorrectListSize
+		}
+		for _, elem := range st.PendingPartialWithdrawals {
+			if err := elem.HashTreeRootWith(hh); err != nil {
+				return err
+			}
+		}
+		hh.MerkleizeWithMixin(subIndx, numPPW, constants.PendingPartialWithdrawalsLimit)
+	}
 	hh.Merkleize(indx)
 	return nil
 }

@@ -26,6 +26,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/log"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	cmttypes "github.com/cometbft/cometbft/types"
 )
@@ -37,12 +39,14 @@ const ( // appeases mnd
 	minTimeoutPropose   = 2000 * time.Millisecond
 	minTimeoutPrevote   = 2000 * time.Millisecond
 	minTimeoutPrecommit = 2000 * time.Millisecond
-	minTimeoutCommit    = 500 * time.Millisecond
 
 	maxBlockSize = 100 * 1024 * 1024
 
 	precision    = 505 * time.Millisecond
 	messageDelay = 15 * time.Second
+
+	defaultMaxNumInboundPeers  = 40
+	defaultMaxNumOutboundPeers = 10
 )
 
 var (
@@ -63,8 +67,8 @@ func DefaultConfig() *cmtcfg.Config {
 	cfg.BaseConfig.DBBackend = "pebbledb"
 
 	// These settings are set by default for performance reasons.
-	cfg.P2P.MaxNumInboundPeers = 120
-	cfg.P2P.MaxNumOutboundPeers = 40
+	cfg.P2P.MaxNumInboundPeers = defaultMaxNumInboundPeers
+	cfg.P2P.MaxNumOutboundPeers = defaultMaxNumOutboundPeers
 
 	cfg.Mempool.Type = "nop"
 	cfg.Mempool.Recheck = false
@@ -80,7 +84,9 @@ func DefaultConfig() *cmtcfg.Config {
 	consensus.TimeoutPropose = minTimeoutPropose
 	consensus.TimeoutPrevote = minTimeoutPrevote
 	consensus.TimeoutPrecommit = minTimeoutPrecommit
-	consensus.TimeoutCommit = minTimeoutCommit
+
+	//nolint:staticcheck // setting to zero because it's deprecated
+	consensus.TimeoutCommit = 0
 
 	cfg.Storage.DiscardABCIResponses = true
 
@@ -102,7 +108,7 @@ func DefaultConfig() *cmtcfg.Config {
 // DefaultConsensusParams returns the default consensus parameters
 // shared by every node in the network. Consensus parameters are
 // inscripted in genesis.
-func DefaultConsensusParams(consensusKeyAlgo string) *cmttypes.ConsensusParams {
+func DefaultConsensusParams(consensusKeyAlgo string, cs chain.Spec) *cmttypes.ConsensusParams {
 	res := cmttypes.DefaultConsensusParams()
 	res.Validator.PubKeyTypes = []string{consensusKeyAlgo}
 
@@ -116,6 +122,7 @@ func DefaultConsensusParams(consensusKeyAlgo string) *cmttypes.ConsensusParams {
 	res.Feature.PbtsEnableHeight = 1
 	res.Synchrony.Precision = precision
 	res.Synchrony.MessageDelay = messageDelay
+	res.Feature.SBTEnableHeight = cs.SbtConsensusEnableHeight()
 
 	if err := res.ValidateBasic(); err != nil {
 		panic(fmt.Errorf("invalid default consensus parameters: %w", err))
@@ -149,14 +156,24 @@ func validateConfig(cfg *cmtcfg.Config) error {
 		)
 	}
 
-	if cfg.Consensus.TimeoutCommit < minTimeoutCommit {
-		return fmt.Errorf("%w, config timeout propose %v, min requested %v",
-			ErrInvalidaConfig,
-			cfg.Consensus.TimeoutCommit,
-			minTimeoutCommit,
+	return nil
+}
+
+func warnAboutConfigs(
+	cmtCfg *cmtcfg.Config,
+	logger log.Logger,
+) {
+	connectionsCap := defaultMaxNumInboundPeers + defaultMaxNumOutboundPeers
+	if cmtCfg.P2P.MaxNumInboundPeers+cmtCfg.P2P.MaxNumOutboundPeers > connectionsCap {
+		logger.Warn(
+			"excessive peering consider reducing it.",
+			"max_num_inbound_peers", cmtCfg.P2P.MaxNumInboundPeers,
+			"recommended max_num_inbound_peers", defaultMaxNumInboundPeers,
+			"max_num_outbound_peers", cmtCfg.P2P.MaxNumOutboundPeers,
+			"recommended max_num_outbound_peers", defaultMaxNumOutboundPeers,
+			"recommended connections cap (inbound + outbound)", connectionsCap,
 		)
 	}
-	return nil
 }
 
 // extractConsensusParams pull consensus parameters (not config) set in

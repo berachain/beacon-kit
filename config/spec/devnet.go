@@ -38,8 +38,18 @@ const (
 	// of Gwei) that can be staked.
 	devnetMaxStakeAmount = 4000 * params.GWei
 
-	// devnetDeneb1ForkEpoch is the epoch at which the Deneb1 fork occurs.
-	devnetDeneb1ForkEpoch = 1
+	// devnetGenesisTime is the timestamp of devnet genesis.
+	devnetGenesisTime = 0
+
+	// devnetDeneb1ForkTime is the timestamp at which the Deneb1 fork occurs.
+	devnetDeneb1ForkTime = 0
+
+	// devnetElectraForkTime is the timestamp at which the Electra fork occurs.
+	devnetElectraForkTime = 0
+
+	// devnetElectra1ForkTime is the timestamp at which the Electra1 fork occurs.
+	// devnet is configured to start on electra1.
+	devnetElectra1ForkTime = 0
 
 	// devnetEVMInflationAddressDeneb1 is the address of the EVM inflation contract
 	// after the Deneb1 fork.
@@ -48,32 +58,42 @@ const (
 	// devnetEVMInflationPerBlockDeneb1 is the amount of native EVM balance (in units
 	// of Gwei) to be minted per EL block after the Deneb1 fork.
 	devnetEVMInflationPerBlockDeneb1 = 11 * params.GWei
+
+	// devnetMinValidatorWithdrawabilityDelay is the delay (in epochs) before a validator can withdraw their stake.
+	devnetMinValidatorWithdrawabilityDelay = 32
 )
 
 // DevnetChainSpecData is the chain.SpecData for a devnet. It is similar to mainnet but
-// has different values for testing EVM inflation and staking.
+// has different values for testing EVM inflation, staking, and hard forks.
 //
 // TODO: remove modifications from mainnet spec to align with mainnet behavior.
 func DevnetChainSpecData() *chain.SpecData {
 	specData := MainnetChainSpecData()
-	specData.DepositEth1ChainID = DevnetEth1ChainID
+	specData.DepositEth1ChainID = chain.DevnetEth1ChainID
 
-	// Deneb1 fork takes place at epoch 1.
-	specData.Deneb1ForkEpoch = devnetDeneb1ForkEpoch
+	specData.Config.ConsensusUpdateHeight = 1
+	specData.Config.ConsensusEnableHeight = 2
+
+	// Fork timings are set to facilitate local testing across fork versions.
+	specData.GenesisTime = devnetGenesisTime
+	specData.Deneb1ForkTime = devnetDeneb1ForkTime
+	specData.ElectraForkTime = devnetElectraForkTime
+	specData.Electra1ForkTime = devnetElectra1ForkTime
 
 	// EVM inflation is different from mainnet to test.
 	specData.EVMInflationAddressGenesis = common.NewExecutionAddressFromHex(devnetEVMInflationAddress)
 	specData.EVMInflationPerBlockGenesis = devnetEVMInflationPerBlock
 
 	// EVM inflation is different from mainnet for now, after the Deneb1 fork.
-	specData.EVMInflationAddressGenesis = common.NewExecutionAddressFromHex(devnetEVMInflationAddressDeneb1)
-	specData.EVMInflationPerBlockGenesis = devnetEVMInflationPerBlockDeneb1
+	specData.EVMInflationAddressDeneb1 = common.NewExecutionAddressFromHex(devnetEVMInflationAddressDeneb1)
+	specData.EVMInflationPerBlockDeneb1 = devnetEVMInflationPerBlockDeneb1
 
 	// Staking is different from mainnet for now.
 	specData.MaxEffectiveBalance = devnetMaxStakeAmount
-	specData.EjectionBalance = defaultEjectionBalance
+	specData.MinActivationBalance = defaultActivationBalance
 	specData.EffectiveBalanceIncrement = defaultEffectiveBalanceIncrement
 	specData.SlotsPerEpoch = defaultSlotsPerEpoch
+	specData.MinValidatorWithdrawabilityDelay = devnetMinValidatorWithdrawabilityDelay
 
 	return specData
 }

@@ -28,30 +28,111 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constraints"
+	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/version"
 )
 
 // NewPayloadRequest as per the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/beacon-chain.md#modified-newpayloadrequest
-type NewPayloadRequest struct {
-	// ExecutionPayload is the payload to the execution client.
-	ExecutionPayload *ExecutionPayload
-	// VersionedHashes is the versioned hashes of the execution payload.
-	VersionedHashes []common.ExecutionHash
-	// ParentBeaconBlockRoot is the root of the parent beacon block.
-	ParentBeaconBlockRoot *common.Root
+type NewPayloadRequest interface {
+	constraints.Versionable
+	HasValidVersionedAndBlockHashes() error
+	GetExecutionPayload() *ExecutionPayload
+	GetVersionedHashes() []common.ExecutionHash
+	GetParentBeaconBlockRoot() common.Root
+	GetEncodedExecutionRequests() ([]EncodedExecutionRequest, error)
+	GetParentProposerPubkey() *crypto.BLSPubkey
 }
 
-// BuildNewPayloadRequest builds a new payload request.
-func BuildNewPayloadRequest(
-	executionPayload *ExecutionPayload,
-	versionedHashes []common.ExecutionHash,
-	parentBeaconBlockRoot *common.Root,
-) *NewPayloadRequest {
-	return &NewPayloadRequest{
-		ExecutionPayload:      executionPayload,
-		VersionedHashes:       versionedHashes,
-		ParentBeaconBlockRoot: parentBeaconBlockRoot,
+type newPayloadRequest struct {
+	constraints.Versionable
+	// executionPayload is the payload to the execution client.
+	executionPayload *ExecutionPayload
+	// versionedHashes is the versioned hashes of the execution payload.
+	versionedHashes []common.ExecutionHash
+	// parentBeaconBlockRoot is the root of the parent beacon block.
+	parentBeaconBlockRoot common.Root
+	// ExecutionRequests is introduced in Pectra. It is only non-nil after Pectra.
+	executionRequests []EncodedExecutionRequest
+	// ParentProposerPubkey is introduced in Pectra1. It is only non-nil after Pectra1.
+	parentProposerPubkey *crypto.BLSPubkey
+}
+
+// BuildNewPayloadRequestFromFork will build a NewPayloadRequest.
+func BuildNewPayloadRequestFromFork(blk *BeaconBlock, parentProposerPubkey *crypto.BLSPubkey) (NewPayloadRequest, error) {
+	forkVersion := blk.GetForkVersion()
+	if version.IsBefore(forkVersion, version.Deneb()) {
+		return nil, ErrForkVersionNotSupported
 	}
+
+	var (
+		body                  = blk.GetBody()
+		payload               = body.GetExecutionPayload()
+		parentBeaconBlockRoot = blk.GetParentBlockRoot()
+		executionRequestsList []EncodedExecutionRequest
+	)
+
+	if version.EqualsOrIsAfter(forkVersion, version.Electra()) {
+		// If we're post-electra, we set execution requests.
+		executionRequests, err := body.GetExecutionRequests()
+		if err != nil {
+			return nil, err
+		}
+		executionRequestsList, err = GetExecutionRequestsList(executionRequests)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if version.IsBefore(forkVersion, version.Electra1()) {
+		if parentProposerPubkey != nil {
+			return nil, engineprimitives.ErrNonEmptyPrevProposerPubKey
+		}
+	} else {
+		if parentProposerPubkey == nil {
+			return nil, engineprimitives.ErrEmptyPrevProposerPubKey
+		}
+	}
+
+	return &newPayloadRequest{
+		Versionable:           NewVersionable(payload.GetForkVersion()),
+		executionPayload:      payload,
+		versionedHashes:       body.GetBlobKzgCommitments().ToVersionedHashes(),
+		parentBeaconBlockRoot: parentBeaconBlockRoot,
+		executionRequests:     executionRequestsList,
+		parentProposerPubkey:  parentProposerPubkey,
+	}, nil
+}
+
+func (n *newPayloadRequest) GetExecutionPayload() *ExecutionPayload {
+	return n.executionPayload
+}
+
+func (n *newPayloadRequest) GetVersionedHashes() []common.ExecutionHash {
+	return n.versionedHashes
+}
+
+func (n *newPayloadRequest) GetParentBeaconBlockRoot() common.Root {
+	return n.parentBeaconBlockRoot
+}
+
+// GetParentProposerPubkey may return a nil parent pub key. See BuildNewPayloadRequestFromFork
+// to understand how parentProposerPubkey gets populated
+func (n *newPayloadRequest) GetParentProposerPubkey() *crypto.BLSPubkey {
+	return n.parentProposerPubkey
+}
+
+func (n *newPayloadRequest) GetEncodedExecutionRequests() ([]EncodedExecutionRequest, error) {
+	if version.IsBefore(n.GetForkVersion(), version.Electra()) {
+		return nil, errors.Wrap(
+			ErrForkVersionNotSupported,
+			"execution requests not supported in newPayloadRequest before electra",
+		)
+	}
+	if n.executionRequests == nil {
+		return nil, errors.Wrap(ErrNilValue, "executionRequests cannot be nil")
+	}
+	return n.executionRequests, nil
 }
 
 // HasValidVersionedAndBlockHashes checks if the version and block hashes are
@@ -59,51 +140,67 @@ func BuildNewPayloadRequest(
 // As per the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/v1.4.0-beta.2/specs/deneb/beacon-chain.md#is_valid_block_hash
 // https://github.com/ethereum/consensus-specs/blob/v1.4.0-beta.2/specs/deneb/beacon-chain.md#is_valid_versioned_hashes
-func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
-	block, blobHashes, err := MakeEthBlock(n.ExecutionPayload, n.ParentBeaconBlockRoot)
+func (n *newPayloadRequest) HasValidVersionedAndBlockHashes() error {
+	var executionRequests []EncodedExecutionRequest
+	if version.EqualsOrIsAfter(n.GetForkVersion(), version.Electra()) {
+		var err error
+		executionRequests, err = n.GetEncodedExecutionRequests()
+		if err != nil {
+			return err
+		}
+	}
+	block, blobHashes, err := MakeEthBlock(
+		n.GetExecutionPayload(),
+		n.GetParentBeaconBlockRoot(),
+		executionRequests,
+		n.GetParentProposerPubkey(),
+	)
 	if err != nil {
 		return err
 	}
 
 	// Validate the blob hashes from the transactions in the execution payload.
 	// Check if the number of blob hashes matches the number of versioned hashes.
-	if len(blobHashes) != len(n.VersionedHashes) {
+	if len(blobHashes) != len(n.GetVersionedHashes()) {
 		return errors.Wrapf(
 			engineprimitives.ErrMismatchedNumVersionedHashes,
 			"expected %d, got %d",
 			len(blobHashes),
-			len(n.VersionedHashes),
+			len(n.GetVersionedHashes()),
 		)
 	}
 
 	// Validate each blob hash against the corresponding versioned hash.
 	for i, blobHash := range blobHashes {
-		if common.ExecutionHash(blobHash) != n.VersionedHashes[i] {
+		if common.ExecutionHash(blobHash) != n.GetVersionedHashes()[i] {
 			return errors.Wrapf(
 				engineprimitives.ErrInvalidVersionedHash,
 				"index %d: expected %v, got %v",
 				i,
 				blobHash,
-				n.VersionedHashes[i],
+				n.GetVersionedHashes()[i],
 			)
 		}
 	}
 
 	// Verify that the payload is telling the truth about its block hash.
-	if common.ExecutionHash(block.Hash()) != n.ExecutionPayload.GetBlockHash() {
+	if common.ExecutionHash(block.Hash()) != n.GetExecutionPayload().GetBlockHash() {
 		return errors.Wrapf(engineprimitives.ErrPayloadBlockHashMismatch,
 			"expected %x, got %x",
-			block.Hash(), n.ExecutionPayload.GetBlockHash(),
+			block.Hash(), n.GetExecutionPayload().GetBlockHash(),
 		)
 	}
 	return nil
 }
 
-// MakeEthBlock builds an Ethereum block out of given payload and parent block root.
+// MakeEthBlock builds an Ethereum block out of given payload and parent block root and
+// execution requests and/or parent proposer pubkey if needed.
 // It also returns blobHashes out of payload to ease up checks.
 func MakeEthBlock(
 	payload *ExecutionPayload,
-	parentBeaconBlockRoot *common.Root,
+	parentBeaconBlockRoot common.Root,
+	executionRequests []EncodedExecutionRequest,
+	parentProposerPubKey *crypto.BLSPubkey,
 ) (
 	*gethprimitives.Block,
 	[]gethprimitives.ExecutionHash,
@@ -127,26 +224,40 @@ func MakeEthBlock(
 	withdrawalsHash := gethprimitives.DeriveSha(wds, gethprimitives.NewStackTrie(nil))
 
 	blkHeader := &gethprimitives.Header{
-		ParentHash:       gethprimitives.ExecutionHash(payload.GetParentHash()),
-		UncleHash:        gethprimitives.EmptyUncleHash,
-		Coinbase:         gethprimitives.ExecutionAddress(payload.GetFeeRecipient()),
-		Root:             gethprimitives.ExecutionHash(payload.GetStateRoot()),
-		TxHash:           gethprimitives.DeriveSha(gethprimitives.Transactions(txs), gethprimitives.NewStackTrie(nil)),
-		ReceiptHash:      gethprimitives.ExecutionHash(payload.GetReceiptsRoot()),
-		Bloom:            gethprimitives.LogsBloom(payload.GetLogsBloom()),
-		Difficulty:       big.NewInt(0),
-		Number:           new(big.Int).SetUint64(payload.GetNumber().Unwrap()),
-		GasLimit:         payload.GetGasLimit().Unwrap(),
-		GasUsed:          payload.GetGasUsed().Unwrap(),
-		Time:             payload.GetTimestamp().Unwrap(),
-		BaseFee:          payload.GetBaseFeePerGas().ToBig(),
-		Extra:            payload.GetExtraData(),
-		MixDigest:        gethprimitives.ExecutionHash(payload.GetPrevRandao()),
-		WithdrawalsHash:  &withdrawalsHash,
-		ExcessBlobGas:    payload.GetExcessBlobGas().UnwrapPtr(),
-		BlobGasUsed:      payload.GetBlobGasUsed().UnwrapPtr(),
-		ParentBeaconRoot: (*gethprimitives.ExecutionHash)(parentBeaconBlockRoot),
+		ParentHash:           gethprimitives.ExecutionHash(payload.GetParentHash()),
+		UncleHash:            gethprimitives.EmptyUncleHash,
+		Coinbase:             gethprimitives.ExecutionAddress(payload.GetFeeRecipient()),
+		Root:                 gethprimitives.ExecutionHash(payload.GetStateRoot()),
+		TxHash:               gethprimitives.DeriveSha(gethprimitives.Transactions(txs), gethprimitives.NewStackTrie(nil)),
+		ReceiptHash:          gethprimitives.ExecutionHash(payload.GetReceiptsRoot()),
+		Bloom:                gethprimitives.LogsBloom(payload.GetLogsBloom()),
+		Difficulty:           big.NewInt(0),
+		Number:               new(big.Int).SetUint64(payload.GetNumber().Unwrap()),
+		GasLimit:             payload.GetGasLimit().Unwrap(),
+		GasUsed:              payload.GetGasUsed().Unwrap(),
+		Time:                 payload.GetTimestamp().Unwrap(),
+		BaseFee:              payload.GetBaseFeePerGas().ToBig(),
+		Extra:                payload.GetExtraData(),
+		MixDigest:            gethprimitives.ExecutionHash(payload.GetPrevRandao()),
+		WithdrawalsHash:      &withdrawalsHash,
+		ExcessBlobGas:        payload.GetExcessBlobGas().UnwrapPtr(),
+		BlobGasUsed:          payload.GetBlobGasUsed().UnwrapPtr(),
+		ParentBeaconRoot:     (*gethprimitives.ExecutionHash)(&parentBeaconBlockRoot),
+		ParentProposerPubkey: (*gethprimitives.ExecutionPubkey)(parentProposerPubKey),
 	}
+
+	if version.EqualsOrIsAfter(payload.GetForkVersion(), version.Electra()) {
+		if executionRequests == nil {
+			return nil, nil, errors.Wrap(ErrNilValue, "executionRequests is nil after electra in makeEthBlock")
+		}
+		result := make([][]byte, len(executionRequests))
+		for i, req := range executionRequests {
+			result[i] = req // conversion from ExecutionRequest to []byte
+		}
+		reqHash := gethprimitives.CalcRequestsHash(result)
+		blkHeader.RequestsHash = &reqHash
+	}
+
 	block := gethprimitives.NewBlockWithHeader(blkHeader).WithBody(
 		gethprimitives.Body{
 			Transactions: txs,

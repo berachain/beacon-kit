@@ -36,21 +36,17 @@ var (
 	bellatrix = common.Version{0x02, 0x00, 0x00, 0x00}
 	// capella is the third hardfork of the Beacon Chain.
 	capella = common.Version{0x03, 0x00, 0x00, 0x00}
-	// deneb is the first version of Deneb, used for genesis of Berachain mainnet.
+	// deneb is the first version of the Deneb hardfork, used for genesis of Berachain mainnet.
 	deneb = common.Version{0x04, 0x00, 0x00, 0x00}
 	// deneb1 is the first hardfork of Deneb on Berachain mainnet.
 	deneb1 = common.Version{0x04, 0x01, 0x00, 0x00}
-	// electra is the first version of Electra on Berachain mainnet.
+	// electra is the first version of the Electra hardfork on Berachain mainnet.
 	electra = common.Version{0x05, 0x00, 0x00, 0x00}
 	// electra1 is the first hardfork of Electra on Berachain mainnet.
-	// TBD if used but kept as an example.
 	electra1 = common.Version{0x05, 0x01, 0x00, 0x00}
+	// TBD if used but kept as an example.
+	electra2 = common.Version{0x05, 0x02, 0x00, 0x00}
 )
-
-// Genesis returns the fork version for the genesis of Berachain mainnet, which is Deneb.
-func Genesis() common.Version {
-	return Deneb()
-}
 
 // Phase0 returns phase0 as a common.Version.
 func Phase0() common.Version {
@@ -72,7 +68,8 @@ func Capella() common.Version {
 	return capella
 }
 
-// Deneb returns deneb as a common.Version.
+// Deneb returns deneb as a common.Version. Deneb is the genesis fork version for Berachain
+// mainnet and Bepolia testnet.
 func Deneb() common.Version {
 	return deneb
 }
@@ -90,4 +87,9 @@ func Electra() common.Version {
 // Electra1 returns electra1 as a common.Version.
 func Electra1() common.Version {
 	return electra1
+}
+
+// Electra2 returns electra2 as a common.Version.
+func Electra2() common.Version {
+	return electra2
 }

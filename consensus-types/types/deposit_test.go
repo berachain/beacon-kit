@@ -27,8 +27,9 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
 	"github.com/berachain/beacon-kit/primitives/math"
-	ssz "github.com/ferranbt/fastssz"
+	fastssz "github.com/ferranbt/fastssz"
 	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
@@ -100,10 +101,9 @@ func TestDeposit_MarshalUnmarshalSSZ(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, sszDeposit)
 
-	var unmarshalledDeposit *types.Deposit
-	unmarshalledDeposit, err = unmarshalledDeposit.NewFromSSZ(sszDeposit)
+	unmarshalledDeposit := new(types.Deposit)
+	err = ssz.Unmarshal(sszDeposit, unmarshalledDeposit)
 	require.NoError(t, err)
-
 	require.Equal(t, originalDeposit, unmarshalledDeposit)
 }
 
@@ -135,7 +135,7 @@ func TestDeposit_HashTreeRootWith(t *testing.T) {
 	t.Parallel()
 	deposit := generateValidDeposit()
 	require.NotNil(t, deposit)
-	hasher := ssz.NewHasher()
+	hasher := fastssz.NewHasher()
 	require.NotNil(t, hasher)
 	err := deposit.HashTreeRootWith(hasher)
 	require.NoError(t, err)
@@ -153,8 +153,8 @@ func TestDeposit_UnmarshalSSZ_ErrSize(t *testing.T) {
 	// Create a byte slice of incorrect size
 	buf := make([]byte, 10) // size less than 192
 
-	var unmarshalledDeposit *types.Deposit
-	_, err := unmarshalledDeposit.NewFromSSZ(buf)
+	var unmarshalledDeposit types.Deposit
+	err := ssz.Unmarshal(buf, &unmarshalledDeposit)
 	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
 

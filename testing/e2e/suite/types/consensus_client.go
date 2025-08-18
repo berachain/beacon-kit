@@ -30,9 +30,11 @@ import (
 	"github.com/attestantio/go-eth2-client/spec/deneb"
 	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/berachain/beacon-kit/errors"
+	ptypes "github.com/berachain/beacon-kit/node-api/handlers/proof/types"
+	abcitypes "github.com/cometbft/cometbft/abci/types"
 	rpcclient "github.com/cometbft/cometbft/rpc/client"
 	httpclient "github.com/cometbft/cometbft/rpc/client/http"
-	ctypes "github.com/cometbft/cometbft/rpc/core/types"
+	coretypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
 	"github.com/rs/zerolog"
 )
@@ -155,8 +157,32 @@ func (cc *ConsensusClient) IsActive(ctx context.Context) (bool, error) {
 // ABCIInfo returns the ABCI info of the node.
 func (cc ConsensusClient) ABCIInfo(
 	ctx context.Context,
-) (*ctypes.ResultABCIInfo, error) {
-	return cc.cometClient.ABCIInfo(ctx)
+) (*abcitypes.InfoResponse, error) {
+	if cc.cometClient == nil {
+		return nil, errors.New("comet client is not initialized")
+	}
+	resp, err := cc.cometClient.ABCIInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &resp.Response, nil
+}
+
+// ABCIQuery returns the ABCI query from the comet node.
+func (cc ConsensusClient) ABCIQuery(
+	ctx context.Context,
+	path string,
+	data []byte,
+	opts rpcclient.ABCIQueryOptions,
+) (*abcitypes.QueryResponse, error) {
+	if cc.cometClient == nil {
+		return nil, errors.New("comet client is not initialized")
+	}
+	resp, err := cc.cometClient.ABCIQueryWithOptions(ctx, path, data, opts)
+	if err != nil {
+		return nil, err
+	}
+	return &resp.Response, nil
 }
 
 // BeaconStateRoot returns the beacon state root of the node.
@@ -201,6 +227,50 @@ func (cc ConsensusClient) ValidatorBalances(
 		return nil, errors.New("beacon client is not initialized")
 	}
 	return cc.beaconClient.ValidatorBalances(ctx, opts)
+}
+
+// Genesis returns the genesis of the beacon node.
+func (cc ConsensusClient) Genesis(
+	ctx context.Context,
+	opts *beaconapi.GenesisOpts,
+) (*beaconapi.Response[*apiv1.Genesis], error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
+	return cc.beaconClient.Genesis(ctx, opts)
+}
+
+// Spec returns the spec of the beacon node.
+func (cc ConsensusClient) Spec(
+	ctx context.Context,
+	opts *beaconapi.SpecOpts,
+) (*beaconapi.Response[map[string]any], error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
+	return cc.beaconClient.Spec(ctx, opts)
+}
+
+// BlockProposerProof returns the block proposer proof for a given timestamp id.
+func (cc ConsensusClient) BlockProposerProof(
+	ctx context.Context,
+	timestampID string,
+) (*ptypes.BlockProposerResponse, error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
+	return cc.beaconClient.BlockProposerProof(ctx, timestampID)
+}
+
+// Commit returns the commit for a block.
+func (cc ConsensusClient) Commit(
+	ctx context.Context,
+	height *int64,
+) (*coretypes.ResultCommit, error) {
+	if cc.cometClient == nil {
+		return nil, errors.New("comet client is not initialized")
+	}
+	return cc.cometClient.Commit(ctx, height)
 }
 
 // TODO: Add helpers for the beacon node-api client (converting from

@@ -25,65 +25,13 @@ import (
 	"testing/quick"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/eip4844"
+	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
+	"github.com/berachain/beacon-kit/testing/utils"
 	"github.com/stretchr/testify/require"
 )
-
-// generateValidBeaconBlock generates a valid beacon block for the Deneb.
-func generateValidBeaconBlock(t *testing.T, version common.Version) *types.BeaconBlock {
-	t.Helper()
-
-	// Initialize your block here
-	beaconBlock, err := types.NewBeaconBlockWithVersion(
-		math.Slot(10),
-		math.ValidatorIndex(5),
-		common.Root{1, 2, 3, 4, 5}, // parent block root
-		version,
-	)
-	require.NoError(t, err)
-
-	versionable := types.NewVersionable(version)
-	beaconBlock.StateRoot = common.Root{5, 4, 3, 2, 1}
-	beaconBlock.Body = &types.BeaconBlockBody{
-		Versionable: versionable,
-		ExecutionPayload: &types.ExecutionPayload{
-			Versionable: versionable,
-			Timestamp:   10,
-			ExtraData:   []byte("dummy extra data for testing"),
-			Transactions: [][]byte{
-				[]byte("tx1"),
-				[]byte("tx2"),
-				[]byte("tx3"),
-			},
-			Withdrawals: engineprimitives.Withdrawals{
-				{Index: 0, Amount: 100},
-				{Index: 1, Amount: 200},
-			},
-			BaseFeePerGas: math.NewU256(0),
-		},
-		Eth1Data: &types.Eth1Data{},
-		Deposits: []*types.Deposit{
-			{
-				Index: 1,
-			},
-		},
-		BlobKzgCommitments: []eip4844.KZGCommitment{
-			{1, 2, 3},
-		},
-	}
-	body := beaconBlock.GetBody()
-	body.SetProposerSlashings(types.ProposerSlashings{})
-	body.SetAttesterSlashings(types.AttesterSlashings{})
-	body.SetAttestations(types.Attestations{})
-	body.SetSyncAggregate(&types.SyncAggregate{})
-	body.SetVoluntaryExits(types.VoluntaryExits{})
-	body.SetBlsToExecutionChanges(types.BlsToExecutionChanges{})
-	return beaconBlock
-}
 
 func TestBeaconBlockForDeneb(t *testing.T) {
 	t.Parallel()
@@ -104,7 +52,7 @@ func TestBeaconBlockForDeneb(t *testing.T) {
 func TestBeaconBlock(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
-		block := generateValidBeaconBlock(t, v)
+		block := utils.GenerateValidBeaconBlock(t, v)
 
 		require.NotNil(t, block.Body)
 		require.Equal(t, math.U64(10), block.GetTimestamp())
@@ -130,14 +78,14 @@ func TestBeaconBlock(t *testing.T) {
 func TestBeaconBlock_MarshalUnmarshalSSZ(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
-		block := generateValidBeaconBlock(t, v)
+		block := utils.GenerateValidBeaconBlock(t, v)
 
 		sszBlock, err := block.MarshalSSZ()
 		require.NoError(t, err)
 		require.NotNil(t, sszBlock)
 
-		var unmarshalledBlock *types.BeaconBlock
-		unmarshalledBlock, err = unmarshalledBlock.NewFromSSZ(sszBlock, v)
+		unmarshalledBlock := types.NewEmptyBeaconBlockWithVersion(v)
+		err = ssz.Unmarshal(sszBlock, unmarshalledBlock)
 		require.NoError(t, err)
 		require.Equal(t, block, unmarshalledBlock)
 	})
@@ -146,7 +94,7 @@ func TestBeaconBlock_MarshalUnmarshalSSZ(t *testing.T) {
 func TestBeaconBlock_HashTreeRoot(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
-		block := generateValidBeaconBlock(t, v)
+		block := utils.GenerateValidBeaconBlock(t, v)
 		hashRoot := block.HashTreeRoot()
 		require.NotNil(t, hashRoot)
 	})

@@ -31,13 +31,13 @@ import (
 
 // Compile-time assertions to ensure Attestation implements necessary interfaces.
 var (
-	_ ssz.StaticObject                                  = (*Attestation)(nil)
-	_ constraints.SSZMarshallableRootable[*Attestation] = (*Attestation)(nil)
-	_ UnusedEnforcer                                    = (*Attestations)(nil)
+	_ ssz.StaticObject                    = (*Attestation)(nil)
+	_ constraints.SSZMarshallableRootable = (*Attestation)(nil)
+	_ common.UnusedEnforcer               = (*Attestations)(nil)
 )
 
 type (
-	Attestation  = UnusedType
+	Attestation  = common.UnusedType
 	Attestations []*Attestation
 )
 

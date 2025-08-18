@@ -21,10 +21,12 @@
 package math
 
 import (
+	"encoding/binary"
 	"math/big"
 	"strconv"
 
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
 	"github.com/berachain/beacon-kit/primitives/math/log"
 	"github.com/berachain/beacon-kit/primitives/math/pow"
@@ -142,6 +144,15 @@ func (u U64) ILog2Ceil() uint8 {
 // ILog2Floor returns the floor of the base 2 logarithm of the U64.
 func (u U64) ILog2Floor() uint8 {
 	return log.ILog2Floor(u)
+}
+
+// -------------------------------- SSZ ---------------------------------
+
+// HashTreeRoot returns the hash tree root of the U64.
+func (u U64) HashTreeRoot() common.Root {
+	var root common.Root
+	binary.LittleEndian.PutUint64(root[:], u.Unwrap())
+	return root
 }
 
 // ---------------------------- Gwei Methods ----------------------------

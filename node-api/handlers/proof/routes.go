@@ -37,13 +37,8 @@ func (h *Handler) RegisterRoutes(logger log.Logger) {
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "bkit/v1/proof/execution_number/:timestamp_id",
-			Handler: h.GetExecutionNumber,
-		},
-		{
-			Method:  http.MethodGet,
-			Path:    "bkit/v1/proof/execution_fee_recipient/:timestamp_id",
-			Handler: h.GetExecutionFeeRecipient,
+			Path:    "bkit/v1/proof/validator_credentials/:timestamp_id/:validator_index",
+			Handler: h.GetValidatorCredentials,
 		},
 	})
 }

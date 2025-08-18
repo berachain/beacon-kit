@@ -22,8 +22,11 @@ package core
 
 import (
 	"bytes"
+	"fmt"
+	"sync"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/cache"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -31,7 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/state-transition/core/state"
-	depositdb "github.com/berachain/beacon-kit/storage/deposit"
+	"github.com/berachain/beacon-kit/storage/deposit"
 )
 
 // StateProcessor is a basic Processor, which takes care of the
@@ -50,9 +53,11 @@ type StateProcessor struct {
 	// executionEngine is the engine responsible for executing transactions.
 	executionEngine ExecutionEngine
 	// ds allows checking payload deposits against the deposit contract
-	ds *depositdb.KVStore
+	ds deposit.StoreManager
 	// metrics is the metrics for the service.
 	metrics *stateProcessorMetrics
+	// logDeneb1Once enforces logging the Deneb1 fork information at most once.
+	logDeneb1Once sync.Once
 }
 
 // NewStateProcessor creates a new state processor.
@@ -60,7 +65,7 @@ func NewStateProcessor(
 	logger log.Logger,
 	cs ChainSpec,
 	executionEngine ExecutionEngine,
-	ds *depositdb.KVStore,
+	ds deposit.StoreManager,
 	signer crypto.BLSSigner,
 	fGetAddressFromPubKey func(crypto.BLSPubkey) ([]byte, error),
 	telemetrySink TelemetrySink,
@@ -86,9 +91,22 @@ func (sp *StateProcessor) Transition(
 		return nil, nil
 	}
 
-	// Process the slots.
+	// Process the next slot.
 	validatorUpdates, err := sp.ProcessSlots(st, blk.GetSlot())
 	if err != nil {
+		return nil, err
+	}
+
+	// Prepare the state for the next block's fork version.
+	// Ideally we want to log only in case we are processing the
+	// block to be finalized. Pre cache activation this is easy.
+	// Post activation we log every time we verify a block
+	logForkProcessing := ctx.VerifyPayload() && !ctx.VerifyRandao()
+
+	if cache.IsStateCachingActive(sp.cs, blk.Slot) {
+		logForkProcessing = ctx.VerifyPayload()
+	}
+	if err = sp.ProcessFork(st, blk.GetTimestamp(), logForkProcessing); err != nil {
 		return nil, err
 	}
 
@@ -100,9 +118,19 @@ func (sp *StateProcessor) Transition(
 	return validatorUpdates, nil
 }
 
-// ProcessSlots NOTE: if process slots is called across multiple epochs (the given slot is more than 1 multiple
-// ahead of the current state slot), then validator updates will be returned in the order they are
-// processed, which may effectually override each other.
+// ProcessSlots deviates from the ethereum consensus specs `process_slots`. The `process_slots` function must
+// iterate and process slots in which the target `slot` can be several slots ahead of the `stateSlot`. This is because
+// the beacon chain can miss blocks for a given slot, resulting in not processing the slot. For example, the current
+// slot is 100, and no blocks were proposed for slots 101 and 102. Upon receiving a block at slot 103, the beacon state
+// must "catch up" the state and trigger slot and epoch transitions that may have happened during slot 101 and 102.
+//
+// Beacon-kit does not allow missed slots. Each height from cometBFT will always correspond to a beacon block slot, so
+// `ProcessSlots` will always be called at every slot. Thus, we will only process the state up to the next slot.
+// The reasoning behind this deviation is to be explicit in this behavior and also to better support the usage of fork
+// logic in the `processEpoch` function. Since we do not fork by slot but instead fork by timestamp, we must be able to
+// strictly tie each call of `processSlot` and `processEpoch` to a timestamp. Since we don't have beacon blocks during
+// each iteration of the slot loop, we cannot correlate each slot to a timestamp. We instead identify that we process
+// only one slot, allowing us to simply use the fork version from the state.
 func (sp *StateProcessor) ProcessSlots(
 	st *state.StateDB, slot math.Slot,
 ) (transition.ValidatorUpdates, error) {
@@ -112,34 +140,36 @@ func (sp *StateProcessor) ProcessSlots(
 	if err != nil {
 		return nil, err
 	}
+	if slot == stateSlot {
+		return res, nil
+	}
+	if slot != stateSlot+1 {
+		return nil, fmt.Errorf("slot %d does not match expected slot %d", slot, stateSlot+1)
+	}
 
-	// Iterate until we are "caught up".
-	for ; stateSlot < slot; stateSlot++ {
-		if err = sp.processSlot(st); err != nil {
+	if err = sp.processSlot(st); err != nil {
+		return nil, err
+	}
+
+	// Process the Epoch Boundary.
+	if slot.Unwrap()%sp.cs.SlotsPerEpoch() == 0 {
+		var epochUpdates transition.ValidatorUpdates
+		if epochUpdates, err = sp.processEpoch(st); err != nil {
 			return nil, err
 		}
+		res = append(res, epochUpdates...)
+	}
 
-		// Process the Epoch Boundary.
-		boundary := (stateSlot.Unwrap()+1)%sp.cs.SlotsPerEpoch() == 0
-		if boundary {
-			var epochUpdates transition.ValidatorUpdates
-			if epochUpdates, err = sp.processEpoch(st); err != nil {
-				return nil, err
-			}
-			res = append(res, epochUpdates...)
-		}
-
-		// We update on the state because we need to
-		// update the state for calls within processSlot/Epoch().
-		if err = st.SetSlot(stateSlot + 1); err != nil {
-			return nil, err
-		}
+	// Update the state slot.
+	if err = st.SetSlot(slot); err != nil {
+		return nil, err
 	}
 
 	return res, nil
 }
 
-// processSlot is run when a slot is missed.
+// processSlot as defined in the Ethereum 2.0 Specification:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#beacon-chain-state-transition-function
 func (sp *StateProcessor) processSlot(st *state.StateDB) error {
 	stateSlot, err := st.GetSlot()
 	if err != nil {
@@ -183,23 +213,30 @@ func (sp *StateProcessor) ProcessBlock(
 	st *state.StateDB,
 	blk *ctypes.BeaconBlock,
 ) error {
-	if err := sp.processBlockHeader(ctx, st, blk); err != nil {
+	// Before processing block header, we need to retrieve public key of
+	// parent block proposer to be able to inform the EL client.
+	parentProposerPubkey, err := st.ParentProposerPubkey(blk.GetTimestamp())
+	if err != nil {
 		return err
 	}
 
-	if err := sp.processExecutionPayload(ctx, st, blk); err != nil {
+	if err = sp.processBlockHeader(ctx, st, blk); err != nil {
 		return err
 	}
 
-	if err := sp.processWithdrawals(st, blk); err != nil {
+	if err = sp.processExecutionPayload(ctx, st, blk, parentProposerPubkey); err != nil {
 		return err
 	}
 
-	if err := sp.processRandaoReveal(ctx, st, blk); err != nil {
+	if err = sp.processWithdrawals(st, blk); err != nil {
 		return err
 	}
 
-	if err := sp.processOperations(ctx, st, blk); err != nil {
+	if err = sp.processRandaoReveal(ctx, st, blk); err != nil {
+		return err
+	}
+
+	if err = sp.processOperations(ctx, st, blk); err != nil {
 		return err
 	}
 
@@ -222,17 +259,18 @@ func (sp *StateProcessor) ProcessBlock(
 	return nil
 }
 
-// processEpoch processes the epoch and ensures it matches the local state. Currently
-// beacon-kit does not enforce rewards, penalties, and slashing for validators.
+// processEpoch processes the epoch and ensures it matches the local state.
+// Currently, beacon-kit does not enforce rewards, penalties, and slashing for validators.
+// Extra caution is required when any fork-specific logic is added within the scope of this method
+// as epochs and fork slots may not always neatly overlap.
 func (sp *StateProcessor) processEpoch(st *state.StateDB) (transition.ValidatorUpdates, error) {
-	slot, err := st.GetSlot()
+	currentEpoch, err := st.GetEpoch()
 	if err != nil {
 		return nil, err
 	}
 
 	// track validators set before updating it, to be able to
 	// inform consensus of the validators set changes
-	currentEpoch := sp.cs.SlotToEpoch(slot)
 	currentActiveVals, err := getActiveVals(st, currentEpoch)
 	if err != nil {
 		return nil, err
@@ -355,8 +393,8 @@ func (sp *StateProcessor) processEffectiveBalanceUpdates(st *state.StateDB) erro
 	var (
 		effectiveBalanceIncrement = sp.cs.EffectiveBalanceIncrement()
 		hysteresisIncrement       = effectiveBalanceIncrement / sp.cs.HysteresisQuotient()
-		downwardThreshold         = math.Gwei(hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier())
-		upwardThreshold           = math.Gwei(hysteresisIncrement * sp.cs.HysteresisUpwardMultiplier())
+		downwardThreshold         = hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier()
+		upwardThreshold           = hysteresisIncrement * sp.cs.HysteresisUpwardMultiplier()
 
 		idx     math.U64
 		balance math.Gwei
@@ -376,9 +414,7 @@ func (sp *StateProcessor) processEffectiveBalanceUpdates(st *state.StateDB) erro
 		if balance+downwardThreshold < val.GetEffectiveBalance() ||
 			val.GetEffectiveBalance()+upwardThreshold < balance {
 			updatedBalance := ctypes.ComputeEffectiveBalance(
-				balance,
-				math.U64(effectiveBalanceIncrement),
-				math.U64(sp.cs.MaxEffectiveBalance()),
+				balance, effectiveBalanceIncrement, sp.cs.MaxEffectiveBalance(),
 			)
 			val.SetEffectiveBalance(updatedBalance)
 			if err = st.UpdateValidatorAtIndex(idx, val); err != nil {

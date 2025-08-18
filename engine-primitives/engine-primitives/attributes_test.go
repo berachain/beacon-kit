@@ -25,17 +25,20 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/stretchr/testify/require"
 )
 
 type payloadAttributesInput struct {
 	forkVersion           common.Version
-	timestamp             uint64
+	timestamp             math.U64
 	prevRandao            common.Bytes32
 	suggestedFeeRecipient common.ExecutionAddress
 	withdrawals           engineprimitives.Withdrawals
 	parentBeaconBlockRoot common.Root
+	parentProposerPubKey  *crypto.BLSPubkey
 }
 
 func TestPayloadAttributes(t *testing.T) {
@@ -43,11 +46,12 @@ func TestPayloadAttributes(t *testing.T) {
 	// default valid data
 	validInput := payloadAttributesInput{
 		forkVersion:           version.Altair(),
-		timestamp:             uint64(123456789),
+		timestamp:             math.U64(123456789),
 		prevRandao:            common.Bytes32{1, 2, 3},
 		suggestedFeeRecipient: common.ExecutionAddress{},
 		withdrawals:           engineprimitives.Withdrawals{},
 		parentBeaconBlockRoot: common.Root{},
+		parentProposerPubKey:  nil,
 	}
 	tests := []struct {
 		name    string
@@ -89,6 +93,25 @@ func TestPayloadAttributes(t *testing.T) {
 			},
 			wantErr: engineprimitives.ErrNilWithdrawals,
 		},
+		{
+			name: "Invalid - parent proposer pubkey before Electra1",
+			input: func() payloadAttributesInput {
+				res := validInput
+				res.forkVersion = version.Electra()
+				res.parentProposerPubKey = &crypto.BLSPubkey{0x01}
+				return res
+			},
+			wantErr: engineprimitives.ErrNonEmptyPrevProposerPubKey,
+		},
+		{
+			name: "Invalid - no parent proposer pubkey after Electra1",
+			input: func() payloadAttributesInput {
+				res := validInput
+				res.forkVersion = version.Electra1()
+				return res
+			},
+			wantErr: engineprimitives.ErrEmptyPrevProposerPubKey,
+		},
 	}
 
 	for _, tt := range tests {
@@ -102,22 +125,18 @@ func TestPayloadAttributes(t *testing.T) {
 				in.suggestedFeeRecipient,
 				in.withdrawals,
 				in.parentBeaconBlockRoot,
+				in.parentProposerPubKey,
 			)
 			if tt.wantErr != nil {
 				require.ErrorIs(t, err, tt.wantErr)
 			} else {
 				require.NoError(t, err)
 				require.NotNil(t, got)
-
-				require.NotNil(t, got)
-				require.NoError(t, got.Validate())
-
 				require.Equal(
 					t,
 					in.suggestedFeeRecipient,
 					got.GetSuggestedFeeRecipient(),
 				)
-				require.Equal(t, in.forkVersion, got.GetForkVersion())
 			}
 		})
 	}

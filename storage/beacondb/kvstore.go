@@ -86,6 +86,17 @@ type KVStore struct {
 	slashings sdkcollections.Map[uint64, uint64]
 	// totalSlashing stores the total slashing in the vector range.
 	totalSlashing sdkcollections.Item[uint64]
+	// pendingPartialWithdrawals stores the PendingPartialWithdrawals introduced in Electra.
+	// These are the operations done on this collection:
+	// 1. get_pending_balance_to_withdraw -> requires iteration
+	// 2. get_expected_withdrawals -> requires iterations
+	// 3. process_withdrawal_request -> requires number of entries in the collection and adding new entries
+	// 4. process_withdrawals -> requires removing entries from the collection
+	// It is easiest to have these operations be done on an `Item` that is a list under the hood rather than
+	// `sdkcollection` native types due to lack of support for lists.
+	// We must use `*ctypes.PendingPartialWithdrawals` instead of `ctypes.PendingPartialWithdrawals` as marshalling
+	// methods require a pointer receiver.
+	pendingPartialWithdrawals sdkcollections.Item[*ctypes.PendingPartialWithdrawals]
 }
 
 // New creates a new instance of Store.
@@ -94,7 +105,9 @@ type KVStore struct {
 func New(kss store.KVStoreService) *KVStore {
 	var (
 		schemaBuilder = sdkcollections.NewSchemaBuilder(kss)
-		payloadCodec  = &encoding.SSZVersionedValueCodec[*ctypes.ExecutionPayloadHeader]{}
+		payloadCodec  = &encoding.SSZVersionedValueCodec[*ctypes.ExecutionPayloadHeader]{
+			NewEmptyF: ctypes.NewEmptyExecutionPayloadHeaderWithVersion,
+		}
 	)
 
 	res := &KVStore{
@@ -115,7 +128,9 @@ func New(kss store.KVStoreService) *KVStore {
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.ForkPrefix}),
 			keys.ForkPrefixHumanReadable,
-			encoding.SSZValueCodec[*ctypes.Fork]{},
+			encoding.SSZValueCodec[*ctypes.Fork]{
+				NewEmptyF: ctypes.NewEmptyFork,
+			},
 		),
 		blockRoots: sdkcollections.NewMap(
 			schemaBuilder,
@@ -135,7 +150,9 @@ func New(kss store.KVStoreService) *KVStore {
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.Eth1DataPrefix}),
 			keys.Eth1DataPrefixHumanReadable,
-			encoding.SSZValueCodec[*ctypes.Eth1Data]{},
+			encoding.SSZValueCodec[*ctypes.Eth1Data]{
+				NewEmptyF: ctypes.NewEmptyEth1Data,
+			},
 		),
 		eth1DepositIndex: sdkcollections.NewItem(
 			schemaBuilder,
@@ -170,7 +187,9 @@ func New(kss store.KVStoreService) *KVStore {
 			sdkcollections.NewPrefix([]byte{keys.ValidatorByIndexPrefix}),
 			keys.ValidatorByIndexPrefixHumanReadable,
 			sdkcollections.Uint64Key,
-			encoding.SSZValueCodec[*ctypes.Validator]{},
+			encoding.SSZValueCodec[*ctypes.Validator]{
+				NewEmptyF: ctypes.NewEmptyValidator,
+			},
 			index.NewValidatorsIndex[*ctypes.Validator](schemaBuilder),
 		),
 		balances: sdkcollections.NewMap(
@@ -220,7 +239,17 @@ func New(kss store.KVStoreService) *KVStore {
 				[]byte{keys.LatestBeaconBlockHeaderPrefix},
 			),
 			keys.LatestBeaconBlockHeaderPrefixHumanReadable,
-			encoding.SSZValueCodec[*ctypes.BeaconBlockHeader]{},
+			encoding.SSZValueCodec[*ctypes.BeaconBlockHeader]{
+				NewEmptyF: ctypes.NewEmptyBeaconBlockHeader,
+			},
+		),
+		pendingPartialWithdrawals: sdkcollections.NewItem(
+			schemaBuilder,
+			sdkcollections.NewPrefix([]byte{keys.PendingPartialWithdrawalsPrefix}),
+			keys.PendingPartialWithdrawalsPrefixHumanReadable,
+			encoding.SSZValueCodec[*ctypes.PendingPartialWithdrawals]{
+				NewEmptyF: ctypes.NewEmptyPendingPartialWithdrawals,
+			},
 		),
 	}
 	if _, err := schemaBuilder.Build(); err != nil {
