@@ -13,12 +13,9 @@ We will need two repositories:
 Compile and run BeaconKit from the branch mentioned above, with the usual
 `make start` and `make start-geth` or `make start-reth`.
 
-When deploying PoL from scratch make sure that:
-
-- `<BGT_CONTRACT_ADDRESS>` matches with `specData.EVMInflationAddressDeneb1`
-- `<DISTRIBUTOR_ADDRESS>` matches with `polDistributorAddress` in `testing\files\eth-genesis.json`
-
 ## Deploy PoL contracts
+
+First off make sure you have run `forge i` and `bun i` in the contract repo.
 
 On the contracts repo, run the following commands:
 
@@ -45,9 +42,12 @@ and copy the output in the file `script/pol/POLAddresses.sol` file. Usually
 just two contracts addresses, `BERACHEF_ADDRESS` and
 `REWARD_VAULT_FACTORY_ADDRESS` should have changed, but there may be more.
 
-**Very important check**: before deploying PoL make sure you are using the
-right BGT contract address is specified in BeaconKit chain specs.
-Run
+**Very important check**: when deploying PoL from scratch make sure that:
+
+- `<BGT_CONTRACT_ADDRESS>` matches with `specData.EVMInflationAddressDeneb1` in `BeaconKit`.
+- `<DISTRIBUTOR_ADDRESS>` matches with `polDistributorAddress` in the node `eth-genesis.json`.
+
+Moreover run
 
 ```bash
 cast balance <BGT_CONTRACT_ADDRESS> --rpc-url $RPC_URL
@@ -125,11 +125,9 @@ cast send <BERACHEF_ADDRESS> "setMaxWeightPerVault(uint96)" 2000 \
 
 Now consider `script/pol/actions/SetDefaultRewardAllocation`. On this file:
 
-- Replace `REWARD_VAULT_BERA_HONEY/ETH/WBTC`... with `REWARD_VAULT_1/2/3`...
-  for every variable and variable content in the file.
 - Set `REWARD_VAULT_BERA_HONEY/ETH/WBTC..._WEIGHT`s to `2000`.
 - Assign reward vaults addresses from above in
-  `REWARD_VAULT_BERA_HONEY/ETH/WBTC...`
+  `REWARD_VAULT_BERA_HONEY/ETH/WBTC...`[^3].
 
 Finally run:
 
@@ -154,3 +152,4 @@ cast call <BGT_CONTRACT_ADDRESS> "balanceOf(address)(uint256)" \
 
 [^1]: You may consider renaming the tokens with `LP_TOKEN_1`, `LP_TOKEN_2`, ... `LP_TOKEN_5`.
 [^2]: Again you may consider renaming the Reward vaults with `REWARD_VAULT_1/2/3/4/5`.
+[^3]: Again you may consider renaming `REWARD_VAULT_BERA_HONEY/ETH/WBTC`... with `REWARD_VAULT_1/2/3`... for every variable and variable content in the file.
