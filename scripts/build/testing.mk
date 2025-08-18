@@ -7,8 +7,10 @@
 # ask_reset_dir_func checks if the directory passed in exists, and if so asks the user whether it
 # should delete it. Note that on linux, docker may have created the directory with root
 # permissions, so we may need to ask the user to delete it with sudo
+# Creates a flag file to indicate if the directory was reset
 define ask_reset_dir_func
 	@abs_path=$(abspath $(1)); \
+	rm -f .tmp/.dir_was_reset; \
 	if test -d "$$abs_path"; then \
 		read -p "Directory '$$abs_path' exists. Do you want to delete it? (y/n): " confirm && \
 		if [ "$$confirm" = "y" ]; then \
@@ -17,10 +19,13 @@ define ask_reset_dir_func
 			if test -d "$$abs_path"; then \
 				echo "Failed to delete directory '$$abs_path'."; \
 				exit 1; \
+			else \
+				mkdir -p .tmp && touch .tmp/.dir_was_reset; \
 			fi; \
 		fi \
 	else \
 		echo "Directory '$$abs_path' does not exist."; \
+		mkdir -p .tmp && touch .tmp/.dir_was_reset; \
 	fi
 endef
 
@@ -76,12 +81,18 @@ start-reth:
 ## Start an ephemeral `geth` node with docker
 start-geth: 
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
-	docker run \
-	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
-	-v $(PWD)/.tmp:/.tmp \
-	ghcr.io/berachain/bera-geth:latest init \
-	--datadir ${ETH_DATA_DIR} \
-	${ETH_GENESIS_PATH}
+	@if [ -f .tmp/.dir_was_reset ]; then \
+		echo "Initializing geth..."; \
+		docker run \
+		--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+		-v $(PWD)/.tmp:/.tmp \
+		ghcr.io/berachain/bera-geth:latest init \
+		--datadir ${ETH_DATA_DIR} \
+		${ETH_GENESIS_PATH}; \
+		rm -f .tmp/.dir_was_reset; \
+	else \
+		echo "Skipping geth init (directory was not reset)"; \
+	fi
 
 	docker run \
 	-p 30303:30303 \
@@ -114,13 +125,19 @@ start-bepolia:
 
 start-geth-bepolia:
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
-	docker run \
-	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
-	--rm -v $(PWD)/${BEPOLIA_NETWORK_FILES_DIR}:/${BEPOLIA_NETWORK_FILES_DIR} \
-	-v $(PWD)/.tmp:/.tmp \
-	ghcr.io/berachain/bera-geth:latest init \
-	--datadir ${ETH_DATA_DIR} \
-	${BEPOLIA_ETH_GENESIS_PATH}
+	@if [ -f .tmp/.dir_was_reset ]; then \
+		echo "Initializing geth..."; \
+		docker run \
+		--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+		--rm -v $(PWD)/${BEPOLIA_NETWORK_FILES_DIR}:/${BEPOLIA_NETWORK_FILES_DIR} \
+		-v $(PWD)/.tmp:/.tmp \
+		ghcr.io/berachain/bera-geth:latest init \
+		--datadir ${ETH_DATA_DIR} \
+		${BEPOLIA_ETH_GENESIS_PATH}; \
+		rm -f .tmp/.dir_was_reset; \
+	else \
+		echo "Skipping geth init (directory was not reset)"; \
+	fi
 
 	@# Read bootnodes from the file; the file is mounted into the container.
 	@bootnodes=`cat $(PWD)/$(BEPOLIA_NETWORK_FILES_DIR)/el-bootnodes.txt`; \
@@ -181,13 +198,19 @@ start-mainnet:
 # discovery bootnodes by region, refer to testing/networks/80094/el-bootnodes.txt
 start-geth-mainnet:
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
-	docker run \
-	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
-	--rm -v $(PWD)/${MAINNET_NETWORK_FILES_DIR}:/${MAINNET_NETWORK_FILES_DIR} \
-	-v $(PWD)/.tmp:/.tmp \
-	ghcr.io/berachain/bera-geth:latest init \
-	--datadir ${ETH_DATA_DIR} \
-	${MAINNET_ETH_GENESIS_PATH}
+	@if [ -f .tmp/.dir_was_reset ]; then \
+		echo "Initializing geth..."; \
+		docker run \
+		--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+		--rm -v $(PWD)/${MAINNET_NETWORK_FILES_DIR}:/${MAINNET_NETWORK_FILES_DIR} \
+		-v $(PWD)/.tmp:/.tmp \
+		ghcr.io/berachain/bera-geth:latest init \
+		--datadir ${ETH_DATA_DIR} \
+		${MAINNET_ETH_GENESIS_PATH}; \
+		rm -f .tmp/.dir_was_reset; \
+	else \
+		echo "Skipping geth init (directory was not reset)"; \
+	fi
 
 	@# Read bootnodes from the file; the file is mounted into the container.
 	@bootnodes=`cat $(PWD)/$(MAINNET_NETWORK_FILES_DIR)/el-peers.txt`; \
