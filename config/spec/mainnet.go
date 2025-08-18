@@ -22,6 +22,7 @@ package spec
 
 import (
 	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/ethereum/go-ethereum/params"
@@ -73,12 +74,18 @@ const (
 	mainnetDepositContractAddress = defaultDepositContractAddress
 
 	// mainnetGenesisTime is the timestamp of the Berachain mainnet genesis block.
-	mainnetGenesisTime = 1737381600
+	mainnetGenesisTime = 1_737_381_600
 
 	// mainnetDeneb1ForkTime is the timestamp at which the Deneb1 fork occurs.
 	// This is calculated based on the timestamp of the 2855th mainnet epoch, block 548160, which
 	// was used to initiate the fork when beacon-kit forked by epoch instead of by timestamp.
-	mainnetDeneb1ForkTime = 1738415507
+	mainnetDeneb1ForkTime = 1_738_415_507
+
+	// mainnetElectraForkTime is the timestamp at which the Electra fork occurs.
+	mainnetElectraForkTime = 1_749_056_400
+
+	// mainnetElectra1ForkTime is the timestamp at which the Electra1 fork occurs.
+	mainnetElectra1ForkTime = 1_756_915_200
 
 	// mainnetEVMInflationAddressDeneb1 is the address on the EVM which will receive the
 	// inflation amount of native EVM balance through a withdrawal every block in the Deneb1 fork.
@@ -91,11 +98,17 @@ const (
 	// mainnetMinValidatorWithdrawabilityDelay is the number of epochs of delay epochs of delay for a balance to be withdrawable.
 	// 256 Epochs equates to roughly ~27 hours of withdrawal delay. This gives us room to emergency fork if needed.
 	mainnetMinValidatorWithdrawabilityDelay = defaultMinValidatorWithdrawabilityDelay
+
+	// These are the heights at which SBT is activated on mainnet.
+	mainnetSBTConsensusUpdateHeight = 9_983_085
+	mainnetSBTConsensusEnableHeight = 9_983_086
 )
 
 // MainnetChainSpecData is the chain.SpecData for the Berachain mainnet.
 func MainnetChainSpecData() *chain.SpecData {
-	return &chain.SpecData{
+	specData := &chain.SpecData{
+		Config: delay.DefaultConfig(),
+
 		// Gwei values constants.
 		MaxEffectiveBalance:       mainnetMaxEffectiveBalance,
 		EffectiveBalanceIncrement: mainnetEffectiveBalanceIncrement,
@@ -122,14 +135,15 @@ func MainnetChainSpecData() *chain.SpecData {
 		// Eth1-related values.
 		DepositContractAddress:    common.NewExecutionAddressFromHex(mainnetDepositContractAddress),
 		MaxDepositsPerBlock:       defaultMaxDepositsPerBlock,
-		DepositEth1ChainID:        MainnetEth1ChainID,
+		DepositEth1ChainID:        chain.MainnetEth1ChainID,
 		Eth1FollowDistance:        defaultEth1FollowDistance,
 		TargetSecondsPerEth1Block: defaultTargetSecondsPerEth1Block,
 
 		// Fork-related values.
-		GenesisTime:     mainnetGenesisTime,
-		Deneb1ForkTime:  mainnetDeneb1ForkTime,
-		ElectraForkTime: defaultElectraForkTime,
+		GenesisTime:      mainnetGenesisTime,
+		Deneb1ForkTime:   mainnetDeneb1ForkTime,
+		ElectraForkTime:  mainnetElectraForkTime,
+		Electra1ForkTime: mainnetElectra1ForkTime,
 
 		// State list length constants.
 		EpochsPerHistoricalVector: defaultEpochsPerHistoricalVector,
@@ -161,6 +175,11 @@ func MainnetChainSpecData() *chain.SpecData {
 		MinActivationBalance:             mainnetMinActivationBalance,
 		MinValidatorWithdrawabilityDelay: mainnetMinValidatorWithdrawabilityDelay,
 	}
+
+	specData.Config.ConsensusUpdateHeight = mainnetSBTConsensusUpdateHeight
+	specData.Config.ConsensusEnableHeight = mainnetSBTConsensusEnableHeight
+
+	return specData
 }
 
 // MainnetChainSpec is the ChainSpec for the Berachain mainnet.

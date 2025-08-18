@@ -27,8 +27,8 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/payload/cache"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
-	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 type PayloadCache interface {
@@ -39,10 +39,11 @@ type PayloadCache interface {
 // AttributesFactory is the interface for the attributes factory.
 type AttributesFactory interface {
 	BuildPayloadAttributes(
-		st *statedb.StateDB,
-		slot math.U64,
 		timestamp math.U64,
-		prevHeadRoot [32]byte,
+		payloadWithdrawals engineprimitives.Withdrawals,
+		prevRandao common.Bytes32,
+		prevHeadRoot common.Root,
+		parentProposerPubkey *crypto.BLSPubkey,
 	) (*engineprimitives.PayloadAttributes, error)
 }
 
@@ -63,4 +64,6 @@ type ExecutionEngine interface {
 
 type ChainSpec interface {
 	ActiveForkVersionForTimestamp(timestamp math.U64) common.Version
+	SlotToEpoch(slot math.Slot) math.Epoch
+	EpochsPerHistoricalVector() uint64
 }

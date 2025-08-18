@@ -29,6 +29,9 @@ import (
 // ActiveForkVersionForTimestamp returns the active fork version for a given timestamp.
 func (s spec) ActiveForkVersionForTimestamp(timestamp math.U64) common.Version {
 	time := timestamp.Unwrap()
+	if time >= s.Electra1ForkTime() {
+		return version.Electra1()
+	}
 	if time >= s.ElectraForkTime() {
 		return version.Electra()
 	}
@@ -52,4 +55,19 @@ func (s spec) SlotToEpoch(slot math.Slot) math.Epoch {
 // of the given current epoch.
 func (s spec) WithinDAPeriod(block, current math.Slot) bool {
 	return s.SlotToEpoch(block)+s.MinEpochsForBlobsSidecarsRequest() >= s.SlotToEpoch(current)
+}
+
+// IsMainnet returns true if the chain is running with the mainnet chain ID.
+func (s spec) IsMainnet() bool {
+	return s.DepositEth1ChainID() == MainnetEth1ChainID
+}
+
+// IsTestnet returns true if the chain is running with the testnet chain ID.
+func (s spec) IsTestnet() bool {
+	return s.DepositEth1ChainID() == TestnetEth1ChainID
+}
+
+// IsDevnet returns true if the chain is running with the devnet chain ID.
+func (s spec) IsDevnet() bool {
+	return s.DepositEth1ChainID() == DevnetEth1ChainID
 }

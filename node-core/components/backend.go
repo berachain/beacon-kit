@@ -30,7 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/berachain/beacon-kit/storage/beacondb"
 	"github.com/berachain/beacon-kit/storage/block"
-	depositdb "github.com/berachain/beacon-kit/storage/deposit"
+	"github.com/berachain/beacon-kit/storage/deposit"
 )
 
 // StorageBackendInput is the input for the ProvideStorageBackend function.
@@ -39,7 +39,7 @@ type StorageBackendInput struct {
 	AvailabilityStore *dastore.Store
 	BlockStore        *block.KVStore[*types.BeaconBlock]
 	ChainSpec         chain.Spec
-	DepositStore      *depositdb.KVStore
+	DepositStore      deposit.StoreManager
 	BeaconStore       *beacondb.KVStore
 	Logger            *phuslu.Logger
 	TelemetrySink     *metrics.TelemetrySink

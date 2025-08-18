@@ -35,5 +35,10 @@ func (h *Handler) RegisterRoutes(logger log.Logger) {
 			Path:    "bkit/v1/proof/block_proposer/:timestamp_id",
 			Handler: h.GetBlockProposer,
 		},
+		{
+			Method:  http.MethodGet,
+			Path:    "bkit/v1/proof/validator_credentials/:timestamp_id/:validator_index",
+			Handler: h.GetValidatorCredentials,
+		},
 	})
 }

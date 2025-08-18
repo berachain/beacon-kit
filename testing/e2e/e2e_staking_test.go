@@ -65,9 +65,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	weiPerGwei := big.NewInt(1e9)
 
 	// This value is determined by the MIN_DEPOSIT_AMOUNT_IN_GWEI variable from the deposit contract.
-	//
-	// TODO: fix the genesis file to use the correct deposit contract.
-	contractMinDepositAmountWei := big.NewInt(1e9 * 1e9)
+	contractMinDepositAmountWei := big.NewInt(0).Mul(big.NewInt(10_000), big.NewInt(1e9*1e9))
 	depositAmountWei := new(big.Int).Mul(contractMinDepositAmountWei, big.NewInt(100))
 	depositAmountGwei := new(big.Int).Div(depositAmountWei, weiPerGwei)
 
@@ -225,7 +223,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	s.Require().NoError(err)
 	height2, err := validators[1].Client.ABCIInfo(s.Ctx())
 	s.Require().NoError(err)
-	s.Require().InDelta(height.Response.LastBlockHeight, height2.Response.LastBlockHeight, 1)
+	s.Require().InDelta(height.LastBlockHeight, height2.LastBlockHeight, 1)
 
 	// Check to see if evm balance decreased.
 	postDepositBalance, err := s.JSONRPCBalancer().BalanceAt(s.Ctx(), sender.Address(), nil)

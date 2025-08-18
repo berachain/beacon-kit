@@ -84,19 +84,22 @@ func AddExecutionPayload(chainSpec ChainSpec, elGenesisPath string, config *cmtc
 		nil,
 	).ExecutionPayload
 
-	appGenesis, err := genutiltypes.AppGenesisFromFile(
-		config.GenesisFile(),
-	)
+	appGenesis, err := genutiltypes.AppGenesisFromFile(config.GenesisFile())
 	if err != nil {
 		return errors.Wrap(err, "failed to read genesis doc from file")
 	}
 
 	// create the app state
-	appGenesisState, err := genutiltypes.GenesisStateFromAppGenesis(
-		appGenesis,
-	)
+	appGenesisState, err := genutiltypes.GenesisStateFromAppGenesis(appGenesis)
 	if err != nil {
 		return err
+	}
+
+	// Defensive: ensure the map returned is non-nil before indexing. This
+	// prevents potential nil dereference panics flagged by static analysis
+	// tools such as nilaway.
+	if appGenesisState == nil {
+		appGenesisState = make(map[string]json.RawMessage)
 	}
 
 	genesisInfo := &types.Genesis{}
@@ -144,8 +147,8 @@ func executableDataToExecutionPayloadHeader(
 ) (*types.ExecutionPayloadHeader, error) {
 	eph := &types.ExecutionPayloadHeader{}
 
-	// We do not support fork versions before Deneb and after Electra.
-	if version.IsAfter(forkVersion, version.Electra()) ||
+	// We do not support fork versions before Deneb and after Electra1.
+	if version.IsAfter(forkVersion, version.Electra1()) ||
 		version.IsBefore(forkVersion, version.Deneb()) {
 		return nil, types.ErrForkVersionNotSupported
 	}
