@@ -73,4 +73,4 @@ Please refer to the [Kurtosis README](https://github.com/berachain/beacon-kit/bl
 
 ## Proof of liquidity deployment instructions
 
-You can find instructions to deploy Proof of Liquidity smart contracts over a devnet in [contracts README](https://github.com/berachain/beacon-kit/blob/main/contracts/README.md).
+You can find instructions to deploy Proof of Liquidity smart contracts over a devnet in [contracts README](https://github.com/berachain/beacon-kit/blob/main/contracts/docs/PoL_deployment.md).

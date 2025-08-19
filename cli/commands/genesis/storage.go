@@ -21,7 +21,7 @@
 package genesis
 
 import (
-	"bytes"
+	stdbytes "bytes"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -34,6 +34,7 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
+	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
@@ -166,8 +167,6 @@ func writeDepositStorage(
 // encodeSlot mimics Solidity's keccak256(abi.encodePacked(...)) for:
 // - pubKey: 48-byte public key
 // - baseSlot: 32-byte storage slot
-//
-//nolint:mnd // TO BE FIXED
 func encodeSlot(pubkey crypto.BLSPubkey) []byte {
 	// Decode pubkey
 	pubKeyStr := pubkey.String()
@@ -175,13 +174,13 @@ func encodeSlot(pubkey crypto.BLSPubkey) []byte {
 	if err != nil {
 		panic(err)
 	}
-	if len(packed) != 48 {
+	if len(packed) != bytes.B48Size {
 		panic(fmt.Errorf("expected 48-byte pubkey, got %d", len(packed)))
 	}
 
 	// Convert mapping slot (uint256) to 32-byte left-padded value
 	const mappintStorageBaseSlot = 2
-	slotBytes := new(big.Int).SetUint64(mappintStorageBaseSlot).FillBytes(make([]byte, 32))
+	slotBytes := new(big.Int).SetUint64(mappintStorageBaseSlot).FillBytes(make([]byte, common.HashLength))
 
 	// abi.encodePacked => direct byte concatenation
 	packed = append(packed, slotBytes...)
@@ -207,7 +206,7 @@ func writeGenesisAllocToFile(
 
 	// Unmarshal existing genesis using json.Number to preserve integer precision
 	var existingGenesis map[string]interface{}
-	decoder := json.NewDecoder(bytes.NewReader(existingBz))
+	decoder := json.NewDecoder(stdbytes.NewReader(existingBz))
 	decoder.UseNumber()
 	if err = decoder.Decode(&existingGenesis); err != nil {
 		return err
