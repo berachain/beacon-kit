@@ -166,7 +166,7 @@ func warnAboutConfigs(
 	connectionsCap := defaultMaxNumInboundPeers + defaultMaxNumOutboundPeers
 	if cmtCfg.P2P.MaxNumInboundPeers+cmtCfg.P2P.MaxNumOutboundPeers > connectionsCap {
 		logger.Warn(
-			"excessive peering consider reducing it.",
+			"excessive peering",
 			"max_num_inbound_peers", cmtCfg.P2P.MaxNumInboundPeers,
 			"recommended max_num_inbound_peers", defaultMaxNumInboundPeers,
 			"max_num_outbound_peers", cmtCfg.P2P.MaxNumOutboundPeers,
