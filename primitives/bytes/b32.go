@@ -25,6 +25,7 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
+	fastssz "github.com/ferranbt/fastssz"
 )
 
 const (
@@ -90,4 +91,40 @@ func (h B32) MarshalSSZ() ([]byte, error) {
 // HashTreeRoot returns the hash tree root of the B32.
 func (h B32) HashTreeRoot() B32 {
 	return h
+}
+
+/* -------------------------------------------------------------------------- */
+/*                              FastSSZ Methods                               */
+/* -------------------------------------------------------------------------- */
+
+// MarshalSSZTo ssz marshals the B32 object to a target array.
+func (h B32) MarshalSSZTo(buf []byte) ([]byte, error) {
+	dst := buf
+	dst = append(dst, h[:]...)
+	return dst, nil
+}
+
+// UnmarshalSSZ ssz unmarshals the B32 object.
+func (h *B32) UnmarshalSSZ(buf []byte) error {
+	if len(buf) != B32Size {
+		return fastssz.ErrSize
+	}
+	copy(h[:], buf)
+	return nil
+}
+
+// SizeSSZ returns the ssz encoded size in bytes for the B32 object.
+func (h B32) SizeSSZ() int {
+	return B32Size
+}
+
+// HashTreeRootWith ssz hashes the B32 object with a hasher.
+func (h B32) HashTreeRootWith(hh fastssz.HashWalker) error {
+	hh.PutBytes(h[:])
+	return nil
+}
+
+// GetTree ssz hashes the B32 object.
+func (h *B32) GetTree() (*fastssz.Node, error) {
+	return fastssz.ProofTree(h)
 }

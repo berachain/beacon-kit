@@ -22,38 +22,50 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
-	"github.com/karalabe/ssz"
+	ssz "github.com/ferranbt/fastssz"
 )
 
 // Validators is a type alias for a SSZ list of Validator containers.
 type Validators []*Validator
 
 // SizeSSZ returns the SSZ encoded size in bytes for the Validators.
-func (vs Validators) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {
-	return ssz.SizeSliceOfStaticObjects(siz, ([]*Validator)(vs))
-}
-
-// DefineSSZ defines the SSZ encoding for the Validators object.
-// TODO: get from accessible chainspec field params.
-func (vs Validators) DefineSSZ(c *ssz.Codec) {
-	c.DefineDecoder(func(*ssz.Decoder) {
-		ssz.DefineSliceOfStaticObjectsContent(
-			c, (*[]*Validator)(&vs), constants.ValidatorsRegistryLimit)
-	})
-	c.DefineEncoder(func(*ssz.Encoder) {
-		ssz.DefineSliceOfStaticObjectsContent(
-			c, (*[]*Validator)(&vs), constants.ValidatorsRegistryLimit)
-	})
-
-	c.DefineHasher(func(*ssz.Hasher) {
-		ssz.DefineSliceOfStaticObjectsOffset(
-			c, (*[]*Validator)(&vs), constants.ValidatorsRegistryLimit)
-	})
+func (vs Validators) SizeSSZ() int {
+	return 4 + len(vs)*121 // offset + each validator is 121 bytes
 }
 
 // HashTreeRoot returns the SSZ hash tree root for the Validators object.
-func (vs Validators) HashTreeRoot() common.Root {
-	return ssz.HashSequential(vs)
+func (vs Validators) HashTreeRoot() ([32]byte, error) {
+	hh := ssz.DefaultHasherPool.Get()
+	defer ssz.DefaultHasherPool.Put(hh)
+	if err := vs.HashTreeRootWith(hh); err != nil {
+		return [32]byte{}, err
+	}
+	return hh.HashRoot()
+
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
+
+// HashTreeRootWith ssz hashes the Validators object with a hasher.
+func (vs Validators) HashTreeRootWith(hh ssz.HashWalker) error {
+	indx := hh.Index()
+	num := uint64(len(vs))
+	if num > constants.ValidatorsRegistryLimit {
+		return ssz.ErrIncorrectListSize
+	}
+	for _, elem := range vs {
+		if err := elem.HashTreeRootWith(hh); err != nil {
+			return err
+		}
+	}
+	hh.MerkleizeWithMixin(indx, num, constants.ValidatorsRegistryLimit)
+	return nil
+}
+
+// GetTree ssz hashes the Validators object.
+func (vs Validators) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(vs)
 }

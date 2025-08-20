@@ -93,10 +93,12 @@ func buildNextBlock(
 	// build the block
 	fv := cs.ActiveForkVersionForTimestamp(timestamp)
 	versionable := types.NewVersionable(fv)
+	parentRoot, err := parentBlkHeader.HashTreeRoot()
+	require.NoError(t, err)
 	blk, err := types.NewBeaconBlockWithVersion(
 		parentBlkHeader.GetSlot()+1,
 		parentBlkHeader.GetProposerIndex(),
-		parentBlkHeader.HashTreeRoot(),
+		parentRoot,
 		fv,
 	)
 	require.NoError(t, err)
@@ -110,7 +112,9 @@ func buildNextBlock(
 		Withdrawals:   withdrawals,
 		BaseFeePerGas: math.NewU256(0),
 	}
-	parentBeaconBlockRoot := parentBlkHeader.HashTreeRoot()
+	parentBeaconBlockRootVal, err := parentBlkHeader.HashTreeRoot()
+	require.NoError(t, err)
+	parentBeaconBlockRoot := common.Root(parentBeaconBlockRootVal)
 
 	var ethBlk *gethprimitives.Block
 	if version.IsBefore(fv, version.Electra()) {

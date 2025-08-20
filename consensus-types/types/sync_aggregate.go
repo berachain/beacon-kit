@@ -20,18 +20,16 @@
 
 package types
 
+//go:generate sszgen -path sync_aggregate.go -objs SyncAggregate -output sync_aggregate_sszgen.go -include ../../primitives/common,../../primitives/bytes,../../primitives/crypto
+
 import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/encoding/ssz/schema"
-	"github.com/karalabe/ssz"
 )
 
-// Compile-time assertions to ensure SyncAggregate implements necessary interfaces.
 var (
-	_ ssz.StaticObject                    = (*SyncAggregate)(nil)
 	_ constraints.SSZMarshallableRootable = (*SyncAggregate)(nil)
 	_ common.UnusedEnforcer               = (*SyncAggregate)(nil)
 )
@@ -42,33 +40,12 @@ const (
 )
 
 type SyncAggregate struct {
-	SyncCommitteeBits      [syncCommitteeBitsLength]byte
-	SyncCommitteeSignature crypto.BLSSignature
+	SyncCommitteeBits      [64]byte            `ssz-size:"64"`
+	SyncCommitteeSignature crypto.BLSSignature `ssz-size:"96"`
 }
 
-// SizeSSZ returns the SSZ encoded size in bytes for the SyncAggregate.
-func (s *SyncAggregate) SizeSSZ(_ *ssz.Sizer) uint32 {
-	return syncCommitteeBitsLength + schema.B96Size
-}
-
-// DefineSSZ defines the SSZ encoding for the SyncAggregate object.
-func (s *SyncAggregate) DefineSSZ(c *ssz.Codec) {
-	ssz.DefineStaticBytes(c, &s.SyncCommitteeBits)
-	ssz.DefineStaticBytes(c, &s.SyncCommitteeSignature)
-}
-
-// MarshalSSZ marshals the SyncAggregate object to SSZ format.
-func (s *SyncAggregate) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(s))
-	return buf, ssz.EncodeToBytes(buf, s)
-}
-
-func (*SyncAggregate) ValidateAfterDecodingSSZ() error { return nil }
-
-// HashTreeRoot returns the hash tree root of the Deposits.
-func (s *SyncAggregate) HashTreeRoot() common.Root {
-	htr := ssz.HashSequential(s)
-	return htr
+func (s *SyncAggregate) ValidateAfterDecodingSSZ() error {
+	return s.EnforceUnused()
 }
 
 // EnforceUnused return true if the SyncAggregate contains all zero values.

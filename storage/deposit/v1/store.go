@@ -123,7 +123,11 @@ func (kv *KVStore) GetDepositsByIndex(
 	}
 
 	kv.logger.Debug("GetDepositsByIndex", "start", startIndex, "end", endIdx)
-	return deposits, deposits.HashTreeRoot(), nil
+	rootBytes, err := deposits.HashTreeRoot()
+	if err != nil {
+		return nil, common.Root{}, err
+	}
+	return deposits, common.NewRootFromBytes(rootBytes[:]), nil
 }
 
 // EnqueueDeposits pushes multiple deposits to the queue.

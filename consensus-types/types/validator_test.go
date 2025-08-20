@@ -21,16 +21,15 @@
 package types_test
 
 import (
-	"io"
 	"testing"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
+	"github.com/berachain/beacon-kit/primitives/encoding/sszutil"
 	"github.com/berachain/beacon-kit/primitives/math"
-	fastssz "github.com/ferranbt/fastssz"
+	ssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -634,8 +633,9 @@ func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 				// Create a byte slice with an invalid size (not 121)
 				invalidSizeData := make([]byte, 120)
 				unmarshalled := new(types.Validator)
-				err := ssz.Unmarshal(invalidSizeData, unmarshalled)
-				require.ErrorIs(t, err, io.ErrUnexpectedEOF, "Test case: %s", tt.name)
+				err := sszutil.Unmarshal(invalidSizeData, unmarshalled)
+				require.Error(t, err)
+				require.Contains(t, err.Error(), "incorrect size", "Test case: %s", tt.name)
 			} else {
 				// Marshal the validator
 				marshaled, err := tt.validator.MarshalSSZ()
@@ -643,7 +643,7 @@ func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 
 				// Unmarshal into a new validator
 				unmarshalled := new(types.Validator)
-				err = ssz.Unmarshal(marshaled, unmarshalled)
+				err = sszutil.Unmarshal(marshaled, unmarshalled)
 				require.NoError(t, err)
 
 				// Check if the original and unmarshaled validators are equal
@@ -710,12 +710,13 @@ func TestValidator_HashTreeRoot(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			// Test HashTreeRoot
-			root := tt.validator.HashTreeRoot()
+			root, err := tt.validator.HashTreeRoot()
+			require.NoError(t, err)
 			require.NotEqual(t, [32]byte{}, root)
 
 			// Test HashTreeRootWith
-			hh := fastssz.NewHasher()
-			err := tt.validator.HashTreeRootWith(hh)
+			hh := ssz.NewHasher()
+			err = tt.validator.HashTreeRootWith(hh)
 			require.NoError(t, err)
 
 			// Test GetTree

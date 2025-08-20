@@ -451,5 +451,9 @@ func (s *StateDB) HashTreeRoot() common.Root {
 	if err != nil {
 		panic(err)
 	}
-	return st.HashTreeRoot()
+	root, err := st.HashTreeRoot()
+	if err != nil {
+		panic(err)
+	}
+	return common.NewRootFromBytes(root[:])
 }

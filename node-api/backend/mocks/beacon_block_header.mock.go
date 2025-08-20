@@ -3,9 +3,9 @@
 package mocks
 
 import (
+	"github.com/berachain/beacon-kit/consensus-types/types"
 	common "github.com/berachain/beacon-kit/primitives/common"
 	math "github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/consensus-types/types"
 
 	mock "github.com/stretchr/testify/mock"
 )

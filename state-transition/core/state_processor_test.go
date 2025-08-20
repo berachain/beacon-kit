@@ -52,7 +52,8 @@ func TestStateProcessor_ProcessSlots(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
+			Versionable:   types.NewVersionable(cs.GenesisForkVersion()),
+			BaseFeePerGas: math.NewU256(0),
 		}
 	)
 	genPayloadHeader.Timestamp = math.U64(genesisTime.Unix())

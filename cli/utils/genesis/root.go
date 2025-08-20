@@ -82,5 +82,9 @@ func ComputeValidatorsRoot(genesisDeposits types.Deposits, cs ChainSpec) common.
 		validators[i] = val
 	}
 
-	return validators.HashTreeRoot()
+	root, err := validators.HashTreeRoot()
+	if err != nil {
+		panic(err)
+	}
+	return common.NewRootFromBytes(root[:])
 }
