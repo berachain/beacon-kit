@@ -20,23 +20,9 @@
 
 package node
 
-import (
-	"github.com/berachain/beacon-kit/node-api/handlers"
-)
+import "github.com/cometbft/cometbft/node"
 
-// Handler is the handler for the node API.
-type Handler struct {
-	*handlers.BaseHandler
-	backend Backend
-}
-
-// NewHandler creates a new handler for the node API.
-func NewHandler(backend Backend) *Handler {
-	h := &Handler{
-		BaseHandler: handlers.NewBaseHandler(
-			handlers.NewRouteSet(""),
-		),
-		backend: backend,
-	}
-	return h
+// Backend is the interface for backend of the node API.
+type Backend interface {
+	GetNode() *node.Node
 }

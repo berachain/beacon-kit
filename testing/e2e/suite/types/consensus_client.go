@@ -262,6 +262,14 @@ func (cc ConsensusClient) BlockProposerProof(
 	return cc.beaconClient.BlockProposerProof(ctx, timestampID)
 }
 
+// Syncing returns the syncing status of the beacon node.
+func (cc ConsensusClient) NodeSyncing(ctx context.Context) (*beaconapi.Response[*apiv1.SyncState], error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
+	return cc.beaconClient.NodeSyncing(ctx, &beaconapi.NodeSyncingOpts{})
+}
+
 // Commit returns the commit for a block.
 func (cc ConsensusClient) Commit(
 	ctx context.Context,

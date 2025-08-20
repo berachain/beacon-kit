@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	cmtcfg "github.com/cometbft/cometbft/config"
+	"github.com/cometbft/cometbft/node"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 )
 
@@ -112,4 +113,10 @@ func (b *Backend) Spec() (chain.Spec, error) {
 		return nil, errors.New("chain spec not found")
 	}
 	return b.cs, nil
+}
+
+// GetNode returns the comet node from the backend.
+// This is part of the NodeAPIBackend interface.
+func (b *Backend) GetNode() *node.Node {
+	return b.node.GetCometNode()
 }

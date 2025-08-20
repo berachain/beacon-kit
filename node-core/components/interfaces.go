@@ -42,6 +42,7 @@ import (
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/berachain/beacon-kit/storage/block"
 	"github.com/berachain/beacon-kit/storage/deposit"
+	"github.com/cometbft/cometbft/node"
 )
 
 type (
@@ -499,6 +500,7 @@ type (
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		GetSlotByStateRoot(root common.Root) (math.Slot, error)
 		GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
+		GetNode() *node.Node
 
 		NodeAPIBeaconBackend
 		NodeAPIProofBackend

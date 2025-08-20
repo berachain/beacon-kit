@@ -26,6 +26,7 @@ import (
 	"cosmossdk.io/store"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	service "github.com/berachain/beacon-kit/node-core/services/registry"
+	"github.com/cometbft/cometbft/node"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -58,4 +59,5 @@ type ConsensusService interface {
 		prove bool,
 	) (sdk.Context, error)
 	LastBlockHeight() int64
+	GetCometNode() *node.Node
 }
