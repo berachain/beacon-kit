@@ -49,10 +49,6 @@ var (
 
 // processElectra1Fixes handles some fixes made necessary by accidents or wrong validator choices in mainnet
 func (sp *StateProcessor) processElectra1Fixes(st *state.StateDB) error {
-	if !sp.cs.IsMainnet() {
-		return nil
-	}
-
 	if err := sp.processLuganodesRecovery(st); err != nil {
 		return err
 	}
