@@ -28,6 +28,9 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/validator"
+	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/cache"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
 	servercmtlog "github.com/berachain/beacon-kit/consensus/cometbft/service/log"
 	statem "github.com/berachain/beacon-kit/consensus/cometbft/service/state"
 	errorsmod "github.com/berachain/beacon-kit/errors"
@@ -37,6 +40,7 @@ import (
 	"github.com/berachain/beacon-kit/storage"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	cmtcfg "github.com/cometbft/cometbft/config"
+	cmtcrypto "github.com/cometbft/cometbft/crypto"
 	"github.com/cometbft/cometbft/node"
 	"github.com/cometbft/cometbft/p2p"
 	pvm "github.com/cometbft/cometbft/privval"
@@ -53,7 +57,10 @@ const (
 )
 
 type Service struct {
-	node *node.Node
+	node        *node.Node
+	nodeAddress cmtcrypto.Address
+
+	delayCfg delay.ConfigGetter
 
 	// cmtConsensusParams are part of the blockchain state and
 	// are agreed upon by all validators in the network.
@@ -71,23 +78,10 @@ type Service struct {
 	Blockchain   blockchain.BlockchainI
 	BlockBuilder validator.BlockBuilderI
 
-	// prepareProposalState is used for PrepareProposal, which is set based on
-	// the previous block's state. This state is never committed. In case of
-	// multiple consensus rounds, the state is always reset to the previous
-	// block's state.
-	prepareProposalState *state
-
-	// processProposalState is used for ProcessProposal, which is set based on
-	// the previous block's state. This state is never committed. In case of
-	// multiple consensus rounds, the state is always reset to the previous
-	// block's state.
-	processProposalState *state
-
-	// finalizeBlockState is used for FinalizeBlock, which is set based on the
-	// previous block's state. This state is committed. finalizeBlockState is
-	// set
-	// on InitChain and FinalizeBlock and set to nil on Commit.
-	finalizeBlockState *state
+	// cachedStates tracks in memory the post block states
+	// of blocks which were successfully verified. It allows
+	// finalizing without re-execution
+	cachedStates cache.States
 
 	interBlockCache storetypes.MultiStorePersistentCache
 
@@ -105,6 +99,11 @@ type Service struct {
 	// TODO: We must use this as a workaround for now until CometBFT properly
 	// generates contexts that inherit from the parent context we provide.
 	ctx context.Context
+
+	// calculates block delay for the next block
+	//
+	// NOTE: may be nil until either InitChain or FinalizeBlock is called.
+	blockDelay *delay.BlockDelay
 }
 
 func NewService(
@@ -112,6 +111,7 @@ func NewService(
 	db dbm.DB,
 	blockchain blockchain.BlockchainI,
 	blockBuilder validator.BlockBuilderI,
+	cs chain.Spec,
 	cmtCfg *cmtcfg.Config,
 	telemetrySink TelemetrySink,
 	options ...func(*Service),
@@ -134,9 +134,11 @@ func NewService(
 		sm:                 statem.NewManager(db, log),
 		Blockchain:         blockchain,
 		BlockBuilder:       blockBuilder,
+		delayCfg:           cs,
 		cmtConsensusParams: cmtConsensusParams,
 		cmtCfg:             cmtCfg,
 		telemetrySink:      telemetrySink,
+		cachedStates:       cache.New(),
 	}
 
 	s.MountStore(storage.StoreKey, storetypes.StoreTypeIAVL)
@@ -152,6 +154,29 @@ func NewService(
 	// Load latest height, once all stores have been set
 	if err = s.sm.LoadLatestVersion(); err != nil {
 		panic(fmt.Errorf("failed loading latest version: %w", err))
+	}
+
+	// Make sure that SBT consensus parameters are duly set when the node restart.
+	// Note that we can't rely on genesis.json having these parameters set right
+	// because we introduced stable block time post (mainnet) genesis.
+	lastBlockHeight := s.sm.GetCommitMultiStore().LastCommitID().Version
+	if lastBlockHeight >= s.delayCfg.SbtConsensusUpdateHeight() {
+		s.cmtConsensusParams.Feature.SBTEnableHeight = s.delayCfg.SbtConsensusEnableHeight()
+	}
+
+	// Load block delay.
+	//
+	// If not found, we will initialize it in FinalizeBlock once SBTEnableHeight
+	// is reached.
+	bz, err := s.sm.LoadBlockDelay()
+	if err != nil {
+		panic(fmt.Errorf("failed loading block delay: %w", err))
+	}
+	if bz != nil {
+		s.blockDelay, err = delay.FromBytes(bz)
+		if err != nil {
+			panic(fmt.Errorf("failed decoding block delay: %w", err))
+		}
 	}
 
 	return s
@@ -191,6 +216,12 @@ func (s *Service) Start(
 	if err != nil {
 		return err
 	}
+
+	pubKey, errPk := s.node.PrivValidator().GetPubKey()
+	if errPk != nil {
+		return fmt.Errorf("failed retrieving pub key: %w", err)
+	}
+	s.nodeAddress = pubKey.Address()
 
 	started := make(chan struct{})
 
@@ -287,7 +318,7 @@ func (s *Service) setInterBlockCache(
 // prepareProposal/processProposal/finalizeBlock State.
 // A state is explicitly returned to avoid false positives from
 // nilaway tool.
-func (s *Service) resetState(ctx context.Context) *state {
+func (s *Service) resetState(ctx context.Context) *cache.State {
 	ms := s.sm.GetCommitMultiStore().CacheMultiStore()
 
 	newCtx := sdk.NewContext(
@@ -296,10 +327,7 @@ func (s *Service) resetState(ctx context.Context) *state {
 		servercmtlog.WrapSDKLogger(s.logger),
 	).WithContext(ctx)
 
-	return &state{
-		ms:  ms,
-		ctx: newCtx,
-	}
+	return cache.NewState(ms, newCtx)
 }
 
 // convertValidatorUpdate abstracts the conversion of a
@@ -333,12 +361,13 @@ func (s *Service) getContextForProposal(
 		return ctx
 	}
 
-	if s.finalizeBlockState == nil {
+	_, finalState, err := s.cachedStates.GetFinal()
+	if err != nil {
 		// this is unexpected since cometBFT won't call PrepareProposal
 		// on initialHeight. Panic appeases nilaway.
-		panic(fmt.Errorf("getContextForProposal: %w", errNilFinalizeBlockState))
+		panic(fmt.Errorf("getContextForProposal: %w", err))
 	}
-	newCtx, _ := s.finalizeBlockState.Context().CacheContext()
+	newCtx, _ := finalState.Context().CacheContext()
 	// Preserve the CosmosSDK context while using the correct base ctx.
 	return newCtx.WithContext(ctx.Context())
 }

@@ -75,3 +75,13 @@ packages:
       recursive: False
       with-expecter: true
       include-regex: ExecutionEngine
+  github.com/berachain/beacon-kit/beacon/blockchain:
+    config:
+      recursive: False
+      with-expecter: true
+      include-regex: LocalBuilder
+  github.com/berachain/beacon-kit/node-api/handlers/beacon:
+    config:
+      recursive: False
+      with-expecter: true
+      include-regex: ^Backend$

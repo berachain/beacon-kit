@@ -13,6 +13,10 @@ run:
   timeout: 3m
   build-tags: ["test"]
 
+  skip-dirs:
+    - ^testing/cmt_e2e/runner # skip all runner content, mainly copies of cometbft/e2e/runner
+    - ^testing/cmt_e2e/test # temporary: TODO: run linter over tests
+
 
 # This file contains only configs which differ from defaults.
 # All possible options can be found here https://github.com/golangci/golangci-lint/blob/master/.golangci.reference.yml

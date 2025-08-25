@@ -28,12 +28,13 @@ import (
 	"github.com/berachain/beacon-kit/consensus/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/state-transition/core"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
-	depositdb "github.com/berachain/beacon-kit/storage/deposit"
+	"github.com/berachain/beacon-kit/storage/deposit"
 )
 
 // BlobFactory represents a blob factory interface.
@@ -61,12 +62,7 @@ type PayloadBuilder interface {
 	// blocks until the payload is delivered.
 	RequestPayloadSync(
 		ctx context.Context,
-		st *statedb.StateDB,
-		slot math.Slot,
-		timestamp math.U64,
-		parentBlockRoot common.Root,
-		headEth1BlockHash common.ExecutionHash,
-		finalEth1BlockHash common.ExecutionHash,
+		r *builder.RequestPayloadData,
 	) (ctypes.BuiltExecutionPayloadEnv, error)
 }
 
@@ -91,7 +87,7 @@ type StateProcessor interface {
 // StorageBackend is the interface for the storage backend.
 type StorageBackend interface {
 	// DepositStore retrieves the deposit store.
-	DepositStore() *depositdb.KVStore
+	DepositStore() deposit.StoreManager
 	// StateFromContext retrieves the beacon state from the context.
 	StateFromContext(context.Context) *statedb.StateDB
 }
@@ -120,5 +116,7 @@ type ChainSpec interface {
 	MaxDepositsPerBlock() uint64
 	ActiveForkVersionForTimestamp(timestamp math.U64) common.Version
 	SlotToEpoch(slot math.Slot) math.Epoch
+	EpochsPerHistoricalVector() uint64
+
 	ctypes.ProposerDomain
 }

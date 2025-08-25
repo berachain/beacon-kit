@@ -51,6 +51,9 @@ go.work.sum
 # .nfs files are created when an open file is removed but is still being accessed
 .nfs*
 
+# Version files created during code generation
+v*.*.*
+
 ###########
 # Windows #
 ###########

@@ -25,6 +25,8 @@ import (
 
 	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
@@ -49,6 +51,10 @@ type ReadOnlyContext interface {
 
 // ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine interface {
+	NotifyForkchoiceUpdate( // added to simplify mocks
+		ctx context.Context,
+		req *ctypes.ForkchoiceUpdateRequest,
+	) (*engineprimitives.PayloadID, error)
 	// NotifyNewPayload notifies the execution client of the new payload.
 	NotifyNewPayload(
 		ctx context.Context,
@@ -72,6 +78,8 @@ type ChainSpec interface {
 	chain.ForkSpec
 	chain.DomainTypeSpec
 	chain.WithdrawalsSpec
+	delay.ConfigGetter
+
 	SlotsPerEpoch() uint64
 	SlotToEpoch(slot math.Slot) math.Epoch
 	SlotsPerHistoricalRoot() uint64
@@ -80,4 +88,5 @@ type ChainSpec interface {
 	ActiveForkVersionForTimestamp(timestamp math.U64) common.Version
 	ValidatorSetCap() uint64
 	HistoricalRootsLimit() uint64
+	IsMainnet() bool
 }

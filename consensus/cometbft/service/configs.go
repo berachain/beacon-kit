@@ -26,6 +26,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/log"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	cmttypes "github.com/cometbft/cometbft/types"
@@ -38,7 +39,6 @@ const ( // appeases mnd
 	minTimeoutPropose   = 2000 * time.Millisecond
 	minTimeoutPrevote   = 2000 * time.Millisecond
 	minTimeoutPrecommit = 2000 * time.Millisecond
-	minTimeoutCommit    = 500 * time.Millisecond
 
 	maxBlockSize = 100 * 1024 * 1024
 
@@ -84,7 +84,9 @@ func DefaultConfig() *cmtcfg.Config {
 	consensus.TimeoutPropose = minTimeoutPropose
 	consensus.TimeoutPrevote = minTimeoutPrevote
 	consensus.TimeoutPrecommit = minTimeoutPrecommit
-	consensus.TimeoutCommit = minTimeoutCommit
+
+	//nolint:staticcheck // setting to zero because it's deprecated
+	consensus.TimeoutCommit = 0
 
 	cfg.Storage.DiscardABCIResponses = true
 
@@ -106,7 +108,7 @@ func DefaultConfig() *cmtcfg.Config {
 // DefaultConsensusParams returns the default consensus parameters
 // shared by every node in the network. Consensus parameters are
 // inscripted in genesis.
-func DefaultConsensusParams(consensusKeyAlgo string) *cmttypes.ConsensusParams {
+func DefaultConsensusParams(consensusKeyAlgo string, cs chain.Spec) *cmttypes.ConsensusParams {
 	res := cmttypes.DefaultConsensusParams()
 	res.Validator.PubKeyTypes = []string{consensusKeyAlgo}
 
@@ -120,6 +122,7 @@ func DefaultConsensusParams(consensusKeyAlgo string) *cmttypes.ConsensusParams {
 	res.Feature.PbtsEnableHeight = 1
 	res.Synchrony.Precision = precision
 	res.Synchrony.MessageDelay = messageDelay
+	res.Feature.SBTEnableHeight = cs.SbtConsensusEnableHeight()
 
 	if err := res.ValidateBasic(); err != nil {
 		panic(fmt.Errorf("invalid default consensus parameters: %w", err))
@@ -150,14 +153,6 @@ func validateConfig(cfg *cmtcfg.Config) error {
 			ErrInvalidaConfig,
 			cfg.Consensus.TimeoutPrecommit,
 			minTimeoutPrecommit,
-		)
-	}
-
-	if cfg.Consensus.TimeoutCommit < minTimeoutCommit {
-		return fmt.Errorf("%w, config timeout propose %v, min requested %v",
-			ErrInvalidaConfig,
-			cfg.Consensus.TimeoutCommit,
-			minTimeoutCommit,
 		)
 	}
 

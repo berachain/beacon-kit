@@ -457,10 +457,15 @@ func Setup(testnet *e2e.Testnet, infp infra.Provider) error {
 
 // MakeGenesis generates a genesis document.
 func MakeGenesis(testnet *e2e.Testnet) (types.GenesisDoc, error) {
+	chainSpec, err := spec.DevnetChainSpec()
+	if err != nil {
+		return types.GenesisDoc{}, err
+	}
+
 	genesis := types.GenesisDoc{
 		GenesisTime:     time.Now(),
 		ChainID:         testnet.Name,
-		ConsensusParams: beaconkitconsensus.DefaultConsensusParams(crypto.CometBLSType),
+		ConsensusParams: beaconkitconsensus.DefaultConsensusParams(crypto.CometBLSType, chainSpec),
 		InitialHeight:   testnet.InitialHeight,
 	}
 	// set the app version to 1
@@ -486,11 +491,6 @@ func MakeGenesis(testnet *e2e.Testnet) (types.GenesisDoc, error) {
 	}
 	if testnet.InitialHeight > 1 {
 		return genesis, errors.New("initial_height is not supported, please remove it from the manifest")
-	}
-
-	chainSpec, err := spec.DevnetChainSpec()
-	if err != nil {
-		return genesis, err
 	}
 
 	appState := beaconkitconsensustypes.DefaultGenesis(chainSpec.GenesisForkVersion())

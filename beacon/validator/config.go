@@ -26,7 +26,7 @@ const (
 
 	// defaultEnableOptimisticPayloadBuilds is the default
 	// for enabling the optimistic payload builder.
-	defaultEnableOptimisticPayloadBuilds = false
+	defaultEnableOptimisticPayloadBuilds = true
 )
 
 // Config is the validator configuration.
