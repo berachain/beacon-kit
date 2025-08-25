@@ -28,6 +28,7 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
@@ -46,11 +47,18 @@ func (s *Service) FinalizeBlock(
 		return nil, fmt.Errorf("failed to decode block and blobs: %w", err)
 	}
 	blk := signedBlk.GetBeaconBlock()
+	st := s.storageBackend.StateFromContext(ctx)
 
 	// Send an FCU to force the HEAD of the chain on the EL on startup.
 	var finalizeErr error
 	s.forceStartupSyncOnce.Do(func() {
-		finalizeErr = s.forceSyncUponFinalize(ctx, blk)
+		var parentProposerPubkey *crypto.BLSPubkey
+		parentProposerPubkey, finalizeErr = st.ParentProposerPubkey(blk.GetTimestamp())
+		if finalizeErr != nil {
+			finalizeErr = fmt.Errorf("force sync upon finalize: failed retrieving parent proposer pubkey: %w", finalizeErr)
+		} else {
+			finalizeErr = s.forceSyncUponFinalize(ctx, blk, parentProposerPubkey)
+		}
 	})
 	if finalizeErr != nil {
 		return nil, finalizeErr
@@ -63,7 +71,6 @@ func (s *Service) FinalizeBlock(
 
 	// STEP 3: Finalize the block.
 	consensusBlk := types.NewConsensusBlock(blk, req.GetProposerAddress(), req.GetTime())
-	st := s.storageBackend.StateFromContext(ctx)
 	valUpdates, err := s.finalizeBeaconBlock(ctx, st, consensusBlk)
 	if err != nil {
 		s.logger.Error("Failed to process verified beacon block",

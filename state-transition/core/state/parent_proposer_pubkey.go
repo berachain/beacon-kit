@@ -18,17 +18,33 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package ckzg
+package state
 
-import "github.com/berachain/beacon-kit/errors"
+import (
+	"fmt"
 
-var (
-	// ErrInvalidProof is returned when a proof is invalid.
-	ErrInvalidProof = errors.New("invalid proof")
-
-	// ErrCGONotEnabled is returned when cgo is not enabled.
-	ErrCGONotEnabled = errors.New(
-		"github.com/ethereum/c-kzg-4844 " +
-			"requires an executable built with CGO_ENABLED=1",
-	)
+	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 )
+
+// ParentProposerPubkey returns the parent proposer pubkey for the given timestamp.
+// It must return nil if we are before Electra1.
+//
+//nolint:nilnil // TODO: consider addressing this
+func (s *StateDB) ParentProposerPubkey(timestamp math.U64) (*crypto.BLSPubkey, error) {
+	if version.IsBefore(s.cs.ActiveForkVersionForTimestamp(timestamp), version.Electra1()) {
+		return nil, nil
+	}
+
+	latestBlockHeader, err := s.GetLatestBlockHeader()
+	if err != nil {
+		return nil, fmt.Errorf("failed retrieving latest block header: %w", err)
+	}
+	prevProposer, err := s.ValidatorByIndex(latestBlockHeader.GetProposerIndex())
+	if err != nil {
+		return nil, fmt.Errorf("failed retrieving prev proposer: %w", err)
+	}
+	p := prevProposer.GetPubkey()
+	return &p, nil
+}

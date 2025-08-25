@@ -37,18 +37,22 @@ func TestnetChainSpecData() *chain.SpecData {
 	specData.DepositsV2ActivationSlot = math.Slot(stdmath.MaxInt64) // TODO: set right value
 
 	// Timestamp of the genesis block of Bepolia testnet.
-	specData.GenesisTime = 1739976735
+	specData.GenesisTime = 1_739_976_735
 
 	// Deneb1 fork timing on Bepolia. This is calculated based on the timestamp of the first bepolia
 	// epoch, block 192, which was used to initiate the fork when beacon-kit forked by epoch instead
 	// of by timestamp.
-	specData.Deneb1ForkTime = 1740090694
+	specData.Deneb1ForkTime = 1_740_090_694
 
 	// Timestamp of the Electra fork on Bepolia.
-	specData.ElectraForkTime = 1746633600
+	specData.ElectraForkTime = 1_746_633_600
+
+	// Enable stable block time before the Electra1 fork.
+	specData.Config.ConsensusUpdateHeight = 7_768_334
+	specData.Config.ConsensusEnableHeight = 7_768_335
 
 	// Timestamp of the Electra1 fork on Bepolia.
-	specData.Electra1ForkTime = stdmath.MaxInt64
+	specData.Electra1ForkTime = 1_754_496_000
 
 	return specData
 }
