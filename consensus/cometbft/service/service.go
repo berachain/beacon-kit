@@ -157,7 +157,7 @@ func NewService(
 		panic(fmt.Errorf("failed loading latest version: %w", err))
 	}
 
-	lastBlockHeight := s.sm.GetCommitMultiStore().LastCommitID().Version
+	lastBlockHeight := s.lastBlockHeight()
 	s.syncToHeight = lastBlockHeight
 
 	// Make sure that SBT consensus parameters are duly set when the node restart.
@@ -300,6 +300,11 @@ func (s *Service) MountStore(
 	typ storetypes.StoreType,
 ) {
 	s.sm.GetCommitMultiStore().MountStoreWithDB(key, typ, nil)
+}
+
+// LastBlockHeight returns the last committed block height.
+func (s *Service) lastBlockHeight() int64 {
+	return s.sm.GetCommitMultiStore().LastCommitID().Version
 }
 
 func (s *Service) setMinRetainBlocks(minRetainBlocks uint64) {

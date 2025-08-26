@@ -76,10 +76,6 @@ func (t *testConsensusService) Name() string {
 	panic(errTestMemberNotImplemented)
 }
 
-func (t *testConsensusService) LastBlockHeight() int64 {
-	panic(errTestMemberNotImplemented)
-}
-
 func (t *testConsensusService) GetSyncData() (int64, int64) {
 	panic(errTestMemberNotImplemented)
 }

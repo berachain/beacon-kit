@@ -84,10 +84,6 @@ func (s *SimComet) CreateQueryContext(height int64, prove bool) (sdk.Context, er
 	return s.Comet.CreateQueryContext(height, prove)
 }
 
-func (s *SimComet) LastBlockHeight() int64 {
-	panic("unimplemented")
-}
-
 func (s *SimComet) GetSyncData() (int64, int64) {
 	panic("unimplemented")
 }

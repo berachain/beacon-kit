@@ -215,7 +215,7 @@ func (s *Service) validateFinalizeBlockHeight(req *cmtabci.FinalizeBlockRequest)
 		)
 	}
 
-	lastBlockHeight := s.LastBlockHeight()
+	lastBlockHeight := s.lastBlockHeight()
 
 	// expectedHeight holds the expected height to validate
 	var expectedHeight int64

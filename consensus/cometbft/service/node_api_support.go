@@ -83,12 +83,6 @@ func (s *Service) CreateQueryContext(
 	), nil
 }
 
-// LastBlockHeight returns the last committed block height.
-func (s *Service) LastBlockHeight() int64 {
-	return s.sm.GetCommitMultiStore().LastCommitID().Version
-}
-
 func (s *Service) GetSyncData() (int64, int64) {
-	latestHeight := s.sm.GetCommitMultiStore().LastCommitID().Version
-	return latestHeight, s.syncToHeight
+	return s.lastBlockHeight(), s.syncToHeight
 }
