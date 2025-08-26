@@ -18,22 +18,18 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package node
+package types
 
-import "github.com/berachain/beacon-kit/node-api/handlers"
-
-type Handler struct {
-	*handlers.BaseHandler
-
-	backend Backend
+type DataResponse struct {
+	Data any `json:"data"`
 }
 
-func NewHandler(b Backend) *Handler {
-	h := &Handler{
-		BaseHandler: handlers.NewBaseHandler(
-			handlers.NewRouteSet(""),
-		),
-		backend: b,
+func Wrap(data any) DataResponse {
+	return DataResponse{
+		Data: data,
 	}
-	return h
+}
+
+type VersionData struct {
+	Version string `json:"version"`
 }
