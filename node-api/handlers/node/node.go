@@ -33,7 +33,7 @@ import (
 func (h *Handler) Syncing(handlers.Context) (any, error) {
 	latestHeight, syncingToHeight := h.backend.GetSyncData()
 	syncDistance := syncingToHeight - latestHeight
-	response := types.SyncingData{
+	response := &types.SyncingData{
 		HeadSlot:     latestHeight,
 		SyncDistance: syncDistance,
 
@@ -53,7 +53,7 @@ func (h *Handler) Syncing(handlers.Context) (any, error) {
 		ELOffline: false,
 	}
 
-	return types.Wrap(&response), nil
+	return types.Wrap(response), nil
 }
 
 // Version is a placeholder so that beacon API clients don't break.
