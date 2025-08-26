@@ -76,8 +76,8 @@ func (_c *Backend_GetVersionData_Call) Run(run func()) *Backend_GetVersionData_C
 	return _c
 }
 
-func (_c *Backend_GetVersionData_Call) Return(_a0 string, _a1 string, _a2 string, _a3 string) *Backend_GetVersionData_Call {
-	_c.Call.Return(_a0, _a1, _a2, _a3)
+func (_c *Backend_GetVersionData_Call) Return(appName string, version string, os string, arch string) *Backend_GetVersionData_Call {
+	_c.Call.Return(appName, version, os, arch)
 	return _c
 }
 
