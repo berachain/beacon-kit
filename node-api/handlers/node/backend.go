@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2025, Berachain Foundation. All rights reserved.
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -20,20 +20,11 @@
 
 package node
 
-import "github.com/berachain/beacon-kit/node-api/handlers"
-
-type Handler struct {
-	*handlers.BaseHandler
-
-	backend Backend
-}
-
-func NewHandler(b Backend) *Handler {
-	h := &Handler{
-		BaseHandler: handlers.NewBaseHandler(
-			handlers.NewRouteSet(""),
-		),
-		backend: b,
-	}
-	return h
+type Backend interface {
+	GetVersionData() (
+		string, // appName
+		string, // version
+		string, // os
+		string, // arch
+	)
 }

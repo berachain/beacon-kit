@@ -502,6 +502,7 @@ type (
 
 		NodeAPIBeaconBackend
 		NodeAPIProofBackend
+		NodeAPINodeBackend
 		NodeAPIConfigBackend
 	}
 
@@ -530,6 +531,15 @@ type (
 		BlockBackend
 		StateBackend
 		GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
+	}
+
+	NodeAPINodeBackend interface {
+		GetVersionData() (
+			string, // appName
+			string, // version
+			string, // os
+			string, // arch
+		)
 	}
 
 	GenesisBackend interface {

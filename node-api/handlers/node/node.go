@@ -22,11 +22,9 @@ package node
 
 import (
 	"fmt"
-	"runtime"
 
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/node/types"
-	"github.com/cosmos/cosmos-sdk/version"
 )
 
 // Syncing is a placeholder so that beacon API clients don't break.
@@ -53,21 +51,20 @@ func (h *Handler) Syncing(handlers.Context) (any, error) {
 	return response, nil
 }
 
-// Version is a placeholder so that beacon API clients don't break.
-// Note: cometVersionInfo comes from git describe (via the build process)
+// Note: version comes from git describe (via the build process)
 // Git describe usually returns string like <v1.2.3-14-g2414721>, which can be understood as follow:
 // - v1.2.3 → the most recent tag reachable from this commit
 // - 14 → number of commits since that tag
 // - g2414721 → the abbreviated commit hash, **with a leading g**.
 // That g stands for “git”. It’s a prefix Git uses to distinguish the commit hash from other possible identifiers.
 func (h *Handler) Version(handlers.Context) (any, error) {
-	cometVersionInfo := version.NewInfo() // same used in beacond version command
+	appName, version, os, arch := h.backend.GetVersionData()
 	r := types.VersionData{
 		Version: fmt.Sprintf("%s/%s (%s %s)",
-			cometVersionInfo.AppName,
-			cometVersionInfo.Version,
-			runtime.GOOS,
-			runtime.GOARCH,
+			appName,
+			version,
+			os,
+			arch,
 		),
 	}
 
