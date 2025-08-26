@@ -22,9 +22,9 @@ package node
 
 type Backend interface {
 	GetVersionData() (
-		string, // appName
-		string, // version
-		string, // os
-		string, // arch
+		appName,
+		version,
+		os,
+		arch string,
 	)
 }
