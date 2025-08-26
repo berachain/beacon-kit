@@ -29,28 +29,31 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 )
 
-// Syncing is a placeholder so that beacon API clients don't break.
-//
-// TODO: Implement with real data.
+// Syncing returns the syncing status of the beacon node.
 func (h *Handler) Syncing(handlers.Context) (any, error) {
-	type SyncingResponse struct {
-		Data struct {
-			HeadSlot     string `json:"head_slot"`
-			SyncDistance string `json:"sync_distance"`
-			IsSyncing    bool   `json:"is_syncing"`
-			IsOptimistic bool   `json:"is_optimistic"`
-			ELOffline    bool   `json:"el_offline"`
-		} `json:"data"`
+	latestHeight, syncingToHeight := h.backend.GetSyncData()
+	syncDistance := syncingToHeight - latestHeight
+	response := types.SyncingData{
+		HeadSlot:     latestHeight,
+		SyncDistance: syncDistance,
+
+		// BeaconKit has two operation modes: syncing from genesis
+		// and normal operations. Every block finalized is verified
+		// by the EL so for every purpose IsSyncing is equivalent to syncDistance > 0
+		IsSyncing: syncDistance > 0,
+
+		// BeaconKit always verifies blocks payload, whether
+		// it is syncing or it's in normal operation mode.
+		// So IsOptimistic is always false
+		IsOptimistic: false,
+
+		// BeaconKit fails to verify and finalize blocks if
+		// the EL is not reachable, resulting in a panic state.
+		// TODO: consider exposing the EL state here
+		ELOffline: false,
 	}
 
-	response := SyncingResponse{}
-	response.Data.HeadSlot = "0"
-	response.Data.SyncDistance = "1"
-	response.Data.IsSyncing = false
-	response.Data.IsOptimistic = true
-	response.Data.ELOffline = false
-
-	return response, nil
+	return types.Wrap(&response), nil
 }
 
 // Version is a placeholder so that beacon API clients don't break.

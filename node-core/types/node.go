@@ -53,9 +53,7 @@ type StorageBackendAccessor interface {
 // ConsensusService defines everything we utilise externally from CometBFT.
 type ConsensusService interface {
 	service.Basic
-	CreateQueryContext(
-		height int64,
-		prove bool,
-	) (sdk.Context, error)
+	CreateQueryContext(height int64, prove bool) (sdk.Context, error)
 	LastBlockHeight() int64
+	GetSyncData() (latestHeight int64, syncToHeight int64)
 }
