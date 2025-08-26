@@ -21,7 +21,6 @@
 package node_test
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/berachain/beacon-kit/node-api/handlers/node"
@@ -56,8 +55,8 @@ func TestNodeVersion(t *testing.T) {
 	require.IsType(t, &types.VersionData{}, dr.Data)
 	data, _ := dr.Data.(*types.VersionData)
 
-	require.True(t, strings.Contains(data.Version, appName))
-	require.True(t, strings.Contains(data.Version, version))
-	require.True(t, strings.Contains(data.Version, os))
-	require.True(t, strings.Contains(data.Version, arch))
+	require.Contains(t, data.Version, appName)
+	require.Contains(t, data.Version, version)
+	require.Contains(t, data.Version, os)
+	require.Contains(t, data.Version, arch)
 }
