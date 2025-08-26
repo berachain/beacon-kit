@@ -20,7 +20,14 @@
 
 package node
 
-import "github.com/berachain/beacon-kit/node-api/handlers"
+import (
+	"fmt"
+	"runtime"
+
+	"github.com/berachain/beacon-kit/node-api/handlers"
+	"github.com/berachain/beacon-kit/node-api/handlers/node/types"
+	"github.com/cosmos/cosmos-sdk/version"
+)
 
 // Syncing is a placeholder so that beacon API clients don't break.
 //
@@ -47,17 +54,16 @@ func (h *Handler) Syncing(handlers.Context) (any, error) {
 }
 
 // Version is a placeholder so that beacon API clients don't break.
-//
-// TODO: Implement with real data.
 func (h *Handler) Version(handlers.Context) (any, error) {
-	type VersionResponse struct {
-		Data struct {
-			Version string `json:"version"`
-		} `json:"data"`
+	cometVersionInfo := version.NewInfo() // same used in beacond version command
+	r := types.VersionData{
+		Version: fmt.Sprintf("%s/%s (%s %s)",
+			cometVersionInfo.AppName,
+			cometVersionInfo.Version,
+			runtime.GOOS,
+			runtime.GOARCH,
+		),
 	}
 
-	response := VersionResponse{}
-	response.Data.Version = "1.1.0"
-
-	return response, nil
+	return types.Wrap(r), nil
 }
