@@ -59,7 +59,7 @@ func (h *Handler) Syncing(handlers.Context) (any, error) {
 // That g stands for “git”. It’s a prefix Git uses to distinguish the commit hash from other possible identifiers.
 func (h *Handler) Version(handlers.Context) (any, error) {
 	appName, version, os, arch := h.backend.GetVersionData()
-	r := types.VersionData{
+	r := &types.VersionData{
 		Version: fmt.Sprintf("%s/%s (%s %s)",
 			appName,
 			version,
