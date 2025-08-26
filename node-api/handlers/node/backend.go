@@ -22,4 +22,10 @@ package node
 
 type Backend interface {
 	GetSyncData() (latestHeight int64, syncToHeight int64)
+	GetVersionData() (
+		appName,
+		version,
+		os,
+		arch string,
+	)
 }

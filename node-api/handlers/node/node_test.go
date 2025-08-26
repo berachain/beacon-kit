@@ -111,3 +111,35 @@ func TestNodeSyncing(t *testing.T) {
 		})
 	}
 }
+
+func TestNodeVersion(t *testing.T) {
+	t.Parallel()
+
+	// setup test
+	backend := mocks.NewBackend(t)
+	h := node.NewHandler(backend)
+
+	var (
+		appName = "testing-beacond"
+		version = "x.x.x-rc-14-gebeee824a"
+		os      = "theOs"
+		arch    = "theArch"
+	)
+	backend.EXPECT().GetVersionData().Return(appName, version, os, arch).Once()
+
+	// test
+	res, err := h.Version(nil) // input does not matter here
+
+	// checks
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.IsType(t, types.DataResponse{}, res)
+	dr, _ := res.(types.DataResponse)
+	require.IsType(t, &types.VersionData{}, dr.Data)
+	data, _ := dr.Data.(*types.VersionData)
+
+	require.Contains(t, data.Version, appName)
+	require.Contains(t, data.Version, version)
+	require.Contains(t, data.Version, os)
+	require.Contains(t, data.Version, arch)
+}
