@@ -34,9 +34,9 @@ import (
 const (
 	luganodesPubKey = "0xafd0ad061f698eae0d483098948e26e254f4b7089244bda897895257c668196ffd5e2ddf458fdf8bcea295b7d47a5b37"
 	luganodesCreds  = "0x010000000000000000000000b0c615224a053236ac7d1c239f6c1b5fbf8f0617"
-	luganodesAmount = 901_393_690_000_000 * params.Wei // 901_393.69 Gwei
+	luganodesAmount = 4000 * params.GWei
 
-	fixSmileePubKey = "0x84acfd38a13af12add8d82e1ef0842c4dfc1e4175fae5b8ab73770f9050cbf673cafdbf6d8ab679fe9ea13208f50b485"
+	fixSmileePubKey = "0x8fafc3cb406aea235d4335681127b149855dee7074042990e173262255d4130475364a161ddc728f39255110aa13ab85"
 )
 
 //nolint:gochecknoglobals // unexported
