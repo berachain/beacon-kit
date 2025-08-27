@@ -20,24 +20,16 @@
 
 package types
 
-import "github.com/berachain/beacon-kit/node-api/handlers/types"
-
-// BlockProposerRequest is the request for the
-// `/proof/block_proposer/{timestamp_id}` endpoint.
-type BlockProposerRequest struct {
-	types.TimestampIDRequest
+type DataResponse struct {
+	Data any `json:"data"`
 }
 
-// ValidatorIndexRequest is a request that uses timestamp_id and validator_index.
-type ValidatorIndexRequest struct {
-	types.TimestampIDRequest
-	ValidatorIndex string `param:"validator_index" validate:"required,numeric"`
+func Wrap(data any) DataResponse {
+	return DataResponse{
+		Data: data,
+	}
 }
 
-// ValidatorCredentialsRequest is the request for the
-// `/proof/validator_credentials/{timestamp_id}/{validator_index}` endpoint.
-type ValidatorCredentialsRequest = ValidatorIndexRequest
-
-// ValidatorBalanceRequest is the request for the
-// `/proof/validator_balance/{timestamp_id}/{validator_index}` endpoint.
-type ValidatorBalanceRequest = ValidatorIndexRequest
+type VersionData struct {
+	Version string `json:"version"`
+}

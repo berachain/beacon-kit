@@ -20,7 +20,12 @@
 
 package node
 
-import "github.com/berachain/beacon-kit/node-api/handlers"
+import (
+	"fmt"
+
+	"github.com/berachain/beacon-kit/node-api/handlers"
+	"github.com/berachain/beacon-kit/node-api/handlers/node/types"
+)
 
 // Syncing is a placeholder so that beacon API clients don't break.
 //
@@ -46,18 +51,22 @@ func (h *Handler) Syncing(handlers.Context) (any, error) {
 	return response, nil
 }
 
-// Version is a placeholder so that beacon API clients don't break.
-//
-// TODO: Implement with real data.
+// Note: version comes from git describe (via the build process)
+// Git describe usually returns string like <v1.2.3-14-g2414721>, which can be understood as follow:
+// - v1.2.3 → the most recent tag reachable from this commit
+// - 14 → number of commits since that tag
+// - g2414721 → the abbreviated commit hash, **with a leading g**.
+// That g stands for “git”. It’s a prefix Git uses to distinguish the commit hash from other possible identifiers.
 func (h *Handler) Version(handlers.Context) (any, error) {
-	type VersionResponse struct {
-		Data struct {
-			Version string `json:"version"`
-		} `json:"data"`
+	appName, version, os, arch := h.backend.GetVersionData()
+	r := &types.VersionData{
+		Version: fmt.Sprintf("%s/%s (%s %s)",
+			appName,
+			version,
+			os,
+			arch,
+		),
 	}
 
-	response := VersionResponse{}
-	response.Data.Version = "1.1.0"
-
-	return response, nil
+	return types.Wrap(r), nil
 }
