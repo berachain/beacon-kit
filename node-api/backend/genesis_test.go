@@ -32,6 +32,8 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/node-api/backend"
+	"github.com/berachain/beacon-kit/node-api/backend/mocks"
+	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -44,20 +46,6 @@ import (
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/stretchr/testify/require"
 )
-
-func setupStateWithGenesisValues(
-	t *testing.T, cms storetypes.CommitMultiStore, kvStore *beacondb.KVStore,
-) {
-	t.Helper()
-
-	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), false, log.NewNopLogger())
-	kvStore = kvStore.WithContext(sdkCtx)
-	require.NoError(t, kvStore.SetSlot(0))
-	require.NoError(t, kvStore.SetGenesisValidatorsRoot(common.Root{0x1, 0x2, 0x3}))
-
-	//nolint:errcheck // false positive as this has no return value
-	sdkCtx.MultiStore().(storetypes.CacheMultiStore).Write()
-}
 
 func TestGetGenesisData(t *testing.T) {
 	t.Parallel()
@@ -103,11 +91,13 @@ func TestGetGenesisData(t *testing.T) {
 
 	b, err := backend.New(sb, cs, cmtCfg)
 	require.NoError(t, err)
-	tcs := &testConsensusService{
-		cms:     cms,
-		kvStore: kvStore,
-		cs:      cs,
-	}
+	tcs := mocks.NewConsensusService(t)
+	tcs.EXPECT().CreateQueryContext(int64(utils.Head), false).RunAndReturn(
+		func(int64, bool) (sdk.Context, error) {
+			sdkCtx := sdk.NewContext(cms.CacheMultiStore(), false, log.NewNopLogger())
+			return sdkCtx, nil
+		},
+	).Once()
 	b.AttachQueryBackend(tcs)
 
 	// Test all genesis data.
@@ -122,4 +112,18 @@ func TestGetGenesisData(t *testing.T) {
 	genesisValidatorsRoot, err := b.GenesisValidatorsRoot()
 	require.NoError(t, err)
 	require.Equal(t, common.Root{0x1, 0x2, 0x3}, genesisValidatorsRoot)
+}
+
+func setupStateWithGenesisValues(
+	t *testing.T, cms storetypes.CommitMultiStore, kvStore *beacondb.KVStore,
+) {
+	t.Helper()
+
+	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), false, log.NewNopLogger())
+	kvStore = kvStore.WithContext(sdkCtx)
+	require.NoError(t, kvStore.SetSlot(0))
+	require.NoError(t, kvStore.SetGenesisValidatorsRoot(common.Root{0x1, 0x2, 0x3}))
+
+	//nolint:errcheck // false positive as this has no return value
+	sdkCtx.MultiStore().(storetypes.CacheMultiStore).Write()
 }
