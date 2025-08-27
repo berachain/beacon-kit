@@ -21,6 +21,7 @@
 package backend
 
 import (
+	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -38,6 +39,9 @@ func (b *Backend) GenesisValidatorsRoot() (common.Root, error) {
 	// If not cached, read state from the beacon state at the tip of chain.
 	st, _, err := b.StateAtSlot(utils.Head)
 	if err != nil {
+		if errors.Is(err, cometbft.ErrAppNotReady) {
+			return common.Root{}, nil
+		}
 		return common.Root{}, errors.Wrapf(err, "failed to get state from tip of chain")
 	}
 

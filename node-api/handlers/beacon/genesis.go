@@ -24,15 +24,18 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/types"
+	"github.com/berachain/beacon-kit/primitives/common"
 )
 
-func (h *Handler) GetGenesis(_ handlers.Context) (any, error) {
+func (h *Handler) GetGenesis(handlers.Context) (any, error) {
 	genesisRoot, err := h.backend.GenesisValidatorsRoot()
 	if err != nil {
 		return nil, err
 	}
-	if len(genesisRoot) == 0 {
-		return nil, types.ErrNotFound
+	if genesisRoot.Equals(common.Root{}) {
+		// this may happen if genesis time is set in the future
+		// and app is not ready to start yet
+		return nil, types.ErrNotFound // will result in http.StatusNotFound
 	}
 
 	genesisForkVersion, err := h.backend.GenesisForkVersion()
