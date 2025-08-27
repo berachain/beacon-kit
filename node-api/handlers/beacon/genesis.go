@@ -21,6 +21,7 @@
 package beacon
 
 import (
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/types"
@@ -34,8 +35,9 @@ func (h *Handler) GetGenesis(handlers.Context) (any, error) {
 	}
 	if genesisRoot.Equals(common.Root{}) {
 		// this may happen if genesis time is set in the future
-		// and app is not ready to start yet
-		return nil, types.ErrNotFound // will result in http.StatusNotFound
+		// and app is not ready to start yet. We return an error
+		// type resulting in http.StatusNotFound
+		return nil, errors.Wrap(types.ErrNotFound, "Chain genesis info is not yet known")
 	}
 
 	genesisForkVersion, err := h.backend.GenesisForkVersion()

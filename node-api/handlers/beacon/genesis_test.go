@@ -82,6 +82,7 @@ func TestGetGenesis(t *testing.T) {
 				t.Helper()
 
 				require.ErrorIs(t, err, types.ErrNotFound)
+				require.Contains(t, err.Error(), "Chain genesis info is not yet known")
 				require.Nil(t, res)
 			},
 		},
