@@ -36,6 +36,7 @@ import (
 	errorsmod "github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/storage"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
@@ -49,6 +50,7 @@ import (
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 )
 
 const (
@@ -200,6 +202,21 @@ func (s *Service) Start(
 	if err != nil {
 		return err
 	}
+
+	// TESTING: PRINT OUT GENESIS FED TO THE NODE
+	appGenesis, err := genutiltypes.AppGenesisFromFile(cfg.GenesisFile())
+	if err != nil {
+		return fmt.Errorf("TESTING - failed loading genesis: %w", err)
+	}
+	appGenesisString, err := json.Marshal(appGenesis)
+	if err != nil {
+		return fmt.Errorf("TESTING - failed marshalling genesis: %w", err)
+	}
+
+	s.logger.Info(
+		"TESTING - printing genesis",
+		"content", appGenesisString,
+	)
 
 	s.ResetAppCtx(ctx)
 	s.node, err = node.NewNode(
