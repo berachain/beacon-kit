@@ -50,60 +50,41 @@ import (
 func TestGetGenesisData(t *testing.T) {
 	t.Parallel()
 
-	// Build backend to test
+	// Create backend inputs
 	cs, err := spec.MainnetChainSpec()
 	require.NoError(t, err)
+
+	genesisTime := int64(1737410400)
+	cmtCfg := buildTestCometConfig(t, genesisTime)
+
 	cms, kvStore, depositStore, err := statetransition.BuildTestStores()
 	require.NoError(t, err)
-
-	// Setup state for genesis tests.
-	setupStateWithGenesisValues(t, cms, kvStore)
 	sb := storage.NewBackend(
 		cs, nil, kvStore, depositStore, nil, log.NewNopLogger(), metrics.NewNoOpTelemetrySink(),
 	)
 
-	// Create a temporary directory for CometBFT config
-	tmpDir := t.TempDir()
-
-	// Create CometBFT config with temporary directory
-	cmtCfg := cmtcfg.DefaultConfig()
-	cmtCfg.SetRoot(tmpDir)
-
-	// Create config directory
-	configDir := filepath.Join(tmpDir, "config")
-	err = os.MkdirAll(configDir, 0o755)
-	require.NoError(t, err)
-
-	// Create app genesis with version of Deneb 0x04000000.
-	appGenesis := genutiltypes.NewAppGenesisWithVersion("test-chain", []byte(`
-	{
-		"beacon": {
-			"fork_version": "0x04000000"
-		}
-	}
-	`))
-	appGenesis.GenesisTime = time.Unix(1737410400, 0)
-
-	// Save genesis file to the config directory
-	genesisFile := filepath.Join(configDir, "genesis.json")
-	err = appGenesis.SaveAs(genesisFile)
-	require.NoError(t, err)
-
-	b, err := backend.New(sb, cs, cmtCfg)
-	require.NoError(t, err)
 	tcs := mocks.NewConsensusService(t)
+
+	// Setup expectations before backend construction
+	// (loading operations are carried out in backend.New())
+	setupStateWithGenesisValues(t, cms, kvStore)
+
 	tcs.EXPECT().CreateQueryContext(int64(utils.Head), false).RunAndReturn(
 		func(int64, bool) (sdk.Context, error) {
 			sdkCtx := sdk.NewContext(cms.CacheMultiStore(), false, log.NewNopLogger())
 			return sdkCtx, nil
 		},
 	).Once()
+
+	// build backend
+	b, err := backend.New(sb, cs, cmtCfg)
+	require.NoError(t, err)
 	b.AttachQueryBackend(tcs)
 
-	// Test all genesis data.
-	genesisTime, err := b.GenesisTime()
+	// Tests
+	gotGenesisTime, err := b.GenesisTime()
 	require.NoError(t, err)
-	require.Equal(t, math.U64(1737410400), genesisTime)
+	require.Equal(t, math.U64(genesisTime), gotGenesisTime)
 
 	genesisForkVersion, err := b.GenesisForkVersion()
 	require.NoError(t, err)
@@ -126,4 +107,35 @@ func setupStateWithGenesisValues(
 
 	//nolint:errcheck // false positive as this has no return value
 	sdkCtx.MultiStore().(storetypes.CacheMultiStore).Write()
+}
+
+func buildTestCometConfig(t *testing.T, genesisTime int64) *cmtcfg.Config {
+	t.Helper()
+
+	// Create a temporary directory for CometBFT config
+	tmpDir := t.TempDir()
+	cmtCfg := cmtcfg.DefaultConfig()
+	cmtCfg.SetRoot(tmpDir)
+
+	// Create config directory
+	configDir := filepath.Join(tmpDir, "config")
+	err := os.MkdirAll(configDir, 0o755)
+	require.NoError(t, err)
+
+	// Create app genesis with version of Deneb 0x04000000.
+	appGenesis := genutiltypes.NewAppGenesisWithVersion("test-chain", []byte(`
+	{
+		"beacon": {
+			"fork_version": "0x04000000"
+		}
+	}
+	`))
+	appGenesis.GenesisTime = time.Unix(genesisTime, 0)
+
+	// Save genesis file to the config directory
+	genesisFile := filepath.Join(configDir, "genesis.json")
+	err = appGenesis.SaveAs(genesisFile)
+	require.NoError(t, err)
+
+	return cmtCfg
 }
