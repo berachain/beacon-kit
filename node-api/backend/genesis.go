@@ -39,6 +39,8 @@ func (b *Backend) GenesisValidatorsRoot() (common.Root, error) {
 	// If not cached, read state from the beacon state at the tip of chain.
 	st, _, err := b.StateAtSlot(utils.Head)
 	if err != nil {
+		// Should the app be not read, we return an empty validator root
+		// which is duly processed by clients
 		if errors.Is(err, cometbft.ErrAppNotReady) {
 			return common.Root{}, nil
 		}
