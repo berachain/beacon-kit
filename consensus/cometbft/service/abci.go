@@ -157,7 +157,7 @@ func (s *Service) Query(
 
 	// when a client did not provide a query height, manually inject the latest
 	if req.Height == 0 {
-		req.Height = s.LastBlockHeight()
+		req.Height = s.lastBlockHeight()
 	}
 
 	s.telemetrySink.IncrementCounter("beacon_kit.comet.query_count", "path", req.Path)
