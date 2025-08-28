@@ -205,9 +205,9 @@ func getAppOptions(t *testing.T, appOpts *viper.Viper, beaconKitConfig *config.C
 	appOpts.Set(flags.KZGImplementation, kzg.DefaultConfig().Implementation)
 
 	// Payload Builder Config
-	beaconKitConfig.GetPayloadBuilder().SuggestedFeeRecipient = common.NewExecutionAddressFromHex(
-		"0x981114102592310C347E61368342DDA67017bf84",
-	)
+	suggestedFeeRecipient, err := common.NewExecutionAddressFromHex("0x981114102592310C347E61368342DDA67017bf84")
+	require.NoError(t, err)
+	beaconKitConfig.GetPayloadBuilder().SuggestedFeeRecipient = suggestedFeeRecipient
 	appOpts.Set(flags.BuilderEnabled, beaconKitConfig.GetPayloadBuilder().Enabled)
 	appOpts.Set(flags.BuildPayloadTimeout, beaconKitConfig.GetPayloadBuilder().PayloadTimeout)
 	appOpts.Set(flags.SuggestedFeeRecipient, beaconKitConfig.GetPayloadBuilder().SuggestedFeeRecipient)

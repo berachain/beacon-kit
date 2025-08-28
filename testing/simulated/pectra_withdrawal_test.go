@@ -170,7 +170,8 @@ func (s *PectraWithdrawalSuite) TestExcessValidatorBeforeFork_CorrectlyEvicted()
 		s.Require().NoError(err)
 		s.Require().Equal(uint64(1), depositCount)
 
-		credAddress := common.NewExecutionAddressFromHex("0x56898d1aFb10cad584961eb96AcD476C6826e41E")
+		credAddress, err := common.NewExecutionAddressFromHex("0x56898d1aFb10cad584961eb96AcD476C6826e41E")
+		s.Require().NoError(err)
 		creds := consensustypes.NewCredentialsFromExecutionAddress(credAddress)
 		newDepositor := &signer.BLSSigner{PrivValidator: types.NewMockPVWithKeyType(bls12381.KeyType)}
 		depositMsg, blsSig, err := depositcli.CreateDepositMessage(
@@ -335,7 +336,8 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdra
 
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
 
-	credAddress := common.NewExecutionAddressFromHex(simulated.WithdrawalExecutionAddress)
+	credAddress, err := common.NewExecutionAddressFromHex(simulated.WithdrawalExecutionAddress)
+	s.Require().NoError(err)
 	creds := consensustypes.NewCredentialsFromExecutionAddress(credAddress)
 	senderAddress := gethcommon.HexToAddress(credAddress.String())
 	// Hard fork occurs at t=10, so we move passed the pectra hard fork
@@ -510,7 +512,8 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_HasCorrectWithdraw
 
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
 
-	credAddress := common.NewExecutionAddressFromHex(simulated.WithdrawalExecutionAddress)
+	credAddress, err := common.NewExecutionAddressFromHex(simulated.WithdrawalExecutionAddress)
+	s.Require().NoError(err)
 	creds := consensustypes.NewCredentialsFromExecutionAddress(credAddress)
 	senderAddress := gethcommon.HexToAddress(credAddress.String())
 	// Hard fork occurs at t=10, so we move passed the pectra hard fork

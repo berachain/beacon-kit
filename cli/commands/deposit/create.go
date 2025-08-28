@@ -103,8 +103,7 @@ func createValidatorCmd(
 			return err
 		}
 
-		withdrawalAddressStr := args[createAddr0]
-		withdrawalAddress, err := parser.ConvertWithdrawalAddress(withdrawalAddressStr)
+		withdrawalAddress, err := common.NewExecutionAddressFromHex(args[createAddr0])
 		if err != nil {
 			return err
 		}

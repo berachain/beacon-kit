@@ -21,6 +21,8 @@
 package spec
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
 	"github.com/berachain/beacon-kit/primitives/bytes"
@@ -106,6 +108,19 @@ const (
 
 // MainnetChainSpecData is the chain.SpecData for the Berachain mainnet.
 func MainnetChainSpecData() *chain.SpecData {
+	depositContractAddress, err := common.NewExecutionAddressFromHex(mainnetDepositContractAddress)
+	if err != nil {
+		panic(fmt.Errorf("failed loading mainnet Deposit Contract Address: %w", err))
+	}
+	evmInflationAddress, err := common.NewExecutionAddressFromHex(mainnetEVMInflationAddress)
+	if err != nil {
+		panic(fmt.Errorf("failed loading mainnet evm inflation address: %w", err))
+	}
+	evmInflationAddressDeneb1, err := common.NewExecutionAddressFromHex(mainnetEVMInflationAddressDeneb1)
+	if err != nil {
+		panic(fmt.Errorf("failed loading mainnet Deneb1 evm inflation address: %w", err))
+	}
+
 	specData := &chain.SpecData{
 		Config: delay.DefaultConfig(),
 
@@ -133,7 +148,7 @@ func MainnetChainSpecData() *chain.SpecData {
 		DomainTypeApplicationMask:   bytes.FromUint32(defaultDomainTypeApplicationMask),
 
 		// Eth1-related values.
-		DepositContractAddress:    common.NewExecutionAddressFromHex(mainnetDepositContractAddress),
+		DepositContractAddress:    depositContractAddress,
 		MaxDepositsPerBlock:       defaultMaxDepositsPerBlock,
 		DepositEth1ChainID:        chain.MainnetEth1ChainID,
 		Eth1FollowDistance:        defaultEth1FollowDistance,
@@ -164,11 +179,11 @@ func MainnetChainSpecData() *chain.SpecData {
 
 		// Berachain values at genesis.
 		ValidatorSetCap:             mainnetValidatorSetCap,
-		EVMInflationAddressGenesis:  common.NewExecutionAddressFromHex(mainnetEVMInflationAddress),
+		EVMInflationAddressGenesis:  evmInflationAddress,
 		EVMInflationPerBlockGenesis: mainnetEVMInflationPerBlock,
 
 		// Deneb1 values.
-		EVMInflationAddressDeneb1:  common.NewExecutionAddressFromHex(mainnetEVMInflationAddressDeneb1),
+		EVMInflationAddressDeneb1:  evmInflationAddressDeneb1,
 		EVMInflationPerBlockDeneb1: mainnetEVMInflationPerBlockDeneb1,
 
 		// Electra values.

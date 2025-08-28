@@ -63,7 +63,7 @@ func NumericToDomainTypeFunc() mapstructure.DecodeHookFunc {
 func StringToExecutionAddressFunc() mapstructure.DecodeHookFunc {
 	return stringTo(
 		func(s string) (common.ExecutionAddress, error) {
-			return common.NewExecutionAddressFromHex(s), nil
+			return common.NewExecutionAddressFromHex(s)
 		},
 	)
 }

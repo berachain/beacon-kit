@@ -21,6 +21,8 @@
 package spec
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/ethereum/go-ethereum/params"
@@ -81,11 +83,19 @@ func DevnetChainSpecData() *chain.SpecData {
 	specData.Electra1ForkTime = devnetElectra1ForkTime
 
 	// EVM inflation is different from mainnet to test.
-	specData.EVMInflationAddressGenesis = common.NewExecutionAddressFromHex(devnetEVMInflationAddress)
+	var err error
+	specData.EVMInflationAddressGenesis, err = common.NewExecutionAddressFromHex(devnetEVMInflationAddress)
+	if err != nil {
+		panic(fmt.Errorf("failed loading EVMInflationAddressGenesis: %w", err))
+	}
 	specData.EVMInflationPerBlockGenesis = devnetEVMInflationPerBlock
 
 	// EVM inflation is different from mainnet for now, after the Deneb1 fork.
-	specData.EVMInflationAddressDeneb1 = common.NewExecutionAddressFromHex(devnetEVMInflationAddressDeneb1)
+	specData.EVMInflationAddressDeneb1, err = common.NewExecutionAddressFromHex(devnetEVMInflationAddressDeneb1)
+	if err != nil {
+		panic(fmt.Errorf("failed loading EVMInflationAddressDeneb1: %w", err))
+	}
+
 	specData.EVMInflationPerBlockDeneb1 = devnetEVMInflationPerBlockDeneb1
 
 	// Staking is different from mainnet for now.

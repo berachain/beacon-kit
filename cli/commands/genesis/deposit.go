@@ -60,7 +60,10 @@ func AddGenesisDepositCmd(chainSpecCreator servertypes.ChainSpecCreator) *cobra.
 				return err
 			}
 			// Get the withdrawal address.
-			withdrawalAddress := common.NewExecutionAddressFromHex(args[1])
+			withdrawalAddress, err := common.NewExecutionAddressFromHex(args[1])
+			if err != nil {
+				return fmt.Errorf("failed retrieving withdrawal address: %w", err)
+			}
 			cometConfig := context.GetConfigFromCmd(cmd)
 			appOpts := context.GetViperFromCmd(cmd)
 			outputDocument, _ := cmd.Flags().GetString(flags.FlagOutputDocument)
