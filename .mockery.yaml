@@ -90,3 +90,9 @@ packages:
       recursive: False
       with-expecter: true
       include-regex: ^Backend$
+  github.com/berachain/beacon-kit/node-core/types:
+    config:
+      dir: "node-api/backend/mocks"
+      recursive: False
+      with-expecter: true
+      include-regex: ConsensusService
