@@ -28,42 +28,12 @@ import (
 )
 
 // ProveProposerPubkeyInBlock generates a proof for the proposer pubkey in the
-// beacon block. The proof is then verified against the beacon block root as a
-// sanity check. Returns the proof along with the beacon block root. It uses
-// the fastssz library to generate the proof.
+// beacon block.
 func ProveProposerPubkeyInBlock(
 	bbh *ctypes.BeaconBlockHeader,
 	bsm types.BeaconStateMarshallable,
 ) ([]common.Root, common.Root, error) {
-	forkVersion := bsm.GetForkVersion()
-
-	// Get the proof of the proposer pubkey in the beacon state.
-	proposerOffset := ValidatorGIndexOffset * bbh.GetProposerIndex()
-	valPubkeyInStateProof, leaf, err := ProveProposerPubkeyInState(
-		forkVersion, bsm, proposerOffset,
-	)
-	if err != nil {
-		return nil, common.Root{}, err
-	}
-
-	// Then get the proof of the beacon state in the beacon block.
-	stateInBlockProof, err := ProveBeaconStateInBlock(bbh, false)
-	if err != nil {
-		return nil, common.Root{}, err
-	}
-
-	// Sanity check that the combined proof verifies against our beacon root.
-	//
-	//nolint:gocritic // ok.
-	combinedProof := append(valPubkeyInStateProof, stateInBlockProof...)
-	beaconRoot, err := verifyPubkeyInBlock(
-		forkVersion, bbh, proposerOffset, combinedProof, leaf,
-	)
-	if err != nil {
-		return nil, common.Root{}, err
-	}
-
-	return combinedProof, beaconRoot, nil
+	return ProveValidatorPubkeyInBlock(bbh.GetProposerIndex(), bbh, bsm)
 }
 
 // ProveProposerPubkeyInState generates a proof for the proposer pubkey
