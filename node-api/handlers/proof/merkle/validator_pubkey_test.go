@@ -114,9 +114,7 @@ func TestValidatorPubkeyProof(t *testing.T) {
 				tc.bodyRoot,
 			)
 
-			proof, _, err := merkle.ProveValidatorPubkeyInBlock(
-				math.U64(tc.proposerIndex), bbh, bs,
-			)
+			proof, _, err := merkle.ProveValidatorPubkeyInBlock(tc.proposerIndex, bbh, bs)
 			require.NoError(t, err)
 			expectedProof := ReadProofFromFile(t, tc.expectedProofFile)
 			require.Equal(t, expectedProof, proof)
