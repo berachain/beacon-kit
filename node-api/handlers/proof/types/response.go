@@ -94,3 +94,24 @@ type ValidatorBalanceResponse struct {
 	// In the Electra fork, z is 199011604627456.
 	BalanceProof []common.Root `json:"balance_proof"`
 }
+
+// ValidatorPubkeyResponse is the response for the
+// `/proof/validator_pubkey/{timestamp_id}/{validator_index}` endpoint.
+type ValidatorPubkeyResponse struct {
+	// BeaconBlockHeader is the block header of which the hash tree root is the
+	// beacon block root to verify against.
+	BeaconBlockHeader *ctypes.BeaconBlockHeader `json:"beacon_block_header"`
+
+	// BeaconBlockRoot is the beacon block root for this slot.
+	BeaconBlockRoot common.Root `json:"beacon_block_root"`
+
+	// ValidatorPubkey is the pubkey of the requested validator.
+	ValidatorPubkey crypto.BLSPubkey `json:"validator_pubkey"`
+
+	// ValidatorPubkeyProof can be verified against the beacon block root. Use
+	// a Generalized Index of `z + (8 * ValidatorIndex)`, where z is the
+	// Generalized Index of the 0 validator pubkey in the beacon block. In
+	// the Deneb fork, z is 3254554418216960; in the Electra fork, z is
+	// 6350779162034176.
+	ValidatorPubkeyProof []common.Root `json:"validator_pubkey_proof"`
+}
