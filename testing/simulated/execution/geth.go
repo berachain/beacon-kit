@@ -36,7 +36,7 @@ func NewGethNode(homeDir string, image docker.PullImageOptions) *ExecNode {
 // ValidGethImage returns the default Docker image options for the Geth node.
 func ValidGethImage() docker.PullImageOptions {
 	return docker.PullImageOptions{
-		Repository: "ethereum/client-go",
+		Repository: "ghcr.io/berachain/bera-geth",
 		Tag:        "latest",
 	}
 }
@@ -44,15 +44,15 @@ func ValidGethImage() docker.PullImageOptions {
 // defaultGethCmdStrBuilder returns a command string tailored for running a Geth node.
 func defaultGethCmdStrBuilder(genesisFile string) string {
 	return fmt.Sprintf(`
-		geth init --datadir /tmp/gethdata /testdata/%s && 
-		geth --http --http.addr 0.0.0.0 --http.api eth,net,web3,debug \
-			 --authrpc.addr 0.0.0.0 \
-			 --authrpc.jwtsecret /testing/files/jwt.hex \
-			 --authrpc.vhosts '*' \
-			 --datadir /tmp/gethdata \
-			 --ipcpath /tmp/gethdata/geth.ipc \
-			 --syncmode full \
-			 --verbosity 4 \
-			 --nodiscover
+		bera-geth init --datadir /tmp/gethdata /testdata/%s && 
+		bera-geth --http --http.addr 0.0.0.0 --http.api eth,net,web3,debug \
+			--authrpc.addr 0.0.0.0 \
+			--authrpc.jwtsecret /testing/files/jwt.hex \
+			--authrpc.vhosts '*' \
+			--datadir /tmp/gethdata \
+			--ipcpath /tmp/gethdata/bera-geth.ipc \
+			--syncmode full \
+			--verbosity 4 \
+			--nodiscover
 	`, genesisFile)
 }

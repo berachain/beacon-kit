@@ -27,6 +27,7 @@ import (
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/validator"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/log/phuslu"
@@ -49,6 +50,7 @@ func ProvideSimComet(
 	blockchain blockchain.BlockchainI,
 	blockBuilder validator.BlockBuilderI,
 	db dbm.DB,
+	cs chain.Spec,
 	cmtCfg *cmtcfg.Config,
 	appOpts config.AppOptions,
 	telemetrySink *metrics.TelemetrySink) *SimComet {
@@ -58,6 +60,7 @@ func ProvideSimComet(
 			db,
 			blockchain,
 			blockBuilder,
+			cs,
 			cmtCfg,
 			telemetrySink,
 			builder.DefaultServiceOptions(appOpts)...,
@@ -81,6 +84,6 @@ func (s *SimComet) CreateQueryContext(height int64, prove bool) (sdk.Context, er
 	return s.Comet.CreateQueryContext(height, prove)
 }
 
-func (s *SimComet) LastBlockHeight() int64 {
+func (s *SimComet) GetSyncData() (int64, int64) {
 	panic("unimplemented")
 }

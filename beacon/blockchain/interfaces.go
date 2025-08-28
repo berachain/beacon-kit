@@ -26,9 +26,12 @@ import (
 
 	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
@@ -65,12 +68,7 @@ type LocalBuilder interface {
 	// RequestPayloadAsync requests a new payload for the given slot.
 	RequestPayloadAsync(
 		ctx context.Context,
-		st *statedb.StateDB,
-		slot math.Slot,
-		timestamp math.U64,
-		parentBlockRoot common.Root,
-		headEth1BlockHash common.ExecutionHash,
-		finalEth1BlockHash common.ExecutionHash,
+		r *builder.RequestPayloadData,
 	) (*engineprimitives.PayloadID, common.Version, error)
 }
 
@@ -134,15 +132,33 @@ type TelemetrySink interface {
 //nolint:revive // its ok
 type BlockchainI interface {
 	ProcessGenesisData(
-		context.Context, []byte) (transition.ValidatorUpdates, error)
+		context.Context,
+		[]byte,
+	) (transition.ValidatorUpdates, error)
+	ParseBeaconBlock(req encoding.ABCIRequest) (
+		*ctypes.SignedBeaconBlock,
+		datypes.BlobSidecars,
+		error,
+	)
 	ProcessProposal(
 		sdk.Context,
 		*cmtabci.ProcessProposalRequest,
+		[]byte, // this node address
+	) (transition.ValidatorUpdates, error)
+	FinalizeSidecars(
+		ctx sdk.Context,
+		syncingToHeight int64,
+		blk *ctypes.BeaconBlock,
+		blobs datypes.BlobSidecars,
 	) error
 	FinalizeBlock(
 		sdk.Context,
 		*cmtabci.FinalizeBlockRequest,
 	) (transition.ValidatorUpdates, error)
+	PostFinalizeBlockOps(
+		sdk.Context,
+		*ctypes.BeaconBlock,
+	) error
 }
 
 // BlobProcessor is the interface for the blobs processor.
@@ -172,6 +188,9 @@ type ServiceChainSpec interface {
 	chain.BlobSpec
 	chain.ForkSpec
 	chain.ForkVersionSpec
+	delay.ConfigGetter
 
+	EpochsPerHistoricalVector() uint64
+	SlotToEpoch(slot math.Slot) math.Epoch
 	Eth1FollowDistance() uint64
 }

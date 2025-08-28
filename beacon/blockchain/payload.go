@@ -24,10 +24,13 @@ import (
 	"context"
 	"fmt"
 
+	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/payload/builder"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
@@ -77,10 +80,11 @@ func (s *Service) forceSyncUponProcess(
 func (s *Service) forceSyncUponFinalize(
 	ctx context.Context,
 	beaconBlock *ctypes.BeaconBlock,
+	parentProposerPubkey *crypto.BLSPubkey,
 ) error {
 	// NewPayload call first to load payload into EL client.
 	executionPayload := beaconBlock.GetBody().GetExecutionPayload()
-	payloadReq, err := ctypes.BuildNewPayloadRequestFromFork(beaconBlock)
+	payloadReq, err := ctypes.BuildNewPayloadRequestFromFork(beaconBlock, parentProposerPubkey)
 	if err != nil {
 		return err
 	}
@@ -125,167 +129,119 @@ func (s *Service) forceSyncUponFinalize(
 	}
 }
 
+// Once you provide the right state, we really need to carry out the very same operations
+// to extract the data necessary to build the next block, whether current block is
+// being rejected or accepted. This is way there can be (and so should be)
+// a single function doing these ops. preFetchBuildData is that function.
+func (s *Service) preFetchBuildData(st *statedb.StateDB, currentTime math.U64) (
+	*builder.RequestPayloadData,
+	error,
+) {
+	lph, err := st.GetLatestExecutionPayloadHeader()
+	if err != nil {
+		return nil, fmt.Errorf("failed retrieving latest execution payload header: %w", err)
+	}
+	nextPayloadTimestamp := payloadtime.Next(
+		currentTime,
+		lph.GetTimestamp(),
+		true, // buildOptimistically
+	)
+
+	stateSlot, err := st.GetSlot()
+	if err != nil {
+		return nil, fmt.Errorf("failed retrieving slot from state: %w", err)
+	}
+	blkSlot := stateSlot + 1
+
+	// Carry out on the support state st all the operations needed to
+	// process a new payload, namely ProcessSlots and ProcessFork
+	if _, err = s.stateProcessor.ProcessSlots(st, blkSlot); err != nil {
+		return nil, fmt.Errorf("failed processing block slot: %w", err)
+	}
+	if err = s.stateProcessor.ProcessFork(st, nextPayloadTimestamp, false); err != nil {
+		return nil, fmt.Errorf("failed processing fork: %w", err)
+	}
+
+	// Once the state is ready, extract relevant data to build next payload
+	payloadWithdrawals, _, err := st.ExpectedWithdrawals(nextPayloadTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("failed computing expected withdrawals: %w", err)
+	}
+	epoch := s.chainSpec.SlotToEpoch(blkSlot)
+	prevRandao, err := st.GetRandaoMixAtIndex(
+		epoch.Unwrap() % s.chainSpec.EpochsPerHistoricalVector(),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed retrieving randao: %w", err)
+	}
+
+	latestHeader, err := st.GetLatestBlockHeader()
+	if err != nil {
+		return nil, err
+	}
+
+	parentProposerPubkey, err := st.ParentProposerPubkey(nextPayloadTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("failed retrieving previous proposer public key: %w", err)
+	}
+
+	return &builder.RequestPayloadData{
+		Slot:               blkSlot,
+		Timestamp:          nextPayloadTimestamp,
+		PayloadWithdrawals: payloadWithdrawals,
+		PrevRandao:         prevRandao,
+		ParentBlockRoot:    latestHeader.HashTreeRoot(),
+
+		// We set the head of our chain to the latest verified block (whether it is final or not)
+		HeadEth1BlockHash: lph.GetBlockHash(),
+
+		// Assumuming consensus guarantees single slot finality, the parent
+		// of the latest block we verified must be final already.
+		FinalEth1BlockHash: lph.GetParentHash(),
+
+		ParentProposerPubkey: parentProposerPubkey,
+	}, nil
+}
+
 // handleRebuildPayloadForRejectedBlock handles the case where the incoming
 // block was rejected and we need to rebuild the payload for the current slot.
 func (s *Service) handleRebuildPayloadForRejectedBlock(
 	ctx context.Context,
-	st *statedb.StateDB,
-	nextPayloadTimestamp math.U64,
+	buildData *builder.RequestPayloadData,
 ) {
-	if err := s.rebuildPayloadForRejectedBlock(
-		ctx,
-		st,
-		nextPayloadTimestamp,
-	); err != nil {
+	s.logger.Info("Rebuilding payload for rejected block ⏳ ")
+	nextBlkSlot := buildData.Slot
+	if _, _, err := s.localBuilder.RequestPayloadAsync(ctx, buildData); err != nil {
+		s.metrics.markRebuildPayloadForRejectedBlockFailure(nextBlkSlot, err)
 		s.logger.Error(
 			"failed to rebuild payload for nil block",
 			"error", err,
 		)
-	}
-}
-
-// rebuildPayloadForRejectedBlock rebuilds a payload for the current
-// slot, if the incoming block was rejected.
-//
-// NOTE: We cannot use any data off the incoming block and must recompute
-// any required information from our local state. We do this since we have
-// rejected the incoming block and it would be unsafe to use any
-// information from it.
-func (s *Service) rebuildPayloadForRejectedBlock(
-	ctx context.Context,
-	st *statedb.StateDB,
-	nextPayloadTimestamp math.U64,
-) error {
-	s.logger.Info("Rebuilding payload for rejected block ⏳ ")
-
-	// In order to rebuild a payload for the current slot, we need to know the
-	// previous block root, since we know that this is an unmodified state.
-	// We can safely get the latest block header and then rebuild the
-	// previous block and it's root.
-	latestHeader, err := st.GetLatestBlockHeader()
-	if err != nil {
-		return err
+		return
 	}
 
-	stateSlot, err := st.GetSlot()
-	if err != nil {
-		return err
-	}
-
-	// Set the previous state root on the header.
-	latestHeader.SetStateRoot(st.HashTreeRoot())
-
-	// We need to get the *last* finalized execution payload, thus
-	// the BeaconState that was passed in must be `unmodified`.
-	lph, err := st.GetLatestExecutionPayloadHeader()
-	if err != nil {
-		return err
-	}
-
-	// We must prepare the state for the fork version of the new block being built to handle
-	// the case where the new block is on a new fork version. Although we do not have the
-	// confirmed timestamp by the EL, we will assume it to be `nextPayloadTimestamp` to decide
-	// the new block's fork version.
-	err = s.stateProcessor.ProcessFork(st, nextPayloadTimestamp, false)
-	if err != nil {
-		return err
-	}
-
-	// Submit a request for a new payload.
-	if _, _, err = s.localBuilder.RequestPayloadAsync(
-		ctx,
-		st,
-		// We are rebuilding for the current slot.
-		stateSlot,
-		nextPayloadTimestamp,
-		// We set the parent root to the previous block root. The HashTreeRoot
-		// of the header is the same as the HashTreeRoot of the block.
-		latestHeader.HashTreeRoot(),
-		// We set the head of our chain to the previous finalized block.
-		lph.GetBlockHash(),
-		// We can say that the payload from the previous block is *finalized*,
-		// TODO: This is making an assumption about the consensus rules
-		// and possibly should be made more explicit later on.
-		lph.GetParentHash(),
-	); err != nil {
-		s.metrics.markRebuildPayloadForRejectedBlockFailure(stateSlot, err)
-		return err
-	}
-	s.metrics.markRebuildPayloadForRejectedBlockSuccess(stateSlot)
-	return nil
+	s.metrics.markRebuildPayloadForRejectedBlockSuccess(nextBlkSlot)
 }
 
 // handleOptimisticPayloadBuild handles optimistically
 // building for the next slot.
 func (s *Service) handleOptimisticPayloadBuild(
 	ctx context.Context,
-	st *statedb.StateDB,
-	blk *ctypes.BeaconBlock,
-	nextPayloadTimestamp math.U64,
+	buildData *builder.RequestPayloadData,
 ) {
-	if err := s.optimisticPayloadBuild(
-		ctx,
-		st,
-		blk,
-		nextPayloadTimestamp,
-	); err != nil {
+	s.logger.Info(
+		"Optimistically triggering payload build for next slot 🛩️ ",
+		"next_slot", buildData.Slot.Base10(),
+	)
+	if _, _, err := s.localBuilder.RequestPayloadAsync(ctx, buildData); err != nil {
+		s.metrics.markOptimisticPayloadBuildFailure(buildData.Slot, err)
 		s.logger.Error(
 			"Failed to build optimistic payload",
-			"for_slot", (blk.GetSlot() + 1).Base10(),
+			"for_slot", buildData.Slot.Base10(),
 			"error", err,
 		)
-	}
-}
-
-// optimisticPayloadBuild builds a payload for the next slot.
-func (s *Service) optimisticPayloadBuild(
-	ctx context.Context,
-	st *statedb.StateDB,
-	blk *ctypes.BeaconBlock,
-	nextPayloadTimestamp math.U64,
-) error {
-	// We are building for the next slot, so we increment the slot relative
-	// to the block we just processed.
-	slot := blk.GetSlot() + 1
-
-	s.logger.Info(
-		"Optimistically triggering payload build for next slot 🛩️ ", "next_slot", slot.Base10(),
-	)
-
-	// We process the slot to update any RANDAO values.
-	if _, err := s.stateProcessor.ProcessSlots(st, slot); err != nil {
-		return err
+		return
 	}
 
-	// We must prepare the state for the fork version of the new block being built to handle
-	// the case where the new block is on a new fork version. Although we do not have the
-	// confirmed timestamp by the EL, we will assume it to be `nextPayloadTimestamp` to decide
-	// the new block's fork version.
-	err := s.stateProcessor.ProcessFork(st, nextPayloadTimestamp, false)
-	if err != nil {
-		return err
-	}
-
-	// We then trigger a request for the next payload.
-	payload := blk.GetBody().GetExecutionPayload()
-	if _, _, err = s.localBuilder.RequestPayloadAsync(
-		ctx, st,
-		slot,
-		nextPayloadTimestamp,
-		// The previous block root is simply the root of the block we just
-		// processed.
-		blk.HashTreeRoot(),
-		// We set the head of our chain to the block we just processed.
-		payload.GetBlockHash(),
-		// We can say that the payload from the previous block is *finalized*,
-		// This is safe to do since this block was accepted and the thus the
-		// parent hash was deemed valid by the state transition function we
-		// just processed.
-		payload.GetParentHash(),
-	); err != nil {
-		s.metrics.markOptimisticPayloadBuildFailure(slot, err)
-		return err
-	}
-	s.metrics.markOptimisticPayloadBuildSuccess(slot)
-	return nil
+	s.metrics.markOptimisticPayloadBuildSuccess(buildData.Slot)
 }

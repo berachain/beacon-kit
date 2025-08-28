@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	nodecoretypes "github.com/berachain/beacon-kit/node-core/types"
+	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
@@ -47,10 +48,11 @@ type (
 	// AttributesFactory is the interface for the attributes factory.
 	AttributesFactory interface {
 		BuildPayloadAttributes(
-			st *statedb.StateDB,
-			slot math.Slot,
 			timestamp math.U64,
-			prevHeadRoot [32]byte,
+			payloadWithdrawals engineprimitives.Withdrawals,
+			prevRandao common.Bytes32,
+			prevHeadRoot common.Root,
+			parentProposerPubkey *crypto.BLSPubkey,
 		) (*engineprimitives.PayloadAttributes, error)
 	}
 
@@ -79,12 +81,7 @@ type (
 		// RequestPayloadAsync requests a new payload for the given slot.
 		RequestPayloadAsync(
 			ctx context.Context,
-			st *statedb.StateDB,
-			slot math.Slot,
-			timestamp math.U64,
-			parentBlockRoot common.Root,
-			headEth1BlockHash common.ExecutionHash,
-			finalEth1BlockHash common.ExecutionHash,
+			r *builder.RequestPayloadData,
 		) (*engineprimitives.PayloadID, common.Version, error)
 		// RetrievePayload retrieves the payload for the given slot.
 		RetrievePayload(
@@ -96,12 +93,7 @@ type (
 		// blocks until the payload is delivered.
 		RequestPayloadSync(
 			ctx context.Context,
-			st *statedb.StateDB,
-			slot math.Slot,
-			timestamp math.U64,
-			parentBlockRoot common.Root,
-			headEth1BlockHash common.ExecutionHash,
-			finalEth1BlockHash common.ExecutionHash,
+			r *builder.RequestPayloadData,
 		) (ctypes.BuiltExecutionPayloadEnv, error)
 	}
 
@@ -510,6 +502,7 @@ type (
 
 		NodeAPIBeaconBackend
 		NodeAPIProofBackend
+		NodeAPINodeBackend
 		NodeAPIConfigBackend
 	}
 
@@ -538,6 +531,16 @@ type (
 		BlockBackend
 		StateBackend
 		GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
+	}
+
+	NodeAPINodeBackend interface {
+		GetSyncData() (latestHeight int64, syncToHeight int64)
+		GetVersionData() (
+			appName,
+			version,
+			os,
+			arch string,
+		)
 	}
 
 	GenesisBackend interface {

@@ -36,15 +36,15 @@ func NewRethNode(homeDir string, image docker.PullImageOptions) *ExecNode {
 // ValidRethImage returns the default Docker image options for the Reth node.
 func ValidRethImage() docker.PullImageOptions {
 	return docker.PullImageOptions{
-		Repository: "ghcr.io/paradigmxyz/reth",
-		Tag:        "latest",
+		Repository: "ghcr.io/berachain/bera-reth",
+		Tag:        "nightly",
 	}
 }
 
 // defaultRethCmdStrBuilder returns a command string tailored for running a Geth node.
 func defaultRethCmdStrBuilder(genesisFile string) string {
 	return fmt.Sprintf(`
-		reth node --http --http.addr 0.0.0.0 --http.api eth,net,web3,debug \
+		bera-reth node --http --http.addr 0.0.0.0 --http.api eth,net,web3,debug \
 			 --chain=/testdata/%s \
 			 --authrpc.addr 0.0.0.0 \
 			 --authrpc.jwtsecret /testing/files/jwt.hex \

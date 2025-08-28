@@ -101,6 +101,10 @@ func (sp *StateProcessor) ProcessFork(
 			return err
 		}
 
+		if err = sp.processElectra1Fixes(st); err != nil {
+			return err
+		}
+
 		// Log the upgrade to Electra1 if requested.
 		if logUpgrade {
 			sp.logElectra1Fork(stateFork.PreviousVersion, timestamp, slot)
@@ -159,7 +163,7 @@ func (sp *StateProcessor) logDeneb1Fork(
 	+ ⛓️   current beacon epoch: %d
 
 	⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️
-	
+
 
 `,
 			version.Name(previousVersion), previousVersion.String(),
@@ -256,7 +260,11 @@ func (sp *StateProcessor) logElectra1Fork(
 	+ ⛓️   current beacon epoch: %d
 
 	⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️
+<<<<<<< HEAD
 	
+=======
+
+>>>>>>> cb4e9ea4c1d2459d6a98fffd433c65aa581c15e8
 `,
 		version.Name(previousVersion), previousVersion.String(),
 		sp.cs.Electra1ForkTime(),

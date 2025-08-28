@@ -22,7 +22,10 @@ package chain
 
 import (
 	"fmt"
+	"time"
 
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -152,6 +155,15 @@ type BerachainSpec interface {
 
 	// ValidatorSetCap retrieves the maximum number of validators allowed in the active set.
 	ValidatorSetCap() uint64
+
+	// IsMainnet returns true if the chain is running with the mainnet chain ID.
+	IsMainnet() bool
+
+	// IsTestnet returns true if the chain is running with the testnet chain ID.
+	IsTestnet() bool
+
+	// IsDevnet returns true if the chain is running with the devnet chain ID.
+	IsDevnet() bool
 }
 
 type WithdrawalsSpec interface {
@@ -171,6 +183,7 @@ type WithdrawalsSpec interface {
 
 // Spec defines an interface for accessing chain-specific parameters.
 type Spec interface {
+	delay.ConfigGetter
 	DepositSpec
 	BalancesSpec
 	HysteresisSpec
@@ -268,8 +281,40 @@ func (s spec) validate() error {
 		}
 	}
 
+	if s.Data.ConsensusUpdateHeight != 0 {
+		if s.Data.ConsensusUpdateHeight >= s.Data.ConsensusEnableHeight {
+			return fmt.Errorf(
+				"stable block time parameters violation: ConsensusUpdateHeight %d must be smaller than ConsensusEnableHeight %d",
+				s.Data.ConsensusUpdateHeight, s.Data.ConsensusEnableHeight,
+			)
+		}
+
+		if s.Data.MaxBlockDelay == 0 {
+			return errors.New("max block delay can't be zero")
+		}
+		if s.Data.TargetBlockTime == 0 {
+			return errors.New("target block time can't be zero")
+		}
+	}
+
 	// TODO: Add more validation rules here.
 	return nil
+}
+
+func (s spec) SbtMaxBlockDelay() time.Duration {
+	return s.Data.MaxBlockDelay
+}
+func (s spec) SbtTargetBlockTime() time.Duration {
+	return s.Data.TargetBlockTime
+}
+func (s spec) SbtConstBlockDelay() time.Duration {
+	return s.Data.ConstBlockDelay
+}
+func (s spec) SbtConsensusUpdateHeight() int64 {
+	return s.Data.ConsensusUpdateHeight
+}
+func (s spec) SbtConsensusEnableHeight() int64 {
+	return s.Data.ConsensusEnableHeight
 }
 
 // MaxEffectiveBalance returns the maximum effective balance.
@@ -387,12 +432,12 @@ func (s spec) GenesisTime() uint64 {
 	return s.Data.GenesisTime
 }
 
-// Deneb1ForkTime returns the epoch of the Deneb1 fork.
+// Deneb1ForkTime returns the timestamp of the Deneb1 fork.
 func (s spec) Deneb1ForkTime() uint64 {
 	return s.Data.Deneb1ForkTime
 }
 
-// ElectraForkTime returns the epoch of the Electra fork.
+// ElectraForkTime returns the timestamp of the Electra fork.
 func (s spec) ElectraForkTime() uint64 {
 	return s.Data.ElectraForkTime
 }
@@ -474,7 +519,7 @@ func (s spec) ValidatorSetCap() uint64 {
 func (s spec) EVMInflationAddress(timestamp math.U64) common.ExecutionAddress {
 	fv := s.ActiveForkVersionForTimestamp(timestamp)
 	switch fv {
-	case version.Deneb1(), version.Electra():
+	case version.Deneb1(), version.Electra(), version.Electra1():
 		return s.Data.EVMInflationAddressDeneb1
 	case version.Deneb():
 		return s.Data.EVMInflationAddressGenesis
@@ -488,7 +533,7 @@ func (s spec) EVMInflationAddress(timestamp math.U64) common.ExecutionAddress {
 func (s spec) EVMInflationPerBlock(timestamp math.U64) math.Gwei {
 	fv := s.ActiveForkVersionForTimestamp(timestamp)
 	switch fv {
-	case version.Deneb1(), version.Electra():
+	case version.Deneb1(), version.Electra(), version.Electra1():
 		return math.Gwei(s.Data.EVMInflationPerBlockDeneb1)
 	case version.Deneb():
 		return math.Gwei(s.Data.EVMInflationPerBlockGenesis)

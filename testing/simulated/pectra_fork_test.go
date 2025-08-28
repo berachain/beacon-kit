@@ -51,7 +51,7 @@ type PectraForkSuite struct {
 	Reth simulated.SharedAccessors
 }
 
-// TestSimulatedCometComponent runs the test suite.
+// TestPectraForkSuite runs the test suite.
 func TestPectraForkSuite(t *testing.T) {
 	suite.Run(t, new(PectraForkSuite))
 }
@@ -182,13 +182,13 @@ func (s *PectraForkSuite) TestTimestampFork_ELAndCLInSync_IsSuccessful() {
 	s.Require().NoError(err)
 
 	expectedMessages := []string{
-		"Finalizing block with fork version service=blockchain\u001B[0m block=1\u001B[0m fork=0x04010000\u001B[0m",
-		"Finalizing block with fork version service=blockchain\u001B[0m block=2\u001B[0m fork=0x04010000\u001B[0m",
-		"Finalizing block with fork version service=blockchain\u001B[0m block=3\u001B[0m fork=0x04010000\u001B[0m",
-		"Finalizing block with fork version service=blockchain\u001B[0m block=4\u001B[0m fork=0x04010000\u001B[0m",
-		"Finalizing block with fork version service=blockchain\u001B[0m block=5\u001B[0m fork=0x05000000\u001B[0m",
-		"Finalizing block with fork version service=blockchain\u001B[0m block=6\u001B[0m fork=0x05000000\u001B[0m",
-		"Finalizing block with fork version service=blockchain\u001B[0m block=7\u001B[0m fork=0x05000000\u001B[0m",
+		"Processing block with fork version service=blockchain\u001B[0m block=1\u001B[0m fork=0x04010000\u001B[0m",
+		"Processing block with fork version service=blockchain\u001B[0m block=2\u001B[0m fork=0x04010000\u001B[0m",
+		"Processing block with fork version service=blockchain\u001B[0m block=3\u001B[0m fork=0x04010000\u001B[0m",
+		"Processing block with fork version service=blockchain\u001B[0m block=4\u001B[0m fork=0x04010000\u001B[0m",
+		"Processing block with fork version service=blockchain\u001B[0m block=5\u001B[0m fork=0x05000000\u001B[0m",
+		"Processing block with fork version service=blockchain\u001B[0m block=6\u001B[0m fork=0x05000000\u001B[0m",
+		"Processing block with fork version service=blockchain\u001B[0m block=7\u001B[0m fork=0x05000000\u001B[0m",
 	}
 
 	startHeight := int64(1)
@@ -554,15 +554,15 @@ func processFinalizeCommit(
 	expectedMessage string,
 ) {
 	// Process the proposal
+	node.LogBuffer.Reset()
 	processResp, err := node.SimComet.Comet.ProcessProposal(node.CtxComet, processRequest)
 	require.NoError(t, err)
 	require.Equal(t, types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
+	require.Contains(t, node.LogBuffer.String(), expectedMessage)
 
 	// Finalize the block
-	node.LogBuffer.Reset()
 	finalizeResp, err := node.SimComet.Comet.FinalizeBlock(node.CtxComet, finalizeRequest)
 	require.NoError(t, err)
-	require.Contains(t, node.LogBuffer.String(), expectedMessage)
 	require.NotEmpty(t, finalizeResp)
 
 	// Commit the block.
