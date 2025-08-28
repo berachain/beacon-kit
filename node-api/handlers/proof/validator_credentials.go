@@ -48,7 +48,7 @@ func (h *Handler) GetValidatorCredentials(c handlers.Context) (any, error) {
 	}
 
 	h.Logger().Info(
-		"Generating withdrawal credential proofs", "slot", slot, "validator_index", validatorIndex,
+		"Generating withdrawal credential proof", "slot", slot, "validator_index", validatorIndex,
 	)
 
 	// Generate proof for withdrawal credentials in the block.

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2025, Berachain Foundation. All rights reserved.
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -18,17 +18,14 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package ckzg
+package node
 
-import "github.com/berachain/beacon-kit/errors"
-
-var (
-	// ErrInvalidProof is returned when a proof is invalid.
-	ErrInvalidProof = errors.New("invalid proof")
-
-	// ErrCGONotEnabled is returned when cgo is not enabled.
-	ErrCGONotEnabled = errors.New(
-		"github.com/ethereum/c-kzg-4844 " +
-			"requires an executable built with CGO_ENABLED=1",
+type Backend interface {
+	GetSyncData() (latestHeight int64, syncToHeight int64)
+	GetVersionData() (
+		appName,
+		version,
+		os,
+		arch string,
 	)
-)
+}
