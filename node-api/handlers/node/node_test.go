@@ -29,6 +29,89 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestNodeSyncing(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name                string
+		setMockExpectations func(*mocks.Backend)
+		check               func(t *testing.T, res any, err error)
+	}{
+		{
+			name: "syncing",
+			setMockExpectations: func(b *mocks.Backend) {
+				latestHeight := int64(2025)
+				syncToHeight := int64(2026)
+				b.EXPECT().GetSyncData().Return(latestHeight, syncToHeight).Once()
+			},
+			check: func(t *testing.T, res any, err error) {
+				t.Helper()
+
+				require.NoError(t, err)
+				require.NotNil(t, res)
+				require.IsType(t, types.DataResponse{}, res)
+				dr, _ := res.(types.DataResponse)
+				require.IsType(t, &types.SyncingData{}, dr.Data)
+				data, _ := dr.Data.(*types.SyncingData)
+
+				latestHeight := int64(2025) // duplicated from setMockExpectations
+				syncToHeight := int64(2026) // duplicated from setMockExpectations
+
+				require.Equal(t, latestHeight, data.HeadSlot)
+				require.Equal(t, syncToHeight-latestHeight, data.SyncDistance)
+				require.True(t, data.IsSyncing)
+				require.False(t, data.IsOptimistic)
+				require.False(t, data.ELOffline)
+			},
+		},
+		{
+			name: "normal operations mode",
+			setMockExpectations: func(b *mocks.Backend) {
+				latestHeight := int64(1492)
+				syncToHeight := int64(1492)
+				b.EXPECT().GetSyncData().Return(latestHeight, syncToHeight).Once()
+			},
+			check: func(t *testing.T, res any, err error) {
+				t.Helper()
+
+				require.NoError(t, err)
+				require.NotNil(t, res)
+				require.IsType(t, types.DataResponse{}, res)
+				dr, _ := res.(types.DataResponse)
+				require.IsType(t, &types.SyncingData{}, dr.Data)
+				data, _ := dr.Data.(*types.SyncingData)
+
+				latestHeight := int64(1492) // duplicated from setMockExpectations
+				syncToHeight := int64(1492) // duplicated from setMockExpectations
+
+				require.Equal(t, latestHeight, data.HeadSlot)
+				require.Equal(t, syncToHeight-latestHeight, data.SyncDistance)
+				require.False(t, data.IsSyncing)
+				require.False(t, data.IsOptimistic)
+				require.False(t, data.ELOffline)
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc // capture range variable
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			// setup test
+			backend := mocks.NewBackend(t)
+			h := node.NewHandler(backend)
+
+			tc.setMockExpectations(backend)
+
+			// test
+			res, err := h.Syncing(nil) // input does not matter here
+
+			tc.check(t, res, err)
+		})
+	}
+}
+
 func TestNodeVersion(t *testing.T) {
 	t.Parallel()
 

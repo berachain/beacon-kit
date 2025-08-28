@@ -17,6 +17,61 @@ func (_m *Backend) EXPECT() *Backend_Expecter {
 	return &Backend_Expecter{mock: &_m.Mock}
 }
 
+// GetSyncData provides a mock function with given fields:
+func (_m *Backend) GetSyncData() (int64, int64) {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSyncData")
+	}
+
+	var r0 int64
+	var r1 int64
+	if rf, ok := ret.Get(0).(func() (int64, int64)); ok {
+		return rf()
+	}
+	if rf, ok := ret.Get(0).(func() int64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func() int64); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Get(1).(int64)
+	}
+
+	return r0, r1
+}
+
+// Backend_GetSyncData_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSyncData'
+type Backend_GetSyncData_Call struct {
+	*mock.Call
+}
+
+// GetSyncData is a helper method to define mock.On call
+func (_e *Backend_Expecter) GetSyncData() *Backend_GetSyncData_Call {
+	return &Backend_GetSyncData_Call{Call: _e.mock.On("GetSyncData")}
+}
+
+func (_c *Backend_GetSyncData_Call) Run(run func()) *Backend_GetSyncData_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *Backend_GetSyncData_Call) Return(latestHeight int64, syncToHeight int64) *Backend_GetSyncData_Call {
+	_c.Call.Return(latestHeight, syncToHeight)
+	return _c
+}
+
+func (_c *Backend_GetSyncData_Call) RunAndReturn(run func() (int64, int64)) *Backend_GetSyncData_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetVersionData provides a mock function with given fields:
 func (_m *Backend) GetVersionData() (string, string, string, string) {
 	ret := _m.Called()

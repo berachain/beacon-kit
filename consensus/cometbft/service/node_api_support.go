@@ -23,8 +23,8 @@ package cometbft
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	servercmtlog "github.com/berachain/beacon-kit/consensus/cometbft/service/log"
-	errorsmod "github.com/berachain/beacon-kit/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -81,4 +81,8 @@ func (s *Service) CreateQueryContext(
 		true,
 		servercmtlog.WrapSDKLogger(s.logger),
 	), nil
+}
+
+func (s *Service) GetSyncData() (int64, int64) {
+	return s.lastBlockHeight(), s.syncingToHeight
 }
