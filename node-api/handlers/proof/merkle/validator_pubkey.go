@@ -22,21 +22,12 @@ package merkle
 
 import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/merkle"
 )
-
-// ProveValidatorPubkeyInState generates a proof for a validator's pubkey
-// in the beacon state. The validatorOffset must be computed as
-// (ValidatorGIndexOffset * validatorIndex).
-func ProveValidatorPubkeyInState(
-	forkVersion common.Version,
-	bsm types.BeaconStateMarshallable,
-	validatorOffset math.U64,
-) ([]common.Root, common.Root, error) {
-	return ProveProposerPubkeyInState(forkVersion, bsm, validatorOffset)
-}
 
 // ProveValidatorPubkeyInBlock generates a proof for a validator's pubkey in the
 // beacon block. The proof is verified against the beacon block root as a sanity
@@ -71,7 +62,7 @@ func ProveValidatorPubkeyInBlock(
 	combinedProof := append(pubkeyInStateProof, stateInBlockProof...)
 
 	// 4. Verify the combined proof against the beacon block root.
-	beaconRoot, err := verifyProposerInBlock(
+	beaconRoot, err := verifyPubkeyInBlock(
 		forkVersion, bbh, validatorOffset, combinedProof, leaf,
 	)
 	if err != nil {
@@ -79,4 +70,66 @@ func ProveValidatorPubkeyInBlock(
 	}
 
 	return combinedProof, beaconRoot, nil
+}
+
+// ProveValidatorPubkeyInState generates a proof for a validator's pubkey
+// in the beacon state. The validatorOffset must be computed as
+// (ValidatorGIndexOffset * validatorIndex).
+func ProveValidatorPubkeyInState(
+	forkVersion common.Version,
+	bsm types.BeaconStateMarshallable,
+	validatorOffset math.U64,
+) ([]common.Root, common.Root, error) {
+	stateProofTree, err := bsm.GetTree()
+	if err != nil {
+		return nil, common.Root{}, err
+	}
+
+	// Determine the correct gIndex based on the fork version.
+	gIndex := int(validatorOffset) // #nosec G115 -- max validator offset is 8 * (2^40 - 1).
+	zeroValidatorPubkeyGIndexState, err := GetZeroValidatorPubkeyGIndexState(forkVersion)
+	if err != nil {
+		return nil, common.Root{}, err
+	}
+	gIndex += zeroValidatorPubkeyGIndexState
+
+	valPubkeyInStateProof, err := stateProofTree.Prove(gIndex)
+	if err != nil {
+		return nil, common.Root{}, err
+	}
+
+	proof := make([]common.Root, len(valPubkeyInStateProof.Hashes))
+	for i, hash := range valPubkeyInStateProof.Hashes {
+		proof[i] = common.NewRootFromBytes(hash)
+	}
+	return proof, common.NewRootFromBytes(valPubkeyInStateProof.Leaf), nil
+}
+
+// verifyProposerInBlock verifies the validator pubkey in the beacon block,
+// returning the beacon block root used to verify against.
+//
+// TODO: verifying the proof is not absolutely necessary.
+func verifyPubkeyInBlock(
+	forkVersion common.Version,
+	bbh *ctypes.BeaconBlockHeader,
+	valOffset math.U64,
+	proof []common.Root,
+	leaf common.Root,
+) (common.Root, error) {
+	zeroValidatorPubkeyGIndexBlock, err := GetZeroValidatorPubkeyGIndexBlock(forkVersion)
+	if err != nil {
+		return common.Root{}, err
+	}
+
+	beaconRoot := bbh.HashTreeRoot()
+	if !merkle.VerifyProof(
+		beaconRoot, leaf, zeroValidatorPubkeyGIndexBlock+valOffset.Unwrap(), proof,
+	) {
+		return common.Root{}, errors.Wrapf(
+			errors.New("proposer pubkey proof failed to verify against beacon root"),
+			"beacon root: 0x%s", beaconRoot,
+		)
+	}
+
+	return beaconRoot, nil
 }
