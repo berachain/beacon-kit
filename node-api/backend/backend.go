@@ -21,6 +21,7 @@
 package backend
 
 import (
+	"runtime"
 	"sync/atomic"
 
 	"github.com/berachain/beacon-kit/chain"
@@ -30,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	cmtcfg "github.com/cometbft/cometbft/config"
+	"github.com/cosmos/cosmos-sdk/version"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 )
 
@@ -112,4 +114,29 @@ func (b *Backend) Spec() (chain.Spec, error) {
 		return nil, errors.New("chain spec not found")
 	}
 	return b.cs, nil
+}
+
+func (b *Backend) GetSyncData() (int64 /*latestHeight*/, int64 /*syncToHeight*/) {
+	return b.node.GetSyncData()
+}
+
+func (b *Backend) GetVersionData() (
+	string, // appName
+	string, // cometVersion
+	string, // os
+	string, // arch
+) {
+	cometVersionInfo := version.NewInfo() // same used in beacond version command
+
+	var (
+		appName      = cometVersionInfo.AppName
+		cometVersion = cometVersionInfo.Version
+		os           = runtime.GOOS
+		arch         = runtime.GOARCH
+	)
+
+	return appName,
+		cometVersion,
+		os,
+		arch
 }

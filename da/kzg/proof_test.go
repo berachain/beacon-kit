@@ -26,7 +26,6 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/da/kzg"
-	"github.com/berachain/beacon-kit/da/kzg/ckzg"
 	"github.com/berachain/beacon-kit/da/kzg/gokzg"
 	"github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
@@ -47,17 +46,6 @@ func TestNewBlobProofVerifier_KzgImpl(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, verifier)
 	require.Equal(t, gokzg.Implementation, verifier.GetImplementation())
-}
-
-func TestNewBlobProofVerifier_CkzgImpl(t *testing.T) {
-	t.Parallel()
-	ts, err := loadTrustedSetupFromFile()
-	require.NoError(t, err)
-
-	verifier, err := kzg.NewBlobProofVerifier(ckzg.Implementation, ts)
-	require.NoError(t, err)
-	require.NotNil(t, verifier)
-	require.Equal(t, ckzg.Implementation, verifier.GetImplementation())
 }
 
 func TestNewBlobProofVerifier_InvalidImpl(t *testing.T) {

@@ -371,13 +371,13 @@ func buildNextBlock(
 		noExecReq = &ctypes.ExecutionRequests{}
 	)
 	if version.IsBefore(fv, version.Electra()) {
-		ethBlk, _, err = ctypes.MakeEthBlock(payload, &parentBeaconBlockRoot)
+		ethBlk, _, err = ctypes.MakeEthBlock(payload, parentBeaconBlockRoot, nil, nil)
 		require.NoError(t, err)
 	} else {
 		encodedER, erErr := ctypes.GetExecutionRequestsList(noExecReq)
 		require.NoError(t, erErr)
 		require.NotNil(t, encodedER)
-		ethBlk, _, err = ctypes.MakeEthBlockWithExecutionRequests(payload, &parentBeaconBlockRoot, encodedER)
+		ethBlk, _, err = ctypes.MakeEthBlock(payload, parentBeaconBlockRoot, encodedER, nil)
 		require.NoError(t, err)
 	}
 	payload.BlockHash = common.ExecutionHash(ethBlk.Hash())
