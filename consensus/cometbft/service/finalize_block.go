@@ -130,7 +130,6 @@ func (s *Service) finalizeBlock(
 	return s.calculateFinalizeBlockResponse(req, valUpdates)
 }
 
-//nolint:lll // long message on one line for readability.
 func (s *Service) nextBlockDelay(req *cmtabci.FinalizeBlockRequest) time.Duration {
 	// c0. SBT is not enabled => use the old block delay.
 	if s.cmtConsensusParams.Feature.SBTEnableHeight <= 0 {
@@ -170,8 +169,13 @@ func (s *Service) nextBlockDelay(req *cmtabci.FinalizeBlockRequest) time.Duratio
 	//
 	// Looks like we've skipped SBTEnableHeight (probably restoring from the
 	// snapshot) => panic.
-	panic(fmt.Sprintf("nil block delay at height %d past SBTEnableHeight %d. This is only possible w/ statesync, which is not supported by SBT atm",
-		req.Height, s.cmtConsensusParams.Feature.SBTEnableHeight))
+	panic(
+		fmt.Sprintf(
+			"nil block delay at height %d past SBTEnableHeight %d. This is only possible w/ statesync, which is not supported by SBT atm",
+			req.Height,
+			s.cmtConsensusParams.Feature.SBTEnableHeight,
+		),
+	)
 }
 
 // workingHash gets the apphash that will be finalized in commit.
