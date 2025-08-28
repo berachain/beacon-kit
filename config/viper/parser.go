@@ -61,11 +61,7 @@ func NumericToDomainTypeFunc() mapstructure.DecodeHookFunc {
 // StringToExecutionAddressFunc returns a DecodeHookFunc that converts
 // string to a `primitives.ExecutionAddresses` by parsing the string.
 func StringToExecutionAddressFunc() mapstructure.DecodeHookFunc {
-	return stringTo(
-		func(s string) (common.ExecutionAddress, error) {
-			return common.NewExecutionAddressFromHex(s)
-		},
-	)
+	return stringTo(common.NewExecutionAddressFromHex)
 }
 
 // StringToDialURLFunc returns a DecodeHookFunc that converts
