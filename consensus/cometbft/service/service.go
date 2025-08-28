@@ -103,8 +103,8 @@ type Service struct {
 	// NOTE: may be nil until either InitChain or FinalizeBlock is called.
 	blockDelay *delay.BlockDelay
 
-	// syncToHeight is a helper to track node sync state and support node-apis.
-	syncToHeight int64
+	// syncingToHeight is a helper to track node sync state and support node-apis.
+	syncingToHeight int64
 }
 
 func NewService(
@@ -158,7 +158,7 @@ func NewService(
 	}
 
 	lastBlockHeight := s.lastBlockHeight()
-	s.syncToHeight = lastBlockHeight
+	s.syncingToHeight = lastBlockHeight
 
 	// Make sure that SBT consensus parameters are duly set when the node restart.
 	// Note that we can't rely on genesis.json having these parameters set right

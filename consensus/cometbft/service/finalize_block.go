@@ -277,7 +277,7 @@ func (s *Service) calculateFinalizeBlockResponse(
 	}
 
 	// update sync to height once FinalizeBlock cannot err anymore.
-	s.syncToHeight = req.SyncingToHeight
+	s.syncingToHeight = req.SyncingToHeight
 
 	cp := s.cmtConsensusParams.ToProto()
 	return &cmtabci.FinalizeBlockResponse{

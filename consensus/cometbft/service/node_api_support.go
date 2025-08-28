@@ -84,5 +84,5 @@ func (s *Service) CreateQueryContext(
 }
 
 func (s *Service) GetSyncData() (int64, int64) {
-	return s.lastBlockHeight(), s.syncToHeight
+	return s.lastBlockHeight(), s.syncingToHeight
 }
