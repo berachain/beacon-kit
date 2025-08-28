@@ -21,11 +21,15 @@
 package cometbft
 
 import (
+	"fmt"
+
 	errorsmod "cosmossdk.io/errors"
 	servercmtlog "github.com/berachain/beacon-kit/consensus/cometbft/service/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
+
+var ErrAppNotReady = fmt.Errorf("%s is not ready; please wait for first block", AppName)
 
 // CreateQueryContext creates a new sdk.Context for a query, taking as args
 // the block height and whether the query needs a proof or not.
@@ -36,11 +40,7 @@ func (s *Service) CreateQueryContext(
 	// use custom query multi-store if provided
 	lastBlockHeight := s.sm.GetCommitMultiStore().LatestVersion()
 	if lastBlockHeight == 0 {
-		return sdk.Context{}, errorsmod.Wrapf(
-			sdkerrors.ErrInvalidHeight,
-			"%s is not ready; please wait for first block",
-			AppName,
-		)
+		return sdk.Context{}, ErrAppNotReady
 	}
 
 	if height > lastBlockHeight {
