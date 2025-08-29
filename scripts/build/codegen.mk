@@ -12,7 +12,7 @@ generate: ## generate all the code
 		(cd $$module && \
 			GETH_PKG_INCLUDE=$(GETH_PKG_INCLUDE) go generate ./...) || exit 1; \
 	done
-	@go run github.com/vektra/mockery/v2@v2.49.0
+	@go run github.com/vektra/mockery/v2@latest
 
 abigen-install:
 	@go install github.com/ethereum/go-ethereum/cmd/abigen@latest
