@@ -215,7 +215,7 @@ func (s *Service) validateFinalizeBlockHeight(req *cmtabci.FinalizeBlockRequest)
 		)
 	}
 
-	lastBlockHeight := s.LastBlockHeight()
+	lastBlockHeight := s.lastBlockHeight()
 
 	// expectedHeight holds the expected height to validate
 	var expectedHeight int64
@@ -275,6 +275,9 @@ func (s *Service) calculateFinalizeBlockResponse(
 	if err != nil {
 		return nil, err
 	}
+
+	// update sync to height once FinalizeBlock cannot err anymore.
+	s.syncingToHeight = req.SyncingToHeight
 
 	cp := s.cmtConsensusParams.ToProto()
 	return &cmtabci.FinalizeBlockResponse{

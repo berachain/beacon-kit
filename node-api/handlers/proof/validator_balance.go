@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -28,10 +28,10 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-// GetValidatorCredentials returns the withdrawal credentials of a validator along with a
+// GetValidatorBalance returns the balance of a validator along with a
 // Merkle proof that can be verified against the beacon block root.
-func (h *Handler) GetValidatorCredentials(c handlers.Context) (any, error) {
-	params, err := utils.BindAndValidate[types.ValidatorCredentialsRequest](c, h.Logger())
+func (h *Handler) GetValidatorBalance(c handlers.Context) (any, error) {
+	params, err := utils.BindAndValidate[types.ValidatorBalanceRequest](c, h.Logger())
 	if err != nil {
 		return nil, err
 	}
@@ -48,32 +48,40 @@ func (h *Handler) GetValidatorCredentials(c handlers.Context) (any, error) {
 	}
 
 	h.Logger().Info(
-		"Generating withdrawal credential proof", "slot", slot, "validator_index", validatorIndex,
+		"Generating balance proof", "slot", slot, "validator_index", validatorIndex,
 	)
 
-	// Generate proof for withdrawal credentials in the block.
+	// Generate proof for balance in the block.
 	bsm, err := beaconState.GetMarshallable()
 	if err != nil {
 		return nil, err
 	}
 
-	credsProof, beaconBlockRoot, err := merkle.ProveWithdrawalCredentialsInBlock(
-		validatorIndex, blockHeader, bsm,
+	// Fetch all balances from state and construct the balance leaf using the
+	// helper in the merkle package.
+	allBalances, err := beaconState.GetBalances()
+	if err != nil {
+		return nil, err
+	}
+
+	balanceProof, balanceLeaf, beaconBlockRoot, err := merkle.ProveBalanceInBlock(
+		validatorIndex, blockHeader, bsm, allBalances,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	// Fetch the validator to get the withdrawal credentials to include in the response.
-	validator, err := beaconState.ValidatorByIndex(validatorIndex)
+	// Fetch the balance to include in the response.
+	balance, err := beaconState.GetBalance(validatorIndex)
 	if err != nil {
 		return nil, err
 	}
 
-	return types.ValidatorWithdrawalCredentialsResponse{
-		BeaconBlockHeader:              blockHeader,
-		BeaconBlockRoot:                beaconBlockRoot,
-		ValidatorWithdrawalCredentials: validator.GetWithdrawalCredentials(),
-		WithdrawalCredentialsProof:     credsProof,
+	return types.ValidatorBalanceResponse{
+		BeaconBlockHeader: blockHeader,
+		BeaconBlockRoot:   beaconBlockRoot,
+		ValidatorBalance:  balance,
+		BalanceLeaf:       balanceLeaf,
+		BalanceProof:      balanceProof,
 	}, nil
 }
