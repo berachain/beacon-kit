@@ -1,6 +1,8 @@
+//go:build quick
+
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,70 +24,76 @@ package compare_test
 
 import (
 	"bytes"
-	"slices"
 	"testing"
 	"testing/quick"
-	"unsafe"
 
-	"github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/primitives/math"
-	zcommon "github.com/protolambda/zrnt/eth2/beacon/common"
-	zdeneb "github.com/protolambda/zrnt/eth2/beacon/deneb"
+	datypes "github.com/berachain/beacon-kit/da/types"
 	zspec "github.com/protolambda/zrnt/eth2/configs"
 	ztree "github.com/protolambda/ztyp/tree"
-	zview "github.com/protolambda/ztyp/view"
+	pprim "github.com/prysmaticlabs/prysm/v5/consensus-types/primitives"
+	pethpb "github.com/prysmaticlabs/prysm/v5/proto/prysm/v1alpha1"
 )
 
-var c = quick.Config{MaxCount: 10000}
-var hFn = ztree.GetHashFn()
-var spec = zspec.Mainnet
+var (
+	c    = quick.Config{MaxCount: 10_000}
+	hFn  = ztree.GetHashFn()
+	spec = zspec.Mainnet
+)
 
-func TestExecutionPayloadHashTreeRootZrnt(t *testing.T) {
-	f := func(payload *types.ExecutionPayload, logsBloom [256]byte) bool {
+// TODO: None of the iterations makes it to `HashTreeRoot` as they all get caught by the nil checks.
+// A custom generator is required like TestExecPayload. Test is skipped for now as it is not useful as is.
+func TestBlobSidecarTreeRootPrysm(t *testing.T) {
+	t.Parallel()
+	t.Skip()
+	f := func(sidecar *datypes.BlobSidecar) bool {
 		// skip these cases lest we trigger a
 		// nil-pointer dereference in fastssz
-		if payload == nil ||
-			payload.Withdrawals == nil ||
-			slices.Contains(payload.Withdrawals, nil) ||
-			payload.Transactions == nil ||
-			slices.ContainsFunc(payload.Transactions, func(e []byte) bool {
-				return e == nil
-			}) {
+		if sidecar == nil ||
+			sidecar.InclusionProof == nil ||
+			sidecar.SignedBeaconBlockHeader == nil ||
+			sidecar.SignedBeaconBlockHeader.Header == nil ||
+
+			// prysm allows only sidecars whose InclusionProof has
+			// length 17, while beaconKit allows different length.
+			// We only keep 17 long Inclusion proofs for proper comparison
+			len(sidecar.InclusionProof) != 17 {
 			return true
 		}
 
-		payload.LogsBloom = logsBloom
-		payload.BaseFeePerGas = math.NewU256(123)
-		typeRoot := payload.HashTreeRoot()
+		sBlkHeader := sidecar.SignedBeaconBlockHeader
+		blkHeader := sBlkHeader.Header
 
-		baseFeePerGas := zview.Uint256View{}
-		baseFeePerGas.SetFromBig(payload.BaseFeePerGas.ToBig())
-		zpayload := zdeneb.ExecutionPayload{
-			ParentHash:    ztree.Root(payload.ParentHash),
-			FeeRecipient:  zcommon.Eth1Address(payload.FeeRecipient),
-			StateRoot:     ztree.Root(payload.StateRoot),
-			ReceiptsRoot:  ztree.Root(payload.ReceiptsRoot),
-			LogsBloom:     zcommon.LogsBloom(payload.LogsBloom),
-			PrevRandao:    ztree.Root(payload.Random),
-			BlockNumber:   zview.Uint64View(payload.Number),
-			GasLimit:      zview.Uint64View(payload.GasLimit),
-			GasUsed:       zview.Uint64View(payload.GasUsed),
-			Timestamp:     zcommon.Timestamp(payload.Timestamp),
-			ExtraData:     []byte(payload.ExtraData),
-			BaseFeePerGas: baseFeePerGas,
-			BlockHash:     ztree.Root(payload.BlockHash),
-			Transactions: *(*zcommon.PayloadTransactions)(
-				unsafe.Pointer(&payload.Transactions)),
-			Withdrawals:   *(*zcommon.Withdrawals)(unsafe.Pointer(&payload.Withdrawals)),
-			BlobGasUsed:   zview.Uint64View(payload.BlobGasUsed.Unwrap()),
-			ExcessBlobGas: zview.Uint64View(payload.ExcessBlobGas.Unwrap()),
+		pBlobSidecar := &pethpb.BlobSidecar{
+			Index:         sidecar.Index,
+			Blob:          sidecar.Blob[:],
+			KzgCommitment: sidecar.KzgCommitment[:],
+			KzgProof:      sidecar.KzgProof[:],
+			SignedBlockHeader: &pethpb.SignedBeaconBlockHeader{
+				Header: &pethpb.BeaconBlockHeader{
+					Slot:          pprim.Slot(blkHeader.Slot),
+					ProposerIndex: pprim.ValidatorIndex(blkHeader.ProposerIndex),
+					ParentRoot:    blkHeader.ParentBlockRoot[:],
+					StateRoot:     blkHeader.StateRoot[:],
+					BodyRoot:      blkHeader.BodyRoot[:],
+				},
+				Signature: sBlkHeader.Signature[:],
+			},
 		}
 
-		zRoot := zpayload.HashTreeRoot(spec, hFn)
-		containerRoot := payload.HashTreeRoot()
+		// Setup inclusion proofs
+		inclusionProofs := sidecar.InclusionProof
+		pBlobSidecar.CommitmentInclusionProof = make([][]byte, len(inclusionProofs))
+		for i, proof := range inclusionProofs {
+			pBlobSidecar.CommitmentInclusionProof[i] = proof[:]
+		}
 
-		return bytes.Equal(typeRoot[:], containerRoot[:]) &&
-			bytes.Equal(typeRoot[:], zRoot[:])
+		beaconRoot := sidecar.HashTreeRoot()
+		prysmRoot, err := pBlobSidecar.HashTreeRoot()
+		if err != nil {
+			t.Error(err)
+		}
+
+		return bytes.Equal(prysmRoot[:], beaconRoot[:])
 	}
 	if err := quick.Check(f, &c); err != nil {
 		t.Error(err)

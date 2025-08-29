@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -25,8 +25,10 @@ import (
 	"context"
 	"strings"
 
+	"github.com/berachain/beacon-kit/cli/flags"
+	"github.com/berachain/beacon-kit/config"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
+	sdkflags "github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -45,10 +47,17 @@ func Execute(rootCmd *cobra.Command, envPrefix, defaultHome string) error {
 	// getting and setting the client.Context. Ideally, we utilize
 	// https://github.com/spf13/cobra/pull/1118.
 	ctx := CreateExecuteContext(context.Background())
-	rootCmd.PersistentFlags().
-		StringP(flags.FlagHome, "", defaultHome, "directory for config and data")
+	rootCmd.PersistentFlags().String(
+		sdkflags.FlagHome, defaultHome, "directory for config and data")
 
-	// update the global viper with the root command's configuration
+	// Chain Spec flags.
+	rootCmd.PersistentFlags().String(
+		flags.ChainSpec, config.DefaultChainSpec, "chain spec to use")
+	rootCmd.PersistentFlags().String(
+		flags.ChainSpecFilePath, config.DefaultChainSpecFilePath,
+		"path to the chain spec toml file")
+
+	// Update the global viper with the root command's configuration.
 	viper.SetEnvPrefix(envPrefix)
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
 	viper.AutomaticEnv()

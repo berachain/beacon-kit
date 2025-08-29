@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -18,15 +18,16 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
+//nolint:dupl // False positive detected.
 package types
 
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/karalabe/ssz"
 )
 
-const MaxValidators = 1099511627776
-
+// Validators is a type alias for a SSZ list of Validator containers.
 type Validators []*Validator
 
 // SizeSSZ returns the SSZ encoded size in bytes for the Validators.
@@ -35,19 +36,20 @@ func (vs Validators) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {
 }
 
 // DefineSSZ defines the SSZ encoding for the Validators object.
+// TODO: get from accessible chainspec field params.
 func (vs Validators) DefineSSZ(c *ssz.Codec) {
 	c.DefineDecoder(func(*ssz.Decoder) {
 		ssz.DefineSliceOfStaticObjectsContent(
-			c, (*[]*Validator)(&vs), MaxValidators)
+			c, (*[]*Validator)(&vs), constants.ValidatorsRegistryLimit)
 	})
 	c.DefineEncoder(func(*ssz.Encoder) {
 		ssz.DefineSliceOfStaticObjectsContent(
-			c, (*[]*Validator)(&vs), MaxValidators)
+			c, (*[]*Validator)(&vs), constants.ValidatorsRegistryLimit)
 	})
 
 	c.DefineHasher(func(*ssz.Hasher) {
 		ssz.DefineSliceOfStaticObjectsOffset(
-			c, (*[]*Validator)(&vs), MaxValidators)
+			c, (*[]*Validator)(&vs), constants.ValidatorsRegistryLimit)
 	})
 }
 

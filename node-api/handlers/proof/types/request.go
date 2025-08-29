@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -28,14 +28,16 @@ type BlockProposerRequest struct {
 	types.TimestampIDRequest
 }
 
-// ExecutionNumberRequest is the request for the
-// `/proof/execution_number/{timestamp_id}` endpoint.
-type ExecutionNumberRequest struct {
+// ValidatorIndexRequest is a request that uses timestamp_id and validator_index.
+type ValidatorIndexRequest struct {
 	types.TimestampIDRequest
+	ValidatorIndex string `param:"validator_index" validate:"required,numeric"`
 }
 
-// ExecutionFeeRecipientRequest is the request for the
-// `/proof/execution_fee_recipient/{timestamp_id}` endpoint.
-type ExecutionFeeRecipientRequest struct {
-	types.TimestampIDRequest
-}
+// ValidatorCredentialsRequest is the request for the
+// `/proof/validator_credentials/{timestamp_id}/{validator_index}` endpoint.
+type ValidatorCredentialsRequest = ValidatorIndexRequest
+
+// ValidatorBalanceRequest is the request for the
+// `/proof/validator_balance/{timestamp_id}/{validator_index}` endpoint.
+type ValidatorBalanceRequest = ValidatorIndexRequest

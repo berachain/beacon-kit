@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -29,6 +29,7 @@ import (
 )
 
 func TestNewCredentialsFromExecutionAddress(t *testing.T) {
+	t.Parallel()
 	address := common.ExecutionAddress{0xde, 0xad, 0xbe, 0xef}
 	expectedCredentials := types.WithdrawalCredentials{}
 	expectedCredentials[0] = 0x01 // EthSecp256k1CredentialPrefix
@@ -64,7 +65,62 @@ func TestNewCredentialsFromExecutionAddress(t *testing.T) {
 	)
 }
 
+func TestIsValidEth1WithdrawalCredentials(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		wc       types.WithdrawalCredentials
+		expected bool
+	}{
+		{
+			name: "valid eth1 withdrawal credentials",
+			wc: func() types.WithdrawalCredentials {
+				wc := types.WithdrawalCredentials{}
+				wc[0] = types.EthSecp256k1CredentialPrefix
+				// bytes 1-11 should be zero
+				for i := 1; i < 12; i++ {
+					wc[i] = 0x00
+				}
+				// rest can be any value
+				addr := common.ExecutionAddress{0xde, 0xad, 0xbe, 0xef}
+				copy(wc[12:], addr[:])
+				return wc
+			}(),
+			expected: true,
+		},
+		{
+			name: "invalid prefix",
+			wc: func() types.WithdrawalCredentials {
+				wc := types.WithdrawalCredentials{}
+				wc[0] = 0x02 // wrong prefix
+				return wc
+			}(),
+			expected: false,
+		},
+		{
+			name: "non-zero padding bytes",
+			wc: func() types.WithdrawalCredentials {
+				wc := types.WithdrawalCredentials{}
+				wc[0] = types.EthSecp256k1CredentialPrefix
+				wc[5] = 0x01 // non-zero byte in padding area
+				return wc
+			}(),
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result := tt.wc.IsValidEth1WithdrawalCredentials()
+			require.Equal(t, tt.expected, result,
+				"Test case %s", tt.name)
+		})
+	}
+}
+
 func TestToExecutionAddress(t *testing.T) {
+	t.Parallel()
 	expectedAddress := common.ExecutionAddress{0xde, 0xad, 0xbe, 0xef}
 	credentials := types.WithdrawalCredentials{}
 	for i := range credentials {
@@ -91,6 +147,7 @@ func TestToExecutionAddress(t *testing.T) {
 }
 
 func TestToExecutionAddress_InvalidPrefix(t *testing.T) {
+	t.Parallel()
 	credentials := types.WithdrawalCredentials{}
 	for i := range credentials {
 		credentials[i] = 0x00 // Invalid prefix
@@ -102,6 +159,7 @@ func TestToExecutionAddress_InvalidPrefix(t *testing.T) {
 }
 
 func TestWithdrawalCredentials_UnmarshalJSON(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		input    string
@@ -124,6 +182,7 @@ func TestWithdrawalCredentials_UnmarshalJSON(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var wc types.WithdrawalCredentials
 
 			err := wc.UnmarshalJSON([]byte(tt.input))
@@ -138,6 +197,7 @@ func TestWithdrawalCredentials_UnmarshalJSON(t *testing.T) {
 }
 
 func TestWithdrawalCredentials_String(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		wc       types.WithdrawalCredentials
@@ -168,6 +228,7 @@ func TestWithdrawalCredentials_String(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			require.Equal(t, tt.expected, tt.wc.String(),
 				"Test case %s", tt.name)
 		})
@@ -175,6 +236,7 @@ func TestWithdrawalCredentials_String(t *testing.T) {
 }
 
 func TestWithdrawalCredentials_MarshalText(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		wc       types.WithdrawalCredentials
@@ -216,6 +278,7 @@ func TestWithdrawalCredentials_MarshalText(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result, err := tt.wc.MarshalText()
 			if tt.wantErr {
 				require.Error(t, err, "Test case %s", tt.name)
@@ -229,6 +292,7 @@ func TestWithdrawalCredentials_MarshalText(t *testing.T) {
 }
 
 func TestWithdrawalCredentials_UnmarshalText(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		input    []byte
@@ -251,6 +315,7 @@ func TestWithdrawalCredentials_UnmarshalText(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var wc types.WithdrawalCredentials
 			err := wc.UnmarshalText(tt.input)
 			if tt.wantErr {

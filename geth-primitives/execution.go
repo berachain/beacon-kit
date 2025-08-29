@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -36,18 +36,21 @@ type (
 	ExecutionAddress = common.Address
 	// ExecutionHash represents a hash on the execution layer which is
 	// currently a Keccak256 hash.
-	ExecutionHash  = common.Hash
-	ExecutableData = engine.ExecutableData
-	Genesis        = core.Genesis
-	Block          = coretypes.Block
-	Body           = coretypes.Body
-	Log            = coretypes.Log
-	LogsBloom      = coretypes.Bloom
-	Header         = coretypes.Header
-	Receipt        = coretypes.Receipt
-	Transaction    = coretypes.Transaction
-	Transactions   = coretypes.Transactions
-	Withdrawals    = coretypes.Withdrawals
+	ExecutionHash = common.Hash
+	// ExecutionPubkey represents a BLS12-381 public key on the execution layer.
+	ExecutionPubkey = common.Pubkey
+	ExecutableData  = engine.ExecutableData
+	Genesis         = core.Genesis
+	GenesisAlloc    = coretypes.GenesisAlloc
+	Block           = coretypes.Block
+	Body            = coretypes.Body
+	Log             = coretypes.Log
+	LogsBloom       = coretypes.Bloom
+	Header          = coretypes.Header
+	Receipt         = coretypes.Receipt
+	Transaction     = coretypes.Transaction
+	Transactions    = coretypes.Transactions
+	Withdrawals     = coretypes.Withdrawals
 )
 
 //nolint:gochecknoglobals // alias.
@@ -57,4 +60,5 @@ var (
 	DeriveSha             = coretypes.DeriveSha
 	EmptyUncleHash        = coretypes.EmptyUncleHash
 	NewStackTrie          = trie.NewStackTrie
+	CalcRequestsHash      = coretypes.CalcRequestsHash
 )

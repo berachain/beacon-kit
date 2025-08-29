@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -31,12 +31,11 @@ import (
 	"cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/node-core/components"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/storage"
 	"github.com/berachain/beacon-kit/storage/beacondb"
 	"github.com/berachain/beacon-kit/storage/db"
-	"github.com/berachain/beacon-kit/storage/encoding"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
@@ -48,17 +47,14 @@ type testKVStoreService struct {
 
 func (kvs *testKVStoreService) OpenKVStore(context.Context) corestore.KVStore {
 	//nolint:contextcheck // fine with tests
-	return components.NewKVStore(
-		sdk.UnwrapSDKContext(kvs.ctx).KVStore(testStoreKey),
-	)
+	store := sdk.UnwrapSDKContext(kvs.ctx).KVStore(testStoreKey)
+	return storage.NewKVStore(store)
 }
 
-var (
-	testStoreKey = storetypes.NewKVStoreKey("storage-tests")
-	testCodec    = &encoding.SSZInterfaceCodec[*types.ExecutionPayloadHeader]{}
-)
+var testStoreKey = storetypes.NewKVStoreKey("storage-tests")
 
 func TestBalances(t *testing.T) {
+	t.Parallel()
 	store, err := initTestStore()
 	require.NoError(t, err)
 
@@ -112,6 +108,7 @@ func TestBalances(t *testing.T) {
 }
 
 func TestValidators(t *testing.T) {
+	t.Parallel()
 	store, err := initTestStore()
 	require.NoError(t, err)
 
@@ -149,7 +146,7 @@ func TestValidators(t *testing.T) {
 
 	valCount, err := store.GetTotalValidators()
 	require.NoError(t, err)
-	require.Equal(t, uint64(2), valCount)
+	require.Equal(t, math.U64(2), valCount)
 
 	res, err = store.GetValidators()
 	require.NoError(t, err)
@@ -197,6 +194,103 @@ func TestValidators(t *testing.T) {
 	require.Equal(t, inUpdatedVal2, res[1])
 }
 
+// TestPendingPartialWithdrawals_Nil verifies that if no pending partial withdrawals
+// have been set, then GetPendingPartialWithdrawals returns an error.
+func TestPendingPartialWithdrawals_Nil(t *testing.T) {
+	t.Parallel()
+	store, err := initTestStore()
+	require.NoError(t, err)
+
+	ppw, err := store.GetPendingPartialWithdrawals()
+
+	require.ErrorContains(t, err, "collections: not found: key 'no_key' of type SSZMarshallable")
+	require.Nil(t, ppw)
+}
+
+// TestPendingPartialWithdrawals_EmptySlice verifies that when setting an empty slice, the Set and Get operations succeed.
+func TestPendingPartialWithdrawals_EmptySlice(t *testing.T) {
+	t.Parallel()
+	store, err := initTestStore()
+	require.NoError(t, err)
+
+	// Attempt to set an empty slice.
+	err = store.SetPendingPartialWithdrawals([]*types.PendingPartialWithdrawal{})
+	var ppw []*types.PendingPartialWithdrawal
+	require.NoError(t, err)
+	ppw, err = store.GetPendingPartialWithdrawals()
+	require.NoError(t, err)
+	require.Empty(t, ppw)
+}
+
+// TestPendingPartialWithdrawals_SetAndGetNonEmpty verifies that setting a non-empty list of pending partial withdrawals succeeds.
+func TestPendingPartialWithdrawals_SetAndGetNonEmpty(t *testing.T) {
+	t.Parallel()
+	store, err := initTestStore()
+	require.NoError(t, err)
+
+	// Create sample pending partial withdrawal entries.
+	entry1 := &types.PendingPartialWithdrawal{
+		ValidatorIndex:    math.U64(1),
+		Amount:            math.U64(100),
+		WithdrawableEpoch: math.U64(15),
+	}
+	entry2 := &types.PendingPartialWithdrawal{
+		ValidatorIndex:    math.U64(2),
+		Amount:            math.U64(200),
+		WithdrawableEpoch: math.U64(20),
+	}
+	sampleWithdrawals := []*types.PendingPartialWithdrawal{entry1, entry2}
+
+	var ppw []*types.PendingPartialWithdrawal
+	// Attempt to set the non-empty slice.
+	err = store.SetPendingPartialWithdrawals(sampleWithdrawals)
+
+	require.NoError(t, err)
+	ppw, err = store.GetPendingPartialWithdrawals()
+	require.NoError(t, err)
+	require.Equal(t, sampleWithdrawals, ppw)
+}
+
+// TestPendingPartialWithdrawals_Update verifies that updating the pending partial withdrawals works correctly.
+func TestPendingPartialWithdrawals_Update(t *testing.T) {
+	t.Parallel()
+	store, err := initTestStore()
+	require.NoError(t, err)
+
+	require.NoError(t, err)
+	// Create initial pending partial withdrawal entries.
+	entry1 := &types.PendingPartialWithdrawal{
+		ValidatorIndex:    math.U64(1),
+		Amount:            math.U64(100),
+		WithdrawableEpoch: math.U64(15),
+	}
+	entry2 := &types.PendingPartialWithdrawal{
+		ValidatorIndex:    math.U64(2),
+		Amount:            math.U64(200),
+		WithdrawableEpoch: math.U64(20),
+	}
+	initialWithdrawals := []*types.PendingPartialWithdrawal{entry1, entry2}
+	var ppw []*types.PendingPartialWithdrawal
+
+	// Set the initial list.
+	err = store.SetPendingPartialWithdrawals(initialWithdrawals)
+	require.NoError(t, err)
+
+	// Now update by modifying entry1's amount and dropping entry2.
+	updatedEntry := &types.PendingPartialWithdrawal{
+		ValidatorIndex:    math.U64(1),
+		Amount:            math.U64(150), // Updated amount.
+		WithdrawableEpoch: math.U64(15),
+	}
+	updatedWithdrawals := []*types.PendingPartialWithdrawal{updatedEntry}
+	err = store.SetPendingPartialWithdrawals(updatedWithdrawals)
+	require.NoError(t, err)
+
+	ppw, err = store.GetPendingPartialWithdrawals()
+	require.NoError(t, err)
+	require.Equal(t, updatedWithdrawals, ppw)
+}
+
 func initTestStore() (*beacondb.KVStore, error) {
 	db, err := db.OpenDB("", dbm.MemDBBackend)
 	if err != nil {
@@ -222,8 +316,5 @@ func initTestStore() (*beacondb.KVStore, error) {
 	testStoreService := &testKVStoreService{
 		ctx: ctx,
 	}
-	return beacondb.New(
-		testStoreService,
-		testCodec,
-	), nil
+	return beacondb.New(testStoreService), nil
 }

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -46,20 +46,16 @@ type KurtosisE2ESuite struct {
 	kCtx    *kurtosis_context.KurtosisContext
 	enclave *enclaves.EnclaveContext
 
-	// TODO: Figure out what these may be useful for.
 	consensusClients map[string]*types.ConsensusClient
-	// executionClients map[string]*types.ExecutionClient
+	// executionClients map[string]*types.ExecutionClient // TODO: enable.
 	loadBalancer *types.LoadBalancer
 
 	genesisAccount *types.EthAccount
 	testAccounts   []*types.EthAccount
 }
 
-// ConsensusClients returns the consensus clients associated with the
-// KurtosisE2ESuite.
-func (
-	s *KurtosisE2ESuite,
-) ConsensusClients() map[string]*types.ConsensusClient {
+// ConsensusClients returns the consensus clients associated with the KurtosisE2ESuite.
+func (s *KurtosisE2ESuite) ConsensusClients() map[string]*types.ConsensusClient {
 	return s.consensusClients
 }
 
@@ -87,11 +83,10 @@ func (s *KurtosisE2ESuite) KurtosisCtx() *kurtosis_context.KurtosisContext {
 	return s.kCtx
 }
 
-// ExecutionClients returns the execution clients associated with the
-// KurtosisE2ESuite.
-func (
-	s *KurtosisE2ESuite,
-) ExecutionClients() map[string]*types.ExecutionClient {
+// ExecutionClients returns the execution clients associated with the KurtosisE2ESuite.
+//
+// TODO: enable this in favor of the LoadBalancer to test multiple execution clients.
+func (s *KurtosisE2ESuite) ExecutionClients() map[string]*types.ExecutionClient {
 	return nil
 }
 

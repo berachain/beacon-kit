@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,18 +21,50 @@
 package backend
 
 import (
+	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
+	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-// GetGenesis returns the genesis state of the beacon chain.
-func (b Backend[
-	_, _, _, _, _, _, _,
-]) GenesisValidatorsRoot(slot math.Slot) (common.Root, error) {
-	// needs genesis_time and gensis_fork_version
-	st, _, err := b.stateFromSlot(slot)
-	if err != nil {
-		return common.Root{}, err
+// GenesisValidatorsRoot returns the genesis validators root of the beacon chain.
+func (b *Backend) GenesisValidatorsRoot() (common.Root, error) {
+	// First check if the value is cached.
+	root := b.genesisValidatorsRoot.Load()
+	if root != nil && *root != (common.Root{}) {
+		return *root, nil
 	}
-	return st.GetGenesisValidatorsRoot()
+
+	// If not cached, read state from the beacon state at the tip of chain.
+	st, _, err := b.StateAtSlot(utils.Head)
+	if err != nil {
+		// Should the app be not read, we return an empty validator root
+		// which is duly processed by clients
+		if errors.Is(err, cometbft.ErrAppNotReady) {
+			return common.Root{}, nil
+		}
+		return common.Root{}, errors.Wrapf(err, "failed to get state from tip of chain")
+	}
+
+	// Get the genesis validators root.
+	validatorsRoot, err := st.GetGenesisValidatorsRoot()
+	if err != nil {
+		return common.Root{}, errors.Wrap(err, "failed to get genesis validators root from state")
+	}
+
+	// Cache the value for future use.
+	b.genesisValidatorsRoot.Store(&validatorsRoot)
+
+	return validatorsRoot, nil
+}
+
+// GenesisForkVersion returns the genesis fork version of the beacon chain.
+func (b *Backend) GenesisForkVersion() (common.Version, error) {
+	return *b.genesisForkVersion.Load(), nil
+}
+
+// GenesisTime returns the genesis time of the beacon chain.
+func (b *Backend) GenesisTime() (math.U64, error) {
+	return *b.genesisTime.Load(), nil
 }

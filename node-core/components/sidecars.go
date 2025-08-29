@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,20 +22,18 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	dablob "github.com/berachain/beacon-kit/da/blob"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 )
 
 type SidecarFactoryInput struct {
 	depinject.In
-	ChainSpec     chain.ChainSpec
+
 	TelemetrySink *metrics.TelemetrySink
 }
 
 func ProvideSidecarFactory(in SidecarFactoryInput) *dablob.SidecarFactory {
 	return dablob.NewSidecarFactory(
-		in.ChainSpec,
 		in.TelemetrySink,
 	)
 }

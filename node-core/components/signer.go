@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,9 +21,12 @@
 package components
 
 import (
+	"fmt"
+	"os"
 	"path/filepath"
 
 	"cosmossdk.io/depinject"
+	beaconflags "github.com/berachain/beacon-kit/cli/flags"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/constants"
@@ -45,10 +48,10 @@ func ProvideBlsSigner(in BlsSignerInput) (crypto.BLSSigner, error) {
 		// if no private key is provided, use privval signer
 		homeDir := cast.ToString(in.AppOpts.Get(flags.FlagHome))
 		privValKeyFile := cast.ToString(
-			in.AppOpts.Get("priv_validator_key_file"),
+			in.AppOpts.Get(beaconflags.PrivValidatorKeyFile),
 		)
 		privValStateFile := cast.ToString(
-			in.AppOpts.Get("priv_validator_state_file"),
+			in.AppOpts.Get(beaconflags.PrivValidatorStateFile),
 		)
 		// If privValKeyFile is not an absolute path, join with homeDir
 		if !filepath.IsAbs(privValKeyFile) {
@@ -58,6 +61,17 @@ func ProvideBlsSigner(in BlsSignerInput) (crypto.BLSSigner, error) {
 		if !filepath.IsAbs(privValStateFile) {
 			privValStateFile = filepath.Join(homeDir, privValStateFile)
 		}
+
+		// Check key file existence here as the error in NewBLSSigner is vague.
+		if _, err := os.Stat(privValKeyFile); os.IsNotExist(err) {
+			return nil, fmt.Errorf("key file does not exist at path: %s", privValKeyFile)
+		}
+
+		// Check state file existence as the error in NewBLSSigner is vague.
+		if _, err := os.Stat(privValStateFile); os.IsNotExist(err) {
+			return nil, fmt.Errorf("state file does not exist at path: %s", privValStateFile)
+		}
+
 		return signer.NewBLSSigner(privValKeyFile, privValStateFile), nil
 	}
 	return signer.NewLegacySigner(in.PrivKey)

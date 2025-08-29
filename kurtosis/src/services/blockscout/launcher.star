@@ -2,7 +2,7 @@ shared_utils = import_module("github.com/ethpandaops/ethereum-package/src/shared
 postgres = import_module("github.com/kurtosis-tech/postgres-package/main.star")
 
 IMAGE_NAME_BLOCKSCOUT = "blockscout/blockscout:6.6.0"
-IMAGE_NAME_BLOCKSCOUT_VERIF = "ghcr.io/blockscout/smart-contract-verifier:v1.6.0"
+IMAGE_NAME_BLOCKSCOUT_VERIF = "ghcr.io/blockscout/smart-contract-verifier:v1.9.2-arm"
 
 SERVICE_NAME_BLOCKSCOUT = "blockscout"
 
@@ -126,7 +126,7 @@ def get_config_backend(
             'bin/blockscout eval "Elixir.Explorer.ReleaseTasks.create_and_migrate()" && bin/blockscout start',
         ],
         env_vars = {
-            "ETHEREUM_JSONRPC_VARIANT": "erigon" if el_client_name == "erigon" or el_client_name == "reth" else el_client_name,
+            "ETHEREUM_JSONRPC_VARIANT": el_client_name,
             "ETHEREUM_JSONRPC_HTTP_URL": el_client_rpc_url,
             "ETHEREUM_JSONRPC_TRACE_URL": el_client_rpc_url,
             "DATABASE_URL": database_url,

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -24,14 +24,16 @@ import (
 	"testing"
 
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/stretchr/testify/require"
 )
 
 func TestBlobsBundleV1(t *testing.T) {
-	bundle := &engineprimitives.BlobsBundleV1[[48]byte, [48]byte, [131072]byte]{
-		Commitments: [][48]byte{{1, 2, 3}, {4, 5, 6}},
-		Proofs:      [][48]byte{{7, 8, 9}, {10, 11, 12}},
-		Blobs:       []*[131072]byte{{13, 14, 15}, {16, 17, 18}},
+	t.Parallel()
+	bundle := &engineprimitives.BlobsBundleV1{
+		Commitments: []eip4844.KZGCommitment{{1, 2, 3}, {4, 5, 6}},
+		Proofs:      []eip4844.KZGProof{{7, 8, 9}, {10, 11, 12}},
+		Blobs:       []*eip4844.Blob{{13, 14, 15}, {16, 17, 18}},
 	}
 
 	commitments := bundle.GetCommitments()

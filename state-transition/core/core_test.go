@@ -1,6 +1,9 @@
+//go:build test
+// +build test
+
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,171 +24,40 @@
 package core_test
 
 import (
-	"context"
-	"fmt"
 	"strconv"
 	"testing"
 
-	corestore "cosmossdk.io/core/store"
-	"cosmossdk.io/log"
-	"cosmossdk.io/store"
-	"cosmossdk.io/store/metrics"
-	storetypes "cosmossdk.io/store/types"
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
-	"github.com/berachain/beacon-kit/log/noop"
-	"github.com/berachain/beacon-kit/node-core/components"
-	nodemetrics "github.com/berachain/beacon-kit/node-core/components/metrics"
+	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
-	cryptomocks "github.com/berachain/beacon-kit/primitives/crypto/mocks"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/transition"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/state-transition/core"
-	"github.com/berachain/beacon-kit/state-transition/core/mocks"
-	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
-	"github.com/berachain/beacon-kit/storage/beacondb"
-	"github.com/berachain/beacon-kit/storage/db"
-	depositstore "github.com/berachain/beacon-kit/storage/deposit"
-	"github.com/berachain/beacon-kit/storage/encoding"
-	dbm "github.com/cosmos/cosmos-db"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/mock"
+	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	"github.com/stretchr/testify/require"
 )
 
-type (
-	TestBeaconStateMarshallableT = types.BeaconState
-
-	TestKVStoreT = beacondb.KVStore
-
-	TestBeaconStateT = statedb.StateDB
-
-	TestStateProcessorT = core.StateProcessor[
-		*transition.Context,
-		*TestKVStoreT,
-	]
-)
-
-type testKVStoreService struct {
-	ctx sdk.Context
-}
-
-func (kvs *testKVStoreService) OpenKVStore(context.Context) corestore.KVStore {
-	//nolint:contextcheck // fine with tests
-	return components.NewKVStore(
-		sdk.UnwrapSDKContext(kvs.ctx).KVStore(testStoreKey),
-	)
-}
-
-var (
-	testStoreKey = storetypes.NewKVStoreKey("state-transition-tests")
-	testCodec    = &encoding.SSZInterfaceCodec[*types.ExecutionPayloadHeader]{}
-)
-
-func initTestStores() (*beacondb.KVStore, *depositstore.KVStore, error) {
-	db, err := db.OpenDB("", dbm.MemDBBackend)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed opening mem db: %w", err)
-	}
-	var (
-		nopLog     = log.NewNopLogger()
-		nopMetrics = metrics.NewNoOpMetrics()
-	)
-
-	cms := store.NewCommitMultiStore(
-		db,
-		nopLog,
-		nopMetrics,
-	)
-
-	cms.MountStoreWithDB(testStoreKey, storetypes.StoreTypeIAVL, nil)
-	if err = cms.LoadLatestVersion(); err != nil {
-		return nil, nil, fmt.Errorf("failed to load latest version: %w", err)
-	}
-
-	ctx := sdk.NewContext(cms, true, nopLog)
-	testStoreService := &testKVStoreService{ctx: ctx}
-	return beacondb.New(
-			testStoreService,
-			testCodec,
-		),
-		depositstore.NewStore(testStoreService, nopLog),
-		nil
-}
-
-func setupChain(t *testing.T, chainSpecType string) chain.Spec[
-	bytes.B4, math.U64, math.U64, any,
-] {
+func setupChain(t *testing.T) chain.Spec {
 	t.Helper()
-
-	t.Setenv(components.ChainSpecTypeEnvVar, chainSpecType)
-	cs, err := components.ProvideChainSpec()
+	chainSpec, err := spec.DevnetChainSpec()
 	require.NoError(t, err)
-
-	return cs
+	return chainSpec
 }
 
-func setupState(
-	t *testing.T, cs chain.Spec[
-		bytes.B4, math.U64, math.U64, any,
-	],
-) (
-	*TestStateProcessorT,
-	*TestBeaconStateT,
-	*depositstore.KVStore,
-	*transition.Context,
-) {
-	t.Helper()
-
-	execEngine := mocks.NewExecutionEngine(t)
-
-	mocksSigner := &cryptomocks.BLSSigner{}
-	mocksSigner.On(
-		"VerifySignature",
-		mock.Anything, mock.Anything, mock.Anything,
-	).Return(nil)
-
-	dummyProposerAddr := []byte{0xff}
-
-	kvStore, depositStore, err := initTestStores()
-	require.NoError(t, err)
-	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
-
-	sp := core.NewStateProcessor[
-		*transition.Context,
-		*TestKVStoreT,
-	](
-		noop.NewLogger[any](),
-		cs,
-		execEngine,
-		depositStore,
-		mocksSigner,
-		func(bytes.B48) ([]byte, error) {
-			return dummyProposerAddr, nil
-		},
-		nodemetrics.NewNoOpTelemetrySink(),
-	)
-
-	ctx := &transition.Context{
-		SkipPayloadVerification: true,
-		SkipValidateResult:      true,
-		ProposerAddress:         dummyProposerAddr,
-	}
-
-	return sp, beaconState, depositStore, ctx
-}
-
+//nolint:unused // may be used in the future.
 func progressStateToSlot(
 	t *testing.T,
-	beaconState *TestBeaconStateT,
+	beaconState *statetransition.TestBeaconStateT,
 	slot math.U64,
 ) {
 	t.Helper()
 
 	if slot == math.U64(0) {
-		t.Fatal("for genesis slot, use InitializePreminedBeaconStateFromEth1")
+		t.Fatal("for genesis slot, use InitializeBeaconStateFromEth1")
 	}
 
 	err := beaconState.SetSlot(slot)
@@ -202,25 +74,73 @@ func progressStateToSlot(
 
 func buildNextBlock(
 	t *testing.T,
-	beaconState *TestBeaconStateT,
-	nextBlkBody *types.BeaconBlockBody,
+	cs chain.Spec,
+	beaconState *statetransition.TestBeaconStateT,
+	eth1Data *types.Eth1Data,
+	timestamp math.U64,
+	blockDeposits types.Deposits,
+	executionRequests *types.ExecutionRequests,
+	withdrawals ...*engineprimitives.Withdrawal,
 ) *types.BeaconBlock {
 	t.Helper()
-
+	require.NotNil(t, cs)
 	// first update state root, similarly to what we do in processSlot
 	parentBlkHeader, err := beaconState.GetLatestBlockHeader()
 	require.NoError(t, err)
 	root := beaconState.HashTreeRoot()
 	parentBlkHeader.SetStateRoot(root)
 
-	// finally build the block
-	return &types.BeaconBlock{
-		Slot:          parentBlkHeader.GetSlot() + 1,
-		ProposerIndex: parentBlkHeader.GetProposerIndex(),
-		ParentRoot:    parentBlkHeader.HashTreeRoot(),
-		StateRoot:     common.Root{},
-		Body:          nextBlkBody,
+	// build the block
+	fv := cs.ActiveForkVersionForTimestamp(timestamp)
+	versionable := types.NewVersionable(fv)
+	blk, err := types.NewBeaconBlockWithVersion(
+		parentBlkHeader.GetSlot()+1,
+		parentBlkHeader.GetProposerIndex(),
+		parentBlkHeader.HashTreeRoot(),
+		fv,
+	)
+	require.NoError(t, err)
+
+	// build the payload
+	payload := &types.ExecutionPayload{
+		Versionable:   versionable,
+		Timestamp:     timestamp,
+		ExtraData:     []byte("testing"),
+		Transactions:  [][]byte{},
+		Withdrawals:   withdrawals,
+		BaseFeePerGas: math.NewU256(0),
 	}
+	parentBeaconBlockRoot := parentBlkHeader.HashTreeRoot()
+
+	var ethBlk *gethprimitives.Block
+	if version.IsBefore(fv, version.Electra()) {
+		ethBlk, _, err = types.MakeEthBlock(payload, parentBeaconBlockRoot, nil, nil)
+		require.NoError(t, err)
+	} else {
+		encodedER, erErr := types.GetExecutionRequestsList(executionRequests)
+		require.NoError(t, erErr)
+		require.NotNil(t, encodedER)
+
+		parentProposerPubkey, errPk := beaconState.ParentProposerPubkey(timestamp)
+		require.NoError(t, errPk)
+
+		ethBlk, _, err = types.MakeEthBlock(payload, parentBeaconBlockRoot, encodedER, parentProposerPubkey)
+		require.NoError(t, err)
+	}
+	payload.BlockHash = common.ExecutionHash(ethBlk.Hash())
+
+	require.NoError(t, err)
+	blk.Body = &types.BeaconBlockBody{
+		Versionable:      versionable,
+		ExecutionPayload: payload,
+		Eth1Data:         eth1Data,
+		Deposits:         blockDeposits,
+	}
+	if version.EqualsOrIsAfter(fv, version.Electra()) {
+		err = blk.Body.SetExecutionRequests(executionRequests)
+		require.NoError(t, err)
+	}
+	return blk
 }
 
 func generateTestExecutionAddress(
@@ -252,32 +172,26 @@ func generateTestPK(t *testing.T, rndSeed int) (bytes.B48, int) {
 func moveToEndOfEpoch(
 	t *testing.T,
 	tip *types.BeaconBlock,
-	cs chain.Spec[bytes.B4, math.U64, math.U64, any],
-	sp *TestStateProcessorT,
-	st *TestBeaconStateT,
-	ctx *transition.Context,
+	cs chain.Spec,
+	sp *statetransition.TestStateProcessorT,
+	st *statetransition.TestBeaconStateT,
+	ctx core.ReadOnlyContext,
 	depRoot common.Root,
 ) *types.BeaconBlock {
 	t.Helper()
 	blk := tip
 	currEpoch := cs.SlotToEpoch(blk.GetSlot())
 	for currEpoch == cs.SlotToEpoch(blk.GetSlot()+1) {
+		timestamp := blk.Body.ExecutionPayload.Timestamp + 1
 		blk = buildNextBlock(
 			t,
+			cs,
 			st,
-			&types.BeaconBlockBody{
-				ExecutionPayload: &types.ExecutionPayload{
-					Timestamp:    blk.Body.ExecutionPayload.Timestamp + 1,
-					ExtraData:    []byte("testing"),
-					Transactions: [][]byte{},
-					Withdrawals: []*engineprimitives.Withdrawal{
-						st.EVMInflationWithdrawal(),
-					},
-					BaseFeePerGas: math.NewU256(0),
-				},
-				Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
-				Deposits: []*types.Deposit{},
-			},
+			types.NewEth1Data(depRoot),
+			timestamp,
+			[]*types.Deposit{},
+			&types.ExecutionRequests{},
+			st.EVMInflationWithdrawal(timestamp),
 		)
 
 		vals, err := sp.Transition(ctx, st, blk)

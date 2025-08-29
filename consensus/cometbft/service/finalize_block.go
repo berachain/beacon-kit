@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,24 +22,20 @@ package cometbft
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"time"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/cache"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
+	datypes "github.com/berachain/beacon-kit/da/types"
+	"github.com/berachain/beacon-kit/primitives/transition"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/sourcegraph/conc/iter"
 )
 
-func (s *Service[LoggerT]) finalizeBlock(
-	ctx context.Context,
-	req *cmtabci.FinalizeBlockRequest,
-) (*cmtabci.FinalizeBlockResponse, error) {
-	res, err := s.finalizeBlockInternal(ctx, req)
-	if res != nil {
-		res.AppHash = s.workingHash()
-	}
-	return res, err
-}
-
-func (s *Service[LoggerT]) finalizeBlockInternal(
+func (s *Service) finalizeBlock(
 	ctx context.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (*cmtabci.FinalizeBlockResponse, error) {
@@ -47,76 +43,160 @@ func (s *Service[LoggerT]) finalizeBlockInternal(
 		return nil, err
 	}
 
-	// finalizeBlockState should be set on InitChain or ProcessProposal. If it
-	// is nil, it means we are replaying this block and we need to set the state
-	// here given that during block replay ProcessProposal is not executed by
-	// CometBFT.
-	if s.finalizeBlockState == nil {
-		s.finalizeBlockState = s.resetState(ctx)
-	}
+	// Check whether currently block hash is already available. If so
+	// we may speed up block finalization.
+	hash := string(req.Hash)
+	switch cached, err := s.cachedStates.GetCached(hash); {
+	case err == nil:
+		// Block with height equal to initial height is special and we can't rely on its cache.
+		// This is because Genesis state is cached but not committed (and purged from s.cachedStates)
+		// We handle the case outside of this switch, via the s.Blockchain.FinalizeBlock below.
+		if req.Height > s.initialHeight {
+			if err = s.cachedStates.MarkAsFinal(hash); err != nil {
+				return nil, fmt.Errorf("failed marking state as final, hash %s, height %d: %w", hash, req.Height, err)
+			}
 
-	// Iterate over all raw transactions in the proposal and attempt to execute
-	// them, gathering the execution results.
-	//
-	// NOTE: Not all raw transactions may adhere to the sdk.Tx interface, e.g.
-	// vote extensions, so skip those.
-	txResults := make([]*cmtabci.ExecTxResult, len(req.Txs))
-	for i := range req.Txs {
-		//nolint:mnd // its okay for now.
-		txResults[i] = &cmtabci.ExecTxResult{
-			Codespace: "sdk",
-			Code:      2,
-			Log:       "skip decoding",
-			GasWanted: 0,
-			GasUsed:   0,
+			finalState := cached.State
+			var (
+				signedBlk *ctypes.SignedBeaconBlock
+				sidecars  datypes.BlobSidecars
+			)
+			signedBlk, sidecars, err = s.Blockchain.ParseBeaconBlock(req)
+			if err != nil {
+				return nil, fmt.Errorf("finalize block: failed parsing block: %w", err)
+			}
+			blk := signedBlk.GetBeaconBlock()
+
+			if err = s.Blockchain.FinalizeSidecars(
+				finalState.Context(),
+				req.SyncingToHeight,
+				blk,
+				sidecars,
+			); err != nil {
+				return nil, fmt.Errorf("failed finalizing sidecars: %w", err)
+			}
+			if err = s.Blockchain.PostFinalizeBlockOps(
+				finalState.Context(),
+				blk,
+			); err != nil {
+				return nil, fmt.Errorf("finalize block: failed post finalize block ops: %w", err)
+			}
+			return s.calculateFinalizeBlockResponse(req, cached.ValUpdates)
 		}
+
+	case errors.Is(err, cache.ErrStateNotFound):
+		// this is a benign error, it just signal it's the first time we see the block being finalized
+		// Keep processing below
+
+	default:
+		return nil, fmt.Errorf("failed checking cached state, hash %s, height %d: %w", hash, req.Height, err)
 	}
 
-	finalizeBlock, err := s.Blockchain.FinalizeBlock(
-		s.finalizeBlockState.Context(),
-		req,
-	)
+	// Block has not been cached already, as it happens when we block sync.
+	// Normally we would directly process it but first block post initial height
+	// needs special handling.
+	var finalState *cache.State
+	cachedFinalHash, cachedFinalState, err := s.cachedStates.GetFinal()
+	switch {
+	case errors.Is(err, cache.ErrNoFinalState):
+		hash = string(req.Hash) // not necessary but clarifies intent
+		finalState = s.resetState(ctx)
+
+	case err == nil:
+		hash = cachedFinalHash
+		finalState = cachedFinalState
+
+		// Preserve the CosmosSDK context while using the correct base ctx.
+		finalState.SetContext(finalState.Context().WithContext(ctx))
+
+	default:
+		return nil, fmt.Errorf("failed checking cached final state, hash %s, height %d: %w", hash, req.Height, err)
+	}
+
+	valUpdates, err := s.Blockchain.FinalizeBlock(finalState.Context(), req)
 	if err != nil {
 		return nil, err
 	}
 
-	valUpdates, err := iter.MapErr(
-		finalizeBlock,
-		convertValidatorUpdate[cmtabci.ValidatorUpdate],
-	)
-	if err != nil {
-		return nil, err
+	// Cache and mark state as final
+	s.cachedStates.SetCached(hash, &cache.Element{
+		State:      finalState,
+		ValUpdates: valUpdates,
+	})
+	if err = s.cachedStates.MarkAsFinal(hash); err != nil {
+		return nil, fmt.Errorf("failed marking state as final, hash %s, height %d: %w", hash, req.Height, err)
 	}
 
-	return &cmtabci.FinalizeBlockResponse{
-		TxResults:             txResults,
-		ValidatorUpdates:      valUpdates,
-		ConsensusParamUpdates: s.paramStore.Get(),
-	}, nil
+	return s.calculateFinalizeBlockResponse(req, valUpdates)
+}
+
+//nolint:lll // long message on one line for readability.
+func (s *Service) nextBlockDelay(req *cmtabci.FinalizeBlockRequest) time.Duration {
+	// c0. SBT is not enabled => use the old block delay.
+	if s.cmtConsensusParams.Feature.SBTEnableHeight <= 0 {
+		return s.delayCfg.SbtConstBlockDelay()
+	}
+
+	// c1. current height < SBTEnableHeight => wait for the upgrade.
+	if req.Height < s.cmtConsensusParams.Feature.SBTEnableHeight {
+		return s.delayCfg.SbtConstBlockDelay()
+	}
+
+	// c2. current height == SBTEnableHeight => initialize the block delay.
+	if req.Height == s.cmtConsensusParams.Feature.SBTEnableHeight {
+		s.blockDelay = &delay.BlockDelay{
+			InitialTime:       req.Time,
+			InitialHeight:     req.Height,
+			PreviousBlockTime: req.Time,
+		}
+		return s.delayCfg.SbtConstBlockDelay()
+	}
+
+	// c3. current height > SBTEnableHeight
+	// c3.1
+	//
+	// The upgrade was successfully applied and the block delay is set.
+	if s.blockDelay != nil {
+		prevBlkTime := s.blockDelay.PreviousBlockTime // note it down before ComputeNext changes it
+		delay := s.blockDelay.ComputeNext(s.delayCfg, req.Time, req.Height)
+		s.logger.Debug("Stable block time",
+			"previous block time", prevBlkTime.String(),
+			"current block time", req.Time.String(),
+			"next delay", delay.String(),
+		)
+		return delay
+	}
+	// c3.2
+	//
+	// Looks like we've skipped SBTEnableHeight (probably restoring from the
+	// snapshot) => panic.
+	panic(fmt.Sprintf("nil block delay at height %d past SBTEnableHeight %d. This is only possible w/ statesync, which is not supported by SBT atm",
+		req.Height, s.cmtConsensusParams.Feature.SBTEnableHeight))
 }
 
 // workingHash gets the apphash that will be finalized in commit.
 // These writes will be persisted to the root multi-store
-// (s.sm.CommitMultiStore()) and flushed
-// to disk in the Commit phase. This means when the ABCI client requests
-// Commit(), the application state transitions will be flushed to disk and as a
-// result, but we already have
-// an application Merkle root.
-func (s *Service[LoggerT]) workingHash() []byte {
+// (s.smGet.CommitMultiStore()) and flushed to disk  in the
+// Commit phase. This means when the ABCI client requests
+// Commit(), the application state transitions will be flushed
+// to disk and as a result, but we already have an application
+// Merkle root.
+func (s *Service) workingHash() []byte {
 	// Write the FinalizeBlock state into branched storage and commit the
 	// MultiStore. The write to the FinalizeBlock state writes all state
-	// transitions to the root MultiStore (s.sm.CommitMultiStore())
+	// transitions to the root MultiStore (s.sm.GetCommitMultiStore())
 	// so when Commit() is called it persists those values.
-	if s.finalizeBlockState == nil {
+	_, finalState, err := s.cachedStates.GetFinal()
+	if err != nil {
 		// this is unexpected since workingHash is called only after
 		// internalFinalizeBlock. Panic appeases nilaway.
-		panic(fmt.Errorf("workingHash: %w", errNilFinalizeBlockState))
+		panic(fmt.Errorf("workingHash: %w", err))
 	}
-	s.finalizeBlockState.ms.Write()
+	finalState.Write()
 
 	// Get the hash of all writes in order to return the apphash to the comet in
 	// finalizeBlock.
-	commitHash := s.sm.CommitMultiStore().WorkingHash()
+	commitHash := s.sm.GetCommitMultiStore().WorkingHash()
 	s.logger.Debug(
 		"hash of all writes",
 		"workingHash",
@@ -126,9 +206,7 @@ func (s *Service[LoggerT]) workingHash() []byte {
 	return commitHash
 }
 
-func (s *Service[_]) validateFinalizeBlockHeight(
-	req *cmtabci.FinalizeBlockRequest,
-) error {
+func (s *Service) validateFinalizeBlockHeight(req *cmtabci.FinalizeBlockRequest) error {
 	if req.Height < 1 {
 		return fmt.Errorf(
 			"finalizeBlock at height %v: %w",
@@ -137,7 +215,7 @@ func (s *Service[_]) validateFinalizeBlockHeight(
 		)
 	}
 
-	lastBlockHeight := s.LastBlockHeight()
+	lastBlockHeight := s.lastBlockHeight()
 
 	// expectedHeight holds the expected height to validate
 	var expectedHeight int64
@@ -164,4 +242,49 @@ func (s *Service[_]) validateFinalizeBlockHeight(
 	}
 
 	return nil
+}
+
+func (s *Service) calculateFinalizeBlockResponse(
+	req *cmtabci.FinalizeBlockRequest,
+	valUpdates transition.ValidatorUpdates,
+) (*cmtabci.FinalizeBlockResponse, error) {
+	// Update Stable block time related data
+	if s.cmtConsensusParams.Feature.SBTEnableHeight == 0 && req.Height == s.delayCfg.SbtConsensusUpdateHeight() {
+		s.cmtConsensusParams.Feature.SBTEnableHeight = s.delayCfg.SbtConsensusEnableHeight()
+	}
+	nextBlockTime := s.nextBlockDelay(req)
+
+	// This result format is expected by Comet. That actual execution will happen as part of the state transition.
+	txsLen := len(req.Txs)
+	txResults := make([]*cmtabci.ExecTxResult, txsLen)
+	for i := range txsLen {
+		//nolint:mnd // its okay for now.
+		txResults[i] = &cmtabci.ExecTxResult{
+			Codespace: "sdk",
+			Code:      2,
+			Log:       "skip decoding",
+			GasWanted: 0,
+			GasUsed:   0,
+		}
+	}
+
+	formattedValUpdates, err := iter.MapErr(
+		valUpdates,
+		convertValidatorUpdate[cmtabci.ValidatorUpdate],
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// update sync to height once FinalizeBlock cannot err anymore.
+	s.syncingToHeight = req.SyncingToHeight
+
+	cp := s.cmtConsensusParams.ToProto()
+	return &cmtabci.FinalizeBlockResponse{
+		TxResults:             txResults,
+		ValidatorUpdates:      formattedValUpdates,
+		ConsensusParamUpdates: &cp,
+		AppHash:               s.workingHash(),
+		NextBlockDelay:        nextBlockTime,
+	}, nil
 }

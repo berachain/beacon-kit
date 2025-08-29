@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,309 +22,56 @@ package components
 
 import (
 	"context"
-	"encoding/json"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	nodecoretypes "github.com/berachain/beacon-kit/node-core/types"
+	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	"github.com/berachain/beacon-kit/state-transition/core"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
-	v1 "github.com/cometbft/cometbft/api/cometbft/abci/v1"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	fastssz "github.com/ferranbt/fastssz"
+	"github.com/berachain/beacon-kit/storage/block"
+	"github.com/berachain/beacon-kit/storage/deposit"
 )
 
 type (
 	// AttributesFactory is the interface for the attributes factory.
 	AttributesFactory interface {
 		BuildPayloadAttributes(
-			st *statedb.StateDB,
-			slot math.Slot,
-			timestamp uint64,
-			prevHeadRoot [32]byte,
+			timestamp math.U64,
+			payloadWithdrawals engineprimitives.Withdrawals,
+			prevRandao common.Bytes32,
+			prevHeadRoot common.Root,
+			parentProposerPubkey *crypto.BLSPubkey,
 		) (*engineprimitives.PayloadAttributes, error)
 	}
 
-	// AvailabilityStore is the interface for the availability store.
-	AvailabilityStore interface {
-		IndexDB
-		// IsDataAvailable ensures that all blobs referenced in the block are
-		// securely stored before it returns without an error.
-		IsDataAvailable(context.Context, math.Slot, *ctypes.BeaconBlockBody) bool
-		// Persist makes sure that the sidecar remains accessible for data
-		// availability checks throughout the beacon node's operation.
-		Persist(math.Slot, datypes.BlobSidecars) error
-	}
-
-	ConsensusBlock interface {
-		GetBeaconBlock() *ctypes.BeaconBlock
-
-		// GetProposerAddress returns the address of the validator
-		// selected by consensus to propose the block
-		GetProposerAddress() []byte
-
-		// GetConsensusTime returns the timestamp of current consensus request.
-		// It is used to build next payload and to validate currentpayload.
-		GetConsensusTime() math.U64
-	}
-
-	// BeaconBlock represents a generic interface for a beacon block.
-	BeaconBlock[
-		T any,
-	] interface {
-		constraints.Nillable
-		constraints.Empty[T]
-		constraints.Versionable
-		constraints.SSZMarshallableRootable
-
-		NewFromSSZ([]byte, uint32) (T, error)
-		// NewWithVersion creates a new beacon block with the given parameters.
-		NewWithVersion(
-			slot math.Slot,
-			proposerIndex math.ValidatorIndex,
-			parentBlockRoot common.Root,
-			forkVersion uint32,
-		) (T, error)
-		// SetStateRoot sets the state root of the beacon block.
-		SetStateRoot(common.Root)
-		// GetProposerIndex returns the index of the proposer.
-		GetProposerIndex() math.ValidatorIndex
-		// GetSlot returns the slot number of the block.
-		GetSlot() math.Slot
-		// GetBody returns the body of the block.
-		GetBody() *ctypes.BeaconBlockBody
-		// GetHeader returns the header of the block.
-		GetHeader() *ctypes.BeaconBlockHeader
-		// GetParentBlockRoot returns the root of the parent block.
-		GetParentBlockRoot() common.Root
-		// GetStateRoot returns the state root of the block.
-		GetStateRoot() common.Root
-		// GetTimestamp returns the timestamp of the block from the execution
-		// payload.
-		GetTimestamp() math.U64
-	}
-
-	// BeaconBlockBody represents a generic interface for the body of a beacon
-	// block.
-	BeaconBlockBody[
-		T any,
-	] interface {
-		constraints.Nillable
-		constraints.EmptyWithVersion[T]
-		constraints.SSZMarshallableRootable
-		Length() uint64
-		GetTopLevelRoots() []common.Root
-		// GetRandaoReveal returns the RANDAO reveal signature.
-		GetRandaoReveal() crypto.BLSSignature
-		// GetExecutionPayload returns the execution payload.
-		GetExecutionPayload() *ctypes.ExecutionPayload
-		// GetDeposits returns the list of deposits.
-		GetDeposits() []*ctypes.Deposit
-		// GetBlobKzgCommitments returns the KZG commitments for the blobs.
-		GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
-		// SetRandaoReveal sets the Randao reveal of the beacon block body.
-		SetRandaoReveal(crypto.BLSSignature)
-		// SetEth1Data sets the Eth1 data of the beacon block body.
-		SetEth1Data(*ctypes.Eth1Data)
-		// SetDeposits sets the deposits of the beacon block body.
-		SetDeposits([]*ctypes.Deposit)
-		// SetExecutionPayload sets the execution data of the beacon block body.
-		SetExecutionPayload(*ctypes.ExecutionPayload)
-		// SetGraffiti sets the graffiti of the beacon block body.
-		SetGraffiti(common.Bytes32)
-		// SetAttestations sets the attestations of the beacon block body.
-		SetAttestations([]*ctypes.AttestationData)
-		// SetSlashingInfo sets the slashing info of the beacon block body.
-		SetSlashingInfo([]*ctypes.SlashingInfo)
-		// SetBlobKzgCommitments sets the blob KZG commitments of the beacon
-		// block body.
-		SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])
-	}
-
-	// BeaconStateMarshallable represents an interface for a beacon state
-	// with generic types.
-	BeaconStateMarshallable[
-		T any,
-	] interface {
-		constraints.SSZMarshallableRootable
-		GetTree() (*fastssz.Node, error)
-		// New returns a new instance of the BeaconStateMarshallable.
-		New(
-			forkVersion uint32,
-			genesisValidatorsRoot common.Root,
-			slot math.U64,
-			fork *ctypes.Fork,
-			latestBlockHeader *ctypes.BeaconBlockHeader,
-			blockRoots []common.Root,
-			stateRoots []common.Root,
-			eth1Data *ctypes.Eth1Data,
-			eth1DepositIndex uint64,
-			latestExecutionPayloadHeader *ctypes.ExecutionPayloadHeader,
-			validators []*ctypes.Validator,
-			balances []uint64,
-			randaoMixes []common.Bytes32,
-			nextWithdrawalIndex uint64,
-			nextWithdrawalValidatorIndex math.U64,
-			slashings []math.U64, totalSlashing math.U64,
-		) (T, error)
-	}
-
 	// BlobProcessor is the interface for the blobs processor.
-	BlobProcessor[
-		AvailabilityStoreT any,
-		ConsensusSidecarsT any,
-	] interface {
+	BlobProcessor interface {
 		// ProcessSidecars processes the blobs and ensures they match the local
 		// state.
 		ProcessSidecars(
-			avs AvailabilityStoreT,
+			avs *dastore.Store,
 			sidecars datypes.BlobSidecars,
 		) error
 		// VerifySidecars verifies the blobs and ensures they match the local
 		// state.
 		VerifySidecars(
-			sidecars ConsensusSidecarsT,
-			verifierFn func(
-				blkHeader *ctypes.BeaconBlockHeader,
-				signature crypto.BLSSignature,
-			) error,
+			ctx context.Context,
+			sidecars datypes.BlobSidecars,
+			blkHeader *ctypes.BeaconBlockHeader,
+			kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],
 		) error
-	}
-
-	ConsensusSidecars interface {
-		GetSidecars() datypes.BlobSidecars
-		GetHeader() *ctypes.BeaconBlockHeader
-	}
-
-	// BlockStore is the interface for block storage.
-	BlockStore interface {
-		Set(blk *ctypes.BeaconBlock) error
-		// GetSlotByBlockRoot retrieves the slot by a given root from the store.
-		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
-		// GetSlotByStateRoot retrieves the slot by a given root from the store.
-		GetSlotByStateRoot(root common.Root) (math.Slot, error)
-		// GetParentSlotByTimestamp retrieves the parent slot by a given
-		// timestamp from the store.
-		GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
-	}
-
-	ConsensusEngine interface {
-		PrepareProposal(
-			ctx sdk.Context, req *v1.PrepareProposalRequest,
-		) (*v1.PrepareProposalResponse, error)
-		ProcessProposal(
-			ctx sdk.Context, req *v1.ProcessProposalRequest,
-		) (*v1.ProcessProposalResponse, error)
-	}
-
-	// 	// Context defines an interface for managing state transition context.
-	// 	Context[T any] interface {
-	// 		context.Context
-	// 		// Wrap returns a new context with the given context.
-	// 		Wrap(context.Context) T
-	// 		// OptimisticEngine sets the optimistic engine flag to true.
-	// 		OptimisticEngine() T
-	// 		// SkipPayloadVerification sets the skip payload verification flag to
-	// 		// true.
-	// 		SkipPayloadVerification() T
-	// 		// SkipValidateRandao sets the skip validate randao flag to true.
-	// 		SkipValidateRandao() T
-	// 		// SkipValidateResult sets the skip validate result flag to true.
-	// 		SkipValidateResult() T
-	// 		// GetOptimisticEngine returns whether to optimistically assume the
-	// 		// execution client has the correct state when certain errors are
-	// 		// returned
-	// 		// by the execution engine.
-	// 		GetOptimisticEngine() bool
-	// 		// GetSkipPayloadVerification returns whether to skip verifying the
-	// 		// payload
-	// 		// if
-	// 		// it already exists on the execution client.
-	// 		GetSkipPayloadVerification() bool
-	// 		// GetSkipValidateRandao returns whether to skip validating the RANDAO
-	// 		// reveal.
-	// 		GetSkipValidateRandao() bool
-	// 		// GetSkipValidateResult returns whether to validate the result of the
-	// 		// state
-	// 		// transition.
-	// 		GetSkipValidateResult() bool
-	// 	}
-
-	// Deposit is the interface for a deposit.
-	Deposit[
-		T any,
-	] interface {
-		constraints.Empty[T]
-		constraints.SSZMarshallableRootable
-		// New creates a new deposit.
-		New(
-			crypto.BLSPubkey,
-			ctypes.WithdrawalCredentials,
-			math.U64,
-			crypto.BLSSignature,
-			uint64,
-		) T
-		// Equals returns true if the Deposit is equal to the other.
-		Equals(T) bool
-		// GetIndex returns the index of the deposit.
-		GetIndex() math.U64
-		// GetAmount returns the amount of the deposit.
-		GetAmount() math.Gwei
-		// GetPubkey returns the public key of the validator.
-		GetPubkey() crypto.BLSPubkey
-		// GetWithdrawalCredentials returns the withdrawal credentials.
-		GetWithdrawalCredentials() ctypes.WithdrawalCredentials
-		// HasEth1WithdrawalCredentials returns true if the deposit has eth1
-		// withdrawal credentials.
-		HasEth1WithdrawalCredentials() bool
-		// VerifySignature verifies the deposit and creates a validator.
-		VerifySignature(
-			forkData *ctypes.ForkData,
-			domainType common.DomainType,
-			signatureVerificationFn func(
-				pubkey crypto.BLSPubkey,
-				message []byte, signature crypto.BLSSignature,
-			) error,
-		) error
-	}
-
-	DepositStore interface {
-		// GetDepositsByIndex returns `numView` expected deposits.
-		GetDepositsByIndex(
-			startIndex uint64,
-			numView uint64,
-		) (ctypes.Deposits, error)
-		// Prune prunes the deposit store of [start, end)
-		Prune(start, end uint64) error
-		// EnqueueDeposits adds a list of deposits to the deposit store.
-		EnqueueDeposits(deposits []*ctypes.Deposit) error
-	}
-
-	// Genesis is the interface for the genesis.
-	Genesis interface {
-		json.Unmarshaler
-		// GetForkVersion returns the fork version.
-		GetForkVersion() common.Version
-		// GetDeposits returns the deposits.
-		GetDeposits() []*ctypes.Deposit
-		// GetExecutionPayloadHeader returns the execution payload header.
-		GetExecutionPayloadHeader() *ctypes.ExecutionPayloadHeader
-	}
-
-	// IndexDB is the interface for the range DB.
-	IndexDB interface {
-		Has(index uint64, key []byte) (bool, error)
-		Set(index uint64, key []byte, value []byte) error
-		Prune(start uint64, end uint64) error
 	}
 
 	// LocalBuilder is the interface for the builder service.
@@ -334,19 +81,8 @@ type (
 		// RequestPayloadAsync requests a new payload for the given slot.
 		RequestPayloadAsync(
 			ctx context.Context,
-			st *statedb.StateDB,
-			slot math.Slot,
-			timestamp uint64,
-			parentBlockRoot common.Root,
-			headEth1BlockHash common.ExecutionHash,
-			finalEth1BlockHash common.ExecutionHash,
-		) (*engineprimitives.PayloadID, error)
-		// SendForceHeadFCU sends a force head FCU request.
-		SendForceHeadFCU(
-			ctx context.Context,
-			st *statedb.StateDB,
-			slot math.Slot,
-		) error
+			r *builder.RequestPayloadData,
+		) (*engineprimitives.PayloadID, common.Version, error)
 		// RetrievePayload retrieves the payload for the given slot.
 		RetrievePayload(
 			ctx context.Context,
@@ -357,12 +93,7 @@ type (
 		// blocks until the payload is delivered.
 		RequestPayloadSync(
 			ctx context.Context,
-			st *statedb.StateDB,
-			slot math.Slot,
-			timestamp uint64,
-			parentBlockRoot common.Root,
-			headEth1BlockHash common.ExecutionHash,
-			finalEth1BlockHash common.ExecutionHash,
+			r *builder.RequestPayloadData,
 		) (ctypes.BuiltExecutionPayloadEnv, error)
 	}
 
@@ -381,30 +112,32 @@ type (
 	// }.
 
 	// StateProcessor defines the interface for processing the state.
-	StateProcessor[
-		ContextT any,
-	] interface {
-		// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
+	StateProcessor interface {
+		// InitializeBeaconStateFromEth1 initializes the premined beacon
 		// state
 		// from the eth1 deposits.
-		InitializePreminedBeaconStateFromEth1(
+		InitializeBeaconStateFromEth1(
 			*statedb.StateDB,
 			ctypes.Deposits,
 			*ctypes.ExecutionPayloadHeader,
 			common.Version,
 		) (transition.ValidatorUpdates, error)
+		// ProcessFork prepares the state for the fork version at the given timestamp.
+		ProcessFork(
+			st *statedb.StateDB, timestamp math.U64, logUpgrade bool,
+		) error
 		// ProcessSlot processes the slot.
 		ProcessSlots(
 			st *statedb.StateDB, slot math.Slot,
 		) (transition.ValidatorUpdates, error)
 		// Transition performs the core state transition.
 		Transition(
-			ctx ContextT,
+			ctx core.ReadOnlyContext,
 			st *statedb.StateDB,
 			blk *ctypes.BeaconBlock,
 		) (transition.ValidatorUpdates, error)
-		GetSidecarVerifierFn(st *statedb.StateDB) (
-			func(blkHeader *ctypes.BeaconBlockHeader, signature crypto.BLSSignature) error,
+		GetSignatureVerifierFn(st *statedb.StateDB) (
+			func(blk *ctypes.BeaconBlock, signature crypto.BLSSignature) error,
 			error,
 		)
 	}
@@ -412,23 +145,17 @@ type (
 	SidecarFactory interface {
 		// BuildSidecars builds sidecars for a given block and blobs bundle.
 		BuildSidecars(
-			blk *ctypes.BeaconBlock,
-			blobs ctypes.BlobsBundle,
-			signer crypto.BLSSigner,
-			forkData *ctypes.ForkData,
+			signedBlk *ctypes.SignedBeaconBlock,
+			blobs engineprimitives.BlobsBundle,
 		) (datypes.BlobSidecars, error)
 	}
 
 	// StorageBackend defines an interface for accessing various storage
 	// components required by the beacon node.
-	StorageBackend[
-		AvailabilityStoreT any,
-		BlockStoreT any,
-		DepositStoreT any,
-	] interface {
-		AvailabilityStore() AvailabilityStoreT
-		BlockStore() BlockStoreT
-		DepositStore() DepositStoreT
+	StorageBackend interface {
+		AvailabilityStore() *dastore.Store
+		BlockStore() *block.KVStore[*ctypes.BeaconBlock]
+		DepositStore() deposit.StoreManager
 		// StateFromContext retrieves the beacon state from the given context.
 		StateFromContext(context.Context) *statedb.StateDB
 	}
@@ -528,26 +255,6 @@ type (
 /* -------------------------------------------------------------------------- */
 
 type (
-	// BeaconState is the interface for the beacon state. It
-	// is a combination of the read-only and write-only beacon state types.
-	BeaconState[
-		T any,
-		BeaconStateMarshallableT any,
-		KVStoreT any,
-	] interface {
-		NewFromDB(
-			bdb KVStoreT,
-			cs chain.ChainSpec,
-		) T
-		Copy(context.Context) T
-		Context() context.Context
-		HashTreeRoot() common.Root
-		GetMarshallable() (BeaconStateMarshallableT, error)
-
-		ReadOnlyBeaconState
-		WriteOnlyBeaconState
-	}
-
 	// BeaconStore is the interface for the beacon store.
 	BeaconStore[
 		T any,
@@ -630,8 +337,6 @@ type (
 		GetSlashingAtIndex(index uint64) (math.Gwei, error)
 		// GetTotalValidators retrieves the total validators.
 		GetTotalValidators() (uint64, error)
-		// GetTotalActiveBalances retrieves the total active balances.
-		GetTotalActiveBalances(uint64) (math.Gwei, error)
 		// ValidatorByIndex retrieves the validator at the given index.
 		ValidatorByIndex(index math.ValidatorIndex) (*ctypes.Validator, error)
 		// UpdateBlockRootAtIndex updates the block root at the given index.
@@ -652,16 +357,11 @@ type (
 		) (math.ValidatorIndex, error)
 		// AddValidator adds a validator.
 		AddValidator(val *ctypes.Validator) error
-		// AddValidatorBartio adds a validator to the Bartio chain.
-		AddValidatorBartio(val *ctypes.Validator) error
 		// ValidatorIndexByCometBFTAddress retrieves the validator index by the
 		// given comet BFT address.
 		ValidatorIndexByCometBFTAddress(
 			cometBFTAddress []byte,
 		) (math.ValidatorIndex, error)
-		// GetValidatorsByEffectiveBalance retrieves validators by effective
-		// balance.
-		GetValidatorsByEffectiveBalance() ([]*ctypes.Validator, error)
 	}
 
 	// ReadOnlyBeaconState is the interface for a read-only beacon state.
@@ -680,14 +380,12 @@ type (
 		GetGenesisValidatorsRoot() (common.Root, error)
 		GetBlockRootAtIndex(uint64) (common.Root, error)
 		GetLatestBlockHeader() (*ctypes.BeaconBlockHeader, error)
-		GetTotalActiveBalances(uint64) (math.Gwei, error)
 		GetValidators() (ctypes.Validators, error)
 		GetSlashingAtIndex(uint64) (math.Gwei, error)
 		GetTotalSlashing() (math.Gwei, error)
 		GetNextWithdrawalIndex() (uint64, error)
 		GetNextWithdrawalValidatorIndex() (math.ValidatorIndex, error)
 		GetTotalValidators() (uint64, error)
-		GetValidatorsByEffectiveBalance() ([]*ctypes.Validator, error)
 		ValidatorIndexByCometBFTAddress(
 			cometBFTAddress []byte,
 		) (math.ValidatorIndex, error)
@@ -707,7 +405,6 @@ type (
 		SetLatestBlockHeader(*ctypes.BeaconBlockHeader) error
 		IncreaseBalance(math.ValidatorIndex, math.Gwei) error
 		DecreaseBalance(math.ValidatorIndex, math.Gwei) error
-		UpdateSlashingAtIndex(uint64, math.Gwei) error
 		SetNextWithdrawalIndex(uint64) error
 		SetNextWithdrawalValidatorIndex(math.ValidatorIndex) error
 		SetTotalSlashing(math.Gwei) error
@@ -747,7 +444,6 @@ type (
 		) error
 
 		AddValidator(*ctypes.Validator) error
-		AddValidatorBartio(*ctypes.Validator) error
 	}
 
 	// ReadOnlyValidators has read access to validator methods.
@@ -777,8 +473,7 @@ type (
 
 	// ReadOnlyWithdrawals only has read access to withdrawal methods.
 	ReadOnlyWithdrawals interface {
-		EVMInflationWithdrawal() *engineprimitives.Withdrawal
-		ExpectedWithdrawals() (engineprimitives.Withdrawals, error)
+		EVMInflationWithdrawal(math.Slot) *engineprimitives.Withdrawal
 	}
 )
 
@@ -794,36 +489,41 @@ type (
 	}
 
 	// Engine is a generic interface for an API engine.
-	NodeAPIEngine[ContextT NodeAPIContext] interface {
+	NodeAPIEngine interface {
 		Run(addr string) error
-		RegisterRoutes(*handlers.RouteSet[ContextT], log.Logger)
+		RegisterRoutes(*handlers.RouteSet, log.Logger)
 	}
 
-	NodeAPIBackend[
-		NodeT any,
-	] interface {
-		AttachQueryBackend(node NodeT)
-		ChainSpec() chain.ChainSpec
+	NodeAPIBackend interface {
+		AttachQueryBackend(node nodecoretypes.ConsensusService)
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		GetSlotByStateRoot(root common.Root) (math.Slot, error)
 		GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
 
 		NodeAPIBeaconBackend
 		NodeAPIProofBackend
+		NodeAPINodeBackend
+		NodeAPIConfigBackend
 	}
 
-	// NodeAPIBackend is the interface for backend of the beacon API.
+	// NodeAPIBeaconBackend is the interface for backend of the beacon API.
 	NodeAPIBeaconBackend interface {
 		GenesisBackend
+		BlobBackend
 		BlockBackend
 		RandaoBackend
 		StateBackend
 		ValidatorBackend
-		HistoricalBackend
+		WithdrawalBackend
 		// GetSlotByBlockRoot retrieves the slot by a given root from the store.
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		// GetSlotByStateRoot retrieves the slot by a given root from the store.
 		GetSlotByStateRoot(root common.Root) (math.Slot, error)
+	}
+
+	// NodeAPIConfigBackend is the interface for backend of the config API.
+	NodeAPIConfigBackend interface {
+		Spec() (chain.Spec, error)
 	}
 
 	// NodeAPIProofBackend is the interface for backend of the proof API.
@@ -833,17 +533,28 @@ type (
 		GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
 	}
 
-	GenesisBackend interface {
-		GenesisValidatorsRoot(slot math.Slot) (common.Root, error)
+	NodeAPINodeBackend interface {
+		GetSyncData() (latestHeight int64, syncToHeight int64)
+		GetVersionData() (
+			appName,
+			version,
+			os,
+			arch string,
+		)
 	}
 
-	HistoricalBackend interface {
-		StateRootAtSlot(slot math.Slot) (common.Root, error)
-		StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error)
+	GenesisBackend interface {
+		GenesisValidatorsRoot() (common.Root, error)
+		GenesisForkVersion() (common.Version, error)
+		GenesisTime() (math.U64, error)
 	}
 
 	RandaoBackend interface {
 		RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes32, error)
+	}
+
+	BlobBackend interface {
+		BlobSidecarsByIndices(slot math.Slot, indices []uint64) ([]*types.Sidecar, error)
 	}
 
 	BlockBackend interface {
@@ -853,16 +564,18 @@ type (
 	}
 
 	StateBackend interface {
-		StateRootAtSlot(slot math.Slot) (common.Root, error)
-		StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error)
-		StateFromSlotForProof(slot math.Slot) (*statedb.StateDB, math.Slot, error)
+		StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error)
+	}
+
+	WithdrawalBackend interface {
+		PendingPartialWithdrawalsAtState(*statedb.StateDB) ([]*types.PendingPartialWithdrawalData, error)
 	}
 
 	ValidatorBackend interface {
 		ValidatorByID(
 			slot math.Slot, id string,
 		) (*types.ValidatorData, error)
-		ValidatorsByIDs(
+		FilteredValidators(
 			slot math.Slot,
 			ids []string,
 			statuses []string,

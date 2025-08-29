@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,8 +21,12 @@
 package encoding
 
 import (
+	"fmt"
+
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
 )
 
 // ExtractBlobsAndBlockFromRequest extracts the blobs and block from an ABCI
@@ -31,93 +35,82 @@ func ExtractBlobsAndBlockFromRequest(
 	req ABCIRequest,
 	beaconBlkIndex uint,
 	blobSidecarsIndex uint,
-	forkVersion uint32,
-) (*ctypes.BeaconBlock, datypes.BlobSidecars, error) {
-	var (
-		blobs datypes.BlobSidecars
-		blk   *ctypes.BeaconBlock
-	)
-
+	forkVersion common.Version,
+) (*ctypes.SignedBeaconBlock, datypes.BlobSidecars, error) {
 	if req == nil {
-		return blk, blobs, ErrNilABCIRequest
+		return nil, nil, ErrNilABCIRequest
 	}
 
 	blk, err := UnmarshalBeaconBlockFromABCIRequest(
-		req,
+		req.GetTxs(),
 		beaconBlkIndex,
 		forkVersion,
 	)
 	if err != nil {
-		return blk, blobs, err
+		return nil, nil, err
 	}
 
-	blobs, err = UnmarshalBlobSidecarsFromABCIRequest(
-		req,
+	blobs, err := UnmarshalBlobSidecarsFromABCIRequest(
+		req.GetTxs(),
 		blobSidecarsIndex,
 	)
-	if err != nil {
-		return blk, blobs, err
-	}
 
-	return blk, blobs, nil
+	return blk, blobs, err
 }
 
 // UnmarshalBeaconBlockFromABCIRequest extracts a beacon block from an ABCI
 // request.
 func UnmarshalBeaconBlockFromABCIRequest(
-	req ABCIRequest,
+	txs [][]byte,
 	bzIndex uint,
-	forkVersion uint32,
-) (*ctypes.BeaconBlock, error) {
-	var blk *ctypes.BeaconBlock
-	if req == nil {
-		return blk, ErrNilABCIRequest
-	}
-
-	txs := req.GetTxs()
+	forkVersion common.Version,
+) (*ctypes.SignedBeaconBlock, error) {
+	var signedBlk *ctypes.SignedBeaconBlock
 	lenTxs := uint(len(txs))
 
 	// Ensure there are transactions in the request and that the request is
 	// valid.
 	if txs == nil || lenTxs == 0 {
-		return blk, ErrNoBeaconBlockInRequest
+		return signedBlk, ErrNoBeaconBlockInRequest
 	}
 	if bzIndex >= lenTxs {
-		return blk, ErrBzIndexOutOfBounds
+		return signedBlk, ErrBzIndexOutOfBounds
 	}
 
 	// Extract the beacon block from the ABCI request.
 	blkBz := txs[bzIndex]
 	if blkBz == nil {
-		return blk, ErrNilBeaconBlockInRequest
+		return signedBlk, ErrNilBeaconBlockInRequest
 	}
 
-	return blk.NewFromSSZ(blkBz, forkVersion)
+	block, err := ctypes.NewEmptySignedBeaconBlockWithVersion(forkVersion)
+	if err != nil {
+		return nil, fmt.Errorf("attempt at building block with wrong version %s: %w", forkVersion, err)
+	}
+	if err = ssz.Unmarshal(blkBz, block); err != nil {
+		return nil, err
+	}
+	return block, nil
 }
 
 // UnmarshalBlobSidecarsFromABCIRequest extracts blob sidecars from an ABCI
 // request.
 func UnmarshalBlobSidecarsFromABCIRequest(
-	req ABCIRequest,
+	txs [][]byte,
 	bzIndex uint,
 ) (datypes.BlobSidecars, error) {
-	var sidecars datypes.BlobSidecars
-	if req == nil {
-		return sidecars, ErrNilABCIRequest
-	}
-
-	txs := req.GetTxs()
 	if len(txs) == 0 || bzIndex >= uint(len(txs)) {
-		return sidecars, ErrNoBeaconBlockInRequest
+		return nil, ErrNoBlobSidecarInRequest
 	}
 
 	sidecarBz := txs[bzIndex]
 	if sidecarBz == nil {
-		return sidecars, ErrNilBeaconBlockInRequest
+		return nil, ErrNilBlobSidecarInRequest
 	}
 
-	// TODO: Do some research to figure out how to make this more
-	// elegant.
-	sidecars = datypes.BlobSidecars{}
-	return sidecars, sidecars.UnmarshalSSZ(sidecarBz)
+	var sidecars datypes.BlobSidecars
+	if err := ssz.Unmarshal(sidecarBz, &sidecars); err != nil {
+		return nil, err
+	}
+	return sidecars, nil
 }

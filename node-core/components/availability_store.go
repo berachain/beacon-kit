@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,12 +22,12 @@ package components
 
 import (
 	"os"
+	"path/filepath"
 
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/config"
 	dastore "github.com/berachain/beacon-kit/da/store"
-	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/storage/filedb"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cast"
@@ -35,33 +35,28 @@ import (
 
 // AvailabilityStoreInput is the input for the ProviderAvailabilityStore
 // function for the depinject framework.
-type AvailabilityStoreInput[LoggerT any] struct {
+type AvailabilityStoreInput struct {
 	depinject.In
-	AppOpts   config.AppOptions
-	ChainSpec chain.ChainSpec
-	Logger    LoggerT
+	AppOpts config.AppOptions
+	Logger  *phuslu.Logger
 }
 
-// ProvideAvailibilityStore provides the availability store.
-func ProvideAvailibilityStore[
-	LoggerT log.AdvancedLogger[LoggerT],
-](
-	in AvailabilityStoreInput[LoggerT],
-) (*dastore.Store, error) {
+// ProvideAvailabilityStore provides the availability store.
+func ProvideAvailabilityStore(in AvailabilityStoreInput) (*dastore.Store, error) {
+	var (
+		rootDir  = cast.ToString(in.AppOpts.Get(flags.FlagHome))
+		blobsDir = filepath.Join(rootDir, "data", "blobs")
+	)
+
 	return dastore.New(
 		filedb.NewRangeDB(
 			filedb.NewDB(
-				filedb.WithRootDirectory(
-					cast.ToString(
-						in.AppOpts.Get(flags.FlagHome),
-					)+"/data/blobs",
-				),
+				filedb.WithRootDirectory(blobsDir),
 				filedb.WithFileExtension("ssz"),
 				filedb.WithDirectoryPermissions(os.ModePerm),
 				filedb.WithLogger(in.Logger),
 			),
 		),
 		in.Logger.With("service", "da-store"),
-		in.ChainSpec,
 	), nil
 }

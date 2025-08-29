@@ -1,0 +1,95 @@
+# SPDX-License-Identifier: MIT
+#
+# Copyright (c) 2025 Berachain Foundation
+#
+# Permission is hereby granted, free of charge, to any person
+# obtaining a copy of this software and associated documentation
+# files (the "Software"), to deal in the Software without
+# restriction, including without limitation the rights to use,
+# copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following
+# conditions:
+#
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+# WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+# OTHER DEALINGS IN THE SOFTWARE.
+
+network_configuration:
+  chain_id: 80087
+  chain_spec: "devnet"
+  validators:
+    type: "validator"
+    nodes:
+      - el_type: reth
+        kzg_impl: crate-crypto/go-kzg-4844
+        replicas: 2
+      - el_type: geth
+        kzg_impl: crate-crypto/go-kzg-4844
+        replicas: 3
+  full_nodes:
+    type: "full"
+    nodes:
+      - el_type: reth
+        kzg_impl: crate-crypto/go-kzg-4844
+        replicas: 2
+      - el_type: geth
+        kzg_impl: crate-crypto/go-kzg-4844
+        replicas: 2
+  seed_nodes:
+    type: "seed"
+    nodes:
+      - el_type: reth
+        replicas: 1
+node_settings:
+  consensus_settings:
+    specs:
+      min_cpu: 0
+      max_cpu: 2000
+      min_memory: 0
+      max_memory: 2048
+    images:
+      beaconkit: beacond:kurtosis-local
+    config:
+      timeout_propose: 2s
+      timeout_prevote: 2s
+      timeout_precommit: 2s
+      timeout_commit: 500ms
+      max_num_inbound_peers: 40
+      max_num_outbound_peers: 10
+    app:
+      payload_timeout: 850ms
+      enable_optimistic_payload_builds: true
+  execution_settings:
+    specs:
+      min_cpu: 0
+      max_cpu: 2000
+      min_memory: 0
+      max_memory: 2048
+    images:
+      geth: ghcr.io/berachain/bera-geth:latest
+      reth: ghcr.io/berachain/bera-reth:nightly
+eth_json_rpc_endpoints:
+  # type has to be either blutgang or nginx
+  - type: blutgang
+    clients:
+      - el-full-reth-0
+      - el-full-reth-1
+      - el-full-geth-2
+additional_services:
+  - name: "spamoor"
+  - name: "tx-fuzz"
+    replicas: 16
+  - name: "prometheus"
+  - name: "grafana"
+  - name: "pyroscope"
+  - name: "blockscout"
+    client: "el-full-reth-0"

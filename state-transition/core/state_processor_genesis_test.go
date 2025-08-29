@@ -1,6 +1,9 @@
+//go:build test
+// +build test
+
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,149 +24,155 @@
 package core_test
 
 import (
+	"fmt"
 	"testing"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/node-core/components"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
+	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	"github.com/stretchr/testify/require"
 )
 
+//nolint:paralleltest // uses envars
 func TestInitialize(t *testing.T) {
-	cs := setupChain(t, components.BetnetChainSpecType)
-	sp, st, _, _ := setupState(t, cs)
+	csDevnet := setupChain(t)
+	csTestnet, specErr := spec.TestnetChainSpec()
+	require.NoError(t, specErr)
+	csMainnet, specErr := spec.MainnetChainSpec()
+	require.NoError(t, specErr)
 
-	var (
-		maxBalance = math.Gwei(cs.MaxEffectiveBalance(false))
-		increment  = math.Gwei(cs.EffectiveBalanceIncrement())
-		minBalance = math.Gwei(cs.EjectionBalance())
-	)
+	specs := []chain.Spec{csDevnet, csTestnet, csMainnet}
+	for i, cs := range specs {
+		t.Run(fmt.Sprintf("TestInitialize-%d", i), func(t *testing.T) {
+			sp, st, _, _, _, _ := statetransition.SetupTestState(t, cs)
 
-	// create test inputs
-	var (
-		genDeposits = []*types.Deposit{
-			{
-				Pubkey: [48]byte{0x01},
-				Amount: maxBalance,
-				Credentials: types.NewCredentialsFromExecutionAddress(
-					common.ExecutionAddress{0x01},
-				),
-				Index: uint64(0),
-			},
-			{
-				Pubkey: [48]byte{0x02},
-				Amount: minBalance + increment,
-				Credentials: types.NewCredentialsFromExecutionAddress(
-					common.ExecutionAddress{0x02},
-				),
-				Index: uint64(1),
-			},
-			{
-				Pubkey: [48]byte{0x03},
-				Amount: minBalance,
-				Credentials: types.NewCredentialsFromExecutionAddress(
-					common.ExecutionAddress{0x03},
-				),
-				Index: uint64(2),
-			},
-			{
-				Pubkey: [48]byte{0x04},
-				Amount: 2 * maxBalance,
-				Credentials: types.NewCredentialsFromExecutionAddress(
-					common.ExecutionAddress{0x04},
-				),
-				Index: uint64(3),
-			},
-			{
-				Pubkey: [48]byte{0x05},
-				Amount: minBalance - increment,
-				Credentials: types.NewCredentialsFromExecutionAddress(
-					common.ExecutionAddress{0x05},
-				),
-				Index: uint64(4),
-			},
-			{
-				Pubkey: [48]byte{0x06},
-				Amount: minBalance + increment*3/2,
-				Credentials: types.NewCredentialsFromExecutionAddress(
-					common.ExecutionAddress{0x06},
-				),
-				Index: uint64(5),
-			},
-			{
-				Pubkey: [48]byte{0x07},
-				Amount: maxBalance + increment/10,
-				Credentials: types.NewCredentialsFromExecutionAddress(
-					common.ExecutionAddress{0x07},
-				),
-				Index: uint64(6),
-			},
-			{
-				Pubkey: [48]byte{0x08},
-				Amount: minBalance + increment*99/100,
-				Credentials: types.NewCredentialsFromExecutionAddress(
-					common.ExecutionAddress{0x08},
-				),
-				Index: uint64(7),
-			},
-		}
-		goodDeposits = []*types.Deposit{
-			genDeposits[0], genDeposits[1], genDeposits[3],
-			genDeposits[5], genDeposits[6],
-		}
-		executionPayloadHeader = &types.ExecutionPayloadHeader{}
-		fork                   = &types.Fork{
-			PreviousVersion: version.FromUint32[common.Version](version.Deneb),
-			CurrentVersion:  version.FromUint32[common.Version](version.Deneb),
-			Epoch:           math.Epoch(constants.GenesisEpoch),
-		}
-	)
+			var (
+				maxBalance = cs.MaxEffectiveBalance()
+				increment  = cs.EffectiveBalanceIncrement()
+				minBalance = cs.MinActivationBalance() - increment
+			)
 
-	// run test
-	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
-		st,
-		genDeposits,
-		executionPayloadHeader,
-		fork.CurrentVersion,
-	)
+			// create test inputs
+			var (
+				genDeposits = []*types.Deposit{
+					{
+						Pubkey: [48]byte{0x01},
+						Amount: maxBalance,
+						Credentials: types.NewCredentialsFromExecutionAddress(
+							common.ExecutionAddress{0x01},
+						),
+						Index: uint64(0),
+					},
+					{
+						Pubkey: [48]byte{0x02},
+						Amount: minBalance + increment,
+						Credentials: types.NewCredentialsFromExecutionAddress(
+							common.ExecutionAddress{0x02},
+						),
+						Index: uint64(1),
+					},
+					{
+						Pubkey: [48]byte{0x03},
+						Amount: minBalance,
+						Credentials: types.NewCredentialsFromExecutionAddress(
+							common.ExecutionAddress{0x03},
+						),
+						Index: uint64(2),
+					},
+					{
+						Pubkey: [48]byte{0x04},
+						Amount: 2 * maxBalance,
+						Credentials: types.NewCredentialsFromExecutionAddress(
+							common.ExecutionAddress{0x04},
+						),
+						Index: uint64(3),
+					},
+					{
+						Pubkey: [48]byte{0x05},
+						Amount: minBalance - increment,
+						Credentials: types.NewCredentialsFromExecutionAddress(
+							common.ExecutionAddress{0x05},
+						),
+						Index: uint64(4),
+					},
+					{
+						Pubkey: [48]byte{0x06},
+						Amount: minBalance + increment*3/2,
+						Credentials: types.NewCredentialsFromExecutionAddress(
+							common.ExecutionAddress{0x06},
+						),
+						Index: uint64(5),
+					},
+					{
+						Pubkey: [48]byte{0x07},
+						Amount: maxBalance + increment/10,
+						Credentials: types.NewCredentialsFromExecutionAddress(
+							common.ExecutionAddress{0x07},
+						),
+						Index: uint64(6),
+					},
+					{
+						Pubkey: [48]byte{0x08},
+						Amount: minBalance + increment*99/100,
+						Credentials: types.NewCredentialsFromExecutionAddress(
+							common.ExecutionAddress{0x08},
+						),
+						Index: uint64(7),
+					},
+				}
+				goodDeposits = []*types.Deposit{
+					genDeposits[0], genDeposits[1], genDeposits[3],
+					genDeposits[5], genDeposits[6],
+				}
+				executionPayloadHeader = &types.ExecutionPayloadHeader{
+					Versionable: types.NewVersionable(cs.GenesisForkVersion()),
+				}
+				fork = &types.Fork{
+					PreviousVersion: cs.GenesisForkVersion(),
+					CurrentVersion:  cs.GenesisForkVersion(),
+					Epoch:           constants.GenesisEpoch,
+				}
+			)
 
-	// check outputs
-	require.NoError(t, err)
-	require.Len(t, genVals, len(goodDeposits))
+			// run test
+			genVals, initErr := sp.InitializeBeaconStateFromEth1(
+				st, genDeposits, executionPayloadHeader, fork.CurrentVersion,
+			)
 
-	// check beacon state changes
-	resSlot, err := st.GetSlot()
-	require.NoError(t, err)
-	require.Equal(t, math.Slot(0), resSlot)
+			// check outputs
+			require.NoError(t, initErr)
+			require.Len(t, genVals, len(goodDeposits))
 
-	resFork, err := st.GetFork()
-	require.NoError(t, err)
-	require.Equal(t, fork, resFork)
+			// check beacon state changes
+			resSlot, err := st.GetSlot()
+			require.NoError(t, err)
+			require.Equal(t, constants.GenesisSlot, resSlot)
 
-	for _, dep := range goodDeposits {
-		checkValidator(t, cs, st, dep)
+			resFork, err := st.GetFork()
+			require.NoError(t, err)
+			require.Equal(t, fork, resFork)
+
+			for _, dep := range goodDeposits {
+				checkValidator(t, cs, st, dep)
+			}
+
+			// check that deposit index is duly set. On devnet
+			// deposit index is set to the last accepted deposit.
+			latestValIdx, err := st.GetEth1DepositIndex()
+			require.NoError(t, err)
+			require.Equal(t, uint64(len(genDeposits)), latestValIdx)
+		})
 	}
-
-	// check that deposit index is duly set. On betnet
-	// deposit index is set to the last accepted deposit.
-	latestValIdx, err := st.GetEth1DepositIndex()
-	require.NoError(t, err)
-	require.Equal(t, uint64(len(genDeposits)), latestValIdx)
 }
 
 func checkValidator(
 	t *testing.T,
-	cs chain.Spec[
-		common.DomainType,
-		math.Epoch,
-		math.Slot,
-		any,
-	],
-	bs *TestBeaconStateT,
+	cs chain.Spec,
+	bs *statetransition.TestBeaconStateT,
 	dep *types.Deposit,
 ) {
 	t.Helper()
@@ -175,36 +184,10 @@ func checkValidator(
 	require.NoError(t, err)
 	require.Equal(t, dep.Pubkey, val.Pubkey)
 
-	// checks on validators common to all networks
-	commonChecksValidators(t, cs, val, dep)
-
-	// checks on validators for any network but Bartio
-	require.Equal(t, math.Epoch(0), val.GetActivationEligibilityEpoch())
-	require.Equal(t, math.Epoch(0), val.GetActivationEpoch())
-
-	valBal, err := bs.GetBalance(idx)
-	require.NoError(t, err)
-	require.Equal(t, dep.Amount, valBal)
-}
-
-func commonChecksValidators(
-	t *testing.T,
-	cs chain.Spec[
-		common.DomainType,
-		math.Epoch,
-		math.Slot,
-		any,
-	],
-	val *types.Validator,
-	dep *types.Deposit,
-) {
-	t.Helper()
-	require.Equal(t, dep.Pubkey, val.Pubkey)
-
 	var (
-		maxBalance = math.Gwei(cs.MaxEffectiveBalance(false))
-		increment  = math.Gwei(cs.EffectiveBalanceIncrement())
-		minBalance = math.Gwei(cs.EjectionBalance())
+		maxBalance = cs.MaxEffectiveBalance()
+		increment  = cs.EffectiveBalanceIncrement()
+		minBalance = cs.MinActivationBalance() - increment
 	)
 	switch {
 	case dep.Amount >= maxBalance:
@@ -222,4 +205,11 @@ func commonChecksValidators(
 	case dep.Amount <= minBalance:
 		require.Equal(t, math.Gwei(0), val.EffectiveBalance)
 	}
+
+	require.Equal(t, constants.GenesisEpoch, val.GetActivationEligibilityEpoch())
+	require.Equal(t, constants.GenesisEpoch, val.GetActivationEpoch())
+
+	valBal, err := bs.GetBalance(idx)
+	require.NoError(t, err)
+	require.Equal(t, dep.Amount, valBal)
 }

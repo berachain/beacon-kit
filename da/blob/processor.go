@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,27 +21,24 @@
 package blob
 
 import (
+	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/kzg"
+	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // Processor is the blob processor that handles the processing and verification
 // of blob sidecars.
-type Processor[
-	AvailabilityStoreT AvailabilityStore,
-	ConsensusSidecarsT ConsensusSidecars,
-] struct {
+type Processor struct {
 	// logger is used to log information and errors.
 	logger log.Logger
-	// chainSpec defines the specifications of the blockchain.
-	chainSpec chain.ChainSpec
 	// verifier is responsible for verifying the blobs.
 	verifier *verifier
 	// metrics is used to collect and report processor metrics.
@@ -49,45 +46,27 @@ type Processor[
 }
 
 // NewProcessor creates a new blob processor.
-func NewProcessor[
-	AvailabilityStoreT AvailabilityStore,
-	ConsensusSidecarsT ConsensusSidecars,
-](
+func NewProcessor(
 	logger log.Logger,
-	chainSpec chain.ChainSpec,
 	proofVerifier kzg.BlobProofVerifier,
 	telemetrySink TelemetrySink,
-) *Processor[
-	AvailabilityStoreT,
-	ConsensusSidecarsT,
-] {
-	verifier := newVerifier(proofVerifier, telemetrySink, chainSpec)
+) *Processor {
+	verifier := newVerifier(proofVerifier, telemetrySink)
 
-	return &Processor[
-		AvailabilityStoreT,
-		ConsensusSidecarsT,
-	]{
-		logger:    logger,
-		chainSpec: chainSpec,
-		verifier:  verifier,
-		metrics:   newProcessorMetrics(telemetrySink),
+	return &Processor{
+		logger:   logger,
+		verifier: verifier,
+		metrics:  newProcessorMetrics(telemetrySink),
 	}
 }
 
 // VerifySidecars verifies the blobs and ensures they match the local state.
-func (sp *Processor[
-	AvailabilityStoreT, ConsensusSidecarsT,
-]) VerifySidecars(
-	cs ConsensusSidecarsT,
-	verifierFn func(
-		blkHeader *ctypes.BeaconBlockHeader,
-		signature crypto.BLSSignature,
-	) error,
+func (sp *Processor) VerifySidecars(
+	ctx context.Context,
+	sidecars datypes.BlobSidecars,
+	blkHeader *ctypes.BeaconBlockHeader,
+	kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],
 ) error {
-	var (
-		sidecars  = cs.GetSidecars()
-		blkHeader = cs.GetHeader()
-	)
 	defer sp.metrics.measureVerifySidecarsDuration(
 		time.Now(), math.U64(len(sidecars)),
 	)
@@ -99,17 +78,16 @@ func (sp *Processor[
 
 	// Verify the blobs and ensure they match the local state.
 	return sp.verifier.verifySidecars(
+		ctx,
 		sidecars,
 		blkHeader,
-		verifierFn,
+		kzgCommitments,
 	)
 }
 
 // ProcessSidecars processes the blobs and ensures they match the local state.
-func (sp *Processor[
-	AvailabilityStoreT, _,
-]) ProcessSidecars(
-	avs AvailabilityStoreT,
+func (sp *Processor) ProcessSidecars(
+	avs *dastore.Store,
 	sidecars datypes.BlobSidecars,
 ) error {
 	defer sp.metrics.measureProcessSidecarsDuration(
@@ -123,8 +101,5 @@ func (sp *Processor[
 
 	// If we have reached this point, we can safely assume that the blobs are
 	// valid and can be persisted, as well as that index 0 is filled.
-	return avs.Persist(
-		sidecars[0].GetSignedBeaconBlockHeader().GetHeader().GetSlot(),
-		sidecars,
-	)
+	return avs.Persist(sidecars)
 }

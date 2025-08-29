@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -74,22 +74,8 @@ func NewBeaconBlockHeader(
 	}
 }
 
-// Empty creates an empty BeaconBlockHeader instance.
-func (*BeaconBlockHeader) Empty() *BeaconBlockHeader {
+func NewEmptyBeaconBlockHeader() *BeaconBlockHeader {
 	return &BeaconBlockHeader{}
-}
-
-// New creates a new BeaconBlockHeader.
-func (b *BeaconBlockHeader) New(
-	slot math.Slot,
-	proposerIndex math.ValidatorIndex,
-	parentBlockRoot common.Root,
-	stateRoot common.Root,
-	bodyRoot common.Root,
-) *BeaconBlockHeader {
-	return NewBeaconBlockHeader(
-		slot, proposerIndex, parentBlockRoot, stateRoot, bodyRoot,
-	)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -116,10 +102,7 @@ func (b *BeaconBlockHeader) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 
-// UnmarshalSSZ unmarshals the BeaconBlockBody object from SSZ format.
-func (b *BeaconBlockHeader) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, b)
-}
+func (*BeaconBlockHeader) ValidateAfterDecodingSSZ() error { return nil }
 
 // HashTreeRoot computes the SSZ hash tree root of the BeaconBlockHeader object.
 func (b *BeaconBlockHeader) HashTreeRoot() common.Root {

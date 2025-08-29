@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,66 +21,31 @@
 package genesis
 
 import (
-	"github.com/berachain/beacon-kit/chain-spec/chain"
-	"github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/errors"
-	"github.com/berachain/beacon-kit/primitives/bytes"
-	"github.com/berachain/beacon-kit/primitives/encoding/json"
-	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/spf13/afero"
+	"github.com/berachain/beacon-kit/cli/commands/server/types"
+	"github.com/berachain/beacon-kit/cli/context"
+	"github.com/berachain/beacon-kit/cli/utils/genesis"
 	"github.com/spf13/cobra"
 )
 
-type Genesis struct {
-	AppState struct {
-		Beacon struct {
-			Deposits []struct {
-				Pubkey      bytes.B48 `json:"pubkey"`
-				Credentials bytes.B32 `json:"credentials"`
-				Amount      math.U64  `json:"amount"`
-				Signature   string    `json:"signature"`
-				Index       int       `json:"index"`
-			} `json:"deposits"`
-		} `json:"beacon"`
-	} `json:"app_state"`
-}
-
-func GetGenesisValidatorRootCmd(cs chain.ChainSpec) *cobra.Command {
+// GetGenesisValidatorRootCmd returns a command that gets the genesis validator root from a given
+// beacond genesis file.
+func GetGenesisValidatorRootCmd(chainSpecCreator types.ChainSpecCreator) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "validator-root [beacond/genesis.json]",
 		Short: "gets and returns the genesis validator root",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// Read the genesis file.
-			genesisBz, err := afero.ReadFile(afero.NewOsFs(), args[0])
+			v := context.GetViperFromCmd(cmd)
+			chainSpec, err := chainSpecCreator(v)
 			if err != nil {
-				return errors.Wrap(err, "failed to genesis json file")
+				return err
 			}
-
-			var genesis Genesis
-			// Unmarshal JSON data into the Genesis struct
-			err = json.Unmarshal(genesisBz, &genesis)
+			genesisValidatorsRoot, err := genesis.ComputeValidatorsRootFromFile(args[0], chainSpec)
 			if err != nil {
-				return errors.Wrap(err, "failed to unmarshal JSON")
+				return err
 			}
 
-			depositCount := uint64(len(genesis.AppState.Beacon.Deposits))
-			validators := make(
-				types.Validators,
-				depositCount,
-			)
-			for i, deposit := range genesis.AppState.Beacon.Deposits {
-				var val *types.Validator
-				validators[i] = val.New(
-					deposit.Pubkey,
-					types.WithdrawalCredentials(deposit.Credentials),
-					deposit.Amount,
-					math.Gwei(cs.EffectiveBalanceIncrement()),
-					math.Gwei(cs.MaxEffectiveBalance(false)),
-				)
-			}
-
-			cmd.Printf("%s\n", validators.HashTreeRoot())
+			cmd.Printf("%s\n", genesisValidatorsRoot)
 			return nil
 		},
 	}

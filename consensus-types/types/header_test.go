@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -26,12 +26,14 @@ import (
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
 	"github.com/berachain/beacon-kit/primitives/math"
 	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
 func TestBeaconBlockHeader_Equals(t *testing.T) {
+	t.Parallel()
 	var (
 		slot            = math.Slot(100)
 		valIdx          = math.ValidatorIndex(200)
@@ -95,6 +97,7 @@ func TestBeaconBlockHeader_Equals(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got1 := lhs.Equals(tt.rhs)
 			require.Equal(t, tt.want, got1)
 
@@ -112,6 +115,7 @@ func TestBeaconBlockHeader_Equals(t *testing.T) {
 }
 
 func TestBeaconBlockHeader_Serialization(t *testing.T) {
+	t.Parallel()
 	original := types.NewBeaconBlockHeader(
 		math.Slot(100),
 		math.ValidatorIndex(200),
@@ -123,10 +127,11 @@ func TestBeaconBlockHeader_Serialization(t *testing.T) {
 	data, err := original.MarshalSSZ()
 	require.NoError(t, err)
 	require.NotNil(t, data)
-	var unmarshalled types.BeaconBlockHeader
-	err = unmarshalled.UnmarshalSSZ(data)
+
+	unmarshalled := new(types.BeaconBlockHeader)
+	err = ssz.Unmarshal(data, unmarshalled)
 	require.NoError(t, err)
-	require.Equal(t, original, &unmarshalled)
+	require.Equal(t, original, unmarshalled)
 
 	var buf []byte
 	buf, err = original.MarshalSSZTo(buf)
@@ -137,6 +142,7 @@ func TestBeaconBlockHeader_Serialization(t *testing.T) {
 }
 
 func TestBeaconBlockHeader_SizeSSZ(t *testing.T) {
+	t.Parallel()
 	header := types.NewBeaconBlockHeader(
 		math.Slot(100),
 		math.ValidatorIndex(200),
@@ -149,7 +155,8 @@ func TestBeaconBlockHeader_SizeSSZ(t *testing.T) {
 	require.Equal(t, uint32(112), size)
 }
 
-func TestBeaconBlockHeader_HashTreeRoot(_ *testing.T) {
+func TestBeaconBlockHeader_HashTreeRoot(t *testing.T) {
+	t.Parallel()
 	header := types.NewBeaconBlockHeader(
 		math.Slot(100),
 		math.ValidatorIndex(200),
@@ -162,6 +169,7 @@ func TestBeaconBlockHeader_HashTreeRoot(_ *testing.T) {
 }
 
 func TestBeaconBlockHeader_GetTree(t *testing.T) {
+	t.Parallel()
 	header := types.NewBeaconBlockHeader(
 		math.Slot(100),
 		math.ValidatorIndex(200),
@@ -177,6 +185,7 @@ func TestBeaconBlockHeader_GetTree(t *testing.T) {
 }
 
 func TestBeaconBlockHeader_SetStateRoot(t *testing.T) {
+	t.Parallel()
 	header := types.NewBeaconBlockHeader(
 		math.Slot(100),
 		math.ValidatorIndex(200),
@@ -191,36 +200,8 @@ func TestBeaconBlockHeader_SetStateRoot(t *testing.T) {
 	require.Equal(t, newStateRoot, header.GetStateRoot())
 }
 
-func TestBeaconBlockHeader_New(t *testing.T) {
-	slot := math.Slot(100)
-	proposerIndex := math.ValidatorIndex(200)
-	parentBlockRoot := common.Root{}
-	stateRoot := common.Root{}
-	bodyRoot := common.Root{}
-
-	header := types.NewBeaconBlockHeader(
-		slot,
-		proposerIndex,
-		parentBlockRoot,
-		stateRoot,
-		bodyRoot,
-	)
-
-	newHeader := header.New(
-		slot,
-		proposerIndex,
-		parentBlockRoot,
-		stateRoot,
-		bodyRoot,
-	)
-	require.Equal(t, slot, newHeader.GetSlot())
-	require.Equal(t, proposerIndex, newHeader.GetProposerIndex())
-	require.Equal(t, parentBlockRoot, newHeader.GetParentBlockRoot())
-	require.Equal(t, stateRoot, newHeader.GetStateRoot())
-	require.Equal(t, bodyRoot, newHeader.BodyRoot)
-}
-
 func TestBeaconBlockHeader_SetSlot(t *testing.T) {
+	t.Parallel()
 	header := types.NewBeaconBlockHeader(
 		math.Slot(100),
 		math.ValidatorIndex(200),
@@ -236,6 +217,7 @@ func TestBeaconBlockHeader_SetSlot(t *testing.T) {
 }
 
 func TestBeaconBlockHeader_SetProposerIndex(t *testing.T) {
+	t.Parallel()
 	header := types.NewBeaconBlockHeader(
 		math.Slot(100),
 		math.ValidatorIndex(200),
@@ -250,6 +232,7 @@ func TestBeaconBlockHeader_SetProposerIndex(t *testing.T) {
 }
 
 func TestBeaconBlockHeader_SetParentBlockRoot(t *testing.T) {
+	t.Parallel()
 	header := types.NewBeaconBlockHeader(
 		math.Slot(100),
 		math.ValidatorIndex(200),
@@ -265,6 +248,7 @@ func TestBeaconBlockHeader_SetParentBlockRoot(t *testing.T) {
 }
 
 func TestBeaconBlockHeader_SetBodyRoot(t *testing.T) {
+	t.Parallel()
 	header := types.NewBeaconBlockHeader(
 		math.Slot(100),
 		math.ValidatorIndex(200),
@@ -280,9 +264,10 @@ func TestBeaconBlockHeader_SetBodyRoot(t *testing.T) {
 }
 
 func TestBeaconBlockHeader_UnmarshalSSZ_ErrSize(t *testing.T) {
-	header := &types.BeaconBlockHeader{}
+	t.Parallel()
 	buf := make([]byte, 100) // Incorrect size
 
-	err := header.UnmarshalSSZ(buf)
+	unmarshalled := new(types.BeaconBlockHeader)
+	err := ssz.Unmarshal(buf, unmarshalled)
 	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }

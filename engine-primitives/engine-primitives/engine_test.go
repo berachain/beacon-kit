@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -30,6 +30,7 @@ import (
 )
 
 func TestPayloadID(t *testing.T) {
+	t.Parallel()
 	payloadID := engineprimitives.PayloadID{
 		0x1,
 		0x2,
@@ -54,6 +55,7 @@ func TestPayloadID(t *testing.T) {
 }
 
 func TestForkchoiceStateV1(t *testing.T) {
+	t.Parallel()
 	state := &engineprimitives.ForkchoiceStateV1{
 		HeadBlockHash:      common.ExecutionHash{0x1},
 		SafeBlockHash:      common.ExecutionHash{0x2},
@@ -79,6 +81,7 @@ func TestForkchoiceStateV1(t *testing.T) {
 }
 
 func TestPayloadStatusV1(t *testing.T) {
+	t.Parallel()
 	status := &engineprimitives.PayloadStatusV1{
 		Status:          engineprimitives.PayloadStatusValid,
 		LatestValidHash: &common.ExecutionHash{0x1},

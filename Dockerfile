@@ -18,7 +18,7 @@
 ###           Stage 0 - Build Arguments             ###
 #######################################################
 
-ARG GO_VERSION=1.23.4
+ARG GO_VERSION=1.23.6
 ARG RUNNER_IMAGE=alpine:3.20
 ARG BUILD_TAGS="netgo,muslc,blst,bls12381,pebbledb"
 ARG NAME=beacond
@@ -105,7 +105,7 @@ COPY --from=builder /workdir/build/bin/${APP_NAME} /usr/bin/${APP_NAME}
 # TODO: We should un hood this part, its very specific
 # to our kurtosis setup.
 RUN mkdir -p /root/jwt /root/kzg && \
-    apk add --no-cache bash sed curl
+    apk add --no-cache bash sed curl jq
 
 EXPOSE 26656
 EXPOSE 26657

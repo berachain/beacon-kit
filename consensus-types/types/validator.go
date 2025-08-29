@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -86,45 +86,21 @@ func NewValidatorFromDeposit(
 			maxEffectiveBalance,
 		),
 		Slashed:                    false,
-		ActivationEligibilityEpoch: math.Epoch(constants.FarFutureEpoch),
-		ActivationEpoch:            math.Epoch(constants.FarFutureEpoch),
-		ExitEpoch:                  math.Epoch(constants.FarFutureEpoch),
-		WithdrawableEpoch:          math.Epoch(constants.FarFutureEpoch),
+		ActivationEligibilityEpoch: constants.FarFutureEpoch,
+		ActivationEpoch:            constants.FarFutureEpoch,
+		ExitEpoch:                  constants.FarFutureEpoch,
+		WithdrawableEpoch:          constants.FarFutureEpoch,
 	}
 }
 
-func ComputeEffectiveBalance(
-	amount math.Gwei,
-	effectiveBalanceIncrement math.Gwei,
-	maxEffectiveBalance math.Gwei,
-) math.Gwei {
-	return min(
-		amount-amount%effectiveBalanceIncrement,
-		maxEffectiveBalance,
-	)
-}
-
-// Empty creates an empty Validator.
-func (*Validator) Empty() *Validator {
+func NewEmptyValidator() *Validator {
 	return &Validator{}
 }
 
-// New creates a new Validator with the given public key, withdrawal
-// credentials,.
-func (v *Validator) New(
-	pubkey crypto.BLSPubkey,
-	withdrawalCredentials WithdrawalCredentials,
-	amount math.Gwei,
-	effectiveBalanceIncrement math.Gwei,
-	maxEffectiveBalance math.Gwei,
-) *Validator {
-	return NewValidatorFromDeposit(
-		pubkey,
-		withdrawalCredentials,
-		amount,
-		effectiveBalanceIncrement,
-		maxEffectiveBalance,
-	)
+func ComputeEffectiveBalance(
+	amount, effectiveBalanceIncrement, maxEffectiveBalance math.Gwei,
+) math.Gwei {
+	return min(amount-amount%effectiveBalanceIncrement, maxEffectiveBalance)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -159,10 +135,7 @@ func (v *Validator) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, v)
 }
 
-// UnmarshalSSZ unmarshals the Validator object from SSZ format.
-func (v *Validator) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, v)
-}
+func (*Validator) ValidateAfterDecodingSSZ() error { return nil }
 
 /* -------------------------------------------------------------------------- */
 /*                                   FastSSZ                                  */
@@ -240,17 +213,13 @@ func (v Validator) IsActive(epoch math.Epoch) bool {
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#is_eligible_for_activation_queue
 func (v Validator) IsEligibleForActivation(finalizedEpoch math.Epoch) bool {
 	return v.ActivationEligibilityEpoch <= finalizedEpoch &&
-		v.ActivationEpoch == math.Epoch(constants.FarFutureEpoch)
+		v.ActivationEpoch == constants.FarFutureEpoch
 }
 
-// IsEligibleForActivationQueue is defined slightly differently from Ethereum
-// 2.0 Spec
+// IsEligibleForActivationQueue is defined slightly differently from Ethereum 2.0 Spec
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#is_eligible_for_activation_queue
 func (v Validator) IsEligibleForActivationQueue(threshold math.Gwei) bool {
-	return v.ActivationEligibilityEpoch == math.Epoch(
-		constants.FarFutureEpoch,
-	) &&
-		v.EffectiveBalance >= threshold
+	return v.ActivationEligibilityEpoch == constants.FarFutureEpoch && v.EffectiveBalance >= threshold
 }
 
 // IsSlashable as defined in the Ethereum 2.0 Spec
@@ -286,9 +255,15 @@ func (v Validator) IsPartiallyWithdrawable(
 }
 
 // HasEth1WithdrawalCredentials as defined in the Ethereum 2.0 specification:
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#has_eth1_withdrawal_credential
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/validator.md#eth1_address_withdrawal_prefix
 func (v Validator) HasEth1WithdrawalCredentials() bool {
-	return v.WithdrawalCredentials[0] == EthSecp256k1CredentialPrefix
+	return v.WithdrawalCredentials.IsValidEth1WithdrawalCredentials()
+}
+
+// HasExecutionWithdrawalCredential deviated from `has_execution_withdrawal_credential` by not checking for
+// compounding withdrawal credentials, i.e 0x02.
+func (v Validator) HasExecutionWithdrawalCredential() bool {
+	return v.HasEth1WithdrawalCredentials()
 }
 
 // HasMaxEffectiveBalance determines if the validator has the maximum effective
@@ -339,4 +314,61 @@ func (v Validator) GetWithdrawableEpoch() math.Epoch {
 // GetWithdrawalCredentials returns the withdrawal credentials of the validator.
 func (v Validator) GetWithdrawalCredentials() WithdrawalCredentials {
 	return v.WithdrawalCredentials
+}
+
+// HasCompoundingWithdrawalCredential is equivalent to has_compounding_withdrawal_credential.
+// On Berachain, all validators are considered to be 'compounding' validators, regardless of whether
+// they have the '0x2' prefix. We introduce this for spec parity.
+func (v Validator) HasCompoundingWithdrawalCredential() bool {
+	return true
+}
+
+// Status returns the current validator status based on its set epoch values.
+// This function taken from Prysm:
+// https://github.com/prysmaticlabs/prysm/blob/0229a2055e6349655a471b2427f349e40c275cee/beacon-chain/rpc/eth/helpers/validator_status.go#L31
+func (v *Validator) Status(currentEpoch math.Epoch) (string, error) {
+	activationEpoch := v.GetActivationEpoch()
+	activationEligibilityEpoch := v.GetActivationEligibilityEpoch()
+	farFutureEpoch := constants.FarFutureEpoch
+	exitEpoch := v.GetExitEpoch()
+	withdrawableEpoch := v.GetWithdrawableEpoch()
+
+	// Status: pending
+	if activationEpoch > currentEpoch {
+		if activationEligibilityEpoch == farFutureEpoch {
+			return constants.ValidatorStatusPendingInitialized, nil
+		} else if activationEligibilityEpoch < farFutureEpoch {
+			return constants.ValidatorStatusPendingQueued, nil
+		}
+	}
+
+	// Status: active
+	if activationEpoch <= currentEpoch && currentEpoch < exitEpoch {
+		if exitEpoch == farFutureEpoch {
+			return constants.ValidatorStatusActiveOngoing, nil
+		} else if exitEpoch < farFutureEpoch {
+			if v.IsSlashed() {
+				return constants.ValidatorStatusActiveSlashed, nil
+			}
+			return constants.ValidatorStatusActiveExiting, nil
+		}
+	}
+
+	// Status: exited
+	if exitEpoch <= currentEpoch && currentEpoch < withdrawableEpoch {
+		if v.IsSlashed() {
+			return constants.ValidatorStatusExitedSlashed, nil
+		}
+		return constants.ValidatorStatusExitedUnslashed, nil
+	}
+
+	// Status: withdrawal
+	if withdrawableEpoch <= currentEpoch {
+		if v.GetEffectiveBalance() != math.Gwei(0) {
+			return constants.ValidatorStatusWithdrawalPossible, nil
+		}
+		return constants.ValidatorStatusWithdrawalDone, nil
+	}
+
+	return "", ErrInvalidValidatorStatus
 }

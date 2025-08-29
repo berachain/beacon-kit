@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -27,9 +27,9 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers"
 )
 
-func (h *Handler[ContextT]) RegisterRoutes(logger log.Logger) {
+func (h *Handler) RegisterRoutes(logger log.Logger) {
 	h.SetLogger(logger)
-	h.BaseHandler.AddRoutes([]*handlers.Route[ContextT]{
+	h.BaseHandler.AddRoutes([]*handlers.Route{
 		{
 			Method:  http.MethodGet,
 			Path:    "bkit/v1/proof/block_proposer/:timestamp_id",
@@ -37,13 +37,13 @@ func (h *Handler[ContextT]) RegisterRoutes(logger log.Logger) {
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "bkit/v1/proof/execution_number/:timestamp_id",
-			Handler: h.GetExecutionNumber,
+			Path:    "bkit/v1/proof/validator_credentials/:timestamp_id/:validator_index",
+			Handler: h.GetValidatorCredentials,
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "bkit/v1/proof/execution_fee_recipient/:timestamp_id",
-			Handler: h.GetExecutionFeeRecipient,
+			Path:    "bkit/v1/proof/validator_balance/:timestamp_id/:validator_index",
+			Handler: h.GetValidatorBalance,
 		},
 	})
 }

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -50,23 +50,14 @@ type Eth1Data struct {
 /*                                 Constructor                                */
 /* -------------------------------------------------------------------------- */
 
-// Empty creates an empty Eth1Data.
-func (*Eth1Data) Empty() *Eth1Data {
-	return &Eth1Data{}
+func NewEth1Data(depositRoot common.Root) *Eth1Data {
+	return &Eth1Data{
+		DepositRoot: depositRoot,
+	}
 }
 
-// New creates a new Eth1Data.
-func (e *Eth1Data) New(
-	depositRoot common.Root,
-	depositCount math.U64,
-	blockHash common.ExecutionHash,
-) *Eth1Data {
-	e = &Eth1Data{
-		DepositRoot:  depositRoot,
-		DepositCount: depositCount,
-		BlockHash:    blockHash,
-	}
-	return e
+func NewEmptyEth1Data() *Eth1Data {
+	return &Eth1Data{}
 }
 
 /* -------------------------------------------------------------------------- */
@@ -96,10 +87,7 @@ func (e *Eth1Data) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, e)
 }
 
-// UnmarshalSSZ unmarshals the Eth1Data object from SSZ format.
-func (e *Eth1Data) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, e)
-}
+func (*Eth1Data) ValidateAfterDecodingSSZ() error { return nil }
 
 // MarshalSSZTo marshals the Eth1Data object into a pre-allocated byte slice.
 func (e *Eth1Data) MarshalSSZTo(dst []byte) ([]byte, error) {

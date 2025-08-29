@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -24,10 +24,17 @@ import (
 	"context"
 	"fmt"
 
+	beaconapi "github.com/attestantio/go-eth2-client/api"
+	apiv1 "github.com/attestantio/go-eth2-client/api/v1"
 	beaconhttp "github.com/attestantio/go-eth2-client/http"
+	"github.com/attestantio/go-eth2-client/spec/deneb"
+	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/berachain/beacon-kit/errors"
+	ptypes "github.com/berachain/beacon-kit/node-api/handlers/proof/types"
+	abcitypes "github.com/cometbft/cometbft/abci/types"
 	rpcclient "github.com/cometbft/cometbft/rpc/client"
 	httpclient "github.com/cometbft/cometbft/rpc/client/http"
+	coretypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
 	"github.com/rs/zerolog"
 )
@@ -37,10 +44,10 @@ type ConsensusClient struct {
 	*WrappedServiceContext
 
 	// Comet JSON-RPC client
-	rpcclient.Client
+	cometClient rpcclient.Client
 
 	// Beacon node-api client
-	BeaconKitNodeClient
+	beaconClient BeaconKitNodeClient
 
 	// Cancel function for the context
 	cancelFunc context.CancelFunc
@@ -48,15 +55,9 @@ type ConsensusClient struct {
 
 // NewConsensusClient creates a new consensus client.
 func NewConsensusClient(serviceCtx *WrappedServiceContext) *ConsensusClient {
-	cc := &ConsensusClient{
+	return &ConsensusClient{
 		WrappedServiceContext: serviceCtx,
 	}
-
-	if err := cc.Connect(context.Background()); err != nil {
-		panic(err)
-	}
-
-	return cc
 }
 
 // Connect connects the consensus client to the consensus client.
@@ -71,7 +72,7 @@ func (cc *ConsensusClient) Connect(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	cc.Client = client
+	cc.cometClient = client
 
 	// Then try to get the public port for the node API.
 	nodePort, ok := cc.WrappedServiceContext.GetPublicPorts()["node-api"]
@@ -79,7 +80,8 @@ func (cc *ConsensusClient) Connect(ctx context.Context) error {
 		panic("Couldn't find the public port for the node API")
 	}
 	cancelCtx, cancel := context.WithCancel(ctx)
-	cc.BeaconKitNodeClient, err = NewBeaconKitNodeClient(
+
+	cc.beaconClient, err = NewBeaconKitNodeClient(
 		cancelCtx,
 		beaconhttp.WithAddress(
 			fmt.Sprintf("http://0.0.0.0:%d", nodePort.GetNumber()),
@@ -96,29 +98,32 @@ func (cc *ConsensusClient) Connect(ctx context.Context) error {
 }
 
 // Start starts the consensus client.
-func (cc ConsensusClient) Start(
-	ctx context.Context,
-	enclaveContext *enclaves.EnclaveContext,
+//
+// TODO: Debug wrapped service context failing to start.
+func (cc *ConsensusClient) Start(
+	ctx context.Context, _ *enclaves.EnclaveContext,
 ) (*enclaves.StarlarkRunResult, error) {
-	res, err := cc.WrappedServiceContext.Start(ctx, enclaveContext)
-	if err != nil {
-		return nil, err
-	}
+	// res, err := cc.WrappedServiceContext.Start(ctx, enclaveContext)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	return res, cc.Connect(ctx)
+	return &enclaves.StarlarkRunResult{}, cc.Connect(ctx)
 }
 
 // Stop stops the consensus client.
-func (cc ConsensusClient) Stop(
-	ctx context.Context,
-) (*enclaves.StarlarkRunResult, error) {
+//
+// TODO: Debug wrapped service context failing to stop.
+func (cc *ConsensusClient) Stop(context.Context) (*enclaves.StarlarkRunResult, error) {
 	cc.cancelFunc()
-	return cc.WrappedServiceContext.Stop(ctx)
+	// return cc.WrappedServiceContext.Stop(ctx)
+
+	return &enclaves.StarlarkRunResult{}, nil
 }
 
 // GetPubKey returns the public key of the validator running on this node.
-func (cc ConsensusClient) GetPubKey(ctx context.Context) ([]byte, error) {
-	res, err := cc.Client.Status(ctx)
+func (cc *ConsensusClient) GetPubKey(ctx context.Context) ([]byte, error) {
+	res, err := cc.cometClient.Status(ctx)
 	if err != nil {
 		return nil, err
 	} else if res.ValidatorInfo.PubKey == nil {
@@ -129,26 +134,167 @@ func (cc ConsensusClient) GetPubKey(ctx context.Context) ([]byte, error) {
 }
 
 // GetConsensusPower returns the consensus power of the node.
-func (cc ConsensusClient) GetConsensusPower(
-	ctx context.Context,
-) (uint64, error) {
-	res, err := cc.Client.Status(ctx)
+func (cc *ConsensusClient) GetConsensusPower(ctx context.Context) (uint64, error) {
+	res, err := cc.cometClient.Status(ctx)
 	if err != nil {
 		return 0, err
 	}
 
-	//#nosec:G701 // VotingPower won't ever be negative.
+	// #nosec G115 -- VotingPower won't ever be negative.
 	return uint64(res.ValidatorInfo.VotingPower), nil
 }
 
 // IsActive returns true if the node is an active validator.
-func (cc ConsensusClient) IsActive(ctx context.Context) (bool, error) {
-	res, err := cc.Client.Status(ctx)
+func (cc *ConsensusClient) IsActive(ctx context.Context) (bool, error) {
+	res, err := cc.cometClient.Status(ctx)
 	if err != nil {
 		return false, err
 	}
 
 	return res.ValidatorInfo.VotingPower > 0, nil
+}
+
+// ABCIInfo returns the ABCI info of the node.
+func (cc ConsensusClient) ABCIInfo(
+	ctx context.Context,
+) (*abcitypes.InfoResponse, error) {
+	if cc.cometClient == nil {
+		return nil, errors.New("comet client is not initialized")
+	}
+	resp, err := cc.cometClient.ABCIInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &resp.Response, nil
+}
+
+// ABCIQuery returns the ABCI query from the comet node.
+func (cc ConsensusClient) ABCIQuery(
+	ctx context.Context,
+	path string,
+	data []byte,
+	opts rpcclient.ABCIQueryOptions,
+) (*abcitypes.QueryResponse, error) {
+	if cc.cometClient == nil {
+		return nil, errors.New("comet client is not initialized")
+	}
+	resp, err := cc.cometClient.ABCIQueryWithOptions(ctx, path, data, opts)
+	if err != nil {
+		return nil, err
+	}
+	return &resp.Response, nil
+}
+
+// BeaconStateRoot returns the beacon state root of the node.
+func (cc ConsensusClient) BeaconStateRoot(
+	ctx context.Context,
+	opts *beaconapi.BeaconStateRootOpts,
+) (*beaconapi.Response[*phase0.Root], error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
+	return cc.beaconClient.BeaconStateRoot(ctx, opts)
+}
+
+// Validators returns the validator.
+func (cc ConsensusClient) Validators(
+	ctx context.Context,
+	opts *beaconapi.ValidatorsOpts,
+) (*beaconapi.Response[map[phase0.ValidatorIndex]*apiv1.Validator], error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
+	return cc.beaconClient.Validators(ctx, opts)
+}
+
+// BlobSidecars returns the blob sidecars for a given block.
+func (cc ConsensusClient) BlobSidecars(
+	ctx context.Context,
+	opts *beaconapi.BlobSidecarsOpts,
+) (*beaconapi.Response[[]*deneb.BlobSidecar], error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
+	return cc.beaconClient.BlobSidecars(ctx, opts)
+}
+
+// ValidatorBalances returns the validator balances for a given state.
+func (cc ConsensusClient) ValidatorBalances(
+	ctx context.Context,
+	opts *beaconapi.ValidatorBalancesOpts,
+) (*beaconapi.Response[map[phase0.ValidatorIndex]phase0.Gwei], error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
+	return cc.beaconClient.ValidatorBalances(ctx, opts)
+}
+
+// Genesis returns the genesis of the beacon node.
+func (cc ConsensusClient) Genesis(
+	ctx context.Context,
+	opts *beaconapi.GenesisOpts,
+) (*beaconapi.Response[*apiv1.Genesis], error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
+	return cc.beaconClient.Genesis(ctx, opts)
+}
+
+// Spec returns the spec of the beacon node.
+func (cc ConsensusClient) Spec(
+	ctx context.Context,
+	opts *beaconapi.SpecOpts,
+) (*beaconapi.Response[map[string]any], error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
+	return cc.beaconClient.Spec(ctx, opts)
+}
+
+// BlockProposerProof returns the block proposer proof for a given timestamp id.
+func (cc ConsensusClient) BlockProposerProof(
+	ctx context.Context,
+	timestampID string,
+) (*ptypes.BlockProposerResponse, error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
+	return cc.beaconClient.BlockProposerProof(ctx, timestampID)
+}
+
+// ValidatorBalanceProof returns the validator balance proof for a given timestamp id and validator index.
+func (cc ConsensusClient) ValidatorBalanceProof(
+	ctx context.Context,
+	timestampID string,
+	validatorIndex string,
+) (*ptypes.ValidatorBalanceResponse, error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
+	return cc.beaconClient.ValidatorBalanceProof(ctx, timestampID, validatorIndex)
+}
+
+// ValidatorCredentialsProof returns the validator withdrawal credentials proof for a given timestamp id and validator index.
+func (cc ConsensusClient) ValidatorCredentialsProof(
+	ctx context.Context,
+	timestampID string,
+	validatorIndex string,
+) (*ptypes.ValidatorWithdrawalCredentialsResponse, error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
+	return cc.beaconClient.ValidatorCredentialsProof(ctx, timestampID, validatorIndex)
+}
+
+// Commit returns the commit for a block.
+func (cc ConsensusClient) Commit(
+	ctx context.Context,
+	height *int64,
+) (*coretypes.ResultCommit, error) {
+	if cc.cometClient == nil {
+		return nil, errors.New("comet client is not initialized")
+	}
+	return cc.cometClient.Commit(ctx, height)
 }
 
 // TODO: Add helpers for the beacon node-api client (converting from

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -24,12 +24,14 @@ import (
 	"testing"
 
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
 	"github.com/berachain/beacon-kit/primitives/math"
 	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
 func TestWithdrawalSSZ(t *testing.T) {
+	t.Parallel()
 	withdrawal := &engineprimitives.Withdrawal{
 		Index:     math.U64(1),
 		Validator: math.ValidatorIndex(2),
@@ -41,8 +43,10 @@ func TestWithdrawalSSZ(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, data)
 
-	err = withdrawal.UnmarshalSSZ(data)
+	unmarshalled := new(engineprimitives.Withdrawal)
+	err = ssz.Unmarshal(data, unmarshalled)
 	require.NoError(t, err)
+	require.Equal(t, withdrawal, unmarshalled)
 
 	size := karalabessz.Size(withdrawal)
 	require.Equal(t, uint32(44), size)
@@ -52,6 +56,7 @@ func TestWithdrawalSSZ(t *testing.T) {
 }
 
 func TestWithdrawalGetTree(t *testing.T) {
+	t.Parallel()
 	withdrawal := &engineprimitives.Withdrawal{
 		Index:     math.U64(1),
 		Validator: math.ValidatorIndex(2),
@@ -65,6 +70,7 @@ func TestWithdrawalGetTree(t *testing.T) {
 }
 
 func TestWithdrawalUnmarshalSSZ(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		input   []byte
@@ -123,8 +129,9 @@ func TestWithdrawalUnmarshalSSZ(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			w := &engineprimitives.Withdrawal{}
-			err := w.UnmarshalSSZ(tt.input)
+			t.Parallel()
+			var w engineprimitives.Withdrawal
+			err := ssz.Unmarshal(tt.input, &w)
 
 			if tt.wantErr {
 				require.Error(t, err)

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -28,116 +28,165 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/validator"
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/cache"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
 	servercmtlog "github.com/berachain/beacon-kit/consensus/cometbft/service/log"
-	"github.com/berachain/beacon-kit/consensus/cometbft/service/params"
 	statem "github.com/berachain/beacon-kit/consensus/cometbft/service/state"
-	errorsmod "github.com/berachain/beacon-kit/errors"
-	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	"github.com/berachain/beacon-kit/storage"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	cmtcfg "github.com/cometbft/cometbft/config"
+	cmtcrypto "github.com/cometbft/cometbft/crypto"
 	"github.com/cometbft/cometbft/node"
 	"github.com/cometbft/cometbft/p2p"
 	pvm "github.com/cometbft/cometbft/privval"
 	"github.com/cometbft/cometbft/proxy"
+	cmttypes "github.com/cometbft/cometbft/types"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 const (
 	initialAppVersion uint64 = 0
-	appName           string = "beacond"
+	AppName           string = "beacond"
 )
 
-type Service[
-	LoggerT log.AdvancedLogger[LoggerT],
-] struct {
-	node          *node.Node
-	cmtCfg        *cmtcfg.Config
+type Service struct {
+	node        *node.Node
+	nodeAddress cmtcrypto.Address
+
+	delayCfg delay.ConfigGetter
+
+	// cmtConsensusParams are part of the blockchain state and
+	// are agreed upon by all validators in the network.
+	cmtConsensusParams *cmttypes.ConsensusParams
+
+	// cmtCfg are node-specific settings that influence how
+	// the consensus engine operates on a particular node.
+	// Loaded from config file (config.toml), not part of state.
+	cmtCfg *cmtcfg.Config
+
 	telemetrySink TelemetrySink
 
-	logger       LoggerT
+	logger       *phuslu.Logger
 	sm           *statem.Manager
 	Blockchain   blockchain.BlockchainI
 	BlockBuilder validator.BlockBuilderI
 
-	// prepareProposalState is used for PrepareProposal, which is set based on
-	// the previous block's state. This state is never committed. In case of
-	// multiple consensus rounds, the state is always reset to the previous
-	// block's state.
-	prepareProposalState *state
-
-	// processProposalState is used for ProcessProposal, which is set based on
-	// the previous block's state. This state is never committed. In case of
-	// multiple consensus rounds, the state is always reset to the previous
-	// block's state.
-	processProposalState *state
-
-	// finalizeBlockState is used for FinalizeBlock, which is set based on the
-	// previous block's state. This state is committed. finalizeBlockState is
-	// set
-	// on InitChain and FinalizeBlock and set to nil on Commit.
-	finalizeBlockState *state
+	// cachedStates tracks in memory the post block states
+	// of blocks which were successfully verified. It allows
+	// finalizing without re-execution
+	cachedStates cache.States
 
 	interBlockCache storetypes.MultiStorePersistentCache
-	paramStore      *params.ConsensusParamsStore
 
 	// initialHeight is the initial height at which we start the node
 	initialHeight   int64
 	minRetainBlocks uint64
 
 	chainID string
+
+	// ctx is the context passed in for the service. CometBFT currently does
+	// not support context usage. It passes "context.TODO()" to apps that
+	// implement the ABCI++ interface, and does not provide a context that is
+	// a child context of the one the node originally provides to comet.
+	// Thus the app cannot tell when the context as been cancelled or not.
+	// TODO: We must use this as a workaround for now until CometBFT properly
+	// generates contexts that inherit from the parent context we provide.
+	ctx context.Context
+
+	// calculates block delay for the next block
+	//
+	// NOTE: may be nil until either InitChain or FinalizeBlock is called.
+	blockDelay *delay.BlockDelay
+
+	// syncingToHeight is a helper to track node sync state and support node-apis.
+	syncingToHeight int64
 }
 
-func NewService[
-	LoggerT log.AdvancedLogger[LoggerT],
-](
-	storeKey *storetypes.KVStoreKey,
-	logger LoggerT,
+func NewService(
+	logger *phuslu.Logger,
 	db dbm.DB,
 	blockchain blockchain.BlockchainI,
 	blockBuilder validator.BlockBuilderI,
+	cs chain.Spec,
 	cmtCfg *cmtcfg.Config,
-	cs chain.ChainSpec,
 	telemetrySink TelemetrySink,
-	options ...func(*Service[LoggerT]),
-) *Service[LoggerT] {
-	s := &Service[LoggerT]{
-		logger: logger,
-		sm: statem.NewManager(
-			db,
-			servercmtlog.WrapSDKLogger(logger),
-		),
-		Blockchain:    blockchain,
-		BlockBuilder:  blockBuilder,
-		cmtCfg:        cmtCfg,
-		telemetrySink: telemetrySink,
-		paramStore:    params.NewConsensusParamsStore(cs),
+	options ...func(*Service),
+) *Service {
+	if err := validateConfig(cmtCfg); err != nil {
+		panic(err)
+	}
+	cmtConsensusParams, err := extractConsensusParams(cmtCfg)
+	if err != nil {
+		panic(err)
 	}
 
-	s.MountStore(storeKey, storetypes.StoreTypeIAVL)
+	// some configs, while legit, causes issues if applied
+	// carelessly. We warn about them
+	log := servercmtlog.WrapSDKLogger(logger)
+	warnAboutConfigs(cmtCfg, log)
+
+	s := &Service{
+		logger:             logger,
+		sm:                 statem.NewManager(db, log),
+		Blockchain:         blockchain,
+		BlockBuilder:       blockBuilder,
+		delayCfg:           cs,
+		cmtConsensusParams: cmtConsensusParams,
+		cmtCfg:             cmtCfg,
+		telemetrySink:      telemetrySink,
+		cachedStates:       cache.New(),
+	}
+
+	s.MountStore(storage.StoreKey, storetypes.StoreTypeIAVL)
 
 	for _, option := range options {
 		option(s)
 	}
 
 	if s.interBlockCache != nil {
-		s.sm.CommitMultiStore().SetInterBlockCache(s.interBlockCache)
+		s.sm.GetCommitMultiStore().SetInterBlockCache(s.interBlockCache)
 	}
 
 	// Load latest height, once all stores have been set
-	if err := s.sm.LoadLatestVersion(); err != nil {
-		panic(err)
+	if err = s.sm.LoadLatestVersion(); err != nil {
+		panic(fmt.Errorf("failed loading latest version: %w", err))
+	}
+
+	lastBlockHeight := s.lastBlockHeight()
+	s.syncingToHeight = lastBlockHeight
+
+	// Make sure that SBT consensus parameters are duly set when the node restart.
+	// Note that we can't rely on genesis.json having these parameters set right
+	// because we introduced stable block time post (mainnet) genesis.
+	if lastBlockHeight >= s.delayCfg.SbtConsensusUpdateHeight() {
+		s.cmtConsensusParams.Feature.SBTEnableHeight = s.delayCfg.SbtConsensusEnableHeight()
+	}
+
+	// Load block delay.
+	//
+	// If not found, we will initialize it in FinalizeBlock once SBTEnableHeight
+	// is reached.
+	bz, err := s.sm.LoadBlockDelay()
+	if err != nil {
+		panic(fmt.Errorf("failed loading block delay: %w", err))
+	}
+	if bz != nil {
+		s.blockDelay, err = delay.FromBytes(bz)
+		if err != nil {
+			panic(fmt.Errorf("failed decoding block delay: %w", err))
+		}
 	}
 
 	return s
 }
 
 // TODO: Move nodeKey into being created within the function.
-func (s *Service[_]) Start(
+func (s *Service) Start(
 	ctx context.Context,
 ) error {
 	cfg := s.cmtCfg
@@ -155,6 +204,7 @@ func (s *Service[_]) Start(
 		return err
 	}
 
+	s.ResetAppCtx(ctx)
 	s.node, err = node.NewNode(
 		ctx,
 		cfg,
@@ -170,64 +220,98 @@ func (s *Service[_]) Start(
 		return err
 	}
 
-	return s.node.Start()
+	pubKey, errPk := s.node.PrivValidator().GetPubKey()
+	if errPk != nil {
+		return fmt.Errorf("failed retrieving pub key: %w", err)
+	}
+	s.nodeAddress = pubKey.Address()
+
+	started := make(chan struct{})
+
+	// we start the node in a goroutine since calling Start() can block if genesis
+	// time is in the future causing us not to handle signals gracefully.
+	go func() {
+		err = s.node.Start()
+		started <- struct{}{}
+	}()
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-started:
+	}
+
+	close(started)
+
+	return err
 }
 
-func (s *Service[_]) Stop() error {
+func (s *Service) Stop() error {
 	var errs []error
 
 	if s.node != nil && s.node.IsRunning() {
 		s.logger.Info("Stopping CometBFT Node")
-		//#nosec:G703 // its a bet.
-		_ = s.node.Stop()
+		err := s.node.Stop()
+		if err != nil {
+			errs = append(errs, fmt.Errorf("failed to stop CometBFT Node: %w", err))
+		}
+		s.logger.Info("Waiting for CometBFT Node to stop")
+		s.node.Wait()
 	}
 
 	s.logger.Info("Closing application.db")
 	if err := s.sm.Close(); err != nil {
-		errs = append(errs, err)
+		errs = append(errs, fmt.Errorf("failed to close application.id: %w", err))
 	}
 	return errors.Join(errs...)
 }
 
+// ResetAppCtx sets the app ctx for the service. This is used
+// primarily for the mock service.
+func (s *Service) ResetAppCtx(ctx context.Context) {
+	s.ctx = ctx
+}
+
 // Name returns the name of the cometbft.
-func (s *Service[_]) Name() string {
-	return appName
+func (s *Service) Name() string {
+	return AppName
 }
 
 // CommitMultiStore returns the CommitMultiStore of the cometbft.
-func (s *Service[_]) CommitMultiStore() storetypes.CommitMultiStore {
-	return s.sm.CommitMultiStore()
+// This needs to be exposed because it is used by commands like Rollback.
+func (s *Service) CommitMultiStore() storetypes.CommitMultiStore {
+	return s.sm.GetCommitMultiStore()
 }
 
 // AppVersion returns the application's protocol version.
-func (s *Service[_]) AppVersion(_ context.Context) (uint64, error) {
+func (s *Service) AppVersion(_ context.Context) (uint64, error) {
 	return s.appVersion()
 }
 
-func (s *Service[_]) appVersion() (uint64, error) {
-	cp := s.paramStore.Get()
+func (s *Service) appVersion() (uint64, error) {
+	cp := s.cmtConsensusParams.ToProto()
 	return cp.Version.App, nil
 }
 
 // MountStore mounts a store to the provided key in the Service multistore,
 // using the default DB.
-func (s *Service[_]) MountStore(
+func (s *Service) MountStore(
 	key storetypes.StoreKey,
 	typ storetypes.StoreType,
 ) {
-	s.sm.CommitMultiStore().MountStoreWithDB(key, typ, nil)
+	s.sm.GetCommitMultiStore().MountStoreWithDB(key, typ, nil)
 }
 
 // LastBlockHeight returns the last committed block height.
-func (s *Service[_]) LastBlockHeight() int64 {
-	return s.sm.CommitMultiStore().LastCommitID().Version
+func (s *Service) lastBlockHeight() int64 {
+	return s.sm.GetCommitMultiStore().LastCommitID().Version
 }
 
-func (s *Service[_]) setMinRetainBlocks(minRetainBlocks uint64) {
+func (s *Service) setMinRetainBlocks(minRetainBlocks uint64) {
 	s.minRetainBlocks = minRetainBlocks
 }
 
-func (s *Service[_]) setInterBlockCache(
+func (s *Service) setInterBlockCache(
 	cache storetypes.MultiStorePersistentCache,
 ) {
 	s.interBlockCache = cache
@@ -237,8 +321,8 @@ func (s *Service[_]) setInterBlockCache(
 // prepareProposal/processProposal/finalizeBlock State.
 // A state is explicitly returned to avoid false positives from
 // nilaway tool.
-func (s *Service[LoggerT]) resetState(ctx context.Context) *state {
-	ms := s.sm.CommitMultiStore().CacheMultiStore()
+func (s *Service) resetState(ctx context.Context) *cache.State {
+	ms := s.sm.GetCommitMultiStore().CacheMultiStore()
 
 	newCtx := sdk.NewContext(
 		ms,
@@ -246,10 +330,7 @@ func (s *Service[LoggerT]) resetState(ctx context.Context) *state {
 		servercmtlog.WrapSDKLogger(s.logger),
 	).WithContext(ctx)
 
-	return &state{
-		ms:  ms,
-		ctx: newCtx,
-	}
+	return cache.NewState(ms, newCtx)
 }
 
 // convertValidatorUpdate abstracts the conversion of a
@@ -268,15 +349,14 @@ func convertValidatorUpdate[ValidatorUpdateT any](
 	return any(abci.ValidatorUpdate{
 		PubKeyBytes: update.Pubkey[:],
 		PubKeyType:  crypto.CometBLSType,
-		//#nosec:G701 // this is safe.
-		Power: int64(update.EffectiveBalance.Unwrap()),
+		Power:       int64(update.EffectiveBalance.Unwrap()), // #nosec G115 -- this is safe.
 	}).(ValidatorUpdateT), nil
 }
 
 // getContextForProposal returns the correct Context for PrepareProposal and
 // ProcessProposal. We use finalizeBlockState on the first block to be able to
 // access any state changes made in InitChain.
-func (s *Service[LoggerT]) getContextForProposal(
+func (s *Service) getContextForProposal(
 	ctx sdk.Context,
 	height int64,
 ) sdk.Context {
@@ -284,67 +364,13 @@ func (s *Service[LoggerT]) getContextForProposal(
 		return ctx
 	}
 
-	if s.finalizeBlockState == nil {
+	_, finalState, err := s.cachedStates.GetFinal()
+	if err != nil {
 		// this is unexpected since cometBFT won't call PrepareProposal
 		// on initialHeight. Panic appeases nilaway.
-		panic(fmt.Errorf("getContextForProposal: %w", errNilFinalizeBlockState))
+		panic(fmt.Errorf("getContextForProposal: %w", err))
 	}
-	ctx, _ = s.finalizeBlockState.Context().CacheContext()
-	return ctx
-}
-
-// CreateQueryContext creates a new sdk.Context for a query, taking as args
-// the block height and whether the query needs a proof or not.
-func (s *Service[LoggerT]) CreateQueryContext(
-	height int64,
-	prove bool,
-) (sdk.Context, error) {
-	// use custom query multi-store if provided
-	lastBlockHeight := s.sm.CommitMultiStore().LatestVersion()
-	if lastBlockHeight == 0 {
-		return sdk.Context{}, errorsmod.Wrapf(
-			sdkerrors.ErrInvalidHeight,
-			"%s is not ready; please wait for first block",
-			appName,
-		)
-	}
-
-	if height > lastBlockHeight {
-		return sdk.Context{},
-			errorsmod.Wrap(
-				sdkerrors.ErrInvalidHeight,
-				"cannot query with height in the future; please provide a valid height",
-			)
-	}
-
-	// when a client did not provide a query height, manually inject the latest
-	if height == 0 {
-		height = lastBlockHeight
-	}
-
-	if height <= 1 && prove {
-		return sdk.Context{},
-			errorsmod.Wrap(
-				sdkerrors.ErrInvalidRequest,
-				"cannot query with proof when height <= 1; please provide a valid height",
-			)
-	}
-
-	cacheMS, err := s.sm.CommitMultiStore().CacheMultiStoreWithVersion(height)
-	if err != nil {
-		return sdk.Context{},
-			errorsmod.Wrapf(
-				sdkerrors.ErrNotFound,
-				"failed to load state at height %d; %s (latest height: %d)",
-				height,
-				err,
-				lastBlockHeight,
-			)
-	}
-
-	return sdk.NewContext(
-		cacheMS,
-		true,
-		servercmtlog.WrapSDKLogger(s.logger),
-	), nil
+	newCtx, _ := finalState.Context().CacheContext()
+	// Preserve the CosmosSDK context while using the correct base ctx.
+	return newCtx.WithContext(ctx.Context())
 }

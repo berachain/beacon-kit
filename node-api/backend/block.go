@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,44 +22,49 @@ package backend
 
 import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/errors"
 	types "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-// BlockHeader returns the block header at the given slot.
-func (b Backend[
-	_, _, _, _, _, _, _,
-]) BlockHeaderAtSlot(slot math.Slot) (*ctypes.BeaconBlockHeader, error) {
-	var blockHeader *ctypes.BeaconBlockHeader
-
-	st, _, err := b.stateFromSlot(slot)
+// BlockHeaderAtSlot returns the block header at the given slot.
+func (b *Backend) BlockHeaderAtSlot(slot math.Slot) (*ctypes.BeaconBlockHeader, error) {
+	st, _, err := b.StateAtSlot(slot)
 	if err != nil {
-		return blockHeader, err
+		return nil, errors.Wrapf(err, "failed to get state from slot %d", slot)
 	}
 
-	blockHeader, err = st.GetLatestBlockHeader()
-	return blockHeader, err
+	blockHeader, err := st.GetLatestBlockHeader()
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get latest block header")
+	}
+
+	// Return after updating the state root in the block header.
+	blockHeader.SetStateRoot(st.HashTreeRoot())
+	return blockHeader, nil
 }
 
 // GetBlockRoot returns the root of the block at the given stateID.
-func (b Backend[
-	_, _, _, _, _, _, _,
-]) BlockRootAtSlot(slot math.Slot) (common.Root, error) {
-	st, slot, err := b.stateFromSlot(slot)
+func (b *Backend) BlockRootAtSlot(slot math.Slot) (common.Root, error) {
+	st, _, err := b.StateAtSlot(slot)
 	if err != nil {
-		return common.Root{}, err
+		return common.Root{}, errors.Wrapf(err, "failed to get state from slot %d", slot)
 	}
 
-	// As calculated by the beacon chain. Ideally, this logic
-	// should be abstracted by the beacon chain.
-	return st.GetBlockRootAtIndex(slot.Unwrap() % b.cs.SlotsPerHistoricalRoot())
+	// Get the latest block header, which has the same hash tree root as the requested block.
+	blockHeader, err := st.GetLatestBlockHeader()
+	if err != nil {
+		return common.Root{}, errors.Wrapf(err, "failed to get latest block header")
+	}
+
+	// Return hash tree root of the block header after updating the state root in it.
+	blockHeader.SetStateRoot(st.HashTreeRoot())
+	return blockHeader.HashTreeRoot(), nil
 }
 
 // TODO: Implement this.
-func (b Backend[
-	_, _, _, _, _, _, _,
-]) BlockRewardsAtSlot(math.Slot) (*types.BlockRewardsData, error) {
+func (b *Backend) BlockRewardsAtSlot(_ math.Slot) (*types.BlockRewardsData, error) {
 	return &types.BlockRewardsData{
 		ProposerIndex:     1,
 		Total:             1,

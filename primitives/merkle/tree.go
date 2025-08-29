@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -31,10 +31,8 @@ import (
 	"github.com/berachain/beacon-kit/primitives/merkle/zero"
 )
 
-const (
-	// 2^63 would overflow.
-	MaxTreeDepth = 62
-)
+// 2^63 would overflow.
+const MaxTreeDepth = 62
 
 // Tree[RootT] implements a Merkle tree that has been optimized to
 // handle leaves that are 32 bytes in size.

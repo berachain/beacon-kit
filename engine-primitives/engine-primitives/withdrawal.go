@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -31,8 +31,8 @@ import (
 	fastrlp "github.com/umbracle/fastrlp"
 )
 
-// WithdrawalSize is the size of the Withdrawal in bytes.
-const WithdrawalSize = 44
+// withdrawalSize is the size of the Withdrawal in bytes.
+const withdrawalSize = 44
 
 var (
 	_ ssz.StaticObject                    = (*Withdrawal)(nil)
@@ -52,11 +52,7 @@ type Withdrawal struct {
 	Amount math.Gwei `json:"amount"`
 }
 
-/* -------------------------------------------------------------------------- */
-/*                                 Constructor                                */
-/* -------------------------------------------------------------------------- */
-
-func (w *Withdrawal) New(
+func NewWithdrawal(
 	index math.U64,
 	validator math.ValidatorIndex,
 	address common.ExecutionAddress,
@@ -76,7 +72,7 @@ func (w *Withdrawal) New(
 
 // SizeSSZ returns the size of the Withdrawal in bytes when SSZ encoded.
 func (*Withdrawal) SizeSSZ(*ssz.Sizer) uint32 {
-	return WithdrawalSize
+	return withdrawalSize
 }
 
 // MarshalSSZ marshals the Withdrawal into SSZ format.
@@ -98,10 +94,7 @@ func (w *Withdrawal) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, w)
 }
 
-// UnmarshalSSZ unmarshals the SSZ encoded data to a Withdrawal object.
-func (w *Withdrawal) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, w)
-}
+func (*Withdrawal) ValidateAfterDecodingSSZ() error { return nil }
 
 /* -------------------------------------------------------------------------- */
 /*                                   FastSSZ                                  */

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -25,7 +25,13 @@ import (
 
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/karalabe/ssz"
+)
+
+var (
+	_ ssz.StaticObject                    = (*SigningData)(nil)
+	_ constraints.SSZMarshallableRootable = (*SigningData)(nil)
 )
 
 // SigningData as defined in the Ethereum 2.0 specification.
@@ -70,10 +76,7 @@ func (s *SigningData) MarshalSSZ() ([]byte, error) {
 	return s.MarshalSSZTo(buf)
 }
 
-// UnmarshalSSZ unmarshals the SigningData object from SSZ format.
-func (s *SigningData) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, s)
-}
+func (*SigningData) ValidateAfterDecodingSSZ() error { return nil }
 
 // ComputeSigningRoot as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#compute_signing_root

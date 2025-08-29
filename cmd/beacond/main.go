@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -26,13 +26,10 @@ import (
 
 	clibuilder "github.com/berachain/beacon-kit/cli/builder"
 	clicomponents "github.com/berachain/beacon-kit/cli/components"
+	"github.com/berachain/beacon-kit/config/spec"
 	nodebuilder "github.com/berachain/beacon-kit/node-core/builder"
-	nodecomponents "github.com/berachain/beacon-kit/node-core/components"
-	nodetypes "github.com/berachain/beacon-kit/node-core/types"
 	"go.uber.org/automaxprocs/maxprocs"
 )
-
-type Node = nodetypes.Node
 
 // run runs the beacon node.
 func run() error {
@@ -44,7 +41,7 @@ func run() error {
 	// Build the node using the node-core.
 	nb := nodebuilder.New(
 		// Set the Runtime Components to the Default.
-		nodebuilder.WithComponents[Node, *Logger, *LoggerConfig](
+		nodebuilder.WithComponents(
 			DefaultComponents(),
 		),
 	)
@@ -52,26 +49,20 @@ func run() error {
 	// Build the root command using the builder
 	cb := clibuilder.New(
 		// Set the Name to the Default.
-		clibuilder.WithName[Node, *Logger](
+		clibuilder.WithName(
 			"beacond",
 		),
 		// Set the Description to the Default.
-		clibuilder.WithDescription[Node, *Logger](
-			"A basic beacon node, usable most standard networks.",
+		clibuilder.WithDescription(
+			"A beacon-kit node usable with most Ethereum execution clients",
 		),
 		// Set the Runtime Components to the Default.
-		clibuilder.WithComponents[Node, *Logger](
-			append(
-				clicomponents.DefaultClientComponents(),
-				// TODO: remove these, and eventually pull cfg and chainspec
-				// from built node
-				nodecomponents.ProvideChainSpec,
-			),
+		clibuilder.WithComponents(
+			clicomponents.DefaultClientComponents(),
 		),
 		// Set the NodeBuilderFunc to the NodeBuilder Build.
-		clibuilder.WithNodeBuilderFunc[
-			Node, *Logger,
-		](nb.Build),
+		clibuilder.WithNodeBuilderFunc(nb.Build),
+		clibuilder.WithChainSpecBuilderFunc(spec.Create),
 	)
 
 	cmd, err := cb.Build()

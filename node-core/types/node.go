@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -24,13 +24,35 @@ import (
 	"context"
 
 	"cosmossdk.io/store"
+	"github.com/berachain/beacon-kit/beacon/blockchain"
+	service "github.com/berachain/beacon-kit/node-core/services/registry"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Node defines the API for the node application.
 // It extends the Application interface from the Cosmos SDK.
 type Node interface {
-	Start(context.Context) error
+	CommitMultistoreAccessor
+	StorageBackendAccessor
 
-	// TODO: FIX, HACK TO MAKE CLI HAPPY FOR NOW.
+	Start(context.Context) error
+}
+
+// CommitMultistoreAccessor allows access to the commit multistore.
+// This is required by commands like rollback.
+type CommitMultistoreAccessor interface {
 	CommitMultiStore() store.CommitMultiStore
+}
+
+// StorageBackendAccessor allows access to the storage backend.
+// This is required by commands like db-check.
+type StorageBackendAccessor interface {
+	StorageBackend() blockchain.StorageBackend
+}
+
+// ConsensusService defines everything we utilise externally from CometBFT.
+type ConsensusService interface {
+	service.Basic
+	CreateQueryContext(height int64, prove bool) (sdk.Context, error)
+	GetSyncData() (latestHeight int64, syncToHeight int64)
 }

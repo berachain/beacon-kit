@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,9 +23,7 @@ package beacondb
 import ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 
 // SetFork sets the fork version for the given epoch.
-func (kv *KVStore) SetFork(
-	fork *ctypes.Fork,
-) error {
+func (kv *KVStore) SetFork(fork *ctypes.Fork) error {
 	return kv.fork.Set(kv.ctx, fork)
 }
 

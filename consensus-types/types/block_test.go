@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,179 +22,145 @@ package types_test
 
 import (
 	"testing"
+	"testing/quick"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/eip4844"
+	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
+	"github.com/berachain/beacon-kit/testing/utils"
 	"github.com/stretchr/testify/require"
 )
 
-// generateValidBeaconBlock generates a valid beacon block for the Deneb.
-func generateValidBeaconBlock() *types.BeaconBlock {
-	// Initialize your block here
-	return &types.BeaconBlock{
-		Slot:          10,
-		ProposerIndex: 5,
-		ParentRoot:    common.Root{1, 2, 3, 4, 5},
-		StateRoot:     common.Root{5, 4, 3, 2, 1},
-		Body: &types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp: 10,
-				ExtraData: []byte("dummy extra data for testing"),
-				Transactions: [][]byte{
-					[]byte("tx1"),
-					[]byte("tx2"),
-					[]byte("tx3"),
-				},
-				Withdrawals: engineprimitives.Withdrawals{
-					{Index: 0, Amount: 100},
-					{Index: 1, Amount: 200},
-				},
-				BaseFeePerGas: math.NewU256(0),
-			},
-			Eth1Data: &types.Eth1Data{},
-			Deposits: []*types.Deposit{
-				{
-					Index: 1,
-				},
-			},
-			BlobKzgCommitments: []eip4844.KZGCommitment{
-				{1, 2, 3},
-			},
-		},
-	}
-}
-
 func TestBeaconBlockForDeneb(t *testing.T) {
-	block := &types.BeaconBlock{
-		Slot:          10,
-		ProposerIndex: 5,
-		ParentRoot:    common.Root{1, 2, 3, 4, 5},
-	}
-	require.NotNil(t, block)
-}
-
-func TestBeaconBlockFromSSZ(t *testing.T) {
-	originalBlock := generateValidBeaconBlock()
-
-	sszBlock, err := originalBlock.MarshalSSZ()
-	require.NoError(t, err)
-	require.NotNil(t, sszBlock)
-
-	wrappedBlock := &types.BeaconBlock{}
-	wrappedBlock, err = wrappedBlock.NewFromSSZ(sszBlock, version.Deneb)
-	require.NoError(t, err)
-	require.NotNil(t, wrappedBlock)
-	require.Equal(t, originalBlock, wrappedBlock)
-}
-
-func TestBeaconBlockFromSSZForkVersionNotSupported(t *testing.T) {
-	wrappedBlock := &types.BeaconBlock{}
-	_, err := wrappedBlock.NewFromSSZ([]byte{}, 1)
-	require.ErrorIs(t, err, types.ErrForkVersionNotSupported)
-}
-
-func TestBeaconBlock(t *testing.T) {
-	block := generateValidBeaconBlock()
-
-	require.NotNil(t, block.Body)
-	require.Equal(t, math.U64(10), block.GetTimestamp())
-	require.Equal(t, version.Deneb, block.Version())
-	require.False(t, block.IsNil())
-
-	// Set a new state root and test the SetStateRoot and GetBody methods
-	newStateRoot := [32]byte{1, 1, 1, 1, 1}
-	block.SetStateRoot(newStateRoot)
-	require.Equal(t, newStateRoot, [32]byte(block.StateRoot))
-
-	// Test the GetHeader method
-	header := block.GetHeader()
-	require.NotNil(t, header)
-	require.Equal(t, block.Slot, header.Slot)
-	require.Equal(t, block.ProposerIndex, header.ProposerIndex)
-	require.Equal(t, block.ParentRoot, header.ParentBlockRoot)
-	require.Equal(t, block.StateRoot, header.StateRoot)
-	require.Equal(t, newStateRoot, [32]byte(block.GetStateRoot()))
-}
-
-func TestBeaconBlock_MarshalUnmarshalSSZ(t *testing.T) {
-	block := *generateValidBeaconBlock()
-
-	sszBlock, err := block.MarshalSSZ()
-	require.NoError(t, err)
-	require.NotNil(t, sszBlock)
-
-	var unmarshalledBlock types.BeaconBlock
-	err = unmarshalledBlock.UnmarshalSSZ(sszBlock)
-	require.NoError(t, err)
-
-	require.Equal(t, block, unmarshalledBlock)
-
-	var buf []byte
-	buf, err = block.MarshalSSZTo(buf)
-	require.NoError(t, err)
-
-	// The two byte slices should be equal
-	require.Equal(t, sszBlock, buf)
-}
-
-func TestBeaconBlock_HashTreeRoot(t *testing.T) {
-	block := generateValidBeaconBlock()
-	hashRoot := block.HashTreeRoot()
-	require.NotNil(t, hashRoot)
-}
-
-func TestBeaconBlockEmpty(t *testing.T) {
-	block := &types.BeaconBlock{}
-	emptyBlock := block.Empty()
-	require.NotNil(t, emptyBlock)
-	require.IsType(t, &types.BeaconBlock{}, emptyBlock)
-}
-
-func TestBeaconBlock_IsNil(t *testing.T) {
-	var block *types.BeaconBlock
-	require.True(t, block.IsNil())
-}
-
-func TestNewWithVersion(t *testing.T) {
-	slot := math.Slot(10)
-	proposerIndex := math.ValidatorIndex(5)
-	parentBlockRoot := common.Root{1, 2, 3, 4, 5}
-
-	block, err := (&types.BeaconBlock{}).NewWithVersion(
-		slot, proposerIndex, parentBlockRoot, version.Deneb,
+	t.Parallel()
+	deneb1 := version.Deneb1()
+	block, err := types.NewBeaconBlockWithVersion(
+		math.Slot(10),
+		math.ValidatorIndex(5),
+		common.Root{1, 2, 3, 4, 5}, // parent root
+		deneb1,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, block)
-
-	// Check the block's fields
-	require.NotNil(t, block)
-	require.Equal(t, slot, block.GetSlot())
-	require.Equal(t, proposerIndex, block.GetProposerIndex())
-	require.Equal(t, parentBlockRoot, block.GetParentBlockRoot())
-	require.Equal(t, version.Deneb, block.Version())
+	require.Equal(t, deneb1, block.GetForkVersion())
+	require.Equal(t, deneb1, block.GetBody().GetForkVersion())
+	require.Equal(t, deneb1, block.GetBody().GetExecutionPayload().GetForkVersion())
 }
 
-func TestNewWithVersionInvalidForkVersion(t *testing.T) {
+func TestBeaconBlock(t *testing.T) {
+	t.Parallel()
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		block := utils.GenerateValidBeaconBlock(t, v)
+
+		require.NotNil(t, block.Body)
+		require.Equal(t, math.U64(10), block.GetTimestamp())
+		require.Equal(t, v, block.GetForkVersion())
+		require.NotNil(t, block)
+
+		// Set a new state root and test the SetStateRoot and GetBody methods
+		newStateRoot := [32]byte{1, 1, 1, 1, 1}
+		block.SetStateRoot(newStateRoot)
+		require.Equal(t, newStateRoot, [32]byte(block.StateRoot))
+
+		// Test the GetHeader method
+		header := block.GetHeader()
+		require.NotNil(t, header)
+		require.Equal(t, block.Slot, header.Slot)
+		require.Equal(t, block.ProposerIndex, header.ProposerIndex)
+		require.Equal(t, block.ParentRoot, header.ParentBlockRoot)
+		require.Equal(t, block.StateRoot, header.StateRoot)
+		require.Equal(t, newStateRoot, [32]byte(block.GetStateRoot()))
+	})
+}
+
+func TestBeaconBlock_MarshalUnmarshalSSZ(t *testing.T) {
+	t.Parallel()
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		block := utils.GenerateValidBeaconBlock(t, v)
+
+		sszBlock, err := block.MarshalSSZ()
+		require.NoError(t, err)
+		require.NotNil(t, sszBlock)
+
+		unmarshalledBlock := types.NewEmptyBeaconBlockWithVersion(v)
+		err = ssz.Unmarshal(sszBlock, unmarshalledBlock)
+		require.NoError(t, err)
+		require.Equal(t, block, unmarshalledBlock)
+	})
+}
+
+func TestBeaconBlock_HashTreeRoot(t *testing.T) {
+	t.Parallel()
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		block := utils.GenerateValidBeaconBlock(t, v)
+		hashRoot := block.HashTreeRoot()
+		require.NotNil(t, hashRoot)
+	})
+}
+
+func TestBeaconBlock_IsNil(t *testing.T) {
+	t.Parallel()
+	var block *types.BeaconBlock
+	require.Nil(t, block)
+}
+
+func TestNewWithVersion(t *testing.T) {
+	t.Parallel()
 	slot := math.Slot(10)
 	proposerIndex := math.ValidatorIndex(5)
 	parentBlockRoot := common.Root{1, 2, 3, 4, 5}
 
-	_, err := (&types.BeaconBlock{}).NewWithVersion(
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		block, err := types.NewBeaconBlockWithVersion(
+			slot, proposerIndex, parentBlockRoot, v,
+		)
+		require.NoError(t, err)
+		require.NotNil(t, block)
+
+		// Check the block's fields
+		require.NotNil(t, block)
+		require.Equal(t, slot, block.GetSlot())
+		require.Equal(t, proposerIndex, block.GetProposerIndex())
+		require.Equal(t, parentBlockRoot, block.GetParentBlockRoot())
+		require.Equal(t, v, block.GetForkVersion())
+	})
+}
+
+func TestNewWithVersionInvalidForkVersion(t *testing.T) {
+	t.Parallel()
+	slot := math.Slot(10)
+	proposerIndex := math.ValidatorIndex(5)
+	parentBlockRoot := common.Root{1, 2, 3, 4, 5}
+
+	_, err := types.NewBeaconBlockWithVersion(
 		slot,
 		proposerIndex,
 		parentBlockRoot,
-		100,
+		common.Version{100, 0, 0, 0},
 	) // 100 is an invalid fork version
 	require.ErrorIs(t, err, types.ErrForkVersionNotSupported)
 }
 
-func TestBeaconBlock_GetTree(t *testing.T) {
-	block := generateValidBeaconBlock()
-	tree, err := block.GetTree()
-	require.NoError(t, err)
-	require.NotNil(t, tree)
+func TestPropertyBlockRootAndBlockHeaderRootEquivalence(t *testing.T) {
+	t.Parallel()
+	qc := &quick.Config{MaxCount: 100}
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		f := func(
+			slot math.Slot,
+			proposerIdx math.ValidatorIndex,
+			parentBlockRoot common.Root,
+		) bool {
+			blk, err := types.NewBeaconBlockWithVersion(
+				slot,
+				proposerIdx,
+				parentBlockRoot,
+				v,
+			)
+			require.NoError(t, err)
+			return blk.GetHeader().HashTreeRoot().Equals(blk.HashTreeRoot())
+		}
+		require.NoError(t, quick.Check(f, qc))
+	})
 }

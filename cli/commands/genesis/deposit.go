@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -25,7 +25,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	"github.com/berachain/beacon-kit/cli/context"
 	"github.com/berachain/beacon-kit/cli/utils/parser"
 	"github.com/berachain/beacon-kit/consensus-types/types"
@@ -36,7 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
+	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/spf13/afero"
@@ -46,100 +46,114 @@ import (
 // AddGenesisDepositCmd - returns the cobra command to
 // add a premined deposit to the genesis file.
 //
-
-func AddGenesisDepositCmd(cs chain.ChainSpec) *cobra.Command {
+//nolint:lll // reads better if long description is one line.
+func AddGenesisDepositCmd(chainSpecCreator servertypes.ChainSpecCreator) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add-premined-deposit",
 		Short: "adds a validator to the genesis file",
-		Long: `Adds a validator to the genesis file with the necessary
-		credentials. The arguments are expected in the order of the deposit
-		amount and withdrawal address.`,
-		Args: cobra.ExactArgs(2), //nolint:mnd // The number of arguments.
+		Long:  `Adds a validator to the genesis file with the necessary credentials. The arguments are expected in the order of the deposit amount and withdrawal address.`,
+		Args:  cobra.ExactArgs(2), //nolint:mnd // The number of arguments.
 		RunE: func(cmd *cobra.Command, args []string) error {
-			config := context.GetConfigFromCmd(cmd)
-
-			_, valPubKey, err := genutil.InitializeNodeValidatorFiles(
-				config, crypto.CometBLSType,
-			)
+			// Get the deposit amount.
+			depositAmount, err := parser.ConvertAmount(args[0])
 			if err != nil {
-				return errors.Wrap(
-					err,
-					"failed to initialize commands validator files",
-				)
+				return err
 			}
+			// Get the withdrawal address.
+			withdrawalAddress, err := common.NewExecutionAddressFromHex(args[1])
+			if err != nil {
+				return err
+			}
+			cometConfig := context.GetConfigFromCmd(cmd)
+			appOpts := context.GetViperFromCmd(cmd)
+			outputDocument, _ := cmd.Flags().GetString(flags.FlagOutputDocument)
 
 			// Get the BLS signer.
 			blsSigner, err := components.ProvideBlsSigner(
 				components.BlsSignerInput{
-					AppOpts: context.GetViperFromCmd(cmd),
+					AppOpts: appOpts,
 				},
 			)
 			if err != nil {
 				return err
 			}
-
-			// Get the deposit amount.
-			var depositAmount math.Gwei
-			depositAmount, err = parser.ConvertAmount(args[0])
+			chainSpec, err := chainSpecCreator(appOpts)
 			if err != nil {
 				return err
 			}
-
-			// TODO: configurable.
-			currentVersion := version.FromUint32[common.Version](
-				version.Deneb,
-			)
-
-			// Get the withdrawal address.
-			withdrawalAddress := common.NewExecutionAddressFromHex(args[1])
-
-			depositMsg, signature, err := types.CreateAndSignDepositMessage(
-				types.NewForkData(currentVersion, common.Root{}),
-				cs.DomainTypeDeposit(),
-				blsSigner,
-				types.NewCredentialsFromExecutionAddress(withdrawalAddress),
-				depositAmount,
-			)
-			if err != nil {
-				return err
-			}
-
-			// Verify the deposit message.
-			if err = depositMsg.VerifyCreateValidator(
-				types.NewForkData(currentVersion, common.Root{}),
-				signature,
-				cs.DomainTypeDeposit(),
-				signer.BLSSigner{}.VerifySignature,
-			); err != nil {
-				return err
-			}
-
-			deposit := types.Deposit{
-				Pubkey:      depositMsg.Pubkey,
-				Amount:      depositMsg.Amount,
-				Signature:   signature,
-				Credentials: depositMsg.Credentials,
-			}
-
-			//#nosec:G703 // Ignore errors on this line.
-			outputDocument, _ := cmd.Flags().GetString(flags.FlagOutputDocument)
-			if outputDocument == "" {
-				outputDocument, err = makeOutputFilepath(config.RootDir,
-					crypto.BLSPubkey(valPubKey.Bytes()).String())
-				if err != nil {
-					return errors.Wrap(err, "failed to create output file path")
-				}
-			}
-
-			if err = writeDepositToFile(outputDocument, &deposit); err != nil {
-				return errors.Wrap(err, "failed to write signed gen tx")
-			}
-
-			return nil
+			return AddGenesisDeposit(chainSpec, cometConfig, blsSigner, depositAmount, withdrawalAddress, outputDocument)
 		},
 	}
-
 	return cmd
+}
+
+// AddGenesisDeposit is the modularized version of AddGenesisDepositCmd that can be properly tested from within the runtime.
+func AddGenesisDeposit(
+	cs ChainSpec,
+	cometConfig *cmtcfg.Config,
+	blsSigner crypto.BLSSigner,
+	depositAmount math.Gwei,
+	withdrawalAddress common.ExecutionAddress,
+	outputDocument string,
+) error {
+	_, valPubKey, err := genutil.InitializeNodeValidatorFiles(
+		cometConfig, crypto.CometBLSType,
+	)
+	if err != nil {
+		return errors.Wrap(
+			err,
+			"failed to initialize commands validator files",
+		)
+	}
+
+	if valPubKey == nil {
+		// addresses nilaway
+		return errors.New("failed to initialize commands validator files")
+	}
+
+	genesisVersion := cs.GenesisForkVersion()
+
+	depositMsg, signature, err := types.CreateAndSignDepositMessage(
+		types.NewForkData(genesisVersion, common.Root{}),
+		cs.DomainTypeDeposit(),
+		blsSigner,
+		types.NewCredentialsFromExecutionAddress(withdrawalAddress),
+		depositAmount,
+	)
+	if err != nil {
+		return err
+	}
+
+	// Verify the deposit message.
+	if err = depositMsg.VerifyCreateValidator(
+		types.NewForkData(genesisVersion, common.Root{}),
+		signature,
+		cs.DomainTypeDeposit(),
+		signer.BLSSigner{}.VerifySignature,
+	); err != nil {
+		return err
+	}
+
+	deposit := types.Deposit{
+		Pubkey:      depositMsg.Pubkey,
+		Amount:      depositMsg.Amount,
+		Signature:   signature,
+		Credentials: depositMsg.Credentials,
+	}
+
+	if outputDocument == "" {
+		outputDocument, err = makeOutputFilepath(cometConfig.RootDir,
+			crypto.BLSPubkey(valPubKey.Bytes()).String())
+		if err != nil {
+			return errors.Wrap(err, "failed to create output file path")
+		}
+	}
+
+	if err = writeDepositToFile(outputDocument, &deposit); err != nil {
+		return errors.Wrap(err, "failed to write signed gen tx")
+	}
+
+	return nil
 }
 
 func makeOutputFilepath(rootDir, pubkey string) (string, error) {

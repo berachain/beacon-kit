@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -51,9 +51,9 @@ type BlockProposerResponse struct {
 	ProposerIndexProof []common.Root `json:"proposer_index_proof"`
 }
 
-// ExecutionNumberResponse is the response for the
-// `/proof/execution_number/{timestamp_id}` endpoint.
-type ExecutionNumberResponse struct {
+// ValidatorWithdrawalCredentialsResponse is the response for the
+// `/proof/validator_withdrawal_credentials/{timestamp_id}/{validator_index}` endpoint.
+type ValidatorWithdrawalCredentialsResponse struct {
 	// BeaconBlockHeader is the block header of which the hash tree root is the
 	// beacon block root to verify against.
 	BeaconBlockHeader *ctypes.BeaconBlockHeader `json:"beacon_block_header"`
@@ -61,17 +61,19 @@ type ExecutionNumberResponse struct {
 	// BeaconBlockRoot is the beacon block root for this slot.
 	BeaconBlockRoot common.Root `json:"beacon_block_root"`
 
-	// ExecutionNumber is the block number from the execution payload.
-	ExecutionNumber math.U64 `json:"execution_number"`
+	// WithdrawalCredentials are the credentials of the requested validator.
+	ValidatorWithdrawalCredentials ctypes.WithdrawalCredentials `json:"validator_withdrawal_credentials"`
 
-	// ExecutionNumberProof can be verified against the beacon block root using
-	// a Generalized Index of 5894 in the Deneb fork.
-	ExecutionNumberProof []common.Root `json:"execution_number_proof"`
+	// WithdrawalCredentialsProof can be verified against the beacon block root.
+	// Use a Generalized Index of `z + (8 * ValidatorIndex)`, where z is the
+	// Generalized Index of the 0 validator withdrawal credentials in the beacon
+	// block. In the Electra fork, z is 6350779162034177.
+	WithdrawalCredentialsProof []common.Root `json:"withdrawal_credentials_proof"`
 }
 
-// ExecutionFeeRecipientResponse is the response for the
-// `/proof/execution_fee_recipient/{timestamp_id}` endpoint.
-type ExecutionFeeRecipientResponse struct {
+// ValidatorBalanceResponse is the response for the
+// `/proof/validator_balance/{timestamp_id}/{validator_index}` endpoint.
+type ValidatorBalanceResponse struct {
 	// BeaconBlockHeader is the block header of which the hash tree root is the
 	// beacon block root to verify against.
 	BeaconBlockHeader *ctypes.BeaconBlockHeader `json:"beacon_block_header"`
@@ -79,12 +81,16 @@ type ExecutionFeeRecipientResponse struct {
 	// BeaconBlockRoot is the beacon block root for this slot.
 	BeaconBlockRoot common.Root `json:"beacon_block_root"`
 
-	// ExecutionFeeRecipient is the fee recipient from the execution payload.
-	//
+	// ValidatorBalance is the balance of the requested validator.
+	ValidatorBalance math.Gwei `json:"validator_balance"`
 
-	ExecutionFeeRecipient common.ExecutionAddress `json:"execution_fee_recipient"`
+	// BalanceLeaf is the leaf containing the validator's balance along with up
+	// to 3 other validators' balances (packed 4 per leaf).
+	BalanceLeaf common.Root `json:"balance_leaf"`
 
-	// ExecutionFeeRecipientProof can be verified against the beacon block root
-	// using a Generalized Index of 5894 in the Deneb fork.
-	ExecutionFeeRecipientProof []common.Root `json:"execution_fee_recipient_proof"`
+	// BalanceProof can be verified against the beacon block root.
+	// Use a Generalized Index of `z + (1 * (ValidatorIndex / 4))`, where z is the
+	// Generalized Index of the 0-3 validators' balances in the beacon block.
+	// In the Electra fork, z is 199011604627456.
+	BalanceProof []common.Root `json:"balance_proof"`
 }

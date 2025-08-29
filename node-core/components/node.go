@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,16 +21,23 @@
 package components
 
 import (
+	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/node"
 	service "github.com/berachain/beacon-kit/node-core/services/registry"
 	"github.com/berachain/beacon-kit/node-core/types"
 )
 
-// ProvideNode is a function that provides the module to the.
-func ProvideNode(
-	registry *service.Registry,
-	logger *phuslu.Logger,
-) types.Node {
-	return node.New[types.Node](registry, logger)
+type ProvideNodeInputs struct {
+	depinject.In
+
+	Config   *config.Config
+	Registry *service.Registry
+	Logger   *phuslu.Logger
+}
+
+// ProvideNode returns a new node with the given options.
+func ProvideNode(in ProvideNodeInputs) types.Node {
+	return node.New[types.Node](in.Config.ShutdownTimeout, in.Registry, in.Logger)
 }

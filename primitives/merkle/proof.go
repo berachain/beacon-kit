@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -37,8 +37,7 @@ func VerifyProof[RootT, ProofT ~[32]byte](
 	return IsValidMerkleBranch(
 		leaf,
 		proof,
-		//#nosec:G701 // we check the length of the proof above.
-		uint8(len(proof)),
+		uint8(len(proof)), // #nosec G115 -- we check the length of the proof above.
 		merkleIndex,
 		root,
 	)

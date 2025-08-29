@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -42,9 +42,8 @@ type Withdrawals []*Withdrawal
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the SSZ encoded size in bytes for the Withdrawals.
-func (w Withdrawals) SizeSSZ(*ssz.Sizer) uint32 {
-	//#nosec:G701 // not an issue in practice.
-	return uint32(len(w)) * WithdrawalSize
+func (w Withdrawals) SizeSSZ(siz *ssz.Sizer) uint32 {
+	return ssz.SizeSliceOfStaticObjects(siz, w)
 }
 
 // DefineSSZ defines the SSZ encoding for the Withdrawals object.

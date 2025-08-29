@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -24,10 +24,6 @@ import (
 	"runtime"
 	"unsafe"
 
-	"github.com/berachain/beacon-kit/errors"
-	"github.com/berachain/beacon-kit/primitives/bytes/buffer"
-	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/merkle/zero"
 	"github.com/prysmaticlabs/gohashtree"
 	"golang.org/x/sync/errgroup"
 )
@@ -43,96 +39,6 @@ const (
 	// two is a constant to make the linter happy.
 	two = 2
 )
-
-// RootHashFn is a function that hashes the input leaves into the output.
-type RootHashFn[RootT ~[32]byte] func(output, input []RootT) error
-
-// RootHasher is a struct that hashes the input leaves into the output.
-type RootHasher[RootT ~[32]byte] struct {
-	// Hasher is the underlying hasher for combi and mixins.
-	Hasher[RootT]
-	// rootHashFn is the underlying root hasher for the tree.
-	rootHashFn RootHashFn[RootT]
-	// bytesBuffer is a buffer to store the output of the hashing process.
-	bytesBuffer *buffer.ReusableBuffer[RootT]
-}
-
-// NewRootHasher constructs a new RootHasher.
-func NewRootHasher[RootT ~[32]byte](
-	hasher Hasher[RootT],
-	rootHashFn RootHashFn[RootT],
-) *RootHasher[RootT] {
-	return &RootHasher[RootT]{
-		Hasher:      hasher,
-		rootHashFn:  rootHashFn,
-		bytesBuffer: buffer.NewReusableBuffer[RootT](),
-	}
-}
-
-// NewRootWithMaxLeaves constructs a Merkle tree root from a set of.
-func (rh *RootHasher[RootT]) NewRootWithMaxLeaves(
-	leaves []RootT,
-	limit math.U64,
-) (RootT, error) {
-	count := math.U64(len(leaves))
-	if count > limit {
-		return zero.Hashes[0], errors.New("number of leaves exceeds limit")
-	}
-	if limit == 0 {
-		return zero.Hashes[0], nil
-	}
-	if limit == 1 && count == 1 {
-		return leaves[0], nil
-	}
-
-	return rh.NewRootWithDepth(
-		leaves,
-		count.NextPowerOfTwo().ILog2Ceil(),
-		limit.NextPowerOfTwo().ILog2Ceil(),
-	)
-}
-
-// NewRootWithDepth constructs a Merkle tree root from a set of leaves.
-func (rh *RootHasher[RootT]) NewRootWithDepth(
-	leaves []RootT,
-	depth uint8,
-	limitDepth uint8,
-) (RootT, error) {
-	// Short-circuit to getting memory from the buffer.
-	if len(leaves) == 0 {
-		return zero.Hashes[limitDepth], nil
-	}
-
-	var err error
-	for i := range depth {
-		layerLen := len(leaves)
-		if layerLen%two == 1 {
-			leaves = append(leaves, zero.Hashes[i])
-		}
-
-		outputLen := (layerLen + 1) / two
-		output := rh.bytesBuffer.Get(outputLen)
-		if err = rh.rootHashFn(output, leaves); err != nil {
-			return zero.Hashes[limitDepth], err
-		}
-
-		leaves = leaves[:outputLen]
-		copy(leaves, output)
-	}
-
-	// If something went wrong, return the zero hash of limitDepth.
-	if len(leaves) != 1 {
-		return zero.Hashes[limitDepth], nil
-	}
-
-	// Handle the case where the tree is not full.
-	h := leaves[0]
-	for j := depth; j < limitDepth; j++ {
-		h = rh.Combi(h, zero.Hashes[j])
-	}
-
-	return h, nil
-}
 
 // BuildParentTreeRoots calls BuildParentTreeRootsWithNRoutines to
 // parallelize the hashing process.

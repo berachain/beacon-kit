@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,44 +22,31 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/execution/engine"
-	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/state-transition/core"
+	"github.com/berachain/beacon-kit/storage/deposit"
 )
 
 // StateProcessorInput is the input for the state processor for the depinject
 // framework.
-type StateProcessorInput[
-	LoggerT log.AdvancedLogger[LoggerT],
-] struct {
+type StateProcessorInput struct {
 	depinject.In
-	Logger          LoggerT
-	ChainSpec       chain.ChainSpec
+	Logger          *phuslu.Logger
+	ChainSpec       chain.Spec
 	ExecutionEngine *engine.Engine
-	DepositStore    DepositStore
+	DepositStore    deposit.StoreManager
 	Signer          crypto.BLSSigner
 	TelemetrySink   *metrics.TelemetrySink
 }
 
 // ProvideStateProcessor provides the state processor to the depinject
 // framework.
-func ProvideStateProcessor[
-	LoggerT log.AdvancedLogger[LoggerT],
-	DepositStoreT DepositStore,
-	KVStoreT BeaconStore[KVStoreT],
-](
-	in StateProcessorInput[LoggerT],
-) *core.StateProcessor[
-	*Context,
-	KVStoreT,
-] {
-	return core.NewStateProcessor[
-		*Context,
-		KVStoreT,
-	](
+func ProvideStateProcessor(in StateProcessorInput) *core.StateProcessor {
+	return core.NewStateProcessor(
 		in.Logger.With("service", "state-processor"),
 		in.ChainSpec,
 		in.ExecutionEngine,

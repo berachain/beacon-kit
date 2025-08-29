@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -32,76 +32,89 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestDefaultGenesisDeneb(t *testing.T) {
-	g := types.DefaultGenesisDeneb()
-	if g.ForkVersion != version.FromUint32[common.Version](version.Deneb) {
-		t.Errorf(
-			"Expected fork version %v, but got %v",
-			version.FromUint32[common.Version](
-				version.Deneb,
-			),
-			g.ForkVersion,
-		)
-	}
+func TestDefaultGenesis(t *testing.T) {
+	t.Parallel()
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		g := types.DefaultGenesis(v)
+		if !version.Equals(g.ForkVersion, v) {
+			t.Errorf(
+				"Expected fork version %v, but got %v",
+				v,
+				g.ForkVersion,
+			)
+		}
 
-	if len(g.Deposits) != 0 {
-		t.Errorf("Expected no deposits, but got %v", len(g.Deposits))
-	}
-	// add assertions for ExecutionPayloadHeader
-	require.NotNil(t, g.ExecutionPayloadHeader,
-		"Expected ExecutionPayloadHeader to be non-nil")
-	require.Equal(t, common.ExecutionHash{},
-		g.ExecutionPayloadHeader.GetParentHash(),
-		"Unexpected ParentHash")
-	require.Equal(t, common.ExecutionAddress{},
-		g.ExecutionPayloadHeader.GetFeeRecipient(),
-		"Unexpected FeeRecipient")
-	require.Equal(t, math.U64(30000000),
-		g.ExecutionPayloadHeader.GetGasLimit(),
-		"Unexpected GasLimit")
-	require.Equal(t, math.U64(0),
-		g.ExecutionPayloadHeader.GetGasUsed(),
-		"Unexpected GasUsed")
-	require.Equal(t, math.U64(0),
-		g.ExecutionPayloadHeader.GetTimestamp(),
-		"Unexpected Timestamp")
+		if len(g.Deposits) != 0 {
+			t.Errorf("Expected no deposits, but got %v", len(g.Deposits))
+		}
+		// add assertions for ExecutionPayloadHeader
+		require.NotNil(t, g.ExecutionPayloadHeader,
+			"Expected ExecutionPayloadHeader to be non-nil")
+		require.Equal(t, common.ExecutionHash{},
+			g.ExecutionPayloadHeader.GetParentHash(),
+			"Unexpected ParentHash")
+		require.Equal(t, common.ExecutionAddress{},
+			g.ExecutionPayloadHeader.GetFeeRecipient(),
+			"Unexpected FeeRecipient")
+		require.Equal(t, math.U64(30000000),
+			g.ExecutionPayloadHeader.GetGasLimit(),
+			"Unexpected GasLimit")
+		require.Equal(t, math.U64(0),
+			g.ExecutionPayloadHeader.GetGasUsed(),
+			"Unexpected GasUsed")
+		require.Equal(t, math.U64(0),
+			g.ExecutionPayloadHeader.GetTimestamp(),
+			"Unexpected Timestamp")
+	})
 }
 
-func TestDefaultGenesisExecutionPayloadHeaderDeneb(t *testing.T) {
-	header, err := types.DefaultGenesisExecutionPayloadHeaderDeneb()
-	require.NoError(t, err)
-	require.NotNil(t, header)
+func TestDefaultGenesisExecutionPayloadHeader(t *testing.T) {
+	t.Parallel()
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		header, err := types.DefaultGenesisExecutionPayloadHeader(v)
+		require.NoError(t, err)
+		require.NotNil(t, header)
+	})
 }
 
 func TestGenesisGetForkVersion(t *testing.T) {
-	g := types.DefaultGenesisDeneb()
-	forkVersion := g.GetForkVersion()
-	require.Equal(
-		t,
-		version.FromUint32[common.Version](version.Deneb),
-		forkVersion,
-	)
+	t.Parallel()
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		g := types.DefaultGenesis(v)
+		forkVersion := g.GetForkVersion()
+		require.Equal(t, v, forkVersion)
+	})
 }
 
 func TestGenesisGetDeposits(t *testing.T) {
-	g := types.DefaultGenesisDeneb()
-	deposits := g.GetDeposits()
-	require.Empty(t, deposits)
+	t.Parallel()
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		g := types.DefaultGenesis(v)
+		deposits := g.GetDeposits()
+		require.Empty(t, deposits)
+	})
 }
 
 func TestGenesisGetExecutionPayloadHeader(t *testing.T) {
-	g := types.DefaultGenesisDeneb()
-	header := g.GetExecutionPayloadHeader()
-	require.NotNil(t, header)
+	t.Parallel()
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		g := types.DefaultGenesis(v)
+		header := g.GetExecutionPayloadHeader()
+		require.NotNil(t, header)
+	})
 }
 
-func TestDefaultGenesisDenebPanics(t *testing.T) {
-	require.NotPanics(t, func() {
-		types.DefaultGenesisDeneb()
+func TestDefaultGenesisPanics(t *testing.T) {
+	t.Parallel()
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		require.NotPanics(t, func() {
+			types.DefaultGenesis(v)
+		})
 	})
 }
 
 func TestGenesisUnmarshalJSON(t *testing.T) {
+	t.Parallel()
 	t.Helper()
 	testCases := []struct {
 		name                string
@@ -207,17 +220,20 @@ func TestGenesisUnmarshalJSON(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			g := types.DefaultGenesisDeneb()
-			err := g.UnmarshalJSON([]byte(tc.jsonInput))
-			if tc.expectedError {
-				require.Error(t, err, "Expected error but got none")
-			} else {
-				require.NoError(t, err, "Unexpected error")
-				require.Equal(t, tc.expectedFork, g.ForkVersion, "Unexpected ForkVersion")
-				require.Len(t, g.Deposits, tc.expectedDepositsLen, "Unexpected number of deposits")
-				require.NotNil(t, g.ExecutionPayloadHeader, "Expected ExecutionPayloadHeader to be non-nil")
-			}
+		runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+			t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
+				g := types.DefaultGenesis(v)
+				err := g.UnmarshalJSON([]byte(tc.jsonInput))
+				if tc.expectedError {
+					require.Error(t, err, "Expected error but got none")
+				} else {
+					require.NoError(t, err, "Unexpected error")
+					require.Equal(t, tc.expectedFork, g.ForkVersion, "Unexpected ForkVersion")
+					require.Len(t, g.Deposits, tc.expectedDepositsLen, "Unexpected number of deposits")
+					require.NotNil(t, g.ExecutionPayloadHeader, "Expected ExecutionPayloadHeader to be non-nil")
+				}
+			})
 		})
 	}
 }

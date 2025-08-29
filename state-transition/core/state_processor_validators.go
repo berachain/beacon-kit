@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -25,8 +25,6 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
-	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -35,56 +33,53 @@ import (
 	"github.com/sourcegraph/conc/iter"
 )
 
-func (sp *StateProcessor[
-	_, _,
-]) processRegistryUpdates(
-	st *statedb.StateDB,
-) error {
-	slot, err := st.GetSlot()
+func (sp *StateProcessor) processRegistryUpdates(st *statedb.StateDB) error {
+	currEpoch, err := st.GetEpoch()
 	if err != nil {
 		return fmt.Errorf("registry update, failed loading slot: %w", err)
 	}
-
-	switch {
-	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
-		// Bartio does not properly handle validators registry
-		return nil
-	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-		slot < math.U64(spec.BoonetFork3Height):
-		// Boonet inherits Bartio processing till fork 3
-		return nil
-	default:
-		// processing below
-	}
+	activationEpoch := currEpoch + 1
+	minActivationBalance := sp.cs.MinActivationBalance()
 
 	vals, err := st.GetValidators()
 	if err != nil {
 		return fmt.Errorf("registry update, failed listing validators: %w", err)
 	}
 
-	currEpoch := sp.cs.SlotToEpoch(slot)
-	nextEpoch := currEpoch + 1
-
-	minEffectiveBalance := math.Gwei(
-		sp.cs.EjectionBalance() + sp.cs.EffectiveBalanceIncrement(),
-	)
-
 	// We do not currently have a cap on validator churn,
 	// so we can process validators activations in a single loop
 	var idx math.ValidatorIndex
 	for si, val := range vals {
 		valModified := false
-		if val.IsEligibleForActivationQueue(minEffectiveBalance) {
-			val.SetActivationEligibilityEpoch(nextEpoch)
+		if val.IsEligibleForActivationQueue(minActivationBalance) {
+			val.SetActivationEligibilityEpoch(activationEpoch)
 			valModified = true
 		}
-		if val.IsEligibleForActivation(currEpoch) {
-			val.SetActivationEpoch(nextEpoch)
-			valModified = true
-		}
+
 		// Note: without slashing and voluntary withdrawals, there is no way
-		// for an activa validator to have its balance less or equal to
-		// EjectionBalance
+		// for an active validator to have its balance less or equal to EjectionBalance.
+		// Even Partial Withdrawals through EIP7002 can only reduce a validator's balance to `MinActivationBalance`,
+		// which is not enough to trigger a validator exit.
+		// A Full Withdrawal through EIP7002 would initiate a validator exit directly and does not rely on `processRegistryUpdates`.
+		// As such, we do not include the logic, but rather log an error if it is observed:
+		/*
+			elif is_active_validator(validator, current_epoch) and validator.effective_balance <= config.EJECTION_BALANCE:
+							initiate_validator_exit(state, ValidatorIndex(index))  # [Modified in Electra:EIP7251]
+		*/
+		if val.IsActive(currEpoch) &&
+			val.GetEffectiveBalance() <= minActivationBalance-sp.cs.EffectiveBalanceIncrement() {
+			sp.logger.Error(
+				"registry update, validator is active but effective balance is too low",
+				"validator_pub_key", val.Pubkey.String(),
+				"effective_balance", val.GetEffectiveBalance().Base10(),
+				"epoch", currEpoch.Base10(),
+			)
+		}
+
+		if val.IsEligibleForActivation(currEpoch) {
+			val.SetActivationEpoch(activationEpoch)
+			valModified = true
+		}
 
 		if valModified {
 			idx, err = st.ValidatorIndexByPubkey(val.GetPubkey())
@@ -112,23 +107,18 @@ func (sp *StateProcessor[
 	return nil
 }
 
-func (sp *StateProcessor[
-	_, _,
-]) processValidatorSetCap(
-	st *statedb.StateDB,
-) error {
+func (sp *StateProcessor) processValidatorSetCap(st *statedb.StateDB) error {
 	// Enforce the validator set cap by:
 	// 1- retrieving validators active next epoch
 	// 2- sorting them by stake
 	// 3- dropping enough validators to fulfill the cap
 
-	slot, err := st.GetSlot()
+	currentEpoch, err := st.GetEpoch()
 	if err != nil {
 		return err
 	}
-	nextEpoch := sp.cs.SlotToEpoch(slot) + 1
 
-	nextEpochVals, err := getActiveVals(sp.cs, st, nextEpoch)
+	nextEpochVals, err := getActiveVals(st, currentEpoch+1)
 	if err != nil {
 		return fmt.Errorf(
 			"registry update, failed retrieving next epoch vals: %w",
@@ -136,7 +126,8 @@ func (sp *StateProcessor[
 		)
 	}
 
-	if uint64(len(nextEpochVals)) <= sp.cs.ValidatorSetCap() {
+	validatorSetCap := sp.cs.ValidatorSetCap()
+	if uint64(len(nextEpochVals)) <= validatorSetCap {
 		// nothing to eject
 		return nil
 	}
@@ -161,13 +152,11 @@ func (sp *StateProcessor[
 		}
 	})
 
-	// We do not currently have a cap on validators churn, so we stop
-	// validators next epoch and we withdraw them the epoch after
+	// We do not currently have a cap on validators churn, so we exit
+	// validators in the next epoch, and we withdraw them after a delay depending on the fork.
 	var idx math.ValidatorIndex
-	for li := range uint64(len(nextEpochVals)) - sp.cs.ValidatorSetCap() {
+	for li := range uint64(len(nextEpochVals)) - validatorSetCap {
 		valToEject := nextEpochVals[li]
-		valToEject.SetExitEpoch(nextEpoch)
-		valToEject.SetWithdrawableEpoch(nextEpoch + 1)
 		idx, err = st.ValidatorIndexByPubkey(valToEject.GetPubkey())
 		if err != nil {
 			return fmt.Errorf(
@@ -175,11 +164,11 @@ func (sp *StateProcessor[
 				err,
 			)
 		}
-		if err = st.UpdateValidatorAtIndex(idx, valToEject); err != nil {
+		if exitErr := sp.InitiateValidatorExit(st, idx); exitErr != nil {
 			return fmt.Errorf(
 				"validator cap, failed ejecting validator idx %d: %w",
 				li,
-				err,
+				exitErr,
 			)
 		}
 	}
@@ -242,44 +231,16 @@ func validatorSetsDiffs(
 
 // nextEpochValidatorSet returns the current estimation of what next epoch
 // validator set would be.
-func getActiveVals(
-	cs chain.ChainSpec,
-	st *statedb.StateDB,
-	epoch math.Epoch,
-) ([]*ctypes.Validator, error) {
+func getActiveVals(st *statedb.StateDB, epoch math.Epoch) ([]*ctypes.Validator, error) {
 	vals, err := st.GetValidators()
 	if err != nil {
 		return nil, err
 	}
 
-	slot, err := st.GetSlot()
-	if err != nil {
-		return nil, err
-	}
-
 	activeVals := make([]*ctypes.Validator, 0, len(vals))
-	switch {
-	case cs.DepositEth1ChainID() == spec.BartioChainID:
-		// Bartio does not properly handle validators epochs, so
-		// we have an ad-hoc definition of active validator there
-		for _, val := range vals {
-			if val.GetEffectiveBalance() > math.U64(cs.EjectionBalance()) {
-				activeVals = append(activeVals, val)
-			}
-		}
-	case cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-		slot < math.U64(spec.BoonetFork3Height):
-		// Boonet inherits Bartio processing till fork 3
-		for _, val := range vals {
-			if val.GetEffectiveBalance() > math.U64(cs.EjectionBalance()) {
-				activeVals = append(activeVals, val)
-			}
-		}
-	default:
-		for _, val := range vals {
-			if val.IsActive(epoch) {
-				activeVals = append(activeVals, val)
-			}
+	for _, val := range vals {
+		if val.IsActive(epoch) {
+			activeVals = append(activeVals, val)
 		}
 	}
 	return activeVals, nil

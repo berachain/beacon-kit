@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,22 +21,21 @@
 package utils
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/types"
-	"github.com/berachain/beacon-kit/node-api/server/context"
 )
 
 // BindAndValidate binds the request to the context and validates it.
-func BindAndValidate[RequestT any, ContextT context.Context](
-	c ContextT,
-	logger log.Logger,
-) (RequestT, error) {
+func BindAndValidate[RequestT any](c handlers.Context, logger log.Logger) (RequestT, error) {
 	var req RequestT
 	if err := c.Bind(&req); err != nil {
-		return req, types.ErrInvalidRequest
+		return req, fmt.Errorf("%w: failed to bind request: %s", types.ErrInvalidRequest, err.Error())
 	}
 	if err := c.Validate(&req); err != nil {
-		return req, types.ErrInvalidRequest
+		return req, fmt.Errorf("%w: failed to validate request: %s", types.ErrInvalidRequest, err.Error())
 	}
 	logger.Info("Request validation successful", "params", req)
 	return req, nil

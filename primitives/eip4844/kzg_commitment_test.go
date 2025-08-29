@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -31,6 +31,8 @@ import (
 )
 
 func TestKzgCommitmentToVersionedHash(t *testing.T) {
+	t.Parallel()
+
 	commitment := newTestCommitment("test commitment")
 	expectedPrefix := constants.BlobCommitmentVersion
 
@@ -41,6 +43,7 @@ func TestKzgCommitmentToVersionedHash(t *testing.T) {
 }
 
 func TestKzgCommitmentsToVersionedHashHashes(t *testing.T) {
+	t.Parallel()
 	commitments := []eip4844.KZGCommitment{
 		newTestCommitment("commitment 1"),
 		newTestCommitment("commitment 2"),
@@ -57,6 +60,7 @@ func TestKzgCommitmentsToVersionedHashHashes(t *testing.T) {
 }
 
 func TestKZGCommitmentToHashChunks(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		input    eip4844.KZGCommitment
@@ -72,6 +76,7 @@ func TestKZGCommitmentToHashChunks(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			chunks := tt.input.ToHashChunks()
 			require.Len(t, chunks, tt.expected,
 				"Incorrect number of chunks for test: "+tt.name)
@@ -80,6 +85,7 @@ func TestKZGCommitmentToHashChunks(t *testing.T) {
 }
 
 func TestKZGCommitmentHashTreeRoot(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		input    eip4844.KZGCommitment
@@ -97,6 +103,7 @@ func TestKZGCommitmentHashTreeRoot(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			hashTreeRoot := tt.input.HashTreeRoot()
 			require.Equal(
 				t,
@@ -110,6 +117,7 @@ func TestKZGCommitmentHashTreeRoot(t *testing.T) {
 }
 
 func TestKZGCommitmentUnmarshalJSON(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name        string
 		input       string
@@ -147,6 +155,7 @@ func TestKZGCommitmentUnmarshalJSON(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var commitment eip4844.KZGCommitment
 			err := commitment.UnmarshalJSON([]byte(tt.input))
 			if tt.shouldError {
@@ -161,6 +170,7 @@ func TestKZGCommitmentUnmarshalJSON(t *testing.T) {
 }
 
 func TestKZGCommitment_MarshalText(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name     string
 		input    eip4844.KZGCommitment
@@ -192,6 +202,7 @@ func TestKZGCommitment_MarshalText(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			output, err := tc.input.MarshalText()
 			require.NoError(t, err)
 			require.Equal(t, tc.expected, hex.EncodeToString(output),
@@ -201,6 +212,7 @@ func TestKZGCommitment_MarshalText(t *testing.T) {
 }
 
 func TestKZGCommitments_Leafify(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name  string
 		input []eip4844.KZGCommitment
@@ -226,6 +238,7 @@ func TestKZGCommitments_Leafify(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			// Dynamically compute expected values based on input
 			expected := make([]common.Root, len(tt.input))
 			for i, commitment := range tt.input {

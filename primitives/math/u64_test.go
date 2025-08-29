@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -26,10 +26,12 @@ import (
 
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/ethereum/go-ethereum/params"
 	"github.com/stretchr/testify/require"
 )
 
 func TestU64_MarshalText(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		input    uint64
@@ -42,6 +44,7 @@ func TestU64_MarshalText(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			u := math.U64(tt.input)
 			result, err := u.MarshalText()
 			require.NoError(t, err)
@@ -51,6 +54,7 @@ func TestU64_MarshalText(t *testing.T) {
 }
 
 func TestU64_UnmarshalJSON(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		json     string
@@ -68,6 +72,7 @@ func TestU64_UnmarshalJSON(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var u math.U64
 			err := u.UnmarshalJSON([]byte(tt.json))
 			if tt.err != nil {
@@ -82,6 +87,7 @@ func TestU64_UnmarshalJSON(t *testing.T) {
 }
 
 func TestU64_UnmarshalText(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		input    string
@@ -98,6 +104,7 @@ func TestU64_UnmarshalText(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var u math.U64
 			err := u.UnmarshalText([]byte(tt.input))
 			if tt.err != nil {
@@ -112,6 +119,7 @@ func TestU64_UnmarshalText(t *testing.T) {
 }
 
 func TestU64_NextPowerOfTwo(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		value    math.U64
@@ -156,6 +164,7 @@ func TestU64_NextPowerOfTwo(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := tt.value.NextPowerOfTwo()
 			require.Equal(t, tt.expected, result)
 			require.Equal(
@@ -168,6 +177,7 @@ func TestU64_NextPowerOfTwo(t *testing.T) {
 }
 
 func TestU64_NextPowerOfTwoPanic(t *testing.T) {
+	t.Parallel()
 	u := ^math.U64(0)
 	require.Panics(t, func() {
 		_ = u.NextPowerOfTwo()
@@ -175,6 +185,7 @@ func TestU64_NextPowerOfTwoPanic(t *testing.T) {
 }
 
 func TestU64_ILog2Ceil(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		value    math.U64
@@ -209,6 +220,7 @@ func TestU64_ILog2Ceil(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := tt.value.ILog2Ceil()
 			require.Equal(t, tt.expected, result)
 		})
@@ -216,6 +228,7 @@ func TestU64_ILog2Ceil(t *testing.T) {
 }
 
 func TestU64_ILog2Floor(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		value    math.U64
@@ -250,6 +263,7 @@ func TestU64_ILog2Floor(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := tt.value.ILog2Floor()
 			require.Equal(t, tt.expected, result)
 		})
@@ -257,6 +271,7 @@ func TestU64_ILog2Floor(t *testing.T) {
 }
 
 func TestU64_PrevPowerOfTwo(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		value    math.U64
@@ -316,6 +331,7 @@ func TestU64_PrevPowerOfTwo(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := tt.value.PrevPowerOfTwo()
 			require.Equal(t, tt.expected, result)
 			require.Equal(
@@ -327,7 +343,49 @@ func TestU64_PrevPowerOfTwo(t *testing.T) {
 	}
 }
 
+func TestU64_HashTreeRoot(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		value       math.U64
+		expectedHex string
+	}{
+		{
+			name:        "zero",
+			value:       math.U64(0),
+			expectedHex: "0x0000000000000000000000000000000000000000000000000000000000000000",
+		},
+		{
+			// https://eth2book.info/capella/part2/building_blocks/merkleization/#the-data-root
+			name:        "nine",
+			value:       math.U64(9),
+			expectedHex: "0x0900000000000000000000000000000000000000000000000000000000000000",
+		},
+		{
+			name:        "max uint64",
+			value:       math.U64(1<<64 - 1),
+			expectedHex: "0xffffffffffffffff000000000000000000000000000000000000000000000000",
+		},
+		{
+			// https://eth2book.info/capella/part2/building_blocks/merkleization/#the-data-root
+			name:        "large number",
+			value:       math.U64(3080829),
+			expectedHex: "0x7d022f0000000000000000000000000000000000000000000000000000000000",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			require.Equal(t, tt.expectedHex, tt.value.HashTreeRoot().String())
+		})
+	}
+}
+
 func TestGweiFromWei(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name        string
 		input       func(t *testing.T) *big.Int
@@ -369,7 +427,7 @@ func TestGweiFromWei(t *testing.T) {
 			name: "one gwei",
 			input: func(t *testing.T) *big.Int {
 				t.Helper()
-				return big.NewInt(math.GweiPerWei)
+				return big.NewInt(params.GWei)
 			},
 			expectedErr: nil,
 			expectedRes: math.Gwei(1),
@@ -378,7 +436,7 @@ func TestGweiFromWei(t *testing.T) {
 			name: "arbitrary wei",
 			input: func(t *testing.T) *big.Int {
 				t.Helper()
-				return big.NewInt(math.GweiPerWei * 123456789)
+				return big.NewInt(params.GWei * 123456789)
 			},
 			expectedErr: nil,
 			expectedRes: math.Gwei(123456789),
@@ -388,7 +446,7 @@ func TestGweiFromWei(t *testing.T) {
 			input: func(t *testing.T) *big.Int {
 				t.Helper()
 				return new(big.Int).Mul(
-					big.NewInt(math.GweiPerWei),
+					big.NewInt(params.GWei),
 					new(big.Int).SetUint64(^uint64(0)),
 				)
 			},
@@ -399,6 +457,7 @@ func TestGweiFromWei(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result, err := math.GweiFromWei(tt.input(t))
 			if tt.expectedErr != nil {
 				require.ErrorIs(t, err, tt.expectedErr)
@@ -411,6 +470,7 @@ func TestGweiFromWei(t *testing.T) {
 }
 
 func TestGwei_ToWei(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		input    math.Gwei
@@ -431,7 +491,7 @@ func TestGwei_ToWei(t *testing.T) {
 			input: math.Gwei(1),
 			expected: func(t *testing.T) *math.U256 {
 				t.Helper()
-				res, err := math.NewU256FromBigInt(big.NewInt(math.GweiPerWei))
+				res, err := math.NewU256FromBigInt(big.NewInt(params.GWei))
 				require.NoError(t, err)
 				return res
 			},
@@ -442,7 +502,7 @@ func TestGwei_ToWei(t *testing.T) {
 			expected: func(t *testing.T) *math.U256 {
 				t.Helper()
 				n := new(big.Int).Mul(
-					big.NewInt(math.GweiPerWei),
+					big.NewInt(params.GWei),
 					big.NewInt(123456789),
 				)
 				res, err := math.NewU256FromBigInt(n)
@@ -456,7 +516,7 @@ func TestGwei_ToWei(t *testing.T) {
 			expected: func(t *testing.T) *math.U256 {
 				t.Helper()
 				n := new(big.Int).Mul(
-					big.NewInt(math.GweiPerWei),
+					big.NewInt(params.GWei),
 					new(big.Int).SetUint64(1<<64-1),
 				)
 				res, err := math.NewU256FromBigInt(n)
@@ -468,6 +528,7 @@ func TestGwei_ToWei(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := tt.input.ToWei()
 			require.Equal(t, tt.expected(t), result)
 		})
@@ -475,6 +536,7 @@ func TestGwei_ToWei(t *testing.T) {
 }
 
 func TestU64_Base10(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		value    math.U64
@@ -504,6 +566,7 @@ func TestU64_Base10(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := tt.value.Base10()
 			require.Equal(t, tt.expected, result,
 				"Test case: %s", tt.name)
@@ -512,6 +575,7 @@ func TestU64_Base10(t *testing.T) {
 }
 
 func TestU64_UnwrapPtr(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		value    math.U64
@@ -541,6 +605,7 @@ func TestU64_UnwrapPtr(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := tt.value.UnwrapPtr()
 			require.NotNil(t, result)
 			require.Equal(t, tt.expected, *result,

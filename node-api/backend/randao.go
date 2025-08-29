@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,21 +21,23 @@
 package backend
 
 import (
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-func (b Backend[
-	_, _, _, _, _, _, _,
-]) RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes32, error) {
-	st, slot, err := b.stateFromSlot(slot)
+func (b *Backend) RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes32, error) {
+	// Get the state at the given slot.
+	st, resolvedSlot, err := b.StateAtSlot(slot)
 	if err != nil {
-		return common.Bytes32{}, err
+		return common.Bytes32{}, errors.Wrapf(err, "failed to get state from slot %d", slot)
 	}
+
 	// Infer the epoch if not provided.
 	if epoch == 0 {
-		epoch = b.cs.SlotToEpoch(slot)
+		epoch = b.cs.SlotToEpoch(resolvedSlot)
 	}
+
 	index := epoch.Unwrap() % b.cs.EpochsPerHistoricalVector()
 	return st.GetRandaoMixAtIndex(index)
 }

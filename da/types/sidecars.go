@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -17,33 +17,32 @@
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
-//
-//nolint:mnd // todo fix.
+
 package types
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/primitives/constants"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/karalabe/ssz"
 	"github.com/sourcegraph/conc/iter"
+)
+
+// Compile-time check to ensure BlobSidecars implements the necessary interfaces.
+var (
+	_ ssz.DynamicObject           = (*BlobSidecars)(nil)
+	_ constraints.SSZMarshallable = (*BlobSidecars)(nil)
 )
 
 // Sidecars is a slice of blob side cars to be included in the block.
 type BlobSidecars []*BlobSidecar
 
-// Empty creates a new empty BlobSidecars object.
-func (bs *BlobSidecars) Empty() *BlobSidecars {
-	return &BlobSidecars{}
-}
-
-// IsNil checks to see if blobs are nil.
-func (bs *BlobSidecars) IsNil() bool {
-	return bs == nil
-}
-
 // ValidateBlockRoots checks to make sure that
 // all blobs in the sidecar are from the same block.
 func (bs *BlobSidecars) ValidateBlockRoots() error {
-	if bs.IsNil() {
+	if bs == nil {
 		return ErrAttemptedToVerifyNilSidecar
 	}
 	sidecars := *bs
@@ -61,10 +60,7 @@ func (bs *BlobSidecars) ValidateBlockRoots() error {
 }
 
 // VerifyInclusionProofs verifies the inclusion proofs for all sidecars.
-func (bs *BlobSidecars) VerifyInclusionProofs(
-	kzgOffset uint64,
-	inclusionProofDepth uint8,
-) error {
+func (bs *BlobSidecars) VerifyInclusionProofs() error {
 	return errors.Join(iter.Map(
 		*bs,
 		func(sidecar **BlobSidecar) error {
@@ -74,7 +70,7 @@ func (bs *BlobSidecars) VerifyInclusionProofs(
 			}
 
 			// Verify the KZG inclusion proof.
-			if !sc.HasValidInclusionProof(kzgOffset, inclusionProofDepth) {
+			if !sc.HasValidInclusionProof() {
 				return ErrInvalidInclusionProof
 			}
 			return nil
@@ -84,31 +80,34 @@ func (bs *BlobSidecars) VerifyInclusionProofs(
 
 // DefineSSZ defines the SSZ encoding for the BlobSidecars object.
 func (bs *BlobSidecars) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineSliceOfStaticObjectsOffset(codec, (*[]*BlobSidecar)(bs), 6)
-	ssz.DefineSliceOfStaticObjectsContent(codec, (*[]*BlobSidecar)(bs), 6)
+	ssz.DefineSliceOfStaticObjectsOffset(
+		codec, (*[]*BlobSidecar)(bs), constants.MaxBlobSidecarsPerBlock,
+	)
+	ssz.DefineSliceOfStaticObjectsContent(
+		codec, (*[]*BlobSidecar)(bs), constants.MaxBlobSidecarsPerBlock,
+	)
 }
 
 // SizeSSZ returns the size of the BlobSidecars object in SSZ encoding.
 func (bs *BlobSidecars) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 	if fixed {
-		return 4
+		return constants.SSZOffsetSize
 	}
-	return 4 + ssz.SizeSliceOfStaticObjects(siz, *bs)
+	return constants.SSZOffsetSize + ssz.SizeSliceOfStaticObjects(siz, *bs)
 }
 
 // MarshalSSZ marshals the BlobSidecars object to SSZ format.
 func (bs *BlobSidecars) MarshalSSZ() ([]byte, error) {
 	buf := make([]byte, ssz.Size(bs))
-	return bs.MarshalSSZTo(buf)
-}
-
-// MarshalSSZTo marshals the BlobSidecars object to the provided buffer in SSZ
-// format.
-func (bs *BlobSidecars) MarshalSSZTo(buf []byte) ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, bs)
 }
 
-// UnmarshalSSZ unmarshals the BlobSidecars object from SSZ format.
-func (bs *BlobSidecars) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, bs)
+func (bs *BlobSidecars) ValidateAfterDecodingSSZ() error {
+	if len(*bs) > constants.MaxBlobSidecarsPerBlock {
+		return fmt.Errorf(
+			"invalid number of blob sidecars, got %d max %d",
+			len(*bs), constants.MaxBlobSidecarsPerBlock,
+		)
+	}
+	return nil
 }

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,22 +21,40 @@
 package beacon
 
 import (
+	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/types"
-	"github.com/berachain/beacon-kit/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/primitives/common"
 )
 
-func (h *Handler[ContextT]) GetGenesis(_ ContextT) (any, error) {
-	genesisRoot, err := h.backend.GenesisValidatorsRoot(utils.Genesis)
+func (h *Handler) GetGenesis(handlers.Context) (any, error) {
+	genesisRoot, err := h.backend.GenesisValidatorsRoot()
 	if err != nil {
 		return nil, err
 	}
-	if len(genesisRoot) == 0 {
-		return nil, types.ErrNotFound
+	if genesisRoot.Equals(common.Root{}) {
+		// this may happen if genesis time is set in the future
+		// and app is not ready to start yet. We return an error
+		// type resulting in http.StatusNotFound
+		return nil, errors.Wrap(types.ErrNotFound, "Chain genesis info is not yet known")
 	}
-	return types.Wrap(beacontypes.GenesisData{
-		GenesisTime:           "1590832934", // stub
-		GenesisValidatorsRoot: genesisRoot,
-		GenesisForkVersion:    "0x00000000", // stub
-	}), nil
+
+	genesisForkVersion, err := h.backend.GenesisForkVersion()
+	if err != nil {
+		return nil, err
+	}
+
+	genesisTime, err := h.backend.GenesisTime()
+	if err != nil {
+		return nil, err
+	}
+
+	return beacontypes.GenesisResponse{
+		Data: beacontypes.GenesisData{
+			GenesisTime:           genesisTime.Base10(),
+			GenesisValidatorsRoot: genesisRoot,
+			GenesisForkVersion:    genesisForkVersion.String(),
+		},
+	}, nil
 }

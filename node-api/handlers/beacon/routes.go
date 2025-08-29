@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -28,11 +28,11 @@ import (
 )
 
 //nolint:funlen // routes are long
-func (h *Handler[ContextT]) RegisterRoutes(
+func (h *Handler) RegisterRoutes(
 	logger log.Logger,
 ) {
 	h.SetLogger(logger)
-	h.BaseHandler.AddRoutes([]*handlers.Route[ContextT]{
+	h.BaseHandler.AddRoutes([]*handlers.Route{
 		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/beacon/genesis",
@@ -79,6 +79,11 @@ func (h *Handler[ContextT]) RegisterRoutes(
 			Handler: h.PostStateValidatorBalances,
 		},
 		{
+			Method:  http.MethodPost,
+			Path:    "/eth/v1/beacon/states/:state_id/validator_identities",
+			Handler: h.NotImplemented,
+		},
+		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/beacon/states/:state_id/committees",
 			Handler: h.NotImplemented,
@@ -95,6 +100,16 @@ func (h *Handler[ContextT]) RegisterRoutes(
 		},
 		{
 			Method:  http.MethodGet,
+			Path:    "/eth/v1/beacon/states/:state_id/pending_deposits",
+			Handler: h.NotImplemented,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/eth/v1/beacon/states/:state_id/pending_partial_withdrawals",
+			Handler: h.GetPendingPartialWithdrawals,
+		},
+		{
+			Method:  http.MethodGet,
 			Path:    "/eth/v1/beacon/headers",
 			Handler: h.GetBlockHeaders,
 		},
@@ -106,7 +121,7 @@ func (h *Handler[ContextT]) RegisterRoutes(
 		{
 			Method:  http.MethodPost,
 			Path:    "/eth/v1/beacon/blocks/blinded_blocks",
-			Handler: h.NotImplemented,
+			Handler: h.Deprecated,
 		},
 		{
 			Method:  http.MethodPost,
@@ -116,7 +131,7 @@ func (h *Handler[ContextT]) RegisterRoutes(
 		{
 			Method:  http.MethodPost,
 			Path:    "/eth/v1/beacon/blocks",
-			Handler: h.NotImplemented,
+			Handler: h.Deprecated,
 		},
 		{
 			Method:  http.MethodPost,
@@ -136,12 +151,17 @@ func (h *Handler[ContextT]) RegisterRoutes(
 		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/beacon/blocks/:block_id/attestations",
+			Handler: h.Deprecated,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/eth/v2/beacon/blocks/:block_id/attestations",
 			Handler: h.NotImplemented,
 		},
 		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/beacon/blob_sidecars/:block_id",
-			Handler: h.NotImplemented,
+			Handler: h.GetBlobSidecars,
 		},
 		{
 			Method:  http.MethodPost,
@@ -151,11 +171,16 @@ func (h *Handler[ContextT]) RegisterRoutes(
 		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/beacon/deposit_snapshot",
-			Handler: h.NotImplemented,
+			Handler: h.Deprecated,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/eth/v1/beacon/rewards/blocks/:block_id",
+			Handler: h.GetBlockRewards,
 		},
 		{
 			Method:  http.MethodPost,
-			Path:    "/eth/v1/beacon/rewards/attestation/:epoch",
+			Path:    "/eth/v1/beacon/rewards/attestations/:epoch",
 			Handler: h.NotImplemented,
 		},
 		{
@@ -186,21 +211,41 @@ func (h *Handler[ContextT]) RegisterRoutes(
 		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/beacon/pool/attestations",
-			Handler: h.NotImplemented,
+			Handler: h.Deprecated,
 		},
 		{
 			Method:  http.MethodPost,
 			Path:    "/eth/v1/beacon/pool/attestations",
+			Handler: h.Deprecated,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/eth/v2/beacon/pool/attestations",
+			Handler: h.NotImplemented,
+		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/eth/v2/beacon/pool/attestations",
 			Handler: h.NotImplemented,
 		},
 		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/beacon/pool/attester_slashings",
-			Handler: h.NotImplemented,
+			Handler: h.Deprecated,
 		},
 		{
 			Method:  http.MethodPost,
 			Path:    "/eth/v1/beacon/pool/attester_slashings",
+			Handler: h.Deprecated,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/eth/v2/beacon/pool/attester_slashings",
+			Handler: h.NotImplemented,
+		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/eth/v2/beacon/pool/attester_slashings",
 			Handler: h.NotImplemented,
 		},
 		{

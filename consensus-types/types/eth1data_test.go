@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -26,25 +26,22 @@ import (
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
 	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
 func TestEth1Data_Serialization(t *testing.T) {
-	original := &types.Eth1Data{
-		DepositRoot:  common.Root{},
-		DepositCount: 10,
-		BlockHash:    common.ExecutionHash{},
-	}
-
+	t.Parallel()
+	original := types.NewEth1Data(common.Root{})
 	data, err := original.MarshalSSZ()
 	require.NoError(t, err)
 	require.NotNil(t, data)
 
-	var unmarshalled types.Eth1Data
-	err = unmarshalled.UnmarshalSSZ(data)
+	unmarshalled := new(types.Eth1Data)
+	err = ssz.Unmarshal(data, unmarshalled)
 	require.NoError(t, err)
-	require.Equal(t, original, &unmarshalled)
+	require.Equal(t, original, unmarshalled)
 
 	var buf []byte
 	buf, err = original.MarshalSSZTo(buf)
@@ -55,28 +52,23 @@ func TestEth1Data_Serialization(t *testing.T) {
 }
 
 func TestEth1Data_UnmarshalError(t *testing.T) {
+	t.Parallel()
+
 	var unmarshalled types.Eth1Data
-	err := unmarshalled.UnmarshalSSZ([]byte{})
+	err := ssz.Unmarshal([]byte{}, &unmarshalled)
 	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
 
 func TestEth1Data_SizeSSZ(t *testing.T) {
-	eth1Data := (&types.Eth1Data{}).New(
-		common.Root{},
-		10,
-		common.ExecutionHash{},
-	)
-
+	t.Parallel()
+	eth1Data := types.NewEth1Data(common.Root{})
 	size := karalabessz.Size(eth1Data)
 	require.Equal(t, uint32(72), size)
 }
 
 func TestEth1Data_HashTreeRoot(t *testing.T) {
-	eth1Data := &types.Eth1Data{
-		DepositRoot:  common.Root{},
-		DepositCount: 10,
-		BlockHash:    common.ExecutionHash{},
-	}
+	t.Parallel()
+	eth1Data := types.NewEth1Data(common.Root{})
 
 	require.NotPanics(t, func() {
 		_ = eth1Data.HashTreeRoot()
@@ -84,12 +76,8 @@ func TestEth1Data_HashTreeRoot(t *testing.T) {
 }
 
 func TestEth1Data_GetTree(t *testing.T) {
-	eth1Data := &types.Eth1Data{
-		DepositRoot:  common.Root{},
-		DepositCount: 10,
-		BlockHash:    common.ExecutionHash{},
-	}
-
+	t.Parallel()
+	eth1Data := types.NewEth1Data(common.Root{})
 	tree, err := eth1Data.GetTree()
 
 	require.NoError(t, err)
@@ -97,6 +85,7 @@ func TestEth1Data_GetTree(t *testing.T) {
 }
 
 func TestEth1Data_GetDepositCount(t *testing.T) {
+	t.Parallel()
 	eth1Data := &types.Eth1Data{
 		DepositRoot:  common.Root{},
 		DepositCount: 10,

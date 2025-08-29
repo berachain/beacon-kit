@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -30,8 +30,7 @@ import (
 // transactions.
 const (
 	Ether   = params.Ether
-	OneGwei = uint64(params.GWei) // 1 Gwei = 1e9 wei
-	TenGwei = 10 * OneGwei        // 10 Gwei = 1e10 wei
+	TenGwei = 10 * params.GWei // 10 Gwei = 1e10 wei
 )
 
 // EtherTransferGasLimit specifies the gas limit for a standard Ethereum

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,150 +21,122 @@
 package backend
 
 import (
-	"context"
+	"runtime"
+	"sync/atomic"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/node-core/components/storage"
+	"github.com/berachain/beacon-kit/node-core/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
+	cmtcfg "github.com/cometbft/cometbft/config"
+	"github.com/cosmos/cosmos-sdk/version"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 )
 
 // Backend is the db access layer for the beacon node-api.
 // It serves as a wrapper around the storage backend and provides an abstraction
 // over building the query context for a given state.
-type Backend[
-	AvailabilityStoreT AvailabilityStore,
-	BlockStoreT BlockStore,
-	ContextT context.Context,
-	DepositStoreT DepositStore,
-	NodeT Node[ContextT],
-	StateStoreT any,
-	StorageBackendT StorageBackend[
-		AvailabilityStoreT, BlockStoreT, DepositStoreT,
-	],
-] struct {
-	sb   StorageBackendT
-	cs   chain.ChainSpec
-	node NodeT
+type Backend struct {
+	sb   *storage.Backend
+	cs   chain.Spec
+	node types.ConsensusService
 
-	sp StateProcessor
+	// genesisValidatorsRoot is cached in the backend.
+	genesisValidatorsRoot atomic.Pointer[common.Root]
+
+	// genesisTime is cached here, written to once during initialization!
+	genesisTime atomic.Pointer[math.U64]
+
+	// genesisForkVersion is cached here, written to once during initialization!
+	genesisForkVersion atomic.Pointer[common.Version]
 }
 
 // New creates and returns a new Backend instance.
-func New[
-	AvailabilityStoreT AvailabilityStore,
-	BlockStoreT BlockStore,
-	ContextT context.Context,
-	DepositStoreT DepositStore,
-	NodeT Node[ContextT],
-	StateStoreT any,
-	StorageBackendT StorageBackend[
-		AvailabilityStoreT, BlockStoreT, DepositStoreT,
-	],
-](
-	storageBackend StorageBackendT,
-	cs chain.ChainSpec,
-	sp StateProcessor,
-) *Backend[
-	AvailabilityStoreT,
-	BlockStoreT,
-	ContextT, DepositStoreT,
-	NodeT, StateStoreT, StorageBackendT,
-] {
-	return &Backend[
-		AvailabilityStoreT,
-		BlockStoreT,
-		ContextT, DepositStoreT,
-		NodeT, StateStoreT, StorageBackendT,
-	]{
+func New(
+	storageBackend *storage.Backend,
+	cs chain.Spec,
+	cmtCfg *cmtcfg.Config,
+) (*Backend, error) {
+	b := &Backend{
 		sb: storageBackend,
 		cs: cs,
-		sp: sp,
 	}
+
+	// Load the genesis file from cometbft config.
+	appGenesis, err := genutiltypes.AppGenesisFromFile(cmtCfg.GenesisFile())
+	if err != nil {
+		return nil, err
+	}
+	gen, err := appGenesis.ToGenesisDoc()
+	if err != nil {
+		return nil, err
+	}
+
+	// Store the genesis time in the backend.
+	//#nosec: G115 // Unix time will never be negative.
+	genesisTime := math.U64(gen.GenesisTime.Unix())
+	b.genesisTime.Store(&genesisTime)
+
+	// Derive the genesis fork version from the genesis time.
+	genesisForkVersion := cs.ActiveForkVersionForTimestamp(genesisTime)
+	b.genesisForkVersion.Store(&genesisForkVersion)
+
+	return b, nil
 }
 
 // AttachQueryBackend sets the node on the backend for
 // querying historical heights.
-func (b *Backend[
-	_, _, _, _, NodeT, _, _,
-]) AttachQueryBackend(node NodeT) {
+func (b *Backend) AttachQueryBackend(node types.ConsensusService) {
 	b.node = node
 }
 
-// ChainSpec returns the chain spec from the backend.
-func (b *Backend[
-	_, _, _, _, NodeT, _, _,
-]) ChainSpec() chain.ChainSpec {
-	return b.cs
-}
-
 // GetSlotByBlockRoot retrieves the slot by a block root from the block store.
-func (b *Backend[
-	_, _, _, _, _, _, _,
-]) GetSlotByBlockRoot(root common.Root) (math.Slot, error) {
+func (b *Backend) GetSlotByBlockRoot(root common.Root) (math.Slot, error) {
 	return b.sb.BlockStore().GetSlotByBlockRoot(root)
 }
 
 // GetSlotByStateRoot retrieves the slot by a state root from the block store.
-func (b *Backend[
-	_, _, _, _, _, _, _,
-]) GetSlotByStateRoot(root common.Root) (math.Slot, error) {
+func (b *Backend) GetSlotByStateRoot(root common.Root) (math.Slot, error) {
 	return b.sb.BlockStore().GetSlotByStateRoot(root)
 }
 
 // GetParentSlotByTimestamp retrieves the parent slot by a given timestamp from
 // the block store.
-func (b *Backend[
-	_, _, _, _, _, _, _,
-]) GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error) {
+func (b *Backend) GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error) {
 	return b.sb.BlockStore().GetParentSlotByTimestamp(timestamp)
 }
 
-// stateFromSlot returns the state at the given slot, after also processing the
-// next slot to ensure the returned beacon state is up to date.
-func (b *Backend[
-	_, _, _, _, _, _, _,
-]) stateFromSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error) {
-	var (
-		st  *statedb.StateDB
-		err error
-	)
-	if st, slot, err = b.stateFromSlotRaw(slot); err != nil {
-		return st, slot, err
+// Spec returns the chain spec used by the backend.
+func (b *Backend) Spec() (chain.Spec, error) {
+	if b.cs == nil {
+		return nil, errors.New("chain spec not found")
 	}
-
-	// Process the slot to update the latest state and block roots.
-	if _, err = b.sp.ProcessSlots(st, slot+1); err != nil {
-		return st, slot, err
-	}
-
-	// We need to set the slot on the state back since ProcessSlot will update
-	// it to slot + 1.
-	err = st.SetSlot(slot)
-	return st, slot, err
+	return b.cs, nil
 }
 
-// stateFromSlotRaw returns the state at the given slot using query context,
-// resolving an input slot of 0 to the latest slot. It does not process the
-// next slot on the beacon state.
-func (b *Backend[
-	_, _, _, _, _, _, _,
-]) stateFromSlotRaw(slot math.Slot) (*statedb.StateDB, math.Slot, error) {
-	var st *statedb.StateDB
-	//#nosec:G701 // not an issue in practice.
-	queryCtx, err := b.node.CreateQueryContext(int64(slot), false)
-	if err != nil {
-		return st, slot, err
-	}
-	st = b.sb.StateFromContext(queryCtx)
+func (b *Backend) GetSyncData() (int64 /*latestHeight*/, int64 /*syncToHeight*/) {
+	return b.node.GetSyncData()
+}
 
-	// If using height 0 for the query context, make sure to return the latest
-	// slot.
-	if slot == 0 {
-		slot, err = st.GetSlot()
-		if err != nil {
-			return st, slot, err
-		}
-	}
-	return st, slot, err
+func (b *Backend) GetVersionData() (
+	string, // appName
+	string, // cometVersion
+	string, // os
+	string, // arch
+) {
+	cometVersionInfo := version.NewInfo() // same used in beacond version command
+
+	var (
+		appName      = cometVersionInfo.AppName
+		cometVersion = cometVersionInfo.Version
+		os           = runtime.GOOS
+		arch         = runtime.GOARCH
+	)
+
+	return appName,
+		cometVersion,
+		os,
+		arch
 }

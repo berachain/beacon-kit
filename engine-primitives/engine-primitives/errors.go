@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -33,10 +33,6 @@ var (
 	// ErrEmptyPrevRandao indicates that the previous RANDAO value is empty.
 	ErrEmptyPrevRandao = errors.New("empty randao")
 
-	// ErrFailedToUnmarshalTx indicates that the transaction could not be
-	// unmarshaled.
-	ErrFailedToUnmarshalTx = errors.New("failed to unmarshal transaction")
-
 	// ErrInvalidVersionedHash indicates that the versioned hash is invalid.
 	ErrInvalidVersionedHash = errors.New("invalid versioned hash")
 
@@ -46,10 +42,13 @@ var (
 		"mismatch in number of versioned hashes",
 	)
 
-	// ErrPayloadBlockHashMismatch represents an error when the
-	// block hash in the payload does not match from the assembled
-	// block.
-	ErrPayloadBlockHashMismatch = errors.New(
-		"block hash in payload does not match assembled block",
-	)
+	// ErrPayloadBlockHashMismatch represents an error when the block hash
+	// in the payload does not match from the assembled block.
+	ErrPayloadBlockHashMismatch = errors.New("block hash in payload does not match assembled block")
+
+	// ErrEmptyPrevProposerPubKey indicates that the previous proposer public key is empty.
+	ErrEmptyPrevProposerPubKey = errors.New("empty public key for previous block proposer")
+
+	// ErrNonEmptyPrevProposerPubKey indicates that the previous proposer public key is non-empty.
+	ErrNonEmptyPrevProposerPubKey = errors.New("non-empty public key for previous block proposer")
 )

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,24 +21,24 @@
 package schema
 
 // Field represents a named value of a generic type.
-type Field[T any] struct {
+type Field struct {
 	// name is the name of the field
 	name string
 	// value is the value of the field
-	value T
+	value SSZType
 }
 
 // NewField creates a new field.
-func NewField(name string, typ SSZType) *Field[SSZType] {
-	return &Field[SSZType]{name: name, value: typ}
+func NewField(name string, typ SSZType) *Field {
+	return &Field{name: name, value: typ}
 }
 
 // GetName returns the name of the field.
-func (f Field[_]) GetName() string {
+func (f Field) GetName() string {
 	return f.name
 }
 
 // GetValue returns the value of the field.
-func (f Field[T]) GetValue() T {
+func (f Field) GetValue() SSZType {
 	return f.value
 }

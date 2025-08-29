@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -36,10 +36,20 @@ var (
 	// version is not supported.
 	ErrForkVersionNotSupported = errors.New("fork version not supported")
 
+	// ErrNilValue is an error for when a getter returns nil on a value
+	// It should generally not occur unless we have a bug in our code and is used for defensive programming.
+	ErrNilValue = errors.New("unexpected nil value")
+
 	// ErrInclusionProofDepthExceeded is an error for when the
 	// KZG_COMMITMENT_INCLUSION_PROOF_DEPTH calculation overflows.
 	ErrInclusionProofDepthExceeded = errors.New("inclusion proof depth exceeded")
 
 	// ErrNilPayloadHeader is an error for when the payload header is nil.
 	ErrNilPayloadHeader = errors.New("nil payload header")
+
+	// ErrInvalidValidatorStatus is an error for when the validator status is invalid.
+	ErrInvalidValidatorStatus = errors.New("invalid validator status")
+
+	// ErrFieldNotSupportedOnFork occurs when attempting to retrieve a field on a fork on which it is not supported
+	ErrFieldNotSupportedOnFork = errors.New("field not supported on fork")
 )

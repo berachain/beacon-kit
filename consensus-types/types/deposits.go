@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -18,6 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
+//nolint:dupl // False positive detected.
 package types
 
 import (
@@ -26,7 +27,7 @@ import (
 	"github.com/karalabe/ssz"
 )
 
-// Deposits is a typealias for a list of Deposits.
+// Deposits is a type alias for a SSZ list of Deposit containers.
 type Deposits []*Deposit
 
 /* -------------------------------------------------------------------------- */
@@ -39,6 +40,7 @@ func (ds Deposits) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {
 }
 
 // DefineSSZ defines the SSZ encoding for the Deposits object.
+// TODO: get from accessible chainspec field params.
 func (ds Deposits) DefineSSZ(c *ssz.Codec) {
 	c.DefineDecoder(func(*ssz.Decoder) {
 		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*Deposit)(&ds), constants.MaxDeposits)

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,7 +21,6 @@
 package parser
 
 import (
-	"fmt"
 	"math/big"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
@@ -44,24 +43,6 @@ func ConvertPubkey(pubkey string) (crypto.BLSPubkey, error) {
 	}
 
 	return crypto.BLSPubkey(pubkeyBytes), nil
-}
-
-// ConvertWithdrawalAddress converts a string to a withdrawal address.
-func ConvertWithdrawalAddress(address string) (common.ExecutionAddress, error) {
-	// Wrap the call in a recover to handle potential panics from invalid
-	// addresses.
-	var (
-		addr common.ExecutionAddress
-		err  error
-	)
-	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("invalid withdrawal address: %v", r)
-		}
-	}()
-
-	addr = common.NewExecutionAddressFromHex(address)
-	return addr, err
 }
 
 // ConvertWithdrawalCredentials converts a string to a withdrawal credentials.
@@ -104,18 +85,6 @@ func ConvertSignature(signature string) (crypto.BLSSignature, error) {
 		return crypto.BLSSignature{}, ErrInvalidSignatureLength
 	}
 	return crypto.BLSSignature(signatureBytes), nil
-}
-
-// ConvertVersion converts a string to a version.
-func ConvertVersion(version string) (common.Version, error) {
-	versionBytes, err := hex.ToBytes(version)
-	if err != nil {
-		return common.Version{}, err
-	}
-	if len(versionBytes) != constants.DomainTypeLength {
-		return common.Version{}, ErrInvalidVersionLength
-	}
-	return common.Version(versionBytes), nil
 }
 
 // ConvertGenesisValidatorRoot converts a string to a genesis validator root.

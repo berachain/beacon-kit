@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -30,17 +30,15 @@ import (
 	"github.com/spf13/viper"
 )
 
-// handleAppConfig writes the provided <customConfig> to the file at
-// <configDirPath>/app.toml, or reads it into the provided <viper> instance
-// if it exists.
+// handleAppConfig writes the provided <customConfig> to the file at <configDirPath>/app.toml, or
+// reads it into the provided <viper> instance if it exists.
 func handleAppConfig(
 	viper *viper.Viper,
 	configDirPath string,
 	customAppTemplate string,
 	appConfig any,
 ) error {
-	// if the app.toml file does not exist, populate it with the values from
-	// <appConfig>
+	// If the app.toml file does not exist, populate it with the values from <appConfig>.
 	appCfgFilePath := filepath.Join(configDirPath, "app.toml")
 	if _, err := os.Stat(appCfgFilePath); os.IsNotExist(err) {
 		return writeAppConfig(
@@ -51,7 +49,7 @@ func handleAppConfig(
 		)
 	}
 
-	// merge the app.toml file into the viper instance
+	// Merge the app.toml file into the viper instance.
 	viper.SetConfigType("toml")
 	viper.SetConfigName("app")
 	viper.AddConfigPath(configDirPath)
@@ -71,36 +69,39 @@ func writeAppConfig(
 	appConfig any,
 ) error {
 	var (
-		err         error
 		writeConfig any // config to write to the file
-	)
-	appTemplatePopulated := appTemplate != ""
-	appConfigPopulated := appConfig != nil
 
-	//nolint:gocritic,nestif // error checking
-	if appTemplatePopulated && appConfigPopulated {
+		appTemplatePopulated = appTemplate != ""
+		appConfigPopulated   = appConfig != nil
+	)
+
+	switch {
+	case appTemplatePopulated && appConfigPopulated:
 		// template and config are both populated, so we set the template
 		// and populate the config with the values from the viper instance
-		if err = config.SetConfigTemplate(appTemplate); err != nil {
+		if err := config.SetConfigTemplate(appTemplate); err != nil {
 			return fmt.Errorf("failed to set config template: %w", err)
 		}
-		if err = rootViper.Unmarshal(&appConfig); err != nil {
+		if err := rootViper.Unmarshal(&appConfig); err != nil {
 			return fmt.Errorf("failed to unmarshal app config: %w", err)
 		}
 		writeConfig = appConfig
-	} else if !appTemplatePopulated && !appConfigPopulated {
+
+	case !appTemplatePopulated && !appConfigPopulated:
 		// template and config are both nil, so we read the config from the file
 		// at appConfigFilePath
-		appConfig, err = config.ParseConfig(rootViper)
+		appConfig, err := config.ParseConfig(rootViper)
 		if err != nil {
 			return fmt.Errorf("failed to parse %s: %w", appConfigFilePath, err)
 		}
 		writeConfig = appConfig
-	} else {
+
+	default:
 		return errors.New("appTemplate and appConfig must both nil or not nil")
 	}
+
 	// write the appConfig to the file at appConfigFilePath
-	if err = config.WriteConfigFile(appConfigFilePath, writeConfig); err != nil {
+	if err := config.WriteConfigFile(appConfigFilePath, writeConfig); err != nil {
 		return fmt.Errorf("failed to write %s: %w", appConfigFilePath, err)
 	}
 

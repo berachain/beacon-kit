@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,10 +23,12 @@ package schema
 import (
 	"errors"
 	"fmt"
-	"strconv"
 
-	"github.com/berachain/beacon-kit/primitives/encoding/ssz/constants"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
+
+// BytesPerChunk is the number of bytes per chunk.
+const BytesPerChunk = 32
 
 /* -------------------------------------------------------------------------- */
 /*                                    Basic                                   */
@@ -73,24 +75,23 @@ func DefineByteVector(length uint64) SSZType {
 
 func (v vector) ID() ID { return Vector }
 
-func (v vector) ItemLength() uint64 { return constants.BytesPerChunk }
+func (v vector) ItemLength() uint64 { return BytesPerChunk }
 
 func (v vector) ItemPosition(p string) (uint64, uint8, uint8, error) {
-	i, err := strconv.ParseUint(p, 10, 64)
+	i, err := math.U64FromString(p)
 	if err != nil {
 		return 0, 0, 0, fmt.Errorf("expected index, got name %s", p)
 	}
-	start := i * v.elementType.ItemLength()
-	return start / constants.BytesPerChunk,
-		//#nosec:G701 // can't overflow.
-		uint8(start % constants.BytesPerChunk),
-		//#nosec:G701 // can't overflow.
-		uint8(start%constants.BytesPerChunk + v.ItemLength()), nil
+	start := i.Unwrap() * v.elementType.ItemLength()
+	return start / BytesPerChunk,
+		uint8(start % BytesPerChunk), // #nosec G115 -- can't overflow.
+		uint8(start%BytesPerChunk + v.ItemLength()), // #nosec G115 -- can't overflow.
+		nil
 }
 
 func (v vector) HashChunkCount() uint64 {
 	totalBytes := v.Length() * v.elementType.ItemLength()
-	chunks := (totalBytes + constants.BytesPerChunk - 1) / constants.BytesPerChunk
+	chunks := (totalBytes + BytesPerChunk - 1) / BytesPerChunk
 	return chunks
 }
 
@@ -127,7 +128,7 @@ func (l list) ItemLength() uint64 { return l.elementType.ItemLength() }
 
 func (l list) HashChunkCount() uint64 {
 	totalBytes := l.Length() * l.elementType.ItemLength()
-	chunks := (totalBytes + constants.BytesPerChunk - 1) / constants.BytesPerChunk
+	chunks := (totalBytes + BytesPerChunk - 1) / BytesPerChunk
 	return chunks
 }
 
@@ -142,16 +143,15 @@ func (l list) Length() uint64 {
 
 // ItemPosition returns the chunk index and offset for a given list index.
 func (l list) ItemPosition(p string) (uint64, uint8, uint8, error) {
-	i, err := strconv.ParseUint(p, 10, 64)
+	i, err := math.U64FromString(p)
 	if err != nil {
 		return 0, 0, 0, fmt.Errorf("expected index, got name %s", p)
 	}
-	start := i * l.elementType.ItemLength()
-	return start / constants.BytesPerChunk,
-		//#nosec:G701 // can't overflow.
-		uint8(start % constants.BytesPerChunk),
-		//#nosec:G701 // can't overflow.
-		uint8(start%constants.BytesPerChunk + l.ItemLength()), nil
+	start := i.Unwrap() * l.elementType.ItemLength()
+	return start / BytesPerChunk,
+		uint8(start % BytesPerChunk), // #nosec G115 -- can't overflow.
+		uint8(start%BytesPerChunk + l.ItemLength()), // #nosec G115 -- can't overflow.
+		nil
 }
 
 /* -------------------------------------------------------------------------- */
@@ -163,12 +163,11 @@ type container struct {
 	FieldIndex map[string]uint64
 }
 
-func DefineContainer(fields ...*Field[SSZType]) SSZType {
+func DefineContainer(fields ...*Field) SSZType {
 	fieldIndex := make(map[string]uint64)
 	types := make([]SSZType, len(fields))
 	for i, f := range fields {
-		//#nosec:G701 // todo fix.
-		fieldIndex[f.GetName()] = uint64(i)
+		fieldIndex[f.GetName()] = uint64(i) // #nosec G115 -- todo fix.
 		types[i] = f.GetValue()
 	}
 	return container{Fields: types, FieldIndex: fieldIndex}
@@ -176,14 +175,14 @@ func DefineContainer(fields ...*Field[SSZType]) SSZType {
 
 func (c container) ID() ID { return Container }
 
-func (c container) ItemLength() uint64 { return constants.BytesPerChunk }
+func (c container) ItemLength() uint64 { return BytesPerChunk }
 
 func (c container) ItemPosition(p string) (uint64, uint8, uint8, error) {
 	pos, ok := c.FieldIndex[p]
 	if !ok {
 		return 0, 0, 0, fmt.Errorf("field %s not found", p)
 	}
-	//#nosec:G701 // can't overflow.
+	// #nosec G115 -- can't overflow.
 	return pos, 0, uint8(c.Fields[pos].ItemLength()), nil
 }
 

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -24,25 +24,50 @@ import (
 	"net/url"
 	"reflect"
 
+	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	beaconurl "github.com/berachain/beacon-kit/primitives/net/url"
 	"github.com/mitchellh/mapstructure"
+	"github.com/spf13/cast"
 )
+
+// NumericToDomainTypeFunc returns a DecodeHookFunc that converts
+// numeric values to a `common.DomainType` (which is a `bytes.B4`).
+func NumericToDomainTypeFunc() mapstructure.DecodeHookFunc {
+	return func(
+		f reflect.Type,
+		t reflect.Type,
+		data interface{},
+	) (interface{}, error) {
+		var dt common.DomainType
+		if t != reflect.TypeOf(dt) {
+			return data, nil
+		}
+
+		switch f.Kind() {
+		case reflect.String:
+			return dt, dt.UnmarshalText([]byte(data.(string))) //nolint:errcheck // Safe to ignore.
+		default:
+			num, err := cast.ToUint32E(data)
+			if err != nil {
+				return common.DomainType{}, err
+			}
+
+			return bytes.FromUint32(num), nil
+		}
+	}
+}
 
 // StringToExecutionAddressFunc returns a DecodeHookFunc that converts
 // string to a `primitives.ExecutionAddresses` by parsing the string.
 func StringToExecutionAddressFunc() mapstructure.DecodeHookFunc {
-	return StringTo(
-		func(s string) (common.ExecutionAddress, error) {
-			return common.NewExecutionAddressFromHex(s), nil
-		},
-	)
+	return stringTo(common.NewExecutionAddressFromHex)
 }
 
 // StringToDialURLFunc returns a DecodeHookFunc that converts
 // string to *url.URL by parsing the string.
 func StringToDialURLFunc() mapstructure.DecodeHookFunc {
-	return StringTo(
+	return stringTo(
 		func(s string) (*url.URL, error) {
 			url, err := url.Parse(s)
 			if err != nil {
@@ -56,12 +81,12 @@ func StringToDialURLFunc() mapstructure.DecodeHookFunc {
 // StringToConnectionURLFunc returns a DecodeHookFunc that converts
 // string to *beaconurl.ConnectionURL by parsing the string.
 func StringToConnectionURLFunc() mapstructure.DecodeHookFunc {
-	return StringTo(beaconurl.NewFromRaw)
+	return stringTo(beaconurl.NewFromRaw)
 }
 
-// StringTo is a helper function for creating DecodeHookFuncs that convert
+// stringTo is a helper function for creating DecodeHookFuncs that convert
 // string to a specific type by parsing the string.
-func StringTo[T any](
+func stringTo[T any](
 	constructor func(string) (T, error),
 ) mapstructure.DecodeHookFunc {
 	return func(

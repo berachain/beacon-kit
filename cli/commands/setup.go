@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,7 +21,6 @@
 package commands
 
 import (
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/cli/commands/deposit"
 	"github.com/berachain/beacon-kit/cli/commands/genesis"
 	"github.com/berachain/beacon-kit/cli/commands/initialize"
@@ -31,37 +30,32 @@ import (
 	"github.com/berachain/beacon-kit/cli/flags"
 	cmtcli "github.com/berachain/beacon-kit/consensus/cometbft/cli"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
-	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/node-core/types"
 	"github.com/cosmos/cosmos-sdk/version"
 )
 
 // DefaultRootCommandSetup sets up the default commands for the root command.
-func DefaultRootCommandSetup[
-	T types.Node,
-	LoggerT log.AdvancedLogger[LoggerT],
-](
+func DefaultRootCommandSetup(
 	root *Root,
-	mm *cometbft.Service[LoggerT],
-	appCreator servertypes.AppCreator[T, LoggerT],
-	chainSpec chain.ChainSpec,
+	mm *cometbft.Service,
+	appCreator servertypes.AppCreator,
+	chainSpecCreator servertypes.ChainSpecCreator,
 ) {
 	// Add all the commands to the root command.
 	root.cmd.AddCommand(
 		// `comet`
 		cmtcli.Commands(appCreator),
 		// `init`
-		initialize.InitCmd(mm),
+		initialize.InitCmd(chainSpecCreator, mm),
 		// `genesis`
-		genesis.Commands(chainSpec),
+		genesis.Commands(chainSpecCreator),
 		// `deposit`
-		deposit.Commands(chainSpec),
+		deposit.Commands(chainSpecCreator, appCreator),
 		// `jwt`
 		jwt.Commands(),
 		// `rollback`
 		server.NewRollbackCmd(appCreator),
 		// `start`
-		server.StartCmdWithOptions(appCreator, server.StartCmdOptions[T]{
+		server.StartCmdWithOptions(appCreator, server.StartCmdOptions{
 			AddFlags: flags.AddBeaconKitFlags,
 		}),
 		// `status`

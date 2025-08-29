@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,10 +23,16 @@ package engineprimitives
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/karalabe/ssz"
 )
 
-// ProperTransactions is a type alias for [][]byte, which is how
+var (
+	_ ssz.DynamicObject       = (*Transactions)(nil)
+	_ constraints.SSZRootable = (*Transactions)(nil)
+)
+
+// Transactions is a type alias for [][]byte, which is how
 // transactions are received in the execution payload.
 type Transactions [][]byte
 

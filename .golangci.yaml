@@ -11,6 +11,7 @@ run:
   # Timeout for analysis, e.g. 30s, 5m.
   # Default: 1m
   timeout: 3m
+  build-tags: ["test"]
 
 
 # This file contains only configs which differ from defaults.
@@ -30,6 +31,15 @@ linters-settings:
     # Such cases aren't reported by default.
     # Default: false
     check-type-assertions: true
+
+  paralleltest:
+    # Ignore missing calls to `t.Parallel()` and only report incorrect uses of it.
+    # Default: false
+    ignore-missing: false
+    # Ignore missing calls to `t.Parallel()` in subtests. Top-level tests are
+    # still required to have `t.Parallel`, but subtests are allowed to skip it.
+    # Default: false
+    ignore-missing-subtests: true
 
   exhaustive:
     # Program elements to check for exhaustiveness.
@@ -256,7 +266,6 @@ linters:
     - goconst # finds repeated strings that could be replaced by a constant
     - gocritic # provides diagnostics that check for bugs, performance and style issues
     - gocyclo # computes and checks the cyclomatic complexity of functions
-    - godot # checks if comments end in a period
     - goimports # in addition to fixing imports, goimports also formats your code in the same style as gofmt
     # - gomoddirectives # manages the use of 'replace', 'retract', and 'excludes' directives in go.mod
     - gomodguard # allow and block lists linter for direct Go module dependencies. This is different from depguard where there are different block types for example version constraints and module recommendations
@@ -292,7 +301,7 @@ linters:
     - testableexamples # checks if examples are testable (have an expected output)
     - testifylint # checks usage of github.com/stretchr/testify
     - testpackage # makes you use a separate _test package
-    - tparallel # detects inappropriate usage of t.Parallel() method in your Go test codes
+#    - tparallel # detects inappropriate usage of t.Parallel() method in your Go test codes. Replaced with paralleltest
     - unconvert # removes unnecessary type conversions
     - unparam # reports unused function parameters
     - usestdlibvars # detects the possibility to use variables/constants from the Go standard library
@@ -334,7 +343,7 @@ linters:
     - maintidx # measures the maintainability index of each function
     - misspell # [useless] finds commonly misspelled English words in comments
     #- nlreturn # [too strict and mostly code is not more readable] checks for a new line before return and branch statements to increase code clarity
-    #- paralleltest # [too many false positives] detects missing usage of t.Parallel() method in your Go test
+    - paralleltest # detects missing usage of t.Parallel() method in your Go test
     # - tagliatelle # checks the struct tags
     - thelper # detects golang test helpers without t.Helper() call and checks the consistency of test helpers
     #- wsl # [too strict and mostly code is not more readable] whitespace linter forces you to use empty lines
@@ -347,8 +356,6 @@ issues:
   max-same-issues: 50
 
   exclude-rules:
-    - source: "(noinspection|TODO)"
-      linters: [ godot ]
     - source: "//noinspection"
       linters: [ gocritic ]
     - path: "_test\\.go"
@@ -361,6 +368,10 @@ issues:
         - noctx
         - wrapcheck
         - gochecknoglobals
+    # We exclude thelper for consensus types due to the usage of runForAllSupportedVersions where thelper falsely misses the usage of t.Helper()
+    - path: "^consensus-types/types/.*\\.go$"
+      linters:
+        - thelper
   exclude-files:
     - "pkg/cometbft/cli/.*\\.go"
     - "pkg/cometbft/service/server/.*\\.go"

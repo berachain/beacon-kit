@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -26,11 +26,11 @@ import (
 
 // Client - Ethereum rpc client.
 type Client struct {
-	*rpc.Client
+	rpc.Client
 }
 
 // New create new rpc client with given url.
-func New(client *rpc.Client) *Client {
+func New(client rpc.Client) *Client {
 	rpc := &Client{
 		Client: client,
 	}

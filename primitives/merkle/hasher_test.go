@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -29,6 +29,7 @@ import (
 )
 
 func TestCombi(t *testing.T) {
+	t.Parallel()
 	// Initialize the hasher function
 	hashFunc := func(data []byte) [32]byte {
 		var result [32]byte
@@ -69,6 +70,7 @@ func TestCombi(t *testing.T) {
 }
 
 func TestMixIn(t *testing.T) {
+	t.Parallel()
 	// Initialize the hasher function
 	hashFunc := func(data []byte) [32]byte {
 		var result [32]byte

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,6 +21,7 @@
 package proof
 
 import (
+	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/merkle"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
@@ -29,43 +30,37 @@ import (
 // GetBlockProposer returns the block proposer pubkey for the given timestamp
 // id along with a merkle proof that can be verified against the beacon block
 // root. It also returns the merkle proof of the proposer index.
-func (h *Handler[ContextT]) GetBlockProposer(c ContextT) (any, error) {
-	params, err := utils.BindAndValidate[types.BlockProposerRequest](
-		c, h.Logger(),
-	)
+func (h *Handler) GetBlockProposer(c handlers.Context) (any, error) {
+	params, err := utils.BindAndValidate[types.BlockProposerRequest](c, h.Logger())
 	if err != nil {
 		return nil, err
 	}
-	slot, beaconState, blockHeader, err := h.resolveTimestampID(
-		params.TimestampID,
-	)
+	slot, beaconState, blockHeader, err := h.resolveTimestampID(params.TimestampID)
 	if err != nil {
 		return nil, err
 	}
 
 	h.Logger().Info("Generating block proposer proofs", "slot", slot)
 
-	// Generate the proof (along with the "correct" beacon block root to
-	// verify against) for the proposer validator pubkey.
-	pubkeyProof, beaconBlockRoot, err := merkle.ProveProposerPubkeyInBlock(
-		blockHeader, beaconState,
-	)
+	// Generate the proof (along with the "correct" beacon block root to verify against) for the
+	// proposer validator's pubkey.
+	bsm, err := beaconState.GetMarshallable()
+	if err != nil {
+		return nil, err
+	}
+	pubkeyProof, beaconBlockRoot, err := merkle.ProveProposerPubkeyInBlock(blockHeader, bsm)
 	if err != nil {
 		return nil, err
 	}
 
 	// Generate the proof for the proposer index.
-	proposerIndexProof, _, err := merkle.ProveProposerIndexInBlock(
-		blockHeader,
-	)
+	proposerIndexProof, _, err := merkle.ProveProposerIndexInBlock(blockHeader)
 	if err != nil {
 		return nil, err
 	}
 
 	// Get the pubkey of the proposer validator.
-	proposerValidator, err := beaconState.ValidatorByIndex(
-		blockHeader.GetProposerIndex(),
-	)
+	proposerValidator, err := beaconState.ValidatorByIndex(blockHeader.GetProposerIndex())
 	if err != nil {
 		return nil, err
 	}

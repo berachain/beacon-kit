@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,15 +21,16 @@
 package encoding
 
 import (
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
+	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
 	"github.com/davecgh/go-spew/spew"
 )
 
 // SSZValueCodec provides methods to encode and decode SSZ values.
-type SSZValueCodec[T interface {
-	constraints.SSZMarshallable
-	constraints.Empty[T]
-}] struct{}
+type SSZValueCodec[T constraints.SSZMarshallable] struct {
+	NewEmptyF func() T // constructor
+}
 
 // Encode marshals the provided value into its SSZ encoding.
 func (SSZValueCodec[T]) Encode(value T) ([]byte, error) {
@@ -37,10 +38,9 @@ func (SSZValueCodec[T]) Encode(value T) ([]byte, error) {
 }
 
 // Decode unmarshals the provided bytes into a value of type T.
-func (SSZValueCodec[T]) Decode(bz []byte) (T, error) {
-	var v T
-	v = (v).Empty()
-	return v, v.UnmarshalSSZ(bz)
+func (sc SSZValueCodec[T]) Decode(bz []byte) (T, error) {
+	dest := sc.NewEmptyF()
+	return dest, ssz.Unmarshal(bz, dest)
 }
 
 // EncodeJSON is not implemented and will panic if called.
@@ -63,51 +63,44 @@ func (SSZValueCodec[T]) ValueType() string {
 	return "SSZMarshallable"
 }
 
-// SSZInterfaceCodec provides methods to encode and decode SSZ values.
-//
-// This type exists for codecs for interfaces, which require a factory function
-// to create new instances of the underlying hard type since reflect cannot
-// infer the type of an interface.
-type SSZInterfaceCodec[T interface {
-	constraints.SSZMarshallable
-	constraints.Versionable
-	NewFromSSZ([]byte, uint32) (T, error)
-}] struct {
-	latestVersion uint32
+// SSZVersionedValueCodec provides methods to encode and decode SSZ values for a specific version.
+type SSZVersionedValueCodec[T constraints.SSZMarshallable] struct {
+	NewEmptyF     func(common.Version) T // constructor
+	latestVersion common.Version
 }
 
 // SetActiveForkVersion sets the fork version for the codec.
-func (cdc *SSZInterfaceCodec[T]) SetActiveForkVersion(version uint32) {
+func (cdc *SSZVersionedValueCodec[T]) SetActiveForkVersion(version common.Version) {
 	cdc.latestVersion = version
 }
 
 // Encode marshals the provided value into its SSZ encoding.
-func (cdc *SSZInterfaceCodec[T]) Encode(value T) ([]byte, error) {
+func (cdc *SSZVersionedValueCodec[T]) Encode(value T) ([]byte, error) {
 	return value.MarshalSSZ()
 }
 
 // Decode unmarshals the provided bytes into a value of type T.
-func (cdc SSZInterfaceCodec[T]) Decode(b []byte) (T, error) {
-	var t T
-	return t.NewFromSSZ(b, cdc.latestVersion)
+func (cdc *SSZVersionedValueCodec[T]) Decode(b []byte) (T, error) {
+	dest := cdc.NewEmptyF(cdc.latestVersion)
+	return dest, ssz.Unmarshal(b, dest)
 }
 
 // EncodeJSON is not implemented and will panic if called.
-func (SSZInterfaceCodec[T]) EncodeJSON(_ T) ([]byte, error) {
+func (cdc *SSZVersionedValueCodec[T]) EncodeJSON(_ T) ([]byte, error) {
 	panic("not implemented")
 }
 
 // DecodeJSON is not implemented and will panic if called.
-func (SSZInterfaceCodec[T]) DecodeJSON(_ []byte) (T, error) {
+func (cdc *SSZVersionedValueCodec[T]) DecodeJSON(_ []byte) (T, error) {
 	panic("not implemented")
 }
 
 // Stringify returns the string representation of the provided value.
-func (SSZInterfaceCodec[T]) Stringify(value T) string {
+func (cdc *SSZVersionedValueCodec[T]) Stringify(value T) string {
 	return spew.Sdump(value)
 }
 
 // ValueType returns the name of the interface that this codec is intended for.
-func (SSZInterfaceCodec[T]) ValueType() string {
-	return "SSZMarshallable"
+func (cdc *SSZVersionedValueCodec[T]) ValueType() string {
+	return "SSZVersionedMarshallable"
 }

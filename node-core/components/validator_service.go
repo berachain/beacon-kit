@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,49 +23,32 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/beacon/validator"
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config"
-	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
+	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 )
 
 // ValidatorServiceInput is the input for the validator service provider.
-type ValidatorServiceInput[
-	AvailabilityStoreT any,
-	LoggerT any,
-	StorageBackendT any,
-] struct {
+type ValidatorServiceInput struct {
 	depinject.In
 	Cfg            *config.Config
-	ChainSpec      chain.ChainSpec
+	ChainSpec      chain.Spec
 	LocalBuilder   LocalBuilder
-	Logger         LoggerT
-	StateProcessor StateProcessor[*Context]
-	StorageBackend StorageBackendT
+	Logger         *phuslu.Logger
+	StateProcessor StateProcessor
+	StorageBackend *storage.Backend
 	Signer         crypto.BLSSigner
 	SidecarFactory SidecarFactory
 	TelemetrySink  *metrics.TelemetrySink
 }
 
 // ProvideValidatorService is a depinject provider for the validator service.
-func ProvideValidatorService[
-	AvailabilityStoreT any,
-	BeaconBlockStoreT any,
-	DepositStoreT DepositStore,
-	KVStoreT any,
-	LoggerT log.AdvancedLogger[LoggerT],
-	StorageBackendT StorageBackend[
-		AvailabilityStoreT, BeaconBlockStoreT, DepositStoreT,
-	],
-](
-	in ValidatorServiceInput[
-		AvailabilityStoreT,
-		LoggerT, StorageBackendT,
-	],
-) (*validator.Service[DepositStoreT], error) {
+func ProvideValidatorService(in ValidatorServiceInput) (*validator.Service, error) {
 	// Build the builder service.
-	return validator.NewService[DepositStoreT](
+	return validator.NewService(
 		&in.Cfg.Validator,
 		in.Logger.With("service", "validator"),
 		in.ChainSpec,
@@ -74,9 +57,6 @@ func ProvideValidatorService[
 		in.Signer,
 		in.SidecarFactory,
 		in.LocalBuilder,
-		[]validator.PayloadBuilder{
-			in.LocalBuilder,
-		},
 		in.TelemetrySink,
 	), nil
 }

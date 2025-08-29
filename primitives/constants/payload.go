@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -27,21 +27,30 @@ const (
 	// ExtraDataLength is the length of the extra data in bytes.
 	ExtraDataLength = 32
 
-	// MaxTxsPerPayload is the maximum number of transactions in a execution
-	// payload.
-	MaxTxsPerPayload uint64 = 1048576
-
 	// DepositContractDepth is the depth of the deposit contract merkle tree.
 	DepositContractDepth uint64 = 32
 
 	// MaxDeposits is the maximum number of deposits supported by the
-	// deposit tree (2**32).
+	// deposit tree (2**32). This is different from the enforced
+	// MaxDepositsPerBlock.
 	MaxDeposits uint64 = 1 << DepositContractDepth
-
-	// MaxWithdrawalsPerPayload is the maximum number of withdrawals in a
-	// execution payload.
-	MaxWithdrawalsPerPayload uint64 = 16
 
 	// MaxBytesPerTx is the maximum number of bytes per transaction.
 	MaxBytesPerTx uint64 = 1073741824
+)
+
+// Execution Layer Triggered Requests:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#execution-layer-triggered-requests
+const (
+	DepositRequestType       = byte(0x00)
+	WithdrawalRequestType    = byte(0x01)
+	ConsolidationRequestType = byte(0x02)
+)
+
+// Withdrawals processing:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#withdrawals-processing
+const (
+	// MaxPendingPartialsPerWithdrawalsSweep is the maximum number of pending partial withdrawals
+	// per sweep.
+	MaxPendingPartialsPerWithdrawalsSweep = 8
 )

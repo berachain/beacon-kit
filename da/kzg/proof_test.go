@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -26,7 +26,6 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/da/kzg"
-	"github.com/berachain/beacon-kit/da/kzg/ckzg"
 	"github.com/berachain/beacon-kit/da/kzg/gokzg"
 	"github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
@@ -39,6 +38,7 @@ import (
 var baseDir = "../../testing/files/"
 
 func TestNewBlobProofVerifier_KzgImpl(t *testing.T) {
+	t.Parallel()
 	ts, err := loadTrustedSetupFromFile()
 	require.NoError(t, err)
 
@@ -48,17 +48,8 @@ func TestNewBlobProofVerifier_KzgImpl(t *testing.T) {
 	require.Equal(t, gokzg.Implementation, verifier.GetImplementation())
 }
 
-func TestNewBlobProofVerifier_CkzgImpl(t *testing.T) {
-	ts, err := loadTrustedSetupFromFile()
-	require.NoError(t, err)
-
-	verifier, err := kzg.NewBlobProofVerifier(ckzg.Implementation, ts)
-	require.NoError(t, err)
-	require.NotNil(t, verifier)
-	require.Equal(t, ckzg.Implementation, verifier.GetImplementation())
-}
-
 func TestNewBlobProofVerifier_InvalidImpl(t *testing.T) {
+	t.Parallel()
 	ts, err := loadTrustedSetupFromFile()
 	require.NoError(t, err)
 
@@ -86,6 +77,7 @@ func loadTrustedSetupFromFile() (*gokzg4844.JSONTrustedSetup, error) {
 }
 
 func TestArgsFromSidecars(t *testing.T) {
+	t.Parallel()
 	fs := afero.NewOsFs()
 	fullPath := filepath.Join(baseDir, "test_data.json")
 	file, err := afero.ReadFile(fs, fullPath)

@@ -1,28 +1,22 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 //
-// # Copyright (c) 2024 Berachain Foundation
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
+// Use of this software is governed by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
 //
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
-//
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
 
 package types_test
 
@@ -33,13 +27,16 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
+	ssz "github.com/ferranbt/fastssz"
 	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
 // generateValidBeaconState generates a valid beacon state for the types.
-func generateValidBeaconState() *types.BeaconState {
-	return &types.BeaconState{
+func generateValidBeaconState(forkVersion common.Version) *types.BeaconState {
+	beaconState := &types.BeaconState{
+		Versionable:           types.NewVersionable(forkVersion),
 		GenesisValidatorsRoot: common.Root{0x01, 0x02, 0x03},
 		Slot:                  1234,
 		BlockRoots: []common.Root{
@@ -114,6 +111,22 @@ func generateValidBeaconState() *types.BeaconState {
 		},
 		Eth1DepositIndex: 100,
 	}
+
+	if version.EqualsOrIsAfter(beaconState.GetForkVersion(), version.Electra()) {
+		beaconState.PendingPartialWithdrawals = []*types.PendingPartialWithdrawal{
+			{
+				ValidatorIndex:    123,
+				Amount:            32000000000,
+				WithdrawableEpoch: 100,
+			},
+			{
+				ValidatorIndex:    124,
+				Amount:            100,
+				WithdrawableEpoch: 1,
+			},
+		}
+	}
+	return beaconState
 }
 
 func generateRandomBytes32(count int) []common.Bytes32 {
@@ -129,70 +142,83 @@ func generateRandomBytes32(count int) []common.Bytes32 {
 }
 
 func TestBeaconStateMarshalUnmarshalSSZ(t *testing.T) {
-	genState := generateValidBeaconState()
+	t.Parallel()
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		genState := generateValidBeaconState(v)
 
-	data, fastSSZMarshalErr := genState.MarshalSSZ()
-	require.NoError(t, fastSSZMarshalErr)
-	require.NotNil(t, data)
+		data, fastSSZMarshalErr := genState.MarshalSSZ()
+		require.NoError(t, fastSSZMarshalErr)
+		require.NotNil(t, data)
 
-	newState := &types.BeaconState{}
-	err := newState.UnmarshalSSZ(data)
-	require.NoError(t, err)
+		newState := types.NewEmptyBeaconStateWithVersion(v)
+		err := newState.UnmarshalSSZ(data)
+		require.NoError(t, err)
 
-	require.EqualValues(t, genState, newState)
+		require.EqualValues(t, genState, newState)
 
-	// Check if the state size is greater than 0
-	require.Positive(t, karalabessz.Size(genState))
+		// Check if the state size is greater than 0
+		require.Positive(t, karalabessz.Size(genState))
+	})
 }
 
 func TestHashTreeRoot(t *testing.T) {
-	state := generateValidBeaconState()
-	require.NotPanics(t, func() {
-		state.HashTreeRoot()
+	t.Parallel()
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		state := generateValidBeaconState(v)
+		require.NotPanics(t, func() {
+			state.HashTreeRoot()
+		})
 	})
 }
 
 func TestGetTree(t *testing.T) {
-	state := generateValidBeaconState()
-	tree, err := state.GetTree()
-	require.NoError(t, err)
-	require.NotNil(t, tree)
+	t.Parallel()
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		state := generateValidBeaconState(v)
+		tree, err := state.GetTree()
+		require.NoError(t, err)
+		require.NotNil(t, tree)
+	})
 }
 
 func TestBeaconState_UnmarshalSSZ_Error(t *testing.T) {
-	state := &types.BeaconState{}
-	err := state.UnmarshalSSZ([]byte{0x01, 0x02, 0x03}) // Invalid data
-	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
-}
-
-func TestBeaconState_MarshalSSZTo(t *testing.T) {
-	state := generateValidBeaconState()
-	data, err := state.MarshalSSZ()
-	require.NoError(t, err)
-	require.NotNil(t, data)
-
-	var buf []byte
-	buf, err = state.MarshalSSZTo(buf)
-	require.NoError(t, err)
-
-	// The two byte slices should be equal
-	require.Equal(t, data, buf)
+	t.Parallel()
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		state := types.NewEmptyBeaconStateWithVersion(v)
+		err := state.UnmarshalSSZ([]byte{0x01, 0x02, 0x03}) // Invalid data
+		require.ErrorIs(t, err, io.ErrUnexpectedEOF)
+	})
 }
 
 func TestBeaconState_HashTreeRoot(t *testing.T) {
-	state := generateValidBeaconState()
+	t.Parallel()
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		state := generateValidBeaconState(v)
 
-	// Get the HashTreeRoot
-	root := state.HashTreeRoot()
+		// Get the HashTreeRoot
+		root := state.HashTreeRoot()
 
-	// Get the HashConcurrent
-	concurrentRoot := common.Root(karalabessz.HashSequential(state))
+		// Get the HashConcurrent
+		concurrentRoot := common.Root(karalabessz.HashSequential(state))
 
-	// Compare the results
-	require.Equal(
-		t,
-		root,
-		concurrentRoot,
-		"HashTreeRoot and HashSequential should produce the same result",
-	)
+		// Get the HashTreeRootWith
+		hasher := ssz.NewHasher()
+		err := state.HashTreeRootWith(hasher)
+		require.NoError(t, err)
+		root2 := hasher.Hash()
+
+		// Compare the results
+		require.Equal(
+			t,
+			root,
+			concurrentRoot,
+			"HashTreeRoot and HashSequential should produce the same result",
+		)
+
+		require.Equal(t,
+			root[:],
+			root2,
+			"HashTreeRoot and HashTreeRootWith should produce the same result",
+		)
+	})
 }

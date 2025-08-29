@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,7 +21,7 @@
 package genesis
 
 import (
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 )
@@ -29,7 +29,7 @@ import (
 // Commands builds the genesis-related command. Users may
 // provide application specific commands as a parameter.
 func Commands(
-	cs chain.ChainSpec,
+	csc servertypes.ChainSpecCreator,
 	cmds ...*cobra.Command,
 ) *cobra.Command {
 	cmd := &cobra.Command{
@@ -42,10 +42,11 @@ func Commands(
 
 	// Adding subcommands for genesis-related operations.
 	cmd.AddCommand(
-		AddGenesisDepositCmd(cs),
+		AddGenesisDepositCmd(csc),
 		CollectGenesisDepositsCmd(),
-		AddExecutionPayloadCmd(cs),
-		GetGenesisValidatorRootCmd(cs),
+		AddExecutionPayloadCmd(csc),
+		GetGenesisValidatorRootCmd(csc),
+		SetDepositStorageCmd(csc),
 	)
 
 	// Add additional commands

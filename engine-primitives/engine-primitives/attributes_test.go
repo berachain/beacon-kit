@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -25,28 +25,33 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/stretchr/testify/require"
 )
 
 type payloadAttributesInput struct {
-	forkVersion           uint32
-	timestamp             uint64
+	forkVersion           common.Version
+	timestamp             math.U64
 	prevRandao            common.Bytes32
 	suggestedFeeRecipient common.ExecutionAddress
 	withdrawals           engineprimitives.Withdrawals
 	parentBeaconBlockRoot common.Root
+	parentProposerPubKey  *crypto.BLSPubkey
 }
 
 func TestPayloadAttributes(t *testing.T) {
+	t.Parallel()
 	// default valid data
 	validInput := payloadAttributesInput{
-		forkVersion:           uint32(1),
-		timestamp:             uint64(123456789),
+		forkVersion:           version.Altair(),
+		timestamp:             math.U64(123456789),
 		prevRandao:            common.Bytes32{1, 2, 3},
 		suggestedFeeRecipient: common.ExecutionAddress{},
 		withdrawals:           engineprimitives.Withdrawals{},
 		parentBeaconBlockRoot: common.Root{},
+		parentProposerPubKey:  nil,
 	}
 	tests := []struct {
 		name    string
@@ -82,41 +87,56 @@ func TestPayloadAttributes(t *testing.T) {
 			name: "Invalid nil withdrawals on Capella",
 			input: func() payloadAttributesInput {
 				res := validInput
-				res.forkVersion = version.Capella
+				res.forkVersion = version.Capella()
 				res.withdrawals = nil
 				return res
 			},
 			wantErr: engineprimitives.ErrNilWithdrawals,
 		},
+		{
+			name: "Invalid - parent proposer pubkey before Electra1",
+			input: func() payloadAttributesInput {
+				res := validInput
+				res.forkVersion = version.Electra()
+				res.parentProposerPubKey = &crypto.BLSPubkey{0x01}
+				return res
+			},
+			wantErr: engineprimitives.ErrNonEmptyPrevProposerPubKey,
+		},
+		{
+			name: "Invalid - no parent proposer pubkey after Electra1",
+			input: func() payloadAttributesInput {
+				res := validInput
+				res.forkVersion = version.Electra1()
+				return res
+			},
+			wantErr: engineprimitives.ErrEmptyPrevProposerPubKey,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			in := tt.input()
-			p := &engineprimitives.PayloadAttributes{}
-			got, err := p.New(
+			got, err := engineprimitives.NewPayloadAttributes(
 				in.forkVersion,
 				in.timestamp,
 				in.prevRandao,
 				in.suggestedFeeRecipient,
 				in.withdrawals,
 				in.parentBeaconBlockRoot,
+				in.parentProposerPubKey,
 			)
 			if tt.wantErr != nil {
 				require.ErrorIs(t, err, tt.wantErr)
 			} else {
 				require.NoError(t, err)
 				require.NotNil(t, got)
-
-				require.False(t, got.IsNil())
-				require.NoError(t, got.Validate())
-
 				require.Equal(
 					t,
 					in.suggestedFeeRecipient,
 					got.GetSuggestedFeeRecipient(),
 				)
-				require.Equal(t, in.forkVersion, got.Version())
 			}
 		})
 	}

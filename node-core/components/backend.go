@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,56 +21,42 @@
 package components
 
 import (
-	"context"
-
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/consensus-types/types"
+	dastore "github.com/berachain/beacon-kit/da/store"
+	"github.com/berachain/beacon-kit/log/phuslu"
+	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
+	"github.com/berachain/beacon-kit/storage/beacondb"
+	"github.com/berachain/beacon-kit/storage/block"
+	"github.com/berachain/beacon-kit/storage/deposit"
 )
 
 // StorageBackendInput is the input for the ProvideStorageBackend function.
-type StorageBackendInput[
-	AvailabilityStoreT any,
-	BeaconBlockStoreT any,
-	BeaconStoreT any,
-	DepositStoreT any,
-] struct {
+type StorageBackendInput struct {
 	depinject.In
-	AvailabilityStore AvailabilityStoreT
-	BlockStore        BeaconBlockStoreT
-	ChainSpec         chain.ChainSpec
-	DepositStore      DepositStoreT
-	BeaconStore       BeaconStoreT
+	AvailabilityStore *dastore.Store
+	BlockStore        *block.KVStore[*types.BeaconBlock]
+	ChainSpec         chain.Spec
+	DepositStore      deposit.StoreManager
+	BeaconStore       *beacondb.KVStore
+	Logger            *phuslu.Logger
+	TelemetrySink     *metrics.TelemetrySink
 }
 
 // ProvideStorageBackend is the depinject provider that returns a beacon storage
 // backend.
-func ProvideStorageBackend[
-	AvailabilityStoreT any,
-	BeaconBlockStoreT any,
-	BeaconStoreT interface {
-		WithContext(context.Context) BeaconStoreT
-	},
-	DepositStoreT any,
-](
-	in StorageBackendInput[
-		AvailabilityStoreT, BeaconBlockStoreT, BeaconStoreT,
-		DepositStoreT,
-	],
-) *storage.Backend[
-	AvailabilityStoreT, BeaconBlockStoreT,
-	DepositStoreT, BeaconStoreT,
-] {
-	return storage.NewBackend[
-		AvailabilityStoreT,
-		BeaconBlockStoreT,
-		DepositStoreT,
-		BeaconStoreT,
-	](
+func ProvideStorageBackend(
+	in StorageBackendInput,
+) *storage.Backend {
+	return storage.NewBackend(
 		in.ChainSpec,
 		in.AvailabilityStore,
 		in.BeaconStore,
 		in.DepositStore,
 		in.BlockStore,
+		in.Logger.With("service", "storage-backend"),
+		in.TelemetrySink,
 	)
 }

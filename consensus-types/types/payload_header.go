@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -24,23 +24,31 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 	fastssz "github.com/ferranbt/fastssz"
-	"github.com/holiman/uint256"
 	"github.com/karalabe/ssz"
 )
 
-// ExecutionPayloadHeader is the execution header payload of Deneb.
+// ExecutionPayloadHeaderStaticSize is the static size of the ExecutionPayloadHeader.
+const ExecutionPayloadHeaderStaticSize uint32 = 584
+
+// Compile-time assertions to ensure ExecutionPayloadHeader implements necessary interfaces.
+var (
+	_ ssz.DynamicObject                            = (*ExecutionPayloadHeader)(nil)
+	_ constraints.SSZVersionedMarshallableRootable = (*ExecutionPayloadHeader)(nil)
+)
+
+// ExecutionPayloadHeader represents the payload header of an execution block.
 type ExecutionPayloadHeader struct {
-	// TODO: Enable once
-	// https://github.com/karalabe/ssz/pull/9/files# is merged.
+	// NOTE: This version is not required but left in for backwards compatibility.
 	//
-	// // Metadata
-	// //
-	// // version is the fork version of the execution payload header.
-	// version uint32
+	// A recommended alternative to `GetForkVersion()` on this struct would be to use the chain
+	// spec's `ActiveForkVersionForTimestamp()` on the value of `GetTimestamp()`.
+	//
+	// This version should still be set to the correct value to avoid potential inconsistencies.
+	constraints.Versionable
 
 	// Contents
 	//
@@ -67,7 +75,7 @@ type ExecutionPayloadHeader struct {
 	// ExtraData is the extra data of the block.
 	ExtraData bytes.Bytes `json:"extraData"`
 	// BaseFeePerGas is the base fee per gas.
-	BaseFeePerGas *uint256.Int `json:"baseFeePerGas"`
+	BaseFeePerGas *math.U256 `json:"baseFeePerGas"`
 	// BlockHash is the hash of the block.
 	BlockHash common.ExecutionHash `json:"blockHash"`
 	// TransactionsRoot is the root of the transaction trie.
@@ -80,27 +88,11 @@ type ExecutionPayloadHeader struct {
 	ExcessBlobGas math.U64 `json:"excessBlobGas"`
 }
 
-// Empty returns an empty ExecutionPayload for the given fork version.
-func (h *ExecutionPayloadHeader) Empty() *ExecutionPayloadHeader {
+func NewEmptyExecutionPayloadHeaderWithVersion(version common.Version) *ExecutionPayloadHeader {
 	return &ExecutionPayloadHeader{
-		BaseFeePerGas: &uint256.Int{},
+		Versionable:   NewVersionable(version),
+		BaseFeePerGas: &math.U256{},
 	}
-}
-
-// NewFromSSZ returns a new ExecutionPayloadHeader from the given SSZ bytes.
-func (h *ExecutionPayloadHeader) NewFromSSZ(
-	bz []byte, _ uint32,
-) (*ExecutionPayloadHeader, error) {
-	h = h.Empty()
-	return h, h.UnmarshalSSZ(bz)
-}
-
-// NewFromJSON returns a new ExecutionPayloadHeader from the given JSON bytes.
-func (h *ExecutionPayloadHeader) NewFromJSON(
-	bz []byte, _ uint32,
-) (*ExecutionPayloadHeader, error) {
-	h = h.Empty()
-	return h, json.Unmarshal(bz, h)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -110,8 +102,7 @@ func (h *ExecutionPayloadHeader) NewFromJSON(
 // SizeSSZ returns either the static size of the object if fixed == true, or
 // the total size otherwise.
 func (h *ExecutionPayloadHeader) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
-	//nolint:mnd // todo fix.
-	var size = uint32(584)
+	size := ExecutionPayloadHeaderStaticSize
 	if fixed {
 		return size
 	}
@@ -133,7 +124,7 @@ func (h *ExecutionPayloadHeader) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineUint64(codec, &h.GasLimit)
 	ssz.DefineUint64(codec, &h.GasUsed)
 	ssz.DefineUint64(codec, &h.Timestamp)
-	//nolint:mnd // todo fix.
+	//nolint:mnd // TODO: get from accessible chainspec field params
 	ssz.DefineDynamicBytesOffset(codec, (*[]byte)(&h.ExtraData), 32)
 	ssz.DefineUint256(codec, &h.BaseFeePerGas)
 	ssz.DefineStaticBytes(codec, &h.BlockHash)
@@ -143,7 +134,7 @@ func (h *ExecutionPayloadHeader) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineUint64(codec, &h.ExcessBlobGas)
 
 	// Define the dynamic data (fields)
-	//nolint:mnd // todo fix.
+	//nolint:mnd // TODO: get from accessible chainspec field params
 	ssz.DefineDynamicBytesContent(codec, (*[]byte)(&h.ExtraData), 32)
 }
 
@@ -154,11 +145,7 @@ func (h *ExecutionPayloadHeader) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, h)
 }
 
-// UnmarshalSSZ unmarshals the ExecutionPayloadHeaderDeneb object from a source
-// array.
-func (h *ExecutionPayloadHeader) UnmarshalSSZ(bz []byte) error {
-	return ssz.DecodeFromBytes(bz, h)
-}
+func (*ExecutionPayloadHeader) ValidateAfterDecodingSSZ() error { return nil }
 
 // HashTreeRootSSZ returns the hash tree root of the ExecutionPayloadHeader.
 func (h *ExecutionPayloadHeader) HashTreeRoot() common.Root {
@@ -443,30 +430,15 @@ func (h *ExecutionPayloadHeader) UnmarshalJSON(input []byte) error {
 }
 
 /* -------------------------------------------------------------------------- */
-/*                             Getters and Setters                            */
+/*                                   Getters                                  */
 /* -------------------------------------------------------------------------- */
 
-// Version returns the version of the ExecutionPayloadHeader.
-func (h *ExecutionPayloadHeader) Version() uint32 {
-	return version.Deneb
-}
-
-// IsNil checks if the ExecutionPayloadHeader is nil.
-func (h *ExecutionPayloadHeader) IsNil() bool {
-	return h == nil
-}
-
 // GetParentHash returns the parent hash of the ExecutionPayloadHeader.
-func (
-	h *ExecutionPayloadHeader,
-) GetParentHash() common.ExecutionHash {
+func (h *ExecutionPayloadHeader) GetParentHash() common.ExecutionHash {
 	return h.ParentHash
 }
 
-// GetFeeRecipient returns the fee recipient address of the
-// ExecutionPayloadHeader.
-//
-
+// GetFeeRecipient returns the fee recipient address of the ExecutionPayloadHeader.
 func (h *ExecutionPayloadHeader) GetFeeRecipient() common.ExecutionAddress {
 	return h.FeeRecipient
 }
@@ -524,9 +496,7 @@ func (h *ExecutionPayloadHeader) GetBaseFeePerGas() *math.U256 {
 }
 
 // GetBlockHash returns the block hash of the ExecutionPayloadHeader.
-func (
-	h *ExecutionPayloadHeader,
-) GetBlockHash() common.ExecutionHash {
+func (h *ExecutionPayloadHeader) GetBlockHash() common.ExecutionHash {
 	return h.BlockHash
 }
 

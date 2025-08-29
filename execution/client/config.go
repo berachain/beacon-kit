@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -27,11 +27,13 @@ import (
 )
 
 const (
+	MinRPCTimeout = 2 * time.Second
+
 	defaultDialURL                 = "http://localhost:8551"
-	defaultRPCRetries              = 3
-	defaultRPCTimeout              = 2 * time.Second
+	defaultRPCRetryInterval        = 100 * time.Millisecond
+	defaultRPCMaxRetryInterval     = 10 * time.Second
 	defaultRPCStartupCheckInterval = 3 * time.Second
-	defaultRPCJWTRefreshInterval   = 20 * time.Second
+	defaultRPCJWTRefreshInterval   = 30 * time.Second
 	//#nosec:G101 // false positive.
 	defaultJWTSecretPath = "./jwt.hex"
 )
@@ -42,8 +44,9 @@ func DefaultConfig() Config {
 	dialURL, _ := url.NewFromRaw(defaultDialURL)
 	return Config{
 		RPCDialURL:              dialURL,
-		RPCRetries:              defaultRPCRetries,
-		RPCTimeout:              defaultRPCTimeout,
+		RPCRetryInterval:        defaultRPCRetryInterval,
+		RPCMaxRetryInterval:     defaultRPCMaxRetryInterval,
+		RPCTimeout:              MinRPCTimeout,
 		RPCStartupCheckInterval: defaultRPCStartupCheckInterval,
 		RPCJWTRefreshInterval:   defaultRPCJWTRefreshInterval,
 		JWTSecretPath:           defaultJWTSecretPath,
@@ -54,10 +57,13 @@ func DefaultConfig() Config {
 type Config struct {
 	// RPCDialURL is the HTTP url of the execution client JSON-RPC endpoint.
 	RPCDialURL *url.ConnectionURL `mapstructure:"rpc-dial-url"`
-	// RPCRetries is the number of retries before shutting down consensus
-	// client.
-	RPCRetries uint64 `mapstructure:"rpc-retries"`
-	// RPCTimeout is the RPC timeout for execution client calls.
+	// DeprecatedRPCRetries is deprecated.
+	DeprecatedRPCRetries uint64 `mapstructure:"rpc-retries"`
+	// RPCRetryInterval is the initial RPC backoff for repeated execution client calls.
+	RPCRetryInterval time.Duration `mapstructure:"rpc-retry-interval"`
+	// MaxRPCRetryInterval is the maximum RPC backoff for repeated execution client calls.
+	RPCMaxRetryInterval time.Duration `mapstructure:"rpc-max-retry-interval"`
+	// RPCTimeout is the RPC timeout for individual execution client calls.
 	RPCTimeout time.Duration `mapstructure:"rpc-timeout"`
 	// RPCStartupCheckInterval is the Interval for the startup check.
 	RPCStartupCheckInterval time.Duration `mapstructure:"rpc-startup-check-interval"`

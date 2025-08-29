@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -26,6 +26,7 @@ import (
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/stretchr/testify/require"
 )
@@ -42,6 +43,7 @@ func generateAttestationData() *types.AttestationData {
 }
 
 func TestAttestationData_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name     string
 		data     *types.AttestationData
@@ -78,19 +80,19 @@ func TestAttestationData_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			data, err := tc.data.MarshalSSZ()
 			require.NoError(t, err)
 			require.NotNil(t, data)
 
-			var unmarshalled types.AttestationData
+			unmarshalled := new(types.AttestationData)
 			if tc.name == "Invalid Buffer Size" {
-				err = unmarshalled.UnmarshalSSZ(data[:32])
-				require.Error(t, err)
-				require.Equal(t, tc.err, err)
+				err = ssz.Unmarshal(data[:32], unmarshalled)
+				require.ErrorIs(t, err, tc.err)
 			} else {
-				err = unmarshalled.UnmarshalSSZ(data)
+				err = ssz.Unmarshal(data, unmarshalled)
 				require.NoError(t, err)
-				require.Equal(t, tc.expected, &unmarshalled)
+				require.Equal(t, tc.expected, unmarshalled)
 
 				var buf []byte
 				buf, err = tc.data.MarshalSSZTo(buf)
@@ -104,6 +106,7 @@ func TestAttestationData_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 }
 
 func TestAttestationData_GetTree(t *testing.T) {
+	t.Parallel()
 	data := generateAttestationData()
 
 	tree, err := data.GetTree()
@@ -118,6 +121,7 @@ func TestAttestationData_GetTree(t *testing.T) {
 }
 
 func TestAttestationData_Getters(t *testing.T) {
+	t.Parallel()
 	data := generateAttestationData()
 	beaconBlockRoot := common.Root{
 		1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,

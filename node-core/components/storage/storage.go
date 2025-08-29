@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,91 +23,75 @@ package storage
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/consensus-types/types"
+	dastore "github.com/berachain/beacon-kit/da/store"
+	"github.com/berachain/beacon-kit/log"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/berachain/beacon-kit/storage/beacondb"
+	"github.com/berachain/beacon-kit/storage/block"
+	"github.com/berachain/beacon-kit/storage/deposit"
 )
 
 // Backend is a struct that holds the storage backend. It provides a simple
 // interface to access all types of storage required by the runtime.
-type Backend[
-	AvailabilityStoreT any,
-	BlockStoreT any,
-	DepositStoreT any,
-	KVStoreT KVStore[KVStoreT],
-] struct {
-	chainSpec         chain.ChainSpec
-	availabilityStore AvailabilityStoreT
-	kvStore           KVStoreT
-	depositStore      DepositStoreT
-	blockStore        BlockStoreT
+type Backend struct {
+	chainSpec         chain.Spec
+	availabilityStore *dastore.Store
+	kvStore           *beacondb.KVStore
+	depositStore      deposit.StoreManager
+	blockStore        *block.KVStore[*types.BeaconBlock]
+	logger            log.Logger
+	telemetrySink     statedb.TelemetrySink
 }
 
-func NewBackend[
-	AvailabilityStoreT any,
-	BlockStoreT any,
-	DepositStoreT any,
-	KVStoreT KVStore[KVStoreT],
-](
-	chainSpec chain.ChainSpec,
-	availabilityStore AvailabilityStoreT,
-	kvStore KVStoreT,
-	depositStore DepositStoreT,
-	blockStore BlockStoreT,
-) *Backend[
-	AvailabilityStoreT, BlockStoreT, DepositStoreT, KVStoreT,
-] {
-	return &Backend[
-		AvailabilityStoreT, BlockStoreT, DepositStoreT, KVStoreT,
-	]{
+func NewBackend(
+	chainSpec chain.Spec,
+	availabilityStore *dastore.Store,
+	kvStore *beacondb.KVStore,
+	depositStore deposit.StoreManager,
+	blockStore *block.KVStore[*types.BeaconBlock],
+	logger log.Logger,
+	telemetrySink statedb.TelemetrySink,
+) *Backend {
+	return &Backend{
 		chainSpec:         chainSpec,
 		availabilityStore: availabilityStore,
 		kvStore:           kvStore,
 		depositStore:      depositStore,
 		blockStore:        blockStore,
+		logger:            logger,
+		telemetrySink:     telemetrySink,
 	}
 }
 
 // AvailabilityStore returns the availability store struct initialized with a
 // given context.
-func (k Backend[
-	AvailabilityStoreT, _, _, _,
-]) AvailabilityStore() AvailabilityStoreT {
+func (k Backend) AvailabilityStore() *dastore.Store {
 	return k.availabilityStore
 }
 
-// BeaconState returns the beacon state struct initialized with a given
+// StateFromContext returns the beacon state struct initialized with a given
 // context and the store key.
-func (k Backend[
-	_, _, _, KVStoreT,
-]) StateFromContext(
-	ctx context.Context,
-) *statedb.StateDB {
-	kvstore, ok := any(k.kvStore.WithContext(ctx)).(*beacondb.KVStore)
-	if !ok {
-		panic("failed to cast KVStoreT to beacondb.KVStore")
-	}
-
-	var st *statedb.StateDB
-	return st.NewFromDB(kvstore, k.chainSpec)
+func (k Backend) StateFromContext(ctx context.Context) *statedb.StateDB {
+	return statedb.NewBeaconStateFromDB(
+		k.kvStore.WithContext(ctx),
+		k.chainSpec,
+		k.logger,
+		k.telemetrySink,
+	)
 }
 
 // BeaconStore returns the beacon store struct.
-func (k Backend[
-	_, _, _, KVStoreT,
-]) BeaconStore() KVStoreT {
+func (k Backend) BeaconStore() *beacondb.KVStore {
 	return k.kvStore
 }
 
-func (k Backend[
-	_, BlockStoreT, _, _,
-]) BlockStore() BlockStoreT {
+func (k Backend) BlockStore() *block.KVStore[*types.BeaconBlock] {
 	return k.blockStore
 }
 
 // DepositStore returns the deposit store struct initialized with a.
-func (k Backend[
-	_, _, DepositStoreT, _,
-]) DepositStore() DepositStoreT {
+func (k Backend) DepositStore() deposit.StoreManager {
 	return k.depositStore
 }

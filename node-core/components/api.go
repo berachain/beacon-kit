@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,14 +22,16 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-api/backend"
 	"github.com/berachain/beacon-kit/node-api/engines/echo"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/server"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/berachain/beacon-kit/node-core/components/storage"
+	cmtcfg "github.com/cometbft/cometbft/config"
 )
 
 // TODO: we could make engine type configurable
@@ -37,71 +39,40 @@ func ProvideNodeAPIEngine() *echo.Engine {
 	return echo.NewDefaultEngine()
 }
 
-type NodeAPIBackendInput[
-	StorageBackendT any,
-] struct {
+type NodeAPIBackendInput struct {
 	depinject.In
 
-	ChainSpec      chain.ChainSpec
-	StateProcessor StateProcessor[*Context]
-	StorageBackend StorageBackendT
+	ChainSpec      chain.Spec
+	StorageBackend *storage.Backend
+	CometConfig    *cmtcfg.Config
 }
 
-func ProvideNodeAPIBackend[
-	AvailabilityStoreT AvailabilityStore,
-	BeaconBlockStoreT BlockStore,
-	DepositStoreT DepositStore,
-	KVStoreT any,
-	NodeT interface {
-		CreateQueryContext(height int64, prove bool) (sdk.Context, error)
-	},
-	StorageBackendT StorageBackend[
-		AvailabilityStoreT, BeaconBlockStoreT, DepositStoreT,
-	],
-](
-	in NodeAPIBackendInput[StorageBackendT],
-) *backend.Backend[
-	AvailabilityStoreT,
-	BeaconBlockStoreT,
-	sdk.Context, DepositStoreT,
-	NodeT, KVStoreT, StorageBackendT,
-] {
-	return backend.New[
-		AvailabilityStoreT,
-		BeaconBlockStoreT,
-		sdk.Context,
-		DepositStoreT,
-		NodeT,
-		KVStoreT,
-		StorageBackendT,
-	](
+func ProvideNodeAPIBackend(
+	in NodeAPIBackendInput,
+) (*backend.Backend, error) {
+	return backend.New(
 		in.StorageBackend,
 		in.ChainSpec,
-		in.StateProcessor,
+		in.CometConfig,
 	)
 }
 
-type NodeAPIServerInput[
-	LoggerT log.AdvancedLogger[LoggerT],
-	NodeAPIContextT NodeAPIContext,
-] struct {
+type NodeAPIServerInput struct {
 	depinject.In
 
-	Engine   NodeAPIEngine[NodeAPIContextT]
+	Engine   NodeAPIEngine
 	Config   *config.Config
-	Handlers []handlers.Handlers[NodeAPIContextT]
-	Logger   LoggerT
+	Handlers []handlers.Handlers
+	Logger   *phuslu.Logger
 }
 
-func ProvideNodeAPIServer[
-	LoggerT log.AdvancedLogger[LoggerT],
-	NodeAPIContextT NodeAPIContext,
-](
-	in NodeAPIServerInput[LoggerT, NodeAPIContextT],
-) *server.Server[NodeAPIContextT] {
-	in.Logger.AddKeyValColor("service", "node-api-server",
-		log.Blue)
-	return server.New[NodeAPIContextT](
+func ProvideNodeAPIServer(in NodeAPIServerInput) *server.Server {
+	in.Logger.AddKeyValColor(
+		"service",
+		"node-api-server",
+		log.Blue,
+	)
+	return server.New(
 		in.Config.NodeAPI,
 		in.Engine,
 		in.Logger.With("service", "node-api-server"),

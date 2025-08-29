@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,12 +22,11 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/cli/flags"
 	"github.com/berachain/beacon-kit/config"
 	dablob "github.com/berachain/beacon-kit/da/blob"
 	"github.com/berachain/beacon-kit/da/kzg"
-	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/spf13/cast"
@@ -37,6 +36,7 @@ import (
 // dep inject framework.
 type BlobProofVerifierInput struct {
 	depinject.In
+
 	AppOpts          config.AppOptions
 	JSONTrustedSetup *gokzg4844.JSONTrustedSetup
 }
@@ -53,35 +53,19 @@ func ProvideBlobProofVerifier(
 }
 
 // BlobProcessorIn is the input for the BlobProcessor.
-type BlobProcessorIn[
-	LoggerT any,
-] struct {
+type BlobProcessorIn struct {
 	depinject.In
 
 	BlobProofVerifier kzg.BlobProofVerifier
-	ChainSpec         chain.ChainSpec
-	Logger            LoggerT
+	Logger            *phuslu.Logger
 	TelemetrySink     *metrics.TelemetrySink
 }
 
 // ProvideBlobProcessor is a function that provides the BlobProcessor to the
 // depinject framework.
-func ProvideBlobProcessor[
-	AvailabilityStoreT AvailabilityStore,
-	ConsensusSidecarsT ConsensusSidecars,
-	LoggerT log.AdvancedLogger[LoggerT],
-](
-	in BlobProcessorIn[LoggerT],
-) *dablob.Processor[
-	AvailabilityStoreT,
-	ConsensusSidecarsT,
-] {
-	return dablob.NewProcessor[
-		AvailabilityStoreT,
-		ConsensusSidecarsT,
-	](
+func ProvideBlobProcessor(in BlobProcessorIn) *dablob.Processor {
+	return dablob.NewProcessor(
 		in.Logger.With("service", "blob-processor"),
-		in.ChainSpec,
 		in.BlobProofVerifier,
 		in.TelemetrySink,
 	)

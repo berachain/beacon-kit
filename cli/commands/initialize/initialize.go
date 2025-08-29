@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -28,14 +28,17 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math/unsafe"
+	"github.com/berachain/beacon-kit/chain"
+	clitypes "github.com/berachain/beacon-kit/cli/commands/server/types"
+	"github.com/berachain/beacon-kit/cli/context"
+	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	cfg "github.com/cometbft/cometbft/config"
-	cmttypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/input"
@@ -57,15 +60,16 @@ const (
 	// FlagDefaultBondDenom defines the default denom to use in the genesis file.
 	FlagDefaultBondDenom = "default-denom"
 
-	// FlagConsensusKeyAlgo defines the algorithm to use for the consensus signing key.
-	FlagConsensusKeyAlgo = "consensus-key-algo"
+	// In BeaconKit we use crypto.CometBLSType only so we don't allow to specify
+	// any consensus key.
+	consensusKeyAlgo = crypto.CometBLSType
 )
 
 type printInfo struct {
-	Moniker    string          `json:"moniker" yaml:"moniker"`
-	ChainID    string          `json:"chain_id" yaml:"chain_id"`
-	NodeID     string          `json:"node_id" yaml:"node_id"`
-	GenTxsDir  string          `json:"gentxs_dir" yaml:"gentxs_dir"`
+	Moniker    string          `json:"moniker"     yaml:"moniker"`
+	ChainID    string          `json:"chain_id"    yaml:"chain_id"`
+	NodeID     string          `json:"node_id"     yaml:"node_id"`
+	GenTxsDir  string          `json:"gentxs_dir"  yaml:"gentxs_dir"`
 	AppMessage json.RawMessage `json:"app_message" yaml:"app_message"`
 }
 
@@ -91,8 +95,8 @@ func displayInfo(dst io.Writer, info printInfo) error {
 }
 
 //nolint:funlen,gocognit,mnd // based on cosmossdk implementation
-func InitCmd(mm interface {
-	DefaultGenesis() map[string]json.RawMessage
+func InitCmd(creator clitypes.ChainSpecCreator, mm interface {
+	DefaultGenesis(chain.Spec) map[string]json.RawMessage
 	ValidateGenesis(genesisData map[string]json.RawMessage) error
 }) *cobra.Command {
 	cmd := &cobra.Command{
@@ -103,7 +107,11 @@ func InitCmd(mm interface {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			config := client.GetConfigFromCmd(cmd)
+			// it's very important here to use `GetConfigFromCmd` as redefined
+			// in BeaconKit instead of cosmos sdk original implementation. Failure
+			// to do so, would result in cosmos sdk default configs being picked
+			// instead of BeaconKit ones
+			config := context.GetConfigFromCmd(cmd)
 			chainID, err := cmd.Flags().GetString(flags.FlagChainID)
 			if err != nil {
 				return errors.New("failed to parse FlagChainID")
@@ -118,12 +126,6 @@ func InitCmd(mm interface {
 			}
 			if config.RootDir == "" {
 				config.RootDir = clientCtx.HomeDir
-			}
-
-			// We should really cleanup how we generate the config, for example we should respect
-			// the defaults in builder.DefaultCometConfig instead  of the defaults from cometbft
-			if config.Consensus.TimeoutCommit == 0 {
-				config.Consensus.TimeoutCommit = 1000 * time.Millisecond
 			}
 
 			// Get bip39 mnemonic
@@ -155,12 +157,7 @@ func InitCmd(mm interface {
 				initHeight = 1
 			}
 
-			consensusKey, err := cmd.Flags().GetString(FlagConsensusKeyAlgo)
-			if err != nil {
-				return errorsmod.Wrap(err, "Failed to get consensus key algo")
-			}
-
-			nodeID, _, err := genutil.InitializeNodeValidatorFilesFromMnemonic(config, mnemonic, consensusKey)
+			nodeID, _, err := genutil.InitializeNodeValidatorFilesFromMnemonic(config, mnemonic, consensusKeyAlgo)
 			if err != nil {
 				return err
 			}
@@ -187,7 +184,12 @@ func InitCmd(mm interface {
 			if defaultDenom != "" {
 				sdk.DefaultBondDenom = defaultDenom
 			}
-			appGenState := mm.DefaultGenesis()
+
+			chainSpec, err := creator(context.GetViperFromCmd(cmd))
+			if err != nil {
+				return fmt.Errorf("faile to create chain spec: %w", err)
+			}
+			appGenState := mm.DefaultGenesis(chainSpec)
 
 			appState, err := json.MarshalIndent(appGenState, "", " ")
 			if err != nil {
@@ -213,10 +215,8 @@ func InitCmd(mm interface {
 			appGenesis.InitialHeight = initHeight
 			appGenesis.Consensus = &types.ConsensusGenesis{
 				Validators: nil,
-				Params:     cmttypes.DefaultConsensusParams(),
+				Params:     cometbft.DefaultConsensusParams(consensusKeyAlgo, chainSpec),
 			}
-
-			appGenesis.Consensus.Params.Validator.PubKeyTypes = []string{consensusKey}
 
 			if err = genutil.ExportGenesisFile(appGenesis, genFile); err != nil {
 				return errorsmod.Wrap(err, "Failed to export genesis file")
@@ -224,6 +224,10 @@ func InitCmd(mm interface {
 
 			toPrint := newPrintInfo(config.Moniker, chainID, nodeID, "", appState)
 
+			// Note: the config file was already creating before execution this command
+			// by [SetupCommand], and it is being overwritten here. The only difference,
+			// post default values cleanups, should be in the moniker, which is only setup
+			// correctly here
 			cfg.WriteConfigFile(filepath.Join(config.RootDir, "config", "config.toml"), config)
 			return displayInfo(cmd.ErrOrStderr(), toPrint)
 		},
@@ -234,7 +238,5 @@ func InitCmd(mm interface {
 	cmd.Flags().String(flags.FlagChainID, "", "genesis file chain-id, if left blank will be randomly created")
 	cmd.Flags().String(FlagDefaultBondDenom, "", "genesis file default denomination, if left blank default value is 'stake'")
 	cmd.Flags().Int64(flags.FlagInitHeight, 1, "specify the initial block height at genesis")
-	cmd.Flags().String(FlagConsensusKeyAlgo, "ed25519", "algorithm to use for the consensus key")
-
 	return cmd
 }

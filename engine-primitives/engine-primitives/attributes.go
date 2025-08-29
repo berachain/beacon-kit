@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,26 +22,13 @@ package engineprimitives
 
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constraints"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 )
 
-// PayloadAttributer represents payload attributes of a block.
-type PayloadAttributer interface {
-	constraints.Versionable
-	constraints.Nillable
-	// GetSuggestedFeeRecipient returns the suggested fee recipient for the
-	// block.
-	GetSuggestedFeeRecipient() common.ExecutionAddress
-}
-
 // PayloadAttributes is the attributes of a block payload.
-//
-
 type PayloadAttributes struct {
-	// version is the version of the payload attributes.
-	version uint32 `json:"-"`
 	// Timestamp is the timestamp at which the block will be built at.
 	Timestamp math.U64 `json:"timestamp"`
 	// PrevRandao is the previous Randao value from the beacon chain as
@@ -59,52 +46,46 @@ type PayloadAttributes struct {
 	// to the block currently being processed. This field was added for
 	// EIP-4788.
 	ParentBeaconBlockRoot common.Root `json:"parentBeaconBlockRoot"`
+	// ParentProposerPubkey carries the public key of previous block proposed
+	// This field was added for BRIP-0004. Should be nil for fork versions
+	// before Electra1.
+	ParentProposerPubkey *crypto.BLSPubkey `json:"parentProposerPubKey"`
 }
 
-// New empty PayloadAttributes.
-func (p *PayloadAttributes) New(
-	forkVersion uint32,
-	timestamp uint64,
+// NewPayloadAttributes creates a new PayloadAttributes and validates it for
+// the given fork version.
+func NewPayloadAttributes(
+	forkVersion common.Version,
+	timestamp math.U64,
 	prevRandao common.Bytes32,
 	suggestedFeeRecipient common.ExecutionAddress,
 	withdrawals Withdrawals,
 	parentBeaconBlockRoot common.Root,
+	parentProposerPubkey *crypto.BLSPubkey,
 ) (*PayloadAttributes, error) {
-	p = &PayloadAttributes{
-		version:               forkVersion,
-		Timestamp:             math.U64(timestamp),
+	pa := &PayloadAttributes{
+		Timestamp:             timestamp,
 		PrevRandao:            prevRandao,
 		SuggestedFeeRecipient: suggestedFeeRecipient,
 		Withdrawals:           withdrawals,
 		ParentBeaconBlockRoot: parentBeaconBlockRoot,
+		ParentProposerPubkey:  parentProposerPubkey,
 	}
 
-	if err := p.Validate(); err != nil {
+	if err := pa.validate(forkVersion); err != nil {
 		return nil, err
 	}
 
-	return p, nil
-}
-
-// IsNil returns true if the PayloadAttributes is nil.
-func (p *PayloadAttributes) IsNil() bool {
-	return p == nil
+	return pa, nil
 }
 
 // GetSuggestedFeeRecipient returns the suggested fee recipient.
-func (
-	p *PayloadAttributes,
-) GetSuggestedFeeRecipient() common.ExecutionAddress {
+func (p *PayloadAttributes) GetSuggestedFeeRecipient() common.ExecutionAddress {
 	return p.SuggestedFeeRecipient
 }
 
-// Version returns the version of the PayloadAttributes.
-func (p *PayloadAttributes) Version() uint32 {
-	return p.version
-}
-
-// Validate validates the PayloadAttributes.
-func (p *PayloadAttributes) Validate() error {
+// Validate validates the PayloadAttributes for the given fork version.
+func (p *PayloadAttributes) validate(forkVersion common.Version) error {
 	if p.Timestamp == 0 {
 		return ErrInvalidTimestamp
 	}
@@ -113,15 +94,21 @@ func (p *PayloadAttributes) Validate() error {
 		return ErrEmptyPrevRandao
 	}
 
-	if p.Withdrawals == nil && p.version >= version.Capella {
+	// For any fork version Capella onwards, withdrawals are required.
+	if p.Withdrawals == nil && version.EqualsOrIsAfter(forkVersion, version.Capella()) {
 		return ErrNilWithdrawals
 	}
 
-	// TODO: currently beaconBlockRoot is 0x000 on block 1, we need
-	// to fix this, before uncommenting the line below.
-	// if p.ParentBeaconBlockRoot == [32]byte{} {
-	// 	return ErrInvalidParentBeaconBlockRoot
-	// }
+	// For any fork version Electra1 onwards, the parent proposer pubkey is required.
+	if version.IsBefore(forkVersion, version.Electra1()) {
+		if p.ParentProposerPubkey != nil {
+			return ErrNonEmptyPrevProposerPubKey
+		}
+	} else {
+		if p.ParentProposerPubkey == nil {
+			return ErrEmptyPrevProposerPubKey
+		}
+	}
 
 	return nil
 }

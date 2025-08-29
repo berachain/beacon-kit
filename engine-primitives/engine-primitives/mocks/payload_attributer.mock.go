@@ -3,6 +3,7 @@
 package mocks
 
 import (
+	bytes "github.com/berachain/beacon-kit/primitives/bytes"
 	common "github.com/berachain/beacon-kit/primitives/common"
 
 	mock "github.com/stretchr/testify/mock"
@@ -114,31 +115,33 @@ func (_c *PayloadAttributer_IsNil_Call) RunAndReturn(run func() bool) *PayloadAt
 }
 
 // Version provides a mock function with given fields:
-func (_m *PayloadAttributer) Version() uint32 {
+func (_m *PayloadAttributer) GetForkVersion() bytes.B4 {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
-		panic("no return value specified for Version")
+		panic("no return value specified for GetForkVersion")
 	}
 
-	var r0 uint32
-	if rf, ok := ret.Get(0).(func() uint32); ok {
+	var r0 bytes.B4
+	if rf, ok := ret.Get(0).(func() bytes.B4); ok {
 		r0 = rf()
 	} else {
-		r0 = ret.Get(0).(uint32)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(bytes.B4)
+		}
 	}
 
 	return r0
 }
 
-// PayloadAttributer_Version_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Version'
+// PayloadAttributer_Version_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetForkVersion'
 type PayloadAttributer_Version_Call struct {
 	*mock.Call
 }
 
 // Version is a helper method to define mock.On call
 func (_e *PayloadAttributer_Expecter) Version() *PayloadAttributer_Version_Call {
-	return &PayloadAttributer_Version_Call{Call: _e.mock.On("Version")}
+	return &PayloadAttributer_Version_Call{Call: _e.mock.On("GetForkVersion")}
 }
 
 func (_c *PayloadAttributer_Version_Call) Run(run func()) *PayloadAttributer_Version_Call {
@@ -148,12 +151,12 @@ func (_c *PayloadAttributer_Version_Call) Run(run func()) *PayloadAttributer_Ver
 	return _c
 }
 
-func (_c *PayloadAttributer_Version_Call) Return(_a0 uint32) *PayloadAttributer_Version_Call {
+func (_c *PayloadAttributer_Version_Call) Return(_a0 bytes.B4) *PayloadAttributer_Version_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *PayloadAttributer_Version_Call) RunAndReturn(run func() uint32) *PayloadAttributer_Version_Call {
+func (_c *PayloadAttributer_Version_Call) RunAndReturn(run func() bytes.B4) *PayloadAttributer_Version_Call {
 	_c.Call.Return(run)
 	return _c
 }

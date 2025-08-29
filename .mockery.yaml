@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT
 #
-# Copyright (c) 2024 Berachain Foundation
+# Copyright (c) 2025 Berachain Foundation
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -30,48 +30,69 @@ outpkg: "mocks"
 resolve-type-alias: False # see https://vektra.github.io/mockery/latest/deprecations/#resolve-type-alias
 issue-845-fix: True # see https://vektra.github.io/mockery/latest/deprecations/#issue-845-fix
 packages:
-  github.com/berachain/beacon-kit/mod/execution/client/ethclient:
+  github.com/berachain/beacon-kit/execution/client/ethclient:
     config:
       recursive: True
       with-expecter: true
       include-regex: GethRPCClient
-  github.com/berachain/beacon-kit/mod/node-api/backend:
+  github.com/berachain/beacon-kit/node-api/backend:
     config:
       recursive: True
       with-expecter: true
       all: True
-  github.com/berachain/beacon-kit/mod/node-core/services/registry:
+  github.com/berachain/beacon-kit/node-core/services/registry:
     config:
       recursive: True
       with-expecter: true
       all: True
-  github.com/berachain/beacon-kit/mod/storage/interfaces:
+  github.com/berachain/beacon-kit/storage/interfaces:
     config:
       recursive: False
       with-expecter: true
       all: True
-  github.com/berachain/beacon-kit/mod/consensus-types/types:
+  github.com/berachain/beacon-kit/consensus-types/types:
     config:
       recursive: False
       with-expecter: true
       all: True
-  github.com/berachain/beacon-kit/mod/storage/pruner:
+  github.com/berachain/beacon-kit/storage/pruner:
     config:
       recursive: False
       with-expecter: true
       all: True
-  github.com/berachain/beacon-kit/mod/primitives/crypto:
+  github.com/berachain/beacon-kit/primitives/crypto:
     config:
       recursive: False
       with-expecter: true
       all: True
-  github.com/berachain/beacon-kit/mod/engine-primitives/engine-primitives:
+  github.com/berachain/beacon-kit/engine-primitives/engine-primitives:
     config:
       recursive: False
       with-expecter: true
       all: True
-  github.com/berachain/beacon-kit/mod/state-transition/core:
+  github.com/berachain/beacon-kit/state-transition/core:
     config:
       recursive: False
       with-expecter: true
       include-regex: ExecutionEngine
+  github.com/berachain/beacon-kit/beacon/blockchain:
+    config:
+      recursive: False
+      with-expecter: true
+      include-regex: LocalBuilder
+  github.com/berachain/beacon-kit/node-api/handlers/beacon:
+    config:
+      recursive: False
+      with-expecter: true
+      include-regex: ^Backend$
+  github.com/berachain/beacon-kit/node-api/handlers/node:
+    config:
+      recursive: False
+      with-expecter: true
+      include-regex: ^Backend$
+  github.com/berachain/beacon-kit/node-core/types:
+    config:
+      dir: "node-api/backend/mocks"
+      recursive: False
+      with-expecter: true
+      include-regex: ConsensusService

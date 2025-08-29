@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -108,6 +108,7 @@ func (cm *chainMetrics) markOptimisticPayloadBuildFailure(
 	)
 }
 
+// TODO: remove once state caching is activated
 // measureStateRootVerificationTime measures the time taken to verify the state
 // root of a block.
 // It records the duration from the provided start time to the current time.

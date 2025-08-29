@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -24,7 +24,7 @@ const (
 	// defaultTrustedSetupPath is the default path to the trusted setup.
 	defaultTrustedSetupPath = "./testing/files/kzg-trusted-setup.json"
 	// defaultImplementation is the default KZG implementation to use.
-	// Options are `crate-crypto/go-kzg-4844` or `ethereum/c-kzg-4844`.
+	// Options are `crate-crypto/go-kzg-4844`.
 	defaultImplementation = "crate-crypto/go-kzg-4844"
 )
 

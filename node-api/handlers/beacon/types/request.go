@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -31,11 +31,19 @@ type GetStateRootRequest struct {
 	types.StateIDRequest
 }
 
+type GetStateRequest struct {
+	types.StateIDRequest
+}
+
 type GetStateForkRequest struct {
 	types.StateIDRequest
 }
 
 type GetFinalityCheckpointsRequest struct {
+	types.StateIDRequest
+}
+
+type GetPendingPartialWithdrawalsRequest struct {
 	types.StateIDRequest
 }
 
@@ -53,7 +61,7 @@ type PostStateValidatorsRequest struct {
 
 type GetStateValidatorRequest struct {
 	types.StateIDRequest
-	ValidatorID string `query:"validator_id" validate:"required,validator_id"`
+	ValidatorID string `param:"validator_id" validate:"required,validator_id"`
 }
 
 type GetValidatorBalancesRequest struct {
@@ -63,7 +71,7 @@ type GetValidatorBalancesRequest struct {
 
 type PostValidatorBalancesRequest struct {
 	types.StateIDRequest
-	IDs []string `validate:"dive,validator_id"`
+	IDs []string `json:"-" validate:"dive,validator_id"`
 }
 
 type GetStateCommitteesRequest struct {
@@ -85,7 +93,8 @@ type GetRandaoRequest struct {
 
 type GetBlockHeadersRequest struct {
 	SlotRequest
-	ParentRoot string `query:"parent_root" validate:"hex"`
+
+	ParentRoot string `query:"parent_root" validate:"omitempty,hex"`
 }
 
 type GetBlockHeaderRequest struct {
@@ -125,7 +134,7 @@ type GetBlockAttestationsRequest struct {
 
 type GetBlobSidecarsRequest struct {
 	types.BlockIDRequest
-	Indices []string `query:"indices" validate:"dive,uint64"`
+	Indices []string `query:"indices" validate:"dive,numeric"`
 }
 
 type PostRewardsSyncCommitteeRequest struct {
@@ -167,9 +176,4 @@ type SlotRequest struct {
 type HeadersRequest struct {
 	SlotRequest
 	ParentRoot string `query:"parent_root" validate:"hex"`
-}
-
-type BlobSidecarRequest struct {
-	types.BlockIDRequest
-	Indices []string `query:"indices" validate:"dive,uint64"`
 }

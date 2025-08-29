@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -32,30 +32,19 @@ import (
 	proofapi "github.com/berachain/beacon-kit/node-api/handlers/proof"
 )
 
-type NodeAPIHandlersInput[
-	KVStoreT any,
-	NodeAPIContextT NodeAPIContext,
-] struct {
+type NodeAPIHandlersInput struct {
 	depinject.In
-	BeaconAPIHandler  *beaconapi.Handler[NodeAPIContextT]
-	BuilderAPIHandler *builderapi.Handler[NodeAPIContextT]
-	ConfigAPIHandler  *configapi.Handler[NodeAPIContextT]
-	DebugAPIHandler   *debugapi.Handler[NodeAPIContextT]
-	EventsAPIHandler  *eventsapi.Handler[NodeAPIContextT]
-	NodeAPIHandler    *nodeapi.Handler[NodeAPIContextT]
-	ProofAPIHandler   *proofapi.Handler[NodeAPIContextT]
+	BeaconAPIHandler  *beaconapi.Handler
+	BuilderAPIHandler *builderapi.Handler
+	ConfigAPIHandler  *configapi.Handler
+	DebugAPIHandler   *debugapi.Handler
+	EventsAPIHandler  *eventsapi.Handler
+	NodeAPIHandler    *nodeapi.Handler
+	ProofAPIHandler   *proofapi.Handler
 }
 
-func ProvideNodeAPIHandlers[
-	KVStoreT any,
-	NodeAPIContextT NodeAPIContext,
-](
-	in NodeAPIHandlersInput[
-		KVStoreT,
-		NodeAPIContextT,
-	],
-) []handlers.Handlers[NodeAPIContextT] {
-	return []handlers.Handlers[NodeAPIContextT]{
+func ProvideNodeAPIHandlers(in NodeAPIHandlersInput) []handlers.Handlers {
+	return []handlers.Handlers{
 		in.BeaconAPIHandler,
 		in.BuilderAPIHandler,
 		in.ConfigAPIHandler,
@@ -66,47 +55,30 @@ func ProvideNodeAPIHandlers[
 	}
 }
 
-func ProvideNodeAPIBeaconHandler[
-	NodeT any,
-	NodeAPIContextT NodeAPIContext,
-](b NodeAPIBackend[NodeT]) *beaconapi.Handler[NodeAPIContextT] {
-	return beaconapi.NewHandler[NodeAPIContextT](b)
+func ProvideNodeAPIBeaconHandler(b NodeAPIBackend) *beaconapi.Handler {
+	return beaconapi.NewHandler(b)
 }
 
-func ProvideNodeAPIBuilderHandler[
-	NodeAPIContextT NodeAPIContext,
-]() *builderapi.Handler[NodeAPIContextT] {
-	return builderapi.NewHandler[NodeAPIContextT]()
+func ProvideNodeAPIBuilderHandler() *builderapi.Handler {
+	return builderapi.NewHandler()
 }
 
-func ProvideNodeAPIConfigHandler[
-	NodeAPIContextT NodeAPIContext,
-]() *configapi.Handler[NodeAPIContextT] {
-	return configapi.NewHandler[NodeAPIContextT]()
+func ProvideNodeAPIConfigHandler(b NodeAPIBackend) *configapi.Handler {
+	return configapi.NewHandler(b)
 }
 
-func ProvideNodeAPIDebugHandler[
-	NodeAPIContextT NodeAPIContext,
-]() *debugapi.Handler[NodeAPIContextT] {
-	return debugapi.NewHandler[NodeAPIContextT]()
+func ProvideNodeAPIDebugHandler(b NodeAPIBackend) *debugapi.Handler {
+	return debugapi.NewHandler(b)
 }
 
-func ProvideNodeAPIEventsHandler[
-	NodeAPIContextT NodeAPIContext,
-]() *eventsapi.Handler[NodeAPIContextT] {
-	return eventsapi.NewHandler[NodeAPIContextT]()
+func ProvideNodeAPIEventsHandler() *eventsapi.Handler {
+	return eventsapi.NewHandler()
 }
 
-func ProvideNodeAPINodeHandler[
-	NodeAPIContextT NodeAPIContext,
-]() *nodeapi.Handler[NodeAPIContextT] {
-	return nodeapi.NewHandler[NodeAPIContextT]()
+func ProvideNodeAPINodeHandler(b NodeAPINodeBackend) *nodeapi.Handler {
+	return nodeapi.NewHandler(b)
 }
 
-func ProvideNodeAPIProofHandler[
-	KVStoreT any,
-	NodeT any,
-	NodeAPIContextT NodeAPIContext,
-](b NodeAPIBackend[NodeT]) *proofapi.Handler[NodeAPIContextT] {
-	return proofapi.NewHandler[NodeAPIContextT](b)
+func ProvideNodeAPIProofHandler(b NodeAPIBackend) *proofapi.Handler {
+	return proofapi.NewHandler(b)
 }

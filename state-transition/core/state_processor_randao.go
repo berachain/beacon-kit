@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,26 +21,25 @@
 package core
 
 import (
+	"fmt"
+
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/crypto/sha256"
-	"github.com/berachain/beacon-kit/primitives/version"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/go-faster/xor"
 )
 
 // processRandaoReveal processes the randao reveal and
 // ensures it matches the local state.
-func (sp *StateProcessor[
-	ContextT, _,
-]) processRandaoReveal(
-	ctx ContextT,
+func (sp *StateProcessor) processRandaoReveal(
+	ctx ReadOnlyContext,
 	st *statedb.StateDB,
 	blk *ctypes.BeaconBlock,
 ) error {
-	slot, err := st.GetSlot()
+	epoch, err := st.GetEpoch()
 	if err != nil {
 		return err
 	}
@@ -56,32 +55,23 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	epoch := sp.cs.SlotToEpoch(slot)
 	body := blk.GetBody()
+	timestamp := blk.GetTimestamp()
+	fd := ctypes.NewForkData(sp.cs.ActiveForkVersionForTimestamp(timestamp), genesisValidatorsRoot)
 
-	fd := ctypes.NewForkData(
-		version.FromUint32[common.Version](
-			sp.cs.ActiveForkVersionForEpoch(epoch),
-		), genesisValidatorsRoot,
-	)
-
-	if !ctx.GetSkipValidateRandao() {
-		signingRoot := fd.ComputeRandaoSigningRoot(
-			sp.cs.DomainTypeRandao(), epoch,
-		)
+	if ctx.VerifyRandao() {
+		signingRoot := fd.ComputeRandaoSigningRoot(sp.cs.DomainTypeRandao(), epoch)
 		reveal := body.GetRandaoReveal()
 		if err = sp.signer.VerifySignature(
 			proposer.GetPubkey(),
 			signingRoot[:],
 			reveal,
 		); err != nil {
-			return err
+			return fmt.Errorf("state processor failed randao checks: %w", err)
 		}
 	}
 
-	prevMix, err := st.GetRandaoMixAtIndex(
-		epoch.Unwrap() % sp.cs.EpochsPerHistoricalVector(),
-	)
+	prevMix, err := st.GetRandaoMixAtIndex(epoch.Unwrap() % sp.cs.EpochsPerHistoricalVector())
 	if err != nil {
 		return err
 	}
@@ -94,33 +84,24 @@ func (sp *StateProcessor[
 
 // processRandaoMixesReset as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#randao-mixes-updates
-func (sp *StateProcessor[
-	_, _,
-]) processRandaoMixesReset(
+func (sp *StateProcessor) processRandaoMixesReset(
 	st *statedb.StateDB,
 ) error {
-	slot, err := st.GetSlot()
+	epoch, err := st.GetEpoch()
 	if err != nil {
 		return err
 	}
 
-	epoch := sp.cs.SlotToEpoch(slot)
-	mix, err := st.GetRandaoMixAtIndex(
-		epoch.Unwrap() % sp.cs.EpochsPerHistoricalVector(),
-	)
+	mix, err := st.GetRandaoMixAtIndex(epoch.Unwrap() % sp.cs.EpochsPerHistoricalVector())
 	if err != nil {
 		return err
 	}
-	return st.UpdateRandaoMixAtIndex(
-		(epoch.Unwrap()+1)%sp.cs.EpochsPerHistoricalVector(),
-		mix,
-	)
+
+	return st.UpdateRandaoMixAtIndex((epoch.Unwrap()+1)%sp.cs.EpochsPerHistoricalVector(), mix)
 }
 
 // buildRandaoMix as defined in the Ethereum 2.0 specification.
-func (sp *StateProcessor[
-	_, _,
-]) buildRandaoMix(
+func (sp *StateProcessor) buildRandaoMix(
 	mix common.Bytes32,
 	reveal crypto.BLSSignature,
 ) common.Bytes32 {

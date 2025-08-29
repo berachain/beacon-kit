@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -24,14 +24,16 @@ import (
 	"io"
 	"testing"
 
-	types "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
 	"github.com/berachain/beacon-kit/primitives/math"
 	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
 func TestForkData_Serialization(t *testing.T) {
+	t.Parallel()
 	original := &types.ForkData{
 		CurrentVersion:        common.Version{},
 		GenesisValidatorsRoot: common.Root{},
@@ -41,20 +43,22 @@ func TestForkData_Serialization(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, data)
 
-	var unmarshalled types.ForkData
-	err = unmarshalled.UnmarshalSSZ(data)
+	unmarshalled := new(types.ForkData)
+	err = ssz.Unmarshal(data, unmarshalled)
 	require.NoError(t, err)
 
-	require.Equal(t, original, &unmarshalled)
+	require.Equal(t, original, unmarshalled)
 }
 
 func TestForkData_Unmarshal(t *testing.T) {
-	var unmarshalled types.ForkData
-	err := unmarshalled.UnmarshalSSZ([]byte{})
+	t.Parallel()
+	unmarshalled := new(types.ForkData)
+	err := ssz.Unmarshal([]byte{}, unmarshalled)
 	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
 
 func TestForkData_SizeSSZ(t *testing.T) {
+	t.Parallel()
 	forkData := &types.ForkData{
 		CurrentVersion:        common.Version{},
 		GenesisValidatorsRoot: common.Root{},
@@ -65,6 +69,7 @@ func TestForkData_SizeSSZ(t *testing.T) {
 }
 
 func TestForkData_HashTreeRoot(t *testing.T) {
+	t.Parallel()
 	forkData := &types.ForkData{
 		CurrentVersion:        common.Version{},
 		GenesisValidatorsRoot: common.Root{},
@@ -75,6 +80,7 @@ func TestForkData_HashTreeRoot(t *testing.T) {
 }
 
 func TestForkData_ComputeDomain(t *testing.T) {
+	t.Parallel()
 	forkData := &types.ForkData{
 		CurrentVersion:        common.Version{},
 		GenesisValidatorsRoot: common.Root{},
@@ -88,6 +94,7 @@ func TestForkData_ComputeDomain(t *testing.T) {
 }
 
 func TestForkData_ComputeRandaoSigningRoot(t *testing.T) {
+	t.Parallel()
 	fd := &types.ForkData{
 		CurrentVersion:        common.Version{},
 		GenesisValidatorsRoot: common.Root{},
@@ -102,6 +109,7 @@ func TestForkData_ComputeRandaoSigningRoot(t *testing.T) {
 }
 
 func TestNewForkData(t *testing.T) {
+	t.Parallel()
 	currentVersion := common.Version{}
 	genesisValidatorsRoot := common.Root{}
 
@@ -112,6 +120,7 @@ func TestNewForkData(t *testing.T) {
 }
 
 func TestNew(t *testing.T) {
+	t.Parallel()
 	currentVersion := common.Version{}
 	genesisValidatorsRoot := common.Root{}
 

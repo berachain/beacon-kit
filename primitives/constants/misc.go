@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -20,13 +20,48 @@
 
 package constants
 
-// This file contains various constants as defined:
+import (
+	stdmath "math"
+
+	"github.com/berachain/beacon-kit/primitives/math"
+)
+
+// Genesis constants taken from:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#misc
 const (
 	// GenesisSlot represents the initial slot in the system.
-	GenesisSlot uint64 = 0
+	GenesisSlot math.Slot = 0
 	// GenesisEpoch represents the initial epoch in the system.
-	GenesisEpoch uint64 = 0
+	GenesisEpoch math.Epoch = 0
 	// FarFutureEpoch represents a far future epoch value.
-	FarFutureEpoch = ^uint64(0)
+	FarFutureEpoch math.Epoch = stdmath.MaxUint64
+)
+
+// Electra constants taken from :
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#misc
+const (
+	// FullExitRequestAmount is the request amount for a full exit request, i.e. when a validator
+	// wants to withdraw its entire balance.
+	FullExitRequestAmount math.Gwei = 0
+)
+
+// Berachain constants.
+const (
+	// FirstDepositIndex represents the index of the first deposit in the system, set at genesis.
+	FirstDepositIndex uint64 = 0
+)
+
+// State list lengths.
+const (
+	// ValidatorsRegistryLimit is the maximum number of validators that can be registered.
+	// https://github.com/ethereum/consensus-specs/blob/dev/presets/mainnet/phase0.yaml#L55
+	// 2**40 (= 1,099,511,627,776) validator spots.
+	ValidatorsRegistryLimit = 1_099_511_627_776
+
+	// PendingPartialWithdrawalsLimit is the maximum number of pending partial withdrawals.
+	// https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#state-list-lengths
+	// 2**27 (= 134,217,728) pending partial withdrawals
+	// If the limit is hit, any new partial withdrawal requests will be dropped. This is not likely to happen but
+	// theoretically possible.
+	PendingPartialWithdrawalsLimit = 134_217_728
 )

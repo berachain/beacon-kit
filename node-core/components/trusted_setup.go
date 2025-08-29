@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,6 +21,8 @@
 package components
 
 import (
+	"fmt"
+
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/cli/flags"
 	"github.com/berachain/beacon-kit/config"
@@ -49,7 +51,7 @@ func ProvideTrustedSetup(
 func ReadTrustedSetup(filePath string) (*gokzg4844.JSONTrustedSetup, error) {
 	config, err := afero.ReadFile(afero.NewOsFs(), filePath)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed reading path '%s', err: %w", filePath, err)
 	}
 	params := new(gokzg4844.JSONTrustedSetup)
 	if err = json.Unmarshal(config, params); err != nil {

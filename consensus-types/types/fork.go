@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -52,11 +52,6 @@ type Fork struct {
 /*                                 Constructor                                */
 /* -------------------------------------------------------------------------- */
 
-// Empty creates an empty Fork.
-func (f *Fork) Empty() *Fork {
-	return &Fork{}
-}
-
 // New creates a new fork.
 func NewFork(
 	previousVersion common.Version,
@@ -68,6 +63,10 @@ func NewFork(
 		CurrentVersion:  currentVersion,
 		Epoch:           epoch,
 	}
+}
+
+func NewEmptyFork() *Fork {
+	return &Fork{}
 }
 
 /* -------------------------------------------------------------------------- */
@@ -92,10 +91,7 @@ func (f *Fork) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, f)
 }
 
-// UnmarshalSSZ unmarshals the Fork object from SSZ format.
-func (f *Fork) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, f)
-}
+func (*Fork) ValidateAfterDecodingSSZ() error { return nil }
 
 // HashTreeRoot computes the SSZ hash tree root of the Fork object.
 func (f *Fork) HashTreeRoot() common.Root {

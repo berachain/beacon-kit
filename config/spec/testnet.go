@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,19 +21,38 @@
 package spec
 
 import (
-	"github.com/berachain/beacon-kit/chain-spec/chain"
-	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/chain"
 )
 
-// TestnetChainSpec is the ChainSpec for the bArtio testnet.
-func TestnetChainSpec() (chain.Spec[
-	common.DomainType,
-	math.Epoch,
-	math.Slot,
-	any,
-], error) {
-	testnetSpec := BaseSpec()
-	testnetSpec.DepositEth1ChainID = TestnetEth1ChainID
-	return chain.NewChainSpec(testnetSpec)
+// TestnetChainSpecData is the chain.SpecData for Berachain's public testnet, Bepolia.
+func TestnetChainSpecData() *chain.SpecData {
+	specData := MainnetChainSpecData()
+
+	// Testnet uses chain ID of 80069.
+	specData.DepositEth1ChainID = chain.TestnetEth1ChainID
+
+	// Timestamp of the genesis block of Bepolia testnet.
+	specData.GenesisTime = 1_739_976_735
+
+	// Deneb1 fork timing on Bepolia. This is calculated based on the timestamp of the first bepolia
+	// epoch, block 192, which was used to initiate the fork when beacon-kit forked by epoch instead
+	// of by timestamp.
+	specData.Deneb1ForkTime = 1_740_090_694
+
+	// Timestamp of the Electra fork on Bepolia.
+	specData.ElectraForkTime = 1_746_633_600
+
+	// Enable stable block time before the Electra1 fork.
+	specData.Config.ConsensusUpdateHeight = 7_768_334
+	specData.Config.ConsensusEnableHeight = 7_768_335
+
+	// Timestamp of the Electra1 fork on Bepolia.
+	specData.Electra1ForkTime = 1_754_496_000
+
+	return specData
+}
+
+// TestnetChainSpec is the chain.Spec for Berachain's public testnet.
+func TestnetChainSpec() (chain.Spec, error) {
+	return chain.NewSpec(TestnetChainSpecData())
 }

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -30,7 +30,7 @@ import (
 
 	clicontext "github.com/berachain/beacon-kit/cli/context"
 	"github.com/berachain/beacon-kit/errors"
-	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/log/phuslu"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
@@ -43,14 +43,12 @@ import (
 // configs are empty, it will be populated with the values from
 // <appConfig> and <cmtConfig>. In either case, the resulting
 // values in these files will be merged with viper.
-func SetupCommand[
-	LoggerT log.AdvancedLogger[LoggerT],
-](
+func SetupCommand(
 	cmd *cobra.Command,
 	appTemplate string,
 	appConfig any,
 	cmtConfig *cmtcfg.Config,
-	logger LoggerT,
+	logger *phuslu.Logger,
 ) error {
 	// initialize the server context
 	if err := InitializeCmd(cmd, logger); err != nil {
@@ -59,7 +57,9 @@ func SetupCommand[
 
 	if err := handleConfigs(
 		clicontext.GetViperFromCmd(cmd),
-		appTemplate, appConfig, cmtConfig,
+		appTemplate,
+		appConfig,
+		cmtConfig,
 	); err != nil {
 		return err
 	}
@@ -71,12 +71,7 @@ func SetupCommand[
 // The comet config and app config are merged into the viper instance.
 // If the app config is empty, the viper instance is populated with
 // the app config values.
-func InitializeCmd[
-	LoggerT log.AdvancedLogger[LoggerT],
-](
-	cmd *cobra.Command,
-	logger LoggerT,
-) error {
+func InitializeCmd(cmd *cobra.Command, logger *phuslu.Logger) error {
 	// Get the executable name and configure the viper instance so that
 	// environmental variables are checked based off that name.
 	baseName, err := baseName()
@@ -168,12 +163,17 @@ func handleConfigs(
 	cmtCfgFile := filepath.Join(configDirPath, "config.toml")
 
 	if err := handleCometConfig(
-		viper, cmtCfgFile, cometConfig, rootDir, configDirPath,
+		viper,
+		cmtCfgFile, cometConfig,
+		rootDir, configDirPath,
 	); err != nil {
 		return err
 	}
 
 	return handleAppConfig(
-		viper, configDirPath, customAppTemplate, customConfig,
+		viper,
+		configDirPath,
+		customAppTemplate,
+		customConfig,
 	)
 }

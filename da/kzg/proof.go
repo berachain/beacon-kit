@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,7 +21,6 @@
 package kzg
 
 import (
-	"github.com/berachain/beacon-kit/da/kzg/ckzg"
 	"github.com/berachain/beacon-kit/da/kzg/gokzg"
 	kzgtypes "github.com/berachain/beacon-kit/da/kzg/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
@@ -58,13 +57,11 @@ func NewBlobProofVerifier(
 	switch impl {
 	case gokzg.Implementation:
 		return gokzg.NewVerifier(ts)
-	case ckzg.Implementation:
-		return ckzg.NewVerifier(ts)
 	default:
 		return nil, errors.Wrapf(
 			ErrUnsupportedKzgImplementation,
-			"supplied: %s, supported: %s, %s",
-			impl, gokzg.Implementation, ckzg.Implementation,
+			"supplied: %s, supported: %s",
+			impl, gokzg.Implementation,
 		)
 	}
 }

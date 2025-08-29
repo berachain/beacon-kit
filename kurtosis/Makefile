@@ -4,6 +4,12 @@
 ###                                Kurtosis                                 ###
 ###############################################################################
 
+# This Makefile uses bash specific syntax. Makefile usually runs commands in
+# /bin/sh. This is fine on Macos since /bin/sh is bash. However, on Ubuntu,
+# /bin/sh is dash, so many of the commands here will fail without this (env
+# variables like PATH not set, STDERR redirect does not work, etc).
+SHELL := /bin/bash
+
 # Installs Kurtosis if not already installed
 install-kurtosis:
 	@echo "Checking for Kurtosis installation..."
@@ -36,28 +42,17 @@ start-devnet: install-kurtosis
 
 # Starts a Kurtosis enclave containing a local devnet without building the image
 start-devnet-no-build:
-	kurtosis run ./kurtosis --args-file ./kurtosis/beaconkit-all.yaml \
+	kurtosis run ./kurtosis --args-file ./kurtosis/beaconkit-local.yaml \
 		--enclave my-local-devnet --parallelism 200
 
-# Starts a Kurtosis enclave containing a local devnet on GCP.
-# --production flag is used to indicate that the enclave is
-# running in production mode to allow pod restarts when doing chaos testing.
-start-gcp-devnet-no-build:
-	kurtosis run ./kurtosis --args-file ./kurtosis/beaconkit-base-gcp.yaml \
-		--enclave my-gcp-devnet2 --parallelism 200 --production --image-download always
+# Starts a Kurtosis enclave in the cloud using the latest image tag
+start-devnet-cloud: install-kurtosis
+	kurtosis run ./kurtosis --args-file ./kurtosis/beaconkit-cloud.yaml \
+		--enclave my-cloud-devnet-$(shell whoami) --parallelism 200 --production --image-download always
 
-# Stops the running Kurtosis enclave on GCP
-stop-gcp-devnet:
-	kurtosis enclave stop my-gcp-devnet2
-
-# Stops and removes the specified Kurtosis enclave
-reset-gcp-devnet:
-	$(MAKE) stop-gcp-devnet
-	kurtosis enclave rm my-gcp-devnet2
-
-# Removes the specified Kurtosis enclave
-rm-gcp-devnet:
-	kurtosis enclave rm my-gcp-devnet2 --force
+# Remove the running Kurtosis enclave on GCP
+rm-devnet-cloud:
+	kurtosis enclave rm my-cloud-devnet-$(shell whoami) --force
 
 # Stops the running Kurtosis enclave
 stop-devnet:
@@ -75,21 +70,18 @@ rm-devnet:
 # Installs buildifier, a tool for linting and formatting starlark files.
 buildifier-install:
 	@echo "--> Installing buildifier"
-	@go install github.com/bazelbuild/buildtools/buildifier
+	@go install github.com/bazelbuild/buildtools/buildifier@latest
 
 # Lints Starlark (.star) files in the Kurtosis directory using buildifier
-star-lint:
-	@$(MAKE) buildifier-install
+star-lint: buildifier-install
 	@echo "--> Running buildifier to format starlark files..."
 	find ./kurtosis -name "*.star" -exec buildifier -mode=check {} +
 
 # Automatically fixes formatting issues in Starlark (.star) files using buildifier
-star-fix:
-	@$(MAKE) buildifier-install
+star-fix: buildifier-install
 	@echo "--> Running buildifier to format starlark files..."
 	find ./kurtosis -name "*.star" -exec buildifier --mode=fix {} +
 
 # Marks targets as not being associated with files
-.PHONY: start-devnet stop-devnet reset-devnet rm-devnet buildifier-install \
-  star-lint star-fix start-gcp-devnet-no-build stop-gcp-devnet \
-  reset-gcp-devnet rm-gcp-devnet install-kurtosis
+.PHONY: start-devnet stop-devnet start-devnet-cloud rm-devnet-cloud reset-devnet rm-devnet buildifier-install \
+  star-lint star-fix install-kurtosis

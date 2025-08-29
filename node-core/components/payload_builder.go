@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,43 +22,33 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/execution/engine"
-	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/log/phuslu"
 	payloadbuilder "github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/payload/cache"
-	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // LocalBuilderInput is an input for the dep inject framework.
-type LocalBuilderInput[
-	LoggerT log.AdvancedLogger[LoggerT],
-] struct {
+type LocalBuilderInput struct {
 	depinject.In
 	AttributesFactory AttributesFactory
 	Cfg               *config.Config
-	ChainSpec         chain.ChainSpec
+	ChainSpec         chain.Spec
 	ExecutionEngine   *engine.Engine
-	Logger            LoggerT
+	Logger            *phuslu.Logger
 }
 
 // ProvideLocalBuilder provides a local payload builder for the
 // depinject framework.
-func ProvideLocalBuilder[
-	KVStoreT any,
-	LoggerT log.AdvancedLogger[LoggerT],
-](
-	in LocalBuilderInput[LoggerT],
-) *payloadbuilder.PayloadBuilder {
+func ProvideLocalBuilder(in LocalBuilderInput) *payloadbuilder.PayloadBuilder {
 	return payloadbuilder.New(
 		&in.Cfg.PayloadBuilder,
 		in.ChainSpec,
 		in.Logger.With("service", "payload-builder"),
 		in.ExecutionEngine,
-		cache.NewPayloadIDCache[
-			[32]byte, math.Slot,
-		](),
+		cache.NewPayloadIDCache(),
 		in.AttributesFactory,
 	)
 }

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,13 +21,12 @@
 package components
 
 import (
-	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/validator"
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
-	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/builder"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	cmtcfg "github.com/cometbft/cometbft/config"
@@ -35,28 +34,24 @@ import (
 )
 
 // ProvideCometBFTService provides the CometBFT service component.
-func ProvideCometBFTService[
-	LoggerT log.AdvancedLogger[LoggerT],
-](
-	logger LoggerT,
-	storeKey *storetypes.KVStoreKey,
+func ProvideCometBFTService(
+	logger *phuslu.Logger,
 	blockchain blockchain.BlockchainI,
 	blockBuilder validator.BlockBuilderI,
 	db dbm.DB,
+	cs chain.Spec,
 	cmtCfg *cmtcfg.Config,
 	appOpts config.AppOptions,
-	chainSpec chain.ChainSpec,
 	telemetrySink *metrics.TelemetrySink,
-) *cometbft.Service[LoggerT] {
+) *cometbft.Service {
 	return cometbft.NewService(
-		storeKey,
 		logger,
 		db,
 		blockchain,
 		blockBuilder,
+		cs,
 		cmtCfg,
-		chainSpec,
 		telemetrySink,
-		builder.DefaultServiceOptions[LoggerT](appOpts)...,
+		builder.DefaultServiceOptions(appOpts)...,
 	)
 }

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -36,6 +36,7 @@ import (
 )
 
 func TestCreateAndSignDepositMessage(t *testing.T) {
+	t.Parallel()
 	forkData := &types.ForkData{
 		CurrentVersion:        common.Version{0x00, 0x00, 0x00, 0x04},
 		GenesisValidatorsRoot: common.Root{0x00, 0x00, 0x00, 0x00},
@@ -61,17 +62,8 @@ func TestCreateAndSignDepositMessage(t *testing.T) {
 	require.NotNil(t, signature)
 }
 
-func TestNewDepositMessage(t *testing.T) {
-	pubKey := crypto.BLSPubkey{}
-	credentials := types.WithdrawalCredentials{}
-	amount := math.Gwei(32)
-	depositMessage := types.DepositMessage{}
-	newDepositMessage := depositMessage.New(pubKey, credentials, amount)
-
-	require.NotNil(t, newDepositMessage)
-}
-
 func TestDepositMessage_MarshalUnmarshalSSZ(t *testing.T) {
+	t.Parallel()
 	original := &types.DepositMessage{
 		Pubkey:      crypto.BLSPubkey{},
 		Credentials: types.WithdrawalCredentials{},
@@ -89,6 +81,7 @@ func TestDepositMessage_MarshalUnmarshalSSZ(t *testing.T) {
 }
 
 func TestDepositMessage_MarshalSSZTo(t *testing.T) {
+	t.Parallel()
 	original := &types.DepositMessage{
 		Pubkey:      crypto.BLSPubkey{},
 		Credentials: types.WithdrawalCredentials{},
@@ -106,6 +99,7 @@ func TestDepositMessage_MarshalSSZTo(t *testing.T) {
 }
 
 func TestDepositMessage_UnmarshalSSZ_ErrSize(t *testing.T) {
+	t.Parallel()
 	buf := make([]byte, 10) // size less than 88
 
 	var unmarshalledDepositMessage types.DepositMessage
@@ -115,6 +109,7 @@ func TestDepositMessage_UnmarshalSSZ_ErrSize(t *testing.T) {
 }
 
 func TestDepositMessage_VerifyCreateValidator_Error(t *testing.T) {
+	t.Parallel()
 	original := &types.DepositMessage{
 		Pubkey:      crypto.BLSPubkey{},
 		Credentials: types.WithdrawalCredentials{},

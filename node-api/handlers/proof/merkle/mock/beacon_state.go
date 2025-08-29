@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,95 +21,51 @@
 package mock
 
 import (
-	"errors"
-
 	"github.com/berachain/beacon-kit/consensus-types/types"
-	ptypes "github.com/berachain/beacon-kit/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 )
 
-// Compile time check to ensure BeaconState implements the methods
-// required by the BeaconState for proofs.
-var _ ptypes.BeaconState[*BeaconStateMarshallable] = (*BeaconState)(nil)
-
-// BeaconState is a mock implementation of the proof BeaconState interface
-// using the default BeaconState type that is marshallable.
-type (
-	BeaconStateMarshallable = types.BeaconState
-
-	BeaconState struct {
-		*BeaconStateMarshallable
-	}
-)
-
-// NewBeaconState creates a new mock beacon state, with only the given slot,
-// validators, execution number, and execution fee recipient.
-func NewBeaconState(
+// NewBeaconStateWith creates a new mock beacon state with only the given fork version,
+// slot, validators, execution number, and execution fee recipient populated.
+func NewBeaconStateWith(
 	slot math.Slot,
 	vals types.Validators,
 	executionNumber math.U64,
 	executionFeeRecipient common.ExecutionAddress,
-) (*BeaconState, error) {
+	forkVersion common.Version,
+) *types.BeaconState {
 	// If no validators are provided, create an empty slice.
 	if len(vals) == 0 {
 		vals = make(types.Validators, 0)
 	}
 
-	// Create an empty execution payload header with the given execution number
-	// and fee recipient.
-	execPayloadHeader := (&types.ExecutionPayloadHeader{}).Empty()
+	// Create an empty execution payload header with the given execution number and fee recipient.
+	execPayloadHeader := types.NewEmptyExecutionPayloadHeaderWithVersion(forkVersion)
 	execPayloadHeader.Number = executionNumber
 	execPayloadHeader.FeeRecipient = executionFeeRecipient
 
-	var (
-		bsm = &BeaconStateMarshallable{}
-		err error
-	)
-	bsm, err = bsm.New(
-		0,
-		common.Root{},
-		slot,
-		(&types.Fork{}).Empty(),
-		(&types.BeaconBlockHeader{}).Empty(),
-		[]common.Root{},
-		[]common.Root{},
-		(&types.Eth1Data{}).Empty(),
-		0,
-		execPayloadHeader,
-		vals,
-		[]uint64{},
-		[]common.Bytes32{},
-		0,
-		0,
-		[]math.Gwei{},
-		0,
-	)
-	return &BeaconState{BeaconStateMarshallable: bsm}, err
-}
-
-// GetLatestExecutionPayloadHeader implements proof BeaconState.
-func (m *BeaconState) GetLatestExecutionPayloadHeader() (
-	*types.ExecutionPayloadHeader, error,
-) {
-	return m.BeaconStateMarshallable.LatestExecutionPayloadHeader, nil
-}
-
-// GetMarshallable implements proof BeaconState.
-func (m *BeaconState) GetMarshallable() (
-	*BeaconStateMarshallable, error,
-) {
-	return m.BeaconStateMarshallable, nil
-}
-
-// ValidatorByIndex implements proof BeaconState.
-func (m *BeaconState) ValidatorByIndex(
-	index math.ValidatorIndex,
-) (*types.Validator, error) {
-	vals := m.BeaconStateMarshallable.Validators
-	if index >= math.ValidatorIndex(len(vals)) {
-		return nil, errors.New("validator index out of range")
+	bsm := types.NewEmptyBeaconStateWithVersion(forkVersion)
+	bsm.Slot = slot
+	bsm.GenesisValidatorsRoot = common.Root{}
+	bsm.Fork = &types.Fork{}
+	bsm.LatestBlockHeader = types.NewEmptyBeaconBlockHeader()
+	bsm.BlockRoots = []common.Root{}
+	bsm.StateRoots = []common.Root{}
+	bsm.LatestExecutionPayloadHeader = execPayloadHeader
+	bsm.Eth1Data = &types.Eth1Data{}
+	bsm.Eth1DepositIndex = 0
+	bsm.Validators = vals
+	bsm.Balances = []uint64{}
+	bsm.RandaoMixes = []common.Bytes32{}
+	bsm.NextWithdrawalIndex = 0
+	bsm.NextWithdrawalValidatorIndex = 0
+	bsm.Slashings = []math.Gwei{}
+	bsm.TotalSlashing = 0
+	if version.EqualsOrIsAfter(bsm.GetForkVersion(), version.Electra()) {
+		bsm.PendingPartialWithdrawals = []*types.PendingPartialWithdrawal{}
 	}
 
-	return vals[index], nil
+	return bsm
 }

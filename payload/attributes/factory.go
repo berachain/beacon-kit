@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,18 +21,17 @@
 package attributes
 
 import (
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
-	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // Factory is a factory for creating payload attributes.
 type Factory struct {
 	// chainSpec is the chain spec for the attributes factory.
-	chainSpec chain.ChainSpec
+	chainSpec ChainSpec
 	// logger is the logger for the attributes factory.
 	logger log.Logger
 	// suggestedFeeRecipient is the suggested fee recipient sent to
@@ -42,7 +41,7 @@ type Factory struct {
 
 // NewAttributesFactory creates a new instance of AttributesFactory.
 func NewAttributesFactory(
-	chainSpec chain.ChainSpec,
+	chainSpec ChainSpec,
 	logger log.Logger,
 	suggestedFeeRecipient common.ExecutionAddress,
 ) *Factory {
@@ -55,41 +54,19 @@ func NewAttributesFactory(
 
 // BuildPayloadAttributes creates a new instance of PayloadAttributes.
 func (f *Factory) BuildPayloadAttributes(
-	st *statedb.StateDB,
-	slot math.Slot,
-	timestamp uint64,
-	prevHeadRoot [32]byte,
+	timestamp math.U64,
+	payloadWithdrawals engineprimitives.Withdrawals,
+	prevRandao common.Bytes32,
+	prevHeadRoot common.Root,
+	parentProposerPubkey *crypto.BLSPubkey,
 ) (*engineprimitives.PayloadAttributes, error) {
-	var (
-		prevRandao [32]byte
-		attributes *engineprimitives.PayloadAttributes
-		epoch      = f.chainSpec.SlotToEpoch(slot)
-	)
-
-	// Get the expected withdrawals to include in this payload.
-	withdrawals, err := st.ExpectedWithdrawals()
-	if err != nil {
-		f.logger.Error(
-			"Could not get expected withdrawals to get payload attribute",
-			"error",
-			err,
-		)
-		return attributes, err
-	}
-
-	// Get the previous randao mix.
-	if prevRandao, err = st.GetRandaoMixAtIndex(
-		epoch.Unwrap() % f.chainSpec.EpochsPerHistoricalVector(),
-	); err != nil {
-		return attributes, err
-	}
-
-	return attributes.New(
-		f.chainSpec.ActiveForkVersionForEpoch(epoch),
+	return engineprimitives.NewPayloadAttributes(
+		f.chainSpec.ActiveForkVersionForTimestamp(timestamp),
 		timestamp,
 		prevRandao,
 		f.suggestedFeeRecipient,
-		withdrawals,
+		payloadWithdrawals,
 		prevHeadRoot,
+		parentProposerPubkey,
 	)
 }
