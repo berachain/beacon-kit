@@ -30,9 +30,14 @@ import (
 	lru "github.com/hashicorp/golang-lru/v2"
 )
 
+var ErrBlockStoreNotEnabled = errors.New("block store not enabled")
+
 // KVStore is a simple memory store based implementation that stores metadata of
 // beacon blocks.
 type KVStore[BeaconBlockT BeaconBlock] struct {
+	// Setting availabilityWindow to zero upon
+	enabled bool
+
 	// Beacon block root to slot mapping is injective for finalized blocks.
 	blockRoots *lru.Cache[common.Root, math.Slot]
 
@@ -53,30 +58,42 @@ func NewStore[BeaconBlockT BeaconBlock](
 	logger log.Logger,
 	availabilityWindow int,
 ) *KVStore[BeaconBlockT] {
-	blockRoots, err := lru.New[common.Root, math.Slot](availabilityWindow)
+	kvStore := &KVStore[BeaconBlockT]{
+		enabled: availabilityWindow != 0,
+		logger:  logger,
+	}
+	if !kvStore.enabled {
+		// caches instantiations would fail with zero size
+		// so we return early
+		return kvStore
+	}
+
+	var err error
+	kvStore.blockRoots, err = lru.New[common.Root, math.Slot](availabilityWindow)
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("failed instantiating kvStore blockRoots: %w", err))
 	}
-	timestamps, err := lru.New[math.U64, math.Slot](availabilityWindow)
+	kvStore.timestamps, err = lru.New[math.U64, math.Slot](availabilityWindow)
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("failed instantiating kvStore timestamps: %w", err))
 	}
-	stateRoots, err := lru.New[common.Root, math.Slot](availabilityWindow)
+	kvStore.stateRoots, err = lru.New[common.Root, math.Slot](availabilityWindow)
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("failed instantiating kvStore stateRoots: %w", err))
 	}
-	return &KVStore[BeaconBlockT]{
-		blockRoots: blockRoots,
-		timestamps: timestamps,
-		stateRoots: stateRoots,
-		logger:     logger,
-	}
+	return kvStore
 }
 
 // Set sets the block by a given index in the store, storing the block root,
 // timestamp, and state root. Only this function may potentially evict
 // entries from the store if the availability window is reached.
 func (kv *KVStore[BeaconBlockT]) Set(blk BeaconBlockT) error {
+	if !kv.enabled {
+		// nothing to do if store is disabled
+		kv.logger.Debug("skipping set because block store is not enabled")
+		return nil
+	}
+
 	slot := blk.GetSlot()
 	kv.blockRoots.Add(blk.HashTreeRoot(), slot)
 	kv.timestamps.Add(blk.GetTimestamp(), slot)
@@ -85,9 +102,11 @@ func (kv *KVStore[BeaconBlockT]) Set(blk BeaconBlockT) error {
 }
 
 // GetSlotByBlockRoot retrieves the slot by a given block root from the store.
-func (kv *KVStore[BeaconBlockT]) GetSlotByBlockRoot(
-	blockRoot common.Root,
-) (math.Slot, error) {
+func (kv *KVStore[BeaconBlockT]) GetSlotByBlockRoot(blockRoot common.Root) (math.Slot, error) {
+	if !kv.enabled {
+		return math.Slot(0), ErrBlockStoreNotEnabled
+	}
+
 	slot, ok := kv.blockRoots.Peek(blockRoot)
 	if !ok {
 		return 0, fmt.Errorf("slot not found at block root: %s", blockRoot)
@@ -97,9 +116,11 @@ func (kv *KVStore[BeaconBlockT]) GetSlotByBlockRoot(
 
 // GetParentSlotByTimestamp retrieves the parent slot by a given timestamp from
 // the store.
-func (kv *KVStore[BeaconBlockT]) GetParentSlotByTimestamp(
-	timestamp math.U64,
-) (math.Slot, error) {
+func (kv *KVStore[BeaconBlockT]) GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error) {
+	if !kv.enabled {
+		return math.Slot(0), ErrBlockStoreNotEnabled
+	}
+
 	slot, ok := kv.timestamps.Peek(timestamp)
 	if !ok {
 		return slot, fmt.Errorf("slot not found at timestamp: %d", timestamp)
@@ -112,9 +133,11 @@ func (kv *KVStore[BeaconBlockT]) GetParentSlotByTimestamp(
 }
 
 // GetSlotByStateRoot retrieves the slot by a given state root from the store.
-func (kv *KVStore[BeaconBlockT]) GetSlotByStateRoot(
-	stateRoot common.Root,
-) (math.Slot, error) {
+func (kv *KVStore[BeaconBlockT]) GetSlotByStateRoot(stateRoot common.Root) (math.Slot, error) {
+	if !kv.enabled {
+		return math.Slot(0), ErrBlockStoreNotEnabled
+	}
+
 	slot, ok := kv.stateRoots.Peek(stateRoot)
 	if !ok {
 		return 0, fmt.Errorf("slot not found at state root: %s", stateRoot)
