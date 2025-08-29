@@ -29,7 +29,11 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/cli/commands/genesis"
 	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
+	genesisutils "github.com/berachain/beacon-kit/cli/utils/genesis"
 	"github.com/berachain/beacon-kit/config/spec"
+	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/primitives/bytes"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/ethereum/go-ethereum/common"
@@ -117,18 +121,24 @@ func setupMockCLGenesis(t *testing.T, tmpDir string) string {
 	require.NoError(t, os.MkdirAll(configDir, 0o755))
 	mockCLGenesisPath := filepath.Join(configDir, "genesis.json")
 
-	mockCLGenesis := map[string]interface{}{
-		"app_state": map[string]interface{}{
-			"beacon": map[string]interface{}{
-				"deposits": []interface{}{
-					map[string]interface{}{
-						"data": map[string]interface{}{
-							"amount":               "32000000000",
-							"pubkey":               "0x1234",
-							"withdrawal_address":   "0x5678",
-							"signature":            "0x9abc",
-							"deposit_message_root": "0xdef0",
-						},
+	pkBytes := []byte{
+		138, 238, 24, 44, 160, 141, 152, 10, 53, 122, 247, 15,
+		129, 25, 168, 67, 55, 148, 56, 108, 55, 192, 218, 25,
+		237, 85, 204, 12, 10, 149, 243, 239, 80, 219, 58, 74,
+		158, 219, 231, 105, 42, 97, 95, 186, 120, 53, 228, 51,
+	}
+	pk, err := bytes.ToBytes48(pkBytes)
+	require.NoError(t, err)
+
+	mockCLGenesis := genesisutils.Genesis{
+		AppState: genesisutils.AppState{
+			Beacon: genesisutils.Beacon{
+				Deposits: types.Deposits{
+					{
+						Pubkey:      pk,
+						Credentials: types.WithdrawalCredentials{},
+						Amount:      32000000000,
+						Signature:   crypto.BLSSignature{},
 					},
 				},
 			},

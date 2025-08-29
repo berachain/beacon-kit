@@ -21,8 +21,10 @@
 package genesis
 
 import (
-	"bytes"
+	stdbytes "bytes"
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"math/big"
 	"path/filepath"
 
@@ -32,12 +34,14 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
-	libcommon "github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/bytes"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
+	"golang.org/x/crypto/sha3"
 )
 
 // SetDepositStorageCmd sets deposit contract storage in genesis alloc file.
@@ -99,10 +103,6 @@ func SetDepositStorage(
 	}
 	deposits := beaconState.Deposits
 
-	// Set the storage of the deposit contract with deposits count and root.
-	count := big.NewInt(int64(len(deposits)))
-	root := deposits.HashTreeRoot()
-
 	// Unmarshal the genesis file.
 	elGenesis := &types.DefaultEthGenesisJSON{}
 	allocsKey := types.DefaultAllocsKey
@@ -111,7 +111,7 @@ func SetDepositStorage(
 	}
 
 	depositAddr := common.Address(chainSpec.DepositContractAddress())
-	allocs := writeDepositStorage(elGenesis, depositAddr, count, root)
+	allocs := writeDepositStorage(elGenesis, deposits, depositAddr)
 
 	// Get just the filename from the path
 	filename := filepath.Base(elGenesisFilePath)
@@ -127,12 +127,14 @@ func SetDepositStorage(
 
 func writeDepositStorage(
 	elGenesis types.EthGenesis,
+	deposits ctypes.Deposits,
 	depositAddr common.Address,
-	depositsCount *big.Int,
-	depositsRoot libcommon.Root,
 ) gethprimitives.GenesisAlloc {
 	slot0 := common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000")
 	slot1 := common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000001")
+
+	depositsCount := big.NewInt(int64(len(deposits)))
+	depositsRoot := deposits.HashTreeRoot()
 
 	allocs := elGenesis.Alloc()
 	if entry, ok := allocs[depositAddr]; ok {
@@ -142,8 +144,51 @@ func writeDepositStorage(
 		entry.Storage[slot0] = common.BigToHash(depositsCount)
 		entry.Storage[slot1] = common.BytesToHash(depositsRoot[:])
 		allocs[depositAddr] = entry
+
+		// Store operators keys for each validator, reusing their BLS key
+		// TODO: this is good enough for testing over devnets, but we may
+		// want to extend the command to be able to explicitly pass a list
+		// of pre-arranged operator keys.
+		for i, d := range deposits {
+			storageKey := encodeSlot(d.Pubkey)
+			operatorAddr, err := crypto.GetAddressFromPubKey(d.Pubkey) // reuse val BLS key for simplicity
+			if err != nil {
+				panic(fmt.Errorf("failed getting address from validator %d pub key: %w", i, err))
+			}
+
+			k := common.BytesToHash(storageKey)
+			v := common.BytesToHash(operatorAddr)
+			entry.Storage[k] = v
+		}
 	}
 	return allocs
+}
+
+// encodeSlot mimics Solidity's keccak256(abi.encodePacked(...)) for:
+// - pubKey: 48-byte public key
+// - baseSlot: 32-byte storage slot
+func encodeSlot(pubkey crypto.BLSPubkey) []byte {
+	// Decode pubkey
+	pubKeyStr := pubkey.String()
+	packed, err := hex.DecodeString(pubKeyStr[2:])
+	if err != nil {
+		panic(err)
+	}
+	if len(packed) != bytes.B48Size {
+		panic(fmt.Errorf("expected 48-byte pubkey, got %d", len(packed)))
+	}
+
+	// Convert mapping slot (uint256) to 32-byte left-padded value
+	const mappintStorageBaseSlot = 2
+	slotBytes := new(big.Int).SetUint64(mappintStorageBaseSlot).FillBytes(make([]byte, common.HashLength))
+
+	// abi.encodePacked => direct byte concatenation
+	packed = append(packed, slotBytes...)
+
+	// keccak256 hash
+	hash := sha3.NewLegacyKeccak256()
+	hash.Write(packed)
+	return hash.Sum(nil)
 }
 
 func writeGenesisAllocToFile(
@@ -161,7 +206,7 @@ func writeGenesisAllocToFile(
 
 	// Unmarshal existing genesis using json.Number to preserve integer precision
 	var existingGenesis map[string]interface{}
-	decoder := json.NewDecoder(bytes.NewReader(existingBz))
+	decoder := json.NewDecoder(stdbytes.NewReader(existingBz))
 	decoder.UseNumber()
 	if err = decoder.Decode(&existingGenesis); err != nil {
 		return err
