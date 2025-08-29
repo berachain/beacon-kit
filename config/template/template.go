@@ -96,6 +96,8 @@ enable-optimistic-payload-builds = "{{ .BeaconKit.Validator.EnableOptimisticPayl
 
 [beacon-kit.block-store-service]
 # AvailabilityWindow is the number of slots to keep in the store.
+# Setting AvailabilityWindow disables block store and does not allow the node
+# to serve proof or namespace apis from beacon node-api.
 availability-window = "{{ .BeaconKit.BlockStoreService.AvailabilityWindow }}"
 
 [beacon-kit.node-api]
