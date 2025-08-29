@@ -286,6 +286,18 @@ func (cc ConsensusClient) ValidatorCredentialsProof(
 	return cc.beaconClient.ValidatorCredentialsProof(ctx, timestampID, validatorIndex)
 }
 
+// ValidatorPubkeyProof returns the validator pubkey proof for a given timestamp id and validator index.
+func (cc ConsensusClient) ValidatorPubkeyProof(
+	ctx context.Context,
+	timestampID string,
+	validatorIndex string,
+) (*ptypes.ValidatorPubkeyResponse, error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
+	return cc.beaconClient.ValidatorPubkeyProof(ctx, timestampID, validatorIndex)
+}
+
 // Commit returns the commit for a block.
 func (cc ConsensusClient) Commit(
 	ctx context.Context,

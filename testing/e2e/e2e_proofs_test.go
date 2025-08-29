@@ -411,3 +411,125 @@ func (s *BeaconKitE2ESuite) TestValidatorCredentialsProof() {
 	)
 	s.Require().NoError(err)
 }
+
+// TestValidatorPubkeyProof tests the validator pubkey proof endpoint by fetching and verifying
+// validator pubkey proofs against the SSZTest contract.
+func (s *BeaconKitE2ESuite) TestValidatorPubkeyProof() {
+	// Sender account
+	sender := s.TestAccounts()[0]
+
+	// Get the chain ID.
+	chainID, err := s.JSONRPCBalancer().ChainID(s.Ctx())
+	s.Require().NoError(err)
+
+	// Deploy the SSZTest contract to verify the validator pubkey proof.
+	addr, tx, sszTest, err := ssztest.DeploySSZTest(&bind.TransactOpts{
+		From:     sender.Address(),
+		Signer:   sender.SignerFunc(chainID),
+		GasLimit: 1000000,
+		Context:  s.Ctx(),
+	}, s.JSONRPCBalancer())
+	s.Require().NoError(err)
+
+	// Confirm deployment.
+	receipt, err := bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
+	s.Require().NoError(err)
+	s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
+	s.Logger().Info("SSZTest contract deployed successfully", "address", addr.Hex())
+
+	// Get the current block number.
+	blockNumber, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
+	s.Require().NoError(err)
+
+	// Get the validator pubkey proof for validator 0 at the parent block number.
+	validatorIndex := uint64(0)
+	pubkeyResp, err := s.ConsensusClients()[config.ClientValidator0].ValidatorPubkeyProof(
+		s.Ctx(), strconv.FormatUint(blockNumber-1, 10), strconv.FormatUint(validatorIndex, 10),
+	)
+	s.Require().NoError(err)
+	s.Require().NotNil(pubkeyResp)
+	s.Require().NotNil(pubkeyResp.BeaconBlockHeader)
+	s.Require().Equal(pubkeyResp.BeaconBlockRoot, pubkeyResp.BeaconBlockHeader.HashTreeRoot())
+	s.Require().Equal(pubkeyResp.BeaconBlockHeader.Slot.Unwrap(), blockNumber-1)
+
+	// Get the next block header.
+	nextHeader, err := s.JSONRPCBalancer().HeaderByNumber(s.Ctx(), new(big.Int).SetUint64(blockNumber))
+	s.Require().NoError(err)
+	s.Require().NotNil(nextHeader)
+
+	// Get the pubkey proof for the next timestamp and enforce equality.
+	pubkeyResp2, err := s.ConsensusClients()[config.ClientValidator0].ValidatorPubkeyProof(
+		s.Ctx(), "t"+strconv.FormatUint(nextHeader.Time, 10), strconv.FormatUint(validatorIndex, 10),
+	)
+	s.Require().NoError(err)
+	s.Require().NotNil(pubkeyResp2)
+	s.Require().NotNil(pubkeyResp2.BeaconBlockHeader)
+	s.Require().Equal(*pubkeyResp.BeaconBlockHeader, *pubkeyResp2.BeaconBlockHeader)
+	s.Require().Equal(pubkeyResp.BeaconBlockRoot, pubkeyResp2.BeaconBlockRoot)
+	s.Require().Equal(pubkeyResp.ValidatorPubkey, pubkeyResp2.ValidatorPubkey)
+	s.Require().ElementsMatch(pubkeyResp.ValidatorPubkeyProof, pubkeyResp2.ValidatorPubkeyProof)
+
+	// Get the parent beacon block root of the current timestamp using EIP-4788 Beacon Roots
+	// and verify equal to what is returned by the API proof/ endpoint.
+	parentBlockRoot4788, err := sszTest.GetParentBlockRootAt(
+		&bind.CallOpts{Context: s.Ctx()},
+		nextHeader.Time,
+	)
+	s.Require().NoError(err)
+	s.Require().Equal(common.Root(parentBlockRoot4788), pubkeyResp.BeaconBlockRoot)
+
+	// Get the chain spec to determine the fork version.
+	cs, err := spec.DevnetChainSpec()
+	s.Require().NoError(err)
+
+	// Get the fork version based on the block's timestamp.
+	header, err := s.JSONRPCBalancer().HeaderByNumber(
+		s.Ctx(), new(big.Int).SetUint64(blockNumber-1),
+	)
+	s.Require().NoError(err)
+	forkVersion := cs.ActiveForkVersionForTimestamp(math.U64(header.Time))
+	zeroValidatorPubkeyGIndex, err := merkle.GetZeroValidatorPubkeyGIndexBlock(forkVersion)
+	s.Require().NoError(err)
+
+	// Calculate the pubkey GIndex based on fork version.
+	gIndex := zeroValidatorPubkeyGIndex + (validatorIndex * merkle.ValidatorGIndexOffset)
+
+	// Verify the validator pubkey proof.
+	validatorPubkeyProof := make([][32]byte, len(pubkeyResp.ValidatorPubkeyProof))
+	for i, proofItem := range pubkeyResp.ValidatorPubkeyProof {
+		validatorPubkeyProof[i] = proofItem
+	}
+	err = sszTest.MustVerifyProof(
+		&bind.CallOpts{Context: s.Ctx()},
+		validatorPubkeyProof,
+		pubkeyResp.BeaconBlockRoot,
+		pubkeyResp.ValidatorPubkey.HashTreeRoot(),
+		new(big.Int).SetUint64(gIndex),
+	)
+	s.Require().NoError(err)
+
+	// Test with a different validator index
+	validatorIndex2 := uint64(1)
+	pubkeyResp3, err := s.ConsensusClients()[config.ClientValidator0].ValidatorPubkeyProof(
+		s.Ctx(), strconv.FormatUint(blockNumber-1, 10), strconv.FormatUint(validatorIndex2, 10),
+	)
+	s.Require().NoError(err)
+	s.Require().NotNil(pubkeyResp3)
+
+	// Calculate the pubkey GIndex for validator 1
+	gIndex2 := zeroValidatorPubkeyGIndex + (validatorIndex2 * merkle.ValidatorGIndexOffset)
+
+	// Verify the validator pubkey proof for validator 1
+	validatorPubkeyProof2 := make([][32]byte, len(pubkeyResp3.ValidatorPubkeyProof))
+	for i, proofItem := range pubkeyResp3.ValidatorPubkeyProof {
+		validatorPubkeyProof2[i] = proofItem
+	}
+	err = sszTest.MustVerifyProof(
+		&bind.CallOpts{Context: s.Ctx()},
+		validatorPubkeyProof2,
+		pubkeyResp3.BeaconBlockRoot,
+		pubkeyResp3.ValidatorPubkey.HashTreeRoot(),
+		new(big.Int).SetUint64(gIndex2),
+	)
+	s.Require().NoError(err)
+}
