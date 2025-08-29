@@ -70,3 +70,25 @@ preloaded with the native EVM token.
 ## Multinode Local Devnet
 
 Please refer to the [Kurtosis README](https://github.com/berachain/beacon-kit/blob/main/kurtosis/README.md) for more information on how to run a multinode local devnet.
+
+## Important Commands and Options
+
+`beacond help` lists available commands. Some commands have sub-commands.
+
+`beacond init` creates a folder structure for beacond to operate in, along with initial configuration files, the important ones being `app.toml` and `config.toml`.
+
+`beacond start` starts the chain client and begins the syncing process.
+
+The key configuration value is the Beacon chain specification ("chainspec")  - analogous to an Eth genesis - is held in a spec.toml file. There are three well-known chainspecs (`mainnet|testnet|devnet`).  Or, a custom file can be provided to provide your own scenario's settings - see this [example using Docker](https://docs.berachain.com/nodes/guides/docker-devnet).
+
+The chainspec is set with the `--beacon-kit.chain-spec` command line option, and if necessary for a custom chainspec, use `--beacon-kit.chain-spec-file`.  If used during `beacond init`, this value is written into app.toml and does not need to be specified anymore.
+
+You can override the default operating directories for beacond with the `--home <path>` option.
+
+The [Berachain Node Quickstart](https://docs.berachain.com/nodes/quickstart) provides a quick deployment of mainnet or testnet on your desk. 
+
+For developing with beacon-kit, you have options:
+1. see the Makefile for targets to start stand-alone processes
+2. see [an example deploying a team with Docker on a custom chainspec](https://docs.berachain.com/nodes/guides/docker-devnet)
+3. see [a deployment with Kurtosis](https://docs.berachain.com/nodes/guides/kurtosis)
+4. see [an expect script that does a complete cycle of deposits, withdrawal, eviction, voluntary exit](https://github.com/berachain/guides/blob/main/apps/local-docker-devnet/devnet-automation.exp)
