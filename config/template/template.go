@@ -95,9 +95,6 @@ graffiti = "{{ .BeaconKit.Validator.Graffiti }}"
 enable-optimistic-payload-builds = "{{ .BeaconKit.Validator.EnableOptimisticPayloadBuilds }}"
 
 [beacon-kit.block-store-service]
-# Enabled determines if the block store service is enabled.
-enabled = "{{ .BeaconKit.BlockStoreService.Enabled }}"
-
 # AvailabilityWindow is the number of slots to keep in the store.
 availability-window = "{{ .BeaconKit.BlockStoreService.AvailabilityWindow }}"
 
