@@ -39,13 +39,13 @@ type DepositStoreInput struct {
 	AppOpts config.AppOptions
 }
 
-// ProvideDepositStore is a function that provides the module to the
-// application.
+// ProvideDepositStore is a function that provides the module to the application.
 func ProvideDepositStore(in DepositStoreInput) (deposit.StoreManager, error) {
 	var (
 		rootDir = cast.ToString(in.AppOpts.Get(flags.FlagHome))
 		dataDir = filepath.Join(rootDir, "data")
 		nameV1  = "deposits"
+		nameV2  = "depositsV2"
 	)
 
 	dbV1, err := dbm.NewDB(nameV1, dbm.PebbleDBBackend, dataDir)
@@ -53,8 +53,14 @@ func ProvideDepositStore(in DepositStoreInput) (deposit.StoreManager, error) {
 		return nil, err
 	}
 
+	dbV2, err := dbm.NewDB(nameV2, dbm.PebbleDBBackend, dataDir)
+	if err != nil {
+		return nil, err
+	}
+
 	return deposit.NewStore(
 		dbV1,
+		dbV2,
 		in.Logger.With("service", "deposit-store"),
 	), nil
 }
