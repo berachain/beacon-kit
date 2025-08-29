@@ -60,7 +60,7 @@ func ConvertWithdrawalAddress(address string) (common.ExecutionAddress, error) {
 		}
 	}()
 
-	addr = common.NewExecutionAddressFromHex(address)
+	addr, err = common.NewExecutionAddressFromHex(address)
 	return addr, err
 }
 
