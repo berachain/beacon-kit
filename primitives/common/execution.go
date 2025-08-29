@@ -105,11 +105,17 @@ type ExecutionAddress [20]byte
 
 // NewExecutionAddressFromHex creates a new address from a hex string.
 func NewExecutionAddressFromHex(input string) (ExecutionAddress, error) {
-	bytes, err := hex.ToBytes(input)
+	bz, err := hex.ToBytes(input)
 	if err != nil {
 		return ExecutionAddress{}, err
 	}
-	return ExecutionAddress(bytes), nil
+	return ExecutionAddress(bz), nil
+}
+
+// MustNewExecutionAddressFromHex creates a new address from a hex string,
+// panicking if the input is not a valid hex string.
+func MustNewExecutionAddressFromHex(input string) ExecutionAddress {
+	return ExecutionAddress(hex.MustToBytes(input))
 }
 
 // Equals returns true if the two addresses are the same.
