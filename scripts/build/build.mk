@@ -100,9 +100,20 @@ IMAGE_NAME ?= $(TESTAPP)
 # Docker Paths
 DOCKERFILE = ./Dockerfile
 
-build-docker: ## build a docker image containing `beacond`
+# Create buildx builder if it doesn't exist
+.PHONY: docker-builder-setup
+docker-builder-setup:
+	@if ! docker buildx ls | grep -q beaconkit-builder; then \
+		echo "Creating beaconkit-builder for persistent cache..."; \
+		docker buildx create --name beaconkit-builder --driver docker-container --use; \
+	else \
+		docker buildx use beaconkit-builder; \
+	fi
+
+build-docker: docker-builder-setup ## build a docker image containing `beacond`
 	@echo "Build a release docker image for the Cosmos SDK chain..."
-	docker build \
+	docker buildx build \
+	--load \
 	--platform linux/$(ARCH) \
 	--build-arg GIT_COMMIT=$(shell git rev-parse HEAD) \
 	--build-arg GIT_VERSION=$(VERSION) \
