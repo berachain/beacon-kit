@@ -22,9 +22,8 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
-	"github.com/karalabe/ssz"
+	ssz "github.com/ferranbt/fastssz"
 )
 
 // Deposits is a type alias for a SSZ list of Deposit containers.
@@ -35,26 +34,41 @@ type Deposits []*Deposit
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the SSZ encoded size in bytes for the Deposits.
-func (ds Deposits) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {
-	return ssz.SizeSliceOfStaticObjects(siz, ([]*Deposit)(ds))
-}
-
-// DefineSSZ defines the SSZ encoding for the Deposits object.
-// TODO: get from accessible chainspec field params.
-func (ds Deposits) DefineSSZ(c *ssz.Codec) {
-	c.DefineDecoder(func(*ssz.Decoder) {
-		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*Deposit)(&ds), constants.MaxDeposits)
-	})
-	c.DefineEncoder(func(*ssz.Encoder) {
-		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*Deposit)(&ds), constants.MaxDeposits)
-	})
-	c.DefineHasher(func(*ssz.Hasher) {
-		ssz.DefineSliceOfStaticObjectsOffset(c, (*[]*Deposit)(&ds), constants.MaxDeposits)
-	})
+func (ds Deposits) SizeSSZ() int {
+	return 4 + len(ds)*192 // offset + each deposit is 192 bytes
 }
 
 // HashTreeRoot returns the hash tree root of the Deposits.
-func (ds Deposits) HashTreeRoot() common.Root {
-	// TODO: determine if using HashConcurrent optimizes performance.
-	return ssz.HashSequential(ds)
+func (ds Deposits) HashTreeRoot() ([32]byte, error) {
+	hh := ssz.DefaultHasherPool.Get()
+	defer ssz.DefaultHasherPool.Put(hh)
+	if err := ds.HashTreeRootWith(hh); err != nil {
+		return [32]byte{}, err
+	}
+	return hh.HashRoot()
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
+
+// HashTreeRootWith ssz hashes the Deposits object with a hasher.
+func (ds Deposits) HashTreeRootWith(hh ssz.HashWalker) error {
+	indx := hh.Index()
+	num := uint64(len(ds))
+	if num > constants.MaxDeposits {
+		return ssz.ErrIncorrectListSize
+	}
+	for _, elem := range ds {
+		if err := elem.HashTreeRootWith(hh); err != nil {
+			return err
+		}
+	}
+	hh.MerkleizeWithMixin(indx, num, constants.MaxDeposits)
+	return nil
+}
+
+// GetTree ssz hashes the Deposits object.
+func (ds Deposits) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(ds)
 }

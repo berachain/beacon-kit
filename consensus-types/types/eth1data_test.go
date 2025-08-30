@@ -21,13 +21,11 @@
 package types_test
 
 import (
-	"io"
 	"testing"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
-	karalabessz "github.com/karalabe/ssz"
+	"github.com/berachain/beacon-kit/primitives/encoding/sszutil"
 	"github.com/stretchr/testify/require"
 )
 
@@ -39,7 +37,7 @@ func TestEth1Data_Serialization(t *testing.T) {
 	require.NotNil(t, data)
 
 	unmarshalled := new(types.Eth1Data)
-	err = ssz.Unmarshal(data, unmarshalled)
+	err = sszutil.Unmarshal(data, unmarshalled)
 	require.NoError(t, err)
 	require.Equal(t, original, unmarshalled)
 
@@ -55,15 +53,16 @@ func TestEth1Data_UnmarshalError(t *testing.T) {
 	t.Parallel()
 
 	var unmarshalled types.Eth1Data
-	err := ssz.Unmarshal([]byte{}, &unmarshalled)
-	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
+	err := sszutil.Unmarshal([]byte{}, &unmarshalled)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "incorrect size")
 }
 
 func TestEth1Data_SizeSSZ(t *testing.T) {
 	t.Parallel()
 	eth1Data := types.NewEth1Data(common.Root{})
-	size := karalabessz.Size(eth1Data)
-	require.Equal(t, uint32(72), size)
+	size := eth1Data.SizeSSZ()
+	require.Equal(t, 72, size)
 }
 
 func TestEth1Data_HashTreeRoot(t *testing.T) {
@@ -71,7 +70,7 @@ func TestEth1Data_HashTreeRoot(t *testing.T) {
 	eth1Data := types.NewEth1Data(common.Root{})
 
 	require.NotPanics(t, func() {
-		_ = eth1Data.HashTreeRoot()
+		_, _ = eth1Data.HashTreeRoot()
 	})
 }
 

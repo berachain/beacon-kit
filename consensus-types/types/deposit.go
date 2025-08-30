@@ -18,6 +18,9 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
+// NOTE: SSZ marshaling for Deposit is manually implemented in deposit_ssz.go
+// because sszgen cannot resolve the WithdrawalCredentials type definition from another file.
+
 package types
 
 import (
@@ -25,16 +28,9 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
-	fastssz "github.com/ferranbt/fastssz"
-	"github.com/karalabe/ssz"
 )
 
-// depositSize is the size of the SSZ encoding of a Deposit.
-const depositSize = 192 // 48 + 32 + 8 + 96 + 8
-
-// Compile-time assertions to ensure Deposit implements necessary interfaces.
 var (
-	_ ssz.StaticObject                    = (*Deposit)(nil)
 	_ constraints.SSZMarshallableRootable = (*Deposit)(nil)
 )
 
@@ -42,14 +38,14 @@ var (
 // layer.
 type Deposit struct {
 	// Public key of the validator specified in the deposit.
-	Pubkey crypto.BLSPubkey `json:"pubkey"`
+	Pubkey crypto.BLSPubkey `json:"pubkey" ssz-size:"48"`
 	// A staking credentials with
 	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
-	Credentials WithdrawalCredentials `json:"credentials"`
+	Credentials WithdrawalCredentials `json:"credentials" ssz-size:"32"`
 	// Deposit amount in gwei.
 	Amount math.Gwei `json:"amount"`
 	// Signature of the deposit data.
-	Signature crypto.BLSSignature `json:"signature"`
+	Signature crypto.BLSSignature `json:"signature" ssz-size:"96"`
 	// Index of the deposit in the deposit contract.
 	Index uint64 `json:"index"`
 }
@@ -85,78 +81,8 @@ func (d *Deposit) VerifySignature(
 	)
 }
 
-/* -------------------------------------------------------------------------- */
-/*                                     SSZ                                    */
-/* -------------------------------------------------------------------------- */
-
-// DefineSSZ defines the SSZ encoding for the Deposit object.
-func (d *Deposit) DefineSSZ(c *ssz.Codec) {
-	ssz.DefineStaticBytes(c, &d.Pubkey)
-	ssz.DefineStaticBytes(c, &d.Credentials)
-	ssz.DefineUint64(c, &d.Amount)
-	ssz.DefineStaticBytes(c, &d.Signature)
-	ssz.DefineUint64(c, &d.Index)
-}
-
-// MarshalSSZ marshals the Deposit object to SSZ format.
-func (d *Deposit) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(d))
-	return buf, ssz.EncodeToBytes(buf, d)
-}
-
+// ValidateAfterDecodingSSZ validates the Deposit after decoding SSZ.
 func (*Deposit) ValidateAfterDecodingSSZ() error { return nil }
-
-// SizeSSZ returns the SSZ encoded size of the Deposit object.
-func (d *Deposit) SizeSSZ(*ssz.Sizer) uint32 {
-	return depositSize
-}
-
-// HashTreeRoot computes the Merkleization of the Deposit object.
-func (d *Deposit) HashTreeRoot() common.Root {
-	return ssz.HashSequential(d)
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                   FastSSZ                                  */
-/* -------------------------------------------------------------------------- */
-
-// MarshalSSZTo marshals the Deposit object into a pre-allocated byte slice.
-func (d *Deposit) MarshalSSZTo(dst []byte) ([]byte, error) {
-	bz, err := d.MarshalSSZ()
-	if err != nil {
-		return nil, err
-	}
-	dst = append(dst, bz...)
-	return dst, nil
-}
-
-// HashTreeRootWith ssz hashes the Deposit object with a hasher.
-func (d *Deposit) HashTreeRootWith(hh fastssz.HashWalker) error {
-	indx := hh.Index()
-
-	// Field (0) 'Pubkey'
-	hh.PutBytes(d.Pubkey[:])
-
-	// Field (1) 'Credentials'
-	hh.PutBytes(d.Credentials[:])
-
-	// Field (2) 'Amount'
-	hh.PutUint64(uint64(d.Amount))
-
-	// Field (3) 'Signature'
-	hh.PutBytes(d.Signature[:])
-
-	// Field (4) 'Index'
-	hh.PutUint64(d.Index)
-
-	hh.Merkleize(indx)
-	return nil
-}
-
-// GetTree ssz hashes the Deposit object.
-func (d *Deposit) GetTree() (*fastssz.Node, error) {
-	return fastssz.ProofTree(d)
-}
 
 /* -------------------------------------------------------------------------- */
 /*                             Getters and Setters                            */

@@ -90,7 +90,7 @@ func EncodeBlobs(
 
 		versionedHashes = append(
 			versionedHashes,
-			eip4844.KZGCommitment(commit).ToVersionedHash(),
+			common.Hash(eip4844.KZGCommitment(commit).ToVersionedHash()),
 		)
 	}
 	return blobs, commits, proofs, versionedHashes, nil

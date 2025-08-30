@@ -25,17 +25,32 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constraints"
 )
 
-// versionable is a helper struct that implements the Versionable interface.
-type versionable struct {
-	forkVersion common.Version
+// Compile-time check to ensure Versionable implements Versionable interface
+var _ constraints.Versionable = Versionable{}
+
+// Versionable is a concrete type that implements the Versionable interface.
+// This is used instead of embedding the interface directly for SSZ generation compatibility.
+// The fork version is excluded from SSZ encoding using the ssz:"-" tag.
+type Versionable struct {
+	forkVersion common.Version `ssz:"-" json:"-"`
 }
 
-// NewVersionable creates a new versionable object.
-func NewVersionable(forkVersion common.Version) constraints.Versionable {
-	return &versionable{forkVersion: forkVersion}
+// NewVersionable creates a new Versionable with the given fork version.
+func NewVersionable(forkVersion common.Version) Versionable {
+	return Versionable{forkVersion: forkVersion}
 }
 
-// GetForkVersion returns the fork version of the versionable object.
-func (v *versionable) GetForkVersion() common.Version {
+// GetForkVersion returns the fork version.
+func (v Versionable) GetForkVersion() common.Version {
 	return v.forkVersion
+}
+
+// MarshalJSON returns null to exclude from JSON output.
+func (v Versionable) MarshalJSON() ([]byte, error) {
+	return []byte("null"), nil
+}
+
+// UnmarshalJSON does nothing since version is set elsewhere.
+func (v *Versionable) UnmarshalJSON([]byte) error {
+	return nil
 }

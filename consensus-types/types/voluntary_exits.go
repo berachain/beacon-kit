@@ -26,12 +26,11 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
-	"github.com/karalabe/ssz"
+	ssz "github.com/ferranbt/fastssz"
 )
 
 // Compile-time assertions to ensure VoluntaryExit implements necessary interfaces.
 var (
-	_ ssz.StaticObject                    = (*VoluntaryExit)(nil)
 	_ constraints.SSZMarshallableRootable = (*VoluntaryExit)(nil)
 	_ common.UnusedEnforcer               = (*VoluntaryExits)(nil)
 )
@@ -42,26 +41,44 @@ type (
 )
 
 // SizeSSZ returns the SSZ encoded size in bytes for the VoluntaryExits.
-func (vs VoluntaryExits) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {
-	return ssz.SizeSliceOfStaticObjects(siz, vs)
-}
-
-// DefineSSZ defines the SSZ encoding for the VoluntaryExits object.
-func (vs VoluntaryExits) DefineSSZ(c *ssz.Codec) {
-	c.DefineDecoder(func(*ssz.Decoder) {
-		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*VoluntaryExit)(&vs), constants.MaxVoluntaryExits)
-	})
-	c.DefineEncoder(func(*ssz.Encoder) {
-		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*VoluntaryExit)(&vs), constants.MaxVoluntaryExits)
-	})
-	c.DefineHasher(func(*ssz.Hasher) {
-		ssz.DefineSliceOfStaticObjectsOffset(c, (*[]*VoluntaryExit)(&vs), constants.MaxVoluntaryExits)
-	})
+func (vs VoluntaryExits) SizeSSZ() int {
+	return 4 + len(vs)*16 // offset + each voluntary exit size (UnusedType is 16 bytes)
 }
 
 // HashTreeRoot returns the hash tree root of the VoluntaryExits.
-func (vs VoluntaryExits) HashTreeRoot() common.Root {
-	return ssz.HashSequential(vs)
+func (vs VoluntaryExits) HashTreeRoot() ([32]byte, error) {
+	hh := ssz.DefaultHasherPool.Get()
+	defer ssz.DefaultHasherPool.Put(hh)
+	if err := vs.HashTreeRootWith(hh); err != nil {
+		return [32]byte{}, err
+	}
+	return hh.HashRoot()
+
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
+
+// HashTreeRootWith ssz hashes the VoluntaryExits object with a hasher.
+func (vs VoluntaryExits) HashTreeRootWith(hh ssz.HashWalker) error {
+	indx := hh.Index()
+	num := uint64(len(vs))
+	if num > constants.MaxVoluntaryExits {
+		return ssz.ErrIncorrectListSize
+	}
+	for _, elem := range vs {
+		if err := elem.HashTreeRootWith(hh); err != nil {
+			return err
+		}
+	}
+	hh.MerkleizeWithMixin(indx, num, constants.MaxVoluntaryExits)
+	return nil
+}
+
+// GetTree ssz hashes the VoluntaryExits object.
+func (vs VoluntaryExits) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(vs)
 }
 
 // EnforceUnused return true if the length of the VoluntaryExits is 0.

@@ -78,7 +78,11 @@ func NewStore[BeaconBlockT BeaconBlock](
 // entries from the store if the availability window is reached.
 func (kv *KVStore[BeaconBlockT]) Set(blk BeaconBlockT) error {
 	slot := blk.GetSlot()
-	kv.blockRoots.Add(blk.HashTreeRoot(), slot)
+	root, err := blk.HashTreeRoot()
+	if err != nil {
+		return err
+	}
+	kv.blockRoots.Add(common.Root(root), slot)
 	kv.timestamps.Add(blk.GetTimestamp(), slot)
 	kv.stateRoots.Add(blk.GetStateRoot(), slot)
 	return nil

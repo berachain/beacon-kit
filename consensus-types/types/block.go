@@ -28,18 +28,16 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
-	"github.com/karalabe/ssz"
+	ssz "github.com/ferranbt/fastssz"
 )
 
-// Compile-time assertions to ensure BeaconBlock implements necessary interfaces.
 var (
-	_ ssz.DynamicObject                            = (*BeaconBlock)(nil)
 	_ constraints.SSZVersionedMarshallableRootable = (*BeaconBlock)(nil)
 )
 
 // BeaconBlock represents a block in the beacon chain.
 type BeaconBlock struct {
-	constraints.Versionable `json:"-"`
+	Versionable `json:"-"`
 
 	// Slot represents the position of the block in the chain.
 	Slot math.Slot `json:"slot"`
@@ -90,33 +88,15 @@ func NewEmptyBeaconBlockWithVersion(version common.Version) *BeaconBlock {
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the BeaconBlock object in SSZ encoding.
-func (b *BeaconBlock) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
-	//nolint:mnd // todo fix.
-	var size = uint32(8 + 8 + 32 + 32 + 4)
-	if fixed {
-		return size
-	}
-	size += ssz.SizeDynamicObject(siz, b.Body)
-	return size
-}
-
-// DefineSSZ defines the SSZ encoding for the BeaconBlock object.
-func (b *BeaconBlock) DefineSSZ(codec *ssz.Codec) {
-	// Define the static data (fields and dynamic offsets)
-	ssz.DefineUint64(codec, &b.Slot)
-	ssz.DefineUint64(codec, &b.ProposerIndex)
-	ssz.DefineStaticBytes(codec, &b.ParentRoot)
-	ssz.DefineStaticBytes(codec, &b.StateRoot)
-	ssz.DefineDynamicObjectOffset(codec, &b.Body)
-
-	// Define the dynamic data (fields)
-	ssz.DefineDynamicObjectContent(codec, &b.Body)
+func (b *BeaconBlock) SizeSSZ() int {
+	// Fixed part: slot(8) + proposerIndex(8) + parentRoot(32) + stateRoot(32) + offset(4) = 84
+	return 84 + b.Body.SizeSSZ()
 }
 
 // MarshalSSZ marshals the BeaconBlock object to SSZ format.
 func (b *BeaconBlock) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(b))
-	return buf, ssz.EncodeToBytes(buf, b)
+	buf := make([]byte, 0, b.SizeSSZ())
+	return b.MarshalSSZTo(buf)
 }
 
 func (b *BeaconBlock) ValidateAfterDecodingSSZ() error {
@@ -124,8 +104,13 @@ func (b *BeaconBlock) ValidateAfterDecodingSSZ() error {
 }
 
 // HashTreeRoot computes the Merkleization of the BeaconBlock object.
-func (b *BeaconBlock) HashTreeRoot() common.Root {
-	return ssz.HashConcurrent(b)
+func (b *BeaconBlock) HashTreeRoot() ([32]byte, error) {
+	hh := ssz.DefaultHasherPool.Get()
+	defer ssz.DefaultHasherPool.Put(hh)
+	if err := b.HashTreeRootWith(hh); err != nil {
+		return [32]byte{}, err
+	}
+	return hh.HashRoot()
 }
 
 // GetSlot retrieves the slot of the BeaconBlockBase.
@@ -164,18 +149,106 @@ func (b *BeaconBlock) GetBody() *BeaconBlockBody {
 }
 
 // GetHeader builds a BeaconBlockHeader from the BeaconBlock.
-func (b *BeaconBlock) GetHeader() *BeaconBlockHeader {
+func (b *BeaconBlock) GetHeader() (*BeaconBlockHeader, error) {
+	bodyRoot, err := b.GetBody().HashTreeRoot()
+	if err != nil {
+		return nil, err
+	}
 	return &BeaconBlockHeader{
 		Slot:            b.Slot,
 		ProposerIndex:   b.ProposerIndex,
 		ParentBlockRoot: b.ParentRoot,
 		StateRoot:       b.StateRoot,
-		BodyRoot:        b.GetBody().HashTreeRoot(),
-	}
+		BodyRoot:        common.Root(bodyRoot),
+	}, nil
 }
 
 // GetTimestamp retrieves the timestamp of the BeaconBlock from
 // the ExecutionPayload.
 func (b *BeaconBlock) GetTimestamp() math.U64 {
 	return b.Body.ExecutionPayload.Timestamp
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
+
+// MarshalSSZTo ssz marshals the BeaconBlock object to a target array.
+func (b *BeaconBlock) MarshalSSZTo(dst []byte) ([]byte, error) {
+	// Fixed part
+	dst = ssz.MarshalUint64(dst, uint64(b.Slot))
+	dst = ssz.MarshalUint64(dst, uint64(b.ProposerIndex))
+	dst = append(dst, b.ParentRoot[:]...)
+	dst = append(dst, b.StateRoot[:]...)
+
+	// Offset for body
+	offset := 84
+	dst = ssz.MarshalUint32(dst, uint32(offset))
+
+	// Dynamic part: Body
+	dst, err := b.Body.MarshalSSZTo(dst)
+	if err != nil {
+		return nil, err
+	}
+
+	return dst, nil
+}
+
+// UnmarshalSSZ ssz unmarshals the BeaconBlock object.
+func (b *BeaconBlock) UnmarshalSSZ(buf []byte) error {
+	if len(buf) < 84 {
+		return ssz.ErrSize
+	}
+
+	// Fixed part
+	b.Slot = math.Slot(ssz.UnmarshallUint64(buf[0:8]))
+	b.ProposerIndex = math.ValidatorIndex(ssz.UnmarshallUint64(buf[8:16]))
+	copy(b.ParentRoot[:], buf[16:48])
+	copy(b.StateRoot[:], buf[48:80])
+
+	// Check offset
+	offset := ssz.UnmarshallUint32(buf[80:84])
+	if offset != 84 {
+		return ssz.ErrInvalidVariableOffset
+	}
+
+	// Dynamic part: Body
+	if b.Body == nil {
+		b.Body = &BeaconBlockBody{}
+	}
+	if err := b.Body.UnmarshalSSZ(buf[84:]); err != nil {
+		return err
+	}
+
+	return b.ValidateAfterDecodingSSZ()
+}
+
+// HashTreeRootWith ssz hashes the BeaconBlock object with a hasher.
+func (b *BeaconBlock) HashTreeRootWith(hh ssz.HashWalker) error {
+	indx := hh.Index()
+
+	// Field (0) 'Slot'
+	hh.PutUint64(uint64(b.Slot))
+
+	// Field (1) 'ProposerIndex'
+	hh.PutUint64(uint64(b.ProposerIndex))
+
+	// Field (2) 'ParentRoot'
+	hh.PutBytes(b.ParentRoot[:])
+
+	// Field (3) 'StateRoot'
+	hh.PutBytes(b.StateRoot[:])
+
+	// Field (4) 'Body'
+	if err := b.Body.HashTreeRootWith(hh); err != nil {
+		return err
+	}
+
+	hh.Merkleize(indx)
+	return nil
+}
+
+// GetTree ssz hashes the BeaconBlock object.
+func (b *BeaconBlock) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(b)
 }

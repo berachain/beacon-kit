@@ -201,8 +201,12 @@ func (sp *StateProcessor) processSlot(st *state.StateDB) error {
 	}
 
 	// We update the block root.
+	root, err := latestHeader.HashTreeRoot()
+	if err != nil {
+		return err
+	}
 	return st.UpdateBlockRootAtIndex(
-		stateSlot.Unwrap()%sp.cs.SlotsPerHistoricalRoot(), latestHeader.HashTreeRoot(),
+		stateSlot.Unwrap()%sp.cs.SlotsPerHistoricalRoot(), common.NewRootFromBytes(root[:]),
 	)
 }
 
@@ -351,7 +355,11 @@ func (sp *StateProcessor) processBlockHeader(
 	}
 
 	// Verify that the parent matches
-	parentBlockRoot := latestBlockHeader.HashTreeRoot()
+	parentBlockRootBytes, err := latestBlockHeader.HashTreeRoot()
+	if err != nil {
+		return err
+	}
+	parentBlockRoot := common.NewRootFromBytes(parentBlockRootBytes[:])
 	if parentBlockRoot != blk.GetParentBlockRoot() {
 		return errors.Wrapf(
 			ErrParentRootMismatch, "expected: %s, got: %s",
@@ -368,7 +376,11 @@ func (sp *StateProcessor) processBlockHeader(
 	}
 
 	// Cache current block as the new latest block
-	bodyRoot := blk.GetBody().HashTreeRoot()
+	bodyRootBytes, err := blk.GetBody().HashTreeRoot()
+	if err != nil {
+		return err
+	}
+	bodyRoot := common.NewRootFromBytes(bodyRootBytes[:])
 
 	lbh := &ctypes.BeaconBlockHeader{
 		Slot:            blk.GetSlot(),

@@ -21,14 +21,12 @@
 package types_test
 
 import (
-	"io"
 	"testing"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
+	"github.com/berachain/beacon-kit/primitives/encoding/sszutil"
 	"github.com/berachain/beacon-kit/primitives/math"
-	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -129,7 +127,7 @@ func TestBeaconBlockHeader_Serialization(t *testing.T) {
 	require.NotNil(t, data)
 
 	unmarshalled := new(types.BeaconBlockHeader)
-	err = ssz.Unmarshal(data, unmarshalled)
+	err = sszutil.Unmarshal(data, unmarshalled)
 	require.NoError(t, err)
 	require.Equal(t, original, unmarshalled)
 
@@ -151,8 +149,8 @@ func TestBeaconBlockHeader_SizeSSZ(t *testing.T) {
 		common.Root{},
 	)
 
-	size := karalabessz.Size(header)
-	require.Equal(t, uint32(112), size)
+	size := header.SizeSSZ()
+	require.Equal(t, 112, size)
 }
 
 func TestBeaconBlockHeader_HashTreeRoot(t *testing.T) {
@@ -165,7 +163,7 @@ func TestBeaconBlockHeader_HashTreeRoot(t *testing.T) {
 		common.Root{},
 	)
 
-	_ = header.HashTreeRoot()
+	_, _ = header.HashTreeRoot()
 }
 
 func TestBeaconBlockHeader_GetTree(t *testing.T) {
@@ -268,6 +266,7 @@ func TestBeaconBlockHeader_UnmarshalSSZ_ErrSize(t *testing.T) {
 	buf := make([]byte, 100) // Incorrect size
 
 	unmarshalled := new(types.BeaconBlockHeader)
-	err := ssz.Unmarshal(buf, unmarshalled)
-	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
+	err := sszutil.Unmarshal(buf, unmarshalled)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "incorrect size")
 }

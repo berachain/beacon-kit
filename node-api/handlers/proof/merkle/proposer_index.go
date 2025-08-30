@@ -65,7 +65,11 @@ func ProveProposerIndexInBlock(
 func verifyProposerIndexInBlock(
 	bbh *ctypes.BeaconBlockHeader, proof []common.Root, leaf common.Root,
 ) (common.Root, error) {
-	beaconRoot := bbh.HashTreeRoot()
+	beaconRootBytes, err := bbh.HashTreeRoot()
+	if err != nil {
+		return common.Root{}, err
+	}
+	beaconRoot := common.NewRootFromBytes(beaconRootBytes[:])
 	if !merkle.VerifyProof(beaconRoot, leaf, ProposerIndexGIndexBlock, proof) {
 		return common.Root{}, errors.Wrapf(
 			errors.New("proposer index proof failed to verify against beacon root"),

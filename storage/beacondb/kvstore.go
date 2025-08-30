@@ -128,7 +128,7 @@ func New(kss store.KVStoreService) *KVStore {
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.ForkPrefix}),
 			keys.ForkPrefixHumanReadable,
-			encoding.SSZValueCodec[*ctypes.Fork]{
+			encoding.FastSSZValueCodec[*ctypes.Fork]{
 				NewEmptyF: ctypes.NewEmptyFork,
 			},
 		),

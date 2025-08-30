@@ -108,8 +108,10 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 	s.Require().Equal(common.Root(parentBlockRoot4788), blockProposerResp.BeaconBlockRoot)
 
 	// Verify the beacon block root is equal to HTR(BeaconBlockHeader).
+	headerRoot, err := blockProposerResp.BeaconBlockHeader.HashTreeRoot()
+	s.Require().NoError(err)
 	s.Require().Equal(
-		blockProposerResp.BeaconBlockRoot, blockProposerResp.BeaconBlockHeader.HashTreeRoot(),
+		blockProposerResp.BeaconBlockRoot, headerRoot,
 	)
 
 	// Verify the slot is equal to the requested block number.

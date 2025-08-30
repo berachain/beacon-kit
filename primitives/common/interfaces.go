@@ -20,9 +20,7 @@
 
 package common
 
-import (
-	"github.com/karalabe/ssz"
-)
+import ()
 
 // sszMarshaler is an interface for objects that can be marshaled to SSZ format.
 type sszMarshaler interface {
@@ -32,7 +30,7 @@ type sszMarshaler interface {
 
 // SSZUnmarshaler is an interface for objects that can be unmarshaled from SSZ format.
 type SSZUnmarshaler interface {
-	ssz.Object
+	UnmarshalSSZ([]byte) error
 	ValidateAfterDecodingSSZ() error // once unmarshalled we will check whether type syntax is correct
 }
 
@@ -45,7 +43,7 @@ type SSZMarshallable interface {
 // SSZRootable is an interface for objects that can compute their hash tree root.
 type SSZRootable interface {
 	// HashTreeRoot computes the hash tree root of the object.
-	HashTreeRoot() Root
+	HashTreeRoot() ([32]byte, error)
 }
 
 // SSZMarshallableRootable is an interface that combines

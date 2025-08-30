@@ -101,7 +101,11 @@ func SetDepositStorage(
 
 	// Set the storage of the deposit contract with deposits count and root.
 	count := big.NewInt(int64(len(deposits)))
-	root := deposits.HashTreeRoot()
+	rootBytes, err := deposits.HashTreeRoot()
+	if err != nil {
+		return errors.Wrap(err, "failed to compute deposits root")
+	}
+	root := libcommon.NewRootFromBytes(rootBytes[:])
 
 	// Unmarshal the genesis file.
 	elGenesis := &types.DefaultEthGenesisJSON{}

@@ -613,3 +613,170 @@ func TestU64_UnwrapPtr(t *testing.T) {
 		})
 	}
 }
+
+func TestU64_SizeSSZ(t *testing.T) {
+	t.Parallel()
+	u := math.U64(123)
+	require.Equal(t, 8, u.SizeSSZ())
+}
+
+func TestU64_MarshalSSZ(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		value    math.U64
+		expected []byte
+	}{
+		{
+			name:     "zero value",
+			value:    math.U64(0),
+			expected: []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+		},
+		{
+			name:     "small value",
+			value:    math.U64(123),
+			expected: []byte{0x7b, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+		},
+		{
+			name:     "large value",
+			value:    math.U64(0x123456789ABCDEF0),
+			expected: []byte{0xF0, 0xDE, 0xBC, 0x9A, 0x78, 0x56, 0x34, 0x12},
+		},
+		{
+			name:     "max uint64 value",
+			value:    math.U64(^uint64(0)),
+			expected: []byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result, err := tt.value.MarshalSSZ()
+			require.NoError(t, err)
+			require.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestU64_MarshalSSZTo(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		value    math.U64
+		bufSize  int
+		expected []byte
+	}{
+		{
+			name:     "zero value with exact buffer",
+			value:    math.U64(0),
+			bufSize:  8,
+			expected: []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+		},
+		{
+			name:     "small value with larger buffer",
+			value:    math.U64(123),
+			bufSize:  16,
+			expected: []byte{0x7b, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+		},
+		{
+			name:     "value with small buffer (should allocate new)",
+			value:    math.U64(0x123456789ABCDEF0),
+			bufSize:  4,
+			expected: []byte{0xF0, 0xDE, 0xBC, 0x9A, 0x78, 0x56, 0x34, 0x12},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			buf := make([]byte, tt.bufSize)
+			result, err := tt.value.MarshalSSZTo(buf)
+			require.NoError(t, err)
+			// The function should append 8 bytes to the buffer
+			require.Equal(t, tt.bufSize+8, len(result))
+			require.Equal(t, tt.expected, result[tt.bufSize:])
+		})
+	}
+}
+
+func TestU64_UnmarshalSSZ(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		input    []byte
+		expected math.U64
+		wantErr  bool
+	}{
+		{
+			name:     "zero value",
+			input:    []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+			expected: math.U64(0),
+			wantErr:  false,
+		},
+		{
+			name:     "small value",
+			input:    []byte{0x7b, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+			expected: math.U64(123),
+			wantErr:  false,
+		},
+		{
+			name:     "large value",
+			input:    []byte{0xF0, 0xDE, 0xBC, 0x9A, 0x78, 0x56, 0x34, 0x12},
+			expected: math.U64(0x123456789ABCDEF0),
+			wantErr:  false,
+		},
+		{
+			name:     "max uint64 value",
+			input:    []byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF},
+			expected: math.U64(^uint64(0)),
+			wantErr:  false,
+		},
+		{
+			name:     "buffer too short",
+			input:    []byte{0x7b, 0x00, 0x00, 0x00},
+			expected: math.U64(0),
+			wantErr:  true,
+		},
+		{
+			name:     "buffer with extra bytes",
+			input:    []byte{0x7b, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF},
+			expected: math.U64(123),
+			wantErr:  false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var u math.U64
+			err := u.UnmarshalSSZ(tt.input)
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, tt.expected, u)
+			}
+		})
+	}
+}
+
+func TestGwei_SSZ(t *testing.T) {
+	t.Parallel()
+	// Test that Gwei inherits SSZ methods from U64
+	g := math.Gwei(1000000000) // 1 Gwei
+
+	// Test SizeSSZ
+	require.Equal(t, 8, g.SizeSSZ())
+
+	// Test MarshalSSZ
+	marshaled, err := g.MarshalSSZ()
+	require.NoError(t, err)
+	require.Equal(t, []byte{0x00, 0xca, 0x9a, 0x3b, 0x00, 0x00, 0x00, 0x00}, marshaled)
+
+	// Test UnmarshalSSZ
+	var g2 math.Gwei
+	err = g2.UnmarshalSSZ(marshaled)
+	require.NoError(t, err)
+	require.Equal(t, g, g2)
+}

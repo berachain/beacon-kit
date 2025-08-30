@@ -18,33 +18,21 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
+//go:generate sszgen -path pending_partial_withdrawal.go -objs PendingPartialWithdrawal -output pending_partial_withdrawal_sszgen.go -include ../../primitives/common,../../primitives/math
+
 package types
 
 import (
 	"github.com/berachain/beacon-kit/errors"
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
-	fastssz "github.com/ferranbt/fastssz"
-	"github.com/karalabe/ssz"
+	ssz "github.com/ferranbt/fastssz"
 )
 
-// sszPendingPartialWithdrawalSize defines the total SSZ serialized size for
-// PendingPartialWithdrawal. The fields are assumed to be encoded as follows:
-// - ValidatorIndex: 8 bytes (uint64)
-// - Amount:         8 bytes (math.Gwei)
-// - WithdrawableEpoch: 8 bytes (uint64)
-// Total = 8 + 8 + 8 = 24 bytes.
-const sszPendingPartialWithdrawalSize = 24
-
-// Compile-time check to ensure PendingPartialWithdrawal and PendingPartialWithdrawals implements the necessary interfaces.
 var (
-	_ ssz.StaticObject            = (*PendingPartialWithdrawal)(nil)
-	_ constraints.SSZMarshallable = (*PendingPartialWithdrawal)(nil)
-
-	_ ssz.DynamicObject           = (*PendingPartialWithdrawals)(nil)
-	_ constraints.SSZMarshallable = (*PendingPartialWithdrawals)(nil)
+	_ constraints.SSZMarshallableRootable = (*PendingPartialWithdrawal)(nil)
+	_ constraints.SSZMarshallable         = (*PendingPartialWithdrawals)(nil)
 )
 
 // PendingPartialWithdrawal reflects the following spec:
@@ -59,53 +47,9 @@ type PendingPartialWithdrawal struct {
 	WithdrawableEpoch math.Epoch
 }
 
-/* -------------------------------------------------------------------------- */
-/*                      PendingPartialWithdrawal SSZ                          */
-/* -------------------------------------------------------------------------- */
-
 // ValidateAfterDecodingSSZ validates the PendingPartialWithdrawal object
 // after decoding from SSZ. Customize further validation as needed.
 func (p *PendingPartialWithdrawal) ValidateAfterDecodingSSZ() error {
-	return nil
-}
-
-// DefineSSZ registers the SSZ encoding for each field in PendingPartialWithdrawal.
-func (p *PendingPartialWithdrawal) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineUint64(codec, &p.ValidatorIndex)
-	ssz.DefineUint64(codec, &p.Amount)
-	ssz.DefineUint64(codec, &p.WithdrawableEpoch)
-}
-
-// SizeSSZ returns the fixed size of the SSZ serialization for PendingPartialWithdrawal.
-func (p *PendingPartialWithdrawal) SizeSSZ(_ *ssz.Sizer) uint32 {
-	return sszPendingPartialWithdrawalSize
-}
-
-// MarshalSSZ returns the SSZ encoding of the PendingPartialWithdrawal.
-func (p *PendingPartialWithdrawal) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(p))
-	return buf, ssz.EncodeToBytes(buf, p)
-}
-
-// HashTreeRoot computes and returns the hash tree root for the PendingPartialWithdrawal.
-func (p *PendingPartialWithdrawal) HashTreeRoot() common.Root {
-	return ssz.HashSequential(p)
-}
-
-// HashTreeRootWith SSZ hashes the Deposit object with a hasher. Needed for BeaconState SSZ.
-func (p *PendingPartialWithdrawal) HashTreeRootWith(hh fastssz.HashWalker) error {
-	indx := hh.Index()
-
-	// Field (0) 'ValidatorIndex'
-	hh.PutUint64(uint64(p.ValidatorIndex))
-
-	// Field (1) 'Amount'
-	hh.PutUint64(uint64(p.Amount))
-
-	// Field (2) 'WithdrawableEpoch'
-	hh.PutUint64(uint64(p.WithdrawableEpoch))
-
-	hh.Merkleize(indx)
 	return nil
 }
 
@@ -117,24 +61,100 @@ func NewEmptyPendingPartialWithdrawals() *PendingPartialWithdrawals {
 	return &PendingPartialWithdrawals{}
 }
 
-// DefineSSZ defines the SSZ encoding for the PendingPartialWithdrawals list.
-func (p *PendingPartialWithdrawals) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineSliceOfStaticObjectsOffset(codec, (*[]*PendingPartialWithdrawal)(p), constants.PendingPartialWithdrawalsLimit)
-	ssz.DefineSliceOfStaticObjectsContent(codec, (*[]*PendingPartialWithdrawal)(p), constants.PendingPartialWithdrawalsLimit)
-}
-
 // SizeSSZ returns the size of the PendingPartialWithdrawals list.
-func (p *PendingPartialWithdrawals) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
-	if fixed {
-		return constants.SSZOffsetSize
-	}
-	return constants.SSZOffsetSize + ssz.SizeSliceOfStaticObjects(siz, *p)
+func (p *PendingPartialWithdrawals) SizeSSZ() int {
+	return 4 + len(*p)*24 // 24 bytes per PendingPartialWithdrawal
 }
 
 // MarshalSSZ returns the SSZ encoding of the PendingPartialWithdrawals list.
 func (p *PendingPartialWithdrawals) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(p))
-	return buf, ssz.EncodeToBytes(buf, p)
+	buf := make([]byte, 0, p.SizeSSZ())
+	return p.MarshalSSZTo(buf)
+}
+
+// MarshalSSZTo marshals the PendingPartialWithdrawals list into a pre-allocated byte slice.
+func (p *PendingPartialWithdrawals) MarshalSSZTo(dst []byte) ([]byte, error) {
+	// Write offset
+	offset := 4
+	dst = ssz.MarshalUint32(dst, uint32(offset))
+
+	// Write elements
+	for _, elem := range *p {
+		var err error
+		dst, err = elem.MarshalSSZTo(dst)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return dst, nil
+}
+
+// UnmarshalSSZ ssz unmarshals the PendingPartialWithdrawals list.
+func (p *PendingPartialWithdrawals) UnmarshalSSZ(buf []byte) error {
+	if len(buf) < 4 {
+		return ssz.ErrSize
+	}
+
+	// Read offset
+	offset := ssz.UnmarshallUint32(buf[0:4])
+	if offset != 4 {
+		return ssz.ErrInvalidVariableOffset
+	}
+
+	// Read elements
+	if (len(buf)-4)%24 != 0 {
+		return ssz.ErrSize
+	}
+
+	numItems := (len(buf) - 4) / 24
+	if numItems > constants.PendingPartialWithdrawalsLimit {
+		return errors.New("pending partial withdrawals too large")
+	}
+
+	*p = make([]*PendingPartialWithdrawal, numItems)
+	for i := 0; i < numItems; i++ {
+		(*p)[i] = &PendingPartialWithdrawal{}
+		start := 4 + i*24
+		end := start + 24
+		if err := (*p)[i].UnmarshalSSZ(buf[start:end]); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// HashTreeRoot computes the hash tree root for PendingPartialWithdrawals.
+func (p *PendingPartialWithdrawals) HashTreeRoot() ([32]byte, error) {
+	hh := ssz.DefaultHasherPool.Get()
+	defer ssz.DefaultHasherPool.Put(hh)
+	if err := p.HashTreeRootWith(hh); err != nil {
+		return [32]byte{}, err
+	}
+	return hh.HashRoot()
+
+}
+
+// HashTreeRootWith ssz hashes the PendingPartialWithdrawals object with a hasher.
+func (p *PendingPartialWithdrawals) HashTreeRootWith(hh ssz.HashWalker) error {
+	indx := hh.Index()
+	num := uint64(len(*p))
+	if num > constants.PendingPartialWithdrawalsLimit {
+		return ssz.ErrIncorrectListSize
+	}
+	for _, elem := range *p {
+		if err := elem.HashTreeRootWith(hh); err != nil {
+			return err
+		}
+	}
+	hh.MerkleizeWithMixin(indx, num, constants.PendingPartialWithdrawalsLimit)
+	return nil
+}
+
+// GetTree ssz hashes the PendingPartialWithdrawals object.
+func (p *PendingPartialWithdrawals) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(p)
 }
 
 // ValidateAfterDecodingSSZ validates the PendingPartialWithdrawals list after decoding from SSZ.

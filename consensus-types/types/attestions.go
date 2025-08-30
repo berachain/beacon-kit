@@ -26,12 +26,11 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
-	"github.com/karalabe/ssz"
+	ssz "github.com/ferranbt/fastssz"
 )
 
 // Compile-time assertions to ensure Attestation implements necessary interfaces.
 var (
-	_ ssz.StaticObject                    = (*Attestation)(nil)
 	_ constraints.SSZMarshallableRootable = (*Attestation)(nil)
 	_ common.UnusedEnforcer               = (*Attestations)(nil)
 )
@@ -42,26 +41,44 @@ type (
 )
 
 // SizeSSZ returns the SSZ encoded size in bytes for the Attestations.
-func (as Attestations) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {
-	return ssz.SizeSliceOfStaticObjects(siz, as)
-}
-
-// DefineSSZ defines the SSZ encoding for the Attestations object.
-func (as Attestations) DefineSSZ(c *ssz.Codec) {
-	c.DefineDecoder(func(*ssz.Decoder) {
-		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*Attestation)(&as), constants.MaxAttestations)
-	})
-	c.DefineEncoder(func(*ssz.Encoder) {
-		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*Attestation)(&as), constants.MaxAttestations)
-	})
-	c.DefineHasher(func(*ssz.Hasher) {
-		ssz.DefineSliceOfStaticObjectsOffset(c, (*[]*Attestation)(&as), constants.MaxAttestations)
-	})
+func (as Attestations) SizeSSZ() int {
+	return 4 + len(as)*16 // offset + each attestation size (UnusedType is 16 bytes)
 }
 
 // HashTreeRoot returns the hash tree root of the Attestations.
-func (as Attestations) HashTreeRoot() common.Root {
-	return ssz.HashSequential(as)
+func (as Attestations) HashTreeRoot() ([32]byte, error) {
+	hh := ssz.DefaultHasherPool.Get()
+	defer ssz.DefaultHasherPool.Put(hh)
+	if err := as.HashTreeRootWith(hh); err != nil {
+		return [32]byte{}, err
+	}
+	return hh.HashRoot()
+
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
+
+// HashTreeRootWith ssz hashes the Attestations object with a hasher.
+func (as Attestations) HashTreeRootWith(hh ssz.HashWalker) error {
+	indx := hh.Index()
+	num := uint64(len(as))
+	if num > constants.MaxAttestations {
+		return ssz.ErrIncorrectListSize
+	}
+	for _, elem := range as {
+		if err := elem.HashTreeRootWith(hh); err != nil {
+			return err
+		}
+	}
+	hh.MerkleizeWithMixin(indx, num, constants.MaxAttestations)
+	return nil
+}
+
+// GetTree ssz hashes the Attestations object.
+func (as Attestations) GetTree() (*ssz.Node, error) {
+	return ssz.ProofTree(as)
 }
 
 // EnforceUnused return true if the length of the Attestations is 0.

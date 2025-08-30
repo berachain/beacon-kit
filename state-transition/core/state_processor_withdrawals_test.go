@@ -69,7 +69,8 @@ func TestPartialWithdrawalRequestGenesisValidators(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
+			Versionable:   types.NewVersionable(cs.GenesisForkVersion()),
+			BaseFeePerGas: math.NewU256(0),
 		}
 	)
 	_, err := sp.InitializeBeaconStateFromEth1(
@@ -285,7 +286,8 @@ func TestFullWithdrawalRequestGenesisValidators(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
+			Versionable:   types.NewVersionable(cs.GenesisForkVersion()),
+			BaseFeePerGas: math.NewU256(0),
 		}
 	)
 	_, err := sp.InitializeBeaconStateFromEth1(
@@ -527,7 +529,8 @@ func TestWithdrawalRequestsNonGenesisValidators(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
+			Versionable:   types.NewVersionable(cs.GenesisForkVersion()),
+			BaseFeePerGas: math.NewU256(0),
 		}
 		totalDepositsCount = uint64(len(genDeposits))
 	)
@@ -777,7 +780,8 @@ func TestConcurrentAutomaticAndVoluntaryWithdrawalRequests(t *testing.T) {
 	var (
 		genDeposits      = make(types.Deposits, 0, cs.ValidatorSetCap())
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
+			Versionable:   types.NewVersionable(cs.GenesisForkVersion()),
+			BaseFeePerGas: math.NewU256(0),
 		}
 		totalDepositsCount = cs.ValidatorSetCap()
 	)
@@ -956,7 +960,8 @@ func TestDoubleFullWithdrawalRequests(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
+			Versionable:   types.NewVersionable(cs.GenesisForkVersion()),
+			BaseFeePerGas: math.NewU256(0),
 		}
 	)
 	_, err := sp.InitializeBeaconStateFromEth1(
@@ -1059,7 +1064,8 @@ func TestPartialWithdrawalsOfBalanceAboveMaxEffectiveBalance(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
+			Versionable:   types.NewVersionable(cs.GenesisForkVersion()),
+			BaseFeePerGas: math.NewU256(0),
 		}
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
@@ -1151,7 +1157,8 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
+			Versionable:   types.NewVersionable(cs.GenesisForkVersion()),
+			BaseFeePerGas: math.NewU256(0),
 		}
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
@@ -1275,7 +1282,8 @@ func TestValidatorNotWithdrawable(t *testing.T) {
 			},
 		}
 		genPayloadHeader = &types.ExecutionPayloadHeader{
-			Versionable: types.NewVersionable(cs.GenesisForkVersion()),
+			Versionable:   types.NewVersionable(cs.GenesisForkVersion()),
+			BaseFeePerGas: math.NewU256(0),
 		}
 		totalDepositsCount = uint64(len(genDeposits))
 	)

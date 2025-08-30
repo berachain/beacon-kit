@@ -106,7 +106,8 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 	latestHeader, err := st.GetLatestBlockHeader()
 	require.NoError(t, err)
 	latestHeader.SetStateRoot(stateRoot)
-	expectedParentBlockRoot := latestHeader.HashTreeRoot()
+	expectedParentBlockRoot, err := latestHeader.HashTreeRoot()
+	require.NoError(t, err)
 
 	b.EXPECT().RequestPayloadAsync(mock.Anything, mock.Anything).Run(
 		func(_ context.Context, r *builder.RequestPayloadData) {
@@ -119,7 +120,7 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 
 			require.Equal(t, genesisHeader.GetBlockHash(), r.HeadEth1BlockHash)
 
-			require.Equal(t, expectedParentBlockRoot, r.ParentBlockRoot)
+			require.Equal(t, common.Root(expectedParentBlockRoot), r.ParentBlockRoot)
 
 			require.Empty(t, r.FinalEth1BlockHash)            // this is first block post genesis
 			require.Equal(t, constants.GenesisSlot+1, r.Slot) // rebuild block on top of genesis
@@ -190,7 +191,8 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 	_, err = sp.ProcessSlots(buildState, constants.GenesisSlot+1)
 	require.NoError(t, err)
 
-	depositsRoot := ctypes.Deposits(genesisData.Deposits).HashTreeRoot()
+	depositsRoot, err := ctypes.Deposits(genesisData.Deposits).HashTreeRoot()
+	require.NoError(t, err)
 
 	validBlk := buildNextBlock(
 		t,
@@ -227,7 +229,9 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 			genesisHeader := genesisData.ExecutionPayloadHeader.GetBlockHash()
 			require.Equal(t, genesisHeader, r.FinalEth1BlockHash)
 
-			require.Equal(t, validBlk.HashTreeRoot(), r.ParentBlockRoot)
+			validBlkRoot, err := validBlk.HashTreeRoot()
+			require.NoError(t, err)
+			require.Equal(t, common.Root(validBlkRoot), r.ParentBlockRoot)
 			require.Equal(t, validBlk.Slot+1, r.Slot)
 		},
 	).Return(nil, common.Version{0xff}, errors.New("does not matter")) // return values do not really matter in this test
@@ -340,10 +344,12 @@ func buildNextBlock(
 	// build the block
 	fv := cs.ActiveForkVersionForTimestamp(timestamp)
 	versionable := ctypes.NewVersionable(fv)
+	parentRoot, err := parentBlkHeader.HashTreeRoot()
+	require.NoError(t, err)
 	blk, err := ctypes.NewBeaconBlockWithVersion(
 		nextBlockSlot,
 		parentBlkHeader.GetProposerIndex(),
-		parentBlkHeader.HashTreeRoot(),
+		parentRoot,
 		fv,
 	)
 	require.NoError(t, err)
@@ -364,7 +370,9 @@ func buildNextBlock(
 		Withdrawals:   []*engineprimitives.Withdrawal{st.EVMInflationWithdrawal(timestamp)},
 		BaseFeePerGas: math.NewU256(0),
 	}
-	parentBeaconBlockRoot := parentBlkHeader.HashTreeRoot()
+	parentBeaconBlockRootVal, err := parentBlkHeader.HashTreeRoot()
+	require.NoError(t, err)
+	parentBeaconBlockRoot := common.Root(parentBeaconBlockRootVal)
 
 	var (
 		ethBlk    *gethprimitives.Block

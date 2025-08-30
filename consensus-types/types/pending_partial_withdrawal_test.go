@@ -25,7 +25,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
+	"github.com/berachain/beacon-kit/primitives/encoding/sszutil"
 	prysmtypes "github.com/prysmaticlabs/prysm/v5/proto/prysm/v1alpha1"
 	"github.com/stretchr/testify/require"
 )
@@ -85,7 +85,8 @@ func TestPendingPartialWithdrawal_ValidValuesSSZ(t *testing.T) {
 			require.NoError(t, err)
 
 			// Compare the HashTreeRoots.
-			originalHTR := tc.pending.HashTreeRoot()
+			originalHTR, err := tc.pending.HashTreeRoot()
+			require.NoError(t, err)
 			prysmHTR, err := prysmType.HashTreeRoot()
 			require.NoError(t, err)
 			require.Equal(t, originalHTR[:], prysmHTR[:])
@@ -96,7 +97,7 @@ func TestPendingPartialWithdrawal_ValidValuesSSZ(t *testing.T) {
 
 			// Unmarshal back into original type
 			var recomputedPending types.PendingPartialWithdrawal
-			err = ssz.Unmarshal(prysmBytes, &recomputedPending)
+			err = sszutil.Unmarshal(prysmBytes, &recomputedPending)
 			require.NoError(t, err)
 			require.Equal(t, *tc.pending, recomputedPending)
 		})
@@ -140,7 +141,7 @@ func TestPendingPartialWithdrawal_InvalidValuesUnmarshalSSZ(t *testing.T) {
 			// Ensure that Unmarshal does not panic and returns an error.
 			require.NotPanics(t, func() {
 				var p types.PendingPartialWithdrawal
-				err = ssz.Unmarshal(payload, &p)
+				err = sszutil.Unmarshal(payload, &p)
 				require.Error(t, err, "expected error for payload %v", payload)
 			})
 		})
@@ -193,7 +194,7 @@ func TestPendingPartialWithdrawals_ValidValuesSSZ(t *testing.T) {
 
 			// Unmarshal into a new PendingPartialWithdrawals variable.
 			var recomputed types.PendingPartialWithdrawals
-			err = ssz.Unmarshal(withdrawBytes, &recomputed)
+			err = sszutil.Unmarshal(withdrawBytes, &recomputed)
 			require.NoError(t, err)
 
 			// Compare the original slice to the recomputed one.
@@ -245,7 +246,7 @@ func TestPendingPartialWithdrawals_InvalidValuesUnmarshalSSZ(t *testing.T) {
 			// Ensure that unmarshalling does not panic and returns an error.
 			require.NotPanics(t, func() {
 				var withdrawals types.PendingPartialWithdrawals
-				err = ssz.Unmarshal(payload, &withdrawals)
+				err = sszutil.Unmarshal(payload, &withdrawals)
 				require.Error(t, err, "expected error for payload %v", payload)
 			})
 		})

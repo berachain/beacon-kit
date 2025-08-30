@@ -29,7 +29,7 @@ import (
 // tree root), timestamp, and state root.
 type BeaconBlock interface {
 	GetSlot() math.U64
-	HashTreeRoot() common.Root
+	HashTreeRoot() ([32]byte, error)
 	GetTimestamp() math.U64
 	GetStateRoot() common.Root
 }

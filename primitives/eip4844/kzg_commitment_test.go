@@ -89,7 +89,7 @@ func TestKZGCommitmentHashTreeRoot(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    eip4844.KZGCommitment
-		expected common.Root
+		expected [32]byte
 	}{
 		{"Simple input", newTestCommitment("example commitment"),
 			[32]byte{138, 20, 122, 217, 77, 116, 246, 111, 195, 118, 240,
@@ -104,7 +104,8 @@ func TestKZGCommitmentHashTreeRoot(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			hashTreeRoot := tt.input.HashTreeRoot()
+			hashTreeRoot, err := tt.input.HashTreeRoot()
+			require.NoError(t, err)
 			require.Equal(
 				t,
 				tt.expected,

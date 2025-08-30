@@ -134,6 +134,16 @@ func DefaultGenesisExecutionPayloadHeader(v common.Version) (*ExecutionPayloadHe
 		return nil, fmt.Errorf("failed setting base fee per gas: %w", err)
 	}
 
+	transactionsRoot, err := computeEmptyTransactionsRoot()
+	if err != nil {
+		return nil, fmt.Errorf("failed to compute genesis transactions root: %w", err)
+	}
+
+	withdrawalsRoot, err := computeEmptyWithdrawalsRoot()
+	if err != nil {
+		return nil, fmt.Errorf("failed to compute genesis withdrawals root: %w", err)
+	}
+
 	return &ExecutionPayloadHeader{
 		Versionable:   NewVersionable(v),
 		ParentHash:    common.ExecutionHash{},
@@ -151,10 +161,27 @@ func DefaultGenesisExecutionPayloadHeader(v common.Version) (*ExecutionPayloadHe
 		BlockHash: common.NewExecutionHashFromHex(
 			"0xcfff92cd918a186029a847b59aca4f83d3941df5946b06bca8de0861fc5d0850",
 		),
-		TransactionsRoot: engineprimitives.Transactions(nil).
-			HashTreeRoot(),
-		WithdrawalsRoot: engineprimitives.Withdrawals(nil).HashTreeRoot(),
-		BlobGasUsed:     0,
-		ExcessBlobGas:   0,
+		TransactionsRoot: transactionsRoot,
+		WithdrawalsRoot:  withdrawalsRoot,
+		BlobGasUsed:      0,
+		ExcessBlobGas:    0,
 	}, nil
+}
+
+// computeEmptyTransactionsRoot returns the hash tree root of empty transactions.
+func computeEmptyTransactionsRoot() (common.Root, error) {
+	root, err := engineprimitives.Transactions(nil).HashTreeRoot()
+	if err != nil {
+		return common.Root{}, fmt.Errorf("failed to compute empty transactions root: %w", err)
+	}
+	return common.Root(root), nil
+}
+
+// computeEmptyWithdrawalsRoot returns the hash tree root of empty withdrawals.
+func computeEmptyWithdrawalsRoot() (common.Root, error) {
+	root, err := engineprimitives.Withdrawals(nil).HashTreeRoot()
+	if err != nil {
+		return common.Root{}, fmt.Errorf("failed to compute empty withdrawals root: %w", err)
+	}
+	return common.Root(root), nil
 }

@@ -21,16 +21,14 @@
 package types_test
 
 import (
-	"io"
 	"testing"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
+	"github.com/berachain/beacon-kit/primitives/encoding/sszutil"
 	"github.com/berachain/beacon-kit/primitives/math"
-	fastssz "github.com/ferranbt/fastssz"
-	karalabessz "github.com/karalabe/ssz"
+	ssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -102,7 +100,7 @@ func TestDeposit_MarshalUnmarshalSSZ(t *testing.T) {
 	require.NotNil(t, sszDeposit)
 
 	unmarshalledDeposit := new(types.Deposit)
-	err = ssz.Unmarshal(sszDeposit, unmarshalledDeposit)
+	err = sszutil.Unmarshal(sszDeposit, unmarshalledDeposit)
 	require.NoError(t, err)
 	require.Equal(t, originalDeposit, unmarshalledDeposit)
 }
@@ -110,7 +108,7 @@ func TestDeposit_MarshalUnmarshalSSZ(t *testing.T) {
 func TestDeposit_MarshalSSZTo(t *testing.T) {
 	t.Parallel()
 	deposit := generateValidDeposit()
-	buf := make([]byte, karalabessz.Size(deposit))
+	buf := make([]byte, deposit.SizeSSZ())
 	target, err := deposit.MarshalSSZTo(buf)
 	require.NoError(t, err)
 	require.NotNil(t, target)
@@ -120,7 +118,7 @@ func TestDeposit_HashTreeRoot(t *testing.T) {
 	t.Parallel()
 	deposit := generateValidDeposit()
 	require.NotPanics(t, func() {
-		_ = deposit.HashTreeRoot()
+		_, _ = deposit.HashTreeRoot()
 	})
 }
 
@@ -128,14 +126,14 @@ func TestDeposit_SizeSSZ(t *testing.T) {
 	t.Parallel()
 	deposit := generateValidDeposit()
 
-	require.Equal(t, uint32(192), karalabessz.Size(deposit))
+	require.Equal(t, 192, deposit.SizeSSZ())
 }
 
 func TestDeposit_HashTreeRootWith(t *testing.T) {
 	t.Parallel()
 	deposit := generateValidDeposit()
 	require.NotNil(t, deposit)
-	hasher := fastssz.NewHasher()
+	hasher := ssz.NewHasher()
 	require.NotNil(t, hasher)
 	err := deposit.HashTreeRootWith(hasher)
 	require.NoError(t, err)
@@ -154,8 +152,9 @@ func TestDeposit_UnmarshalSSZ_ErrSize(t *testing.T) {
 	buf := make([]byte, 10) // size less than 192
 
 	var unmarshalledDeposit types.Deposit
-	err := ssz.Unmarshal(buf, &unmarshalledDeposit)
-	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
+	err := sszutil.Unmarshal(buf, &unmarshalledDeposit)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "incorrect size")
 }
 
 func TestDeposit_VerifySignature(t *testing.T) {

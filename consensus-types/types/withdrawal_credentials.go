@@ -13,14 +13,14 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 package types
 
 import (
-	"bytes"
+	stdbytes "bytes"
 
 	"github.com/berachain/beacon-kit/primitives/common"
 )
@@ -51,7 +51,7 @@ func NewCredentialsFromExecutionAddress(address common.ExecutionAddress) Withdra
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/validator.md#eth1_address_withdrawal_prefix
 func (wc WithdrawalCredentials) IsValidEth1WithdrawalCredentials() bool {
 	zeroBytes := make([]byte, numZeroBytesInEth1WithdrawalCredentials)
-	return wc[0] == EthSecp256k1CredentialPrefix && bytes.Equal(wc[1:12], zeroBytes)
+	return wc[0] == EthSecp256k1CredentialPrefix && stdbytes.Equal(wc[1:12], zeroBytes)
 }
 
 // ToExecutionAddress converts the WithdrawalCredentials to an ExecutionAddress.
@@ -63,26 +63,52 @@ func (wc WithdrawalCredentials) ToExecutionAddress() (common.ExecutionAddress, e
 	return common.ExecutionAddress(wc[12:]), nil
 }
 
-// UnmarshalJSON implements the json.Unmarshaler interface for Bytes32.
-// TODO: Figure out how to not have to do this.
+// UnmarshalJSON implements the json.Unmarshaler interface for WithdrawalCredentials.
 func (wc *WithdrawalCredentials) UnmarshalJSON(input []byte) error {
-	return (*common.Bytes32)(wc).UnmarshalJSON(input)
+	var b32 common.Bytes32
+	err := b32.UnmarshalJSON(input)
+	if err != nil {
+		return err
+	}
+	*wc = WithdrawalCredentials(b32)
+	return nil
 }
 
-// String returns the hex string representation of Bytes32.
-// TODO: Figure out how to not have to do this.
+// String returns the hex string representation of WithdrawalCredentials.
 func (wc WithdrawalCredentials) String() string {
 	return common.Bytes32(wc).String()
 }
 
-// MarshalText implements the encoding.TextMarshaler interface for Bytes32.
-// TODO: Figure out how to not have to do this.
+// MarshalText implements the encoding.TextMarshaler interface for WithdrawalCredentials.
 func (wc WithdrawalCredentials) MarshalText() ([]byte, error) {
 	return common.Bytes32(wc).MarshalText()
 }
 
-// UnmarshalText implements the encoding.TextUnmarshaler interface for Bytes32.
-// TODO: Figure out how to not have to do this.
+// UnmarshalText implements the encoding.TextUnmarshaler interface for WithdrawalCredentials.
 func (wc *WithdrawalCredentials) UnmarshalText(text []byte) error {
 	return (*common.Bytes32)(wc).UnmarshalText(text)
+}
+
+// MarshalSSZ implements the SSZ marshaling for WithdrawalCredentials.
+func (wc WithdrawalCredentials) MarshalSSZ() ([]byte, error) {
+	return common.Bytes32(wc).MarshalSSZ()
+}
+
+// UnmarshalSSZ implements the SSZ unmarshaling for WithdrawalCredentials.
+func (wc *WithdrawalCredentials) UnmarshalSSZ(buf []byte) error {
+	if len(buf) != 32 {
+		return ErrInvalidWithdrawalCredentials
+	}
+	copy((*wc)[:], buf)
+	return nil
+}
+
+// SizeSSZ returns the size of the WithdrawalCredentials in bytes.
+func (wc WithdrawalCredentials) SizeSSZ() int {
+	return 32
+}
+
+// HashTreeRoot returns the hash tree root of the WithdrawalCredentials.
+func (wc WithdrawalCredentials) HashTreeRoot() ([32]byte, error) {
+	return common.Bytes32(wc).HashTreeRoot(), nil
 }

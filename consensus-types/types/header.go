@@ -18,24 +18,17 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
+//go:generate sszgen -path header.go -objs BeaconBlockHeader -output header_sszgen.go -include ../../primitives/common,../../primitives/math
+
 package types
 
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
-	fastssz "github.com/ferranbt/fastssz"
-	"github.com/karalabe/ssz"
 )
 
-// BeaconBlockHeaderSize is the size of the BeaconBlockHeader object in bytes.
-//
-// Total size: Slot (8) + ProposerIndex (8) +
-// ParentBlockRoot (32) + StateRoot (32) + BodyRoot (32).
-const BeaconBlockHeaderSize = 112
-
 var (
-	_ ssz.StaticObject                    = (*BeaconBlockHeader)(nil)
 	_ constraints.SSZMarshallableRootable = (*BeaconBlockHeader)(nil)
 )
 
@@ -46,11 +39,11 @@ type BeaconBlockHeader struct {
 	// ProposerIndex is the index of the validator who proposed the block.
 	ProposerIndex math.ValidatorIndex `json:"proposer_index"`
 	// ParentBlockRoot is the hash of the parent block
-	ParentBlockRoot common.Root `json:"parent_block_root"`
+	ParentBlockRoot common.Root `json:"parent_block_root" ssz-size:"32"`
 	// StateRoot is the hash of the state at the block.
-	StateRoot common.Root `json:"state_root"`
+	StateRoot common.Root `json:"state_root" ssz-size:"32"`
 	// BodyRoot is the root of the block body.
-	BodyRoot common.Root `json:"body_root"`
+	BodyRoot common.Root `json:"body_root" ssz-size:"32"`
 }
 
 /* -------------------------------------------------------------------------- */
@@ -78,80 +71,7 @@ func NewEmptyBeaconBlockHeader() *BeaconBlockHeader {
 	return &BeaconBlockHeader{}
 }
 
-/* -------------------------------------------------------------------------- */
-/*                                     SSZ                                    */
-/* -------------------------------------------------------------------------- */
-
-// SizeSSZ returns the size of the BeaconBlockHeader object in SSZ encoding.
-func (b *BeaconBlockHeader) SizeSSZ(*ssz.Sizer) uint32 {
-	return BeaconBlockHeaderSize
-}
-
-// DefineSSZ defines the SSZ encoding for the BeaconBlockHeader object.
-func (b *BeaconBlockHeader) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineUint64(codec, &b.Slot)
-	ssz.DefineUint64(codec, &b.ProposerIndex)
-	ssz.DefineStaticBytes(codec, &b.ParentBlockRoot)
-	ssz.DefineStaticBytes(codec, &b.StateRoot)
-	ssz.DefineStaticBytes(codec, &b.BodyRoot)
-}
-
-// MarshalSSZ marshals the BeaconBlockBody object to SSZ format.
-func (b *BeaconBlockHeader) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(b))
-	return buf, ssz.EncodeToBytes(buf, b)
-}
-
 func (*BeaconBlockHeader) ValidateAfterDecodingSSZ() error { return nil }
-
-// HashTreeRoot computes the SSZ hash tree root of the BeaconBlockHeader object.
-func (b *BeaconBlockHeader) HashTreeRoot() common.Root {
-	return ssz.HashSequential(b)
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                   FastSSZ                                  */
-/* -------------------------------------------------------------------------- */
-
-// MarshalSSZToBytes marshals the BeaconBlockHeader object to SSZ format.
-func (b *BeaconBlockHeader) MarshalSSZTo(dst []byte) ([]byte, error) {
-	bz, err := b.MarshalSSZ()
-	if err != nil {
-		return nil, err
-	}
-	dst = append(dst, bz...)
-	return dst, nil
-}
-
-// HashTreeRootWith ssz hashes the BeaconBlockHeader object with a hasher.
-func (b *BeaconBlockHeader) HashTreeRootWith(
-	hh fastssz.HashWalker,
-) error {
-	indx := hh.Index()
-
-	// Field (0) 'Slot'
-	hh.PutUint64(uint64(b.Slot))
-
-	// Field (1) 'ProposerIndex'
-	hh.PutUint64(uint64(b.ProposerIndex))
-
-	// Field (2) 'ParentBlockRoot'
-	hh.PutBytes(b.ParentBlockRoot[:])
-
-	// Field (3) 'StateRoot'
-	hh.PutBytes(b.StateRoot[:])
-
-	// Field (4) 'BodyRoot'
-	hh.PutBytes(b.BodyRoot[:])
-
-	hh.Merkleize(indx)
-	return nil
-}
-
-// GetTree ssz hashes the BeaconBlockHeader object.
-func (b *BeaconBlockHeader) GetTree() (*fastssz.Node, error) {
-	return fastssz.ProofTree(b)
-}
 
 /* -------------------------------------------------------------------------- */
 /*                            Getters and Setters                             */

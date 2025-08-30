@@ -129,7 +129,11 @@ func verifyWithdrawalCredentialsInBlock(
 		return common.Root{}, err
 	}
 
-	beaconRoot := bbh.HashTreeRoot()
+	beaconRootBytes, err := bbh.HashTreeRoot()
+	if err != nil {
+		return common.Root{}, err
+	}
+	beaconRoot := common.NewRootFromBytes(beaconRootBytes[:])
 	if !merkle.VerifyProof(
 		beaconRoot,
 		leaf,

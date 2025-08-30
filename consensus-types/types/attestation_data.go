@@ -22,20 +22,14 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
-	fastssz "github.com/ferranbt/fastssz"
-	"github.com/karalabe/ssz"
 )
 
 // AttestationDataSize is the size of the AttestationData object in bytes.
 // 8 bytes for Slot + 8 bytes for Index + 32 bytes for BeaconBlockRoot.
 const AttestationDataSize = 48
 
-var (
-	_ ssz.StaticObject                    = (*AttestationData)(nil)
-	_ constraints.SSZMarshallableRootable = (*AttestationData)(nil)
-)
+//go:generate sszgen --path . --include ../../primitives/common,../../primitives/bytes,../../primitives/math --objs AttestationData --output attestation_data_sszgen.go
 
 // AttestationData represents an attestation data.
 type AttestationData struct {
@@ -44,74 +38,10 @@ type AttestationData struct {
 	// Index is the index of the validator.
 	Index math.U64 `json:"index"`
 	// BeaconBlockRoot is the root of the beacon block.
-	BeaconBlockRoot common.Root `json:"beaconBlockRoot"`
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                     SSZ                                    */
-/* -------------------------------------------------------------------------- */
-
-// SizeSSZ returns the size of the AttestationData object in SSZ encoding.
-func (*AttestationData) SizeSSZ(*ssz.Sizer) uint32 {
-	return AttestationDataSize
-}
-
-// DefineSSZ defines the SSZ encoding for the AttestationData object.
-func (a *AttestationData) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineUint64(codec, &a.Slot)
-	ssz.DefineUint64(codec, &a.Index)
-	ssz.DefineStaticBytes(codec, &a.BeaconBlockRoot)
-}
-
-// HashTreeRoot computes the SSZ hash tree root of the AttestationData object.
-func (a *AttestationData) HashTreeRoot() common.Root {
-	return ssz.HashSequential(a)
-}
-
-// MarshalSSZ marshals the AttestationData object to SSZ format.
-func (a *AttestationData) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(a))
-	return buf, ssz.EncodeToBytes(buf, a)
+	BeaconBlockRoot common.Root `json:"beaconBlockRoot" ssz-size:"32"`
 }
 
 func (*AttestationData) ValidateAfterDecodingSSZ() error { return nil }
-
-/* -------------------------------------------------------------------------- */
-/*                                   FastSSZ                                  */
-/* -------------------------------------------------------------------------- */
-
-// MarshalSSZTo marshals the AttestationData object into a pre-allocated byte
-// slice.
-func (a *AttestationData) MarshalSSZTo(dst []byte) ([]byte, error) {
-	bz, err := a.MarshalSSZ()
-	if err != nil {
-		return nil, err
-	}
-	dst = append(dst, bz...)
-	return dst, err
-}
-
-// HashTreeRootWith ssz hashes the AttestationData object with a hasher.
-func (a *AttestationData) HashTreeRootWith(hh fastssz.HashWalker) error {
-	indx := hh.Index()
-
-	// Field (0) 'Slot'
-	hh.PutUint64(uint64(a.Slot))
-
-	// Field (1) 'Index'
-	hh.PutUint64(uint64(a.Index))
-
-	// Field (2) 'BeaconBlockRoot'
-	hh.PutBytes(a.BeaconBlockRoot[:])
-
-	hh.Merkleize(indx)
-	return nil
-}
-
-// GetTree ssz hashes the AttestationData object.
-func (a *AttestationData) GetTree() (*fastssz.Node, error) {
-	return fastssz.ProofTree(a)
-}
 
 /* -------------------------------------------------------------------------- */
 /*                             Getters and Setters                            */

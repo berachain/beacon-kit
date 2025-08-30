@@ -18,6 +18,8 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
+//go:generate sszgen -path consolidation_request.go -objs ConsolidationRequest -output consolidation_request_sszgen.go -include ../../primitives/common,../../primitives/crypto,../../primitives/bytes
+
 package types
 
 import (
@@ -27,17 +29,10 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	sszutil "github.com/berachain/beacon-kit/primitives/encoding/ssz"
-	"github.com/karalabe/ssz"
+	"github.com/berachain/beacon-kit/primitives/encoding/sszutil"
 )
 
 const sszConsolidationRequestSize = 116
-
-// Compile-time check to ensure ConsolidationRequest implements the necessary interfaces.
-var (
-	_ ssz.StaticObject            = (*ConsolidationRequest)(nil)
-	_ constraints.SSZMarshallable = (*ConsolidationRequest)(nil)
-)
 
 // ConsolidationRequest is introduced in Pectra but not used by us.
 // We keep it so we can maintain parity tests with other SSZ implementations.
@@ -47,32 +42,9 @@ type ConsolidationRequest struct {
 	TargetPubKey  crypto.BLSPubkey
 }
 
-/* -------------------------------------------------------------------------- */
-/*                       Consolidation Request SSZ                            */
-/* -------------------------------------------------------------------------- */
-
+// ValidateAfterDecodingSSZ validates the consolidation request after decoding.
 func (c *ConsolidationRequest) ValidateAfterDecodingSSZ() error {
 	return nil
-}
-
-func (c *ConsolidationRequest) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineStaticBytes(codec, &c.SourceAddress)
-	ssz.DefineStaticBytes(codec, &c.SourcePubKey)
-	ssz.DefineStaticBytes(codec, &c.TargetPubKey)
-}
-
-func (c *ConsolidationRequest) SizeSSZ(_ *ssz.Sizer) uint32 {
-	return sszConsolidationRequestSize
-}
-
-func (c *ConsolidationRequest) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, ssz.Size(c))
-	return buf, ssz.EncodeToBytes(buf, c)
-}
-
-// HashTreeRoot returns the hash tree root of the Deposits.
-func (c *ConsolidationRequest) HashTreeRoot() common.Root {
-	return ssz.HashSequential(c)
 }
 
 /* -------------------------------------------------------------------------- */
