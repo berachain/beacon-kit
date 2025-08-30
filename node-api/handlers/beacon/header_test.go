@@ -304,7 +304,7 @@ func TestGetBlockHeaders(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc // capture range variable
+		// capture range variable
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -499,7 +499,7 @@ func TestGetBlockHeaderByID(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc // capture range variable
+		// capture range variable
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
