@@ -33,9 +33,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestBlockProposerPubkeyProof tests the ProveProposerPubkeyInBlock function
+// TestValidatorPubkeyProof tests the ProveValidatorPubkeyInBlock function
 // and that the generated proof correctly verifies.
-func TestBlockProposerPubkeyProof(t *testing.T) {
+func TestValidatorPubkeyProof(t *testing.T) {
 	t.Parallel()
 	testCases := []struct {
 		name              string
@@ -114,6 +114,7 @@ func TestBlockProposerPubkeyProof(t *testing.T) {
 				tc.bodyRoot,
 			)
 
+			// Use the proposer pubkey helper function to prove validator pubkey of block proposer.
 			proof, _, err := merkle.ProveProposerPubkeyInBlock(bbh, bs)
 			require.NoError(t, err)
 			expectedProof := ReadProofFromFile(t, tc.expectedProofFile)

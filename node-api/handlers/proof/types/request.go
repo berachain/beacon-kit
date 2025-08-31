@@ -41,3 +41,7 @@ type ValidatorCredentialsRequest = ValidatorIndexRequest
 // ValidatorBalanceRequest is the request for the
 // `/proof/validator_balance/{timestamp_id}/{validator_index}` endpoint.
 type ValidatorBalanceRequest = ValidatorIndexRequest
+
+// ValidatorPubkeyRequest is the request for the
+// `/proof/validator_pubkey/{timestamp_id}/{validator_index}` endpoint.
+type ValidatorPubkeyRequest = ValidatorIndexRequest
