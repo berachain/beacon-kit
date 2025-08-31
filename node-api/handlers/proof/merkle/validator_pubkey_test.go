@@ -114,7 +114,8 @@ func TestValidatorPubkeyProof(t *testing.T) {
 				tc.bodyRoot,
 			)
 
-			proof, _, err := merkle.ProveValidatorPubkeyInBlock(tc.proposerIndex, bbh, bs)
+			// Use the proposer pubkey helper function to prove validator pubkey of block proposer.
+			proof, _, err := merkle.ProveProposerPubkeyInBlock(bbh, bs)
 			require.NoError(t, err)
 			expectedProof := ReadProofFromFile(t, tc.expectedProofFile)
 			require.Equal(t, expectedProof, proof)

@@ -21,13 +21,23 @@
 package merkle
 
 import (
+	"fmt"
+
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/merkle"
 )
+
+// ProveProposerPubkeyInBlock generates a proof for the proposer pubkey in the
+// beacon block.
+func ProveProposerPubkeyInBlock(
+	bbh *ctypes.BeaconBlockHeader,
+	bsm types.BeaconStateMarshallable,
+) ([]common.Root, common.Root, error) {
+	return ProveValidatorPubkeyInBlock(bbh.GetProposerIndex(), bbh, bsm)
+}
 
 // ProveValidatorPubkeyInBlock generates a proof for a validator's pubkey in the
 // beacon block. The proof is verified against the beacon block root as a sanity
@@ -105,7 +115,7 @@ func ProveValidatorPubkeyInState(
 	return proof, common.NewRootFromBytes(valPubkeyInStateProof.Leaf), nil
 }
 
-// verifyProposerInBlock verifies the validator pubkey in the beacon block,
+// verifyPubkeyInBlock verifies the validator pubkey in the beacon block,
 // returning the beacon block root used to verify against.
 //
 // TODO: verifying the proof is not absolutely necessary.
@@ -125,9 +135,8 @@ func verifyPubkeyInBlock(
 	if !merkle.VerifyProof(
 		beaconRoot, leaf, zeroValidatorPubkeyGIndexBlock+valOffset.Unwrap(), proof,
 	) {
-		return common.Root{}, errors.Wrapf(
-			errors.New("proposer pubkey proof failed to verify against beacon root"),
-			"beacon root: 0x%s", beaconRoot,
+		return common.Root{}, fmt.Errorf(
+			"proposer pubkey proof failed to verify against beacon root: %s", beaconRoot,
 		)
 	}
 
