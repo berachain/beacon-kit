@@ -20,24 +20,47 @@
 
 package types
 
-import "github.com/berachain/beacon-kit/node-api/handlers/types"
+import (
+	"encoding/json"
+	"strconv"
+)
 
-// BlockProposerRequest is the request for the
-// `/proof/block_proposer/{timestamp_id}` endpoint.
-type BlockProposerRequest struct {
-	types.TimestampIDRequest
+type DataResponse struct {
+	Data any `json:"data"`
 }
 
-// ValidatorIndexRequest is a request that uses timestamp_id and validator_index.
-type ValidatorIndexRequest struct {
-	types.TimestampIDRequest
-	ValidatorIndex string `param:"validator_index" validate:"required,numeric"`
+func Wrap(data any) DataResponse {
+	return DataResponse{
+		Data: data,
+	}
 }
 
-// ValidatorCredentialsRequest is the request for the
-// `/proof/validator_credentials/{timestamp_id}/{validator_index}` endpoint.
-type ValidatorCredentialsRequest = ValidatorIndexRequest
+type VersionData struct {
+	Version string `json:"version"`
+}
 
-// ValidatorBalanceRequest is the request for the
-// `/proof/validator_balance/{timestamp_id}/{validator_index}` endpoint.
-type ValidatorBalanceRequest = ValidatorIndexRequest
+type SyncingData struct {
+	HeadSlot     int64 `json:"head_slot"`
+	SyncDistance int64 `json:"sync_distance"`
+	IsSyncing    bool  `json:"is_syncing"`
+	IsOptimistic bool  `json:"is_optimistic"`
+	ELOffline    bool  `json:"el_offline"`
+}
+
+type syncingJSON struct {
+	HeadSlot     string `json:"head_slot"`
+	SyncDistance string `json:"sync_distance"`
+	IsSyncing    bool   `json:"is_syncing"`
+	IsOptimistic bool   `json:"is_optimistic"`
+	ELOffline    bool   `json:"el_offline"`
+}
+
+func (s *SyncingData) MarshalJSON() ([]byte, error) {
+	return json.Marshal(syncingJSON{
+		HeadSlot:     strconv.FormatInt(s.HeadSlot, 10),
+		SyncDistance: strconv.FormatInt(s.SyncDistance, 10),
+		IsSyncing:    s.IsSyncing,
+		IsOptimistic: s.IsOptimistic,
+		ELOffline:    s.ELOffline,
+	})
+}

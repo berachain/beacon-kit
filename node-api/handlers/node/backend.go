@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2025, Berachain Foundation. All rights reserved.
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -18,26 +18,14 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package node
 
-import "github.com/berachain/beacon-kit/node-api/handlers/types"
-
-// BlockProposerRequest is the request for the
-// `/proof/block_proposer/{timestamp_id}` endpoint.
-type BlockProposerRequest struct {
-	types.TimestampIDRequest
+type Backend interface {
+	GetSyncData() (latestHeight int64, syncToHeight int64)
+	GetVersionData() (
+		appName,
+		version,
+		os,
+		arch string,
+	)
 }
-
-// ValidatorIndexRequest is a request that uses timestamp_id and validator_index.
-type ValidatorIndexRequest struct {
-	types.TimestampIDRequest
-	ValidatorIndex string `param:"validator_index" validate:"required,numeric"`
-}
-
-// ValidatorCredentialsRequest is the request for the
-// `/proof/validator_credentials/{timestamp_id}/{validator_index}` endpoint.
-type ValidatorCredentialsRequest = ValidatorIndexRequest
-
-// ValidatorBalanceRequest is the request for the
-// `/proof/validator_balance/{timestamp_id}/{validator_index}` endpoint.
-type ValidatorBalanceRequest = ValidatorIndexRequest

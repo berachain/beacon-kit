@@ -94,6 +94,18 @@ type BeaconKitNodeClient interface {
 	BlockProposerProof(
 		ctx context.Context, timestampID string,
 	) (*ptypes.BlockProposerResponse, error)
+
+	// ValidatorBalanceProof calls `bkit/v1/proof/validator_balance/:timestamp_id/:validator_index` endpoint to get
+	// the merkle proofs that can be used to verify the validator balance for a given timestamp id and validator index.
+	ValidatorBalanceProof(
+		ctx context.Context, timestampID string, validatorIndex string,
+	) (*ptypes.ValidatorBalanceResponse, error)
+
+	// ValidatorCredentialsProof calls `bkit/v1/proof/validator_credentials/:timestamp_id/:validator_index` endpoint to get
+	// the merkle proofs that can be used to verify the validator withdrawal credentials for a given timestamp id and validator index.
+	ValidatorCredentialsProof(
+		ctx context.Context, timestampID string, validatorIndex string,
+	) (*ptypes.ValidatorWithdrawalCredentialsResponse, error)
 }
 
 // customBeaconClient is a custom implementation of the BeaconKitNodeClient interface
@@ -237,6 +249,64 @@ func (c *customBeaconClient) BlockProposerProof(
 	defer resp.Body.Close()
 
 	var result ptypes.BlockProposerResponse
+	if err = json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	return &result, nil
+}
+
+// ValidatorBalanceProof calls `bkit/v1/proof/validator_balance/:timestamp_id/:validator_index` endpoint to get
+// the merkle proofs that can be used to verify the validator balance for a given timestamp id and validator index.
+func (c *customBeaconClient) ValidatorBalanceProof(
+	ctx context.Context, timestampID string, validatorIndex string,
+) (*ptypes.ValidatorBalanceResponse, error) {
+	url := fmt.Sprintf("%s/bkit/v1/proof/validator_balance/%s/%s", c.address, timestampID, validatorIndex)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send request: %w", err)
+	}
+	if resp == nil {
+		return nil, errors.New("received nil response")
+	}
+	defer resp.Body.Close()
+
+	var result ptypes.ValidatorBalanceResponse
+	if err = json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	return &result, nil
+}
+
+// ValidatorCredentialsProof calls `bkit/v1/proof/validator_credentials/:timestamp_id/:validator_index` endpoint to get
+// the merkle proofs that can be used to verify the validator withdrawal credentials for a given timestamp id and validator index.
+func (c *customBeaconClient) ValidatorCredentialsProof(
+	ctx context.Context, timestampID string, validatorIndex string,
+) (*ptypes.ValidatorWithdrawalCredentialsResponse, error) {
+	url := fmt.Sprintf("%s/bkit/v1/proof/validator_credentials/%s/%s", c.address, timestampID, validatorIndex)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send request: %w", err)
+	}
+	if resp == nil {
+		return nil, errors.New("received nil response")
+	}
+	defer resp.Body.Close()
+
+	var result ptypes.ValidatorWithdrawalCredentialsResponse
 	if err = json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
