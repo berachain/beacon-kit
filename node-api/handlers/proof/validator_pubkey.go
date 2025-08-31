@@ -24,15 +24,15 @@ package proof
 import (
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/merkle"
-	"github.com/berachain/beacon-kit/node-api/handlers/proof/types"
+	ptypes "github.com/berachain/beacon-kit/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-// GetValidatorCredentials returns the withdrawal credentials of a validator along with a
+// GetValidatorPubkey returns the pubkey of a validator along with a
 // Merkle proof that can be verified against the beacon block root.
-func (h *Handler) GetValidatorCredentials(c handlers.Context) (any, error) {
-	params, err := utils.BindAndValidate[types.ValidatorCredentialsRequest](c, h.Logger())
+func (h *Handler) GetValidatorPubkey(c handlers.Context) (any, error) {
+	params, err := utils.BindAndValidate[ptypes.ValidatorPubkeyRequest](c, h.Logger())
 	if err != nil {
 		return nil, err
 	}
@@ -49,32 +49,32 @@ func (h *Handler) GetValidatorCredentials(c handlers.Context) (any, error) {
 	}
 
 	h.Logger().Info(
-		"Generating withdrawal credential proof", "slot", slot, "validator_index", validatorIndex,
+		"Generating validator pubkey proof", "slot", slot, "validator_index", validatorIndex,
 	)
 
-	// Generate proof for withdrawal credentials in the block.
+	// Generate proof for validator pubkey in the block.
 	bsm, err := beaconState.GetMarshallable()
 	if err != nil {
 		return nil, err
 	}
 
-	credsProof, beaconBlockRoot, err := merkle.ProveWithdrawalCredentialsInBlock(
+	pubkeyProof, beaconBlockRoot, err := merkle.ProveValidatorPubkeyInBlock(
 		validatorIndex, blockHeader, bsm,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	// Fetch the validator to get the withdrawal credentials to include in the response.
+	// Fetch the validator to include the pubkey in the response.
 	validator, err := beaconState.ValidatorByIndex(validatorIndex)
 	if err != nil {
 		return nil, err
 	}
 
-	return types.ValidatorWithdrawalCredentialsResponse{
-		BeaconBlockHeader:              blockHeader,
-		BeaconBlockRoot:                beaconBlockRoot,
-		ValidatorWithdrawalCredentials: validator.GetWithdrawalCredentials(),
-		WithdrawalCredentialsProof:     credsProof,
+	return ptypes.ValidatorPubkeyResponse{
+		BeaconBlockHeader:    blockHeader,
+		BeaconBlockRoot:      beaconBlockRoot,
+		ValidatorPubkey:      validator.GetPubkey(),
+		ValidatorPubkeyProof: pubkeyProof,
 	}, nil
 }
