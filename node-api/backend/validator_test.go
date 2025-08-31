@@ -33,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-api/backend"
+	"github.com/berachain/beacon-kit/node-api/backend/mocks"
 	types "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
@@ -46,6 +47,7 @@ import (
 	cmtcfg "github.com/cometbft/cometbft/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -84,11 +86,13 @@ func TestFilteredValidators(t *testing.T) {
 
 	b, err := backend.New(sb, cs, cmtCfg)
 	require.NoError(t, err)
-	tcs := &testConsensusService{
-		cms:     cms,
-		kvStore: kvStore,
-		cs:      cs,
-	}
+	tcs := mocks.NewConsensusService(t)
+	tcs.EXPECT().CreateQueryContext(mock.Anything, false).RunAndReturn(
+		func(int64, bool) (sdk.Context, error) {
+			sdkCtx := sdk.NewContext(cms.CacheMultiStore(), false, log.NewNopLogger())
+			return sdkCtx, nil
+		},
+	)
 	b.AttachQueryBackend(tcs)
 
 	// refSlot to allow validators in multiple states

@@ -116,6 +116,10 @@ func (b *Backend) Spec() (chain.Spec, error) {
 	return b.cs, nil
 }
 
+func (b *Backend) GetSyncData() (int64 /*latestHeight*/, int64 /*syncToHeight*/) {
+	return b.node.GetSyncData()
+}
+
 func (b *Backend) GetVersionData() (
 	string, // appName
 	string, // cometVersion
