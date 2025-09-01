@@ -58,10 +58,12 @@ func New(
 	storageBackend *storage.Backend,
 	cs chain.Spec,
 	cmtCfg *cmtcfg.Config,
+	consensusService types.ConsensusService,
 ) (*Backend, error) {
 	b := &Backend{
-		sb: storageBackend,
-		cs: cs,
+		sb:   storageBackend,
+		cs:   cs,
+		node: consensusService,
 	}
 
 	// Load the genesis file from cometbft config.
@@ -84,12 +86,6 @@ func New(
 	b.genesisForkVersion.Store(&genesisForkVersion)
 
 	return b, nil
-}
-
-// AttachQueryBackend sets the node on the backend for
-// querying historical heights.
-func (b *Backend) AttachQueryBackend(node types.ConsensusService) {
-	b.node = node
 }
 
 // GetSlotByBlockRoot retrieves the slot by a block root from the block store.

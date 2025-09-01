@@ -74,11 +74,10 @@ func New(
 	mware := middleware.NewDefaultMiddleware()
 
 	// instantiate handlers and register their routes in the middleware
-	b, err := backend.New(storageBackend, cs, cmtCfg)
+	b, err := backend.New(storageBackend, cs, cmtCfg, consensusService)
 	if err != nil {
 		return nil, fmt.Errorf("failed instantiating handlers backend: %w", err)
 	}
-	b.AttachQueryBackend(consensusService)
 
 	var handlers []handlers.Handlers
 	handlers = append(handlers, beaconapi.NewHandler(b))
