@@ -36,7 +36,7 @@ const (
 	luganodesCreds  = "0x010000000000000000000000b0c615224a053236ac7d1c239f6c1b5fbf8f0617"
 	luganodesAmount = 4000 * params.GWei
 
-	fixSmileePubKey = "0x8fafc3cb406aea235d4335681127b149855dee7074042990e173262255d4130475364a161ddc728f39255110aa13ab85"
+	fixSmileePubKey = "0xadba489452d06ede25601cfdaf133092063d114c041b8713d6de08e465dd8697da2ac5b7294bbd009b31cebdcdd1c730"
 )
 
 //nolint:gochecknoglobals // unexported
