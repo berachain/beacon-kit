@@ -22,7 +22,9 @@ package server
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/log/noop"
 	"github.com/berachain/beacon-kit/node-api/backend"
@@ -35,19 +37,31 @@ import (
 	nodeapi "github.com/berachain/beacon-kit/node-api/handlers/node"
 	proofapi "github.com/berachain/beacon-kit/node-api/handlers/proof"
 	"github.com/berachain/beacon-kit/node-api/middleware"
+	"github.com/berachain/beacon-kit/node-core/components/storage"
+	"github.com/berachain/beacon-kit/node-core/types"
+	cmtcfg "github.com/cometbft/cometbft/config"
 )
 
 // Server is the API Server service.
 type Server struct {
-	middleware *middleware.Middleware
 	config     Config
 	logger     log.Logger
+	middleware *middleware.Middleware
 }
 
 // New initializes a new API Server with the given config, engine, and logger.
 // It will inject a noop logger into the API handlers and engine if logging is
 // disabled.
-func New(config Config, logger log.Logger, b *backend.Backend) *Server {
+func New(
+	config Config,
+	logger log.Logger,
+
+	// attributes to build handlers backend
+	storageBackend *storage.Backend,
+	cs chain.Spec,
+	cmtCfg *cmtcfg.Config,
+	consensusService types.ConsensusService,
+) (*Server, error) {
 	apiLogger := logger
 	if !config.Logging {
 		apiLogger = noop.NewLogger[log.Logger]()
@@ -56,6 +70,12 @@ func New(config Config, logger log.Logger, b *backend.Backend) *Server {
 	mware := middleware.NewDefaultMiddleware()
 
 	// instantiate handlers and register their routes in the middleware
+	b, err := backend.New(storageBackend, cs, cmtCfg)
+	if err != nil {
+		return nil, fmt.Errorf("failed instantiating handlers backend: %w", err)
+	}
+	b.AttachQueryBackend(consensusService)
+
 	var handlers []handlers.Handlers
 	handlers = append(handlers, beaconapi.NewHandler(b))
 	handlers = append(handlers, builderapi.NewHandler())
@@ -74,7 +94,7 @@ func New(config Config, logger log.Logger, b *backend.Backend) *Server {
 		middleware: mware,
 		config:     config,
 		logger:     logger,
-	}
+	}, nil
 }
 
 // Start starts the API Server at the configured address.
@@ -82,6 +102,7 @@ func (s *Server) Start(ctx context.Context) error {
 	if !s.config.Enabled {
 		return nil
 	}
+
 	go s.start(ctx)
 	return nil
 }

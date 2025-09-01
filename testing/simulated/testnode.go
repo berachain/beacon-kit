@@ -164,7 +164,6 @@ func buildNode(
 	}
 
 	logger.WithConfig(config.GetLogger())
-	apiBackend.AttachQueryBackend(simComet)
 	return TestNode{
 		Node:            beaconNode,
 		StorageBackend:  storageBackend,

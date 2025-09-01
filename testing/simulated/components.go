@@ -59,13 +59,9 @@ func FixedComponents(t *testing.T) []any {
 		components.ProvideTelemetryService,
 		components.ProvideTrustedSetup,
 		components.ProvideValidatorService,
+		components.ProvideNodeAPIServer,
 		components.ProvideShutDownService,
 	}
-	c = append(c,
-		components.ProvideNodeAPIServer,
-		components.ProvideNodeAPIEngine,
-		components.ProvideNodeAPIBackend,
-	)
 	return c
 }
 
