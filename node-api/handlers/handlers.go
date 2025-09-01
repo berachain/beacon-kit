@@ -35,8 +35,6 @@ type handlerFn func(c Context) (any, error)
 
 // Handlers is an interface that all handlers must implement.
 type Handlers interface {
-	// RegisterRoutes is a method that registers the routes for the handler.
-	RegisterRoutes(logger log.Logger)
 	RouteSet() *RouteSet
 }
 
@@ -49,9 +47,10 @@ type BaseHandler struct {
 
 // NewBaseHandler initializes a new base handler with the given routes and
 // logger.
-func NewBaseHandler(routes *RouteSet) *BaseHandler {
+func NewBaseHandler(logger log.Logger) *BaseHandler {
 	return &BaseHandler{
-		routes: routes,
+		routes: nil, // Must be set via AddRoutes(
+		logger: logger,
 	}
 }
 
@@ -76,10 +75,6 @@ func (b *BaseHandler) RouteSet() *RouteSet {
 // Logger is used to access the logger for the base handler.
 func (b *BaseHandler) Logger() log.Logger {
 	return b.logger
-}
-
-func (b *BaseHandler) SetLogger(logger log.Logger) {
-	b.logger = logger
 }
 
 // AddRoutes adds the given slice of routes to the base handler.

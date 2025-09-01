@@ -74,23 +74,21 @@ func New(
 		apiLogger = noop.NewLogger[log.Logger]()
 	}
 
-	mware := middleware.NewDefaultMiddleware()
+	mware := middleware.NewDefaultMiddleware(apiLogger)
 
 	// instantiate handlers and register their routes in the middleware
 	b := backend.New(storageBackend, cs, cmtCfg, consensusService)
-
 	handlers := make([]handlers.Handlers, 0)
-	handlers = append(handlers, beaconapi.NewHandler(b))
-	handlers = append(handlers, builderapi.NewHandler())
-	handlers = append(handlers, configapi.NewHandler(b))
-	handlers = append(handlers, debugapi.NewHandler(b))
-	handlers = append(handlers, eventsapi.NewHandler())
-	handlers = append(handlers, nodeapi.NewHandler(b))
-	handlers = append(handlers, proofapi.NewHandler(b))
+	handlers = append(handlers, beaconapi.NewHandler(b, apiLogger))
+	handlers = append(handlers, builderapi.NewHandler(apiLogger))
+	handlers = append(handlers, configapi.NewHandler(b, apiLogger))
+	handlers = append(handlers, debugapi.NewHandler(b, apiLogger))
+	handlers = append(handlers, eventsapi.NewHandler(apiLogger))
+	handlers = append(handlers, nodeapi.NewHandler(b, apiLogger))
+	handlers = append(handlers, proofapi.NewHandler(b, apiLogger))
 
 	for _, handler := range handlers {
-		handler.RegisterRoutes(apiLogger)
-		mware.RegisterRoutes(handler.RouteSet(), apiLogger)
+		mware.RegisterRoutes(handler.RouteSet())
 	}
 
 	return &Server{
