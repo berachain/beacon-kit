@@ -35,7 +35,9 @@ var ErrBlockStoreNotEnabled = errors.New("block store not enabled")
 // KVStore is a simple memory store based implementation that stores metadata of
 // beacon blocks.
 type KVStore[BeaconBlockT BeaconBlock] struct {
-	// Setting availabilityWindow to zero upon
+	// Setting availabilityWindow to zero upon construction
+	// causes caches to not be instantiated. Setter will fail
+	// silently while Getters will err.
 	enabled bool
 
 	// Beacon block root to slot mapping is injective for finalized blocks.
