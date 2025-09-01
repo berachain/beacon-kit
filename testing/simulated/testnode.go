@@ -37,6 +37,7 @@ import (
 	"github.com/berachain/beacon-kit/da/kzg"
 	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/log/phuslu"
+	"github.com/berachain/beacon-kit/node-api/server"
 	nodecomponents "github.com/berachain/beacon-kit/node-core/components"
 	service "github.com/berachain/beacon-kit/node-core/services/registry"
 	nodetypes "github.com/berachain/beacon-kit/node-core/types"
@@ -118,7 +119,7 @@ func buildNode(
 ) TestNode {
 	// variables to hold the components needed to set up BeaconApp
 	var (
-		apiBackend      nodecomponents.NodeAPIBackend
+		apiServer       *server.Server
 		beaconNode      nodetypes.Node
 		simComet        *SimComet
 		config          *config.Config
@@ -143,7 +144,7 @@ func buildNode(
 				cmtCfg,
 			),
 		),
-		&apiBackend,
+		&apiServer,
 		&beaconNode,
 		&simComet,
 		&config,
@@ -159,8 +160,8 @@ func buildNode(
 	if config == nil {
 		panic("config is nil")
 	}
-	if apiBackend == nil {
-		panic("node or api backend is nil")
+	if apiServer == nil {
+		panic("api server is nil")
 	}
 
 	logger.WithConfig(config.GetLogger())
@@ -168,7 +169,7 @@ func buildNode(
 		Node:            beaconNode,
 		StorageBackend:  storageBackend,
 		ChainSpec:       chainSpec,
-		APIBackend:      apiBackend,
+		APIBackend:      apiServer.GetBackend(),
 		SimComet:        simComet,
 		EngineClient:    engineClient,
 		StateProcessor:  stateProcessor,

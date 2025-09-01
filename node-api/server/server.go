@@ -47,6 +47,10 @@ type Server struct {
 	config     Config
 	logger     log.Logger
 	middleware *middleware.Middleware
+
+	// exposed via getter for some tests.
+	// TODO: find a way to avoid this
+	b *backend.Backend
 }
 
 // New initializes a new API Server with the given config, engine, and logger.
@@ -91,9 +95,10 @@ func New(
 	}
 
 	return &Server{
-		middleware: mware,
 		config:     config,
 		logger:     logger,
+		middleware: mware,
+		b:          b,
 	}, nil
 }
 
@@ -129,4 +134,8 @@ func (s *Server) Stop() error {
 // Name returns the name of the API server service.
 func (s *Server) Name() string {
 	return "node-api-server"
+}
+
+func (s *Server) GetBackend() *backend.Backend {
+	return s.b
 }
