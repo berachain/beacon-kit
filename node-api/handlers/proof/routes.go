@@ -37,6 +37,11 @@ func (h *Handler) RegisterRoutes(logger log.Logger) {
 		},
 		{
 			Method:  http.MethodGet,
+			Path:    "bkit/v1/proof/validator_pubkey/:timestamp_id/:validator_index",
+			Handler: h.GetValidatorPubkey,
+		},
+		{
+			Method:  http.MethodGet,
 			Path:    "bkit/v1/proof/validator_credentials/:timestamp_id/:validator_index",
 			Handler: h.GetValidatorCredentials,
 		},
