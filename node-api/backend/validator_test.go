@@ -92,8 +92,8 @@ func TestFilteredValidators(t *testing.T) {
 		},
 	)
 
-	b, err := backend.New(sb, cs, cmtCfg, tcs)
-	require.NoError(t, err)
+	b := backend.New(sb, cs, cmtCfg, tcs)
+	require.NoError(t, b.LoadData())
 
 	// refSlot to allow validators in multiple states
 	// from initializing to withdrawned

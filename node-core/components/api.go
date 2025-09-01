@@ -43,7 +43,7 @@ type NodeAPIServerInput struct {
 	ConsensusService types.ConsensusService
 }
 
-func ProvideNodeAPIServer(in NodeAPIServerInput) (*server.Server, error) {
+func ProvideNodeAPIServer(in NodeAPIServerInput) *server.Server {
 	in.Logger.AddKeyValColor(
 		"service",
 		"node-api-server",

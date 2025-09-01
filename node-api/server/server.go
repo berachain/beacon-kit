@@ -64,8 +64,11 @@ func New(
 	storageBackend *storage.Backend,
 	cs chain.Spec,
 	cmtCfg *cmtcfg.Config,
+
+	// consensusService allows apis to access node state
+	// and carry out all sorts of queries, including hystorical ones
 	consensusService types.ConsensusService,
-) (*Server, error) {
+) *Server {
 	apiLogger := logger
 	if !config.Logging {
 		apiLogger = noop.NewLogger[log.Logger]()
@@ -74,11 +77,7 @@ func New(
 	mware := middleware.NewDefaultMiddleware()
 
 	// instantiate handlers and register their routes in the middleware
-	b, err := backend.New(storageBackend, cs, cmtCfg, consensusService)
-	if err != nil {
-		return nil, fmt.Errorf("failed instantiating handlers backend: %w", err)
-	}
-
+	b := backend.New(storageBackend, cs, cmtCfg, consensusService)
 	var handlers []handlers.Handlers
 	handlers = append(handlers, beaconapi.NewHandler(b))
 	handlers = append(handlers, builderapi.NewHandler())
@@ -98,13 +97,18 @@ func New(
 		logger:     logger,
 		middleware: mware,
 		b:          b,
-	}, nil
+	}
 }
 
 // Start starts the API Server at the configured address.
 func (s *Server) Start(ctx context.Context) error {
 	if !s.config.Enabled {
 		return nil
+	}
+
+	// pre-load and cache all relevant node-api backend data
+	if err := s.b.LoadData(); err != nil {
+		return fmt.Errorf("failed loading api backend data: %w", err)
 	}
 
 	go s.start(ctx)
