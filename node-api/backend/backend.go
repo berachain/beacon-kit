@@ -21,6 +21,7 @@
 package backend
 
 import (
+	"fmt"
 	"runtime"
 	"sync/atomic"
 
@@ -39,9 +40,10 @@ import (
 // It serves as a wrapper around the storage backend and provides an abstraction
 // over building the query context for a given state.
 type Backend struct {
-	sb   *storage.Backend
-	cs   chain.Spec
-	node types.ConsensusService
+	sb     *storage.Backend
+	cs     chain.Spec
+	cmtCfg *cmtcfg.Config // used to fetch genesis data upon LoadData
+	node   types.ConsensusService
 
 	// genesisValidatorsRoot is cached in the backend.
 	genesisValidatorsRoot atomic.Pointer[common.Root]
@@ -58,20 +60,32 @@ func New(
 	storageBackend *storage.Backend,
 	cs chain.Spec,
 	cmtCfg *cmtcfg.Config,
-) (*Backend, error) {
+	consensusService types.ConsensusService,
+) *Backend {
 	b := &Backend{
-		sb: storageBackend,
-		cs: cs,
+		sb:     storageBackend,
+		cs:     cs,
+		cmtCfg: cmtCfg,
+		node:   consensusService,
 	}
 
+	// genesis data will be cached in LoadData
+	return b
+}
+
+// Backend currently calculates and caches some genesis data. These data
+// are only needed if the API is active, so their processing happens in `LoadData`
+// which should be called only if node-api server is actually started (it would be
+// configure to not start).
+func (b *Backend) LoadData() error {
 	// Load the genesis file from cometbft config.
-	appGenesis, err := genutiltypes.AppGenesisFromFile(cmtCfg.GenesisFile())
+	appGenesis, err := genutiltypes.AppGenesisFromFile(b.cmtCfg.GenesisFile())
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("failed loading app genesis from file: %w", err)
 	}
 	gen, err := appGenesis.ToGenesisDoc()
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("failed parsing: %w", err)
 	}
 
 	// Store the genesis time in the backend.
@@ -80,16 +94,11 @@ func New(
 	b.genesisTime.Store(&genesisTime)
 
 	// Derive the genesis fork version from the genesis time.
-	genesisForkVersion := cs.ActiveForkVersionForTimestamp(genesisTime)
+	genesisForkVersion := b.cs.ActiveForkVersionForTimestamp(genesisTime)
 	b.genesisForkVersion.Store(&genesisForkVersion)
 
-	return b, nil
-}
-
-// AttachQueryBackend sets the node on the backend for
-// querying historical heights.
-func (b *Backend) AttachQueryBackend(node types.ConsensusService) {
-	b.node = node
+	// TODO: consider loading genesis validator root here too
+	return nil
 }
 
 // GetSlotByBlockRoot retrieves the slot by a block root from the block store.
