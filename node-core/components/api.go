@@ -27,16 +27,16 @@ import (
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-api/backend"
-	"github.com/berachain/beacon-kit/node-api/engines/echo"
 	"github.com/berachain/beacon-kit/node-api/handlers"
+	"github.com/berachain/beacon-kit/node-api/middleware"
 	"github.com/berachain/beacon-kit/node-api/server"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
 	cmtcfg "github.com/cometbft/cometbft/config"
 )
 
 // TODO: we could make engine type configurable
-func ProvideNodeAPIEngine() *echo.Engine {
-	return echo.NewDefaultEngine()
+func ProvideNodeAPIEngine() *middleware.Middleware {
+	return middleware.NewDefaultMiddleware()
 }
 
 type NodeAPIBackendInput struct {
