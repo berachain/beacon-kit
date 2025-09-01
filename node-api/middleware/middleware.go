@@ -43,13 +43,8 @@ func NewDefaultMiddleware() *Middleware {
 		Validator: ConstructValidator(),
 	}
 	engine.HideBanner = true
-	return newEngine(engine)
-}
-
-// newEngine initializes a new API engine with the given Echo instance.
-func newEngine(e *echo.Echo) *Middleware {
 	return &Middleware{
-		Echo: e,
+		Echo: engine,
 	}
 }
 
