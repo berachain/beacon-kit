@@ -60,7 +60,6 @@ func ProvideNodeAPIBackend(
 type NodeAPIServerInput struct {
 	depinject.In
 
-	Engine   NodeAPIEngine
 	Config   *config.Config
 	Handlers []handlers.Handlers
 	Logger   *phuslu.Logger
@@ -74,7 +73,6 @@ func ProvideNodeAPIServer(in NodeAPIServerInput) *server.Server {
 	)
 	return server.New(
 		in.Config.NodeAPI,
-		in.Engine,
 		in.Logger.With("service", "node-api-server"),
 		in.Handlers...,
 	)

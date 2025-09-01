@@ -28,8 +28,6 @@ import (
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
-	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	nodecoretypes "github.com/berachain/beacon-kit/node-core/types"
 	"github.com/berachain/beacon-kit/payload/builder"
@@ -486,12 +484,6 @@ type (
 	NodeAPIContext interface {
 		Bind(any) error
 		Validate(any) error
-	}
-
-	// Engine is a generic interface for an API engine.
-	NodeAPIEngine interface {
-		Run(addr string) error
-		RegisterRoutes(*handlers.RouteSet, log.Logger)
 	}
 
 	NodeAPIBackend interface {

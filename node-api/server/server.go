@@ -26,13 +26,14 @@ import (
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/log/noop"
 	"github.com/berachain/beacon-kit/node-api/handlers"
+	"github.com/berachain/beacon-kit/node-api/middleware"
 )
 
 // Server is the API Server service.
 type Server struct {
-	engine Engine
-	config Config
-	logger log.Logger
+	middleware *middleware.Middleware
+	config     Config
+	logger     log.Logger
 }
 
 // New initializes a new API Server with the given config, engine, and logger.
@@ -40,7 +41,6 @@ type Server struct {
 // disabled.
 func New(
 	config Config,
-	engine Engine,
 	logger log.Logger,
 	handlers ...handlers.Handlers,
 ) *Server {
@@ -48,14 +48,15 @@ func New(
 	if !config.Logging {
 		apiLogger = noop.NewLogger[log.Logger]()
 	}
+	mware := middleware.NewDefaultMiddleware()
 	for _, handler := range handlers {
 		handler.RegisterRoutes(apiLogger)
-		engine.RegisterRoutes(handler.RouteSet(), apiLogger)
+		mware.RegisterRoutes(handler.RouteSet(), apiLogger)
 	}
 	return &Server{
-		engine: engine,
-		config: config,
-		logger: logger,
+		middleware: mware,
+		config:     config,
+		logger:     logger,
 	}
 }
 
@@ -71,7 +72,7 @@ func (s *Server) Start(ctx context.Context) error {
 func (s *Server) start(ctx context.Context) {
 	errCh := make(chan error)
 	go func() {
-		errCh <- s.engine.Run(s.config.Address)
+		errCh <- s.middleware.Run(s.config.Address)
 	}()
 	for {
 		select {
