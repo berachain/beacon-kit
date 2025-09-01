@@ -20,9 +20,7 @@
 
 package block
 
-const (
-	DefaultAvailabilityWindow = 8192
-)
+const defaultAvailabilityWindow = 8192
 
 // Config is the configuration for the block service.
 type Config struct {
@@ -33,6 +31,6 @@ type Config struct {
 // DefaultConfig returns the default configuration for the block service.
 func DefaultConfig() Config {
 	return Config{
-		AvailabilityWindow: DefaultAvailabilityWindow,
+		AvailabilityWindow: defaultAvailabilityWindow,
 	}
 }
