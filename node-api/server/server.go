@@ -25,7 +25,15 @@ import (
 
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/log/noop"
+	"github.com/berachain/beacon-kit/node-api/backend"
 	"github.com/berachain/beacon-kit/node-api/handlers"
+	beaconapi "github.com/berachain/beacon-kit/node-api/handlers/beacon"
+	builderapi "github.com/berachain/beacon-kit/node-api/handlers/builder"
+	configapi "github.com/berachain/beacon-kit/node-api/handlers/config"
+	debugapi "github.com/berachain/beacon-kit/node-api/handlers/debug"
+	eventsapi "github.com/berachain/beacon-kit/node-api/handlers/events"
+	nodeapi "github.com/berachain/beacon-kit/node-api/handlers/node"
+	proofapi "github.com/berachain/beacon-kit/node-api/handlers/proof"
 	"github.com/berachain/beacon-kit/node-api/middleware"
 )
 
@@ -39,20 +47,29 @@ type Server struct {
 // New initializes a new API Server with the given config, engine, and logger.
 // It will inject a noop logger into the API handlers and engine if logging is
 // disabled.
-func New(
-	config Config,
-	logger log.Logger,
-	handlers ...handlers.Handlers,
-) *Server {
+func New(config Config, logger log.Logger, b *backend.Backend) *Server {
 	apiLogger := logger
 	if !config.Logging {
 		apiLogger = noop.NewLogger[log.Logger]()
 	}
+
 	mware := middleware.NewDefaultMiddleware()
+
+	// instantiate handlers and register their routes in the middleware
+	var handlers []handlers.Handlers
+	handlers = append(handlers, beaconapi.NewHandler(b))
+	handlers = append(handlers, builderapi.NewHandler())
+	handlers = append(handlers, configapi.NewHandler(b))
+	handlers = append(handlers, debugapi.NewHandler(b))
+	handlers = append(handlers, eventsapi.NewHandler())
+	handlers = append(handlers, nodeapi.NewHandler(b))
+	handlers = append(handlers, proofapi.NewHandler(b))
+
 	for _, handler := range handlers {
 		handler.RegisterRoutes(apiLogger)
 		mware.RegisterRoutes(handler.RouteSet(), apiLogger)
 	}
+
 	return &Server{
 		middleware: mware,
 		config:     config,

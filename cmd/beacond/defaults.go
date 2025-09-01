@@ -60,17 +60,5 @@ func DefaultComponents() []any {
 		components.ProvideNodeAPIEngine,
 		components.ProvideNodeAPIBackend,
 	)
-
-	c = append(c,
-		components.ProvideNodeAPIHandlers,
-		components.ProvideNodeAPIBeaconHandler,
-		components.ProvideNodeAPIBuilderHandler,
-		components.ProvideNodeAPIConfigHandler,
-		components.ProvideNodeAPIDebugHandler,
-		components.ProvideNodeAPIEventsHandler,
-		components.ProvideNodeAPINodeHandler,
-		components.ProvideNodeAPIProofHandler,
-	)
-
 	return c
 }

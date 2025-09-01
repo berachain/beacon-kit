@@ -27,7 +27,6 @@ import (
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-api/backend"
-	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/middleware"
 	"github.com/berachain/beacon-kit/node-api/server"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
@@ -60,9 +59,9 @@ func ProvideNodeAPIBackend(
 type NodeAPIServerInput struct {
 	depinject.In
 
-	Config   *config.Config
-	Handlers []handlers.Handlers
-	Logger   *phuslu.Logger
+	Config  *config.Config
+	Logger  *phuslu.Logger
+	Backend *backend.Backend
 }
 
 func ProvideNodeAPIServer(in NodeAPIServerInput) *server.Server {
@@ -74,6 +73,6 @@ func ProvideNodeAPIServer(in NodeAPIServerInput) *server.Server {
 	return server.New(
 		in.Config.NodeAPI,
 		in.Logger.With("service", "node-api-server"),
-		in.Handlers...,
+		in.Backend,
 	)
 }
