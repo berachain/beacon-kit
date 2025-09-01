@@ -49,7 +49,9 @@ type BaseHandler struct {
 // logger.
 func NewBaseHandler(logger log.Logger) *BaseHandler {
 	return &BaseHandler{
-		routes: nil, // Must be set via AddRoutes(
+		routes: &RouteSet{
+			Routes: make([]*Route, 0), // Must be set via AddRoutes(,
+		},
 		logger: logger,
 	}
 }
