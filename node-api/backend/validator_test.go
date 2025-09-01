@@ -84,8 +84,6 @@ func TestFilteredValidators(t *testing.T) {
 	err = appGenesis.SaveAs(genesisFile)
 	require.NoError(t, err)
 
-	b, err := backend.New(sb, cs, cmtCfg)
-	require.NoError(t, err)
 	tcs := mocks.NewConsensusService(t)
 	tcs.EXPECT().CreateQueryContext(mock.Anything, false).RunAndReturn(
 		func(int64, bool) (sdk.Context, error) {
@@ -93,7 +91,9 @@ func TestFilteredValidators(t *testing.T) {
 			return sdkCtx, nil
 		},
 	)
-	b.AttachQueryBackend(tcs)
+
+	b := backend.New(sb, cs, cmtCfg, tcs)
+	require.NoError(t, b.LoadData())
 
 	// refSlot to allow validators in multiple states
 	// from initializing to withdrawned
