@@ -77,7 +77,7 @@ func New(
 
 	// instantiate handlers and register their routes in the middleware
 	b := backend.New(storageBackend, cs, cmtCfg, consensusService)
-	mware.RegisterRoutes(beaconapi.NewHandler(b, apiLogger).RouteSet())
+	mware.RegisterRoutes(beaconapi.NewHandler(b, cs, apiLogger).RouteSet())
 	mware.RegisterRoutes(builderapi.NewHandler(apiLogger).RouteSet())
 	mware.RegisterRoutes(configapi.NewHandler(b, apiLogger).RouteSet())
 	mware.RegisterRoutes(debugapi.NewHandler(b, apiLogger).RouteSet())
