@@ -38,14 +38,9 @@ func (h *Handler) GetPendingPartialWithdrawals(c handlers.Context) (any, error) 
 		return nil, err
 	}
 
-	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
+	st, _, err := MapSlotInRequestToStateSlot(req.StateID, h.backend)
 	if err != nil {
-		return nil, err
-	}
-
-	st, _, err := h.backend.StateAtSlot(slot)
-	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed mapping request slot %s to state: %w", req.StateID, err)
 	}
 
 	// Get the fork version.

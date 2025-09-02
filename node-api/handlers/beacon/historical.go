@@ -21,6 +21,8 @@
 package beacon
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
@@ -33,13 +35,10 @@ func (h *Handler) GetStateRoot(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
+
+	st, _, err := MapSlotInRequestToStateSlot(req.StateID, h.backend)
 	if err != nil {
-		return nil, err
-	}
-	st, _, err := h.backend.StateAtSlot(slot)
-	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed mapping request slot %s to state: %w", req.StateID, err)
 	}
 	return beacontypes.NewResponse(beacontypes.RootData{Root: st.HashTreeRoot()}), nil
 }
@@ -51,13 +50,10 @@ func (h *Handler) GetStateFork(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
+
+	st, _, err := MapSlotInRequestToStateSlot(req.StateID, h.backend)
 	if err != nil {
-		return nil, err
-	}
-	st, _, err := h.backend.StateAtSlot(slot)
-	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed mapping request slot %s to state: %w", req.StateID, err)
 	}
 	fork, err := st.GetFork()
 	if err != nil {

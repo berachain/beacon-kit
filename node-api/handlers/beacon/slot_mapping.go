@@ -21,44 +21,19 @@
 package beacon
 
 import (
-	"fmt"
-
-	"github.com/berachain/beacon-kit/node-api/handlers"
-	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
-	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-func (h *Handler) GetRandao(c handlers.Context) (any, error) {
-	// validate request
-	req, err := utils.BindAndValidate[beacontypes.GetRandaoRequest](
-		c,
-		h.Logger(),
-	)
+func MapSlotInRequestToStateSlot(stateID string, backend Backend) (*statedb.StateDB, math.Slot, error) {
+	reqSlot, err := utils.SlotFromStateID(stateID, backend)
 	if err != nil {
-		return nil, err
+		return nil, math.Slot(0), err
 	}
-
-	// Handle requested slot and retrieve corresponding state
-	st, resolvedSlot, err := MapSlotInRequestToStateSlot(req.StateID, h.backend)
+	st, stateSlot, err := backend.StateAtSlot(reqSlot)
 	if err != nil {
-		return nil, fmt.Errorf("failed mapping request slot %s to state: %w", req.StateID, err)
+		return nil, math.Slot(0), err
 	}
-
-	// Retrieve epoch: infer it if not provided.
-	epoch := constants.GenesisEpoch
-	if req.Epoch != "" {
-		epoch, err = math.U64FromString(req.Epoch)
-		if err != nil {
-			return nil, err
-		}
-		if epoch == 0 {
-			epoch = h.cs.SlotToEpoch(resolvedSlot)
-		}
-	}
-
-	index := epoch.Unwrap() % h.cs.EpochsPerHistoricalVector()
-	randao, err := st.GetRandaoMixAtIndex(index)
-	return beacontypes.NewResponse(randao), err
+	return st, stateSlot, nil
 }
