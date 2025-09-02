@@ -21,10 +21,6 @@
 package beacon_test
 
 import (
-	"encoding/json"
-	"net/http"
-	"net/http/httptest"
-	"strings"
 	"testing"
 
 	cosmoslog "cosmossdk.io/log"
@@ -35,8 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/mocks"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	handlertypes "github.com/berachain/beacon-kit/node-api/handlers/types"
-	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/node-api/middleware"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/constants"
@@ -50,7 +44,7 @@ import (
 )
 
 //nolint:maintidx // multiple test cases
-func TestGetValidators(t *testing.T) {
+func TestFilterValidators(t *testing.T) {
 	t.Parallel()
 
 	cs, errSpec := spec.MainnetChainSpec()
@@ -246,113 +240,83 @@ func TestGetValidators(t *testing.T) {
 
 	testCases := []struct {
 		name                string
-		inputs              func() beacontypes.GetStateValidatorsRequest
+		inputs              func() ([]string, []string)
 		setMockExpectations func(*mocks.Backend)
-		check               func(t *testing.T, res any, err error)
+		check               func(t *testing.T, res []*beacontypes.ValidatorData, err error)
 	}{
 		{
 			name: "all validators",
-			inputs: func() beacontypes.GetStateValidatorsRequest {
-				return beacontypes.GetStateValidatorsRequest{
-					StateIDRequest: handlertypes.StateIDRequest{
-						StateID: utils.StateIDHead,
-					},
-					IDs:      nil,
-					Statuses: nil,
-				}
+			inputs: func() ([]string, []string) {
+				return nil, nil
 			},
 			setMockExpectations: func(b *mocks.Backend) {
 				// slot is not really tested here, we just return zero
 				b.EXPECT().StateAtSlot(mock.Anything).Return(st, math.Slot(0), nil)
 			},
-			check: func(t *testing.T, res any, err error) {
+			check: func(t *testing.T, res []*beacontypes.ValidatorData, err error) {
 				t.Helper()
 
 				require.NoError(t, err)
 				require.NotNil(t, res)
-				require.IsType(t, beacontypes.GenericResponse{}, res)
-				gr, _ := res.(beacontypes.GenericResponse)
-				require.IsType(t, []*beacontypes.ValidatorData{}, gr.Data)
-				resVal, _ := gr.Data.([]*beacontypes.ValidatorData)
 
-				require.Len(t, resVal, len(stateValidators))
-				for i := range resVal {
-					require.Equal(t, stateValidators[i], resVal[i], "index %d", i)
+				require.Len(t, res, len(stateValidators))
+				for i := range res {
+					require.Equal(t, stateValidators[i], res[i], "index %d", i)
 				}
 			},
 		},
 		{
 			name: "some validators by indexes",
-			inputs: func() beacontypes.GetStateValidatorsRequest {
-				return beacontypes.GetStateValidatorsRequest{
-					StateIDRequest: handlertypes.StateIDRequest{
-						StateID: utils.StateIDHead,
-					},
-					IDs:      []string{"1", "3"},
-					Statuses: nil,
-				}
+			inputs: func() ([]string, []string) {
+				return []string{"1", "3"}, nil
 			},
 			setMockExpectations: func(b *mocks.Backend) {
 				// slot is not really tested here, we just return zero
 				b.EXPECT().StateAtSlot(mock.Anything).Return(st, math.Slot(0), nil)
 			},
-			check: func(t *testing.T, res any, err error) {
+			check: func(t *testing.T, res []*beacontypes.ValidatorData, err error) {
 				t.Helper()
 
 				require.NoError(t, err)
 				require.NotNil(t, res)
-				require.IsType(t, beacontypes.GenericResponse{}, res)
-				gr, _ := res.(beacontypes.GenericResponse)
-				require.IsType(t, []*beacontypes.ValidatorData{}, gr.Data)
-				resVal, _ := gr.Data.([]*beacontypes.ValidatorData)
 
 				expectedRes := []*beacontypes.ValidatorData{
 					stateValidators[1],
 					stateValidators[3],
 				}
-				require.Len(t, resVal, len(expectedRes))
-				for i := range resVal {
-					require.Equal(t, expectedRes[i], resVal[i], "index %d", i)
+				require.Len(t, res, len(expectedRes))
+				for i := range res {
+					require.Equal(t, expectedRes[i], res[i], "index %d", i)
 				}
 			},
 		},
 		{
 			name: "some validators by status",
-			inputs: func() beacontypes.GetStateValidatorsRequest {
-				return beacontypes.GetStateValidatorsRequest{
-					StateIDRequest: handlertypes.StateIDRequest{
-						StateID: utils.StateIDHead,
-					},
-					IDs: nil,
-					Statuses: []string{
-						constants.ValidatorStatusActiveOngoing,
-						constants.ValidatorStatusActiveSlashed,
-						constants.ValidatorStatusActiveExiting,
-					},
+			inputs: func() ([]string, []string) {
+				return nil, []string{
+					constants.ValidatorStatusActiveOngoing,
+					constants.ValidatorStatusActiveSlashed,
+					constants.ValidatorStatusActiveExiting,
 				}
 			},
 			setMockExpectations: func(b *mocks.Backend) {
 				// slot is not really tested here, we just return zero
 				b.EXPECT().StateAtSlot(mock.Anything).Return(st, math.Slot(0), nil)
 			},
-			check: func(t *testing.T, res any, err error) {
+			check: func(t *testing.T, res []*beacontypes.ValidatorData, err error) {
 				t.Helper()
 
 				require.NoError(t, err)
 				require.NotNil(t, res)
-				require.IsType(t, beacontypes.GenericResponse{}, res)
-				gr, _ := res.(beacontypes.GenericResponse)
-				require.IsType(t, []*beacontypes.ValidatorData{}, gr.Data)
-				resVal, _ := gr.Data.([]*beacontypes.ValidatorData)
 
 				expectedRes := []*beacontypes.ValidatorData{
 					stateValidators[2],
 					stateValidators[3],
 					stateValidators[4],
 				}
-				require.Len(t, resVal, len(expectedRes))
-				for i := range resVal {
-					require.Equal(t, expectedRes[i], resVal[i], "index %d", i)
+				require.Len(t, res, len(expectedRes))
+				for i := range res {
+					require.Equal(t, expectedRes[i], res[i], "index %d", i)
 				}
 			},
 		},
@@ -369,20 +333,12 @@ func TestGetValidators(t *testing.T) {
 				Validator: middleware.ConstructValidator(),
 			}
 
-			// create API inputs
-			input := tc.inputs()
-			inputBytes, errJSON := json.Marshal(input) //nolint:musttag //  TODO:fix
-			require.NoError(t, errJSON)
-			body := strings.NewReader(string(inputBytes))
-			req := httptest.NewRequest(http.MethodGet, "/", body)
-			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON) // otherwise code=415, message=Unsupported Media Type
-			c := e.NewContext(req, httptest.NewRecorder())
-
 			// set expectations
 			tc.setMockExpectations(backend)
 
 			// test
-			res, err := h.GetStateValidators(c)
+			ids, statuses := tc.inputs()
+			res, err := h.FilterValidators(math.Slot(0), ids, statuses)
 
 			// finally do checks
 			tc.check(t, res, err)
