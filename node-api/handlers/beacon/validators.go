@@ -30,6 +30,7 @@ import (
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	types "github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 var ErrNoSlotForStateRoot = errors.New("slot not found at state root")
@@ -41,7 +42,16 @@ func (h *Handler) GetStateValidators(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return h.getStateValidators(req.StateID, req.IDs, req.Statuses)
+
+	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
+	if err != nil {
+		return nil, err
+	}
+	filteredVals, err := h.FilterValidators(slot, req.IDs, req.Statuses)
+	if err != nil {
+		return nil, fmt.Errorf("failed to filter validators: %w", err)
+	}
+	return beacontypes.NewResponse(filteredVals), nil
 }
 
 func (h *Handler) PostStateValidators(c handlers.Context) (any, error) {
@@ -51,17 +61,22 @@ func (h *Handler) PostStateValidators(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return h.getStateValidators(req.StateID, req.IDs, req.Statuses)
-}
 
-// getStateValidators is a helper function to provide implementation
-// consistency between GetStateValidators and PostStateValidators, since they
-// are intended to behave the same way.
-func (h *Handler) getStateValidators(stateID string, ids []string, statuses []string) (any, error) {
-	slot, err := utils.SlotFromStateID(stateID, h.backend)
+	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
 	if err != nil {
 		return nil, err
 	}
+	filteredVals, err := h.FilterValidators(slot, req.IDs, req.Statuses)
+	if err != nil {
+		return nil, fmt.Errorf("failed to filter validators: %w", err)
+	}
+	return beacontypes.NewResponse(filteredVals), nil
+}
+
+// FilterValidators is a helper function to provide implementation
+// consistency between GetStateValidators and PostStateValidators, since they
+// are intended to behave the same way.
+func (h *Handler) FilterValidators(slot math.Slot, ids []string, statuses []string) ([]*beacontypes.ValidatorData, error) {
 	st, resolvedSlot, err := h.backend.StateAtSlot(slot)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get state from slot %d: %w", slot, err)
@@ -76,11 +91,7 @@ func (h *Handler) getStateValidators(stateID string, ids []string, statuses []st
 	filters := parseValidatorIDs(ids)
 	epoch := h.cs.SlotToEpoch(resolvedSlot)
 
-	filteredVals, err := filterAndBuildValidatorData(st, allVals, filters, epoch, statuses)
-	if err != nil {
-		return nil, fmt.Errorf("failed to filter validators: %w", err)
-	}
-	return beacontypes.NewResponse(filteredVals), nil
+	return filterAndBuildValidatorData(st, allVals, filters, epoch, statuses)
 }
 
 func (h *Handler) GetStateValidator(c handlers.Context) (any, error) {

@@ -47,9 +47,10 @@ type Server struct {
 	logger     log.Logger
 	middleware *middleware.Middleware
 
-	// exposed via getter for some tests.
-	// TODO: find a way to avoid this
 	b *backend.Backend
+	// exposed via getter for some tests.
+	// TODO: consider extending this to other handlers
+	beaconHandler *beaconapi.Handler
 }
 
 // New initializes a new API Server with the given config, engine, and logger.
@@ -77,7 +78,8 @@ func New(
 
 	// instantiate handlers and register their routes in the middleware
 	b := backend.New(storageBackend, cs, cmtCfg, consensusService)
-	mware.RegisterRoutes(beaconapi.NewHandler(b, cs, apiLogger).RouteSet())
+	beaconHandler := beaconapi.NewHandler(b, cs, apiLogger)
+	mware.RegisterRoutes(beaconHandler.RouteSet())
 	mware.RegisterRoutes(builderapi.NewHandler(apiLogger).RouteSet())
 	mware.RegisterRoutes(configapi.NewHandler(b, apiLogger).RouteSet())
 	mware.RegisterRoutes(debugapi.NewHandler(b, apiLogger).RouteSet())
@@ -86,10 +88,11 @@ func New(
 	mware.RegisterRoutes(proofapi.NewHandler(b, apiLogger).RouteSet())
 
 	return &Server{
-		config:     config,
-		logger:     logger,
-		middleware: mware,
-		b:          b,
+		config:        config,
+		logger:        logger,
+		middleware:    mware,
+		b:             b,
+		beaconHandler: beaconHandler,
 	}
 }
 
@@ -132,6 +135,6 @@ func (s *Server) Name() string {
 	return "node-api-server"
 }
 
-func (s *Server) GetBackend() *backend.Backend {
-	return s.b
+func (s *Server) GetBeaconHandler() *beaconapi.Handler {
+	return s.beaconHandler
 }
