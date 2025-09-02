@@ -33,7 +33,6 @@ type Backend interface {
 	GenesisBackend
 	BlobBackend
 	BlockBackend
-	RandaoBackend
 	StateBackend
 	ValidatorBackend
 	WithdrawalBackend
@@ -47,10 +46,6 @@ type GenesisBackend interface {
 	GenesisValidatorsRoot() (common.Root, error)
 	GenesisForkVersion() (common.Version, error)
 	GenesisTime() (math.U64, error)
-}
-
-type RandaoBackend interface {
-	RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes32, error)
 }
 
 type BlobBackend interface {

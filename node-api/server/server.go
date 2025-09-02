@@ -85,7 +85,7 @@ func New(
 	// instantiate handlers and register their routes in the middleware
 	b := backend.New(storageBackend, cs, cmtCfg, consensusService)
 	handlers := make([]handler, 0)
-	handlers = append(handlers, beaconapi.NewHandler(b, apiLogger))
+	handlers = append(handlers, beaconapi.NewHandler(b, cs, apiLogger))
 	handlers = append(handlers, builderapi.NewHandler(apiLogger))
 	handlers = append(handlers, configapi.NewHandler(b, apiLogger))
 	handlers = append(handlers, debugapi.NewHandler(b, apiLogger))

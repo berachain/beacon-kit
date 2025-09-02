@@ -501,7 +501,6 @@ type (
 		GenesisBackend
 		BlobBackend
 		BlockBackend
-		RandaoBackend
 		StateBackend
 		ValidatorBackend
 		WithdrawalBackend
@@ -538,11 +537,6 @@ type (
 		GenesisForkVersion() (common.Version, error)
 		GenesisTime() (math.U64, error)
 	}
-
-	RandaoBackend interface {
-		RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes32, error)
-	}
-
 	BlobBackend interface {
 		BlobSidecarsByIndices(slot math.Slot, indices []uint64) ([]*types.Sidecar, error)
 	}
