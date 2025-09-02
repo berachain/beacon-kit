@@ -361,8 +361,6 @@ func TestGetValidators(t *testing.T) {
 	for _, tc := range testCases {
 		tc := tc // capture range variable
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
 			// setup test
 			backend := mocks.NewBackend(t)
 			h := beacon.NewHandler(backend, cs, noop.NewLogger[log.Logger]())
