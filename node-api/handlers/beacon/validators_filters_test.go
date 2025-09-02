@@ -24,6 +24,7 @@ import (
 	"testing"
 
 	cosmoslog "cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/log"
@@ -31,14 +32,12 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/mocks"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	"github.com/berachain/beacon-kit/node-api/middleware"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -224,19 +223,6 @@ func TestFilterValidators(t *testing.T) {
 			),
 		},
 	}
-	cms, kvStore, _, errSt := statetransition.BuildTestStores()
-	require.NoError(t, errSt)
-	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), true, cosmoslog.NewNopLogger())
-	st := statedb.NewBeaconStateFromDB(
-		kvStore.WithContext(sdkCtx), cs, sdkCtx.Logger(), metrics.NewNoOpTelemetrySink(),
-	)
-	for _, in := range stateValidators {
-		val, errVal := beacontypes.ValidatorToConsensus(in.Validator)
-		require.NoError(t, errVal)
-		require.NoError(t, st.AddValidator(val))
-
-		require.NoError(t, st.SetBalance(math.ValidatorIndex(in.Index), math.Gwei(in.Balance)))
-	}
 
 	testCases := []struct {
 		name                string
@@ -250,6 +236,9 @@ func TestFilterValidators(t *testing.T) {
 				return nil, nil
 			},
 			setMockExpectations: func(b *mocks.Backend) {
+				st := makeTestState(t, cs)
+				addTestValidators(t, stateValidators, st)
+
 				// slot is not really tested here, we just return zero
 				b.EXPECT().StateAtSlot(mock.Anything).Return(st, math.Slot(0), nil)
 			},
@@ -271,6 +260,9 @@ func TestFilterValidators(t *testing.T) {
 				return []string{"1", "3"}, nil
 			},
 			setMockExpectations: func(b *mocks.Backend) {
+				st := makeTestState(t, cs)
+				addTestValidators(t, stateValidators, st)
+
 				// slot is not really tested here, we just return zero
 				b.EXPECT().StateAtSlot(mock.Anything).Return(st, math.Slot(0), nil)
 			},
@@ -299,6 +291,9 @@ func TestFilterValidators(t *testing.T) {
 				}, nil
 			},
 			setMockExpectations: func(b *mocks.Backend) {
+				st := makeTestState(t, cs)
+				addTestValidators(t, stateValidators, st)
+
 				// slot is not really tested here, we just return zero
 				b.EXPECT().StateAtSlot(mock.Anything).Return(st, math.Slot(0), nil)
 			},
@@ -328,6 +323,9 @@ func TestFilterValidators(t *testing.T) {
 				}
 			},
 			setMockExpectations: func(b *mocks.Backend) {
+				st := makeTestState(t, cs)
+				addTestValidators(t, stateValidators, st)
+
 				// slot is not really tested here, we just return zero
 				b.EXPECT().StateAtSlot(mock.Anything).Return(st, math.Slot(0), nil)
 			},
@@ -356,10 +354,6 @@ func TestFilterValidators(t *testing.T) {
 			// setup test
 			backend := mocks.NewBackend(t)
 			h := beacon.NewHandler(backend, cs, noop.NewLogger[log.Logger]())
-			e := echo.New()
-			e.Validator = &middleware.CustomValidator{
-				Validator: middleware.ConstructValidator(),
-			}
 
 			// set expectations
 			tc.setMockExpectations(backend)
@@ -372,4 +366,28 @@ func TestFilterValidators(t *testing.T) {
 			tc.check(t, res, err)
 		})
 	}
+}
+
+func addTestValidators(t *testing.T, stateValidators []*beacontypes.ValidatorData, st *statedb.StateDB) {
+	t.Helper()
+
+	for _, in := range stateValidators {
+		val, errVal := beacontypes.ValidatorToConsensus(in.Validator)
+		require.NoError(t, errVal)
+		require.NoError(t, st.AddValidator(val))
+
+		require.NoError(t, st.SetBalance(math.ValidatorIndex(in.Index), math.Gwei(in.Balance)))
+	}
+}
+
+func makeTestState(t *testing.T, cs chain.Spec) *statedb.StateDB {
+	t.Helper()
+
+	cms, kvStore, _, errSt := statetransition.BuildTestStores()
+	require.NoError(t, errSt)
+	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), true, cosmoslog.NewNopLogger())
+	st := statedb.NewBeaconStateFromDB(
+		kvStore.WithContext(sdkCtx), cs, sdkCtx.Logger(), metrics.NewNoOpTelemetrySink(),
+	)
+	return st
 }

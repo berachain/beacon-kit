@@ -32,9 +32,9 @@ import (
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-// ErrStatusFilterMismatch is an error for when a validator status does not
+// errStatusFilterMismatch is an error for when a validator status does not
 // match the status filter.
-var ErrStatusFilterMismatch = errors.New("validator status does not match status filter")
+var errStatusFilterMismatch = errors.New("validator status does not match status filter")
 
 // FilterValidators is a helper function to provide implementation
 // consistency between GetStateValidators and PostStateValidators, since they
@@ -116,7 +116,7 @@ func filterAndBuildValidatorData(
 		switch {
 		case err == nil:
 			validatorData = append(validatorData, data)
-		case errors.Is(err, ErrStatusFilterMismatch):
+		case errors.Is(err, errStatusFilterMismatch):
 			continue
 		default:
 			return nil, err
@@ -172,7 +172,7 @@ func buildValidatorData(
 	}
 
 	if !matchesStatusFilter(status, statuses) {
-		return nil, ErrStatusFilterMismatch
+		return nil, errStatusFilterMismatch
 	}
 
 	balance, err := st.GetBalance(index)

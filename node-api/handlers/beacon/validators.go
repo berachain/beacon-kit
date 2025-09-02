@@ -32,8 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 )
 
-var ErrNoSlotForStateRoot = errors.New("slot not found at state root")
-
 func (h *Handler) GetStateValidators(c handlers.Context) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetStateValidatorsRequest](
 		c, h.Logger(),
