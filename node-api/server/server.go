@@ -42,6 +42,12 @@ import (
 	cmtcfg "github.com/cometbft/cometbft/config"
 )
 
+// handler is an interface that all handlers must implement.
+// to let middleware register their routes.
+type handler interface {
+	RouteSet() *handlers.RouteSet
+}
+
 // Server is the API Server service.
 type Server struct {
 	config     Config
@@ -78,7 +84,7 @@ func New(
 
 	// instantiate handlers and register their routes in the middleware
 	b := backend.New(storageBackend, cs, cmtCfg, consensusService)
-	handlers := make([]handlers.Handlers, 0)
+	handlers := make([]handler, 0)
 	handlers = append(handlers, beaconapi.NewHandler(b, apiLogger))
 	handlers = append(handlers, builderapi.NewHandler(apiLogger))
 	handlers = append(handlers, configapi.NewHandler(b, apiLogger))
