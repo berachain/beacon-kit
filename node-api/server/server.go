@@ -28,7 +28,6 @@ import (
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/log/noop"
 	"github.com/berachain/beacon-kit/node-api/backend"
-	"github.com/berachain/beacon-kit/node-api/handlers"
 	beaconapi "github.com/berachain/beacon-kit/node-api/handlers/beacon"
 	builderapi "github.com/berachain/beacon-kit/node-api/handlers/builder"
 	configapi "github.com/berachain/beacon-kit/node-api/handlers/config"
@@ -41,12 +40,6 @@ import (
 	"github.com/berachain/beacon-kit/node-core/types"
 	cmtcfg "github.com/cometbft/cometbft/config"
 )
-
-// handler is an interface that all handlers must implement.
-// to let middleware register their routes.
-type handler interface {
-	RouteSet() *handlers.RouteSet
-}
 
 // Server is the API Server service.
 type Server struct {
@@ -84,18 +77,13 @@ func New(
 
 	// instantiate handlers and register their routes in the middleware
 	b := backend.New(storageBackend, cs, cmtCfg, consensusService)
-	handlers := make([]handler, 0)
-	handlers = append(handlers, beaconapi.NewHandler(b, apiLogger))
-	handlers = append(handlers, builderapi.NewHandler(apiLogger))
-	handlers = append(handlers, configapi.NewHandler(b, apiLogger))
-	handlers = append(handlers, debugapi.NewHandler(b, apiLogger))
-	handlers = append(handlers, eventsapi.NewHandler(apiLogger))
-	handlers = append(handlers, nodeapi.NewHandler(b, apiLogger))
-	handlers = append(handlers, proofapi.NewHandler(b, apiLogger))
-
-	for _, handler := range handlers {
-		mware.RegisterRoutes(handler.RouteSet())
-	}
+	mware.RegisterRoutes(beaconapi.NewHandler(b, apiLogger).RouteSet())
+	mware.RegisterRoutes(builderapi.NewHandler(apiLogger).RouteSet())
+	mware.RegisterRoutes(configapi.NewHandler(b, apiLogger).RouteSet())
+	mware.RegisterRoutes(debugapi.NewHandler(b, apiLogger).RouteSet())
+	mware.RegisterRoutes(eventsapi.NewHandler(apiLogger).RouteSet())
+	mware.RegisterRoutes(nodeapi.NewHandler(b, apiLogger).RouteSet())
+	mware.RegisterRoutes(proofapi.NewHandler(b, apiLogger).RouteSet())
 
 	return &Server{
 		config:     config,
