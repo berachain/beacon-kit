@@ -22,6 +22,7 @@ package proof
 
 import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -35,13 +36,12 @@ type Handler struct {
 }
 
 // NewHandler creates a new handler for the proof API.
-func NewHandler(backend Backend) *Handler {
+func NewHandler(backend Backend, logger log.Logger) *Handler {
 	h := &Handler{
-		BaseHandler: handlers.NewBaseHandler(
-			handlers.NewRouteSet(""),
-		),
-		backend: backend,
+		BaseHandler: handlers.NewBaseHandler(logger),
+		backend:     backend,
 	}
+	registerRoutes(h)
 	return h
 }
 

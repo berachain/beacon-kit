@@ -28,7 +28,6 @@ import (
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/log/noop"
 	"github.com/berachain/beacon-kit/node-api/backend"
-	"github.com/berachain/beacon-kit/node-api/handlers"
 	beaconapi "github.com/berachain/beacon-kit/node-api/handlers/beacon"
 	builderapi "github.com/berachain/beacon-kit/node-api/handlers/builder"
 	configapi "github.com/berachain/beacon-kit/node-api/handlers/config"
@@ -74,24 +73,17 @@ func New(
 		apiLogger = noop.NewLogger[log.Logger]()
 	}
 
-	mware := middleware.NewDefaultMiddleware()
+	mware := middleware.NewDefaultMiddleware(apiLogger)
 
 	// instantiate handlers and register their routes in the middleware
 	b := backend.New(storageBackend, cs, cmtCfg, consensusService)
-
-	handlers := make([]handlers.Handlers, 0)
-	handlers = append(handlers, beaconapi.NewHandler(b))
-	handlers = append(handlers, builderapi.NewHandler())
-	handlers = append(handlers, configapi.NewHandler(b))
-	handlers = append(handlers, debugapi.NewHandler(b))
-	handlers = append(handlers, eventsapi.NewHandler())
-	handlers = append(handlers, nodeapi.NewHandler(b))
-	handlers = append(handlers, proofapi.NewHandler(b))
-
-	for _, handler := range handlers {
-		handler.RegisterRoutes(apiLogger)
-		mware.RegisterRoutes(handler.RouteSet(), apiLogger)
-	}
+	mware.RegisterRoutes(beaconapi.NewHandler(b, apiLogger).RouteSet())
+	mware.RegisterRoutes(builderapi.NewHandler(apiLogger).RouteSet())
+	mware.RegisterRoutes(configapi.NewHandler(b, apiLogger).RouteSet())
+	mware.RegisterRoutes(debugapi.NewHandler(b, apiLogger).RouteSet())
+	mware.RegisterRoutes(eventsapi.NewHandler(apiLogger).RouteSet())
+	mware.RegisterRoutes(nodeapi.NewHandler(b, apiLogger).RouteSet())
+	mware.RegisterRoutes(proofapi.NewHandler(b, apiLogger).RouteSet())
 
 	return &Server{
 		config:     config,
