@@ -21,6 +21,7 @@
 package beacon
 
 import (
+	"fmt"
 	"slices"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
@@ -35,16 +36,37 @@ import (
 // match the status filter.
 var ErrStatusFilterMismatch = errors.New("validator status does not match status filter")
 
+// FilterValidators is a helper function to provide implementation
+// consistency between GetStateValidators and PostStateValidators, since they
+// are intended to behave the same way.
+func (h *Handler) FilterValidators(slot math.Slot, ids []string, statuses []string) ([]*beacontypes.ValidatorData, error) {
+	st, resolvedSlot, err := h.backend.StateAtSlot(slot)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get state from slot %d: %w", slot, err)
+	}
+
+	allVals, err := st.GetValidators()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get validators: %w", err)
+	}
+
+	// Parse all IDs and pubkeys once at the start
+	filters := parseValidatorIDs(ids)
+	epoch := h.cs.SlotToEpoch(resolvedSlot)
+
+	return filterAndBuildValidatorData(st, allVals, filters, epoch, statuses)
+}
+
 type validatorFilters struct {
-	numericIDs []uint64
-	pubkeys    []crypto.BLSPubkey
+	indexes []uint64
+	pubkeys []crypto.BLSPubkey
 }
 
 // parseID attempts to parse a single ID as either a numeric ID or pubkey
 func (f *validatorFilters) parseID(id string) {
 	// Try parsing as numeric ID first
 	if index, err := math.U64FromString(id); err == nil {
-		f.numericIDs = append(f.numericIDs, index.Unwrap())
+		f.indexes = append(f.indexes, index.Unwrap())
 		return
 	}
 
@@ -59,8 +81,8 @@ func (f *validatorFilters) parseID(id string) {
 // parseValidatorIDs parses a slice of string IDs into numeric IDs and pubkeys
 func parseValidatorIDs(ids []string) *validatorFilters {
 	filters := &validatorFilters{
-		numericIDs: make([]uint64, 0, len(ids)),
-		pubkeys:    make([]crypto.BLSPubkey, 0, len(ids)),
+		indexes: make([]uint64, 0, len(ids)),
+		pubkeys: make([]crypto.BLSPubkey, 0, len(ids)),
 	}
 
 	for _, id := range ids {
@@ -107,12 +129,12 @@ func filterAndBuildValidatorData(
 // matchesFilters checks if a validator matches the filters.
 func matchesFilters(validator *types.Validator, index math.U64, filters *validatorFilters) bool {
 	// If no filters, accept all validators
-	if len(filters.numericIDs) == 0 && len(filters.pubkeys) == 0 {
+	if len(filters.indexes) == 0 && len(filters.pubkeys) == 0 {
 		return true
 	}
 
 	// Check numeric IDs
-	if len(filters.numericIDs) > 0 && matchesIndex(index, filters.numericIDs) {
+	if len(filters.indexes) > 0 && matchesIndex(index, filters.indexes) {
 		return true
 	}
 

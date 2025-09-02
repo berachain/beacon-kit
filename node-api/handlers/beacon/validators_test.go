@@ -291,6 +291,34 @@ func TestFilterValidators(t *testing.T) {
 			},
 		},
 		{
+			name: "some validators by pub keys",
+			inputs: func() ([]string, []string) {
+				return []string{
+					stateValidators[2].Validator.PublicKey,
+					stateValidators[4].Validator.PublicKey,
+				}, nil
+			},
+			setMockExpectations: func(b *mocks.Backend) {
+				// slot is not really tested here, we just return zero
+				b.EXPECT().StateAtSlot(mock.Anything).Return(st, math.Slot(0), nil)
+			},
+			check: func(t *testing.T, res []*beacontypes.ValidatorData, err error) {
+				t.Helper()
+
+				require.NoError(t, err)
+				require.NotNil(t, res)
+
+				expectedRes := []*beacontypes.ValidatorData{
+					stateValidators[2],
+					stateValidators[4],
+				}
+				require.Len(t, res, len(expectedRes))
+				for i := range res {
+					require.Equal(t, expectedRes[i], res[i], "index %d", i)
+				}
+			},
+		},
+		{
 			name: "some validators by status",
 			inputs: func() ([]string, []string) {
 				return nil, []string{
