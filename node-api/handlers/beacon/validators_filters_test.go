@@ -27,17 +27,20 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/log/noop"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/mocks"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	handlertypes "github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -344,6 +347,42 @@ func TestFilterValidators(t *testing.T) {
 				for i := range res {
 					require.Equal(t, expectedRes[i], res[i], "index %d", i)
 				}
+			},
+		},
+		{
+			name: "chain not ready",
+			inputs: func() ([]string, []string) {
+				return nil, nil
+			},
+			setMockExpectations: func(b *mocks.Backend) {
+				// cometbft.ErrAppNotReady is the error flag returned when
+				// genesis has not yet been processed and chain is not ready.
+				b.EXPECT().StateAtSlot(mock.Anything).Return(nil, math.Slot(0), cometbft.ErrAppNotReady)
+			},
+			check: func(t *testing.T, res []*beacontypes.ValidatorData, err error) {
+				t.Helper()
+
+				// handlertypes.ErrNotFound is the error flag used to return 404 error code
+				require.ErrorIs(t, err, handlertypes.ErrNotFound)
+				require.Nil(t, res)
+			},
+		},
+		{
+			name: "height requested too high",
+			inputs: func() ([]string, []string) {
+				return nil, nil
+			},
+			setMockExpectations: func(b *mocks.Backend) {
+				// sdkerrors.ErrInvalidHeight is the error flag returned when
+				// requested height is not in the state.
+				b.EXPECT().StateAtSlot(mock.Anything).Return(nil, math.Slot(0), sdkerrors.ErrInvalidHeight)
+			},
+			check: func(t *testing.T, res []*beacontypes.ValidatorData, err error) {
+				t.Helper()
+
+				// handlertypes.ErrNotFound is the error flag used to return 404 error code
+				require.ErrorIs(t, err, handlertypes.ErrNotFound)
+				require.Nil(t, res)
 			},
 		},
 	}

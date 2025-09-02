@@ -24,12 +24,15 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/berachain/beacon-kit/consensus-types/types"
+	consensustypes "github.com/berachain/beacon-kit/consensus-types/types"
+	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/errors"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	handlertypes "github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // errStatusFilterMismatch is an error for when a validator status does not
@@ -42,6 +45,14 @@ var errStatusFilterMismatch = errors.New("validator status does not match status
 func (h *Handler) FilterValidators(slot math.Slot, ids []string, statuses []string) ([]*beacontypes.ValidatorData, error) {
 	st, resolvedSlot, err := h.backend.StateAtSlot(slot)
 	if err != nil {
+		if errors.Is(err, cometbft.ErrAppNotReady) {
+			// chain not ready, like when genesis time is set in the future
+			return nil, handlertypes.ErrNotFound
+		}
+		if errors.Is(err, sdkerrors.ErrInvalidHeight) {
+			// height requested too high
+			return nil, handlertypes.ErrNotFound
+		}
 		return nil, fmt.Errorf("failed to get state from slot %d: %w", slot, err)
 	}
 
@@ -75,7 +86,8 @@ func (f *validatorFilters) parseID(id string) {
 	if err := pubkey.UnmarshalText([]byte(id)); err == nil {
 		f.pubkeys = append(f.pubkeys, pubkey)
 	}
-	// Silently skip invalid IDs
+	// We can skip errors here, since they should not happen.
+	// We do validate these ids in ValidateValidatorID.
 }
 
 // parseValidatorIDs parses a slice of string IDs into numeric IDs and pubkeys
@@ -95,7 +107,7 @@ func parseValidatorIDs(ids []string) *validatorFilters {
 // filterAndBuildValidatorData processes all validators and builds their data based on filters
 func filterAndBuildValidatorData(
 	st *statedb.StateDB,
-	validators []*types.Validator,
+	validators []*consensustypes.Validator,
 	filters *validatorFilters,
 	epoch math.Epoch,
 	statuses []string,
@@ -127,7 +139,7 @@ func filterAndBuildValidatorData(
 }
 
 // matchesFilters checks if a validator matches the filters.
-func matchesFilters(validator *types.Validator, index math.U64, filters *validatorFilters) bool {
+func matchesFilters(validator *consensustypes.Validator, index math.U64, filters *validatorFilters) bool {
 	// If no filters, accept all validators
 	if len(filters.indexes) == 0 && len(filters.pubkeys) == 0 {
 		return true
@@ -146,7 +158,7 @@ func matchesFilters(validator *types.Validator, index math.U64, filters *validat
 	return false
 }
 
-func matchesPubkey(validator *types.Validator, parsedPubkeys []crypto.BLSPubkey) bool {
+func matchesPubkey(validator *consensustypes.Validator, parsedPubkeys []crypto.BLSPubkey) bool {
 	validatorPubkey := validator.GetPubkey()
 	return slices.Contains(parsedPubkeys, validatorPubkey)
 }
@@ -161,7 +173,7 @@ func matchesStatusFilter(status string, statuses []string) bool {
 
 func buildValidatorData(
 	st *statedb.StateDB,
-	validator *types.Validator,
+	validator *consensustypes.Validator,
 	index math.U64,
 	epoch math.Epoch,
 	statuses []string,
