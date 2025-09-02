@@ -41,7 +41,7 @@ func (h *Handler) GetRandao(c handlers.Context) (any, error) {
 	}
 
 	// Handle requested slot and retrieve corresponding state
-	st, resolvedSlot, err := MapSlotInRequestToStateSlot(req.StateID, h.backend)
+	st, resolvedSlot, err := utils.MapSlotInRequestToStateSlot(req.StateID, h.backend)
 	if err != nil {
 		return nil, fmt.Errorf("failed mapping request slot %s to state: %w", req.StateID, err)
 	}

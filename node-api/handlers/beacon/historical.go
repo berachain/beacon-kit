@@ -36,7 +36,7 @@ func (h *Handler) GetStateRoot(c handlers.Context) (any, error) {
 		return nil, err
 	}
 
-	st, _, err := MapSlotInRequestToStateSlot(req.StateID, h.backend)
+	st, _, err := utils.MapSlotInRequestToStateSlot(req.StateID, h.backend)
 	if err != nil {
 		return nil, fmt.Errorf("failed mapping request slot %s to state: %w", req.StateID, err)
 	}
@@ -51,7 +51,7 @@ func (h *Handler) GetStateFork(c handlers.Context) (any, error) {
 		return nil, err
 	}
 
-	st, _, err := MapSlotInRequestToStateSlot(req.StateID, h.backend)
+	st, _, err := utils.MapSlotInRequestToStateSlot(req.StateID, h.backend)
 	if err != nil {
 		return nil, fmt.Errorf("failed mapping request slot %s to state: %w", req.StateID, err)
 	}

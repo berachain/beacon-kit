@@ -18,20 +18,25 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package beacon
+package utils
 
 import (
-	"github.com/berachain/beacon-kit/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-func MapSlotInRequestToStateSlot(stateID string, backend Backend) (*statedb.StateDB, math.Slot, error) {
-	reqSlot, err := utils.SlotFromStateID(stateID, backend)
+type backend interface {
+	StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error)
+	GetSlotByStateRoot(root common.Root) (math.Slot, error)
+}
+
+func MapSlotInRequestToStateSlot(stateID string, b backend) (*statedb.StateDB, math.Slot, error) {
+	reqSlot, err := SlotFromStateID(stateID, b)
 	if err != nil {
 		return nil, math.Slot(0), err
 	}
-	st, stateSlot, err := backend.StateAtSlot(reqSlot)
+	st, stateSlot, err := b.StateAtSlot(reqSlot)
 	if err != nil {
 		return nil, math.Slot(0), err
 	}

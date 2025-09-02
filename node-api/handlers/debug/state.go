@@ -21,6 +21,8 @@
 package debug
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
@@ -34,16 +36,12 @@ func (h *Handler) GetState(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
+
+	state, _, err := utils.MapSlotInRequestToStateSlot(req.StateID, h.backend)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed mapping request slot %s to state: %w", req.StateID, err)
 	}
 
-	// Get the raw state at the given slot.
-	state, _, err := h.backend.StateAtSlot(slot)
-	if err != nil {
-		return nil, err
-	}
 	beaconState, err := state.GetMarshallable()
 	if err != nil {
 		return nil, err
