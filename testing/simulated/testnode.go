@@ -200,7 +200,6 @@ func getAppOptions(t *testing.T, appOpts *viper.Viper, beaconKitConfig *config.C
 
 	// Beacon Config
 	appOpts.Set(flags.BlockStoreServiceAvailabilityWindow, beaconKitConfig.GetBlockStoreService().AvailabilityWindow)
-	appOpts.Set(flags.BlockStoreServiceEnabled, beaconKitConfig.GetBlockStoreService().Enabled)
 	appOpts.Set(flags.KZGTrustedSetupPath, "../files/kzg-trusted-setup.json")
 	appOpts.Set(flags.KZGImplementation, kzg.DefaultConfig().Implementation)
 
