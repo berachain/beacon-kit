@@ -31,11 +31,11 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/log/noop"
-	beaconecho "github.com/berachain/beacon-kit/node-api/engines/echo"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/mocks"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	handlertypes "github.com/berachain/beacon-kit/node-api/handlers/types"
+	"github.com/berachain/beacon-kit/node-api/middleware"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/labstack/echo/v4"
@@ -310,11 +310,10 @@ func TestGetBlockHeaders(t *testing.T) {
 
 			// setup test
 			backend := mocks.NewBackend(t)
-			h := beacon.NewHandler(backend)
-			h.SetLogger(noop.NewLogger[log.Logger]())
+			h := beacon.NewHandler(backend, noop.NewLogger[log.Logger]())
 			e := echo.New()
-			e.Validator = &beaconecho.CustomValidator{
-				Validator: beaconecho.ConstructValidator(),
+			e.Validator = &middleware.CustomValidator{
+				Validator: middleware.ConstructValidator(),
 			}
 
 			// create API inputs
@@ -505,11 +504,10 @@ func TestGetBlockHeaderByID(t *testing.T) {
 
 			// setup test
 			backend := mocks.NewBackend(t)
-			h := beacon.NewHandler(backend)
-			h.SetLogger(noop.NewLogger[log.Logger]())
+			h := beacon.NewHandler(backend, noop.NewLogger[log.Logger]())
 			e := echo.New()
-			e.Validator = &beaconecho.CustomValidator{
-				Validator: beaconecho.ConstructValidator(),
+			e.Validator = &middleware.CustomValidator{
+				Validator: middleware.ConstructValidator(),
 			}
 
 			// create API inputs

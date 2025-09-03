@@ -18,9 +18,19 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package context
+package block
 
-type Context interface {
-	Bind(any) error
-	Validate(any) error
+const defaultAvailabilityWindow = 8192
+
+// Config is the configuration for the block service.
+type Config struct {
+	// AvailabilityWindow is the number of slots to keep in the store.
+	AvailabilityWindow int `mapstructure:"availability-window"`
+}
+
+// DefaultConfig returns the default configuration for the block service.
+func DefaultConfig() Config {
+	return Config{
+		AvailabilityWindow: defaultAvailabilityWindow,
+	}
 }
