@@ -21,6 +21,7 @@
 package utils
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/berachain/beacon-kit/errors"
@@ -112,7 +113,10 @@ func IsTimestampIDPrefix(timestampID string) bool {
 }
 
 // slotFromStateID returns a slot number from the given state ID.
-// TODO: This pattern does not allow us to query block 0. Genesis points to block 1.
+// Currently when requested Genesis, we return block 1 state. This is
+// due to a limitation of CometBFT which does not explicitly commit genesis state
+// (it cumulated block 1 state changes and flush them down altogether).
+// TODO: Properly return genesis state when requested, instead of block 1
 func slotFromStateID(id string) (math.Slot, error) {
 	switch id {
 	case StateIDFinalized, StateIDJustified, StateIDHead:
@@ -120,6 +124,13 @@ func slotFromStateID(id string) (math.Slot, error) {
 	case StateIDGenesis:
 		return Genesis, nil
 	default:
-		return math.U64FromString(id)
+		slot, err := math.U64FromString(id)
+		if err != nil {
+			return math.Slot(0), fmt.Errorf("failed mapping stateID %s to slot: %w", id, err)
+		}
+
+		// Enforce here too the choice of mapping genesis to slot 1. Without this
+		// the request of slot 0 would be mapped to tip of the chain.
+		return max(slot, Genesis), nil
 	}
 }
