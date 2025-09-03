@@ -34,7 +34,7 @@ type Middleware struct {
 }
 
 // NewDefaultMiddleware returns a new default Echo Engine instance.
-func NewDefaultMiddleware() *Middleware {
+func NewDefaultMiddleware(logger log.Logger) *Middleware {
 	engine := echo.New()
 	engine.Use(middleware.CORSWithConfig(
 		middleware.DefaultCORSConfig,
@@ -44,7 +44,8 @@ func NewDefaultMiddleware() *Middleware {
 	}
 	engine.HideBanner = true
 	return &Middleware{
-		Echo: engine,
+		Echo:   engine,
+		logger: logger,
 	}
 }
 
@@ -54,8 +55,7 @@ func (e *Middleware) Run(addr string) error {
 }
 
 // RegisterRoutes registers the given route set with the Echo engine.
-func (e *Middleware) RegisterRoutes(hs *handlers.RouteSet, logger log.Logger) {
-	e.logger = logger
+func (e *Middleware) RegisterRoutes(hs *handlers.RouteSet) {
 	group := e.Group(hs.BasePath)
 	for _, route := range hs.Routes {
 		route.DecorateWithLogs(e.logger)

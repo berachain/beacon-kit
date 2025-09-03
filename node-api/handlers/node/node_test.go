@@ -23,6 +23,8 @@ package node_test
 import (
 	"testing"
 
+	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/log/noop"
 	"github.com/berachain/beacon-kit/node-api/handlers/node"
 	"github.com/berachain/beacon-kit/node-api/handlers/node/mocks"
 	"github.com/berachain/beacon-kit/node-api/handlers/node/types"
@@ -100,7 +102,7 @@ func TestNodeSyncing(t *testing.T) {
 
 			// setup test
 			backend := mocks.NewBackend(t)
-			h := node.NewHandler(backend)
+			h := node.NewHandler(backend, noop.NewLogger[log.Logger]())
 
 			tc.setMockExpectations(backend)
 
@@ -117,7 +119,7 @@ func TestNodeVersion(t *testing.T) {
 
 	// setup test
 	backend := mocks.NewBackend(t)
-	h := node.NewHandler(backend)
+	h := node.NewHandler(backend, noop.NewLogger[log.Logger]())
 
 	var (
 		appName = "testing-beacond"

@@ -310,8 +310,7 @@ func TestGetBlockHeaders(t *testing.T) {
 
 			// setup test
 			backend := mocks.NewBackend(t)
-			h := beacon.NewHandler(backend)
-			h.SetLogger(noop.NewLogger[log.Logger]())
+			h := beacon.NewHandler(backend, noop.NewLogger[log.Logger]())
 			e := echo.New()
 			e.Validator = &middleware.CustomValidator{
 				Validator: middleware.ConstructValidator(),
@@ -505,8 +504,7 @@ func TestGetBlockHeaderByID(t *testing.T) {
 
 			// setup test
 			backend := mocks.NewBackend(t)
-			h := beacon.NewHandler(backend)
-			h.SetLogger(noop.NewLogger[log.Logger]())
+			h := beacon.NewHandler(backend, noop.NewLogger[log.Logger]())
 			e := echo.New()
 			e.Validator = &middleware.CustomValidator{
 				Validator: middleware.ConstructValidator(),
