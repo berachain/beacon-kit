@@ -123,7 +123,7 @@ func SetupTestState(t *testing.T, cs chain.Spec) (
 
 	execEngine := mocks.NewExecutionEngine(t)
 
-	mocksSigner := &cryptomocks.BLSSigner{}
+	mocksSigner := &cryptomocks.Blssigner{}
 	mocksSigner.On(
 		"VerifySignature",
 		mock.Anything, mock.Anything, mock.Anything,
