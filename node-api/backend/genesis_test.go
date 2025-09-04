@@ -198,9 +198,8 @@ func TestGetGenesisData_SunnyPath(t *testing.T) {
 			tc.setMockExpectations(cms, kvStore, tcs)
 
 			// 3- Build backend
-			b, err := backend.New(sb, cs, cmtCfg)
-			require.NoError(t, err)
-			b.AttachQueryBackend(tcs)
+			b := backend.New(sb, cs, cmtCfg, tcs)
+			require.NoError(t, b.LoadData())
 
 			// 4- Checks
 			tc.check(t, b)

@@ -30,9 +30,9 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	engineclient "github.com/berachain/beacon-kit/execution/client"
 	log "github.com/berachain/beacon-kit/log/phuslu"
-	blockstore "github.com/berachain/beacon-kit/node-api/block_store"
 	"github.com/berachain/beacon-kit/node-api/server"
 	"github.com/berachain/beacon-kit/payload/builder"
+	"github.com/berachain/beacon-kit/storage/block"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 )
@@ -59,7 +59,7 @@ func DefaultConfig() *Config {
 		KZG:               kzg.DefaultConfig(),
 		PayloadBuilder:    builder.DefaultConfig(),
 		Validator:         validator.DefaultConfig(),
-		BlockStoreService: blockstore.DefaultConfig(),
+		BlockStoreService: block.DefaultConfig(),
 		NodeAPI:           server.DefaultConfig(),
 	}
 }
@@ -84,7 +84,7 @@ type Config struct {
 	// Validator is the configuration for the validator client.
 	Validator validator.Config `mapstructure:"validator"`
 	// BlockStoreService is the configuration for the block store service.
-	BlockStoreService blockstore.Config `mapstructure:"block-store-service"`
+	BlockStoreService block.Config `mapstructure:"block-store-service"`
 	// NodeAPI is the configuration for the node API.
 	NodeAPI server.Config `mapstructure:"node-api"`
 }
@@ -100,7 +100,7 @@ func (c Config) GetPayloadBuilder() *builder.Config {
 }
 
 // GetBlockStoreService returns the block store configuration.
-func (c Config) GetBlockStoreService() *blockstore.Config {
+func (c Config) GetBlockStoreService() *block.Config {
 	return &c.BlockStoreService
 }
 

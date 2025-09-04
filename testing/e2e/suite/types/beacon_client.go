@@ -106,6 +106,12 @@ type BeaconKitNodeClient interface {
 	ValidatorCredentialsProof(
 		ctx context.Context, timestampID string, validatorIndex string,
 	) (*ptypes.ValidatorWithdrawalCredentialsResponse, error)
+
+	// ValidatorPubkeyProof calls `bkit/v1/proof/validator_pubkey/:timestamp_id/:validator_index` endpoint to get
+	// the merkle proof that can be used to verify the validator pubkey for a given timestamp id and validator index.
+	ValidatorPubkeyProof(
+		ctx context.Context, timestampID string, validatorIndex string,
+	) (*ptypes.ValidatorPubkeyResponse, error)
 }
 
 // customBeaconClient is a custom implementation of the BeaconKitNodeClient interface
@@ -307,6 +313,35 @@ func (c *customBeaconClient) ValidatorCredentialsProof(
 	defer resp.Body.Close()
 
 	var result ptypes.ValidatorWithdrawalCredentialsResponse
+	if err = json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	return &result, nil
+}
+
+// ValidatorPubkeyProof calls `bkit/v1/proof/validator_pubkey/:timestamp_id/:validator_index` endpoint to get
+// the merkle proof that can be used to verify the validator pubkey for a given timestamp id and validator index.
+func (c *customBeaconClient) ValidatorPubkeyProof(
+	ctx context.Context, timestampID string, validatorIndex string,
+) (*ptypes.ValidatorPubkeyResponse, error) {
+	url := fmt.Sprintf("%s/bkit/v1/proof/validator_pubkey/%s/%s", c.address, timestampID, validatorIndex)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send request: %w", err)
+	}
+	if resp == nil {
+		return nil, errors.New("received nil response")
+	}
+	defer resp.Body.Close()
+
+	var result ptypes.ValidatorPubkeyResponse
 	if err = json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
