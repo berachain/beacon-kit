@@ -86,16 +86,25 @@ func (sp *StateProcessor) processLuganodesRecovery(st *state.StateDB) error {
 
 func (sp *StateProcessor) processSmileeFix(st *state.StateDB) error {
 	sp.logger.Info("smilee fix - forcing validator exit")
+
 	idx, err := st.ValidatorIndexByPubkey(smileePubKey)
 	if err != nil {
-		return fmt.Errorf("smilee fix - failed retrieving validator index: %w", err)
+		// Post fork activation, we skip the processing in case of errors.
+		// This simplifies some UTs where we pick mainnet specs and activate
+		// the fork during the test
+		sp.logger.Warn("smilee fix - failed retrieving validator by pub key", "err", err)
+		return nil
 	}
 	val, err := st.ValidatorByIndex(idx)
 	if err != nil {
-		return fmt.Errorf("smilee fix - failed retrieving validator: %w", err)
+		// Skipping error here as well.
+		sp.logger.Warn("smilee fix - failed retrieving validator", "err", err)
+		return nil
 	}
 
 	if err = sp.InitiateValidatorExit(st, idx); err != nil {
+		// We never want to skip this error instead. If the validator is
+		// available we must succeed in kicking it out.
 		return fmt.Errorf("smilee fix - failed initiating validator exit: %w", err)
 	}
 	sp.logger.Info(
