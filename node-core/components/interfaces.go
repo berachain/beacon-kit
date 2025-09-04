@@ -565,11 +565,6 @@ type (
 		ValidatorByID(
 			slot math.Slot, id string,
 		) (*types.ValidatorData, error)
-		FilteredValidators(
-			slot math.Slot,
-			ids []string,
-			statuses []string,
-		) ([]*types.ValidatorData, error)
 		ValidatorBalancesByIDs(
 			slot math.Slot,
 			ids []string,

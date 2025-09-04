@@ -263,66 +263,6 @@ func (_c *Backend_BlockRootAtSlot_Call) RunAndReturn(run func(math.U64) (common.
 	return _c
 }
 
-// FilteredValidators provides a mock function with given fields: slot, ids, statuses
-func (_m *Backend) FilteredValidators(slot math.U64, ids []string, statuses []string) ([]*types.ValidatorData, error) {
-	ret := _m.Called(slot, ids, statuses)
-
-	if len(ret) == 0 {
-		panic("no return value specified for FilteredValidators")
-	}
-
-	var r0 []*types.ValidatorData
-	var r1 error
-	if rf, ok := ret.Get(0).(func(math.U64, []string, []string) ([]*types.ValidatorData, error)); ok {
-		return rf(slot, ids, statuses)
-	}
-	if rf, ok := ret.Get(0).(func(math.U64, []string, []string) []*types.ValidatorData); ok {
-		r0 = rf(slot, ids, statuses)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*types.ValidatorData)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(math.U64, []string, []string) error); ok {
-		r1 = rf(slot, ids, statuses)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// Backend_FilteredValidators_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FilteredValidators'
-type Backend_FilteredValidators_Call struct {
-	*mock.Call
-}
-
-// FilteredValidators is a helper method to define mock.On call
-//   - slot math.U64
-//   - ids []string
-//   - statuses []string
-func (_e *Backend_Expecter) FilteredValidators(slot interface{}, ids interface{}, statuses interface{}) *Backend_FilteredValidators_Call {
-	return &Backend_FilteredValidators_Call{Call: _e.mock.On("FilteredValidators", slot, ids, statuses)}
-}
-
-func (_c *Backend_FilteredValidators_Call) Run(run func(slot math.U64, ids []string, statuses []string)) *Backend_FilteredValidators_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(math.U64), args[1].([]string), args[2].([]string))
-	})
-	return _c
-}
-
-func (_c *Backend_FilteredValidators_Call) Return(_a0 []*types.ValidatorData, _a1 error) *Backend_FilteredValidators_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Backend_FilteredValidators_Call) RunAndReturn(run func(math.U64, []string, []string) ([]*types.ValidatorData, error)) *Backend_FilteredValidators_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GenesisForkVersion provides a mock function with given fields:
 func (_m *Backend) GenesisForkVersion() (bytes.B4, error) {
 	ret := _m.Called()

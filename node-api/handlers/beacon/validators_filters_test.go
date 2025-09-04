@@ -17,99 +17,50 @@
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
-//go:build test
-// +build test
 
-package backend_test
+package beacon_test
 
 import (
-	"os"
-	"path/filepath"
 	"testing"
 
-	"cosmossdk.io/log"
-	storetypes "cosmossdk.io/store/types"
+	cosmoslog "cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/node-api/backend"
-	"github.com/berachain/beacon-kit/node-api/backend/mocks"
-	types "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
+	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/log/noop"
+	"github.com/berachain/beacon-kit/node-api/handlers/beacon"
+	"github.com/berachain/beacon-kit/node-api/handlers/beacon/mocks"
+	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	handlertypes "github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
-	"github.com/berachain/beacon-kit/node-core/components/storage"
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
-	"github.com/berachain/beacon-kit/storage/beacondb"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
-	cmtcfg "github.com/cometbft/cometbft/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
-//nolint:maintidx // it's fine
-func TestFilteredValidators(t *testing.T) {
+//nolint:maintidx // multiple test cases
+func TestFilterValidators(t *testing.T) {
 	t.Parallel()
 
-	// Build backend to test
-	cs, err := spec.MainnetChainSpec()
-	require.NoError(t, err)
-	cms, kvStore, depositStore, err := statetransition.BuildTestStores()
-	require.NoError(t, err)
-	sb := storage.NewBackend(
-		cs, nil, kvStore, depositStore, nil, log.NewNopLogger(), metrics.NewNoOpTelemetrySink(),
-	)
+	cs, errSpec := spec.MainnetChainSpec()
+	require.NoError(t, errSpec)
 
-	// Create a temporary directory for CometBFT config
-	tmpDir := t.TempDir()
-
-	// Create CometBFT config with temporary directory
-	cmtCfg := cmtcfg.DefaultConfig()
-	cmtCfg.SetRoot(tmpDir)
-
-	// Create config directory
-	configDir := filepath.Join(tmpDir, "config")
-	err = os.MkdirAll(configDir, 0o755)
-	require.NoError(t, err)
-
-	// Create app genesis
-	appGenesis := genutiltypes.NewAppGenesisWithVersion("test-chain", []byte("{}"))
-
-	// Save genesis file to the config directory
-	genesisFile := filepath.Join(configDir, "genesis.json")
-	err = appGenesis.SaveAs(genesisFile)
-	require.NoError(t, err)
-
-	tcs := mocks.NewConsensusService(t)
-	tcs.EXPECT().CreateQueryContext(mock.Anything, false).RunAndReturn(
-		func(int64, bool) (sdk.Context, error) {
-			sdkCtx := sdk.NewContext(cms.CacheMultiStore(), false, log.NewNopLogger())
-			return sdkCtx, nil
-		},
-	)
-
-	b := backend.New(sb, cs, cmtCfg, tcs)
-	require.NoError(t, b.LoadData())
-
-	// refSlot to allow validators in multiple states
-	// from initializing to withdrawned
-	refSlot := math.Slot(cs.SlotsPerEpoch() * 3)
-
-	// Set relevant quantities in initial status and
-	// write them to make them available to caches built
-	// on top of cms
-	stateValidators := []*types.ValidatorData{
+	// Create some input validators and store them to a readonly state
+	stateValidators := []*beacontypes.ValidatorData{
 		{
-			ValidatorBalanceData: types.ValidatorBalanceData{
+			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
 				Index:   0,
 				Balance: cs.MaxEffectiveBalance().Unwrap(),
 			},
 			Status: constants.ValidatorStatusPendingInitialized,
-			Validator: types.ValidatorFromConsensus(
+			Validator: beacontypes.ValidatorFromConsensus(
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x01},
 					WithdrawalCredentials:      [32]byte{0x02},
@@ -123,12 +74,12 @@ func TestFilteredValidators(t *testing.T) {
 			),
 		},
 		{
-			ValidatorBalanceData: types.ValidatorBalanceData{
+			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
 				Index:   1,
 				Balance: cs.MaxEffectiveBalance().Unwrap() * 3 / 4,
 			},
 			Status: constants.ValidatorStatusPendingQueued,
-			Validator: types.ValidatorFromConsensus(
+			Validator: beacontypes.ValidatorFromConsensus(
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x03},
 					WithdrawalCredentials:      [32]byte{0x04},
@@ -142,12 +93,12 @@ func TestFilteredValidators(t *testing.T) {
 			),
 		},
 		{
-			ValidatorBalanceData: types.ValidatorBalanceData{
+			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
 				Index:   2,
 				Balance: cs.MaxEffectiveBalance().Unwrap() / 4,
 			},
 			Status: constants.ValidatorStatusActiveOngoing,
-			Validator: types.ValidatorFromConsensus(
+			Validator: beacontypes.ValidatorFromConsensus(
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x05},
 					WithdrawalCredentials:      [32]byte{0x06},
@@ -161,12 +112,12 @@ func TestFilteredValidators(t *testing.T) {
 			),
 		},
 		{
-			ValidatorBalanceData: types.ValidatorBalanceData{
+			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
 				Index:   3,
 				Balance: cs.MaxEffectiveBalance().Unwrap() / 4,
 			},
 			Status: constants.ValidatorStatusActiveSlashed,
-			Validator: types.ValidatorFromConsensus(
+			Validator: beacontypes.ValidatorFromConsensus(
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x15},
 					WithdrawalCredentials:      [32]byte{0x16},
@@ -180,12 +131,12 @@ func TestFilteredValidators(t *testing.T) {
 			),
 		},
 		{
-			ValidatorBalanceData: types.ValidatorBalanceData{
+			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
 				Index:   4,
 				Balance: cs.MaxEffectiveBalance().Unwrap() / 4,
 			},
 			Status: constants.ValidatorStatusActiveExiting,
-			Validator: types.ValidatorFromConsensus(
+			Validator: beacontypes.ValidatorFromConsensus(
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x17},
 					WithdrawalCredentials:      [32]byte{0x18},
@@ -199,12 +150,12 @@ func TestFilteredValidators(t *testing.T) {
 			),
 		},
 		{
-			ValidatorBalanceData: types.ValidatorBalanceData{
+			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
 				Index:   5,
 				Balance: cs.MaxEffectiveBalance().Unwrap() / 2,
 			},
 			Status: constants.ValidatorStatusExitedUnslashed,
-			Validator: types.ValidatorFromConsensus(
+			Validator: beacontypes.ValidatorFromConsensus(
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x07},
 					WithdrawalCredentials:      [32]byte{0x08},
@@ -218,12 +169,12 @@ func TestFilteredValidators(t *testing.T) {
 			),
 		},
 		{
-			ValidatorBalanceData: types.ValidatorBalanceData{
+			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
 				Index:   6,
 				Balance: cs.MaxEffectiveBalance().Unwrap() / 2,
 			},
 			Status: constants.ValidatorStatusExitedSlashed,
-			Validator: types.ValidatorFromConsensus(
+			Validator: beacontypes.ValidatorFromConsensus(
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x27},
 					WithdrawalCredentials:      [32]byte{0x28},
@@ -237,12 +188,12 @@ func TestFilteredValidators(t *testing.T) {
 			),
 		},
 		{
-			ValidatorBalanceData: types.ValidatorBalanceData{
+			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
 				Index:   7,
 				Balance: cs.MinActivationBalance().Unwrap() - cs.EffectiveBalanceIncrement().Unwrap(),
 			},
 			Status: constants.ValidatorStatusWithdrawalPossible,
-			Validator: types.ValidatorFromConsensus(
+			Validator: beacontypes.ValidatorFromConsensus(
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x09},
 					WithdrawalCredentials:      [32]byte{0x10},
@@ -256,12 +207,12 @@ func TestFilteredValidators(t *testing.T) {
 			),
 		},
 		{
-			ValidatorBalanceData: types.ValidatorBalanceData{
+			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
 				Index:   8,
 				Balance: 0,
 			},
 			Status: constants.ValidatorStatusWithdrawalPossible,
-			Validator: types.ValidatorFromConsensus(
+			Validator: beacontypes.ValidatorFromConsensus(
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x39},
 					WithdrawalCredentials:      [32]byte{0x40},
@@ -275,27 +226,31 @@ func TestFilteredValidators(t *testing.T) {
 			),
 		},
 	}
-	setupTestFilteredValidatorsState(
-		t,
-		cms, kvStore, cs,
-		stateValidators, refSlot,
-	)
 
-	// test cases
-	tests := []struct {
-		name        string
-		inputsF     func() ([]string /*ids*/, []string /*statuses*/)
-		expectedErr error
-		checkF      func(t *testing.T, res []*types.ValidatorData)
+	testCases := []struct {
+		name                string
+		inputs              func() ([]string, []string)
+		setMockExpectations func(*mocks.Backend)
+		check               func(t *testing.T, res []*beacontypes.ValidatorData, err error)
 	}{
 		{
 			name: "all validators",
-			inputsF: func() ([]string, []string) {
+			inputs: func() ([]string, []string) {
 				return nil, nil
 			},
-			expectedErr: nil,
-			checkF: func(t *testing.T, res []*types.ValidatorData) {
+			setMockExpectations: func(b *mocks.Backend) {
+				st := makeTestState(t, cs)
+				addTestValidators(t, stateValidators, st)
+
+				// slot is not really tested here, we just return zero
+				b.EXPECT().StateAtSlot(mock.Anything).Return(st, math.Slot(0), nil)
+			},
+			check: func(t *testing.T, res []*beacontypes.ValidatorData, err error) {
 				t.Helper()
+
+				require.NoError(t, err)
+				require.NotNil(t, res)
+
 				require.Len(t, res, len(stateValidators))
 				for i := range res {
 					require.Equal(t, stateValidators[i], res[i], "index %d", i)
@@ -304,13 +259,23 @@ func TestFilteredValidators(t *testing.T) {
 		},
 		{
 			name: "some validators by indexes",
-			inputsF: func() ([]string, []string) {
+			inputs: func() ([]string, []string) {
 				return []string{"1", "3"}, nil
 			},
-			expectedErr: nil,
-			checkF: func(t *testing.T, res []*types.ValidatorData) {
+			setMockExpectations: func(b *mocks.Backend) {
+				st := makeTestState(t, cs)
+				addTestValidators(t, stateValidators, st)
+
+				// slot is not really tested here, we just return zero
+				b.EXPECT().StateAtSlot(mock.Anything).Return(st, math.Slot(0), nil)
+			},
+			check: func(t *testing.T, res []*beacontypes.ValidatorData, err error) {
 				t.Helper()
-				expectedRes := []*types.ValidatorData{
+
+				require.NoError(t, err)
+				require.NotNil(t, res)
+
+				expectedRes := []*beacontypes.ValidatorData{
 					stateValidators[1],
 					stateValidators[3],
 				}
@@ -321,18 +286,59 @@ func TestFilteredValidators(t *testing.T) {
 			},
 		},
 		{
+			name: "some validators by pub keys",
+			inputs: func() ([]string, []string) {
+				return []string{
+					stateValidators[2].Validator.PublicKey,
+					stateValidators[4].Validator.PublicKey,
+				}, nil
+			},
+			setMockExpectations: func(b *mocks.Backend) {
+				st := makeTestState(t, cs)
+				addTestValidators(t, stateValidators, st)
+
+				// slot is not really tested here, we just return zero
+				b.EXPECT().StateAtSlot(mock.Anything).Return(st, math.Slot(0), nil)
+			},
+			check: func(t *testing.T, res []*beacontypes.ValidatorData, err error) {
+				t.Helper()
+
+				require.NoError(t, err)
+				require.NotNil(t, res)
+
+				expectedRes := []*beacontypes.ValidatorData{
+					stateValidators[2],
+					stateValidators[4],
+				}
+				require.Len(t, res, len(expectedRes))
+				for i := range res {
+					require.Equal(t, expectedRes[i], res[i], "index %d", i)
+				}
+			},
+		},
+		{
 			name: "some validators by status",
-			inputsF: func() ([]string, []string) {
+			inputs: func() ([]string, []string) {
 				return nil, []string{
 					constants.ValidatorStatusActiveOngoing,
 					constants.ValidatorStatusActiveSlashed,
 					constants.ValidatorStatusActiveExiting,
 				}
 			},
-			expectedErr: nil,
-			checkF: func(t *testing.T, res []*types.ValidatorData) {
+			setMockExpectations: func(b *mocks.Backend) {
+				st := makeTestState(t, cs)
+				addTestValidators(t, stateValidators, st)
+
+				// slot is not really tested here, we just return zero
+				b.EXPECT().StateAtSlot(mock.Anything).Return(st, math.Slot(0), nil)
+			},
+			check: func(t *testing.T, res []*beacontypes.ValidatorData, err error) {
 				t.Helper()
-				expectedRes := []*types.ValidatorData{
+
+				require.NoError(t, err)
+				require.NotNil(t, res)
+
+				expectedRes := []*beacontypes.ValidatorData{
 					stateValidators[2],
 					stateValidators[3],
 					stateValidators[4],
@@ -343,94 +349,84 @@ func TestFilteredValidators(t *testing.T) {
 				}
 			},
 		},
+		{
+			name: "chain not ready",
+			inputs: func() ([]string, []string) {
+				return nil, nil
+			},
+			setMockExpectations: func(b *mocks.Backend) {
+				// cometbft.ErrAppNotReady is the error flag returned when
+				// genesis has not yet been processed and chain is not ready.
+				b.EXPECT().StateAtSlot(mock.Anything).Return(nil, math.Slot(0), cometbft.ErrAppNotReady)
+			},
+			check: func(t *testing.T, res []*beacontypes.ValidatorData, err error) {
+				t.Helper()
+
+				// handlertypes.ErrNotFound is the error flag used to return 404 error code
+				require.ErrorIs(t, err, handlertypes.ErrNotFound)
+				require.Nil(t, res)
+			},
+		},
+		{
+			name: "height requested too high",
+			inputs: func() ([]string, []string) {
+				return nil, nil
+			},
+			setMockExpectations: func(b *mocks.Backend) {
+				// sdkerrors.ErrInvalidHeight is the error flag returned when
+				// requested height is not in the state.
+				b.EXPECT().StateAtSlot(mock.Anything).Return(nil, math.Slot(0), sdkerrors.ErrInvalidHeight)
+			},
+			check: func(t *testing.T, res []*beacontypes.ValidatorData, err error) {
+				t.Helper()
+
+				// handlertypes.ErrNotFound is the error flag used to return 404 error code
+				require.ErrorIs(t, err, handlertypes.ErrNotFound)
+				require.Nil(t, res)
+			},
+		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			ids, statuses := tt.inputsF()
-			res, filterErr := b.FilteredValidators(refSlot, ids, statuses)
-			if tt.expectedErr == nil {
-				require.NoError(t, filterErr)
-			} else {
-				require.ErrorIs(t, filterErr, tt.expectedErr)
-			}
-			tt.checkF(t, res)
+	for _, tc := range testCases {
+		tc := tc // capture range variable
+		t.Run(tc.name, func(t *testing.T) {
+			// setup test
+			backend := mocks.NewBackend(t)
+			h := beacon.NewHandler(backend, cs, noop.NewLogger[log.Logger]())
+
+			// set expectations
+			tc.setMockExpectations(backend)
+
+			// test
+			ids, statuses := tc.inputs()
+			res, err := h.FilterValidators(math.Slot(0), ids, statuses)
+
+			// finally do checks
+			tc.check(t, res, err)
 		})
 	}
 }
 
-func setupTestFilteredValidatorsState(
-	t *testing.T,
-	cms storetypes.CommitMultiStore,
-	kvStore *beacondb.KVStore,
-	cs chain.Spec,
-	stateValidators []*types.ValidatorData,
-	dummySlot math.Slot,
-) {
+func addTestValidators(t *testing.T, stateValidators []*beacontypes.ValidatorData, st *statedb.StateDB) {
 	t.Helper()
-	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), true, log.NewNopLogger())
-	st := statedb.NewBeaconStateFromDB(
-		kvStore.WithContext(sdkCtx), cs, sdkCtx.Logger(), metrics.NewNoOpTelemetrySink(),
-	)
 
 	for _, in := range stateValidators {
-		val, err := types.ValidatorToConsensus(in.Validator)
-		require.NoError(t, err)
+		val, errVal := beacontypes.ValidatorToConsensus(in.Validator)
+		require.NoError(t, errVal)
 		require.NoError(t, st.AddValidator(val))
 
 		require.NoError(t, st.SetBalance(math.ValidatorIndex(in.Index), math.Gwei(in.Balance)))
 	}
-
-	setupStateDummyParts(t, cs, st, dummySlot)
-
-	// finally write it all to underlying cms
-	//nolint:errcheck // false positive as this has no return value
-	sdkCtx.MultiStore().(storetypes.CacheMultiStore).Write()
 }
 
-func setupStateDummyParts(t *testing.T, cs chain.Spec, st *statedb.StateDB, dummySlot math.Slot) {
+func makeTestState(t *testing.T, cs chain.Spec) *statedb.StateDB {
 	t.Helper()
-	require.NoError(t, st.SetSlot(dummySlot))
 
-	fork := ctypes.NewFork(version.Deneb(), version.Deneb(), constants.GenesisEpoch)
-	require.NoError(t, st.SetFork(fork))
-
-	require.NoError(t, st.SetGenesisValidatorsRoot(common.Root{}))
-
-	blkHeader := &ctypes.BeaconBlockHeader{
-		Slot:            constants.GenesisSlot,
-		ProposerIndex:   0,
-		ParentBlockRoot: common.Root{},
-		StateRoot:       common.Root{},
-		BodyRoot:        common.Root{},
-	}
-	require.NoError(t, st.SetLatestBlockHeader(blkHeader))
-
-	for i := range cs.HistoricalRootsLimit() {
-		require.NoError(t, st.UpdateBlockRootAtIndex(i, common.Root{}))
-		require.NoError(t, st.UpdateStateRootAtIndex(i, common.Root{}))
-	}
-
-	payload, err := ctypes.DefaultGenesisExecutionPayloadHeader(version.Deneb())
-	require.NoError(t, err)
-	require.NoError(t, st.SetLatestExecutionPayloadHeader(payload))
-
-	eth1Data := &ctypes.Eth1Data{
-		DepositRoot:  common.Root{},
-		DepositCount: 0,
-		BlockHash:    payload.GetBlockHash(),
-	}
-	require.NoError(t, st.SetEth1Data(eth1Data))
-	require.NoError(t, st.SetEth1DepositIndex(constants.FirstDepositIndex))
-
-	for i := range cs.EpochsPerHistoricalVector() {
-		require.NoError(t, st.UpdateRandaoMixAtIndex(
-			i,
-			common.Bytes32(payload.GetBlockHash()),
-		))
-	}
-
-	require.NoError(t, st.SetNextWithdrawalIndex(0))
-	require.NoError(t, st.SetNextWithdrawalValidatorIndex(0))
-	require.NoError(t, st.SetTotalSlashing(0))
+	cms, kvStore, _, errSt := statetransition.BuildTestStores()
+	require.NoError(t, errSt)
+	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), true, cosmoslog.NewNopLogger())
+	st := statedb.NewBeaconStateFromDB(
+		kvStore.WithContext(sdkCtx), cs, sdkCtx.Logger(), metrics.NewNoOpTelemetrySink(),
+	)
+	return st
 }

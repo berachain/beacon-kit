@@ -28,6 +28,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/log/noop"
@@ -45,6 +46,9 @@ import (
 //nolint:maintidx // multiple test cases
 func TestGetBlockHeaders(t *testing.T) {
 	t.Parallel()
+
+	cs, errSpec := spec.MainnetChainSpec()
+	require.NoError(t, errSpec)
 
 	// testHeaders to build test cases on top of
 	testParentHeader := &types.BeaconBlockHeader{
@@ -310,7 +314,7 @@ func TestGetBlockHeaders(t *testing.T) {
 
 			// setup test
 			backend := mocks.NewBackend(t)
-			h := beacon.NewHandler(backend, noop.NewLogger[log.Logger]())
+			h := beacon.NewHandler(backend, cs, noop.NewLogger[log.Logger]())
 			e := echo.New()
 			e.Validator = &middleware.CustomValidator{
 				Validator: middleware.ConstructValidator(),
@@ -339,6 +343,9 @@ func TestGetBlockHeaders(t *testing.T) {
 
 func TestGetBlockHeaderByID(t *testing.T) {
 	t.Parallel()
+
+	cs, errSpec := spec.MainnetChainSpec()
+	require.NoError(t, errSpec)
 
 	// a test testHeader to build test cases on top of
 	testHeader := &types.BeaconBlockHeader{
@@ -504,7 +511,7 @@ func TestGetBlockHeaderByID(t *testing.T) {
 
 			// setup test
 			backend := mocks.NewBackend(t)
-			h := beacon.NewHandler(backend, noop.NewLogger[log.Logger]())
+			h := beacon.NewHandler(backend, cs, noop.NewLogger[log.Logger]())
 			e := echo.New()
 			e.Validator = &middleware.CustomValidator{
 				Validator: middleware.ConstructValidator(),

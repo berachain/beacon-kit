@@ -24,6 +24,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/log/noop"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon"
@@ -39,6 +40,9 @@ import (
 
 func TestGetGenesis(t *testing.T) {
 	t.Parallel()
+
+	cs, errSpec := spec.MainnetChainSpec()
+	require.NoError(t, errSpec)
 
 	var (
 		testGenesisRoot        = common.Root{0x10, 0x20, 0x30}
@@ -134,7 +138,7 @@ func TestGetGenesis(t *testing.T) {
 
 			// setup test
 			backend := mocks.NewBackend(t)
-			h := beacon.NewHandler(backend, noop.NewLogger[log.Logger]())
+			h := beacon.NewHandler(backend, cs, noop.NewLogger[log.Logger]())
 			e := echo.New()
 			e.Validator = &middleware.CustomValidator{
 				Validator: middleware.ConstructValidator(),
