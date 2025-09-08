@@ -42,7 +42,15 @@ func (h *Handler) GetStateValidatorBalances(c handlers.Context) (any, error) {
 		return nil, err
 	}
 
-	return h.getValidatorBalance(req.StateID, req.IDs)
+	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
+	if err != nil {
+		if errors.Is(err, utils.ErrNoSlotForStateRoot) {
+			return nil, fmt.Errorf("%s: %w", err.Error(), types.ErrNotFound)
+		}
+		return nil, fmt.Errorf("failed mapping state id %s to slot: %w", req.StateID, err)
+	}
+	balances, err := h.GetValidatorBalance(slot, req.IDs)
+	return beacontypes.NewResponse(balances), err
 }
 
 func (h *Handler) PostStateValidatorBalances(c handlers.Context) (any, error) {
@@ -53,17 +61,18 @@ func (h *Handler) PostStateValidatorBalances(c handlers.Context) (any, error) {
 		return nil, err
 	}
 
-	return h.getValidatorBalance(req.StateID, req.IDs)
-}
-
-func (h *Handler) getValidatorBalance(stateID string, validatorIDs []string) (any, error) {
-	slot, err := utils.SlotFromStateID(stateID, h.backend)
+	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
 	if err != nil {
 		if errors.Is(err, utils.ErrNoSlotForStateRoot) {
 			return nil, fmt.Errorf("%s: %w", err.Error(), types.ErrNotFound)
 		}
-		return nil, fmt.Errorf("failed mapping state id %s to slot: %w", stateID, err)
+		return nil, fmt.Errorf("failed mapping state id %s to slot: %w", req.StateID, err)
 	}
+	balances, err := h.GetValidatorBalance(slot, req.IDs)
+	return beacontypes.NewResponse(balances), err
+}
+
+func (h *Handler) GetValidatorBalance(slot math.Slot, validatorIDs []string) ([]*beacontypes.ValidatorBalanceData, error) {
 	st, _, err := h.backend.StateAtSlot(slot)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get state from slot %d: %w", slot, err)
@@ -83,7 +92,7 @@ func (h *Handler) getValidatorBalance(stateID string, validatorIDs []string) (an
 				Balance: balance,
 			}
 		}
-		return beacontypes.NewResponse(balances), nil
+		return balances, nil
 	}
 
 	var (
@@ -118,7 +127,7 @@ func (h *Handler) getValidatorBalance(stateID string, validatorIDs []string) (an
 			return nil, fmt.Errorf("failed to get validator balance for validator index %d: %w", index, err)
 		}
 	}
-	return beacontypes.NewResponse(balances), nil
+	return balances, nil
 }
 
 // ValidatorIndexByID parses a validator index from a string.
