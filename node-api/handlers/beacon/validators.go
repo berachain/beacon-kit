@@ -23,15 +23,11 @@ package beacon
 import (
 	"errors"
 	"fmt"
-	"net/http"
 
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	types "github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
-	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/math"
-	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 func (h *Handler) GetStateValidators(c handlers.Context) (any, error) {
@@ -128,60 +124,4 @@ func (h *Handler) GetStateValidator(c handlers.Context) (any, error) {
 			Validator: beacontypes.ValidatorFromConsensus(validator),
 		},
 	), nil
-}
-
-// ValidatorIndexByID parses a validator index from a string.
-// The string can be either a validator index or a validator pubkey.
-func validatorIndexByID(st *statedb.StateDB, keyOrIndex string) (math.U64, error) {
-	index, err := math.U64FromString(keyOrIndex)
-	if err == nil {
-		return index, nil
-	}
-	var key crypto.BLSPubkey
-	if err = key.UnmarshalText([]byte(keyOrIndex)); err != nil {
-		return math.U64(0), err
-	}
-	return st.ValidatorIndexByPubkey(key)
-}
-
-func (h *Handler) GetStateValidatorBalances(c handlers.Context) (any, error) {
-	req, err := utils.BindAndValidate[beacontypes.GetValidatorBalancesRequest](
-		c, h.Logger(),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return h.getValidatorBalance(req.StateID, req.IDs)
-}
-
-func (h *Handler) PostStateValidatorBalances(c handlers.Context) (any, error) {
-	req, err := utils.BindAndValidate[beacontypes.PostValidatorBalancesRequest](
-		c, h.Logger(),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return h.getValidatorBalance(req.StateID, req.IDs)
-}
-
-func (h *Handler) getValidatorBalance(stateID string, validatorIDs []string) (any, error) {
-	slot, err := utils.SlotFromStateID(stateID, h.backend)
-	switch {
-	case err == nil:
-		// No error, continue
-	case errors.Is(err, utils.ErrNoSlotForStateRoot):
-		return &handlers.HTTPError{
-			Code:    http.StatusNotFound,
-			Message: "State not found",
-		}, nil
-	default:
-		return nil, err
-	}
-	balances, err := h.backend.ValidatorBalancesByIDs(slot, validatorIDs)
-	if err != nil {
-		return nil, err
-	}
-	return beacontypes.NewResponse(balances), nil
 }

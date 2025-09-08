@@ -18,25 +18,59 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package backend
+package beacon
 
 import (
+	"fmt"
+
 	"cosmossdk.io/collections"
 	"github.com/berachain/beacon-kit/errors"
-	"github.com/berachain/beacon-kit/node-api/backend/utils"
+	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/node-api/handlers/types"
+	"github.com/berachain/beacon-kit/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-func (b *Backend) ValidatorBalancesByIDs(slot math.Slot, ids []string) ([]*beacontypes.ValidatorBalanceData, error) {
-	// Get the state at the given slot.
-	st, _, err := b.StateAtSlot(slot)
+func (h *Handler) GetStateValidatorBalances(c handlers.Context) (any, error) {
+	req, err := utils.BindAndValidate[beacontypes.GetValidatorBalancesRequest](
+		c, h.Logger(),
+	)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get state from slot %d", slot)
+		return nil, err
+	}
+
+	return h.getValidatorBalance(req.StateID, req.IDs)
+}
+
+func (h *Handler) PostStateValidatorBalances(c handlers.Context) (any, error) {
+	req, err := utils.BindAndValidate[beacontypes.PostValidatorBalancesRequest](
+		c, h.Logger(),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return h.getValidatorBalance(req.StateID, req.IDs)
+}
+
+func (h *Handler) getValidatorBalance(stateID string, validatorIDs []string) (any, error) {
+	slot, err := utils.SlotFromStateID(stateID, h.backend)
+	if err != nil {
+		if errors.Is(err, utils.ErrNoSlotForStateRoot) {
+			return nil, fmt.Errorf("%s: %w", err.Error(), types.ErrNotFound)
+		}
+		return nil, fmt.Errorf("failed mapping state id %s to slot: %w", stateID, err)
+	}
+	st, _, err := h.backend.StateAtSlot(slot)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get state from slot %d: %w", slot, err)
 	}
 
 	// If no IDs provided, return all validator balances
-	if len(ids) == 0 {
+	if len(validatorIDs) == 0 {
 		rawBalances, errInBalances := st.GetBalances()
 		if errInBalances != nil {
 			return nil, errInBalances
@@ -49,15 +83,15 @@ func (b *Backend) ValidatorBalancesByIDs(slot math.Slot, ids []string) ([]*beaco
 				Balance: balance,
 			}
 		}
-		return balances, nil
+		return beacontypes.NewResponse(balances), nil
 	}
 
 	var (
-		balances = make([]*beacontypes.ValidatorBalanceData, 0, len(ids))
+		balances = make([]*beacontypes.ValidatorBalanceData, 0, len(validatorIDs))
 		index    math.U64
 	)
-	for _, id := range ids {
-		index, err = utils.ValidatorIndexByID(st, id)
+	for _, id := range validatorIDs {
+		index, err = validatorIndexByID(st, id)
 		switch {
 		case err == nil:
 			// nothing to do, keep processing
@@ -66,7 +100,7 @@ func (b *Backend) ValidatorBalancesByIDs(slot math.Slot, ids []string) ([]*beaco
 			// we simply skip the index.
 			continue
 		default:
-			return nil, errors.Wrapf(err, "failed to get validator index by id %s", id)
+			return nil, fmt.Errorf("failed to get validator index by id %s: %w", id, err)
 		}
 
 		var balance math.U64
@@ -81,8 +115,22 @@ func (b *Backend) ValidatorBalancesByIDs(slot math.Slot, ids []string) ([]*beaco
 			// "collections: not found" we simply skip the index.
 			continue
 		default:
-			return nil, errors.Wrapf(err, "failed to get validator balance for validator index %d", index)
+			return nil, fmt.Errorf("failed to get validator balance for validator index %d: %w", index, err)
 		}
 	}
-	return balances, nil
+	return beacontypes.NewResponse(balances), nil
+}
+
+// ValidatorIndexByID parses a validator index from a string.
+// The string can be either a validator index or a validator pubkey.
+func validatorIndexByID(st *statedb.StateDB, keyOrIndex string) (math.U64, error) {
+	index, err := math.U64FromString(keyOrIndex)
+	if err == nil {
+		return index, nil
+	}
+	var key crypto.BLSPubkey
+	if err = key.UnmarshalText([]byte(keyOrIndex)); err != nil {
+		return math.U64(0), err
+	}
+	return st.ValidatorIndexByPubkey(key)
 }

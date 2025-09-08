@@ -726,65 +726,6 @@ func (_c *Backend_StateAtSlot_Call) RunAndReturn(run func(math.U64) (*state.Stat
 	return _c
 }
 
-// ValidatorBalancesByIDs provides a mock function with given fields: slot, ids
-func (_m *Backend) ValidatorBalancesByIDs(slot math.U64, ids []string) ([]*types.ValidatorBalanceData, error) {
-	ret := _m.Called(slot, ids)
-
-	if len(ret) == 0 {
-		panic("no return value specified for ValidatorBalancesByIDs")
-	}
-
-	var r0 []*types.ValidatorBalanceData
-	var r1 error
-	if rf, ok := ret.Get(0).(func(math.U64, []string) ([]*types.ValidatorBalanceData, error)); ok {
-		return rf(slot, ids)
-	}
-	if rf, ok := ret.Get(0).(func(math.U64, []string) []*types.ValidatorBalanceData); ok {
-		r0 = rf(slot, ids)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*types.ValidatorBalanceData)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(math.U64, []string) error); ok {
-		r1 = rf(slot, ids)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// Backend_ValidatorBalancesByIDs_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ValidatorBalancesByIDs'
-type Backend_ValidatorBalancesByIDs_Call struct {
-	*mock.Call
-}
-
-// ValidatorBalancesByIDs is a helper method to define mock.On call
-//   - slot math.U64
-//   - ids []string
-func (_e *Backend_Expecter) ValidatorBalancesByIDs(slot interface{}, ids interface{}) *Backend_ValidatorBalancesByIDs_Call {
-	return &Backend_ValidatorBalancesByIDs_Call{Call: _e.mock.On("ValidatorBalancesByIDs", slot, ids)}
-}
-
-func (_c *Backend_ValidatorBalancesByIDs_Call) Run(run func(slot math.U64, ids []string)) *Backend_ValidatorBalancesByIDs_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(math.U64), args[1].([]string))
-	})
-	return _c
-}
-
-func (_c *Backend_ValidatorBalancesByIDs_Call) Return(_a0 []*types.ValidatorBalanceData, _a1 error) *Backend_ValidatorBalancesByIDs_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Backend_ValidatorBalancesByIDs_Call) RunAndReturn(run func(math.U64, []string) ([]*types.ValidatorBalanceData, error)) *Backend_ValidatorBalancesByIDs_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // NewBackend creates a new instance of Backend. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewBackend(t interface {
