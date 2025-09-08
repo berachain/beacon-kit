@@ -23,12 +23,10 @@ package proof
 import (
 	"net/http"
 
-	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 )
 
-func (h *Handler) RegisterRoutes(logger log.Logger) {
-	h.SetLogger(logger)
+func registerRoutes(h *Handler) {
 	h.BaseHandler.AddRoutes([]*handlers.Route{
 		{
 			Method:  http.MethodGet,
@@ -37,8 +35,18 @@ func (h *Handler) RegisterRoutes(logger log.Logger) {
 		},
 		{
 			Method:  http.MethodGet,
+			Path:    "bkit/v1/proof/validator_pubkey/:timestamp_id/:validator_index",
+			Handler: h.GetValidatorPubkey,
+		},
+		{
+			Method:  http.MethodGet,
 			Path:    "bkit/v1/proof/validator_credentials/:timestamp_id/:validator_index",
 			Handler: h.GetValidatorCredentials,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "bkit/v1/proof/validator_balance/:timestamp_id/:validator_index",
+			Handler: h.GetValidatorBalance,
 		},
 	})
 }

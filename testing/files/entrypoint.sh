@@ -104,7 +104,6 @@ BEACON_START_CMD="./build/bin/beacond start $CHAIN_SPEC_ARG --pruning=nothing "$
 --beacon-kit.logger.log-level $LOGLEVEL --home $HOMEDIR \
 --beacon-kit.engine.jwt-secret-path ${JWT_SECRET_PATH} \
 --beacon-kit.kzg.trusted-setup-path ${KZG_PATH}  \
---beacon-kit.block-store-service.enabled \
 --beacon-kit.node-api.enabled --beacon-kit.node-api.logging"
 
 # Conditionally add the rpc-dial-url flag if RPC_DIAL_URL is not empty

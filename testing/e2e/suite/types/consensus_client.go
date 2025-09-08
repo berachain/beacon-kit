@@ -262,6 +262,42 @@ func (cc ConsensusClient) BlockProposerProof(
 	return cc.beaconClient.BlockProposerProof(ctx, timestampID)
 }
 
+// ValidatorBalanceProof returns the validator balance proof for a given timestamp id and validator index.
+func (cc ConsensusClient) ValidatorBalanceProof(
+	ctx context.Context,
+	timestampID string,
+	validatorIndex string,
+) (*ptypes.ValidatorBalanceResponse, error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
+	return cc.beaconClient.ValidatorBalanceProof(ctx, timestampID, validatorIndex)
+}
+
+// ValidatorCredentialsProof returns the validator withdrawal credentials proof for a given timestamp id and validator index.
+func (cc ConsensusClient) ValidatorCredentialsProof(
+	ctx context.Context,
+	timestampID string,
+	validatorIndex string,
+) (*ptypes.ValidatorWithdrawalCredentialsResponse, error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
+	return cc.beaconClient.ValidatorCredentialsProof(ctx, timestampID, validatorIndex)
+}
+
+// ValidatorPubkeyProof returns the validator pubkey proof for a given timestamp id and validator index.
+func (cc ConsensusClient) ValidatorPubkeyProof(
+	ctx context.Context,
+	timestampID string,
+	validatorIndex string,
+) (*ptypes.ValidatorPubkeyResponse, error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
+	return cc.beaconClient.ValidatorPubkeyProof(ctx, timestampID, validatorIndex)
+}
+
 // Commit returns the commit for a block.
 func (cc ConsensusClient) Commit(
 	ctx context.Context,

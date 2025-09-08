@@ -64,9 +64,6 @@ func (nb *NodeBuilder) Build(
 ) types.Node {
 	// variables to hold the components needed to set up BeaconApp
 	var (
-		apiBackend interface {
-			AttachQueryBackend(types.ConsensusService)
-		}
 		beaconNode types.Node
 		cmtService types.ConsensusService
 		config     *config.Config
@@ -91,7 +88,6 @@ func (nb *NodeBuilder) Build(
 				chainSpec,
 			),
 		),
-		&apiBackend,
 		&beaconNode,
 		&cmtService,
 		&config,
@@ -101,11 +97,7 @@ func (nb *NodeBuilder) Build(
 	if config == nil {
 		panic("config is nil")
 	}
-	if apiBackend == nil {
-		panic("node or api backend is nil")
-	}
 
 	logger.WithConfig(config.GetLogger())
-	apiBackend.AttachQueryBackend(cmtService)
 	return beaconNode
 }

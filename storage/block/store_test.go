@@ -87,3 +87,33 @@ func TestBlockStore(t *testing.T) {
 	_, err = blockStore.GetParentSlotByTimestamp(2)
 	require.ErrorContains(t, err, "not found")
 }
+
+func TestBlockStoreZeroSize(t *testing.T) {
+	t.Parallel()
+	blockStore := block.NewStore[*MockBeaconBlock](noop.NewLogger[any](), 0)
+
+	// If kvStore is disabled, setting any block would fail silently
+	// Any get should fail instead.
+	for i := 1; i <= 7; i++ {
+		err := blockStore.Set(&MockBeaconBlock{slot: math.Slot(i)})
+		require.NoError(t, err)
+	}
+
+	// Get the slots by roots & timestamps.
+	for i := math.Slot(3); i <= 7; i++ {
+		_, err := blockStore.GetSlotByBlockRoot([32]byte{byte(i)})
+		require.ErrorIs(t, err, block.ErrBlockStoreNotEnabled)
+
+		_, err = blockStore.GetParentSlotByTimestamp(i)
+		require.ErrorIs(t, err, block.ErrBlockStoreNotEnabled)
+
+		_, err = blockStore.GetSlotByStateRoot([32]byte{byte(i)})
+		require.ErrorIs(t, err, block.ErrBlockStoreNotEnabled)
+	}
+
+	// Try getting a slot that doesn't exist.
+	_, err := blockStore.GetSlotByBlockRoot([32]byte{byte(8)})
+	require.ErrorIs(t, err, block.ErrBlockStoreNotEnabled)
+	_, err = blockStore.GetParentSlotByTimestamp(2)
+	require.ErrorIs(t, err, block.ErrBlockStoreNotEnabled)
+}
