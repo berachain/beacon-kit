@@ -47,7 +47,10 @@ func (h *Handler) GetStateValidatorBalances(c handlers.Context) (any, error) {
 		return nil, err
 	}
 	balances, err := h.GetValidatorBalance(slot, req.IDs)
-	return beacontypes.NewResponse(balances), err
+	if err != nil {
+		return nil, err
+	}
+	return beacontypes.NewResponse(balances), nil
 }
 
 func (h *Handler) PostStateValidatorBalances(c handlers.Context) (any, error) {
@@ -70,7 +73,10 @@ func (h *Handler) PostStateValidatorBalances(c handlers.Context) (any, error) {
 		return nil, err
 	}
 	balances, err := h.GetValidatorBalance(slot, req.IDs)
-	return beacontypes.NewResponse(balances), err
+	if err != nil {
+		return nil, err
+	}
+	return beacontypes.NewResponse(balances), nil
 }
 
 func (h *Handler) GetValidatorBalance(slot math.Slot, validatorIDs []string) ([]*beacontypes.ValidatorBalanceData, error) {

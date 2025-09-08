@@ -82,11 +82,16 @@ func (h *Handler) GetStateValidator(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	valData, err := h.GetValidator(slot, req.ValidatorID)
+	valData, err := h.getValidator(slot, req.ValidatorID)
+	if err != nil {
+		return nil, err
+	}
 	return beacontypes.NewResponse(valData), err
 }
 
-func (h *Handler) GetValidator(slot math.Slot, validatorID string) (*beacontypes.ValidatorData, error) {
+// getValidator contains all the logic of the GetStateValidator api
+// that is not related to http stuff. Consider exporting it if needed
+func (h *Handler) getValidator(slot math.Slot, validatorID string) (*beacontypes.ValidatorData, error) {
 	st, resolvedSlot, err := h.backend.StateAtSlot(slot)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get state from slot %d: %w", slot, err)
