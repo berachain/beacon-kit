@@ -24,10 +24,12 @@ import (
 	"errors"
 	"fmt"
 
+	"cosmossdk.io/collections"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	types "github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 func (h *Handler) GetStateValidators(c handlers.Context) (any, error) {
@@ -76,34 +78,37 @@ func (h *Handler) GetStateValidator(c handlers.Context) (any, error) {
 		return nil, err
 	}
 
-	// retrieve slot and associated state
 	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
 	if err != nil {
-		if errors.Is(err, utils.ErrNoSlotForStateRoot) {
-			return nil, fmt.Errorf("%s: %w", err.Error(), types.ErrNotFound)
-		}
-		return nil, fmt.Errorf("failed mapping state id %s to slot: %w", req.StateID, err)
+		return nil, err
 	}
+	valData, err := h.GetValidator(slot, req.ValidatorID)
+	return beacontypes.NewResponse(valData), err
+}
+
+func (h *Handler) GetValidator(slot math.Slot, validatorID string) (*beacontypes.ValidatorData, error) {
 	st, resolvedSlot, err := h.backend.StateAtSlot(slot)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get state from slot %d: %w", slot, err)
 	}
 
 	// retrieve validator data
-	index, err := validatorIndexByID(st, req.ValidatorID)
+	index, err := validatorIndexByID(st, validatorID)
 	if err != nil {
-		if errors.Is(err, utils.ErrNoSlotForStateRoot) {
+		if errors.Is(err, collections.ErrNotFound) {
+			// this should happen when validatorID is an unknown pub key
 			return nil, fmt.Errorf("%s: %w", err.Error(), types.ErrNotFound)
 		}
-		return nil, fmt.Errorf("failed to get validator index by id %s: %w", req.ValidatorID, err)
+		return nil, fmt.Errorf("failed to get validator index by id %s: %w", validatorID, err)
 	}
 
 	validator, err := st.ValidatorByIndex(index)
 	if err != nil {
-		if errors.Is(err, utils.ErrNoSlotForStateRoot) {
+		// this should happen when validatorID is an unknown index
+		if errors.Is(err, collections.ErrNotFound) {
 			return nil, fmt.Errorf("%s: %w", err.Error(), types.ErrNotFound)
 		}
-		return nil, fmt.Errorf("failed to get validator by index %s: %w", req.ValidatorID, err)
+		return nil, fmt.Errorf("failed to get validator by index %s: %w", validatorID, err)
 	}
 
 	balance, err := st.GetBalance(index)
@@ -114,14 +119,12 @@ func (h *Handler) GetStateValidator(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get validator status for validator pubkey %s and index %d: %w", validator.GetPubkey(), index, err)
 	}
-	return beacontypes.NewResponse(
-		&beacontypes.ValidatorData{
-			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
-				Index:   index.Unwrap(),
-				Balance: balance.Unwrap(),
-			},
-			Status:    status,
-			Validator: beacontypes.ValidatorFromConsensus(validator),
+	return &beacontypes.ValidatorData{
+		ValidatorBalanceData: beacontypes.ValidatorBalanceData{
+			Index:   index.Unwrap(),
+			Balance: balance.Unwrap(),
 		},
-	), nil
+		Status:    status,
+		Validator: beacontypes.ValidatorFromConsensus(validator),
+	}, nil
 }

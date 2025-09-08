@@ -44,10 +44,7 @@ func (h *Handler) GetStateValidatorBalances(c handlers.Context) (any, error) {
 
 	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
 	if err != nil {
-		if errors.Is(err, utils.ErrNoSlotForStateRoot) {
-			return nil, fmt.Errorf("%s: %w", err.Error(), types.ErrNotFound)
-		}
-		return nil, fmt.Errorf("failed mapping state id %s to slot: %w", req.StateID, err)
+		return nil, err
 	}
 	balances, err := h.GetValidatorBalance(slot, req.IDs)
 	return beacontypes.NewResponse(balances), err
@@ -70,10 +67,7 @@ func (h *Handler) PostStateValidatorBalances(c handlers.Context) (any, error) {
 
 	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
 	if err != nil {
-		if errors.Is(err, utils.ErrNoSlotForStateRoot) {
-			return nil, fmt.Errorf("%s: %w", err.Error(), types.ErrNotFound)
-		}
-		return nil, fmt.Errorf("failed mapping state id %s to slot: %w", req.StateID, err)
+		return nil, err
 	}
 	balances, err := h.GetValidatorBalance(slot, req.IDs)
 	return beacontypes.NewResponse(balances), err
