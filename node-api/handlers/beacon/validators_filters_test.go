@@ -53,6 +53,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+//nolint:maintidx // Testing multiple scenarios for Get and Post api in parallel
 func TestFilterValidators(t *testing.T) {
 	t.Parallel()
 
@@ -64,18 +65,23 @@ func TestFilterValidators(t *testing.T) {
 
 	testCases := []struct {
 		name                string
-		inputs              func() beacontypes.GetStateValidatorsRequest
+		inputs              func() (beacontypes.GetStateValidatorsRequest, beacontypes.PostStateValidatorsRequest)
 		setMockExpectations func(*mocks.Backend)
 		check               func(t *testing.T, res any, err error)
 	}{
 		{
 			name: "all validators",
-			inputs: func() beacontypes.GetStateValidatorsRequest {
+			inputs: func() (beacontypes.GetStateValidatorsRequest, beacontypes.PostStateValidatorsRequest) {
+				stateID := utils.StateIDHead
 				return beacontypes.GetStateValidatorsRequest{
-					StateIDRequest: handlertypes.StateIDRequest{
-						StateID: utils.StateIDHead,
-					},
-				}
+						StateIDRequest: handlertypes.StateIDRequest{
+							StateID: stateID,
+						},
+					}, beacontypes.PostStateValidatorsRequest{
+						StateIDRequest: handlertypes.StateIDRequest{
+							StateID: stateID,
+						},
+					}
 			},
 			setMockExpectations: func(b *mocks.Backend) {
 				st := makeTestState(t, cs)
@@ -102,14 +108,22 @@ func TestFilterValidators(t *testing.T) {
 		},
 		{
 			name: "some validators by indexes",
-			inputs: func() beacontypes.GetStateValidatorsRequest {
+			inputs: func() (beacontypes.GetStateValidatorsRequest, beacontypes.PostStateValidatorsRequest) {
+				stateID := utils.StateIDHead
+				IDs := []string{"1", "3"}
 				return beacontypes.GetStateValidatorsRequest{
-					StateIDRequest: handlertypes.StateIDRequest{
-						StateID: utils.StateIDHead,
-					},
-					IDs:      []string{"1", "3"},
-					Statuses: nil,
-				}
+						StateIDRequest: handlertypes.StateIDRequest{
+							StateID: stateID,
+						},
+						IDs:      IDs,
+						Statuses: nil,
+					}, beacontypes.PostStateValidatorsRequest{
+						StateIDRequest: handlertypes.StateIDRequest{
+							StateID: utils.StateIDHead,
+						},
+						IDs:      IDs,
+						Statuses: nil,
+					}
 			},
 			setMockExpectations: func(b *mocks.Backend) {
 				st := makeTestState(t, cs)
@@ -140,16 +154,23 @@ func TestFilterValidators(t *testing.T) {
 		},
 		{
 			name: "some validators by pub keys",
-			inputs: func() beacontypes.GetStateValidatorsRequest {
-				return beacontypes.GetStateValidatorsRequest{
-					StateIDRequest: handlertypes.StateIDRequest{
-						StateID: utils.StateIDHead,
-					},
-					IDs: []string{
-						stateValidators[2].Validator.PublicKey,
-						stateValidators[4].Validator.PublicKey,
-					},
+			inputs: func() (beacontypes.GetStateValidatorsRequest, beacontypes.PostStateValidatorsRequest) {
+				stateID := utils.StateIDHead
+				IDs := []string{
+					stateValidators[2].Validator.PublicKey,
+					stateValidators[4].Validator.PublicKey,
 				}
+				return beacontypes.GetStateValidatorsRequest{
+						StateIDRequest: handlertypes.StateIDRequest{
+							StateID: stateID,
+						},
+						IDs: IDs,
+					}, beacontypes.PostStateValidatorsRequest{
+						StateIDRequest: handlertypes.StateIDRequest{
+							StateID: utils.StateIDHead,
+						},
+						IDs: IDs,
+					}
 			},
 			setMockExpectations: func(b *mocks.Backend) {
 				st := makeTestState(t, cs)
@@ -180,17 +201,24 @@ func TestFilterValidators(t *testing.T) {
 		},
 		{
 			name: "some validators by status",
-			inputs: func() beacontypes.GetStateValidatorsRequest {
-				return beacontypes.GetStateValidatorsRequest{
-					StateIDRequest: handlertypes.StateIDRequest{
-						StateID: utils.StateIDHead,
-					},
-					Statuses: []string{
-						constants.ValidatorStatusActiveOngoing,
-						constants.ValidatorStatusActiveSlashed,
-						constants.ValidatorStatusActiveExiting,
-					},
+			inputs: func() (beacontypes.GetStateValidatorsRequest, beacontypes.PostStateValidatorsRequest) {
+				stateID := utils.StateIDHead
+				statuses := []string{
+					constants.ValidatorStatusActiveOngoing,
+					constants.ValidatorStatusActiveSlashed,
+					constants.ValidatorStatusActiveExiting,
 				}
+				return beacontypes.GetStateValidatorsRequest{
+						StateIDRequest: handlertypes.StateIDRequest{
+							StateID: stateID,
+						},
+						Statuses: statuses,
+					}, beacontypes.PostStateValidatorsRequest{
+						StateIDRequest: handlertypes.StateIDRequest{
+							StateID: stateID,
+						},
+						Statuses: statuses,
+					}
 			},
 			setMockExpectations: func(b *mocks.Backend) {
 				st := makeTestState(t, cs)
@@ -223,12 +251,17 @@ func TestFilterValidators(t *testing.T) {
 		},
 		{
 			name: "chain not ready",
-			inputs: func() beacontypes.GetStateValidatorsRequest {
+			inputs: func() (beacontypes.GetStateValidatorsRequest, beacontypes.PostStateValidatorsRequest) {
+				stateID := utils.StateIDHead
 				return beacontypes.GetStateValidatorsRequest{
-					StateIDRequest: handlertypes.StateIDRequest{
-						StateID: utils.StateIDHead,
-					},
-				}
+						StateIDRequest: handlertypes.StateIDRequest{
+							StateID: stateID,
+						},
+					}, beacontypes.PostStateValidatorsRequest{
+						StateIDRequest: handlertypes.StateIDRequest{
+							StateID: stateID,
+						},
+					}
 			},
 			setMockExpectations: func(b *mocks.Backend) {
 				// cometbft.ErrAppNotReady is the error flag returned when
@@ -245,12 +278,17 @@ func TestFilterValidators(t *testing.T) {
 		},
 		{
 			name: "height requested too high",
-			inputs: func() beacontypes.GetStateValidatorsRequest {
+			inputs: func() (beacontypes.GetStateValidatorsRequest, beacontypes.PostStateValidatorsRequest) {
+				unknownStateID := strconv.Itoa(2025)
 				return beacontypes.GetStateValidatorsRequest{
-					StateIDRequest: handlertypes.StateIDRequest{
-						StateID: strconv.Itoa(2025),
-					},
-				}
+						StateIDRequest: handlertypes.StateIDRequest{
+							StateID: unknownStateID,
+						},
+					}, beacontypes.PostStateValidatorsRequest{
+						StateIDRequest: handlertypes.StateIDRequest{
+							StateID: unknownStateID,
+						},
+					}
 			},
 			setMockExpectations: func(b *mocks.Backend) {
 				// sdkerrors.ErrInvalidHeight is the error flag returned when
@@ -278,23 +316,41 @@ func TestFilterValidators(t *testing.T) {
 				Validator: middleware.ConstructValidator(),
 			}
 
-			// create API inputs
-			input := tc.inputs()
-			inputBytes, err := json.Marshal(input) //nolint:musttag //  TODO:fix
-			require.NoError(t, err)
-			body := strings.NewReader(string(inputBytes))
-			req := httptest.NewRequest(http.MethodGet, "/", body)
-			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON) // otherwise code=415, message=Unsupported Media Type
-			c := e.NewContext(req, httptest.NewRecorder())
-
 			// set expectations
 			tc.setMockExpectations(backend)
 
-			// test
-			res, err := h.GetStateValidators(c)
+			inputGet, inputPost := tc.inputs()
 
-			// finally do checks
-			tc.check(t, res, err)
+			{ // Test Get method
+				inputBytes, err := json.Marshal(inputGet) //nolint:musttag //  TODO:fix
+				require.NoError(t, err)
+				body := strings.NewReader(string(inputBytes))
+				req := httptest.NewRequest(http.MethodGet, "/", body)
+				req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON) // otherwise code=415, message=Unsupported Media Type
+				c := e.NewContext(req, httptest.NewRecorder())
+
+				// test Get
+				res, err := h.GetStateValidators(c)
+
+				// check Get
+				tc.check(t, res, err)
+			}
+
+			{ // Test Post method
+				// create Get inputs
+				inputBytes, err := json.Marshal(inputPost) //nolint:musttag //  TODO:fix
+				require.NoError(t, err)
+				body := strings.NewReader(string(inputBytes))
+				req := httptest.NewRequest(http.MethodGet, "/", body)
+				req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON) // otherwise code=415, message=Unsupported Media Type
+				c := e.NewContext(req, httptest.NewRecorder())
+
+				// test Post
+				res, err := h.PostStateValidators(c)
+
+				// check Post
+				tc.check(t, res, err)
+			}
 		})
 	}
 }
