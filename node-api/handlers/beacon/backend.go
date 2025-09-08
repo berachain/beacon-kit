@@ -35,7 +35,6 @@ type Backend interface {
 	BlockBackend
 	RandaoBackend
 	StateBackend
-	WithdrawalBackend
 	// GetSlotByBlockRoot retrieves the slot by a given root from the store.
 	GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 	// GetSlotByStateRoot retrieves the slot by a given root from the store.
@@ -64,8 +63,4 @@ type BlockBackend interface {
 
 type StateBackend interface {
 	StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error)
-}
-
-type WithdrawalBackend interface {
-	PendingPartialWithdrawalsAtState(*statedb.StateDB) ([]*types.PendingPartialWithdrawalData, error)
 }

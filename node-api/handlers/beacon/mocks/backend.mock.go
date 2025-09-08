@@ -544,64 +544,6 @@ func (_c *Backend_GetSlotByStateRoot_Call) RunAndReturn(run func(common.Root) (m
 	return _c
 }
 
-// PendingPartialWithdrawalsAtState provides a mock function with given fields: _a0
-func (_m *Backend) PendingPartialWithdrawalsAtState(_a0 *state.StateDB) ([]*types.PendingPartialWithdrawalData, error) {
-	ret := _m.Called(_a0)
-
-	if len(ret) == 0 {
-		panic("no return value specified for PendingPartialWithdrawalsAtState")
-	}
-
-	var r0 []*types.PendingPartialWithdrawalData
-	var r1 error
-	if rf, ok := ret.Get(0).(func(*state.StateDB) ([]*types.PendingPartialWithdrawalData, error)); ok {
-		return rf(_a0)
-	}
-	if rf, ok := ret.Get(0).(func(*state.StateDB) []*types.PendingPartialWithdrawalData); ok {
-		r0 = rf(_a0)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*types.PendingPartialWithdrawalData)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(*state.StateDB) error); ok {
-		r1 = rf(_a0)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// Backend_PendingPartialWithdrawalsAtState_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PendingPartialWithdrawalsAtState'
-type Backend_PendingPartialWithdrawalsAtState_Call struct {
-	*mock.Call
-}
-
-// PendingPartialWithdrawalsAtState is a helper method to define mock.On call
-//   - _a0 *state.StateDB
-func (_e *Backend_Expecter) PendingPartialWithdrawalsAtState(_a0 interface{}) *Backend_PendingPartialWithdrawalsAtState_Call {
-	return &Backend_PendingPartialWithdrawalsAtState_Call{Call: _e.mock.On("PendingPartialWithdrawalsAtState", _a0)}
-}
-
-func (_c *Backend_PendingPartialWithdrawalsAtState_Call) Run(run func(_a0 *state.StateDB)) *Backend_PendingPartialWithdrawalsAtState_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(*state.StateDB))
-	})
-	return _c
-}
-
-func (_c *Backend_PendingPartialWithdrawalsAtState_Call) Return(_a0 []*types.PendingPartialWithdrawalData, _a1 error) *Backend_PendingPartialWithdrawalsAtState_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Backend_PendingPartialWithdrawalsAtState_Call) RunAndReturn(run func(*state.StateDB) ([]*types.PendingPartialWithdrawalData, error)) *Backend_PendingPartialWithdrawalsAtState_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // RandaoAtEpoch provides a mock function with given fields: slot, epoch
 func (_m *Backend) RandaoAtEpoch(slot math.U64, epoch math.U64) (bytes.B32, error) {
 	ret := _m.Called(slot, epoch)
