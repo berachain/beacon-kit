@@ -54,11 +54,18 @@ func (h *Handler) GetStateValidatorBalances(c handlers.Context) (any, error) {
 }
 
 func (h *Handler) PostStateValidatorBalances(c handlers.Context) (any, error) {
-	req, err := utils.BindAndValidate[beacontypes.PostValidatorBalancesRequest](
-		c, h.Logger(),
-	)
-	if err != nil {
-		return nil, err
+	var ids []string
+	if err := c.Bind(&ids); err != nil {
+		return nil, types.ErrInvalidRequest
+	}
+	// Get state_id from URL path parameter
+	req := beacontypes.PostValidatorBalancesRequest{
+		StateIDRequest: types.StateIDRequest{StateID: c.Param("state_id")},
+		IDs:            ids,
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return nil, types.ErrInvalidRequest
 	}
 
 	slot, err := utils.SlotFromStateID(req.StateID, h.backend)

@@ -45,7 +45,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//nolint:maintidx // multiple test cases
 func TestFilterValidators(t *testing.T) {
 	t.Parallel()
 
@@ -53,179 +52,7 @@ func TestFilterValidators(t *testing.T) {
 	require.NoError(t, errSpec)
 
 	// Create some input validators and store them to a readonly state
-	stateValidators := []*beacontypes.ValidatorData{
-		{
-			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
-				Index:   0,
-				Balance: cs.MaxEffectiveBalance().Unwrap(),
-			},
-			Status: constants.ValidatorStatusPendingInitialized,
-			Validator: beacontypes.ValidatorFromConsensus(
-				&ctypes.Validator{
-					Pubkey:                     [48]byte{0x01},
-					WithdrawalCredentials:      [32]byte{0x02},
-					EffectiveBalance:           cs.MaxEffectiveBalance(),
-					Slashed:                    false,
-					ActivationEligibilityEpoch: constants.FarFutureEpoch,
-					ActivationEpoch:            constants.FarFutureEpoch,
-					ExitEpoch:                  constants.FarFutureEpoch,
-					WithdrawableEpoch:          constants.FarFutureEpoch,
-				},
-			),
-		},
-		{
-			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
-				Index:   1,
-				Balance: cs.MaxEffectiveBalance().Unwrap() * 3 / 4,
-			},
-			Status: constants.ValidatorStatusPendingQueued,
-			Validator: beacontypes.ValidatorFromConsensus(
-				&ctypes.Validator{
-					Pubkey:                     [48]byte{0x03},
-					WithdrawalCredentials:      [32]byte{0x04},
-					EffectiveBalance:           cs.MaxEffectiveBalance() / 2,
-					Slashed:                    false,
-					ActivationEligibilityEpoch: math.Epoch(0),
-					ActivationEpoch:            constants.FarFutureEpoch,
-					ExitEpoch:                  constants.FarFutureEpoch,
-					WithdrawableEpoch:          constants.FarFutureEpoch,
-				},
-			),
-		},
-		{
-			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
-				Index:   2,
-				Balance: cs.MaxEffectiveBalance().Unwrap() / 4,
-			},
-			Status: constants.ValidatorStatusActiveOngoing,
-			Validator: beacontypes.ValidatorFromConsensus(
-				&ctypes.Validator{
-					Pubkey:                     [48]byte{0x05},
-					WithdrawalCredentials:      [32]byte{0x06},
-					EffectiveBalance:           cs.MaxEffectiveBalance() / 3,
-					Slashed:                    false,
-					ActivationEligibilityEpoch: math.Epoch(0),
-					ActivationEpoch:            math.Epoch(0),
-					ExitEpoch:                  constants.FarFutureEpoch,
-					WithdrawableEpoch:          constants.FarFutureEpoch,
-				},
-			),
-		},
-		{
-			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
-				Index:   3,
-				Balance: cs.MaxEffectiveBalance().Unwrap() / 4,
-			},
-			Status: constants.ValidatorStatusActiveSlashed,
-			Validator: beacontypes.ValidatorFromConsensus(
-				&ctypes.Validator{
-					Pubkey:                     [48]byte{0x15},
-					WithdrawalCredentials:      [32]byte{0x16},
-					EffectiveBalance:           cs.MaxEffectiveBalance() / 3,
-					Slashed:                    true,
-					ActivationEligibilityEpoch: math.Epoch(0),
-					ActivationEpoch:            math.Epoch(0),
-					ExitEpoch:                  math.Epoch(5),
-					WithdrawableEpoch:          constants.FarFutureEpoch,
-				},
-			),
-		},
-		{
-			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
-				Index:   4,
-				Balance: cs.MaxEffectiveBalance().Unwrap() / 4,
-			},
-			Status: constants.ValidatorStatusActiveExiting,
-			Validator: beacontypes.ValidatorFromConsensus(
-				&ctypes.Validator{
-					Pubkey:                     [48]byte{0x17},
-					WithdrawalCredentials:      [32]byte{0x18},
-					EffectiveBalance:           cs.MaxEffectiveBalance() / 3,
-					Slashed:                    false,
-					ActivationEligibilityEpoch: math.Epoch(0),
-					ActivationEpoch:            math.Epoch(0),
-					ExitEpoch:                  math.Epoch(5),
-					WithdrawableEpoch:          constants.FarFutureEpoch,
-				},
-			),
-		},
-		{
-			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
-				Index:   5,
-				Balance: cs.MaxEffectiveBalance().Unwrap() / 2,
-			},
-			Status: constants.ValidatorStatusExitedUnslashed,
-			Validator: beacontypes.ValidatorFromConsensus(
-				&ctypes.Validator{
-					Pubkey:                     [48]byte{0x07},
-					WithdrawalCredentials:      [32]byte{0x08},
-					EffectiveBalance:           cs.MaxEffectiveBalance() / 4,
-					Slashed:                    false,
-					ActivationEligibilityEpoch: math.Epoch(0),
-					ActivationEpoch:            math.Epoch(0),
-					ExitEpoch:                  math.Epoch(0),
-					WithdrawableEpoch:          constants.FarFutureEpoch,
-				},
-			),
-		},
-		{
-			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
-				Index:   6,
-				Balance: cs.MaxEffectiveBalance().Unwrap() / 2,
-			},
-			Status: constants.ValidatorStatusExitedSlashed,
-			Validator: beacontypes.ValidatorFromConsensus(
-				&ctypes.Validator{
-					Pubkey:                     [48]byte{0x27},
-					WithdrawalCredentials:      [32]byte{0x28},
-					EffectiveBalance:           cs.MaxEffectiveBalance() / 4,
-					Slashed:                    true,
-					ActivationEligibilityEpoch: math.Epoch(0),
-					ActivationEpoch:            math.Epoch(0),
-					ExitEpoch:                  math.Epoch(0),
-					WithdrawableEpoch:          constants.FarFutureEpoch,
-				},
-			),
-		},
-		{
-			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
-				Index:   7,
-				Balance: cs.MinActivationBalance().Unwrap() - cs.EffectiveBalanceIncrement().Unwrap(),
-			},
-			Status: constants.ValidatorStatusWithdrawalPossible,
-			Validator: beacontypes.ValidatorFromConsensus(
-				&ctypes.Validator{
-					Pubkey:                     [48]byte{0x09},
-					WithdrawalCredentials:      [32]byte{0x10},
-					EffectiveBalance:           cs.MaxEffectiveBalance() / 5,
-					Slashed:                    false,
-					ActivationEligibilityEpoch: math.Epoch(0),
-					ActivationEpoch:            math.Epoch(0),
-					ExitEpoch:                  math.Epoch(0),
-					WithdrawableEpoch:          math.Epoch(0),
-				},
-			),
-		},
-		{
-			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
-				Index:   8,
-				Balance: 0,
-			},
-			Status: constants.ValidatorStatusWithdrawalPossible,
-			Validator: beacontypes.ValidatorFromConsensus(
-				&ctypes.Validator{
-					Pubkey:                     [48]byte{0x39},
-					WithdrawalCredentials:      [32]byte{0x40},
-					EffectiveBalance:           cs.MaxEffectiveBalance() / 5,
-					Slashed:                    false,
-					ActivationEligibilityEpoch: math.Epoch(0),
-					ActivationEpoch:            math.Epoch(0),
-					ExitEpoch:                  math.Epoch(0),
-					WithdrawableEpoch:          math.Epoch(0),
-				},
-			),
-		},
-	}
+	stateValidators := createStateValidators(cs)
 
 	testCases := []struct {
 		name                string
@@ -404,6 +231,182 @@ func TestFilterValidators(t *testing.T) {
 			// finally do checks
 			tc.check(t, res, err)
 		})
+	}
+}
+
+func createStateValidators(cs chain.Spec) []*beacontypes.ValidatorData {
+	return []*beacontypes.ValidatorData{
+		{
+			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
+				Index:   0,
+				Balance: cs.MaxEffectiveBalance().Unwrap(),
+			},
+			Status: constants.ValidatorStatusPendingInitialized,
+			Validator: beacontypes.ValidatorFromConsensus(
+				&ctypes.Validator{
+					Pubkey:                     [48]byte{0x01},
+					WithdrawalCredentials:      [32]byte{0x02},
+					EffectiveBalance:           cs.MaxEffectiveBalance(),
+					Slashed:                    false,
+					ActivationEligibilityEpoch: constants.FarFutureEpoch,
+					ActivationEpoch:            constants.FarFutureEpoch,
+					ExitEpoch:                  constants.FarFutureEpoch,
+					WithdrawableEpoch:          constants.FarFutureEpoch,
+				},
+			),
+		},
+		{
+			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
+				Index:   1,
+				Balance: cs.MaxEffectiveBalance().Unwrap() * 3 / 4,
+			},
+			Status: constants.ValidatorStatusPendingQueued,
+			Validator: beacontypes.ValidatorFromConsensus(
+				&ctypes.Validator{
+					Pubkey:                     [48]byte{0x03},
+					WithdrawalCredentials:      [32]byte{0x04},
+					EffectiveBalance:           cs.MaxEffectiveBalance() / 2,
+					Slashed:                    false,
+					ActivationEligibilityEpoch: math.Epoch(0),
+					ActivationEpoch:            constants.FarFutureEpoch,
+					ExitEpoch:                  constants.FarFutureEpoch,
+					WithdrawableEpoch:          constants.FarFutureEpoch,
+				},
+			),
+		},
+		{
+			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
+				Index:   2,
+				Balance: cs.MaxEffectiveBalance().Unwrap() / 4,
+			},
+			Status: constants.ValidatorStatusActiveOngoing,
+			Validator: beacontypes.ValidatorFromConsensus(
+				&ctypes.Validator{
+					Pubkey:                     [48]byte{0x05},
+					WithdrawalCredentials:      [32]byte{0x06},
+					EffectiveBalance:           cs.MaxEffectiveBalance() / 3,
+					Slashed:                    false,
+					ActivationEligibilityEpoch: math.Epoch(0),
+					ActivationEpoch:            math.Epoch(0),
+					ExitEpoch:                  constants.FarFutureEpoch,
+					WithdrawableEpoch:          constants.FarFutureEpoch,
+				},
+			),
+		},
+		{
+			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
+				Index:   3,
+				Balance: cs.MaxEffectiveBalance().Unwrap() / 4,
+			},
+			Status: constants.ValidatorStatusActiveSlashed,
+			Validator: beacontypes.ValidatorFromConsensus(
+				&ctypes.Validator{
+					Pubkey:                     [48]byte{0x15},
+					WithdrawalCredentials:      [32]byte{0x16},
+					EffectiveBalance:           cs.MaxEffectiveBalance() / 3,
+					Slashed:                    true,
+					ActivationEligibilityEpoch: math.Epoch(0),
+					ActivationEpoch:            math.Epoch(0),
+					ExitEpoch:                  math.Epoch(5),
+					WithdrawableEpoch:          constants.FarFutureEpoch,
+				},
+			),
+		},
+		{
+			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
+				Index:   4,
+				Balance: cs.MaxEffectiveBalance().Unwrap() / 4,
+			},
+			Status: constants.ValidatorStatusActiveExiting,
+			Validator: beacontypes.ValidatorFromConsensus(
+				&ctypes.Validator{
+					Pubkey:                     [48]byte{0x17},
+					WithdrawalCredentials:      [32]byte{0x18},
+					EffectiveBalance:           cs.MaxEffectiveBalance() / 3,
+					Slashed:                    false,
+					ActivationEligibilityEpoch: math.Epoch(0),
+					ActivationEpoch:            math.Epoch(0),
+					ExitEpoch:                  math.Epoch(5),
+					WithdrawableEpoch:          constants.FarFutureEpoch,
+				},
+			),
+		},
+		{
+			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
+				Index:   5,
+				Balance: cs.MaxEffectiveBalance().Unwrap() / 2,
+			},
+			Status: constants.ValidatorStatusExitedUnslashed,
+			Validator: beacontypes.ValidatorFromConsensus(
+				&ctypes.Validator{
+					Pubkey:                     [48]byte{0x07},
+					WithdrawalCredentials:      [32]byte{0x08},
+					EffectiveBalance:           cs.MaxEffectiveBalance() / 4,
+					Slashed:                    false,
+					ActivationEligibilityEpoch: math.Epoch(0),
+					ActivationEpoch:            math.Epoch(0),
+					ExitEpoch:                  math.Epoch(0),
+					WithdrawableEpoch:          constants.FarFutureEpoch,
+				},
+			),
+		},
+		{
+			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
+				Index:   6,
+				Balance: cs.MaxEffectiveBalance().Unwrap() / 2,
+			},
+			Status: constants.ValidatorStatusExitedSlashed,
+			Validator: beacontypes.ValidatorFromConsensus(
+				&ctypes.Validator{
+					Pubkey:                     [48]byte{0x27},
+					WithdrawalCredentials:      [32]byte{0x28},
+					EffectiveBalance:           cs.MaxEffectiveBalance() / 4,
+					Slashed:                    true,
+					ActivationEligibilityEpoch: math.Epoch(0),
+					ActivationEpoch:            math.Epoch(0),
+					ExitEpoch:                  math.Epoch(0),
+					WithdrawableEpoch:          constants.FarFutureEpoch,
+				},
+			),
+		},
+		{
+			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
+				Index:   7,
+				Balance: cs.MinActivationBalance().Unwrap() - cs.EffectiveBalanceIncrement().Unwrap(),
+			},
+			Status: constants.ValidatorStatusWithdrawalPossible,
+			Validator: beacontypes.ValidatorFromConsensus(
+				&ctypes.Validator{
+					Pubkey:                     [48]byte{0x09},
+					WithdrawalCredentials:      [32]byte{0x10},
+					EffectiveBalance:           cs.MaxEffectiveBalance() / 5,
+					Slashed:                    false,
+					ActivationEligibilityEpoch: math.Epoch(0),
+					ActivationEpoch:            math.Epoch(0),
+					ExitEpoch:                  math.Epoch(0),
+					WithdrawableEpoch:          math.Epoch(0),
+				},
+			),
+		},
+		{
+			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
+				Index:   8,
+				Balance: 0,
+			},
+			Status: constants.ValidatorStatusWithdrawalPossible,
+			Validator: beacontypes.ValidatorFromConsensus(
+				&ctypes.Validator{
+					Pubkey:                     [48]byte{0x39},
+					WithdrawalCredentials:      [32]byte{0x40},
+					EffectiveBalance:           cs.MaxEffectiveBalance() / 5,
+					Slashed:                    false,
+					ActivationEligibilityEpoch: math.Epoch(0),
+					ActivationEpoch:            math.Epoch(0),
+					ExitEpoch:                  math.Epoch(0),
+					WithdrawableEpoch:          math.Epoch(0),
+				},
+			),
+		},
 	}
 }
 
