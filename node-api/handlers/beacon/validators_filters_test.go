@@ -21,6 +21,11 @@
 package beacon_test
 
 import (
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"strconv"
+	"strings"
 	"testing"
 
 	cosmoslog "cosmossdk.io/log"
@@ -34,6 +39,8 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/mocks"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	handlertypes "github.com/berachain/beacon-kit/node-api/handlers/types"
+	"github.com/berachain/beacon-kit/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/node-api/middleware"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -41,6 +48,7 @@ import (
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -56,14 +64,18 @@ func TestFilterValidators(t *testing.T) {
 
 	testCases := []struct {
 		name                string
-		inputs              func() ([]string, []string)
+		inputs              func() beacontypes.GetStateValidatorsRequest
 		setMockExpectations func(*mocks.Backend)
-		check               func(t *testing.T, res []*beacontypes.ValidatorData, err error)
+		check               func(t *testing.T, res any, err error)
 	}{
 		{
 			name: "all validators",
-			inputs: func() ([]string, []string) {
-				return nil, nil
+			inputs: func() beacontypes.GetStateValidatorsRequest {
+				return beacontypes.GetStateValidatorsRequest{
+					StateIDRequest: handlertypes.StateIDRequest{
+						StateID: utils.StateIDHead,
+					},
+				}
 			},
 			setMockExpectations: func(b *mocks.Backend) {
 				st := makeTestState(t, cs)
@@ -72,22 +84,32 @@ func TestFilterValidators(t *testing.T) {
 				// slot is not really tested here, we just return zero
 				b.EXPECT().StateAtSlot(mock.Anything).Return(st, math.Slot(0), nil)
 			},
-			check: func(t *testing.T, res []*beacontypes.ValidatorData, err error) {
+			check: func(t *testing.T, res any, err error) {
 				t.Helper()
 
 				require.NoError(t, err)
 				require.NotNil(t, res)
+				require.IsType(t, beacontypes.GenericResponse{}, res)
+				gr, _ := res.(beacontypes.GenericResponse)
+				require.IsType(t, []*beacontypes.ValidatorData{}, gr.Data)
+				data, _ := gr.Data.([]*beacontypes.ValidatorData)
 
-				require.Len(t, res, len(stateValidators))
-				for i := range res {
-					require.Equal(t, stateValidators[i], res[i], "index %d", i)
+				require.Len(t, data, len(stateValidators))
+				for i := range data {
+					require.Equal(t, stateValidators[i], data[i], "index %d", i)
 				}
 			},
 		},
 		{
 			name: "some validators by indexes",
-			inputs: func() ([]string, []string) {
-				return []string{"1", "3"}, nil
+			inputs: func() beacontypes.GetStateValidatorsRequest {
+				return beacontypes.GetStateValidatorsRequest{
+					StateIDRequest: handlertypes.StateIDRequest{
+						StateID: utils.StateIDHead,
+					},
+					IDs:      []string{"1", "3"},
+					Statuses: nil,
+				}
 			},
 			setMockExpectations: func(b *mocks.Backend) {
 				st := makeTestState(t, cs)
@@ -96,29 +118,38 @@ func TestFilterValidators(t *testing.T) {
 				// slot is not really tested here, we just return zero
 				b.EXPECT().StateAtSlot(mock.Anything).Return(st, math.Slot(0), nil)
 			},
-			check: func(t *testing.T, res []*beacontypes.ValidatorData, err error) {
+			check: func(t *testing.T, res any, err error) {
 				t.Helper()
 
 				require.NoError(t, err)
 				require.NotNil(t, res)
+				require.IsType(t, beacontypes.GenericResponse{}, res)
+				gr, _ := res.(beacontypes.GenericResponse)
+				require.IsType(t, []*beacontypes.ValidatorData{}, gr.Data)
+				data, _ := gr.Data.([]*beacontypes.ValidatorData)
 
 				expectedRes := []*beacontypes.ValidatorData{
 					stateValidators[1],
 					stateValidators[3],
 				}
-				require.Len(t, res, len(expectedRes))
-				for i := range res {
-					require.Equal(t, expectedRes[i], res[i], "index %d", i)
+				require.Len(t, data, len(expectedRes))
+				for i := range data {
+					require.Equal(t, expectedRes[i], data[i], "index %d", i)
 				}
 			},
 		},
 		{
 			name: "some validators by pub keys",
-			inputs: func() ([]string, []string) {
-				return []string{
-					stateValidators[2].Validator.PublicKey,
-					stateValidators[4].Validator.PublicKey,
-				}, nil
+			inputs: func() beacontypes.GetStateValidatorsRequest {
+				return beacontypes.GetStateValidatorsRequest{
+					StateIDRequest: handlertypes.StateIDRequest{
+						StateID: utils.StateIDHead,
+					},
+					IDs: []string{
+						stateValidators[2].Validator.PublicKey,
+						stateValidators[4].Validator.PublicKey,
+					},
+				}
 			},
 			setMockExpectations: func(b *mocks.Backend) {
 				st := makeTestState(t, cs)
@@ -127,29 +158,38 @@ func TestFilterValidators(t *testing.T) {
 				// slot is not really tested here, we just return zero
 				b.EXPECT().StateAtSlot(mock.Anything).Return(st, math.Slot(0), nil)
 			},
-			check: func(t *testing.T, res []*beacontypes.ValidatorData, err error) {
+			check: func(t *testing.T, res any, err error) {
 				t.Helper()
 
 				require.NoError(t, err)
 				require.NotNil(t, res)
+				require.IsType(t, beacontypes.GenericResponse{}, res)
+				gr, _ := res.(beacontypes.GenericResponse)
+				require.IsType(t, []*beacontypes.ValidatorData{}, gr.Data)
+				data, _ := gr.Data.([]*beacontypes.ValidatorData)
 
 				expectedRes := []*beacontypes.ValidatorData{
 					stateValidators[2],
 					stateValidators[4],
 				}
-				require.Len(t, res, len(expectedRes))
-				for i := range res {
-					require.Equal(t, expectedRes[i], res[i], "index %d", i)
+				require.Len(t, data, len(expectedRes))
+				for i := range data {
+					require.Equal(t, expectedRes[i], data[i], "index %d", i)
 				}
 			},
 		},
 		{
 			name: "some validators by status",
-			inputs: func() ([]string, []string) {
-				return nil, []string{
-					constants.ValidatorStatusActiveOngoing,
-					constants.ValidatorStatusActiveSlashed,
-					constants.ValidatorStatusActiveExiting,
+			inputs: func() beacontypes.GetStateValidatorsRequest {
+				return beacontypes.GetStateValidatorsRequest{
+					StateIDRequest: handlertypes.StateIDRequest{
+						StateID: utils.StateIDHead,
+					},
+					Statuses: []string{
+						constants.ValidatorStatusActiveOngoing,
+						constants.ValidatorStatusActiveSlashed,
+						constants.ValidatorStatusActiveExiting,
+					},
 				}
 			},
 			setMockExpectations: func(b *mocks.Backend) {
@@ -159,34 +199,43 @@ func TestFilterValidators(t *testing.T) {
 				// slot is not really tested here, we just return zero
 				b.EXPECT().StateAtSlot(mock.Anything).Return(st, math.Slot(0), nil)
 			},
-			check: func(t *testing.T, res []*beacontypes.ValidatorData, err error) {
+			check: func(t *testing.T, res any, err error) {
 				t.Helper()
 
 				require.NoError(t, err)
 				require.NotNil(t, res)
+				require.IsType(t, beacontypes.GenericResponse{}, res)
+				gr, _ := res.(beacontypes.GenericResponse)
+				require.IsType(t, []*beacontypes.ValidatorData{}, gr.Data)
+				data, _ := gr.Data.([]*beacontypes.ValidatorData)
 
 				expectedRes := []*beacontypes.ValidatorData{
 					stateValidators[2],
 					stateValidators[3],
 					stateValidators[4],
 				}
-				require.Len(t, res, len(expectedRes))
-				for i := range res {
-					require.Equal(t, expectedRes[i], res[i], "index %d", i)
+
+				require.Len(t, data, len(expectedRes))
+				for i := range data {
+					require.Equal(t, expectedRes[i], data[i], "index %d", i)
 				}
 			},
 		},
 		{
 			name: "chain not ready",
-			inputs: func() ([]string, []string) {
-				return nil, nil
+			inputs: func() beacontypes.GetStateValidatorsRequest {
+				return beacontypes.GetStateValidatorsRequest{
+					StateIDRequest: handlertypes.StateIDRequest{
+						StateID: utils.StateIDHead,
+					},
+				}
 			},
 			setMockExpectations: func(b *mocks.Backend) {
 				// cometbft.ErrAppNotReady is the error flag returned when
 				// genesis has not yet been processed and chain is not ready.
 				b.EXPECT().StateAtSlot(mock.Anything).Return(nil, math.Slot(0), cometbft.ErrAppNotReady)
 			},
-			check: func(t *testing.T, res []*beacontypes.ValidatorData, err error) {
+			check: func(t *testing.T, res any, err error) {
 				t.Helper()
 
 				// handlertypes.ErrNotFound is the error flag used to return 404 error code
@@ -196,15 +245,19 @@ func TestFilterValidators(t *testing.T) {
 		},
 		{
 			name: "height requested too high",
-			inputs: func() ([]string, []string) {
-				return nil, nil
+			inputs: func() beacontypes.GetStateValidatorsRequest {
+				return beacontypes.GetStateValidatorsRequest{
+					StateIDRequest: handlertypes.StateIDRequest{
+						StateID: strconv.Itoa(2025),
+					},
+				}
 			},
 			setMockExpectations: func(b *mocks.Backend) {
 				// sdkerrors.ErrInvalidHeight is the error flag returned when
 				// requested height is not in the state.
 				b.EXPECT().StateAtSlot(mock.Anything).Return(nil, math.Slot(0), sdkerrors.ErrInvalidHeight)
 			},
-			check: func(t *testing.T, res []*beacontypes.ValidatorData, err error) {
+			check: func(t *testing.T, res any, err error) {
 				t.Helper()
 
 				// handlertypes.ErrNotFound is the error flag used to return 404 error code
@@ -220,13 +273,25 @@ func TestFilterValidators(t *testing.T) {
 			// setup test
 			backend := mocks.NewBackend(t)
 			h := beacon.NewHandler(backend, cs, noop.NewLogger[log.Logger]())
+			e := echo.New()
+			e.Validator = &middleware.CustomValidator{
+				Validator: middleware.ConstructValidator(),
+			}
+
+			// create API inputs
+			input := tc.inputs()
+			inputBytes, err := json.Marshal(input) //nolint:musttag //  TODO:fix
+			require.NoError(t, err)
+			body := strings.NewReader(string(inputBytes))
+			req := httptest.NewRequest(http.MethodGet, "/", body)
+			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON) // otherwise code=415, message=Unsupported Media Type
+			c := e.NewContext(req, httptest.NewRecorder())
 
 			// set expectations
 			tc.setMockExpectations(backend)
 
 			// test
-			ids, statuses := tc.inputs()
-			res, err := h.FilterValidators(math.Slot(0), ids, statuses)
+			res, err := h.GetStateValidators(c)
 
 			// finally do checks
 			tc.check(t, res, err)
