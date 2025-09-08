@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package beacon
+package utils
 
 import (
 	"fmt"
@@ -26,18 +26,23 @@ import (
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/errors"
 	handlertypes "github.com/berachain/beacon-kit/node-api/handlers/types"
-	"github.com/berachain/beacon-kit/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/state-transition/core/state"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-func (h *Handler) mapStateIDToStateAndSlot(stateID string) (*state.StateDB, math.Slot, error) {
-	slot, err := utils.SlotFromStateID(stateID, h.backend)
+func MapStateIDToStateAndSlot[
+	StorageBackendT interface {
+		StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error)
+		GetSlotByStateRoot(root common.Root) (math.Slot, error)
+	},
+](backend StorageBackendT, stateID string) (*statedb.StateDB, math.Slot, error) {
+	slot, err := slotFromStateID(stateID, backend)
 	if err != nil {
 		return nil, 0, err
 	}
-	st, resolvedSlot, err := h.backend.StateAtSlot(slot)
+	st, resolvedSlot, err := backend.StateAtSlot(slot)
 	if err != nil {
 		if errors.Is(err, cometbft.ErrAppNotReady) {
 			// chain not ready, like when genesis time is set in the future
@@ -50,4 +55,35 @@ func (h *Handler) mapStateIDToStateAndSlot(stateID string) (*state.StateDB, math
 		return nil, 0, fmt.Errorf("failed to get state from stateID %s, slot %d: %w", stateID, slot, err)
 	}
 	return st, resolvedSlot, nil
+}
+
+var errNoSlotForStateRoot = errors.New("slot not found at state root")
+
+// TODO: define unique types for each of the query-able IDs (state & block from
+// spec, execution unique to beacon-kit). For each type define validation
+// functions and resolvers to slot number.
+
+// SlotFromStateID returns a slot from the state ID.
+//
+// NOTE: Right now, `stateID` only supports querying by "head" (all of "head",
+// "finalized", "justified" are the same), "genesis", and <slot>.
+func slotFromStateID[
+	StorageBackendT interface {
+		GetSlotByStateRoot(root common.Root) (math.Slot, error)
+	},
+](stateID string, storage StorageBackendT) (math.Slot, error) {
+	if slot, err := mapStateIDToSlot(stateID); err == nil {
+		return slot, nil
+	}
+
+	// We assume that the state ID is a state hash.
+	root, err := common.NewRootFromHex(stateID)
+	if err != nil {
+		return 0, err
+	}
+	slot, err := storage.GetSlotByStateRoot(root)
+	if err != nil {
+		return 0, errNoSlotForStateRoot
+	}
+	return slot, nil
 }

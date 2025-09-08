@@ -34,23 +34,18 @@ func (h *Handler) GetState(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
+	st, _, err := utils.MapStateIDToStateAndSlot(h.backend, req.StateID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Get the raw state at the given slot.
-	state, _, err := h.backend.StateAtSlot(slot)
-	if err != nil {
-		return nil, err
-	}
-	beaconState, err := state.GetMarshallable()
+	beaconState, err := st.GetMarshallable()
 	if err != nil {
 		return nil, err
 	}
 
 	// Get the fork version from the state.
-	fork, err := state.GetFork()
+	fork, err := st.GetFork()
 	if err != nil {
 		return nil, err
 	}

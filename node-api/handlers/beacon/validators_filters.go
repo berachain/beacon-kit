@@ -27,6 +27,7 @@ import (
 	consensustypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
@@ -40,7 +41,7 @@ var errStatusFilterMismatch = errors.New("validator status does not match status
 // consistency between GetStateValidators and PostStateValidators, since they
 // are intended to behave the same way.
 func (h *Handler) FilterValidators(stateID string, ids []string, statuses []string) ([]*beacontypes.ValidatorData, error) {
-	st, resolvedSlot, err := h.mapStateIDToStateAndSlot(stateID)
+	st, resolvedSlot, err := utils.MapStateIDToStateAndSlot(h.backend, stateID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get validators: %w", err)
 	}

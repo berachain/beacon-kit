@@ -39,7 +39,7 @@ func (h *Handler) GetPendingPartialWithdrawals(c handlers.Context) (any, error) 
 	}
 
 	// Load state for the requested state ID
-	st, _, err := h.mapStateIDToStateAndSlot(req.StateID)
+	st, _, err := utils.MapStateIDToStateAndSlot(h.backend, req.StateID)
 	if err != nil {
 		return nil, err
 	}

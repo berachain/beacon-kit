@@ -28,35 +28,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-var ErrNoSlotForStateRoot = errors.New("slot not found at state root")
-
-// TODO: define unique types for each of the query-able IDs (state & block from
-// spec, execution unique to beacon-kit). For each type define validation
-// functions and resolvers to slot number.
-
-// SlotFromStateID returns a slot from the state ID.
-//
-// NOTE: Right now, `stateID` only supports querying by "head" (all of "head",
-// "finalized", "justified" are the same), "genesis", and <slot>.
-func SlotFromStateID[StorageBackendT interface {
-	GetSlotByStateRoot(root common.Root) (math.Slot, error)
-}](stateID string, storage StorageBackendT) (math.Slot, error) {
-	if slot, err := slotFromStateID(stateID); err == nil {
-		return slot, nil
-	}
-
-	// We assume that the state ID is a state hash.
-	root, err := common.NewRootFromHex(stateID)
-	if err != nil {
-		return 0, err
-	}
-	slot, err := storage.GetSlotByStateRoot(root)
-	if err != nil {
-		return 0, ErrNoSlotForStateRoot
-	}
-	return slot, nil
-}
-
 // SlotFromBlockID returns a slot from the block ID.
 //
 // NOTE: `blockID` shares the same semantics as `stateID`, with the modification
@@ -64,7 +35,7 @@ func SlotFromStateID[StorageBackendT interface {
 func SlotFromBlockID[StorageBackendT interface {
 	GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 }](blockID string, storage StorageBackendT) (math.Slot, error) {
-	if slot, err := slotFromStateID(blockID); err == nil {
+	if slot, err := mapStateIDToSlot(blockID); err == nil {
 		return slot, nil
 	}
 
@@ -92,7 +63,7 @@ func ParentSlotFromTimestampID[StorageBackendT interface {
 	GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
 }](timestampID string, storage StorageBackendT) (math.Slot, error) {
 	if !IsTimestampIDPrefix(timestampID) {
-		return slotFromStateID(timestampID)
+		return mapStateIDToSlot(timestampID)
 	}
 
 	// Parse the timestamp from the timestampID.
@@ -117,7 +88,7 @@ func IsTimestampIDPrefix(timestampID string) bool {
 // genesis state (it accumulates block 1 state changes and flushes them together).
 // Numeric requests are clamped so that slot 0 maps to Genesis (slot 1).
 // TODO: Properly return the true genesis state when requested, instead of block 1.
-func slotFromStateID(id string) (math.Slot, error) {
+func mapStateIDToSlot(id string) (math.Slot, error) {
 	switch id {
 	case StateIDFinalized, StateIDJustified, StateIDHead:
 		return Head, nil

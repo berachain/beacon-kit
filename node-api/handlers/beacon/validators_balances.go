@@ -42,7 +42,7 @@ func (h *Handler) GetStateValidatorBalances(c handlers.Context) (any, error) {
 		return nil, err
 	}
 
-	st, _, err := h.mapStateIDToStateAndSlot(req.StateID)
+	st, _, err := utils.MapStateIDToStateAndSlot(h.backend, req.StateID)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +69,7 @@ func (h *Handler) PostStateValidatorBalances(c handlers.Context) (any, error) {
 		return nil, types.ErrInvalidRequest
 	}
 
-	st, _, err := h.mapStateIDToStateAndSlot(req.StateID)
+	st, _, err := utils.MapStateIDToStateAndSlot(h.backend, req.StateID)
 	if err != nil {
 		return nil, err
 	}

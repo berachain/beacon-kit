@@ -34,7 +34,6 @@ import (
 
 var ErrMismatchedSlotAndParentBlock = errors.New("slot does not match with parent block")
 
-//nolint:gocognit // will be simplified by better mapping stateID to state
 func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 	req, errReq := utils.BindAndValidate[beacontypes.GetBlockHeadersRequest](c, h.Logger())
 	if errReq != nil {
@@ -44,23 +43,16 @@ func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 	switch {
 	case len(req.Slot) == 0 && len(req.ParentRoot) == 0:
 		// no parameter specified, pick chain HEAD
-		// by requesting special slot 0.
-		slot := utils.Head
-		st, _, err := h.backend.StateAtSlot(slot)
+		st, _, err := utils.MapStateIDToStateAndSlot(h.backend, utils.StateIDHead)
 		if err != nil {
-			return nil, fmt.Errorf("%w: failed to get state from slot %d, %s", handlertypes.ErrNotFound, slot, err.Error())
+			return nil, err
 		}
 		return h.makeBlockHeaderResponse(st, true /*resultsInList*/)
 
 	case len(req.Slot) != 0 && len(req.ParentRoot) == 0:
-		slot, errSlot := math.U64FromString(req.Slot)
-		// errSlot should always be nil since we validated slots in BindAndValidate.
-		if errSlot != nil {
-			return nil, fmt.Errorf("failed retrieving slot from input parameters: %w", errSlot)
-		}
-		st, _, err := h.backend.StateAtSlot(slot)
+		st, _, err := utils.MapStateIDToStateAndSlot(h.backend, req.Slot)
 		if err != nil {
-			return nil, fmt.Errorf("%w: failed to get state from slot %d, %s", handlertypes.ErrNotFound, slot, err.Error())
+			return nil, err
 		}
 		return h.makeBlockHeaderResponse(st, true /*resultsInList*/)
 

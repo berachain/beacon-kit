@@ -71,7 +71,7 @@ func (h *Handler) GetStateValidator(c handlers.Context) (any, error) {
 		return nil, err
 	}
 
-	st, slot, err := h.mapStateIDToStateAndSlot(req.StateID)
+	st, slot, err := utils.MapStateIDToStateAndSlot(h.backend, req.StateID)
 	if err != nil {
 		return nil, err
 	}

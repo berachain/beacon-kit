@@ -37,7 +37,7 @@ func (h *Handler) GetRandao(c handlers.Context) (any, error) {
 	}
 
 	// Get slot and associated state
-	st, slot, err := h.mapStateIDToStateAndSlot(req.StateID)
+	st, slot, err := utils.MapStateIDToStateAndSlot(h.backend, req.StateID)
 	if err != nil {
 		return nil, err
 	}
