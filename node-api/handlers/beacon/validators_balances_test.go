@@ -21,7 +21,11 @@
 package beacon_test
 
 import (
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/berachain/beacon-kit/config/spec"
@@ -30,6 +34,8 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/mocks"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	handlertypes "github.com/berachain/beacon-kit/node-api/handlers/types"
+	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/node-api/middleware"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -49,14 +55,26 @@ func TestGetStateValidatorBalances(t *testing.T) {
 
 	testCases := []struct {
 		name                string
-		inputs              func() (math.Slot, []string)
+		inputs              func() (beacontypes.GetValidatorBalancesRequest, beacontypes.PostValidatorBalancesRequest)
 		setMockExpectations func(*mocks.Backend)
-		check               func(t *testing.T, res []*beacontypes.ValidatorBalanceData, err error)
+		check               func(t *testing.T, res any, err error)
 	}{
 		{
 			name: "all validators",
-			inputs: func() (math.Slot, []string) {
-				return 0, nil
+			inputs: func() (beacontypes.GetValidatorBalancesRequest, beacontypes.PostValidatorBalancesRequest) {
+				stateID := utils.StateIDHead
+				IDs := []string(nil)
+				return beacontypes.GetValidatorBalancesRequest{
+						StateIDRequest: handlertypes.StateIDRequest{
+							StateID: stateID,
+						},
+						IDs: IDs,
+					}, beacontypes.PostValidatorBalancesRequest{
+						StateIDRequest: handlertypes.StateIDRequest{
+							StateID: stateID,
+						},
+						IDs: IDs,
+					}
 			},
 			setMockExpectations: func(b *mocks.Backend) {
 				st := makeTestState(t, cs)
@@ -65,11 +83,15 @@ func TestGetStateValidatorBalances(t *testing.T) {
 				// slot is not really tested here, we just return zero
 				b.EXPECT().StateAtSlot(mock.Anything).Return(st, math.Slot(0), nil)
 			},
-			check: func(t *testing.T, res []*beacontypes.ValidatorBalanceData, err error) {
+			check: func(t *testing.T, res any, err error) {
 				t.Helper()
 
 				require.NoError(t, err)
 				require.NotNil(t, res)
+				require.IsType(t, beacontypes.GenericResponse{}, res)
+				gr, _ := res.(beacontypes.GenericResponse)
+				require.IsType(t, []*beacontypes.ValidatorBalanceData{}, gr.Data)
+				data, _ := gr.Data.([]*beacontypes.ValidatorBalanceData)
 
 				expectedBalances := make([]*beacontypes.ValidatorBalanceData, 0, len(stateValidators))
 				for _, val := range stateValidators {
@@ -81,16 +103,28 @@ func TestGetStateValidatorBalances(t *testing.T) {
 					)
 				}
 
-				require.Equal(t, expectedBalances, res)
+				require.Equal(t, expectedBalances, data)
 			},
 		},
 		{
 			name: "single validators",
-			inputs: func() (math.Slot, []string) {
-				return 0, []string{
+			inputs: func() (beacontypes.GetValidatorBalancesRequest, beacontypes.PostValidatorBalancesRequest) {
+				stateID := utils.StateIDHead
+				IDs := []string{
 					stateValidators[0].Validator.PublicKey,
 					stateValidators[1].Validator.PublicKey,
 				}
+				return beacontypes.GetValidatorBalancesRequest{
+						StateIDRequest: handlertypes.StateIDRequest{
+							StateID: stateID,
+						},
+						IDs: IDs,
+					}, beacontypes.PostValidatorBalancesRequest{
+						StateIDRequest: handlertypes.StateIDRequest{
+							StateID: stateID,
+						},
+						IDs: IDs,
+					}
 			},
 			setMockExpectations: func(b *mocks.Backend) {
 				st := makeTestState(t, cs)
@@ -99,11 +133,15 @@ func TestGetStateValidatorBalances(t *testing.T) {
 				// slot is not really tested here, we just return zero
 				b.EXPECT().StateAtSlot(mock.Anything).Return(st, math.Slot(0), nil)
 			},
-			check: func(t *testing.T, res []*beacontypes.ValidatorBalanceData, err error) {
+			check: func(t *testing.T, res any, err error) {
 				t.Helper()
 
 				require.NoError(t, err)
 				require.NotNil(t, res)
+				require.IsType(t, beacontypes.GenericResponse{}, res)
+				gr, _ := res.(beacontypes.GenericResponse)
+				require.IsType(t, []*beacontypes.ValidatorBalanceData{}, gr.Data)
+				data, _ := gr.Data.([]*beacontypes.ValidatorBalanceData)
 
 				expectedBalances := []*beacontypes.ValidatorBalanceData{
 					{
@@ -115,19 +153,31 @@ func TestGetStateValidatorBalances(t *testing.T) {
 						Balance: stateValidators[1].Balance,
 					},
 				}
-				require.Equal(t, expectedBalances, res)
+				require.Equal(t, expectedBalances, data)
 			},
 		},
 		{
 			name: "mixed know and unknow validators",
-			inputs: func() (math.Slot, []string) {
+			inputs: func() (beacontypes.GetValidatorBalancesRequest, beacontypes.PostValidatorBalancesRequest) {
+				stateID := utils.StateIDHead
 				unknownValPk := bytes.B48{0xff, 0xff}
 				unknownValIdx := strconv.Itoa(2025)
-				return 0, []string{
+				IDs := []string{
 					unknownValIdx,
 					stateValidators[0].Validator.PublicKey,
 					unknownValPk.String(),
 				}
+				return beacontypes.GetValidatorBalancesRequest{
+						StateIDRequest: handlertypes.StateIDRequest{
+							StateID: stateID,
+						},
+						IDs: IDs,
+					}, beacontypes.PostValidatorBalancesRequest{
+						StateIDRequest: handlertypes.StateIDRequest{
+							StateID: stateID,
+						},
+						IDs: IDs,
+					}
 			},
 			setMockExpectations: func(b *mocks.Backend) {
 				st := makeTestState(t, cs)
@@ -136,11 +186,15 @@ func TestGetStateValidatorBalances(t *testing.T) {
 				// slot is not really tested here, we just return zero
 				b.EXPECT().StateAtSlot(mock.Anything).Return(st, math.Slot(0), nil)
 			},
-			check: func(t *testing.T, res []*beacontypes.ValidatorBalanceData, err error) {
+			check: func(t *testing.T, res any, err error) {
 				t.Helper()
 
 				require.NoError(t, err)
 				require.NotNil(t, res)
+				require.IsType(t, beacontypes.GenericResponse{}, res)
+				gr, _ := res.(beacontypes.GenericResponse)
+				require.IsType(t, []*beacontypes.ValidatorBalanceData{}, gr.Data)
+				data, _ := gr.Data.([]*beacontypes.ValidatorBalanceData)
 
 				expectedBalances := []*beacontypes.ValidatorBalanceData{
 					{
@@ -148,7 +202,7 @@ func TestGetStateValidatorBalances(t *testing.T) {
 						Balance: stateValidators[0].Balance,
 					},
 				}
-				require.Equal(t, expectedBalances, res)
+				require.Equal(t, expectedBalances, data)
 			},
 		},
 	}
@@ -156,8 +210,6 @@ func TestGetStateValidatorBalances(t *testing.T) {
 	for _, tc := range testCases {
 		tc := tc // capture range variable
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
 			// setup test
 			backend := mocks.NewBackend(t)
 			h := beacon.NewHandler(backend, cs, noop.NewLogger[log.Logger]())
@@ -169,11 +221,42 @@ func TestGetStateValidatorBalances(t *testing.T) {
 			// set expectations
 			tc.setMockExpectations(backend)
 
-			// test
-			res, err := h.GetValidatorBalance(tc.inputs())
+			inputGet, inputPost := tc.inputs()
 
-			// finally do checks
-			tc.check(t, res, err)
+			{ // Test Get method
+				inputBytes, err := json.Marshal(inputGet) //nolint:musttag //  TODO:fix
+				require.NoError(t, err)
+				body := strings.NewReader(string(inputBytes))
+				req := httptest.NewRequest(http.MethodGet, "/", body)
+				req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON) // otherwise code=415, message=Unsupported Media Type
+				c := e.NewContext(req, httptest.NewRecorder())
+
+				// test Get
+				res, err := h.GetStateValidatorBalances(c)
+
+				// check Get
+				tc.check(t, res, err)
+			}
+
+			{ // Test Post method
+				// Marshal only the IDs array for the POST body
+				inputBytes, err := json.Marshal(inputPost.IDs)
+				require.NoError(t, err)
+				body := strings.NewReader(string(inputBytes))
+				req := httptest.NewRequest(http.MethodPost, "/", body)
+				req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON) // otherwise code=415, message=Unsupported Media Type
+				c := e.NewContext(req, httptest.NewRecorder())
+
+				// Set the state_id as a URL path parameter
+				c.SetParamNames("state_id")
+				c.SetParamValues(inputPost.StateID)
+
+				// test Post
+				res, err := h.PostStateValidatorBalances(c)
+
+				// check Post
+				tc.check(t, res, err)
+			}
 		})
 	}
 }

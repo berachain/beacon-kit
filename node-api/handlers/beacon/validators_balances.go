@@ -46,7 +46,7 @@ func (h *Handler) GetStateValidatorBalances(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	balances, err := h.GetValidatorBalance(slot, req.IDs)
+	balances, err := h.getValidatorBalance(slot, req.IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func (h *Handler) GetStateValidatorBalances(c handlers.Context) (any, error) {
 func (h *Handler) PostStateValidatorBalances(c handlers.Context) (any, error) {
 	var ids []string
 	if err := c.Bind(&ids); err != nil {
-		return nil, types.ErrInvalidRequest
+		return nil, fmt.Errorf("%s: %w", err.Error(), types.ErrInvalidRequest)
 	}
 	// Get state_id from URL path parameter
 	req := beacontypes.PostValidatorBalancesRequest{
@@ -72,14 +72,14 @@ func (h *Handler) PostStateValidatorBalances(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	balances, err := h.GetValidatorBalance(slot, req.IDs)
+	balances, err := h.getValidatorBalance(slot, req.IDs)
 	if err != nil {
 		return nil, err
 	}
 	return beacontypes.NewResponse(balances), nil
 }
 
-func (h *Handler) GetValidatorBalance(slot math.Slot, validatorIDs []string) ([]*beacontypes.ValidatorBalanceData, error) {
+func (h *Handler) getValidatorBalance(slot math.Slot, validatorIDs []string) ([]*beacontypes.ValidatorBalanceData, error) {
 	st, _, err := h.backend.StateAtSlot(slot)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get state from slot %d: %w", slot, err)
