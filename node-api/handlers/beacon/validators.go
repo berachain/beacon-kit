@@ -25,11 +25,13 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/berachain/beacon-kit/node-api/backend"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	types "github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/math"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 func (h *Handler) GetStateValidators(c handlers.Context) (any, error) {
@@ -77,33 +79,69 @@ func (h *Handler) GetStateValidator(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// retrieve slot and associated state
 	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
-	switch {
-	case err == nil:
-		// No error, continue
-	case errors.Is(err, utils.ErrNoSlotForStateRoot):
-		return &handlers.HTTPError{
-			Code:    http.StatusNotFound,
-			Message: "State not found",
-		}, nil
-	default:
-		return nil, err
+	if err != nil {
+		if errors.Is(err, utils.ErrNoSlotForStateRoot) {
+			return nil, fmt.Errorf("%s: %w", err.Error(), types.ErrNotFound)
+		}
+		return nil, fmt.Errorf("failed mapping state id %s to slot: %w", req.StateID, err)
 	}
-	validator, err := h.backend.ValidatorByID(
-		slot,
-		req.ValidatorID,
-	)
-	switch {
-	case errors.Is(err, backend.ErrValidatorNotFound):
-		return &handlers.HTTPError{
-			Code:    http.StatusNotFound,
-			Message: "Validator not found",
-		}, nil
-	case err != nil:
-		return nil, err
-	default:
-		return beacontypes.NewResponse(validator), nil
+	st, resolvedSlot, err := h.backend.StateAtSlot(slot)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get state from slot %d: %w", slot, err)
 	}
+
+	// retrieve validator data
+	index, err := validatorIndexByID(st, req.ValidatorID)
+	if err != nil {
+		if errors.Is(err, utils.ErrNoSlotForStateRoot) {
+			return nil, fmt.Errorf("%s: %w", err.Error(), types.ErrNotFound)
+		}
+		return nil, fmt.Errorf("failed to get validator index by id %s: %w", req.ValidatorID, err)
+	}
+
+	validator, err := st.ValidatorByIndex(index)
+	if err != nil {
+		if errors.Is(err, utils.ErrNoSlotForStateRoot) {
+			return nil, fmt.Errorf("%s: %w", err.Error(), types.ErrNotFound)
+		}
+		return nil, fmt.Errorf("failed to get validator by index %s: %w", req.ValidatorID, err)
+	}
+
+	balance, err := st.GetBalance(index)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get validator balance for validator pubkey %s and index %d: %w", validator.GetPubkey(), index, err)
+	}
+	status, err := validator.Status(h.cs.SlotToEpoch(resolvedSlot))
+	if err != nil {
+		return nil, fmt.Errorf("failed to get validator status for validator pubkey %s and index %d: %w", validator.GetPubkey(), index, err)
+	}
+	return beacontypes.NewResponse(
+		&beacontypes.ValidatorData{
+			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
+				Index:   index.Unwrap(),
+				Balance: balance.Unwrap(),
+			},
+			Status:    status,
+			Validator: beacontypes.ValidatorFromConsensus(validator),
+		},
+	), nil
+}
+
+// ValidatorIndexByID parses a validator index from a string.
+// The string can be either a validator index or a validator pubkey.
+func validatorIndexByID(st *statedb.StateDB, keyOrIndex string) (math.U64, error) {
+	index, err := math.U64FromString(keyOrIndex)
+	if err == nil {
+		return index, nil
+	}
+	var key crypto.BLSPubkey
+	if err = key.UnmarshalText([]byte(keyOrIndex)); err != nil {
+		return math.U64(0), err
+	}
+	return st.ValidatorIndexByPubkey(key)
 }
 
 func (h *Handler) GetStateValidatorBalances(c handlers.Context) (any, error) {

@@ -72,9 +72,6 @@ type WithdrawalBackend interface {
 }
 
 type ValidatorBackend interface {
-	ValidatorByID(
-		slot math.Slot, id string,
-	) (*types.ValidatorData, error)
 	ValidatorBalancesByIDs(
 		slot math.Slot,
 		ids []string,

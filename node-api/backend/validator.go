@@ -28,51 +28,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-// ErrValidatorNotFound is an error for when a validator is not found.
-var ErrValidatorNotFound = errors.New("validator not found")
-
-func (b *Backend) ValidatorByID(slot math.Slot, id string) (*beacontypes.ValidatorData, error) {
-	// Get the state at the given slot.
-	st, resolvedSlot, err := b.StateAtSlot(slot)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get state from slot %d", slot)
-	}
-	index, err := utils.ValidatorIndexByID(st, id)
-	switch {
-	case err == nil:
-		// continue processing
-	case errors.Is(err, collections.ErrNotFound):
-		return nil, ErrValidatorNotFound
-	default:
-		return nil, errors.Wrapf(err, "failed to get validator index by id %s", id)
-	}
-	validator, err := st.ValidatorByIndex(index)
-	switch {
-	case err == nil:
-		// continue processing
-	case errors.Is(err, collections.ErrNotFound):
-		return nil, ErrValidatorNotFound
-	default:
-		return nil, errors.Wrapf(err, "failed to get validator by index %d", index)
-	}
-	balance, err := st.GetBalance(index)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get validator balance for validator pubkey %s and index %d", validator.GetPubkey(), index)
-	}
-	status, err := validator.Status(b.cs.SlotToEpoch(resolvedSlot))
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get validator status for validator pubkey %s and index %d", validator.GetPubkey(), index)
-	}
-	return &beacontypes.ValidatorData{
-		ValidatorBalanceData: beacontypes.ValidatorBalanceData{
-			Index:   index.Unwrap(),
-			Balance: balance.Unwrap(),
-		},
-		Status:    status,
-		Validator: beacontypes.ValidatorFromConsensus(validator),
-	}, nil
-}
-
 func (b *Backend) ValidatorBalancesByIDs(slot math.Slot, ids []string) ([]*beacontypes.ValidatorBalanceData, error) {
 	// Get the state at the given slot.
 	st, _, err := b.StateAtSlot(slot)

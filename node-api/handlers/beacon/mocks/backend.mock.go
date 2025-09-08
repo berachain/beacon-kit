@@ -785,65 +785,6 @@ func (_c *Backend_ValidatorBalancesByIDs_Call) RunAndReturn(run func(math.U64, [
 	return _c
 }
 
-// ValidatorByID provides a mock function with given fields: slot, id
-func (_m *Backend) ValidatorByID(slot math.U64, id string) (*types.ValidatorData, error) {
-	ret := _m.Called(slot, id)
-
-	if len(ret) == 0 {
-		panic("no return value specified for ValidatorByID")
-	}
-
-	var r0 *types.ValidatorData
-	var r1 error
-	if rf, ok := ret.Get(0).(func(math.U64, string) (*types.ValidatorData, error)); ok {
-		return rf(slot, id)
-	}
-	if rf, ok := ret.Get(0).(func(math.U64, string) *types.ValidatorData); ok {
-		r0 = rf(slot, id)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*types.ValidatorData)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(math.U64, string) error); ok {
-		r1 = rf(slot, id)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// Backend_ValidatorByID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ValidatorByID'
-type Backend_ValidatorByID_Call struct {
-	*mock.Call
-}
-
-// ValidatorByID is a helper method to define mock.On call
-//   - slot math.U64
-//   - id string
-func (_e *Backend_Expecter) ValidatorByID(slot interface{}, id interface{}) *Backend_ValidatorByID_Call {
-	return &Backend_ValidatorByID_Call{Call: _e.mock.On("ValidatorByID", slot, id)}
-}
-
-func (_c *Backend_ValidatorByID_Call) Run(run func(slot math.U64, id string)) *Backend_ValidatorByID_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(math.U64), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *Backend_ValidatorByID_Call) Return(_a0 *types.ValidatorData, _a1 error) *Backend_ValidatorByID_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Backend_ValidatorByID_Call) RunAndReturn(run func(math.U64, string) (*types.ValidatorData, error)) *Backend_ValidatorByID_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // NewBackend creates a new instance of Backend. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewBackend(t interface {
