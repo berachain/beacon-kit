@@ -25,14 +25,11 @@ import (
 	"slices"
 
 	consensustypes "github.com/berachain/beacon-kit/consensus-types/types"
-	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/errors"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	handlertypes "github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // errStatusFilterMismatch is an error for when a validator status does not
@@ -42,18 +39,10 @@ var errStatusFilterMismatch = errors.New("validator status does not match status
 // FilterValidators is a helper function to provide implementation
 // consistency between GetStateValidators and PostStateValidators, since they
 // are intended to behave the same way.
-func (h *Handler) FilterValidators(slot math.Slot, ids []string, statuses []string) ([]*beacontypes.ValidatorData, error) {
-	st, resolvedSlot, err := h.backend.StateAtSlot(slot)
+func (h *Handler) FilterValidators(stateID string, ids []string, statuses []string) ([]*beacontypes.ValidatorData, error) {
+	st, resolvedSlot, err := h.mapStateIDToStateAndSlot(stateID)
 	if err != nil {
-		if errors.Is(err, cometbft.ErrAppNotReady) {
-			// chain not ready, like when genesis time is set in the future
-			return nil, handlertypes.ErrNotFound
-		}
-		if errors.Is(err, sdkerrors.ErrInvalidHeight) {
-			// height requested too high
-			return nil, handlertypes.ErrNotFound
-		}
-		return nil, fmt.Errorf("failed to get state from slot %d: %w", slot, err)
+		return nil, fmt.Errorf("failed to get validators: %w", err)
 	}
 
 	allVals, err := st.GetValidators()

@@ -42,11 +42,12 @@ func (h *Handler) GetStateValidatorBalances(c handlers.Context) (any, error) {
 		return nil, err
 	}
 
-	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
+	st, _, err := h.mapStateIDToStateAndSlot(req.StateID)
 	if err != nil {
 		return nil, err
 	}
-	balances, err := h.getValidatorBalance(slot, req.IDs)
+
+	balances, err := h.getValidatorBalance(st, req.IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -68,23 +69,19 @@ func (h *Handler) PostStateValidatorBalances(c handlers.Context) (any, error) {
 		return nil, types.ErrInvalidRequest
 	}
 
-	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
+	st, _, err := h.mapStateIDToStateAndSlot(req.StateID)
 	if err != nil {
 		return nil, err
 	}
-	balances, err := h.getValidatorBalance(slot, req.IDs)
+
+	balances, err := h.getValidatorBalance(st, req.IDs)
 	if err != nil {
 		return nil, err
 	}
 	return beacontypes.NewResponse(balances), nil
 }
 
-func (h *Handler) getValidatorBalance(slot math.Slot, validatorIDs []string) ([]*beacontypes.ValidatorBalanceData, error) {
-	st, _, err := h.backend.StateAtSlot(slot)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get state from slot %d: %w", slot, err)
-	}
-
+func (h *Handler) getValidatorBalance(st *statedb.StateDB, validatorIDs []string) ([]*beacontypes.ValidatorBalanceData, error) {
 	// If no IDs provided, return all validator balances
 	if len(validatorIDs) == 0 {
 		rawBalances, errInBalances := st.GetBalances()
@@ -105,6 +102,7 @@ func (h *Handler) getValidatorBalance(slot math.Slot, validatorIDs []string) ([]
 	var (
 		balances = make([]*beacontypes.ValidatorBalanceData, 0, len(validatorIDs))
 		index    math.U64
+		err      error
 	)
 	for _, id := range validatorIDs {
 		index, err = validatorIndexByID(st, id)

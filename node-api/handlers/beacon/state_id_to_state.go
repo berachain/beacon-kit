@@ -21,44 +21,33 @@
 package beacon
 
 import (
-	"github.com/berachain/beacon-kit/node-api/handlers"
-	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	"fmt"
+
+	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
+	"github.com/berachain/beacon-kit/errors"
+	handlertypes "github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/state-transition/core/state"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-func (h *Handler) GetRandao(c handlers.Context) (any, error) {
-	req, err := utils.BindAndValidate[beacontypes.GetRandaoRequest](
-		c,
-		h.Logger(),
-	)
+func (h *Handler) mapStateIDToStateAndSlot(stateID string) (*state.StateDB, math.Slot, error) {
+	slot, err := utils.SlotFromStateID(stateID, h.backend)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
-
-	// Get slot and associated state
-	st, slot, err := h.mapStateIDToStateAndSlot(req.StateID)
+	st, resolvedSlot, err := h.backend.StateAtSlot(slot)
 	if err != nil {
-		return nil, err
-	}
-
-	// Get the epoch
-	var epoch math.Epoch
-	if req.Epoch != "" {
-		epoch, err = math.U64FromString(req.Epoch)
-		if err != nil {
-			return nil, err
+		if errors.Is(err, cometbft.ErrAppNotReady) {
+			// chain not ready, like when genesis time is set in the future
+			return nil, 0, handlertypes.ErrNotFound
 		}
-	} else {
-		// Infer the epoch if not provided.
-		epoch = h.cs.SlotToEpoch(slot)
+		if errors.Is(err, sdkerrors.ErrInvalidHeight) {
+			// height requested too high
+			return nil, 0, handlertypes.ErrNotFound
+		}
+		return nil, 0, fmt.Errorf("failed to get state from stateID %s, slot %d: %w", stateID, slot, err)
 	}
-
-	// Retrieve the randao
-	index := epoch.Unwrap() % h.cs.EpochsPerHistoricalVector()
-	randao, err := st.GetRandaoMixAtIndex(index)
-	if err != nil {
-		return nil, err
-	}
-	return beacontypes.NewResponse(randao), nil
+	return st, resolvedSlot, nil
 }
