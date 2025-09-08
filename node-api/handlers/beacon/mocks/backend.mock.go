@@ -544,65 +544,6 @@ func (_c *Backend_GetSlotByStateRoot_Call) RunAndReturn(run func(common.Root) (m
 	return _c
 }
 
-// RandaoAtEpoch provides a mock function with given fields: slot, epoch
-func (_m *Backend) RandaoAtEpoch(slot math.U64, epoch math.U64) (bytes.B32, error) {
-	ret := _m.Called(slot, epoch)
-
-	if len(ret) == 0 {
-		panic("no return value specified for RandaoAtEpoch")
-	}
-
-	var r0 bytes.B32
-	var r1 error
-	if rf, ok := ret.Get(0).(func(math.U64, math.U64) (bytes.B32, error)); ok {
-		return rf(slot, epoch)
-	}
-	if rf, ok := ret.Get(0).(func(math.U64, math.U64) bytes.B32); ok {
-		r0 = rf(slot, epoch)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(bytes.B32)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(math.U64, math.U64) error); ok {
-		r1 = rf(slot, epoch)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// Backend_RandaoAtEpoch_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RandaoAtEpoch'
-type Backend_RandaoAtEpoch_Call struct {
-	*mock.Call
-}
-
-// RandaoAtEpoch is a helper method to define mock.On call
-//   - slot math.U64
-//   - epoch math.U64
-func (_e *Backend_Expecter) RandaoAtEpoch(slot interface{}, epoch interface{}) *Backend_RandaoAtEpoch_Call {
-	return &Backend_RandaoAtEpoch_Call{Call: _e.mock.On("RandaoAtEpoch", slot, epoch)}
-}
-
-func (_c *Backend_RandaoAtEpoch_Call) Run(run func(slot math.U64, epoch math.U64)) *Backend_RandaoAtEpoch_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(math.U64), args[1].(math.U64))
-	})
-	return _c
-}
-
-func (_c *Backend_RandaoAtEpoch_Call) Return(_a0 bytes.B32, _a1 error) *Backend_RandaoAtEpoch_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Backend_RandaoAtEpoch_Call) RunAndReturn(run func(math.U64, math.U64) (bytes.B32, error)) *Backend_RandaoAtEpoch_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // StateAtSlot provides a mock function with given fields: slot
 func (_m *Backend) StateAtSlot(slot math.U64) (*state.StateDB, math.U64, error) {
 	ret := _m.Called(slot)

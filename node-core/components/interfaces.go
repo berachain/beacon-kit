@@ -501,7 +501,6 @@ type (
 		GenesisBackend
 		BlobBackend
 		BlockBackend
-		RandaoBackend
 		StateBackend
 		// GetSlotByBlockRoot retrieves the slot by a given root from the store.
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
@@ -535,10 +534,6 @@ type (
 		GenesisValidatorsRoot() (common.Root, error)
 		GenesisForkVersion() (common.Version, error)
 		GenesisTime() (math.U64, error)
-	}
-
-	RandaoBackend interface {
-		RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes32, error)
 	}
 
 	BlobBackend interface {
