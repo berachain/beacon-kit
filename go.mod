@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit
 
-go 1.23.6
+go 1.24.0
 
 replace (
 	github.com/cometbft/cometbft => github.com/berachain/cometbft v1.0.1-0.20250718121541-9671b1dc07e5
@@ -50,7 +50,7 @@ require (
 	github.com/umbracle/fastrlp v0.1.0
 	go.uber.org/automaxprocs v1.6.0
 	golang.org/x/crypto v0.41.0
-	golang.org/x/sync v0.16.0
+	golang.org/x/sync v0.17.0
 	sigs.k8s.io/yaml v1.6.0
 )
 
