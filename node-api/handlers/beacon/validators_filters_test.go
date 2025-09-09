@@ -337,11 +337,11 @@ func TestFilterValidators(t *testing.T) {
 			}
 
 			{ // Test Post method
-				// create Get inputs
+				// create Post inputs
 				inputBytes, err := json.Marshal(inputPost) //nolint:musttag //  TODO:fix
 				require.NoError(t, err)
 				body := strings.NewReader(string(inputBytes))
-				req := httptest.NewRequest(http.MethodGet, "/", body)
+				req := httptest.NewRequest(http.MethodPost, "/", body)
 				req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON) // otherwise code=415, message=Unsupported Media Type
 				c := e.NewContext(req, httptest.NewRecorder())
 
