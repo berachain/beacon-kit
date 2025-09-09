@@ -22,7 +22,6 @@ package beacon
 
 import (
 	"github.com/berachain/beacon-kit/node-api/handlers"
-	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 )
@@ -36,7 +35,7 @@ func (h *Handler) GetBlockRewards(c handlers.Context) (any, error) {
 	}
 
 	// TODO: Implement this.
-	rewards := &types.BlockRewardsData{
+	rewards := &beacontypes.BlockRewardsData{
 		ProposerIndex:     1,
 		Total:             1,
 		Attestations:      1,

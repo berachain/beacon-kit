@@ -34,6 +34,7 @@ import (
 
 var ErrMismatchedSlotAndParentBlock = errors.New("slot does not match with parent block")
 
+//nolint:gocognit // will be simplified by better mapping stateID to state
 func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 	req, errReq := utils.BindAndValidate[beacontypes.GetBlockHeadersRequest](c, h.Logger())
 	if errReq != nil {
