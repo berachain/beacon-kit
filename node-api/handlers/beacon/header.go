@@ -29,6 +29,7 @@ import (
 	handlertypes "github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/primitives/math"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 var ErrMismatchedSlotAndParentBlock = errors.New("slot does not match with parent block")
@@ -43,7 +44,12 @@ func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 	case len(req.Slot) == 0 && len(req.ParentRoot) == 0:
 		// no parameter specified, pick chain HEAD
 		// by requesting special slot 0.
-		return makeBlockHeaderResponse(h.backend, 0, true /*resultsInList*/)
+		slot := utils.Head
+		st, _, err := h.backend.StateAtSlot(slot)
+		if err != nil {
+			return nil, fmt.Errorf("%w: failed to get state from slot %d, %s", handlertypes.ErrNotFound, slot, err.Error())
+		}
+		return h.makeBlockHeaderResponse(st, true /*resultsInList*/)
 
 	case len(req.Slot) != 0 && len(req.ParentRoot) == 0:
 		slot, errSlot := math.U64FromString(req.Slot)
@@ -51,14 +57,23 @@ func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 		if errSlot != nil {
 			return nil, fmt.Errorf("failed retrieving slot from input parameters: %w", errSlot)
 		}
-		return makeBlockHeaderResponse(h.backend, slot, true /*resultsInList*/)
+		st, _, err := h.backend.StateAtSlot(slot)
+		if err != nil {
+			return nil, fmt.Errorf("%w: failed to get state from slot %d, %s", handlertypes.ErrNotFound, slot, err.Error())
+		}
+		return h.makeBlockHeaderResponse(st, true /*resultsInList*/)
 
 	case len(req.Slot) == 0 && len(req.ParentRoot) != 0:
 		parentSlot, errParent := utils.SlotFromBlockID(req.ParentRoot, h.backend)
 		if errParent != nil {
 			return nil, fmt.Errorf("%w, failed retrieving parent root with error: %w", handlertypes.ErrNotFound, errParent)
 		}
-		return makeBlockHeaderResponse(h.backend, parentSlot+1, true /*resultsInList*/)
+		slot := parentSlot + 1
+		st, _, err := h.backend.StateAtSlot(slot)
+		if err != nil {
+			return nil, fmt.Errorf("%w: failed to get state from slot %d, %s", handlertypes.ErrNotFound, slot, err.Error())
+		}
+		return h.makeBlockHeaderResponse(st, true /*resultsInList*/)
 
 	default:
 		var (
@@ -71,7 +86,11 @@ func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 		if slot != parentSlot+1 {
 			return nil, fmt.Errorf("%w: request slot %d, parent block slot %d", ErrMismatchedSlotAndParentBlock, slot, parentSlot)
 		}
-		return makeBlockHeaderResponse(h.backend, slot, true /*resultsInList*/)
+		st, _, err := h.backend.StateAtSlot(slot)
+		if err != nil {
+			return nil, fmt.Errorf("%w: failed to get state from slot %d, %s", handlertypes.ErrNotFound, slot, err.Error())
+		}
+		return h.makeBlockHeaderResponse(st, true /*resultsInList*/)
 	}
 }
 
@@ -84,15 +103,21 @@ func (h *Handler) GetBlockHeaderByID(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed retrieving slot from block ID %s: %w", req.BlockID, err)
 	}
+	st, _, err := h.backend.StateAtSlot(slot)
+	if err != nil {
+		return nil, fmt.Errorf("%w: failed to get state from slot %d, %s", handlertypes.ErrNotFound, slot, err.Error())
+	}
 
-	return makeBlockHeaderResponse(h.backend, slot, false /*resultsInList*/)
+	return h.makeBlockHeaderResponse(st, false /*resultsInList*/)
 }
 
-func makeBlockHeaderResponse(backend Backend, slot math.Slot, resultsInList bool) (any, error) {
-	header, err := backend.BlockHeaderAtSlot(slot)
+func (h *Handler) makeBlockHeaderResponse(st *statedb.StateDB, resultsInList bool) (any, error) {
+	// Return after updating the state root in the block header.
+	header, err := st.GetLatestBlockHeader()
 	if err != nil {
-		return nil, fmt.Errorf("%w: failed retrieving header at slot %d: %w", handlertypes.ErrNotFound, slot, err)
+		return nil, fmt.Errorf("failed to get latest block header: %w", err)
 	}
+	header.SetStateRoot(st.HashTreeRoot())
 
 	// While an Ethereum node may have multiple blocks per slot, BeaconKit
 	// will access only one, given single slot finality and the fact that we only

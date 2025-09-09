@@ -6,8 +6,6 @@ import (
 	bytes "github.com/berachain/beacon-kit/primitives/bytes"
 	common "github.com/berachain/beacon-kit/primitives/common"
 
-	consensus_typestypes "github.com/berachain/beacon-kit/consensus-types/types"
-
 	math "github.com/berachain/beacon-kit/primitives/math"
 
 	mock "github.com/stretchr/testify/mock"
@@ -85,64 +83,6 @@ func (_c *Backend_BlobSidecarsByIndices_Call) Return(_a0 []*types.Sidecar, _a1 e
 }
 
 func (_c *Backend_BlobSidecarsByIndices_Call) RunAndReturn(run func(math.U64, []uint64) ([]*types.Sidecar, error)) *Backend_BlobSidecarsByIndices_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// BlockHeaderAtSlot provides a mock function with given fields: slot
-func (_m *Backend) BlockHeaderAtSlot(slot math.U64) (*consensus_typestypes.BeaconBlockHeader, error) {
-	ret := _m.Called(slot)
-
-	if len(ret) == 0 {
-		panic("no return value specified for BlockHeaderAtSlot")
-	}
-
-	var r0 *consensus_typestypes.BeaconBlockHeader
-	var r1 error
-	if rf, ok := ret.Get(0).(func(math.U64) (*consensus_typestypes.BeaconBlockHeader, error)); ok {
-		return rf(slot)
-	}
-	if rf, ok := ret.Get(0).(func(math.U64) *consensus_typestypes.BeaconBlockHeader); ok {
-		r0 = rf(slot)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*consensus_typestypes.BeaconBlockHeader)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(math.U64) error); ok {
-		r1 = rf(slot)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// Backend_BlockHeaderAtSlot_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'BlockHeaderAtSlot'
-type Backend_BlockHeaderAtSlot_Call struct {
-	*mock.Call
-}
-
-// BlockHeaderAtSlot is a helper method to define mock.On call
-//   - slot math.U64
-func (_e *Backend_Expecter) BlockHeaderAtSlot(slot interface{}) *Backend_BlockHeaderAtSlot_Call {
-	return &Backend_BlockHeaderAtSlot_Call{Call: _e.mock.On("BlockHeaderAtSlot", slot)}
-}
-
-func (_c *Backend_BlockHeaderAtSlot_Call) Run(run func(slot math.U64)) *Backend_BlockHeaderAtSlot_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(math.U64))
-	})
-	return _c
-}
-
-func (_c *Backend_BlockHeaderAtSlot_Call) Return(_a0 *consensus_typestypes.BeaconBlockHeader, _a1 error) *Backend_BlockHeaderAtSlot_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Backend_BlockHeaderAtSlot_Call) RunAndReturn(run func(math.U64) (*consensus_typestypes.BeaconBlockHeader, error)) *Backend_BlockHeaderAtSlot_Call {
 	_c.Call.Return(run)
 	return _c
 }
