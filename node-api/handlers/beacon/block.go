@@ -22,24 +22,27 @@ package beacon
 
 import (
 	"github.com/berachain/beacon-kit/node-api/handlers"
+	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 )
 
 func (h *Handler) GetBlockRewards(c handlers.Context) (any, error) {
-	req, err := utils.BindAndValidate[beacontypes.GetBlockRewardsRequest](
+	_, err := utils.BindAndValidate[beacontypes.GetBlockRewardsRequest](
 		c, h.Logger(),
 	)
 	if err != nil {
 		return nil, err
 	}
-	slot, err := utils.SlotFromBlockID(req.BlockID, h.backend)
-	if err != nil {
-		return nil, err
-	}
-	rewards, err := h.backend.BlockRewardsAtSlot(slot)
-	if err != nil {
-		return nil, err
+
+	// TODO: Implement this.
+	rewards := &types.BlockRewardsData{
+		ProposerIndex:     1,
+		Total:             1,
+		Attestations:      1,
+		SyncAggregate:     1,
+		ProposerSlashings: 1,
+		AttesterSlashings: 1,
 	}
 	return beacontypes.NewResponse(rewards), nil
 }
