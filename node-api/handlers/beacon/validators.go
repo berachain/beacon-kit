@@ -23,13 +23,13 @@ package beacon
 import (
 	"errors"
 	"fmt"
-	"net/http"
 
-	"github.com/berachain/beacon-kit/node-api/backend"
+	"cosmossdk.io/collections"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	types "github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 func (h *Handler) GetStateValidators(c handlers.Context) (any, error) {
@@ -77,98 +77,59 @@ func (h *Handler) GetStateValidator(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
-	switch {
-	case err == nil:
-		// No error, continue
-	case errors.Is(err, utils.ErrNoSlotForStateRoot):
-		return &handlers.HTTPError{
-			Code:    http.StatusNotFound,
-			Message: "State not found",
-		}, nil
-	default:
+	if err != nil {
 		return nil, err
 	}
-	validator, err := h.backend.ValidatorByID(
-		slot,
-		req.ValidatorID,
-	)
-	switch {
-	case errors.Is(err, backend.ErrValidatorNotFound):
-		return &handlers.HTTPError{
-			Code:    http.StatusNotFound,
-			Message: "Validator not found",
-		}, nil
-	case err != nil:
+	valData, err := h.getValidator(slot, req.ValidatorID)
+	if err != nil {
 		return nil, err
-	default:
-		return beacontypes.NewResponse(validator), nil
 	}
+	return beacontypes.NewResponse(valData), err
 }
 
-func (h *Handler) GetStateValidatorBalances(c handlers.Context) (any, error) {
-	req, err := utils.BindAndValidate[beacontypes.GetValidatorBalancesRequest](
-		c, h.Logger(),
-	)
+// getValidator contains all the logic of the GetStateValidator api
+// that is not related to http stuff. Consider exporting it if needed
+func (h *Handler) getValidator(slot math.Slot, validatorID string) (*beacontypes.ValidatorData, error) {
+	st, resolvedSlot, err := h.backend.StateAtSlot(slot)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get state from slot %d: %w", slot, err)
 	}
-	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
 
-	switch {
-	case err == nil:
-		// No error, continue
-	case errors.Is(err, utils.ErrNoSlotForStateRoot):
-		return &handlers.HTTPError{
-			Code:    http.StatusNotFound,
-			Message: "State not found",
-		}, nil
-	default:
-		return nil, err
-	}
-	balances, err := h.backend.ValidatorBalancesByIDs(
-		slot,
-		req.IDs,
-	)
+	// retrieve validator data
+	index, err := validatorIndexByID(st, validatorID)
 	if err != nil {
-		return nil, err
-	}
-	return beacontypes.NewResponse(balances), nil
-}
-
-func (h *Handler) PostStateValidatorBalances(c handlers.Context) (any, error) {
-	var ids []string
-	if err := c.Bind(&ids); err != nil {
-		return nil, types.ErrInvalidRequest
-	}
-	// Get state_id from URL path parameter
-	req := beacontypes.PostValidatorBalancesRequest{
-		StateIDRequest: types.StateIDRequest{StateID: c.Param("state_id")},
-		IDs:            ids,
+		if errors.Is(err, collections.ErrNotFound) {
+			// this should happen when validatorID is an unknown pub key
+			return nil, fmt.Errorf("%s: %w", err.Error(), types.ErrNotFound)
+		}
+		return nil, fmt.Errorf("failed to get validator index by id %s: %w", validatorID, err)
 	}
 
-	if err := c.Validate(&req); err != nil {
-		return nil, types.ErrInvalidRequest
-	}
-
-	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
-	switch {
-	case err == nil:
-		// No error, continue
-	case errors.Is(err, utils.ErrNoSlotForStateRoot):
-		return &handlers.HTTPError{
-			Code:    http.StatusNotFound,
-			Message: "State not found",
-		}, nil
-	default:
-		return nil, err
-	}
-	balances, err := h.backend.ValidatorBalancesByIDs(
-		slot,
-		req.IDs,
-	)
+	validator, err := st.ValidatorByIndex(index)
 	if err != nil {
-		return nil, err
+		// this should happen when validatorID is an unknown index
+		if errors.Is(err, collections.ErrNotFound) {
+			return nil, fmt.Errorf("%s: %w", err.Error(), types.ErrNotFound)
+		}
+		return nil, fmt.Errorf("failed to get validator by index %s: %w", validatorID, err)
 	}
-	return beacontypes.NewResponse(balances), nil
+
+	balance, err := st.GetBalance(index)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get validator balance for validator pubkey %s and index %d: %w", validator.GetPubkey(), index, err)
+	}
+	status, err := validator.Status(h.cs.SlotToEpoch(resolvedSlot))
+	if err != nil {
+		return nil, fmt.Errorf("failed to get validator status for validator pubkey %s and index %d: %w", validator.GetPubkey(), index, err)
+	}
+	return &beacontypes.ValidatorData{
+		ValidatorBalanceData: beacontypes.ValidatorBalanceData{
+			Index:   index.Unwrap(),
+			Balance: balance.Unwrap(),
+		},
+		Status:    status,
+		Validator: beacontypes.ValidatorFromConsensus(validator),
+	}, nil
 }

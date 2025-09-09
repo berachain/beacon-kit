@@ -503,7 +503,6 @@ type (
 		BlockBackend
 		RandaoBackend
 		StateBackend
-		ValidatorBackend
 		WithdrawalBackend
 		// GetSlotByBlockRoot retrieves the slot by a given root from the store.
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
@@ -559,15 +558,5 @@ type (
 
 	WithdrawalBackend interface {
 		PendingPartialWithdrawalsAtState(*statedb.StateDB) ([]*types.PendingPartialWithdrawalData, error)
-	}
-
-	ValidatorBackend interface {
-		ValidatorByID(
-			slot math.Slot, id string,
-		) (*types.ValidatorData, error)
-		ValidatorBalancesByIDs(
-			slot math.Slot,
-			ids []string,
-		) ([]*types.ValidatorBalanceData, error)
 	}
 )
