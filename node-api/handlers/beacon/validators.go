@@ -22,6 +22,7 @@ package beacon
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/berachain/beacon-kit/node-api/backend"
@@ -31,28 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 )
 
-var ErrNoSlotForStateRoot = errors.New("slot not found at state root")
-
-// getStateValidators is a helper function to provide implementation
-// consistency between GetStateValidators and PostStateValidators, since they
-// are intended to behave the same way.
-func (h *Handler) getStateValidators(stateID string, ids []string, statuses []string) (any, error) {
-	slot, err := utils.SlotFromStateID(stateID, h.backend)
-	if err != nil {
-		return nil, err
-	}
-	validators, err := h.backend.FilteredValidators(
-		slot,
-		ids,
-		statuses,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return beacontypes.NewResponse(validators), nil
-}
-
 func (h *Handler) GetStateValidators(c handlers.Context) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetStateValidatorsRequest](
 		c, h.Logger(),
@@ -60,7 +39,16 @@ func (h *Handler) GetStateValidators(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return h.getStateValidators(req.StateID, req.IDs, req.Statuses)
+
+	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
+	if err != nil {
+		return nil, err
+	}
+	filteredVals, err := h.FilterValidators(slot, req.IDs, req.Statuses)
+	if err != nil {
+		return nil, fmt.Errorf("failed to filter validators: %w", err)
+	}
+	return beacontypes.NewResponse(filteredVals), nil
 }
 
 func (h *Handler) PostStateValidators(c handlers.Context) (any, error) {
@@ -70,7 +58,16 @@ func (h *Handler) PostStateValidators(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return h.getStateValidators(req.StateID, req.IDs, req.Statuses)
+
+	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
+	if err != nil {
+		return nil, err
+	}
+	filteredVals, err := h.FilterValidators(slot, req.IDs, req.Statuses)
+	if err != nil {
+		return nil, fmt.Errorf("failed to filter validators: %w", err)
+	}
+	return beacontypes.NewResponse(filteredVals), nil
 }
 
 func (h *Handler) GetStateValidator(c handlers.Context) (any, error) {

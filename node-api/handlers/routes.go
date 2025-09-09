@@ -22,7 +22,13 @@ package handlers
 
 import (
 	"github.com/berachain/beacon-kit/log"
+	"github.com/labstack/echo/v4"
 )
+
+type Context = echo.Context
+
+// handlerFn enforces a signature for all handler functions.
+type handlerFn func(c Context) (any, error)
 
 // Route is a route for the node API.
 type Route struct {

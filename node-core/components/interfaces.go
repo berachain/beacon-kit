@@ -28,10 +28,7 @@ import (
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
-	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	nodecoretypes "github.com/berachain/beacon-kit/node-core/types"
 	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -488,14 +485,7 @@ type (
 		Validate(any) error
 	}
 
-	// Engine is a generic interface for an API engine.
-	NodeAPIEngine interface {
-		Run(addr string) error
-		RegisterRoutes(*handlers.RouteSet, log.Logger)
-	}
-
 	NodeAPIBackend interface {
-		AttachQueryBackend(node nodecoretypes.ConsensusService)
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		GetSlotByStateRoot(root common.Root) (math.Slot, error)
 		GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
@@ -575,11 +565,6 @@ type (
 		ValidatorByID(
 			slot math.Slot, id string,
 		) (*types.ValidatorData, error)
-		FilteredValidators(
-			slot math.Slot,
-			ids []string,
-			statuses []string,
-		) ([]*types.ValidatorData, error)
 		ValidatorBalancesByIDs(
 			slot math.Slot,
 			ids []string,

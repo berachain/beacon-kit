@@ -189,11 +189,9 @@ graffiti = ""
 # process-proposal to allow for the execution client to have more time to assemble the block.
 enable-optimistic-payload-builds = "false"
 
-[beacon-kit.block-store-service]
-# Enabled determines if the block store service is enabled.
-enabled = "false"
-
 # AvailabilityWindow is the number of slots to keep in the store.
+# Setting AvailabilityWindow to 0 disables block store and does not allow the node
+# to serve proof or namespace apis from beacon node-api.
 availability-window = "8192"
 
 [beacon-kit.node-api]

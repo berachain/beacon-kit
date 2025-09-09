@@ -24,13 +24,14 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/log/noop"
-	beaconecho "github.com/berachain/beacon-kit/node-api/engines/echo"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/mocks"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/types"
+	"github.com/berachain/beacon-kit/node-api/middleware"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/labstack/echo/v4"
@@ -39,6 +40,9 @@ import (
 
 func TestGetGenesis(t *testing.T) {
 	t.Parallel()
+
+	cs, errSpec := spec.MainnetChainSpec()
+	require.NoError(t, errSpec)
 
 	var (
 		testGenesisRoot        = common.Root{0x10, 0x20, 0x30}
@@ -134,11 +138,10 @@ func TestGetGenesis(t *testing.T) {
 
 			// setup test
 			backend := mocks.NewBackend(t)
-			h := beacon.NewHandler(backend)
-			h.SetLogger(noop.NewLogger[log.Logger]())
+			h := beacon.NewHandler(backend, cs, noop.NewLogger[log.Logger]())
 			e := echo.New()
-			e.Validator = &beaconecho.CustomValidator{
-				Validator: beaconecho.ConstructValidator(),
+			e.Validator = &middleware.CustomValidator{
+				Validator: middleware.ConstructValidator(),
 			}
 
 			// set expectations
