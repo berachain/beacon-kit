@@ -29,25 +29,11 @@ import (
 
 // Backend is the interface for backend of the beacon API.
 type Backend interface {
-	GenesisBackend
-	BlobBackend
-	StateBackend
-	// GetSlotByBlockRoot retrieves the slot by a given root from the store.
-	GetSlotByBlockRoot(root common.Root) (math.Slot, error)
-	// GetSlotByStateRoot retrieves the slot by a given root from the store.
-	GetSlotByStateRoot(root common.Root) (math.Slot, error)
-}
-
-type GenesisBackend interface {
-	GenesisValidatorsRoot() (common.Root, error)
-	GenesisForkVersion() (common.Version, error)
-	GenesisTime() (math.U64, error)
-}
-
-type BlobBackend interface {
 	BlobSidecarsByIndices(slot math.Slot, indices []uint64) ([]*types.Sidecar, error)
-}
 
-type StateBackend interface {
 	StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error)
+
+	// Methods helping mapping block/state/... IDs in requests to heights
+	GetSlotByBlockRoot(root common.Root) (math.Slot, error)
+	GetSlotByStateRoot(root common.Root) (math.Slot, error)
 }
