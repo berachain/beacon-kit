@@ -23,29 +23,29 @@
 package backend_test
 
 import (
+	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
 	"cosmossdk.io/log"
-	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/config/spec"
+	"github.com/berachain/beacon-kit/consensus-types/types"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
-	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-api/backend"
 	"github.com/berachain/beacon-kit/node-api/backend/mocks"
-	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
+	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
-	"github.com/berachain/beacon-kit/storage/beacondb"
+	"github.com/berachain/beacon-kit/state-transition/core/state"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	cmtcfg "github.com/cometbft/cometbft/config"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -53,52 +53,62 @@ func TestGetGenesisData_SunnyPath(t *testing.T) {
 	t.Parallel()
 
 	var (
-		genesisTime              = int64(1737410400)
+		testGenesisTime          = int64(1737410400)
 		testGenesisValidatorRoot = common.Root{0x1, 0x2, 0x3}
 		testFailedLoadingState   = errors.New("test failed loading state")
+
+		expectedGenesisTime    math.U64       // to be retrieved when setting genesis state and used in checks
+		expectedGenesisVersion common.Version // to be retrieved when setting genesis state and used in checks
 	)
 
 	testCases := []struct {
 		name                string
-		setMockExpectations func(storetypes.CommitMultiStore, *beacondb.KVStore, *mocks.ConsensusService)
-		check               func(t *testing.T, b *backend.Backend)
+		setMockExpectations func(*mocks.ConsensusService, *mocks.GenesisStateProcessor)
+		check               func(t *testing.T, b *backend.Backend, errLoad error)
 	}{
 		{
-			name: "sunny path",
+			name: "success",
 			setMockExpectations: func(
-				cms storetypes.CommitMultiStore,
-				kvStore *beacondb.KVStore,
 				tcs *mocks.ConsensusService,
+				sp *mocks.GenesisStateProcessor,
 			) {
 				t.Helper()
 
-				setupStateWithGenesisValues(t, cms, kvStore, testGenesisValidatorRoot)
+				tcs.EXPECT().IsAppReady().Return(nil)
+				sp.EXPECT().InitializeBeaconStateFromEth1(
+					mock.Anything, mock.Anything, mock.Anything, mock.Anything).Run(
+					func(
+						st *state.StateDB,
+						_ types.Deposits,
+						execPayloadHeader *types.ExecutionPayloadHeader,
+						genVer bytes.B4,
+					) {
+						expectedGenesisVersion = genVer
+						expectedGenesisTime = execPayloadHeader.GetTimestamp()
 
-				tcs.EXPECT().CreateQueryContext(int64(utils.Head), false).RunAndReturn(
-					func(int64, bool) (sdk.Context, error) {
-						sdkCtx := sdk.NewContext(cms.CacheMultiStore(), false, log.NewNopLogger())
-						return sdkCtx, nil
+						require.NoError(t, st.SetFork(&types.Fork{
+							PreviousVersion: genVer,
+							CurrentVersion:  genVer,
+						}))
+						require.NoError(t, st.SetLatestExecutionPayloadHeader(execPayloadHeader))
+						require.NoError(t, st.SetGenesisValidatorsRoot(testGenesisValidatorRoot))
 					},
-				).Once()
+				).Return(nil, nil)
 			},
-			check: func(t *testing.T, b *backend.Backend) {
+			check: func(t *testing.T, b *backend.Backend, errLoad error) {
 				t.Helper()
+
+				require.NoError(t, errLoad)
 
 				gotGenesisTime, err := b.GenesisTime()
 				require.NoError(t, err)
-				require.Equal(t, math.U64(genesisTime), gotGenesisTime)
+				require.Equal(t, expectedGenesisTime, gotGenesisTime)
 
-				genesisForkVersion, err := b.GenesisForkVersion()
+				gotGenesisVersion, err := b.GenesisForkVersion()
 				require.NoError(t, err)
-				require.Equal(t, version.Deneb(), genesisForkVersion)
+				require.Equal(t, expectedGenesisVersion, gotGenesisVersion)
 
 				genesisValidatorsRoot, err := b.GenesisValidatorsRoot()
-				require.NoError(t, err)
-				require.Equal(t, testGenesisValidatorRoot, genesisValidatorsRoot)
-
-				// reloading genesis validator root will provide the cached value.
-				// CreateQueryContext above can be called only once and will err otherwise.
-				genesisValidatorsRoot, err = b.GenesisValidatorsRoot()
 				require.NoError(t, err)
 				require.Equal(t, testGenesisValidatorRoot, genesisValidatorsRoot)
 			},
@@ -106,71 +116,50 @@ func TestGetGenesisData_SunnyPath(t *testing.T) {
 		{
 			name: "app not ready",
 			setMockExpectations: func(
-				cms storetypes.CommitMultiStore,
-				kvStore *beacondb.KVStore,
 				tcs *mocks.ConsensusService,
+				_ *mocks.GenesisStateProcessor,
 			) {
 				t.Helper()
-
-				setupStateWithGenesisValues(t, cms, kvStore, testGenesisValidatorRoot)
-
-				tcs.EXPECT().CreateQueryContext(int64(utils.Head), false).RunAndReturn(
-					func(int64, bool) (sdk.Context, error) {
-						// cometbft.ErrAppNotReady signals that consensus has not state
-						// i.e. genesis has not been processed yet
-						return sdk.Context{}, cometbft.ErrAppNotReady
-					},
-				).Once()
+				tcs.EXPECT().IsAppReady().Return(cometbft.ErrAppNotReady)
 			},
-			check: func(t *testing.T, b *backend.Backend) {
+			check: func(t *testing.T, b *backend.Backend, errLoad error) {
 				t.Helper()
 
-				gotGenesisTime, err := b.GenesisTime()
-				require.NoError(t, err)
-				require.Equal(t, math.U64(genesisTime), gotGenesisTime)
+				require.NoError(t, errLoad)
 
-				genesisForkVersion, err := b.GenesisForkVersion()
-				require.NoError(t, err)
-				require.Equal(t, version.Deneb(), genesisForkVersion)
+				_, err := b.GenesisTime()
+				require.ErrorIs(t, err, backend.ErrNodeAPINotReady)
 
-				// cometbft.ErrAppNotReady does not get propagated. Instead
-				// we return an empty genesis validator root.
-				genesisValidatorsRoot, err := b.GenesisValidatorsRoot()
-				require.NoError(t, err)
-				require.Empty(t, genesisValidatorsRoot)
+				_, err = b.GenesisForkVersion()
+				require.ErrorIs(t, err, backend.ErrNodeAPINotReady)
+
+				_, err = b.GenesisValidatorsRoot()
+				require.ErrorIs(t, err, backend.ErrNodeAPINotReady)
 			},
 		},
 		{
 			name: "failed loading state",
 			setMockExpectations: func(
-				cms storetypes.CommitMultiStore,
-				kvStore *beacondb.KVStore,
 				tcs *mocks.ConsensusService,
+				_ *mocks.GenesisStateProcessor,
 			) {
 				t.Helper()
 
-				setupStateWithGenesisValues(t, cms, kvStore, testGenesisValidatorRoot)
-
-				tcs.EXPECT().CreateQueryContext(int64(utils.Head), false).RunAndReturn(
-					func(int64, bool) (sdk.Context, error) {
-						return sdk.Context{}, testFailedLoadingState
-					},
-				).Once()
+				tcs.EXPECT().IsAppReady().Return(testFailedLoadingState)
 			},
-			check: func(t *testing.T, b *backend.Backend) {
+			check: func(t *testing.T, b *backend.Backend, errLoad error) {
 				t.Helper()
 
-				gotGenesisTime, err := b.GenesisTime()
-				require.NoError(t, err)
-				require.Equal(t, math.U64(genesisTime), gotGenesisTime)
+				require.ErrorIs(t, errLoad, testFailedLoadingState)
 
-				genesisForkVersion, err := b.GenesisForkVersion()
-				require.NoError(t, err)
-				require.Equal(t, version.Deneb(), genesisForkVersion)
-
-				genesisValidatorsRoot, err := b.GenesisValidatorsRoot()
+				_, err := b.GenesisTime()
 				require.ErrorIs(t, err, testFailedLoadingState)
-				require.Empty(t, genesisValidatorsRoot)
+
+				_, err = b.GenesisForkVersion()
+				require.ErrorIs(t, err, testFailedLoadingState)
+
+				_, err = b.GenesisValidatorsRoot()
+				require.ErrorIs(t, err, testFailedLoadingState)
 			},
 		},
 	}
@@ -183,47 +172,31 @@ func TestGetGenesisData_SunnyPath(t *testing.T) {
 			cs, err := spec.MainnetChainSpec()
 			require.NoError(t, err)
 
-			cmtCfg := buildTestCometConfig(t, genesisTime)
+			cmtCfg := buildTestCometConfig(t, testGenesisTime)
 
-			cms, kvStore, depositStore, err := statetransition.BuildTestStores()
+			_, kvStore, depositStore, err := statetransition.BuildTestStores()
 			require.NoError(t, err)
 			sb := storage.NewBackend(
 				cs, nil, kvStore, depositStore, nil, log.NewNopLogger(), metrics.NewNoOpTelemetrySink(),
 			)
 
 			tcs := mocks.NewConsensusService(t)
+			sp := mocks.NewGenesisStateProcessor(t)
 
 			// 2- Setup expectations before backend construction
-			// (loading operations are carried out in backend.New())
-			tc.setMockExpectations(cms, kvStore, tcs)
+			tc.setMockExpectations(tcs, sp)
 
 			// 3- Build backend
-			b := backend.New(sb, cs, cmtCfg, tcs)
-			require.NoError(t, b.LoadData())
+			b := backend.New(sb, sp, cs, cmtCfg, tcs)
+			errLoad := b.LoadData(context.Background())
 
 			// 4- Checks
-			tc.check(t, b)
+			tc.check(t, b, errLoad)
 		})
 	}
 }
 
-func setupStateWithGenesisValues(
-	t *testing.T,
-	cms storetypes.CommitMultiStore,
-	kvStore *beacondb.KVStore,
-	testGenesisValidatorRoot common.Root,
-) {
-	t.Helper()
-
-	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), false, log.NewNopLogger())
-	kvStore = kvStore.WithContext(sdkCtx)
-	require.NoError(t, kvStore.SetSlot(0))
-	require.NoError(t, kvStore.SetGenesisValidatorsRoot(testGenesisValidatorRoot))
-
-	//nolint:errcheck // false positive as this has no return value
-	sdkCtx.MultiStore().(storetypes.CacheMultiStore).Write()
-}
-
+//nolint:lll // long genesis
 func buildTestCometConfig(t *testing.T, genesisTime int64) *cmtcfg.Config {
 	t.Helper()
 
@@ -237,11 +210,30 @@ func buildTestCometConfig(t *testing.T, genesisTime int64) *cmtcfg.Config {
 	err := os.MkdirAll(configDir, 0o755)
 	require.NoError(t, err)
 
-	// Create app genesis with version of Deneb 0x04000000.
 	appGenesis := genutiltypes.NewAppGenesisWithVersion("test-chain", []byte(`
 	{
 		"beacon": {
-			"fork_version": "0x04000000"
+			"fork_version": "0x04000000",
+			"deposits": [],
+			"execution_payload_header": {
+				"parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+				"feeRecipient": "0x0000000000000000000000000000000000000000",
+				"stateRoot": "0xaf7ac45ece564c84ee2451776587c548aebb91ba04eb6040fd2b26055539c8e3",
+				"receiptsRoot": "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
+				"logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+				"prevRandao": "0x0000000000000000000000000000000000000000000000000000000000000000",
+				"blockNumber": "0x0",
+				"gasLimit": "0x1c9c380",
+				"gasUsed": "0x0",
+				"timestamp": "0x67b5f01f",
+				"extraData": "0x",
+				"baseFeePerGas": "1000000000",
+				"blockHash": "0x0207661de38f0e54ba91c8286096e72486784c79dc6a9681fc486b38335c042f",
+				"transactionsRoot": "0x7ffe241ea60187fdb0187bfa22de35d1f9bed7ab061d9401fd47e34a54fbede1",
+				"withdrawalsRoot": "0x792930bbd5baac43bcc798ee49aa8185ef76bb3b44ba62b91d86ae569e4bb535",
+				"blobGasUsed": "0x0",
+				"excessBlobGas": "0x0"
+			}
 		}
 	}
 	`))

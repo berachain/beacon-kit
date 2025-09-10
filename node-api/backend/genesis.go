@@ -21,50 +21,192 @@
 package backend
 
 import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+
+	corestore "cosmossdk.io/core/store"
+	"cosmossdk.io/log"
+	"cosmossdk.io/store"
+	sdkmetrics "cosmossdk.io/store/metrics"
+	storetypes "cosmossdk.io/store/types"
+	"github.com/berachain/beacon-kit/chain"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
-	"github.com/berachain/beacon-kit/errors"
-	"github.com/berachain/beacon-kit/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/state-transition/core/state"
+	kvstorage "github.com/berachain/beacon-kit/storage"
+	"github.com/berachain/beacon-kit/storage/beacondb"
+	"github.com/berachain/beacon-kit/storage/db"
+	dbm "github.com/cosmos/cosmos-db"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 )
+
+var ErrNodeAPINotReady = fmt.Errorf("%s node-api is not ready", cometbft.AppName)
 
 // GenesisValidatorsRoot returns the genesis validators root of the beacon chain.
 func (b *Backend) GenesisValidatorsRoot() (common.Root, error) {
-	// First check if the value is cached.
-	root := b.genesisValidatorsRoot.Load()
-	if root != nil && *root != (common.Root{}) {
-		return *root, nil
+	b.muGs.Lock()
+	defer b.muGs.Unlock()
+
+	if err := b.checkChainIsReady(); err != nil {
+		return common.Root{}, err
 	}
 
-	// If not cached, read state from the beacon state at the tip of chain.
-	st, _, err := b.StateAtSlot(utils.Head)
+	validatorsRoot, err := b.genesisState.GetGenesisValidatorsRoot()
 	if err != nil {
-		// Should the app be not read, we return an empty validator root
-		// which is duly processed by clients
-		if errors.Is(err, cometbft.ErrAppNotReady) {
-			return common.Root{}, nil
-		}
-		return common.Root{}, errors.Wrapf(err, "failed to get state from tip of chain")
+		return common.Root{}, fmt.Errorf("failed retrieving genesis validator root: %w", err)
 	}
-
-	// Get the genesis validators root.
-	validatorsRoot, err := st.GetGenesisValidatorsRoot()
-	if err != nil {
-		return common.Root{}, errors.Wrap(err, "failed to get genesis validators root from state")
-	}
-
-	// Cache the value for future use.
-	b.genesisValidatorsRoot.Store(&validatorsRoot)
-
 	return validatorsRoot, nil
 }
 
 // GenesisForkVersion returns the genesis fork version of the beacon chain.
 func (b *Backend) GenesisForkVersion() (common.Version, error) {
-	return *b.genesisForkVersion.Load(), nil
+	b.muGs.Lock()
+	defer b.muGs.Unlock()
+
+	if err := b.checkChainIsReady(); err != nil {
+		return common.Version{}, err
+	}
+
+	fork, err := b.genesisState.GetFork()
+	if err != nil {
+		return common.Version{}, fmt.Errorf("failed retrieving genesis fork: %w", err)
+	}
+	return fork.CurrentVersion, nil
+}
+
+func (b *Backend) checkChainIsReady() error {
+	switch err := b.node.IsAppReady(); {
+	case err == nil:
+		// chain finally ready, time to loading genesis
+		return b.loadGenesisState()
+	case errors.Is(err, cometbft.ErrAppNotReady):
+		return ErrNodeAPINotReady
+	default:
+		return fmt.Errorf("unable to check whether app is ready: %w", err)
+	}
 }
 
 // GenesisTime returns the genesis time of the beacon chain.
 func (b *Backend) GenesisTime() (math.U64, error) {
-	return *b.genesisTime.Load(), nil
+	b.muGs.Lock()
+	defer b.muGs.Unlock()
+
+	if err := b.checkChainIsReady(); err != nil {
+		return 0, err
+	}
+
+	payload, err := b.genesisState.GetLatestExecutionPayloadHeader()
+	if err != nil {
+		return 0, fmt.Errorf("failed retrieving genesis payload: %w", err)
+	}
+
+	return payload.GetTimestamp(), nil
+}
+
+type backendKVStoreService struct {
+	ctx sdk.Context
+}
+
+func (kvs *backendKVStoreService) OpenKVStore(context.Context) corestore.KVStore {
+	//nolint:contextcheck // fine with tests
+	store := sdk.UnwrapSDKContext(kvs.ctx).KVStore(backendStoreKey)
+	return kvstorage.NewKVStore(store)
+}
+
+//nolint:gochecknoglobals // todo: fix later
+var backendStoreKey = storetypes.NewKVStoreKey("backend-genesis")
+
+func (b *Backend) loadGenesisState() error {
+	if b.genesisState != nil {
+		// genesis state already initialized, we're fine
+		return nil
+	}
+
+	// 1- Load Genesis bytes
+	genesisData, err := parseGenesisBytes(b)
+	if err != nil {
+		return err
+	}
+
+	// 2- Create Genesis Store
+	b.genesisState, err = initGenesisState(b.cs)
+	if err != nil {
+		return fmt.Errorf("backend data loading:%w", err)
+	}
+
+	// 3- Reprocess Genesis via state Processor. This is safe
+	// since it's done on its own state AND state processor does not
+	// make any call to the EVM during genesis processing.
+	// Note: we process genesis here as soon as node start, but
+	// chain would wait for genesisTime to come if genesisTime
+	// is set in the future. We replicate this behaviour with checkChainIsReady.
+	if _, err = b.sp.InitializeBeaconStateFromEth1(
+		b.genesisState,
+		genesisData.GetDeposits(),
+		genesisData.GetExecutionPayloadHeader(),
+		genesisData.GetForkVersion(),
+	); err != nil {
+		return fmt.Errorf("failed processing genesis: %w", err)
+	}
+	return nil
+}
+
+func parseGenesisBytes(b *Backend) (ctypes.Genesis, error) {
+	appGenesis, err := genutiltypes.AppGenesisFromFile(b.cmtCfg.GenesisFile())
+	if err != nil {
+		return ctypes.Genesis{}, fmt.Errorf("failed loading app genesis from file: %w", err)
+	}
+	gen, err := appGenesis.ToGenesisDoc()
+	if err != nil {
+		return ctypes.Genesis{}, fmt.Errorf("failed parsing app genesis: %w", err)
+	}
+	var genesisState map[string]json.RawMessage
+	if err = json.Unmarshal(gen.AppState, &genesisState); err != nil {
+		return ctypes.Genesis{}, fmt.Errorf("failed to unmarshal genesis state: %w", err)
+	}
+	data := []byte(genesisState["beacon"])
+
+	genesisData := ctypes.Genesis{}
+	if err = json.Unmarshal(data, &genesisData); err != nil {
+		return ctypes.Genesis{}, fmt.Errorf("failed to unmarshal genesis data: %w", err)
+	}
+	return genesisData, nil
+}
+
+func initGenesisState(cs chain.Spec) (*state.StateDB, error) {
+	db, err := db.OpenDB("", dbm.MemDBBackend)
+	if err != nil {
+		return nil, fmt.Errorf("failed opening mem db: %w", err)
+	}
+	var (
+		nopLog     = log.NewNopLogger()
+		nopMetrics = sdkmetrics.NewNoOpMetrics()
+	)
+
+	cms := store.NewCommitMultiStore(db, nopLog, nopMetrics)
+
+	cms.MountStoreWithDB(backendStoreKey, storetypes.StoreTypeIAVL, nil)
+	if err = cms.LoadLatestVersion(); err != nil {
+		return nil, fmt.Errorf("backend data loading: failed to load latest version: %w", err)
+	}
+
+	ctx := sdk.NewContext(cms, true, nopLog)
+	backendStoreService := &backendKVStoreService{
+		ctx: ctx,
+	}
+	kvStore := beacondb.New(backendStoreService)
+
+	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), true, log.NewNopLogger())
+	return state.NewBeaconStateFromDB(
+		kvStore.WithContext(sdkCtx),
+		cs,
+		sdkCtx.Logger(),
+		metrics.NewNoOpTelemetrySink(),
+	), nil
 }

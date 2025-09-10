@@ -21,18 +21,21 @@
 package backend
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"runtime"
-	"sync/atomic"
+	"sync"
 
 	"github.com/berachain/beacon-kit/chain"
+	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/berachain/beacon-kit/node-core/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/state-transition/core/state"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/version"
-	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 )
 
 // Backend is the db access layer for the beacon node-api.
@@ -44,25 +47,23 @@ type Backend struct {
 	cmtCfg *cmtcfg.Config // used to fetch genesis data upon LoadData
 	node   types.ConsensusService
 
-	// genesisValidatorsRoot is cached in the backend.
-	genesisValidatorsRoot atomic.Pointer[common.Root]
-
-	// genesisTime is cached here, written to once during initialization!
-	genesisTime atomic.Pointer[math.U64]
-
-	// genesisForkVersion is cached here, written to once during initialization!
-	genesisForkVersion atomic.Pointer[common.Version]
+	// Genesis related data
+	sp           GenesisStateProcessor // only needed to recreate genesis state upon API loading
+	muGs         sync.RWMutex          // muGs protects genesisState for concurrent access.
+	genesisState *state.StateDB        // caches genesis data to serve API requests
 }
 
 // New creates and returns a new Backend instance.
 func New(
 	storageBackend *storage.Backend,
+	sp GenesisStateProcessor,
 	cs chain.Spec,
 	cmtCfg *cmtcfg.Config,
 	consensusService types.ConsensusService,
 ) *Backend {
 	b := &Backend{
 		sb:     storageBackend,
+		sp:     sp,
 		cs:     cs,
 		cmtCfg: cmtCfg,
 		node:   consensusService,
@@ -76,28 +77,18 @@ func New(
 // are only needed if the API is active, so their processing happens in `LoadData`
 // which should be called only if node-api server is actually started (it would be
 // configure to not start).
-func (b *Backend) LoadData() error {
-	// Load the genesis file from cometbft config.
-	appGenesis, err := genutiltypes.AppGenesisFromFile(b.cmtCfg.GenesisFile())
-	if err != nil {
-		return fmt.Errorf("failed loading app genesis from file: %w", err)
+func (b *Backend) LoadData(_ context.Context) error {
+	switch err := b.node.IsAppReady(); {
+	case err == nil:
+		// chain finally ready, time to loading genesis
+		//nolint:contextcheck // loadGenesisState creates its own context for in-memory store
+		return b.loadGenesisState()
+	case errors.Is(err, cometbft.ErrAppNotReady):
+		// start anyhow, we'll init genesis state later on
+		return nil
+	default:
+		return fmt.Errorf("unable to check whether app is ready: %w", err)
 	}
-	gen, err := appGenesis.ToGenesisDoc()
-	if err != nil {
-		return fmt.Errorf("failed parsing: %w", err)
-	}
-
-	// Store the genesis time in the backend.
-	//#nosec: G115 // Unix time will never be negative.
-	genesisTime := math.U64(gen.GenesisTime.Unix())
-	b.genesisTime.Store(&genesisTime)
-
-	// Derive the genesis fork version from the genesis time.
-	genesisForkVersion := b.cs.ActiveForkVersionForTimestamp(genesisTime)
-	b.genesisForkVersion.Store(&genesisForkVersion)
-
-	// TODO: consider loading genesis validator root here too
-	return nil
 }
 
 // GetSlotByBlockRoot retrieves the slot by a block root from the block store.

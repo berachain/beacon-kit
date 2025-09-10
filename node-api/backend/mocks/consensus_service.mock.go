@@ -135,6 +135,51 @@ func (_c *ConsensusService_GetSyncData_Call) RunAndReturn(run func() (int64, int
 	return _c
 }
 
+// IsAppReady provides a mock function with given fields:
+func (_m *ConsensusService) IsAppReady() error {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsAppReady")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ConsensusService_IsAppReady_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsAppReady'
+type ConsensusService_IsAppReady_Call struct {
+	*mock.Call
+}
+
+// IsAppReady is a helper method to define mock.On call
+func (_e *ConsensusService_Expecter) IsAppReady() *ConsensusService_IsAppReady_Call {
+	return &ConsensusService_IsAppReady_Call{Call: _e.mock.On("IsAppReady")}
+}
+
+func (_c *ConsensusService_IsAppReady_Call) Run(run func()) *ConsensusService_IsAppReady_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *ConsensusService_IsAppReady_Call) Return(_a0 error) *ConsensusService_IsAppReady_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *ConsensusService_IsAppReady_Call) RunAndReturn(run func() error) *ConsensusService_IsAppReady_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Name provides a mock function with given fields:
 func (_m *ConsensusService) Name() string {
 	ret := _m.Called()

@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/log/noop"
+	"github.com/berachain/beacon-kit/node-api/backend"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/mocks"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
@@ -80,7 +81,7 @@ func TestGetGenesis(t *testing.T) {
 		{
 			name: "genesis not ready",
 			setMockExpectations: func(b *mocks.Backend) {
-				b.EXPECT().GenesisValidatorsRoot().Return(common.Root{}, nil).Once()
+				b.EXPECT().GenesisValidatorsRoot().Return(common.Root{}, backend.ErrNodeAPINotReady).Once()
 			},
 			check: func(t *testing.T, res any, err error) {
 				t.Helper()
