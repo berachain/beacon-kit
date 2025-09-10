@@ -39,7 +39,6 @@ def start(persistent_peers, is_seed, validator_index, config_settings, app_setti
     --beacon-kit.kzg.trusted-setup-path=/root/kzg/kzg-trusted-setup.json \
     --beacon-kit.kzg.implementation={} \
     --beacon-kit.engine.rpc-dial-url {} \
-    --beacon-kit.block-store-service.enabled \
     --beacon-kit.node-api.enabled --beacon-kit.node-api.logging --beacon-kit.node-api.address 0.0.0.0:3500 \
     --pruning=nothing \
     {} {}".format("$BEACOND_CHAIN_SPEC", kzg_impl, "$BEACOND_ENGINE_DIAL_URL", seed_option, persistent_peers_option)

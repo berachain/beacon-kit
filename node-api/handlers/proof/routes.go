@@ -23,12 +23,10 @@ package proof
 import (
 	"net/http"
 
-	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 )
 
-func (h *Handler) RegisterRoutes(logger log.Logger) {
-	h.SetLogger(logger)
+func registerRoutes(h *Handler) {
 	h.BaseHandler.AddRoutes([]*handlers.Route{
 		{
 			Method:  http.MethodGet,

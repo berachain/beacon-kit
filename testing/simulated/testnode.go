@@ -37,10 +37,12 @@ import (
 	"github.com/berachain/beacon-kit/da/kzg"
 	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/log/phuslu"
-	nodecomponents "github.com/berachain/beacon-kit/node-core/components"
+	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/node-api/server"
 	service "github.com/berachain/beacon-kit/node-core/services/registry"
 	nodetypes "github.com/berachain/beacon-kit/node-core/types"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/net/url"
 	"github.com/berachain/beacon-kit/state-transition/core"
 	"github.com/berachain/beacon-kit/storage/db"
@@ -62,11 +64,15 @@ type TestNodeInput struct {
 	Components  []any
 }
 
+type ValidatorAPI interface {
+	FilterValidators(slot math.Slot, ids []string, statuses []string) ([]*types.ValidatorData, error)
+}
+
 type TestNode struct {
 	nodetypes.Node
 	StorageBackend  blockchain.StorageBackend
 	ChainSpec       chain.Spec
-	APIBackend      nodecomponents.NodeAPIBackend
+	APIBackend      ValidatorAPI
 	SimComet        *SimComet
 	EngineClient    *client.EngineClient
 	StateProcessor  *core.StateProcessor
@@ -118,7 +124,7 @@ func buildNode(
 ) TestNode {
 	// variables to hold the components needed to set up BeaconApp
 	var (
-		apiBackend      nodecomponents.NodeAPIBackend
+		apiServer       *server.Server
 		beaconNode      nodetypes.Node
 		simComet        *SimComet
 		config          *config.Config
@@ -143,7 +149,7 @@ func buildNode(
 				cmtCfg,
 			),
 		),
-		&apiBackend,
+		&apiServer,
 		&beaconNode,
 		&simComet,
 		&config,
@@ -159,17 +165,16 @@ func buildNode(
 	if config == nil {
 		panic("config is nil")
 	}
-	if apiBackend == nil {
-		panic("node or api backend is nil")
+	if apiServer == nil {
+		panic("api server is nil")
 	}
 
 	logger.WithConfig(config.GetLogger())
-	apiBackend.AttachQueryBackend(simComet)
 	return TestNode{
 		Node:            beaconNode,
 		StorageBackend:  storageBackend,
 		ChainSpec:       chainSpec,
-		APIBackend:      apiBackend,
+		APIBackend:      apiServer.GetBeaconHandler(),
 		SimComet:        simComet,
 		EngineClient:    engineClient,
 		StateProcessor:  stateProcessor,
@@ -200,7 +205,6 @@ func getAppOptions(t *testing.T, appOpts *viper.Viper, beaconKitConfig *config.C
 
 	// Beacon Config
 	appOpts.Set(flags.BlockStoreServiceAvailabilityWindow, beaconKitConfig.GetBlockStoreService().AvailabilityWindow)
-	appOpts.Set(flags.BlockStoreServiceEnabled, beaconKitConfig.GetBlockStoreService().Enabled)
 	appOpts.Set(flags.KZGTrustedSetupPath, "../files/kzg-trusted-setup.json")
 	appOpts.Set(flags.KZGImplementation, kzg.DefaultConfig().Implementation)
 
