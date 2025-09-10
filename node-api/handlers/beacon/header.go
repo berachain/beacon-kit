@@ -29,12 +29,10 @@ import (
 	handlertypes "github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/primitives/math"
-	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 var ErrMismatchedSlotAndParentBlock = errors.New("slot does not match with parent block")
 
-//nolint:gocognit // will be simplified by better mapping stateID to state
 func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 	req, errReq := utils.BindAndValidate[beacontypes.GetBlockHeadersRequest](c, h.Logger())
 	if errReq != nil {
@@ -46,11 +44,7 @@ func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 		// no parameter specified, pick chain HEAD
 		// by requesting special slot 0.
 		slot := utils.Head
-		st, _, err := h.backend.StateAtSlot(slot)
-		if err != nil {
-			return nil, fmt.Errorf("%w: failed to get state from slot %d, %s", handlertypes.ErrNotFound, slot, err.Error())
-		}
-		return h.makeBlockHeaderResponse(st, true /*resultsInList*/)
+		return h.makeBlockHeaderResponse(slot, true /*resultsInList*/)
 
 	case len(req.Slot) != 0 && len(req.ParentRoot) == 0:
 		slot, errSlot := math.U64FromString(req.Slot)
@@ -58,11 +52,7 @@ func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 		if errSlot != nil {
 			return nil, fmt.Errorf("failed retrieving slot from input parameters: %w", errSlot)
 		}
-		st, _, err := h.backend.StateAtSlot(slot)
-		if err != nil {
-			return nil, fmt.Errorf("%w: failed to get state from slot %d, %s", handlertypes.ErrNotFound, slot, err.Error())
-		}
-		return h.makeBlockHeaderResponse(st, true /*resultsInList*/)
+		return h.makeBlockHeaderResponse(slot, true /*resultsInList*/)
 
 	case len(req.Slot) == 0 && len(req.ParentRoot) != 0:
 		parentSlot, errParent := utils.SlotFromBlockID(req.ParentRoot, h.backend)
@@ -70,11 +60,7 @@ func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 			return nil, fmt.Errorf("%w, failed retrieving parent root with error: %w", handlertypes.ErrNotFound, errParent)
 		}
 		slot := parentSlot + 1
-		st, _, err := h.backend.StateAtSlot(slot)
-		if err != nil {
-			return nil, fmt.Errorf("%w: failed to get state from slot %d, %s", handlertypes.ErrNotFound, slot, err.Error())
-		}
-		return h.makeBlockHeaderResponse(st, true /*resultsInList*/)
+		return h.makeBlockHeaderResponse(slot, true /*resultsInList*/)
 
 	default:
 		var (
@@ -87,11 +73,7 @@ func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 		if slot != parentSlot+1 {
 			return nil, fmt.Errorf("%w: request slot %d, parent block slot %d", ErrMismatchedSlotAndParentBlock, slot, parentSlot)
 		}
-		st, _, err := h.backend.StateAtSlot(slot)
-		if err != nil {
-			return nil, fmt.Errorf("%w: failed to get state from slot %d, %s", handlertypes.ErrNotFound, slot, err.Error())
-		}
-		return h.makeBlockHeaderResponse(st, true /*resultsInList*/)
+		return h.makeBlockHeaderResponse(slot, true /*resultsInList*/)
 	}
 }
 
@@ -104,15 +86,14 @@ func (h *Handler) GetBlockHeaderByID(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed retrieving slot from block ID %s: %w", req.BlockID, err)
 	}
+	return h.makeBlockHeaderResponse(slot, false /*resultsInList*/)
+}
+
+func (h *Handler) makeBlockHeaderResponse(slot math.Slot, resultsInList bool) (any, error) {
 	st, _, err := h.backend.StateAtSlot(slot)
 	if err != nil {
 		return nil, fmt.Errorf("%w: failed to get state from slot %d, %s", handlertypes.ErrNotFound, slot, err.Error())
 	}
-
-	return h.makeBlockHeaderResponse(st, false /*resultsInList*/)
-}
-
-func (h *Handler) makeBlockHeaderResponse(st *statedb.StateDB, resultsInList bool) (any, error) {
 	// Return after updating the state root in the block header.
 	header, err := st.GetLatestBlockHeader()
 	if err != nil {
