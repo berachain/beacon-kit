@@ -37,6 +37,8 @@ type Service struct {
 	storageBackend StorageBackend
 	// blobProcessor is used for processing sidecars.
 	blobProcessor BlobProcessor
+	// blobRequester is used for requesting missing blobs from peers during sync.
+	blobRequester BlobRequester
 	// depositContract is the contract interface for interacting with the
 	// deposit contract.
 	depositContract deposit.Contract
@@ -74,6 +76,7 @@ type Service struct {
 func NewService(
 	storageBackend StorageBackend,
 	blobProcessor BlobProcessor,
+	blobRequester BlobRequester,
 	depositContract deposit.Contract,
 	logger log.Logger,
 	chainSpec ServiceChainSpec,
@@ -85,6 +88,7 @@ func NewService(
 	return &Service{
 		storageBackend:       storageBackend,
 		blobProcessor:        blobProcessor,
+		blobRequester:        blobRequester,
 		depositContract:      depositContract,
 		eth1FollowDistance:   math.U64(chainSpec.Eth1FollowDistance()),
 		failedBlocks:         make(map[math.Slot]struct{}),

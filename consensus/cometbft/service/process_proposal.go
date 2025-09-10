@@ -26,6 +26,8 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/cache"
+	datypes "github.com/berachain/beacon-kit/da/types"
+	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
 	"github.com/berachain/beacon-kit/primitives/math"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
@@ -61,6 +63,20 @@ func (s *Service) processProposal(
 		),
 	)
 
+	// Reject proposal if blobs are present before they are allowed
+	if s.chainSpec.BlobConsensusEnableHeight() > 0 && req.Height < s.chainSpec.BlobConsensusEnableHeight() {
+		if len(req.Blob) > 0 {
+			status := cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
+			s.logger.Error(
+				"proposal contains blobs before BlobEnableHeight",
+				"height", req.Height,
+				"blob_enable_height", s.chainSpec.BlobConsensusEnableHeight(),
+				"blob_size", len(req.Blob),
+			)
+			return &cmtabci.ProcessProposalResponse{Status: status}, nil
+		}
+	}
+
 	// errors to consensus indicate that the node was not able to understand
 	// whether the block was valid or not. Viceversa, we signal that a block
 	// is invalid by its status, but we do return nil error in such a case.
@@ -81,12 +97,26 @@ func (s *Service) processProposal(
 		return &cmtabci.ProcessProposalResponse{Status: status}, nil
 	}
 
+	// Cache the blobs for FinalizeBlock
+	var blobs datypes.BlobSidecars
+	if blobData := req.GetBlob(); len(blobData) > 0 {
+		if err = ssz.Unmarshal(blobData, &blobs); err != nil {
+			status := cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
+			s.logger.Error("Failed to unmarshal blobs, rejecting proposal",
+				"error", err,
+				"height", req.Height,
+				"blob_data_size", len(blobData))
+			return &cmtabci.ProcessProposalResponse{Status: status}, nil
+		}
+	}
+	s.cachedBlobs = &blobs
+
 	// We must not cache execution of the first block post initialHeight
 	// because its state must be handled in a different way
 	// TODO: before Stable block time activation we keep caching off
 	// to make sure chain does not get faster. Once activated, we can
 	// active as if cache was always active.
-	if cache.IsStateCachingActive(s.delayCfg, math.Slot(req.Height)) {
+	if cache.IsStateCachingActive(s.chainSpec, math.Slot(req.Height)) {
 		stateHash := string(req.Hash)
 		toCache := &cache.Element{
 			State:      processProposalState,

@@ -26,8 +26,8 @@ import (
 
 	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/blobreactor"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
-	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -44,6 +44,17 @@ import (
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
+
+// BlobRequester is the interface for requesting blobs from peers.
+type BlobRequester interface {
+	// RequestBlobs fetches all blobs for a given slot from peers.
+	// Returns all blob sidecars for the slot, or an error if none could be retrieved.
+	RequestBlobs(slot uint64) ([]*datypes.BlobSidecar, error)
+
+	// SetHeadSlot updates the reactor's view of the current blockchain head slot.
+	// Called by the blockchain service after processing each block.
+	SetHeadSlot(slot uint64)
+}
 
 // ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine interface {
@@ -139,7 +150,7 @@ type BlockchainI interface {
 		context.Context,
 		[]byte,
 	) (transition.ValidatorUpdates, error)
-	ParseBeaconBlock(req encoding.ABCIRequest) (
+	ParseProcessProposalRequest(*cmtabci.ProcessProposalRequest) (
 		*ctypes.SignedBeaconBlock,
 		datypes.BlobSidecars,
 		error,
@@ -158,6 +169,7 @@ type BlockchainI interface {
 	FinalizeBlock(
 		sdk.Context,
 		*cmtabci.FinalizeBlockRequest,
+		datypes.BlobSidecars,
 	) (transition.ValidatorUpdates, error)
 	PostFinalizeBlockOps(
 		sdk.Context,
@@ -193,6 +205,7 @@ type ServiceChainSpec interface {
 	chain.ForkSpec
 	chain.ForkVersionSpec
 	delay.ConfigGetter
+	blobreactor.ConfigGetter
 
 	EpochsPerHistoricalVector() uint64
 	SlotToEpoch(slot math.Slot) math.Epoch
