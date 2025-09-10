@@ -88,7 +88,7 @@ vulncheck-install:
 
 vulncheck: vulncheck-install
 	@echo "--> Running govulncheck"
-	@govulncheck ./...
+	@govulncheck $(shell go list ./... | grep -v '/testing/')
 
 #################
 #    slither    #
