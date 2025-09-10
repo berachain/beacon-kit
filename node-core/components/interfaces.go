@@ -501,9 +501,7 @@ type (
 		GenesisBackend
 		BlobBackend
 		BlockBackend
-		RandaoBackend
 		StateBackend
-		WithdrawalBackend
 		// GetSlotByBlockRoot retrieves the slot by a given root from the store.
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		// GetSlotByStateRoot retrieves the slot by a given root from the store.
@@ -538,10 +536,6 @@ type (
 		GenesisTime() (math.U64, error)
 	}
 
-	RandaoBackend interface {
-		RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes32, error)
-	}
-
 	BlobBackend interface {
 		BlobSidecarsByIndices(slot math.Slot, indices []uint64) ([]*types.Sidecar, error)
 	}
@@ -554,9 +548,5 @@ type (
 
 	StateBackend interface {
 		StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error)
-	}
-
-	WithdrawalBackend interface {
-		PendingPartialWithdrawalsAtState(*statedb.StateDB) ([]*types.PendingPartialWithdrawalData, error)
 	}
 )
