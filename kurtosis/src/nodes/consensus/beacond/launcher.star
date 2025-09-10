@@ -75,6 +75,7 @@ def get_config(node_struct, engine_dial_url, chain_id, chain_spec, genesis_depos
             "GENESIS_DEPOSIT_COUNT_HEX": genesis_deposit_count_hex,
             "GENESIS_DEPOSITS_ROOT": genesis_deposits_root,
         },
+        env_vars = env_vars,
         ports = exposed_ports,
         labels = node_labels,
         node_selectors = settings.node_selectors,
