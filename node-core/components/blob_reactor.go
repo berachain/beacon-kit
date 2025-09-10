@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -21,40 +21,32 @@
 package components
 
 import (
-	"github.com/berachain/beacon-kit/beacon/blockchain"
-	"github.com/berachain/beacon-kit/beacon/validator"
-	"github.com/berachain/beacon-kit/chain"
+	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/config"
-	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/da/blobreactor"
 	"github.com/berachain/beacon-kit/log/phuslu"
-	"github.com/berachain/beacon-kit/node-core/builder"
-	"github.com/berachain/beacon-kit/node-core/components/metrics"
-	cmtcfg "github.com/cometbft/cometbft/config"
-	dbm "github.com/cosmos/cosmos-db"
+	"github.com/berachain/beacon-kit/node-core/components/storage"
 )
 
-// ProvideCometBFTService provides the CometBFT service component.
-func ProvideCometBFTService(
-	logger *phuslu.Logger,
-	blockchain blockchain.BlockchainI,
-	blockBuilder validator.BlockBuilderI,
-	blobReactor *blobreactor.BlobReactor,
-	db dbm.DB,
-	cs chain.Spec,
-	cmtCfg *cmtcfg.Config,
-	appOpts config.AppOptions,
-	telemetrySink *metrics.TelemetrySink,
-) *cometbft.Service {
-	return cometbft.NewService(
-		logger,
-		db,
-		blockchain,
-		blockBuilder,
-		blobReactor,
-		cs,
-		cmtCfg,
-		telemetrySink,
-		builder.DefaultServiceOptions(appOpts)...,
+// BlobReactorInput is the input for the blob reactor provider.
+type BlobReactorInput struct {
+	depinject.In
+	Config         *config.Config
+	StorageBackend *storage.Backend
+	Logger         *phuslu.Logger
+}
+
+// ProvideBlobReactor provides the blob reactor for P2P blob distribution.
+func ProvideBlobReactor(in BlobReactorInput) *blobreactor.BlobReactor {
+	in.Logger.Info("Initializing BlobReactor with storage backend")
+
+	// Create reactor with storage backend for real blob serving
+	// Pass the IndexDB which implements the minimal BlobStore interface
+	reactor := blobreactor.NewBlobReactor(
+		in.StorageBackend.AvailabilityStore().IndexDB,
+		in.Logger.With("service", "blob-reactor"),
+		in.Config.BlobReactor,
 	)
+
+	return reactor
 }

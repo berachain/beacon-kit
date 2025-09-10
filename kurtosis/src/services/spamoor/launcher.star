@@ -20,10 +20,13 @@ def get_config(funding_account, rpc_endpoint):
         rpc_endpoint,
     )
 
+    # Add delay to prevent rpc endpoint not being ready
+    cmd_with_delay = "sleep 30 && " + blob_cmd
+
     return ServiceConfig(
         image = IMAGE_NAME,
         entrypoint = ENTRYPOINT_ARGS,
-        cmd = [blob_cmd],
+        cmd = [cmd_with_delay],
         min_cpu = MIN_CPU,
         max_cpu = MAX_CPU,
         min_memory = MIN_MEMORY,
