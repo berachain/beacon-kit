@@ -21,7 +21,6 @@
 package beacon
 
 import (
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -32,7 +31,6 @@ import (
 type Backend interface {
 	GenesisBackend
 	BlobBackend
-	BlockBackend
 	StateBackend
 	// GetSlotByBlockRoot retrieves the slot by a given root from the store.
 	GetSlotByBlockRoot(root common.Root) (math.Slot, error)
@@ -48,12 +46,6 @@ type GenesisBackend interface {
 
 type BlobBackend interface {
 	BlobSidecarsByIndices(slot math.Slot, indices []uint64) ([]*types.Sidecar, error)
-}
-
-type BlockBackend interface {
-	BlockRootAtSlot(slot math.Slot) (common.Root, error)
-	BlockRewardsAtSlot(slot math.Slot) (*types.BlockRewardsData, error)
-	BlockHeaderAtSlot(slot math.Slot) (*ctypes.BeaconBlockHeader, error)
 }
 
 type StateBackend interface {

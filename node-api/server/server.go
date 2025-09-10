@@ -81,7 +81,7 @@ func New(
 	beaconHandler := beaconapi.NewHandler(b, cs, apiLogger)
 	mware.RegisterRoutes(beaconHandler.RouteSet())
 	mware.RegisterRoutes(builderapi.NewHandler(apiLogger).RouteSet())
-	mware.RegisterRoutes(configapi.NewHandler(b, apiLogger).RouteSet())
+	mware.RegisterRoutes(configapi.NewHandler(cs, apiLogger).RouteSet())
 	mware.RegisterRoutes(debugapi.NewHandler(b, apiLogger).RouteSet())
 	mware.RegisterRoutes(eventsapi.NewHandler(apiLogger).RouteSet())
 	mware.RegisterRoutes(nodeapi.NewHandler(b, apiLogger).RouteSet())
