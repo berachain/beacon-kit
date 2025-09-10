@@ -22,6 +22,7 @@ package spec
 
 import (
 	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/blobreactor"
 )
 
 // TestnetChainSpecData is the chain.SpecData for Berachain's public testnet, Bepolia.
@@ -48,6 +49,8 @@ func TestnetChainSpecData() *chain.SpecData {
 
 	// Timestamp of the Electra1 fork on Bepolia.
 	specData.Electra1ForkTime = 1_754_496_000
+
+	specData.BlobConfig = blobreactor.DefaultConfig()
 
 	return specData
 }
