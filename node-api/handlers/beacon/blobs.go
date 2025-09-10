@@ -40,14 +40,18 @@ func (h *Handler) GetBlobSidecars(c handlers.Context) (any, error) {
 		return nil, err
 	}
 
-	// Grab the requested slotID.
+	// Map requested blockID to slot
 	slotID, err := utils.SlotFromBlockID(req.BlockID, h.backend)
 	if err != nil {
 		return nil, err
 	}
-	_, slot, err := h.backend.StateAtSlot(slotID)
-	if err != nil {
-		return nil, err
+
+	var slot math.Slot
+	if slotID == utils.Head {
+		latestHeight, _ := h.backend.GetSyncData()
+		slot = math.Slot(latestHeight) //#nosec: G115 // practically safe
+	} else {
+		slot = slotID
 	}
 
 	// Convert indices to uint64.

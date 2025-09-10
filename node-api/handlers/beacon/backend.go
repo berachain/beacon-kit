@@ -29,8 +29,11 @@ import (
 
 // Backend is the interface for backend of the beacon API.
 type Backend interface {
+	// Blob related methods
+	GetSyncData() (int64 /*latestHeight*/, int64 /*syncToHeight*/)
 	GetBlobSidecarsAtSlot(slot math.Slot) (datypes.BlobSidecars, error)
 
+	// State loading method, used by most of the handlers
 	StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error)
 
 	// Methods helping mapping block/state/... IDs in requests to heights
