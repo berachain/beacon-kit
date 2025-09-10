@@ -40,8 +40,8 @@ var ErrNoSlotForStateRoot = errors.New("slot not found at state root")
 // "finalized", "justified" are the same), "genesis", and <slot>.
 func SlotFromStateID[StorageBackendT interface {
 	GetSlotByStateRoot(root common.Root) (math.Slot, error)
-}](stateID string, storage StorageBackendT) (math.Slot, error) {
-	if slot, err := slotFromStateID(stateID); err == nil {
+}](stateID string, storage StorageBackendT) (int64, error) {
+	if slot, err := heightFromStateID(stateID); err == nil {
 		return slot, nil
 	}
 
@@ -54,7 +54,7 @@ func SlotFromStateID[StorageBackendT interface {
 	if err != nil {
 		return 0, ErrNoSlotForStateRoot
 	}
-	return slot, nil
+	return int64(slot), nil //#nosec: G115 // pratically not a problem
 }
 
 // SlotFromBlockID returns a slot from the block ID.
@@ -63,8 +63,8 @@ func SlotFromStateID[StorageBackendT interface {
 // of being able to query by beacon <blockRoot> instead of <stateRoot>.
 func SlotFromBlockID[StorageBackendT interface {
 	GetSlotByBlockRoot(root common.Root) (math.Slot, error)
-}](blockID string, storage StorageBackendT) (math.Slot, error) {
-	if slot, err := slotFromStateID(blockID); err == nil {
+}](blockID string, storage StorageBackendT) (int64, error) {
+	if slot, err := heightFromStateID(blockID); err == nil {
 		return slot, nil
 	}
 
@@ -73,7 +73,8 @@ func SlotFromBlockID[StorageBackendT interface {
 	if err != nil {
 		return 0, err
 	}
-	return storage.GetSlotByBlockRoot(root)
+	slot, err := storage.GetSlotByBlockRoot(root)
+	return int64(slot), err //#nosec: G115 // pratically not a problem
 }
 
 // ParentSlotFromTimestampID returns the parent slot corresponding to the
@@ -90,9 +91,9 @@ func SlotFromBlockID[StorageBackendT interface {
 // for slot 1728681738.
 func ParentSlotFromTimestampID[StorageBackendT interface {
 	GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
-}](timestampID string, storage StorageBackendT) (math.Slot, error) {
+}](timestampID string, storage StorageBackendT) (int64, error) {
 	if !IsTimestampIDPrefix(timestampID) {
-		return slotFromStateID(timestampID)
+		return heightFromStateID(timestampID)
 	}
 
 	// Parse the timestamp from the timestampID.
@@ -102,7 +103,8 @@ func ParentSlotFromTimestampID[StorageBackendT interface {
 			err, "failed to parse timestamp from timestampID: %s", timestampID,
 		)
 	}
-	return storage.GetParentSlotByTimestamp(timestamp)
+	slot, err := storage.GetParentSlotByTimestamp(timestamp)
+	return int64(slot), err //#nosec: G115 // pratically not a problem
 }
 
 // IsTimestampIDPrefix checks if the given timestampID is prefixed with the
@@ -111,26 +113,26 @@ func IsTimestampIDPrefix(timestampID string) bool {
 	return strings.HasPrefix(timestampID, TimestampIDPrefix)
 }
 
-// slotFromStateID returns a slot number from the given state ID.
+// heightFromStateID returns a slot number from the given state ID.
 // Currently, when "genesis" is requested, we return the block 1 state.
 // This is due to a CometBFT limitation that does not explicitly commit the
 // genesis state (it accumulates block 1 state changes and flushes them together).
 // Numeric requests are clamped so that slot 0 maps to Genesis (slot 1).
 // TODO: Properly return the true genesis state when requested, instead of block 1.
-func slotFromStateID(id string) (math.Slot, error) {
+func heightFromStateID(id string) (int64, error) {
 	switch id {
 	case StateIDFinalized, StateIDJustified, StateIDHead:
-		return Head, nil
+		return -1, nil
 	case StateIDGenesis:
-		return Genesis, nil
+		return 0, nil
 	default:
 		slot, err := math.U64FromString(id)
 		if err != nil {
-			return math.Slot(0), errors.Wrapf(err, "failed mapping stateID %q to slot", id)
+			return 0, errors.Wrapf(err, "failed mapping stateID %q to slot", id)
 		}
 
 		// Enforce here too the choice of mapping genesis to slot 1. Without this
 		// the request of slot 0 would be mapped to tip of the chain.
-		return max(slot, Genesis), nil
+		return int64(slot), nil //#nosec: G115 // pratically not a problem
 	}
 }

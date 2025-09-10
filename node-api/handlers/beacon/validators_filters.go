@@ -42,8 +42,8 @@ var errStatusFilterMismatch = errors.New("validator status does not match status
 // FilterValidators is a helper function to provide implementation
 // consistency between GetStateValidators and PostStateValidators, since they
 // are intended to behave the same way.
-func (h *Handler) FilterValidators(slot math.Slot, ids []string, statuses []string) ([]*beacontypes.ValidatorData, error) {
-	st, resolvedSlot, err := h.backend.StateAtSlot(slot)
+func (h *Handler) FilterValidators(height int64, ids []string, statuses []string) ([]*beacontypes.ValidatorData, error) {
+	st, resolvedSlot, err := h.backend.StateAtSlot(height)
 	if err != nil {
 		if errors.Is(err, cometbft.ErrAppNotReady) {
 			// chain not ready, like when genesis time is set in the future
@@ -53,7 +53,7 @@ func (h *Handler) FilterValidators(slot math.Slot, ids []string, statuses []stri
 			// height requested too high
 			return nil, handlertypes.ErrNotFound
 		}
-		return nil, fmt.Errorf("failed to get state from slot %d: %w", slot, err)
+		return nil, fmt.Errorf("failed to get state from height %d: %w", height, err)
 	}
 
 	allVals, err := st.GetValidators()

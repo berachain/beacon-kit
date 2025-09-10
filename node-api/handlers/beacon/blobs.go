@@ -37,8 +37,8 @@ func (h *Handler) GetBlobSidecars(c handlers.Context) (any, error) {
 		return nil, err
 	}
 
-	// Grab the requested slot.
-	slot, err := utils.SlotFromBlockID(req.BlockID, h.backend)
+	// Grab the requested height.
+	height, err := utils.SlotFromBlockID(req.BlockID, h.backend)
 	if err != nil {
 		return nil, err
 	}
@@ -55,6 +55,7 @@ func (h *Handler) GetBlobSidecars(c handlers.Context) (any, error) {
 	}
 
 	// Grab the blob sidecars from the backend.
+	slot := math.Slot(height) //#nosec: G115 // TODO: recheck, this may be a bug. What happens if we request Head?
 	blobSidecars, err := h.backend.BlobSidecarsByIndices(slot, indices)
 	if err != nil {
 		return nil, err

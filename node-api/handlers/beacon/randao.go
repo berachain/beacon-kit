@@ -38,13 +38,13 @@ func (h *Handler) GetRandao(c handlers.Context) (any, error) {
 	}
 
 	// Get slot and associated state
-	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
+	height, err := utils.SlotFromStateID(req.StateID, h.backend)
 	if err != nil {
 		return nil, err
 	}
-	st, resolvedSlot, err := h.backend.StateAtSlot(slot)
+	st, resolvedSlot, err := h.backend.StateAtSlot(height)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get state from slot %d", slot)
+		return nil, errors.Wrapf(err, "failed to get state from height %d", height)
 	}
 
 	// Get the epoch

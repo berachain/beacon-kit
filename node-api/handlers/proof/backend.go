@@ -32,5 +32,5 @@ type Backend interface {
 }
 
 type StateBackend interface {
-	StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error)
+	StateAtSlot(height int64) (*statedb.StateDB, math.Slot, error)
 }
