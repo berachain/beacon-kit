@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/beacon/validator"
 	"github.com/berachain/beacon-kit/config/template"
 	viperlib "github.com/berachain/beacon-kit/config/viper"
+	"github.com/berachain/beacon-kit/da/blobreactor"
 	"github.com/berachain/beacon-kit/da/kzg"
 	"github.com/berachain/beacon-kit/errors"
 	engineclient "github.com/berachain/beacon-kit/execution/client"
@@ -61,6 +62,7 @@ func DefaultConfig() *Config {
 		Validator:         validator.DefaultConfig(),
 		BlockStoreService: block.DefaultConfig(),
 		NodeAPI:           server.DefaultConfig(),
+		BlobReactor:       blobreactor.DefaultConfig(),
 	}
 }
 
@@ -87,6 +89,8 @@ type Config struct {
 	BlockStoreService block.Config `mapstructure:"block-store-service"`
 	// NodeAPI is the configuration for the node API.
 	NodeAPI server.Config `mapstructure:"node-api"`
+	// BlobReactor is the configuration for the blob reactor.
+	BlobReactor blobreactor.Config `mapstructure:"blob-reactor"`
 }
 
 // GetEngine returns the execution client configuration.

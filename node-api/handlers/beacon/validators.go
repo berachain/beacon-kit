@@ -117,7 +117,12 @@ func (h *Handler) getValidator(height int64, validatorID string) (*beacontypes.V
 
 	balance, err := st.GetBalance(index)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get validator balance for validator pubkey %s and index %d: %w", validator.GetPubkey(), index, err)
+		return nil, fmt.Errorf(
+			"failed to get validator balance for validator pubkey %s and index %d: %w",
+			validator.GetPubkey(),
+			index,
+			err,
+		)
 	}
 	status, err := validator.Status(h.cs.SlotToEpoch(resolvedSlot))
 	if err != nil {

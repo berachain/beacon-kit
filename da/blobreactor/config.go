@@ -13,18 +13,26 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package encoding
+package blobreactor
 
 import "time"
 
-// ABCIRequest represents the interface for an ABCI request.
-type ABCIRequest interface {
-	// GetTxs returns the transactions included in the request.
-	GetTxs() [][]byte
-	GetTime() time.Time
+const defaultRequestTimeout = 5 * time.Second
+
+// Config is the configuration for the blob reactor
+type Config struct {
+	// RequestTimeout is the timeout for blob requests
+	RequestTimeout time.Duration `mapstructure:"request-timeout"`
+}
+
+// DefaultConfig returns the default configuration
+func DefaultConfig() Config {
+	return Config{
+		RequestTimeout: defaultRequestTimeout,
+	}
 }
