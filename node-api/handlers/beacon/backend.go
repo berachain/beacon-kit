@@ -21,7 +21,7 @@
 package beacon
 
 import (
-	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
@@ -29,7 +29,7 @@ import (
 
 // Backend is the interface for backend of the beacon API.
 type Backend interface {
-	BlobSidecarsByIndices(slot math.Slot, indices []uint64) ([]*types.Sidecar, error)
+	GetBlobSidecarsAtSlot(slot math.Slot) (datypes.BlobSidecars, error)
 
 	StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error)
 

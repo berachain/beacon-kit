@@ -21,13 +21,16 @@
 package backend
 
 import (
+	"fmt"
 	"runtime"
 
 	"github.com/berachain/beacon-kit/chain"
+	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/berachain/beacon-kit/node-core/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/version"
 )
@@ -65,6 +68,29 @@ func (b *Backend) LoadData() error {
 	return nil
 }
 
+// StateAtSlot returns the beacon state at a particular slot using query context,
+// resolving an input slot of 0 to the latest slot.
+//
+// This returns the beacon state of the version that was committed to disk at the requested slot,
+// which has the empty state root in the latest block header. Hence, the most recent state and
+// block roots are not updated.
+func (b *Backend) StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error) {
+	queryCtx, err := b.node.CreateQueryContext(int64(slot), false) // #nosec G115 -- not an issue in practice.
+	if err != nil {
+		return nil, slot, fmt.Errorf("CreateQueryContext failed: %w", err)
+	}
+	st := b.sb.StateFromContext(queryCtx)
+
+	// If using height 0 for the query context, make sure to return the latest slot.
+	if slot == 0 {
+		slot, err = st.GetSlot()
+		if err != nil {
+			return st, slot, fmt.Errorf("GetSlot failed: %w", err)
+		}
+	}
+	return st, slot, nil
+}
+
 // GetSlotByBlockRoot retrieves the slot by a block root from the block store.
 func (b *Backend) GetSlotByBlockRoot(root common.Root) (math.Slot, error) {
 	return b.sb.BlockStore().GetSlotByBlockRoot(root)
@@ -79,6 +105,10 @@ func (b *Backend) GetSlotByStateRoot(root common.Root) (math.Slot, error) {
 // the block store.
 func (b *Backend) GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error) {
 	return b.sb.BlockStore().GetParentSlotByTimestamp(timestamp)
+}
+
+func (b *Backend) GetBlobSidecarsAtSlot(slot math.Slot) (datypes.BlobSidecars, error) {
+	return b.sb.AvailabilityStore().GetBlobSidecars(slot)
 }
 
 func (b *Backend) GetSyncData() (int64 /*latestHeight*/, int64 /*syncToHeight*/) {
