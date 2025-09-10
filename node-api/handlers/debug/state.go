@@ -34,13 +34,13 @@ func (h *Handler) GetState(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	height, err := utils.SlotFromStateID(req.StateID, h.backend)
+	height, err := utils.StateIDToHeight(req.StateID, h.backend)
 	if err != nil {
 		return nil, err
 	}
 
 	// Get the raw state at the given slot.
-	state, _, err := h.backend.StateAtSlot(height)
+	state, _, err := h.backend.StateAndSlotFromHeight(height)
 	if err != nil {
 		return nil, err
 	}

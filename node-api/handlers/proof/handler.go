@@ -56,12 +56,12 @@ func (h *Handler) resolveTimestampID(timestampID string) (
 		slot        math.Slot
 	)
 
-	height, err := utils.ParentSlotFromTimestampID(timestampID, h.backend)
+	height, err := utils.ParentHeightFromTimestampID(timestampID, h.backend)
 	if err != nil {
 		return 0, beaconState, blockHeader, err
 	}
 
-	beaconState, slot, err = h.backend.StateAtSlot(height)
+	beaconState, slot, err = h.backend.StateAndSlotFromHeight(height)
 	if err != nil {
 		return 0, beaconState, blockHeader, err
 	}

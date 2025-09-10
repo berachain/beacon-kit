@@ -42,7 +42,7 @@ func (h *Handler) GetStateValidatorBalances(c handlers.Context) (any, error) {
 		return nil, err
 	}
 
-	height, err := utils.SlotFromStateID(req.StateID, h.backend)
+	height, err := utils.StateIDToHeight(req.StateID, h.backend)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func (h *Handler) PostStateValidatorBalances(c handlers.Context) (any, error) {
 		return nil, types.ErrInvalidRequest
 	}
 
-	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
+	slot, err := utils.StateIDToHeight(req.StateID, h.backend)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func (h *Handler) PostStateValidatorBalances(c handlers.Context) (any, error) {
 }
 
 func (h *Handler) getValidatorBalance(height int64, validatorIDs []string) ([]*beacontypes.ValidatorBalanceData, error) {
-	st, _, err := h.backend.StateAtSlot(height)
+	st, _, err := h.backend.StateAndSlotFromHeight(height)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get state from slot %d: %w", height, err)
 	}

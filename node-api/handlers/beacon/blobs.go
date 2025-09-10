@@ -38,7 +38,7 @@ func (h *Handler) GetBlobSidecars(c handlers.Context) (any, error) {
 	}
 
 	// Grab the requested height.
-	height, err := utils.SlotFromBlockID(req.BlockID, h.backend)
+	height, err := utils.BlockIDToHeight(req.BlockID, h.backend)
 	if err != nil {
 		return nil, err
 	}

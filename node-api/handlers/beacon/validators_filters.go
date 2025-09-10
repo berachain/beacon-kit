@@ -43,7 +43,7 @@ var errStatusFilterMismatch = errors.New("validator status does not match status
 // consistency between GetStateValidators and PostStateValidators, since they
 // are intended to behave the same way.
 func (h *Handler) FilterValidators(height int64, ids []string, statuses []string) ([]*beacontypes.ValidatorData, error) {
-	st, resolvedSlot, err := h.backend.StateAtSlot(height)
+	st, resolvedSlot, err := h.backend.StateAndSlotFromHeight(height)
 	if err != nil {
 		if errors.Is(err, cometbft.ErrAppNotReady) {
 			// chain not ready, like when genesis time is set in the future

@@ -38,11 +38,11 @@ func (h *Handler) GetRandao(c handlers.Context) (any, error) {
 	}
 
 	// Get slot and associated state
-	height, err := utils.SlotFromStateID(req.StateID, h.backend)
+	height, err := utils.StateIDToHeight(req.StateID, h.backend)
 	if err != nil {
 		return nil, err
 	}
-	st, resolvedSlot, err := h.backend.StateAtSlot(height)
+	st, resolvedSlot, err := h.backend.StateAndSlotFromHeight(height)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get state from height %d", height)
 	}

@@ -547,6 +547,6 @@ type (
 	}
 
 	StateBackend interface {
-		StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error)
+		StateAndSlotFromHeight(slot math.Slot) (*statedb.StateDB, math.Slot, error)
 	}
 )

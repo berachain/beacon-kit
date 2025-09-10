@@ -34,11 +34,12 @@ var ErrNoSlotForStateRoot = errors.New("slot not found at state root")
 // spec, execution unique to beacon-kit). For each type define validation
 // functions and resolvers to slot number.
 
-// SlotFromStateID returns a slot from the state ID.
+// StateIDToHeight returns a int64 height from the state ID. A height is
+// not exactly a slot, since we allow for height == -1 to signal chain tip.
 //
 // NOTE: Right now, `stateID` only supports querying by "head" (all of "head",
 // "finalized", "justified" are the same), "genesis", and <slot>.
-func SlotFromStateID[StorageBackendT interface {
+func StateIDToHeight[StorageBackendT interface {
 	GetSlotByStateRoot(root common.Root) (math.Slot, error)
 }](stateID string, storage StorageBackendT) (int64, error) {
 	if slot, err := heightFromStateID(stateID); err == nil {
@@ -57,11 +58,12 @@ func SlotFromStateID[StorageBackendT interface {
 	return int64(slot), nil //#nosec: G115 // pratically not a problem
 }
 
-// SlotFromBlockID returns a slot from the block ID.
+// BlockIDToHeight returns a height from the block ID. A height is
+// not exactly a slot, since we allow for height == -1 to signal chain tip.
 //
 // NOTE: `blockID` shares the same semantics as `stateID`, with the modification
 // of being able to query by beacon <blockRoot> instead of <stateRoot>.
-func SlotFromBlockID[StorageBackendT interface {
+func BlockIDToHeight[StorageBackendT interface {
 	GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 }](blockID string, storage StorageBackendT) (int64, error) {
 	if slot, err := heightFromStateID(blockID); err == nil {
@@ -77,7 +79,7 @@ func SlotFromBlockID[StorageBackendT interface {
 	return int64(slot), err //#nosec: G115 // pratically not a problem
 }
 
-// ParentSlotFromTimestampID returns the parent slot corresponding to the
+// ParentHeightFromTimestampID returns the parent slot corresponding to the
 // timestamp ID.
 //
 // NOTE: `timestampID` shares the same semantics as `stateID`, with the
@@ -89,7 +91,7 @@ func SlotFromBlockID[StorageBackendT interface {
 // which has the next block with a timestamp of 1728681738. Providing just the
 // string '1728681738' (without the prefix 't') will query for the beacon block
 // for slot 1728681738.
-func ParentSlotFromTimestampID[StorageBackendT interface {
+func ParentHeightFromTimestampID[StorageBackendT interface {
 	GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
 }](timestampID string, storage StorageBackendT) (int64, error) {
 	if !IsTimestampIDPrefix(timestampID) {

@@ -81,7 +81,7 @@ func TestGetRandao(t *testing.T) {
 				st := makeTestState(t, cs)
 
 				require.NoError(t, st.UpdateRandaoMixAtIndex(index, testMix))
-				b.EXPECT().StateAtSlot(mock.Anything).Return(st, testSlot, nil)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(st, testSlot, nil)
 			},
 			check: func(t *testing.T, res any, err error) {
 				t.Helper()
@@ -109,7 +109,7 @@ func TestGetRandao(t *testing.T) {
 				st := makeTestState(t, cs)
 
 				require.NoError(t, st.UpdateRandaoMixAtIndex(index, testMix))
-				b.EXPECT().StateAtSlot(mock.Anything).Return(st, testSlot, nil)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(st, testSlot, nil)
 			},
 			check: func(t *testing.T, res any, err error) {
 				t.Helper()

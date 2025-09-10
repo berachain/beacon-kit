@@ -27,13 +27,13 @@ import (
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-// StateAtSlot returns the beacon state at a particular slot using query context,
-// resolving an input slot of 0 to the latest slot.
+// StateAndSlotFromHeight returns the beacon state at a particular height using query context,
+// resolving an input height of -1 to the latest slot.
 //
 // This returns the beacon state of the version that was committed to disk at the requested slot,
 // which has the empty state root in the latest block header. Hence, the most recent state and
 // block roots are not updated.
-func (b *Backend) StateAtSlot(height int64) (*statedb.StateDB, math.Slot, error) {
+func (b *Backend) StateAndSlotFromHeight(height int64) (*statedb.StateDB, math.Slot, error) {
 	// TODO ABENEGIA: return a read only copy of state, or even better return
 	// its own cache layer, but make sure to properly drop it post usage to avoid leaks.
 	if height < -1 {

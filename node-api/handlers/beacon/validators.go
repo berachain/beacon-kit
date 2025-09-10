@@ -39,7 +39,7 @@ func (h *Handler) GetStateValidators(c handlers.Context) (any, error) {
 		return nil, err
 	}
 
-	height, err := utils.SlotFromStateID(req.StateID, h.backend)
+	height, err := utils.StateIDToHeight(req.StateID, h.backend)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func (h *Handler) PostStateValidators(c handlers.Context) (any, error) {
 		return nil, err
 	}
 
-	height, err := utils.SlotFromStateID(req.StateID, h.backend)
+	height, err := utils.StateIDToHeight(req.StateID, h.backend)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func (h *Handler) GetStateValidator(c handlers.Context) (any, error) {
 		return nil, err
 	}
 
-	height, err := utils.SlotFromStateID(req.StateID, h.backend)
+	height, err := utils.StateIDToHeight(req.StateID, h.backend)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +91,7 @@ func (h *Handler) GetStateValidator(c handlers.Context) (any, error) {
 // getValidator contains all the logic of the GetStateValidator api
 // that is not related to http stuff. Consider exporting it if needed
 func (h *Handler) getValidator(height int64, validatorID string) (*beacontypes.ValidatorData, error) {
-	st, resolvedSlot, err := h.backend.StateAtSlot(height)
+	st, resolvedSlot, err := h.backend.StateAndSlotFromHeight(height)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get state from slot %d: %w", height, err)
 	}
