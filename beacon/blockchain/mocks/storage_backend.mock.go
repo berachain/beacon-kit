@@ -3,9 +3,9 @@
 package mocks
 
 import (
-	context "context"
-
 	block "github.com/berachain/beacon-kit/storage/block"
+
+	context "context"
 
 	deposit "github.com/berachain/beacon-kit/storage/deposit"
 
