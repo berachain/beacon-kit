@@ -65,10 +65,12 @@ func (h *Handler) resolveTimestampID(timestampID string) (
 		return 0, beaconState, blockHeader, err
 	}
 
-	blockHeader, err = h.backend.BlockHeaderAtSlot(slot)
+	// Return after updating the state root in the block header.
+	blockHeader, err = beaconState.GetLatestBlockHeader()
 	if err != nil {
 		return 0, beaconState, blockHeader, err
 	}
+	blockHeader.SetStateRoot(beaconState.HashTreeRoot())
 
 	return slot, beaconState, blockHeader, nil
 }
