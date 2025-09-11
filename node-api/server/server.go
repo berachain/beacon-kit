@@ -38,6 +38,7 @@ import (
 	"github.com/berachain/beacon-kit/node-api/middleware"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/berachain/beacon-kit/node-core/types"
+	"github.com/berachain/beacon-kit/state-transition/core"
 	cmtcfg "github.com/cometbft/cometbft/config"
 )
 
@@ -62,6 +63,7 @@ func New(
 
 	// attributes to build handlers backend
 	storageBackend *storage.Backend,
+	sp *core.StateProcessor,
 	cs chain.Spec,
 	cmtCfg *cmtcfg.Config,
 
@@ -77,7 +79,7 @@ func New(
 	mware := middleware.NewDefaultMiddleware(apiLogger)
 
 	// instantiate handlers and register their routes in the middleware
-	b := backend.New(storageBackend, cs, cmtCfg, consensusService)
+	b := backend.New(storageBackend, sp, cs, cmtCfg, consensusService)
 	beaconHandler := beaconapi.NewHandler(b, cs, apiLogger)
 	mware.RegisterRoutes(beaconHandler.RouteSet())
 	mware.RegisterRoutes(builderapi.NewHandler(apiLogger).RouteSet())
@@ -103,7 +105,7 @@ func (s *Server) Start(ctx context.Context) error {
 	}
 
 	// pre-load and cache all relevant node-api backend data
-	if err := s.b.LoadData(); err != nil {
+	if err := s.b.LoadData(ctx); err != nil {
 		return fmt.Errorf("failed loading api backend data: %w", err)
 	}
 
