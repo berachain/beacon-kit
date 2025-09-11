@@ -302,21 +302,8 @@ func (s *Service) VerifyIncomingBlock(
 		"state_root", beaconBlk.GetStateRoot(),
 	)
 
-	if shouldBuildNextBlock {
-		// state copy makes sure that preFetchBuildDataForSuccess does not affect state
-		copiedState := state.Copy(ctx)
-		nextBlockData, errFetch = s.preFetchBuildData(copiedState, blk.GetConsensusTime())
-		if errFetch != nil {
-			// We don't mark the block as rejected if it is valid but pre-fetch fails.
-			// Instead we log the issue and move to process the current block.
-			// Next block can always be built right after current height is finalized.
-			s.logger.Warn(
-				"Failed pre fetching data for optimistic block building",
-				"case", "block success",
-				"err", errFetch,
-			)
-			return valUpdates, nil
-		}
+	// If we should build the next block and the pre-fetch was successful, trigger the optimistic build
+	if shouldBuildNextBlock && nextBlockData != nil && errFetch == nil {
 		go s.handleOptimisticPayloadBuild(ctx, nextBlockData)
 	}
 
