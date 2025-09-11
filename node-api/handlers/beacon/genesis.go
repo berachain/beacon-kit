@@ -27,16 +27,16 @@ import (
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	handlertypes "github.com/berachain/beacon-kit/node-api/handlers/types"
-	"github.com/berachain/beacon-kit/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/node-api/handlers/mapping"
+	"github.com/berachain/beacon-kit/node-api/middleware"
 )
 
 func (h *Handler) GetGenesis(handlers.Context) (any, error) {
-	st, _, err := h.backend.StateAndSlotFromHeight(utils.Genesis)
+	st, _, err := h.backend.StateAndSlotFromHeight(mapping.Genesis)
 	if err != nil {
 		if errors.Is(err, cometbft.ErrAppNotReady) {
 			// chain not ready, like when genesis time is set in the future
-			return nil, handlertypes.ErrNotFound
+			return nil, middleware.ErrNotFound
 		}
 		return nil, fmt.Errorf("failed to get state from genesis: %w", err)
 	}

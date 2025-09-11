@@ -35,7 +35,7 @@ import (
 	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/berachain/beacon-kit/config/spec"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	"github.com/berachain/beacon-kit/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/node-api/handlers/mapping"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
@@ -100,7 +100,7 @@ func (s *BeaconKitE2ESuite) TestBeaconStateRoot() {
 	stateRootResp, err := client.BeaconStateRoot(
 		s.Ctx(),
 		&beaconapi.BeaconStateRootOpts{
-			State: utils.StateIDHead,
+			State: mapping.StateIDHead,
 		},
 	)
 	s.Require().NoError(err)
@@ -116,7 +116,7 @@ func (s *BeaconKitE2ESuite) TestBeaconValidatorsWithIndices() {
 	validatorsResp, err := client.Validators(
 		s.Ctx(),
 		&beaconapi.ValidatorsOpts{
-			State:   utils.StateIDHead,
+			State:   mapping.StateIDHead,
 			Indices: indices,
 		},
 	)
@@ -179,7 +179,7 @@ func (s *BeaconKitE2ESuite) TestValidatorsEmptyIndicesAndStatuses() {
 	validatorsResp, err := client.Validators(
 		s.Ctx(),
 		&beaconapi.ValidatorsOpts{
-			State:           utils.StateIDHead,
+			State:           mapping.StateIDHead,
 			Indices:         emptyIndices,
 			ValidatorStates: emptyStatuses,
 		},
@@ -214,7 +214,7 @@ func (s *BeaconKitE2ESuite) TestValidatorsWithMultipleIndices() {
 	indices := []phase0.ValidatorIndex{0, 1, 2}
 
 	validatorsResp, err := client.Validators(s.Ctx(), &beaconapi.ValidatorsOpts{
-		State:   utils.StateIDHead,
+		State:   mapping.StateIDHead,
 		Indices: indices,
 	})
 	s.Require().NoError(err)
@@ -229,7 +229,7 @@ func (s *BeaconKitE2ESuite) TestValidatorsWithInvalidIndex() {
 	indices := []phase0.ValidatorIndex{999999} // Invalid index
 
 	validatorsResp, err := client.Validators(s.Ctx(), &beaconapi.ValidatorsOpts{
-		State:   utils.StateIDHead,
+		State:   mapping.StateIDHead,
 		Indices: indices,
 	})
 	s.Require().NoError(err)
@@ -244,7 +244,7 @@ func (s *BeaconKitE2ESuite) TestValidatorsWithSpecificStatus() {
 	client := s.initBeaconTest()
 
 	validatorsResp, err := client.Validators(s.Ctx(), &beaconapi.ValidatorsOpts{
-		State:           utils.StateIDHead,
+		State:           mapping.StateIDHead,
 		ValidatorStates: []apiv1.ValidatorState{apiv1.ValidatorStateActiveOngoing},
 	})
 	s.Require().NoError(err)
@@ -261,7 +261,7 @@ func (s *BeaconKitE2ESuite) TestValidatorBalances() {
 	client := s.initBeaconTest()
 
 	balancesResp, err := client.ValidatorBalances(s.Ctx(), &beaconapi.ValidatorBalancesOpts{
-		State: utils.StateIDHead,
+		State: mapping.StateIDHead,
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(balancesResp)
@@ -285,7 +285,7 @@ func (s *BeaconKitE2ESuite) TestValidatorBalancesWithSpecificIndices() {
 	indices := []phase0.ValidatorIndex{0}
 
 	balancesResp, err := client.ValidatorBalances(s.Ctx(), &beaconapi.ValidatorBalancesOpts{
-		State:   utils.StateIDHead,
+		State:   mapping.StateIDHead,
 		Indices: indices,
 	})
 	s.Require().NoError(err)
@@ -313,7 +313,7 @@ func (s *BeaconKitE2ESuite) TestValidatorBalancesMultipleIndices() {
 	balancesResp, err := client.ValidatorBalances(
 		s.Ctx(),
 		&beaconapi.ValidatorBalancesOpts{
-			State:   utils.StateIDHead,
+			State:   mapping.StateIDHead,
 			Indices: indices,
 		},
 	)
@@ -343,7 +343,7 @@ func (s *BeaconKitE2ESuite) TestValidatorBalancesWithInvalidIndex() {
 	indices := []phase0.ValidatorIndex{999999} // Invalid index
 
 	balancesResp, err := client.ValidatorBalances(s.Ctx(), &beaconapi.ValidatorBalancesOpts{
-		State:   utils.StateIDHead,
+		State:   mapping.StateIDHead,
 		Indices: indices,
 	})
 	s.Require().NoError(err)
@@ -358,7 +358,7 @@ func (s *BeaconKitE2ESuite) TestValidatorBalancesWithPubkey() {
 
 	// First call validators to get the validator public key
 	validatorsResp, err := client.Validators(s.Ctx(), &beaconapi.ValidatorsOpts{
-		State: utils.StateIDHead,
+		State: mapping.StateIDHead,
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(validatorsResp)
@@ -368,7 +368,7 @@ func (s *BeaconKitE2ESuite) TestValidatorBalancesWithPubkey() {
 	pubkey := validator.Validator.PublicKey
 
 	balancesResp, err := client.ValidatorBalances(s.Ctx(), &beaconapi.ValidatorBalancesOpts{
-		State:   utils.StateIDHead,
+		State:   mapping.StateIDHead,
 		Indices: []phase0.ValidatorIndex{},
 		PubKeys: []phase0.BLSPubKey{pubkey},
 	})
@@ -393,7 +393,7 @@ func (s *BeaconKitE2ESuite) TestValidatorBalancesWithInvalidPubkey() {
 	notFoundPubkey := "0x93247f2209abcacf57b75a51dafae777f9dd38bc7053d1af526f220a7489a6d3a2753e5f3e8b1cfe39b56f43611df74a"
 
 	balancesResp, err := client.ValidatorBalances(s.Ctx(), &beaconapi.ValidatorBalancesOpts{
-		State:   utils.StateIDHead,
+		State:   mapping.StateIDHead,
 		Indices: []phase0.ValidatorIndex{},
 		PubKeys: []phase0.BLSPubKey{phase0.BLSPubKey(common.FromHex(notFoundPubkey))},
 	})
@@ -464,7 +464,7 @@ func (s *BeaconKitE2ESuite) getStateValidator(stateID, validatorID string) (*htt
 
 // TestGetStateValidatorByIndex tests getting the state validator by index.
 func (s *BeaconKitE2ESuite) TestGetStateValidatorByIndex() {
-	resp, err := s.getStateValidator(utils.StateIDHead, "0")
+	resp, err := s.getStateValidator(mapping.StateIDHead, "0")
 	s.Require().NoError(err)
 	s.Require().NotNil(resp, "response should not be nil")
 	s.Require().Equal(http.StatusOK, resp.StatusCode)
@@ -498,7 +498,7 @@ func (s *BeaconKitE2ESuite) TestGetStateValidatorBySlotAndIndex() {
 // TestGetStateValidatorByPubkey tests getting the state validator by pubkey.
 func (s *BeaconKitE2ESuite) TestGetStateValidatorByPubkey() {
 	// First call validators to get the validator public key
-	resp, err := s.getStateValidator(utils.StateIDHead, "0")
+	resp, err := s.getStateValidator(mapping.StateIDHead, "0")
 	s.Require().NoError(err)
 	s.Require().NotNil(resp, "response should not be nil")
 	s.Require().Equal(http.StatusOK, resp.StatusCode)
@@ -512,7 +512,7 @@ func (s *BeaconKitE2ESuite) TestGetStateValidatorByPubkey() {
 	pubkey := validatorResp.Validator.PublicKey
 
 	// Actual test starts here.
-	resp, err = s.getStateValidator(utils.StateIDHead, pubkey)
+	resp, err = s.getStateValidator(mapping.StateIDHead, pubkey)
 	s.Require().NoError(err)
 	s.Require().NotNil(resp, "response should not be nil")
 	s.Require().Equal(http.StatusOK, resp.StatusCode)
@@ -527,7 +527,7 @@ func (s *BeaconKitE2ESuite) TestGetStateValidatorByPubkey() {
 
 // TestGetStateValidatorInvalidID tests getting the state validator with an invalid id.
 func (s *BeaconKitE2ESuite) TestGetStateValidatorInvalidID() {
-	resp, err := s.getStateValidator(utils.StateIDHead, "invalid_id")
+	resp, err := s.getStateValidator(mapping.StateIDHead, "invalid_id")
 	s.Require().NoError(err)
 	s.Require().NotNil(resp, "response should not be nil")
 	s.Require().Equal(http.StatusBadRequest, resp.StatusCode)
@@ -571,7 +571,7 @@ func (s *BeaconKitE2ESuite) decodeValidatorBalancesResponse(resp *http.Response)
 
 // TestGetValidatorBalances tests querying validator balances for state head.
 func (s *BeaconKitE2ESuite) TestGetValidatorBalances() {
-	resp, err := s.getValidatorBalances(utils.StateIDHead)
+	resp, err := s.getValidatorBalances(mapping.StateIDHead)
 	s.Require().NoError(err)
 	s.Require().Equal(http.StatusOK, resp.StatusCode)
 	defer resp.Body.Close()
@@ -590,7 +590,7 @@ func (s *BeaconKitE2ESuite) TestGetValidatorBalances() {
 
 // TestGetValidatorBalancesWithSpecificID tests querying validator balances with specific ID.
 func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithSpecificID() {
-	resp, err := s.getValidatorBalances(utils.StateIDHead, "0")
+	resp, err := s.getValidatorBalances(mapping.StateIDHead, "0")
 	s.Require().NoError(err)
 	s.Require().Equal(http.StatusOK, resp.StatusCode)
 	defer resp.Body.Close()
@@ -607,7 +607,7 @@ func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithSpecificID() {
 
 // TestGetValidatorBalancesWithMultipleIDs tests querying validator balances with multiple IDs.
 func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithMultipleIDs() {
-	resp, err := s.getValidatorBalances(utils.StateIDHead, "0", "1")
+	resp, err := s.getValidatorBalances(mapping.StateIDHead, "0", "1")
 	s.Require().NoError(err)
 	s.Require().Equal(http.StatusOK, resp.StatusCode)
 	defer resp.Body.Close()
@@ -629,7 +629,7 @@ func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithMultipleIDs() {
 
 // TestGetValidatorBalancesWithInvalidID tests querying validator balances with invalid ID.
 func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithInvalidID() {
-	resp, err := s.getValidatorBalances(utils.StateIDHead, "invalid_id")
+	resp, err := s.getValidatorBalances(mapping.StateIDHead, "invalid_id")
 	s.Require().NoError(err)
 	s.Require().Equal(http.StatusBadRequest, resp.StatusCode)
 	defer resp.Body.Close()
@@ -642,7 +642,7 @@ func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithInvalidID() {
 
 // TestGetValidatorBalancesWithNonExistentIndex tests querying validator balances with non-existent index.
 func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithNonExistentIndex() {
-	resp, err := s.getValidatorBalances(utils.StateIDHead, "99999")
+	resp, err := s.getValidatorBalances(mapping.StateIDHead, "99999")
 	s.Require().NoError(err)
 	// If an index does not match any validator, no balance will be returned but this will not cause an error.
 	// The response should be 200 OK with empty data.
@@ -661,7 +661,7 @@ func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithPublicKey() {
 
 	// First call validators to get the validator public key
 	validatorsResp, err := client.Validators(s.Ctx(), &beaconapi.ValidatorsOpts{
-		State: utils.StateIDHead,
+		State: mapping.StateIDHead,
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(validatorsResp)
@@ -670,7 +670,7 @@ func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithPublicKey() {
 	s.Require().NotNil(validator)
 	pubkey := validator.Validator.PublicKey
 
-	resp, err := s.getValidatorBalances(utils.StateIDHead, pubkey.String())
+	resp, err := s.getValidatorBalances(mapping.StateIDHead, pubkey.String())
 	s.Require().NoError(err)
 	s.Require().Equal(http.StatusOK, resp.StatusCode)
 	defer resp.Body.Close()
@@ -691,7 +691,7 @@ func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithInvalidPublicKey() {
 	// Example validator pubkey (48 bytes with 0x prefix)
 	notFoundPubkey := "0x93247f2209abcacf57b75a51dafae777f9dd38bc7053d1af526f220a7489a6d3a2753e5f3e8b1cfe39b56f43611df74a"
 
-	resp, err := s.getValidatorBalances(utils.StateIDHead, notFoundPubkey)
+	resp, err := s.getValidatorBalances(mapping.StateIDHead, notFoundPubkey)
 	s.Require().NoError(err)
 	// If public key does not match any validator, no balance will be returned but this will not cause an error.
 	// The response should be 200 OK with empty data.
@@ -706,7 +706,7 @@ func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithInvalidPublicKey() {
 
 // TestGetValidatorBalancesForGenesis tests querying validator balances for state genesis.
 func (s *BeaconKitE2ESuite) TestGetValidatorBalancesForGenesis() {
-	resp, err := s.getValidatorBalances(utils.StateIDGenesis)
+	resp, err := s.getValidatorBalances(mapping.StateIDGenesis)
 	s.Require().NoError(err)
 	s.Require().Equal(http.StatusOK, resp.StatusCode)
 	defer resp.Body.Close()
@@ -768,7 +768,7 @@ func (s *BeaconKitE2ESuite) decodeValidatorsResponse(resp *http.Response) (*[]be
 
 // TestGetValidatorsWithStateHead tests querying validators with state head.
 func (s *BeaconKitE2ESuite) TestGetValidatorsWithStateHead() {
-	resp, err := s.getValidator(utils.StateIDHead)
+	resp, err := s.getValidator(mapping.StateIDHead)
 	s.Require().NoError(err)
 	s.Require().Equal(http.StatusOK, resp.StatusCode)
 	defer resp.Body.Close()
@@ -787,7 +787,7 @@ func (s *BeaconKitE2ESuite) TestGetValidatorsWithStateHead() {
 
 // TestGetValidatorsWithID tests querying validators with ID parameter.
 func (s *BeaconKitE2ESuite) TestGetValidatorsWithID() {
-	resp, err := s.getValidator(utils.StateIDHead, map[string]string{
+	resp, err := s.getValidator(mapping.StateIDHead, map[string]string{
 		"id": "0",
 	})
 	s.Require().NoError(err)
@@ -807,7 +807,7 @@ func (s *BeaconKitE2ESuite) TestGetValidatorsWithID() {
 
 // TestGetValidatorsWithStatus tests querying validators with status parameter.
 func (s *BeaconKitE2ESuite) TestGetValidatorsWithStatus() {
-	resp, err := s.getValidator(utils.StateIDHead, map[string]string{
+	resp, err := s.getValidator(mapping.StateIDHead, map[string]string{
 		"status": "active_ongoing",
 	})
 	s.Require().NoError(err)
@@ -829,7 +829,7 @@ func (s *BeaconKitE2ESuite) TestGetValidatorsWithStatus() {
 // TestGetValidatorsWithIDAndStatus tests querying validators with both ID and status parameters.
 func (s *BeaconKitE2ESuite) TestGetValidatorsWithIDAndStatus() {
 	// Call with both ID and status
-	resp, err := s.getValidator(utils.StateIDHead, map[string]string{
+	resp, err := s.getValidator(mapping.StateIDHead, map[string]string{
 		"id":     "0",
 		"status": "active_ongoing",
 	})
@@ -853,7 +853,7 @@ func (s *BeaconKitE2ESuite) TestGetValidatorsWithIDAndStatus() {
 
 // TestGetValidatorsWithStateGenesis tests querying validators with state genesis.
 func (s *BeaconKitE2ESuite) TestGetValidatorsWithStateGenesis() {
-	resp, err := s.getValidator(utils.StateIDGenesis)
+	resp, err := s.getValidator(mapping.StateIDGenesis)
 	s.Require().NoError(err)
 	s.Require().Equal(http.StatusOK, resp.StatusCode)
 	defer resp.Body.Close()

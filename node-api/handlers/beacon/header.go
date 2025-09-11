@@ -26,8 +26,9 @@ import (
 
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	handlertypes "github.com/berachain/beacon-kit/node-api/handlers/types"
+	"github.com/berachain/beacon-kit/node-api/handlers/mapping"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/node-api/middleware"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
@@ -43,7 +44,7 @@ func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 	case len(req.Slot) == 0 && len(req.ParentRoot) == 0:
 		// no parameter specified, pick chain HEAD
 		// by requesting special height 0.
-		height := utils.Head
+		height := mapping.Head
 		return h.makeBlockHeaderResponse(height, true /*resultsInList*/)
 
 	case len(req.Slot) != 0 && len(req.ParentRoot) == 0:
@@ -55,9 +56,9 @@ func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 		return h.makeBlockHeaderResponse(int64(slot), true /*resultsInList*/) //#nosec: G115 // practically safe
 
 	case len(req.Slot) == 0 && len(req.ParentRoot) != 0:
-		parentSlot, errParent := utils.BlockIDToHeight(req.ParentRoot, h.backend)
+		parentSlot, errParent := mapping.BlockIDToHeight(req.ParentRoot, h.backend)
 		if errParent != nil {
-			return nil, fmt.Errorf("%w, failed retrieving parent root with error: %w", handlertypes.ErrNotFound, errParent)
+			return nil, fmt.Errorf("%w, failed retrieving parent root with error: %w", middleware.ErrNotFound, errParent)
 		}
 		// TODO ABENEGIA: what happens here if HEAD is requested. Should be already broken??
 		height := parentSlot + 1
@@ -66,7 +67,7 @@ func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 	default:
 		var (
 			slot, errSlot         = math.U64FromString(req.Slot)
-			parentSlot, errParent = utils.BlockIDToHeight(req.ParentRoot, h.backend)
+			parentSlot, errParent = mapping.BlockIDToHeight(req.ParentRoot, h.backend)
 		)
 		if err := errors.Join(errSlot, errParent); err != nil {
 			return nil, err
@@ -85,7 +86,7 @@ func (h *Handler) GetBlockHeaderByID(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	slot, err := utils.BlockIDToHeight(req.BlockID, h.backend)
+	slot, err := mapping.BlockIDToHeight(req.BlockID, h.backend)
 	if err != nil {
 		return nil, fmt.Errorf("failed retrieving slot from block ID %s: %w", req.BlockID, err)
 	}
@@ -95,7 +96,7 @@ func (h *Handler) GetBlockHeaderByID(c handlers.Context) (any, error) {
 func (h *Handler) makeBlockHeaderResponse(height int64, resultsInList bool) (any, error) {
 	st, _, err := h.backend.StateAndSlotFromHeight(height)
 	if err != nil {
-		return nil, fmt.Errorf("%w: failed to get state from height %d, %s", handlertypes.ErrNotFound, height, err.Error())
+		return nil, fmt.Errorf("%w: failed to get state from height %d, %s", middleware.ErrNotFound, height, err.Error())
 	}
 	// Return after updating the state root in the block header.
 	header, err := st.GetLatestBlockHeader()

@@ -38,7 +38,6 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/mocks"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	"github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/middleware"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -109,7 +108,7 @@ func TestGetGenesis(t *testing.T) {
 			check: func(t *testing.T, res any, err error) {
 				t.Helper()
 
-				require.ErrorIs(t, err, types.ErrNotFound)
+				require.ErrorIs(t, err, middleware.ErrNotFound)
 				require.Nil(t, res)
 			},
 		},

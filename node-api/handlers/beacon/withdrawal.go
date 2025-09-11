@@ -25,8 +25,9 @@ import (
 
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	handlertypes "github.com/berachain/beacon-kit/node-api/handlers/types"
+	"github.com/berachain/beacon-kit/node-api/handlers/mapping"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/node-api/middleware"
 	"github.com/berachain/beacon-kit/primitives/version"
 )
 
@@ -39,7 +40,7 @@ func (h *Handler) GetPendingPartialWithdrawals(c handlers.Context) (any, error) 
 	}
 
 	// Load state for the requested state ID
-	height, err := utils.StateIDToHeight(req.StateID, h.backend)
+	height, err := mapping.StateIDToHeight(req.StateID, h.backend)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +55,7 @@ func (h *Handler) GetPendingPartialWithdrawals(c handlers.Context) (any, error) 
 		return nil, err
 	}
 	if version.IsBefore(forkVersion.CurrentVersion, version.Electra()) {
-		return nil, fmt.Errorf("%w: Electra fork not active yet", handlertypes.ErrInvalidRequest)
+		return nil, fmt.Errorf("%w: Electra fork not active yet", middleware.ErrInvalidRequest)
 	}
 
 	// Retrieve and return withdrawals
