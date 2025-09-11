@@ -303,7 +303,7 @@ func (s *Service) VerifyIncomingBlock(
 	)
 
 	// If we should build the next block and the pre-fetch was successful, trigger the optimistic build
-	if shouldBuildNextBlock && nextBlockData != nil && errFetch == nil {
+	if shouldBuildNextBlock && nextBlockData != nil {
 		go s.handleOptimisticPayloadBuild(ctx, nextBlockData)
 	}
 
