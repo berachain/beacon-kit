@@ -42,11 +42,11 @@ func (h *Handler) GetStateValidatorBalances(c handlers.Context) (any, error) {
 		return nil, err
 	}
 
-	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
+	height, err := utils.StateIDToHeight(req.StateID, h.backend)
 	if err != nil {
 		return nil, err
 	}
-	balances, err := h.getValidatorBalance(slot, req.IDs)
+	balances, err := h.getValidatorBalance(height, req.IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -68,11 +68,11 @@ func (h *Handler) PostStateValidatorBalances(c handlers.Context) (any, error) {
 		return nil, types.ErrInvalidRequest
 	}
 
-	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
+	height, err := utils.StateIDToHeight(req.StateID, h.backend)
 	if err != nil {
 		return nil, err
 	}
-	balances, err := h.getValidatorBalance(slot, req.IDs)
+	balances, err := h.getValidatorBalance(height, req.IDs)
 	if err != nil {
 		return nil, err
 	}

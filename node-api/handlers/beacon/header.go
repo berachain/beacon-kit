@@ -55,7 +55,7 @@ func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 		return h.makeBlockHeaderResponse(int64(slot), true /*resultsInList*/) //#nosec: G115 // practically safe
 
 	case len(req.Slot) == 0 && len(req.ParentRoot) != 0:
-		parentSlot, errParent := utils.SlotFromBlockID(req.ParentRoot, h.backend)
+		parentSlot, errParent := utils.BlockIDToHeight(req.ParentRoot, h.backend)
 		if errParent != nil {
 			return nil, fmt.Errorf("%w, failed retrieving parent root with error: %w", handlertypes.ErrNotFound, errParent)
 		}
@@ -66,7 +66,7 @@ func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 	default:
 		var (
 			slot, errSlot         = math.U64FromString(req.Slot)
-			parentSlot, errParent = utils.SlotFromBlockID(req.ParentRoot, h.backend)
+			parentSlot, errParent = utils.BlockIDToHeight(req.ParentRoot, h.backend)
 		)
 		if err := errors.Join(errSlot, errParent); err != nil {
 			return nil, err
@@ -85,7 +85,7 @@ func (h *Handler) GetBlockHeaderByID(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	slot, err := utils.SlotFromBlockID(req.BlockID, h.backend)
+	slot, err := utils.BlockIDToHeight(req.BlockID, h.backend)
 	if err != nil {
 		return nil, fmt.Errorf("failed retrieving slot from block ID %s: %w", req.BlockID, err)
 	}

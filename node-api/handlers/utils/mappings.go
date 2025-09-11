@@ -34,11 +34,11 @@ var ErrNoSlotForStateRoot = errors.New("slot not found at state root")
 // spec, execution unique to beacon-kit). For each type define validation
 // functions and resolvers to slot number.
 
-// SlotFromStateID returns a slot from the state ID.
+// StateIDToHeight returns a slot from the state ID.
 //
 // NOTE: Right now, `stateID` only supports querying by "head" (all of "head",
 // "finalized", "justified" are the same), "genesis", and <slot>.
-func SlotFromStateID[StorageBackendT interface {
+func StateIDToHeight[StorageBackendT interface {
 	GetSlotByStateRoot(root common.Root) (math.Slot, error)
 }](stateID string, storage StorageBackendT) (int64, error) {
 	if slot, err := stateIDToHeight(stateID); err == nil {
@@ -57,11 +57,11 @@ func SlotFromStateID[StorageBackendT interface {
 	return int64(slot), nil //#nosec: G115 // practically safe
 }
 
-// SlotFromBlockID returns a slot from the block ID.
+// BlockIDToHeight returns a height from the block ID.
 //
 // NOTE: `blockID` shares the same semantics as `stateID`, with the modification
 // of being able to query by beacon <blockRoot> instead of <stateRoot>.
-func SlotFromBlockID[StorageBackendT interface {
+func BlockIDToHeight[StorageBackendT interface {
 	GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 }](blockID string, storage StorageBackendT) (int64, error) {
 	if slot, err := stateIDToHeight(blockID); err == nil {
@@ -77,7 +77,7 @@ func SlotFromBlockID[StorageBackendT interface {
 	return int64(slot), err //#nosec: G115 // practically safe
 }
 
-// ParentSlotFromTimestampID returns the parent slot corresponding to the
+// TimestampIDToParentHeight returns the parent slot corresponding to the
 // timestamp ID.
 //
 // NOTE: `timestampID` shares the same semantics as `stateID`, with the
@@ -89,7 +89,7 @@ func SlotFromBlockID[StorageBackendT interface {
 // which has the next block with a timestamp of 1728681738. Providing just the
 // string '1728681738' (without the prefix 't') will query for the beacon block
 // for slot 1728681738.
-func ParentSlotFromTimestampID[StorageBackendT interface {
+func TimestampIDToParentHeight[StorageBackendT interface {
 	GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
 }](timestampID string, storage StorageBackendT) (int64, error) {
 	if !IsTimestampIDPrefix(timestampID) {
@@ -114,11 +114,9 @@ func IsTimestampIDPrefix(timestampID string) bool {
 }
 
 // stateIDToHeight returns a slot number from the given state ID.
-// Currently, when "genesis" is requested, we return the block 1 state.
-// This is due to a CometBFT limitation that does not explicitly commit the
-// genesis state (it accumulates block 1 state changes and flushes them together).
-// Numeric requests are clamped so that slot 0 maps to Genesis (slot 1).
-// TODO: Properly return the true genesis state when requested, instead of block 1.
+// Returns -1 if chain tip is requested
+// Returns 0 if genesis is requested
+// Returns a positive integer if any chain slot is requested
 func stateIDToHeight(id string) (int64, error) {
 	switch id {
 	case StateIDFinalized, StateIDJustified, StateIDHead:

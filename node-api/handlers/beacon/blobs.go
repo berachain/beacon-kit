@@ -41,7 +41,7 @@ func (h *Handler) GetBlobSidecars(c handlers.Context) (any, error) {
 	}
 
 	// Map requested blockID to slot
-	slotID, err := utils.SlotFromBlockID(req.BlockID, h.backend)
+	slotID, err := utils.BlockIDToHeight(req.BlockID, h.backend)
 	if err != nil {
 		return nil, err
 	}

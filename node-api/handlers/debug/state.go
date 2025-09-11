@@ -34,7 +34,7 @@ func (h *Handler) GetState(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	height, err := utils.SlotFromStateID(req.StateID, h.backend)
+	height, err := utils.StateIDToHeight(req.StateID, h.backend)
 	if err != nil {
 		return nil, err
 	}

@@ -39,11 +39,11 @@ func (h *Handler) GetStateValidators(c handlers.Context) (any, error) {
 		return nil, err
 	}
 
-	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
+	height, err := utils.StateIDToHeight(req.StateID, h.backend)
 	if err != nil {
 		return nil, err
 	}
-	filteredVals, err := h.FilterValidators(slot, req.IDs, req.Statuses)
+	filteredVals, err := h.FilterValidators(height, req.IDs, req.Statuses)
 	if err != nil {
 		return nil, fmt.Errorf("failed to filter validators: %w", err)
 	}
@@ -58,11 +58,11 @@ func (h *Handler) PostStateValidators(c handlers.Context) (any, error) {
 		return nil, err
 	}
 
-	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
+	height, err := utils.StateIDToHeight(req.StateID, h.backend)
 	if err != nil {
 		return nil, err
 	}
-	filteredVals, err := h.FilterValidators(slot, req.IDs, req.Statuses)
+	filteredVals, err := h.FilterValidators(height, req.IDs, req.Statuses)
 	if err != nil {
 		return nil, fmt.Errorf("failed to filter validators: %w", err)
 	}
@@ -77,11 +77,11 @@ func (h *Handler) GetStateValidator(c handlers.Context) (any, error) {
 		return nil, err
 	}
 
-	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
+	height, err := utils.StateIDToHeight(req.StateID, h.backend)
 	if err != nil {
 		return nil, err
 	}
-	valData, err := h.getValidator(slot, req.ValidatorID)
+	valData, err := h.getValidator(height, req.ValidatorID)
 	if err != nil {
 		return nil, err
 	}
