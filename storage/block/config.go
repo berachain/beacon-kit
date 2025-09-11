@@ -18,26 +18,19 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package backend
+package block
 
-import (
-	"github.com/berachain/beacon-kit/errors"
-	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/math"
-)
+const defaultAvailabilityWindow = 8192
 
-func (b *Backend) RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes32, error) {
-	// Get the state at the given slot.
-	st, resolvedSlot, err := b.StateAtSlot(slot)
-	if err != nil {
-		return common.Bytes32{}, errors.Wrapf(err, "failed to get state from slot %d", slot)
+// Config is the configuration for the block service.
+type Config struct {
+	// AvailabilityWindow is the number of slots to keep in the store.
+	AvailabilityWindow int `mapstructure:"availability-window"`
+}
+
+// DefaultConfig returns the default configuration for the block service.
+func DefaultConfig() Config {
+	return Config{
+		AvailabilityWindow: defaultAvailabilityWindow,
 	}
-
-	// Infer the epoch if not provided.
-	if epoch == 0 {
-		epoch = b.cs.SlotToEpoch(resolvedSlot)
-	}
-
-	index := epoch.Unwrap() % b.cs.EpochsPerHistoricalVector()
-	return st.GetRandaoMixAtIndex(index)
 }

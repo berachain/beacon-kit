@@ -21,7 +21,11 @@
 package beacon_test
 
 import (
-	"errors"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/berachain/beacon-kit/config/spec"
@@ -30,103 +34,93 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/mocks"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	"github.com/berachain/beacon-kit/node-api/handlers/types"
+	handlertypes "github.com/berachain/beacon-kit/node-api/handlers/types"
+	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/node-api/middleware"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/labstack/echo/v4"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetGenesis(t *testing.T) {
+func TestGetRandao(t *testing.T) {
 	t.Parallel()
 
 	cs, errSpec := spec.MainnetChainSpec()
 	require.NoError(t, errSpec)
 
 	var (
-		testGenesisRoot        = common.Root{0x10, 0x20, 0x30}
-		testGenesisForkVersion = common.Version{0xff, 0x11, 0x22, 0x33}
-		testGenesisTime        = math.U64(123456789)
-
-		errTestError = errors.New("test error when missing item")
+		testSlot  = math.Slot(1234)
+		testEpoch = cs.SlotToEpoch(testSlot)
+		index     = testEpoch.Unwrap() % cs.EpochsPerHistoricalVector()
+		testMix   = common.Bytes32{0x01, 0x02, 0x03}
 	)
 
 	testCases := []struct {
 		name                string
+		inputs              func() beacontypes.GetRandaoRequest
 		setMockExpectations func(*mocks.Backend)
 		check               func(t *testing.T, res any, err error)
 	}{
 		{
-			name: "sunny path",
+			name: "randao request - specified epoch",
+			inputs: func() beacontypes.GetRandaoRequest {
+				stateID := utils.StateIDHead
+				epoch := strconv.Itoa(int(testEpoch.Unwrap()))
+				return beacontypes.GetRandaoRequest{
+					StateIDRequest: handlertypes.StateIDRequest{
+						StateID: stateID,
+					},
+					EpochOptionalRequest: beacontypes.EpochOptionalRequest{
+						Epoch: epoch,
+					},
+				}
+			},
 			setMockExpectations: func(b *mocks.Backend) {
-				b.EXPECT().GenesisValidatorsRoot().Return(testGenesisRoot, nil).Once()
-				b.EXPECT().GenesisForkVersion().Return(testGenesisForkVersion, nil).Once()
-				b.EXPECT().GenesisTime().Return(testGenesisTime, nil).Once()
+				st := makeTestState(t, cs)
+
+				require.NoError(t, st.UpdateRandaoMixAtIndex(index, testMix))
+				b.EXPECT().StateAtSlot(mock.Anything).Return(st, testSlot, nil)
 			},
 			check: func(t *testing.T, res any, err error) {
 				t.Helper()
 
 				require.NoError(t, err)
 				require.NotNil(t, res)
-				require.IsType(t, beacontypes.GenesisResponse{}, res)
-				gr, _ := res.(beacontypes.GenesisResponse)
-
-				require.Equal(t, testGenesisRoot, gr.Data.GenesisValidatorsRoot)
-				require.Equal(t, testGenesisForkVersion.String(), gr.Data.GenesisForkVersion)
-				require.Equal(t, testGenesisTime.Base10(), gr.Data.GenesisTime)
+				require.IsType(t, beacontypes.GenericResponse{}, res)
+				gr, _ := res.(beacontypes.GenericResponse)
+				require.IsType(t, common.Bytes32{}, gr.Data)
+				data, _ := gr.Data.(common.Bytes32)
+				require.Equal(t, testMix, data)
 			},
 		},
 		{
-			name: "genesis not ready",
+			name: "randao request - unspecified epoch",
+			inputs: func() beacontypes.GetRandaoRequest {
+				stateID := utils.StateIDHead
+				return beacontypes.GetRandaoRequest{
+					StateIDRequest: handlertypes.StateIDRequest{
+						StateID: stateID,
+					},
+				}
+			},
 			setMockExpectations: func(b *mocks.Backend) {
-				b.EXPECT().GenesisValidatorsRoot().Return(common.Root{}, nil).Once()
+				st := makeTestState(t, cs)
+
+				require.NoError(t, st.UpdateRandaoMixAtIndex(index, testMix))
+				b.EXPECT().StateAtSlot(mock.Anything).Return(st, testSlot, nil)
 			},
 			check: func(t *testing.T, res any, err error) {
 				t.Helper()
 
-				require.ErrorIs(t, err, types.ErrNotFound)
-				require.Contains(t, err.Error(), "Chain genesis info is not yet known")
-				require.Nil(t, res)
-			},
-		},
-		{
-			name: "failed loading validator root",
-			setMockExpectations: func(b *mocks.Backend) {
-				b.EXPECT().GenesisValidatorsRoot().Return(common.Root{}, errTestError).Once()
-			},
-			check: func(t *testing.T, res any, err error) {
-				t.Helper()
-
-				require.ErrorIs(t, err, errTestError)
-				require.Nil(t, res)
-			},
-		},
-		{
-			name: "failed loading fork version",
-			setMockExpectations: func(b *mocks.Backend) {
-				b.EXPECT().GenesisValidatorsRoot().Return(testGenesisRoot, nil).Once()
-				b.EXPECT().GenesisForkVersion().Return(common.Version{}, errTestError).Once()
-			},
-			check: func(t *testing.T, res any, err error) {
-				t.Helper()
-
-				require.ErrorIs(t, err, errTestError)
-				require.Nil(t, res)
-			},
-		},
-		{
-			name: "failed loading genesis time",
-			setMockExpectations: func(b *mocks.Backend) {
-				b.EXPECT().GenesisValidatorsRoot().Return(testGenesisRoot, nil).Once()
-				b.EXPECT().GenesisForkVersion().Return(testGenesisForkVersion, nil).Once()
-				b.EXPECT().GenesisTime().Return(0, errTestError).Once()
-			},
-			check: func(t *testing.T, res any, err error) {
-				t.Helper()
-
-				require.ErrorIs(t, err, errTestError)
-				require.Nil(t, res)
+				require.NoError(t, err)
+				require.NotNil(t, res)
+				require.IsType(t, beacontypes.GenericResponse{}, res)
+				gr, _ := res.(beacontypes.GenericResponse)
+				require.IsType(t, common.Bytes32{}, gr.Data)
+				data, _ := gr.Data.(common.Bytes32)
+				require.Equal(t, testMix, data)
 			},
 		},
 	}
@@ -134,8 +128,6 @@ func TestGetGenesis(t *testing.T) {
 	for _, tc := range testCases {
 		tc := tc // capture range variable
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
 			// setup test
 			backend := mocks.NewBackend(t)
 			h := beacon.NewHandler(backend, cs, noop.NewLogger[log.Logger]())
@@ -147,10 +139,19 @@ func TestGetGenesis(t *testing.T) {
 			// set expectations
 			tc.setMockExpectations(backend)
 
-			// test
-			res, err := h.GetGenesis(nil) // input not relevant for this API
+			// create input
+			input := tc.inputs()
+			inputBytes, err := json.Marshal(input) //nolint:musttag //  TODO:fix
+			require.NoError(t, err)
+			body := strings.NewReader(string(inputBytes))
+			req := httptest.NewRequest(http.MethodGet, "/", body)
+			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON) // otherwise code=415, message=Unsupported Media Type
+			c := e.NewContext(req, httptest.NewRecorder())
 
-			// finally do checks
+			// test
+			res, err := h.GetRandao(c)
+
+			// check
 			tc.check(t, res, err)
 		})
 	}

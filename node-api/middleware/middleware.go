@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package echo
+package middleware
 
 import (
 	"github.com/berachain/beacon-kit/log"
@@ -27,21 +27,14 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 )
 
-// Engine is an implementation of the API engine interface using Echo.
-type Engine struct {
+// Middleware is an implementation of the API engine interface using Echo.
+type Middleware struct {
 	*echo.Echo
 	logger log.Logger
 }
 
-// New initializes a new API engine with the given Echo instance.
-func New(e *echo.Echo) *Engine {
-	return &Engine{
-		Echo: e,
-	}
-}
-
-// NewDefaultEngine returns a new default Echo Engine instance.
-func NewDefaultEngine() *Engine {
+// NewDefaultMiddleware returns a new default Echo Engine instance.
+func NewDefaultMiddleware(logger log.Logger) *Middleware {
 	engine := echo.New()
 	engine.Use(middleware.CORSWithConfig(
 		middleware.DefaultCORSConfig,
@@ -50,17 +43,19 @@ func NewDefaultEngine() *Engine {
 		Validator: ConstructValidator(),
 	}
 	engine.HideBanner = true
-	return New(engine)
+	return &Middleware{
+		Echo:   engine,
+		logger: logger,
+	}
 }
 
 // Run starts the Echo engine at the given address.
-func (e *Engine) Run(addr string) error {
+func (e *Middleware) Run(addr string) error {
 	return e.Echo.Start(addr)
 }
 
 // RegisterRoutes registers the given route set with the Echo engine.
-func (e *Engine) RegisterRoutes(hs *handlers.RouteSet, logger log.Logger) {
-	e.logger = logger
+func (e *Middleware) RegisterRoutes(hs *handlers.RouteSet) {
 	group := e.Group(hs.BasePath)
 	for _, route := range hs.Routes {
 		route.DecorateWithLogs(e.logger)

@@ -66,7 +66,6 @@ const (
 
 	// Block Store Service Config.
 	blockStoreServiceRoot               = beaconKitRoot + "block-store-service."
-	BlockStoreServiceEnabled            = blockStoreServiceRoot + "enabled"
 	BlockStoreServiceAvailabilityWindow = blockStoreServiceRoot +
 		"availability-window"
 
@@ -155,11 +154,6 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 		Style,
 		defaultCfg.Logger.Style,
 		"style",
-	)
-	startCmd.Flags().Bool(
-		BlockStoreServiceEnabled,
-		defaultCfg.BlockStoreService.Enabled,
-		"block service enabled",
 	)
 	startCmd.Flags().Int(
 		BlockStoreServiceAvailabilityWindow,

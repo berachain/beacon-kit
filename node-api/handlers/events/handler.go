@@ -20,17 +20,19 @@
 
 package events
 
-import "github.com/berachain/beacon-kit/node-api/handlers"
+import (
+	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/node-api/handlers"
+)
 
 type Handler struct {
 	*handlers.BaseHandler
 }
 
-func NewHandler() *Handler {
+func NewHandler(logger log.Logger) *Handler {
 	h := &Handler{
-		BaseHandler: handlers.NewBaseHandler(
-			handlers.NewRouteSet(""),
-		),
+		BaseHandler: handlers.NewBaseHandler(logger),
 	}
+	registerRoutes(h)
 	return h
 }
