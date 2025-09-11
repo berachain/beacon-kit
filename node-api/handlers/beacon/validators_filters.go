@@ -25,14 +25,11 @@ import (
 	"slices"
 
 	consensustypes "github.com/berachain/beacon-kit/consensus-types/types"
-	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-api/backend"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	"github.com/berachain/beacon-kit/node-api/middleware"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // errStatusFilterMismatch is an error for when a validator status does not
@@ -45,14 +42,6 @@ var errStatusFilterMismatch = errors.New("validator status does not match status
 func (h *Handler) FilterValidators(height int64, ids []string, statuses []string) ([]*beacontypes.ValidatorData, error) {
 	st, resolvedSlot, err := h.backend.StateAndSlotFromHeight(height)
 	if err != nil {
-		if errors.Is(err, cometbft.ErrAppNotReady) {
-			// chain not ready, like when genesis time is set in the future
-			return nil, middleware.ErrNotFound
-		}
-		if errors.Is(err, sdkerrors.ErrInvalidHeight) {
-			// height requested too high
-			return nil, middleware.ErrNotFound
-		}
 		return nil, fmt.Errorf("failed to get state from height %d: %w", height, err)
 	}
 

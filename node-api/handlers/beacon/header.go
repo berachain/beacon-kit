@@ -96,7 +96,7 @@ func (h *Handler) GetBlockHeaderByID(c handlers.Context) (any, error) {
 func (h *Handler) makeBlockHeaderResponse(height int64, resultsInList bool) (any, error) {
 	st, _, err := h.backend.StateAndSlotFromHeight(height)
 	if err != nil {
-		return nil, fmt.Errorf("%w: failed to get state from height %d, %s", middleware.ErrNotFound, height, err.Error())
+		return nil, fmt.Errorf("failed to get state from height %d, %w", height, err)
 	}
 	// Return after updating the state root in the block header.
 	header, err := st.GetLatestBlockHeader()
