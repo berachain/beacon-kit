@@ -34,7 +34,10 @@ type Backend interface {
 	GetBlobSidecarsAtSlot(slot math.Slot) (datypes.BlobSidecars, error)
 
 	// State loading method, used by most of the handlers
-	StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error)
+	// Height == -1 must be used to require tip state.
+	// Height == 0 must be used to require Genesis state
+	// Height > 0 must be used to require state at slot <Height>
+	StateAndSlotFromHeight(height int64) (*statedb.StateDB, math.Slot, error)
 
 	// Methods helping mapping block/state/... IDs in requests to heights
 	GetSlotByBlockRoot(root common.Root) (math.Slot, error)

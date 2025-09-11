@@ -79,10 +79,10 @@ func (h *Handler) PostStateValidatorBalances(c handlers.Context) (any, error) {
 	return beacontypes.NewResponse(balances), nil
 }
 
-func (h *Handler) getValidatorBalance(slot math.Slot, validatorIDs []string) ([]*beacontypes.ValidatorBalanceData, error) {
-	st, _, err := h.backend.StateAtSlot(slot)
+func (h *Handler) getValidatorBalance(height int64, validatorIDs []string) ([]*beacontypes.ValidatorBalanceData, error) {
+	st, _, err := h.backend.StateAndSlotFromHeight(height)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get state from slot %d: %w", slot, err)
+		return nil, fmt.Errorf("failed to get state from height %d: %w", height, err)
 	}
 
 	// If no IDs provided, return all validator balances

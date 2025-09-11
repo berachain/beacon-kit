@@ -31,21 +31,39 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 )
 
-// StateAtSlot returns the beacon state at a particular slot using query context,
-// resolving an input slot of 0 to the latest slot.
+// StateAndSlotFromHeight returns the beacon state at a particular slot using query context,
+// resolving an input height of -1 to the latest slot.
 //
 // This returns the beacon state of the version that was committed to disk at the requested slot,
 // which has the empty state root in the latest block header. Hence, the most recent state and
 // block roots are not updated.
-func (b *Backend) StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error) {
-	queryCtx, err := b.node.CreateQueryContext(int64(slot), false) // #nosec G115 -- not an issue in practice.
+func (b *Backend) StateAndSlotFromHeight(height int64) (*statedb.StateDB, math.Slot, error) {
+	if height < -1 {
+		return nil, 0, fmt.Errorf("expected height, must be non-negative or -1 to request tip, got %d", height)
+	}
+	if height == 0 {
+		// genesis requested. Serve it from the genesis state recreated locally by node-api
+		if err := b.checkChainIsReady(); err != nil {
+			return nil, 0, err
+		}
+
+		// TODO ABENEGIA: provide an independent copy instead
+		// Make sure copy creation happens in a thread safe way
+		return b.genesisState, 0, nil
+	}
+
+	height = max(0, height) // CreateQueryContext uses 0 to pick latest height.
+	queryCtx, err := b.node.CreateQueryContext(height, false)
 	if err != nil {
-		return nil, slot, fmt.Errorf("CreateQueryContext failed: %w", err)
+		return nil, 0, fmt.Errorf("CreateQueryContext failed: %w", err)
 	}
 	st := b.sb.StateFromContext(queryCtx)
 
-	// If using height 0 for the query context, make sure to return the latest slot.
-	if slot == 0 {
+	var slot math.Slot
+	if height > 0 {
+		slot = math.Slot(height)
+	} else {
+		// height must be -1, so pick state slot
 		slot, err = st.GetSlot()
 		if err != nil {
 			return st, slot, fmt.Errorf("GetSlot failed: %w", err)

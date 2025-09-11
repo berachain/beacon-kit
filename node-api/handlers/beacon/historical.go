@@ -37,7 +37,7 @@ func (h *Handler) GetStateRoot(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	st, _, err := h.backend.StateAtSlot(slot)
+	st, _, err := h.backend.StateAndSlotFromHeight(slot)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func (h *Handler) GetStateFork(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	st, _, err := h.backend.StateAtSlot(slot)
+	st, _, err := h.backend.StateAndSlotFromHeight(slot)
 	if err != nil {
 		return nil, err
 	}

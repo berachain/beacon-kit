@@ -42,7 +42,7 @@ func (h *Handler) GetRandao(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	st, resolvedSlot, err := h.backend.StateAtSlot(slot)
+	st, resolvedSlot, err := h.backend.StateAndSlotFromHeight(slot)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get state from slot %d", slot)
 	}

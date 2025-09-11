@@ -42,9 +42,9 @@ func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 	switch {
 	case len(req.Slot) == 0 && len(req.ParentRoot) == 0:
 		// no parameter specified, pick chain HEAD
-		// by requesting special slot 0.
-		slot := utils.Head
-		return h.makeBlockHeaderResponse(slot, true /*resultsInList*/)
+		// by requesting special height 0.
+		height := utils.Head
+		return h.makeBlockHeaderResponse(height, true /*resultsInList*/)
 
 	case len(req.Slot) != 0 && len(req.ParentRoot) == 0:
 		slot, errSlot := math.U64FromString(req.Slot)
@@ -52,15 +52,16 @@ func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 		if errSlot != nil {
 			return nil, fmt.Errorf("failed retrieving slot from input parameters: %w", errSlot)
 		}
-		return h.makeBlockHeaderResponse(slot, true /*resultsInList*/)
+		return h.makeBlockHeaderResponse(int64(slot), true /*resultsInList*/) //#nosec: G115 // practically safe
 
 	case len(req.Slot) == 0 && len(req.ParentRoot) != 0:
 		parentSlot, errParent := utils.SlotFromBlockID(req.ParentRoot, h.backend)
 		if errParent != nil {
 			return nil, fmt.Errorf("%w, failed retrieving parent root with error: %w", handlertypes.ErrNotFound, errParent)
 		}
-		slot := parentSlot + 1
-		return h.makeBlockHeaderResponse(slot, true /*resultsInList*/)
+		// TODO ABENEGIA: what happens here if HEAD is requested. Should be already broken??
+		height := parentSlot + 1
+		return h.makeBlockHeaderResponse(height, true /*resultsInList*/)
 
 	default:
 		var (
@@ -70,10 +71,12 @@ func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 		if err := errors.Join(errSlot, errParent); err != nil {
 			return nil, err
 		}
-		if slot != parentSlot+1 {
+
+		height := int64(slot) //#nosec: G115 // practically safe
+		if height != parentSlot+1 {
 			return nil, fmt.Errorf("%w: request slot %d, parent block slot %d", ErrMismatchedSlotAndParentBlock, slot, parentSlot)
 		}
-		return h.makeBlockHeaderResponse(slot, true /*resultsInList*/)
+		return h.makeBlockHeaderResponse(height, true /*resultsInList*/)
 	}
 }
 
@@ -89,10 +92,10 @@ func (h *Handler) GetBlockHeaderByID(c handlers.Context) (any, error) {
 	return h.makeBlockHeaderResponse(slot, false /*resultsInList*/)
 }
 
-func (h *Handler) makeBlockHeaderResponse(slot math.Slot, resultsInList bool) (any, error) {
-	st, _, err := h.backend.StateAtSlot(slot)
+func (h *Handler) makeBlockHeaderResponse(height int64, resultsInList bool) (any, error) {
+	st, _, err := h.backend.StateAndSlotFromHeight(height)
 	if err != nil {
-		return nil, fmt.Errorf("%w: failed to get state from slot %d, %s", handlertypes.ErrNotFound, slot, err.Error())
+		return nil, fmt.Errorf("%w: failed to get state from height %d, %s", handlertypes.ErrNotFound, height, err.Error())
 	}
 	// Return after updating the state root in the block header.
 	header, err := st.GetLatestBlockHeader()

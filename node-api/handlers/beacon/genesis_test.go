@@ -86,7 +86,7 @@ func TestGetGenesis(t *testing.T) {
 					Timestamp:   testGenesisTime,
 				}))
 
-				b.EXPECT().StateAtSlot(mock.Anything).Return(st, 0, nil)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(st, 0, nil)
 			},
 			check: func(t *testing.T, res any, err error) {
 				t.Helper()
@@ -104,7 +104,7 @@ func TestGetGenesis(t *testing.T) {
 		{
 			name: "genesis not ready",
 			setMockExpectations: func(b *mocks.Backend) {
-				b.EXPECT().StateAtSlot(mock.Anything).Return(nil, 0, cometbft.ErrAppNotReady)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(nil, 0, cometbft.ErrAppNotReady)
 			},
 			check: func(t *testing.T, res any, err error) {
 				t.Helper()

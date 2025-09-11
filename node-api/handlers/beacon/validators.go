@@ -29,7 +29,6 @@ import (
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	types "github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
-	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 func (h *Handler) GetStateValidators(c handlers.Context) (any, error) {
@@ -91,10 +90,10 @@ func (h *Handler) GetStateValidator(c handlers.Context) (any, error) {
 
 // getValidator contains all the logic of the GetStateValidator api
 // that is not related to http stuff. Consider exporting it if needed
-func (h *Handler) getValidator(slot math.Slot, validatorID string) (*beacontypes.ValidatorData, error) {
-	st, resolvedSlot, err := h.backend.StateAtSlot(slot)
+func (h *Handler) getValidator(height int64, validatorID string) (*beacontypes.ValidatorData, error) {
+	st, resolvedSlot, err := h.backend.StateAndSlotFromHeight(height)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get state from slot %d: %w", slot, err)
+		return nil, fmt.Errorf("failed to get state from height %d: %w", height, err)
 	}
 
 	// retrieve validator data
