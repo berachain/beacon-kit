@@ -129,7 +129,7 @@ func (s *Server) start(ctx context.Context) {
 }
 
 func (s *Server) Stop() error {
-	return nil
+	return s.b.Close()
 }
 
 // Name returns the name of the API server service.

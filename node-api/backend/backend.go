@@ -25,6 +25,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"sync"
 
 	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
@@ -58,7 +59,10 @@ type Backend struct {
 
 	// Genesis related data
 	sp           GenesisStateProcessor // only needed to recreate genesis state upon API loading
-	genesisState *state.StateDB        // caches genesis data to serve API requests
+	db           dbm.DB                // in-memory DB to store genesis state
+	muCms        sync.RWMutex          // mutex to allow copying genesisState in a thread safe way
+	cms          storetypes.CommitMultiStore
+	genesisState *state.StateDB // caches genesis data to serve API requests
 }
 
 // New creates and returns a new Backend instance.
@@ -95,6 +99,14 @@ func (b *Backend) LoadData(_ context.Context) error {
 	}
 }
 
+func (b *Backend) Close() error {
+	if b.db == nil {
+		return nil
+	}
+	return b.db.Close()
+}
+
+// If checkChainIsReady returns nil, we assume genesis state is created
 func (b *Backend) checkChainIsReady() error {
 	switch err := b.node.IsAppReady(); {
 	case err == nil:
@@ -127,14 +139,13 @@ func (b *Backend) loadGenesisState() error {
 	}
 
 	// 1- Load Genesis bytes
-	genesisData, err := parseGenesisBytes(b)
+	genesisData, err := b.parseGenesisBytes()
 	if err != nil {
 		return err
 	}
 
 	// 2- Create Genesis Store
-	b.genesisState, err = initGenesisState(b.cs)
-	if err != nil {
+	if err = b.initGenesisState(); err != nil {
 		return fmt.Errorf("backend data loading:%w", err)
 	}
 
@@ -152,10 +163,12 @@ func (b *Backend) loadGenesisState() error {
 	); err != nil {
 		return fmt.Errorf("failed processing genesis: %w", err)
 	}
+
+	_ = b.cms.Commit() // not really necessary for in-memoryDB. Still.
 	return nil
 }
 
-func parseGenesisBytes(b *Backend) (ctypes.Genesis, error) {
+func (b *Backend) parseGenesisBytes() (ctypes.Genesis, error) {
 	appGenesis, err := genutiltypes.AppGenesisFromFile(b.cmtCfg.GenesisFile())
 	if err != nil {
 		return ctypes.Genesis{}, fmt.Errorf("failed loading app genesis from file: %w", err)
@@ -177,34 +190,36 @@ func parseGenesisBytes(b *Backend) (ctypes.Genesis, error) {
 	return genesisData, nil
 }
 
-func initGenesisState(cs chain.Spec) (*state.StateDB, error) {
-	db, err := db.OpenDB("", dbm.MemDBBackend)
+func (b *Backend) initGenesisState() error {
+	var err error
+	b.db, err = db.OpenDB("", dbm.MemDBBackend)
 	if err != nil {
-		return nil, fmt.Errorf("failed opening mem db: %w", err)
+		return fmt.Errorf("failed opening mem db: %w", err)
 	}
 	var (
 		nopLog     = log.NewNopLogger()
 		nopMetrics = sdkmetrics.NewNoOpMetrics()
 	)
 
-	cms := store.NewCommitMultiStore(db, nopLog, nopMetrics)
+	b.cms = store.NewCommitMultiStore(b.db, nopLog, nopMetrics)
 
-	cms.MountStoreWithDB(backendStoreKey, storetypes.StoreTypeIAVL, nil)
-	if err = cms.LoadLatestVersion(); err != nil {
-		return nil, fmt.Errorf("backend data loading: failed to load latest version: %w", err)
+	b.cms.MountStoreWithDB(backendStoreKey, storetypes.StoreTypeIAVL, nil)
+	if err = b.cms.LoadLatestVersion(); err != nil {
+		return fmt.Errorf("backend data loading: failed to load latest version: %w", err)
 	}
 
-	ctx := sdk.NewContext(cms, true, nopLog)
+	ctx := sdk.NewContext(b.cms, true, nopLog)
 	backendStoreService := &backendKVStoreService{
 		ctx: ctx,
 	}
 	kvStore := beacondb.New(backendStoreService)
 
-	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), true, log.NewNopLogger())
-	return state.NewBeaconStateFromDB(
+	sdkCtx := sdk.NewContext(b.cms.CacheMultiStore(), true, log.NewNopLogger())
+	b.genesisState = state.NewBeaconStateFromDB(
 		kvStore.WithContext(sdkCtx),
-		cs,
+		b.cs,
 		sdkCtx.Logger(),
 		metrics.NewNoOpTelemetrySink(),
-	), nil
+	)
+	return nil
 }

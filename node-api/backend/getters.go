@@ -24,9 +24,11 @@ import (
 	"fmt"
 	"runtime"
 
+	"cosmossdk.io/log"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 )
 
@@ -46,9 +48,15 @@ func (b *Backend) StateAndSlotFromHeight(height int64) (ReadOnlyBeaconState, mat
 			return nil, 0, err
 		}
 
-		// TODO ABENEGIA: provide an independent copy instead
-		// Make sure copy creation happens in a thread safe way
-		return b.genesisState, 0, nil
+		b.muCms.Lock()
+		defer b.muCms.Unlock()
+
+		// Copy the state to ensure clients potential changes won't pollute the state
+		// Also we make sure to create the copy in a thread-safe way via the muCms mutex.
+		ms := b.cms.CacheMultiStore()
+		copyCtx := sdk.NewContext(ms, true, log.NewNopLogger())
+		copyGenesisState := b.genesisState.Copy(copyCtx)
+		return copyGenesisState, 0, nil
 	}
 
 	height = max(0, height) // CreateQueryContext uses 0 to pick latest height.
