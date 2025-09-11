@@ -44,7 +44,7 @@ import (
 	"github.com/berachain/beacon-kit/storage"
 	"github.com/berachain/beacon-kit/storage/beacondb"
 	"github.com/berachain/beacon-kit/storage/db"
-	depositstore "github.com/berachain/beacon-kit/storage/deposit"
+	"github.com/berachain/beacon-kit/storage/deposit"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/mock"
@@ -75,21 +75,26 @@ var (
 func BuildTestStores() (
 	storetypes.CommitMultiStore,
 	*beacondb.KVStore,
-	*depositstore.KVStore,
+	deposit.StoreManager,
 	error,
 ) {
-	db, err := db.OpenDB("", dbm.MemDBBackend)
+	appDB, err := db.OpenDB("app", dbm.MemDBBackend)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("failed opening mem db: %w", err)
+		return nil, nil, nil, fmt.Errorf("failed opening mem app db: %w", err)
 	}
+
+	depositsDB, err := db.OpenDB("deposits", dbm.MemDBBackend)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("failed opening mem deposits db: %w", err)
+	}
+
 	var (
-		nopLog        = log.NewNopLogger()
-		noopCloseFunc = func() error { return nil }
-		nopMetrics    = metrics.NewNoOpMetrics()
+		nopLog     = log.NewNopLogger()
+		nopMetrics = metrics.NewNoOpMetrics()
 	)
 
 	cms := store.NewCommitMultiStore(
-		db,
+		appDB,
 		nopLog,
 		nopMetrics,
 	)
@@ -99,17 +104,17 @@ func BuildTestStores() (
 		return nil, nil, nil, fmt.Errorf("failed to load latest version: %w", err)
 	}
 
-	testStoreService := &testKVStoreService{}
+	depositStore := deposit.NewStore(depositsDB, nopLog)
 	return cms,
-		beacondb.New(testStoreService),
-		depositstore.NewStore(testStoreService, noopCloseFunc, nopLog),
+		beacondb.New(&testKVStoreService{}),
+		depositStore,
 		nil
 }
 
 func SetupTestState(t *testing.T, cs chain.Spec) (
 	*TestStateProcessorT,
 	*TestBeaconStateT,
-	*depositstore.KVStore,
+	deposit.StoreManager,
 	core.ReadOnlyContext,
 	storetypes.CommitMultiStore,
 	*mocks.ExecutionEngine,

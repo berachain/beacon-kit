@@ -61,7 +61,7 @@ func TestNewPayloadWithValidVersion(t *testing.T) {
 
 	block := utils.GenerateValidBeaconBlock(t, version.Deneb1())
 
-	newPayloadRequest, err := ctypes.BuildNewPayloadRequestFromFork(block)
+	newPayloadRequest, err := ctypes.BuildNewPayloadRequestFromFork(block, nil)
 	if err != nil {
 		return
 	}
@@ -76,7 +76,7 @@ func TestNewPayloadWithInvalidVersion(t *testing.T) {
 	ctx := context.Background()
 
 	n := mocks.NewPayloadRequest{}
-	n.On("GetForkVersion").Return(version.Electra1())
+	n.On("GetForkVersion").Return(version.Electra2())
 	_, err := c.NewPayload(ctx, &n)
 	require.ErrorIs(t, err, ethclient.ErrInvalidVersion)
 }

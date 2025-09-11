@@ -17,7 +17,6 @@ pyroscope = import_module("./src/observability/pyroscope/pyroscope.star")
 tx_fuzz = import_module("./src/services/tx_fuzz/launcher.star")
 blutgang = import_module("./src/services/blutgang/launcher.star")
 blockscout = import_module("./src/services/blockscout/launcher.star")
-otterscan = import_module("./src/services/otterscan/launcher.star")
 
 def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpoints = [], additional_services = [], metrics_enabled_services = []):
     """
@@ -74,7 +73,7 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
     genesis_deposits_root = env_vars.get("GENESIS_DEPOSITS_ROOT")
     genesis_deposit_count_hex = env_vars.get("GENESIS_DEPOSIT_COUNT_HEX")
 
-    # 4c. Modify the eth genesis files(for both nethermind and default) with the ENV VARS
+    # 4c. Modify the eth genesis files with the ENV VARS
     genesis_files = nodes.create_genesis_files_part2(plan, chain_id, genesis_deposits_root, genesis_deposit_count_hex)
 
     el_enode_addrs = []
@@ -141,7 +140,6 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
             configs = full_node_configs,
         )
     for n, full_node in enumerate(full_nodes):
-        # excluding ethereumjs from metrics as it is the last full node in the args file beaconkit-all.yaml, TO-DO: to improve this later
         peer_info = beacond.get_peer_info(plan, full_node.cl_service_name)
         all_consensus_peering_info[full_node.cl_service_name] = peer_info
         metrics_enabled_services.append({
@@ -242,11 +240,5 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
                 full_node_el_clients,
                 s.client,
                 False,
-            )
-        elif s.name == "otterscan":
-            plan.print("Launching otterscan")
-            otterscan.launch_otterscan(
-                plan,
-                s.client,
             )
     plan.print("Successfully launched development network")

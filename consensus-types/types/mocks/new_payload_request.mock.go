@@ -6,6 +6,8 @@ import (
 	bytes "github.com/berachain/beacon-kit/primitives/bytes"
 	common "github.com/berachain/beacon-kit/primitives/common"
 
+	crypto "github.com/berachain/beacon-kit/primitives/crypto"
+
 	mock "github.com/stretchr/testify/mock"
 
 	types "github.com/berachain/beacon-kit/consensus-types/types"
@@ -176,19 +178,19 @@ func (_c *NewPayloadRequest_GetForkVersion_Call) RunAndReturn(run func() bytes.B
 }
 
 // GetParentBeaconBlockRoot provides a mock function with given fields:
-func (_m *NewPayloadRequest) GetParentBeaconBlockRoot() *common.Root {
+func (_m *NewPayloadRequest) GetParentBeaconBlockRoot() common.Root {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetParentBeaconBlockRoot")
 	}
 
-	var r0 *common.Root
-	if rf, ok := ret.Get(0).(func() *common.Root); ok {
+	var r0 common.Root
+	if rf, ok := ret.Get(0).(func() common.Root); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*common.Root)
+			r0 = ret.Get(0).(common.Root)
 		}
 	}
 
@@ -212,12 +214,59 @@ func (_c *NewPayloadRequest_GetParentBeaconBlockRoot_Call) Run(run func()) *NewP
 	return _c
 }
 
-func (_c *NewPayloadRequest_GetParentBeaconBlockRoot_Call) Return(_a0 *common.Root) *NewPayloadRequest_GetParentBeaconBlockRoot_Call {
+func (_c *NewPayloadRequest_GetParentBeaconBlockRoot_Call) Return(_a0 common.Root) *NewPayloadRequest_GetParentBeaconBlockRoot_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *NewPayloadRequest_GetParentBeaconBlockRoot_Call) RunAndReturn(run func() *common.Root) *NewPayloadRequest_GetParentBeaconBlockRoot_Call {
+func (_c *NewPayloadRequest_GetParentBeaconBlockRoot_Call) RunAndReturn(run func() common.Root) *NewPayloadRequest_GetParentBeaconBlockRoot_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetParentProposerPubkey provides a mock function with given fields:
+func (_m *NewPayloadRequest) GetParentProposerPubkey() *crypto.BLSPubkey {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetParentProposerPubkey")
+	}
+
+	var r0 *crypto.BLSPubkey
+	if rf, ok := ret.Get(0).(func() *crypto.BLSPubkey); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*crypto.BLSPubkey)
+		}
+	}
+
+	return r0
+}
+
+// NewPayloadRequest_GetParentProposerPubkey_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetParentProposerPubkey'
+type NewPayloadRequest_GetParentProposerPubkey_Call struct {
+	*mock.Call
+}
+
+// GetParentProposerPubkey is a helper method to define mock.On call
+func (_e *NewPayloadRequest_Expecter) GetParentProposerPubkey() *NewPayloadRequest_GetParentProposerPubkey_Call {
+	return &NewPayloadRequest_GetParentProposerPubkey_Call{Call: _e.mock.On("GetParentProposerPubkey")}
+}
+
+func (_c *NewPayloadRequest_GetParentProposerPubkey_Call) Run(run func()) *NewPayloadRequest_GetParentProposerPubkey_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *NewPayloadRequest_GetParentProposerPubkey_Call) Return(_a0 *crypto.BLSPubkey) *NewPayloadRequest_GetParentProposerPubkey_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *NewPayloadRequest_GetParentProposerPubkey_Call) RunAndReturn(run func() *crypto.BLSPubkey) *NewPayloadRequest_GetParentProposerPubkey_Call {
 	_c.Call.Return(run)
 	return _c
 }

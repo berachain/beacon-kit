@@ -29,7 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
-	depositdb "github.com/berachain/beacon-kit/storage/deposit"
+	"github.com/berachain/beacon-kit/storage/deposit"
 )
 
 func validateGenesisDeposits(
@@ -73,7 +73,7 @@ func validateGenesisDeposits(
 func ValidateNonGenesisDeposits(
 	ctx context.Context,
 	st *statedb.StateDB,
-	depositStore *depositdb.KVStore,
+	depositStore deposit.StoreManager,
 	maxDepositsPerBlock uint64,
 	blkDeposits []*ctypes.Deposit,
 	blkDepositRoot common.Root,
@@ -84,7 +84,7 @@ func ValidateNonGenesisDeposits(
 	}
 
 	// Grab all previous deposits from genesis up to the current index + max deposits per block.
-	localDeposits, err := depositStore.GetDepositsByIndex(
+	localDeposits, localDepositRoot, err := depositStore.GetDepositsByIndex(
 		ctx,
 		constants.FirstDepositIndex,
 		depositIndex+maxDepositsPerBlock,
@@ -122,7 +122,7 @@ func ValidateNonGenesisDeposits(
 	}
 
 	// Finally check that the historical deposits root matches locally what's on the beacon block.
-	if !localDeposits.HashTreeRoot().Equals(blkDepositRoot) {
+	if !localDepositRoot.Equals(blkDepositRoot) {
 		return ErrDepositsRootMismatch
 	}
 

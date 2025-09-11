@@ -49,8 +49,8 @@ const (
 	// GIndex = ZeroValidatorPubkeyGIndexDenebBlock + (ValidatorPubkeyGIndexOffset * n)
 	ZeroValidatorPubkeyGIndexDenebBlock = 3254554418216960
 
-	// ValidatorPubkeyGIndexOffset is the offset of a validator pubkey GIndex.
-	ValidatorPubkeyGIndexOffset = 8
+	// ValidatorGIndexOffset is the offset of a validator's GIndex.
+	ValidatorGIndexOffset = 8
 
 	// ZeroValidatorPubkeyGIndexElectraState is the generalized index of the 0
 	// validator's pubkey in the beacon state in the Electra forks. To get the
@@ -64,6 +64,36 @@ const (
 	// GIndices. To get the GIndex of the pubkey of validator at index n, the formula is:
 	// GIndex = ZeroValidatorPubkeyGIndexElectraBlock + (ValidatorPubkeyGIndexOffset * n)
 	ZeroValidatorPubkeyGIndexElectraBlock = 6350779162034176
+
+	// ZeroValidatoCredentialsGIndexElectraState is the generalized index of the 0
+	// validator's withdrawal credentials in the beacon state in the Electra forks. To get the
+	// GIndex of the withdrawal credentials of validator at index n, the formula is:
+	// GIndex = ZeroValidatorCredentialsGIndexElectraState + (ValidatorGIndexOffset * n)
+	ZeroValidatorCredentialsGIndexElectraState = 721279627821057
+
+	// ZeroValidatorCredentialsGIndexElectraBlock is the generalized index of the 0
+	// validator's withdrawal credentials in the beacon block in the Electra forks. This is
+	// calculated by concatenating the (ZeroValidatorCredentialsGIndexElectraState, StateGIndexBlock)
+	// GIndices. To get the GIndex of the withdrawal credentials of validator at index n, the formula is:
+	// GIndex = ZeroValidatorCredentialsGIndexElectraBlock + (ValidatorGIndexOffset * n)
+	ZeroValidatorCredentialsGIndexElectraBlock = 6350779162034177
+
+	// ZeroValidatorBalanceGIndexElectraState is the generalized index of the 0-3
+	// validators' balances in the beacon state in the Electra forks. Balances are
+	// packed 4 per leaf (uint64 values, 32 bytes per leaf). To get the GIndex of
+	// the balance of validator at index n, the formula is:
+	// GIndex = ZeroValidatorBalanceGIndexElectraState + (n / 4)
+	ZeroValidatorBalanceGIndexElectraState = 23089744183296
+
+	// ZeroValidatorBalanceGIndexElectraBlock is the generalized index of the 0-3
+	// validators' balances in the beacon block in the Electra forks. This is
+	// calculated by concatenating the (ZeroValidatorBalanceGIndexElectraState, StateGIndexBlock)
+	// GIndices. To get the GIndex of the balance of validator at index n, the formula is:
+	// GIndex = ZeroValidatorBalanceGIndexElectraBlock + (n / 4)
+	ZeroValidatorBalanceGIndexElectraBlock = 199011604627456
+
+	// BalancesPerLeaf is the number of validator balances packed into a single leaf.
+	BalancesPerLeaf = 4
 )
 
 // GetZeroValidatorPubkeyGIndexState determines the generalized index of the 0
@@ -84,6 +114,46 @@ func GetZeroValidatorPubkeyGIndexBlock(forkVersion common.Version) (uint64, erro
 		return ZeroValidatorPubkeyGIndexElectraBlock, nil
 	} else if version.EqualsOrIsAfter(forkVersion, version.Deneb()) {
 		return ZeroValidatorPubkeyGIndexDenebBlock, nil
+	}
+	return 0, fmt.Errorf("unsupported fork version: %s", forkVersion)
+}
+
+// GetZeroValidatorCredentialsGIndexState determines the generalized
+// index of the 0-th validator's withdrawal credentials in the beacon state
+// based on the fork version.
+func GetZeroValidatorCredentialsGIndexState(forkVersion common.Version) (int, error) {
+	if version.EqualsOrIsAfter(forkVersion, version.Electra()) {
+		return ZeroValidatorCredentialsGIndexElectraState, nil
+	}
+	return 0, fmt.Errorf("unsupported fork version: %s", forkVersion)
+}
+
+// GetZeroValidatorCredentialsGIndexBlock determines the generalized
+// index of the 0-th validator's withdrawal credentials in the beacon block
+// based on the fork version.
+func GetZeroValidatorCredentialsGIndexBlock(forkVersion common.Version) (uint64, error) {
+	if version.EqualsOrIsAfter(forkVersion, version.Electra()) {
+		return ZeroValidatorCredentialsGIndexElectraBlock, nil
+	}
+	return 0, fmt.Errorf("unsupported fork version: %s", forkVersion)
+}
+
+// GetZeroValidatorBalanceGIndexState determines the generalized
+// index of the 0-3 validators' balances in the beacon state
+// based on the fork version.
+func GetZeroValidatorBalanceGIndexState(forkVersion common.Version) (int, error) {
+	if version.EqualsOrIsAfter(forkVersion, version.Electra()) {
+		return ZeroValidatorBalanceGIndexElectraState, nil
+	}
+	return 0, fmt.Errorf("unsupported fork version: %s", forkVersion)
+}
+
+// GetZeroValidatorBalanceGIndexBlock determines the generalized
+// index of the 0-3 validators' balances in the beacon block
+// based on the fork version.
+func GetZeroValidatorBalanceGIndexBlock(forkVersion common.Version) (uint64, error) {
+	if version.EqualsOrIsAfter(forkVersion, version.Electra()) {
+		return ZeroValidatorBalanceGIndexElectraBlock, nil
 	}
 	return 0, fmt.Errorf("unsupported fork version: %s", forkVersion)
 }

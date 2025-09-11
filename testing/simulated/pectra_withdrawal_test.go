@@ -63,7 +63,7 @@ type PectraWithdrawalSuite struct {
 	simulated.SharedAccessors
 }
 
-// TestSimulatedCometComponent runs the test suite.
+// TestPectraWithdrawalSuite runs the test suite.
 func TestPectraWithdrawalSuite(t *testing.T) {
 	suite.Run(t, new(PectraWithdrawalSuite))
 }
@@ -170,7 +170,9 @@ func (s *PectraWithdrawalSuite) TestExcessValidatorBeforeFork_CorrectlyEvicted()
 		s.Require().NoError(err)
 		s.Require().Equal(uint64(1), depositCount)
 
-		credAddress := common.NewExecutionAddressFromHex("0x56898d1aFb10cad584961eb96AcD476C6826e41E")
+		var credAddress common.ExecutionAddress
+		credAddress, err = common.NewExecutionAddressFromHex("0x56898d1aFb10cad584961eb96AcD476C6826e41E")
+		s.Require().NoError(err)
 		creds := consensustypes.NewCredentialsFromExecutionAddress(credAddress)
 		newDepositor := &signer.BLSSigner{PrivValidator: types.NewMockPVWithKeyType(bls12381.KeyType)}
 		depositMsg, blsSig, err := depositcli.CreateDepositMessage(
@@ -220,7 +222,7 @@ func (s *PectraWithdrawalSuite) TestExcessValidatorBeforeFork_CorrectlyEvicted()
 		s.Require().Equal(int64(2)*nextBlockHeight, nextBlockTime.Unix())
 
 		ds := s.TestNode.StorageBackend.DepositStore()
-		deposits, err := ds.GetDepositsByIndex(s.CtxApp, 0, uint64(nextBlockHeight)*s.TestNode.ChainSpec.MaxDepositsPerBlock())
+		deposits, _, err := ds.GetDepositsByIndex(s.CtxApp, 0, uint64(nextBlockHeight)*s.TestNode.ChainSpec.MaxDepositsPerBlock())
 		s.Require().NoError(err)
 		// There should only be 1 deposit in the deposit store from genesis
 		s.Require().Len(deposits, 1)
@@ -233,11 +235,11 @@ func (s *PectraWithdrawalSuite) TestExcessValidatorBeforeFork_CorrectlyEvicted()
 		s.Require().Equal(int64(2)*nextBlockHeight, nextBlockTime.Unix())
 
 		ds := s.TestNode.StorageBackend.DepositStore()
-		deposits, err := ds.GetDepositsByIndex(s.CtxApp, 0, uint64(nextBlockHeight)*s.TestNode.ChainSpec.MaxDepositsPerBlock())
+		deposits, _, err := ds.GetDepositsByIndex(s.CtxApp, 0, uint64(nextBlockHeight)*s.TestNode.ChainSpec.MaxDepositsPerBlock())
 		s.Require().NoError(err)
 		// There should be 2 deposits in the deposit store
 		s.Require().Len(deposits, 2)
-		validators, err := s.TestNode.APIBackend.FilteredValidators(beaconmath.Slot(nextBlockHeight), nil, nil)
+		validators, err := s.TestNode.APIBackend.FilterValidators(beaconmath.Slot(nextBlockHeight), nil, nil)
 		s.Require().NoError(err)
 		s.Require().Len(validators, 1)
 		nextBlockHeight++
@@ -248,7 +250,7 @@ func (s *PectraWithdrawalSuite) TestExcessValidatorBeforeFork_CorrectlyEvicted()
 		_, _, nextBlockTime = s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, nextBlockTime)
 		s.Require().Equal(int64(2)*nextBlockHeight, nextBlockTime.Unix())
 
-		validators, err := s.TestNode.APIBackend.FilteredValidators(beaconmath.Slot(nextBlockHeight), nil, nil)
+		validators, err := s.TestNode.APIBackend.FilterValidators(beaconmath.Slot(nextBlockHeight), nil, nil)
 		s.Require().NoError(err)
 		s.Require().Len(validators, 2)
 		s.Require().Equal(validator.PendingInitialized.String(), validators[1].Status)
@@ -260,7 +262,7 @@ func (s *PectraWithdrawalSuite) TestExcessValidatorBeforeFork_CorrectlyEvicted()
 		_, _, nextBlockTime = s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, nextBlockTime)
 		s.Require().Equal(int64(2)*nextBlockHeight, nextBlockTime.Unix())
 
-		validators, err := s.TestNode.APIBackend.FilteredValidators(beaconmath.Slot(nextBlockHeight), nil, nil)
+		validators, err := s.TestNode.APIBackend.FilterValidators(beaconmath.Slot(nextBlockHeight), nil, nil)
 		s.Require().NoError(err)
 		s.Require().Len(validators, 2)
 		s.Require().Equal(validator.PendingQueued.String(), validators[1].Status)
@@ -273,7 +275,7 @@ func (s *PectraWithdrawalSuite) TestExcessValidatorBeforeFork_CorrectlyEvicted()
 		_, _, nextBlockTime = s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, nextBlockTime)
 		s.Require().Equal(int64(2)*nextBlockHeight, nextBlockTime.Unix())
 
-		validators, err := s.TestNode.APIBackend.FilteredValidators(beaconmath.Slot(nextBlockHeight), nil, nil)
+		validators, err := s.TestNode.APIBackend.FilterValidators(beaconmath.Slot(nextBlockHeight), nil, nil)
 		s.Require().NoError(err)
 		s.Require().Len(validators, 2)
 		s.Require().Equal(validator.ExitedUnslashed.String(), validators[1].Status)
@@ -289,7 +291,7 @@ func (s *PectraWithdrawalSuite) TestExcessValidatorBeforeFork_CorrectlyEvicted()
 		_, _, nextBlockTime = s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, nextBlockTime)
 		s.Require().Equal(int64(2)*nextBlockHeight, nextBlockTime.Unix())
 
-		validators, err := s.TestNode.APIBackend.FilteredValidators(beaconmath.Slot(nextBlockHeight), nil, nil)
+		validators, err := s.TestNode.APIBackend.FilterValidators(beaconmath.Slot(nextBlockHeight), nil, nil)
 		s.Require().NoError(err)
 		s.Require().Len(validators, 2)
 		s.Require().Equal(validator.WithdrawalPossible.String(), validators[1].Status)
@@ -317,7 +319,7 @@ func (s *PectraWithdrawalSuite) TestExcessValidatorBeforeFork_CorrectlyEvicted()
 		_, _, nextBlockTime = s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, nextBlockTime)
 		s.Require().Equal(int64(2)*nextBlockHeight, nextBlockTime.Unix())
 
-		validators, err := s.TestNode.APIBackend.FilteredValidators(beaconmath.Slot(nextBlockHeight), nil, nil)
+		validators, err := s.TestNode.APIBackend.FilterValidators(beaconmath.Slot(nextBlockHeight), nil, nil)
 		s.Require().NoError(err)
 		s.Require().Len(validators, 2)
 		s.Require().Equal(validator.WithdrawalDone.String(), validators[1].Status)
@@ -335,7 +337,8 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdra
 
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
 
-	credAddress := common.NewExecutionAddressFromHex(simulated.WithdrawalExecutionAddress)
+	credAddress, err := common.NewExecutionAddressFromHex(simulated.WithdrawalExecutionAddress)
+	s.Require().NoError(err)
 	creds := consensustypes.NewCredentialsFromExecutionAddress(credAddress)
 	senderAddress := gethcommon.HexToAddress(credAddress.String())
 	// Hard fork occurs at t=10, so we move passed the pectra hard fork
@@ -355,7 +358,7 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdra
 		s.Require().Equal(expectedStartBalance, startBalance)
 		s.T().Logf("balance at start: %s wei", startBalance.String())
 
-		validators, err := s.TestNode.APIBackend.FilteredValidators(beaconmath.Slot(nextBlockHeight-1), nil, nil)
+		validators, err := s.TestNode.APIBackend.FilterValidators(beaconmath.Slot(nextBlockHeight-1), nil, nil)
 		s.Require().NoError(err)
 		s.Require().Len(validators, 1)
 		s.T().Logf("staked validator balance at start: %v gwei", validators[0].Validator.EffectiveBalance)
@@ -431,7 +434,7 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdra
 		s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
 
 		ds := s.TestNode.StorageBackend.DepositStore()
-		deposits, err := ds.GetDepositsByIndex(s.CtxApp, 0, uint64(nextBlockHeight)*s.TestNode.ChainSpec.MaxDepositsPerBlock())
+		deposits, _, err := ds.GetDepositsByIndex(s.CtxApp, 0, uint64(nextBlockHeight)*s.TestNode.ChainSpec.MaxDepositsPerBlock())
 		s.Require().NoError(err)
 		// There should be 2 deposits in the store
 		s.Require().Len(deposits, 2)
@@ -446,12 +449,12 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdra
 		s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
 
 		ds := s.TestNode.StorageBackend.DepositStore()
-		deposits, err := ds.GetDepositsByIndex(s.CtxApp, 0, uint64(nextBlockHeight)*s.TestNode.ChainSpec.MaxDepositsPerBlock())
+		deposits, _, err := ds.GetDepositsByIndex(s.CtxApp, 0, uint64(nextBlockHeight)*s.TestNode.ChainSpec.MaxDepositsPerBlock())
 		s.Require().NoError(err)
 		// There should be 3 deposits in the deposit store
 		s.Require().Len(deposits, 3)
 		// Only 1 active validator
-		validators, err := s.TestNode.APIBackend.FilteredValidators(beaconmath.Slot(nextBlockHeight), nil, nil)
+		validators, err := s.TestNode.APIBackend.FilterValidators(beaconmath.Slot(nextBlockHeight), nil, nil)
 		s.Require().NoError(err)
 		s.Require().Len(validators, 1)
 		s.T().Logf("staked validator balance: %v gwei", validators[0].Validator.EffectiveBalance)
@@ -468,7 +471,8 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdra
 		// The validator's balance should not have changed yet
 		nextBlockHeight++
 	}
-	// The next block will have both the partial withdrawal and the excess balance withdrawal and increase the validator's EL balance
+	// The next block will have the partial withdrawal, but not the excess balance withdrawal and increase the validator's EL balance
+	// Before the fix, it would also have the excess balance withdrawal.
 	{
 		s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
 		nextBlockHeight++
@@ -495,7 +499,7 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdra
 			500_000, // maximum 0.0005 BERA or 500000 Gwei delta
 		)
 
-		validators, err := s.TestNode.APIBackend.FilteredValidators(beaconmath.Slot(nextBlockHeight-1), nil, nil)
+		validators, err := s.TestNode.APIBackend.FilterValidators(beaconmath.Slot(nextBlockHeight-1), nil, nil)
 		s.Require().NoError(err)
 		s.Require().Len(validators, 1)
 		s.T().Logf("staked validator balance at end: %v gwei", validators[0].Validator.EffectiveBalance)
@@ -503,7 +507,82 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdra
 	}
 }
 
-func (s *PectraWithdrawalSuite) defaultDeposit(blsSigner *signer.BLSSigner, creds consensustypes.WithdrawalCredentials, depositAmount beaconmath.Gwei, setOperator bool) {
+func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_HasCorrectWithdrawalAmount() {
+	// Initialize the chain state.
+	s.InitializeChain(s.T())
+
+	blsSigner := simulated.GetBlsSigner(s.HomeDir)
+
+	credAddress, err := common.NewExecutionAddressFromHex(simulated.WithdrawalExecutionAddress)
+	s.Require().NoError(err)
+	creds := consensustypes.NewCredentialsFromExecutionAddress(credAddress)
+	senderAddress := gethcommon.HexToAddress(credAddress.String())
+	// Hard fork occurs at t=10, so we move passed the pectra hard fork
+	nextBlockHeight := int64(1)
+	{
+		s.LogBuffer.Reset()
+		s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
+		nextBlockHeight++
+	}
+	// 10 million bera on EL at the start.
+	expectedStartBalance, isValid := big.NewInt(0).SetString("10000000000000000000000000", 10)
+	s.Require().True(isValid)
+	// Confirm the validator's expected start balance in Wei
+	{
+		startBalance, err := s.TestNode.ContractBackend.BalanceAt(s.CtxApp, senderAddress, big.NewInt(nextBlockHeight-1))
+		s.Require().NoError(err)
+		s.Require().Equal(expectedStartBalance, startBalance)
+
+		validators, err := s.TestNode.APIBackend.FilterValidators(beaconmath.Slot(nextBlockHeight-1), nil, nil)
+		s.Require().NoError(err)
+		s.Require().Len(validators, 1)
+		// Starts with 10000000000000000 gwei / 10 million BERA staked.
+		s.Require().Equal("10000000000000000", validators[0].Validator.EffectiveBalance)
+	}
+
+	// Send the Deposit and progress 1 block so that the deposit is included in the next block
+	depositAmount := beaconmath.Gwei(10_000 * 1e9) // 10K BERA
+	{
+		// Send Deposit Requests
+		iterations := int64(10)
+		s.defaultDepositWithNonce(blsSigner, creds, depositAmount, true, big.NewInt(0))
+		for i := 1; i < 30; i++ {
+			s.defaultDepositWithNonce(blsSigner, creds, depositAmount, false, big.NewInt(int64(i)))
+		}
+
+		s.LogBuffer.Reset()
+		s.MoveChainToHeight(s.T(), nextBlockHeight, iterations, blsSigner, time.Now())
+		nextBlockHeight += iterations
+		// We expect that withdrawals due to excess balance were created
+		s.Require().Contains(s.LogBuffer.String(), "expectedWithdrawals: validator withdrawal due to excess balance")
+
+		deposits, _, err := s.TestNode.StorageBackend.DepositStore().GetDepositsByIndex(
+			s.CtxApp, 0, uint64(nextBlockHeight)*s.TestNode.ChainSpec.MaxDepositsPerBlock(),
+		)
+		s.Require().Len(deposits, 31)
+		s.Require().NoError(err)
+	}
+	// Confirm the validator's end balance on EL is similar to the start balance on EL
+	// Confirm the validator's end balance on CL is still at the cap, i.e., 10 Mil BERA.
+	{
+		endBalance, err := s.TestNode.ContractBackend.BalanceAt(s.CtxApp, senderAddress, big.NewInt(nextBlockHeight-1))
+		s.Require().NoError(err)
+		finalBalanceGwei, convertErr := beaconmath.GweiFromWei(endBalance)
+		s.Require().NoError(convertErr)
+		expectedStartBalanceGwei, convertErr := beaconmath.GweiFromWei(expectedStartBalance)
+		s.Require().NoError(convertErr)
+		s.Require().InDelta(finalBalanceGwei.Unwrap(), expectedStartBalanceGwei.Unwrap(), 2_000_000) // maximum 2_000_000 Gwei delta
+
+		validators, err := s.TestNode.APIBackend.FilterValidators(beaconmath.Slot(nextBlockHeight-1), nil, nil)
+		s.Require().NoError(err)
+		s.Require().Len(validators, 1)
+		// Ends with 10000000000000000 gwei / 10 million BERA staked.
+		s.Require().Equal("10000000000000000", validators[0].Validator.EffectiveBalance)
+	}
+}
+
+func (s *PectraWithdrawalSuite) defaultDepositWithNonce(
+	blsSigner *signer.BLSSigner, creds consensustypes.WithdrawalCredentials, depositAmount beaconmath.Gwei, setOperator bool, nonce *big.Int) {
 	depositContractAddress := gethcommon.Address(s.TestNode.ChainSpec.DepositContractAddress())
 	depositClient, err := deposit.NewDepositContract(depositContractAddress, s.TestNode.ContractBackend)
 	s.Require().NoError(err)
@@ -534,14 +613,26 @@ func (s *PectraWithdrawalSuite) defaultDeposit(blsSigner *signer.BLSSigner, cred
 	if !setOperator {
 		operator = gethcommon.HexToAddress("0x0000000000000000000000000000000000000000")
 	}
-	_, err = depositClient.Deposit(&bind.TransactOpts{
+
+	txOpts := &bind.TransactOpts{
 		From: senderAddress,
 		Signer: func(_ gethcommon.Address, tx *gethcore.Transaction) (*gethcore.Transaction, error) {
 			return gethcore.SignTx(
 				tx, gethcore.LatestSignerForChainID(elChainID), senderKey,
 			)
 		},
-		Value: big.NewInt(0).Mul(big.NewInt(int64(depositAmount)), big.NewInt(1e9)),
-	}, depositMsg.Pubkey[:], depositMsg.Credentials[:], blsSig[:], operator)
+		GasLimit: 200_000,
+		Value:    big.NewInt(0).Mul(big.NewInt(int64(depositAmount)), big.NewInt(1e9)),
+	}
+
+	if nonce != nil {
+		txOpts.Nonce = nonce
+	}
+
+	_, err = depositClient.Deposit(txOpts, depositMsg.Pubkey[:], depositMsg.Credentials[:], blsSig[:], operator)
 	s.Require().NoError(err)
+}
+
+func (s *PectraWithdrawalSuite) defaultDeposit(blsSigner *signer.BLSSigner, creds consensustypes.WithdrawalCredentials, depositAmount beaconmath.Gwei, setOperator bool) {
+	s.defaultDepositWithNonce(blsSigner, creds, depositAmount, setOperator, nil)
 }

@@ -114,13 +114,17 @@ func buildNextBlock(
 
 	var ethBlk *gethprimitives.Block
 	if version.IsBefore(fv, version.Electra()) {
-		ethBlk, _, err = types.MakeEthBlock(payload, &parentBeaconBlockRoot)
+		ethBlk, _, err = types.MakeEthBlock(payload, parentBeaconBlockRoot, nil, nil)
 		require.NoError(t, err)
 	} else {
 		encodedER, erErr := types.GetExecutionRequestsList(executionRequests)
 		require.NoError(t, erErr)
 		require.NotNil(t, encodedER)
-		ethBlk, _, err = types.MakeEthBlockWithExecutionRequests(payload, &parentBeaconBlockRoot, encodedER)
+
+		parentProposerPubkey, errPk := beaconState.ParentProposerPubkey(timestamp)
+		require.NoError(t, errPk)
+
+		ethBlk, _, err = types.MakeEthBlock(payload, parentBeaconBlockRoot, encodedER, parentProposerPubkey)
 		require.NoError(t, err)
 	}
 	payload.BlockHash = common.ExecutionHash(ethBlk.Hash())

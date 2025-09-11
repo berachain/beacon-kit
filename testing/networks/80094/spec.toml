@@ -34,7 +34,8 @@ target-seconds-per-eth1-block = 2
 # Fork-related values
 genesis-time = 1_737_381_600
 deneb-one-fork-time = 1_738_415_507
-electra-fork-time = 9_999_999_999_999_999
+electra-fork-time = 1_749_056_400
+electra-one-fork-time = 1_756_915_200
 
 # State list lengths
 epochs-per-historical-vector = 8
@@ -65,3 +66,10 @@ evm-inflation-per-block-deneb-one = 5_750_000_000
 # Electra values
 min-activation-balance = 250_000_000_000_000
 min-validator-withdrawability-delay = 256
+
+[block-delay-configuration]
+max-block-delay = 300_000_000_000
+target-block-time = 2_000_000_000
+const-block-delay = 500_000_000
+consensus-update-height = 9_983_085
+consensus-enable-height = 9_983_086

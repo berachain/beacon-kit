@@ -111,7 +111,7 @@ type ConsensusConfig struct {
 	TimeoutPropose string `json:"timeout_propose"`
 	// TimeoutPrevote specifies the timeout for prevoting on a block.
 	TimeoutPrevote string `json:"timeout_prevote"`
-	// TimeoutVote specifies the timeout for precommiting on a block.
+	// TimeoutPrecommit specifies the timeout for precommiting on a block.
 	TimeoutPrecommit string `json:"timeout_precommit"`
 	// TimeoutCommit specifies the timeout for committing a block.
 	TimeoutCommit string `json:"timeout_commit"`

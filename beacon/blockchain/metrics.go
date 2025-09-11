@@ -108,6 +108,7 @@ func (cm *chainMetrics) markOptimisticPayloadBuildFailure(
 	)
 }
 
+// TODO: remove once state caching is activated
 // measureStateRootVerificationTime measures the time taken to verify the state
 // root of a block.
 // It records the duration from the provided start time to the current time.

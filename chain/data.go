@@ -20,11 +20,16 @@
 
 package chain
 
-import "github.com/berachain/beacon-kit/primitives/common"
+import (
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
+	"github.com/berachain/beacon-kit/primitives/common"
+)
 
 // SpecData is the underlying data structure for chain-specific parameters. All fields with a
 // `mapstructure` tag are required.
 type SpecData struct {
+	delay.Config `mapstructure:"block-delay-configuration"`
+
 	// Gwei value constants.
 	//
 	// MaxEffectiveBalance is the maximum effective balance allowed for a validator.
@@ -95,6 +100,8 @@ type SpecData struct {
 	Deneb1ForkTime uint64 `mapstructure:"deneb-one-fork-time"`
 	// ElectraForkTime is the time at which the Electra fork is activated.
 	ElectraForkTime uint64 `mapstructure:"electra-fork-time"`
+	// Electra1ForkTime is the time at which the Electra1 fork is activated.
+	Electra1ForkTime uint64 `mapstructure:"electra-one-fork-time"`
 
 	// State list lengths
 	//

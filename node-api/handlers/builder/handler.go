@@ -21,18 +21,20 @@
 package builder
 
 import (
+	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 )
 
 type Handler struct {
 	*handlers.BaseHandler
+	logger log.Logger
 }
 
-func NewHandler() *Handler {
+func NewHandler(logger log.Logger) *Handler {
 	h := &Handler{
-		BaseHandler: handlers.NewBaseHandler(
-			handlers.NewRouteSet(""),
-		),
+		BaseHandler: handlers.NewBaseHandler(logger),
+		logger:      logger,
 	}
+	registerRoutes(h)
 	return h
 }

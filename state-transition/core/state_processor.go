@@ -26,6 +26,7 @@ import (
 	"sync"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/cache"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -33,7 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/state-transition/core/state"
-	depositdb "github.com/berachain/beacon-kit/storage/deposit"
+	"github.com/berachain/beacon-kit/storage/deposit"
 )
 
 // StateProcessor is a basic Processor, which takes care of the
@@ -52,7 +53,7 @@ type StateProcessor struct {
 	// executionEngine is the engine responsible for executing transactions.
 	executionEngine ExecutionEngine
 	// ds allows checking payload deposits against the deposit contract
-	ds *depositdb.KVStore
+	ds deposit.StoreManager
 	// metrics is the metrics for the service.
 	metrics *stateProcessorMetrics
 	// logDeneb1Once enforces logging the Deneb1 fork information at most once.
@@ -64,7 +65,7 @@ func NewStateProcessor(
 	logger log.Logger,
 	cs ChainSpec,
 	executionEngine ExecutionEngine,
-	ds *depositdb.KVStore,
+	ds deposit.StoreManager,
 	signer crypto.BLSSigner,
 	fGetAddressFromPubKey func(crypto.BLSPubkey) ([]byte, error),
 	telemetrySink TelemetrySink,
@@ -96,12 +97,16 @@ func (sp *StateProcessor) Transition(
 		return nil, err
 	}
 
-	// Prepare the state for the next block's fork version, logging only once during FinalizeBlock.
-	//
-	// TODO: allow the state transition context to directly indicate what stage of block processing
-	// we are in, i.e. ProcessProposal, FinalizeBlock, etc.
-	inFinalizeBlock := ctx.VerifyPayload() && !ctx.VerifyRandao()
-	if err = sp.ProcessFork(st, blk.GetTimestamp(), inFinalizeBlock); err != nil {
+	// Prepare the state for the next block's fork version.
+	// Ideally we want to log only in case we are processing the
+	// block to be finalized. Pre cache activation this is easy.
+	// Post activation we log every time we verify a block
+	logForkProcessing := ctx.VerifyPayload() && !ctx.VerifyRandao()
+
+	if cache.IsStateCachingActive(sp.cs, blk.Slot) {
+		logForkProcessing = ctx.VerifyPayload()
+	}
+	if err = sp.ProcessFork(st, blk.GetTimestamp(), logForkProcessing); err != nil {
 		return nil, err
 	}
 
@@ -208,23 +213,30 @@ func (sp *StateProcessor) ProcessBlock(
 	st *state.StateDB,
 	blk *ctypes.BeaconBlock,
 ) error {
-	if err := sp.processBlockHeader(ctx, st, blk); err != nil {
+	// Before processing block header, we need to retrieve public key of
+	// parent block proposer to be able to inform the EL client.
+	parentProposerPubkey, err := st.ParentProposerPubkey(blk.GetTimestamp())
+	if err != nil {
 		return err
 	}
 
-	if err := sp.processExecutionPayload(ctx, st, blk); err != nil {
+	if err = sp.processBlockHeader(ctx, st, blk); err != nil {
 		return err
 	}
 
-	if err := sp.processWithdrawals(st, blk); err != nil {
+	if err = sp.processExecutionPayload(ctx, st, blk, parentProposerPubkey); err != nil {
 		return err
 	}
 
-	if err := sp.processRandaoReveal(ctx, st, blk); err != nil {
+	if err = sp.processWithdrawals(st, blk); err != nil {
 		return err
 	}
 
-	if err := sp.processOperations(ctx, st, blk); err != nil {
+	if err = sp.processRandaoReveal(ctx, st, blk); err != nil {
+		return err
+	}
+
+	if err = sp.processOperations(ctx, st, blk); err != nil {
 		return err
 	}
 

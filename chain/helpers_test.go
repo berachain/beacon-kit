@@ -37,6 +37,7 @@ var spec, _ = chain.NewSpec(
 	&chain.SpecData{
 		Deneb1ForkTime:                   9 * 32 * 2,
 		ElectraForkTime:                  10 * 32 * 2,
+		Electra1ForkTime:                 11 * 32 * 2,
 		SlotsPerEpoch:                    32,
 		MinEpochsForBlobsSidecarsRequest: 5,
 		MaxWithdrawalsPerPayload:         2,

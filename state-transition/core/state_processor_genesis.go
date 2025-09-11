@@ -60,23 +60,7 @@ func (sp *StateProcessor) InitializeBeaconStateFromEth1(
 		return nil, err
 	}
 
-	versionable := ctypes.NewVersionable(genesisVersion)
-	blkBody := &ctypes.BeaconBlockBody{
-		Versionable: versionable,
-		Eth1Data:    &ctypes.Eth1Data{},
-		ExecutionPayload: &ctypes.ExecutionPayload{
-			Versionable: versionable,
-			ExtraData:   make([]byte, ctypes.ExtraDataSize),
-		},
-	}
-
-	blkHeader := &ctypes.BeaconBlockHeader{
-		Slot:            constants.GenesisSlot,
-		ProposerIndex:   0,
-		ParentBlockRoot: common.Root{},
-		StateRoot:       common.Root{},
-		BodyRoot:        blkBody.HashTreeRoot(),
-	}
+	blkHeader := GenesisBlockHeader(genesisVersion)
 	if err := st.SetLatestBlockHeader(blkHeader); err != nil {
 		return nil, err
 	}
@@ -204,4 +188,25 @@ func (sp *StateProcessor) processGenesisActivation(st *statedb.StateDB) error {
 	}
 
 	return nil
+}
+
+func GenesisBlockHeader(genesisVersion common.Version) *ctypes.BeaconBlockHeader {
+	versionable := ctypes.NewVersionable(genesisVersion)
+	blkBody := &ctypes.BeaconBlockBody{
+		Versionable: versionable,
+		Eth1Data:    &ctypes.Eth1Data{},
+		ExecutionPayload: &ctypes.ExecutionPayload{
+			Versionable: versionable,
+			ExtraData:   make([]byte, ctypes.ExtraDataSize),
+		},
+	}
+
+	blkHeader := &ctypes.BeaconBlockHeader{
+		Slot:            constants.GenesisSlot,
+		ProposerIndex:   0,
+		ParentBlockRoot: common.Root{},
+		StateRoot:       common.Root{},
+		BodyRoot:        blkBody.HashTreeRoot(),
+	}
+	return blkHeader
 }

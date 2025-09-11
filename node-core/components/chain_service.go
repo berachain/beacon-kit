@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // ChainServiceInput is the input for the chain service provider.
@@ -57,7 +56,6 @@ func ProvideChainService(in ChainServiceInput) *blockchain.Service {
 		in.StorageBackend,
 		in.BlobProcessor,
 		in.BeaconDepositContract,
-		math.U64(in.ChainSpec.Eth1FollowDistance()),
 		in.Logger.With("service", "blockchain"),
 		in.ChainSpec,
 		in.ExecutionEngine,
