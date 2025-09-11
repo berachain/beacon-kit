@@ -27,7 +27,6 @@ import (
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/cosmos/cosmos-sdk/version"
 )
 
@@ -37,7 +36,7 @@ import (
 // This returns the beacon state of the version that was committed to disk at the requested slot,
 // which has the empty state root in the latest block header. Hence, the most recent state and
 // block roots are not updated.
-func (b *Backend) StateAndSlotFromHeight(height int64) (*statedb.StateDB, math.Slot, error) {
+func (b *Backend) StateAndSlotFromHeight(height int64) (ReadOnlyBeaconState, math.Slot, error) {
 	if height < -1 {
 		return nil, 0, fmt.Errorf("expected height, must be non-negative or -1 to request tip, got %d", height)
 	}

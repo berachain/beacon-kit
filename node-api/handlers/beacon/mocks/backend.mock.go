@@ -3,12 +3,13 @@
 package mocks
 
 import (
+	backend "github.com/berachain/beacon-kit/node-api/backend"
+
 	common "github.com/berachain/beacon-kit/primitives/common"
+
 	math "github.com/berachain/beacon-kit/primitives/math"
 
 	mock "github.com/stretchr/testify/mock"
-
-	state "github.com/berachain/beacon-kit/state-transition/core/state"
 
 	types "github.com/berachain/beacon-kit/da/types"
 )
@@ -252,24 +253,24 @@ func (_c *Backend_GetSyncData_Call) RunAndReturn(run func() (int64, int64)) *Bac
 }
 
 // StateAndSlotFromHeight provides a mock function with given fields: height
-func (_m *Backend) StateAndSlotFromHeight(height int64) (*state.StateDB, math.U64, error) {
+func (_m *Backend) StateAndSlotFromHeight(height int64) (backend.ReadOnlyBeaconState, math.U64, error) {
 	ret := _m.Called(height)
 
 	if len(ret) == 0 {
 		panic("no return value specified for StateAndSlotFromHeight")
 	}
 
-	var r0 *state.StateDB
+	var r0 backend.ReadOnlyBeaconState
 	var r1 math.U64
 	var r2 error
-	if rf, ok := ret.Get(0).(func(int64) (*state.StateDB, math.U64, error)); ok {
+	if rf, ok := ret.Get(0).(func(int64) (backend.ReadOnlyBeaconState, math.U64, error)); ok {
 		return rf(height)
 	}
-	if rf, ok := ret.Get(0).(func(int64) *state.StateDB); ok {
+	if rf, ok := ret.Get(0).(func(int64) backend.ReadOnlyBeaconState); ok {
 		r0 = rf(height)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*state.StateDB)
+			r0 = ret.Get(0).(backend.ReadOnlyBeaconState)
 		}
 	}
 
@@ -306,12 +307,12 @@ func (_c *Backend_StateAndSlotFromHeight_Call) Run(run func(height int64)) *Back
 	return _c
 }
 
-func (_c *Backend_StateAndSlotFromHeight_Call) Return(_a0 *state.StateDB, _a1 math.U64, _a2 error) *Backend_StateAndSlotFromHeight_Call {
+func (_c *Backend_StateAndSlotFromHeight_Call) Return(_a0 backend.ReadOnlyBeaconState, _a1 math.U64, _a2 error) *Backend_StateAndSlotFromHeight_Call {
 	_c.Call.Return(_a0, _a1, _a2)
 	return _c
 }
 
-func (_c *Backend_StateAndSlotFromHeight_Call) RunAndReturn(run func(int64) (*state.StateDB, math.U64, error)) *Backend_StateAndSlotFromHeight_Call {
+func (_c *Backend_StateAndSlotFromHeight_Call) RunAndReturn(run func(int64) (backend.ReadOnlyBeaconState, math.U64, error)) *Backend_StateAndSlotFromHeight_Call {
 	_c.Call.Return(run)
 	return _c
 }

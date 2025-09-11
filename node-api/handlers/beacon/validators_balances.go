@@ -25,13 +25,13 @@ import (
 
 	"cosmossdk.io/collections"
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/node-api/backend"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
-	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 func (h *Handler) GetStateValidatorBalances(c handlers.Context) (any, error) {
@@ -139,7 +139,7 @@ func (h *Handler) getValidatorBalance(height int64, validatorIDs []string) ([]*b
 
 // ValidatorIndexByID parses a validator index from a string.
 // The string can be either a validator index or a validator pubkey.
-func validatorIndexByID(st *statedb.StateDB, keyOrIndex string) (math.U64, error) {
+func validatorIndexByID(st backend.ReadOnlyBeaconState, keyOrIndex string) (math.U64, error) {
 	index, err := math.U64FromString(keyOrIndex)
 	if err == nil {
 		return index, nil

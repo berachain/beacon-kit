@@ -27,11 +27,11 @@ import (
 	consensustypes "github.com/berachain/beacon-kit/consensus-types/types"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/node-api/backend"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	handlertypes "github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
-	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
@@ -106,7 +106,7 @@ func parseValidatorIDs(ids []string) *validatorFilters {
 
 // filterAndBuildValidatorData processes all validators and builds their data based on filters
 func filterAndBuildValidatorData(
-	st *statedb.StateDB,
+	st backend.ReadOnlyBeaconState,
 	validators []*consensustypes.Validator,
 	filters *validatorFilters,
 	epoch math.Epoch,
@@ -172,7 +172,7 @@ func matchesStatusFilter(status string, statuses []string) bool {
 }
 
 func buildValidatorData(
-	st *statedb.StateDB,
+	st backend.ReadOnlyBeaconState,
 	validator *consensustypes.Validator,
 	index math.U64,
 	epoch math.Epoch,

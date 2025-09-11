@@ -23,6 +23,8 @@ package backend
 import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
@@ -34,4 +36,27 @@ type GenesisStateProcessor interface {
 		execPayloadHeader *ctypes.ExecutionPayloadHeader,
 		genesisVersion common.Version,
 	) (transition.ValidatorUpdates, error)
+}
+
+// Keep just getters currently used. To be expanded as we increase API endpoints available
+type ReadOnlyBeaconState interface {
+	GetGenesisValidatorsRoot() (common.Root, error)
+	GetFork() (*ctypes.Fork, error)
+	GetLatestExecutionPayloadHeader() (*ctypes.ExecutionPayloadHeader, error)
+
+	GetLatestBlockHeader() (*ctypes.BeaconBlockHeader, error)
+	HashTreeRoot() common.Root
+
+	GetRandaoMixAtIndex(uint64) (common.Bytes32, error)
+
+	GetBalances() ([]uint64, error)
+	GetBalance(math.ValidatorIndex) (math.Gwei, error)
+	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
+
+	GetValidators() (ctypes.Validators, error)
+	ValidatorByIndex(math.ValidatorIndex) (*ctypes.Validator, error)
+
+	GetPendingPartialWithdrawals() ([]*ctypes.PendingPartialWithdrawal, error)
+
+	GetMarshallable() (*ctypes.BeaconState, error)
 }
