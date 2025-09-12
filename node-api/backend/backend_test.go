@@ -28,12 +28,16 @@ import (
 
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/config/spec"
+	"github.com/berachain/beacon-kit/consensus-types/types"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/node-api/backend"
 	"github.com/berachain/beacon-kit/node-api/backend/mocks"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
 	coremocks "github.com/berachain/beacon-kit/node-core/types/mocks"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/state-transition/core/state"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
@@ -43,6 +47,12 @@ import (
 
 func TestBackendLoadData(t *testing.T) {
 	t.Parallel()
+
+	// some genesis data, to check they match with what it's in the state that backend returns
+	var (
+		expectedGenesisPayload *types.ExecutionPayloadHeader
+		expectedGenesisFork    *types.Fork
+	)
 
 	testCases := []struct {
 		name                string
@@ -66,12 +76,38 @@ func TestBackendLoadData(t *testing.T) {
 					mock.Anything,
 					mock.Anything,
 					mock.Anything,
-				).Return(nil, nil) // duly process genesis once parsed
+				).Run(func(
+					st *state.StateDB,
+					_ types.Deposits,
+					execPayloadHeader *types.ExecutionPayloadHeader,
+					genesisVersion common.Version,
+				) {
+					expectedGenesisPayload = execPayloadHeader
+					expectedGenesisFork = &types.Fork{
+						PreviousVersion: genesisVersion,
+						CurrentVersion:  genesisVersion,
+					}
+					require.NoError(t, st.SetLatestExecutionPayloadHeader(execPayloadHeader))
+					require.NoError(t, st.SetFork(expectedGenesisFork))
+				}).Return(nil, nil) // duly process genesis once parsed
 			},
-			check: func(t *testing.T, _ *backend.Backend, errLoad error) {
+			check: func(t *testing.T, b *backend.Backend, errLoad error) {
 				t.Helper()
 
 				require.NoError(t, errLoad)
+
+				// Load genesis state and show (at least some) data matches
+				genState, genSlot, err := b.StateAndSlotFromHeight(0) // check genesis state is provided
+				require.NoError(t, err)
+				require.Equal(t, math.Slot(0), genSlot)
+
+				gotGenesisPayload, err := genState.GetLatestExecutionPayloadHeader()
+				require.NoError(t, err)
+				require.Equal(t, expectedGenesisPayload, gotGenesisPayload)
+
+				gotGenesisFork, err := genState.GetFork()
+				require.NoError(t, err)
+				require.Equal(t, expectedGenesisFork, gotGenesisFork)
 			},
 		},
 		{
@@ -84,11 +120,14 @@ func TestBackendLoadData(t *testing.T) {
 
 				cs.EXPECT().IsAppReady().Return(cometbft.ErrAppNotReady) // mark the app as not ready
 			},
-			check: func(t *testing.T, _ *backend.Backend, errLoad error) {
+			check: func(t *testing.T, b *backend.Backend, errLoad error) {
 				t.Helper()
 
 				// just keep going, it will load later on, as soon as possible
 				require.NoError(t, errLoad)
+
+				_, _, err := b.StateAndSlotFromHeight(0) // check genesis state is provided
+				require.ErrorIs(t, err, cometbft.ErrAppNotReady)
 			},
 		},
 		{
