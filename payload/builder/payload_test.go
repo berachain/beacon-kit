@@ -92,7 +92,7 @@ func TestRetrievePayloadSunnyPath(t *testing.T) {
 
 	// create inputs and set expectations
 	var (
-		ctx             = context.TODO()
+		ctx             = t.Context()
 		slot            = math.Slot(2025)
 		parentBlockRoot = common.Root{0xff, 0xaa}
 		dummyPayloadID  = engineprimitives.PayloadID{0xab}
@@ -140,7 +140,7 @@ func TestRetrievePayloadNilWithdrawalsListRejected(t *testing.T) {
 
 	// create inputs
 	var (
-		ctx             = context.TODO()
+		ctx             = t.Context()
 		slot            = math.Slot(2025)
 		parentBlockRoot = common.Root{0xff, 0xaa}
 		dummyPayloadID  = engineprimitives.PayloadID{0xab}
