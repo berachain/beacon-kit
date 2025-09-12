@@ -43,7 +43,7 @@
         "polDistributorAddress": "0x4200000000000000000000000000000000000042"
       },
       "prague2": {
-        "time": 0,
+        "time": 9223372036854775807,
         "minimumBaseFeeWei": 0
       }
     }
