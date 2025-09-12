@@ -37,10 +37,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+//nolint:paralleltest // t.TempDir() do not allow parallelism
 func TestSetDepositStorageCmd(t *testing.T) {
-	t.Parallel()
 	t.Run("command should be available and have correct use", func(t *testing.T) {
-		t.Parallel()
 		chainSpec, err := spec.DevnetChainSpec()
 		require.NoError(t, err)
 		cmd := genesis.SetDepositStorageCmd(func(_ servertypes.AppOptions) (chain.Spec, error) {
@@ -50,7 +49,6 @@ func TestSetDepositStorageCmd(t *testing.T) {
 	})
 
 	t.Run("should set deposit storage correctly", func(t *testing.T) {
-		t.Parallel()
 		// Create a temporary directory for test files
 		tmpDir := t.TempDir()
 
@@ -62,7 +60,7 @@ func TestSetDepositStorageCmd(t *testing.T) {
 		clientCtx := client.Context{
 			HomeDir: tmpDir,
 		}
-		ctx := context.WithValue(context.Background(), client.ClientContextKey, &clientCtx)
+		ctx := context.WithValue(t.Context(), client.ClientContextKey, &clientCtx)
 
 		// Create and execute the command
 		chainSpec, err := spec.DevnetChainSpec()
@@ -74,11 +72,9 @@ func TestSetDepositStorageCmd(t *testing.T) {
 		// Change working directory to tmpDir for the test
 		currentDir, err := os.Getwd()
 		require.NoError(t, err)
-		err = os.Chdir(tmpDir)
-		require.NoError(t, err)
+		t.Chdir(tmpDir)
 		defer func() {
-			err = os.Chdir(currentDir)
-			require.NoError(t, err)
+			t.Chdir(currentDir)
 		}()
 
 		cmd.SetArgs([]string{mockGenesisPath})

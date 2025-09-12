@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit
 
-go 1.23.6
+go 1.25
 
 replace (
 	github.com/cometbft/cometbft => github.com/berachain/cometbft v1.0.1-0.20250718121541-9671b1dc07e5
