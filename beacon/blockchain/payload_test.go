@@ -38,7 +38,6 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/errors"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
-	bemocks "github.com/berachain/beacon-kit/node-api/backend/mocks"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -263,7 +262,7 @@ func setupOptimisticPayloadTests(t *testing.T, cs chain.Spec, optimisticPayloadB
 	core.ReadOnlyContext,
 	*statetransition.TestStateProcessorT,
 	*bcmocks.LocalBuilder,
-	*bemocks.StorageBackend,
+	*bcmocks.StorageBackend,
 	*stmocks.ExecutionEngine,
 	deposit.StoreManager,
 ) {
@@ -272,7 +271,7 @@ func setupOptimisticPayloadTests(t *testing.T, cs chain.Spec, optimisticPayloadB
 
 	logger := log.NewNopLogger()
 	ts := metrics.NewNoOpTelemetrySink()
-	sb := bemocks.NewStorageBackend(t)
+	sb := bcmocks.NewStorageBackend(t)
 	b := bcmocks.NewLocalBuilder(t)
 
 	chain := blockchain.NewService(

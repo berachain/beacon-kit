@@ -499,7 +499,6 @@ type (
 	// NodeAPIBeaconBackend is the interface for backend of the beacon API.
 	NodeAPIBeaconBackend interface {
 		GenesisBackend
-		BlobBackend
 		BlockBackend
 		StateBackend
 		// GetSlotByBlockRoot retrieves the slot by a given root from the store.
@@ -534,10 +533,6 @@ type (
 		GenesisValidatorsRoot() (common.Root, error)
 		GenesisForkVersion() (common.Version, error)
 		GenesisTime() (math.U64, error)
-	}
-
-	BlobBackend interface {
-		BlobSidecarsByIndices(slot math.Slot, indices []uint64) ([]*types.Sidecar, error)
 	}
 
 	BlockBackend interface {

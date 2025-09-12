@@ -23,16 +23,16 @@ package backend
 import (
 	"fmt"
 	"runtime"
-	"sync/atomic"
 
 	"github.com/berachain/beacon-kit/chain"
+	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/berachain/beacon-kit/node-core/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/version"
-	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 )
 
 // Backend is the db access layer for the beacon node-api.
@@ -43,15 +43,6 @@ type Backend struct {
 	cs     chain.Spec
 	cmtCfg *cmtcfg.Config // used to fetch genesis data upon LoadData
 	node   types.ConsensusService
-
-	// genesisValidatorsRoot is cached in the backend.
-	genesisValidatorsRoot atomic.Pointer[common.Root]
-
-	// genesisTime is cached here, written to once during initialization!
-	genesisTime atomic.Pointer[math.U64]
-
-	// genesisForkVersion is cached here, written to once during initialization!
-	genesisForkVersion atomic.Pointer[common.Version]
 }
 
 // New creates and returns a new Backend instance.
@@ -72,32 +63,32 @@ func New(
 	return b
 }
 
-// Backend currently calculates and caches some genesis data. These data
-// are only needed if the API is active, so their processing happens in `LoadData`
-// which should be called only if node-api server is actually started (it would be
-// configure to not start).
+// TODO: keeping LoadData cause we're gonna init genesis state here in upcoming PR
 func (b *Backend) LoadData() error {
-	// Load the genesis file from cometbft config.
-	appGenesis, err := genutiltypes.AppGenesisFromFile(b.cmtCfg.GenesisFile())
-	if err != nil {
-		return fmt.Errorf("failed loading app genesis from file: %w", err)
-	}
-	gen, err := appGenesis.ToGenesisDoc()
-	if err != nil {
-		return fmt.Errorf("failed parsing: %w", err)
-	}
-
-	// Store the genesis time in the backend.
-	//#nosec: G115 // Unix time will never be negative.
-	genesisTime := math.U64(gen.GenesisTime.Unix())
-	b.genesisTime.Store(&genesisTime)
-
-	// Derive the genesis fork version from the genesis time.
-	genesisForkVersion := b.cs.ActiveForkVersionForTimestamp(genesisTime)
-	b.genesisForkVersion.Store(&genesisForkVersion)
-
-	// TODO: consider loading genesis validator root here too
 	return nil
+}
+
+// StateAtSlot returns the beacon state at a particular slot using query context,
+// resolving an input slot of 0 to the latest slot.
+//
+// This returns the beacon state of the version that was committed to disk at the requested slot,
+// which has the empty state root in the latest block header. Hence, the most recent state and
+// block roots are not updated.
+func (b *Backend) StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error) {
+	queryCtx, err := b.node.CreateQueryContext(int64(slot), false) // #nosec G115 -- not an issue in practice.
+	if err != nil {
+		return nil, slot, fmt.Errorf("CreateQueryContext failed: %w", err)
+	}
+	st := b.sb.StateFromContext(queryCtx)
+
+	// If using height 0 for the query context, make sure to return the latest slot.
+	if slot == 0 {
+		slot, err = st.GetSlot()
+		if err != nil {
+			return st, slot, fmt.Errorf("GetSlot failed: %w", err)
+		}
+	}
+	return st, slot, nil
 }
 
 // GetSlotByBlockRoot retrieves the slot by a block root from the block store.
@@ -114,6 +105,10 @@ func (b *Backend) GetSlotByStateRoot(root common.Root) (math.Slot, error) {
 // the block store.
 func (b *Backend) GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error) {
 	return b.sb.BlockStore().GetParentSlotByTimestamp(timestamp)
+}
+
+func (b *Backend) GetBlobSidecarsAtSlot(slot math.Slot) (datypes.BlobSidecars, error) {
+	return b.sb.AvailabilityStore().GetBlobSidecars(slot)
 }
 
 func (b *Backend) GetSyncData() (int64 /*latestHeight*/, int64 /*syncToHeight*/) {

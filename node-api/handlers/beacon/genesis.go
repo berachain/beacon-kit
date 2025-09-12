@@ -21,40 +21,46 @@
 package beacon
 
 import (
-	"github.com/berachain/beacon-kit/errors"
+	"errors"
+	"fmt"
+
+	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	"github.com/berachain/beacon-kit/node-api/handlers/types"
-	"github.com/berachain/beacon-kit/primitives/common"
+	handlertypes "github.com/berachain/beacon-kit/node-api/handlers/types"
+	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 )
 
 func (h *Handler) GetGenesis(handlers.Context) (any, error) {
-	genesisRoot, err := h.backend.GenesisValidatorsRoot()
+	st, _, err := h.backend.StateAtSlot(utils.Genesis)
 	if err != nil {
-		return nil, err
-	}
-	if genesisRoot.Equals(common.Root{}) {
-		// this may happen if genesis time is set in the future
-		// and app is not ready to start yet. We return an error
-		// type resulting in http.StatusNotFound
-		return nil, errors.Wrap(types.ErrNotFound, "Chain genesis info is not yet known")
+		if errors.Is(err, cometbft.ErrAppNotReady) {
+			// chain not ready, like when genesis time is set in the future
+			return nil, handlertypes.ErrNotFound
+		}
+		return nil, fmt.Errorf("failed to get state from genesis: %w", err)
 	}
 
-	genesisForkVersion, err := h.backend.GenesisForkVersion()
+	genesisRoot, err := st.GetGenesisValidatorsRoot()
 	if err != nil {
 		return nil, err
 	}
 
-	genesisTime, err := h.backend.GenesisTime()
+	genesisFork, err := st.GetFork()
+	if err != nil {
+		return nil, err
+	}
+
+	payload, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return nil, err
 	}
 
 	return beacontypes.GenesisResponse{
 		Data: beacontypes.GenesisData{
-			GenesisTime:           genesisTime.Base10(),
+			GenesisTime:           payload.GetTimestamp().Base10(),
 			GenesisValidatorsRoot: genesisRoot,
-			GenesisForkVersion:    genesisForkVersion.String(),
+			GenesisForkVersion:    genesisFork.CurrentVersion.String(),
 		},
 	}, nil
 }
