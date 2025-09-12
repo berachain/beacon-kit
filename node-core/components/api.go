@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/node-api/server"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/berachain/beacon-kit/node-core/types"
+	"github.com/berachain/beacon-kit/state-transition/core"
 	cmtcfg "github.com/cometbft/cometbft/config"
 )
 
@@ -39,6 +40,7 @@ type NodeAPIServerInput struct {
 	Logger           *phuslu.Logger
 	ChainSpec        chain.Spec
 	StorageBackend   *storage.Backend
+	StateProcessor   *core.StateProcessor
 	CometConfig      *cmtcfg.Config
 	ConsensusService types.ConsensusService
 }
@@ -53,6 +55,7 @@ func ProvideNodeAPIServer(in NodeAPIServerInput) *server.Server {
 		in.Config.NodeAPI,
 		in.Logger.With("service", "node-api-server"),
 		in.StorageBackend,
+		in.StateProcessor,
 		in.ChainSpec,
 		in.CometConfig,
 		in.ConsensusService,

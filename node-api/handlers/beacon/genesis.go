@@ -32,7 +32,7 @@ import (
 )
 
 func (h *Handler) GetGenesis(handlers.Context) (any, error) {
-	st, _, err := h.backend.StateAtSlot(utils.Genesis)
+	st, _, err := h.backend.StateAndSlotFromHeight(utils.Genesis)
 	if err != nil {
 		if errors.Is(err, cometbft.ErrAppNotReady) {
 			// chain not ready, like when genesis time is set in the future

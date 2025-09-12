@@ -20,8 +20,6 @@
 
 package utils
 
-import "github.com/berachain/beacon-kit/primitives/math"
-
 const (
 	StateIDGenesis    = "genesis"
 	StateIDFinalized  = "finalized"
@@ -31,6 +29,6 @@ const (
 )
 
 const (
-	Head math.Slot = iota
-	Genesis
+	Head    int64 = -1
+	Genesis int64 = 0
 )

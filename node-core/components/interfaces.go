@@ -28,6 +28,7 @@ import (
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	"github.com/berachain/beacon-kit/node-api/backend"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -382,7 +383,7 @@ type (
 		GetTotalSlashing() (math.Gwei, error)
 		GetNextWithdrawalIndex() (uint64, error)
 		GetNextWithdrawalValidatorIndex() (math.ValidatorIndex, error)
-		GetTotalValidators() (uint64, error)
+		GetTotalValidators() (math.U64, error)
 		ValidatorIndexByCometBFTAddress(
 			cometBFTAddress []byte,
 		) (math.ValidatorIndex, error)
@@ -542,6 +543,6 @@ type (
 	}
 
 	StateBackend interface {
-		StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error)
+		StateAndSlotFromHeight(height int64) (backend.ReadOnlyBeaconState, math.Slot, error)
 	}
 )

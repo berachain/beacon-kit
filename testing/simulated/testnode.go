@@ -42,7 +42,6 @@ import (
 	service "github.com/berachain/beacon-kit/node-core/services/registry"
 	nodetypes "github.com/berachain/beacon-kit/node-core/types"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/net/url"
 	"github.com/berachain/beacon-kit/state-transition/core"
 	"github.com/berachain/beacon-kit/storage/db"
@@ -65,7 +64,7 @@ type TestNodeInput struct {
 }
 
 type ValidatorAPI interface {
-	FilterValidators(slot math.Slot, ids []string, statuses []string) ([]*types.ValidatorData, error)
+	FilterValidators(height int64, ids []string, statuses []string) ([]*types.ValidatorData, error)
 }
 
 type TestNode struct {

@@ -91,7 +91,7 @@ func TestGetBlockHeaders(t *testing.T) {
 
 				st := makeTestState(t, cs)
 				stateRoot := testDummyState(t, cs, st, testHeader)
-				b.EXPECT().StateAtSlot(mock.Anything).Return(st, math.Slot(0), nil)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(st, math.Slot(0), nil)
 				return stateRoot
 			},
 			check: func(t *testing.T, expectedStateRoot common.Root, res any, err error) {
@@ -131,7 +131,7 @@ func TestGetBlockHeaders(t *testing.T) {
 
 				st := makeTestState(t, cs)
 				stateRoot := testDummyState(t, cs, st, testHeader)
-				b.EXPECT().StateAtSlot(mock.Anything).Return(st, math.Slot(0), nil)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(st, math.Slot(0), nil)
 				return stateRoot
 			},
 			check: func(t *testing.T, expectedStateRoot common.Root, res any, err error) {
@@ -187,7 +187,7 @@ func TestGetBlockHeaders(t *testing.T) {
 			},
 			setMockExpectations: func(t *testing.T, b *mocks.Backend) common.Root {
 				t.Helper()
-				b.EXPECT().StateAtSlot(mock.Anything).Return(nil, math.Slot(0), errTestHeaderNotFound)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(nil, math.Slot(0), errTestHeaderNotFound)
 				return common.Root{}
 			},
 			check: func(t *testing.T, _ common.Root, _ any, err error) {
@@ -210,7 +210,7 @@ func TestGetBlockHeaders(t *testing.T) {
 
 				st := makeTestState(t, cs)
 				stateRoot := testDummyState(t, cs, st, testHeader)
-				b.EXPECT().StateAtSlot(mock.Anything).Return(st, math.Slot(0), nil)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(st, math.Slot(0), nil)
 				b.EXPECT().GetSlotByBlockRoot(testParentHeader.BodyRoot).Return(testParentHeader.Slot, nil)
 				return stateRoot
 			},
@@ -288,7 +288,7 @@ func TestGetBlockHeaders(t *testing.T) {
 
 				st := makeTestState(t, cs)
 				stateRoot := testDummyState(t, cs, st, testHeader)
-				b.EXPECT().StateAtSlot(mock.Anything).Return(st, math.Slot(0), nil)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(st, math.Slot(0), nil)
 				b.EXPECT().GetSlotByBlockRoot(testParentHeader.BodyRoot).Return(testParentHeader.Slot, nil)
 				return stateRoot
 			},
@@ -405,7 +405,7 @@ func TestGetBlockHeaderByID(t *testing.T) {
 
 				st := makeTestState(t, cs)
 				stateRoot := testDummyState(t, cs, st, testHeader)
-				b.EXPECT().StateAtSlot(mock.Anything).Return(st, math.Slot(0), nil)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(st, math.Slot(0), nil)
 				return stateRoot
 			},
 			check: func(t *testing.T, expectedStateRoot common.Root, res any, err error) {
@@ -458,7 +458,7 @@ func TestGetBlockHeaderByID(t *testing.T) {
 			},
 			setMockExpectations: func(t *testing.T, b *mocks.Backend) common.Root {
 				t.Helper()
-				b.EXPECT().StateAtSlot(mock.Anything).Return(nil, math.Slot(0), errTestHeaderNotFound)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(nil, math.Slot(0), errTestHeaderNotFound)
 				return common.Root{}
 			},
 			check: func(t *testing.T, _ common.Root, _ any, err error) {
@@ -483,7 +483,7 @@ func TestGetBlockHeaderByID(t *testing.T) {
 
 				st := makeTestState(t, cs)
 				stateRoot := testDummyState(t, cs, st, testHeader)
-				b.EXPECT().StateAtSlot(mock.Anything).Return(st, math.Slot(0), nil)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(st, math.Slot(0), nil)
 				b.EXPECT().GetSlotByBlockRoot(testHeader.BodyRoot).Return(testHeader.Slot, nil)
 				return stateRoot
 			},
