@@ -189,7 +189,7 @@ func (db *RangeDB) GetByIndex(index uint64) ([][]byte, error) {
 
 // prefix prefixes the given key with the index and a slash.
 func prefix(index uint64, key []byte) []byte {
-	return []byte(fmt.Sprintf(keyFormat, index, hex.EncodeBytes(key)))
+	return fmt.Appendf(nil, keyFormat, index, hex.EncodeBytes(key))
 }
 
 // ExtractIndex extracts the index from a prefixed key.
