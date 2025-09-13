@@ -25,7 +25,6 @@ import (
 
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-api/handlers"
-	"github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -51,17 +50,17 @@ func responseFromError(data any, err error) (int, any) {
 	switch {
 	case err == nil:
 		return http.StatusOK, data
-	case errors.Is(err, types.ErrNotFound):
+	case errors.Is(err, ErrNotFound):
 		return http.StatusNotFound, ErrorResponse{
 			Code:    http.StatusNotFound,
 			Message: err.Error(),
 		}
-	case errors.Is(err, types.ErrInvalidRequest):
+	case errors.Is(err, ErrInvalidRequest):
 		return http.StatusBadRequest, ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),
 		}
-	case errors.Is(err, types.ErrNotImplemented):
+	case errors.Is(err, ErrNotImplemented):
 		return http.StatusNotImplemented, ErrorResponse{
 			Code:    http.StatusNotImplemented,
 			Message: err.Error(),
