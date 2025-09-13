@@ -260,7 +260,11 @@ func (sp *StateProcessor) logElectra1Fork(
 	+ ⛓️   current beacon epoch: %d
 
 	⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️
+<<<<<<< HEAD
+	
+=======
 
+>>>>>>> cb4e9ea4c1d2459d6a98fffd433c65aa581c15e8
 `,
 		version.Name(previousVersion), previousVersion.String(),
 		sp.cs.Electra1ForkTime(),
