@@ -22,9 +22,13 @@ package backend
 
 import (
 	"fmt"
+	"runtime"
 
+	datypes "github.com/berachain/beacon-kit/da/types"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
+	"github.com/cosmos/cosmos-sdk/version"
 )
 
 // StateAtSlot returns the beacon state at a particular slot using query context,
@@ -48,4 +52,49 @@ func (b *Backend) StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, erro
 		}
 	}
 	return st, slot, nil
+}
+
+// GetSlotByBlockRoot retrieves the slot by a block root from the block store.
+func (b *Backend) GetSlotByBlockRoot(root common.Root) (math.Slot, error) {
+	return b.sb.BlockStore().GetSlotByBlockRoot(root)
+}
+
+// GetSlotByStateRoot retrieves the slot by a state root from the block store.
+func (b *Backend) GetSlotByStateRoot(root common.Root) (math.Slot, error) {
+	return b.sb.BlockStore().GetSlotByStateRoot(root)
+}
+
+// GetParentSlotByTimestamp retrieves the parent slot by a given timestamp from
+// the block store.
+func (b *Backend) GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error) {
+	return b.sb.BlockStore().GetParentSlotByTimestamp(timestamp)
+}
+
+func (b *Backend) GetBlobSidecarsAtSlot(slot math.Slot) (datypes.BlobSidecars, error) {
+	return b.sb.AvailabilityStore().GetBlobSidecars(slot)
+}
+
+func (b *Backend) GetSyncData() (int64 /*latestHeight*/, int64 /*syncToHeight*/) {
+	return b.node.GetSyncData()
+}
+
+func (b *Backend) GetVersionData() (
+	string, // appName
+	string, // cometVersion
+	string, // os
+	string, // arch
+) {
+	cometVersionInfo := version.NewInfo() // same used in beacond version command
+
+	var (
+		appName      = cometVersionInfo.AppName
+		cometVersion = cometVersionInfo.Version
+		os           = runtime.GOOS
+		arch         = runtime.GOARCH
+	)
+
+	return appName,
+		cometVersion,
+		os,
+		arch
 }

@@ -21,7 +21,7 @@
 package beacon
 
 import (
-	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
@@ -29,25 +29,14 @@ import (
 
 // Backend is the interface for backend of the beacon API.
 type Backend interface {
-	GenesisBackend
-	BlobBackend
-	StateBackend
-	// GetSlotByBlockRoot retrieves the slot by a given root from the store.
-	GetSlotByBlockRoot(root common.Root) (math.Slot, error)
-	// GetSlotByStateRoot retrieves the slot by a given root from the store.
-	GetSlotByStateRoot(root common.Root) (math.Slot, error)
-}
+	// Blob related methods
+	GetSyncData() (int64 /*latestHeight*/, int64 /*syncToHeight*/)
+	GetBlobSidecarsAtSlot(slot math.Slot) (datypes.BlobSidecars, error)
 
-type GenesisBackend interface {
-	GenesisValidatorsRoot() (common.Root, error)
-	GenesisForkVersion() (common.Version, error)
-	GenesisTime() (math.U64, error)
-}
-
-type BlobBackend interface {
-	BlobSidecarsByIndices(slot math.Slot, indices []uint64) ([]*types.Sidecar, error)
-}
-
-type StateBackend interface {
+	// State loading method, used by most of the handlers
 	StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error)
+
+	// Methods helping mapping block/state/... IDs in requests to heights
+	GetSlotByBlockRoot(root common.Root) (math.Slot, error)
+	GetSlotByStateRoot(root common.Root) (math.Slot, error)
 }
