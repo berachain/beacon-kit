@@ -21,7 +21,6 @@
 package service_test
 
 import (
-	"context"
 	"reflect"
 	"testing"
 	"time"
@@ -56,7 +55,7 @@ func TestRegistry_StartAll(t *testing.T) {
 		t.Fatalf("Failed to register Service2: %v", err)
 	}
 
-	require.NoError(t, registry.StartAll(context.Background()))
+	require.NoError(t, registry.StartAll(t.Context()))
 	time.Sleep(25 * time.Millisecond)
 
 	service1.AssertCalled(t, "Start", mock.Anything)

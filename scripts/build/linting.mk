@@ -80,6 +80,17 @@ gosec: gosec-install
 	@gosec ./...
 
 #################
+#   vulncheck   #
+#################
+
+vulncheck-install:
+	@go install golang.org/x/vuln/cmd/govulncheck@latest
+
+vulncheck: vulncheck-install
+	@echo "--> Running govulncheck"
+	@govulncheck $(shell go list ./... | grep -v '/testing/')
+
+#################
 #    slither    #
 #################
 
@@ -104,6 +115,6 @@ markdownlint:
 # all ci linters #
 #################
 
-lint-ci: lint slither gosec nilaway markdownlint generate-check \
+lint-ci: lint slither gosec vulncheck nilaway markdownlint generate-check \
     tidy-sync-check test-unit-cover test-unit-bench test-unit-fuzz \
 	test-forge-cover test-forge-fuzz

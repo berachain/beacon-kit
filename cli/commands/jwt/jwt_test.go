@@ -84,7 +84,7 @@ func Test_NewGenerateJWTCommand(t *testing.T) {
 
 	t.Run("should override existing file when flag is set", func(t *testing.T) {
 		// Create a temporary file to simulate an existing file
-		tempFile, err := os.CreateTemp("", "existing_jwt.hex")
+		tempFile, err := os.CreateTemp(t.TempDir(), "existing_jwt.hex")
 		require.NoError(t, err)
 		defer os.Remove(tempFile.Name()) // clean up
 
