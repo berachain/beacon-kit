@@ -21,10 +21,12 @@
 package backend
 
 import (
+	"errors"
 	"fmt"
 	"runtime"
 
 	"cosmossdk.io/log"
+	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -43,13 +45,20 @@ func (b *Backend) StateAndSlotFromHeight(height int64) (ReadOnlyBeaconState, mat
 		return nil, 0, fmt.Errorf("expected height, must be non-negative or -1 to request tip, got %d", height)
 	}
 	if height == 0 {
-		// genesis requested. Serve it from the genesis state recreated locally by node-api
-		if err := b.checkChainIsReady(); err != nil {
-			return nil, 0, err
+		switch err := b.node.IsAppReady(); {
+		case err == nil:
+			// chain finally ready, time to loading genesis
+			if err = b.loadGenesisState(); err != nil {
+				return nil, 0, fmt.Errorf("failed loading genesis state: %w", err)
+			}
+		case errors.Is(err, cometbft.ErrAppNotReady):
+			return nil, 0, cometbft.ErrAppNotReady
+		default:
+			return nil, 0, fmt.Errorf("unable to check whether app is ready: %w", err)
 		}
 
-		b.muCms.Lock()
-		defer b.muCms.Unlock()
+		b.muSt.Lock()
+		defer b.muSt.Unlock()
 
 		// Copy the state to ensure clients potential changes won't pollute the state
 		// Also we make sure to create the copy in a thread-safe way via the muCms mutex.
