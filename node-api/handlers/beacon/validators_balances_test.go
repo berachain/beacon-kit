@@ -34,8 +34,8 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/mocks"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/node-api/handlers/mapping"
 	handlertypes "github.com/berachain/beacon-kit/node-api/handlers/types"
-	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/node-api/middleware"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -62,7 +62,7 @@ func TestGetStateValidatorBalances(t *testing.T) {
 		{
 			name: "all validators",
 			inputs: func() (beacontypes.GetValidatorBalancesRequest, beacontypes.PostValidatorBalancesRequest) {
-				stateID := utils.StateIDHead
+				stateID := mapping.StateIDHead
 				IDs := []string(nil)
 				return beacontypes.GetValidatorBalancesRequest{
 						StateIDRequest: handlertypes.StateIDRequest{
@@ -109,7 +109,7 @@ func TestGetStateValidatorBalances(t *testing.T) {
 		{
 			name: "single validators",
 			inputs: func() (beacontypes.GetValidatorBalancesRequest, beacontypes.PostValidatorBalancesRequest) {
-				stateID := utils.StateIDHead
+				stateID := mapping.StateIDHead
 				IDs := []string{
 					stateValidators[0].Validator.PublicKey,
 					stateValidators[1].Validator.PublicKey,
@@ -159,7 +159,7 @@ func TestGetStateValidatorBalances(t *testing.T) {
 		{
 			name: "mixed know and unknow validators",
 			inputs: func() (beacontypes.GetValidatorBalancesRequest, beacontypes.PostValidatorBalancesRequest) {
-				stateID := utils.StateIDHead
+				stateID := mapping.StateIDHead
 				unknownValPk := bytes.B48{0xff, 0xff}
 				unknownValIdx := strconv.Itoa(2025)
 				IDs := []string{
