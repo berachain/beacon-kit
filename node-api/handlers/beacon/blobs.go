@@ -25,7 +25,7 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/node-api/handlers"
-	apitypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
@@ -33,7 +33,7 @@ import (
 // GetBlobSidecars provides an implementation for the
 // "/eth/v1/beacon/blob_sidecars/:block_id" API endpoint.
 func (h *Handler) GetBlobSidecars(c handlers.Context) (any, error) {
-	req, err := utils.BindAndValidate[apitypes.GetBlobSidecarsRequest](
+	req, err := utils.BindAndValidate[types.GetBlobSidecarsRequest](
 		c, h.Logger(),
 	)
 	if err != nil {
@@ -100,7 +100,7 @@ func (h *Handler) GetBlobSidecars(c handlers.Context) (any, error) {
 	if len(indices) > 0 {
 		responseCap = len(indices)
 	}
-	blobSidecarsResponse := make([]*apitypes.Sidecar, 0, responseCap)
+	blobSidecarsResponse := make([]*types.Sidecar, 0, responseCap)
 
 	for _, blobSidecar := range blobSidecars {
 		// Skip if indices specified and this index not requested.
@@ -109,11 +109,11 @@ func (h *Handler) GetBlobSidecars(c handlers.Context) (any, error) {
 		}
 		// Craft and append the blob sidecar serialized data to the response.
 		blobSidecarsResponse = append(blobSidecarsResponse,
-			apitypes.SidecarFromConsensus(blobSidecar),
+			types.SidecarFromConsensus(blobSidecar),
 		)
 	}
 
-	return apitypes.SidecarsResponse{
+	return types.SidecarsResponse{
 		Data: blobSidecarsResponse,
 	}, nil
 }
