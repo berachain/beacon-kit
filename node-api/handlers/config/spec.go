@@ -21,8 +21,6 @@
 package config
 
 import (
-	"net/http"
-
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/config/types"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -33,17 +31,13 @@ const InactivityPenaltyQuotientPlaceholder = "0"
 
 // GetSpec returns the spec of the beacon chain.
 func (h *Handler) GetSpec(handlers.Context) (any, error) {
-	cs, err := h.backend.Spec()
-	if err != nil {
-		return nil, handlers.NewHTTPError(http.StatusInternalServerError, "failed to get spec: %v", err)
-	}
 	return types.SpecResponse{Data: types.SpecData{
-		DepositContractAddress: cs.DepositContractAddress().String(),
+		DepositContractAddress: h.cs.DepositContractAddress().String(),
 
 		// Network ID is same as eth1 chain ID.
-		DepositNetworkID: math.U64(cs.DepositEth1ChainID()).Base10(),
+		DepositNetworkID: math.U64(h.cs.DepositEth1ChainID()).Base10(),
 
-		DomainAggregateAndProof: cs.DomainTypeAggregateAndProof().String(),
+		DomainAggregateAndProof: h.cs.DomainTypeAggregateAndProof().String(),
 
 		// Currently these are placeholders, will be replaced with the correct values for our
 		// versions like Deneb, Deneb1 etc once we implement slashing for inactivity.
