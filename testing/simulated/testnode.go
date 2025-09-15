@@ -37,8 +37,8 @@ import (
 	"github.com/berachain/beacon-kit/da/kzg"
 	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/log/phuslu"
+	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/server"
-	nodecomponents "github.com/berachain/beacon-kit/node-core/components"
 	service "github.com/berachain/beacon-kit/node-core/services/registry"
 	nodetypes "github.com/berachain/beacon-kit/node-core/types"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -63,11 +63,15 @@ type TestNodeInput struct {
 	Components  []any
 }
 
+type ValidatorAPI interface {
+	FilterValidators(height int64, ids []string, statuses []string) ([]*types.ValidatorData, error)
+}
+
 type TestNode struct {
 	nodetypes.Node
 	StorageBackend  blockchain.StorageBackend
 	ChainSpec       chain.Spec
-	APIBackend      nodecomponents.NodeAPIBackend
+	APIBackend      ValidatorAPI
 	SimComet        *SimComet
 	EngineClient    *client.EngineClient
 	StateProcessor  *core.StateProcessor
@@ -169,7 +173,7 @@ func buildNode(
 		Node:            beaconNode,
 		StorageBackend:  storageBackend,
 		ChainSpec:       chainSpec,
-		APIBackend:      apiServer.GetBackend(),
+		APIBackend:      apiServer.GetBeaconHandler(),
 		SimComet:        simComet,
 		EngineClient:    engineClient,
 		StateProcessor:  stateProcessor,

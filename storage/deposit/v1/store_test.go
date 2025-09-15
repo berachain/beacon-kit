@@ -21,7 +21,6 @@
 package deposit_test
 
 import (
-	"context"
 	"testing"
 
 	"cosmossdk.io/log"
@@ -40,7 +39,7 @@ func BenchmarkDepositsInsertion(b *testing.B) {
 	require.NoError(b, err)
 
 	nopLog := log.NewNopLogger()
-	dummyCtx := context.Background()
+	dummyCtx := b.Context()
 
 	var store *deposit.KVStore
 	require.NotPanics(b, func() {

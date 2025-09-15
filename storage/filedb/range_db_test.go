@@ -196,11 +196,11 @@ func TestRangeDB_DeleteRange_NotSupported(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name string
-		db   *mocks.DB
+		db   *mocks.Db
 	}{
 		{
 			name: "DeleteRangeNotSupported",
-			db:   new(mocks.DB),
+			db:   new(mocks.Db),
 		},
 	}
 
