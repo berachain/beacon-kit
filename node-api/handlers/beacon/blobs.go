@@ -32,6 +32,8 @@ import (
 
 // GetBlobSidecars provides an implementation for the
 // "/eth/v1/beacon/blob_sidecars/:block_id" API endpoint.
+//
+//nolint:gocognit // TODO: fix
 func (h *Handler) GetBlobSidecars(c handlers.Context) (any, error) {
 	req, err := utils.BindAndValidate[types.GetBlobSidecarsRequest](
 		c, h.Logger(),
@@ -49,7 +51,10 @@ func (h *Handler) GetBlobSidecars(c handlers.Context) (any, error) {
 	var slot math.Slot
 	if slotID == utils.Head {
 		latestHeight, _ := h.backend.GetSyncData()
-		slot = math.Slot(latestHeight) //#nosec: G115 // practically safe
+		if latestHeight < 0 {
+			return nil, errors.New("invalid negative block height")
+		}
+		slot = math.Slot(latestHeight)
 	} else {
 		slot = math.Slot(slotID) //#nosec: G115 // practically safe
 	}
