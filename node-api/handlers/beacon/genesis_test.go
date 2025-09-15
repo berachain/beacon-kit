@@ -21,20 +21,36 @@
 package beacon_test
 
 import (
-	"errors"
+	"context"
 	"testing"
 
+	corestore "cosmossdk.io/core/store"
+	"cosmossdk.io/log"
+	"cosmossdk.io/store"
+	sdkmetrics "cosmossdk.io/store/metrics"
+	storetypes "cosmossdk.io/store/types"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
-	"github.com/berachain/beacon-kit/log"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
+	beaconlog "github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/log/noop"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/mocks"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/middleware"
+	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/state-transition/core/state"
+	kvstorage "github.com/berachain/beacon-kit/storage"
+	"github.com/berachain/beacon-kit/storage/beacondb"
+	"github.com/berachain/beacon-kit/storage/db"
+	dbm "github.com/cosmos/cosmos-db"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/labstack/echo/v4"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -48,8 +64,6 @@ func TestGetGenesis(t *testing.T) {
 		testGenesisRoot        = common.Root{0x10, 0x20, 0x30}
 		testGenesisForkVersion = common.Version{0xff, 0x11, 0x22, 0x33}
 		testGenesisTime        = math.U64(123456789)
-
-		errTestError = errors.New("test error when missing item")
 	)
 
 	testCases := []struct {
@@ -58,11 +72,21 @@ func TestGetGenesis(t *testing.T) {
 		check               func(t *testing.T, res any, err error)
 	}{
 		{
-			name: "sunny path",
+			name: "success",
 			setMockExpectations: func(b *mocks.Backend) {
-				b.EXPECT().GenesisValidatorsRoot().Return(testGenesisRoot, nil).Once()
-				b.EXPECT().GenesisForkVersion().Return(testGenesisForkVersion, nil).Once()
-				b.EXPECT().GenesisTime().Return(testGenesisTime, nil).Once()
+				st := initTestGenesisState(t, cs)
+
+				require.NoError(t, st.SetGenesisValidatorsRoot(testGenesisRoot))
+				require.NoError(t, st.SetFork(&ctypes.Fork{
+					PreviousVersion: testGenesisForkVersion,
+					CurrentVersion:  testGenesisForkVersion,
+				}))
+				require.NoError(t, st.SetLatestExecutionPayloadHeader(&ctypes.ExecutionPayloadHeader{
+					Versionable: ctypes.NewVersionable(testGenesisForkVersion),
+					Timestamp:   testGenesisTime,
+				}))
+
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(st, 0, nil)
 			},
 			check: func(t *testing.T, res any, err error) {
 				t.Helper()
@@ -80,52 +104,12 @@ func TestGetGenesis(t *testing.T) {
 		{
 			name: "genesis not ready",
 			setMockExpectations: func(b *mocks.Backend) {
-				b.EXPECT().GenesisValidatorsRoot().Return(common.Root{}, nil).Once()
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(nil, 0, cometbft.ErrAppNotReady)
 			},
 			check: func(t *testing.T, res any, err error) {
 				t.Helper()
 
 				require.ErrorIs(t, err, types.ErrNotFound)
-				require.Contains(t, err.Error(), "Chain genesis info is not yet known")
-				require.Nil(t, res)
-			},
-		},
-		{
-			name: "failed loading validator root",
-			setMockExpectations: func(b *mocks.Backend) {
-				b.EXPECT().GenesisValidatorsRoot().Return(common.Root{}, errTestError).Once()
-			},
-			check: func(t *testing.T, res any, err error) {
-				t.Helper()
-
-				require.ErrorIs(t, err, errTestError)
-				require.Nil(t, res)
-			},
-		},
-		{
-			name: "failed loading fork version",
-			setMockExpectations: func(b *mocks.Backend) {
-				b.EXPECT().GenesisValidatorsRoot().Return(testGenesisRoot, nil).Once()
-				b.EXPECT().GenesisForkVersion().Return(common.Version{}, errTestError).Once()
-			},
-			check: func(t *testing.T, res any, err error) {
-				t.Helper()
-
-				require.ErrorIs(t, err, errTestError)
-				require.Nil(t, res)
-			},
-		},
-		{
-			name: "failed loading genesis time",
-			setMockExpectations: func(b *mocks.Backend) {
-				b.EXPECT().GenesisValidatorsRoot().Return(testGenesisRoot, nil).Once()
-				b.EXPECT().GenesisForkVersion().Return(testGenesisForkVersion, nil).Once()
-				b.EXPECT().GenesisTime().Return(0, errTestError).Once()
-			},
-			check: func(t *testing.T, res any, err error) {
-				t.Helper()
-
-				require.ErrorIs(t, err, errTestError)
 				require.Nil(t, res)
 			},
 		},
@@ -138,7 +122,7 @@ func TestGetGenesis(t *testing.T) {
 
 			// setup test
 			backend := mocks.NewBackend(t)
-			h := beacon.NewHandler(backend, cs, noop.NewLogger[log.Logger]())
+			h := beacon.NewHandler(backend, cs, noop.NewLogger[beaconlog.Logger]())
 			e := echo.New()
 			e.Validator = &middleware.CustomValidator{
 				Validator: middleware.ConstructValidator(),
@@ -154,4 +138,46 @@ func TestGetGenesis(t *testing.T) {
 			tc.check(t, res, err)
 		})
 	}
+}
+
+type backendKVStoreService struct {
+	ctx sdk.Context
+}
+
+func (kvs *backendKVStoreService) OpenKVStore(context.Context) corestore.KVStore {
+	//nolint:contextcheck // fine with tests
+	store := sdk.UnwrapSDKContext(kvs.ctx).KVStore(testStoreKey)
+	return kvstorage.NewKVStore(store)
+}
+
+var testStoreKey = storetypes.NewKVStoreKey("test-genesis")
+
+func initTestGenesisState(t *testing.T, cs chain.Spec) *state.StateDB {
+	t.Helper()
+
+	db, err := db.OpenDB("", dbm.MemDBBackend)
+	require.NoError(t, err)
+
+	var (
+		nopLog     = log.NewNopLogger()
+		nopMetrics = sdkmetrics.NewNoOpMetrics()
+	)
+
+	cms := store.NewCommitMultiStore(db, nopLog, nopMetrics)
+	cms.MountStoreWithDB(testStoreKey, storetypes.StoreTypeIAVL, nil)
+	require.NoError(t, cms.LoadLatestVersion())
+
+	ctx := sdk.NewContext(cms, true, nopLog)
+	backendStoreService := &backendKVStoreService{
+		ctx: ctx,
+	}
+	kvStore := beacondb.New(backendStoreService)
+
+	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), true, nopLog)
+	return state.NewBeaconStateFromDB(
+		kvStore.WithContext(sdkCtx),
+		cs,
+		sdkCtx.Logger(),
+		metrics.NewNoOpTelemetrySink(),
+	)
 }

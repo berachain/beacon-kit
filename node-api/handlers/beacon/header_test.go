@@ -22,14 +22,15 @@ package beacon_test
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
-	"github.com/berachain/beacon-kit/consensus-types/types"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/log/noop"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon"
@@ -39,7 +40,10 @@ import (
 	"github.com/berachain/beacon-kit/node-api/middleware"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/labstack/echo/v4"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -51,18 +55,18 @@ func TestGetBlockHeaders(t *testing.T) {
 	require.NoError(t, errSpec)
 
 	// testHeaders to build test cases on top of
-	testParentHeader := &types.BeaconBlockHeader{
+	testParentHeader := &ctypes.BeaconBlockHeader{
 		Slot:            math.Slot(10),
 		ProposerIndex:   math.ValidatorIndex(1234),
 		ParentBlockRoot: common.Root{'p', 'a', 'r', 'e', 'n', 't', 'b', 'l', 'o', 'c', 'k', 'r', 'o', 'o', 't'},
 		StateRoot:       common.Root{'p', 'a', 'r', 'e', 'n', 't', 's', 't', 'a', 't', 'e', 'r', 'o', 'o', 't'},
 		BodyRoot:        common.Root{'p', 'a', 'r', 'e', 'n', 't', 'r', 'o', 'o', 't'},
 	}
-	testHeader := &types.BeaconBlockHeader{
+	testHeader := &ctypes.BeaconBlockHeader{
 		Slot:            testParentHeader.Slot + 1,
 		ProposerIndex:   math.ValidatorIndex(5678),
 		ParentBlockRoot: testParentHeader.BodyRoot,
-		StateRoot:       common.Root{'d', 'u', 'm', 'm', 'y', 's', 't', 'a', 't', 'e', 'r', 'o', 'o', 't'},
+		StateRoot:       common.Root{}, // set in test cases
 		BodyRoot:        common.Root{'d', 'u', 'm', 'm', 'y', 'r', 'o', 'o', 't'},
 	}
 	wrongSlot := testHeader.Slot + 1234
@@ -71,8 +75,8 @@ func TestGetBlockHeaders(t *testing.T) {
 	testCases := []struct {
 		name                string
 		inputs              func() beacontypes.GetBlockHeadersRequest
-		setMockExpectations func(*mocks.Backend)
-		check               func(t *testing.T, res any, err error)
+		setMockExpectations func(*testing.T, *mocks.Backend) common.Root
+		check               func(t *testing.T, expectedStateRoot common.Root, res any, err error)
 	}{
 		{
 			name: "GetBlockHeaders - success - no query params",
@@ -82,12 +86,15 @@ func TestGetBlockHeaders(t *testing.T) {
 					ParentRoot:  "",
 				}
 			},
-			setMockExpectations: func(b *mocks.Backend) {
-				// math.Slot(0) is a special parametere as it indicates head should be picked.
-				// For these tests we return testHeader as head
-				b.EXPECT().BlockHeaderAtSlot(math.Slot(0)).Return(testHeader, nil)
+			setMockExpectations: func(t *testing.T, b *mocks.Backend) common.Root {
+				t.Helper()
+
+				st := makeTestState(t, cs)
+				stateRoot := testDummyState(t, cs, st, testHeader)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(st, math.Slot(0), nil)
+				return stateRoot
 			},
-			check: func(t *testing.T, res any, err error) {
+			check: func(t *testing.T, expectedStateRoot common.Root, res any, err error) {
 				t.Helper()
 
 				require.NoError(t, err)
@@ -103,7 +110,7 @@ func TestGetBlockHeaders(t *testing.T) {
 					Slot:          testHeader.Slot.Base10(),
 					ProposerIndex: testHeader.ProposerIndex.Base10(),
 					ParentRoot:    testHeader.ParentBlockRoot.Hex(),
-					StateRoot:     testHeader.StateRoot.Hex(),
+					StateRoot:     expectedStateRoot.Hex(),
 					BodyRoot:      testHeader.BodyRoot.Hex(),
 				}
 				require.Equal(t, expectedHeader, data[0].Header.Message)
@@ -119,10 +126,15 @@ func TestGetBlockHeaders(t *testing.T) {
 					ParentRoot: "",
 				}
 			},
-			setMockExpectations: func(b *mocks.Backend) {
-				b.EXPECT().BlockHeaderAtSlot(testHeader.Slot).Return(testHeader, nil)
+			setMockExpectations: func(t *testing.T, b *mocks.Backend) common.Root {
+				t.Helper()
+
+				st := makeTestState(t, cs)
+				stateRoot := testDummyState(t, cs, st, testHeader)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(st, math.Slot(0), nil)
+				return stateRoot
 			},
-			check: func(t *testing.T, res any, err error) {
+			check: func(t *testing.T, expectedStateRoot common.Root, res any, err error) {
 				t.Helper()
 
 				require.NoError(t, err)
@@ -138,7 +150,7 @@ func TestGetBlockHeaders(t *testing.T) {
 					Slot:          testHeader.Slot.Base10(),
 					ProposerIndex: testHeader.ProposerIndex.Base10(),
 					ParentRoot:    testHeader.ParentBlockRoot.Hex(),
-					StateRoot:     testHeader.StateRoot.Hex(),
+					StateRoot:     expectedStateRoot.Hex(),
 					BodyRoot:      testHeader.BodyRoot.Hex(),
 				}
 				require.Equal(t, expectedHeader, data[0].Header.Message)
@@ -154,10 +166,11 @@ func TestGetBlockHeaders(t *testing.T) {
 					ParentRoot: "",
 				}
 			},
-			setMockExpectations: func(*mocks.Backend) {
+			setMockExpectations: func(*testing.T, *mocks.Backend) common.Root {
 				// nothing to set here, slot is invalid
+				return common.Root{}
 			},
-			check: func(t *testing.T, _ any, err error) {
+			check: func(t *testing.T, _ common.Root, _ any, err error) {
 				t.Helper()
 				require.ErrorIs(t, err, handlertypes.ErrInvalidRequest)
 			},
@@ -172,10 +185,12 @@ func TestGetBlockHeaders(t *testing.T) {
 					ParentRoot: "",
 				}
 			},
-			setMockExpectations: func(b *mocks.Backend) {
-				b.EXPECT().BlockHeaderAtSlot(testHeader.Slot).Return(nil, errTestHeaderNotFound)
+			setMockExpectations: func(t *testing.T, b *mocks.Backend) common.Root {
+				t.Helper()
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(nil, math.Slot(0), errTestHeaderNotFound)
+				return common.Root{}
 			},
-			check: func(t *testing.T, _ any, err error) {
+			check: func(t *testing.T, _ common.Root, _ any, err error) {
 				t.Helper()
 				// Implicitly ensuring that 404 error code is returned
 				// (see responseFromError implementation)
@@ -190,11 +205,16 @@ func TestGetBlockHeaders(t *testing.T) {
 					ParentRoot:  testHeader.ParentBlockRoot.Hex(),
 				}
 			},
-			setMockExpectations: func(b *mocks.Backend) {
+			setMockExpectations: func(t *testing.T, b *mocks.Backend) common.Root {
+				t.Helper()
+
+				st := makeTestState(t, cs)
+				stateRoot := testDummyState(t, cs, st, testHeader)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(st, math.Slot(0), nil)
 				b.EXPECT().GetSlotByBlockRoot(testParentHeader.BodyRoot).Return(testParentHeader.Slot, nil)
-				b.EXPECT().BlockHeaderAtSlot(testHeader.Slot).Return(testHeader, nil)
+				return stateRoot
 			},
-			check: func(t *testing.T, res any, err error) {
+			check: func(t *testing.T, expectedStateRoot common.Root, res any, err error) {
 				t.Helper()
 
 				require.NoError(t, err)
@@ -210,7 +230,7 @@ func TestGetBlockHeaders(t *testing.T) {
 					Slot:          testHeader.Slot.Base10(),
 					ProposerIndex: testHeader.ProposerIndex.Base10(),
 					ParentRoot:    testHeader.ParentBlockRoot.Hex(),
-					StateRoot:     testHeader.StateRoot.Hex(),
+					StateRoot:     expectedStateRoot.Hex(),
 					BodyRoot:      testHeader.BodyRoot.Hex(),
 				}
 				require.Equal(t, expectedHeader, data[0].Header.Message)
@@ -224,10 +244,11 @@ func TestGetBlockHeaders(t *testing.T) {
 					ParentRoot:  "AN-INVALID-HEX",
 				}
 			},
-			setMockExpectations: func(*mocks.Backend) {
+			setMockExpectations: func(*testing.T, *mocks.Backend) common.Root {
 				// nothing to set here, slot is invalid
+				return common.Root{}
 			},
-			check: func(t *testing.T, _ any, err error) {
+			check: func(t *testing.T, _ common.Root, _ any, err error) {
 				t.Helper()
 				require.ErrorIs(t, err, handlertypes.ErrInvalidRequest)
 			},
@@ -240,11 +261,12 @@ func TestGetBlockHeaders(t *testing.T) {
 					ParentRoot:  testHeader.ParentBlockRoot.Hex(),
 				}
 			},
-			setMockExpectations: func(b *mocks.Backend) {
+			setMockExpectations: func(_ *testing.T, b *mocks.Backend) common.Root {
 				// Assume parent header is not known
 				b.EXPECT().GetSlotByBlockRoot(testParentHeader.BodyRoot).Return(0, errTestHeaderNotFound)
+				return common.Root{}
 			},
-			check: func(t *testing.T, _ any, err error) {
+			check: func(t *testing.T, _ common.Root, _ any, err error) {
 				t.Helper()
 				// Implicitly ensuring that 404 error code is returned
 				// (see responseFromError implementation)
@@ -261,11 +283,16 @@ func TestGetBlockHeaders(t *testing.T) {
 					ParentRoot: testHeader.ParentBlockRoot.Hex(),
 				}
 			},
-			setMockExpectations: func(b *mocks.Backend) {
+			setMockExpectations: func(t *testing.T, b *mocks.Backend) common.Root {
+				t.Helper()
+
+				st := makeTestState(t, cs)
+				stateRoot := testDummyState(t, cs, st, testHeader)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(st, math.Slot(0), nil)
 				b.EXPECT().GetSlotByBlockRoot(testParentHeader.BodyRoot).Return(testParentHeader.Slot, nil)
-				b.EXPECT().BlockHeaderAtSlot(testHeader.Slot).Return(testHeader, nil)
+				return stateRoot
 			},
-			check: func(t *testing.T, res any, err error) {
+			check: func(t *testing.T, expectedStateRoot common.Root, res any, err error) {
 				t.Helper()
 
 				require.NoError(t, err)
@@ -281,7 +308,7 @@ func TestGetBlockHeaders(t *testing.T) {
 					Slot:          testHeader.Slot.Base10(),
 					ProposerIndex: testHeader.ProposerIndex.Base10(),
 					ParentRoot:    testHeader.ParentBlockRoot.Hex(),
-					StateRoot:     testHeader.StateRoot.Hex(),
+					StateRoot:     expectedStateRoot.Hex(),
 					BodyRoot:      testHeader.BodyRoot.Hex(),
 				}
 				require.Equal(t, expectedHeader, data[0].Header.Message)
@@ -297,10 +324,11 @@ func TestGetBlockHeaders(t *testing.T) {
 					ParentRoot: testHeader.ParentBlockRoot.Hex(),
 				}
 			},
-			setMockExpectations: func(b *mocks.Backend) {
+			setMockExpectations: func(_ *testing.T, b *mocks.Backend) common.Root {
 				b.EXPECT().GetSlotByBlockRoot(testParentHeader.BodyRoot).Return(testParentHeader.Slot, nil)
+				return common.Root{}
 			},
-			check: func(t *testing.T, _ any, err error) {
+			check: func(t *testing.T, _ common.Root, _ any, err error) {
 				t.Helper()
 				require.ErrorIs(t, err, beacon.ErrMismatchedSlotAndParentBlock)
 			},
@@ -330,13 +358,13 @@ func TestGetBlockHeaders(t *testing.T) {
 			c := e.NewContext(req, httptest.NewRecorder())
 
 			// set expectations
-			tc.setMockExpectations(backend)
+			expectedStateRoot := tc.setMockExpectations(t, backend)
 
 			// test
 			res, err := h.GetBlockHeaders(c)
 
 			// finally do checks
-			tc.check(t, res, err)
+			tc.check(t, expectedStateRoot, res, err)
 		})
 	}
 }
@@ -348,11 +376,11 @@ func TestGetBlockHeaderByID(t *testing.T) {
 	require.NoError(t, errSpec)
 
 	// a test testHeader to build test cases on top of
-	testHeader := &types.BeaconBlockHeader{
+	testHeader := &ctypes.BeaconBlockHeader{
 		Slot:            math.Slot(1234),
 		ProposerIndex:   math.ValidatorIndex(5678),
 		ParentBlockRoot: common.Root{'p', 'a', 'r', 'e', 'n', 't', 'b', 'l', 'o', 'c', 'k', 'r', 'o', 'o', 't'},
-		StateRoot:       common.Root{'d', 'u', 'm', 'm', 'y', 's', 't', 'a', 't', 'e', 'r', 'o', 'o', 't'},
+		StateRoot:       common.Root{}, // set in test cases
 		BodyRoot:        common.Root{'d', 'u', 'm', 'm', 'y', 'r', 'o', 'o', 't'},
 	}
 	errTestHeaderNotFound := errors.New("test header not found error")
@@ -360,8 +388,8 @@ func TestGetBlockHeaderByID(t *testing.T) {
 	testCases := []struct {
 		name                string
 		inputs              func() beacontypes.GetBlockHeaderRequest
-		setMockExpectations func(*mocks.Backend)
-		check               func(t *testing.T, res any, err error)
+		setMockExpectations func(*testing.T, *mocks.Backend) common.Root
+		check               func(t *testing.T, expectedStateRoot common.Root, res any, err error)
 	}{
 		{
 			name: "GetBlockHeaderByID - success - id is slot",
@@ -372,10 +400,15 @@ func TestGetBlockHeaderByID(t *testing.T) {
 					},
 				}
 			},
-			setMockExpectations: func(b *mocks.Backend) {
-				b.EXPECT().BlockHeaderAtSlot(testHeader.Slot).Return(testHeader, nil)
+			setMockExpectations: func(t *testing.T, b *mocks.Backend) common.Root {
+				t.Helper()
+
+				st := makeTestState(t, cs)
+				stateRoot := testDummyState(t, cs, st, testHeader)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(st, math.Slot(0), nil)
+				return stateRoot
 			},
-			check: func(t *testing.T, res any, err error) {
+			check: func(t *testing.T, expectedStateRoot common.Root, res any, err error) {
 				t.Helper()
 
 				require.NoError(t, err)
@@ -390,7 +423,7 @@ func TestGetBlockHeaderByID(t *testing.T) {
 					Slot:          testHeader.Slot.Base10(),
 					ProposerIndex: testHeader.ProposerIndex.Base10(),
 					ParentRoot:    testHeader.ParentBlockRoot.Hex(),
-					StateRoot:     testHeader.StateRoot.Hex(),
+					StateRoot:     expectedStateRoot.Hex(),
 					BodyRoot:      testHeader.BodyRoot.Hex(),
 				}
 				require.Equal(t, expectedHeader, data.Header.Message)
@@ -405,10 +438,11 @@ func TestGetBlockHeaderByID(t *testing.T) {
 					},
 				}
 			},
-			setMockExpectations: func(*mocks.Backend) {
+			setMockExpectations: func(*testing.T, *mocks.Backend) common.Root {
 				// nothing to set here, slot is invalid
+				return common.Root{}
 			},
-			check: func(t *testing.T, _ any, err error) {
+			check: func(t *testing.T, _ common.Root, _ any, err error) {
 				t.Helper()
 				require.ErrorIs(t, err, handlertypes.ErrInvalidRequest)
 			},
@@ -422,10 +456,12 @@ func TestGetBlockHeaderByID(t *testing.T) {
 					},
 				}
 			},
-			setMockExpectations: func(b *mocks.Backend) {
-				b.EXPECT().BlockHeaderAtSlot(testHeader.Slot).Return(nil, errTestHeaderNotFound)
+			setMockExpectations: func(t *testing.T, b *mocks.Backend) common.Root {
+				t.Helper()
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(nil, math.Slot(0), errTestHeaderNotFound)
+				return common.Root{}
 			},
-			check: func(t *testing.T, _ any, err error) {
+			check: func(t *testing.T, _ common.Root, _ any, err error) {
 				t.Helper()
 
 				// Implicitly ensuring that 404 error code is returned
@@ -442,11 +478,16 @@ func TestGetBlockHeaderByID(t *testing.T) {
 					},
 				}
 			},
-			setMockExpectations: func(b *mocks.Backend) {
+			setMockExpectations: func(t *testing.T, b *mocks.Backend) common.Root {
+				t.Helper()
+
+				st := makeTestState(t, cs)
+				stateRoot := testDummyState(t, cs, st, testHeader)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(st, math.Slot(0), nil)
 				b.EXPECT().GetSlotByBlockRoot(testHeader.BodyRoot).Return(testHeader.Slot, nil)
-				b.EXPECT().BlockHeaderAtSlot(testHeader.Slot).Return(testHeader, nil)
+				return stateRoot
 			},
-			check: func(t *testing.T, res any, err error) {
+			check: func(t *testing.T, expectedStateRoot common.Root, res any, err error) {
 				t.Helper()
 
 				require.NoError(t, err)
@@ -461,7 +502,7 @@ func TestGetBlockHeaderByID(t *testing.T) {
 					Slot:          testHeader.Slot.Base10(),
 					ProposerIndex: testHeader.ProposerIndex.Base10(),
 					ParentRoot:    testHeader.ParentBlockRoot.Hex(),
-					StateRoot:     testHeader.StateRoot.Hex(),
+					StateRoot:     expectedStateRoot.Hex(),
 					BodyRoot:      testHeader.BodyRoot.Hex(),
 				}
 				require.Equal(t, expectedHeader, data.Header.Message)
@@ -476,10 +517,11 @@ func TestGetBlockHeaderByID(t *testing.T) {
 					},
 				}
 			},
-			setMockExpectations: func(*mocks.Backend) {
+			setMockExpectations: func(*testing.T, *mocks.Backend) common.Root {
 				// nothing to set here, slot is invalid
+				return common.Root{}
 			},
-			check: func(t *testing.T, _ any, err error) {
+			check: func(t *testing.T, _ common.Root, _ any, err error) {
 				t.Helper()
 				require.ErrorIs(t, err, handlertypes.ErrInvalidRequest)
 			},
@@ -493,11 +535,12 @@ func TestGetBlockHeaderByID(t *testing.T) {
 					},
 				}
 			},
-			setMockExpectations: func(b *mocks.Backend) {
+			setMockExpectations: func(_ *testing.T, b *mocks.Backend) common.Root {
 				// Assume parent header is not known
 				b.EXPECT().GetSlotByBlockRoot(testHeader.BodyRoot).Return(0, errTestHeaderNotFound)
+				return common.Root{}
 			},
-			check: func(t *testing.T, _ any, err error) {
+			check: func(t *testing.T, _ common.Root, _ any, err error) {
 				t.Helper()
 				require.ErrorIs(t, err, errTestHeaderNotFound)
 			},
@@ -527,13 +570,53 @@ func TestGetBlockHeaderByID(t *testing.T) {
 			c := e.NewContext(req, httptest.NewRecorder())
 
 			// set expectations
-			tc.setMockExpectations(backend)
+			expectedStateRoot := tc.setMockExpectations(t, backend)
 
 			// test
 			res, err := h.GetBlockHeaderByID(c)
 
 			// finally do checks
-			tc.check(t, res, err)
+			tc.check(t, expectedStateRoot, res, err)
 		})
 	}
+}
+
+// TestDummyState sets a few dummy state elements, enough to
+// be able to call HashTreeRoot over the state.
+func testDummyState(
+	t *testing.T,
+	cs chain.Spec,
+	st *statedb.StateDB,
+	testHeader *ctypes.BeaconBlockHeader,
+) common.Root {
+	t.Helper()
+
+	dummyFork := &ctypes.Fork{
+		PreviousVersion: version.Deneb(),
+		CurrentVersion:  version.Electra(),
+		Epoch:           math.Epoch(200),
+	}
+	require.NoError(t, st.SetSlot(1234))
+	require.NoError(t, st.SetFork(dummyFork))
+	require.NoError(t, st.SetGenesisValidatorsRoot(common.Root{0x01}))
+	require.NoError(t, st.SetLatestBlockHeader(testHeader))
+	for i := range cs.HistoricalRootsLimit() {
+		require.NoError(t, st.UpdateBlockRootAtIndex(i, common.Root{}))
+		require.NoError(t, st.UpdateStateRootAtIndex(i, common.Root{}))
+	}
+	require.NoError(t, st.SetLatestExecutionPayloadHeader(&ctypes.ExecutionPayloadHeader{
+		Versionable: ctypes.NewVersionable(dummyFork.CurrentVersion),
+	}))
+	require.NoError(t, st.SetEth1Data(&ctypes.Eth1Data{}))
+	require.NoError(t, st.SetEth1DepositIndex(0))
+	require.NoError(t, st.AddValidator(&ctypes.Validator{}))
+	require.NoError(t, st.SetBalance(math.ValidatorIndex(0), math.Gwei(0)))
+	for i := range cs.EpochsPerHistoricalVector() {
+		require.NoError(t, st.UpdateRandaoMixAtIndex(i, common.Bytes32{}))
+	}
+	require.NoError(t, st.SetNextWithdrawalIndex(0))
+	require.NoError(t, st.SetNextWithdrawalValidatorIndex(math.ValidatorIndex(0)))
+	require.NoError(t, st.SetPendingPartialWithdrawals([]*ctypes.PendingPartialWithdrawal{}))
+
+	return st.HashTreeRoot()
 }
