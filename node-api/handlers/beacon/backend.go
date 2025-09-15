@@ -22,9 +22,9 @@ package beacon
 
 import (
 	datypes "github.com/berachain/beacon-kit/da/types"
+	"github.com/berachain/beacon-kit/node-api/backend"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // Backend is the interface for backend of the beacon API.
@@ -34,7 +34,10 @@ type Backend interface {
 	GetBlobSidecarsAtSlot(slot math.Slot) (datypes.BlobSidecars, error)
 
 	// State loading method, used by most of the handlers
-	StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error)
+	// Height == -1 must be used to require tip state.
+	// Height == 0 must be used to require Genesis state
+	// Height > 0 must be used to require state at slot <Height>
+	StateAndSlotFromHeight(height int64) (backend.ReadOnlyBeaconState, math.Slot, error)
 
 	// Methods helping mapping block/state/... IDs in requests to heights
 	GetSlotByBlockRoot(root common.Root) (math.Slot, error)

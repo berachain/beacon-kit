@@ -21,13 +21,13 @@
 package debug
 
 import (
+	"github.com/berachain/beacon-kit/node-api/backend"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // Backend is the interface for backend of the debug API.
 type Backend interface {
 	GetSlotByStateRoot(root common.Root) (math.Slot, error)
-	StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error)
+	StateAndSlotFromHeight(height int64) (backend.ReadOnlyBeaconState, math.Slot, error)
 }

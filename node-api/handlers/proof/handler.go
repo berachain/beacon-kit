@@ -23,10 +23,10 @@ package proof
 import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/node-api/backend"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/primitives/math"
-	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // Handler is the handler for the proof API.
@@ -48,19 +48,20 @@ func NewHandler(backend Backend, logger log.Logger) *Handler {
 // Get the slot from the given input of timestamp id, beacon state, and beacon
 // block header for the resolved slot.
 func (h *Handler) resolveTimestampID(timestampID string) (
-	math.Slot, *statedb.StateDB, *ctypes.BeaconBlockHeader, error,
+	math.Slot, backend.ReadOnlyBeaconState, *ctypes.BeaconBlockHeader, error,
 ) {
 	var (
-		beaconState *statedb.StateDB
+		beaconState backend.ReadOnlyBeaconState
 		blockHeader *ctypes.BeaconBlockHeader
+		slot        math.Slot
 	)
 
-	slot, err := utils.ParentSlotFromTimestampID(timestampID, h.backend)
+	height, err := utils.TimestampIDToParentHeight(timestampID, h.backend)
 	if err != nil {
 		return 0, beaconState, blockHeader, err
 	}
 
-	beaconState, slot, err = h.backend.StateAtSlot(slot)
+	beaconState, slot, err = h.backend.StateAndSlotFromHeight(height)
 	if err != nil {
 		return 0, beaconState, blockHeader, err
 	}

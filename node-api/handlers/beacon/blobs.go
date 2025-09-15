@@ -43,7 +43,7 @@ func (h *Handler) GetBlobSidecars(c handlers.Context) (any, error) {
 	}
 
 	// Map requested blockID to slot
-	slotID, err := utils.SlotFromBlockID(req.BlockID, h.backend)
+	slotID, err := utils.BlockIDToHeight(req.BlockID, h.backend)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func (h *Handler) GetBlobSidecars(c handlers.Context) (any, error) {
 		}
 		slot = math.Slot(latestHeight)
 	} else {
-		slot = slotID
+		slot = math.Slot(slotID) //#nosec: G115 // practically safe
 	}
 
 	// Convert indices to uint64.
@@ -71,7 +71,7 @@ func (h *Handler) GetBlobSidecars(c handlers.Context) (any, error) {
 	}
 
 	// Validate the requested slot is within the Data Availability Period.
-	if !h.cs.WithinDAPeriod(slotID, slot) {
+	if !h.cs.WithinDAPeriod(slot, slot) {
 		return nil, fmt.Errorf(
 			"requested slot (%d) is not within Data Availability Period (previous %d epochs)",
 			slotID, h.cs.MinEpochsForBlobsSidecarsRequest(),

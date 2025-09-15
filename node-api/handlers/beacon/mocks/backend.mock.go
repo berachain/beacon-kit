@@ -3,12 +3,13 @@
 package mocks
 
 import (
+	backend "github.com/berachain/beacon-kit/node-api/backend"
+
 	common "github.com/berachain/beacon-kit/primitives/common"
+
 	math "github.com/berachain/beacon-kit/primitives/math"
 
 	mock "github.com/stretchr/testify/mock"
-
-	state "github.com/berachain/beacon-kit/state-transition/core/state"
 
 	types "github.com/berachain/beacon-kit/da/types"
 )
@@ -251,36 +252,36 @@ func (_c *Backend_GetSyncData_Call) RunAndReturn(run func() (int64, int64)) *Bac
 	return _c
 }
 
-// StateAtSlot provides a mock function with given fields: slot
-func (_m *Backend) StateAtSlot(slot math.Slot) (*state.StateDB, math.Slot, error) {
-	ret := _m.Called(slot)
+// StateAndSlotFromHeight provides a mock function with given fields: height
+func (_m *Backend) StateAndSlotFromHeight(height int64) (backend.ReadOnlyBeaconState, math.Slot, error) {
+	ret := _m.Called(height)
 
 	if len(ret) == 0 {
-		panic("no return value specified for StateAtSlot")
+		panic("no return value specified for StateAndSlotFromHeight")
 	}
 
-	var r0 *state.StateDB
+	var r0 backend.ReadOnlyBeaconState
 	var r1 math.Slot
 	var r2 error
-	if rf, ok := ret.Get(0).(func(math.Slot) (*state.StateDB, math.Slot, error)); ok {
-		return rf(slot)
+	if rf, ok := ret.Get(0).(func(int64) (backend.ReadOnlyBeaconState, math.Slot, error)); ok {
+		return rf(height)
 	}
-	if rf, ok := ret.Get(0).(func(math.Slot) *state.StateDB); ok {
-		r0 = rf(slot)
+	if rf, ok := ret.Get(0).(func(int64) backend.ReadOnlyBeaconState); ok {
+		r0 = rf(height)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*state.StateDB)
+			r0 = ret.Get(0).(backend.ReadOnlyBeaconState)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(math.Slot) math.Slot); ok {
-		r1 = rf(slot)
+	if rf, ok := ret.Get(1).(func(int64) math.Slot); ok {
+		r1 = rf(height)
 	} else {
 		r1 = ret.Get(1).(math.Slot)
 	}
 
-	if rf, ok := ret.Get(2).(func(math.Slot) error); ok {
-		r2 = rf(slot)
+	if rf, ok := ret.Get(2).(func(int64) error); ok {
+		r2 = rf(height)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -288,30 +289,30 @@ func (_m *Backend) StateAtSlot(slot math.Slot) (*state.StateDB, math.Slot, error
 	return r0, r1, r2
 }
 
-// Backend_StateAtSlot_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StateAtSlot'
-type Backend_StateAtSlot_Call struct {
+// Backend_StateAndSlotFromHeight_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StateAndSlotFromHeight'
+type Backend_StateAndSlotFromHeight_Call struct {
 	*mock.Call
 }
 
-// StateAtSlot is a helper method to define mock.On call
-//   - slot math.Slot
-func (_e *Backend_Expecter) StateAtSlot(slot interface{}) *Backend_StateAtSlot_Call {
-	return &Backend_StateAtSlot_Call{Call: _e.mock.On("StateAtSlot", slot)}
+// StateAndSlotFromHeight is a helper method to define mock.On call
+//   - height int64
+func (_e *Backend_Expecter) StateAndSlotFromHeight(height interface{}) *Backend_StateAndSlotFromHeight_Call {
+	return &Backend_StateAndSlotFromHeight_Call{Call: _e.mock.On("StateAndSlotFromHeight", height)}
 }
 
-func (_c *Backend_StateAtSlot_Call) Run(run func(slot math.Slot)) *Backend_StateAtSlot_Call {
+func (_c *Backend_StateAndSlotFromHeight_Call) Run(run func(height int64)) *Backend_StateAndSlotFromHeight_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(math.Slot))
+		run(args[0].(int64))
 	})
 	return _c
 }
 
-func (_c *Backend_StateAtSlot_Call) Return(_a0 *state.StateDB, _a1 math.Slot, _a2 error) *Backend_StateAtSlot_Call {
+func (_c *Backend_StateAndSlotFromHeight_Call) Return(_a0 backend.ReadOnlyBeaconState, _a1 math.Slot, _a2 error) *Backend_StateAndSlotFromHeight_Call {
 	_c.Call.Return(_a0, _a1, _a2)
 	return _c
 }
 
-func (_c *Backend_StateAtSlot_Call) RunAndReturn(run func(math.Slot) (*state.StateDB, math.Slot, error)) *Backend_StateAtSlot_Call {
+func (_c *Backend_StateAndSlotFromHeight_Call) RunAndReturn(run func(int64) (backend.ReadOnlyBeaconState, math.Slot, error)) *Backend_StateAndSlotFromHeight_Call {
 	_c.Call.Return(run)
 	return _c
 }

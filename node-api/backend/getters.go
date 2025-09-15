@@ -21,31 +21,65 @@
 package backend
 
 import (
+	"errors"
 	"fmt"
 	"runtime"
 
+	"cosmossdk.io/log"
+	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 )
 
-// StateAtSlot returns the beacon state at a particular slot using query context,
-// resolving an input slot of 0 to the latest slot.
+// StateAndSlotFromHeight returns the beacon state at a particular slot using query context,
+// resolving an input height of -1 to the latest slot.
 //
 // This returns the beacon state of the version that was committed to disk at the requested slot,
 // which has the empty state root in the latest block header. Hence, the most recent state and
 // block roots are not updated.
-func (b *Backend) StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error) {
-	queryCtx, err := b.node.CreateQueryContext(int64(slot), false) // #nosec G115 -- not an issue in practice.
+func (b *Backend) StateAndSlotFromHeight(height int64) (ReadOnlyBeaconState, math.Slot, error) {
+	if height < -1 {
+		return nil, 0, fmt.Errorf("expected height, must be non-negative or -1 to request tip, got %d", height)
+	}
+	if height == 0 {
+		switch err := b.node.IsAppReady(); {
+		case err == nil:
+			// chain finally ready, time to loading genesis
+			if err = b.loadGenesisState(); err != nil {
+				return nil, 0, fmt.Errorf("failed loading genesis state: %w", err)
+			}
+		case errors.Is(err, cometbft.ErrAppNotReady):
+			return nil, 0, cometbft.ErrAppNotReady
+		default:
+			return nil, 0, fmt.Errorf("unable to check whether app is ready: %w", err)
+		}
+
+		b.muSt.Lock()
+		defer b.muSt.Unlock()
+
+		// Copy the state to ensure clients potential changes won't pollute the state
+		// Also we make sure to create the copy in a thread-safe way via the muCms mutex.
+		ms := b.cms.CacheMultiStore()
+		copyCtx := sdk.NewContext(ms, true, log.NewNopLogger())
+		copyGenesisState := b.genesisState.Copy(copyCtx)
+		return copyGenesisState, 0, nil
+	}
+
+	height = max(0, height) // CreateQueryContext uses 0 to pick latest height.
+	queryCtx, err := b.node.CreateQueryContext(height, false)
 	if err != nil {
-		return nil, slot, fmt.Errorf("CreateQueryContext failed: %w", err)
+		return nil, 0, fmt.Errorf("CreateQueryContext failed: %w", err)
 	}
 	st := b.sb.StateFromContext(queryCtx)
 
-	// If using height 0 for the query context, make sure to return the latest slot.
-	if slot == 0 {
+	var slot math.Slot
+	if height > 0 {
+		slot = math.Slot(height)
+	} else {
+		// height must be -1, so pick state slot
 		slot, err = st.GetSlot()
 		if err != nil {
 			return st, slot, fmt.Errorf("GetSlot failed: %w", err)
