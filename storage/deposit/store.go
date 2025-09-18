@@ -25,6 +25,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/log"
@@ -172,7 +173,8 @@ func (gs *generalStore) MigrateV1ToV2(ctx context.Context) error {
 	gs.mu.Lock()
 	defer gs.mu.Unlock()
 
-	gs.logger.Info("Deposit store migration attempted")
+	startTime := time.Now()
+	gs.logger.Info("Deposit store migration attempted", "startTime", startTime)
 	done, err := gs.storeV2.HasMigrationFromV1Completed(ctx)
 	if err != nil {
 		return fmt.Errorf("failed checking whether migration has completed: %w", err)
@@ -215,6 +217,10 @@ func (gs *generalStore) MigrateV1ToV2(ctx context.Context) error {
 		return fmt.Errorf("failed completing deposits store migration: %w", err)
 	}
 	gs.currentVersion = V2
-	gs.logger.Info("Deposit store migration completed")
+	endTime := time.Now()
+	gs.logger.Info("Deposit store migration completed",
+		"endTime", endTime,
+		"elapsedTime", endTime.Sub(startTime),
+	)
 	return nil
 }

@@ -21,10 +21,13 @@
 package spec
 
 import (
+	stdmath "math"
+
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/ethereum/go-ethereum/params"
 )
 
@@ -102,6 +105,9 @@ const (
 	// These are the heights at which SBT is activated on mainnet.
 	mainnetSBTConsensusUpdateHeight = 9_983_085
 	mainnetSBTConsensusEnableHeight = 9_983_086
+
+	// DepositsV2ActivationSlot returns the slot store v2 is activated
+	mainnetDepositsV2ActivationSlot = math.Slot(stdmath.MaxInt64)
 )
 
 // MainnetChainSpecData is the chain.SpecData for the Berachain mainnet.
@@ -136,6 +142,7 @@ func MainnetChainSpecData() *chain.SpecData {
 		DepositContractAddress:    common.MustNewExecutionAddressFromHex(mainnetDepositContractAddress),
 		MaxDepositsPerBlock:       defaultMaxDepositsPerBlock,
 		DepositEth1ChainID:        chain.MainnetEth1ChainID,
+		DepositsV2ActivationSlot:  mainnetDepositsV2ActivationSlot,
 		Eth1FollowDistance:        defaultEth1FollowDistance,
 		TargetSecondsPerEth1Block: defaultTargetSecondsPerEth1Block,
 

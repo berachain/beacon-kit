@@ -323,29 +323,38 @@ func (s *Service) buildBlockBody(
 		return fmt.Errorf("failed loading eth1 deposit index: %w", err)
 	}
 
-	// Grab all previous deposits from genesis up to the current index + max deposits per block.
-	deposits, localDepositRoot, err := s.sb.DepositStore().GetDepositsByIndex(
-		ctx,
-		constants.FirstDepositIndex,
-		depositIndex+s.chainSpec.MaxDepositsPerBlock(),
-	)
+	// Load deposits and their root
+	startIdx := constants.FirstDepositIndex
+	depRange := depositIndex + s.chainSpec.MaxDepositsPerBlock()
+	depositMigrationDone := s.chainSpec.DepositsV2ActivationSlot() < blk.GetSlot()
+	if depositMigrationDone {
+		// migration must have done, just load strictly necessary deposits
+		startIdx = depositIndex
+		depRange = s.chainSpec.MaxDepositsPerBlock()
+	}
+
+	deposits, localDepositRoot, err := s.sb.DepositStore().GetDepositsByIndex(ctx, startIdx, depRange)
 	if err != nil {
 		return err
 	}
-	if uint64(len(deposits)) < depositIndex {
-		return errors.Wrapf(ErrDepositStoreIncomplete,
-			"all historical deposits not available, expected: %d, got: %d",
-			depositIndex, len(deposits),
-		)
+
+	if !depositMigrationDone {
+		if uint64(len(deposits)) < depositIndex {
+			return errors.Wrapf(ErrDepositStoreIncomplete,
+				"all historical deposits not available, expected: %d, got: %d",
+				depositIndex, len(deposits),
+			)
+		}
+		deposits = deposits[depositIndex:]
 	}
 	s.logger.Info(
 		"Building block body with local deposits",
-		"start_index", depositIndex, "num_deposits", uint64(len(deposits))-depositIndex,
+		"start_index", depositIndex, "num_deposits", uint64(len(deposits)),
 	)
 
 	eth1Data := ctypes.NewEth1Data(localDepositRoot)
 	body.SetEth1Data(eth1Data)
-	body.SetDeposits(deposits[depositIndex:])
+	body.SetDeposits(deposits)
 
 	// Set the graffiti on the block body.
 	sizedGraffiti := bytes.ExtendToSize([]byte(s.cfg.Graffiti), bytes.B32Size)

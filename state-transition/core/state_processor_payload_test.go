@@ -33,7 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
@@ -146,8 +145,8 @@ func TestPayloadTimestampVerification(t *testing.T) {
 			var depRoot common.Root
 			_, depRoot, err = ds.GetDepositsByIndex(
 				ctx.ConsensusCtx(),
-				constants.FirstDepositIndex,
-				uint64(len(genDeposits))+cs.MaxDepositsPerBlock(),
+				uint64(len(genDeposits)),
+				cs.MaxDepositsPerBlock(),
 			)
 			require.NoError(t, err)
 

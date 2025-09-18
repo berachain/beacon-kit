@@ -155,7 +155,7 @@ func TestBackendLoadData(t *testing.T) {
 
 			cmtCfg := buildTestCometConfig(t)
 
-			_, kvStore, depositStore, err := statetransition.BuildTestStores()
+			_, kvStore, depositStore, err := statetransition.BuildTestStores(cs)
 			require.NoError(t, err)
 			sb := storage.NewBackend(
 				cs, nil, kvStore, depositStore, nil, log.NewNopLogger(), metrics.NewNoOpTelemetrySink(),

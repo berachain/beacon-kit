@@ -546,7 +546,7 @@ func addTestValidators(t *testing.T, stateValidators []*beacontypes.ValidatorDat
 func makeTestState(t *testing.T, cs chain.Spec) *statedb.StateDB {
 	t.Helper()
 
-	cms, kvStore, _, errSt := statetransition.BuildTestStores()
+	cms, kvStore, _, errSt := statetransition.BuildTestStores(cs)
 	require.NoError(t, errSt)
 	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), true, cosmoslog.NewNopLogger())
 	st := statedb.NewBeaconStateFromDB(
