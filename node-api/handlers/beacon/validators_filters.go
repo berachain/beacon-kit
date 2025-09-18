@@ -27,11 +27,11 @@ import (
 	consensustypes "github.com/berachain/beacon-kit/consensus-types/types"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/node-api/backend"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	handlertypes "github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
-	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
@@ -42,8 +42,8 @@ var errStatusFilterMismatch = errors.New("validator status does not match status
 // FilterValidators is a helper function to provide implementation
 // consistency between GetStateValidators and PostStateValidators, since they
 // are intended to behave the same way.
-func (h *Handler) FilterValidators(slot math.Slot, ids []string, statuses []string) ([]*beacontypes.ValidatorData, error) {
-	st, resolvedSlot, err := h.backend.StateAtSlot(slot)
+func (h *Handler) FilterValidators(height int64, ids []string, statuses []string) ([]*beacontypes.ValidatorData, error) {
+	st, resolvedSlot, err := h.backend.StateAndSlotFromHeight(height)
 	if err != nil {
 		if errors.Is(err, cometbft.ErrAppNotReady) {
 			// chain not ready, like when genesis time is set in the future
@@ -53,7 +53,7 @@ func (h *Handler) FilterValidators(slot math.Slot, ids []string, statuses []stri
 			// height requested too high
 			return nil, handlertypes.ErrNotFound
 		}
-		return nil, fmt.Errorf("failed to get state from slot %d: %w", slot, err)
+		return nil, fmt.Errorf("failed to get state from height %d: %w", height, err)
 	}
 
 	allVals, err := st.GetValidators()
@@ -106,7 +106,7 @@ func parseValidatorIDs(ids []string) *validatorFilters {
 
 // filterAndBuildValidatorData processes all validators and builds their data based on filters
 func filterAndBuildValidatorData(
-	st *statedb.StateDB,
+	st backend.ReadOnlyBeaconState,
 	validators []*consensustypes.Validator,
 	filters *validatorFilters,
 	epoch math.Epoch,
@@ -172,7 +172,7 @@ func matchesStatusFilter(status string, statuses []string) bool {
 }
 
 func buildValidatorData(
-	st *statedb.StateDB,
+	st backend.ReadOnlyBeaconState,
 	validator *consensustypes.Validator,
 	index math.U64,
 	epoch math.Epoch,
