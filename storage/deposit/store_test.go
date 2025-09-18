@@ -21,7 +21,6 @@
 package deposit_test
 
 import (
-	"context"
 	"testing"
 
 	"cosmossdk.io/log"
@@ -44,7 +43,7 @@ func TestDataMigration(t *testing.T) {
 	require.NoError(t, err)
 
 	nopLog := log.NewNopLogger()
-	dummyCtx := context.Background()
+	dummyCtx := t.Context()
 
 	var store deposit.StoreManager
 	require.NotPanics(t, func() {
@@ -116,7 +115,7 @@ func TestDataMigrationIsIdempotent(t *testing.T) {
 	require.NoError(t, err)
 
 	nopLog := log.NewNopLogger()
-	dummyCtx := context.Background()
+	dummyCtx := t.Context()
 
 	var store deposit.StoreManager
 	require.NotPanics(t, func() {
