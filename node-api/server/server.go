@@ -38,6 +38,7 @@ import (
 	"github.com/berachain/beacon-kit/node-api/middleware"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/berachain/beacon-kit/node-core/types"
+	"github.com/berachain/beacon-kit/state-transition/core"
 	cmtcfg "github.com/cometbft/cometbft/config"
 )
 
@@ -47,9 +48,10 @@ type Server struct {
 	logger     log.Logger
 	middleware *middleware.Middleware
 
-	// exposed via getter for some tests.
-	// TODO: find a way to avoid this
 	b *backend.Backend
+	// exposed via getter for some tests.
+	// TODO: consider extending this to other handlers
+	beaconHandler *beaconapi.Handler
 }
 
 // New initializes a new API Server with the given config, engine, and logger.
@@ -61,6 +63,7 @@ func New(
 
 	// attributes to build handlers backend
 	storageBackend *storage.Backend,
+	sp *core.StateProcessor,
 	cs chain.Spec,
 	cmtCfg *cmtcfg.Config,
 
@@ -76,20 +79,22 @@ func New(
 	mware := middleware.NewDefaultMiddleware(apiLogger)
 
 	// instantiate handlers and register their routes in the middleware
-	b := backend.New(storageBackend, cs, cmtCfg, consensusService)
-	mware.RegisterRoutes(beaconapi.NewHandler(b, apiLogger).RouteSet())
+	b := backend.New(storageBackend, sp, cs, cmtCfg, consensusService)
+	beaconHandler := beaconapi.NewHandler(b, cs, apiLogger)
+	mware.RegisterRoutes(beaconHandler.RouteSet())
 	mware.RegisterRoutes(builderapi.NewHandler(apiLogger).RouteSet())
-	mware.RegisterRoutes(configapi.NewHandler(b, apiLogger).RouteSet())
+	mware.RegisterRoutes(configapi.NewHandler(cs, apiLogger).RouteSet())
 	mware.RegisterRoutes(debugapi.NewHandler(b, apiLogger).RouteSet())
 	mware.RegisterRoutes(eventsapi.NewHandler(apiLogger).RouteSet())
 	mware.RegisterRoutes(nodeapi.NewHandler(b, apiLogger).RouteSet())
 	mware.RegisterRoutes(proofapi.NewHandler(b, apiLogger).RouteSet())
 
 	return &Server{
-		config:     config,
-		logger:     logger,
-		middleware: mware,
-		b:          b,
+		config:        config,
+		logger:        logger,
+		middleware:    mware,
+		b:             b,
+		beaconHandler: beaconHandler,
 	}
 }
 
@@ -100,7 +105,7 @@ func (s *Server) Start(ctx context.Context) error {
 	}
 
 	// pre-load and cache all relevant node-api backend data
-	if err := s.b.LoadData(); err != nil {
+	if err := s.b.LoadData(ctx); err != nil {
 		return fmt.Errorf("failed loading api backend data: %w", err)
 	}
 
@@ -124,7 +129,7 @@ func (s *Server) start(ctx context.Context) {
 }
 
 func (s *Server) Stop() error {
-	return nil
+	return s.b.Close()
 }
 
 // Name returns the name of the API server service.
@@ -132,6 +137,6 @@ func (s *Server) Name() string {
 	return "node-api-server"
 }
 
-func (s *Server) GetBackend() *backend.Backend {
-	return s.b
+func (s *Server) GetBeaconHandler() *beaconapi.Handler {
+	return s.beaconHandler
 }

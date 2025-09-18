@@ -239,7 +239,7 @@ func (s *PectraWithdrawalSuite) TestExcessValidatorBeforeFork_CorrectlyEvicted()
 		s.Require().NoError(err)
 		// There should be 2 deposits in the deposit store
 		s.Require().Len(deposits, 2)
-		validators, err := s.TestNode.APIBackend.FilteredValidators(beaconmath.Slot(nextBlockHeight), nil, nil)
+		validators, err := s.TestNode.APIBackend.FilterValidators(nextBlockHeight, nil, nil)
 		s.Require().NoError(err)
 		s.Require().Len(validators, 1)
 		nextBlockHeight++
@@ -250,7 +250,7 @@ func (s *PectraWithdrawalSuite) TestExcessValidatorBeforeFork_CorrectlyEvicted()
 		_, _, nextBlockTime = s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, nextBlockTime)
 		s.Require().Equal(int64(2)*nextBlockHeight, nextBlockTime.Unix())
 
-		validators, err := s.TestNode.APIBackend.FilteredValidators(beaconmath.Slot(nextBlockHeight), nil, nil)
+		validators, err := s.TestNode.APIBackend.FilterValidators(nextBlockHeight, nil, nil)
 		s.Require().NoError(err)
 		s.Require().Len(validators, 2)
 		s.Require().Equal(validator.PendingInitialized.String(), validators[1].Status)
@@ -262,7 +262,7 @@ func (s *PectraWithdrawalSuite) TestExcessValidatorBeforeFork_CorrectlyEvicted()
 		_, _, nextBlockTime = s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, nextBlockTime)
 		s.Require().Equal(int64(2)*nextBlockHeight, nextBlockTime.Unix())
 
-		validators, err := s.TestNode.APIBackend.FilteredValidators(beaconmath.Slot(nextBlockHeight), nil, nil)
+		validators, err := s.TestNode.APIBackend.FilterValidators(nextBlockHeight, nil, nil)
 		s.Require().NoError(err)
 		s.Require().Len(validators, 2)
 		s.Require().Equal(validator.PendingQueued.String(), validators[1].Status)
@@ -275,7 +275,7 @@ func (s *PectraWithdrawalSuite) TestExcessValidatorBeforeFork_CorrectlyEvicted()
 		_, _, nextBlockTime = s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, nextBlockTime)
 		s.Require().Equal(int64(2)*nextBlockHeight, nextBlockTime.Unix())
 
-		validators, err := s.TestNode.APIBackend.FilteredValidators(beaconmath.Slot(nextBlockHeight), nil, nil)
+		validators, err := s.TestNode.APIBackend.FilterValidators(nextBlockHeight, nil, nil)
 		s.Require().NoError(err)
 		s.Require().Len(validators, 2)
 		s.Require().Equal(validator.ExitedUnslashed.String(), validators[1].Status)
@@ -291,7 +291,7 @@ func (s *PectraWithdrawalSuite) TestExcessValidatorBeforeFork_CorrectlyEvicted()
 		_, _, nextBlockTime = s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, nextBlockTime)
 		s.Require().Equal(int64(2)*nextBlockHeight, nextBlockTime.Unix())
 
-		validators, err := s.TestNode.APIBackend.FilteredValidators(beaconmath.Slot(nextBlockHeight), nil, nil)
+		validators, err := s.TestNode.APIBackend.FilterValidators(nextBlockHeight, nil, nil)
 		s.Require().NoError(err)
 		s.Require().Len(validators, 2)
 		s.Require().Equal(validator.WithdrawalPossible.String(), validators[1].Status)
@@ -319,7 +319,7 @@ func (s *PectraWithdrawalSuite) TestExcessValidatorBeforeFork_CorrectlyEvicted()
 		_, _, nextBlockTime = s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, nextBlockTime)
 		s.Require().Equal(int64(2)*nextBlockHeight, nextBlockTime.Unix())
 
-		validators, err := s.TestNode.APIBackend.FilteredValidators(beaconmath.Slot(nextBlockHeight), nil, nil)
+		validators, err := s.TestNode.APIBackend.FilterValidators(nextBlockHeight, nil, nil)
 		s.Require().NoError(err)
 		s.Require().Len(validators, 2)
 		s.Require().Equal(validator.WithdrawalDone.String(), validators[1].Status)
@@ -358,7 +358,7 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdra
 		s.Require().Equal(expectedStartBalance, startBalance)
 		s.T().Logf("balance at start: %s wei", startBalance.String())
 
-		validators, err := s.TestNode.APIBackend.FilteredValidators(beaconmath.Slot(nextBlockHeight-1), nil, nil)
+		validators, err := s.TestNode.APIBackend.FilterValidators(nextBlockHeight-1, nil, nil)
 		s.Require().NoError(err)
 		s.Require().Len(validators, 1)
 		s.T().Logf("staked validator balance at start: %v gwei", validators[0].Validator.EffectiveBalance)
@@ -454,7 +454,7 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdra
 		// There should be 3 deposits in the deposit store
 		s.Require().Len(deposits, 3)
 		// Only 1 active validator
-		validators, err := s.TestNode.APIBackend.FilteredValidators(beaconmath.Slot(nextBlockHeight), nil, nil)
+		validators, err := s.TestNode.APIBackend.FilterValidators(nextBlockHeight, nil, nil)
 		s.Require().NoError(err)
 		s.Require().Len(validators, 1)
 		s.T().Logf("staked validator balance: %v gwei", validators[0].Validator.EffectiveBalance)
@@ -499,7 +499,7 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdra
 			500_000, // maximum 0.0005 BERA or 500000 Gwei delta
 		)
 
-		validators, err := s.TestNode.APIBackend.FilteredValidators(beaconmath.Slot(nextBlockHeight-1), nil, nil)
+		validators, err := s.TestNode.APIBackend.FilterValidators(nextBlockHeight-1, nil, nil)
 		s.Require().NoError(err)
 		s.Require().Len(validators, 1)
 		s.T().Logf("staked validator balance at end: %v gwei", validators[0].Validator.EffectiveBalance)
@@ -533,7 +533,7 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_HasCorrectWithdraw
 		s.Require().NoError(err)
 		s.Require().Equal(expectedStartBalance, startBalance)
 
-		validators, err := s.TestNode.APIBackend.FilteredValidators(beaconmath.Slot(nextBlockHeight-1), nil, nil)
+		validators, err := s.TestNode.APIBackend.FilterValidators(nextBlockHeight-1, nil, nil)
 		s.Require().NoError(err)
 		s.Require().Len(validators, 1)
 		// Starts with 10000000000000000 gwei / 10 million BERA staked.
@@ -572,7 +572,7 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_HasCorrectWithdraw
 		s.Require().NoError(convertErr)
 		s.Require().InDelta(finalBalanceGwei.Unwrap(), expectedStartBalanceGwei.Unwrap(), 2_000_000) // maximum 2_000_000 Gwei delta
 
-		validators, err := s.TestNode.APIBackend.FilteredValidators(beaconmath.Slot(nextBlockHeight-1), nil, nil)
+		validators, err := s.TestNode.APIBackend.FilterValidators(nextBlockHeight-1, nil, nil)
 		s.Require().NoError(err)
 		s.Require().Len(validators, 1)
 		// Ends with 10000000000000000 gwei / 10 million BERA staked.

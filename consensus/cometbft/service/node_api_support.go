@@ -25,11 +25,27 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	servercmtlog "github.com/berachain/beacon-kit/consensus/cometbft/service/log"
+	"github.com/berachain/beacon-kit/node-core/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-var ErrAppNotReady = fmt.Errorf("%s is not ready; please wait for first block", AppName)
+var (
+	ErrAppNotReady = fmt.Errorf("%s is not ready; please wait for first block", AppName)
+
+	_ types.ConsensusService = (*Service)(nil)
+)
+
+// IsAppReady is used mainly by node-apis to understand the chain state,
+// before loading data
+func (s *Service) IsAppReady() error {
+	// use custom query multi-store if provided
+	lastBlockHeight := s.sm.GetCommitMultiStore().LatestVersion()
+	if lastBlockHeight == 0 {
+		return ErrAppNotReady
+	}
+	return nil
+}
 
 // CreateQueryContext creates a new sdk.Context for a query, taking as args
 // the block height and whether the query needs a proof or not.

@@ -21,7 +21,6 @@
 
 
 # Sets the deposit storage in the new eth-genesis file in the home directory.
-# This creates genesis.json from $ETH_GENESIS
 /usr/bin/beacond genesis set-deposit-storage $ETH_GENESIS --beacon-kit.chain-spec $CHAIN_SPEC --home /tmp/config_genesis/.beacond
 
 # The output file is "genesis.json"
