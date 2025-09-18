@@ -52,7 +52,8 @@ func TestGenesisDeposit(t *testing.T) {
 	cometConfig.NodeKey = "nodekey.json"
 
 	depositAmount := math.Gwei(250_000 * params.GWei)
-	withdrawalAdress := common.NewExecutionAddressFromHex("0x981114102592310C347E61368342DDA67017bf84")
+	withdrawalAdress, err := common.NewExecutionAddressFromHex("0x981114102592310C347E61368342DDA67017bf84")
+	require.NoError(t, err)
 	outputDocument := ""
 
 	blsSigner := signer.BLSSigner{PrivValidator: types.NewMockPVWithKeyType(bls12381.KeyType)}

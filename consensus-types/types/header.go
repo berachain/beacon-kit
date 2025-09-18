@@ -113,7 +113,7 @@ func (b *BeaconBlockHeader) HashTreeRoot() common.Root {
 /*                                   FastSSZ                                  */
 /* -------------------------------------------------------------------------- */
 
-// MarshalSSZToBytes marshals the BeaconBlockHeader object to SSZ format.
+// MarshalSSZTo marshals the BeaconBlockHeader object to SSZ format.
 func (b *BeaconBlockHeader) MarshalSSZTo(dst []byte) ([]byte, error) {
 	bz, err := b.MarshalSSZ()
 	if err != nil {

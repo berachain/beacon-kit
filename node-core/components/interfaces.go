@@ -28,10 +28,8 @@ import (
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
-	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/node-api/handlers"
+	"github.com/berachain/beacon-kit/node-api/backend"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	nodecoretypes "github.com/berachain/beacon-kit/node-core/types"
 	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -385,7 +383,7 @@ type (
 		GetTotalSlashing() (math.Gwei, error)
 		GetNextWithdrawalIndex() (uint64, error)
 		GetNextWithdrawalValidatorIndex() (math.ValidatorIndex, error)
-		GetTotalValidators() (uint64, error)
+		GetTotalValidators() (math.U64, error)
 		ValidatorIndexByCometBFTAddress(
 			cometBFTAddress []byte,
 		) (math.ValidatorIndex, error)
@@ -488,32 +486,22 @@ type (
 		Validate(any) error
 	}
 
-	// Engine is a generic interface for an API engine.
-	NodeAPIEngine interface {
-		Run(addr string) error
-		RegisterRoutes(*handlers.RouteSet, log.Logger)
-	}
-
 	NodeAPIBackend interface {
-		AttachQueryBackend(node nodecoretypes.ConsensusService)
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		GetSlotByStateRoot(root common.Root) (math.Slot, error)
 		GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
 
 		NodeAPIBeaconBackend
 		NodeAPIProofBackend
+		NodeAPINodeBackend
 		NodeAPIConfigBackend
 	}
 
 	// NodeAPIBeaconBackend is the interface for backend of the beacon API.
 	NodeAPIBeaconBackend interface {
 		GenesisBackend
-		BlobBackend
 		BlockBackend
-		RandaoBackend
 		StateBackend
-		ValidatorBackend
-		WithdrawalBackend
 		// GetSlotByBlockRoot retrieves the slot by a given root from the store.
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		// GetSlotByStateRoot retrieves the slot by a given root from the store.
@@ -532,18 +520,20 @@ type (
 		GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
 	}
 
+	NodeAPINodeBackend interface {
+		GetSyncData() (latestHeight int64, syncToHeight int64)
+		GetVersionData() (
+			appName,
+			version,
+			os,
+			arch string,
+		)
+	}
+
 	GenesisBackend interface {
 		GenesisValidatorsRoot() (common.Root, error)
 		GenesisForkVersion() (common.Version, error)
 		GenesisTime() (math.U64, error)
-	}
-
-	RandaoBackend interface {
-		RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes32, error)
-	}
-
-	BlobBackend interface {
-		BlobSidecarsByIndices(slot math.Slot, indices []uint64) ([]*types.Sidecar, error)
 	}
 
 	BlockBackend interface {
@@ -553,25 +543,6 @@ type (
 	}
 
 	StateBackend interface {
-		StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error)
-	}
-
-	WithdrawalBackend interface {
-		PendingPartialWithdrawalsAtState(*statedb.StateDB) ([]*types.PendingPartialWithdrawalData, error)
-	}
-
-	ValidatorBackend interface {
-		ValidatorByID(
-			slot math.Slot, id string,
-		) (*types.ValidatorData, error)
-		FilteredValidators(
-			slot math.Slot,
-			ids []string,
-			statuses []string,
-		) ([]*types.ValidatorData, error)
-		ValidatorBalancesByIDs(
-			slot math.Slot,
-			ids []string,
-		) ([]*types.ValidatorBalanceData, error)
+		StateAndSlotFromHeight(height int64) (backend.ReadOnlyBeaconState, math.Slot, error)
 	}
 )

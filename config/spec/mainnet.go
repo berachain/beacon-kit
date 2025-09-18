@@ -139,7 +139,7 @@ func MainnetChainSpecData() *chain.SpecData {
 		DomainTypeApplicationMask:   bytes.FromUint32(defaultDomainTypeApplicationMask),
 
 		// Eth1-related values.
-		DepositContractAddress:    common.NewExecutionAddressFromHex(mainnetDepositContractAddress),
+		DepositContractAddress:    common.MustNewExecutionAddressFromHex(mainnetDepositContractAddress),
 		MaxDepositsPerBlock:       defaultMaxDepositsPerBlock,
 		DepositEth1ChainID:        chain.MainnetEth1ChainID,
 		DepositsV2ActivationSlot:  mainnetDepositsV2ActivationSlot,
@@ -171,11 +171,11 @@ func MainnetChainSpecData() *chain.SpecData {
 
 		// Berachain values at genesis.
 		ValidatorSetCap:             mainnetValidatorSetCap,
-		EVMInflationAddressGenesis:  common.NewExecutionAddressFromHex(mainnetEVMInflationAddress),
+		EVMInflationAddressGenesis:  common.MustNewExecutionAddressFromHex(mainnetEVMInflationAddress),
 		EVMInflationPerBlockGenesis: mainnetEVMInflationPerBlock,
 
 		// Deneb1 values.
-		EVMInflationAddressDeneb1:  common.NewExecutionAddressFromHex(mainnetEVMInflationAddressDeneb1),
+		EVMInflationAddressDeneb1:  common.MustNewExecutionAddressFromHex(mainnetEVMInflationAddressDeneb1),
 		EVMInflationPerBlockDeneb1: mainnetEVMInflationPerBlockDeneb1,
 
 		// Electra values.

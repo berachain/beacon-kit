@@ -33,7 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
 	servercmtlog "github.com/berachain/beacon-kit/consensus/cometbft/service/log"
 	statem "github.com/berachain/beacon-kit/consensus/cometbft/service/state"
-	errorsmod "github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/transition"
@@ -48,7 +47,6 @@ import (
 	cmttypes "github.com/cometbft/cometbft/types"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 const (
@@ -104,6 +102,9 @@ type Service struct {
 	//
 	// NOTE: may be nil until either InitChain or FinalizeBlock is called.
 	blockDelay *delay.BlockDelay
+
+	// syncingToHeight is a helper to track node sync state and support node-apis.
+	syncingToHeight int64
 }
 
 func NewService(
@@ -156,10 +157,12 @@ func NewService(
 		panic(fmt.Errorf("failed loading latest version: %w", err))
 	}
 
+	lastBlockHeight := s.lastBlockHeight()
+	s.syncingToHeight = lastBlockHeight
+
 	// Make sure that SBT consensus parameters are duly set when the node restart.
 	// Note that we can't rely on genesis.json having these parameters set right
 	// because we introduced stable block time post (mainnet) genesis.
-	lastBlockHeight := s.sm.GetCommitMultiStore().LastCommitID().Version
 	if lastBlockHeight >= s.delayCfg.SbtConsensusUpdateHeight() {
 		s.cmtConsensusParams.Feature.SBTEnableHeight = s.delayCfg.SbtConsensusEnableHeight()
 	}
@@ -300,7 +303,7 @@ func (s *Service) MountStore(
 }
 
 // LastBlockHeight returns the last committed block height.
-func (s *Service) LastBlockHeight() int64 {
+func (s *Service) lastBlockHeight() int64 {
 	return s.sm.GetCommitMultiStore().LastCommitID().Version
 }
 
@@ -370,60 +373,4 @@ func (s *Service) getContextForProposal(
 	newCtx, _ := finalState.Context().CacheContext()
 	// Preserve the CosmosSDK context while using the correct base ctx.
 	return newCtx.WithContext(ctx.Context())
-}
-
-// CreateQueryContext creates a new sdk.Context for a query, taking as args
-// the block height and whether the query needs a proof or not.
-func (s *Service) CreateQueryContext(
-	height int64,
-	prove bool,
-) (sdk.Context, error) {
-	// use custom query multi-store if provided
-	lastBlockHeight := s.sm.GetCommitMultiStore().LatestVersion()
-	if lastBlockHeight == 0 {
-		return sdk.Context{}, errorsmod.Wrapf(
-			sdkerrors.ErrInvalidHeight,
-			"%s is not ready; please wait for first block",
-			AppName,
-		)
-	}
-
-	if height > lastBlockHeight {
-		return sdk.Context{},
-			errorsmod.Wrap(
-				sdkerrors.ErrInvalidHeight,
-				"cannot query with height in the future; please provide a valid height",
-			)
-	}
-
-	// when a client did not provide a query height, manually inject the latest
-	if height == 0 {
-		height = lastBlockHeight
-	}
-
-	if height <= 1 && prove {
-		return sdk.Context{},
-			errorsmod.Wrap(
-				sdkerrors.ErrInvalidRequest,
-				"cannot query with proof when height <= 1; please provide a valid height",
-			)
-	}
-
-	cacheMS, err := s.sm.GetCommitMultiStore().CacheMultiStoreWithVersion(height)
-	if err != nil {
-		return sdk.Context{},
-			errorsmod.Wrapf(
-				sdkerrors.ErrNotFound,
-				"failed to load state at height %d; %s (latest height: %d)",
-				height,
-				err,
-				lastBlockHeight,
-			)
-	}
-
-	return sdk.NewContext(
-		cacheMS,
-		true,
-		servercmtlog.WrapSDKLogger(s.logger),
-	), nil
 }

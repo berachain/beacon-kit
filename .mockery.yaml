@@ -35,11 +35,6 @@ packages:
       recursive: True
       with-expecter: true
       include-regex: GethRPCClient
-  github.com/berachain/beacon-kit/node-api/backend:
-    config:
-      recursive: True
-      with-expecter: true
-      all: True
   github.com/berachain/beacon-kit/node-core/services/registry:
     config:
       recursive: True
@@ -79,9 +74,19 @@ packages:
     config:
       recursive: False
       with-expecter: true
-      include-regex: LocalBuilder
+      include-regex: LocalBuilder|StorageBackend
   github.com/berachain/beacon-kit/node-api/handlers/beacon:
     config:
       recursive: False
       with-expecter: true
       include-regex: ^Backend$
+  github.com/berachain/beacon-kit/node-api/handlers/node:
+    config:
+      recursive: False
+      with-expecter: true
+      include-regex: ^Backend$
+  github.com/berachain/beacon-kit/node-api/backend:
+    config:
+      recursive: False
+      with-expecter: true
+      include-regex: GenesisStateProcessor

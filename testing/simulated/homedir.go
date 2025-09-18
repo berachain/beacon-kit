@@ -66,10 +66,11 @@ func InitializeHomeDir(t *testing.T, chainSpec chain.Spec, tempHomeDir string, e
 	// Set the deposit amount to the maximum effective balance.
 	depositAmount := chainSpec.MaxEffectiveBalance()
 	// Define an arbitrary withdrawal address.
-	withdrawalAddress := common.NewExecutionAddressFromHex(WithdrawalExecutionAddress)
+	withdrawalAddress, err := common.NewExecutionAddressFromHex(WithdrawalExecutionAddress)
+	require.NoError(t, err, "failed to create withdrawal address")
 
 	// Add a genesis deposit.
-	err := genesis.AddGenesisDeposit(chainSpec, cometConfig, blsSigner, depositAmount, withdrawalAddress, "")
+	err = genesis.AddGenesisDeposit(chainSpec, cometConfig, blsSigner, depositAmount, withdrawalAddress, "")
 	require.NoError(t, err, "failed to add genesis deposit")
 
 	// Collect the genesis deposit.

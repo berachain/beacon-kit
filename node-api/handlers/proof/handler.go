@@ -22,10 +22,11 @@ package proof
 
 import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/node-api/backend"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/primitives/math"
-	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // Handler is the handler for the proof API.
@@ -35,40 +36,42 @@ type Handler struct {
 }
 
 // NewHandler creates a new handler for the proof API.
-func NewHandler(backend Backend) *Handler {
+func NewHandler(backend Backend, logger log.Logger) *Handler {
 	h := &Handler{
-		BaseHandler: handlers.NewBaseHandler(
-			handlers.NewRouteSet(""),
-		),
-		backend: backend,
+		BaseHandler: handlers.NewBaseHandler(logger),
+		backend:     backend,
 	}
+	registerRoutes(h)
 	return h
 }
 
 // Get the slot from the given input of timestamp id, beacon state, and beacon
 // block header for the resolved slot.
 func (h *Handler) resolveTimestampID(timestampID string) (
-	math.Slot, *statedb.StateDB, *ctypes.BeaconBlockHeader, error,
+	math.Slot, backend.ReadOnlyBeaconState, *ctypes.BeaconBlockHeader, error,
 ) {
 	var (
-		beaconState *statedb.StateDB
+		beaconState backend.ReadOnlyBeaconState
 		blockHeader *ctypes.BeaconBlockHeader
+		slot        math.Slot
 	)
 
-	slot, err := utils.ParentSlotFromTimestampID(timestampID, h.backend)
+	height, err := utils.TimestampIDToParentHeight(timestampID, h.backend)
 	if err != nil {
 		return 0, beaconState, blockHeader, err
 	}
 
-	beaconState, slot, err = h.backend.StateAtSlot(slot)
+	beaconState, slot, err = h.backend.StateAndSlotFromHeight(height)
 	if err != nil {
 		return 0, beaconState, blockHeader, err
 	}
 
-	blockHeader, err = h.backend.BlockHeaderAtSlot(slot)
+	// Return after updating the state root in the block header.
+	blockHeader, err = beaconState.GetLatestBlockHeader()
 	if err != nil {
 		return 0, beaconState, blockHeader, err
 	}
+	blockHeader.SetStateRoot(beaconState.HashTreeRoot())
 
 	return slot, beaconState, blockHeader, nil
 }
