@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	beaconlog "github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/log/noop"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon"
@@ -103,7 +102,7 @@ func TestGetGenesis(t *testing.T) {
 		{
 			name: "genesis not ready",
 			setMockExpectations: func(b *mocks.Backend) {
-				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(nil, 0, cometbft.ErrAppNotReady)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(nil, 0, middleware.ErrNotFound)
 			},
 			check: func(t *testing.T, res any, err error) {
 				t.Helper()

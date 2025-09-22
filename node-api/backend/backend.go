@@ -60,7 +60,7 @@ type Backend struct {
 	// Genesis related data
 	sp           GenesisStateProcessor // only needed to recreate genesis state upon API loading
 	db           dbm.DB                // in-memory DB to store genesis state
-	muCms        sync.RWMutex          // mutex to allow copying genesisState in a thread safe way
+	muSt         sync.RWMutex          // mutex to allow initializing and copying genesisState in a safe way
 	cms          storetypes.CommitMultiStore
 	genesisState *state.StateDB // caches genesis data to serve API requests
 }
@@ -106,33 +106,23 @@ func (b *Backend) Close() error {
 	return b.db.Close()
 }
 
-// If checkChainIsReady returns nil, we assume genesis state is created
-func (b *Backend) checkChainIsReady() error {
-	switch err := b.node.IsAppReady(); {
-	case err == nil:
-		// chain finally ready, time to loading genesis
-		return b.loadGenesisState()
-	case errors.Is(err, cometbft.ErrAppNotReady):
-		return cometbft.ErrAppNotReady
-	default:
-		return fmt.Errorf("unable to check whether app is ready: %w", err)
-	}
-}
-
 type backendKVStoreService struct {
 	ctx sdk.Context
 }
 
 func (kvs *backendKVStoreService) OpenKVStore(context.Context) corestore.KVStore {
-	//nolint:contextcheck // fine with tests
+	//nolint:contextcheck // fine with this node-api backend
 	store := sdk.UnwrapSDKContext(kvs.ctx).KVStore(backendStoreKey)
 	return kvstorage.NewKVStore(store)
 }
 
-//nolint:gochecknoglobals // todo: fix later
+//nolint:gochecknoglobals // fine with this node-api backend
 var backendStoreKey = storetypes.NewKVStoreKey("backend-genesis")
 
 func (b *Backend) loadGenesisState() error {
+	b.muSt.Lock()
+	defer b.muSt.Unlock()
+
 	if b.genesisState != nil {
 		// genesis state already initialized, we're fine
 		return nil

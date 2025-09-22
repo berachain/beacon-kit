@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/log/noop"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon"
@@ -47,7 +46,6 @@ import (
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -266,7 +264,7 @@ func TestFilterValidators(t *testing.T) {
 			setMockExpectations: func(b *mocks.Backend) {
 				// cometbft.ErrAppNotReady is the error flag returned when
 				// genesis has not yet been processed and chain is not ready.
-				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(nil, math.Slot(0), cometbft.ErrAppNotReady)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(nil, math.Slot(0), middleware.ErrNotFound)
 			},
 			check: func(t *testing.T, res any, err error) {
 				t.Helper()
@@ -293,7 +291,7 @@ func TestFilterValidators(t *testing.T) {
 			setMockExpectations: func(b *mocks.Backend) {
 				// sdkerrors.ErrInvalidHeight is the error flag returned when
 				// requested height is not in the state.
-				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(nil, math.Slot(0), sdkerrors.ErrInvalidHeight)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(nil, math.Slot(0), middleware.ErrNotFound)
 			},
 			check: func(t *testing.T, res any, err error) {
 				t.Helper()

@@ -187,7 +187,7 @@ func TestGetBlockHeaders(t *testing.T) {
 			},
 			setMockExpectations: func(t *testing.T, b *mocks.Backend) common.Root {
 				t.Helper()
-				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(nil, math.Slot(0), errTestHeaderNotFound)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(nil, math.Slot(0), middleware.ErrNotFound)
 				return common.Root{}
 			},
 			check: func(t *testing.T, _ common.Root, _ any, err error) {
@@ -458,7 +458,7 @@ func TestGetBlockHeaderByID(t *testing.T) {
 			},
 			setMockExpectations: func(t *testing.T, b *mocks.Backend) common.Root {
 				t.Helper()
-				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(nil, math.Slot(0), errTestHeaderNotFound)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(nil, math.Slot(0), middleware.ErrNotFound)
 				return common.Root{}
 			},
 			check: func(t *testing.T, _ common.Root, _ any, err error) {

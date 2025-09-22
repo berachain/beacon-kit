@@ -21,6 +21,8 @@
 package mapping
 
 import (
+	"fmt"
+	stdmath "math"
 	"strings"
 
 	"github.com/berachain/beacon-kit/errors"
@@ -28,7 +30,10 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-var ErrNoSlotForStateRoot = errors.New("slot not found at state root")
+var (
+	ErrNoSlotForStateRoot         = errors.New("slot not found at state root")
+	ErrFailedMappingHeightTooHigh = errors.New("failed mapping height too high")
+)
 
 // TODO: define unique types for each of the query-able IDs (state & block from
 // spec, execution unique to beacon-kit). For each type define validation
@@ -54,6 +59,9 @@ func StateIDToHeight[StorageBackendT interface {
 	if err != nil {
 		return 0, ErrNoSlotForStateRoot
 	}
+	if slot > stdmath.MaxInt64 { // appease linters
+		return 0, fmt.Errorf("%w: slot %d", ErrFailedMappingHeightTooHigh, slot)
+	}
 	return int64(slot), nil //#nosec: G115 // practically safe
 }
 
@@ -74,6 +82,9 @@ func BlockIDToHeight[StorageBackendT interface {
 		return 0, err
 	}
 	slot, err := storage.GetSlotByBlockRoot(root)
+	if slot > stdmath.MaxInt64 { // appease linters
+		return 0, fmt.Errorf("%w: slot %d", ErrFailedMappingHeightTooHigh, slot)
+	}
 	return int64(slot), err //#nosec: G115 // practically safe
 }
 
@@ -104,6 +115,9 @@ func TimestampIDToParentHeight[StorageBackendT interface {
 		)
 	}
 	slot, err := storage.GetParentSlotByTimestamp(timestamp)
+	if slot > stdmath.MaxInt64 { // appease linters
+		return 0, fmt.Errorf("%w: slot %d", ErrFailedMappingHeightTooHigh, slot)
+	}
 	return int64(slot), err //#nosec: G115 // practically safe
 }
 
@@ -127,6 +141,9 @@ func stateIDToHeight(id string) (int64, error) {
 		slot, err := math.U64FromString(id)
 		if err != nil {
 			return 0, errors.Wrapf(err, "failed mapping stateID %q to slot", id)
+		}
+		if slot > stdmath.MaxInt64 { // appease linters
+			return 0, fmt.Errorf("%w: slot %d", ErrFailedMappingHeightTooHigh, slot)
 		}
 		return int64(slot), nil //#nosec: G115 // practically safe
 	}

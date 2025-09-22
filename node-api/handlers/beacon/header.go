@@ -23,6 +23,7 @@ package beacon
 import (
 	"errors"
 	"fmt"
+	stdmath "math"
 
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
@@ -43,7 +44,7 @@ func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 	switch {
 	case len(req.Slot) == 0 && len(req.ParentRoot) == 0:
 		// no parameter specified, pick chain HEAD
-		// by requesting special height 0.
+		// by requesting special height -1.
 		height := mapping.Head
 		return h.makeBlockHeaderResponse(height, true /*resultsInList*/)
 
@@ -53,15 +54,20 @@ func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 		if errSlot != nil {
 			return nil, fmt.Errorf("failed retrieving slot from input parameters: %w", errSlot)
 		}
-		return h.makeBlockHeaderResponse(int64(slot), true /*resultsInList*/) //#nosec: G115 // practically safe
+		if slot > stdmath.MaxInt64 { // appease linters
+			return 0, fmt.Errorf("%w: slot %d", mapping.ErrFailedMappingHeightTooHigh, slot)
+		}
+		return h.makeBlockHeaderResponse(int64(slot), true /*resultsInList*/) //#nosec: G115 // safe
 
 	case len(req.Slot) == 0 && len(req.ParentRoot) != 0:
-		parentSlot, errParent := mapping.BlockIDToHeight(req.ParentRoot, h.backend)
+		parentHeight, errParent := mapping.BlockIDToHeight(req.ParentRoot, h.backend)
 		if errParent != nil {
 			return nil, fmt.Errorf("%w, failed retrieving parent root with error: %w", middleware.ErrNotFound, errParent)
 		}
-		// TODO ABENEGIA: what happens here if HEAD is requested. Should be already broken??
-		height := parentSlot + 1
+		if parentHeight == mapping.Head {
+			return nil, fmt.Errorf("%w, requested header of tip's child", middleware.ErrNotFound)
+		}
+		height := parentHeight + 1
 		return h.makeBlockHeaderResponse(height, true /*resultsInList*/)
 
 	default:
@@ -73,7 +79,10 @@ func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 			return nil, err
 		}
 
-		height := int64(slot) //#nosec: G115 // practically safe
+		if slot > stdmath.MaxInt64 { // appease linters
+			return 0, fmt.Errorf("%w: slot %d", mapping.ErrFailedMappingHeightTooHigh, slot)
+		}
+		height := int64(slot) //#nosec: G115 // safe
 		if height != parentSlot+1 {
 			return nil, fmt.Errorf("%w: request slot %d, parent block slot %d", ErrMismatchedSlotAndParentBlock, slot, parentSlot)
 		}
