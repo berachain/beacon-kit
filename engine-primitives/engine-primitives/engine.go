@@ -22,7 +22,6 @@
 package engineprimitives
 
 import (
-	stdbytes "bytes"
 	"fmt"
 
 	"github.com/berachain/beacon-kit/primitives/bytes"
@@ -81,9 +80,16 @@ type ForkchoiceStateV1 struct {
 }
 
 func (fsv1 *ForkchoiceStateV1) Equal(rhs *ForkchoiceStateV1) bool {
-	return stdbytes.Equal(fsv1.HeadBlockHash[:], rhs.HeadBlockHash[:]) &&
-		stdbytes.Equal(fsv1.SafeBlockHash[:], rhs.SafeBlockHash[:]) &&
-		stdbytes.Equal(fsv1.FinalizedBlockHash[:], rhs.FinalizedBlockHash[:])
+	switch {
+	case fsv1 != nil && rhs != nil:
+		return fsv1.HeadBlockHash == rhs.HeadBlockHash &&
+			fsv1.SafeBlockHash == rhs.SafeBlockHash &&
+			fsv1.FinalizedBlockHash == rhs.FinalizedBlockHash
+	case fsv1 == nil && rhs == nil:
+		return true
+	default:
+		return false
+	}
 }
 
 // PayloadStatusV1 represents the status of a payload as per the EngineAPI
