@@ -52,11 +52,13 @@ func (s *Service) sendPostBlockFCU(
 	}
 
 	s.muLatestFcuReq.Lock()
-	defer s.muLatestFcuReq.Unlock()
-	if s.latestRequestedFCU.Equal(fcuData) {
+	latestRequestedFCU := s.latestRequestedFCU
+	s.latestRequestedFCU = engineprimitives.ForkchoiceStateV1{} // reset and prepare for next block
+	s.muLatestFcuReq.Unlock()
+
+	if latestRequestedFCU.Equal(fcuData) {
 		// we already sent the same FCU, likely due to optimistic block building
 		// being active. Avoid re-issuing the same request.
-		s.latestRequestedFCU = engineprimitives.ForkchoiceStateV1{} // reset and prepare for next block
 		return nil
 	}
 
