@@ -196,7 +196,7 @@ func (s *Service) preFetchBuildData(st *statedb.StateDB, currentTime math.U64) (
 			HeadBlockHash: lph.GetBlockHash(),
 
 			SafeBlockHash: lph.GetParentHash(),
-			// Assumuming consensus guarantees single slot finality, the parent
+			// Assuming consensus guarantees single slot finality, the parent
 			// of the latest block we verified must be final already.
 			FinalizedBlockHash: lph.GetParentHash(),
 		},
