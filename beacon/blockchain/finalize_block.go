@@ -149,10 +149,9 @@ func (s *Service) FinalizeSidecars(
 				blk.GetSlot(), s.chainSpec.BlobConsensusEnableHeight())
 		}
 
-		// Check if we're at the current consensus height (switching from sync to consensus). In this case, we're finalizing a block
-		// that was just agreed upon in consensus, and blob fetching would fail since peers are still processing the same height
-		if int64(blk.GetSlot()) >= syncingToHeight {
-			s.logger.Warn("At consensus height during mode switch, skipping blob fetch",
+		// Check if we're past the current consensus height (switching from sync to consensus)
+		if int64(blk.GetSlot()) > syncingToHeight {
+			s.logger.Info("Past consensus height during mode switch, skipping blob fetch",
 				"slot", blk.GetSlot(),
 				"syncingToHeight", syncingToHeight,
 				"expected_blobs", expectedBlobs)
