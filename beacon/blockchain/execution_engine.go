@@ -30,10 +30,7 @@ import (
 )
 
 // sendPostBlockFCU sends a forkchoice update to the execution client after a
-// block is finalized.This function should only be used to notify
-// the EL client of the new head and should not request optimistic builds, as:
-// Optimistic clients already request builds in handleOptimisticPayloadBuild()
-// Non-optimistic clients should never request optimistic builds.
+// block is finalized.
 func (s *Service) sendPostBlockFCU(
 	ctx context.Context,
 	st *statedb.StateDB,
@@ -44,12 +41,29 @@ func (s *Service) sendPostBlockFCU(
 	}
 
 	// Send a forkchoice update without payload attributes to notify EL of the new head.
+	// Note that we are being conservative here as we don't mark the block we just finalized
+	// (which is irreversible due to CometBFT SSF) as final. However this allows us to spare
+	// the FCU update in case we have optimistic block building on, as we may have already sent
+	// the very same FCU request.
+	fcuData := &engineprimitives.ForkchoiceStateV1{
+		HeadBlockHash:      lph.GetBlockHash(),
+		SafeBlockHash:      lph.GetParentHash(),
+		FinalizedBlockHash: lph.GetParentHash(),
+	}
+
+	s.muLatestFcuReq.Lock()
+	defer s.muLatestFcuReq.Unlock()
+	if s.latestRequestedFCU != nil {
+		if s.latestRequestedFCU.Equal(fcuData) {
+			// we already sent the same FCU, likely due to optimistic block building
+			// being active. Avoid re-issuing the same request.
+			s.latestRequestedFCU = nil // reset and prepare for next block
+			return nil
+		}
+	}
+
 	req := ctypes.BuildForkchoiceUpdateRequestNoAttrs(
-		&engineprimitives.ForkchoiceStateV1{
-			HeadBlockHash:      lph.GetBlockHash(),
-			SafeBlockHash:      lph.GetParentHash(),
-			FinalizedBlockHash: lph.GetParentHash(),
-		},
+		fcuData,
 		s.chainSpec.ActiveForkVersionForTimestamp(lph.GetTimestamp()),
 	)
 	if _, err = s.executionEngine.NotifyForkchoiceUpdate(ctx, req); err != nil {

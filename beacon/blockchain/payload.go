@@ -220,6 +220,14 @@ func (s *Service) handleRebuildPayloadForRejectedBlock(
 		return
 	}
 
+	s.muLatestFcuReq.Lock()
+	defer s.muLatestFcuReq.Unlock()
+	s.latestRequestedFCU = &engineprimitives.ForkchoiceStateV1{
+		HeadBlockHash:      buildData.HeadEth1BlockHash,
+		SafeBlockHash:      buildData.FinalEth1BlockHash,
+		FinalizedBlockHash: buildData.FinalEth1BlockHash,
+	}
+
 	s.metrics.markRebuildPayloadForRejectedBlockSuccess(nextBlkSlot)
 }
 
@@ -241,6 +249,14 @@ func (s *Service) handleOptimisticPayloadBuild(
 			"error", err,
 		)
 		return
+	}
+
+	s.muLatestFcuReq.Lock()
+	defer s.muLatestFcuReq.Unlock()
+	s.latestRequestedFCU = &engineprimitives.ForkchoiceStateV1{
+		HeadBlockHash:      buildData.HeadEth1BlockHash,
+		SafeBlockHash:      buildData.FinalEth1BlockHash,
+		FinalizedBlockHash: buildData.FinalEth1BlockHash,
 	}
 
 	s.metrics.markOptimisticPayloadBuildSuccess(buildData.Slot)

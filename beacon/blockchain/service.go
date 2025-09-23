@@ -24,6 +24,7 @@ import (
 	"context"
 	"sync"
 
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -64,6 +65,12 @@ type Service struct {
 	optimisticPayloadBuilds bool
 	// forceStartupSyncOnce is used to force a sync of the startup head.
 	forceStartupSyncOnce *sync.Once
+
+	// latestRequestedFCU helds a copy of the latest FCU sent to the execution layer.
+	// It helps avoiding to resend the same FCU data (and spared a network call)
+	// in case optimistic block building is active
+	muLatestFcuReq     sync.RWMutex
+	latestRequestedFCU *engineprimitives.ForkchoiceStateV1
 }
 
 // NewService creates a new validator service.
