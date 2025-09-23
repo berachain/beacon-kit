@@ -70,7 +70,7 @@ type Service struct {
 	// It helps avoiding to resend the same FCU data (and spared a network call)
 	// in case optimistic block building is active
 	muLatestFcuReq     sync.RWMutex
-	latestRequestedFCU *engineprimitives.ForkchoiceStateV1
+	latestRequestedFCU engineprimitives.ForkchoiceStateV1
 }
 
 // NewService creates a new validator service.

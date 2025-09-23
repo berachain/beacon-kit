@@ -191,14 +191,15 @@ func (s *Service) preFetchBuildData(st *statedb.StateDB, currentTime math.U64) (
 		PayloadWithdrawals: payloadWithdrawals,
 		PrevRandao:         prevRandao,
 		ParentBlockRoot:    latestHeader.HashTreeRoot(),
+		FCState: engineprimitives.ForkchoiceStateV1{
+			// We set the head of our chain to the latest verified block (whether it is final or not)
+			HeadBlockHash: lph.GetBlockHash(),
 
-		// We set the head of our chain to the latest verified block (whether it is final or not)
-		HeadEth1BlockHash: lph.GetBlockHash(),
-
-		// Assumuming consensus guarantees single slot finality, the parent
-		// of the latest block we verified must be final already.
-		FinalEth1BlockHash: lph.GetParentHash(),
-
+			SafeBlockHash: lph.GetParentHash(),
+			// Assumuming consensus guarantees single slot finality, the parent
+			// of the latest block we verified must be final already.
+			FinalizedBlockHash: lph.GetParentHash(),
+		},
 		ParentProposerPubkey: parentProposerPubkey,
 	}, nil
 }
@@ -221,12 +222,8 @@ func (s *Service) handleRebuildPayloadForRejectedBlock(
 	}
 
 	s.muLatestFcuReq.Lock()
-	defer s.muLatestFcuReq.Unlock()
-	s.latestRequestedFCU = &engineprimitives.ForkchoiceStateV1{
-		HeadBlockHash:      buildData.HeadEth1BlockHash,
-		SafeBlockHash:      buildData.FinalEth1BlockHash,
-		FinalizedBlockHash: buildData.FinalEth1BlockHash,
-	}
+	s.latestRequestedFCU = buildData.FCState
+	s.muLatestFcuReq.Unlock()
 
 	s.metrics.markRebuildPayloadForRejectedBlockSuccess(nextBlkSlot)
 }
@@ -252,12 +249,8 @@ func (s *Service) handleOptimisticPayloadBuild(
 	}
 
 	s.muLatestFcuReq.Lock()
-	defer s.muLatestFcuReq.Unlock()
-	s.latestRequestedFCU = &engineprimitives.ForkchoiceStateV1{
-		HeadBlockHash:      buildData.HeadEth1BlockHash,
-		SafeBlockHash:      buildData.FinalEth1BlockHash,
-		FinalizedBlockHash: buildData.FinalEth1BlockHash,
-	}
+	s.latestRequestedFCU = buildData.FCState
+	s.muLatestFcuReq.Unlock()
 
 	s.metrics.markOptimisticPayloadBuildSuccess(buildData.Slot)
 }
