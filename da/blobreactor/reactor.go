@@ -457,6 +457,15 @@ func (br *BlobReactor) RequestBlobs(slot uint64) ([]*datypes.BlobSidecar, error)
 			}
 			br.logger.Info("Blob indices from peer", "slot", slot, "indices", indices, "count", len(sidecars))
 
+			// If peer returned no blobs, try next peer
+			if len(sidecars) == 0 {
+				br.logger.Warn("Peer returned no blobs despite having the slot, trying next peer",
+					"slot", slot,
+					"peer", peerID,
+					"peer_head", resp.HeadSlot)
+				continue
+			}
+
 			// IMPORTANT: Sort sidecars by index to ensure correct order. The storage backend may return them in arbitrary order
 			sort.Slice(sidecars, func(i, j int) bool { return sidecars[i].GetIndex() < sidecars[j].GetIndex() })
 
