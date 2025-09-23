@@ -79,6 +79,7 @@ type States interface {
 type Element struct {
 	State      *State
 	ValUpdates transition.ValidatorUpdates
+	Blobs      []byte
 }
 
 type candidateStates struct {
