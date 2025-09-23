@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	datypes "github.com/berachain/beacon-kit/da/types"
+	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
@@ -48,16 +49,18 @@ func (s *Service) finalizeBlock(
 		return nil, err
 	}
 
-	getBlobsFunc := func() (datypes.BlobSidecars, error) {
+	getBlobsFunc := func(cachedBlobData []byte) (datypes.BlobSidecars, error) {
 		var sidecars datypes.BlobSidecars
 		if s.chainSpec.BlobConsensusEnableHeight() <= 0 || req.Height < s.chainSpec.BlobConsensusEnableHeight() {
 			var err error
 			sidecars, err = encoding.UnmarshalBlobSidecarsFromABCIRequest(req, s.chainSpec.BlobConsensusEnableHeight())
 			if err != nil {
-				return nil, fmt.Errorf("finalize block: failed parsing blobs: %w", err)
+				return nil, fmt.Errorf("finalize block: failed parsing blobs from request: %w", err)
 			}
-		} else if s.cachedBlobs != nil {
-			sidecars = *s.cachedBlobs
+		} else if len(cachedBlobData) > 0 {
+			if err := ssz.Unmarshal(cachedBlobData, &sidecars); err != nil {
+				return nil, fmt.Errorf("finalize block: failed to unmarshal cached blob data: %w", err)
+			}
 		}
 		return sidecars, nil
 	}
@@ -89,9 +92,9 @@ func (s *Service) finalizeBlock(
 			blk := signedBlk.GetBeaconBlock()
 
 			var sidecars datypes.BlobSidecars
-			sidecars, err = getBlobsFunc()
+			sidecars, err = getBlobsFunc(cached.Blobs)
 			if err != nil {
-				return nil, fmt.Errorf("finalize block: failed parsing block: %w", err)
+				return nil, err
 			}
 
 			if err = s.Blockchain.FinalizeSidecars(
@@ -140,9 +143,15 @@ func (s *Service) finalizeBlock(
 		return nil, fmt.Errorf("failed checking cached final state, hash %s, height %d: %w", hash, req.Height, err)
 	}
 
-	sidecars, err := getBlobsFunc()
+	// Try to get cached blob data for the current block
+	var cachedBlobData []byte
+	if cached, errCache := s.cachedStates.GetCached(hash); errCache == nil && cached != nil {
+		cachedBlobData = cached.Blobs
+	}
+
+	sidecars, err := getBlobsFunc(cachedBlobData)
 	if err != nil {
-		return nil, fmt.Errorf("finalize block: failed parsing block: %w", err)
+		return nil, err
 	}
 
 	// Then finalize the block with blobs
@@ -155,6 +164,7 @@ func (s *Service) finalizeBlock(
 	s.cachedStates.SetCached(hash, &cache.Element{
 		State:      finalState,
 		ValUpdates: valUpdates,
+		Blobs:      cachedBlobData,
 	})
 	if err = s.cachedStates.MarkAsFinal(hash); err != nil {
 		return nil, fmt.Errorf("failed marking state as final, hash %s, height %d: %w", hash, req.Height, err)
