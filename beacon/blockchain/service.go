@@ -67,7 +67,7 @@ type Service struct {
 	forceStartupSyncOnce *sync.Once
 
 	// latestRequestedFCU helds a copy of the latest FCU sent to the execution layer.
-	// It helps avoiding to resend the same FCU data (and spared a network call)
+	// It helps avoiding to resend the same FCU data (and spare a network call)
 	// in case optimistic block building is active
 	muLatestFcuReq     sync.RWMutex
 	latestRequestedFCU engineprimitives.ForkchoiceStateV1
