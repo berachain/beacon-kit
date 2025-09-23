@@ -33,7 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
 	servercmtlog "github.com/berachain/beacon-kit/consensus/cometbft/service/log"
 	statem "github.com/berachain/beacon-kit/consensus/cometbft/service/state"
-	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/transition"
@@ -107,9 +106,6 @@ type Service struct {
 
 	// syncingToHeight is a helper to track node sync state and support node-apis.
 	syncingToHeight int64
-
-	// cachedBlobs temporarily stores blobs from ProcessProposal for use in FinalizeBlock.
-	cachedBlobs *datypes.BlobSidecars
 }
 
 func NewService(

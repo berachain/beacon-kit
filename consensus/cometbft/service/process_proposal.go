@@ -26,8 +26,6 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/cache"
-	datypes "github.com/berachain/beacon-kit/da/types"
-	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
 	"github.com/berachain/beacon-kit/primitives/math"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
@@ -97,20 +95,6 @@ func (s *Service) processProposal(
 		return &cmtabci.ProcessProposalResponse{Status: status}, nil
 	}
 
-	// Cache the blobs for FinalizeBlock
-	var blobs datypes.BlobSidecars
-	if blobData := req.GetBlob(); len(blobData) > 0 {
-		if err = ssz.Unmarshal(blobData, &blobs); err != nil {
-			status := cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
-			s.logger.Error("Failed to unmarshal blobs, rejecting proposal",
-				"error", err,
-				"height", req.Height,
-				"blob_data_size", len(blobData))
-			return &cmtabci.ProcessProposalResponse{Status: status}, nil
-		}
-	}
-	s.cachedBlobs = &blobs
-
 	// We must not cache execution of the first block post initialHeight
 	// because its state must be handled in a different way
 	// TODO: before Stable block time activation we keep caching off
@@ -121,6 +105,7 @@ func (s *Service) processProposal(
 		toCache := &cache.Element{
 			State:      processProposalState,
 			ValUpdates: valUpdates,
+			Blobs:      req.GetBlob(),
 		}
 		s.cachedStates.SetCached(stateHash, toCache)
 	}
