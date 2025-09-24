@@ -46,6 +46,8 @@ const (
 	defaultSendQueueCapacity   = 100
 	defaultRecvBufferCapacity  = 1024 * 1024
 	defaultRecvMessageCapacity = 1024 * 1024
+
+	defaultMaxRequestWorkers = 10
 )
 
 // BlobReactor handles P2P blob distribution for BeaconKit
@@ -57,30 +59,32 @@ type BlobReactor struct {
 	service.BaseService             // Embedding BaseService to manage lifecycle
 	sw                  *p2p.Switch // The switch is set by the p2p layer
 
-	// Track peers and their head slots
-	stateMu   sync.RWMutex // Protects peers, peerHeads, and headSlot
-	peers     map[p2p.ID]struct{}
-	peerHeads map[p2p.ID]math.Slot // Track each peer's head slot
-	headSlot  math.Slot            // Our own head slot (updated by blockchain service)
-	nodeKey   string               // Our nodeKey (identity)
+	// Track peers and our head slot
+	stateMu  sync.RWMutex // Protects peers and headSlot
+	peers    map[p2p.ID]struct{}
+	headSlot math.Slot // Our own head slot (updated by blockchain service)
+	nodeKey  string    // Our nodeKey (identity)
 
-	// Simple synchronous response handling (one request at a time)
-	responseMu      sync.Mutex
-	responseChan    chan *BlobResponse // Channel for receiving responses
-	activeRequestID uint64             // The request ID we're currently waiting for
+	// Concurrent request/response handling with per-request channels
+	responseMu    sync.RWMutex
+	responseChans map[uint64]chan *BlobResponse // requestID -> response channel
 
-	requestCounter uint64 // counter for generating unique request IDs (good for debugging across peers)
+	// Worker pool for controlled concurrency
+	requestWorkers chan struct{} // semaphore for limiting concurrent request handlers
+
+	// Request ID counter
+	nextRequestID atomic.Uint64 // atomic counter for generating unique request IDs
 }
 
 // NewBlobReactor creates a new blob reactor with storage backend
 func NewBlobReactor(blobStore BlobStore, logger log.Logger, cfg Config) *BlobReactor {
 	br := &BlobReactor{
-		peers:        make(map[p2p.ID]struct{}),
-		peerHeads:    make(map[p2p.ID]math.Slot),
-		blobStore:    blobStore,
-		logger:       logger,
-		config:       cfg,
-		responseChan: make(chan *BlobResponse, 1),
+		peers:          make(map[p2p.ID]struct{}),
+		blobStore:      blobStore,
+		logger:         logger,
+		config:         cfg,
+		responseChans:  make(map[uint64]chan *BlobResponse),
+		requestWorkers: make(chan struct{}, defaultMaxRequestWorkers),
 	}
 	br.BaseService = *service.NewBaseService(nil, "BlobReactor", br)
 	return br
@@ -99,6 +103,7 @@ func (br *BlobReactor) SetHeadSlot(slot uint64) {
 }
 
 func (br *BlobReactor) GetChannels() []*p2p.ChannelDescriptor {
+	br.logger.Info("BlobReactor GetChannels called", "channel_id", fmt.Sprintf("0x%02X", BlobChannel))
 	return []*p2p.ChannelDescriptor{
 		{
 			ID:                  BlobChannel,
@@ -113,6 +118,7 @@ func (br *BlobReactor) GetChannels() []*p2p.ChannelDescriptor {
 
 // SetSwitch implements Reactor by setting the switch
 func (br *BlobReactor) SetSwitch(sw *p2p.Switch) {
+	br.logger.Info("BlobReactor SetSwitch called", "switch", sw)
 	br.sw = sw
 }
 
@@ -126,19 +132,15 @@ func (br *BlobReactor) InitPeer(peer p2p.Peer) p2p.Peer {
 func (br *BlobReactor) AddPeer(peer p2p.Peer) {
 	br.stateMu.Lock()
 	br.peers[peer.ID()] = struct{}{}
-	// Initialize with 0 to indicate unknown head slot. We will learn the actual head
-	// slot when we receive a BlobResponse from this peer.
-	br.peerHeads[peer.ID()] = 0
 	br.stateMu.Unlock()
 
-	br.logger.Info("Added peer", "peer", peer.ID(), "head_slot", "unknown")
+	br.logger.Info("Added peer", "peer", peer.ID())
 }
 
 // RemovePeer is called when a peer is removed
 func (br *BlobReactor) RemovePeer(peer p2p.Peer, reason interface{}) {
 	br.stateMu.Lock()
 	delete(br.peers, peer.ID())
-	delete(br.peerHeads, peer.ID())
 	br.stateMu.Unlock()
 
 	br.logger.Info("Removed peer", "peer", peer.ID(), "reason", reason)
@@ -176,24 +178,45 @@ func (br *BlobReactor) Receive(envelope p2p.Envelope) {
 			br.logger.Error("Failed to unmarshal BlobRequest", "error", err, "peer", envelope.Src.ID())
 			return
 		}
-		// Handle request asynchronously to avoid blocking message reception
-		go br.handleBlobRequest(envelope.Src, &req)
+		br.logger.Info("Received blob request", "slot", req.Slot, "request_id", req.RequestID, "peer", envelope.Src.ID())
+
+		select {
+		case br.requestWorkers <- struct{}{}:
+			go func() {
+				defer func() { <-br.requestWorkers }()
+				br.handleBlobRequest(envelope.Src, &req)
+			}()
+		default:
+			br.logger.Warn("Worker pool full, dropping blob request",
+				"slot", req.Slot,
+				"request_id", req.RequestID,
+				"peer", envelope.Src.ID())
+		}
 
 	case MessageTypeResponse:
 		var resp BlobResponse
 		if err := resp.UnmarshalSSZ(msgData); err != nil {
-			br.logger.Error("Failed to unmarshal BlobResponse",
-				"error", err,
-				"peer", envelope.Src.ID(),
-				"data_size", len(msgData))
+			br.logger.Error("Failed to unmarshal BlobResponse", "error", err, "peer", envelope.Src.ID(), "data_size", len(msgData))
 			return
 		}
-		br.logger.Info("Successfully unmarshaled BlobResponse",
+		br.logger.Info("Received blob response",
 			"slot", resp.Slot,
 			"request_id", resp.RequestID,
-			"sidecar_data_size", len(resp.SidecarData),
-			"peer", envelope.Src.ID())
-		br.handleBlobResponse(envelope.Src, &resp)
+			"peer", envelope.Src.ID(),
+			"sidecar_data_size", len(resp.SidecarData))
+
+		select {
+		case br.requestWorkers <- struct{}{}:
+			go func() {
+				defer func() { <-br.requestWorkers }()
+				br.handleBlobResponse(envelope.Src, &resp)
+			}()
+		default:
+			br.logger.Warn("Worker pool full, dropping response",
+				"slot", resp.Slot,
+				"request_id", resp.RequestID,
+				"peer", envelope.Src.ID())
+		}
 
 	default:
 		br.logger.Warn("Received unknown message type", "type", msgType, "peer", envelope.Src.ID())
@@ -212,7 +235,7 @@ func (br *BlobReactor) handleBlobRequest(peer p2p.Peer, req *BlobRequest) {
 	var errorMsg string
 	sidecarBzs, err := br.blobStore.GetByIndex(req.Slot.Unwrap())
 	if err != nil {
-		br.logger.Error("Failed to fetch blobs from storage", "slot", req.Slot, "error", err)
+		br.logger.Error("Failed to fetch blobs from storage", "slot", req.Slot, "request_id", req.RequestID, "error", err)
 		errorMsg = err.Error()
 	}
 
@@ -226,63 +249,51 @@ func (br *BlobReactor) handleBlobRequest(peer p2p.Peer, req *BlobRequest) {
 
 	respBytes, err := resp.MarshalSSZ()
 	if err != nil {
-		br.logger.Error("Failed to marshal response", "error", err)
+		br.logger.Error("Failed to marshal response", "slot", req.Slot, "request_id", req.RequestID, "error", err)
 		return
 	}
 
 	// Prepend message type
 	msgData := append([]byte{byte(MessageTypeResponse)}, respBytes...)
 
-	// Send response back to peer - retry forever if queue is full
-	envelope := p2p.Envelope{ChannelID: BlobChannel, Message: NewBlobMessage(msgData)}
-
-	// Keep trying until send succeeds
-	retries := 0
-	for {
-		if peer.Send(envelope) {
-			br.logger.Info("Sent blob response", "slot", req.Slot, "peer", peer.ID(), "data_size", len(msgData), "retries", retries)
-			break
-		}
-
-		// Send queue is full, wait and retry
-		retries++
-		time.Sleep(defaultSleepDuration)
-
-		// Check if peer is still connected
-		if !peer.IsRunning() {
-			br.logger.Error("Peer disconnected while retrying send", "peer", peer.ID(), "slot", req.Slot, "retries", retries)
-			break
-		}
-
-		br.logger.Warn("Could not send blob response, retrying send", "peer", peer.ID(), "slot", req.Slot, "retries", retries)
+	// Send response back to peer
+	if !peer.Send(p2p.Envelope{ChannelID: BlobChannel, Message: NewBlobMessage(msgData)}) {
+		br.logger.Warn("Failed to send blob response",
+			"peer", peer.ID(),
+			"slot", req.Slot,
+			"request_id", req.RequestID,
+			"error_msg", errorMsg,
+			"data_size", len(msgData))
+		// If sending response failed, the caller will timeout and try another peer
+		return
 	}
+
+	br.logger.Info("Sent blob response", "slot", req.Slot, "request_id", req.RequestID, "peer", peer.ID(), "data_size", len(msgData))
 }
 
 // handleBlobResponse processes incoming blob responses
 func (br *BlobReactor) handleBlobResponse(peer p2p.Peer, resp *BlobResponse) {
 	br.logger.Info("Received blob response",
 		"slot", resp.Slot,
-		"peer", peer.ID(),
 		"request_id", resp.RequestID,
+		"peer", peer.ID(),
 		"data_size", len(resp.SidecarData), "peer_head", resp.HeadSlot)
 
-	// Update peer's head slot from the response first
-	br.stateMu.Lock()
-	br.peerHeads[peer.ID()] = resp.HeadSlot
-	br.stateMu.Unlock()
+	// Look up the response channel for this request ID
+	br.responseMu.RLock()
+	respChan, exists := br.responseChans[resp.RequestID]
+	br.responseMu.RUnlock()
 
-	br.responseMu.Lock()
-	defer br.responseMu.Unlock()
-
-	// Check if this response matches what we're waiting for
-	if br.activeRequestID != resp.RequestID {
-		br.logger.Info("Ignoring unexpected response", "got_id", resp.RequestID, "expected_id", br.activeRequestID, "slot", resp.Slot)
+	if !exists {
+		br.logger.Info("No waiting channel for response (request may have timed out)",
+			"request_id", resp.RequestID,
+			"slot", resp.Slot)
 		return
 	}
 
 	// Try to deliver the response
 	select {
-	case br.responseChan <- resp:
+	case respChan <- resp:
 		br.logger.Info("Delivered response to waiting request", "request_id", resp.RequestID, "slot", resp.Slot)
 	default:
 		br.logger.Warn("Response channel full, dropping response", "request_id", resp.RequestID, "slot", resp.Slot)
@@ -292,7 +303,7 @@ func (br *BlobReactor) handleBlobResponse(peer p2p.Peer, resp *BlobResponse) {
 // RequestBlobs fetches all blobs for a given slot from peers.
 // Returns all blob sidecars for the slot, or an error if none could be retrieved.
 //
-//nolint:funlen,gocognit // ok for now
+//nolint:funlen,gocognit,maintidx // ok for now
 func (br *BlobReactor) RequestBlobs(slot uint64) ([]*datypes.BlobSidecar, error) {
 	br.logger.Info("RequestBlobs called", "slot", slot)
 
@@ -386,7 +397,8 @@ func (br *BlobReactor) RequestBlobs(slot uint64) ([]*datypes.BlobSidecar, error)
 			continue
 		}
 
-		requestID := atomic.AddUint64(&br.requestCounter, 1)
+		// Generate unique request ID
+		requestID := br.nextRequestID.Add(1)
 
 		req := &BlobRequest{
 			Slot:      math.Slot(slot),
@@ -399,17 +411,22 @@ func (br *BlobReactor) RequestBlobs(slot uint64) ([]*datypes.BlobSidecar, error)
 			continue
 		}
 
-		// Clear any old responses from the channel right before setting request ID and sending
-		select {
-		case <-br.responseChan:
-		default:
-		}
+		// Create a dedicated response channel for this request
+		respChan := make(chan *BlobResponse, 1)
 
-		// Set what request ID we're waiting for before sending request. We need to lock here
-		// to prevent race with handleBlobResponse
+		// Register the response channel
 		br.responseMu.Lock()
-		br.activeRequestID = requestID
+		br.responseChans[requestID] = respChan
 		br.responseMu.Unlock()
+
+		// Clean up channel when done (deferred to ensure cleanup)
+		defer func(id uint64) {
+			br.logger.Info("Cleaning up response channel", "request_id", id)
+			br.responseMu.Lock()
+			delete(br.responseChans, id)
+			br.responseMu.Unlock()
+			br.logger.Info("Cleaned up response channel", "request_id", id)
+		}(requestID)
 
 		msgData := append([]byte{byte(MessageTypeRequest)}, reqBytes...)
 		if !peer.Send(p2p.Envelope{ChannelID: BlobChannel, Message: NewBlobMessage(msgData)}) {
@@ -424,7 +441,7 @@ func (br *BlobReactor) RequestBlobs(slot uint64) ([]*datypes.BlobSidecar, error)
 		br.logger.Info("Starting wait for response", "request_id", requestID, "timeout_ms", br.config.RequestTimeout.Milliseconds())
 
 		select {
-		case resp := <-br.responseChan:
+		case resp := <-respChan:
 			cancel() // Cancel context immediately on response
 			br.logger.Info("Received response", "slot", resp.Slot, "data_size", len(resp.SidecarData), "error", resp.Error)
 
@@ -487,12 +504,12 @@ func (br *BlobReactor) RequestBlobs(slot uint64) ([]*datypes.BlobSidecar, error)
 
 		case <-ctx.Done():
 			cancel() // Cancel context on timeout
-			br.logger.Warn("Request timed out", "slot", slot, "peer", peerID, "request_id", requestID, "timeout", br.config.RequestTimeout)
-			// Reset activeRequestID since this request failed
-			br.responseMu.Lock()
-			br.activeRequestID = 0
-			br.responseMu.Unlock()
-			// Continue to next iteration of the main loop
+			br.logger.Warn("Request timed out, trying next peer",
+				"slot", slot,
+				"peer", peerID,
+				"request_id", requestID,
+				"timeout", br.config.RequestTimeout)
+			continue
 		}
 	}
 
