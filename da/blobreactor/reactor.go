@@ -419,18 +419,18 @@ func (br *BlobReactor) RequestBlobs(slot uint64) ([]*datypes.BlobSidecar, error)
 		br.responseChans[requestID] = respChan
 		br.responseMu.Unlock()
 
-		// Clean up channel when done (deferred to ensure cleanup)
-		defer func(id uint64) {
-			br.logger.Info("Cleaning up response channel", "request_id", id)
+		cleanup := func() {
+			br.logger.Info("Cleaning up response channel", "request_id", requestID)
 			br.responseMu.Lock()
-			delete(br.responseChans, id)
+			delete(br.responseChans, requestID)
 			br.responseMu.Unlock()
-			br.logger.Info("Cleaned up response channel", "request_id", id)
-		}(requestID)
+			br.logger.Info("Cleaned up response channel", "request_id", requestID)
+		}
 
 		msgData := append([]byte{byte(MessageTypeRequest)}, reqBytes...)
 		if !peer.Send(p2p.Envelope{ChannelID: BlobChannel, Message: NewBlobMessage(msgData)}) {
 			br.logger.Error("Failed to send blob request to peer", "peer", peerID, "slot", slot)
+			cleanup()
 			continue
 		}
 
@@ -448,7 +448,8 @@ func (br *BlobReactor) RequestBlobs(slot uint64) ([]*datypes.BlobSidecar, error)
 			// Check if peer reported an error
 			if resp.Error != "" {
 				br.logger.Warn("Peer reported error fetching blobs", "slot", slot, "peer", peerID, "error", resp.Error)
-				continue // Try next peer
+				cleanup()
+				continue
 			}
 
 			if resp.HeadSlot < resp.Slot {
@@ -457,13 +458,15 @@ func (br *BlobReactor) RequestBlobs(slot uint64) ([]*datypes.BlobSidecar, error)
 					"slot", slot,
 					"peer_head", resp.HeadSlot,
 					"peer", peerID)
-				continue // Try next peer
+				cleanup()
+				continue
 			}
 
 			var sidecars datypes.BlobSidecars
 			if len(resp.SidecarData) > 0 {
 				if err = ssz.Unmarshal(resp.SidecarData, &sidecars); err != nil {
 					br.logger.Error("Failed to unmarshal sidecars from response", "error", err, "peer", peerID)
+					cleanup()
 					continue
 				}
 			}
@@ -480,6 +483,7 @@ func (br *BlobReactor) RequestBlobs(slot uint64) ([]*datypes.BlobSidecar, error)
 					"slot", slot,
 					"peer", peerID,
 					"peer_head", resp.HeadSlot)
+				cleanup()
 				continue
 			}
 
@@ -500,6 +504,7 @@ func (br *BlobReactor) RequestBlobs(slot uint64) ([]*datypes.BlobSidecar, error)
 			}
 
 			br.logger.Info("Successfully retrieved blobs", "slot", slot, "peer", peerID, "count", len(sidecars))
+			cleanup()
 			return sidecars, nil
 
 		case <-ctx.Done():
@@ -509,6 +514,7 @@ func (br *BlobReactor) RequestBlobs(slot uint64) ([]*datypes.BlobSidecar, error)
 				"peer", peerID,
 				"request_id", requestID,
 				"timeout", br.config.RequestTimeout)
+			cleanup()
 			continue
 		}
 	}
