@@ -102,12 +102,22 @@ func (s *Service) processProposal(
 	// actve as if cache was always active.
 	if cache.IsStateCachingActive(s.chainSpec, math.Slot(req.Height)) {
 		stateHash := string(req.Hash)
+		blobData := req.GetBlob()
 		toCache := &cache.Element{
 			State:      processProposalState,
 			ValUpdates: valUpdates,
-			Blobs:      req.GetBlob(),
+			Blobs:      blobData,
 		}
 		s.cachedStates.SetCached(stateHash, toCache)
+
+		// Log caching details for debugging blob issues
+		s.logger.Info(
+			"ProcessProposal cached state and blobs",
+			"height", req.Height,
+			"hash", fmt.Sprintf("%X", req.Hash),
+			"blob_data_size", len(blobData),
+			"has_blobs", len(blobData) > 0,
+		)
 	}
 	status := cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
 	return &cmtabci.ProcessProposalResponse{Status: status}, nil
