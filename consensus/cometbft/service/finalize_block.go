@@ -74,6 +74,13 @@ func (s *Service) finalizeBlock(
 		// This is because Genesis state is cached but not committed (and purged from s.cachedStates)
 		// We handle the case outside of this switch, via the s.Blockchain.FinalizeBlock below.
 		if req.Height > s.initialHeight {
+			s.logger.Info(
+				"FinalizeBlock using cached state",
+				"height", req.Height,
+				"hash", fmt.Sprintf("%X", req.Hash),
+				"cached_blob_size", len(cached.Blobs),
+			)
+
 			if err = s.cachedStates.MarkAsFinal(hash); err != nil {
 				return nil, fmt.Errorf("failed marking state as final, hash %s, height %d: %w", hash, req.Height, err)
 			}
@@ -145,8 +152,22 @@ func (s *Service) finalizeBlock(
 
 	// Try to get cached blob data for the current block
 	var cachedBlobData []byte
-	if cached, errCache := s.cachedStates.GetCached(hash); errCache == nil && cached != nil {
+	currentBlockHash := string(req.Hash)
+	if cached, errCache := s.cachedStates.GetCached(currentBlockHash); errCache == nil && cached != nil {
 		cachedBlobData = cached.Blobs
+		s.logger.Info(
+			"FinalizeBlock found cached blobs",
+			"height", req.Height,
+			"hash", fmt.Sprintf("%X", req.Hash),
+			"cached_blob_size", len(cachedBlobData),
+		)
+	} else {
+		s.logger.Info(
+			"FinalizeBlock no cached blobs found",
+			"height", req.Height,
+			"hash", fmt.Sprintf("%X", req.Hash),
+			"error", errCache,
+		)
 	}
 
 	sidecars, err := getBlobsFunc(cachedBlobData)
