@@ -96,7 +96,7 @@ func (s *Service) FinalizeBlock(
 	return valUpdates, s.PostFinalizeBlockOps(ctx, blk)
 }
 
-//nolint:gocognit // ok for now
+//nolint:gocognit,funlen // ok for now
 func (s *Service) FinalizeSidecars(
 	ctx sdk.Context,
 	syncingToHeight int64,
@@ -160,16 +160,34 @@ func (s *Service) FinalizeSidecars(
 
 		s.logger.Info("Fetching missing blobs during sync", "slot", blk.GetSlot(), "expected_blobs", expectedBlobs)
 		now := time.Now()
-		fetchedBlobs, err := s.blobRequester.RequestBlobs(blk.GetSlot().Unwrap())
-		if err != nil {
-			return fmt.Errorf("failed to fetch blobs, slot: %d: %w", blk.GetSlot(), err)
-		}
 
-		// Validate blobs fetched from peers before processing
-		err = s.blobProcessor.VerifySidecars(ctx, fetchedBlobs, blk.GetHeader(), blk.GetBody().GetBlobKzgCommitments())
-		if err != nil {
-			return fmt.Errorf("failed to verify fetched blobs from peers at slot %d: %w", blk.GetSlot(), err)
-		}
+		resultChan := make(chan datypes.BlobSidecars, 1)
+		go func() {
+			attempt := 0
+			for {
+				attempt++
+				fetchedBlobs, err := s.blobRequester.RequestBlobs(blk.GetSlot().Unwrap())
+				if err != nil {
+					s.logger.Warn("All peers failed to provide blobs, retrying", "slot", blk.GetSlot(), "attempt", attempt, "error", err)
+					continue
+				}
+
+				// Validate blobs fetched from peers before processing
+				verifyErr := s.blobProcessor.VerifySidecars(ctx, fetchedBlobs, blk.GetHeader(), blk.GetBody().GetBlobKzgCommitments())
+				if verifyErr != nil {
+					s.logger.Warn("Blob verification failed, possibly byzantine peer, retrying",
+						"slot", blk.GetSlot(),
+						"attempt", attempt,
+						"error", verifyErr)
+					continue
+				}
+
+				resultChan <- fetchedBlobs
+				return
+			}
+		}()
+
+		fetchedBlobs := <-resultChan
 
 		s.logger.Info("Successfully fetched and verified blobs",
 			"slot", blk.GetSlot(),
