@@ -116,7 +116,7 @@ func (s *EngineClient) Start(ctx context.Context) error {
 		"dial_url", s.cfg.RPCDialURL.String(),
 	)
 
-	// If the connection connection succeeds, we can skip the
+	// If the connection succeeds, we can skip the
 	// connection initialization loop.
 	if err := s.verifyChainIDAndConnection(ctx); err == nil {
 		return nil
