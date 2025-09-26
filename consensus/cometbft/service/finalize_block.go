@@ -150,26 +150,7 @@ func (s *Service) finalizeBlock(
 		return nil, fmt.Errorf("failed checking cached final state, hash %s, height %d: %w", hash, req.Height, err)
 	}
 
-	// Try to get cached blob data for the current block
 	var cachedBlobData []byte
-	currentBlockHash := string(req.Hash)
-	if cached, errCache := s.cachedStates.GetCached(currentBlockHash); errCache == nil && cached != nil {
-		cachedBlobData = cached.Blobs
-		s.logger.Info(
-			"FinalizeBlock found cached blobs",
-			"height", req.Height,
-			"hash", fmt.Sprintf("%X", req.Hash),
-			"cached_blob_size", len(cachedBlobData),
-		)
-	} else {
-		s.logger.Info(
-			"FinalizeBlock no cached blobs found",
-			"height", req.Height,
-			"hash", fmt.Sprintf("%X", req.Hash),
-			"error", errCache,
-		)
-	}
-
 	sidecars, err := getBlobsFunc(cachedBlobData)
 	if err != nil {
 		return nil, err

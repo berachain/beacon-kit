@@ -48,8 +48,10 @@ import (
 // BlobRequester is the interface for requesting blobs from peers.
 type BlobRequester interface {
 	// RequestBlobs fetches all blobs for a given slot from peers.
+	// The verifier function is called to validate blobs before returning.
+	// If verification fails, it tries the next peer until valid blobs are found.
 	// Returns all blob sidecars for the slot, or an error if none could be retrieved.
-	RequestBlobs(slot uint64) ([]*datypes.BlobSidecar, error)
+	RequestBlobs(slot uint64, verifier func(datypes.BlobSidecars) error) ([]*datypes.BlobSidecar, error)
 
 	// SetHeadSlot updates the reactor's view of the current blockchain head slot.
 	// Called by the blockchain service after processing each block.
@@ -192,6 +194,18 @@ type BlobProcessor interface {
 		blkHeader *ctypes.BeaconBlockHeader,
 		kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],
 	) error
+}
+
+// BlobFetcher is the interface for asynchronously fetching blobs.
+type BlobFetcher interface {
+	// Start begins the background blob fetching process.
+	Start()
+	// Stop gracefully shuts down the blob fetcher.
+	Stop()
+	// QueueBlobRequest queues a request to fetch blobs for a specific slot.
+	QueueBlobRequest(slot math.Slot, block *ctypes.BeaconBlock) error
+	// SetHeadSlot updates the head slot for blob fetching.
+	SetHeadSlot(slot math.Slot)
 }
 
 type PruningChainSpec interface {

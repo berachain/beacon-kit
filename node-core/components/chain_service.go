@@ -24,7 +24,6 @@ import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/chain"
-	"github.com/berachain/beacon-kit/da/blobreactor"
 	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/execution/engine"
 	"github.com/berachain/beacon-kit/log/phuslu"
@@ -43,7 +42,7 @@ type ChainServiceInput struct {
 	StateProcessor        StateProcessor
 	StorageBackend        *storage.Backend
 	BlobProcessor         BlobProcessor
-	BlobReactor           *blobreactor.BlobReactor
+	BlobFetcher           blockchain.BlobFetcher
 	TelemetrySink         *metrics.TelemetrySink
 	BeaconDepositContract deposit.Contract
 }
@@ -53,7 +52,7 @@ func ProvideChainService(in ChainServiceInput) *blockchain.Service {
 	return blockchain.NewService(
 		in.StorageBackend,
 		in.BlobProcessor,
-		in.BlobReactor,
+		in.BlobFetcher,
 		in.BeaconDepositContract,
 		in.Logger.With("service", "blockchain"),
 		in.ChainSpec,

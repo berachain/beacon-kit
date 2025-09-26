@@ -40,7 +40,7 @@ func FixedComponents(t *testing.T) []any {
 		components.ProvideBlsSigner,
 		components.ProvideBlobProcessor,
 		components.ProvideBlobProofVerifier,
-		components.ProvideBlobReactor,
+		components.ProvideBlobFetcher,
 		components.ProvideChainService,
 		components.ProvideNode,
 		components.ProvideConfig,
