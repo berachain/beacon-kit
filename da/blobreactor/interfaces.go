@@ -20,21 +20,6 @@
 
 package blobreactor
 
-import (
-	datypes "github.com/berachain/beacon-kit/da/types"
-)
-
-// BlobRequester is the interface that BlobReactor implements for BeaconKit to request blobs.
-type BlobRequester interface {
-	// RequestBlobs fetches all blobs for a given slot from peers.
-	// Returns all blob sidecars for the slot, or an error if none could be retrieved.
-	RequestBlobs(slot uint64) ([]*datypes.BlobSidecar, error)
-
-	// SetHeadSlot updates the reactor's view of the current blockchain head slot.
-	// Called by the blockchain service after processing each block.
-	SetHeadSlot(slot uint64)
-}
-
 // BlobStore is a minimal interface for the BlobReactor to check and serve blobs.
 // This matches the IndexDB interface from the AvailabilityStore.
 type BlobStore interface {

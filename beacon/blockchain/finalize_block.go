@@ -96,19 +96,12 @@ func (s *Service) FinalizeBlock(
 	return valUpdates, s.PostFinalizeBlockOps(ctx, blk)
 }
 
-//nolint:gocognit,funlen // ok for now
 func (s *Service) FinalizeSidecars(
 	ctx sdk.Context,
 	syncingToHeight int64,
 	blk *ctypes.BeaconBlock,
 	blobs datypes.BlobSidecars,
 ) error {
-	// Check the block to see if there should be blobs
-	expectedBlobs := len(blk.GetBody().GetBlobKzgCommitments())
-	if expectedBlobs == 0 {
-		return nil // No blobs expected for this block
-	}
-
 	processBlobsFunc := func(blobs datypes.BlobSidecars) error {
 		// Process the blobs which saves them to storage
 		if err := s.blobProcessor.ProcessSidecars(s.storageBackend.AvailabilityStore(), blobs); err != nil {
@@ -127,75 +120,27 @@ func (s *Service) FinalizeSidecars(
 	// caught up. We don't need to process sidecars unless they are within DA period.
 	//
 	//#nosec: G115 // SyncingToHeight will never be negative.
-	//nolint:nestif // ok for now
 	if s.chainSpec.WithinDAPeriod(blk.GetSlot(), math.Slot(syncingToHeight)) {
-		if s.storageBackend.AvailabilityStore().IsDataAvailable(ctx, blk.GetSlot(), blk.GetBody()) {
-			return nil // Data already available
-		}
-
-		// if we are before blob enable height then blobs should be in storage already
-		if s.chainSpec.BlobConsensusEnableHeight() <= 0 || int64(blk.GetSlot()) < s.chainSpec.BlobConsensusEnableHeight() {
-			return processBlobsFunc(blobs)
-		}
-
 		// If blobs were passed in (normal consensus mode), use them
 		if len(blobs) > 0 {
 			return processBlobsFunc(blobs)
 		}
 
-		// Otherwise we need to fetch the blobs from peers (sync mode)
-		if s.blobRequester == nil {
-			return fmt.Errorf("blob requester not initialized for slot %d after BlobEnableHeight %d",
-				blk.GetSlot(), s.chainSpec.BlobConsensusEnableHeight())
+		// Check the block to see if there should be blobs
+		expectedBlobs := len(blk.GetBody().GetBlobKzgCommitments())
+		if expectedBlobs == 0 {
+			return nil // No blobs expected for this block
 		}
 
-		// Check if we're at or past the current consensus height (switching from sync to consensus)
-		// When slot >= syncingToHeight, we are in consensus mode and blobs should be in cache from ProcessProposal
-		if int64(blk.GetSlot()) >= syncingToHeight {
-			s.logger.Info("At or past consensus height, skipping blob fetch",
-				"slot", blk.GetSlot(),
-				"syncingToHeight", syncingToHeight,
-				"expected_blobs", expectedBlobs)
-			return nil
+		// Queue the blob fetch request to be handled asynchronously
+		err := s.blobFetcher.QueueBlobRequest(blk.GetSlot(), blk)
+		if err != nil {
+			return fmt.Errorf("failed to queue blob fetch request for slot %d: %w", blk.GetSlot(), err)
 		}
 
-		s.logger.Info("Fetching missing blobs during sync", "slot", blk.GetSlot(), "expected_blobs", expectedBlobs)
-		now := time.Now()
-
-		resultChan := make(chan datypes.BlobSidecars, 1)
-		go func() {
-			attempt := 0
-			for {
-				attempt++
-				fetchedBlobs, err := s.blobRequester.RequestBlobs(blk.GetSlot().Unwrap())
-				if err != nil {
-					s.logger.Warn("All peers failed to provide blobs, retrying", "slot", blk.GetSlot(), "attempt", attempt, "error", err)
-					continue
-				}
-
-				// Validate blobs fetched from peers before processing
-				verifyErr := s.blobProcessor.VerifySidecars(ctx, fetchedBlobs, blk.GetHeader(), blk.GetBody().GetBlobKzgCommitments())
-				if verifyErr != nil {
-					s.logger.Warn("Blob verification failed, possibly byzantine peer, retrying",
-						"slot", blk.GetSlot(),
-						"attempt", attempt,
-						"error", verifyErr)
-					continue
-				}
-
-				resultChan <- fetchedBlobs
-				return
-			}
-		}()
-
-		fetchedBlobs := <-resultChan
-
-		s.logger.Info("Successfully fetched and verified blobs",
-			"slot", blk.GetSlot(),
-			"count", len(fetchedBlobs),
-			"elapsed", time.Since(now).String())
-
-		return processBlobsFunc(fetchedBlobs)
+		// Return immediately without waiting for blobs
+		// The background fetcher will handle retrieval and storage
+		return nil
 	}
 
 	// Here outside Data Availability window. Just log if needed
@@ -227,10 +172,8 @@ func (s *Service) PostFinalizeBlockOps(ctx sdk.Context, blk *ctypes.BeaconBlock)
 		return err
 	}
 
-	// Update the BlobReactor with the current head slot so it can advertise to peers
-	if s.blobRequester != nil {
-		s.blobRequester.SetHeadSlot(slot.Unwrap())
-	}
+	// Update our head slot so other peers know at which height we are at.
+	s.blobFetcher.SetHeadSlot(slot)
 
 	// Prune the availability and deposit store.
 	if err := s.processPruning(ctx, blk); err != nil {

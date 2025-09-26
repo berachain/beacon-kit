@@ -34,6 +34,7 @@ func DefaultComponents() []any {
 		components.ProvideBlobProcessor,
 		components.ProvideBlobProofVerifier,
 		components.ProvideBlobReactor,
+		components.ProvideBlobFetcher,
 		components.ProvideChainService,
 		components.ProvideNode,
 		components.ProvideConfig,
