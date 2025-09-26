@@ -304,7 +304,7 @@ func (br *BlobReactor) handleBlobResponse(peer p2p.Peer, resp *BlobResponse) {
 // Returns all blob sidecars for the slot, or an error if none could be retrieved.
 //
 //nolint:funlen,gocognit,maintidx // ok for now
-func (br *BlobReactor) RequestBlobs(slot uint64) ([]*datypes.BlobSidecar, error) {
+func (br *BlobReactor) RequestBlobs(slot uint64, verifier func(datypes.BlobSidecars) error) ([]*datypes.BlobSidecar, error) {
 	br.logger.Info("RequestBlobs called", "slot", slot)
 
 	br.stateMu.RLock()
@@ -503,7 +503,14 @@ func (br *BlobReactor) RequestBlobs(slot uint64) ([]*datypes.BlobSidecar, error)
 				}
 			}
 
-			br.logger.Info("Successfully retrieved blobs", "slot", slot, "peer", peerID, "count", len(sidecars))
+			// Verify the blobs before returning
+			if verifyErr := verifier(sidecars); verifyErr != nil {
+				br.logger.Warn("Blob verification failed, trying next peer", "slot", slot, "peer", peerID, "error", verifyErr)
+				cleanup()
+				continue
+			}
+
+			br.logger.Info("Successfully retrieved and verified blobs", "slot", slot, "peer", peerID, "count", len(sidecars))
 			cleanup()
 			return sidecars, nil
 

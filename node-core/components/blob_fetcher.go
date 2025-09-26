@@ -21,27 +21,36 @@
 package components
 
 import (
+	"path/filepath"
+
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/da/blobreactor"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/spf13/cast"
 )
 
-// BlobReactorInput is the input for the ProvideBlobReactor function.
-type BlobReactorInput struct {
+// BlobFetcherInput is the input for the ProvideBlobFetcher function.
+type BlobFetcherInput struct {
 	depinject.In
 
-	Config         *config.Config
+	BlobProcessor  BlobProcessor
+	BlobReactor    *blobreactor.BlobReactor
 	Logger         *phuslu.Logger
 	StorageBackend *storage.Backend
+	AppOpts        config.AppOptions
 }
 
-// ProvideBlobReactor provides the blob reactor for P2P communication.
-func ProvideBlobReactor(in BlobReactorInput) *blobreactor.BlobReactor {
-	return blobreactor.NewBlobReactor(
-		in.StorageBackend.AvailabilityStore().IndexDB,
-		in.Logger.With("service", "blob-reactor"),
-		in.Config.BlobReactor,
+// ProvideBlobFetcher provides the blob fetcher for asynchronous blob retrieval.
+func ProvideBlobFetcher(in BlobFetcherInput) (blockchain.BlobFetcher, error) {
+	return blockchain.NewBlobFetcher(
+		filepath.Join(cast.ToString(in.AppOpts.Get(flags.FlagHome)), "data"),
+		in.Logger.With("service", "blob-fetcher"),
+		in.BlobProcessor,
+		in.BlobReactor,
+		in.StorageBackend,
 	)
 }
