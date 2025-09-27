@@ -75,7 +75,7 @@ func NewBlobFetcher(
 
 	// Create queue directory
 	queueDir := filepath.Join(dataDir, "blob_fetcher_queue")
-	if err := os.MkdirAll(queueDir, 0755); err != nil {
+	if err := os.MkdirAll(queueDir, 0700); err != nil {
 		cancel()
 		return nil, fmt.Errorf("failed to create blob fetcher queue directory: %w", err)
 	}
@@ -227,7 +227,7 @@ func (bf *blobFetcher) getNextRequest() (BlobFetchRequest, func(), error) {
 		}
 	}
 
-	data, err := os.ReadFile(filename)
+	data, err := os.ReadFile(filename) // #nosec G304 // filename is constructed from queueDir
 	if err != nil {
 		return request, cleanup, fmt.Errorf("failed to read request file: %w", err)
 	}
