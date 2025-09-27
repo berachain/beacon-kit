@@ -34,7 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
-	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 var (
@@ -43,7 +42,7 @@ var (
 
 // BlobFetchRequest contains the minimal data needed to fetch and validate blobs.
 type BlobFetchRequest struct {
-	Slot        math.Slot                                    `json:"slot"`
+	Slot        uint64                                       `json:"slot"`
 	Header      *ctypes.BeaconBlockHeader                    `json:"header"`
 	Commitments eip4844.KZGCommitments[common.ExecutionHash] `json:"commitments"`
 }
@@ -111,12 +110,12 @@ func (bf *blobFetcher) Stop() {
 }
 
 // SetHeadSlot updates the head slot for blob fetching.
-func (bf *blobFetcher) SetHeadSlot(slot math.Slot) {
-	bf.blobRequester.SetHeadSlot(slot.Unwrap())
+func (bf *blobFetcher) SetHeadSlot(slot uint64) {
+	bf.blobRequester.SetHeadSlot(slot)
 }
 
 // QueueBlobRequest queues a request to fetch blobs for a specific slot.
-func (bf *blobFetcher) QueueBlobRequest(slot math.Slot, block *ctypes.BeaconBlock) error {
+func (bf *blobFetcher) QueueBlobRequest(slot uint64, block *ctypes.BeaconBlock) error {
 	// Don't queue if no blobs expected
 	commitments := block.GetBody().GetBlobKzgCommitments()
 	if len(commitments) == 0 {
@@ -256,7 +255,7 @@ func (bf *blobFetcher) processFetchRequest(req BlobFetchRequest) error {
 	}
 
 	// Request blobs with verification - will try multiple peers if verification fails
-	fetchedBlobs, err := bf.blobRequester.RequestBlobs(req.Slot.Unwrap(), verifier)
+	fetchedBlobs, err := bf.blobRequester.RequestBlobs(req.Slot, len(req.Commitments), verifier)
 	if err != nil {
 		return fmt.Errorf("failed to request valid blobs for slot %d: %w", req.Slot, err)
 	}
