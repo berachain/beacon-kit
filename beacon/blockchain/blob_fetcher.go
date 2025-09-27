@@ -27,6 +27,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
@@ -61,6 +62,8 @@ type blobFetcher struct {
 	// Context for graceful shutdown
 	ctx    context.Context
 	cancel context.CancelFunc
+
+	stopOnce sync.Once
 }
 
 // NewBlobFetcher creates a new background blob fetcher.
@@ -105,8 +108,10 @@ func (bf *blobFetcher) Start() {
 
 // Stop gracefully shuts down the blob fetcher.
 func (bf *blobFetcher) Stop() {
-	bf.cancel()
-	close(bf.notifyChan)
+	bf.stopOnce.Do(func() {
+		bf.cancel()
+		close(bf.notifyChan)
+	})
 }
 
 // SetHeadSlot updates the head slot for blob fetching.
