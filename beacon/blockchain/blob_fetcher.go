@@ -141,8 +141,15 @@ func (bf *blobFetcher) QueueBlobRequest(slot uint64, block *ctypes.BeaconBlock) 
 		return fmt.Errorf("failed to marshal blob fetch request: %w", err)
 	}
 
-	if writeErr := os.WriteFile(filename, data, 0600); writeErr != nil {
-		return fmt.Errorf("failed to queue blob fetch request: %w", writeErr)
+	// Write the request to a tmp file first, then rename atomically. This prevents the
+	// main run loop from seeing a partially written file causing JSON unmarshal errors.
+	tempFile := filename + ".tmp"
+	if writeErr := os.WriteFile(tempFile, data, 0600); writeErr != nil {
+		return fmt.Errorf("failed to write temp blob fetch request: %w", writeErr)
+	}
+	if renameErr := os.Rename(tempFile, filename); renameErr != nil {
+		_ = os.Remove(tempFile)
+		return fmt.Errorf("failed to rename blob fetch request: %w", renameErr)
 	}
 
 	bf.logger.Info("Queued blob fetch request", "slot", slot, "expected_blobs", len(commitments))
