@@ -23,6 +23,7 @@ package blockchain
 import (
 	"context"
 	"sync"
+	"sync/atomic"
 
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/execution/deposit"
@@ -66,11 +67,10 @@ type Service struct {
 	// forceStartupSyncOnce is used to force a sync of the startup head.
 	forceStartupSyncOnce *sync.Once
 
-	// latestRequestedFCU holds a copy of the latest FCU sent to the execution layer.
+	// latestFcuReq holds a copy of the latest FCU sent to the execution layer.
 	// It helps avoid resending the same FCU data (and spares a network call)
 	// in case optimistic block building is active
-	muLatestFcuReq     sync.RWMutex
-	latestRequestedFCU engineprimitives.ForkchoiceStateV1
+	latestFcuReq atomic.Pointer[engineprimitives.ForkchoiceStateV1]
 }
 
 // NewService creates a new validator service.

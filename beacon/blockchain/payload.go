@@ -221,9 +221,7 @@ func (s *Service) handleRebuildPayloadForRejectedBlock(
 		return
 	}
 
-	s.muLatestFcuReq.Lock()
-	s.latestRequestedFCU = buildData.FCState
-	s.muLatestFcuReq.Unlock()
+	s.latestFcuReq.Store(&buildData.FCState)
 
 	s.metrics.markRebuildPayloadForRejectedBlockSuccess(nextBlkSlot)
 }
@@ -248,9 +246,7 @@ func (s *Service) handleOptimisticPayloadBuild(
 		return
 	}
 
-	s.muLatestFcuReq.Lock()
-	s.latestRequestedFCU = buildData.FCState
-	s.muLatestFcuReq.Unlock()
+	s.latestFcuReq.Store(&buildData.FCState)
 
 	s.metrics.markOptimisticPayloadBuildSuccess(buildData.Slot)
 }

@@ -51,11 +51,8 @@ func (s *Service) sendPostBlockFCU(
 		FinalizedBlockHash: lph.GetParentHash(),
 	}
 
-	s.muLatestFcuReq.Lock()
-	latestRequestedFCU := s.latestRequestedFCU
-	s.latestRequestedFCU = engineprimitives.ForkchoiceStateV1{} // reset and prepare for next block
-	s.muLatestFcuReq.Unlock()
-
+	latestRequestedFCU := s.latestFcuReq.Load()
+	s.latestFcuReq.Store(&engineprimitives.ForkchoiceStateV1{}) // reset and prepare for next block
 	if latestRequestedFCU.Equal(fcuData) {
 		// we already sent the same FCU, likely due to optimistic block building
 		// being active. Avoid re-issuing the same request.
