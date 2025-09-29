@@ -22,11 +22,135 @@
 package topology
 
 import (
+	"math"
+	"math/rand"
+	"strings"
+
 	cmtcfg "github.com/cometbft/cometbft/config"
+	"github.com/cometbft/cometbft/p2p"
 )
 
-func ShapeTestNetwork(p2p *cmtcfg.P2PConfig, genesisFilePath string) *cmtcfg.P2PConfig {
+// Assume p2p.PersistentPeers has the **full list of validators**, **ordered by pub key**
+func ShapeTestNetwork(p2p *cmtcfg.P2PConfig, nodeKey *p2p.NodeKey) *cmtcfg.P2PConfig {
+	return buildTreeTopology(p2p, nodeKey)
+}
 
-	// do nothing by default
+func buildTreeTopology(p2p *cmtcfg.P2PConfig, nodeKey *p2p.NodeKey) *cmtcfg.P2PConfig {
+	// extract validators
+	vals := splitAndTrimEmpty(p2p.PersistentPeers, ",", " ")
+
+	// build topology, i.e. map of validator -> list of all node it must connect (and only those)
+	topology := buildTree(vals)
+
+	// find out in which position is the validator.
+	// If this node is not a validator, connect it to a random leaf
+	var (
+		persistentPeers      []string
+		unconditionalPeerIDs []string
+
+		maxNumInboundPeers, maxNumOutboundPeers = 40, 10 // default values used for non-validators
+	)
+	if valIdx := retrieveValidatorIdx(nodeKey, vals); valIdx >= 0 {
+		persistentPeers = topology[valIdx]
+		for _, p := range persistentPeers {
+			parts := strings.SplitN(p, "@", 2) //nolint:mnd // format is ID@IP:PORT
+			if len(parts) != 2 {               //nolint:mnd // format is ID@IP:PORT
+				panic("don't know how to part this peer to retrieve peerID: " + p)
+			}
+			unconditionalPeerIDs = append(unconditionalPeerIDs, parts[0])
+		}
+
+		// in order to enforce topology strictly, I limit input and outbound node count to
+		// just what the topology require. Skip any other validator, seeds, full-nodes.
+		maxNumInboundPeers = 0
+		maxNumOutboundPeers = 0
+	} else {
+		// node is not a validator. In this topology, connect it to 2 leaves at random
+		// leaves nodes are those indexes not connected to root directly
+		low, up := len(topology[0])+1, len(vals)
+		leaf1 := rand.Intn(up-low+1) + low //#nosec: G404 // first index
+		leaf2 := rand.Intn(up-low+1) + low //#nosec: G404 // second index, must be different from first one
+		for leaf2 == leaf1 {
+			leaf2 = rand.Intn(up-low+1) + low //#nosec: G404 // second index, must be different from first one
+		}
+
+		persistentPeers = append(persistentPeers, vals[leaf1])
+		persistentPeers = append(persistentPeers, vals[leaf2])
+	}
+
+	p2p.PersistentPeers = merge(persistentPeers, ",")
+	p2p.UnconditionalPeerIDs = merge(unconditionalPeerIDs, ",")
+	p2p.MaxNumOutboundPeers = maxNumOutboundPeers
+	p2p.MaxNumInboundPeers = maxNumInboundPeers
 	return p2p
+}
+
+func buildTree(vals []string) [][]string {
+	// Shape like a tree, with 2 layers
+	// layer 0: 1 node, root
+	// layer 1: fanOut nodes, so that root has fanOut links
+	// layer 2: up to fanOut-1 nodes per each layer 1 node, so fanOut*(fanOut-1), so that layer 1 nodes have fanOut links
+	// So total number of nodes is: 1 + fanOut + fanOut*(fanOut-1) = fanOut^2+1
+	// We rename N as fanOut to appease then linter
+	fanOut := int(math.Ceil(math.Sqrt(float64(len(vals) - 1))))
+	topology := make([][]string, len(vals)) // rows are validators, columns are list of peers per validator
+
+	// setup root, just connect it to the first N validators (but itself)
+	topology[0] = append(topology[0], vals[1:fanOut+1]...)
+
+	// layer 1 has N nodes, each has N-1 peers, up to len(vals)
+	startIdx := fanOut + 1
+	for i := range fanOut {
+		endIdx := min(startIdx+(fanOut-1), len(vals))
+		topology[i] = append(topology[i], vals[0])
+		topology[i] = append(topology[i], vals[startIdx:endIdx]...)
+		startIdx = endIdx
+	}
+
+	// layer 2: explicitly enforce peering to the right layer1 node
+	for idx := fanOut + 1; idx < len(vals); idx++ {
+		parentIdx := (idx-(fanOut+1))/(fanOut-1) + 1 // by Bar-Bera
+		topology[idx] = []string{vals[parentIdx]}
+	}
+	return topology
+}
+
+func retrieveValidatorIdx(nodeKey *p2p.NodeKey, vals []string) int {
+	thisNodeID := nodeKey.ID()
+	idx := -1 // negative int if node is not a validator
+	for i, v := range vals {
+		if strings.Contains(v, string(thisNodeID)) {
+			idx = i
+			break
+		}
+	}
+	return idx
+}
+
+// copied from CometBFT
+func splitAndTrimEmpty(s, sep, cutset string) []string {
+	if s == "" {
+		return []string{}
+	}
+
+	spl := strings.Split(s, sep)
+	nonEmptyStrings := make([]string, 0, len(spl))
+	for i := range spl {
+		element := strings.Trim(spl[i], cutset)
+		if element != "" {
+			nonEmptyStrings = append(nonEmptyStrings, element)
+		}
+	}
+	return nonEmptyStrings
+}
+
+func merge(items []string, sep string) string {
+	if len(items) == 0 {
+		return ""
+	}
+	var res string
+	for _, i := range items {
+		res += i + sep
+	}
+	return res[:len(res)-1] // drop final sep
 }

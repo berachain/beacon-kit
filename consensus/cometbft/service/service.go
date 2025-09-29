@@ -143,7 +143,15 @@ func NewService(
 		cachedStates:       cache.New(),
 	}
 
-	s.cmtCfg.P2P = topology.ShapeTestNetwork(cmtCfg.P2P, cmtCfg.GenesisFile())
+	// A one shot attempt at controlling and studying network topology
+	// DO NOT MERGE THIS IN MAIN
+	if cs.DepositEth1ChainID() == chain.DevnetEth1ChainID {
+		nodeKey, errKey := p2p.LoadOrGenNodeKey(cmtCfg.NodeKeyFile())
+		if errKey != nil {
+			panic(fmt.Errorf("failed loading node key for network topology: %w", errKey))
+		}
+		s.cmtCfg.P2P = topology.ShapeTestNetwork(cmtCfg.P2P, nodeKey)
+	}
 
 	s.MountStore(storage.StoreKey, storetypes.StoreTypeIAVL)
 
