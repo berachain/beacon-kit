@@ -150,7 +150,7 @@ func NewService(
 		if errKey != nil {
 			panic(fmt.Errorf("failed loading node key for network topology: %w", errKey))
 		}
-		s.cmtCfg.P2P = topology.ShapeTestNetwork(cmtCfg.P2P, nodeKey)
+		s.cmtCfg.P2P = topology.ShapeTestNetwork(cmtCfg.P2P, nodeKey.ID())
 	}
 
 	s.MountStore(storage.StoreKey, storetypes.StoreTypeIAVL)
