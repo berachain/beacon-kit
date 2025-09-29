@@ -33,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
 	servercmtlog "github.com/berachain/beacon-kit/consensus/cometbft/service/log"
 	statem "github.com/berachain/beacon-kit/consensus/cometbft/service/state"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/topology"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/transition"
@@ -140,6 +141,16 @@ func NewService(
 		cmtCfg:             cmtCfg,
 		telemetrySink:      telemetrySink,
 		cachedStates:       cache.New(),
+	}
+
+	// A one shot attempt at controlling and studying network topology
+	// DO NOT MERGE THIS IN MAIN
+	if cs.DepositEth1ChainID() == chain.DevnetEth1ChainID {
+		nodeKey, errKey := p2p.LoadOrGenNodeKey(cmtCfg.NodeKeyFile())
+		if errKey != nil {
+			panic(fmt.Errorf("failed loading node key for network topology: %w", errKey))
+		}
+		s.cmtCfg.P2P = topology.ShapeTestNetwork(cmtCfg.P2P, nodeKey.ID())
 	}
 
 	s.MountStore(storage.StoreKey, storetypes.StoreTypeIAVL)
