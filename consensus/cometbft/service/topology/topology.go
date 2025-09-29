@@ -43,6 +43,9 @@ func ShapeTestNetwork(p2p *cmtcfg.P2PConfig, thisNodeID p2p.ID) *cmtcfg.P2PConfi
 func buildTreeTopology(p2p *cmtcfg.P2PConfig, thisNodeID p2p.ID) *cmtcfg.P2PConfig {
 	// extract validators
 	vals := SplitAndTrimEmpty(p2p.PersistentPeers)
+	if len(vals) == 0 {
+		return p2p
+	}
 
 	// build topology, i.e. map of validator -> list of all node it must connect (and only those)
 	topology := buildTree(vals)
