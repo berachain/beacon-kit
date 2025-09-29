@@ -33,10 +33,13 @@ import (
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/builder"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
+	"github.com/berachain/beacon-kit/node-core/types"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
+
+var _ types.ConsensusService = (*SimComet)(nil)
 
 // SimComet is normal Comet under the hood, but we override the Start method to avoid starting the actual
 // CometBFT core loop so that we can orchestrate it ourselves.
@@ -78,6 +81,10 @@ func (s *SimComet) Stop() error {
 
 func (s *SimComet) Name() string {
 	return s.Comet.Name()
+}
+
+func (s *SimComet) IsAppReady() error {
+	return s.Comet.IsAppReady()
 }
 
 func (s *SimComet) CreateQueryContext(height int64, prove bool) (sdk.Context, error) {

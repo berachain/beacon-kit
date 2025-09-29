@@ -25,7 +25,7 @@ import (
 
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	"github.com/berachain/beacon-kit/node-api/handlers/types"
+	handlertypes "github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/primitives/version"
 )
@@ -38,30 +38,38 @@ func (h *Handler) GetPendingPartialWithdrawals(c handlers.Context) (any, error) 
 		return nil, err
 	}
 
-	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
+	// Load state for the requested state ID
+	height, err := utils.StateIDToHeight(req.StateID, h.backend)
+	if err != nil {
+		return nil, err
+	}
+	st, _, err := h.backend.StateAndSlotFromHeight(height)
 	if err != nil {
 		return nil, err
 	}
 
-	st, _, err := h.backend.StateAtSlot(slot)
-	if err != nil {
-		return nil, err
-	}
-
-	// Get the fork version.
+	// Check withdrawal are active
 	forkVersion, err := st.GetFork()
 	if err != nil {
 		return nil, err
 	}
-
 	if version.IsBefore(forkVersion.CurrentVersion, version.Electra()) {
-		return nil, fmt.Errorf("%w: Electra fork not active yet", types.ErrInvalidRequest)
+		return nil, fmt.Errorf("%w: Electra fork not active yet", handlertypes.ErrInvalidRequest)
 	}
 
-	// Get the pending partial withdrawals from the state.
-	partialWithdrawals, err := h.backend.PendingPartialWithdrawalsAtState(st)
+	// Retrieve and return withdrawals
+	cTypePartialWithdrawals, err := st.GetPendingPartialWithdrawals()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get pending partial withdrawals from state: %w", err)
+	}
+
+	partialWithdrawals := make([]*beacontypes.PendingPartialWithdrawalData, len(cTypePartialWithdrawals))
+	for i, cTypeWithdrawal := range cTypePartialWithdrawals {
+		partialWithdrawals[i] = &beacontypes.PendingPartialWithdrawalData{
+			ValidatorIndex:  cTypeWithdrawal.ValidatorIndex.Unwrap(),
+			Amount:          cTypeWithdrawal.Amount.Unwrap(),
+			WithdrawalEpoch: cTypeWithdrawal.WithdrawableEpoch.Unwrap(),
+		}
 	}
 
 	return beacontypes.NewPendingPartialWithdrawalsResponse(

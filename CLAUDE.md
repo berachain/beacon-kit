@@ -725,7 +725,7 @@ func ProvideBlockchainService(
 ## Build Requirements
 
 ### Dependencies
-- Go 1.23.6+
+- Go 1.25.0+
 - Docker (for running EL clients)
 - Foundry (for Solidity contracts)
 - Make (GNU Make)
