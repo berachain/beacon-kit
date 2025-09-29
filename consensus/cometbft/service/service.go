@@ -33,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
 	servercmtlog "github.com/berachain/beacon-kit/consensus/cometbft/service/log"
 	statem "github.com/berachain/beacon-kit/consensus/cometbft/service/state"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/topology"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/transition"
@@ -141,6 +142,8 @@ func NewService(
 		telemetrySink:      telemetrySink,
 		cachedStates:       cache.New(),
 	}
+
+	s.cmtCfg.P2P = topology.ShapeTestNetwork(cmtCfg.P2P, cmtCfg.GenesisFile())
 
 	s.MountStore(storage.StoreKey, storetypes.StoreTypeIAVL)
 
