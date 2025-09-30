@@ -256,12 +256,12 @@ func (s *Service) VerifyIncomingBlock(
 	}
 
 	var (
-		nextBlockData        *builder.RequestPayloadData
-		errFetch             error
-		shouldBuildNextBlock = s.shouldBuildNextPayload(isNextBlockProposer)
+		nextBlockData          *builder.RequestPayloadData
+		errFetch               error
+		shouldBuildNextPayload = s.shouldBuildNextPayload(isNextBlockProposer)
 	)
 
-	if shouldBuildNextBlock {
+	if shouldBuildNextPayload {
 		// state copy makes sure that preFetchBuildData does not affect state
 		copiedState := state.Copy(ctx)
 		nextBlockData, errFetch = s.preFetchBuildData(copiedState, blk.GetConsensusTime())
@@ -286,7 +286,7 @@ func (s *Service) VerifyIncomingBlock(
 			"reason", err,
 		)
 
-		if shouldBuildNextBlock {
+		if shouldBuildNextPayload {
 			if nextBlockData == nil {
 				// Failed fetching data to build next block. Just return block error
 				return nil, err
@@ -302,7 +302,7 @@ func (s *Service) VerifyIncomingBlock(
 		"state_root", beaconBlk.GetStateRoot(),
 	)
 
-	if shouldBuildNextBlock {
+	if shouldBuildNextPayload {
 		// state copy makes sure that preFetchBuildDataForSuccess does not affect state
 		copiedState := state.Copy(ctx)
 		nextBlockData, errFetch = s.preFetchBuildData(copiedState, blk.GetConsensusTime())
