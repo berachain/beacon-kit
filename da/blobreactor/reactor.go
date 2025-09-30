@@ -169,7 +169,7 @@ func (br *BlobReactor) Receive(envelope p2p.Envelope) {
 			br.logger.Error("Failed to unmarshal BlobRequest", "error", err, "peer", envelope.Src.ID())
 			return
 		}
-		br.logger.Info("Received blob request", "slot", req.Slot, "request_id", req.RequestID, "peer", envelope.Src.ID())
+		br.logger.Info("Received blob request", "slot", req.Slot.Unwrap(), "request_id", req.RequestID, "peer", envelope.Src.ID())
 
 		select {
 		case br.requestWorkers <- struct{}{}:
@@ -204,7 +204,7 @@ func (br *BlobReactor) Receive(envelope p2p.Envelope) {
 			}()
 		default:
 			br.logger.Warn("Worker pool full, dropping response",
-				"slot", resp.Slot,
+				"slot", resp.Slot.Unwrap(),
 				"request_id", resp.RequestID,
 				"peer", envelope.Src.ID())
 		}
@@ -219,9 +219,9 @@ func (br *BlobReactor) SetNodeKey(nodeKey string) {
 }
 
 // SetHeadSlot updates the reactor's view of the current blockchain head slot.
-func (br *BlobReactor) SetHeadSlot(slot uint64) {
+func (br *BlobReactor) SetHeadSlot(slot math.Slot) {
 	br.stateMu.Lock()
-	br.headSlot = math.Slot(slot)
+	br.headSlot = slot
 	br.stateMu.Unlock()
 }
 
@@ -251,7 +251,7 @@ func (br *BlobReactor) handleBlobRequest(peer p2p.Peer, req *BlobRequest) {
 
 	respBytes, err := resp.MarshalSSZ()
 	if err != nil {
-		br.logger.Error("Failed to marshal response", "slot", req.Slot, "request_id", req.RequestID, "error", err)
+		br.logger.Error("Failed to marshal response", "slot", req.Slot.Unwrap(), "request_id", req.RequestID, "error", err)
 		return
 	}
 
@@ -270,7 +270,7 @@ func (br *BlobReactor) handleBlobRequest(peer p2p.Peer, req *BlobRequest) {
 		return
 	}
 
-	br.logger.Info("Sent blob response", "slot", req.Slot, "request_id", req.RequestID, "peer", peer.ID(), "data_size", len(msgData))
+	br.logger.Info("Sent blob response", "slot", req.Slot.Unwrap(), "request_id", req.RequestID, "peer", peer.ID(), "data_size", len(msgData))
 }
 
 // handleBlobResponse processes incoming blob responses
@@ -306,10 +306,10 @@ func (br *BlobReactor) handleBlobResponse(peer p2p.Peer, resp *BlobResponse) {
 // RequestBlobs fetches all blobs for a given slot from peers.
 // Returns all blob sidecars for the slot, or an error if none could be retrieved.
 func (br *BlobReactor) RequestBlobs(
-	slot uint64,
+	slot math.Slot,
 	expectedBlobs int,
 	verifier func(datypes.BlobSidecars) error) ([]*datypes.BlobSidecar, error) {
-	br.logger.Info("RequestBlobs called", "slot", slot)
+	br.logger.Info("RequestBlobs called", "slot", slot.Unwrap())
 
 	// Check if we have any peers at all
 	br.stateMu.RLock()
@@ -317,7 +317,7 @@ func (br *BlobReactor) RequestBlobs(
 	br.stateMu.RUnlock()
 
 	if peerCount == 0 {
-		br.logger.Error("No peers available for blob request", "slot", slot)
+		br.logger.Error("No peers available for blob request", "slot", slot.Unwrap())
 		return nil, ErrNoPeersAvailable
 	}
 
@@ -357,15 +357,15 @@ func (br *BlobReactor) RequestBlobs(
 
 		// Verify the blobs before returning
 		if verifyErr := verifier(sidecars); verifyErr != nil {
-			br.logger.Warn("Blob verification failed, trying next peer", "slot", slot, "count", len(sidecars), "peer", peerID, "error", verifyErr)
+			br.logger.Warn("Blob verification failed, trying next peer", "slot", slot.Unwrap(), "count", len(sidecars), "peer", peerID, "error", verifyErr)
 			continue
 		}
 
-		br.logger.Info("Successfully retrieved and verified blobs", "slot", slot, "peer", peerID, "count", len(sidecars))
+		br.logger.Info("Successfully retrieved and verified blobs", "slot", slot.Unwrap(), "peer", peerID, "count", len(sidecars))
 		return sidecars, nil
 	}
 
-	br.logger.Error("Failed to retrieve blobs from all peers", "slot", slot, "peers_tried", len(triedPeers))
+	br.logger.Error("Failed to retrieve blobs from all peers", "slot", slot.Unwrap(), "peers_tried", len(triedPeers))
 	return nil, ErrAllPeersFailed
 }
 
@@ -391,7 +391,7 @@ func (br *BlobReactor) selectUntriedPeer(triedPeers map[p2p.ID]bool) p2p.ID {
 }
 
 // requestBlobsFromPeer sends a blob request to a specific peer and waits for response.
-func (br *BlobReactor) requestBlobsFromPeer(peerID p2p.ID, slot uint64) (datypes.BlobSidecars, error) {
+func (br *BlobReactor) requestBlobsFromPeer(peerID p2p.ID, slot math.Slot) (datypes.BlobSidecars, error) {
 	peer := br.sw.Peers().Get(peerID)
 	if peer == nil {
 		return nil, fmt.Errorf("peer %s not found", peerID)
@@ -405,7 +405,7 @@ func (br *BlobReactor) requestBlobsFromPeer(peerID p2p.ID, slot uint64) (datypes
 	requestID := br.nextRequestID.Add(1)
 
 	req := &BlobRequest{
-		Slot:      math.Slot(slot),
+		Slot:      slot,
 		RequestID: requestID,
 	}
 
@@ -435,7 +435,7 @@ func (br *BlobReactor) requestBlobsFromPeer(peerID p2p.ID, slot uint64) (datypes
 		return nil, fmt.Errorf("failed to send blob request to peer %s", peerID)
 	}
 
-	br.logger.Info("Sent blob request, waiting for response", "slot", slot, "peer", peerID, "request_id", requestID)
+	br.logger.Info("Sent blob request, waiting for response", "slot", slot.Unwrap(), "peer", peerID, "request_id", requestID)
 
 	// Wait for response with timeout
 	ctx, cancel := context.WithTimeout(context.Background(), br.config.RequestTimeout)
