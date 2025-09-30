@@ -258,7 +258,7 @@ func (s *Service) VerifyIncomingBlock(
 	var (
 		nextBlockData        *builder.RequestPayloadData
 		errFetch             error
-		shouldBuildNextBlock = s.shouldBuildOptimisticPayloads(isNextBlockProposer)
+		shouldBuildNextBlock = s.shouldBuildNextPayload(isNextBlockProposer)
 	)
 
 	if shouldBuildNextBlock {
@@ -354,8 +354,8 @@ func (s *Service) verifyStateRoot(
 	return valUpdates, err
 }
 
-// shouldBuildOptimisticPayloads returns true if optimistic
+// shouldBuildNextPayload returns true if optimistic
 // payload builds are enabled.
-func (s *Service) shouldBuildOptimisticPayloads(isNextBlockProposer bool) bool {
-	return isNextBlockProposer && s.optimisticPayloadBuilds && s.localBuilder.Enabled()
+func (s *Service) shouldBuildNextPayload(isNextBlockProposer bool) bool {
+	return isNextBlockProposer && s.localBuilder.Enabled()
 }
