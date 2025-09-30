@@ -133,7 +133,7 @@ func (s *Service) FinalizeSidecars(
 		}
 
 		// Queue the blob fetch request to be handled asynchronously
-		err := s.blobFetcher.QueueBlobRequest(blk.GetSlot().Unwrap(), blk)
+		err := s.blobFetcher.QueueBlobRequest(blk.GetSlot(), blk)
 		if err != nil {
 			return fmt.Errorf("failed to queue blob fetch request for slot %d: %w", blk.GetSlot().Unwrap(), err)
 		}
@@ -173,7 +173,7 @@ func (s *Service) PostFinalizeBlockOps(ctx sdk.Context, blk *ctypes.BeaconBlock)
 	}
 
 	// Update our head slot so other peers know at which height we are at.
-	s.blobFetcher.SetHeadSlot(slot.Unwrap())
+	s.blobFetcher.SetHeadSlot(slot)
 
 	// Prune the availability and deposit store.
 	if err := s.processPruning(ctx, blk); err != nil {
