@@ -35,6 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 var (
@@ -43,7 +44,7 @@ var (
 
 // BlobFetchRequest contains the minimal data needed to fetch and validate blobs.
 type BlobFetchRequest struct {
-	Slot        uint64                                       `json:"slot"`
+	Slot        math.Slot                                    `json:"slot"`
 	Header      *ctypes.BeaconBlockHeader                    `json:"header"`
 	Commitments eip4844.KZGCommitments[common.ExecutionHash] `json:"commitments"`
 }
@@ -115,12 +116,12 @@ func (bf *blobFetcher) Stop() {
 }
 
 // SetHeadSlot updates the head slot for blob fetching.
-func (bf *blobFetcher) SetHeadSlot(slot uint64) {
+func (bf *blobFetcher) SetHeadSlot(slot math.Slot) {
 	bf.blobRequester.SetHeadSlot(slot)
 }
 
 // QueueBlobRequest queues a request to fetch blobs for a specific slot.
-func (bf *blobFetcher) QueueBlobRequest(slot uint64, block *ctypes.BeaconBlock) error {
+func (bf *blobFetcher) QueueBlobRequest(slot math.Slot, block *ctypes.BeaconBlock) error {
 	// Don't queue if no blobs expected
 	commitments := block.GetBody().GetBlobKzgCommitments()
 	if len(commitments) == 0 {
@@ -135,7 +136,7 @@ func (bf *blobFetcher) QueueBlobRequest(slot uint64, block *ctypes.BeaconBlock) 
 	}
 
 	// Serialize to JSON file with slot as filename
-	filename := filepath.Join(bf.queueDir, fmt.Sprintf("%020d.json", slot))
+	filename := filepath.Join(bf.queueDir, fmt.Sprintf("%010d.json", slot.Unwrap()))
 	data, err := json.Marshal(request)
 	if err != nil {
 		return fmt.Errorf("failed to marshal blob fetch request: %w", err)
@@ -152,7 +153,7 @@ func (bf *blobFetcher) QueueBlobRequest(slot uint64, block *ctypes.BeaconBlock) 
 		return fmt.Errorf("failed to rename blob fetch request: %w", renameErr)
 	}
 
-	bf.logger.Info("Queued blob fetch request", "slot", slot, "expected_blobs", len(commitments))
+	bf.logger.Info("Queued blob fetch request", "slot", slot.Unwrap(), "expected_blobs", len(commitments))
 
 	// Signal that a new request is available
 	select {
@@ -199,7 +200,7 @@ func (bf *blobFetcher) processAllPendingRequests() {
 
 		err = bf.processFetchRequest(request)
 		if err != nil {
-			bf.logger.Error("Failed to process blob fetch request", "slot", request.Slot, "error", err)
+			bf.logger.Error("Failed to process blob fetch request", "slot", request.Slot.Unwrap(), "error", err)
 		}
 
 		cleanup()
@@ -253,7 +254,7 @@ func (bf *blobFetcher) getNextRequest() (BlobFetchRequest, func(), error) {
 
 // processFetchRequest handles a single blob fetch request.
 func (bf *blobFetcher) processFetchRequest(req BlobFetchRequest) error {
-	bf.logger.Info("Fetching blobs from peers", "slot", req.Slot, "expected_blobs", len(req.Commitments))
+	bf.logger.Info("Fetching blobs from peers", "slot", req.Slot.Unwrap(), "expected_blobs", len(req.Commitments))
 
 	select {
 	case <-bf.ctx.Done():
@@ -269,15 +270,15 @@ func (bf *blobFetcher) processFetchRequest(req BlobFetchRequest) error {
 	// Request blobs with verification - will try multiple peers if verification fails
 	fetchedBlobs, err := bf.blobRequester.RequestBlobs(req.Slot, len(req.Commitments), verifier)
 	if err != nil {
-		return fmt.Errorf("failed to request valid blobs for slot %d: %w", req.Slot, err)
+		return fmt.Errorf("failed to request valid blobs for slot %d: %w", req.Slot.Unwrap(), err)
 	}
 
 	// Process and store the validated blobs
 	err = bf.blobProcessor.ProcessSidecars(bf.storageBackend.AvailabilityStore(), fetchedBlobs)
 	if err != nil {
-		return fmt.Errorf("failed to process blobs for slot %d: %w", req.Slot, err)
+		return fmt.Errorf("failed to process blobs for slot %d: %w", req.Slot.Unwrap(), err)
 	}
 
-	bf.logger.Info("Successfully fetched and stored blobs", "slot", req.Slot, "count", len(fetchedBlobs))
+	bf.logger.Info("Successfully fetched and stored blobs", "slot", req.Slot.Unwrap(), "count", len(fetchedBlobs))
 	return nil
 }
