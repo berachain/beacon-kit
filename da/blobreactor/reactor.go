@@ -225,6 +225,13 @@ func (br *BlobReactor) SetHeadSlot(slot math.Slot) {
 	br.stateMu.Unlock()
 }
 
+// HeadSlot returns the current blockchain head slot.
+func (br *BlobReactor) HeadSlot() math.Slot {
+	br.stateMu.RLock()
+	defer br.stateMu.RUnlock()
+	return br.headSlot
+}
+
 // handleBlobRequest processes incoming blob requests and sends back blobs
 func (br *BlobReactor) handleBlobRequest(peer p2p.Peer, req *BlobRequest) {
 	br.logger.Info("Received blob request", "slot", req.Slot.Unwrap(), "request_id", req.RequestID, "peer", peer.ID())
@@ -357,7 +364,11 @@ func (br *BlobReactor) RequestBlobs(
 
 		// Verify the blobs before returning
 		if verifyErr := verifier(sidecars); verifyErr != nil {
-			br.logger.Warn("Blob verification failed, trying next peer", "slot", slot.Unwrap(), "count", len(sidecars), "peer", peerID, "error", verifyErr)
+			br.logger.Warn("Blob verification failed, trying next peer",
+				"slot", slot.Unwrap(),
+				"count", len(sidecars),
+				"peer", peerID,
+				"error", verifyErr)
 			continue
 		}
 

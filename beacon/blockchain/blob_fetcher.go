@@ -28,6 +28,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
@@ -44,9 +45,10 @@ var (
 
 // BlobFetchRequest contains the minimal data needed to fetch and validate blobs.
 type BlobFetchRequest struct {
-	Slot        math.Slot                                    `json:"slot"`
-	Header      *ctypes.BeaconBlockHeader                    `json:"header"`
-	Commitments eip4844.KZGCommitments[common.ExecutionHash] `json:"commitments"`
+	Header        *ctypes.BeaconBlockHeader                    `json:"header"`
+	Commitments   eip4844.KZGCommitments[common.ExecutionHash] `json:"commitments"`
+	LastRetryTime time.Time                                    `json:"last_retry_time"`
+	FailureCount  int                                          `json:"failure_count"`
 }
 
 // blobFetcher handles asynchronous fetching of blobs in the background.
@@ -55,11 +57,10 @@ type blobFetcher struct {
 	blobProcessor  BlobProcessor
 	blobRequester  BlobRequester
 	storageBackend StorageBackend
+	chainSpec      BlobFetcherChainSpec
 
 	// Directory for persistent queue
 	queueDir string
-	// Channel to signal new requests available
-	notifyChan chan struct{}
 	// Context for graceful shutdown
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -74,6 +75,7 @@ func NewBlobFetcher(
 	blobProcessor BlobProcessor,
 	blobRequester BlobRequester,
 	storageBackend StorageBackend,
+	chainSpec BlobFetcherChainSpec,
 ) (BlobFetcher, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -89,8 +91,8 @@ func NewBlobFetcher(
 		blobProcessor:  blobProcessor,
 		blobRequester:  blobRequester,
 		storageBackend: storageBackend,
+		chainSpec:      chainSpec,
 		queueDir:       queueDir,
-		notifyChan:     make(chan struct{}, 1), // Buffered to avoid blocking
 		ctx:            ctx,
 		cancel:         cancel,
 	}, nil
@@ -98,12 +100,6 @@ func NewBlobFetcher(
 
 // Start begins the background blob fetching process.
 func (bf *blobFetcher) Start() {
-	// In case node crashed or was restarted, process any pending requests
-	select {
-	case bf.notifyChan <- struct{}{}:
-	default:
-	}
-
 	go bf.run()
 }
 
@@ -111,7 +107,6 @@ func (bf *blobFetcher) Start() {
 func (bf *blobFetcher) Stop() {
 	bf.stopOnce.Do(func() {
 		bf.cancel()
-		close(bf.notifyChan)
 	})
 }
 
@@ -130,7 +125,6 @@ func (bf *blobFetcher) QueueBlobRequest(slot math.Slot, block *ctypes.BeaconBloc
 
 	// Create request with header and commitments needed for validation
 	request := BlobFetchRequest{
-		Slot:        slot,
 		Header:      block.GetHeader(),
 		Commitments: commitments,
 	}
@@ -154,25 +148,21 @@ func (bf *blobFetcher) QueueBlobRequest(slot math.Slot, block *ctypes.BeaconBloc
 	}
 
 	bf.logger.Info("Queued blob fetch request", "slot", slot.Unwrap(), "expected_blobs", len(commitments))
-
-	// Signal that a new request is available
-	select {
-	case bf.notifyChan <- struct{}{}:
-	default:
-		// Already signaled
-	}
-
 	return nil
 }
 
 func (bf *blobFetcher) run() {
+	// Ticker to periodically check for requests (both new and ready to retry)
+	ticker := time.NewTicker(1 * time.Minute)
+	defer ticker.Stop()
+
 	for {
 		select {
 		case <-bf.ctx.Done():
 			bf.logger.Info("Blob fetcher shutting down")
 			return
 
-		case <-bf.notifyChan:
+		case <-ticker.C:
 			// Process all pending requests from disk
 			bf.processAllPendingRequests()
 		}
@@ -188,73 +178,108 @@ func (bf *blobFetcher) processAllPendingRequests() {
 		default:
 		}
 
-		request, cleanup, err := bf.getNextRequest()
+		request, filename, err := bf.getNextRequest()
 		if err != nil {
 			if errors.Is(err, errNoMoreRequests) {
 				return
 			}
 			bf.logger.Error("Failed to get next request", "error", err)
-			cleanup()
+			if filename != "" {
+				bf.removeRequestFile(filename)
+			}
 			continue
 		}
 
 		err = bf.processFetchRequest(request)
-		if err != nil {
-			bf.logger.Error("Failed to process blob fetch request", "slot", request.Slot.Unwrap(), "error", err)
+		if err == nil {
+			// Successfully processed, remove the request file
+			bf.removeRequestFile(filename)
+			continue
 		}
 
-		cleanup()
+		bf.logger.Error("Failed to process blob fetch request", "slot", request.Header.Slot.Unwrap(), "error", err)
+
+		// Update retry metadata and save back to file
+		request.FailureCount++
+		request.LastRetryTime = time.Now()
+		var data []byte
+		data, err = json.Marshal(request)
+		if err != nil {
+			bf.logger.Error("Failed to marshal request", "error", err)
+			continue
+		}
+
+		err = os.WriteFile(filename, data, 0600)
+		if err != nil {
+			bf.logger.Error("Failed to update request", "error", err)
+			continue
+		}
+
+		bf.logger.Warn("Blob fetch failed, will retry in 5 minutes",
+			"slot", request.Header.Slot.Unwrap(),
+			"failure_count", request.FailureCount)
+	}
+}
+
+// removeRequestFile removes a request file and logs any errors.
+func (bf *blobFetcher) removeRequestFile(filename string) {
+	if err := os.Remove(filename); err != nil && !os.IsNotExist(err) {
+		bf.logger.Error("Failed to delete request file", "file", filename, "error", err)
 	}
 }
 
 // getNextRequest reads the next request from disk queue.
-// Returns the request and a cleanup function to remove the file after processing.
-func (bf *blobFetcher) getNextRequest() (BlobFetchRequest, func(), error) {
-	var request BlobFetchRequest
-	noopCleanup := func() {}
-
-	// List all request files (already sorted by name)
+// Returns the request, filename, and error.
+func (bf *blobFetcher) getNextRequest() (BlobFetchRequest, string, error) {
 	files, err := os.ReadDir(bf.queueDir)
 	if err != nil {
 		bf.logger.Error("Failed to read queue directory", "dir", bf.queueDir, "error", err)
-		return request, noopCleanup, fmt.Errorf("failed to read queue directory: %w", err)
+		return BlobFetchRequest{}, "", fmt.Errorf("failed to read queue directory: %w", err)
 	}
 
-	var filename string
+	headSlot := bf.blobRequester.HeadSlot()
+
 	for _, file := range files {
-		if !file.IsDir() && strings.HasSuffix(file.Name(), ".json") {
-			filename = filepath.Join(bf.queueDir, file.Name())
-			break
+		if file.IsDir() || !strings.HasSuffix(file.Name(), ".json") {
+			continue
 		}
-	}
 
-	if len(filename) == 0 {
-		return request, noopCleanup, errNoMoreRequests
-	}
-
-	// Create cleanup function that will always try to remove the file
-	cleanup := func() {
-		removeErr := os.Remove(filename)
-		if removeErr != nil && !os.IsNotExist(removeErr) {
-			bf.logger.Error("Failed to delete request file", "file", filename, "error", removeErr)
+		filename := filepath.Join(bf.queueDir, file.Name())
+		var data []byte
+		data, err = os.ReadFile(filename) // #nosec G304 // filename is constructed from queueDir
+		if err != nil {
+			return BlobFetchRequest{}, filename, fmt.Errorf("failed to read request file: %w", err)
 		}
+
+		var request BlobFetchRequest
+		if err = json.Unmarshal(data, &request); err != nil {
+			return BlobFetchRequest{}, filename, fmt.Errorf("failed to unmarshal request: %w", err)
+		}
+
+		// Check if request is outside availability window
+		if headSlot > 0 && !bf.chainSpec.WithinDAPeriod(request.Header.Slot, headSlot) {
+			bf.logger.Warn("Request is outside availability window, deleting",
+				"slot", request.Header.Slot.Unwrap(),
+				"head_slot", headSlot.Unwrap(),
+				"failure_count", request.FailureCount)
+			bf.removeRequestFile(filename)
+			continue
+		}
+
+		// Check if this request needs to wait before retry
+		if !request.LastRetryTime.IsZero() && time.Since(request.LastRetryTime) < 5*time.Minute {
+			continue // Skip, not ready to retry yet
+		}
+
+		return request, filename, nil
 	}
 
-	data, err := os.ReadFile(filename) // #nosec G304 // filename is constructed from queueDir
-	if err != nil {
-		return request, cleanup, fmt.Errorf("failed to read request file: %w", err)
-	}
-
-	if err = json.Unmarshal(data, &request); err != nil {
-		return request, cleanup, fmt.Errorf("failed to unmarshal request: %w", err)
-	}
-
-	return request, cleanup, nil
+	return BlobFetchRequest{}, "", errNoMoreRequests
 }
 
 // processFetchRequest handles a single blob fetch request.
 func (bf *blobFetcher) processFetchRequest(req BlobFetchRequest) error {
-	bf.logger.Info("Fetching blobs from peers", "slot", req.Slot.Unwrap(), "expected_blobs", len(req.Commitments))
+	bf.logger.Info("Fetching blobs from peers", "slot", req.Header.Slot.Unwrap(), "expected_blobs", len(req.Commitments))
 
 	select {
 	case <-bf.ctx.Done():
@@ -268,17 +293,17 @@ func (bf *blobFetcher) processFetchRequest(req BlobFetchRequest) error {
 	}
 
 	// Request blobs with verification - will try multiple peers if verification fails
-	fetchedBlobs, err := bf.blobRequester.RequestBlobs(req.Slot, len(req.Commitments), verifier)
+	fetchedBlobs, err := bf.blobRequester.RequestBlobs(req.Header.Slot, len(req.Commitments), verifier)
 	if err != nil {
-		return fmt.Errorf("failed to request valid blobs for slot %d: %w", req.Slot.Unwrap(), err)
+		return fmt.Errorf("failed to request valid blobs for slot %d: %w", req.Header.Slot.Unwrap(), err)
 	}
 
 	// Process and store the validated blobs
 	err = bf.blobProcessor.ProcessSidecars(bf.storageBackend.AvailabilityStore(), fetchedBlobs)
 	if err != nil {
-		return fmt.Errorf("failed to process blobs for slot %d: %w", req.Slot.Unwrap(), err)
+		return fmt.Errorf("failed to process blobs for slot %d: %w", req.Header.Slot.Unwrap(), err)
 	}
 
-	bf.logger.Info("Successfully fetched and stored blobs", "slot", req.Slot.Unwrap(), "count", len(fetchedBlobs))
+	bf.logger.Info("Successfully fetched and stored blobs", "slot", req.Header.Slot.Unwrap(), "count", len(fetchedBlobs))
 	return nil
 }
