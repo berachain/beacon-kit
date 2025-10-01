@@ -242,10 +242,20 @@ func (br *BlobReactor) handleBlobRequest(peer p2p.Peer, req *BlobRequest) {
 	br.stateMu.RUnlock()
 
 	var errorMsg string
-	sidecarBzs, err := br.blobStore.GetByIndex(req.Slot.Unwrap())
-	if err != nil {
-		br.logger.Error("Failed to fetch blobs from storage", "slot", req.Slot.Unwrap(), "request_id", req.RequestID, "error", err)
-		errorMsg = err.Error()
+	var sidecarBzs [][]byte
+
+	// TESTING: Simulate failure when requesting blobs that are divisible by 1000. Make them fail for 10000 slots
+	// so that they will eventually succeed (to test retries being successful).
+	if req.Slot.Unwrap()%1000 == 0 && headSlot.Unwrap() > req.Slot.Unwrap()+10000 {
+		br.logger.Warn("TESTING: Simulating blob request failure", "slot", req.Slot.Unwrap())
+		errorMsg = "simulated failure for testing"
+	} else {
+		var err error
+		sidecarBzs, err = br.blobStore.GetByIndex(req.Slot.Unwrap())
+		if err != nil {
+			br.logger.Error("Failed to fetch blobs from storage", "slot", req.Slot.Unwrap(), "request_id", req.RequestID, "error", err)
+			errorMsg = err.Error()
+		}
 	}
 
 	resp := &BlobResponse{
