@@ -25,6 +25,7 @@ import (
 
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/da/blobreactor"
 	"github.com/berachain/beacon-kit/log/phuslu"
@@ -39,6 +40,7 @@ type BlobFetcherInput struct {
 
 	BlobProcessor  BlobProcessor
 	BlobReactor    *blobreactor.BlobReactor
+	ChainSpec      chain.Spec
 	Logger         *phuslu.Logger
 	StorageBackend *storage.Backend
 	AppOpts        config.AppOptions
@@ -52,5 +54,6 @@ func ProvideBlobFetcher(in BlobFetcherInput) (blockchain.BlobFetcher, error) {
 		in.BlobProcessor,
 		in.BlobReactor,
 		in.StorageBackend,
+		in.ChainSpec,
 	)
 }
