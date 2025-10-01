@@ -56,6 +56,9 @@ type BlobRequester interface {
 	// SetHeadSlot updates the reactor's view of the current blockchain head slot.
 	// Called by the blockchain service after processing each block.
 	SetHeadSlot(slot math.Slot)
+
+	// HeadSlot returns the current blockchain head slot.
+	HeadSlot() math.Slot
 }
 
 // ExecutionEngine is the interface for the execution engine.
@@ -211,6 +214,10 @@ type BlobFetcher interface {
 type PruningChainSpec interface {
 	MinEpochsForBlobsSidecarsRequest() math.Epoch
 	SlotsPerEpoch() uint64
+}
+
+type BlobFetcherChainSpec interface {
+	WithinDAPeriod(block, current math.Slot) bool
 }
 
 type ServiceChainSpec interface {
