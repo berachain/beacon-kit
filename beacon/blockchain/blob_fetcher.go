@@ -39,6 +39,11 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
+const (
+	blobFetchCheckInterval = 1 * time.Minute
+	blobRetryInterval      = 5 * time.Minute
+)
+
 var (
 	errNoMoreRequests = errors.New("no more requests in queue")
 )
@@ -159,7 +164,7 @@ func (bf *blobFetcher) QueueBlobRequest(slot math.Slot, block *ctypes.BeaconBloc
 
 func (bf *blobFetcher) run() {
 	// Ticker to periodically check for requests (both new and ready to retry)
-	ticker := time.NewTicker(1 * time.Minute)
+	ticker := time.NewTicker(blobFetchCheckInterval)
 	defer ticker.Stop()
 
 	for {
@@ -221,7 +226,7 @@ func (bf *blobFetcher) processAllPendingRequests() {
 			continue
 		}
 
-		bf.logger.Warn("Blob fetch failed, will retry in 5 minutes",
+		bf.logger.Warn("Blob fetch failed, will retry later",
 			"slot", request.Header.Slot.Unwrap(),
 			"failure_count", request.FailureCount)
 	}
@@ -273,7 +278,7 @@ func (bf *blobFetcher) getNextRequest() (BlobFetchRequest, string, error) {
 		}
 
 		// Check if this request needs to wait before retry
-		if !request.LastRetryTime.IsZero() && time.Since(request.LastRetryTime) < 5*time.Minute {
+		if !request.LastRetryTime.IsZero() && time.Since(request.LastRetryTime) < blobRetryInterval {
 			continue // Skip, not ready to retry yet
 		}
 
