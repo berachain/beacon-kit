@@ -80,10 +80,16 @@ func NewBlobFetcher(
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// Create queue directory
-	queueDir := filepath.Join(dataDir, "blob_fetcher_queue")
-	if err := os.MkdirAll(queueDir, 0700); err != nil {
+	queueDir := filepath.Join(dataDir, "blobs", "download_queue")
+	if err := os.MkdirAll(queueDir, 0750); err != nil {
 		cancel()
-		return nil, fmt.Errorf("failed to create blob fetcher queue directory: %w", err)
+		return nil, fmt.Errorf("failed to create blob download queue directory: %w", err)
+	}
+
+	// Clean up any leftover temp files in the unlikely event we crashed while writing a request
+	tmpFiles, _ := filepath.Glob(filepath.Join(queueDir, "*.tmp"))
+	for _, tmpFile := range tmpFiles {
+		_ = os.Remove(tmpFile)
 	}
 
 	return &blobFetcher{
