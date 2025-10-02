@@ -18,6 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
+//nolint:paralleltest // Tests cannot run in parallel due to race condition in CometBFT's p2p.MakeConnectedSwitches
 package blobreactor_test
 
 import (
@@ -147,8 +148,6 @@ func stopSwitches(switches []*p2p.Switch) {
 
 // Test basic connectivity and just request blobs from a single peer
 func TestBlobReactor_BasicRequest(t *testing.T) {
-	t.Parallel()
-
 	slot := math.Slot(123)
 	requestingStore := newStubBlobStore()
 	servingStore := newStubBlobStore()
@@ -182,8 +181,6 @@ func TestBlobReactor_BasicRequest(t *testing.T) {
 
 // Test peer retry when first peer has no blobs and second peer succeeds
 func TestBlobReactor_PeerRetry(t *testing.T) {
-	t.Parallel()
-
 	slot := math.Slot(123)
 	requestingStore := newStubBlobStore()
 	unavailableStore := newStubBlobStore() // Empty - will return error
@@ -227,8 +224,6 @@ func TestBlobReactor_PeerRetry(t *testing.T) {
 
 // Test when all peers fail to provide valid blobs
 func TestBlobReactor_AllPeersFailed(t *testing.T) {
-	t.Parallel()
-
 	slot := math.Slot(456)
 
 	// Create stores: requesting (empty), peer (empty - no blobs)
@@ -261,8 +256,6 @@ func TestBlobReactor_AllPeersFailed(t *testing.T) {
 
 // Test request timeout when peer responds too slowly
 func TestBlobReactor_RequestTimeout(t *testing.T) {
-	t.Parallel()
-
 	slot := math.Slot(789)
 
 	requestingStore := newStubBlobStore()
@@ -300,8 +293,6 @@ func TestBlobReactor_RequestTimeout(t *testing.T) {
 
 // Test concurrent requests route responses correctly
 func TestBlobReactor_ConcurrentRequests(t *testing.T) {
-	t.Parallel()
-
 	requestingStore := newStubBlobStore()
 	servingStore := newStubBlobStore()
 
@@ -375,8 +366,6 @@ func TestBlobReactor_ConcurrentRequests(t *testing.T) {
 
 // Test that verifier correctly rejects then accepts blobs
 func TestBlobReactor_VerifierFunctionality(t *testing.T) {
-	t.Parallel()
-
 	slot := math.Slot(567)
 	requestingStore := newStubBlobStore()
 	servingStore := newStubBlobStore()
