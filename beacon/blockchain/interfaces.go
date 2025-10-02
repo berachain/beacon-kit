@@ -51,14 +51,9 @@ type BlobRequester interface {
 	// The verifier function is called to validate blobs before returning.
 	// If verification fails, it tries the next peer until valid blobs are found.
 	// Returns all blob sidecars for the slot, or an error if none could be retrieved.
-	RequestBlobs(slot math.Slot, expectedBlobs int, verifier func(datypes.BlobSidecars) error) ([]*datypes.BlobSidecar, error)
-
-	// SetHeadSlot updates the reactor's view of the current blockchain head slot.
-	// Called by the blockchain service after processing each block.
+	RequestBlobs(ctx context.Context, slot math.Slot, verifier func(datypes.BlobSidecars) error) ([]*datypes.BlobSidecar, error)
+	// SetHeadSlot updates the requester's view of the current blockchain head slot.
 	SetHeadSlot(slot math.Slot)
-
-	// HeadSlot returns the current blockchain head slot.
-	HeadSlot() math.Slot
 }
 
 // ExecutionEngine is the interface for the execution engine.
@@ -198,7 +193,7 @@ type BlobProcessor interface {
 // BlobFetcher is the interface for asynchronously fetching blobs.
 type BlobFetcher interface {
 	// Start begins the background blob fetching process.
-	Start()
+	Start(ctx context.Context)
 	// Stop gracefully shuts down the blob fetcher.
 	Stop()
 	// QueueBlobRequest queues a request to fetch blobs for a specific slot.
