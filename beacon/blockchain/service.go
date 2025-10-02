@@ -108,7 +108,7 @@ func (s *Service) Name() string {
 // Start starts the blockchain service.
 func (s *Service) Start(ctx context.Context) error {
 	// Start the blob fetcher in the background.
-	s.blobFetcher.Start()
+	s.blobFetcher.Start(ctx)
 
 	// Catchup deposits for failed blocks. TODO: remove.
 	go s.depositCatchupFetcher(ctx)

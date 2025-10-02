@@ -41,6 +41,9 @@ const (
 	// BlobChannel is our custom channel ID for blob requests/responses
 	BlobChannel = byte(0x70)
 
+	// ReactorName is the registered name for the blob reactor in CometBFT's switch
+	ReactorName = "BLOBREACTOR"
+
 	defaultSleepDuration       = 100 * time.Millisecond
 	defaultPriority            = 5
 	defaultSendQueueCapacity   = 100
@@ -87,7 +90,7 @@ func NewBlobReactor(blobStore BlobStore, logger log.Logger, cfg Config) *BlobRea
 		responseChans:  make(map[uint64]chan *BlobResponse),
 		requestWorkers: make(chan struct{}, defaultMaxRequestWorkers),
 	}
-	br.BaseService = *service.NewBaseService(nil, "BlobReactor", br)
+	br.BaseService = *service.NewBaseService(nil, ReactorName, br)
 	return br
 }
 
@@ -225,13 +228,6 @@ func (br *BlobReactor) SetHeadSlot(slot math.Slot) {
 	br.stateMu.Unlock()
 }
 
-// HeadSlot returns the current blockchain head slot.
-func (br *BlobReactor) HeadSlot() math.Slot {
-	br.stateMu.RLock()
-	defer br.stateMu.RUnlock()
-	return br.headSlot
-}
-
 // handleBlobRequest processes incoming blob requests and sends back blobs
 func (br *BlobReactor) handleBlobRequest(peer p2p.Peer, req *BlobRequest) {
 	br.logger.Info("Received blob request", "slot", req.Slot.Unwrap(), "request_id", req.RequestID, "peer", peer.ID())
@@ -244,18 +240,10 @@ func (br *BlobReactor) handleBlobRequest(peer p2p.Peer, req *BlobRequest) {
 	var errorMsg string
 	var sidecarBzs [][]byte
 
-	// TESTING: Simulate failure when requesting blobs that are divisible by 100. Make them fail for 1000 slots
-	// so that they will eventually succeed (to test retries being successful).
-	if req.Slot.Unwrap()%100 == 0 && headSlot.Unwrap() < req.Slot.Unwrap()+1000 {
-		br.logger.Warn("TESTING: Simulating blob request failure", "slot", req.Slot.Unwrap())
-		errorMsg = "simulated failure for testing"
-	} else {
-		var err error
-		sidecarBzs, err = br.blobStore.GetByIndex(req.Slot.Unwrap())
-		if err != nil {
-			br.logger.Error("Failed to fetch blobs from storage", "slot", req.Slot.Unwrap(), "request_id", req.RequestID, "error", err)
-			errorMsg = err.Error()
-		}
+	sidecarBzs, err := br.blobStore.GetByIndex(req.Slot.Unwrap())
+	if err != nil {
+		br.logger.Error("Failed to fetch blobs from storage", "slot", req.Slot.Unwrap(), "request_id", req.RequestID, "error", err)
+		errorMsg = err.Error()
 	}
 
 	resp := &BlobResponse{
@@ -322,9 +310,10 @@ func (br *BlobReactor) handleBlobResponse(peer p2p.Peer, resp *BlobResponse) {
 
 // RequestBlobs fetches all blobs for a given slot from peers.
 // Returns all blob sidecars for the slot, or an error if none could be retrieved.
+// The context controls cancellation and timeout for the entire operation.
 func (br *BlobReactor) RequestBlobs(
+	ctx context.Context,
 	slot math.Slot,
-	expectedBlobs int,
 	verifier func(datypes.BlobSidecars) error) ([]*datypes.BlobSidecar, error) {
 	br.logger.Info("RequestBlobs called", "slot", slot.Unwrap())
 
@@ -343,6 +332,14 @@ func (br *BlobReactor) RequestBlobs(
 
 	// Continue trying while we have untried peers
 	for {
+		// Check context before trying next peer
+		select {
+		case <-ctx.Done():
+			br.logger.Warn("Request cancelled before all peers tried", "slot", slot.Unwrap(), "peers_tried", len(triedPeers))
+			return nil, fmt.Errorf("request cancelled: %w", ctx.Err())
+		default:
+		}
+
 		// Select next untried peer
 		peerID := br.selectUntriedPeer(triedPeers)
 		if peerID == "" {
@@ -354,18 +351,9 @@ func (br *BlobReactor) RequestBlobs(
 		triedPeers[peerID] = true
 
 		// Try to request blobs from this peer
-		sidecars, err := br.requestBlobsFromPeer(peerID, slot)
+		sidecars, err := br.requestBlobsFromPeer(ctx, peerID, slot)
 		if err != nil {
 			br.logger.Warn("Failed to get blobs from peer", "peer", peerID, "error", err)
-			continue
-		}
-
-		if len(sidecars) != expectedBlobs {
-			br.logger.Warn("Received unexpected number of blob sidecars from peer",
-				"peer", peerID,
-				"slot", slot,
-				"expected", expectedBlobs,
-				"actual", len(sidecars))
 			continue
 		}
 
@@ -412,7 +400,7 @@ func (br *BlobReactor) selectUntriedPeer(triedPeers map[p2p.ID]bool) p2p.ID {
 }
 
 // requestBlobsFromPeer sends a blob request to a specific peer and waits for response.
-func (br *BlobReactor) requestBlobsFromPeer(peerID p2p.ID, slot math.Slot) (datypes.BlobSidecars, error) {
+func (br *BlobReactor) requestBlobsFromPeer(ctx context.Context, peerID p2p.ID, slot math.Slot) (datypes.BlobSidecars, error) {
 	peer := br.sw.Peers().Get(peerID)
 	if peer == nil {
 		return nil, fmt.Errorf("peer %s not found", peerID)
@@ -458,8 +446,8 @@ func (br *BlobReactor) requestBlobsFromPeer(peerID p2p.ID, slot math.Slot) (daty
 
 	br.logger.Info("Sent blob request, waiting for response", "slot", slot.Unwrap(), "peer", peerID, "request_id", requestID)
 
-	// Wait for response with timeout
-	ctx, cancel := context.WithTimeout(context.Background(), br.config.RequestTimeout)
+	// Wait for response with timeout, respecting parent context
+	timeoutCtx, cancel := context.WithTimeout(ctx, br.config.RequestTimeout)
 	defer cancel()
 
 	select {
@@ -488,7 +476,10 @@ func (br *BlobReactor) requestBlobsFromPeer(peerID p2p.ID, slot math.Slot) (daty
 
 		return sidecars, nil
 
-	case <-ctx.Done():
+	case <-timeoutCtx.Done():
+		if ctx.Err() != nil {
+			return nil, fmt.Errorf("request cancelled from peer %s: %w", peerID, ctx.Err())
+		}
 		return nil, fmt.Errorf("request timed out from peer %s after %v", peerID, br.config.RequestTimeout)
 	}
 }
