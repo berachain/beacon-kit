@@ -244,9 +244,9 @@ func (br *BlobReactor) handleBlobRequest(peer p2p.Peer, req *BlobRequest) {
 	var errorMsg string
 	var sidecarBzs [][]byte
 
-	// TESTING: Simulate failure when requesting blobs that are divisible by 1000. Make them fail for 10000 slots
+	// TESTING: Simulate failure when requesting blobs that are divisible by 100. Make them fail for 1000 slots
 	// so that they will eventually succeed (to test retries being successful).
-	if req.Slot.Unwrap()%1000 == 0 && headSlot.Unwrap() > req.Slot.Unwrap()+10000 {
+	if req.Slot.Unwrap()%100 == 0 && headSlot.Unwrap() < req.Slot.Unwrap()+1000 {
 		br.logger.Warn("TESTING: Simulating blob request failure", "slot", req.Slot.Unwrap())
 		errorMsg = "simulated failure for testing"
 	} else {
