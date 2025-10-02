@@ -74,7 +74,8 @@ type BlobReactor struct {
 	responseChans map[uint64]chan *BlobResponse // requestID -> response channel
 
 	// Worker pool for controlled concurrency
-	requestWorkers chan struct{} // semaphore for limiting concurrent request handlers
+	requestWorkers chan struct{}  // semaphore for limiting concurrent request handlers
+	workersWg      sync.WaitGroup // tracks active worker goroutines
 
 	// Request ID counter
 	nextRequestID atomic.Uint64 // atomic counter for generating unique request IDs
@@ -176,8 +177,12 @@ func (br *BlobReactor) Receive(envelope p2p.Envelope) {
 
 		select {
 		case br.requestWorkers <- struct{}{}:
+			br.workersWg.Add(1)
 			go func() {
-				defer func() { <-br.requestWorkers }()
+				defer func() {
+					<-br.requestWorkers
+					br.workersWg.Done()
+				}()
 				br.handleBlobRequest(envelope.Src, &req)
 			}()
 		default:
@@ -201,8 +206,12 @@ func (br *BlobReactor) Receive(envelope p2p.Envelope) {
 
 		select {
 		case br.requestWorkers <- struct{}{}:
+			br.workersWg.Add(1)
 			go func() {
-				defer func() { <-br.requestWorkers }()
+				defer func() {
+					<-br.requestWorkers
+					br.workersWg.Done()
+				}()
 				br.handleBlobResponse(envelope.Src, &resp)
 			}()
 		default:
@@ -491,4 +500,7 @@ func (br *BlobReactor) OnStart() error {
 
 func (br *BlobReactor) OnStop() {
 	br.logger.Info("Stopping BlobReactor", "node_key", br.nodeKey)
+
+	// Wait for all worker goroutines to complete
+	br.workersWg.Wait()
 }
