@@ -30,8 +30,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/berachain/beacon-kit/beacon/blockchain"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/execution/requests/eip7251"
 	"github.com/berachain/beacon-kit/log/phuslu"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
 	"github.com/cometbft/cometbft/abci/types"
@@ -186,20 +189,21 @@ func (s *PectraForkSuite) TestTimestampFork_ELAndCLInSync_IsSuccessful() {
 		"Processing block with fork version service=blockchain\u001B[0m block=2\u001B[0m fork=0x04010000\u001B[0m",
 		"Processing block with fork version service=blockchain\u001B[0m block=3\u001B[0m fork=0x04010000\u001B[0m",
 		"Processing block with fork version service=blockchain\u001B[0m block=4\u001B[0m fork=0x04010000\u001B[0m",
-		"Processing block with fork version service=blockchain\u001B[0m block=5\u001B[0m fork=0x05000000\u001B[0m",
-		"Processing block with fork version service=blockchain\u001B[0m block=6\u001B[0m fork=0x05000000\u001B[0m",
+		"Processing block with fork version service=blockchain\u001B[0m block=5\u001B[0m fork=0x04010000\u001B[0m",
+		"Processing block with fork version service=blockchain\u001B[0m block=6\u001B[0m fork=0x04010000\u001B[0m",
 		"Processing block with fork version service=blockchain\u001B[0m block=7\u001B[0m fork=0x05000000\u001B[0m",
 	}
 
-	startHeight := int64(1)
-	iterations := int64(len(expectedMessages))
-	expectedMessagesIdx := 0
-	submitTxNonce := uint64(0)
+	var (
+		startHeight         = int64(1)
+		iterations          = int64(len(expectedMessages))
+		expectedMessagesIdx = 0
+		submitTxNonce       = uint64(0)
+		consensusTime       = time.Unix(startHeight, 0)
+	)
+
 	for currentHeight := startHeight; currentHeight < startHeight+iterations; currentHeight++ {
 		submitTxNonce = s.submitTransactions(submitTxNonce, 100)
-		// We set the consensus time to currentHeight * 2 to mimick a functional 2s block time.
-		// This assumption is not always true but used in a valid test.
-		consensusTime := time.Unix(currentHeight*2, 0)
 		proposal, err := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
 			Height:          currentHeight,
 			Time:            consensusTime,
@@ -214,7 +218,6 @@ func (s *PectraForkSuite) TestTimestampFork_ELAndCLInSync_IsSuccessful() {
 			ProposerAddress: pubkey.Address(),
 			Time:            consensusTime,
 		}
-
 		finalizeRequest := &types.FinalizeBlockRequest{
 			Txs:             proposal.Txs,
 			Height:          currentHeight,
@@ -224,7 +227,21 @@ func (s *PectraForkSuite) TestTimestampFork_ELAndCLInSync_IsSuccessful() {
 		expectedMessage := expectedMessages[expectedMessagesIdx]
 		processFinalizeCommit(s.T(), s.Geth, processRequest, finalizeRequest, expectedMessage)
 		processFinalizeCommit(s.T(), s.Reth, processRequest, finalizeRequest, expectedMessage)
+
 		expectedMessagesIdx++
+
+		// optimistic block building does not offer much control over next block timestamp.
+		// In order to keep consensus and payload timestamps in sync, we specifically set consensus
+		// time for next block to current payload time + 2 seconds (to mimic Stable block time output).
+		forkVersion := s.Geth.TestNode.ChainSpec.ActiveForkVersionForTimestamp(math.U64(consensusTime.Unix())) //#nosec: G115
+		blk, _, err := encoding.ExtractBlobsAndBlockFromRequest(
+			processRequest,
+			blockchain.BeaconBlockTxIndex,
+			blockchain.BlobSidecarsTxIndex,
+			forkVersion,
+		)
+		s.Require().NoError(err)
+		consensusTime = time.Unix(int64(blk.GetTimestamp())+2, 0)
 	}
 }
 
@@ -557,7 +574,7 @@ func processFinalizeCommit(
 	node.LogBuffer.Reset()
 	processResp, err := node.SimComet.Comet.ProcessProposal(node.CtxComet, processRequest)
 	require.NoError(t, err)
-	require.Equal(t, types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
+	require.Equal(t, types.PROCESS_PROPOSAL_STATUS_ACCEPT.String(), processResp.Status.String())
 	require.Contains(t, node.LogBuffer.String(), expectedMessage)
 
 	// Finalize the block
