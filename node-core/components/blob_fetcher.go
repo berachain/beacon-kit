@@ -55,5 +55,6 @@ func ProvideBlobFetcher(in BlobFetcherInput) (blockchain.BlobFetcher, error) {
 		in.BlobReactor,
 		in.StorageBackend,
 		in.ChainSpec,
+		blockchain.DefaultBlobFetcherConfig(),
 	)
 }

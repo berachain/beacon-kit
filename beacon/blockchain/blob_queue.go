@@ -110,6 +110,7 @@ func (q *blobQueue) Add(slot math.Slot, request BlobFetchRequest) error {
 func (q *blobQueue) GetNext(
 	headSlot math.Slot,
 	retryInterval time.Duration,
+	maxRetries int,
 	withinDAPeriod func(block, current math.Slot) bool,
 ) (BlobFetchRequest, string, error) {
 	files, err := os.ReadDir(q.queueDir)
@@ -144,11 +145,11 @@ func (q *blobQueue) GetNext(
 		}
 
 		// Check if request has exceeded max retry limit
-		if request.FailureCount >= maxBlobFetchRetries {
+		if request.FailureCount >= maxRetries {
 			q.logger.Warn("Request exceeded max retry limit, deleting",
 				"slot", request.Header.Slot.Unwrap(),
 				"failure_count", request.FailureCount,
-				"max_retries", maxBlobFetchRetries)
+				"max_retries", maxRetries)
 			_ = q.Remove(filename)
 			continue
 		}
