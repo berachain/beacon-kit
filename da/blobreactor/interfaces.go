@@ -13,18 +13,19 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package encoding
+package blobreactor
 
-import "time"
+// BlobStore is a minimal interface for the BlobReactor to check and serve blobs.
+// This matches the IndexDB interface from the AvailabilityStore.
+type BlobStore interface {
+	// Has checks if a blob exists for the given index and key.
+	Has(index uint64, key []byte) (bool, error)
 
-// ABCIRequest represents the interface for an ABCI request.
-type ABCIRequest interface {
-	// GetTxs returns the transactions included in the request.
-	GetTxs() [][]byte
-	GetTime() time.Time
+	// GetByIndex retrieves all raw blob data for a given index (slot).
+	GetByIndex(index uint64) ([][]byte, error)
 }

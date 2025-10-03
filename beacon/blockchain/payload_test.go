@@ -277,6 +277,7 @@ func setupOptimisticPayloadTests(t *testing.T, cs chain.Spec, optimisticPayloadB
 	chain := blockchain.NewService(
 		sb,
 		nil, // blockchain.BlobProcessor unused in this test
+		nil, // blockchain.BlobRequester unused in this test
 		nil, // deposit.Contract unused in this test
 		logger,
 		cs,

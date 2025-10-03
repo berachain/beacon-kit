@@ -13,30 +13,26 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package cometbft
+package blobreactor
 
-import (
-	"time"
+import "time"
 
-	"github.com/cometbft/cometbft/p2p"
-)
+const defaultRequestTimeout = 5 * time.Second
 
-// BlobReactorI is an interface for the BlobReactor P2P component.
-type BlobReactorI interface {
-	p2p.Reactor
-	// SetNodeKey sets the node Key for the reactor.
-	SetNodeKey(nodeKey string)
+// Config is the configuration for the blob reactor
+type Config struct {
+	// RequestTimeout is the timeout for blob requests
+	RequestTimeout time.Duration `mapstructure:"request-timeout"`
 }
 
-// TelemetrySink is an interface for sending metrics to a telemetry backend.
-type TelemetrySink interface {
-	// IncrementCounter increments a counter for the given key.
-	IncrementCounter(key string, args ...string)
-	// MeasureSince measures the time since the given time.
-	MeasureSince(key string, start time.Time, args ...string)
+// DefaultConfig returns the default configuration
+func DefaultConfig() Config {
+	return Config{
+		RequestTimeout: defaultRequestTimeout,
+	}
 }

@@ -27,36 +27,8 @@ import (
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
+	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
-
-// ExtractBlobsAndBlockFromRequest extracts the blobs and block from an ABCI
-// request.
-func ExtractBlobsAndBlockFromRequest(
-	req ABCIRequest,
-	beaconBlkIndex uint,
-	blobSidecarsIndex uint,
-	forkVersion common.Version,
-) (*ctypes.SignedBeaconBlock, datypes.BlobSidecars, error) {
-	if req == nil {
-		return nil, nil, ErrNilABCIRequest
-	}
-
-	blk, err := UnmarshalBeaconBlockFromABCIRequest(
-		req.GetTxs(),
-		beaconBlkIndex,
-		forkVersion,
-	)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	blobs, err := UnmarshalBlobSidecarsFromABCIRequest(
-		req.GetTxs(),
-		blobSidecarsIndex,
-	)
-
-	return blk, blobs, err
-}
 
 // UnmarshalBeaconBlockFromABCIRequest extracts a beacon block from an ABCI
 // request.
@@ -93,24 +65,75 @@ func UnmarshalBeaconBlockFromABCIRequest(
 	return block, nil
 }
 
-// UnmarshalBlobSidecarsFromABCIRequest extracts blob sidecars from an ABCI
-// request.
-func UnmarshalBlobSidecarsFromABCIRequest(
-	txs [][]byte,
-	bzIndex uint,
-) (datypes.BlobSidecars, error) {
-	if len(txs) == 0 || bzIndex >= uint(len(txs)) {
-		return nil, ErrNoBlobSidecarInRequest
+// UnmarshalBlobSidecarsFromABCIRequest extracts blob sidecars from an ABCI FinalizeBlockRequest based on blob consensus parameters.
+func UnmarshalBlobSidecarsFromABCIRequest(req *cmtabci.FinalizeBlockRequest, blobEnableHeight int64) (datypes.BlobSidecars, error) {
+	if req == nil {
+		return nil, ErrNilABCIRequest
 	}
 
-	sidecarBz := txs[bzIndex]
-	if sidecarBz == nil {
-		return nil, ErrNilBlobSidecarInRequest
+	// Before or at BlobEnableHeight: blobs are in Txs[1] if present
+	if blobEnableHeight <= 0 || req.Height < blobEnableHeight {
+		txs := req.GetTxs()
+		if len(txs) <= 1 {
+			// No sidecars in this block
+			return datypes.BlobSidecars{}, nil
+		}
+
+		sidecarBz := txs[1]
+		if len(sidecarBz) == 0 {
+			return datypes.BlobSidecars{}, nil
+		}
+
+		var sidecars datypes.BlobSidecars
+		if err := ssz.Unmarshal(sidecarBz, &sidecars); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal blobs from Txs[1]: %w", err)
+		}
+
+		return sidecars, nil
+	}
+
+	// After BlobEnableHeight: blobs are distributed via BlobReactor and must be retrieved from cache or storage
+	return datypes.BlobSidecars{}, nil
+}
+
+// ExtractBlobSidecarsFromRequest is a generic helper that extracts blob sidecars from either
+// ProcessProposal or FinalizeBlock requests based on the blob consensus configuration.
+// It handles the transition from storing blobs in Txs to using the BlobReactor.
+func ExtractBlobSidecarsFromRequest(
+	txs [][]byte,
+	blobData []byte,
+	height int64,
+	blobEnableHeight int64,
+) (datypes.BlobSidecars, error) {
+	// Before BlobEnableHeight: blobs are in Txs[1]
+	if blobEnableHeight <= 0 || height < blobEnableHeight {
+		if len(txs) <= 1 {
+			// No sidecars in this block
+			return datypes.BlobSidecars{}, nil
+		}
+
+		sidecarBz := txs[1]
+		if len(sidecarBz) == 0 {
+			return datypes.BlobSidecars{}, nil
+		}
+
+		var sidecars datypes.BlobSidecars
+		if err := ssz.Unmarshal(sidecarBz, &sidecars); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal blobs from Txs[1] at height %d: %w", height, err)
+		}
+
+		return sidecars, nil
+	}
+
+	// After BlobEnableHeight: blobs are in the Blob field
+	if len(blobData) == 0 {
+		return datypes.BlobSidecars{}, nil
 	}
 
 	var sidecars datypes.BlobSidecars
-	if err := ssz.Unmarshal(sidecarBz, &sidecars); err != nil {
-		return nil, err
+	if err := ssz.Unmarshal(blobData, &sidecars); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal blobs from Blob field at height %d: %w", height, err)
 	}
+
 	return sidecars, nil
 }
