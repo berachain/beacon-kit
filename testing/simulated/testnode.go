@@ -78,6 +78,9 @@ type TestNode struct {
 	ServiceRegistry *service.Registry
 	KZGVerifier     kzg.BlobProofVerifier
 	ContractBackend *ethclient.Client
+	BlobFetcher     blockchain.BlobFetcher
+	BlobReactor     blockchain.BlobRequester
+	BlobProcessor   blockchain.BlobProcessor
 }
 
 // NewTestNode Uses the testnet chainspec.
@@ -133,6 +136,9 @@ func buildNode(
 		stateProcessor  *core.StateProcessor
 		serviceRegistry *service.Registry
 		kzgVerifier     kzg.BlobProofVerifier
+		blobFetcher     blockchain.BlobFetcher
+		blobReactor     blockchain.BlobRequester
+		blobProcessor   blockchain.BlobProcessor
 	)
 
 	// build all node components using depinject
@@ -158,6 +164,9 @@ func buildNode(
 		&stateProcessor,
 		&serviceRegistry,
 		&kzgVerifier,
+		&blobFetcher,
+		&blobReactor,
+		&blobProcessor,
 	); err != nil {
 		panic(err)
 	}
@@ -179,6 +188,9 @@ func buildNode(
 		StateProcessor:  stateProcessor,
 		ServiceRegistry: serviceRegistry,
 		KZGVerifier:     kzgVerifier,
+		BlobFetcher:     blobFetcher,
+		BlobReactor:     blobReactor,
+		BlobProcessor:   blobProcessor,
 	}
 }
 
