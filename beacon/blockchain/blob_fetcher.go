@@ -32,11 +32,26 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-const (
-	blobFetchCheckInterval = 1 * time.Minute
-	blobRetryInterval      = 5 * time.Minute
-	maxBlobFetchRetries    = 72 // 6 hours at 5 minute intervals
-)
+// BlobFetcherConfig contains configuration for the blob fetcher.
+type BlobFetcherConfig struct {
+	// CheckInterval is how often to check the queue for pending requests
+	CheckInterval time.Duration
+	// RetryInterval is the minimum time between retry attempts per blob request
+	RetryInterval time.Duration
+	// MaxRetries is the maximum number of retry attempts per blob request before giving up and deleting it
+	MaxRetries int
+}
+
+// DefaultBlobFetcherConfig returns the default configuration.
+//
+//nolint:mnd // Just defaults
+func DefaultBlobFetcherConfig() BlobFetcherConfig {
+	return BlobFetcherConfig{
+		CheckInterval: 1 * time.Minute,
+		RetryInterval: 5 * time.Minute,
+		MaxRetries:    72, // 6 hours at 5 minute intervals
+	}
+}
 
 // blobFetcher handles asynchronous fetching of blobs in the background.
 type blobFetcher struct {
@@ -44,6 +59,7 @@ type blobFetcher struct {
 	chainSpec BlobFetcherChainSpec
 	queue     *blobQueue         // Queue for persistent requests
 	executor  *blobFetchExecutor // Executor for fetch logic
+	config    BlobFetcherConfig  // Configuration
 
 	// We need to track current head slot so we know when blob download requests need to be pruned as they are outside the WithinDAPeriod
 	headSlotMu sync.RWMutex
@@ -62,6 +78,7 @@ func NewBlobFetcher(
 	blobRequester BlobRequester,
 	storageBackend StorageBackend,
 	chainSpec BlobFetcherChainSpec,
+	config BlobFetcherConfig,
 ) (BlobFetcher, error) {
 	queue, err := newBlobQueue(filepath.Join(dataDir, "blobs", "download_queue"), logger)
 	if err != nil {
@@ -72,6 +89,7 @@ func NewBlobFetcher(
 		logger:    logger,
 		chainSpec: chainSpec,
 		queue:     queue,
+		config:    config,
 		executor: &blobFetchExecutor{
 			blobProcessor:  blobProcessor,
 			blobRequester:  blobRequester,
@@ -126,7 +144,7 @@ func (bf *blobFetcher) QueueBlobRequest(slot math.Slot, block *ctypes.BeaconBloc
 
 func (bf *blobFetcher) run() {
 	// Ticker to periodically check for requests (both new and ready to retry)
-	ticker := time.NewTicker(blobFetchCheckInterval)
+	ticker := time.NewTicker(bf.config.CheckInterval)
 	defer ticker.Stop()
 
 	for {
@@ -155,7 +173,7 @@ func (bf *blobFetcher) processAllPendingRequests() {
 		headSlot := bf.headSlot
 		bf.headSlotMu.RUnlock()
 
-		request, filename, err := bf.queue.GetNext(headSlot, blobRetryInterval, bf.chainSpec.WithinDAPeriod)
+		request, filename, err := bf.queue.GetNext(headSlot, bf.config.RetryInterval, bf.config.MaxRetries, bf.chainSpec.WithinDAPeriod)
 		if err != nil {
 			if errors.Is(err, errNoMoreRequests) {
 				return

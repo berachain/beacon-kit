@@ -74,6 +74,7 @@ func TestBlobQueue_RetryLogic(t *testing.T) {
 	require.NoError(t, err)
 
 	withinDA := func(_, _ math.Slot) bool { return true }
+	maxRetries := 72
 
 	// Request with recent retry should be skipped
 	request := createTestBlobRequest(math.Slot(100), 1)
@@ -82,7 +83,7 @@ func TestBlobQueue_RetryLogic(t *testing.T) {
 	require.NoError(t, marshalErr)
 	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "0000000100.json"), data, 0600))
 
-	_, _, err = queue.GetNext(math.Slot(200), 5*time.Minute, withinDA)
+	_, _, err = queue.GetNext(math.Slot(200), 5*time.Minute, maxRetries, withinDA)
 	require.Error(t, err)
 	require.Equal(t, errNoMoreRequests, err, "should skip request not ready for retry")
 
@@ -92,7 +93,7 @@ func TestBlobQueue_RetryLogic(t *testing.T) {
 	require.NoError(t, marshalErr)
 	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "0000000100.json"), data, 0600))
 
-	got, _, err := queue.GetNext(math.Slot(200), 5*time.Minute, withinDA)
+	got, _, err := queue.GetNext(math.Slot(200), 5*time.Minute, maxRetries, withinDA)
 	require.NoError(t, err, "should return request ready for retry")
 	require.Equal(t, math.Slot(100), got.Header.Slot)
 }
@@ -115,7 +116,8 @@ func TestBlobQueue_AvailabilityWindow(t *testing.T) {
 
 	// GetNext with request outside DA window should delete it
 	withinDAPeriod := func(_, _ math.Slot) bool { return false }
-	_, _, err = queue.GetNext(math.Slot(1000), 1*time.Minute, withinDAPeriod)
+	maxRetries := 72
+	_, _, err = queue.GetNext(math.Slot(1000), 1*time.Minute, maxRetries, withinDAPeriod)
 	require.Error(t, err)
 	require.Equal(t, errNoMoreRequests, err)
 
@@ -158,6 +160,7 @@ func TestBlobQueue_ProcessingOrder(t *testing.T) {
 	require.NoError(t, err)
 
 	withinDA := func(_, _ math.Slot) bool { return true }
+	maxRetries := 72
 
 	// Add requests out of order
 	slots := []math.Slot{200, 100, 150}
@@ -168,14 +171,14 @@ func TestBlobQueue_ProcessingOrder(t *testing.T) {
 	// Should process in ascending slot order (lexicographic filename order)
 	expected := []math.Slot{100, 150, 200}
 	for _, expectedSlot := range expected {
-		got, filename, getErr := queue.GetNext(math.Slot(300), 1*time.Minute, withinDA)
+		got, filename, getErr := queue.GetNext(math.Slot(300), 1*time.Minute, maxRetries, withinDA)
 		require.NoError(t, getErr)
 		require.Equal(t, expectedSlot, got.Header.Slot)
 		require.NoError(t, queue.Remove(filename))
 	}
 
 	// Queue should be empty
-	_, _, err = queue.GetNext(math.Slot(300), 1*time.Minute, withinDA)
+	_, _, err = queue.GetNext(math.Slot(300), 1*time.Minute, maxRetries, withinDA)
 	require.Error(t, err)
 	require.Equal(t, errNoMoreRequests, err)
 }
@@ -188,10 +191,11 @@ func TestBlobQueue_MaxRetryLimit(t *testing.T) {
 	require.NoError(t, err)
 
 	withinDA := func(_, _ math.Slot) bool { return true }
+	maxRetries := 72
 
 	// Create request that has exceeded retry limit
 	request := createTestBlobRequest(math.Slot(100), 2)
-	request.FailureCount = maxBlobFetchRetries // At the limit
+	request.FailureCount = maxRetries // At the limit
 	data, marshalErr := json.Marshal(request)
 	require.NoError(t, marshalErr)
 
@@ -199,7 +203,7 @@ func TestBlobQueue_MaxRetryLimit(t *testing.T) {
 	require.NoError(t, os.WriteFile(filename, data, 0600))
 
 	// GetNext should delete the request and return errNoMoreRequests
-	_, _, err = queue.GetNext(math.Slot(200), 1*time.Minute, withinDA)
+	_, _, err = queue.GetNext(math.Slot(200), 1*time.Minute, maxRetries, withinDA)
 	require.Error(t, err)
 	require.Equal(t, errNoMoreRequests, err)
 
@@ -216,10 +220,11 @@ func TestBlobQueue_UnderRetryLimit(t *testing.T) {
 	require.NoError(t, err)
 
 	withinDA := func(_, _ math.Slot) bool { return true }
+	maxRetries := 72
 
 	// Create request with failures but under the limit
 	request := createTestBlobRequest(math.Slot(100), 2)
-	request.FailureCount = maxBlobFetchRetries - 1            // One below limit
+	request.FailureCount = maxRetries - 1                     // One below limit
 	request.LastRetryTime = time.Now().Add(-10 * time.Minute) // Ready to retry
 	data, marshalErr := json.Marshal(request)
 	require.NoError(t, marshalErr)
@@ -228,9 +233,9 @@ func TestBlobQueue_UnderRetryLimit(t *testing.T) {
 	require.NoError(t, os.WriteFile(filename, data, 0600))
 
 	// GetNext should return the request (not delete it)
-	got, gotFilename, err := queue.GetNext(math.Slot(200), 1*time.Minute, withinDA)
+	got, gotFilename, err := queue.GetNext(math.Slot(200), 1*time.Minute, maxRetries, withinDA)
 	require.NoError(t, err)
 	require.Equal(t, math.Slot(100), got.Header.Slot)
 	require.Equal(t, filename, gotFilename)
-	require.Equal(t, maxBlobFetchRetries-1, got.FailureCount)
+	require.Equal(t, maxRetries-1, got.FailureCount)
 }
