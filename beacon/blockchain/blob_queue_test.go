@@ -239,3 +239,40 @@ func TestBlobQueue_UnderRetryLimit(t *testing.T) {
 	require.Equal(t, filename, gotFilename)
 	require.Equal(t, maxRetries-1, got.FailureCount)
 }
+
+// Test that corrupted JSON files are renamed to .corrupted and not processed
+func TestBlobQueue_CorruptedFileHandling(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+	queue, err := newBlobQueue(tmpDir, log.NewNopLogger())
+	require.NoError(t, err)
+
+	withinDA := func(_, _ math.Slot) bool { return true }
+	maxRetries := 72
+
+	// Create a corrupted JSON file (invalid JSON syntax)
+	corruptedFilename := filepath.Join(tmpDir, "0000000100.json")
+	corruptedData := []byte(`{"header":{"slot":100},"commitments":[INVALID JSON}`)
+	require.NoError(t, os.WriteFile(corruptedFilename, corruptedData, 0600))
+
+	// Create a valid request to ensure queue continues processing
+	validSlot := math.Slot(101)
+	require.NoError(t, queue.Add(validSlot, createTestBlobRequest(validSlot, 1)))
+
+	// Verify corrupted file exists before processing
+	_, err = os.Stat(corruptedFilename)
+	require.NoError(t, err, "corrupted file should exist")
+
+	// GetNext should skip corrupted file and process valid one
+	got, _, err := queue.GetNext(math.Slot(200), 1*time.Minute, maxRetries, withinDA)
+	require.NoError(t, err, "should process valid request despite corrupted file")
+	require.Equal(t, validSlot, got.Header.Slot)
+
+	// Verify corrupted file was renamed to .corrupted
+	_, err = os.Stat(corruptedFilename)
+	require.True(t, os.IsNotExist(err), "original corrupted file should not exist")
+
+	renamedFile := corruptedFilename + ".corrupted"
+	_, err = os.Stat(renamedFile)
+	require.NoError(t, err, "corrupted file should be renamed to .corrupted")
+}
