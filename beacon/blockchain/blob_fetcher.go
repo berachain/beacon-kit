@@ -192,6 +192,11 @@ func (bf *blobFetcher) processAllPendingRequests() {
 			continue
 		}
 
+		// Check if error is due to context cancellation (shutdown)
+		if errors.Is(err, context.Canceled) {
+			return
+		}
+
 		bf.logger.Error("Failed to process blob fetch request", "slot", request.Header.Slot.Unwrap(), "error", err)
 
 		// Update retry metadata and save back to file

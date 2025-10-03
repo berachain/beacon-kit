@@ -51,6 +51,8 @@ const (
 	defaultRecvMessageCapacity = 1024 * 1024
 
 	defaultMaxRequestWorkers = 10
+
+	maxBlobsPerBlock = 6
 )
 
 // BlobReactor handles P2P blob distribution for BeaconKit.
@@ -79,6 +81,9 @@ type BlobReactor struct {
 
 	// Request ID counter
 	nextRequestID atomic.Uint64 // atomic counter for generating unique request IDs
+
+	// Shutdown flag to prevent new workers during stop
+	stopped atomic.Bool // set to true when OnStop begins
 }
 
 // NewBlobReactor creates a new blob reactor with storage backend
@@ -140,9 +145,38 @@ func (br *BlobReactor) RemovePeer(peer p2p.Peer, reason interface{}) {
 	br.logger.Info("Removed peer", "peer", peer.ID(), "reason", reason)
 }
 
+// spawnWorker attempts to spawn a worker goroutine to handle the given task.
+// Returns true if worker was spawned, false if pool is full or reactor is stopped.
+func (br *BlobReactor) spawnWorker(task func(), peerID p2p.ID, taskType string) {
+	select {
+	case br.requestWorkers <- struct{}{}:
+		// Double-check stopped flag after acquiring worker slot to prevent race
+		if br.stopped.Load() {
+			<-br.requestWorkers // Release slot
+			br.logger.Debug("Dropping message, reactor stopped during worker acquisition", "peer", peerID, "task_type", taskType)
+			return
+		}
+		br.workersWg.Add(1)
+		go func() {
+			defer func() {
+				<-br.requestWorkers
+				br.workersWg.Done()
+			}()
+			task()
+		}()
+	default:
+		br.logger.Warn("Worker pool full, dropping message", "peer", peerID, "task_type", taskType)
+	}
+}
+
 // Receive is called by the switch when an envelope is received from any connected
 // peer on any of the channels registered by the reactor
 func (br *BlobReactor) Receive(envelope p2p.Envelope) {
+	// Ignore messages if reactor is stopped
+	if br.stopped.Load() {
+		return
+	}
+
 	br.logger.Info("Received message on BlobChannel",
 		"peer", envelope.Src.ID(),
 		"channel", envelope.ChannelID,
@@ -175,22 +209,10 @@ func (br *BlobReactor) Receive(envelope p2p.Envelope) {
 		}
 		br.logger.Info("Received blob request", "slot", req.Slot.Unwrap(), "request_id", req.RequestID, "peer", envelope.Src.ID())
 
-		select {
-		case br.requestWorkers <- struct{}{}:
-			br.workersWg.Add(1)
-			go func() {
-				defer func() {
-					<-br.requestWorkers
-					br.workersWg.Done()
-				}()
-				br.handleBlobRequest(envelope.Src, &req)
-			}()
-		default:
-			br.logger.Warn("Worker pool full, dropping blob request",
-				"slot", req.Slot,
-				"request_id", req.RequestID,
-				"peer", envelope.Src.ID())
+		handleRequest := func() {
+			br.handleBlobRequest(envelope.Src, &req)
 		}
+		br.spawnWorker(handleRequest, envelope.Src.ID(), "request")
 
 	case MessageTypeResponse:
 		var resp BlobResponse
@@ -204,22 +226,10 @@ func (br *BlobReactor) Receive(envelope p2p.Envelope) {
 			"peer", envelope.Src.ID(),
 			"sidecar_data_size", len(resp.SidecarData))
 
-		select {
-		case br.requestWorkers <- struct{}{}:
-			br.workersWg.Add(1)
-			go func() {
-				defer func() {
-					<-br.requestWorkers
-					br.workersWg.Done()
-				}()
-				br.handleBlobResponse(envelope.Src, &resp)
-			}()
-		default:
-			br.logger.Warn("Worker pool full, dropping response",
-				"slot", resp.Slot.Unwrap(),
-				"request_id", resp.RequestID,
-				"peer", envelope.Src.ID())
+		handleResponse := func() {
+			br.handleBlobResponse(envelope.Src, &resp)
 		}
+		br.spawnWorker(handleResponse, envelope.Src.ID(), "response")
 
 	default:
 		br.logger.Warn("Received unknown message type", "type", msgType, "peer", envelope.Src.ID())
@@ -409,6 +419,8 @@ func (br *BlobReactor) selectUntriedPeer(triedPeers map[p2p.ID]bool) p2p.ID {
 }
 
 // requestBlobsFromPeer sends a blob request to a specific peer and waits for response.
+//
+//nolint:gocognit // consider refactoring if this grows more complex
 func (br *BlobReactor) requestBlobsFromPeer(ctx context.Context, peerID p2p.ID, slot math.Slot) (datypes.BlobSidecars, error) {
 	peer := br.sw.Peers().Get(peerID)
 	if peer == nil {
@@ -472,8 +484,16 @@ func (br *BlobReactor) requestBlobsFromPeer(ctx context.Context, peerID p2p.ID, 
 			return nil, fmt.Errorf("peer %s reported error: %s", peerID, resp.Error)
 		}
 
+		if resp.Slot != slot {
+			return nil, fmt.Errorf("peer %s returned wrong slot: expected %d, got %d", peerID, slot.Unwrap(), resp.Slot.Unwrap())
+		}
+
 		if resp.HeadSlot < resp.Slot {
 			return nil, fmt.Errorf("peer %s head (%d) not at requested slot (%d)", peerID, resp.HeadSlot.Unwrap(), resp.Slot.Unwrap())
+		}
+
+		if len(resp.SidecarData) > defaultRecvMessageCapacity {
+			return nil, fmt.Errorf("peer %s sent oversized response: %d bytes (max %d)", peerID, len(resp.SidecarData), defaultRecvMessageCapacity)
 		}
 
 		var sidecars datypes.BlobSidecars
@@ -481,6 +501,10 @@ func (br *BlobReactor) requestBlobsFromPeer(ctx context.Context, peerID p2p.ID, 
 			if err = ssz.Unmarshal(resp.SidecarData, &sidecars); err != nil {
 				return nil, fmt.Errorf("failed to unmarshal sidecars from peer %s: %w", peerID, err)
 			}
+		}
+
+		if len(sidecars) > maxBlobsPerBlock {
+			return nil, fmt.Errorf("peer %s sent too many blobs: %d (max %d)", peerID, len(sidecars), maxBlobsPerBlock)
 		}
 
 		return sidecars, nil
@@ -501,6 +525,12 @@ func (br *BlobReactor) OnStart() error {
 func (br *BlobReactor) OnStop() {
 	br.logger.Info("Stopping BlobReactor", "node_key", br.nodeKey)
 
+	// Set stop flag to prevent new workers from being spawned
+	// This must happen before waiting for existing workers
+	br.stopped.Store(true)
+
 	// Wait for all worker goroutines to complete
 	br.workersWg.Wait()
+
+	br.logger.Info("BlobReactor stopped, all workers completed")
 }
