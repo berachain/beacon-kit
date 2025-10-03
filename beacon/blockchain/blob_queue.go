@@ -131,7 +131,17 @@ func (q *blobQueue) GetNext(
 
 		var request BlobFetchRequest
 		if err = json.Unmarshal(fileData, &request); err != nil {
-			return BlobFetchRequest{}, filename, fmt.Errorf("failed to unmarshal request: %w", err)
+			// Non retryable error, rename to .corrupted for manual investigation
+			corruptedFile := filename + ".corrupted"
+			q.logger.Error("Failed to unmarshal request, marking as corrupted",
+				"file", filename,
+				"corrupted_file", corruptedFile,
+				"error", err)
+			if renameErr := os.Rename(filename, corruptedFile); renameErr != nil {
+				q.logger.Error("Failed to rename corrupted file, deleting instead", "file", filename, "error", renameErr)
+				_ = os.Remove(filename)
+			}
+			continue
 		}
 
 		// Check if request is outside availability window
@@ -184,8 +194,13 @@ func (q *blobQueue) UpdateRetry(filename string, request BlobFetchRequest) error
 		return fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	if err = os.WriteFile(filename, data, 0600); err != nil {
-		return fmt.Errorf("failed to update request: %w", err)
+	tempFile := filename + ".tmp"
+	if writeErr := os.WriteFile(tempFile, data, 0600); writeErr != nil {
+		return fmt.Errorf("failed to write temp request: %w", writeErr)
+	}
+	if renameErr := os.Rename(tempFile, filename); renameErr != nil {
+		_ = os.Remove(tempFile)
+		return fmt.Errorf("failed to rename request: %w", renameErr)
 	}
 
 	return nil

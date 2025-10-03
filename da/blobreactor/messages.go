@@ -32,6 +32,8 @@ import (
 	karalabessz "github.com/karalabe/ssz"
 )
 
+const maxErrorMsgLen = 256
+
 // BlobMessage wraps our messages for CometBFT
 // This implements proto.Message interface for CometBFT compatibility
 type BlobMessage struct {
@@ -176,10 +178,10 @@ func (r *BlobResponse) DefineSSZ(*karalabessz.Codec) {
 //
 //nolint:mnd // ok for now
 func (r *BlobResponse) MarshalSSZ() ([]byte, error) {
-	// Limit error message to 256 bytes to prevent buffer issues
+	// Limit error message to prevent buffer issues
 	errorBytes := []byte(r.Error)
-	if len(errorBytes) > 256 {
-		errorBytes = errorBytes[:256]
+	if len(errorBytes) > maxErrorMsgLen {
+		errorBytes = errorBytes[:maxErrorMsgLen]
 	}
 
 	// Total size: slot (8) + request_id (8) + head_slot (8) + error_len (2) + error_str + offset (4) + sidecar data
@@ -239,6 +241,11 @@ func (r *BlobResponse) UnmarshalSSZ(buf []byte) error {
 
 	// Read error length (2 bytes)
 	errorLen := binary.LittleEndian.Uint16(buf[24:26])
+
+	// Validate error length matches marshal limit
+	if errorLen > maxErrorMsgLen {
+		return fmt.Errorf("error message too long: %d bytes (max %d)", errorLen, maxErrorMsgLen)
+	}
 
 	pos := 26
 
