@@ -135,6 +135,7 @@ func (s *Service) FinalizeSidecars(
 		// Queue the blob fetch request to be handled asynchronously
 		err := s.blobFetcher.QueueBlobRequest(blk.GetSlot(), blk)
 		if err != nil {
+			// TODO: should we log and continue here instead of erroring out?
 			return fmt.Errorf("failed to queue blob fetch request for slot %d: %w", blk.GetSlot().Unwrap(), err)
 		}
 
