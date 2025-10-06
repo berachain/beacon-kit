@@ -51,20 +51,22 @@ func TestBlobResponse_SSZ(t *testing.T) {
 	t.Run("without sidecars", func(t *testing.T) {
 		original := &blobreactor.BlobResponse{
 			Slot:        42,
-			SidecarData: nil,
+			RequestID:   123,
 			HeadSlot:    100,
+			SidecarData: nil,
 		}
 
 		// Marshal
 		data, err := original.MarshalSSZ()
 		require.NoError(t, err)
-		require.GreaterOrEqual(t, len(data), 20, "BlobResponse should be at least 20 bytes")
+		require.GreaterOrEqual(t, len(data), 28, "BlobResponse should be at least 28 bytes (fixed size)")
 
 		// Unmarshal
 		decoded := &blobreactor.BlobResponse{}
 		err = decoded.UnmarshalSSZ(data)
 		require.NoError(t, err)
 		require.Equal(t, original.Slot, decoded.Slot)
+		require.Equal(t, original.RequestID, decoded.RequestID)
 		require.Equal(t, original.HeadSlot, decoded.HeadSlot)
 		require.Empty(t, decoded.SidecarData)
 	})
@@ -77,20 +79,22 @@ func TestBlobResponse_SSZ(t *testing.T) {
 
 		original := &blobreactor.BlobResponse{
 			Slot:        100,
-			SidecarData: sidecarData,
+			RequestID:   456,
 			HeadSlot:    200,
+			SidecarData: sidecarData,
 		}
 
 		// Marshal
 		data, err := original.MarshalSSZ()
 		require.NoError(t, err)
-		require.Greater(t, len(data), 20, "BlobResponse with sidecars should be > 20 bytes")
+		require.Greater(t, len(data), 28, "BlobResponse with sidecars should be > 28 bytes")
 
 		// Unmarshal
 		decoded := &blobreactor.BlobResponse{}
 		err = decoded.UnmarshalSSZ(data)
 		require.NoError(t, err)
 		require.Equal(t, original.Slot, decoded.Slot)
+		require.Equal(t, original.RequestID, decoded.RequestID)
 		require.Equal(t, original.HeadSlot, decoded.HeadSlot)
 		require.NotEmpty(t, decoded.SidecarData)
 
@@ -113,7 +117,7 @@ func TestSSZ_InvalidData(t *testing.T) {
 
 	t.Run("BlobResponse too short", func(t *testing.T) {
 		resp := &blobreactor.BlobResponse{}
-		err := resp.UnmarshalSSZ([]byte{1, 2, 3, 4, 5}) // Only 5 bytes, need 20
+		err := resp.UnmarshalSSZ([]byte{1, 2, 3, 4, 5}) // Only 5 bytes, need at least 28
 		require.Error(t, err)
 	})
 }

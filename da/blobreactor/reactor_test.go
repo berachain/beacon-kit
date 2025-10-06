@@ -243,7 +243,10 @@ func TestBlobReactor_AllPeersFailed(t *testing.T) {
 		r.SetHeadSlot(slot + 10)
 	}
 
-	verifier := func(_ datypes.BlobSidecars) error {
+	verifier := func(sidecars datypes.BlobSidecars) error {
+		if len(sidecars) == 0 {
+			return errors.New("expected blobs but got none")
+		}
 		return nil
 	}
 
