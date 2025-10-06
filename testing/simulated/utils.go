@@ -33,8 +33,10 @@ import (
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
+	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/da/kzg"
 	"github.com/berachain/beacon-kit/da/kzg/gokzg"
 	"github.com/berachain/beacon-kit/errors"
@@ -128,14 +130,15 @@ func (s *SharedAccessors) MoveChainToHeight(
 		require.Len(t, proposal.Txs, 2)
 
 		// Process the proposal.
-		processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
+		processReq := &types.ProcessProposalRequest{
 			Txs:             proposal.Txs,
 			Height:          currentHeight,
 			ProposerAddress: pubkey.Address(),
 			Time:            proposalTime,
-		})
+		}
+		processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, processReq)
 		require.NoError(t, err)
-		require.Equal(t, types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
+		require.Equal(t, types.PROCESS_PROPOSAL_STATUS_ACCEPT.String(), processResp.Status.String())
 
 		// Finalize the block.
 		finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.FinalizeBlockRequest{
@@ -155,7 +158,21 @@ func (s *SharedAccessors) MoveChainToHeight(
 		proposedCometBlocks = append(proposedCometBlocks, proposal)
 		finalizedResponses = append(finalizedResponses, finalizeResp)
 
-		proposalTime = proposalTime.Add(time.Duration(s.TestNode.ChainSpec.TargetSecondsPerEth1Block()) * time.Second)
+		// set consensus time for the next block to match
+		// the timestamp of the payload built optimistically.
+		forkVersion := s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(math.U64(proposalTime.Unix())) //#nosec: G115
+		blk, _, err := encoding.ExtractBlobsAndBlockFromRequest(
+			processReq,
+			blockchain.BeaconBlockTxIndex,
+			blockchain.BlobSidecarsTxIndex,
+			forkVersion,
+		)
+		require.NoError(t, err)
+		proposalTime = time.Unix(
+			int64(payloadtime.Next(blk.GetTimestamp(), blk.GetTimestamp(), true)),
+			0,
+		)
+		// proposalTime = proposalTime.Add(time.Duration(s.TestNode.ChainSpec.TargetSecondsPerEth1Block()) * time.Second)
 	}
 	return proposedCometBlocks, finalizedResponses, proposalTime
 }

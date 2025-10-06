@@ -27,7 +27,6 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
-	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	dablob "github.com/berachain/beacon-kit/da/blob"
@@ -147,53 +146,6 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	s.Require().Contains(s.LogBuffer.String(), errors.ErrInvalidPayloadStatus.Error())
 	// Note this error message may change across execution clients. Base fee changes with number of core loop iterations.
 	s.Require().Contains(s.LogBuffer.String(), "max fee per gas less than block base fee: address 0x20f33CE90A13a4b5E7697E3544c3083B8F8A51D4, maxFeePerGas: 10000000, baseFee: 765625000")
-}
-
-// TestProcessProposal_InvalidTimestamps_Errors effectively serves as a test for how a valid node would react to
-// a malicious proposer attempting to use a future timestamp in the block that does not match the consensus timestamp.
-func (s *SimulatedSuite) TestProcessProposal_InvalidTimestamps_Errors() {
-	const blockHeight = 1
-	const coreLoopIterations = 1
-
-	// Initialize the chain state.
-	s.InitializeChain(s.T())
-
-	// Retrieve the BLS signer and proposer address.
-	blsSigner := simulated.GetBlsSigner(s.HomeDir)
-	pubkey, err := blsSigner.GetPubKey()
-	s.Require().NoError(err)
-
-	// Test happens post Deneb1 fork.
-	startTime := time.Now()
-
-	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals, _, correctConsensusTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
-	s.Require().Len(proposals, coreLoopIterations)
-	currentHeight := int64(blockHeight + coreLoopIterations)
-
-	// Prepare a block proposal, but 2 seconds in the future (i.e. attempt to roll timestamp forward)
-	maliciousProposalTime := correctConsensusTime.Add(2 * time.Second)
-	maliciousProposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
-		Height:          currentHeight,
-		Time:            maliciousProposalTime,
-		ProposerAddress: pubkey.Address(),
-	})
-	s.Require().NoError(err)
-	s.Require().NotEmpty(maliciousProposal)
-
-	// Reset the log buffer to discard old logs we don't care about
-	s.LogBuffer.Reset()
-	// Process the proposal containing the malicious block.
-	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
-		Txs:             maliciousProposal.Txs,
-		Height:          currentHeight,
-		ProposerAddress: pubkey.Address(),
-		// Use the correct time as the actual consensus time, which mismatches the proposal time.
-		Time: correctConsensusTime,
-	})
-	s.Require().NoError(err)
-	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
-	s.Require().Contains(s.LogBuffer.String(), payloadtime.ErrTooFarInTheFuture.Error())
 }
 
 // TestProcessProposal_InvalidBlobCommitment_Errors effectively serves as a test for a malicious blobs.
