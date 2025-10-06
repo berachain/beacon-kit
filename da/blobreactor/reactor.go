@@ -306,10 +306,13 @@ func (br *BlobReactor) handleBlobResponse(peer p2p.Peer, resp *BlobResponse) {
 		"data_size", len(resp.SidecarData),
 		"peer_head", resp.HeadSlot)
 
-	// Look up the response channel for this request ID
-	br.responseMu.RLock()
+	// Look up and remove the response channel for this request ID
+	br.responseMu.Lock()
 	respChan, exists := br.responseChans[resp.RequestID]
-	br.responseMu.RUnlock()
+	if exists {
+		delete(br.responseChans, resp.RequestID)
+	}
+	br.responseMu.Unlock()
 
 	if !exists {
 		br.logger.Info("No waiting channel for response (request may have timed out)",
