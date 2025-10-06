@@ -22,6 +22,7 @@ package blobreactor
 
 import (
 	"context"
+	"encoding/binary"
 	"fmt"
 	"math/rand"
 	"sort"
@@ -256,21 +257,17 @@ func (br *BlobReactor) handleBlobRequest(peer p2p.Peer, req *BlobRequest) {
 	headSlot := br.headSlot
 	br.stateMu.RUnlock()
 
-	var errorMsg string
-	var sidecarBzs [][]byte
-
+	// Fetch blobs from storage - if not found or error, sidecarBzs will be nil
 	sidecarBzs, err := br.blobStore.GetByIndex(req.Slot.Unwrap())
 	if err != nil {
 		br.logger.Error("Failed to fetch blobs from storage", "slot", req.Slot.Unwrap(), "request_id", req.RequestID, "error", err)
-		errorMsg = err.Error()
 	}
 
 	resp := &BlobResponse{
 		Slot:        req.Slot,
 		RequestID:   req.RequestID,
-		Error:       errorMsg,
-		SidecarData: EncodeBlobSidecarsSSZ(sidecarBzs),
 		HeadSlot:    headSlot,
+		SidecarData: encodeBlobSidecarsSSZ(sidecarBzs),
 	}
 
 	respBytes, err := resp.MarshalSSZ()
@@ -288,7 +285,6 @@ func (br *BlobReactor) handleBlobRequest(peer p2p.Peer, req *BlobRequest) {
 			"peer", peer.ID(),
 			"slot", req.Slot,
 			"request_id", req.RequestID,
-			"error_msg", errorMsg,
 			"data_size", len(msgData))
 		// If sending response failed, the caller will timeout and try another peer
 		return
@@ -422,8 +418,6 @@ func (br *BlobReactor) selectUntriedPeer(triedPeers map[p2p.ID]bool) p2p.ID {
 }
 
 // requestBlobsFromPeer sends a blob request to a specific peer and waits for response.
-//
-//nolint:gocognit // consider refactoring if this grows more complex
 func (br *BlobReactor) requestBlobsFromPeer(ctx context.Context, peerID p2p.ID, slot math.Slot) (datypes.BlobSidecars, error) {
 	peer := br.sw.Peers().Get(peerID)
 	if peer == nil {
@@ -479,13 +473,7 @@ func (br *BlobReactor) requestBlobsFromPeer(ctx context.Context, peerID p2p.ID, 
 		br.logger.Info("Received response",
 			"slot", resp.Slot.Unwrap(),
 			"peer", peerID,
-			"data_size", len(resp.SidecarData),
-			"error", resp.Error)
-
-		// Check if peer reported an error
-		if resp.Error != "" {
-			return nil, fmt.Errorf("peer %s reported error: %s", peerID, resp.Error)
-		}
+			"data_size", len(resp.SidecarData))
 
 		if resp.Slot != slot {
 			return nil, fmt.Errorf("peer %s returned wrong slot: expected %d, got %d", peerID, slot.Unwrap(), resp.Slot.Unwrap())
@@ -536,4 +524,29 @@ func (br *BlobReactor) OnStop() {
 	br.workersWg.Wait()
 
 	br.logger.Info("BlobReactor stopped, all workers completed")
+}
+
+// encodeBlobSidecarsSSZ takes multiple SSZ-encoded BlobSidecar bytes and combines them
+// into a single SSZ-encoded BlobSidecars (slice) format.
+// The encoding is: 4-byte offset (always 4) + concatenated sidecars.
+//
+//nolint:mnd // ok for now
+func encodeBlobSidecarsSSZ(sidecarBzs [][]byte) []byte {
+	totalSize := 4
+	for _, data := range sidecarBzs {
+		totalSize += len(data)
+	}
+
+	result := make([]byte, totalSize)
+
+	// Write offset (4) in little-endian - data starts after the offset
+	binary.LittleEndian.PutUint32(result[0:4], 4)
+
+	// Concatenate all sidecars after the offset (if any)
+	pos := 4
+	for _, data := range sidecarBzs {
+		pos += copy(result[pos:], data)
+	}
+
+	return result
 }

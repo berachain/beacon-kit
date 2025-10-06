@@ -32,8 +32,6 @@ import (
 	karalabessz "github.com/karalabe/ssz"
 )
 
-const maxErrorMsgLen = 256
-
 // BlobMessage wraps our messages for CometBFT
 // This implements proto.Message interface for CometBFT compatibility
 type BlobMessage struct {
@@ -158,126 +156,56 @@ func (*BlobRequest) ValidateAfterDecodingSSZ() error {
 	return nil
 }
 
+const BlobResponseStaticSize uint32 = 28
+
 // BlobResponse contains all blobs for the requested slot
 type BlobResponse struct {
 	Slot        math.Slot
-	RequestID   uint64    // Echo back the request ID for matching
-	Error       string    // Error message if blob fetch failed
-	SidecarData []byte    // Raw SSZ-encoded BlobSidecars (avoiding double marshal/unmarshal)
-	HeadSlot    math.Slot // Sender's current head slot (for status updates)
+	RequestID   uint64 // Echo back the request ID for matching
+	HeadSlot    math.Slot
+	SidecarData []byte // Raw SSZ-encoded BlobSidecars (avoiding double marshal/unmarshal)
 }
 
-// DefineSSZ defines the SSZ encoding for BlobResponse (needed for constraints.SSZMarshallable)
-func (r *BlobResponse) DefineSSZ(*karalabessz.Codec) {
-	// For dynamic objects, we need custom encoding
-	// This is handled in MarshalSSZ/UnmarshalSSZ
+// DefineSSZ defines the SSZ encoding for BlobResponse using karalabe/ssz codec
+func (r *BlobResponse) DefineSSZ(c *karalabessz.Codec) {
+	// Define fixed-size fields
+	karalabessz.DefineUint64(c, &r.Slot)
+	karalabessz.DefineUint64(c, &r.RequestID)
+	karalabessz.DefineUint64(c, &r.HeadSlot)
+
+	// Define dynamic field - offset first, then content
+	karalabessz.DefineDynamicBytesOffset(c, &r.SidecarData, defaultRecvMessageCapacity)
+	karalabessz.DefineDynamicBytesContent(c, &r.SidecarData, defaultRecvMessageCapacity)
 }
 
-// MarshalSSZ marshals the BlobResponse to SSZ format
-// We manually encode: slot (8) + request_id (8) + head_slot (8) + error_len (2) + error_str + offset (4) + sidecar data
-//
-//nolint:mnd // ok for now
+// SizeSSZ returns the SSZ encoded size in bytes
+func (r *BlobResponse) SizeSSZ(_ *karalabessz.Sizer, fixed bool) uint32 {
+	var size = BlobResponseStaticSize
+	if fixed {
+		return size
+	}
+
+	// Dynamic part: actual sidecar data length
+	size += uint32(len(r.SidecarData)) // #nosec G115 // length validated in ValidateAfterDecodingSSZ
+	return size
+}
+
+// MarshalSSZ marshals the BlobResponse to SSZ format using the codec
 func (r *BlobResponse) MarshalSSZ() ([]byte, error) {
-	// Limit error message to prevent buffer issues
-	errorBytes := []byte(r.Error)
-	if len(errorBytes) > maxErrorMsgLen {
-		errorBytes = errorBytes[:maxErrorMsgLen]
-	}
-
-	// Total size: slot (8) + request_id (8) + head_slot (8) + error_len (2) + error_str + offset (4) + sidecar data
-	totalSize := 8 + 8 + 8 + 2 + len(errorBytes) + 4 + len(r.SidecarData)
-	buf := make([]byte, totalSize)
-
-	// Write slot (8 bytes)
-	binary.LittleEndian.PutUint64(buf[0:8], uint64(r.Slot))
-
-	// Write request ID (8 bytes)
-	binary.LittleEndian.PutUint64(buf[8:16], r.RequestID)
-
-	// Write head slot (8 bytes)
-	binary.LittleEndian.PutUint64(buf[16:24], uint64(r.HeadSlot))
-
-	// Write error length (2 bytes)
-	binary.LittleEndian.PutUint16(buf[24:26], uint16(len(errorBytes))) // #nosec G115
-
-	// Write error string
-	pos := 26
-	if len(errorBytes) > 0 {
-		copy(buf[pos:pos+len(errorBytes)], errorBytes)
-		pos += len(errorBytes)
-	}
-
-	// Write offset to sidecars (4 bytes) - points after the fixed part
-	// Current position + 4 bytes for offset itself
-	//nolint:mnd // ok for now
-	offset := uint32(pos + 4) // #nosec G115
-	binary.LittleEndian.PutUint32(buf[pos:pos+4], offset)
-	pos += 4
-
-	// Write sidecar data (already SSZ-encoded BlobSidecars)
-	if len(r.SidecarData) > 0 {
-		copy(buf[pos:], r.SidecarData)
-	}
-
-	return buf, nil
+	buf := make([]byte, karalabessz.Size(r))
+	return buf, karalabessz.EncodeToBytes(buf, r)
 }
 
-// UnmarshalSSZ unmarshals BlobResponse from SSZ format
-//
-//nolint:mnd // ok for now
+// UnmarshalSSZ unmarshals BlobResponse from SSZ format using the codec
 func (r *BlobResponse) UnmarshalSSZ(buf []byte) error {
-	if len(buf) < 26 {
-		return fmt.Errorf("insufficient data for BlobResponse: need at least 26 bytes, got %d", len(buf))
-	}
-
-	// Read slot (8 bytes)
-	r.Slot = math.Slot(binary.LittleEndian.Uint64(buf[0:8]))
-
-	// Read request ID (8 bytes)
-	r.RequestID = binary.LittleEndian.Uint64(buf[8:16])
-
-	// Read head slot (8 bytes)
-	r.HeadSlot = math.Slot(binary.LittleEndian.Uint64(buf[16:24]))
-
-	// Read error length (2 bytes)
-	errorLen := binary.LittleEndian.Uint16(buf[24:26])
-
-	// Validate error length matches marshal limit
-	if errorLen > maxErrorMsgLen {
-		return fmt.Errorf("error message too long: %d bytes (max %d)", errorLen, maxErrorMsgLen)
-	}
-
-	pos := 26
-
-	// Read error string if present
-	if errorLen > 0 {
-		if len(buf) < pos+int(errorLen)+4 {
-			return fmt.Errorf("insufficient data for error string: need %d bytes, got %d", pos+int(errorLen)+4, len(buf))
-		}
-		r.Error = string(buf[pos : pos+int(errorLen)])
-		pos += int(errorLen)
-	} else {
-		r.Error = ""
-	}
-
-	// Read offset (4 bytes)
-	if len(buf) < pos+4 {
-		return fmt.Errorf("insufficient data for offset: need %d bytes, got %d", pos+4, len(buf))
-	}
-	offset := binary.LittleEndian.Uint32(buf[pos : pos+4])
-
-	// Read sidecar data if present (already SSZ-encoded BlobSidecars)
-	// #nosec G115
-	if uint32(len(buf)) > offset {
-		r.SidecarData = make([]byte, len(buf)-int(offset))
-		copy(r.SidecarData, buf[offset:])
-	}
-
-	return nil
+	return karalabessz.DecodeFromBytes(buf, r)
 }
 
 // ValidateAfterDecodingSSZ validates the BlobResponse after SSZ decoding
 func (r *BlobResponse) ValidateAfterDecodingSSZ() error {
-	// No validation needed for raw byte arrays
+	// Validate sidecar data size
+	if len(r.SidecarData) > defaultRecvMessageCapacity {
+		return fmt.Errorf("sidecar data too large: %d bytes (max %d)", len(r.SidecarData), defaultRecvMessageCapacity)
+	}
 	return nil
 }
