@@ -105,9 +105,15 @@ func createTestSidecars(t *testing.T, count int) datypes.BlobSidecars {
 func newTestReactor(t *testing.T, store blobreactor.BlobStore, config blobreactor.Config) *blobreactor.BlobReactor {
 	t.Helper()
 	logger := log.NewTestLogger(t)
-	reactor := blobreactor.NewBlobReactor(store, logger, config)
+	reactor := blobreactor.NewBlobReactor(store, logger, config, noOpTelemetrySink{})
 	return reactor
 }
+
+type noOpTelemetrySink struct{}
+
+func (noOpTelemetrySink) IncrementCounter(string, ...string)        {}
+func (noOpTelemetrySink) SetGauge(string, int64, ...string)         {}
+func (noOpTelemetrySink) MeasureSince(string, time.Time, ...string) {}
 
 func makeTestP2PConfig(t *testing.T) *config.P2PConfig {
 	t.Helper()

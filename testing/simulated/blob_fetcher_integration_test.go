@@ -79,8 +79,18 @@ func (s *SimulatedSuite) TestBlobFetcher_MultiNodeFetch() {
 	node2Store := createBlobStore(node2HomeDir)
 	s.Require().NoError(node2Store.Persist(sidecars))
 
-	node1Reactor := blobreactor.NewBlobReactor(node1Store, log.NewNopLogger(), blobreactor.Config{RequestTimeout: 5 * time.Second})
-	node2Reactor := blobreactor.NewBlobReactor(node2Store, log.NewNopLogger(), blobreactor.Config{RequestTimeout: 5 * time.Second})
+	node1Reactor := blobreactor.NewBlobReactor(
+		node1Store,
+		log.NewNopLogger(),
+		blobreactor.Config{RequestTimeout: 5 * time.Second},
+		metrics.NewNoOpTelemetrySink(),
+	)
+	node2Reactor := blobreactor.NewBlobReactor(
+		node2Store,
+		log.NewNopLogger(),
+		blobreactor.Config{RequestTimeout: 5 * time.Second},
+		metrics.NewNoOpTelemetrySink(),
+	)
 
 	// Connect via P2P
 	switches := setupP2PReactors([]*blobreactor.BlobReactor{node1Reactor, node2Reactor})
@@ -103,6 +113,7 @@ func (s *SimulatedSuite) TestBlobFetcher_MultiNodeFetch() {
 			RetryInterval: 200 * time.Millisecond,
 			MaxRetries:    3,
 		},
+		metrics.NewNoOpTelemetrySink(),
 	)
 	s.Require().NoError(err)
 	node1Fetcher.Start(s.CtxApp)

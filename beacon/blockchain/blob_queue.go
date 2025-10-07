@@ -25,7 +25,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
@@ -53,11 +52,12 @@ type BlobFetchRequest struct {
 type blobQueue struct {
 	queueDir string
 	logger   log.Logger
+	metrics  *blobFetcherMetrics
 }
 
 // newBlobQueue creates a new blob queue with the given directory.
 // It creates the directory if it doesn't exist and cleans up orphaned temp files.
-func newBlobQueue(queueDir string, logger log.Logger) (*blobQueue, error) {
+func newBlobQueue(queueDir string, logger log.Logger, metrics *blobFetcherMetrics) (*blobQueue, error) {
 	// Create queue directory
 	if err := os.MkdirAll(queueDir, 0750); err != nil {
 		return nil, fmt.Errorf("failed to create blob download queue directory: %w", err)
@@ -72,6 +72,7 @@ func newBlobQueue(queueDir string, logger log.Logger) (*blobQueue, error) {
 	return &blobQueue{
 		queueDir: queueDir,
 		logger:   logger,
+		metrics:  metrics,
 	}, nil
 }
 
@@ -113,17 +114,15 @@ func (q *blobQueue) GetNext(
 	maxRetries int,
 	withinDAPeriod func(block, current math.Slot) bool,
 ) (BlobFetchRequest, string, error) {
-	files, err := os.ReadDir(q.queueDir)
+	files, err := filepath.Glob(filepath.Join(q.queueDir, "*.json"))
 	if err != nil {
 		return BlobFetchRequest{}, "", fmt.Errorf("failed to read queue directory: %w", err)
 	}
 
-	for _, file := range files {
-		if file.IsDir() || !strings.HasSuffix(file.Name(), ".json") {
-			continue
-		}
+	// Update queue depth metric with current file count
+	q.metrics.setQueueDepth(len(files))
 
-		filename := filepath.Join(q.queueDir, file.Name())
+	for _, filename := range files {
 		fileData, readErr := os.ReadFile(filename) // #nosec G304 // filename is constructed from queueDir
 		if readErr != nil {
 			return BlobFetchRequest{}, filename, fmt.Errorf("failed to read request file: %w", readErr)
@@ -146,6 +145,7 @@ func (q *blobQueue) GetNext(
 
 		// Check if request is outside availability window
 		if headSlot > 0 && !withinDAPeriod(request.Header.Slot, headSlot) {
+			q.metrics.recordRequestExpired(expiredReasonOutsideDA)
 			q.logger.Warn("Request is outside availability window, deleting",
 				"slot", request.Header.Slot.Unwrap(),
 				"head_slot", headSlot.Unwrap(),
@@ -156,6 +156,7 @@ func (q *blobQueue) GetNext(
 
 		// Check if request has exceeded max retry limit
 		if request.FailureCount >= maxRetries {
+			q.metrics.recordRequestExpired(expiredReasonMaxRetries)
 			q.logger.Warn("Request exceeded max retry limit, deleting",
 				"slot", request.Header.Slot.Unwrap(),
 				"failure_count", request.FailureCount,

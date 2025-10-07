@@ -20,6 +20,8 @@
 
 package blobreactor
 
+import "time"
+
 // BlobStore is a minimal interface for the BlobReactor to check and serve blobs.
 // This matches the IndexDB interface from the AvailabilityStore.
 type BlobStore interface {
@@ -28,4 +30,16 @@ type BlobStore interface {
 
 	// GetByIndex retrieves all raw blob data for a given index (slot).
 	GetByIndex(index uint64) ([][]byte, error)
+}
+
+// TelemetrySink is an interface for emitting metrics.
+type TelemetrySink interface {
+	// IncrementCounter increments a counter metric identified by the provided keys.
+	IncrementCounter(key string, args ...string)
+
+	// SetGauge sets a gauge metric to the specified value.
+	SetGauge(key string, value int64, args ...string)
+
+	// MeasureSince measures the time since the provided start time.
+	MeasureSince(key string, start time.Time, args ...string)
 }
