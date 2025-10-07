@@ -60,6 +60,7 @@ type blobFetcher struct {
 	queue     *blobQueue         // Queue for persistent requests
 	executor  *blobFetchExecutor // Executor for fetch logic
 	config    BlobFetcherConfig  // Configuration
+	metrics   *blobFetcherMetrics
 
 	// We need to track current head slot so we know when blob download requests need to be pruned as they are outside the WithinDAPeriod
 	headSlotMu sync.RWMutex
@@ -79,8 +80,11 @@ func NewBlobFetcher(
 	storageBackend StorageBackend,
 	chainSpec BlobFetcherChainSpec,
 	config BlobFetcherConfig,
+	telemetrySink TelemetrySink,
 ) (BlobFetcher, error) {
-	queue, err := newBlobQueue(filepath.Join(dataDir, "blobs", "download_queue"), logger)
+	metrics := newBlobFetcherMetrics(telemetrySink)
+
+	queue, err := newBlobQueue(filepath.Join(dataDir, "blobs", "download_queue"), logger, metrics)
 	if err != nil {
 		return nil, err
 	}
@@ -90,6 +94,7 @@ func NewBlobFetcher(
 		chainSpec: chainSpec,
 		queue:     queue,
 		config:    config,
+		metrics:   metrics,
 		executor: &blobFetchExecutor{
 			blobProcessor:  blobProcessor,
 			blobRequester:  blobRequester,
@@ -138,7 +143,9 @@ func (bf *blobFetcher) QueueBlobRequest(slot math.Slot, block *ctypes.BeaconBloc
 		return err
 	}
 
+	bf.metrics.recordRequestQueued()
 	bf.logger.Info("Queued blob fetch request", "slot", slot.Unwrap(), "expected_blobs", len(commitments))
+
 	return nil
 }
 
@@ -173,7 +180,8 @@ func (bf *blobFetcher) processAllPendingRequests() {
 		headSlot := bf.headSlot
 		bf.headSlotMu.RUnlock()
 
-		request, filename, err := bf.queue.GetNext(headSlot, bf.config.RetryInterval, bf.config.MaxRetries, bf.chainSpec.WithinDAPeriod)
+		request, filename, err := bf.queue.GetNext(
+			headSlot, bf.config.RetryInterval, bf.config.MaxRetries, bf.chainSpec.WithinDAPeriod)
 		if err != nil {
 			if errors.Is(err, errNoMoreRequests) {
 				return
@@ -189,6 +197,8 @@ func (bf *blobFetcher) processAllPendingRequests() {
 		if err == nil {
 			// Successfully processed, remove the request file
 			_ = bf.queue.Remove(filename)
+
+			bf.metrics.recordRequestComplete()
 			continue
 		}
 
@@ -205,6 +215,7 @@ func (bf *blobFetcher) processAllPendingRequests() {
 			continue
 		}
 
+		bf.metrics.recordRetry()
 		bf.logger.Warn("Blob fetch failed, will retry later",
 			"slot", request.Header.Slot.Unwrap(),
 			"failure_count", request.FailureCount+1)
