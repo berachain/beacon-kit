@@ -22,6 +22,7 @@ package builder
 
 import (
 	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/primitives/common"
 )
 
 // PayloadBuilder is used to build payloads on the
@@ -33,14 +34,15 @@ type PayloadBuilder struct {
 	chainSpec ChainSpec
 	// logger is used for logging within the PayloadBuilder.
 	logger log.Logger
+	// suggestedFeeRecipient is the suggested fee recipient sent to
+	// the execution client for the payload build.
+	suggestedFeeRecipient common.ExecutionAddress
 	// ee is the execution engine.
 	ee ExecutionEngine
 	// pc is the payload ID cache, it is used to store
 	// "in-flight" payloads that are being built on
 	// the execution client.
 	pc PayloadCache
-	// attributesFactory is used to create attributes for the
-	attributesFactory AttributesFactory
 }
 
 // New creates a new service.
@@ -50,15 +52,14 @@ func New(
 	logger log.Logger,
 	ee ExecutionEngine,
 	pc PayloadCache,
-	af AttributesFactory,
 ) *PayloadBuilder {
 	return &PayloadBuilder{
-		cfg:               cfg,
-		chainSpec:         chainSpec,
-		logger:            logger,
-		ee:                ee,
-		pc:                pc,
-		attributesFactory: af,
+		cfg:                   cfg,
+		chainSpec:             chainSpec,
+		logger:                logger,
+		suggestedFeeRecipient: cfg.SuggestedFeeRecipient,
+		ee:                    ee,
+		pc:                    pc,
 	}
 }
 

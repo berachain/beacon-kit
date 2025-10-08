@@ -27,24 +27,12 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/payload/cache"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 type PayloadCache interface {
 	GetAndEvict(slot math.Slot, stateRoot common.Root) (cache.PayloadIDCacheResult, bool)
 	Set(slot math.Slot, stateRoot common.Root, pid engineprimitives.PayloadID, version common.Version)
-}
-
-// AttributesFactory is the interface for the attributes factory.
-type AttributesFactory interface {
-	BuildPayloadAttributes(
-		timestamp math.U64,
-		payloadWithdrawals engineprimitives.Withdrawals,
-		prevRandao common.Bytes32,
-		prevHeadRoot common.Root,
-		parentProposerPubkey *crypto.BLSPubkey,
-	) (*engineprimitives.PayloadAttributes, error)
 }
 
 // ExecutionEngine is the interface for the execution engine.
