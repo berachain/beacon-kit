@@ -220,17 +220,11 @@ func (s *Service) retrieveExecutionPayload(
 	slot := slotData.GetSlot()
 	envelope, err := s.localPayloadBuilder.RetrievePayload(ctx, slot, parentBlockRoot)
 	if err == nil {
-		return envelope, nil
+		nextPayloadTimestamp := envelope.GetExecutionPayload().GetTimestamp()
+		return envelope, s.stateProcessor.ProcessFork(st, nextPayloadTimestamp, false)
 	}
 
 	// If we failed to retrieve the payload, request a synchronous payload.
-	//
-	// NOTE: The state here is properly configured by the
-	// prepareStateForBuilding
-	//
-	// call that needs to be called before requesting the Payload.
-	// TODO: We should decouple the PayloadBuilder from BeaconState to make
-	// this less confusing.
 	s.metrics.failedToRetrievePayload(slot, err)
 
 	// The latest execution payload header will be from the previous block
