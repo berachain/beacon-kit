@@ -35,10 +35,12 @@ import (
 //
 // BUG with optimistic ON:
 //   - block height N, round i
-//   - some EL accepts process proposal (N, i)
+//   - reth EL builds payload for height N
+//   - reth accepts process proposal (N, i)
 //   - marking N - 1 as "finalized" to the EL
 //   - supermajority does not finalize (N, i)
 //   - block height N, next round i + 1
+//   - **BUG** reth EL does NOT store the already built payload for height N, so tries rebuilding
 //   - any EL who accepted proposal (N, i) returns empty (comet block has 0 txs when it should have 2)
 //     for proposal (N, i + 1) because engine API returns "Received nil payload ID on VALID engine response"
 //   - since N - 1 is "finalized" to the EL, asking to re-build payload N by sending FCU with
