@@ -93,6 +93,8 @@ type (
 			ctx context.Context,
 			r *builder.RequestPayloadData,
 		) (ctypes.BuiltExecutionPayloadEnv, error)
+		// EvictPayload evicts a local payload from the cache if it exists.
+		EvictPayload(slot math.Slot, parentBlockRoot common.Root)
 	}
 
 	// 	// PayloadAttributes is the interface for the payload attributes.
