@@ -79,12 +79,13 @@ func (s *PectraForkSuite) SetupTest() {
 	// Create the chainSpec.
 	chainSpec, err := chainSpecFunc()
 	s.Require().NoError(err)
-	cometConfig, genesisValidatorsRoot := simulated.InitializeHomeDir(s.T(), chainSpec, s.Geth.HomeDir, elGenesisPath)
+	gethCometConfig, genesisValidatorsRoot := simulated.InitializeHomeDir(s.T(), chainSpec, s.Geth.HomeDir, elGenesisPath)
 	s.Geth.GenesisValidatorsRoot = genesisValidatorsRoot
-	s.Reth.GenesisValidatorsRoot = genesisValidatorsRoot
 
 	// Copy the home dir for the Reth Node
-	simulated.CopyHomeDir(s.T(), s.Geth.HomeDir, s.Reth.HomeDir)
+	rethCometConfig, genesisValidatorsRoot2 := simulated.InitializeHomeDir(s.T(), chainSpec, s.Reth.HomeDir, elGenesisPath)
+	s.Reth.GenesisValidatorsRoot = genesisValidatorsRoot2
+	s.Require().Equal(s.Geth.GenesisValidatorsRoot, s.Reth.GenesisValidatorsRoot)
 
 	// Start the EL (execution layer) Geth node.
 	gethNode := execution.NewGethNode(s.Geth.HomeDir, execution.ValidGethImage())
@@ -109,7 +110,7 @@ func (s *PectraForkSuite) SetupTest() {
 
 	s.Geth.TestNode = simulated.NewTestNode(s.T(), simulated.TestNodeInput{
 		TempHomeDir: s.Geth.HomeDir,
-		CometConfig: cometConfig,
+		CometConfig: gethCometConfig,
 		AuthRPC:     authRPC,
 		ClientRPC:   elRPC,
 		Logger:      logger,
@@ -120,7 +121,7 @@ func (s *PectraForkSuite) SetupTest() {
 
 	s.Reth.TestNode = simulated.NewTestNode(s.T(), simulated.TestNodeInput{
 		TempHomeDir: s.Reth.HomeDir,
-		CometConfig: cometConfig,
+		CometConfig: rethCometConfig,
 		AuthRPC:     rethAuthRPC,
 		ClientRPC:   elRPC,
 		Logger:      rethLogger,
