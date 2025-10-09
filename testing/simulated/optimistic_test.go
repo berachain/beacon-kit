@@ -44,7 +44,7 @@ import (
 //   - any EL who accepted proposal (N, i) returns empty (comet block has 0 txs when it should have 2)
 //     for proposal (N, i + 1) because engine API returns "Received nil payload ID on VALID engine response"
 //   - since N - 1 is "finalized" to the EL, asking to re-build payload N by sending FCU with
-//     N - 1 has "head" block, EL always returns nil.
+//     N - 1 as "head" block, EL always returns nil.
 //
 // TODO: remove from PectraForkSuite.
 func (s *PectraForkSuite) TestReth_RebuildPayload_IsSuccessful() {
@@ -177,7 +177,7 @@ func (s *PectraForkSuite) TestGeth_RebuildPayload_IsSuccessful() {
 			ProposerAddress: pubkey.Address(),
 		})
 		s.Require().NoError(prepareErr)
-		s.Require().Len(proposal.Txs, 2) // FAILS HERE
+		s.Require().Len(proposal.Txs, 2)
 
 		// Process the proposal.
 		processRequest := &types.ProcessProposalRequest{
