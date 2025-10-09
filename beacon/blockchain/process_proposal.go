@@ -76,17 +76,27 @@ func (s *Service) ProcessProposal(
 				)
 				return
 			}
-			latestHeader, latestHeaderFetchErr := st.GetLatestBlockHeader()
-			if latestHeaderFetchErr != nil {
+			_, processSlotErr := s.stateProcessor.ProcessSlots(st, slot+1)
+			if processSlotErr != nil {
 				s.logger.Warn(
 					"Skipping payload eviction on rejected proposal",
-					"reason", "st.GetLatestBlockHeader()",
-					"error", latestHeaderFetchErr,
+					"reason", "s.stateProcessor.ProcessSlots()",
+					"error", processSlotErr,
 				)
 				return
 			}
-			// The payload is for the next block height.
-			s.localBuilder.EvictPayload(slot+1, latestHeader.HashTreeRoot())
+			parentBlockRoot, blockRootFetchErr := st.GetBlockRootAtIndex(
+				slot.Unwrap() % s.chainSpec.SlotsPerHistoricalRoot(),
+			)
+			if blockRootFetchErr != nil {
+				s.logger.Warn(
+					"Skipping payload eviction on rejected proposal",
+					"reason", "st.GetBlockRootAtIndex()",
+					"error", blockRootFetchErr,
+				)
+				return
+			}
+			s.localBuilder.EvictPayload(slot+1, parentBlockRoot)
 		}
 	}()
 
@@ -96,7 +106,6 @@ func (s *Service) ProcessProposal(
 	)
 	signedBlk, sidecars, err = s.ParseBeaconBlock(req)
 	if err != nil {
-		s.logger.Error("Failed to decode block and blobs", "error", err)
 		err = fmt.Errorf("failed to decode block and blobs: %w", err)
 		return nil, err
 	}
@@ -196,7 +205,7 @@ func (s *Service) ProcessProposal(
 		return nil, err
 	}
 
-	return valUpdates.CanonicalSort(), nil
+	return valUpdates.CanonicalSort(), err
 }
 
 func (s *Service) VerifyIncomingBlockSignature(
