@@ -437,6 +437,7 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 			ProposerAddress: rethPubkey.Address(),
 			Time:            consensusTime,
 		}
+		// s.Reth.LogBuffer.Reset()
 		processResp, respErr = s.Reth.SimComet.Comet.ProcessProposal(s.Reth.CtxComet, processRequest)
 		s.Require().NoError(respErr)
 		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
@@ -447,13 +448,11 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 	// As it will propose a post-fork block due to retrieving an Execution Payload in the PayloadCache.
 	{
 		// Get the same already built payload from cache.
-		//   For geth --> local payload queue can store up to 10 so getPayloadV4 will return it.
-		//   For reth --> payloads are not persisted after returned by getPayloadV4 so it will return nil.
-		consensusTime := time.Unix(int64(s.Geth.TestNode.ChainSpec.ElectraForkTime())-3, 0)
-		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
+		consensusTime := time.Unix(int64(s.Reth.TestNode.ChainSpec.ElectraForkTime())-3, 0)
+		proposal, prepareErr := s.Reth.SimComet.Comet.PrepareProposal(s.Reth.CtxComet, &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
-			ProposerAddress: pubkey.Address(),
+			ProposerAddress: rethPubkey.Address(),
 		})
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
@@ -461,11 +460,11 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 		processRequest := &types.ProcessProposalRequest{
 			Txs:             proposal.Txs,
 			Height:          nextBlockHeight,
-			ProposerAddress: pubkey.Address(),
+			ProposerAddress: rethPubkey.Address(),
 			Time:            consensusTime,
 		}
 
-		// Process the proposal --> Trigger bkit eviction of payload from cache because its rejected.
+		// Process the proposal and rejects but does not bkit evict because it didnt build it.
 		s.Geth.LogBuffer.Reset()
 		processResp, processErr := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
 		s.Require().NoError(processErr)
@@ -475,8 +474,10 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 			"failed decoding *types.SignedBeaconBlock: ssz: offset smaller than previous",
 		)
 
-		// Reth also process proposal and rejects but does not bkit evict because it didnt build it.
-		s.Reth.LogBuffer.Reset()
+		// Reth also process proposal --> Trigger bkit eviction of payload from cache because its rejected.
+		// TODO: fix sim test, currently `thisNodeAddress` (or `s.nodeAddress`) is empty and not
+		// being initialized correctly, so eviction is not happening when it should.
+		// s.Reth.LogBuffer.Reset()
 		processResp, processErr = s.Reth.SimComet.Comet.ProcessProposal(s.Reth.CtxComet, processRequest)
 		s.Require().NoError(processErr)
 		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)

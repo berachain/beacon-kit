@@ -68,7 +68,7 @@ func (s *Service) ProcessProposal(
 		if s.localBuilder.Enabled() && err != nil && bytes.Equal(thisNodeAddress, req.ProposerAddress) {
 			st := s.storageBackend.StateFromContext(ctx)
 			slot, slotFetchErr := st.GetSlot()
-			if err != nil {
+			if slotFetchErr != nil {
 				s.logger.Warn(
 					"Skipping payload eviction on rejected proposal",
 					"reason", "st.GetSlot()",
@@ -77,7 +77,7 @@ func (s *Service) ProcessProposal(
 				return
 			}
 			latestHeader, latestHeaderFetchErr := st.GetLatestBlockHeader()
-			if err != nil {
+			if latestHeaderFetchErr != nil {
 				s.logger.Warn(
 					"Skipping payload eviction on rejected proposal",
 					"reason", "st.GetLatestBlockHeader()",
