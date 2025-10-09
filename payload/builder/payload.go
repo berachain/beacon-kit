@@ -53,7 +53,7 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 		return nil, common.Version{}, ErrPayloadBuilderDisabled
 	}
 
-	if payloadID, found := pb.pc.GetAndEvict(r.Slot, r.ParentBlockRoot); found {
+	if payloadID, found := pb.pc.Get(r.Slot, r.ParentBlockRoot); found {
 		pb.logger.Info(
 			"aborting payload build; payload already exists in cache",
 			"for_slot", r.Slot.Base10(),
@@ -151,7 +151,7 @@ func (pb *PayloadBuilder) RetrievePayload(
 
 	// Attempt to see if we previously fired off a payload built for
 	// this particular slot and parent block root.
-	payloadID, found := pb.pc.GetAndEvict(slot, parentBlockRoot)
+	payloadID, found := pb.pc.Get(slot, parentBlockRoot)
 	if !found {
 		return nil, ErrPayloadIDNotFound
 	}
@@ -159,6 +159,7 @@ func (pb *PayloadBuilder) RetrievePayload(
 	// Get the payload from the execution client.
 	envelope, err := pb.getPayload(ctx, payloadID.PayloadID, payloadID.ForkVersion)
 	if err != nil {
+		pb.logger.Debug("Failed to get payload from EL", "error", err)
 		return nil, err
 	}
 
@@ -187,6 +188,11 @@ func (pb *PayloadBuilder) RetrievePayload(
 	pb.logger.Info("Payload retrieved from local builder", args...)
 
 	return envelope, err
+}
+
+// EvictPayload evicts a local payload from the cache if it exists.
+func (pb *PayloadBuilder) EvictPayload(slot math.Slot, parentBlockRoot common.Root) {
+	pb.pc.Delete(slot, parentBlockRoot)
 }
 
 func (pb *PayloadBuilder) getPayload(

@@ -62,10 +62,43 @@ func (s *Service) ProcessProposal(
 	req *cmtabci.ProcessProposalRequest,
 	thisNodeAddress []byte,
 ) (transition.ValidatorUpdates, error) {
-	signedBlk, sidecars, err := s.ParseBeaconBlock(req)
+	var err error
+	defer func() {
+		// We are rejecting this proposal so evict the payload from cache if we built it locally.
+		if s.localBuilder.Enabled() && err != nil && bytes.Equal(thisNodeAddress, req.ProposerAddress) {
+			st := s.storageBackend.StateFromContext(ctx)
+			slot, slotFetchErr := st.GetSlot()
+			if err != nil {
+				s.logger.Warn(
+					"Skipping payload eviction on rejected proposal",
+					"reason", "st.GetSlot()",
+					"error", slotFetchErr,
+				)
+				return
+			}
+			latestHeader, latestHeaderFetchErr := st.GetLatestBlockHeader()
+			if err != nil {
+				s.logger.Warn(
+					"Skipping payload eviction on rejected proposal",
+					"reason", "st.GetLatestBlockHeader()",
+					"error", latestHeaderFetchErr,
+				)
+				return
+			}
+			// The payload is for the next block height.
+			s.localBuilder.EvictPayload(slot+1, latestHeader.HashTreeRoot())
+		}
+	}()
+
+	var (
+		signedBlk *ctypes.SignedBeaconBlock
+		sidecars  datypes.BlobSidecars
+	)
+	signedBlk, sidecars, err = s.ParseBeaconBlock(req)
 	if err != nil {
 		s.logger.Error("Failed to decode block and blobs", "error", err)
-		return nil, fmt.Errorf("failed to decode block and blobs: %w", err)
+		err = fmt.Errorf("failed to decode block and blobs: %w", err)
+		return nil, err
 	}
 	blk := signedBlk.GetBeaconBlock()
 
@@ -85,26 +118,29 @@ func (s *Service) ProcessProposal(
 	forkVersion := s.chainSpec.ActiveForkVersionForTimestamp(math.U64(req.GetTime().Unix())) //#nosec: G115
 	blkVersion := s.chainSpec.ActiveForkVersionForTimestamp(blk.GetTimestamp())
 	if !version.Equals(blkVersion, forkVersion) {
-		return nil, fmt.Errorf("CometBFT version %v, BeaconBlock version %v: %w",
+		err = fmt.Errorf("CometBFT version %v, BeaconBlock version %v: %w",
 			forkVersion, blkVersion,
 			ErrVersionMismatch,
 		)
+		return nil, err
 	}
 
 	// Make sure we have the right number of BlobSidecars
 	blobKzgCommitments := blk.GetBody().GetBlobKzgCommitments()
 	numCommitments := len(blobKzgCommitments)
 	if numCommitments != len(sidecars) {
-		return nil, fmt.Errorf("expected %d sidecars, got %d: %w",
+		err = fmt.Errorf("expected %d sidecars, got %d: %w",
 			numCommitments, len(sidecars),
 			ErrSidecarCommitmentMismatch,
 		)
+		return nil, err
 	}
 	if uint64(numCommitments) > s.chainSpec.MaxBlobsPerBlock() {
-		return nil, fmt.Errorf("expected less than %d sidecars, got %d: %w",
+		err = fmt.Errorf("expected less than %d sidecars, got %d: %w",
 			s.chainSpec.MaxBlobsPerBlock(), numCommitments,
 			core.ErrExceedsBlockBlobLimit,
 		)
+		return nil, err
 	}
 
 	// Verify the block and sidecar signatures. We can simply verify the block
@@ -113,11 +149,11 @@ func (s *Service) ProcessProposal(
 	for i, sidecar := range sidecars {
 		sidecarSignature := sidecar.GetSignature()
 		if !bytes.Equal(blkSignature[:], sidecarSignature[:]) {
-			return nil, fmt.Errorf("%w, idx: %d", ErrSidecarSignatureMismatch, i)
+			err = fmt.Errorf("%w, idx: %d", ErrSidecarSignatureMismatch, i)
+			return nil, err
 		}
 	}
-	err = s.VerifyIncomingBlockSignature(ctx, blk, signedBlk.GetSignature())
-	if err != nil {
+	if err = s.VerifyIncomingBlockSignature(ctx, blk, signedBlk.GetSignature()); err != nil {
 		return nil, err
 	}
 

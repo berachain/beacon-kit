@@ -53,7 +53,7 @@ type Service struct {
 	//
 	// execution payloads.
 	executionEngine ExecutionEngine
-	// localBuilder is a local builder for constructing new beacon states.
+	// localBuilder is a local builder for constructing new eth payloads.
 	localBuilder LocalBuilder
 	// stateProcessor is the state processor for beacon blocks and states.
 	stateProcessor StateProcessor

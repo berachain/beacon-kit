@@ -125,6 +125,21 @@ func (s *Service) FinalizeSidecars(
 func (s *Service) PostFinalizeBlockOps(ctx sdk.Context, blk *ctypes.BeaconBlock) error {
 	// TODO: consider extracting LatestExecutionPayloadHeader instead of using state here
 	st := s.storageBackend.StateFromContext(ctx)
+	slot := blk.GetSlot()
+
+	// Evict the payload from cache for this height.
+	if s.localBuilder.Enabled() {
+		parentBlockRoot, err := st.GetBlockRootAtIndex((slot.Unwrap() - 1) % s.chainSpec.SlotsPerHistoricalRoot())
+		if err != nil {
+			s.logger.Warn(
+				"Skipping payload eviction on finalize block",
+				"reason", "st.GetBlockRootAtIndex()",
+				"error", err,
+			)
+		} else {
+			s.localBuilder.EvictPayload(slot, parentBlockRoot)
+		}
+	}
 
 	// Fetch and store the deposit for the block.
 	blockNum := blk.GetBody().GetExecutionPayload().GetNumber()
@@ -133,7 +148,6 @@ func (s *Service) PostFinalizeBlockOps(ctx sdk.Context, blk *ctypes.BeaconBlock)
 	// Store the finalized block in the KVStore.
 	//
 	// TODO: Store full SignedBeaconBlock with all data in storage
-	slot := blk.GetSlot()
 	if err := s.storageBackend.BlockStore().Set(blk); err != nil {
 		s.logger.Error(
 			"failed to store block", "slot", slot, "error", err,
