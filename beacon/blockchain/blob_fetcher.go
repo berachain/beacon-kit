@@ -47,9 +47,9 @@ type BlobFetcherConfig struct {
 //nolint:mnd // Just defaults
 func DefaultBlobFetcherConfig() BlobFetcherConfig {
 	return BlobFetcherConfig{
-		CheckInterval: 1 * time.Minute,
-		RetryInterval: 5 * time.Minute,
-		MaxRetries:    72, // 6 hours at 5 minute intervals
+		CheckInterval: 10 * time.Second,
+		RetryInterval: 1 * time.Minute,
+		MaxRetries:    10,
 	}
 }
 
