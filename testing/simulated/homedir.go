@@ -24,8 +24,10 @@ package simulated
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"testing"
@@ -97,7 +99,11 @@ func InitializeHomeDir(t *testing.T, chainSpec chain.Spec, tempHomeDir string, e
 // Initialize2HomeDirs sets up a temporary home directory with the necessary genesis state
 // and configuration files for testing. It returns the configured CometBFT config along with
 // the computed genesis validators root. This creates a 2 validator setup.
-func Initialize2HomeDirs(t *testing.T, chainSpec chain.Spec, tempHomeDir1, tempHomeDir2, elGenesisPath string) (*cmtcfg.Config, *cmtcfg.Config, common.Root) {
+func Initialize2HomeDirs(
+	t *testing.T,
+	chainSpec chain.Spec,
+	tempHomeDir1, tempHomeDir2, elGenesisPath string,
+) (*cmtcfg.Config, *cmtcfg.Config, common.Root) {
 	t.Helper()
 
 	t.Logf("Initializing home directory: %s and %s", tempHomeDir1, tempHomeDir2)
@@ -170,6 +176,14 @@ func Initialize2HomeDirs(t *testing.T, chainSpec chain.Spec, tempHomeDir1, tempH
 	require.Equal(t, genesisValidatorsRoot, genesisValidatorsRoot2, "validators' roots should be equal")
 
 	return cmtCfg1, cmtCfg2, genesisValidatorsRoot
+}
+
+func CopyHomeDir(t *testing.T, sourceHomeDir, targetHomeDir string) {
+	t.Logf("Copying home directory to: %s", targetHomeDir)
+	srcPath := filepath.Join(filepath.Clean(sourceHomeDir), ".")
+	cmd := exec.Command("sh", "-c", fmt.Sprintf("cp -r %s/* %s", srcPath, targetHomeDir))
+	err := cmd.Run()
+	require.NoError(t, err)
 }
 
 // createCometConfig creates a default CometBFT configuration with the home directory set.
