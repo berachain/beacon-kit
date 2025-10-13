@@ -77,8 +77,8 @@ func DevnetChainSpecData() *chain.SpecData {
 
 	//nolint:mnd // ok for now
 	specData.BlobConfig = blobreactor.Config{
-		ConsensusUpdateHeight: 30,
-		ConsensusEnableHeight: 31,
+		ConsensusUpdateHeight: 1,
+		ConsensusEnableHeight: 2,
 		MaxBytes:              819200,
 	}
 

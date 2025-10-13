@@ -35,6 +35,13 @@ const (
 	ClientValidator2 = "cl-validator-beaconkit-2"
 	ClientValidator3 = "cl-validator-beaconkit-3"
 	ClientValidator4 = "cl-validator-beaconkit-4"
+
+	NumFullNodes = 4
+
+	ClientFullNode0 = "cl-full-beaconkit-0"
+	ClientFullNode1 = "cl-full-beaconkit-1"
+	ClientFullNode2 = "cl-full-beaconkit-2"
+	ClientFullNode3 = "cl-full-beaconkit-3"
 )
 
 // DefaultE2ETestConfig provides a default configuration for end-to-end tests,

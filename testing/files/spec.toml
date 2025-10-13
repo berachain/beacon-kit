@@ -75,6 +75,6 @@ consensus-update-height = 1
 consensus-enable-height = 2
 
 [blob-reactor-configuration]
-consensus-update-height = 30
-consensus-enable-height = 31
+consensus-update-height = 1
+consensus-enable-height = 2
 max-bytes = 819200
