@@ -119,6 +119,10 @@ func (q *blobQueue) GetNext(
 		return BlobFetchRequest{}, "", fmt.Errorf("failed to read queue directory: %w", err)
 	}
 
+	if len(files) == 0 {
+		return BlobFetchRequest{}, "", errNoMoreRequests
+	}
+
 	// Update queue depth metric with current file count
 	q.metrics.setQueueDepth(len(files))
 
