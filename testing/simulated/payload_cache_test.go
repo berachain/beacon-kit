@@ -29,8 +29,6 @@ import (
 	"github.com/cometbft/cometbft/abci/types"
 )
 
-// PASSES
-//
 // This tests a reth validator proposing a block. It then accepts the proposal in
 // process proposal. But the block is not finalized by consensus. Then this
 // validator is chosen to propose at a subsequent round. It should just get the old
@@ -116,8 +114,6 @@ func (s *PectraForkSuite) TestReth_ReusePayload_IsSuccessful() {
 	}
 }
 
-// PASSES
-//
 // This tests a geth validator proposing a block. It then accepts the proposal in
 // process proposal. But the block is not finalized by consensus. Then this
 // validator is chosen to propose at a subsequent round. It should just get the old
@@ -201,8 +197,6 @@ func (s *PectraForkSuite) TestGeth_ReusePayload_IsSuccessful() {
 	}
 }
 
-// FAILS
-//
 // This tests a reth validator proposing a invalid block. The proposal is rejected. Then this
 // validator is chosen to propose at a subsequent round. It should now be forced to
 // rebuild a new payload (and not reuse the old one from its cache).
@@ -287,8 +281,6 @@ func (s *PectraForkSuite) TestReth_RebuildPayload_IsSuccessful() {
 	}
 }
 
-// FAILS
-//
 // This tests a geth validator proposing a invalid block. The proposal is rejected. Then this
 // validator is chosen to propose at a subsequent round. It should now be forced to
 // rebuild a new payload (and not reuse the old one from its cache).
@@ -371,8 +363,6 @@ func (s *PectraForkSuite) TestGeth_RebuildPayload_IsSuccessful() {
 	}
 }
 
-// FAILS
-//
 // Test a scenario where the first proposed block is pre-fork and accepted initially but never
 // finalized by the network (which triggeres optimistic builds). The subsequent rounds are now
 // post-fork. Only reth with the flag can force rebuild a payload.
@@ -523,8 +513,6 @@ func (s *PectraForkSuite) TestReth_MustRebuildPostForkPayload_IsSuccessful() {
 	}
 }
 
-// PASSES
-//
 // Test a scenario where the first proposed block is post-fork and accepted initially but never
 // finalized by the network (which triggeres optimistic builds). The subsequent rounds are actually
 // pre-fork. Only reth with the flag can force rebuild a payload.
