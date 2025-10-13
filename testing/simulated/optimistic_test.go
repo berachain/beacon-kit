@@ -61,12 +61,12 @@ func (s *PectraForkSuite) TestReth_RebuildPayload_IsSuccessful() {
 	consensusTime := time.Unix(int64(s.Reth.TestNode.ChainSpec.ElectraForkTime()), 0)
 
 	{
-		// Prepare the proposal.
-		proposal, prepareErr := s.Reth.SimComet.Comet.PrepareProposal(s.Reth.CtxComet, &types.PrepareProposalRequest{
+		prepareRequest := &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
 			ProposerAddress: pubkey.Address(),
-		})
+		}
+		proposal, prepareErr := s.Reth.SimComet.Comet.PrepareProposal(s.Reth.CtxComet, prepareRequest)
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
 
@@ -80,7 +80,7 @@ func (s *PectraForkSuite) TestReth_RebuildPayload_IsSuccessful() {
 		// This will trigger a optimistic payload build for block height 2.
 		processResp, respErr := s.Reth.SimComet.Comet.ProcessProposal(s.Reth.CtxComet, processRequest)
 		s.Require().NoError(respErr)
-		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
+		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT.String(), processResp.Status.String())
 	}
 
 	// For some reason, the supermajority does not finalize the block.
@@ -88,12 +88,12 @@ func (s *PectraForkSuite) TestReth_RebuildPayload_IsSuccessful() {
 	time.Sleep(1 * time.Second)
 	consensusTime = time.Unix(int64(s.Reth.TestNode.ChainSpec.ElectraForkTime())+1, 0)
 	{
-		// Prepare the proposal.
-		proposal, prepareErr := s.Reth.SimComet.Comet.PrepareProposal(s.Reth.CtxComet, &types.PrepareProposalRequest{
+		prepareRequest := &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
 			ProposerAddress: pubkey.Address(),
-		})
+		}
+		proposal, prepareErr := s.Reth.SimComet.Comet.PrepareProposal(s.Reth.CtxComet, prepareRequest)
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2) // FAILS HERE
 
@@ -108,7 +108,7 @@ func (s *PectraForkSuite) TestReth_RebuildPayload_IsSuccessful() {
 		// Process the proposal.
 		processResp, processErr := s.Reth.SimComet.Comet.ProcessProposal(s.Reth.CtxComet, processRequest)
 		s.Require().NoError(processErr)
-		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
+		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT.String(), processResp.Status.String())
 
 		// Now the block is finalized and committed.
 		finalizeRequest := &types.FinalizeBlockRequest{
