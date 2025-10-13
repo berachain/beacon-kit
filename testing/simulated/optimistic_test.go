@@ -124,7 +124,7 @@ func (s *PectraForkSuite) TestReth_RebuildPayload_IsSuccessful() {
 	}
 }
 
-// This tests a reth validator proposing a block. It then accepts the proposal in
+// This tests a geth validator proposing a block. It then accepts the proposal in
 // process proposal. But the block is not finalized by consensus. Then this
 // validator is chosen to propose at a subsequent round and this block is finalized.
 //
@@ -143,12 +143,12 @@ func (s *PectraForkSuite) TestGeth_RebuildPayload_IsSuccessful() {
 	consensusTime := time.Unix(int64(s.Geth.TestNode.ChainSpec.ElectraForkTime()), 0)
 
 	{
-		// Prepare the proposal.
-		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
+		prepareRequest := &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
 			ProposerAddress: pubkey.Address(),
-		})
+		}
+		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, prepareRequest)
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
 
@@ -162,7 +162,7 @@ func (s *PectraForkSuite) TestGeth_RebuildPayload_IsSuccessful() {
 		// This will trigger a optimistic payload build for block height 2.
 		processResp, respErr := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
 		s.Require().NoError(respErr)
-		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
+		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT.String(), processResp.Status.String())
 	}
 
 	// For some reason, the supermajority does not finalize the block.
@@ -170,14 +170,14 @@ func (s *PectraForkSuite) TestGeth_RebuildPayload_IsSuccessful() {
 	time.Sleep(1 * time.Second)
 	consensusTime = time.Unix(int64(s.Geth.TestNode.ChainSpec.ElectraForkTime())+1, 0)
 	{
-		// Prepare the proposal.
-		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
+		prepareRequest := &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
 			ProposerAddress: pubkey.Address(),
-		})
+		}
+		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, prepareRequest)
 		s.Require().NoError(prepareErr)
-		s.Require().Len(proposal.Txs, 2)
+		s.Require().Len(proposal.Txs, 2) // FAILS HERE
 
 		// Process the proposal.
 		processRequest := &types.ProcessProposalRequest{
@@ -190,7 +190,7 @@ func (s *PectraForkSuite) TestGeth_RebuildPayload_IsSuccessful() {
 		// Process the proposal.
 		processResp, processErr := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
 		s.Require().NoError(processErr)
-		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
+		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT.String(), processResp.Status.String())
 
 		// Now the block is finalized and committed.
 		finalizeRequest := &types.FinalizeBlockRequest{
