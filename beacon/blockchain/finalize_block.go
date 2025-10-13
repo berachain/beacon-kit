@@ -127,7 +127,7 @@ func (s *Service) PostFinalizeBlockOps(ctx sdk.Context, blk *ctypes.BeaconBlock)
 	st := s.storageBackend.StateFromContext(ctx)
 	slot := blk.GetSlot()
 
-	// Evict the payload from cache for this height.
+	// Evict the payload from cache for this height if we built it locally.
 	if s.localBuilder.Enabled() {
 		parentBlockRoot, err := st.GetBlockRootAtIndex((slot.Unwrap() - 1) % s.chainSpec.SlotsPerHistoricalRoot())
 		if err != nil {
@@ -137,6 +137,7 @@ func (s *Service) PostFinalizeBlockOps(ctx sdk.Context, blk *ctypes.BeaconBlock)
 				"error", err,
 			)
 		} else {
+			// If we didn't build a payload for this block, this is a no-op.
 			s.localBuilder.EvictPayload(slot, parentBlockRoot)
 		}
 	}

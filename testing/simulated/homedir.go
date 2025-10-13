@@ -97,7 +97,11 @@ func InitializeHomeDir(t *testing.T, chainSpec chain.Spec, tempHomeDir string, e
 // Initialize2HomeDirs sets up a temporary home directory with the necessary genesis state
 // and configuration files for testing. It returns the configured CometBFT config along with
 // the computed genesis validators root. This creates a 2 validator setup.
-func Initialize2HomeDirs(t *testing.T, chainSpec chain.Spec, tempHomeDir1, tempHomeDir2, elGenesisPath string) (*cmtcfg.Config, *cmtcfg.Config, common.Root) {
+func Initialize2HomeDirs(
+	t *testing.T,
+	chainSpec chain.Spec,
+	tempHomeDir1, tempHomeDir2, elGenesisPath string,
+) (*cmtcfg.Config, *cmtcfg.Config, common.Root) {
 	t.Helper()
 
 	t.Logf("Initializing home directory: %s and %s", tempHomeDir1, tempHomeDir2)

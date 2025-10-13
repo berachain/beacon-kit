@@ -63,42 +63,7 @@ func (s *Service) ProcessProposal(
 	thisNodeAddress []byte,
 ) (transition.ValidatorUpdates, error) {
 	var err error
-	defer func() {
-		// We are rejecting this proposal so evict the payload from cache if we built it locally.
-		if s.localBuilder.Enabled() && err != nil && bytes.Equal(thisNodeAddress, req.ProposerAddress) {
-			st := s.storageBackend.StateFromContext(ctx)
-			slot, slotFetchErr := st.GetSlot()
-			if slotFetchErr != nil {
-				s.logger.Warn(
-					"Skipping payload eviction on rejected proposal",
-					"reason", "st.GetSlot()",
-					"error", slotFetchErr,
-				)
-				return
-			}
-			_, processSlotErr := s.stateProcessor.ProcessSlots(st, slot+1)
-			if processSlotErr != nil {
-				s.logger.Warn(
-					"Skipping payload eviction on rejected proposal",
-					"reason", "s.stateProcessor.ProcessSlots()",
-					"error", processSlotErr,
-				)
-				return
-			}
-			parentBlockRoot, blockRootFetchErr := st.GetBlockRootAtIndex(
-				slot.Unwrap() % s.chainSpec.SlotsPerHistoricalRoot(),
-			)
-			if blockRootFetchErr != nil {
-				s.logger.Warn(
-					"Skipping payload eviction on rejected proposal",
-					"reason", "st.GetBlockRootAtIndex()",
-					"error", blockRootFetchErr,
-				)
-				return
-			}
-			s.localBuilder.EvictPayload(slot+1, parentBlockRoot)
-		}
-	}()
+	defer s.evictLocalPayloadIfNecessary(ctx, err, thisNodeAddress, req.GetProposerAddress())
 
 	var (
 		signedBlk *ctypes.SignedBeaconBlock
@@ -403,4 +368,53 @@ func (s *Service) verifyStateRoot(
 // payload builds are enabled.
 func (s *Service) shouldBuildNextPayload(isNextBlockProposer bool) bool {
 	return isNextBlockProposer && s.localBuilder.Enabled()
+}
+
+// evictLocalPayload evicts the local payload from the cache if it exists.
+func (s *Service) evictLocalPayloadIfNecessary(
+	ctx context.Context,
+	err error,
+	thisNodeAddress []byte,
+	proposerAddress []byte,
+) {
+	// Check the conditions for evicting the local payload.
+	// - Local builder must be enabled.
+	// - There must be an error (i.e. rejecting proposal).
+	// - The proposer address must be the same as the node address.
+	if !s.localBuilder.Enabled() || err == nil || !bytes.Equal(thisNodeAddress, proposerAddress) {
+		return
+	}
+
+	st := s.storageBackend.StateFromContext(ctx)
+	slot, slotFetchErr := st.GetSlot()
+	if slotFetchErr != nil {
+		s.logger.Warn(
+			"Skipping payload eviction on rejected proposal",
+			"reason", "st.GetSlot()",
+			"error", slotFetchErr,
+		)
+		return
+	}
+	_, processSlotErr := s.stateProcessor.ProcessSlots(st, slot+1)
+	if processSlotErr != nil {
+		s.logger.Warn(
+			"Skipping payload eviction on rejected proposal",
+			"reason", "s.stateProcessor.ProcessSlots()",
+			"error", processSlotErr,
+		)
+		return
+	}
+	parentBlockRoot, blockRootFetchErr := st.GetBlockRootAtIndex(
+		slot.Unwrap() % s.chainSpec.SlotsPerHistoricalRoot(),
+	)
+	if blockRootFetchErr != nil {
+		s.logger.Warn(
+			"Skipping payload eviction on rejected proposal",
+			"reason", "st.GetBlockRootAtIndex()",
+			"error", blockRootFetchErr,
+		)
+		return
+	}
+
+	s.localBuilder.EvictPayload(slot+1, parentBlockRoot)
 }
