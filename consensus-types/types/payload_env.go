@@ -62,6 +62,18 @@ func NewEmptyExecutionPayloadEnvelope[
 	}
 }
 
+func NewExecutionPayloadEnvelope[
+	BlobsBundleT engineprimitives.BlobsBundle,
+](
+	payload *ExecutionPayload,
+	blobs BlobsBundleT,
+) BuiltExecutionPayloadEnv {
+	return &executionPayloadEnvelope[BlobsBundleT]{
+		ExecutionPayload: payload,
+		BlobsBundle:      blobs,
+	}
+}
+
 // GetExecutionPayload returns the execution payload of the
 // executionPayloadEnvelope.
 func (e *executionPayloadEnvelope[BlobsBundleT]) GetExecutionPayload() *ExecutionPayload {

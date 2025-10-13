@@ -317,7 +317,7 @@ func (s *Service) VerifyIncomingBlock(
 			)
 			return valUpdates, nil
 		}
-		go s.handleOptimisticPayloadBuild(ctx, nextBlockData)
+		go s.handleOptimisticPayloadBuild(ctx, nextBlockData, blk.GetBeaconBlock())
 	}
 
 	return valUpdates, nil

@@ -108,6 +108,12 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 		return nil, ErrPayloadBuilderDisabled
 	}
 
+	pb.muEnv.Lock()
+	defer pb.muEnv.Unlock()
+	if pb.latestEnvelope != nil && r.Slot == pb.latestEnvelopeSlot {
+		return pb.latestEnvelope, nil
+	}
+
 	// Build the payload and wait for the execution client to
 	// return the payload ID.
 	payloadID, forkVersion, err := pb.RequestPayloadAsync(ctx, r)
@@ -136,7 +142,15 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 	// retrieve a valid payload or not, drop its payloadID from the cache
 	// as we should never use it again.
 	_, _ = pb.pc.GetAndEvict(r.Slot, r.ParentBlockRoot)
-	return pb.getPayload(ctx, *payloadID, forkVersion)
+	envelope, err := pb.getPayload(ctx, *payloadID, forkVersion)
+	if err != nil {
+		return nil, fmt.Errorf("failed retrieving payload: %w", err)
+	}
+
+	// reset latestEnvelope as we successufully built our own payload
+	pb.latestEnvelope = nil
+	pb.latestEnvelopeSlot = 0
+	return envelope, nil
 }
 
 // RetrievePayload attempts to pull a previously built payload
@@ -190,6 +204,16 @@ func (pb *PayloadBuilder) RetrievePayload(
 	pb.logger.Info("Payload retrieved from local builder", args...)
 
 	return envelope, err
+}
+
+func (pb *PayloadBuilder) CacheLatestVerifiedPayload(
+	latestEnvelopeSlot math.Slot,
+	latestEnvelope ctypes.BuiltExecutionPayloadEnv,
+) {
+	pb.muEnv.Lock()
+	defer pb.muEnv.Unlock()
+	pb.latestEnvelopeSlot = latestEnvelopeSlot
+	pb.latestEnvelope = latestEnvelope
 }
 
 func (pb *PayloadBuilder) getPayload(

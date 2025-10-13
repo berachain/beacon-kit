@@ -228,6 +228,7 @@ func (s *Service) handleRebuildPayloadForRejectedBlock(
 func (s *Service) handleOptimisticPayloadBuild(
 	ctx context.Context,
 	buildData *builder.RequestPayloadData,
+	beaconBlk *ctypes.BeaconBlock,
 ) {
 	s.logger.Info(
 		"Optimistically triggering payload build for next slot 🛩️ ",
@@ -244,4 +245,11 @@ func (s *Service) handleOptimisticPayloadBuild(
 	}
 
 	s.metrics.markOptimisticPayloadBuildSuccess(buildData.Slot)
+	s.localBuilder.CacheLatestVerifiedPayload(
+		buildData.Slot-1,
+		ctypes.NewExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1](
+			beaconBlk.Body.ExecutionPayload,
+			&engineprimitives.BlobsBundleV1{},
+		),
+	)
 }
