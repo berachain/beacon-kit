@@ -139,8 +139,6 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 }
 
 // SetupConsensusClients sets up the consensus clients for the validator nodes.
-//
-// TODO: set up consensus clients for full nodes as well.
 func (s *KurtosisE2ESuite) SetupConsensusClients() error {
 	s.consensusClients = make(map[string]*types.ConsensusClient, config.NumValidators)
 
@@ -175,6 +173,49 @@ func (s *KurtosisE2ESuite) SetupConsensusClients() error {
 		if res, err = s.consensusClients[clientName].Start(
 			context.Background(), s.Enclave(),
 		); err != nil {
+			return err
+		}
+		if res.ExecutionError != nil {
+			return errors.New(res.ExecutionError.String())
+		}
+		if len(res.ValidationErrors) > 0 {
+			return errors.New(res.ValidationErrors[0].String())
+		}
+	}
+
+	return nil
+}
+
+// SetupFullNodeConsensusClients sets up consensus clients for full nodes.
+func (s *KurtosisE2ESuite) SetupFullNodeConsensusClients() error {
+	s.fullNodeClients = make(map[string]*types.ConsensusClient, config.NumFullNodes)
+
+	var (
+		sCtx *services.ServiceContext
+		res  *enclaves.StarlarkRunResult
+		err  error
+	)
+	for i := range config.NumFullNodes {
+		var clientName string
+		//nolint:mnd // its okay.
+		switch i % config.NumFullNodes {
+		case 0:
+			clientName = config.ClientFullNode0
+		case 1:
+			clientName = config.ClientFullNode1
+		case 2:
+			clientName = config.ClientFullNode2
+		case 3:
+			clientName = config.ClientFullNode3
+		}
+		sCtx, err = s.Enclave().GetServiceContext(clientName)
+		if err != nil {
+			return err
+		}
+
+		wrappedCtx := types.NewWrappedServiceContext(sCtx, s.Enclave().RunStarlarkScriptBlocking)
+		s.fullNodeClients[clientName] = types.NewConsensusClient(wrappedCtx)
+		if res, err = s.fullNodeClients[clientName].Start(context.Background(), s.Enclave()); err != nil {
 			return err
 		}
 		if res.ExecutionError != nil {
@@ -391,6 +432,12 @@ func (s *KurtosisE2ESuite) TearDownSuite() {
 		s.Require().NoError(err, "Error stopping consensus client")
 		s.Require().Nil(res.ExecutionError, "Error stopping consensus client")
 		s.Require().Empty(res.ValidationErrors, "Error stopping consensus client")
+	}
+	for _, client := range s.fullNodeClients {
+		res, err := client.Stop(s.ctx)
+		s.Require().NoError(err, "Error stopping full node client")
+		s.Require().Nil(res.ExecutionError, "Error stopping full node client")
+		s.Require().Empty(res.ValidationErrors, "Error stopping full node client")
 	}
 	s.Require().NoError(s.kCtx.DestroyEnclave(s.ctx, "e2e-test-enclave"))
 }
