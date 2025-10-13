@@ -374,6 +374,8 @@ func (s *PectraForkSuite) TestMaliciousUser_MakesConsolidationRequest_IsIgnored(
 func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_IsSuccessful() {
 	// Initialize the chain state.
 	s.Geth.InitializeChain(s.T())
+	s.Reth.InitializeChain(s.T()) // helper to build "invalid" blocks
+	helperBuilder := s.Reth
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.Geth.HomeDir)
@@ -389,7 +391,7 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 			Time:            consensusTime,
 			ProposerAddress: pubkey.Address(),
 		}
-		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, prepareReq)
+		proposal, prepareErr := helperBuilder.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, prepareReq)
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
 
@@ -415,7 +417,7 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 			Time:            consensusTime,
 			ProposerAddress: pubkey.Address(),
 		}
-		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, prepareReq)
+		proposal, prepareErr := helperBuilder.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, prepareReq)
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
 
@@ -445,7 +447,7 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 			Time:            consensusTime,
 			ProposerAddress: pubkey.Address(),
 		}
-		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, prepareReq)
+		proposal, prepareErr := helperBuilder.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, prepareReq)
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
 
@@ -472,7 +474,7 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 			Time:            consensusTime,
 			ProposerAddress: pubkey.Address(),
 		}
-		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, prepareReq)
+		proposal, prepareErr := helperBuilder.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, prepareReq)
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
 
