@@ -380,6 +380,9 @@ func (s *PectraForkSuite) TestMaliciousUser_MakesConsolidationRequest_IsIgnored(
 // This test will have a proposer propose a valid post-fork block, but one that is not finalized.
 // The next round will propose a valid pre-fork block that gets finalized due to deviance in the consensus timestamp.
 // The proposer will then propose a valid post-fork block that is correctly finalized.
+//
+// Note: this test requires a reth node with the --engine.always-process-payload-attributes-on-canonical-head flag
+// to propose the valid pre-fork block.
 func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_IsSuccessful() {
 	// Initialize the chain state.
 	s.Geth.InitializeChain2Validators(s.T())
@@ -404,6 +407,7 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 		s.Require().Len(proposal.Txs, 2)
 
 		// Geth processes the proposal. No bkit payload eviction here.
+		// Optimistically build the next height's payload.
 		processRequest := &types.ProcessProposalRequest{
 			Txs:                 proposal.Txs,
 			Height:              nextBlockHeight,
@@ -426,6 +430,7 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 		s.Require().Len(proposal.Txs, 2)
 
 		// Reth processes the proposal. No bkit payload eviction here.
+		// Optimistically build the next height's payload.
 		processRequest = &types.ProcessProposalRequest{
 			Txs:                 proposal.Txs,
 			Height:              nextBlockHeight,
@@ -439,7 +444,7 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT.String(), processResp.Status.String())
 	}
 
-	time.Sleep(200 * time.Millisecond) // Next round.
+	time.Sleep(50 * time.Millisecond) // Next round.
 	// The proposer prepares a pre-fork block with finalization. The first pre-fork block it proposes will be rejected
 	// As it will propose a post-fork block due to retrieving an Execution Payload in the PayloadCache.
 	{
@@ -454,10 +459,11 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 		s.Require().Len(proposal.Txs, 2)
 
 		processRequest := &types.ProcessProposalRequest{
-			Txs:             proposal.Txs,
-			Height:          nextBlockHeight,
-			ProposerAddress: rethNodeAddress,
-			Time:            consensusTime,
+			Txs:                 proposal.Txs,
+			Height:              nextBlockHeight,
+			ProposerAddress:     rethNodeAddress,
+			Time:                consensusTime,
+			NextProposerAddress: rethNodeAddress,
 		}
 
 		// Process the proposal and rejects but does not bkit evict payload from cache because it didnt build it.
@@ -481,7 +487,7 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 		)
 	}
 
-	time.Sleep(200 * time.Millisecond) // Next round.
+	time.Sleep(50 * time.Millisecond) // Next round.
 	// Geth now proposes a post-fork block from its cache, which should also be invalid.
 	{
 		// Get the same already built payload from cache.
@@ -495,10 +501,11 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 		s.Require().Len(proposal.Txs, 2)
 
 		processRequest := &types.ProcessProposalRequest{
-			Txs:             proposal.Txs,
-			Height:          nextBlockHeight,
-			ProposerAddress: gethNodeAddress,
-			Time:            consensusTime,
+			Txs:                 proposal.Txs,
+			Height:              nextBlockHeight,
+			ProposerAddress:     gethNodeAddress,
+			Time:                consensusTime,
+			NextProposerAddress: gethNodeAddress,
 		}
 
 		// Process the proposal and rejects but does not bkit evict payload from cache because it didnt build it.
@@ -522,13 +529,30 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 		)
 	}
 
-	time.Sleep(200 * time.Millisecond) // Next round.
-	// The next block the proposer proposes with a pre-fork timestamp will actually have a pre-fork time
-	// Since the previous payload in cache has been evicted (from both reth and geth), a new payload is retrieved.
+	time.Sleep(10 * time.Millisecond) // Next round.
+	// The previous payload in cache has been evicted. The optimistic builds for next height
+	// should have completed by now.
 	{
-		// Force build a new (pre-fork) payload from EL.
-		// For reth with flag --force-payload-rebuild --> a new payload for same height can be re-built.
-		consensusTime := time.Unix(int64(s.Reth.TestNode.ChainSpec.ElectraForkTime())-2, 0)
+		// Try to build a new (pre-fork) payload from geth EL.
+		// NOTE: this will fail because geth does not allow re-building a payload for a height
+		// that has already been marked safe/finalized
+		consensusTime := time.Unix(int64(s.Geth.TestNode.ChainSpec.ElectraForkTime())-2, 0)
+		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
+			Height:          nextBlockHeight,
+			Time:            consensusTime,
+			ProposerAddress: gethNodeAddress,
+		})
+		s.Require().NoError(prepareErr)
+		s.Require().Len(proposal.Txs, 0) // Geth returns an empty proposal.
+	}
+
+	time.Sleep(10 * time.Millisecond) // Next round.
+	// The next block the proposer proposes with a pre-fork timestamp will actually have a pre-fork time
+	// Since the previous payload in cache has been evicted, a new payload is built and retrieved.
+	{
+		// Force build a new (pre-fork) payload from reth EL.
+		// NOTE: this requires --engine.always-process-payload-attributes-on-canonical-head.
+		consensusTime := time.Unix(int64(s.Reth.TestNode.ChainSpec.ElectraForkTime())-1, 0)
 		proposal, prepareErr := s.Reth.SimComet.Comet.PrepareProposal(s.Reth.CtxComet, &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
@@ -538,13 +562,15 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 		s.Require().Len(proposal.Txs, 2)
 
 		processRequest := &types.ProcessProposalRequest{
-			Txs:             proposal.Txs,
-			Height:          nextBlockHeight,
-			ProposerAddress: rethNodeAddress,
-			Time:            consensusTime,
+			Txs:                 proposal.Txs,
+			Height:              nextBlockHeight,
+			ProposerAddress:     rethNodeAddress,
+			Time:                consensusTime,
+			NextProposerAddress: gethNodeAddress,
 		}
 
-		// Process the proposal. No bkit payload eviction here from cache.
+		// Process the proposal. No bkit payload eviction here from cache. Also trigger an optimistic
+		// build for next height.
 		s.Geth.LogBuffer.Reset()
 		processResp, processErr := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
 		s.Require().NoError(processErr)
@@ -555,46 +581,12 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 		processResp, processErr = s.Reth.SimComet.Comet.ProcessProposal(s.Reth.CtxComet, processRequest)
 		s.Require().NoError(processErr)
 		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
-	}
-
-	time.Sleep(200 * time.Millisecond) // Next round.
-	// The next block the proposer proposes with a pre-fork timestamp will actually have a pre-fork time
-	// Since the previous payload in cache has been evicted and a new payload is retrieved.
-	{
-		// Force build a new (pre-fork) payload from EL.
-		consensusTime := time.Unix(int64(s.Geth.TestNode.ChainSpec.ElectraForkTime())-1, 0)
-		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
-			Height:          nextBlockHeight,
-			Time:            consensusTime,
-			ProposerAddress: gethNodeAddress,
-		})
-		s.Require().NoError(prepareErr)
-		s.Require().Len(proposal.Txs, 2)
-
-		processRequest := &types.ProcessProposalRequest{
-			Txs:             proposal.Txs,
-			Height:          nextBlockHeight,
-			ProposerAddress: gethNodeAddress,
-			Time:            consensusTime,
-		}
-
-		// Process the proposal. No bkit eviction here.
-		s.Geth.LogBuffer.Reset()
-		processResp, processErr := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
-		s.Require().NoError(processErr)
-		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
-
-		// Reth also process proposal and does not evict from bkit.
-		s.Reth.LogBuffer.Reset()
-		processResp, processErr = s.Reth.SimComet.Comet.ProcessProposal(s.Reth.CtxComet, processRequest)
-		s.Require().NoError(processErr)
-		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
 
 		// Finalize the block. Evict bkit payload here because finalize is accepted.
 		finalizeRequest := &types.FinalizeBlockRequest{
 			Txs:             proposal.Txs,
 			Height:          nextBlockHeight,
-			ProposerAddress: gethNodeAddress,
+			ProposerAddress: rethNodeAddress,
 			Time:            consensusTime,
 		}
 		_, finalizeErr := s.Geth.SimComet.Comet.FinalizeBlock(s.Geth.CtxComet, finalizeRequest)
@@ -605,15 +597,18 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 		// Commit the block.
 		_, err := s.Geth.SimComet.Comet.Commit(s.Geth.CtxComet, &types.CommitRequest{})
 		s.Require().NoError(err)
+		s.Geth.LogBuffer.Reset()
 		_, err = s.Reth.SimComet.Comet.Commit(s.Reth.CtxComet, &types.CommitRequest{})
 		s.Require().NoError(err)
+		s.Reth.LogBuffer.Reset()
 	}
 
-	// Finally, we cross the fork and show no issues.
+	// Finally, we cross the fork and show no issues. Geth uses the optimistic build which has the
+	// correct payload time and consequently is built correctly for post-fork.
 	nextBlockHeight++
-	time.Sleep(200 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond) // The optimistic build for next height should have completed by now.
 	{
-		consensusTime := time.Unix(int64(s.Geth.TestNode.ChainSpec.ElectraForkTime())+1, 0)
+		consensusTime := time.Unix(int64(s.Geth.TestNode.ChainSpec.ElectraForkTime()), 0)
 		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
@@ -628,13 +623,11 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 			ProposerAddress: gethNodeAddress,
 			Time:            consensusTime,
 		}
-		// Process the proposal
-		s.Geth.LogBuffer.Reset()
+		// Process the proposal.
 		processResp, processErr := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
 		s.Require().NoError(processErr)
 		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
 		s.Require().Contains(s.Geth.LogBuffer.String(), "Processing execution requests")
-		s.Reth.LogBuffer.Reset()
 		processResp, processErr = s.Reth.SimComet.Comet.ProcessProposal(s.Reth.CtxComet, processRequest)
 		s.Require().NoError(processErr)
 		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
