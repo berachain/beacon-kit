@@ -24,8 +24,10 @@ package simulated
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"testing"
@@ -174,6 +176,14 @@ func Initialize2HomeDirs(
 	require.Equal(t, genesisValidatorsRoot, genesisValidatorsRoot2, "validators' roots should be equal")
 
 	return cmtCfg1, cmtCfg2, genesisValidatorsRoot
+}
+
+func CopyHomeDir(t *testing.T, sourceHomeDir, targetHomeDir string) {
+	t.Logf("Copying home directory to: %s", targetHomeDir)
+	srcPath := filepath.Join(filepath.Clean(sourceHomeDir), ".")
+	cmd := exec.Command("sh", "-c", fmt.Sprintf("cp -r %s/* %s", srcPath, targetHomeDir))
+	err := cmd.Run()
+	require.NoError(t, err)
 }
 
 // createCometConfig creates a default CometBFT configuration with the home directory set.

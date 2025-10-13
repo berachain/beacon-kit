@@ -23,11 +23,140 @@
 package simulated_test
 
 import (
+	"bytes"
+	"context"
+	"path"
+	"testing"
 	"time"
 
+	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/testing/simulated"
+	"github.com/berachain/beacon-kit/testing/simulated/execution"
 	"github.com/cometbft/cometbft/abci/types"
+	"github.com/spf13/viper"
+	"github.com/stretchr/testify/suite"
 )
+
+// PayloadCacheSuite defines our test suite for Pectra related work using simulated Comet component.
+type PayloadCacheSuite struct {
+	suite.Suite
+	Geth simulated.SharedAccessors
+	Reth simulated.SharedAccessors
+}
+
+// TestPayloadCacheSuite runs the test suite.
+func TestPayloadCacheSuite(t *testing.T) {
+	suite.Run(t, new(PayloadCacheSuite))
+}
+
+// SetupTest initializes the test environment.
+func (s *PayloadCacheSuite) SetupTest() {
+	// Create a cancellable context for the duration of the test.
+	s.Geth.CtxApp, s.Geth.CtxAppCancelFn = context.WithCancel(context.Background())
+	s.Reth.CtxApp, s.Reth.CtxAppCancelFn = context.WithCancel(context.Background())
+
+	// CometBFT uses context.TODO() for all ABCI calls, so we replicate that.
+	s.Geth.CtxComet = context.TODO()
+	s.Geth.HomeDir = s.T().TempDir()
+
+	s.Reth.CtxComet = context.TODO()
+	s.Reth.HomeDir = s.T().TempDir()
+
+	// Initialize the home directory, Comet configuration, and genesis info.
+	const elGenesisPath = "./el-genesis-files/pectra-fork-genesis.json"
+	chainSpecFunc := simulated.ProvidePectraForkTestChainSpec
+	// Create the chainSpec.
+	chainSpec, err := chainSpecFunc()
+	s.Require().NoError(err)
+	gethCmtCfg, rethCmtCfg, genesisValidatorsRoot := simulated.Initialize2HomeDirs(
+		s.T(), chainSpec, s.Geth.HomeDir, s.Reth.HomeDir, elGenesisPath,
+	)
+	s.Geth.GenesisValidatorsRoot = genesisValidatorsRoot
+	s.Reth.GenesisValidatorsRoot = genesisValidatorsRoot
+
+	// Start the EL (execution layer) Geth node.
+	gethNode := execution.NewGethNode(s.Geth.HomeDir, execution.ValidGethImage())
+	elHandle, authRPC, elRPC := gethNode.Start(s.T(), path.Base(elGenesisPath))
+	s.Geth.ElHandle = elHandle
+
+	rethNode := execution.NewRethNode(s.Reth.HomeDir, execution.ValidRethImage())
+	rethHandle, rethAuthRPC, elRPC := rethNode.Start(s.T(), path.Base(elGenesisPath))
+	s.Reth.ElHandle = rethHandle
+
+	// Prepare a logger backed by a buffer to capture logs for assertions.
+	s.Geth.LogBuffer = new(bytes.Buffer)
+	logger := phuslu.NewLogger(s.Geth.LogBuffer, nil)
+
+	s.Reth.LogBuffer = new(bytes.Buffer)
+	rethLogger := phuslu.NewLogger(s.Reth.LogBuffer, nil)
+
+	// Build the Beacon node with the simulated Comet component and electra genesis chain spec
+	components := simulated.FixedComponents(s.T())
+	components = append(components, simulated.ProvideSimComet)
+	components = append(components, chainSpecFunc)
+
+	s.Geth.TestNode = simulated.NewTestNode(s.T(), simulated.TestNodeInput{
+		TempHomeDir: s.Geth.HomeDir,
+		CometConfig: gethCmtCfg,
+		AuthRPC:     authRPC,
+		ClientRPC:   elRPC,
+		Logger:      logger,
+		AppOpts:     viper.New(),
+		Components:  components,
+	})
+	s.Geth.SimComet = s.Geth.TestNode.SimComet
+
+	s.Reth.TestNode = simulated.NewTestNode(s.T(), simulated.TestNodeInput{
+		TempHomeDir: s.Reth.HomeDir,
+		CometConfig: rethCmtCfg,
+		AuthRPC:     rethAuthRPC,
+		ClientRPC:   elRPC,
+		Logger:      rethLogger,
+		AppOpts:     viper.New(),
+		Components:  components,
+	})
+	s.Reth.SimComet = s.Reth.TestNode.SimComet
+
+	// Start the Beacon node in a separate goroutine.
+	go func() {
+		_ = s.Geth.TestNode.Start(s.Geth.CtxApp)
+	}()
+	// Start the Beacon node in a separate goroutine.
+	go func() {
+		_ = s.Reth.TestNode.Start(s.Reth.CtxApp)
+	}()
+
+	s.Geth.SimulationClient = execution.NewSimulationClient(s.Geth.TestNode.EngineClient)
+	// Reth does not have a simulation API
+	timeOut := 10 * time.Second
+	interval := 50 * time.Millisecond
+	err = simulated.WaitTillServicesStarted(s.Geth.LogBuffer, timeOut, interval)
+	s.Require().NoError(err)
+	err = simulated.WaitTillServicesStarted(s.Reth.LogBuffer, timeOut, interval)
+	s.Require().NoError(err)
+}
+
+// TearDownTest cleans up the test environment.
+func (s *PayloadCacheSuite) TearDownTest() {
+	// If the test has failed, log additional information.
+	if s.T().Failed() {
+		s.T().Log("GETH CL LOGS:")
+		s.T().Log(s.Geth.LogBuffer.String())
+		s.T().Log("RETH CL LOGS:")
+		s.T().Log(s.Reth.LogBuffer.String())
+	}
+	if err := s.Geth.ElHandle.Close(); err != nil {
+		s.T().Error("Error closing Geth EL handle:", err)
+	}
+	if err := s.Reth.ElHandle.Close(); err != nil {
+		s.T().Error("Error closing Reth EL handle:", err)
+	}
+	// mimics the behaviour of shutdown func
+	s.Geth.CtxAppCancelFn()
+	s.Geth.TestNode.ServiceRegistry.StopAll()
+	s.Reth.CtxAppCancelFn()
+	s.Reth.TestNode.ServiceRegistry.StopAll()
+}
 
 // This tests a reth validator proposing a block. It then accepts the proposal in
 // process proposal. But the block is not finalized by consensus. Then this
@@ -35,7 +164,7 @@ import (
 // payload from its cache.
 //
 // Note: this test does NOT require --engine.always-process-payload-attributes-on-canonical-head.
-func (s *PectraForkSuite) TestReth_ReusePayload_IsSuccessful() {
+func (s *PayloadCacheSuite) TestReth_ReusePayload_IsSuccessful() {
 	// Initialize the chain state.
 	s.Reth.InitializeChain2Validators(s.T()) // 1 reth validator
 
@@ -118,7 +247,7 @@ func (s *PectraForkSuite) TestReth_ReusePayload_IsSuccessful() {
 // process proposal. But the block is not finalized by consensus. Then this
 // validator is chosen to propose at a subsequent round. It should just get the old
 // payload from its cache.
-func (s *PectraForkSuite) TestGeth_ReusePayload_IsSuccessful() {
+func (s *PayloadCacheSuite) TestGeth_ReusePayload_IsSuccessful() {
 	// Initialize the chain state.
 	s.Geth.InitializeChain2Validators(s.T()) // 1 geth validator
 
@@ -202,7 +331,7 @@ func (s *PectraForkSuite) TestGeth_ReusePayload_IsSuccessful() {
 // rebuild a new payload (and not reuse the old one from its cache).
 //
 // Note: this test does NOT require --engine.always-process-payload-attributes-on-canonical-head.
-func (s *PectraForkSuite) TestReth_RebuildPayload_IsSuccessful() {
+func (s *PayloadCacheSuite) TestReth_RebuildPayload_IsSuccessful() {
 	// Initialize the chain state.
 	s.Reth.InitializeChain2Validators(s.T()) // 1 reth validator
 
@@ -284,7 +413,7 @@ func (s *PectraForkSuite) TestReth_RebuildPayload_IsSuccessful() {
 // This tests a geth validator proposing a invalid block. The proposal is rejected. Then this
 // validator is chosen to propose at a subsequent round. It should now be forced to
 // rebuild a new payload (and not reuse the old one from its cache).
-func (s *PectraForkSuite) TestGeth_RebuildPayload_IsSuccessful() {
+func (s *PayloadCacheSuite) TestGeth_RebuildPayload_IsSuccessful() {
 	// Initialize the chain state.
 	s.Geth.InitializeChain2Validators(s.T()) // 1 geth validator
 
@@ -368,7 +497,7 @@ func (s *PectraForkSuite) TestGeth_RebuildPayload_IsSuccessful() {
 // post-fork. Only reth with the flag can force rebuild a payload.
 //
 // NOTE: this test requires reth with the --engine.always-process-payload-attributes-on-canonical-head flag.
-func (s *PectraForkSuite) TestReth_MustRebuildPostForkPayload_IsSuccessful() {
+func (s *PayloadCacheSuite) TestReth_MustRebuildPostForkPayload_IsSuccessful() {
 	// Initialize the chain state.
 	s.Geth.InitializeChain2Validators(s.T()) // 1 geth validator
 	s.Reth.InitializeChain2Validators(s.T()) // 1 reth validator
@@ -519,7 +648,7 @@ func (s *PectraForkSuite) TestReth_MustRebuildPostForkPayload_IsSuccessful() {
 //
 // NOTE: this test requires reth with the --engine.always-process-payload-attributes-on-canonical-head flag
 // to propose the valid pre-fork block.
-func (s *PectraForkSuite) TestReth_MustRebuildPreForkPayload_IsSuccessful() {
+func (s *PayloadCacheSuite) TestReth_MustRebuildPreForkPayload_IsSuccessful() {
 	// Initialize the chain state.
 	s.Geth.InitializeChain2Validators(s.T())
 	gethNodeAddress, err := s.Geth.SimComet.GetNodeAddress()
