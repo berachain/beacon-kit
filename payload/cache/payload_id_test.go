@@ -36,7 +36,7 @@ func TestPayloadIDCache(t *testing.T) {
 
 	t.Run("Get from empty cache", func(t *testing.T) {
 		var r [32]byte
-		p, ok := cacheUnderTest.GetAndEvict(0, r)
+		p, ok := cacheUnderTest.Get(0, r)
 		require.False(t, ok)
 		require.Equal(t, engineprimitives.PayloadID{}, p.PayloadID)
 	})
@@ -47,18 +47,35 @@ func TestPayloadIDCache(t *testing.T) {
 		pid := engineprimitives.PayloadID{1, 2, 3, 3, 7, 8, 7, 8}
 		cacheUnderTest.Set(slot, r, pid, version.Deneb())
 
-		p, ok := cacheUnderTest.GetAndEvict(slot, r)
+		p, ok := cacheUnderTest.Get(slot, r)
 		require.True(t, ok)
 		require.Equal(t, pid, p.PayloadID)
+	})
+
+	t.Run("Get and Delete", func(t *testing.T) {
+		slot := math.Slot(1234)
+		r := [32]byte{1, 2, 3}
+		pid := engineprimitives.PayloadID{1, 2, 3, 3, 7, 8, 7, 8}
+		cacheUnderTest.Set(slot, r, pid, version.Deneb())
+
+		p, ok := cacheUnderTest.Get(slot, r)
+		require.True(t, ok)
+		require.Equal(t, pid, p.PayloadID)
+
+		cacheUnderTest.Delete(slot, r)
+		ok = cacheUnderTest.Has(slot, r)
+		require.False(t, ok)
 	})
 
 	t.Run("Overwrite existing", func(t *testing.T) {
 		slot := math.Slot(1234)
 		r := [32]byte{1, 2, 3}
+		pid := engineprimitives.PayloadID{1, 2, 3, 3, 7, 8, 7, 8}
+		cacheUnderTest.Set(slot, r, pid, version.Deneb())
 		newPid := engineprimitives.PayloadID{9, 9, 9, 9, 9, 9, 9, 9}
 		cacheUnderTest.Set(slot, r, newPid, version.Deneb())
 
-		p, ok := cacheUnderTest.GetAndEvict(slot, r)
+		p, ok := cacheUnderTest.Get(slot, r)
 		require.True(t, ok)
 		require.Equal(t, newPid, p.PayloadID)
 	})
