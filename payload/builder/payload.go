@@ -132,7 +132,10 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 		return nil, ctx.Err()
 	}
 
-	// Get the payload from the execution client.
+	// Get the payload from the execution client. Whether we successfully
+	// retrieve a valid payload or not, drop its payloadID from the cache
+	// as we should never use it again.
+	_, _ = pb.pc.GetAndEvict(r.Slot, r.ParentBlockRoot)
 	return pb.getPayload(ctx, *payloadID, forkVersion)
 }
 
