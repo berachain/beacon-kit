@@ -78,8 +78,9 @@ func (p *PayloadIDCache) Has(
 	return ok
 }
 
-// Get retrieves the payloadID from the cache.
-func (p *PayloadIDCache) Get(
+// GetAndEvict retrieves the payloadID from the cache. If successfully retrieved,
+// evict it from the cache.
+func (p *PayloadIDCache) GetAndEvict(
 	slot math.Slot,
 	blockRoot common.Root,
 ) (PayloadIDCacheResult, bool) {
@@ -87,7 +88,13 @@ func (p *PayloadIDCache) Get(
 	defer p.mu.Unlock()
 	key := payloadIDCacheKey{slot, blockRoot}
 	pid, ok := p.slotToBlockRootToPayloadID[key]
-	return pid, ok
+	if !ok {
+		return PayloadIDCacheResult{}, false
+	}
+
+	// Successfully retrieved. Remove from cache.
+	delete(p.slotToBlockRootToPayloadID, key)
+	return pid, true
 }
 
 // Set updates or inserts a payload ID for a given slot and eth1 hash.
@@ -110,16 +117,6 @@ func (p *PayloadIDCache) Set(
 		PayloadID:   pid,
 		ForkVersion: version,
 	}
-}
-
-// Delete deletes a payload ID from the cache if it exists.
-func (p *PayloadIDCache) Delete(
-	slot math.Slot,
-	blockRoot common.Root,
-) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	delete(p.slotToBlockRootToPayloadID, payloadIDCacheKey{slot, blockRoot})
 }
 
 // prunePrior removes payload IDs from the cache for slots less than
