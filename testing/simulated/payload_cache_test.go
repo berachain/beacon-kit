@@ -195,7 +195,7 @@ func (s *PectraForkSuite) TestGeth_ReusePayload_IsSuccessful() {
 	}
 }
 
-// This tests a reth validator proposing a block. The proposal is rejected.Then this
+// This tests a reth validator proposing a invalid block. The proposal is rejected. Then this
 // validator is chosen to propose at a subsequent round. It should now be forced to
 // rebuild a new payload (and not reuse the old one from its cache).
 func (s *PectraForkSuite) TestReth_RebuildPayload_IsSuccessful() {
@@ -277,7 +277,7 @@ func (s *PectraForkSuite) TestReth_RebuildPayload_IsSuccessful() {
 	}
 }
 
-// This tests a geth validator proposing a block. The proposal is rejected.Then this
+// This tests a geth validator proposing a invalid block. The proposal is rejected. Then this
 // validator is chosen to propose at a subsequent round. It should now be forced to
 // rebuild a new payload (and not reuse the old one from its cache).
 func (s *PectraForkSuite) TestGeth_RebuildPayload_IsSuccessful() {
