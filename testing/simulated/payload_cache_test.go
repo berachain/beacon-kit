@@ -33,6 +33,8 @@ import (
 // process proposal. But the block is not finalized by consensus. Then this
 // validator is chosen to propose at a subsequent round. It should just get the old
 // payload from its cache.
+//
+// Note: this test does NOT require --engine.always-process-payload-attributes-on-canonical-head.
 func (s *PectraForkSuite) TestReth_ReusePayload_IsSuccessful() {
 	// Initialize the chain state.
 	s.Reth.InitializeChain2Validators(s.T()) // 1 reth validator
@@ -198,6 +200,8 @@ func (s *PectraForkSuite) TestGeth_ReusePayload_IsSuccessful() {
 // This tests a reth validator proposing a invalid block. The proposal is rejected. Then this
 // validator is chosen to propose at a subsequent round. It should now be forced to
 // rebuild a new payload (and not reuse the old one from its cache).
+//
+// Note: this test does NOT require --engine.always-process-payload-attributes-on-canonical-head.
 func (s *PectraForkSuite) TestReth_RebuildPayload_IsSuccessful() {
 	// Initialize the chain state.
 	s.Reth.InitializeChain2Validators(s.T()) // 1 reth validator
