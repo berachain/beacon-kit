@@ -329,6 +329,7 @@ func (s *PectraForkSuite) TestMaliciousUser_MakesConsolidationRequest_IsIgnored(
 		var result interface{}
 		err = s.Geth.TestNode.EngineClient.Call(s.Geth.CtxApp, &result, "eth_sendRawTransaction", hexutil.Encode(txBytes))
 		s.Require().NoError(err)
+		time.Sleep(time.Second) // give it time to allow the tx to be included in the next block
 	}
 	// Move the chain so that tx is included and progresses correctly afterward.
 	{
