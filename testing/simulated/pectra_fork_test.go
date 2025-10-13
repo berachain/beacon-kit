@@ -366,22 +366,11 @@ func (s *PectraForkSuite) TestMaliciousUser_MakesConsolidationRequest_IsIgnored(
 	}
 }
 
-// TODO: add a fork boundary test.
-// (N, i)
-// geth builds a payload for N, i
-// pre-fork proposal accepted (no eviction)
-// consensus rejects, no finalize block
-// (N, i + 2), now post-fork time
-// geth retrieves the payload for N, i and submit proposal
-// proposal fails (geth evicts)
-// --> only way to continue is force build a new payload for N.
-//   - only reth can do this the engineAPI override flag and must build the next block
-
 // This test will have a proposer propose a valid post-fork block, but one that is not finalized.
 // The next round will propose a valid pre-fork block that gets finalized due to deviance in the consensus timestamp.
 // The proposer will then propose a valid post-fork block that is correctly finalized.
 //
-// Note: this test requires a reth node with the --engine.always-process-payload-attributes-on-canonical-head flag
+// NOTE: this test requires reth with the --engine.always-process-payload-attributes-on-canonical-head flag
 // to propose the valid pre-fork block.
 func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_IsSuccessful() {
 	// Initialize the chain state.
