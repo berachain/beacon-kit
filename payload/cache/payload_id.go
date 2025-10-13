@@ -83,8 +83,8 @@ func (p *PayloadIDCache) Get(
 	slot math.Slot,
 	blockRoot common.Root,
 ) (PayloadIDCacheResult, bool) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
+	p.mu.RLock()
+	defer p.mu.RUnlock()
 	key := payloadIDCacheKey{slot, blockRoot}
 	pid, ok := p.slotToBlockRootToPayloadID[key]
 	return pid, ok
