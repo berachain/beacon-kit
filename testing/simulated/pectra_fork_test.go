@@ -405,10 +405,11 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 
 		// Geth processes the proposal. No bkit payload eviction here.
 		processRequest := &types.ProcessProposalRequest{
-			Txs:             proposal.Txs,
-			Height:          nextBlockHeight,
-			ProposerAddress: gethNodeAddress,
-			Time:            consensusTime,
+			Txs:                 proposal.Txs,
+			Height:              nextBlockHeight,
+			ProposerAddress:     gethNodeAddress,
+			Time:                consensusTime,
+			NextProposerAddress: gethNodeAddress,
 		}
 		s.Geth.LogBuffer.Reset()
 		processResp, respErr := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
@@ -426,10 +427,11 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 
 		// Reth processes the proposal. No bkit payload eviction here.
 		processRequest = &types.ProcessProposalRequest{
-			Txs:             proposal.Txs,
-			Height:          nextBlockHeight,
-			ProposerAddress: rethNodeAddress,
-			Time:            consensusTime,
+			Txs:                 proposal.Txs,
+			Height:              nextBlockHeight,
+			ProposerAddress:     rethNodeAddress,
+			Time:                consensusTime,
+			NextProposerAddress: rethNodeAddress,
 		}
 		s.Reth.LogBuffer.Reset()
 		processResp, respErr = s.Reth.SimComet.Comet.ProcessProposal(s.Reth.CtxComet, processRequest)
