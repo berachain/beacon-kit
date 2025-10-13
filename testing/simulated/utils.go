@@ -172,7 +172,6 @@ func (s *SharedAccessors) MoveChainToHeight(
 			int64(payloadtime.Next(blk.GetTimestamp(), blk.GetTimestamp(), true)),
 			0,
 		)
-		// proposalTime = proposalTime.Add(time.Duration(s.TestNode.ChainSpec.TargetSecondsPerEth1Block()) * time.Second)
 	}
 	return proposedCometBlocks, finalizedResponses, proposalTime
 }
