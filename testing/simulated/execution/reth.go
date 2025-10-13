@@ -41,7 +41,7 @@ func ValidRethImage() docker.PullImageOptions {
 	}
 }
 
-// defaultRethCmdStrBuilder returns a command string tailored for running a Geth node.
+// defaultRethCmdStrBuilder returns a command string tailored for running a Reth node.
 func defaultRethCmdStrBuilder(genesisFile string) string {
 	return fmt.Sprintf(`
 		bera-reth node --http --http.addr 0.0.0.0 --http.api eth,net,web3,debug \

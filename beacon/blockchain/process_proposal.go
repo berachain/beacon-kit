@@ -63,7 +63,7 @@ func (s *Service) ProcessProposal(
 	thisNodeAddress []byte,
 ) (transition.ValidatorUpdates, error) {
 	var err error
-	defer s.evictLocalPayloadIfNecessary(ctx, err, thisNodeAddress, req.GetProposerAddress())
+	defer s.evictLocalPayloadIfNecessary(ctx, &err, thisNodeAddress, req.GetProposerAddress())
 
 	var (
 		signedBlk *ctypes.SignedBeaconBlock
@@ -313,7 +313,7 @@ func (s *Service) VerifyIncomingBlock(
 	)
 
 	if shouldBuildNextPayload {
-		// state copy makes sure that preFetchBuildDataForSuccess does not affect state
+		// state copy makes sure that preFetchBuildData does not affect state
 		copiedState := state.Copy(ctx)
 		nextBlockData, errFetch = s.preFetchBuildData(copiedState, blk.GetConsensusTime())
 		if errFetch != nil {
@@ -364,24 +364,31 @@ func (s *Service) verifyStateRoot(
 	return valUpdates, err
 }
 
-// shouldBuildNextPayload returns true if optimistic
-// payload builds are enabled.
+// shouldBuildNextPayload returns true if payload builds are enabled and we are the next block proposer.
 func (s *Service) shouldBuildNextPayload(isNextBlockProposer bool) bool {
 	return isNextBlockProposer && s.localBuilder.Enabled()
 }
 
-// evictLocalPayload evicts the local payload from the cache if it exists.
+// evictLocalPayloadIfNecessary evicts the payload from local builder cache if necessary.
+// We deem it necessary only when we are rejecting the incoming block proposal and it has
+// been built by us.
 func (s *Service) evictLocalPayloadIfNecessary(
 	ctx context.Context,
-	err error,
+	processProposalErr *error,
 	thisNodeAddress []byte,
 	proposerAddress []byte,
 ) {
+	// Check conditions for calling this function.
+	// - Function has been called with an initialized error (to hold process proposal error).
+	// - Our node has the local payload builder enabled.
+	if processProposalErr == nil || !s.localBuilder.Enabled() {
+		return
+	}
+
 	// Check the conditions for evicting the local payload.
-	// - Local builder must be enabled.
-	// - There must be an error (i.e. rejecting proposal).
-	// - The proposer address must be the same as the node address.
-	if !s.localBuilder.Enabled() || err == nil || !bytes.Equal(thisNodeAddress, proposerAddress) {
+	// - There must be a process proposal error (i.e. we are rejecting the proposal).
+	// - The proposer address must be the same as this node's address.
+	if *processProposalErr == nil || !bytes.Equal(thisNodeAddress, proposerAddress) {
 		return
 	}
 
