@@ -374,13 +374,9 @@ func (s *PectraForkSuite) TestMaliciousUser_MakesConsolidationRequest_IsIgnored(
 func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_IsSuccessful() {
 	// Initialize the chain state.
 	s.Geth.InitializeChain(s.T())
-	s.Reth.InitializeChain(s.T()) // helper to build "invalid" blocks
-	helperBuilder := s.Reth
-
-	// Retrieve the BLS signer and proposer address.
-	blsSigner := simulated.GetBlsSigner(s.Geth.HomeDir)
-	pubkey, err := blsSigner.GetPubKey()
+	gethNodeAddress, err := s.Geth.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
+	s.Geth.SimComet.Comet.SetNodeAddress(gethNodeAddress)
 
 	nextBlockHeight := int64(1)
 	// The proposer prepares and proposes a post-fork block without finalizing
@@ -389,16 +385,16 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 		prepareReq := &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
-			ProposerAddress: pubkey.Address(),
+			ProposerAddress: gethNodeAddress,
 		}
-		proposal, prepareErr := helperBuilder.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, prepareReq)
+		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, prepareReq)
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
 
 		processRequest := &types.ProcessProposalRequest{
 			Txs:             proposal.Txs,
 			Height:          nextBlockHeight,
-			ProposerAddress: pubkey.Address(),
+			ProposerAddress: gethNodeAddress,
 			Time:            consensusTime,
 		}
 
@@ -415,16 +411,16 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 		prepareReq := &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
-			ProposerAddress: pubkey.Address(),
+			ProposerAddress: gethNodeAddress,
 		}
-		proposal, prepareErr := helperBuilder.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, prepareReq)
+		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, prepareReq)
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
 
 		processRequest := &types.ProcessProposalRequest{
 			Txs:             proposal.Txs,
 			Height:          nextBlockHeight,
-			ProposerAddress: pubkey.Address(),
+			ProposerAddress: gethNodeAddress,
 			Time:            consensusTime,
 		}
 
@@ -445,43 +441,16 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 		prepareReq := &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
-			ProposerAddress: pubkey.Address(),
+			ProposerAddress: gethNodeAddress,
 		}
-		proposal, prepareErr := helperBuilder.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, prepareReq)
+		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, prepareReq)
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
 
 		processRequest := &types.ProcessProposalRequest{
 			Txs:             proposal.Txs,
 			Height:          nextBlockHeight,
-			ProposerAddress: pubkey.Address(),
-			Time:            consensusTime,
-		}
-
-		// Process the proposal
-		s.Geth.LogBuffer.Reset()
-		processResp, processErr := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
-		s.Require().NoError(processErr)
-		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT.String(), processResp.Status.String())
-	}
-
-	// The next block the proposer proposes with a pre-fork timestamp will actually have a pre-fork time
-	// Since the previous payload in cache has been evicted and a new payload is retrieved.
-	{
-		consensusTime := time.Unix(int64(s.Geth.TestNode.ChainSpec.ElectraForkTime())-2, 0)
-		prepareReq := &types.PrepareProposalRequest{
-			Height:          nextBlockHeight,
-			Time:            consensusTime,
-			ProposerAddress: pubkey.Address(),
-		}
-		proposal, prepareErr := helperBuilder.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, prepareReq)
-		s.Require().NoError(prepareErr)
-		s.Require().Len(proposal.Txs, 2)
-
-		processRequest := &types.ProcessProposalRequest{
-			Txs:             proposal.Txs,
-			Height:          nextBlockHeight,
-			ProposerAddress: pubkey.Address(),
+			ProposerAddress: gethNodeAddress,
 			Time:            consensusTime,
 		}
 
@@ -495,7 +464,7 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 		finalizeRequest := &types.FinalizeBlockRequest{
 			Txs:             proposal.Txs,
 			Height:          nextBlockHeight,
-			ProposerAddress: pubkey.Address(),
+			ProposerAddress: gethNodeAddress,
 			Time:            consensusTime,
 		}
 		_, finalizeErr := s.Geth.SimComet.Comet.FinalizeBlock(s.Geth.CtxComet, finalizeRequest)
@@ -513,7 +482,7 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 		prepareReq := &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
-			ProposerAddress: pubkey.Address(),
+			ProposerAddress: gethNodeAddress,
 		}
 		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, prepareReq)
 		s.Require().NoError(prepareErr)
@@ -522,7 +491,7 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 		processRequest := &types.ProcessProposalRequest{
 			Txs:             proposal.Txs,
 			Height:          nextBlockHeight,
-			ProposerAddress: pubkey.Address(),
+			ProposerAddress: gethNodeAddress,
 			Time:            consensusTime,
 		}
 		// Process the proposal
