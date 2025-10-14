@@ -105,6 +105,9 @@ func (s *PayloadCacheSuite) SetupTest() {
 		Components:  components,
 	})
 	s.Geth.SimComet = s.Geth.TestNode.SimComet
+	nodeAddress, err := s.Geth.SimComet.GetNodeAddress()
+	s.Require().NoError(err)
+	s.Geth.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	s.Reth.TestNode = simulated.NewTestNode(s.T(), simulated.TestNodeInput{
 		TempHomeDir: s.Reth.HomeDir,
@@ -116,6 +119,9 @@ func (s *PayloadCacheSuite) SetupTest() {
 		Components:  components,
 	})
 	s.Reth.SimComet = s.Reth.TestNode.SimComet
+	nodeAddress, err = s.Reth.SimComet.GetNodeAddress()
+	s.Require().NoError(err)
+	s.Reth.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	// Start the Beacon node in a separate goroutine.
 	go func() {

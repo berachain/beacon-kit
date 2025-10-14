@@ -79,11 +79,6 @@ func ProvideSimComet(
 // Start sets the ctx and the node address for the SimComet service.
 func (s *SimComet) Start(ctx context.Context) error {
 	s.Comet.ResetAppCtx(ctx)
-	nodeAddress, err := s.GetNodeAddress()
-	if err != nil {
-		return err
-	}
-	s.Comet.SetNodeAddress(nodeAddress)
 	return nil
 }
 
