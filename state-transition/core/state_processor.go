@@ -22,6 +22,7 @@ package core
 
 import (
 	"bytes"
+	"encoding/hex"
 	"fmt"
 	"sync"
 
@@ -344,8 +345,13 @@ func (sp *StateProcessor) processBlockHeader(
 		return err
 	}
 	if !bytes.Equal(stateProposerAddress, ctx.ProposerAddress()) {
+		sp.logger.Error(
+			"proposer mismatch in state_processor",
+			"state", hex.EncodeToString(stateProposerAddress),
+			"incoming", hex.EncodeToString(ctx.ProposerAddress()),
+		)
 		return errors.Wrapf(
-			ErrProposerMismatch, "store key: %s, consensus key: %s",
+			ErrProposerMismatch, "store key: %x, consensus key: %x",
 			stateProposerAddress, ctx.ProposerAddress(),
 		)
 	}
