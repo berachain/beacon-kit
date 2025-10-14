@@ -159,8 +159,8 @@ func (pb *PayloadBuilder) RetrievePayload(
 	// Get the payload from the execution client.
 	envelope, err := pb.getPayload(ctx, payloadID.PayloadID, payloadID.ForkVersion)
 	if err != nil {
-		// Evict the payload from cache as the EL can no longer retrieve it
-		pb.pc.Delete(slot, parentBlockRoot)
+		// Evict the payload from cache as the EL can no longer retrieve it.
+		pb.EvictPayload(slot, parentBlockRoot)
 		pb.logger.Debug("Failed to get payload from EL", "error", err)
 		return nil, err
 	}
