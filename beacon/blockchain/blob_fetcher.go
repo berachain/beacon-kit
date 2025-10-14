@@ -80,9 +80,8 @@ func NewBlobFetcher(
 	storageBackend StorageBackend,
 	chainSpec BlobFetcherChainSpec,
 	config BlobFetcherConfig,
-	telemetrySink TelemetrySink,
 ) (BlobFetcher, error) {
-	metrics := newBlobFetcherMetrics(telemetrySink)
+	metrics := newBlobFetcherMetrics()
 
 	queue, err := newBlobQueue(filepath.Join(dataDir, "blobs", "download_queue"), logger, metrics)
 	if err != nil {

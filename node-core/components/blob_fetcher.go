@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/da/blobreactor"
 	"github.com/berachain/beacon-kit/log/phuslu"
-	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cast"
@@ -44,7 +43,6 @@ type BlobFetcherInput struct {
 	ChainSpec      chain.Spec
 	Logger         *phuslu.Logger
 	StorageBackend *storage.Backend
-	TelemetrySink  *metrics.TelemetrySink
 	AppOpts        config.AppOptions
 }
 
@@ -58,6 +56,5 @@ func ProvideBlobFetcher(in BlobFetcherInput) (blockchain.BlobFetcher, error) {
 		in.StorageBackend,
 		in.ChainSpec,
 		blockchain.DefaultBlobFetcherConfig(),
-		in.TelemetrySink,
 	)
 }

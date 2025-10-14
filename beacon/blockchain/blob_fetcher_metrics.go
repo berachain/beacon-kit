@@ -20,44 +20,100 @@
 
 package blockchain
 
+import (
+	"os"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+)
+
 // Metric reason constants for blob fetcher.
 const (
 	expiredReasonOutsideDA  = "outside_da_period"
 	expiredReasonMaxRetries = "max_retries"
 )
 
-// blobFetcherMetrics contains metrics for the blob fetcher queue and retry operations.
+// blobFetcherMetrics contains native Prometheus metrics for the blob fetcher.
 type blobFetcherMetrics struct {
-	sink TelemetrySink
+	retriesTotal           prometheus.Counter
+	requestsExpiredVec     *prometheus.CounterVec
+	requestsCompletedTotal prometheus.Counter
+	requestsQueuedTotal    prometheus.Counter
+	queueDepth             prometheus.Gauge
 }
 
-// newBlobFetcherMetrics creates a new blobFetcherMetrics instance.
-func newBlobFetcherMetrics(sink TelemetrySink) *blobFetcherMetrics {
-	return &blobFetcherMetrics{sink: sink}
+// newBlobFetcherMetrics creates a new native Prometheus metrics instance.
+func newBlobFetcherMetrics() *blobFetcherMetrics {
+	hostname, _ := os.Hostname()
+	if hostname == "" {
+		hostname = "unknown"
+	}
+
+	// Use promauto to automatically register metrics with prometheus.DefaultRegisterer
+	return &blobFetcherMetrics{
+		retriesTotal: promauto.NewCounter(prometheus.CounterOpts{
+			Name: "beacond_node_beacon_kit_blob_fetcher_retries_total",
+			Help: "Total number of blob fetch retry attempts",
+			ConstLabels: prometheus.Labels{
+				"host": hostname,
+			},
+		}),
+		requestsExpiredVec: promauto.NewCounterVec(
+			prometheus.CounterOpts{
+				Name: "beacond_node_beacon_kit_blob_fetcher_requests_expired_total",
+				Help: "Total number of expired blob fetch requests",
+				ConstLabels: prometheus.Labels{
+					"host": hostname,
+				},
+			},
+			[]string{"reason"},
+		),
+		requestsCompletedTotal: promauto.NewCounter(prometheus.CounterOpts{
+			Name: "beacond_node_beacon_kit_blob_fetcher_requests_completed_total",
+			Help: "Total number of successfully completed blob fetch requests",
+			ConstLabels: prometheus.Labels{
+				"host": hostname,
+			},
+		}),
+		requestsQueuedTotal: promauto.NewCounter(prometheus.CounterOpts{
+			Name: "beacond_node_beacon_kit_blob_fetcher_requests_queued_total",
+			Help: "Total number of blob fetch requests added to queue",
+			ConstLabels: prometheus.Labels{
+				"host": hostname,
+			},
+		}),
+		queueDepth: promauto.NewGauge(prometheus.GaugeOpts{
+			Name: "beacond_node_beacon_kit_blob_fetcher_queue_depth",
+			Help: "Current depth of the blob fetcher queue",
+			ConstLabels: prometheus.Labels{
+				"host": hostname,
+			},
+		}),
+	}
 }
 
 // recordRetry increments counter when a blob request is retried after failure.
 func (m *blobFetcherMetrics) recordRetry() {
-	m.sink.IncrementCounter("beacon_kit.blob_fetcher.retries_total")
+	m.retriesTotal.Inc()
 }
 
 // recordRequestExpired increments counter when request expires before completion.
 // Reason: "outside_da_period", "max_retries"
 func (m *blobFetcherMetrics) recordRequestExpired(reason string) {
-	m.sink.IncrementCounter("beacon_kit.blob_fetcher.requests_expired_total", "reason", reason)
+	m.requestsExpiredVec.WithLabelValues(reason).Inc()
 }
 
 // recordRequestComplete increments counter when request completes successfully.
 func (m *blobFetcherMetrics) recordRequestComplete() {
-	m.sink.IncrementCounter("beacon_kit.blob_fetcher.requests_completed_total")
+	m.requestsCompletedTotal.Inc()
 }
 
 // recordRequestQueued increments counter when a new request is added to queue.
 func (m *blobFetcherMetrics) recordRequestQueued() {
-	m.sink.IncrementCounter("beacon_kit.blob_fetcher.requests_queued_total")
+	m.requestsQueuedTotal.Inc()
 }
 
 // setQueueDepth sets the current depth of the blob fetcher queue.
 func (m *blobFetcherMetrics) setQueueDepth(depth int) {
-	m.sink.SetGauge("beacon_kit.blob_fetcher.queue_depth", int64(depth))
+	m.queueDepth.Set(float64(depth))
 }

@@ -113,7 +113,6 @@ func (s *SimulatedSuite) TestBlobFetcher_MultiNodeFetch() {
 			RetryInterval: 200 * time.Millisecond,
 			MaxRetries:    3,
 		},
-		metrics.NewNoOpTelemetrySink(),
 	)
 	s.Require().NoError(err)
 	node1Fetcher.Start(s.CtxApp)
