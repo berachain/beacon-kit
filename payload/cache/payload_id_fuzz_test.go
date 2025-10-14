@@ -33,18 +33,16 @@ import (
 )
 
 func FuzzPayloadIDCacheBasic(f *testing.F) {
-	f.Add(uint64(1), []byte{1, 2, 3}, []byte{1, 2, 3, 4, 5, 6, 7, 8})
-	f.Add(uint64(2), []byte{4, 5, 6}, []byte{9, 10, 11, 12, 13, 14, 15, 16})
-	f.Add(uint64(3), []byte{7, 8, 9}, []byte{17, 18, 19, 20, 21, 22, 23, 24})
-	f.Fuzz(func(t *testing.T, s uint64, _r, _p []byte) {
-		var r [32]byte
-		copy(r[:], _r)
+	f.Add(uint64(1), []byte{1, 2, 3, 4, 5, 6, 7, 8})
+	f.Add(uint64(2), []byte{9, 10, 11, 12, 13, 14, 15, 16})
+	f.Add(uint64(3), []byte{17, 18, 19, 20, 21, 22, 23, 24})
+	f.Fuzz(func(t *testing.T, s uint64, _p []byte) {
 		slot := math.Slot(s)
 		pid := engineprimitives.PayloadID(_p[:8])
 		cacheUnderTest := cache.NewPayloadIDCache()
-		cacheUnderTest.Set(slot, r, pid, version.Deneb())
+		cacheUnderTest.Set(slot, pid, version.Deneb())
 
-		p, ok := cacheUnderTest.GetAndEvict(slot, r)
+		p, ok := cacheUnderTest.GetAndEvict(slot)
 		require.True(t, ok)
 		require.Equal(t, pid, p.PayloadID)
 
@@ -53,48 +51,40 @@ func FuzzPayloadIDCacheBasic(f *testing.F) {
 		for i := range pid {
 			newPid[i] = pid[i] + 1 // Simple mutation for a new PayloadID
 		}
-		cacheUnderTest.Set(slot, r, newPid, version.Deneb())
+		cacheUnderTest.Set(slot, newPid, version.Deneb())
 
-		p, ok = cacheUnderTest.GetAndEvict(slot, r)
+		p, ok = cacheUnderTest.GetAndEvict(slot)
 		require.True(t, ok)
 		require.Equal(
 			t, newPid, p.PayloadID, "PayloadID should be overwritten with the new value")
 
 		// Verify deletion
-		ok = cacheUnderTest.Has(slot, r)
+		ok = cacheUnderTest.Has(slot)
 		require.False(t, ok, "Entry should be pruned and not found")
 	})
 }
 
 func FuzzPayloadIDInvalidInput(f *testing.F) {
 	// Intentionally invalid inputs
-	f.Add(uint64(1), []byte{1, 2, 3, 4, 5, 6, 7, 8, 9}, []byte{1, 2, 3})
+	f.Add(uint64(1), []byte{1, 2, 3})
 
-	f.Fuzz(func(t *testing.T, s uint64, _r, _p []byte) {
-		var r [32]byte
+	f.Fuzz(func(t *testing.T, s uint64, _p []byte) {
 		slot := math.Slot(s)
-		if len(_r) > 32 {
-			// Expecting an error or specific handling of oversized input
-			t.Skip(
-				"Skipping test due to intentionally invalid input size for root.",
-			)
-		}
-		copy(r[:], _r)
 		var paddedPayload [8]byte
 		copy(paddedPayload[:], _p[:min(len(_p), 8)])
 		pid := [8]byte(paddedPayload[:])
 		cacheUnderTest := cache.NewPayloadIDCache()
-		cacheUnderTest.Set(slot, r, pid, version.Deneb())
+		cacheUnderTest.Set(slot, pid, version.Deneb())
 
-		_, ok := cacheUnderTest.GetAndEvict(slot, r)
+		_, ok := cacheUnderTest.GetAndEvict(slot)
 		require.True(t, ok)
 	})
 }
 
 func FuzzPayloadIDCacheConcurrency(f *testing.F) {
-	f.Add(uint64(1), []byte{1, 2, 3}, []byte{1, 2, 3, 4})
+	f.Add(uint64(1), []byte{1, 2, 3, 4})
 
-	f.Fuzz(func(t *testing.T, s uint64, _r, _p []byte) {
+	f.Fuzz(func(t *testing.T, s uint64, _p []byte) {
 		cacheUnderTest := cache.NewPayloadIDCache()
 		slot := math.Slot(s)
 		var wg sync.WaitGroup
@@ -103,12 +93,10 @@ func FuzzPayloadIDCacheConcurrency(f *testing.F) {
 		// Set operation in one goroutine
 		go func() {
 			defer wg.Done()
-			var r [32]byte
-			copy(r[:], _r)
 			var paddedPayload [8]byte
 			copy(paddedPayload[:], _p[:min(len(_p), 8)])
 			pid := [8]byte(paddedPayload[:])
-			cacheUnderTest.Set(slot, r, pid, version.Deneb())
+			cacheUnderTest.Set(slot, pid, version.Deneb())
 		}()
 
 		// Get operation in another goroutine
@@ -118,9 +106,7 @@ func FuzzPayloadIDCacheConcurrency(f *testing.F) {
 			time.Sleep(
 				10 * time.Millisecond,
 			) // Small delay to let the Set operation proceed
-			var r [32]byte
-			copy(r[:], _r)
-			_, ok = cacheUnderTest.GetAndEvict(slot, r)
+			_, ok = cacheUnderTest.GetAndEvict(slot)
 		}()
 
 		wg.Wait()

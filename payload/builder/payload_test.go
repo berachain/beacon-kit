@@ -92,10 +92,9 @@ func TestRetrievePayloadSunnyPath(t *testing.T) {
 
 	// create inputs and set expectations
 	var (
-		ctx             = t.Context()
-		slot            = math.Slot(2025)
-		parentBlockRoot = common.Root{0xff, 0xaa}
-		dummyPayloadID  = engineprimitives.PayloadID{0xab}
+		ctx            = t.Context()
+		slot           = math.Slot(2025)
+		dummyPayloadID = engineprimitives.PayloadID{0xab}
 
 		expectedPayload = &mockExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1]{
 			ExecutionPayload: &ctypes.ExecutionPayload{
@@ -106,11 +105,11 @@ func TestRetrievePayloadSunnyPath(t *testing.T) {
 	)
 
 	// set expectations
-	cache.Set(slot, parentBlockRoot, dummyPayloadID, version.Deneb())
+	cache.Set(slot, dummyPayloadID, version.Deneb())
 	ee.payloadEnvToReturn = expectedPayload
 
 	// test and checks
-	payload, err := pb.RetrievePayload(ctx, slot, parentBlockRoot)
+	payload, err := pb.RetrievePayload(ctx, slot)
 	require.NoError(t, err)
 	require.Equal(t, expectedPayload, payload)
 }
@@ -140,10 +139,9 @@ func TestRetrievePayloadNilWithdrawalsListRejected(t *testing.T) {
 
 	// create inputs
 	var (
-		ctx             = t.Context()
-		slot            = math.Slot(2025)
-		parentBlockRoot = common.Root{0xff, 0xaa}
-		dummyPayloadID  = engineprimitives.PayloadID{0xab}
+		ctx            = t.Context()
+		slot           = math.Slot(2025)
+		dummyPayloadID = engineprimitives.PayloadID{0xab}
 
 		faultyPayload = &mockExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1]{
 			ExecutionPayload: &ctypes.ExecutionPayload{
@@ -154,11 +152,11 @@ func TestRetrievePayloadNilWithdrawalsListRejected(t *testing.T) {
 	)
 
 	// set expectations
-	cache.Set(slot, parentBlockRoot, dummyPayloadID, version.Deneb())
+	cache.Set(slot, dummyPayloadID, version.Deneb())
 	ee.payloadEnvToReturn = faultyPayload
 
 	// test and checks
-	_, err = pb.RetrievePayload(ctx, slot, parentBlockRoot)
+	_, err = pb.RetrievePayload(ctx, slot)
 	require.ErrorIs(t, builder.ErrNilWithdrawals, err)
 }
 

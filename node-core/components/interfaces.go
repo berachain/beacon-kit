@@ -85,7 +85,6 @@ type (
 		RetrievePayload(
 			ctx context.Context,
 			slot math.Slot,
-			parentBlockRoot common.Root,
 		) (ctypes.BuiltExecutionPayloadEnv, error)
 		// RequestPayloadSync requests a payload for the given slot and
 		// blocks until the payload is delivered.

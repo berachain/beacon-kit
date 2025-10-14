@@ -53,11 +53,10 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 		return nil, common.Version{}, ErrPayloadBuilderDisabled
 	}
 
-	if payloadID, found := pb.pc.GetAndEvict(r.Slot, r.ParentBlockRoot); found {
+	if payloadID, found := pb.pc.GetAndEvict(r.Slot); found {
 		pb.logger.Info(
 			"aborting payload build; payload already exists in cache",
 			"for_slot", r.Slot.Base10(),
-			"parent_block_root", r.ParentBlockRoot,
 		)
 		return &payloadID.PayloadID, payloadID.ForkVersion, nil
 	}
@@ -92,7 +91,7 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 
 	// Only add to cache if we received back a payload ID.
 	if payloadID != nil {
-		pb.pc.Set(r.Slot, r.ParentBlockRoot, *payloadID, forkVersion)
+		pb.pc.Set(r.Slot, *payloadID, forkVersion)
 	}
 
 	return payloadID, forkVersion, nil
@@ -143,7 +142,6 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 func (pb *PayloadBuilder) RetrievePayload(
 	ctx context.Context,
 	slot math.Slot,
-	parentBlockRoot common.Root,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
 	if !pb.Enabled() {
 		return nil, ErrPayloadBuilderDisabled
@@ -151,7 +149,7 @@ func (pb *PayloadBuilder) RetrievePayload(
 
 	// Attempt to see if we previously fired off a payload built for
 	// this particular slot and parent block root.
-	payloadID, found := pb.pc.GetAndEvict(slot, parentBlockRoot)
+	payloadID, found := pb.pc.GetAndEvict(slot)
 	if !found {
 		return nil, ErrPayloadIDNotFound
 	}

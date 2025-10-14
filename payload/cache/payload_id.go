@@ -47,7 +47,6 @@ type PayloadIDCache struct {
 // payloadID from the cache.
 type payloadIDCacheKey struct {
 	slot math.Slot
-	root common.Root
 }
 
 type PayloadIDCacheResult struct {
@@ -68,25 +67,19 @@ func NewPayloadIDCache() *PayloadIDCache {
 
 // Has retrieves the payload ID associated with a given slot and eth1 hash.
 // Has checks if a payload ID exists for a given slot and eth1 hash.
-func (p *PayloadIDCache) Has(
-	slot math.Slot,
-	blockRoot common.Root,
-) bool {
+func (p *PayloadIDCache) Has(slot math.Slot) bool {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
-	_, ok := p.slotToBlockRootToPayloadID[payloadIDCacheKey{slot, blockRoot}]
+	_, ok := p.slotToBlockRootToPayloadID[payloadIDCacheKey{slot}]
 	return ok
 }
 
 // GetAndEvict retrieves the payloadID from the cache. If successfully retrieved,
 // evict it from the cache.
-func (p *PayloadIDCache) GetAndEvict(
-	slot math.Slot,
-	blockRoot common.Root,
-) (PayloadIDCacheResult, bool) {
+func (p *PayloadIDCache) GetAndEvict(slot math.Slot) (PayloadIDCacheResult, bool) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	key := payloadIDCacheKey{slot, blockRoot}
+	key := payloadIDCacheKey{slot}
 	pid, ok := p.slotToBlockRootToPayloadID[key]
 	if !ok {
 		return PayloadIDCacheResult{}, false
@@ -101,8 +94,9 @@ func (p *PayloadIDCache) GetAndEvict(
 // It also prunes entries in the cache that are older than the
 // historicalPayloadIDCacheSize limit.
 func (p *PayloadIDCache) Set(
-	slot math.Slot, blockRoot common.Root,
-	pid engineprimitives.PayloadID, version common.Version,
+	slot math.Slot,
+	pid engineprimitives.PayloadID,
+	version common.Version,
 ) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -113,7 +107,7 @@ func (p *PayloadIDCache) Set(
 	}
 
 	// Update the cache with the new payload ID.
-	p.slotToBlockRootToPayloadID[payloadIDCacheKey{slot, blockRoot}] = PayloadIDCacheResult{
+	p.slotToBlockRootToPayloadID[payloadIDCacheKey{slot}] = PayloadIDCacheResult{
 		PayloadID:   pid,
 		ForkVersion: version,
 	}
