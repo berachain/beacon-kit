@@ -392,6 +392,7 @@ func (s *Service) evictLocalPayloadIfNecessary(
 		return
 	}
 
+	// Get the slot and parent block root from the state.
 	st := s.storageBackend.StateFromContext(ctx)
 	slot, slotFetchErr := st.GetSlot()
 	if slotFetchErr != nil {
@@ -423,5 +424,6 @@ func (s *Service) evictLocalPayloadIfNecessary(
 		return
 	}
 
+	// Evict the payload from the local builder cache.
 	s.localBuilder.EvictPayload(slot+1, parentBlockRoot)
 }
