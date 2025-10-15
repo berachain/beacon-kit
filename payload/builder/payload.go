@@ -135,7 +135,12 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 	}
 
 	// Get the payload from the execution client.
-	return pb.getPayload(ctx, *payloadID, forkVersion)
+	env, err := pb.getPayload(ctx, *payloadID, forkVersion)
+	if errors.Is(err, engineerrors.ErrUnknownPayload) {
+		// Evict from cache as the EL is unaware of this payloadID.
+		pb.EvictPayload(r.Slot, r.ParentBlockRoot)
+	}
+	return env, err
 }
 
 // RetrievePayload attempts to pull a previously built payload
@@ -162,7 +167,7 @@ func (pb *PayloadBuilder) RetrievePayload(
 	envelope, err := pb.getPayload(ctx, payloadID.PayloadID, payloadID.ForkVersion)
 	if err != nil {
 		pb.logger.Debug("Failed to get payload from EL", "error", err)
-		// Evict the payload from cache as the EL is unaware of this payloadID.
+		// Evict from cache as the EL is unaware of this payloadID.
 		if errors.Is(err, engineerrors.ErrUnknownPayload) {
 			pb.EvictPayload(slot, parentBlockRoot)
 		}
