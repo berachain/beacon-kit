@@ -27,6 +27,8 @@ import (
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -159,9 +161,11 @@ func (pb *PayloadBuilder) RetrievePayload(
 	// Get the payload from the execution client.
 	envelope, err := pb.getPayload(ctx, payloadID.PayloadID, payloadID.ForkVersion)
 	if err != nil {
-		// Evict the payload from cache as the EL can no longer retrieve it.
-		pb.EvictPayload(slot, parentBlockRoot)
 		pb.logger.Debug("Failed to get payload from EL", "error", err)
+		// Evict the payload from cache as the EL is unaware of this payloadID.
+		if errors.Is(err, engineerrors.ErrUnknownPayload) {
+			pb.EvictPayload(slot, parentBlockRoot)
+		}
 		return nil, err
 	}
 
@@ -211,9 +215,6 @@ func (pb *PayloadBuilder) getPayload(
 	)
 	if err != nil {
 		return nil, err
-	}
-	if envelope == nil {
-		return nil, ErrNilPayloadEnvelope
 	}
 	if envelope.GetExecutionPayload().Withdrawals == nil {
 		return nil, ErrNilWithdrawals
