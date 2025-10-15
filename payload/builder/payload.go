@@ -111,7 +111,10 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 	pb.muEnv.Lock()
 	defer pb.muEnv.Unlock()
 	if pb.latestEnvelope != nil && r.Slot == pb.latestEnvelopeSlot {
-		return pb.latestEnvelope, nil
+		res := pb.latestEnvelope
+		pb.latestEnvelope = nil
+		pb.latestEnvelopeSlot = 0
+		return res, nil
 	}
 
 	// Build the payload and wait for the execution client to
