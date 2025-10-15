@@ -5,7 +5,7 @@ format: ## run all configured formatters
 	@$(MAKE) license-fix forge-lint-fix golines golangci-fix star-fix
 
 lint: ## run all configured linters
-	@$(MAKE) license markdownlint golangci star-lint
+	@$(MAKE) license markdownlint forge-lint golangci star-lint
 
 
 #################
