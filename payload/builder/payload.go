@@ -108,17 +108,8 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 		return nil, ErrPayloadBuilderDisabled
 	}
 
-	pb.muEnv.Lock()
-	defer pb.muEnv.Unlock()
-	if pb.latestEnvelope != nil && r.Slot == pb.latestEnvelopeSlot {
-		res := pb.latestEnvelope
-		pb.latestEnvelope = nil
-		pb.latestEnvelopeSlot = 0
-		return res, nil
-	}
-
-	// Build the payload and wait for the execution client to
-	// return the payload ID.
+	// 2- No verified payload to reuse. Let's build this node block.
+	// At this stage, we are guaranteed to have
 	payloadID, forkVersion, err := pb.RequestPayloadAsync(ctx, r)
 	if err != nil {
 		return nil, err
@@ -149,10 +140,6 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 	if err != nil {
 		return nil, fmt.Errorf("failed retrieving payload: %w", err)
 	}
-
-	// reset latestEnvelope as we successufully built our own payload
-	pb.latestEnvelope = nil
-	pb.latestEnvelopeSlot = 0
 	return envelope, nil
 }
 
@@ -169,21 +156,39 @@ func (pb *PayloadBuilder) RetrievePayload(
 		return nil, ErrPayloadBuilderDisabled
 	}
 
-	// Attempt to see if we previously fired off a payload built for
-	// this particular slot and parent block root.
+	// 1- Node could be asked to build a block at slot H even if it already verified
+	// a block at that slot H. This happens if the block passes verification
+	// but is not finalized (e.g. due to network issue). In such a case, the
+	// EVM may not be able to serve a new payload (e.g. if it has received a
+	// FCU call with HEAD == H+1). To avoiding a failure in building the block
+	// we reuse a validated payload if it's available
+	pb.muEnv.Lock()
+	defer pb.muEnv.Unlock()
+	if pb.latestEnvelope != nil && slot == pb.latestEnvelopeSlot {
+		return pb.latestEnvelope, nil
+	}
+
+	// 2- No verified payload to reuse. We can check if we have already
+	// tried and build the block optimistically, in which case we don't have
+	// to wait pb.cfg.PayloadTimeout to retrieve the payload and we can process
+	// as fast as possible.
 	payloadID, found := pb.pc.GetAndEvict(slot, parentBlockRoot)
 	if !found {
+		// No payloadID cached, error will be threated by block builder
+		// as signal to build payload just in time.
 		return nil, ErrPayloadIDNotFound
 	}
 
 	// Get the payload from the execution client.
 	envelope, err := pb.getPayload(ctx, payloadID.PayloadID, payloadID.ForkVersion)
 	if err != nil {
+		// We may have cached the payloadID, but the payload may have become stale
+		// in the EVM, or there could have been other issues. Block builder will
+		// try and build again the payload just in time
 		return nil, err
 	}
 
-	// If the payload was built by a different builder, something is
-	// wrong the EL<>CL setup.
+	// Minor validations and logging below
 	payload := envelope.GetExecutionPayload()
 	if payload.GetFeeRecipient() != pb.cfg.SuggestedFeeRecipient {
 		pb.logger.Warn(
