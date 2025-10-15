@@ -152,21 +152,39 @@ func (pb *PayloadBuilder) RetrievePayload(
 		return nil, ErrPayloadBuilderDisabled
 	}
 
-	// Attempt to see if we previously fired off a payload built for
-	// this particular slot and parent block root.
+	// 1- Node could be asked to build a block at slot H even if it already verified
+	// a block at that slot H. This happens if the block passes verification
+	// but is not finalized (e.g. due to network issue). In such a case, the
+	// EVM may not be able to serve a new payload (e.g. if it has received a
+	// FCU call with HEAD == H+1). To avoiding a failure in building the block
+	// we reuse a validated payload if it's available
+	pb.muEnv.Lock()
+	defer pb.muEnv.Unlock()
+	if pb.latestEnvelope != nil && slot == pb.latestEnvelopeSlot {
+		return pb.latestEnvelope, nil
+	}
+
+	// 2- No verified payload to reuse. We can check if we have already
+	// tried and build the block optimistically, in which case we don't have
+	// to wait pb.cfg.PayloadTimeout to retrieve the payload and we can process
+	// as fast as possible.
 	payloadID, found := pb.pc.GetAndEvict(slot, parentBlockRoot)
 	if !found {
+		// No payloadID cached, error will be threated by block builder
+		// as signal to build payload just in time.
 		return nil, ErrPayloadIDNotFound
 	}
 
 	// Get the payload from the execution client.
 	envelope, err := pb.getPayload(ctx, payloadID.PayloadID, payloadID.ForkVersion)
 	if err != nil {
+		// We may have cached the payloadID, but the payload may have become stale
+		// in the EVM, or there could have been other issues. Block builder will
+		// try and build again the payload just in time
 		return nil, err
 	}
 
-	// If the payload was built by a different builder, something is
-	// wrong the EL<>CL setup.
+	// Minor validations and logging below
 	payload := envelope.GetExecutionPayload()
 	if payload.GetFeeRecipient() != pb.cfg.SuggestedFeeRecipient {
 		pb.logger.Warn(
@@ -190,6 +208,16 @@ func (pb *PayloadBuilder) RetrievePayload(
 	pb.logger.Info("Payload retrieved from local builder", args...)
 
 	return envelope, err
+}
+
+func (pb *PayloadBuilder) CacheLatestVerifiedPayload(
+	latestEnvelopeSlot math.Slot,
+	latestEnvelope ctypes.BuiltExecutionPayloadEnv,
+) {
+	pb.muEnv.Lock()
+	defer pb.muEnv.Unlock()
+	pb.latestEnvelopeSlot = latestEnvelopeSlot
+	pb.latestEnvelope = latestEnvelope
 }
 
 func (pb *PayloadBuilder) getPayload(

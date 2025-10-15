@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/cache"
 	"github.com/berachain/beacon-kit/consensus/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -159,6 +160,26 @@ func (s *Service) ProcessProposal(
 		s.logger.Error("failed to verify incoming block", "error", err)
 		return nil, err
 	}
+
+	// once we have successfully verified the block we cache it in the node builder.
+	// This ensures the node will be able to build a payload even in scenarios where
+	// EVM won't provide a new payload (e.g. if it received FCU(Head == N+1) and then
+	// FCU(Head ++ N)).
+	blobBundle := &engineprimitives.BlobsBundleV1{}
+	for _, s := range sidecars {
+		blobBundle.Commitments = append(blobBundle.Commitments, s.GetKzgCommitment())
+		blobBundle.Proofs = append(blobBundle.Proofs, s.GetKzgProof())
+
+		blob := s.GetBlob()
+		blobBundle.Blobs = append(blobBundle.Blobs, &blob)
+	}
+	s.localBuilder.CacheLatestVerifiedPayload(
+		blk.Slot,
+		ctypes.NewExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1](
+			blk.Body.ExecutionPayload,
+			blobBundle,
+		),
+	)
 
 	return valUpdates.CanonicalSort(), nil
 }
