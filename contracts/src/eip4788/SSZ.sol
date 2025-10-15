@@ -14,12 +14,7 @@ library SSZ {
     /// generalized indices and sha256 precompile.
     /// @dev Returns whether `leaf` exists in the Merkle tree with `root`,
     /// given `proof`.
-    function verifyProof(
-        bytes32[] calldata proof,
-        bytes32 root,
-        bytes32 leaf,
-        uint256 index
-    )
+    function verifyProof(bytes32[] calldata proof, bytes32 root, bytes32 leaf, uint256 index)
         internal
         view
         returns (bool isValid)
@@ -32,7 +27,7 @@ library SSZ {
                 // Initialize `offset` to the offset of `proof` in the calldata.
                 let offset := proof.offset
                 // Iterate over proof elements to compute root hash.
-                for { } 1 { } {
+                for {} 1 {} {
                     // Slot of `leaf` in scratch space.
                     // If the condition is true: 0x20, otherwise: 0x00.
                     let scratch := shl(5, and(index, 1))
@@ -48,8 +43,7 @@ library SSZ {
                     mstore(scratch, leaf)
                     mstore(xor(scratch, 0x20), calldataload(offset))
                     // Call sha256 precompile
-                    let result :=
-                        staticcall(gas(), SHA256, 0x00, 0x40, 0x00, 0x20)
+                    let result := staticcall(gas(), SHA256, 0x00, 0x40, 0x00, 0x20)
 
                     if eq(result, 0) { revert(0, 0) }
 
@@ -74,8 +68,7 @@ library SSZ {
 /// @author Inspired by [madlabman](https://github.com/madlabman/eip-4788-proof).
 contract SSZTest {
     /// @notice The address of the EIP-4788 Beacon Roots contract.
-    address public constant BEACON_ROOTS =
-        0x000F3df6D732807Ef1319fB7B8bB8522d0Beac02;
+    address public constant BEACON_ROOTS = 0x000F3df6D732807Ef1319fB7B8bB8522d0Beac02;
 
     // Signature: 0x3033b0ff
     error RootNotFound();
@@ -86,12 +79,7 @@ contract SSZTest {
     /// @param leaf The leaf to verify.
     /// @param index The index of the leaf in the Merkle tree.
     /// @return isValid Whether the proof is valid.
-    function verifyProof(
-        bytes32[] calldata proof,
-        bytes32 root,
-        bytes32 leaf,
-        uint256 index
-    )
+    function verifyProof(bytes32[] calldata proof, bytes32 root, bytes32 leaf, uint256 index)
         external
         view
         returns (bool isValid)
@@ -104,15 +92,7 @@ contract SSZTest {
     /// @param root The root of the Merkle tree.
     /// @param leaf The leaf to verify.
     /// @param index The index of the leaf in the Merkle tree.
-    function mustVerifyProof(
-        bytes32[] calldata proof,
-        bytes32 root,
-        bytes32 leaf,
-        uint256 index
-    )
-        external
-        view
-    {
+    function mustVerifyProof(bytes32[] calldata proof, bytes32 root, bytes32 leaf, uint256 index) external view {
         if (!SSZ.verifyProof(proof, root, leaf, index)) {
             revert("Proof is invalid");
         }
@@ -120,11 +100,7 @@ contract SSZTest {
 
     /// @notice Get the parent block root at a given timestamp.
     /// @dev Reverts with `RootNotFound()` if the root is not found.
-    function getParentBlockRootAt(uint64 ts)
-        external
-        view
-        returns (bytes32 root)
-    {
+    function getParentBlockRootAt(uint64 ts) external view returns (bytes32 root) {
         assembly ("memory-safe") {
             mstore(0, ts)
             let success := staticcall(gas(), BEACON_ROOTS, 0, 0x20, 0, 0x20)

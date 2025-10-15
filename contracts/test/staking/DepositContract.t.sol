@@ -3,9 +3,9 @@ pragma solidity ^0.8.25;
 
 import "forge-std/Test.sol";
 
-import { SoladyTest } from "@solady/test/utils/SoladyTest.sol";
-import { IDepositContract } from "@src/staking/IDepositContract.sol";
-import { DepositContract } from "@src/staking/DepositContract.sol";
+import {SoladyTest} from "@solady/test/utils/SoladyTest.sol";
+import {IDepositContract} from "@src/staking/IDepositContract.sol";
+import {DepositContract} from "@src/staking/DepositContract.sol";
 
 contract DepositContractTest is SoladyTest, StdCheats {
     /// @dev The depositor address.
@@ -37,71 +37,52 @@ contract DepositContractTest is SoladyTest, StdCheats {
         vm.expectRevert(IDepositContract.InvalidPubKeyLength.selector);
         vm.deal(depositor, 32 ether);
         vm.prank(depositor);
-        depositContract.deposit{ value: 32 ether }(
-            bytes("wrong_public_key"),
-            STAKING_CREDENTIALS,
-            _create96Byte(),
-            depositor
-        );
+        depositContract.deposit{
+            value: 32 ether
+        }(bytes("wrong_public_key"), STAKING_CREDENTIALS, _create96Byte(), depositor);
     }
 
     function test_DepositWrongPubKey() public {
         vm.expectRevert(IDepositContract.InvalidPubKeyLength.selector);
         vm.deal(depositor, 32 ether);
         vm.prank(depositor);
-        depositContract.deposit{ value: 32 ether }(
-            bytes("wrong_public_key"),
-            STAKING_CREDENTIALS,
-            _create96Byte(),
-            depositor
-        );
+        depositContract.deposit{
+            value: 32 ether
+        }(bytes("wrong_public_key"), STAKING_CREDENTIALS, _create96Byte(), depositor);
     }
 
-    function testFuzz_DepositWrongCredentials(bytes calldata credentials)
-        public
-    {
+    function testFuzz_DepositWrongCredentials(bytes calldata credentials) public {
         vm.assume(credentials.length != 32);
 
         vm.deal(depositor, 32 ether);
         vm.expectRevert(IDepositContract.InvalidCredentialsLength.selector);
         vm.prank(depositor);
-        depositContract.deposit{ value: 32 ether }(
-            _create48Byte(), credentials, _create96Byte(), depositor
-        );
+        depositContract.deposit{value: 32 ether}(_create48Byte(), credentials, _create96Byte(), depositor);
     }
 
     function test_DepositWrongCredentials() public {
         vm.expectRevert(IDepositContract.InvalidCredentialsLength.selector);
         vm.deal(depositor, 32 ether);
         vm.prank(depositor);
-        depositContract.deposit{ value: 32 ether }(
-            VALIDATOR_PUBKEY,
-            bytes("wrong_credentials"),
-            _create96Byte(),
-            depositor
-        );
+        depositContract.deposit{
+            value: 32 ether
+        }(VALIDATOR_PUBKEY, bytes("wrong_credentials"), _create96Byte(), depositor);
     }
 
     function test_DepositWrongAmount() public {
         vm.expectRevert(IDepositContract.InsufficientDeposit.selector);
         vm.prank(depositor);
         // send with 0 ether
-        depositContract.deposit(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte(), depositor
-        );
+        depositContract.deposit(VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte(), depositor);
     }
 
-    function testFuzz_DepositNativeWrongMinAmount(uint256 amountInEther)
-        public
-    {
+    function testFuzz_DepositNativeWrongMinAmount(uint256 amountInEther) public {
         amountInEther = _bound(amountInEther, 1, 31);
         uint256 amountInGwei = amountInEther * 1 gwei;
         vm.deal(depositor, amountInGwei);
         vm.prank(depositor);
         vm.expectRevert(IDepositContract.InsufficientDeposit.selector);
-        depositContract.deposit{ value: amountInGwei }(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte(), depositor
-        );
+        depositContract.deposit{value: amountInGwei}(VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte(), depositor);
     }
 
     function test_DepositNativeWrongMinAmount() public {
@@ -109,9 +90,7 @@ contract DepositContractTest is SoladyTest, StdCheats {
         vm.deal(depositor, amount);
         vm.prank(depositor);
         vm.expectRevert(IDepositContract.InsufficientDeposit.selector);
-        depositContract.deposit{ value: amount }(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte(), depositor
-        );
+        depositContract.deposit{value: amount}(VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte(), depositor);
     }
 
     function testFuzz_DepositNativeNotDivisibleByGwei(uint256 amount) public {
@@ -121,9 +100,7 @@ contract DepositContractTest is SoladyTest, StdCheats {
 
         vm.prank(depositor);
         vm.expectRevert(IDepositContract.DepositNotMultipleOfGwei.selector);
-        depositContract.deposit{ value: amount }(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte(), depositor
-        );
+        depositContract.deposit{value: amount}(VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte(), depositor);
     }
 
     function test_DepositNativeNotDivisibleByGwei() public {
@@ -131,29 +108,21 @@ contract DepositContractTest is SoladyTest, StdCheats {
         vm.deal(depositor, amount);
         vm.expectRevert(IDepositContract.DepositNotMultipleOfGwei.selector);
         vm.prank(depositor);
-        depositContract.deposit{ value: amount }(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte(), depositor
-        );
+        depositContract.deposit{value: amount}(VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte(), depositor);
 
         amount = 32e9 - 1;
         vm.deal(depositor, amount);
         vm.expectRevert(IDepositContract.DepositNotMultipleOfGwei.selector);
         vm.prank(depositor);
-        depositContract.deposit{ value: amount }(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte(), depositor
-        );
+        depositContract.deposit{value: amount}(VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte(), depositor);
     }
 
     function test_DepositNative() public {
         vm.deal(depositor, 32 ether);
         vm.prank(depositor);
         vm.expectEmit(true, true, true, true);
-        emit IDepositContract.Deposit(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32 gwei, _create96Byte(), 0
-        );
-        depositContract.deposit{ value: 32 ether }(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte(), depositor
-        );
+        emit IDepositContract.Deposit(VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32 gwei, _create96Byte(), 0);
+        depositContract.deposit{value: 32 ether}(VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte(), depositor);
     }
 
     function testFuzz_DepositCount(uint256 count) public {
@@ -165,16 +134,8 @@ contract DepositContractTest is SoladyTest, StdCheats {
 
             vm.startPrank(depositor);
             vm.expectEmit(true, true, true, true);
-            emit IDepositContract.Deposit(
-                _newPubkey(i),
-                STAKING_CREDENTIALS,
-                32 gwei,
-                _create96Byte(),
-                depositCount++
-            );
-            depositContract.deposit{ value: 32 ether }(
-                _newPubkey(i), STAKING_CREDENTIALS, _create96Byte(), depositor
-            );
+            emit IDepositContract.Deposit(_newPubkey(i), STAKING_CREDENTIALS, 32 gwei, _create96Byte(), depositCount++);
+            depositContract.deposit{value: 32 ether}(_newPubkey(i), STAKING_CREDENTIALS, _create96Byte(), depositor);
             vm.stopPrank();
         }
         assertEq(depositContract.depositCount(), depositCount);

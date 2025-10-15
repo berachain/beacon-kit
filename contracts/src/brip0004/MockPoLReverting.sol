@@ -8,8 +8,7 @@ import "./MockValidatorRegistry.sol";
 /// @dev Interacts with ValidatorRegistry to test multi-contract state changes
 contract RevertingPoLDistributor {
     /// @notice System address that can call distributeFor (execution layer client)
-    address private constant SYSTEM_ADDRESS =
-        0xffffFFFfFFffffffffffffffFfFFFfffFFFfFFfE;
+    address private constant SYSTEM_ADDRESS = 0xffffFFFfFFffffffffffffffFfFFFfffFFFfFFfE;
 
     /// @notice The validator registry contract address (hardcoded for genesis deployment)
     ValidatorRegistry private constant VALIDATOR_REGISTRY =

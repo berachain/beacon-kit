@@ -12,7 +12,11 @@ contract ValidatorRegistry {
     event RegistryCalled(uint256 newCount);
 
     /// @notice Records validator activity by incrementing counter
-    function recordValidatorActivity(bytes calldata /* pubkey */ ) external {
+    function recordValidatorActivity(
+        bytes calldata /* pubkey */
+    )
+        external
+    {
         callCount++;
         emit RegistryCalled(callCount);
     }
