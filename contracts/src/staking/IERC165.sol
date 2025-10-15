@@ -9,5 +9,8 @@ interface ERC165 {
     ///  uses less than 30,000 gas.
     /// @return `true` if the contract implements `interfaceId` and
     ///  `interfaceId` is not 0xffffffff, `false` otherwise
-    function supportsInterface(bytes4 interfaceId) external pure returns (bool);
+    function supportsInterface(bytes4 interfaceId)
+        external
+        pure
+        returns (bool);
 }
