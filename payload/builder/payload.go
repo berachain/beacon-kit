@@ -158,6 +158,8 @@ func (pb *PayloadBuilder) RetrievePayload(
 	// EVM may not be able to serve a new payload (e.g. if it has received a
 	// FCU call with HEAD == H+1). To avoiding a failure in building the block
 	// we reuse a validated payload if it's available
+	// TODO: as suggested by @Calbera, we should prefer local payloads to remote
+	// once if both are available. We leave this change to a future PR.
 	pb.muEnv.Lock()
 	if pb.latestEnvelope != nil && slot == pb.latestEnvelopeSlot {
 		return pb.latestEnvelope, nil
