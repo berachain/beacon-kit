@@ -67,10 +67,12 @@ func NewExecutionPayloadEnvelope[
 ](
 	payload *ExecutionPayload,
 	blobs BlobsBundleT,
+	executionRequests []EncodedExecutionRequest,
 ) BuiltExecutionPayloadEnv {
 	return &executionPayloadEnvelope[BlobsBundleT]{
-		ExecutionPayload: payload,
-		BlobsBundle:      blobs,
+		ExecutionPayload:  payload,
+		BlobsBundle:       blobs,
+		ExecutionRequests: executionRequests,
 	}
 }
 
