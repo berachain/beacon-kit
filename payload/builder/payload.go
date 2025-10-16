@@ -159,10 +159,10 @@ func (pb *PayloadBuilder) RetrievePayload(
 	// FCU call with HEAD == H+1). To avoiding a failure in building the block
 	// we reuse a validated payload if it's available
 	pb.muEnv.Lock()
-	defer pb.muEnv.Unlock()
 	if pb.latestEnvelope != nil && slot == pb.latestEnvelopeSlot {
 		return pb.latestEnvelope, nil
 	}
+	defer pb.muEnv.Unlock()
 
 	// 2- No verified payload to reuse. We can check if we have already
 	// tried and build the block optimistically, in which case we don't have
