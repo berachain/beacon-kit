@@ -28,6 +28,39 @@ func (_m *LocalBuilder) EXPECT() *LocalBuilder_Expecter {
 	return &LocalBuilder_Expecter{mock: &_m.Mock}
 }
 
+// DoneWith provides a mock function with given fields: slot
+func (_m *LocalBuilder) DoneWith(slot math.Slot) {
+	_m.Called(slot)
+}
+
+// LocalBuilder_DoneWith_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DoneWith'
+type LocalBuilder_DoneWith_Call struct {
+	*mock.Call
+}
+
+// DoneWith is a helper method to define mock.On call
+//   - slot math.Slot
+func (_e *LocalBuilder_Expecter) DoneWith(slot interface{}) *LocalBuilder_DoneWith_Call {
+	return &LocalBuilder_DoneWith_Call{Call: _e.mock.On("DoneWith", slot)}
+}
+
+func (_c *LocalBuilder_DoneWith_Call) Run(run func(slot math.Slot)) *LocalBuilder_DoneWith_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(math.Slot))
+	})
+	return _c
+}
+
+func (_c *LocalBuilder_DoneWith_Call) Return() *LocalBuilder_DoneWith_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *LocalBuilder_DoneWith_Call) RunAndReturn(run func(math.Slot)) *LocalBuilder_DoneWith_Call {
+	_c.Run(run)
+	return _c
+}
+
 // Enabled provides a mock function with no fields
 func (_m *LocalBuilder) Enabled() bool {
 	ret := _m.Called()

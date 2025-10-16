@@ -35,6 +35,7 @@ type PayloadCache interface {
 	Get(slot math.Slot, stateRoot common.Root) (cache.PayloadIDCacheResult, bool)
 	Set(slot math.Slot, stateRoot common.Root, pid engineprimitives.PayloadID, version common.Version)
 	Delete(slot math.Slot, stateRoot common.Root)
+	DeleteAll(slot math.Slot)
 }
 
 // AttributesFactory is the interface for the attributes factory.

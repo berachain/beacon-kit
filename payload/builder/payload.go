@@ -138,7 +138,7 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 	env, err := pb.getPayload(ctx, *payloadID, forkVersion)
 	if errors.Is(err, engineerrors.ErrUnknownPayload) {
 		// Evict from cache as the EL is unaware of this payloadID.
-		pb.EvictPayload(r.Slot, r.ParentBlockRoot)
+		pb.pc.Delete(r.Slot, r.ParentBlockRoot)
 	}
 	return env, err
 }
@@ -169,7 +169,7 @@ func (pb *PayloadBuilder) RetrievePayload(
 		pb.logger.Debug("Failed to get payload from EL", "error", err)
 		// Evict from cache as the EL is unaware of this payloadID.
 		if errors.Is(err, engineerrors.ErrUnknownPayload) {
-			pb.EvictPayload(slot, parentBlockRoot)
+			pb.pc.Delete(slot, parentBlockRoot)
 		}
 		return nil, err
 	}
@@ -204,6 +204,10 @@ func (pb *PayloadBuilder) RetrievePayload(
 // EvictPayload evicts a local payload from the cache if it exists.
 func (pb *PayloadBuilder) EvictPayload(slot math.Slot, parentBlockRoot common.Root) {
 	pb.pc.Delete(slot, parentBlockRoot)
+}
+
+func (pb *PayloadBuilder) DoneWith(slot math.Slot) {
+	pb.pc.DeleteAll(slot)
 }
 
 func (pb *PayloadBuilder) getPayload(

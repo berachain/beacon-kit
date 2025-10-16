@@ -129,17 +129,8 @@ func (s *Service) PostFinalizeBlockOps(ctx sdk.Context, blk *ctypes.BeaconBlock)
 
 	// Evict the payload from cache for this height if we built it locally.
 	if s.localBuilder.Enabled() {
-		parentBlockRoot, err := st.GetBlockRootAtIndex((slot.Unwrap() - 1) % s.chainSpec.SlotsPerHistoricalRoot())
-		if err != nil {
-			s.logger.Warn(
-				"Skipping payload eviction on finalize block",
-				"reason", "st.GetBlockRootAtIndex()",
-				"error", err,
-			)
-		} else {
-			// If we didn't build a payload for this block, this is a no-op.
-			s.localBuilder.EvictPayload(slot, parentBlockRoot)
-		}
+		// If we didn't build a payload for this block, this is a no-op.
+		s.localBuilder.DoneWith(slot)
 	}
 
 	// Fetch and store the deposit for the block.

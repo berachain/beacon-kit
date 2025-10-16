@@ -123,3 +123,7 @@ func (p *PayloadIDCache) Delete(
 		delete(p.slotToBlockRootToPayloadID, slot)
 	}
 }
+
+func (p *PayloadIDCache) DeleteAll(slot math.Slot) {
+	delete(p.slotToBlockRootToPayloadID, slot)
+}

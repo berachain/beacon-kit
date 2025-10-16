@@ -95,6 +95,7 @@ type (
 		) (ctypes.BuiltExecutionPayloadEnv, error)
 		// EvictPayload evicts a local payload from the cache if it exists.
 		EvictPayload(slot math.Slot, parentBlockRoot common.Root)
+		DoneWith(slot math.Slot)
 	}
 
 	// 	// PayloadAttributes is the interface for the payload attributes.
