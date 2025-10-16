@@ -56,9 +56,11 @@ func (s *Store) IsDataAvailable(
 	slot math.Slot,
 	body *ctypes.BeaconBlockBody,
 ) bool {
-	for _, commitment := range body.GetBlobKzgCommitments() {
-		// Check if the block data is available in the IndexDB
-		blockData, err := s.IndexDB.Has(slot.Unwrap(), commitment[:])
+	// We need to check each commitment with its corresponding index
+	// Since commitments can be duplicated, we check by index order
+	for i, commitment := range body.GetBlobKzgCommitments() {
+		// Check if the block data is available in the IndexDB with the index appended
+		blockData, err := s.IndexDB.Has(slot.Unwrap(), append(commitment[:], byte(i)))
 		if err != nil || !blockData {
 			return false
 		}
@@ -100,8 +102,8 @@ func (s *Store) Persist(sidecars types.BlobSidecars) error {
 			return err
 		}
 		slot = sidecar.GetBeaconBlockHeader().GetSlot()
-		err = s.IndexDB.Set(slot.Unwrap(), sidecar.KzgCommitment[:], bz)
-
+		// Include blob index in the key to prevent overwrites when KZG commitments are duplicated
+		err = s.IndexDB.Set(slot.Unwrap(), append(sidecar.KzgCommitment[:], byte(sidecar.GetIndex())), bz)
 		if err != nil {
 			return err
 		}

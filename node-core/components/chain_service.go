@@ -46,6 +46,7 @@ type ChainServiceInput struct {
 	StateProcessor        StateProcessor
 	StorageBackend        *storage.Backend
 	BlobProcessor         BlobProcessor
+	BlobFetcher           blockchain.BlobFetcher
 	TelemetrySink         *metrics.TelemetrySink
 	BeaconDepositContract deposit.Contract
 }
@@ -55,6 +56,7 @@ func ProvideChainService(in ChainServiceInput) *blockchain.Service {
 	return blockchain.NewService(
 		in.StorageBackend,
 		in.BlobProcessor,
+		in.BlobFetcher,
 		in.BeaconDepositContract,
 		in.Logger.With("service", "blockchain"),
 		in.ChainSpec,

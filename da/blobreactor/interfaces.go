@@ -13,30 +13,33 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package cometbft
+package blobreactor
 
-import (
-	"time"
+import "time"
 
-	"github.com/cometbft/cometbft/p2p"
-)
+// BlobStore is a minimal interface for the BlobReactor to check and serve blobs.
+// This matches the IndexDB interface from the AvailabilityStore.
+type BlobStore interface {
+	// Has checks if a blob exists for the given index and key.
+	Has(index uint64, key []byte) (bool, error)
 
-// BlobReactorI is an interface for the BlobReactor P2P component.
-type BlobReactorI interface {
-	p2p.Reactor
-	// SetNodeKey sets the node Key for the reactor.
-	SetNodeKey(nodeKey string)
+	// GetByIndex retrieves all raw blob data for a given index (slot).
+	GetByIndex(index uint64) ([][]byte, error)
 }
 
-// TelemetrySink is an interface for sending metrics to a telemetry backend.
+// TelemetrySink is an interface for emitting metrics.
 type TelemetrySink interface {
-	// IncrementCounter increments a counter for the given key.
+	// IncrementCounter increments a counter metric identified by the provided keys.
 	IncrementCounter(key string, args ...string)
-	// MeasureSince measures the time since the given time.
+
+	// SetGauge sets a gauge metric to the specified value.
+	SetGauge(key string, value int64, args ...string)
+
+	// MeasureSince measures the time since the provided start time.
 	MeasureSince(key string, start time.Time, args ...string)
 }

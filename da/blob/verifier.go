@@ -88,7 +88,7 @@ func (bv *verifier) verifySidecars(
 		// This check happens outside the goroutines so that we do not
 		// process the inclusion proofs before validating the index.
 		if s.GetIndex() >= numSidecars {
-			return fmt.Errorf("invalid sidecar Index: %d", i)
+			return fmt.Errorf("invalid sidecar index: expected < %d, got %d at position %d", numSidecars, s.GetIndex(), i)
 		}
 
 		// Check BlobSidecar.Header equality with BeaconBlockHeader

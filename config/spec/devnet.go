@@ -22,6 +22,7 @@ package spec
 
 import (
 	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/blobreactor"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/ethereum/go-ethereum/params"
 )
@@ -73,6 +74,13 @@ func DevnetChainSpecData() *chain.SpecData {
 
 	specData.Config.ConsensusUpdateHeight = 1
 	specData.Config.ConsensusEnableHeight = 2
+
+	//nolint:mnd // ok for now
+	specData.BlobConfig = blobreactor.Config{
+		ConsensusUpdateHeight: 1,
+		ConsensusEnableHeight: 2,
+		MaxBytes:              819200,
+	}
 
 	// Fork timings are set to facilitate local testing across fork versions.
 	specData.GenesisTime = devnetGenesisTime
