@@ -28,11 +28,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-// historicalPayloadIDCacheSize defines the maximum number of slots to retain
-// in the cache. Beyond this number, older slots will be pruned to manage
-// memory usage.
-const historicalPayloadIDCacheSize = 2
-
 // PayloadIDCache provides a mechanism to store and retrieve payload IDs based
 // on slot and parent block hash. It is designed to improve the efficiency of
 // payload ID retrieval by caching recent entries.
@@ -102,11 +97,6 @@ func (p *PayloadIDCache) Set(
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	// Prune older slots to maintain the cache size limit.
-	if slot >= historicalPayloadIDCacheSize {
-		p.prunePrior(slot - historicalPayloadIDCacheSize)
-	}
-
 	// Update the cache with the new payload ID.
 	p.slotToBlockRootToPayloadID[slot] = map[common.Root]PayloadIDCacheResult{
 		blockRoot: PayloadIDCacheResult{
@@ -131,16 +121,5 @@ func (p *PayloadIDCache) Delete(
 	delete(p.slotToBlockRootToPayloadID[slot], blockRoot)
 	if len(p.slotToBlockRootToPayloadID[slot]) == 0 {
 		delete(p.slotToBlockRootToPayloadID, slot)
-	}
-}
-
-// prunePrior removes payload IDs from the cache for slots less than
-// the specified slot. This method helps in managing the memory usage
-// of the cache by discarding outdated entries.
-func (p *PayloadIDCache) prunePrior(slot math.Slot) {
-	for s := range p.slotToBlockRootToPayloadID {
-		if s < slot {
-			delete(p.slotToBlockRootToPayloadID, s)
-		}
 	}
 }
