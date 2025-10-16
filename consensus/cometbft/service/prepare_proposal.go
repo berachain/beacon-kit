@@ -84,7 +84,7 @@ func (s *Service) prepareProposal(
 		return &cmtabci.PrepareProposalResponse{Txs: [][]byte{}}, nil
 	}
 
-	if s.chainSpec.BlobConsensusEnableHeight() <= 0 || req.Height < s.chainSpec.BlobConsensusEnableHeight() {
+	if !s.chainSpec.IsBlobConsensusEnabledAtHeight(req.Height) {
 		// Before BlobEnableHeight: return blobs as second transaction
 		return &cmtabci.PrepareProposalResponse{Txs: [][]byte{blkBz, sidecarsBz}}, nil
 	}

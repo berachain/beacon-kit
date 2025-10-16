@@ -51,9 +51,9 @@ func (s *Service) finalizeBlock(
 
 	getBlobsFunc := func(cachedBlobData []byte) (datypes.BlobSidecars, error) {
 		var sidecars datypes.BlobSidecars
-		if s.chainSpec.BlobConsensusEnableHeight() <= 0 || req.Height < s.chainSpec.BlobConsensusEnableHeight() {
+		if !s.chainSpec.IsBlobConsensusEnabledAtHeight(req.Height) {
 			var err error
-			sidecars, err = encoding.UnmarshalBlobSidecarsFromABCIRequest(req, s.chainSpec.BlobConsensusEnableHeight())
+			sidecars, err = encoding.UnmarshalBlobSidecarsFromABCIRequest(req, s.chainSpec)
 			if err != nil {
 				return nil, fmt.Errorf("finalize block: failed parsing blobs from request: %w", err)
 			}

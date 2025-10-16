@@ -62,7 +62,7 @@ func (s *Service) processProposal(
 	)
 
 	// Reject proposal if blobs are present before they are allowed
-	if s.chainSpec.BlobConsensusEnableHeight() > 0 && req.Height < s.chainSpec.BlobConsensusEnableHeight() {
+	if s.chainSpec.BlobConsensusEnableHeight() > 0 && !s.chainSpec.IsBlobConsensusEnabledAtHeight(req.Height) {
 		if len(req.Blob) > 0 {
 			status := cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
 			s.logger.Error(

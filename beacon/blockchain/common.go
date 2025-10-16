@@ -35,7 +35,7 @@ func (s *Service) ParseProcessProposalRequest(req *cmtabci.ProcessProposalReques
 	types.BlobSidecars,
 	error,
 ) {
-	blobConsensusEnabled := s.chainSpec.BlobConsensusEnableHeight() > 0 && req.Height >= s.chainSpec.BlobConsensusEnableHeight()
+	blobConsensusEnabled := s.chainSpec.IsBlobConsensusEnabledAtHeight(req.Height)
 
 	maxTxCount := MaxConsensusTxsCount
 	if blobConsensusEnabled {
@@ -62,7 +62,7 @@ func (s *Service) ParseProcessProposalRequest(req *cmtabci.ProcessProposalReques
 		req.GetTxs(),
 		req.GetBlob(),
 		req.Height,
-		s.chainSpec.BlobConsensusEnableHeight(),
+		s.chainSpec,
 	)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to extract blob sidecars at height %d: %w", req.Height, err)
