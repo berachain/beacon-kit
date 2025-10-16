@@ -43,6 +43,9 @@ type ConfigGetter interface {
 	BlobConsensusEnableHeight() int64
 	// BlobMaxBytes returns the maximum size of blob data in bytes for BlobReactor consensus params.
 	BlobMaxBytes() int64
+	// IsBlobConsensusEnabledAtHeight returns true if blob consensus is enabled for the given height.
+	// Returns false if BlobConsensusEnableHeight is 0 (disabled) or if height is before enable height.
+	IsBlobConsensusEnabledAtHeight(height int64) bool
 }
 
 // Config contains configuration for the P2P BlobReactor component.
@@ -55,16 +58,6 @@ type Config struct {
 	ConsensusEnableHeight int64 `mapstructure:"consensus-enable-height"`
 	// MaxBytes is the maximum size of blob data in bytes for BlobReactor consensus params (e.g., 800KB).
 	MaxBytes int64 `mapstructure:"max-bytes"`
-}
-
-// BlobConsensusEnableHeight returns the height when blob processing is enabled.
-func (c Config) BlobConsensusEnableHeight() int64 {
-	return c.ConsensusEnableHeight
-}
-
-// BlobMaxBytes returns the maximum blob size in bytes.
-func (c Config) BlobMaxBytes() int64 {
-	return c.MaxBytes
 }
 
 func DefaultConfig() Config {

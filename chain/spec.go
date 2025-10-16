@@ -345,6 +345,10 @@ func (s spec) BlobMaxBytes() int64 {
 	return s.Data.BlobConfig.MaxBytes
 }
 
+func (s spec) IsBlobConsensusEnabledAtHeight(height int64) bool {
+	return s.BlobConsensusEnableHeight() > 0 && height >= s.BlobConsensusEnableHeight()
+}
+
 // MaxEffectiveBalance returns the maximum effective balance.
 func (s spec) MaxEffectiveBalance() math.Gwei {
 	return math.Gwei(s.Data.MaxEffectiveBalance)

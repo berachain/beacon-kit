@@ -43,7 +43,7 @@ func (s *Service) FinalizeBlock(
 	blobs datypes.BlobSidecars,
 ) (transition.ValidatorUpdates, error) {
 	maxTxCount := MaxConsensusTxsCount
-	if s.chainSpec.BlobConsensusEnableHeight() > 0 && req.Height >= s.chainSpec.BlobConsensusEnableHeight() {
+	if s.chainSpec.IsBlobConsensusEnabledAtHeight(req.Height) {
 		maxTxCount = 1
 	}
 
