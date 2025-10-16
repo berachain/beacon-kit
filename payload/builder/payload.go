@@ -160,12 +160,9 @@ func (pb *PayloadBuilder) RetrievePayload(
 	// we reuse a validated payload if it's available
 	// TODO: as suggested by @Calbera, we should prefer local payloads to remote
 	// once if both are available. We leave this change to a future PR.
-	pb.muEnv.Lock()
-	if pb.latestEnvelope != nil && slot == pb.latestEnvelopeSlot {
-		return pb.latestEnvelope, nil
+	if verifiedEnvelope := pb.getLatestVerifiedPayload(slot); verifiedEnvelope != nil {
+		return verifiedEnvelope, nil
 	}
-	defer pb.muEnv.Unlock()
-
 	// 2- No verified payload to reuse. We can check if we have already
 	// tried and build the block optimistically, in which case we don't have
 	// to wait pb.cfg.PayloadTimeout to retrieve the payload and we can process
@@ -220,6 +217,16 @@ func (pb *PayloadBuilder) CacheLatestVerifiedPayload(
 	defer pb.muEnv.Unlock()
 	pb.latestEnvelopeSlot = latestEnvelopeSlot
 	pb.latestEnvelope = latestEnvelope
+}
+
+// getLatestVerifiedPayload is a simple getter to keep pb.muEnv locking scope at minimum
+func (pb *PayloadBuilder) getLatestVerifiedPayload(slot math.Slot) ctypes.BuiltExecutionPayloadEnv {
+	pb.muEnv.Lock()
+	defer pb.muEnv.Unlock()
+	if pb.latestEnvelope != nil && slot == pb.latestEnvelopeSlot {
+		return pb.latestEnvelope
+	}
+	return nil
 }
 
 func (pb *PayloadBuilder) getPayload(
