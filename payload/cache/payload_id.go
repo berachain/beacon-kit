@@ -40,14 +40,7 @@ type PayloadIDCache struct {
 	// mu protects access to the slotToBlockRootToPayloadID map.
 	mu sync.RWMutex
 	// slotToBlockRootToPayloadID is used for storing payload ID mappings
-	slotToBlockRootToPayloadID map[payloadIDCacheKey]PayloadIDCacheResult
-}
-
-// payloadIDCacheKey is the (slot, root) tuple that is used to access a
-// payloadID from the cache.
-type payloadIDCacheKey struct {
-	slot math.Slot
-	root common.Root
+	slotToBlockRootToPayloadID map[math.Slot]map[common.Root]PayloadIDCacheResult
 }
 
 type PayloadIDCacheResult struct {
@@ -61,7 +54,7 @@ func NewPayloadIDCache() *PayloadIDCache {
 	return &PayloadIDCache{
 		mu: sync.RWMutex{},
 		slotToBlockRootToPayloadID: make(
-			map[payloadIDCacheKey]PayloadIDCacheResult,
+			map[math.Slot]map[common.Root]PayloadIDCacheResult,
 		),
 	}
 }
@@ -72,10 +65,8 @@ func (p *PayloadIDCache) Has(
 	slot math.Slot,
 	blockRoot common.Root,
 ) bool {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
-	_, ok := p.slotToBlockRootToPayloadID[payloadIDCacheKey{slot, blockRoot}]
-	return ok
+	_, found := p.get(slot, blockRoot)
+	return found
 }
 
 // Get retrieves the payloadID from the cache.
@@ -83,11 +74,22 @@ func (p *PayloadIDCache) Get(
 	slot math.Slot,
 	blockRoot common.Root,
 ) (PayloadIDCacheResult, bool) {
+	return p.get(slot, blockRoot)
+}
+
+func (p *PayloadIDCache) get(
+	slot math.Slot,
+	blockRoot common.Root,
+) (PayloadIDCacheResult, bool) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
-	key := payloadIDCacheKey{slot, blockRoot}
-	pid, ok := p.slotToBlockRootToPayloadID[key]
-	return pid, ok
+
+	blkRootToPayloadID, found := p.slotToBlockRootToPayloadID[slot]
+	if !found {
+		return PayloadIDCacheResult{}, found
+	}
+	pid, found := blkRootToPayloadID[blockRoot]
+	return pid, found
 }
 
 // Set updates or inserts a payload ID for a given slot and eth1 hash.
@@ -106,9 +108,11 @@ func (p *PayloadIDCache) Set(
 	}
 
 	// Update the cache with the new payload ID.
-	p.slotToBlockRootToPayloadID[payloadIDCacheKey{slot, blockRoot}] = PayloadIDCacheResult{
-		PayloadID:   pid,
-		ForkVersion: version,
+	p.slotToBlockRootToPayloadID[slot] = map[common.Root]PayloadIDCacheResult{
+		blockRoot: PayloadIDCacheResult{
+			PayloadID:   pid,
+			ForkVersion: version,
+		},
 	}
 }
 
@@ -119,7 +123,15 @@ func (p *PayloadIDCache) Delete(
 ) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	delete(p.slotToBlockRootToPayloadID, payloadIDCacheKey{slot, blockRoot})
+	_, found := p.get(slot, blockRoot)
+	if !found {
+		return // nothing to do
+	}
+
+	delete(p.slotToBlockRootToPayloadID[slot], blockRoot)
+	if len(p.slotToBlockRootToPayloadID[slot]) == 0 {
+		delete(p.slotToBlockRootToPayloadID, slot)
+	}
 }
 
 // prunePrior removes payload IDs from the cache for slots less than
@@ -127,7 +139,7 @@ func (p *PayloadIDCache) Delete(
 // of the cache by discarding outdated entries.
 func (p *PayloadIDCache) prunePrior(slot math.Slot) {
 	for s := range p.slotToBlockRootToPayloadID {
-		if s.slot < slot {
+		if s < slot {
 			delete(p.slotToBlockRootToPayloadID, s)
 		}
 	}
