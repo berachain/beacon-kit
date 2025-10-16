@@ -27,6 +27,8 @@ import (
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -53,7 +55,7 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 		return nil, common.Version{}, ErrPayloadBuilderDisabled
 	}
 
-	if payloadID, found := pb.pc.GetAndEvict(r.Slot, r.ParentBlockRoot); found {
+	if payloadID, found := pb.pc.Get(r.Slot, r.ParentBlockRoot); found {
 		pb.logger.Info(
 			"aborting payload build; payload already exists in cache",
 			"for_slot", r.Slot.Base10(),
@@ -132,11 +134,18 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 		return nil, ctx.Err()
 	}
 
-	// Get the payload from the execution client. Whether we successfully
-	// retrieve a valid payload or not, drop its payloadID from the cache
-	// as we should never use it again.
-	_, _ = pb.pc.GetAndEvict(r.Slot, r.ParentBlockRoot)
-	return pb.getPayload(ctx, *payloadID, forkVersion)
+	payload, err := pb.getPayload(ctx, *payloadID, forkVersion)
+	if err != nil {
+		if errors.Is(err, engineerrors.ErrUnknownPayload) ||
+			errors.Is(err, engineerrors.ErrNilExecutionPayloadEnvelope) {
+			// We may have cached the payloadID, but the payload have become stale
+			// in the EVM, or there could have been other issues. Block builder will
+			// try and build again the payload just in time
+			pb.pc.Delete(r.Slot, r.ParentBlockRoot)
+		}
+		return nil, fmt.Errorf("failed retrieving payload for ID %x: %w", *payloadID, err)
+	}
+	return payload, nil
 }
 
 // RetrievePayload attempts to pull a previously built payload
@@ -167,7 +176,7 @@ func (pb *PayloadBuilder) RetrievePayload(
 	// tried and build the block optimistically, in which case we don't have
 	// to wait pb.cfg.PayloadTimeout to retrieve the payload and we can process
 	// as fast as possible.
-	payloadID, found := pb.pc.GetAndEvict(slot, parentBlockRoot)
+	payloadID, found := pb.pc.Get(slot, parentBlockRoot)
 	if !found {
 		// No payloadID cached, error will be threated by block builder
 		// as signal to build payload just in time.
@@ -177,9 +186,13 @@ func (pb *PayloadBuilder) RetrievePayload(
 	// Get the payload from the execution client.
 	envelope, err := pb.getPayload(ctx, payloadID.PayloadID, payloadID.ForkVersion)
 	if err != nil {
-		// We may have cached the payloadID, but the payload may have become stale
-		// in the EVM, or there could have been other issues. Block builder will
-		// try and build again the payload just in time
+		if errors.Is(err, engineerrors.ErrUnknownPayload) ||
+			errors.Is(err, engineerrors.ErrNilExecutionPayloadEnvelope) {
+			// We may have cached the payloadID, but the payload have become stale
+			// in the EVM, or there could have been other issues. Block builder will
+			// try and build again the payload just in time
+			pb.pc.Delete(slot, parentBlockRoot)
+		}
 		return nil, err
 	}
 
