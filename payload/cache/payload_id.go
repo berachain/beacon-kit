@@ -78,7 +78,7 @@ func (p *PayloadIDCache) Has(
 	return ok
 }
 
-// GetAndEvict retrieves the payloadID from the cache. It does *not* evict
+// Get retrieves the payloadID from the cache. It does *not* evict
 // payloadID from the cache upon successful retrieval. Clearing the cache is
 // done via Delete and via pruning in Set.
 func (p *PayloadIDCache) Get(
