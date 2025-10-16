@@ -116,11 +116,11 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 
 			require.Equal(t, math.U64(consensusTime.Unix())+1, r.Timestamp)
 
-			require.Equal(t, genesisHeader.GetBlockHash(), r.HeadEth1BlockHash)
+			require.Equal(t, genesisHeader.GetBlockHash(), r.FCState.HeadBlockHash)
 
 			require.Equal(t, expectedParentBlockRoot, r.ParentBlockRoot)
 
-			require.Empty(t, r.FinalEth1BlockHash)            // this is first block post genesis
+			require.Empty(t, r.FCState.FinalizedBlockHash)    // this is first block post genesis
 			require.Equal(t, constants.GenesisSlot+1, r.Slot) // rebuild block on top of genesis
 		},
 	).Return(nil, common.Version{0xff}, errors.New("does not matter")) // return values do not really matter in this test
@@ -220,11 +220,11 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 			require.Equal(
 				t,
 				validBlk.GetBody().GetExecutionPayload().GetBlockHash(),
-				r.HeadEth1BlockHash,
+				r.FCState.HeadBlockHash,
 			)
 
 			genesisHeader := genesisData.ExecutionPayloadHeader.GetBlockHash()
-			require.Equal(t, genesisHeader, r.FinalEth1BlockHash)
+			require.Equal(t, genesisHeader, r.FCState.FinalizedBlockHash)
 
 			require.Equal(t, validBlk.HashTreeRoot(), r.ParentBlockRoot)
 			require.Equal(t, validBlk.Slot+1, r.Slot)
