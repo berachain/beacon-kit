@@ -63,7 +63,10 @@ func (s *Service) ProcessProposal(
 	thisNodeAddress []byte,
 ) (transition.ValidatorUpdates, error) {
 	var err error
-	defer s.evictLocalPayloadIfNecessary(ctx, &err, thisNodeAddress, req.GetProposerAddress())
+	defer s.evictLocalPayloadIfNecessary(
+		s.storageBackend.StateFromContext(ctx).Copy(ctx), // Copy the state to avoid modifying it.
+		&err, thisNodeAddress, req.GetProposerAddress(),
+	)
 
 	var (
 		signedBlk *ctypes.SignedBeaconBlock
@@ -373,15 +376,15 @@ func (s *Service) shouldBuildNextPayload(isNextBlockProposer bool) bool {
 // We deem it necessary only when we are rejecting the incoming block proposal and it has
 // been built by us.
 func (s *Service) evictLocalPayloadIfNecessary(
-	ctx context.Context,
+	preState *statedb.StateDB,
 	processProposalErr *error,
 	thisNodeAddress []byte,
 	proposerAddress []byte,
 ) {
 	// Check conditions for calling this function.
-	// - Function has been called with an initialized error (to hold process proposal error).
+	// - Function is called with an initialized statedb and error to hold process proposal error.
 	// - Our node has the local payload builder enabled.
-	if processProposalErr == nil || !s.localBuilder.Enabled() {
+	if preState == nil || processProposalErr == nil || !s.localBuilder.Enabled() {
 		return
 	}
 
@@ -393,8 +396,7 @@ func (s *Service) evictLocalPayloadIfNecessary(
 	}
 
 	// Get the slot and parent block root from the state.
-	st := s.storageBackend.StateFromContext(ctx)
-	slot, slotFetchErr := st.GetSlot()
+	slot, slotFetchErr := preState.GetSlot()
 	if slotFetchErr != nil {
 		s.logger.Warn(
 			"Skipping payload eviction on rejected proposal",
@@ -403,7 +405,7 @@ func (s *Service) evictLocalPayloadIfNecessary(
 		)
 		return
 	}
-	_, processSlotErr := s.stateProcessor.ProcessSlots(st, slot+1)
+	_, processSlotErr := s.stateProcessor.ProcessSlots(preState, slot+1)
 	if processSlotErr != nil {
 		s.logger.Warn(
 			"Skipping payload eviction on rejected proposal",
@@ -412,7 +414,7 @@ func (s *Service) evictLocalPayloadIfNecessary(
 		)
 		return
 	}
-	parentBlockRoot, blockRootFetchErr := st.GetBlockRootAtIndex(
+	parentBlockRoot, blockRootFetchErr := preState.GetBlockRootAtIndex(
 		slot.Unwrap() % s.chainSpec.SlotsPerHistoricalRoot(),
 	)
 	if blockRootFetchErr != nil {

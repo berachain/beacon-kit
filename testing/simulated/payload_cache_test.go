@@ -518,7 +518,7 @@ func (s *PayloadCacheSuite) TestReth_MustRebuildPostForkPayload_IsSuccessful() {
 
 	// Next block is height 1.
 	nextBlockHeight := int64(1)
-	consensusTime := time.Unix(int64(s.Reth.TestNode.ChainSpec.ElectraForkTime()-4), 0)
+	consensusTime := time.Unix(int64(s.Reth.TestNode.ChainSpec.ElectraForkTime()-1), 0)
 	{
 		// Prepare the proposal.
 		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
