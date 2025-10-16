@@ -52,7 +52,6 @@ func defaultRethCmdStrBuilder(genesisFile string) string {
 			 --full \
 			 --engine.persistence-threshold=0 \
 			 --engine.memory-block-buffer-target=0 \
-			 --engine.always-process-payload-attributes-on-canonical-head \
 			 -vvvv \
 	`, genesisFile)
 }
