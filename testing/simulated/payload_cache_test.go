@@ -29,6 +29,7 @@ import (
 	"testing"
 	"time"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
@@ -905,4 +906,153 @@ func (s *PayloadCacheSuite) TestReth_MustRebuildPreForkPayload_IsSuccessful() {
 		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
 		s.Require().Contains(s.Reth.LogBuffer.String(), "Processing execution requests")
 	}
+}
+
+func (s *PectraForkSuite) TestReth_MultiplePayloadRebuilds() {
+	// Initialize the chain state.
+	s.Reth.InitializeChain(s.T()) // 1 reth validator
+	s.Geth.InitializeChain(s.T()) // helper node
+	testEL := s.Reth
+	helpBuilder := s.Geth
+
+	// Retrieve the BLS signer and proposer address.
+	blsSigner := simulated.GetBlsSigner(testEL.HomeDir)
+	pubkey, err := blsSigner.GetPubKey()
+	s.Require().NoError(err)
+
+	const blkHeight = int64(1)
+	var (
+		specs           = testEL.TestNode.ChainSpec
+		consensusTime   = time.Unix(int64(specs.ElectraForkTime()), 0)
+		validTxsHeight1 [][]byte
+	)
+
+	{
+		// 1- Build a valid block at height 1, via the helpBuilder
+		prepareRequest := &types.PrepareProposalRequest{
+			Height:          blkHeight,
+			Time:            consensusTime,
+			ProposerAddress: pubkey.Address(),
+		}
+		proposal, prepareErr := helpBuilder.SimComet.Comet.PrepareProposal(helpBuilder.CtxComet, prepareRequest)
+		s.Require().NoError(prepareErr)
+		s.Require().Len(proposal.Txs, 2)
+		validTxsHeight1 = proposal.Txs
+
+		// 2- Process the block via testEL node. The proposal is expected
+		// to pass and start building payload for height 2, optimistically.
+		processRequest := &types.ProcessProposalRequest{
+			Txs:                 proposal.Txs,
+			Height:              blkHeight,
+			ProposerAddress:     pubkey.Address(),
+			Time:                consensusTime,
+			NextProposerAddress: pubkey.Address(),
+		}
+		processResp, respErr := testEL.SimComet.Comet.ProcessProposal(testEL.CtxComet, processRequest)
+		s.Require().NoError(respErr)
+		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT.String(), processResp.Status.String())
+	}
+
+	// For some reason, the supermajority does not finalize the block.
+	// Another block comes, still at height 1, this time *invalid*. This would force
+	// the node to rebuild height 1, which the EL cannot do since it has already received
+	// an FCU(head == block_at_height_2)
+	{
+		invalidTxs := buildInvalidTestBlock(s, helpBuilder, validTxsHeight1, blkHeight, consensusTime)
+
+		// 3- Process the invalid proposal proposal. It will be rejected
+		// and attempt to build optimistically a block at height 1.
+		processRequest := &types.ProcessProposalRequest{
+			Txs:             invalidTxs,
+			Height:          blkHeight,
+			ProposerAddress: pubkey.Address(),
+			Time:            consensusTime,
+		}
+		processResp, processErr := testEL.SimComet.Comet.ProcessProposal(testEL.CtxComet, processRequest)
+		s.Require().NoError(processErr)
+		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT.String(), processResp.Status.String())
+	}
+
+	{
+		// 4- Finally let reth node build block at height 1, process and finalize it
+		prepareRequest := &types.PrepareProposalRequest{
+			Height:          blkHeight,
+			Time:            consensusTime,
+			ProposerAddress: pubkey.Address(),
+		}
+		proposal, prepareErr := testEL.SimComet.Comet.PrepareProposal(testEL.CtxComet, prepareRequest)
+		s.Require().NoError(prepareErr)
+		s.Require().Len(proposal.Txs, 2)
+
+		// Process the proposal via testEL node. The proposal is expected
+		// to pass and start building payload for height 2, optimistically.
+		processRequest := &types.ProcessProposalRequest{
+			Txs:                 proposal.Txs,
+			Height:              blkHeight,
+			ProposerAddress:     pubkey.Address(),
+			Time:                consensusTime,
+			NextProposerAddress: pubkey.Address(),
+		}
+		processResp, respErr := testEL.SimComet.Comet.ProcessProposal(testEL.CtxComet, processRequest)
+		s.Require().NoError(respErr)
+		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT.String(), processResp.Status.String())
+
+		finalizeRequest := &types.FinalizeBlockRequest{
+			Txs:             proposal.Txs,
+			Height:          blkHeight,
+			ProposerAddress: pubkey.Address(),
+			Time:            consensusTime,
+		}
+		_, finalizeErr := testEL.SimComet.Comet.FinalizeBlock(testEL.CtxComet, finalizeRequest)
+		s.Require().NoError(finalizeErr)
+		_, commitErr := testEL.SimComet.Comet.Commit(testEL.CtxComet, &types.CommitRequest{})
+		s.Require().NoError(commitErr)
+	}
+}
+
+// buildInvalidTestBlock builds an invalid block that fails VerifyIncomingBlock
+// but passes other checks (signature, version, etc).
+func buildInvalidTestBlock(
+	s *PectraForkSuite,
+	builder simulated.SharedAccessors,
+	txs [][]byte,
+	nextBlockHeight int64,
+	consensusTime time.Time,
+) [][]byte {
+	blsSigner := simulated.GetBlsSigner(builder.HomeDir)
+	pubkey, err := blsSigner.GetPubKey()
+	s.Require().NoError(err)
+
+	signedBlk, sidecars, err := builder.SimComet.Comet.Blockchain.ParseBeaconBlock(
+		&types.ProcessProposalRequest{
+			Txs:             txs,
+			Height:          nextBlockHeight,
+			ProposerAddress: pubkey.Address(),
+			Time:            consensusTime,
+		},
+	)
+	s.Require().NoError(err)
+	blk := signedBlk.BeaconBlock
+
+	blk.Body.RandaoReveal = [96]byte{'t', 'e', 's', 't'} // this makes the block invalid
+	reSignedBlk, err := ctypes.NewSignedBeaconBlock(     // resign to make sure signature checks pass
+		blk,
+		ctypes.NewForkData(
+			builder.TestNode.ChainSpec.ActiveForkVersionForTimestamp(blk.GetTimestamp()),
+			builder.GenesisValidatorsRoot,
+		),
+		builder.TestNode.ChainSpec,
+		blsSigner,
+	)
+	s.Require().NoError(err)
+
+	signedBlkBytes, bbErr := reSignedBlk.MarshalSSZ()
+	s.Require().NoError(bbErr)
+	txs[0] = signedBlkBytes
+
+	sidecarsBytes, scErr := sidecars.MarshalSSZ()
+	s.Require().NoError(scErr)
+	txs[1] = sidecarsBytes
+
+	return txs
 }

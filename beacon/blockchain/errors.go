@@ -40,4 +40,6 @@ var (
 	ErrSidecarCommitmentMismatch = errors.New("sidecars commitments mismatch")
 	// ErrSidecarSignatureMismatch indicates that the sidecar signature is invalid.
 	ErrSidecarSignatureMismatch = errors.New("sidecar signature mismatch")
+	// ErrRebuildForFailedStateTransition indicates that the node is rebuilding for a failed state transition.
+	ErrRebuildForFailedStateTransition = errors.New("state root verification failed, rebuilding new block")
 )

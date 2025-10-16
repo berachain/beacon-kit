@@ -64,7 +64,8 @@ func (s *Service) ProcessProposal(
 ) (transition.ValidatorUpdates, error) {
 	var err error
 	defer s.evictLocalPayloadIfNecessary(
-		s.storageBackend.StateFromContext(ctx).Copy(ctx), // Copy the state to avoid modifying it.
+		// Copy the state now before it is modified by the state transition.
+		s.storageBackend.StateFromContext(ctx).Copy(ctx),
 		&err, thisNodeAddress, req.GetProposerAddress(),
 	)
 
@@ -298,15 +299,10 @@ func (s *Service) VerifyIncomingBlock(
 			"state_root", beaconBlk.GetStateRoot(),
 			"reason", err,
 		)
-
-		if shouldBuildNextPayload {
-			if nextBlockData == nil {
-				// Failed fetching data to build next block. Just return block error
-				return nil, err
-			}
+		if shouldBuildNextPayload && nextBlockData != nil {
+			err = errors.Join(err, ErrRebuildForFailedStateTransition)
 			go s.handleRebuildPayloadForRejectedBlock(ctx, nextBlockData)
 		}
-
 		return nil, err
 	}
 
@@ -391,7 +387,9 @@ func (s *Service) evictLocalPayloadIfNecessary(
 	// Check the conditions for evicting the local payload.
 	// - There must be a process proposal error (i.e. we are rejecting the proposal).
 	// - The proposer address must be the same as this node's address.
-	if *processProposalErr == nil || !bytes.Equal(thisNodeAddress, proposerAddress) {
+	// - The process proposal error must not be due to rebuilding for a failed state transition.
+	if *processProposalErr == nil || !bytes.Equal(thisNodeAddress, proposerAddress) ||
+		errors.Is(*processProposalErr, ErrRebuildForFailedStateTransition) {
 		return
 	}
 
