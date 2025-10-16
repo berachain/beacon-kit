@@ -78,9 +78,10 @@ func (p *PayloadIDCache) Has(
 	return ok
 }
 
-// GetAndEvict retrieves the payloadID from the cache. If successfully retrieved,
-// evict it from the cache.
-func (p *PayloadIDCache) GetAndEvict(
+// GetAndEvict retrieves the payloadID from the cache. It does *not* evict
+// payloadID from the cache upon successful retrieval. Clearing the cache is
+// done via Delete and via pruning in Set.
+func (p *PayloadIDCache) Get(
 	slot math.Slot,
 	blockRoot common.Root,
 ) (PayloadIDCacheResult, bool) {
@@ -117,6 +118,16 @@ func (p *PayloadIDCache) Set(
 		PayloadID:   pid,
 		ForkVersion: version,
 	}
+}
+
+// Delete deletes a payload ID from the cache if it exists.
+func (p *PayloadIDCache) Delete(
+	slot math.Slot,
+	blockRoot common.Root,
+) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	delete(p.slotToBlockRootToPayloadID, payloadIDCacheKey{slot, blockRoot})
 }
 
 // prunePrior removes payload IDs from the cache for slots less than
