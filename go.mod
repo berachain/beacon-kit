@@ -3,8 +3,8 @@ module github.com/berachain/beacon-kit
 go 1.25
 
 replace (
-	github.com/cometbft/cometbft => github.com/berachain/cometbft v1.0.1-0.20250718121541-9671b1dc07e5
-	github.com/cometbft/cometbft/api => github.com/berachain/cometbft/api v1.0.1-0.20250718121541-9671b1dc07e5
+	github.com/cometbft/cometbft => github.com/berachain/cometbft v1.0.1-0.20251015081901-8394c619874a
+	github.com/cometbft/cometbft/api => github.com/berachain/cometbft/api v1.0.1-0.20251015081901-8394c619874a
 	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.52.0-rc.1
 	github.com/ethereum/go-ethereum => github.com/berachain/bera-geth v0.0.0-20250722192516-7ce36c5a40aa
 	github.com/karalabe/ssz => github.com/berachain/karalabe-ssz v0.3.0-alpha.0
@@ -27,7 +27,7 @@ require (
 	github.com/crate-crypto/go-kzg-4844 v1.1.0
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-faster/xor v1.0.0
-	github.com/go-playground/validator/v10 v10.27.0
+	github.com/go-playground/validator/v10 v10.28.0
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/hashicorp/go-metrics v0.5.4
 	github.com/hashicorp/golang-lru/v2 v2.0.7
@@ -129,7 +129,7 @@ require (
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
-	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.10 // indirect
 	github.com/getsentry/sentry-go v0.33.0 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
