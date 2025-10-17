@@ -7,6 +7,7 @@ replace (
 	github.com/cometbft/cometbft/api => github.com/alesforz/cometbft/api v0.0.0-20250916204208-b48cac03c4e5
 	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.52.0-rc.1
 	github.com/ethereum/go-ethereum => github.com/berachain/bera-geth v0.0.0-20250722192516-7ce36c5a40aa
+	github.com/hashicorp/go-metrics => github.com/fridrik01/go-metrics v0.0.0-20251017110430-e6ba394a8c2c
 	github.com/karalabe/ssz => github.com/berachain/karalabe-ssz v0.3.0-alpha.0
 )
 
