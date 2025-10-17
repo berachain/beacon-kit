@@ -24,13 +24,11 @@ import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/chain"
-	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/execution/engine"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
-	"github.com/berachain/beacon-kit/primitives/crypto"
 )
 
 // ChainServiceInput is the input for the chain service provider.
@@ -38,11 +36,9 @@ type ChainServiceInput struct {
 	depinject.In
 
 	ChainSpec             chain.Spec
-	Cfg                   *config.Config
 	ExecutionEngine       *engine.Engine
 	LocalBuilder          LocalBuilder
 	Logger                *phuslu.Logger
-	Signer                crypto.BLSSigner
 	StateProcessor        StateProcessor
 	StorageBackend        *storage.Backend
 	BlobProcessor         BlobProcessor
@@ -62,7 +58,5 @@ func ProvideChainService(in ChainServiceInput) *blockchain.Service {
 		in.LocalBuilder,
 		in.StateProcessor,
 		in.TelemetrySink,
-		// If optimistic is enabled, we want to skip post finalization FCUs.
-		in.Cfg.Validator.EnableOptimisticPayloadBuilds,
 	)
 }

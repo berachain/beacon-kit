@@ -85,7 +85,7 @@ func (s *Service) processProposal(
 	// because its state must be handled in a different way
 	// TODO: before Stable block time activation we keep caching off
 	// to make sure chain does not get faster. Once activated, we can
-	// actve as if cache was always active.
+	// active as if cache was always active.
 	if cache.IsStateCachingActive(s.delayCfg, math.Slot(req.Height)) {
 		stateHash := string(req.Hash)
 		toCache := &cache.Element{
