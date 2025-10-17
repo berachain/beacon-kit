@@ -70,6 +70,8 @@ type LocalBuilder interface {
 		ctx context.Context,
 		r *builder.RequestPayloadData,
 	) (*engineprimitives.PayloadID, common.Version, error)
+	// EvictPayload evicts a local payload from the cache if it exists.
+	EvictPayload(slot math.Slot, parentBlockRoot common.Root)
 }
 
 // StateProcessor defines the interface for processing various state transitions
@@ -190,6 +192,7 @@ type ServiceChainSpec interface {
 	chain.ForkVersionSpec
 	delay.ConfigGetter
 
+	SlotsPerHistoricalRoot() uint64
 	EpochsPerHistoricalVector() uint64
 	SlotToEpoch(slot math.Slot) math.Epoch
 	Eth1FollowDistance() uint64

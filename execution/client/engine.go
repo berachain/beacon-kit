@@ -145,7 +145,8 @@ func (s *EngineClient) GetPayload(
 		return result, s.handleRPCError(err)
 	}
 	if result == nil {
-		return result, engineerrors.ErrNilExecutionPayloadEnvelope
+		// Engine API returns the Unknown Payload (-38001) error if a nil result is returned.
+		return result, engineerrors.ErrUnknownPayload
 	}
 	if result.GetBlobsBundle() == nil {
 		return result, engineerrors.ErrNilBlobsBundle

@@ -10,6 +10,8 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 
+	math "github.com/berachain/beacon-kit/primitives/math"
+
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -68,6 +70,40 @@ func (_c *LocalBuilder_Enabled_Call) Return(_a0 bool) *LocalBuilder_Enabled_Call
 
 func (_c *LocalBuilder_Enabled_Call) RunAndReturn(run func() bool) *LocalBuilder_Enabled_Call {
 	_c.Call.Return(run)
+	return _c
+}
+
+// EvictPayload provides a mock function with given fields: slot, parentBlockRoot
+func (_m *LocalBuilder) EvictPayload(slot math.Slot, parentBlockRoot common.Root) {
+	_m.Called(slot, parentBlockRoot)
+}
+
+// LocalBuilder_EvictPayload_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EvictPayload'
+type LocalBuilder_EvictPayload_Call struct {
+	*mock.Call
+}
+
+// EvictPayload is a helper method to define mock.On call
+//   - slot math.Slot
+//   - parentBlockRoot common.Root
+func (_e *LocalBuilder_Expecter) EvictPayload(slot interface{}, parentBlockRoot interface{}) *LocalBuilder_EvictPayload_Call {
+	return &LocalBuilder_EvictPayload_Call{Call: _e.mock.On("EvictPayload", slot, parentBlockRoot)}
+}
+
+func (_c *LocalBuilder_EvictPayload_Call) Run(run func(slot math.Slot, parentBlockRoot common.Root)) *LocalBuilder_EvictPayload_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(math.Slot), args[1].(common.Root))
+	})
+	return _c
+}
+
+func (_c *LocalBuilder_EvictPayload_Call) Return() *LocalBuilder_EvictPayload_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *LocalBuilder_EvictPayload_Call) RunAndReturn(run func(math.Slot, common.Root)) *LocalBuilder_EvictPayload_Call {
+	_c.Run(run)
 	return _c
 }
 

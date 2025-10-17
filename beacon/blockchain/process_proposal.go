@@ -62,10 +62,21 @@ func (s *Service) ProcessProposal(
 	req *cmtabci.ProcessProposalRequest,
 	thisNodeAddress []byte,
 ) (transition.ValidatorUpdates, error) {
-	signedBlk, sidecars, err := s.ParseBeaconBlock(req)
+	var err error
+	defer s.evictLocalPayloadIfNecessary(
+		// Copy the state now before it is modified by the state transition.
+		s.storageBackend.StateFromContext(ctx).Copy(ctx),
+		&err, thisNodeAddress, req.GetProposerAddress(),
+	)
+
+	var (
+		signedBlk *ctypes.SignedBeaconBlock
+		sidecars  datypes.BlobSidecars
+	)
+	signedBlk, sidecars, err = s.ParseBeaconBlock(req)
 	if err != nil {
-		s.logger.Error("Failed to decode block and blobs", "error", err)
-		return nil, fmt.Errorf("failed to decode block and blobs: %w", err)
+		err = fmt.Errorf("failed to decode block and blobs: %w", err)
+		return nil, err
 	}
 	blk := signedBlk.GetBeaconBlock()
 
@@ -85,26 +96,29 @@ func (s *Service) ProcessProposal(
 	forkVersion := s.chainSpec.ActiveForkVersionForTimestamp(math.U64(req.GetTime().Unix())) //#nosec: G115
 	blkVersion := s.chainSpec.ActiveForkVersionForTimestamp(blk.GetTimestamp())
 	if !version.Equals(blkVersion, forkVersion) {
-		return nil, fmt.Errorf("CometBFT version %v, BeaconBlock version %v: %w",
+		err = fmt.Errorf("CometBFT version %v, BeaconBlock version %v: %w",
 			forkVersion, blkVersion,
 			ErrVersionMismatch,
 		)
+		return nil, err
 	}
 
 	// Make sure we have the right number of BlobSidecars
 	blobKzgCommitments := blk.GetBody().GetBlobKzgCommitments()
 	numCommitments := len(blobKzgCommitments)
 	if numCommitments != len(sidecars) {
-		return nil, fmt.Errorf("expected %d sidecars, got %d: %w",
+		err = fmt.Errorf("expected %d sidecars, got %d: %w",
 			numCommitments, len(sidecars),
 			ErrSidecarCommitmentMismatch,
 		)
+		return nil, err
 	}
 	if uint64(numCommitments) > s.chainSpec.MaxBlobsPerBlock() {
-		return nil, fmt.Errorf("expected less than %d sidecars, got %d: %w",
+		err = fmt.Errorf("expected less than %d sidecars, got %d: %w",
 			s.chainSpec.MaxBlobsPerBlock(), numCommitments,
 			core.ErrExceedsBlockBlobLimit,
 		)
+		return nil, err
 	}
 
 	// Verify the block and sidecar signatures. We can simply verify the block
@@ -113,11 +127,11 @@ func (s *Service) ProcessProposal(
 	for i, sidecar := range sidecars {
 		sidecarSignature := sidecar.GetSignature()
 		if !bytes.Equal(blkSignature[:], sidecarSignature[:]) {
-			return nil, fmt.Errorf("%w, idx: %d", ErrSidecarSignatureMismatch, i)
+			err = fmt.Errorf("%w, idx: %d", ErrSidecarSignatureMismatch, i)
+			return nil, err
 		}
 	}
-	err = s.VerifyIncomingBlockSignature(ctx, blk, signedBlk.GetSignature())
-	if err != nil {
+	if err = s.VerifyIncomingBlockSignature(ctx, blk, signedBlk.GetSignature()); err != nil {
 		return nil, err
 	}
 
@@ -160,7 +174,7 @@ func (s *Service) ProcessProposal(
 		return nil, err
 	}
 
-	return valUpdates.CanonicalSort(), nil
+	return valUpdates.CanonicalSort(), err
 }
 
 func (s *Service) VerifyIncomingBlockSignature(
@@ -285,15 +299,10 @@ func (s *Service) VerifyIncomingBlock(
 			"state_root", beaconBlk.GetStateRoot(),
 			"reason", err,
 		)
-
-		if shouldBuildNextPayload {
-			if nextBlockData == nil {
-				// Failed fetching data to build next block. Just return block error
-				return nil, err
-			}
+		if shouldBuildNextPayload && nextBlockData != nil {
+			err = errors.Join(err, ErrRebuildForFailedStateTransition)
 			go s.handleRebuildPayloadForRejectedBlock(ctx, nextBlockData)
 		}
-
 		return nil, err
 	}
 
@@ -303,7 +312,7 @@ func (s *Service) VerifyIncomingBlock(
 	)
 
 	if shouldBuildNextPayload {
-		// state copy makes sure that preFetchBuildDataForSuccess does not affect state
+		// state copy makes sure that preFetchBuildData does not affect state
 		copiedState := state.Copy(ctx)
 		nextBlockData, errFetch = s.preFetchBuildData(copiedState, blk.GetConsensusTime())
 		if errFetch != nil {
@@ -354,8 +363,67 @@ func (s *Service) verifyStateRoot(
 	return valUpdates, err
 }
 
-// shouldBuildNextPayload returns true if optimistic
-// payload builds are enabled.
+// shouldBuildNextPayload returns true if payload builds are enabled and we are the next block proposer.
 func (s *Service) shouldBuildNextPayload(isNextBlockProposer bool) bool {
 	return isNextBlockProposer && s.localBuilder.Enabled()
+}
+
+// evictLocalPayloadIfNecessary evicts the payload from local builder cache if necessary.
+// We deem it necessary only when we are rejecting the incoming block proposal and it has
+// been built by us.
+func (s *Service) evictLocalPayloadIfNecessary(
+	preState *statedb.StateDB,
+	processProposalErr *error,
+	thisNodeAddress []byte,
+	proposerAddress []byte,
+) {
+	// Check conditions for calling this function.
+	// - Function is called with an initialized statedb and error to hold process proposal error.
+	// - Our node has the local payload builder enabled.
+	if preState == nil || processProposalErr == nil || !s.localBuilder.Enabled() {
+		return
+	}
+
+	// Check the conditions for evicting the local payload.
+	// - There must be a process proposal error (i.e. we are rejecting the proposal).
+	// - The proposer address must be the same as this node's address.
+	// - The process proposal error must not be due to rebuilding for a failed state transition.
+	if *processProposalErr == nil || !bytes.Equal(thisNodeAddress, proposerAddress) ||
+		errors.Is(*processProposalErr, ErrRebuildForFailedStateTransition) {
+		return
+	}
+
+	// Get the slot and parent block root from the state.
+	slot, slotFetchErr := preState.GetSlot()
+	if slotFetchErr != nil {
+		s.logger.Warn(
+			"Skipping payload eviction on rejected proposal",
+			"reason", "st.GetSlot()",
+			"error", slotFetchErr,
+		)
+		return
+	}
+	_, processSlotErr := s.stateProcessor.ProcessSlots(preState, slot+1)
+	if processSlotErr != nil {
+		s.logger.Warn(
+			"Skipping payload eviction on rejected proposal",
+			"reason", "s.stateProcessor.ProcessSlots()",
+			"error", processSlotErr,
+		)
+		return
+	}
+	parentBlockRoot, blockRootFetchErr := preState.GetBlockRootAtIndex(
+		slot.Unwrap() % s.chainSpec.SlotsPerHistoricalRoot(),
+	)
+	if blockRootFetchErr != nil {
+		s.logger.Warn(
+			"Skipping payload eviction on rejected proposal",
+			"reason", "st.GetBlockRootAtIndex()",
+			"error", blockRootFetchErr,
+		)
+		return
+	}
+
+	// Evict the payload from the local builder cache.
+	s.localBuilder.EvictPayload(slot+1, parentBlockRoot)
 }

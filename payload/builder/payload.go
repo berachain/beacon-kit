@@ -27,6 +27,8 @@ import (
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -53,7 +55,7 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 		return nil, common.Version{}, ErrPayloadBuilderDisabled
 	}
 
-	if payloadID, found := pb.pc.GetAndEvict(r.Slot, r.ParentBlockRoot); found {
+	if payloadID, found := pb.pc.Get(r.Slot, r.ParentBlockRoot); found {
 		pb.logger.Info(
 			"aborting payload build; payload already exists in cache",
 			"for_slot", r.Slot.Base10(),
@@ -133,7 +135,12 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 	}
 
 	// Get the payload from the execution client.
-	return pb.getPayload(ctx, *payloadID, forkVersion)
+	env, err := pb.getPayload(ctx, *payloadID, forkVersion)
+	if errors.Is(err, engineerrors.ErrUnknownPayload) {
+		// Evict from cache as the EL is unaware of this payloadID.
+		pb.EvictPayload(r.Slot, r.ParentBlockRoot)
+	}
+	return env, err
 }
 
 // RetrievePayload attempts to pull a previously built payload
@@ -151,7 +158,7 @@ func (pb *PayloadBuilder) RetrievePayload(
 
 	// Attempt to see if we previously fired off a payload built for
 	// this particular slot and parent block root.
-	payloadID, found := pb.pc.GetAndEvict(slot, parentBlockRoot)
+	payloadID, found := pb.pc.Get(slot, parentBlockRoot)
 	if !found {
 		return nil, ErrPayloadIDNotFound
 	}
@@ -159,6 +166,11 @@ func (pb *PayloadBuilder) RetrievePayload(
 	// Get the payload from the execution client.
 	envelope, err := pb.getPayload(ctx, payloadID.PayloadID, payloadID.ForkVersion)
 	if err != nil {
+		pb.logger.Debug("Failed to get payload from EL", "error", err)
+		// Evict from cache as the EL is unaware of this payloadID.
+		if errors.Is(err, engineerrors.ErrUnknownPayload) {
+			pb.EvictPayload(slot, parentBlockRoot)
+		}
 		return nil, err
 	}
 
@@ -189,6 +201,11 @@ func (pb *PayloadBuilder) RetrievePayload(
 	return envelope, err
 }
 
+// EvictPayload evicts a local payload from the cache if it exists.
+func (pb *PayloadBuilder) EvictPayload(slot math.Slot, parentBlockRoot common.Root) {
+	pb.pc.Delete(slot, parentBlockRoot)
+}
+
 func (pb *PayloadBuilder) getPayload(
 	ctx context.Context,
 	payloadID engineprimitives.PayloadID,
@@ -203,9 +220,6 @@ func (pb *PayloadBuilder) getPayload(
 	)
 	if err != nil {
 		return nil, err
-	}
-	if envelope == nil {
-		return nil, ErrNilPayloadEnvelope
 	}
 	if envelope.GetExecutionPayload().Withdrawals == nil {
 		return nil, ErrNilWithdrawals
