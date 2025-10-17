@@ -26,7 +26,6 @@ import (
 
 func DefaultComponents() []any {
 	c := []any{
-		components.ProvideAttributesFactory,
 		components.ProvideAvailabilityStore,
 		components.ProvideDepositContract,
 		components.ProvideBlockStore,

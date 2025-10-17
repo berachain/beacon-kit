@@ -33,11 +33,10 @@ import (
 // LocalBuilderInput is an input for the dep inject framework.
 type LocalBuilderInput struct {
 	depinject.In
-	AttributesFactory AttributesFactory
-	Cfg               *config.Config
-	ChainSpec         chain.Spec
-	ExecutionEngine   *engine.Engine
-	Logger            *phuslu.Logger
+	Cfg             *config.Config
+	ChainSpec       chain.Spec
+	ExecutionEngine *engine.Engine
+	Logger          *phuslu.Logger
 }
 
 // ProvideLocalBuilder provides a local payload builder for the
@@ -49,6 +48,5 @@ func ProvideLocalBuilder(in LocalBuilderInput) *payloadbuilder.PayloadBuilder {
 		in.Logger.With("service", "payload-builder"),
 		in.ExecutionEngine,
 		cache.NewPayloadIDCache(),
-		in.AttributesFactory,
 	)
 }

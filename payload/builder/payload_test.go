@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/payload/cache"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/stretchr/testify/require"
@@ -79,7 +78,6 @@ func TestRetrievePayloadSunnyPath(t *testing.T) {
 		cfg    = &builder.Config{Enabled: true}
 		ee     = &stubExecutionEngine{}
 		cache  = cache.NewPayloadIDCache()
-		af     = &stubAttributesFactory{}
 	)
 	pb := builder.New(
 		cfg,
@@ -87,7 +85,6 @@ func TestRetrievePayloadSunnyPath(t *testing.T) {
 		logger,
 		ee,
 		cache,
-		af,
 	)
 
 	// create inputs and set expectations
@@ -127,7 +124,6 @@ func TestRetrievePayloadNilWithdrawalsListRejected(t *testing.T) {
 		cfg    = &builder.Config{Enabled: true}
 		ee     = &stubExecutionEngine{}
 		cache  = cache.NewPayloadIDCache()
-		af     = &stubAttributesFactory{}
 	)
 	pb := builder.New(
 		cfg,
@@ -135,7 +131,6 @@ func TestRetrievePayloadNilWithdrawalsListRejected(t *testing.T) {
 		logger,
 		ee,
 		cache,
-		af,
 	)
 
 	// create inputs
@@ -180,13 +175,5 @@ func (ee *stubExecutionEngine) GetPayload(
 func (ee *stubExecutionEngine) NotifyForkchoiceUpdate(
 	context.Context, *ctypes.ForkchoiceUpdateRequest,
 ) (*engineprimitives.PayloadID, error) {
-	return nil, errStubNotImplemented
-}
-
-type stubAttributesFactory struct{}
-
-func (ee *stubAttributesFactory) BuildPayloadAttributes(
-	math.U64, engineprimitives.Withdrawals, common.Bytes32, common.Root, *crypto.BLSPubkey,
-) (*engineprimitives.PayloadAttributes, error) {
 	return nil, errStubNotImplemented
 }
