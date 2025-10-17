@@ -82,6 +82,10 @@ type (
 			ctx context.Context,
 			r *builder.RequestPayloadData,
 		) (ctypes.BuiltExecutionPayloadEnv, error)
+		CacheLatestVerifiedPayload(
+			latestEnvelopeSlot math.Slot,
+			latestEnvelope ctypes.BuiltExecutionPayloadEnv,
+		)
 	}
 
 	// 	// PayloadAttributes is the interface for the payload attributes.

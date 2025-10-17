@@ -21,8 +21,12 @@
 package builder
 
 import (
+	"sync"
+
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // PayloadBuilder is used to build payloads on the
@@ -43,6 +47,15 @@ type PayloadBuilder struct {
 	// "in-flight" payloads that are being built on
 	// the execution client.
 	pc PayloadCache
+
+	// latestEnvelope caches the latest verified payload, so that
+	// it can be re-issued if the verified payload is not finalized
+	// and node is requested to build a block. This helps respecting
+	// FCU invariants (can't ask to build Nth block if N+1th has already
+	// being requested )
+	muEnv              sync.RWMutex
+	latestEnvelopeSlot math.Slot
+	latestEnvelope     ctypes.BuiltExecutionPayloadEnv
 }
 
 // New creates a new service.

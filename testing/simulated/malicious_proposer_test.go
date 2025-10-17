@@ -171,7 +171,18 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidTimestamps_Errors() {
 	s.Require().Len(proposals, coreLoopIterations)
 	currentHeight := int64(blockHeight + coreLoopIterations)
 
-	// Prepare a block proposal, but 2 seconds in the future (i.e. attempt to roll timestamp forward)
+	// Prepare a block proposal. This will create a valid payload due to optimistic payload building.
+	// It is called to flush the payload cache.
+	validProposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
+		Height:          currentHeight,
+		Time:            correctConsensusTime,
+		ProposerAddress: pubkey.Address(),
+	})
+	s.Require().NoError(err)
+	s.Require().NotEmpty(validProposal)
+
+	// We PreparePayload again to force the payload to rebuild with the malicious proposal time, as the previous
+	// malicious proposal was created optimistically with a valid proposal time.
 	maliciousProposalTime := correctConsensusTime.Add(2 * time.Second)
 	maliciousProposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,

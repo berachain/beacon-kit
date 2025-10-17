@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/cache"
 	"github.com/berachain/beacon-kit/consensus/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -160,6 +161,40 @@ func (s *Service) ProcessProposal(
 		return nil, err
 	}
 
+	// once we have successfully verified the block we cache it in the node builder.
+	// This ensures the node will be able to build a payload even in scenarios where
+	// EVM won't provide a new payload (e.g. if it received FCU(Head == N+1) due to
+	// optimistic block building, then FCU(Head ++ N)) if verified block is not finalized)
+	blobBundle := &engineprimitives.BlobsBundleV1{}
+	for _, s := range sidecars {
+		blobBundle.Commitments = append(blobBundle.Commitments, s.GetKzgCommitment())
+		blobBundle.Proofs = append(blobBundle.Proofs, s.GetKzgProof())
+
+		blob := s.GetBlob()
+		blobBundle.Blobs = append(blobBundle.Blobs, &blob)
+	}
+
+	var executionRequests []ctypes.EncodedExecutionRequest
+	switch reqs, errReqs := blk.Body.GetExecutionRequests(); {
+	case errReqs == nil:
+		executionRequests, err = ctypes.GetExecutionRequestsList(reqs)
+		if err != nil {
+			return nil, fmt.Errorf("failed retrieving encoded execution requests from payload: %w", err)
+		}
+	case errors.Is(errReqs, ctypes.ErrFieldNotSupportedOnFork):
+		// nothing to do, executionRequests is nil
+	default:
+		return nil, fmt.Errorf("failed getting execution requests from payload: %w", errReqs)
+	}
+	s.localBuilder.CacheLatestVerifiedPayload(
+		blk.Slot,
+		ctypes.NewExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1](
+			blk.Body.ExecutionPayload,
+			blobBundle,
+			executionRequests,
+		),
+	)
+
 	return valUpdates.CanonicalSort(), nil
 }
 
@@ -256,12 +291,12 @@ func (s *Service) VerifyIncomingBlock(
 	}
 
 	var (
-		nextBlockData        *builder.RequestPayloadData
-		errFetch             error
-		shouldBuildNextBlock = s.shouldBuildOptimisticPayloads(isNextBlockProposer)
+		nextBlockData          *builder.RequestPayloadData
+		errFetch               error
+		shouldBuildNextPayload = s.shouldBuildNextPayload(isNextBlockProposer)
 	)
 
-	if shouldBuildNextBlock {
+	if shouldBuildNextPayload {
 		// state copy makes sure that preFetchBuildData does not affect state
 		copiedState := state.Copy(ctx)
 		nextBlockData, errFetch = s.preFetchBuildData(copiedState, blk.GetConsensusTime())
@@ -286,7 +321,7 @@ func (s *Service) VerifyIncomingBlock(
 			"reason", err,
 		)
 
-		if shouldBuildNextBlock {
+		if shouldBuildNextPayload {
 			if nextBlockData == nil {
 				// Failed fetching data to build next block. Just return block error
 				return nil, err
@@ -302,7 +337,7 @@ func (s *Service) VerifyIncomingBlock(
 		"state_root", beaconBlk.GetStateRoot(),
 	)
 
-	if shouldBuildNextBlock {
+	if shouldBuildNextPayload {
 		// state copy makes sure that preFetchBuildDataForSuccess does not affect state
 		copiedState := state.Copy(ctx)
 		nextBlockData, errFetch = s.preFetchBuildData(copiedState, blk.GetConsensusTime())
@@ -354,8 +389,8 @@ func (s *Service) verifyStateRoot(
 	return valUpdates, err
 }
 
-// shouldBuildOptimisticPayloads returns true if optimistic
+// shouldBuildNextPayload returns true if optimistic
 // payload builds are enabled.
-func (s *Service) shouldBuildOptimisticPayloads(isNextBlockProposer bool) bool {
-	return isNextBlockProposer && s.optimisticPayloadBuilds && s.localBuilder.Enabled()
+func (s *Service) shouldBuildNextPayload(isNextBlockProposer bool) bool {
+	return isNextBlockProposer && s.localBuilder.Enabled()
 }

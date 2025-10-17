@@ -61,14 +61,13 @@ import (
 func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 	t.Parallel()
 
-	optimisticPayloadBuilds := true // key to this test
 	cs, err := spec.MainnetChainSpec()
 	require.NoError(t, err)
 
-	chain, st, _, ctx, _, b, sb, eng, depStore := setupOptimisticPayloadTests(t, cs, optimisticPayloadBuilds)
+	chain, st, _, ctx, _, b, sb, eng, depStore := setupOptimisticPayloadTests(t, cs)
 	sb.EXPECT().StateFromContext(mock.Anything).Return(st)
 	sb.EXPECT().DepositStore().RunAndReturn(func() deposit.StoreManager { return depStore })
-	b.EXPECT().Enabled().Return(optimisticPayloadBuilds)
+	b.EXPECT().Enabled().Return(true)
 
 	// Note: test avoid calling chain.Start since it only starts the deposits
 	// goroutine which is not really relevant for this test
@@ -151,14 +150,13 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 	t.Parallel()
 
-	optimisticPayloadBuilds := true // key to this test
 	cs, err := spec.MainnetChainSpec()
 	require.NoError(t, err)
 
-	chain, st, cms, ctx, sp, b, sb, eng, depStore := setupOptimisticPayloadTests(t, cs, optimisticPayloadBuilds)
+	chain, st, cms, ctx, sp, b, sb, eng, depStore := setupOptimisticPayloadTests(t, cs)
 	sb.EXPECT().StateFromContext(mock.Anything).Return(st).Times(1) // only for genesis
 	sb.EXPECT().DepositStore().RunAndReturn(func() deposit.StoreManager { return depStore })
-	b.EXPECT().Enabled().Return(optimisticPayloadBuilds)
+	b.EXPECT().Enabled().Return(true)
 
 	// Before processing any block it is mandatory to handle genesis
 	genesisData := testProcessGenesis(t, cs, chain, ctx)
@@ -255,7 +253,7 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 	require.Equal(t, validBlk.GetSlot(), slot)
 }
 
-func setupOptimisticPayloadTests(t *testing.T, cs chain.Spec, optimisticPayloadBuilds bool) (
+func setupOptimisticPayloadTests(t *testing.T, cs chain.Spec) (
 	*blockchain.Service,
 	*statetransition.TestBeaconStateT,
 	storetypes.CommitMultiStore,
@@ -284,7 +282,6 @@ func setupOptimisticPayloadTests(t *testing.T, cs chain.Spec, optimisticPayloadB
 		b,
 		sp,
 		ts,
-		optimisticPayloadBuilds,
 	)
 	return chain, st, cms, ctx, sp, b, sb, eng, depStore
 }

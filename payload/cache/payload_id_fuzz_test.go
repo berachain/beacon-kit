@@ -44,7 +44,7 @@ func FuzzPayloadIDCacheBasic(f *testing.F) {
 		cacheUnderTest := cache.NewPayloadIDCache()
 		cacheUnderTest.Set(slot, r, pid, version.Deneb())
 
-		p, ok := cacheUnderTest.GetAndEvict(slot, r)
+		p, ok := cacheUnderTest.Get(slot, r)
 		require.True(t, ok)
 		require.Equal(t, pid, p.PayloadID)
 
@@ -55,12 +55,13 @@ func FuzzPayloadIDCacheBasic(f *testing.F) {
 		}
 		cacheUnderTest.Set(slot, r, newPid, version.Deneb())
 
-		p, ok = cacheUnderTest.GetAndEvict(slot, r)
+		p, ok = cacheUnderTest.Get(slot, r)
 		require.True(t, ok)
 		require.Equal(
 			t, newPid, p.PayloadID, "PayloadID should be overwritten with the new value")
 
 		// Verify deletion
+		cacheUnderTest.Delete(slot, r)
 		ok = cacheUnderTest.Has(slot, r)
 		require.False(t, ok, "Entry should be pruned and not found")
 	})
@@ -86,7 +87,7 @@ func FuzzPayloadIDInvalidInput(f *testing.F) {
 		cacheUnderTest := cache.NewPayloadIDCache()
 		cacheUnderTest.Set(slot, r, pid, version.Deneb())
 
-		_, ok := cacheUnderTest.GetAndEvict(slot, r)
+		_, ok := cacheUnderTest.Get(slot, r)
 		require.True(t, ok)
 	})
 }
@@ -120,7 +121,7 @@ func FuzzPayloadIDCacheConcurrency(f *testing.F) {
 			) // Small delay to let the Set operation proceed
 			var r [32]byte
 			copy(r[:], _r)
-			_, ok = cacheUnderTest.GetAndEvict(slot, r)
+			_, ok = cacheUnderTest.Get(slot, r)
 		}()
 
 		wg.Wait()
