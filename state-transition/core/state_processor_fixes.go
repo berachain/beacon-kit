@@ -34,9 +34,9 @@ import (
 const (
 	luganodesPubKey = "0xafd0ad061f698eae0d483098948e26e254f4b7089244bda897895257c668196ffd5e2ddf458fdf8bcea295b7d47a5b37"
 	luganodesCreds  = "0x010000000000000000000000b0c615224a053236ac7d1c239f6c1b5fbf8f0617"
-	luganodesAmount = 901_393_690_000_000 * params.Wei // 901_393.69 Gwei
+	luganodesAmount = 4000 * params.GWei
 
-	fixSmileePubKey = "0x84acfd38a13af12add8d82e1ef0842c4dfc1e4175fae5b8ab73770f9050cbf673cafdbf6d8ab679fe9ea13208f50b485"
+	fixSmileePubKey = "0xadba489452d06ede25601cfdaf133092063d114c041b8713d6de08e465dd8697da2ac5b7294bbd009b31cebdcdd1c730"
 )
 
 //nolint:gochecknoglobals // unexported
@@ -49,10 +49,6 @@ var (
 
 // processElectra1Fixes handles some fixes made necessary by accidents or wrong validator choices in mainnet
 func (sp *StateProcessor) processElectra1Fixes(st *state.StateDB) error {
-	if !sp.cs.IsMainnet() {
-		return nil
-	}
-
 	if err := sp.processLuganodesRecovery(st); err != nil {
 		return err
 	}
