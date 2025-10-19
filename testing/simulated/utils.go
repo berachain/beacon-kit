@@ -326,8 +326,9 @@ func ComputeAndSetStateRoot(
 	block *ctypes.BeaconBlock,
 ) (*ctypes.BeaconBlock, error) {
 
-	// Copy the current state from the storage backend.
-	stateDBCopy := storageBackend.StateFromContext(queryCtx).Copy(queryCtx)
+	// Create an epheremal state out of storage backend to avoid polluting
+	// the original state
+	ephemeralState := storageBackend.StateFromContext(queryCtx).Protect(queryCtx)
 
 	// Create a transition context with the provided consensus time and proposer address.
 	txCtx := transition.NewTransitionCtx(
@@ -340,13 +341,13 @@ func ComputeAndSetStateRoot(
 		WithMeterGas(false)
 
 	// Run the state transition.
-	_, err := stateProcessor.Transition(txCtx, stateDBCopy, block)
+	_, err := stateProcessor.Transition(txCtx, ephemeralState, block)
 	if err != nil {
 		return nil, fmt.Errorf("state transition failed: %w", err)
 	}
 
 	// Compute the new state root from the updated state.
-	newStateRoot := stateDBCopy.HashTreeRoot()
+	newStateRoot := ephemeralState.HashTreeRoot()
 	block.SetStateRoot(newStateRoot)
 	return block, nil
 }
