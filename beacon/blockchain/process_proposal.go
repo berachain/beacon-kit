@@ -62,11 +62,48 @@ func (s *Service) ProcessProposal(
 	req *cmtabci.ProcessProposalRequest,
 	thisNodeAddress []byte,
 ) (transition.ValidatorUpdates, error) {
-	var err error
+	var (
+		errPrepare      error
+		err             error
+		blkSlot         math.Slot
+		parentBlockRoot common.Root
+	)
+	{
+		preState := s.storageBackend.StateFromContext(ctx).Copy(ctx)
+		slot, slotFetchErr := preState.GetSlot()
+		if slotFetchErr != nil {
+			s.logger.Warn(
+				"Skipping payload eviction on rejected proposal",
+				"reason", "st.GetSlot()",
+				"error", slotFetchErr,
+			)
+			errPrepare = slotFetchErr
+		}
+		blkSlot = slot + 1
+		_, processSlotErr := s.stateProcessor.ProcessSlots(preState, blkSlot)
+		if processSlotErr != nil {
+			s.logger.Warn(
+				"Skipping payload eviction on rejected proposal",
+				"reason", "s.stateProcessor.ProcessSlots()",
+				"error", processSlotErr,
+			)
+			errPrepare = processSlotErr
+		}
+
+		parentBlockRoot, errPrepare = preState.GetBlockRootAtIndex(
+			slot.Unwrap() % s.chainSpec.SlotsPerHistoricalRoot(),
+		)
+		if errPrepare != nil {
+			s.logger.Warn(
+				"Skipping payload eviction on rejected proposal",
+				"reason", "st.GetBlockRootAtIndex()",
+				"error", errPrepare,
+			)
+		}
+	}
 	defer s.evictLocalPayloadIfNecessary(
-		// Copy the state now before it is modified by the state transition.
-		s.storageBackend.StateFromContext(ctx).Copy(ctx),
-		&err, thisNodeAddress, req.GetProposerAddress(),
+		blkSlot, parentBlockRoot,
+		&errPrepare, &err, thisNodeAddress, req.GetProposerAddress(),
 	)
 
 	var (
@@ -372,15 +409,22 @@ func (s *Service) shouldBuildNextPayload(isNextBlockProposer bool) bool {
 // We deem it necessary only when we are rejecting the incoming block proposal and it has
 // been built by us.
 func (s *Service) evictLocalPayloadIfNecessary(
-	preState *statedb.StateDB,
+	blkSlot math.Slot,
+	parentBlockRoot common.Root,
+	prepareErr *error,
 	processProposalErr *error,
 	thisNodeAddress []byte,
 	proposerAddress []byte,
 ) {
+	if *prepareErr != nil {
+		// could not properly process data to evict the payload.
+		// Can't proceed, so return.
+		return
+	}
 	// Check conditions for calling this function.
-	// - Function is called with an initialized statedb and error to hold process proposal error.
+	// - Function is called with an initialized error to hold process proposal error.
 	// - Our node has the local payload builder enabled.
-	if preState == nil || processProposalErr == nil || !s.localBuilder.Enabled() {
+	if processProposalErr == nil || !s.localBuilder.Enabled() {
 		return
 	}
 
@@ -393,37 +437,6 @@ func (s *Service) evictLocalPayloadIfNecessary(
 		return
 	}
 
-	// Get the slot and parent block root from the state.
-	slot, slotFetchErr := preState.GetSlot()
-	if slotFetchErr != nil {
-		s.logger.Warn(
-			"Skipping payload eviction on rejected proposal",
-			"reason", "st.GetSlot()",
-			"error", slotFetchErr,
-		)
-		return
-	}
-	_, processSlotErr := s.stateProcessor.ProcessSlots(preState, slot+1)
-	if processSlotErr != nil {
-		s.logger.Warn(
-			"Skipping payload eviction on rejected proposal",
-			"reason", "s.stateProcessor.ProcessSlots()",
-			"error", processSlotErr,
-		)
-		return
-	}
-	parentBlockRoot, blockRootFetchErr := preState.GetBlockRootAtIndex(
-		slot.Unwrap() % s.chainSpec.SlotsPerHistoricalRoot(),
-	)
-	if blockRootFetchErr != nil {
-		s.logger.Warn(
-			"Skipping payload eviction on rejected proposal",
-			"reason", "st.GetBlockRootAtIndex()",
-			"error", blockRootFetchErr,
-		)
-		return
-	}
-
 	// Evict the payload from the local builder cache.
-	s.localBuilder.EvictPayload(slot+1, parentBlockRoot)
+	s.localBuilder.EvictPayload(blkSlot, parentBlockRoot)
 }
