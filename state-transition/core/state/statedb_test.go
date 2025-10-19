@@ -95,7 +95,7 @@ func TestStateProtect(t *testing.T) {
 	_, err = originalState.GetFork()
 	require.ErrorIs(t, err, collections.ErrNotFound)
 
-	// 3- Show that changes made to original state POST COPY
+	// 3- Show that changes made to original state after protection
 	// are carried over the protecting state
 	wantEthIdx := uint64(1987)
 	require.NoError(t, originalState.SetEth1DepositIndex(wantEthIdx))
