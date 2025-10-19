@@ -422,9 +422,8 @@ func (s *Service) evictLocalPayloadIfNecessary(
 		return
 	}
 	// Check conditions for calling this function.
-	// - Function is called with an initialized error to hold process proposal error.
 	// - Our node has the local payload builder enabled.
-	if processProposalErr == nil || !s.localBuilder.Enabled() {
+	if !s.localBuilder.Enabled() {
 		return
 	}
 
