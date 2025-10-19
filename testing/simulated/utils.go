@@ -326,7 +326,7 @@ func ComputeAndSetStateRoot(
 	block *ctypes.BeaconBlock,
 ) (*ctypes.BeaconBlock, error) {
 
-	// Create an epheremal state out of storage backend to avoid polluting
+	// Create an ephemeral state out of storage backend to avoid polluting
 	// the original state
 	ephemeralState := storageBackend.StateFromContext(queryCtx).Protect(queryCtx)
 
