@@ -65,12 +65,10 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 	}
 
 	// Assemble the payload attributes.
-	attrs, err := engineprimitives.NewPayloadAttributes(
-		pb.chainSpec.ActiveForkVersionForTimestamp(r.Timestamp),
+	attrs, err := pb.attributesFactory.BuildPayloadAttributes(
 		r.Timestamp,
-		r.PrevRandao,
-		pb.suggestedFeeRecipient,
 		r.PayloadWithdrawals,
+		r.PrevRandao,
 		r.ParentBlockRoot,
 		r.ParentProposerPubkey,
 	)

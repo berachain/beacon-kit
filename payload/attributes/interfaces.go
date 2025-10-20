@@ -18,37 +18,15 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package attributes
 
 import (
-	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/chain"
-	"github.com/berachain/beacon-kit/config"
-	"github.com/berachain/beacon-kit/execution/engine"
-	"github.com/berachain/beacon-kit/log/phuslu"
-	payloadbuilder "github.com/berachain/beacon-kit/payload/builder"
-	"github.com/berachain/beacon-kit/payload/cache"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-// LocalBuilderInput is an input for the dep inject framework.
-type LocalBuilderInput struct {
-	depinject.In
-	AttributesFactory AttributesFactory
-	Cfg               *config.Config
-	ChainSpec         chain.Spec
-	ExecutionEngine   *engine.Engine
-	Logger            *phuslu.Logger
-}
-
-// ProvideLocalBuilder provides a local payload builder for the
-// depinject framework.
-func ProvideLocalBuilder(in LocalBuilderInput) *payloadbuilder.PayloadBuilder {
-	return payloadbuilder.New(
-		&in.Cfg.PayloadBuilder,
-		in.ChainSpec,
-		in.Logger.With("service", "payload-builder"),
-		in.ExecutionEngine,
-		cache.NewPayloadIDCache(),
-		in.AttributesFactory,
-	)
+type ChainSpec interface {
+	ActiveForkVersionForTimestamp(timestamp math.U64) common.Version
+	EpochsPerHistoricalVector() uint64
+	SlotToEpoch(slot math.Slot) math.Epoch
 }

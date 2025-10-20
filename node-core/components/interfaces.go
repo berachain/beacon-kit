@@ -43,6 +43,17 @@ import (
 )
 
 type (
+	// AttributesFactory is the interface for the attributes factory.
+	AttributesFactory interface {
+		BuildPayloadAttributes(
+			timestamp math.U64,
+			payloadWithdrawals engineprimitives.Withdrawals,
+			prevRandao common.Bytes32,
+			prevHeadRoot common.Root,
+			parentProposerPubkey *crypto.BLSPubkey,
+		) (*engineprimitives.PayloadAttributes, error)
+	}
+
 	// BlobProcessor is the interface for the blobs processor.
 	BlobProcessor interface {
 		// ProcessSidecars processes the blobs and ensures they match the local

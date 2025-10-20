@@ -25,7 +25,6 @@ import (
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
@@ -38,9 +37,6 @@ type PayloadBuilder struct {
 	chainSpec ChainSpec
 	// logger is used for logging within the PayloadBuilder.
 	logger log.Logger
-	// suggestedFeeRecipient is the suggested fee recipient sent to
-	// the execution client for the payload build.
-	suggestedFeeRecipient common.ExecutionAddress
 	// ee is the execution engine.
 	ee ExecutionEngine
 	// pc is the payload ID cache, it is used to store
@@ -56,6 +52,9 @@ type PayloadBuilder struct {
 	muEnv              sync.RWMutex
 	latestEnvelopeSlot math.Slot
 	latestEnvelope     ctypes.BuiltExecutionPayloadEnv
+
+	// attributesFactory is used to create attributes for the
+	attributesFactory AttributesFactory
 }
 
 // New creates a new service.
@@ -65,14 +64,15 @@ func New(
 	logger log.Logger,
 	ee ExecutionEngine,
 	pc PayloadCache,
+	af AttributesFactory,
 ) *PayloadBuilder {
 	return &PayloadBuilder{
-		cfg:                   cfg,
-		chainSpec:             chainSpec,
-		logger:                logger,
-		suggestedFeeRecipient: cfg.SuggestedFeeRecipient,
-		ee:                    ee,
-		pc:                    pc,
+		cfg:               cfg,
+		chainSpec:         chainSpec,
+		logger:            logger,
+		ee:                ee,
+		pc:                pc,
+		attributesFactory: af,
 	}
 }
 

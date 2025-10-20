@@ -33,6 +33,7 @@ import (
 func FixedComponents(t *testing.T) []any {
 	t.Helper()
 	c := []any{
+		components.ProvideAttributesFactory,
 		components.ProvideAvailabilityStore,
 		components.ProvideDepositContract,
 		components.ProvideBlockStore,
