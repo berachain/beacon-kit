@@ -67,7 +67,7 @@ func (s *PectraForkSuite) Test_BuildOptimisticallyAtFork() {
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
 
-		// 2- Process the proposal. This will trigger a optimistic payload build for block height 2.
+		// 2- Process the proposal. This will trigger am optimistic payload build for block height 2.
 		processRequest := &types.ProcessProposalRequest{
 			Txs:             proposal.Txs,
 			Height:          nextBlockHeight,
@@ -116,7 +116,7 @@ func (s *PectraForkSuite) Test_BuildOptimisticallyAtFork() {
 		s.Require().NoError(respErr)
 		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT.String(), processResp.Status.String())
 
-		// 6- finalize and commit the first block
+		// 6- finalize and commit the second block
 		finalizeRequest := &types.FinalizeBlockRequest{
 			Txs:             proposal.Txs,
 			Height:          nextBlockHeight,
