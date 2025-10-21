@@ -33,8 +33,10 @@ import (
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
+	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/da/kzg"
 	"github.com/berachain/beacon-kit/da/kzg/gokzg"
 	"github.com/berachain/beacon-kit/errors"
@@ -101,6 +103,30 @@ func (s *SharedAccessors) InitializeChain(t *testing.T) {
 	require.Len(t, deposits, 1, "Expected 1 deposit")
 }
 
+// InitializeChain sets up the chain using the genesis file.
+func (s *SharedAccessors) InitializeChain2Validators(t *testing.T) {
+	// Load the genesis state.
+	appGenesis, err := genutiltypes.AppGenesisFromFile(s.HomeDir + "/config/genesis.json")
+	require.NoError(t, err)
+
+	// Initialize the chain.
+	initResp, err := s.SimComet.Comet.InitChain(s.CtxComet, &types.InitChainRequest{
+		ChainId:       TestnetBeaconChainID,
+		AppStateBytes: appGenesis.AppState,
+	})
+	require.NoError(t, err)
+	require.Len(t, initResp.Validators, 2, "Expected 2 validators")
+
+	// Verify that the deposit store contains the expected deposits.
+	deposits, _, err := s.TestNode.StorageBackend.DepositStore().GetDepositsByIndex(
+		s.CtxApp,
+		constants.FirstDepositIndex,
+		constants.FirstDepositIndex+s.TestNode.ChainSpec.MaxDepositsPerBlock(),
+	)
+	require.NoError(t, err)
+	require.Len(t, deposits, 2, "Expected 2 deposits")
+}
+
 // MoveChainToHeight will iterate through the core loop `iterations` times, i.e. Propose, Process, Finalize and Commit.
 // Returns the list of proposed comet blocks.
 func (s *SharedAccessors) MoveChainToHeight(
@@ -128,14 +154,15 @@ func (s *SharedAccessors) MoveChainToHeight(
 		require.Len(t, proposal.Txs, 2)
 
 		// Process the proposal.
-		processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
+		processReq := &types.ProcessProposalRequest{
 			Txs:             proposal.Txs,
 			Height:          currentHeight,
 			ProposerAddress: pubkey.Address(),
 			Time:            proposalTime,
-		})
+		}
+		processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, processReq)
 		require.NoError(t, err)
-		require.Equal(t, types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
+		require.Equal(t, types.PROCESS_PROPOSAL_STATUS_ACCEPT.String(), processResp.Status.String())
 
 		// Finalize the block.
 		finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.FinalizeBlockRequest{
@@ -155,7 +182,20 @@ func (s *SharedAccessors) MoveChainToHeight(
 		proposedCometBlocks = append(proposedCometBlocks, proposal)
 		finalizedResponses = append(finalizedResponses, finalizeResp)
 
-		proposalTime = proposalTime.Add(time.Duration(s.TestNode.ChainSpec.TargetSecondsPerEth1Block()) * time.Second)
+		// set consensus time for the next block to match
+		// the timestamp of the payload built optimistically.
+		forkVersion := s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(math.U64(proposalTime.Unix())) //#nosec: G115
+		blk, _, err := encoding.ExtractBlobsAndBlockFromRequest(
+			processReq,
+			blockchain.BeaconBlockTxIndex,
+			blockchain.BlobSidecarsTxIndex,
+			forkVersion,
+		)
+		require.NoError(t, err)
+		proposalTime = time.Unix(
+			int64(payloadtime.Next(blk.GetTimestamp(), blk.GetTimestamp(), true)),
+			0,
+		)
 	}
 	return proposedCometBlocks, finalizedResponses, proposalTime
 }
@@ -326,9 +366,8 @@ func ComputeAndSetStateRoot(
 	block *ctypes.BeaconBlock,
 ) (*ctypes.BeaconBlock, error) {
 
-	// Create an ephemeral state out of storage backend to avoid polluting
-	// the original state
-	ephemeralState := storageBackend.StateFromContext(queryCtx).Protect(queryCtx)
+	// Copy the current state from the storage backend.
+	stateDBCopy := storageBackend.StateFromContext(queryCtx).Protect(queryCtx)
 
 	// Create a transition context with the provided consensus time and proposer address.
 	txCtx := transition.NewTransitionCtx(
@@ -341,13 +380,13 @@ func ComputeAndSetStateRoot(
 		WithMeterGas(false)
 
 	// Run the state transition.
-	_, err := stateProcessor.Transition(txCtx, ephemeralState, block)
+	_, err := stateProcessor.Transition(txCtx, stateDBCopy, block)
 	if err != nil {
 		return nil, fmt.Errorf("state transition failed: %w", err)
 	}
 
 	// Compute the new state root from the updated state.
-	newStateRoot := ephemeralState.HashTreeRoot()
+	newStateRoot := stateDBCopy.HashTreeRoot()
 	block.SetStateRoot(newStateRoot)
 	return block, nil
 }

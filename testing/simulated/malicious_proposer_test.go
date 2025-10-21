@@ -159,9 +159,6 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidTimestamps_Errors() {
 	s.InitializeChain(s.T())
 	nodeAddress, err := s.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
-	// This effectively enforces that optimistic builds do NOT happen in this test (since
-	// MoveChainToHeight does not set the NextProposerAddress field in ProcessProposalRequests).
-	// This allows us to skip the extra PrepareProposal call on deleted line 176.
 	s.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	// Test happens post Deneb1 fork.
