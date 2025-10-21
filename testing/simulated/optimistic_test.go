@@ -209,10 +209,10 @@ func (s *PectraForkSuite) TestGeth_RebuildPayload_IsSuccessful() {
 
 func (s *PectraForkSuite) TestReth_MultiplePayloadRebuilds() {
 	// Initialize the chain state.
-	s.Reth.InitializeChain(s.T()) // 1 reth validator
-	s.Geth.InitializeChain(s.T()) // helper node
 	testEL := s.Reth
 	helpBuilder := s.Geth
+	testEL.InitializeChain(s.T())
+	helpBuilder.InitializeChain(s.T())
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(testEL.HomeDir)
