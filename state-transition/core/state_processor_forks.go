@@ -48,6 +48,7 @@ import (
 func (sp *StateProcessor) ProcessFork(
 	st *statedb.StateDB, timestamp math.U64, logUpgrade bool,
 ) error {
+	sp.logger.Debug("invoked ProcessFork") // a log needed for testing purposes
 	stateFork, err := st.GetFork()
 	if err != nil {
 		return err
