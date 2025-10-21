@@ -157,26 +157,27 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidTimestamps_Errors() {
 
 	// Initialize the chain state.
 	s.InitializeChain(s.T())
-
-	// Retrieve the BLS signer and proposer address.
-	blsSigner := simulated.GetBlsSigner(s.HomeDir)
-	pubkey, err := blsSigner.GetPubKey()
+	nodeAddress, err := s.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
+	// This effectively enforces that optimistic builds do NOT happen in this test (since
+	// MoveChainToHeight does not set the NextProposerAddress field in ProcessProposalRequests).
+	// This allows us to skip the extra PrepareProposal call on deleted line 176.
+	s.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	// Test happens post Deneb1 fork.
 	startTime := time.Now()
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals, _, correctConsensusTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
+	proposals, _, correctConsensusTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, simulated.GetBlsSigner(s.HomeDir), startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 	currentHeight := int64(blockHeight + coreLoopIterations)
 
-	// Prepare a block proposal, but 2 seconds in the future (i.e. attempt to roll timestamp forward)
+	// We PreparePayload JIT to force the payload to build with the malicious proposal time.
 	maliciousProposalTime := correctConsensusTime.Add(2 * time.Second)
 	maliciousProposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
 		Time:            maliciousProposalTime,
-		ProposerAddress: pubkey.Address(),
+		ProposerAddress: nodeAddress,
 	})
 	s.Require().NoError(err)
 	s.Require().NotEmpty(maliciousProposal)
@@ -187,7 +188,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidTimestamps_Errors() {
 	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
 		Txs:             maliciousProposal.Txs,
 		Height:          currentHeight,
-		ProposerAddress: pubkey.Address(),
+		ProposerAddress: nodeAddress,
 		// Use the correct time as the actual consensus time, which mismatches the proposal time.
 		Time: correctConsensusTime,
 	})
