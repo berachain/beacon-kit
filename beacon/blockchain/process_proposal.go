@@ -368,9 +368,9 @@ func (s *Service) shouldBuildNextPayload(isNextBlockProposer bool) bool {
 	return isNextBlockProposer && s.localBuilder.Enabled()
 }
 
-// evictLocalPayloadIfNecessary evicts the payload from local builder cache if necessary.
-// We deem it necessary only when we are rejecting the incoming block proposal and it has
-// been built by us.
+// evictLocalPayloadIfNecessary evicts the payload from local builder cache if necessary. We deem it
+// necessary only when we are rejecting the incoming block proposal and it has been built by us.
+// Also we ensure we don't evict any payload if we are chosen to propose for the next round.
 func (s *Service) evictLocalPayloadIfNecessary(
 	preState *statedb.StateDB,
 	processProposalErr *error,
@@ -387,7 +387,8 @@ func (s *Service) evictLocalPayloadIfNecessary(
 	// Check the conditions for evicting the local payload.
 	// - There must be a process proposal error (i.e. we are rejecting the proposal).
 	// - The proposer address must be the same as this node's address.
-	// - The process proposal error must not be due to rebuilding for a failed state transition.
+	// - The process proposal error must not be due to rebuilding for a failed state transition. We
+	//   don't want to evict the payload since it is being built async and will be used next round.
 	if *processProposalErr == nil || !bytes.Equal(thisNodeAddress, proposerAddress) ||
 		errors.Is(*processProposalErr, ErrRebuildForFailedStateTransition) {
 		return
