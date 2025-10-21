@@ -206,6 +206,7 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithPartialWithdrawalRequests_IsS
 			var result interface{}
 			err = s.TestNode.EngineClient.Call(s.CtxApp, &result, "eth_sendRawTransaction", hexutil.Encode(txBytes))
 			s.Require().NoError(err)
+			time.Sleep(time.Second) // give it time to allow the tx to be included in the next block
 		}
 	}
 
@@ -319,6 +320,7 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithFullWithdrawalRequest_IsSucce
 		var result interface{}
 		err = s.TestNode.EngineClient.Call(s.CtxApp, &result, "eth_sendRawTransaction", hexutil.Encode(txBytes))
 		s.Require().NoError(err)
+		time.Sleep(time.Second) // give it time to allow the tx to be included in the next block
 	}
 
 	// Go through 1 iteration of the core loop so that the withdrawal tx is included

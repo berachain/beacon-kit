@@ -256,12 +256,12 @@ func (s *Service) VerifyIncomingBlock(
 	}
 
 	var (
-		nextBlockData        *builder.RequestPayloadData
-		errFetch             error
-		shouldBuildNextBlock = s.shouldBuildOptimisticPayloads(isNextBlockProposer)
+		nextBlockData          *builder.RequestPayloadData
+		errFetch               error
+		shouldBuildNextPayload = s.shouldBuildNextPayload(isNextBlockProposer)
 	)
 
-	if shouldBuildNextBlock {
+	if shouldBuildNextPayload {
 		// makes sure that preFetchBuildData does not affect state
 		ephemeralState := state.Protect(ctx)
 		nextBlockData, errFetch = s.preFetchBuildData(ephemeralState, blk.GetConsensusTime())
@@ -286,7 +286,7 @@ func (s *Service) VerifyIncomingBlock(
 			"reason", err,
 		)
 
-		if shouldBuildNextBlock {
+		if shouldBuildNextPayload {
 			if nextBlockData == nil {
 				// Failed fetching data to build next block. Just return block error
 				return nil, err
@@ -302,7 +302,7 @@ func (s *Service) VerifyIncomingBlock(
 		"state_root", beaconBlk.GetStateRoot(),
 	)
 
-	if shouldBuildNextBlock {
+	if shouldBuildNextPayload {
 		// makes sure that preFetchBuildDataForSuccess does not affect state
 		ephemeralState := state.Protect(ctx)
 		nextBlockData, errFetch = s.preFetchBuildData(ephemeralState, blk.GetConsensusTime())
@@ -354,8 +354,8 @@ func (s *Service) verifyStateRoot(
 	return valUpdates, err
 }
 
-// shouldBuildOptimisticPayloads returns true if optimistic
+// shouldBuildNextPayload returns true if optimistic
 // payload builds are enabled.
-func (s *Service) shouldBuildOptimisticPayloads(isNextBlockProposer bool) bool {
-	return isNextBlockProposer && s.optimisticPayloadBuilds && s.localBuilder.Enabled()
+func (s *Service) shouldBuildNextPayload(isNextBlockProposer bool) bool {
+	return isNextBlockProposer && s.localBuilder.Enabled()
 }
