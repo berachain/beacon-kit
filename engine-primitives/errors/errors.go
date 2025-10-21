@@ -78,11 +78,6 @@ var (
 	ErrNilBlobsBundle = errors.New(
 		"nil blobs bundle received from execution client")
 
-	// ErrNilExecutionPayloadEnvelope is returned when nil execution payload
-	// envelope is received.
-	ErrNilExecutionPayloadEnvelope = errors.New(
-		"nil execution payload envelope received from execution client")
-
 	// ErrNilPayloadStatus is returned when nil payload status is received.
 	ErrNilPayloadStatus = errors.New(
 		"nil payload status received from execution client",
