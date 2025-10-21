@@ -518,9 +518,6 @@ Configuration flows through the system:
 
   [beacon-kit.payload-builder]
     enabled = true
-
-  [beacon-kit.validator]
-    enable-optimistic-payloads = true
 ```
 
 **Environment Overrides:** CLI flags > env vars > config file > defaults
