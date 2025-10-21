@@ -34,7 +34,7 @@ import (
 func (s *PectraForkSuite) Test_BuildOptimisticallyAtFork() {
 	// Initialize the chain state.
 	client := s.Geth
-	client.InitializeChain(s.T()) // 1 reth validator
+	client.InitializeChain(s.T()) // init the validator
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(client.HomeDir)
