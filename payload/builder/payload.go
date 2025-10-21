@@ -38,8 +38,7 @@ type RequestPayloadData struct {
 	PayloadWithdrawals   engineprimitives.Withdrawals
 	PrevRandao           common.Bytes32
 	ParentBlockRoot      common.Root
-	HeadEth1BlockHash    common.ExecutionHash
-	FinalEth1BlockHash   common.ExecutionHash
+	FCState              engineprimitives.ForkchoiceStateV1
 	ParentProposerPubkey *crypto.BLSPubkey // nil for fork versions before Electra1
 }
 
@@ -77,11 +76,7 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 	forkVersion := pb.chainSpec.ActiveForkVersionForTimestamp(r.Timestamp)
 	// Submit the forkchoice update to the execution client.
 	req := ctypes.BuildForkchoiceUpdateRequest(
-		&engineprimitives.ForkchoiceStateV1{
-			HeadBlockHash:      r.HeadEth1BlockHash,
-			SafeBlockHash:      r.FinalEth1BlockHash,
-			FinalizedBlockHash: r.FinalEth1BlockHash,
-		},
+		&r.FCState,
 		attrs,
 		forkVersion,
 	)
