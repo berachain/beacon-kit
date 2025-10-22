@@ -211,6 +211,10 @@ func (s *PectraWithdrawalSuite) TestExcessValidatorBeforeFork_CorrectlyEvicted()
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
+	pubkey, err := blsSigner.GetPubKey()
+	s.Require().NoError(err)
+	nodeAddress := pubkey.Address()
+
 	// Hard fork occurs at t=10, so we start at t=5
 	// This accounts for optimistic block building pushing payloadTime
 	// ahead of 1 second per block
@@ -220,7 +224,7 @@ func (s *PectraWithdrawalSuite) TestExcessValidatorBeforeFork_CorrectlyEvicted()
 	// [Slot/Epoch 1] Move the chain by 1 block to include the deposit
 	{
 		s.LogBuffer.Reset()
-		_, _, nextBlockTime = s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, nextBlockTime)
+		_, _, nextBlockTime = s.MoveChainToHeight(s.T(), nextBlockHeight, 1, nodeAddress, nextBlockTime)
 		s.Require().Equal(time.Unix(6, 0), nextBlockTime)
 
 		ds := s.TestNode.StorageBackend.DepositStore()
@@ -233,7 +237,7 @@ func (s *PectraWithdrawalSuite) TestExcessValidatorBeforeFork_CorrectlyEvicted()
 	// [Slot/Epoch 2] Move the chain by 1 block to Enqueue the deposit
 	{
 		s.LogBuffer.Reset()
-		_, _, nextBlockTime = s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, nextBlockTime)
+		_, _, nextBlockTime = s.MoveChainToHeight(s.T(), nextBlockHeight, 1, nodeAddress, nextBlockTime)
 		s.Require().Equal(time.Unix(7, 0), nextBlockTime)
 
 		ds := s.TestNode.StorageBackend.DepositStore()
@@ -249,7 +253,7 @@ func (s *PectraWithdrawalSuite) TestExcessValidatorBeforeFork_CorrectlyEvicted()
 	// [Slot/Epoch 3] Move the chain by 1 block make the validator pending initialized
 	{
 		s.LogBuffer.Reset()
-		_, _, nextBlockTime = s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, nextBlockTime)
+		_, _, nextBlockTime = s.MoveChainToHeight(s.T(), nextBlockHeight, 1, nodeAddress, nextBlockTime)
 		s.Require().Equal(time.Unix(8, 0), nextBlockTime)
 
 		validators, err := s.TestNode.APIBackend.FilterValidators(nextBlockHeight, nil, nil)
@@ -261,7 +265,7 @@ func (s *PectraWithdrawalSuite) TestExcessValidatorBeforeFork_CorrectlyEvicted()
 	// [Slot/Epoch 4] Move the chain by 1 block make the validator pending queued
 	{
 		s.LogBuffer.Reset()
-		_, _, nextBlockTime = s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, nextBlockTime)
+		_, _, nextBlockTime = s.MoveChainToHeight(s.T(), nextBlockHeight, 1, nodeAddress, nextBlockTime)
 		s.Require().Equal(time.Unix(9, 0), nextBlockTime)
 
 		validators, err := s.TestNode.APIBackend.FilterValidators(nextBlockHeight, nil, nil)
@@ -274,7 +278,7 @@ func (s *PectraWithdrawalSuite) TestExcessValidatorBeforeFork_CorrectlyEvicted()
 	// [Slot/Epoch 5] Move the chain by 1 block mark the validator as exited
 	{
 		s.LogBuffer.Reset()
-		_, _, nextBlockTime = s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, nextBlockTime)
+		_, _, nextBlockTime = s.MoveChainToHeight(s.T(), nextBlockHeight, 1, nodeAddress, nextBlockTime)
 		s.Require().Equal(time.Unix(10, 0), nextBlockTime)
 
 		validators, err := s.TestNode.APIBackend.FilterValidators(nextBlockHeight, nil, nil)
@@ -290,7 +294,7 @@ func (s *PectraWithdrawalSuite) TestExcessValidatorBeforeFork_CorrectlyEvicted()
 	{
 		s.LogBuffer.Reset()
 
-		_, _, nextBlockTime = s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, nextBlockTime)
+		_, _, nextBlockTime = s.MoveChainToHeight(s.T(), nextBlockHeight, 1, nodeAddress, nextBlockTime)
 		s.Require().Equal(time.Unix(11, 0), nextBlockTime)
 
 		validators, err := s.TestNode.APIBackend.FilterValidators(nextBlockHeight, nil, nil)
@@ -318,7 +322,7 @@ func (s *PectraWithdrawalSuite) TestExcessValidatorBeforeFork_CorrectlyEvicted()
 	{
 		s.LogBuffer.Reset()
 
-		_, _, nextBlockTime = s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, nextBlockTime)
+		_, _, nextBlockTime = s.MoveChainToHeight(s.T(), nextBlockHeight, 1, nodeAddress, nextBlockTime)
 		s.Require().Equal(time.Unix(12, 0), nextBlockTime)
 
 		validators, err := s.TestNode.APIBackend.FilterValidators(nextBlockHeight, nil, nil)
@@ -337,7 +341,11 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdra
 	// Initialize the chain state.
 	s.InitializeChain(s.T())
 
+	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
+	pubkey, err := blsSigner.GetPubKey()
+	s.Require().NoError(err)
+	nodeAddress := pubkey.Address()
 
 	credAddress, err := common.NewExecutionAddressFromHex(simulated.WithdrawalExecutionAddress)
 	s.Require().NoError(err)
@@ -347,7 +355,7 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdra
 	nextBlockHeight := int64(1)
 	{
 		s.LogBuffer.Reset()
-		s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
+		s.MoveChainToHeight(s.T(), nextBlockHeight, 1, nodeAddress, time.Now())
 		nextBlockHeight++
 	}
 	// 10 million bera on EL at the start.
@@ -375,7 +383,7 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdra
 		iterations := int64(2)
 		s.defaultDeposit(blsSigner, creds, depositAmount, true)
 		time.Sleep(time.Second) // give it time to allow the tx to be included in the next block
-		s.MoveChainToHeight(s.T(), nextBlockHeight, iterations, blsSigner, time.Now())
+		s.MoveChainToHeight(s.T(), nextBlockHeight, iterations, nodeAddress, time.Now())
 		nextBlockHeight += iterations
 	}
 
@@ -422,7 +430,7 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdra
 	// Move forward two blocks to include in the chain
 	{
 		s.LogBuffer.Reset()
-		s.MoveChainToHeight(s.T(), nextBlockHeight, 2, blsSigner, time.Now())
+		s.MoveChainToHeight(s.T(), nextBlockHeight, 2, nodeAddress, time.Now())
 		nextBlockHeight += 2
 	}
 
@@ -436,7 +444,7 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdra
 	var balanceAfterDepositTxIncluded *big.Int
 	{
 		s.LogBuffer.Reset()
-		s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
+		s.MoveChainToHeight(s.T(), nextBlockHeight, 1, nodeAddress, time.Now())
 
 		ds := s.TestNode.StorageBackend.DepositStore()
 		deposits, _, err := ds.GetDepositsByIndex(s.CtxApp, 0, uint64(nextBlockHeight)*s.TestNode.ChainSpec.MaxDepositsPerBlock())
@@ -451,7 +459,7 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdra
 	// Move the chain by 1 block to Enqueue the deposit
 	{
 		s.LogBuffer.Reset()
-		s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
+		s.MoveChainToHeight(s.T(), nextBlockHeight, 1, nodeAddress, time.Now())
 
 		ds := s.TestNode.StorageBackend.DepositStore()
 		deposits, _, err := ds.GetDepositsByIndex(s.CtxApp, 0, uint64(nextBlockHeight)*s.TestNode.ChainSpec.MaxDepositsPerBlock())
@@ -468,7 +476,7 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdra
 	// Move the chain by 1 block trigger the withdrawal.
 	{
 		s.LogBuffer.Reset()
-		s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
+		s.MoveChainToHeight(s.T(), nextBlockHeight, 1, nodeAddress, time.Now())
 
 		balance, err := s.TestNode.ContractBackend.BalanceAt(s.CtxApp, senderAddress, big.NewInt(nextBlockHeight))
 		s.Require().NoError(err)
@@ -479,12 +487,12 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdra
 	// The next block will have the partial withdrawal, but not the excess balance withdrawal and increase the validator's EL balance
 	// Before the fix, it would also have the excess balance withdrawal.
 	{
-		s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
+		s.MoveChainToHeight(s.T(), nextBlockHeight, 1, nodeAddress, time.Now())
 		nextBlockHeight++
 	}
 	{
 		iterations := int64(4)
-		s.MoveChainToHeight(s.T(), nextBlockHeight, iterations, blsSigner, time.Now())
+		s.MoveChainToHeight(s.T(), nextBlockHeight, iterations, nodeAddress, time.Now())
 		nextBlockHeight += iterations
 
 		finalBalance, err := s.TestNode.ContractBackend.BalanceAt(s.CtxApp, senderAddress, big.NewInt(nextBlockHeight-1))
@@ -516,7 +524,11 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_HasCorrectWithdraw
 	// Initialize the chain state.
 	s.InitializeChain(s.T())
 
+	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
+	pubkey, err := blsSigner.GetPubKey()
+	s.Require().NoError(err)
+	nodeAddress := pubkey.Address()
 
 	credAddress, err := common.NewExecutionAddressFromHex(simulated.WithdrawalExecutionAddress)
 	s.Require().NoError(err)
@@ -526,7 +538,7 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_HasCorrectWithdraw
 	nextBlockHeight := int64(1)
 	{
 		s.LogBuffer.Reset()
-		s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
+		s.MoveChainToHeight(s.T(), nextBlockHeight, 1, nodeAddress, time.Now())
 		nextBlockHeight++
 	}
 	// 10 million bera on EL at the start.
@@ -556,7 +568,7 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_HasCorrectWithdraw
 		}
 
 		s.LogBuffer.Reset()
-		s.MoveChainToHeight(s.T(), nextBlockHeight, iterations, blsSigner, time.Now())
+		s.MoveChainToHeight(s.T(), nextBlockHeight, iterations, nodeAddress, time.Now())
 		nextBlockHeight += iterations
 		// We expect that withdrawals due to excess balance were created
 		s.Require().Contains(s.LogBuffer.String(), "expectedWithdrawals: validator withdrawal due to excess balance")

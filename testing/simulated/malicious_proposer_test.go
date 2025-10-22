@@ -61,12 +61,13 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
+	nodeAddress := pubkey.Address()
 
 	// Test happens on Deneb, pre Deneb1 fork.
 	startTime := time.Unix(0, 0)
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals, _, proposalTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
+	proposals, _, proposalTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, nodeAddress, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	// We expected this test to happen during Pre-Deneb1 fork.
@@ -76,7 +77,7 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
 		Time:            proposalTime,
-		ProposerAddress: pubkey.Address(),
+		ProposerAddress: nodeAddress,
 	})
 	s.Require().NoError(err)
 	s.Require().NotEmpty(proposal)
@@ -137,7 +138,7 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
 		Txs:             proposal.Txs,
 		Height:          currentHeight,
-		ProposerAddress: pubkey.Address(),
+		ProposerAddress: nodeAddress,
 		Time:            proposalTime,
 	})
 	s.Require().NoError(err)
@@ -158,16 +159,15 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidTimestamps_Errors() {
 	// Initialize the chain state.
 	s.InitializeChain(s.T())
 
-	// Retrieve the BLS signer and proposer address.
-	blsSigner := simulated.GetBlsSigner(s.HomeDir)
-	pubkey, err := blsSigner.GetPubKey()
+	nodeAddress, err := s.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
+	s.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	// Test happens post Deneb1 fork.
 	startTime := time.Now()
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals, _, correctConsensusTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
+	proposals, _, correctConsensusTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, nodeAddress, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 	currentHeight := int64(blockHeight + coreLoopIterations)
 
@@ -176,7 +176,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidTimestamps_Errors() {
 	validProposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
 		Time:            correctConsensusTime,
-		ProposerAddress: pubkey.Address(),
+		ProposerAddress: nodeAddress,
 	})
 	s.Require().NoError(err)
 	s.Require().NotEmpty(validProposal)
@@ -203,7 +203,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidTimestamps_Errors() {
 	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
 		Txs:             maliciousProposalTxs,
 		Height:          currentHeight,
-		ProposerAddress: pubkey.Address(),
+		ProposerAddress: nodeAddress,
 		// Use the correct time as the actual consensus time, which mismatches the proposal time.
 		Time: correctConsensusTime,
 	})
@@ -226,12 +226,13 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobCommitment_Errors() {
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
+	nodeAddress := pubkey.Address()
 
 	// Test happens on Deneb, pre Deneb1 fork.
 	startTime := time.Unix(0, 0)
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals, _, consensusTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
+	proposals, _, consensusTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, nodeAddress, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	// We expected this test to happen during Pre-Deneb1 fork.
@@ -241,7 +242,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobCommitment_Errors() {
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
 		Time:            consensusTime,
-		ProposerAddress: pubkey.Address(),
+		ProposerAddress: nodeAddress,
 	})
 	s.Require().NoError(err)
 	s.Require().NotEmpty(proposal)
@@ -376,7 +377,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobCommitment_Errors() {
 	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
 		Txs:             proposal.Txs,
 		Height:          currentHeight,
-		ProposerAddress: pubkey.Address(),
+		ProposerAddress: nodeAddress,
 		Time:            consensusTime,
 	})
 	s.Require().NoError(err)
@@ -397,12 +398,13 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobInclusionProof_Errors() 
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
+	nodeAddress := pubkey.Address()
 
 	// Test happens on Deneb, pre Deneb1 fork.
 	startTime := time.Unix(0, 0)
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals, _, consensusTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
+	proposals, _, consensusTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, nodeAddress, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	// We expected this test to happen during Pre-Deneb1 fork.
@@ -412,7 +414,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobInclusionProof_Errors() 
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
 		Time:            consensusTime,
-		ProposerAddress: pubkey.Address(),
+		ProposerAddress: nodeAddress,
 	})
 	s.Require().NoError(err)
 	s.Require().NotEmpty(proposal)
@@ -542,7 +544,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobInclusionProof_Errors() 
 	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
 		Txs:             proposal.Txs,
 		Height:          currentHeight,
-		ProposerAddress: pubkey.Address(),
+		ProposerAddress: nodeAddress,
 		Time:            consensusTime,
 	})
 	s.Require().NoError(err)

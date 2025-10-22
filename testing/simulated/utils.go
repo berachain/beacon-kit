@@ -51,6 +51,7 @@ import (
 	"github.com/berachain/beacon-kit/state-transition/core"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
 	"github.com/cometbft/cometbft/abci/types"
+	cmtcrypto "github.com/cometbft/cometbft/crypto"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	gethcommon "github.com/ethereum/go-ethereum/common"
@@ -133,13 +134,10 @@ func (s *SharedAccessors) MoveChainToHeight(
 	t *testing.T,
 	startHeight,
 	iterations int64,
-	proposer *signer.BLSSigner,
+	nodeAddress cmtcrypto.Address,
 	startTime time.Time,
 ) ([]*types.PrepareProposalResponse, []*types.FinalizeBlockResponse, time.Time) {
 	// Prepare a block proposal.
-	pubkey, err := proposer.GetPubKey()
-	require.NoError(t, err)
-
 	var proposedCometBlocks []*types.PrepareProposalResponse
 	var finalizedResponses []*types.FinalizeBlockResponse
 
@@ -148,17 +146,18 @@ func (s *SharedAccessors) MoveChainToHeight(
 		proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 			Height:          currentHeight,
 			Time:            proposalTime,
-			ProposerAddress: pubkey.Address(),
+			ProposerAddress: nodeAddress,
 		})
 		require.NoError(t, err)
 		require.Len(t, proposal.Txs, 2)
 
 		// Process the proposal.
 		processReq := &types.ProcessProposalRequest{
-			Txs:             proposal.Txs,
-			Height:          currentHeight,
-			ProposerAddress: pubkey.Address(),
-			Time:            proposalTime,
+			Txs:                 proposal.Txs,
+			Height:              currentHeight,
+			ProposerAddress:     nodeAddress,
+			Time:                proposalTime,
+			NextProposerAddress: nodeAddress,
 		}
 		processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, processReq)
 		require.NoError(t, err)
@@ -168,7 +167,7 @@ func (s *SharedAccessors) MoveChainToHeight(
 		finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.FinalizeBlockRequest{
 			Txs:             proposal.Txs,
 			Height:          currentHeight,
-			ProposerAddress: pubkey.Address(),
+			ProposerAddress: nodeAddress,
 			Time:            proposalTime,
 		})
 		require.NoError(t, err)

@@ -56,12 +56,15 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlock_IsSuccessful() {
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
+	pubkey, err := blsSigner.GetPubKey()
+	s.Require().NoError(err)
+	nodeAddress := pubkey.Address()
 
 	// Test happens post Deneb1 fork.
 	startTime := time.Now()
 
 	// iterate through the core loop `coreLoopIterations` times, i.e. Propose, Process, Finalize and Commit.
-	proposals, _, _ := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
+	proposals, _, _ := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, nodeAddress, startTime)
 
 	// We expect that the number of proposals that were finalized should be `coreLoopIterations`.
 	s.Require().Len(proposals, coreLoopIterations)
@@ -105,12 +108,13 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
+	nodeAddress := pubkey.Address()
 
 	// Test happens on Deneb, pre Deneb1 fork.
 	startTime := time.Unix(0, 0)
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals, _, consensusTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
+	proposals, _, consensusTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, nodeAddress, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	// We expected this test to happen during Pre-Deneb1 fork.
@@ -120,7 +124,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
 		Time:            consensusTime,
-		ProposerAddress: pubkey.Address(),
+		ProposerAddress: nodeAddress,
 	})
 	s.Require().NoError(err)
 	s.Require().NotEmpty(proposal)
@@ -186,7 +190,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
 		Txs:             proposal.Txs,
 		Height:          currentHeight,
-		ProposerAddress: pubkey.Address(),
+		ProposerAddress: nodeAddress,
 		Time:            consensusTime,
 	})
 	s.Require().NoError(err)
@@ -196,7 +200,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.FinalizeBlockRequest{
 		Txs:             proposal.Txs,
 		Height:          currentHeight,
-		ProposerAddress: pubkey.Address(),
+		ProposerAddress: nodeAddress,
 		Time:            consensusTime,
 	})
 	s.Require().NoError(err)
@@ -219,12 +223,13 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessfu
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
+	nodeAddress := pubkey.Address()
 
 	// Test happens on Deneb, pre Deneb1 fork.
 	startTime := time.Unix(0, 0)
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals, _, consensusTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
+	proposals, _, consensusTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, nodeAddress, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	// We expected this test to happen during Pre-Deneb1 fork.
@@ -234,7 +239,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessfu
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
 		Time:            consensusTime,
-		ProposerAddress: pubkey.Address(),
+		ProposerAddress: nodeAddress,
 	})
 	s.Require().NoError(err)
 	s.Require().NotEmpty(proposal)
@@ -362,7 +367,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessfu
 	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
 		Txs:             proposal.Txs,
 		Height:          currentHeight,
-		ProposerAddress: pubkey.Address(),
+		ProposerAddress: nodeAddress,
 		Time:            consensusTime,
 	})
 	s.Require().NoError(err)
@@ -372,7 +377,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessfu
 	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.FinalizeBlockRequest{
 		Txs:             proposal.Txs,
 		Height:          currentHeight,
-		ProposerAddress: pubkey.Address(),
+		ProposerAddress: nodeAddress,
 		Time:            consensusTime,
 	})
 	s.Require().NoError(err)
