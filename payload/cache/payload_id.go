@@ -92,9 +92,6 @@ func (p *PayloadIDCache) Get(
 	if !ok {
 		return PayloadIDCacheResult{}, false
 	}
-
-	// Successfully retrieved. Remove from cache.
-	delete(p.slotToBlockRootToPayloadID, key)
 	return pid, true
 }
 

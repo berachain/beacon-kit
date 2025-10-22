@@ -257,7 +257,19 @@ func (s *PectraForkSuite) TestReth_MultiplePayloadRebuilds() {
 	// the node to rebuild height 1, which the EL cannot do since it has already received
 	// an FCU(head == block_at_height_2)
 	{
-		invalidTxs := buildInvalidTestBlock(s, helpBuilder, validTxsHeight1, blkHeight, consensusTime)
+		invalidTxs := testBuildInvalidBlock(
+			s.Require(),
+			helpBuilder,
+			&types.PrepareProposalRequest{
+				Txs:             validTxsHeight1,
+				Height:          blkHeight,
+				Time:            consensusTime,
+				ProposerAddress: pubkey.Address(),
+			},
+			func(sbb *ctypes.SignedBeaconBlock) {
+				sbb.Body.RandaoReveal = [96]byte{'t', 'e', 's', 't'} // this makes the block invalid
+			},
+		)
 
 		// 3- Process the invalid proposal proposal. It will be rejected
 		// and attempt to build optimistically a block at height 1.
@@ -306,51 +318,4 @@ func (s *PectraForkSuite) TestReth_MultiplePayloadRebuilds() {
 		_, commitErr := testEL.SimComet.Comet.Commit(testEL.CtxComet, &types.CommitRequest{})
 		s.Require().NoError(commitErr)
 	}
-}
-
-// buildInvalidTestBlock builds an invalid block that fails VerifyIncomingBlock
-// but passes other checks (signature, version, etc).
-func buildInvalidTestBlock(
-	s *PectraForkSuite,
-	builder simulated.SharedAccessors,
-	txs [][]byte,
-	nextBlockHeight int64,
-	consensusTime time.Time,
-) [][]byte {
-	blsSigner := simulated.GetBlsSigner(builder.HomeDir)
-	pubkey, err := blsSigner.GetPubKey()
-	s.Require().NoError(err)
-
-	signedBlk, sidecars, err := builder.SimComet.Comet.Blockchain.ParseBeaconBlock(
-		&types.ProcessProposalRequest{
-			Txs:             txs,
-			Height:          nextBlockHeight,
-			ProposerAddress: pubkey.Address(),
-			Time:            consensusTime,
-		},
-	)
-	s.Require().NoError(err)
-	blk := signedBlk.BeaconBlock
-
-	blk.Body.RandaoReveal = [96]byte{'t', 'e', 's', 't'} // this makes the block invalid
-	reSignedBlk, err := ctypes.NewSignedBeaconBlock(     // resign to make sure signature checks pass
-		blk,
-		ctypes.NewForkData(
-			builder.TestNode.ChainSpec.ActiveForkVersionForTimestamp(blk.GetTimestamp()),
-			builder.GenesisValidatorsRoot,
-		),
-		builder.TestNode.ChainSpec,
-		blsSigner,
-	)
-	s.Require().NoError(err)
-
-	signedBlkBytes, bbErr := reSignedBlk.MarshalSSZ()
-	s.Require().NoError(bbErr)
-	txs[0] = signedBlkBytes
-
-	sidecarsBytes, scErr := sidecars.MarshalSSZ()
-	s.Require().NoError(scErr)
-	txs[1] = sidecarsBytes
-
-	return txs
 }

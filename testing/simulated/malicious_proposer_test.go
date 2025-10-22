@@ -181,22 +181,27 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidTimestamps_Errors() {
 	s.Require().NoError(err)
 	s.Require().NotEmpty(validProposal)
 
-	// We PreparePayload again to force the payload to rebuild with the malicious proposal time, as the previous
-	// malicious proposal was created optimistically with a valid proposal time.
-	maliciousProposalTime := correctConsensusTime.Add(2 * time.Second)
-	maliciousProposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
-		Height:          currentHeight,
-		Time:            maliciousProposalTime,
-		ProposerAddress: pubkey.Address(),
-	})
-	s.Require().NoError(err)
-	s.Require().NotEmpty(maliciousProposal)
+	// Build a block with a malicious proposal time
+	maliciousPayloadTime := correctConsensusTime.Add(2 * time.Second)
+	maliciousProposalTxs := testBuildInvalidBlock(
+		s.Require(),
+		s.SharedAccessors,
+		&types.PrepareProposalRequest{
+			Txs:    validProposal.Txs,
+			Height: currentHeight,
+			Time:   correctConsensusTime,
+		},
+		func(sb *ctypes.SignedBeaconBlock) {
+			blk := sb.BeaconBlock
+			blk.Body.ExecutionPayload.Timestamp = math.U64(maliciousPayloadTime.Unix())
+		},
+	)
 
 	// Reset the log buffer to discard old logs we don't care about
 	s.LogBuffer.Reset()
 	// Process the proposal containing the malicious block.
 	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
-		Txs:             maliciousProposal.Txs,
+		Txs:             maliciousProposalTxs,
 		Height:          currentHeight,
 		ProposerAddress: pubkey.Address(),
 		// Use the correct time as the actual consensus time, which mismatches the proposal time.
@@ -543,4 +548,53 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobInclusionProof_Errors() 
 	s.Require().NoError(err)
 	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
 	s.Require().Contains(s.LogBuffer.String(), "invalid KZG commitment inclusion proof")
+}
+
+// buildInvalidTestBlock builds an invalid block that fails VerifyIncomingBlock
+// but passes other checks (signature, version, etc).
+func testBuildInvalidBlock(
+	r *require.Assertions,
+	builder simulated.SharedAccessors,
+	PrepReq *types.PrepareProposalRequest,
+	modifyBlock func(*ctypes.SignedBeaconBlock),
+) [][]byte {
+	blsSigner := simulated.GetBlsSigner(builder.HomeDir)
+	pubkey, err := blsSigner.GetPubKey()
+	r.NoError(err)
+
+	signedBlk, sidecars, err := builder.SimComet.Comet.Blockchain.ParseBeaconBlock(
+		&types.ProcessProposalRequest{
+			Txs:             PrepReq.Txs,
+			Height:          PrepReq.Height,
+			ProposerAddress: pubkey.Address(),
+			Time:            PrepReq.Time,
+		},
+	)
+	r.NoError(err)
+
+	modifyBlock(signedBlk)
+
+	blk := signedBlk.BeaconBlock
+	reSignedBlk, err := ctypes.NewSignedBeaconBlock( // resign to make sure signature checks pass
+		blk,
+		ctypes.NewForkData(
+			builder.TestNode.ChainSpec.ActiveForkVersionForTimestamp(blk.GetTimestamp()),
+			builder.GenesisValidatorsRoot,
+		),
+		builder.TestNode.ChainSpec,
+		blsSigner,
+	)
+	r.NoError(err)
+
+	signedBlkBytes, bbErr := reSignedBlk.MarshalSSZ()
+	r.NoError(bbErr)
+
+	res := make([][]byte, len(PrepReq.Txs))
+	res[0] = signedBlkBytes
+
+	sidecarsBytes, scErr := sidecars.MarshalSSZ()
+	r.NoError(scErr)
+	res[1] = sidecarsBytes
+
+	return res
 }
