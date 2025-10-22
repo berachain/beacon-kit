@@ -138,12 +138,9 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithoutRequests_IsSuccessful() {
 
 	// Initialize the chain state.
 	s.InitializeChain(s.T())
-
-	// Retrieve the BLS signer and proposer address.
-	blsSigner := simulated.GetBlsSigner(s.HomeDir)
-	pubkey, err := blsSigner.GetPubKey()
+	nodeAddress, err := s.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
-	nodeAddress := pubkey.Address()
+	s.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	// Test happens post Electra fork.
 	startTime := time.Now()
@@ -162,6 +159,7 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithPartialWithdrawalRequests_IsS
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
 	nodeAddress := pubkey.Address()
+	s.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	nextBlockHeight := int64(1)
 	// We must first move the chain by 1 height such that the withdrawal contract has an updated `EXCESS_INHIBITOR`.
@@ -423,6 +421,7 @@ func (s *PectraGenesisSuite) TestMaliciousProposer_AddInvalidExecutionRequests_I
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
 	nodeAddress := pubkey.Address()
+	s.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	nextBlockHeight := int64(1)
 	// We must first move the chain by 1 height such that the withdrawal contract has an updated `EXCESS_INHIBITOR`.

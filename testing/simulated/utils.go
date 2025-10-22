@@ -157,7 +157,7 @@ func (s *SharedAccessors) MoveChainToHeight(
 			Height:              currentHeight,
 			ProposerAddress:     nodeAddress,
 			Time:                proposalTime,
-			NextProposerAddress: nodeAddress,
+			NextProposerAddress: nodeAddress, // Trigger an optimistic build for the next height.
 		}
 		processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, processReq)
 		require.NoError(t, err)

@@ -36,7 +36,6 @@ import (
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/testing/simulated"
@@ -62,6 +61,7 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
 	nodeAddress := pubkey.Address()
+	s.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	// Test happens on Deneb, pre Deneb1 fork.
 	startTime := time.Unix(0, 0)
@@ -158,7 +158,6 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidTimestamps_Errors() {
 
 	// Initialize the chain state.
 	s.InitializeChain(s.T())
-
 	nodeAddress, err := s.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
 	s.SimComet.Comet.SetNodeAddress(nodeAddress)
@@ -227,6 +226,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobCommitment_Errors() {
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
 	nodeAddress := pubkey.Address()
+	s.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	// Test happens on Deneb, pre Deneb1 fork.
 	startTime := time.Unix(0, 0)
@@ -319,11 +319,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobCommitment_Errors() {
 	queryCtx, err := s.SimComet.CreateQueryContext(currentHeight-1, false)
 	s.Require().NoError(err)
 
-	// Retrieve the BLS signer and proposer address.
-	proposerAddress, err := crypto.GetAddressFromPubKey(blsSigner.PublicKey())
-	s.Require().NoError(err)
-
-	proposedBlockMessage, err = simulated.ComputeAndSetStateRoot(queryCtx, consensusTime, proposerAddress, s.TestNode.StateProcessor, s.TestNode.StorageBackend, proposedBlockMessage)
+	proposedBlockMessage, err = simulated.ComputeAndSetStateRoot(queryCtx, consensusTime, nodeAddress, s.TestNode.StateProcessor, s.TestNode.StorageBackend, proposedBlockMessage)
 	s.Require().NoError(err)
 
 	newSignedBlock, err := ctypes.NewSignedBeaconBlock(
@@ -399,6 +395,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobInclusionProof_Errors() 
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
 	nodeAddress := pubkey.Address()
+	s.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	// Test happens on Deneb, pre Deneb1 fork.
 	startTime := time.Unix(0, 0)
@@ -484,11 +481,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobInclusionProof_Errors() 
 	queryCtx, err := s.SimComet.CreateQueryContext(currentHeight-1, false)
 	s.Require().NoError(err)
 
-	// Retrieve the BLS signer and proposer address.
-	proposerAddress, err := crypto.GetAddressFromPubKey(blsSigner.PublicKey())
-	s.Require().NoError(err)
-
-	proposedBlockMessage, err = simulated.ComputeAndSetStateRoot(queryCtx, consensusTime, proposerAddress, s.TestNode.StateProcessor, s.TestNode.StorageBackend, proposedBlockMessage)
+	proposedBlockMessage, err = simulated.ComputeAndSetStateRoot(queryCtx, consensusTime, nodeAddress, s.TestNode.StateProcessor, s.TestNode.StorageBackend, proposedBlockMessage)
 	s.Require().NoError(err)
 
 	newSignedBlock, err := ctypes.NewSignedBeaconBlock(

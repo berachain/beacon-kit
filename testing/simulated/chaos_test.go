@@ -27,7 +27,6 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/execution/client"
-	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/cometbft/cometbft/abci/types"
 )
 
@@ -39,12 +38,9 @@ func (s *SimulatedSuite) TestProcessProposal_CrashedExecutionClient_Errors() {
 
 	// Initialize the chain state.
 	s.InitializeChain(s.T())
-
-	// Retrieve the BLS signer and proposer address.
-	blsSigner := simulated.GetBlsSigner(s.HomeDir)
-	pubkey, err := blsSigner.GetPubKey()
+	nodeAddress, err := s.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
-	nodeAddress := pubkey.Address()
+	s.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	// Test happens post Deneb1 fork.
 	startTime := time.Now()
@@ -88,12 +84,9 @@ func (s *SimulatedSuite) TestContextHandling_SIGINT_SafeShutdown() {
 
 	// Initialize the chain state.
 	s.InitializeChain(s.T())
-
-	// Retrieve the BLS signer and proposer address.
-	blsSigner := simulated.GetBlsSigner(s.HomeDir)
-	pubkey, err := blsSigner.GetPubKey()
+	nodeAddress, err := s.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
-	nodeAddress := pubkey.Address()
+	s.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	// Test happens post Deneb1 fork.
 	startTime := time.Now()
@@ -152,12 +145,9 @@ func (s *SimulatedSuite) TestContextHandling_CancelledContext_Rejected() {
 
 	// Initialize the chain state.
 	s.InitializeChain(s.T())
-
-	// Retrieve the BLS signer and proposer address.
-	blsSigner := simulated.GetBlsSigner(s.HomeDir)
-	pubkey, err := blsSigner.GetPubKey()
+	nodeAddress, err := s.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
-	nodeAddress := pubkey.Address()
+	s.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	// Test happens post Deneb1 fork.
 	startTime := time.Now()

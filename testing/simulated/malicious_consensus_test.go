@@ -53,6 +53,7 @@ func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_Errors() {
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
 	nodeAddress := pubkey.Address()
+	s.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	// Test happens on Deneb, pre Deneb1 fork.
 	startTime := time.Unix(0, 0)

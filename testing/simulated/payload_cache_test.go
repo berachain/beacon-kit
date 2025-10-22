@@ -174,11 +174,9 @@ func (s *PayloadCacheSuite) TearDownTest() {
 func (s *PayloadCacheSuite) TestReth_ReusePayload_IsSuccessful() {
 	// Initialize the chain state.
 	s.Reth.InitializeChain2Validators(s.T()) // 1 reth validator
-
-	// Retrieve the BLS signer and proposer address.
-	blsSigner := simulated.GetBlsSigner(s.Reth.HomeDir)
-	pubkey, err := blsSigner.GetPubKey()
+	nodeAddress, err := s.Reth.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
+	s.Reth.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	// Next block is height 1.
 	nextBlockHeight := int64(1)
@@ -189,7 +187,7 @@ func (s *PayloadCacheSuite) TestReth_ReusePayload_IsSuccessful() {
 		proposal, prepareErr := s.Reth.SimComet.Comet.PrepareProposal(s.Reth.CtxComet, &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
-			ProposerAddress: pubkey.Address(),
+			ProposerAddress: nodeAddress,
 		})
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
@@ -198,9 +196,9 @@ func (s *PayloadCacheSuite) TestReth_ReusePayload_IsSuccessful() {
 		processRequest := &types.ProcessProposalRequest{
 			Txs:                 proposal.Txs,
 			Height:              nextBlockHeight,
-			ProposerAddress:     pubkey.Address(),
+			ProposerAddress:     nodeAddress,
 			Time:                consensusTime,
-			NextProposerAddress: pubkey.Address(),
+			NextProposerAddress: nodeAddress,
 		}
 		// This will trigger a optimistic payload build for block height 2.
 		processResp, respErr := s.Reth.SimComet.Comet.ProcessProposal(s.Reth.CtxComet, processRequest)
@@ -217,7 +215,7 @@ func (s *PayloadCacheSuite) TestReth_ReusePayload_IsSuccessful() {
 		proposal, prepareErr := s.Reth.SimComet.Comet.PrepareProposal(s.Reth.CtxComet, &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
-			ProposerAddress: pubkey.Address(),
+			ProposerAddress: nodeAddress,
 		})
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
@@ -226,9 +224,9 @@ func (s *PayloadCacheSuite) TestReth_ReusePayload_IsSuccessful() {
 		processRequest := &types.ProcessProposalRequest{
 			Txs:                 proposal.Txs,
 			Height:              nextBlockHeight,
-			ProposerAddress:     pubkey.Address(),
+			ProposerAddress:     nodeAddress,
 			Time:                consensusTime,
-			NextProposerAddress: pubkey.Address(),
+			NextProposerAddress: nodeAddress,
 		}
 
 		// Process the proposal.
@@ -240,7 +238,7 @@ func (s *PayloadCacheSuite) TestReth_ReusePayload_IsSuccessful() {
 		finalizeRequest := &types.FinalizeBlockRequest{
 			Txs:             proposal.Txs,
 			Height:          nextBlockHeight,
-			ProposerAddress: pubkey.Address(),
+			ProposerAddress: nodeAddress,
 			Time:            consensusTime,
 		}
 		_, finalizeErr := s.Reth.SimComet.Comet.FinalizeBlock(s.Reth.CtxComet, finalizeRequest)
@@ -257,11 +255,9 @@ func (s *PayloadCacheSuite) TestReth_ReusePayload_IsSuccessful() {
 func (s *PayloadCacheSuite) TestGeth_ReusePayload_IsSuccessful() {
 	// Initialize the chain state.
 	s.Geth.InitializeChain2Validators(s.T()) // 1 geth validator
-
-	// Retrieve the BLS signer and proposer address.
-	blsSigner := simulated.GetBlsSigner(s.Geth.HomeDir)
-	pubkey, err := blsSigner.GetPubKey()
+	nodeAddress, err := s.Geth.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
+	s.Geth.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	// Next block is height 1.
 	nextBlockHeight := int64(1)
@@ -272,7 +268,7 @@ func (s *PayloadCacheSuite) TestGeth_ReusePayload_IsSuccessful() {
 		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
-			ProposerAddress: pubkey.Address(),
+			ProposerAddress: nodeAddress,
 		})
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
@@ -281,9 +277,9 @@ func (s *PayloadCacheSuite) TestGeth_ReusePayload_IsSuccessful() {
 		processRequest := &types.ProcessProposalRequest{
 			Txs:                 proposal.Txs,
 			Height:              nextBlockHeight,
-			ProposerAddress:     pubkey.Address(),
+			ProposerAddress:     nodeAddress,
 			Time:                consensusTime,
-			NextProposerAddress: pubkey.Address(),
+			NextProposerAddress: nodeAddress,
 		}
 		// This will trigger a optimistic payload build for block height 2.
 		processResp, respErr := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
@@ -300,7 +296,7 @@ func (s *PayloadCacheSuite) TestGeth_ReusePayload_IsSuccessful() {
 		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
-			ProposerAddress: pubkey.Address(),
+			ProposerAddress: nodeAddress,
 		})
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
@@ -309,9 +305,9 @@ func (s *PayloadCacheSuite) TestGeth_ReusePayload_IsSuccessful() {
 		processRequest := &types.ProcessProposalRequest{
 			Txs:                 proposal.Txs,
 			Height:              nextBlockHeight,
-			ProposerAddress:     pubkey.Address(),
+			ProposerAddress:     nodeAddress,
 			Time:                consensusTime,
-			NextProposerAddress: pubkey.Address(),
+			NextProposerAddress: nodeAddress,
 		}
 
 		// Process the proposal.
@@ -323,7 +319,7 @@ func (s *PayloadCacheSuite) TestGeth_ReusePayload_IsSuccessful() {
 		finalizeRequest := &types.FinalizeBlockRequest{
 			Txs:             proposal.Txs,
 			Height:          nextBlockHeight,
-			ProposerAddress: pubkey.Address(),
+			ProposerAddress: nodeAddress,
 			Time:            consensusTime,
 		}
 		_, finalizeErr := s.Geth.SimComet.Comet.FinalizeBlock(s.Geth.CtxComet, finalizeRequest)
@@ -341,11 +337,9 @@ func (s *PayloadCacheSuite) TestGeth_ReusePayload_IsSuccessful() {
 func (s *PayloadCacheSuite) TestReth_RebuildPayload_IsSuccessful() {
 	// Initialize the chain state.
 	s.Reth.InitializeChain2Validators(s.T()) // 1 reth validator
-
-	// Retrieve the BLS signer and proposer address.
-	blsSigner := simulated.GetBlsSigner(s.Reth.HomeDir)
-	pubkey, err := blsSigner.GetPubKey()
+	nodeAddress, err := s.Reth.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
+	s.Reth.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	// Next block is height 1.
 	nextBlockHeight := int64(1)
@@ -357,17 +351,18 @@ func (s *PayloadCacheSuite) TestReth_RebuildPayload_IsSuccessful() {
 		proposal, prepareErr := s.Reth.SimComet.Comet.PrepareProposal(s.Reth.CtxComet, &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            faultyConsensusTime,
-			ProposerAddress: pubkey.Address(),
+			ProposerAddress: nodeAddress,
 		})
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
 
 		// Process the proposal.
 		processRequest := &types.ProcessProposalRequest{
-			Txs:             proposal.Txs,
-			Height:          nextBlockHeight,
-			ProposerAddress: pubkey.Address(),
-			Time:            consensusTime,
+			Txs:                 proposal.Txs,
+			Height:              nextBlockHeight,
+			ProposerAddress:     nodeAddress,
+			Time:                consensusTime,
+			NextProposerAddress: nodeAddress,
 		}
 		// As we reject our own built proposal, bkit should evict this payload from its cache.
 		processResp, respErr := s.Reth.SimComet.Comet.ProcessProposal(s.Reth.CtxComet, processRequest)
@@ -385,17 +380,18 @@ func (s *PayloadCacheSuite) TestReth_RebuildPayload_IsSuccessful() {
 		proposal, prepareErr := s.Reth.SimComet.Comet.PrepareProposal(s.Reth.CtxComet, &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
-			ProposerAddress: pubkey.Address(),
+			ProposerAddress: nodeAddress,
 		})
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
 
 		// Process the proposal.
 		processRequest := &types.ProcessProposalRequest{
-			Txs:             proposal.Txs,
-			Height:          nextBlockHeight,
-			ProposerAddress: pubkey.Address(),
-			Time:            consensusTime,
+			Txs:                 proposal.Txs,
+			Height:              nextBlockHeight,
+			ProposerAddress:     nodeAddress,
+			Time:                consensusTime,
+			NextProposerAddress: nodeAddress,
 		}
 
 		// Process the proposal.
@@ -407,7 +403,7 @@ func (s *PayloadCacheSuite) TestReth_RebuildPayload_IsSuccessful() {
 		finalizeRequest := &types.FinalizeBlockRequest{
 			Txs:             proposal.Txs,
 			Height:          nextBlockHeight,
-			ProposerAddress: pubkey.Address(),
+			ProposerAddress: nodeAddress,
 			Time:            consensusTime,
 		}
 		_, finalizeErr := s.Reth.SimComet.Comet.FinalizeBlock(s.Reth.CtxComet, finalizeRequest)
@@ -423,11 +419,9 @@ func (s *PayloadCacheSuite) TestReth_RebuildPayload_IsSuccessful() {
 func (s *PayloadCacheSuite) TestGeth_RebuildPayload_IsSuccessful() {
 	// Initialize the chain state.
 	s.Geth.InitializeChain2Validators(s.T()) // 1 geth validator
-
-	// Retrieve the BLS signer and proposer address.
-	blsSigner := simulated.GetBlsSigner(s.Geth.HomeDir)
-	pubkey, err := blsSigner.GetPubKey()
+	nodeAddress, err := s.Geth.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
+	s.Geth.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	// Next block is height 1.
 	nextBlockHeight := int64(1)
@@ -439,17 +433,18 @@ func (s *PayloadCacheSuite) TestGeth_RebuildPayload_IsSuccessful() {
 		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            faultyConsensusTime,
-			ProposerAddress: pubkey.Address(),
+			ProposerAddress: nodeAddress,
 		})
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
 
 		// Process the proposal.
 		processRequest := &types.ProcessProposalRequest{
-			Txs:             proposal.Txs,
-			Height:          nextBlockHeight,
-			ProposerAddress: pubkey.Address(),
-			Time:            consensusTime,
+			Txs:                 proposal.Txs,
+			Height:              nextBlockHeight,
+			ProposerAddress:     nodeAddress,
+			Time:                consensusTime,
+			NextProposerAddress: nodeAddress,
 		}
 		// As we reject our own built proposal, bkit should evict this payload from its cache.
 		processResp, respErr := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
@@ -467,17 +462,18 @@ func (s *PayloadCacheSuite) TestGeth_RebuildPayload_IsSuccessful() {
 		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
-			ProposerAddress: pubkey.Address(),
+			ProposerAddress: nodeAddress,
 		})
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
 
 		// Process the proposal.
 		processRequest := &types.ProcessProposalRequest{
-			Txs:             proposal.Txs,
-			Height:          nextBlockHeight,
-			ProposerAddress: pubkey.Address(),
-			Time:            consensusTime,
+			Txs:                 proposal.Txs,
+			Height:              nextBlockHeight,
+			ProposerAddress:     nodeAddress,
+			Time:                consensusTime,
+			NextProposerAddress: nodeAddress,
 		}
 
 		// Process the proposal.
@@ -489,7 +485,7 @@ func (s *PayloadCacheSuite) TestGeth_RebuildPayload_IsSuccessful() {
 		finalizeRequest := &types.FinalizeBlockRequest{
 			Txs:             proposal.Txs,
 			Height:          nextBlockHeight,
-			ProposerAddress: pubkey.Address(),
+			ProposerAddress: nodeAddress,
 			Time:            consensusTime,
 		}
 		_, finalizeErr := s.Geth.SimComet.Comet.FinalizeBlock(s.Geth.CtxComet, finalizeRequest)
@@ -507,15 +503,13 @@ func (s *PayloadCacheSuite) TestGeth_RebuildPayload_IsSuccessful() {
 func (s *PayloadCacheSuite) TestReth_MustRebuildPostForkPayload_IsSuccessful() {
 	// Initialize the chain state.
 	s.Geth.InitializeChain2Validators(s.T()) // 1 geth validator
+	gethNodeAddress, err := s.Geth.SimComet.GetNodeAddress()
+	s.Require().NoError(err)
+	s.Geth.SimComet.Comet.SetNodeAddress(gethNodeAddress)
 	s.Reth.InitializeChain2Validators(s.T()) // 1 reth validator
-
-	// Retrieve the BLS signer and proposer address.
-	blsSigner := simulated.GetBlsSigner(s.Geth.HomeDir)
-	gethPubkey, err := blsSigner.GetPubKey()
+	rethNodeAddress, err := s.Reth.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
-	blsSigner = simulated.GetBlsSigner(s.Reth.HomeDir)
-	rethPubkey, err := blsSigner.GetPubKey()
-	s.Require().NoError(err)
+	s.Reth.SimComet.Comet.SetNodeAddress(rethNodeAddress)
 
 	// Next block is height 1.
 	nextBlockHeight := int64(1)
@@ -525,7 +519,7 @@ func (s *PayloadCacheSuite) TestReth_MustRebuildPostForkPayload_IsSuccessful() {
 		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
-			ProposerAddress: gethPubkey.Address(),
+			ProposerAddress: gethNodeAddress,
 		})
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
@@ -534,9 +528,9 @@ func (s *PayloadCacheSuite) TestReth_MustRebuildPostForkPayload_IsSuccessful() {
 		processRequest := &types.ProcessProposalRequest{
 			Txs:                 proposal.Txs,
 			Height:              nextBlockHeight,
-			ProposerAddress:     gethPubkey.Address(),
+			ProposerAddress:     gethNodeAddress,
 			Time:                consensusTime,
-			NextProposerAddress: gethPubkey.Address(),
+			NextProposerAddress: gethNodeAddress,
 		}
 		// This will trigger a optimistic payload build for block height 2.
 		processResp, respErr := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
@@ -547,7 +541,7 @@ func (s *PayloadCacheSuite) TestReth_MustRebuildPostForkPayload_IsSuccessful() {
 		proposal, prepareErr = s.Reth.SimComet.Comet.PrepareProposal(s.Reth.CtxComet, &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
-			ProposerAddress: rethPubkey.Address(),
+			ProposerAddress: rethNodeAddress,
 		})
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
@@ -556,9 +550,9 @@ func (s *PayloadCacheSuite) TestReth_MustRebuildPostForkPayload_IsSuccessful() {
 		processRequest = &types.ProcessProposalRequest{
 			Txs:                 proposal.Txs,
 			Height:              nextBlockHeight,
-			ProposerAddress:     rethPubkey.Address(),
+			ProposerAddress:     rethNodeAddress,
 			Time:                consensusTime,
-			NextProposerAddress: rethPubkey.Address(),
+			NextProposerAddress: rethNodeAddress,
 		}
 		// This will trigger a optimistic payload build for block height 2.
 		processResp, respErr = s.Reth.SimComet.Comet.ProcessProposal(s.Reth.CtxComet, processRequest)
@@ -576,17 +570,18 @@ func (s *PayloadCacheSuite) TestReth_MustRebuildPostForkPayload_IsSuccessful() {
 		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
-			ProposerAddress: gethPubkey.Address(),
+			ProposerAddress: gethNodeAddress,
 		})
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
 
 		// Process the proposal, with payload eviction from bkit cache.
 		processRequest := &types.ProcessProposalRequest{
-			Txs:             proposal.Txs,
-			Height:          nextBlockHeight,
-			ProposerAddress: gethPubkey.Address(),
-			Time:            consensusTime,
+			Txs:                 proposal.Txs,
+			Height:              nextBlockHeight,
+			ProposerAddress:     gethNodeAddress,
+			Time:                consensusTime,
+			NextProposerAddress: gethNodeAddress,
 		}
 		processResp, respErr := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
 		s.Require().NoError(respErr)
@@ -595,7 +590,7 @@ func (s *PayloadCacheSuite) TestReth_MustRebuildPostForkPayload_IsSuccessful() {
 			s.Geth.LogBuffer.String(),
 			"failed decoding *types.SignedBeaconBlock: ssz: offset smaller than previous",
 		)
-		processRequest.ProposerAddress = rethPubkey.Address()
+		processRequest.ProposerAddress = rethNodeAddress
 		processResp, respErr = s.Reth.SimComet.Comet.ProcessProposal(s.Reth.CtxComet, processRequest)
 		s.Require().NoError(respErr)
 		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
@@ -614,7 +609,7 @@ func (s *PayloadCacheSuite) TestReth_MustRebuildPostForkPayload_IsSuccessful() {
 		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
-			ProposerAddress: gethPubkey.Address(),
+			ProposerAddress: gethNodeAddress,
 		})
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 0) // Geth returns an empty proposal.
@@ -628,17 +623,18 @@ func (s *PayloadCacheSuite) TestReth_MustRebuildPostForkPayload_IsSuccessful() {
 		proposal, prepareErr := s.Reth.SimComet.Comet.PrepareProposal(s.Reth.CtxComet, &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
-			ProposerAddress: rethPubkey.Address(),
+			ProposerAddress: rethNodeAddress,
 		})
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
 
 		// Process the proposal.
 		processRequest := &types.ProcessProposalRequest{
-			Txs:             proposal.Txs,
-			Height:          nextBlockHeight,
-			ProposerAddress: rethPubkey.Address(),
-			Time:            consensusTime,
+			Txs:                 proposal.Txs,
+			Height:              nextBlockHeight,
+			ProposerAddress:     rethNodeAddress,
+			Time:                consensusTime,
+			NextProposerAddress: rethNodeAddress,
 		}
 		processResp, respErr := s.Reth.SimComet.Comet.ProcessProposal(s.Reth.CtxComet, processRequest)
 		s.Require().NoError(respErr)
@@ -922,6 +918,8 @@ func (s *PectraForkSuite) TestReth_MustRebuildForFailedStateTransition_IsSuccess
 	blsSigner := simulated.GetBlsSigner(testEL.HomeDir)
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
+	nodeAddress := pubkey.Address()
+	testEL.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	const blkHeight = int64(1)
 	var (
@@ -936,7 +934,7 @@ func (s *PectraForkSuite) TestReth_MustRebuildForFailedStateTransition_IsSuccess
 		prepareRequest := &types.PrepareProposalRequest{
 			Height:          blkHeight,
 			Time:            consensusTime,
-			ProposerAddress: pubkey.Address(),
+			ProposerAddress: nodeAddress,
 		}
 		proposal, prepareErr := helpBuilder.SimComet.Comet.PrepareProposal(helpBuilder.CtxComet, prepareRequest)
 		s.Require().NoError(prepareErr)
@@ -946,10 +944,11 @@ func (s *PectraForkSuite) TestReth_MustRebuildForFailedStateTransition_IsSuccess
 		// 2- Process the block via testEL node. The proposal is expected
 		// to pass and start building payload for height 2, optimistically.
 		processRequest := &types.ProcessProposalRequest{
-			Txs:             proposal.Txs,
-			Height:          blkHeight,
-			ProposerAddress: pubkey.Address(),
-			Time:            consensusTime,
+			Txs:                 proposal.Txs,
+			Height:              blkHeight,
+			ProposerAddress:     nodeAddress,
+			Time:                consensusTime,
+			NextProposerAddress: nodeAddress,
 		}
 		processResp, respErr := testEL.SimComet.Comet.ProcessProposal(testEL.CtxComet, processRequest)
 		s.Require().NoError(respErr)
@@ -978,10 +977,11 @@ func (s *PectraForkSuite) TestReth_MustRebuildForFailedStateTransition_IsSuccess
 		// 3- Process the invalid proposal proposal. It will be rejected
 		// and attempt to build optimistically a block at height 1.
 		processRequest := &types.ProcessProposalRequest{
-			Txs:             invalidTxs,
-			Height:          blkHeight,
-			ProposerAddress: pubkey.Address(),
-			Time:            consensusTime,
+			Txs:                 invalidTxs,
+			Height:              blkHeight,
+			ProposerAddress:     nodeAddress,
+			Time:                consensusTime,
+			NextProposerAddress: nodeAddress,
 		}
 		processResp, processErr := testEL.SimComet.Comet.ProcessProposal(testEL.CtxComet, processRequest)
 		s.Require().NoError(processErr)
@@ -1002,10 +1002,11 @@ func (s *PectraForkSuite) TestReth_MustRebuildForFailedStateTransition_IsSuccess
 		// Process the proposal via testEL node. The proposal is expected
 		// to pass and start building payload for height 2, optimistically.
 		processRequest := &types.ProcessProposalRequest{
-			Txs:             proposal.Txs,
-			Height:          blkHeight,
-			ProposerAddress: pubkey.Address(),
-			Time:            consensusTime,
+			Txs:                 proposal.Txs,
+			Height:              blkHeight,
+			ProposerAddress:     nodeAddress,
+			Time:                consensusTime,
+			NextProposerAddress: nodeAddress,
 		}
 		processResp, respErr := testEL.SimComet.Comet.ProcessProposal(testEL.CtxComet, processRequest)
 		s.Require().NoError(respErr)

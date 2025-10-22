@@ -156,6 +156,9 @@ func (s *PectraWithdrawalSuite) TearDownTest() {
 func (s *PectraWithdrawalSuite) TestExcessValidatorBeforeFork_CorrectlyEvicted() {
 	// Initialize the chain state.
 	s.InitializeChain(s.T())
+	nodeAddress, err := s.SimComet.GetNodeAddress()
+	s.Require().NoError(err)
+	s.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	// Send the Deposit
 	var senderAddress gethcommon.Address
@@ -208,12 +211,6 @@ func (s *PectraWithdrawalSuite) TestExcessValidatorBeforeFork_CorrectlyEvicted()
 		}, depositMsg.Pubkey[:], depositMsg.Credentials[:], blsSig[:], senderAddress)
 		s.Require().NoError(err)
 	}
-
-	// Retrieve the BLS signer and proposer address.
-	blsSigner := simulated.GetBlsSigner(s.HomeDir)
-	pubkey, err := blsSigner.GetPubKey()
-	s.Require().NoError(err)
-	nodeAddress := pubkey.Address()
 
 	// Hard fork occurs at t=10, so we start at t=5
 	// This accounts for optimistic block building pushing payloadTime
@@ -346,6 +343,7 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdra
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
 	nodeAddress := pubkey.Address()
+	s.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	credAddress, err := common.NewExecutionAddressFromHex(simulated.WithdrawalExecutionAddress)
 	s.Require().NoError(err)
@@ -529,6 +527,7 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_HasCorrectWithdraw
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
 	nodeAddress := pubkey.Address()
+	s.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	credAddress, err := common.NewExecutionAddressFromHex(simulated.WithdrawalExecutionAddress)
 	s.Require().NoError(err)
