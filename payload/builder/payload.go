@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 )
 
 type RequestPayloadData struct {
@@ -156,6 +157,7 @@ func (pb *PayloadBuilder) RetrievePayload(
 	ctx context.Context,
 	slot math.Slot,
 	parentBlockRoot common.Root,
+	expectedForkVersion common.Version,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
 	if !pb.Enabled() {
 		return nil, ErrPayloadBuilderDisabled
@@ -163,13 +165,17 @@ func (pb *PayloadBuilder) RetrievePayload(
 
 	// Attempt to see if we previously fired off a payload built for
 	// this particular slot and parent block root.
-	payloadID, found := pb.pc.Get(slot, parentBlockRoot)
+	payloadRes, found := pb.pc.Get(slot, parentBlockRoot)
 	if !found {
 		return nil, ErrPayloadIDNotFound
 	}
+	if !version.Equals(payloadRes.ForkVersion, expectedForkVersion) {
+		pb.pc.Delete(slot, parentBlockRoot) // NOT SURE ABOUT THIS
+		return nil, ErrPayloadIDNotFound    // force payload rebuild with the right fork
+	}
 
 	// Get the payload from the execution client.
-	envelope, err := pb.getPayload(ctx, payloadID.PayloadID, payloadID.ForkVersion)
+	envelope, err := pb.getPayload(ctx, payloadRes.PayloadID, payloadRes.ForkVersion)
 	if err != nil {
 		if errors.Is(err, engineerrors.ErrUnknownPayload) ||
 			errors.Is(err, engineerrors.ErrNilExecutionPayloadEnvelope) {
