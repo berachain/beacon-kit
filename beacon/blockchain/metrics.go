@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -23,97 +23,128 @@ package blockchain
 import (
 	"time"
 
+	"github.com/berachain/beacon-kit/observability/metrics"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
-// chainMetrics is a struct that contains metrics for the chain.
-type chainMetrics struct {
-	// sink is the sink for the metrics.
-	sink TelemetrySink
+// Metrics is a struct that contains metrics for the blockchain service.
+type Metrics struct {
+	StateTransitionDuration               metrics.Histogram
+	RebuildPayloadForRejectedBlockSuccess metrics.Counter
+	RebuildPayloadForRejectedBlockFailure metrics.Counter
+	OptimisticPayloadBuildSuccess         metrics.Counter
+	OptimisticPayloadBuildFailure         metrics.Counter
+	StateRootVerificationDuration         metrics.Histogram
+	FailedToGetBlockLogs                  metrics.Counter
+	FailedToEnqueueDeposits               metrics.Counter
 }
 
-// newChainMetrics creates a new chainMetrics.
-func newChainMetrics(
-	sink TelemetrySink,
-) *chainMetrics {
-	return &chainMetrics{
-		sink: sink,
+// NewPrometheusMetrics returns a new Metrics instance with Prometheus metrics.
+// Metric names are kept identical to cosmos-sdk/telemetry output for Grafana compatibility.
+func NewMetrics(factory metrics.Factory) *Metrics {
+	return &Metrics{
+		StateTransitionDuration: factory.NewHistogram(
+			metrics.HistogramOpts{
+				Subsystem: "beacon_blockchain",
+				Name:      "state_transition_duration",
+				Help:      "Time taken to process state transition in seconds",
+				Buckets:   prometheus.ExponentialBucketsRange(0.001, 10, 10),
+			},
+			nil,
+		),
+		RebuildPayloadForRejectedBlockSuccess: factory.NewCounter(
+			metrics.CounterOpts{
+				Subsystem: "blockchain",
+				Name:      "rebuild_payload_for_rejected_block_success",
+				Help:      "Number of successful payload rebuilds for rejected blocks",
+			},
+			[]string{"slot"},
+		),
+		RebuildPayloadForRejectedBlockFailure: factory.NewCounter(
+			metrics.CounterOpts{
+				Subsystem: "blockchain",
+				Name:      "rebuild_payload_for_rejected_block_failure",
+				Help:      "Number of failed payload rebuilds for rejected blocks",
+			},
+			[]string{"slot", "error"},
+		),
+		OptimisticPayloadBuildSuccess: factory.NewCounter(
+			metrics.CounterOpts{
+				Subsystem: "blockchain",
+				Name:      "optimistic_payload_build_success",
+				Help:      "Number of successful optimistic payload builds",
+			},
+			[]string{"slot"},
+		),
+		OptimisticPayloadBuildFailure: factory.NewCounter(
+			metrics.CounterOpts{
+				Subsystem: "blockchain",
+				Name:      "optimistic_payload_build_failure",
+				Help:      "Number of failed optimistic payload builds",
+			},
+			[]string{"slot", "error"},
+		),
+		StateRootVerificationDuration: factory.NewHistogram(
+			metrics.HistogramOpts{
+				Subsystem: "blockchain",
+				Name:      "state_root_verification_duration",
+				Help:      "Time taken to verify state root in seconds",
+				Buckets:   prometheus.ExponentialBucketsRange(0.001, 10, 10),
+			},
+			nil,
+		),
+		FailedToGetBlockLogs: factory.NewCounter(
+			metrics.CounterOpts{
+				Subsystem: "execution_deposit",
+				Name:      "failed_to_get_block_logs",
+				Help:      "Number of times failed to read deposits from execution layer block logs",
+			},
+			[]string{"block_num"},
+		),
+		FailedToEnqueueDeposits: factory.NewCounter(
+			metrics.CounterOpts{
+				Subsystem: "execution_deposit",
+				Name:      "failed_to_enqueue_deposits",
+				Help:      "Number of times failed to enqueue deposits to storage",
+			},
+			[]string{"block_num"},
+		),
 	}
 }
 
-// measureStateTransitionDuration measures the time to process
-// the state transition for a block.
-func (cm *chainMetrics) measureStateTransitionDuration(
-	start time.Time,
-) {
-	cm.sink.MeasureSince(
-		"beacon_kit.beacon.blockchain.state_transition_duration",
-		start,
-	)
+// measureStateTransitionDuration measures the time to process the state transition for a block.
+func (m *Metrics) measureStateTransitionDuration(start time.Time) {
+	m.StateTransitionDuration.Observe(time.Since(start).Seconds())
 }
 
-// markRebuildPayloadForRejectedBlockSuccess increments the counter for the
-// number of times
+// markRebuildPayloadForRejectedBlockSuccess increments the counter for the number of times
 // the validator successfully rebuilt the payload for a rejected block.
-func (cm *chainMetrics) markRebuildPayloadForRejectedBlockSuccess(
-	slot math.Slot,
-) {
-	cm.sink.IncrementCounter(
-		"beacon_kit.blockchain.rebuild_payload_for_rejected_block_success",
-		"slot",
-		slot.Base10(),
-	)
+func (m *Metrics) markRebuildPayloadForRejectedBlockSuccess(slot math.Slot) {
+	m.RebuildPayloadForRejectedBlockSuccess.With("slot", slot.Base10()).Add(1)
 }
 
-// markRebuildPayloadForRejectedBlockFailure increments the counter for the
-// number of times
+// markRebuildPayloadForRejectedBlockFailure increments the counter for the number of times
 // the validator failed to build an optimistic payload due to a failure.
-func (cm *chainMetrics) markRebuildPayloadForRejectedBlockFailure(
-	slot math.Slot,
-	err error,
-) {
-	cm.sink.IncrementCounter(
-		"beacon_kit.blockchain.rebuild_payload_for_rejected_block_failure",
-		"slot",
-		slot.Base10(),
-		"error",
-		err.Error(),
-	)
+func (m *Metrics) markRebuildPayloadForRejectedBlockFailure(slot math.Slot, err error) {
+	m.RebuildPayloadForRejectedBlockFailure.With("slot", slot.Base10(), "error", err.Error()).Add(1)
 }
 
-// markOptimisticPayloadBuildSuccess increments the counter for the number of
-// times
+// markOptimisticPayloadBuildSuccess increments the counter for the number of times
 // the validator successfully built an optimistic payload.
-func (cm *chainMetrics) markOptimisticPayloadBuildSuccess(slot math.Slot) {
-	cm.sink.IncrementCounter(
-		"beacon_kit.blockchain.optimistic_payload_build_success",
-		"slot",
-		slot.Base10(),
-	)
+func (m *Metrics) markOptimisticPayloadBuildSuccess(slot math.Slot) {
+	m.OptimisticPayloadBuildSuccess.With("slot", slot.Base10()).Add(1)
 }
 
-// markOptimisticPayloadBuildFailure increments the counter for the number of
-// times
+// markOptimisticPayloadBuildFailure increments the counter for the number of times
 // the validator failed to build an optimistic payload.
-func (cm *chainMetrics) markOptimisticPayloadBuildFailure(
-	slot math.Slot,
-	err error,
-) {
-	cm.sink.IncrementCounter(
-		"beacon_kit.blockchain.optimistic_payload_build_failure",
-		"slot",
-		slot.Base10(),
-		"error",
-		err.Error(),
-	)
+func (m *Metrics) markOptimisticPayloadBuildFailure(slot math.Slot, err error) {
+	m.OptimisticPayloadBuildFailure.With("slot", slot.Base10(), "error", err.Error()).Add(1)
 }
 
 // TODO: remove once state caching is activated
-// measureStateRootVerificationTime measures the time taken to verify the state
-// root of a block.
+// measureStateRootVerificationTime measures the time taken to verify the state root of a block.
 // It records the duration from the provided start time to the current time.
-func (cm *chainMetrics) measureStateRootVerificationTime(start time.Time) {
-	cm.sink.MeasureSince(
-		"beacon_kit.blockchain.state_root_verification_duration", start,
-	)
+func (m *Metrics) measureStateRootVerificationTime(start time.Time) {
+	m.StateRootVerificationDuration.Observe(time.Since(start).Seconds())
 }

@@ -1,0 +1,55 @@
+// SPDX-License-Identifier: BUSL-1.1
+//
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
+// Use of this software is governed by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
+//
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
+//
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
+//
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
+
+package lv
+
+// LabelValues is a type alias for a slice of strings that represent
+// metric label key-value pairs. It provides efficient label accumulation
+// using a copy-on-write pattern.
+//
+// Label values should be provided as alternating key-value pairs:
+// ["key1", "value1", "key2", "value2", ...]
+//
+// Example:
+//
+//	var lvs lv.LabelValues
+//	lvs = lvs.With("method", "GET")
+//	lvs = lvs.With("status", "200")
+//	// lvs now contains: ["method", "GET", "status", "200"]
+type LabelValues []string
+
+// With returns a new LabelValues with the given label key-value pairs appended.
+// The original LabelValues is not modified (copy-on-write semantics).
+//
+// If the number of labelValues is odd, "unknown" is appended as the value
+// for the last key to ensure all labels have values.
+//
+// Example:
+//
+//	var lvs lv.LabelValues
+//	lvs1 := lvs.With("method", "GET")
+//	lvs2 := lvs1.With("status", "200")
+//	// lvs1 and lvs2 are independent
+func (lvs LabelValues) With(labelValues ...string) LabelValues {
+	if len(labelValues)%2 != 0 {
+		labelValues = append(labelValues, "unknown")
+	}
+	return append(lvs, labelValues...)
+}

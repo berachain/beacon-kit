@@ -42,19 +42,19 @@ type Engine struct {
 	// logger is the logger for the engine.
 	logger log.Logger
 	// metrics is the metrics for the engine.
-	metrics *engineMetrics
+	metrics *Metrics
 }
 
 // New creates a new Engine.
 func New(
 	engineClient *client.EngineClient,
 	logger log.Logger,
-	telemtrySink TelemetrySink,
+	metrics *Metrics,
 ) *Engine {
 	return &Engine{
 		ec:      engineClient,
 		logger:  logger,
-		metrics: newEngineMetrics(telemtrySink, logger),
+		metrics: metrics,
 	}
 }
 

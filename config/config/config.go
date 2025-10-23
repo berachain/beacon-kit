@@ -24,7 +24,6 @@ import (
 	"fmt"
 
 	pruningtypes "cosmossdk.io/store/pruning/types"
-	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/spf13/viper"
 )
 
@@ -77,12 +76,20 @@ type BaseConfig struct {
 	IAVLDisableFastNode bool `mapstructure:"iavl-disable-fastnode"`
 }
 
+// TelemetryConfig defines the telemetry configuration for beacon-kit metrics.
+type TelemetryConfig struct {
+	// Enabled enables Prometheus metrics collection.
+	// When true, all beacon-kit services emit Prometheus metrics.
+	// When false, all metrics are no-op with zero runtime overhead.
+	Enabled bool `mapstructure:"enabled"`
+}
+
 // Config defines the server's top level configuration.
 type Config struct {
 	BaseConfig `mapstructure:",squash"`
 
 	// Telemetry defines the application telemetry configuration
-	Telemetry telemetry.Config `mapstructure:"telemetry"`
+	Telemetry TelemetryConfig `mapstructure:"telemetry"`
 }
 
 // DefaultConfig returns server's default configuration.
@@ -98,9 +105,8 @@ func DefaultConfig() *Config {
 			IAVLCacheSize:       5000,
 			IAVLDisableFastNode: false,
 		},
-		Telemetry: telemetry.Config{
-			Enabled:      false,
-			GlobalLabels: [][]string{},
+		Telemetry: TelemetryConfig{
+			Enabled: false,
 		},
 	}
 }

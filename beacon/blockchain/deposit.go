@@ -59,11 +59,7 @@ func (s *Service) fetchAndStoreDeposits(
 	deposits, err := s.depositContract.ReadDeposits(ctx, blockNum, blockNum)
 	if err != nil {
 		s.logger.Error("Failed to read deposits", "error", err)
-		s.metrics.sink.IncrementCounter(
-			"beacon_kit.execution.deposit.failed_to_get_block_logs",
-			"block_num",
-			blockNumStr,
-		)
+		s.metrics.FailedToGetBlockLogs.With("block_num", blockNumStr).Add(1)
 		s.failedBlocksMu.Lock()
 		s.failedBlocks[blockNum] = struct{}{}
 		s.failedBlocksMu.Unlock()
@@ -79,11 +75,7 @@ func (s *Service) fetchAndStoreDeposits(
 
 	if err = s.storageBackend.DepositStore().EnqueueDeposits(ctx, deposits); err != nil {
 		s.logger.Error("Failed to store deposits", "error", err)
-		s.metrics.sink.IncrementCounter(
-			"beacon_kit.execution.deposit.failed_to_enqueue_deposits",
-			"block_num",
-			blockNumStr,
-		)
+		s.metrics.FailedToEnqueueDeposits.With("block_num", blockNumStr).Add(1)
 		s.failedBlocksMu.Lock()
 		s.failedBlocks[blockNum] = struct{}{}
 		s.failedBlocksMu.Unlock()

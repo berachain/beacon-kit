@@ -37,7 +37,7 @@ import (
 	"github.com/berachain/beacon-kit/da/blobreactor"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
-	"github.com/berachain/beacon-kit/node-core/components/metrics"
+	"github.com/berachain/beacon-kit/observability/metrics/discard"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
@@ -83,13 +83,13 @@ func (s *SimulatedSuite) TestBlobFetcher_MultiNodeFetch() {
 		node1Store,
 		log.NewNopLogger(),
 		blobreactor.Config{RequestTimeout: 5 * time.Second},
-		metrics.NewNoOpTelemetrySink(),
+		blobreactor.NewMetrics(discard.NewFactory()),
 	)
 	node2Reactor := blobreactor.NewBlobReactor(
 		node2Store,
 		log.NewNopLogger(),
 		blobreactor.Config{RequestTimeout: 5 * time.Second},
-		metrics.NewNoOpTelemetrySink(),
+		blobreactor.NewMetrics(discard.NewFactory()),
 	)
 
 	// Connect via P2P
@@ -113,7 +113,7 @@ func (s *SimulatedSuite) TestBlobFetcher_MultiNodeFetch() {
 			RetryInterval: 200 * time.Millisecond,
 			MaxRetries:    3,
 		},
-		metrics.NewNoOpTelemetrySink(),
+		blockchain.NewBlobFetcherMetrics(discard.NewFactory()),
 	)
 	s.Require().NoError(err)
 	node1Fetcher.Start(s.CtxApp)
@@ -165,7 +165,7 @@ func createTestSidecars(t *testing.T, s *SimulatedSuite, blobs []*eip4844.Blob, 
 	)
 	signedHeader := ctypes.NewSignedBeaconBlockHeader(block.GetHeader(), crypto.BLSSignature{})
 
-	sidecarFactory := dablob.NewSidecarFactory(metrics.NewNoOpTelemetrySink())
+	sidecarFactory := dablob.NewSidecarFactory(dablob.NewFactoryMetrics(discard.NewFactory()))
 	sidecars := make(datypes.BlobSidecars, len(blobs))
 	for i := range blobs {
 		inclusionProof, err := sidecarFactory.BuildKZGInclusionProof(block.Body, math.U64(i))

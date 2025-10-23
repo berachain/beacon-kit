@@ -30,6 +30,7 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/blobreactor"
 	datypes "github.com/berachain/beacon-kit/da/types"
+	"github.com/berachain/beacon-kit/observability/metrics/discard"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/cometbft/cometbft/config"
@@ -105,15 +106,9 @@ func createTestSidecars(t *testing.T, count int) datypes.BlobSidecars {
 func newTestReactor(t *testing.T, store blobreactor.BlobStore, config blobreactor.Config) *blobreactor.BlobReactor {
 	t.Helper()
 	logger := log.NewTestLogger(t)
-	reactor := blobreactor.NewBlobReactor(store, logger, config, noOpTelemetrySink{})
+	reactor := blobreactor.NewBlobReactor(store, logger, config, blobreactor.NewMetrics(discard.NewFactory()))
 	return reactor
 }
-
-type noOpTelemetrySink struct{}
-
-func (noOpTelemetrySink) IncrementCounter(string, ...string)        {}
-func (noOpTelemetrySink) SetGauge(string, int64, ...string)         {}
-func (noOpTelemetrySink) MeasureSince(string, time.Time, ...string) {}
 
 func makeTestP2PConfig(t *testing.T) *config.P2PConfig {
 	t.Helper()

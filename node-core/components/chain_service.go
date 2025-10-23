@@ -28,7 +28,6 @@ import (
 	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/execution/engine"
 	"github.com/berachain/beacon-kit/log/phuslu"
-	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 )
@@ -47,7 +46,7 @@ type ChainServiceInput struct {
 	StorageBackend        *storage.Backend
 	BlobProcessor         BlobProcessor
 	BlobFetcher           blockchain.BlobFetcher
-	TelemetrySink         *metrics.TelemetrySink
+	BlockchainMetrics     *blockchain.Metrics
 	BeaconDepositContract deposit.Contract
 }
 
@@ -63,7 +62,7 @@ func ProvideChainService(in ChainServiceInput) *blockchain.Service {
 		in.ExecutionEngine,
 		in.LocalBuilder,
 		in.StateProcessor,
-		in.TelemetrySink,
+		in.BlockchainMetrics,
 		// If optimistic is enabled, we want to skip post finalization FCUs.
 		in.Cfg.Validator.EnableOptimisticPayloadBuilds,
 	)

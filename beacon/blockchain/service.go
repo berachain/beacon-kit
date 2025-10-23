@@ -60,7 +60,7 @@ type Service struct {
 	// stateProcessor is the state processor for beacon blocks and states.
 	stateProcessor StateProcessor
 	// metrics is the metrics for the service.
-	metrics *chainMetrics
+	metrics *Metrics
 	// optimisticPayloadBuilds is a flag used when the optimistic payload
 	// builder is enabled.
 	optimisticPayloadBuilds bool
@@ -79,7 +79,7 @@ func NewService(
 	executionEngine ExecutionEngine,
 	localBuilder LocalBuilder,
 	stateProcessor StateProcessor,
-	telemetrySink TelemetrySink,
+	metrics *Metrics,
 	optimisticPayloadBuilds bool,
 ) *Service {
 	return &Service{
@@ -94,7 +94,7 @@ func NewService(
 		executionEngine:         executionEngine,
 		localBuilder:            localBuilder,
 		stateProcessor:          stateProcessor,
-		metrics:                 newChainMetrics(telemetrySink),
+		metrics:                 metrics,
 		optimisticPayloadBuilds: optimisticPayloadBuilds,
 		forceStartupSyncOnce:    new(sync.Once),
 	}

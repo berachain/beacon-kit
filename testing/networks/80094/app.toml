@@ -72,43 +72,11 @@ app-db-backend = "pebbledb"
 
 [telemetry]
 
-# Prefixed with keys to separate services.
-service-name = "beacond_node"
-
-# Enabled enables the application telemetry functionality. When enabled,
-# an in-memory sink is also enabled by default. Operators may also enabled
-# other sinks such as Prometheus.
+# Enabled enables Prometheus metrics collection for all beacon-kit services.
+# When true, metrics are exposed at the configured Prometheus endpoint.
+# When false, all metrics are no-op with zero runtime overhead.
+# Default: false
 enabled = true
-
-# Enable prefixing gauge values with hostname.
-enable-hostname = true
-
-# Enable adding hostname to labels.
-enable-hostname-label = true
-
-# Enable adding service to labels.
-enable-service-label = true
-
-# PrometheusRetentionTime, when positive, enables a Prometheus metrics sink.
-prometheus-retention-time = 60
-
-# GlobalLabels defines a global set of name/value label tuples applied to all
-# metrics emitted using the wrapper functions defined in telemetry package.
-#
-# Example:
-# [["chain_id", "cosmoshub-1"]]
-global-labels = []
-
-# MetricsSink defines the type of metrics sink to use.
-metrics-sink = ""
-
-# StatsdAddr defines the address of a statsd server to send metrics to.
-# Only utilized if MetricsSink is set to "statsd" or "dogstatsd".
-statsd-addr = ""
-
-# DatadogHostname defines the hostname to use when emitting metrics to
-# Datadog. Only utilized if MetricsSink is set to "dogstatsd".
-datadog-hostname = "my_beacond_node"
 
 ###############################################################################
 ###                                BeaconKit                                ###

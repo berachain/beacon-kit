@@ -25,8 +25,8 @@ import (
 
 	"cosmossdk.io/log"
 	"cosmossdk.io/store"
-	storemetrics "cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
+	"github.com/berachain/beacon-kit/storage"
 	dbm "github.com/cosmos/cosmos-db"
 )
 
@@ -46,7 +46,7 @@ func NewManager(
 		cms: store.NewCommitMultiStore(
 			db,
 			logger,
-			storemetrics.NewNoOpMetrics(),
+			storage.NoOpStoreMetrics{},
 		),
 	}
 
