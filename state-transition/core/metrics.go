@@ -46,14 +46,14 @@ func NewMetrics(factory metrics.Factory) *Metrics {
 				Name: "beacon_kit_state_block_tx_gas_used",
 				Help: "Transaction gas used in the block",
 			},
-			[]string{"block_number"},
+			nil,
 		),
 		BlockBlobGasUsed: factory.NewGauge(
 			metrics.GaugeOpts{
 				Name: "beacon_kit_state_block_blob_gas_used",
 				Help: "Blob gas used in the block",
 			},
-			[]string{"block_number"},
+			nil,
 		),
 		PartialWithdrawalsEnqueued: factory.NewGauge(
 			metrics.GaugeOpts{
@@ -100,10 +100,9 @@ func NewMetrics(factory metrics.Factory) *Metrics {
 	}
 }
 
-func (m *Metrics) gaugeBlockGasUsed(blockNumber, txGasUsed, blobGasUsed math.U64) {
-	blockNumberStr := blockNumber.Base10()
-	m.BlockTxGasUsed.With("block_number", blockNumberStr).Set(float64(txGasUsed.Unwrap()))
-	m.BlockBlobGasUsed.With("block_number", blockNumberStr).Set(float64(blobGasUsed.Unwrap()))
+func (m *Metrics) gaugeBlockGasUsed(txGasUsed, blobGasUsed math.U64) {
+	m.BlockTxGasUsed.Set(float64(txGasUsed.Unwrap()))
+	m.BlockBlobGasUsed.Set(float64(blobGasUsed.Unwrap()))
 }
 
 func (m *Metrics) gaugePartialWithdrawalsEnqueued(count int) {
