@@ -545,8 +545,8 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobInclusionProof_Errors() 
 	s.Require().Contains(s.LogBuffer.String(), "invalid KZG commitment inclusion proof")
 }
 
-// buildInvalidTestBlock builds an invalid block, modiifying it along what it is
-// specified in modifyBlock)
+// testBuildInvalidBlock builds an invalid block, modifying it along what it is
+// specified in modifyBlock function. It is then properly resigned.
 func testBuildInvalidBlock(
 	r *require.Assertions,
 	builder simulated.SharedAccessors,
