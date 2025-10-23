@@ -187,11 +187,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 		pubkey := pk.Compress()
 		s.Require().Len(pubkey, 48)
 
-		// Only the first deposit for a pubkey has a non-zero operator.
 		operator := gethcommon.Address{}
-		if i < config.NumValidators {
-			operator = from
-		}
 		tx, err = dc.Deposit(&bind.TransactOpts{
 			From:     from,
 			Value:    value,

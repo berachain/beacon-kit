@@ -92,3 +92,7 @@ For developing with beacon-kit, you have options:
 2. see [an example deploying a team with Docker on a custom chainspec](https://docs.berachain.com/nodes/guides/docker-devnet)
 3. see [a deployment with Kurtosis](https://docs.berachain.com/nodes/guides/kurtosis)
 4. see [an expect script that does a complete cycle of deposits, withdrawal, eviction, voluntary exit](https://github.com/berachain/guides/blob/main/apps/local-docker-devnet/devnet-automation.exp)
+
+## Proof of liquidity deployment instructions
+
+You can find instructions to deploy Proof of Liquidity smart contracts over a devnet in [contracts README](https://github.com/berachain/beacon-kit/blob/main/contracts/docs/PoL_deployment.md).
