@@ -69,7 +69,7 @@ func NewMetrics(factory metrics.Factory, logger log.Logger) *Metrics {
 				Name:      "new_payload",
 				Help:      "Number of new payload calls",
 			},
-			[]string{"payload_block_hash", "payload_parent_block_hash"},
+			nil,
 		),
 		NewPayloadValid: factory.NewCounter(
 			metrics.CounterOpts{
@@ -109,7 +109,7 @@ func NewMetrics(factory metrics.Factory, logger log.Logger) *Metrics {
 				Name:      "new_payload_non_fatal_error",
 				Help:      "Number of non-fatal errors during new payload",
 			},
-			[]string{"error"},
+			nil,
 		),
 		NewPayloadFatalError: factory.NewCounter(
 			metrics.CounterOpts{
@@ -117,7 +117,7 @@ func NewMetrics(factory metrics.Factory, logger log.Logger) *Metrics {
 				Name:      "new_payload_fatal_error",
 				Help:      "Number of fatal errors during new payload",
 			},
-			[]string{"error"},
+			nil,
 		),
 		NewPayloadUndefinedError: factory.NewCounter(
 			metrics.CounterOpts{
@@ -125,7 +125,7 @@ func NewMetrics(factory metrics.Factory, logger log.Logger) *Metrics {
 				Name:      "new_payload_undefined_error",
 				Help:      "Number of undefined errors during new payload",
 			},
-			[]string{"error"},
+			nil,
 		),
 
 		// Forkchoice update metrics
@@ -151,7 +151,7 @@ func NewMetrics(factory metrics.Factory, logger log.Logger) *Metrics {
 				Name:      "forkchoice_update_syncing",
 				Help:      "Number of syncing forkchoice update responses",
 			},
-			[]string{"error"},
+			nil,
 		),
 		ForkchoiceUpdateInvalid: factory.NewCounter(
 			metrics.CounterOpts{
@@ -159,7 +159,7 @@ func NewMetrics(factory metrics.Factory, logger log.Logger) *Metrics {
 				Name:      "forkchoice_update_invalid",
 				Help:      "Number of invalid forkchoice update responses",
 			},
-			[]string{"error"},
+			nil,
 		),
 		ForkchoiceUpdateFatalError: factory.NewCounter(
 			metrics.CounterOpts{
@@ -167,7 +167,7 @@ func NewMetrics(factory metrics.Factory, logger log.Logger) *Metrics {
 				Name:      "forkchoice_update_fatal_error",
 				Help:      "Number of fatal errors during forkchoice update",
 			},
-			[]string{"error"},
+			nil,
 		),
 		ForkchoiceUpdateNonFatalError: factory.NewCounter(
 			metrics.CounterOpts{
@@ -175,7 +175,7 @@ func NewMetrics(factory metrics.Factory, logger log.Logger) *Metrics {
 				Name:      "forkchoice_update_non_fatal_error",
 				Help:      "Number of non-fatal errors during forkchoice update",
 			},
-			[]string{"error"},
+			nil,
 		),
 		ForkchoiceUpdateUndefinedError: factory.NewCounter(
 			metrics.CounterOpts{
@@ -183,7 +183,7 @@ func NewMetrics(factory metrics.Factory, logger log.Logger) *Metrics {
 				Name:      "forkchoice_update_undefined_error",
 				Help:      "Number of undefined errors during forkchoice update",
 			},
-			[]string{"error"},
+			nil,
 		),
 
 		logger: logger,
@@ -191,14 +191,8 @@ func NewMetrics(factory metrics.Factory, logger log.Logger) *Metrics {
 }
 
 // markNewPayloadCalled increments the counter for new payload calls.
-func (m *Metrics) markNewPayloadCalled(
-	payloadHash common.ExecutionHash,
-	parentHash common.ExecutionHash,
-) {
-	m.NewPayload.With(
-		"payload_block_hash", payloadHash.Hex(),
-		"payload_parent_block_hash", parentHash.Hex(),
-	).Add(1)
+func (m *Metrics) markNewPayloadCalled() {
+	m.NewPayload.Add(1)
 }
 
 // markNewPayloadValid increments the counter for valid payloads.
@@ -264,7 +258,7 @@ func (m *Metrics) markNewPayloadNonFatalError(
 		"last_valid_hash", lastValidHash,
 		"error", err,
 	)
-	m.NewPayloadNonFatalError.With("error", err.Error()).Add(1)
+	m.NewPayloadNonFatalError.Add(1)
 }
 
 // markNewPayloadFatalError increments the counter for fatal errors.
@@ -280,7 +274,7 @@ func (m *Metrics) markNewPayloadFatalError(
 		"last_valid_hash", lastValidHash,
 		"error", err,
 	)
-	m.NewPayloadFatalError.With("error", err.Error()).Add(1)
+	m.NewPayloadFatalError.Add(1)
 }
 
 // markNewPayloadUndefinedError increments the counter for undefined errors.
@@ -294,7 +288,7 @@ func (m *Metrics) markNewPayloadUndefinedError(
 		"parent_hash", payloadHash,
 		"error", err,
 	)
-	m.NewPayloadUndefinedError.With("error", err.Error()).Add(1)
+	m.NewPayloadUndefinedError.Add(1)
 }
 
 // markNotifyForkchoiceUpdateCalled increments the counter for
@@ -325,10 +319,7 @@ func (m *Metrics) markForkchoiceUpdateValid(
 }
 
 // markForkchoiceUpdateSyncing increments the counter for syncing forkchoice updates.
-func (m *Metrics) markForkchoiceUpdateSyncing(
-	state *engineprimitives.ForkchoiceStateV1,
-	err error,
-) {
+func (m *Metrics) markForkchoiceUpdateSyncing(state *engineprimitives.ForkchoiceStateV1) {
 	m.logger.Warn(
 		"Received syncing payload status during forkchoice update. Awaiting execution client to finish sync.",
 		"head_block_hash",
@@ -338,7 +329,7 @@ func (m *Metrics) markForkchoiceUpdateSyncing(
 		"finalized_block_hash",
 		state.FinalizedBlockHash,
 	)
-	m.ForkchoiceUpdateSyncing.With("error", err.Error()).Add(1)
+	m.ForkchoiceUpdateSyncing.Add(1)
 }
 
 // markForkchoiceUpdateInvalid increments the counter for invalid forkchoice updates.
@@ -353,7 +344,7 @@ func (m *Metrics) markForkchoiceUpdateInvalid(
 		"finalized_block_hash", state.FinalizedBlockHash,
 		"error", err,
 	)
-	m.ForkchoiceUpdateInvalid.With("error", err.Error()).Add(1)
+	m.ForkchoiceUpdateInvalid.Add(1)
 }
 
 // markForkchoiceUpdateFatalError increments the counter for fatal errors
@@ -363,7 +354,7 @@ func (m *Metrics) markForkchoiceUpdateFatalError(err error) {
 		"Received fatal error during forkchoice update call",
 		"error", err,
 	)
-	m.ForkchoiceUpdateFatalError.With("error", err.Error()).Add(1)
+	m.ForkchoiceUpdateFatalError.Add(1)
 }
 
 // markForkchoiceUpdateNonFatalError increments the counter for non-fatal errors
@@ -373,7 +364,7 @@ func (m *Metrics) markForkchoiceUpdateNonFatalError(err error) {
 		"Received non-fatal error during forkchoice update call",
 		"error", err,
 	)
-	m.ForkchoiceUpdateNonFatalError.With("error", err.Error()).Add(1)
+	m.ForkchoiceUpdateNonFatalError.Add(1)
 }
 
 // markForkchoiceUpdateUndefinedError increments the counter for undefined
@@ -384,5 +375,5 @@ func (m *Metrics) markForkchoiceUpdateUndefinedError(err error) {
 		"error",
 		err,
 	)
-	m.ForkchoiceUpdateUndefinedError.With("error", err.Error()).Add(1)
+	m.ForkchoiceUpdateUndefinedError.Add(1)
 }
