@@ -25,7 +25,6 @@ import (
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/da/blobreactor"
 	"github.com/berachain/beacon-kit/log/phuslu"
-	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
 )
 
@@ -33,10 +32,10 @@ import (
 type BlobReactorInput struct {
 	depinject.In
 
-	Config         *config.Config
-	Logger         *phuslu.Logger
-	StorageBackend *storage.Backend
-	TelemetrySink  *metrics.TelemetrySink
+	Config             *config.Config
+	Logger             *phuslu.Logger
+	StorageBackend     *storage.Backend
+	BlobReactorMetrics *blobreactor.Metrics
 }
 
 // ProvideBlobReactor provides the blob reactor for P2P communication.
@@ -52,6 +51,6 @@ func ProvideBlobReactor(in BlobReactorInput) *blobreactor.BlobReactor {
 		in.StorageBackend.AvailabilityStore().IndexDB,
 		in.Logger.With("service", "blob-reactor"),
 		cfg,
-		in.TelemetrySink,
+		in.BlobReactorMetrics,
 	)
 }

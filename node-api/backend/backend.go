@@ -30,14 +30,13 @@ import (
 	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
 	"cosmossdk.io/store"
-	sdkmetrics "cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
-	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/berachain/beacon-kit/node-core/types"
+	"github.com/berachain/beacon-kit/observability/metrics/discard"
 	"github.com/berachain/beacon-kit/state-transition/core/state"
 	kvstorage "github.com/berachain/beacon-kit/storage"
 	"github.com/berachain/beacon-kit/storage/beacondb"
@@ -186,12 +185,8 @@ func (b *Backend) initGenesisState() error {
 	if err != nil {
 		return fmt.Errorf("failed opening mem db: %w", err)
 	}
-	var (
-		nopLog     = log.NewNopLogger()
-		nopMetrics = sdkmetrics.NewNoOpMetrics()
-	)
-
-	b.cms = store.NewCommitMultiStore(b.db, nopLog, nopMetrics)
+	nopLog := log.NewNopLogger()
+	b.cms = store.NewCommitMultiStore(b.db, nopLog, kvstorage.NoOpStoreMetrics{})
 
 	b.cms.MountStoreWithDB(backendStoreKey, storetypes.StoreTypeIAVL, nil)
 	if err = b.cms.LoadLatestVersion(); err != nil {
@@ -209,7 +204,7 @@ func (b *Backend) initGenesisState() error {
 		kvStore.WithContext(sdkCtx),
 		b.cs,
 		sdkCtx.Logger(),
-		metrics.NewNoOpTelemetrySink(),
+		state.NewMetrics(discard.NewFactory()),
 	)
 	return nil
 }

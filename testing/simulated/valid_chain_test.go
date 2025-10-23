@@ -32,7 +32,7 @@ import (
 	dablob "github.com/berachain/beacon-kit/da/blob"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
-	"github.com/berachain/beacon-kit/node-core/components/metrics"
+	"github.com/berachain/beacon-kit/observability/metrics/discard"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/testing/simulated"
@@ -331,7 +331,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessfu
 
 	sidecarsSlice := make([]*datypes.BlobSidecar, len(blobs))
 	// Build Inclusion Proofs for Sidecars
-	sidecarFactory := dablob.NewSidecarFactory(metrics.NewNoOpTelemetrySink())
+	sidecarFactory := dablob.NewSidecarFactory(dablob.NewFactoryMetrics(discard.NewFactory()))
 	for i := range blobs {
 		inclusionProof, err := sidecarFactory.BuildKZGInclusionProof(proposedBlockMessage.GetBody(), math.U64(i))
 		s.Require().NoError(err)

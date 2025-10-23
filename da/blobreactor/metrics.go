@@ -22,6 +22,9 @@ package blobreactor
 
 import (
 	"time"
+
+	"github.com/berachain/beacon-kit/observability/metrics"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 // Metric status constants for blob reactor requests.
@@ -38,39 +41,104 @@ const (
 	messageTypeResponse   = "response"
 )
 
-// blobReactorMetrics contains metrics for the blob reactor P2P operations.
-type blobReactorMetrics struct {
-	sink TelemetrySink
+// Metrics contains metrics for the blob reactor P2P operations.
+type Metrics struct {
+	RequestTotal        metrics.Counter
+	RequestDuration     metrics.Histogram
+	PeerAttemptsTotal   metrics.Counter
+	WorkerPoolFullTotal metrics.Counter
+	ActiveRequests      metrics.Gauge
+	PeersAvailable      metrics.Gauge
+	PeersTotal          metrics.Gauge
 }
 
-// newBlobReactorMetrics creates a new blobReactorMetrics instance.
-func newBlobReactorMetrics(sink TelemetrySink) *blobReactorMetrics {
-	return &blobReactorMetrics{sink: sink}
+// NewMetrics returns a new Metrics instance with Prometheus metrics.
+// Metric names are kept identical to cosmos-sdk/telemetry output for Grafana compatibility.
+func NewMetrics(factory metrics.Factory) *Metrics {
+	return &Metrics{
+		RequestTotal: factory.NewCounter(
+			metrics.CounterOpts{
+				Subsystem: "blobreactor",
+				Name:      "request_total",
+				Help:      "Total number of blob requests completed",
+			},
+			[]string{"status"},
+		),
+		RequestDuration: factory.NewHistogram(
+			metrics.HistogramOpts{
+				Subsystem: "blobreactor",
+				Name:      "request_duration",
+				Help:      "Time taken to complete blob requests in seconds",
+				Buckets:   prometheus.ExponentialBucketsRange(0.001, 10, 10),
+			},
+			[]string{"status"},
+		),
+		PeerAttemptsTotal: factory.NewCounter(
+			metrics.CounterOpts{
+				Subsystem: "blobreactor",
+				Name:      "peer_attempts_total",
+				Help:      "Total number of peer attempts for blob requests",
+			},
+			[]string{"status"},
+		),
+		WorkerPoolFullTotal: factory.NewCounter(
+			metrics.CounterOpts{
+				Subsystem: "blobreactor",
+				Name:      "worker_pool_full_total",
+				Help:      "Number of times worker pool was full and messages were dropped",
+			},
+			[]string{"message_type"},
+		),
+		ActiveRequests: factory.NewGauge(
+			metrics.GaugeOpts{
+				Subsystem: "blobreactor",
+				Name:      "active_requests",
+				Help:      "Number of currently active blob requests",
+			},
+			nil,
+		),
+		PeersAvailable: factory.NewGauge(
+			metrics.GaugeOpts{
+				Subsystem: "blobreactor",
+				Name:      "peers_available",
+				Help:      "Number of available peers for blob requests",
+			},
+			nil,
+		),
+		PeersTotal: factory.NewGauge(
+			metrics.GaugeOpts{
+				Subsystem: "blobreactor",
+				Name:      "peers_total",
+				Help:      "Total number of connected peers",
+			},
+			nil,
+		),
+	}
 }
 
 // recordOverallRequestComplete records completion of entire blob request (may try multiple peers).
-func (m *blobReactorMetrics) recordOverallRequestComplete(status string, start time.Time) {
-	m.sink.IncrementCounter("beacon_kit.blobreactor.request_total", "status", status)
-	m.sink.MeasureSince("beacon_kit.blobreactor.request_duration", start, "status", status)
+func (m *Metrics) recordOverallRequestComplete(status string, start time.Time) {
+	m.RequestTotal.With("status", status).Add(1)
+	m.RequestDuration.With("status", status).Observe(time.Since(start).Seconds())
 }
 
 // recordPeerAttempt records a single peer attempt with status (no duration to avoid high cardinality).
-func (m *blobReactorMetrics) recordPeerAttempt(status string) {
-	m.sink.IncrementCounter("beacon_kit.blobreactor.peer_attempts_total", "status", status)
+func (m *Metrics) recordPeerAttempt(status string) {
+	m.PeerAttemptsTotal.With("status", status).Add(1)
 }
 
 // observeWorkerPoolFull increments counter when worker pool is full and messages are dropped.
-func (m *blobReactorMetrics) observeWorkerPoolFull(messageType string) {
-	m.sink.IncrementCounter("beacon_kit.blobreactor.worker_pool_full_total", "message_type", messageType)
+func (m *Metrics) observeWorkerPoolFull(messageType string) {
+	m.WorkerPoolFullTotal.With("message_type", messageType).Add(1)
 }
 
 // setActiveRequests sets gauge for currently active blob requests.
-func (m *blobReactorMetrics) setActiveRequests(count int) {
-	m.sink.SetGauge("beacon_kit.blobreactor.active_requests", int64(count))
+func (m *Metrics) setActiveRequests(count int) {
+	m.ActiveRequests.Set(float64(count))
 }
 
 // setPeerPoolSize sets gauges for peer pool statistics.
-func (m *blobReactorMetrics) setPeerPoolSize(available, total int) {
-	m.sink.SetGauge("beacon_kit.blobreactor.peers_available", int64(available))
-	m.sink.SetGauge("beacon_kit.blobreactor.peers_total", int64(total))
+func (m *Metrics) setPeerPoolSize(available, total int) {
+	m.PeersAvailable.Set(float64(available))
+	m.PeersTotal.Set(float64(total))
 }

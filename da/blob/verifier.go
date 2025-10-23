@@ -40,17 +40,17 @@ type verifier struct {
 	// proofVerifier is used to verify the KZG proofs of the blobs.
 	proofVerifier kzg.BlobProofVerifier
 	// metrics collects and reports metrics related to the verification process.
-	metrics *verifierMetrics
+	metrics *VerifierMetrics
 }
 
 // newVerifier creates a new Verifier with the given proof verifier.
 func newVerifier(
 	proofVerifier kzg.BlobProofVerifier,
-	telemetrySink TelemetrySink,
+	metrics *VerifierMetrics,
 ) *verifier {
 	return &verifier{
 		proofVerifier: proofVerifier,
-		metrics:       newVerifierMetrics(telemetrySink),
+		metrics:       metrics,
 	}
 }
 

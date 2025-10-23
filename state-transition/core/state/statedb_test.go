@@ -30,7 +30,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/node-core/components/metrics"
+	"github.com/berachain/beacon-kit/observability/metrics/discard"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/state-transition/core/state"
@@ -69,7 +69,7 @@ func TestStateProtect(t *testing.T) {
 		kvStore.WithContext(sdkCtx),
 		cs,
 		sdkCtx.Logger(),
-		metrics.NewNoOpTelemetrySink(),
+		state.NewMetrics(discard.NewFactory()),
 	)
 
 	protectingState := originalState.Protect(sdkCtx)

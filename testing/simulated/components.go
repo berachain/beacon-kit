@@ -57,13 +57,13 @@ func FixedComponents(t *testing.T) []any {
 		components.ProvideStateProcessor,
 		components.ProvideKVStore,
 		components.ProvideStorageBackend,
-		components.ProvideTelemetrySink,
-		components.ProvideTelemetryService,
 		components.ProvideTrustedSetup,
 		components.ProvideValidatorService,
 		components.ProvideNodeAPIServer,
 		components.ProvideShutDownService,
 	}
+	// Add all metrics providers (factory + individual metrics)
+	c = append(c, components.AllMetricsProviders()...)
 	return c
 }
 

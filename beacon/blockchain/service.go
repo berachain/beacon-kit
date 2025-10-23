@@ -62,7 +62,7 @@ type Service struct {
 	// stateProcessor is the state processor for beacon blocks and states.
 	stateProcessor StateProcessor
 	// metrics is the metrics for the service.
-	metrics *chainMetrics
+	metrics *Metrics
 	// forceStartupSyncOnce is used to force a sync of the startup head.
 	forceStartupSyncOnce *sync.Once
 
@@ -83,7 +83,7 @@ func NewService(
 	executionEngine ExecutionEngine,
 	localBuilder LocalBuilder,
 	stateProcessor StateProcessor,
-	telemetrySink TelemetrySink,
+	metrics *Metrics,
 ) *Service {
 	return &Service{
 		storageBackend:       storageBackend,
@@ -97,7 +97,7 @@ func NewService(
 		executionEngine:      executionEngine,
 		localBuilder:         localBuilder,
 		stateProcessor:       stateProcessor,
-		metrics:              newChainMetrics(telemetrySink),
+		metrics:              metrics,
 		forceStartupSyncOnce: new(sync.Once),
 	}
 }

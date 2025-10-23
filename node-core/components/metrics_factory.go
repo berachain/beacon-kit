@@ -13,16 +13,33 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
 package components
 
-import "github.com/berachain/beacon-kit/node-core/components/metrics"
+import (
+	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/config/config"
+	"github.com/berachain/beacon-kit/observability/metrics"
+	"github.com/berachain/beacon-kit/observability/metrics/discard"
+	"github.com/berachain/beacon-kit/observability/metrics/prometheus"
+)
 
-// ProvideTelemetrySink is a function that provides a TelemetrySink.
-func ProvideTelemetrySink() *metrics.TelemetrySink {
-	return &metrics.TelemetrySink{}
+type MetricsFactoryInput struct {
+	depinject.In
+	Config *config.Config
+}
+
+// ProvideMetricsFactory provides a metrics factory based on configuration.
+// When Config.Telemetry.Enabled is true, creates real Prometheus metrics.
+// When false, creates no-op metrics with zero runtime overhead.
+// This setting affects ALL metrics in the beacon-kit system.
+func ProvideMetricsFactory(in MetricsFactoryInput) metrics.Factory {
+	if in.Config.Telemetry.Enabled {
+		return prometheus.NewFactory("beacon_kit")
+	}
+	return discard.NewFactory()
 }
