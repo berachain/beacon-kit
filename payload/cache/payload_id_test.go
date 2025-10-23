@@ -36,7 +36,7 @@ func TestPayloadIDCache(t *testing.T) {
 
 	t.Run("Get from empty cache", func(t *testing.T) {
 		var r [32]byte
-		p, ok := cacheUnderTest.GetAndEvict(0, r)
+		p, ok := cacheUnderTest.Get(0, r)
 		require.False(t, ok)
 		require.Equal(t, engineprimitives.PayloadID{}, p.PayloadID)
 	})
@@ -47,7 +47,7 @@ func TestPayloadIDCache(t *testing.T) {
 		pid := engineprimitives.PayloadID{1, 2, 3, 3, 7, 8, 7, 8}
 		cacheUnderTest.Set(slot, r, pid, version.Deneb())
 
-		p, ok := cacheUnderTest.GetAndEvict(slot, r)
+		p, ok := cacheUnderTest.Get(slot, r)
 		require.True(t, ok)
 		require.Equal(t, pid, p.PayloadID)
 	})
@@ -58,7 +58,7 @@ func TestPayloadIDCache(t *testing.T) {
 		newPid := engineprimitives.PayloadID{9, 9, 9, 9, 9, 9, 9, 9}
 		cacheUnderTest.Set(slot, r, newPid, version.Deneb())
 
-		p, ok := cacheUnderTest.GetAndEvict(slot, r)
+		p, ok := cacheUnderTest.Get(slot, r)
 		require.True(t, ok)
 		require.Equal(t, newPid, p.PayloadID)
 	})
