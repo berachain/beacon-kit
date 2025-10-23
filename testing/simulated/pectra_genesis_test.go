@@ -138,15 +138,15 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithoutRequests_IsSuccessful() {
 
 	// Initialize the chain state.
 	s.InitializeChain(s.T())
-
-	// Retrieve the BLS signer and proposer address.
-	blsSigner := simulated.GetBlsSigner(s.HomeDir)
+	nodeAddress, err := s.SimComet.GetNodeAddress()
+	s.Require().NoError(err)
+	s.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	// Test happens post Electra fork.
 	startTime := time.Now()
 
 	// Go through iterations of the core loop.
-	proposals, _, _ := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
+	proposals, _, _ := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, nodeAddress, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 }
 
@@ -156,10 +156,15 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithPartialWithdrawalRequests_IsS
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
+	pubkey, err := blsSigner.GetPubKey()
+	s.Require().NoError(err)
+	nodeAddress := pubkey.Address()
+	s.SimComet.Comet.SetNodeAddress(nodeAddress)
+
 	nextBlockHeight := int64(1)
 	// We must first move the chain by 1 height such that the withdrawal contract has an updated `EXCESS_INHIBITOR`.
 	{
-		proposals, _, _ := s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
+		proposals, _, _ := s.MoveChainToHeight(s.T(), nextBlockHeight, 1, nodeAddress, time.Now())
 		s.Require().Len(proposals, 1)
 		nextBlockHeight++
 	}
@@ -214,7 +219,7 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithPartialWithdrawalRequests_IsS
 	var afterRequestBalance hexutil.Big
 	{
 		s.LogBuffer.Reset()
-		proposals, _, _ := s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
+		proposals, _, _ := s.MoveChainToHeight(s.T(), nextBlockHeight, 1, nodeAddress, time.Now())
 		s.Require().Len(proposals, 1)
 		// Log contains 2 withdrawals
 		s.Require().Contains(s.LogBuffer.String(), "Processing execution requests service=state-processor\u001B[0m deposits=0\u001B[0m withdrawals=2\u001B[0m consolidations=0\u001B[0m")
@@ -236,7 +241,7 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithPartialWithdrawalRequests_IsS
 		targetEpoch := nextEpoch + s.TestNode.ChainSpec.MinValidatorWithdrawabilityDelay()
 		iterationsToTurn := (s.TestNode.ChainSpec.SlotsPerEpoch() * uint64(targetEpoch)) - uint64(prevBlockHeight) - 1
 
-		s.MoveChainToHeight(s.T(), nextBlockHeight, int64(iterationsToTurn), blsSigner, time.Now())
+		s.MoveChainToHeight(s.T(), nextBlockHeight, int64(iterationsToTurn), nodeAddress, time.Now())
 
 		s.LogBuffer.Reset()
 		err := s.TestNode.EngineClient.Call(s.CtxApp, &beforeWithdrawalBalance, "eth_getBalance", simulated.WithdrawalExecutionAddress, "latest")
@@ -250,7 +255,7 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithPartialWithdrawalRequests_IsS
 
 	// The next block will be the turn of the Epoch, and the balance will change
 	{
-		s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
+		s.MoveChainToHeight(s.T(), nextBlockHeight, 1, nodeAddress, time.Now())
 
 		var afterWithdrawalBalance hexutil.Big
 		err := s.TestNode.EngineClient.Call(s.CtxApp, &afterWithdrawalBalance, "eth_getBalance", simulated.WithdrawalExecutionAddress, "latest")
@@ -273,11 +278,14 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithFullWithdrawalRequest_IsSucce
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
+	pubkey, err := blsSigner.GetPubKey()
+	s.Require().NoError(err)
+	nodeAddress := pubkey.Address()
 
 	nextBlockHeight := int64(1)
 	// We must first move the chain by 1 height such that the withdrawal contract has an updated `EXCESS_INHIBITOR`.
 	{
-		proposals, _, _ := s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
+		proposals, _, _ := s.MoveChainToHeight(s.T(), nextBlockHeight, 1, nodeAddress, time.Now())
 		s.Require().Len(proposals, 1)
 		nextBlockHeight = nextBlockHeight + 1
 	}
@@ -326,7 +334,7 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithFullWithdrawalRequest_IsSucce
 	// Go through 1 iteration of the core loop so that the withdrawal tx is included
 	var afterRequestBalance hexutil.Big
 	{
-		proposals, finalizeBlockResponses, _ := s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
+		proposals, finalizeBlockResponses, _ := s.MoveChainToHeight(s.T(), nextBlockHeight, 1, nodeAddress, time.Now())
 		s.Require().Len(proposals, 1)
 		// Log contains 1 withdrawal
 		s.Require().Contains(s.LogBuffer.String(), "Processing execution requests service=state-processor\u001B[0m deposits=0\u001B[0m withdrawals=1\u001B[0m consolidations=0\u001B[0m")
@@ -351,7 +359,7 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithFullWithdrawalRequest_IsSucce
 		exitEpoch = nextEpoch
 		iterationsToExitEpoch := (s.TestNode.ChainSpec.SlotsPerEpoch() * uint64(exitEpoch)) - uint64(prevBlockHeight)
 
-		_, finalizeBlockResponses, _ := s.MoveChainToHeight(s.T(), nextBlockHeight, int64(iterationsToExitEpoch), blsSigner, time.Now())
+		_, finalizeBlockResponses, _ := s.MoveChainToHeight(s.T(), nextBlockHeight, int64(iterationsToExitEpoch), nodeAddress, time.Now())
 		s.Require().Len(finalizeBlockResponses, int(iterationsToExitEpoch))
 		lastBlockIdx := len(finalizeBlockResponses) - 1
 		// We expect the validator to be kicked out now, with power 0
@@ -370,7 +378,7 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithFullWithdrawalRequest_IsSucce
 		// IterationsToTurn will get us to the slot before the turn of the target
 		targetEpoch := exitEpoch + s.TestNode.ChainSpec.MinValidatorWithdrawabilityDelay()
 		iterationsToTurn := (s.TestNode.ChainSpec.SlotsPerEpoch() * uint64(targetEpoch)) - uint64(nextBlockHeight)
-		s.MoveChainToHeight(s.T(), nextBlockHeight, int64(iterationsToTurn), blsSigner, time.Now())
+		s.MoveChainToHeight(s.T(), nextBlockHeight, int64(iterationsToTurn), nodeAddress, time.Now())
 
 		s.LogBuffer.Reset()
 		err := s.TestNode.EngineClient.Call(s.CtxApp, &beforeWithdrawalBalance, "eth_getBalance", simulated.WithdrawalExecutionAddress, "latest")
@@ -384,7 +392,7 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithFullWithdrawalRequest_IsSucce
 
 	// The next block will be the turn of the Epoch, and the balance will change
 	{
-		s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
+		s.MoveChainToHeight(s.T(), nextBlockHeight, 1, nodeAddress, time.Now())
 		var afterWithdrawalBalance hexutil.Big
 		err := s.TestNode.EngineClient.Call(s.CtxApp, &afterWithdrawalBalance, "eth_getBalance", simulated.WithdrawalExecutionAddress, "latest")
 		s.Require().NoError(err)
@@ -412,11 +420,13 @@ func (s *PectraGenesisSuite) TestMaliciousProposer_AddInvalidExecutionRequests_I
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
+	nodeAddress := pubkey.Address()
+	s.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	nextBlockHeight := int64(1)
 	// We must first move the chain by 1 height such that the withdrawal contract has an updated `EXCESS_INHIBITOR`.
 	{
-		proposals, _, _ := s.MoveChainToHeight(s.T(), nextBlockHeight, 1, blsSigner, time.Now())
+		proposals, _, _ := s.MoveChainToHeight(s.T(), nextBlockHeight, 1, nodeAddress, time.Now())
 		s.Require().Len(proposals, 1)
 		nextBlockHeight++
 	}
@@ -430,7 +440,7 @@ func (s *PectraGenesisSuite) TestMaliciousProposer_AddInvalidExecutionRequests_I
 		proposal, err = s.SimComet.Comet.PrepareProposal(s.CtxComet, &v1.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            time.Now(),
-			ProposerAddress: pubkey.Address(),
+			ProposerAddress: nodeAddress,
 		})
 		s.Require().NoError(err)
 		s.Require().Len(proposal.Txs, 2)
@@ -493,7 +503,7 @@ func (s *PectraGenesisSuite) TestMaliciousProposer_AddInvalidExecutionRequests_I
 		processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &v1.ProcessProposalRequest{
 			Txs:             proposal.Txs,
 			Height:          nextBlockHeight,
-			ProposerAddress: pubkey.Address(),
+			ProposerAddress: nodeAddress,
 			Time:            proposalTime,
 		})
 		s.Require().NoError(err)
