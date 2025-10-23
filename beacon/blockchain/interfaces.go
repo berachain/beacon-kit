@@ -22,7 +22,6 @@ package blockchain
 
 import (
 	"context"
-	"time"
 
 	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
@@ -127,20 +126,6 @@ type StorageBackend interface {
 	DepositStore() deposit.StoreManager
 	// BlockStore retrieves the block store.
 	BlockStore() *block.KVStore[*ctypes.BeaconBlock]
-}
-
-// TelemetrySink is an interface for sending metrics to a telemetry backend.
-type TelemetrySink interface {
-	// IncrementCounter increments the counter identified by
-	// the provided key.
-	IncrementCounter(key string, args ...string)
-
-	// SetGauge sets a gauge metric to the specified value.
-	SetGauge(key string, value int64, args ...string)
-
-	// MeasureSince measures the time since the provided start time,
-	// identified by the provided keys.
-	MeasureSince(key string, start time.Time, args ...string)
 }
 
 //nolint:revive // its ok

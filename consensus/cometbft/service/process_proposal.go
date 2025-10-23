@@ -35,8 +35,7 @@ func (s *Service) processProposal(
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
 	startTime := time.Now()
-	defer s.telemetrySink.MeasureSince(
-		"beacon_kit.runtime.process_proposal_duration", startTime)
+	defer s.metrics.measureProcessProposalDuration(startTime)
 
 	// CometBFT must never call ProcessProposal with a height of 0.
 	if req.Height < 1 {

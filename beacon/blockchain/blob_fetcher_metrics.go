@@ -20,44 +20,94 @@
 
 package blockchain
 
+import (
+	"github.com/berachain/beacon-kit/observability/metrics"
+)
+
 // Metric reason constants for blob fetcher.
 const (
 	expiredReasonOutsideDA  = "outside_da_period"
 	expiredReasonMaxRetries = "max_retries"
 )
 
-// blobFetcherMetrics contains metrics for the blob fetcher queue and retry operations.
-type blobFetcherMetrics struct {
-	sink TelemetrySink
+// BlobFetcherMetrics contains metrics for the blob fetcher queue and retry operations.
+type BlobFetcherMetrics struct {
+	RetriesTotal           metrics.Counter
+	RequestsExpiredTotal   metrics.Counter
+	RequestsCompletedTotal metrics.Counter
+	RequestsQueuedTotal    metrics.Counter
+	QueueDepth             metrics.Gauge
 }
 
-// newBlobFetcherMetrics creates a new blobFetcherMetrics instance.
-func newBlobFetcherMetrics(sink TelemetrySink) *blobFetcherMetrics {
-	return &blobFetcherMetrics{sink: sink}
+// NewBlobFetcherMetrics returns a new BlobFetcherMetrics instance with metrics from the provided factory.
+// Metric names are kept identical to cosmos-sdk/telemetry output for Grafana compatibility.
+func NewBlobFetcherMetrics(factory metrics.Factory) *BlobFetcherMetrics {
+	return &BlobFetcherMetrics{
+		RetriesTotal: factory.NewCounter(
+			metrics.CounterOpts{
+				Subsystem: "blob_fetcher",
+				Name:      "retries_total",
+				Help:      "Number of times a blob request was retried after failure",
+			},
+			nil,
+		),
+		RequestsExpiredTotal: factory.NewCounter(
+			metrics.CounterOpts{
+				Subsystem: "blob_fetcher",
+				Name:      "requests_expired_total",
+				Help:      "Number of blob fetch requests that expired before completion",
+			},
+			[]string{"reason"},
+		),
+		RequestsCompletedTotal: factory.NewCounter(
+			metrics.CounterOpts{
+				Subsystem: "blob_fetcher",
+				Name:      "requests_completed_total",
+				Help:      "Number of blob fetch requests that completed successfully",
+			},
+			nil,
+		),
+		RequestsQueuedTotal: factory.NewCounter(
+			metrics.CounterOpts{
+				Subsystem: "blob_fetcher",
+				Name:      "requests_queued_total",
+				Help:      "Number of new blob fetch requests added to the queue",
+			},
+			nil,
+		),
+		QueueDepth: factory.NewGauge(
+			metrics.GaugeOpts{
+				Subsystem: "blob_fetcher",
+				Name:      "queue_depth",
+				Help:      "Current depth of the blob fetcher queue",
+			},
+			nil,
+		),
+	}
 }
 
 // recordRetry increments counter when a blob request is retried after failure.
-func (m *blobFetcherMetrics) recordRetry() {
-	m.sink.IncrementCounter("beacon_kit.blob_fetcher.retries_total")
+func (m *BlobFetcherMetrics) recordRetry() {
+	m.RetriesTotal.Add(1)
 }
 
 // recordRequestExpired increments counter when request expires before completion.
 // Reason: "outside_da_period", "max_retries"
-func (m *blobFetcherMetrics) recordRequestExpired(reason string) {
-	m.sink.IncrementCounter("beacon_kit.blob_fetcher.requests_expired_total", "reason", reason)
+func (m *BlobFetcherMetrics) recordRequestExpired(reason string) {
+	m.RequestsExpiredTotal.With("reason", reason).Add(1)
 }
 
 // recordRequestComplete increments counter when request completes successfully.
-func (m *blobFetcherMetrics) recordRequestComplete() {
-	m.sink.IncrementCounter("beacon_kit.blob_fetcher.requests_completed_total")
+func (m *BlobFetcherMetrics) recordRequestComplete() {
+	m.RequestsCompletedTotal.Add(1)
 }
 
 // recordRequestQueued increments counter when a new request is added to queue.
-func (m *blobFetcherMetrics) recordRequestQueued() {
-	m.sink.IncrementCounter("beacon_kit.blob_fetcher.requests_queued_total")
+func (m *BlobFetcherMetrics) recordRequestQueued() {
+	m.RequestsQueuedTotal.Add(1)
 }
 
 // setQueueDepth sets the current depth of the blob fetcher queue.
-func (m *blobFetcherMetrics) setQueueDepth(depth int) {
-	m.sink.SetGauge("beacon_kit.blob_fetcher.queue_depth", int64(depth))
+func (m *BlobFetcherMetrics) setQueueDepth(depth int) {
+	m.QueueDepth.Set(float64(depth))
 }

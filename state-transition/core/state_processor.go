@@ -55,7 +55,7 @@ type StateProcessor struct {
 	// ds allows checking payload deposits against the deposit contract
 	ds deposit.StoreManager
 	// metrics is the metrics for the service.
-	metrics *stateProcessorMetrics
+	metrics *Metrics
 	// logDeneb1Once enforces logging the Deneb1 fork information at most once.
 	logDeneb1Once sync.Once
 }
@@ -68,7 +68,7 @@ func NewStateProcessor(
 	ds deposit.StoreManager,
 	signer crypto.BLSSigner,
 	fGetAddressFromPubKey func(crypto.BLSPubkey) ([]byte, error),
-	telemetrySink TelemetrySink,
+	metrics *Metrics,
 ) *StateProcessor {
 	return &StateProcessor{
 		logger:                logger,
@@ -77,7 +77,7 @@ func NewStateProcessor(
 		signer:                signer,
 		fGetAddressFromPubKey: fGetAddressFromPubKey,
 		ds:                    ds,
-		metrics:               newStateProcessorMetrics(telemetrySink),
+		metrics:               metrics,
 	}
 }
 

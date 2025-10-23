@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -23,65 +23,86 @@ package blob
 import (
 	"time"
 
+	"github.com/berachain/beacon-kit/observability/metrics"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
-// factoryMetrics is a struct that contains metrics for the factory.
-type factoryMetrics struct {
-	// TelemetrySink is the sink for the metrics.
-	sink TelemetrySink
+// FactoryMetrics is a struct that contains metrics for the sidecar factory.
+type FactoryMetrics struct {
+	BuildSidecarDuration           metrics.Histogram
+	BuildKZGInclusionProofDuration metrics.Histogram
+	BuildBlockBodyProofDuration    metrics.Histogram
+	BuildCommitmentProofDuration   metrics.Histogram
 }
 
-// newFactoryMetrics creates a new factoryMetrics.
-func newFactoryMetrics(
-	sink TelemetrySink,
-) *factoryMetrics {
-	return &factoryMetrics{
-		sink: sink,
+// NewFactoryMetrics returns a new FactoryMetrics instance.
+// Metric names are kept identical to cosmos-sdk/telemetry output for Grafana compatibility.
+func NewFactoryMetrics(factory metrics.Factory) *FactoryMetrics {
+	return &FactoryMetrics{
+		BuildSidecarDuration: factory.NewHistogram(
+			metrics.HistogramOpts{
+				Subsystem: "da_blob_factory",
+				Name:      "build_sidecar_duration",
+				Help:      "Time taken to build blob sidecars in seconds",
+				Buckets:   prometheus.ExponentialBucketsRange(0.001, 10, 10),
+			},
+			[]string{"num_sidecars"},
+		),
+		BuildKZGInclusionProofDuration: factory.NewHistogram(
+			metrics.HistogramOpts{
+				Subsystem: "da_blob_factory",
+				Name:      "build_kzg_inclusion_proof_duration",
+				Help:      "Time taken to build KZG inclusion proof in seconds",
+				Buckets:   prometheus.ExponentialBucketsRange(0.001, 10, 10),
+			},
+			nil,
+		),
+		BuildBlockBodyProofDuration: factory.NewHistogram(
+			metrics.HistogramOpts{
+				Subsystem: "da_blob_factory",
+				Name:      "build_block_body_proof_duration",
+				Help:      "Time taken to build block body proof in seconds",
+				Buckets:   prometheus.ExponentialBucketsRange(0.001, 10, 10),
+			},
+			nil,
+		),
+		BuildCommitmentProofDuration: factory.NewHistogram(
+			metrics.HistogramOpts{
+				Subsystem: "da_blob_factory",
+				Name:      "build_commitment_proof_duration",
+				Help:      "Time taken to build commitment proof in seconds",
+				Buckets:   prometheus.ExponentialBucketsRange(0.001, 10, 10),
+			},
+			nil,
+		),
 	}
 }
 
 // measureBuildSidecarsDuration measures the duration of the build sidecars.
-func (fm *factoryMetrics) measureBuildSidecarsDuration(
+func (m *FactoryMetrics) measureBuildSidecarsDuration(
 	startTime time.Time, numSidecars math.U64,
 ) {
-	fm.sink.MeasureSince(
-		"beacon_kit.da.blob.factory.build_sidecar_duration",
-		startTime,
-		"num_sidecars",
-		numSidecars.Base10(),
-	)
+	m.BuildSidecarDuration.With("num_sidecars", numSidecars.Base10()).Observe(time.Since(startTime).Seconds())
 }
 
-// measureBuildKZGInclusionProofDuration measures the duration of the build KZG
-// inclusion proof.
-func (fm *factoryMetrics) measureBuildKZGInclusionProofDuration(
+// measureBuildKZGInclusionProofDuration measures the duration of the build KZG inclusion proof.
+func (m *FactoryMetrics) measureBuildKZGInclusionProofDuration(
 	startTime time.Time,
 ) {
-	fm.sink.MeasureSince(
-		"beacon_kit.da.blob.factory.build_kzg_inclusion_proof_duration",
-		startTime,
-	)
+	m.BuildKZGInclusionProofDuration.Observe(time.Since(startTime).Seconds())
 }
 
-// measureBuildBlockBodyProofDuration measures the duration of the build block
-// body proof.
-func (fm *factoryMetrics) measureBuildBlockBodyProofDuration(
+// measureBuildBlockBodyProofDuration measures the duration of the build block body proof.
+func (m *FactoryMetrics) measureBuildBlockBodyProofDuration(
 	startTime time.Time,
 ) {
-	fm.sink.MeasureSince(
-		"beacon_kit.da.blob.factory.build_block_body_proof_duration",
-		startTime,
-	)
+	m.BuildBlockBodyProofDuration.Observe(time.Since(startTime).Seconds())
 }
 
-// measureBuildCommitmentProofDuration measures the duration of the build
-// commitment proof.
-func (fm *factoryMetrics) measureBuildCommitmentProofDuration(
+// measureBuildCommitmentProofDuration measures the duration of the build commitment proof.
+func (m *FactoryMetrics) measureBuildCommitmentProofDuration(
 	startTime time.Time,
 ) {
-	fm.sink.MeasureSince(
-		"beacon_kit.da.blob.factory.build_commitment_proof_duration",
-		startTime,
-	)
+	m.BuildCommitmentProofDuration.Observe(time.Since(startTime).Seconds())
 }

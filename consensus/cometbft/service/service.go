@@ -69,7 +69,7 @@ type Service struct {
 	// Loaded from config file (config.toml), not part of state.
 	cmtCfg *cmtcfg.Config
 
-	telemetrySink TelemetrySink
+	metrics *Metrics
 
 	logger       *phuslu.Logger
 	sm           *statem.Manager
@@ -116,7 +116,7 @@ func NewService(
 	blobReactor BlobReactorI,
 	cs chain.Spec,
 	cmtCfg *cmtcfg.Config,
-	telemetrySink TelemetrySink,
+	metrics *Metrics,
 	options ...func(*Service),
 ) *Service {
 	if err := validateConfig(cmtCfg); err != nil {
@@ -141,7 +141,7 @@ func NewService(
 		chainSpec:          cs,
 		cmtConsensusParams: cmtConsensusParams,
 		cmtCfg:             cmtCfg,
-		telemetrySink:      telemetrySink,
+		metrics:            metrics,
 		cachedStates:       cache.New(),
 	}
 

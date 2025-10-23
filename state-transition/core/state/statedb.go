@@ -40,26 +40,26 @@ import (
 type StateDB struct {
 	beacondb.KVStore
 
-	cs            ChainSpec
-	logger        log.Logger
-	telemetrySink TelemetrySink
+	cs      ChainSpec
+	logger  log.Logger
+	metrics *Metrics
 }
 
 // NewBeaconStateFromDB creates a new beacon state from an underlying state db.
 func NewBeaconStateFromDB(
-	bdb *beacondb.KVStore, cs ChainSpec, logger log.Logger, telemetrySink TelemetrySink,
+	bdb *beacondb.KVStore, cs ChainSpec, logger log.Logger, metrics *Metrics,
 ) *StateDB {
 	return &StateDB{
-		KVStore:       *bdb,
-		cs:            cs,
-		logger:        logger,
-		telemetrySink: telemetrySink,
+		KVStore: *bdb,
+		cs:      cs,
+		logger:  logger,
+		metrics: metrics,
 	}
 }
 
 // Copy returns a copy of the beacon state.
 func (s *StateDB) Copy(ctx context.Context) *StateDB {
-	return NewBeaconStateFromDB(s.KVStore.Copy(ctx), s.cs, s.logger, s.telemetrySink)
+	return NewBeaconStateFromDB(s.KVStore.Copy(ctx), s.cs, s.logger, s.metrics)
 }
 
 // GetEpoch returns the current epoch.
