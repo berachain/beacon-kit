@@ -163,10 +163,27 @@ func (pb *PayloadBuilder) RetrievePayload(
 		return nil, ErrPayloadBuilderDisabled
 	}
 
-	// Attempt to see if we previously fired off a payload built for
-	// this particular slot and parent block root.
+	// With optimistic block building enabled, multiple payloads can be available
+	// when it's the proposer turn to build. We select them as follows:
+	// - First we checke if node has already built a payload for the requested slot. If so we use that
+	// payload; note that such a payload may not be available (no payloadID associated or payload is stale).
+	// - Secondly we try and reuse the latest payload we verified, even if produced by other validators.
+	// The reason we have to do this has to do with an ENGINE API invariant: the node
+	// could be asked to build a block at slot H even if it already verified a block at that slot H.
+	// This happens if the block passes verification but is not finalized (e.g. due to network issue).
+	// In such a case, the EVM may not be able to serve a new payload (e.g. if it has received a
+	// FCU call with HEAD == H+1). To avoiding a failure in building the block
+	// we reuse a validated payload if it's available
+	// - Finally if neither of these payloads is available, we signal the block bulder to build
+	// the payload just in time with ErrPayloadIDNotFound error flag
 	payloadRes, found := pb.pc.Get(slot, parentBlockRoot)
 	if !found {
+		// No block built optimistically, try reusing the latest verified payload
+		if verifiedEnvelope := pb.getLatestVerifiedPayload(slot); verifiedEnvelope != nil {
+			return verifiedEnvelope, nil
+		}
+
+		// ErrPayloadIDNotFound tells to the block builder to build payload just in time
 		return nil, ErrPayloadIDNotFound
 	}
 	if !version.Equals(payloadRes.ForkVersion, expectedForkVersion) {
@@ -180,15 +197,19 @@ func (pb *PayloadBuilder) RetrievePayload(
 		if errors.Is(err, engineerrors.ErrUnknownPayload) ||
 			errors.Is(err, engineerrors.ErrNilExecutionPayloadEnvelope) {
 			// We may have cached the payloadID, but the payload have become stale
-			// in the EVM, or there could have been other issues. Block builder will
-			// try and build again the payload just in time
+			// in the EVM, or there could have been other issues. In any case the payloadID
+			// can't be reused, so we can drop it.
 			pb.pc.Delete(slot, parentBlockRoot)
+
+			// Again here we should try reusing the latest verified block.
+			if verifiedEnvelope := pb.getLatestVerifiedPayload(slot); verifiedEnvelope != nil {
+				return verifiedEnvelope, nil
+			}
 		}
 		return nil, err
 	}
 
-	// If the payload was built by a different builder, something is
-	// wrong the EL<>CL setup.
+	// Minor validations and logging below
 	payload := envelope.GetExecutionPayload()
 	if payload.GetFeeRecipient() != pb.cfg.SuggestedFeeRecipient {
 		pb.logger.Warn(
@@ -212,6 +233,26 @@ func (pb *PayloadBuilder) RetrievePayload(
 	pb.logger.Info("Payload retrieved from local builder", args...)
 
 	return envelope, err
+}
+
+func (pb *PayloadBuilder) CacheLatestVerifiedPayload(
+	latestEnvelopeSlot math.Slot,
+	latestEnvelope ctypes.BuiltExecutionPayloadEnv,
+) {
+	pb.muEnv.Lock()
+	defer pb.muEnv.Unlock()
+	pb.latestEnvelopeSlot = latestEnvelopeSlot
+	pb.latestEnvelope = latestEnvelope
+}
+
+// getLatestVerifiedPayload is a simple getter to keep pb.muEnv locking scope at minimum
+func (pb *PayloadBuilder) getLatestVerifiedPayload(slot math.Slot) ctypes.BuiltExecutionPayloadEnv {
+	pb.muEnv.Lock()
+	defer pb.muEnv.Unlock()
+	if pb.latestEnvelope != nil && slot == pb.latestEnvelopeSlot {
+		return pb.latestEnvelope
+	}
+	return nil
 }
 
 func (pb *PayloadBuilder) getPayload(
