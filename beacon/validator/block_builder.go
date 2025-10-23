@@ -218,7 +218,8 @@ func (s *Service) retrieveExecutionPayload(
 	//
 	// Get the payload for the block.
 	slot := slotData.GetSlot()
-	envelope, err := s.localPayloadBuilder.RetrievePayload(ctx, slot, parentBlockRoot)
+	expectedPayloadFork := s.chainSpec.ActiveForkVersionForTimestamp(slotData.GetConsensusTime())
+	envelope, err := s.localPayloadBuilder.RetrievePayload(ctx, slot, parentBlockRoot, expectedPayloadFork)
 	if err == nil {
 		return envelope, nil
 	}

@@ -27,9 +27,12 @@ import (
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 )
 
 type RequestPayloadData struct {
@@ -53,7 +56,7 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 		return nil, common.Version{}, ErrPayloadBuilderDisabled
 	}
 
-	if payloadID, found := pb.pc.GetAndEvict(r.Slot, r.ParentBlockRoot); found {
+	if payloadID, found := pb.pc.Get(r.Slot, r.ParentBlockRoot); found {
 		pb.logger.Info(
 			"aborting payload build; payload already exists in cache",
 			"for_slot", r.Slot.Base10(),
@@ -132,8 +135,18 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 		return nil, ctx.Err()
 	}
 
-	// Get the payload from the execution client.
-	return pb.getPayload(ctx, *payloadID, forkVersion)
+	payload, err := pb.getPayload(ctx, *payloadID, forkVersion)
+	if err != nil {
+		if errors.Is(err, engineerrors.ErrUnknownPayload) ||
+			errors.Is(err, engineerrors.ErrNilExecutionPayloadEnvelope) {
+			// We may have cached the payloadID, but the payload have become stale
+			// in the EVM, or there could have been other issues. Block builder will
+			// try and build again the payload just in time
+			pb.pc.Delete(r.Slot, r.ParentBlockRoot)
+		}
+		return nil, fmt.Errorf("failed retrieving payload for ID %x: %w", *payloadID, err)
+	}
+	return payload, nil
 }
 
 // RetrievePayload attempts to pull a previously built payload
@@ -144,6 +157,7 @@ func (pb *PayloadBuilder) RetrievePayload(
 	ctx context.Context,
 	slot math.Slot,
 	parentBlockRoot common.Root,
+	expectedForkVersion common.Version,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
 	if !pb.Enabled() {
 		return nil, ErrPayloadBuilderDisabled
@@ -151,14 +165,25 @@ func (pb *PayloadBuilder) RetrievePayload(
 
 	// Attempt to see if we previously fired off a payload built for
 	// this particular slot and parent block root.
-	payloadID, found := pb.pc.GetAndEvict(slot, parentBlockRoot)
+	payloadRes, found := pb.pc.Get(slot, parentBlockRoot)
 	if !found {
 		return nil, ErrPayloadIDNotFound
 	}
+	if !version.Equals(payloadRes.ForkVersion, expectedForkVersion) {
+		pb.pc.Delete(slot, parentBlockRoot)
+		return nil, ErrPayloadIDNotFound // force payload rebuild with the right fork
+	}
 
 	// Get the payload from the execution client.
-	envelope, err := pb.getPayload(ctx, payloadID.PayloadID, payloadID.ForkVersion)
+	envelope, err := pb.getPayload(ctx, payloadRes.PayloadID, payloadRes.ForkVersion)
 	if err != nil {
+		if errors.Is(err, engineerrors.ErrUnknownPayload) ||
+			errors.Is(err, engineerrors.ErrNilExecutionPayloadEnvelope) {
+			// We may have cached the payloadID, but the payload have become stale
+			// in the EVM, or there could have been other issues. Block builder will
+			// try and build again the payload just in time
+			pb.pc.Delete(slot, parentBlockRoot)
+		}
 		return nil, err
 	}
 

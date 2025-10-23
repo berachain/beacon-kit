@@ -441,6 +441,7 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 
 	// 3 - Build a block whose consensus and payload timestamp are pre-fork.
 	//     Check that it does verify (even if we already validated a post fork block).
+	// Note: to build the block we reuse the beaconBlock from point 1 and just change CometBFT timestamp
 	{
 		consensusTime := time.Unix(int64(s.Geth.TestNode.ChainSpec.ElectraForkTime())-2, 0)
 		prepareReq := &types.PrepareProposalRequest{
