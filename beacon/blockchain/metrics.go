@@ -24,7 +24,6 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/observability/metrics"
-	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // Metrics is a struct that contains metrics for the blockchain service.
@@ -56,28 +55,28 @@ func NewMetrics(factory metrics.Factory) *Metrics {
 				Name: "beacon_kit_blockchain_rebuild_payload_for_rejected_block_success",
 				Help: "Number of successful payload rebuilds for rejected blocks",
 			},
-			[]string{"slot"},
+			nil,
 		),
 		RebuildPayloadForRejectedBlockFailure: factory.NewCounter(
 			metrics.CounterOpts{
 				Name: "beacon_kit_blockchain_rebuild_payload_for_rejected_block_failure",
 				Help: "Number of failed payload rebuilds for rejected blocks",
 			},
-			[]string{"slot", "error"},
+			nil,
 		),
 		OptimisticPayloadBuildSuccess: factory.NewCounter(
 			metrics.CounterOpts{
 				Name: "beacon_kit_blockchain_optimistic_payload_build_success",
 				Help: "Number of successful optimistic payload builds",
 			},
-			[]string{"slot"},
+			nil,
 		),
 		OptimisticPayloadBuildFailure: factory.NewCounter(
 			metrics.CounterOpts{
 				Name: "beacon_kit_blockchain_optimistic_payload_build_failure",
 				Help: "Number of failed optimistic payload builds",
 			},
-			[]string{"slot", "error"},
+			nil,
 		),
 		StateRootVerificationDuration: factory.NewSummary(
 			metrics.SummaryOpts{
@@ -92,14 +91,14 @@ func NewMetrics(factory metrics.Factory) *Metrics {
 				Name: "beacon_kit_execution_deposit_failed_to_get_block_logs",
 				Help: "Number of times failed to read deposits from execution layer block logs",
 			},
-			[]string{"block_num"},
+			nil,
 		),
 		FailedToEnqueueDeposits: factory.NewCounter(
 			metrics.CounterOpts{
 				Name: "beacon_kit_execution_deposit_failed_to_enqueue_deposits",
 				Help: "Number of times failed to enqueue deposits to storage",
 			},
-			[]string{"block_num"},
+			nil,
 		),
 	}
 }
@@ -111,26 +110,26 @@ func (m *Metrics) measureStateTransitionDuration(start time.Time) {
 
 // markRebuildPayloadForRejectedBlockSuccess increments the counter for the number of times
 // the validator successfully rebuilt the payload for a rejected block.
-func (m *Metrics) markRebuildPayloadForRejectedBlockSuccess(slot math.Slot) {
-	m.RebuildPayloadForRejectedBlockSuccess.With("slot", slot.Base10()).Add(1)
+func (m *Metrics) markRebuildPayloadForRejectedBlockSuccess() {
+	m.RebuildPayloadForRejectedBlockSuccess.Add(1)
 }
 
 // markRebuildPayloadForRejectedBlockFailure increments the counter for the number of times
 // the validator failed to build an optimistic payload due to a failure.
-func (m *Metrics) markRebuildPayloadForRejectedBlockFailure(slot math.Slot, err error) {
-	m.RebuildPayloadForRejectedBlockFailure.With("slot", slot.Base10(), "error", err.Error()).Add(1)
+func (m *Metrics) markRebuildPayloadForRejectedBlockFailure() {
+	m.RebuildPayloadForRejectedBlockFailure.Add(1)
 }
 
 // markOptimisticPayloadBuildSuccess increments the counter for the number of times
 // the validator successfully built an optimistic payload.
-func (m *Metrics) markOptimisticPayloadBuildSuccess(slot math.Slot) {
-	m.OptimisticPayloadBuildSuccess.With("slot", slot.Base10()).Add(1)
+func (m *Metrics) markOptimisticPayloadBuildSuccess() {
+	m.OptimisticPayloadBuildSuccess.Add(1)
 }
 
 // markOptimisticPayloadBuildFailure increments the counter for the number of times
 // the validator failed to build an optimistic payload.
-func (m *Metrics) markOptimisticPayloadBuildFailure(slot math.Slot, err error) {
-	m.OptimisticPayloadBuildFailure.With("slot", slot.Base10(), "error", err.Error()).Add(1)
+func (m *Metrics) markOptimisticPayloadBuildFailure() {
+	m.OptimisticPayloadBuildFailure.Add(1)
 }
 
 // TODO: remove once state caching is activated

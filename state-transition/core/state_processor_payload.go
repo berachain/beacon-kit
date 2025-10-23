@@ -94,7 +94,7 @@ func (sp *StateProcessor) processExecutionPayload(
 
 	if txCtx.MeterGas() {
 		sp.metrics.gaugeBlockGasUsed(
-			payload.GetNumber(), payload.GetGasUsed(), payload.GetBlobGasUsed(),
+			payload.GetGasUsed(), payload.GetBlobGasUsed(),
 		)
 	}
 
