@@ -24,7 +24,6 @@ import (
 	"context"
 	"maps"
 	"slices"
-	"strconv"
 	"time"
 
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -55,11 +54,10 @@ func (s *Service) fetchAndStoreDeposits(
 	ctx context.Context,
 	blockNum math.U64,
 ) {
-	blockNumStr := strconv.FormatUint(blockNum.Unwrap(), 10)
 	deposits, err := s.depositContract.ReadDeposits(ctx, blockNum, blockNum)
 	if err != nil {
 		s.logger.Error("Failed to read deposits", "error", err)
-		s.metrics.FailedToGetBlockLogs.With("block_num", blockNumStr).Add(1)
+		s.metrics.FailedToGetBlockLogs.Add(1)
 		s.failedBlocksMu.Lock()
 		s.failedBlocks[blockNum] = struct{}{}
 		s.failedBlocksMu.Unlock()
@@ -75,7 +73,7 @@ func (s *Service) fetchAndStoreDeposits(
 
 	if err = s.storageBackend.DepositStore().EnqueueDeposits(ctx, deposits); err != nil {
 		s.logger.Error("Failed to store deposits", "error", err)
-		s.metrics.FailedToEnqueueDeposits.With("block_num", blockNumStr).Add(1)
+		s.metrics.FailedToEnqueueDeposits.Add(1)
 		s.failedBlocksMu.Lock()
 		s.failedBlocks[blockNum] = struct{}{}
 		s.failedBlocksMu.Unlock()
