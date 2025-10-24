@@ -25,44 +25,40 @@ import (
 
 	"github.com/berachain/beacon-kit/observability/metrics"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 // VerifierMetrics is a struct that contains metrics for the blob verifier.
 type VerifierMetrics struct {
-	VerifyBlobsDuration           metrics.Histogram
-	VerifyInclusionProofsDuration metrics.Histogram
-	VerifyKZGProofsDuration       metrics.Histogram
+	VerifyBlobsDuration           metrics.Summary
+	VerifyInclusionProofsDuration metrics.Summary
+	VerifyKZGProofsDuration       metrics.Summary
 }
 
 // NewVerifierMetrics returns a new VerifierMetrics instance.
 // Metric names are kept identical to cosmos-sdk/telemetry output for Grafana compatibility.
 func NewVerifierMetrics(factory metrics.Factory) *VerifierMetrics {
 	return &VerifierMetrics{
-		VerifyBlobsDuration: factory.NewHistogram(
-			metrics.HistogramOpts{
-				Subsystem: "da_blob_verifier",
-				Name:      "verify_blobs_duration",
-				Help:      "Time taken to verify blobs in seconds",
-				Buckets:   prometheus.ExponentialBucketsRange(0.001, 10, 10),
+		VerifyBlobsDuration: factory.NewSummary(
+			metrics.SummaryOpts{
+				Name:       "beacon_kit_da_blob_verifier_verify_blobs_duration",
+				Help:       "Time taken to verify blobs in seconds",
+				Objectives: metrics.QuantilesP50P90P99,
 			},
 			[]string{"num_sidecars", "kzg_implementation"},
 		),
-		VerifyInclusionProofsDuration: factory.NewHistogram(
-			metrics.HistogramOpts{
-				Subsystem: "da_blob_verifier",
-				Name:      "verify_inclusion_proofs_duration",
-				Help:      "Time taken to verify inclusion proofs in seconds",
-				Buckets:   prometheus.ExponentialBucketsRange(0.001, 10, 10),
+		VerifyInclusionProofsDuration: factory.NewSummary(
+			metrics.SummaryOpts{
+				Name:       "beacon_kit_da_blob_verifier_verify_inclusion_proofs_duration",
+				Help:       "Time taken to verify inclusion proofs in seconds",
+				Objectives: metrics.QuantilesP50P90P99,
 			},
 			[]string{"num_sidecars"},
 		),
-		VerifyKZGProofsDuration: factory.NewHistogram(
-			metrics.HistogramOpts{
-				Subsystem: "da_blob_verifier",
-				Name:      "verify_kzg_proofs_duration",
-				Help:      "Time taken to verify KZG proofs in seconds",
-				Buckets:   prometheus.ExponentialBucketsRange(0.001, 10, 10),
+		VerifyKZGProofsDuration: factory.NewSummary(
+			metrics.SummaryOpts{
+				Name:       "beacon_kit_da_blob_verifier_verify_kzg_proofs_duration",
+				Help:       "Time taken to verify KZG proofs in seconds",
+				Objectives: metrics.QuantilesP50P90P99,
 			},
 			[]string{"num_sidecars", "kzg_implementation"},
 		),

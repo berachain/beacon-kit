@@ -311,7 +311,11 @@ func (br *BlobReactor) handleBlobRequest(peer p2p.Peer, req *BlobRequest) {
 		return
 	}
 
-	br.logger.Info("Sent blob response", "slot", req.Slot.Unwrap(), "request_id", req.RequestID, "peer", peer.ID(), "data_size", len(msgData))
+	br.logger.Info("Sent blob response",
+		"slot", req.Slot.Unwrap(),
+		"request_id", req.RequestID,
+		"peer", peer.ID(),
+		"data_size", len(msgData))
 }
 
 // handleBlobResponse processes incoming blob responses
@@ -528,7 +532,8 @@ func (br *BlobReactor) requestBlobsFromPeer(ctx context.Context, peerID p2p.ID, 
 		}
 
 		if len(resp.SidecarData) > defaultRecvMessageCapacity {
-			err = fmt.Errorf("peer %s sent oversized response: %d bytes (max %d)", peerID, len(resp.SidecarData), defaultRecvMessageCapacity)
+			err = fmt.Errorf("peer %s sent oversized response: %d bytes (max %d)",
+				peerID, len(resp.SidecarData), defaultRecvMessageCapacity)
 			return nil, newBlobRequestError(err, statusInvalidResponse)
 		}
 

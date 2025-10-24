@@ -25,54 +25,49 @@ import (
 
 	"github.com/berachain/beacon-kit/observability/metrics"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 // FactoryMetrics is a struct that contains metrics for the sidecar factory.
 type FactoryMetrics struct {
-	BuildSidecarDuration           metrics.Histogram
-	BuildKZGInclusionProofDuration metrics.Histogram
-	BuildBlockBodyProofDuration    metrics.Histogram
-	BuildCommitmentProofDuration   metrics.Histogram
+	BuildSidecarDuration           metrics.Summary
+	BuildKZGInclusionProofDuration metrics.Summary
+	BuildBlockBodyProofDuration    metrics.Summary
+	BuildCommitmentProofDuration   metrics.Summary
 }
 
 // NewFactoryMetrics returns a new FactoryMetrics instance.
 // Metric names are kept identical to cosmos-sdk/telemetry output for Grafana compatibility.
 func NewFactoryMetrics(factory metrics.Factory) *FactoryMetrics {
 	return &FactoryMetrics{
-		BuildSidecarDuration: factory.NewHistogram(
-			metrics.HistogramOpts{
-				Subsystem: "da_blob_factory",
-				Name:      "build_sidecar_duration",
-				Help:      "Time taken to build blob sidecars in seconds",
-				Buckets:   prometheus.ExponentialBucketsRange(0.001, 10, 10),
+		BuildSidecarDuration: factory.NewSummary(
+			metrics.SummaryOpts{
+				Name:       "beacon_kit_da_blob_factory_build_sidecar_duration",
+				Help:       "Time taken to build blob sidecars in seconds",
+				Objectives: metrics.QuantilesP50P90P99,
 			},
 			[]string{"num_sidecars"},
 		),
-		BuildKZGInclusionProofDuration: factory.NewHistogram(
-			metrics.HistogramOpts{
-				Subsystem: "da_blob_factory",
-				Name:      "build_kzg_inclusion_proof_duration",
-				Help:      "Time taken to build KZG inclusion proof in seconds",
-				Buckets:   prometheus.ExponentialBucketsRange(0.001, 10, 10),
+		BuildKZGInclusionProofDuration: factory.NewSummary(
+			metrics.SummaryOpts{
+				Name:       "beacon_kit_da_blob_factory_build_kzg_inclusion_proof_duration",
+				Help:       "Time taken to build KZG inclusion proof in seconds",
+				Objectives: metrics.QuantilesP50P90P99,
 			},
 			nil,
 		),
-		BuildBlockBodyProofDuration: factory.NewHistogram(
-			metrics.HistogramOpts{
-				Subsystem: "da_blob_factory",
-				Name:      "build_block_body_proof_duration",
-				Help:      "Time taken to build block body proof in seconds",
-				Buckets:   prometheus.ExponentialBucketsRange(0.001, 10, 10),
+		BuildBlockBodyProofDuration: factory.NewSummary(
+			metrics.SummaryOpts{
+				Name:       "beacon_kit_da_blob_factory_build_block_body_proof_duration",
+				Help:       "Time taken to build block body proof in seconds",
+				Objectives: metrics.QuantilesP50P90P99,
 			},
 			nil,
 		),
-		BuildCommitmentProofDuration: factory.NewHistogram(
-			metrics.HistogramOpts{
-				Subsystem: "da_blob_factory",
-				Name:      "build_commitment_proof_duration",
-				Help:      "Time taken to build commitment proof in seconds",
-				Buckets:   prometheus.ExponentialBucketsRange(0.001, 10, 10),
+		BuildCommitmentProofDuration: factory.NewSummary(
+			metrics.SummaryOpts{
+				Name:       "beacon_kit_da_blob_factory_build_commitment_proof_duration",
+				Help:       "Time taken to build commitment proof in seconds",
+				Objectives: metrics.QuantilesP50P90P99,
 			},
 			nil,
 		),

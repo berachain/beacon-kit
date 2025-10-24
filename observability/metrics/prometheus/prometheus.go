@@ -32,15 +32,6 @@ type Factory struct {
 }
 
 // NewFactory creates a new Prometheus metrics factory with the given namespace.
-//
-// Example:
-//
-//	factory := prometheus.NewFactory("beacon_kit")
-//	counter := factory.NewCounter(metrics.CounterOpts{
-//	    Subsystem: "blockchain",
-//	    Name:      "blocks_total",
-//	    Help:      "Total number of blocks processed",
-//	}, []string{"status"})
 func NewFactory(namespace string) metrics.Factory {
 	return &Factory{namespace: namespace}
 }
@@ -49,7 +40,6 @@ func NewFactory(namespace string) metrics.Factory {
 func (f *Factory) NewCounter(opts metrics.CounterOpts, labelNames []string) metrics.Counter {
 	return NewCounter(prometheus.CounterOpts{
 		Namespace: f.namespace,
-		Subsystem: opts.Subsystem,
 		Name:      opts.Name,
 		Help:      opts.Help,
 	}, labelNames)
@@ -59,7 +49,6 @@ func (f *Factory) NewCounter(opts metrics.CounterOpts, labelNames []string) metr
 func (f *Factory) NewGauge(opts metrics.GaugeOpts, labelNames []string) metrics.Gauge {
 	return NewGauge(prometheus.GaugeOpts{
 		Namespace: f.namespace,
-		Subsystem: opts.Subsystem,
 		Name:      opts.Name,
 		Help:      opts.Help,
 	}, labelNames)
@@ -69,10 +58,19 @@ func (f *Factory) NewGauge(opts metrics.GaugeOpts, labelNames []string) metrics.
 func (f *Factory) NewHistogram(opts metrics.HistogramOpts, labelNames []string) metrics.Histogram {
 	return NewHistogram(prometheus.HistogramOpts{
 		Namespace: f.namespace,
-		Subsystem: opts.Subsystem,
 		Name:      opts.Name,
 		Help:      opts.Help,
 		Buckets:   opts.Buckets,
+	}, labelNames)
+}
+
+// NewSummary creates a new Summary that registers with prometheus.DefaultRegisterer.
+func (f *Factory) NewSummary(opts metrics.SummaryOpts, labelNames []string) metrics.Summary {
+	return NewSummary(prometheus.SummaryOpts{
+		Namespace:  f.namespace,
+		Name:       opts.Name,
+		Help:       opts.Help,
+		Objectives: opts.Objectives,
 	}, labelNames)
 }
 
@@ -83,15 +81,6 @@ type counter struct {
 }
 
 // NewCounter creates a new Counter that registers with prometheus.DefaultRegisterer.
-//
-// Example:
-//
-//	c := prometheus.NewCounter(prometheus.CounterOpts{
-//	    Namespace: "beacon_kit",
-//	    Subsystem: "blockchain",
-//	    Name:      "total_blocks",
-//	    Help:      "Total number of blocks processed",
-//	}, []string{"status"})
 func NewCounter(opts prometheus.CounterOpts, labelNames []string) metrics.Counter {
 	cv := prometheus.NewCounterVec(opts, labelNames)
 	prometheus.MustRegister(cv)
@@ -127,15 +116,6 @@ type gauge struct {
 }
 
 // NewGauge creates a new Gauge that registers with prometheus.DefaultRegisterer.
-//
-// Example:
-//
-//	g := prometheus.NewGauge(prometheus.GaugeOpts{
-//	    Namespace: "beacon_kit",
-//	    Subsystem: "blockchain",
-//	    Name:      "queue_depth",
-//	    Help:      "Current depth of the processing queue",
-//	}, []string{"queue_name"})
 func NewGauge(opts prometheus.GaugeOpts, labelNames []string) metrics.Gauge {
 	gv := prometheus.NewGaugeVec(opts, labelNames)
 	prometheus.MustRegister(gv)
@@ -176,16 +156,6 @@ type histogram struct {
 }
 
 // NewHistogram creates a new Histogram that registers with prometheus.DefaultRegisterer.
-//
-// Example:
-//
-//	h := prometheus.NewHistogram(prometheus.HistogramOpts{
-//	    Namespace: "beacon_kit",
-//	    Subsystem: "blockchain",
-//	    Name:      "block_processing_duration_seconds",
-//	    Help:      "Time spent processing blocks",
-//	    Buckets:   prometheus.ExponentialBucketsRange(0.001, 10, 10),
-//	}, []string{"block_type"})
 func NewHistogram(opts prometheus.HistogramOpts, labelNames []string) metrics.Histogram {
 	hv := prometheus.NewHistogramVec(opts, labelNames)
 	prometheus.MustRegister(hv)
@@ -212,6 +182,41 @@ func (h *histogram) With(labelValues ...string) metrics.Histogram {
 // Observe adds a single observation to the histogram.
 func (h *histogram) Observe(value float64) {
 	h.hv.With(makeLabels(h.lvs...)).Observe(value)
+}
+
+// summary wraps a prometheus.SummaryVec and implements the metrics.Summary interface.
+type summary struct {
+	sv  *prometheus.SummaryVec
+	lvs lv.LabelValues
+}
+
+// NewSummary creates a new Summary that registers with prometheus.DefaultRegisterer.
+func NewSummary(opts prometheus.SummaryOpts, labelNames []string) metrics.Summary {
+	sv := prometheus.NewSummaryVec(opts, labelNames)
+	prometheus.MustRegister(sv)
+	return &summary{sv: sv}
+}
+
+// NewSummaryFrom creates a new Summary from an existing prometheus.SummaryVec.
+// The SummaryVec must already be registered.
+func NewSummaryFrom(sv *prometheus.SummaryVec, labelValues ...string) metrics.Summary {
+	return &summary{
+		sv:  sv,
+		lvs: lv.LabelValues(labelValues),
+	}
+}
+
+// With returns a new Summary with the given label values applied.
+func (s *summary) With(labelValues ...string) metrics.Summary {
+	return &summary{
+		sv:  s.sv,
+		lvs: s.lvs.With(labelValues...),
+	}
+}
+
+// Observe adds a single observation to the summary.
+func (s *summary) Observe(value float64) {
+	s.sv.With(makeLabels(s.lvs...)).Observe(value)
 }
 
 // makeLabels converts a slice of label key-value pairs into a prometheus.Labels map.

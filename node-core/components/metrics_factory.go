@@ -39,7 +39,7 @@ type MetricsFactoryInput struct {
 // This setting affects ALL metrics in the beacon-kit system.
 func ProvideMetricsFactory(in MetricsFactoryInput) metrics.Factory {
 	if in.Config.Telemetry.Enabled {
-		return prometheus.NewFactory("beacon_kit")
+		return prometheus.NewFactory(in.Config.Telemetry.ServiceName)
 	}
 	return discard.NewFactory()
 }
