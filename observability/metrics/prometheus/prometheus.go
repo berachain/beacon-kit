@@ -28,49 +28,66 @@ import (
 
 // Factory creates Prometheus metrics and registers them with prometheus.DefaultRegisterer.
 type Factory struct {
-	namespace string
+	namespace   string
+	constLabels prometheus.Labels
 }
 
 // NewFactory creates a new Prometheus metrics factory with the given namespace.
 func NewFactory(namespace string) metrics.Factory {
-	return &Factory{namespace: namespace}
+	return &Factory{
+		namespace:   namespace,
+		constLabels: nil,
+	}
+}
+
+// NewFactoryWithLabels creates a new Prometheus metrics factory with constant labels.
+// Constant labels are applied to all metrics created by this factory.
+func NewFactoryWithLabels(namespace string, constLabels prometheus.Labels) metrics.Factory {
+	return &Factory{
+		namespace:   namespace,
+		constLabels: constLabels,
+	}
 }
 
 // NewCounter creates a new Counter that registers with prometheus.DefaultRegisterer.
 func (f *Factory) NewCounter(opts metrics.CounterOpts, labelNames []string) metrics.Counter {
 	return NewCounter(prometheus.CounterOpts{
-		Namespace: f.namespace,
-		Name:      opts.Name,
-		Help:      opts.Help,
+		Namespace:   f.namespace,
+		Name:        opts.Name,
+		Help:        opts.Help,
+		ConstLabels: f.constLabels,
 	}, labelNames)
 }
 
 // NewGauge creates a new Gauge that registers with prometheus.DefaultRegisterer.
 func (f *Factory) NewGauge(opts metrics.GaugeOpts, labelNames []string) metrics.Gauge {
 	return NewGauge(prometheus.GaugeOpts{
-		Namespace: f.namespace,
-		Name:      opts.Name,
-		Help:      opts.Help,
+		Namespace:   f.namespace,
+		Name:        opts.Name,
+		Help:        opts.Help,
+		ConstLabels: f.constLabels,
 	}, labelNames)
 }
 
 // NewHistogram creates a new Histogram that registers with prometheus.DefaultRegisterer.
 func (f *Factory) NewHistogram(opts metrics.HistogramOpts, labelNames []string) metrics.Histogram {
 	return NewHistogram(prometheus.HistogramOpts{
-		Namespace: f.namespace,
-		Name:      opts.Name,
-		Help:      opts.Help,
-		Buckets:   opts.Buckets,
+		Namespace:   f.namespace,
+		Name:        opts.Name,
+		Help:        opts.Help,
+		Buckets:     opts.Buckets,
+		ConstLabels: f.constLabels,
 	}, labelNames)
 }
 
 // NewSummary creates a new Summary that registers with prometheus.DefaultRegisterer.
 func (f *Factory) NewSummary(opts metrics.SummaryOpts, labelNames []string) metrics.Summary {
 	return NewSummary(prometheus.SummaryOpts{
-		Namespace:  f.namespace,
-		Name:       opts.Name,
-		Help:       opts.Help,
-		Objectives: opts.Objectives,
+		Namespace:   f.namespace,
+		Name:        opts.Name,
+		Help:        opts.Help,
+		Objectives:  opts.Objectives,
+		ConstLabels: f.constLabels,
 	}, labelNames)
 }
 

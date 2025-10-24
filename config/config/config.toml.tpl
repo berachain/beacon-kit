@@ -62,10 +62,15 @@ iavl-disable-fastnode = {{ .BaseConfig.IAVLDisableFastNode }}
 [telemetry]
 
 # Enabled enables Prometheus metrics collection for all beacon-kit services.
-# When true, metrics are exposed at the configured Prometheus endpoint.
-# When false, all metrics are no-op with zero runtime overhead.
-# Default: false
 enabled = {{ .Telemetry.Enabled }}
 
 # ServiceName defines the namespace prefix for all Prometheus metrics.
 service-name = "{{ .Telemetry.ServiceName }}"
+
+# EnableHostnameLabel enables adding hostname as a constant label to all metrics.
+enable-hostname-label = {{ .Telemetry.EnableHostnameLabel }}
+
+# GlobalLabels defines a global set of name/value label tuples applied to all metrics.
+{{ if gt (len .Telemetry.GlobalLabels) 0 }}global-labels = [{{ range $k, $v := .Telemetry.GlobalLabels }}
+  ["{{index $v 0 }}", "{{ index $v 1}}"],{{ end }}
+]{{ else }}global-labels = []{{ end }}

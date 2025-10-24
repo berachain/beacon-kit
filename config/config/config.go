@@ -85,6 +85,12 @@ type TelemetryConfig struct {
 
 	// ServiceName defines the namespace for all Prometheus metrics.
 	ServiceName string `mapstructure:"service-name"`
+
+	// EnableHostnameLabel enables adding hostname as a constant label to all metrics.
+	EnableHostnameLabel bool `mapstructure:"enable-hostname-label"`
+
+	// GlobalLabels defines a global set of name/value label tuples applied to all metrics.
+	GlobalLabels [][]string `mapstructure:"global-labels"`
 }
 
 // Config defines the server's top level configuration.
@@ -109,8 +115,10 @@ func DefaultConfig() *Config {
 			IAVLDisableFastNode: false,
 		},
 		Telemetry: TelemetryConfig{
-			Enabled:     false,
-			ServiceName: "beacond_node",
+			Enabled:             true,
+			ServiceName:         "",
+			EnableHostnameLabel: false,
+			GlobalLabels:        [][]string{},
 		},
 	}
 }
