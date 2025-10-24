@@ -24,7 +24,6 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/observability/metrics"
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 // Metric status constants for blob reactor requests.
@@ -44,7 +43,7 @@ const (
 // Metrics contains metrics for the blob reactor P2P operations.
 type Metrics struct {
 	RequestTotal        metrics.Counter
-	RequestDuration     metrics.Histogram
+	RequestDuration     metrics.Summary
 	PeerAttemptsTotal   metrics.Counter
 	WorkerPoolFullTotal metrics.Counter
 	ActiveRequests      metrics.Gauge
@@ -58,58 +57,51 @@ func NewMetrics(factory metrics.Factory) *Metrics {
 	return &Metrics{
 		RequestTotal: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "blobreactor",
-				Name:      "request_total",
-				Help:      "Total number of blob requests completed",
+				Name: "beacon_kit_blobreactor_request_total",
+				Help: "Total number of blob requests completed",
 			},
 			[]string{"status"},
 		),
-		RequestDuration: factory.NewHistogram(
-			metrics.HistogramOpts{
-				Subsystem: "blobreactor",
-				Name:      "request_duration",
-				Help:      "Time taken to complete blob requests in seconds",
-				Buckets:   prometheus.ExponentialBucketsRange(0.001, 10, 10),
+		RequestDuration: factory.NewSummary(
+			metrics.SummaryOpts{
+				Name:       "beacon_kit_blobreactor_request_duration",
+				Help:       "Time taken to complete blob requests in seconds",
+				Objectives: metrics.QuantilesP50P90P99,
 			},
 			[]string{"status"},
 		),
 		PeerAttemptsTotal: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "blobreactor",
-				Name:      "peer_attempts_total",
-				Help:      "Total number of peer attempts for blob requests",
+				Name: "beacon_kit_blobreactor_peer_attempts_total",
+				Help: "Total number of peer attempts for blob requests",
 			},
 			[]string{"status"},
 		),
 		WorkerPoolFullTotal: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "blobreactor",
-				Name:      "worker_pool_full_total",
-				Help:      "Number of times worker pool was full and messages were dropped",
+				Name: "beacon_kit_blobreactor_worker_pool_full_total",
+				Help: "Number of times worker pool was full and messages were dropped",
 			},
 			[]string{"message_type"},
 		),
 		ActiveRequests: factory.NewGauge(
 			metrics.GaugeOpts{
-				Subsystem: "blobreactor",
-				Name:      "active_requests",
-				Help:      "Number of currently active blob requests",
+				Name: "beacon_kit_blobreactor_active_requests",
+				Help: "Number of currently active blob requests",
 			},
 			nil,
 		),
 		PeersAvailable: factory.NewGauge(
 			metrics.GaugeOpts{
-				Subsystem: "blobreactor",
-				Name:      "peers_available",
-				Help:      "Number of available peers for blob requests",
+				Name: "beacon_kit_blobreactor_peers_available",
+				Help: "Number of available peers for blob requests",
 			},
 			nil,
 		),
 		PeersTotal: factory.NewGauge(
 			metrics.GaugeOpts{
-				Subsystem: "blobreactor",
-				Name:      "peers_total",
-				Help:      "Total number of connected peers",
+				Name: "beacon_kit_blobreactor_peers_total",
+				Help: "Total number of connected peers",
 			},
 			nil,
 		),

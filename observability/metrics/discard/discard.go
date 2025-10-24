@@ -26,17 +26,6 @@ import "github.com/berachain/beacon-kit/observability/metrics"
 type Factory struct{}
 
 // NewFactory creates a new no-op metrics factory.
-// All metrics created by this factory have zero runtime overhead.
-//
-// Example:
-//
-//	factory := discard.NewFactory()
-//	counter := factory.NewCounter(metrics.CounterOpts{
-//	    Subsystem: "blockchain",
-//	    Name:      "blocks_total",
-//	    Help:      "Total number of blocks processed",
-//	}, []string{"status"})
-//	counter.Add(1) // This is a no-op, compiled away by the Go compiler
 func NewFactory() metrics.Factory {
 	return Factory{}
 }
@@ -56,9 +45,12 @@ func (Factory) NewHistogram(metrics.HistogramOpts, []string) metrics.Histogram {
 	return NewHistogram()
 }
 
+// NewSummary returns a no-op Summary.
+func (Factory) NewSummary(metrics.SummaryOpts, []string) metrics.Summary {
+	return NewSummary()
+}
+
 // noOpCounter is a no-op implementation of metrics.Counter.
-// All operations are compiled away by the Go compiler, providing
-// zero runtime overhead when telemetry is disabled.
 type noOpCounter struct{}
 
 // NewCounter returns a no-op Counter.
@@ -75,8 +67,6 @@ func (noOpCounter) With(...string) metrics.Counter {
 func (noOpCounter) Add(float64) {}
 
 // noOpGauge is a no-op implementation of metrics.Gauge.
-// All operations are compiled away by the Go compiler, providing
-// zero runtime overhead when telemetry is disabled.
 type noOpGauge struct{}
 
 // NewGauge returns a no-op Gauge.
@@ -96,8 +86,6 @@ func (noOpGauge) Set(float64) {}
 func (noOpGauge) Add(float64) {}
 
 // noOpHistogram is a no-op implementation of metrics.Histogram.
-// All operations are compiled away by the Go compiler, providing
-// zero runtime overhead when telemetry is disabled.
 type noOpHistogram struct{}
 
 // NewHistogram returns a no-op Histogram.
@@ -112,3 +100,19 @@ func (noOpHistogram) With(...string) metrics.Histogram {
 
 // Observe does nothing.
 func (noOpHistogram) Observe(float64) {}
+
+// noOpSummary is a no-op implementation of metrics.Summary.
+type noOpSummary struct{}
+
+// NewSummary returns a no-op Summary.
+func NewSummary() metrics.Summary {
+	return noOpSummary{}
+}
+
+// With returns the same no-op Summary.
+func (noOpSummary) With(...string) metrics.Summary {
+	return noOpSummary{}
+}
+
+// Observe does nothing.
+func (noOpSummary) Observe(float64) {}

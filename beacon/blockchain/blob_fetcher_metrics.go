@@ -45,41 +45,36 @@ func NewBlobFetcherMetrics(factory metrics.Factory) *BlobFetcherMetrics {
 	return &BlobFetcherMetrics{
 		RetriesTotal: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "blob_fetcher",
-				Name:      "retries_total",
-				Help:      "Number of times a blob request was retried after failure",
+				Name: "beacon_kit_blob_fetcher_retries_total",
+				Help: "Number of times a blob request was retried after failure",
 			},
 			nil,
 		),
 		RequestsExpiredTotal: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "blob_fetcher",
-				Name:      "requests_expired_total",
-				Help:      "Number of blob fetch requests that expired before completion",
+				Name: "beacon_kit_blob_fetcher_requests_expired_total",
+				Help: "Number of blob fetch requests that expired before completion",
 			},
 			[]string{"reason"},
 		),
 		RequestsCompletedTotal: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "blob_fetcher",
-				Name:      "requests_completed_total",
-				Help:      "Number of blob fetch requests that completed successfully",
+				Name: "beacon_kit_blob_fetcher_requests_completed_total",
+				Help: "Number of blob fetch requests that completed successfully",
 			},
 			nil,
 		),
 		RequestsQueuedTotal: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "blob_fetcher",
-				Name:      "requests_queued_total",
-				Help:      "Number of new blob fetch requests added to the queue",
+				Name: "beacon_kit_blob_fetcher_requests_queued_total",
+				Help: "Number of new blob fetch requests added to the queue",
 			},
 			nil,
 		),
 		QueueDepth: factory.NewGauge(
 			metrics.GaugeOpts{
-				Subsystem: "blob_fetcher",
-				Name:      "queue_depth",
-				Help:      "Current depth of the blob fetcher queue",
+				Name: "beacon_kit_blob_fetcher_queue_depth",
+				Help: "Current depth of the blob fetcher queue",
 			},
 			nil,
 		),

@@ -43,65 +43,57 @@ func NewMetrics(factory metrics.Factory) *Metrics {
 	return &Metrics{
 		BlockTxGasUsed: factory.NewGauge(
 			metrics.GaugeOpts{
-				Subsystem: "state",
-				Name:      "block_tx_gas_used",
-				Help:      "Transaction gas used in the block",
+				Name: "beacon_kit_state_block_tx_gas_used",
+				Help: "Transaction gas used in the block",
 			},
 			[]string{"block_number"},
 		),
 		BlockBlobGasUsed: factory.NewGauge(
 			metrics.GaugeOpts{
-				Subsystem: "state",
-				Name:      "block_blob_gas_used",
-				Help:      "Blob gas used in the block",
+				Name: "beacon_kit_state_block_blob_gas_used",
+				Help: "Blob gas used in the block",
 			},
 			[]string{"block_number"},
 		),
 		PartialWithdrawalsEnqueued: factory.NewGauge(
 			metrics.GaugeOpts{
-				Subsystem: "state",
-				Name:      "partial_withdrawals_enqueued",
-				Help:      "Number of partial withdrawals enqueued",
+				Name: "beacon_kit_state_partial_withdrawals_enqueued",
+				Help: "Number of partial withdrawals enqueued",
 			},
 			nil,
 		),
 		PayloadConsensusTimestampDiff: factory.NewGauge(
 			metrics.GaugeOpts{
-				Subsystem: "state",
-				Name:      "payload_consensus_timestamp_diff",
-				Help:      "Difference between payload timestamp and consensus timestamp",
+				Name: "beacon_kit_state_payload_consensus_timestamp_diff",
+				Help: "Difference between payload timestamp and consensus timestamp",
 			},
 			nil,
 		),
 		DepositStakeLost: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "state",
-				Name:      "deposit_stake_lost",
-				Help:      "Number of deposits with stake lost",
+				Name: "beacon_kit_state_deposit_stake_lost",
+				Help: "Number of deposits with stake lost",
 			},
 			nil,
 		),
 		PartialWithdrawalRequestDropped: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "state",
-				Name:      "partial_withdrawal_request_dropped",
-				Help:      "Number of partial withdrawal requests dropped",
+				Name: "beacon_kit_state_partial_withdrawal_request_dropped",
+				Help: "Number of partial withdrawal requests dropped",
 			},
 			nil,
 		),
 		PartialWithdrawalRequestInvalid: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "state",
-				Name:      "partial_withdrawal_request_invalid",
-				Help:      "Number of invalid partial withdrawal requests",
+				Name: "beacon_kit_state_partial_withdrawal_request_invalid",
+				Help: "Number of invalid partial withdrawal requests",
 			},
 			nil,
 		),
 		ValidatorNotWithdrawable: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "state",
-				Name:      "validator_not_withdrawable",
-				Help:      "Number of validators not withdrawable",
+				Name: "beacon_kit_state_validator_not_withdrawable",
+				Help: "Number of validators not withdrawable",
 			},
 			nil,
 		),

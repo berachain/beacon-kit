@@ -25,15 +25,14 @@ import (
 
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/observability/metrics"
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 // Metrics is a struct that contains metrics for the execution client.
 type Metrics struct {
 	// Duration histograms
-	ForkchoiceUpdateDuration metrics.Histogram
-	NewPayloadDuration       metrics.Histogram
-	GetPayloadDuration       metrics.Histogram
+	ForkchoiceUpdateDuration metrics.Summary
+	NewPayloadDuration       metrics.Summary
+	GetPayloadDuration       metrics.Summary
 
 	// Timeout counters
 	EngineAPITimeout                metrics.Counter
@@ -64,30 +63,27 @@ type Metrics struct {
 func NewMetrics(factory metrics.Factory, logger log.Logger) *Metrics {
 	return &Metrics{
 		// Duration histograms
-		ForkchoiceUpdateDuration: factory.NewHistogram(
-			metrics.HistogramOpts{
-				Subsystem: "execution_client",
-				Name:      "forkchoice_update_duration",
-				Help:      "Time taken for forkchoice update in seconds",
-				Buckets:   prometheus.ExponentialBucketsRange(0.001, 10, 10),
+		ForkchoiceUpdateDuration: factory.NewSummary(
+			metrics.SummaryOpts{
+				Name:       "beacon_kit_execution_client_forkchoice_update_duration",
+				Help:       "Time taken for forkchoice update in seconds",
+				Objectives: metrics.QuantilesP50P90P99,
 			},
 			nil,
 		),
-		NewPayloadDuration: factory.NewHistogram(
-			metrics.HistogramOpts{
-				Subsystem: "execution_client",
-				Name:      "new_payload_duration",
-				Help:      "Time taken for new payload in seconds",
-				Buckets:   prometheus.ExponentialBucketsRange(0.001, 10, 10),
+		NewPayloadDuration: factory.NewSummary(
+			metrics.SummaryOpts{
+				Name:       "beacon_kit_execution_client_new_payload_duration",
+				Help:       "Time taken for new payload in seconds",
+				Objectives: metrics.QuantilesP50P90P99,
 			},
 			nil,
 		),
-		GetPayloadDuration: factory.NewHistogram(
-			metrics.HistogramOpts{
-				Subsystem: "execution_client",
-				Name:      "get_payload_duration",
-				Help:      "Time taken for get payload in seconds",
-				Buckets:   prometheus.ExponentialBucketsRange(0.001, 10, 10),
+		GetPayloadDuration: factory.NewSummary(
+			metrics.SummaryOpts{
+				Name:       "beacon_kit_execution_client_get_payload_duration",
+				Help:       "Time taken for get payload in seconds",
+				Objectives: metrics.QuantilesP50P90P99,
 			},
 			nil,
 		),
@@ -95,41 +91,36 @@ func NewMetrics(factory metrics.Factory, logger log.Logger) *Metrics {
 		// Timeout counters
 		EngineAPITimeout: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "execution_client",
-				Name:      "engine_api_timeout",
-				Help:      "Number of engine API timeouts",
+				Name: "beacon_kit_execution_client_engine_api_timeout",
+				Help: "Number of engine API timeouts",
 			},
 			nil,
 		),
 		ForkchoiceUpdateDurationTimeout: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "execution_client",
-				Name:      "forkchoice_update_duration_timeout",
-				Help:      "Number of forkchoice update timeouts",
+				Name: "beacon_kit_execution_client_forkchoice_update_duration_timeout",
+				Help: "Number of forkchoice update timeouts",
 			},
 			nil,
 		),
 		NewPayloadDurationTimeout: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "execution_client",
-				Name:      "new_payload_duration_timeout",
-				Help:      "Number of new payload timeouts",
+				Name: "beacon_kit_execution_client_new_payload_duration_timeout",
+				Help: "Number of new payload timeouts",
 			},
 			nil,
 		),
 		GetPayloadDurationTimeout: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "execution_client",
-				Name:      "get_payload_duration_timeout",
-				Help:      "Number of get payload timeouts",
+				Name: "beacon_kit_execution_client_get_payload_duration_timeout",
+				Help: "Number of get payload timeouts",
 			},
 			nil,
 		),
 		HTTPTimeout: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "execution_client",
-				Name:      "http_timeout",
-				Help:      "Number of HTTP timeouts",
+				Name: "beacon_kit_execution_client_http_timeout",
+				Help: "Number of HTTP timeouts",
 			},
 			nil,
 		),
@@ -137,81 +128,71 @@ func NewMetrics(factory metrics.Factory, logger log.Logger) *Metrics {
 		// Error counters
 		ParseError: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "execution_client",
-				Name:      "parse_error",
-				Help:      "Number of parse errors",
+				Name: "beacon_kit_execution_client_parse_error",
+				Help: "Number of parse errors",
 			},
 			nil,
 		),
 		InvalidRequest: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "execution_client",
-				Name:      "invalid_request",
-				Help:      "Number of invalid requests",
+				Name: "beacon_kit_execution_client_invalid_request",
+				Help: "Number of invalid requests",
 			},
 			nil,
 		),
 		MethodNotFound: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "execution_client",
-				Name:      "method_not_found",
-				Help:      "Number of method not found errors",
+				Name: "beacon_kit_execution_client_method_not_found",
+				Help: "Number of method not found errors",
 			},
 			nil,
 		),
 		InvalidParams: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "execution_client",
-				Name:      "invalid_params",
-				Help:      "Number of invalid params errors",
+				Name: "beacon_kit_execution_client_invalid_params",
+				Help: "Number of invalid params errors",
 			},
 			nil,
 		),
 		InternalError: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "execution_client",
-				Name:      "internal_error",
-				Help:      "Number of internal errors",
+				Name: "beacon_kit_execution_client_internal_error",
+				Help: "Number of internal errors",
 			},
 			nil,
 		),
 		UnknownPayloadError: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "execution_client",
-				Name:      "unknown_payload_error",
-				Help:      "Number of unknown payload errors",
+				Name: "beacon_kit_execution_client_unknown_payload_error",
+				Help: "Number of unknown payload errors",
 			},
 			nil,
 		),
 		InvalidForkchoiceState: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "execution_client",
-				Name:      "invalid_forkchoice_state",
-				Help:      "Number of invalid forkchoice state errors",
+				Name: "beacon_kit_execution_client_invalid_forkchoice_state",
+				Help: "Number of invalid forkchoice state errors",
 			},
 			nil,
 		),
 		InvalidPayloadAttributes: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "execution_client",
-				Name:      "invalid_payload_attributes",
-				Help:      "Number of invalid payload attributes errors",
+				Name: "beacon_kit_execution_client_invalid_payload_attributes",
+				Help: "Number of invalid payload attributes errors",
 			},
 			nil,
 		),
 		RequestTooLarge: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "execution_client",
-				Name:      "request_too_large",
-				Help:      "Number of request too large errors",
+				Name: "beacon_kit_execution_client_request_too_large",
+				Help: "Number of request too large errors",
 			},
 			nil,
 		),
 		InternalServerError: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "execution_client",
-				Name:      "internal_server_error",
-				Help:      "Number of internal server errors",
+				Name: "beacon_kit_execution_client_internal_server_error",
+				Help: "Number of internal server errors",
 			},
 			nil,
 		),

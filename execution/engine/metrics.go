@@ -65,65 +65,57 @@ func NewMetrics(factory metrics.Factory, logger log.Logger) *Metrics {
 		// New payload metrics
 		NewPayload: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "execution_engine",
-				Name:      "new_payload",
-				Help:      "Number of new payload calls",
+				Name: "beacon_kit_execution_engine_new_payload",
+				Help: "Number of new payload calls",
 			},
 			[]string{"payload_block_hash", "payload_parent_block_hash"},
 		),
 		NewPayloadValid: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "execution_engine",
-				Name:      "new_payload_valid",
-				Help:      "Number of valid new payload responses",
+				Name: "beacon_kit_execution_engine_new_payload_valid",
+				Help: "Number of valid new payload responses",
 			},
 			nil,
 		),
 		NewPayloadAcceptedPayloadStatus: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "execution_engine",
-				Name:      "new_payload_accepted_payload_status",
-				Help:      "Number of accepted payload status responses",
+				Name: "beacon_kit_execution_engine_new_payload_accepted_payload_status",
+				Help: "Number of accepted payload status responses",
 			},
 			nil,
 		),
 		NewPayloadSyncingPayloadStatus: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "execution_engine",
-				Name:      "new_payload_syncing_payload_status",
-				Help:      "Number of syncing payload status responses",
+				Name: "beacon_kit_execution_engine_new_payload_syncing_payload_status",
+				Help: "Number of syncing payload status responses",
 			},
 			nil,
 		),
 		NewPayloadInvalidPayloadStatus: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "execution_engine",
-				Name:      "new_payload_invalid_payload_status",
-				Help:      "Number of invalid payload status responses",
+				Name: "beacon_kit_execution_engine_new_payload_invalid_payload_status",
+				Help: "Number of invalid payload status responses",
 			},
 			nil,
 		),
 		NewPayloadNonFatalError: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "execution_engine",
-				Name:      "new_payload_non_fatal_error",
-				Help:      "Number of non-fatal errors during new payload",
+				Name: "beacon_kit_execution_engine_new_payload_non_fatal_error",
+				Help: "Number of non-fatal errors during new payload",
 			},
 			[]string{"error"},
 		),
 		NewPayloadFatalError: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "execution_engine",
-				Name:      "new_payload_fatal_error",
-				Help:      "Number of fatal errors during new payload",
+				Name: "beacon_kit_execution_engine_new_payload_fatal_error",
+				Help: "Number of fatal errors during new payload",
 			},
 			[]string{"error"},
 		),
 		NewPayloadUndefinedError: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "execution_engine",
-				Name:      "new_payload_undefined_error",
-				Help:      "Number of undefined errors during new payload",
+				Name: "beacon_kit_execution_engine_new_payload_undefined_error",
+				Help: "Number of undefined errors during new payload",
 			},
 			[]string{"error"},
 		),
@@ -131,57 +123,50 @@ func NewMetrics(factory metrics.Factory, logger log.Logger) *Metrics {
 		// Forkchoice update metrics
 		ForkchoiceUpdate: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "execution_engine",
-				Name:      "forkchoice_update",
-				Help:      "Number of forkchoice update calls",
+				Name: "beacon_kit_execution_engine_forkchoice_update",
+				Help: "Number of forkchoice update calls",
 			},
 			[]string{"has_payload_attributes"},
 		),
 		ForkchoiceUpdateValid: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "execution_engine",
-				Name:      "forkchoice_update_valid",
-				Help:      "Number of valid forkchoice update responses",
+				Name: "beacon_kit_execution_engine_forkchoice_update_valid",
+				Help: "Number of valid forkchoice update responses",
 			},
 			nil,
 		),
 		ForkchoiceUpdateSyncing: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "execution_engine",
-				Name:      "forkchoice_update_syncing",
-				Help:      "Number of syncing forkchoice update responses",
+				Name: "beacon_kit_execution_engine_forkchoice_update_syncing",
+				Help: "Number of syncing forkchoice update responses",
 			},
 			[]string{"error"},
 		),
 		ForkchoiceUpdateInvalid: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "execution_engine",
-				Name:      "forkchoice_update_invalid",
-				Help:      "Number of invalid forkchoice update responses",
+				Name: "beacon_kit_execution_engine_forkchoice_update_invalid",
+				Help: "Number of invalid forkchoice update responses",
 			},
 			[]string{"error"},
 		),
 		ForkchoiceUpdateFatalError: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "execution_engine",
-				Name:      "forkchoice_update_fatal_error",
-				Help:      "Number of fatal errors during forkchoice update",
+				Name: "beacon_kit_execution_engine_forkchoice_update_fatal_error",
+				Help: "Number of fatal errors during forkchoice update",
 			},
 			[]string{"error"},
 		),
 		ForkchoiceUpdateNonFatalError: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "execution_engine",
-				Name:      "forkchoice_update_non_fatal_error",
-				Help:      "Number of non-fatal errors during forkchoice update",
+				Name: "beacon_kit_execution_engine_forkchoice_update_non_fatal_error",
+				Help: "Number of non-fatal errors during forkchoice update",
 			},
 			[]string{"error"},
 		),
 		ForkchoiceUpdateUndefinedError: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "execution_engine",
-				Name:      "forkchoice_update_undefined_error",
-				Help:      "Number of undefined errors during forkchoice update",
+				Name: "beacon_kit_execution_engine_forkchoice_update_undefined_error",
+				Help: "Number of undefined errors during forkchoice update",
 			},
 			[]string{"error"},
 		),

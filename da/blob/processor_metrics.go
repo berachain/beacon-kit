@@ -25,34 +25,31 @@ import (
 
 	"github.com/berachain/beacon-kit/observability/metrics"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 // ProcessorMetrics is a struct that contains metrics for the blob processor.
 type ProcessorMetrics struct {
-	VerifyBlobsDuration metrics.Histogram
-	ProcessBlobDuration metrics.Histogram
+	VerifyBlobsDuration metrics.Summary
+	ProcessBlobDuration metrics.Summary
 }
 
 // NewProcessorMetrics returns a new ProcessorMetrics instance.
 // Metric names are kept identical to cosmos-sdk/telemetry output for Grafana compatibility.
 func NewProcessorMetrics(factory metrics.Factory) *ProcessorMetrics {
 	return &ProcessorMetrics{
-		VerifyBlobsDuration: factory.NewHistogram(
-			metrics.HistogramOpts{
-				Subsystem: "da_blob_processor",
-				Name:      "verify_blobs_duration",
-				Help:      "Time taken to verify blob sidecars in seconds",
-				Buckets:   prometheus.ExponentialBucketsRange(0.001, 10, 10),
+		VerifyBlobsDuration: factory.NewSummary(
+			metrics.SummaryOpts{
+				Name:       "beacon_kit_da_blob_processor_verify_blobs_duration",
+				Help:       "Time taken to verify blob sidecars in seconds",
+				Objectives: metrics.QuantilesP50P90P99,
 			},
 			[]string{"num_sidecars"},
 		),
-		ProcessBlobDuration: factory.NewHistogram(
-			metrics.HistogramOpts{
-				Subsystem: "da_blob_processor",
-				Name:      "process_blob_duration",
-				Help:      "Time taken to process blob sidecars in seconds",
-				Buckets:   prometheus.ExponentialBucketsRange(0.001, 10, 10),
+		ProcessBlobDuration: factory.NewSummary(
+			metrics.SummaryOpts{
+				Name:       "beacon_kit_da_blob_processor_process_blob_duration",
+				Help:       "Time taken to process blob sidecars in seconds",
+				Objectives: metrics.QuantilesP50P90P99,
 			},
 			[]string{"num_sidecars"},
 		),

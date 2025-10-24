@@ -50,7 +50,7 @@ inter-block-cache = {{ .BaseConfig.InterBlockCache }}
 # IavlCacheSize set the size of the iavl tree cache (in number of nodes).
 iavl-cache-size = {{ .BaseConfig.IAVLCacheSize }}
 
-# IAVLDisableFastNode enables or disables the fast node feature of IAVL. 
+# IAVLDisableFastNode enables or disables the fast node feature of IAVL.
 # Default is false.
 iavl-disable-fastnode = {{ .BaseConfig.IAVLDisableFastNode }}
 
@@ -66,3 +66,6 @@ iavl-disable-fastnode = {{ .BaseConfig.IAVLDisableFastNode }}
 # When false, all metrics are no-op with zero runtime overhead.
 # Default: false
 enabled = {{ .Telemetry.Enabled }}
+
+# ServiceName defines the namespace prefix for all Prometheus metrics.
+service-name = "{{ .Telemetry.ServiceName }}"

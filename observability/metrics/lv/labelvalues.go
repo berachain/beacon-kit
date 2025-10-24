@@ -23,30 +23,10 @@ package lv
 // LabelValues is a type alias for a slice of strings that represent
 // metric label key-value pairs. It provides efficient label accumulation
 // using a copy-on-write pattern.
-//
-// Label values should be provided as alternating key-value pairs:
-// ["key1", "value1", "key2", "value2", ...]
-//
-// Example:
-//
-//	var lvs lv.LabelValues
-//	lvs = lvs.With("method", "GET")
-//	lvs = lvs.With("status", "200")
-//	// lvs now contains: ["method", "GET", "status", "200"]
 type LabelValues []string
 
 // With returns a new LabelValues with the given label key-value pairs appended.
 // The original LabelValues is not modified (copy-on-write semantics).
-//
-// If the number of labelValues is odd, "unknown" is appended as the value
-// for the last key to ensure all labels have values.
-//
-// Example:
-//
-//	var lvs lv.LabelValues
-//	lvs1 := lvs.With("method", "GET")
-//	lvs2 := lvs1.With("status", "200")
-//	// lvs1 and lvs2 are independent
 func (lvs LabelValues) With(labelValues ...string) LabelValues {
 	if len(labelValues)%2 != 0 {
 		labelValues = append(labelValues, "unknown")

@@ -20,6 +20,15 @@
 
 package metrics
 
+// QuantilesP50P90P99 defines standard quantiles for Summary metrics.
+//
+//nolint:gochecknoglobals,mnd // standard quantile definitions
+var QuantilesP50P90P99 = map[float64]float64{
+	0.5:  0.05,  // p50 (median) with ±5% error
+	0.9:  0.01,  // p90 with ±1% error
+	0.99: 0.001, // p99 with ±0.1% error
+}
+
 // Counter represents a monotonically increasing metric.
 type Counter interface {
 	// Add increments the counter by the given delta.
@@ -65,29 +74,52 @@ type Histogram interface {
 	With(labelValues ...string) Histogram
 }
 
+// Summary represents a metric that samples observations and calculates
+// configurable quantiles over a sliding time window. Summaries are used
+// for tracking distributions similar to histograms but with pre-calculated
+// quantiles.
+//
+// A summary automatically provides:
+//   - Sum of all observed values
+//   - Count of observations
+//   - Pre-defined quantiles (e.g., 0.5, 0.9, 0.99)
+type Summary interface {
+	// Observe adds a single observation to the summary.
+	Observe(value float64)
+
+	// With returns a new Summary with the given label values applied.
+	// Label values are provided as key-value pairs.
+	// If the number of label values is odd, "unknown" is appended.
+	With(labelValues ...string) Summary
+}
+
 // CounterOpts defines options for creating a counter metric.
 type CounterOpts struct {
-	Subsystem string
-	Name      string
-	Help      string
+	Name string
+	Help string
 }
 
 // GaugeOpts defines options for creating a gauge metric.
 type GaugeOpts struct {
-	Subsystem string
-	Name      string
-	Help      string
+	Name string
+	Help string
 }
 
 // HistogramOpts defines options for creating a histogram metric.
 type HistogramOpts struct {
-	Subsystem string
-	Name      string
-	Help      string
-	Buckets   []float64
+	Name    string
+	Help    string
+	Buckets []float64
 }
 
-// Factory creates metrics instances (Counter, Gauge, Histogram).
+// SummaryOpts defines options for creating a summary metric.
+type SummaryOpts struct {
+	Name       string
+	Help       string
+	Objectives map[float64]float64 // Quantile ranks to track (e.g., 0.5, 0.9, 0.99)
+}
+
+// Factory creates metrics instances (Counter, Gauge, Histogram, Summary).
 // Implementations include PrometheusFactory and NoOpFactory.
 type Factory interface {
 	// NewCounter creates a new Counter with the given options and label names.
@@ -98,4 +130,7 @@ type Factory interface {
 
 	// NewHistogram creates a new Histogram with the given options and label names.
 	NewHistogram(opts HistogramOpts, labelNames []string) Histogram
+
+	// NewSummary creates a new Summary with the given options and label names.
+	NewSummary(opts SummaryOpts, labelNames []string) Summary
 }

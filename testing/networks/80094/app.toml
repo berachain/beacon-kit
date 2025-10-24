@@ -78,6 +78,9 @@ app-db-backend = "pebbledb"
 # Default: false
 enabled = true
 
+# ServiceName defines the namespace prefix for all Prometheus metrics.
+service-name = "beacond_node"
+
 ###############################################################################
 ###                                BeaconKit                                ###
 ###############################################################################
