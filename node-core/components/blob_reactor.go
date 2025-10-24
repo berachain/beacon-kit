@@ -41,10 +41,17 @@ type BlobReactorInput struct {
 
 // ProvideBlobReactor provides the blob reactor for P2P communication.
 func ProvideBlobReactor(in BlobReactorInput) *blobreactor.BlobReactor {
+	cfg := in.Config.BlobReactor
+
+	// Guard against missing config fields - apply defaults for zero values
+	if cfg.RequestTimeout == 0 {
+		cfg.RequestTimeout = blobreactor.DefaultConfig().RequestTimeout
+	}
+
 	return blobreactor.NewBlobReactor(
 		in.StorageBackend.AvailabilityStore().IndexDB,
 		in.Logger.With("service", "blob-reactor"),
-		in.Config.BlobReactor,
+		cfg,
 		in.TelemetrySink,
 	)
 }
