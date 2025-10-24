@@ -13,47 +13,18 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package telemetry
+package storage
 
-import (
-	"context"
+// NoOpStoreMetrics is a no-op implementation of cosmossdk.io/store/types.StoreMetrics.
+// By providing our own implementation, we avoid directly importing cosmossdk.io/store/metrics,
+// which has transitive dependencies on go-metrics packages
+type NoOpStoreMetrics struct{}
 
-	"github.com/cosmos/cosmos-sdk/telemetry"
-)
-
-type Config = telemetry.Config
-
-// Service is a telemetry service.
-type Service struct {
-	m *telemetry.Metrics
-}
-
-// NewService creates a new telemetry service.
-func NewService(cfg *telemetry.Config) (*Service, error) {
-	m, err := telemetry.New(*cfg)
-	if err != nil {
-		return nil, err
-	}
-	return &Service{
-		m: m,
-	}, nil
-}
-
-// Name returns the service name.
-func (s *Service) Name() string {
-	return "telemetry"
-}
-
-// Start starts the telemetry service.
-func (s *Service) Start(context.Context) error {
-	return nil
-}
-
-func (s *Service) Stop() error {
-	return nil
-}
+// MeasureSince is a no-op implementation that does nothing.
+// This avoids time.Now() calls and metric recording overhead.
+func (NoOpStoreMetrics) MeasureSince(...string) {}

@@ -36,15 +36,15 @@ import (
 // SidecarFactory is a factory for sidecars.
 type SidecarFactory struct {
 	// metrics is used to collect and report factory metrics.
-	metrics *factoryMetrics
+	metrics *FactoryMetrics
 }
 
 // NewSidecarFactory creates a new sidecar factory.
 func NewSidecarFactory(
-	telemetrySink TelemetrySink,
+	metrics *FactoryMetrics,
 ) *SidecarFactory {
 	return &SidecarFactory{
-		metrics: newFactoryMetrics(telemetrySink),
+		metrics: metrics,
 	}
 }
 

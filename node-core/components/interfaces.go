@@ -158,13 +158,6 @@ type (
 		StateFromContext(context.Context) *statedb.StateDB
 	}
 
-	// 	// TelemetrySink is an interface for sending metrics to a telemetry
-	// backend.
-	// 	TelemetrySink interface {
-	// 		// MeasureSince measures the time since the given time.
-	// 		MeasureSince(key string, start time.Time, args ...string)
-	// 	}
-
 	// 	// Validator represents an interface for a validator with generic type
 	// 	// ValidatorT.
 	// 	Validator[

@@ -25,23 +25,20 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/log/phuslu"
-	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/node-core/services/version"
 	sdkversion "github.com/cosmos/cosmos-sdk/version"
 )
 
 type ReportingServiceInput struct {
 	depinject.In
-	Logger        *phuslu.Logger
-	TelemetrySink *metrics.TelemetrySink
-	EngineClient  *client.EngineClient
-	ChainSpec     chain.Spec
+	Logger       *phuslu.Logger
+	EngineClient *client.EngineClient
+	ChainSpec    chain.Spec
 }
 
 func ProvideReportingService(in ReportingServiceInput) *version.ReportingService {
 	return version.NewReportingService(
 		in.Logger.With("service", "reporting"),
-		in.TelemetrySink,
 		sdkversion.Version,
 		in.EngineClient,
 		in.ChainSpec,

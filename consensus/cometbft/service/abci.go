@@ -160,11 +160,9 @@ func (s *Service) Query(
 		req.Height = s.lastBlockHeight()
 	}
 
-	s.telemetrySink.IncrementCounter("beacon_kit.comet.query_count", "path", req.Path)
+	s.metrics.QueryCount.With("path", req.Path).Add(1)
 	startTime := time.Now()
-	defer s.telemetrySink.MeasureSince(
-		"beacon_kit.comet.query_duration", startTime, "path", req.Path,
-	)
+	defer s.metrics.measureQueryDuration(startTime, req.Path)
 
 	path := splitABCIQueryPath(req.Path)
 	if len(path) == 0 {

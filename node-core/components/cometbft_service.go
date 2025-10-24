@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/da/blobreactor"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/builder"
-	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	dbm "github.com/cosmos/cosmos-db"
 )
@@ -44,7 +43,7 @@ func ProvideCometBFTService(
 	cs chain.Spec,
 	cmtCfg *cmtcfg.Config,
 	appOpts config.AppOptions,
-	telemetrySink *metrics.TelemetrySink,
+	metrics *cometbft.Metrics,
 ) *cometbft.Service {
 	return cometbft.NewService(
 		logger,
@@ -54,7 +53,7 @@ func ProvideCometBFTService(
 		blobReactor,
 		cs,
 		cmtCfg,
-		telemetrySink,
+		metrics,
 		builder.DefaultServiceOptions(appOpts)...,
 	)
 }

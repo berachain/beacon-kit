@@ -44,8 +44,8 @@ type EngineClient struct {
 	logger log.Logger
 	// eth1ChainID is the chain ID of the execution client.
 	eth1ChainID *big.Int
-	// clientMetrics is the metrics for the engine client.
-	metrics *clientMetrics
+	// metrics is the metrics for the engine client.
+	metrics *Metrics
 	// capabilities is a map of capabilities that the execution client has.
 	capabilities map[string]struct{}
 	// connected will be set to true when we have successfully connected
@@ -61,7 +61,7 @@ func New(
 	cfg *Config,
 	logger log.Logger,
 	jwtSecret *jwt.Secret,
-	telemetrySink TelemetrySink,
+	metrics *Metrics,
 	eth1ChainID *big.Int,
 ) *EngineClient {
 	ethClient := ethclientrpc.NewClient(
@@ -96,7 +96,7 @@ func New(
 		Client:       ethclient.New(ethClient),
 		capabilities: make(map[string]struct{}),
 		eth1ChainID:  eth1ChainID,
-		metrics:      newClientMetrics(telemetrySink, logger),
+		metrics:      metrics,
 		connected:    false,
 	}
 }

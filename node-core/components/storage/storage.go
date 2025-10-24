@@ -42,7 +42,7 @@ type Backend struct {
 	depositStore      deposit.StoreManager
 	blockStore        *block.KVStore[*types.BeaconBlock]
 	logger            log.Logger
-	telemetrySink     statedb.TelemetrySink
+	stateDBMetrics    *statedb.Metrics
 }
 
 func NewBackend(
@@ -52,7 +52,7 @@ func NewBackend(
 	depositStore deposit.StoreManager,
 	blockStore *block.KVStore[*types.BeaconBlock],
 	logger log.Logger,
-	telemetrySink statedb.TelemetrySink,
+	stateDBMetrics *statedb.Metrics,
 ) *Backend {
 	return &Backend{
 		chainSpec:         chainSpec,
@@ -61,7 +61,7 @@ func NewBackend(
 		depositStore:      depositStore,
 		blockStore:        blockStore,
 		logger:            logger,
-		telemetrySink:     telemetrySink,
+		stateDBMetrics:    stateDBMetrics,
 	}
 }
 
@@ -78,7 +78,7 @@ func (k Backend) StateFromContext(ctx context.Context) *statedb.StateDB {
 		k.kvStore.WithContext(ctx),
 		k.chainSpec,
 		k.logger,
-		k.telemetrySink,
+		k.stateDBMetrics,
 	)
 }
 

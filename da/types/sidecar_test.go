@@ -23,11 +23,11 @@ package types_test
 import (
 	"strconv"
 	"testing"
-	"time"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/blob"
 	"github.com/berachain/beacon-kit/da/types"
+	"github.com/berachain/beacon-kit/observability/metrics/discard"
 	byteslib "github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -86,14 +86,8 @@ func TestSidecarMarshalling(t *testing.T) {
 	)
 }
 
-type InclusionSink struct{}
-
-func (is InclusionSink) MeasureSince(_ string, _ time.Time, _ ...string) {}
-
 func TestHasValidInclusionProof(t *testing.T) {
 	t.Parallel()
-
-	sink := InclusionSink{}
 	tests := []struct {
 		name           string
 		sidecars       func(t *testing.T) types.BlobSidecars
@@ -149,7 +143,7 @@ func TestHasValidInclusionProof(t *testing.T) {
 				t.Helper()
 				block := utils.GenerateValidBeaconBlock(t, version.Electra())
 
-				sidecarFactory := blob.NewSidecarFactory(sink)
+				sidecarFactory := blob.NewSidecarFactory(blob.NewFactoryMetrics(discard.NewFactory()))
 				numBlobs := len(block.GetBody().GetBlobKzgCommitments())
 				sidecars := make(types.BlobSidecars, numBlobs)
 				for i := range numBlobs {

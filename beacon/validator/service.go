@@ -49,7 +49,7 @@ type Service struct {
 	// The local Builder.
 	localPayloadBuilder PayloadBuilder
 	// metrics is a metrics collector.
-	metrics *validatorMetrics
+	metrics *Metrics
 }
 
 // NewService creates a new validator service.
@@ -62,7 +62,7 @@ func NewService(
 	signer crypto.BLSSigner,
 	blobFactory BlobFactory,
 	localPayloadBuilder PayloadBuilder,
-	ts TelemetrySink,
+	metrics *Metrics,
 ) *Service {
 	return &Service{
 		cfg:                 cfg,
@@ -73,7 +73,7 @@ func NewService(
 		stateProcessor:      stateProcessor,
 		blobFactory:         blobFactory,
 		localPayloadBuilder: localPayloadBuilder,
-		metrics:             newValidatorMetrics(ts),
+		metrics:             metrics,
 	}
 }
 

@@ -21,8 +21,6 @@
 package cometbft
 
 import (
-	"time"
-
 	"github.com/cometbft/cometbft/p2p"
 )
 
@@ -31,12 +29,4 @@ type BlobReactorI interface {
 	p2p.Reactor
 	// SetNodeKey sets the node Key for the reactor.
 	SetNodeKey(nodeKey string)
-}
-
-// TelemetrySink is an interface for sending metrics to a telemetry backend.
-type TelemetrySink interface {
-	// IncrementCounter increments a counter for the given key.
-	IncrementCounter(key string, args ...string)
-	// MeasureSince measures the time since the given time.
-	MeasureSince(key string, start time.Time, args ...string)
 }
