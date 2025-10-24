@@ -21,16 +21,21 @@
 package components
 
 import (
+	"os"
+
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/config/config"
+	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/observability/metrics"
 	"github.com/berachain/beacon-kit/observability/metrics/discard"
 	"github.com/berachain/beacon-kit/observability/metrics/prometheus"
+	promlib "github.com/prometheus/client_golang/prometheus"
 )
 
 type MetricsFactoryInput struct {
 	depinject.In
 	Config *config.Config
+	Logger *phuslu.Logger
 }
 
 // ProvideMetricsFactory provides a metrics factory based on configuration.
@@ -38,8 +43,48 @@ type MetricsFactoryInput struct {
 // When false, creates no-op metrics with zero runtime overhead.
 // This setting affects ALL metrics in the beacon-kit system.
 func ProvideMetricsFactory(in MetricsFactoryInput) metrics.Factory {
-	if in.Config.Telemetry.Enabled {
-		return prometheus.NewFactory(in.Config.Telemetry.ServiceName)
+	if !in.Config.Telemetry.Enabled {
+		return discard.NewFactory()
 	}
-	return discard.NewFactory()
+
+	// Build constant labels from config
+	constLabels := buildConstLabels(in.Config.Telemetry, in.Logger)
+
+	// If we have any constant labels, create factory with labels
+	if len(constLabels) > 0 {
+		return prometheus.NewFactoryWithLabels(
+			in.Config.Telemetry.ServiceName,
+			constLabels,
+		)
+	}
+
+	return prometheus.NewFactory(in.Config.Telemetry.ServiceName)
+}
+
+// buildConstLabels builds constant labels from telemetry config.
+// It merges hostname label (if enabled) with global labels.
+func buildConstLabels(cfg config.TelemetryConfig, logger *phuslu.Logger) promlib.Labels {
+	labels := make(promlib.Labels)
+
+	// Add global labels from config
+	for _, labelPair := range cfg.GlobalLabels {
+		//nolint:mnd // label pairs are always [key, value]
+		if len(labelPair) != 2 {
+			logger.Warn("Invalid global label pair in telemetry config, must be [key, value]", "pair", labelPair)
+			continue
+		}
+		labels[labelPair[0]] = labelPair[1]
+	}
+
+	// Add hostname label if enabled (takes precedence over global-labels)
+	if cfg.EnableHostnameLabel {
+		hostname, err := os.Hostname()
+		if err != nil {
+			logger.Warn("Failed to get hostname for metrics labels, continuing without hostname label", "error", err)
+		} else {
+			labels["host"] = hostname
+		}
+	}
+
+	return labels
 }
