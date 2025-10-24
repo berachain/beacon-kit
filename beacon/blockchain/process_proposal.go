@@ -45,7 +45,6 @@ import (
 )
 
 const (
-	// BeaconBlockTxIndex represents the index of the beacon block transaction.
 	// It is the first transaction in the tx list.
 	BeaconBlockTxIndex uint = iota
 	// BlobSidecarsTxIndex represents the index of the blob sidecar transaction.
@@ -62,7 +61,7 @@ func (s *Service) ProcessProposal(
 	req *cmtabci.ProcessProposalRequest,
 	thisNodeAddress []byte,
 ) (transition.ValidatorUpdates, error) {
-	signedBlk, sidecars, err := s.ParseBeaconBlock(req)
+	signedBlk, sidecars, err := s.ParseProcessProposalRequest(req)
 	if err != nil {
 		s.logger.Error("Failed to decode block and blobs", "error", err)
 		return nil, fmt.Errorf("failed to decode block and blobs: %w", err)

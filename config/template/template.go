@@ -109,4 +109,8 @@ address = "{{ .BeaconKit.NodeAPI.Address }}"
 
 # Logging determines if the node API logging is enabled.
 logging = "{{ .BeaconKit.NodeAPI.Logging }}"
+
+[beacon-kit.blob-reactor]
+# Request timeout for blob requests from peers
+request-timeout = "{{ .BeaconKit.BlobReactor.RequestTimeout }}"
 `
