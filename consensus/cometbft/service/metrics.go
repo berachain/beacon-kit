@@ -24,64 +24,55 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/observability/metrics"
-	prominternal "github.com/prometheus/client_golang/prometheus"
 )
 
 // Metrics holds metrics for the CometBFT service.
-//
-// Metric names are kept identical to cosmos-sdk/telemetry output for Grafana compatibility.
 type Metrics struct {
 	// QueryCount tracks the number of ABCI queries received, labeled by query path.
 	QueryCount metrics.Counter
 
 	// QueryDuration tracks the time taken to process ABCI queries, labeled by query path.
-	QueryDuration metrics.Histogram
+	QueryDuration metrics.Summary
 
 	// PrepareProposalDuration tracks the time taken to prepare a proposal.
-	PrepareProposalDuration metrics.Histogram
+	PrepareProposalDuration metrics.Summary
 
 	// ProcessProposalDuration tracks the time taken to process a proposal.
-	ProcessProposalDuration metrics.Histogram
+	ProcessProposalDuration metrics.Summary
 }
 
-// NewMetrics creates a new Metrics instance using the provided factory.
-// The factory determines whether real Prometheus metrics or no-op metrics are created.
-//
-//nolint:mnd // magic numbers are histogram bucket ranges for timing metrics
+// NewMetrics creates a new Metrics instance using the provided factory. The factory determines
+// whether real Prometheus metrics or no-op metrics are created.
 func NewMetrics(factory metrics.Factory) *Metrics {
 	return &Metrics{
 		QueryCount: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "comet",
-				Name:      "query_count",
-				Help:      "Total number of ABCI queries received",
+				Name: "beacon_kit_comet_query_count",
+				Help: "Total number of ABCI queries received",
 			},
 			[]string{"path"},
 		),
-		QueryDuration: factory.NewHistogram(
-			metrics.HistogramOpts{
-				Subsystem: "comet",
-				Name:      "query_duration",
-				Help:      "Time taken to process ABCI queries in seconds",
-				Buckets:   prominternal.ExponentialBucketsRange(0.001, 10, 10),
+		QueryDuration: factory.NewSummary(
+			metrics.SummaryOpts{
+				Name:       "beacon_kit_comet_query_duration",
+				Help:       "Time taken to process ABCI queries in seconds",
+				Objectives: metrics.QuantilesP50P90P99,
 			},
 			[]string{"path"},
 		),
-		PrepareProposalDuration: factory.NewHistogram(
-			metrics.HistogramOpts{
-				Subsystem: "runtime",
-				Name:      "prepare_proposal_duration",
-				Help:      "Time taken to prepare a proposal in seconds",
-				Buckets:   prominternal.ExponentialBucketsRange(0.001, 10, 10),
+		PrepareProposalDuration: factory.NewSummary(
+			metrics.SummaryOpts{
+				Name:       "beacon_kit_runtime_prepare_proposal_duration",
+				Help:       "Time taken to prepare a proposal in seconds",
+				Objectives: metrics.QuantilesP50P90P99,
 			},
 			nil,
 		),
-		ProcessProposalDuration: factory.NewHistogram(
-			metrics.HistogramOpts{
-				Subsystem: "runtime",
-				Name:      "process_proposal_duration",
-				Help:      "Time taken to process a proposal in seconds",
-				Buckets:   prominternal.ExponentialBucketsRange(0.001, 10, 10),
+		ProcessProposalDuration: factory.NewSummary(
+			metrics.SummaryOpts{
+				Name:       "beacon_kit_runtime_process_proposal_duration",
+				Help:       "Time taken to process a proposal in seconds",
+				Objectives: metrics.QuantilesP50P90P99,
 			},
 			nil,
 		),

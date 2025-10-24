@@ -25,17 +25,16 @@ import (
 
 	"github.com/berachain/beacon-kit/observability/metrics"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 // Metrics is a struct that contains metrics for the blockchain service.
 type Metrics struct {
-	StateTransitionDuration               metrics.Histogram
+	StateTransitionDuration               metrics.Summary
 	RebuildPayloadForRejectedBlockSuccess metrics.Counter
 	RebuildPayloadForRejectedBlockFailure metrics.Counter
 	OptimisticPayloadBuildSuccess         metrics.Counter
 	OptimisticPayloadBuildFailure         metrics.Counter
-	StateRootVerificationDuration         metrics.Histogram
+	StateRootVerificationDuration         metrics.Summary
 	FailedToGetBlockLogs                  metrics.Counter
 	FailedToEnqueueDeposits               metrics.Counter
 }
@@ -44,69 +43,61 @@ type Metrics struct {
 // Metric names are kept identical to cosmos-sdk/telemetry output for Grafana compatibility.
 func NewMetrics(factory metrics.Factory) *Metrics {
 	return &Metrics{
-		StateTransitionDuration: factory.NewHistogram(
-			metrics.HistogramOpts{
-				Subsystem: "beacon_blockchain",
-				Name:      "state_transition_duration",
-				Help:      "Time taken to process state transition in seconds",
-				Buckets:   prometheus.ExponentialBucketsRange(0.001, 10, 10),
+		StateTransitionDuration: factory.NewSummary(
+			metrics.SummaryOpts{
+				Name:       "beacon_kit_beacon_blockchain_state_transition_duration",
+				Help:       "Time taken to process state transition in seconds",
+				Objectives: metrics.QuantilesP50P90P99,
 			},
 			nil,
 		),
 		RebuildPayloadForRejectedBlockSuccess: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "blockchain",
-				Name:      "rebuild_payload_for_rejected_block_success",
-				Help:      "Number of successful payload rebuilds for rejected blocks",
+				Name: "beacon_kit_blockchain_rebuild_payload_for_rejected_block_success",
+				Help: "Number of successful payload rebuilds for rejected blocks",
 			},
 			[]string{"slot"},
 		),
 		RebuildPayloadForRejectedBlockFailure: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "blockchain",
-				Name:      "rebuild_payload_for_rejected_block_failure",
-				Help:      "Number of failed payload rebuilds for rejected blocks",
+				Name: "beacon_kit_blockchain_rebuild_payload_for_rejected_block_failure",
+				Help: "Number of failed payload rebuilds for rejected blocks",
 			},
 			[]string{"slot", "error"},
 		),
 		OptimisticPayloadBuildSuccess: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "blockchain",
-				Name:      "optimistic_payload_build_success",
-				Help:      "Number of successful optimistic payload builds",
+				Name: "beacon_kit_blockchain_optimistic_payload_build_success",
+				Help: "Number of successful optimistic payload builds",
 			},
 			[]string{"slot"},
 		),
 		OptimisticPayloadBuildFailure: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "blockchain",
-				Name:      "optimistic_payload_build_failure",
-				Help:      "Number of failed optimistic payload builds",
+				Name: "beacon_kit_blockchain_optimistic_payload_build_failure",
+				Help: "Number of failed optimistic payload builds",
 			},
 			[]string{"slot", "error"},
 		),
-		StateRootVerificationDuration: factory.NewHistogram(
-			metrics.HistogramOpts{
-				Subsystem: "blockchain",
-				Name:      "state_root_verification_duration",
-				Help:      "Time taken to verify state root in seconds",
-				Buckets:   prometheus.ExponentialBucketsRange(0.001, 10, 10),
+		StateRootVerificationDuration: factory.NewSummary(
+			metrics.SummaryOpts{
+				Name:       "beacon_kit_blockchain_state_root_verification_duration",
+				Help:       "Time taken to verify state root in seconds",
+				Objectives: metrics.QuantilesP50P90P99,
 			},
 			nil,
 		),
 		FailedToGetBlockLogs: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "execution_deposit",
-				Name:      "failed_to_get_block_logs",
-				Help:      "Number of times failed to read deposits from execution layer block logs",
+				Name: "beacon_kit_execution_deposit_failed_to_get_block_logs",
+				Help: "Number of times failed to read deposits from execution layer block logs",
 			},
 			[]string{"block_num"},
 		),
 		FailedToEnqueueDeposits: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "execution_deposit",
-				Name:      "failed_to_enqueue_deposits",
-				Help:      "Number of times failed to enqueue deposits to storage",
+				Name: "beacon_kit_execution_deposit_failed_to_enqueue_deposits",
+				Help: "Number of times failed to enqueue deposits to storage",
 			},
 			[]string{"block_num"},
 		),

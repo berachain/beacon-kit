@@ -82,6 +82,9 @@ type TelemetryConfig struct {
 	// When true, all beacon-kit services emit Prometheus metrics.
 	// When false, all metrics are no-op with zero runtime overhead.
 	Enabled bool `mapstructure:"enabled"`
+
+	// ServiceName defines the namespace for all Prometheus metrics.
+	ServiceName string `mapstructure:"service-name"`
 }
 
 // Config defines the server's top level configuration.
@@ -106,7 +109,8 @@ func DefaultConfig() *Config {
 			IAVLDisableFastNode: false,
 		},
 		Telemetry: TelemetryConfig{
-			Enabled: false,
+			Enabled:     false,
+			ServiceName: "beacond_node",
 		},
 	}
 }

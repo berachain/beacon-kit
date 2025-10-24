@@ -39,17 +39,15 @@ func NewMetrics(factory metrics.Factory) *Metrics {
 	return &Metrics{
 		PartialWithdrawalRequestInvalid: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "statedb",
-				Name:      "partial_withdrawal_request_invalid",
-				Help:      "Number of invalid partial withdrawal requests",
+				Name: "beacon_kit_statedb_partial_withdrawal_request_invalid",
+				Help: "Number of invalid partial withdrawal requests",
 			},
 			nil,
 		),
 		ExcessStakePartialWithdrawal: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "statedb",
-				Name:      "excess_stake_partial_withdrawal",
-				Help:      "Number of withdrawals created due to validator stake exceeding MaxEffectiveBalance",
+				Name: "beacon_kit_statedb_excess_stake_partial_withdrawal",
+				Help: "Number of withdrawals created due to validator stake exceeding MaxEffectiveBalance",
 			},
 			nil,
 		),

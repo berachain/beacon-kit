@@ -25,16 +25,17 @@ import (
 
 	"github.com/berachain/beacon-kit/observability/metrics"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 // Metrics is a struct that contains metrics for the validator service.
 type Metrics struct {
 	// RequestBlockForProposalDuration tracks time to request block for proposal
-	RequestBlockForProposalDuration metrics.Histogram
+	// Using Summary for backward compatibility with cosmos-sdk/telemetry.
+	RequestBlockForProposalDuration metrics.Summary
 
 	// StateRootComputationDuration tracks time to compute state root
-	StateRootComputationDuration metrics.Histogram
+	// Using Summary for backward compatibility with cosmos-sdk/telemetry.
+	StateRootComputationDuration metrics.Summary
 
 	// FailedToRetrievePayload tracks failed payload retrievals
 	FailedToRetrievePayload metrics.Counter
@@ -44,29 +45,26 @@ type Metrics struct {
 // Metric names are kept identical to cosmos-sdk/telemetry output for Grafana compatibility.
 func NewMetrics(factory metrics.Factory) *Metrics {
 	return &Metrics{
-		RequestBlockForProposalDuration: factory.NewHistogram(
-			metrics.HistogramOpts{
-				Subsystem: "validator",
-				Name:      "request_block_for_proposal_duration",
-				Help:      "Time taken to request block for proposal in seconds",
-				Buckets:   prometheus.ExponentialBucketsRange(0.001, 10, 10),
+		RequestBlockForProposalDuration: factory.NewSummary(
+			metrics.SummaryOpts{
+				Name:       "beacon_kit_validator_request_block_for_proposal_duration",
+				Help:       "Time taken to request block for proposal in seconds",
+				Objectives: metrics.QuantilesP50P90P99,
 			},
 			nil,
 		),
-		StateRootComputationDuration: factory.NewHistogram(
-			metrics.HistogramOpts{
-				Subsystem: "validator",
-				Name:      "state_root_computation_duration",
-				Help:      "Time taken to compute state root in seconds",
-				Buckets:   prometheus.ExponentialBucketsRange(0.001, 10, 10),
+		StateRootComputationDuration: factory.NewSummary(
+			metrics.SummaryOpts{
+				Name:       "beacon_kit_validator_state_root_computation_duration",
+				Help:       "Time taken to compute state root in seconds",
+				Objectives: metrics.QuantilesP50P90P99,
 			},
 			nil,
 		),
 		FailedToRetrievePayload: factory.NewCounter(
 			metrics.CounterOpts{
-				Subsystem: "validator",
-				Name:      "failed_to_retrieve_payload",
-				Help:      "Number of times validator failed to retrieve payload",
+				Name: "beacon_kit_validator_failed_to_retrieve_payload",
+				Help: "Number of times validator failed to retrieve payload",
 			},
 			[]string{"slot", "error"},
 		),
