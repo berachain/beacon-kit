@@ -262,9 +262,9 @@ func (s *Service) VerifyIncomingBlock(
 	)
 
 	if shouldBuildNextPayload {
-		// state copy makes sure that preFetchBuildData does not affect state
-		copiedState := state.Copy(ctx)
-		nextBlockData, errFetch = s.preFetchBuildData(copiedState, blk.GetConsensusTime())
+		// makes sure that preFetchBuildData does not affect state
+		ephemeralState := state.Protect(ctx)
+		nextBlockData, errFetch = s.preFetchBuildData(ephemeralState, blk.GetConsensusTime())
 		if errFetch != nil {
 			// We don't return with err if pre-fetch fails. Instead we log the issue
 			// and still move to process the current block. Next block can always be
@@ -303,9 +303,9 @@ func (s *Service) VerifyIncomingBlock(
 	)
 
 	if shouldBuildNextPayload {
-		// state copy makes sure that preFetchBuildDataForSuccess does not affect state
-		copiedState := state.Copy(ctx)
-		nextBlockData, errFetch = s.preFetchBuildData(copiedState, blk.GetConsensusTime())
+		// makes sure that preFetchBuildDataForSuccess does not affect state
+		ephemeralState := state.Protect(ctx)
+		nextBlockData, errFetch = s.preFetchBuildData(ephemeralState, blk.GetConsensusTime())
 		if errFetch != nil {
 			// We don't mark the block as rejected if it is valid but pre-fetch fails.
 			// Instead we log the issue and move to process the current block.
