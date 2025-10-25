@@ -394,7 +394,7 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 			Time:            consensusTime,
 			ProposerAddress: pubkey.Address(),
 		}
-		proposal, err = helperBuilder.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, prepareReq)
+		proposal, err = helperBuilder.SimComet.Comet.PrepareProposal(helperBuilder.CtxComet, prepareReq)
 		s.Require().NoError(err)
 		s.Require().Len(proposal.Txs, 2)
 
@@ -445,7 +445,7 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 			Time:            consensusTime,
 			ProposerAddress: pubkey.Address(),
 		}
-		proposal, prepareErr := helperBuilder.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, prepareReq)
+		proposal, prepareErr := helperBuilder.SimComet.Comet.PrepareProposal(helperBuilder.CtxComet, prepareReq)
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
 
@@ -472,7 +472,7 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 			Time:            consensusTime,
 			ProposerAddress: pubkey.Address(),
 		}
-		proposal, prepareErr := helperBuilder.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, prepareReq)
+		proposal, prepareErr := helperBuilder.SimComet.Comet.PrepareProposal(helperBuilder.CtxComet, prepareReq)
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
 
