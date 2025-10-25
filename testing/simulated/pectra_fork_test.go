@@ -375,14 +375,16 @@ func (s *PectraForkSuite) TestMaliciousUser_MakesConsolidationRequest_IsIgnored(
 // The next round will propose a valid pre-fork block that gets finalized due to deviance in the consensus timestamp.
 // The proposer will then propose a valid post-fork block that is correctly finalized.
 func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_IsSuccessful() {
-	// Initialize the chain state.
-	s.Geth.InitializeChain(s.T())
-	s.Reth.InitializeChain(s.T()) // helper to build "invalid" blocks
-	helperBuilder := s.Reth
+	client := s.Geth
+	helper := s.Reth
 
-	nodeAddress, err := s.Geth.SimComet.GetNodeAddress()
+	// Initialize the chain state.
+	client.InitializeChain(s.T())
+	helper.InitializeChain(s.T()) // helper to build "invalid" blocks
+
+	nodeAddress, err := client.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
-	s.Geth.SimComet.Comet.SetNodeAddress(nodeAddress)
+	client.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	nextBlockHeight := int64(1)
 	var proposal *types.PrepareProposalResponse
@@ -390,13 +392,13 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 	// 1 - Build a block whose consensus and payloadTimestamp are both post-fork.
 	//     Check that it verifies, but do not finalize it
 	{
-		consensusTime := time.Unix(int64(s.Geth.TestNode.ChainSpec.ElectraForkTime()), 0)
+		consensusTime := time.Unix(int64(client.TestNode.ChainSpec.ElectraForkTime()), 0)
 		prepareReq := &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
 			ProposerAddress: nodeAddress,
 		}
-		proposal, err = helperBuilder.SimComet.Comet.PrepareProposal(helperBuilder.CtxComet, prepareReq)
+		proposal, err = helper.SimComet.Comet.PrepareProposal(helper.CtxComet, prepareReq)
 		s.Require().NoError(err)
 		s.Require().Len(proposal.Txs, 2)
 
@@ -409,8 +411,8 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 		}
 
 		// Process the proposal
-		s.Geth.LogBuffer.Reset()
-		processResp, respErr := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
+		client.LogBuffer.Reset()
+		processResp, respErr := client.SimComet.Comet.ProcessProposal(client.CtxComet, processRequest)
 		s.Require().NoError(respErr)
 		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT.String(), processResp.Status.String())
 	}
@@ -419,7 +421,7 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 	//     Check that it does not verifies.
 	// Note: to build the invalid block we reuse the beaconBlock from point 1 and just change CometBFT timestamp
 	{
-		maliciouConsensusTime := time.Unix(int64(s.Geth.TestNode.ChainSpec.ElectraForkTime())-2, 0)
+		maliciouConsensusTime := time.Unix(int64(client.TestNode.ChainSpec.ElectraForkTime())-2, 0)
 		processRequest := &types.ProcessProposalRequest{
 			Txs:                 proposal.Txs,
 			Height:              nextBlockHeight,
@@ -429,12 +431,12 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 		}
 
 		// Process the proposal
-		s.Geth.LogBuffer.Reset()
-		processResp, processErr := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
+		client.LogBuffer.Reset()
+		processResp, processErr := client.SimComet.Comet.ProcessProposal(client.CtxComet, processRequest)
 		s.Require().NoError(processErr)
 		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT.String(), processResp.Status.String())
 		s.Require().Contains(
-			s.Geth.LogBuffer.String(),
+			client.LogBuffer.String(),
 			"failed decoding *types.SignedBeaconBlock: ssz: offset smaller than previous",
 		)
 	}
@@ -443,13 +445,13 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 	//     Check that it does verify (even if we already validated a post fork block).
 	// Note: to build the block we reuse the beaconBlock from point 1 and just change CometBFT timestamp
 	{
-		consensusTime := time.Unix(int64(s.Geth.TestNode.ChainSpec.ElectraForkTime())-2, 0)
+		consensusTime := time.Unix(int64(client.TestNode.ChainSpec.ElectraForkTime())-2, 0)
 		prepareReq := &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
 			ProposerAddress: nodeAddress,
 		}
-		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, prepareReq)
+		proposal, prepareErr := helper.SimComet.Comet.PrepareProposal(helper.CtxComet, prepareReq)
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
 
@@ -462,8 +464,8 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 		}
 
 		// Process the proposal
-		s.Geth.LogBuffer.Reset()
-		processResp, processErr := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
+		client.LogBuffer.Reset()
+		processResp, processErr := client.SimComet.Comet.ProcessProposal(client.CtxComet, processRequest)
 		s.Require().NoError(processErr)
 		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT.String(), processResp.Status.String())
 	}
@@ -471,13 +473,13 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 	// The next block the proposer proposes with a pre-fork timestamp will actually have a pre-fork time
 	// Since the previous payload in cache has been evicted and a new payload is retrieved.
 	{
-		consensusTime := time.Unix(int64(s.Geth.TestNode.ChainSpec.ElectraForkTime())-2, 0)
+		consensusTime := time.Unix(int64(client.TestNode.ChainSpec.ElectraForkTime())-2, 0)
 		prepareReq := &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
 			ProposerAddress: nodeAddress,
 		}
-		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, prepareReq)
+		proposal, prepareErr := helper.SimComet.Comet.PrepareProposal(helper.CtxComet, prepareReq)
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
 
@@ -490,8 +492,8 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 		}
 
 		// Process the proposal
-		s.Geth.LogBuffer.Reset()
-		processResp, processErr := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
+		client.LogBuffer.Reset()
+		processResp, processErr := client.SimComet.Comet.ProcessProposal(client.CtxComet, processRequest)
 		s.Require().NoError(processErr)
 		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT.String(), processResp.Status.String())
 
@@ -502,24 +504,24 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 			ProposerAddress: nodeAddress,
 			Time:            consensusTime,
 		}
-		_, finalizeErr := s.Geth.SimComet.Comet.FinalizeBlock(s.Geth.CtxComet, finalizeRequest)
+		_, finalizeErr := client.SimComet.Comet.FinalizeBlock(client.CtxComet, finalizeRequest)
 		s.Require().NoError(finalizeErr)
 
 		// Commit the block.
-		_, err = s.Geth.SimComet.Comet.Commit(s.Geth.CtxComet, &types.CommitRequest{})
+		_, err = client.SimComet.Comet.Commit(client.CtxComet, &types.CommitRequest{})
 		s.Require().NoError(err)
 
 		nextBlockHeight++
 	}
 	// Finally, we cross the fork and show no issues
 	{
-		consensusTime := time.Unix(int64(s.Geth.TestNode.ChainSpec.ElectraForkTime())+2, 0)
+		consensusTime := time.Unix(int64(client.TestNode.ChainSpec.ElectraForkTime())+2, 0)
 		prepareReq := &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
 			ProposerAddress: nodeAddress,
 		}
-		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, prepareReq)
+		proposal, prepareErr := client.SimComet.Comet.PrepareProposal(client.CtxComet, prepareReq)
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
 
@@ -531,11 +533,11 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 			NextProposerAddress: nodeAddress,
 		}
 		// Process the proposal
-		s.Geth.LogBuffer.Reset()
-		processResp, processErr := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
+		client.LogBuffer.Reset()
+		processResp, processErr := client.SimComet.Comet.ProcessProposal(client.CtxComet, processRequest)
 		s.Require().NoError(processErr)
 		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT.String(), processResp.Status.String())
-		s.Require().Contains(s.Geth.LogBuffer.String(), "Processing execution requests")
+		s.Require().Contains(client.LogBuffer.String(), "Processing execution requests")
 	}
 }
 
