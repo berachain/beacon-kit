@@ -86,6 +86,7 @@ type (
 			ctx context.Context,
 			slot math.Slot,
 			parentBlockRoot common.Root,
+			expectedForkVersion common.Version,
 		) (ctypes.BuiltExecutionPayloadEnv, error)
 		// RequestPayloadSync requests a payload for the given slot and
 		// blocks until the payload is delivered.

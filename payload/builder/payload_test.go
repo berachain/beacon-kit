@@ -106,11 +106,12 @@ func TestRetrievePayloadSunnyPath(t *testing.T) {
 	)
 
 	// set expectations
-	cache.Set(slot, parentBlockRoot, dummyPayloadID, version.Deneb())
+	expectedForkVersion := version.Deneb()
+	cache.Set(slot, parentBlockRoot, dummyPayloadID, expectedForkVersion)
 	ee.payloadEnvToReturn = expectedPayload
 
 	// test and checks
-	payload, err := pb.RetrievePayload(ctx, slot, parentBlockRoot)
+	payload, err := pb.RetrievePayload(ctx, slot, parentBlockRoot, expectedForkVersion)
 	require.NoError(t, err)
 	require.Equal(t, expectedPayload, payload)
 }
@@ -154,11 +155,12 @@ func TestRetrievePayloadNilWithdrawalsListRejected(t *testing.T) {
 	)
 
 	// set expectations
-	cache.Set(slot, parentBlockRoot, dummyPayloadID, version.Deneb())
+	expectedForkVersion := version.Deneb()
+	cache.Set(slot, parentBlockRoot, dummyPayloadID, expectedForkVersion)
 	ee.payloadEnvToReturn = faultyPayload
 
 	// test and checks
-	_, err = pb.RetrievePayload(ctx, slot, parentBlockRoot)
+	_, err = pb.RetrievePayload(ctx, slot, parentBlockRoot, expectedForkVersion)
 	require.ErrorIs(t, builder.ErrNilWithdrawals, err)
 }
 

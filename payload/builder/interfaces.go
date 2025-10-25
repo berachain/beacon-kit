@@ -32,8 +32,9 @@ import (
 )
 
 type PayloadCache interface {
-	GetAndEvict(slot math.Slot, stateRoot common.Root) (cache.PayloadIDCacheResult, bool)
+	Get(slot math.Slot, stateRoot common.Root) (cache.PayloadIDCacheResult, bool)
 	Set(slot math.Slot, stateRoot common.Root, pid engineprimitives.PayloadID, version common.Version)
+	Delete(slot math.Slot, stateRoot common.Root)
 }
 
 // AttributesFactory is the interface for the attributes factory.
