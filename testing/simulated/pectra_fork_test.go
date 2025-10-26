@@ -380,7 +380,7 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 
 	// Initialize the chain state.
 	client.InitializeChain(s.T())
-	s.Reth.InitializeChain(s.T()) // helper to build "invalid" blocks
+	helper.InitializeChain(s.T()) // helper to build "invalid" blocks
 
 	nodeAddress, err := client.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
@@ -451,7 +451,7 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 			Time:            consensusTime,
 			ProposerAddress: nodeAddress,
 		}
-		proposal, prepareErr := client.SimComet.Comet.PrepareProposal(client.CtxComet, prepareReq)
+		proposal, prepareErr := helper.SimComet.Comet.PrepareProposal(helper.CtxComet, prepareReq)
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
 
@@ -479,7 +479,7 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 			Time:            consensusTime,
 			ProposerAddress: nodeAddress,
 		}
-		proposal, prepareErr := client.SimComet.Comet.PrepareProposal(client.CtxComet, prepareReq)
+		proposal, prepareErr := helper.SimComet.Comet.PrepareProposal(helper.CtxComet, prepareReq)
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
 
