@@ -166,7 +166,7 @@ func (pb *PayloadBuilder) RetrievePayload(
 
 	// With optimistic block building enabled, multiple payloads can be available
 	// when it's the proposer turn to build. We select them as follows:
-	// - First we checke if node has already built a payload for the requested slot. If so we use that
+	// - First we check if node has already built a payload for the requested slot. If so we use that
 	// payload; note that such a payload may not be available (no payloadID associated or payload is stale).
 	// - Secondly we try and reuse the latest payload we verified, even if produced by other validators.
 	// The reason we have to do this has to do with an ENGINE API invariant: the node
@@ -175,7 +175,7 @@ func (pb *PayloadBuilder) RetrievePayload(
 	// In such a case, the EVM may not be able to serve a new payload (e.g. if it has received a
 	// FCU call with HEAD == H+1). To avoiding a failure in building the block
 	// we reuse a validated payload if it's available
-	// - Finally if neither of these payloads is available, we signal the block bulder to build
+	// - Finally if neither of these payloads is available, we signal the block builder to build
 	// the payload just in time with ErrPayloadIDNotFound error flag
 	payloadRes, found := pb.pc.Get(slot, parentBlockRoot)
 	if !found {
@@ -248,8 +248,8 @@ func (pb *PayloadBuilder) CacheLatestVerifiedPayload(
 
 // getLatestVerifiedPayload is a simple getter to keep pb.muEnv locking scope at minimum
 func (pb *PayloadBuilder) getLatestVerifiedPayload(slot math.Slot) ctypes.BuiltExecutionPayloadEnv {
-	pb.muEnv.Lock()
-	defer pb.muEnv.Unlock()
+	pb.muEnv.RLock()
+	defer pb.muEnv.RUnlock()
 	if pb.latestEnvelope != nil && slot == pb.latestEnvelopeSlot {
 		return pb.latestEnvelope
 	}

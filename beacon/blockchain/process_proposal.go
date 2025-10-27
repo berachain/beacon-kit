@@ -164,7 +164,17 @@ func (s *Service) ProcessProposal(
 	// once we have successfully verified the block we cache it in the node builder.
 	// This ensures the node will be able to build a payload even in scenarios where
 	// EVM won't provide a new payload (e.g. if it received FCU(Head == N+1) due to
-	// optimistic block building, then FCU(Head ++ N)) if verified block is not finalized)
+	// optimistic block building, then FCU(Head == N)) if verified block is not finalized)
+	envelope, err := s.payloadEnvFromPayload(sidecars, blk)
+	if err != nil {
+		return nil, err
+	}
+
+	s.localBuilder.CacheLatestVerifiedPayload(blk.Slot, envelope)
+	return valUpdates.CanonicalSort(), nil
+}
+
+func (*Service) payloadEnvFromPayload(sidecars datypes.BlobSidecars, blk *ctypes.BeaconBlock) (ctypes.BuiltExecutionPayloadEnv, error) {
 	blobBundle := &engineprimitives.BlobsBundleV1{}
 	for _, s := range sidecars {
 		blobBundle.Commitments = append(blobBundle.Commitments, s.GetKzgCommitment())
@@ -174,7 +184,10 @@ func (s *Service) ProcessProposal(
 		blobBundle.Blobs = append(blobBundle.Blobs, &blob)
 	}
 
-	var executionRequests []ctypes.EncodedExecutionRequest
+	var (
+		executionRequests []ctypes.EncodedExecutionRequest
+		err               error
+	)
 	switch reqs, errReqs := blk.Body.GetExecutionRequests(); {
 	case errReqs == nil:
 		executionRequests, err = ctypes.GetExecutionRequestsList(reqs)
@@ -186,16 +199,12 @@ func (s *Service) ProcessProposal(
 	default:
 		return nil, fmt.Errorf("failed getting execution requests from payload: %w", errReqs)
 	}
-	s.localBuilder.CacheLatestVerifiedPayload(
-		blk.Slot,
-		ctypes.NewExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1](
-			blk.Body.ExecutionPayload,
-			blobBundle,
-			executionRequests,
-		),
-	)
 
-	return valUpdates.CanonicalSort(), nil
+	return ctypes.NewExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1](
+		blk.Body.ExecutionPayload,
+		blobBundle,
+		executionRequests,
+	), nil
 }
 
 func (s *Service) VerifyIncomingBlockSignature(
