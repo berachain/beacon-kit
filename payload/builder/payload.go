@@ -140,8 +140,9 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 		if errors.Is(err, engineerrors.ErrUnknownPayload) ||
 			errors.Is(err, engineerrors.ErrNilExecutionPayloadEnvelope) {
 			// We may have cached the payloadID, but the payload have become stale
-			// in the EVM, or there could have been other issues. Block builder will
-			// try and build again the payload just in time
+			// in the EVM, or there could have been other issues forcing the EVM
+			// to provide no payload. In both cases we can purge the payloadID as it
+			// is not usable anymore.
 			pb.pc.Delete(r.Slot, r.ParentBlockRoot)
 		}
 		return nil, fmt.Errorf("failed retrieving payload for ID %x: %w", *payloadID, err)

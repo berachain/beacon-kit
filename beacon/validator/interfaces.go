@@ -52,7 +52,8 @@ type PayloadBuilder interface {
 	// Enabled may be enabled (e.g. for validators)
 	// or disabled (e.g. full nodes)
 	Enabled() bool
-	// RetrievePayload retrieves the payload for the given slot.
+	// RetrievePayload retrieves the payload for the given slot and parentBlockRoot.
+	// If returned error is nil, payload is guaranteed to have expectedForkVersion version.
 	RetrievePayload(
 		ctx context.Context,
 		slot math.Slot,
