@@ -46,7 +46,7 @@ func NewMetrics(factory metrics.Factory) *Metrics {
 		StateTransitionDuration: factory.NewSummary(
 			metrics.SummaryOpts{
 				Name:       "beacon_kit_beacon_blockchain_state_transition_duration",
-				Help:       "Time taken to process state transition in seconds",
+				Help:       "Time taken to process state transition in milliseconds",
 				Objectives: metrics.QuantilesP50P90P99,
 			},
 			nil,
@@ -82,7 +82,7 @@ func NewMetrics(factory metrics.Factory) *Metrics {
 		StateRootVerificationDuration: factory.NewSummary(
 			metrics.SummaryOpts{
 				Name:       "beacon_kit_blockchain_state_root_verification_duration",
-				Help:       "Time taken to verify state root in seconds",
+				Help:       "Time taken to verify state root in milliseconds",
 				Objectives: metrics.QuantilesP50P90P99,
 			},
 			nil,
@@ -106,7 +106,7 @@ func NewMetrics(factory metrics.Factory) *Metrics {
 
 // measureStateTransitionDuration measures the time to process the state transition for a block.
 func (m *Metrics) measureStateTransitionDuration(start time.Time) {
-	m.StateTransitionDuration.Observe(time.Since(start).Seconds())
+	m.StateTransitionDuration.Observe(float64(time.Since(start).Milliseconds()))
 }
 
 // markRebuildPayloadForRejectedBlockSuccess increments the counter for the number of times
@@ -138,5 +138,5 @@ func (m *Metrics) markOptimisticPayloadBuildFailure(slot math.Slot, err error) {
 // measureStateRootVerificationTime measures the time taken to verify the state root of a block.
 // It records the duration from the provided start time to the current time.
 func (m *Metrics) measureStateRootVerificationTime(start time.Time) {
-	m.StateRootVerificationDuration.Observe(time.Since(start).Seconds())
+	m.StateRootVerificationDuration.Observe(float64(time.Since(start).Milliseconds()))
 }

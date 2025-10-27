@@ -40,7 +40,7 @@ func NewProcessorMetrics(factory metrics.Factory) *ProcessorMetrics {
 		VerifyBlobsDuration: factory.NewSummary(
 			metrics.SummaryOpts{
 				Name:       "beacon_kit_da_blob_processor_verify_blobs_duration",
-				Help:       "Time taken to verify blob sidecars in seconds",
+				Help:       "Time taken to verify blob sidecars in milliseconds",
 				Objectives: metrics.QuantilesP50P90P99,
 			},
 			[]string{"num_sidecars"},
@@ -48,7 +48,7 @@ func NewProcessorMetrics(factory metrics.Factory) *ProcessorMetrics {
 		ProcessBlobDuration: factory.NewSummary(
 			metrics.SummaryOpts{
 				Name:       "beacon_kit_da_blob_processor_process_blob_duration",
-				Help:       "Time taken to process blob sidecars in seconds",
+				Help:       "Time taken to process blob sidecars in milliseconds",
 				Objectives: metrics.QuantilesP50P90P99,
 			},
 			[]string{"num_sidecars"},
@@ -61,7 +61,7 @@ func (m *ProcessorMetrics) measureVerifySidecarsDuration(
 	startTime time.Time,
 	numSidecars math.U64,
 ) {
-	m.VerifyBlobsDuration.With("num_sidecars", numSidecars.Base10()).Observe(time.Since(startTime).Seconds())
+	m.VerifyBlobsDuration.With("num_sidecars", numSidecars.Base10()).Observe(float64(time.Since(startTime).Milliseconds()))
 }
 
 // measureProcessSidecarsDuration measures the duration of the blob processing.
@@ -69,5 +69,5 @@ func (m *ProcessorMetrics) measureProcessSidecarsDuration(
 	startTime time.Time,
 	numSidecars math.U64,
 ) {
-	m.ProcessBlobDuration.With("num_sidecars", numSidecars.Base10()).Observe(time.Since(startTime).Seconds())
+	m.ProcessBlobDuration.With("num_sidecars", numSidecars.Base10()).Observe(float64(time.Since(startTime).Milliseconds()))
 }

@@ -41,7 +41,7 @@ func NewVerifierMetrics(factory metrics.Factory) *VerifierMetrics {
 		VerifyBlobsDuration: factory.NewSummary(
 			metrics.SummaryOpts{
 				Name:       "beacon_kit_da_blob_verifier_verify_blobs_duration",
-				Help:       "Time taken to verify blobs in seconds",
+				Help:       "Time taken to verify blobs in milliseconds",
 				Objectives: metrics.QuantilesP50P90P99,
 			},
 			[]string{"num_sidecars", "kzg_implementation"},
@@ -49,7 +49,7 @@ func NewVerifierMetrics(factory metrics.Factory) *VerifierMetrics {
 		VerifyInclusionProofsDuration: factory.NewSummary(
 			metrics.SummaryOpts{
 				Name:       "beacon_kit_da_blob_verifier_verify_inclusion_proofs_duration",
-				Help:       "Time taken to verify inclusion proofs in seconds",
+				Help:       "Time taken to verify inclusion proofs in milliseconds",
 				Objectives: metrics.QuantilesP50P90P99,
 			},
 			[]string{"num_sidecars"},
@@ -57,7 +57,7 @@ func NewVerifierMetrics(factory metrics.Factory) *VerifierMetrics {
 		VerifyKZGProofsDuration: factory.NewSummary(
 			metrics.SummaryOpts{
 				Name:       "beacon_kit_da_blob_verifier_verify_kzg_proofs_duration",
-				Help:       "Time taken to verify KZG proofs in seconds",
+				Help:       "Time taken to verify KZG proofs in milliseconds",
 				Objectives: metrics.QuantilesP50P90P99,
 			},
 			[]string{"num_sidecars", "kzg_implementation"},
@@ -74,7 +74,7 @@ func (m *VerifierMetrics) measureVerifySidecarsDuration(
 	m.VerifyBlobsDuration.With(
 		"num_sidecars", numSidecars.Base10(),
 		"kzg_implementation", kzgImplementation,
-	).Observe(time.Since(startTime).Seconds())
+	).Observe(float64(time.Since(startTime).Milliseconds()))
 }
 
 // measureVerifyInclusionProofsDuration measures the duration of the inclusion proofs verification.
@@ -82,7 +82,7 @@ func (m *VerifierMetrics) measureVerifyInclusionProofsDuration(
 	startTime time.Time,
 	numSidecars math.U64,
 ) {
-	m.VerifyInclusionProofsDuration.With("num_sidecars", numSidecars.Base10()).Observe(time.Since(startTime).Seconds())
+	m.VerifyInclusionProofsDuration.With("num_sidecars", numSidecars.Base10()).Observe(float64(time.Since(startTime).Milliseconds()))
 }
 
 // measureVerifyKZGProofsDuration measures the duration of the KZG proofs verification.
@@ -94,5 +94,5 @@ func (m *VerifierMetrics) measureVerifyKZGProofsDuration(
 	m.VerifyKZGProofsDuration.With(
 		"num_sidecars", numSidecars.Base10(),
 		"kzg_implementation", kzgImplementation,
-	).Observe(time.Since(startTime).Seconds())
+	).Observe(float64(time.Since(startTime).Milliseconds()))
 }

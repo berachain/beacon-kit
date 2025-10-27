@@ -65,7 +65,7 @@ func NewMetrics(factory metrics.Factory) *Metrics {
 		RequestDuration: factory.NewSummary(
 			metrics.SummaryOpts{
 				Name:       "beacon_kit_blobreactor_request_duration",
-				Help:       "Time taken to complete blob requests in seconds",
+				Help:       "Time taken to complete blob requests in milliseconds",
 				Objectives: metrics.QuantilesP50P90P99,
 			},
 			[]string{"status"},
@@ -111,7 +111,7 @@ func NewMetrics(factory metrics.Factory) *Metrics {
 // recordOverallRequestComplete records completion of entire blob request (may try multiple peers).
 func (m *Metrics) recordOverallRequestComplete(status string, start time.Time) {
 	m.RequestTotal.With("status", status).Add(1)
-	m.RequestDuration.With("status", status).Observe(time.Since(start).Seconds())
+	m.RequestDuration.With("status", status).Observe(float64(time.Since(start).Milliseconds()))
 }
 
 // recordPeerAttempt records a single peer attempt with status (no duration to avoid high cardinality).

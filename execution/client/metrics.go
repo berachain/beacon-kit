@@ -66,7 +66,7 @@ func NewMetrics(factory metrics.Factory, logger log.Logger) *Metrics {
 		ForkchoiceUpdateDuration: factory.NewSummary(
 			metrics.SummaryOpts{
 				Name:       "beacon_kit_execution_client_forkchoice_update_duration",
-				Help:       "Time taken for forkchoice update in seconds",
+				Help:       "Time taken for forkchoice update in milliseconds",
 				Objectives: metrics.QuantilesP50P90P99,
 			},
 			nil,
@@ -74,7 +74,7 @@ func NewMetrics(factory metrics.Factory, logger log.Logger) *Metrics {
 		NewPayloadDuration: factory.NewSummary(
 			metrics.SummaryOpts{
 				Name:       "beacon_kit_execution_client_new_payload_duration",
-				Help:       "Time taken for new payload in seconds",
+				Help:       "Time taken for new payload in milliseconds",
 				Objectives: metrics.QuantilesP50P90P99,
 			},
 			nil,
@@ -82,7 +82,7 @@ func NewMetrics(factory metrics.Factory, logger log.Logger) *Metrics {
 		GetPayloadDuration: factory.NewSummary(
 			metrics.SummaryOpts{
 				Name:       "beacon_kit_execution_client_get_payload_duration",
-				Help:       "Time taken for get payload in seconds",
+				Help:       "Time taken for get payload in milliseconds",
 				Objectives: metrics.QuantilesP50P90P99,
 			},
 			nil,
@@ -203,17 +203,17 @@ func NewMetrics(factory metrics.Factory, logger log.Logger) *Metrics {
 
 // measureForkchoiceUpdateDuration measures the duration of the forkchoice update.
 func (m *Metrics) measureForkchoiceUpdateDuration(startTime time.Time) {
-	m.ForkchoiceUpdateDuration.Observe(time.Since(startTime).Seconds())
+	m.ForkchoiceUpdateDuration.Observe(float64(time.Since(startTime).Milliseconds()))
 }
 
 // measureNewPayloadDuration measures the duration of the new payload.
 func (m *Metrics) measureNewPayloadDuration(startTime time.Time) {
-	m.NewPayloadDuration.Observe(time.Since(startTime).Seconds())
+	m.NewPayloadDuration.Observe(float64(time.Since(startTime).Milliseconds()))
 }
 
 // measureGetPayloadDuration measures the duration of the get payload.
 func (m *Metrics) measureGetPayloadDuration(startTime time.Time) {
-	m.GetPayloadDuration.Observe(time.Since(startTime).Seconds())
+	m.GetPayloadDuration.Observe(float64(time.Since(startTime).Milliseconds()))
 }
 
 // incrementEngineAPITimeout increments the timeout counter for general engine api timeouts.

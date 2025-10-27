@@ -55,7 +55,7 @@ func NewMetrics(factory metrics.Factory) *Metrics {
 		QueryDuration: factory.NewSummary(
 			metrics.SummaryOpts{
 				Name:       "beacon_kit_comet_query_duration",
-				Help:       "Time taken to process ABCI queries in seconds",
+				Help:       "Time taken to process ABCI queries in milliseconds",
 				Objectives: metrics.QuantilesP50P90P99,
 			},
 			[]string{"path"},
@@ -63,7 +63,7 @@ func NewMetrics(factory metrics.Factory) *Metrics {
 		PrepareProposalDuration: factory.NewSummary(
 			metrics.SummaryOpts{
 				Name:       "beacon_kit_runtime_prepare_proposal_duration",
-				Help:       "Time taken to prepare a proposal in seconds",
+				Help:       "Time taken to prepare a proposal in milliseconds",
 				Objectives: metrics.QuantilesP50P90P99,
 			},
 			nil,
@@ -71,7 +71,7 @@ func NewMetrics(factory metrics.Factory) *Metrics {
 		ProcessProposalDuration: factory.NewSummary(
 			metrics.SummaryOpts{
 				Name:       "beacon_kit_runtime_process_proposal_duration",
-				Help:       "Time taken to process a proposal in seconds",
+				Help:       "Time taken to process a proposal in milliseconds",
 				Objectives: metrics.QuantilesP50P90P99,
 			},
 			nil,
@@ -81,15 +81,15 @@ func NewMetrics(factory metrics.Factory) *Metrics {
 
 // measureQueryDuration is a helper to measure query duration.
 func (m *Metrics) measureQueryDuration(start time.Time, path string) {
-	m.QueryDuration.With("path", path).Observe(time.Since(start).Seconds())
+	m.QueryDuration.With("path", path).Observe(float64(time.Since(start).Milliseconds()))
 }
 
 // measurePrepareProposalDuration is a helper to measure prepare proposal duration.
 func (m *Metrics) measurePrepareProposalDuration(start time.Time) {
-	m.PrepareProposalDuration.Observe(time.Since(start).Seconds())
+	m.PrepareProposalDuration.Observe(float64(time.Since(start).Milliseconds()))
 }
 
 // measureProcessProposalDuration is a helper to measure process proposal duration.
 func (m *Metrics) measureProcessProposalDuration(start time.Time) {
-	m.ProcessProposalDuration.Observe(time.Since(start).Seconds())
+	m.ProcessProposalDuration.Observe(float64(time.Since(start).Milliseconds()))
 }

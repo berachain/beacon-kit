@@ -48,7 +48,7 @@ func NewMetrics(factory metrics.Factory) *Metrics {
 		RequestBlockForProposalDuration: factory.NewSummary(
 			metrics.SummaryOpts{
 				Name:       "beacon_kit_validator_request_block_for_proposal_duration",
-				Help:       "Time taken to request block for proposal in seconds",
+				Help:       "Time taken to request block for proposal in milliseconds",
 				Objectives: metrics.QuantilesP50P90P99,
 			},
 			nil,
@@ -56,7 +56,7 @@ func NewMetrics(factory metrics.Factory) *Metrics {
 		StateRootComputationDuration: factory.NewSummary(
 			metrics.SummaryOpts{
 				Name:       "beacon_kit_validator_state_root_computation_duration",
-				Help:       "Time taken to compute state root in seconds",
+				Help:       "Time taken to compute state root in milliseconds",
 				Objectives: metrics.QuantilesP50P90P99,
 			},
 			nil,
@@ -73,12 +73,12 @@ func NewMetrics(factory metrics.Factory) *Metrics {
 
 // measureRequestBlockForProposalTime measures the time taken to request block for proposal.
 func (m *Metrics) measureRequestBlockForProposalTime(start time.Time) {
-	m.RequestBlockForProposalDuration.Observe(time.Since(start).Seconds())
+	m.RequestBlockForProposalDuration.Observe(float64(time.Since(start).Milliseconds()))
 }
 
 // measureStateRootComputationTime measures the time taken to compute the state root of a block.
 func (m *Metrics) measureStateRootComputationTime(start time.Time) {
-	m.StateRootComputationDuration.Observe(time.Since(start).Seconds())
+	m.StateRootComputationDuration.Observe(float64(time.Since(start).Milliseconds()))
 }
 
 // failedToRetrievePayload increments the counter for the number of times the validator

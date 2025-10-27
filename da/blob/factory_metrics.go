@@ -42,7 +42,7 @@ func NewFactoryMetrics(factory metrics.Factory) *FactoryMetrics {
 		BuildSidecarDuration: factory.NewSummary(
 			metrics.SummaryOpts{
 				Name:       "beacon_kit_da_blob_factory_build_sidecar_duration",
-				Help:       "Time taken to build blob sidecars in seconds",
+				Help:       "Time taken to build blob sidecars in milliseconds",
 				Objectives: metrics.QuantilesP50P90P99,
 			},
 			[]string{"num_sidecars"},
@@ -50,7 +50,7 @@ func NewFactoryMetrics(factory metrics.Factory) *FactoryMetrics {
 		BuildKZGInclusionProofDuration: factory.NewSummary(
 			metrics.SummaryOpts{
 				Name:       "beacon_kit_da_blob_factory_build_kzg_inclusion_proof_duration",
-				Help:       "Time taken to build KZG inclusion proof in seconds",
+				Help:       "Time taken to build KZG inclusion proof in milliseconds",
 				Objectives: metrics.QuantilesP50P90P99,
 			},
 			nil,
@@ -58,7 +58,7 @@ func NewFactoryMetrics(factory metrics.Factory) *FactoryMetrics {
 		BuildBlockBodyProofDuration: factory.NewSummary(
 			metrics.SummaryOpts{
 				Name:       "beacon_kit_da_blob_factory_build_block_body_proof_duration",
-				Help:       "Time taken to build block body proof in seconds",
+				Help:       "Time taken to build block body proof in milliseconds",
 				Objectives: metrics.QuantilesP50P90P99,
 			},
 			nil,
@@ -66,7 +66,7 @@ func NewFactoryMetrics(factory metrics.Factory) *FactoryMetrics {
 		BuildCommitmentProofDuration: factory.NewSummary(
 			metrics.SummaryOpts{
 				Name:       "beacon_kit_da_blob_factory_build_commitment_proof_duration",
-				Help:       "Time taken to build commitment proof in seconds",
+				Help:       "Time taken to build commitment proof in milliseconds",
 				Objectives: metrics.QuantilesP50P90P99,
 			},
 			nil,
@@ -78,26 +78,26 @@ func NewFactoryMetrics(factory metrics.Factory) *FactoryMetrics {
 func (m *FactoryMetrics) measureBuildSidecarsDuration(
 	startTime time.Time, numSidecars math.U64,
 ) {
-	m.BuildSidecarDuration.With("num_sidecars", numSidecars.Base10()).Observe(time.Since(startTime).Seconds())
+	m.BuildSidecarDuration.With("num_sidecars", numSidecars.Base10()).Observe(float64(time.Since(startTime).Milliseconds()))
 }
 
 // measureBuildKZGInclusionProofDuration measures the duration of the build KZG inclusion proof.
 func (m *FactoryMetrics) measureBuildKZGInclusionProofDuration(
 	startTime time.Time,
 ) {
-	m.BuildKZGInclusionProofDuration.Observe(time.Since(startTime).Seconds())
+	m.BuildKZGInclusionProofDuration.Observe(float64(time.Since(startTime).Milliseconds()))
 }
 
 // measureBuildBlockBodyProofDuration measures the duration of the build block body proof.
 func (m *FactoryMetrics) measureBuildBlockBodyProofDuration(
 	startTime time.Time,
 ) {
-	m.BuildBlockBodyProofDuration.Observe(time.Since(startTime).Seconds())
+	m.BuildBlockBodyProofDuration.Observe(float64(time.Since(startTime).Milliseconds()))
 }
 
 // measureBuildCommitmentProofDuration measures the duration of the build commitment proof.
 func (m *FactoryMetrics) measureBuildCommitmentProofDuration(
 	startTime time.Time,
 ) {
-	m.BuildCommitmentProofDuration.Observe(time.Since(startTime).Seconds())
+	m.BuildCommitmentProofDuration.Observe(float64(time.Since(startTime).Milliseconds()))
 }
