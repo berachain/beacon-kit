@@ -97,7 +97,8 @@ func ProvideExecutionEngineMetrics(in ExecutionEngineMetricsInput) *engine.Metri
 // in component lists (defaults.go, components.go, etc.).
 func AllMetricsProviders() []any {
 	return []any{
-		ProvideMetricsFactory, // Must be first - creates factory used by all others
+		ProvidePrometheusRegisterer, // Must be first - creates registerer used by factory
+		ProvideMetricsFactory,       // Must be second - creates factory used by all others
 		ProvideStateDBMetrics,
 		ProvideValidatorMetrics,
 		ProvideExecutionClientMetrics,

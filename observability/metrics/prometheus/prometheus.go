@@ -26,69 +26,80 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-// Factory creates Prometheus metrics and registers them with prometheus.DefaultRegisterer.
+// Factory creates Prometheus metrics and registers them with the provided registerer.
 type Factory struct {
 	namespace   string
 	constLabels prometheus.Labels
+	registerer  prometheus.Registerer
 }
 
-// NewFactory creates a new Prometheus metrics factory with the given namespace.
-func NewFactory(namespace string) metrics.Factory {
+// NewFactory creates a new Prometheus metrics factory with the given registerer and namespace.
+func NewFactory(registerer prometheus.Registerer, namespace string) metrics.Factory {
 	return &Factory{
 		namespace:   namespace,
 		constLabels: nil,
+		registerer:  registerer,
 	}
 }
 
-// NewFactoryWithLabels creates a new Prometheus metrics factory with constant labels.
+// NewFactoryWithLabels creates a new Prometheus metrics factory with registerer, namespace, and constant labels.
 // Constant labels are applied to all metrics created by this factory.
-func NewFactoryWithLabels(namespace string, constLabels prometheus.Labels) metrics.Factory {
+func NewFactoryWithLabels(registerer prometheus.Registerer, namespace string, constLabels prometheus.Labels) metrics.Factory {
 	return &Factory{
 		namespace:   namespace,
 		constLabels: constLabels,
+		registerer:  registerer,
 	}
 }
 
-// NewCounter creates a new Counter that registers with prometheus.DefaultRegisterer.
+// NewCounter creates a new Counter that registers with the factory's registerer.
 func (f *Factory) NewCounter(opts metrics.CounterOpts, labelNames []string) metrics.Counter {
-	return NewCounter(prometheus.CounterOpts{
+	cv := prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace:   f.namespace,
 		Name:        opts.Name,
 		Help:        opts.Help,
 		ConstLabels: f.constLabels,
 	}, labelNames)
+	f.registerer.MustRegister(cv)
+	return &counter{cv: cv}
 }
 
-// NewGauge creates a new Gauge that registers with prometheus.DefaultRegisterer.
+// NewGauge creates a new Gauge that registers with the factory's registerer.
 func (f *Factory) NewGauge(opts metrics.GaugeOpts, labelNames []string) metrics.Gauge {
-	return NewGauge(prometheus.GaugeOpts{
+	gv := prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace:   f.namespace,
 		Name:        opts.Name,
 		Help:        opts.Help,
 		ConstLabels: f.constLabels,
 	}, labelNames)
+	f.registerer.MustRegister(gv)
+	return &gauge{gv: gv}
 }
 
-// NewHistogram creates a new Histogram that registers with prometheus.DefaultRegisterer.
+// NewHistogram creates a new Histogram that registers with the factory's registerer.
 func (f *Factory) NewHistogram(opts metrics.HistogramOpts, labelNames []string) metrics.Histogram {
-	return NewHistogram(prometheus.HistogramOpts{
+	hv := prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Namespace:   f.namespace,
 		Name:        opts.Name,
 		Help:        opts.Help,
 		Buckets:     opts.Buckets,
 		ConstLabels: f.constLabels,
 	}, labelNames)
+	f.registerer.MustRegister(hv)
+	return &histogram{hv: hv}
 }
 
-// NewSummary creates a new Summary that registers with prometheus.DefaultRegisterer.
+// NewSummary creates a new Summary that registers with the factory's registerer.
 func (f *Factory) NewSummary(opts metrics.SummaryOpts, labelNames []string) metrics.Summary {
-	return NewSummary(prometheus.SummaryOpts{
+	sv := prometheus.NewSummaryVec(prometheus.SummaryOpts{
 		Namespace:   f.namespace,
 		Name:        opts.Name,
 		Help:        opts.Help,
 		Objectives:  opts.Objectives,
 		ConstLabels: f.constLabels,
 	}, labelNames)
+	f.registerer.MustRegister(sv)
+	return &summary{sv: sv}
 }
 
 // counter wraps a prometheus.CounterVec and implements the metrics.Counter interface.
@@ -97,10 +108,10 @@ type counter struct {
 	lvs lv.LabelValues
 }
 
-// NewCounter creates a new Counter that registers with prometheus.DefaultRegisterer.
-func NewCounter(opts prometheus.CounterOpts, labelNames []string) metrics.Counter {
+// NewCounter creates a new Counter that registers with the provided registerer.
+func NewCounter(registerer prometheus.Registerer, opts prometheus.CounterOpts, labelNames []string) metrics.Counter {
 	cv := prometheus.NewCounterVec(opts, labelNames)
-	prometheus.MustRegister(cv)
+	registerer.MustRegister(cv)
 	return &counter{cv: cv}
 }
 
@@ -132,10 +143,10 @@ type gauge struct {
 	lvs lv.LabelValues
 }
 
-// NewGauge creates a new Gauge that registers with prometheus.DefaultRegisterer.
-func NewGauge(opts prometheus.GaugeOpts, labelNames []string) metrics.Gauge {
+// NewGauge creates a new Gauge that registers with the provided registerer.
+func NewGauge(registerer prometheus.Registerer, opts prometheus.GaugeOpts, labelNames []string) metrics.Gauge {
 	gv := prometheus.NewGaugeVec(opts, labelNames)
-	prometheus.MustRegister(gv)
+	registerer.MustRegister(gv)
 	return &gauge{gv: gv}
 }
 
@@ -172,10 +183,10 @@ type histogram struct {
 	lvs lv.LabelValues
 }
 
-// NewHistogram creates a new Histogram that registers with prometheus.DefaultRegisterer.
-func NewHistogram(opts prometheus.HistogramOpts, labelNames []string) metrics.Histogram {
+// NewHistogram creates a new Histogram that registers with the provided registerer.
+func NewHistogram(registerer prometheus.Registerer, opts prometheus.HistogramOpts, labelNames []string) metrics.Histogram {
 	hv := prometheus.NewHistogramVec(opts, labelNames)
-	prometheus.MustRegister(hv)
+	registerer.MustRegister(hv)
 	return &histogram{hv: hv}
 }
 
@@ -207,10 +218,10 @@ type summary struct {
 	lvs lv.LabelValues
 }
 
-// NewSummary creates a new Summary that registers with prometheus.DefaultRegisterer.
-func NewSummary(opts prometheus.SummaryOpts, labelNames []string) metrics.Summary {
+// NewSummary creates a new Summary that registers with the provided registerer.
+func NewSummary(registerer prometheus.Registerer, opts prometheus.SummaryOpts, labelNames []string) metrics.Summary {
 	sv := prometheus.NewSummaryVec(opts, labelNames)
-	prometheus.MustRegister(sv)
+	registerer.MustRegister(sv)
 	return &summary{sv: sv}
 }
 

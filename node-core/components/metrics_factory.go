@@ -34,8 +34,16 @@ import (
 
 type MetricsFactoryInput struct {
 	depinject.In
-	Config *config.Config
-	Logger *phuslu.Logger
+
+	Registerer promlib.Registerer
+	Config     *config.Config
+	Logger     *phuslu.Logger
+}
+
+// ProvidePrometheusRegisterer provides a prometheus.Registerer for metrics registration.
+// Uses the default registerer which is also used by the prometheus HTTP handler.
+func ProvidePrometheusRegisterer() promlib.Registerer {
+	return promlib.DefaultRegisterer
 }
 
 // ProvideMetricsFactory provides a metrics factory based on configuration.
@@ -53,12 +61,13 @@ func ProvideMetricsFactory(in MetricsFactoryInput) metrics.Factory {
 	// If we have any constant labels, create factory with labels
 	if len(constLabels) > 0 {
 		return prometheus.NewFactoryWithLabels(
+			in.Registerer,
 			in.Config.Telemetry.ServiceName,
 			constLabels,
 		)
 	}
 
-	return prometheus.NewFactory(in.Config.Telemetry.ServiceName)
+	return prometheus.NewFactory(in.Registerer, in.Config.Telemetry.ServiceName)
 }
 
 // buildConstLabels builds constant labels from telemetry config.
