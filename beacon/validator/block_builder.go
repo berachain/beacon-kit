@@ -216,7 +216,12 @@ func (s *Service) retrieveExecutionPayload(
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
 	// TODO: Add external block builders to this flow.
 	//
-	// Get the payload for the block.
+	// Get the payload for the block. Pass the expected fork given the current
+	// CometBFT timestamp to try and build coherent blocks (i.e. blocks whose fork
+	// version is the same for payload and the rest of CometBFT block). This coherence
+	// is checked in ProcessProposal. Remember that CometBFT does not guarantee that the
+	// timestamp provided here will be the one used in the block (Comet takes into account
+	// the time it takes to build the block, which should be very small normally).
 	slot := slotData.GetSlot()
 	expectedPayloadFork := s.chainSpec.ActiveForkVersionForTimestamp(slotData.GetConsensusTime())
 	envelope, err := s.localPayloadBuilder.RetrievePayload(ctx, slot, parentBlockRoot, expectedPayloadFork)

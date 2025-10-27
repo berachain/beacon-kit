@@ -137,8 +137,7 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 
 	payload, err := pb.getPayload(ctx, *payloadID, forkVersion)
 	if err != nil {
-		if errors.Is(err, engineerrors.ErrUnknownPayload) ||
-			errors.Is(err, engineerrors.ErrNilExecutionPayloadEnvelope) {
+		if errors.Is(err, engineerrors.ErrUnknownPayload) {
 			// We may have cached the payloadID, but the payload have become stale
 			// in the EVM, or there could have been other issues forcing the EVM
 			// to provide no payload. In both cases we can purge the payloadID as it
@@ -195,8 +194,7 @@ func (pb *PayloadBuilder) RetrievePayload(
 	// Get the payload from the execution client.
 	envelope, err := pb.getPayload(ctx, payloadRes.PayloadID, payloadRes.ForkVersion)
 	if err != nil {
-		if errors.Is(err, engineerrors.ErrUnknownPayload) ||
-			errors.Is(err, engineerrors.ErrNilExecutionPayloadEnvelope) {
+		if errors.Is(err, engineerrors.ErrUnknownPayload) {
 			// We may have cached the payloadID, but the payload have become stale
 			// in the EVM, or there could have been other issues. In any case the payloadID
 			// can't be reused, so we can drop it.
@@ -271,9 +269,7 @@ func (pb *PayloadBuilder) getPayload(
 	if err != nil {
 		return nil, err
 	}
-	if envelope == nil {
-		return nil, ErrNilPayloadEnvelope
-	}
+	// envelope is guaranteed to be non-nil here
 	if envelope.GetExecutionPayload().Withdrawals == nil {
 		return nil, ErrNilWithdrawals
 	}
