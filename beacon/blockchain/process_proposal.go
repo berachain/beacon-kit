@@ -165,7 +165,7 @@ func (s *Service) ProcessProposal(
 	// This ensures the node will be able to build a payload even in scenarios where
 	// EVM won't provide a new payload (e.g. if it received FCU(Head == N+1) due to
 	// optimistic block building, then FCU(Head == N)) if verified block is not finalized)
-	envelope, err := s.payloadEnvFromPayload(sidecars, blk)
+	envelope, err := payloadEnvFromPayload(sidecars, blk)
 	if err != nil {
 		return nil, err
 	}
@@ -174,7 +174,7 @@ func (s *Service) ProcessProposal(
 	return valUpdates.CanonicalSort(), nil
 }
 
-func (*Service) payloadEnvFromPayload(sidecars datypes.BlobSidecars, blk *ctypes.BeaconBlock) (ctypes.BuiltExecutionPayloadEnv, error) {
+func payloadEnvFromPayload(sidecars datypes.BlobSidecars, blk *ctypes.BeaconBlock) (ctypes.BuiltExecutionPayloadEnv, error) {
 	blobBundle := &engineprimitives.BlobsBundleV1{}
 	for _, s := range sidecars {
 		blobBundle.Commitments = append(blobBundle.Commitments, s.GetKzgCommitment())
