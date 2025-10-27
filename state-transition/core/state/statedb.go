@@ -57,8 +57,13 @@ func NewBeaconStateFromDB(
 	}
 }
 
-// Copy returns a copy of the beacon state.
-func (s *StateDB) Copy(ctx context.Context) *StateDB {
+// Protect returns an almost copy of stateDB. Specifically Protect guarantees that:
+// - No changes done on the returned state will affect the original state
+// - However, changes done on the original state will be carried over to the returned state.
+// The behaviour is probably best understood by considering the context hosts a stack of cache layers.
+// So write operations to the top cache won't be flushed to the lower layer but read operations will walk
+// through the cache stack, so bubbling up changes from the lower layers to the top ones.
+func (s *StateDB) Protect(ctx context.Context) *StateDB {
 	return NewBeaconStateFromDB(s.KVStore.Copy(ctx), s.cs, s.logger, s.telemetrySink)
 }
 
