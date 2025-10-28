@@ -172,7 +172,7 @@ func (pb *PayloadBuilder) RetrievePayload(
 	// could be asked to build a block at slot H even if it already verified a block at that slot H.
 	// This happens if the block passes verification but is not finalized (e.g. due to network issue).
 	// In such a case, the EVM may not be able to serve a new payload (e.g. if it has received a
-	// FCU call with HEAD == H+1). To avoiding a failure in building the block
+	// FCU call with FINALIZED == H). To avoiding a failure in building the block
 	// we reuse a validated payload if it's available
 	// - Finally if neither of these payloads is available, we signal the block builder to build
 	// the payload just in time with ErrPayloadIDNotFound error flag
