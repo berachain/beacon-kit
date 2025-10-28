@@ -124,7 +124,7 @@ func (s *SimulatedSuite) TestBlobFetcher_MultiNodeFetch() {
 	node1Fetcher.SetHeadSlot(testSlot + 10)
 
 	// Queue blob request, wait for it to be downloaded and validate
-	s.Require().NoError(node1Fetcher.QueueBlobRequest(testSlot, block))
+	s.Require().NoError(node1Fetcher.QueueBlobRequest(block))
 	time.Sleep(200 * time.Millisecond)
 	storedSidecars, err := node1Store.GetBlobSidecars(testSlot)
 	s.Require().NoError(err)

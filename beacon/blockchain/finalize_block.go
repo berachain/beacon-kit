@@ -120,37 +120,37 @@ func (s *Service) FinalizeSidecars(
 	// caught up. We don't need to process sidecars unless they are within DA period.
 	//
 	//#nosec: G115 // SyncingToHeight will never be negative.
-	if s.chainSpec.WithinDAPeriod(blk.GetSlot(), math.Slot(syncingToHeight)) {
-		// If blobs were passed in (normal consensus mode), use them
+	if !s.chainSpec.WithinDAPeriod(blk.GetSlot(), math.Slot(syncingToHeight)) {
+		// Here outside Data Availability window. Just log if needed
 		if len(blobs) > 0 {
-			return processBlobsFunc(blobs)
+			s.logger.Info(
+				"Skipping blob processing outside of Data Availability Period",
+				"slot", blk.GetSlot().Base10(), "head", syncingToHeight,
+			)
 		}
-
-		// Check the block to see if there should be blobs
-		expectedBlobs := len(blk.GetBody().GetBlobKzgCommitments())
-		if expectedBlobs == 0 {
-			return nil // No blobs expected for this block
-		}
-
-		// Queue the blob fetch request to be handled asynchronously
-		err := s.blobFetcher.QueueBlobRequest(blk.GetSlot(), blk)
-		if err != nil {
-			// TODO: should we log and continue here instead of erroring out?
-			return fmt.Errorf("failed to queue blob fetch request for slot %d: %w", blk.GetSlot().Unwrap(), err)
-		}
-
-		// Return immediately without waiting for blobs
-		// The background fetcher will handle retrieval and storage
 		return nil
 	}
 
-	// Here outside Data Availability window. Just log if needed
+	// If blobs were passed in (normal consensus mode), use them
 	if len(blobs) > 0 {
-		s.logger.Info(
-			"Skipping blob processing outside of Data Availability Period",
-			"slot", blk.GetSlot().Base10(), "head", syncingToHeight,
-		)
+		return processBlobsFunc(blobs)
 	}
+
+	// Check the block to see if there should be blobs
+	expectedBlobs := len(blk.GetBody().GetBlobKzgCommitments())
+	if expectedBlobs == 0 {
+		return nil // No blobs expected for this block
+	}
+
+	// Queue the blob fetch request to be handled asynchronously
+	err := s.blobFetcher.QueueBlobRequest(blk)
+	if err != nil {
+		// TODO: should we log and continue here instead of erroring out?
+		return fmt.Errorf("failed to queue blob fetch request for slot %d: %w", blk.GetSlot().Unwrap(), err)
+	}
+
+	// Return immediately without waiting for blobs
+	// The background fetcher will handle retrieval and storage
 	return nil
 }
 

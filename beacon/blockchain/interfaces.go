@@ -203,8 +203,8 @@ type BlobFetcher interface {
 	Start(ctx context.Context)
 	// Stop gracefully shuts down the blob fetcher.
 	Stop()
-	// QueueBlobRequest queues a request to fetch blobs for a specific slot.
-	QueueBlobRequest(slot math.Slot, block *ctypes.BeaconBlock) error
+	// QueueBlobRequest queues a request to fetch blobs for a specific block.
+	QueueBlobRequest(block *ctypes.BeaconBlock) error
 	// SetHeadSlot updates the head slot for blob fetching.
 	SetHeadSlot(slot math.Slot)
 }

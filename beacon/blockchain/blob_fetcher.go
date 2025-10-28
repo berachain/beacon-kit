@@ -125,8 +125,8 @@ func (bf *blobFetcher) SetHeadSlot(slot math.Slot) {
 	bf.executor.blobRequester.SetHeadSlot(slot)
 }
 
-// QueueBlobRequest queues a request to fetch blobs for a specific slot.
-func (bf *blobFetcher) QueueBlobRequest(slot math.Slot, block *ctypes.BeaconBlock) error {
+// QueueBlobRequest queues a request to fetch blobs for a specific block.
+func (bf *blobFetcher) QueueBlobRequest(block *ctypes.BeaconBlock) error {
 	// Don't queue if no blobs expected
 	commitments := block.GetBody().GetBlobKzgCommitments()
 	if len(commitments) == 0 {
@@ -139,6 +139,7 @@ func (bf *blobFetcher) QueueBlobRequest(slot math.Slot, block *ctypes.BeaconBloc
 		Commitments: commitments,
 	}
 
+	slot := block.GetHeader().Slot
 	if err := bf.queue.Add(slot, request); err != nil {
 		return err
 	}

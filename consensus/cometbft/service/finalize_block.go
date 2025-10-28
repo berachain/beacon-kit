@@ -50,17 +50,18 @@ func (s *Service) finalizeBlock(
 	}
 
 	getBlobsFunc := func(cachedBlobData []byte) (datypes.BlobSidecars, error) {
-		var sidecars datypes.BlobSidecars
-		if !s.chainSpec.IsBlobConsensusEnabledAtHeight(req.Height) {
-			var err error
-			sidecars, err = encoding.UnmarshalBlobSidecarsFromABCIRequest(req, s.chainSpec)
-			if err != nil {
-				return nil, fmt.Errorf("finalize block: failed parsing blobs from request: %w", err)
-			}
-		} else if len(cachedBlobData) > 0 {
+		if len(cachedBlobData) != 0 {
+			var sidecars datypes.BlobSidecars
 			if err := ssz.Unmarshal(cachedBlobData, &sidecars); err != nil {
 				return nil, fmt.Errorf("finalize block: failed to unmarshal cached blob data: %w", err)
 			}
+			return sidecars, nil
+		}
+
+		// not cached
+		sidecars, err := encoding.UnmarshalBlobSidecarsFromABCIRequest(req, s.chainSpec)
+		if err != nil {
+			return nil, fmt.Errorf("finalize block: failed parsing blobs from request: %w", err)
 		}
 		return sidecars, nil
 	}
@@ -150,8 +151,7 @@ func (s *Service) finalizeBlock(
 		return nil, fmt.Errorf("failed checking cached final state, hash %s, height %d: %w", hash, req.Height, err)
 	}
 
-	var cachedBlobData []byte
-	sidecars, err := getBlobsFunc(cachedBlobData)
+	sidecars, err := getBlobsFunc(nil)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +166,7 @@ func (s *Service) finalizeBlock(
 	s.cachedStates.SetCached(hash, &cache.Element{
 		State:      finalState,
 		ValUpdates: valUpdates,
-		Blobs:      cachedBlobData,
+		Blobs:      nil,
 	})
 	if err = s.cachedStates.MarkAsFinal(hash); err != nil {
 		return nil, fmt.Errorf("failed marking state as final, hash %s, height %d: %w", hash, req.Height, err)
