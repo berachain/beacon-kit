@@ -81,11 +81,13 @@ type (
 			ctx context.Context,
 			r *builder.RequestPayloadData,
 		) (*engineprimitives.PayloadID, common.Version, error)
-		// RetrievePayload retrieves the payload for the given slot.
+		// RetrievePayload retrieves the payload for the given slot and parentBlockRoot.
+		// If returned error is nil, payload is guaranteed to have expectedForkVersion version.
 		RetrievePayload(
 			ctx context.Context,
 			slot math.Slot,
 			parentBlockRoot common.Root,
+			expectedForkVersion common.Version,
 		) (ctypes.BuiltExecutionPayloadEnv, error)
 		// RequestPayloadSync requests a payload for the given slot and
 		// blocks until the payload is delivered.
