@@ -79,6 +79,19 @@ type ForkchoiceStateV1 struct {
 	FinalizedBlockHash common.ExecutionHash `json:"finalizedBlockHash"`
 }
 
+func (fsv1 *ForkchoiceStateV1) Equals(rhs *ForkchoiceStateV1) bool {
+	switch {
+	case fsv1 != nil && rhs != nil:
+		return fsv1.HeadBlockHash == rhs.HeadBlockHash &&
+			fsv1.SafeBlockHash == rhs.SafeBlockHash &&
+			fsv1.FinalizedBlockHash == rhs.FinalizedBlockHash
+	case fsv1 == nil && rhs == nil:
+		return true
+	default:
+		return false
+	}
+}
+
 // PayloadStatusV1 represents the status of a payload as per the EngineAPI
 // Specification. For more details, see:
 // https://github.com/ethereum/execution-apis/blob/main/src/engine/paris.md#payloadstatusv1

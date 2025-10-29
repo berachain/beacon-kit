@@ -61,14 +61,13 @@ import (
 func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 	t.Parallel()
 
-	optimisticPayloadBuilds := true // key to this test
 	cs, err := spec.MainnetChainSpec()
 	require.NoError(t, err)
 
-	chain, st, _, ctx, _, b, sb, eng, depStore := setupOptimisticPayloadTests(t, cs, optimisticPayloadBuilds)
+	chain, st, _, ctx, _, b, sb, eng, depStore := setupOptimisticPayloadTests(t, cs)
 	sb.EXPECT().StateFromContext(mock.Anything).Return(st)
 	sb.EXPECT().DepositStore().RunAndReturn(func() deposit.StoreManager { return depStore })
-	b.EXPECT().Enabled().Return(optimisticPayloadBuilds)
+	b.EXPECT().Enabled().Return(true)
 
 	// Note: test avoid calling chain.Start since it only starts the deposits
 	// goroutine which is not really relevant for this test
@@ -116,11 +115,11 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 
 			require.Equal(t, math.U64(consensusTime.Unix())+1, r.Timestamp)
 
-			require.Equal(t, genesisHeader.GetBlockHash(), r.HeadEth1BlockHash)
+			require.Equal(t, genesisHeader.GetBlockHash(), r.FCState.HeadBlockHash)
 
 			require.Equal(t, expectedParentBlockRoot, r.ParentBlockRoot)
 
-			require.Empty(t, r.FinalEth1BlockHash)            // this is first block post genesis
+			require.Empty(t, r.FCState.FinalizedBlockHash)    // this is first block post genesis
 			require.Equal(t, constants.GenesisSlot+1, r.Slot) // rebuild block on top of genesis
 		},
 	).Return(nil, common.Version{0xff}, errors.New("does not matter")) // return values do not really matter in this test
@@ -151,14 +150,13 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 	t.Parallel()
 
-	optimisticPayloadBuilds := true // key to this test
 	cs, err := spec.MainnetChainSpec()
 	require.NoError(t, err)
 
-	chain, st, cms, ctx, sp, b, sb, eng, depStore := setupOptimisticPayloadTests(t, cs, optimisticPayloadBuilds)
+	chain, st, cms, ctx, sp, b, sb, eng, depStore := setupOptimisticPayloadTests(t, cs)
 	sb.EXPECT().StateFromContext(mock.Anything).Return(st).Times(1) // only for genesis
 	sb.EXPECT().DepositStore().RunAndReturn(func() deposit.StoreManager { return depStore })
-	b.EXPECT().Enabled().Return(optimisticPayloadBuilds)
+	b.EXPECT().Enabled().Return(true)
 
 	// Before processing any block it is mandatory to handle genesis
 	genesisData := testProcessGenesis(t, cs, chain, ctx)
@@ -220,11 +218,11 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 			require.Equal(
 				t,
 				validBlk.GetBody().GetExecutionPayload().GetBlockHash(),
-				r.HeadEth1BlockHash,
+				r.FCState.HeadBlockHash,
 			)
 
 			genesisHeader := genesisData.ExecutionPayloadHeader.GetBlockHash()
-			require.Equal(t, genesisHeader, r.FinalEth1BlockHash)
+			require.Equal(t, genesisHeader, r.FCState.FinalizedBlockHash)
 
 			require.Equal(t, validBlk.HashTreeRoot(), r.ParentBlockRoot)
 			require.Equal(t, validBlk.Slot+1, r.Slot)
@@ -255,7 +253,7 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 	require.Equal(t, validBlk.GetSlot(), slot)
 }
 
-func setupOptimisticPayloadTests(t *testing.T, cs chain.Spec, optimisticPayloadBuilds bool) (
+func setupOptimisticPayloadTests(t *testing.T, cs chain.Spec) (
 	*blockchain.Service,
 	*statetransition.TestBeaconStateT,
 	storetypes.CommitMultiStore,
@@ -284,7 +282,6 @@ func setupOptimisticPayloadTests(t *testing.T, cs chain.Spec, optimisticPayloadB
 		b,
 		sp,
 		ts,
-		optimisticPayloadBuilds,
 	)
 	return chain, st, cms, ctx, sp, b, sb, eng, depStore
 }
