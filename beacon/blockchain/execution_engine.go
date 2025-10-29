@@ -53,7 +53,7 @@ func (s *Service) sendPostBlockFCU(
 
 	latestRequestedFCU := s.latestFcuReq.Load()
 	s.latestFcuReq.Store(&engineprimitives.ForkchoiceStateV1{}) // reset and prepare for next block
-	if latestRequestedFCU.Equal(fcuData) {
+	if latestRequestedFCU.Equals(fcuData) {
 		// we already sent the same FCU, likely due to optimistic block building
 		// being active. Avoid re-issuing the same request.
 		return nil

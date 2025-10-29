@@ -79,7 +79,7 @@ type ForkchoiceStateV1 struct {
 	FinalizedBlockHash common.ExecutionHash `json:"finalizedBlockHash"`
 }
 
-func (fsv1 *ForkchoiceStateV1) Equal(rhs *ForkchoiceStateV1) bool {
+func (fsv1 *ForkchoiceStateV1) Equals(rhs *ForkchoiceStateV1) bool {
 	switch {
 	case fsv1 != nil && rhs != nil:
 		return fsv1.HeadBlockHash == rhs.HeadBlockHash &&
