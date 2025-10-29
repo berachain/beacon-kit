@@ -63,9 +63,9 @@ func (b *Backend) StateAndSlotFromHeight(height int64) (ReadOnlyBeaconState, mat
 		// Copy the state to ensure clients potential changes won't pollute the state
 		// Also we make sure to create the copy in a thread-safe way via the muCms mutex.
 		ms := b.cms.CacheMultiStore()
-		copyCtx := sdk.NewContext(ms, true, log.NewNopLogger())
-		copyGenesisState := b.genesisState.Copy(copyCtx)
-		return copyGenesisState, 0, nil
+		ctx := sdk.NewContext(ms, true, log.NewNopLogger())
+		ephemeralGenesisState := b.genesisState.Protect(ctx)
+		return ephemeralGenesisState, 0, nil
 	}
 
 	height = max(0, height) // CreateQueryContext uses 0 to pick latest height.

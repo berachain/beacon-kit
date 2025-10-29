@@ -36,7 +36,6 @@ import (
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/testing/simulated"
@@ -61,12 +60,14 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
+	nodeAddress := pubkey.Address()
+	s.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	// Test happens on Deneb, pre Deneb1 fork.
 	startTime := time.Unix(0, 0)
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals, _, proposalTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
+	proposals, _, proposalTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, nodeAddress, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	// We expected this test to happen during Pre-Deneb1 fork.
@@ -76,7 +77,7 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
 		Time:            proposalTime,
-		ProposerAddress: pubkey.Address(),
+		ProposerAddress: nodeAddress,
 	})
 	s.Require().NoError(err)
 	s.Require().NotEmpty(proposal)
@@ -137,7 +138,7 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
 		Txs:             proposal.Txs,
 		Height:          currentHeight,
-		ProposerAddress: pubkey.Address(),
+		ProposerAddress: nodeAddress,
 		Time:            proposalTime,
 	})
 	s.Require().NoError(err)
@@ -157,37 +158,51 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidTimestamps_Errors() {
 
 	// Initialize the chain state.
 	s.InitializeChain(s.T())
-
-	// Retrieve the BLS signer and proposer address.
-	blsSigner := simulated.GetBlsSigner(s.HomeDir)
-	pubkey, err := blsSigner.GetPubKey()
+	nodeAddress, err := s.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
+	s.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	// Test happens post Deneb1 fork.
 	startTime := time.Now()
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals, _, correctConsensusTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
+	proposals, _, correctConsensusTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, nodeAddress, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 	currentHeight := int64(blockHeight + coreLoopIterations)
 
-	// Prepare a block proposal, but 2 seconds in the future (i.e. attempt to roll timestamp forward)
-	maliciousProposalTime := correctConsensusTime.Add(2 * time.Second)
-	maliciousProposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
+	// Prepare a block proposal. This will create a valid payload due to optimistic payload building.
+	// It is called to flush the payload cache.
+	validProposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
-		Time:            maliciousProposalTime,
-		ProposerAddress: pubkey.Address(),
+		Time:            correctConsensusTime,
+		ProposerAddress: nodeAddress,
 	})
 	s.Require().NoError(err)
-	s.Require().NotEmpty(maliciousProposal)
+	s.Require().NotEmpty(validProposal)
+
+	// Build a block with a malicious proposal time
+	maliciousPayloadTime := correctConsensusTime.Add(2 * time.Second)
+	maliciousProposalTxs := testBuildInvalidBlock(
+		s.Require(),
+		s.SharedAccessors,
+		&types.PrepareProposalRequest{
+			Txs:    validProposal.Txs,
+			Height: currentHeight,
+			Time:   correctConsensusTime,
+		},
+		func(sb *ctypes.SignedBeaconBlock) {
+			blk := sb.BeaconBlock
+			blk.Body.ExecutionPayload.Timestamp = math.U64(maliciousPayloadTime.Unix())
+		},
+	)
 
 	// Reset the log buffer to discard old logs we don't care about
 	s.LogBuffer.Reset()
 	// Process the proposal containing the malicious block.
 	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
-		Txs:             maliciousProposal.Txs,
+		Txs:             maliciousProposalTxs,
 		Height:          currentHeight,
-		ProposerAddress: pubkey.Address(),
+		ProposerAddress: nodeAddress,
 		// Use the correct time as the actual consensus time, which mismatches the proposal time.
 		Time: correctConsensusTime,
 	})
@@ -210,12 +225,14 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobCommitment_Errors() {
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
+	nodeAddress := pubkey.Address()
+	s.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	// Test happens on Deneb, pre Deneb1 fork.
 	startTime := time.Unix(0, 0)
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals, _, consensusTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
+	proposals, _, consensusTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, nodeAddress, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	// We expected this test to happen during Pre-Deneb1 fork.
@@ -225,7 +242,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobCommitment_Errors() {
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
 		Time:            consensusTime,
-		ProposerAddress: pubkey.Address(),
+		ProposerAddress: nodeAddress,
 	})
 	s.Require().NoError(err)
 	s.Require().NotEmpty(proposal)
@@ -302,11 +319,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobCommitment_Errors() {
 	queryCtx, err := s.SimComet.CreateQueryContext(currentHeight-1, false)
 	s.Require().NoError(err)
 
-	// Retrieve the BLS signer and proposer address.
-	proposerAddress, err := crypto.GetAddressFromPubKey(blsSigner.PublicKey())
-	s.Require().NoError(err)
-
-	proposedBlockMessage, err = simulated.ComputeAndSetStateRoot(queryCtx, consensusTime, proposerAddress, s.TestNode.StateProcessor, s.TestNode.StorageBackend, proposedBlockMessage)
+	proposedBlockMessage, err = simulated.ComputeAndSetStateRoot(queryCtx, consensusTime, nodeAddress, s.TestNode.StateProcessor, s.TestNode.StorageBackend, proposedBlockMessage)
 	s.Require().NoError(err)
 
 	newSignedBlock, err := ctypes.NewSignedBeaconBlock(
@@ -360,7 +373,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobCommitment_Errors() {
 	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
 		Txs:             proposal.Txs,
 		Height:          currentHeight,
-		ProposerAddress: pubkey.Address(),
+		ProposerAddress: nodeAddress,
 		Time:            consensusTime,
 	})
 	s.Require().NoError(err)
@@ -381,12 +394,14 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobInclusionProof_Errors() 
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
+	nodeAddress := pubkey.Address()
+	s.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	// Test happens on Deneb, pre Deneb1 fork.
 	startTime := time.Unix(0, 0)
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals, _, consensusTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, blsSigner, startTime)
+	proposals, _, consensusTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, nodeAddress, startTime)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	// We expected this test to happen during Pre-Deneb1 fork.
@@ -396,7 +411,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobInclusionProof_Errors() 
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
 		Time:            consensusTime,
-		ProposerAddress: pubkey.Address(),
+		ProposerAddress: nodeAddress,
 	})
 	s.Require().NoError(err)
 	s.Require().NotEmpty(proposal)
@@ -466,11 +481,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobInclusionProof_Errors() 
 	queryCtx, err := s.SimComet.CreateQueryContext(currentHeight-1, false)
 	s.Require().NoError(err)
 
-	// Retrieve the BLS signer and proposer address.
-	proposerAddress, err := crypto.GetAddressFromPubKey(blsSigner.PublicKey())
-	s.Require().NoError(err)
-
-	proposedBlockMessage, err = simulated.ComputeAndSetStateRoot(queryCtx, consensusTime, proposerAddress, s.TestNode.StateProcessor, s.TestNode.StorageBackend, proposedBlockMessage)
+	proposedBlockMessage, err = simulated.ComputeAndSetStateRoot(queryCtx, consensusTime, nodeAddress, s.TestNode.StateProcessor, s.TestNode.StorageBackend, proposedBlockMessage)
 	s.Require().NoError(err)
 
 	newSignedBlock, err := ctypes.NewSignedBeaconBlock(
@@ -526,10 +537,59 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobInclusionProof_Errors() 
 	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
 		Txs:             proposal.Txs,
 		Height:          currentHeight,
-		ProposerAddress: pubkey.Address(),
+		ProposerAddress: nodeAddress,
 		Time:            consensusTime,
 	})
 	s.Require().NoError(err)
 	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
 	s.Require().Contains(s.LogBuffer.String(), "invalid KZG commitment inclusion proof")
+}
+
+// testBuildInvalidBlock builds an invalid block, modifying it along what it is
+// specified in modifyBlock function. It is then properly resigned.
+func testBuildInvalidBlock(
+	r *require.Assertions,
+	builder simulated.SharedAccessors,
+	PrepReq *types.PrepareProposalRequest,
+	modifyBlock func(*ctypes.SignedBeaconBlock),
+) [][]byte {
+	blsSigner := simulated.GetBlsSigner(builder.HomeDir)
+	pubkey, err := blsSigner.GetPubKey()
+	r.NoError(err)
+
+	signedBlk, sidecars, err := builder.SimComet.Comet.Blockchain.ParseBeaconBlock(
+		&types.ProcessProposalRequest{
+			Txs:             PrepReq.Txs,
+			Height:          PrepReq.Height,
+			ProposerAddress: pubkey.Address(),
+			Time:            PrepReq.Time,
+		},
+	)
+	r.NoError(err)
+
+	modifyBlock(signedBlk)
+
+	blk := signedBlk.BeaconBlock
+	reSignedBlk, err := ctypes.NewSignedBeaconBlock( // resign to make sure signature checks pass
+		blk,
+		ctypes.NewForkData(
+			builder.TestNode.ChainSpec.ActiveForkVersionForTimestamp(blk.GetTimestamp()),
+			builder.GenesisValidatorsRoot,
+		),
+		builder.TestNode.ChainSpec,
+		blsSigner,
+	)
+	r.NoError(err)
+
+	signedBlkBytes, bbErr := reSignedBlk.MarshalSSZ()
+	r.NoError(bbErr)
+
+	res := make([][]byte, len(PrepReq.Txs))
+	res[0] = signedBlkBytes
+
+	sidecarsBytes, scErr := sidecars.MarshalSSZ()
+	r.NoError(scErr)
+	res[1] = sidecarsBytes
+
+	return res
 }
