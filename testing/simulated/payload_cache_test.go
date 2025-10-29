@@ -26,6 +26,7 @@ import (
 	"bytes"
 	"context"
 	"path"
+	"strings"
 	"testing"
 	"time"
 
@@ -80,7 +81,15 @@ func (s *PayloadCacheSuite) SetupTest() {
 	elHandle, authRPC, elRPC := gethNode.Start(s.T(), path.Base(elGenesisPath))
 	s.Geth.ElHandle = elHandle
 
-	rethNode := execution.NewRethNode(s.Reth.HomeDir, execution.ValidRethImage())
+	// Choose the reth node to run. 2 specific tests require the engine api override flag.
+	var rethNode *execution.ExecNode
+	testName := s.T().Name()
+	if strings.Contains(testName, "TestReth_MustRebuildPostForkPayload_IsSuccessful") ||
+		strings.Contains(testName, "TestReth_MustRebuildPreForkPayload_IsSuccessful") {
+		rethNode = execution.NewRethNodeWithEngineOverride(s.Reth.HomeDir, execution.ValidRethImage())
+	} else {
+		rethNode = execution.NewRethNode(s.Reth.HomeDir, execution.ValidRethImage())
+	}
 	rethHandle, rethAuthRPC, elRPC := rethNode.Start(s.T(), path.Base(elGenesisPath))
 	s.Reth.ElHandle = rethHandle
 
@@ -169,8 +178,6 @@ func (s *PayloadCacheSuite) TearDownTest() {
 // process proposal. But the block is not finalized by consensus. Then this
 // validator is chosen to propose at a subsequent round. It should just get the old
 // payload from its cache.
-//
-// Note: this test does NOT require --engine.always-process-payload-attributes-on-canonical-head.
 func (s *PayloadCacheSuite) TestReth_ReusePayload_IsSuccessful() {
 	// Initialize the chain state.
 	s.Reth.InitializeChain2Validators(s.T()) // 1 reth validator
@@ -332,8 +339,6 @@ func (s *PayloadCacheSuite) TestGeth_ReusePayload_IsSuccessful() {
 // This tests a reth validator proposing a invalid block. The proposal is rejected. Then this
 // validator is chosen to propose at a subsequent round. It should now be forced to
 // rebuild a new payload (and not reuse the old one from its cache).
-//
-// Note: this test does NOT require --engine.always-process-payload-attributes-on-canonical-head.
 func (s *PayloadCacheSuite) TestReth_RebuildPayload_IsSuccessful() {
 	// Initialize the chain state.
 	s.Reth.InitializeChain2Validators(s.T()) // 1 reth validator
@@ -563,43 +568,6 @@ func (s *PayloadCacheSuite) TestReth_MustRebuildPostForkPayload_IsSuccessful() {
 	// For some reason, the supermajority does not finalize the block.
 	// We are now crossing over into post-fork time.
 	// Next round is height 1, but simulating consensus time is 1 second after previous round.
-	time.Sleep(100 * time.Millisecond) // This lets the optimistic build complete.
-	consensusTime = time.Unix(int64(s.Reth.TestNode.ChainSpec.ElectraForkTime()), 0)
-	{
-		// Geth tries to prepare proposal again by retrieving from cache, but post-fork this should fail.
-		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
-			Height:          nextBlockHeight,
-			Time:            consensusTime,
-			ProposerAddress: gethNodeAddress,
-		})
-		s.Require().NoError(prepareErr)
-		s.Require().Len(proposal.Txs, 2)
-
-		// Process the proposal, with payload eviction from bkit cache.
-		processRequest := &types.ProcessProposalRequest{
-			Txs:                 proposal.Txs,
-			Height:              nextBlockHeight,
-			ProposerAddress:     gethNodeAddress,
-			Time:                consensusTime,
-			NextProposerAddress: gethNodeAddress,
-		}
-		processResp, respErr := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
-		s.Require().NoError(respErr)
-		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
-		s.Require().Contains(
-			s.Geth.LogBuffer.String(),
-			"failed decoding *types.SignedBeaconBlock: ssz: offset smaller than previous",
-		)
-		processRequest.ProposerAddress = rethNodeAddress
-		processResp, respErr = s.Reth.SimComet.Comet.ProcessProposal(s.Reth.CtxComet, processRequest)
-		s.Require().NoError(respErr)
-		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
-		s.Require().Contains(
-			s.Reth.LogBuffer.String(),
-			"failed decoding *types.SignedBeaconBlock: ssz: offset smaller than previous",
-		)
-	}
-
 	time.Sleep(10 * time.Millisecond) // Next round.
 	{
 		// Try to build a new (pre-fork) payload from geth EL.
@@ -712,92 +680,7 @@ func (s *PayloadCacheSuite) TestReth_MustRebuildPreForkPayload_IsSuccessful() {
 		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT.String(), processResp.Status.String())
 	}
 
-	time.Sleep(50 * time.Millisecond) // Next round.
-	// The proposer prepares a pre-fork block with finalization. The first pre-fork block it proposes will be rejected
-	// As it will propose a post-fork block due to retrieving an Execution Payload in the PayloadCache.
-	{
-		// Get the same already built payload from cache.
-		consensusTime := time.Unix(int64(s.Reth.TestNode.ChainSpec.ElectraForkTime())-4, 0)
-		proposal, prepareErr := s.Reth.SimComet.Comet.PrepareProposal(s.Reth.CtxComet, &types.PrepareProposalRequest{
-			Height:          nextBlockHeight,
-			Time:            consensusTime,
-			ProposerAddress: rethNodeAddress,
-		})
-		s.Require().NoError(prepareErr)
-		s.Require().Len(proposal.Txs, 2)
-
-		processRequest := &types.ProcessProposalRequest{
-			Txs:                 proposal.Txs,
-			Height:              nextBlockHeight,
-			ProposerAddress:     rethNodeAddress,
-			Time:                consensusTime,
-			NextProposerAddress: rethNodeAddress,
-		}
-
-		// Process the proposal and rejects but does not bkit evict payload from cache because it didnt build it.
-		s.Geth.LogBuffer.Reset()
-		processResp, processErr := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
-		s.Require().NoError(processErr)
-		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT.String(), processResp.Status.String())
-		s.Require().Contains(
-			s.Geth.LogBuffer.String(),
-			"failed decoding *types.SignedBeaconBlock: ssz: offset smaller than previous",
-		)
-
-		// Reth also process proposal --> Trigger bkit eviction of payload from cache because its rejected.
-		s.Reth.LogBuffer.Reset()
-		processResp, processErr = s.Reth.SimComet.Comet.ProcessProposal(s.Reth.CtxComet, processRequest)
-		s.Require().NoError(processErr)
-		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
-		s.Require().Contains(
-			s.Geth.LogBuffer.String(),
-			"failed decoding *types.SignedBeaconBlock: ssz: offset smaller than previous",
-		)
-	}
-
-	time.Sleep(50 * time.Millisecond) // Next round.
-	// Geth now proposes a post-fork block from its cache, which should also be invalid.
-	{
-		// Get the same already built payload from cache.
-		consensusTime := time.Unix(int64(s.Geth.TestNode.ChainSpec.ElectraForkTime())-3, 0)
-		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
-			Height:          nextBlockHeight,
-			Time:            consensusTime,
-			ProposerAddress: gethNodeAddress,
-		})
-		s.Require().NoError(prepareErr)
-		s.Require().Len(proposal.Txs, 2)
-
-		processRequest := &types.ProcessProposalRequest{
-			Txs:                 proposal.Txs,
-			Height:              nextBlockHeight,
-			ProposerAddress:     gethNodeAddress,
-			Time:                consensusTime,
-			NextProposerAddress: gethNodeAddress,
-		}
-
-		// Process the proposal and rejects but does not bkit evict payload from cache because it didnt build it.
-		s.Reth.LogBuffer.Reset()
-		processResp, processErr := s.Reth.SimComet.Comet.ProcessProposal(s.Reth.CtxComet, processRequest)
-		s.Require().NoError(processErr)
-		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
-		s.Require().Contains(
-			s.Geth.LogBuffer.String(),
-			"failed decoding *types.SignedBeaconBlock: ssz: offset smaller than previous",
-		)
-
-		// Geth also process proposal --> Trigger bkit eviction of payload from cache because its rejected.
-		s.Geth.LogBuffer.Reset()
-		processResp, processErr = s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
-		s.Require().NoError(processErr)
-		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
-		s.Require().Contains(
-			s.Geth.LogBuffer.String(),
-			"failed decoding *types.SignedBeaconBlock: ssz: offset smaller than previous",
-		)
-	}
-
-	time.Sleep(10 * time.Millisecond) // Next round.
+	time.Sleep(100 * time.Millisecond) // Next round.
 	// The previous payload in cache has been evicted. The optimistic builds for next height
 	// should have completed by now.
 	{
@@ -905,8 +788,6 @@ func (s *PayloadCacheSuite) TestReth_MustRebuildPreForkPayload_IsSuccessful() {
 }
 
 // Test a scenario where reth must rebuild a payload for a failed state transition.
-//
-// NOTE: this test requires reth with the --engine.always-process-payload-attributes-on-canonical-head flag.
 func (s *PectraForkSuite) TestReth_MustRebuildForFailedStateTransition_IsSuccessful() {
 	// Initialize the chain state.
 	testEL := s.Reth

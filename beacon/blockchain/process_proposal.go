@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/cache"
 	"github.com/berachain/beacon-kit/consensus/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -160,7 +161,50 @@ func (s *Service) ProcessProposal(
 		return nil, err
 	}
 
+	// once we have successfully verified the block we cache it in the node builder.
+	// This ensures the node will be able to build a payload even in scenarios where
+	// EVM won't provide a new payload (e.g. if it received FCU(Head == N+1) due to
+	// optimistic block building, then FCU(Head == N)) if verified block is not finalized)
+	envelope, err := payloadEnvFromPayload(sidecars, blk)
+	if err != nil {
+		return nil, err
+	}
+
+	s.localBuilder.CacheLatestVerifiedPayload(blk.Slot, envelope)
 	return valUpdates.CanonicalSort(), nil
+}
+
+func payloadEnvFromPayload(sidecars datypes.BlobSidecars, blk *ctypes.BeaconBlock) (ctypes.BuiltExecutionPayloadEnv, error) {
+	blobBundle := &engineprimitives.BlobsBundleV1{}
+	for _, s := range sidecars {
+		blobBundle.Commitments = append(blobBundle.Commitments, s.GetKzgCommitment())
+		blobBundle.Proofs = append(blobBundle.Proofs, s.GetKzgProof())
+
+		blob := s.GetBlob()
+		blobBundle.Blobs = append(blobBundle.Blobs, &blob)
+	}
+
+	var (
+		executionRequests []ctypes.EncodedExecutionRequest
+		err               error
+	)
+	switch reqs, errReqs := blk.Body.GetExecutionRequests(); {
+	case errReqs == nil:
+		executionRequests, err = ctypes.GetExecutionRequestsList(reqs)
+		if err != nil {
+			return nil, fmt.Errorf("failed retrieving encoded execution requests from payload: %w", err)
+		}
+	case errors.Is(errReqs, ctypes.ErrFieldNotSupportedOnFork):
+		// nothing to do, executionRequests is nil
+	default:
+		return nil, fmt.Errorf("failed getting execution requests from payload: %w", errReqs)
+	}
+
+	return ctypes.NewExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1](
+		blk.Body.ExecutionPayload,
+		blobBundle,
+		executionRequests,
+	), nil
 }
 
 func (s *Service) VerifyIncomingBlockSignature(
