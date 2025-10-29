@@ -272,6 +272,12 @@ func (s *Service) ResetAppCtx(ctx context.Context) {
 	s.ctx = ctx
 }
 
+// SetNodeAddress sets the node address for the service. This is used
+// primarily for the mock service.
+func (s *Service) SetNodeAddress(addr cmtcrypto.Address) {
+	s.nodeAddress = addr
+}
+
 // Name returns the name of the cometbft.
 func (s *Service) Name() string {
 	return AppName

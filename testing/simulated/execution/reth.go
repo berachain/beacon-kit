@@ -33,6 +33,12 @@ func NewRethNode(homeDir string, image docker.PullImageOptions) *ExecNode {
 	return NewExecNode(homeDir, image, defaultRethCmdStrBuilder)
 }
 
+// NewRethNodeWithEngineOverride creates a new execution node configured for Reth by using the Reth
+// command builder with the --engine.always-process-payload-attributes-on-canonical-head flag.
+func NewRethNodeWithEngineOverride(homeDir string, image docker.PullImageOptions) *ExecNode {
+	return NewExecNode(homeDir, image, rethWithEngineOverrideFlagCmdStrBuilder)
+}
+
 // ValidRethImage returns the default Docker image options for the Reth node.
 func ValidRethImage() docker.PullImageOptions {
 	return docker.PullImageOptions{
@@ -41,7 +47,7 @@ func ValidRethImage() docker.PullImageOptions {
 	}
 }
 
-// defaultRethCmdStrBuilder returns a command string tailored for running a Geth node.
+// defaultRethCmdStrBuilder returns a command string tailored for running a Reth node.
 func defaultRethCmdStrBuilder(genesisFile string) string {
 	return fmt.Sprintf(`
 		bera-reth node --http --http.addr 0.0.0.0 --http.api eth,net,web3,debug \
@@ -52,6 +58,23 @@ func defaultRethCmdStrBuilder(genesisFile string) string {
 			 --full \
 			 --engine.persistence-threshold=0 \
 			 --engine.memory-block-buffer-target=0 \
+			 -vvvv \
+	`, genesisFile)
+}
+
+// rethWithEngineOverrideFlagCmdStrBuilder returns a command string tailored for running a Reth node
+// with the --engine.always-process-payload-attributes-on-canonical-head flag.
+func rethWithEngineOverrideFlagCmdStrBuilder(genesisFile string) string {
+	return fmt.Sprintf(`
+		bera-reth node --http --http.addr 0.0.0.0 --http.api eth,net,web3,debug \
+			 --chain=/testdata/%s \
+			 --authrpc.addr 0.0.0.0 \
+			 --authrpc.jwtsecret /testing/files/jwt.hex \
+			 --datadir /tmp/rethdata \
+			 --full \
+			 --engine.persistence-threshold=0 \
+			 --engine.memory-block-buffer-target=0 \
+			 --engine.always-process-payload-attributes-on-canonical-head \
 			 -vvvv \
 	`, genesisFile)
 }
