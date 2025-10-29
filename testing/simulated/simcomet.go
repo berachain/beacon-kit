@@ -35,6 +35,8 @@ import (
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/node-core/types"
 	cmtcfg "github.com/cometbft/cometbft/config"
+	cmtcrypto "github.com/cometbft/cometbft/crypto"
+	pvm "github.com/cometbft/cometbft/privval"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -44,8 +46,10 @@ var _ types.ConsensusService = (*SimComet)(nil)
 // SimComet is normal Comet under the hood, but we override the Start method to avoid starting the actual
 // CometBFT core loop so that we can orchestrate it ourselves.
 type SimComet struct {
-	//  We are forced to stutter here as we want to override the implementations of the original comet service.
+	// We are forced to stutter here as we want to override the implementations of the original comet service.
 	Comet *cometbft.Service
+	// Used to initialize the node address.
+	cmtCfg *cmtcfg.Config
 }
 
 func ProvideSimComet(
@@ -58,7 +62,7 @@ func ProvideSimComet(
 	appOpts config.AppOptions,
 	telemetrySink *metrics.TelemetrySink) *SimComet {
 	return &SimComet{
-		cometbft.NewService(
+		Comet: cometbft.NewService(
 			logger,
 			db,
 			blockchain,
@@ -67,12 +71,32 @@ func ProvideSimComet(
 			cmtCfg,
 			telemetrySink,
 			builder.DefaultServiceOptions(appOpts)...,
-		)}
+		),
+		cmtCfg: cmtCfg,
+	}
 }
 
+// Start sets the ctx and the node address for the SimComet service.
 func (s *SimComet) Start(ctx context.Context) error {
 	s.Comet.ResetAppCtx(ctx)
 	return nil
+}
+
+// GetNodeAddress returns the node address for the SimComet service.
+func (s *SimComet) GetNodeAddress() (cmtcrypto.Address, error) {
+	privVal, err := pvm.LoadOrGenFilePV(
+		s.cmtCfg.PrivValidatorKeyFile(),
+		s.cmtCfg.PrivValidatorStateFile(),
+		nil,
+	)
+	if err != nil {
+		return nil, err
+	}
+	pubKey, err := privVal.GetPubKey()
+	if err != nil {
+		return nil, err
+	}
+	return pubKey.Address(), nil
 }
 
 func (s *SimComet) Stop() error {
