@@ -28,6 +28,7 @@ import (
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/bytes"
@@ -285,13 +286,16 @@ func (s *Service) retrieveExecutionPayload(
 	}
 
 	r := &builder.RequestPayloadData{
-		Slot:                 slot,
-		Timestamp:            nextPayloadTimestamp,
-		PayloadWithdrawals:   payloadWithdrawals,
-		PrevRandao:           prevRandao,
-		ParentBlockRoot:      parentBlockRoot,
-		HeadEth1BlockHash:    lph.GetBlockHash(),
-		FinalEth1BlockHash:   lph.GetParentHash(),
+		Slot:               slot,
+		Timestamp:          nextPayloadTimestamp,
+		PayloadWithdrawals: payloadWithdrawals,
+		PrevRandao:         prevRandao,
+		ParentBlockRoot:    parentBlockRoot,
+		FCState: engineprimitives.ForkchoiceStateV1{
+			HeadBlockHash:      lph.GetBlockHash(),
+			SafeBlockHash:      lph.GetParentHash(),
+			FinalizedBlockHash: lph.GetParentHash(),
+		},
 		ParentProposerPubkey: parentProposerPubkey,
 	}
 	return s.localPayloadBuilder.RequestPayloadSync(ctx, r)

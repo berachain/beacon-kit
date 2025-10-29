@@ -41,12 +41,26 @@ func (s *Service) sendPostBlockFCU(
 	}
 
 	// Send a forkchoice update without payload attributes to notify EL of the new head.
+	// Note that we are being conservative here as we don't mark the block we just finalized
+	// (which is irreversible due to CometBFT SSF) as final. If we keep doing this, we can
+	// spare the FCU update in case we have optimistic block building on, as we may have
+	// already sent the very same FCU request after we verified the block.
+	fcuData := &engineprimitives.ForkchoiceStateV1{
+		HeadBlockHash:      lph.GetBlockHash(),
+		SafeBlockHash:      lph.GetParentHash(),
+		FinalizedBlockHash: lph.GetParentHash(),
+	}
+
+	latestRequestedFCU := s.latestFcuReq.Load()
+	s.latestFcuReq.Store(&engineprimitives.ForkchoiceStateV1{}) // reset and prepare for next block
+	if latestRequestedFCU.Equals(fcuData) {
+		// we already sent the same FCU, likely due to optimistic block building
+		// being active. Avoid re-issuing the same request.
+		return nil
+	}
+
 	req := ctypes.BuildForkchoiceUpdateRequestNoAttrs(
-		&engineprimitives.ForkchoiceStateV1{
-			HeadBlockHash:      lph.GetBlockHash(),
-			SafeBlockHash:      lph.GetParentHash(),
-			FinalizedBlockHash: lph.GetParentHash(),
-		},
+		fcuData,
 		s.chainSpec.ActiveForkVersionForTimestamp(lph.GetTimestamp()),
 	)
 	if _, err = s.executionEngine.NotifyForkchoiceUpdate(ctx, req); err != nil {
