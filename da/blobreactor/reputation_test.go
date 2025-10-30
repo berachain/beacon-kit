@@ -18,33 +18,39 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package blobreactor_test
 
 import (
-	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/config"
+	"errors"
+	"testing"
+	"time"
+
+	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/da/blobreactor"
-	"github.com/berachain/beacon-kit/log/phuslu"
-	"github.com/berachain/beacon-kit/node-core/components/metrics"
-	"github.com/berachain/beacon-kit/node-core/components/storage"
+	"github.com/cometbft/cometbft/p2p"
+	"github.com/stretchr/testify/require"
 )
 
-// BlobReactorInput is the input for the ProvideBlobReactor function.
-type BlobReactorInput struct {
-	depinject.In
+func TestReputationManager_BanAndExpiration(t *testing.T) {
+	t.Parallel()
+	logger := log.NewTestLogger(t)
+	config := blobreactor.DefaultReputationConfig()
+	config.BanPeriod = 200 * time.Millisecond
+	rm := blobreactor.NewReputationManager(logger, config)
 
-	Config         *config.Config
-	Logger         *phuslu.Logger
-	StorageBackend *storage.Backend
-	TelemetrySink  *metrics.TelemetrySink
-}
+	peerID := p2p.ID("test-peer")
 
-// ProvideBlobReactor provides the blob reactor for P2P communication.
-func ProvideBlobReactor(in BlobReactorInput) *blobreactor.BlobReactor {
-	return blobreactor.NewBlobReactor(
-		in.StorageBackend.AvailabilityStore().IndexDB,
-		in.Logger.With("service", "blob-reactor"),
-		in.Config.BlobReactor.WithDefaults(),
-		in.TelemetrySink,
-	)
+	// Record violations until banned
+	violationsNeeded := (config.MaxReputationScore-config.DisconnectThreshold)/config.BadBehaviorPenalty + 1
+	for range violationsNeeded {
+		rm.RecordBadBehavior(peerID, errors.New("test violation"))
+	}
+
+	// Peer should be banned
+	require.False(t, rm.ShouldAcceptPeer(peerID))
+
+	// Peer should be accepted with reset score after ban expires
+	require.Eventually(t, func() bool {
+		return rm.ShouldAcceptPeer(peerID)
+	}, config.BanPeriod+50*time.Millisecond, 10*time.Millisecond)
 }

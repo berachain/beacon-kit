@@ -420,3 +420,192 @@ func TestBlobReactor_VerifierFunctionality(t *testing.T) {
 	require.NotNil(t, sidecars)
 	require.Len(t, sidecars, 2)
 }
+
+// TestBlobReactor_RateLimit verifies both per-peer and global rate limiting.
+// Rate limiting drops requests but does NOT disconnect peers (for resource protection only).
+func TestBlobReactor_RateLimit(t *testing.T) {
+	const rate = 2.0
+	const burst = int(rate * blobreactor.BurstMultiplier)
+
+	testCases := []struct {
+		name            string
+		requesterConfig blobreactor.Config
+		serverConfig    blobreactor.Config
+	}{
+		{
+			name:            "PerPeerRateLimit",
+			requesterConfig: blobreactor.Config{RequestTimeout: 200 * time.Millisecond},
+			serverConfig: blobreactor.Config{
+				RequestTimeout:              200 * time.Millisecond,
+				MaxMessagesPerPeerPerSecond: rate,
+			},
+		},
+		{
+			name:            "GlobalRateLimit",
+			requesterConfig: blobreactor.Config{RequestTimeout: 200 * time.Millisecond},
+			serverConfig: blobreactor.Config{
+				RequestTimeout:             200 * time.Millisecond,
+				MaxGlobalRequestsPerSecond: rate,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			requestingStore := newStubBlobStore()
+			servingStore := newStubBlobStore()
+
+			// Add blobs to the serving store
+			slot := math.Slot(100)
+			sidecars := createTestSidecars(t, 1)
+			require.NoError(t, servingStore.setBlobs(slot.Unwrap(), sidecars))
+
+			stores := []*stubBlobStore{requestingStore, servingStore}
+			configs := []blobreactor.Config{tc.requesterConfig, tc.serverConfig}
+
+			reactors, switches := makeConnectedReactors(t, 2, stores, configs)
+			defer stopSwitches(switches)
+
+			for _, r := range reactors {
+				r.SetHeadSlot(slot)
+			}
+
+			verifier := func(_ datypes.BlobSidecars) error { return nil }
+
+			successCount := 0
+
+			// Send 10 rapid requests - rate limiting should throttle some
+			for range 10 {
+				_, err := reactors[0].RequestBlobs(t.Context(), slot, verifier)
+				if err == nil {
+					successCount++
+				}
+			}
+
+			// Verify rate limiting worked: some succeeded, some failed
+			require.GreaterOrEqual(t, successCount, burst, "We should have at least burst capacity number of successful requests")
+			require.Less(t, successCount, 10, "Some requests should be rate limited")
+
+			// Rate limiting should NOT disconnect the peer
+			require.Equal(t, 1, switches[0].Peers().Size(), "Requester should stay connected")
+			require.Equal(t, 1, switches[1].Peers().Size(), "Server should not disconnect requester despite rate limiting")
+
+			t.Logf("Successes: %d", successCount)
+		})
+	}
+}
+
+// TestBlobReactor_ReputationBansPeer verifies reputation system bans bad peers at reactor level
+// and that they can recover after the ban period expires.
+func TestBlobReactor_ReputationBansPeer(t *testing.T) {
+	testCases := []struct {
+		name            string
+		createViolation func(peer p2p.Peer)
+	}{
+		{
+			name: "InvalidSSZ",
+			createViolation: func(peer p2p.Peer) {
+				// Send invalid BlobRequest with malformed SSZ data
+				invalidSSZ := []byte{byte(blobreactor.MessageTypeRequest), 0x01, 0x02, 0x03}
+				peer.Send(p2p.Envelope{
+					ChannelID: blobreactor.BlobChannel,
+					Message:   blobreactor.NewBlobMessage(invalidSSZ),
+				})
+			},
+		},
+		{
+			name: "UnknownMessageType",
+			createViolation: func(peer p2p.Peer) {
+				// Send message with unknown type (valid types are 0 and 1)
+				invalidType := []byte{99, 0x00, 0x00, 0x00}
+				peer.Send(p2p.Envelope{
+					ChannelID: blobreactor.BlobChannel,
+					Message:   blobreactor.NewBlobMessage(invalidType),
+				})
+			},
+		},
+		{
+			name: "UnsolicitedResponse",
+			createViolation: func(peer p2p.Peer) {
+				// Send response without a matching request
+				// Create a minimal valid BlobResponse SSZ
+				resp := blobreactor.BlobResponse{
+					RequestID:   12345, // Random ID that doesn't match any request
+					Slot:        100,
+					HeadSlot:    100,
+					SidecarData: []byte{},
+				}
+				data, _ := resp.MarshalSSZ()
+				msg := append([]byte{byte(blobreactor.MessageTypeResponse)}, data...)
+				peer.Send(p2p.Envelope{
+					ChannelID: blobreactor.BlobChannel,
+					Message:   blobreactor.NewBlobMessage(msg),
+				})
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			requestingStore := newStubBlobStore()
+			servingStore := newStubBlobStore()
+
+			// Use short ban period for testing
+			shortBanConfig := blobreactor.DefaultReputationConfig()
+			shortBanConfig.BanPeriod = 500 * time.Millisecond
+
+			stores := []*stubBlobStore{requestingStore, servingStore}
+			configs := []blobreactor.Config{
+				{
+					RequestTimeout: 500 * time.Millisecond,
+					Reputation:     shortBanConfig,
+				},
+				{RequestTimeout: 500 * time.Millisecond},
+			}
+
+			reactors, switches := makeConnectedReactors(t, 2, stores, configs)
+			defer stopSwitches(switches)
+
+			// Get peer from switch 1 to send to reactor 0
+			peers := switches[1].Peers().Copy()
+			require.NotEmpty(t, peers, "Switch 1 should have peers")
+			peer := peers[0]
+
+			// Setup test blobs before sending violations
+			slot := math.Slot(100)
+			sidecars := createTestSidecars(t, 1)
+			require.NoError(t, servingStore.setBlobs(slot.Unwrap(), sidecars))
+			reactors[0].SetHeadSlot(slot)
+			reactors[1].SetHeadSlot(slot)
+
+			verifier := func(_ datypes.BlobSidecars) error { return nil }
+
+			// Phase 1: Ban the peer through violations
+			violationsNeeded := (shortBanConfig.MaxReputationScore-shortBanConfig.DisconnectThreshold)/shortBanConfig.BadBehaviorPenalty + 1
+			for range violationsNeeded {
+				tc.createViolation(peer)
+			}
+
+			checkPeerBanned := func() bool {
+				// Verify peer is still connected (not disconnected at P2P level)
+				if switches[0].Peers().Size() != 1 {
+					return false
+				}
+
+				// Verify peer is banned by checking they cannot be selected for requests
+				_, err := reactors[0].RequestBlobs(t.Context(), slot, verifier)
+				return errors.Is(err, blobreactor.ErrAllPeersFailed)
+			}
+			require.Eventually(t, checkPeerBanned, 2*time.Second, 50*time.Millisecond, "Peer should be banned at reactor level")
+
+			// Phase 2: Wait for ban to expire
+			time.Sleep(shortBanConfig.BanPeriod + 50*time.Millisecond)
+
+			// Phase 3: Verify peer can successfully request blobs again
+			result, err := reactors[0].RequestBlobs(t.Context(), slot, verifier)
+			require.NoError(t, err, "After ban expires, peer should be able to request blobs")
+			require.NotNil(t, result, "Should receive blob sidecars after ban expires")
+			require.Len(t, result, 1, "Should receive the expected number of sidecars")
+		})
+	}
+}
