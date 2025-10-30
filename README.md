@@ -40,7 +40,7 @@ BeaconKit supports the following execution clients:
 **Prerequisites:**
 
 - [Docker](https://docs.docker.com/engine/install/)
-- [Golang 1.25.0+](https://go.dev/doc/install)
+- [Golang 1.25.3+](https://go.dev/doc/install)
 - [Foundry](https://book.getfoundry.sh/)
 
 Start by opening two terminals side-by-side:
@@ -85,7 +85,7 @@ The chainspec is set with the `--beacon-kit.chain-spec` command line option, and
 
 You can override the default operating directories for beacond with the `--home <path>` option.
 
-The [Berachain Node Quickstart](https://docs.berachain.com/nodes/quickstart) provides a quick deployment of mainnet or testnet on your desk. 
+The [Berachain Node Quickstart](https://docs.berachain.com/nodes/quickstart) provides a quick deployment of mainnet or testnet on your desk.
 
 For developing with beacon-kit, you have options:
 1. see the Makefile for targets to start stand-alone processes

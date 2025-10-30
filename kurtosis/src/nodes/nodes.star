@@ -20,7 +20,6 @@ CONSENSUS_DEFAULT_SETTINGS = {
     },
     "app": {
         "payload-timeout": "1.5s",
-        "enable_optimistic_payload_builds": "true",
     },
 }
 
@@ -130,12 +129,9 @@ def parse_consensus_app_settings(app_settings):
 
     if "payload_timeout" not in app_settings:
         app_settings["payload_timeout"] = CONSENSUS_DEFAULT_SETTINGS["app"]["payload_timeout"]
-    if "enable_optimistic_payload_builds" not in app_settings:
-        app_settings["enable_optimistic_payload_builds"] = CONSENSUS_DEFAULT_SETTINGS["app"]["enable_optimistic_payload_builds"]
 
     return struct(
         payload_timeout = app_settings["payload_timeout"],
-        enable_optimistic_payload_builds = app_settings["enable_optimistic_payload_builds"],
     )
 
 def parse_execution_settings(settings):
