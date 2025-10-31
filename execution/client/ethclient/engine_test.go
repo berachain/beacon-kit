@@ -154,6 +154,7 @@ type stubRPCClient struct {
 	t *testing.T
 }
 
+func (tc *stubRPCClient) Initialize() error     { return nil }
 func (tc *stubRPCClient) Start(context.Context) {}
 func (tc *stubRPCClient) Call(_ context.Context, target any, _ string, _ ...any) error {
 	tc.t.Helper()
