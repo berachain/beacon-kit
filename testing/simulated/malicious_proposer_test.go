@@ -557,7 +557,7 @@ func testBuildInvalidBlock(
 	pubkey, err := blsSigner.GetPubKey()
 	r.NoError(err)
 
-	signedBlk, sidecars, err := builder.SimComet.Comet.Blockchain.ParseBeaconBlock(
+	signedBlk, sidecars, err := builder.SimComet.Comet.Blockchain.ParseProcessProposalRequest(
 		&types.ProcessProposalRequest{
 			Txs:             PrepReq.Txs,
 			Height:          PrepReq.Height,

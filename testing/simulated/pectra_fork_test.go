@@ -221,10 +221,9 @@ func (s *PectraForkSuite) TestTimestampFork_ELAndCLInSync_IsSuccessful() {
 		// set consensus time for the next block to match
 		// the timestamp of the payload built optimistically.
 		forkVersion := s.Geth.TestNode.ChainSpec.ActiveForkVersionForTimestamp(math.U64(consensusTime.Unix())) //#nosec: G115
-		blk, _, err := encoding.ExtractBlobsAndBlockFromRequest(
-			processRequest,
+		blk, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
+			processRequest.GetTxs(),
 			blockchain.BeaconBlockTxIndex,
-			blockchain.BlobSidecarsTxIndex,
 			forkVersion,
 		)
 		s.Require().NoError(err)

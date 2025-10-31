@@ -56,9 +56,10 @@ func (s *SimulatedSuite) TestBlobFetcher_MultiNodeFetch() {
 	s.InitializeChain(s.T())
 
 	// Move chain forward one block
-	blsSigner := simulated.GetBlsSigner(s.HomeDir)
+	nodeAddress, err := s.SimComet.GetNodeAddress()
+	s.Require().NoError(err)
 	startTime := time.Now()
-	_, _, _ = s.MoveChainToHeight(s.T(), 1, 1, blsSigner, startTime)
+	_, _, _ = s.MoveChainToHeight(s.T(), 1, 1, nodeAddress, startTime)
 
 	// Create test blobs
 	testSlot := math.Slot(100)
@@ -125,7 +126,7 @@ func (s *SimulatedSuite) TestBlobFetcher_MultiNodeFetch() {
 
 	// Queue blob request, wait for it to be downloaded and validate
 	s.Require().NoError(node1Fetcher.QueueBlobRequest(block))
-	time.Sleep(200 * time.Millisecond)
+	time.Sleep(500 * time.Millisecond)
 	storedSidecars, err := node1Store.GetBlobSidecars(testSlot)
 	s.Require().NoError(err)
 	s.Require().Len(storedSidecars, 2)
