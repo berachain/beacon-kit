@@ -23,7 +23,6 @@
 package simulated_test
 
 import (
-	"bytes"
 	"context"
 	"math/big"
 	"path"
@@ -86,7 +85,7 @@ func (s *PectraGenesisSuite) SetupTest() {
 	s.ElHandle = elHandle
 
 	// Prepare a logger backed by a buffer to capture logs for assertions.
-	s.LogBuffer = new(bytes.Buffer)
+	s.LogBuffer = &simulated.SyncBuffer{}
 	logger := phuslu.NewLogger(s.LogBuffer, nil)
 
 	// Build the Beacon node with the simulated Comet component and electra genesis chain spec
@@ -120,16 +119,7 @@ func (s *PectraGenesisSuite) SetupTest() {
 
 // TearDownTest cleans up the test environment.
 func (s *PectraGenesisSuite) TearDownTest() {
-	// If the test has failed, log additional information.
-	if s.T().Failed() {
-		s.T().Log(s.LogBuffer.String())
-	}
-	if err := s.ElHandle.Close(); err != nil {
-		s.T().Error("Error closing EL handle:", err)
-	}
-	// mimics the behaviour of shutdown func
-	s.CtxAppCancelFn()
-	s.TestNode.ServiceRegistry.StopAll()
+	s.CleanupTest(s.T())
 }
 
 func (s *PectraGenesisSuite) TestFullLifecycle_WithoutRequests_IsSuccessful() {

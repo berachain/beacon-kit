@@ -28,6 +28,7 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"path/filepath"
+	"sync"
 	"testing"
 	"time"
 	"unsafe"
@@ -64,6 +65,36 @@ import (
 // testPkey corresponds to address 0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4 which is prefunded in genesis
 const testPkey = "fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306"
 
+// SyncBuffer is a thread-safe wrapper around bytes.Buffer.
+type SyncBuffer struct {
+	mu  sync.RWMutex
+	buf bytes.Buffer
+}
+
+func (sb *SyncBuffer) Write(p []byte) (int, error) {
+	sb.mu.Lock()
+	defer sb.mu.Unlock()
+	return sb.buf.Write(p)
+}
+
+func (sb *SyncBuffer) String() string {
+	sb.mu.RLock()
+	defer sb.mu.RUnlock()
+	return sb.buf.String()
+}
+
+func (sb *SyncBuffer) Reset() {
+	sb.mu.Lock()
+	defer sb.mu.Unlock()
+	sb.buf.Reset()
+}
+
+func (sb *SyncBuffer) Contains(substr []byte) bool {
+	sb.mu.RLock()
+	defer sb.mu.RUnlock()
+	return bytes.Contains(sb.buf.Bytes(), substr)
+}
+
 // SharedAccessors holds references to common utilities required in tests.
 type SharedAccessors struct {
 	CtxApp                context.Context
@@ -72,12 +103,53 @@ type SharedAccessors struct {
 	HomeDir               string
 	TestNode              TestNode
 	SimComet              *SimComet
-	LogBuffer             *bytes.Buffer
+	LogBuffer             *SyncBuffer
 	GenesisValidatorsRoot common.Root
 	SimulationClient      *execution.SimulationClient
 
 	// ElHandle is a dockertest resource handle that should be closed in teardown.
 	ElHandle *execution.Resource
+}
+
+// CleanupTest performs common cleanup operations for test suites.
+// Call this from TearDownTest to ensure proper cleanup even when setup fails.
+func (s *SharedAccessors) CleanupTest(t *testing.T) {
+	s.CleanupTestWithLabel(t, "")
+}
+
+// CleanupTestWithLabel performs common cleanup operations with an optional label for logs.
+// Use this when managing multiple execution clients (e.g., "GETH", "RETH").
+func (s *SharedAccessors) CleanupTestWithLabel(t *testing.T, label string) {
+	t.Helper()
+
+	// If the test has failed, log additional information.
+	if t.Failed() && s.LogBuffer != nil {
+		if label != "" {
+			t.Logf("%s CL LOGS:", label)
+		}
+		t.Log(s.LogBuffer.String())
+	}
+
+	// Close execution layer handle if it exists.
+	if s.ElHandle != nil {
+		if err := s.ElHandle.Close(); err != nil {
+			if label != "" {
+				t.Errorf("Error closing %s EL handle: %v", label, err)
+			} else {
+				t.Errorf("Error closing EL handle: %v", err)
+			}
+		}
+	}
+
+	// Cancel the application context if it exists.
+	if s.CtxAppCancelFn != nil {
+		s.CtxAppCancelFn()
+	}
+
+	// Stop all services if the service registry exists.
+	if s.TestNode.ServiceRegistry != nil {
+		s.TestNode.ServiceRegistry.StopAll()
+	}
 }
 
 // InitializeChain sets up the chain using the genesis file.
@@ -202,7 +274,7 @@ func (s *SharedAccessors) MoveChainToHeight(
 // WaitTillServicesStarted waits until the log buffer contains "All services started".
 // It checks periodically with a timeout to prevent indefinite waiting.
 // If there is a better way to determine the services have started, e.g. readiness probe, replace this.
-func WaitTillServicesStarted(logBuffer *bytes.Buffer, timeout, interval time.Duration) error {
+func WaitTillServicesStarted(logBuffer *SyncBuffer, timeout, interval time.Duration) error {
 	deadline := time.After(timeout)
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
@@ -211,7 +283,7 @@ func WaitTillServicesStarted(logBuffer *bytes.Buffer, timeout, interval time.Dur
 		case <-deadline:
 			return errors.New("timeout waiting for services to start")
 		case <-ticker.C:
-			if bytes.Contains(logBuffer.Bytes(), []byte("All services started")) {
+			if logBuffer.Contains([]byte("All services started")) {
 				return nil
 			}
 		}

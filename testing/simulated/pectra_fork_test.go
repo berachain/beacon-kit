@@ -23,7 +23,6 @@
 package simulated_test
 
 import (
-	"bytes"
 	"context"
 	"math/big"
 	"path"
@@ -96,10 +95,10 @@ func (s *PectraForkSuite) SetupTest() {
 	s.Reth.ElHandle = rethHandle
 
 	// Prepare a logger backed by a buffer to capture logs for assertions.
-	s.Geth.LogBuffer = new(bytes.Buffer)
+	s.Geth.LogBuffer = &simulated.SyncBuffer{}
 	logger := phuslu.NewLogger(s.Geth.LogBuffer, nil)
 
-	s.Reth.LogBuffer = new(bytes.Buffer)
+	s.Reth.LogBuffer = &simulated.SyncBuffer{}
 	rethLogger := phuslu.NewLogger(s.Reth.LogBuffer, nil)
 
 	// Build the Beacon node with the simulated Comet component and electra genesis chain spec
@@ -150,24 +149,8 @@ func (s *PectraForkSuite) SetupTest() {
 
 // TearDownTest cleans up the test environment.
 func (s *PectraForkSuite) TearDownTest() {
-	// If the test has failed, log additional information.
-	if s.T().Failed() {
-		s.T().Log("GETH CL LOGS:")
-		s.T().Log(s.Geth.LogBuffer.String())
-		s.T().Log("RETH CL LOGS:")
-		s.T().Log(s.Reth.LogBuffer.String())
-	}
-	if err := s.Geth.ElHandle.Close(); err != nil {
-		s.T().Error("Error closing Geth EL handle:", err)
-	}
-	if err := s.Reth.ElHandle.Close(); err != nil {
-		s.T().Error("Error closing Reth EL handle:", err)
-	}
-	// mimics the behaviour of shutdown func
-	s.Geth.CtxAppCancelFn()
-	s.Geth.TestNode.ServiceRegistry.StopAll()
-	s.Reth.CtxAppCancelFn()
-	s.Reth.TestNode.ServiceRegistry.StopAll()
+	s.Geth.CleanupTestWithLabel(s.T(), "GETH")
+	s.Reth.CleanupTestWithLabel(s.T(), "RETH")
 }
 
 // TestTimestampFork_ELAndCLInSync_IsSuccessful tests that we can fork successfully if EL and CL have synced timestamps
