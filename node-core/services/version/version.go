@@ -46,8 +46,6 @@ type ReportingService struct {
 	version string
 	// reportingInterval is the interval at which the version is reported.
 	reportingInterval time.Duration
-	// sink is the telemetry sink used to report metrics.
-	sink TelemetrySink
 	// client to query the execution layer
 	client   *client.EngineClient
 	forkSpec ForkSpec
@@ -56,7 +54,6 @@ type ReportingService struct {
 // NewReportingService creates a new VersionReporterService.
 func NewReportingService(
 	logger log.Logger,
-	telemetrySink TelemetrySink,
 	version string,
 	engineClient *client.EngineClient,
 	forkSpec ForkSpec,
@@ -65,7 +62,6 @@ func NewReportingService(
 		logger:            logger,
 		version:           version,
 		reportingInterval: defaultReportingInterval,
-		sink:              telemetrySink,
 		client:            engineClient,
 		forkSpec:          forkSpec,
 	}
@@ -202,25 +198,8 @@ func (rs *ReportingService) logTelemetry(
 	ethVersion engineprimitives.ClientVersionV1) {
 	systemInfo := runtime.GOOS + "/" + runtime.GOARCH
 
-	// TODO: Delete this counter as it should be included in the new
-	// beacon_kit.runtime.version metric.
-	rs.sink.IncrementCounter(
-		"beacon_kit.runtime.version.reported",
-		"version", rs.version, "system", systemInfo,
-	)
-
 	rs.logger.Info("Reporting version", "version", rs.version,
 		"system", systemInfo,
 		"eth_version", ethVersion.Version,
 		"eth_name", ethVersion.Name)
-
-	// Report the version to the telemetry sink and include labels
-	// for beacon node version and eth name and version
-	var args = [8]string{
-		"version", rs.version,
-		"system", systemInfo,
-		"eth_version", ethVersion.Version,
-		"eth_name", ethVersion.Name,
-	}
-	rs.sink.SetGauge("beacon_kit.runtime.version", 1, args[:]...)
 }

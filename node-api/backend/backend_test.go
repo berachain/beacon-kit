@@ -32,9 +32,9 @@ import (
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/node-api/backend"
 	"github.com/berachain/beacon-kit/node-api/backend/mocks"
-	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
 	coremocks "github.com/berachain/beacon-kit/node-core/types/mocks"
+	"github.com/berachain/beacon-kit/observability/metrics/discard"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/state-transition/core/state"
@@ -158,7 +158,7 @@ func TestBackendLoadData(t *testing.T) {
 			_, kvStore, depositStore, err := statetransition.BuildTestStores()
 			require.NoError(t, err)
 			sb := storage.NewBackend(
-				cs, nil, kvStore, depositStore, nil, log.NewNopLogger(), metrics.NewNoOpTelemetrySink(),
+				cs, nil, kvStore, depositStore, nil, log.NewNopLogger(), state.NewMetrics(discard.NewFactory()),
 			)
 
 			tcs := coremocks.NewConsensusService(t)

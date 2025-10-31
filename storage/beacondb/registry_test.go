@@ -28,7 +28,6 @@ import (
 	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
 	"cosmossdk.io/store"
-	"cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/bytes"
@@ -296,15 +295,11 @@ func initTestStore() (*beacondb.KVStore, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed opening mem db: %w", err)
 	}
-	var (
-		nopLog     = log.NewNopLogger()
-		nopMetrics = metrics.NewNoOpMetrics()
-	)
-
+	nopLog := log.NewNopLogger()
 	cms := store.NewCommitMultiStore(
 		db,
 		nopLog,
-		nopMetrics,
+		storage.NoOpStoreMetrics{},
 	)
 
 	cms.MountStoreWithDB(testStoreKey, storetypes.StoreTypeIAVL, nil)

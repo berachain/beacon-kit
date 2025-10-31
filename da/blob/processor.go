@@ -42,21 +42,22 @@ type Processor struct {
 	// verifier is responsible for verifying the blobs.
 	verifier *verifier
 	// metrics is used to collect and report processor metrics.
-	metrics *processorMetrics
+	metrics *ProcessorMetrics
 }
 
 // NewProcessor creates a new blob processor.
 func NewProcessor(
 	logger log.Logger,
 	proofVerifier kzg.BlobProofVerifier,
-	telemetrySink TelemetrySink,
+	processorMetrics *ProcessorMetrics,
+	verifierMetrics *VerifierMetrics,
 ) *Processor {
-	verifier := newVerifier(proofVerifier, telemetrySink)
+	verifier := newVerifier(proofVerifier, verifierMetrics)
 
 	return &Processor{
 		logger:   logger,
 		verifier: verifier,
-		metrics:  newProcessorMetrics(telemetrySink),
+		metrics:  processorMetrics,
 	}
 }
 

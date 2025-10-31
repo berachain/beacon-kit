@@ -52,12 +52,12 @@ type BlobFetchRequest struct {
 type blobQueue struct {
 	queueDir string
 	logger   log.Logger
-	metrics  *blobFetcherMetrics
+	metrics  *BlobFetcherMetrics
 }
 
 // newBlobQueue creates a new blob queue with the given directory.
 // It creates the directory if it doesn't exist and cleans up orphaned temp files.
-func newBlobQueue(queueDir string, logger log.Logger, metrics *blobFetcherMetrics) (*blobQueue, error) {
+func newBlobQueue(queueDir string, logger log.Logger, metrics *BlobFetcherMetrics) (*blobQueue, error) {
 	// Create queue directory
 	if err := os.MkdirAll(queueDir, 0750); err != nil {
 		return nil, fmt.Errorf("failed to create blob download queue directory: %w", err)

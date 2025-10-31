@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -23,54 +23,66 @@ package validator
 import (
 	"time"
 
+	"github.com/berachain/beacon-kit/observability/metrics"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-// validatorMetrics is a struct that contains metrics for the chain.
-type validatorMetrics struct {
-	// sink is the sink for the metrics.
-	sink TelemetrySink
+// Metrics is a struct that contains metrics for the validator service.
+type Metrics struct {
+	// RequestBlockForProposalDuration tracks time to request block for proposal
+	// Using Summary for backward compatibility with cosmos-sdk/telemetry.
+	RequestBlockForProposalDuration metrics.Summary
+
+	// StateRootComputationDuration tracks time to compute state root
+	// Using Summary for backward compatibility with cosmos-sdk/telemetry.
+	StateRootComputationDuration metrics.Summary
+
+	// FailedToRetrievePayload tracks failed payload retrievals
+	FailedToRetrievePayload metrics.Counter
 }
 
-// newValidatorMetrics creates a new validatorMetrics.
-func newValidatorMetrics(
-	sink TelemetrySink,
-) *validatorMetrics {
-	return &validatorMetrics{
-		sink: sink,
+// NewMetrics returns a new Metrics instance.
+// Metric names are kept identical to cosmos-sdk/telemetry output for Grafana compatibility.
+func NewMetrics(factory metrics.Factory) *Metrics {
+	return &Metrics{
+		RequestBlockForProposalDuration: factory.NewSummary(
+			metrics.SummaryOpts{
+				Name:       "beacon_kit_validator_request_block_for_proposal_duration",
+				Help:       "Time taken to request block for proposal in milliseconds",
+				Objectives: metrics.QuantilesP50P90P99,
+			},
+			nil,
+		),
+		StateRootComputationDuration: factory.NewSummary(
+			metrics.SummaryOpts{
+				Name:       "beacon_kit_validator_state_root_computation_duration",
+				Help:       "Time taken to compute state root in milliseconds",
+				Objectives: metrics.QuantilesP50P90P99,
+			},
+			nil,
+		),
+		FailedToRetrievePayload: factory.NewCounter(
+			metrics.CounterOpts{
+				Name: "beacon_kit_validator_failed_to_retrieve_payload",
+				Help: "Number of times validator failed to retrieve payload",
+			},
+			[]string{"slot", "error"},
+		),
 	}
 }
 
-// measureRequestBlockForProposalTime measures the time taken to run the request
-// best
-// block function.
-func (cm *validatorMetrics) measureRequestBlockForProposalTime(
-	start time.Time,
-) {
-	cm.sink.MeasureSince(
-		"beacon_kit.validator.request_block_for_proposal_duration", start,
-	)
+// measureRequestBlockForProposalTime measures the time taken to request block for proposal.
+func (m *Metrics) measureRequestBlockForProposalTime(start time.Time) {
+	m.RequestBlockForProposalDuration.Observe(float64(time.Since(start).Milliseconds()))
 }
 
-// measureStateRootComputationTime measures the time taken to compute the state
-// root of a block.
-// It records the duration from the provided start time to the current time.
-func (cm *validatorMetrics) measureStateRootComputationTime(start time.Time) {
-	cm.sink.MeasureSince(
-		"beacon_kit.validator.state_root_computation_duration", start,
-	)
+// measureStateRootComputationTime measures the time taken to compute the state root of a block.
+func (m *Metrics) measureStateRootComputationTime(start time.Time) {
+	m.StateRootComputationDuration.Observe(float64(time.Since(start).Milliseconds()))
 }
 
-// failedToRetrievePayload increments the counter for the number of
-// times the validator failed to retrieve payloads.
-func (cm *validatorMetrics) failedToRetrievePayload(
-	slot math.Slot, err error,
-) {
-	cm.sink.IncrementCounter(
-		"beacon_kit.validator.failed_to_retrieve_payload",
-		"slot",
-		slot.Base10(),
-		"error",
-		err.Error(),
-	)
+// failedToRetrievePayload increments the counter for the number of times the validator
+// failed to retrieve payloads.
+func (m *Metrics) failedToRetrievePayload(slot math.Slot, err error) {
+	m.FailedToRetrievePayload.With("slot", slot.Base10(), "error", err.Error()).Add(1)
 }

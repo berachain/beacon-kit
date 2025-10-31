@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -21,13 +21,11 @@
 package components
 
 import (
-	"github.com/berachain/beacon-kit/config/config"
-	"github.com/berachain/beacon-kit/observability/telemetry"
+	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
+	"github.com/berachain/beacon-kit/observability/metrics"
 )
 
-// ProvideTelemetryService is a function that provides a TelemetrySink.
-func ProvideTelemetryService(
-	cfg *config.Config,
-) (*telemetry.Service, error) {
-	return telemetry.NewService(&cfg.Telemetry)
+// ProvideCometBFTMetrics provides metrics for the CometBFT service.
+func ProvideCometBFTMetrics(factory metrics.Factory) *cometbft.Metrics {
+	return cometbft.NewMetrics(factory)
 }

@@ -13,16 +13,23 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package lv
 
-import "github.com/berachain/beacon-kit/node-core/components/metrics"
+// LabelValues is a type alias for a slice of strings that represent
+// metric label key-value pairs. It provides efficient label accumulation
+// using a copy-on-write pattern.
+type LabelValues []string
 
-// ProvideTelemetrySink is a function that provides a TelemetrySink.
-func ProvideTelemetrySink() *metrics.TelemetrySink {
-	return &metrics.TelemetrySink{}
+// With returns a new LabelValues with the given label key-value pairs appended.
+// The original LabelValues is not modified (copy-on-write semantics).
+func (lvs LabelValues) With(labelValues ...string) LabelValues {
+	if len(labelValues)%2 != 0 {
+		labelValues = append(labelValues, "unknown")
+	}
+	return append(lvs, labelValues...)
 }

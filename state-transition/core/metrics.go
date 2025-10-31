@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -21,60 +21,114 @@
 package core
 
 import (
+	"github.com/berachain/beacon-kit/observability/metrics"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-type stateProcessorMetrics struct {
-	// sink is the sink for the metrics.
-	sink TelemetrySink
+// Metrics contains metrics for the state processor.
+type Metrics struct {
+	BlockTxGasUsed                  metrics.Gauge
+	BlockBlobGasUsed                metrics.Gauge
+	PartialWithdrawalsEnqueued      metrics.Gauge
+	PayloadConsensusTimestampDiff   metrics.Gauge
+	DepositStakeLost                metrics.Counter
+	PartialWithdrawalRequestDropped metrics.Counter
+	PartialWithdrawalRequestInvalid metrics.Counter
+	ValidatorNotWithdrawable        metrics.Counter
 }
 
-// newStateProcessorMetrics creates a new stateProcessorMetrics.
-func newStateProcessorMetrics(sink TelemetrySink) *stateProcessorMetrics {
-	return &stateProcessorMetrics{
-		sink: sink,
+// NewMetrics returns a new Metrics instance.
+// Metric names are kept identical to cosmos-sdk/telemetry output for Grafana compatibility.
+func NewMetrics(factory metrics.Factory) *Metrics {
+	return &Metrics{
+		BlockTxGasUsed: factory.NewGauge(
+			metrics.GaugeOpts{
+				Name: "beacon_kit_state_block_tx_gas_used",
+				Help: "Transaction gas used in the block",
+			},
+			[]string{"block_number"},
+		),
+		BlockBlobGasUsed: factory.NewGauge(
+			metrics.GaugeOpts{
+				Name: "beacon_kit_state_block_blob_gas_used",
+				Help: "Blob gas used in the block",
+			},
+			[]string{"block_number"},
+		),
+		PartialWithdrawalsEnqueued: factory.NewGauge(
+			metrics.GaugeOpts{
+				Name: "beacon_kit_state_partial_withdrawals_enqueued",
+				Help: "Number of partial withdrawals enqueued",
+			},
+			nil,
+		),
+		PayloadConsensusTimestampDiff: factory.NewGauge(
+			metrics.GaugeOpts{
+				Name: "beacon_kit_state_payload_consensus_timestamp_diff",
+				Help: "Difference between payload timestamp and consensus timestamp",
+			},
+			nil,
+		),
+		DepositStakeLost: factory.NewCounter(
+			metrics.CounterOpts{
+				Name: "beacon_kit_state_deposit_stake_lost",
+				Help: "Number of deposits with stake lost",
+			},
+			nil,
+		),
+		PartialWithdrawalRequestDropped: factory.NewCounter(
+			metrics.CounterOpts{
+				Name: "beacon_kit_state_partial_withdrawal_request_dropped",
+				Help: "Number of partial withdrawal requests dropped",
+			},
+			nil,
+		),
+		PartialWithdrawalRequestInvalid: factory.NewCounter(
+			metrics.CounterOpts{
+				Name: "beacon_kit_state_partial_withdrawal_request_invalid",
+				Help: "Number of invalid partial withdrawal requests",
+			},
+			nil,
+		),
+		ValidatorNotWithdrawable: factory.NewCounter(
+			metrics.CounterOpts{
+				Name: "beacon_kit_state_validator_not_withdrawable",
+				Help: "Number of validators not withdrawable",
+			},
+			nil,
+		),
 	}
 }
 
-func (s *stateProcessorMetrics) gaugeBlockGasUsed(blockNumber, txGasUsed, blobGasUsed math.U64) {
+func (m *Metrics) gaugeBlockGasUsed(blockNumber, txGasUsed, blobGasUsed math.U64) {
 	blockNumberStr := blockNumber.Base10()
-	s.sink.SetGauge(
-		"beacon_kit.state.block_tx_gas_used",
-		int64(txGasUsed.Unwrap()), // #nosec G115
-		"block_number",
-		blockNumberStr,
-	)
-	s.sink.SetGauge(
-		"beacon_kit.state.block_blob_gas_used",
-		int64(blobGasUsed.Unwrap()), // #nosec G115
-		"block_number",
-		blockNumberStr,
-	)
+	m.BlockTxGasUsed.With("block_number", blockNumberStr).Set(float64(txGasUsed.Unwrap()))
+	m.BlockBlobGasUsed.With("block_number", blockNumberStr).Set(float64(blobGasUsed.Unwrap()))
 }
 
-func (s *stateProcessorMetrics) gaugePartialWithdrawalsEnqueued(count int) {
-	s.sink.SetGauge("beacon_kit.state.partial_withdrawals_enqueued", int64(count))
+func (m *Metrics) gaugePartialWithdrawalsEnqueued(count int) {
+	m.PartialWithdrawalsEnqueued.Set(float64(count))
 }
 
-func (s *stateProcessorMetrics) gaugeTimestamps(payloadTimestamp, consensusTimestamp uint64) {
+func (m *Metrics) gaugeTimestamps(payloadTimestamp, consensusTimestamp uint64) {
 	// the diff can be positive or negative depending on whether the payload
 	// timestamp is ahead or behind the consensus timestamp
 	diff := int64(payloadTimestamp) - int64(consensusTimestamp) // #nosec G115
-	s.sink.SetGauge("beacon_kit.state.payload_consensus_timestamp_diff", diff)
+	m.PayloadConsensusTimestampDiff.Set(float64(diff))
 }
 
-func (s *stateProcessorMetrics) incrementDepositStakeLost() {
-	s.sink.IncrementCounter("beacon_kit.state.deposit_stake_lost")
+func (m *Metrics) incrementDepositStakeLost() {
+	m.DepositStakeLost.Add(1)
 }
 
-func (s *stateProcessorMetrics) incrementPartialWithdrawalRequestDropped() {
-	s.sink.IncrementCounter("beacon_kit.state.partial_withdrawal_request_dropped")
+func (m *Metrics) incrementPartialWithdrawalRequestDropped() {
+	m.PartialWithdrawalRequestDropped.Add(1)
 }
 
-func (s *stateProcessorMetrics) incrementPartialWithdrawalRequestInvalid() {
-	s.sink.IncrementCounter("beacon_kit.state.partial_withdrawal_request_invalid")
+func (m *Metrics) incrementPartialWithdrawalRequestInvalid() {
+	m.PartialWithdrawalRequestInvalid.Add(1)
 }
 
-func (s *stateProcessorMetrics) incrementValidatorNotWithdrawable() {
-	s.sink.IncrementCounter("beacon_kit.state.validator_not_withdrawable")
+func (m *Metrics) incrementValidatorNotWithdrawable() {
+	m.ValidatorNotWithdrawable.Add(1)
 }

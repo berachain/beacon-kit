@@ -34,7 +34,7 @@ import (
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/engine-primitives/errors"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
-	"github.com/berachain/beacon-kit/node-core/components/metrics"
+	"github.com/berachain/beacon-kit/observability/metrics/discard"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -346,7 +346,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobCommitment_Errors() {
 
 	sidecarsSlice := make([]*datypes.BlobSidecar, len(blobs))
 	// Build Inclusion Proofs for Sidecars
-	sidecarFactory := dablob.NewSidecarFactory(metrics.NewNoOpTelemetrySink())
+	sidecarFactory := dablob.NewSidecarFactory(dablob.NewFactoryMetrics(discard.NewFactory()))
 	for i := range blobs {
 		inclusionProof, err := sidecarFactory.BuildKZGInclusionProof(proposedBlockMessage.GetBody(), math.U64(i))
 		s.Require().NoError(err)
@@ -508,7 +508,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobInclusionProof_Errors() 
 
 	sidecarsSlice := make([]*datypes.BlobSidecar, len(blobs))
 	// Build Inclusion Proofs for Sidecars
-	sidecarFactory := dablob.NewSidecarFactory(metrics.NewNoOpTelemetrySink())
+	sidecarFactory := dablob.NewSidecarFactory(dablob.NewFactoryMetrics(discard.NewFactory()))
 	for i := range blobs {
 		inclusionProof, err := sidecarFactory.BuildKZGInclusionProof(proposedBlockMessage.GetBody(), math.U64(i))
 		s.Require().NoError(err)

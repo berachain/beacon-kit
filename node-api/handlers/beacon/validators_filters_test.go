@@ -41,7 +41,7 @@ import (
 	handlertypes "github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/node-api/middleware"
-	"github.com/berachain/beacon-kit/node-core/components/metrics"
+	"github.com/berachain/beacon-kit/observability/metrics/discard"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
@@ -550,7 +550,7 @@ func makeTestState(t *testing.T, cs chain.Spec) *statedb.StateDB {
 	require.NoError(t, errSt)
 	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), true, cosmoslog.NewNopLogger())
 	st := statedb.NewBeaconStateFromDB(
-		kvStore.WithContext(sdkCtx), cs, sdkCtx.Logger(), metrics.NewNoOpTelemetrySink(),
+		kvStore.WithContext(sdkCtx), cs, sdkCtx.Logger(), statedb.NewMetrics(discard.NewFactory()),
 	)
 	return st
 }

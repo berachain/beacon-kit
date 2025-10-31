@@ -30,7 +30,7 @@ import (
 
 	"cosmossdk.io/log"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/node-core/components/metrics"
+	"github.com/berachain/beacon-kit/observability/metrics/discard"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -47,7 +47,7 @@ func createTestBlobRequest(slot math.Slot, blobCount int) BlobFetchRequest {
 func TestBlobQueue_SuccessfulWrite(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
-	queue, err := newBlobQueue(tmpDir, log.NewNopLogger(), newBlobFetcherMetrics(metrics.NewNoOpTelemetrySink()))
+	queue, err := newBlobQueue(tmpDir, log.NewNopLogger(), NewBlobFetcherMetrics(discard.NewFactory()))
 	require.NoError(t, err)
 
 	slot := math.Slot(100)
@@ -71,7 +71,7 @@ func TestBlobQueue_SuccessfulWrite(t *testing.T) {
 func TestBlobQueue_RetryLogic(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
-	queue, err := newBlobQueue(tmpDir, log.NewNopLogger(), newBlobFetcherMetrics(metrics.NewNoOpTelemetrySink()))
+	queue, err := newBlobQueue(tmpDir, log.NewNopLogger(), NewBlobFetcherMetrics(discard.NewFactory()))
 	require.NoError(t, err)
 
 	withinDA := func(_, _ math.Slot) bool { return true }
@@ -103,7 +103,7 @@ func TestBlobQueue_RetryLogic(t *testing.T) {
 func TestBlobQueue_AvailabilityWindow(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
-	queue, err := newBlobQueue(tmpDir, log.NewNopLogger(), newBlobFetcherMetrics(metrics.NewNoOpTelemetrySink()))
+	queue, err := newBlobQueue(tmpDir, log.NewNopLogger(), NewBlobFetcherMetrics(discard.NewFactory()))
 	require.NoError(t, err)
 
 	// Add old request
@@ -131,7 +131,7 @@ func TestBlobQueue_AvailabilityWindow(t *testing.T) {
 func TestBlobQueue_UpdateRetry(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
-	queue, err := newBlobQueue(tmpDir, log.NewNopLogger(), newBlobFetcherMetrics(metrics.NewNoOpTelemetrySink()))
+	queue, err := newBlobQueue(tmpDir, log.NewNopLogger(), NewBlobFetcherMetrics(discard.NewFactory()))
 	require.NoError(t, err)
 
 	request := createTestBlobRequest(math.Slot(100), 2)
@@ -157,7 +157,7 @@ func TestBlobQueue_UpdateRetry(t *testing.T) {
 func TestBlobQueue_ProcessingOrder(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
-	queue, err := newBlobQueue(tmpDir, log.NewNopLogger(), newBlobFetcherMetrics(metrics.NewNoOpTelemetrySink()))
+	queue, err := newBlobQueue(tmpDir, log.NewNopLogger(), NewBlobFetcherMetrics(discard.NewFactory()))
 	require.NoError(t, err)
 
 	withinDA := func(_, _ math.Slot) bool { return true }
@@ -188,7 +188,7 @@ func TestBlobQueue_ProcessingOrder(t *testing.T) {
 func TestBlobQueue_MaxRetryLimit(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
-	queue, err := newBlobQueue(tmpDir, log.NewNopLogger(), newBlobFetcherMetrics(metrics.NewNoOpTelemetrySink()))
+	queue, err := newBlobQueue(tmpDir, log.NewNopLogger(), NewBlobFetcherMetrics(discard.NewFactory()))
 	require.NoError(t, err)
 
 	withinDA := func(_, _ math.Slot) bool { return true }
@@ -217,7 +217,7 @@ func TestBlobQueue_MaxRetryLimit(t *testing.T) {
 func TestBlobQueue_UnderRetryLimit(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
-	queue, err := newBlobQueue(tmpDir, log.NewNopLogger(), newBlobFetcherMetrics(metrics.NewNoOpTelemetrySink()))
+	queue, err := newBlobQueue(tmpDir, log.NewNopLogger(), NewBlobFetcherMetrics(discard.NewFactory()))
 	require.NoError(t, err)
 
 	withinDA := func(_, _ math.Slot) bool { return true }
@@ -245,7 +245,7 @@ func TestBlobQueue_UnderRetryLimit(t *testing.T) {
 func TestBlobQueue_CorruptedFileHandling(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
-	queue, err := newBlobQueue(tmpDir, log.NewNopLogger(), newBlobFetcherMetrics(metrics.NewNoOpTelemetrySink()))
+	queue, err := newBlobQueue(tmpDir, log.NewNopLogger(), NewBlobFetcherMetrics(discard.NewFactory()))
 	require.NoError(t, err)
 
 	withinDA := func(_, _ math.Slot) bool { return true }

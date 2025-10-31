@@ -32,7 +32,6 @@ import (
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/builder"
-	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/node-core/types"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	cmtcrypto "github.com/cometbft/cometbft/crypto"
@@ -61,7 +60,7 @@ func ProvideSimComet(
 	cs chain.Spec,
 	cmtCfg *cmtcfg.Config,
 	appOpts config.AppOptions,
-	telemetrySink *metrics.TelemetrySink) *SimComet {
+	metrics *cometbft.Metrics) *SimComet {
 	return &SimComet{
 		Comet: cometbft.NewService(
 			logger,
@@ -71,7 +70,7 @@ func ProvideSimComet(
 			blobReactor,
 			cs,
 			cmtCfg,
-			telemetrySink,
+			metrics,
 			builder.DefaultServiceOptions(appOpts)...,
 		),
 		cmtCfg: cmtCfg,

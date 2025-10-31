@@ -29,12 +29,11 @@ import (
 	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
 	"cosmossdk.io/store"
-	"cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/log/noop"
-	nodemetrics "github.com/berachain/beacon-kit/node-core/components/metrics"
+	"github.com/berachain/beacon-kit/observability/metrics/discard"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	cryptomocks "github.com/berachain/beacon-kit/primitives/crypto/mocks"
 	"github.com/berachain/beacon-kit/primitives/transition"
@@ -88,15 +87,11 @@ func BuildTestStores() (
 		return nil, nil, nil, fmt.Errorf("failed opening mem deposits db: %w", err)
 	}
 
-	var (
-		nopLog     = log.NewNopLogger()
-		nopMetrics = metrics.NewNoOpMetrics()
-	)
-
+	nopLog := log.NewNopLogger()
 	cms := store.NewCommitMultiStore(
 		appDB,
 		nopLog,
-		nopMetrics,
+		storage.NoOpStoreMetrics{},
 	)
 
 	cms.MountStoreWithDB(testStoreKey, storetypes.StoreTypeIAVL, nil)
@@ -134,7 +129,7 @@ func SetupTestState(t *testing.T, cs chain.Spec) (
 
 	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), true, log.NewNopLogger())
 	beaconState := statedb.NewBeaconStateFromDB(
-		kvStore.WithContext(sdkCtx), cs, sdkCtx.Logger(), nodemetrics.NewNoOpTelemetrySink(),
+		kvStore.WithContext(sdkCtx), cs, sdkCtx.Logger(), statedb.NewMetrics(discard.NewFactory()),
 	)
 
 	sp := core.NewStateProcessor(
@@ -146,7 +141,7 @@ func SetupTestState(t *testing.T, cs chain.Spec) (
 		func(bytes.B48) ([]byte, error) {
 			return DummyProposerAddr, nil
 		},
-		nodemetrics.NewNoOpTelemetrySink(),
+		core.NewMetrics(discard.NewFactory()),
 	)
 
 	// by default we keep checks at minimum. It is up

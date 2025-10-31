@@ -84,7 +84,7 @@ type BlobReactor struct {
 	blobStore BlobStore  // Storage backend for checking which blobs exist locally
 	logger    log.Logger // Logger for the reactor
 	config    Config     // Config for the reactor
-	metrics   *blobReactorMetrics
+	metrics   *Metrics
 
 	// Track peers and our head slot
 	stateMu  sync.RWMutex // Protects peers and headSlot
@@ -108,13 +108,13 @@ type BlobReactor struct {
 }
 
 // NewBlobReactor creates a new blob reactor with storage backend
-func NewBlobReactor(blobStore BlobStore, logger log.Logger, cfg Config, sink TelemetrySink) *BlobReactor {
+func NewBlobReactor(blobStore BlobStore, logger log.Logger, cfg Config, metrics *Metrics) *BlobReactor {
 	br := &BlobReactor{
 		peers:          make(map[p2p.ID]struct{}),
 		blobStore:      blobStore,
 		logger:         logger,
 		config:         cfg,
-		metrics:        newBlobReactorMetrics(sink),
+		metrics:        metrics,
 		responseChans:  make(map[uint64]chan *BlobResponse),
 		requestWorkers: make(chan struct{}, defaultMaxRequestWorkers),
 	}

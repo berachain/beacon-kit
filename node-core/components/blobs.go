@@ -27,7 +27,6 @@ import (
 	dablob "github.com/berachain/beacon-kit/da/blob"
 	"github.com/berachain/beacon-kit/da/kzg"
 	"github.com/berachain/beacon-kit/log/phuslu"
-	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/spf13/cast"
 )
@@ -58,7 +57,8 @@ type BlobProcessorIn struct {
 
 	BlobProofVerifier kzg.BlobProofVerifier
 	Logger            *phuslu.Logger
-	TelemetrySink     *metrics.TelemetrySink
+	ProcessorMetrics  *dablob.ProcessorMetrics
+	VerifierMetrics   *dablob.VerifierMetrics
 }
 
 // ProvideBlobProcessor is a function that provides the BlobProcessor to the
@@ -67,6 +67,7 @@ func ProvideBlobProcessor(in BlobProcessorIn) *dablob.Processor {
 	return dablob.NewProcessor(
 		in.Logger.With("service", "blob-processor"),
 		in.BlobProofVerifier,
-		in.TelemetrySink,
+		in.ProcessorMetrics,
+		in.VerifierMetrics,
 	)
 }
