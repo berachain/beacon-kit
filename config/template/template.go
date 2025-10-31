@@ -109,4 +109,10 @@ logging = "{{ .BeaconKit.NodeAPI.Logging }}"
 [beacon-kit.blob-reactor]
 # Request timeout for blob requests from peers
 request-timeout = "{{ .BeaconKit.BlobReactor.RequestTimeout }}"
+
+# Rate limiting for incoming blob requests per peer (messages per second)
+max-messages-per-peer-per-second = {{ .BeaconKit.BlobReactor.MaxMessagesPerPeerPerSecond }}
+
+# Global rate limiting for incoming blob requests from all peers (requests per second)
+max-global-requests-per-second = {{ .BeaconKit.BlobReactor.MaxGlobalRequestsPerSecond }}
 `

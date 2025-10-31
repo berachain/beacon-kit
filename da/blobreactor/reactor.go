@@ -37,24 +37,30 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/cometbft/cometbft/libs/service"
 	"github.com/cometbft/cometbft/p2p"
+	"golang.org/x/time/rate"
 )
 
 const (
 	// BlobChannel is our custom channel ID for blob requests/responses
 	BlobChannel = byte(0x70)
-
 	// ReactorName is the registered name for the blob reactor in CometBFT's switch
 	ReactorName = "BLOBREACTOR"
-
-	defaultSleepDuration       = 100 * time.Millisecond
-	defaultPriority            = 5
-	defaultSendQueueCapacity   = 100
-	defaultRecvBufferCapacity  = 1024 * 1024
+	// defaultPriority sets the channel priority for blob messages in CometBFT's message scheduler
+	defaultPriority = 5
+	// defaultSendQueueCapacity is the maximum number of outgoing messages queued per peer
+	defaultSendQueueCapacity = 10
+	// defaultRecvBufferCapacity is the size of the receive buffer for incoming blob messages
+	defaultRecvBufferCapacity = 10 * 1024 * 1024
+	// defaultRecvMessageCapacity is the maximum size of a single blob message we'll accept
 	defaultRecvMessageCapacity = 1024 * 1024
-
+	// defaultMaxRequestWorkers limits concurrent goroutines handling blob requests/responses
 	defaultMaxRequestWorkers = 10
-
+	// maxBlobsPerBlock is the protocol limit for blob sidecars per block
 	maxBlobsPerBlock = 6
+	// rateLimiterCleanupInterval determines how often to check for stale peer rate limiters
+	rateLimiterCleanupInterval = 30 * time.Minute
+	// staleLimiterTimeout determines how long to keep inactive peer rate limiters before deleting them
+	staleLimiterTimeout = 24 * time.Hour
 )
 
 // blobRequestError wraps an error with a status for metrics tracking.
@@ -75,8 +81,23 @@ func newBlobRequestError(err error, status string) error {
 	return &blobRequestError{err: err, status: status}
 }
 
-// BlobReactor handles P2P blob distribution for BeaconKit.
-// It implements the CometBFT Reactor interface.
+type peerRateLimiter struct {
+	limiter  *rate.Limiter
+	lastSeen time.Time
+}
+
+// BlobReactor manages p2p blob distribution across the network. When a node is
+// missing blobs for a slot, it sends requests to connected peers and waits for
+// responses containing the serialized blob sidecars.
+//
+// The reactor implements defense mechanisms including per-peer and global rate
+// limiting of incoming requests, and reputation scoring that temporarily bans
+// peers exhibiting bad behavior (invalid messages, unsolicited responses, etc).
+//
+// All request/response handling is concurrent with worker pool limits to prevent
+// resource exhaustion.
+//
+// Integrates with CometBFT's P2P layer via the Reactor interface.
 type BlobReactor struct {
 	service.BaseService
 	sw *p2p.Switch
@@ -105,6 +126,16 @@ type BlobReactor struct {
 
 	// Shutdown flag to prevent new workers during stop
 	stopped atomic.Bool // set to true when OnStop begins
+
+	// We maintain per-peer rate limiters
+	peerLimiters   map[p2p.ID]*peerRateLimiter
+	peerLimitersMu sync.RWMutex
+
+	// A global rate limiter for all incoming requests
+	globalLimiter *rate.Limiter
+
+	// Reputation manager for tracking peer behavior
+	reputationMgr *ReputationManager
 }
 
 // NewBlobReactor creates a new blob reactor with storage backend
@@ -117,6 +148,12 @@ func NewBlobReactor(blobStore BlobStore, logger log.Logger, cfg Config, sink Tel
 		metrics:        newBlobReactorMetrics(sink),
 		responseChans:  make(map[uint64]chan *BlobResponse),
 		requestWorkers: make(chan struct{}, defaultMaxRequestWorkers),
+		peerLimiters:   make(map[p2p.ID]*peerRateLimiter),
+		globalLimiter: rate.NewLimiter(
+			rateOrInf(cfg.MaxGlobalRequestsPerSecond),
+			int(cfg.MaxGlobalRequestsPerSecond*BurstMultiplier),
+		),
+		reputationMgr: NewReputationManager(logger, cfg.Reputation.WithDefaults()),
 	}
 	br.BaseService = *service.NewBaseService(nil, ReactorName, br)
 	return br
@@ -145,12 +182,16 @@ func (br *BlobReactor) GetChannels() []*p2p.ChannelDescriptor {
 // InitPeer is called by the switch before the peer is started. Use it to
 // initialize data for the peer (e.g. peer state).
 func (br *BlobReactor) InitPeer(peer p2p.Peer) p2p.Peer {
-	br.AddPeer(peer)
 	return peer
 }
 
 // AddPeer is called by the switch after the peer is added and successfully started.
 func (br *BlobReactor) AddPeer(peer p2p.Peer) {
+	if !br.reputationMgr.ShouldAcceptPeer(peer.ID()) {
+		br.logger.Warn("Rejecting peer due to low reputation", "peer", peer.ID())
+		return
+	}
+
 	br.stateMu.Lock()
 	br.peers[peer.ID()] = struct{}{}
 	br.stateMu.Unlock()
@@ -165,6 +206,52 @@ func (br *BlobReactor) RemovePeer(peer p2p.Peer, reason interface{}) {
 	br.stateMu.Unlock()
 
 	br.logger.Info("Removed peer", "peer", peer.ID(), "reason", reason)
+}
+
+func (br *BlobReactor) checkPeerRateLimit(peerID p2p.ID) bool {
+	br.peerLimitersMu.Lock()
+	defer br.peerLimitersMu.Unlock()
+
+	limiter, exists := br.peerLimiters[peerID]
+	if exists {
+		limiter.lastSeen = time.Now()
+		return limiter.limiter.Allow()
+	}
+
+	limiter = &peerRateLimiter{
+		limiter: rate.NewLimiter(
+			rateOrInf(br.config.MaxMessagesPerPeerPerSecond),
+			int(br.config.MaxMessagesPerPeerPerSecond*BurstMultiplier),
+		),
+		lastSeen: time.Now(),
+	}
+	br.peerLimiters[peerID] = limiter
+
+	return limiter.limiter.Allow()
+}
+
+func (br *BlobReactor) cleanupStalePeerData() {
+	ticker := time.NewTicker(rateLimiterCleanupInterval)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			// Cleanup stale rate limiters
+			br.peerLimitersMu.Lock()
+			for peerID, limiter := range br.peerLimiters {
+				if time.Since(limiter.lastSeen) > staleLimiterTimeout {
+					delete(br.peerLimiters, peerID)
+				}
+			}
+			br.peerLimitersMu.Unlock()
+
+			// Cleanup stale reputations
+			br.reputationMgr.CleanupStaleReputations()
+		case <-br.Quit():
+			return
+		}
+	}
 }
 
 // spawnWorker attempts to spawn a worker goroutine to handle the given task.
@@ -200,6 +287,12 @@ func (br *BlobReactor) Receive(envelope p2p.Envelope) {
 		return
 	}
 
+	// Ignore messages from peers with low reputation
+	if !br.reputationMgr.ShouldAcceptPeer(envelope.Src.ID()) {
+		br.logger.Debug("Ignoring message from banned peer", "peer", envelope.Src.ID())
+		return
+	}
+
 	br.logger.Info("Received message on BlobChannel",
 		"peer", envelope.Src.ID(),
 		"channel", envelope.ChannelID,
@@ -225,9 +318,19 @@ func (br *BlobReactor) Receive(envelope p2p.Envelope) {
 
 	switch msgType {
 	case MessageTypeRequest:
+		if !br.checkPeerRateLimit(envelope.Src.ID()) {
+			br.logger.Warn("Peer exceeded rate limit, dropping request", "peer", envelope.Src.ID())
+			return
+		}
+		if !br.globalLimiter.Allow() {
+			br.logger.Warn("Global rate limit exceeded, dropping request", "peer", envelope.Src.ID())
+			return
+		}
+
 		var req BlobRequest
 		if err := req.UnmarshalSSZ(msgData); err != nil {
 			br.logger.Error("Failed to unmarshal BlobRequest", "error", err, "peer", envelope.Src.ID())
+			br.reputationMgr.RecordBadBehavior(envelope.Src.ID(), fmt.Errorf("invalid_ssz: %w", err))
 			return
 		}
 		br.logger.Info("Received blob request", "slot", req.Slot.Unwrap(), "request_id", req.RequestID, "peer", envelope.Src.ID())
@@ -241,6 +344,7 @@ func (br *BlobReactor) Receive(envelope p2p.Envelope) {
 		var resp BlobResponse
 		if err := resp.UnmarshalSSZ(msgData); err != nil {
 			br.logger.Error("Failed to unmarshal BlobResponse", "error", err, "peer", envelope.Src.ID(), "data_size", len(msgData))
+			br.reputationMgr.RecordBadBehavior(envelope.Src.ID(), fmt.Errorf("invalid_ssz: %w", err))
 			return
 		}
 		br.logger.Info("Received blob response",
@@ -256,6 +360,7 @@ func (br *BlobReactor) Receive(envelope p2p.Envelope) {
 
 	default:
 		br.logger.Warn("Received unknown message type", "type", msgType, "peer", envelope.Src.ID())
+		br.reputationMgr.RecordBadBehavior(envelope.Src.ID(), fmt.Errorf("unknown_message_type: %d", msgType))
 	}
 }
 
@@ -340,6 +445,7 @@ func (br *BlobReactor) handleBlobResponse(peer p2p.Peer, resp *BlobResponse) {
 		br.logger.Info("No waiting channel for response (request may have timed out)",
 			"request_id", resp.RequestID,
 			"slot", resp.Slot.Unwrap())
+		br.reputationMgr.RecordBadBehavior(peer.ID(), fmt.Errorf("unsolicited_response: request_id=%d", resp.RequestID))
 		return
 	}
 
@@ -434,6 +540,10 @@ func (br *BlobReactor) RequestBlobs(
 		br.metrics.recordPeerAttempt(statusSuccess)
 		br.metrics.recordOverallRequestComplete(statusSuccess, start)
 		br.logger.Info("Successfully retrieved and verified blobs", "slot", slot.Unwrap(), "peer", peerID, "count", len(sidecars))
+
+		// Reward peer for successful blob exchange
+		br.reputationMgr.RecordGoodBehavior(peerID)
+
 		return sidecars, nil
 	}
 
@@ -524,34 +634,34 @@ func (br *BlobReactor) requestBlobsFromPeer(ctx context.Context, peerID p2p.ID, 
 
 		if resp.Slot != slot {
 			err = fmt.Errorf("peer %s returned wrong slot: expected %d, got %d", peerID, slot.Unwrap(), resp.Slot.Unwrap())
+			br.reputationMgr.RecordBadBehavior(peer.ID(), err)
 			return nil, newBlobRequestError(err, statusInvalidResponse)
 		}
 
 		if resp.HeadSlot < resp.Slot {
 			err = fmt.Errorf("peer %s head (%d) not at requested slot (%d)", peerID, resp.HeadSlot.Unwrap(), resp.Slot.Unwrap())
+			br.reputationMgr.RecordBadBehavior(peer.ID(), err)
 			return nil, newBlobRequestError(err, statusInvalidResponse)
 		}
 
 		if len(resp.SidecarData) > defaultRecvMessageCapacity {
-			err = fmt.Errorf(
-				"peer %s sent oversized response: %d bytes (max %d)",
-				peerID,
-				len(resp.SidecarData),
-				defaultRecvMessageCapacity,
-			)
+			err = fmt.Errorf("peer %s sent oversized response: %d > %d", peerID, len(resp.SidecarData), defaultRecvMessageCapacity)
+			br.reputationMgr.RecordBadBehavior(peer.ID(), err)
 			return nil, newBlobRequestError(err, statusInvalidResponse)
 		}
 
 		var sidecars datypes.BlobSidecars
 		if len(resp.SidecarData) > 0 {
 			if err = ssz.Unmarshal(resp.SidecarData, &sidecars); err != nil {
-				err = fmt.Errorf("failed to unmarshal sidecars from peer %s: %w", peerID, err)
+				err = fmt.Errorf("peer %s failed to unmarshal sidecars: %w", peerID, err)
+				br.reputationMgr.RecordBadBehavior(peer.ID(), err)
 				return nil, newBlobRequestError(err, statusInvalidResponse)
 			}
 		}
 
 		if len(sidecars) > maxBlobsPerBlock {
-			err = fmt.Errorf("peer %s sent too many blobs: %d (max %d)", peerID, len(sidecars), maxBlobsPerBlock)
+			err = fmt.Errorf("peer %s sent too many blobs: %d > %d", peerID, len(sidecars), maxBlobsPerBlock)
+			br.reputationMgr.RecordBadBehavior(peer.ID(), err)
 			return nil, newBlobRequestError(err, statusInvalidResponse)
 		}
 
@@ -568,6 +678,7 @@ func (br *BlobReactor) requestBlobsFromPeer(ctx context.Context, peerID p2p.ID, 
 
 func (br *BlobReactor) OnStart() error {
 	br.logger.Info("Starting BlobReactor", "node_key", br.nodeKey)
+	go br.cleanupStalePeerData()
 	return nil
 }
 
@@ -582,6 +693,14 @@ func (br *BlobReactor) OnStop() {
 	br.workersWg.Wait()
 
 	br.logger.Info("BlobReactor stopped, all workers completed")
+}
+
+// rateOrInf returns rate.Inf if r <= 0, otherwise returns rate.Limit(r)
+func rateOrInf(r float64) rate.Limit {
+	if r <= 0 {
+		return rate.Inf
+	}
+	return rate.Limit(r)
 }
 
 // encodeBlobSidecarsSSZ takes multiple SSZ-encoded BlobSidecar bytes and combines them
