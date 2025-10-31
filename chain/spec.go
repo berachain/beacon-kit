@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/blobreactor"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -184,6 +185,7 @@ type WithdrawalsSpec interface {
 // Spec defines an interface for accessing chain-specific parameters.
 type Spec interface {
 	delay.ConfigGetter
+	blobreactor.ConfigGetter
 	DepositSpec
 	BalancesSpec
 	HysteresisSpec
@@ -297,6 +299,20 @@ func (s spec) validate() error {
 		}
 	}
 
+	// Validate BlobReactor configuration
+	if s.Data.BlobConfig.ConsensusEnableHeight != 0 {
+		if s.Data.BlobConfig.ConsensusUpdateHeight >= s.Data.BlobConfig.ConsensusEnableHeight {
+			return fmt.Errorf(
+				"blob reactor parameters violation: ConsensusUpdateHeight %d must be smaller than ConsensusEnableHeight %d",
+				s.Data.BlobConfig.ConsensusUpdateHeight, s.Data.BlobConfig.ConsensusEnableHeight,
+			)
+		}
+		// MaxBytes must be set when BlobReactor is enabled
+		if s.Data.BlobConfig.MaxBytes <= 0 {
+			return errors.New("blob reactor MaxBytes must be greater than 0 when enabled")
+		}
+	}
+
 	// TODO: Add more validation rules here.
 	return nil
 }
@@ -315,6 +331,22 @@ func (s spec) SbtConsensusUpdateHeight() int64 {
 }
 func (s spec) SbtConsensusEnableHeight() int64 {
 	return s.Data.ConsensusEnableHeight
+}
+
+func (s spec) BlobConsensusUpdateHeight() int64 {
+	return s.Data.BlobConfig.ConsensusUpdateHeight
+}
+
+func (s spec) BlobConsensusEnableHeight() int64 {
+	return s.Data.BlobConfig.ConsensusEnableHeight
+}
+
+func (s spec) BlobMaxBytes() int64 {
+	return s.Data.BlobConfig.MaxBytes
+}
+
+func (s spec) IsBlobConsensusEnabledAtHeight(height int64) bool {
+	return s.BlobConsensusEnableHeight() > 0 && height >= s.BlobConsensusEnableHeight()
 }
 
 // MaxEffectiveBalance returns the maximum effective balance.
