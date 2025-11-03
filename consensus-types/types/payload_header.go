@@ -147,7 +147,7 @@ func (h *ExecutionPayloadHeader) MarshalSSZ() ([]byte, error) {
 
 func (*ExecutionPayloadHeader) ValidateAfterDecodingSSZ() error { return nil }
 
-// HashTreeRootSSZ returns the hash tree root of the ExecutionPayloadHeader.
+// HashTreeRoot returns the hash tree root of the ExecutionPayloadHeader.
 func (h *ExecutionPayloadHeader) HashTreeRoot() common.Root {
 	return ssz.HashConcurrent(h)
 }

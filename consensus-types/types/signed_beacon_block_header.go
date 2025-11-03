@@ -91,7 +91,7 @@ func (b *SignedBeaconBlockHeader) HashTreeRoot() common.Root {
 /*                            Getters and Setters                             */
 /* -------------------------------------------------------------------------- */
 
-// Getheader retrieves the header of the SignedBeaconBlockHeader.
+// GetHeader retrieves the header of the SignedBeaconBlockHeader.
 func (b *SignedBeaconBlockHeader) GetHeader() *BeaconBlockHeader {
 	return b.Header
 }
