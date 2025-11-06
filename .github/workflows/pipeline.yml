@@ -70,11 +70,8 @@ jobs:
           - "test-unit-fuzz"
           - "test-forge-cover"
           - "test-forge-fuzz"
-        os:
-          - ubuntu-24.04-beacon-kit
     name: ${{ matrix.args }}
-    runs-on:
-      labels: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -128,11 +125,8 @@ jobs:
       matrix:
         args:
           - "test-e2e"
-        os:
-          - ubuntu-24.04-e2e
     name: ${{ matrix.args }}
-    runs-on:
-      labels: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -185,8 +179,7 @@ jobs:
   # -------------------------------------------------------------------------- #
 
   build-and-push-container:
-    runs-on:
-      labels: ubuntu-24.04-beacon-kit
+    runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: read
