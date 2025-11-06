@@ -22,7 +22,6 @@
 package cometbft
 
 import (
-	"context"
 	"fmt"
 
 	"cosmossdk.io/store/rootmulti"
@@ -30,14 +29,16 @@ import (
 )
 
 func (s *Service) commit(
-	context.Context, *cmtabci.CommitRequest,
+	*cmtabci.CommitRequest,
 ) (*cmtabci.CommitResponse, error) {
-	if s.finalizeBlockState == nil {
+	_, finalState, err := s.cachedStates.GetFinal()
+	if err != nil {
 		// This is unexpected since CometBFT should call Commit only
 		// after FinalizeBlock has been called. Panic appeases nilaway.
-		panic(fmt.Errorf("commit: %w", errNilFinalizeBlockState))
+		panic(fmt.Errorf("commit: %w", err))
 	}
-	header := s.finalizeBlockState.Context().BlockHeader()
+
+	header := finalState.Context().BlockHeader()
 	retainHeight := s.GetBlockRetentionHeight(header.Height)
 
 	rms, ok := s.sm.GetCommitMultiStore().(*rootmulti.Store)
@@ -46,7 +47,13 @@ func (s *Service) commit(
 	}
 	s.sm.GetCommitMultiStore().Commit()
 
-	s.finalizeBlockState = nil
+	s.cachedStates.Reset()
+
+	if s.blockDelay != nil {
+		if err = s.sm.SaveBlockDelay(s.blockDelay.ToBytes()); err != nil {
+			panic(fmt.Errorf("failed to save block delay: %w", err))
+		}
+	}
 
 	return &cmtabci.CommitResponse{
 		RetainHeight: retainHeight,
@@ -111,7 +118,7 @@ func (s *Service) GetBlockRetentionHeight(commitHeight int64) int64 {
 	// based
 	// on the unbonding period and block commitment time as the two should be
 	// equivalent.
-	if s.finalizeBlockState == nil {
+	if _, _, err := s.cachedStates.GetFinal(); err != nil {
 		return 0
 	}
 	cp := s.cmtConsensusParams.ToProto()

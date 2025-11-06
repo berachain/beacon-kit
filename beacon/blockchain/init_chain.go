@@ -23,13 +23,14 @@ package blockchain
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	"github.com/berachain/beacon-kit/primitives/version"
 )
 
-// ProcessGenesisData processes the genesis state and initializes the beacon
-// state.
+// ProcessGenesisData processes the genesis state and initializes the beacon state.
 func (s *Service) ProcessGenesisData(
 	ctx context.Context,
 	bytes []byte,
@@ -40,11 +41,31 @@ func (s *Service) ProcessGenesisData(
 		return nil, err
 	}
 
-	validatorUpdates, err := s.stateProcessor.InitializePreminedBeaconStateFromEth1(
+	// Ensure consistency of the genesis timestamp.
+	execPayloadHeader := genesisData.GetExecutionPayloadHeader()
+	if s.chainSpec.GenesisTime() != execPayloadHeader.GetTimestamp().Unwrap() {
+		return nil, fmt.Errorf(
+			"mismatch between chain spec genesis time (%d) and execution payload header time (%d)",
+			s.chainSpec.GenesisTime(),
+			execPayloadHeader.GetTimestamp().Unwrap(),
+		)
+	}
+
+	// Ensure consistency of the genesis fork version.
+	genesisVersion := genesisData.GetForkVersion()
+	if !version.Equals(genesisVersion, s.chainSpec.GenesisForkVersion()) {
+		return nil, fmt.Errorf(
+			"fork mismatch between CL genesis file version (%s) and chain spec genesis version (%s)",
+			genesisVersion, s.chainSpec.GenesisForkVersion(),
+		)
+	}
+
+	// Initialize the beacon state from the genesis deposits.
+	validatorUpdates, err := s.stateProcessor.InitializeBeaconStateFromEth1(
 		s.storageBackend.StateFromContext(ctx),
 		genesisData.GetDeposits(),
-		genesisData.GetExecutionPayloadHeader(),
-		genesisData.GetForkVersion(),
+		execPayloadHeader,
+		genesisVersion,
 	)
 	if err != nil {
 		return nil, err

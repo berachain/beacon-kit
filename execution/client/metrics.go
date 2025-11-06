@@ -73,6 +73,13 @@ func (cm *clientMetrics) measureGetPayloadDuration(startTime time.Time) {
 	)
 }
 
+// incrementEngineAPITimeout increments the timeout counter for
+// general engine api timeouts.
+func (cm *clientMetrics) incrementEngineAPITimeout() {
+	cm.incrementTimeoutCounter(
+		"beacon_kit.execution.client.engine_api")
+}
+
 // incrementForkchoiceUpdateTimeout increments the timeout counter
 // for forkchoice update.
 func (cm *clientMetrics) incrementForkchoiceUpdateTimeout() {

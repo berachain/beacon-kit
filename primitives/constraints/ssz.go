@@ -21,34 +21,56 @@
 package constraints
 
 import (
-	fastssz "github.com/ferranbt/fastssz"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/karalabe/ssz"
 )
 
-// SSZField is an interface for types that can be used as SSZ fields.
-// It requires methods for creating an empty instance, computing a hash tree
-// root,
-// and allows pointer access to the underlying type.
-type SSZField[SelfPtrT, SelfT any] interface {
-	// Empty returns a new empty instance of the type.
-	Empty() SelfPtrT
-	// HashTreeRootWith computes the hash tree root of the object using the
-	// provided HashWalker.
-	HashTreeRootWith(fastssz.HashWalker) error
-	// Allows pointer access to the underlying type.
-	*SelfT
+// SSZMarshaler is an interface for objects that can be
+// marshaled to SSZ format.
+type SSZMarshaler interface {
+	// MarshalSSZ marshals the object into SSZ format.
+	MarshalSSZ() ([]byte, error)
 }
 
-// StaticSSZField is an interface for SSZ fields with a static size.
-// It embeds the SSZField interface and the ssz.StaticObject interface.
-type StaticSSZField[SelfPtrT, SelfT any] interface {
-	ssz.StaticObject
-	SSZField[SelfPtrT, SelfT]
+// SSZUnmarshaler is an interface for objects that can be unmarshaled from SSZ format.
+type SSZUnmarshaler interface {
+	ssz.Object
+	ValidateAfterDecodingSSZ() error // once unmarshalled we will check whether type syntax is correct
 }
 
-// DynamicSSZField is an interface for SSZ fields with a dynamic size.
-// It embeds the SSZField interface and the ssz.DynamicObject interface.
-type DynamicSSZField[SelfPtrT, SelfT any] interface {
-	ssz.DynamicObject
-	SSZField[SelfPtrT, SelfT]
+// SSZMarshallable is an interface that combines SSZMarshaler and SSZUnmarshaler.
+type SSZMarshallable interface {
+	SSZMarshaler
+	SSZUnmarshaler
+}
+
+// Versionable is a constraint that requires a type to have a GetForkVersion method.
+type Versionable interface {
+	GetForkVersion() common.Version
+}
+
+// SSZVersionable is an interface that combines SSZMarshallable and Versionable.
+type SSZVersionedMarshallable interface {
+	Versionable
+	SSZMarshallable
+}
+
+// SSZRootable is an interface for objects that can compute their hash tree root.
+type SSZRootable interface {
+	// HashTreeRoot computes the hash tree root of the object.
+	HashTreeRoot() common.Root
+}
+
+// SSZMarshallableRootable is an interface that combines
+// sszMarshaler, sszUnmarshaler, and SSZRootable.
+type SSZMarshallableRootable interface {
+	SSZMarshallable
+	SSZRootable
+}
+
+// SSZVersionedMarshallableRootable is an interface that combines
+// SSZVersionedMarshallable and SSZRootable.
+type SSZVersionedMarshallableRootable interface {
+	SSZVersionedMarshallable
+	SSZRootable
 }

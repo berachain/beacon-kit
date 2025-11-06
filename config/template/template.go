@@ -25,12 +25,20 @@ const TomlTemplate = `
 ###                                BeaconKit                                ###
 ###############################################################################
 
+[beacon-kit]
+# ChainSpec is the type of chain spec to use.
+chain-spec = "{{ .BeaconKit.ChainSpec }}"
+
+# ChainSpecFilePath is the path to the chain spec file to use.
+chain-spec-file = "{{ .BeaconKit.ChainSpecFilePath }}"
+
+# ShutdownTimeout is the maximum time to wait for the node to gracefully
+# shutdown before forcing an exit.
+shutdown-timeout = "{{ .BeaconKit.ShutdownTimeout }}"
+
 [beacon-kit.engine]
 # HTTP url of the execution client JSON-RPC endpoint.
 rpc-dial-url = "{{ .BeaconKit.Engine.RPCDialURL }}"
-
-# Number of retries before shutting down consensus client.
-rpc-retries = "{{.BeaconKit.Engine.RPCRetries}}"
 
 # RPC timeout for execution client requests.
 rpc-timeout = "{{ .BeaconKit.Engine.RPCTimeout }}"
@@ -60,7 +68,7 @@ style = "{{.BeaconKit.Logger.Style}}"
 trusted-setup-path = "{{.BeaconKit.KZG.TrustedSetupPath}}"
 
 # KZG implementation to use.
-# Options are "crate-crypto/go-kzg-4844" or "ethereum/c-kzg-4844".
+# Options are "crate-crypto/go-kzg-4844".
 implementation = "{{.BeaconKit.KZG.Implementation}}"
 
 [beacon-kit.payload-builder]
@@ -80,17 +88,12 @@ payload-timeout = "{{ .BeaconKit.PayloadBuilder.PayloadTimeout }}"
 
 [beacon-kit.validator]
 # Graffiti string that will be included in the graffiti field of the beacon block.
-graffiti = "{{.BeaconKit.Validator.Graffiti}}"
-
-# EnableOptimisticPayloadBuilds enables building the next block's payload optimistically in
-# process-proposal to allow for the execution client to have more time to assemble the block.
-enable-optimistic-payload-builds = "{{.BeaconKit.Validator.EnableOptimisticPayloadBuilds}}"
+graffiti = "{{ .BeaconKit.Validator.Graffiti }}"
 
 [beacon-kit.block-store-service]
-# Enabled determines if the block store service is enabled.
-enabled = "{{ .BeaconKit.BlockStoreService.Enabled }}"
-
 # AvailabilityWindow is the number of slots to keep in the store.
+# Setting AvailabilityWindow to 0 disables block store and does not allow the node
+# to serve proof or namespace apis from beacon node-api.
 availability-window = "{{ .BeaconKit.BlockStoreService.AvailabilityWindow }}"
 
 [beacon-kit.node-api]

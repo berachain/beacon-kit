@@ -24,7 +24,7 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/encoding/ssz/merkle"
+	"github.com/berachain/beacon-kit/primitives/merkle"
 )
 
 // ProveBeaconStateInBlock generates a proof for the beacon state in the
@@ -37,7 +37,7 @@ func ProveBeaconStateInBlock(
 		return nil, err
 	}
 
-	stateInBlockProof, err := blockProofTree.Prove(StateGIndexDenebBlock)
+	stateInBlockProof, err := blockProofTree.Prove(StateGIndexBlock)
 	if err != nil {
 		return nil, err
 	}
@@ -65,14 +65,12 @@ func verifyBeaconStateInBlock(
 	bbh *ctypes.BeaconBlockHeader, proof []common.Root, leaf common.Root,
 ) error {
 	beaconRoot := bbh.HashTreeRoot()
-	if beaconRootVerified, err := merkle.VerifyProof(
-		StateGIndexDenebBlock, leaf, proof, beaconRoot,
-	); err != nil {
-		return err
-	} else if !beaconRootVerified {
-		return errors.New(
-			"beacon state proof failed to verify against beacon root",
+	if !merkle.VerifyProof(beaconRoot, leaf, StateGIndexBlock, proof) {
+		return errors.Wrapf(
+			errors.New("beacon stateproof failed to verify against beacon root"),
+			"beacon root: 0x%s", beaconRoot,
 		)
 	}
+
 	return nil
 }

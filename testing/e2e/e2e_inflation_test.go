@@ -22,8 +22,10 @@ package e2e_test
 
 import (
 	"math/big"
+	"sync"
 
 	"github.com/berachain/beacon-kit/config/spec"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/params"
@@ -36,25 +38,68 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 	chainspec, err := spec.DevnetChainSpec()
 	s.Require().NoError(err)
 
-	deneb1ForkSlot := chainspec.SlotsPerEpoch() * uint64(chainspec.Deneb1ForkEpoch())
-
-	// Check over the first epoch before Deneb1, the balance of the Devnet EVM inflation address
-	// increases by DevnetEVMInflationPerBlock.
-	preForkInflation := chainspec.EVMInflationPerBlock(math.Slot(0))
-	preForkAddress := chainspec.EVMInflationAddress(math.Slot(0))
-	for blkNum := range int64(deneb1ForkSlot) {
+	var (
+		inflationPerBlock          uint64
+		inflationAddress           common.ExecutionAddress
+		oldInflationAddress        common.ExecutionAddress
+		preForkAddressFinalBalance *big.Int
+		preForkLatestBalance       *big.Int
+		balance                    *big.Int
+		expectedBalance            *big.Int
+		forkSlot                   int64
+		onceOnFork                 sync.Once
+	)
+	// Arbitrarily run test for 2 epochs.
+	for blkNum := range int64(2 * chainspec.SlotsPerEpoch()) {
 		err = s.WaitForFinalizedBlockNumber(uint64(blkNum))
 		s.Require().NoError(err)
+		payload, errBlk := s.JSONRPCBalancer().BlockByNumber(s.Ctx(), big.NewInt(blkNum))
+		s.Require().NoError(errBlk)
 
-		expectedBalance := new(big.Int).Mul(
-			new(big.Int).SetUint64(preForkInflation*params.GWei),
-			big.NewInt(blkNum),
-		)
+		payloadTime := payload.Time()
+		inflationPerBlock = chainspec.EVMInflationPerBlock(math.U64(payloadTime)).Unwrap()
+		inflationAddress = chainspec.EVMInflationAddress(math.U64(payloadTime))
+		if chainspec.Deneb1ForkTime() > 0 && payloadTime >= chainspec.Deneb1ForkTime() {
+			// If we have passed the Deneb1 fork, do some verifications and update inflation values.
+			onceOnFork.Do(func() {
+				oldInflationPerBlock := chainspec.EVMInflationPerBlock(math.U64(chainspec.Deneb1ForkTime() - 1))
+				oldInflationAddress = chainspec.EVMInflationAddress(math.U64(chainspec.Deneb1ForkTime() - 1))
 
-		var balance *big.Int
+				// Verify the post fork inflation changes
+				s.Require().NotEqual(oldInflationPerBlock, inflationPerBlock)
+				s.Require().NotEqual(oldInflationAddress, inflationAddress)
+				forkSlot = blkNum
+
+				// take the snapshot of balance right before the fork and check it won't change anymore
+				preForkAddressFinalBalance, err = s.JSONRPCBalancer().BalanceAt(
+					s.Ctx(), gethcommon.Address(oldInflationAddress), big.NewInt(blkNum-1),
+				)
+				s.Require().NoError(err)
+			})
+
+			// Enforce that the balance of the EVM inflation address
+			// prior to the hardfork is the same as it is now.
+			preForkLatestBalance, err = s.JSONRPCBalancer().BalanceAt(
+				s.Ctx(), gethcommon.Address(oldInflationAddress), nil, // at the current block
+			)
+			s.Require().NoError(err)
+			s.Require().Zero(preForkAddressFinalBalance.Cmp(preForkLatestBalance))
+
+			expectedBalance = new(big.Int).Mul(
+				new(big.Int).SetUint64(inflationPerBlock*params.GWei),
+				big.NewInt(blkNum-forkSlot+1),
+			)
+		} else {
+			// Pre-Deneb1
+			expectedBalance = new(big.Int).Mul(
+				new(big.Int).SetUint64(inflationPerBlock*params.GWei),
+				big.NewInt(blkNum),
+			)
+		}
+
 		balance, err = s.JSONRPCBalancer().BalanceAt(
 			s.Ctx(),
-			gethcommon.Address(preForkAddress),
+			gethcommon.Address(inflationAddress),
 			big.NewInt(blkNum),
 		)
 		s.Require().NoError(err)
@@ -63,52 +108,5 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 			"balance", balance,
 			"expectedBalance", expectedBalance,
 		)
-	}
-
-	// Check over the first epoch after Deneb1, the balance of the Devnet EVM inflation address
-	// post Deneb1 increases by DevnetEVMInflationPerBlockDeneb1.
-	postForkInflation := chainspec.EVMInflationPerBlock(math.Slot(deneb1ForkSlot))
-	s.Require().NotEqual(preForkInflation, postForkInflation)
-
-	postForkAddress := chainspec.EVMInflationAddress(math.Slot(deneb1ForkSlot))
-	s.Require().NotEqual(preForkAddress, postForkAddress)
-
-	// take the snapshot of balance right before the fork and check it won't change anymore
-	var preForkAddressFinalBalance *big.Int
-	preForkAddressFinalBalance, err = s.JSONRPCBalancer().BalanceAt(
-		s.Ctx(), gethcommon.Address(preForkAddress), big.NewInt(int64(deneb1ForkSlot-1)),
-	)
-	s.Require().NoError(err)
-
-	for blkNum := deneb1ForkSlot; blkNum < deneb1ForkSlot+chainspec.SlotsPerEpoch(); blkNum++ {
-		err = s.WaitForFinalizedBlockNumber(blkNum)
-		s.Require().NoError(err)
-
-		expectedBalance := new(big.Int).Mul(
-			new(big.Int).SetUint64(postForkInflation*params.GWei),
-			big.NewInt(int64(blkNum-(deneb1ForkSlot-1))),
-		)
-
-		var balance *big.Int
-		balance, err = s.JSONRPCBalancer().BalanceAt(
-			s.Ctx(),
-			gethcommon.Address(postForkAddress),
-			big.NewInt(int64(blkNum)),
-		)
-		s.Require().NoError(err)
-		s.Require().Zero(balance.Cmp(expectedBalance),
-			"height", blkNum,
-			"balance", balance,
-			"expectedBalance", expectedBalance,
-		)
-
-		// Enforce that the balance of the EVM inflation address
-		// prior to the hardfork is the same as it is now.
-		var preForkLatestBalance *big.Int
-		preForkLatestBalance, err = s.JSONRPCBalancer().BalanceAt(
-			s.Ctx(), gethcommon.Address(preForkAddress), nil, // at the current block
-		)
-		s.Require().NoError(err)
-		s.Require().Zero(preForkAddressFinalBalance.Cmp(preForkLatestBalance))
 	}
 }

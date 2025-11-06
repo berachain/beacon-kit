@@ -22,6 +22,7 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/version"
 )
 
 type GenericResponse struct {
@@ -30,15 +31,20 @@ type GenericResponse struct {
 	Data                any  `json:"data"`
 }
 
-type ValidatorResponse struct {
-	ExecutionOptimistic bool `json:"execution_optimistic"`
-	Finalized           bool `json:"finalized"`
-	Data                any  `json:"data"`
+// NewResponse creates a new response with CometBFT's finality guarantees.
+func NewResponse(data any) GenericResponse {
+	return GenericResponse{
+		// All data is finalized in CometBFT since we only return data for slots up to head
+		Finalized: true,
+		// Never optimistic since we only return finalized data
+		ExecutionOptimistic: false,
+		Data:                data,
+	}
 }
 
 type BlockResponse struct {
 	Version string `json:"version"`
-	ValidatorResponse
+	GenericResponse
 }
 
 type StateResponse struct {
@@ -71,6 +77,14 @@ type GenesisData struct {
 	GenesisTime           string      `json:"genesis_time"`
 	GenesisValidatorsRoot common.Root `json:"genesis_validators_root"`
 	GenesisForkVersion    string      `json:"genesis_fork_version"`
+}
+
+// GenesisResponse is handled with this explicit response type since
+// "finalized" and "execution_optimistic" are not part of the return value.
+//
+// https://ethereum.github.io/beacon-APIs/#/Beacon/getGenesis
+type GenesisResponse struct {
+	Data GenesisData `json:"data"`
 }
 
 type RootData struct {
@@ -127,4 +141,29 @@ type Sidecar struct {
 
 type SidecarsResponse struct {
 	Data []*Sidecar `json:"data"`
+}
+
+// PendingPartialWithdrawalsResponse has a version field to indicate the fork version.
+// https://ethereum.github.io/beacon-APIs/#/Beacon/getPendingPartialWithdrawals
+type PendingPartialWithdrawalsResponse struct {
+	Version string `json:"version"`
+	GenericResponse
+}
+
+type PendingPartialWithdrawalData struct {
+	ValidatorIndex  uint64 `json:"validator_index,string"`
+	Amount          uint64 `json:"amount,string"`
+	WithdrawalEpoch uint64 `json:"withdrawal_epoch,string"`
+}
+
+// NewPendingPartialWithdrawalsResponse creates a typed response with PendingPartialWithdrawal data
+func NewPendingPartialWithdrawalsResponse(
+	forkVersion common.Version,
+	withdrawals []*PendingPartialWithdrawalData,
+) PendingPartialWithdrawalsResponse {
+	return PendingPartialWithdrawalsResponse{
+		// Version is the name of the fork version.
+		Version:         version.Name(forkVersion),
+		GenericResponse: NewResponse(withdrawals),
+	}
 }

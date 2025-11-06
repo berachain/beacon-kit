@@ -20,17 +20,23 @@
 
 package config
 
-import "github.com/berachain/beacon-kit/node-api/handlers"
+import (
+	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/node-api/handlers"
+)
 
 type Handler struct {
 	*handlers.BaseHandler
+
+	cs chain.Spec
 }
 
-func NewHandler() *Handler {
+func NewHandler(cs chain.Spec, logger log.Logger) *Handler {
 	h := &Handler{
-		BaseHandler: handlers.NewBaseHandler(
-			handlers.NewRouteSet(""),
-		),
+		BaseHandler: handlers.NewBaseHandler(logger),
+		cs:          cs,
 	}
+	registerRoutes(h)
 	return h
 }

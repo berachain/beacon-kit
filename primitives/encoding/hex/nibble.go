@@ -20,10 +20,6 @@
 
 package hex
 
-import (
-	"math/big"
-)
-
 // decodeNibble decodes a single hexadecimal nibble (half-byte) into uint64.
 func decodeNibble(in byte) uint64 {
 	// uint64 conversion here is safe
@@ -39,23 +35,5 @@ func decodeNibble(in byte) uint64 {
 		return uint64(in - hexAlphaOffsetLower)
 	default:
 		return badNibble
-	}
-}
-
-// getBigWordNibbles returns the number of nibbles required for big.Word.
-//
-//nolint:mnd // this is fine xD
-func getBigWordNibbles() (int, error) {
-	// This is a weird way to compute the number of nibbles required for
-	// big.Word. The usual way would be to use constant arithmetic but go vet
-	// can't handle that
-	b, _ := new(big.Int).SetString("FFFFFFFFFF", 16)
-	switch len(b.Bits()) {
-	case 1:
-		return 16, nil
-	case 2:
-		return 8, nil
-	default:
-		return 0, ErrInvalidBigWordSize
 	}
 }

@@ -23,6 +23,8 @@ package types
 import (
 	"context"
 
+	"cosmossdk.io/store"
+	"github.com/berachain/beacon-kit/beacon/blockchain"
 	service "github.com/berachain/beacon-kit/node-core/services/registry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -30,22 +32,29 @@ import (
 // Node defines the API for the node application.
 // It extends the Application interface from the Cosmos SDK.
 type Node interface {
-	service.CommitMultistoreAccessor
+	CommitMultistoreAccessor
+	StorageBackendAccessor
 
 	Start(context.Context) error
+}
 
-	// FetchService allows us to retrieve the various node services, which is useful in testing
-	FetchService(interface{}) error
+// CommitMultistoreAccessor allows access to the commit multistore.
+// This is required by commands like rollback.
+type CommitMultistoreAccessor interface {
+	CommitMultiStore() store.CommitMultiStore
+}
+
+// StorageBackendAccessor allows access to the storage backend.
+// This is required by commands like db-check.
+type StorageBackendAccessor interface {
+	StorageBackend() blockchain.StorageBackend
 }
 
 // ConsensusService defines everything we utilise externally from CometBFT.
 type ConsensusService interface {
-	Start(ctx context.Context) error
-	Stop() error
-	Name() string
-	CreateQueryContext(
-		height int64,
-		prove bool,
-	) (sdk.Context, error)
-	LastBlockHeight() int64
+	service.Basic
+
+	IsAppReady() error
+	CreateQueryContext(height int64, prove bool) (sdk.Context, error)
+	GetSyncData() (latestHeight int64, syncToHeight int64)
 }

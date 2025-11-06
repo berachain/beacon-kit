@@ -23,7 +23,6 @@ package beacon
 import (
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	"github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 )
 
@@ -34,22 +33,15 @@ func (h *Handler) GetStateRoot(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
+	slot, err := utils.StateIDToHeight(req.StateID, h.backend)
 	if err != nil {
 		return nil, err
 	}
-	stateRoot, err := h.backend.StateRootAtSlot(slot)
+	st, _, err := h.backend.StateAndSlotFromHeight(slot)
 	if err != nil {
 		return nil, err
 	}
-	if len(stateRoot) == 0 {
-		return nil, types.ErrNotFound
-	}
-	return beacontypes.ValidatorResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data:                beacontypes.RootData{Root: stateRoot},
-	}, nil
+	return beacontypes.NewResponse(beacontypes.RootData{Root: st.HashTreeRoot()}), nil
 }
 
 func (h *Handler) GetStateFork(c handlers.Context) (any, error) {
@@ -59,17 +51,17 @@ func (h *Handler) GetStateFork(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
+	slot, err := utils.StateIDToHeight(req.StateID, h.backend)
 	if err != nil {
 		return nil, err
 	}
-	fork, err := h.backend.StateForkAtSlot(slot)
+	st, _, err := h.backend.StateAndSlotFromHeight(slot)
 	if err != nil {
 		return nil, err
 	}
-	return beacontypes.ValidatorResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data:                types.Wrap(fork),
-	}, nil
+	fork, err := st.GetFork()
+	if err != nil {
+		return nil, err
+	}
+	return beacontypes.NewResponse(fork), nil
 }

@@ -26,43 +26,23 @@ import (
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/log/phuslu"
-	"github.com/berachain/beacon-kit/node-api/backend"
-	"github.com/berachain/beacon-kit/node-api/engines/echo"
-	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/server"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
+	"github.com/berachain/beacon-kit/node-core/types"
+	"github.com/berachain/beacon-kit/state-transition/core"
+	cmtcfg "github.com/cometbft/cometbft/config"
 )
-
-// TODO: we could make engine type configurable
-func ProvideNodeAPIEngine() *echo.Engine {
-	return echo.NewDefaultEngine()
-}
-
-type NodeAPIBackendInput struct {
-	depinject.In
-
-	ChainSpec      chain.Spec
-	StateProcessor StateProcessor
-	StorageBackend *storage.Backend
-}
-
-func ProvideNodeAPIBackend(
-	in NodeAPIBackendInput,
-) *backend.Backend {
-	return backend.New(
-		in.StorageBackend,
-		in.ChainSpec,
-		in.StateProcessor,
-	)
-}
 
 type NodeAPIServerInput struct {
 	depinject.In
 
-	Engine   NodeAPIEngine
-	Config   *config.Config
-	Handlers []handlers.Handlers
-	Logger   *phuslu.Logger
+	Config           *config.Config
+	Logger           *phuslu.Logger
+	ChainSpec        chain.Spec
+	StorageBackend   *storage.Backend
+	StateProcessor   *core.StateProcessor
+	CometConfig      *cmtcfg.Config
+	ConsensusService types.ConsensusService
 }
 
 func ProvideNodeAPIServer(in NodeAPIServerInput) *server.Server {
@@ -73,8 +53,11 @@ func ProvideNodeAPIServer(in NodeAPIServerInput) *server.Server {
 	)
 	return server.New(
 		in.Config.NodeAPI,
-		in.Engine,
 		in.Logger.With("service", "node-api-server"),
-		in.Handlers...,
+		in.StorageBackend,
+		in.StateProcessor,
+		in.ChainSpec,
+		in.CometConfig,
+		in.ConsensusService,
 	)
 }

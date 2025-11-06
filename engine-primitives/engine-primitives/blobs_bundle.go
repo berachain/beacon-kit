@@ -20,31 +20,46 @@
 
 package engineprimitives
 
+import "github.com/berachain/beacon-kit/primitives/eip4844"
+
+// Compile-time assertion to ensure BlobsBundleV1 implements BlobsBundle.
+var _ BlobsBundle = (*BlobsBundleV1)(nil)
+
+// BlobsBundle is an interface for the blobs bundle.
+//
+// TODO: move interface definition to packages where it is used.
+type BlobsBundle interface {
+	// GetCommitments returns the commitments in the blobs bundle.
+	GetCommitments() []eip4844.KZGCommitment
+	// GetProofs returns the proofs in the blobs bundle.
+	GetProofs() []eip4844.KZGProof
+	// GetBlobs returns the blobs in the blobs bundle.
+	GetBlobs() []*eip4844.Blob
+}
+
 // BlobsBundleV1 represents a collection of commitments, proofs, and blobs.
 // Each field is a slice of bytes that are serialized for transmission or
 // storage.
-type BlobsBundleV1[
-	C, P ~[48]byte, B ~[131072]byte,
-] struct {
+type BlobsBundleV1 struct {
 	// Commitments are the KZG commitments included in the bundle.
-	Commitments []C `json:"commitments"`
+	Commitments []eip4844.KZGCommitment `json:"commitments"`
 	// Proofs are the KZG proofs corresponding to the commitments.
-	Proofs []P `json:"proofs"`
+	Proofs []eip4844.KZGProof `json:"proofs"`
 	// Blobs are arbitrary data blobs included in the bundle.
-	Blobs []*B `json:"blobs"`
+	Blobs []*eip4844.Blob `json:"blobs"`
 }
 
 // GetCommitments returns the slice of commitments in the bundle.
-func (b *BlobsBundleV1[C, P, B]) GetCommitments() []C {
+func (b *BlobsBundleV1) GetCommitments() []eip4844.KZGCommitment {
 	return b.Commitments
 }
 
 // GetProofs returns the slice of proofs in the bundle.
-func (b *BlobsBundleV1[C, P, B]) GetProofs() []P {
+func (b *BlobsBundleV1) GetProofs() []eip4844.KZGProof {
 	return b.Proofs
 }
 
 // GetBlobs returns the slice of data blobs in the bundle.
-func (b *BlobsBundleV1[C, P, B]) GetBlobs() []*B {
+func (b *BlobsBundleV1) GetBlobs() []*eip4844.Blob {
 	return b.Blobs
 }

@@ -32,11 +32,39 @@ import (
 	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/payload/cache"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/eip4844"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
-	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/stretchr/testify/require"
 )
+
+type mockExecutionPayloadEnvelope[BlobsBundleT engineprimitives.BlobsBundle] struct {
+	ExecutionPayload  *ctypes.ExecutionPayload         `json:"executionPayload"`
+	BlockValue        *math.U256                       `json:"blockValue"`
+	BlobsBundle       BlobsBundleT                     `json:"blobsBundle"`
+	ExecutionRequests []ctypes.EncodedExecutionRequest `json:"executionRequests"`
+	Override          bool                             `json:"shouldOverrideBuilder"`
+}
+
+func (m mockExecutionPayloadEnvelope[BlobsBundleT]) GetExecutionPayload() *ctypes.ExecutionPayload {
+	return m.ExecutionPayload
+}
+
+func (m mockExecutionPayloadEnvelope[BlobsBundleT]) GetBlockValue() *math.U256 {
+	return m.BlockValue
+}
+
+func (m mockExecutionPayloadEnvelope[BlobsBundleT]) GetBlobsBundle() engineprimitives.BlobsBundle {
+	return m.BlobsBundle
+}
+
+func (m mockExecutionPayloadEnvelope[BlobsBundleT]) GetEncodedExecutionRequests() []ctypes.EncodedExecutionRequest {
+	return m.ExecutionRequests
+}
+
+func (m mockExecutionPayloadEnvelope[BlobsBundleT]) ShouldOverrideBuilder() bool {
+	return m.Override
+}
 
 // TODO cluster these tests into a single test table
 func TestRetrievePayloadSunnyPath(t *testing.T) {
@@ -50,7 +78,7 @@ func TestRetrievePayloadSunnyPath(t *testing.T) {
 		logger = noop.NewLogger[any]()
 		cfg    = &builder.Config{Enabled: true}
 		ee     = &stubExecutionEngine{}
-		cache  = cache.NewPayloadIDCache[[32]byte, math.Slot]()
+		cache  = cache.NewPayloadIDCache()
 		af     = &stubAttributesFactory{}
 	)
 	pb := builder.New(
@@ -64,33 +92,26 @@ func TestRetrievePayloadSunnyPath(t *testing.T) {
 
 	// create inputs and set expectations
 	var (
-		ctx             = context.TODO()
+		ctx             = t.Context()
 		slot            = math.Slot(2025)
 		parentBlockRoot = common.Root{0xff, 0xaa}
 		dummyPayloadID  = engineprimitives.PayloadID{0xab}
 
-		expectedPayload = &ctypes.ExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1[
-			eip4844.KZGCommitment,
-			eip4844.KZGProof,
-			eip4844.Blob,
-		]]{
+		expectedPayload = &mockExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1]{
 			ExecutionPayload: &ctypes.ExecutionPayload{
 				Withdrawals: engineprimitives.Withdrawals{},
 			},
-			BlobsBundle: &engineprimitives.BlobsBundleV1[
-				eip4844.KZGCommitment,
-				eip4844.KZGProof,
-				eip4844.Blob,
-			]{},
+			BlobsBundle: &engineprimitives.BlobsBundleV1{},
 		}
 	)
 
 	// set expectations
-	cache.Set(slot, parentBlockRoot, dummyPayloadID)
+	expectedForkVersion := version.Deneb()
+	cache.Set(slot, parentBlockRoot, dummyPayloadID, expectedForkVersion)
 	ee.payloadEnvToReturn = expectedPayload
 
 	// test and checks
-	payload, err := pb.RetrievePayload(ctx, slot, parentBlockRoot)
+	payload, err := pb.RetrievePayload(ctx, slot, parentBlockRoot, expectedForkVersion)
 	require.NoError(t, err)
 	require.Equal(t, expectedPayload, payload)
 }
@@ -106,7 +127,7 @@ func TestRetrievePayloadNilWithdrawalsListRejected(t *testing.T) {
 		logger = noop.NewLogger[any]()
 		cfg    = &builder.Config{Enabled: true}
 		ee     = &stubExecutionEngine{}
-		cache  = cache.NewPayloadIDCache[[32]byte, math.Slot]()
+		cache  = cache.NewPayloadIDCache()
 		af     = &stubAttributesFactory{}
 	)
 	pb := builder.New(
@@ -120,33 +141,26 @@ func TestRetrievePayloadNilWithdrawalsListRejected(t *testing.T) {
 
 	// create inputs
 	var (
-		ctx             = context.TODO()
+		ctx             = t.Context()
 		slot            = math.Slot(2025)
 		parentBlockRoot = common.Root{0xff, 0xaa}
 		dummyPayloadID  = engineprimitives.PayloadID{0xab}
 
-		faultyPayload = &ctypes.ExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1[
-			eip4844.KZGCommitment,
-			eip4844.KZGProof,
-			eip4844.Blob,
-		]]{
+		faultyPayload = &mockExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1]{
 			ExecutionPayload: &ctypes.ExecutionPayload{
 				Withdrawals: nil, // empty withdrawals are fine, nil list should be rejected
 			},
-			BlobsBundle: &engineprimitives.BlobsBundleV1[
-				eip4844.KZGCommitment,
-				eip4844.KZGProof,
-				eip4844.Blob,
-			]{},
+			BlobsBundle: &engineprimitives.BlobsBundleV1{},
 		}
 	)
 
 	// set expectations
-	cache.Set(slot, parentBlockRoot, dummyPayloadID)
+	expectedForkVersion := version.Deneb()
+	cache.Set(slot, parentBlockRoot, dummyPayloadID, expectedForkVersion)
 	ee.payloadEnvToReturn = faultyPayload
 
 	// test and checks
-	_, err = pb.RetrievePayload(ctx, slot, parentBlockRoot)
+	_, err = pb.RetrievePayload(ctx, slot, parentBlockRoot, expectedForkVersion)
 	require.ErrorIs(t, builder.ErrNilWithdrawals, err)
 }
 
@@ -167,15 +181,14 @@ func (ee *stubExecutionEngine) GetPayload(
 
 func (ee *stubExecutionEngine) NotifyForkchoiceUpdate(
 	context.Context, *ctypes.ForkchoiceUpdateRequest,
-) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
-	return nil, nil, errStubNotImplemented
+) (*engineprimitives.PayloadID, error) {
+	return nil, errStubNotImplemented
 }
 
 type stubAttributesFactory struct{}
 
 func (ee *stubAttributesFactory) BuildPayloadAttributes(
-	*statedb.StateDB, math.U64,
-	uint64, [32]byte,
+	math.U64, engineprimitives.Withdrawals, common.Bytes32, common.Root, *crypto.BLSPubkey,
 ) (*engineprimitives.PayloadAttributes, error) {
 	return nil, errStubNotImplemented
 }

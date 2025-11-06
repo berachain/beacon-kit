@@ -18,7 +18,6 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 //go:build test
-// +build test
 
 package statetransition
 
@@ -45,7 +44,7 @@ import (
 	"github.com/berachain/beacon-kit/storage"
 	"github.com/berachain/beacon-kit/storage/beacondb"
 	"github.com/berachain/beacon-kit/storage/db"
-	depositstore "github.com/berachain/beacon-kit/storage/deposit"
+	"github.com/berachain/beacon-kit/storage/deposit"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/mock"
@@ -58,69 +57,85 @@ type (
 	TestStateProcessorT          = core.StateProcessor
 )
 
-type testKVStoreService struct {
-	ctx sdk.Context
-}
+type testKVStoreService struct{}
 
-func (kvs *testKVStoreService) OpenKVStore(context.Context) corestore.KVStore {
-	//nolint:contextcheck // fine with tests
-	store := sdk.UnwrapSDKContext(kvs.ctx).KVStore(testStoreKey)
+func (kvs *testKVStoreService) OpenKVStore(ctx context.Context) corestore.KVStore {
+	store := sdk.UnwrapSDKContext(ctx).KVStore(testStoreKey)
 	return storage.NewKVStore(store)
 }
 
-//nolint:gochecknoglobals // unexported and use only in tests
-var testStoreKey = storetypes.NewKVStoreKey("state-transition-tests")
+var (
+	//nolint:gochecknoglobals // unexported and used only in tests
+	testStoreKey = storetypes.NewKVStoreKey("state-transition-tests")
 
-func initTestStores() (*beacondb.KVStore, *depositstore.KVStore, error) {
-	db, err := db.OpenDB("", dbm.MemDBBackend)
+	//nolint:gochecknoglobals // exported but used only in tests
+	DummyProposerAddr = []byte{0xff}
+)
+
+func BuildTestStores() (
+	storetypes.CommitMultiStore,
+	*beacondb.KVStore,
+	deposit.StoreManager,
+	error,
+) {
+	appDB, err := db.OpenDB("app", dbm.MemDBBackend)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed opening mem db: %w", err)
+		return nil, nil, nil, fmt.Errorf("failed opening mem app db: %w", err)
 	}
+
+	depositsDB, err := db.OpenDB("deposits", dbm.MemDBBackend)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("failed opening mem deposits db: %w", err)
+	}
+
 	var (
-		nopLog        = log.NewNopLogger()
-		noopCloseFunc = func() error { return nil }
-		nopMetrics    = metrics.NewNoOpMetrics()
+		nopLog     = log.NewNopLogger()
+		nopMetrics = metrics.NewNoOpMetrics()
 	)
 
 	cms := store.NewCommitMultiStore(
-		db,
+		appDB,
 		nopLog,
 		nopMetrics,
 	)
 
 	cms.MountStoreWithDB(testStoreKey, storetypes.StoreTypeIAVL, nil)
 	if err = cms.LoadLatestVersion(); err != nil {
-		return nil, nil, fmt.Errorf("failed to load latest version: %w", err)
+		return nil, nil, nil, fmt.Errorf("failed to load latest version: %w", err)
 	}
 
-	ctx := sdk.NewContext(cms, true, nopLog)
-	testStoreService := &testKVStoreService{ctx: ctx}
-	return beacondb.New(testStoreService),
-		depositstore.NewStore(testStoreService, noopCloseFunc, nopLog),
+	depositStore := deposit.NewStore(depositsDB, nopLog)
+	return cms,
+		beacondb.New(&testKVStoreService{}),
+		depositStore,
 		nil
 }
 
 func SetupTestState(t *testing.T, cs chain.Spec) (
 	*TestStateProcessorT,
 	*TestBeaconStateT,
-	*depositstore.KVStore,
+	deposit.StoreManager,
 	core.ReadOnlyContext,
+	storetypes.CommitMultiStore,
+	*mocks.ExecutionEngine,
 ) {
 	t.Helper()
 
 	execEngine := mocks.NewExecutionEngine(t)
 
-	mocksSigner := &cryptomocks.BLSSigner{}
+	mocksSigner := &cryptomocks.Blssigner{}
 	mocksSigner.On(
 		"VerifySignature",
 		mock.Anything, mock.Anything, mock.Anything,
 	).Return(nil)
 
-	dummyProposerAddr := []byte{0xff}
-
-	kvStore, depositStore, err := initTestStores()
+	cms, kvStore, depositStore, err := BuildTestStores()
 	require.NoError(t, err)
-	beaconState := statedb.NewBeaconStateFromDB(kvStore, cs)
+
+	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), true, log.NewNopLogger())
+	beaconState := statedb.NewBeaconStateFromDB(
+		kvStore.WithContext(sdkCtx), cs, sdkCtx.Logger(), nodemetrics.NewNoOpTelemetrySink(),
+	)
 
 	sp := core.NewStateProcessor(
 		noop.NewLogger[any](),
@@ -129,21 +144,22 @@ func SetupTestState(t *testing.T, cs chain.Spec) (
 		depositStore,
 		mocksSigner,
 		func(bytes.B48) ([]byte, error) {
-			return dummyProposerAddr, nil
+			return DummyProposerAddr, nil
 		},
 		nodemetrics.NewNoOpTelemetrySink(),
 	)
 
+	// by default we keep checks at minimum. It is up
+	// to single tests to redefine the ctx along their needs.
 	ctx := transition.NewTransitionCtx(
-		context.Background(),
+		sdkCtx,
 		0, // time
-		dummyProposerAddr,
+		DummyProposerAddr,
 	).
 		WithVerifyPayload(false).
 		WithVerifyRandao(false).
 		WithVerifyResult(false).
-		WithMeterGas(false).
-		WithOptimisticEngine(true)
+		WithMeterGas(false)
 
-	return sp, beaconState, depositStore, ctx
+	return sp, beaconState, depositStore, ctx, cms, execEngine
 }

@@ -59,15 +59,13 @@ type ValidatorTestStruct struct {
 // 2) Add staking tests for hitting the validator set cap and eviction.
 func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	// TODO: make test use configurable chain spec.
-	chainspec, err := spec.DevnetChainSpec()
+	chainSpec, err := spec.DevnetChainSpec()
 	s.Require().NoError(err)
 
 	weiPerGwei := big.NewInt(1e9)
 
 	// This value is determined by the MIN_DEPOSIT_AMOUNT_IN_GWEI variable from the deposit contract.
-	//
-	// TODO: fix the genesis file to use the correct deposit contract.
-	contractMinDepositAmountWei := big.NewInt(1e9 * 1e9)
+	contractMinDepositAmountWei := big.NewInt(0).Mul(big.NewInt(10_000), big.NewInt(1e9*1e9))
 	depositAmountWei := new(big.Int).Mul(contractMinDepositAmountWei, big.NewInt(100))
 	depositAmountGwei := new(big.Int).Div(depositAmountWei, weiPerGwei)
 
@@ -81,10 +79,6 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 
 	// Get the chain ID.
 	chainID, err := s.JSONRPCBalancer().ChainID(s.Ctx())
-	s.Require().NoError(err)
-
-	// Get the chain spec used by the e2e nodes. TODO: make configurable.
-	chainSpec, err := spec.DevnetChainSpec()
 	s.Require().NoError(err)
 
 	// Bind the deposit contract.
@@ -115,14 +109,15 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 
 	// Grab genesis validators to get withdrawal creds.
 	s.Require().NoError(apiClient.Connect(s.Ctx()))
-	s.Require().NotNil(apiClient.BeaconKitNodeClient)
-	response, err := apiClient.BeaconKitNodeClient.Validators(s.Ctx(), &api.ValidatorsOpts{
+	response, err := apiClient.Validators(s.Ctx(), &api.ValidatorsOpts{
 		State:   "genesis",
 		Indices: []phase0.ValidatorIndex{0, 1, 2, 3, 4},
 	})
 	s.Require().NoError(err)
+	s.Require().NotNil(response, "Validators response should not be nil")
+	s.Require().NotNil(response.Data, "Validators data should not be nil")
+
 	vals := response.Data
-	s.Require().NotNil(vals)
 	s.Require().Len(vals, config.NumValidators)
 	s.Require().Len(s.ConsensusClients(), config.NumValidators)
 
@@ -220,7 +215,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	s.Logger().Info("Final deposit tx mined successfully", "hash", receipt.TxHash.Hex())
 
 	// Give time for the nodes to catch up.
-	err = s.WaitForNBlockNumbers(NumDepositsLoad / chainspec.MaxDepositsPerBlock())
+	err = s.WaitForNBlockNumbers(NumDepositsLoad / chainSpec.MaxDepositsPerBlock())
 	s.Require().NoError(err)
 
 	// Compare height of nodes 0 and 1
@@ -228,7 +223,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	s.Require().NoError(err)
 	height2, err := validators[1].Client.ABCIInfo(s.Ctx())
 	s.Require().NoError(err)
-	s.Require().InDelta(height.Response.LastBlockHeight, height2.Response.LastBlockHeight, 1)
+	s.Require().InDelta(height.LastBlockHeight, height2.LastBlockHeight, 1)
 
 	// Check to see if evm balance decreased.
 	postDepositBalance, err := s.JSONRPCBalancer().BalanceAt(s.Ctx(), sender.Address(), nil)
@@ -248,8 +243,8 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	// after the end of the epoch (next multiple of SlotsPerEpoch after receipt.BlockNumber).
 	blkNum, err = s.JSONRPCBalancer().BlockNumber(s.Ctx())
 	s.Require().NoError(err)
-	nextEpoch := chainspec.SlotToEpoch(math.Slot(blkNum)) + 1
-	nextEpochBlockNum := nextEpoch.Unwrap() * chainspec.SlotsPerEpoch()
+	nextEpoch := chainSpec.SlotToEpoch(math.Slot(blkNum)) + 1
+	nextEpochBlockNum := nextEpoch.Unwrap() * chainSpec.SlotsPerEpoch()
 	err = s.WaitForFinalizedBlockNumber(nextEpochBlockNum + 1)
 	s.Require().NoError(err)
 

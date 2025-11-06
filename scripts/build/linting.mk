@@ -48,12 +48,12 @@ license-install:
 
 license: license-install
 	@echo "--> Running addlicense with -check"
-	(addlicense -check -v -f $(ROOT_DIR)/LICENSE.header -ignore "contracts/**" .) || exit 1;
+	(addlicense -check -v -f $(ROOT_DIR)/LICENSE.header -ignore "**/*.toml" -ignore "contracts/**" -ignore ".idea/**" .) || exit 1;
 	@printf "License check complete\n"
 
 license-fix: license-install
 	echo "--> Running addlicense"
-	(addlicense -v -f $(ROOT_DIR)/LICENSE.header -ignore "contracts/**" .) || exit 1;
+	(addlicense -v -f $(ROOT_DIR)/LICENSE.header -ignore "**/*.toml" -ignore "contracts/**" -ignore ".idea/**" .) || exit 1;
 	@printf "License check complete\n"
 
 #################
@@ -65,7 +65,7 @@ nilaway-install:
 
 nilaway: nilaway-install
 	@echo "--> Running nilaway"
-	(nilaway -exclude-errors-in-files "geth-primitives/deposit/" -v ./...) || exit 1;
+	(nilaway -test=false -exclude-errors-in-files "geth-primitives/deposit/","geth-primitives/ssztest/" -v ./...) || exit 1;
 	@printf "Nilaway check complete\n"
 
 #################
@@ -78,6 +78,17 @@ gosec-install:
 gosec: gosec-install
 	@echo "--> Running gosec"
 	@gosec ./...
+
+#################
+#   vulncheck   #
+#################
+
+vulncheck-install:
+	@go install golang.org/x/vuln/cmd/govulncheck@latest
+
+vulncheck: vulncheck-install
+	@echo "--> Running govulncheck"
+	@govulncheck $(shell go list ./... | grep -v '/testing/')
 
 #################
 #    slither    #
@@ -104,6 +115,6 @@ markdownlint:
 # all ci linters #
 #################
 
-lint-ci: lint slither gosec nilaway markdownlint generate-check \
+lint-ci: lint slither gosec vulncheck nilaway markdownlint generate-check \
     tidy-sync-check test-unit-cover test-unit-bench test-unit-fuzz \
 	test-forge-cover test-forge-fuzz

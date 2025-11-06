@@ -25,11 +25,12 @@ import (
 	"testing"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus-types/types/mocks"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/execution/client/ethclient"
 	"github.com/berachain/beacon-kit/execution/client/ethclient/rpc"
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/version"
+	"github.com/berachain/beacon-kit/testing/utils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -40,7 +41,7 @@ func TestGetPayloadV3NeverReturnsEmptyPayload(t *testing.T) {
 	c := ethclient.New(&stubRPCClient{t: t})
 
 	var (
-		ctx         = context.Background()
+		ctx         = t.Context()
 		payloadID   engineprimitives.PayloadID
 		forkVersion = version.Deneb1()
 	)
@@ -49,20 +50,22 @@ func TestGetPayloadV3NeverReturnsEmptyPayload(t *testing.T) {
 	require.NoError(t, err)
 
 	// check that execution payload is not nil
-	require.False(t, pe.GetExecutionPayload().IsNil())
+	require.NotNil(t, pe.GetExecutionPayload())
 }
 
 // TestNewPayloadWithValidVersion tests that NewPayload correctly handles Deneb version.
 func TestNewPayloadWithValidVersion(t *testing.T) {
 	t.Parallel()
 	c := ethclient.New(&stubRPCClient{t: t})
-	ctx := context.Background()
+	ctx := t.Context()
 
-	payload := &ctypes.ExecutionPayload{EpVersion: version.Deneb1()}
-	versionedHashes := []common.ExecutionHash{}
-	var parentBlockRoot *common.Root
+	block := utils.GenerateValidBeaconBlock(t, version.Deneb1())
 
-	_, err := c.NewPayload(ctx, payload, versionedHashes, parentBlockRoot)
+	newPayloadRequest, err := ctypes.BuildNewPayloadRequestFromFork(block, nil)
+	if err != nil {
+		return
+	}
+	_, err = c.NewPayload(ctx, newPayloadRequest)
 	require.NoError(t, err)
 }
 
@@ -70,13 +73,11 @@ func TestNewPayloadWithValidVersion(t *testing.T) {
 func TestNewPayloadWithInvalidVersion(t *testing.T) {
 	t.Parallel()
 	c := ethclient.New(&stubRPCClient{t: t})
-	ctx := context.Background()
+	ctx := t.Context()
 
-	payload := &ctypes.ExecutionPayload{EpVersion: version.Capella()}
-	versionedHashes := []common.ExecutionHash{}
-	var parentBlockRoot *common.Root
-
-	_, err := c.NewPayload(ctx, payload, versionedHashes, parentBlockRoot)
+	n := mocks.NewPayloadRequest{}
+	n.On("GetForkVersion").Return(version.Electra2())
+	_, err := c.NewPayload(ctx, &n)
 	require.ErrorIs(t, err, ethclient.ErrInvalidVersion)
 }
 
@@ -84,7 +85,7 @@ func TestNewPayloadWithInvalidVersion(t *testing.T) {
 func TestForkchoiceUpdatedWithValidVersion(t *testing.T) {
 	t.Parallel()
 	c := ethclient.New(&stubRPCClient{t: t})
-	ctx := context.Background()
+	ctx := t.Context()
 
 	state := &engineprimitives.ForkchoiceStateV1{}
 	attrs := struct{}{}
@@ -97,7 +98,7 @@ func TestForkchoiceUpdatedWithValidVersion(t *testing.T) {
 func TestForkchoiceUpdatedWithValidVersion2(t *testing.T) {
 	t.Parallel()
 	c := ethclient.New(&stubRPCClient{t: t})
-	ctx := context.Background()
+	ctx := t.Context()
 
 	state := &engineprimitives.ForkchoiceStateV1{}
 	attrs := struct{}{}
@@ -111,7 +112,7 @@ func TestForkchoiceUpdatedWithValidVersion2(t *testing.T) {
 func TestForkchoiceUpdatedWithInvalidVersion(t *testing.T) {
 	t.Parallel()
 	c := ethclient.New(&stubRPCClient{t: t})
-	ctx := context.Background()
+	ctx := t.Context()
 
 	state := &engineprimitives.ForkchoiceStateV1{}
 	attrs := struct{}{}
@@ -125,7 +126,7 @@ func TestForkchoiceUpdatedWithInvalidVersion(t *testing.T) {
 func TestGetPayloadWithValidVersion(t *testing.T) {
 	t.Parallel()
 	c := ethclient.New(&stubRPCClient{t: t})
-	ctx := context.Background()
+	ctx := t.Context()
 
 	var payloadID engineprimitives.PayloadID
 	forkVersion := version.Deneb1()
@@ -138,7 +139,7 @@ func TestGetPayloadWithValidVersion(t *testing.T) {
 func TestGetPayloadWithInvalidVersion(t *testing.T) {
 	t.Parallel()
 	c := ethclient.New(&stubRPCClient{t: t})
-	ctx := context.Background()
+	ctx := t.Context()
 
 	var payloadID engineprimitives.PayloadID
 	forkVersion := version.Capella()

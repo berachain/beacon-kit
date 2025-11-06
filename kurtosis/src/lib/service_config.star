@@ -148,7 +148,7 @@ def create_from_config(config, is_full_node = False):
     return ServiceConfig(
         image = config["image"],
         ports = port_spec_lib.create_port_specs_from_config(config),
-        # public port exposed for erigon node
+        # public port exposed for full node
         public_ports = create_public_port_specs_from_config(config, is_full_node) if config["public_ports"] else {},
         files = config["files"] if config["files"] else {},
         entrypoint = config["entrypoint"] if config["entrypoint"] else [],

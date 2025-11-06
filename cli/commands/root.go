@@ -37,7 +37,7 @@ type Root struct {
 func New(
 	name string,
 	description string,
-	runHandler runHandler,
+	runHandler func(cmd *cobra.Command) error,
 	clientCtx sdkclient.Context,
 ) *Root {
 	// create the underlying cobra command

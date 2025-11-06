@@ -25,14 +25,22 @@ import (
 
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/karalabe/ssz"
 )
 
-// BeaconBlock represents a block in the beacon chain during
-// the Deneb fork.
+// Compile-time assertions to ensure BeaconBlock implements necessary interfaces.
+var (
+	_ ssz.DynamicObject                            = (*BeaconBlock)(nil)
+	_ constraints.SSZVersionedMarshallableRootable = (*BeaconBlock)(nil)
+)
+
+// BeaconBlock represents a block in the beacon chain.
 type BeaconBlock struct {
+	constraints.Versionable `json:"-"`
+
 	// Slot represents the position of the block in the chain.
 	Slot math.Slot `json:"slot"`
 	// ProposerIndex is the index of the validator who proposed the block.
@@ -43,22 +51,9 @@ type BeaconBlock struct {
 	StateRoot common.Root `json:"state_root"`
 	// Body is the body of the BeaconBlock, containing the block's operations.
 	Body *BeaconBlockBody `json:"body"`
-
-	// BbVersion is the BbVersion of the beacon block.
-	// BbVersion must be not serialized but it's exported
-	// to allow unit tests using reflect on beacon block.
-	BbVersion common.Version `json:"-"`
 }
 
-// Empty creates an empty beacon block.
-func (*BeaconBlock) Empty() *BeaconBlock {
-	return &BeaconBlock{
-		// By default, we set the version to Deneb to maintain backward-compatibility.
-		BbVersion: version.Deneb(),
-	}
-}
-
-// NewBeaconBlockWithVersion assembles a new beacon block from the given.
+// NewBeaconBlockWithVersion assembles a new beacon block from the given parameters.
 func NewBeaconBlockWithVersion(
 	slot math.Slot,
 	proposerIndex math.ValidatorIndex,
@@ -66,21 +61,27 @@ func NewBeaconBlockWithVersion(
 	forkVersion common.Version,
 ) (*BeaconBlock, error) {
 	switch forkVersion {
-	case version.Deneb(), version.Deneb1():
-		return &BeaconBlock{
-			Slot:          slot,
-			ProposerIndex: proposerIndex,
-			ParentRoot:    parentBlockRoot,
-			StateRoot:     common.Root{},
-			Body:          &BeaconBlockBody{},
-			BbVersion:     forkVersion,
-		}, nil
+	case version.Deneb(), version.Deneb1(), version.Electra(), version.Electra1():
+		block := NewEmptyBeaconBlockWithVersion(forkVersion)
+		block.Slot = slot
+		block.ProposerIndex = proposerIndex
+		block.ParentRoot = parentBlockRoot
+
+		// StateRoot is left empty as it is not ready at this time.
+		block.StateRoot = common.Root{}
+		return block, nil
 	default:
-		// we return block here to appease nilaway
-		return &BeaconBlock{}, errors.Wrap(
-			ErrForkVersionNotSupported,
-			fmt.Sprintf("fork %d", forkVersion),
-		)
+		// We return block here to appease nilaway.
+		block := &BeaconBlock{}
+		err := errors.Wrap(ErrForkVersionNotSupported, fmt.Sprintf("fork %d", forkVersion))
+		return block, err
+	}
+}
+
+func NewEmptyBeaconBlockWithVersion(version common.Version) *BeaconBlock {
+	return &BeaconBlock{
+		Versionable: NewVersionable(version),
+		Body:        NewEmptyBeaconBlockBodyWithVersion(version),
 	}
 }
 
@@ -118,19 +119,13 @@ func (b *BeaconBlock) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 
-// UnmarshalSSZ unmarshals the BeaconBlock object from SSZ format.
-func (b *BeaconBlock) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, b)
+func (b *BeaconBlock) ValidateAfterDecodingSSZ() error {
+	return b.Body.ValidateAfterDecodingSSZ()
 }
 
 // HashTreeRoot computes the Merkleization of the BeaconBlock object.
 func (b *BeaconBlock) HashTreeRoot() common.Root {
 	return ssz.HashConcurrent(b)
-}
-
-// IsNil checks if the beacon block is nil.
-func (b *BeaconBlock) IsNil() bool {
-	return b == nil
 }
 
 // GetSlot retrieves the slot of the BeaconBlockBase.
@@ -148,14 +143,14 @@ func (b *BeaconBlock) GetParentBlockRoot() common.Root {
 	return b.ParentRoot
 }
 
+// SetParentBlockRoot sets the parent block root of the BeaconBlockBase.
+func (b *BeaconBlock) SetParentBlockRoot(parentBlockRoot common.Root) {
+	b.ParentRoot = parentBlockRoot
+}
+
 // GetStateRoot retrieves the state root of the BeaconBlock.
 func (b *BeaconBlock) GetStateRoot() common.Root {
 	return b.StateRoot
-}
-
-// Version identifies the version of the BeaconBlock.
-func (b *BeaconBlock) Version() common.Version {
-	return b.BbVersion
 }
 
 // SetStateRoot sets the state root of the BeaconBlock.

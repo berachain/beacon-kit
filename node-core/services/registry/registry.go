@@ -25,8 +25,6 @@ import (
 	"fmt"
 	"reflect"
 
-	"cosmossdk.io/store"
-	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/log"
 )
 
@@ -41,12 +39,6 @@ type Basic interface {
 	Name() string
 }
 
-// CommitMultistoreAccessor allows access to the commit multistore
-// This is required by commands like Rollback.
-type CommitMultistoreAccessor interface {
-	CommitMultiStore() store.CommitMultiStore
-}
-
 // Registry provides a useful pattern for managing services.
 // It allows for ease of dependency management and ensures services
 // dependent on others use the same references in memory.
@@ -55,6 +47,8 @@ type Registry struct {
 	logger log.Logger
 	// services is a map of service type -> service instance.
 	services map[string]Basic
+	// servicesStarted is a map of services we have called Start() on.
+	servicesStarted map[string]struct{}
 	// serviceTypes is an ordered slice of registered service types.
 	serviceTypes []string
 }
@@ -62,8 +56,9 @@ type Registry struct {
 // NewRegistry starts a registry instance for convenience.
 func NewRegistry(logger log.Logger, opts ...RegistryOption) *Registry {
 	r := &Registry{
-		logger:   logger,
-		services: make(map[string]Basic),
+		logger:          logger,
+		services:        make(map[string]Basic),
+		servicesStarted: make(map[string]struct{}),
 	}
 
 	for _, opt := range opts {
@@ -87,18 +82,26 @@ func (s *Registry) StartAll(ctx context.Context) error {
 		}
 
 		if err := svc.Start(ctx); err != nil {
-			return err
+			return fmt.Errorf("error when starting service %s: %w", typeName, err)
 		}
+
+		s.servicesStarted[typeName] = struct{}{}
 	}
+	s.logger.Info("All services started", "num", len(s.servicesStarted))
 	return nil
 }
 
 func (s *Registry) StopAll() {
-	s.logger.Info("Stopping services", "num", len(s.serviceTypes))
-
 	// stop all services in reverse order they were started
+	s.logger.Info("Stopping services", "num", len(s.serviceTypes))
 	for i := len(s.serviceTypes) - 1; i >= 0; i-- {
 		typeName := s.serviceTypes[i]
+
+		if _, started := s.servicesStarted[typeName]; !started {
+			s.logger.Info("Service not started", "type", typeName)
+			continue
+		}
+
 		s.logger.Info("Stopping service", "type", typeName)
 		svc := s.services[typeName]
 		if svc == nil {
@@ -110,6 +113,7 @@ func (s *Registry) StopAll() {
 			s.logger.Error("error when stopping service", "type", typeName, "err", err)
 		}
 	}
+	s.logger.Info("All services stopped", "num", len(s.servicesStarted))
 }
 
 // RegisterService appends a service constructor function to the service
@@ -155,14 +159,4 @@ func (s *Registry) FetchService(service interface{}) error {
 		return nil
 	}
 	return errUnknownService
-}
-
-func (s *Registry) CommitMultiStore() store.CommitMultiStore {
-	var cometService *cometbft.Service
-	err := s.FetchService(&cometService)
-	if err != nil || cometService == nil { // appease nilaway
-		err = fmt.Errorf("failed to fetch cometbft service: %w", err)
-		panic(err)
-	}
-	return cometService.CommitMultiStore()
 }

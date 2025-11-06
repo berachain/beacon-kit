@@ -18,6 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
+//nolint:dupl // False positive detected.
 package types
 
 import (
@@ -26,7 +27,7 @@ import (
 	"github.com/karalabe/ssz"
 )
 
-// Deposits is a typealias for a list of Deposits.
+// Deposits is a type alias for a SSZ list of Deposit containers.
 type Deposits []*Deposit
 
 /* -------------------------------------------------------------------------- */

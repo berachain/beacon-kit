@@ -21,10 +21,11 @@
 package beacon
 
 import (
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
-	"github.com/berachain/beacon-kit/primitives/constants"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 func (h *Handler) GetRandao(c handlers.Context) (any, error) {
@@ -35,24 +36,34 @@ func (h *Handler) GetRandao(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
+
+	// Get slot and associated state
+	height, err := utils.StateIDToHeight(req.StateID, h.backend)
 	if err != nil {
 		return nil, err
 	}
-	epoch := constants.GenesisEpoch
+	st, slot, err := h.backend.StateAndSlotFromHeight(height)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get state from height %d", height)
+	}
+
+	// Get the epoch
+	var epoch math.Epoch
 	if req.Epoch != "" {
-		epoch, err = utils.U64FromString(req.Epoch)
+		epoch, err = math.U64FromString(req.Epoch)
 		if err != nil {
 			return nil, err
 		}
+	} else {
+		// Infer the epoch if not provided.
+		epoch = h.cs.SlotToEpoch(slot)
 	}
-	randao, err := h.backend.RandaoAtEpoch(slot, epoch)
+
+	// Retrieve the randao
+	index := epoch.Unwrap() % h.cs.EpochsPerHistoricalVector()
+	randao, err := st.GetRandaoMixAtIndex(index)
 	if err != nil {
 		return nil, err
 	}
-	return beacontypes.ValidatorResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data:                randao,
-	}, nil
+	return beacontypes.NewResponse(randao), nil
 }

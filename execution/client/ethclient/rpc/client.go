@@ -23,12 +23,14 @@ package rpc
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"sync"
 	"time"
 
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
+	beaconhttp "github.com/berachain/beacon-kit/primitives/net/http"
 	"github.com/berachain/beacon-kit/primitives/net/jwt"
 )
 
@@ -51,7 +53,7 @@ type client struct {
 	reqPool *sync.Pool
 	// jwtSecret is the JWT secret used for authentication.
 	jwtSecret *jwt.Secret
-	// jwtRefershInterval is the interval at which the JWT token should be
+	// jwtRefreshInterval is the interval at which the JWT token should be
 	// refreshed.
 	jwtRefreshInterval time.Duration
 
@@ -180,6 +182,16 @@ func (rpc *client) callRaw(
 	data, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, err
+	}
+
+	switch response.StatusCode {
+	case http.StatusOK:
+		// OK: just proceed (no return)
+	case http.StatusUnauthorized:
+		return nil, beaconhttp.ErrUnauthorized
+	default:
+		// Return a default error
+		return nil, fmt.Errorf("unexpected status code %d: %s", response.StatusCode, string(data))
 	}
 
 	resp := new(Response)

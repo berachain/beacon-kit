@@ -33,11 +33,11 @@ import (
 var (
 	_ ssz.StaticObject                    = (*ProposerSlashing)(nil)
 	_ constraints.SSZMarshallableRootable = (*ProposerSlashing)(nil)
-	_ UnusedEnforcer                      = (*ProposerSlashings)(nil)
+	_ common.UnusedEnforcer               = (*ProposerSlashings)(nil)
 )
 
 type (
-	ProposerSlashing  = UnusedType
+	ProposerSlashing  = common.UnusedType
 	ProposerSlashings []*ProposerSlashing
 )
 

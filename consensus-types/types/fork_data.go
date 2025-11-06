@@ -22,8 +22,15 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/karalabe/ssz"
+)
+
+// Compile-time assertions to ensure ForkData implements necessary interfaces.
+var (
+	_ ssz.StaticObject                    = (*ForkData)(nil)
+	_ constraints.SSZMarshallableRootable = (*ForkData)(nil)
 )
 
 // ForkData as defined in the Ethereum 2.0 specification:
@@ -78,10 +85,7 @@ func (fd *ForkData) MarshalSSZ() ([]byte, error) {
 	return fd.MarshalSSZTo(buf)
 }
 
-// UnmarshalSSZ unmarshals the ForkData object from SSZ format.
-func (fd *ForkData) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, fd)
-}
+func (*ForkData) ValidateAfterDecodingSSZ() error { return nil }
 
 // ComputeDomain as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#compute_domain

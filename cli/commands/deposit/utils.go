@@ -21,7 +21,6 @@
 package deposit
 
 import (
-	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/cli/utils/genesis"
 	"github.com/berachain/beacon-kit/cli/utils/parser"
 	"github.com/berachain/beacon-kit/errors"
@@ -32,7 +31,7 @@ import (
 // Get the genesis validator root. If the genesis validator root flag is not set, the genesis
 // validator root is computed from the genesis file at the last argument (idx: maxArgs - 1).
 func getGenesisValidatorRoot(
-	cmd *cobra.Command, chainSpec chain.Spec, args []string, maxArgs int,
+	cmd *cobra.Command, chainSpec ChainSpec, args []string, maxArgs int,
 ) (common.Root, error) {
 	var genesisValidatorRoot common.Root
 	genesisValidatorRootStr, err := cmd.Flags().GetString(useGenesisValidatorRoot)

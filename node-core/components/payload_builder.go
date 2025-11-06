@@ -28,7 +28,6 @@ import (
 	"github.com/berachain/beacon-kit/log/phuslu"
 	payloadbuilder "github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/payload/cache"
-	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // LocalBuilderInput is an input for the dep inject framework.
@@ -49,9 +48,7 @@ func ProvideLocalBuilder(in LocalBuilderInput) *payloadbuilder.PayloadBuilder {
 		in.ChainSpec,
 		in.Logger.With("service", "payload-builder"),
 		in.ExecutionEngine,
-		cache.NewPayloadIDCache[
-			[32]byte, math.Slot,
-		](),
+		cache.NewPayloadIDCache(),
 		in.AttributesFactory,
 	)
 }

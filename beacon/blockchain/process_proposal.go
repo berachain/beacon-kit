@@ -26,17 +26,19 @@ import (
 	"fmt"
 	"time"
 
-	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/cache"
 	"github.com/berachain/beacon-kit/consensus/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/state-transition/core"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
@@ -55,71 +57,69 @@ const (
 	MaxConsensusTxsCount = 2
 )
 
+//nolint:funlen // abundantly commented
 func (s *Service) ProcessProposal(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
-) error {
-	if countTx := len(req.Txs); countTx > MaxConsensusTxsCount {
-		return fmt.Errorf("max expected %d, got %d: %w",
-			MaxConsensusTxsCount, countTx,
-			ErrTooManyConsensusTxs,
-		)
-	}
-
-	// Decode signed block and sidecars.
-	signedBlk, sidecars, err := encoding.ExtractBlobsAndBlockFromRequest(
-		req,
-		BeaconBlockTxIndex,
-		BlobSidecarsTxIndex,
-		s.chainSpec.ActiveForkVersionForSlot(math.Slot(req.Height))) // #nosec G115
+	thisNodeAddress []byte,
+) (transition.ValidatorUpdates, error) {
+	signedBlk, sidecars, err := s.ParseBeaconBlock(req)
 	if err != nil {
-		return err
+		s.logger.Error("Failed to decode block and blobs", "error", err)
+		return nil, fmt.Errorf("failed to decode block and blobs: %w", err)
 	}
-	if signedBlk.IsNil() {
-		s.logger.Warn(
-			"Aborting block verification - beacon block not found in proposal",
+	blk := signedBlk.GetBeaconBlock()
+
+	// There are two different timestamps:
+	//     - The "consensus time" is determined by CometBFT consensus and can be retrieved with `req.GetTime()`
+	//     - The "block time" is determined by beacon-kit consensus and can be retrieved with `blk.GetTimestamp()`
+	// The "consensus time" is what the network agrees the current time is based on CometBFT PBTS.
+	// This "consensus time" is used to constrain the timestamp set as the "block time" by the
+	// beacon-kit app, but they are not always equal in value. The "block time" is used by the
+	// beacon-kit consensus and execution layers to determine the active fork version.
+	//
+	// When unmarshaling the BeaconBlock, we do not yet have access to the "block time", so we
+	// must rely on the "consensus time" as our best estimation of the "block time" needed to
+	// determine the current fork version. Since the two timestamps could be different, we need to
+	// ensure that the fork version for these timestamps are the same. This may result in a failed
+	// proposal or two at the start of the fork.
+	forkVersion := s.chainSpec.ActiveForkVersionForTimestamp(math.U64(req.GetTime().Unix())) //#nosec: G115
+	blkVersion := s.chainSpec.ActiveForkVersionForTimestamp(blk.GetTimestamp())
+	if !version.Equals(blkVersion, forkVersion) {
+		return nil, fmt.Errorf("CometBFT version %v, BeaconBlock version %v: %w",
+			forkVersion, blkVersion,
+			ErrVersionMismatch,
 		)
-		return ErrNilBlk
-	}
-	if sidecars.IsNil() {
-		s.logger.Warn(
-			"Aborting block verification - blob sidecars not found in proposal",
-		)
-		return ErrNilBlob
 	}
 
-	blk := signedBlk.GetMessage()
 	// Make sure we have the right number of BlobSidecars
-	numCommitments := len(blk.GetBody().GetBlobKzgCommitments())
+	blobKzgCommitments := blk.GetBody().GetBlobKzgCommitments()
+	numCommitments := len(blobKzgCommitments)
 	if numCommitments != len(sidecars) {
-		err = fmt.Errorf("expected %d sidecars, got %d: %w",
+		return nil, fmt.Errorf("expected %d sidecars, got %d: %w",
 			numCommitments, len(sidecars),
 			ErrSidecarCommitmentMismatch,
 		)
-		s.logger.Warn(err.Error())
-		return err
 	}
 	if uint64(numCommitments) > s.chainSpec.MaxBlobsPerBlock() {
-		err = fmt.Errorf("expected less than %d sidecars, got %d: %w",
+		return nil, fmt.Errorf("expected less than %d sidecars, got %d: %w",
 			s.chainSpec.MaxBlobsPerBlock(), numCommitments,
 			core.ErrExceedsBlockBlobLimit,
 		)
-		s.logger.Warn(err.Error())
-		return err
 	}
 
 	// Verify the block and sidecar signatures. We can simply verify the block
 	// signature and then make sure the sidecar signatures match the block.
 	blkSignature := signedBlk.GetSignature()
 	for i, sidecar := range sidecars {
-		sidecarSignature := sidecar.GetSignedBeaconBlockHeader().GetSignature()
+		sidecarSignature := sidecar.GetSignature()
 		if !bytes.Equal(blkSignature[:], sidecarSignature[:]) {
-			return fmt.Errorf("%w, idx: %d", ErrSidecarSignatureMismatch, i)
+			return nil, fmt.Errorf("%w, idx: %d", ErrSidecarSignatureMismatch, i)
 		}
 	}
-	err = s.VerifyIncomingBlockSignature(ctx, signedBlk.GetMessage(), signedBlk.GetSignature())
+	err = s.VerifyIncomingBlockSignature(ctx, blk, signedBlk.GetSignature())
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if numCommitments > 0 {
@@ -131,31 +131,80 @@ func (s *Service) ProcessProposal(
 		// the currently active fork). ProcessProposal should only
 		// keep the state changes as candidates (which is what we do in
 		// VerifyIncomingBlock).
-		err = s.VerifyIncomingBlobSidecars(ctx, sidecars, blk.GetHeader(), blk.GetBody().GetBlobKzgCommitments())
+		err = s.VerifyIncomingBlobSidecars(ctx, sidecars, blk.GetHeader(), blobKzgCommitments)
 		if err != nil {
 			s.logger.Error("failed to verify incoming blob sidecars", "error", err)
-			return err
+			return nil, err
 		}
 	}
 
-	// Process the block
+	// Process the block.
+	s.logger.Debug( // needed for some checks in sim tests
+		"Processing block with fork version",
+		"block", req.Height,
+		"fork", blkVersion.String(),
+	)
 	consensusBlk := types.NewConsensusBlock(
 		blk,
 		req.GetProposerAddress(),
 		req.GetTime(),
 	)
-	err = s.VerifyIncomingBlock(
+
+	var valUpdates transition.ValidatorUpdates
+	valUpdates, err = s.VerifyIncomingBlock(
 		ctx,
-		consensusBlk.GetBeaconBlock(),
-		consensusBlk.GetConsensusTime(),
-		consensusBlk.GetProposerAddress(),
+		consensusBlk,
+		bytes.Equal(thisNodeAddress, req.NextProposerAddress),
 	)
 	if err != nil {
 		s.logger.Error("failed to verify incoming block", "error", err)
-		return err
+		return nil, err
 	}
 
-	return nil
+	// once we have successfully verified the block we cache it in the node builder.
+	// This ensures the node will be able to build a payload even in scenarios where
+	// EVM won't provide a new payload (e.g. if it received FCU(Head == N+1) due to
+	// optimistic block building, then FCU(Head == N)) if verified block is not finalized)
+	envelope, err := payloadEnvFromPayload(sidecars, blk)
+	if err != nil {
+		return nil, err
+	}
+
+	s.localBuilder.CacheLatestVerifiedPayload(blk.Slot, envelope)
+	return valUpdates.CanonicalSort(), nil
+}
+
+func payloadEnvFromPayload(sidecars datypes.BlobSidecars, blk *ctypes.BeaconBlock) (ctypes.BuiltExecutionPayloadEnv, error) {
+	blobBundle := &engineprimitives.BlobsBundleV1{}
+	for _, s := range sidecars {
+		blobBundle.Commitments = append(blobBundle.Commitments, s.GetKzgCommitment())
+		blobBundle.Proofs = append(blobBundle.Proofs, s.GetKzgProof())
+
+		blob := s.GetBlob()
+		blobBundle.Blobs = append(blobBundle.Blobs, &blob)
+	}
+
+	var (
+		executionRequests []ctypes.EncodedExecutionRequest
+		err               error
+	)
+	switch reqs, errReqs := blk.Body.GetExecutionRequests(); {
+	case errReqs == nil:
+		executionRequests, err = ctypes.GetExecutionRequestsList(reqs)
+		if err != nil {
+			return nil, fmt.Errorf("failed retrieving encoded execution requests from payload: %w", err)
+		}
+	case errors.Is(errReqs, ctypes.ErrFieldNotSupportedOnFork):
+		// nothing to do, executionRequests is nil
+	default:
+		return nil, fmt.Errorf("failed getting execution requests from payload: %w", errReqs)
+	}
+
+	return ctypes.NewExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1](
+		blk.Body.ExecutionPayload,
+		blobBundle,
+		executionRequests,
+	), nil
 }
 
 func (s *Service) VerifyIncomingBlockSignature(
@@ -185,22 +234,19 @@ func (s *Service) VerifyIncomingBlobSidecars(
 	blkHeader *ctypes.BeaconBlockHeader,
 	kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],
 ) error {
-	s.logger.Info("Received incoming blob sidecars")
-
 	// Verify the blobs and ensure they match the local state.
 	err := s.blobProcessor.VerifySidecars(ctx, sidecars, blkHeader, kzgCommitments)
 	if err != nil {
 		s.logger.Error(
-			"rejecting incoming blob sidecars",
-			"reason", err,
+			"Blob sidecars verification failed - rejecting incoming blob sidecars",
+			"reason", err, "slot", blkHeader.GetSlot(),
 		)
 		return err
 	}
 
 	s.logger.Info(
 		"Blob sidecars verification succeeded - accepting incoming blob sidecars",
-		"num_blobs",
-		len(sidecars),
+		"num_blobs", len(sidecars), "slot", blkHeader.GetSlot(),
 	)
 	return nil
 }
@@ -208,42 +254,38 @@ func (s *Service) VerifyIncomingBlobSidecars(
 // VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
 //
-//nolint:funlen // not an issue
+//nolint:funlen // abundantly commented
 func (s *Service) VerifyIncomingBlock(
 	ctx context.Context,
-	beaconBlk *ctypes.BeaconBlock,
-	consensusTime math.U64,
-	proposerAddress []byte,
-) error {
-	// Grab a copy of the state to verify the incoming block.
-	preState := s.storageBackend.StateFromContext(ctx)
+	blk *types.ConsensusBlock,
+	isNextBlockProposer bool,
+) (transition.ValidatorUpdates, error) {
+	beaconBlk := blk.GetBeaconBlock()
+	state := s.storageBackend.StateFromContext(ctx)
 
 	// Force a sync of the startup head if we haven't done so already.
-	//
-	// TODO: This is a super hacky. It should be handled better elsewhere,
-	// ideally via some broader sync service.
-	s.forceStartupSyncOnce.Do(func() { s.forceStartupHead(ctx, preState) })
+	// TODO: Address the need for calling forceStartupSyncOnce in ProcessProposal. On a running
+	// network (such as mainnet), it should be theoretically impossible to hit the case where
+	// ProcessProposal is called before FinalizeBlock. It may be the case that new networks run
+	// into this case during the first block after genesis.
+	// TODO: Consider panicing here if this fails. If our node cannot successfully run
+	// forceStartupSync, then we should shut down the node and fix the problem.
+	s.forceStartupSyncOnce.Do(func() { s.forceSyncUponProcess(ctx, state) })
 
-	s.logger.Info(
+	s.logger.Debug(
 		"Received incoming beacon block",
 		"state_root", beaconBlk.GetStateRoot(),
 		"slot", beaconBlk.GetSlot(),
 	)
 
-	// We purposefully make a copy of the BeaconState in order
-	// to avoid modifying the underlying state, for the event in which
-	// we have to rebuild a payload for this slot again, if we do not agree
-	// with the incoming block.
-	postState := preState.Copy(ctx)
-
 	// verify block slot
-	stateSlot, err := postState.GetSlot()
+	stateSlot, err := state.GetSlot()
 	if err != nil {
 		s.logger.Error(
 			"failed loading state slot to verify block slot",
 			"reason", err,
 		)
-		return err
+		return nil, err
 	}
 
 	blkSlot := beaconBlk.GetSlot()
@@ -254,16 +296,33 @@ func (s *Service) VerifyIncomingBlock(
 			"block slot", blkSlot.Base10(),
 			"reason", ErrUnexpectedBlockSlot.Error(),
 		)
-		return ErrUnexpectedBlockSlot
+		return nil, ErrUnexpectedBlockSlot
+	}
+
+	var (
+		nextBlockData          *builder.RequestPayloadData
+		errFetch               error
+		shouldBuildNextPayload = s.shouldBuildNextPayload(isNextBlockProposer)
+	)
+
+	if shouldBuildNextPayload {
+		// makes sure that preFetchBuildData does not affect state
+		ephemeralState := state.Protect(ctx)
+		nextBlockData, errFetch = s.preFetchBuildData(ephemeralState, blk.GetConsensusTime())
+		if errFetch != nil {
+			// We don't return with err if pre-fetch fails. Instead we log the issue
+			// and still move to process the current block. Next block can always be
+			// built right after current height is finalized.
+			s.logger.Warn(
+				"Failed pre fetching data for optimistic block building",
+				"case", "block rejectiong",
+				"err", errFetch,
+			)
+		}
 	}
 
 	// Verify the state root of the incoming block.
-	err = s.verifyStateRoot(
-		ctx,
-		postState,
-		beaconBlk,
-		consensusTime,
-		proposerAddress)
+	valUpdates, err := s.verifyStateRoot(ctx, state, blk)
 	if err != nil {
 		s.logger.Error(
 			"Rejecting incoming beacon block ❌ ",
@@ -271,86 +330,76 @@ func (s *Service) VerifyIncomingBlock(
 			"reason", err,
 		)
 
-		if s.shouldBuildOptimisticPayloads() {
-			lph, lphErr := preState.GetLatestExecutionPayloadHeader()
-			if lphErr != nil {
-				return errors.Join(
-					err,
-					fmt.Errorf("failed getting LatestExecutionPayloadHeader: %w", lphErr),
-				)
+		if shouldBuildNextPayload {
+			if nextBlockData == nil {
+				// Failed fetching data to build next block. Just return block error
+				return nil, err
 			}
-
-			go s.handleRebuildPayloadForRejectedBlock(
-				ctx,
-				preState,
-				payloadtime.Next(
-					consensusTime,
-					lph.GetTimestamp(),
-					true, // buildOptimistically
-				),
-			)
+			go s.handleRebuildPayloadForRejectedBlock(ctx, nextBlockData)
 		}
 
-		return err
+		return nil, err
 	}
 
-	s.logger.Info(
+	s.logger.Debug(
 		"State root verification succeeded - accepting incoming beacon block",
-		"state_root",
-		beaconBlk.GetStateRoot(),
+		"state_root", beaconBlk.GetStateRoot(),
 	)
 
-	if s.shouldBuildOptimisticPayloads() {
-		lph, lphErr := postState.GetLatestExecutionPayloadHeader()
-		if lphErr != nil {
-			return fmt.Errorf("failed loading LatestExecutionPayloadHeader: %w", lphErr)
+	if shouldBuildNextPayload {
+		// makes sure that preFetchBuildDataForSuccess does not affect state
+		ephemeralState := state.Protect(ctx)
+		nextBlockData, errFetch = s.preFetchBuildData(ephemeralState, blk.GetConsensusTime())
+		if errFetch != nil {
+			// We don't mark the block as rejected if it is valid but pre-fetch fails.
+			// Instead we log the issue and move to process the current block.
+			// Next block can always be built right after current height is finalized.
+			s.logger.Warn(
+				"Failed pre fetching data for optimistic block building",
+				"case", "block success",
+				"err", errFetch,
+			)
+			return valUpdates, nil
 		}
-
-		go s.handleOptimisticPayloadBuild(
-			ctx,
-			postState,
-			beaconBlk,
-			payloadtime.Next(
-				consensusTime,
-				lph.GetTimestamp(),
-				true, // buildOptimistically
-			),
-		)
+		go s.handleOptimisticPayloadBuild(ctx, nextBlockData)
 	}
 
-	return nil
+	return valUpdates, nil
 }
 
 // verifyStateRoot verifies the state root of an incoming block.
 func (s *Service) verifyStateRoot(
 	ctx context.Context,
 	st *statedb.StateDB,
-	blk *ctypes.BeaconBlock,
-	consensusTime math.U64,
-	proposerAddress []byte,
-) error {
+	blk *types.ConsensusBlock,
+) (transition.ValidatorUpdates, error) {
 	startTime := time.Now()
-	defer s.metrics.measureStateRootVerificationTime(startTime)
 
-	// We run with a non-optimistic engine here to ensure
-	// that the proposer does not try to push through a bad block.
+	isCacheActive := cache.IsStateCachingActive(s.chainSpec, blk.GetBeaconBlock().GetSlot())
+	if isCacheActive {
+		// Re-use finalize block metrics if caching is active
+		defer s.metrics.measureStateTransitionDuration(startTime)
+	} else {
+		// Keep ProcessProposal specific metrics before fork is active
+		defer s.metrics.measureStateRootVerificationTime(startTime)
+	}
+
 	txCtx := transition.NewTransitionCtx(
 		ctx,
-		consensusTime,
-		proposerAddress,
+		blk.GetConsensusTime(),
+		blk.GetProposerAddress(),
 	).
 		WithVerifyPayload(true).
 		WithVerifyRandao(true).
 		WithVerifyResult(true).
-		WithMeterGas(false).
-		WithOptimisticEngine(false)
+		WithMeterGas(isCacheActive)
 
-	_, err := s.stateProcessor.Transition(txCtx, st, blk)
-	return err
+	valUpdates, err := s.stateProcessor.Transition(txCtx, st, blk.GetBeaconBlock())
+	return valUpdates, err
 }
 
-// shouldBuildOptimisticPayloads returns true if optimistic
+// shouldBuildNextPayload returns true if optimistic
 // payload builds are enabled.
-func (s *Service) shouldBuildOptimisticPayloads() bool {
-	return s.optimisticPayloadBuilds && s.localBuilder.Enabled()
+func (s *Service) shouldBuildNextPayload(isNextBlockProposer bool) bool {
+	return isNextBlockProposer && s.localBuilder.Enabled()
 }

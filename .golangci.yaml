@@ -11,6 +11,7 @@ run:
   # Timeout for analysis, e.g. 30s, 5m.
   # Default: 1m
   timeout: 3m
+  build-tags: ["test"]
 
 
 # This file contains only configs which differ from defaults.
@@ -296,8 +297,8 @@ linters:
     - spancheck # checks for mistakes with OpenTelemetry/Census spans
     - sqlclosecheck # checks that sql.Rows and sql.Stmt are closed
     - stylecheck # is a replacement for golint
-    - tenv # detects using os.Setenv instead of t.Setenv since Go1.17
     - testableexamples # checks if examples are testable (have an expected output)
+    - usetesting # detects using os.Setenv instead of t.Setenv since Go1.17 (replaces deprecated tenv)
     - testifylint # checks usage of github.com/stretchr/testify
     - testpackage # makes you use a separate _test package
 #    - tparallel # detects inappropriate usage of t.Parallel() method in your Go test codes. Replaced with paralleltest
@@ -366,6 +367,10 @@ issues:
         - noctx
         - wrapcheck
         - gochecknoglobals
+    # We exclude thelper for consensus types due to the usage of runForAllSupportedVersions where thelper falsely misses the usage of t.Helper()
+    - path: "^consensus-types/types/.*\\.go$"
+      linters:
+        - thelper
   exclude-files:
     - "pkg/cometbft/cli/.*\\.go"
     - "pkg/cometbft/service/server/.*\\.go"

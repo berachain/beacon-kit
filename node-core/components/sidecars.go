@@ -22,20 +22,18 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/chain"
 	dablob "github.com/berachain/beacon-kit/da/blob"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 )
 
 type SidecarFactoryInput struct {
 	depinject.In
-	ChainSpec     chain.Spec
+
 	TelemetrySink *metrics.TelemetrySink
 }
 
 func ProvideSidecarFactory(in SidecarFactoryInput) *dablob.SidecarFactory {
 	return dablob.NewSidecarFactory(
-		in.ChainSpec,
 		in.TelemetrySink,
 	)
 }

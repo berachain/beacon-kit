@@ -23,7 +23,6 @@ package client
 import (
 	"context"
 	"math/big"
-	"strings"
 	"sync"
 	"time"
 
@@ -32,6 +31,7 @@ import (
 	ethclientrpc "github.com/berachain/beacon-kit/execution/client/ethclient/rpc"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/net/http"
 	"github.com/berachain/beacon-kit/primitives/net/jwt"
 )
 
@@ -69,6 +69,27 @@ func New(
 		jwtSecret,
 		cfg.RPCJWTRefreshInterval,
 	)
+
+	// Enforcing minimum rpc timeout
+	// The reason we do it is that we previously suggested a
+	// 900 ms default, which is unnecessarily strict.
+	// TODO: Not great enforcing this here since, in principle,
+	// other services may use this config (not currently the case)
+	// and we pass cfg by pointer, hence we do a global change.
+	// The altenative of validating every config in ProvideConfig
+	// should be considered (but logging there is trickier)
+	if cfg.RPCTimeout < MinRPCTimeout {
+		logger.Warn("Automatically raising RPCTimeout",
+			"configured", cfg.RPCTimeout,
+			"minimum", MinRPCTimeout,
+		)
+	}
+	cfg.RPCTimeout = max(MinRPCTimeout, cfg.RPCTimeout)
+
+	if cfg.DeprecatedRPCRetries != 0 {
+		logger.Warn("ignoring deprecated setting rpc-retries")
+	}
+
 	return &EngineClient{
 		cfg:          cfg,
 		logger:       logger,
@@ -86,9 +107,7 @@ func (s *EngineClient) Name() string {
 }
 
 // Start the engine client.
-func (s *EngineClient) Start(
-	ctx context.Context,
-) error {
+func (s *EngineClient) Start(ctx context.Context) error {
 	// Start the Client.
 	go s.Client.Start(ctx)
 
@@ -167,7 +186,7 @@ func (s *EngineClient) verifyChainIDAndConnection(
 	// After the initial dial, check to make sure the chain ID is correct.
 	chainID, err = s.Client.ChainID(ctx)
 	if err != nil {
-		if strings.Contains(err.Error(), "401 Unauthorized") {
+		if errors.Is(err, http.ErrUnauthorized) {
 			// We always log this error as it is a critical error.
 			s.logger.Error(UnauthenticatedConnectionErrorStr)
 		}
@@ -196,12 +215,9 @@ func (s *EngineClient) verifyChainIDAndConnection(
 	// Log the chain ID.
 	s.logger.Info(
 		"Connected to execution client 🔌",
-		"dial_url",
-		s.cfg.RPCDialURL.String(),
-		"chain_id",
-		chainID.Unwrap(),
-		"required_chain_id",
-		s.eth1ChainID,
+		"dial_url", s.cfg.RPCDialURL.String(),
+		"chain_id", chainID.Unwrap(),
+		"required_chain_id", s.eth1ChainID,
 	)
 
 	// Exchange capabilities with the execution client.
@@ -210,4 +226,16 @@ func (s *EngineClient) verifyChainIDAndConnection(
 		return err
 	}
 	return nil
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   Getters                                  */
+/* -------------------------------------------------------------------------- */
+
+func (s *EngineClient) GetRPCRetryInterval() time.Duration {
+	return s.cfg.RPCRetryInterval
+}
+
+func (s *EngineClient) GetRPCMaxRetryInterval() time.Duration {
+	return s.cfg.RPCMaxRetryInterval
 }

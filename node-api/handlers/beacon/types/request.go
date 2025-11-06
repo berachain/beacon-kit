@@ -43,6 +43,10 @@ type GetFinalityCheckpointsRequest struct {
 	types.StateIDRequest
 }
 
+type GetPendingPartialWithdrawalsRequest struct {
+	types.StateIDRequest
+}
+
 type GetStateValidatorsRequest struct {
 	types.StateIDRequest
 	IDs      []string `query:"id"     validate:"dive,validator_id"`
@@ -57,7 +61,7 @@ type PostStateValidatorsRequest struct {
 
 type GetStateValidatorRequest struct {
 	types.StateIDRequest
-	ValidatorID string `query:"validator_id" validate:"required,validator_id"`
+	ValidatorID string `param:"validator_id" validate:"required,validator_id"`
 }
 
 type GetValidatorBalancesRequest struct {
@@ -67,7 +71,7 @@ type GetValidatorBalancesRequest struct {
 
 type PostValidatorBalancesRequest struct {
 	types.StateIDRequest
-	IDs []string `validate:"dive,validator_id"`
+	IDs []string `json:"-" validate:"dive,validator_id"`
 }
 
 type GetStateCommitteesRequest struct {
@@ -89,7 +93,8 @@ type GetRandaoRequest struct {
 
 type GetBlockHeadersRequest struct {
 	SlotRequest
-	ParentRoot string `query:"parent_root" validate:"hex"`
+
+	ParentRoot string `query:"parent_root" validate:"omitempty,hex"`
 }
 
 type GetBlockHeaderRequest struct {

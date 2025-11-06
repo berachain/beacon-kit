@@ -23,10 +23,10 @@ package store
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
@@ -36,20 +36,16 @@ type Store struct {
 	IndexDB
 	// logger is used for logging.
 	logger log.Logger
-	// chainSpec contains the chain specification.
-	chainSpec chain.Spec
 }
 
 // New creates a new instance of the AvailabilityStore.
 func New(
 	db IndexDB,
 	logger log.Logger,
-	chainSpec chain.Spec,
 ) *Store {
 	return &Store{
-		IndexDB:   db,
-		chainSpec: chainSpec,
-		logger:    logger,
+		IndexDB: db,
+		logger:  logger,
 	}
 }
 
@@ -79,12 +75,11 @@ func (s *Store) GetBlobSidecars(slot math.Slot) (types.BlobSidecars, error) {
 
 	sidecars := make(types.BlobSidecars, 0, len(sidecarBzs))
 	for _, sidecarBz := range sidecarBzs {
-		sidecar := types.BlobSidecar{}
-		err = sidecar.UnmarshalSSZ(sidecarBz)
-		if err != nil {
+		sidecar := new(types.BlobSidecar)
+		if err = ssz.Unmarshal(sidecarBz, sidecar); err != nil {
 			return sidecars, err
 		}
-		sidecars = append(sidecars, &sidecar)
+		sidecars = append(sidecars, sidecar)
 	}
 
 	return sidecars, nil
@@ -92,9 +87,7 @@ func (s *Store) GetBlobSidecars(slot math.Slot) (types.BlobSidecars, error) {
 
 // Persist ensures the sidecar data remains accessible, utilizing parallel
 // processing for efficiency.
-func (s *Store) Persist(
-	sidecars types.BlobSidecars,
-) error {
+func (s *Store) Persist(sidecars types.BlobSidecars) error {
 	var slot math.Slot
 	// Store each sidecar sequentially. The store's underlying RangeDB is not
 	// built to handle concurrent writes.
@@ -106,7 +99,7 @@ func (s *Store) Persist(
 		if err != nil {
 			return err
 		}
-		slot = sidecar.GetSignedBeaconBlockHeader().GetHeader().GetSlot()
+		slot = sidecar.GetBeaconBlockHeader().GetSlot()
 		err = s.IndexDB.Set(slot.Unwrap(), sidecar.KzgCommitment[:], bz)
 
 		if err != nil {

@@ -26,20 +26,24 @@ import (
 	"github.com/berachain/beacon-kit/primitives/version"
 )
 
-// ActiveForkVersionForSlot returns the active fork version for a given slot.
-func (s spec) ActiveForkVersionForSlot(slot math.Slot) common.Version {
-	return s.ActiveForkVersionForEpoch(s.SlotToEpoch(slot))
-}
-
-// ActiveForkVersionForEpoch returns the active fork version for a given epoch.
-func (s spec) ActiveForkVersionForEpoch(epoch math.Epoch) common.Version {
-	if epoch >= s.ElectraForkEpoch() {
+// ActiveForkVersionForTimestamp returns the active fork version for a given timestamp.
+func (s spec) ActiveForkVersionForTimestamp(timestamp math.U64) common.Version {
+	time := timestamp.Unwrap()
+	if time >= s.Electra1ForkTime() {
+		return version.Electra1()
+	}
+	if time >= s.ElectraForkTime() {
 		return version.Electra()
 	}
-	if epoch >= s.Deneb1ForkEpoch() {
+	if time >= s.Deneb1ForkTime() {
 		return version.Deneb1()
 	}
 	return version.Deneb()
+}
+
+// GenesisForkVersion returns the fork version at genesis.
+func (s spec) GenesisForkVersion() common.Version {
+	return s.ActiveForkVersionForTimestamp(math.U64(s.GenesisTime()))
 }
 
 // SlotToEpoch converts a slot to an epoch.
@@ -51,4 +55,19 @@ func (s spec) SlotToEpoch(slot math.Slot) math.Epoch {
 // of the given current epoch.
 func (s spec) WithinDAPeriod(block, current math.Slot) bool {
 	return s.SlotToEpoch(block)+s.MinEpochsForBlobsSidecarsRequest() >= s.SlotToEpoch(current)
+}
+
+// IsMainnet returns true if the chain is running with the mainnet chain ID.
+func (s spec) IsMainnet() bool {
+	return s.DepositEth1ChainID() == MainnetEth1ChainID
+}
+
+// IsTestnet returns true if the chain is running with the testnet chain ID.
+func (s spec) IsTestnet() bool {
+	return s.DepositEth1ChainID() == TestnetEth1ChainID
+}
+
+// IsDevnet returns true if the chain is running with the devnet chain ID.
+func (s spec) IsDevnet() bool {
+	return s.DepositEth1ChainID() == DevnetEth1ChainID
 }

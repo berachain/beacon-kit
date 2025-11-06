@@ -25,31 +25,45 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	sdkversion "github.com/cosmos/cosmos-sdk/version"
 )
 
-var (
-	errInvalidHeight         = errors.New("invalid height")
-	errNilFinalizeBlockState = errors.New("finalizeBlockState is nil")
-)
+var errInvalidHeight = errors.New("invalid height")
 
 func (s *Service) InitChain(
-	ctx context.Context,
+	_ context.Context,
 	req *cmtabci.InitChainRequest,
 ) (*cmtabci.InitChainResponse, error) {
-	return s.initChain(ctx, req)
+	// Check if ctx is still good. CometBFT does not check this.
+	if s.ctx.Err() != nil {
+		// If the context is getting cancelled, we are shutting down.
+		return &cmtabci.InitChainResponse{}, s.ctx.Err()
+	}
+	//nolint:contextcheck // see s.ctx comment for more details
+	return s.initChain(s.ctx, req)
 }
 
 // PrepareProposal implements the PrepareProposal ABCI method and returns a
 // ResponsePrepareProposal object to the client.
 func (s *Service) PrepareProposal(
-	ctx context.Context,
+	_ context.Context,
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
-	return s.prepareProposal(ctx, req)
+	// Check if ctx is still good. CometBFT does not check this.
+	if s.ctx.Err() != nil {
+		// If the context is getting cancelled, we are shutting down.
+		// It is ok returning an empty proposal.
+		//nolint:nilerr // explicitly allowing this case
+		return &cmtabci.PrepareProposalResponse{Txs: req.Txs}, nil
+	}
+	//nolint:contextcheck // see s.ctx comment for more details
+	return s.prepareProposal(s.ctx, req)
 }
 
 func (s *Service) Info(context.Context,
@@ -77,17 +91,32 @@ func (s *Service) Info(context.Context,
 // ProcessProposal implements the ProcessProposal ABCI method and returns a
 // ResponseProcessProposal object to the client.
 func (s *Service) ProcessProposal(
-	ctx context.Context,
+	_ context.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
-	return s.processProposal(ctx, req)
+	// Check if ctx is still good. CometBFT does not check this.
+	if s.ctx.Err() != nil {
+		// Node will panic on context cancel with "CONSENSUS FAILURE!!!" due to
+		// returning an error. This is expected. We do not want to accept or
+		// reject a proposal based on incomplete data.
+		return nil, s.ctx.Err()
+	}
+	//nolint:contextcheck // see s.ctx comment for more details
+	return s.processProposal(s.ctx, req)
 }
 
 func (s *Service) FinalizeBlock(
-	ctx context.Context,
+	_ context.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (*cmtabci.FinalizeBlockResponse, error) {
-	return s.finalizeBlock(ctx, req)
+	// Check if ctx is still good. CometBFT does not check this.
+	if s.ctx.Err() != nil {
+		// Node will panic on context cancel with "CONSENSUS FAILURE!!!" due to error.
+		// We expect this to happen and do not want to finalize any incomplete or invalid state.
+		return nil, s.ctx.Err()
+	}
+	//nolint:contextcheck // see s.ctx comment for more details
+	return s.finalizeBlock(s.ctx, req)
 }
 
 // Commit implements the ABCI interface. It will commit all state that exists in
@@ -98,21 +127,64 @@ func (s *Service) FinalizeBlock(
 // against that height and gracefully halt if it matches the latest committed
 // height.
 func (s *Service) Commit(
-	ctx context.Context, req *cmtabci.CommitRequest,
+	_ context.Context, req *cmtabci.CommitRequest,
 ) (*cmtabci.CommitResponse, error) {
-	return s.commit(ctx, req)
+	// Check if ctx is still good. CometBFT does not check this.
+	if s.ctx.Err() != nil {
+		// Node will panic on context cancel with "CONSENSUS FAILURE!!!" due to error.
+		// We expect this to happen and do not want to commit any incomplete or invalid state.
+		return nil, s.ctx.Err()
+	}
+
+	return s.commit(req)
+}
+
+// NOTE: Partially copied from https://github.com/cosmos/cosmos-sdk/blob/960d44842b9e313cbe762068a67a894ac82060ab/baseapp/abci.go#L168
+func (s *Service) Query(
+	_ context.Context,
+	req *abci.QueryRequest,
+) (*abci.QueryResponse, error) {
+	resp := new(abci.QueryResponse)
+
+	// add panic recovery for all queries
+	//
+	// Ref: https://github.com/cosmos/cosmos-sdk/pull/8039
+	defer func() {
+		if r := recover(); r != nil {
+			*resp = queryResult(errorsmod.Wrapf(sdkerrors.ErrPanic, "%v", r))
+		}
+	}()
+
+	// when a client did not provide a query height, manually inject the latest
+	if req.Height == 0 {
+		req.Height = s.lastBlockHeight()
+	}
+
+	s.telemetrySink.IncrementCounter("beacon_kit.comet.query_count", "path", req.Path)
+	startTime := time.Now()
+	defer s.telemetrySink.MeasureSince(
+		"beacon_kit.comet.query_duration", startTime, "path", req.Path,
+	)
+
+	path := splitABCIQueryPath(req.Path)
+	if len(path) == 0 {
+		*resp = queryResult(errorsmod.Wrap(sdkerrors.ErrUnknownRequest, "no query path provided"))
+		return resp, nil
+	}
+
+	// Only "/store" prefix for store queries are supported.
+	if path[0] != "store" {
+		*resp = queryResult(errorsmod.Wrap(sdkerrors.ErrNotSupported, "unsupported query path"))
+		return resp, nil
+	}
+
+	*resp = s.handleQueryStore(path, req)
+	return resp, nil
 }
 
 //
 // NOOP methods
 //
-
-func (Service) Query(
-	context.Context,
-	*abci.QueryRequest,
-) (*abci.QueryResponse, error) {
-	return &abci.QueryResponse{}, nil
-}
 
 func (Service) ListSnapshots(
 	context.Context,

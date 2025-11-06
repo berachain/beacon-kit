@@ -35,7 +35,6 @@ func DefaultComponents() []any {
 		components.ProvideBlobProofVerifier,
 		components.ProvideChainService,
 		components.ProvideNode,
-		components.ProvideChainSpec,
 		components.ProvideConfig,
 		components.ProvideServerConfig,
 		components.ProvideDepositStore,
@@ -54,24 +53,8 @@ func DefaultComponents() []any {
 		components.ProvideTelemetryService,
 		components.ProvideTrustedSetup,
 		components.ProvideValidatorService,
+		components.ProvideNodeAPIServer,
 		components.ProvideShutDownService,
 	}
-	c = append(c,
-		components.ProvideNodeAPIServer,
-		components.ProvideNodeAPIEngine,
-		components.ProvideNodeAPIBackend,
-	)
-
-	c = append(c,
-		components.ProvideNodeAPIHandlers,
-		components.ProvideNodeAPIBeaconHandler,
-		components.ProvideNodeAPIBuilderHandler,
-		components.ProvideNodeAPIConfigHandler,
-		components.ProvideNodeAPIDebugHandler,
-		components.ProvideNodeAPIEventsHandler,
-		components.ProvideNodeAPINodeHandler,
-		components.ProvideNodeAPIProofHandler,
-	)
-
 	return c
 }

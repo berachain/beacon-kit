@@ -21,104 +21,195 @@
 package backend
 
 import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"sync"
+
+	corestore "cosmossdk.io/core/store"
+	"cosmossdk.io/log"
+	"cosmossdk.io/store"
+	sdkmetrics "cosmossdk.io/store/metrics"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/chain"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
+	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/berachain/beacon-kit/node-core/types"
-	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/math"
-	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
+	"github.com/berachain/beacon-kit/state-transition/core/state"
+	kvstorage "github.com/berachain/beacon-kit/storage"
+	"github.com/berachain/beacon-kit/storage/beacondb"
+	"github.com/berachain/beacon-kit/storage/db"
+	cmtcfg "github.com/cometbft/cometbft/config"
+	dbm "github.com/cosmos/cosmos-db"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 )
 
 // Backend is the db access layer for the beacon node-api.
 // It serves as a wrapper around the storage backend and provides an abstraction
 // over building the query context for a given state.
 type Backend struct {
-	sb   *storage.Backend
-	cs   chain.Spec
-	node types.ConsensusService
-	sp   StateProcessor
+	sb     *storage.Backend
+	cs     chain.Spec
+	cmtCfg *cmtcfg.Config // used to fetch genesis data upon LoadData
+	node   types.ConsensusService
+
+	// Genesis related data
+	sp           GenesisStateProcessor // only needed to recreate genesis state upon API loading
+	db           dbm.DB                // in-memory DB to store genesis state
+	muSt         sync.RWMutex          // mutex to allow initializing and copying genesisState in a safe way
+	cms          storetypes.CommitMultiStore
+	genesisState *state.StateDB // caches genesis data to serve API requests
 }
 
 // New creates and returns a new Backend instance.
 func New(
 	storageBackend *storage.Backend,
+	sp GenesisStateProcessor,
 	cs chain.Spec,
-	sp StateProcessor,
+	cmtCfg *cmtcfg.Config,
+	consensusService types.ConsensusService,
 ) *Backend {
-	return &Backend{
-		sb: storageBackend,
-		cs: cs,
-		sp: sp,
+	b := &Backend{
+		sb:     storageBackend,
+		sp:     sp,
+		cs:     cs,
+		cmtCfg: cmtCfg,
+		node:   consensusService,
+	}
+
+	// genesis data will be cached in LoadData
+	return b
+}
+
+func (b *Backend) LoadData(_ context.Context) error {
+	switch err := b.node.IsAppReady(); {
+	case err == nil:
+		// chain finally ready, time to loading genesis
+		//nolint:contextcheck // loadGenesisState creates its own context for in-memory store
+		return b.loadGenesisState()
+	case errors.Is(err, cometbft.ErrAppNotReady):
+		// start anyhow, we'll init genesis state later on
+		return nil
+	default:
+		return fmt.Errorf("unable to check whether app is ready: %w", err)
 	}
 }
 
-// AttachQueryBackend sets the node on the backend for
-// querying historical heights.
-func (b *Backend) AttachQueryBackend(node types.ConsensusService) {
-	b.node = node
+func (b *Backend) Close() error {
+	if b.db == nil {
+		return nil
+	}
+	return b.db.Close()
 }
 
-// ChainSpec returns the chain spec from the backend.
-func (b *Backend) ChainSpec() chain.Spec {
-	return b.cs
+type backendKVStoreService struct {
+	ctx sdk.Context
 }
 
-// GetSlotByBlockRoot retrieves the slot by a block root from the block store.
-func (b *Backend) GetSlotByBlockRoot(root common.Root) (math.Slot, error) {
-	return b.sb.BlockStore().GetSlotByBlockRoot(root)
+func (kvs *backendKVStoreService) OpenKVStore(context.Context) corestore.KVStore {
+	//nolint:contextcheck // fine with this node-api backend
+	store := sdk.UnwrapSDKContext(kvs.ctx).KVStore(backendStoreKey)
+	return kvstorage.NewKVStore(store)
 }
 
-// GetSlotByStateRoot retrieves the slot by a state root from the block store.
-func (b *Backend) GetSlotByStateRoot(root common.Root) (math.Slot, error) {
-	return b.sb.BlockStore().GetSlotByStateRoot(root)
-}
+//nolint:gochecknoglobals // fine with this node-api backend
+var backendStoreKey = storetypes.NewKVStoreKey("backend-genesis")
 
-// GetParentSlotByTimestamp retrieves the parent slot by a given timestamp from
-// the block store.
-func (b *Backend) GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error) {
-	return b.sb.BlockStore().GetParentSlotByTimestamp(timestamp)
-}
+func (b *Backend) loadGenesisState() error {
+	b.muSt.Lock()
+	defer b.muSt.Unlock()
 
-// stateFromSlot returns the state at the given slot, after also processing the
-// next slot to ensure the returned beacon state is up to date.
-func (b *Backend) stateFromSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error) {
-	var (
-		st  *statedb.StateDB
-		err error
-	)
-	if st, slot, err = b.stateFromSlotRaw(slot); err != nil {
-		return st, slot, err
+	if b.genesisState != nil {
+		// genesis state already initialized, we're fine
+		return nil
 	}
 
-	// Process the slot to update the latest state and block roots.
-	if _, err = b.sp.ProcessSlots(st, slot+1); err != nil {
-		return st, slot, err
-	}
-
-	// We need to set the slot on the state back since ProcessSlot will update
-	// it to slot + 1.
-	err = st.SetSlot(slot)
-	return st, slot, err
-}
-
-// stateFromSlotRaw returns the state at the given slot using query context,
-// resolving an input slot of 0 to the latest slot. It does not process the
-// next slot on the beacon state.
-func (b *Backend) stateFromSlotRaw(slot math.Slot) (*statedb.StateDB, math.Slot, error) {
-	var st *statedb.StateDB
-	queryCtx, err := b.node.CreateQueryContext(int64(slot), false) // #nosec G115 -- not an issue in practice.
+	// 1- Load Genesis bytes
+	genesisData, err := b.parseGenesisBytes()
 	if err != nil {
-		return st, slot, err
+		return err
 	}
-	st = b.sb.StateFromContext(queryCtx)
 
-	// If using height 0 for the query context, make sure to return the latest
-	// slot.
-	if slot == 0 {
-		slot, err = st.GetSlot()
-		if err != nil {
-			return st, slot, err
-		}
+	// 2- Create Genesis Store
+	if err = b.initGenesisState(); err != nil {
+		return fmt.Errorf("backend data loading:%w", err)
 	}
-	return st, slot, err
+
+	// 3- Reprocess Genesis via state Processor. This is safe
+	// since it's done on its own state AND state processor does not
+	// make any call to the EVM during genesis processing.
+	// Note: we process genesis here as soon as node start, but
+	// chain would wait for genesisTime to come if genesisTime
+	// is set in the future. We replicate this behaviour with checkChainIsReady.
+	if _, err = b.sp.InitializeBeaconStateFromEth1(
+		b.genesisState,
+		genesisData.GetDeposits(),
+		genesisData.GetExecutionPayloadHeader(),
+		genesisData.GetForkVersion(),
+	); err != nil {
+		return fmt.Errorf("failed processing genesis: %w", err)
+	}
+
+	_ = b.cms.Commit() // not really necessary for in-memoryDB. Still.
+	return nil
+}
+
+func (b *Backend) parseGenesisBytes() (ctypes.Genesis, error) {
+	appGenesis, err := genutiltypes.AppGenesisFromFile(b.cmtCfg.GenesisFile())
+	if err != nil {
+		return ctypes.Genesis{}, fmt.Errorf("failed loading app genesis from file: %w", err)
+	}
+	gen, err := appGenesis.ToGenesisDoc()
+	if err != nil {
+		return ctypes.Genesis{}, fmt.Errorf("failed parsing app genesis: %w", err)
+	}
+	var genesisState map[string]json.RawMessage
+	if err = json.Unmarshal(gen.AppState, &genesisState); err != nil {
+		return ctypes.Genesis{}, fmt.Errorf("failed to unmarshal genesis state: %w", err)
+	}
+	data := []byte(genesisState["beacon"])
+
+	genesisData := ctypes.Genesis{}
+	if err = json.Unmarshal(data, &genesisData); err != nil {
+		return ctypes.Genesis{}, fmt.Errorf("failed to unmarshal genesis data: %w", err)
+	}
+	return genesisData, nil
+}
+
+func (b *Backend) initGenesisState() error {
+	var err error
+	b.db, err = db.OpenDB("", dbm.MemDBBackend)
+	if err != nil {
+		return fmt.Errorf("failed opening mem db: %w", err)
+	}
+	var (
+		nopLog     = log.NewNopLogger()
+		nopMetrics = sdkmetrics.NewNoOpMetrics()
+	)
+
+	b.cms = store.NewCommitMultiStore(b.db, nopLog, nopMetrics)
+
+	b.cms.MountStoreWithDB(backendStoreKey, storetypes.StoreTypeIAVL, nil)
+	if err = b.cms.LoadLatestVersion(); err != nil {
+		return fmt.Errorf("backend data loading: failed to load latest version: %w", err)
+	}
+
+	ctx := sdk.NewContext(b.cms, true, nopLog)
+	backendStoreService := &backendKVStoreService{
+		ctx: ctx,
+	}
+	kvStore := beacondb.New(backendStoreService)
+
+	sdkCtx := sdk.NewContext(b.cms.CacheMultiStore(), true, log.NewNopLogger())
+	b.genesisState = state.NewBeaconStateFromDB(
+		kvStore.WithContext(sdkCtx),
+		b.cs,
+		sdkCtx.Logger(),
+		metrics.NewNoOpTelemetrySink(),
+	)
+	return nil
 }

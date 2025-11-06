@@ -29,10 +29,11 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
+	"github.com/berachain/beacon-kit/storage/deposit"
 )
 
-func (sp *StateProcessor) validateGenesisDeposits(
-	st *statedb.StateDB, deposits []*ctypes.Deposit,
+func validateGenesisDeposits(
+	st *statedb.StateDB, deposits []*ctypes.Deposit, validatorSetCap uint64,
 ) error {
 	eth1DepositIndex, err := st.GetEth1DepositIndex()
 	if err != nil {
@@ -59,19 +60,21 @@ func (sp *StateProcessor) validateGenesisDeposits(
 	// BeaconKit enforces a cap on the validator set size.
 	// If genesis deposits breaches the cap we return an error.
 	//#nosec:G701 // can't overflow.
-	if uint64(len(deposits)) > sp.cs.ValidatorSetCap() {
+	if uint64(len(deposits)) > validatorSetCap {
 		return errors.Wrapf(
 			ErrValSetCapExceeded,
 			"validator set cap %d, deposits count %d",
-			sp.cs.ValidatorSetCap(), len(deposits),
+			validatorSetCap, len(deposits),
 		)
 	}
 	return nil
 }
 
-func (sp *StateProcessor) validateNonGenesisDeposits(
+func ValidateNonGenesisDeposits(
 	ctx context.Context,
 	st *statedb.StateDB,
+	depositStore deposit.StoreManager,
+	maxDepositsPerBlock uint64,
 	blkDeposits []*ctypes.Deposit,
 	blkDepositRoot common.Root,
 ) error {
@@ -81,10 +84,10 @@ func (sp *StateProcessor) validateNonGenesisDeposits(
 	}
 
 	// Grab all previous deposits from genesis up to the current index + max deposits per block.
-	localDeposits, err := sp.ds.GetDepositsByIndex(
+	localDeposits, localDepositRoot, err := depositStore.GetDepositsByIndex(
 		ctx,
 		constants.FirstDepositIndex,
-		depositIndex+sp.cs.MaxDepositsPerBlock(),
+		depositIndex+maxDepositsPerBlock,
 	)
 	if err != nil {
 		return err
@@ -119,7 +122,7 @@ func (sp *StateProcessor) validateNonGenesisDeposits(
 	}
 
 	// Finally check that the historical deposits root matches locally what's on the beacon block.
-	if !localDeposits.HashTreeRoot().Equals(blkDepositRoot) {
+	if !localDepositRoot.Equals(blkDepositRoot) {
 		return ErrDepositsRootMismatch
 	}
 

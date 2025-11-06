@@ -26,6 +26,7 @@ import (
 	"cosmossdk.io/depinject"
 	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	"github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/types"
 	cmtcfg "github.com/cometbft/cometbft/config"
@@ -63,16 +64,18 @@ func (nb *NodeBuilder) Build(
 ) types.Node {
 	// variables to hold the components needed to set up BeaconApp
 	var (
-		apiBackend interface {
-			AttachQueryBackend(types.ConsensusService)
-		}
 		beaconNode types.Node
 		cmtService types.ConsensusService
 		config     *config.Config
 	)
 
+	chainSpec, err := spec.Create(appOpts)
+	if err != nil {
+		panic(err)
+	}
+
 	// build all node components using depinject
-	if err := depinject.Inject(
+	if err = depinject.Inject(
 		depinject.Configs(
 			depinject.Provide(
 				nb.components...,
@@ -82,9 +85,9 @@ func (nb *NodeBuilder) Build(
 				logger,
 				db,
 				cmtCfg,
+				chainSpec,
 			),
 		),
-		&apiBackend,
 		&beaconNode,
 		&cmtService,
 		&config,
@@ -94,11 +97,7 @@ func (nb *NodeBuilder) Build(
 	if config == nil {
 		panic("config is nil")
 	}
-	if apiBackend == nil {
-		panic("node or api backend is nil")
-	}
 
 	logger.WithConfig(config.GetLogger())
-	apiBackend.AttachQueryBackend(cmtService)
 	return beaconNode
 }

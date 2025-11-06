@@ -39,9 +39,7 @@ import (
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
 func (s *EngineClient) NewPayload(
 	ctx context.Context,
-	payload *ctypes.ExecutionPayload,
-	versionedHashes []common.ExecutionHash,
-	parentBeaconBlockRoot *common.Root,
+	req ctypes.NewPayloadRequest,
 ) (*common.ExecutionHash, error) {
 	var (
 		startTime    = time.Now()
@@ -51,9 +49,7 @@ func (s *EngineClient) NewPayload(
 	defer cancel()
 
 	// Call the appropriate RPC method based on the payload version.
-	result, err := s.Client.NewPayload(
-		cctx, payload, versionedHashes, parentBeaconBlockRoot,
-	)
+	result, err := s.Client.NewPayload(cctx, req)
 	if err != nil {
 		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {
 			s.metrics.incrementNewPayloadTimeout()
@@ -87,7 +83,7 @@ func (s *EngineClient) ForkchoiceUpdated(
 	state *engineprimitives.ForkchoiceStateV1,
 	attrs *engineprimitives.PayloadAttributes,
 	forkVersion common.Version,
-) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
+) (*engineprimitives.PayloadID, error) {
 	var (
 		startTime    = time.Now()
 		cctx, cancel = s.createContextWithTimeout(ctx)
@@ -96,11 +92,11 @@ func (s *EngineClient) ForkchoiceUpdated(
 	defer cancel()
 
 	// If the suggested fee recipient is not set, log a warning.
-	if !attrs.IsNil() &&
+	if attrs != nil &&
 		attrs.GetSuggestedFeeRecipient() == (common.ExecutionAddress{}) {
 		s.logger.Warn(
 			"Suggested fee recipient is not configured 🔆",
-			"fee-recipent", attrs.GetSuggestedFeeRecipient(),
+			"fee-recipient", attrs.GetSuggestedFeeRecipient(),
 		)
 	}
 
@@ -109,17 +105,17 @@ func (s *EngineClient) ForkchoiceUpdated(
 		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {
 			s.metrics.incrementForkchoiceUpdateTimeout()
 		}
-		return nil, nil, s.handleRPCError(err)
+		return nil, s.handleRPCError(err)
 	}
 	if result == nil {
-		return nil, nil, engineerrors.ErrNilForkchoiceResponse
+		return nil, engineerrors.ErrNilForkchoiceResponse
 	}
 
-	latestValidHash, err := processPayloadStatusResult(&result.PayloadStatus)
+	_, err = processPayloadStatusResult(&result.PayloadStatus)
 	if err != nil {
-		return nil, latestValidHash, err
+		return nil, err
 	}
-	return result.PayloadID, latestValidHash, nil
+	return result.PayloadID, nil
 }
 
 /* -------------------------------------------------------------------------- */
@@ -149,7 +145,8 @@ func (s *EngineClient) GetPayload(
 		return result, s.handleRPCError(err)
 	}
 	if result == nil {
-		return result, engineerrors.ErrNilExecutionPayloadEnvelope
+		// Engine API returns the Unknown Payload (-38001) error if a nil result is returned.
+		return result, engineerrors.ErrUnknownPayload
 	}
 	if result.GetBlobsBundle() == nil {
 		return result, engineerrors.ErrNilBlobsBundle

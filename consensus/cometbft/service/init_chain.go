@@ -24,6 +24,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/cache"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -83,11 +84,18 @@ func (s *Service) initChain(
 		}
 	}
 
-	s.finalizeBlockState = s.resetState(ctx)
+	genesisHash := ""
+	genesisFinalState := s.resetState(ctx)
+	s.cachedStates.SetCached(genesisHash, &cache.Element{
+		State: genesisFinalState,
+	})
+	if err = s.cachedStates.MarkAsFinal(genesisHash); err != nil {
+		return nil, err
+	}
 
 	//nolint:contextcheck // ctx already passed via resetState
 	resValidators, err := s.initChainer(
-		s.finalizeBlockState.Context(),
+		genesisFinalState.Context(),
 		req.AppStateBytes,
 	)
 	if err != nil {

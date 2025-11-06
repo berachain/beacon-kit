@@ -107,9 +107,6 @@ var prysmConsistencyTests = []struct {
 	},
 }
 
-// NOTE: not testing legacy and Bartio transactions types
-// (engineprimitives.Transactions and engine.primitivesBartioTransactions
-// respectively) since those will be deprecated soon.
 func TestProperTransactions(t *testing.T) {
 	t.Parallel()
 	for _, tt := range prysmConsistencyTests {

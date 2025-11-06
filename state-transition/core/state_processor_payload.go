@@ -26,7 +26,9 @@ import (
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"golang.org/x/sync/errgroup"
 )
@@ -37,6 +39,7 @@ func (sp *StateProcessor) processExecutionPayload(
 	txCtx ReadOnlyContext,
 	st *statedb.StateDB,
 	blk *ctypes.BeaconBlock,
+	parentProposerPubkey *crypto.BLSPubkey,
 ) error {
 	var (
 		body    = blk.GetBody()
@@ -58,10 +61,23 @@ func (sp *StateProcessor) processExecutionPayload(
 		"verify payload", txCtx.VerifyPayload(),
 	)
 
+	if version.EqualsOrIsAfter(blk.GetForkVersion(), version.Electra()) {
+		requests, getErr := blk.GetBody().GetExecutionRequests()
+		if getErr != nil {
+			return getErr
+		}
+		sp.logger.Info(
+			"Processing execution requests",
+			"deposits", len(requests.Deposits),
+			"withdrawals", len(requests.Withdrawals),
+			"consolidations", len(requests.Consolidations),
+		)
+	}
+
 	// Perform payload verification only if the context is configured as such.
 	if txCtx.VerifyPayload() {
 		g.Go(func() error {
-			return sp.validateExecutionPayload(ctx, txCtx.ConsensusTime(), st, blk, txCtx.OptimisticEngine())
+			return sp.validateExecutionPayload(ctx, txCtx.ConsensusTime(), st, blk, parentProposerPubkey)
 		})
 	}
 
@@ -91,14 +107,14 @@ func (sp *StateProcessor) processExecutionPayload(
 func (sp *StateProcessor) validateExecutionPayload(
 	ctx context.Context,
 	consensusTime math.U64,
-	st *statedb.StateDB,
+	st ReadOnlyBeaconState,
 	blk *ctypes.BeaconBlock,
-	optimisticEngine bool,
+	parentProposerPubkey *crypto.BLSPubkey,
 ) error {
 	if err := sp.validateStatelessPayload(blk); err != nil {
 		return err
 	}
-	return sp.validateStatefulPayload(ctx, consensusTime, st, blk, optimisticEngine)
+	return sp.validateStatefulPayload(ctx, consensusTime, st, blk, parentProposerPubkey)
 }
 
 // validateStatelessPayload performs stateless checks on the execution payload.
@@ -125,9 +141,9 @@ func (sp *StateProcessor) validateStatelessPayload(blk *ctypes.BeaconBlock) erro
 func (sp *StateProcessor) validateStatefulPayload(
 	ctx context.Context,
 	consensusTime math.U64,
-	st *statedb.StateDB,
+	st ReadOnlyBeaconState,
 	blk *ctypes.BeaconBlock,
-	optimisticEngine bool,
+	parentProposerPubkey *crypto.BLSPubkey,
 ) error {
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
@@ -157,27 +173,31 @@ func (sp *StateProcessor) validateStatefulPayload(
 		return err
 	}
 
-	parentBeaconBlockRoot := blk.GetParentBlockRoot()
-	if err = sp.executionEngine.VerifyAndNotifyNewPayload(
-		ctx, ctypes.BuildNewPayloadRequest(
-			payload,
-			body.GetBlobKzgCommitments().ToVersionedHashes(),
-			&parentBeaconBlockRoot,
-			optimisticEngine,
-		),
-	); err != nil {
-		return err
-	}
-
-	// Verify RANDAO
-	slot, err := st.GetSlot()
+	payloadReq, err := ctypes.BuildNewPayloadRequestFromFork(blk, parentProposerPubkey)
 	if err != nil {
 		return err
 	}
 
-	expectedMix, err := st.GetRandaoMixAtIndex(
-		sp.cs.SlotToEpoch(slot).Unwrap() % sp.cs.EpochsPerHistoricalVector(),
-	)
+	// First we verify the block hash and versioned hashes are valid.
+	// TODO: is this required? Or will the EL handle this for us during
+	// new payload?
+	if err = payloadReq.HasValidVersionedAndBlockHashes(); err != nil {
+		return err
+	}
+
+	// TODO: set retryOnSyncingStatus to false if we are in FinalizeBlock.
+	// Otherwise leave as true. This is ok to leave this way for now.
+	if err = sp.executionEngine.NotifyNewPayload(ctx, payloadReq, true); err != nil {
+		return err
+	}
+
+	// Verify RANDAO
+	epoch, err := st.GetEpoch()
+	if err != nil {
+		return err
+	}
+
+	expectedMix, err := st.GetRandaoMixAtIndex(epoch.Unwrap() % sp.cs.EpochsPerHistoricalVector())
 	if err != nil {
 		return err
 	}

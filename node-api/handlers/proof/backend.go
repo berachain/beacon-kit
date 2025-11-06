@@ -21,22 +21,16 @@
 package proof
 
 import (
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/node-api/backend"
 	"github.com/berachain/beacon-kit/primitives/math"
-	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // Backend is the interface for backend of the proof API.
 type Backend interface {
-	BlockBackend
 	StateBackend
 	GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
 }
 
-type BlockBackend interface {
-	BlockHeaderAtSlot(slot math.Slot) (*ctypes.BeaconBlockHeader, error)
-}
-
 type StateBackend interface {
-	StateFromSlotForProof(slot math.Slot) (*statedb.StateDB, math.Slot, error)
+	StateAndSlotFromHeight(height int64) (backend.ReadOnlyBeaconState, math.Slot, error)
 }

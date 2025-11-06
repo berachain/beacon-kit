@@ -34,70 +34,82 @@ import (
 
 func TestDefaultGenesis(t *testing.T) {
 	t.Parallel()
-	g := types.DefaultGenesis()
-	if !version.Equals(g.ForkVersion, version.Deneb()) {
-		t.Errorf(
-			"Expected fork version %v, but got %v",
-			version.Deneb(),
-			g.ForkVersion,
-		)
-	}
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		g := types.DefaultGenesis(v)
+		if !version.Equals(g.ForkVersion, v) {
+			t.Errorf(
+				"Expected fork version %v, but got %v",
+				v,
+				g.ForkVersion,
+			)
+		}
 
-	if len(g.Deposits) != 0 {
-		t.Errorf("Expected no deposits, but got %v", len(g.Deposits))
-	}
-	// add assertions for ExecutionPayloadHeader
-	require.NotNil(t, g.ExecutionPayloadHeader,
-		"Expected ExecutionPayloadHeader to be non-nil")
-	require.Equal(t, common.ExecutionHash{},
-		g.ExecutionPayloadHeader.GetParentHash(),
-		"Unexpected ParentHash")
-	require.Equal(t, common.ExecutionAddress{},
-		g.ExecutionPayloadHeader.GetFeeRecipient(),
-		"Unexpected FeeRecipient")
-	require.Equal(t, math.U64(30000000),
-		g.ExecutionPayloadHeader.GetGasLimit(),
-		"Unexpected GasLimit")
-	require.Equal(t, math.U64(0),
-		g.ExecutionPayloadHeader.GetGasUsed(),
-		"Unexpected GasUsed")
-	require.Equal(t, math.U64(0),
-		g.ExecutionPayloadHeader.GetTimestamp(),
-		"Unexpected Timestamp")
+		if len(g.Deposits) != 0 {
+			t.Errorf("Expected no deposits, but got %v", len(g.Deposits))
+		}
+		// add assertions for ExecutionPayloadHeader
+		require.NotNil(t, g.ExecutionPayloadHeader,
+			"Expected ExecutionPayloadHeader to be non-nil")
+		require.Equal(t, common.ExecutionHash{},
+			g.ExecutionPayloadHeader.GetParentHash(),
+			"Unexpected ParentHash")
+		require.Equal(t, common.ExecutionAddress{},
+			g.ExecutionPayloadHeader.GetFeeRecipient(),
+			"Unexpected FeeRecipient")
+		require.Equal(t, math.U64(30000000),
+			g.ExecutionPayloadHeader.GetGasLimit(),
+			"Unexpected GasLimit")
+		require.Equal(t, math.U64(0),
+			g.ExecutionPayloadHeader.GetGasUsed(),
+			"Unexpected GasUsed")
+		require.Equal(t, math.U64(0),
+			g.ExecutionPayloadHeader.GetTimestamp(),
+			"Unexpected Timestamp")
+	})
 }
 
 func TestDefaultGenesisExecutionPayloadHeader(t *testing.T) {
 	t.Parallel()
-	header, err := types.DefaultGenesisExecutionPayloadHeader()
-	require.NoError(t, err)
-	require.NotNil(t, header)
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		header, err := types.DefaultGenesisExecutionPayloadHeader(v)
+		require.NoError(t, err)
+		require.NotNil(t, header)
+	})
 }
 
 func TestGenesisGetForkVersion(t *testing.T) {
 	t.Parallel()
-	g := types.DefaultGenesis()
-	forkVersion := g.GetForkVersion()
-	require.Equal(t, version.Deneb(), forkVersion)
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		g := types.DefaultGenesis(v)
+		forkVersion := g.GetForkVersion()
+		require.Equal(t, v, forkVersion)
+	})
 }
 
 func TestGenesisGetDeposits(t *testing.T) {
 	t.Parallel()
-	g := types.DefaultGenesis()
-	deposits := g.GetDeposits()
-	require.Empty(t, deposits)
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		g := types.DefaultGenesis(v)
+		deposits := g.GetDeposits()
+		require.Empty(t, deposits)
+	})
 }
 
 func TestGenesisGetExecutionPayloadHeader(t *testing.T) {
 	t.Parallel()
-	g := types.DefaultGenesis()
-	header := g.GetExecutionPayloadHeader()
-	require.NotNil(t, header)
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		g := types.DefaultGenesis(v)
+		header := g.GetExecutionPayloadHeader()
+		require.NotNil(t, header)
+	})
 }
 
 func TestDefaultGenesisPanics(t *testing.T) {
 	t.Parallel()
-	require.NotPanics(t, func() {
-		types.DefaultGenesis()
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		require.NotPanics(t, func() {
+			types.DefaultGenesis(v)
+		})
 	})
 }
 
@@ -208,18 +220,20 @@ func TestGenesisUnmarshalJSON(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-			g := types.DefaultGenesis()
-			err := g.UnmarshalJSON([]byte(tc.jsonInput))
-			if tc.expectedError {
-				require.Error(t, err, "Expected error but got none")
-			} else {
-				require.NoError(t, err, "Unexpected error")
-				require.Equal(t, tc.expectedFork, g.ForkVersion, "Unexpected ForkVersion")
-				require.Len(t, g.Deposits, tc.expectedDepositsLen, "Unexpected number of deposits")
-				require.NotNil(t, g.ExecutionPayloadHeader, "Expected ExecutionPayloadHeader to be non-nil")
-			}
+		runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+			t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
+				g := types.DefaultGenesis(v)
+				err := g.UnmarshalJSON([]byte(tc.jsonInput))
+				if tc.expectedError {
+					require.Error(t, err, "Expected error but got none")
+				} else {
+					require.NoError(t, err, "Unexpected error")
+					require.Equal(t, tc.expectedFork, g.ForkVersion, "Unexpected ForkVersion")
+					require.Len(t, g.Deposits, tc.expectedDepositsLen, "Unexpected number of deposits")
+					require.NotNil(t, g.ExecutionPayloadHeader, "Expected ExecutionPayloadHeader to be non-nil")
+				}
+			})
 		})
 	}
 }

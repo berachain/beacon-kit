@@ -20,8 +20,6 @@
 
 package schema
 
-import "github.com/berachain/beacon-kit/primitives/common"
-
 type ID uint8
 
 const (
@@ -82,48 +80,4 @@ type SSZType interface {
 	// HashChunkCount returns the number of 32-byte chunks required to represent
 	// the SSZ type in a Merkle tree.
 	HashChunkCount() uint64
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                 SSZ Objects                                */
-/* -------------------------------------------------------------------------- */
-
-// SSZObject defines an interface for SSZ basic types which includes methods for
-// determining the size of the SSZ encoding and computing the hash tree root.
-type MerkleizableSSZObject[RootT ~[32]byte] interface {
-	// SizeSSZ returns the size in bytes of the SSZ-encoded data.
-	SizeSSZ() uint32
-	// HashTreeRoot computes and returns the hash tree root of the data as
-	// RootT and an error if the computation fails.
-	HashTreeRoot() RootT
-	// MarshalSSZ marshals the data into SSZ format.
-	MarshalSSZ() ([]byte, error)
-}
-
-// MinimalSSZObject is the smallest interface of an SSZable type.
-type MinimalSSZObject interface {
-	MerkleizableSSZObject[common.Root]
-	// MarshalSSZ marshals the type into SSZ format.
-	IsFixed() bool
-	// Type returns the type of the SSZ object.
-	Type() SSZType
-}
-
-// SSZObject is the interface for all SSZ types.
-type SSZObject[T any] interface {
-	MinimalSSZObject
-	// ChunkCount returns the number of chunks required to store the type.
-	ChunkCount() uint64
-	NewFromSSZ([]byte) (T, error)
-}
-
-// SSZEnumerable is the interface for all SSZ enumerable types must implement.
-type SSZEnumerable[
-	ElementT any,
-] interface {
-	MinimalSSZObject
-	// N returns the N value as defined in the SSZ specification.
-	N() uint64
-	// Elements returns the elements of the enumerable type.
-	Elements() []ElementT
 }

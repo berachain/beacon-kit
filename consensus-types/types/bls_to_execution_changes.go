@@ -33,11 +33,11 @@ import (
 var (
 	_ ssz.StaticObject                    = (*BlsToExecutionChange)(nil)
 	_ constraints.SSZMarshallableRootable = (*BlsToExecutionChange)(nil)
-	_ UnusedEnforcer                      = (*BlsToExecutionChanges)(nil)
+	_ common.UnusedEnforcer               = (*BlsToExecutionChanges)(nil)
 )
 
 type (
-	BlsToExecutionChange  = UnusedType
+	BlsToExecutionChange  = common.UnusedType
 	BlsToExecutionChanges []*BlsToExecutionChange
 )
 

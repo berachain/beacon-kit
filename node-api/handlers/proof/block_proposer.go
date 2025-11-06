@@ -31,42 +31,36 @@ import (
 // id along with a merkle proof that can be verified against the beacon block
 // root. It also returns the merkle proof of the proposer index.
 func (h *Handler) GetBlockProposer(c handlers.Context) (any, error) {
-	params, err := utils.BindAndValidate[types.BlockProposerRequest](
-		c, h.Logger(),
-	)
+	params, err := utils.BindAndValidate[types.BlockProposerRequest](c, h.Logger())
 	if err != nil {
 		return nil, err
 	}
-	slot, beaconState, blockHeader, err := h.resolveTimestampID(
-		params.TimestampID,
-	)
+	slot, beaconState, blockHeader, err := h.resolveTimestampID(params.TimestampID)
 	if err != nil {
 		return nil, err
 	}
 
 	h.Logger().Info("Generating block proposer proofs", "slot", slot)
 
-	// Generate the proof (along with the "correct" beacon block root to
-	// verify against) for the proposer validator pubkey.
-	pubkeyProof, beaconBlockRoot, err := merkle.ProveProposerPubkeyInBlock(
-		blockHeader, beaconState,
-	)
+	// Generate the proof (along with the "correct" beacon block root to verify against) for the
+	// proposer validator's pubkey.
+	bsm, err := beaconState.GetMarshallable()
+	if err != nil {
+		return nil, err
+	}
+	pubkeyProof, beaconBlockRoot, err := merkle.ProveProposerPubkeyInBlock(blockHeader, bsm)
 	if err != nil {
 		return nil, err
 	}
 
 	// Generate the proof for the proposer index.
-	proposerIndexProof, _, err := merkle.ProveProposerIndexInBlock(
-		blockHeader,
-	)
+	proposerIndexProof, _, err := merkle.ProveProposerIndexInBlock(blockHeader)
 	if err != nil {
 		return nil, err
 	}
 
 	// Get the pubkey of the proposer validator.
-	proposerValidator, err := beaconState.ValidatorByIndex(
-		blockHeader.GetProposerIndex(),
-	)
+	proposerValidator, err := beaconState.ValidatorByIndex(blockHeader.GetProposerIndex())
 	if err != nil {
 		return nil, err
 	}

@@ -21,9 +21,12 @@
 package encoding
 
 import (
+	"fmt"
+
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
 )
 
 // ExtractBlobsAndBlockFromRequest extracts the blobs and block from an ABCI
@@ -39,7 +42,7 @@ func ExtractBlobsAndBlockFromRequest(
 	}
 
 	blk, err := UnmarshalBeaconBlockFromABCIRequest(
-		req,
+		req.GetTxs(),
 		beaconBlkIndex,
 		forkVersion,
 	)
@@ -48,7 +51,7 @@ func ExtractBlobsAndBlockFromRequest(
 	}
 
 	blobs, err := UnmarshalBlobSidecarsFromABCIRequest(
-		req,
+		req.GetTxs(),
 		blobSidecarsIndex,
 	)
 
@@ -58,16 +61,11 @@ func ExtractBlobsAndBlockFromRequest(
 // UnmarshalBeaconBlockFromABCIRequest extracts a beacon block from an ABCI
 // request.
 func UnmarshalBeaconBlockFromABCIRequest(
-	req ABCIRequest,
+	txs [][]byte,
 	bzIndex uint,
 	forkVersion common.Version,
 ) (*ctypes.SignedBeaconBlock, error) {
 	var signedBlk *ctypes.SignedBeaconBlock
-	if req == nil {
-		return signedBlk, ErrNilABCIRequest
-	}
-
-	txs := req.GetTxs()
 	lenTxs := uint(len(txs))
 
 	// Ensure there are transactions in the request and that the request is
@@ -85,32 +83,34 @@ func UnmarshalBeaconBlockFromABCIRequest(
 		return signedBlk, ErrNilBeaconBlockInRequest
 	}
 
-	return ctypes.NewSignedBeaconBlockFromSSZ(blkBz, forkVersion)
+	block, err := ctypes.NewEmptySignedBeaconBlockWithVersion(forkVersion)
+	if err != nil {
+		return nil, fmt.Errorf("attempt at building block with wrong version %s: %w", forkVersion, err)
+	}
+	if err = ssz.Unmarshal(blkBz, block); err != nil {
+		return nil, err
+	}
+	return block, nil
 }
 
 // UnmarshalBlobSidecarsFromABCIRequest extracts blob sidecars from an ABCI
 // request.
 func UnmarshalBlobSidecarsFromABCIRequest(
-	req ABCIRequest,
+	txs [][]byte,
 	bzIndex uint,
 ) (datypes.BlobSidecars, error) {
-	var sidecars datypes.BlobSidecars
-	if req == nil {
-		return sidecars, ErrNilABCIRequest
-	}
-
-	txs := req.GetTxs()
 	if len(txs) == 0 || bzIndex >= uint(len(txs)) {
-		return sidecars, ErrNoBeaconBlockInRequest
+		return nil, ErrNoBlobSidecarInRequest
 	}
 
 	sidecarBz := txs[bzIndex]
 	if sidecarBz == nil {
-		return sidecars, ErrNilBeaconBlockInRequest
+		return nil, ErrNilBlobSidecarInRequest
 	}
 
-	// TODO: Do some research to figure out how to make this more
-	// elegant.
-	sidecars = datypes.BlobSidecars{}
-	return sidecars, sidecars.UnmarshalSSZ(sidecarBz)
+	var sidecars datypes.BlobSidecars
+	if err := ssz.Unmarshal(sidecarBz, &sidecars); err != nil {
+		return nil, err
+	}
+	return sidecars, nil
 }

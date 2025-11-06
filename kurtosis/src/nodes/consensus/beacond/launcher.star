@@ -195,9 +195,9 @@ def init_consensus_nodes():
     genesis_file = "{}/config/genesis.json".format("$BEACOND_HOME")
 
     # Check if genesis file exists, if not then initialize the beacond
-    init_node = "if [ ! -f {} ]; then /usr/bin/beacond init --chain-id {} {} --home {}; fi".format(genesis_file, "$BEACOND_CHAIN_ID", "$BEACOND_MONIKER", "$BEACOND_HOME")
-    add_validator = "/usr/bin/beacond genesis add-premined-deposit {} {} --home {}".format("$DEPOSIT_AMOUNT", "$WITHDRAWAL_ADDRESS", "$BEACOND_HOME")
-    collect_gentx = "/usr/bin/beacond genesis collect-premined-deposits --home {}".format("$BEACOND_HOME")
+    init_node = "if [ ! -f {} ]; then /usr/bin/beacond init --beacon-kit.chain-spec {} --chain-id {} {} --home {}; fi".format(genesis_file, "$BEACOND_CHAIN_SPEC", "$BEACOND_CHAIN_ID", "$BEACOND_MONIKER", "$BEACOND_HOME")
+    add_validator = "/usr/bin/beacond genesis add-premined-deposit {} {} --beacon-kit.chain-spec {} --home {}".format("$DEPOSIT_AMOUNT", "$WITHDRAWAL_ADDRESS", "$BEACOND_CHAIN_SPEC", "$BEACOND_HOME")
+    collect_gentx = "/usr/bin/beacond genesis collect-premined-deposits --beacon-kit.chain-spec {} --home {}".format("$BEACOND_CHAIN_SPEC", "$BEACOND_HOME")
     return "{} && {} && {}".format(init_node, add_validator, collect_gentx)
 
 def create_node_config(plan, node_struct, peers, paired_el_client_name, chain_id, chain_spec, genesis_deposits_root, genesis_deposit_count_hex, jwt_file = None, kzg_trusted_setup_file = None):

@@ -31,6 +31,14 @@ var (
 	// there is no beacon block in an abci request.
 	ErrNoBeaconBlockInRequest = errors.New("no beacon block in abci request")
 
+	// ErrNilBlobSidecarInRequest is an error for when
+	// the blob sidecar in an abci request is nil.
+	ErrNilBlobSidecarInRequest = errors.New("nil blob sidecar in abci request")
+
+	// ErrNoBlobSidecarInRequest is an error for when
+	// there is no blob sidecar in an abci request.
+	ErrNoBlobSidecarInRequest = errors.New("no blob sidecar in abci request")
+
 	// ErrBzIndexOutOfBounds is an error for when the index
 	// is out of bounds.
 	ErrBzIndexOutOfBounds = errors.New("bzIndex out of bounds")

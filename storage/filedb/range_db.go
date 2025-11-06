@@ -25,14 +25,14 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"sync"
 
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
+	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/storage"
 	db "github.com/berachain/beacon-kit/storage/interfaces"
-	"github.com/berachain/beacon-kit/storage/pruner"
 	"github.com/spf13/afero"
 )
 
@@ -42,10 +42,7 @@ const (
 	keyParts   = 2
 )
 
-// Compile-time assertion of prunable interface.
 var (
-	_ pruner.Prunable = (*RangeDB)(nil)
-
 	ErrRangeNotSupported = errors.New("RangeDB DeleteRange: delete range not supported for this db")
 )
 
@@ -120,7 +117,7 @@ func (db *RangeDB) deleteRange(from, to uint64) error {
 	if from > to {
 		return fmt.Errorf(
 			"RangeDB deleteRange start: %d, end: %d: %w",
-			from, to, pruner.ErrInvalidRange,
+			from, to, storage.ErrInvalidRange,
 		)
 	}
 	for i := from; i < to; i++ {
@@ -143,7 +140,7 @@ func (db *RangeDB) Prune(start, end uint64) error {
 	if start > end {
 		return fmt.Errorf(
 			"RangeDB Prune start: %d, end: %d: %w",
-			start, end, pruner.ErrInvalidRange,
+			start, end, storage.ErrInvalidRange,
 		)
 	}
 
@@ -203,10 +200,10 @@ func ExtractIndex(prefixedKey []byte) (uint64, error) {
 	}
 
 	indexStr := string(parts[0])
-	index, err := strconv.ParseUint(indexStr, 10, 64)
+	index, err := math.U64FromString(indexStr)
 	if err != nil {
 		return 0, err
 	}
 
-	return index, nil
+	return index.Unwrap(), nil
 }

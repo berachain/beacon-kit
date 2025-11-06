@@ -31,10 +31,8 @@ import (
 	"github.com/berachain/beacon-kit/primitives/merkle/zero"
 )
 
-const (
-	// 2^63 would overflow.
-	MaxTreeDepth = 62
-)
+// 2^63 would overflow.
+const MaxTreeDepth = 62
 
 // Tree[RootT] implements a Merkle tree that has been optimized to
 // handle leaves that are 32 bytes in size.

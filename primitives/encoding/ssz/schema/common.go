@@ -20,9 +20,15 @@
 
 package schema
 
-import "github.com/berachain/beacon-kit/primitives/encoding/ssz/constants"
-
 const (
+	BoolSize = 1
+	U8Size   = 1
+	U16Size  = 2
+	U32Size  = 4
+	U64Size  = 8
+	U128Size = 16
+	U256Size = 32
+
 	B4Size   = 4
 	B8Size   = 8
 	B16Size  = 16
@@ -36,25 +42,25 @@ const (
 
 // Basic SSZ types.
 // Bool returns an SSZType representing a boolean.
-func Bool() SSZType { return basic(constants.BoolSize) }
+func Bool() SSZType { return basic(BoolSize) }
 
 // U8 returns an SSZType representing an 8-bit unsigned integer.
-func U8() SSZType { return basic(constants.U8Size) }
+func U8() SSZType { return basic(U8Size) }
 
 // U16 returns an SSZType representing a 16-bit unsigned integer.
-func U16() SSZType { return basic(constants.U16Size) }
+func U16() SSZType { return basic(U16Size) }
 
 // U32 returns an SSZType representing a 32-bit unsigned integer.
-func U32() SSZType { return basic(constants.U32Size) }
+func U32() SSZType { return basic(U32Size) }
 
 // U64 returns an SSZType representing a 64-bit unsigned integer.
-func U64() SSZType { return basic(constants.U64Size) }
+func U64() SSZType { return basic(U64Size) }
 
 // U128 returns an SSZType representing a 128-bit unsigned integer.
-func U128() SSZType { return basic(constants.U128Size) }
+func U128() SSZType { return basic(U128Size) }
 
 // U256 returns an SSZType representing a 256-bit unsigned integer.
-func U256() SSZType { return basic(constants.U256Size) }
+func U256() SSZType { return basic(U256Size) }
 
 // B4 creates a DefineByteVector of 4 bytes (32 bits).
 func B4() SSZType { return DefineByteVector(B4Size) }

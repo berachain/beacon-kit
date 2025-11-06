@@ -25,7 +25,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/kzg"
 	datypes "github.com/berachain/beacon-kit/da/types"
@@ -42,20 +41,16 @@ type verifier struct {
 	proofVerifier kzg.BlobProofVerifier
 	// metrics collects and reports metrics related to the verification process.
 	metrics *verifierMetrics
-	// chainSpec contains the chain specification
-	chainSpec chain.Spec
 }
 
 // newVerifier creates a new Verifier with the given proof verifier.
 func newVerifier(
 	proofVerifier kzg.BlobProofVerifier,
 	telemetrySink TelemetrySink,
-	chainSpec chain.Spec,
 ) *verifier {
 	return &verifier{
 		proofVerifier: proofVerifier,
 		metrics:       newVerifierMetrics(telemetrySink),
-		chainSpec:     chainSpec,
 	}
 }
 
@@ -96,11 +91,8 @@ func (bv *verifier) verifySidecars(
 			return fmt.Errorf("invalid sidecar Index: %d", i)
 		}
 
-		// Verify the signature.
-		var sigHeader = s.GetSignedBeaconBlockHeader()
-
 		// Check BlobSidecar.Header equality with BeaconBlockHeader
-		if !sigHeader.GetHeader().Equals(blkHeader) {
+		if !s.GetBeaconBlockHeader().Equals(blkHeader) {
 			return fmt.Errorf("unequal block header: idx: %d", i)
 		}
 	}

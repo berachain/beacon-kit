@@ -22,51 +22,52 @@ package blockchain
 
 import (
 	"context"
+	"fmt"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	contypes "github.com/berachain/beacon-kit/consensus/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // sendPostBlockFCU sends a forkchoice update to the execution client after a
-// block is finalized.This function should only be used to notify
-// the EL client of the new head and should not request optimistic builds, as:
-// Optimistic clients already request builds in handleOptimisticPayloadBuild()
-// Non-optimistic clients should never request optimistic builds.
+// block is finalized.
 func (s *Service) sendPostBlockFCU(
 	ctx context.Context,
 	st *statedb.StateDB,
-	blk *contypes.ConsensusBlock,
-) {
+) error {
 	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
-		s.logger.Error(
-			"failed to get latest execution payload in postBlockProcess",
-			"error", err,
-		)
-		return
+		return fmt.Errorf("failed getting latest payload: %w", err)
 	}
 
-	// Send a forkchoice update without payload attributes to notify
-	// EL of the new head.
-	beaconBlk := blk.GetBeaconBlock()
-	if _, _, err = s.executionEngine.NotifyForkchoiceUpdate(
-		ctx,
-		// TODO: Switch to New().
-		ctypes.
-			BuildForkchoiceUpdateRequestNoAttrs(
-				&engineprimitives.ForkchoiceStateV1{
-					HeadBlockHash:      lph.GetBlockHash(),
-					SafeBlockHash:      lph.GetParentHash(),
-					FinalizedBlockHash: lph.GetParentHash(),
-				},
-				s.chainSpec.ActiveForkVersionForSlot(beaconBlk.GetSlot()),
-			),
-	); err != nil {
-		s.logger.Error(
-			"failed to send forkchoice update without attributes",
-			"error", err,
+	// Send a forkchoice update without payload attributes to notify EL of the new head.
+	// Note that we are being conservative here as we don't mark the block we just finalized
+	// (which is irreversible due to CometBFT SSF) as final. If we keep doing this, we can
+	// spare the FCU update in case we have optimistic block building on, as we may have
+	// already sent the very same FCU request after we verified the block.
+	fcuData := &engineprimitives.ForkchoiceStateV1{
+		HeadBlockHash:      lph.GetBlockHash(),
+		SafeBlockHash:      lph.GetParentHash(),
+		FinalizedBlockHash: lph.GetParentHash(),
+	}
+
+	latestRequestedFCU := s.latestFcuReq.Load()
+	s.latestFcuReq.Store(&engineprimitives.ForkchoiceStateV1{}) // reset and prepare for next block
+	if latestRequestedFCU.Equals(fcuData) {
+		// we already sent the same FCU, likely due to optimistic block building
+		// being active. Avoid re-issuing the same request.
+		return nil
+	}
+
+	req := ctypes.BuildForkchoiceUpdateRequestNoAttrs(
+		fcuData,
+		s.chainSpec.ActiveForkVersionForTimestamp(lph.GetTimestamp()),
+	)
+	if _, err = s.executionEngine.NotifyForkchoiceUpdate(ctx, req); err != nil {
+		return fmt.Errorf("failed forkchoice update, head %s: %w",
+			lph.GetBlockHash().String(),
+			err,
 		)
 	}
+	return nil
 }
