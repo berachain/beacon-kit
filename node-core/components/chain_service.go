@@ -30,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
-	"github.com/berachain/beacon-kit/primitives/crypto"
 )
 
 // ChainServiceInput is the input for the chain service provider.
@@ -42,7 +41,6 @@ type ChainServiceInput struct {
 	ExecutionEngine       *engine.Engine
 	LocalBuilder          LocalBuilder
 	Logger                *phuslu.Logger
-	Signer                crypto.BLSSigner
 	StateProcessor        StateProcessor
 	StorageBackend        *storage.Backend
 	BlobProcessor         BlobProcessor
