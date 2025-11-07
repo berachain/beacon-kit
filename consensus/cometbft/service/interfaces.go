@@ -22,6 +22,8 @@ package cometbft
 
 import (
 	"time"
+
+	cmttypes "github.com/cometbft/cometbft/types"
 )
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.
@@ -30,4 +32,9 @@ type TelemetrySink interface {
 	IncrementCounter(key string, args ...string)
 	// MeasureSince measures the time since the given time.
 	MeasureSince(key string, start time.Time, args ...string)
+}
+
+// PrivValidatorConsumer consumes a CometBFT PrivValidator reference.
+type PrivValidatorConsumer interface {
+	SetPrivValidator(cmttypes.PrivValidator)
 }
