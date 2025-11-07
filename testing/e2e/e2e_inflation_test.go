@@ -38,6 +38,10 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 	chainspec, err := spec.DevnetChainSpec()
 	s.Require().NoError(err)
 
+	// Get the current finalized block to start from (in case other tests ran first)
+	startBlock, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
+	s.Require().NoError(err)
+
 	var (
 		inflationPerBlock          uint64
 		inflationAddress           common.ExecutionAddress
@@ -49,8 +53,9 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 		forkSlot                   int64
 		onceOnFork                 sync.Once
 	)
-	// Arbitrarily run test for 2 epochs.
-	for blkNum := range int64(2 * chainspec.SlotsPerEpoch()) {
+	// Arbitrarily run test for 2 epochs from the current block.
+	for i := range int64(2 * chainspec.SlotsPerEpoch()) {
+		blkNum := int64(startBlock) + i
 		err = s.WaitForFinalizedBlockNumber(uint64(blkNum))
 		s.Require().NoError(err)
 		payload, errBlk := s.JSONRPCBalancer().BlockByNumber(s.Ctx(), big.NewInt(blkNum))

@@ -47,6 +47,7 @@ type KurtosisE2ESuite struct {
 	enclave *enclaves.EnclaveContext
 
 	consensusClients map[string]*types.ConsensusClient
+	fullNodeClients  map[string]*types.ConsensusClient
 	// executionClients map[string]*types.ExecutionClient // TODO: enable.
 	loadBalancer *types.LoadBalancer
 
@@ -57,6 +58,11 @@ type KurtosisE2ESuite struct {
 // ConsensusClients returns the consensus clients associated with the KurtosisE2ESuite.
 func (s *KurtosisE2ESuite) ConsensusClients() map[string]*types.ConsensusClient {
 	return s.consensusClients
+}
+
+// FullNodeClients returns the full node consensus clients associated with the KurtosisE2ESuite.
+func (s *KurtosisE2ESuite) FullNodeClients() map[string]*types.ConsensusClient {
+	return s.fullNodeClients
 }
 
 // Ctx returns the context associated with the KurtosisE2ESuite.

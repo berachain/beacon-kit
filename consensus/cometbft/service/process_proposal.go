@@ -61,6 +61,20 @@ func (s *Service) processProposal(
 		),
 	)
 
+	// Reject proposal if blobs are present before they are allowed
+	if s.chainSpec.BlobConsensusEnableHeight() > 0 && !s.chainSpec.IsBlobConsensusEnabledAtHeight(req.Height) {
+		if len(req.Blob) > 0 {
+			status := cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
+			s.logger.Error(
+				"proposal contains blobs before BlobEnableHeight",
+				"height", req.Height,
+				"blob_enable_height", s.chainSpec.BlobConsensusEnableHeight(),
+				"blob_size", len(req.Blob),
+			)
+			return &cmtabci.ProcessProposalResponse{Status: status}, nil
+		}
+	}
+
 	// errors to consensus indicate that the node was not able to understand
 	// whether the block was valid or not. Viceversa, we signal that a block
 	// is invalid by its status, but we do return nil error in such a case.
@@ -86,13 +100,24 @@ func (s *Service) processProposal(
 	// TODO: before Stable block time activation we keep caching off
 	// to make sure chain does not get faster. Once activated, we can
 	// active as if cache was always active.
-	if cache.IsStateCachingActive(s.delayCfg, math.Slot(req.Height)) {
+	if cache.IsStateCachingActive(s.chainSpec, math.Slot(req.Height)) {
 		stateHash := string(req.Hash)
+		blobData := req.GetBlob()
 		toCache := &cache.Element{
 			State:      processProposalState,
 			ValUpdates: valUpdates,
+			Blobs:      blobData,
 		}
 		s.cachedStates.SetCached(stateHash, toCache)
+
+		// Log caching details for debugging blob issues
+		s.logger.Info(
+			"ProcessProposal cached state and blobs",
+			"height", req.Height,
+			"hash", fmt.Sprintf("%X", req.Hash),
+			"blob_data_size", len(blobData),
+			"has_blobs", len(blobData) > 0,
+		)
 	}
 	status := cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
 	return &cmtabci.ProcessProposalResponse{Status: status}, nil
