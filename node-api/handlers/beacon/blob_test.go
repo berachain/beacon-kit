@@ -35,8 +35,8 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/mocks"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/node-api/handlers/mapping"
 	handlertypes "github.com/berachain/beacon-kit/node-api/handlers/types"
-	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/node-api/middleware"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -77,7 +77,7 @@ func TestGetBlobSidecars(t *testing.T) {
 			inputs: func() beacontypes.GetBlobSidecarsRequest {
 				return beacontypes.GetBlobSidecarsRequest{
 					BlockIDRequest: handlertypes.BlockIDRequest{
-						BlockID: utils.StateIDHead,
+						BlockID: mapping.StateIDHead,
 					},
 					Indices: nil,
 				}

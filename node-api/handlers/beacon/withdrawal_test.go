@@ -34,8 +34,8 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/mocks"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/node-api/handlers/mapping"
 	handlertypes "github.com/berachain/beacon-kit/node-api/handlers/types"
-	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/node-api/middleware"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -150,7 +150,7 @@ func TestGetPendingPartialWithdrawals(t *testing.T) {
 			check: func(t *testing.T, res any, err error) {
 				t.Helper()
 
-				require.ErrorIs(t, err, handlertypes.ErrInvalidRequest)
+				require.ErrorIs(t, err, middleware.ErrInvalidRequest)
 				require.Nil(t, res)
 			},
 		},
@@ -173,7 +173,7 @@ func TestGetPendingPartialWithdrawals(t *testing.T) {
 			// create input
 			input := beacontypes.GetPendingPartialWithdrawalsRequest{
 				StateIDRequest: handlertypes.StateIDRequest{
-					StateID: utils.StateIDGenesis,
+					StateID: mapping.StateIDGenesis,
 				},
 			}
 			inputBytes, err := json.Marshal(input) //nolint:musttag //  TODO:fix
