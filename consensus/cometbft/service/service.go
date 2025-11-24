@@ -182,6 +182,11 @@ func NewService(
 		}
 	}
 
+	// Clean up any orphaned blob sidecars from incomplete block finalization.
+	if err = s.Blockchain.PruneOrphanedBlobs(lastBlockHeight); err != nil {
+		panic(fmt.Errorf("failed pruning orphaned blobs: %w", err))
+	}
+
 	return s
 }
 
