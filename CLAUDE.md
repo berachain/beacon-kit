@@ -518,9 +518,6 @@ Configuration flows through the system:
 
   [beacon-kit.payload-builder]
     enabled = true
-
-  [beacon-kit.validator]
-    enable-optimistic-payloads = true
 ```
 
 **Environment Overrides:** CLI flags > env vars > config file > defaults
@@ -725,7 +722,7 @@ func ProvideBlockchainService(
 ## Build Requirements
 
 ### Dependencies
-- Go 1.25.0+
+- Go 1.25.3+
 - Docker (for running EL clients)
 - Foundry (for Solidity contracts)
 - Make (GNU Make)

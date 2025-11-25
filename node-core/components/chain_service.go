@@ -24,7 +24,6 @@ import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/chain"
-	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/execution/engine"
 	"github.com/berachain/beacon-kit/log/phuslu"
@@ -37,7 +36,6 @@ type ChainServiceInput struct {
 	depinject.In
 
 	ChainSpec             chain.Spec
-	Cfg                   *config.Config
 	ExecutionEngine       *engine.Engine
 	LocalBuilder          LocalBuilder
 	Logger                *phuslu.Logger
@@ -60,7 +58,5 @@ func ProvideChainService(in ChainServiceInput) *blockchain.Service {
 		in.LocalBuilder,
 		in.StateProcessor,
 		in.TelemetrySink,
-		// If optimistic is enabled, we want to skip post finalization FCUs.
-		in.Cfg.Validator.EnableOptimisticPayloadBuilds,
 	)
 }

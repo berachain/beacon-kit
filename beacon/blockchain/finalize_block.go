@@ -150,6 +150,10 @@ func (s *Service) PostFinalizeBlockOps(ctx sdk.Context, blk *ctypes.BeaconBlock)
 		return fmt.Errorf("sendPostBlockFCU failed: %w", err)
 	}
 
+	// reset latest verified payload in block builder to signal
+	// that no payload is available to reuse for blk.Slot
+	s.localBuilder.CacheLatestVerifiedPayload(blk.Slot, nil)
+
 	return nil
 }
 
