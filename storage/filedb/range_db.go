@@ -153,6 +153,20 @@ func (db *RangeDB) Prune(start, end uint64) error {
 	return err
 }
 
+// DeleteByIndex removes all entries at the specified index.
+func (db *RangeDB) DeleteByIndex(index uint64) error {
+	db.rwMu.Lock()
+	defer db.rwMu.Unlock()
+
+	path := fmt.Sprintf(pathFormat, index)
+	if err := db.coreDB.fs.RemoveAll(path); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("RangeDB DeleteByIndex failed to remove index %d: %w", index, err)
+	}
+
+	// Note: We intentionally do not update lowerBoundIndex here.
+	return nil
+}
+
 // GetByIndex takes the database index and returns all associated entries,
 // expecting database keys to follow the prefix() format. If index does not
 // exist in the DB for any reason (pruned, invalid index), an empty list is
