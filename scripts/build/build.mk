@@ -100,9 +100,17 @@ IMAGE_NAME ?= $(TESTAPP)
 # Docker Paths
 DOCKERFILE = ./Dockerfile
 
-build-docker: ## build a docker image containing `beacond`
+# Create buildx builder if it doesn't exist
+.PHONY: docker-builder-setup
+docker-builder-setup:
+	@docker buildx inspect beaconkit-builder 2>/dev/null || \
+		docker buildx create --name beaconkit-builder --driver docker-container
+	@docker buildx use beaconkit-builder
+
+build-docker: docker-builder-setup ## build a docker image containing `beacond`
 	@echo "Build a release docker image for the Cosmos SDK chain..."
-	docker build \
+	docker buildx build \
+	--load \
 	--platform linux/$(ARCH) \
 	--build-arg GIT_COMMIT=$(shell git rev-parse HEAD) \
 	--build-arg GIT_VERSION=$(VERSION) \
@@ -117,3 +125,8 @@ push-docker-github: ## push the docker image to the ghcr registry
 	@echo "Push the release docker image to the ghcr registry..."
 	docker tag $(IMAGE_NAME):$(VERSION) ghcr.io/berachain/beacon-kit:$(VERSION)
 	docker push ghcr.io/berachain/beacon-kit:$(VERSION)
+
+clean-docker: ## clean up docker builder and cache
+	@echo "Removing beaconkit-builder and clearing cache..."
+	@docker buildx rm beaconkit-builder || true
+	@echo "Docker builder cleanup complete"

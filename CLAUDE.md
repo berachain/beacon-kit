@@ -51,7 +51,15 @@ BeaconKit is a modular consensus client implementation that uses a modified Come
 make build                    # Build beacond binary to build/bin/beacond
 make build-docker            # Build Docker image
 make install                 # Install beacond to $GOPATH/bin
+make clean-docker            # Clean up Docker BuildX builder and cache
 ```
+
+**Docker BuildX Requirements:**
+- The `build-docker` target uses Docker BuildX for persistent caching and improved build performance
+- BuildX is included in Docker Desktop and Docker Engine 19.03+
+- The build process automatically creates a persistent builder instance named `beaconkit-builder`
+- This builder maintains cached Go modules and build artifacts across builds
+- To remove the builder and clear cache, run `make clean-docker`
 
 ### Running
 ```bash
@@ -723,7 +731,7 @@ func ProvideBlockchainService(
 
 ### Dependencies
 - Go 1.25.3+
-- Docker (for running EL clients)
+- Docker 19.03+ with BuildX (for Docker builds and running EL clients)
 - Foundry (for Solidity contracts)
 - Make (GNU Make)
 

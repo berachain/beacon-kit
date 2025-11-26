@@ -27,23 +27,7 @@ ARG DB_BACKEND=pebbledb
 ARG CMD_PATH=./cmd/beacond
 
 #######################################################
-###         Stage 1 - Cache Go Modules              ###
-#######################################################
-
-FROM golang:${GO_VERSION}-alpine AS mod-cache
-
-WORKDIR /workdir
-
-RUN apk add --no-cache git
-
-# Download Go modules
-COPY ./go.mod ./go.sum ./
-RUN --mount=type=cache,target=/root/.cache/go-build \
-    --mount=type=cache,target=/root/go/pkg/mod \
-    go mod download
-
-#######################################################
-###         Stage 2 - Build the Application         ###
+###         Stage 1 - Build the Application         ###
 #######################################################
 
 FROM golang:${GO_VERSION}-alpine AS builder
@@ -55,13 +39,16 @@ ARG BUILD_TAGS
 # Set the working directory
 WORKDIR /workdir
 
-# Consolidate RUN commands to reduce layers
+# Install dependencies
 RUN apk add --no-cache --update \
     ca-certificates \
     build-base
 
-# Copy the dependencies from the cache stage
-COPY --from=mod-cache /go/pkg /go/pkg
+COPY go.mod go.sum ./
+
+# Download dependencies with cache mount - this will use buildx cache
+RUN --mount=type=cache,target=/go/pkg/mod \
+    go mod download
 
 # Copy all the source code (this will ignore files/dirs in .dockerignore)
 COPY ./ ./
@@ -72,9 +59,9 @@ ARG APP_NAME
 ARG DB_BACKEND
 ARG CMD_PATH
 
-# Build beacond
+# Build beacond with cache mounts
 RUN --mount=type=cache,target=/root/.cache/go-build \
-    --mount=type=cache,target=/root/go/pkg/mod \
+    --mount=type=cache,target=/go/pkg/mod \
     env NAME=${NAME} DB_BACKEND=${DB_BACKEND} APP_NAME=${APP_NAME} CGO_ENABLED=1 && \
     go build \
     -mod=readonly \
@@ -91,7 +78,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     ${CMD_PATH}
 
 #######################################################
-###        Stage 3 - Prepare the Final Image        ###
+###        Stage 2 - Prepare the Final Image        ###
 #######################################################
 
 FROM ${RUNNER_IMAGE}
