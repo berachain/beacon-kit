@@ -23,10 +23,12 @@ package cache
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	lru "github.com/hashicorp/golang-lru/v2"
 )
 
 const minActivationHeight = 2
@@ -82,23 +84,27 @@ type Element struct {
 }
 
 type candidateStates struct {
-	states         map[string]*Element
+	states         *lru.Cache[string, *Element]
 	finalStateHash *string
 }
 
-func New() States {
+func New(maxSize int) States {
+	c, err := lru.New[string, *Element](maxSize)
+	if err != nil {
+		panic(fmt.Errorf("failed to create candidate states cache: %w", err))
+	}
 	return &candidateStates{
-		states:         make(map[string]*Element),
+		states:         c,
 		finalStateHash: nil,
 	}
 }
 
 func (cs *candidateStates) SetCached(hash string, toCache *Element) {
-	cs.states[hash] = toCache
+	cs.states.Add(hash, toCache)
 }
 
 func (cs *candidateStates) GetCached(hash string) (*Element, error) {
-	cached, found := cs.states[hash]
+	cached, found := cs.states.Get(hash)
 	if !found {
 		return nil, ErrStateNotFound
 	}
@@ -106,8 +112,7 @@ func (cs *candidateStates) GetCached(hash string) (*Element, error) {
 }
 
 func (cs *candidateStates) MarkAsFinal(hash string) error {
-	_, found := cs.states[hash]
-	if !found {
+	if !cs.states.Contains(hash) {
 		return ErrFinalizingUnknownState
 	}
 	cs.finalStateHash = &hash
@@ -118,7 +123,7 @@ func (cs *candidateStates) GetFinal() (string, *State, error) {
 	if cs.finalStateHash == nil {
 		return "", nil, ErrNoFinalState
 	}
-	cached, found := cs.states[*cs.finalStateHash]
+	cached, found := cs.states.Get(*cs.finalStateHash)
 	if !found {
 		return "", nil, ErrFinalStateIsNil
 	}
@@ -126,6 +131,6 @@ func (cs *candidateStates) GetFinal() (string, *State, error) {
 }
 
 func (cs *candidateStates) Reset() {
-	cs.states = make(map[string]*Element)
+	cs.states.Purge()
 	cs.finalStateHash = nil
 }
