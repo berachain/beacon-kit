@@ -172,7 +172,7 @@ func TestGetBlockHeaders(t *testing.T) {
 			},
 			check: func(t *testing.T, _ common.Root, _ any, err error) {
 				t.Helper()
-				require.ErrorIs(t, err, handlertypes.ErrInvalidRequest)
+				require.ErrorIs(t, err, middleware.ErrInvalidRequest)
 			},
 		},
 		{
@@ -187,14 +187,14 @@ func TestGetBlockHeaders(t *testing.T) {
 			},
 			setMockExpectations: func(t *testing.T, b *mocks.Backend) common.Root {
 				t.Helper()
-				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(nil, math.Slot(0), errTestHeaderNotFound)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(nil, math.Slot(0), middleware.ErrNotFound)
 				return common.Root{}
 			},
 			check: func(t *testing.T, _ common.Root, _ any, err error) {
 				t.Helper()
 				// Implicitly ensuring that 404 error code is returned
 				// (see responseFromError implementation)
-				require.ErrorIs(t, err, handlertypes.ErrNotFound)
+				require.ErrorIs(t, err, middleware.ErrNotFound)
 			},
 		},
 		{
@@ -250,7 +250,7 @@ func TestGetBlockHeaders(t *testing.T) {
 			},
 			check: func(t *testing.T, _ common.Root, _ any, err error) {
 				t.Helper()
-				require.ErrorIs(t, err, handlertypes.ErrInvalidRequest)
+				require.ErrorIs(t, err, middleware.ErrInvalidRequest)
 			},
 		},
 		{
@@ -270,7 +270,7 @@ func TestGetBlockHeaders(t *testing.T) {
 				t.Helper()
 				// Implicitly ensuring that 404 error code is returned
 				// (see responseFromError implementation)
-				require.ErrorIs(t, err, handlertypes.ErrNotFound)
+				require.ErrorIs(t, err, middleware.ErrNotFound)
 			},
 		},
 		{
@@ -443,7 +443,7 @@ func TestGetBlockHeaderByID(t *testing.T) {
 			},
 			check: func(t *testing.T, _ common.Root, _ any, err error) {
 				t.Helper()
-				require.ErrorIs(t, err, handlertypes.ErrInvalidRequest)
+				require.ErrorIs(t, err, middleware.ErrInvalidRequest)
 			},
 		},
 		{
@@ -457,7 +457,7 @@ func TestGetBlockHeaderByID(t *testing.T) {
 			},
 			setMockExpectations: func(t *testing.T, b *mocks.Backend) common.Root {
 				t.Helper()
-				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(nil, math.Slot(0), errTestHeaderNotFound)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(nil, math.Slot(0), middleware.ErrNotFound)
 				return common.Root{}
 			},
 			check: func(t *testing.T, _ common.Root, _ any, err error) {
@@ -465,7 +465,7 @@ func TestGetBlockHeaderByID(t *testing.T) {
 
 				// Implicitly ensuring that 404 error code is returned
 				// (see responseFromError implementation)
-				require.ErrorIs(t, err, handlertypes.ErrNotFound)
+				require.ErrorIs(t, err, middleware.ErrNotFound)
 			},
 		},
 		{
@@ -522,7 +522,7 @@ func TestGetBlockHeaderByID(t *testing.T) {
 			},
 			check: func(t *testing.T, _ common.Root, _ any, err error) {
 				t.Helper()
-				require.ErrorIs(t, err, handlertypes.ErrInvalidRequest)
+				require.ErrorIs(t, err, middleware.ErrInvalidRequest)
 			},
 		},
 		{

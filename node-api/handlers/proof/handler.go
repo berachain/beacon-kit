@@ -25,7 +25,7 @@ import (
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-api/backend"
 	"github.com/berachain/beacon-kit/node-api/handlers"
-	"github.com/berachain/beacon-kit/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/node-api/handlers/mapping"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
@@ -56,7 +56,7 @@ func (h *Handler) resolveTimestampID(timestampID string) (
 		slot        math.Slot
 	)
 
-	height, err := utils.TimestampIDToParentHeight(timestampID, h.backend)
+	height, err := mapping.TimestampIDToParentHeight(timestampID, h.backend)
 	if err != nil {
 		return 0, beaconState, blockHeader, err
 	}
