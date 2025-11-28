@@ -22,17 +22,49 @@ package blobreactor
 
 import "time"
 
-const defaultRequestTimeout = 5 * time.Second
+const (
+	// defaultRequestTimeout is the maximum time to wait for a blob response from a peer
+	defaultRequestTimeout = 5 * time.Second
+	// defaultMaxMessagesPerPeerPerSecond limits the rate of incoming blob requests per peer
+	defaultMaxMessagesPerPeerPerSecond = 10.0 / 60.0
+	// defaultMaxGlobalRequestsPerSecond limits the total rate of incoming blob requests from all peers
+	defaultMaxGlobalRequestsPerSecond = 30.0 / 60.0
 
-// Config is the configuration for the blob reactor
+	// BurstMultiplier determines how much burst capacity to allow relative to the rate limit.
+	BurstMultiplier = 2.0
+)
+
 type Config struct {
-	// RequestTimeout is the timeout for blob requests
-	RequestTimeout time.Duration `mapstructure:"request-timeout"`
+	RequestTimeout              time.Duration    `mapstructure:"request-timeout"`
+	MaxMessagesPerPeerPerSecond float64          `mapstructure:"max-messages-per-peer-per-second"`
+	MaxGlobalRequestsPerSecond  float64          `mapstructure:"max-global-requests-per-second"`
+	Reputation                  ReputationConfig `mapstructure:"reputation"`
 }
 
-// DefaultConfig returns the default configuration
 func DefaultConfig() Config {
 	return Config{
-		RequestTimeout: defaultRequestTimeout,
+		RequestTimeout:              defaultRequestTimeout,
+		MaxMessagesPerPeerPerSecond: defaultMaxMessagesPerPeerPerSecond,
+		MaxGlobalRequestsPerSecond:  defaultMaxGlobalRequestsPerSecond,
+		Reputation:                  DefaultReputationConfig(),
 	}
+}
+
+// WithDefaults returns a new Config with zero values replaced by defaults
+func (c Config) WithDefaults() Config {
+	defaults := DefaultConfig()
+
+	if c.RequestTimeout == 0 {
+		c.RequestTimeout = defaults.RequestTimeout
+	}
+	if c.MaxMessagesPerPeerPerSecond == 0 {
+		c.MaxMessagesPerPeerPerSecond = defaults.MaxMessagesPerPeerPerSecond
+	}
+	if c.MaxGlobalRequestsPerSecond == 0 {
+		c.MaxGlobalRequestsPerSecond = defaults.MaxGlobalRequestsPerSecond
+	}
+	// Apply defaults to reputation config
+	c.Reputation = c.Reputation.WithDefaults()
+
+	return c
 }
