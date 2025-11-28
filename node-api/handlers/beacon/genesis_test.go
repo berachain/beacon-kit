@@ -27,7 +27,6 @@ import (
 	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
 	"cosmossdk.io/store"
-	sdkmetrics "cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
@@ -40,7 +39,7 @@ import (
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/middleware"
-	"github.com/berachain/beacon-kit/node-core/components/metrics"
+	"github.com/berachain/beacon-kit/observability/metrics/discard"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/state-transition/core/state"
@@ -157,12 +156,8 @@ func initTestGenesisState(t *testing.T, cs chain.Spec) *state.StateDB {
 	db, err := db.OpenDB("", dbm.MemDBBackend)
 	require.NoError(t, err)
 
-	var (
-		nopLog     = log.NewNopLogger()
-		nopMetrics = sdkmetrics.NewNoOpMetrics()
-	)
-
-	cms := store.NewCommitMultiStore(db, nopLog, nopMetrics)
+	nopLog := log.NewNopLogger()
+	cms := store.NewCommitMultiStore(db, nopLog, kvstorage.NoOpStoreMetrics{})
 	cms.MountStoreWithDB(testStoreKey, storetypes.StoreTypeIAVL, nil)
 	require.NoError(t, cms.LoadLatestVersion())
 
@@ -177,6 +172,6 @@ func initTestGenesisState(t *testing.T, cs chain.Spec) *state.StateDB {
 		kvStore.WithContext(sdkCtx),
 		cs,
 		sdkCtx.Logger(),
-		metrics.NewNoOpTelemetrySink(),
+		state.NewMetrics(discard.NewFactory()),
 	)
 }

@@ -25,7 +25,6 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/execution/engine"
 	"github.com/berachain/beacon-kit/log/phuslu"
-	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/state-transition/core"
 	"github.com/berachain/beacon-kit/storage/deposit"
@@ -35,12 +34,12 @@ import (
 // framework.
 type StateProcessorInput struct {
 	depinject.In
-	Logger          *phuslu.Logger
-	ChainSpec       chain.Spec
-	ExecutionEngine *engine.Engine
-	DepositStore    deposit.StoreManager
-	Signer          crypto.BLSSigner
-	TelemetrySink   *metrics.TelemetrySink
+	Logger                *phuslu.Logger
+	ChainSpec             chain.Spec
+	ExecutionEngine       *engine.Engine
+	DepositStore          deposit.StoreManager
+	Signer                crypto.BLSSigner
+	StateProcessorMetrics *core.Metrics
 }
 
 // ProvideStateProcessor provides the state processor to the depinject
@@ -53,6 +52,6 @@ func ProvideStateProcessor(in StateProcessorInput) *core.StateProcessor {
 		in.DepositStore,
 		in.Signer,
 		crypto.GetAddressFromPubKey,
-		in.TelemetrySink,
+		in.StateProcessorMetrics,
 	)
 }

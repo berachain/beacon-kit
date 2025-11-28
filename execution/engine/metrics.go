@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -28,59 +28,180 @@ import (
 	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/observability/metrics"
 	"github.com/berachain/beacon-kit/primitives/common"
 )
 
-// engineMetrics is a struct that contains metrics for the engine.
-type engineMetrics struct {
-	// TelemetrySink is the sink for the metrics.
-	sink TelemetrySink
-	// logger is the logger for the engineMetrics.
+// Metrics is a struct that contains metrics for the execution engine.
+type Metrics struct {
+	// New payload metrics
+	NewPayload                      metrics.Counter
+	NewPayloadValid                 metrics.Counter
+	NewPayloadAcceptedPayloadStatus metrics.Counter
+	NewPayloadSyncingPayloadStatus  metrics.Counter
+	NewPayloadInvalidPayloadStatus  metrics.Counter
+	NewPayloadNonFatalError         metrics.Counter
+	NewPayloadFatalError            metrics.Counter
+	NewPayloadUndefinedError        metrics.Counter
+
+	// Forkchoice update metrics
+	ForkchoiceUpdate               metrics.Counter
+	ForkchoiceUpdateValid          metrics.Counter
+	ForkchoiceUpdateSyncing        metrics.Counter
+	ForkchoiceUpdateInvalid        metrics.Counter
+	ForkchoiceUpdateFatalError     metrics.Counter
+	ForkchoiceUpdateNonFatalError  metrics.Counter
+	ForkchoiceUpdateUndefinedError metrics.Counter
+
 	logger log.Logger
 }
 
-// newEngineMetrics creates a new engineMetrics.
-func newEngineMetrics(
-	sink TelemetrySink,
-	logger log.Logger,
-) *engineMetrics {
-	return &engineMetrics{
-		sink:   sink,
+// NewMetrics returns a new Metrics instance.
+// Metric names are kept identical to cosmos-sdk/telemetry output for Grafana compatibility.
+//
+//nolint:funlen
+func NewMetrics(factory metrics.Factory, logger log.Logger) *Metrics {
+	return &Metrics{
+		// New payload metrics
+		NewPayload: factory.NewCounter(
+			metrics.CounterOpts{
+				Name: "beacon_kit_execution_engine_new_payload",
+				Help: "Number of new payload calls",
+			},
+			[]string{"payload_block_hash", "payload_parent_block_hash"},
+		),
+		NewPayloadValid: factory.NewCounter(
+			metrics.CounterOpts{
+				Name: "beacon_kit_execution_engine_new_payload_valid",
+				Help: "Number of valid new payload responses",
+			},
+			nil,
+		),
+		NewPayloadAcceptedPayloadStatus: factory.NewCounter(
+			metrics.CounterOpts{
+				Name: "beacon_kit_execution_engine_new_payload_accepted_payload_status",
+				Help: "Number of accepted payload status responses",
+			},
+			nil,
+		),
+		NewPayloadSyncingPayloadStatus: factory.NewCounter(
+			metrics.CounterOpts{
+				Name: "beacon_kit_execution_engine_new_payload_syncing_payload_status",
+				Help: "Number of syncing payload status responses",
+			},
+			nil,
+		),
+		NewPayloadInvalidPayloadStatus: factory.NewCounter(
+			metrics.CounterOpts{
+				Name: "beacon_kit_execution_engine_new_payload_invalid_payload_status",
+				Help: "Number of invalid payload status responses",
+			},
+			nil,
+		),
+		NewPayloadNonFatalError: factory.NewCounter(
+			metrics.CounterOpts{
+				Name: "beacon_kit_execution_engine_new_payload_non_fatal_error",
+				Help: "Number of non-fatal errors during new payload",
+			},
+			[]string{"error"},
+		),
+		NewPayloadFatalError: factory.NewCounter(
+			metrics.CounterOpts{
+				Name: "beacon_kit_execution_engine_new_payload_fatal_error",
+				Help: "Number of fatal errors during new payload",
+			},
+			[]string{"error"},
+		),
+		NewPayloadUndefinedError: factory.NewCounter(
+			metrics.CounterOpts{
+				Name: "beacon_kit_execution_engine_new_payload_undefined_error",
+				Help: "Number of undefined errors during new payload",
+			},
+			[]string{"error"},
+		),
+
+		// Forkchoice update metrics
+		ForkchoiceUpdate: factory.NewCounter(
+			metrics.CounterOpts{
+				Name: "beacon_kit_execution_engine_forkchoice_update",
+				Help: "Number of forkchoice update calls",
+			},
+			[]string{"has_payload_attributes"},
+		),
+		ForkchoiceUpdateValid: factory.NewCounter(
+			metrics.CounterOpts{
+				Name: "beacon_kit_execution_engine_forkchoice_update_valid",
+				Help: "Number of valid forkchoice update responses",
+			},
+			nil,
+		),
+		ForkchoiceUpdateSyncing: factory.NewCounter(
+			metrics.CounterOpts{
+				Name: "beacon_kit_execution_engine_forkchoice_update_syncing",
+				Help: "Number of syncing forkchoice update responses",
+			},
+			[]string{"error"},
+		),
+		ForkchoiceUpdateInvalid: factory.NewCounter(
+			metrics.CounterOpts{
+				Name: "beacon_kit_execution_engine_forkchoice_update_invalid",
+				Help: "Number of invalid forkchoice update responses",
+			},
+			[]string{"error"},
+		),
+		ForkchoiceUpdateFatalError: factory.NewCounter(
+			metrics.CounterOpts{
+				Name: "beacon_kit_execution_engine_forkchoice_update_fatal_error",
+				Help: "Number of fatal errors during forkchoice update",
+			},
+			[]string{"error"},
+		),
+		ForkchoiceUpdateNonFatalError: factory.NewCounter(
+			metrics.CounterOpts{
+				Name: "beacon_kit_execution_engine_forkchoice_update_non_fatal_error",
+				Help: "Number of non-fatal errors during forkchoice update",
+			},
+			[]string{"error"},
+		),
+		ForkchoiceUpdateUndefinedError: factory.NewCounter(
+			metrics.CounterOpts{
+				Name: "beacon_kit_execution_engine_forkchoice_update_undefined_error",
+				Help: "Number of undefined errors during forkchoice update",
+			},
+			[]string{"error"},
+		),
+
 		logger: logger,
 	}
 }
 
 // markNewPayloadCalled increments the counter for new payload calls.
-func (em *engineMetrics) markNewPayloadCalled(
+func (m *Metrics) markNewPayloadCalled(
 	payloadHash common.ExecutionHash,
 	parentHash common.ExecutionHash,
 ) {
-	em.sink.IncrementCounter(
-		"beacon_kit.execution.engine.new_payload",
+	m.NewPayload.With(
 		"payload_block_hash", payloadHash.Hex(),
 		"payload_parent_block_hash", parentHash.Hex(),
-	)
+	).Add(1)
 }
 
 // markNewPayloadValid increments the counter for valid payloads.
-func (em *engineMetrics) markNewPayloadValid(
+func (m *Metrics) markNewPayloadValid(
 	payloadHash common.ExecutionHash,
 	parentHash common.ExecutionHash,
 ) {
-	em.logger.Debug(
+	m.logger.Debug(
 		"Inserted new payload into execution chain",
 		"payload_block_hash", payloadHash,
 		"payload_parent_block_hash", parentHash,
 	)
-
-	em.sink.IncrementCounter(
-		"beacon_kit.execution.engine.new_payload_valid",
-	)
+	m.NewPayloadValid.Add(1)
 }
 
 // markNewPayloadAcceptedSyncingPayloadStatus increments
 // the counter for accepted syncing payload status.
-func (em *engineMetrics) markNewPayloadAcceptedSyncingPayloadStatus(
+func (m *Metrics) markNewPayloadAcceptedSyncingPayloadStatus(
 	errStatus error,
 	payloadHash common.ExecutionHash,
 	parentHash common.ExecutionHash,
@@ -89,105 +210,88 @@ func (em *engineMetrics) markNewPayloadAcceptedSyncingPayloadStatus(
 	if errors.Is(errStatus, engineerrors.ErrSyncingPayloadStatus) {
 		status = "syncing"
 	}
-	em.logger.Warn(
+	m.logger.Warn(
 		fmt.Sprintf("Received %s payload status during new payload. Awaiting execution client to finish sync.", status),
 		"payload_block_hash", payloadHash,
 		"parent_hash", parentHash,
 	)
 
-	em.sink.IncrementCounter(
-		fmt.Sprintf("beacon_kit.execution.engine.new_payload_%s_payload_status", status),
-	)
+	if status == "accepted" {
+		m.NewPayloadAcceptedPayloadStatus.Add(1)
+	} else {
+		m.NewPayloadSyncingPayloadStatus.Add(1)
+	}
 }
 
 // markNewPayloadInvalidPayloadStatus increments the counter
 // for invalid payload status.
-func (em *engineMetrics) markNewPayloadInvalidPayloadStatus(
+func (m *Metrics) markNewPayloadInvalidPayloadStatus(
 	payloadHash common.ExecutionHash,
 ) {
-	em.logger.Error(
+	m.logger.Error(
 		"Received invalid payload status during new payload call",
 		"payload_block_hash", payloadHash,
 		"parent_hash", payloadHash,
 	)
-
-	em.sink.IncrementCounter(
-		"beacon_kit.execution.engine.new_payload_invalid_payload_status",
-	)
+	m.NewPayloadInvalidPayloadStatus.Add(1)
 }
 
-// markNewPayloadFatalError increments the counter for JSON-RPC errors.
-func (em *engineMetrics) markNewPayloadNonFatalError(
+// markNewPayloadNonFatalError increments the counter for non-fatal errors.
+func (m *Metrics) markNewPayloadNonFatalError(
 	payloadHash common.ExecutionHash,
 	lastValidHash common.ExecutionHash,
 	err error,
 ) {
-	em.logger.Error(
+	m.logger.Error(
 		"Received non-fatal error during new payload call",
 		"payload_block_hash", payloadHash,
 		"parent_hash", payloadHash,
 		"last_valid_hash", lastValidHash,
 		"error", err,
 	)
-
-	em.sink.IncrementCounter(
-		"beacon_kit.execution.engine.new_payload_non_fatal_error",
-		"error", err.Error(),
-	)
+	m.NewPayloadNonFatalError.With("error", err.Error()).Add(1)
 }
 
-// markNewPayloadFatalError increments the counter for JSON-RPC errors.
-func (em *engineMetrics) markNewPayloadFatalError(
+// markNewPayloadFatalError increments the counter for fatal errors.
+func (m *Metrics) markNewPayloadFatalError(
 	payloadHash common.ExecutionHash,
 	lastValidHash common.ExecutionHash,
 	err error,
 ) {
-	em.logger.Error(
+	m.logger.Error(
 		"Received fatal error during new payload call",
 		"payload_block_hash", payloadHash,
 		"parent_hash", payloadHash,
 		"last_valid_hash", lastValidHash,
 		"error", err,
 	)
-
-	em.sink.IncrementCounter(
-		"beacon_kit.execution.engine.new_payload_fatal_error",
-		"error", err.Error(),
-	)
+	m.NewPayloadFatalError.With("error", err.Error()).Add(1)
 }
 
 // markNewPayloadUndefinedError increments the counter for undefined errors.
-func (em *engineMetrics) markNewPayloadUndefinedError(
+func (m *Metrics) markNewPayloadUndefinedError(
 	payloadHash common.ExecutionHash,
 	err error,
 ) {
-	em.logger.Error(
+	m.logger.Error(
 		"Received undefined error during new payload call",
 		"payload_block_hash", payloadHash,
 		"parent_hash", payloadHash,
 		"error", err,
 	)
-
-	em.sink.IncrementCounter(
-		"beacon_kit.execution.engine.new_payload_undefined_error",
-		"error", err.Error(),
-	)
+	m.NewPayloadUndefinedError.With("error", err.Error()).Add(1)
 }
 
 // markNotifyForkchoiceUpdateCalled increments the counter for
 // notify forkchoice update calls.
-func (em *engineMetrics) markNotifyForkchoiceUpdateCalled(
+func (m *Metrics) markNotifyForkchoiceUpdateCalled(
 	hasPayloadAttributes bool,
 ) {
-	em.sink.IncrementCounter(
-		"beacon_kit.execution.engine.forkchoice_update",
-		"has_payload_attributes", strconv.FormatBool(hasPayloadAttributes),
-	)
+	m.ForkchoiceUpdate.With("has_payload_attributes", strconv.FormatBool(hasPayloadAttributes)).Add(1)
 }
 
-// markForkchoiceUpdateValid increments the counter for valid forkchoice
-// updates.
-func (em *engineMetrics) markForkchoiceUpdateValid(
+// markForkchoiceUpdateValid increments the counter for valid forkchoice updates.
+func (m *Metrics) markForkchoiceUpdateValid(
 	state *engineprimitives.ForkchoiceStateV1,
 	hasPayloadAttributes bool,
 	payloadID *engineprimitives.PayloadID,
@@ -201,20 +305,16 @@ func (em *engineMetrics) markForkchoiceUpdateValid(
 	if hasPayloadAttributes {
 		args = append(args, "payload_id", payloadID)
 	}
-	em.logger.Debug("Forkchoice updated", args...)
-
-	em.sink.IncrementCounter(
-		"beacon_kit.execution.engine.forkchoice_update_valid",
-	)
+	m.logger.Debug("Forkchoice updated", args...)
+	m.ForkchoiceUpdateValid.Add(1)
 }
 
-// markForkchoiceUpdateSyncing increments
-// the counter for accepted syncing forkchoice updates.
-func (em *engineMetrics) markForkchoiceUpdateSyncing(
+// markForkchoiceUpdateSyncing increments the counter for syncing forkchoice updates.
+func (m *Metrics) markForkchoiceUpdateSyncing(
 	state *engineprimitives.ForkchoiceStateV1,
 	err error,
 ) {
-	em.logger.Warn(
+	m.logger.Warn(
 		"Received syncing payload status during forkchoice update. Awaiting execution client to finish sync.",
 		"head_block_hash",
 		state.HeadBlockHash,
@@ -223,74 +323,51 @@ func (em *engineMetrics) markForkchoiceUpdateSyncing(
 		"finalized_block_hash",
 		state.FinalizedBlockHash,
 	)
-
-	em.sink.IncrementCounter(
-		"beacon_kit.execution.engine.forkchoice_update_syncing",
-		"error",
-		err.Error(),
-	)
+	m.ForkchoiceUpdateSyncing.With("error", err.Error()).Add(1)
 }
 
-// markForkchoiceUpdateInvalid increments the counter
-// for invalid forkchoice updates.
-func (em *engineMetrics) markForkchoiceUpdateInvalid(
+// markForkchoiceUpdateInvalid increments the counter for invalid forkchoice updates.
+func (m *Metrics) markForkchoiceUpdateInvalid(
 	state *engineprimitives.ForkchoiceStateV1,
 	err error,
 ) {
-	em.logger.Error(
+	m.logger.Error(
 		"Received invalid payload status during forkchoice update call",
 		"head_block_hash", state.HeadBlockHash,
 		"safe_block_hash", state.SafeBlockHash,
 		"finalized_block_hash", state.FinalizedBlockHash,
 		"error", err,
 	)
-
-	em.sink.IncrementCounter(
-		"beacon_kit.execution.engine.forkchoice_update_invalid",
-		"error",
-		err.Error(),
-	)
+	m.ForkchoiceUpdateInvalid.With("error", err.Error()).Add(1)
 }
 
-// markForkchoiceUpdateFatalError increments the counter for JSON-RPC errors
+// markForkchoiceUpdateFatalError increments the counter for fatal errors
 // during forkchoice updates.
-func (em *engineMetrics) markForkchoiceUpdateFatalError(err error) {
-	em.logger.Error(
+func (m *Metrics) markForkchoiceUpdateFatalError(err error) {
+	m.logger.Error(
 		"Received fatal error during forkchoice update call",
 		"error", err,
 	)
-
-	em.sink.IncrementCounter(
-		"beacon_kit.execution.engine.forkchoice_update_fatal_error",
-		"error", err.Error(),
-	)
+	m.ForkchoiceUpdateFatalError.With("error", err.Error()).Add(1)
 }
 
-// markForkchoiceUpdateNonFatalError increments the counter for JSON-RPC errors
+// markForkchoiceUpdateNonFatalError increments the counter for non-fatal errors
 // during forkchoice updates.
-func (em *engineMetrics) markForkchoiceUpdateNonFatalError(err error) {
-	em.logger.Error(
+func (m *Metrics) markForkchoiceUpdateNonFatalError(err error) {
+	m.logger.Error(
 		"Received non-fatal error during forkchoice update call",
 		"error", err,
 	)
-
-	em.sink.IncrementCounter(
-		"beacon_kit.execution.engine.forkchoice_update_non_fatal_error",
-		"error", err.Error(),
-	)
+	m.ForkchoiceUpdateNonFatalError.With("error", err.Error()).Add(1)
 }
 
 // markForkchoiceUpdateUndefinedError increments the counter for undefined
 // errors during forkchoice updates.
-func (em *engineMetrics) markForkchoiceUpdateUndefinedError(err error) {
-	em.logger.Error(
+func (m *Metrics) markForkchoiceUpdateUndefinedError(err error) {
+	m.logger.Error(
 		"Received undefined execution engine error during forkchoice update call",
 		"error",
 		err,
 	)
-
-	em.sink.IncrementCounter(
-		"beacon_kit.execution.engine.forkchoice_update_undefined_error",
-		"error", err.Error(),
-	)
+	m.ForkchoiceUpdateUndefinedError.With("error", err.Error()).Add(1)
 }

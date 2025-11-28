@@ -13,19 +13,55 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
 package state
 
-func (s *StateDB) incrementPartialWithdrawalRequestInvalid() {
-	s.telemetrySink.IncrementCounter("beacon_kit.statedb.partial_withdrawal_request_invalid")
+import (
+	"github.com/berachain/beacon-kit/observability/metrics"
+)
+
+// Metrics is a struct that contains metrics for the StateDB.
+type Metrics struct {
+	// PartialWithdrawalRequestInvalid tracks invalid partial withdrawal requests
+	PartialWithdrawalRequestInvalid metrics.Counter
+
+	// ExcessStakePartialWithdrawal tracks withdrawals due to excess stake
+	ExcessStakePartialWithdrawal metrics.Counter
 }
 
-// incrementExcessStakePartialWithdrawal increments the telemetry counter when a withdrawal is created
-// because a validator's stake went over the MaxEffectiveBalance.
+// NewMetrics returns a new Metrics instance.
+// Metric names are kept identical to cosmos-sdk/telemetry output for Grafana compatibility.
+func NewMetrics(factory metrics.Factory) *Metrics {
+	return &Metrics{
+		PartialWithdrawalRequestInvalid: factory.NewCounter(
+			metrics.CounterOpts{
+				Name: "beacon_kit_statedb_partial_withdrawal_request_invalid",
+				Help: "Number of invalid partial withdrawal requests",
+			},
+			nil,
+		),
+		ExcessStakePartialWithdrawal: factory.NewCounter(
+			metrics.CounterOpts{
+				Name: "beacon_kit_statedb_excess_stake_partial_withdrawal",
+				Help: "Number of withdrawals created due to validator stake exceeding MaxEffectiveBalance",
+			},
+			nil,
+		),
+	}
+}
+
+// incrementPartialWithdrawalRequestInvalid increments the counter for invalid
+// partial withdrawal requests.
+func (s *StateDB) incrementPartialWithdrawalRequestInvalid() {
+	s.metrics.PartialWithdrawalRequestInvalid.Add(1)
+}
+
+// incrementExcessStakePartialWithdrawal increments the counter when a withdrawal
+// is created because a validator's stake went over the MaxEffectiveBalance.
 func (s *StateDB) incrementExcessStakePartialWithdrawal() {
-	s.telemetrySink.IncrementCounter("beacon_kit.statedb.excess_stake_partial_withdrawal")
+	s.metrics.ExcessStakePartialWithdrawal.Add(1)
 }

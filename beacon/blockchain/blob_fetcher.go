@@ -60,7 +60,7 @@ type blobFetcher struct {
 	queue     *blobQueue         // Queue for persistent requests
 	executor  *blobFetchExecutor // Executor for fetch logic
 	config    BlobFetcherConfig  // Configuration
-	metrics   *blobFetcherMetrics
+	metrics   *BlobFetcherMetrics
 
 	// We need to track current head slot so we know when blob download requests need to be pruned as they are outside the WithinDAPeriod
 	headSlotMu sync.RWMutex
@@ -80,10 +80,8 @@ func NewBlobFetcher(
 	storageBackend StorageBackend,
 	chainSpec BlobFetcherChainSpec,
 	config BlobFetcherConfig,
-	telemetrySink TelemetrySink,
+	metrics *BlobFetcherMetrics,
 ) (BlobFetcher, error) {
-	metrics := newBlobFetcherMetrics(telemetrySink)
-
 	queue, err := newBlobQueue(filepath.Join(dataDir, "blobs", "download_queue"), logger, metrics)
 	if err != nil {
 		return nil, err

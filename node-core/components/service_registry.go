@@ -27,12 +27,10 @@ import (
 	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-api/server"
-	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	service "github.com/berachain/beacon-kit/node-core/services/registry"
 	"github.com/berachain/beacon-kit/node-core/services/shutdown"
 	"github.com/berachain/beacon-kit/node-core/services/version"
 	"github.com/berachain/beacon-kit/node-core/types"
-	"github.com/berachain/beacon-kit/observability/telemetry"
 )
 
 // ServiceRegistryInput is the input for the service registry provider.
@@ -43,8 +41,6 @@ type ServiceRegistryInput struct {
 	Logger           *phuslu.Logger
 	NodeAPIServer    *server.Server
 	ReportingService *version.ReportingService
-	TelemetrySink    *metrics.TelemetrySink
-	TelemetryService *telemetry.Service
 	ValidatorService *validator.Service
 	CometBFTService  types.ConsensusService
 	ShutdownService  *shutdown.Service
@@ -62,7 +58,6 @@ func ProvideServiceRegistry(in ServiceRegistryInput) *service.Registry {
 		service.WithService(in.ValidatorService),
 		service.WithService(in.NodeAPIServer),
 		service.WithService(in.ReportingService),
-		service.WithService(in.TelemetryService),
 
 		// engineClient will block until it connects to the execution layer
 		service.WithService(in.EngineClient),

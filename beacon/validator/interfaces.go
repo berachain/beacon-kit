@@ -22,7 +22,6 @@ package validator
 
 import (
 	"context"
-	"time"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
@@ -92,16 +91,6 @@ type StorageBackend interface {
 	DepositStore() deposit.StoreManager
 	// StateFromContext retrieves the beacon state from the context.
 	StateFromContext(context.Context) *statedb.StateDB
-}
-
-// TelemetrySink is an interface for sending metrics to a telemetry backend.
-type TelemetrySink interface {
-	// IncrementCounter increments a counter metric identified by the provided
-	// keys.
-	IncrementCounter(key string, args ...string)
-	// MeasureSince measures the time since the provided start time,
-	// identified by the provided keys.
-	MeasureSince(key string, start time.Time, args ...string)
 }
 
 type BlockBuilderI interface {

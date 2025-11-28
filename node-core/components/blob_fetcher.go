@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/da/blobreactor"
 	"github.com/berachain/beacon-kit/log/phuslu"
-	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cast"
@@ -39,13 +38,13 @@ import (
 type BlobFetcherInput struct {
 	depinject.In
 
-	BlobProcessor  BlobProcessor
-	BlobReactor    *blobreactor.BlobReactor
-	ChainSpec      chain.Spec
-	Logger         *phuslu.Logger
-	StorageBackend *storage.Backend
-	TelemetrySink  *metrics.TelemetrySink
-	AppOpts        config.AppOptions
+	BlobProcessor      BlobProcessor
+	BlobReactor        *blobreactor.BlobReactor
+	ChainSpec          chain.Spec
+	Logger             *phuslu.Logger
+	StorageBackend     *storage.Backend
+	BlobFetcherMetrics *blockchain.BlobFetcherMetrics
+	AppOpts            config.AppOptions
 }
 
 // ProvideBlobFetcher provides the blob fetcher for asynchronous blob retrieval.
@@ -58,6 +57,6 @@ func ProvideBlobFetcher(in BlobFetcherInput) (blockchain.BlobFetcher, error) {
 		in.StorageBackend,
 		in.ChainSpec,
 		blockchain.DefaultBlobFetcherConfig(),
-		in.TelemetrySink,
+		in.BlobFetcherMetrics,
 	)
 }

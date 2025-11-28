@@ -38,7 +38,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/errors"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
-	"github.com/berachain/beacon-kit/node-core/components/metrics"
+	"github.com/berachain/beacon-kit/observability/metrics/discard"
 	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
@@ -180,7 +180,7 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 	// BUILD A VALID BLOCK (without polluting state st)
 	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), true, log.NewNopLogger())
 	buildState := state.NewBeaconStateFromDB(
-		st.KVStore.WithContext(sdkCtx), cs, sdkCtx.Logger(), metrics.NewNoOpTelemetrySink(),
+		st.KVStore.WithContext(sdkCtx), cs, sdkCtx.Logger(), state.NewMetrics(discard.NewFactory()),
 	)
 
 	nextBlkTimestamp := math.U64(cs.GenesisTime() + 1)
@@ -268,7 +268,7 @@ func setupOptimisticPayloadTests(t *testing.T, cs chain.Spec) (
 	sp, st, depStore, ctx, cms, eng := statetransition.SetupTestState(t, cs)
 
 	logger := log.NewNopLogger()
-	ts := metrics.NewNoOpTelemetrySink()
+	ts := blockchain.NewMetrics(discard.NewFactory())
 	sb := bcmocks.NewStorageBackend(t)
 	b := bcmocks.NewLocalBuilder(t)
 
