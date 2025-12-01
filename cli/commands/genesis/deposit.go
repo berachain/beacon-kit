@@ -158,7 +158,7 @@ func AddGenesisDeposit(
 
 func makeOutputFilepath(rootDir, pubkey string) (string, error) {
 	writePath := filepath.Join(rootDir, "config", "premined-deposits")
-	if err := afero.NewOsFs().MkdirAll(writePath, os.ModePerm); err != nil {
+	if err := afero.NewOsFs().MkdirAll(writePath, 0o700); err != nil { //nolint:mnd // dir permissions.
 		return "", errors.Wrapf(
 			errors.New("could not create directory"), "%q: %w",
 			writePath,
