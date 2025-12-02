@@ -131,19 +131,27 @@ func TestCreateChainSpec_File(t *testing.T) {
 	require.Equal(t, devnetSpec, dcs, "the chain spec loaded from TOML does not match the devnet spec")
 }
 
-func TestCreateChainSpec_MissingRequiredFields(t *testing.T) {
+func TestCreateChainSpec_FieldValidation(t *testing.T) {
 	t.Parallel()
 
-	// Create a temporary directory for test files
 	tempDir, err := os.MkdirTemp("", "spec-test")
 	require.NoError(t, err)
 	defer os.RemoveAll(tempDir)
 
+	// Read the valid spec file to use as a success case reference
+	validSpec, err := os.ReadFile("../../testing/files/spec.toml")
+	require.NoError(t, err)
+
 	tests := []struct {
 		name        string
 		specContent string
-		wantErr     string
+		wantErr     string // empty means no error expected
 	}{
+		{
+			name:        "valid spec with block-delay-configuration",
+			specContent: string(validSpec),
+			wantErr:     "",
+		},
 		{
 			name:        "empty spec file",
 			specContent: "",
@@ -171,19 +179,21 @@ consensus-enable-height = 2
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Write the spec file
 			specFile := filepath.Join(tempDir, tt.name+".toml")
-			writeErr := os.WriteFile(specFile, []byte(tt.specContent), 0644)
-			require.NoError(t, writeErr)
+			require.NoError(t, os.WriteFile(specFile, []byte(tt.specContent), 0600))
 
-			// Test loading - should fail
 			opts := dummyAppOptions{values: map[string]interface{}{
 				flags.ChainSpec:         "file",
 				flags.ChainSpecFilePath: specFile,
 			}}
-			_, err = spec.Create(opts)
-			require.Error(t, err)
-			assert.Contains(t, err.Error(), tt.wantErr)
+			_, createErr := spec.Create(opts)
+
+			if tt.wantErr == "" {
+				require.NoError(t, createErr)
+			} else {
+				require.Error(t, createErr)
+				assert.Contains(t, createErr.Error(), tt.wantErr)
+			}
 		})
 	}
 }
