@@ -134,9 +134,7 @@ func TestCreateChainSpec_File(t *testing.T) {
 func TestCreateChainSpec_FieldValidation(t *testing.T) {
 	t.Parallel()
 
-	tempDir, err := os.MkdirTemp("", "spec-test")
-	require.NoError(t, err)
-	defer os.RemoveAll(tempDir)
+	tempDir := t.TempDir()
 
 	// Read the valid spec file to use as a success case reference
 	validSpec, err := os.ReadFile("../../testing/files/spec.toml")

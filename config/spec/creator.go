@@ -147,7 +147,7 @@ func validateRequiredFields(t reflect.Type, v *viper.Viper, prefix string) error
 			fullKey = prefix + "." + tag
 		}
 
-		// For embedded structs with mapstructure tags, validate their sub-fields
+		// For struct fields (embedded or not) with mapstructure tags, validate their sub-fields
 		if field.Anonymous || field.Type.Kind() == reflect.Struct {
 			// This is an embedded struct with its own mapstructure tag
 			// Validate its sub-fields with the tag as prefix
