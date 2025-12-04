@@ -163,6 +163,7 @@ type BlockchainI interface {
 		sdk.Context,
 		*ctypes.BeaconBlock,
 	) error
+	PruneOrphanedBlobs(lastBlockHeight int64) error
 }
 
 // BlobProcessor is the interface for the blobs processor.
