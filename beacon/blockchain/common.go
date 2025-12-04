@@ -27,42 +27,45 @@ import (
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/math"
+	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
-func (s *Service) ParseBeaconBlock(req encoding.ABCIRequest) (
+func (s *Service) ParseProcessProposalRequest(req *cmtabci.ProcessProposalRequest) (
 	*ctypes.SignedBeaconBlock,
 	types.BlobSidecars,
 	error,
 ) {
-	if countTx := len(req.GetTxs()); countTx > MaxConsensusTxsCount {
-		return nil, nil, fmt.Errorf("max expected %d, got %d: %w",
-			MaxConsensusTxsCount, countTx,
-			ErrTooManyConsensusTxs,
-		)
+	blobConsensusEnabled := s.chainSpec.IsBlobConsensusEnabledAtHeight(req.Height)
+
+	maxTxCount := MaxConsensusTxsCount
+	if blobConsensusEnabled {
+		maxTxCount = 1 // After BlobEnableHeight: only 1 tx expected (block), blobs in Blob field
+	}
+
+	if len(req.GetTxs()) > maxTxCount {
+		return nil, nil, fmt.Errorf("max expected %d txs, got %d", maxTxCount, len(req.GetTxs()))
 	}
 
 	forkVersion := s.chainSpec.ActiveForkVersionForTimestamp(math.U64(req.GetTime().Unix())) //#nosec: G115
-	// Decode signed block and sidecars.
-	signedBlk, sidecars, err := encoding.ExtractBlobsAndBlockFromRequest(
-		req,
-		BeaconBlockTxIndex,
-		BlobSidecarsTxIndex,
-		forkVersion,
-	)
+	signedBlk, err := encoding.UnmarshalBeaconBlockFromABCIRequest(req.GetTxs(), BeaconBlockTxIndex, forkVersion)
 	if err != nil {
 		return nil, nil, err
 	}
+
 	if signedBlk == nil {
-		s.logger.Warn(
-			"Aborting block verification - beacon block not found in proposal",
-		)
+		s.logger.Warn("Aborting block verification - beacon block not found in proposal")
 		return nil, nil, ErrNilBlk
 	}
-	if sidecars == nil {
-		s.logger.Warn(
-			"Aborting block verification - blob sidecars not found in proposal",
-		)
-		return nil, nil, ErrNilBlob
+
+	// Extract sidecars using the common helper
+	sidecars, err := encoding.ExtractBlobSidecarsFromRequest(
+		req.GetTxs(),
+		req.GetBlob(),
+		req.Height,
+		s.chainSpec,
+	)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to extract blob sidecars at height %d: %w", req.Height, err)
 	}
 
 	return signedBlk, sidecars, nil

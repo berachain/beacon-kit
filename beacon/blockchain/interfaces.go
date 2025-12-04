@@ -26,8 +26,8 @@ import (
 
 	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/blobreactor"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
-	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -44,6 +44,17 @@ import (
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
+
+// BlobRequester is the interface for requesting blobs from peers.
+type BlobRequester interface {
+	// RequestBlobs fetches all blobs for a given slot from peers.
+	// The verifier function is called to validate blobs before returning.
+	// If verification fails, it tries the next peer until valid blobs are found.
+	// Returns all blob sidecars for the slot, or an error if none could be retrieved.
+	RequestBlobs(ctx context.Context, slot math.Slot, verifier func(datypes.BlobSidecars) error) ([]*datypes.BlobSidecar, error)
+	// SetHeadSlot updates the requester's view of the current blockchain head slot.
+	SetHeadSlot(slot math.Slot)
+}
 
 // ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine interface {
@@ -128,6 +139,9 @@ type TelemetrySink interface {
 	// the provided key.
 	IncrementCounter(key string, args ...string)
 
+	// SetGauge sets a gauge metric to the specified value.
+	SetGauge(key string, value int64, args ...string)
+
 	// MeasureSince measures the time since the provided start time,
 	// identified by the provided keys.
 	MeasureSince(key string, start time.Time, args ...string)
@@ -139,7 +153,7 @@ type BlockchainI interface {
 		context.Context,
 		[]byte,
 	) (transition.ValidatorUpdates, error)
-	ParseBeaconBlock(req encoding.ABCIRequest) (
+	ParseProcessProposalRequest(*cmtabci.ProcessProposalRequest) (
 		*ctypes.SignedBeaconBlock,
 		datypes.BlobSidecars,
 		error,
@@ -158,6 +172,7 @@ type BlockchainI interface {
 	FinalizeBlock(
 		sdk.Context,
 		*cmtabci.FinalizeBlockRequest,
+		datypes.BlobSidecars,
 	) (transition.ValidatorUpdates, error)
 	PostFinalizeBlockOps(
 		sdk.Context,
@@ -183,9 +198,25 @@ type BlobProcessor interface {
 	) error
 }
 
+// BlobFetcher is the interface for asynchronously fetching blobs.
+type BlobFetcher interface {
+	// Start begins the background blob fetching process.
+	Start(ctx context.Context)
+	// Stop gracefully shuts down the blob fetcher.
+	Stop()
+	// QueueBlobRequest queues a request to fetch blobs for a specific block.
+	QueueBlobRequest(block *ctypes.BeaconBlock) error
+	// SetHeadSlot updates the head slot for blob fetching.
+	SetHeadSlot(slot math.Slot)
+}
+
 type PruningChainSpec interface {
 	MinEpochsForBlobsSidecarsRequest() math.Epoch
 	SlotsPerEpoch() uint64
+}
+
+type BlobFetcherChainSpec interface {
+	WithinDAPeriod(block, current math.Slot) bool
 }
 
 type ServiceChainSpec interface {
@@ -194,6 +225,7 @@ type ServiceChainSpec interface {
 	chain.ForkSpec
 	chain.ForkVersionSpec
 	delay.ConfigGetter
+	blobreactor.ConfigGetter
 
 	EpochsPerHistoricalVector() uint64
 	SlotToEpoch(slot math.Slot) math.Epoch

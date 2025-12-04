@@ -256,10 +256,9 @@ func (s *SharedAccessors) MoveChainToHeight(
 		// set consensus time for the next block to match
 		// the timestamp of the payload built optimistically.
 		forkVersion := s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(math.U64(proposalTime.Unix())) //#nosec: G115
-		blk, _, err := encoding.ExtractBlobsAndBlockFromRequest(
-			processReq,
+		blk, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
+			processReq.GetTxs(),
 			blockchain.BeaconBlockTxIndex,
-			blockchain.BlobSidecarsTxIndex,
 			forkVersion,
 		)
 		require.NoError(t, err)

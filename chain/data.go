@@ -21,6 +21,7 @@
 package chain
 
 import (
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/blobreactor"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
 	"github.com/berachain/beacon-kit/primitives/common"
 )
@@ -29,6 +30,7 @@ import (
 // `mapstructure` tag are required.
 type SpecData struct {
 	delay.Config `mapstructure:"block-delay-configuration"`
+	BlobConfig   blobreactor.Config `mapstructure:"blob-reactor-configuration"`
 
 	// Gwei value constants.
 	//
