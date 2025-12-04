@@ -29,6 +29,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	beaconhttp "github.com/berachain/beacon-kit/primitives/net/http"
 	"github.com/berachain/beacon-kit/primitives/net/jwt"
@@ -37,6 +38,7 @@ import (
 var _ Client = (*client)(nil)
 
 type Client interface {
+	Initialize() error
 	Start(context.Context)
 	Call(ctx context.Context, target any, method string, params ...any) error
 	Close() error
@@ -56,6 +58,8 @@ type client struct {
 	// jwtRefreshInterval is the interval at which the JWT token should be
 	// refreshed.
 	jwtRefreshInterval time.Duration
+	// logger is the logger for the RPC client.
+	logger log.Logger
 
 	// mu protects header for concurrent access.
 	mu sync.RWMutex
@@ -69,6 +73,7 @@ func NewClient(
 	url string,
 	secret *jwt.Secret,
 	jwtRefreshInterval time.Duration,
+	logger log.Logger,
 ) Client {
 	rpc := &client{
 		url:    url,
@@ -84,6 +89,7 @@ func NewClient(
 		jwtSecret:          secret,
 		jwtRefreshInterval: jwtRefreshInterval,
 		header:             http.Header{"Content-Type": {"application/json"}},
+		logger:             logger,
 	}
 
 	return rpc
@@ -94,20 +100,28 @@ func (rpc *client) Start(ctx context.Context) {
 	ticker := time.NewTicker(rpc.jwtRefreshInterval)
 	defer ticker.Stop()
 
-	if err := rpc.updateHeader(); err != nil {
-		panic(err)
-	}
+	// Initial JWT update is done in Initialize() now
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
 			if err := rpc.updateHeader(); err != nil {
-				// TODO: log or something.
+				rpc.logger.Error("Failed to refresh JWT token", "error", err)
 				continue
 			}
 		}
 	}
+}
+
+// Initialize sets up the initial JWT token. This should be called before
+// making any RPC calls to ensure a fresh token is available.
+func (rpc *client) Initialize() error {
+	rpc.logger.Info("Initializing RPC client with fresh JWT token")
+	if err := rpc.updateHeader(); err != nil {
+		return fmt.Errorf("failed to initialize JWT token: %w", err)
+	}
+	return nil
 }
 
 // Close closes the RPC client.

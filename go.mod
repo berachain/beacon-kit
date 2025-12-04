@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit
 
-go 1.25.3
+go 1.25.5
 
 replace (
 	github.com/cometbft/cometbft => github.com/berachain/cometbft v1.0.1-0.20251015081901-8394c619874a
@@ -49,8 +49,8 @@ require (
 	github.com/spf13/viper v1.21.0
 	github.com/umbracle/fastrlp v0.1.0
 	go.uber.org/automaxprocs v1.6.0
-	golang.org/x/crypto v0.43.0
-	golang.org/x/sync v0.17.0
+	golang.org/x/crypto v0.45.0
+	golang.org/x/sync v0.18.0
 	sigs.k8s.io/yaml v1.6.0
 )
 
@@ -60,7 +60,7 @@ require (
 	github.com/cosmos/ics23/go v0.11.0
 	github.com/ethereum/go-ethereum v1.15.5
 	github.com/ferranbt/fastssz v0.1.5-0.20240903094032-455b54c08c81
-	github.com/kurtosis-tech/kurtosis/api/golang v1.12.1
+	github.com/kurtosis-tech/kurtosis/api/golang v1.13.2
 	github.com/protolambda/zrnt v0.34.1
 	github.com/protolambda/ztyp v0.2.2
 	github.com/rs/zerolog v1.34.0
@@ -193,6 +193,7 @@ require (
 	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/mholt/archiver v3.1.1+incompatible // indirect
 	github.com/minio/highwayhash v1.0.3 // indirect
+	github.com/moby/sys/user v0.3.0 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/mtibben/percent v0.2.1 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
@@ -203,7 +204,7 @@ require (
 	github.com/onsi/gomega v1.34.2 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0 // indirect
-	github.com/opencontainers/runc v1.1.14 // indirect
+	github.com/opencontainers/runc v1.2.8 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/petermattis/goid v0.0.0-20240813172612-4fcff4a6cae7 // indirect
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
@@ -254,10 +255,10 @@ require (
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/arch v0.17.0 // indirect
 	golang.org/x/exp v0.0.0-20250106191152-7588d65b2ba8 // indirect
-	golang.org/x/net v0.45.0 // indirect
-	golang.org/x/sys v0.37.0 // indirect
-	golang.org/x/term v0.36.0 // indirect
-	golang.org/x/text v0.30.0 // indirect
+	golang.org/x/net v0.47.0 // indirect
+	golang.org/x/sys v0.38.0 // indirect
+	golang.org/x/term v0.37.0 // indirect
+	golang.org/x/text v0.31.0 // indirect
 	golang.org/x/time v0.11.0 // indirect
 	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
 	google.golang.org/genproto v0.0.0-20240624140628-dc46fd24d27d // indirect
