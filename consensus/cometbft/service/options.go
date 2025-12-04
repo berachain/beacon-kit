@@ -79,6 +79,13 @@ func SetInterBlockCache(cache storetypes.MultiStorePersistentCache) func(*Servic
 	}
 }
 
+// SetPrivValidatorConsumer configures the Service to share its PrivValidator.
+func SetPrivValidatorConsumer(consumer PrivValidatorConsumer) func(*Service) {
+	return func(s *Service) {
+		s.privValConsumer = consumer
+	}
+}
+
 // SetChainID sets the chain ID in cometbft.
 func SetChainID(chainID string) func(*Service) {
 	return func(s *Service) { s.chainID = chainID }
