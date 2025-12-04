@@ -28,13 +28,16 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"path/filepath"
+	"sync"
 	"testing"
 	"time"
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
+	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/da/kzg"
 	"github.com/berachain/beacon-kit/da/kzg/gokzg"
 	"github.com/berachain/beacon-kit/errors"
@@ -49,6 +52,7 @@ import (
 	"github.com/berachain/beacon-kit/state-transition/core"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
 	"github.com/cometbft/cometbft/abci/types"
+	cmtcrypto "github.com/cometbft/cometbft/crypto"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	gethcommon "github.com/ethereum/go-ethereum/common"
@@ -61,6 +65,36 @@ import (
 // testPkey corresponds to address 0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4 which is prefunded in genesis
 const testPkey = "fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306"
 
+// SyncBuffer is a thread-safe wrapper around bytes.Buffer.
+type SyncBuffer struct {
+	mu  sync.RWMutex
+	buf bytes.Buffer
+}
+
+func (sb *SyncBuffer) Write(p []byte) (int, error) {
+	sb.mu.Lock()
+	defer sb.mu.Unlock()
+	return sb.buf.Write(p)
+}
+
+func (sb *SyncBuffer) String() string {
+	sb.mu.RLock()
+	defer sb.mu.RUnlock()
+	return sb.buf.String()
+}
+
+func (sb *SyncBuffer) Reset() {
+	sb.mu.Lock()
+	defer sb.mu.Unlock()
+	sb.buf.Reset()
+}
+
+func (sb *SyncBuffer) Contains(substr []byte) bool {
+	sb.mu.RLock()
+	defer sb.mu.RUnlock()
+	return bytes.Contains(sb.buf.Bytes(), substr)
+}
+
 // SharedAccessors holds references to common utilities required in tests.
 type SharedAccessors struct {
 	CtxApp                context.Context
@@ -69,12 +103,53 @@ type SharedAccessors struct {
 	HomeDir               string
 	TestNode              TestNode
 	SimComet              *SimComet
-	LogBuffer             *bytes.Buffer
+	LogBuffer             *SyncBuffer
 	GenesisValidatorsRoot common.Root
 	SimulationClient      *execution.SimulationClient
 
 	// ElHandle is a dockertest resource handle that should be closed in teardown.
 	ElHandle *execution.Resource
+}
+
+// CleanupTest performs common cleanup operations for test suites.
+// Call this from TearDownTest to ensure proper cleanup even when setup fails.
+func (s *SharedAccessors) CleanupTest(t *testing.T) {
+	s.CleanupTestWithLabel(t, "")
+}
+
+// CleanupTestWithLabel performs common cleanup operations with an optional label for logs.
+// Use this when managing multiple execution clients (e.g., "GETH", "RETH").
+func (s *SharedAccessors) CleanupTestWithLabel(t *testing.T, label string) {
+	t.Helper()
+
+	// If the test has failed, log additional information.
+	if t.Failed() && s.LogBuffer != nil {
+		if label != "" {
+			t.Logf("%s CL LOGS:", label)
+		}
+		t.Log(s.LogBuffer.String())
+	}
+
+	// Close execution layer handle if it exists.
+	if s.ElHandle != nil {
+		if err := s.ElHandle.Close(); err != nil {
+			if label != "" {
+				t.Errorf("Error closing %s EL handle: %v", label, err)
+			} else {
+				t.Errorf("Error closing EL handle: %v", err)
+			}
+		}
+	}
+
+	// Cancel the application context if it exists.
+	if s.CtxAppCancelFn != nil {
+		s.CtxAppCancelFn()
+	}
+
+	// Stop all services if the service registry exists.
+	if s.TestNode.ServiceRegistry != nil {
+		s.TestNode.ServiceRegistry.StopAll()
+	}
 }
 
 // InitializeChain sets up the chain using the genesis file.
@@ -101,19 +176,40 @@ func (s *SharedAccessors) InitializeChain(t *testing.T) {
 	require.Len(t, deposits, 1, "Expected 1 deposit")
 }
 
+// InitializeChain sets up the chain using the genesis file.
+func (s *SharedAccessors) InitializeChain2Validators(t *testing.T) {
+	// Load the genesis state.
+	appGenesis, err := genutiltypes.AppGenesisFromFile(s.HomeDir + "/config/genesis.json")
+	require.NoError(t, err)
+
+	// Initialize the chain.
+	initResp, err := s.SimComet.Comet.InitChain(s.CtxComet, &types.InitChainRequest{
+		ChainId:       TestnetBeaconChainID,
+		AppStateBytes: appGenesis.AppState,
+	})
+	require.NoError(t, err)
+	require.Len(t, initResp.Validators, 2, "Expected 2 validators")
+
+	// Verify that the deposit store contains the expected deposits.
+	deposits, _, err := s.TestNode.StorageBackend.DepositStore().GetDepositsByIndex(
+		s.CtxApp,
+		constants.FirstDepositIndex,
+		constants.FirstDepositIndex+s.TestNode.ChainSpec.MaxDepositsPerBlock(),
+	)
+	require.NoError(t, err)
+	require.Len(t, deposits, 2, "Expected 2 deposits")
+}
+
 // MoveChainToHeight will iterate through the core loop `iterations` times, i.e. Propose, Process, Finalize and Commit.
 // Returns the list of proposed comet blocks.
 func (s *SharedAccessors) MoveChainToHeight(
 	t *testing.T,
 	startHeight,
 	iterations int64,
-	proposer *signer.BLSSigner,
+	nodeAddress cmtcrypto.Address,
 	startTime time.Time,
 ) ([]*types.PrepareProposalResponse, []*types.FinalizeBlockResponse, time.Time) {
 	// Prepare a block proposal.
-	pubkey, err := proposer.GetPubKey()
-	require.NoError(t, err)
-
 	var proposedCometBlocks []*types.PrepareProposalResponse
 	var finalizedResponses []*types.FinalizeBlockResponse
 
@@ -122,26 +218,28 @@ func (s *SharedAccessors) MoveChainToHeight(
 		proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 			Height:          currentHeight,
 			Time:            proposalTime,
-			ProposerAddress: pubkey.Address(),
+			ProposerAddress: nodeAddress,
 		})
 		require.NoError(t, err)
 		require.Len(t, proposal.Txs, 2)
 
 		// Process the proposal.
-		processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
-			Txs:             proposal.Txs,
-			Height:          currentHeight,
-			ProposerAddress: pubkey.Address(),
-			Time:            proposalTime,
-		})
+		processReq := &types.ProcessProposalRequest{
+			Txs:                 proposal.Txs,
+			Height:              currentHeight,
+			ProposerAddress:     nodeAddress,
+			Time:                proposalTime,
+			NextProposerAddress: nodeAddress, // Trigger an optimistic build for the next height.
+		}
+		processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, processReq)
 		require.NoError(t, err)
-		require.Equal(t, types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
+		require.Equal(t, types.PROCESS_PROPOSAL_STATUS_ACCEPT.String(), processResp.Status.String())
 
 		// Finalize the block.
 		finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.FinalizeBlockRequest{
 			Txs:             proposal.Txs,
 			Height:          currentHeight,
-			ProposerAddress: pubkey.Address(),
+			ProposerAddress: nodeAddress,
 			Time:            proposalTime,
 		})
 		require.NoError(t, err)
@@ -155,7 +253,20 @@ func (s *SharedAccessors) MoveChainToHeight(
 		proposedCometBlocks = append(proposedCometBlocks, proposal)
 		finalizedResponses = append(finalizedResponses, finalizeResp)
 
-		proposalTime = proposalTime.Add(time.Duration(s.TestNode.ChainSpec.TargetSecondsPerEth1Block()) * time.Second)
+		// set consensus time for the next block to match
+		// the timestamp of the payload built optimistically.
+		forkVersion := s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(math.U64(proposalTime.Unix())) //#nosec: G115
+		blk, _, err := encoding.ExtractBlobsAndBlockFromRequest(
+			processReq,
+			blockchain.BeaconBlockTxIndex,
+			blockchain.BlobSidecarsTxIndex,
+			forkVersion,
+		)
+		require.NoError(t, err)
+		proposalTime = time.Unix(
+			int64(payloadtime.Next(blk.GetTimestamp(), blk.GetTimestamp(), true)),
+			0,
+		)
 	}
 	return proposedCometBlocks, finalizedResponses, proposalTime
 }
@@ -163,7 +274,7 @@ func (s *SharedAccessors) MoveChainToHeight(
 // WaitTillServicesStarted waits until the log buffer contains "All services started".
 // It checks periodically with a timeout to prevent indefinite waiting.
 // If there is a better way to determine the services have started, e.g. readiness probe, replace this.
-func WaitTillServicesStarted(logBuffer *bytes.Buffer, timeout, interval time.Duration) error {
+func WaitTillServicesStarted(logBuffer *SyncBuffer, timeout, interval time.Duration) error {
 	deadline := time.After(timeout)
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
@@ -172,7 +283,7 @@ func WaitTillServicesStarted(logBuffer *bytes.Buffer, timeout, interval time.Dur
 		case <-deadline:
 			return errors.New("timeout waiting for services to start")
 		case <-ticker.C:
-			if bytes.Contains(logBuffer.Bytes(), []byte("All services started")) {
+			if logBuffer.Contains([]byte("All services started")) {
 				return nil
 			}
 		}
@@ -261,18 +372,17 @@ func ComputeAndSetInvalidExecutionBlock(
 	executionPayload.Transactions = txsBytesArray
 	parentBlockRoot := latestBlock.GetParentBlockRoot()
 
-	var execBlock *gethtypes.Block
-	var err error
+	var (
+		execBlock           *gethtypes.Block
+		encodedExecRequests []ctypes.EncodedExecutionRequest
+		err                 error
+	)
 	if version.EqualsOrIsAfter(forkVersion, version.Electra()) {
-		var encodedExecRequests []ctypes.EncodedExecutionRequest
 		encodedExecRequests, err = ctypes.GetExecutionRequestsList(executionRequests)
 		require.NoError(t, err)
-		execBlock, _, err = ctypes.MakeEthBlockWithExecutionRequests(executionPayload, &parentBlockRoot, encodedExecRequests)
-		require.NoError(t, err)
-	} else {
-		execBlock, _, err = ctypes.MakeEthBlock(executionPayload, &parentBlockRoot)
-		require.NoError(t, err)
 	}
+	execBlock, _, err = ctypes.MakeEthBlock(executionPayload, parentBlockRoot, encodedExecRequests, nil)
+	require.NoError(t, err)
 
 	return updateBeaconBlockBody(t, latestBlock, forkVersion, execBlock, sidecars, executionRequests)
 }
@@ -328,7 +438,7 @@ func ComputeAndSetStateRoot(
 ) (*ctypes.BeaconBlock, error) {
 
 	// Copy the current state from the storage backend.
-	stateDBCopy := storageBackend.StateFromContext(queryCtx).Copy(queryCtx)
+	stateDBCopy := storageBackend.StateFromContext(queryCtx).Protect(queryCtx)
 
 	// Create a transition context with the provided consensus time and proposer address.
 	txCtx := transition.NewTransitionCtx(
@@ -368,10 +478,10 @@ func GetProofAndCommitmentsForBlobs(
 	commitments := make([]eip4844.KZGCommitment, len(blobs))
 	proofs := make([]eip4844.KZGProof, len(blobs))
 	for i, blob := range blobs {
-		ckzgBlob := (*gokzg4844.Blob)(blob)
-		commitment, err := gokzgVerifier.BlobToKZGCommitment(ckzgBlob, 1)
+		kzgBlob := (*gokzg4844.Blob)(blob)
+		commitment, err := gokzgVerifier.BlobToKZGCommitment(kzgBlob, 1)
 		t.NoError(err)
-		proof, err := gokzgVerifier.ComputeBlobKZGProof(ckzgBlob, commitment, 1)
+		proof, err := gokzgVerifier.ComputeBlobKZGProof(kzgBlob, commitment, 1)
 		t.NoError(err)
 		commitments[i] = eip4844.KZGCommitment(commitment)
 		proofs[i] = eip4844.KZGProof(proof)

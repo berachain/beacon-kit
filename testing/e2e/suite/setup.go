@@ -139,6 +139,8 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 }
 
 // SetupConsensusClients sets up the consensus clients for the validator nodes.
+//
+// TODO: set up consensus clients for full nodes as well.
 func (s *KurtosisE2ESuite) SetupConsensusClients() error {
 	s.consensusClients = make(map[string]*types.ConsensusClient, config.NumValidators)
 
@@ -187,6 +189,8 @@ func (s *KurtosisE2ESuite) SetupConsensusClients() error {
 }
 
 // SetupJSONRPCBalancer sets up the load balancer for the test suite.
+//
+// TODO: set up execution clients for all validators and full nodes.
 func (s *KurtosisE2ESuite) SetupJSONRPCBalancer() error {
 	// get the type for EthJSONRPCEndpoint
 	typeRPCEndpoint := s.JSONRPCBalancerType()
@@ -198,9 +202,7 @@ func (s *KurtosisE2ESuite) SetupJSONRPCBalancer() error {
 		return err
 	}
 
-	if s.loadBalancer, err = types.NewLoadBalancer(
-		sCtx,
-	); err != nil {
+	if s.loadBalancer, err = types.NewLoadBalancer(sCtx); err != nil {
 		return err
 	}
 

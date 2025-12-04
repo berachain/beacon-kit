@@ -23,7 +23,6 @@
 package simulated_test
 
 import (
-	"bytes"
 	"context"
 	"path"
 	"testing"
@@ -73,7 +72,7 @@ func (s *SimulatedSuite) SetupTest() {
 	s.ElHandle = elHandle
 
 	// Prepare a logger backed by a buffer to capture logs for assertions.
-	s.LogBuffer = new(bytes.Buffer)
+	s.LogBuffer = &simulated.SyncBuffer{}
 	logger := phuslu.NewLogger(s.LogBuffer, nil)
 
 	// Build the Beacon node with the simulated Comet component.
@@ -106,14 +105,5 @@ func (s *SimulatedSuite) SetupTest() {
 
 // TearDownTest cleans up the test environment.
 func (s *SimulatedSuite) TearDownTest() {
-	// If the test has failed, log additional information.
-	if s.T().Failed() {
-		s.T().Log(s.LogBuffer.String())
-	}
-	if err := s.ElHandle.Close(); err != nil {
-		s.T().Error("Error closing EL handle:", err)
-	}
-	// mimics the behaviour of shutdown func
-	s.CtxAppCancelFn()
-	s.TestNode.ServiceRegistry.StopAll()
+	s.CleanupTest(s.T())
 }

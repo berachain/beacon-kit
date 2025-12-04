@@ -67,7 +67,7 @@ func (em *engineMetrics) markNewPayloadValid(
 	payloadHash common.ExecutionHash,
 	parentHash common.ExecutionHash,
 ) {
-	em.logger.Info(
+	em.logger.Debug(
 		"Inserted new payload into execution chain",
 		"payload_block_hash", payloadHash,
 		"payload_parent_block_hash", parentHash,
@@ -201,7 +201,7 @@ func (em *engineMetrics) markForkchoiceUpdateValid(
 	if hasPayloadAttributes {
 		args = append(args, "payload_id", payloadID)
 	}
-	em.logger.Info("Forkchoice updated", args...)
+	em.logger.Debug("Forkchoice updated", args...)
 
 	em.sink.IncrementCounter(
 		"beacon_kit.execution.engine.forkchoice_update_valid",

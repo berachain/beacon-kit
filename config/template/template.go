@@ -68,7 +68,7 @@ style = "{{.BeaconKit.Logger.Style}}"
 trusted-setup-path = "{{.BeaconKit.KZG.TrustedSetupPath}}"
 
 # KZG implementation to use.
-# Options are "crate-crypto/go-kzg-4844" or "ethereum/c-kzg-4844".
+# Options are "crate-crypto/go-kzg-4844".
 implementation = "{{.BeaconKit.KZG.Implementation}}"
 
 [beacon-kit.payload-builder]
@@ -90,15 +90,10 @@ payload-timeout = "{{ .BeaconKit.PayloadBuilder.PayloadTimeout }}"
 # Graffiti string that will be included in the graffiti field of the beacon block.
 graffiti = "{{ .BeaconKit.Validator.Graffiti }}"
 
-# EnableOptimisticPayloadBuilds enables building the next block's payload optimistically in
-# process-proposal to allow for the execution client to have more time to assemble the block.
-enable-optimistic-payload-builds = "{{ .BeaconKit.Validator.EnableOptimisticPayloadBuilds }}"
-
 [beacon-kit.block-store-service]
-# Enabled determines if the block store service is enabled.
-enabled = "{{ .BeaconKit.BlockStoreService.Enabled }}"
-
 # AvailabilityWindow is the number of slots to keep in the store.
+# Setting AvailabilityWindow to 0 disables block store and does not allow the node
+# to serve proof or namespace apis from beacon node-api.
 availability-window = "{{ .BeaconKit.BlockStoreService.AvailabilityWindow }}"
 
 [beacon-kit.node-api]

@@ -104,7 +104,17 @@ func (h *ExecutionHash) UnmarshalJSON(input []byte) error {
 type ExecutionAddress [20]byte
 
 // NewExecutionAddressFromHex creates a new address from a hex string.
-func NewExecutionAddressFromHex(input string) ExecutionAddress {
+func NewExecutionAddressFromHex(input string) (ExecutionAddress, error) {
+	bz, err := hex.ToBytes(input)
+	if err != nil {
+		return ExecutionAddress{}, err
+	}
+	return ExecutionAddress(bz), nil
+}
+
+// MustNewExecutionAddressFromHex creates a new address from a hex string,
+// panicking if the input is not a valid hex string.
+func MustNewExecutionAddressFromHex(input string) ExecutionAddress {
 	return ExecutionAddress(hex.MustToBytes(input))
 }
 

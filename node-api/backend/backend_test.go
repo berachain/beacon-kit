@@ -17,65 +17,217 @@
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
-//go:build test
-// +build test
 
 package backend_test
 
 import (
-	"context"
+	"errors"
+	"os"
+	"path/filepath"
+	"testing"
 
 	"cosmossdk.io/log"
-	storetypes "cosmossdk.io/store/types"
-	"github.com/berachain/beacon-kit/chain"
-	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/config/spec"
+	"github.com/berachain/beacon-kit/consensus-types/types"
+	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
+	"github.com/berachain/beacon-kit/node-api/backend"
+	"github.com/berachain/beacon-kit/node-api/backend/mocks"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
-	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
-	"github.com/berachain/beacon-kit/storage/beacondb"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/berachain/beacon-kit/node-core/components/storage"
+	coremocks "github.com/berachain/beacon-kit/node-core/types/mocks"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/state-transition/core/state"
+	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
+	cmtcfg "github.com/cometbft/cometbft/config"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
-var errTestMemberNotImplemented = errors.New("not implemented")
+func TestBackendLoadData(t *testing.T) {
+	t.Parallel()
 
-// testConsensusService stubs consensus service
-type testConsensusService struct {
-	cms     storetypes.CommitMultiStore
-	kvStore *beacondb.KVStore
-	cs      chain.Spec
-}
-
-func (t *testConsensusService) CreateQueryContext(height int64, _ bool) (sdk.Context, error) {
-	sdkCtx := sdk.NewContext(t.cms.CacheMultiStore(), false, log.NewNopLogger())
-
-	// there validations mimics consensus service, not sure if they are necessary
-	tmpState := statedb.NewBeaconStateFromDB(
-		t.kvStore.WithContext(sdkCtx), t.cs, sdkCtx.Logger(), metrics.NewNoOpTelemetrySink(),
+	// some genesis data, to check they match with what it's in the state that backend returns
+	var (
+		expectedGenesisPayload *types.ExecutionPayloadHeader
+		expectedGenesisFork    *types.Fork
 	)
-	slot, err := tmpState.GetSlot()
-	if err != nil {
-		return sdk.Context{}, sdkerrors.ErrInvalidHeight
+
+	testCases := []struct {
+		name                string
+		setMockExpectations func(
+			*coremocks.ConsensusService,
+			*mocks.GenesisStateProcessor,
+		)
+		check func(t *testing.T, b *backend.Backend, errLoad error)
+	}{
+		{
+			name: "success",
+			setMockExpectations: func(
+				cs *coremocks.ConsensusService,
+				sp *mocks.GenesisStateProcessor,
+			) {
+				t.Helper()
+
+				cs.EXPECT().IsAppReady().Return(nil) // mark the app as ready
+				sp.EXPECT().InitializeBeaconStateFromEth1(
+					mock.Anything,
+					mock.Anything,
+					mock.Anything,
+					mock.Anything,
+				).Run(func(
+					st *state.StateDB,
+					_ types.Deposits,
+					execPayloadHeader *types.ExecutionPayloadHeader,
+					genesisVersion common.Version,
+				) {
+					expectedGenesisPayload = execPayloadHeader
+					expectedGenesisFork = &types.Fork{
+						PreviousVersion: genesisVersion,
+						CurrentVersion:  genesisVersion,
+					}
+					require.NoError(t, st.SetLatestExecutionPayloadHeader(execPayloadHeader))
+					require.NoError(t, st.SetFork(expectedGenesisFork))
+				}).Return(nil, nil) // duly process genesis once parsed
+			},
+			check: func(t *testing.T, b *backend.Backend, errLoad error) {
+				t.Helper()
+
+				require.NoError(t, errLoad)
+
+				// Load genesis state and show (at least some) data matches
+				genState, genSlot, err := b.StateAndSlotFromHeight(0) // check genesis state is provided
+				require.NoError(t, err)
+				require.Equal(t, math.Slot(0), genSlot)
+
+				gotGenesisPayload, err := genState.GetLatestExecutionPayloadHeader()
+				require.NoError(t, err)
+				require.Equal(t, expectedGenesisPayload, gotGenesisPayload)
+
+				gotGenesisFork, err := genState.GetFork()
+				require.NoError(t, err)
+				require.Equal(t, expectedGenesisFork, gotGenesisFork)
+			},
+		},
+		{
+			name: "app not ready",
+			setMockExpectations: func(
+				cs *coremocks.ConsensusService,
+				_ *mocks.GenesisStateProcessor,
+			) {
+				t.Helper()
+
+				cs.EXPECT().IsAppReady().Return(cometbft.ErrAppNotReady) // mark the app as not ready
+			},
+			check: func(t *testing.T, b *backend.Backend, errLoad error) {
+				t.Helper()
+
+				// just keep going, it will load later on, as soon as possible
+				require.NoError(t, errLoad)
+
+				_, _, err := b.StateAndSlotFromHeight(0) // check genesis state is provided
+				require.ErrorIs(t, err, cometbft.ErrAppNotReady)
+			},
+		},
+		{
+			name: "could not check app is ready",
+			setMockExpectations: func(
+				cs *coremocks.ConsensusService,
+				_ *mocks.GenesisStateProcessor,
+			) {
+				t.Helper()
+
+				cs.EXPECT().IsAppReady().Return(errors.New("unknown error"))
+			},
+			check: func(t *testing.T, _ *backend.Backend, errLoad error) {
+				t.Helper()
+				require.Error(t, errLoad)
+			},
+		},
 	}
-	if height > int64(slot.Unwrap()) {
-		return sdk.Context{}, sdkerrors.ErrInvalidHeight
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// 1 - Build backend
+			cs, err := spec.MainnetChainSpec()
+			require.NoError(t, err)
+
+			cmtCfg := buildTestCometConfig(t)
+
+			_, kvStore, depositStore, err := statetransition.BuildTestStores()
+			require.NoError(t, err)
+			sb := storage.NewBackend(
+				cs, nil, kvStore, depositStore, nil, log.NewNopLogger(), metrics.NewNoOpTelemetrySink(),
+			)
+
+			tcs := coremocks.NewConsensusService(t)
+			sp := mocks.NewGenesisStateProcessor(t)
+
+			b := backend.New(sb, sp, cs, cmtCfg, tcs)
+			defer func() {
+				require.NoError(t, b.Close())
+			}()
+
+			// 2- Setup expectations
+			tc.setMockExpectations(tcs, sp)
+
+			// 3 - Test
+			errLoad := b.LoadData(t.Context())
+
+			// 4- Checks
+			tc.check(t, b, errLoad)
+		})
 	}
-	// end of possibly unnecessary validations
-
-	return sdkCtx, nil
 }
 
-func (t *testConsensusService) Start(_ context.Context) error {
-	return errTestMemberNotImplemented
-}
+//nolint:lll // adapted genesis from mainnet
+func buildTestCometConfig(t *testing.T) *cmtcfg.Config {
+	t.Helper()
 
-func (t *testConsensusService) Stop() error {
-	return errTestMemberNotImplemented
-}
+	// Create a temporary directory for CometBFT config
+	tmpDir := t.TempDir()
+	cmtCfg := cmtcfg.DefaultConfig()
+	cmtCfg.SetRoot(tmpDir)
 
-func (t *testConsensusService) Name() string {
-	panic(errTestMemberNotImplemented)
-}
+	// Create config directory
+	configDir := filepath.Join(tmpDir, "config")
+	err := os.MkdirAll(configDir, 0o755)
+	require.NoError(t, err)
 
-func (t *testConsensusService) LastBlockHeight() int64 {
-	panic(errTestMemberNotImplemented)
+	// Create app genesis with version of Deneb 0x04000000.
+	appGenesis := genutiltypes.NewAppGenesisWithVersion("test-chain", []byte(`
+	{
+    "beacon": {
+      "fork_version": "0x04000000",
+      "deposits": [],
+      "execution_payload_header": {
+        "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "feeRecipient": "0x0000000000000000000000000000000000000000",
+        "stateRoot": "0x2aace2f233f1ef6ca13e5fd8feae4cb1b0b580fa56c8ee081ab89d861eaf1515",
+        "receiptsRoot": "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
+        "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "prevRandao": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "blockNumber": "0x0",
+        "gasLimit": "0x1c9c380",
+        "gasUsed": "0x0",
+        "timestamp": "0x678e56e0",
+        "extraData": "0x",
+        "baseFeePerGas": "1000000000",
+        "blockHash": "0xd57819422128da1c44339fc7956662378c17e2213e669b427ac91cd11dfcfb38",
+        "transactionsRoot": "0x7ffe241ea60187fdb0187bfa22de35d1f9bed7ab061d9401fd47e34a54fbede1",
+        "withdrawalsRoot": "0x792930bbd5baac43bcc798ee49aa8185ef76bb3b44ba62b91d86ae569e4bb535",
+        "blobGasUsed": "0x0",
+        "excessBlobGas": "0x0"
+      }
+    }
+	}
+	`))
+
+	// Save genesis file to the config directory
+	genesisFile := filepath.Join(configDir, "genesis.json")
+	err = appGenesis.SaveAs(genesisFile)
+	require.NoError(t, err)
+
+	return cmtCfg
 }

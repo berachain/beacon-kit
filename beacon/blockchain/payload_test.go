@@ -34,10 +34,10 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/errors"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
-	bemocks "github.com/berachain/beacon-kit/node-api/backend/mocks"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -61,14 +61,13 @@ import (
 func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 	t.Parallel()
 
-	optimisticPayloadBuilds := true // key to this test
 	cs, err := spec.MainnetChainSpec()
 	require.NoError(t, err)
 
-	chain, st, _, ctx, _, b, sb, eng, depStore := setupOptimisticPayloadTests(t, cs, optimisticPayloadBuilds)
+	chain, st, _, ctx, _, b, sb, eng, depStore := setupOptimisticPayloadTests(t, cs)
 	sb.EXPECT().StateFromContext(mock.Anything).Return(st)
 	sb.EXPECT().DepositStore().RunAndReturn(func() deposit.StoreManager { return depStore })
-	b.EXPECT().Enabled().Return(optimisticPayloadBuilds)
+	b.EXPECT().Enabled().Return(true)
 
 	// Note: test avoid calling chain.Start since it only starts the deposits
 	// goroutine which is not really relevant for this test
@@ -79,7 +78,7 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 	// Finally create a block that will be rejected and
 	// verify the state on top of which is next payload built
 	var (
-		consensusTime   = math.U64(time.Now().Unix())
+		consensusTime   = time.Now()
 		proposerAddress = []byte{'d', 'u', 'm', 'm', 'y'} // this will err on purpose
 	)
 
@@ -104,7 +103,7 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 	stateRoot := st.HashTreeRoot() // track state root before the changes done by optimistic build
 	latestHeader, err := st.GetLatestBlockHeader()
 	require.NoError(t, err)
-	latestHeader.SetStateRoot(st.HashTreeRoot())
+	latestHeader.SetStateRoot(stateRoot)
 	expectedParentBlockRoot := latestHeader.HashTreeRoot()
 
 	b.EXPECT().RequestPayloadAsync(mock.Anything, mock.Anything).Run(
@@ -114,13 +113,13 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 			genesisBlkHeader := core.GenesisBlockHeader(cs.GenesisForkVersion())
 			genesisBlkHeader.SetStateRoot(stateRoot)
 
-			require.Equal(t, consensusTime+1, r.Timestamp)
+			require.Equal(t, math.U64(consensusTime.Unix())+1, r.Timestamp)
 
-			require.Equal(t, genesisHeader.GetBlockHash(), r.HeadEth1BlockHash)
+			require.Equal(t, genesisHeader.GetBlockHash(), r.FCState.HeadBlockHash)
 
 			require.Equal(t, expectedParentBlockRoot, r.ParentBlockRoot)
 
-			require.Empty(t, r.FinalEth1BlockHash)            // this is first block post genesis
+			require.Empty(t, r.FCState.FinalizedBlockHash)    // this is first block post genesis
 			require.Equal(t, constants.GenesisSlot+1, r.Slot) // rebuild block on top of genesis
 		},
 	).Return(nil, common.Version{0xff}, errors.New("does not matter")) // return values do not really matter in this test
@@ -131,11 +130,10 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, constants.GenesisSlot, slot)
 
-	err = chain.VerifyIncomingBlock(
+	_, err = chain.VerifyIncomingBlock(
 		ctx.ConsensusCtx(),
-		invalidBlk,
-		consensusTime,
-		proposerAddress,
+		types.NewConsensusBlock(invalidBlk, proposerAddress, consensusTime),
+		true, // this block is next block proposer
 	)
 	require.ErrorIs(t, err, core.ErrProposerMismatch)
 
@@ -152,14 +150,13 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 	t.Parallel()
 
-	optimisticPayloadBuilds := true // key to this test
 	cs, err := spec.MainnetChainSpec()
 	require.NoError(t, err)
 
-	chain, st, cms, ctx, sp, b, sb, eng, depStore := setupOptimisticPayloadTests(t, cs, optimisticPayloadBuilds)
+	chain, st, cms, ctx, sp, b, sb, eng, depStore := setupOptimisticPayloadTests(t, cs)
 	sb.EXPECT().StateFromContext(mock.Anything).Return(st).Times(1) // only for genesis
 	sb.EXPECT().DepositStore().RunAndReturn(func() deposit.StoreManager { return depStore })
-	b.EXPECT().Enabled().Return(optimisticPayloadBuilds)
+	b.EXPECT().Enabled().Return(true)
 
 	// Before processing any block it is mandatory to handle genesis
 	genesisData := testProcessGenesis(t, cs, chain, ctx)
@@ -171,7 +168,7 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 	// Finally create a block that will be rejected and
 	// verify the state on top of which is next payload built
 	var (
-		consensusTime = math.U64(time.Now().Unix())
+		consensusTime = time.Now()
 		proposer      = ctx.ProposerAddress()
 	)
 
@@ -202,7 +199,7 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 	stateRoot, err := computeStateRoot( // fix state root in block
 		ctx.ConsensusCtx(),
 		proposer,
-		consensusTime,
+		math.U64(consensusTime.Unix()),
 		sp,
 		buildState,
 		validBlk,
@@ -216,16 +213,16 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 	b.EXPECT().RequestPayloadAsync(mock.Anything, mock.Anything).Run(
 		func(_ context.Context, r *builder.RequestPayloadData) {
 			defer wg.Done()
-			require.Equal(t, consensusTime+1, r.Timestamp)
+			require.Equal(t, math.U64(consensusTime.Unix())+1, r.Timestamp)
 
 			require.Equal(
 				t,
 				validBlk.GetBody().GetExecutionPayload().GetBlockHash(),
-				r.HeadEth1BlockHash,
+				r.FCState.HeadBlockHash,
 			)
 
 			genesisHeader := genesisData.ExecutionPayloadHeader.GetBlockHash()
-			require.Equal(t, genesisHeader, r.FinalEth1BlockHash)
+			require.Equal(t, genesisHeader, r.FCState.FinalizedBlockHash)
 
 			require.Equal(t, validBlk.HashTreeRoot(), r.ParentBlockRoot)
 			require.Equal(t, validBlk.Slot+1, r.Slot)
@@ -240,11 +237,10 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 
 	eng.EXPECT().NotifyNewPayload(mock.Anything, mock.Anything, mock.Anything).Return(nil)
 	sb.EXPECT().StateFromContext(mock.Anything).Return(st).Times(1)
-	err = chain.VerifyIncomingBlock(
+	_, err = chain.VerifyIncomingBlock(
 		ctx.ConsensusCtx(),
-		validBlk,
-		consensusTime,
-		ctx.ProposerAddress(),
+		types.NewConsensusBlock(validBlk, ctx.ProposerAddress(), consensusTime),
+		true, // this block is next block proposer
 	)
 	require.NoError(t, err)
 
@@ -257,14 +253,14 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 	require.Equal(t, validBlk.GetSlot(), slot)
 }
 
-func setupOptimisticPayloadTests(t *testing.T, cs chain.Spec, optimisticPayloadBuilds bool) (
+func setupOptimisticPayloadTests(t *testing.T, cs chain.Spec) (
 	*blockchain.Service,
 	*statetransition.TestBeaconStateT,
 	storetypes.CommitMultiStore,
 	core.ReadOnlyContext,
 	*statetransition.TestStateProcessorT,
 	*bcmocks.LocalBuilder,
-	*bemocks.StorageBackend,
+	*bcmocks.StorageBackend,
 	*stmocks.ExecutionEngine,
 	deposit.StoreManager,
 ) {
@@ -273,7 +269,7 @@ func setupOptimisticPayloadTests(t *testing.T, cs chain.Spec, optimisticPayloadB
 
 	logger := log.NewNopLogger()
 	ts := metrics.NewNoOpTelemetrySink()
-	sb := bemocks.NewStorageBackend(t)
+	sb := bcmocks.NewStorageBackend(t)
 	b := bcmocks.NewLocalBuilder(t)
 
 	chain := blockchain.NewService(
@@ -286,7 +282,6 @@ func setupOptimisticPayloadTests(t *testing.T, cs chain.Spec, optimisticPayloadB
 		b,
 		sp,
 		ts,
-		optimisticPayloadBuilds,
 	)
 	return chain, st, cms, ctx, sp, b, sb, eng, depStore
 }
@@ -372,13 +367,13 @@ func buildNextBlock(
 		noExecReq = &ctypes.ExecutionRequests{}
 	)
 	if version.IsBefore(fv, version.Electra()) {
-		ethBlk, _, err = ctypes.MakeEthBlock(payload, &parentBeaconBlockRoot)
+		ethBlk, _, err = ctypes.MakeEthBlock(payload, parentBeaconBlockRoot, nil, nil)
 		require.NoError(t, err)
 	} else {
 		encodedER, erErr := ctypes.GetExecutionRequestsList(noExecReq)
 		require.NoError(t, erErr)
 		require.NotNil(t, encodedER)
-		ethBlk, _, err = ctypes.MakeEthBlockWithExecutionRequests(payload, &parentBeaconBlockRoot, encodedER)
+		ethBlk, _, err = ctypes.MakeEthBlock(payload, parentBeaconBlockRoot, encodedER, nil)
 		require.NoError(t, err)
 	}
 	payload.BlockHash = common.ExecutionHash(ethBlk.Hash())

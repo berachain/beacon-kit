@@ -26,6 +26,7 @@ import (
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
@@ -39,6 +40,7 @@ func (sp *StateProcessor) processExecutionPayload(
 	st *statedb.StateDB,
 	blk *ctypes.BeaconBlock,
 	inFinalizeBlock bool,
+	parentProposerPubkey *crypto.BLSPubkey,
 ) error {
 	var (
 		body    = blk.GetBody()
@@ -76,7 +78,7 @@ func (sp *StateProcessor) processExecutionPayload(
 	// Perform payload verification only if the context is configured as such.
 	if txCtx.VerifyPayload() {
 		g.Go(func() error {
-			return sp.validateExecutionPayload(ctx, txCtx.ConsensusTime(), st, blk, inFinalizeBlock)
+			return sp.validateExecutionPayload(ctx, txCtx.ConsensusTime(), st, blk, inFinalizeBlock, parentProposerPubkey)
 		})
 	}
 
@@ -109,11 +111,13 @@ func (sp *StateProcessor) validateExecutionPayload(
 	st ReadOnlyBeaconState,
 	blk *ctypes.BeaconBlock,
 	inFinalizeBlock bool,
+	parentProposerPubkey *crypto.BLSPubkey,
 ) error {
 	if err := sp.validateStatelessPayload(blk); err != nil {
 		return err
 	}
-	return sp.validateStatefulPayload(ctx, consensusTime, st, blk, inFinalizeBlock)
+
+	return sp.validateStatefulPayload(ctx, consensusTime, st, blk, inFinalizeBlock, parentProposerPubkey)
 }
 
 // validateStatelessPayload performs stateless checks on the execution payload.
@@ -143,6 +147,7 @@ func (sp *StateProcessor) validateStatefulPayload(
 	st ReadOnlyBeaconState,
 	blk *ctypes.BeaconBlock,
 	inFinalizeBlock bool,
+	parentProposerPubkey *crypto.BLSPubkey,
 ) error {
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
@@ -172,7 +177,7 @@ func (sp *StateProcessor) validateStatefulPayload(
 		return err
 	}
 
-	payloadReq, err := ctypes.BuildNewPayloadRequestFromFork(blk)
+	payloadReq, err := ctypes.BuildNewPayloadRequestFromFork(blk, parentProposerPubkey)
 	if err != nil {
 		return err
 	}

@@ -37,7 +37,8 @@ import (
 	"github.com/berachain/beacon-kit/da/kzg"
 	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/log/phuslu"
-	nodecomponents "github.com/berachain/beacon-kit/node-core/components"
+	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/node-api/server"
 	service "github.com/berachain/beacon-kit/node-core/services/registry"
 	nodetypes "github.com/berachain/beacon-kit/node-core/types"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -62,11 +63,16 @@ type TestNodeInput struct {
 	Components  []any
 }
 
+type ValidatorAPI interface {
+	FilterValidators(height int64, ids []string, statuses []string) ([]*types.ValidatorData, error)
+}
+
 type TestNode struct {
 	nodetypes.Node
 	StorageBackend  blockchain.StorageBackend
+	Blockchain      *blockchain.Service
 	ChainSpec       chain.Spec
-	APIBackend      nodecomponents.NodeAPIBackend
+	APIBackend      ValidatorAPI
 	SimComet        *SimComet
 	EngineClient    *client.EngineClient
 	StateProcessor  *core.StateProcessor
@@ -118,11 +124,12 @@ func buildNode(
 ) TestNode {
 	// variables to hold the components needed to set up BeaconApp
 	var (
-		apiBackend      nodecomponents.NodeAPIBackend
+		apiServer       *server.Server
 		beaconNode      nodetypes.Node
 		simComet        *SimComet
 		config          *config.Config
 		storageBackend  blockchain.StorageBackend
+		blockchain      *blockchain.Service
 		chainSpec       chain.Spec
 		engineClient    *client.EngineClient
 		stateProcessor  *core.StateProcessor
@@ -143,11 +150,12 @@ func buildNode(
 				cmtCfg,
 			),
 		),
-		&apiBackend,
+		&apiServer,
 		&beaconNode,
 		&simComet,
 		&config,
 		&storageBackend,
+		&blockchain,
 		&chainSpec,
 		&engineClient,
 		&stateProcessor,
@@ -159,17 +167,17 @@ func buildNode(
 	if config == nil {
 		panic("config is nil")
 	}
-	if apiBackend == nil {
-		panic("node or api backend is nil")
+	if apiServer == nil {
+		panic("api server is nil")
 	}
 
 	logger.WithConfig(config.GetLogger())
-	apiBackend.AttachQueryBackend(simComet)
 	return TestNode{
 		Node:            beaconNode,
 		StorageBackend:  storageBackend,
+		Blockchain:      blockchain,
 		ChainSpec:       chainSpec,
-		APIBackend:      apiBackend,
+		APIBackend:      apiServer.GetBeaconHandler(),
 		SimComet:        simComet,
 		EngineClient:    engineClient,
 		StateProcessor:  stateProcessor,
@@ -200,14 +208,14 @@ func getAppOptions(t *testing.T, appOpts *viper.Viper, beaconKitConfig *config.C
 
 	// Beacon Config
 	appOpts.Set(flags.BlockStoreServiceAvailabilityWindow, beaconKitConfig.GetBlockStoreService().AvailabilityWindow)
-	appOpts.Set(flags.BlockStoreServiceEnabled, beaconKitConfig.GetBlockStoreService().Enabled)
 	appOpts.Set(flags.KZGTrustedSetupPath, "../files/kzg-trusted-setup.json")
 	appOpts.Set(flags.KZGImplementation, kzg.DefaultConfig().Implementation)
 
 	// Payload Builder Config
-	beaconKitConfig.GetPayloadBuilder().SuggestedFeeRecipient = common.NewExecutionAddressFromHex(
+	beaconKitConfig.GetPayloadBuilder().SuggestedFeeRecipient, err = common.NewExecutionAddressFromHex(
 		"0x981114102592310C347E61368342DDA67017bf84",
 	)
+	require.NoError(t, err, "failed to create suggested fee recipient")
 	appOpts.Set(flags.BuilderEnabled, beaconKitConfig.GetPayloadBuilder().Enabled)
 	appOpts.Set(flags.BuildPayloadTimeout, beaconKitConfig.GetPayloadBuilder().PayloadTimeout)
 	appOpts.Set(flags.SuggestedFeeRecipient, beaconKitConfig.GetPayloadBuilder().SuggestedFeeRecipient)

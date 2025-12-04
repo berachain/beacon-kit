@@ -187,7 +187,7 @@ func InitCmd(creator clitypes.ChainSpecCreator, mm interface {
 
 			chainSpec, err := creator(context.GetViperFromCmd(cmd))
 			if err != nil {
-				return fmt.Errorf("faile to create chain spec: %w", err)
+				return fmt.Errorf("failed to create chain spec: %w", err)
 			}
 			appGenState := mm.DefaultGenesis(chainSpec)
 
@@ -215,7 +215,7 @@ func InitCmd(creator clitypes.ChainSpecCreator, mm interface {
 			appGenesis.InitialHeight = initHeight
 			appGenesis.Consensus = &types.ConsensusGenesis{
 				Validators: nil,
-				Params:     cometbft.DefaultConsensusParams(consensusKeyAlgo),
+				Params:     cometbft.DefaultConsensusParams(consensusKeyAlgo, chainSpec),
 			}
 
 			if err = genutil.ExportGenesisFile(appGenesis, genFile); err != nil {

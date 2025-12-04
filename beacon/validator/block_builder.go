@@ -28,6 +28,7 @@ import (
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/bytes"
@@ -216,9 +217,15 @@ func (s *Service) retrieveExecutionPayload(
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
 	// TODO: Add external block builders to this flow.
 	//
-	// Get the payload for the block.
+	// Get the payload for the block. Pass the expected fork given the current
+	// CometBFT timestamp to try and build coherent blocks (i.e. blocks whose fork
+	// version is the same for payload and the rest of CometBFT block). This coherence
+	// is checked in ProcessProposal. Remember that CometBFT does not guarantee that the
+	// timestamp provided here will be the one used in the block (Comet takes into account
+	// the time it takes to build the block, which should be very small normally).
 	slot := slotData.GetSlot()
-	envelope, err := s.localPayloadBuilder.RetrievePayload(ctx, slot, parentBlockRoot)
+	expectedPayloadFork := s.chainSpec.ActiveForkVersionForTimestamp(slotData.GetConsensusTime())
+	envelope, err := s.localPayloadBuilder.RetrievePayload(ctx, slot, parentBlockRoot, expectedPayloadFork)
 	if err == nil {
 		return envelope, nil
 	}
@@ -273,14 +280,23 @@ func (s *Service) retrieveExecutionPayload(
 		return nil, err
 	}
 
+	parentProposerPubkey, err := st.ParentProposerPubkey(nextPayloadTimestamp)
+	if err != nil {
+		return nil, fmt.Errorf("failed retrieving previous proposer public key: %w", err)
+	}
+
 	r := &builder.RequestPayloadData{
 		Slot:               slot,
 		Timestamp:          nextPayloadTimestamp,
 		PayloadWithdrawals: payloadWithdrawals,
 		PrevRandao:         prevRandao,
 		ParentBlockRoot:    parentBlockRoot,
-		HeadEth1BlockHash:  lph.GetBlockHash(),
-		FinalEth1BlockHash: lph.GetParentHash(),
+		FCState: engineprimitives.ForkchoiceStateV1{
+			HeadBlockHash:      lph.GetBlockHash(),
+			SafeBlockHash:      lph.GetParentHash(),
+			FinalizedBlockHash: lph.GetParentHash(),
+		},
+		ParentProposerPubkey: parentProposerPubkey,
 	}
 	return s.localPayloadBuilder.RequestPayloadSync(ctx, r)
 }

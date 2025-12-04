@@ -41,7 +41,7 @@ func TestGetPayloadV3NeverReturnsEmptyPayload(t *testing.T) {
 	c := ethclient.New(&stubRPCClient{t: t})
 
 	var (
-		ctx         = context.Background()
+		ctx         = t.Context()
 		payloadID   engineprimitives.PayloadID
 		forkVersion = version.Deneb1()
 	)
@@ -57,11 +57,11 @@ func TestGetPayloadV3NeverReturnsEmptyPayload(t *testing.T) {
 func TestNewPayloadWithValidVersion(t *testing.T) {
 	t.Parallel()
 	c := ethclient.New(&stubRPCClient{t: t})
-	ctx := context.Background()
+	ctx := t.Context()
 
 	block := utils.GenerateValidBeaconBlock(t, version.Deneb1())
 
-	newPayloadRequest, err := ctypes.BuildNewPayloadRequestFromFork(block)
+	newPayloadRequest, err := ctypes.BuildNewPayloadRequestFromFork(block, nil)
 	if err != nil {
 		return
 	}
@@ -73,7 +73,7 @@ func TestNewPayloadWithValidVersion(t *testing.T) {
 func TestNewPayloadWithInvalidVersion(t *testing.T) {
 	t.Parallel()
 	c := ethclient.New(&stubRPCClient{t: t})
-	ctx := context.Background()
+	ctx := t.Context()
 
 	n := mocks.NewPayloadRequest{}
 	n.On("GetForkVersion").Return(version.Electra2())
@@ -85,7 +85,7 @@ func TestNewPayloadWithInvalidVersion(t *testing.T) {
 func TestForkchoiceUpdatedWithValidVersion(t *testing.T) {
 	t.Parallel()
 	c := ethclient.New(&stubRPCClient{t: t})
-	ctx := context.Background()
+	ctx := t.Context()
 
 	state := &engineprimitives.ForkchoiceStateV1{}
 	attrs := struct{}{}
@@ -98,7 +98,7 @@ func TestForkchoiceUpdatedWithValidVersion(t *testing.T) {
 func TestForkchoiceUpdatedWithValidVersion2(t *testing.T) {
 	t.Parallel()
 	c := ethclient.New(&stubRPCClient{t: t})
-	ctx := context.Background()
+	ctx := t.Context()
 
 	state := &engineprimitives.ForkchoiceStateV1{}
 	attrs := struct{}{}
@@ -112,7 +112,7 @@ func TestForkchoiceUpdatedWithValidVersion2(t *testing.T) {
 func TestForkchoiceUpdatedWithInvalidVersion(t *testing.T) {
 	t.Parallel()
 	c := ethclient.New(&stubRPCClient{t: t})
-	ctx := context.Background()
+	ctx := t.Context()
 
 	state := &engineprimitives.ForkchoiceStateV1{}
 	attrs := struct{}{}
@@ -126,7 +126,7 @@ func TestForkchoiceUpdatedWithInvalidVersion(t *testing.T) {
 func TestGetPayloadWithValidVersion(t *testing.T) {
 	t.Parallel()
 	c := ethclient.New(&stubRPCClient{t: t})
-	ctx := context.Background()
+	ctx := t.Context()
 
 	var payloadID engineprimitives.PayloadID
 	forkVersion := version.Deneb1()
@@ -139,7 +139,7 @@ func TestGetPayloadWithValidVersion(t *testing.T) {
 func TestGetPayloadWithInvalidVersion(t *testing.T) {
 	t.Parallel()
 	c := ethclient.New(&stubRPCClient{t: t})
-	ctx := context.Background()
+	ctx := t.Context()
 
 	var payloadID engineprimitives.PayloadID
 	forkVersion := version.Capella()
@@ -154,6 +154,7 @@ type stubRPCClient struct {
 	t *testing.T
 }
 
+func (tc *stubRPCClient) Initialize() error     { return nil }
 func (tc *stubRPCClient) Start(context.Context) {}
 func (tc *stubRPCClient) Call(_ context.Context, target any, _ string, _ ...any) error {
 	tc.t.Helper()

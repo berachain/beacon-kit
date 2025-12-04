@@ -21,7 +21,6 @@
 package config
 
 import (
-	"github.com/berachain/beacon-kit/beacon/validator"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/payload/builder"
 )
@@ -130,11 +129,10 @@ func defaultExecutionSettings() ExecutionSettings {
 
 func defaultConsensusSettings() ConsensusSettings {
 	var (
-		builderCfg   = builder.DefaultConfig()
-		defaultCfg   = cometbft.DefaultConfig()
-		validatorCfg = validator.DefaultConfig()
-		consensus    = defaultCfg.Consensus
-		p2p          = defaultCfg.P2P
+		builderCfg = builder.DefaultConfig()
+		defaultCfg = cometbft.DefaultConfig()
+		consensus  = defaultCfg.Consensus
+		p2p        = defaultCfg.P2P
 	)
 
 	return ConsensusSettings{
@@ -151,15 +149,13 @@ func defaultConsensusSettings() ConsensusSettings {
 			TimeoutPropose:   consensus.TimeoutPropose.String(),
 			TimeoutPrevote:   consensus.TimeoutPrevote.String(),
 			TimeoutPrecommit: consensus.TimeoutPrecommit.String(),
-
 			//nolint:staticcheck // setting to zero because it's deprecated
 			TimeoutCommit:       consensus.TimeoutCommit.String(),
 			MaxNumInboundPeers:  p2p.MaxNumInboundPeers,
 			MaxNumOutboundPeers: p2p.MaxNumOutboundPeers,
 		},
 		AppConfig: AppConfig{
-			PayloadTimeout:                builderCfg.PayloadTimeout.String(),
-			EnableOptimisticPayloadBuilds: validatorCfg.EnableOptimisticPayloadBuilds,
+			PayloadTimeout: builderCfg.PayloadTimeout.String(),
 		},
 	}
 }

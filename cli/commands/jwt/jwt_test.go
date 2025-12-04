@@ -84,7 +84,7 @@ func Test_NewGenerateJWTCommand(t *testing.T) {
 
 	t.Run("should override existing file when flag is set", func(t *testing.T) {
 		// Create a temporary file to simulate an existing file
-		tempFile, err := os.CreateTemp("", "existing_jwt.hex")
+		tempFile, err := os.CreateTemp(t.TempDir(), "existing_jwt.hex")
 		require.NoError(t, err)
 		defer os.Remove(tempFile.Name()) // clean up
 
@@ -103,6 +103,52 @@ func Test_NewGenerateJWTCommand(t *testing.T) {
 		checkAuthFileIntegrity(t, tempFile.Name())
 
 		require.NoError(t, os.RemoveAll(tempFile.Name()))
+	})
+}
+
+func Test_GenerateJWTCommand_FilePermissions(t *testing.T) {
+	t.Parallel()
+
+	t.Run("new file should have 0600 permissions", func(t *testing.T) {
+		tempDir := t.TempDir()
+		outputPath := filepath.Join(tempDir, "jwt.hex")
+
+		cmd := jwt.NewGenerateJWTCommand()
+		cmd.SetArgs([]string{"--output-path", outputPath})
+		require.NoError(t, cmd.Execute())
+
+		info, err := os.Stat(outputPath)
+		require.NoError(t, err)
+		require.Equal(t, os.FileMode(0600), info.Mode().Perm(),
+			"new JWT file should have 0600 permissions")
+	})
+
+	t.Run("pre-existing file with permissive permissions should be fixed", func(t *testing.T) {
+		tempDir := t.TempDir()
+		outputPath := filepath.Join(tempDir, "jwt.hex")
+
+		// Create file with world-readable permissions
+		err := os.WriteFile(outputPath, []byte("old_content"), 0755)
+		require.NoError(t, err)
+
+		// Verify it has permissive permissions
+		info, err := os.Stat(outputPath)
+		require.NoError(t, err)
+		require.Equal(t, os.FileMode(0755), info.Mode().Perm())
+
+		// Run the generate command
+		cmd := jwt.NewGenerateJWTCommand()
+		cmd.SetArgs([]string{"--output-path", outputPath})
+		require.NoError(t, cmd.Execute())
+
+		// Verify permissions are now restricted
+		info, err = os.Stat(outputPath)
+		require.NoError(t, err)
+		require.Equal(t, os.FileMode(0600), info.Mode().Perm(),
+			"pre-existing JWT file should have permissions fixed to 0600")
+
+		// Also verify the content is valid
+		checkAuthFileIntegrity(t, outputPath)
 	})
 }
 

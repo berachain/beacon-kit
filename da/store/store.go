@@ -114,3 +114,8 @@ func (s *Store) Persist(sidecars types.BlobSidecars) error {
 	)
 	return nil
 }
+
+// DeleteBlobSidecars removes all blob sidecars for the specified slot.
+func (s *Store) DeleteBlobSidecars(slot math.Slot) error {
+	return s.IndexDB.DeleteByIndex(slot.Unwrap())
+}

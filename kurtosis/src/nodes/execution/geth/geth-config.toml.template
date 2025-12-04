@@ -50,7 +50,7 @@ IgnorePrice = 2
 
 [Node]
 DataDir = "/data/geth/execution-data"
-IPCPath = "geth.ipc"
+IPCPath = "bera-geth.ipc"
 HTTPHost = "0.0.0.0"
 HTTPPort = 8545
 HTTPCors = ["*"]

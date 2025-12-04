@@ -22,6 +22,7 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"sync"
 	"time"
@@ -68,6 +69,7 @@ func New(
 		cfg.RPCDialURL.String(),
 		jwtSecret,
 		cfg.RPCJWTRefreshInterval,
+		logger,
 	)
 
 	// Enforcing minimum rpc timeout
@@ -87,7 +89,7 @@ func New(
 	cfg.RPCTimeout = max(MinRPCTimeout, cfg.RPCTimeout)
 
 	if cfg.DeprecatedRPCRetries != 0 {
-		logger.Warn("rpc-retries is deprecated and the configured value will be ignored")
+		logger.Warn("ignoring deprecated setting rpc-retries")
 	}
 
 	return &EngineClient{
@@ -108,7 +110,12 @@ func (s *EngineClient) Name() string {
 
 // Start the engine client.
 func (s *EngineClient) Start(ctx context.Context) error {
-	// Start the Client.
+	// Initialize the JWT token before making any RPC calls
+	if err := s.Client.Initialize(); err != nil {
+		return fmt.Errorf("failed to initialize RPC client: %w", err)
+	}
+
+	// Start the Client background refresh loop.
 	go s.Client.Start(ctx)
 
 	s.logger.Info(

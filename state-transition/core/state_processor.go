@@ -26,6 +26,7 @@ import (
 	"sync"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/cache"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -96,12 +97,18 @@ func (sp *StateProcessor) Transition(
 		return nil, err
 	}
 
-	// Prepare the state for the next block's fork version, logging only once during FinalizeBlock.
-	//
-	// TODO: allow the state transition context to directly indicate what stage of block processing
-	// we are in, i.e. ProcessProposal, FinalizeBlock, etc.
+	// Prepare the state for the next block's fork version.
+	// Ideally we want to log only in case we are processing the
+	// block to be finalized.
 	inFinalizeBlock := ctx.VerifyPayload() && !ctx.VerifyRandao()
-	if err = sp.ProcessFork(st, blk.GetTimestamp(), inFinalizeBlock); err != nil {
+
+	// Log if we are in finalizeBlock. However, post cache-activation, we log every time we
+	// verify a block.
+	logForkProcessing := inFinalizeBlock
+	if cache.IsStateCachingActive(sp.cs, blk.Slot) {
+		logForkProcessing = ctx.VerifyPayload()
+	}
+	if err = sp.ProcessFork(st, blk.GetTimestamp(), logForkProcessing); err != nil {
 		return nil, err
 	}
 
@@ -209,23 +216,30 @@ func (sp *StateProcessor) ProcessBlock(
 	blk *ctypes.BeaconBlock,
 	inFinalizeBlock bool,
 ) error {
-	if err := sp.processBlockHeader(ctx, st, blk); err != nil {
+	// Before processing block header, we need to retrieve public key of
+	// parent block proposer to be able to inform the EL client.
+	parentProposerPubkey, err := st.ParentProposerPubkey(blk.GetTimestamp())
+	if err != nil {
 		return err
 	}
 
-	if err := sp.processExecutionPayload(ctx, st, blk, inFinalizeBlock); err != nil {
+	if err = sp.processBlockHeader(ctx, st, blk); err != nil {
 		return err
 	}
 
-	if err := sp.processWithdrawals(st, blk); err != nil {
+	if err = sp.processExecutionPayload(ctx, st, blk, inFinalizeBlock, parentProposerPubkey); err != nil {
 		return err
 	}
 
-	if err := sp.processRandaoReveal(ctx, st, blk); err != nil {
+	if err = sp.processWithdrawals(st, blk); err != nil {
 		return err
 	}
 
-	if err := sp.processOperations(ctx, st, blk); err != nil {
+	if err = sp.processRandaoReveal(ctx, st, blk); err != nil {
+		return err
+	}
+
+	if err = sp.processOperations(ctx, st, blk); err != nil {
 		return err
 	}
 

@@ -111,7 +111,7 @@ type ConsensusConfig struct {
 	TimeoutPropose string `json:"timeout_propose"`
 	// TimeoutPrevote specifies the timeout for prevoting on a block.
 	TimeoutPrevote string `json:"timeout_prevote"`
-	// TimeoutVote specifies the timeout for precommiting on a block.
+	// TimeoutPrecommit specifies the timeout for precommiting on a block.
 	TimeoutPrecommit string `json:"timeout_precommit"`
 	// TimeoutCommit specifies the timeout for committing a block.
 	TimeoutCommit string `json:"timeout_commit"`
@@ -125,10 +125,6 @@ type ConsensusConfig struct {
 type AppConfig struct {
 	// PayloadTimeout specifies the timeout for the payload.
 	PayloadTimeout string `json:"payload_timeout"`
-	// EnableOptimisticPayloadBuilds enables building the next block's payload
-	// optimistically in process-proposal to allow for the execution client to
-	// have more time to assemble the block.
-	EnableOptimisticPayloadBuilds bool `json:"enable_optimistic_payload_builds"`
 }
 
 // NodeSpecs holds the node specs for all nodes in a single layer.

@@ -21,67 +21,25 @@
 package beacon
 
 import (
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	datypes "github.com/berachain/beacon-kit/da/types"
+	"github.com/berachain/beacon-kit/node-api/backend"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // Backend is the interface for backend of the beacon API.
 type Backend interface {
-	GenesisBackend
-	BlobBackend
-	BlockBackend
-	RandaoBackend
-	StateBackend
-	ValidatorBackend
-	WithdrawalBackend
-	// GetSlotByBlockRoot retrieves the slot by a given root from the store.
+	// Blob related methods
+	GetSyncData() (int64 /*latestHeight*/, int64 /*syncToHeight*/)
+	GetBlobSidecarsAtSlot(slot math.Slot) (datypes.BlobSidecars, error)
+
+	// State loading method, used by most of the handlers
+	// Height == -1 must be used to require tip state.
+	// Height == 0 must be used to require Genesis state
+	// Height > 0 must be used to require state at slot <Height>
+	StateAndSlotFromHeight(height int64) (backend.ReadOnlyBeaconState, math.Slot, error)
+
+	// Methods helping mapping block/state/... IDs in requests to heights
 	GetSlotByBlockRoot(root common.Root) (math.Slot, error)
-	// GetSlotByStateRoot retrieves the slot by a given root from the store.
 	GetSlotByStateRoot(root common.Root) (math.Slot, error)
-}
-
-type GenesisBackend interface {
-	GenesisValidatorsRoot() (common.Root, error)
-	GenesisForkVersion() (common.Version, error)
-	GenesisTime() (math.U64, error)
-}
-
-type RandaoBackend interface {
-	RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes32, error)
-}
-
-type BlobBackend interface {
-	BlobSidecarsByIndices(slot math.Slot, indices []uint64) ([]*types.Sidecar, error)
-}
-
-type BlockBackend interface {
-	BlockRootAtSlot(slot math.Slot) (common.Root, error)
-	BlockRewardsAtSlot(slot math.Slot) (*types.BlockRewardsData, error)
-	BlockHeaderAtSlot(slot math.Slot) (*ctypes.BeaconBlockHeader, error)
-}
-
-type StateBackend interface {
-	StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error)
-}
-
-type WithdrawalBackend interface {
-	PendingPartialWithdrawalsAtState(*statedb.StateDB) ([]*types.PendingPartialWithdrawalData, error)
-}
-
-type ValidatorBackend interface {
-	ValidatorByID(
-		slot math.Slot, id string,
-	) (*types.ValidatorData, error)
-	FilteredValidators(
-		slot math.Slot,
-		ids []string,
-		statuses []string,
-	) ([]*types.ValidatorData, error)
-	ValidatorBalancesByIDs(
-		slot math.Slot,
-		ids []string,
-	) ([]*types.ValidatorBalanceData, error)
 }

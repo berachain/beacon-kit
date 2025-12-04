@@ -196,11 +196,11 @@ func TestRangeDB_DeleteRange_NotSupported(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name string
-		db   *mocks.DB
+		db   *mocks.Db
 	}{
 		{
 			name: "DeleteRangeNotSupported",
-			db:   new(mocks.DB),
+			db:   new(mocks.Db),
 		},
 	}
 
@@ -352,6 +352,40 @@ func TestRangeDB_Invariants(t *testing.T) {
 			}
 		})
 	}
+}
+
+// =========================== DELETE BY INDEX ================================
+
+// TestRangeDB_DeleteByIndex_DoesNotAffectLowerBound verifies the critical
+// invariant that DeleteByIndex does not modify lowerBoundIndex, unlike Prune.
+func TestRangeDB_DeleteByIndex_DoesNotAffectLowerBound(t *testing.T) {
+	t.Parallel()
+	rdb := file.NewRangeDB(newTestFDB("/tmp/testdb-deletebyindex"))
+
+	// Populate indexes 1-10
+	require.NoError(t, populateTestDB(rdb, 1, 10))
+
+	// Prune indexes 1-5, which sets lowerBoundIndex to 5
+	require.NoError(t, rdb.Prune(1, 5))
+	lowerBoundBefore := getFirstNonNilIndex(rdb)
+	require.Equal(t, uint64(5), lowerBoundBefore, "lowerBoundIndex should be 5 after pruning")
+
+	// Delete index 7 using DeleteByIndex
+	require.NoError(t, rdb.DeleteByIndex(7))
+	exists, err := rdb.Has(7, []byte("key"))
+	require.NoError(t, err)
+	require.False(t, exists, "index 7 should be deleted")
+
+	// Verify lowerBoundIndex was NOT changed
+	lowerBoundAfter := getFirstNonNilIndex(rdb)
+	require.Equal(t, lowerBoundBefore, lowerBoundAfter, "DeleteByIndex must not modify lowerBoundIndex")
+
+	// Prune again to verify DeleteByIndex didn't break the pruning mechanism
+	require.NoError(t, rdb.Prune(5, 8))
+
+	// Verify the second prune worked correctly
+	lowerBoundAfter = getFirstNonNilIndex(rdb)
+	require.Equal(t, uint64(8), lowerBoundAfter, "second Prune should update lowerBoundIndex to 8")
 }
 
 // =============================== HELPERS ==================================
