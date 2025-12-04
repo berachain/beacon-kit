@@ -102,7 +102,7 @@ func (h *Handler) GetBlockHeaderByID(c handlers.Context) (any, error) {
 }
 
 func (h *Handler) makeBlockHeaderResponse(height int64, resultsInList bool) (any, error) {
-	st, _, err := h.backend.StateAndSlotFromHeight(height)
+	st, slot, err := h.backend.StateAndSlotFromHeight(height)
 	if err != nil {
 		return nil, fmt.Errorf("%w: failed to get state from height %d, %s", handlertypes.ErrNotFound, height, err.Error())
 	}
@@ -113,6 +113,16 @@ func (h *Handler) makeBlockHeaderResponse(height int64, resultsInList bool) (any
 	}
 	header.SetStateRoot(st.HashTreeRoot())
 
+	// Retrieve the block signature from the block store. The signature may not be available
+	// if the block is outside the availability window or if querying genesis.
+	var signatureStr string
+	if slot > 0 {
+		signature, sigErr := h.backend.GetSignatureBySlot(slot)
+		if sigErr == nil {
+			signatureStr = signature.String()
+		}
+	}
+
 	// While an Ethereum node may have multiple blocks per slot, BeaconKit
 	// will access only one, given single slot finality and the fact that we only
 	// access finalized blocks in this APIs. Still we may return a list of responses
@@ -122,7 +132,7 @@ func (h *Handler) makeBlockHeaderResponse(height int64, resultsInList bool) (any
 		Canonical: true,
 		Header: &beacontypes.SignedBeaconBlockHeader{
 			Message:   beacontypes.BeaconBlockHeaderFromConsensus(header),
-			Signature: "", // TODO: implement
+			Signature: signatureStr,
 		},
 	}
 

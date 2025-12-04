@@ -7,6 +7,8 @@ import (
 
 	common "github.com/berachain/beacon-kit/primitives/common"
 
+	crypto "github.com/berachain/beacon-kit/primitives/crypto"
+
 	math "github.com/berachain/beacon-kit/primitives/math"
 
 	mock "github.com/stretchr/testify/mock"
@@ -81,6 +83,64 @@ func (_c *Backend_GetBlobSidecarsAtSlot_Call) Return(_a0 types.BlobSidecars, _a1
 }
 
 func (_c *Backend_GetBlobSidecarsAtSlot_Call) RunAndReturn(run func(math.Slot) (types.BlobSidecars, error)) *Backend_GetBlobSidecarsAtSlot_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetSignatureBySlot provides a mock function with given fields: slot
+func (_m *Backend) GetSignatureBySlot(slot math.Slot) (crypto.BLSSignature, error) {
+	ret := _m.Called(slot)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSignatureBySlot")
+	}
+
+	var r0 crypto.BLSSignature
+	var r1 error
+	if rf, ok := ret.Get(0).(func(math.Slot) (crypto.BLSSignature, error)); ok {
+		return rf(slot)
+	}
+	if rf, ok := ret.Get(0).(func(math.Slot) crypto.BLSSignature); ok {
+		r0 = rf(slot)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(crypto.BLSSignature)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(math.Slot) error); ok {
+		r1 = rf(slot)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Backend_GetSignatureBySlot_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSignatureBySlot'
+type Backend_GetSignatureBySlot_Call struct {
+	*mock.Call
+}
+
+// GetSignatureBySlot is a helper method to define mock.On call
+//   - slot math.Slot
+func (_e *Backend_Expecter) GetSignatureBySlot(slot interface{}) *Backend_GetSignatureBySlot_Call {
+	return &Backend_GetSignatureBySlot_Call{Call: _e.mock.On("GetSignatureBySlot", slot)}
+}
+
+func (_c *Backend_GetSignatureBySlot_Call) Run(run func(slot math.Slot)) *Backend_GetSignatureBySlot_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(math.Slot))
+	})
+	return _c
+}
+
+func (_c *Backend_GetSignatureBySlot_Call) Return(_a0 crypto.BLSSignature, _a1 error) *Backend_GetSignatureBySlot_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Backend_GetSignatureBySlot_Call) RunAndReturn(run func(math.Slot) (crypto.BLSSignature, error)) *Backend_GetSignatureBySlot_Call {
 	_c.Call.Return(run)
 	return _c
 }

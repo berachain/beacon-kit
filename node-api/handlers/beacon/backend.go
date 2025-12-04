@@ -24,6 +24,7 @@ import (
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/node-api/backend"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
@@ -42,4 +43,7 @@ type Backend interface {
 	// Methods helping mapping block/state/... IDs in requests to heights
 	GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 	GetSlotByStateRoot(root common.Root) (math.Slot, error)
+
+	// GetSignatureBySlot retrieves the block signature for a given slot.
+	GetSignatureBySlot(slot math.Slot) (crypto.BLSSignature, error)
 }

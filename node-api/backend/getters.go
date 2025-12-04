@@ -29,6 +29,7 @@ import (
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -102,6 +103,11 @@ func (b *Backend) GetSlotByStateRoot(root common.Root) (math.Slot, error) {
 // the block store.
 func (b *Backend) GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error) {
 	return b.sb.BlockStore().GetParentSlotByTimestamp(timestamp)
+}
+
+// GetSignatureBySlot retrieves the block signature for a given slot from the block store.
+func (b *Backend) GetSignatureBySlot(slot math.Slot) (crypto.BLSSignature, error) {
+	return b.sb.BlockStore().GetSignatureBySlot(slot)
 }
 
 func (b *Backend) GetBlobSidecarsAtSlot(slot math.Slot) (datypes.BlobSidecars, error) {
