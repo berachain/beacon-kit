@@ -32,7 +32,7 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/execution/requests/eip7002"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	"github.com/berachain/beacon-kit/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/node-api/handlers/mapping"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	beaconmath "github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -120,7 +120,7 @@ func (s *BeaconKitE2ESuite) findValidatorWithExecutionCredentials(client *e2etyp
 	validatorsResp, err := client.Validators(
 		s.Ctx(),
 		&beaconapi.ValidatorsOpts{
-			State: utils.StateIDHead,
+			State: mapping.StateIDHead,
 		},
 	)
 	if err != nil {
@@ -182,7 +182,7 @@ func (s *BeaconKitE2ESuite) TestSubmitPartialWithdrawalTransaction() {
 	s.T().Logf("Block number before withdrawal: %d", blkNum)
 
 	// Check for pending partial withdrawals before submitting the transaction
-	pendingWithdrawalsBefore, err := s.getPendingPartialWithdrawals(utils.StateIDHead)
+	pendingWithdrawalsBefore, err := s.getPendingPartialWithdrawals(mapping.StateIDHead)
 	s.Require().NoError(err)
 	s.Require().Len(pendingWithdrawalsBefore, 0, "Expected no pending withdrawals initially")
 
@@ -245,7 +245,7 @@ func (s *BeaconKitE2ESuite) TestSubmitPartialWithdrawalTransaction() {
 	s.T().Logf("Withdrawal transaction included in block: %d", receipt.BlockNumber)
 
 	// Check for pending partial withdrawals after submitting the transaction
-	pendingWithdrawalsAfter, err := s.getPendingPartialWithdrawals(utils.StateIDHead)
+	pendingWithdrawalsAfter, err := s.getPendingPartialWithdrawals(mapping.StateIDHead)
 	s.Require().NoError(err)
 	s.Require().Len(pendingWithdrawalsAfter, 1, "Expected one pending withdrawal after transaction")
 

@@ -28,8 +28,10 @@ import (
 	"github.com/berachain/beacon-kit/node-api/backend"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/node-api/handlers/mapping"
 	"github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/node-api/middleware"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
@@ -42,7 +44,7 @@ func (h *Handler) GetStateValidatorBalances(c handlers.Context) (any, error) {
 		return nil, err
 	}
 
-	height, err := utils.StateIDToHeight(req.StateID, h.backend)
+	height, err := mapping.StateIDToHeight(req.StateID, h.backend)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +58,7 @@ func (h *Handler) GetStateValidatorBalances(c handlers.Context) (any, error) {
 func (h *Handler) PostStateValidatorBalances(c handlers.Context) (any, error) {
 	var ids []string
 	if err := c.Bind(&ids); err != nil {
-		return nil, fmt.Errorf("%s: %w", err.Error(), types.ErrInvalidRequest)
+		return nil, fmt.Errorf("%s: %w", err.Error(), middleware.ErrInvalidRequest)
 	}
 	// Get state_id from URL path parameter
 	req := beacontypes.PostValidatorBalancesRequest{
@@ -65,10 +67,10 @@ func (h *Handler) PostStateValidatorBalances(c handlers.Context) (any, error) {
 	}
 
 	if err := c.Validate(&req); err != nil {
-		return nil, types.ErrInvalidRequest
+		return nil, middleware.ErrInvalidRequest
 	}
 
-	height, err := utils.StateIDToHeight(req.StateID, h.backend)
+	height, err := mapping.StateIDToHeight(req.StateID, h.backend)
 	if err != nil {
 		return nil, err
 	}

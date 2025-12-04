@@ -34,8 +34,8 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/mocks"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/node-api/handlers/mapping"
 	handlertypes "github.com/berachain/beacon-kit/node-api/handlers/types"
-	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/node-api/middleware"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -66,7 +66,7 @@ func TestGetRandao(t *testing.T) {
 		{
 			name: "randao request - specified epoch",
 			inputs: func() beacontypes.GetRandaoRequest {
-				stateID := utils.StateIDHead
+				stateID := mapping.StateIDHead
 				epoch := strconv.Itoa(int(testEpoch.Unwrap()))
 				return beacontypes.GetRandaoRequest{
 					StateIDRequest: handlertypes.StateIDRequest{
@@ -98,7 +98,7 @@ func TestGetRandao(t *testing.T) {
 		{
 			name: "randao request - unspecified epoch",
 			inputs: func() beacontypes.GetRandaoRequest {
-				stateID := utils.StateIDHead
+				stateID := mapping.StateIDHead
 				return beacontypes.GetRandaoRequest{
 					StateIDRequest: handlertypes.StateIDRequest{
 						StateID: stateID,
