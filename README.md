@@ -40,7 +40,7 @@ BeaconKit supports the following execution clients:
 **Prerequisites:**
 
 - [Docker](https://docs.docker.com/engine/install/)
-- [Golang 1.25.3+](https://go.dev/doc/install)
+- [Golang 1.25.5+](https://go.dev/doc/install)
 - [Foundry](https://book.getfoundry.sh/)
 
 Start by opening two terminals side-by-side:
