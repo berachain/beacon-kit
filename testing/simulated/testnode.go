@@ -70,6 +70,7 @@ type ValidatorAPI interface {
 type TestNode struct {
 	nodetypes.Node
 	StorageBackend  blockchain.StorageBackend
+	Blockchain      *blockchain.Service
 	ChainSpec       chain.Spec
 	APIBackend      ValidatorAPI
 	SimComet        *SimComet
@@ -128,6 +129,7 @@ func buildNode(
 		simComet        *SimComet
 		config          *config.Config
 		storageBackend  blockchain.StorageBackend
+		blockchain      *blockchain.Service
 		chainSpec       chain.Spec
 		engineClient    *client.EngineClient
 		stateProcessor  *core.StateProcessor
@@ -153,6 +155,7 @@ func buildNode(
 		&simComet,
 		&config,
 		&storageBackend,
+		&blockchain,
 		&chainSpec,
 		&engineClient,
 		&stateProcessor,
@@ -172,6 +175,7 @@ func buildNode(
 	return TestNode{
 		Node:            beaconNode,
 		StorageBackend:  storageBackend,
+		Blockchain:      blockchain,
 		ChainSpec:       chainSpec,
 		APIBackend:      apiServer.GetBeaconHandler(),
 		SimComet:        simComet,

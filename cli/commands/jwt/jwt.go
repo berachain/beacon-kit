@@ -36,6 +36,9 @@ const (
 	FlagOutputPath        = "output-path"
 	FlagInputPath         = "input-path"
 	ConfigFolder          = "config"
+
+	secretDirPerms  os.FileMode = 0o700
+	secretFilePerms os.FileMode = 0o600
 )
 
 // Commands creates a new command for managing JWT secrets.
@@ -143,7 +146,7 @@ func generateAuthSecretInFile(cmd *cobra.Command, fileName string) error {
 	}
 
 	if !exists {
-		if err = fs.MkdirAll(fileDir, os.ModePerm); err != nil {
+		if err = fs.MkdirAll(fileDir, secretDirPerms); err != nil {
 			return err
 		}
 	}
@@ -153,10 +156,22 @@ func generateAuthSecretInFile(cmd *cobra.Command, fileName string) error {
 		return err
 	}
 
+	fileExists, err := afero.Exists(fs, fileName)
+	if err != nil {
+		return err
+	}
+
 	if err = afero.WriteFile(
-		fs, fileName, []byte(secret.Hex()), os.ModePerm,
+		fs, fileName, []byte(secret.Hex()), secretFilePerms,
 	); err != nil {
 		return err
+	}
+
+	// WriteFile only sets permissions on file creation, so explicitly chmod if the file already existed.
+	if fileExists {
+		if err = fs.Chmod(fileName, secretFilePerms); err != nil {
+			return err
+		}
 	}
 
 	cmd.Printf(

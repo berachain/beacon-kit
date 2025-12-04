@@ -34,4 +34,7 @@ type IndexDB interface {
 	// exist in the DB for any reason (pruned, invalid index), an empty list is
 	// returned with no error.
 	GetByIndex(index uint64) ([][]byte, error)
+
+	// DeleteByIndex removes all entries at the specified index
+	DeleteByIndex(index uint64) error
 }
