@@ -306,7 +306,6 @@ func TestFilterValidators(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc // capture range variable
 		t.Run(tc.name, func(t *testing.T) {
 			// setup test
 			backend := mocks.NewBackend(t)
