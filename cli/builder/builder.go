@@ -120,7 +120,7 @@ func (cb *CLIBuilder) InterceptConfigsPreRunHandler(
 	cmd *cobra.Command,
 	logger *phuslu.Logger,
 	customAppConfigTemplate string,
-	customAppConfig interface{},
+	customAppConfig any,
 	cmtConfig *cmtcfg.Config,
 ) error {
 	return config.SetupCommand(

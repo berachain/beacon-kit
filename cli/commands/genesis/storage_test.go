@@ -91,9 +91,9 @@ func setupMockGenesis(t *testing.T, tmpDir string) string {
 	depositAddr := common.Address(chainSpec.DepositContractAddress())
 
 	mockGenesisPath := filepath.Join(tmpDir, "genesis.json")
-	mockGenesis := map[string]interface{}{
-		"alloc": map[string]interface{}{
-			depositAddr.Hex(): map[string]interface{}{
+	mockGenesis := map[string]any{
+		"alloc": map[string]any{
+			depositAddr.Hex(): map[string]any{
 				"balance": "0x0",
 				"code":    "0x1234",
 			},
@@ -113,12 +113,12 @@ func setupMockCLGenesis(t *testing.T, tmpDir string) string {
 	require.NoError(t, os.MkdirAll(configDir, 0o755))
 	mockCLGenesisPath := filepath.Join(configDir, "genesis.json")
 
-	mockCLGenesis := map[string]interface{}{
-		"app_state": map[string]interface{}{
-			"beacon": map[string]interface{}{
-				"deposits": []interface{}{
-					map[string]interface{}{
-						"data": map[string]interface{}{
+	mockCLGenesis := map[string]any{
+		"app_state": map[string]any{
+			"beacon": map[string]any{
+				"deposits": []any{
+					map[string]any{
+						"data": map[string]any{
 							"amount":               "32000000000",
 							"pubkey":               "0x1234",
 							"withdrawal_address":   "0x5678",
@@ -147,16 +147,16 @@ func verifyStorageOutput(t *testing.T, genesisPath string) {
 	outputBz, err := afero.ReadFile(afero.NewOsFs(), genesisPath)
 	require.NoError(t, err)
 
-	var output map[string]interface{}
+	var output map[string]any
 	err = json.Unmarshal(outputBz, &output)
 	require.NoError(t, err)
 
 	// Check that the deposit contract storage was set correctly
-	alloc, ok := output["alloc"].(map[string]interface{})
+	alloc, ok := output["alloc"].(map[string]any)
 	require.True(t, ok)
-	depositContract, ok := alloc[depositAddr.Hex()].(map[string]interface{})
+	depositContract, ok := alloc[depositAddr.Hex()].(map[string]any)
 	require.True(t, ok)
-	storage, ok := depositContract["storage"].(map[string]interface{})
+	storage, ok := depositContract["storage"].(map[string]any)
 	require.True(t, ok)
 
 	// Verify storage slots

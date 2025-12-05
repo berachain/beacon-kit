@@ -33,7 +33,7 @@ import (
 type (
 	// AppOptions, usually implemented by Viper, holds the configuration for the application.
 	AppOptions interface {
-		Get(string) interface{}
+		Get(string) any
 	}
 
 	// AppCreator is a function that allows us to lazily initialize an application using various
