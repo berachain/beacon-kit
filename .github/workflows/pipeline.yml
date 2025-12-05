@@ -81,6 +81,10 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Configure private repo access
+        run: |
+          git config --global url."https://${{ secrets.PRIVATE_REPO_TOKEN }}@github.com/berachain/cometbft-internal".insteadOf "https://github.com/berachain/cometbft-internal"
+
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
@@ -138,6 +142,11 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: recursive
+
+      - name: Configure private repo access
+        run: |
+          git config --global url."https://${{ secrets.PRIVATE_REPO_TOKEN }}@github.com/berachain/cometbft-internal".insteadOf "https://github.com/berachain/cometbft-internal"
+
       - name: Check if Docker Hub credentials exist
         id: check-docker-credentials
         run: |
@@ -179,6 +188,7 @@ jobs:
           make ${{ matrix.args }}
         env:
           GOPATH: /home/runner/go
+          GITHUB_TOKEN: ${{ secrets.PRIVATE_REPO_TOKEN }}
 
   # -------------------------------------------------------------------------- #
   #                       Docker Container Build and Push                      #
@@ -195,6 +205,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+
+      - name: Configure private repo access
+        run: |
+          git config --global url."https://${{ secrets.PRIVATE_REPO_TOKEN }}@github.com/berachain/cometbft-internal".insteadOf "https://github.com/berachain/cometbft-internal"
 
       - name: Echo GitHub Context Variables
         env:
@@ -236,6 +250,8 @@ jobs:
       - name: Build Docker image
         run: |
           make build-docker
+        env:
+          GITHUB_TOKEN: ${{ secrets.PRIVATE_REPO_TOKEN }}
 
       - if: ${{ env.PUSH_DOCKER_IMAGE == 'true' }}
         name: Authenticate to GitHub Container Registry
