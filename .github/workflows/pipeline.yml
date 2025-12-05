@@ -188,6 +188,7 @@ jobs:
           make ${{ matrix.args }}
         env:
           GOPATH: /home/runner/go
+          GITHUB_TOKEN: ${{ secrets.PRIVATE_REPO_TOKEN }}
 
   # -------------------------------------------------------------------------- #
   #                       Docker Container Build and Push                      #
