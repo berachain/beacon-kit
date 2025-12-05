@@ -40,6 +40,10 @@ RUN apk add --no-cache git
 COPY ./go.mod ./go.sum ./
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/go/pkg/mod \
+    --mount=type=secret,id=github_token \
+    if [ -f /run/secrets/github_token ]; then \
+      git config --global url."https://$(cat /run/secrets/github_token)@github.com/berachain/cometbft-internal".insteadOf "https://github.com/berachain/cometbft-internal"; \
+    fi && \
     go mod download
 
 #######################################################
