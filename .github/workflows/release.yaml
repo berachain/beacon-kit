@@ -70,6 +70,11 @@ jobs:
     runs-on: ${{ matrix.configs.runs-on }}
     steps:
       - uses: actions/checkout@v3
+
+      - name: Configure private repo access
+        run: |
+          git config --global url."https://${{ secrets.PRIVATE_REPO_TOKEN }}@github.com/berachain/cometbft-internal".insteadOf "https://github.com/berachain/cometbft-internal"
+
       - uses: actions/setup-go@v3
         with:
           go-version: "1.25.5"
