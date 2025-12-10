@@ -128,8 +128,8 @@ func (s *Service) PostFinalizeBlockOps(ctx sdk.Context, signedBlk *ctypes.Signed
 	st := s.storageBackend.StateFromContext(ctx)
 	blk := signedBlk.GetBeaconBlock()
 
-	// Before Electra1, deposits must be fetched from the EL directly in the CL.
-	if version.IsBefore(blk.GetForkVersion(), version.Electra1()) {
+	// Before Electra2, deposits must be fetched from the EL directly in the CL.
+	if version.IsBefore(blk.GetForkVersion(), version.Electra2()) {
 		// Fetch and store the deposit for the block.
 		blockNum := blk.GetBody().GetExecutionPayload().GetNumber()
 		s.depositFetcher(ctx, blockNum)

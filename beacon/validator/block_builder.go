@@ -327,8 +327,8 @@ func (s *Service) buildBlockBody(
 	// Set the KZG commitments on the block body.
 	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
 
-	// Before Electra1, deposits are processed from the beacon block body directly.
-	if version.IsBefore(body.GetForkVersion(), version.Electra1()) {
+	// Before Electra2, deposits are processed from the beacon block body directly.
+	if version.IsBefore(body.GetForkVersion(), version.Electra2()) {
 		// Dequeue deposits from the state.
 		depositIndex, err := st.GetEth1DepositIndex()
 		if err != nil {

@@ -50,8 +50,8 @@ func (sp *StateProcessor) processOperations(
 	}
 
 	var deposits []*ctypes.Deposit
-	if version.IsBefore(blk.GetForkVersion(), version.Electra1()) {
-		// Before Electra1 however, deposits are taken from the beacon block body directly.
+	if version.IsBefore(blk.GetForkVersion(), version.Electra2()) {
+		// Before Electra2 however, deposits are taken from the beacon block body directly.
 		//
 		// Verify that outstanding deposits are processed up to the maximum number of deposits.
 		// Unlike Ethereum 2.0 specs, we don't check that
@@ -65,7 +65,7 @@ func (sp *StateProcessor) processOperations(
 		}
 
 		// Instead, we directly compare block deposits with our local store ones.
-		if err = ValidateNonGenesisDeposits(
+		if err = ValidateNonGenesisDepositsPreElectra2(
 			ctx.ConsensusCtx(),
 			st,
 			sp.ds,
@@ -76,7 +76,7 @@ func (sp *StateProcessor) processOperations(
 			return err
 		}
 	} else if requests != nil {
-		// Starting in Electra1, EIP-6110 style deposit requests are used.
+		// Starting in Electra2, EIP-6110 style deposit requests are used.
 		deposits = requests.Deposits
 	}
 
