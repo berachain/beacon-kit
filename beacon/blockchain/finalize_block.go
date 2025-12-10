@@ -26,6 +26,7 @@ import (
 	"time"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/consensus/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -39,12 +40,27 @@ import (
 func (s *Service) FinalizeBlock(
 	ctx sdk.Context,
 	req *cmtabci.FinalizeBlockRequest,
+	blobs datypes.BlobSidecars,
 ) (transition.ValidatorUpdates, error) {
+	maxTxCount := MaxConsensusTxsCount
+	if s.chainSpec.IsBlobConsensusEnabledAtHeight(req.Height) {
+		maxTxCount = 1
+	}
+
 	// STEP 1: Decode block and blobs.
-	signedBlk, blobs, err := s.ParseBeaconBlock(req)
+	if countTx := len(req.GetTxs()); countTx > maxTxCount {
+		return nil, fmt.Errorf("invalid tx count in FinalizeBlock at height %d: expected max %d, got %d",
+			req.Height, maxTxCount, countTx)
+	}
+
+	forkVersion := s.chainSpec.ActiveForkVersionForTimestamp(math.U64(req.GetTime().Unix())) //#nosec: G115
+	signedBlk, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
+		req.GetTxs(),
+		BeaconBlockTxIndex,
+		forkVersion,
+	)
 	if err != nil {
-		s.logger.Error("Failed to decode block and blobs", "error", err)
-		return nil, fmt.Errorf("failed to decode block and blobs: %w", err)
+		return nil, fmt.Errorf("failed to decode block at height %d with fork version %s: %w", req.Height, forkVersion, err)
 	}
 	blk := signedBlk.GetBeaconBlock()
 	st := s.storageBackend.StateFromContext(ctx)
@@ -73,10 +89,7 @@ func (s *Service) FinalizeBlock(
 	consensusBlk := types.NewConsensusBlock(blk, req.GetProposerAddress(), req.GetTime())
 	valUpdates, err := s.finalizeBeaconBlock(ctx, st, consensusBlk)
 	if err != nil {
-		s.logger.Error("Failed to process verified beacon block",
-			"error", err,
-		)
-		return nil, err
+		return nil, fmt.Errorf("failed finalizing beacon block at height %d: %w", req.Height, err)
 	}
 
 	// STEP 4: Post Finalizations cleanups.
@@ -89,36 +102,55 @@ func (s *Service) FinalizeSidecars(
 	blk *ctypes.BeaconBlock,
 	blobs datypes.BlobSidecars,
 ) error {
+	processBlobsFunc := func(blobs datypes.BlobSidecars) error {
+		// Process the blobs which saves them to storage
+		if err := s.blobProcessor.ProcessSidecars(s.storageBackend.AvailabilityStore(), blobs); err != nil {
+			return fmt.Errorf("failed to process %d blob sidecars for slot %d: %w", len(blobs), blk.GetSlot(), err)
+		}
+
+		// Final verification
+		if !s.storageBackend.AvailabilityStore().IsDataAvailable(ctx, blk.GetSlot(), blk.GetBody()) {
+			return fmt.Errorf("data not available after processing blobs for slot %d: %w", blk.GetSlot(), ErrDataNotAvailable)
+		}
+
+		return nil
+	}
+
 	// SyncingToHeight is always the tip of the chain both during sync and when
 	// caught up. We don't need to process sidecars unless they are within DA period.
 	//
 	//#nosec: G115 // SyncingToHeight will never be negative.
-	if s.chainSpec.WithinDAPeriod(blk.GetSlot(), math.Slot(syncingToHeight)) {
-		err := s.blobProcessor.ProcessSidecars(
-			s.storageBackend.AvailabilityStore(),
-			blobs,
-		)
-		if err != nil {
-			s.logger.Error("Failed to process blob sidecars", "error", err)
-			return fmt.Errorf("failed to process blob sidecars: %w", err)
-		}
-
-		// Ensure we can access the data using the commitments from the block.
-		if !s.storageBackend.AvailabilityStore().IsDataAvailable(
-			ctx, blk.GetSlot(), blk.GetBody(),
-		) {
-			return ErrDataNotAvailable
+	if !s.chainSpec.WithinDAPeriod(blk.GetSlot(), math.Slot(syncingToHeight)) {
+		// Here outside Data Availability window. Just log if needed
+		if len(blobs) > 0 {
+			s.logger.Info(
+				"Skipping blob processing outside of Data Availability Period",
+				"slot", blk.GetSlot().Base10(), "head", syncingToHeight,
+			)
 		}
 		return nil
 	}
 
-	// Here outside Data Availability window. Just log if needed
+	// If blobs were passed in (normal consensus mode), use them
 	if len(blobs) > 0 {
-		s.logger.Info(
-			"Skipping blob processing outside of Data Availability Period",
-			"slot", blk.GetSlot().Base10(), "head", syncingToHeight,
-		)
+		return processBlobsFunc(blobs)
 	}
+
+	// Check the block to see if there should be blobs
+	expectedBlobs := len(blk.GetBody().GetBlobKzgCommitments())
+	if expectedBlobs == 0 {
+		return nil // No blobs expected for this block
+	}
+
+	// Queue the blob fetch request to be handled asynchronously
+	err := s.blobFetcher.QueueBlobRequest(blk)
+	if err != nil {
+		// TODO: should we log and continue here instead of erroring out?
+		return fmt.Errorf("failed to queue blob fetch request for slot %d: %w", blk.GetSlot().Unwrap(), err)
+	}
+
+	// Return immediately without waiting for blobs
+	// The background fetcher will handle retrieval and storage
 	return nil
 }
 
@@ -139,6 +171,9 @@ func (s *Service) PostFinalizeBlockOps(ctx sdk.Context, signedBlk *ctypes.Signed
 		)
 		return err
 	}
+
+	// Update our head slot so other peers know at which height we are at.
+	s.blobFetcher.SetHeadSlot(slot)
 
 	// Prune the availability and deposit store.
 	if err := s.processPruning(ctx, blk); err != nil {

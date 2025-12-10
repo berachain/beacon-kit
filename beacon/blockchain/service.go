@@ -38,6 +38,8 @@ type Service struct {
 	storageBackend StorageBackend
 	// blobProcessor is used for processing sidecars.
 	blobProcessor BlobProcessor
+	// blobFetcher is used for fetching blobs during sync in the background.
+	blobFetcher BlobFetcher
 	// depositContract is the contract interface for interacting with the
 	// deposit contract.
 	depositContract deposit.Contract
@@ -75,6 +77,7 @@ type Service struct {
 func NewService(
 	storageBackend StorageBackend,
 	blobProcessor BlobProcessor,
+	blobFetcher BlobFetcher,
 	depositContract deposit.Contract,
 	logger log.Logger,
 	chainSpec ServiceChainSpec,
@@ -86,6 +89,7 @@ func NewService(
 	return &Service{
 		storageBackend:       storageBackend,
 		blobProcessor:        blobProcessor,
+		blobFetcher:          blobFetcher,
 		depositContract:      depositContract,
 		eth1FollowDistance:   math.U64(chainSpec.Eth1FollowDistance()),
 		failedBlocks:         make(map[math.Slot]struct{}),
@@ -106,6 +110,9 @@ func (s *Service) Name() string {
 
 // Start starts the blockchain service.
 func (s *Service) Start(ctx context.Context) error {
+	// Start the blob fetcher in the background.
+	s.blobFetcher.Start(ctx)
+
 	// Catchup deposits for failed blocks. TODO: remove.
 	go s.depositCatchupFetcher(ctx)
 
@@ -115,6 +122,8 @@ func (s *Service) Start(ctx context.Context) error {
 // Stop stops the blockchain service and closes the deposit store.
 func (s *Service) Stop() error {
 	s.logger.Info("Stopping blockchain service")
+
+	s.blobFetcher.Stop()
 
 	err := s.storageBackend.DepositStore().Close()
 	if err != nil {

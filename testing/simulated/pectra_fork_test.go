@@ -91,7 +91,7 @@ func (s *PectraForkSuite) SetupTest() {
 	s.Geth.ElHandle = elHandle
 
 	rethNode := execution.NewRethNode(s.Reth.HomeDir, execution.ValidRethImage())
-	rethHandle, rethAuthRPC, elRPC := rethNode.Start(s.T(), path.Base(elGenesisPath))
+	rethHandle, rethAuthRPC, rethElRPC := rethNode.Start(s.T(), path.Base(elGenesisPath))
 	s.Reth.ElHandle = rethHandle
 
 	// Prepare a logger backed by a buffer to capture logs for assertions.
@@ -121,7 +121,7 @@ func (s *PectraForkSuite) SetupTest() {
 		TempHomeDir: s.Reth.HomeDir,
 		CometConfig: cometConfig,
 		AuthRPC:     rethAuthRPC,
-		ClientRPC:   elRPC,
+		ClientRPC:   rethElRPC,
 		Logger:      rethLogger,
 		AppOpts:     viper.New(),
 		Components:  components,
@@ -221,10 +221,9 @@ func (s *PectraForkSuite) TestTimestampFork_ELAndCLInSync_IsSuccessful() {
 		// set consensus time for the next block to match
 		// the timestamp of the payload built optimistically.
 		forkVersion := s.Geth.TestNode.ChainSpec.ActiveForkVersionForTimestamp(math.U64(consensusTime.Unix())) //#nosec: G115
-		blk, _, err := encoding.ExtractBlobsAndBlockFromRequest(
-			processRequest,
+		blk, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
+			processRequest.GetTxs(),
 			blockchain.BeaconBlockTxIndex,
-			blockchain.BlobSidecarsTxIndex,
 			forkVersion,
 		)
 		s.Require().NoError(err)

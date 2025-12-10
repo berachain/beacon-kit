@@ -26,6 +26,7 @@ import (
 
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	handlertypes "github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
@@ -91,6 +92,18 @@ func (h *Handler) GetBlobSidecars(c handlers.Context) (any, error) {
 	blobSidecars, err := h.backend.GetBlobSidecarsAtSlot(slot)
 	if err != nil {
 		return nil, err
+	}
+
+	// If no blobs found, check if we expect blobs for this slot. If so, it means that
+	// we are still waiting for the blobs to be fetched via BlobReactor.
+	if len(blobSidecars) == 0 {
+		st, _, stateErr := h.backend.StateAndSlotFromHeight(int64(slot)) //#nosec: G115 // practically safe
+		if stateErr == nil {
+			payloadHeader, headerErr := st.GetLatestExecutionPayloadHeader()
+			if headerErr == nil && payloadHeader.GetBlobGasUsed() > 0 {
+				return nil, fmt.Errorf("blobs pending: %w", handlertypes.ErrNotFound)
+			}
+		}
 	}
 
 	// Create a map of requested indices for O(1) index lookups.

@@ -26,21 +26,44 @@ import (
 	"fmt"
 	"time"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/beacon/blockchain"
+	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/cache"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	datypes "github.com/berachain/beacon-kit/da/types"
+	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
+	cmttypes "github.com/cometbft/cometbft/types"
 	"github.com/sourcegraph/conc/iter"
 )
 
+//nolint:gocognit,funlen,nestif // TODO cleanup this function.
 func (s *Service) finalizeBlock(
 	ctx context.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (*cmtabci.FinalizeBlockResponse, error) {
 	if err := s.validateFinalizeBlockHeight(req); err != nil {
 		return nil, err
+	}
+
+	getBlobsFunc := func(cachedBlobData []byte) (datypes.BlobSidecars, error) {
+		if len(cachedBlobData) != 0 {
+			var sidecars datypes.BlobSidecars
+			if err := ssz.Unmarshal(cachedBlobData, &sidecars); err != nil {
+				return nil, fmt.Errorf("finalize block: failed to unmarshal cached blob data: %w", err)
+			}
+			return sidecars, nil
+		}
+
+		// not cached
+		sidecars, err := encoding.UnmarshalBlobSidecarsFromABCIRequest(req, s.chainSpec)
+		if err != nil {
+			return nil, fmt.Errorf("finalize block: failed parsing blobs from request: %w", err)
+		}
+		return sidecars, nil
 	}
 
 	// Check whether currently block hash is already available. If so
@@ -52,20 +75,35 @@ func (s *Service) finalizeBlock(
 		// This is because Genesis state is cached but not committed (and purged from s.cachedStates)
 		// We handle the case outside of this switch, via the s.Blockchain.FinalizeBlock below.
 		if req.Height > s.initialHeight {
+			s.logger.Info(
+				"FinalizeBlock using cached state",
+				"height", req.Height,
+				"hash", fmt.Sprintf("%X", req.Hash),
+				"cached_blob_size", len(cached.Blobs),
+			)
+
 			if err = s.cachedStates.MarkAsFinal(hash); err != nil {
 				return nil, fmt.Errorf("failed marking state as final, hash %s, height %d: %w", hash, req.Height, err)
 			}
 
 			finalState := cached.State
-			var (
-				signedBlk *ctypes.SignedBeaconBlock
-				sidecars  datypes.BlobSidecars
-			)
-			signedBlk, sidecars, err = s.Blockchain.ParseBeaconBlock(req)
+
+			forkVersion := s.chainSpec.ActiveForkVersionForTimestamp(math.U64(req.GetTime().Unix())) //#nosec: G115
+			var signedBlk *types.SignedBeaconBlock
+			signedBlk, err = encoding.UnmarshalBeaconBlockFromABCIRequest(req.GetTxs(), blockchain.BeaconBlockTxIndex, forkVersion)
 			if err != nil {
 				return nil, fmt.Errorf("finalize block: failed parsing block: %w", err)
 			}
+			if signedBlk == nil {
+				return nil, blockchain.ErrNilBlk
+			}
 			blk := signedBlk.GetBeaconBlock()
+
+			var sidecars datypes.BlobSidecars
+			sidecars, err = getBlobsFunc(cached.Blobs)
+			if err != nil {
+				return nil, err
+			}
 
 			if err = s.Blockchain.FinalizeSidecars(
 				finalState.Context(),
@@ -113,7 +151,13 @@ func (s *Service) finalizeBlock(
 		return nil, fmt.Errorf("failed checking cached final state, hash %s, height %d: %w", hash, req.Height, err)
 	}
 
-	valUpdates, err := s.Blockchain.FinalizeBlock(finalState.Context(), req)
+	sidecars, err := getBlobsFunc(nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// Then finalize the block with blobs
+	valUpdates, err := s.Blockchain.FinalizeBlock(finalState.Context(), req, sidecars)
 	if err != nil {
 		return nil, err
 	}
@@ -122,6 +166,7 @@ func (s *Service) finalizeBlock(
 	s.cachedStates.SetCached(hash, &cache.Element{
 		State:      finalState,
 		ValUpdates: valUpdates,
+		Blobs:      nil,
 	})
 	if err = s.cachedStates.MarkAsFinal(hash); err != nil {
 		return nil, fmt.Errorf("failed marking state as final, hash %s, height %d: %w", hash, req.Height, err)
@@ -130,16 +175,15 @@ func (s *Service) finalizeBlock(
 	return s.calculateFinalizeBlockResponse(req, valUpdates)
 }
 
-//nolint:lll // long message on one line for readability.
 func (s *Service) nextBlockDelay(req *cmtabci.FinalizeBlockRequest) time.Duration {
 	// c0. SBT is not enabled => use the old block delay.
 	if s.cmtConsensusParams.Feature.SBTEnableHeight <= 0 {
-		return s.delayCfg.SbtConstBlockDelay()
+		return s.chainSpec.SbtConstBlockDelay()
 	}
 
 	// c1. current height < SBTEnableHeight => wait for the upgrade.
 	if req.Height < s.cmtConsensusParams.Feature.SBTEnableHeight {
-		return s.delayCfg.SbtConstBlockDelay()
+		return s.chainSpec.SbtConstBlockDelay()
 	}
 
 	// c2. current height == SBTEnableHeight => initialize the block delay.
@@ -149,7 +193,7 @@ func (s *Service) nextBlockDelay(req *cmtabci.FinalizeBlockRequest) time.Duratio
 			InitialHeight:     req.Height,
 			PreviousBlockTime: req.Time,
 		}
-		return s.delayCfg.SbtConstBlockDelay()
+		return s.chainSpec.SbtConstBlockDelay()
 	}
 
 	// c3. current height > SBTEnableHeight
@@ -158,7 +202,7 @@ func (s *Service) nextBlockDelay(req *cmtabci.FinalizeBlockRequest) time.Duratio
 	// The upgrade was successfully applied and the block delay is set.
 	if s.blockDelay != nil {
 		prevBlkTime := s.blockDelay.PreviousBlockTime // note it down before ComputeNext changes it
-		delay := s.blockDelay.ComputeNext(s.delayCfg, req.Time, req.Height)
+		delay := s.blockDelay.ComputeNext(s.chainSpec, req.Time, req.Height)
 		s.logger.Debug("Stable block time",
 			"previous block time", prevBlkTime.String(),
 			"current block time", req.Time.String(),
@@ -170,8 +214,13 @@ func (s *Service) nextBlockDelay(req *cmtabci.FinalizeBlockRequest) time.Duratio
 	//
 	// Looks like we've skipped SBTEnableHeight (probably restoring from the
 	// snapshot) => panic.
-	panic(fmt.Sprintf("nil block delay at height %d past SBTEnableHeight %d. This is only possible w/ statesync, which is not supported by SBT atm",
-		req.Height, s.cmtConsensusParams.Feature.SBTEnableHeight))
+	panic(
+		fmt.Sprintf(
+			"nil block delay at height %d past SBTEnableHeight %d. This is only possible w/ statesync, which is not supported by SBT atm",
+			req.Height,
+			s.cmtConsensusParams.Feature.SBTEnableHeight,
+		),
+	)
 }
 
 // workingHash gets the apphash that will be finalized in commit.
@@ -249,10 +298,20 @@ func (s *Service) calculateFinalizeBlockResponse(
 	valUpdates transition.ValidatorUpdates,
 ) (*cmtabci.FinalizeBlockResponse, error) {
 	// Update Stable block time related data
-	if s.cmtConsensusParams.Feature.SBTEnableHeight == 0 && req.Height == s.delayCfg.SbtConsensusUpdateHeight() {
-		s.cmtConsensusParams.Feature.SBTEnableHeight = s.delayCfg.SbtConsensusEnableHeight()
+	if s.cmtConsensusParams.Feature.SBTEnableHeight == 0 && req.Height == s.chainSpec.SbtConsensusUpdateHeight() {
+		s.cmtConsensusParams.Feature.SBTEnableHeight = s.chainSpec.SbtConsensusEnableHeight()
 	}
 	nextBlockTime := s.nextBlockDelay(req)
+
+	// Update BlobReactor consensus parameters
+	if s.cmtConsensusParams.Feature.BlobEnableHeight == 0 && req.Height == s.chainSpec.BlobConsensusUpdateHeight() {
+		s.logger.Info("Setting blob consensus parameters",
+			"current_height", req.Height,
+			"blob_enable_height", s.chainSpec.BlobConsensusEnableHeight(),
+			"max_bytes", s.chainSpec.BlobMaxBytes())
+		s.cmtConsensusParams.Feature.BlobEnableHeight = s.chainSpec.BlobConsensusEnableHeight()
+		s.cmtConsensusParams.Blob = cmttypes.BlobParams{MaxBytes: s.chainSpec.BlobMaxBytes()}
+	}
 
 	// This result format is expected by Comet. That actual execution will happen as part of the state transition.
 	txsLen := len(req.Txs)
