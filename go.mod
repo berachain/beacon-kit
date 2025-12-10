@@ -44,7 +44,7 @@ require (
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8
 	github.com/spf13/afero v1.15.0
 	github.com/spf13/cast v1.10.0
-	github.com/spf13/cobra v1.10.1
+	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10
 	github.com/spf13/viper v1.21.0
 	github.com/umbracle/fastrlp v0.1.0
@@ -56,7 +56,7 @@ require (
 
 // build/test dependencies
 require (
-	github.com/attestantio/go-eth2-client v0.27.1
+	github.com/attestantio/go-eth2-client v0.27.2
 	github.com/cosmos/ics23/go v0.11.0
 	github.com/ethereum/go-ethereum v1.15.5
 	github.com/ferranbt/fastssz v0.1.5-0.20240903094032-455b54c08c81
