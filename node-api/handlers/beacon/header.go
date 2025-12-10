@@ -23,6 +23,7 @@ package beacon
 import (
 	"errors"
 	"fmt"
+	stdmath "math"
 
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
@@ -42,9 +43,9 @@ func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 	switch {
 	case len(req.Slot) == 0 && len(req.ParentRoot) == 0:
 		// no parameter specified, pick chain HEAD
-		// by requesting special slot 0.
-		slot := utils.Head
-		return h.makeBlockHeaderResponse(slot, true /*resultsInList*/)
+		// by requesting special height -1.
+		height := utils.Head
+		return h.makeBlockHeaderResponse(height, true /*resultsInList*/)
 
 	case len(req.Slot) != 0 && len(req.ParentRoot) == 0:
 		slot, errSlot := math.U64FromString(req.Slot)
@@ -52,28 +53,39 @@ func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 		if errSlot != nil {
 			return nil, fmt.Errorf("failed retrieving slot from input parameters: %w", errSlot)
 		}
-		return h.makeBlockHeaderResponse(slot, true /*resultsInList*/)
+		if slot > stdmath.MaxInt64 { // appease linters
+			return 0, fmt.Errorf("%w: slot %d", utils.ErrFailedMappingHeightTooHigh, slot)
+		}
+		return h.makeBlockHeaderResponse(int64(slot), true /*resultsInList*/) //#nosec: G115 // safe
 
 	case len(req.Slot) == 0 && len(req.ParentRoot) != 0:
-		parentSlot, errParent := utils.SlotFromBlockID(req.ParentRoot, h.backend)
+		parentHeight, errParent := utils.BlockIDToHeight(req.ParentRoot, h.backend)
 		if errParent != nil {
 			return nil, fmt.Errorf("%w, failed retrieving parent root with error: %w", handlertypes.ErrNotFound, errParent)
 		}
-		slot := parentSlot + 1
-		return h.makeBlockHeaderResponse(slot, true /*resultsInList*/)
+		if parentHeight == utils.Head {
+			return nil, fmt.Errorf("%w, requested header of tip's child", handlertypes.ErrNotFound)
+		}
+		height := parentHeight + 1
+		return h.makeBlockHeaderResponse(height, true /*resultsInList*/)
 
 	default:
 		var (
 			slot, errSlot         = math.U64FromString(req.Slot)
-			parentSlot, errParent = utils.SlotFromBlockID(req.ParentRoot, h.backend)
+			parentSlot, errParent = utils.BlockIDToHeight(req.ParentRoot, h.backend)
 		)
 		if err := errors.Join(errSlot, errParent); err != nil {
 			return nil, err
 		}
-		if slot != parentSlot+1 {
+
+		if slot > stdmath.MaxInt64 { // appease linters
+			return 0, fmt.Errorf("%w: slot %d", utils.ErrFailedMappingHeightTooHigh, slot)
+		}
+		height := int64(slot) //#nosec: G115 // safe
+		if height != parentSlot+1 {
 			return nil, fmt.Errorf("%w: request slot %d, parent block slot %d", ErrMismatchedSlotAndParentBlock, slot, parentSlot)
 		}
-		return h.makeBlockHeaderResponse(slot, true /*resultsInList*/)
+		return h.makeBlockHeaderResponse(height, true /*resultsInList*/)
 	}
 }
 
@@ -82,17 +94,17 @@ func (h *Handler) GetBlockHeaderByID(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	slot, err := utils.SlotFromBlockID(req.BlockID, h.backend)
+	slot, err := utils.BlockIDToHeight(req.BlockID, h.backend)
 	if err != nil {
 		return nil, fmt.Errorf("failed retrieving slot from block ID %s: %w", req.BlockID, err)
 	}
 	return h.makeBlockHeaderResponse(slot, false /*resultsInList*/)
 }
 
-func (h *Handler) makeBlockHeaderResponse(slot math.Slot, resultsInList bool) (any, error) {
-	st, _, err := h.backend.StateAtSlot(slot)
+func (h *Handler) makeBlockHeaderResponse(height int64, resultsInList bool) (any, error) {
+	st, slot, err := h.backend.StateAndSlotFromHeight(height)
 	if err != nil {
-		return nil, fmt.Errorf("%w: failed to get state from slot %d, %s", handlertypes.ErrNotFound, slot, err.Error())
+		return nil, fmt.Errorf("%w: failed to get state from height %d, %s", handlertypes.ErrNotFound, height, err.Error())
 	}
 	// Return after updating the state root in the block header.
 	header, err := st.GetLatestBlockHeader()
@@ -100,6 +112,16 @@ func (h *Handler) makeBlockHeaderResponse(slot math.Slot, resultsInList bool) (a
 		return nil, fmt.Errorf("failed to get latest block header: %w", err)
 	}
 	header.SetStateRoot(st.HashTreeRoot())
+
+	// Retrieve the block signature from the block store. The signature may not be available
+	// if the block is outside the availability window or if querying genesis.
+	var signatureStr string
+	if slot > 0 {
+		signature, sigErr := h.backend.GetSignatureBySlot(slot)
+		if sigErr == nil {
+			signatureStr = signature.String()
+		}
+	}
 
 	// While an Ethereum node may have multiple blocks per slot, BeaconKit
 	// will access only one, given single slot finality and the fact that we only
@@ -110,7 +132,7 @@ func (h *Handler) makeBlockHeaderResponse(slot math.Slot, resultsInList bool) (a
 		Canonical: true,
 		Header: &beacontypes.SignedBeaconBlockHeader{
 			Message:   beacontypes.BeaconBlockHeaderFromConsensus(header),
-			Signature: "", // TODO: implement
+			Signature: signatureStr,
 		},
 	}
 

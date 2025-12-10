@@ -87,7 +87,7 @@ func TestGetPendingPartialWithdrawals(t *testing.T) {
 				require.NoError(t, st.SetPendingPartialWithdrawals(testPendingPartialWithdrawals))
 
 				// slot is not really tested here, we just return zero
-				b.EXPECT().StateAtSlot(mock.Anything).Return(st, math.Slot(0), nil)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(st, math.Slot(0), nil)
 			},
 			check: func(t *testing.T, res any, err error) {
 				t.Helper()
@@ -119,7 +119,7 @@ func TestGetPendingPartialWithdrawals(t *testing.T) {
 				require.NoError(t, st.SetPendingPartialWithdrawals(nil))
 
 				// slot is not really tested here, we just return zero
-				b.EXPECT().StateAtSlot(mock.Anything).Return(st, math.Slot(0), nil)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(st, math.Slot(0), nil)
 			},
 			check: func(t *testing.T, res any, err error) {
 				t.Helper()
@@ -145,7 +145,7 @@ func TestGetPendingPartialWithdrawals(t *testing.T) {
 				require.NoError(t, st.SetFork(preElectraFork))
 
 				// slot is not really tested here, we just return zero
-				b.EXPECT().StateAtSlot(mock.Anything).Return(st, math.Slot(0), nil)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(st, math.Slot(0), nil)
 			},
 			check: func(t *testing.T, res any, err error) {
 				t.Helper()
@@ -157,7 +157,6 @@ func TestGetPendingPartialWithdrawals(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc // capture range variable
 		t.Run(tc.name, func(t *testing.T) {
 			// setup test
 			backend := mocks.NewBackend(t)

@@ -90,10 +90,6 @@ payload-timeout = "{{ .BeaconKit.PayloadBuilder.PayloadTimeout }}"
 # Graffiti string that will be included in the graffiti field of the beacon block.
 graffiti = "{{ .BeaconKit.Validator.Graffiti }}"
 
-# EnableOptimisticPayloadBuilds enables building the next block's payload optimistically in
-# process-proposal to allow for the execution client to have more time to assemble the block.
-enable-optimistic-payload-builds = "{{ .BeaconKit.Validator.EnableOptimisticPayloadBuilds }}"
-
 [beacon-kit.block-store-service]
 # AvailabilityWindow is the number of slots to keep in the store.
 # Setting AvailabilityWindow to 0 disables block store and does not allow the node

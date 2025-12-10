@@ -22,8 +22,11 @@ package blockchain
 
 import (
 	"context"
+	"fmt"
 	"sync"
+	"sync/atomic"
 
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -59,11 +62,13 @@ type Service struct {
 	stateProcessor StateProcessor
 	// metrics is the metrics for the service.
 	metrics *chainMetrics
-	// optimisticPayloadBuilds is a flag used when the optimistic payload
-	// builder is enabled.
-	optimisticPayloadBuilds bool
 	// forceStartupSyncOnce is used to force a sync of the startup head.
 	forceStartupSyncOnce *sync.Once
+
+	// latestFcuReq holds a copy of the latest FCU sent to the execution layer.
+	// It helps avoid resending the same FCU data (and spares a network call)
+	// in case optimistic block building is active
+	latestFcuReq atomic.Pointer[engineprimitives.ForkchoiceStateV1]
 }
 
 // NewService creates a new validator service.
@@ -77,22 +82,20 @@ func NewService(
 	localBuilder LocalBuilder,
 	stateProcessor StateProcessor,
 	telemetrySink TelemetrySink,
-	optimisticPayloadBuilds bool,
 ) *Service {
 	return &Service{
-		storageBackend:          storageBackend,
-		blobProcessor:           blobProcessor,
-		depositContract:         depositContract,
-		eth1FollowDistance:      math.U64(chainSpec.Eth1FollowDistance()),
-		failedBlocks:            make(map[math.Slot]struct{}),
-		logger:                  logger,
-		chainSpec:               chainSpec,
-		executionEngine:         executionEngine,
-		localBuilder:            localBuilder,
-		stateProcessor:          stateProcessor,
-		metrics:                 newChainMetrics(telemetrySink),
-		optimisticPayloadBuilds: optimisticPayloadBuilds,
-		forceStartupSyncOnce:    new(sync.Once),
+		storageBackend:       storageBackend,
+		blobProcessor:        blobProcessor,
+		depositContract:      depositContract,
+		eth1FollowDistance:   math.U64(chainSpec.Eth1FollowDistance()),
+		failedBlocks:         make(map[math.Slot]struct{}),
+		logger:               logger,
+		chainSpec:            chainSpec,
+		executionEngine:      executionEngine,
+		localBuilder:         localBuilder,
+		stateProcessor:       stateProcessor,
+		metrics:              newChainMetrics(telemetrySink),
+		forceStartupSyncOnce: new(sync.Once),
 	}
 }
 
@@ -124,4 +127,35 @@ func (s *Service) Stop() error {
 // StorageBackend returns the storage backend.
 func (s *Service) StorageBackend() StorageBackend {
 	return s.storageBackend
+}
+
+// PruneOrphanedBlobs removes any orphaned blob sidecars that may exist from incomplete block finalization.
+func (s *Service) PruneOrphanedBlobs(lastBlockHeight int64) error {
+	orphanedSlot := math.Slot(lastBlockHeight + 1) // #nosec G115
+
+	// Check if any blob sidecars exist at the potentially orphaned slot
+	sidecars, err := s.storageBackend.AvailabilityStore().GetBlobSidecars(orphanedSlot)
+	if err != nil {
+		return fmt.Errorf("failed to read blob sidecars at slot %d: %w", orphanedSlot, err)
+	}
+
+	// If no sidecars exist at this slot, nothing to clean up
+	if len(sidecars) == 0 {
+		return nil
+	}
+
+	// Sidecars exist at this slot - they are orphaned, so delete them
+	s.logger.Warn("Found orphaned blob sidecars from incomplete block finalization, removing",
+		"slot", orphanedSlot.Base10(),
+		"num_sidecars", len(sidecars),
+	)
+
+	err = s.storageBackend.AvailabilityStore().DeleteBlobSidecars(orphanedSlot)
+	if err != nil {
+		return fmt.Errorf("failed to delete orphaned sidecars at slot %d: %w", orphanedSlot, err)
+	}
+
+	s.logger.Info("Successfully removed orphaned blob sidecars", "slot", orphanedSlot.Base10())
+
+	return nil
 }

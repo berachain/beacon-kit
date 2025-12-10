@@ -28,6 +28,7 @@ import (
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	"github.com/berachain/beacon-kit/node-api/backend"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -80,11 +81,13 @@ type (
 			ctx context.Context,
 			r *builder.RequestPayloadData,
 		) (*engineprimitives.PayloadID, common.Version, error)
-		// RetrievePayload retrieves the payload for the given slot.
+		// RetrievePayload retrieves the payload for the given slot and parentBlockRoot.
+		// If returned error is nil, payload is guaranteed to have expectedForkVersion version.
 		RetrievePayload(
 			ctx context.Context,
 			slot math.Slot,
 			parentBlockRoot common.Root,
+			expectedForkVersion common.Version,
 		) (ctypes.BuiltExecutionPayloadEnv, error)
 		// RequestPayloadSync requests a payload for the given slot and
 		// blocks until the payload is delivered.
@@ -92,6 +95,10 @@ type (
 			ctx context.Context,
 			r *builder.RequestPayloadData,
 		) (ctypes.BuiltExecutionPayloadEnv, error)
+		CacheLatestVerifiedPayload(
+			latestEnvelopeSlot math.Slot,
+			latestEnvelope ctypes.BuiltExecutionPayloadEnv,
+		)
 	}
 
 	// 	// PayloadAttributes is the interface for the payload attributes.
@@ -382,7 +389,7 @@ type (
 		GetTotalSlashing() (math.Gwei, error)
 		GetNextWithdrawalIndex() (uint64, error)
 		GetNextWithdrawalValidatorIndex() (math.ValidatorIndex, error)
-		GetTotalValidators() (uint64, error)
+		GetTotalValidators() (math.U64, error)
 		ValidatorIndexByCometBFTAddress(
 			cometBFTAddress []byte,
 		) (math.ValidatorIndex, error)
@@ -499,7 +506,6 @@ type (
 	// NodeAPIBeaconBackend is the interface for backend of the beacon API.
 	NodeAPIBeaconBackend interface {
 		GenesisBackend
-		BlobBackend
 		BlockBackend
 		StateBackend
 		// GetSlotByBlockRoot retrieves the slot by a given root from the store.
@@ -536,10 +542,6 @@ type (
 		GenesisTime() (math.U64, error)
 	}
 
-	BlobBackend interface {
-		BlobSidecarsByIndices(slot math.Slot, indices []uint64) ([]*types.Sidecar, error)
-	}
-
 	BlockBackend interface {
 		BlockRootAtSlot(slot math.Slot) (common.Root, error)
 		BlockRewardsAtSlot(slot math.Slot) (*types.BlockRewardsData, error)
@@ -547,6 +549,6 @@ type (
 	}
 
 	StateBackend interface {
-		StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error)
+		StateAndSlotFromHeight(height int64) (backend.ReadOnlyBeaconState, math.Slot, error)
 	}
 )

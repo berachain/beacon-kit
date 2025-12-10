@@ -21,33 +21,29 @@
 package beacon
 
 import (
-	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	datypes "github.com/berachain/beacon-kit/da/types"
+	"github.com/berachain/beacon-kit/node-api/backend"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
-	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // Backend is the interface for backend of the beacon API.
 type Backend interface {
-	GenesisBackend
-	BlobBackend
-	StateBackend
-	// GetSlotByBlockRoot retrieves the slot by a given root from the store.
+	// Blob related methods
+	GetSyncData() (int64 /*latestHeight*/, int64 /*syncToHeight*/)
+	GetBlobSidecarsAtSlot(slot math.Slot) (datypes.BlobSidecars, error)
+
+	// State loading method, used by most of the handlers
+	// Height == -1 must be used to require tip state.
+	// Height == 0 must be used to require Genesis state
+	// Height > 0 must be used to require state at slot <Height>
+	StateAndSlotFromHeight(height int64) (backend.ReadOnlyBeaconState, math.Slot, error)
+
+	// Methods helping mapping block/state/... IDs in requests to heights
 	GetSlotByBlockRoot(root common.Root) (math.Slot, error)
-	// GetSlotByStateRoot retrieves the slot by a given root from the store.
 	GetSlotByStateRoot(root common.Root) (math.Slot, error)
-}
 
-type GenesisBackend interface {
-	GenesisValidatorsRoot() (common.Root, error)
-	GenesisForkVersion() (common.Version, error)
-	GenesisTime() (math.U64, error)
-}
-
-type BlobBackend interface {
-	BlobSidecarsByIndices(slot math.Slot, indices []uint64) ([]*types.Sidecar, error)
-}
-
-type StateBackend interface {
-	StateAtSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error)
+	// GetSignatureBySlot retrieves the block signature for a given slot.
+	GetSignatureBySlot(slot math.Slot) (crypto.BLSSignature, error)
 }

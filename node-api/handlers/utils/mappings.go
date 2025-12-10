@@ -21,6 +21,8 @@
 package utils
 
 import (
+	"fmt"
+	stdmath "math"
 	"strings"
 
 	"github.com/berachain/beacon-kit/errors"
@@ -28,20 +30,23 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-var ErrNoSlotForStateRoot = errors.New("slot not found at state root")
+var (
+	ErrNoSlotForStateRoot         = errors.New("slot not found at state root")
+	ErrFailedMappingHeightTooHigh = errors.New("failed mapping height too high")
+)
 
 // TODO: define unique types for each of the query-able IDs (state & block from
 // spec, execution unique to beacon-kit). For each type define validation
 // functions and resolvers to slot number.
 
-// SlotFromStateID returns a slot from the state ID.
+// StateIDToHeight returns a slot from the state ID.
 //
 // NOTE: Right now, `stateID` only supports querying by "head" (all of "head",
 // "finalized", "justified" are the same), "genesis", and <slot>.
-func SlotFromStateID[StorageBackendT interface {
+func StateIDToHeight[StorageBackendT interface {
 	GetSlotByStateRoot(root common.Root) (math.Slot, error)
-}](stateID string, storage StorageBackendT) (math.Slot, error) {
-	if slot, err := slotFromStateID(stateID); err == nil {
+}](stateID string, storage StorageBackendT) (int64, error) {
+	if slot, err := stateIDToHeight(stateID); err == nil {
 		return slot, nil
 	}
 
@@ -54,17 +59,20 @@ func SlotFromStateID[StorageBackendT interface {
 	if err != nil {
 		return 0, ErrNoSlotForStateRoot
 	}
-	return slot, nil
+	if slot > stdmath.MaxInt64 { // appease linters
+		return 0, fmt.Errorf("%w: slot %d", ErrFailedMappingHeightTooHigh, slot)
+	}
+	return int64(slot), nil //#nosec: G115 // practically safe
 }
 
-// SlotFromBlockID returns a slot from the block ID.
+// BlockIDToHeight returns a height from the block ID.
 //
 // NOTE: `blockID` shares the same semantics as `stateID`, with the modification
 // of being able to query by beacon <blockRoot> instead of <stateRoot>.
-func SlotFromBlockID[StorageBackendT interface {
+func BlockIDToHeight[StorageBackendT interface {
 	GetSlotByBlockRoot(root common.Root) (math.Slot, error)
-}](blockID string, storage StorageBackendT) (math.Slot, error) {
-	if slot, err := slotFromStateID(blockID); err == nil {
+}](blockID string, storage StorageBackendT) (int64, error) {
+	if slot, err := stateIDToHeight(blockID); err == nil {
 		return slot, nil
 	}
 
@@ -73,10 +81,14 @@ func SlotFromBlockID[StorageBackendT interface {
 	if err != nil {
 		return 0, err
 	}
-	return storage.GetSlotByBlockRoot(root)
+	slot, err := storage.GetSlotByBlockRoot(root)
+	if slot > stdmath.MaxInt64 { // appease linters
+		return 0, fmt.Errorf("%w: slot %d", ErrFailedMappingHeightTooHigh, slot)
+	}
+	return int64(slot), err //#nosec: G115 // practically safe
 }
 
-// ParentSlotFromTimestampID returns the parent slot corresponding to the
+// TimestampIDToParentHeight returns the parent slot corresponding to the
 // timestamp ID.
 //
 // NOTE: `timestampID` shares the same semantics as `stateID`, with the
@@ -88,11 +100,11 @@ func SlotFromBlockID[StorageBackendT interface {
 // which has the next block with a timestamp of 1728681738. Providing just the
 // string '1728681738' (without the prefix 't') will query for the beacon block
 // for slot 1728681738.
-func ParentSlotFromTimestampID[StorageBackendT interface {
+func TimestampIDToParentHeight[StorageBackendT interface {
 	GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
-}](timestampID string, storage StorageBackendT) (math.Slot, error) {
+}](timestampID string, storage StorageBackendT) (int64, error) {
 	if !IsTimestampIDPrefix(timestampID) {
-		return slotFromStateID(timestampID)
+		return stateIDToHeight(timestampID)
 	}
 
 	// Parse the timestamp from the timestampID.
@@ -102,7 +114,11 @@ func ParentSlotFromTimestampID[StorageBackendT interface {
 			err, "failed to parse timestamp from timestampID: %s", timestampID,
 		)
 	}
-	return storage.GetParentSlotByTimestamp(timestamp)
+	slot, err := storage.GetParentSlotByTimestamp(timestamp)
+	if slot > stdmath.MaxInt64 { // appease linters
+		return 0, fmt.Errorf("%w: slot %d", ErrFailedMappingHeightTooHigh, slot)
+	}
+	return int64(slot), err //#nosec: G115 // practically safe
 }
 
 // IsTimestampIDPrefix checks if the given timestampID is prefixed with the
@@ -111,13 +127,11 @@ func IsTimestampIDPrefix(timestampID string) bool {
 	return strings.HasPrefix(timestampID, TimestampIDPrefix)
 }
 
-// slotFromStateID returns a slot number from the given state ID.
-// Currently, when "genesis" is requested, we return the block 1 state.
-// This is due to a CometBFT limitation that does not explicitly commit the
-// genesis state (it accumulates block 1 state changes and flushes them together).
-// Numeric requests are clamped so that slot 0 maps to Genesis (slot 1).
-// TODO: Properly return the true genesis state when requested, instead of block 1.
-func slotFromStateID(id string) (math.Slot, error) {
+// stateIDToHeight returns a slot number from the given state ID.
+// Returns -1 if chain tip is requested
+// Returns 0 if genesis is requested
+// Returns a positive integer if any chain slot is requested
+func stateIDToHeight(id string) (int64, error) {
 	switch id {
 	case StateIDFinalized, StateIDJustified, StateIDHead:
 		return Head, nil
@@ -126,11 +140,11 @@ func slotFromStateID(id string) (math.Slot, error) {
 	default:
 		slot, err := math.U64FromString(id)
 		if err != nil {
-			return math.Slot(0), errors.Wrapf(err, "failed mapping stateID %q to slot", id)
+			return 0, errors.Wrapf(err, "failed mapping stateID %q to slot", id)
 		}
-
-		// Enforce here too the choice of mapping genesis to slot 1. Without this
-		// the request of slot 0 would be mapped to tip of the chain.
-		return max(slot, Genesis), nil
+		if slot > stdmath.MaxInt64 { // appease linters
+			return 0, fmt.Errorf("%w: slot %d", ErrFailedMappingHeightTooHigh, slot)
+		}
+		return int64(slot), nil //#nosec: G115 // practically safe
 	}
 }

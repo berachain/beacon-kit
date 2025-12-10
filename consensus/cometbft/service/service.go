@@ -182,6 +182,11 @@ func NewService(
 		}
 	}
 
+	// Clean up any orphaned blob sidecars from incomplete block finalization.
+	if err = s.Blockchain.PruneOrphanedBlobs(lastBlockHeight); err != nil {
+		panic(fmt.Errorf("failed pruning orphaned blobs: %w", err))
+	}
+
 	return s
 }
 
@@ -270,6 +275,12 @@ func (s *Service) Stop() error {
 // primarily for the mock service.
 func (s *Service) ResetAppCtx(ctx context.Context) {
 	s.ctx = ctx
+}
+
+// SetNodeAddress sets the node address for the service. This is used
+// primarily for the mock service.
+func (s *Service) SetNodeAddress(addr cmtcrypto.Address) {
+	s.nodeAddress = addr
 }
 
 // Name returns the name of the cometbft.

@@ -88,7 +88,7 @@ func TestFilterValidators(t *testing.T) {
 				addTestValidators(t, stateValidators, st)
 
 				// slot is not really tested here, we just return zero
-				b.EXPECT().StateAtSlot(mock.Anything).Return(st, math.Slot(0), nil)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(st, math.Slot(0), nil)
 			},
 			check: func(t *testing.T, res any, err error) {
 				t.Helper()
@@ -130,7 +130,7 @@ func TestFilterValidators(t *testing.T) {
 				addTestValidators(t, stateValidators, st)
 
 				// slot is not really tested here, we just return zero
-				b.EXPECT().StateAtSlot(mock.Anything).Return(st, math.Slot(0), nil)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(st, math.Slot(0), nil)
 			},
 			check: func(t *testing.T, res any, err error) {
 				t.Helper()
@@ -177,7 +177,7 @@ func TestFilterValidators(t *testing.T) {
 				addTestValidators(t, stateValidators, st)
 
 				// slot is not really tested here, we just return zero
-				b.EXPECT().StateAtSlot(mock.Anything).Return(st, math.Slot(0), nil)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(st, math.Slot(0), nil)
 			},
 			check: func(t *testing.T, res any, err error) {
 				t.Helper()
@@ -225,7 +225,7 @@ func TestFilterValidators(t *testing.T) {
 				addTestValidators(t, stateValidators, st)
 
 				// slot is not really tested here, we just return zero
-				b.EXPECT().StateAtSlot(mock.Anything).Return(st, math.Slot(0), nil)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(st, math.Slot(0), nil)
 			},
 			check: func(t *testing.T, res any, err error) {
 				t.Helper()
@@ -266,7 +266,7 @@ func TestFilterValidators(t *testing.T) {
 			setMockExpectations: func(b *mocks.Backend) {
 				// cometbft.ErrAppNotReady is the error flag returned when
 				// genesis has not yet been processed and chain is not ready.
-				b.EXPECT().StateAtSlot(mock.Anything).Return(nil, math.Slot(0), cometbft.ErrAppNotReady)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(nil, math.Slot(0), cometbft.ErrAppNotReady)
 			},
 			check: func(t *testing.T, res any, err error) {
 				t.Helper()
@@ -293,7 +293,7 @@ func TestFilterValidators(t *testing.T) {
 			setMockExpectations: func(b *mocks.Backend) {
 				// sdkerrors.ErrInvalidHeight is the error flag returned when
 				// requested height is not in the state.
-				b.EXPECT().StateAtSlot(mock.Anything).Return(nil, math.Slot(0), sdkerrors.ErrInvalidHeight)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(nil, math.Slot(0), sdkerrors.ErrInvalidHeight)
 			},
 			check: func(t *testing.T, res any, err error) {
 				t.Helper()
@@ -306,7 +306,6 @@ func TestFilterValidators(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc // capture range variable
 		t.Run(tc.name, func(t *testing.T) {
 			// setup test
 			backend := mocks.NewBackend(t)

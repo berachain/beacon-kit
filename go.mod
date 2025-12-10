@@ -1,12 +1,12 @@
 module github.com/berachain/beacon-kit
 
-go 1.23.6
+go 1.25.5
 
 replace (
-	github.com/cometbft/cometbft => github.com/berachain/cometbft v1.0.1-0.20250718121541-9671b1dc07e5
-	github.com/cometbft/cometbft/api => github.com/berachain/cometbft/api v1.0.1-0.20250718121541-9671b1dc07e5
+	github.com/cometbft/cometbft => github.com/berachain/cometbft v1.0.1-0.20251015081901-8394c619874a
+	github.com/cometbft/cometbft/api => github.com/berachain/cometbft/api v1.0.1-0.20251015081901-8394c619874a
 	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.52.0-rc.1
-	github.com/ethereum/go-ethereum => github.com/berachain/bera-geth v0.0.0-20250722192516-7ce36c5a40aa
+	github.com/ethereum/go-ethereum => github.com/berachain/bera-geth v1.16.3-0.20251030205931-33cdc637de2d
 	github.com/karalabe/ssz => github.com/berachain/karalabe-ssz v0.3.0-alpha.0
 )
 
@@ -27,7 +27,7 @@ require (
 	github.com/crate-crypto/go-kzg-4844 v1.1.0
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-faster/xor v1.0.0
-	github.com/go-playground/validator/v10 v10.27.0
+	github.com/go-playground/validator/v10 v10.28.0
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/hashicorp/go-metrics v0.5.4
 	github.com/hashicorp/golang-lru/v2 v2.0.7
@@ -42,25 +42,25 @@ require (
 	github.com/prysmaticlabs/gohashtree v0.0.4-beta.0.20240624100937-73632381301b
 	github.com/prysmaticlabs/prysm/v5 v5.3.0
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8
-	github.com/spf13/afero v1.14.0
-	github.com/spf13/cast v1.9.2
-	github.com/spf13/cobra v1.10.1
-	github.com/spf13/pflag v1.0.9
-	github.com/spf13/viper v1.20.1
+	github.com/spf13/afero v1.15.0
+	github.com/spf13/cast v1.10.0
+	github.com/spf13/cobra v1.10.2
+	github.com/spf13/pflag v1.0.10
+	github.com/spf13/viper v1.21.0
 	github.com/umbracle/fastrlp v0.1.0
 	go.uber.org/automaxprocs v1.6.0
-	golang.org/x/crypto v0.41.0
-	golang.org/x/sync v0.16.0
+	golang.org/x/crypto v0.46.0
+	golang.org/x/sync v0.19.0
 	sigs.k8s.io/yaml v1.6.0
 )
 
 // build/test dependencies
 require (
-	github.com/attestantio/go-eth2-client v0.26.0
+	github.com/attestantio/go-eth2-client v0.27.2
 	github.com/cosmos/ics23/go v0.11.0
 	github.com/ethereum/go-ethereum v1.15.5
 	github.com/ferranbt/fastssz v0.1.5-0.20240903094032-455b54c08c81
-	github.com/kurtosis-tech/kurtosis/api/golang v1.11.1
+	github.com/kurtosis-tech/kurtosis/api/golang v1.13.2
 	github.com/protolambda/zrnt v0.34.1
 	github.com/protolambda/ztyp v0.2.2
 	github.com/rs/zerolog v1.34.0
@@ -103,7 +103,7 @@ require (
 	github.com/cockroachdb/redact v1.1.6 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
 	github.com/cometbft/cometbft-db v1.0.4 // indirect
-	github.com/consensys/gnark-crypto v0.18.0 // indirect
+	github.com/consensys/gnark-crypto v0.18.1 // indirect
 	github.com/containerd/continuity v0.4.4 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5 // indirect
@@ -111,7 +111,7 @@ require (
 	github.com/cosmos/gogoproto v1.7.0 // indirect
 	github.com/cosmos/iavl v1.3.4 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.13.3 // indirect
-	github.com/crate-crypto/go-eth-kzg v1.3.0 // indirect
+	github.com/crate-crypto/go-eth-kzg v1.4.0 // indirect
 	github.com/crate-crypto/go-ipa v0.0.0-20240724233137-53bbb0ceb27a // indirect
 	github.com/danieljoos/wincred v1.2.1 // indirect
 	github.com/deckarep/golang-set/v2 v2.6.0 // indirect
@@ -124,12 +124,13 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/dvsekhvalnov/jose2go v1.7.0 // indirect
 	github.com/emicklei/dot v1.6.4 // indirect
-	github.com/ethereum/c-kzg-4844/v2 v2.1.0 // indirect
+	github.com/ethereum/c-kzg-4844/v2 v2.1.3 // indirect
+	github.com/ethereum/go-bigmodexpfix v0.0.0-20250911101455-f9e208c548ab // indirect
 	github.com/ethereum/go-verkle v0.2.2 // indirect
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
-	github.com/fsnotify/fsnotify v1.8.0 // indirect
-	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
+	github.com/fsnotify/fsnotify v1.9.0 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.10 // indirect
 	github.com/getsentry/sentry-go v0.33.0 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
@@ -192,6 +193,7 @@ require (
 	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/mholt/archiver v3.1.1+incompatible // indirect
 	github.com/minio/highwayhash v1.0.3 // indirect
+	github.com/moby/sys/user v0.3.0 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/mtibben/percent v0.2.1 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
@@ -202,8 +204,8 @@ require (
 	github.com/onsi/gomega v1.34.2 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0 // indirect
-	github.com/opencontainers/runc v1.1.14 // indirect
-	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
+	github.com/opencontainers/runc v1.2.8 // indirect
+	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/petermattis/goid v0.0.0-20240813172612-4fcff4a6cae7 // indirect
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/pk910/dynamic-ssz v0.0.4 // indirect
@@ -220,13 +222,13 @@ require (
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/rs/cors v1.11.1 // indirect
-	github.com/sagikazarmark/locafero v0.7.0 // indirect
+	github.com/sagikazarmark/locafero v0.11.0 // indirect
 	github.com/sasha-s/go-deadlock v0.3.5 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
-	github.com/supranational/blst v0.3.14 // indirect
+	github.com/supranational/blst v0.3.16-0.20250831170142-f48500c1fdbe // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d // indirect
 	github.com/tendermint/go-amino v0.16.0 // indirect
 	github.com/thomaso-mirodin/intmath v0.0.0-20160323211736-5dc6d854e46e // indirect
@@ -234,7 +236,7 @@ require (
 	github.com/tklauser/go-sysconf v0.3.14 // indirect
 	github.com/tklauser/numcpus v0.8.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
-	github.com/ulikunitz/xz v0.5.11 // indirect
+	github.com/ulikunitz/xz v0.5.14 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
@@ -250,12 +252,13 @@ require (
 	go.opentelemetry.io/otel/metric v1.34.0 // indirect
 	go.opentelemetry.io/otel/trace v1.34.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.2 // indirect
+	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/arch v0.17.0 // indirect
 	golang.org/x/exp v0.0.0-20250106191152-7588d65b2ba8 // indirect
-	golang.org/x/net v0.42.0 // indirect
-	golang.org/x/sys v0.35.0 // indirect
-	golang.org/x/term v0.34.0 // indirect
-	golang.org/x/text v0.28.0 // indirect
+	golang.org/x/net v0.47.0 // indirect
+	golang.org/x/sys v0.39.0 // indirect
+	golang.org/x/term v0.38.0 // indirect
+	golang.org/x/text v0.32.0 // indirect
 	golang.org/x/time v0.11.0 // indirect
 	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
 	google.golang.org/genproto v0.0.0-20240624140628-dc46fd24d27d // indirect

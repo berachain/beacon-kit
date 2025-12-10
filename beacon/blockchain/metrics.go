@@ -66,8 +66,8 @@ func (cm *chainMetrics) markRebuildPayloadForRejectedBlockSuccess(
 }
 
 // markRebuildPayloadForRejectedBlockFailure increments the counter for the
-// number of times
-// the validator failed to build an optimistic payload due to a failure.
+// number of times the validator failed to build an optimistic payload
+// due to a failure.
 func (cm *chainMetrics) markRebuildPayloadForRejectedBlockFailure(
 	slot math.Slot,
 	err error,
@@ -82,8 +82,7 @@ func (cm *chainMetrics) markRebuildPayloadForRejectedBlockFailure(
 }
 
 // markOptimisticPayloadBuildSuccess increments the counter for the number of
-// times
-// the validator successfully built an optimistic payload.
+// times the validator successfully built an optimistic payload.
 func (cm *chainMetrics) markOptimisticPayloadBuildSuccess(slot math.Slot) {
 	cm.sink.IncrementCounter(
 		"beacon_kit.blockchain.optimistic_payload_build_success",
@@ -93,8 +92,7 @@ func (cm *chainMetrics) markOptimisticPayloadBuildSuccess(slot math.Slot) {
 }
 
 // markOptimisticPayloadBuildFailure increments the counter for the number of
-// times
-// the validator failed to build an optimistic payload.
+// times the validator failed to build an optimistic payload.
 func (cm *chainMetrics) markOptimisticPayloadBuildFailure(
 	slot math.Slot,
 	err error,

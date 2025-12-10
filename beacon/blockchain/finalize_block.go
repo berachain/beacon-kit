@@ -81,7 +81,7 @@ func (s *Service) FinalizeBlock(
 	}
 
 	// STEP 4: Post Finalizations cleanups.
-	return valUpdates, s.PostFinalizeBlockOps(ctx, blk)
+	return valUpdates, s.PostFinalizeBlockOps(ctx, signedBlk)
 }
 
 func (s *Service) FinalizeSidecars(
@@ -123,9 +123,10 @@ func (s *Service) FinalizeSidecars(
 	return nil
 }
 
-func (s *Service) PostFinalizeBlockOps(ctx sdk.Context, blk *ctypes.BeaconBlock) error {
+func (s *Service) PostFinalizeBlockOps(ctx sdk.Context, signedBlk *ctypes.SignedBeaconBlock) error {
 	// TODO: consider extracting LatestExecutionPayloadHeader instead of using state here
 	st := s.storageBackend.StateFromContext(ctx)
+	blk := signedBlk.GetBeaconBlock()
 
 	// Before Electra1, deposits must be fetched from the EL directly in the CL.
 	if version.IsBefore(blk.GetForkVersion(), version.Electra1()) {
@@ -135,10 +136,8 @@ func (s *Service) PostFinalizeBlockOps(ctx sdk.Context, blk *ctypes.BeaconBlock)
 	}
 
 	// Store the finalized block in the KVStore.
-	//
-	// TODO: Store full SignedBeaconBlock with all data in storage
 	slot := blk.GetSlot()
-	if err := s.storageBackend.BlockStore().Set(blk); err != nil {
+	if err := s.storageBackend.BlockStore().Set(blk, signedBlk.GetSignature()); err != nil {
 		s.logger.Error(
 			"failed to store block", "slot", slot, "error", err,
 		)
@@ -153,6 +152,10 @@ func (s *Service) PostFinalizeBlockOps(ctx sdk.Context, blk *ctypes.BeaconBlock)
 	if err := s.sendPostBlockFCU(ctx, st); err != nil {
 		return fmt.Errorf("sendPostBlockFCU failed: %w", err)
 	}
+
+	// reset latest verified payload in block builder to signal
+	// that no payload is available to reuse for blk.Slot
+	s.localBuilder.CacheLatestVerifiedPayload(blk.Slot, nil)
 
 	return nil
 }

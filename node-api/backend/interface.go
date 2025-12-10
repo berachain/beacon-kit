@@ -1,0 +1,62 @@
+// SPDX-License-Identifier: BUSL-1.1
+//
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
+// Use of this software is governed by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
+//
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
+//
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
+//
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
+
+package backend
+
+import (
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/transition"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
+)
+
+type GenesisStateProcessor interface {
+	InitializeBeaconStateFromEth1(
+		st *statedb.StateDB,
+		deposits ctypes.Deposits,
+		execPayloadHeader *ctypes.ExecutionPayloadHeader,
+		genesisVersion common.Version,
+	) (transition.ValidatorUpdates, error)
+}
+
+// Keep just getters currently used. To be expanded as we increase API endpoints available
+type ReadOnlyBeaconState interface {
+	GetGenesisValidatorsRoot() (common.Root, error)
+	GetFork() (*ctypes.Fork, error)
+	GetLatestExecutionPayloadHeader() (*ctypes.ExecutionPayloadHeader, error)
+
+	GetLatestBlockHeader() (*ctypes.BeaconBlockHeader, error)
+	HashTreeRoot() common.Root
+
+	GetRandaoMixAtIndex(uint64) (common.Bytes32, error)
+
+	GetBalances() ([]uint64, error)
+	GetBalance(math.ValidatorIndex) (math.Gwei, error)
+	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
+
+	GetValidators() (ctypes.Validators, error)
+	ValidatorByIndex(math.ValidatorIndex) (*ctypes.Validator, error)
+
+	GetPendingPartialWithdrawals() ([]*ctypes.PendingPartialWithdrawal, error)
+
+	GetMarshallable() (*ctypes.BeaconState, error)
+}

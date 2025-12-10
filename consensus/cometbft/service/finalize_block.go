@@ -77,7 +77,7 @@ func (s *Service) finalizeBlock(
 			}
 			if err = s.Blockchain.PostFinalizeBlockOps(
 				finalState.Context(),
-				blk,
+				signedBlk,
 			); err != nil {
 				return nil, fmt.Errorf("finalize block: failed post finalize block ops: %w", err)
 			}

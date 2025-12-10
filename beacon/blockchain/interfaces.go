@@ -70,6 +70,10 @@ type LocalBuilder interface {
 		ctx context.Context,
 		r *builder.RequestPayloadData,
 	) (*engineprimitives.PayloadID, common.Version, error)
+	CacheLatestVerifiedPayload(
+		latestEnvelopeSlot math.Slot,
+		latestEnvelope ctypes.BuiltExecutionPayloadEnv,
+	)
 }
 
 // StateProcessor defines the interface for processing various state transitions
@@ -157,8 +161,9 @@ type BlockchainI interface {
 	) (transition.ValidatorUpdates, error)
 	PostFinalizeBlockOps(
 		sdk.Context,
-		*ctypes.BeaconBlock,
+		*ctypes.SignedBeaconBlock,
 	) error
+	PruneOrphanedBlobs(lastBlockHeight int64) error
 }
 
 // BlobProcessor is the interface for the blobs processor.
