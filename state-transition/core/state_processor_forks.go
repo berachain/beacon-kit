@@ -45,6 +45,8 @@ import (
 // NOTE for caller: `ProcessSlots` must be called before this function. If we are
 // crossing into a new fork, the first slot of the new fork will be retrieved from
 // the state. The state must be prepared for this new slot.
+//
+//nolint:gocognit // switch-case is unavoidable here.
 func (sp *StateProcessor) ProcessFork(
 	st *statedb.StateDB, timestamp math.U64, logUpgrade bool,
 ) error {
