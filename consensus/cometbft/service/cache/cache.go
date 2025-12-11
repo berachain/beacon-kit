@@ -31,6 +31,12 @@ import (
 	lru "github.com/hashicorp/golang-lru/v2"
 )
 
+// TelemetrySink is an interface for recording metrics.
+type TelemetrySink interface {
+	// SetGauge sets a gauge metric to the specified value.
+	SetGauge(key string, value int64, args ...string)
+}
+
 const minActivationHeight = 2
 
 func IsStateCachingActive(cfg delay.ConfigGetter, height math.Slot) bool {
@@ -86,9 +92,11 @@ type Element struct {
 type candidateStates struct {
 	states         *lru.Cache[string, *Element]
 	finalStateHash *string
+	sink           TelemetrySink
 }
 
-func New(maxSize int) States {
+// New creates a new States cache with the given maximum size and telemetry sink.
+func New(maxSize int, sink TelemetrySink) States {
 	c, err := lru.New[string, *Element](maxSize)
 	if err != nil {
 		panic(fmt.Errorf("failed to create candidate states cache: %w", err))
@@ -96,6 +104,7 @@ func New(maxSize int) States {
 	return &candidateStates{
 		states:         c,
 		finalStateHash: nil,
+		sink:           sink,
 	}
 }
 
@@ -131,6 +140,7 @@ func (cs *candidateStates) GetFinal() (string, *State, error) {
 }
 
 func (cs *candidateStates) Reset() {
+	cs.sink.SetGauge("beacon_kit.comet.cached_states_size_at_reset", int64(cs.states.Len()))
 	cs.states.Purge()
 	cs.finalStateHash = nil
 }

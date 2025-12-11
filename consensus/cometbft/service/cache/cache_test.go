@@ -30,9 +30,21 @@ import (
 
 const maxCachedStates = 10
 
+// mockTelemetrySink is a simple mock for testing.
+type mockTelemetrySink struct {
+	lastGaugeKey   string
+	lastGaugeValue int64
+}
+
+func (m *mockTelemetrySink) SetGauge(key string, value int64, _ ...string) {
+	m.lastGaugeKey = key
+	m.lastGaugeValue = value
+}
+
 func TestCandidateStates_BasicOperations(t *testing.T) {
 	t.Parallel()
-	c := cache.New(maxCachedStates)
+	sink := &mockTelemetrySink{}
+	c := cache.New(maxCachedStates, sink)
 
 	// Test SetCached and GetCached
 	elem := &cache.Element{State: &cache.State{}}
@@ -79,6 +91,14 @@ func TestCandidateStates_BasicOperations(t *testing.T) {
 	// Test Reset
 	c.Reset()
 
+	// Verify the metric was recorded with correct size (1 element was in cache)
+	if sink.lastGaugeKey != "beacon_kit.comet.cached_states_size_at_reset" {
+		t.Errorf("expected gauge key 'beacon_kit.comet.cached_states_size_at_reset', got: %s", sink.lastGaugeKey)
+	}
+	if sink.lastGaugeValue != 1 {
+		t.Errorf("expected gauge value 1, got: %d", sink.lastGaugeValue)
+	}
+
 	_, err = c.GetCached("test-hash")
 	if !errors.Is(err, cache.ErrStateNotFound) {
 		t.Error("expected cache to be empty after reset")
@@ -92,7 +112,8 @@ func TestCandidateStates_BasicOperations(t *testing.T) {
 
 func TestCandidateStates_BoundedSize(t *testing.T) {
 	t.Parallel()
-	c := cache.New(maxCachedStates)
+	sink := &mockTelemetrySink{}
+	c := cache.New(maxCachedStates, sink)
 
 	// Add more entries than maxCachedStates
 	for i := range maxCachedStates + 5 {

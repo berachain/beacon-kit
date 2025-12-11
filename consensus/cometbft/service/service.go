@@ -140,7 +140,7 @@ func NewService(
 		cmtConsensusParams: cmtConsensusParams,
 		cmtCfg:             cmtCfg,
 		telemetrySink:      telemetrySink,
-		cachedStates:       cache.New(maxCachedStates),
+		cachedStates:       cache.New(maxCachedStates, telemetrySink),
 	}
 
 	s.MountStore(storage.StoreKey, storetypes.StoreTypeIAVL)
