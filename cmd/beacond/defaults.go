@@ -42,6 +42,7 @@ func DefaultComponents() []any {
 		components.ProvideExecutionEngine,
 		components.ProvideJWTSecret,
 		components.ProvideLocalBuilder,
+		components.ProvidePreconfWhitelist,
 		components.ProvideReportingService,
 		components.ProvideCometBFTService,
 		components.ProvideServiceRegistry,
