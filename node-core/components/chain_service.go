@@ -23,7 +23,9 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
+	"github.com/berachain/beacon-kit/beacon/preconf"
 	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/execution/engine"
 	"github.com/berachain/beacon-kit/log/phuslu"
@@ -35,6 +37,7 @@ import (
 type ChainServiceInput struct {
 	depinject.In
 
+	Cfg                   *config.Config
 	ChainSpec             chain.Spec
 	ExecutionEngine       *engine.Engine
 	LocalBuilder          LocalBuilder
@@ -44,6 +47,7 @@ type ChainServiceInput struct {
 	BlobProcessor         BlobProcessor
 	TelemetrySink         *metrics.TelemetrySink
 	BeaconDepositContract deposit.Contract
+	PreconfWhitelist      preconf.Whitelist
 }
 
 // ProvideChainService is a depinject provider for the blockchain service.
@@ -58,5 +62,7 @@ func ProvideChainService(in ChainServiceInput) *blockchain.Service {
 		in.LocalBuilder,
 		in.StateProcessor,
 		in.TelemetrySink,
+		&in.Cfg.Preconf,
+		in.PreconfWhitelist,
 	)
 }

@@ -155,6 +155,7 @@ func (s *Service) ProcessProposal(
 		ctx,
 		consensusBlk,
 		bytes.Equal(thisNodeAddress, req.NextProposerAddress),
+		req.NextProposerAddress,
 	)
 	if err != nil {
 		s.logger.Error("failed to verify incoming block", "error", err)
@@ -259,6 +260,7 @@ func (s *Service) VerifyIncomingBlock(
 	ctx context.Context,
 	blk *types.ConsensusBlock,
 	isNextBlockProposer bool,
+	nextProposerAddress []byte,
 ) (transition.ValidatorUpdates, error) {
 	beaconBlk := blk.GetBeaconBlock()
 	state := s.storageBackend.StateFromContext(ctx)
@@ -302,7 +304,7 @@ func (s *Service) VerifyIncomingBlock(
 	var (
 		nextBlockData          *builder.RequestPayloadData
 		errFetch               error
-		shouldBuildNextPayload = s.shouldBuildNextPayload(isNextBlockProposer)
+		shouldBuildNextPayload = s.shouldBuildNextPayload(isNextBlockProposer, state, nextProposerAddress)
 	)
 
 	if shouldBuildNextPayload {
@@ -398,8 +400,51 @@ func (s *Service) verifyStateRoot(
 	return valUpdates, err
 }
 
-// shouldBuildNextPayload returns true if optimistic
-// payload builds are enabled.
-func (s *Service) shouldBuildNextPayload(isNextBlockProposer bool) bool {
-	return isNextBlockProposer && s.localBuilder.Enabled()
+// shouldBuildNextPayload returns true if optimistic payload builds should be triggered.
+// In normal mode, builds only when this node is the next proposer.
+// In sequencer mode, also builds when the next proposer is whitelisted.
+func (s *Service) shouldBuildNextPayload(isNextBlockProposer bool, st *statedb.StateDB, nextProposerAddress []byte) bool {
+	if !s.localBuilder.Enabled() {
+		return false
+	}
+
+	// Normal behavior: build if we are the proposer
+	if isNextBlockProposer {
+		return true
+	}
+
+	// Sequencer mode: build if next proposer is whitelisted
+	if s.preconfCfg != nil && s.preconfCfg.IsSequencer() {
+		nextProposerPubkey, err := s.getNextProposerPubkey(st, nextProposerAddress)
+		if err != nil {
+			s.logger.Error("Failed to get next proposer pubkey", "error", err)
+			return false
+		}
+
+		isWhitelisted := s.preconfWhitelist.IsWhitelisted(nextProposerPubkey)
+		if isWhitelisted {
+			s.logger.Info("Sequencer mode: next proposer is whitelisted, triggering optimistic build")
+		}
+
+		return isWhitelisted
+	}
+
+	return false
+}
+
+// getNextProposerPubkey retrieves the BLS public key for the next proposer given their CometBFT address.
+func (s *Service) getNextProposerPubkey(st *statedb.StateDB, nextProposerAddress []byte) (crypto.BLSPubkey, error) {
+	// Convert CometBFT address to validator index
+	proposerIndex, err := st.ValidatorIndexByCometBFTAddress(nextProposerAddress)
+	if err != nil {
+		return crypto.BLSPubkey{}, fmt.Errorf("failed to get validator index: %w", err)
+	}
+
+	// Get validator record
+	validator, err := st.ValidatorByIndex(proposerIndex)
+	if err != nil {
+		return crypto.BLSPubkey{}, fmt.Errorf("failed to get validator: %w", err)
+	}
+
+	return validator.GetPubkey(), nil
 }

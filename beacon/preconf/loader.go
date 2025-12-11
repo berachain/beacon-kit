@@ -35,7 +35,7 @@ func LoadWhitelist(path string) ([]crypto.BLSPubkey, error) {
 		return nil, errors.New("whitelist path is empty")
 	}
 
-	data, err := os.ReadFile(path)
+	data, err := os.ReadFile(path) // #nosec G304 -- path from operator-controlled config
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to read whitelist file: %s", path)
 	}

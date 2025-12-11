@@ -134,6 +134,7 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 		ctx.ConsensusCtx(),
 		types.NewConsensusBlock(invalidBlk, proposerAddress, consensusTime),
 		true, // this block is next block proposer
+		proposerAddress,
 	)
 	require.ErrorIs(t, err, core.ErrProposerMismatch)
 
@@ -241,6 +242,7 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 		ctx.ConsensusCtx(),
 		types.NewConsensusBlock(validBlk, ctx.ProposerAddress(), consensusTime),
 		true, // this block is next block proposer
+		ctx.ProposerAddress(),
 	)
 	require.NoError(t, err)
 
@@ -282,6 +284,8 @@ func setupOptimisticPayloadTests(t *testing.T, cs chain.Spec) (
 		b,
 		sp,
 		ts,
+		nil, // preconf.Config unused in this test
+		nil, // preconf.Whitelist unused in this test
 	)
 	return chain, st, cms, ctx, sp, b, sb, eng, depStore
 }
