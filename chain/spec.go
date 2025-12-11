@@ -109,6 +109,9 @@ type ForkSpec interface {
 
 	// Electra1ForkTime returns the time at which the Electra1 fork takes effect.
 	Electra1ForkTime() uint64
+
+	// Electra2ForkTime returns the time at which the Electra2 fork takes effect.
+	Electra2ForkTime() uint64
 }
 
 type BlobSpec interface {
@@ -269,6 +272,7 @@ func (s spec) validate() error {
 		s.Data.Deneb1ForkTime,
 		s.Data.ElectraForkTime,
 		s.Data.Electra1ForkTime,
+		s.Data.Electra2ForkTime,
 	}
 	for i := 1; i < len(orderedForkTimes); i++ {
 		prev, cur := orderedForkTimes[i-1], orderedForkTimes[i]
@@ -445,6 +449,11 @@ func (s spec) ElectraForkTime() uint64 {
 // Electra1ForkTime returns the epoch of the Electra1 fork.
 func (s spec) Electra1ForkTime() uint64 {
 	return s.Data.Electra1ForkTime
+}
+
+// Electra2ForkTime returns the timestamp of the Electra2 fork.
+func (s spec) Electra2ForkTime() uint64 {
+	return s.Data.Electra2ForkTime
 }
 
 // EpochsPerHistoricalVector returns the number of epochs per historical vector.

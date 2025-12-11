@@ -101,13 +101,18 @@ func (sp *StateProcessor) ProcessFork(
 			return err
 		}
 
-		if err = sp.processElectra1Fixes(st); err != nil {
-			return err
-		}
-
 		// Log the upgrade to Electra1 if requested.
 		if logUpgrade {
 			sp.logElectra1Fork(stateFork.PreviousVersion, timestamp, slot)
+		}
+	case version.Electra2():
+		if err = sp.upgradeToElectra2(st, stateFork, slot); err != nil {
+			return err
+		}
+
+		// Log the upgrade to Electra2 if requested.
+		if logUpgrade {
+			sp.logElectra2Fork(stateFork.PreviousVersion, timestamp, slot)
 		}
 	default:
 		panic(fmt.Sprintf("unsupported fork version: %s", forkVersion))
@@ -224,6 +229,7 @@ func (sp *StateProcessor) logElectraFork(
 // 2.0 spec (https://ethereum.github.io/consensus-specs/specs/electra/fork/#upgrading-the-state) to:
 //   - update the Fork struct in the BeaconState
 //   - initialize the pending partial withdrawals to an empty array (if not already initialized)
+//   - process the Electra1 special fixes on Berachain mainnet
 func (sp *StateProcessor) upgradeToElectra1(
 	st *statedb.StateDB, fork *types.Fork, slot math.Slot,
 ) error {
@@ -238,10 +244,14 @@ func (sp *StateProcessor) upgradeToElectra1(
 	// Initialize the pending partial withdrawals to an empty array if not already initialized.
 	if _, err := st.GetPendingPartialWithdrawals(); errors.Is(err, collections.ErrNotFound) {
 		sp.metrics.gaugePartialWithdrawalsEnqueued(0)
-		return st.SetPendingPartialWithdrawals([]*types.PendingPartialWithdrawal{})
+		setErr := st.SetPendingPartialWithdrawals([]*types.PendingPartialWithdrawal{})
+		if setErr != nil {
+			return setErr
+		}
 	}
 
-	return nil
+	// Process the Electra1 fixes.
+	return sp.processElectra1Fixes(st)
 }
 
 // logElectra1Fork logs information about the Electra1 fork.
@@ -264,6 +274,59 @@ func (sp *StateProcessor) logElectra1Fork(
 `,
 		version.Name(previousVersion), previousVersion.String(),
 		sp.cs.Electra1ForkTime(),
+		slot.Unwrap(), timestamp.Unwrap(),
+		sp.cs.SlotToEpoch(slot).Unwrap(),
+	))
+}
+
+// upgradeToElectra2 upgrades the state to the Electra2 fork version. It is modified from the ETH
+// 2.0 spec (https://ethereum.github.io/consensus-specs/specs/electra/fork/#upgrading-the-state) to:
+//   - update the Fork struct in the BeaconState
+//   - initialize the pending partial withdrawals to an empty array (if not already initialized)
+//   - catchup deposits from the EL to migrate to EIP-6110 style deposit requests
+func (sp *StateProcessor) upgradeToElectra2(
+	st *statedb.StateDB, fork *types.Fork, slot math.Slot,
+) error {
+	// Set the fork on BeaconState.
+	fork.PreviousVersion = fork.CurrentVersion
+	fork.CurrentVersion = version.Electra2()
+	fork.Epoch = sp.cs.SlotToEpoch(slot)
+	if err := st.SetFork(fork); err != nil {
+		return err
+	}
+
+	// Initialize the pending partial withdrawals to an empty array if not already initialized.
+	if _, err := st.GetPendingPartialWithdrawals(); errors.Is(err, collections.ErrNotFound) {
+		sp.metrics.gaugePartialWithdrawalsEnqueued(0)
+		setErr := st.SetPendingPartialWithdrawals([]*types.PendingPartialWithdrawal{})
+		if setErr != nil {
+			return setErr
+		}
+	}
+
+	return nil
+}
+
+// logElectra2Fork logs information about the Electra2 fork.
+func (sp *StateProcessor) logElectra2Fork(
+	previousVersion common.Version, timestamp math.U64, slot math.Slot,
+) {
+	sp.logger.Info(fmt.Sprintf(`
+
+
+	⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️
+
+	+ ✅  welcome to the electra2 (0x05020000) fork! 🎉
+	+ 🚝  previous fork: %s (%s)
+	+ ⏱️   electra2 fork time: %d
+	+ 🍴  first slot / timestamp of electra2: %d / %d
+	+ ⛓️   current beacon epoch: %d
+
+	⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️
+
+`,
+		version.Name(previousVersion), previousVersion.String(),
+		sp.cs.Electra2ForkTime(),
 		slot.Unwrap(), timestamp.Unwrap(),
 		sp.cs.SlotToEpoch(slot).Unwrap(),
 	))
