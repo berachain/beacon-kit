@@ -26,7 +26,6 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	lru "github.com/hashicorp/golang-lru/v2"
 )
@@ -51,9 +50,6 @@ type KVStore[BeaconBlockT BeaconBlock] struct {
 
 	// Beacon state root to slot mapping is injective for finalized blocks.
 	stateRoots *lru.Cache[common.Root, math.Slot]
-
-	// Block signatures indexed by slot.
-	signatures *lru.Cache[math.Slot, crypto.BLSSignature]
 
 	// Logger for the store.
 	logger log.Logger
@@ -87,17 +83,13 @@ func NewStore[BeaconBlockT BeaconBlock](
 	if err != nil {
 		panic(fmt.Errorf("failed instantiating kvStore stateRoots: %w", err))
 	}
-	kvStore.signatures, err = lru.New[math.Slot, crypto.BLSSignature](availabilityWindow)
-	if err != nil {
-		panic(fmt.Errorf("failed instantiating kvStore signatures: %w", err))
-	}
 	return kvStore
 }
 
-// Set sets the block and its signature in the store, storing the block root,
-// timestamp, state root, and signature. Only this function may potentially evict
-// entries from the store if the availability window is reached.
-func (kv *KVStore[BeaconBlockT]) Set(blk BeaconBlockT, signature crypto.BLSSignature) error {
+// Set sets the block in the store, storing the block root, timestamp, and state root.
+// Only this function may potentially evict entries from the store if the availability
+// window is reached.
+func (kv *KVStore[BeaconBlockT]) Set(blk BeaconBlockT) error {
 	if !kv.enabled {
 		// nothing to do if store is disabled
 		kv.logger.Debug("skipping set because block store is not enabled")
@@ -108,7 +100,6 @@ func (kv *KVStore[BeaconBlockT]) Set(blk BeaconBlockT, signature crypto.BLSSigna
 	kv.blockRoots.Add(blk.HashTreeRoot(), slot)
 	kv.timestamps.Add(blk.GetTimestamp(), slot)
 	kv.stateRoots.Add(blk.GetStateRoot(), slot)
-	kv.signatures.Add(slot, signature)
 	return nil
 }
 
@@ -154,17 +145,4 @@ func (kv *KVStore[BeaconBlockT]) GetSlotByStateRoot(stateRoot common.Root) (math
 		return 0, fmt.Errorf("slot not found at state root: %s", stateRoot)
 	}
 	return slot, nil
-}
-
-// GetSignatureBySlot retrieves the block signature for a given slot from the store.
-func (kv *KVStore[BeaconBlockT]) GetSignatureBySlot(slot math.Slot) (crypto.BLSSignature, error) {
-	if !kv.enabled {
-		return crypto.BLSSignature{}, ErrBlockStoreNotEnabled
-	}
-
-	signature, ok := kv.signatures.Peek(slot)
-	if !ok {
-		return crypto.BLSSignature{}, fmt.Errorf("signature not found at slot: %d", slot)
-	}
-	return signature, nil
 }

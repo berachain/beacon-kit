@@ -25,7 +25,6 @@ import (
 
 	"github.com/berachain/beacon-kit/log/noop"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/storage/block"
 	"github.com/stretchr/testify/require"
@@ -63,7 +62,7 @@ func TestBlockStore(t *testing.T) {
 	// Set 7 blocks.
 	// The latest block is 7 and should hold the last 5 blocks in the window.
 	for i := 1; i <= 7; i++ {
-		err = blockStore.Set(&MockBeaconBlock{slot: math.Slot(i)}, crypto.BLSSignature{})
+		err = blockStore.Set(&MockBeaconBlock{slot: math.Slot(i)})
 		require.NoError(t, err)
 	}
 
@@ -96,7 +95,7 @@ func TestBlockStoreZeroSize(t *testing.T) {
 	// If kvStore is disabled, setting any block would fail silently
 	// Any get should fail instead.
 	for i := 1; i <= 7; i++ {
-		err := blockStore.Set(&MockBeaconBlock{slot: math.Slot(i)}, crypto.BLSSignature{})
+		err := blockStore.Set(&MockBeaconBlock{slot: math.Slot(i)})
 		require.NoError(t, err)
 	}
 
