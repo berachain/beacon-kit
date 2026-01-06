@@ -52,6 +52,7 @@ import (
 const (
 	initialAppVersion uint64 = 0
 	AppName           string = "beacond"
+	maxCachedStates          = 10
 )
 
 type Service struct {
@@ -139,7 +140,7 @@ func NewService(
 		cmtConsensusParams: cmtConsensusParams,
 		cmtCfg:             cmtCfg,
 		telemetrySink:      telemetrySink,
-		cachedStates:       cache.New(),
+		cachedStates:       cache.New(maxCachedStates, telemetrySink),
 	}
 
 	s.MountStore(storage.StoreKey, storetypes.StoreTypeIAVL)

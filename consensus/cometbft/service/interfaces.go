@@ -30,4 +30,6 @@ type TelemetrySink interface {
 	IncrementCounter(key string, args ...string)
 	// MeasureSince measures the time since the given time.
 	MeasureSince(key string, start time.Time, args ...string)
+	// SetGauge sets a gauge metric to the specified value.
+	SetGauge(key string, value int64, args ...string)
 }
