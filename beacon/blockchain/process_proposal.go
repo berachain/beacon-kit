@@ -364,6 +364,14 @@ func (s *Service) VerifyIncomingBlock(
 		go s.handleOptimisticPayloadBuild(ctx, nextBlockData)
 	}
 
+	// if version.Equals(
+	// 	s.chainSpec.ActiveForkVersionForTimestamp(nextBlockData.Timestamp), 
+	// 	version.Electra2(),
+	// ) {
+	// 	// If the next block is on the Electra2 fork, we need to fetch the deposits from the EL.
+	// 	s.depositFetcher(ctx, nextBlockData.Number)
+	// }
+
 	return valUpdates, nil
 }
 

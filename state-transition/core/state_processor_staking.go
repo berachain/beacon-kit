@@ -37,50 +37,75 @@ func (sp *StateProcessor) processOperations(
 	st *state.StateDB,
 	blk *ctypes.BeaconBlock,
 ) error {
-	// Verify that outstanding deposits are processed up to the maximum number of deposits.
-	//
-	// Unlike Eth 2.0 specs we don't check that
-	// `len(body.deposits) ==  min(MAX_DEPOSITS, state.eth1_data.deposit_count - state.eth1_deposit_index)`
-	deposits := blk.GetBody().GetDeposits()
-	if uint64(len(deposits)) > sp.cs.MaxDepositsPerBlock() {
-		return errors.Wrapf(
-			ErrExceedsBlockDepositLimit, "expected: %d, got: %d",
-			sp.cs.MaxDepositsPerBlock(), len(deposits),
-		)
-	}
-
-	// Instead we directly compare block deposits with our local store ones.
-	if err := ValidateNonGenesisDeposits(
-		ctx.ConsensusCtx(),
-		st,
-		sp.ds,
-		sp.cs.MaxDepositsPerBlock(),
-		deposits,
-		blk.GetBody().GetEth1Data().DepositRoot,
-	); err != nil {
-		return err
-	}
-
-	for _, dep := range deposits {
-		if err := sp.processDeposit(st, dep); err != nil {
-			return err
-		}
-	}
-
+	var (
+		requests *ctypes.ExecutionRequests
+		err      error
+	)
 	if version.EqualsOrIsAfter(blk.GetForkVersion(), version.Electra()) {
-		// After Electra, validators can request withdrawals through execution requests which must be handled.
-		requests, err := blk.GetBody().GetExecutionRequests()
+		// Validators increase/decrease stake through execution requests starting in Electra.
+		requests, err = blk.GetBody().GetExecutionRequests()
 		if err != nil {
 			return err
 		}
+	}
+
+	var deposits []*ctypes.Deposit
+	if version.IsBefore(blk.GetForkVersion(), version.Electra2()) {
+		// Before Electra2 however, deposits are taken from the beacon block body directly.
+		//
+		// Verify that outstanding deposits are processed up to the maximum number of deposits.
+		// Unlike Ethereum 2.0 specs, we don't check that
+		// `len(body.deposits) ==  min(MAX_DEPOSITS, state.eth1_data.deposit_count - state.eth1_deposit_index)`.
+		deposits = blk.GetBody().GetDeposits()
+		if uint64(len(deposits)) > sp.cs.MaxDepositsPerBlock() {
+			return errors.Wrapf(
+				ErrExceedsBlockDepositLimit, "expected: %d, got: %d",
+				sp.cs.MaxDepositsPerBlock(), len(deposits),
+			)
+		}
+
+		// Instead, we directly compare block deposits with our local store ones.
+		if err = ValidateNonGenesisDepositsPreElectra2(
+			ctx.ConsensusCtx(),
+			st,
+			sp.ds,
+			sp.cs.MaxDepositsPerBlock(),
+			deposits,
+			blk.GetBody().GetEth1Data().DepositRoot,
+		); err != nil {
+			return err
+		}
+	} else if requests != nil {
+		// Starting in Electra2, EIP-6110 style deposit requests are used.
+		deposits = requests.Deposits
+	}
+
+	// Process the deposits.
+	for _, dep := range deposits {
+		if err = sp.processDeposit(st, dep); err != nil {
+			return err
+		}
+	}
+
+	// Starting in Electra, process the EIP-7002 withdrawal requests.
+	if requests != nil {
 		for _, withdrawal := range requests.Withdrawals {
-			if withdrawErr := sp.processWithdrawalRequest(st, withdrawal); withdrawErr != nil {
-				return withdrawErr
+			if err = sp.processWithdrawalRequest(st, withdrawal); err != nil {
+				return err
 			}
 		}
 	}
 
-	return st.SetEth1Data(blk.GetBody().Eth1Data)
+	// Set the eth1 data to state.
+	var eth1Data *ctypes.Eth1Data
+	if version.IsBefore(blk.GetForkVersion(), version.Electra1()) {
+		// Before Electra1 however, the eth1 data is applied to state from the beacon block body.
+		eth1Data = blk.GetBody().Eth1Data
+	} else {
+		// Starting in Electra1, the eth1 data is unused so set in state as empty.
+		eth1Data = ctypes.NewEmptyEth1Data()
+	}
+	return st.SetEth1Data(eth1Data)
 }
 
 // processDeposit processes the deposit and ensures it matches the local state.
