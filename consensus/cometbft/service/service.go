@@ -295,6 +295,15 @@ func (s *Service) CommitMultiStore() storetypes.CommitMultiStore {
 	return s.sm.GetCommitMultiStore()
 }
 
+// GetBlock returns the CometBFT block at the given height.
+func (s *Service) GetBlock(height int64) *cmttypes.Block {
+	if s.node == nil {
+		return nil
+	}
+	block, _ := s.node.BlockStore().LoadBlock(height)
+	return block
+}
+
 // AppVersion returns the application's protocol version.
 func (s *Service) AppVersion(_ context.Context) (uint64, error) {
 	return s.appVersion()

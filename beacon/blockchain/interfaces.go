@@ -161,7 +161,7 @@ type BlockchainI interface {
 	) (transition.ValidatorUpdates, error)
 	PostFinalizeBlockOps(
 		sdk.Context,
-		*ctypes.SignedBeaconBlock,
+		*ctypes.BeaconBlock,
 	) error
 	PruneOrphanedBlobs(lastBlockHeight int64) error
 }

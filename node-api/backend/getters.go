@@ -27,6 +27,7 @@ import (
 
 	"cosmossdk.io/log"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -105,9 +106,27 @@ func (b *Backend) GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error
 	return b.sb.BlockStore().GetParentSlotByTimestamp(timestamp)
 }
 
-// GetSignatureBySlot retrieves the block signature for a given slot from the block store.
+// GetSignatureBySlot retrieves the block signature for a given slot by decoding
+// the SignedBeaconBlock from CometBFT's blockstore.
 func (b *Backend) GetSignatureBySlot(slot math.Slot) (crypto.BLSSignature, error) {
-	return b.sb.BlockStore().GetSignatureBySlot(slot)
+	block := b.node.GetBlock(int64(slot.Unwrap())) //#nosec:G115
+	if block == nil {
+		return crypto.BLSSignature{}, fmt.Errorf("block not found at slot %d", slot)
+	}
+
+	// Extract transactions from CometBFT block
+	txs := make([][]byte, len(block.Data.Txs))
+	for i, tx := range block.Data.Txs {
+		txs[i] = tx
+	}
+
+	forkVersion := b.cs.ActiveForkVersionForTimestamp(math.U64(block.Header.Time.Unix())) //#nosec:G115
+	signedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(txs, 0, forkVersion)
+	if err != nil {
+		return crypto.BLSSignature{}, fmt.Errorf("failed to unmarshal block at slot %d: %w", slot, err)
+	}
+
+	return signedBlock.Signature, nil
 }
 
 func (b *Backend) GetBlobSidecarsAtSlot(slot math.Slot) (datypes.BlobSidecars, error) {
