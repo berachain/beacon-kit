@@ -49,6 +49,7 @@ func FixedComponents(t *testing.T) []any {
 		components.ProvideExecutionEngine,
 		components.ProvideJWTSecret,
 		components.ProvideLocalBuilder,
+		components.ProvidePreconfWhitelist,
 		components.ProvideReportingService,
 		components.ProvideServiceRegistry,
 		components.ProvideSidecarFactory,
