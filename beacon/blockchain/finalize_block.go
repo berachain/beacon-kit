@@ -80,7 +80,7 @@ func (s *Service) FinalizeBlock(
 	}
 
 	// STEP 4: Post Finalizations cleanups.
-	return valUpdates, s.PostFinalizeBlockOps(ctx, signedBlk)
+	return valUpdates, s.PostFinalizeBlockOps(ctx, blk)
 }
 
 func (s *Service) FinalizeSidecars(
@@ -122,10 +122,9 @@ func (s *Service) FinalizeSidecars(
 	return nil
 }
 
-func (s *Service) PostFinalizeBlockOps(ctx sdk.Context, signedBlk *ctypes.SignedBeaconBlock) error {
+func (s *Service) PostFinalizeBlockOps(ctx sdk.Context, blk *ctypes.BeaconBlock) error {
 	// TODO: consider extracting LatestExecutionPayloadHeader instead of using state here
 	st := s.storageBackend.StateFromContext(ctx)
-	blk := signedBlk.GetBeaconBlock()
 
 	// Fetch and store the deposit for the block.
 	blockNum := blk.GetBody().GetExecutionPayload().GetNumber()
@@ -133,7 +132,7 @@ func (s *Service) PostFinalizeBlockOps(ctx sdk.Context, signedBlk *ctypes.Signed
 
 	// Store the finalized block in the KVStore.
 	slot := blk.GetSlot()
-	if err := s.storageBackend.BlockStore().Set(blk, signedBlk.GetSignature()); err != nil {
+	if err := s.storageBackend.BlockStore().Set(blk); err != nil {
 		s.logger.Error(
 			"failed to store block", "slot", slot, "error", err,
 		)
