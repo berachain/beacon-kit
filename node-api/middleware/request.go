@@ -25,7 +25,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/berachain/beacon-kit/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/node-api/handlers/mapping"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -103,14 +103,14 @@ func ValidateBlockID(fl validator.FieldLevel) bool {
 
 func ValidateTimestampID(fl validator.FieldLevel) bool {
 	allowedValues := map[string]bool{
-		utils.StateIDHead:      true,
-		utils.StateIDGenesis:   true,
-		utils.StateIDFinalized: true,
-		utils.StateIDJustified: true,
+		mapping.StateIDHead:      true,
+		mapping.StateIDGenesis:   true,
+		mapping.StateIDFinalized: true,
+		mapping.StateIDJustified: true,
 	}
 
 	value := fl.Field().String()
-	if utils.IsTimestampIDPrefix(value) {
+	if mapping.IsTimestampIDPrefix(value) {
 		return ValidateUint64Dec(value[1:])
 	}
 
