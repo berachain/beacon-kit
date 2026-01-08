@@ -71,6 +71,8 @@ type Service struct {
 	cmtCfg *cmtcfg.Config
 
 	telemetrySink TelemetrySink
+	// privValConsumer consumes the PrivValidator created during Start.
+	privValConsumer PrivValidatorConsumer
 
 	logger       *phuslu.Logger
 	sm           *statem.Manager
@@ -209,7 +211,6 @@ func (s *Service) Start(
 	if err != nil {
 		return err
 	}
-
 	s.ResetAppCtx(ctx)
 	s.node, err = node.NewNode(
 		ctx,
@@ -224,6 +225,11 @@ func (s *Service) Start(
 	)
 	if err != nil {
 		return err
+	}
+
+	// The privval has been started, we can now swap the FilePV
+	if s.privValConsumer != nil {
+		s.privValConsumer.SetPrivValidator(s.node.PrivValidator())
 	}
 
 	pubKey, errPk := s.node.PrivValidator().GetPubKey()
