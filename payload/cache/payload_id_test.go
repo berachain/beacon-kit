@@ -25,6 +25,7 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/payload/cache"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/stretchr/testify/require"
@@ -45,7 +46,7 @@ func TestPayloadIDCache(t *testing.T) {
 		slot := math.Slot(1234)
 		r := [32]byte{1, 2, 3}
 		pid := engineprimitives.PayloadID{1, 2, 3, 3, 7, 8, 7, 8}
-		cacheUnderTest.Set(slot, r, pid, version.Deneb())
+		cacheUnderTest.Set(slot, r, pid, version.Deneb(), crypto.BLSPubkey{})
 
 		p, ok := cacheUnderTest.Get(slot, r)
 		require.True(t, ok)
@@ -56,7 +57,7 @@ func TestPayloadIDCache(t *testing.T) {
 		slot := math.Slot(1234)
 		r := [32]byte{1, 2, 3}
 		newPid := engineprimitives.PayloadID{9, 9, 9, 9, 9, 9, 9, 9}
-		cacheUnderTest.Set(slot, r, newPid, version.Deneb())
+		cacheUnderTest.Set(slot, r, newPid, version.Deneb(), crypto.BLSPubkey{})
 
 		p, ok := cacheUnderTest.Get(slot, r)
 		require.True(t, ok)
@@ -68,13 +69,13 @@ func TestPayloadIDCache(t *testing.T) {
 		r := [32]byte{4, 5, 6}
 		pid := engineprimitives.PayloadID{4, 5, 6, 6, 9, 0, 9, 0}
 		// Set pid for slot.
-		cacheUnderTest.Set(slot, r, pid, version.Deneb())
+		cacheUnderTest.Set(slot, r, pid, version.Deneb(), crypto.BLSPubkey{})
 
 		// Set historicalPayloadIDCacheSize+1 number of pids. This should
 		// prune the first slot from the cache.
-		cacheUnderTest.Set(slot+1, r, pid, version.Deneb())
-		cacheUnderTest.Set(slot+2, r, pid, version.Deneb())
-		cacheUnderTest.Set(slot+3, r, pid, version.Deneb())
+		cacheUnderTest.Set(slot+1, r, pid, version.Deneb(), crypto.BLSPubkey{})
+		cacheUnderTest.Set(slot+2, r, pid, version.Deneb(), crypto.BLSPubkey{})
+		cacheUnderTest.Set(slot+3, r, pid, version.Deneb(), crypto.BLSPubkey{})
 
 		// Attempt to retrieve pruned slot.
 		ok := cacheUnderTest.Has(slot, r)
@@ -91,7 +92,7 @@ func TestPayloadIDCache(t *testing.T) {
 			pid := [8]byte{
 				i, i, i, i, i, i, i, i,
 			}
-			cacheUnderTest.Set(slot, r, pid, version.Deneb())
+			cacheUnderTest.Set(slot, r, pid, version.Deneb(), crypto.BLSPubkey{})
 		}
 
 		// Only the last historicalPayloadIDCacheSize+1 number of entries

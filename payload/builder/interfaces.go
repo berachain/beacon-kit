@@ -33,7 +33,8 @@ import (
 
 type PayloadCache interface {
 	Get(slot math.Slot, stateRoot common.Root) (cache.PayloadIDCacheResult, bool)
-	Set(slot math.Slot, stateRoot common.Root, pid engineprimitives.PayloadID, version common.Version)
+	GetBySlot(slot math.Slot) (cache.PayloadIDCacheResult, common.Root, bool)
+	Set(slot math.Slot, stateRoot common.Root, pid engineprimitives.PayloadID, version common.Version, expectedProposer crypto.BLSPubkey)
 	Delete(slot math.Slot, stateRoot common.Root)
 }
 
