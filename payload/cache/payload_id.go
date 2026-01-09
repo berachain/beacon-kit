@@ -25,6 +25,7 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
@@ -51,8 +52,9 @@ type payloadIDCacheKey struct {
 }
 
 type PayloadIDCacheResult struct {
-	PayloadID   engineprimitives.PayloadID
-	ForkVersion common.Version
+	PayloadID        engineprimitives.PayloadID
+	ForkVersion      common.Version
+	ExpectedProposer crypto.BLSPubkey // The validator expected to propose this slot (for preconf)
 }
 
 // NewPayloadIDCache initializes and returns a new instance of PayloadIDCache.
@@ -98,9 +100,11 @@ func (p *PayloadIDCache) Get(
 // Set updates or inserts a payload ID for a given slot and eth1 hash.
 // It also prunes entries in the cache that are older than the
 // historicalPayloadIDCacheSize limit.
+// The expectedProposer is the validator expected to propose this slot (used for preconf validation).
 func (p *PayloadIDCache) Set(
 	slot math.Slot, blockRoot common.Root,
 	pid engineprimitives.PayloadID, version common.Version,
+	expectedProposer crypto.BLSPubkey,
 ) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -112,8 +116,9 @@ func (p *PayloadIDCache) Set(
 
 	// Update the cache with the new payload ID.
 	p.slotToBlockRootToPayloadID[payloadIDCacheKey{slot, blockRoot}] = PayloadIDCacheResult{
-		PayloadID:   pid,
-		ForkVersion: version,
+		PayloadID:        pid,
+		ForkVersion:      version,
+		ExpectedProposer: expectedProposer,
 	}
 }
 
@@ -125,6 +130,22 @@ func (p *PayloadIDCache) Delete(
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	delete(p.slotToBlockRootToPayloadID, payloadIDCacheKey{slot, blockRoot})
+}
+
+// GetBySlot retrieves the payload ID for a given slot, regardless of block root.
+// This is useful when the caller only knows the slot (e.g., preconf server).
+// Returns the result, the associated block root, and whether it was found.
+func (p *PayloadIDCache) GetBySlot(
+	slot math.Slot,
+) (PayloadIDCacheResult, common.Root, bool) {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	for key, result := range p.slotToBlockRootToPayloadID {
+		if key.slot == slot {
+			return result, key.root, true
+		}
+	}
+	return PayloadIDCacheResult{}, common.Root{}, false
 }
 
 // prunePrior removes payload IDs from the cache for slots less than
