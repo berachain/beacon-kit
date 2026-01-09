@@ -49,13 +49,17 @@ func ProvidePreconfWhitelist(in PreconfWhitelistInput) (preconf.Whitelist, error
 		return nil, nil
 	}
 
-	if !cfg.SequencerMode {
-		logger.Info("Preconfirmation enabled but not in sequencer mode")
-		return nil, nil
+	// Sequencer mode requires whitelist
+	if cfg.SequencerMode && cfg.WhitelistPath == "" {
+		return nil, errors.New("preconf sequencer mode enabled but whitelist-path is not set")
 	}
 
+	// Load whitelist if path is provided (both sequencer and validators need it)
+	// - Sequencer: to know which proposers to build for
+	// - Validators: to know if they should fetch from sequencer
 	if cfg.WhitelistPath == "" {
-		return nil, errors.New("preconf sequencer mode enabled but whitelist-path is not set")
+		logger.Info("Preconfirmation enabled but no whitelist configured")
+		return nil, nil
 	}
 
 	pubkeys, err := preconf.LoadWhitelist(cfg.WhitelistPath)
@@ -67,11 +71,18 @@ func ProvidePreconfWhitelist(in PreconfWhitelistInput) (preconf.Whitelist, error
 		return nil, errors.New("preconf whitelist is empty")
 	}
 
-	logger.Info(
-		"Preconf sequencer mode enabled",
-		"whitelist_count", len(pubkeys),
-		"whitelist_path", cfg.WhitelistPath,
-	)
+	if cfg.SequencerMode {
+		logger.Info(
+			"Preconf sequencer mode enabled",
+			"whitelist_count", len(pubkeys),
+			"whitelist_path", cfg.WhitelistPath,
+		)
+	} else {
+		logger.Info(
+			"Preconf whitelist loaded for validator mode",
+			"whitelist_count", len(pubkeys),
+		)
+	}
 
-	return preconf.NewWhitelist(pubkeys, logger), nil
+	return preconf.NewWhitelist(pubkeys), nil
 }

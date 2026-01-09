@@ -23,6 +23,7 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
+	"github.com/berachain/beacon-kit/beacon/preconf"
 	"github.com/berachain/beacon-kit/beacon/validator"
 	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/log/phuslu"
@@ -42,6 +43,7 @@ type ServiceRegistryInput struct {
 	EngineClient     *client.EngineClient
 	Logger           *phuslu.Logger
 	NodeAPIServer    *server.Server
+	PreconfServer    *preconf.Server `optional:"true"`
 	ReportingService *version.ReportingService
 	TelemetrySink    *metrics.TelemetrySink
 	TelemetryService *telemetry.Service
@@ -71,6 +73,11 @@ func ProvideServiceRegistry(in ServiceRegistryInput) *service.Registry {
 		// chain service and cometbft service
 		service.WithService(in.ChainService),
 		service.WithService(in.CometBFTService),
+	}
+
+	// Add preconf server if configured (sequencer mode only)
+	if in.PreconfServer != nil {
+		opts = append(opts, service.WithService(in.PreconfServer))
 	}
 
 	return service.NewRegistry(in.Logger, opts...)

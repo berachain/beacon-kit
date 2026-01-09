@@ -23,10 +23,12 @@ package preconf
 import (
 	"encoding/json"
 	"os"
+	"strings"
 
 	"github.com/berachain/beacon-kit/cli/utils/parser"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/net/jwt"
 )
 
 // LoadWhitelist loads validator pubkeys from a JSON file.
@@ -55,4 +57,66 @@ func LoadWhitelist(path string) ([]crypto.BLSPubkey, error) {
 	}
 
 	return pubkeys, nil
+}
+
+// ValidatorJWTs maps validator pubkeys to their JWT secrets.
+type ValidatorJWTs map[crypto.BLSPubkey]*jwt.Secret
+
+// LoadValidatorJWTs loads validator pubkeys to JWT secret mappings from a JSON file.
+// The JSON file format is: {"0xpubkey1": "jwtsecret1hex", "0xpubkey2": "jwtsecret2hex", ...}
+func LoadValidatorJWTs(path string) (ValidatorJWTs, error) {
+	if path == "" {
+		return nil, errors.New("validator JWTs path is empty")
+	}
+
+	data, err := os.ReadFile(path) // #nosec G304 -- path from operator-controlled config
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to read validator JWTs file: %s", path)
+	}
+
+	var rawMap map[string]string
+	if err = json.Unmarshal(data, &rawMap); err != nil {
+		return nil, errors.Wrapf(err, "failed to parse validator JWTs JSON from: %s", path)
+	}
+
+	result := make(ValidatorJWTs, len(rawMap))
+	for pubkeyStr, jwtSecretHex := range rawMap {
+		// Parse pubkey
+		pubkey, convErr := parser.ConvertPubkey(pubkeyStr)
+		if convErr != nil {
+			return nil, errors.Wrapf(convErr, "invalid pubkey in validator JWTs: %s", pubkeyStr)
+		}
+
+		// Parse JWT secret
+		jwtSecret, jwtErr := jwt.NewFromHex(jwtSecretHex)
+		if jwtErr != nil {
+			return nil, errors.Wrapf(jwtErr, "invalid JWT secret for pubkey: %s", pubkeyStr)
+		}
+
+		result[pubkey] = jwtSecret
+	}
+
+	return result, nil
+}
+
+// LoadJWTSecret loads a JWT secret from a file containing a hex-encoded secret.
+func LoadJWTSecret(path string) (*jwt.Secret, error) {
+	if path == "" {
+		return nil, errors.New("JWT secret path is empty")
+	}
+
+	data, err := os.ReadFile(path) // #nosec G304 -- path from operator-controlled config
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to read JWT secret file: %s", path)
+	}
+
+	// Trim whitespace and newlines
+	hexStr := strings.TrimSpace(string(data))
+
+	secret, err := jwt.NewFromHex(hexStr)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to parse JWT secret from: %s", path)
+	}
+
+	return secret, nil
 }
