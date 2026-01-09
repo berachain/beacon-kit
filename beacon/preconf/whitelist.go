@@ -20,10 +20,7 @@
 
 package preconf
 
-import (
-	"github.com/berachain/beacon-kit/log/phuslu"
-	"github.com/berachain/beacon-kit/primitives/crypto"
-)
+import "github.com/berachain/beacon-kit/primitives/crypto"
 
 // Whitelist defines the interface for checking if a validator is whitelisted
 // for preconfirmation support.
@@ -38,19 +35,12 @@ type whitelist struct {
 }
 
 // NewWhitelist creates a new Whitelist from a slice of public keys.
-func NewWhitelist(pubkeys []crypto.BLSPubkey, logger *phuslu.Logger) Whitelist {
+func NewWhitelist(pubkeys []crypto.BLSPubkey) Whitelist {
 	validators := make(map[crypto.BLSPubkey]struct{}, len(pubkeys))
 	for _, pk := range pubkeys {
 		validators[pk] = struct{}{}
 	}
-
-	if logger != nil {
-		logger.Info("Preconf whitelist loaded", "count", len(validators))
-	}
-
-	return &whitelist{
-		validators: validators,
-	}
+	return &whitelist{validators: validators}
 }
 
 // IsWhitelisted returns true if the given public key is in the whitelist.

@@ -20,6 +20,16 @@
 
 package preconf
 
+import "time"
+
+const (
+	// DefaultAPIPort is the default port for the preconf API server.
+	DefaultAPIPort = 9090
+
+	// DefaultFetchTimeout is the default timeout for fetching payloads from sequencer.
+	DefaultFetchTimeout = 500 * time.Millisecond
+)
+
 // Config holds preconfirmation configuration.
 type Config struct {
 	// Enabled is a global toggle for preconfirmation support.
@@ -34,18 +44,46 @@ type Config struct {
 	// WhitelistPath is the path to the whitelist JSON file containing validator pubkeys.
 	// Required when Enabled and SequencerMode are both true.
 	WhitelistPath string `mapstructure:"whitelist-path"`
+
+	// === Sequencer-side settings ===
+
+	// ValidatorJWTsPath is the path to JSON file mapping validator pubkeys to JWT secrets.
+	// Required when SequencerMode is true.
+	ValidatorJWTsPath string `mapstructure:"validator-jwts-path"`
+
+	// APIPort is the port for the preconf API server that validators connect to.
+	// Required when SequencerMode is true.
+	APIPort int `mapstructure:"api-port"`
+
+	// === Validator-side settings ===
+
+	// SequencerURL is the URL of the sequencer's preconf API endpoint.
+	// Required when this validator wants to fetch payloads from sequencer.
+	SequencerURL string `mapstructure:"sequencer-url"`
+
+	// SequencerJWTPath is the path to this validator's JWT secret for authenticating
+	// with the sequencer.
+	// Required when SequencerURL is set.
+	SequencerJWTPath string `mapstructure:"sequencer-jwt-path"`
+
+	// FetchTimeout is the timeout for fetching payloads from sequencer.
+	FetchTimeout time.Duration `mapstructure:"fetch-timeout"`
 }
 
 // DefaultConfig returns the default preconfirmation configuration.
 func DefaultConfig() Config {
 	return Config{
-		Enabled:       false,
-		SequencerMode: false,
-		WhitelistPath: "",
+		APIPort:      DefaultAPIPort,
+		FetchTimeout: DefaultFetchTimeout,
 	}
 }
 
 // IsSequencer returns true if this node is configured as the sequencer.
 func (c *Config) IsSequencer() bool {
 	return c.Enabled && c.SequencerMode
+}
+
+// ShouldFetchFromSequencer returns true if this node should fetch payloads from sequencer.
+func (c *Config) ShouldFetchFromSequencer() bool {
+	return c.Enabled && c.SequencerURL != ""
 }
