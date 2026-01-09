@@ -121,4 +121,27 @@ sequencer-mode = {{ .BeaconKit.Preconf.SequencerMode }}
 # Required when enabled and sequencer-mode are both true.
 # Startup fails if file is missing/invalid.
 whitelist-path = "{{ .BeaconKit.Preconf.WhitelistPath }}"
+
+# === Sequencer-side settings ===
+
+# Path to JSON file mapping validator pubkeys to their JWT secrets.
+# Required when sequencer-mode = true.
+validator-jwts-path = "{{ .BeaconKit.Preconf.ValidatorJWTsPath }}"
+
+# Port for the preconf API server that validators connect to.
+# Required when sequencer-mode = true.
+api-port = {{ .BeaconKit.Preconf.APIPort }}
+
+# === Validator-side settings ===
+
+# URL of the sequencer's preconf API endpoint.
+# Set this when this validator should fetch payloads from the sequencer.
+sequencer-url = "{{ .BeaconKit.Preconf.SequencerURL }}"
+
+# Path to this validator's JWT secret for authenticating with sequencer.
+# Required when sequencer-url is set.
+sequencer-jwt-path = "{{ .BeaconKit.Preconf.SequencerJWTPath }}"
+
+# Timeout for fetching payload from sequencer.
+fetch-timeout = "{{ .BeaconKit.Preconf.FetchTimeout }}"
 `
