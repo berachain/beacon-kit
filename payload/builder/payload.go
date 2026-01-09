@@ -43,6 +43,7 @@ type RequestPayloadData struct {
 	ParentBlockRoot      common.Root
 	FCState              engineprimitives.ForkchoiceStateV1
 	ParentProposerPubkey *crypto.BLSPubkey // nil for fork versions before Electra1
+	ExpectedProposer     crypto.BLSPubkey  // The validator expected to propose this slot (for preconf)
 }
 
 // RequestPayloadAsync builds a payload for the given slot and
@@ -90,7 +91,7 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 
 	// Only add to cache if we received back a payload ID.
 	if payloadID != nil {
-		pb.pc.Set(r.Slot, r.ParentBlockRoot, *payloadID, forkVersion)
+		pb.pc.Set(r.Slot, r.ParentBlockRoot, *payloadID, forkVersion, r.ExpectedProposer)
 	}
 
 	return payloadID, forkVersion, nil

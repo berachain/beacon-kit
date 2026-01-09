@@ -27,6 +27,7 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/payload/cache"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/stretchr/testify/require"
@@ -42,7 +43,7 @@ func FuzzPayloadIDCacheBasic(f *testing.F) {
 		slot := math.Slot(s)
 		pid := engineprimitives.PayloadID(_p[:8])
 		cacheUnderTest := cache.NewPayloadIDCache()
-		cacheUnderTest.Set(slot, r, pid, version.Deneb())
+		cacheUnderTest.Set(slot, r, pid, version.Deneb(), crypto.BLSPubkey{})
 
 		p, ok := cacheUnderTest.Get(slot, r)
 		require.True(t, ok)
@@ -53,7 +54,7 @@ func FuzzPayloadIDCacheBasic(f *testing.F) {
 		for i := range pid {
 			newPid[i] = pid[i] + 1 // Simple mutation for a new PayloadID
 		}
-		cacheUnderTest.Set(slot, r, newPid, version.Deneb())
+		cacheUnderTest.Set(slot, r, newPid, version.Deneb(), crypto.BLSPubkey{})
 
 		p, ok = cacheUnderTest.Get(slot, r)
 		require.True(t, ok)
@@ -85,7 +86,7 @@ func FuzzPayloadIDInvalidInput(f *testing.F) {
 		copy(paddedPayload[:], _p[:min(len(_p), 8)])
 		pid := [8]byte(paddedPayload[:])
 		cacheUnderTest := cache.NewPayloadIDCache()
-		cacheUnderTest.Set(slot, r, pid, version.Deneb())
+		cacheUnderTest.Set(slot, r, pid, version.Deneb(), crypto.BLSPubkey{})
 
 		_, ok := cacheUnderTest.Get(slot, r)
 		require.True(t, ok)
@@ -109,7 +110,7 @@ func FuzzPayloadIDCacheConcurrency(f *testing.F) {
 			var paddedPayload [8]byte
 			copy(paddedPayload[:], _p[:min(len(_p), 8)])
 			pid := [8]byte(paddedPayload[:])
-			cacheUnderTest.Set(slot, r, pid, version.Deneb())
+			cacheUnderTest.Set(slot, r, pid, version.Deneb(), crypto.BLSPubkey{})
 		}()
 
 		// Get operation in another goroutine
