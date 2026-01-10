@@ -33,10 +33,10 @@ import (
 
 // dummyAppOptions is a simple implementation of the AppOptions interface for testing.
 type dummyAppOptions struct {
-	values map[string]interface{}
+	values map[string]any
 }
 
-func (d dummyAppOptions) Get(key string) interface{} {
+func (d dummyAppOptions) Get(key string) any {
 	return d.values[key]
 }
 
@@ -44,7 +44,7 @@ func TestCreateChainSpec_Devnet(t *testing.T) {
 	t.Parallel()
 
 	// Set the app opts to force the devnet branch.
-	opts := dummyAppOptions{values: map[string]interface{}{
+	opts := dummyAppOptions{values: map[string]any{
 		flags.ChainSpec: "devnet",
 	}}
 	cs, err := spec.Create(opts)
@@ -59,7 +59,7 @@ func TestCreateChainSpec_Testnet(t *testing.T) {
 	t.Parallel()
 
 	// Set the app opts to force the testnet branch.
-	opts := dummyAppOptions{values: map[string]interface{}{
+	opts := dummyAppOptions{values: map[string]any{
 		flags.ChainSpec: "testnet",
 	}}
 	cs, err := spec.Create(opts)
@@ -74,7 +74,7 @@ func TestCreateChainSpec_Mainnet(t *testing.T) {
 	t.Parallel()
 
 	// Set the app opts to force the mainnet branch.
-	opts := dummyAppOptions{values: map[string]interface{}{
+	opts := dummyAppOptions{values: map[string]any{
 		flags.ChainSpec: "mainnet",
 	}}
 	cs, err := spec.Create(opts)
@@ -89,7 +89,7 @@ func TestCreateChainSpec_Default_NoSpecFlag(t *testing.T) {
 	t.Parallel()
 
 	// Provide an empty app opts so that no spec flag is present.
-	opts := dummyAppOptions{values: map[string]interface{}{}}
+	opts := dummyAppOptions{values: map[string]any{}}
 	cs, err := spec.Create(opts)
 	require.NoError(t, err)
 	mainnetSpec, err := spec.MainnetChainSpec()
@@ -101,7 +101,7 @@ func TestCreateChainSpec_File(t *testing.T) {
 	t.Parallel()
 
 	// Provide a non-empty value for the custom spec file of mainnet.
-	opts := dummyAppOptions{values: map[string]interface{}{
+	opts := dummyAppOptions{values: map[string]any{
 		flags.ChainSpec:         "file",
 		flags.ChainSpecFilePath: "../../testing/networks/80094/spec.toml",
 	}}
@@ -180,7 +180,7 @@ consensus-enable-height = 2
 			specFile := filepath.Join(tempDir, tt.name+".toml")
 			require.NoError(t, os.WriteFile(specFile, []byte(tt.specContent), 0600))
 
-			opts := dummyAppOptions{values: map[string]interface{}{
+			opts := dummyAppOptions{values: map[string]any{
 				flags.ChainSpec:         "file",
 				flags.ChainSpecFilePath: specFile,
 			}}

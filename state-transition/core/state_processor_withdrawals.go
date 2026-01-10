@@ -337,8 +337,8 @@ func verifyWithdrawalConditions(st *state.StateDB, validator *ctypes.Validator) 
 
 // withdrawalFields returns the structured fields for logging any WithdrawalRequest.
 // error is optional
-func withdrawalFields(req *ctypes.WithdrawalRequest, err error) []interface{} {
-	logFields := []interface{}{
+func withdrawalFields(req *ctypes.WithdrawalRequest, err error) []any {
+	logFields := []any{
 		"source_address", req.SourceAddress.String(),
 		"validator_pubkey", req.ValidatorPubKey.String(),
 		"amount", req.Amount,
