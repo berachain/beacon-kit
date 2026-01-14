@@ -5,6 +5,8 @@ package mocks
 import (
 	backend "github.com/berachain/beacon-kit/node-api/backend"
 
+	cometbfttypes "github.com/cometbft/cometbft/types"
+
 	common "github.com/berachain/beacon-kit/primitives/common"
 
 	crypto "github.com/berachain/beacon-kit/primitives/crypto"
@@ -83,6 +85,102 @@ func (_c *Backend_GetBlobSidecarsAtSlot_Call) Return(_a0 types.BlobSidecars, _a1
 }
 
 func (_c *Backend_GetBlobSidecarsAtSlot_Call) RunAndReturn(run func(math.Slot) (types.BlobSidecars, error)) *Backend_GetBlobSidecarsAtSlot_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetCometBFTBlock provides a mock function with given fields: height
+func (_m *Backend) GetCometBFTBlock(height int64) *cometbfttypes.Block {
+	ret := _m.Called(height)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetCometBFTBlock")
+	}
+
+	var r0 *cometbfttypes.Block
+	if rf, ok := ret.Get(0).(func(int64) *cometbfttypes.Block); ok {
+		r0 = rf(height)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cometbfttypes.Block)
+		}
+	}
+
+	return r0
+}
+
+// Backend_GetCometBFTBlock_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCometBFTBlock'
+type Backend_GetCometBFTBlock_Call struct {
+	*mock.Call
+}
+
+// GetCometBFTBlock is a helper method to define mock.On call
+//   - height int64
+func (_e *Backend_Expecter) GetCometBFTBlock(height interface{}) *Backend_GetCometBFTBlock_Call {
+	return &Backend_GetCometBFTBlock_Call{Call: _e.mock.On("GetCometBFTBlock", height)}
+}
+
+func (_c *Backend_GetCometBFTBlock_Call) Run(run func(height int64)) *Backend_GetCometBFTBlock_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(int64))
+	})
+	return _c
+}
+
+func (_c *Backend_GetCometBFTBlock_Call) Return(_a0 *cometbfttypes.Block) *Backend_GetCometBFTBlock_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Backend_GetCometBFTBlock_Call) RunAndReturn(run func(int64) *cometbfttypes.Block) *Backend_GetCometBFTBlock_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetCometBFTSignedHeader provides a mock function with given fields: height
+func (_m *Backend) GetCometBFTSignedHeader(height int64) *cometbfttypes.SignedHeader {
+	ret := _m.Called(height)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetCometBFTSignedHeader")
+	}
+
+	var r0 *cometbfttypes.SignedHeader
+	if rf, ok := ret.Get(0).(func(int64) *cometbfttypes.SignedHeader); ok {
+		r0 = rf(height)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cometbfttypes.SignedHeader)
+		}
+	}
+
+	return r0
+}
+
+// Backend_GetCometBFTSignedHeader_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCometBFTSignedHeader'
+type Backend_GetCometBFTSignedHeader_Call struct {
+	*mock.Call
+}
+
+// GetCometBFTSignedHeader is a helper method to define mock.On call
+//   - height int64
+func (_e *Backend_Expecter) GetCometBFTSignedHeader(height interface{}) *Backend_GetCometBFTSignedHeader_Call {
+	return &Backend_GetCometBFTSignedHeader_Call{Call: _e.mock.On("GetCometBFTSignedHeader", height)}
+}
+
+func (_c *Backend_GetCometBFTSignedHeader_Call) Run(run func(height int64)) *Backend_GetCometBFTSignedHeader_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(int64))
+	})
+	return _c
+}
+
+func (_c *Backend_GetCometBFTSignedHeader_Call) Return(_a0 *cometbfttypes.SignedHeader) *Backend_GetCometBFTSignedHeader_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Backend_GetCometBFTSignedHeader_Call) RunAndReturn(run func(int64) *cometbfttypes.SignedHeader) *Backend_GetCometBFTSignedHeader_Call {
 	_c.Call.Return(run)
 	return _c
 }

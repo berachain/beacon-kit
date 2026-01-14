@@ -130,6 +130,54 @@ func (_c *ConsensusService_GetBlock_Call) RunAndReturn(run func(int64) *cometbft
 	return _c
 }
 
+// GetSignedHeader provides a mock function with given fields: height
+func (_m *ConsensusService) GetSignedHeader(height int64) *cometbfttypes.SignedHeader {
+	ret := _m.Called(height)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSignedHeader")
+	}
+
+	var r0 *cometbfttypes.SignedHeader
+	if rf, ok := ret.Get(0).(func(int64) *cometbfttypes.SignedHeader); ok {
+		r0 = rf(height)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cometbfttypes.SignedHeader)
+		}
+	}
+
+	return r0
+}
+
+// ConsensusService_GetSignedHeader_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSignedHeader'
+type ConsensusService_GetSignedHeader_Call struct {
+	*mock.Call
+}
+
+// GetSignedHeader is a helper method to define mock.On call
+//   - height int64
+func (_e *ConsensusService_Expecter) GetSignedHeader(height interface{}) *ConsensusService_GetSignedHeader_Call {
+	return &ConsensusService_GetSignedHeader_Call{Call: _e.mock.On("GetSignedHeader", height)}
+}
+
+func (_c *ConsensusService_GetSignedHeader_Call) Run(run func(height int64)) *ConsensusService_GetSignedHeader_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(int64))
+	})
+	return _c
+}
+
+func (_c *ConsensusService_GetSignedHeader_Call) Return(_a0 *cometbfttypes.SignedHeader) *ConsensusService_GetSignedHeader_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *ConsensusService_GetSignedHeader_Call) RunAndReturn(run func(int64) *cometbfttypes.SignedHeader) *ConsensusService_GetSignedHeader_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetSyncData provides a mock function with no fields
 func (_m *ConsensusService) GetSyncData() (int64, int64) {
 	ret := _m.Called()
