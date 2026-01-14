@@ -152,46 +152,55 @@ func TestGetCometBFTBlock_NotFound(t *testing.T) {
 	require.Contains(t, err.Error(), "block not found")
 }
 
-func TestGetCometBFTCommit(t *testing.T) {
+func TestGetCometBFTSignedHeader(t *testing.T) {
 	mockBackend := mocks.NewBackend(t)
 	cs, err := spec.DevnetChainSpec()
 	require.NoError(t, err)
 	handler := beacon.NewHandler(mockBackend, cs, noop.NewLogger())
 
 	testTime := time.Date(2024, 1, 26, 12, 0, 0, 0, time.UTC)
-	testCommit := &cmttypes.Commit{
-		Height: 100,
-		Round:  0,
-		BlockID: cmttypes.BlockID{
-			Hash: []byte("block-hash"),
-			PartSetHeader: cmttypes.PartSetHeader{
-				Total: 1,
-				Hash:  []byte("part-set-hash"),
-			},
+	testSignedHeader := &cmttypes.SignedHeader{
+		Header: &cmttypes.Header{
+			Version:         cmttypes.Consensus{Block: 11, App: 0},
+			ChainID:         "test-chain",
+			Height:          100,
+			Time:            testTime,
+			ProposerAddress: []byte("proposer-address"),
 		},
-		Signatures: []cmttypes.CommitSig{
-			{
-				BlockIDFlag:      cmttypes.BlockIDFlagCommit,
-				ValidatorAddress: []byte("validator-1"),
-				Timestamp:        testTime,
-				Signature:        []byte("signature-1"),
+		Commit: &cmttypes.Commit{
+			Height: 100,
+			Round:  0,
+			BlockID: cmttypes.BlockID{
+				Hash: []byte("block-hash"),
+				PartSetHeader: cmttypes.PartSetHeader{
+					Total: 1,
+					Hash:  []byte("part-set-hash"),
+				},
 			},
-			{
-				BlockIDFlag:      cmttypes.BlockIDFlagCommit,
-				ValidatorAddress: []byte("validator-2"),
-				Timestamp:        testTime.Add(time.Millisecond * 100),
-				Signature:        []byte("signature-2"),
+			Signatures: []cmttypes.CommitSig{
+				{
+					BlockIDFlag:      cmttypes.BlockIDFlagCommit,
+					ValidatorAddress: []byte("validator-1"),
+					Timestamp:        testTime,
+					Signature:        []byte("signature-1"),
+				},
+				{
+					BlockIDFlag:      cmttypes.BlockIDFlagCommit,
+					ValidatorAddress: []byte("validator-2"),
+					Timestamp:        testTime.Add(time.Millisecond * 100),
+					Signature:        []byte("signature-2"),
+				},
 			},
 		},
 	}
 
-	mockBackend.EXPECT().GetCometBFTCommit(int64(100)).Return(testCommit).Once()
+	mockBackend.EXPECT().GetCometBFTSignedHeader(int64(100)).Return(testSignedHeader).Once()
 
-	req := httptest.NewRequest(http.MethodGet, "/eth/v1/beacon/cometbft/commit/100", nil)
+	req := httptest.NewRequest(http.MethodGet, "/eth/v1/beacon/cometbft/signed_header/100", nil)
 	req.SetPathValue("height", "100")
 	rec := httptest.NewRecorder()
 
-	result, err := handler.GetCometBFTCommit(req)
+	result, err := handler.GetCometBFTSignedHeader(req)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 
@@ -208,124 +217,36 @@ func TestGetCometBFTCommit(t *testing.T) {
 	dataJSON, err := json.Marshal(response.Data)
 	require.NoError(t, err)
 
-	var commitData cmttypes.Commit
-	err = json.Unmarshal(dataJSON, &commitData)
+	var signedHeaderData cmttypes.SignedHeader
+	err = json.Unmarshal(dataJSON, &signedHeaderData)
 	require.NoError(t, err)
 
-	require.Equal(t, int64(100), commitData.Height)
-	require.Equal(t, int32(0), commitData.Round)
-	require.Len(t, commitData.Signatures, 2)
+	require.Equal(t, "test-chain", signedHeaderData.Header.ChainID)
+	require.Equal(t, int64(100), signedHeaderData.Header.Height)
+	require.Equal(t, int64(100), signedHeaderData.Commit.Height)
+	require.Equal(t, int32(0), signedHeaderData.Commit.Round)
+	require.Len(t, signedHeaderData.Commit.Signatures, 2)
 
 	_ = rec
 }
 
-func TestGetCometBFTCommit_NotFound(t *testing.T) {
+func TestGetCometBFTSignedHeader_NotFound(t *testing.T) {
 	mockBackend := mocks.NewBackend(t)
 	cs, err := spec.DevnetChainSpec()
 	require.NoError(t, err)
 	handler := beacon.NewHandler(mockBackend, cs, noop.NewLogger())
 
-	mockBackend.EXPECT().GetCometBFTCommit(int64(999999)).Return(nil).Once()
+	mockBackend.EXPECT().GetCometBFTSignedHeader(int64(999999)).Return(nil).Once()
 
-	req := httptest.NewRequest(http.MethodGet, "/eth/v1/beacon/cometbft/commit/999999", nil)
+	req := httptest.NewRequest(http.MethodGet, "/eth/v1/beacon/cometbft/signed_header/999999", nil)
 	req.SetPathValue("height", "999999")
 
-	_, err = handler.GetCometBFTCommit(req)
+	_, err = handler.GetCometBFTSignedHeader(req)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "commit not found")
+	require.Contains(t, err.Error(), "signed header not found")
 }
 
-func TestGetCometBFTValidators(t *testing.T) {
-	mockBackend := mocks.NewBackend(t)
-	cs, err := spec.DevnetChainSpec()
-	require.NoError(t, err)
-	handler := beacon.NewHandler(mockBackend, cs, noop.NewLogger())
 
-	validator1 := &cmttypes.Validator{
-		Address:          []byte("validator-address-1"),
-		PubKey:           cmttypes.NewMockPV().PrivKey.PubKey(),
-		VotingPower:      1000000,
-		ProposerPriority: -500000,
-	}
-
-	validator2 := &cmttypes.Validator{
-		Address:          []byte("validator-address-2"),
-		PubKey:           cmttypes.NewMockPV().PrivKey.PubKey(),
-		VotingPower:      2000000,
-		ProposerPriority: 500000,
-	}
-
-	testValidatorSet := cmttypes.NewValidatorSet([]*cmttypes.Validator{
-		validator1,
-		validator2,
-	})
-
-	mockBackend.EXPECT().GetCometBFTValidators(int64(100)).Return(testValidatorSet, nil).Once()
-
-	req := httptest.NewRequest(http.MethodGet, "/eth/v1/beacon/cometbft/validators/100", nil)
-	req.SetPathValue("height", "100")
-	rec := httptest.NewRecorder()
-
-	result, err := handler.GetCometBFTValidators(req)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-
-	respJSON, err := json.Marshal(result)
-	require.NoError(t, err)
-
-	var response beacontypes.GenericResponse
-	err = json.Unmarshal(respJSON, &response)
-	require.NoError(t, err)
-
-	require.True(t, response.Finalized)
-	require.False(t, response.ExecutionOptimistic)
-
-	dataJSON, err := json.Marshal(response.Data)
-	require.NoError(t, err)
-
-	var validatorsData cmttypes.ValidatorSet
-	err = json.Unmarshal(dataJSON, &validatorsData)
-	require.NoError(t, err)
-
-	require.Len(t, validatorsData.Validators, 2)
-	require.NotNil(t, validatorsData.Proposer)
-	require.Equal(t, int64(3000000), validatorsData.TotalVotingPower())
-
-	_ = rec
-}
-
-func TestGetCometBFTValidators_Error(t *testing.T) {
-	mockBackend := mocks.NewBackend(t)
-	cs, err := spec.DevnetChainSpec()
-	require.NoError(t, err)
-	handler := beacon.NewHandler(mockBackend, cs, noop.NewLogger())
-
-	expectedErr := errors.New("state store error")
-	mockBackend.EXPECT().GetCometBFTValidators(int64(100)).Return(nil, expectedErr).Once()
-
-	req := httptest.NewRequest(http.MethodGet, "/eth/v1/beacon/cometbft/validators/100", nil)
-	req.SetPathValue("height", "100")
-
-	_, err = handler.GetCometBFTValidators(req)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to get validators")
-}
-
-func TestGetCometBFTValidators_NotFound(t *testing.T) {
-	mockBackend := mocks.NewBackend(t)
-	cs, err := spec.DevnetChainSpec()
-	require.NoError(t, err)
-	handler := beacon.NewHandler(mockBackend, cs, noop.NewLogger())
-
-	mockBackend.EXPECT().GetCometBFTValidators(int64(999999)).Return(nil, nil).Once()
-
-	req := httptest.NewRequest(http.MethodGet, "/eth/v1/beacon/cometbft/validators/999999", nil)
-	req.SetPathValue("height", "999999")
-
-	_, err = handler.GetCometBFTValidators(req)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "validators not found")
-}
 
 func TestCometBFTConversionFunctions(t *testing.T) {
 	t.Run("Block conversion includes all fields", func(t *testing.T) {
@@ -380,32 +301,41 @@ func TestCometBFTConversionFunctions(t *testing.T) {
 		require.Len(t, blockData.Data.Txs, 3)
 	})
 
-	t.Run("Commit conversion handles multiple signatures", func(t *testing.T) {
+	t.Run("SignedHeader conversion handles multiple signatures", func(t *testing.T) {
 		testTime := time.Date(2024, 1, 26, 12, 0, 0, 0, time.UTC)
-		commit := &cmttypes.Commit{
-			Height: 100,
-			Round:  2,
-			BlockID: cmttypes.BlockID{
-				Hash: []byte("block-hash"),
+		signedHeader := &cmttypes.SignedHeader{
+			Header: &cmttypes.Header{
+				Version:         cmttypes.Consensus{Block: 11, App: 0},
+				ChainID:         "test-chain",
+				Height:          100,
+				Time:            testTime,
+				ProposerAddress: []byte("proposer"),
 			},
-			Signatures: []cmttypes.CommitSig{
-				{
-					BlockIDFlag:      cmttypes.BlockIDFlagCommit,
-					ValidatorAddress: []byte("val1"),
-					Timestamp:        testTime,
-					Signature:        []byte("sig1"),
+			Commit: &cmttypes.Commit{
+				Height: 100,
+				Round:  2,
+				BlockID: cmttypes.BlockID{
+					Hash: []byte("block-hash"),
 				},
-				{
-					BlockIDFlag:      cmttypes.BlockIDFlagAbsent,
-					ValidatorAddress: []byte("val2"),
-					Timestamp:        testTime,
-					Signature:        nil,
-				},
-				{
-					BlockIDFlag:      cmttypes.BlockIDFlagNil,
-					ValidatorAddress: []byte("val3"),
-					Timestamp:        testTime,
-					Signature:        []byte("sig3"),
+				Signatures: []cmttypes.CommitSig{
+					{
+						BlockIDFlag:      cmttypes.BlockIDFlagCommit,
+						ValidatorAddress: []byte("val1"),
+						Timestamp:        testTime,
+						Signature:        []byte("sig1"),
+					},
+					{
+						BlockIDFlag:      cmttypes.BlockIDFlagAbsent,
+						ValidatorAddress: []byte("val2"),
+						Timestamp:        testTime,
+						Signature:        nil,
+					},
+					{
+						BlockIDFlag:      cmttypes.BlockIDFlagNil,
+						ValidatorAddress: []byte("val3"),
+						Timestamp:        testTime,
+						Signature:        []byte("sig3"),
+					},
 				},
 			},
 		}
@@ -415,12 +345,12 @@ func TestCometBFTConversionFunctions(t *testing.T) {
 		require.NoError(t, err)
 		handler := beacon.NewHandler(mockBackend, cs, noop.NewLogger())
 
-		mockBackend.EXPECT().GetCometBFTCommit(int64(100)).Return(commit).Once()
+		mockBackend.EXPECT().GetCometBFTSignedHeader(int64(100)).Return(signedHeader).Once()
 
-		req := httptest.NewRequest(http.MethodGet, "/eth/v1/beacon/cometbft/commit/100", nil)
+		req := httptest.NewRequest(http.MethodGet, "/eth/v1/beacon/cometbft/signed_header/100", nil)
 		req.SetPathValue("height", "100")
 
-		result, err := handler.GetCometBFTCommit(req)
+		result, err := handler.GetCometBFTSignedHeader(req)
 		require.NoError(t, err)
 
 		respJSON, err := json.Marshal(result)
@@ -433,17 +363,19 @@ func TestCometBFTConversionFunctions(t *testing.T) {
 		dataJSON, err := json.Marshal(response.Data)
 		require.NoError(t, err)
 
-		var commitData cmttypes.Commit
-		err = json.Unmarshal(dataJSON, &commitData)
+		var signedHeaderData cmttypes.SignedHeader
+		err = json.Unmarshal(dataJSON, &signedHeaderData)
 		require.NoError(t, err)
 
-		require.Equal(t, int32(2), commitData.Round)
-		require.Len(t, commitData.Signatures, 3)
+		require.Equal(t, "test-chain", signedHeaderData.Header.ChainID)
+		require.Equal(t, int64(100), signedHeaderData.Header.Height)
+		require.Equal(t, int32(2), signedHeaderData.Commit.Round)
+		require.Len(t, signedHeaderData.Commit.Signatures, 3)
 
 		// Verify different block ID flags are represented
-		require.Equal(t, cmttypes.BlockIDFlagCommit, commitData.Signatures[0].BlockIDFlag)
-		require.Equal(t, cmttypes.BlockIDFlagAbsent, commitData.Signatures[1].BlockIDFlag)
-		require.Equal(t, cmttypes.BlockIDFlagNil, commitData.Signatures[2].BlockIDFlag)
+		require.Equal(t, cmttypes.BlockIDFlagCommit, signedHeaderData.Commit.Signatures[0].BlockIDFlag)
+		require.Equal(t, cmttypes.BlockIDFlagAbsent, signedHeaderData.Commit.Signatures[1].BlockIDFlag)
+		require.Equal(t, cmttypes.BlockIDFlagNil, signedHeaderData.Commit.Signatures[2].BlockIDFlag)
 	})
 }
 
@@ -456,15 +388,6 @@ func TestCometBFTEndpoints_Integration(t *testing.T) {
 	testTime := time.Date(2024, 1, 26, 12, 0, 0, 0, time.UTC)
 
 	// Create related test data
-	validator := &cmttypes.Validator{
-		Address:          []byte("test-validator"),
-		PubKey:           cmttypes.NewMockPV().PrivKey.PubKey(),
-		VotingPower:      1000000,
-		ProposerPriority: 0,
-	}
-
-	validatorSet := cmttypes.NewValidatorSet([]*cmttypes.Validator{validator})
-
 	commit := &cmttypes.Commit{
 		Height: 99,
 		Round:  0,
@@ -487,16 +410,19 @@ func TestCometBFTEndpoints_Integration(t *testing.T) {
 			ChainID:         "integration-test",
 			Height:          100,
 			Time:            testTime,
-			ProposerAddress: validator.Address,
-			ValidatorsHash:  validatorSet.Hash(),
+			ProposerAddress: []byte("test-proposer"),
 		},
 		LastCommit: commit,
 	}
 
+	signedHeader := &cmttypes.SignedHeader{
+		Header: &block.Header,
+		Commit: commit,
+	}
+
 	// Setup expectations
 	mockBackend.EXPECT().GetCometBFTBlock(int64(100)).Return(block).Once()
-	mockBackend.EXPECT().GetCometBFTCommit(int64(100)).Return(commit).Once()
-	mockBackend.EXPECT().GetCometBFTValidators(int64(100)).Return(validatorSet, nil).Once()
+	mockBackend.EXPECT().GetCometBFTSignedHeader(int64(100)).Return(signedHeader).Once()
 
 	// Test block endpoint
 	blockReq := httptest.NewRequest(http.MethodGet, "/eth/v1/beacon/cometbft/block/100", nil)
@@ -505,22 +431,15 @@ func TestCometBFTEndpoints_Integration(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, blockResult)
 
-	// Test commit endpoint
-	commitReq := httptest.NewRequest(http.MethodGet, "/eth/v1/beacon/cometbft/commit/100", nil)
-	commitReq.SetPathValue("height", "100")
-	commitResult, err := handler.GetCometBFTCommit(commitReq)
+	// Test signed header endpoint
+	signedHeaderReq := httptest.NewRequest(http.MethodGet, "/eth/v1/beacon/cometbft/signed_header/100", nil)
+	signedHeaderReq.SetPathValue("height", "100")
+	signedHeaderResult, err := handler.GetCometBFTSignedHeader(signedHeaderReq)
 	require.NoError(t, err)
-	require.NotNil(t, commitResult)
-
-	// Test validators endpoint
-	valsReq := httptest.NewRequest(http.MethodGet, "/eth/v1/beacon/cometbft/validators/100", nil)
-	valsReq.SetPathValue("height", "100")
-	valsResult, err := handler.GetCometBFTValidators(valsReq)
-	require.NoError(t, err)
-	require.NotNil(t, valsResult)
+	require.NotNil(t, signedHeaderResult)
 
 	// Verify all results are properly formatted
-	for _, result := range []any{blockResult, commitResult, valsResult} {
+	for _, result := range []any{blockResult, signedHeaderResult} {
 		respJSON, err := json.Marshal(result)
 		require.NoError(t, err)
 
@@ -547,35 +466,25 @@ func TestCometBFTEndpoints_MockExpectations(t *testing.T) {
 			},
 		}
 
-		testCommit := &cmttypes.Commit{
-			Height: 1,
-		}
-
-		testValidators := cmttypes.NewValidatorSet([]*cmttypes.Validator{
-			{
-				Address:     []byte("validator"),
-				PubKey:      cmttypes.NewMockPV().PrivKey.PubKey(),
-				VotingPower: 1000,
+		testSignedHeader := &cmttypes.SignedHeader{
+			Header: &testBlock.Header,
+			Commit: &cmttypes.Commit{
+				Height: 1,
 			},
-		})
+		}
 
 		// Set expectations
 		mockBackend.EXPECT().GetCometBFTBlock(int64(1)).Return(testBlock).Once()
-		mockBackend.EXPECT().GetCometBFTCommit(int64(1)).Return(testCommit).Once()
-		mockBackend.EXPECT().GetCometBFTValidators(int64(1)).Return(testValidators, nil).Once()
+		mockBackend.EXPECT().GetCometBFTSignedHeader(int64(1)).Return(testSignedHeader).Once()
 
 		// Execute
 		blockReq := httptest.NewRequest(http.MethodGet, "/eth/v1/beacon/cometbft/block/1", nil)
 		blockReq.SetPathValue("height", "1")
 		_, _ = handler.GetCometBFTBlock(blockReq)
 
-		commitReq := httptest.NewRequest(http.MethodGet, "/eth/v1/beacon/cometbft/commit/1", nil)
-		commitReq.SetPathValue("height", "1")
-		_, _ = handler.GetCometBFTCommit(commitReq)
-
-		valsReq := httptest.NewRequest(http.MethodGet, "/eth/v1/beacon/cometbft/validators/1", nil)
-		valsReq.SetPathValue("height", "1")
-		_, _ = handler.GetCometBFTValidators(valsReq)
+		signedHeaderReq := httptest.NewRequest(http.MethodGet, "/eth/v1/beacon/cometbft/signed_header/1", nil)
+		signedHeaderReq.SetPathValue("height", "1")
+		_, _ = handler.GetCometBFTSignedHeader(signedHeaderReq)
 
 		// Verify all expectations met
 		mock.AssertExpectationsForObjects(t, mockBackend)

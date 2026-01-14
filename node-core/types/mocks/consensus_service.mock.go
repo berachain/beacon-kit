@@ -130,54 +130,6 @@ func (_c *ConsensusService_GetBlock_Call) RunAndReturn(run func(int64) *cometbft
 	return _c
 }
 
-// GetCommit provides a mock function with given fields: height
-func (_m *ConsensusService) GetCommit(height int64) *cometbfttypes.Commit {
-	ret := _m.Called(height)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetCommit")
-	}
-
-	var r0 *cometbfttypes.Commit
-	if rf, ok := ret.Get(0).(func(int64) *cometbfttypes.Commit); ok {
-		r0 = rf(height)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*cometbfttypes.Commit)
-		}
-	}
-
-	return r0
-}
-
-// ConsensusService_GetCommit_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCommit'
-type ConsensusService_GetCommit_Call struct {
-	*mock.Call
-}
-
-// GetCommit is a helper method to define mock.On call
-//   - height int64
-func (_e *ConsensusService_Expecter) GetCommit(height interface{}) *ConsensusService_GetCommit_Call {
-	return &ConsensusService_GetCommit_Call{Call: _e.mock.On("GetCommit", height)}
-}
-
-func (_c *ConsensusService_GetCommit_Call) Run(run func(height int64)) *ConsensusService_GetCommit_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(int64))
-	})
-	return _c
-}
-
-func (_c *ConsensusService_GetCommit_Call) Return(_a0 *cometbfttypes.Commit) *ConsensusService_GetCommit_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *ConsensusService_GetCommit_Call) RunAndReturn(run func(int64) *cometbfttypes.Commit) *ConsensusService_GetCommit_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetSignedHeader provides a mock function with given fields: height
 func (_m *ConsensusService) GetSignedHeader(height int64) *cometbfttypes.SignedHeader {
 	ret := _m.Called(height)
@@ -277,64 +229,6 @@ func (_c *ConsensusService_GetSyncData_Call) Return(latestHeight int64, syncToHe
 }
 
 func (_c *ConsensusService_GetSyncData_Call) RunAndReturn(run func() (int64, int64)) *ConsensusService_GetSyncData_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// GetValidators provides a mock function with given fields: height
-func (_m *ConsensusService) GetValidators(height int64) (*cometbfttypes.ValidatorSet, error) {
-	ret := _m.Called(height)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetValidators")
-	}
-
-	var r0 *cometbfttypes.ValidatorSet
-	var r1 error
-	if rf, ok := ret.Get(0).(func(int64) (*cometbfttypes.ValidatorSet, error)); ok {
-		return rf(height)
-	}
-	if rf, ok := ret.Get(0).(func(int64) *cometbfttypes.ValidatorSet); ok {
-		r0 = rf(height)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*cometbfttypes.ValidatorSet)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(int64) error); ok {
-		r1 = rf(height)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// ConsensusService_GetValidators_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetValidators'
-type ConsensusService_GetValidators_Call struct {
-	*mock.Call
-}
-
-// GetValidators is a helper method to define mock.On call
-//   - height int64
-func (_e *ConsensusService_Expecter) GetValidators(height interface{}) *ConsensusService_GetValidators_Call {
-	return &ConsensusService_GetValidators_Call{Call: _e.mock.On("GetValidators", height)}
-}
-
-func (_c *ConsensusService_GetValidators_Call) Run(run func(height int64)) *ConsensusService_GetValidators_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(int64))
-	})
-	return _c
-}
-
-func (_c *ConsensusService_GetValidators_Call) Return(_a0 *cometbfttypes.ValidatorSet, _a1 error) *ConsensusService_GetValidators_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *ConsensusService_GetValidators_Call) RunAndReturn(run func(int64) (*cometbfttypes.ValidatorSet, error)) *ConsensusService_GetValidators_Call {
 	_c.Call.Return(run)
 	return _c
 }

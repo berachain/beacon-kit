@@ -44,7 +44,6 @@ import (
 	"github.com/cometbft/cometbft/p2p"
 	pvm "github.com/cometbft/cometbft/privval"
 	"github.com/cometbft/cometbft/proxy"
-	sm "github.com/cometbft/cometbft/state"
 	cmttypes "github.com/cometbft/cometbft/types"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -59,7 +58,6 @@ const (
 type Service struct {
 	node        *node.Node
 	nodeAddress cmtcrypto.Address
-	stateStore  sm.Store
 
 	delayCfg delay.ConfigGetter
 
@@ -133,15 +131,6 @@ func NewService(
 	log := servercmtlog.WrapSDKLogger(logger)
 	warnAboutConfigs(cmtCfg, log)
 
-	// Open the CometBFT state database for validator queries
-	stateDB, err := cmtcfg.DefaultDBProvider(&cmtcfg.DBContext{
-		ID:     "state",
-		Config: cmtCfg,
-	})
-	if err != nil {
-		panic(fmt.Errorf("failed to open state database: %w", err))
-	}
-
 	s := &Service{
 		logger:             logger,
 		sm:                 statem.NewManager(db, log),
@@ -152,7 +141,6 @@ func NewService(
 		cmtCfg:             cmtCfg,
 		telemetrySink:      telemetrySink,
 		cachedStates:       cache.New(maxCachedStates, telemetrySink),
-		stateStore:         sm.NewStore(stateDB, sm.StoreOptions{}),
 	}
 
 	s.MountStore(storage.StoreKey, storetypes.StoreTypeIAVL)
@@ -316,22 +304,13 @@ func (s *Service) GetBlock(height int64) *cmttypes.Block {
 	return block
 }
 
-// GetCommit returns the CometBFT commit at the given height.
-func (s *Service) GetCommit(height int64) *cmttypes.Commit {
-	if s.node == nil {
-		return nil
-	}
-	commit := s.node.BlockStore().LoadBlockCommit(height)
-	return commit
-}
-
-// GetSignedHeader returns the CometBFT signed header at the given height.
+// GetSignedHeader returns the CometBFT signed header (header + commit) at the given height.
 func (s *Service) GetSignedHeader(height int64) *cmttypes.SignedHeader {
 	if s.node == nil {
 		return nil
 	}
-	blockMeta := s.node.BlockStore().LoadBlockMeta(height)
-	if blockMeta == nil {
+	block, _ := s.node.BlockStore().LoadBlock(height)
+	if block == nil {
 		return nil
 	}
 	commit := s.node.BlockStore().LoadBlockCommit(height)
@@ -339,18 +318,14 @@ func (s *Service) GetSignedHeader(height int64) *cmttypes.SignedHeader {
 		return nil
 	}
 	return &cmttypes.SignedHeader{
-		Header: &blockMeta.Header,
+		Header: &block.Header,
 		Commit: commit,
 	}
 }
 
-// GetValidators returns the CometBFT validator set at the given height.
-func (s *Service) GetValidators(height int64) (*cmttypes.ValidatorSet, error) {
-	if s.stateStore == nil {
-		return nil, nil
-	}
-	return s.stateStore.LoadValidators(height)
-}
+
+
+
 
 // AppVersion returns the application's protocol version.
 func (s *Service) AppVersion(_ context.Context) (uint64, error) {

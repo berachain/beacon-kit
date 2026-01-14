@@ -164,17 +164,10 @@ func (b *Backend) GetCometBFTBlock(height int64) *cmttypes.Block {
 	return b.node.GetBlock(height)
 }
 
-// GetCometBFTCommit returns the CometBFT commit at the given height.
-func (b *Backend) GetCometBFTCommit(height int64) *cmttypes.Commit {
-	return b.node.GetCommit(height)
-}
-
-// GetCometBFTSignedHeader returns the CometBFT signed header at the given height.
+// GetCometBFTSignedHeader returns the CometBFT signed header (header + commit) at the given height.
 func (b *Backend) GetCometBFTSignedHeader(height int64) *cmttypes.SignedHeader {
 	return b.node.GetSignedHeader(height)
 }
 
-// GetCometBFTValidators returns the CometBFT validator set at the given height.
-func (b *Backend) GetCometBFTValidators(height int64) (*cmttypes.ValidatorSet, error) {
-	return b.node.GetValidators(height)
-}
+
+

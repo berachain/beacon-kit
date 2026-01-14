@@ -50,7 +50,5 @@ type Backend interface {
 
 	// CometBFT consensus data access methods
 	GetCometBFTBlock(height int64) *cmttypes.Block
-	GetCometBFTCommit(height int64) *cmttypes.Commit
 	GetCometBFTSignedHeader(height int64) *cmttypes.SignedHeader
-	GetCometBFTValidators(height int64) (*cmttypes.ValidatorSet, error)
 }

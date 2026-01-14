@@ -286,13 +286,9 @@ func registerRoutes(h *Handler) {
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/eth/v1/beacon/cometbft/commit/:height",
-			Handler: h.GetCometBFTCommit,
+			Path:    "/eth/v1/beacon/cometbft/signed_header/:height",
+			Handler: h.GetCometBFTSignedHeader,
 		},
-		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v1/beacon/cometbft/validators/:height",
-			Handler: h.GetCometBFTValidators,
-		},
+
 	})
 }

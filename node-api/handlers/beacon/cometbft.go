@@ -48,9 +48,9 @@ func (h *Handler) GetCometBFTBlock(c handlers.Context) (any, error) {
 	return beacontypes.NewResponse(block), nil
 }
 
-// GetCometBFTCommit returns the CometBFT commit at the specified height.
-// GET /eth/v1/beacon/cometbft/commit/:height
-func (h *Handler) GetCometBFTCommit(c handlers.Context) (any, error) {
+// GetCometBFTSignedHeader returns the CometBFT signed header (header + commit) at the specified height.
+// GET /eth/v1/beacon/cometbft/signed_header/:height
+func (h *Handler) GetCometBFTSignedHeader(c handlers.Context) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.CometBFTHeightRequest](
 		c, h.Logger(),
 	)
@@ -59,34 +59,12 @@ func (h *Handler) GetCometBFTCommit(c handlers.Context) (any, error) {
 	}
 
 	height := req.Height
-	commit := h.backend.GetCometBFTCommit(height)
-	if commit == nil {
-		return nil, fmt.Errorf("commit not found at height %d", height)
+	signedHeader := h.backend.GetCometBFTSignedHeader(height)
+	if signedHeader == nil {
+		return nil, fmt.Errorf("signed header not found at height %d", height)
 	}
 
-	// Return CometBFT commit directly - it has native JSON serialization
-	return beacontypes.NewResponse(commit), nil
+	// Return CometBFT signed header directly - it has native JSON serialization
+	return beacontypes.NewResponse(signedHeader), nil
 }
 
-// GetCometBFTValidators returns the CometBFT validator set at the specified height.
-// GET /eth/v1/beacon/cometbft/validators/:height
-func (h *Handler) GetCometBFTValidators(c handlers.Context) (any, error) {
-	req, err := utils.BindAndValidate[beacontypes.CometBFTHeightRequest](
-		c, h.Logger(),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	height := req.Height
-	validators, err := h.backend.GetCometBFTValidators(height)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get validators at height %d: %w", height, err)
-	}
-	if validators == nil {
-		return nil, fmt.Errorf("validators not found at height %d", height)
-	}
-
-	// Return CometBFT ValidatorSet directly - it has native JSON serialization
-	return beacontypes.NewResponse(validators), nil
-}

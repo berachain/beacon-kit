@@ -60,10 +60,6 @@ type ConsensusService interface {
 	GetSyncData() (latestHeight int64, syncToHeight int64)
 	// GetBlock returns the CometBFT block at the given height.
 	GetBlock(height int64) *cmttypes.Block
-	// GetCommit returns the CometBFT commit at the given height.
-	GetCommit(height int64) *cmttypes.Commit
-	// GetSignedHeader returns the CometBFT signed header at the given height.
+	// GetSignedHeader returns the CometBFT signed header (header + commit) at the given height.
 	GetSignedHeader(height int64) *cmttypes.SignedHeader
-	// GetValidators returns the CometBFT validator set at the given height.
-	GetValidators(height int64) (*cmttypes.ValidatorSet, error)
 }
