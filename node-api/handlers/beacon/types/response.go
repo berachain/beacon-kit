@@ -23,6 +23,7 @@ package types
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/version"
+	cmttypes "github.com/cometbft/cometbft/types"
 )
 
 type GenericResponse struct {
@@ -167,3 +168,16 @@ func NewPendingPartialWithdrawalsResponse(
 		GenericResponse: NewResponse(withdrawals),
 	}
 }
+
+// CometBFT response wrappers - using native CometBFT types directly
+// The CometBFT types (Block, Commit, ValidatorSet) are JSON-serializable
+// and will be used directly in API responses.
+
+// CometBFTBlockResponse wraps a CometBFT Block for API response
+type CometBFTBlockResponse = cmttypes.Block
+
+// CometBFTCommitResponse wraps a CometBFT Commit for API response
+type CometBFTCommitResponse = cmttypes.Commit
+
+// CometBFTValidatorsResponse wraps a CometBFT ValidatorSet for API response
+type CometBFTValidatorsResponse = cmttypes.ValidatorSet

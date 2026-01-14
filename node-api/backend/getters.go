@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
+	cmttypes "github.com/cometbft/cometbft/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 )
@@ -156,4 +157,24 @@ func (b *Backend) GetVersionData() (
 		cometVersion,
 		os,
 		arch
+}
+
+// GetCometBFTBlock returns the CometBFT block at the given height.
+func (b *Backend) GetCometBFTBlock(height int64) *cmttypes.Block {
+	return b.node.GetBlock(height)
+}
+
+// GetCometBFTCommit returns the CometBFT commit at the given height.
+func (b *Backend) GetCometBFTCommit(height int64) *cmttypes.Commit {
+	return b.node.GetCommit(height)
+}
+
+// GetCometBFTSignedHeader returns the CometBFT signed header at the given height.
+func (b *Backend) GetCometBFTSignedHeader(height int64) *cmttypes.SignedHeader {
+	return b.node.GetSignedHeader(height)
+}
+
+// GetCometBFTValidators returns the CometBFT validator set at the given height.
+func (b *Backend) GetCometBFTValidators(height int64) (*cmttypes.ValidatorSet, error) {
+	return b.node.GetValidators(height)
 }

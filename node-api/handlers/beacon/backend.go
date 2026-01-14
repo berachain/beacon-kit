@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
+	cmttypes "github.com/cometbft/cometbft/types"
 )
 
 // Backend is the interface for backend of the beacon API.
@@ -46,4 +47,10 @@ type Backend interface {
 
 	// GetSignatureBySlot retrieves the block signature for a given slot.
 	GetSignatureBySlot(slot math.Slot) (crypto.BLSSignature, error)
+
+	// CometBFT consensus data access methods
+	GetCometBFTBlock(height int64) *cmttypes.Block
+	GetCometBFTCommit(height int64) *cmttypes.Commit
+	GetCometBFTSignedHeader(height int64) *cmttypes.SignedHeader
+	GetCometBFTValidators(height int64) (*cmttypes.ValidatorSet, error)
 }
