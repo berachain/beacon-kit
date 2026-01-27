@@ -119,6 +119,9 @@ func (c *Client) GetPayloadBySlot(
 		c.logger.Warn("Failed to contact sequencer", "error", err)
 		return nil, errors.Wrapf(ErrSequencerUnavailable, "request failed: %w", err)
 	}
+	if resp == nil || resp.Body == nil {
+		return nil, errors.New("received nil response from sequencer")
+	}
 	defer resp.Body.Close()
 
 	// Read response body
