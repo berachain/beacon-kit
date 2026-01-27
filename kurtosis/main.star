@@ -48,6 +48,8 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
     preconf_enabled = preconf.get("enabled", False)
 
     plan.print("CHAIN_ID: {}".format(chain_id), "CHAIN_SPEC: {}".format(chain_spec))
+    if preconf_enabled:
+        plan.print("PRECONF: enabled, sequencer_index={}".format(preconf_sequencer_index))
 
     next_free_prefunded_account = 0
     validators = nodes.parse_nodes_from_dict(network_configuration["validators"], node_settings)
