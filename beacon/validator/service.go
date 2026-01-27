@@ -23,6 +23,7 @@ package validator
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/beacon/preconf"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 )
@@ -50,6 +51,15 @@ type Service struct {
 	localPayloadBuilder PayloadBuilder
 	// metrics is a metrics collector.
 	metrics *validatorMetrics
+
+	// preconfCfg holds the preconfirmation configuration.
+	preconfCfg *preconf.Config
+	// preconfClient is used to fetch payloads from the sequencer.
+	// Can be nil if preconf is disabled or this validator is not whitelisted.
+	preconfClient *preconf.Client
+	// preconfWhitelist is used to check if this validator is whitelisted for preconf.
+	// Can be nil if preconf is disabled.
+	preconfWhitelist preconf.Whitelist
 }
 
 // NewService creates a new validator service.
@@ -63,6 +73,9 @@ func NewService(
 	blobFactory BlobFactory,
 	localPayloadBuilder PayloadBuilder,
 	ts TelemetrySink,
+	preconfCfg *preconf.Config,
+	preconfClient *preconf.Client,
+	preconfWhitelist preconf.Whitelist,
 ) *Service {
 	return &Service{
 		cfg:                 cfg,
@@ -74,6 +87,9 @@ func NewService(
 		blobFactory:         blobFactory,
 		localPayloadBuilder: localPayloadBuilder,
 		metrics:             newValidatorMetrics(ts),
+		preconfCfg:          preconfCfg,
+		preconfClient:       preconfClient,
+		preconfWhitelist:    preconfWhitelist,
 	}
 }
 
