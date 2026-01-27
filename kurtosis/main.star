@@ -17,14 +17,23 @@ pyroscope = import_module("./src/observability/pyroscope/pyroscope.star")
 tx_fuzz = import_module("./src/services/tx_fuzz/launcher.star")
 blutgang = import_module("./src/services/blutgang/launcher.star")
 blockscout = import_module("./src/services/blockscout/launcher.star")
+sequencer = import_module("./src/services/sequencer/launcher.star")
+preconf_config = import_module("./src/preconf/config.star")
 
-def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpoints = [], additional_services = [], metrics_enabled_services = []):
+def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpoints = [], additional_services = [], metrics_enabled_services = [], preconf = {}):
     """
     Initiates the execution plan with the specified number of validators and arguments.
 
     Args:
     plan: The execution plan to be run.
-    args: Additional arguments to configure the plan. Defaults to an empty dictionary.
+    network_configuration: Network configuration including validators, full nodes, seed nodes.
+    node_settings: Node-specific settings.
+    eth_json_rpc_endpoints: RPC endpoint configurations.
+    additional_services: Additional services to launch.
+    metrics_enabled_services: Services with metrics enabled.
+    preconf: Preconfirmation configuration. If provided, enables preconf with:
+        - enabled: bool - Whether to enable preconf (default: false)
+        - sequencer_index: int - Index of validator to run as sequencer (default: 0)
     """
 
     # all_node_types = [validators["type"], full_nodes["type"], seed_nodes["type"]]
@@ -34,7 +43,13 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
     chain_id = network_configuration.get("chain_id", 80087)
     chain_spec = network_configuration.get("chain_spec", "devnet")
 
+    # Get preconf configuration
+    preconf_enabled = preconf.get("enabled", False)
+    preconf_sequencer_index = preconf.get("sequencer_index", 0)
+
     plan.print("CHAIN_ID: {}".format(chain_id), "CHAIN_SPEC: {}".format(chain_spec))
+    if preconf_enabled:
+        plan.print("PRECONF: enabled, sequencer_index={}".format(preconf_sequencer_index))
 
     next_free_prefunded_account = 0
     validators = nodes.parse_nodes_from_dict(network_configuration["validators"], node_settings)
@@ -60,7 +75,8 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
     jwt_file, kzg_trusted_setup = execution.upload_global_files(plan, node_modules, chain_id)
 
     # 3. Perform genesis ceremony for the CL genesis deposits.
-    stored_configs = beacond.perform_genesis_deposits_ceremony(plan, validators, jwt_file, chain_id, chain_spec)
+    genesis_result = beacond.perform_genesis_deposits_ceremony(plan, validators, jwt_file, chain_id, chain_spec)
+    stored_configs = genesis_result.configs
 
     # 4 a. Create genesis files only once and pass it to the node configs
     genesis_files = nodes.create_genesis_files_part1(plan, chain_id)
@@ -75,6 +91,39 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
 
     # 4c. Modify the eth genesis files with the ENV VARS
     genesis_files = nodes.create_genesis_files_part2(plan, chain_id, genesis_deposits_root, genesis_deposit_count_hex)
+
+    # 4d. Setup preconf configuration if enabled
+    preconf_cfg = None
+    if preconf_enabled:
+        plan.print("Setting up preconfirmation configuration...")
+
+        # Generate initial preconf config with JWT secrets
+        preconf_cfg = preconf_config.generate_preconf_config(plan, validators, preconf_sequencer_index)
+
+        # Create whitelist and validator-jwts files by extracting pubkeys in execution phase
+        # This runs as a single run_sh that mounts all config artifacts, extracts pubkeys,
+        # and generates both JSON files - avoiding Starlark's future reference limitations
+        preconf_files = preconf_config.create_preconf_files_from_configs(
+            plan,
+            num_validators,
+            preconf_cfg.jwt_secrets,
+        )
+
+        # Update preconf config with the file artifacts
+        preconf_cfg = struct(
+            jwt_secrets = preconf_cfg.jwt_secrets,
+            validator_jwt_artifacts = preconf_cfg.validator_jwt_artifacts,
+            sequencer_index = preconf_cfg.sequencer_index,
+            sequencer_service_name = preconf_cfg.sequencer_service_name,
+            num_validators = preconf_cfg.num_validators,
+            whitelist_file = preconf_files.whitelist_artifact,
+            validator_jwts_file = preconf_files.validator_jwts_artifact,
+        )
+
+        plan.print("Preconf configuration created: sequencer={}, {} validators whitelisted".format(
+            preconf_cfg.sequencer_service_name,
+            num_validators,
+        ))
 
     el_enode_addrs = []
     metrics_enabled_services = metrics_enabled_services[:]
@@ -162,7 +211,7 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
 
     validator_node_configs = {}
     for n, validator in enumerate(validators):
-        validator_node_config = beacond.create_node_config(plan, validator, consensus_node_peering_info, validator.el_service_name, chain_id, chain_spec, genesis_deposits_root, genesis_deposit_count_hex, jwt_file, kzg_trusted_setup)
+        validator_node_config = beacond.create_node_config(plan, validator, consensus_node_peering_info, validator.el_service_name, chain_id, chain_spec, genesis_deposits_root, genesis_deposit_count_hex, jwt_file, kzg_trusted_setup, preconf_cfg)
         validator_node_configs[validator.cl_service_name] = validator_node_config
 
     cl_clients = plan.add_services(
@@ -241,4 +290,13 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
                 s.client,
                 False,
             )
+        elif s.name == "sequencer":
+            plan.print("Launching sequencer for preconfirmation testing")
+            sequencer_service = sequencer.launch_sequencer(
+                plan,
+                jwt_file,
+                genesis_files,
+                chain_id,
+            )
+            plan.print("Sequencer launched at: {}".format(sequencer.get_engine_url(sequencer_service)))
     plan.print("Successfully launched development network")

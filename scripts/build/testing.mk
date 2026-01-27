@@ -315,3 +315,9 @@ test-e2e-deposits: ## run e2e tests
 
 test-e2e-deposits-no-build:
 	go test -timeout 0 -tags e2e,bls12381,test ./testing/e2e/. -v -testify.m TestDepositRobustness
+
+test-e2e-preconf: ## run preconf e2e tests
+	@$(MAKE) build-docker VERSION=kurtosis-local test-e2e-preconf-no-build
+
+test-e2e-preconf-no-build:
+	go test -timeout 0 -tags e2e_preconf,bls12381,test ./testing/e2e/. -v
