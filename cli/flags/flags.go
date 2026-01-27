@@ -92,6 +92,8 @@ const (
 )
 
 // AddBeaconKitFlags implements servertypes.ModuleInitFlags interface.
+//
+//nolint:funlen // its ok
 func AddBeaconKitFlags(startCmd *cobra.Command) {
 	defaultCfg := config.DefaultConfig()
 	startCmd.Flags().Duration(

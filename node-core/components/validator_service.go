@@ -22,6 +22,7 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/beacon/preconf"
 	"github.com/berachain/beacon-kit/beacon/validator"
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config"
@@ -34,15 +35,17 @@ import (
 // ValidatorServiceInput is the input for the validator service provider.
 type ValidatorServiceInput struct {
 	depinject.In
-	Cfg            *config.Config
-	ChainSpec      chain.Spec
-	LocalBuilder   LocalBuilder
-	Logger         *phuslu.Logger
-	StateProcessor StateProcessor
-	StorageBackend *storage.Backend
-	Signer         crypto.BLSSigner
-	SidecarFactory SidecarFactory
-	TelemetrySink  *metrics.TelemetrySink
+	Cfg              *config.Config
+	ChainSpec        chain.Spec
+	LocalBuilder     LocalBuilder
+	Logger           *phuslu.Logger
+	StateProcessor   StateProcessor
+	StorageBackend   *storage.Backend
+	Signer           crypto.BLSSigner
+	SidecarFactory   SidecarFactory
+	TelemetrySink    *metrics.TelemetrySink
+	PreconfClient    *preconf.Client   `optional:"true"`
+	PreconfWhitelist preconf.Whitelist `optional:"true"`
 }
 
 // ProvideValidatorService is a depinject provider for the validator service.
@@ -58,5 +61,8 @@ func ProvideValidatorService(in ValidatorServiceInput) (*validator.Service, erro
 		in.SidecarFactory,
 		in.LocalBuilder,
 		in.TelemetrySink,
+		&in.Cfg.Preconf,
+		in.PreconfClient,
+		in.PreconfWhitelist,
 	), nil
 }
