@@ -37,6 +37,16 @@ type E2ETestConfig struct {
 	// AdditionalServices specifies any extra services that should be included
 	// in the test environment.
 	AdditionalServices []AdditionalService `json:"additional_services"`
+	// Preconf specifies the preconfirmation configuration.
+	Preconf PreconfConfig `json:"preconf,omitempty"`
+}
+
+// PreconfConfig holds the preconfirmation configuration for E2E tests.
+type PreconfConfig struct {
+	// Enabled specifies whether preconf is enabled.
+	Enabled bool `json:"enabled"`
+	// SequencerIndex specifies which validator is the sequencer.
+	SequencerIndex int `json:"sequencer_index"`
 }
 
 type NetworkConfiguration struct {

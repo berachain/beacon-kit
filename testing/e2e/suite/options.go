@@ -20,5 +20,16 @@
 
 package suite
 
+import "github.com/berachain/beacon-kit/testing/e2e/config"
+
 // Option is a functional option for the KurtosisE2ESuite.
 type Option func(*KurtosisE2ESuite) error
+
+// WithPreconfConfig returns an option that enables preconfirmation
+// with validator 0 as the sequencer.
+func WithPreconfConfig() Option {
+	return func(s *KurtosisE2ESuite) error {
+		s.cfg = config.PreconfE2ETestConfig()
+		return nil
+	}
+}

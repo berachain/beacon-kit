@@ -48,6 +48,17 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 	}
 }
 
+// PreconfE2ETestConfig provides a configuration with preconfirmation enabled.
+// Validator 0 is configured as the sequencer.
+func PreconfE2ETestConfig() *E2ETestConfig {
+	cfg := DefaultE2ETestConfig()
+	cfg.Preconf = PreconfConfig{
+		Enabled:        true,
+		SequencerIndex: 0,
+	}
+	return cfg
+}
+
 func defaultNetworkConfiguration() NetworkConfiguration {
 	return NetworkConfiguration{
 		Validators: defaultValidators(),
