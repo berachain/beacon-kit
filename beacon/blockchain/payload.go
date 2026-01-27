@@ -133,7 +133,7 @@ func (s *Service) forceSyncUponFinalize(
 // to extract the data necessary to build the next block, whether current block is
 // being rejected or accepted. This is way there can be (and so should be)
 // a single function doing these ops. preFetchBuildData is that function.
-func (s *Service) preFetchBuildData(st *statedb.StateDB, currentTime math.U64) (
+func (s *Service) preFetchBuildData(st *statedb.StateDB, currentTime math.U64, expectedProposer crypto.BLSPubkey) (
 	*builder.RequestPayloadData,
 	error,
 ) {
@@ -201,6 +201,7 @@ func (s *Service) preFetchBuildData(st *statedb.StateDB, currentTime math.U64) (
 			FinalizedBlockHash: lph.GetParentHash(),
 		},
 		ParentProposerPubkey: parentProposerPubkey,
+		ExpectedProposer:     expectedProposer,
 	}, nil
 }
 
