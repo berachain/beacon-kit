@@ -177,3 +177,7 @@ type HeadersRequest struct {
 	SlotRequest
 	ParentRoot string `query:"parent_root" validate:"hex"`
 }
+
+type CometBFTHeightRequest struct {
+	Height int64 `param:"height" validate:"required,numeric"`
+}

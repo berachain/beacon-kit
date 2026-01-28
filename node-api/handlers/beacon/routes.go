@@ -279,5 +279,16 @@ func registerRoutes(h *Handler) {
 			Path:    "/eth/v1/beacon/pool/bls_to_execution_changes",
 			Handler: h.NotImplemented,
 		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/eth/v1/beacon/cometbft/block/:height",
+			Handler: h.GetCometBFTBlock,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/eth/v1/beacon/cometbft/signed_header/:height",
+			Handler: h.GetCometBFTSignedHeader,
+		},
+
 	})
 }
