@@ -44,7 +44,7 @@ var (
 	electra = common.Version{0x05, 0x00, 0x00, 0x00}
 	// electra1 is the first hardfork of Electra on Berachain mainnet.
 	electra1 = common.Version{0x05, 0x01, 0x00, 0x00}
-	// TBD if used but kept as an example.
+	// electra2 is the second hardfork of Electra on Berachain mainnet.
 	electra2 = common.Version{0x05, 0x02, 0x00, 0x00}
 )
 
