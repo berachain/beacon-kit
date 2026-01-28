@@ -63,7 +63,7 @@ type Service struct {
 	// metrics is the metrics for the service.
 	metrics *chainMetrics
 	// forceStartupSyncOnce is used to force a sync of the startup head.
-	forceStartupSyncOnce *sync.Once
+	forceStartupSyncOnce sync.Once
 
 	// latestFcuReq holds a copy of the latest FCU sent to the execution layer.
 	// It helps avoid resending the same FCU data (and spares a network call)
@@ -84,18 +84,17 @@ func NewService(
 	telemetrySink TelemetrySink,
 ) *Service {
 	return &Service{
-		storageBackend:       storageBackend,
-		blobProcessor:        blobProcessor,
-		depositContract:      depositContract,
-		eth1FollowDistance:   math.U64(chainSpec.Eth1FollowDistance()),
-		failedBlocks:         make(map[math.Slot]struct{}),
-		logger:               logger,
-		chainSpec:            chainSpec,
-		executionEngine:      executionEngine,
-		localBuilder:         localBuilder,
-		stateProcessor:       stateProcessor,
-		metrics:              newChainMetrics(telemetrySink),
-		forceStartupSyncOnce: new(sync.Once),
+		storageBackend:     storageBackend,
+		blobProcessor:      blobProcessor,
+		depositContract:    depositContract,
+		eth1FollowDistance: math.U64(chainSpec.Eth1FollowDistance()),
+		failedBlocks:       make(map[math.Slot]struct{}),
+		logger:             logger,
+		chainSpec:          chainSpec,
+		executionEngine:    executionEngine,
+		localBuilder:       localBuilder,
+		stateProcessor:     stateProcessor,
+		metrics:            newChainMetrics(telemetrySink),
 	}
 }
 
