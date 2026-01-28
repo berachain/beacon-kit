@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
+	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/starlark_run_config"
 	"github.com/kurtosis-tech/kurtosis/api/golang/engine/lib/kurtosis_context"
 	"github.com/stretchr/testify/suite"
 )
@@ -114,4 +115,16 @@ func (s *KurtosisE2ESuite) GenesisAccount() *types.EthAccount {
 // TestAccounts returns the test accounts for the test suite.
 func (s *KurtosisE2ESuite) TestAccounts() []*types.EthAccount {
 	return s.testAccounts
+}
+
+// RemoveService removes a service by name using kurtosis starlark.
+// Note: Kurtosis doesn't support stopping/restarting services directly,
+// so removal is the only way to simulate service unavailability.
+func (s *KurtosisE2ESuite) RemoveService(serviceName string) error {
+	script := `def run(plan):
+    plan.remove_service(name="` + serviceName + `")
+`
+	runConfig := starlark_run_config.NewRunStarlarkConfig()
+	_, err := s.enclave.RunStarlarkScriptBlocking(s.ctx, script, runConfig)
+	return err
 }

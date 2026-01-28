@@ -10,6 +10,7 @@ COMETBFT_PPROF_PORT_NUM = 6060
 METRICS_PORT_NUM = 26660
 ENGINE_RPC_PORT_NUM = 8551
 NODE_API_PORT_NUM = 3500
+PRECONF_API_PORT_NUM = 9090
 
 # Port IDs
 COMETBFT_RPC_PORT_ID = "cometbft-rpc"
@@ -21,6 +22,7 @@ ENGINE_RPC_PORT_ID = "engine-rpc"
 METRICS_PORT_ID = "metrics"
 METRICS_PATH = "/metrics"
 NODE_API_PORT_ID = "node-api"
+PRECONF_API_PORT_ID = "preconf-api"
 
 USED_PORTS = {
     COMETBFT_RPC_PORT_ID: shared_utils.new_port_spec(COMETBFT_RPC_PORT_NUM, shared_utils.TCP_PROTOCOL),
@@ -29,6 +31,7 @@ USED_PORTS = {
     # ENGINE_RPC_PORT_ID: shared_utils.new_port_spec(ENGINE_RPC_PORT_NUM, shared_utils.TCP_PROTOCOL),
     METRICS_PORT_ID: shared_utils.new_port_spec(METRICS_PORT_NUM, shared_utils.TCP_PROTOCOL, wait = None),
     NODE_API_PORT_ID: shared_utils.new_port_spec(NODE_API_PORT_NUM, shared_utils.TCP_PROTOCOL),
+    PRECONF_API_PORT_ID: shared_utils.new_port_spec(PRECONF_API_PORT_NUM, shared_utils.TCP_PROTOCOL, wait = None),
 }
 
 def get_config(node_struct, engine_dial_url, chain_id, chain_spec, genesis_deposits_root, genesis_deposit_count_hex, entrypoint = [], cmd = [], persistent_peers = "", expose_ports = True, jwt_file = None, kzg_trusted_setup_file = None):
@@ -107,7 +110,7 @@ def perform_genesis_deposits_ceremony(plan, validators, jwt_file, chain_id, chai
     plan.print(multiple_gentx_env_vars)
     plan.print(stored_configs)
 
-    plan.run_sh(
+    result = plan.run_sh(
         run = "chmod +x /app/scripts/multiple-premined-deposits-cl.sh && /app/scripts/multiple-premined-deposits-cl.sh",
         image = validators[0].cl_image,
         files = {
@@ -117,7 +120,12 @@ def perform_genesis_deposits_ceremony(plan, validators, jwt_file, chain_id, chai
         store = stored_configs,
         description = "Collecting beacond genesis files",
     )
-    return stored_configs
+
+    # Return both the StoreSpec list (for names) and the future references (for dependencies)
+    return struct(
+        configs = stored_configs,
+        artifacts = result.files_artifacts,
+    )
 
 def modify_genesis_files_deposits(plan, validators, genesis_files, chain_id, chain_spec, stored_configs):
     num_validators = len(validators)
@@ -200,7 +208,7 @@ def init_consensus_nodes():
     collect_gentx = "/usr/bin/beacond genesis collect-premined-deposits --beacon-kit.chain-spec {} --home {}".format("$BEACOND_CHAIN_SPEC", "$BEACOND_HOME")
     return "{} && {} && {}".format(init_node, add_validator, collect_gentx)
 
-def create_node_config(plan, node_struct, peers, paired_el_client_name, chain_id, chain_spec, genesis_deposits_root, genesis_deposit_count_hex, jwt_file = None, kzg_trusted_setup_file = None):
+def create_node_config(plan, node_struct, peers, paired_el_client_name, chain_id, chain_spec, genesis_deposits_root, genesis_deposit_count_hex, jwt_file = None, kzg_trusted_setup_file = None, preconf_config = None):
     engine_dial_url = "http://{}:{}".format(paired_el_client_name, execution.ENGINE_RPC_PORT_NUM)
 
     persistent_peers = get_persistent_peers(plan, peers)
@@ -208,11 +216,30 @@ def create_node_config(plan, node_struct, peers, paired_el_client_name, chain_id
     app_settings = node_struct.consensus_settings.app
     kzg_impl = node_struct.kzg_impl
 
-    cmd = "{} && {}".format(init_consensus_nodes(), node.start(persistent_peers, False, 0, config_settings, app_settings, kzg_impl))
+    # Determine preconf flags based on configuration
+    preconf_flags = ""
+    preconf_files = []
+    if preconf_config != None and node_struct.node_type == "validator":
+        is_sequencer = (node_struct.index == preconf_config.sequencer_index)
+        if is_sequencer:
+            # Sequencer node - needs whitelist and validator JWTs
+            preconf_flags = "--beacon-kit.preconf.enabled=true --beacon-kit.preconf.sequencer-mode=true"
+            preconf_flags += " --beacon-kit.preconf.whitelist-path=/root/preconf/whitelist.json"
+            preconf_flags += " --beacon-kit.preconf.validator-jwts-path=/root/preconf/validator-jwts.json"
+            preconf_flags += " --beacon-kit.preconf.api-port=9090"
+        else:
+            # Regular validator - needs to fetch from sequencer
+            preconf_flags = "--beacon-kit.preconf.enabled=true"
+            preconf_flags += " --beacon-kit.preconf.sequencer-url=$PRECONF_SEQUENCER_URL"
+            preconf_flags += " --beacon-kit.preconf.sequencer-jwt-path=/root/preconf/jwt-secret.hex"
+            preconf_flags += " --beacon-kit.preconf.whitelist-path=/root/preconf/whitelist.json"
+            preconf_flags += " --beacon-kit.preconf.fetch-timeout=2s"
+
+    cmd = "{} && {}".format(init_consensus_nodes(), node.start(persistent_peers, False, 0, config_settings, app_settings, kzg_impl, preconf_flags))
     if node_struct.node_type == "validator":
-        cmd = node.start(persistent_peers, False, node_struct.index, config_settings, app_settings, kzg_impl)
+        cmd = node.start(persistent_peers, False, node_struct.index, config_settings, app_settings, kzg_impl, preconf_flags)
     elif node_struct.node_type == "seed":
-        cmd = "{} && {}".format(init_consensus_nodes(), node.start(persistent_peers, True, 0, config_settings, app_settings, kzg_impl))
+        cmd = "{} && {}".format(init_consensus_nodes(), node.start(persistent_peers, True, 0, config_settings, app_settings, kzg_impl, preconf_flags))
 
     beacond_config = get_config(
         node_struct,
@@ -235,6 +262,30 @@ def create_node_config(plan, node_struct, peers, paired_el_client_name, chain_id
         )
 
     beacond_config.files["/root/.tmp_genesis"] = Directory(artifact_names = ["cosmos-genesis-final"])
+
+    # Add preconf files if configured
+    if preconf_config != None and node_struct.node_type == "validator":
+        is_sequencer = (node_struct.index == preconf_config.sequencer_index)
+        if is_sequencer:
+            # Sequencer needs whitelist and validator JWTs files
+            if preconf_config.whitelist_file != None and preconf_config.validator_jwts_file != None:
+                beacond_config.files["/root/preconf"] = Directory(
+                    artifact_names = [preconf_config.whitelist_file, preconf_config.validator_jwts_file],
+                )
+        else:
+            # Validator needs its own JWT secret AND the whitelist
+            artifact_names = []
+            if preconf_config.whitelist_file != None:
+                artifact_names.append(preconf_config.whitelist_file)
+            if node_struct.index in preconf_config.validator_jwt_artifacts:
+                # The artifact is stored with name format "validator-jwt-secret-{i}"
+                artifact_names.append("validator-jwt-secret-{}".format(node_struct.index))
+            if len(artifact_names) > 0:
+                beacond_config.files["/root/preconf"] = Directory(artifact_names = artifact_names)
+
+        # Add sequencer URL to env vars for non-sequencer validators
+        if not is_sequencer:
+            beacond_config.env_vars["PRECONF_SEQUENCER_URL"] = "http://{}:9090".format(preconf_config.sequencer_service_name)
 
     plan.print(beacond_config)
 

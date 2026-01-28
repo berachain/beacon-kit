@@ -43,6 +43,7 @@ type RequestPayloadData struct {
 	ParentBlockRoot      common.Root
 	FCState              engineprimitives.ForkchoiceStateV1
 	ParentProposerPubkey *crypto.BLSPubkey // nil for fork versions before Electra1
+	ExpectedProposer     crypto.BLSPubkey  // The validator expected to propose this slot (for preconf)
 }
 
 // RequestPayloadAsync builds a payload for the given slot and
@@ -90,7 +91,7 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 
 	// Only add to cache if we received back a payload ID.
 	if payloadID != nil {
-		pb.pc.Set(r.Slot, r.ParentBlockRoot, *payloadID, forkVersion)
+		pb.pc.Set(r.Slot, r.ParentBlockRoot, *payloadID, forkVersion, r.ExpectedProposer)
 	}
 
 	return payloadID, forkVersion, nil
@@ -269,4 +270,50 @@ func (pb *PayloadBuilder) getPayload(
 		return nil, ErrNilWithdrawals
 	}
 	return envelope, nil
+}
+
+// GetPayloadBySlot retrieves a cached payload by slot only.
+// This is used by the preconf server to serve payloads to validators.
+// Returns ErrPayloadIDNotFound if no payload is cached for the slot.
+func (pb *PayloadBuilder) GetPayloadBySlot(
+	ctx context.Context,
+	slot math.Slot,
+) (ctypes.BuiltExecutionPayloadEnv, error) {
+	if !pb.Enabled() {
+		return nil, ErrPayloadBuilderDisabled
+	}
+
+	// Look up payloadID by slot only
+	payloadRes, blockRoot, found := pb.pc.GetBySlot(slot)
+	if !found {
+		return nil, ErrPayloadIDNotFound
+	}
+
+	// Get the payload from the execution client
+	envelope, err := pb.getPayload(ctx, payloadRes.PayloadID, payloadRes.ForkVersion)
+	if err != nil {
+		if errors.Is(err, engineerrors.ErrUnknownPayload) {
+			// Payload became stale, remove from cache
+			pb.pc.Delete(slot, blockRoot)
+		}
+		return nil, err
+	}
+
+	pb.logger.Info("Payload retrieved by slot for preconf",
+		"slot", slot.Base10(),
+		"block_hash", envelope.GetExecutionPayload().GetBlockHash(),
+	)
+
+	return envelope, nil
+}
+
+// GetExpectedProposer returns the expected proposer for a given slot from the cache.
+// This is used by the preconf server to validate that the requesting validator
+// is the expected proposer for the slot.
+func (pb *PayloadBuilder) GetExpectedProposer(slot math.Slot) (crypto.BLSPubkey, bool) {
+	payloadRes, _, found := pb.pc.GetBySlot(slot)
+	if !found {
+		return crypto.BLSPubkey{}, false
+	}
+	return payloadRes.ExpectedProposer, true
 }

@@ -75,12 +75,25 @@ const (
 	NodeAPIAddress = nodeAPIRoot + "address"
 	NodeAPILogging = nodeAPIRoot + "logging"
 
+	// Preconf Config.
+	preconfRoot          = beaconKitRoot + "preconf."
+	PreconfEnabled       = preconfRoot + "enabled"
+	PreconfSequencerMode = preconfRoot + "sequencer-mode"
+	PreconfWhitelistPath = preconfRoot + "whitelist-path"
+	PreconfValidatorJWTs = preconfRoot + "validator-jwts-path"
+	PreconfAPIPort       = preconfRoot + "api-port"
+	PreconfSequencerURL  = preconfRoot + "sequencer-url"
+	PreconfSequencerJWT  = preconfRoot + "sequencer-jwt-path"
+	PreconfFetchTimeout  = preconfRoot + "fetch-timeout"
+
 	// BLS Config.
 	PrivValidatorKeyFile   = "priv_validator_key_file"
 	PrivValidatorStateFile = "priv_validator_state_file"
 )
 
 // AddBeaconKitFlags implements servertypes.ModuleInitFlags interface.
+//
+//nolint:funlen // its ok
 func AddBeaconKitFlags(startCmd *cobra.Command) {
 	defaultCfg := config.DefaultConfig()
 	startCmd.Flags().Duration(
@@ -174,5 +187,45 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 		NodeAPILogging,
 		defaultCfg.NodeAPI.Logging,
 		"node api logging",
+	)
+	startCmd.Flags().Bool(
+		PreconfEnabled,
+		defaultCfg.Preconf.Enabled,
+		"enable preconfirmation support",
+	)
+	startCmd.Flags().Bool(
+		PreconfSequencerMode,
+		defaultCfg.Preconf.SequencerMode,
+		"run as preconf sequencer (triggers FCU for whitelisted proposers)",
+	)
+	startCmd.Flags().String(
+		PreconfWhitelistPath,
+		defaultCfg.Preconf.WhitelistPath,
+		"path to whitelist JSON file containing validator pubkeys",
+	)
+	startCmd.Flags().String(
+		PreconfValidatorJWTs,
+		defaultCfg.Preconf.ValidatorJWTsPath,
+		"path to validator JWTs mapping file (sequencer only)",
+	)
+	startCmd.Flags().Int(
+		PreconfAPIPort,
+		defaultCfg.Preconf.APIPort,
+		"preconf API server port (sequencer only)",
+	)
+	startCmd.Flags().String(
+		PreconfSequencerURL,
+		defaultCfg.Preconf.SequencerURL,
+		"URL of the sequencer's preconf API endpoint",
+	)
+	startCmd.Flags().String(
+		PreconfSequencerJWT,
+		defaultCfg.Preconf.SequencerJWTPath,
+		"path to JWT secret for authenticating with sequencer",
+	)
+	startCmd.Flags().Duration(
+		PreconfFetchTimeout,
+		defaultCfg.Preconf.FetchTimeout,
+		"timeout for fetching payload from sequencer",
 	)
 }
