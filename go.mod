@@ -56,7 +56,7 @@ require (
 
 // build/test dependencies
 require (
-	github.com/attestantio/go-eth2-client v0.27.2
+	github.com/attestantio/go-eth2-client v0.28.0
 	github.com/cosmos/ics23/go v0.11.0
 	github.com/ethereum/go-ethereum v1.15.5
 	github.com/ferranbt/fastssz v0.1.5-0.20240903094032-455b54c08c81
@@ -85,6 +85,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.3.1 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5 // indirect
+	github.com/OffchainLabs/go-bitfield v0.0.0-20251031151322-f427d04d8506 // indirect
 	github.com/VictoriaMetrics/fastcache v1.12.2 // indirect
 	github.com/adrg/xdg v0.4.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
