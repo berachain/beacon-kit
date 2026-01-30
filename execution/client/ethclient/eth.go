@@ -70,8 +70,8 @@ func (s *Client) SubscribeFilterLogs(
 	return nil, errors.New("not implemented")
 }
 
-func toFilterArg(q ethereum.FilterQuery) (interface{}, error) {
-	arg := map[string]interface{}{
+func toFilterArg(q ethereum.FilterQuery) (any, error) {
+	arg := map[string]any{
 		"address": q.Addresses,
 		"topics":  q.Topics,
 	}

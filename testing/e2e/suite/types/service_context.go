@@ -75,7 +75,7 @@ func (s *WrappedServiceContext) Start(
 	ctx context.Context,
 	enclaveContext *enclaves.EnclaveContext,
 ) (*enclaves.StarlarkRunResult, error) {
-	res, err := s.RunHelper(ctx, "start_service", map[string]interface{}{
+	res, err := s.RunHelper(ctx, "start_service", map[string]any{
 		"service_name": s.GetServiceName(),
 	})
 	if err != nil {
@@ -97,7 +97,7 @@ func (s *WrappedServiceContext) Start(
 func (s *WrappedServiceContext) Stop(
 	ctx context.Context,
 ) (*enclaves.StarlarkRunResult, error) {
-	return s.RunHelper(ctx, "stop_service", map[string]interface{}{
+	return s.RunHelper(ctx, "stop_service", map[string]any{
 		"service_name": s.GetServiceName(),
 	})
 }
@@ -105,7 +105,7 @@ func (s *WrappedServiceContext) Stop(
 func (s *WrappedServiceContext) RunHelper(
 	ctx context.Context,
 	mainFunctionName string,
-	args map[string]interface{},
+	args map[string]any,
 ) (*enclaves.StarlarkRunResult, error) {
 	jsonBytes, err := json.Marshal(args)
 	if err != nil {

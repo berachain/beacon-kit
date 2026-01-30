@@ -70,7 +70,7 @@ func SetConfigTemplate(customTemplate string) error {
 
 // WriteConfigFile renders config using the template and writes it to
 // configFilePath.
-func WriteConfigFile(configFilePath string, config interface{}) error {
+func WriteConfigFile(configFilePath string, config any) error {
 	var buffer bytes.Buffer
 
 	if err := configTemplate.Execute(&buffer, config); err != nil {

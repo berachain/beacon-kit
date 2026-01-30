@@ -45,7 +45,7 @@ type CustomValidator struct {
 }
 
 // Validate validates the given interface.
-func (cv *CustomValidator) Validate(i interface{}) error {
+func (cv *CustomValidator) Validate(i any) error {
 	if err := cv.Validator.Struct(i); err != nil {
 		var validationErrors validator.ValidationErrors
 		hasValidationErrors := errors.As(err, &validationErrors)
