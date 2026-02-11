@@ -107,7 +107,7 @@ func TestRetrievePayloadSunnyPath(t *testing.T) {
 
 	// set expectations
 	expectedForkVersion := version.Deneb()
-	cache.Set(slot, parentBlockRoot, dummyPayloadID, expectedForkVersion, crypto.BLSPubkey{})
+	cache.Set(slot, parentBlockRoot, dummyPayloadID, expectedForkVersion)
 	ee.payloadEnvToReturn = expectedPayload
 
 	// test and checks
@@ -156,7 +156,7 @@ func TestRetrievePayloadNilWithdrawalsListRejected(t *testing.T) {
 
 	// set expectations
 	expectedForkVersion := version.Deneb()
-	cache.Set(slot, parentBlockRoot, dummyPayloadID, expectedForkVersion, crypto.BLSPubkey{})
+	cache.Set(slot, parentBlockRoot, dummyPayloadID, expectedForkVersion)
 	ee.payloadEnvToReturn = faultyPayload
 
 	// test and checks
