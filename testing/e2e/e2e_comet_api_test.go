@@ -218,7 +218,7 @@ func (s *BeaconKitE2ESuite) TestCometBFTBlock() {
 	header, ok := blockData["header"].(map[string]any)
 	s.Require().True(ok, "block should have a 'header' field")
 	s.Require().NotEmpty(header["chain_id"], "header should have chain_id")
-	s.Require().Equal("5", header["height"], "header height should match requested height")
+	s.Require().Equal(float64(5), header["height"], "header height should match requested height")
 	s.Require().NotEmpty(header["time"], "header should have time")
 
 	_, ok = blockData["data"].(map[string]any)
@@ -254,7 +254,7 @@ func (s *BeaconKitE2ESuite) TestCometBFTSignedHeader() {
 	header, ok := shData["header"].(map[string]any)
 	s.Require().True(ok, "signed header should have a 'header' field")
 	s.Require().NotEmpty(header["chain_id"], "header should have chain_id")
-	s.Require().Equal("5", header["height"], "header height should match requested height")
+	s.Require().Equal(float64(5), header["height"], "header height should match requested height")
 	s.Require().NotEmpty(header["time"], "header should have time")
 
 	commit, ok := shData["commit"].(map[string]any)
@@ -305,7 +305,7 @@ func (s *BeaconKitE2ESuite) TestCometBFTSignedHeaderMatchesCommit() {
 		"chain_id from node-api should match CometBFT RPC",
 	)
 	s.Require().Equal(
-		"5",
+		float64(5),
 		apiHeader["height"],
 		"height from node-api should match requested height",
 	)
