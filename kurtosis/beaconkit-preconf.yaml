@@ -24,7 +24,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 # BeaconKit local devnet configuration with preconfirmation enabled.
-# This config enables preconf support with validator 0 as the sequencer.
+# The sequencer is a dedicated non-validator node that builds optimistic payloads.
 
 network_configuration:
   chain_id: 80087
@@ -52,6 +52,11 @@ network_configuration:
     nodes:
       - el_type: reth
         replicas: 1
+  # Dedicated sequencer node (non-validator) for preconfirmation.
+  # Runs reth in sequencer mode with flashblock support.
+  sequencer_node:
+    el_type: reth
+    kzg_impl: crate-crypto/go-kzg-4844
 node_settings:
   consensus_settings:
     specs:
@@ -78,7 +83,8 @@ node_settings:
       max_memory: 2048
     images:
       geth: ghcr.io/berachain/bera-geth:latest
-      reth: ghcr.io/berachain/bera-reth:nightly
+      # Use local bera-reth image built with: cd /path/to/bera-reth && make docker-build-local
+      reth: bera-reth:local
 eth_json_rpc_endpoints:
   # type has to be either blutgang or nginx
   - type: blutgang
@@ -89,15 +95,14 @@ eth_json_rpc_endpoints:
 additional_services:
   - name: "spamoor"
   - name: "tx-fuzz"
-    replicas: 16
+    replicas: 1
   - name: "prometheus"
   - name: "grafana"
   - name: "pyroscope"
+  - name: "flashblock-monitor"
 # Preconfirmation configuration
-# - enabled: Turns on preconf support for all validators
-# - sequencer_index: Validator index that runs as the sequencer (default: 0)
-#   The sequencer triggers optimistic payload builds for all whitelisted validators.
-#   All other validators fetch payloads from the sequencer.
+# - enabled: Turns on preconf support for all validators.
+#   The sequencer_node triggers optimistic payload builds for whitelisted validators.
+#   All validators fetch payloads from the sequencer.
 preconf:
   enabled: true
-  sequencer_index: 0

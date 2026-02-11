@@ -33,6 +33,7 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/net/jwt"
 )
@@ -82,13 +83,14 @@ func NewClient(
 	}
 }
 
-// GetPayloadBySlot fetches a payload from the sequencer for the given slot.
+// GetPayloadBySlot fetches a payload from the sequencer for the given slot and parent block root.
 func (c *Client) GetPayloadBySlot(
 	ctx context.Context,
 	slot math.Slot,
+	parentBlockRoot common.Root,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
 	// Build request
-	reqBody := GetPayloadRequest{Slot: slot}
+	reqBody := GetPayloadRequest{Slot: slot, ParentBlockRoot: parentBlockRoot}
 	reqJSON, err := json.Marshal(reqBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
@@ -116,8 +118,7 @@ func (c *Client) GetPayloadBySlot(
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		c.logger.Warn("Failed to contact sequencer", "error", err)
-		return nil, errors.Wrapf(ErrSequencerUnavailable, "request failed: %w", err)
+		return nil, errors.Wrapf(ErrSequencerUnavailable, "request failed: %v", err)
 	}
 	if resp == nil || resp.Body == nil {
 		return nil, errors.New("received nil response from sequencer")
@@ -148,9 +149,16 @@ func (c *Client) GetPayloadBySlot(
 		return nil, fmt.Errorf("failed to parse response: %w", err)
 	}
 
+	var blockHash interface{}
+	if payloadResp.ExecutionPayload != nil {
+		blockHash = payloadResp.ExecutionPayload.GetBlockHash()
+	} else {
+		blockHash = "nil"
+	}
+
 	c.logger.Info("Successfully fetched payload from sequencer",
 		"slot", slot,
-		"block_hash", payloadResp.ExecutionPayload.GetBlockHash(),
+		"block_hash", blockHash,
 	)
 
 	return payloadResp.ToExecutionPayloadEnvelope(), nil

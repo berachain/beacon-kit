@@ -1,13 +1,23 @@
 # Preconf configuration module for generating whitelist and JWT files.
 # This module handles the setup of preconfirmation infrastructure in the devnet.
 
+shared_utils = import_module("github.com/ethpandaops/ethereum-package/src/shared_utils/shared_utils.star")
+
 # Default port for the preconf API server
 DEFAULT_PRECONF_API_PORT = 9090
 
 # JWT secret length (32 bytes in hex = 64 chars + 0x prefix)
 JWT_SECRET_LENGTH = 66
 
-def generate_preconf_config(plan, validators, sequencer_index = 0):
+# Flashblock WebSocket port for sequencer mode
+FLASHBLOCK_WS_PORT_NUM = 8548
+FLASHBLOCK_WS_PORT_ID = "flashblock-ws"
+
+# Pre-defined BLS signing key for sequencer (32 bytes hex)
+# In production, this should be securely generated and managed
+SEQUENCER_SIGNING_KEY = "0x0000000000000000000000000000000000000000000000000000000000000001"
+
+def generate_preconf_config(plan, validators, sequencer_node):
     """
     Generate preconfirmation configuration files for the devnet.
 
@@ -19,15 +29,16 @@ def generate_preconf_config(plan, validators, sequencer_index = 0):
     Args:
         plan: The Kurtosis plan object
         validators: List of validator structs from the node parsing
-        sequencer_index: Index of the validator that will run as sequencer (default: 0)
+        sequencer_node: The dedicated sequencer node struct
 
     Returns:
         A struct containing:
-        - whitelist_file: Artifact name for the whitelist JSON
-        - validator_jwts_file: Artifact name for the validator JWTs mapping
-        - validator_jwt_secrets: Dict mapping validator index to JWT secret artifact
-        - sequencer_index: The index of the sequencer validator
-        - sequencer_url: The URL validators should use to connect to sequencer
+        - jwt_secrets: List of JWT secret strings
+        - validator_jwt_artifacts: Dict mapping validator index to JWT artifact
+        - sequencer_service_name: CL service name of the sequencer
+        - sequencer_el_service_name: EL service name of the sequencer
+        - sequencer_signing_key_artifact: Signing key file artifact
+        - num_validators: Number of validators
     """
     num_validators = len(validators)
 
@@ -51,8 +62,9 @@ def generate_preconf_config(plan, validators, sequencer_index = 0):
         if i < len(predefined_secrets):
             jwt_secrets.append(predefined_secrets[i])
         else:
-            # Fallback for more than 10 validators - use base secret with index suffix
-            jwt_secrets.append("0xabcdef00000000000000000000000000000000000000000000000000000000" + str(i))
+            # Fallback for more than 10 validators - deterministic 32-byte hex derived from index
+            index_hex = "%064x" % i
+            jwt_secrets.append("0x" + index_hex)
 
     # Create whitelist.json content
     # We'll use placeholder pubkeys that will be replaced after genesis ceremony
@@ -81,14 +93,28 @@ def generate_preconf_config(plan, validators, sequencer_index = 0):
         )
         validator_jwt_artifacts[i] = artifact
 
-    # Get the sequencer service name for URL construction
-    sequencer_service_name = validators[sequencer_index].cl_service_name
+    # Get the sequencer service names from the dedicated sequencer node
+    sequencer_service_name = sequencer_node.cl_service_name
+    sequencer_el_service_name = sequencer_node.el_service_name
+
+    # Create the sequencer BLS signing key file
+    signing_key_artifact = plan.render_templates(
+        config = {
+            "signing-key.hex": struct(
+                template = SEQUENCER_SIGNING_KEY + "\n",
+                data = {},
+            ),
+        },
+        name = "sequencer-signing-key",
+        description = "Creating BLS signing key for sequencer",
+    )
 
     return struct(
         jwt_secrets = jwt_secrets,
         validator_jwt_artifacts = validator_jwt_artifacts,
-        sequencer_index = sequencer_index,
         sequencer_service_name = sequencer_service_name,
+        sequencer_el_service_name = sequencer_el_service_name,
+        sequencer_signing_key_artifact = signing_key_artifact,
         num_validators = num_validators,
     )
 
@@ -176,6 +202,5 @@ def get_preconf_start_flags(is_sequencer, sequencer_url = "", preconf_enabled = 
         if sequencer_url != "":
             flags += " --beacon-kit.preconf.sequencer-url={}".format(sequencer_url)
             flags += " --beacon-kit.preconf.sequencer-jwt-path=/root/preconf/jwt-secret.hex"
-            flags += " --beacon-kit.preconf.fetch-timeout=2s"
 
     return flags

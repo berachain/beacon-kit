@@ -21,6 +21,9 @@ WS_PORT_NUM = defaults.WS_PORT_NUM
 ENGINE_RPC_PORT_NUM = defaults.ENGINE_RPC_PORT_NUM
 METRICS_PORT_NUM = defaults.METRICS_PORT_NUM
 
+# Flashblock WebSocket port for sequencer mode
+FLASHBLOCK_WS_PORT_NUM = 8548
+
 METRICS_PATH = defaults.METRICS_PATH
 
 ENTRYPOINT = ["sh", "-c"]
@@ -109,11 +112,43 @@ VERBOSITY_LEVELS = {
 USED_PORTS = defaults.USED_PORTS
 USED_PORTS_TEMPLATE = defaults.USED_PORTS_TEMPLATE
 
+# Flashblock WS port for sequencer mode (added dynamically when sequencer is enabled)
+FLASHBLOCK_WS_PORT_ID = "flashblock-ws"
+
 def set_max_peers(config, max_peers):
-    cmdList = config["cmd"][:]
-    cmdList.append(MAX_PEERS_OUTBOUND_CMD)
-    cmdList.append(max_peers)
-    cmdList.append(MAX_PEERS_INBOUND_CMD)
-    cmdList.append(max_peers)
-    config["cmd"] = cmdList
+    cmd_list = config["cmd"][:]
+    cmd_list.append(MAX_PEERS_OUTBOUND_CMD)
+    cmd_list.append(max_peers)
+    cmd_list.append(MAX_PEERS_INBOUND_CMD)
+    cmd_list.append(max_peers)
+    config["cmd"] = cmd_list
+    return config
+
+def get_sequencer_cmd_args():
+    """Get command arguments for sequencer mode."""
+    return [
+        "--sequencer-enabled",
+        "--flashblock-ws-addr",
+        "0.0.0.0:{}".format(FLASHBLOCK_WS_PORT_NUM),
+        "--flashblock-signing-key",
+        "/root/sequencer/signing-key.hex",
+    ]
+
+def add_sequencer_mode(config):
+    """Add sequencer mode configuration to reth node config."""
+    # Add sequencer command arguments
+    cmd_list = config["cmd"][:]
+    cmd_list.extend(get_sequencer_cmd_args())
+    config["cmd"] = cmd_list
+
+    # Add flashblock WS port (must be a dict, not PortSpec)
+    ports = dict(config["ports"])
+    ports[FLASHBLOCK_WS_PORT_ID] = {
+        "number": FLASHBLOCK_WS_PORT_NUM,
+        "transport_protocol": "TCP",
+        "application_protocol": "",
+        "wait": "15s",
+    }
+    config["ports"] = ports
+
     return config

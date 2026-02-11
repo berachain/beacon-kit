@@ -32,10 +32,9 @@ import (
 )
 
 type PayloadCache interface {
-	Get(slot math.Slot, stateRoot common.Root) (cache.PayloadIDCacheResult, bool)
-	GetBySlot(slot math.Slot) (cache.PayloadIDCacheResult, common.Root, bool)
-	Set(slot math.Slot, stateRoot common.Root, pid engineprimitives.PayloadID, version common.Version, expectedProposer crypto.BLSPubkey)
-	Delete(slot math.Slot, stateRoot common.Root)
+	Get(slot math.Slot, blockRoot common.Root) (cache.PayloadIDCacheResult, bool)
+	Set(slot math.Slot, blockRoot common.Root, pid engineprimitives.PayloadID, version common.Version)
+	Delete(slot math.Slot, blockRoot common.Root)
 }
 
 // AttributesFactory is the interface for the attributes factory.

@@ -36,6 +36,8 @@ const (
 type GetPayloadRequest struct {
 	// Slot is the slot number for which to retrieve the payload.
 	Slot math.Slot `json:"slot"`
+	// ParentBlockRoot is the parent block root used to look up the cached payload.
+	ParentBlockRoot common.Root `json:"parent_block_root"`
 }
 
 // GetPayloadResponse is the response body for the GetPayload endpoint.

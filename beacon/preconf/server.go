@@ -32,6 +32,7 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/net/jwt"
@@ -40,7 +41,7 @@ import (
 
 const (
 	// jwtValidityWindow is the time window for JWT validity (iat claim).
-	jwtValidityWindow = 60 * time.Second
+	jwtValidityWindow = 5 * time.Minute
 
 	// serverShutdownTimeout is the timeout for graceful server shutdown.
 	serverShutdownTimeout = 5 * time.Second
@@ -52,12 +53,10 @@ const (
 	authHeaderParts = 2
 )
 
-// PayloadProvider is an interface for retrieving payloads by slot.
+// PayloadProvider is an interface for retrieving payloads by slot and parent block root.
 type PayloadProvider interface {
-	// GetPayloadBySlot returns the payload for the given slot if available.
-	GetPayloadBySlot(ctx context.Context, slot math.Slot) (ctypes.BuiltExecutionPayloadEnv, error)
-	// GetExpectedProposer returns the expected proposer for the given slot.
-	GetExpectedProposer(slot math.Slot) (crypto.BLSPubkey, bool)
+	// GetPayloadBySlot returns the payload for the given slot and parent block root if available.
+	GetPayloadBySlot(ctx context.Context, slot math.Slot, parentBlockRoot common.Root) (ctypes.BuiltExecutionPayloadEnv, error)
 }
 
 // Server is the preconf API server that serves GetPayload requests from validators.
@@ -110,7 +109,12 @@ func (s *Server) Start(_ context.Context) error {
 	s.httpServer = server
 	s.mu.Unlock()
 
-	s.logger.Info("Starting preconf API server", "address", addr)
+	s.logger.Info("Starting preconf API server", "address", addr, "num_validator_jwts", len(s.validatorJWTs))
+
+	// Log the registered validator pubkeys for debugging
+	for pubkey := range s.validatorJWTs {
+		s.logger.Info("Registered validator JWT", "pubkey", pubkey.String())
+	}
 
 	go func() {
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -169,45 +173,33 @@ func (s *Server) handleGetPayload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate that the requesting validator is the expected proposer for this slot
-	expectedProposer, found := s.payloadProvider.GetExpectedProposer(req.Slot)
-	if !found {
-		s.logger.Warn("No expected proposer found for slot", "slot", req.Slot)
-		s.writeError(w, http.StatusNotFound, "no payload building in progress for slot")
-		return
-	}
-	if expectedProposer != pubkey {
-		s.logger.Warn("Validator is not the expected proposer",
-			"slot", req.Slot,
-			"expected", expectedProposer.String()[:16]+"...",
-			"actual", pubkey.String()[:16]+"...",
-		)
-		s.writeError(w, http.StatusForbidden, "validator is not the expected proposer for this slot")
-		return
-	}
+	s.logger.Info("Preconf server received payload request",
+		"slot", req.Slot,
+		"validator_pubkey", pubkey.String(),
+	)
 
 	// Get the payload from provider
 	ctx := r.Context()
-	envelope, err := s.payloadProvider.GetPayloadBySlot(ctx, req.Slot)
+	startTime := time.Now()
+	envelope, err := s.payloadProvider.GetPayloadBySlot(ctx, req.Slot, req.ParentBlockRoot)
+	elapsed := time.Since(startTime)
 	if err != nil {
-		s.logger.Warn("Failed to get payload", "slot", req.Slot, "error", err)
+		s.logger.Warn("Failed to get payload",
+			"slot", req.Slot,
+			"error", err,
+			"elapsed", elapsed,
+		)
 		s.writeError(w, http.StatusNotFound, "payload not available: "+err.Error())
 		return
 	}
 
-	// Convert to response
-	resp := NewGetPayloadResponseFromEnvelope(envelope)
-
-	s.logger.Info("Serving payload to validator",
-		"slot", req.Slot,
-		"validator", pubkey.String()[:16]+"...",
-	)
-
 	// Write response
 	w.Header().Set("Content-Type", "application/json")
-	if err = json.NewEncoder(w).Encode(resp); err != nil {
+	if err = json.NewEncoder(w).Encode(NewGetPayloadResponseFromEnvelope(envelope)); err != nil {
 		s.logger.Error("Failed to encode response", "error", err)
 	}
+
+	s.logger.Info("GetPayloadBySlot completed", "slot", req.Slot, "elapsed", elapsed)
 }
 
 // validateJWT validates the JWT token from the Authorization header and returns

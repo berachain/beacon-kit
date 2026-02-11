@@ -46,7 +46,6 @@ start-devnet-no-build:
 		--enclave my-local-devnet --parallelism 200
 
 # Starts a Kurtosis enclave with preconfirmation enabled.
-# Validator 0 runs as the sequencer, all others fetch payloads from it.
 start-devnet-preconf: install-kurtosis
 	$(MAKE) build-docker VERSION=kurtosis-local start-devnet-preconf-no-build
 

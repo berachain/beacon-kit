@@ -43,7 +43,6 @@ type RequestPayloadData struct {
 	ParentBlockRoot      common.Root
 	FCState              engineprimitives.ForkchoiceStateV1
 	ParentProposerPubkey *crypto.BLSPubkey // nil for fork versions before Electra1
-	ExpectedProposer     crypto.BLSPubkey  // The validator expected to propose this slot (for preconf)
 }
 
 // RequestPayloadAsync builds a payload for the given slot and
@@ -91,7 +90,7 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 
 	// Only add to cache if we received back a payload ID.
 	if payloadID != nil {
-		pb.pc.Set(r.Slot, r.ParentBlockRoot, *payloadID, forkVersion, r.ExpectedProposer)
+		pb.pc.Set(r.Slot, r.ParentBlockRoot, *payloadID, forkVersion)
 	}
 
 	return payloadID, forkVersion, nil
@@ -272,48 +271,71 @@ func (pb *PayloadBuilder) getPayload(
 	return envelope, nil
 }
 
-// GetPayloadBySlot retrieves a cached payload by slot only.
+// GetPayloadBySlot retrieves a cached payload by slot and parent block root.
 // This is used by the preconf server to serve payloads to validators.
-// Returns ErrPayloadIDNotFound if no payload is cached for the slot.
+// It retries briefly on cache misses and unknown-payload errors to tolerate
+// the race where the optimistic build goroutine hasn't completed yet.
+// Returns ErrPayloadIDNotFound if no payload is cached after all retries.
 func (pb *PayloadBuilder) GetPayloadBySlot(
 	ctx context.Context,
 	slot math.Slot,
+	parentBlockRoot common.Root,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
 	if !pb.Enabled() {
 		return nil, ErrPayloadBuilderDisabled
 	}
 
-	// Look up payloadID by slot only
-	payloadRes, blockRoot, found := pb.pc.GetBySlot(slot)
-	if !found {
-		return nil, ErrPayloadIDNotFound
-	}
-
-	// Get the payload from the execution client
-	envelope, err := pb.getPayload(ctx, payloadRes.PayloadID, payloadRes.ForkVersion)
-	if err != nil {
-		if errors.Is(err, engineerrors.ErrUnknownPayload) {
-			// Payload became stale, remove from cache
-			pb.pc.Delete(slot, blockRoot)
-		}
-		return nil, err
-	}
-
-	pb.logger.Info("Payload retrieved by slot for preconf",
-		"slot", slot.Base10(),
-		"block_hash", envelope.GetExecutionPayload().GetBlockHash(),
+	const (
+		maxRetries    = 5
+		retryInterval = 50 * time.Millisecond
 	)
 
-	return envelope, nil
-}
+	var lastErr error
+	for attempt := range maxRetries {
+		payloadRes, found := pb.pc.Get(slot, parentBlockRoot)
+		if !found {
+			lastErr = ErrPayloadIDNotFound
+			if attempt < maxRetries-1 {
+				select {
+				case <-ctx.Done():
+					return nil, ctx.Err()
+				case <-time.After(retryInterval):
+				}
+			}
+			continue
+		}
 
-// GetExpectedProposer returns the expected proposer for a given slot from the cache.
-// This is used by the preconf server to validate that the requesting validator
-// is the expected proposer for the slot.
-func (pb *PayloadBuilder) GetExpectedProposer(slot math.Slot) (crypto.BLSPubkey, bool) {
-	payloadRes, _, found := pb.pc.GetBySlot(slot)
-	if !found {
-		return crypto.BLSPubkey{}, false
+		envelope, err := pb.getPayload(ctx, payloadRes.PayloadID, payloadRes.ForkVersion)
+		if err != nil {
+			lastErr = err
+			if errors.Is(err, engineerrors.ErrUnknownPayload) {
+				if attempt < maxRetries-1 {
+					select {
+					case <-ctx.Done():
+						return nil, ctx.Err()
+					case <-time.After(retryInterval):
+					}
+					continue
+				}
+				// Final attempt — remove stale cache entry.
+				pb.pc.Delete(slot, parentBlockRoot)
+			}
+			return nil, err
+		}
+
+		if attempt > 0 {
+			pb.logger.Info("GetPayloadBySlot succeeded after retry",
+				"slot", slot.Base10(),
+				"attempts", attempt+1,
+			)
+		}
+		return envelope, nil
 	}
-	return payloadRes.ExpectedProposer, true
+
+	pb.logger.Warn("GetPayloadBySlot failed after retries",
+		"slot", slot.Base10(),
+		"attempts", maxRetries,
+		"error", lastErr,
+	)
+	return nil, lastErr
 }
