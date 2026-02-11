@@ -221,7 +221,7 @@ func (s *Service) retrieveExecutionPayload(
 
 	// If preconf is enabled and we should fetch from sequencer, try that first
 	if s.shouldFetchFromSequencer() {
-		envelope, err := s.fetchFromSequencer(ctx, slot)
+		envelope, err := s.fetchFromSequencer(ctx, slot, parentBlockRoot)
 		if err == nil {
 			s.logger.Info("Using payload from sequencer", "slot", slot.Base10())
 			return envelope, nil
@@ -479,6 +479,7 @@ func (s *Service) shouldFetchFromSequencer() bool {
 func (s *Service) fetchFromSequencer(
 	ctx context.Context,
 	slot math.Slot,
+	parentBlockRoot common.Root,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
-	return s.preconfClient.GetPayloadBySlot(ctx, slot)
+	return s.preconfClient.GetPayloadBySlot(ctx, slot, parentBlockRoot)
 }

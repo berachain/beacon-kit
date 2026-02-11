@@ -36,8 +36,7 @@ type PreconfWhitelistInput struct {
 }
 
 // ProvidePreconfWhitelist is a function that provides the module to the
-// application. Returns an empty whitelist if preconf is disabled or not
-// in sequencer mode.
+// application. Returns nil if preconf is disabled or no whitelist is configured.
 //
 //nolint:nilnil // nil whitelist indicates preconf is disabled
 func ProvidePreconfWhitelist(in PreconfWhitelistInput) (preconf.Whitelist, error) {

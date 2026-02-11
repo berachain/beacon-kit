@@ -303,20 +303,32 @@ func (s *Service) VerifyIncomingBlock(
 
 	// Determine if we should optimistically build a payload for the next slot.
 	var shouldBuildNextPayload bool
-	var expectedProposerPubkey crypto.BLSPubkey
 	if s.localBuilder.Enabled() {
-		if isNextBlockProposer {
+		switch {
+		case isNextBlockProposer && !s.preconfCfg.ShouldFetchFromSequencer():
+			// We're the next proposer and not fetching from sequencer,
+			// build optimistically on local EL for ourselves.
 			shouldBuildNextPayload = true
-		} else if s.preconfCfg != nil && s.preconfCfg.IsSequencer() {
-			expectedProposerPubkey, err = s.getNextProposerPubkey(state, nextProposerAddress)
+			s.logger.Info("Next proposer is this node, building optimistically",
+				"current_block_slot", blkSlot.Base10(),
+				"target_build_slot", (blkSlot + 1).Base10(),
+			)
+		case s.preconfCfg.IsSequencer():
+			// We're the sequencer, build for whitelisted validators.
+			// Only check whitelist if we can resolve the next proposer pubkey.
+			expectedProposerPubkey, err := s.getNextProposerPubkey(state, nextProposerAddress)
 			if err != nil {
 				s.logger.Error("Failed to get next proposer pubkey", "error", err)
 			} else {
 				shouldBuildNextPayload = s.preconfWhitelist.IsWhitelisted(expectedProposerPubkey)
-				if shouldBuildNextPayload {
-					s.logger.Info("Sequencer mode: next proposer is whitelisted, triggering optimistic build")
-				}
 			}
+			s.logger.Info("Sequencer mode: determined next proposer",
+				"current_block_slot", blkSlot.Base10(),
+				"target_build_slot", (blkSlot + 1).Base10(),
+				"next_proposer_address", fmt.Sprintf("%x", nextProposerAddress),
+				"expected_proposer_pubkey", expectedProposerPubkey.String(),
+				"is_whitelisted", shouldBuildNextPayload,
+			)
 		}
 	}
 
@@ -324,14 +336,14 @@ func (s *Service) VerifyIncomingBlock(
 	if shouldBuildNextPayload {
 		// makes sure that preFetchBuildData does not affect state
 		ephemeralState := state.Protect(ctx)
-		nextBlockData, err = s.preFetchBuildData(ephemeralState, blk.GetConsensusTime(), expectedProposerPubkey)
+		nextBlockData, err = s.preFetchBuildData(ephemeralState, blk.GetConsensusTime())
 		if err != nil {
 			// We don't return with err if pre-fetch fails. Instead we log the issue
 			// and still move to process the current block. Next block can always be
 			// built right after current height is finalized.
 			s.logger.Warn(
 				"Failed pre fetching data for optimistic block building",
-				"case", "block rejectiong",
+				"case", "block rejection",
 				"err", err,
 			)
 		}
@@ -365,7 +377,7 @@ func (s *Service) VerifyIncomingBlock(
 	if shouldBuildNextPayload {
 		// makes sure that preFetchBuildDataForSuccess does not affect state
 		ephemeralState := state.Protect(ctx)
-		nextBlockData, err = s.preFetchBuildData(ephemeralState, blk.GetConsensusTime(), expectedProposerPubkey)
+		nextBlockData, err = s.preFetchBuildData(ephemeralState, blk.GetConsensusTime())
 		if err != nil {
 			// We don't mark the block as rejected if it is valid but pre-fetch fails.
 			// Instead we log the issue and move to process the current block.
@@ -377,6 +389,7 @@ func (s *Service) VerifyIncomingBlock(
 			)
 			return valUpdates, nil
 		}
+		s.optimisticBuildTriggered.Store(true)
 		go s.handleOptimisticPayloadBuild(ctx, nextBlockData)
 	}
 

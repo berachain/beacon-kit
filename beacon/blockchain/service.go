@@ -80,6 +80,12 @@ type Service struct {
 	// - Validator: checks if self is whitelisted to fetch payload from sequencer
 	// Can be nil if preconf is disabled.
 	preconfWhitelist preconf.Whitelist
+
+	// optimisticBuildTriggered tracks whether ProcessProposal triggered an
+	// optimistic payload build for the next slot. FinalizeBlock checks this
+	// flag: if ProcessProposal was skipped (e.g., late proposal), the flag
+	// remains false and FinalizeBlock triggers the build as a fallback.
+	optimisticBuildTriggered atomic.Bool
 }
 
 // NewService creates a new validator service.

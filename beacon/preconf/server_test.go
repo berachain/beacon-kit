@@ -58,39 +58,34 @@ func TestServer_HandleGetPayload(t *testing.T) {
 	secretB, _ := jwt.NewFromHex(secretBHex)
 
 	tests := []struct {
-		name             string
-		requestSlot      math.Slot
-		requestJWT       *jwt.Secret
-		expectedProposer crypto.BLSPubkey
-		payloadExists    bool
-		wantStatus       int
-		wantContains     string
+		name          string
+		requestSlot   math.Slot
+		requestJWT    *jwt.Secret
+		payloadExists bool
+		wantStatus    int
+		wantContains  string
 	}{
 		{
-			name:             "success - correct proposer",
-			requestSlot:      100,
-			requestJWT:       secretA,
-			expectedProposer: validatorA,
-			payloadExists:    true,
-			wantStatus:       http.StatusOK,
+			name:          "success - authenticated whitelisted validator",
+			requestSlot:   100,
+			requestJWT:    secretA,
+			payloadExists: true,
+			wantStatus:    http.StatusOK,
 		},
 		{
-			name:             "forbidden - wrong proposer",
-			requestSlot:      100,
-			requestJWT:       secretB,
-			expectedProposer: validatorA,
-			payloadExists:    true,
-			wantStatus:       http.StatusForbidden,
-			wantContains:     "not the expected proposer",
+			name:          "success - different authenticated validator",
+			requestSlot:   100,
+			requestJWT:    secretB,
+			payloadExists: true,
+			wantStatus:    http.StatusOK,
 		},
 		{
-			name:             "not found - no payload for slot",
-			requestSlot:      999,
-			requestJWT:       secretA,
-			expectedProposer: validatorA,
-			payloadExists:    false,
-			wantStatus:       http.StatusNotFound,
-			wantContains:     "no payload building",
+			name:          "not found - no payload for slot",
+			requestSlot:   999,
+			requestJWT:    secretA,
+			payloadExists: false,
+			wantStatus:    http.StatusNotFound,
+			wantContains:  "payload not available",
 		},
 		{
 			name:         "unauthorized - missing auth",
@@ -106,8 +101,7 @@ func TestServer_HandleGetPayload(t *testing.T) {
 			t.Parallel()
 
 			provider := &mockPayloadProvider{
-				expectedProposer: tt.expectedProposer,
-				hasPayload:       tt.payloadExists,
+				hasPayload: tt.payloadExists,
 			}
 			server := preconf.NewServer(
 				noop.NewLogger[any](),
@@ -150,22 +144,18 @@ func TestServer_RejectsNonPostMethods(t *testing.T) {
 
 // mockPayloadProvider implements PayloadProvider for tests.
 type mockPayloadProvider struct {
-	expectedProposer crypto.BLSPubkey
-	hasPayload       bool
+	hasPayload bool
 }
 
 func (m *mockPayloadProvider) GetPayloadBySlot(
 	_ context.Context,
 	_ math.Slot,
+	_ common.Root,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
 	if !m.hasPayload {
 		return nil, preconf.ErrPayloadNotFound
 	}
 	return &mockPayloadEnvelope{forkVersion: version.Deneb1()}, nil
-}
-
-func (m *mockPayloadProvider) GetExpectedProposer(_ math.Slot) (crypto.BLSPubkey, bool) {
-	return m.expectedProposer, m.hasPayload
 }
 
 // mockPayloadEnvelope implements BuiltExecutionPayloadEnv.

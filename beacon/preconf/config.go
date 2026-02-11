@@ -26,7 +26,7 @@ const (
 	// DefaultAPIPort is the default port for the preconf API server.
 	DefaultAPIPort = 9090
 
-	// DefaultFetchTimeout is the default timeout for fetching payloads from sequencer.
+	// DefaultFetchTimeout is the default timeout for the HTTP client when fetching payloads from sequencer.
 	DefaultFetchTimeout = 500 * time.Millisecond
 )
 
@@ -80,10 +80,10 @@ func DefaultConfig() Config {
 
 // IsSequencer returns true if this node is configured as the sequencer.
 func (c *Config) IsSequencer() bool {
-	return c.Enabled && c.SequencerMode
+	return c != nil && c.Enabled && c.SequencerMode
 }
 
 // ShouldFetchFromSequencer returns true if this node should fetch payloads from sequencer.
 func (c *Config) ShouldFetchFromSequencer() bool {
-	return c.Enabled && c.SequencerURL != ""
+	return c != nil && c.Enabled && c.SequencerURL != ""
 }

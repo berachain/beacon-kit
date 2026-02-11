@@ -40,6 +40,20 @@ EXECUTION_DEFAULT_SETTINGS = {
 
 CL_TYPE = "beaconkit"
 
+def parse_sequencer_node(sequencer_config, settings):
+    """Parse a single sequencer node configuration.
+
+    Args:
+        sequencer_config: Dict with el_type and optional kzg_impl
+        settings: Node settings dict
+
+    Returns:
+        A single node struct with node_type="sequencer"
+    """
+    consensus_settings = parse_consensus_settings(settings)
+    execution_settings = parse_execution_settings(settings)
+    return parse_node_from_dict("sequencer", sequencer_config, consensus_settings, execution_settings, 0)
+
 def parse_nodes_from_dict(vals, settings):
     node_type = vals["type"]
     node_list = []
