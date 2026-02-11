@@ -89,7 +89,7 @@ func displayInfo(dst io.Writer, info printInfo) error {
 		return err
 	}
 
-	_, err = fmt.Fprintf(dst, "%s\n", out)
+	_, err = fmt.Fprintf(dst, "%s\n", out) //#nosec:G705 // CLI output of JSON-marshaled config, not web content.
 
 	return err
 }
