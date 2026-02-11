@@ -90,5 +90,5 @@ func (c *Config) ShouldFetchFromSequencer() bool {
 
 // ShouldFetchFromSequencer returns true if this node should fetch payloads from sequencer.
 func (c *Config) ShouldFetchFromSequencer() bool {
-	return c.Enabled && c.SequencerURL != ""
+	return c != nil && c.Enabled && c.SequencerURL != ""
 }
