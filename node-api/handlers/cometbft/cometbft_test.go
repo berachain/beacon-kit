@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/log/noop"
 	cometbftapi "github.com/berachain/beacon-kit/node-api/handlers/cometbft"
 	"github.com/berachain/beacon-kit/node-api/handlers/cometbft/mocks"
+	"github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/middleware"
 	cmtversion "github.com/cometbft/cometbft/api/cometbft/version/v1"
 	cmttypes "github.com/cometbft/cometbft/types"
@@ -141,6 +142,7 @@ func TestGetBlock(t *testing.T) {
 			check: func(t *testing.T, res any, err error) {
 				t.Helper()
 				require.Error(t, err)
+				require.ErrorIs(t, err, types.ErrNotFound)
 				require.Contains(t, err.Error(), "block not found")
 				require.Nil(t, res)
 			},
@@ -283,6 +285,7 @@ func TestGetSignedHeader(t *testing.T) {
 			check: func(t *testing.T, res any, err error) {
 				t.Helper()
 				require.Error(t, err)
+				require.ErrorIs(t, err, types.ErrNotFound)
 				require.Contains(t, err.Error(), "signed header not found")
 				require.Nil(t, res)
 			},

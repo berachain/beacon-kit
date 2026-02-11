@@ -21,9 +21,9 @@
 package cometbft
 
 import (
-	"fmt"
-
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-api/handlers"
+	"github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 )
 
@@ -37,7 +37,7 @@ func (h *Handler) GetSignedHeader(c handlers.Context) (any, error) {
 
 	signedHeader := h.backend.GetCometBFTSignedHeader(req.Height)
 	if signedHeader == nil {
-		return nil, fmt.Errorf("signed header not found at height %d", req.Height)
+		return nil, errors.Wrapf(types.ErrNotFound, "signed header not found at height %d", req.Height)
 	}
 
 	return Response{Data: signedHeader}, nil
