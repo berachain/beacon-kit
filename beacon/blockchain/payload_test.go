@@ -409,7 +409,6 @@ func computeStateRoot(
 		WithVerifyResult(false).
 		WithMeterGas(false)
 
-	//nolint:contextcheck // we need txCtx
 	if _, err := sp.Transition(txCtx, st, blk); err != nil {
 		return common.Root{}, err
 	}

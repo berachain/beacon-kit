@@ -323,10 +323,6 @@ func (s *Service) GetSignedHeader(height int64) *cmttypes.SignedHeader {
 	}
 }
 
-
-
-
-
 // AppVersion returns the application's protocol version.
 func (s *Service) AppVersion(_ context.Context) (uint64, error) {
 	return s.appVersion()

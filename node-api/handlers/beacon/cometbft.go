@@ -67,4 +67,3 @@ func (h *Handler) GetCometBFTSignedHeader(c handlers.Context) (any, error) {
 	// Return CometBFT signed header directly - it has native JSON serialization
 	return beacontypes.NewResponse(signedHeader), nil
 }
-

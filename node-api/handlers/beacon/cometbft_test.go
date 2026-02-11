@@ -34,8 +34,8 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/mocks"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/middleware"
-	cmttypes "github.com/cometbft/cometbft/types"
 	cmtversion "github.com/cometbft/cometbft/api/cometbft/version/v1"
+	cmttypes "github.com/cometbft/cometbft/types"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -44,8 +44,8 @@ import (
 func TestGetCometBFTBlock(t *testing.T) {
 	t.Parallel()
 
-	cs, err := spec.DevnetChainSpec()
-	require.NoError(t, err)
+	cs, errSpec := spec.DevnetChainSpec()
+	require.NoError(t, errSpec)
 
 	testTime := time.Date(2024, 1, 26, 12, 0, 0, 0, time.UTC)
 	testBlock := &cmttypes.Block{
@@ -154,6 +154,17 @@ func TestGetCometBFTBlock(t *testing.T) {
 				require.Nil(t, res)
 			},
 		},
+		{
+			name:                "invalid height - non-numeric",
+			height:              "abc",
+			setMockExpectations: func(_ *mocks.Backend) {},
+			check: func(t *testing.T, res any, err error) {
+				t.Helper()
+				require.Error(t, err)
+				require.Contains(t, err.Error(), "failed to bind request")
+				require.Nil(t, res)
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -183,8 +194,8 @@ func TestGetCometBFTBlock(t *testing.T) {
 func TestGetCometBFTSignedHeader(t *testing.T) {
 	t.Parallel()
 
-	cs, err := spec.DevnetChainSpec()
-	require.NoError(t, err)
+	cs, errSpec := spec.DevnetChainSpec()
+	require.NoError(t, errSpec)
 
 	testTime := time.Date(2024, 1, 26, 12, 0, 0, 0, time.UTC)
 	testSignedHeader := &cmttypes.SignedHeader{
@@ -291,6 +302,17 @@ func TestGetCometBFTSignedHeader(t *testing.T) {
 				require.Nil(t, res)
 			},
 		},
+		{
+			name:                "invalid height - non-numeric",
+			height:              "abc",
+			setMockExpectations: func(_ *mocks.Backend) {},
+			check: func(t *testing.T, res any, err error) {
+				t.Helper()
+				require.Error(t, err)
+				require.Contains(t, err.Error(), "failed to bind request")
+				require.Nil(t, res)
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -320,8 +342,8 @@ func TestGetCometBFTSignedHeader(t *testing.T) {
 func TestCometBFTConversionFunctions(t *testing.T) {
 	t.Parallel()
 
-	cs, err := spec.DevnetChainSpec()
-	require.NoError(t, err)
+	cs, errSpec := spec.DevnetChainSpec()
+	require.NoError(t, errSpec)
 
 	t.Run("Block conversion includes all fields", func(t *testing.T) {
 		testTime := time.Date(2024, 1, 26, 12, 0, 0, 123456789, time.UTC)
@@ -466,8 +488,8 @@ func TestCometBFTConversionFunctions(t *testing.T) {
 func TestCometBFTEndpoints_Integration(t *testing.T) {
 	t.Parallel()
 
-	cs, err := spec.DevnetChainSpec()
-	require.NoError(t, err)
+	cs, errSpec := spec.DevnetChainSpec()
+	require.NoError(t, errSpec)
 
 	backend := mocks.NewBackend(t)
 	h := beacon.NewHandler(backend, cs, noop.NewLogger[log.Logger]())
@@ -537,12 +559,12 @@ func TestCometBFTEndpoints_Integration(t *testing.T) {
 
 	// Verify all results are properly formatted
 	for _, result := range []any{blockResult, signedHeaderResult} {
-		respJSON, err := json.Marshal(result)
-		require.NoError(t, err)
+		respJSON, marshalErr := json.Marshal(result)
+		require.NoError(t, marshalErr)
 
 		var response beacontypes.GenericResponse
-		err = json.Unmarshal(respJSON, &response)
-		require.NoError(t, err)
+		marshalErr = json.Unmarshal(respJSON, &response)
+		require.NoError(t, marshalErr)
 
 		require.True(t, response.Finalized)
 		require.False(t, response.ExecutionOptimistic)
@@ -552,8 +574,8 @@ func TestCometBFTEndpoints_Integration(t *testing.T) {
 func TestCometBFTEndpoints_MockExpectations(t *testing.T) {
 	t.Parallel()
 
-	cs, err := spec.DevnetChainSpec()
-	require.NoError(t, err)
+	cs, errSpec := spec.DevnetChainSpec()
+	require.NoError(t, errSpec)
 
 	backend := mocks.NewBackend(t)
 	h := beacon.NewHandler(backend, cs, noop.NewLogger[log.Logger]())

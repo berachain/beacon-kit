@@ -168,6 +168,3 @@ func (b *Backend) GetCometBFTBlock(height int64) *cmttypes.Block {
 func (b *Backend) GetCometBFTSignedHeader(height int64) *cmttypes.SignedHeader {
 	return b.node.GetSignedHeader(height)
 }
-
-
-

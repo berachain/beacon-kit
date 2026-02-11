@@ -289,6 +289,5 @@ func registerRoutes(h *Handler) {
 			Path:    "/eth/v1/beacon/cometbft/signed_header/:height",
 			Handler: h.GetCometBFTSignedHeader,
 		},
-
 	})
 }
