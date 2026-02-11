@@ -24,6 +24,7 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/node-api/handlers"
+	handlertypes "github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 )
 
@@ -37,7 +38,7 @@ func (h *Handler) GetBlock(c handlers.Context) (any, error) {
 
 	block := h.backend.GetCometBFTBlock(req.Height)
 	if block == nil {
-		return nil, fmt.Errorf("block not found at height %d", req.Height)
+		return nil, fmt.Errorf("%w: block not found at height %d", handlertypes.ErrNotFound, req.Height)
 	}
 
 	return Response{Data: block}, nil
