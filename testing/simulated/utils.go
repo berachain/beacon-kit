@@ -42,6 +42,7 @@ import (
 	"github.com/berachain/beacon-kit/da/kzg/gokzg"
 	"github.com/berachain/beacon-kit/errors"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
+	gethtypes "github.com/berachain/beacon-kit/geth-primitives/types"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
@@ -57,7 +58,7 @@ import (
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	gethtypes "github.com/ethereum/go-ethereum/core/types"
+	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
 )
@@ -319,7 +320,7 @@ func DefaultSimulationInput(
 	overrideBaseFeePerGas := origBlock.GetBody().GetExecutionPayload().GetBaseFeePerGas().ToBig()
 	overrideBeaconRoot := gethcommon.HexToHash(origBlock.GetParentBlockRoot().Hex())
 	origWithdrawls := origBlock.GetBody().GetExecutionPayload().GetWithdrawals()
-	overrideWithdrawals := *(*gethtypes.Withdrawals)(unsafe.Pointer(&origWithdrawls))
+	overrideWithdrawals := *(*coretypes.Withdrawals)(unsafe.Pointer(&origWithdrawls))
 
 	calls, err := execution.TxsToTransactionArgs(chainSpec.DepositEth1ChainID(), txs)
 	require.NoError(t, err)
@@ -497,7 +498,7 @@ func updateBeaconBlockBody(
 	latestBlock *ctypes.BeaconBlock,
 	forkVersion common.Version,
 	execBlock *gethtypes.Block,
-	sidecars []*gethtypes.BlobTxSidecar, // adjust type as needed
+	sidecars []*coretypes.BlobTxSidecar, // adjust type as needed
 	executionRequests *ctypes.ExecutionRequests,
 ) *ctypes.BeaconBlock {
 	var erBytes [][]byte
@@ -509,7 +510,7 @@ func updateBeaconBlockBody(
 		}
 	}
 	// Convert the Geth block into ExecutableData.
-	execData := gethprimitives.BlockToExecutableData(execBlock, nil, sidecars, erBytes)
+	execData := gethtypes.BlockToExecutableData(execBlock, nil, sidecars, erBytes)
 	// Convert the ExecutableData into our internal ExecutionPayload type.
 	execPayload, err := transformExecutableDataToExecutionPayload(forkVersion, execData.ExecutionPayload)
 	require.NoError(t, err, "failed to convert executable data")

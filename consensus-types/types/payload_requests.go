@@ -27,6 +27,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/errors"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
+	gethtypes "github.com/berachain/beacon-kit/geth-primitives/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -202,7 +203,7 @@ func MakeEthBlock(
 	executionRequests []EncodedExecutionRequest,
 	parentProposerPubKey *crypto.BLSPubkey,
 ) (
-	*gethprimitives.Block,
+	*gethtypes.Block,
 	[]gethprimitives.ExecutionHash,
 	error,
 ) {
@@ -223,7 +224,7 @@ func MakeEthBlock(
 	wds := payload.GetWithdrawals()
 	withdrawalsHash := gethprimitives.DeriveSha(wds, gethprimitives.NewStackTrie(nil))
 
-	blkHeader := &gethprimitives.Header{
+	blkHeader := &gethtypes.Header{
 		ParentHash:           gethprimitives.ExecutionHash(payload.GetParentHash()),
 		UncleHash:            gethprimitives.EmptyUncleHash,
 		Coinbase:             gethprimitives.ExecutionAddress(payload.GetFeeRecipient()),
@@ -243,7 +244,7 @@ func MakeEthBlock(
 		ExcessBlobGas:        payload.GetExcessBlobGas().UnwrapPtr(),
 		BlobGasUsed:          payload.GetBlobGasUsed().UnwrapPtr(),
 		ParentBeaconRoot:     (*gethprimitives.ExecutionHash)(&parentBeaconBlockRoot),
-		ParentProposerPubkey: (*gethprimitives.ExecutionPubkey)(parentProposerPubKey),
+		ParentProposerPubkey: (*gethtypes.ExecutionPubkey)(parentProposerPubKey),
 	}
 
 	if version.EqualsOrIsAfter(payload.GetForkVersion(), version.Electra()) {
@@ -258,8 +259,8 @@ func MakeEthBlock(
 		blkHeader.RequestsHash = &reqHash
 	}
 
-	block := gethprimitives.NewBlockWithHeader(blkHeader).WithBody(
-		gethprimitives.Body{
+	block := gethtypes.NewBlockWithHeader(blkHeader).WithBody(
+		gethtypes.Body{
 			Transactions: txs,
 			Uncles:       nil,
 			Withdrawals:  *(*gethprimitives.Withdrawals)(unsafe.Pointer(&wds)), //#nosec:G103 // its okay.
