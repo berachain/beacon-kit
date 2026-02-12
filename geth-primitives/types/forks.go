@@ -18,7 +18,6 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-//nolint:all // This package contains types copied/adapted from go-ethereum (geth).
 package types
 
 // Fork is a numerical identifier of specific network upgrades (forks).

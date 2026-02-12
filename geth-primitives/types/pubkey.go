@@ -18,7 +18,6 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-//nolint:all // This package contains types copied/adapted from go-ethereum (geth).
 package types
 
 import (
@@ -58,12 +57,12 @@ func (p ExecutionPubkey) Format(s fmt.State, c rune) {
 		}
 		fallthrough
 	case 'v', 's':
-		s.Write(hexb)
+		s.Write(hexb) // #nosec G104 -- fmt.State.Write errors are conventionally ignored
 	case 'q':
 		q := []byte{'"'}
-		s.Write(q)
-		s.Write(hexb)
-		s.Write(q)
+		s.Write(q)    // #nosec G104 -- fmt.State.Write errors are conventionally ignored
+		s.Write(hexb) // #nosec G104 -- fmt.State.Write errors are conventionally ignored
+		s.Write(q)    // #nosec G104 -- fmt.State.Write errors are conventionally ignored
 	case 'd':
 		fmt.Fprint(s, ([len(p)]byte)(p))
 	default:

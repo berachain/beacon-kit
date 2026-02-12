@@ -192,7 +192,7 @@ func (g *Genesis) toBlockWithRoot(root common.Hash) *Block {
 		withdrawals []*types.Withdrawal
 	)
 	if conf := g.Config; conf != nil {
-		num := big.NewInt(int64(g.Number))
+		num := new(big.Int).SetUint64(g.Number)
 		if conf.IsShanghai(num, g.Timestamp) {
 			head.WithdrawalsHash = &types.EmptyWithdrawalsHash
 			withdrawals = make([]*types.Withdrawal, 0)

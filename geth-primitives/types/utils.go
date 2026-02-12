@@ -18,7 +18,6 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-//nolint:all // This package contains types copied/adapted from go-ethereum (geth).
 package types
 
 import (
@@ -40,7 +39,7 @@ func rlpHash(x interface{}) (h common.Hash) {
 	sha := hasherPool.Get().(crypto.KeccakState)
 	defer hasherPool.Put(sha)
 	sha.Reset()
-	rlp.Encode(sha, x)
-	sha.Read(h[:])
+	rlp.Encode(sha, x) // #nosec G104 -- hash writer never errors
+	sha.Read(h[:])      // #nosec G104 -- KeccakState.Read never errors
 	return h
 }
