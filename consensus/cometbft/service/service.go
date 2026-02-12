@@ -304,6 +304,25 @@ func (s *Service) GetBlock(height int64) *cmttypes.Block {
 	return block
 }
 
+// GetSignedHeader returns the CometBFT signed header (header + commit) at the given height.
+func (s *Service) GetSignedHeader(height int64) *cmttypes.SignedHeader {
+	if s.node == nil {
+		return nil
+	}
+	block, _ := s.node.BlockStore().LoadBlock(height)
+	if block == nil {
+		return nil
+	}
+	commit := s.node.BlockStore().LoadBlockCommit(height)
+	if commit == nil {
+		return nil
+	}
+	return &cmttypes.SignedHeader{
+		Header: &block.Header,
+		Commit: commit,
+	}
+}
+
 // AppVersion returns the application's protocol version.
 func (s *Service) AppVersion(_ context.Context) (uint64, error) {
 	return s.appVersion()

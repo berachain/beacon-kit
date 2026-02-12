@@ -123,3 +123,7 @@ func (s *SimComet) GetSyncData() (int64, int64) {
 func (s *SimComet) GetBlock(height int64) *cmttypes.Block {
 	return s.Comet.GetBlock(height)
 }
+
+func (s *SimComet) GetSignedHeader(height int64) *cmttypes.SignedHeader {
+	return s.Comet.GetSignedHeader(height)
+}
