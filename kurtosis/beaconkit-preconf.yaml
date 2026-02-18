@@ -57,6 +57,12 @@ network_configuration:
   sequencer_node:
     el_type: reth
     kzg_impl: crate-crypto/go-kzg-4844
+  preconf_rpc_nodes:
+    type: "preconf-rpc"
+    nodes:
+      - el_type: reth
+        kzg_impl: crate-crypto/go-kzg-4844
+        replicas: 1
 node_settings:
   consensus_settings:
     specs:

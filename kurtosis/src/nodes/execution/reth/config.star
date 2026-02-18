@@ -152,3 +152,15 @@ def add_sequencer_mode(config):
     config["ports"] = ports
 
     return config
+
+def add_flashblocks_consumer_mode(config, sequencer_el_service_name):
+    """Add flashblocks consumer configuration to reth node config.
+
+    Configures this reth node to subscribe to the sequencer's flashblock
+    WebSocket stream and serve preconf-aware RPC methods.
+    """
+    cmd_list = config["cmd"][:]
+    cmd_list.append("--flashblocks-url")
+    cmd_list.append("ws://{}:{}".format(sequencer_el_service_name, FLASHBLOCK_WS_PORT_NUM))
+    config["cmd"] = cmd_list
+    return config

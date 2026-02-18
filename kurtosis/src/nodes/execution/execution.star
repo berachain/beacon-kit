@@ -149,6 +149,14 @@ def generate_node_config(plan, node_modules, node_struct, chain_id, chain_spec, 
             files_dict["/root/sequencer"] = preconf_config.sequencer_signing_key_artifact
             el_service_config_dict["files"] = files_dict
 
+    # Enable flashblocks consumer mode for preconf RPC nodes
+    if preconf_config != None and node_struct.node_type == "preconf-rpc" and node_struct.el_type == "reth":
+        if hasattr(node_module, "add_flashblocks_consumer_mode"):
+            el_service_config_dict = node_module.add_flashblocks_consumer_mode(
+                el_service_config_dict,
+                preconf_config.sequencer_el_service_name,
+            )
+
     return el_service_config_dict
 
 def add_metrics(metrics_enabled_services, node, el_service_name, el_client_service, node_modules):
