@@ -37,6 +37,7 @@ type (
 	// currently a Keccak256 hash.
 	ExecutionHash  = common.Hash
 	ExecutableData = engine.ExecutableData
+	GenesisAlloc   = coretypes.GenesisAlloc
 	Log            = coretypes.Log
 	LogsBloom      = coretypes.Bloom
 	Transaction    = coretypes.Transaction
