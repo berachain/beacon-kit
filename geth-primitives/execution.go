@@ -23,7 +23,6 @@ package gethprimitives
 import (
 	"github.com/ethereum/go-ethereum/beacon/engine"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/trie"
 )
@@ -38,13 +37,8 @@ type (
 	// currently a Keccak256 hash.
 	ExecutionHash  = common.Hash
 	ExecutableData = engine.ExecutableData
-	Genesis        = core.Genesis
-	GenesisAlloc   = coretypes.GenesisAlloc
-	Block          = coretypes.Block
-	Body           = coretypes.Body
 	Log            = coretypes.Log
 	LogsBloom      = coretypes.Bloom
-	Receipt        = coretypes.Receipt
 	Transaction    = coretypes.Transaction
 	Transactions   = coretypes.Transactions
 	Withdrawals    = coretypes.Withdrawals

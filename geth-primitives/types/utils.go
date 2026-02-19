@@ -40,6 +40,6 @@ func rlpHash(x interface{}) (h common.Hash) {
 	defer hasherPool.Put(sha)
 	sha.Reset()
 	rlp.Encode(sha, x) // #nosec G104 -- hash writer never errors
-	sha.Read(h[:])      // #nosec G104 -- KeccakState.Read never errors
+	sha.Read(h[:])     // #nosec G104 -- KeccakState.Read never errors
 	return h
 }
