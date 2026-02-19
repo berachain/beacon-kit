@@ -120,19 +120,25 @@ func (s *EngineClient) handleRPCError(
 	}
 }
 
+// isTransientError defines RPC errors that are likely transient and can
+// be recovered from by retrying (e.g. EL temporarily overloaded).
+func isTransientError(err error) bool {
+	return errors.IsAny(err, jsonrpc.ErrServer, jsonrpc.ErrInternal)
+}
+
 // IsFatalError defines errors that indicate a bad request or an otherwise
-// unusable client.
+// unusable client. Transient errors are excluded since they are retryable.
 func IsFatalError(err error) bool {
-	return jsonrpc.IsPreDefinedError(err) || errors.IsAny(
+	return !isTransientError(err) && (jsonrpc.IsPreDefinedError(err) || errors.IsAny(
 		err,
 		ErrBadConnection,
-	)
+	))
 }
 
 // IsNonFatalError defines errors that should be ephemeral and can be
 // recovered from simply by retrying.
 func IsNonFatalError(err error) bool {
-	return errors.IsAny(
+	return isTransientError(err) || errors.IsAny(
 		err,
 		engineerrors.ErrEngineAPITimeout,
 		http.ErrTimeout,
