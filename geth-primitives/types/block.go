@@ -53,13 +53,8 @@ import (
 type Block struct {
 	header       *Header
 	uncles       []*Header
-	transactions coretypes.Transactions
+	transactions Transactions
 	withdrawals  coretypes.Withdrawals
-
-	// witness is not an encoded part of the block body.
-	// It is held in Block in order for easy relaying to the places
-	// that process it.
-	witness *coretypes.ExecutionWitness
 
 	// caches
 	hash atomic.Pointer[common.Hash]
@@ -74,7 +69,7 @@ type Block struct {
 // Body is a simple (mutable, non-safe) data container for storing and moving
 // a block's data contents (transactions and uncles) together.
 type Body struct {
-	Transactions []*coretypes.Transaction
+	Transactions []*Transaction
 	Uncles       []*Header
 	Withdrawals  []*coretypes.Withdrawal `rlp:"optional"`
 }
@@ -101,8 +96,8 @@ func NewBlock(header *Header, body *Body, receipts []*coretypes.Receipt, hasher 
 	if len(txs) == 0 {
 		b.header.TxHash = coretypes.EmptyTxsHash
 	} else {
-		b.header.TxHash = coretypes.DeriveSha(coretypes.Transactions(txs), hasher)
-		b.transactions = make(coretypes.Transactions, len(txs))
+		b.header.TxHash = coretypes.DeriveSha(Transactions(txs), hasher)
+		b.transactions = make(Transactions, len(txs))
 		copy(b.transactions, txs)
 	}
 
@@ -155,7 +150,6 @@ func (b *Block) WithBody(body Body) *Block {
 		transactions: slices.Clone(body.Transactions),
 		uncles:       make([]*Header, len(body.Uncles)),
 		withdrawals:  slices.Clone(body.Withdrawals),
-		witness:      b.witness,
 	}
 	for i := range body.Uncles {
 		block.uncles[i] = CopyHeader(body.Uncles[i])
@@ -176,8 +170,8 @@ func (b *Block) Hash() common.Hash {
 
 // Accessors for body data. These do not return a copy because the content
 // of the body slices does not affect the cached hash/size in block.
-func (b *Block) Transactions() coretypes.Transactions { return b.transactions }
-func (b *Block) Withdrawals() coretypes.Withdrawals   { return b.withdrawals }
+func (b *Block) Transactions() Transactions         { return b.transactions }
+func (b *Block) Withdrawals() coretypes.Withdrawals { return b.withdrawals }
 
 // Header value accessors. These do copy!
 
@@ -281,7 +275,7 @@ func BlockToExecutableData(block *Block, fees *big.Int, sidecars []*coretypes.Bl
 	}
 }
 
-func encodeTransactions(txs []*coretypes.Transaction) [][]byte {
+func encodeTransactions(txs []*Transaction) [][]byte {
 	var enc = make([][]byte, len(txs))
 	for i, tx := range txs {
 		enc[i], _ = tx.MarshalBinary()

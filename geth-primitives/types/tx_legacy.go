@@ -18,35 +18,32 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package gethprimitives
+package types
 
 import (
-	"github.com/ethereum/go-ethereum/beacon/engine"
+	"bytes"
+	"math/big"
+
 	"github.com/ethereum/go-ethereum/common"
-	coretypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/trie"
 )
 
-type (
-	// ExecutionAddress represents an address on the execution layer
-	// which is derived via secp256k1 w/recovery bit.
-	//
-	// Related: https://eips.ethereum.org/EIPS/eip-55
-	ExecutionAddress = common.Address
-	// ExecutionHash represents a hash on the execution layer which is
-	// currently a Keccak256 hash.
-	ExecutionHash  = common.Hash
-	ExecutableData = engine.ExecutableData
-	GenesisAlloc   = coretypes.GenesisAlloc
-	Log            = coretypes.Log
-	LogsBloom      = coretypes.Bloom
-	Withdrawals    = coretypes.Withdrawals
-)
+// LegacyTx is the transaction data of the original Ethereum transactions.
+type LegacyTx struct {
+	Nonce    uint64          // nonce of sender account
+	GasPrice *big.Int        // wei per gas
+	Gas      uint64          // gas limit
+	To       *common.Address `rlp:"nil"` // nil means contract creation
+	Value    *big.Int        // wei amount
+	Data     []byte          // contract invocation input data
+	V, R, S  *big.Int        // signature values
+}
 
-//nolint:gochecknoglobals // alias.
-var (
-	DeriveSha        = coretypes.DeriveSha
-	EmptyUncleHash   = coretypes.EmptyUncleHash
-	NewStackTrie     = trie.NewStackTrie
-	CalcRequestsHash = coretypes.CalcRequestsHash
-)
+func (tx *LegacyTx) txType() byte { return LegacyTxType }
+
+func (tx *LegacyTx) encode(*bytes.Buffer) error {
+	panic("encode called on LegacyTx")
+}
+
+func (tx *LegacyTx) decode([]byte) error {
+	panic("decode called on LegacyTx)")
+}

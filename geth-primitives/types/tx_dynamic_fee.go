@@ -18,35 +18,41 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package gethprimitives
+package types
 
 import (
-	"github.com/ethereum/go-ethereum/beacon/engine"
+	"bytes"
+	"math/big"
+
 	"github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/trie"
+	"github.com/ethereum/go-ethereum/rlp"
 )
 
-type (
-	// ExecutionAddress represents an address on the execution layer
-	// which is derived via secp256k1 w/recovery bit.
-	//
-	// Related: https://eips.ethereum.org/EIPS/eip-55
-	ExecutionAddress = common.Address
-	// ExecutionHash represents a hash on the execution layer which is
-	// currently a Keccak256 hash.
-	ExecutionHash  = common.Hash
-	ExecutableData = engine.ExecutableData
-	GenesisAlloc   = coretypes.GenesisAlloc
-	Log            = coretypes.Log
-	LogsBloom      = coretypes.Bloom
-	Withdrawals    = coretypes.Withdrawals
-)
+// DynamicFeeTx represents an EIP-1559 transaction.
+type DynamicFeeTx struct {
+	ChainID    *big.Int
+	Nonce      uint64
+	GasTipCap  *big.Int // a.k.a. maxPriorityFeePerGas
+	GasFeeCap  *big.Int // a.k.a. maxFeePerGas
+	Gas        uint64
+	To         *common.Address `rlp:"nil"` // nil means contract creation
+	Value      *big.Int
+	Data       []byte
+	AccessList coretypes.AccessList
 
-//nolint:gochecknoglobals // alias.
-var (
-	DeriveSha        = coretypes.DeriveSha
-	EmptyUncleHash   = coretypes.EmptyUncleHash
-	NewStackTrie     = trie.NewStackTrie
-	CalcRequestsHash = coretypes.CalcRequestsHash
-)
+	// Signature values
+	V *big.Int
+	R *big.Int
+	S *big.Int
+}
+
+func (tx *DynamicFeeTx) txType() byte { return DynamicFeeTxType }
+
+func (tx *DynamicFeeTx) encode(b *bytes.Buffer) error {
+	return rlp.Encode(b, tx)
+}
+
+func (tx *DynamicFeeTx) decode(input []byte) error {
+	return rlp.DecodeBytes(input, tx)
+}

@@ -208,12 +208,12 @@ func MakeEthBlock(
 	error,
 ) {
 	var (
-		txs        = make([]*gethprimitives.Transaction, 0, len(payload.GetTransactions()))
+		txs        = make([]*gethtypes.Transaction, 0, len(payload.GetTransactions()))
 		blobHashes = make([]gethprimitives.ExecutionHash, 0)
 	)
 
 	for i, encTx := range payload.GetTransactions() {
-		var tx gethprimitives.Transaction
+		var tx gethtypes.Transaction
 		if err := tx.UnmarshalBinary(encTx); err != nil {
 			return nil, nil, errors.Wrapf(err, "invalid transaction %d", i)
 		}
@@ -229,7 +229,7 @@ func MakeEthBlock(
 		UncleHash:            gethprimitives.EmptyUncleHash,
 		Coinbase:             gethprimitives.ExecutionAddress(payload.GetFeeRecipient()),
 		Root:                 gethprimitives.ExecutionHash(payload.GetStateRoot()),
-		TxHash:               gethprimitives.DeriveSha(gethprimitives.Transactions(txs), gethprimitives.NewStackTrie(nil)),
+		TxHash:               gethprimitives.DeriveSha(gethtypes.Transactions(txs), gethprimitives.NewStackTrie(nil)),
 		ReceiptHash:          gethprimitives.ExecutionHash(payload.GetReceiptsRoot()),
 		Bloom:                gethprimitives.LogsBloom(payload.GetLogsBloom()),
 		Difficulty:           big.NewInt(0),

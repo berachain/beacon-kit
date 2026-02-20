@@ -18,35 +18,33 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package gethprimitives
+package types
 
 import (
-	"github.com/ethereum/go-ethereum/beacon/engine"
+	"bytes"
+	"math/big"
+
 	"github.com/ethereum/go-ethereum/common"
-	coretypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/trie"
+	"github.com/ethereum/go-ethereum/rlp"
 )
 
-type (
-	// ExecutionAddress represents an address on the execution layer
-	// which is derived via secp256k1 w/recovery bit.
-	//
-	// Related: https://eips.ethereum.org/EIPS/eip-55
-	ExecutionAddress = common.Address
-	// ExecutionHash represents a hash on the execution layer which is
-	// currently a Keccak256 hash.
-	ExecutionHash  = common.Hash
-	ExecutableData = engine.ExecutableData
-	GenesisAlloc   = coretypes.GenesisAlloc
-	Log            = coretypes.Log
-	LogsBloom      = coretypes.Bloom
-	Withdrawals    = coretypes.Withdrawals
-)
+// PoLTx represents an BRIP-0004 transaction. No gas is consumed for execution.
+type PoLTx struct {
+	ChainID  *big.Int
+	From     common.Address // system address
+	To       common.Address // address of the PoL Distributor contract
+	Nonce    uint64         // block number distributing for
+	GasLimit uint64         // artificial gas limit for the PoL tx, not consumed against the block gas limit
+	GasPrice *big.Int       // gas price is set to the baseFee to make the tx valid for EIP-1559 rules
+	Data     []byte         // encodes the pubkey distributing for
+}
 
-//nolint:gochecknoglobals // alias.
-var (
-	DeriveSha        = coretypes.DeriveSha
-	EmptyUncleHash   = coretypes.EmptyUncleHash
-	NewStackTrie     = trie.NewStackTrie
-	CalcRequestsHash = coretypes.CalcRequestsHash
-)
+func (*PoLTx) txType() byte { return PoLTxType }
+
+func (tx *PoLTx) encode(b *bytes.Buffer) error {
+	return rlp.Encode(b, tx)
+}
+
+func (tx *PoLTx) decode(input []byte) error {
+	return rlp.DecodeBytes(input, tx)
+}

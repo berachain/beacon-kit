@@ -18,35 +18,43 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package gethprimitives
+package types
 
 import (
-	"github.com/ethereum/go-ethereum/beacon/engine"
+	"bytes"
+
 	"github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/trie"
+	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/holiman/uint256"
 )
 
-type (
-	// ExecutionAddress represents an address on the execution layer
-	// which is derived via secp256k1 w/recovery bit.
-	//
-	// Related: https://eips.ethereum.org/EIPS/eip-55
-	ExecutionAddress = common.Address
-	// ExecutionHash represents a hash on the execution layer which is
-	// currently a Keccak256 hash.
-	ExecutionHash  = common.Hash
-	ExecutableData = engine.ExecutableData
-	GenesisAlloc   = coretypes.GenesisAlloc
-	Log            = coretypes.Log
-	LogsBloom      = coretypes.Bloom
-	Withdrawals    = coretypes.Withdrawals
-)
+// SetCodeTx implements the EIP-7702 transaction type which temporarily installs
+// the code at the signer's address.
+type SetCodeTx struct {
+	ChainID    *uint256.Int
+	Nonce      uint64
+	GasTipCap  *uint256.Int // a.k.a. maxPriorityFeePerGas
+	GasFeeCap  *uint256.Int // a.k.a. maxFeePerGas
+	Gas        uint64
+	To         common.Address
+	Value      *uint256.Int
+	Data       []byte
+	AccessList coretypes.AccessList
+	AuthList   []coretypes.SetCodeAuthorization
 
-//nolint:gochecknoglobals // alias.
-var (
-	DeriveSha        = coretypes.DeriveSha
-	EmptyUncleHash   = coretypes.EmptyUncleHash
-	NewStackTrie     = trie.NewStackTrie
-	CalcRequestsHash = coretypes.CalcRequestsHash
-)
+	// Signature values
+	V *uint256.Int
+	R *uint256.Int
+	S *uint256.Int
+}
+
+func (tx *SetCodeTx) txType() byte { return SetCodeTxType }
+
+func (tx *SetCodeTx) encode(b *bytes.Buffer) error {
+	return rlp.Encode(b, tx)
+}
+
+func (tx *SetCodeTx) decode(input []byte) error {
+	return rlp.DecodeBytes(input, tx)
+}
