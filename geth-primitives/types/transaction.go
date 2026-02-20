@@ -144,8 +144,8 @@ func (s Transactions) Len() int { return len(s) }
 func (s Transactions) EncodeIndex(i int, w *bytes.Buffer) {
 	tx := s[i]
 	if tx.Type() == coretypes.LegacyTxType {
-		rlp.Encode(w, tx.inner)
+		rlp.Encode(w, tx.inner) //#nosec:G104 copied from go-ethereum
 	} else {
-		tx.encodeTyped(w)
+		tx.encodeTyped(w) //#nosec:G104 copied from go-ethereum
 	}
 }
