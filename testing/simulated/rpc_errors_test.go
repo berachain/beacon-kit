@@ -86,7 +86,7 @@ func (p *rpcErrorProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "proxy read error", http.StatusInternalServerError)
 		return
 	}
-	r.Body.Close()
+	defer r.Body.Close()
 
 	// Check if need interceptor.
 	if p.active.Load() {

@@ -104,16 +104,6 @@ func (s *EngineClient) handleRPCError(
 		return engineerrors.ErrRequestTooLarge
 	case -32000:
 		s.metrics.incrementInternalServerErrorCounter()
-		// // Only -32000 status codes are data errors in the RPC specification.
-		// var errWithData rpc.DataError
-		// errWithData, ok = err.(rpc.DataError) //nolint:errorlint // from
-		// prysm.
-		// if !ok {
-		// 	return errors.Wrapf(
-		// 		errors.Join(jsonrpc.ErrServer, err),
-		// 		"got an unexpected data error in JSON-RPC response",
-		// 	)
-		// }
 		return errors.Wrapf(jsonrpc.ErrServer, "%v", e.Error())
 	default:
 		return err
