@@ -30,7 +30,6 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
-	gethtypes "github.com/berachain/beacon-kit/geth-primitives/types"
 	libcommon "github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -46,7 +45,7 @@ func transformSimulatedBlockToGethBlock(
 	simBlock *execution.SimulatedBlock,
 	txs []*coretypes.Transaction,
 	parentBeaconRoot libcommon.Root,
-) *gethtypes.Block {
+) *coretypes.Block {
 	// Convert numeric fields.
 	excessBlobGas := simBlock.ExcessBlobGas.ToInt().Uint64()
 	blobGasUsed := simBlock.BlobGasUsed.ToInt().Uint64()
@@ -56,14 +55,14 @@ func transformSimulatedBlockToGethBlock(
 	withdrawalsHash := gethprimitives.DeriveSha(simBlock.Withdrawals, gethprimitives.NewStackTrie(nil))
 
 	// Create a new header using values from the simulated block.
-	header := &gethtypes.Header{
+	header := &coretypes.Header{
 		ParentHash: simBlock.ParentHash,
 		UncleHash:  gethprimitives.EmptyUncleHash,
 		Coinbase:   simBlock.Miner,
 		Root:       simBlock.StateRoot,
 		// TxHash is computed from the provided transactions since simulation does not have signatures
 		// which is required for correct hash calculation.
-		TxHash:           gethprimitives.DeriveSha(gethprimitives.Transactions(txs), gethprimitives.NewStackTrie(nil)),
+		TxHash:           gethprimitives.DeriveSha(coretypes.Transactions(txs), gethprimitives.NewStackTrie(nil)),
 		ReceiptHash:      simBlock.ReceiptsRoot,
 		Bloom:            coretypes.Bloom(simBlock.LogsBloom),
 		Difficulty:       big.NewInt(0),
@@ -81,13 +80,13 @@ func transformSimulatedBlockToGethBlock(
 	}
 
 	// Create the block body using the transactions and withdrawals from the simulation.
-	body := gethtypes.Body{
+	body := coretypes.Body{
 		Transactions: txs,
 		Uncles:       nil,
 		Withdrawals:  simBlock.Withdrawals,
 	}
 
-	return gethtypes.NewBlockWithHeader(header).WithBody(body)
+	return coretypes.NewBlockWithHeader(header).WithBody(body)
 }
 
 // transformExecutableDataToExecutionPayload converts Ethereum executable data into a beacon execution payload.
