@@ -1,0 +1,1748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Berachain Preconfirmations Demo</title>
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0c0c1d;
+    --card: #151530;
+    --card-border: #252550;
+    --text: #eee;
+    --text-dim: #888;
+    --preconf: #00e5ff;
+    --preconf-glow: rgba(0, 229, 255, 0.25);
+    --regular: #607D8B;
+    --success: #4CAF50;
+    --error: #F44336;
+    --gold: #FFD54F;
+    --accent: #e94560;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  .page { max-width: 960px; margin: 0 auto; padding: 24px 20px; }
+
+  /* ── Hero ── */
+  .hero { text-align: center; margin-bottom: 32px; }
+  .hero h1 { font-size: 2rem; font-weight: 800; margin-bottom: 6px; }
+  .hero h1 .accent { color: var(--preconf); }
+  .hero .sub { color: var(--text-dim); font-size: 1rem; max-width: 600px; margin: 0 auto; }
+
+  /* ── Setup (collapsible) ── */
+  .setup-bar {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+  .setup-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 18px; cursor: pointer;
+  }
+  .setup-header .label { font-size: 0.85rem; font-weight: 600; }
+  .setup-header .status-badges { display: flex; gap: 10px; align-items: center; font-size: 0.8rem; }
+  .badge { padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+  .badge.ok { background: rgba(76,175,80,0.2); color: var(--success); }
+  .badge.off { background: rgba(255,255,255,0.06); color: var(--text-dim); }
+  .setup-body { padding: 0 18px 16px; display: none; }
+  .setup-body.open { display: block; }
+  .setup-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+  .setup-grid label { font-size: 0.72rem; color: var(--text-dim); display: block; margin-bottom: 2px; }
+  .setup-grid input {
+    width: 100%; padding: 7px 10px; background: var(--bg); border: 1px solid var(--card-border);
+    border-radius: 6px; color: var(--text); font-size: 0.85rem;
+  }
+  .setup-grid input:focus { outline: none; border-color: var(--preconf); }
+  .setup-actions { margin-top: 12px; display: flex; gap: 10px; align-items: center; }
+  .btn {
+    padding: 8px 22px; border: none; border-radius: 6px;
+    font-weight: 600; cursor: pointer; font-size: 0.85rem; transition: opacity 0.15s;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn-primary { background: var(--preconf); color: #000; }
+  .btn-accent { background: var(--accent); color: #fff; }
+  .setup-hint { font-size: 0.75rem; color: var(--text-dim); }
+  .block-num { font-size: 0.8rem; color: var(--text-dim); }
+
+  /* Auto-detect area */
+  .autodetect-area { display: none; margin-top: 12px; }
+  .autodetect-area.open { display: block; }
+  .autodetect-area textarea {
+    width: 100%; height: 100px; padding: 8px 10px; background: var(--bg);
+    border: 1px solid var(--card-border); border-radius: 6px; color: var(--text);
+    font-family: 'SF Mono', SFMono-Regular, monospace; font-size: 0.7rem;
+    resize: vertical;
+  }
+  .autodetect-area textarea:focus { outline: none; border-color: var(--preconf); }
+  .autodetect-area textarea::placeholder { color: var(--text-dim); }
+  .autodetect-hint { font-size: 0.72rem; color: var(--text-dim); margin-bottom: 6px; }
+  .autodetect-hint code { color: var(--preconf); }
+  .autodetect-actions { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
+  .autodetect-result { font-size: 0.72rem; margin-left: 8px; }
+  .autodetect-result.ok { color: var(--success); }
+  .autodetect-result.err { color: var(--error); }
+  .scan-status {
+    font-size: 0.75rem; color: var(--text-dim); padding: 8px 12px;
+    background: rgba(0,0,0,0.2); border-radius: 6px; margin-bottom: 10px;
+  }
+  .scan-status.err { color: var(--error); }
+  .scan-status.ok { color: var(--success); }
+  .scan-progress { width: 100%; height: 3px; background: var(--card-border); border-radius: 2px; margin-top: 6px; overflow: hidden; }
+  .scan-progress-fill { height: 100%; background: var(--preconf); transition: width 0.15s; width: 0%; }
+  .scan-divider { margin-top: 12px; border-top: 1px solid var(--card-border); padding-top: 10px; }
+
+  /* ── Main Demo ── */
+  .demo-card {
+    background: var(--card); border: 1px solid var(--card-border);
+    border-radius: 14px; padding: 28px; margin-bottom: 24px; text-align: center;
+  }
+  .demo-prompt { font-size: 1.1rem; color: var(--text-dim); margin-bottom: 20px; }
+  .demo-btn {
+    font-size: 1.2rem; padding: 16px 48px; border-radius: 12px;
+    border: none; font-weight: 700; cursor: pointer;
+    background: linear-gradient(135deg, var(--accent), #ff6b81);
+    color: #fff; transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 20px rgba(233, 69, 96, 0.3);
+  }
+  .demo-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(233, 69, 96, 0.4); }
+  .demo-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+  .demo-btn-row { display: flex; gap: 12px; justify-content: center; align-items: center; flex-wrap: wrap; }
+  .demo-btn-wrap { position: relative; display: inline-block; }
+  .batch-btn {
+    font-size: 0.85rem; padding: 12px 24px; border-radius: 10px;
+    border: 2px solid var(--accent); font-weight: 700; cursor: pointer;
+    background: transparent; color: var(--accent);
+    transition: transform 0.15s, background 0.15s;
+  }
+  .batch-btn:hover { background: rgba(233, 69, 96, 0.1); transform: translateY(-1px); }
+  .batch-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; background: transparent; }
+  .batch-progress {
+    font-size: 0.8rem; color: var(--text-dim); margin-top: 10px;
+    min-height: 1.4rem;
+  }
+  .batch-progress .bp-current { color: var(--preconf); font-weight: 700; }
+  .batch-progress .bp-bar {
+    display: inline-block; width: 120px; height: 6px; background: rgba(255,255,255,0.06);
+    border-radius: 3px; vertical-align: middle; margin-left: 8px; overflow: hidden;
+  }
+  .batch-progress .bp-fill {
+    height: 100%; background: var(--accent); border-radius: 3px;
+    transition: width 0.3s;
+  }
+  .demo-tooltip {
+    position: absolute; bottom: calc(100% + 12px); left: 50%; transform: translateX(-50%);
+    background: #222244; border: 1px solid var(--card-border); border-radius: 8px;
+    padding: 10px 14px; width: 300px; text-align: left; font-size: 0.73rem;
+    color: var(--text-dim); line-height: 1.5; pointer-events: none;
+    opacity: 0; transition: opacity 0.25s 0s; z-index: 10;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  }
+  .demo-tooltip::after {
+    content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+    border: 6px solid transparent; border-top-color: #222244;
+  }
+  .demo-btn-wrap:hover .demo-tooltip { opacity: 1; transition-delay: 2.5s; }
+
+  /* ── Race Visualization ── */
+  .race { margin-top: 28px; }
+  .race.idle { opacity: 0.3; }
+  .race.idle .lane-time { visibility: hidden; }
+  .race-pair { display: flex; flex-direction: column; gap: 18px; margin-bottom: 10px; }
+  .race-lane { display: grid; grid-template-columns: 140px 1fr 90px; align-items: center; gap: 14px; }
+  .lane-label { font-weight: 700; font-size: 0.95rem; }
+  .lane-label.preconf { color: var(--preconf); }
+  .lane-label.regular { color: var(--regular); }
+  .lane-label .lane-sub { font-size: 0.7rem; font-weight: 400; color: var(--text-dim); display: block; }
+  .track { height: 38px; background: rgba(255,255,255,0.04); border-radius: 8px; overflow: hidden; }
+  .fill { height: 100%; border-radius: 8px; width: 0%; transition: width 0.08s linear; }
+  .fill.preconf { background: linear-gradient(90deg, #00b8d4, var(--preconf)); }
+  .fill.regular { background: linear-gradient(90deg, #546E7A, var(--regular)); }
+  .fill.polling { animation: pulse 0.8s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+  .fill.done { animation: none; }
+  .lane-time { font-size: 1.1rem; font-weight: 800; text-align: right; }
+  .lane-time.preconf { color: var(--preconf); }
+  .lane-time.regular { color: var(--regular); }
+
+  .speedup-display {
+    text-align: center; margin-top: 18px; min-height: 3.6rem;
+    font-size: 2.8rem; font-weight: 900; color: var(--preconf);
+    opacity: 0; transform: scale(0.5);
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    text-shadow: 0 0 40px var(--preconf-glow);
+  }
+  .speedup-display.show { opacity: 1; transform: scale(1); }
+  .speedup-sub { font-size: 1rem; font-weight: 400; color: var(--text-dim); margin-top: 2px; }
+
+  /* ── Journey Steps ── */
+  .journey { position: relative; }
+  .journey-path {
+    display: flex; gap: 0; position: relative;
+  }
+  .journey-step {
+    flex: 1; text-align: center; position: relative; padding: 0 4px;
+  }
+  .journey-step .dot {
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 3px solid var(--card-border); background: var(--bg);
+    margin: 0 auto 8px; display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; transition: all 0.4s; position: relative; z-index: 2;
+  }
+  .journey-step.done .dot { border-color: var(--success); background: rgba(76,175,80,0.15); }
+  .journey-step.active .dot { border-color: var(--preconf); background: rgba(0,229,255,0.1); animation: dotPulse 1.2s infinite; }
+  .journey-step.preconf-moment .dot { border-color: var(--gold); background: rgba(255,213,79,0.15); }
+  @keyframes dotPulse { 0%,100%{box-shadow:0 0 0 0 var(--preconf-glow)} 50%{box-shadow:0 0 0 10px transparent} }
+  .journey-step .title { font-size: 0.75rem; font-weight: 700; margin-bottom: 2px; }
+  .journey-step .desc { font-size: 0.68rem; color: var(--text-dim); line-height: 1.3; }
+  .journey-step .timing {
+    font-size: 0.7rem; font-weight: 700; margin-top: 4px;
+    color: var(--text-dim); transition: color 0.3s;
+  }
+  .journey-step.done .timing { color: var(--success); }
+  .journey-step.preconf-moment .timing { color: var(--gold); }
+
+  /* connector line between dots */
+  .journey-connector {
+    position: absolute; top: 18px; left: 0; right: 0; height: 3px; z-index: 1;
+  }
+  .journey-connector-bg { position: absolute; top: 0; left: 18px; right: 18px; height: 100%; background: var(--card-border); border-radius: 2px; }
+  .journey-connector-fill { position: absolute; top: 0; left: 18px; height: 100%; background: var(--success); border-radius: 2px; width: 0%; transition: width 0.4s; }
+
+  /* ── Section header with clear button ── */
+  .section-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+  }
+  .section-header h2 { font-size: 1rem; margin: 0; }
+  .btn-clear {
+    padding: 3px 10px; border: 1px solid var(--card-border); border-radius: 5px;
+    background: transparent; color: var(--text-dim); font-size: 0.7rem; font-weight: 600;
+    cursor: pointer; transition: border-color 0.15s, color 0.15s;
+  }
+  .btn-clear:hover { border-color: var(--text-dim); color: var(--text); }
+
+  /* ── History ── */
+  .history-card {
+    background: var(--card); border: 1px solid var(--card-border);
+    border-radius: 14px; padding: 20px; margin-bottom: 24px;
+  }
+  .history-entry {
+    padding: 12px 14px; border-radius: 8px;
+    background: rgba(255,255,255,0.02); border: 1px solid var(--card-border);
+    margin-bottom: 8px; animation: fadeIn 0.3s;
+  }
+  .history-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .history-label { font-size: 0.8rem; color: var(--text-dim); }
+  .history-vals { display: flex; gap: 16px; font-size: 0.85rem; }
+  .history-val .v { font-weight: 700; }
+  .history-val.preconf .v { color: var(--preconf); }
+  .history-val.regular .v { color: var(--regular); }
+  .history-val.speedup .v { color: var(--gold); font-size: 1rem; }
+  .bar-mini { display: flex; gap: 4px; align-items: center; margin-top: 8px; }
+  .bar-mini-track { flex: 1; height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden; }
+  .bar-mini-fill { height: 100%; border-radius: 3px; }
+  .bar-mini-fill.preconf { background: var(--preconf); }
+  .bar-mini-fill.regular { background: var(--regular); }
+  .bar-mini-label { font-size: 0.65rem; color: var(--text-dim); width: 55px; }
+
+  /* History entry expand/details */
+  .history-expand-btn {
+    background: none; border: none; color: var(--text-dim); font-size: 0.7rem;
+    cursor: pointer; padding: 2px 0; transition: color 0.15s;
+  }
+  .history-expand-btn:hover { color: var(--text); }
+  .history-details {
+    display: none; margin-top: 10px; padding-top: 10px;
+    border-top: 1px solid var(--card-border);
+  }
+  .history-details.open { display: block; }
+  .history-detail-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 6px 20px;
+  }
+  .history-detail-item { font-size: 0.72rem; color: var(--text-dim); }
+  .history-detail-item .dl { color: var(--text); font-weight: 600; font-family: 'SF Mono', monospace; }
+  .history-detail-item .dl.preconf { color: var(--preconf); }
+  .history-detail-item .dl.regular { color: var(--regular); }
+  .history-detail-item .dl.gold { color: var(--gold); }
+  .history-detail-item .dl.hash { font-size: 0.65rem; word-break: break-all; }
+
+  /* Batch summary entry */
+  .history-entry.batch-summary {
+    border-color: var(--accent); background: rgba(233, 69, 96, 0.05);
+  }
+  .batch-summary-label {
+    font-size: 0.85rem; font-weight: 700; color: var(--accent); margin-bottom: 8px;
+  }
+  .batch-stats-grid {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px;
+  }
+  .batch-stat {
+    text-align: center; padding: 8px; border-radius: 6px;
+    background: rgba(255,255,255,0.02); border: 1px solid var(--card-border);
+  }
+  .batch-stat .bs-label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+  .batch-stat .bs-val { font-size: 1.1rem; font-weight: 800; margin-top: 2px; }
+  .batch-stat .bs-val.preconf { color: var(--preconf); }
+  .batch-stat .bs-val.regular { color: var(--regular); }
+  .batch-stat .bs-val.gold { color: var(--gold); }
+  .batch-stat .bs-sub { font-size: 0.65rem; color: var(--text-dim); }
+
+  /* ── Live Feed (collapsed by default) ── */
+  .feed-card {
+    background: var(--card); border: 1px solid var(--card-border);
+    border-radius: 14px; overflow: hidden; margin-bottom: 24px;
+  }
+  .feed-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 18px; cursor: pointer;
+  }
+  .feed-header h2 { font-size: 0.9rem; margin: 0; }
+  .feed-toggle { font-size: 0.8rem; color: var(--text-dim); background: none; border: none; cursor: pointer; }
+  .feed-body { max-height: 180px; overflow-y: auto; padding: 0 18px 14px; display: none; }
+  .feed-body.open { display: block; }
+  .feed-line {
+    font-family: 'SF Mono', monospace; font-size: 0.7rem; padding: 2px 0;
+    color: var(--text-dim);
+  }
+  .feed-line.hl { color: var(--gold); }
+
+  /* ── Network Topology ── */
+  .topo-card {
+    background: var(--card); border: 1px solid var(--card-border);
+    border-radius: 14px; overflow: hidden; margin-bottom: 24px;
+  }
+  .topo-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 18px; cursor: pointer;
+  }
+  .topo-header h2 { font-size: 1rem; margin: 0; }
+  .topo-toggle { font-size: 0.8rem; color: var(--text-dim); background: none; border: none; cursor: pointer; }
+  .topo-body { padding: 0 18px 20px; display: none; }
+  .topo-body.open { display: block; }
+
+  .topo-diagram { position: relative; padding: 20px 0; overflow: visible; }
+  .topo-row { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; margin-bottom: 16px; }
+  .topo-row-label {
+    width: 100%; text-align: center; font-size: 0.72rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); margin-bottom: 6px;
+  }
+  .topo-node {
+    background: var(--bg); border: 2px solid var(--card-border); border-radius: 10px;
+    padding: 12px 16px; text-align: center; min-width: 100px;
+    transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
+    position: relative;
+  }
+  .topo-node .topo-icon { font-size: 1.4rem; margin-bottom: 4px; }
+  .topo-node .topo-name { font-size: 0.78rem; font-weight: 700; }
+  .topo-node .topo-detail { font-size: 0.65rem; color: var(--text-dim); margin-top: 2px; }
+  .topo-node.sequencer { border-color: var(--accent); }
+  .topo-node.sequencer .topo-name { color: var(--accent); }
+  .topo-node.validator { border-color: var(--success); }
+  .topo-node.validator .topo-name { color: var(--success); }
+  .topo-node.rpc { border-color: var(--preconf); }
+  .topo-node.rpc .topo-name { color: var(--preconf); }
+
+  /* Proposer highlight */
+  .topo-node.proposing {
+    border-color: var(--gold) !important;
+    box-shadow: 0 0 18px rgba(255, 213, 79, 0.4);
+    transform: scale(1.06);
+  }
+  .topo-node.proposing .topo-name { color: var(--gold) !important; }
+  .topo-proposer-badge {
+    position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+    background: var(--gold); color: #000; font-size: 0.6rem; font-weight: 800;
+    padding: 2px 8px; border-radius: 8px; white-space: nowrap;
+    animation: badgePulse 1.5s ease-in-out infinite;
+  }
+  @keyframes badgePulse { 0%,100%{opacity:1} 50%{opacity:0.7} }
+
+  /* Top tier: RPC on top, pipe, Sequencer below — both centered */
+  .topo-top-tier {
+    display: flex; flex-direction: column; align-items: center; gap: 0; margin-bottom: 16px;
+  }
+  .topo-top-node { flex: 0 0 auto; }
+  .topo-flashblock-pipe {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: 48px; position: relative;
+  }
+  .topo-pipe-line {
+    width: 3px; height: 100%; border-radius: 2px;
+    position: relative; overflow: hidden;
+    background: var(--card-border);
+  }
+  .topo-pipe-line::after {
+    content: ''; position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+    background: repeating-linear-gradient(
+      to top,
+      transparent 0px,
+      transparent 6px,
+      var(--preconf) 8px,
+      var(--preconf) 12px,
+      transparent 14px,
+      transparent 20px
+    );
+    background-size: 100% 20px;
+    filter: drop-shadow(0 0 4px var(--preconf));
+    animation: pipeFlash 0.4s linear infinite;
+  }
+  @keyframes pipeFlash {
+    0%   { background-position: 0 20px; }
+    100% { background-position: 0 0px; }
+  }
+  .topo-pipe-label {
+    position: absolute; left: calc(50% + 12px); top: 50%; transform: translateY(-50%);
+    font-size: 0.65rem; color: var(--preconf); white-space: nowrap; font-weight: 600;
+  }
+
+  .topo-arrows { text-align: center; margin: 10px 0; font-size: 0.75rem; color: var(--text-dim); }
+  .topo-arrows .arrow-label {
+    display: inline-block; padding: 3px 12px; background: rgba(255,255,255,0.03);
+    border-radius: 6px; margin: 0 6px; font-size: 0.7rem;
+  }
+  .topo-arrows .arrow { color: var(--preconf); font-weight: 700; }
+
+  /* SVG overlay for dynamic payload fetch animation */
+  .topo-svg-overlay {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 3;
+  }
+  .topo-svg-overlay line { stroke: var(--card-border); stroke-width: 2; stroke-dasharray: 6 4; }
+  .topo-svg-overlay .payload-dot {
+    fill: var(--gold); filter: drop-shadow(0 0 6px rgba(255,213,79,0.6));
+  }
+  .topo-payload-float-label {
+    position: absolute; pointer-events: none; z-index: 4;
+    font-size: 0.62rem; color: var(--gold); font-weight: 700; white-space: nowrap;
+    background: rgba(21,21,48,0.85); padding: 2px 7px; border-radius: 4px;
+    border: 1px solid rgba(255,213,79,0.3);
+    opacity: 0; transition: opacity 0.25s;
+  }
+  .topo-payload-float-label.show { opacity: 1; }
+
+  .topo-legend {
+    display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
+    margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--card-border);
+  }
+  .topo-legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; color: var(--text-dim); }
+  .topo-legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* Lightning bolt animation from button to RPC node */
+  .lightning-overlay {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 100;
+    overflow: visible;
+  }
+  .lightning-bolt {
+    fill: none; stroke: var(--preconf); stroke-width: 3;
+    stroke-linecap: round; stroke-linejoin: round;
+    filter: drop-shadow(0 0 8px var(--preconf)) drop-shadow(0 0 20px rgba(0,229,255,0.4));
+    stroke-dasharray: 1000; stroke-dashoffset: 1000;
+    animation: lightningDraw 0.4s ease-out forwards;
+  }
+  .lightning-bolt.fade { animation: lightningFade 0.5s ease-in forwards; }
+  @keyframes lightningDraw { to { stroke-dashoffset: 0; } }
+  @keyframes lightningFade { to { opacity: 0; } }
+  .lightning-glow {
+    fill: none; stroke: rgba(0,229,255,0.15); stroke-width: 14;
+    stroke-linecap: round; stroke-linejoin: round;
+    stroke-dasharray: 1000; stroke-dashoffset: 1000;
+    animation: lightningDraw 0.4s ease-out forwards;
+  }
+  .lightning-glow.fade { animation: lightningFade 0.5s ease-in forwards; }
+
+  /* RPC node flash effect when lightning hits */
+  .topo-node.rpc.lightning-hit {
+    box-shadow: 0 0 30px var(--preconf), 0 0 60px rgba(0,229,255,0.3);
+    border-color: #fff !important;
+    transition: box-shadow 0.15s, border-color 0.15s;
+  }
+  /* Mempool badge on RPC and Sequencer nodes */
+  .topo-mempool {
+    position: absolute; left: -4px; top: 50%; transform: translate(-100%, -50%);
+    background: var(--card); border: 1px solid var(--card-border); border-radius: 6px;
+    padding: 2px 7px; font-size: 0.58rem; color: var(--text-dim);
+    font-weight: 600; letter-spacing: 0.03em; white-space: nowrap;
+    transition: border-color 0.2s, color 0.2s, box-shadow 0.2s;
+  }
+  .topo-mempool.active {
+    border-color: var(--preconf); color: var(--preconf);
+    box-shadow: 0 0 8px rgba(0,229,255,0.3);
+  }
+  /* TX broadcast dot: flies between mempool badges (fixed position) */
+  .tx-broadcast-dot {
+    position: fixed; width: 10px; height: 10px; border-radius: 50%;
+    background: var(--preconf); box-shadow: 0 0 10px var(--preconf), 0 0 18px rgba(0,229,255,0.5);
+    z-index: 100; pointer-events: none;
+    transition: top 0.3s ease-in, left 0.3s ease-in, opacity 0.1s;
+  }
+  /* Flashblock response dot: flies up the pipe (fixed position, JS-driven) */
+  .fb-response-dot {
+    position: fixed; width: 10px; height: 10px; border-radius: 50%;
+    background: var(--gold); box-shadow: 0 0 10px var(--gold), 0 0 18px rgba(255,213,79,0.5);
+    z-index: 100; pointer-events: none;
+    transition: top 0.35s ease-out, opacity 0.1s;
+  }
+  /* RPC state-update flash when flashblock arrives */
+  .topo-node.rpc.fb-update {
+    box-shadow: 0 0 24px var(--gold), 0 0 48px rgba(255,213,79,0.3);
+    border-color: var(--gold) !important;
+    transition: box-shadow 0.2s, border-color 0.2s;
+  }
+  /* Pipe label highlight during flashblock animation */
+  .topo-pipe-label.highlight { color: var(--gold); text-shadow: 0 0 8px rgba(255,213,79,0.4); transition: color 0.2s; }
+
+  .empty { text-align: center; padding: 24px; color: var(--text-dim); font-size: 0.9rem; }
+
+  @keyframes fadeIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Hero -->
+  <div class="hero">
+    <h1>Berachain <span class="accent">Preconfirmations</span></h1>
+  </div>
+
+  <!-- Setup (collapsed) -->
+  <div class="setup-bar">
+    <div class="setup-header" onclick="toggleSetup()">
+      <span class="label">Network Connection</span>
+      <div class="status-badges">
+        <span class="badge off" id="badge-status">Not connected</span>
+        <span class="block-num" id="block-display"></span>
+        <span class="feed-toggle" id="setup-arrow">&#9660;</span>
+      </div>
+    </div>
+    <div class="setup-body" id="setup-body">
+      <div class="setup-grid">
+        <div><label>Preconf RPC</label><input id="inp-preconf" placeholder="http://localhost:PORT"></div>
+        <div><label>Regular RPC</label><input id="inp-regular" placeholder="http://localhost:PORT"></div>
+        <div><label>Flashblock WebSocket</label><input id="inp-ws" placeholder="ws://localhost:PORT"></div>
+        <div><label>Send TX via (optional)</label><input id="inp-send" placeholder="(defaults to Preconf RPC)"></div>
+      </div>
+      <div class="setup-actions">
+        <button class="btn btn-primary" id="btn-connect" onclick="doConnect()">Connect</button>
+        <button class="btn btn-accent" onclick="toggleAutodetect()">Auto-detect</button>
+      </div>
+      <div class="autodetect-area" id="autodetect-area">
+        <div class="scan-status" id="scan-status" style="display:none">
+          <span id="scan-text">Scanning...</span>
+          <div class="scan-progress"><div class="scan-progress-fill" id="scan-progress-fill"></div></div>
+        </div>
+        <div class="scan-divider" id="scan-fallback" style="display:none">
+          <div class="autodetect-hint">Or paste <code>kurtosis enclave inspect my-preconf-devnet</code> output:</div>
+          <textarea id="autodetect-input" placeholder="Paste kurtosis enclave inspect output here..."></textarea>
+          <div class="autodetect-actions">
+            <button class="btn btn-primary" onclick="parseKurtosisOutput()">Parse &amp; Fill</button>
+            <span class="autodetect-result" id="autodetect-result"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Demo -->
+  <div class="demo-card">
+    <div class="demo-prompt" id="demo-prompt">Send a real transaction and watch how fast it confirms</div>
+
+    <div class="race idle" id="race-section">
+      <div class="race-pair">
+        <div class="race-lane">
+          <div class="lane-label preconf">With Preconf<span class="lane-sub">via sequencer flashblocks</span></div>
+          <div class="track"><div class="fill preconf" id="bar-preconf"></div></div>
+          <div class="lane-time preconf" id="time-preconf">--</div>
+        </div>
+        <div class="race-lane">
+          <div class="lane-label regular">Without Preconf<span class="lane-sub">standard block finalization</span></div>
+          <div class="track"><div class="fill regular" id="bar-regular"></div></div>
+          <div class="lane-time regular" id="time-regular">--</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Journey steps (between bars and button) -->
+    <div class="journey" style="margin: 22px 0 18px;">
+      <div class="journey-connector">
+        <div class="journey-connector-bg"></div>
+        <div class="journey-connector-fill" id="journey-fill"></div>
+      </div>
+      <div class="journey-path" id="journey-path">
+        <div class="journey-step" data-jstep="0">
+          <div class="dot">&#128172;</div>
+          <div class="title">You send a TX</div>
+          <div class="desc">Transaction is broadcast to the network</div>
+          <div class="timing" id="jtime-0"></div>
+        </div>
+        <div class="journey-step" data-jstep="1">
+          <div class="dot">&#9889;</div>
+          <div class="title">Sequencer picks it up</div>
+          <div class="desc">Sequencer grabs TX from mempool and includes it in a flashblock</div>
+          <div class="timing" id="jtime-1"></div>
+        </div>
+        <div class="journey-step" data-jstep="2">
+          <div class="dot">&#128640;</div>
+          <div class="title">Preconf confirmed!</div>
+          <div class="desc">RPC nodes receive the flashblock and your TX is confirmed</div>
+          <div class="timing" id="jtime-2"></div>
+        </div>
+        <div class="journey-step" data-jstep="3">
+          <div class="dot">&#9878;</div>
+          <div class="title">Validator builds block</div>
+          <div class="desc">Next validator requests the full payload from the sequencer</div>
+          <div class="timing" id="jtime-3"></div>
+        </div>
+        <div class="journey-step" data-jstep="4">
+          <div class="dot">&#10004;</div>
+          <div class="title">Block finalized</div>
+          <div class="desc">Consensus confirms the block on-chain</div>
+          <div class="timing" id="jtime-4"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="demo-btn-row">
+      <div class="demo-btn-wrap">
+        <div class="demo-tooltip">
+          <strong style="color:var(--text)">What this does:</strong><br>
+          Signs an EIP-1559 ETH transfer (0.001 ETH) using the <strong>ethers.js</strong> library with a pre-funded devnet account, then broadcasts it to the <strong>Preconf RPC node</strong> via <code style="color:var(--preconf)">eth_sendRawTransaction</code> — the same path a real user would take. It then polls both the preconf RPC and a regular full node for the transaction receipt to compare confirmation times.
+        </div>
+        <button class="demo-btn" id="btn-race" onclick="runRace()" disabled>Send Transaction</button>
+      </div>
+      <button class="batch-btn" id="btn-batch" onclick="runBatch()" disabled>Run 10x</button>
+    </div>
+    <div class="batch-progress" id="batch-progress"></div>
+    <div class="speedup-display" id="speedup"></div>
+  </div>
+
+  <!-- Network Topology (visible by default) -->
+  <div class="topo-card">
+    <div class="topo-header" onclick="toggleTopo()">
+      <h2>Network Topology</h2>
+      <button class="topo-toggle" id="topo-toggle-btn">&#9660; hide</button>
+    </div>
+    <div class="topo-body open" id="topo-body">
+      <div class="topo-diagram">
+
+        <!-- Top tier: RPC Node on top, Sequencer below, both centered -->
+        <div class="topo-top-tier">
+          <div class="topo-top-node">
+            <div class="topo-node rpc">
+              <div class="topo-name">Preconf RPC</div>
+              <div class="topo-detail">Bera-Reth + flashblock stream</div>
+              <div class="topo-detail">Serves state to users (~100ms)</div>
+              <div class="topo-mempool" id="mempool-rpc">mempool</div>
+            </div>
+          </div>
+          <div class="topo-flashblock-pipe">
+            <div class="topo-pipe-line"></div>
+            <div class="topo-pipe-label">flashblocks via WebSocket</div>
+          </div>
+          <div class="topo-top-node">
+            <div class="topo-node sequencer">
+              <div class="topo-name">Sequencer</div>
+              <div class="topo-detail">BeaconKit + Bera-Reth</div>
+              <div class="topo-detail">Builds flashblocks every ~200ms</div>
+              <div class="topo-mempool" id="mempool-seq">mempool</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SVG overlay for dynamic payload fetch lines -->
+        <svg class="topo-svg-overlay" id="topo-svg"></svg>
+        <div class="topo-payload-float-label" id="topo-payload-label">getPayload</div>
+
+        <!-- Validators -->
+        <div class="topo-row" id="topo-validators" style="margin-top: 52px">
+          <div class="topo-node validator" id="topo-val-0">
+            <div class="topo-icon">&#9878;</div>
+            <div class="topo-name">Validator 1</div>
+            <div class="topo-detail">Reth</div>
+          </div>
+          <div class="topo-node validator" id="topo-val-1">
+            <div class="topo-icon">&#9878;</div>
+            <div class="topo-name">Validator 2</div>
+            <div class="topo-detail">Reth</div>
+          </div>
+          <div class="topo-node validator" id="topo-val-2">
+            <div class="topo-icon">&#9878;</div>
+            <div class="topo-name">Validator 3</div>
+            <div class="topo-detail">Geth</div>
+          </div>
+          <div class="topo-node validator" id="topo-val-3">
+            <div class="topo-icon">&#9878;</div>
+            <div class="topo-name">Validator 4</div>
+            <div class="topo-detail">Geth</div>
+          </div>
+          <div class="topo-node validator" id="topo-val-4">
+            <div class="topo-icon">&#9878;</div>
+            <div class="topo-name">Validator 5</div>
+            <div class="topo-detail">Geth</div>
+          </div>
+        </div>
+
+
+        <!-- Legend -->
+        <div class="topo-legend">
+          <div class="topo-legend-item"><div class="topo-legend-dot" style="background:var(--preconf)"></div> RPC: serves preconf state</div>
+          <div class="topo-legend-item"><div class="topo-legend-dot" style="background:var(--accent)"></div> Sequencer: creates flashblocks</div>
+          <div class="topo-legend-item"><div class="topo-legend-dot" style="background:var(--success)"></div> Validators: finalize blocks</div>
+          <div class="topo-legend-item"><div class="topo-legend-dot" style="background:var(--gold)"></div> Currently proposing</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- History -->
+  <div class="history-card">
+    <div class="section-header">
+      <h2>Results</h2>
+      <button class="btn-clear" id="btn-clear-history" onclick="clearHistory()" style="display:none">Clear</button>
+    </div>
+    <div id="history-list">
+      <div class="empty">Click "Send Transaction" to start</div>
+    </div>
+  </div>
+
+  <!-- Live Feed (collapsed) -->
+  <div class="feed-card">
+    <div class="feed-header">
+      <h2 onclick="toggleFeed()" style="cursor:pointer;flex:1">Live Flashblock Stream <span id="fb-count" style="color:var(--text-dim);font-weight:400;font-size:0.8rem"></span></h2>
+      <button class="btn-clear" id="btn-clear-feed" onclick="clearFeed()" style="display:none;margin-right:8px">Clear</button>
+      <button class="feed-toggle" id="feed-toggle-btn" onclick="toggleFeed()">&#9654; show</button>
+    </div>
+    <div class="feed-body" id="feed-body">
+      <div class="empty" id="feed-empty">Waiting for flashblocks...</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── Constants ──
+const CHAIN_ID = 80087;
+const SENDER_KEY = 'fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306';
+const SENDER_ADDR = '0x20f33CE90A13a4b5E7697E3544c3083B8F8A51D4';
+const RECIPIENT_ADDR = '0x56898d1aFb10cad584961eb96AcD476C6826e41E';
+const TX_VALUE = '0.001';
+const POLL_INTERVAL = 1;
+const POLL_TIMEOUT = 30000;
+const MAX_FEED = 150;
+
+// ── State ──
+const S = {
+  preconfProvider: null, regularProvider: null, sendProvider: null,
+  flashblockWs: null, wallet: null, connected: false,
+  nextNonce: 0, txCounter: 0, pendingTxs: new Map(),
+  fbCount: 0, blockInterval: null, busy: false,
+  lastBlock: 0, currentProposer: -1, payloadAnimTimer: null,
+};
+
+// ── URL Params ──
+(function loadParams() {
+  const p = new URLSearchParams(location.search);
+  if (p.get('preconf')) document.getElementById('inp-preconf').value = 'http://localhost:' + p.get('preconf');
+  if (p.get('regular')) document.getElementById('inp-regular').value = 'http://localhost:' + p.get('regular');
+  if (p.get('ws')) document.getElementById('inp-ws').value = 'ws://localhost:' + p.get('ws');
+  if (p.get('send')) document.getElementById('inp-send').value = 'http://localhost:' + p.get('send');
+  // Auto-connect if we have the required params, otherwise open setup panel
+  if (p.get('preconf') && p.get('regular')) {
+    setTimeout(() => doConnect(), 100);
+  } else {
+    document.getElementById('setup-body').classList.add('open');
+  }
+})();
+
+function saveParams() {
+  const port = id => { const m = document.getElementById(id).value.match(/:(\d+)/); return m ? m[1] : ''; };
+  const p = new URLSearchParams();
+  ['preconf','regular','ws','send'].forEach(k => { const v = port('inp-' + k); if (v) p.set(k, v); });
+  history.replaceState(null, '', '?' + p.toString());
+}
+
+// ── Setup toggle ──
+function toggleSetup() {
+  const body = document.getElementById('setup-body');
+  body.classList.toggle('open');
+  document.getElementById('setup-arrow').innerHTML = body.classList.contains('open') ? '&#9650;' : '&#9660;';
+}
+
+// ── Auto-detect (Kurtosis API) ──
+// Queries the Kurtosis Enclave Manager API (localhost:8081) to get exact service
+// port mappings. No port scanning or guessing needed.
+const KURTOSIS_EM_PORT = 8081;
+const KURTOSIS_ENCLAVE_NAME = 'my-preconf-devnet';
+let detecting = false;
+
+function toggleAutodetect() {
+  const area = document.getElementById('autodetect-area');
+  if (area.classList.contains('open')) {
+    area.classList.remove('open');
+    return;
+  }
+  area.classList.add('open');
+  if (!detecting) detectFromKurtosisAPI();
+}
+
+async function kurtosisConnect(method, body) {
+  const resp = await fetch(`http://localhost:${KURTOSIS_EM_PORT}/kurtosis_enclave_manager.KurtosisEnclaveManagerServer/${method}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Connect-Protocol-Version': '1' },
+    body: JSON.stringify(body || {}),
+  });
+  if (!resp.ok) throw new Error(`Kurtosis API returned ${resp.status}`);
+  return resp.json();
+}
+
+async function detectFromKurtosisAPI() {
+  detecting = true;
+  const statusEl = document.getElementById('scan-status');
+  const textEl = document.getElementById('scan-text');
+  const fillEl = document.getElementById('scan-progress-fill');
+  const fallbackEl = document.getElementById('scan-fallback');
+  statusEl.style.display = 'block';
+  statusEl.className = 'scan-status';
+  fallbackEl.style.display = 'none';
+
+  try {
+    textEl.textContent = 'Querying Kurtosis API...';
+    fillEl.style.width = '20%';
+
+    // Step 1: Get enclave info (need bridgeIpAddress, grpcPort, shortenedUuid)
+    const enclaves = await kurtosisConnect('GetEnclaves');
+    const enclave = Object.values(enclaves.enclaveInfo || {}).find(e => e.name === KURTOSIS_ENCLAVE_NAME);
+    if (!enclave) {
+      throw new Error(`Enclave "${KURTOSIS_ENCLAVE_NAME}" not found. Is the devnet running?`);
+    }
+    fillEl.style.width = '40%';
+    textEl.textContent = `Found enclave "${enclave.name}". Fetching services...`;
+
+    // Step 2: Get all services with their port mappings
+    const apic = enclave.apiContainerInfo;
+    const services = await kurtosisConnect('GetServices', {
+      apicIpAddress: apic.bridgeIpAddress,
+      apicPort: apic.grpcPortInsideEnclave,
+      enclaveShortenedUuid: enclave.shortenedUuid,
+    });
+    fillEl.style.width = '80%';
+
+    // Step 3: Extract the exact ports we need by service name
+    const svcInfo = services.serviceInfo || {};
+    function getPort(serviceName, portName) {
+      const svc = svcInfo[serviceName];
+      if (!svc) return null;
+      const port = (svc.maybePublicPorts || {})[portName];
+      return port ? port.number : null;
+    }
+
+    const preconfPort = getPort('el-preconf-rpc-reth-0', 'eth-json-rpc');
+    const regularPort = getPort('el-full-reth-0', 'eth-json-rpc');
+    const wsPort      = getPort('el-sequencer-reth-0', 'flashblock-ws');
+
+    // Fill inputs — "Send TX via" defaults to preconf RPC (realistic: users send to RPC, not sequencer)
+    if (preconfPort) document.getElementById('inp-preconf').value = 'http://localhost:' + preconfPort;
+    if (regularPort) document.getElementById('inp-regular').value = 'http://localhost:' + regularPort;
+    if (wsPort) document.getElementById('inp-ws').value = 'ws://localhost:' + wsPort;
+
+    const found = [preconfPort && 'preconf', regularPort && 'regular', wsPort && 'ws'].filter(Boolean);
+    fillEl.style.width = '100%';
+    textEl.textContent = `Detected ${found.length}/3 ports from Kurtosis API. Click Connect.`;
+    statusEl.className = 'scan-status ok';
+
+    if (found.length < 3) {
+      const missing = ['preconf', 'regular', 'ws'].filter(n => !found.includes(n));
+      textEl.textContent += ` Missing: ${missing.join(', ')}`;
+    }
+
+  } catch (err) {
+    fillEl.style.width = '100%';
+    textEl.textContent = `Could not reach Kurtosis API (localhost:${KURTOSIS_EM_PORT}): ${err.message}`;
+    statusEl.className = 'scan-status err';
+    fallbackEl.style.display = 'block';
+  }
+  detecting = false;
+}
+
+function parseKurtosisOutput() {
+  const raw = document.getElementById('autodetect-input').value;
+  const resultEl = document.getElementById('autodetect-result');
+  if (!raw.trim()) { resultEl.textContent = 'Paste the output first'; resultEl.className = 'autodetect-result err'; return; }
+
+  // Parse service blocks: we need to find the port mappings for specific services
+  // Format: "eth-json-rpc: 8545/tcp -> 127.0.0.1:PORT" or "http://127.0.0.1:PORT"
+  // Services span multiple lines, so we find the service name then look for ports nearby
+
+  function findPort(serviceName, portName) {
+    // Find the line with the service name, then search subsequent lines for the port
+    const lines = raw.split('\n');
+    let inService = false;
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      // Service lines start with UUID + service name (with leading whitespace in kurtosis output)
+      if (line.includes(serviceName)) {
+        inService = true;
+      } else if (inService && line.match(/^\S/) && !line.match(/^\s/)) {
+        // New service block started (non-indented line with content)
+        inService = false;
+      }
+      if (inService && line.includes(portName)) {
+        // Extract port from "-> 127.0.0.1:PORT" or "-> http://127.0.0.1:PORT"
+        const m = line.match(/127\.0\.0\.1:(\d+)/);
+        if (m) return m[1];
+      }
+    }
+    return null;
+  }
+
+  const preconfPort = findPort('el-preconf-rpc-reth-0', 'eth-json-rpc:');
+  const regularPort = findPort('el-full-reth-0', 'eth-json-rpc:');
+  const wsPort = findPort('el-sequencer-reth-0', 'flashblock-ws:');
+
+  const found = [];
+  if (preconfPort) { document.getElementById('inp-preconf').value = 'http://localhost:' + preconfPort; found.push('preconf'); }
+  if (regularPort) { document.getElementById('inp-regular').value = 'http://localhost:' + regularPort; found.push('regular'); }
+  if (wsPort) { document.getElementById('inp-ws').value = 'ws://localhost:' + wsPort; found.push('ws'); }
+
+  if (found.length === 3) {
+    resultEl.textContent = 'All 3 ports detected';
+    resultEl.className = 'autodetect-result ok';
+    document.getElementById('autodetect-area').classList.remove('open');
+  } else if (found.length > 0) {
+    resultEl.textContent = 'Found ' + found.length + '/4: ' + found.join(', ');
+    resultEl.className = 'autodetect-result ok';
+  } else {
+    resultEl.textContent = 'Could not find any ports. Is this kurtosis enclave inspect output?';
+    resultEl.className = 'autodetect-result err';
+  }
+}
+
+// ── Connect ──
+async function doConnect() {
+  const btn = document.getElementById('btn-connect');
+  btn.textContent = 'Connecting...'; btn.disabled = true;
+
+  try {
+    const urls = {
+      preconf: document.getElementById('inp-preconf').value.trim(),
+      regular: document.getElementById('inp-regular').value.trim(),
+      ws: document.getElementById('inp-ws').value.trim(),
+      send: document.getElementById('inp-send').value.trim(),
+    };
+    urls.send = urls.send || urls.preconf;
+    if (!urls.preconf || !urls.regular) { alert('Preconf and Regular RPC URLs are required.'); return; }
+
+    S.preconfProvider = new ethers.providers.JsonRpcProvider(urls.preconf);
+    S.regularProvider = new ethers.providers.JsonRpcProvider(urls.regular);
+    S.sendProvider = new ethers.providers.JsonRpcProvider(urls.send);
+    S.wallet = new ethers.Wallet('0x' + SENDER_KEY, S.sendProvider);
+
+    await S.preconfProvider.getBlockNumber();
+    await S.regularProvider.getBlockNumber();
+    S.nextNonce = await S.sendProvider.getTransactionCount(SENDER_ADDR);
+
+    if (urls.ws) connectWs(urls.ws);
+
+    if (S.blockInterval) clearInterval(S.blockInterval);
+    S.lastBlock = await S.regularProvider.getBlockNumber();
+    updateProposer(S.lastBlock);
+    S.blockInterval = setInterval(async () => {
+      try {
+        const bn = await S.regularProvider.getBlockNumber();
+        document.getElementById('block-display').textContent = 'Block ' + bn;
+        if (bn !== S.lastBlock) { S.lastBlock = bn; updateProposer(bn); }
+      } catch {}
+    }, 1500);
+
+    S.connected = true;
+    document.getElementById('badge-status').className = 'badge ok';
+    document.getElementById('badge-status').textContent = 'Connected';
+    document.getElementById('btn-race').disabled = false;
+    document.getElementById('btn-batch').disabled = false;
+    document.getElementById('setup-body').classList.remove('open');
+    document.getElementById('setup-arrow').innerHTML = '&#9660;';
+    saveParams();
+  } catch (e) {
+    alert('Connection failed: ' + e.message);
+  } finally {
+    btn.textContent = 'Connect'; btn.disabled = false;
+  }
+}
+
+// ── Flashblock WS ──
+function connectWs(url) {
+  if (S.flashblockWs) try { S.flashblockWs.close(); } catch {}
+  const ws = new WebSocket(url);
+  S.flashblockWs = ws;
+
+  ws.onopen = () => { const el = document.getElementById('feed-empty'); if (el) el.remove(); };
+  ws.onmessage = (evt) => {
+    let fb; try { fb = JSON.parse(evt.data); } catch { return; }
+    const block = fb.metadata?.block_number ?? '?';
+    const idx = fb.index ?? 0;
+    const last = fb.is_last ?? false;
+    const txs = fb.diff?.transactions ?? [];
+    const pid = fb.payload_id ?? '';
+    S.fbCount++;
+    document.getElementById('fb-count').textContent = '(' + S.fbCount + ')';
+
+    let matched = false;
+    for (const raw of txs) {
+      const hash = ethers.utils.keccak256(raw).toLowerCase();
+      if (S.pendingTxs.has(hash)) {
+        const e = S.pendingTxs.get(hash);
+        const lat = performance.now() - e.sendTime;
+        e.fbData = { latency: lat, block, idx, last, pid };
+        if (e.onFb) e.onFb(e.fbData);
+        matched = true;
+      }
+    }
+    addFeedLine(block, idx, last, txs.length, pid, matched);
+  };
+  ws.onerror = () => {};
+  ws.onclose = () => { setTimeout(() => connectWs(url), 3000); };
+}
+
+// ── Topology: proposer highlight + payload fetch animation ──
+function updateProposer(blockNum) {
+  const VALS = 5;
+  const prev = S.currentProposer;
+  const next = blockNum % VALS;
+  S.currentProposer = next;
+
+  // Remove old highlight
+  if (prev >= 0) {
+    const old = document.getElementById('topo-val-' + prev);
+    if (old) {
+      old.classList.remove('proposing');
+      const badge = old.querySelector('.topo-proposer-badge');
+      if (badge) badge.remove();
+    }
+  }
+
+  // Add new highlight
+  const el = document.getElementById('topo-val-' + next);
+  if (el) {
+    el.classList.add('proposing');
+    if (!el.querySelector('.topo-proposer-badge')) {
+      const b = document.createElement('div');
+      b.className = 'topo-proposer-badge';
+      b.textContent = 'PROPOSING';
+      el.appendChild(b);
+    }
+  }
+
+  // Animate payload fetch (dot going up = request, dot going down = response)
+  firePayloadAnimation();
+}
+
+function firePayloadAnimation() {
+  const svg = document.getElementById('topo-svg');
+  const diagram = document.querySelector('.topo-diagram');
+  const seqNode = document.querySelector('.topo-node.sequencer');
+  const valNode = document.getElementById('topo-val-' + S.currentProposer);
+  const label = document.getElementById('topo-payload-label');
+  if (!svg || !diagram || !seqNode || !valNode) return;
+
+  const dr = diagram.getBoundingClientRect();
+  const sr = seqNode.getBoundingClientRect();
+  const vr = valNode.getBoundingClientRect();
+
+  // Sequencer bottom-center (relative to diagram)
+  const sx = sr.left + sr.width / 2 - dr.left;
+  const sy = sr.bottom - dr.top;
+  // Validator top-center
+  const vx = vr.left + vr.width / 2 - dr.left;
+  const vy = vr.top - dr.top;
+
+  // Clear previous animation elements
+  svg.innerHTML = '';
+  if (S.payloadAnimTimer) clearTimeout(S.payloadAnimTimer);
+
+  // Draw dashed line from validator to sequencer
+  const ns = 'http://www.w3.org/2000/svg';
+  const line = document.createElementNS(ns, 'line');
+  line.setAttribute('x1', vx); line.setAttribute('y1', vy);
+  line.setAttribute('x2', sx); line.setAttribute('y2', sy);
+  svg.appendChild(line);
+
+  // Animate dot traveling from validator up to sequencer (request)
+  function animateDot(fromX, fromY, toX, toY, delay) {
+    setTimeout(() => {
+      const dot = document.createElementNS(ns, 'circle');
+      dot.setAttribute('cx', fromX);
+      dot.setAttribute('cy', fromY);
+      dot.setAttribute('r', '5');
+      dot.classList.add('payload-dot');
+      svg.appendChild(dot);
+
+      const start = performance.now();
+      const dur = 600;
+      function step(now) {
+        const t = Math.min((now - start) / dur, 1);
+        const ease = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; // easeInOut
+        dot.setAttribute('cx', fromX + (toX - fromX) * ease);
+        dot.setAttribute('cy', fromY + (toY - fromY) * ease);
+        dot.setAttribute('opacity', t < 0.1 ? t / 0.1 : t > 0.85 ? (1 - t) / 0.15 : 1);
+        if (t < 1) requestAnimationFrame(step);
+        else dot.remove();
+      }
+      requestAnimationFrame(step);
+    }, delay);
+  }
+
+  // Phase 1: dot goes UP (validator -> sequencer = getPayload request)
+  animateDot(vx, vy, sx, sy, 0);
+  // Phase 2: dot goes DOWN (sequencer -> validator = payload response)
+  animateDot(sx, sy, vx, vy, 650);
+
+  // Position floating label at midpoint of the line
+  if (label) {
+    const mx = (sx + vx) / 2;
+    const my = (sy + vy) / 2;
+    label.style.left = mx + 'px';
+    label.style.top = my + 'px';
+    label.style.transform = 'translate(10px, -50%)';
+    label.classList.add('show');
+  }
+
+  // Clean up after animation completes
+  S.payloadAnimTimer = setTimeout(() => {
+    svg.innerHTML = '';
+    if (label) label.classList.remove('show');
+  }, 1800);
+}
+
+// ── Topology toggle ──
+let topoOpen = true;
+function toggleTopo() {
+  topoOpen = !topoOpen;
+  document.getElementById('topo-body').classList.toggle('open', topoOpen);
+  document.getElementById('topo-toggle-btn').innerHTML = topoOpen ? '&#9660; hide' : '&#9654; show';
+}
+
+// ── Feed ──
+let feedOpen = false;
+function toggleFeed() {
+  feedOpen = !feedOpen;
+  document.getElementById('feed-body').classList.toggle('open', feedOpen);
+  document.getElementById('feed-toggle-btn').innerHTML = feedOpen ? '&#9660; hide' : '&#9654; show';
+}
+function addFeedLine(block, idx, last, txn, pid, hl) {
+  const c = document.getElementById('feed-body');
+  // Check if user is near the bottom before adding the new line
+  const atBottom = c.scrollHeight - c.scrollTop - c.clientHeight < 40;
+  const d = document.createElement('div');
+  d.className = 'feed-line' + (hl ? ' hl' : '');
+  const t = new Date();
+  const ts = t.toTimeString().slice(0,8) + '.' + String(t.getMilliseconds()).padStart(3,'0');
+  d.textContent = ts + '  block=' + block + '  idx=' + idx + '  txs=' + txn + (last ? '  [FINAL]' : '');
+  c.appendChild(d);
+  while (c.children.length > MAX_FEED) c.removeChild(c.firstChild);
+  if (atBottom) c.scrollTop = c.scrollHeight;
+  document.getElementById('btn-clear-feed').style.display = '';
+}
+
+// ── Lightning animation: button → RPC node ──
+// Returns a dismiss function. Lightning persists until dismiss() is called.
+function fireLightning() {
+  const btn = document.getElementById('btn-race');
+  const rpc = document.querySelector('.topo-node.rpc');
+  if (!btn || !rpc) return () => {};
+
+  const br = btn.getBoundingClientRect();
+  const rr = rpc.getBoundingClientRect();
+  const scrollX = window.scrollX;
+  const scrollY = window.scrollY;
+
+  // Start: bottom-center of button (page-relative)
+  const sx = br.left + br.width / 2 + scrollX;
+  const sy = br.bottom + scrollY;
+  // End: top-center of RPC node (page-relative)
+  const ex = rr.left + rr.width / 2 + scrollX;
+  const ey = rr.top + scrollY;
+
+  // Build a jagged lightning bolt path with random offsets
+  const dx = ex - sx;
+  const dy = ey - sy;
+  const segments = 6;
+  let path = 'M' + sx + ',' + sy;
+  for (let i = 1; i < segments; i++) {
+    const frac = i / segments;
+    const mx = sx + dx * frac + (Math.random() - 0.5) * 40;
+    const my = sy + dy * frac + (Math.random() - 0.5) * 14;
+    path += ' L' + mx + ',' + my;
+  }
+  path += ' L' + ex + ',' + ey;
+
+  // Create fixed SVG overlay
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.classList.add('lightning-overlay');
+
+  const glow = document.createElementNS(ns, 'path');
+  glow.setAttribute('d', path);
+  glow.classList.add('lightning-glow');
+  svg.appendChild(glow);
+
+  const bolt = document.createElementNS(ns, 'path');
+  bolt.setAttribute('d', path);
+  bolt.classList.add('lightning-bolt');
+  svg.appendChild(bolt);
+
+  document.body.appendChild(svg);
+
+  // Flash the RPC node
+  rpc.classList.add('lightning-hit');
+
+  // Subtle re-flash every ~1.5s to keep it alive
+  const pulseInterval = setInterval(() => {
+    bolt.style.opacity = '0.5';
+    setTimeout(() => { bolt.style.opacity = '1'; }, 150);
+  }, 1500);
+
+  // Return a function that fades out and cleans up
+  return function dismiss() {
+    clearInterval(pulseInterval);
+    bolt.classList.add('fade');
+    glow.classList.add('fade');
+    rpc.classList.remove('lightning-hit');
+    setTimeout(() => svg.remove(), 600);
+  };
+}
+
+// ── TX propagation: RPC → Sequencer (dot shoots down, left of pipe) ──
+let txDownGate = null; // promise that resolves when down-dot is done
+
+function prepareTxDownGate() {
+  let resolve;
+  txDownGate = new Promise(r => { resolve = r; });
+  txDownGate._resolve = resolve;
+}
+
+function animateTxToSequencer() {
+  const srcEl = document.getElementById('mempool-rpc');
+  const dstEl = document.getElementById('mempool-seq');
+  if (!srcEl || !dstEl) return;
+
+  const srcRect = srcEl.getBoundingClientRect();
+  const dstRect = dstEl.getBoundingClientRect();
+
+  const dot = document.createElement('div');
+  dot.className = 'tx-broadcast-dot';
+  // Start at RPC mempool
+  dot.style.top = (srcRect.top + srcRect.height / 2 - 5) + 'px';
+  dot.style.left = (srcRect.left + srcRect.width / 2 - 5) + 'px';
+  dot.style.opacity = '1';
+  document.body.appendChild(dot);
+
+  // Highlight source mempool
+  srcEl.classList.add('active');
+
+  // Animate to sequencer mempool on next frame
+  requestAnimationFrame(() => {
+    dot.style.top = (dstRect.top + dstRect.height / 2 - 5) + 'px';
+    dot.style.left = (dstRect.left + dstRect.width / 2 - 5) + 'px';
+  });
+
+  // Highlight destination, fade source
+  setTimeout(() => {
+    srcEl.classList.remove('active');
+    dstEl.classList.add('active');
+  }, 280);
+
+  // Clean up
+  setTimeout(() => {
+    dot.style.opacity = '0';
+  }, 350);
+  setTimeout(() => {
+    dot.remove();
+    dstEl.classList.remove('active');
+    if (txDownGate && txDownGate._resolve) txDownGate._resolve();
+  }, 500);
+}
+
+// ── Flashblock response: Sequencer → RPC (dot flows up the pipe) ──
+function animateFlashblockToRPC() {
+  const gate = txDownGate || Promise.resolve();
+  gate.then(() => {
+    const pipe = document.querySelector('.topo-pipe-line');
+    const rpc = document.querySelector('.topo-node.rpc');
+    const label = document.querySelector('.topo-pipe-label');
+    if (!pipe || !rpc) return;
+
+    const pipeRect = pipe.getBoundingClientRect();
+    const dot = document.createElement('div');
+    dot.className = 'fb-response-dot';
+    // Start at bottom of pipe
+    dot.style.left = (pipeRect.left + pipeRect.width / 2 - 5) + 'px';
+    dot.style.top = (pipeRect.bottom - 5) + 'px';
+    dot.style.opacity = '1';
+    document.body.appendChild(dot);
+
+    if (label) label.classList.add('highlight');
+
+    // Animate to top of pipe
+    requestAnimationFrame(() => {
+      dot.style.top = (pipeRect.top - 5) + 'px';
+    });
+
+    setTimeout(() => rpc.classList.add('fb-update'), 300);
+
+    setTimeout(() => { dot.style.opacity = '0'; }, 350);
+    setTimeout(() => {
+      dot.remove();
+      rpc.classList.remove('fb-update');
+      if (label) label.classList.remove('highlight');
+    }, 600);
+  });
+}
+
+// ── Main Race ──
+async function runRace() {
+  if (S.busy || !S.connected) return;
+  S.busy = true;
+  document.getElementById('btn-race').disabled = true;
+  document.getElementById('btn-race').textContent = 'Sending...';
+  document.getElementById('race-section').classList.remove('idle');
+  document.getElementById('demo-prompt').textContent = 'Sending a real ETH transfer to the live devnet...';
+
+  resetRace();
+  resetJourney();
+  S.txCounter++;
+
+  try {
+    const feeData = await S.sendProvider.getFeeData();
+    const maxFee = feeData.maxFeePerGas ? feeData.maxFeePerGas.mul(2) : ethers.utils.parseUnits('10', 'gwei');
+    const tx = {
+      to: RECIPIENT_ADDR, value: ethers.utils.parseEther(TX_VALUE), gasLimit: 21000,
+      maxFeePerGas: maxFee, maxPriorityFeePerGas: ethers.utils.parseUnits('1', 'gwei'),
+      nonce: S.nextNonce, chainId: CHAIN_ID, type: 2,
+    };
+    const signed = await S.wallet.signTransaction(tx);
+    const hash = ethers.utils.keccak256(signed).toLowerCase();
+    const sendTime = performance.now();
+    const entry = { sendTime, txNum: S.txCounter };
+    S.pendingTxs.set(hash, entry);
+
+    // Journey step 0: sent
+    setJourney(0, 'done', '0ms');
+
+    await S.sendProvider.send('eth_sendRawTransaction', [signed]);
+    S.nextNonce++;
+
+    // Fire lightning animation from button to RPC node (persists until both finish)
+    const dismissLightning = fireLightning();
+
+    // Gate: create unresolved promise now, before onFb can fire
+    prepareTxDownGate();
+    animateTxToSequencer();
+
+    // Journey step 1: sequencer
+    setJourney(1, 'active');
+
+    entry.onFb = (fb) => {
+      setJourney(1, 'done', Math.round(fb.latency) + 'ms');
+      setJourney(2, 'active');
+      // Animate flashblock flowing back up from sequencer to RPC node
+      animateFlashblockToRPC();
+    };
+
+    // Poll both
+    const results = {};
+    startBar('preconf', sendTime);
+    startBar('regular', sendTime);
+
+    const [preconf, regular] = await Promise.all([
+      pollReceipt(S.preconfProvider, hash, sendTime).then(r => {
+        results.preconf = r;
+        finishBar('preconf', r);
+        setJourney(2, 'done', Math.round(r.latency) + 'ms');
+        setJourney(3, 'active');
+        return r;
+      }),
+      pollReceipt(S.regularProvider, hash, sendTime).then(r => {
+        results.regular = r;
+        finishBar('regular', r);
+        setJourney(3, 'done');
+        setJourney(4, 'done', Math.round(r.latency) + 'ms');
+        return r;
+      }),
+    ]);
+
+    // Dismiss lightning now that both are done
+    dismissLightning();
+
+    // Speedup
+    if (preconf && regular && !preconf.timeout && !regular.timeout) {
+      const x = regular.latency / preconf.latency;
+      const el = document.getElementById('speedup');
+      el.innerHTML = x.toFixed(0) + 'x faster<div class="speedup-sub">with preconfirmations</div>';
+      el.classList.add('show');
+    }
+
+    // Journey connector fill
+    document.getElementById('journey-fill').style.width = '100%';
+
+    addHistory(S.txCounter, hash, entry.fbData, results.preconf, results.regular);
+    S.pendingTxs.delete(hash);
+    document.getElementById('demo-prompt').textContent = 'Click again to run another race';
+  } catch (e) {
+    console.error(e);
+    alert('Transaction failed: ' + e.message);
+    if (e.message && e.message.toLowerCase().includes('nonce')) {
+      try { S.nextNonce = await S.sendProvider.getTransactionCount(SENDER_ADDR); } catch {}
+    }
+  } finally {
+    S.busy = false;
+    document.getElementById('btn-race').disabled = false;
+    document.getElementById('btn-race').textContent = 'Send Transaction';
+  }
+}
+
+function pollReceipt(provider, hash, t0) {
+  return new Promise(resolve => {
+    const deadline = t0 + POLL_TIMEOUT;
+    const go = async () => {
+      if (performance.now() > deadline) return resolve({ latency: POLL_TIMEOUT, timeout: true });
+      try {
+        const r = await provider.getTransactionReceipt(hash);
+        if (r) return resolve({ latency: performance.now() - t0, receipt: r, timeout: false });
+      } catch {}
+      setTimeout(go, POLL_INTERVAL);
+    };
+    go();
+  });
+}
+
+// ── Race bars ──
+function resetRace() {
+  ['preconf','regular'].forEach(k => {
+    const b = document.getElementById('bar-' + k);
+    b.style.width = '0%'; b.classList.remove('polling','done');
+    document.getElementById('time-' + k).textContent = '--';
+  });
+  const sp = document.getElementById('speedup');
+  sp.classList.remove('show');
+}
+function startBar(k, t0) {
+  const b = document.getElementById('bar-' + k);
+  const t = document.getElementById('time-' + k);
+  b.classList.add('polling');
+  const MAX = 5000;
+  const anim = () => {
+    if (b.classList.contains('done')) return;
+    const e = performance.now() - t0;
+    b.style.width = Math.min(e / MAX * 100, 95) + '%';
+    t.textContent = Math.round(e) + 'ms...';
+    requestAnimationFrame(anim);
+  };
+  requestAnimationFrame(anim);
+}
+function finishBar(k, r) {
+  const b = document.getElementById('bar-' + k);
+  const t = document.getElementById('time-' + k);
+  b.classList.remove('polling'); b.classList.add('done');
+  b.style.width = '100%';
+  t.textContent = r.timeout ? 'TIMEOUT' : Math.round(r.latency) + 'ms';
+}
+
+// ── Journey steps ──
+function resetJourney() {
+  document.querySelectorAll('.journey-step').forEach(el => {
+    el.classList.remove('done','active','preconf-moment');
+    el.querySelector('.timing').textContent = '';
+  });
+  document.getElementById('journey-fill').style.width = '0%';
+}
+function setJourney(i, status, timeText) {
+  const el = document.querySelector('.journey-step[data-jstep="' + i + '"]');
+  if (!el) return;
+  el.classList.remove('done','active','preconf-moment');
+  if (status === 'done') el.classList.add(i === 2 ? 'preconf-moment' : 'done');
+  else el.classList.add(status);
+  if (timeText) el.querySelector('.timing').textContent = timeText;
+  // Fill connector
+  const pct = Math.min(((i + (status === 'done' ? 1 : 0.5)) / 5) * 100, 100);
+  document.getElementById('journey-fill').style.width = pct + '%';
+}
+
+// ── History ──
+function addHistory(num, txHash, fb, preconf, regular) {
+  const c = document.getElementById('history-list');
+  const empty = c.querySelector('.empty'); if (empty) empty.remove();
+  const d = document.createElement('div');
+  d.className = 'history-entry';
+
+  const pMs = preconf && !preconf.timeout ? Math.round(preconf.latency) : null;
+  const rMs = regular && !regular.timeout ? Math.round(regular.latency) : null;
+  const x = pMs && rMs ? (rMs / pMs).toFixed(1) : null;
+  const maxMs = Math.max(pMs || 0, rMs || 1);
+
+  // Unique id for this entry's details panel
+  const detailId = 'hdetail-' + num;
+
+  // Summary row
+  let html =
+    '<div class="history-row">' +
+      '<span class="history-label">TX #' + num + '</span>' +
+      '<div class="history-vals">' +
+        (pMs ? '<span class="history-val preconf">Preconf: <span class="v">' + pMs + 'ms</span></span>' : '') +
+        (rMs ? '<span class="history-val regular">Standard: <span class="v">' + rMs + 'ms</span></span>' : '') +
+        (x ? '<span class="history-val speedup"><span class="v">' + x + 'x faster</span></span>' : '') +
+      '</div>' +
+    '</div>' +
+    '<div class="bar-mini">' +
+      '<span class="bar-mini-label" style="color:var(--preconf)">Preconf</span>' +
+      '<div class="bar-mini-track"><div class="bar-mini-fill preconf" style="width:' + (pMs ? (pMs/maxMs*100) : 0) + '%"></div></div>' +
+    '</div>' +
+    '<div class="bar-mini">' +
+      '<span class="bar-mini-label" style="color:var(--regular)">Standard</span>' +
+      '<div class="bar-mini-track"><div class="bar-mini-fill regular" style="width:' + (rMs ? (rMs/maxMs*100) : 0) + '%"></div></div>' +
+    '</div>';
+
+  // Expand toggle
+  html += '<button class="history-expand-btn" onclick="toggleHistoryDetail(\'' + detailId + '\', this)">Details &#9654;</button>';
+
+  // Detail panel
+  const receipt = preconf && preconf.receipt ? preconf.receipt : (regular && regular.receipt ? regular.receipt : null);
+  const blockNum = receipt ? (receipt.blockNumber ?? '?') : '?';
+  const gasUsed = receipt ? (receipt.gasUsed ? receipt.gasUsed.toString() : '?') : '?';
+  const status = receipt ? (receipt.status === 1 ? 'Success' : 'Failed') : '?';
+  const fbLatency = fb ? Math.round(fb.latency) + 'ms' : 'N/A';
+  const fbBlock = fb ? fb.block : 'N/A';
+  const fbIdx = fb ? fb.idx : 'N/A';
+  const fbPid = fb ? fb.pid : 'N/A';
+  const timeSaved = pMs && rMs ? (rMs - pMs) + 'ms' : 'N/A';
+
+  html +=
+    '<div class="history-details" id="' + detailId + '">' +
+      '<div class="history-detail-grid">' +
+        '<div class="history-detail-item">TX Hash<br><span class="dl hash">' + txHash + '</span></div>' +
+        '<div class="history-detail-item">Status<br><span class="dl">' + status + '</span></div>' +
+        '<div class="history-detail-item">Block Number<br><span class="dl">' + blockNum + '</span></div>' +
+        '<div class="history-detail-item">Gas Used<br><span class="dl">' + gasUsed + '</span></div>' +
+        '<div class="history-detail-item">Preconf Receipt<br><span class="dl preconf">' + (pMs ? pMs + 'ms' : 'N/A') + '</span></div>' +
+        '<div class="history-detail-item">Standard Receipt<br><span class="dl regular">' + (rMs ? rMs + 'ms' : 'N/A') + '</span></div>' +
+        '<div class="history-detail-item">Time Saved<br><span class="dl gold">' + timeSaved + '</span></div>' +
+        '<div class="history-detail-item">Speedup<br><span class="dl gold">' + (x ? x + 'x' : 'N/A') + '</span></div>' +
+        '<div class="history-detail-item">Flashblock Latency<br><span class="dl preconf">' + fbLatency + '</span></div>' +
+        '<div class="history-detail-item">Flashblock Index<br><span class="dl">' + fbIdx + '</span></div>' +
+        '<div class="history-detail-item">Flashblock Block<br><span class="dl">' + fbBlock + '</span></div>' +
+        '<div class="history-detail-item">Payload ID<br><span class="dl hash">' + fbPid + '</span></div>' +
+      '</div>' +
+    '</div>';
+
+  d.innerHTML = html;
+  c.insertBefore(d, c.firstChild);
+  document.getElementById('btn-clear-history').style.display = '';
+}
+
+function toggleHistoryDetail(id, btn) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const open = el.classList.toggle('open');
+  btn.innerHTML = open ? 'Details &#9660;' : 'Details &#9654;';
+}
+
+function clearHistory() {
+  const c = document.getElementById('history-list');
+  c.innerHTML = '<div class="empty">Click "Send Transaction" to start</div>';
+  document.getElementById('btn-clear-history').style.display = 'none';
+}
+
+function clearFeed() {
+  const c = document.getElementById('feed-body');
+  c.innerHTML = '<div class="empty" id="feed-empty">Waiting for flashblocks...</div>';
+  S.fbCount = 0;
+  document.getElementById('fb-count').textContent = '';
+  document.getElementById('btn-clear-feed').style.display = 'none';
+}
+
+// ── Batch Mode ──
+const BATCH_SIZE = 10;
+
+async function runBatch() {
+  if (S.busy || !S.connected) return;
+  S.busy = true;
+  document.getElementById('btn-race').disabled = true;
+  document.getElementById('btn-batch').disabled = true;
+  document.getElementById('btn-batch').textContent = 'Running...';
+  document.getElementById('race-section').classList.remove('idle');
+
+  const progressEl = document.getElementById('batch-progress');
+  const batchResults = [];
+
+  try {
+    const feeData = await S.sendProvider.getFeeData();
+    const maxFee = feeData.maxFeePerGas ? feeData.maxFeePerGas.mul(2) : ethers.utils.parseUnits('10', 'gwei');
+
+    for (let i = 0; i < BATCH_SIZE; i++) {
+      const num = i + 1;
+      progressEl.innerHTML =
+        'Sending <span class="bp-current">' + num + '/' + BATCH_SIZE + '</span>' +
+        ' <span class="bp-bar"><span class="bp-fill" style="width:' + (num / BATCH_SIZE * 100) + '%"></span></span>';
+      document.getElementById('demo-prompt').textContent = 'Batch: sending TX ' + num + ' of ' + BATCH_SIZE + '...';
+
+      resetRace();
+      resetJourney();
+      S.txCounter++;
+
+      const tx = {
+        to: RECIPIENT_ADDR, value: ethers.utils.parseEther(TX_VALUE), gasLimit: 21000,
+        maxFeePerGas: maxFee, maxPriorityFeePerGas: ethers.utils.parseUnits('1', 'gwei'),
+        nonce: S.nextNonce, chainId: CHAIN_ID, type: 2,
+      };
+      const signed = await S.wallet.signTransaction(tx);
+      const hash = ethers.utils.keccak256(signed).toLowerCase();
+      const sendTime = performance.now();
+      const entry = { sendTime, txNum: S.txCounter };
+      S.pendingTxs.set(hash, entry);
+
+      setJourney(0, 'done', '0ms');
+      await S.sendProvider.send('eth_sendRawTransaction', [signed]);
+      S.nextNonce++;
+
+      const dismissLightning = fireLightning();
+      prepareTxDownGate();
+      animateTxToSequencer();
+      setJourney(1, 'active');
+
+      entry.onFb = (fb) => {
+        setJourney(1, 'done', Math.round(fb.latency) + 'ms');
+        setJourney(2, 'active');
+        animateFlashblockToRPC();
+      };
+
+      const results = {};
+      startBar('preconf', sendTime);
+      startBar('regular', sendTime);
+
+      const [preconf, regular] = await Promise.all([
+        pollReceipt(S.preconfProvider, hash, sendTime).then(r => {
+          results.preconf = r;
+          finishBar('preconf', r);
+          setJourney(2, 'done', Math.round(r.latency) + 'ms');
+          setJourney(3, 'active');
+          return r;
+        }),
+        pollReceipt(S.regularProvider, hash, sendTime).then(r => {
+          results.regular = r;
+          finishBar('regular', r);
+          setJourney(3, 'done');
+          setJourney(4, 'done', Math.round(r.latency) + 'ms');
+          return r;
+        }),
+      ]);
+
+      dismissLightning();
+      document.getElementById('journey-fill').style.width = '100%';
+
+      const pMs = preconf && !preconf.timeout ? preconf.latency : null;
+      const rMs = regular && !regular.timeout ? regular.latency : null;
+
+      batchResults.push({ num: S.txCounter, hash, pMs, rMs, fb: entry.fbData });
+      addHistory(S.txCounter, hash, entry.fbData, results.preconf, results.regular);
+      S.pendingTxs.delete(hash);
+
+      // Show per-tx speedup briefly
+      if (pMs && rMs) {
+        const x = rMs / pMs;
+        const sp = document.getElementById('speedup');
+        sp.innerHTML = x.toFixed(0) + 'x faster<div class="speedup-sub">TX ' + num + '/' + BATCH_SIZE + '</div>';
+        sp.classList.add('show');
+      }
+
+      // Pause between rounds so the user can see each result
+      if (i < BATCH_SIZE - 1) {
+        await new Promise(r => setTimeout(r,  150 + Math.random() * 800));
+      }
+    }
+
+    // Batch complete — show aggregate summary
+    addBatchSummary(batchResults);
+
+    const validPreconf = batchResults.filter(r => r.pMs != null);
+    const validRegular = batchResults.filter(r => r.rMs != null);
+    if (validPreconf.length && validRegular.length) {
+      const avgP = validPreconf.reduce((s, r) => s + r.pMs, 0) / validPreconf.length;
+      const avgR = validRegular.reduce((s, r) => s + r.rMs, 0) / validRegular.length;
+      const x = avgR / avgP;
+      const sp = document.getElementById('speedup');
+      sp.innerHTML = x.toFixed(0) + 'x faster<div class="speedup-sub">average across ' + BATCH_SIZE + ' transactions</div>';
+      sp.classList.add('show');
+    }
+
+    progressEl.innerHTML = 'Batch complete (' + BATCH_SIZE + ' transactions)';
+    document.getElementById('demo-prompt').textContent = 'Batch complete — see aggregate results below';
+
+  } catch (e) {
+    console.error(e);
+    alert('Batch failed at TX ' + (batchResults.length + 1) + ': ' + e.message);
+    if (e.message && e.message.toLowerCase().includes('nonce')) {
+      try { S.nextNonce = await S.sendProvider.getTransactionCount(SENDER_ADDR); } catch {}
+    }
+  } finally {
+    S.busy = false;
+    document.getElementById('btn-race').disabled = false;
+    document.getElementById('btn-batch').disabled = false;
+    document.getElementById('btn-batch').textContent = 'Run 10x';
+  }
+}
+
+function addBatchSummary(results) {
+  const c = document.getElementById('history-list');
+  const d = document.createElement('div');
+  d.className = 'history-entry batch-summary';
+
+  const pTimes = results.filter(r => r.pMs != null).map(r => r.pMs);
+  const rTimes = results.filter(r => r.rMs != null).map(r => r.rMs);
+
+  const avg = arr => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
+  const min = arr => arr.length ? Math.min(...arr) : 0;
+  const max = arr => arr.length ? Math.max(...arr) : 0;
+
+  const avgP = avg(pTimes), avgR = avg(rTimes);
+  const minP = min(pTimes), maxP = max(pTimes);
+  const minR = min(rTimes), maxR = max(rTimes);
+  const avgX = avgP > 0 ? (avgR / avgP).toFixed(1) : 'N/A';
+  const totalSaved = pTimes.length && rTimes.length
+    ? Math.round(rTimes.reduce((a, b) => a + b, 0) - pTimes.reduce((a, b) => a + b, 0))
+    : 0;
+
+  d.innerHTML =
+    '<div class="batch-summary-label">Batch Summary (' + results.length + ' transactions)</div>' +
+    '<div class="batch-stats-grid">' +
+      '<div class="batch-stat">' +
+        '<div class="bs-label">Avg Preconf</div>' +
+        '<div class="bs-val preconf">' + Math.round(avgP) + 'ms</div>' +
+        '<div class="bs-sub">' + Math.round(minP) + ' – ' + Math.round(maxP) + 'ms</div>' +
+      '</div>' +
+      '<div class="batch-stat">' +
+        '<div class="bs-label">Avg Standard</div>' +
+        '<div class="bs-val regular">' + Math.round(avgR) + 'ms</div>' +
+        '<div class="bs-sub">' + Math.round(minR) + ' – ' + Math.round(maxR) + 'ms</div>' +
+      '</div>' +
+      '<div class="batch-stat">' +
+        '<div class="bs-label">Avg Speedup</div>' +
+        '<div class="bs-val gold">' + avgX + 'x</div>' +
+        '<div class="bs-sub">' + (totalSaved > 0 ? (totalSaved / 1000).toFixed(1) + 's saved' : '') + '</div>' +
+      '</div>' +
+    '</div>';
+
+  c.insertBefore(d, c.firstChild);
+  document.getElementById('btn-clear-history').style.display = '';
+}
+</script>
+</body>
+</html>
