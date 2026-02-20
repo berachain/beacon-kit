@@ -99,7 +99,7 @@ func (p *rpcErrorProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			if isTargetedEngineMethod(req.Method) {
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusOK)
-				w.Write([]byte(p.getErr(req.ID)))
+				_, _ = w.Write([]byte(p.getErr(req.ID)))
 				return
 			}
 		}
@@ -129,7 +129,7 @@ func (p *rpcErrorProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	w.WriteHeader(resp.StatusCode)
-	io.Copy(w, resp.Body)
+	_, _ = io.Copy(w, resp.Body)
 }
 
 func isTargetedEngineMethod(method string) bool {
@@ -214,15 +214,8 @@ func (s *RPCErrorProxySuite) SetupTest() {
 }
 
 func (s *RPCErrorProxySuite) TearDownTest() {
-	if s.T().Failed() {
-		s.T().Log(s.LogBuffer.String())
-	}
 	s.errProxyServer.Close()
-	if err := s.ElHandle.Close(); err != nil {
-		s.T().Error("Error closing EL handle:", err)
-	}
-	s.CtxAppCancelFn()
-	s.TestNode.ServiceRegistry.StopAll()
+	s.CleanupTest(s.T())
 }
 
 // preparedProposal holds the state needed to call FinalizeBlock.
