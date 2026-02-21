@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	gethcommon "github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/params"
 )
 
@@ -53,7 +54,9 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 	for blkNum := range int64(2 * chainspec.SlotsPerEpoch()) {
 		err = s.WaitForFinalizedBlockNumber(uint64(blkNum))
 		s.Require().NoError(err)
-		header, err := s.JSONRPCBalancer().HeaderByNumber(s.Ctx(), big.NewInt(blkNum))
+
+		var header *types.Header
+		header, err = s.JSONRPCBalancer().HeaderByNumber(s.Ctx(), big.NewInt(blkNum))
 		s.Require().NoError(err)
 
 		payloadTime := header.Time
