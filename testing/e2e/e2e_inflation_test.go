@@ -53,8 +53,8 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 	for blkNum := range int64(2 * chainspec.SlotsPerEpoch()) {
 		err = s.WaitForFinalizedBlockNumber(uint64(blkNum))
 		s.Require().NoError(err)
-		header, errBlk := s.JSONRPCBalancer().HeaderByNumber(s.Ctx(), big.NewInt(blkNum))
-		s.Require().NoError(errBlk)
+		header, err := s.JSONRPCBalancer().HeaderByNumber(s.Ctx(), big.NewInt(blkNum))
+		s.Require().NoError(err)
 
 		payloadTime := header.Time
 		inflationPerBlock = chainspec.EVMInflationPerBlock(math.U64(payloadTime)).Unwrap()

@@ -42,6 +42,8 @@ func (p ExecutionPubkey) String() string { return hexutil.Encode(p[:]) }
 
 // Format implements fmt.Formatter.
 // Pubkey supports the %v, %s, %q, %x, %X and %d format verbs.
+//
+// #nosec:G104 // copied from geth and fmt.State.Write errors are conventionally ignored
 func (p ExecutionPubkey) Format(s fmt.State, c rune) {
 	hexb := make([]byte, 2+len(p)*2)
 	copy(hexb, "0x")
@@ -57,12 +59,12 @@ func (p ExecutionPubkey) Format(s fmt.State, c rune) {
 		}
 		fallthrough
 	case 'v', 's':
-		s.Write(hexb) // #nosec G104 -- fmt.State.Write errors are conventionally ignored
+		s.Write(hexb)
 	case 'q':
 		q := []byte{'"'}
-		s.Write(q)    // #nosec G104 -- fmt.State.Write errors are conventionally ignored
-		s.Write(hexb) // #nosec G104 -- fmt.State.Write errors are conventionally ignored
-		s.Write(q)    // #nosec G104 -- fmt.State.Write errors are conventionally ignored
+		s.Write(q)
+		s.Write(hexb)
+		s.Write(q)
 	case 'd':
 		fmt.Fprint(s, ([len(p)]byte)(p))
 	default:
