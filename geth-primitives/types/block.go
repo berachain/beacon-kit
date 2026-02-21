@@ -220,7 +220,12 @@ func (b *Block) BlobGasUsed() *uint64 {
 
 // BlockToExecutableData constructs the ExecutableData structure by filling the
 // fields from the given block. It assumes the given block is post-merge block.
-func BlockToExecutableData(block *Block, fees *big.Int, sidecars []*coretypes.BlobTxSidecar, requests [][]byte) *engine.ExecutionPayloadEnvelope {
+func BlockToExecutableData(
+	block *Block,
+	fees *big.Int,
+	sidecars []*coretypes.BlobTxSidecar,
+	requests [][]byte,
+) *engine.ExecutionPayloadEnvelope {
 	data := &engine.ExecutableData{
 		BlockHash:     block.Hash(),
 		ParentHash:    block.ParentHash(),

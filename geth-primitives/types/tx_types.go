@@ -24,6 +24,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
@@ -31,6 +32,32 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/holiman/uint256"
 )
+
+// BRIP-0004 PoL transaction type.
+const PoLTxType = 0x7E
+
+// AccessListTx is the data of EIP-2930 access list transactions.
+type AccessListTx struct {
+	ChainID    *big.Int             // destination chain ID
+	Nonce      uint64               // nonce of sender account
+	GasPrice   *big.Int             // wei per gas
+	Gas        uint64               // gas limit
+	To         *common.Address      `rlp:"nil"` // nil means contract creation
+	Value      *big.Int             // wei amount
+	Data       []byte               // contract invocation input data
+	AccessList coretypes.AccessList // EIP-2930 access list
+	V, R, S    *big.Int             // signature values
+}
+
+func (tx *AccessListTx) txType() byte { return coretypes.AccessListTxType }
+
+func (tx *AccessListTx) encode(b *bytes.Buffer) error {
+	return rlp.Encode(b, tx)
+}
+
+func (tx *AccessListTx) decode(input []byte) error {
+	return rlp.DecodeBytes(input, tx)
+}
 
 // BlobTx represents an EIP-4844 transaction.
 type BlobTx struct {
@@ -56,7 +83,7 @@ type BlobTx struct {
 	S *uint256.Int
 }
 
-func (tx *BlobTx) txType() byte { return BlobTxType }
+func (tx *BlobTx) txType() byte { return coretypes.BlobTxType }
 
 func (tx *BlobTx) encode(b *bytes.Buffer) error {
 	switch {
@@ -201,4 +228,104 @@ func (btx *blobTxWithBlobsV1) assign(sc *coretypes.BlobTxSidecar) error {
 	sc.Commitments = btx.Commitments
 	sc.Proofs = btx.Proofs
 	return nil
+}
+
+// DynamicFeeTx represents an EIP-1559 transaction.
+type DynamicFeeTx struct {
+	ChainID    *big.Int
+	Nonce      uint64
+	GasTipCap  *big.Int // a.k.a. maxPriorityFeePerGas
+	GasFeeCap  *big.Int // a.k.a. maxFeePerGas
+	Gas        uint64
+	To         *common.Address `rlp:"nil"` // nil means contract creation
+	Value      *big.Int
+	Data       []byte
+	AccessList coretypes.AccessList
+
+	// Signature values
+	V *big.Int
+	R *big.Int
+	S *big.Int
+}
+
+func (tx *DynamicFeeTx) txType() byte { return coretypes.DynamicFeeTxType }
+
+func (tx *DynamicFeeTx) encode(b *bytes.Buffer) error {
+	return rlp.Encode(b, tx)
+}
+
+func (tx *DynamicFeeTx) decode(input []byte) error {
+	return rlp.DecodeBytes(input, tx)
+}
+
+// LegacyTx is the transaction data of the original Ethereum transactions.
+type LegacyTx struct {
+	Nonce    uint64          // nonce of sender account
+	GasPrice *big.Int        // wei per gas
+	Gas      uint64          // gas limit
+	To       *common.Address `rlp:"nil"` // nil means contract creation
+	Value    *big.Int        // wei amount
+	Data     []byte          // contract invocation input data
+	V, R, S  *big.Int        // signature values
+}
+
+func (tx *LegacyTx) txType() byte { return coretypes.LegacyTxType }
+
+func (tx *LegacyTx) encode(*bytes.Buffer) error {
+	panic("encode called on LegacyTx")
+}
+
+func (tx *LegacyTx) decode([]byte) error {
+	panic("decode called on LegacyTx)")
+}
+
+// PoLTx represents an BRIP-0004 transaction. No gas is consumed for execution.
+type PoLTx struct {
+	ChainID  *big.Int
+	From     common.Address // system address
+	To       common.Address // address of the PoL Distributor contract
+	Nonce    uint64         // block number distributing for
+	GasLimit uint64         // artificial gas limit for the PoL tx, not consumed against the block gas limit
+	GasPrice *big.Int       // gas price is set to the baseFee to make the tx valid for EIP-1559 rules
+	Data     []byte         // encodes the pubkey distributing for
+}
+
+func (*PoLTx) txType() byte { return PoLTxType }
+
+func (tx *PoLTx) encode(b *bytes.Buffer) error {
+	return rlp.Encode(b, tx)
+}
+
+func (tx *PoLTx) decode(input []byte) error {
+	return rlp.DecodeBytes(input, tx)
+}
+
+// SetCodeTx implements the EIP-7702 transaction type which temporarily installs
+// the code at the signer's address.
+type SetCodeTx struct {
+	ChainID    *uint256.Int
+	Nonce      uint64
+	GasTipCap  *uint256.Int // a.k.a. maxPriorityFeePerGas
+	GasFeeCap  *uint256.Int // a.k.a. maxFeePerGas
+	Gas        uint64
+	To         common.Address
+	Value      *uint256.Int
+	Data       []byte
+	AccessList coretypes.AccessList
+	AuthList   []coretypes.SetCodeAuthorization
+
+	// Signature values
+	V *uint256.Int
+	R *uint256.Int
+	S *uint256.Int
+}
+
+func (tx *SetCodeTx) txType() byte { return coretypes.SetCodeTxType }
+
+func (tx *SetCodeTx) encode(b *bytes.Buffer) error {
+	return rlp.Encode(b, tx)
+}
+
+func (tx *SetCodeTx) decode(input []byte) error {
+	return rlp.DecodeBytes(input, tx)
 }

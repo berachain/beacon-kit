@@ -29,18 +29,6 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
-// Transaction types.
-const (
-	LegacyTxType     = 0x00
-	AccessListTxType = 0x01
-	DynamicFeeTxType = 0x02
-	BlobTxType       = 0x03
-	SetCodeTxType    = 0x04
-
-	// BRIP-0004 PoL transaction type.
-	PoLTxType = 0x7E
-)
-
 // TxData is the underlying data of a transaction.
 type TxData interface {
 	txType() byte // returns the type ID
