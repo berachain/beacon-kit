@@ -104,31 +104,35 @@ func (s *EngineClient) handleRPCError(
 		return engineerrors.ErrRequestTooLarge
 	case -32000:
 		s.metrics.incrementInternalServerErrorCounter()
+		// // Only -32000 status codes are data errors in the RPC specification.
+		// var errWithData rpc.DataError
+		// errWithData, ok = err.(rpc.DataError) //nolint:errorlint // from
+		// prysm.
+		// if !ok {
+		// 	return errors.Wrapf(
+		// 		errors.Join(jsonrpc.ErrServer, err),
+		// 		"got an unexpected data error in JSON-RPC response",
+		// 	)
+		// }
 		return errors.Wrapf(jsonrpc.ErrServer, "%v", e.Error())
 	default:
 		return err
 	}
 }
 
-// isTransientError defines RPC errors that are likely transient and can
-// be recovered from by retrying (e.g. EL temporarily overloaded).
-func isTransientError(err error) bool {
-	return errors.IsAny(err, jsonrpc.ErrServer, jsonrpc.ErrInternal)
-}
-
 // IsFatalError defines errors that indicate a bad request or an otherwise
-// unusable client. Transient errors are excluded since they are retryable.
+// unusable client.
 func IsFatalError(err error) bool {
-	return !isTransientError(err) && (jsonrpc.IsPreDefinedError(err) || errors.IsAny(
+	return jsonrpc.IsPreDefinedError(err) || errors.IsAny(
 		err,
 		ErrBadConnection,
-	))
+	)
 }
 
 // IsNonFatalError defines errors that should be ephemeral and can be
 // recovered from simply by retrying.
 func IsNonFatalError(err error) bool {
-	return isTransientError(err) || errors.IsAny(
+	return errors.IsAny(
 		err,
 		engineerrors.ErrEngineAPITimeout,
 		http.ErrTimeout,

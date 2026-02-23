@@ -264,44 +264,13 @@ func (s *RPCErrorProxySuite) prepareForFinalize() preparedProposal {
 	}
 }
 
-// TestFinalizeBlock_TransientRPCError_Recovery shows that when exec client returns
-// a transient JSON-RPC error (-32000 server error) during FinalizeBlock,
-// the engine retries and the node recovers once the EL becomes available.
-func (s *RPCErrorProxySuite) TestFinalizeBlock_TransientRPCError_Recovery() {
-	pp := s.prepareForFinalize()
-
-	// Activate the error proxy: next engine API calls return -32000.
-	// This is a transient error that should be retried.
-	s.errProxy.activate(-32000, "Server Error")
-
-	// Restore EL responses after a short delay so the retry succeeds.
-	go func() {
-		time.Sleep(500 * time.Millisecond)
-		s.errProxy.deactivate()
-	}()
-
-	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.FinalizeBlockRequest{
-		Txs:             pp.txs,
-		Height:          pp.height,
-		ProposerAddress: pp.proposerAddress,
-		Time:            pp.proposalTime,
-	})
-
-	s.Require().NoError(err, "FinalizeBlock should recover after transient RPC error")
-	s.Require().NotNil(finalizeResp)
-
-	logs := s.LogBuffer.String()
-	s.Require().Contains(logs, "non fatal error", "Should log non fatal error retry attempts")
-}
-
 // TestFinalizeBlock_FatalRPCError shows that when exec client returns a
-// non-transient JSON-RPC error (e.g. -32700 parse error) during FinalizeBlock,
-// the error is returned immediately without retrying.
-func (s *RPCErrorProxySuite) TestFinalizeBlock_FatalRPCError() {
+// JSON-RPC error (e.g. -32700 parse error) during FinalizeBlock, the error is
+// correctly identified and returned.
+func (s *RPCErrorProxySuite) TestFinalizeBlock_HandleRPCError() {
 	pp := s.prepareForFinalize()
 
-	// Activate the error proxy with a fatal error code (-32700 parse error).
-	// This should NOT be retried.
+	// Activate the error proxy with an RPC error code (-32700 parse error).
 	s.errProxy.activate(-32700, "Parse Error")
 
 	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.FinalizeBlockRequest{
