@@ -193,6 +193,11 @@ func (s *Server) handleGetPayload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if envelope == nil {
+		s.writeError(w, http.StatusNotFound, "payload not available")
+		return
+	}
+
 	// Write response
 	w.Header().Set("Content-Type", "application/json")
 	if err = json.NewEncoder(w).Encode(NewGetPayloadResponseFromEnvelope(envelope)); err != nil {
