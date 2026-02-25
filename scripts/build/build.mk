@@ -100,11 +100,19 @@ IMAGE_NAME ?= $(TESTAPP)
 # Docker Paths
 DOCKERFILE = ./Dockerfile
 
+# Go version extracted from go.mod (single source of truth).
+GO_VERSION := $(or \
+  $(shell awk '/^go /{print $$2}' $(CURDIR)/go.mod 2>/dev/null), \
+  $(shell sed -n 's/^go \(.*\)/\1/p' $(CURDIR)/go.mod 2>/dev/null))
+ifeq ($(GO_VERSION),)
+  $(error GO_VERSION could not be parsed from $(CURDIR)/go.mod)
+endif
+
 build-docker: ## build a docker image containing `beacond`
 	@echo "Build a release docker image for the Cosmos SDK chain..."
 	docker build \
 	--platform linux/$(ARCH) \
-	--build-arg GO_VERSION=$(shell awk '/^go /{print $$2}' go.mod) \
+	--build-arg GO_VERSION=$(GO_VERSION) \
 	--build-arg GIT_COMMIT=$(shell git rev-parse HEAD) \
 	--build-arg GIT_VERSION=$(VERSION) \
 	--build-arg GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD) \
