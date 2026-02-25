@@ -23,6 +23,7 @@ package blockchain
 import (
 	"bytes"
 	"context"
+	"encoding/hex"
 	"fmt"
 	"time"
 
@@ -255,7 +256,7 @@ func (s *Service) VerifyIncomingBlobSidecars(
 // VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
 //
-//nolint:funlen,gocognit,nestif // abundantly commented
+//nolint:funlen,gocognit // abundantly commented
 func (s *Service) VerifyIncomingBlock(
 	ctx context.Context,
 	blk *types.ConsensusBlock,
@@ -316,16 +317,16 @@ func (s *Service) VerifyIncomingBlock(
 		case s.preconfCfg.IsSequencer():
 			// We're the sequencer, build for whitelisted validators.
 			// Only check whitelist if we can resolve the next proposer pubkey.
-			expectedProposerPubkey, err := s.getNextProposerPubkey(state, nextProposerAddress)
-			if err != nil {
-				s.logger.Error("Failed to get next proposer pubkey", "error", err)
+			expectedProposerPubkey, pubkeyErr := s.getNextProposerPubkey(state, nextProposerAddress)
+			if pubkeyErr != nil {
+				s.logger.Error("Failed to get next proposer pubkey", "error", pubkeyErr)
 			} else {
 				shouldBuildNextPayload = s.preconfWhitelist.IsWhitelisted(expectedProposerPubkey)
 			}
 			s.logger.Info("Sequencer mode: determined next proposer",
 				"current_block_slot", blkSlot.Base10(),
 				"target_build_slot", (blkSlot + 1).Base10(),
-				"next_proposer_address", fmt.Sprintf("%x", nextProposerAddress),
+				"next_proposer_address", hex.EncodeToString(nextProposerAddress),
 				"expected_proposer_pubkey", expectedProposerPubkey.String(),
 				"is_whitelisted", shouldBuildNextPayload,
 			)

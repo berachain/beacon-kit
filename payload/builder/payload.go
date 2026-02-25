@@ -292,44 +292,30 @@ func (pb *PayloadBuilder) GetPayloadBySlot(
 
 	var lastErr error
 	for attempt := range maxRetries {
-		payloadRes, found := pb.pc.Get(slot, parentBlockRoot)
-		if !found {
-			lastErr = ErrPayloadIDNotFound
-			if attempt < maxRetries-1 {
-				select {
-				case <-ctx.Done():
-					return nil, ctx.Err()
-				case <-time.After(retryInterval):
-				}
+		envelope, err := pb.tryGetCachedPayload(ctx, slot, parentBlockRoot)
+		if err == nil {
+			if attempt > 0 {
+				pb.logger.Info("GetPayloadBySlot succeeded after retry",
+					"slot", slot.Base10(),
+					"attempts", attempt+1,
+				)
 			}
-			continue
+			return envelope, nil
 		}
 
-		envelope, err := pb.getPayload(ctx, payloadRes.PayloadID, payloadRes.ForkVersion)
-		if err != nil {
-			lastErr = err
-			if errors.Is(err, engineerrors.ErrUnknownPayload) {
-				if attempt < maxRetries-1 {
-					select {
-					case <-ctx.Done():
-						return nil, ctx.Err()
-					case <-time.After(retryInterval):
-					}
-					continue
-				}
-				// Final attempt — remove stale cache entry.
-				pb.pc.Delete(slot, parentBlockRoot)
-			}
+		lastErr = err
+		if !isRetryablePayloadError(err) {
 			return nil, err
 		}
-
-		if attempt > 0 {
-			pb.logger.Info("GetPayloadBySlot succeeded after retry",
-				"slot", slot.Base10(),
-				"attempts", attempt+1,
-			)
+		if attempt >= maxRetries-1 {
+			if errors.Is(err, engineerrors.ErrUnknownPayload) {
+				pb.pc.Delete(slot, parentBlockRoot)
+			}
+			break
 		}
-		return envelope, nil
+		if err = waitForRetry(ctx, retryInterval); err != nil {
+			return nil, err
+		}
 	}
 
 	pb.logger.Warn("GetPayloadBySlot failed after retries",
@@ -338,4 +324,32 @@ func (pb *PayloadBuilder) GetPayloadBySlot(
 		"error", lastErr,
 	)
 	return nil, lastErr
+}
+
+// tryGetCachedPayload attempts a single lookup of a cached payload by slot.
+func (pb *PayloadBuilder) tryGetCachedPayload(
+	ctx context.Context,
+	slot math.Slot,
+	parentBlockRoot common.Root,
+) (ctypes.BuiltExecutionPayloadEnv, error) {
+	payloadRes, found := pb.pc.Get(slot, parentBlockRoot)
+	if !found {
+		return nil, ErrPayloadIDNotFound
+	}
+	return pb.getPayload(ctx, payloadRes.PayloadID, payloadRes.ForkVersion)
+}
+
+// isRetryablePayloadError returns true for errors that warrant a retry.
+func isRetryablePayloadError(err error) bool {
+	return errors.Is(err, ErrPayloadIDNotFound) || errors.Is(err, engineerrors.ErrUnknownPayload)
+}
+
+// waitForRetry waits for the retry interval or context cancellation.
+func waitForRetry(ctx context.Context, interval time.Duration) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-time.After(interval):
+		return nil
+	}
 }
