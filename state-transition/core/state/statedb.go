@@ -321,9 +321,20 @@ func (s *StateDB) consumePendingPartialWithdrawals(
 // NOTE: The withdrawal index and validator index are both set to max(uint64) as
 // they are not used during processing.
 func (s *StateDB) EVMInflationWithdrawal(timestamp math.U64) *engineprimitives.Withdrawal {
+	index := s.cs.EVMInflationWithdrawalIndex()
+	if s.cs.IsDevnet() {
+		// On devnet, use the current slot as a unique per-block withdrawal index.
+		// A fixed sentinel (e.g. MaxUint64) causes batch block-explorer imports to
+		// fail with a PostgreSQL cardinality_violation because all blocks in a
+		// chunk share the same index value. The slot is unique per block and stays
+		// within the int32 range that tools like Blockscout expect.
+		if slot, err := s.GetSlot(); err == nil {
+			index = math.U64(slot)
+		}
+	}
 	return engineprimitives.NewWithdrawal(
-		EVMInflationWithdrawalIndex,
-		EVMInflationWithdrawalValidatorIndex,
+		index,
+		s.cs.EVMInflationWithdrawalValidatorIndex(),
 		s.cs.EVMInflationAddress(timestamp),
 		s.cs.EVMInflationPerBlock(timestamp),
 	)

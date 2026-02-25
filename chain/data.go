@@ -170,4 +170,12 @@ type SpecData struct {
 	// MinValidatorWithdrawabilityDelay is defined in the Electra spec and introduces
 	// withdrawability delays to allow for slashing.
 	MinValidatorWithdrawabilityDelay uint64 `mapstructure:"min-validator-withdrawability-delay"`
+
+	// EVMInflationWithdrawalIndex is the withdrawal index used for the
+	// EVM inflation synthetic withdrawal emitted every block.
+	EVMInflationWithdrawalIndex uint64 `mapstructure:"evm-inflation-withdrawal-index"`
+
+	// EVMInflationWithdrawalValidatorIndex is the validator index used for the
+	// EVM inflation synthetic withdrawal emitted every block.
+	EVMInflationWithdrawalValidatorIndex uint64 `mapstructure:"evm-inflation-withdrawal-validator-index"`
 }

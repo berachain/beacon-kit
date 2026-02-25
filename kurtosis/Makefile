@@ -38,10 +38,12 @@ install-kurtosis:
 
 # Starts a Kurtosis enclave containing a local devnet.
 start-devnet: install-kurtosis
+	kurtosis engine restart
 	$(MAKE) build-docker VERSION=kurtosis-local start-devnet-no-build
 
 # Starts a Kurtosis enclave containing a local devnet without building the image
 start-devnet-no-build:
+	kurtosis enclave rm my-local-devnet --force 2>/dev/null || true
 	kurtosis run ./kurtosis --args-file ./kurtosis/beaconkit-local.yaml \
 		--enclave my-local-devnet --parallelism 200
 

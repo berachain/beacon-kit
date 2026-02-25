@@ -1,7 +1,7 @@
 shared_utils = import_module("github.com/ethpandaops/ethereum-package/src/shared_utils/shared_utils.star")
 postgres = import_module("github.com/kurtosis-tech/postgres-package/main.star")
 
-IMAGE_NAME_BLOCKSCOUT = "blockscout/blockscout:6.6.0"
+IMAGE_NAME_BLOCKSCOUT = "blockscout/blockscout:7.0.2.commit.900ef697"
 IMAGE_NAME_BLOCKSCOUT_VERIF = "ghcr.io/blockscout/smart-contract-verifier:v1.9.2-arm"
 
 SERVICE_NAME_BLOCKSCOUT = "blockscout"
@@ -13,7 +13,7 @@ HTTP_PORT_NUMBER_VERIF = 8050
 BLOCKSCOUT_MIN_CPU = 100
 BLOCKSCOUT_MAX_CPU = 1000
 BLOCKSCOUT_MIN_MEMORY = 1024
-BLOCKSCOUT_MAX_MEMORY = 2048
+BLOCKSCOUT_MAX_MEMORY = 4096
 
 BLOCKSCOUT_VERIF_MIN_CPU = 10
 BLOCKSCOUT_VERIF_MAX_CPU = 1000
@@ -53,13 +53,12 @@ def launch_blockscout(
     # Get the full_node_el_clients that match the client_from_user
     for full_node_el_client_name, full_node_el_client_service in full_node_el_clients.items():
         if full_node_el_client_name in client_from_user:
-            rpc_port = full_node_el_client_service.ports["eth-json-rpc"].number
             name = full_node_el_client_name
-            ip_address = full_node_el_client_service.ip_address
 
             el_client_info = get_el_client_info(
-                ip_address,
-                rpc_port,
+                full_node_el_client_name,
+                8545,
+                8546,
                 name,
             )
             break
@@ -75,6 +74,7 @@ def launch_blockscout(
     config_backend = get_config_backend(
         postgres_output,
         el_client_info.get("RPC_Url"),
+        el_client_info.get("WS_Url"),
         verif_url,
         el_client_info.get("Eth_Type"),
     )
@@ -106,6 +106,7 @@ def get_config_verif():
 def get_config_backend(
         postgres_output,
         el_client_rpc_url,
+        el_client_ws_url,
         verif_url,
         el_client_name):
     database_url = "{protocol}://{user}:{password}@{hostname}:{port}/{database}".format(
@@ -128,6 +129,7 @@ def get_config_backend(
         env_vars = {
             "ETHEREUM_JSONRPC_VARIANT": el_client_name,
             "ETHEREUM_JSONRPC_HTTP_URL": el_client_rpc_url,
+            "ETHEREUM_JSONRPC_WS_URL": el_client_ws_url,
             "ETHEREUM_JSONRPC_TRACE_URL": el_client_rpc_url,
             "DATABASE_URL": database_url,
             "COIN": "ETH",
@@ -135,6 +137,10 @@ def get_config_backend(
             "MICROSERVICE_SC_VERIFIER_URL": verif_url,
             "MICROSERVICE_SC_VERIFIER_TYPE": "sc_verifier",
             "INDEXER_DISABLE_PENDING_TRANSACTIONS_FETCHER": "true",
+            "INDEXER_DISABLE_INTERNAL_TRANSACTIONS_FETCHER": "true",
+            "INDEXER_DISABLE_COIN_BALANCES_FETCHER": "true",
+            "EXCHANGE_RATES_ENABLED": "false",
+            "FIRST_BLOCK": "1",
             "ECTO_USE_SSL": "false",
             "NETWORK": "Kurtosis",
             "SUBNETWORK": "Kurtosis",
@@ -148,13 +154,23 @@ def get_config_backend(
         max_memory = BLOCKSCOUT_MAX_MEMORY,
     )
 
-def get_el_client_info(ip_addr, rpc_port_num, full_name):
+def get_el_client_info(service_name, rpc_port_num, ws_port_num, full_name):
     el_client_rpc_url = "http://{}:{}/".format(
-        ip_addr,
+        service_name,
         rpc_port_num,
     )
+    el_client_ws_url = "ws://{}:{}/".format(
+        service_name,
+        ws_port_num,
+    )
     el_client_type = full_name.split("-")[2]
+
+    # Blockscout has no reth-specific config; reth is geth-compatible for JSON-RPC
+    variant_map = {"reth": "geth", "erigon": "geth"}
+    blockscout_variant = variant_map.get(el_client_type, el_client_type)
+
     return {
         "RPC_Url": el_client_rpc_url,
-        "Eth_Type": el_client_type,
+        "WS_Url": el_client_ws_url,
+        "Eth_Type": blockscout_variant,
     }

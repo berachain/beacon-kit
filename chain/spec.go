@@ -153,6 +153,14 @@ type BerachainSpec interface {
 	// to be minted to the EVMInflationAddress via a withdrawal every block.
 	EVMInflationPerBlock(timestamp math.U64) math.Gwei
 
+	// EVMInflationWithdrawalIndex returns the fixed withdrawal index used for
+	// the EVM inflation withdrawal emitted every block.
+	EVMInflationWithdrawalIndex() math.U64
+
+	// EVMInflationWithdrawalValidatorIndex returns the fixed validator index used
+	// for the EVM inflation withdrawal emitted every block.
+	EVMInflationWithdrawalValidatorIndex() math.U64
+
 	// ValidatorSetCap retrieves the maximum number of validators allowed in the active set.
 	ValidatorSetCap() uint64
 
@@ -540,4 +548,12 @@ func (s spec) EVMInflationPerBlock(timestamp math.U64) math.Gwei {
 	default:
 		panic(fmt.Sprintf("EVMInflationPerBlock not supported for this fork version: %d", fv))
 	}
+}
+
+func (s spec) EVMInflationWithdrawalIndex() math.U64 {
+	return math.U64(s.Data.EVMInflationWithdrawalIndex)
+}
+
+func (s spec) EVMInflationWithdrawalValidatorIndex() math.U64 {
+	return math.U64(s.Data.EVMInflationWithdrawalValidatorIndex)
 }

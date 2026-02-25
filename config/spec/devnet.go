@@ -21,6 +21,8 @@
 package spec
 
 import (
+	"math"
+
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/ethereum/go-ethereum/params"
@@ -83,6 +85,8 @@ func DevnetChainSpecData() *chain.SpecData {
 	// EVM inflation is different from mainnet to test.
 	specData.EVMInflationAddressGenesis = common.MustNewExecutionAddressFromHex(devnetEVMInflationAddress)
 	specData.EVMInflationPerBlockGenesis = devnetEVMInflationPerBlock
+	specData.EVMInflationWithdrawalIndex = math.MaxInt8
+	specData.EVMInflationWithdrawalValidatorIndex = math.MaxInt8
 
 	// EVM inflation is different from mainnet for now, after the Deneb1 fork.
 	specData.EVMInflationAddressDeneb1 = common.MustNewExecutionAddressFromHex(devnetEVMInflationAddressDeneb1)

@@ -21,6 +21,8 @@
 package spec
 
 import (
+	"math"
+
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
 	"github.com/berachain/beacon-kit/primitives/bytes"
@@ -178,6 +180,8 @@ func MainnetChainSpecData() *chain.SpecData {
 
 	specData.Config.ConsensusUpdateHeight = mainnetSBTConsensusUpdateHeight
 	specData.Config.ConsensusEnableHeight = mainnetSBTConsensusEnableHeight
+	specData.EVMInflationWithdrawalIndex = math.MaxUint64
+	specData.EVMInflationWithdrawalValidatorIndex = math.MaxUint64
 
 	return specData
 }
