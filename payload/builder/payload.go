@@ -270,3 +270,86 @@ func (pb *PayloadBuilder) getPayload(
 	}
 	return envelope, nil
 }
+
+// GetPayloadBySlot retrieves a cached payload by slot and parent block root.
+// This is used by the preconf server to serve payloads to validators.
+// It retries briefly on cache misses and unknown-payload errors to tolerate
+// the race where the optimistic build goroutine hasn't completed yet.
+// Returns ErrPayloadIDNotFound if no payload is cached after all retries.
+func (pb *PayloadBuilder) GetPayloadBySlot(
+	ctx context.Context,
+	slot math.Slot,
+	parentBlockRoot common.Root,
+) (ctypes.BuiltExecutionPayloadEnv, error) {
+	if !pb.Enabled() {
+		return nil, ErrPayloadBuilderDisabled
+	}
+
+	const (
+		maxRetries    = 5
+		retryInterval = 50 * time.Millisecond
+	)
+
+	var lastErr error
+	for attempt := range maxRetries {
+		envelope, err := pb.tryGetCachedPayload(ctx, slot, parentBlockRoot)
+		if err == nil {
+			if attempt > 0 {
+				pb.logger.Info("GetPayloadBySlot succeeded after retry",
+					"slot", slot.Base10(),
+					"attempts", attempt+1,
+				)
+			}
+			return envelope, nil
+		}
+
+		lastErr = err
+		if !isRetryablePayloadError(err) {
+			return nil, err
+		}
+		if attempt >= maxRetries-1 {
+			if errors.Is(err, engineerrors.ErrUnknownPayload) {
+				pb.pc.Delete(slot, parentBlockRoot)
+			}
+			break
+		}
+		if err = waitForRetry(ctx, retryInterval); err != nil {
+			return nil, err
+		}
+	}
+
+	pb.logger.Warn("GetPayloadBySlot failed after retries",
+		"slot", slot.Base10(),
+		"attempts", maxRetries,
+		"error", lastErr,
+	)
+	return nil, lastErr
+}
+
+// tryGetCachedPayload attempts a single lookup of a cached payload by slot.
+func (pb *PayloadBuilder) tryGetCachedPayload(
+	ctx context.Context,
+	slot math.Slot,
+	parentBlockRoot common.Root,
+) (ctypes.BuiltExecutionPayloadEnv, error) {
+	payloadRes, found := pb.pc.Get(slot, parentBlockRoot)
+	if !found {
+		return nil, ErrPayloadIDNotFound
+	}
+	return pb.getPayload(ctx, payloadRes.PayloadID, payloadRes.ForkVersion)
+}
+
+// isRetryablePayloadError returns true for errors that warrant a retry.
+func isRetryablePayloadError(err error) bool {
+	return errors.Is(err, ErrPayloadIDNotFound) || errors.Is(err, engineerrors.ErrUnknownPayload)
+}
+
+// waitForRetry waits for the retry interval or context cancellation.
+func waitForRetry(ctx context.Context, interval time.Duration) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-time.After(interval):
+		return nil
+	}
+}

@@ -209,21 +209,36 @@ func (s *Service) buildRandaoReveal(
 }
 
 // retrieveExecutionPayload retrieves the execution payload for the block.
+//
+//nolint:funlen // preconf fetching adds necessary logic
 func (s *Service) retrieveExecutionPayload(
 	ctx context.Context,
 	st *statedb.StateDB,
 	parentBlockRoot common.Root,
 	slotData *types.SlotData,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
-	// TODO: Add external block builders to this flow.
-	//
+	slot := slotData.GetSlot()
+
+	// If preconf is enabled and we should fetch from sequencer, try that first
+	if s.shouldFetchFromSequencer() {
+		envelope, err := s.fetchFromSequencer(ctx, slot, parentBlockRoot)
+		if err == nil {
+			s.logger.Info("Using payload from sequencer", "slot", slot.Base10())
+			return envelope, nil
+		}
+		s.logger.Warn("Failed to fetch from sequencer, falling back to local build",
+			"slot", slot.Base10(),
+			"error", err,
+		)
+		// Fall through to local building
+	}
+
 	// Get the payload for the block. Pass the expected fork given the current
 	// CometBFT timestamp to try and build coherent blocks (i.e. blocks whose fork
 	// version is the same for payload and the rest of CometBFT block). This coherence
 	// is checked in ProcessProposal. Remember that CometBFT does not guarantee that the
 	// timestamp provided here will be the one used in the block (Comet takes into account
 	// the time it takes to build the block, which should be very small normally).
-	slot := slotData.GetSlot()
 	expectedPayloadFork := s.chainSpec.ActiveForkVersionForTimestamp(slotData.GetConsensusTime())
 	envelope, err := s.localPayloadBuilder.RetrievePayload(ctx, slot, parentBlockRoot, expectedPayloadFork)
 	if err == nil {
@@ -446,4 +461,25 @@ func (s *Service) computeStateRoot(
 	}
 
 	return st.HashTreeRoot(), nil
+}
+
+// shouldFetchFromSequencer returns true if this validator should attempt to
+// fetch payloads from the sequencer.
+func (s *Service) shouldFetchFromSequencer() bool {
+	if s.preconfClient == nil || s.preconfCfg == nil || s.preconfWhitelist == nil {
+		return false
+	}
+	if !s.preconfCfg.ShouldFetchFromSequencer() {
+		return false
+	}
+	return s.preconfWhitelist.IsWhitelisted(s.signer.PublicKey())
+}
+
+// fetchFromSequencer fetches the execution payload from the sequencer.
+func (s *Service) fetchFromSequencer(
+	ctx context.Context,
+	slot math.Slot,
+	parentBlockRoot common.Root,
+) (ctypes.BuiltExecutionPayloadEnv, error) {
+	return s.preconfClient.GetPayloadBySlot(ctx, slot, parentBlockRoot)
 }

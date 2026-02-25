@@ -17,14 +17,24 @@ pyroscope = import_module("./src/observability/pyroscope/pyroscope.star")
 tx_fuzz = import_module("./src/services/tx_fuzz/launcher.star")
 blutgang = import_module("./src/services/blutgang/launcher.star")
 blockscout = import_module("./src/services/blockscout/launcher.star")
+sequencer = import_module("./src/services/sequencer/launcher.star")
+preconf_config = import_module("./src/preconf/config.star")
+flashblock_monitor = import_module("./src/services/flashblock-monitor/launcher.star")
 
-def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpoints = [], additional_services = [], metrics_enabled_services = []):
+def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpoints = [], additional_services = [], metrics_enabled_services = [], preconf = {}):
     """
     Initiates the execution plan with the specified number of validators and arguments.
 
     Args:
     plan: The execution plan to be run.
-    args: Additional arguments to configure the plan. Defaults to an empty dictionary.
+    network_configuration: Network configuration including validators, full nodes, seed nodes.
+    node_settings: Node-specific settings.
+    eth_json_rpc_endpoints: RPC endpoint configurations.
+    additional_services: Additional services to launch.
+    metrics_enabled_services: Services with metrics enabled.
+    preconf: Preconfirmation configuration. If provided, enables preconf with:
+        - enabled: bool - Whether to enable preconf (default: false)
+        Requires sequencer_node in network_configuration when enabled.
     """
 
     # all_node_types = [validators["type"], full_nodes["type"], seed_nodes["type"]]
@@ -34,6 +44,9 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
     chain_id = network_configuration.get("chain_id", 80087)
     chain_spec = network_configuration.get("chain_spec", "devnet")
 
+    # Get preconf configuration
+    preconf_enabled = preconf.get("enabled", False)
+
     plan.print("CHAIN_ID: {}".format(chain_id), "CHAIN_SPEC: {}".format(chain_spec))
 
     next_free_prefunded_account = 0
@@ -42,6 +55,24 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
     seed_nodes = nodes.parse_nodes_from_dict(network_configuration["seed_nodes"], node_settings)
     num_validators = len(validators)
 
+    # Parse dedicated sequencer node if configured
+    sequencer_node = None
+    if "sequencer_node" in network_configuration:
+        sequencer_node = nodes.parse_sequencer_node(network_configuration["sequencer_node"], node_settings)
+
+    # Parse preconf RPC nodes (subscribe to sequencer flashblocks and serve preconf-aware RPC)
+    preconf_rpc_nodes = []
+    if "preconf_rpc_nodes" in network_configuration:
+        preconf_rpc_nodes = nodes.parse_nodes_from_dict(network_configuration["preconf_rpc_nodes"], node_settings)
+
+    if preconf_enabled:
+        if sequencer_node == None:
+            fail("preconf.enabled=true requires a sequencer_node in network_configuration")
+        plan.print("PRECONF: enabled, sequencer={}, preconf_rpc_nodes={}".format(
+            sequencer_node.cl_service_name,
+            len(preconf_rpc_nodes),
+        ))
+
     # 1. Initialize EVM genesis data
     evm_genesis_data = networks.get_genesis_data(plan)
 
@@ -49,6 +80,9 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
     all_nodes.extend(validators)
     all_nodes.extend(seed_nodes)
     all_nodes.extend(full_nodes)
+    all_nodes.extend(preconf_rpc_nodes)
+    if sequencer_node:
+        all_nodes.append(sequencer_node)
     node_modules = {}
     for node in all_nodes:
         if node.el_type not in node_modules.keys():
@@ -60,7 +94,8 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
     jwt_file, kzg_trusted_setup = execution.upload_global_files(plan, node_modules, chain_id)
 
     # 3. Perform genesis ceremony for the CL genesis deposits.
-    stored_configs = beacond.perform_genesis_deposits_ceremony(plan, validators, jwt_file, chain_id, chain_spec)
+    genesis_result = beacond.perform_genesis_deposits_ceremony(plan, validators, jwt_file, chain_id, chain_spec)
+    stored_configs = genesis_result.configs
 
     # 4 a. Create genesis files only once and pass it to the node configs
     genesis_files = nodes.create_genesis_files_part1(plan, chain_id)
@@ -75,6 +110,40 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
 
     # 4c. Modify the eth genesis files with the ENV VARS
     genesis_files = nodes.create_genesis_files_part2(plan, chain_id, genesis_deposits_root, genesis_deposit_count_hex)
+
+    # 4d. Setup preconf configuration if enabled
+    preconf_cfg = None
+    if preconf_enabled:
+        plan.print("Setting up preconfirmation configuration...")
+
+        # Generate initial preconf config with JWT secrets
+        preconf_cfg = preconf_config.generate_preconf_config(plan, validators, sequencer_node)
+
+        # Create whitelist and validator-jwts files by extracting pubkeys in execution phase
+        # This runs as a single run_sh that mounts all config artifacts, extracts pubkeys,
+        # and generates both JSON files - avoiding Starlark's future reference limitations
+        preconf_files = preconf_config.create_preconf_files_from_configs(
+            plan,
+            num_validators,
+            preconf_cfg.jwt_secrets,
+        )
+
+        # Update preconf config with the file artifacts
+        preconf_cfg = struct(
+            jwt_secrets = preconf_cfg.jwt_secrets,
+            validator_jwt_artifacts = preconf_cfg.validator_jwt_artifacts,
+            sequencer_service_name = preconf_cfg.sequencer_service_name,
+            sequencer_el_service_name = preconf_cfg.sequencer_el_service_name,
+            sequencer_signing_key_artifact = preconf_cfg.sequencer_signing_key_artifact,
+            num_validators = preconf_cfg.num_validators,
+            whitelist_file = preconf_files.whitelist_artifact,
+            validator_jwts_file = preconf_files.validator_jwts_artifact,
+        )
+
+        plan.print("Preconf configuration created: sequencer={}, {} validators whitelisted".format(
+            preconf_cfg.sequencer_service_name,
+            num_validators,
+        ))
 
     el_enode_addrs = []
     metrics_enabled_services = metrics_enabled_services[:]
@@ -148,7 +217,113 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
             "metrics_path": beacond.METRICS_PATH,
         })
 
-    # 4. Start network validators
+    # 6. Start dedicated sequencer node (if preconf enabled)
+    if sequencer_node and preconf_cfg:
+        # Deploy sequencer EL (reth with sequencer mode)
+        sequencer_el_config = execution.generate_node_config(
+            plan,
+            node_modules,
+            sequencer_node,
+            chain_id,
+            chain_spec,
+            genesis_files,
+            geth_config_artifact,
+            el_enode_addrs,
+            preconf_cfg,
+        )
+        sequencer_el_clients = execution.deploy_nodes(plan, [sequencer_el_config])
+        metrics_enabled_services = execution.add_metrics(
+            metrics_enabled_services,
+            sequencer_node,
+            sequencer_node.el_service_name,
+            sequencer_el_clients[sequencer_node.el_service_name],
+            node_modules,
+        )
+
+        # Deploy sequencer CL (with preconf sequencer flags)
+        sequencer_cl_config = beacond.create_node_config(
+            plan,
+            sequencer_node,
+            consensus_node_peering_info,
+            sequencer_node.el_service_name,
+            chain_id,
+            chain_spec,
+            genesis_deposits_root,
+            genesis_deposit_count_hex,
+            jwt_file,
+            kzg_trusted_setup,
+            preconf_cfg,
+        )
+        sequencer_cl_services = plan.add_services(
+            configs = {sequencer_node.cl_service_name: sequencer_cl_config},
+        )
+        peer_info = beacond.get_peer_info(plan, sequencer_node.cl_service_name)
+        all_consensus_peering_info[sequencer_node.cl_service_name] = peer_info
+        metrics_enabled_services.append({
+            "name": sequencer_node.cl_service_name,
+            "service": sequencer_cl_services[sequencer_node.cl_service_name],
+            "metrics_path": beacond.METRICS_PATH,
+        })
+
+    # 6b. Start preconf RPC nodes (subscribe to sequencer flashblocks)
+    if preconf_rpc_nodes and preconf_cfg:
+        plan.print("Starting {} preconf RPC node(s)...".format(len(preconf_rpc_nodes)))
+        preconf_rpc_el_configs = []
+        for n, prpc in enumerate(preconf_rpc_nodes):
+            el_config = execution.generate_node_config(
+                plan,
+                node_modules,
+                prpc,
+                chain_id,
+                chain_spec,
+                genesis_files,
+                geth_config_artifact,
+                el_enode_addrs,
+                preconf_cfg,
+            )
+            preconf_rpc_el_configs.append(el_config)
+
+        preconf_rpc_el_clients = execution.deploy_nodes(plan, preconf_rpc_el_configs, True)
+
+        for n, prpc in enumerate(preconf_rpc_nodes):
+            metrics_enabled_services = execution.add_metrics(
+                metrics_enabled_services,
+                prpc,
+                prpc.el_service_name,
+                preconf_rpc_el_clients[prpc.el_service_name],
+                node_modules,
+            )
+
+        preconf_rpc_cl_configs = {}
+        for n, prpc in enumerate(preconf_rpc_nodes):
+            cl_config = beacond.create_node_config(
+                plan,
+                prpc,
+                consensus_node_peering_info,
+                prpc.el_service_name,
+                chain_id,
+                chain_spec,
+                genesis_deposits_root,
+                genesis_deposit_count_hex,
+                jwt_file,
+                kzg_trusted_setup,
+            )
+            preconf_rpc_cl_configs[prpc.cl_service_name] = cl_config
+
+        if preconf_rpc_cl_configs:
+            preconf_rpc_cl_services = plan.add_services(configs = preconf_rpc_cl_configs)
+            for n, prpc in enumerate(preconf_rpc_nodes):
+                peer_info = beacond.get_peer_info(plan, prpc.cl_service_name)
+                all_consensus_peering_info[prpc.cl_service_name] = peer_info
+                metrics_enabled_services.append({
+                    "name": prpc.cl_service_name,
+                    "service": preconf_rpc_cl_services[prpc.cl_service_name],
+                    "metrics_path": beacond.METRICS_PATH,
+                })
+
+        plan.print("Preconf RPC nodes started successfully")
+
+    # 7. Start network validators
     validator_node_el_clients = []
 
     for n, validator in enumerate(validators):
@@ -162,7 +337,7 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
 
     validator_node_configs = {}
     for n, validator in enumerate(validators):
-        validator_node_config = beacond.create_node_config(plan, validator, consensus_node_peering_info, validator.el_service_name, chain_id, chain_spec, genesis_deposits_root, genesis_deposit_count_hex, jwt_file, kzg_trusted_setup)
+        validator_node_config = beacond.create_node_config(plan, validator, consensus_node_peering_info, validator.el_service_name, chain_id, chain_spec, genesis_deposits_root, genesis_deposit_count_hex, jwt_file, kzg_trusted_setup, preconf_cfg)
         validator_node_configs[validator.cl_service_name] = validator_node_config
 
     cl_clients = plan.add_services(
@@ -205,7 +380,7 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
     else:
         plan.print("Invalid type for eth_json_rpc_endpoint")
 
-    # 7. Start additional services
+    # 8. Start additional services
     prometheus_url = ""
     for s_dict in additional_services:
         s = service_module.parse_service_from_dict(s_dict)
@@ -241,4 +416,20 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
                 s.client,
                 False,
             )
+        elif s.name == "sequencer":
+            plan.print("Launching sequencer for preconfirmation testing")
+            sequencer_service = sequencer.launch_sequencer(
+                plan,
+                jwt_file,
+                genesis_files,
+                chain_id,
+            )
+            plan.print("Sequencer launched at: {}".format(sequencer.get_engine_url(sequencer_service)))
+        elif s.name == "flashblock-monitor":
+            if preconf_cfg != None:
+                plan.print("Launching flashblock monitor for sequencer: {}".format(preconf_cfg.sequencer_el_service_name))
+                flashblock_monitor.launch_flashblock_monitor(
+                    plan,
+                    preconf_cfg.sequencer_el_service_name,
+                )
     plan.print("Successfully launched development network")

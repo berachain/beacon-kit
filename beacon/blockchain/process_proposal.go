@@ -23,6 +23,7 @@ package blockchain
 import (
 	"bytes"
 	"context"
+	"encoding/hex"
 	"fmt"
 	"time"
 
@@ -155,6 +156,7 @@ func (s *Service) ProcessProposal(
 		ctx,
 		consensusBlk,
 		bytes.Equal(thisNodeAddress, req.NextProposerAddress),
+		req.NextProposerAddress,
 	)
 	if err != nil {
 		s.logger.Error("failed to verify incoming block", "error", err)
@@ -254,11 +256,12 @@ func (s *Service) VerifyIncomingBlobSidecars(
 // VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
 //
-//nolint:funlen // abundantly commented
+//nolint:funlen,gocognit // abundantly commented
 func (s *Service) VerifyIncomingBlock(
 	ctx context.Context,
 	blk *types.ConsensusBlock,
 	isNextBlockProposer bool,
+	nextProposerAddress []byte,
 ) (transition.ValidatorUpdates, error) {
 	beaconBlk := blk.GetBeaconBlock()
 	state := s.storageBackend.StateFromContext(ctx)
@@ -299,24 +302,50 @@ func (s *Service) VerifyIncomingBlock(
 		return nil, ErrUnexpectedBlockSlot
 	}
 
-	var (
-		nextBlockData          *builder.RequestPayloadData
-		errFetch               error
-		shouldBuildNextPayload = s.shouldBuildNextPayload(isNextBlockProposer)
-	)
+	// Determine if we should optimistically build a payload for the next slot.
+	var shouldBuildNextPayload bool
+	if s.localBuilder.Enabled() {
+		switch {
+		case isNextBlockProposer && !s.preconfCfg.ShouldFetchFromSequencer():
+			// We're the next proposer and not fetching from sequencer,
+			// build optimistically on local EL for ourselves.
+			shouldBuildNextPayload = true
+			s.logger.Info("Next proposer is this node, building optimistically",
+				"current_block_slot", blkSlot.Base10(),
+				"target_build_slot", (blkSlot + 1).Base10(),
+			)
+		case s.preconfCfg.IsSequencer():
+			// We're the sequencer, build for whitelisted validators.
+			// Only check whitelist if we can resolve the next proposer pubkey.
+			expectedProposerPubkey, pubkeyErr := s.getNextProposerPubkey(state, nextProposerAddress)
+			if pubkeyErr != nil {
+				s.logger.Error("Failed to get next proposer pubkey", "error", pubkeyErr)
+			} else {
+				shouldBuildNextPayload = s.preconfWhitelist.IsWhitelisted(expectedProposerPubkey)
+			}
+			s.logger.Info("Sequencer mode: determined next proposer",
+				"current_block_slot", blkSlot.Base10(),
+				"target_build_slot", (blkSlot + 1).Base10(),
+				"next_proposer_address", hex.EncodeToString(nextProposerAddress),
+				"expected_proposer_pubkey", expectedProposerPubkey.String(),
+				"is_whitelisted", shouldBuildNextPayload,
+			)
+		}
+	}
 
+	var nextBlockData *builder.RequestPayloadData
 	if shouldBuildNextPayload {
 		// makes sure that preFetchBuildData does not affect state
 		ephemeralState := state.Protect(ctx)
-		nextBlockData, errFetch = s.preFetchBuildData(ephemeralState, blk.GetConsensusTime())
-		if errFetch != nil {
+		nextBlockData, err = s.preFetchBuildData(ephemeralState, blk.GetConsensusTime())
+		if err != nil {
 			// We don't return with err if pre-fetch fails. Instead we log the issue
 			// and still move to process the current block. Next block can always be
 			// built right after current height is finalized.
 			s.logger.Warn(
 				"Failed pre fetching data for optimistic block building",
-				"case", "block rejectiong",
-				"err", errFetch,
+				"case", "block rejection",
+				"err", err,
 			)
 		}
 	}
@@ -349,18 +378,19 @@ func (s *Service) VerifyIncomingBlock(
 	if shouldBuildNextPayload {
 		// makes sure that preFetchBuildDataForSuccess does not affect state
 		ephemeralState := state.Protect(ctx)
-		nextBlockData, errFetch = s.preFetchBuildData(ephemeralState, blk.GetConsensusTime())
-		if errFetch != nil {
+		nextBlockData, err = s.preFetchBuildData(ephemeralState, blk.GetConsensusTime())
+		if err != nil {
 			// We don't mark the block as rejected if it is valid but pre-fetch fails.
 			// Instead we log the issue and move to process the current block.
 			// Next block can always be built right after current height is finalized.
 			s.logger.Warn(
 				"Failed pre fetching data for optimistic block building",
 				"case", "block success",
-				"err", errFetch,
+				"err", err,
 			)
 			return valUpdates, nil
 		}
+		s.optimisticBuildTriggered.Store(true)
 		go s.handleOptimisticPayloadBuild(ctx, nextBlockData)
 	}
 
@@ -398,8 +428,22 @@ func (s *Service) verifyStateRoot(
 	return valUpdates, err
 }
 
-// shouldBuildNextPayload returns true if optimistic
-// payload builds are enabled.
-func (s *Service) shouldBuildNextPayload(isNextBlockProposer bool) bool {
-	return isNextBlockProposer && s.localBuilder.Enabled()
+// getNextProposerPubkey retrieves the BLS public key for the next proposer given their CometBFT address.
+func (s *Service) getNextProposerPubkey(st *statedb.StateDB, nextProposerAddress []byte) (crypto.BLSPubkey, error) {
+	// Get all validators and find the one matching the CometBFT address
+	validators, err := st.GetValidators()
+	if err != nil {
+		return crypto.BLSPubkey{}, fmt.Errorf("failed to get validators: %w", err)
+	}
+
+	// Find the validator whose BLS pubkey produces the given CometBFT address
+	for _, validator := range validators {
+		pubkey := validator.GetPubkey()
+		computedAddr, _ := crypto.GetAddressFromPubKey(pubkey)
+		if bytes.Equal(computedAddr, nextProposerAddress) {
+			return pubkey, nil
+		}
+	}
+
+	return crypto.BLSPubkey{}, fmt.Errorf("validator not found for address: %x", nextProposerAddress)
 }

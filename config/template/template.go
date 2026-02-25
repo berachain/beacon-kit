@@ -105,4 +105,43 @@ address = "{{ .BeaconKit.NodeAPI.Address }}"
 
 # Logging determines if the node API logging is enabled.
 logging = "{{ .BeaconKit.NodeAPI.Logging }}"
+
+[beacon-kit.preconf]
+# Global toggle for preconfirmation support.
+# If false, all preconf functionality is disabled regardless of other settings.
+enabled = {{ .BeaconKit.Preconf.Enabled }}
+
+# Run this node as the preconf sequencer.
+# When true, triggers optimistic payload builds for whitelisted proposers
+# instead of only when this node is the proposer.
+# Requires enabled = true.
+sequencer-mode = {{ .BeaconKit.Preconf.SequencerMode }}
+
+# Path to whitelist JSON file containing validator pubkeys.
+# Required when enabled and sequencer-mode are both true.
+# Startup fails if file is missing/invalid.
+whitelist-path = "{{ .BeaconKit.Preconf.WhitelistPath }}"
+
+# === Sequencer-side settings ===
+
+# Path to JSON file mapping validator pubkeys to their JWT secrets.
+# Required when sequencer-mode = true.
+validator-jwts-path = "{{ .BeaconKit.Preconf.ValidatorJWTsPath }}"
+
+# Port for the preconf API server that validators connect to.
+# Required when sequencer-mode = true.
+api-port = {{ .BeaconKit.Preconf.APIPort }}
+
+# === Validator-side settings ===
+
+# URL of the sequencer's preconf API endpoint.
+# Set this when this validator should fetch payloads from the sequencer.
+sequencer-url = "{{ .BeaconKit.Preconf.SequencerURL }}"
+
+# Path to this validator's JWT secret for authenticating with sequencer.
+# Required when sequencer-url is set.
+sequencer-jwt-path = "{{ .BeaconKit.Preconf.SequencerJWTPath }}"
+
+# Timeout for fetching payload from sequencer.
+fetch-timeout = "{{ .BeaconKit.Preconf.FetchTimeout }}"
 `

@@ -36,6 +36,29 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+// sequencerFinalizeOptimisticBuild triggers an optimistic payload build from FinalizeBlock
+// when ProcessProposal was skipped (e.g., proposal arrived after the CometBFT propose timeout).
+func (s *Service) sequencerFinalizeOptimisticBuild(
+	ctx context.Context,
+	blk *ctypes.BeaconBlock,
+	consensusTime math.U64,
+) {
+	s.logger.Warn("ProcessProposal was skipped, triggering optimistic build from FinalizeBlock",
+		"current_slot", blk.GetSlot().Base10(),
+	)
+
+	st := s.storageBackend.StateFromContext(ctx)
+	ephemeralState := st.Protect(ctx)
+
+	buildData, err := s.preFetchBuildData(ephemeralState, consensusTime)
+	if err != nil {
+		s.logger.Error("Failed to prepare optimistic build data from FinalizeBlock", "error", err)
+		return
+	}
+
+	s.handleOptimisticPayloadBuild(ctx, buildData)
+}
+
 func (s *Service) FinalizeBlock(
 	ctx sdk.Context,
 	req *cmtabci.FinalizeBlockRequest,
@@ -80,7 +103,20 @@ func (s *Service) FinalizeBlock(
 	}
 
 	// STEP 4: Post Finalizations cleanups.
-	return valUpdates, s.PostFinalizeBlockOps(ctx, blk)
+	if err = s.PostFinalizeBlockOps(ctx, blk); err != nil {
+		return valUpdates, err
+	}
+
+	// STEP 5: Sequencer fallback — trigger optimistic build if ProcessProposal was skipped.
+	if s.preconfCfg.IsSequencer() && s.localBuilder.Enabled() {
+		skipped := !s.optimisticBuildTriggered.Load()
+		s.optimisticBuildTriggered.Store(false)
+		if skipped {
+			s.sequencerFinalizeOptimisticBuild(ctx, blk, math.U64(req.GetTime().Unix())) //#nosec: G115
+		}
+	}
+
+	return valUpdates, nil
 }
 
 func (s *Service) FinalizeSidecars(
