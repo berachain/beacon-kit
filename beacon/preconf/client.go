@@ -116,7 +116,7 @@ func (c *Client) GetPayloadBySlot(
 	// Send request
 	c.logger.Debug("Fetching payload from sequencer", "slot", slot, "url", url)
 
-	resp, err := c.httpClient.Do(req)
+	resp, err := c.httpClient.Do(req) //#nosec:G704 // sequencer URL from trusted config
 	if err != nil {
 		return nil, errors.Wrapf(ErrSequencerUnavailable, "request failed: %v", err)
 	}
