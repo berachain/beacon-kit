@@ -104,6 +104,7 @@ build-docker: ## build a docker image containing `beacond`
 	@echo "Build a release docker image for the Cosmos SDK chain..."
 	docker build \
 	--platform linux/$(ARCH) \
+	--build-arg GO_VERSION=$(shell awk '/^go /{print $$2}' go.mod) \
 	--build-arg GIT_COMMIT=$(shell git rev-parse HEAD) \
 	--build-arg GIT_VERSION=$(VERSION) \
 	--build-arg GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD) \
