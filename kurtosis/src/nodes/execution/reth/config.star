@@ -136,6 +136,7 @@ def get_sequencer_cmd_args():
 
 def add_sequencer_mode(config):
     """Add sequencer mode configuration to reth node config."""
+
     # Add sequencer command arguments
     cmd_list = config["cmd"][:]
     cmd_list.extend(get_sequencer_cmd_args())

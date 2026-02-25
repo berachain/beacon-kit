@@ -144,6 +144,7 @@ def generate_node_config(plan, node_modules, node_struct, chain_id, chain_spec, 
     if preconf_config != None and node_struct.node_type == "sequencer" and node_struct.el_type == "reth":
         if hasattr(node_module, "add_sequencer_mode"):
             el_service_config_dict = node_module.add_sequencer_mode(el_service_config_dict)
+
             # Add sequencer signing key file
             files_dict = dict(el_service_config_dict["files"])
             files_dict["/root/sequencer"] = preconf_config.sequencer_signing_key_artifact

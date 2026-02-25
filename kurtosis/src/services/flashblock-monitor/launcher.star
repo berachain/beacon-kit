@@ -29,6 +29,7 @@ def launch_flashblock_monitor(
     Returns:
         The service context for the launched monitor.
     """
+
     # Get the sequencer service to find its IP
     sequencer_service = plan.get_service(sequencer_el_service_name)
     sequencer_ip = sequencer_service.ip_address
@@ -38,15 +39,15 @@ def launch_flashblock_monitor(
     # Build the monitor command directly - avoids template issues
     # Output raw JSON from websocat
     monitor_cmd = "echo '=============================================='" + \
-        " && echo '  Flashblock Monitor'" + \
-        " && echo '  Sequencer: " + ws_url + "'" + \
-        " && echo '=============================================='" + \
-        " && apk add --no-cache wget > /dev/null 2>&1" + \
-        " && echo 'Installing websocat...'" + \
-        " && wget -q -O /usr/local/bin/websocat https://github.com/vi/websocat/releases/download/v1.13.0/websocat.x86_64-unknown-linux-musl" + \
-        " && chmod +x /usr/local/bin/websocat" + \
-        " && echo 'Connecting to flashblock WebSocket...'" + \
-        " && while true; do /usr/local/bin/websocat --text -E '" + ws_url + "' 2>/dev/null || echo 'Reconnecting...'; sleep 3; done"
+                  " && echo '  Flashblock Monitor'" + \
+                  " && echo '  Sequencer: " + ws_url + "'" + \
+                  " && echo '=============================================='" + \
+                  " && apk add --no-cache wget > /dev/null 2>&1" + \
+                  " && echo 'Installing websocat...'" + \
+                  " && wget -q -O /usr/local/bin/websocat https://github.com/vi/websocat/releases/download/v1.13.0/websocat.x86_64-unknown-linux-musl" + \
+                  " && chmod +x /usr/local/bin/websocat" + \
+                  " && echo 'Connecting to flashblock WebSocket...'" + \
+                  " && while true; do /usr/local/bin/websocat --text -E '" + ws_url + "' 2>/dev/null || echo 'Reconnecting...'; sleep 3; done"
 
     config = ServiceConfig(
         image = image,

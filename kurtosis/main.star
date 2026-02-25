@@ -69,7 +69,9 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
         if sequencer_node == None:
             fail("preconf.enabled=true requires a sequencer_node in network_configuration")
         plan.print("PRECONF: enabled, sequencer={}, preconf_rpc_nodes={}".format(
-            sequencer_node.cl_service_name, len(preconf_rpc_nodes)))
+            sequencer_node.cl_service_name,
+            len(preconf_rpc_nodes),
+        ))
 
     # 1. Initialize EVM genesis data
     evm_genesis_data = networks.get_genesis_data(plan)
@@ -219,12 +221,20 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
     if sequencer_node and preconf_cfg:
         # Deploy sequencer EL (reth with sequencer mode)
         sequencer_el_config = execution.generate_node_config(
-            plan, node_modules, sequencer_node, chain_id, chain_spec,
-            genesis_files, geth_config_artifact, el_enode_addrs, preconf_cfg,
+            plan,
+            node_modules,
+            sequencer_node,
+            chain_id,
+            chain_spec,
+            genesis_files,
+            geth_config_artifact,
+            el_enode_addrs,
+            preconf_cfg,
         )
         sequencer_el_clients = execution.deploy_nodes(plan, [sequencer_el_config])
         metrics_enabled_services = execution.add_metrics(
-            metrics_enabled_services, sequencer_node,
+            metrics_enabled_services,
+            sequencer_node,
             sequencer_node.el_service_name,
             sequencer_el_clients[sequencer_node.el_service_name],
             node_modules,
@@ -232,10 +242,17 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
 
         # Deploy sequencer CL (with preconf sequencer flags)
         sequencer_cl_config = beacond.create_node_config(
-            plan, sequencer_node, consensus_node_peering_info,
-            sequencer_node.el_service_name, chain_id, chain_spec,
-            genesis_deposits_root, genesis_deposit_count_hex,
-            jwt_file, kzg_trusted_setup, preconf_cfg,
+            plan,
+            sequencer_node,
+            consensus_node_peering_info,
+            sequencer_node.el_service_name,
+            chain_id,
+            chain_spec,
+            genesis_deposits_root,
+            genesis_deposit_count_hex,
+            jwt_file,
+            kzg_trusted_setup,
+            preconf_cfg,
         )
         sequencer_cl_services = plan.add_services(
             configs = {sequencer_node.cl_service_name: sequencer_cl_config},
@@ -254,8 +271,15 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
         preconf_rpc_el_configs = []
         for n, prpc in enumerate(preconf_rpc_nodes):
             el_config = execution.generate_node_config(
-                plan, node_modules, prpc, chain_id, chain_spec,
-                genesis_files, geth_config_artifact, el_enode_addrs, preconf_cfg,
+                plan,
+                node_modules,
+                prpc,
+                chain_id,
+                chain_spec,
+                genesis_files,
+                geth_config_artifact,
+                el_enode_addrs,
+                preconf_cfg,
             )
             preconf_rpc_el_configs.append(el_config)
 
@@ -263,7 +287,8 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
 
         for n, prpc in enumerate(preconf_rpc_nodes):
             metrics_enabled_services = execution.add_metrics(
-                metrics_enabled_services, prpc,
+                metrics_enabled_services,
+                prpc,
                 prpc.el_service_name,
                 preconf_rpc_el_clients[prpc.el_service_name],
                 node_modules,
@@ -272,10 +297,16 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
         preconf_rpc_cl_configs = {}
         for n, prpc in enumerate(preconf_rpc_nodes):
             cl_config = beacond.create_node_config(
-                plan, prpc, consensus_node_peering_info,
-                prpc.el_service_name, chain_id, chain_spec,
-                genesis_deposits_root, genesis_deposit_count_hex,
-                jwt_file, kzg_trusted_setup,
+                plan,
+                prpc,
+                consensus_node_peering_info,
+                prpc.el_service_name,
+                chain_id,
+                chain_spec,
+                genesis_deposits_root,
+                genesis_deposit_count_hex,
+                jwt_file,
+                kzg_trusted_setup,
             )
             preconf_rpc_cl_configs[prpc.cl_service_name] = cl_config
 

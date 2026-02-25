@@ -282,6 +282,7 @@ def create_node_config(plan, node_struct, peers, paired_el_client_name, chain_id
                 artifact_names.append("validator-jwt-secret-{}".format(node_struct.index))
             if len(artifact_names) > 0:
                 beacond_config.files["/root/preconf"] = Directory(artifact_names = artifact_names)
+
             # Add sequencer URL to env vars
             beacond_config.env_vars["PRECONF_SEQUENCER_URL"] = "http://{}:9090".format(preconf_config.sequencer_service_name)
 
