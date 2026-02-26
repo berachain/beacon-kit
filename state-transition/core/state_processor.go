@@ -99,10 +99,12 @@ func (sp *StateProcessor) Transition(
 
 	// Prepare the state for the next block's fork version.
 	// Ideally we want to log only in case we are processing the
-	// block to be finalized. Pre cache activation this is easy.
-	// Post activation we log every time we verify a block
-	logForkProcessing := ctx.VerifyPayload() && !ctx.VerifyRandao()
+	// block to be finalized.
+	inFinalizeBlock := ctx.VerifyPayload() && !ctx.VerifyRandao()
 
+	// Log if we are in finalizeBlock. However, post cache-activation, we log every time we
+	// verify a block.
+	logForkProcessing := inFinalizeBlock
 	if cache.IsStateCachingActive(sp.cs, blk.Slot) {
 		logForkProcessing = ctx.VerifyPayload()
 	}
@@ -111,7 +113,7 @@ func (sp *StateProcessor) Transition(
 	}
 
 	// Process the block.
-	if err = sp.ProcessBlock(ctx, st, blk); err != nil {
+	if err = sp.ProcessBlock(ctx, st, blk, inFinalizeBlock); err != nil {
 		return nil, err
 	}
 
@@ -212,6 +214,7 @@ func (sp *StateProcessor) ProcessBlock(
 	ctx ReadOnlyContext,
 	st *state.StateDB,
 	blk *ctypes.BeaconBlock,
+	inFinalizeBlock bool,
 ) error {
 	// Before processing block header, we need to retrieve public key of
 	// parent block proposer to be able to inform the EL client.
@@ -224,7 +227,7 @@ func (sp *StateProcessor) ProcessBlock(
 		return err
 	}
 
-	if err = sp.processExecutionPayload(ctx, st, blk, parentProposerPubkey); err != nil {
+	if err = sp.processExecutionPayload(ctx, st, blk, inFinalizeBlock, parentProposerPubkey); err != nil {
 		return err
 	}
 

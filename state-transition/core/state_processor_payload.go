@@ -39,6 +39,7 @@ func (sp *StateProcessor) processExecutionPayload(
 	txCtx ReadOnlyContext,
 	st *statedb.StateDB,
 	blk *ctypes.BeaconBlock,
+	inFinalizeBlock bool,
 	parentProposerPubkey *crypto.BLSPubkey,
 ) error {
 	var (
@@ -77,7 +78,7 @@ func (sp *StateProcessor) processExecutionPayload(
 	// Perform payload verification only if the context is configured as such.
 	if txCtx.VerifyPayload() {
 		g.Go(func() error {
-			return sp.validateExecutionPayload(ctx, txCtx.ConsensusTime(), st, blk, parentProposerPubkey)
+			return sp.validateExecutionPayload(ctx, txCtx.ConsensusTime(), st, blk, inFinalizeBlock, parentProposerPubkey)
 		})
 	}
 
@@ -109,12 +110,14 @@ func (sp *StateProcessor) validateExecutionPayload(
 	consensusTime math.U64,
 	st ReadOnlyBeaconState,
 	blk *ctypes.BeaconBlock,
+	inFinalizeBlock bool,
 	parentProposerPubkey *crypto.BLSPubkey,
 ) error {
 	if err := sp.validateStatelessPayload(blk); err != nil {
 		return err
 	}
-	return sp.validateStatefulPayload(ctx, consensusTime, st, blk, parentProposerPubkey)
+
+	return sp.validateStatefulPayload(ctx, consensusTime, st, blk, inFinalizeBlock, parentProposerPubkey)
 }
 
 // validateStatelessPayload performs stateless checks on the execution payload.
@@ -143,6 +146,7 @@ func (sp *StateProcessor) validateStatefulPayload(
 	consensusTime math.U64,
 	st ReadOnlyBeaconState,
 	blk *ctypes.BeaconBlock,
+	inFinalizeBlock bool,
 	parentProposerPubkey *crypto.BLSPubkey,
 ) error {
 	body := blk.GetBody()
@@ -185,9 +189,8 @@ func (sp *StateProcessor) validateStatefulPayload(
 		return err
 	}
 
-	// TODO: set retryOnSyncingStatus to false if we are in FinalizeBlock.
-	// Otherwise leave as true. This is ok to leave this way for now.
-	if err = sp.executionEngine.NotifyNewPayload(ctx, payloadReq, true); err != nil {
+	// We only retry on syncing status if we are not in FinalizeBlock.
+	if err = sp.executionEngine.NotifyNewPayload(ctx, payloadReq, !inFinalizeBlock); err != nil {
 		return err
 	}
 
