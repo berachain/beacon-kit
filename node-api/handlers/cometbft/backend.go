@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -21,15 +21,13 @@
 package cometbft
 
 import (
-	"time"
+	cmttypes "github.com/cometbft/cometbft/types"
 )
 
-// TelemetrySink is an interface for sending metrics to a telemetry backend.
-type TelemetrySink interface {
-	// IncrementCounter increments a counter for the given key.
-	IncrementCounter(key string, args ...string)
-	// MeasureSince measures the time since the given time.
-	MeasureSince(key string, start time.Time, args ...string)
-	// SetGauge sets a gauge metric to the specified value.
-	SetGauge(key string, value int64, args ...string)
+// Backend is the interface for the CometBFT API backend.
+type Backend interface {
+	// GetCometBFTBlock returns the CometBFT block at the given height.
+	GetCometBFTBlock(height int64) *cmttypes.Block
+	// GetCometBFTSignedHeader returns the CometBFT signed header (header + commit) at the given height.
+	GetCometBFTSignedHeader(height int64) *cmttypes.SignedHeader
 }

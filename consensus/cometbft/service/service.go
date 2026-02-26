@@ -52,6 +52,7 @@ import (
 const (
 	initialAppVersion uint64 = 0
 	AppName           string = "beacond"
+	maxCachedStates          = 10
 )
 
 type Service struct {
@@ -139,7 +140,7 @@ func NewService(
 		cmtConsensusParams: cmtConsensusParams,
 		cmtCfg:             cmtCfg,
 		telemetrySink:      telemetrySink,
-		cachedStates:       cache.New(),
+		cachedStates:       cache.New(maxCachedStates, telemetrySink),
 	}
 
 	s.MountStore(storage.StoreKey, storetypes.StoreTypeIAVL)
@@ -292,6 +293,34 @@ func (s *Service) Name() string {
 // This needs to be exposed because it is used by commands like Rollback.
 func (s *Service) CommitMultiStore() storetypes.CommitMultiStore {
 	return s.sm.GetCommitMultiStore()
+}
+
+// GetBlock returns the CometBFT block at the given height.
+func (s *Service) GetBlock(height int64) *cmttypes.Block {
+	if s.node == nil {
+		return nil
+	}
+	block, _ := s.node.BlockStore().LoadBlock(height)
+	return block
+}
+
+// GetSignedHeader returns the CometBFT signed header (header + commit) at the given height.
+func (s *Service) GetSignedHeader(height int64) *cmttypes.SignedHeader {
+	if s.node == nil {
+		return nil
+	}
+	block, _ := s.node.BlockStore().LoadBlock(height)
+	if block == nil {
+		return nil
+	}
+	commit := s.node.BlockStore().LoadBlockCommit(height)
+	if commit == nil {
+		return nil
+	}
+	return &cmttypes.SignedHeader{
+		Header: &block.Header,
+		Commit: commit,
+	}
 }
 
 // AppVersion returns the application's protocol version.

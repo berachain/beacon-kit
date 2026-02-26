@@ -22,7 +22,10 @@ package e2e_test
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"sync"
 
 	sdkcollections "cosmossdk.io/collections"
@@ -197,6 +200,135 @@ func (s *BeaconKitE2ESuite) TestABCIQuery() {
 		commit.SignedHeader.Header.AppHash.Bytes(),
 		[][]byte{[]byte("beacon"), key.Bytes()},
 	)
+}
+
+// TestCometBFTBlock tests the /cometbft/v1/block/:height endpoint.
+func (s *BeaconKitE2ESuite) TestCometBFTBlock() {
+	client := s.initHTTPBeaconTest()
+
+	resp, err := client.Get("/cometbft/v1/block/5")
+	s.Require().NoError(err)
+	s.Require().NotNil(resp)
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+	defer resp.Body.Close()
+
+	blockData := s.decodeCometBFTResponse(resp)
+
+	// Validate block structure.
+	header, ok := blockData["header"].(map[string]any)
+	s.Require().True(ok, "block should have a 'header' field")
+	s.Require().NotEmpty(header["chain_id"], "header should have chain_id")
+	s.Require().Equal(float64(5), header["height"], "header height should match requested height")
+	s.Require().NotEmpty(header["time"], "header should have time")
+
+	_, ok = blockData["data"].(map[string]any)
+	s.Require().True(ok, "block should have a 'data' field")
+	_, ok = blockData["evidence"].(map[string]any)
+	s.Require().True(ok, "block should have an 'evidence' field")
+}
+
+// TestCometBFTBlockInvalidHeight tests the /cometbft/v1/block/:height endpoint with a non-numeric height.
+func (s *BeaconKitE2ESuite) TestCometBFTBlockInvalidHeight() {
+	client := s.initHTTPBeaconTest()
+
+	resp, err := client.Get("/cometbft/v1/block/invalid")
+	s.Require().NoError(err)
+	s.Require().NotNil(resp)
+	s.Require().Equal(http.StatusBadRequest, resp.StatusCode)
+	resp.Body.Close()
+}
+
+// TestCometBFTSignedHeader tests the /cometbft/v1/signed_header/:height endpoint.
+func (s *BeaconKitE2ESuite) TestCometBFTSignedHeader() {
+	client := s.initHTTPBeaconTest()
+
+	resp, err := client.Get("/cometbft/v1/signed_header/5")
+	s.Require().NoError(err)
+	s.Require().NotNil(resp)
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+	defer resp.Body.Close()
+
+	shData := s.decodeCometBFTResponse(resp)
+
+	// Validate signed header structure.
+	header, ok := shData["header"].(map[string]any)
+	s.Require().True(ok, "signed header should have a 'header' field")
+	s.Require().NotEmpty(header["chain_id"], "header should have chain_id")
+	s.Require().Equal(float64(5), header["height"], "header height should match requested height")
+	s.Require().NotEmpty(header["time"], "header should have time")
+
+	commit, ok := shData["commit"].(map[string]any)
+	s.Require().True(ok, "signed header should have a 'commit' field")
+	s.Require().NotNil(commit["height"], "commit should have height")
+	s.Require().NotNil(commit["round"], "commit should have round")
+}
+
+// TestCometBFTSignedHeaderInvalidHeight tests the /cometbft/v1/signed_header/:height endpoint with a non-numeric height.
+func (s *BeaconKitE2ESuite) TestCometBFTSignedHeaderInvalidHeight() {
+	client := s.initHTTPBeaconTest()
+
+	resp, err := client.Get("/cometbft/v1/signed_header/invalid")
+	s.Require().NoError(err)
+	s.Require().NotNil(resp)
+	s.Require().Equal(http.StatusBadRequest, resp.StatusCode)
+	resp.Body.Close()
+}
+
+// TestCometBFTSignedHeaderMatchesCommit cross-validates the CometBFT signed header API response
+// against the CometBFT RPC Commit response for the same height.
+func (s *BeaconKitE2ESuite) TestCometBFTSignedHeaderMatchesCommit() {
+	httpClient := s.initHTTPBeaconTest()
+
+	// Get signed header from the node-api.
+	resp, err := httpClient.Get("/cometbft/v1/signed_header/5")
+	s.Require().NoError(err)
+	s.Require().NotNil(resp)
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+	defer resp.Body.Close()
+
+	shData := s.decodeCometBFTResponse(resp)
+	apiHeader, ok := shData["header"].(map[string]any)
+	s.Require().True(ok)
+
+	// Get the same data via CometBFT RPC Commit.
+	clients := s.ConsensusClients()
+	s.Require().NotEmpty(clients)
+	height := int64(5)
+	commit, err := clients[config.ClientValidator0].Commit(s.Ctx(), &height)
+	s.Require().NoError(err)
+	s.Require().NotNil(commit)
+
+	// Cross-validate chain_id and height.
+	s.Require().Equal(
+		commit.SignedHeader.Header.ChainID,
+		apiHeader["chain_id"],
+		"chain_id from node-api should match CometBFT RPC",
+	)
+	s.Require().Equal(
+		float64(5),
+		apiHeader["height"],
+		"height from node-api should match requested height",
+	)
+	s.Require().Equal(
+		height,
+		commit.SignedHeader.Header.Height,
+		"height from CometBFT RPC should match requested height",
+	)
+}
+
+// decodeCometBFTResponse reads an HTTP response body and extracts the "data" field
+// from the CometBFT API response envelope.
+func (s *BeaconKitE2ESuite) decodeCometBFTResponse(resp *http.Response) map[string]any {
+	bodyBytes, err := io.ReadAll(resp.Body)
+	s.Require().NoError(err)
+
+	var envelope map[string]any
+	err = json.Unmarshal(bodyBytes, &envelope)
+	s.Require().NoError(err)
+
+	data, ok := envelope["data"].(map[string]any)
+	s.Require().True(ok, "response should have a 'data' field")
+	return data
 }
 
 // https://github.com/cosmos/ibc-go/blob/20326046a09330898fac90540134d8556f4506cc/modules/core/23-commitment/types/merkle.go#L143-L189

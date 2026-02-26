@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -21,15 +21,24 @@
 package cometbft
 
 import (
-	"time"
+	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/node-api/handlers"
+	"github.com/berachain/beacon-kit/node-api/handlers/types"
+	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 )
 
-// TelemetrySink is an interface for sending metrics to a telemetry backend.
-type TelemetrySink interface {
-	// IncrementCounter increments a counter for the given key.
-	IncrementCounter(key string, args ...string)
-	// MeasureSince measures the time since the given time.
-	MeasureSince(key string, start time.Time, args ...string)
-	// SetGauge sets a gauge metric to the specified value.
-	SetGauge(key string, value int64, args ...string)
+// GetSignedHeader returns the CometBFT signed header (header + commit) at the specified height.
+// GET /cometbft/v1/signed_header/:height
+func (h *Handler) GetSignedHeader(c handlers.Context) (any, error) {
+	req, err := utils.BindAndValidate[HeightRequest](c, h.Logger())
+	if err != nil {
+		return nil, err
+	}
+
+	signedHeader := h.backend.GetCometBFTSignedHeader(req.Height)
+	if signedHeader == nil {
+		return nil, errors.Wrapf(types.ErrNotFound, "signed header not found at height %d", req.Height)
+	}
+
+	return Response{Data: signedHeader}, nil
 }
