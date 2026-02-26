@@ -30,6 +30,11 @@ on:
     - cron: '0 8 * * *' # daily at 08:00 UTC
   workflow_dispatch:
 
+# Cancel any in-progress run if a new one starts on the same branch.
+concurrency:
+  group: vuln-and-dep-check-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -54,6 +59,7 @@ jobs:
     runs-on:
       labels: ubuntu-24.04-beacon-kit
     strategy:
+      fail-fast: false # Always run both variants so one failure doesn't hide the other.
       matrix:
         deps: [locked, latest]
     name: test-${{ matrix.deps }}-deps
