@@ -33,6 +33,10 @@ import (
 
 // GetDBCheckCmd returns a command for checking that the deposit store
 // is in sync with the beacon state.
+//
+// NOTE: this command is only useful before the Electra2 fork. After Electra2, deposits
+// are not maintained in a deposit DB by the beacon-kit client and instead managed by
+// EIP-6110 style deposit requests.
 func GetDBCheckCmd(appCreator servertypes.AppCreator) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "db-check",
@@ -60,7 +64,7 @@ func GetDBCheckCmd(appCreator servertypes.AppCreator) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if err = core.ValidateNonGenesisDeposits(
+			if err = core.ValidateNonGenesisDepositsPreElectra2(
 				ctx,
 				beaconState,
 				depositStore,

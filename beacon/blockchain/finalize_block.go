@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	"github.com/berachain/beacon-kit/primitives/version"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -126,9 +127,12 @@ func (s *Service) PostFinalizeBlockOps(ctx sdk.Context, blk *ctypes.BeaconBlock)
 	// TODO: consider extracting LatestExecutionPayloadHeader instead of using state here
 	st := s.storageBackend.StateFromContext(ctx)
 
-	// Fetch and store the deposit for the block.
-	blockNum := blk.GetBody().GetExecutionPayload().GetNumber()
-	s.depositFetcher(ctx, blockNum)
+	// Before Electra2, deposits must be fetched from the EL directly in the CL.
+	if version.IsBefore(blk.GetForkVersion(), version.Electra2()) {
+		// Fetch and store the deposit for the block.
+		blockNum := blk.GetBody().GetExecutionPayload().GetNumber()
+		s.depositFetcher(ctx, blockNum)
+	}
 
 	// Store the finalized block in the KVStore.
 	slot := blk.GetSlot()

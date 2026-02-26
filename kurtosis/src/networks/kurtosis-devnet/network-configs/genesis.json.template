@@ -35,6 +35,7 @@
         "baseFeeUpdateFraction": 3338477
       }
     },
+    "depositContractAddress": "0x4242424242424242424242424242424242424242",
     "berachain": {
       "prague1": {
         "time": 0,
