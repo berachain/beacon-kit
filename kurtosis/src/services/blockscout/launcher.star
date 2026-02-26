@@ -3,12 +3,15 @@ postgres = import_module("github.com/kurtosis-tech/postgres-package/main.star")
 
 IMAGE_NAME_BLOCKSCOUT = "blockscout/blockscout:7.0.2.commit.900ef697"
 IMAGE_NAME_BLOCKSCOUT_VERIF = "ghcr.io/blockscout/smart-contract-verifier:v1.9.2-arm"
+IMAGE_NAME_BLOCKSCOUT_FRONTEND = "ghcr.io/blockscout/frontend:v2.3.5"
 
 SERVICE_NAME_BLOCKSCOUT = "blockscout"
+SERVICE_NAME_BLOCKSCOUT_FRONTEND = "blockscout-frontend"
 
 HTTP_PORT_ID = "http"
 HTTP_PORT_NUMBER = 4000
 HTTP_PORT_NUMBER_VERIF = 8050
+HTTP_PORT_NUMBER_FRONTEND = 3000
 
 BLOCKSCOUT_MIN_CPU = 100
 BLOCKSCOUT_MAX_CPU = 1000
@@ -19,6 +22,11 @@ BLOCKSCOUT_VERIF_MIN_CPU = 10
 BLOCKSCOUT_VERIF_MAX_CPU = 1000
 BLOCKSCOUT_VERIF_MIN_MEMORY = 10
 BLOCKSCOUT_VERIF_MAX_MEMORY = 1024
+
+BLOCKSCOUT_FRONTEND_MIN_CPU = 10
+BLOCKSCOUT_FRONTEND_MAX_CPU = 500
+BLOCKSCOUT_FRONTEND_MIN_MEMORY = 256
+BLOCKSCOUT_FRONTEND_MAX_MEMORY = 1024
 
 USED_PORTS = {
     HTTP_PORT_ID: shared_utils.new_port_spec(
@@ -31,6 +39,14 @@ USED_PORTS = {
 VERIF_USED_PORTS = {
     HTTP_PORT_ID: shared_utils.new_port_spec(
         HTTP_PORT_NUMBER_VERIF,
+        shared_utils.TCP_PROTOCOL,
+        shared_utils.HTTP_APPLICATION_PROTOCOL,
+    ),
+}
+
+FRONTEND_USED_PORTS = {
+    HTTP_PORT_ID: shared_utils.new_port_spec(
+        HTTP_PORT_NUMBER_FRONTEND,
         shared_utils.TCP_PROTOCOL,
         shared_utils.HTTP_APPLICATION_PROTOCOL,
     ),
@@ -79,14 +95,25 @@ def launch_blockscout(
         el_client_info.get("Eth_Type"),
     )
     blockscout_service = plan.add_service(SERVICE_NAME_BLOCKSCOUT, config_backend)
-    plan.print(blockscout_service)
 
-    blockscout_url = "http://{}:{}".format(
+    # NEXT_PUBLIC_API_HOST must be "hostname:port" with NO scheme prefix.
+    # The frontend prepends NEXT_PUBLIC_API_PROTOCOL to build the full URL and
+    # CSP connect-src. Passing a full URL (e.g. "http://...") creates a
+    # double-scheme like "http://http://..." which invalidates the entire CSP
+    # directive and causes the browser to block all connections.
+    backend_api_host = "{}:{}".format(
         blockscout_service.hostname,
         blockscout_service.ports["http"].number,
     )
 
-    return blockscout_url
+    config_frontend = get_config_frontend(backend_api_host)
+    frontend_service = plan.add_service(SERVICE_NAME_BLOCKSCOUT_FRONTEND, config_frontend)
+
+    # public_ports pins container:3000 → host:3000 deterministically, so this is always correct.
+    frontend_url = "http://localhost:{}".format(HTTP_PORT_NUMBER_FRONTEND)
+    plan.print("Blockscout frontend available at: {}".format(frontend_url))
+
+    return frontend_url
 
 def get_config_verif():
     return ServiceConfig(
@@ -129,6 +156,7 @@ def get_config_backend(
         env_vars = {
             "ETHEREUM_JSONRPC_VARIANT": el_client_name,
             "ETHEREUM_JSONRPC_HTTP_URL": el_client_rpc_url,
+            "ETHEREUM_JSONRPC_FALLBACK_HTTP_URL": el_client_rpc_url,
             "ETHEREUM_JSONRPC_WS_URL": el_client_ws_url,
             "ETHEREUM_JSONRPC_TRACE_URL": el_client_rpc_url,
             "DATABASE_URL": database_url,
@@ -139,7 +167,10 @@ def get_config_backend(
             "INDEXER_DISABLE_PENDING_TRANSACTIONS_FETCHER": "true",
             "INDEXER_DISABLE_INTERNAL_TRANSACTIONS_FETCHER": "true",
             "INDEXER_DISABLE_COIN_BALANCES_FETCHER": "true",
+            "INDEXER_COIN_BALANCES_BATCH_SIZE": "0",
+            "COIN_BALANCE_HISTORY_DAYS": "0",
             "EXCHANGE_RATES_ENABLED": "false",
+            "EXCHANGE_RATES_COINGECKO_API_KEY": "",
             "FIRST_BLOCK": "1",
             "ECTO_USE_SSL": "false",
             "NETWORK": "Kurtosis",
@@ -154,12 +185,55 @@ def get_config_backend(
         max_memory = BLOCKSCOUT_MAX_MEMORY,
     )
 
+def get_config_frontend(backend_api_host):
+    return ServiceConfig(
+        image = IMAGE_NAME_BLOCKSCOUT_FRONTEND,
+        ports = FRONTEND_USED_PORTS,
+        # Pin container port 3000 → host port 3000 deterministically.
+        # Without this, Kurtosis assigns a random ephemeral host port. The
+        # frontend constructs absolute proxy URLs as
+        # http://NEXT_PUBLIC_APP_HOST:NEXT_PUBLIC_APP_PORT/node-api/proxy/...
+        # which must match the browser's origin for CSP 'self' to allow it.
+        # If the host port doesn't match, the browser sees a cross-origin
+        # request and CSP blocks it. Requires port 3000 to be free on the host.
+        public_ports = FRONTEND_USED_PORTS,
+        env_vars = {
+            # "hostname:port" only — no "http://" prefix. The frontend
+            # prepends NEXT_PUBLIC_API_PROTOCOL to build both the API URL and
+            # the CSP connect-src directive. A full URL here produces a
+            # double-scheme ("http://http://...") which invalidates the CSP
+            # and causes the browser to block all API calls.
+            "NEXT_PUBLIC_API_HOST": backend_api_host,
+            "NEXT_PUBLIC_API_PROTOCOL": "http",
+            "NEXT_PUBLIC_API_WEBSOCKET_PROTOCOL": "ws",
+            # NEXT_PUBLIC_APP_HOST:NEXT_PUBLIC_APP_PORT is the browser-accessible
+            # address of this frontend. The proxy URL is constructed as
+            # http://localhost:3000/node-api/proxy/... which must be same-origin
+            # for CSP 'self' to allow it. public_ports above guarantees host:3000.
+            "NEXT_PUBLIC_APP_HOST": "localhost",
+            "NEXT_PUBLIC_APP_PORT": "{}".format(HTTP_PORT_NUMBER_FRONTEND),
+            "NEXT_PUBLIC_APP_PROTOCOL": "http",
+            # Network info
+            "NEXT_PUBLIC_NETWORK_NAME": "Kurtosis",
+            "NEXT_PUBLIC_NETWORK_SHORT_NAME": "Kurtosis",
+            "NEXT_PUBLIC_NETWORK_ID": "80087",
+            "NEXT_PUBLIC_NETWORK_CURRENCY_NAME": "Ether",
+            "NEXT_PUBLIC_NETWORK_CURRENCY_SYMBOL": "ETH",
+            "NEXT_PUBLIC_NETWORK_CURRENCY_DECIMALS": "18",
+            "NEXT_PUBLIC_IS_TESTNET": "true",
+        },
+        min_cpu = BLOCKSCOUT_FRONTEND_MIN_CPU,
+        max_cpu = BLOCKSCOUT_FRONTEND_MAX_CPU,
+        min_memory = BLOCKSCOUT_FRONTEND_MIN_MEMORY,
+        max_memory = BLOCKSCOUT_FRONTEND_MAX_MEMORY,
+    )
+
 def get_el_client_info(service_name, rpc_port_num, ws_port_num, full_name):
-    el_client_rpc_url = "http://{}:{}/".format(
+    el_client_rpc_url = "http://{}:{}".format(
         service_name,
         rpc_port_num,
     )
-    el_client_ws_url = "ws://{}:{}/".format(
+    el_client_ws_url = "ws://{}:{}".format(
         service_name,
         ws_port_num,
     )
