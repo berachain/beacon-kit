@@ -53,10 +53,8 @@ BeaconKit requires [**Bera-Reth**](https://github.com/berachain/bera-reth), a Be
 ### Prerequisites
 
 - [Docker](https://docs.docker.com/engine/install/)
-- [Go 1.25.7+](https://go.dev/doc/install)
-- [Foundry](https://getfoundry.sh/)
-
-### Running a Local Devnet
+- [Golang](https://go.dev/doc/install)
+- [Foundry](https://book.getfoundry.sh/)
 
 Open two terminals side by side.
 
