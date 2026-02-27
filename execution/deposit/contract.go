@@ -26,12 +26,12 @@ import (
 	"fmt"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
-	"github.com/berachain/beacon-kit/geth-primitives/bind"
-	"github.com/berachain/beacon-kit/geth-primitives/deposit"
+	"github.com/berachain/beacon-kit/gethlib/deposit"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	gethcommon "github.com/ethereum/go-ethereum/common"
 )
 
 // WrappedDepositContract is a struct that holds a pointer to an ABI.
@@ -46,7 +46,7 @@ func NewWrappedDepositContract(
 	client bind.ContractFilterer,
 ) (*WrappedDepositContract, error) {
 	contract, err := deposit.NewDepositContractFilterer(
-		gethprimitives.ExecutionAddress(address), client,
+		gethcommon.Address(address), client,
 	)
 
 	if err != nil {

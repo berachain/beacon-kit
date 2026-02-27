@@ -29,8 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/errors"
-	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
-	gethtypes "github.com/berachain/beacon-kit/geth-primitives/types"
+	bkitgethtypes "github.com/berachain/beacon-kit/gethlib/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
@@ -39,6 +38,7 @@ import (
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+	gethengine "github.com/ethereum/go-ethereum/beacon/engine"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
@@ -71,14 +71,14 @@ func AddExecutionPayload(chainSpec ChainSpec, elGenesisPath string, config *cmtc
 	}
 
 	// Unmarshal the genesis file.
-	ethGenesis := &gethtypes.Genesis{}
+	ethGenesis := &bkitgethtypes.Genesis{}
 	if err = ethGenesis.UnmarshalJSON(genesisBz); err != nil {
 		return errors.Wrap(err, "failed to unmarshal eth1 genesis")
 	}
 	genesisBlock := ethGenesis.ToBlock()
 
 	// Create the execution payload.
-	payload := gethtypes.BlockToExecutableData(
+	payload := bkitgethtypes.BlockToExecutableData(
 		genesisBlock,
 		nil,
 		nil,
@@ -142,7 +142,7 @@ func AddExecutionPayload(chainSpec ChainSpec, elGenesisPath string, config *cmtc
 // interface.
 func executableDataToExecutionPayloadHeader(
 	forkVersion common.Version,
-	data *gethprimitives.ExecutableData,
+	data *gethengine.ExecutableData,
 	// todo: re-enable when codec supports.
 	_ uint64,
 ) (*types.ExecutionPayloadHeader, error) {

@@ -30,7 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
-	gethtypes "github.com/berachain/beacon-kit/geth-primitives/types"
+	gethtypes "github.com/berachain/beacon-kit/gethlib/types"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"

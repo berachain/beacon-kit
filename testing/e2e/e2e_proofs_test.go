@@ -25,7 +25,7 @@ import (
 	"strconv"
 
 	"github.com/berachain/beacon-kit/config/spec"
-	"github.com/berachain/beacon-kit/geth-primitives/ssztest"
+	"github.com/berachain/beacon-kit/gethlib/ssztest"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/merkle"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
