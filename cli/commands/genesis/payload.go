@@ -30,6 +30,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/errors"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
+	gethtypes "github.com/berachain/beacon-kit/geth-primitives/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
@@ -70,14 +71,14 @@ func AddExecutionPayload(chainSpec ChainSpec, elGenesisPath string, config *cmtc
 	}
 
 	// Unmarshal the genesis file.
-	ethGenesis := &gethprimitives.Genesis{}
+	ethGenesis := &gethtypes.Genesis{}
 	if err = ethGenesis.UnmarshalJSON(genesisBz); err != nil {
 		return errors.Wrap(err, "failed to unmarshal eth1 genesis")
 	}
 	genesisBlock := ethGenesis.ToBlock()
 
 	// Create the execution payload.
-	payload := gethprimitives.BlockToExecutableData(
+	payload := gethtypes.BlockToExecutableData(
 		genesisBlock,
 		nil,
 		nil,

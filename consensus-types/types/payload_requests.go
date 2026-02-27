@@ -27,6 +27,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/errors"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
+	gethtypes "github.com/berachain/beacon-kit/geth-primitives/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -202,17 +203,17 @@ func MakeEthBlock(
 	executionRequests []EncodedExecutionRequest,
 	parentProposerPubKey *crypto.BLSPubkey,
 ) (
-	*gethprimitives.Block,
+	*gethtypes.Block,
 	[]gethprimitives.ExecutionHash,
 	error,
 ) {
 	var (
-		txs        = make([]*gethprimitives.Transaction, 0, len(payload.GetTransactions()))
+		txs        = make([]*gethtypes.Transaction, 0, len(payload.GetTransactions()))
 		blobHashes = make([]gethprimitives.ExecutionHash, 0)
 	)
 
 	for i, encTx := range payload.GetTransactions() {
-		var tx gethprimitives.Transaction
+		var tx gethtypes.Transaction
 		if err := tx.UnmarshalBinary(encTx); err != nil {
 			return nil, nil, errors.Wrapf(err, "invalid transaction %d", i)
 		}
@@ -223,12 +224,12 @@ func MakeEthBlock(
 	wds := payload.GetWithdrawals()
 	withdrawalsHash := gethprimitives.DeriveSha(wds, gethprimitives.NewStackTrie(nil))
 
-	blkHeader := &gethprimitives.Header{
+	blkHeader := &gethtypes.Header{
 		ParentHash:           gethprimitives.ExecutionHash(payload.GetParentHash()),
 		UncleHash:            gethprimitives.EmptyUncleHash,
 		Coinbase:             gethprimitives.ExecutionAddress(payload.GetFeeRecipient()),
 		Root:                 gethprimitives.ExecutionHash(payload.GetStateRoot()),
-		TxHash:               gethprimitives.DeriveSha(gethprimitives.Transactions(txs), gethprimitives.NewStackTrie(nil)),
+		TxHash:               gethprimitives.DeriveSha(gethtypes.Transactions(txs), gethprimitives.NewStackTrie(nil)),
 		ReceiptHash:          gethprimitives.ExecutionHash(payload.GetReceiptsRoot()),
 		Bloom:                gethprimitives.LogsBloom(payload.GetLogsBloom()),
 		Difficulty:           big.NewInt(0),
@@ -243,7 +244,7 @@ func MakeEthBlock(
 		ExcessBlobGas:        payload.GetExcessBlobGas().UnwrapPtr(),
 		BlobGasUsed:          payload.GetBlobGasUsed().UnwrapPtr(),
 		ParentBeaconRoot:     (*gethprimitives.ExecutionHash)(&parentBeaconBlockRoot),
-		ParentProposerPubkey: (*gethprimitives.ExecutionPubkey)(parentProposerPubKey),
+		ParentProposerPubkey: (*gethtypes.ExecutionPubkey)(parentProposerPubKey),
 	}
 
 	if version.EqualsOrIsAfter(payload.GetForkVersion(), version.Electra()) {
@@ -258,8 +259,8 @@ func MakeEthBlock(
 		blkHeader.RequestsHash = &reqHash
 	}
 
-	block := gethprimitives.NewBlockWithHeader(blkHeader).WithBody(
-		gethprimitives.Body{
+	block := gethtypes.NewBlockWithHeader(blkHeader).WithBody(
+		gethtypes.Body{
 			Transactions: txs,
 			Uncles:       nil,
 			Withdrawals:  *(*gethprimitives.Withdrawals)(unsafe.Pointer(&wds)), //#nosec:G103 // its okay.

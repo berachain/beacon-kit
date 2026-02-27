@@ -32,7 +32,6 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/engine-primitives/errors"
-	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/cometbft/cometbft/abci/types"
 	gethcommon "github.com/ethereum/go-ethereum/common"
@@ -98,7 +97,7 @@ func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_Errors() {
 	)
 	s.Require().NoError(err, "failed to sign malicious transaction")
 	// Initialize the slice with the malicious transaction.
-	maliciousTxs := []*gethprimitives.Transaction{maliciousTx}
+	maliciousTxs := []*gethtypes.Transaction{maliciousTx}
 
 	// Create a malicious block by injecting an invalid transaction.
 	maliciousBlock := simulated.ComputeAndSetInvalidExecutionBlock(

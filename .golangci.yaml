@@ -374,3 +374,5 @@ issues:
   exclude-files:
     - "pkg/cometbft/cli/.*\\.go"
     - "pkg/cometbft/service/server/.*\\.go"
+    # Copied/adapted from go-ethereum (geth); not worth linting.
+    - "geth-primitives/types/.*\\.go"

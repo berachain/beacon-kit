@@ -30,7 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
-	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
+	gethtypes "github.com/berachain/beacon-kit/geth-primitives/types"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -111,7 +111,7 @@ func buildNextBlock(
 	}
 	parentBeaconBlockRoot := parentBlkHeader.HashTreeRoot()
 
-	var ethBlk *gethprimitives.Block
+	var ethBlk *gethtypes.Block
 	if version.IsBefore(fv, version.Electra()) {
 		ethBlk, _, err = types.MakeEthBlock(payload, parentBeaconBlockRoot, nil, nil)
 		require.NoError(t, err)

@@ -153,7 +153,7 @@ func (c *SimulationClient) Simulate(
 // TxsToTransactionArgs converts a slice of Geth transactions to TransactionArgs suitable for simulation.
 // The transactions must be dynamic-fee (EIP-1559 or EIP-4844) type.
 // TODO: use the LatestSigner based on a Geth ChainConfig parsed from an EL Genesis File as have currently hardcoded Cancun Signer.
-func TxsToTransactionArgs(chainID uint64, txs []*gethprimitives.Transaction) ([]TransactionArgs, error) {
+func TxsToTransactionArgs(chainID uint64, txs []*types.Transaction) ([]TransactionArgs, error) {
 	signer := types.NewCancunSigner(big.NewInt(int64(chainID)))
 	args := make([]TransactionArgs, len(txs))
 

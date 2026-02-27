@@ -78,7 +78,11 @@ jobs:
           GOARCH: ${{ matrix.configs.arch }}
 
       - name: Import GPG key
-        run: echo "$GPG_KEY" | gpg --batch --import
+        run: |
+          mkdir -p ~/.gnupg
+          echo "allow-loopback-pinentry" >> ~/.gnupg/gpg-agent.conf
+          echo "$GPG_KEY" | gpg --batch --import
+          gpg-connect-agent reloadagent /bye || true
         env:
           GPG_KEY: ${{ secrets.GPG_KEY }}
 

@@ -18,35 +18,28 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package gethprimitives
+package types
 
 import (
-	"github.com/ethereum/go-ethereum/beacon/engine"
 	"github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/trie"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/rlp"
 )
 
-type (
-	// ExecutionAddress represents an address on the execution layer
-	// which is derived via secp256k1 w/recovery bit.
-	//
-	// Related: https://eips.ethereum.org/EIPS/eip-55
-	ExecutionAddress = common.Address
-	// ExecutionHash represents a hash on the execution layer which is
-	// currently a Keccak256 hash.
-	ExecutionHash  = common.Hash
-	ExecutableData = engine.ExecutableData
-	GenesisAlloc   = coretypes.GenesisAlloc
-	Log            = coretypes.Log
-	LogsBloom      = coretypes.Bloom
-	Withdrawals    = coretypes.Withdrawals
-)
+func CalcUncleHash(uncles []*Header) common.Hash {
+	if len(uncles) == 0 {
+		return coretypes.EmptyUncleHash
+	}
+	return rlpHash(uncles)
+}
 
-//nolint:gochecknoglobals // alias.
-var (
-	DeriveSha        = coretypes.DeriveSha
-	EmptyUncleHash   = coretypes.EmptyUncleHash
-	NewStackTrie     = trie.NewStackTrie
-	CalcRequestsHash = coretypes.CalcRequestsHash
-)
+// rlpHash encodes x and hashes the encoded bytes.
+func rlpHash(x interface{}) (h common.Hash) {
+	sha := hasherPool.Get().(crypto.KeccakState)
+	defer hasherPool.Put(sha)
+	sha.Reset()
+	rlp.Encode(sha, x) // #nosec G104 -- hash writer never errors
+	sha.Read(h[:])     // #nosec G104 -- KeccakState.Read never errors
+	return h
+}

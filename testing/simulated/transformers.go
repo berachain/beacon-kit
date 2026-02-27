@@ -36,16 +36,16 @@ import (
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
 	"github.com/ethereum/go-ethereum/common"
-	gethtypes "github.com/ethereum/go-ethereum/core/types"
+	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
 // transformSimulatedBlockToGethBlock converts a simulated execution block into a Geth-style block.
 // It uses the provided transactions and parent beacon root to construct a new execution block header.
 func transformSimulatedBlockToGethBlock(
 	simBlock *execution.SimulatedBlock,
-	txs []*gethtypes.Transaction,
+	txs []*coretypes.Transaction,
 	parentBeaconRoot libcommon.Root,
-) *gethtypes.Block {
+) *coretypes.Block {
 	// Convert numeric fields.
 	excessBlobGas := simBlock.ExcessBlobGas.ToInt().Uint64()
 	blobGasUsed := simBlock.BlobGasUsed.ToInt().Uint64()
@@ -55,16 +55,16 @@ func transformSimulatedBlockToGethBlock(
 	withdrawalsHash := gethprimitives.DeriveSha(simBlock.Withdrawals, gethprimitives.NewStackTrie(nil))
 
 	// Create a new header using values from the simulated block.
-	header := &gethprimitives.Header{
+	header := &coretypes.Header{
 		ParentHash: simBlock.ParentHash,
 		UncleHash:  gethprimitives.EmptyUncleHash,
 		Coinbase:   simBlock.Miner,
 		Root:       simBlock.StateRoot,
 		// TxHash is computed from the provided transactions since simulation does not have signatures
 		// which is required for correct hash calculation.
-		TxHash:           gethprimitives.DeriveSha(gethprimitives.Transactions(txs), gethprimitives.NewStackTrie(nil)),
+		TxHash:           gethprimitives.DeriveSha(coretypes.Transactions(txs), gethprimitives.NewStackTrie(nil)),
 		ReceiptHash:      simBlock.ReceiptsRoot,
-		Bloom:            gethtypes.Bloom(simBlock.LogsBloom),
+		Bloom:            coretypes.Bloom(simBlock.LogsBloom),
 		Difficulty:       big.NewInt(0),
 		Number:           (*big.Int)(simBlock.Number),
 		GasLimit:         (uint64)(*simBlock.GasLimit),
@@ -80,13 +80,13 @@ func transformSimulatedBlockToGethBlock(
 	}
 
 	// Create the block body using the transactions and withdrawals from the simulation.
-	body := gethprimitives.Body{
+	body := coretypes.Body{
 		Transactions: txs,
 		Uncles:       nil,
 		Withdrawals:  simBlock.Withdrawals,
 	}
 
-	return gethprimitives.NewBlockWithHeader(header).WithBody(body)
+	return coretypes.NewBlockWithHeader(header).WithBody(body)
 }
 
 // transformExecutableDataToExecutionPayload converts Ethereum executable data into a beacon execution payload.
@@ -150,9 +150,9 @@ func transformExecutableDataToExecutionPayload(
 // splitTxs separates transactions into two slices:
 // 1. Transactions with blob sidecars removed.
 // 2. The extracted blob sidecars, if any.
-func splitTxs(txs []*gethtypes.Transaction) (txsWithoutSidecars []*gethtypes.Transaction, txSidecars []*gethtypes.BlobTxSidecar) {
-	txsWithoutSidecars = make([]*gethtypes.Transaction, 0, len(txs))
-	txSidecars = make([]*gethtypes.BlobTxSidecar, 0, len(txs))
+func splitTxs(txs []*coretypes.Transaction) (txsWithoutSidecars []*coretypes.Transaction, txSidecars []*coretypes.BlobTxSidecar) {
+	txsWithoutSidecars = make([]*coretypes.Transaction, 0, len(txs))
+	txSidecars = make([]*coretypes.BlobTxSidecar, 0, len(txs))
 
 	for _, tx := range txs {
 		// Append the transaction with its blob sidecar removed.
