@@ -27,8 +27,9 @@ import (
 	"cosmossdk.io/collections"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	types "github.com/berachain/beacon-kit/node-api/handlers/types"
+	"github.com/berachain/beacon-kit/node-api/handlers/mapping"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/node-api/middleware"
 )
 
 func (h *Handler) GetStateValidators(c handlers.Context) (any, error) {
@@ -39,7 +40,7 @@ func (h *Handler) GetStateValidators(c handlers.Context) (any, error) {
 		return nil, err
 	}
 
-	height, err := utils.StateIDToHeight(req.StateID, h.backend)
+	height, err := mapping.StateIDToHeight(req.StateID, h.backend)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +59,7 @@ func (h *Handler) PostStateValidators(c handlers.Context) (any, error) {
 		return nil, err
 	}
 
-	height, err := utils.StateIDToHeight(req.StateID, h.backend)
+	height, err := mapping.StateIDToHeight(req.StateID, h.backend)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +78,7 @@ func (h *Handler) GetStateValidator(c handlers.Context) (any, error) {
 		return nil, err
 	}
 
-	height, err := utils.StateIDToHeight(req.StateID, h.backend)
+	height, err := mapping.StateIDToHeight(req.StateID, h.backend)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +102,7 @@ func (h *Handler) getValidator(height int64, validatorID string) (*beacontypes.V
 	if err != nil {
 		if errors.Is(err, collections.ErrNotFound) {
 			// this should happen when validatorID is an unknown pub key
-			return nil, fmt.Errorf("%s: %w", err.Error(), types.ErrNotFound)
+			return nil, fmt.Errorf("%s: %w", err.Error(), middleware.ErrNotFound)
 		}
 		return nil, fmt.Errorf("failed to get validator index by id %s: %w", validatorID, err)
 	}
@@ -110,7 +111,7 @@ func (h *Handler) getValidator(height int64, validatorID string) (*beacontypes.V
 	if err != nil {
 		// this should happen when validatorID is an unknown index
 		if errors.Is(err, collections.ErrNotFound) {
-			return nil, fmt.Errorf("%s: %w", err.Error(), types.ErrNotFound)
+			return nil, fmt.Errorf("%s: %w", err.Error(), middleware.ErrNotFound)
 		}
 		return nil, fmt.Errorf("failed to get validator by index %s: %w", validatorID, err)
 	}

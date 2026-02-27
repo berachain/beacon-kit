@@ -25,17 +25,17 @@ import (
 
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-api/handlers"
-	"github.com/berachain/beacon-kit/node-api/handlers/types"
+	"github.com/berachain/beacon-kit/node-api/middleware"
 )
 
 // BindAndValidate binds the request to the context and validates it.
 func BindAndValidate[RequestT any](c handlers.Context, logger log.Logger) (RequestT, error) {
 	var req RequestT
 	if err := c.Bind(&req); err != nil {
-		return req, fmt.Errorf("%w: failed to bind request: %s", types.ErrInvalidRequest, err.Error())
+		return req, fmt.Errorf("%w: failed to bind request: %s", middleware.ErrInvalidRequest, err.Error())
 	}
 	if err := c.Validate(&req); err != nil {
-		return req, fmt.Errorf("%w: failed to validate request: %s", types.ErrInvalidRequest, err.Error())
+		return req, fmt.Errorf("%w: failed to validate request: %s", middleware.ErrInvalidRequest, err.Error())
 	}
 	logger.Info("Request validation successful", "params", req)
 	return req, nil

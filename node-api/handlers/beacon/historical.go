@@ -23,6 +23,7 @@ package beacon
 import (
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/node-api/handlers/mapping"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 )
 
@@ -33,7 +34,7 @@ func (h *Handler) GetStateRoot(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	slot, err := utils.StateIDToHeight(req.StateID, h.backend)
+	slot, err := mapping.StateIDToHeight(req.StateID, h.backend)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +52,7 @@ func (h *Handler) GetStateFork(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	slot, err := utils.StateIDToHeight(req.StateID, h.backend)
+	slot, err := mapping.StateIDToHeight(req.StateID, h.backend)
 	if err != nil {
 		return nil, err
 	}

@@ -34,8 +34,8 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/mocks"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/node-api/handlers/mapping"
 	handlertypes "github.com/berachain/beacon-kit/node-api/handlers/types"
-	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/node-api/middleware"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -64,7 +64,7 @@ func TestGetValidator(t *testing.T) {
 			inputs: func() beacontypes.GetStateValidatorRequest {
 				return beacontypes.GetStateValidatorRequest{
 					StateIDRequest: handlertypes.StateIDRequest{
-						StateID: utils.StateIDHead,
+						StateID: mapping.StateIDHead,
 					},
 					ValidatorID: stateValidators[0].Validator.PublicKey,
 				}
@@ -95,7 +95,7 @@ func TestGetValidator(t *testing.T) {
 				unknownValIdx := strconv.Itoa(2025)
 				return beacontypes.GetStateValidatorRequest{
 					StateIDRequest: handlertypes.StateIDRequest{
-						StateID: utils.StateIDHead,
+						StateID: mapping.StateIDHead,
 					},
 					ValidatorID: unknownValIdx,
 				}
@@ -109,7 +109,7 @@ func TestGetValidator(t *testing.T) {
 			},
 			check: func(t *testing.T, res any, err error) {
 				t.Helper()
-				require.ErrorIs(t, err, handlertypes.ErrNotFound)
+				require.ErrorIs(t, err, middleware.ErrNotFound)
 				require.Nil(t, res)
 			},
 		},
@@ -119,7 +119,7 @@ func TestGetValidator(t *testing.T) {
 				unknownValPk := bytes.B48{0xff, 0xff}
 				return beacontypes.GetStateValidatorRequest{
 					StateIDRequest: handlertypes.StateIDRequest{
-						StateID: utils.StateIDHead,
+						StateID: mapping.StateIDHead,
 					},
 					ValidatorID: unknownValPk.String(),
 				}
@@ -133,7 +133,7 @@ func TestGetValidator(t *testing.T) {
 			},
 			check: func(t *testing.T, res any, err error) {
 				t.Helper()
-				require.ErrorIs(t, err, handlertypes.ErrNotFound)
+				require.ErrorIs(t, err, middleware.ErrNotFound)
 				require.Nil(t, res)
 			},
 		},

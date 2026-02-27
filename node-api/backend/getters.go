@@ -29,11 +29,13 @@ import (
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	datypes "github.com/berachain/beacon-kit/da/types"
+	"github.com/berachain/beacon-kit/node-api/middleware"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	cmttypes "github.com/cometbft/cometbft/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/version"
 )
 
@@ -55,7 +57,8 @@ func (b *Backend) StateAndSlotFromHeight(height int64) (ReadOnlyBeaconState, mat
 				return nil, 0, fmt.Errorf("failed loading genesis state: %w", err)
 			}
 		case errors.Is(err, cometbft.ErrAppNotReady):
-			return nil, 0, cometbft.ErrAppNotReady
+			// chain not ready, like when genesis time is set in the future
+			return nil, 0, middleware.ErrNotFound
 		default:
 			return nil, 0, fmt.Errorf("unable to check whether app is ready: %w", err)
 		}
@@ -74,6 +77,14 @@ func (b *Backend) StateAndSlotFromHeight(height int64) (ReadOnlyBeaconState, mat
 	height = max(0, height) // CreateQueryContext uses 0 to pick latest height.
 	queryCtx, err := b.node.CreateQueryContext(height, false)
 	if err != nil {
+		if errors.Is(err, cometbft.ErrAppNotReady) {
+			// chain not ready, like when genesis time is set in the future
+			return nil, 0, middleware.ErrNotFound
+		}
+		if errors.Is(err, sdkerrors.ErrInvalidHeight) {
+			// height requested too high
+			return nil, 0, middleware.ErrNotFound
+		}
 		return nil, 0, fmt.Errorf("CreateQueryContext failed: %w", err)
 	}
 	st := b.sb.StateFromContext(queryCtx)

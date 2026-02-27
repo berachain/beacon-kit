@@ -26,6 +26,7 @@ import (
 
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/node-api/handlers/mapping"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
@@ -43,13 +44,13 @@ func (h *Handler) GetBlobSidecars(c handlers.Context) (any, error) {
 	}
 
 	// Map requested blockID to slot
-	slotID, err := utils.BlockIDToHeight(req.BlockID, h.backend)
+	slotID, err := mapping.BlockIDToHeight(req.BlockID, h.backend)
 	if err != nil {
 		return nil, err
 	}
 
 	var slot math.Slot
-	if slotID == utils.Head {
+	if slotID == mapping.Head {
 		latestHeight, _ := h.backend.GetSyncData()
 		if latestHeight < 0 {
 			return nil, errors.New("invalid negative block height")

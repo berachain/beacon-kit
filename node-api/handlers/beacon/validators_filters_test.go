@@ -32,14 +32,13 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/log/noop"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/mocks"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/node-api/handlers/mapping"
 	handlertypes "github.com/berachain/beacon-kit/node-api/handlers/types"
-	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/node-api/middleware"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/constants"
@@ -47,7 +46,6 @@ import (
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -72,7 +70,7 @@ func TestFilterValidators(t *testing.T) {
 		{
 			name: "all validators",
 			inputs: func() (beacontypes.GetStateValidatorsRequest, beacontypes.PostStateValidatorsRequest) {
-				stateID := utils.StateIDHead
+				stateID := mapping.StateIDHead
 				return beacontypes.GetStateValidatorsRequest{
 						StateIDRequest: handlertypes.StateIDRequest{
 							StateID: stateID,
@@ -109,7 +107,7 @@ func TestFilterValidators(t *testing.T) {
 		{
 			name: "some validators by indexes",
 			inputs: func() (beacontypes.GetStateValidatorsRequest, beacontypes.PostStateValidatorsRequest) {
-				stateID := utils.StateIDHead
+				stateID := mapping.StateIDHead
 				IDs := []string{"1", "3"}
 				return beacontypes.GetStateValidatorsRequest{
 						StateIDRequest: handlertypes.StateIDRequest{
@@ -119,7 +117,7 @@ func TestFilterValidators(t *testing.T) {
 						Statuses: nil,
 					}, beacontypes.PostStateValidatorsRequest{
 						StateIDRequest: handlertypes.StateIDRequest{
-							StateID: utils.StateIDHead,
+							StateID: mapping.StateIDHead,
 						},
 						IDs:      IDs,
 						Statuses: nil,
@@ -155,7 +153,7 @@ func TestFilterValidators(t *testing.T) {
 		{
 			name: "some validators by pub keys",
 			inputs: func() (beacontypes.GetStateValidatorsRequest, beacontypes.PostStateValidatorsRequest) {
-				stateID := utils.StateIDHead
+				stateID := mapping.StateIDHead
 				IDs := []string{
 					stateValidators[2].Validator.PublicKey,
 					stateValidators[4].Validator.PublicKey,
@@ -167,7 +165,7 @@ func TestFilterValidators(t *testing.T) {
 						IDs: IDs,
 					}, beacontypes.PostStateValidatorsRequest{
 						StateIDRequest: handlertypes.StateIDRequest{
-							StateID: utils.StateIDHead,
+							StateID: mapping.StateIDHead,
 						},
 						IDs: IDs,
 					}
@@ -202,7 +200,7 @@ func TestFilterValidators(t *testing.T) {
 		{
 			name: "some validators by status",
 			inputs: func() (beacontypes.GetStateValidatorsRequest, beacontypes.PostStateValidatorsRequest) {
-				stateID := utils.StateIDHead
+				stateID := mapping.StateIDHead
 				statuses := []string{
 					constants.ValidatorStatusActiveOngoing,
 					constants.ValidatorStatusActiveSlashed,
@@ -252,7 +250,7 @@ func TestFilterValidators(t *testing.T) {
 		{
 			name: "chain not ready",
 			inputs: func() (beacontypes.GetStateValidatorsRequest, beacontypes.PostStateValidatorsRequest) {
-				stateID := utils.StateIDHead
+				stateID := mapping.StateIDHead
 				return beacontypes.GetStateValidatorsRequest{
 						StateIDRequest: handlertypes.StateIDRequest{
 							StateID: stateID,
@@ -266,13 +264,13 @@ func TestFilterValidators(t *testing.T) {
 			setMockExpectations: func(b *mocks.Backend) {
 				// cometbft.ErrAppNotReady is the error flag returned when
 				// genesis has not yet been processed and chain is not ready.
-				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(nil, math.Slot(0), cometbft.ErrAppNotReady)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(nil, math.Slot(0), middleware.ErrNotFound)
 			},
 			check: func(t *testing.T, res any, err error) {
 				t.Helper()
 
-				// handlertypes.ErrNotFound is the error flag used to return 404 error code
-				require.ErrorIs(t, err, handlertypes.ErrNotFound)
+				// middleware.ErrNotFound is the error flag used to return 404 error code
+				require.ErrorIs(t, err, middleware.ErrNotFound)
 				require.Nil(t, res)
 			},
 		},
@@ -293,13 +291,13 @@ func TestFilterValidators(t *testing.T) {
 			setMockExpectations: func(b *mocks.Backend) {
 				// sdkerrors.ErrInvalidHeight is the error flag returned when
 				// requested height is not in the state.
-				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(nil, math.Slot(0), sdkerrors.ErrInvalidHeight)
+				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(nil, math.Slot(0), middleware.ErrNotFound)
 			},
 			check: func(t *testing.T, res any, err error) {
 				t.Helper()
 
-				// handlertypes.ErrNotFound is the error flag used to return 404 error code
-				require.ErrorIs(t, err, handlertypes.ErrNotFound)
+				// middleware.ErrNotFound is the error flag used to return 404 error code
+				require.ErrorIs(t, err, middleware.ErrNotFound)
 				require.Nil(t, res)
 			},
 		},
