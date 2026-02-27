@@ -30,7 +30,7 @@ import (
 // sha256Pool is a pool of sha256 hash functions.
 //
 //nolint:gochecknoglobals // needed for pool.
-var sha256Pool = sync.Pool{New: func() interface{} {
+var sha256Pool = sync.Pool{New: func() any {
 	return sha256.New()
 }}
 

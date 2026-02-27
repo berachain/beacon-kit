@@ -45,7 +45,7 @@ const (
 
 // AppOptions is from the SDK, we should look to remove its usage.
 type AppOptions interface {
-	Get(string) interface{}
+	Get(string) any
 }
 
 // DefaultConfig returns the default configuration for a BeaconKit chain.

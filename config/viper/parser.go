@@ -37,8 +37,8 @@ func NumericToDomainTypeFunc() mapstructure.DecodeHookFunc {
 	return func(
 		f reflect.Type,
 		t reflect.Type,
-		data interface{},
-	) (interface{}, error) {
+		data any,
+	) (any, error) {
 		var dt common.DomainType
 		if t != reflect.TypeOf(dt) {
 			return data, nil
@@ -92,8 +92,8 @@ func stringTo[T any](
 	return func(
 		f reflect.Type,
 		t reflect.Type,
-		data interface{},
-	) (interface{}, error) {
+		data any,
+	) (any, error) {
 		if f.Kind() != reflect.String {
 			return data, nil
 		}

@@ -160,7 +160,7 @@ func writeGenesisAllocToFile(
 	}
 
 	// Unmarshal existing genesis using json.Number to preserve integer precision
-	var existingGenesis map[string]interface{}
+	var existingGenesis map[string]any
 	decoder := json.NewDecoder(bytes.NewReader(existingBz))
 	decoder.UseNumber()
 	if err = decoder.Decode(&existingGenesis); err != nil {
@@ -168,7 +168,7 @@ func writeGenesisAllocToFile(
 	}
 
 	// Get existing alloc.
-	alloc, ok := existingGenesis[allocsKey].(map[string]interface{})
+	alloc, ok := existingGenesis[allocsKey].(map[string]any)
 	if !ok {
 		return errors.New("invalid alloc format in genesis file")
 	}
