@@ -41,7 +41,7 @@ import (
 	"github.com/berachain/beacon-kit/da/kzg"
 	"github.com/berachain/beacon-kit/da/kzg/gokzg"
 	"github.com/berachain/beacon-kit/errors"
-	gethtypes "github.com/berachain/beacon-kit/geth-primitives/types"
+	gethtypes "github.com/berachain/beacon-kit/gethlib/types"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"

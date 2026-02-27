@@ -26,11 +26,11 @@ import (
 	"math/big"
 
 	"github.com/berachain/beacon-kit/errors"
-	"github.com/berachain/beacon-kit/geth-primitives/rpc"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/rpc"
 )
 
 // ChainID retrieves the current chain ID.
@@ -61,7 +61,6 @@ func (s *Client) FilterLogs(
 
 // SubscribeFilterLogs(ctx context.Context, q FilterQuery, ch chan<- types.Log)
 // (Subscription, error)
-
 func (s *Client) SubscribeFilterLogs(
 	context.Context,
 	ethereum.FilterQuery,

@@ -28,7 +28,6 @@ import (
 	"math/big"
 
 	"github.com/berachain/beacon-kit/execution/client"
-	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -75,7 +74,7 @@ type BlockOverrides struct {
 	BaseFeePerGas *hexutil.Big    `json:"baseFeePerGas,omitempty"`
 	BlobBaseFee   *hexutil.Big    `json:"blobBaseFee,omitempty"`
 	BeaconRoot    *common.Hash    `json:"beaconRoot,omitempty"`
-	Withdrawals   gethprimitives.Withdrawals
+	Withdrawals   types.Withdrawals
 }
 
 // SimBlock is a block containing calls and optional overrides for simulation.
