@@ -128,6 +128,7 @@ jobs:
       matrix:
         args:
           - "test-e2e-standard"
+          - "test-e2e-preconf"
         os:
           - ubuntu-24.04-e2e
     name: ${{ matrix.args }}
@@ -179,6 +180,9 @@ jobs:
             docker pull $img
           done
           kurtosis engine start
+      - name: Pre-pull bera-reth image
+        run: docker pull ghcr.io/berachain/bera-reth:af193b66839313cd75b86da0e371baaeb5e814fd
+        if: matrix.args == 'test-e2e-preconf'
       - name: Run ${{ matrix.args }}
         run: |
           make ${{ matrix.args }}

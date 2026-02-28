@@ -377,6 +377,12 @@ func (s *KurtosisE2ESuite) WaitForNBlockNumbers(n uint64) error {
 // TearDownSuite cleans up resources after all tests have been executed.
 // this function executes after all tests executed.
 func (s *KurtosisE2ESuite) TearDownSuite() {
+	// Dump all service logs to disk when any test in the suite failed.
+	if s.T().Failed() {
+		s.Logger().Info("Test failure detected, dumping service logs...")
+		s.DumpAllServiceLogs()
+	}
+
 	s.Logger().Info("Destroying enclave...")
 	for _, client := range s.consensusClients {
 		client.Stop(s.ctx)

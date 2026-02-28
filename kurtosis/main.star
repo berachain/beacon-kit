@@ -19,7 +19,7 @@ sequencer = import_module("./src/services/sequencer/launcher.star")
 preconf_config = import_module("./src/preconf/config.star")
 flashblock_monitor = import_module("./src/services/flashblock-monitor/launcher.star")
 
-def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpoints = [], additional_services = [], metrics_enabled_services = [], preconf = {}):
+def run(plan, network_configuration = {}, node_settings = {}, additional_services = [], metrics_enabled_services = [], preconf = {}):
     """
     Initiates the execution plan with the specified number of validators and arguments.
 
@@ -360,10 +360,24 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
         el_services_to_peer = []
         for node in full_nodes:
             el_services_to_peer.append(node.el_service_name)
+        for node in preconf_rpc_nodes:
+            el_services_to_peer.append(node.el_service_name)
+        if sequencer_node:
+            el_services_to_peer.append(sequencer_node.el_service_name)
         for node in validators[1:]:
             el_services_to_peer.append(node.el_service_name)
         for el_name in el_services_to_peer:
             execution.add_peer(plan, el_name, bootstrap_enode)
+
+    # For preconf topologies: add direct EL peering between the sequencer
+    # and tx-receiving nodes (preconf RPC, full nodes) so that transactions
+    # gossip directly to the sequencer without routing through validator-0.
+    if preconf_cfg and sequencer_node:
+        sequencer_enode = execution.get_enode_addr(plan, sequencer_node.el_service_name)
+        for node in preconf_rpc_nodes:
+            execution.add_peer(plan, node.el_service_name, sequencer_enode)
+        for node in full_nodes:
+            execution.add_peer(plan, node.el_service_name, sequencer_enode)
 
     # 8. Start additional services
     prometheus_url = ""

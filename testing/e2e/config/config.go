@@ -37,6 +37,9 @@ type E2ETestConfig struct {
 	AdditionalServices []AdditionalService `json:"additional_services"`
 	// Preconf specifies the preconfirmation configuration.
 	Preconf PreconfConfig `json:"preconf,omitempty"`
+	// RPCServiceName is the Kurtosis service name of the EL node to use
+	// for JSON-RPC in tests. Not serialized to Kurtosis.
+	RPCServiceName string `json:"-"`
 }
 
 // PreconfConfig holds the preconfirmation configuration for E2E tests.
@@ -54,6 +57,12 @@ type NetworkConfiguration struct {
 	FullNodes NodeSet `json:"full_nodes"`
 	// SeedNodes specifies the number of seed nodes to include in the test.
 	SeedNodes NodeSet `json:"seed_nodes"`
+	// SequencerNode specifies a dedicated sequencer node for preconf.
+	// When set, Kurtosis deploys a separate non-validator sequencer.
+	SequencerNode *Node `json:"sequencer_node,omitempty"`
+	// PreconfRPCNodes specifies preconf RPC nodes that subscribe to
+	// the sequencer's flashblock WebSocket for preconfirmation-aware RPC.
+	PreconfRPCNodes *NodeSet `json:"preconf_rpc_nodes,omitempty"`
 }
 
 // NodeSet holds nodes that have a distinct role in the network.

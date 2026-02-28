@@ -51,17 +51,68 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 		NetworkConfiguration: defaultNetworkConfiguration(),
 		NodeSettings:         defaultNodeSettings(),
 		AdditionalServices:   defaultAdditionalServices(),
+		RPCServiceName:       "el-full-geth-2",
 	}
 }
 
-// PreconfE2ETestConfig provides a configuration with preconfirmation enabled.
-// Validator 0 is configured as the sequencer.
+// PreconfE2ETestConfig provides a configuration with preconfirmation enabled
+// using a dedicated sequencer node.
 func PreconfE2ETestConfig() *E2ETestConfig {
 	cfg := DefaultE2ETestConfig()
-	cfg.Preconf = PreconfConfig{
-		Enabled:        true,
-		SequencerIndex: 0,
+	cfg.NetworkConfiguration.SequencerNode = &Node{
+		ElType:  "reth",
+		KZGImpl: "crate-crypto/go-kzg-4844",
 	}
+	cfg.Preconf = PreconfConfig{
+		Enabled: true,
+	}
+	return cfg
+}
+
+// PreconfLoadE2ETestConfig provides a configuration for preconf load testing
+// with a dedicated sequencer node (matching the devnet YAML topology).
+// Uses fewer full/seed nodes than the default to reduce resource contention
+// in local Docker environments, which shortens the consensus gap between
+// blocks and improves flashblock latency.
+func PreconfLoadE2ETestConfig() *E2ETestConfig {
+	cfg := DefaultE2ETestConfig()
+
+	// Minimize non-essential nodes to free CPU for consensus. Faster
+	// consensus shortens the gap between blocks where no flashblocks
+	// are produced, reducing preconf latency.
+	cfg.NetworkConfiguration.FullNodes = NodeSet{
+		Type: "full",
+		Nodes: []Node{{
+			ElType:   "reth",
+			Replicas: 1,
+			KZGImpl:  "crate-crypto/go-kzg-4844",
+		}},
+	}
+	cfg.NetworkConfiguration.SeedNodes = NodeSet{Type: "seed", Nodes: []Node{}}
+	cfg.RPCServiceName = "el-full-reth-0"
+
+	cfg.NetworkConfiguration.SequencerNode = &Node{
+		ElType:  "reth",
+		KZGImpl: "crate-crypto/go-kzg-4844",
+	}
+	cfg.NetworkConfiguration.PreconfRPCNodes = &NodeSet{
+		Type: "preconf-rpc",
+		Nodes: []Node{{
+			ElType:   "reth",
+			Replicas: 1,
+			KZGImpl:  "crate-crypto/go-kzg-4844",
+		}},
+	}
+	cfg.Preconf = PreconfConfig{
+		Enabled: true,
+	}
+
+	// Enable flashblock-monitor to subscribe to the sequencer's WS and
+	// output raw flashblock JSON for debugging.
+	cfg.AdditionalServices = []AdditionalService{
+		{Name: "flashblock-monitor"},
+	}
+
 	return cfg
 }
 
@@ -128,7 +179,7 @@ func defaultExecutionSettings() ExecutionSettings {
 			MaxMemory: 2048, //nolint:mnd // 2 GB
 		},
 		Images: map[string]string{
-			"reth": "ghcr.io/berachain/bera-reth:nightly",
+			"reth": "ghcr.io/berachain/bera-reth:af193b66839313cd75b86da0e371baaeb5e814fd",
 		},
 	}
 }
