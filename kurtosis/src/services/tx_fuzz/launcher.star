@@ -25,22 +25,6 @@ def launch_tx_fuzzes(plan, amount, next_free_prefunded_account, full_node_el_cli
     plan.add_services(tx_fuzz_service_configs)
     return next_free_prefunded_account
 
-def launch_tx_fuzzes_gang(plan, amount, next_free_prefunded_account, tx_spammer_extra_args):
-    blutgang_ip = plan.get_service("blutgang").ip_address
-    blutgang_port = plan.get_service("blutgang").ports["http"].number
-    tx_fuzz_service_configs = {}
-    for i in range(amount):
-        tx_fuzz_config = get_config(
-            constants.PRE_FUNDED_ACCOUNTS[next_free_prefunded_account].private_key,
-            "http://{}:{}".format(blutgang_ip, blutgang_port),
-            tx_spammer_extra_args,
-        )
-        tx_fuzz_service_configs[SERVICE_NAME + "-" + str(i)] = tx_fuzz_config
-        next_free_prefunded_account += 1
-
-    plan.add_services(tx_fuzz_service_configs)
-    return next_free_prefunded_account
-
 def launch_tx_fuzz(
         plan,
         id,

@@ -66,7 +66,7 @@ func New[NodeT types.Node](shutdownTimeout time.Duration, registry *service.Regi
 func (n *node) Start(
 	ctx context.Context,
 ) error {
-	cctx, cancelFn := context.WithCancel(ctx)
+	cctx, cancelFn := context.WithCancel(ctx) //#nosec G118 // cancelFn is called in shutdownFunc
 
 	stop := make(chan struct{})
 	sigc := make(chan os.Signal, 1)

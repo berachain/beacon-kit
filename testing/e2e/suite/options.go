@@ -33,3 +33,12 @@ func WithPreconfConfig() Option {
 		return nil
 	}
 }
+
+// WithPreconfLoadConfig returns an option that enables preconfirmation
+// with a dedicated sequencer node for load testing.
+func WithPreconfLoadConfig() Option {
+	return func(s *KurtosisE2ESuite) error {
+		s.cfg = config.PreconfLoadE2ETestConfig()
+		return nil
+	}
+}

@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -21,30 +21,33 @@
 package types
 
 import (
+	"context"
 	"fmt"
+	"net/http"
+	"time"
 
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/services"
 )
 
-// LoadBalancer represents a group of eth JSON-RPC endpoints
-// behind a load balancer which could be either NGINX or blutgang.
-type LoadBalancer struct {
+// RPCClient wraps an eth JSON-RPC connection to an execution layer node.
+type RPCClient struct {
 	*JSONRPCConnection
 
 	url string
 }
 
-func NewLoadBalancer(
+func NewRPCClient(
 	serviceCtx *services.ServiceContext,
-) (*LoadBalancer, error) {
+) (*RPCClient, error) {
 	var (
 		err  error
 		conn = &JSONRPCConnection{}
 	)
 
-	// Start by trying to get the public port for the JSON-RPC WebSocket
-	port, ok := serviceCtx.GetPublicPorts()["http"]
+	// Start by trying to get the public port for the JSON-RPC endpoint.
+	port, ok := serviceCtx.GetPublicPorts()["eth-json-rpc"]
 	if !ok {
 		return nil, ErrPublicPortNotFound
 	}
@@ -55,13 +58,37 @@ func NewLoadBalancer(
 		return nil, err
 	}
 
-	return &LoadBalancer{
+	return &RPCClient{
 		JSONRPCConnection: conn,
 		url:               url,
 	}, nil
 }
 
-// URL returns the URL of the load balancer.
-func (lb *LoadBalancer) URL() string {
-	return lb.url
+// URL returns the URL of the RPC client.
+func (rc *RPCClient) URL() string {
+	return rc.url
+}
+
+// DialWithPooling creates an ethclient with an HTTP transport configured
+// for high connection reuse, avoiding ephemeral port exhaustion under
+// heavy concurrent load.
+func DialWithPooling(url string) (*ethclient.Client, error) {
+	const (
+		poolMaxIdleConns    = 256
+		poolIdleTimeoutSecs = 90
+	)
+	httpClient := &http.Client{
+		Transport: &http.Transport{
+			MaxIdleConns:        poolMaxIdleConns,
+			MaxIdleConnsPerHost: poolMaxIdleConns,
+			IdleConnTimeout:     poolIdleTimeoutSecs * time.Second,
+		},
+	}
+	rpcClient, err := rpc.DialOptions(
+		context.Background(), url, rpc.WithHTTPClient(httpClient),
+	)
+	if err != nil {
+		return nil, err
+	}
+	return ethclient.NewClient(rpcClient), nil
 }

@@ -49,7 +49,7 @@ type KurtosisE2ESuite struct {
 
 	consensusClients map[string]*types.ConsensusClient
 	// executionClients map[string]*types.ExecutionClient // TODO: enable.
-	loadBalancer *types.LoadBalancer
+	rpcClient *types.RPCClient
 
 	genesisAccount *types.EthAccount
 	testAccounts   []*types.EthAccount
@@ -86,20 +86,14 @@ func (s *KurtosisE2ESuite) KurtosisCtx() *kurtosis_context.KurtosisContext {
 
 // ExecutionClients returns the execution clients associated with the KurtosisE2ESuite.
 //
-// TODO: enable this in favor of the LoadBalancer to test multiple execution clients.
+// TODO: enable this in favor of the RPCClient to test multiple execution clients.
 func (s *KurtosisE2ESuite) ExecutionClients() map[string]*types.ExecutionClient {
 	return nil
 }
 
-// JSONRPCBalancer returns the JSON-RPC balancer for the test suite.
-func (s *KurtosisE2ESuite) JSONRPCBalancer() *types.LoadBalancer {
-	return s.loadBalancer
-}
-
-// JSONRPCBalancerType returns the type of the JSON-RPC balancer
-// for the test suite.
-func (s *KurtosisE2ESuite) JSONRPCBalancerType() string {
-	return s.cfg.EthJSONRPCEndpoints[0].Type
+// RPCClient returns the JSON-RPC client for the test suite.
+func (s *KurtosisE2ESuite) RPCClient() *types.RPCClient {
+	return s.rpcClient
 }
 
 // Logger returns the logger for the test suite.

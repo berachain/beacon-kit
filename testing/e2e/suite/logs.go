@@ -22,6 +22,8 @@ package suite
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -34,6 +36,15 @@ const (
 
 	// DefaultLogCollectionTimeout is the default timeout for collecting logs.
 	DefaultLogCollectionTimeout = 10 * time.Second
+
+	// LogDumpDir is the base output directory for dumped service logs.
+	LogDumpDir = "e2e-logs"
+
+	// LogDumpNumLines is the maximum number of log lines to fetch per service.
+	LogDumpNumLines = 100_000
+
+	// LogDumpTimeout is the timeout for fetching logs from a single service.
+	LogDumpTimeout = 60 * time.Second
 )
 
 // GetServiceLogs fetches logs from a service by name.
@@ -102,6 +113,49 @@ func (s *KurtosisE2ESuite) GetServiceLogsWithOptions(
 			return logs, nil
 		}
 	}
+}
+
+// DumpAllServiceLogs fetches logs from all services in the enclave and writes
+// them to disk. Output directory is e2e-logs/<SuiteName>/ with one file per
+// service. Best-effort: logs warnings but does not fail teardown.
+func (s *KurtosisE2ESuite) DumpAllServiceLogs() {
+	svcMap, err := s.enclave.GetServices()
+	if err != nil {
+		s.logger.Warn("Failed to enumerate services for log dump", "error", err)
+		return
+	}
+
+	// Build output directory: e2e-logs/<TestSuiteName>/
+	outDir := filepath.Join(LogDumpDir, s.T().Name())
+
+	// Remove and recreate so only the latest run's logs persist.
+	if err = os.RemoveAll(outDir); err != nil {
+		s.logger.Warn("Failed to remove old log dump directory", "dir", outDir, "error", err)
+	}
+	if err = os.MkdirAll(outDir, 0o750); err != nil {
+		s.logger.Warn("Failed to create log dump directory", "dir", outDir, "error", err)
+		return
+	}
+
+	for svcName := range svcMap {
+		logs, fetchErr := s.GetServiceLogsWithOptions(
+			string(svcName), LogDumpNumLines, LogDumpTimeout,
+		)
+		if fetchErr != nil {
+			s.logger.Warn("Failed to fetch logs for service",
+				"service", svcName, "error", fetchErr)
+			continue
+		}
+
+		filePath := filepath.Join(outDir, string(svcName)+".log")
+		content := strings.Join(logs, "\n")
+		if writeErr := os.WriteFile(filePath, []byte(content), 0o600); writeErr != nil {
+			s.logger.Warn("Failed to write log file",
+				"service", svcName, "path", filePath, "error", writeErr)
+		}
+	}
+
+	s.logger.Info("Service logs dumped", "dir", outDir, "services", len(svcMap))
 }
 
 // ContainsLogMessage checks if any log line contains the target message.

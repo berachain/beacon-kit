@@ -160,6 +160,20 @@ def generate_node_config(plan, node_modules, node_struct, chain_id, chain_spec, 
 
     return el_service_config_dict
 
+def add_peer(plan, el_service_name, enode_addr):
+    """Adds a peer to the given EL node via admin_addPeer JSON-RPC."""
+    request_recipe = PostHttpRequestRecipe(
+        endpoint = "",
+        body = '{{"method":"admin_addPeer","params":["{}"],"id":1,"jsonrpc":"2.0"}}'.format(enode_addr),
+        content_type = "application/json",
+        port_id = RPC_PORT_ID,
+    )
+
+    plan.request(
+        service_name = el_service_name,
+        recipe = request_recipe,
+    )
+
 def add_metrics(metrics_enabled_services, node, el_service_name, el_client_service, node_modules):
     metrics_enabled_services.append({
         "name": el_service_name,
