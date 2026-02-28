@@ -89,14 +89,7 @@ node_settings:
       max_memory: 4096
     images:
       geth: ghcr.io/berachain/bera-geth:latest
-      # Use local bera-reth image built with: cd /path/to/bera-reth && make docker-build-local
-      reth: bera-reth:local
-eth_json_rpc_endpoints:
-  # type has to be either blutgang or nginx
-  - type: blutgang
-    clients:
-      - el-full-reth-0
-      - el-full-geth-0
+      reth: ghcr.io/berachain/bera-reth:af193b66839313cd75b86da0e371baaeb5e814fd
 additional_services:
   #- name: "spamoor"
   #- name: "tx-fuzz"

@@ -43,19 +43,69 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 	return &E2ETestConfig{
 		NetworkConfiguration: defaultNetworkConfiguration(),
 		NodeSettings:         defaultNodeSettings(),
-		EthJSONRPCEndpoints:  defaultEthJSONRPCEndpoints(),
 		AdditionalServices:   defaultAdditionalServices(),
+		RPCServiceName:       "el-full-geth-2",
 	}
 }
 
-// PreconfE2ETestConfig provides a configuration with preconfirmation enabled.
-// Validator 0 is configured as the sequencer.
+// PreconfE2ETestConfig provides a configuration with preconfirmation enabled
+// using a dedicated sequencer node.
 func PreconfE2ETestConfig() *E2ETestConfig {
 	cfg := DefaultE2ETestConfig()
-	cfg.Preconf = PreconfConfig{
-		Enabled:        true,
-		SequencerIndex: 0,
+	cfg.NetworkConfiguration.SequencerNode = &Node{
+		ElType:  "reth",
+		KZGImpl: "crate-crypto/go-kzg-4844",
 	}
+	cfg.Preconf = PreconfConfig{
+		Enabled: true,
+	}
+	return cfg
+}
+
+// PreconfLoadE2ETestConfig provides a configuration for preconf load testing
+// with a dedicated sequencer node (matching the devnet YAML topology).
+// Uses fewer full/seed nodes than the default to reduce resource contention
+// in local Docker environments, which shortens the consensus gap between
+// blocks and improves flashblock latency.
+func PreconfLoadE2ETestConfig() *E2ETestConfig {
+	cfg := DefaultE2ETestConfig()
+
+	// Minimize non-essential nodes to free CPU for consensus. Faster
+	// consensus shortens the gap between blocks where no flashblocks
+	// are produced, reducing preconf latency.
+	cfg.NetworkConfiguration.FullNodes = NodeSet{
+		Type: "full",
+		Nodes: []Node{{
+			ElType:   "reth",
+			Replicas: 1,
+			KZGImpl:  "crate-crypto/go-kzg-4844",
+		}},
+	}
+	cfg.NetworkConfiguration.SeedNodes = NodeSet{Type: "seed", Nodes: []Node{}}
+	cfg.RPCServiceName = "el-full-reth-0"
+
+	cfg.NetworkConfiguration.SequencerNode = &Node{
+		ElType:  "reth",
+		KZGImpl: "crate-crypto/go-kzg-4844",
+	}
+	cfg.NetworkConfiguration.PreconfRPCNodes = &NodeSet{
+		Type: "preconf-rpc",
+		Nodes: []Node{{
+			ElType:   "reth",
+			Replicas: 1,
+			KZGImpl:  "crate-crypto/go-kzg-4844",
+		}},
+	}
+	cfg.Preconf = PreconfConfig{
+		Enabled: true,
+	}
+
+	// Enable flashblock-monitor to subscribe to the sequencer's WS and
+	// output raw flashblock JSON for debugging.
+	cfg.AdditionalServices = []AdditionalService{
+		{Name: "flashblock-monitor"},
+	}
+
 	return cfg
 }
 
@@ -133,7 +183,7 @@ func defaultExecutionSettings() ExecutionSettings {
 		},
 		Images: map[string]string{
 			"geth": "ghcr.io/berachain/bera-geth:latest",
-			"reth": "ghcr.io/berachain/bera-reth:nightly",
+			"reth": "ghcr.io/berachain/bera-reth:af193b66839313cd75b86da0e371baaeb5e814fd",
 		},
 	}
 }
@@ -157,27 +207,15 @@ func defaultConsensusSettings() ConsensusSettings {
 			"beaconkit": "beacond:kurtosis-local",
 		},
 		Config: ConsensusConfig{
-			TimeoutPropose:   consensus.TimeoutPropose.String(),
-			TimeoutPrevote:   consensus.TimeoutPrevote.String(),
-			TimeoutPrecommit: consensus.TimeoutPrecommit.String(),
-			//nolint:staticcheck // setting to zero because it's deprecated
-			TimeoutCommit:       consensus.TimeoutCommit.String(),
+			TimeoutPropose:      consensus.TimeoutPropose.String(),
+			TimeoutPrevote:      consensus.TimeoutPrevote.String(),
+			TimeoutPrecommit:    consensus.TimeoutPrecommit.String(),
+			TimeoutCommit:       "0s", // deprecated field, hardcoded to match DefaultConfig()
 			MaxNumInboundPeers:  p2p.MaxNumInboundPeers,
 			MaxNumOutboundPeers: p2p.MaxNumOutboundPeers,
 		},
 		AppConfig: AppConfig{
 			PayloadTimeout: builderCfg.PayloadTimeout.String(),
-		},
-	}
-}
-
-func defaultEthJSONRPCEndpoints() []EthJSONRPCEndpoint {
-	return []EthJSONRPCEndpoint{
-		{
-			Type: "blutgang",
-			Clients: []string{
-				"el-full-geth-2",
-			},
 		},
 	}
 }
