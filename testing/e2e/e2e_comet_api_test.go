@@ -68,7 +68,7 @@ func (s *BeaconKitE2ESuite) TestABCIInfo() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		elClient := s.JSONRPCBalancer()
+		elClient := s.RPCClient()
 		elHeight, err := elClient.BlockNumber(s.Ctx())
 		s.Require().NoError(err)
 		heightsMap.Store("el", int64(elHeight)) // #nosec G115

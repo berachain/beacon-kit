@@ -31,8 +31,11 @@ import (
 
 const (
 	// Log messages that indicate preconf is working.
-	sequencerServingLog  = "Serving payload to validator"
-	validatorFetchingLog = "fetched payload from sequencer"
+	sequencerServingLog  = "GetPayloadBySlot completed"
+	validatorFetchingLog = "Successfully fetched payload from sequencer"
+
+	// Kurtosis service name for the dedicated sequencer CL node.
+	sequencerCLService = "cl-sequencer-beaconkit-0"
 
 	// Number of blocks to wait.
 	blocksToWait        = 20
@@ -63,8 +66,8 @@ func (s *PreconfE2ESuite) TestPreconfEndToEnd() {
 	err := s.WaitForFinalizedBlockNumber(blocksToWait)
 	s.Require().NoError(err, "Network should reach finalized blocks")
 
-	sequencer := config.ClientValidator0
-	fetchers := []string{config.ClientValidator1}
+	sequencer := sequencerCLService
+	fetchers := []string{config.ClientValidator0}
 
 	// Step 1: Verify sequencer is serving payloads
 	s.Run("SequencerServesPayloads", func() {
@@ -96,7 +99,7 @@ func (s *PreconfE2ESuite) TestPreconfEndToEnd() {
 	// Step 3: Remove sequencer and verify fallback to local building
 	s.Run("FallbackAfterSequencerRemoved", func() {
 		// Get current block before removing sequencer
-		currentBlock, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
+		currentBlock, err := s.RPCClient().BlockNumber(s.Ctx())
 		s.Require().NoError(err, "Should get current block number")
 
 		// Remove sequencer - simulates crash/unavailability
@@ -113,7 +116,7 @@ func (s *PreconfE2ESuite) TestPreconfEndToEnd() {
 		s.Require().NoError(err, "Network should continue producing blocks after sequencer removed")
 
 		// Verify network continued
-		finalBlock, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
+		finalBlock, err := s.RPCClient().BlockNumber(s.Ctx())
 		s.Require().NoError(err, "Should get final block number")
 		s.Require().GreaterOrEqual(finalBlock, targetBlock,
 			"Network should have produced blocks after sequencer removed")
