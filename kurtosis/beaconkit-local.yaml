@@ -76,13 +76,6 @@ node_settings:
     images:
       geth: ghcr.io/berachain/bera-geth:latest
       reth: ghcr.io/berachain/bera-reth:nightly
-eth_json_rpc_endpoints:
-  # type has to be either blutgang or nginx
-  - type: blutgang
-    clients:
-      - el-full-reth-0
-      - el-full-reth-1
-      - el-full-geth-2
 additional_services:
   - name: "spamoor"
   - name: "tx-fuzz"
