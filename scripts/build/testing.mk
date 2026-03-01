@@ -298,26 +298,32 @@ test-unit-fuzz: ## run fuzz tests
 	go test -run ^FuzzPayloadIDCacheConcurrency -fuzztime=${SHORT_FUZZ_TIME} github.com/berachain/beacon-kit/payload/cache
 	go test -run ^FuzzHashTreeRoot -fuzztime=${MEDIUM_FUZZ_TIME} github.com/berachain/beacon-kit/primitives/merkle
 
-test-e2e: ## run e2e tests
+test-e2e: ## run all e2e tests (standard + preconf)
 	@$(MAKE) build-docker VERSION=kurtosis-local test-e2e-no-build
 
 test-e2e-no-build:
-	go test -timeout 0 -tags e2e,bls12381,test ./testing/e2e/. -v
+	@$(MAKE) test-e2e-standard-no-build test-e2e-preconf-no-build
 
-test-e2e-4844: ## run e2e tests
+test-e2e-standard: ## run standard e2e tests
+	@$(MAKE) build-docker VERSION=kurtosis-local test-e2e-standard-no-build
+
+test-e2e-standard-no-build:
+	go test -timeout 0 -tags e2e,bls12381,test ./testing/e2e/standard/. -v
+
+test-e2e-4844: ## run e2e blob tests
 	@$(MAKE) build-docker VERSION=kurtosis-local test-e2e-4844-no-build
 
 test-e2e-4844-no-build:
-	go test -timeout 0 -tags e2e,bls12381,test ./testing/e2e/. -v -testify.m Test4844Live
+	go test -timeout 0 -tags e2e,bls12381,test ./testing/e2e/standard/. -v -testify.m Test4844Live
 
-test-e2e-deposits: ## run e2e tests
+test-e2e-deposits: ## run e2e deposit tests
 	@$(MAKE) build-docker VERSION=kurtosis-local test-e2e-deposits-no-build
 
 test-e2e-deposits-no-build:
-	go test -timeout 0 -tags e2e,bls12381,test ./testing/e2e/. -v -testify.m TestDepositRobustness
+	go test -timeout 0 -tags e2e,bls12381,test ./testing/e2e/standard/. -v -testify.m TestDepositRobustness
 
 test-e2e-preconf: ## run preconf e2e tests
 	@$(MAKE) build-docker VERSION=kurtosis-local test-e2e-preconf-no-build
 
 test-e2e-preconf-no-build:
-	go test -timeout 0 -tags e2e_preconf,bls12381,test ./testing/e2e/. -v
+	go test -timeout 0 -tags e2e,bls12381,test ./testing/e2e/preconf/. -v

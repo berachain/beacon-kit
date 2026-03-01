@@ -48,20 +48,6 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 	}
 }
 
-// PreconfE2ETestConfig provides a configuration with preconfirmation enabled
-// using a dedicated sequencer node.
-func PreconfE2ETestConfig() *E2ETestConfig {
-	cfg := DefaultE2ETestConfig()
-	cfg.NetworkConfiguration.SequencerNode = &Node{
-		ElType:  "reth",
-		KZGImpl: "crate-crypto/go-kzg-4844",
-	}
-	cfg.Preconf = PreconfConfig{
-		Enabled: true,
-	}
-	return cfg
-}
-
 // PreconfLoadE2ETestConfig provides a configuration for preconf load testing
 // with a dedicated sequencer node (matching the devnet YAML topology).
 // Uses fewer full/seed nodes than the default to reduce resource contention
