@@ -18,7 +18,9 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package e2e_test
+//go:build e2e
+
+package standard_test
 
 import (
 	"context"
