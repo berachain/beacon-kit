@@ -79,7 +79,7 @@ func (tx *Transaction) Type() uint8 {
 
 // RawSignatureValues returns the transaction signature values.
 // PoL transactions intentionally return nil values because they are unsigned.
-func (tx *Transaction) RawSignatureValues() (v, r, s *big.Int) {
+func (tx *Transaction) RawSignatureValues() (*big.Int, *big.Int, *big.Int) {
 	switch itx := tx.inner.(type) {
 	case *LegacyTx:
 		return itx.V, itx.R, itx.S
@@ -184,8 +184,8 @@ func (s Transactions) Len() int { return len(s) }
 func (s Transactions) EncodeIndex(i int, w *bytes.Buffer) {
 	tx := s[i]
 	if tx.Type() == coretypes.LegacyTxType {
-		rlp.Encode(w, tx.inner) //#nosec:G104 copied from go-ethereum
+		_ = rlp.Encode(w, tx.inner)
 	} else {
-		tx.encodeTyped(w) //#nosec:G104 copied from go-ethereum
+		_ = tx.encodeTyped(w)
 	}
 }

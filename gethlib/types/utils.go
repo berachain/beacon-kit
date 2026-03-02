@@ -35,23 +35,31 @@ func CalcUncleHash(uncles []*Header) common.Hash {
 }
 
 // rlpHash encodes x and hashes the encoded bytes.
-func rlpHash(x interface{}) (h common.Hash) {
-	sha := hasherPool.Get().(crypto.KeccakState)
+func rlpHash(x interface{}) common.Hash {
+	var h common.Hash
+	sha, ok := hasherPool.Get().(crypto.KeccakState)
+	if !ok {
+		sha = crypto.NewKeccakState()
+	}
 	defer hasherPool.Put(sha)
 	sha.Reset()
-	rlp.Encode(sha, x) // #nosec G104 -- hash writer never errors
-	sha.Read(h[:])     // #nosec G104 -- KeccakState.Read never errors
+	_ = rlp.Encode(sha, x)
+	_, _ = sha.Read(h[:])
 	return h
 }
 
 // prefixedRlpHash writes the prefix into the hasher before rlp-encoding x.
 // It's used for typed transactions.
-func prefixedRlpHash(prefix byte, x interface{}) (h common.Hash) {
-	sha := hasherPool.Get().(crypto.KeccakState)
+func prefixedRlpHash(prefix byte, x interface{}) common.Hash {
+	var h common.Hash
+	sha, ok := hasherPool.Get().(crypto.KeccakState)
+	if !ok {
+		sha = crypto.NewKeccakState()
+	}
 	defer hasherPool.Put(sha)
 	sha.Reset()
-	sha.Write([]byte{prefix}) // #nosec G104 -- KeccakState.Write never errors
-	rlp.Encode(sha, x)        // #nosec G104 -- hash writer never errors
-	sha.Read(h[:])            // #nosec G104 -- KeccakState.Read never errors
+	_, _ = sha.Write([]byte{prefix})
+	_ = rlp.Encode(sha, x)
+	_, _ = sha.Read(h[:])
 	return h
 }

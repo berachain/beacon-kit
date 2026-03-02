@@ -29,10 +29,9 @@ import (
 
 	"github.com/berachain/beacon-kit/gethlib/types"
 	"github.com/ethereum/go-ethereum"
+	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
-
-	gethcommon "github.com/ethereum/go-ethereum/common"
 	gethclient "github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 )
@@ -59,17 +58,20 @@ func (c *Client) BlockByHash(ctx context.Context, hash gethcommon.Hash) (*types.
 }
 
 // TransactionByHash overrides the original method to unmarshal the transaction.
-func (c *Client) TransactionByHash(ctx context.Context, hash gethcommon.Hash) (tx *types.Transaction, isPending bool, err error) {
+func (c *Client) TransactionByHash(
+	ctx context.Context, hash gethcommon.Hash,
+) (*types.Transaction, bool, error) {
 	var jsonTx *rpcTransaction
-	err = c.Client.Client().CallContext(ctx, &jsonTx, "eth_getTransactionByHash", hash)
+	err := c.Client.Client().CallContext(ctx, &jsonTx, "eth_getTransactionByHash", hash)
 	if err != nil {
 		return nil, false, err
 	}
 	if jsonTx == nil {
 		return nil, false, ethereum.NotFound
 	}
-	if err := ensureTransactionHasRequiredSignature(jsonTx.tx); err != nil {
-		return nil, false, err
+	sigErr := ensureTransactionHasRequiredSignature(jsonTx.tx)
+	if sigErr != nil {
+		return nil, false, sigErr
 	}
 	return jsonTx.tx, jsonTx.BlockNumber == nil, nil
 }
@@ -84,8 +86,9 @@ func (c *Client) TransactionInBlock(ctx context.Context, blockHash gethcommon.Ha
 	if jsonTx == nil {
 		return nil, ethereum.NotFound
 	}
-	if err := ensureTransactionHasRequiredSignature(jsonTx.tx); err != nil {
-		return nil, err
+	sigErr := ensureTransactionHasRequiredSignature(jsonTx.tx)
+	if sigErr != nil {
+		return nil, sigErr
 	}
 	return jsonTx.tx, nil
 }
@@ -140,9 +143,10 @@ type rpcHeader struct {
 	ParentProposerPubkey *types.ExecutionPubkey `json:"parentProposerPubkey,omitempty"`
 }
 
+//nolint:gocognit,funlen // Validation mirrors strict geth header decoding requirements.
 func (h *rpcHeader) toHeader() (*types.Header, error) {
 	if h == nil {
-		return nil, nil
+		return nil, errors.New("missing header payload")
 	}
 	if h.ParentHash == nil {
 		return nil, errors.New("missing required field 'parentHash' for Header")
@@ -255,7 +259,8 @@ func (c *Client) getBlock(ctx context.Context, method string, args ...interface{
 	}
 
 	var body rpcBlock
-	if err := json.Unmarshal(raw, &body); err != nil {
+	err = json.Unmarshal(raw, &body)
+	if err != nil {
 		return nil, err
 	}
 	// Pending blocks don't return a block hash. Compute it for consistency.
@@ -265,11 +270,8 @@ func (c *Client) getBlock(ctx context.Context, method string, args ...interface{
 	}
 
 	// Quick-verify transaction and uncle lists.
-	if head.UncleHash == coretypes.EmptyUncleHash && len(body.UncleHashes) > 0 {
-		return nil, errors.New("server returned non-empty uncle list but block header indicates no uncles")
-	}
-	if head.UncleHash != coretypes.EmptyUncleHash && len(body.UncleHashes) == 0 {
-		return nil, errors.New("server returned empty uncle list but block header indicates uncles")
+	if head.UncleHash != coretypes.EmptyUncleHash || len(body.UncleHashes) > 0 {
+		return nil, errors.New("server returned non-empty uncle list, unsupported by Berachain")
 	}
 	if head.TxHash == coretypes.EmptyTxsHash && len(body.Transactions) > 0 {
 		return nil, errors.New("server returned non-empty transaction list but block header indicates no transactions")
@@ -278,42 +280,12 @@ func (c *Client) getBlock(ctx context.Context, method string, args ...interface{
 		return nil, errors.New("server returned empty transaction list but block header indicates transactions")
 	}
 
-	// Load uncles because they are not included in the block response.
-	var uncles []*types.Header
-	if len(body.UncleHashes) > 0 {
-		uncles = make([]*types.Header, len(body.UncleHashes))
-		rawUncles := make([]*rpcHeader, len(body.UncleHashes))
-		reqs := make([]rpc.BatchElem, len(body.UncleHashes))
-		for i := range reqs {
-			reqs[i] = rpc.BatchElem{
-				Method: "eth_getUncleByBlockHashAndIndex",
-				Args:   []interface{}{body.Hash, hexutil.EncodeUint64(uint64(i))},
-				Result: &rawUncles[i],
-			}
-		}
-		if err := c.Client.Client().BatchCallContext(ctx, reqs); err != nil {
-			return nil, err
-		}
-		for i := range reqs {
-			if reqs[i].Error != nil {
-				return nil, reqs[i].Error
-			}
-			if rawUncles[i] == nil {
-				return nil, fmt.Errorf("got null header for uncle %d of block %x", i, body.Hash[:])
-			}
-			uncle, err := rawUncles[i].toHeader()
-			if err != nil {
-				return nil, err
-			}
-			uncles[i] = uncle
-		}
-	}
-
 	// Fill transaction list.
 	txs := make([]*types.Transaction, len(body.Transactions))
 	for i, tx := range body.Transactions {
-		if err := ensureTransactionHasRequiredSignature(tx.tx); err != nil {
-			return nil, err
+		sigErr := ensureTransactionHasRequiredSignature(tx.tx)
+		if sigErr != nil {
+			return nil, sigErr
 		}
 		txs[i] = tx.tx
 	}
@@ -321,7 +293,7 @@ func (c *Client) getBlock(ctx context.Context, method string, args ...interface{
 	return types.NewBlockWithHeader(head).WithBody(
 		types.Body{
 			Transactions: txs,
-			Uncles:       uncles,
+			Uncles:       nil, // Berachain doesn't support uncles.
 			Withdrawals:  body.Withdrawals,
 		}), nil
 }

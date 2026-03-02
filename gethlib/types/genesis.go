@@ -156,6 +156,8 @@ func (g *Genesis) UnmarshalJSON(input []byte) error {
 }
 
 // toBlockWithRoot constructs the genesis block with the given genesis state root.
+//
+//nolint:gocognit,nestif // Mirrors geth's fork-specific genesis initialization flow.
 func (g *Genesis) toBlockWithRoot(root common.Hash) *Block {
 	head := &Header{
 		Number:     new(big.Int).SetUint64(g.Number),
@@ -211,11 +213,9 @@ func (g *Genesis) toBlockWithRoot(root common.Hash) *Block {
 			if head.BlobGasUsed == nil {
 				head.BlobGasUsed = new(uint64)
 			}
-		} else {
-			if g.ExcessBlobGas != nil {
-				log.Warn("Invalid genesis, unexpected ExcessBlobGas set before Cancun, allowing it for testing purposes")
-				head.ExcessBlobGas = g.ExcessBlobGas
-			}
+		} else if g.ExcessBlobGas != nil {
+			log.Warn("Invalid genesis, unexpected ExcessBlobGas set before Cancun, allowing it for testing purposes")
+			head.ExcessBlobGas = g.ExcessBlobGas
 		}
 		if conf.IsPrague(num, g.Timestamp) {
 			head.RequestsHash = &types.EmptyRequestsHash

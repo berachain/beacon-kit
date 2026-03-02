@@ -39,6 +39,15 @@ var (
 	errVYParityMissing  = errors.New("missing 'yParity' or 'v' field in transaction")
 )
 
+const (
+	recoveryIDByteLen      = 8
+	replayProtectionBitLen = 64
+	legacyVValue27         = 27
+	legacyVValue28         = 28
+	replayProtectionBase   = 35
+	chainIDDivisor         = 2
+)
+
 // txJSON is the JSON representation of transactions.
 type txJSON struct {
 	Type hexutil.Uint64 `json:"type"`
@@ -92,6 +101,8 @@ func (tx *txJSON) yParityValue() (*big.Int, error) {
 }
 
 // MarshalJSON marshals as JSON with a hash.
+//
+//nolint:funlen // Mirrors geth transaction JSON shape for wire compatibility.
 func (tx *Transaction) MarshalJSON() ([]byte, error) {
 	var enc txJSON
 	hash := tx.Hash()
@@ -205,6 +216,8 @@ func (tx *Transaction) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON unmarshals from JSON.
+//
+//nolint:gocognit,funlen,gocyclo,cyclop,maintidx // Mirrors geth transaction JSON shape for wire compatibility.
 func (tx *Transaction) UnmarshalJSON(input []byte) error {
 	var dec txJSON
 	if err := json.Unmarshal(input, &dec); err != nil {
@@ -212,10 +225,7 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 	}
 
 	// Decode / verify fields according to transaction type.
-	var (
-		inner TxData
-		err   error
-	)
+	var inner TxData
 	switch byte(dec.Type) {
 	case coretypes.LegacyTxType:
 		var itx LegacyTx
@@ -260,8 +270,9 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 		}
 		itx.V = (*big.Int)(dec.V)
 		if itx.V.Sign() != 0 || itx.R.Sign() != 0 || itx.S.Sign() != 0 {
-			if err := sanityCheckSignature(itx.V, itx.R, itx.S, true); err != nil {
-				return err
+			sigErr := sanityCheckSignature(itx.V, itx.R, itx.S, true)
+			if sigErr != nil {
+				return sigErr
 			}
 		}
 
@@ -310,13 +321,15 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 		}
 		itx.S = (*big.Int)(dec.S)
 		// signature V
-		itx.V, err = dec.yParityValue()
-		if err != nil {
-			return err
+		vParity, parityErr := dec.yParityValue()
+		if parityErr != nil {
+			return parityErr
 		}
+		itx.V = vParity
 		if itx.V.Sign() != 0 || itx.R.Sign() != 0 || itx.S.Sign() != 0 {
-			if err := sanityCheckSignature(itx.V, itx.R, itx.S, false); err != nil {
-				return err
+			sigErr := sanityCheckSignature(itx.V, itx.R, itx.S, false)
+			if sigErr != nil {
+				return sigErr
 			}
 		}
 
@@ -369,13 +382,15 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 		}
 		itx.S = (*big.Int)(dec.S)
 		// signature V
-		itx.V, err = dec.yParityValue()
-		if err != nil {
-			return err
+		vParity, parityErr := dec.yParityValue()
+		if parityErr != nil {
+			return parityErr
 		}
+		itx.V = vParity
 		if itx.V.Sign() != 0 || itx.R.Sign() != 0 || itx.S.Sign() != 0 {
-			if err := sanityCheckSignature(itx.V, itx.R, itx.S, false); err != nil {
-				return err
+			sigErr := sanityCheckSignature(itx.V, itx.R, itx.S, false)
+			if sigErr != nil {
+				return sigErr
 			}
 		}
 
@@ -447,17 +462,18 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 			return errors.New("'s' value overflows uint256")
 		}
 		// signature V
-		vbig, err := dec.yParityValue()
-		if err != nil {
-			return err
+		vParity, parityErr := dec.yParityValue()
+		if parityErr != nil {
+			return parityErr
 		}
-		itx.V, overflow = uint256.FromBig(vbig)
+		itx.V, overflow = uint256.FromBig(vParity)
 		if overflow {
 			return errors.New("'v' value overflows uint256")
 		}
 		if itx.V.Sign() != 0 || itx.R.Sign() != 0 || itx.S.Sign() != 0 {
-			if err := sanityCheckSignature(vbig, itx.R.ToBig(), itx.S.ToBig(), false); err != nil {
-				return err
+			sigErr := sanityCheckSignature(vParity, itx.R.ToBig(), itx.S.ToBig(), false)
+			if sigErr != nil {
+				return sigErr
 			}
 		}
 
@@ -525,17 +541,18 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 			return errors.New("'s' value overflows uint256")
 		}
 		// signature V
-		vbig, err := dec.yParityValue()
-		if err != nil {
-			return err
+		vParity, parityErr := dec.yParityValue()
+		if parityErr != nil {
+			return parityErr
 		}
-		itx.V, overflow = uint256.FromBig(vbig)
+		itx.V, overflow = uint256.FromBig(vParity)
 		if overflow {
 			return errors.New("'v' value overflows uint256")
 		}
 		if itx.V.Sign() != 0 || itx.R.Sign() != 0 || itx.S.Sign() != 0 {
-			if err := sanityCheckSignature(vbig, itx.R.ToBig(), itx.S.ToBig(), false); err != nil {
-				return err
+			sigErr := sanityCheckSignature(vParity, itx.R.ToBig(), itx.S.ToBig(), false)
+			if sigErr != nil {
+				return sigErr
 			}
 		}
 
@@ -586,15 +603,16 @@ func sanityCheckSignature(v *big.Int, r *big.Int, s *big.Int, maybeProtected boo
 	}
 
 	var plainV byte
-	if isProtectedV(v) {
+	switch {
+	case isProtectedV(v):
 		chainID := deriveChainID(v).Uint64()
-		plainV = byte(v.Uint64() - 35 - 2*chainID)
-	} else if maybeProtected {
+		plainV = byte(v.Uint64() - replayProtectionBase - chainIDDivisor*chainID)
+	case maybeProtected:
 		// Only EIP-155 signatures can be optionally protected. Since
 		// we determined this v value is not protected, it must be a
 		// raw 27 or 28.
-		plainV = byte(v.Uint64() - 27)
-	} else {
+		plainV = byte(v.Uint64() - legacyVValue27)
+	default:
 		// If the signature is not optionally protected, we assume it
 		// must already be equal to the recovery id.
 		plainV = byte(v.Uint64())
@@ -607,9 +625,9 @@ func sanityCheckSignature(v *big.Int, r *big.Int, s *big.Int, maybeProtected boo
 }
 
 func isProtectedV(v *big.Int) bool {
-	if v.BitLen() <= 8 {
+	if v.BitLen() <= recoveryIDByteLen {
 		val := v.Uint64()
-		return val != 27 && val != 28 && val != 1 && val != 0
+		return val != legacyVValue27 && val != legacyVValue28 && val != 1 && val != 0
 	}
 	// Anything not 27 or 28 is considered protected.
 	return true
@@ -617,13 +635,13 @@ func isProtectedV(v *big.Int) bool {
 
 // deriveChainID derives the chain ID from a signature v value.
 func deriveChainID(v *big.Int) *big.Int {
-	if v.BitLen() <= 64 {
+	if v.BitLen() <= replayProtectionBitLen {
 		val := v.Uint64()
-		if val == 27 || val == 28 {
+		if val == legacyVValue27 || val == legacyVValue28 {
 			return new(big.Int)
 		}
-		return new(big.Int).SetUint64((val - 35) / 2)
+		return new(big.Int).SetUint64((val - replayProtectionBase) / chainIDDivisor)
 	}
-	vCopy := new(big.Int).Sub(v, big.NewInt(35))
+	vCopy := new(big.Int).Sub(v, big.NewInt(replayProtectionBase))
 	return vCopy.Rsh(vCopy, 1)
 }

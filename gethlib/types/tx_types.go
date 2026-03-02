@@ -169,11 +169,13 @@ func (tx *BlobTx) decode(input []byte) error {
 		// It has a version byte. Decode as v1, version is checked by assign()
 		payload = new(blobTxWithBlobsV1)
 	}
-	if err := rlp.DecodeBytes(input, payload); err != nil {
+	err = rlp.DecodeBytes(input, payload)
+	if err != nil {
 		return err
 	}
 	sc := new(coretypes.BlobTxSidecar)
-	if err := payload.assign(sc); err != nil {
+	err = payload.assign(sc)
+	if err != nil {
 		return err
 	}
 	*tx = *payload.tx()

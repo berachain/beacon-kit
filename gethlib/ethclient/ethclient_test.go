@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package ethclient
+package ethclient_test
 
 import (
 	"context"
@@ -27,6 +27,7 @@ import (
 	"strings"
 	"testing"
 
+	beraclient "github.com/berachain/beacon-kit/gethlib/ethclient"
 	"github.com/berachain/beacon-kit/gethlib/types"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
@@ -46,9 +47,11 @@ var (
 )
 
 func TestBlockByNumberWithPoLTransaction(t *testing.T) {
+	t.Parallel()
+
 	client := newMockClient(t)
 
-	block, err := client.BlockByNumber(context.Background(), big.NewInt(2))
+	block, err := client.BlockByNumber(t.Context(), big.NewInt(2))
 	if err != nil {
 		t.Fatalf("BlockByNumber returned error: %v", err)
 	}
@@ -64,9 +67,11 @@ func TestBlockByNumberWithPoLTransaction(t *testing.T) {
 }
 
 func TestBlockByHashWithPoLTransaction(t *testing.T) {
+	t.Parallel()
+
 	client := newMockClient(t)
 
-	block, err := client.BlockByHash(context.Background(), testBlockHash)
+	block, err := client.BlockByHash(t.Context(), testBlockHash)
 	if err != nil {
 		t.Fatalf("BlockByHash returned error: %v", err)
 	}
@@ -82,9 +87,11 @@ func TestBlockByHashWithPoLTransaction(t *testing.T) {
 }
 
 func TestTransactionByHashWithPoLTransaction(t *testing.T) {
+	t.Parallel()
+
 	client := newMockClient(t)
 
-	tx, isPending, err := client.TransactionByHash(context.Background(), testTxHash)
+	tx, isPending, err := client.TransactionByHash(t.Context(), testTxHash)
 	if err != nil {
 		t.Fatalf("TransactionByHash returned error: %v", err)
 	}
@@ -100,9 +107,11 @@ func TestTransactionByHashWithPoLTransaction(t *testing.T) {
 }
 
 func TestTransactionInBlockWithPoLTransaction(t *testing.T) {
+	t.Parallel()
+
 	client := newMockClient(t)
 
-	tx, err := client.TransactionInBlock(context.Background(), testBlockHash, 0)
+	tx, err := client.TransactionInBlock(t.Context(), testBlockHash, 0)
 	if err != nil {
 		t.Fatalf("TransactionInBlock returned error: %v", err)
 	}
@@ -147,7 +156,7 @@ func (s *mockEthService) GetTransactionByBlockHashAndIndex(
 	return mockTransactionJSON(), nil
 }
 
-func newMockClient(t *testing.T) *Client {
+func newMockClient(t *testing.T) *beraclient.Client {
 	t.Helper()
 
 	srv := rpc.NewServer()
@@ -155,7 +164,7 @@ func newMockClient(t *testing.T) *Client {
 		t.Fatalf("failed to register mock service: %v", err)
 	}
 	rpcClient := rpc.DialInProc(srv)
-	client := Wrap(gethclient.NewClient(rpcClient))
+	client := beraclient.Wrap(gethclient.NewClient(rpcClient))
 	t.Cleanup(func() {
 		client.Close()
 		srv.Stop()
