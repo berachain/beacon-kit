@@ -43,3 +43,15 @@ func rlpHash(x interface{}) (h common.Hash) {
 	sha.Read(h[:])     // #nosec G104 -- KeccakState.Read never errors
 	return h
 }
+
+// prefixedRlpHash writes the prefix into the hasher before rlp-encoding x.
+// It's used for typed transactions.
+func prefixedRlpHash(prefix byte, x interface{}) (h common.Hash) {
+	sha := hasherPool.Get().(crypto.KeccakState)
+	defer hasherPool.Put(sha)
+	sha.Reset()
+	sha.Write([]byte{prefix}) // #nosec G104 -- KeccakState.Write never errors
+	rlp.Encode(sha, x)        // #nosec G104 -- hash writer never errors
+	sha.Read(h[:])            // #nosec G104 -- KeccakState.Read never errors
+	return h
+}
