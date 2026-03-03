@@ -226,8 +226,9 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 
 	// Decode / verify fields according to transaction type.
 	var inner TxData
-	switch byte(dec.Type) {
-	case coretypes.LegacyTxType:
+	txType := uint64(dec.Type)
+	switch txType {
+	case uint64(coretypes.LegacyTxType):
 		var itx LegacyTx
 		inner = &itx
 		if dec.Nonce == nil {
@@ -276,7 +277,7 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 			}
 		}
 
-	case coretypes.AccessListTxType:
+	case uint64(coretypes.AccessListTxType):
 		var itx AccessListTx
 		inner = &itx
 		if dec.ChainID == nil {
@@ -333,7 +334,7 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 			}
 		}
 
-	case coretypes.DynamicFeeTxType:
+	case uint64(coretypes.DynamicFeeTxType):
 		var itx DynamicFeeTx
 		inner = &itx
 		if dec.ChainID == nil {
@@ -394,7 +395,7 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 			}
 		}
 
-	case coretypes.BlobTxType:
+	case uint64(coretypes.BlobTxType):
 		var itx BlobTx
 		inner = &itx
 		if dec.ChainID == nil {
@@ -477,7 +478,7 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 			}
 		}
 
-	case coretypes.SetCodeTxType:
+	case uint64(coretypes.SetCodeTxType):
 		var itx SetCodeTx
 		inner = &itx
 		if dec.ChainID == nil {
@@ -556,7 +557,7 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 			}
 		}
 
-	case PoLTxType:
+	case uint64(PoLTxType):
 		var itx PoLTx
 		inner = &itx
 		if dec.ChainID == nil {
@@ -602,22 +603,32 @@ func sanityCheckSignature(v *big.Int, r *big.Int, s *big.Int, maybeProtected boo
 		return coretypes.ErrUnexpectedProtection
 	}
 
-	var plainV byte
+	var plainV uint64
 	switch {
 	case isProtectedV(v):
 		chainID := deriveChainID(v).Uint64()
-		plainV = byte(v.Uint64() - replayProtectionBase - chainIDDivisor*chainID)
+		plainV = v.Uint64() - replayProtectionBase - chainIDDivisor*chainID
 	case maybeProtected:
 		// Only EIP-155 signatures can be optionally protected. Since
 		// we determined this v value is not protected, it must be a
 		// raw 27 or 28.
-		plainV = byte(v.Uint64() - legacyVValue27)
+		plainV = v.Uint64() - legacyVValue27
 	default:
 		// If the signature is not optionally protected, we assume it
 		// must already be equal to the recovery id.
-		plainV = byte(v.Uint64())
+		plainV = v.Uint64()
 	}
-	if !crypto.ValidateSignatureValues(plainV, r, s, false) {
+
+	var recoveryID byte
+	switch plainV {
+	case 0:
+		recoveryID = 0
+	case 1:
+		recoveryID = 1
+	default:
+		return coretypes.ErrInvalidSig
+	}
+	if !crypto.ValidateSignatureValues(recoveryID, r, s, false) {
 		return coretypes.ErrInvalidSig
 	}
 
