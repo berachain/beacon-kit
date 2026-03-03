@@ -32,8 +32,6 @@ import (
 )
 
 // processOperations processes the operations and ensures they match the local state.
-//
-//nolint:funlen // conditional logic for fork versions.
 func (sp *StateProcessor) processOperations(
 	ctx ReadOnlyContext,
 	st *state.StateDB,
