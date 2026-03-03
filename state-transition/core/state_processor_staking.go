@@ -32,6 +32,8 @@ import (
 )
 
 // processOperations processes the operations and ensures they match the local state.
+//
+//nolint:funlen // conditional logic for fork versions.
 func (sp *StateProcessor) processOperations(
 	ctx ReadOnlyContext,
 	st *state.StateDB,
@@ -41,6 +43,7 @@ func (sp *StateProcessor) processOperations(
 		requests *ctypes.ExecutionRequests
 		err      error
 	)
+
 	if version.EqualsOrIsAfter(blk.GetForkVersion(), version.Electra()) {
 		// Validators increase/decrease stake through execution requests starting in Electra.
 		requests, err = blk.GetBody().GetExecutionRequests()

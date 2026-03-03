@@ -350,12 +350,6 @@ func (s *Service) buildBlockBody(
 				depositIndex, len(deposits),
 			)
 		}
-		if uint64(len(deposits)) < depositIndex {
-			return errors.Wrapf(ErrDepositStoreIncomplete,
-				"all historical deposits not available, expected: %d, got: %d",
-				depositIndex, len(deposits),
-			)
-		}
 
 		s.logger.Info(
 			"Building block body with local deposits",

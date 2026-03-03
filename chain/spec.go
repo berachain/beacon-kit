@@ -528,7 +528,7 @@ func (s spec) ValidatorSetCap() uint64 {
 func (s spec) EVMInflationAddress(timestamp math.U64) common.ExecutionAddress {
 	fv := s.ActiveForkVersionForTimestamp(timestamp)
 	switch fv {
-	case version.Deneb1(), version.Electra(), version.Electra1():
+	case version.Deneb1(), version.Electra(), version.Electra1(), version.Electra2():
 		return s.Data.EVMInflationAddressDeneb1
 	case version.Deneb():
 		return s.Data.EVMInflationAddressGenesis
@@ -542,7 +542,7 @@ func (s spec) EVMInflationAddress(timestamp math.U64) common.ExecutionAddress {
 func (s spec) EVMInflationPerBlock(timestamp math.U64) math.Gwei {
 	fv := s.ActiveForkVersionForTimestamp(timestamp)
 	switch fv {
-	case version.Deneb1(), version.Electra(), version.Electra1():
+	case version.Deneb1(), version.Electra(), version.Electra1(), version.Electra2():
 		return math.Gwei(s.Data.EVMInflationPerBlockDeneb1)
 	case version.Deneb():
 		return math.Gwei(s.Data.EVMInflationPerBlockGenesis)
