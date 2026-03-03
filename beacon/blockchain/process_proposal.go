@@ -24,6 +24,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"sort"
 	"time"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
@@ -176,7 +177,18 @@ func (s *Service) ProcessProposal(
 
 func payloadEnvFromPayload(sidecars datypes.BlobSidecars, blk *ctypes.BeaconBlock) (ctypes.BuiltExecutionPayloadEnv, error) {
 	blobBundle := &engineprimitives.BlobsBundleV1{}
-	for _, s := range sidecars {
+
+	// Iterate over sidecars in order of sidecar index.
+	sortedIndices := make([]int, len(sidecars))
+	for i := range sidecars {
+		sortedIndices[i] = i
+	}
+	sort.Slice(sortedIndices, func(i, j int) bool {
+		return sidecars[sortedIndices[i]].GetIndex() < sidecars[sortedIndices[j]].GetIndex()
+	})
+
+	for _, i := range sortedIndices {
+		s := sidecars[i]
 		blobBundle.Commitments = append(blobBundle.Commitments, s.GetKzgCommitment())
 		blobBundle.Proofs = append(blobBundle.Proofs, s.GetKzgProof())
 

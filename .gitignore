@@ -240,3 +240,6 @@ temp-test-unit-cover.txt
 
 # server dev env for Air
 .air.toml
+
+# claude local worktrees
+.claude/
