@@ -23,6 +23,8 @@ package types
 import (
 	"bytes"
 	"errors"
+	"math/big"
+	"sync/atomic"
 
 	"github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
@@ -41,6 +43,9 @@ type TxData interface {
 // for the BRIP-0004 PoL transaction type.
 type Transaction struct {
 	inner TxData // Consensus contents of a transaction
+
+	// cache
+	hash atomic.Pointer[common.Hash]
 }
 
 // BlobHashes returns the hashes of the blob commitments for blob transactions, nil otherwise.
@@ -51,9 +56,50 @@ func (tx *Transaction) BlobHashes() []common.Hash {
 	return nil
 }
 
+// Hash returns the transaction hash.
+func (tx *Transaction) Hash() common.Hash {
+	if hash := tx.hash.Load(); hash != nil {
+		return *hash
+	}
+
+	var h common.Hash
+	if tx.Type() == coretypes.LegacyTxType {
+		h = rlpHash(tx.inner)
+	} else {
+		h = prefixedRlpHash(tx.Type(), tx.inner)
+	}
+	tx.hash.Store(&h)
+	return h
+}
+
 // Type returns the transaction type.
 func (tx *Transaction) Type() uint8 {
 	return tx.inner.txType()
+}
+
+// RawSignatureValues returns the transaction signature values.
+// PoL transactions intentionally return nil values because they are unsigned.
+func (tx *Transaction) RawSignatureValues() (*big.Int, *big.Int, *big.Int) {
+	switch itx := tx.inner.(type) {
+	case *LegacyTx:
+		return itx.V, itx.R, itx.S
+	case *AccessListTx:
+		return itx.V, itx.R, itx.S
+	case *DynamicFeeTx:
+		return itx.V, itx.R, itx.S
+	case *BlobTx:
+		if itx.V == nil || itx.R == nil || itx.S == nil {
+			return nil, nil, nil
+		}
+		return itx.V.ToBig(), itx.R.ToBig(), itx.S.ToBig()
+	case *SetCodeTx:
+		if itx.V == nil || itx.R == nil || itx.S == nil {
+			return nil, nil, nil
+		}
+		return itx.V.ToBig(), itx.R.ToBig(), itx.S.ToBig()
+	default:
+		return nil, nil, nil
+	}
 }
 
 // MarshalBinary returns the canonical encoding of the transaction.
@@ -78,7 +124,7 @@ func (tx *Transaction) UnmarshalBinary(b []byte) error {
 		if err != nil {
 			return err
 		}
-		tx.inner = &data
+		tx.setDecoded(&data)
 		return nil
 	}
 	// It's an EIP-2718 typed transaction envelope.
@@ -86,7 +132,7 @@ func (tx *Transaction) UnmarshalBinary(b []byte) error {
 	if err != nil {
 		return err
 	}
-	tx.inner = inner
+	tx.setDecoded(inner)
 	return nil
 }
 
@@ -120,6 +166,12 @@ func (tx *Transaction) decodeTyped(b []byte) (TxData, error) {
 	return inner, err
 }
 
+// setDecoded sets the inner transaction and clears hash cache.
+func (tx *Transaction) setDecoded(inner TxData) {
+	tx.inner = inner
+	tx.hash.Store(nil)
+}
+
 // Transactions implements DerivableList for transactions.
 type Transactions []*Transaction
 
@@ -132,8 +184,8 @@ func (s Transactions) Len() int { return len(s) }
 func (s Transactions) EncodeIndex(i int, w *bytes.Buffer) {
 	tx := s[i]
 	if tx.Type() == coretypes.LegacyTxType {
-		rlp.Encode(w, tx.inner) //#nosec:G104 copied from go-ethereum
+		_ = rlp.Encode(w, tx.inner)
 	} else {
-		tx.encodeTyped(w) //#nosec:G104 copied from go-ethereum
+		_ = tx.encodeTyped(w)
 	}
 }

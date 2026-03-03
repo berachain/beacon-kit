@@ -49,12 +49,15 @@ type ChainConfig struct {
 	ConstantinopleBlock *big.Int `json:"constantinopleBlock,omitempty"` // Constantinople switch block (nil = no fork, 0 = already activated)
 	PetersburgBlock     *big.Int `json:"petersburgBlock,omitempty"`     // Petersburg switch block (nil = same as Constantinople)
 	IstanbulBlock       *big.Int `json:"istanbulBlock,omitempty"`       // Istanbul switch block (nil = no fork, 0 = already on istanbul)
-	MuirGlacierBlock    *big.Int `json:"muirGlacierBlock,omitempty"`    // Eip-2384 (bomb delay) switch block (nil = no fork, 0 = already activated)
-	BerlinBlock         *big.Int `json:"berlinBlock,omitempty"`         // Berlin switch block (nil = no fork, 0 = already on berlin)
-	LondonBlock         *big.Int `json:"londonBlock,omitempty"`         // London switch block (nil = no fork, 0 = already on london)
-	ArrowGlacierBlock   *big.Int `json:"arrowGlacierBlock,omitempty"`   // Eip-4345 (bomb delay) switch block (nil = no fork, 0 = already activated)
-	GrayGlacierBlock    *big.Int `json:"grayGlacierBlock,omitempty"`    // Eip-5133 (bomb delay) switch block (nil = no fork, 0 = already activated)
-	MergeNetsplitBlock  *big.Int `json:"mergeNetsplitBlock,omitempty"`  // Virtual fork after The Merge to use as a network splitter
+	// MuirGlacierBlock is EIP-2384 (difficulty bomb delay) switch block.
+	MuirGlacierBlock *big.Int `json:"muirGlacierBlock,omitempty"` // nil = no fork, 0 = already activated
+	BerlinBlock      *big.Int `json:"berlinBlock,omitempty"`      // Berlin switch block (nil = no fork, 0 = already on berlin)
+	LondonBlock      *big.Int `json:"londonBlock,omitempty"`      // London switch block (nil = no fork, 0 = already on london)
+	// ArrowGlacierBlock is EIP-4345 (difficulty bomb delay) switch block.
+	ArrowGlacierBlock *big.Int `json:"arrowGlacierBlock,omitempty"` // nil = no fork, 0 = already activated
+	// GrayGlacierBlock is EIP-5133 (difficulty bomb delay) switch block.
+	GrayGlacierBlock   *big.Int `json:"grayGlacierBlock,omitempty"`   // nil = no fork, 0 = already activated
+	MergeNetsplitBlock *big.Int `json:"mergeNetsplitBlock,omitempty"` // Virtual fork after The Merge to use as a network splitter
 
 	// Fork scheduling was switched from blocks to timestamps here
 

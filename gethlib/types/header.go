@@ -30,6 +30,8 @@ import (
 )
 
 // hasherPool holds LegacyKeccak256 buffer for rlpHash.
+//
+//nolint:gochecknoglobals // Shared pool is required to avoid allocations in hash hot paths.
 var hasherPool = sync.Pool{
 	New: func() interface{} { return crypto.NewKeccakState() },
 }

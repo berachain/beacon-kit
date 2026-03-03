@@ -57,7 +57,6 @@ type Block struct {
 
 	// caches
 	hash atomic.Pointer[common.Hash]
-	size atomic.Uint64
 
 	// These fields are used by package eth to track
 	// inter-peer block relay.
@@ -120,12 +119,13 @@ func NewBlock(header *Header, body *Body, receipts []*coretypes.Receipt, hasher 
 		}
 	}
 
-	if withdrawals == nil {
+	switch {
+	case withdrawals == nil:
 		b.header.WithdrawalsHash = nil
-	} else if len(withdrawals) == 0 {
+	case len(withdrawals) == 0:
 		b.header.WithdrawalsHash = &coretypes.EmptyWithdrawalsHash
 		b.withdrawals = coretypes.Withdrawals{}
-	} else {
+	default:
 		hash := coretypes.DeriveSha(coretypes.Withdrawals(withdrawals), hasher)
 		b.header.WithdrawalsHash = &hash
 		b.withdrawals = slices.Clone(withdrawals)

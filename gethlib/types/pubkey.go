@@ -34,6 +34,11 @@ import (
 // JSON and text serialization use 0x-prefixed hex strings.
 type ExecutionPubkey [constants.BLSPubkeyLength]byte
 
+const (
+	hexPrefixBytes  = 2
+	hexCharsPerByte = 2
+)
+
 // Bytes returns a copy of the underlying byte slice.
 func (p ExecutionPubkey) Bytes() []byte { return p[:] }
 
@@ -45,26 +50,26 @@ func (p ExecutionPubkey) String() string { return hexutil.Encode(p[:]) }
 //
 // #nosec:G104 // copied from geth and fmt.State.Write errors are conventionally ignored
 func (p ExecutionPubkey) Format(s fmt.State, c rune) {
-	hexb := make([]byte, 2+len(p)*2)
+	hexb := make([]byte, hexPrefixBytes+len(p)*hexCharsPerByte)
 	copy(hexb, "0x")
-	hex.Encode(hexb[2:], p[:])
+	hex.Encode(hexb[hexPrefixBytes:], p[:])
 
 	switch c {
 	case 'x', 'X':
 		if !s.Flag('#') {
-			hexb = hexb[2:]
+			hexb = hexb[hexPrefixBytes:]
 		}
 		if c == 'X' {
 			hexb = bytes.ToUpper(hexb)
 		}
 		fallthrough
 	case 'v', 's':
-		s.Write(hexb)
+		_, _ = s.Write(hexb)
 	case 'q':
 		q := []byte{'"'}
-		s.Write(q)
-		s.Write(hexb)
-		s.Write(q)
+		_, _ = s.Write(q)
+		_, _ = s.Write(hexb)
+		_, _ = s.Write(q)
 	case 'd':
 		fmt.Fprint(s, ([len(p)]byte)(p))
 	default:
