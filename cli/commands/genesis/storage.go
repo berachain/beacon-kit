@@ -31,11 +31,11 @@ import (
 	"github.com/berachain/beacon-kit/cli/context"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
-	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
-	libcommon "github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/common"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	"github.com/ethereum/go-ethereum/common"
+	gethcommon "github.com/ethereum/go-ethereum/common"
+	gethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
@@ -110,7 +110,7 @@ func SetDepositStorage(
 		return errors.Wrap(err, "failed to unmarshal eth1 genesis")
 	}
 
-	depositAddr := common.Address(chainSpec.DepositContractAddress())
+	depositAddr := gethcommon.Address(chainSpec.DepositContractAddress())
 	allocs := writeDepositStorage(elGenesis, depositAddr, count, root)
 
 	// Get just the filename from the path
@@ -127,30 +127,30 @@ func SetDepositStorage(
 
 func writeDepositStorage(
 	elGenesis types.EthGenesis,
-	depositAddr common.Address,
+	depositAddr gethcommon.Address,
 	depositsCount *big.Int,
-	depositsRoot libcommon.Root,
-) gethprimitives.GenesisAlloc {
-	slot0 := common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000")
-	slot1 := common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000001")
+	depositsRoot common.Root,
+) gethtypes.GenesisAlloc {
+	slot0 := gethcommon.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000")
+	slot1 := gethcommon.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000001")
 
 	allocs := elGenesis.Alloc()
 	if entry, ok := allocs[depositAddr]; ok {
 		if entry.Storage == nil {
-			entry.Storage = make(map[common.Hash]common.Hash)
+			entry.Storage = make(map[gethcommon.Hash]gethcommon.Hash)
 		}
-		entry.Storage[slot0] = common.BigToHash(depositsCount)
-		entry.Storage[slot1] = common.BytesToHash(depositsRoot[:])
+		entry.Storage[slot0] = gethcommon.BigToHash(depositsCount)
+		entry.Storage[slot1] = gethcommon.BytesToHash(depositsRoot[:])
 		allocs[depositAddr] = entry
 	}
 	return allocs
 }
 
 func writeGenesisAllocToFile(
-	depositAddr common.Address,
+	depositAddr gethcommon.Address,
 	outputDocument string,
 	inputDocument string,
-	genesisAlloc gethprimitives.GenesisAlloc,
+	genesisAlloc gethtypes.GenesisAlloc,
 	allocsKey string,
 ) error {
 	// Read existing el genesis file

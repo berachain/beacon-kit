@@ -32,7 +32,7 @@ import (
 	depositcli "github.com/berachain/beacon-kit/cli/commands/deposit"
 	consensustypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/execution/requests/eip7002"
-	"github.com/berachain/beacon-kit/geth-primitives/deposit"
+	"github.com/berachain/beacon-kit/gethlib/deposit"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"

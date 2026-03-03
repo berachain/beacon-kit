@@ -26,7 +26,7 @@ import (
 	"github.com/attestantio/go-eth2-client/api"
 	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/berachain/beacon-kit/config/spec"
-	"github.com/berachain/beacon-kit/geth-primitives/deposit"
+	"github.com/berachain/beacon-kit/gethlib/deposit"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/berachain/beacon-kit/testing/e2e/suite/types"

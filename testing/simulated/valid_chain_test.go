@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	dablob "github.com/berachain/beacon-kit/da/blob"
 	datypes "github.com/berachain/beacon-kit/da/types"
-	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -150,7 +149,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 		},
 	)
 
-	validTxs := []*gethprimitives.Transaction{validTx}
+	validTxs := []*gethtypes.Transaction{validTx}
 	// Create a new beacon block with the valid transaction.
 	// Note: The beacon block returned here has an incorrect beacon state root, which is fixed in `ComputeAndSetStateRoot`.
 	unsignedBlock := simulated.ComputeAndSetValidExecutionBlock(s.T(), proposedBlock.GetBeaconBlock(), s.SimulationClient, s.TestNode.ChainSpec, validTxs)
