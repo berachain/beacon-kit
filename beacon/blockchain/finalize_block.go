@@ -56,7 +56,7 @@ func (s *Service) sequencerFinalizeOptimisticBuild(
 		return
 	}
 
-	s.handleOptimisticPayloadBuild(ctx, buildData)
+	go s.handleOptimisticPayloadBuild(ctx, buildData)
 }
 
 func (s *Service) FinalizeBlock(
