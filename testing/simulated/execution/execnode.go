@@ -27,6 +27,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/berachain/beacon-kit/primitives/net/url"
 	"github.com/ory/dockertest"
@@ -104,6 +105,10 @@ func (e *ExecNode) Start(t *testing.T, genesisFile string) (*Resource, *url.Conn
 	require.NoError(t, err, "failed to create Auth RPC URL")
 
 	t.Logf("Auth RPC URL: %s", authRPC.String())
+
+	// Give reth enough time to initialise; the default pool.MaxWait (1 min)
+	// is too short for CI environments.
+	pool.MaxWait = 3 * time.Minute
 
 	// Wait until the EL RPC endpoint is available by retrying HTTP GET requests.
 	err = pool.Retry(func() error {
