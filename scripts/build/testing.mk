@@ -73,33 +73,6 @@ start-reth:
 	--engine.persistence-threshold 0 \
 	--engine.memory-block-buffer-target 0
 
-## Start an ephemeral `geth` node with docker
-start-geth: 
-	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
-	docker run \
-	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
-	-v $(PWD)/.tmp:/.tmp \
-	ghcr.io/berachain/bera-geth:latest init \
-	--datadir ${ETH_DATA_DIR} \
-	${ETH_GENESIS_PATH}
-
-	docker run \
-	-p 30303:30303 \
-	-p 8545:8545 \
-	-p 8551:8551 \
-	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
-	-v $(PWD)/.tmp:/.tmp \
-	ghcr.io/berachain/bera-geth:latest \
-	--syncmode=full \
-	--http \
-	--http.addr 0.0.0.0 \
-	--http.api eth,net \
-	--authrpc.addr 0.0.0.0 \
-	--authrpc.jwtsecret $(JWT_PATH) \
-	--authrpc.vhosts "*" \
-	--datadir ${ETH_DATA_DIR} \
-	--ipcpath ${IPC_PATH}
-
 
 #################
 #    Bepolia    #
@@ -111,38 +84,6 @@ BEPOLIA_ETH_GENESIS_PATH = ${BEPOLIA_NETWORK_FILES_DIR}/eth-genesis.json
 start-bepolia:
 	@JWT_SECRET_PATH=$(JWT_PATH) \
 	${TESTAPP_FILES_DIR}/entrypoint.sh testnet
-
-start-geth-bepolia:
-	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
-	docker run \
-	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
-	--rm -v $(PWD)/${BEPOLIA_NETWORK_FILES_DIR}:/${BEPOLIA_NETWORK_FILES_DIR} \
-	-v $(PWD)/.tmp:/.tmp \
-	ghcr.io/berachain/bera-geth:latest init \
-	--datadir ${ETH_DATA_DIR} \
-	${BEPOLIA_ETH_GENESIS_PATH}
-
-	@# Read bootnodes from the file; the file is mounted into the container.
-	@bootnodes=`cat $(PWD)/$(BEPOLIA_NETWORK_FILES_DIR)/el-bootnodes.txt`; \
-	echo "Using bootnodes: $$bootnodes"; \
-	docker run \
-	-p 30303:30303 \
-	-p 8545:8545 \
-	-p 8551:8551 \
-	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
-	--rm -v $(PWD)/${BEPOLIA_NETWORK_FILES_DIR}:/${BEPOLIA_NETWORK_FILES_DIR} \
-	-v $(PWD)/.tmp:/.tmp \
-	ghcr.io/berachain/bera-geth:latest \
-	--http \
-	--http.addr 0.0.0.0 \
-	--http.api eth,net \
-	--authrpc.addr 0.0.0.0 \
-	--authrpc.jwtsecret $(JWT_PATH) \
-	--authrpc.vhosts "*" \
-	--datadir ${ETH_DATA_DIR} \
-	--ipcpath ${IPC_PATH} \
-	--syncmode=full \
-	--bootnodes $$bootnodes
 
 start-reth-bepolia:
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
@@ -176,40 +117,6 @@ MAINNET_ETH_GENESIS_PATH = ${MAINNET_NETWORK_FILES_DIR}/eth-genesis.json
 start-mainnet:
 	@JWT_SECRET_PATH=$(JWT_PATH) \
 	${TESTAPP_FILES_DIR}/entrypoint.sh mainnet
-
-# NOTE: By default this will use the EL peers as your bootnodes. If you want specific 
-# discovery bootnodes by region, refer to testing/networks/80094/el-bootnodes.txt
-start-geth-mainnet:
-	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
-	docker run \
-	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
-	--rm -v $(PWD)/${MAINNET_NETWORK_FILES_DIR}:/${MAINNET_NETWORK_FILES_DIR} \
-	-v $(PWD)/.tmp:/.tmp \
-	ghcr.io/berachain/bera-geth:latest init \
-	--datadir ${ETH_DATA_DIR} \
-	${MAINNET_ETH_GENESIS_PATH}
-
-	@# Read bootnodes from the file; the file is mounted into the container.
-	@bootnodes=`cat $(PWD)/$(MAINNET_NETWORK_FILES_DIR)/el-peers.txt`; \
-	echo "Using bootnodes: $$bootnodes"; \
-	docker run \
-	-p 30303:30303 \
-	-p 8545:8545 \
-	-p 8551:8551 \
-	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
-	--rm -v $(PWD)/${MAINNET_NETWORK_FILES_DIR}:/${MAINNET_NETWORK_FILES_DIR} \
-	-v $(PWD)/.tmp:/.tmp \
-	ghcr.io/berachain/bera-geth:latest \
-	--http \
-	--http.addr 0.0.0.0 \
-	--http.api eth,net \
-	--authrpc.addr 0.0.0.0 \
-	--authrpc.jwtsecret $(JWT_PATH) \
-	--authrpc.vhosts "*" \
-	--datadir ${ETH_DATA_DIR} \
-	--ipcpath ${IPC_PATH} \
-	--syncmode=full \
-	--bootnodes $$bootnodes
 
 start-reth-mainnet:
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))

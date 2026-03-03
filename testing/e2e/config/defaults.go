@@ -61,7 +61,7 @@ func defaultValidators() NodeSet {
 		Type: "validator",
 		Nodes: []Node{
 			{
-				ElType:   "geth",
+				ElType:   "reth",
 				Replicas: 3, //nolint:mnd // we want 3 replicas here
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
@@ -84,7 +84,7 @@ func defaultFullNodes() NodeSet {
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
-				ElType:   "geth",
+				ElType:   "reth",
 				Replicas: 2, //nolint:mnd // we want 2 replicas here
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
@@ -97,7 +97,7 @@ func defaultSeedNodes() NodeSet {
 		Type: "seed",
 		Nodes: []Node{
 			{
-				ElType:   "geth",
+				ElType:   "reth",
 				Replicas: 1,
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
@@ -121,7 +121,6 @@ func defaultExecutionSettings() ExecutionSettings {
 			MaxMemory: 2048, //nolint:mnd // 2 GB
 		},
 		Images: map[string]string{
-			"geth": "ghcr.io/berachain/bera-geth:latest",
 			"reth": "ghcr.io/berachain/bera-reth:nightly",
 		},
 	}
@@ -165,7 +164,7 @@ func defaultEthJSONRPCEndpoints() []EthJSONRPCEndpoint {
 		{
 			Type: "blutgang",
 			Clients: []string{
-				"el-full-geth-2",
+				"el-full-reth-2",
 			},
 		},
 	}

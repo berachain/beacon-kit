@@ -31,7 +31,6 @@ EXECUTION_DEFAULT_SETTINGS = {
         "max_memory": 2048,
     },
     "images": {
-        "geth": "ghcr.io/berachain/bera-geth:latest",
         "reth": "ghcr.io/berachain/bera-reth:nightly",
     },
     "labels": {},

@@ -82,16 +82,10 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
     consensus_node_peering_info = []
     all_consensus_peering_info = {}
 
-    # Execute only if geth is present
-    # This is needed as we have a geth config file which needs to be templated
-    geth_config_artifact = None
-    if "geth" in node_modules and node_modules["geth"] != None:
-        geth_config_artifact = node_modules["geth"].process_geth_config(plan, chain_id)
-
     # Start seed nodes
     seed_node_el_client_configs = []
     for n, seed in enumerate(seed_nodes):
-        el_client_config = execution.generate_node_config(plan, node_modules, seed, chain_id, chain_spec, genesis_files, geth_config_artifact)
+        el_client_config = execution.generate_node_config(plan, node_modules, seed, chain_id, chain_spec, genesis_files)
         seed_node_el_client_configs.append(el_client_config)
     if seed_node_el_client_configs != []:
         seed_node_el_clients = execution.deploy_nodes(plan, seed_node_el_client_configs)
@@ -121,7 +115,7 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
     full_node_el_clients = {}
 
     for n, full in enumerate(full_nodes):
-        el_client_config = execution.generate_node_config(plan, node_modules, full, chain_id, chain_spec, genesis_files, geth_config_artifact, el_enode_addrs)
+        el_client_config = execution.generate_node_config(plan, node_modules, full, chain_id, chain_spec, genesis_files, el_enode_addrs)
         full_node_el_client_configs.append(el_client_config)
 
     if full_node_el_client_configs != []:
@@ -152,7 +146,7 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
     validator_node_el_clients = []
 
     for n, validator in enumerate(validators):
-        el_client_config = execution.generate_node_config(plan, node_modules, validator, chain_id, chain_spec, genesis_files, geth_config_artifact, el_enode_addrs)
+        el_client_config = execution.generate_node_config(plan, node_modules, validator, chain_id, chain_spec, genesis_files, el_enode_addrs)
         validator_node_el_clients.append(el_client_config)
 
     validator_el_clients = execution.deploy_nodes(plan, validator_node_el_clients)

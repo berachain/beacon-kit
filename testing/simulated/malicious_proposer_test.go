@@ -294,7 +294,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobCommitment_Errors() {
 				BlobFeeCap: uint256.NewInt(10),
 				// If we have 1 tx with multiple blobs, we must add the blob hashes here.
 				BlobHashes: versionedHashesForBlob[i],
-				// Sidecar must be set to nil here or Geth will error with "unexpected blob sidecar in transaction"
+				// Sidecar must be set to nil here or the EL will error with "unexpected blob sidecar in transaction"
 				Sidecar: nil,
 			},
 		)
@@ -457,7 +457,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobInclusionProof_Errors() 
 				BlobFeeCap: uint256.NewInt(10),
 				// If we have 1 tx with multiple blobs, we must add the blob hashes here.
 				BlobHashes: []gethcommon.Hash{blobHash},
-				// Sidecar must be set to nil here or Geth will error with "unexpected blob sidecar in transaction"
+				// Sidecar must be set to nil here or the EL will error with "unexpected blob sidecar in transaction"
 				Sidecar: nil,
 			},
 		)

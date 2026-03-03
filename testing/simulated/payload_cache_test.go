@@ -41,8 +41,8 @@ import (
 // PayloadCacheSuite defines our test suite for Pectra related work using simulated Comet component.
 type PayloadCacheSuite struct {
 	suite.Suite
-	Geth simulated.SharedAccessors
-	Reth simulated.SharedAccessors
+	Primary   simulated.SharedAccessors
+	Secondary simulated.SharedAccessors
 }
 
 // TestPayloadCacheSuite runs the test suite.
@@ -53,15 +53,15 @@ func TestPayloadCacheSuite(t *testing.T) {
 // SetupTest initializes the test environment.
 func (s *PayloadCacheSuite) SetupTest() {
 	// Create a cancellable context for the duration of the test.
-	s.Geth.CtxApp, s.Geth.CtxAppCancelFn = context.WithCancel(context.Background())
-	s.Reth.CtxApp, s.Reth.CtxAppCancelFn = context.WithCancel(context.Background())
+	s.Primary.CtxApp, s.Primary.CtxAppCancelFn = context.WithCancel(context.Background())
+	s.Secondary.CtxApp, s.Secondary.CtxAppCancelFn = context.WithCancel(context.Background())
 
 	// CometBFT uses context.TODO() for all ABCI calls, so we replicate that.
-	s.Geth.CtxComet = context.TODO()
-	s.Geth.HomeDir = s.T().TempDir()
+	s.Primary.CtxComet = context.TODO()
+	s.Primary.HomeDir = s.T().TempDir()
 
-	s.Reth.CtxComet = context.TODO()
-	s.Reth.HomeDir = s.T().TempDir()
+	s.Secondary.CtxComet = context.TODO()
+	s.Secondary.HomeDir = s.T().TempDir()
 
 	// Initialize the home directory, Comet configuration, and genesis info.
 	const elGenesisPath = "./el-genesis-files/pectra-fork-genesis.json"
@@ -69,92 +69,92 @@ func (s *PayloadCacheSuite) SetupTest() {
 	// Create the chainSpec.
 	chainSpec, err := chainSpecFunc()
 	s.Require().NoError(err)
-	gethCmtCfg, rethCmtCfg, genesisValidatorsRoot := simulated.Initialize2HomeDirs(
-		s.T(), chainSpec, s.Geth.HomeDir, s.Reth.HomeDir, elGenesisPath,
+	primaryCmtCfg, secondaryCmtCfg, genesisValidatorsRoot := simulated.Initialize2HomeDirs(
+		s.T(), chainSpec, s.Primary.HomeDir, s.Secondary.HomeDir, elGenesisPath,
 	)
-	s.Geth.GenesisValidatorsRoot = genesisValidatorsRoot
-	s.Reth.GenesisValidatorsRoot = genesisValidatorsRoot
+	s.Primary.GenesisValidatorsRoot = genesisValidatorsRoot
+	s.Secondary.GenesisValidatorsRoot = genesisValidatorsRoot
 
-	// Start the EL (execution layer) Geth node.
-	gethNode := execution.NewGethNode(s.Geth.HomeDir, execution.ValidGethImage())
-	elHandle, authRPC, elRPC := gethNode.Start(s.T(), path.Base(elGenesisPath))
-	s.Geth.ElHandle = elHandle
+	// Start the primary EL (execution layer) Reth node.
+	primaryNode := execution.NewRethNode(s.Primary.HomeDir, execution.ValidRethImage())
+	elHandle, authRPC, elRPC := primaryNode.Start(s.T(), path.Base(elGenesisPath))
+	s.Primary.ElHandle = elHandle
 
-	// Choose the reth node to run. 2 specific tests require the engine api override flag.
-	var rethNode *execution.ExecNode
+	// Choose the secondary reth node to run. 2 specific tests require the engine api override flag.
+	var secondaryNode *execution.ExecNode
 	testName := s.T().Name()
 	if strings.Contains(testName, "TestReth_MustRebuildPostForkPayload_IsSuccessful") ||
 		strings.Contains(testName, "TestReth_MustRebuildPreForkPayload_IsSuccessful") {
-		rethNode = execution.NewRethNodeWithEngineOverride(s.Reth.HomeDir, execution.ValidRethImage())
+		secondaryNode = execution.NewRethNodeWithEngineOverride(s.Secondary.HomeDir, execution.ValidRethImage())
 	} else {
-		rethNode = execution.NewRethNode(s.Reth.HomeDir, execution.ValidRethImage())
+		secondaryNode = execution.NewRethNode(s.Secondary.HomeDir, execution.ValidRethImage())
 	}
-	rethHandle, rethAuthRPC, elRPC := rethNode.Start(s.T(), path.Base(elGenesisPath))
-	s.Reth.ElHandle = rethHandle
+	secondaryHandle, secondaryAuthRPC, elRPC := secondaryNode.Start(s.T(), path.Base(elGenesisPath))
+	s.Secondary.ElHandle = secondaryHandle
 
 	// Prepare a logger backed by a buffer to capture logs for assertions.
-	s.Geth.LogBuffer = &simulated.SyncBuffer{}
-	logger := phuslu.NewLogger(s.Geth.LogBuffer, nil)
+	s.Primary.LogBuffer = &simulated.SyncBuffer{}
+	logger := phuslu.NewLogger(s.Primary.LogBuffer, nil)
 
-	s.Reth.LogBuffer = &simulated.SyncBuffer{}
-	rethLogger := phuslu.NewLogger(s.Reth.LogBuffer, nil)
+	s.Secondary.LogBuffer = &simulated.SyncBuffer{}
+	secondaryLogger := phuslu.NewLogger(s.Secondary.LogBuffer, nil)
 
 	// Build the Beacon node with the simulated Comet component and electra genesis chain spec
 	components := simulated.FixedComponents(s.T())
 	components = append(components, simulated.ProvideSimComet)
 	components = append(components, chainSpecFunc)
 
-	s.Geth.TestNode = simulated.NewTestNode(s.T(), simulated.TestNodeInput{
-		TempHomeDir: s.Geth.HomeDir,
-		CometConfig: gethCmtCfg,
+	s.Primary.TestNode = simulated.NewTestNode(s.T(), simulated.TestNodeInput{
+		TempHomeDir: s.Primary.HomeDir,
+		CometConfig: primaryCmtCfg,
 		AuthRPC:     authRPC,
 		ClientRPC:   elRPC,
 		Logger:      logger,
 		AppOpts:     viper.New(),
 		Components:  components,
 	})
-	s.Geth.SimComet = s.Geth.TestNode.SimComet
-	nodeAddress, err := s.Geth.SimComet.GetNodeAddress()
+	s.Primary.SimComet = s.Primary.TestNode.SimComet
+	nodeAddress, err := s.Primary.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
-	s.Geth.SimComet.Comet.SetNodeAddress(nodeAddress)
+	s.Primary.SimComet.Comet.SetNodeAddress(nodeAddress)
 
-	s.Reth.TestNode = simulated.NewTestNode(s.T(), simulated.TestNodeInput{
-		TempHomeDir: s.Reth.HomeDir,
-		CometConfig: rethCmtCfg,
-		AuthRPC:     rethAuthRPC,
+	s.Secondary.TestNode = simulated.NewTestNode(s.T(), simulated.TestNodeInput{
+		TempHomeDir: s.Secondary.HomeDir,
+		CometConfig: secondaryCmtCfg,
+		AuthRPC:     secondaryAuthRPC,
 		ClientRPC:   elRPC,
-		Logger:      rethLogger,
+		Logger:      secondaryLogger,
 		AppOpts:     viper.New(),
 		Components:  components,
 	})
-	s.Reth.SimComet = s.Reth.TestNode.SimComet
-	nodeAddress, err = s.Reth.SimComet.GetNodeAddress()
+	s.Secondary.SimComet = s.Secondary.TestNode.SimComet
+	nodeAddress, err = s.Secondary.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
-	s.Reth.SimComet.Comet.SetNodeAddress(nodeAddress)
+	s.Secondary.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	// Start the Beacon node in a separate goroutine.
 	go func() {
-		_ = s.Geth.TestNode.Start(s.Geth.CtxApp)
+		_ = s.Primary.TestNode.Start(s.Primary.CtxApp)
 	}()
 	// Start the Beacon node in a separate goroutine.
 	go func() {
-		_ = s.Reth.TestNode.Start(s.Reth.CtxApp)
+		_ = s.Secondary.TestNode.Start(s.Secondary.CtxApp)
 	}()
 
-	s.Geth.SimulationClient = execution.NewSimulationClient(s.Geth.TestNode.EngineClient)
-	// Reth does not have a simulation API
+	s.Primary.SimulationClient = execution.NewSimulationClient(s.Primary.TestNode.EngineClient)
+	// Secondary node does not have a simulation API
 	timeOut := 10 * time.Second
 	interval := 50 * time.Millisecond
-	err = simulated.WaitTillServicesStarted(s.Geth.LogBuffer, timeOut, interval)
+	err = simulated.WaitTillServicesStarted(s.Primary.LogBuffer, timeOut, interval)
 	s.Require().NoError(err)
-	err = simulated.WaitTillServicesStarted(s.Reth.LogBuffer, timeOut, interval)
+	err = simulated.WaitTillServicesStarted(s.Secondary.LogBuffer, timeOut, interval)
 	s.Require().NoError(err)
 }
 
 // TearDownTest cleans up the test environment.
 func (s *PayloadCacheSuite) TearDownTest() {
-	s.Geth.CleanupTestWithLabel(s.T(), "GETH")
-	s.Reth.CleanupTestWithLabel(s.T(), "RETH")
+	s.Primary.CleanupTestWithLabel(s.T(), "PRIMARY")
+	s.Secondary.CleanupTestWithLabel(s.T(), "SECONDARY")
 }
 
 // This tests a reth validator proposing a block. It then accepts the proposal in
@@ -163,18 +163,18 @@ func (s *PayloadCacheSuite) TearDownTest() {
 // payload from its cache.
 func (s *PayloadCacheSuite) TestReth_ReusePayload_IsSuccessful() {
 	// Initialize the chain state.
-	s.Reth.InitializeChain2Validators(s.T()) // 1 reth validator
-	nodeAddress, err := s.Reth.SimComet.GetNodeAddress()
+	s.Secondary.InitializeChain2Validators(s.T()) // 1 reth validator
+	nodeAddress, err := s.Secondary.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
-	s.Reth.SimComet.Comet.SetNodeAddress(nodeAddress)
+	s.Secondary.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	// Next block is height 1.
 	nextBlockHeight := int64(1)
-	consensusTime := time.Unix(int64(s.Reth.TestNode.ChainSpec.ElectraForkTime()), 0)
+	consensusTime := time.Unix(int64(s.Secondary.TestNode.ChainSpec.ElectraForkTime()), 0)
 
 	{
 		// Prepare the proposal.
-		proposal, prepareErr := s.Reth.SimComet.Comet.PrepareProposal(s.Reth.CtxComet, &types.PrepareProposalRequest{
+		proposal, prepareErr := s.Secondary.SimComet.Comet.PrepareProposal(s.Secondary.CtxComet, &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
 			ProposerAddress: nodeAddress,
@@ -191,7 +191,7 @@ func (s *PayloadCacheSuite) TestReth_ReusePayload_IsSuccessful() {
 			NextProposerAddress: nodeAddress,
 		}
 		// This will trigger a optimistic payload build for block height 2.
-		processResp, respErr := s.Reth.SimComet.Comet.ProcessProposal(s.Reth.CtxComet, processRequest)
+		processResp, respErr := s.Secondary.SimComet.Comet.ProcessProposal(s.Secondary.CtxComet, processRequest)
 		s.Require().NoError(respErr)
 		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
 	}
@@ -199,10 +199,10 @@ func (s *PayloadCacheSuite) TestReth_ReusePayload_IsSuccessful() {
 	// For some reason, the supermajority does not finalize the block.
 	// Next round is height 1, but simulating consensus time is 1 second after previous round.
 	time.Sleep(200 * time.Millisecond) // This lets the optimistic build complete.
-	consensusTime = time.Unix(int64(s.Reth.TestNode.ChainSpec.ElectraForkTime())+1, 0)
+	consensusTime = time.Unix(int64(s.Secondary.TestNode.ChainSpec.ElectraForkTime())+1, 0)
 	{
 		// Prepare the proposal. Bkit cached the payload ID, so we just get the old one from reth.
-		proposal, prepareErr := s.Reth.SimComet.Comet.PrepareProposal(s.Reth.CtxComet, &types.PrepareProposalRequest{
+		proposal, prepareErr := s.Secondary.SimComet.Comet.PrepareProposal(s.Secondary.CtxComet, &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
 			ProposerAddress: nodeAddress,
@@ -220,7 +220,7 @@ func (s *PayloadCacheSuite) TestReth_ReusePayload_IsSuccessful() {
 		}
 
 		// Process the proposal.
-		processResp, processErr := s.Reth.SimComet.Comet.ProcessProposal(s.Reth.CtxComet, processRequest)
+		processResp, processErr := s.Secondary.SimComet.Comet.ProcessProposal(s.Secondary.CtxComet, processRequest)
 		s.Require().NoError(processErr)
 		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
 
@@ -231,90 +231,9 @@ func (s *PayloadCacheSuite) TestReth_ReusePayload_IsSuccessful() {
 			ProposerAddress: nodeAddress,
 			Time:            consensusTime,
 		}
-		_, finalizeErr := s.Reth.SimComet.Comet.FinalizeBlock(s.Reth.CtxComet, finalizeRequest)
+		_, finalizeErr := s.Secondary.SimComet.Comet.FinalizeBlock(s.Secondary.CtxComet, finalizeRequest)
 		s.Require().NoError(finalizeErr)
-		_, commitErr := s.Reth.SimComet.Comet.Commit(s.Reth.CtxComet, &types.CommitRequest{})
-		s.Require().NoError(commitErr)
-	}
-}
-
-// This tests a geth validator proposing a block. It then accepts the proposal in
-// process proposal. But the block is not finalized by consensus. Then this
-// validator is chosen to propose at a subsequent round. It should just get the old
-// payload from its cache.
-func (s *PayloadCacheSuite) TestGeth_ReusePayload_IsSuccessful() {
-	// Initialize the chain state.
-	s.Geth.InitializeChain2Validators(s.T()) // 1 geth validator
-	nodeAddress, err := s.Geth.SimComet.GetNodeAddress()
-	s.Require().NoError(err)
-	s.Geth.SimComet.Comet.SetNodeAddress(nodeAddress)
-
-	// Next block is height 1.
-	nextBlockHeight := int64(1)
-	consensusTime := time.Unix(int64(s.Geth.TestNode.ChainSpec.ElectraForkTime()), 0)
-
-	{
-		// Prepare the proposal.
-		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
-			Height:          nextBlockHeight,
-			Time:            consensusTime,
-			ProposerAddress: nodeAddress,
-		})
-		s.Require().NoError(prepareErr)
-		s.Require().Len(proposal.Txs, 2)
-
-		// Process the proposal.
-		processRequest := &types.ProcessProposalRequest{
-			Txs:                 proposal.Txs,
-			Height:              nextBlockHeight,
-			ProposerAddress:     nodeAddress,
-			Time:                consensusTime,
-			NextProposerAddress: nodeAddress,
-		}
-		// This will trigger a optimistic payload build for block height 2.
-		processResp, respErr := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
-		s.Require().NoError(respErr)
-		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
-	}
-
-	// For some reason, the supermajority does not finalize the block.
-	// Next round is height 1, but simulating consensus time is 1 second after previous round.
-	time.Sleep(200 * time.Millisecond) // This lets the optimistic build complete.
-	consensusTime = time.Unix(int64(s.Geth.TestNode.ChainSpec.ElectraForkTime())+1, 0)
-	{
-		// Prepare the proposal. Bkit cached the payload ID, so we just get the old one from geth.
-		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
-			Height:          nextBlockHeight,
-			Time:            consensusTime,
-			ProposerAddress: nodeAddress,
-		})
-		s.Require().NoError(prepareErr)
-		s.Require().Len(proposal.Txs, 2)
-
-		// Process the proposal.
-		processRequest := &types.ProcessProposalRequest{
-			Txs:                 proposal.Txs,
-			Height:              nextBlockHeight,
-			ProposerAddress:     nodeAddress,
-			Time:                consensusTime,
-			NextProposerAddress: nodeAddress,
-		}
-
-		// Process the proposal.
-		processResp, processErr := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
-		s.Require().NoError(processErr)
-		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
-
-		// Now the block is finalized and committed.
-		finalizeRequest := &types.FinalizeBlockRequest{
-			Txs:             proposal.Txs,
-			Height:          nextBlockHeight,
-			ProposerAddress: nodeAddress,
-			Time:            consensusTime,
-		}
-		_, finalizeErr := s.Geth.SimComet.Comet.FinalizeBlock(s.Geth.CtxComet, finalizeRequest)
-		s.Require().NoError(finalizeErr)
-		_, commitErr := s.Geth.SimComet.Comet.Commit(s.Geth.CtxComet, &types.CommitRequest{})
+		_, commitErr := s.Secondary.SimComet.Comet.Commit(s.Secondary.CtxComet, &types.CommitRequest{})
 		s.Require().NoError(commitErr)
 	}
 }
@@ -324,19 +243,19 @@ func (s *PayloadCacheSuite) TestGeth_ReusePayload_IsSuccessful() {
 // rebuild a new payload (and not reuse the old one from its cache).
 func (s *PayloadCacheSuite) TestReth_RebuildPayload_IsSuccessful() {
 	// Initialize the chain state.
-	s.Reth.InitializeChain2Validators(s.T()) // 1 reth validator
-	nodeAddress, err := s.Reth.SimComet.GetNodeAddress()
+	s.Secondary.InitializeChain2Validators(s.T()) // 1 reth validator
+	nodeAddress, err := s.Secondary.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
-	s.Reth.SimComet.Comet.SetNodeAddress(nodeAddress)
+	s.Secondary.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	// Next block is height 1.
 	nextBlockHeight := int64(1)
-	consensusTime := time.Unix(int64(s.Reth.TestNode.ChainSpec.ElectraForkTime()), 0)
+	consensusTime := time.Unix(int64(s.Secondary.TestNode.ChainSpec.ElectraForkTime()), 0)
 
 	{
 		// Prepare an invalid proposal.
-		faultyConsensusTime := time.Unix(int64(s.Reth.TestNode.ChainSpec.ElectraForkTime())-1, 0)
-		proposal, prepareErr := s.Reth.SimComet.Comet.PrepareProposal(s.Reth.CtxComet, &types.PrepareProposalRequest{
+		faultyConsensusTime := time.Unix(int64(s.Secondary.TestNode.ChainSpec.ElectraForkTime())-1, 0)
+		proposal, prepareErr := s.Secondary.SimComet.Comet.PrepareProposal(s.Secondary.CtxComet, &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            faultyConsensusTime,
 			ProposerAddress: nodeAddress,
@@ -353,11 +272,11 @@ func (s *PayloadCacheSuite) TestReth_RebuildPayload_IsSuccessful() {
 			NextProposerAddress: nodeAddress,
 		}
 		// As we reject our own built proposal, bkit should evict this payload from its cache.
-		processResp, respErr := s.Reth.SimComet.Comet.ProcessProposal(s.Reth.CtxComet, processRequest)
+		processResp, respErr := s.Secondary.SimComet.Comet.ProcessProposal(s.Secondary.CtxComet, processRequest)
 		s.Require().NoError(respErr)
 		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
 		s.Require().Contains(
-			s.Reth.LogBuffer.String(),
+			s.Secondary.LogBuffer.String(),
 			"failed decoding *types.SignedBeaconBlock: ssz: offset smaller than previous",
 		)
 	}
@@ -365,7 +284,7 @@ func (s *PayloadCacheSuite) TestReth_RebuildPayload_IsSuccessful() {
 	// Subsequent round where we are selected to propose again.
 	{
 		// Prepare the valid proposal. This should now request the EL for a new payload.
-		proposal, prepareErr := s.Reth.SimComet.Comet.PrepareProposal(s.Reth.CtxComet, &types.PrepareProposalRequest{
+		proposal, prepareErr := s.Secondary.SimComet.Comet.PrepareProposal(s.Secondary.CtxComet, &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
 			ProposerAddress: nodeAddress,
@@ -383,7 +302,7 @@ func (s *PayloadCacheSuite) TestReth_RebuildPayload_IsSuccessful() {
 		}
 
 		// Process the proposal.
-		processResp, processErr := s.Reth.SimComet.Comet.ProcessProposal(s.Reth.CtxComet, processRequest)
+		processResp, processErr := s.Secondary.SimComet.Comet.ProcessProposal(s.Secondary.CtxComet, processRequest)
 		s.Require().NoError(processErr)
 		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
 
@@ -394,91 +313,9 @@ func (s *PayloadCacheSuite) TestReth_RebuildPayload_IsSuccessful() {
 			ProposerAddress: nodeAddress,
 			Time:            consensusTime,
 		}
-		_, finalizeErr := s.Reth.SimComet.Comet.FinalizeBlock(s.Reth.CtxComet, finalizeRequest)
+		_, finalizeErr := s.Secondary.SimComet.Comet.FinalizeBlock(s.Secondary.CtxComet, finalizeRequest)
 		s.Require().NoError(finalizeErr)
-		_, commitErr := s.Reth.SimComet.Comet.Commit(s.Reth.CtxComet, &types.CommitRequest{})
-		s.Require().NoError(commitErr)
-	}
-}
-
-// This tests a geth validator proposing a invalid block. The proposal is rejected. Then this
-// validator is chosen to propose at a subsequent round. It should now be forced to
-// rebuild a new payload (and not reuse the old one from its cache).
-func (s *PayloadCacheSuite) TestGeth_RebuildPayload_IsSuccessful() {
-	// Initialize the chain state.
-	s.Geth.InitializeChain2Validators(s.T()) // 1 geth validator
-	nodeAddress, err := s.Geth.SimComet.GetNodeAddress()
-	s.Require().NoError(err)
-	s.Geth.SimComet.Comet.SetNodeAddress(nodeAddress)
-
-	// Next block is height 1.
-	nextBlockHeight := int64(1)
-	consensusTime := time.Unix(int64(s.Geth.TestNode.ChainSpec.ElectraForkTime()), 0)
-
-	{
-		// Prepare an invalid proposal.
-		faultyConsensusTime := time.Unix(int64(s.Geth.TestNode.ChainSpec.ElectraForkTime())-1, 0)
-		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
-			Height:          nextBlockHeight,
-			Time:            faultyConsensusTime,
-			ProposerAddress: nodeAddress,
-		})
-		s.Require().NoError(prepareErr)
-		s.Require().Len(proposal.Txs, 2)
-
-		// Process the proposal.
-		processRequest := &types.ProcessProposalRequest{
-			Txs:                 proposal.Txs,
-			Height:              nextBlockHeight,
-			ProposerAddress:     nodeAddress,
-			Time:                consensusTime,
-			NextProposerAddress: nodeAddress,
-		}
-		// As we reject our own built proposal, bkit should evict this payload from its cache.
-		processResp, respErr := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
-		s.Require().NoError(respErr)
-		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
-		s.Require().Contains(
-			s.Geth.LogBuffer.String(),
-			"failed decoding *types.SignedBeaconBlock: ssz: offset smaller than previous",
-		)
-	}
-
-	// Subsequent round where we are selected to propose again.
-	{
-		// Prepare the valid proposal. This should now request the EL for a new payload.
-		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
-			Height:          nextBlockHeight,
-			Time:            consensusTime,
-			ProposerAddress: nodeAddress,
-		})
-		s.Require().NoError(prepareErr)
-		s.Require().Len(proposal.Txs, 2)
-
-		// Process the proposal.
-		processRequest := &types.ProcessProposalRequest{
-			Txs:                 proposal.Txs,
-			Height:              nextBlockHeight,
-			ProposerAddress:     nodeAddress,
-			Time:                consensusTime,
-			NextProposerAddress: nodeAddress,
-		}
-
-		// Process the proposal.
-		processResp, processErr := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
-		s.Require().NoError(processErr)
-		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
-
-		// Now the block is finalized and committed.
-		finalizeRequest := &types.FinalizeBlockRequest{
-			Txs:             proposal.Txs,
-			Height:          nextBlockHeight,
-			ProposerAddress: nodeAddress,
-			Time:            consensusTime,
-		}
-		_, finalizeErr := s.Geth.SimComet.Comet.FinalizeBlock(s.Geth.CtxComet, finalizeRequest)
-		s.Require().NoError(finalizeErr)
-		_, commitErr := s.Geth.SimComet.Comet.Commit(s.Geth.CtxComet, &types.CommitRequest{})
+		_, commitErr := s.Secondary.SimComet.Comet.Commit(s.Secondary.CtxComet, &types.CommitRequest{})
 		s.Require().NoError(commitErr)
 	}
 }
@@ -490,24 +327,24 @@ func (s *PayloadCacheSuite) TestGeth_RebuildPayload_IsSuccessful() {
 // NOTE: this test requires reth with the --engine.always-process-payload-attributes-on-canonical-head flag.
 func (s *PayloadCacheSuite) TestReth_MustRebuildPostForkPayload_IsSuccessful() {
 	// Initialize the chain state.
-	s.Geth.InitializeChain2Validators(s.T()) // 1 geth validator
-	gethNodeAddress, err := s.Geth.SimComet.GetNodeAddress()
+	s.Primary.InitializeChain2Validators(s.T()) // primary node
+	primaryNodeAddress, err := s.Primary.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
-	s.Geth.SimComet.Comet.SetNodeAddress(gethNodeAddress)
-	s.Reth.InitializeChain2Validators(s.T()) // 1 reth validator
-	rethNodeAddress, err := s.Reth.SimComet.GetNodeAddress()
+	s.Primary.SimComet.Comet.SetNodeAddress(primaryNodeAddress)
+	s.Secondary.InitializeChain2Validators(s.T()) // secondary node (with engine override flag)
+	secondaryNodeAddress, err := s.Secondary.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
-	s.Reth.SimComet.Comet.SetNodeAddress(rethNodeAddress)
+	s.Secondary.SimComet.Comet.SetNodeAddress(secondaryNodeAddress)
 
 	// Next block is height 1.
 	nextBlockHeight := int64(1)
-	consensusTime := time.Unix(int64(s.Reth.TestNode.ChainSpec.ElectraForkTime()-1), 0)
+	consensusTime := time.Unix(int64(s.Secondary.TestNode.ChainSpec.ElectraForkTime()-1), 0)
 	{
 		// Prepare the proposal.
-		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
+		proposal, prepareErr := s.Primary.SimComet.Comet.PrepareProposal(s.Primary.CtxComet, &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
-			ProposerAddress: gethNodeAddress,
+			ProposerAddress: primaryNodeAddress,
 		})
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
@@ -516,20 +353,20 @@ func (s *PayloadCacheSuite) TestReth_MustRebuildPostForkPayload_IsSuccessful() {
 		processRequest := &types.ProcessProposalRequest{
 			Txs:                 proposal.Txs,
 			Height:              nextBlockHeight,
-			ProposerAddress:     gethNodeAddress,
+			ProposerAddress:     primaryNodeAddress,
 			Time:                consensusTime,
-			NextProposerAddress: gethNodeAddress,
+			NextProposerAddress: primaryNodeAddress,
 		}
 		// This will trigger a optimistic payload build for block height 2.
-		processResp, respErr := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
+		processResp, respErr := s.Primary.SimComet.Comet.ProcessProposal(s.Primary.CtxComet, processRequest)
 		s.Require().NoError(respErr)
 		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
 
-		// Reth also prepares proposal.
-		proposal, prepareErr = s.Reth.SimComet.Comet.PrepareProposal(s.Reth.CtxComet, &types.PrepareProposalRequest{
+		// Secondary node also prepares proposal.
+		proposal, prepareErr = s.Secondary.SimComet.Comet.PrepareProposal(s.Secondary.CtxComet, &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
-			ProposerAddress: rethNodeAddress,
+			ProposerAddress: secondaryNodeAddress,
 		})
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
@@ -538,12 +375,12 @@ func (s *PayloadCacheSuite) TestReth_MustRebuildPostForkPayload_IsSuccessful() {
 		processRequest = &types.ProcessProposalRequest{
 			Txs:                 proposal.Txs,
 			Height:              nextBlockHeight,
-			ProposerAddress:     rethNodeAddress,
+			ProposerAddress:     secondaryNodeAddress,
 			Time:                consensusTime,
-			NextProposerAddress: rethNodeAddress,
+			NextProposerAddress: secondaryNodeAddress,
 		}
 		// This will trigger a optimistic payload build for block height 2.
-		processResp, respErr = s.Reth.SimComet.Comet.ProcessProposal(s.Reth.CtxComet, processRequest)
+		processResp, respErr = s.Secondary.SimComet.Comet.ProcessProposal(s.Secondary.CtxComet, processRequest)
 		s.Require().NoError(respErr)
 		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
 	}
@@ -553,28 +390,29 @@ func (s *PayloadCacheSuite) TestReth_MustRebuildPostForkPayload_IsSuccessful() {
 	// Next round is height 1, but simulating consensus time is 1 second after previous round.
 	time.Sleep(10 * time.Millisecond) // Next round.
 	{
-		// Try to build a new (pre-fork) payload from geth EL.
-		// NOTE: this will fail because geth does not allow re-building a payload for a height
+		// Try to build a new payload from the primary node EL.
+		// NOTE: this will fail because the primary node does not allow re-building a payload for a height
 		// that has already been marked safe/finalized
-		consensusTime := time.Unix(int64(s.Geth.TestNode.ChainSpec.ElectraForkTime()), 0)
-		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
+		consensusTime := time.Unix(int64(s.Primary.TestNode.ChainSpec.ElectraForkTime()), 0)
+		proposal, prepareErr := s.Primary.SimComet.Comet.PrepareProposal(s.Primary.CtxComet, &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
-			ProposerAddress: gethNodeAddress,
+			ProposerAddress: primaryNodeAddress,
 		})
 		s.Require().NoError(prepareErr)
-		s.Require().Len(proposal.Txs, 0) // Geth returns an empty proposal.
+		s.Require().Len(proposal.Txs, 0) // Primary node returns an empty proposal (no engine override flag).
 	}
 
 	time.Sleep(10 * time.Millisecond) // Next round.
 	{
-		// Try to build a new post-fork payload from reth EL. This works because the reth flag
-		// allows us to rebuild a payload that has already been marked safe/finalized.
-		consensusTime := time.Unix(int64(s.Reth.TestNode.ChainSpec.ElectraForkTime()), 0)
-		proposal, prepareErr := s.Reth.SimComet.Comet.PrepareProposal(s.Reth.CtxComet, &types.PrepareProposalRequest{
+		// Try to build a new post-fork payload from secondary node (with engine override flag) EL.
+		// This works because the engine override flag allows us to rebuild a payload that has
+		// already been marked safe/finalized.
+		consensusTime := time.Unix(int64(s.Secondary.TestNode.ChainSpec.ElectraForkTime()), 0)
+		proposal, prepareErr := s.Secondary.SimComet.Comet.PrepareProposal(s.Secondary.CtxComet, &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
-			ProposerAddress: rethNodeAddress,
+			ProposerAddress: secondaryNodeAddress,
 		})
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
@@ -583,14 +421,14 @@ func (s *PayloadCacheSuite) TestReth_MustRebuildPostForkPayload_IsSuccessful() {
 		processRequest := &types.ProcessProposalRequest{
 			Txs:                 proposal.Txs,
 			Height:              nextBlockHeight,
-			ProposerAddress:     rethNodeAddress,
+			ProposerAddress:     secondaryNodeAddress,
 			Time:                consensusTime,
-			NextProposerAddress: rethNodeAddress,
+			NextProposerAddress: secondaryNodeAddress,
 		}
-		processResp, respErr := s.Reth.SimComet.Comet.ProcessProposal(s.Reth.CtxComet, processRequest)
+		processResp, respErr := s.Secondary.SimComet.Comet.ProcessProposal(s.Secondary.CtxComet, processRequest)
 		s.Require().NoError(respErr)
 		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
-		processResp, respErr = s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
+		processResp, respErr = s.Primary.SimComet.Comet.ProcessProposal(s.Primary.CtxComet, processRequest)
 		s.Require().NoError(respErr)
 		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
 	}
@@ -604,61 +442,61 @@ func (s *PayloadCacheSuite) TestReth_MustRebuildPostForkPayload_IsSuccessful() {
 // to propose the valid pre-fork block.
 func (s *PayloadCacheSuite) TestReth_MustRebuildPreForkPayload_IsSuccessful() {
 	// Initialize the chain state.
-	s.Geth.InitializeChain2Validators(s.T())
-	gethNodeAddress, err := s.Geth.SimComet.GetNodeAddress()
+	s.Primary.InitializeChain2Validators(s.T())
+	primaryNodeAddress, err := s.Primary.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
-	s.Reth.InitializeChain2Validators(s.T())
-	rethNodeAddress, err := s.Reth.SimComet.GetNodeAddress()
+	s.Secondary.InitializeChain2Validators(s.T())
+	secondaryNodeAddress, err := s.Secondary.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
 
 	nextBlockHeight := int64(1)
-	// Both reth and geth prepare and propose a post-fork block without finalizing.
+	// Both primary and secondary nodes prepare and propose a post-fork block without finalizing.
 	{
-		consensusTime := time.Unix(int64(s.Geth.TestNode.ChainSpec.ElectraForkTime()), 0)
+		consensusTime := time.Unix(int64(s.Primary.TestNode.ChainSpec.ElectraForkTime()), 0)
 
-		// Geth builds.
-		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
+		// Primary node builds.
+		proposal, prepareErr := s.Primary.SimComet.Comet.PrepareProposal(s.Primary.CtxComet, &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
-			ProposerAddress: gethNodeAddress,
+			ProposerAddress: primaryNodeAddress,
 		})
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
 
-		// Geth processes the proposal. No bkit payload eviction here.
+		// Primary node processes the proposal. No bkit payload eviction here.
 		// Optimistically build the next height's payload.
 		processRequest := &types.ProcessProposalRequest{
 			Txs:                 proposal.Txs,
 			Height:              nextBlockHeight,
-			ProposerAddress:     gethNodeAddress,
+			ProposerAddress:     primaryNodeAddress,
 			Time:                consensusTime,
-			NextProposerAddress: gethNodeAddress,
+			NextProposerAddress: primaryNodeAddress,
 		}
-		s.Geth.LogBuffer.Reset()
-		processResp, respErr := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
+		s.Primary.LogBuffer.Reset()
+		processResp, respErr := s.Primary.SimComet.Comet.ProcessProposal(s.Primary.CtxComet, processRequest)
 		s.Require().NoError(respErr)
 		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT.String(), processResp.Status.String())
 
-		// Reth also builds.
-		proposal, prepareErr = s.Reth.SimComet.Comet.PrepareProposal(s.Reth.CtxComet, &types.PrepareProposalRequest{
+		// Secondary node also builds.
+		proposal, prepareErr = s.Secondary.SimComet.Comet.PrepareProposal(s.Secondary.CtxComet, &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
-			ProposerAddress: rethNodeAddress,
+			ProposerAddress: secondaryNodeAddress,
 		})
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
 
-		// Reth processes the proposal. No bkit payload eviction here.
+		// Secondary node processes the proposal. No bkit payload eviction here.
 		// Optimistically build the next height's payload.
 		processRequest = &types.ProcessProposalRequest{
 			Txs:                 proposal.Txs,
 			Height:              nextBlockHeight,
-			ProposerAddress:     rethNodeAddress,
+			ProposerAddress:     secondaryNodeAddress,
 			Time:                consensusTime,
-			NextProposerAddress: rethNodeAddress,
+			NextProposerAddress: secondaryNodeAddress,
 		}
-		s.Reth.LogBuffer.Reset()
-		processResp, respErr = s.Reth.SimComet.Comet.ProcessProposal(s.Reth.CtxComet, processRequest)
+		s.Secondary.LogBuffer.Reset()
+		processResp, respErr = s.Secondary.SimComet.Comet.ProcessProposal(s.Secondary.CtxComet, processRequest)
 		s.Require().NoError(respErr)
 		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT.String(), processResp.Status.String())
 	}
@@ -667,31 +505,31 @@ func (s *PayloadCacheSuite) TestReth_MustRebuildPreForkPayload_IsSuccessful() {
 	// The previous payload in cache has been evicted. The optimistic builds for next height
 	// should have completed by now.
 	{
-		// Try to build a new (pre-fork) payload from geth EL.
-		// NOTE: this will fail because geth does not allow re-building a payload for a height
-		// that has already been marked safe/finalized
-		consensusTime := time.Unix(int64(s.Geth.TestNode.ChainSpec.ElectraForkTime())-2, 0)
+		// Try to build a new (pre-fork) payload from the primary node EL.
+		// NOTE: this will fail because the primary node (without engine override flag) does not allow
+		// re-building a payload for a height that has already been marked safe/finalized
+		consensusTime := time.Unix(int64(s.Primary.TestNode.ChainSpec.ElectraForkTime())-2, 0)
 		prepareReq := &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
-			ProposerAddress: gethNodeAddress,
+			ProposerAddress: primaryNodeAddress,
 		}
-		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, prepareReq)
+		proposal, prepareErr := s.Primary.SimComet.Comet.PrepareProposal(s.Primary.CtxComet, prepareReq)
 		s.Require().NoError(prepareErr)
-		s.Require().Len(proposal.Txs, 0) // Geth returns an empty proposal.
+		s.Require().Len(proposal.Txs, 0) // Primary node returns an empty proposal (no engine override flag).
 	}
 
 	time.Sleep(10 * time.Millisecond) // Next round.
 	// The next block the proposer proposes with a pre-fork timestamp will actually have a pre-fork time
 	// Since the previous payload in cache has been evicted, a new payload is built and retrieved.
 	{
-		// Force build a new (pre-fork) payload from reth EL.
+		// Force build a new (pre-fork) payload from secondary node (with engine override flag) EL.
 		// NOTE: this requires --engine.always-process-payload-attributes-on-canonical-head.
-		consensusTime := time.Unix(int64(s.Reth.TestNode.ChainSpec.ElectraForkTime())-1, 0)
-		proposal, prepareErr := s.Reth.SimComet.Comet.PrepareProposal(s.Reth.CtxComet, &types.PrepareProposalRequest{
+		consensusTime := time.Unix(int64(s.Secondary.TestNode.ChainSpec.ElectraForkTime())-1, 0)
+		proposal, prepareErr := s.Secondary.SimComet.Comet.PrepareProposal(s.Secondary.CtxComet, &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
-			ProposerAddress: rethNodeAddress,
+			ProposerAddress: secondaryNodeAddress,
 		})
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
@@ -699,21 +537,21 @@ func (s *PayloadCacheSuite) TestReth_MustRebuildPreForkPayload_IsSuccessful() {
 		processRequest := &types.ProcessProposalRequest{
 			Txs:                 proposal.Txs,
 			Height:              nextBlockHeight,
-			ProposerAddress:     rethNodeAddress,
+			ProposerAddress:     secondaryNodeAddress,
 			Time:                consensusTime,
-			NextProposerAddress: gethNodeAddress,
+			NextProposerAddress: primaryNodeAddress,
 		}
 
 		// Process the proposal. No bkit payload eviction here from cache. Also trigger an optimistic
 		// build for next height.
-		s.Geth.LogBuffer.Reset()
-		processResp, processErr := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
+		s.Primary.LogBuffer.Reset()
+		processResp, processErr := s.Primary.SimComet.Comet.ProcessProposal(s.Primary.CtxComet, processRequest)
 		s.Require().NoError(processErr)
 		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT.String(), processResp.Status.String())
 
-		// Reth also process proposal and does not evict payload from bkit cache.
-		s.Reth.LogBuffer.Reset()
-		processResp, processErr = s.Reth.SimComet.Comet.ProcessProposal(s.Reth.CtxComet, processRequest)
+		// Secondary node also process proposal and does not evict payload from bkit cache.
+		s.Secondary.LogBuffer.Reset()
+		processResp, processErr = s.Secondary.SimComet.Comet.ProcessProposal(s.Secondary.CtxComet, processRequest)
 		s.Require().NoError(processErr)
 		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
 
@@ -721,33 +559,33 @@ func (s *PayloadCacheSuite) TestReth_MustRebuildPreForkPayload_IsSuccessful() {
 		finalizeRequest := &types.FinalizeBlockRequest{
 			Txs:             proposal.Txs,
 			Height:          nextBlockHeight,
-			ProposerAddress: rethNodeAddress,
+			ProposerAddress: secondaryNodeAddress,
 			Time:            consensusTime,
 		}
-		_, finalizeErr := s.Geth.SimComet.Comet.FinalizeBlock(s.Geth.CtxComet, finalizeRequest)
+		_, finalizeErr := s.Primary.SimComet.Comet.FinalizeBlock(s.Primary.CtxComet, finalizeRequest)
 		s.Require().NoError(finalizeErr)
-		_, finalizeErr = s.Reth.SimComet.Comet.FinalizeBlock(s.Reth.CtxComet, finalizeRequest)
+		_, finalizeErr = s.Secondary.SimComet.Comet.FinalizeBlock(s.Secondary.CtxComet, finalizeRequest)
 		s.Require().NoError(finalizeErr)
 
 		// Commit the block.
-		_, err := s.Geth.SimComet.Comet.Commit(s.Geth.CtxComet, &types.CommitRequest{})
+		_, err := s.Primary.SimComet.Comet.Commit(s.Primary.CtxComet, &types.CommitRequest{})
 		s.Require().NoError(err)
-		s.Geth.LogBuffer.Reset()
-		_, err = s.Reth.SimComet.Comet.Commit(s.Reth.CtxComet, &types.CommitRequest{})
+		s.Primary.LogBuffer.Reset()
+		_, err = s.Secondary.SimComet.Comet.Commit(s.Secondary.CtxComet, &types.CommitRequest{})
 		s.Require().NoError(err)
-		s.Reth.LogBuffer.Reset()
+		s.Secondary.LogBuffer.Reset()
 	}
 
-	// Finally, we cross the fork and show no issues. Geth uses the optimistic build which has the
+	// Finally, we cross the fork and show no issues. Primary node uses the optimistic build which has the
 	// correct payload time and consequently is built correctly for post-fork.
 	nextBlockHeight++
 	time.Sleep(100 * time.Millisecond) // The optimistic build for next height should have completed by now.
 	{
-		consensusTime := time.Unix(int64(s.Geth.TestNode.ChainSpec.ElectraForkTime()), 0)
-		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
+		consensusTime := time.Unix(int64(s.Primary.TestNode.ChainSpec.ElectraForkTime()), 0)
+		proposal, prepareErr := s.Primary.SimComet.Comet.PrepareProposal(s.Primary.CtxComet, &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
-			ProposerAddress: gethNodeAddress,
+			ProposerAddress: primaryNodeAddress,
 		})
 		s.Require().NoError(prepareErr)
 		s.Require().Len(proposal.Txs, 2)
@@ -755,26 +593,26 @@ func (s *PayloadCacheSuite) TestReth_MustRebuildPreForkPayload_IsSuccessful() {
 		processRequest := &types.ProcessProposalRequest{
 			Txs:             proposal.Txs,
 			Height:          nextBlockHeight,
-			ProposerAddress: gethNodeAddress,
+			ProposerAddress: primaryNodeAddress,
 			Time:            consensusTime,
 		}
 		// Process the proposal.
-		processResp, processErr := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
+		processResp, processErr := s.Primary.SimComet.Comet.ProcessProposal(s.Primary.CtxComet, processRequest)
 		s.Require().NoError(processErr)
 		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT.String(), processResp.Status.String())
-		s.Require().Contains(s.Geth.LogBuffer.String(), "Processing execution requests")
-		processResp, processErr = s.Reth.SimComet.Comet.ProcessProposal(s.Reth.CtxComet, processRequest)
+		s.Require().Contains(s.Primary.LogBuffer.String(), "Processing execution requests")
+		processResp, processErr = s.Secondary.SimComet.Comet.ProcessProposal(s.Secondary.CtxComet, processRequest)
 		s.Require().NoError(processErr)
 		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
-		s.Require().Contains(s.Reth.LogBuffer.String(), "Processing execution requests")
+		s.Require().Contains(s.Secondary.LogBuffer.String(), "Processing execution requests")
 	}
 }
 
 // Test a scenario where reth must rebuild a payload for a failed state transition.
 func (s *PectraForkSuite) TestReth_MustRebuildForFailedStateTransition_IsSuccessful() {
 	// Initialize the chain state.
-	testEL := s.Reth
-	helpBuilder := s.Geth
+	testEL := s.Secondary
+	helpBuilder := s.Primary
 	testEL.InitializeChain(s.T())
 	helpBuilder.InitializeChain(s.T())
 

@@ -50,8 +50,8 @@ import (
 // PectraForkSuite defines our test suite for Pectra related work using simulated Comet component.
 type PectraForkSuite struct {
 	suite.Suite
-	Geth simulated.SharedAccessors
-	Reth simulated.SharedAccessors
+	Primary   simulated.SharedAccessors
+	Secondary simulated.SharedAccessors
 }
 
 // TestPectraForkSuite runs the test suite.
@@ -62,15 +62,15 @@ func TestPectraForkSuite(t *testing.T) {
 // SetupTest initializes the test environment.
 func (s *PectraForkSuite) SetupTest() {
 	// Create a cancellable context for the duration of the test.
-	s.Geth.CtxApp, s.Geth.CtxAppCancelFn = context.WithCancel(context.Background())
-	s.Reth.CtxApp, s.Reth.CtxAppCancelFn = context.WithCancel(context.Background())
+	s.Primary.CtxApp, s.Primary.CtxAppCancelFn = context.WithCancel(context.Background())
+	s.Secondary.CtxApp, s.Secondary.CtxAppCancelFn = context.WithCancel(context.Background())
 
 	// CometBFT uses context.TODO() for all ABCI calls, so we replicate that.
-	s.Geth.CtxComet = context.TODO()
-	s.Geth.HomeDir = s.T().TempDir()
+	s.Primary.CtxComet = context.TODO()
+	s.Primary.HomeDir = s.T().TempDir()
 
-	s.Reth.CtxComet = context.TODO()
-	s.Reth.HomeDir = s.T().TempDir()
+	s.Secondary.CtxComet = context.TODO()
+	s.Secondary.HomeDir = s.T().TempDir()
 
 	// Initialize the home directory, Comet configuration, and genesis info.
 	const elGenesisPath = "./el-genesis-files/pectra-fork-genesis.json"
@@ -78,36 +78,36 @@ func (s *PectraForkSuite) SetupTest() {
 	// Create the chainSpec.
 	chainSpec, err := chainSpecFunc()
 	s.Require().NoError(err)
-	cometConfig, genesisValidatorsRoot := simulated.InitializeHomeDir(s.T(), chainSpec, s.Geth.HomeDir, elGenesisPath)
-	s.Geth.GenesisValidatorsRoot = genesisValidatorsRoot
-	s.Reth.GenesisValidatorsRoot = genesisValidatorsRoot
+	cometConfig, genesisValidatorsRoot := simulated.InitializeHomeDir(s.T(), chainSpec, s.Primary.HomeDir, elGenesisPath)
+	s.Primary.GenesisValidatorsRoot = genesisValidatorsRoot
+	s.Secondary.GenesisValidatorsRoot = genesisValidatorsRoot
 
-	// Copy the home dir for the Reth Node
-	simulated.CopyHomeDir(s.T(), s.Geth.HomeDir, s.Reth.HomeDir)
+	// Copy the home dir for the Secondary Node
+	simulated.CopyHomeDir(s.T(), s.Primary.HomeDir, s.Secondary.HomeDir)
 
-	// Start the EL (execution layer) Geth node.
-	gethNode := execution.NewGethNode(s.Geth.HomeDir, execution.ValidGethImage())
-	elHandle, authRPC, elRPC := gethNode.Start(s.T(), path.Base(elGenesisPath))
-	s.Geth.ElHandle = elHandle
+	// Start the primary EL (execution layer) Reth node.
+	primaryNode := execution.NewRethNode(s.Primary.HomeDir, execution.ValidRethImage())
+	elHandle, authRPC, elRPC := primaryNode.Start(s.T(), path.Base(elGenesisPath))
+	s.Primary.ElHandle = elHandle
 
-	rethNode := execution.NewRethNode(s.Reth.HomeDir, execution.ValidRethImage())
+	rethNode := execution.NewRethNode(s.Secondary.HomeDir, execution.ValidRethImage())
 	rethHandle, rethAuthRPC, elRPC := rethNode.Start(s.T(), path.Base(elGenesisPath))
-	s.Reth.ElHandle = rethHandle
+	s.Secondary.ElHandle = rethHandle
 
 	// Prepare a logger backed by a buffer to capture logs for assertions.
-	s.Geth.LogBuffer = &simulated.SyncBuffer{}
-	logger := phuslu.NewLogger(s.Geth.LogBuffer, nil)
+	s.Primary.LogBuffer = &simulated.SyncBuffer{}
+	logger := phuslu.NewLogger(s.Primary.LogBuffer, nil)
 
-	s.Reth.LogBuffer = &simulated.SyncBuffer{}
-	rethLogger := phuslu.NewLogger(s.Reth.LogBuffer, nil)
+	s.Secondary.LogBuffer = &simulated.SyncBuffer{}
+	secondaryLogger := phuslu.NewLogger(s.Secondary.LogBuffer, nil)
 
 	// Build the Beacon node with the simulated Comet component and electra genesis chain spec
 	components := simulated.FixedComponents(s.T())
 	components = append(components, simulated.ProvideSimComet)
 	components = append(components, chainSpecFunc)
 
-	s.Geth.TestNode = simulated.NewTestNode(s.T(), simulated.TestNodeInput{
-		TempHomeDir: s.Geth.HomeDir,
+	s.Primary.TestNode = simulated.NewTestNode(s.T(), simulated.TestNodeInput{
+		TempHomeDir: s.Primary.HomeDir,
 		CometConfig: cometConfig,
 		AuthRPC:     authRPC,
 		ClientRPC:   elRPC,
@@ -115,56 +115,55 @@ func (s *PectraForkSuite) SetupTest() {
 		AppOpts:     viper.New(),
 		Components:  components,
 	})
-	s.Geth.SimComet = s.Geth.TestNode.SimComet
+	s.Primary.SimComet = s.Primary.TestNode.SimComet
 
-	s.Reth.TestNode = simulated.NewTestNode(s.T(), simulated.TestNodeInput{
-		TempHomeDir: s.Reth.HomeDir,
+	s.Secondary.TestNode = simulated.NewTestNode(s.T(), simulated.TestNodeInput{
+		TempHomeDir: s.Secondary.HomeDir,
 		CometConfig: cometConfig,
 		AuthRPC:     rethAuthRPC,
 		ClientRPC:   elRPC,
-		Logger:      rethLogger,
+		Logger:      secondaryLogger,
 		AppOpts:     viper.New(),
 		Components:  components,
 	})
-	s.Reth.SimComet = s.Reth.TestNode.SimComet
+	s.Secondary.SimComet = s.Secondary.TestNode.SimComet
 
 	// Start the Beacon node in a separate goroutine.
 	go func() {
-		_ = s.Geth.TestNode.Start(s.Geth.CtxApp)
+		_ = s.Primary.TestNode.Start(s.Primary.CtxApp)
 	}()
 	// Start the Beacon node in a separate goroutine.
 	go func() {
-		_ = s.Reth.TestNode.Start(s.Reth.CtxApp)
+		_ = s.Secondary.TestNode.Start(s.Secondary.CtxApp)
 	}()
 
-	s.Geth.SimulationClient = execution.NewSimulationClient(s.Geth.TestNode.EngineClient)
-	// Reth does not have a simulation API
+	s.Primary.SimulationClient = execution.NewSimulationClient(s.Primary.TestNode.EngineClient)
 	timeOut := 10 * time.Second
 	interval := 50 * time.Millisecond
-	err = simulated.WaitTillServicesStarted(s.Geth.LogBuffer, timeOut, interval)
+	err = simulated.WaitTillServicesStarted(s.Primary.LogBuffer, timeOut, interval)
 	s.Require().NoError(err)
-	err = simulated.WaitTillServicesStarted(s.Reth.LogBuffer, timeOut, interval)
+	err = simulated.WaitTillServicesStarted(s.Secondary.LogBuffer, timeOut, interval)
 	s.Require().NoError(err)
 }
 
 // TearDownTest cleans up the test environment.
 func (s *PectraForkSuite) TearDownTest() {
-	s.Geth.CleanupTestWithLabel(s.T(), "GETH")
-	s.Reth.CleanupTestWithLabel(s.T(), "RETH")
+	s.Primary.CleanupTestWithLabel(s.T(), "PRIMARY")
+	s.Secondary.CleanupTestWithLabel(s.T(), "SECONDARY")
 }
 
 // TestTimestampFork_ELAndCLInSync_IsSuccessful tests that we can fork successfully if EL and CL have synced timestamps
 // The forks timestamp at Unix 0, as the genesis at Unix 0, Cancun is at 10 and Prague is at 20.
-// The Geth Node will be the block producer but the Reth node is treated as a full node, i.e. doesn't produce blocks.
+// The Primary node will be the block producer but the Secondary node is treated as a full node, i.e. doesn't produce blocks.
 func (s *PectraForkSuite) TestTimestampFork_ELAndCLInSync_IsSuccessful() {
-	// Initialize the geth chain state.
-	s.Geth.InitializeChain(s.T())
-	// Initialize the reth chain state.
-	s.Reth.InitializeChain(s.T())
+	// Initialize the primary chain state.
+	s.Primary.InitializeChain(s.T())
+	// Initialize the secondary chain state.
+	s.Secondary.InitializeChain(s.T())
 
-	nodeAddress, err := s.Geth.SimComet.GetNodeAddress()
+	nodeAddress, err := s.Primary.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
-	s.Geth.SimComet.Comet.SetNodeAddress(nodeAddress)
+	s.Primary.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	expectedMessages := []string{
 		"Processing block with fork version service=blockchain\u001B[0m block=1\u001B[0m fork=0x04010000\u001B[0m",
@@ -190,7 +189,7 @@ func (s *PectraForkSuite) TestTimestampFork_ELAndCLInSync_IsSuccessful() {
 
 	for currentHeight := startHeight; currentHeight < startHeight+iterations; currentHeight++ {
 		submitTxNonce = s.submitTransactions(submitTxNonce, 100)
-		proposal, err := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
+		proposal, err := s.Primary.SimComet.Comet.PrepareProposal(s.Primary.CtxComet, &types.PrepareProposalRequest{
 			Height:          currentHeight,
 			Time:            consensusTime,
 			ProposerAddress: nodeAddress,
@@ -213,14 +212,14 @@ func (s *PectraForkSuite) TestTimestampFork_ELAndCLInSync_IsSuccessful() {
 			Time:            consensusTime,
 		}
 		expectedMessage := expectedMessages[expectedMessagesIdx]
-		processFinalizeCommit(s.T(), s.Geth, processRequest, finalizeRequest, expectedMessage)
-		processFinalizeCommit(s.T(), s.Reth, processRequest, finalizeRequest, expectedMessage)
+		processFinalizeCommit(s.T(), s.Primary, processRequest, finalizeRequest, expectedMessage)
+		processFinalizeCommit(s.T(), s.Secondary, processRequest, finalizeRequest, expectedMessage)
 
 		expectedMessagesIdx++
 
 		// set consensus time for the next block to match
 		// the timestamp of the payload built optimistically.
-		forkVersion := s.Geth.TestNode.ChainSpec.ActiveForkVersionForTimestamp(math.U64(consensusTime.Unix())) //#nosec: G115
+		forkVersion := s.Primary.TestNode.ChainSpec.ActiveForkVersionForTimestamp(math.U64(consensusTime.Unix())) //#nosec: G115
 		blk, _, err := encoding.ExtractBlobsAndBlockFromRequest(
 			processRequest,
 			blockchain.BeaconBlockTxIndex,
@@ -238,15 +237,15 @@ func (s *PectraForkSuite) TestTimestampFork_ELAndCLInSync_IsSuccessful() {
 // A user makes a consolidation request on our chain which isn't supported.
 func (s *PectraForkSuite) TestMaliciousUser_MakesConsolidationRequest_IsIgnored() {
 	// Initialize the chain state.
-	s.Geth.InitializeChain(s.T())
-	s.Reth.InitializeChain(s.T())
+	s.Primary.InitializeChain(s.T())
+	s.Secondary.InitializeChain(s.T())
 
 	// Retrieve the BLS signer and proposer address.
-	blsSigner := simulated.GetBlsSigner(s.Geth.HomeDir)
+	blsSigner := simulated.GetBlsSigner(s.Primary.HomeDir)
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
 	nodeAddress := pubkey.Address()
-	s.Geth.SimComet.Comet.SetNodeAddress(nodeAddress)
+	s.Primary.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	nextBlockHeight := int64(1)
 	// We must first move the chain to the fork height, then an extra block
@@ -255,7 +254,7 @@ func (s *PectraForkSuite) TestMaliciousUser_MakesConsolidationRequest_IsIgnored(
 	{
 		for i := 0; i < 2; i++ {
 			consensusTime := time.Now()
-			proposal, err := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
+			proposal, err := s.Primary.SimComet.Comet.PrepareProposal(s.Primary.CtxComet, &types.PrepareProposalRequest{
 				Height:          nextBlockHeight,
 				Time:            consensusTime,
 				ProposerAddress: nodeAddress,
@@ -278,8 +277,8 @@ func (s *PectraForkSuite) TestMaliciousUser_MakesConsolidationRequest_IsIgnored(
 				Time:            consensusTime,
 			}
 			expectedMsg := "fork=0x05000000"
-			processFinalizeCommit(s.T(), s.Geth, processRequest, finalizeRequest, expectedMsg)
-			processFinalizeCommit(s.T(), s.Reth, processRequest, finalizeRequest, expectedMsg)
+			processFinalizeCommit(s.T(), s.Primary, processRequest, finalizeRequest, expectedMsg)
+			processFinalizeCommit(s.T(), s.Secondary, processRequest, finalizeRequest, expectedMsg)
 			nextBlockHeight++
 		}
 	}
@@ -289,10 +288,10 @@ func (s *PectraForkSuite) TestMaliciousUser_MakesConsolidationRequest_IsIgnored(
 		senderKey, err := crypto.HexToECDSA("fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306")
 		s.Require().NoError(err)
 
-		elChainID := big.NewInt(int64(s.Geth.TestNode.ChainSpec.DepositEth1ChainID()))
+		elChainID := big.NewInt(int64(s.Primary.TestNode.ChainSpec.DepositEth1ChainID()))
 		signer := gethtypes.NewPragueSigner(elChainID)
 
-		fee, feeErr := eip7251.GetConsolidationFee(s.Geth.CtxApp, s.Geth.TestNode.EngineClient)
+		fee, feeErr := eip7251.GetConsolidationFee(s.Primary.CtxApp, s.Primary.TestNode.EngineClient)
 		s.Require().NoError(feeErr)
 
 		// The inputs to the request do not necessarily matter, as long as they pass EL validation
@@ -312,7 +311,7 @@ func (s *PectraForkSuite) TestMaliciousUser_MakesConsolidationRequest_IsIgnored(
 		txBytes, marshalErr := consolidationTx.MarshalBinary()
 		s.Require().NoError(marshalErr)
 		var result interface{}
-		err = s.Geth.TestNode.EngineClient.Call(s.Geth.CtxApp, &result, "eth_sendRawTransaction", hexutil.Encode(txBytes))
+		err = s.Primary.TestNode.EngineClient.Call(s.Primary.CtxApp, &result, "eth_sendRawTransaction", hexutil.Encode(txBytes))
 		s.Require().NoError(err)
 		time.Sleep(time.Second) // give it time to allow the tx to be included in the next block
 	}
@@ -320,7 +319,7 @@ func (s *PectraForkSuite) TestMaliciousUser_MakesConsolidationRequest_IsIgnored(
 	{
 		for i := 0; i < 5; i++ {
 			consensusTime := time.Now()
-			proposal, err := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
+			proposal, err := s.Primary.SimComet.Comet.PrepareProposal(s.Primary.CtxComet, &types.PrepareProposalRequest{
 				Height:          nextBlockHeight,
 				Time:            consensusTime,
 				ProposerAddress: nodeAddress,
@@ -347,8 +346,8 @@ func (s *PectraForkSuite) TestMaliciousUser_MakesConsolidationRequest_IsIgnored(
 				// The first block since tx submission will have the consolidation propagated to the CL.
 				expectedMsg = "consolidations=1"
 			}
-			processFinalizeCommit(s.T(), s.Geth, processRequest, finalizeRequest, expectedMsg)
-			processFinalizeCommit(s.T(), s.Reth, processRequest, finalizeRequest, expectedMsg)
+			processFinalizeCommit(s.T(), s.Primary, processRequest, finalizeRequest, expectedMsg)
+			processFinalizeCommit(s.T(), s.Secondary, processRequest, finalizeRequest, expectedMsg)
 			nextBlockHeight++
 		}
 	}
@@ -358,8 +357,8 @@ func (s *PectraForkSuite) TestMaliciousUser_MakesConsolidationRequest_IsIgnored(
 // The next round will propose a valid pre-fork block that gets finalized due to deviance in the consensus timestamp.
 // The proposer will then propose a valid post-fork block that is correctly finalized.
 func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_IsSuccessful() {
-	client := s.Geth
-	helper := s.Reth
+	client := s.Primary
+	helper := s.Secondary
 
 	// Initialize the chain state.
 	client.InitializeChain(s.T())
@@ -528,17 +527,17 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 // This will be rejected and is expected to occur around the fork for 1 or 2 rounds.
 func (s *PectraForkSuite) TestValidProposer_ProposesPreForkBlockWithPostForkConsensusTimestamp_IsRejected() {
 	// Initialize the chain state.
-	s.Geth.InitializeChain(s.T())
-	nodeAddress, err := s.Geth.SimComet.GetNodeAddress()
+	s.Primary.InitializeChain(s.T())
+	nodeAddress, err := s.Primary.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
-	s.Geth.SimComet.Comet.SetNodeAddress(nodeAddress)
+	s.Primary.SimComet.Comet.SetNodeAddress(nodeAddress)
 
 	nextBlockHeight := int64(1)
 	// The proposer prepares a proposal with a pre-fork timestamp, but a post-fork process proposal consensus time.
 	{
 		// a pre-fork time.
 		consensusTime := time.Unix(2, 0)
-		proposal, prepareErr := s.Geth.SimComet.Comet.PrepareProposal(s.Geth.CtxComet, &types.PrepareProposalRequest{
+		proposal, prepareErr := s.Primary.SimComet.Comet.PrepareProposal(s.Primary.CtxComet, &types.PrepareProposalRequest{
 			Height:          nextBlockHeight,
 			Time:            consensusTime,
 			ProposerAddress: nodeAddress,
@@ -556,12 +555,12 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPreForkBlockWithPostForkCons
 
 		// Process the proposal, expect a reject
 		{
-			s.Geth.LogBuffer.Reset()
-			processResp, err := s.Geth.SimComet.Comet.ProcessProposal(s.Geth.CtxComet, processRequest)
+			s.Primary.LogBuffer.Reset()
+			processResp, err := s.Primary.SimComet.Comet.ProcessProposal(s.Primary.CtxComet, processRequest)
 			s.Require().NoError(err)
 			s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
 			s.Require().Contains(
-				s.Geth.LogBuffer.String(),
+				s.Primary.LogBuffer.String(),
 				"failed decoding *types.SignedBeaconBlock: ssz: offset smaller than previous: decoded 392, previous was 396",
 			)
 		}
@@ -572,7 +571,7 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPreForkBlockWithPostForkCons
 // correctly invokes `ProcessFork` on the state processor.
 func (s *PectraForkSuite) Test_OptimisticBuildAtFork_IsSuccessful() {
 	// Initialize the chain state.
-	client := s.Geth
+	client := s.Primary
 	client.InitializeChain(s.T()) // init the validator
 
 	// Retrieve the BLS signer and proposer address.
@@ -697,7 +696,7 @@ func (s *PectraForkSuite) submitTransactions(startNonce uint64, numTransactions 
 	// corresponds with funded address in genesis 0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4
 	senderKey, err := crypto.HexToECDSA("fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306")
 	s.Require().NoError(err)
-	elChainID := big.NewInt(int64(s.Geth.TestNode.ChainSpec.DepositEth1ChainID()))
+	elChainID := big.NewInt(int64(s.Primary.TestNode.ChainSpec.DepositEth1ChainID()))
 	signer := gethtypes.NewPragueSigner(elChainID)
 
 	for i := startNonce; i < startNonce+numTransactions; i++ {
@@ -716,7 +715,7 @@ func (s *PectraForkSuite) submitTransactions(startNonce uint64, numTransactions 
 		s.Require().NoError(marshalErr)
 
 		var result interface{}
-		err = s.Geth.TestNode.EngineClient.Call(s.Geth.CtxApp, &result, "eth_sendRawTransaction", hexutil.Encode(txBytes))
+		err = s.Primary.TestNode.EngineClient.Call(s.Primary.CtxApp, &result, "eth_sendRawTransaction", hexutil.Encode(txBytes))
 		s.Require().NoError(err)
 	}
 	return startNonce + numTransactions

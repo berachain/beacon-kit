@@ -79,8 +79,8 @@ func (s *PectraGenesisSuite) SetupTest() {
 	cometConfig, genesisValidatorsRoot := simulated.InitializeHomeDir(s.T(), chainSpec, s.HomeDir, elGenesisPath)
 	s.GenesisValidatorsRoot = genesisValidatorsRoot
 
-	// Start the EL (execution layer) Geth node.
-	elNode := execution.NewGethNode(s.HomeDir, execution.ValidGethImage())
+	// Start the EL (execution layer) Reth node.
+	elNode := execution.NewRethNode(s.HomeDir, execution.ValidRethImage())
 	elHandle, authRPC, elRPC := elNode.Start(s.T(), path.Base(elGenesisPath))
 	s.ElHandle = elHandle
 
