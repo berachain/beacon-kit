@@ -139,7 +139,6 @@ func (c *SimulationClient) Simulate(
 	blockNumber int64,
 	opts *SimOpts,
 ) ([]*SimulatedBlock, error) {
-
 	var result []*SimulatedBlock
 	blockNumberInput := hexutil.Uint64(blockNumber)
 

@@ -201,6 +201,31 @@ func (s *SharedAccessors) InitializeChain2Validators(t *testing.T) {
 	require.Len(t, deposits, 2, "Expected 2 deposits")
 }
 
+// InitializeChain3Validators sets up the chain using the genesis file and
+// verifies that three validators are present.
+func (s *SharedAccessors) InitializeChain3Validators(t *testing.T) {
+	// Load the genesis state.
+	appGenesis, err := genutiltypes.AppGenesisFromFile(s.HomeDir + "/config/genesis.json")
+	require.NoError(t, err)
+
+	// Initialize the chain.
+	initResp, err := s.SimComet.Comet.InitChain(s.CtxComet, &types.InitChainRequest{
+		ChainId:       TestnetBeaconChainID,
+		AppStateBytes: appGenesis.AppState,
+	})
+	require.NoError(t, err)
+	require.Len(t, initResp.Validators, 3, "Expected 3 validators")
+
+	// Verify that the deposit store contains the expected deposits.
+	deposits, _, err := s.TestNode.StorageBackend.DepositStore().GetDepositsByIndex(
+		s.CtxApp,
+		constants.FirstDepositIndex,
+		constants.FirstDepositIndex+s.TestNode.ChainSpec.MaxDepositsPerBlock(),
+	)
+	require.NoError(t, err)
+	require.Len(t, deposits, 3, "Expected 3 deposits")
+}
+
 // MoveChainToHeight will iterate through the core loop `iterations` times, i.e. Propose, Process, Finalize and Commit.
 // Returns the list of proposed comet blocks.
 func (s *SharedAccessors) MoveChainToHeight(
