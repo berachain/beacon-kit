@@ -502,6 +502,6 @@ func (s *PectraGenesisSuite) TestMaliciousProposer_AddInvalidExecutionRequests_I
 
 		// Verify that the log contains the expected error message.
 		s.Require().Contains(s.LogBuffer.String(), errors.ErrInvalidPayloadStatus.Error())
-		s.Require().Contains(s.LogBuffer.String(), "invalid requests hash (remote: 33ba74e937423115e3abf4250db02588388b4b3a7918950ed44a28e4bf3428d2 local: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855)")
+		s.Require().Contains(s.LogBuffer.String(), "mismatched block requests hash: got 0xe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855, expected 0x33ba74e937423115e3abf4250db02588388b4b3a7918950ed44a28e4bf3428d2")
 	}
 }
