@@ -27,6 +27,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/berachain/beacon-kit/primitives/net/url"
 	"github.com/ory/dockertest"
@@ -97,16 +98,27 @@ func (e *ExecNode) Start(t *testing.T, genesisFile string) (*Resource, *url.Conn
 	})
 	require.NoError(t, err, "failed to run container")
 
-	// Build the connection URLs for EL RPC and Auth RPC.
-	elRPC, err := url.NewFromRaw("http://" + resource.GetHostPort("8545/tcp"))
-	require.NoError(t, err, "failed to create EL RPC URL")
-	authRPC, err := url.NewFromRaw("http://" + resource.GetHostPort("8551/tcp"))
-	require.NoError(t, err, "failed to create Auth RPC URL")
-
-	t.Logf("Auth RPC URL: %s", authRPC.String())
-
-	// Wait until the EL RPC endpoint is available by retrying HTTP GET requests.
+	var (
+		elRPC   *url.ConnectionURL
+		authRPC *url.ConnectionURL
+	)
+	pool.MaxWait = 2 * time.Minute
+	// Wait until the EL RPC endpoint is available by retrying host-port discovery
+	// and HTTP GET requests.
 	err = pool.Retry(func() error {
+		elRPCPort := resource.GetHostPort("8545/tcp")
+		authRPCPort := resource.GetHostPort("8551/tcp")
+		if elRPCPort == "" || authRPCPort == "" {
+			return fmt.Errorf("container ports are not mapped yet (8545=%q 8551=%q)", elRPCPort, authRPCPort)
+		}
+		elRPC, err = url.NewFromRaw("http://" + elRPCPort)
+		if err != nil {
+			return err
+		}
+		authRPC, err = url.NewFromRaw("http://" + authRPCPort)
+		if err != nil {
+			return err
+		}
 		resp, httpErr := http.Get(elRPC.String())
 		if httpErr != nil {
 			return httpErr
@@ -115,6 +127,7 @@ func (e *ExecNode) Start(t *testing.T, genesisFile string) (*Resource, *url.Conn
 		return nil
 	})
 	require.NoError(t, err, "Container did not become ready in time")
+	t.Logf("Auth RPC URL: %s", authRPC.String())
 
 	return &Resource{Resource: resource}, authRPC, elRPC
 }
