@@ -246,8 +246,7 @@ func (sp *StateProcessor) upgradeToElectra1(
 	// Initialize the pending partial withdrawals to an empty array if not already initialized.
 	if _, err := st.GetPendingPartialWithdrawals(); errors.Is(err, collections.ErrNotFound) {
 		sp.metrics.gaugePartialWithdrawalsEnqueued(0)
-		setErr := st.SetPendingPartialWithdrawals([]*types.PendingPartialWithdrawal{})
-		if setErr != nil {
+		if setErr := st.SetPendingPartialWithdrawals([]*types.PendingPartialWithdrawal{}); setErr != nil {
 			return setErr
 		}
 	}
@@ -300,8 +299,7 @@ func (sp *StateProcessor) upgradeToElectra2(
 	// Initialize the pending partial withdrawals to an empty array if not already initialized.
 	if _, err := st.GetPendingPartialWithdrawals(); errors.Is(err, collections.ErrNotFound) {
 		sp.metrics.gaugePartialWithdrawalsEnqueued(0)
-		setErr := st.SetPendingPartialWithdrawals([]*types.PendingPartialWithdrawal{})
-		if setErr != nil {
+		if setErr := st.SetPendingPartialWithdrawals([]*types.PendingPartialWithdrawal{}); setErr != nil {
 			return setErr
 		}
 	}

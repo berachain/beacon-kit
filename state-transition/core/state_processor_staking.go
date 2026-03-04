@@ -41,6 +41,7 @@ func (sp *StateProcessor) processOperations(
 		requests *ctypes.ExecutionRequests
 		err      error
 	)
+
 	if version.EqualsOrIsAfter(blk.GetForkVersion(), version.Electra()) {
 		// Validators increase/decrease stake through execution requests starting in Electra.
 		requests, err = blk.GetBody().GetExecutionRequests()
