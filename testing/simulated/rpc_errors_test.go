@@ -162,8 +162,8 @@ func (s *RPCErrorProxySuite) SetupTest() {
 	s.CtxComet = context.TODO()
 	s.HomeDir = s.T().TempDir()
 
-	const elGenesisPath = "./el-genesis-files/pectra-eth-genesis.json"
-	chainSpecFunc := simulated.ProvideElectraGenesisChainSpec
+	const elGenesisPath = "./el-genesis-files/eth-genesis.json"
+	chainSpecFunc := simulated.ProvideSimulationChainSpec
 	chainSpec, err := chainSpecFunc()
 	s.Require().NoError(err)
 	cometConfig, genesisValidatorsRoot := simulated.InitializeHomeDir(s.T(), chainSpec, s.HomeDir, elGenesisPath)
@@ -178,7 +178,7 @@ func (s *RPCErrorProxySuite) SetupTest() {
 	s.errProxy = newRPCErrorProxy(authRPC.String())
 	s.errProxyServer = httptest.NewServer(s.errProxy)
 
-	// Create a ConnectionURL pointing to the proxy instead of the EL.
+	// Create a ConnectionURL pointing to the proxy instead of Geth.
 	proxyURL, err := url.NewFromRaw(s.errProxyServer.URL)
 	s.Require().NoError(err)
 
@@ -214,9 +214,7 @@ func (s *RPCErrorProxySuite) SetupTest() {
 }
 
 func (s *RPCErrorProxySuite) TearDownTest() {
-	if s.errProxyServer != nil {
-		s.errProxyServer.Close()
-	}
+	s.errProxyServer.Close()
 	s.CleanupTest(s.T())
 }
 

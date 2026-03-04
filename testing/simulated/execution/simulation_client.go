@@ -35,7 +35,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto/kzg4844"
 )
 
-// SimulationClient calls `eth_simulateV1` on an execution layer node.
+// SimulationClient calls `eth_simulateV1` on a Geth node.
 type SimulationClient struct {
 	engineClient *client.EngineClient
 }
@@ -149,9 +149,9 @@ func (c *SimulationClient) Simulate(
 	return result, nil
 }
 
-// TxsToTransactionArgs converts a slice of go-ethereum transactions to TransactionArgs suitable for simulation.
+// TxsToTransactionArgs converts a slice of Geth transactions to TransactionArgs suitable for simulation.
 // The transactions must be dynamic-fee (EIP-1559 or EIP-4844) type.
-// TODO: use the LatestSigner based on a ChainConfig parsed from an EL Genesis File as have currently hardcoded Cancun Signer.
+// TODO: use the LatestSigner based on a Geth ChainConfig parsed from an EL Genesis File as have currently hardcoded Cancun Signer.
 func TxsToTransactionArgs(chainID uint64, txs []*types.Transaction) ([]TransactionArgs, error) {
 	signer := types.NewCancunSigner(big.NewInt(int64(chainID)))
 	args := make([]TransactionArgs, len(txs))

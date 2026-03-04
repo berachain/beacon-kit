@@ -119,7 +119,7 @@ func (s *SharedAccessors) CleanupTest(t *testing.T) {
 }
 
 // CleanupTestWithLabel performs common cleanup operations with an optional label for logs.
-// Use this when managing multiple execution clients (e.g., "PRIMARY", "SECONDARY").
+// Use this when managing multiple execution clients (e.g., "GETH", "RETH").
 func (s *SharedAccessors) CleanupTestWithLabel(t *testing.T, label string) {
 	t.Helper()
 
