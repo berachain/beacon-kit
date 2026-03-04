@@ -20,16 +20,16 @@
 
 package types
 
-import gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
+import gethtypes "github.com/ethereum/go-ethereum/core/types"
 
 type EthGenesis interface {
-	Alloc() gethprimitives.GenesisAlloc
+	Alloc() gethtypes.GenesisAlloc
 }
 
 type DefaultEthGenesisJSON struct {
-	Allocs gethprimitives.GenesisAlloc `json:"alloc"`
+	Allocs gethtypes.GenesisAlloc `json:"alloc"`
 }
 
-func (g *DefaultEthGenesisJSON) Alloc() gethprimitives.GenesisAlloc {
+func (g *DefaultEthGenesisJSON) Alloc() gethtypes.GenesisAlloc {
 	return g.Allocs
 }
