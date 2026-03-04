@@ -44,7 +44,7 @@ func GetWithdrawalFee(ctx context.Context, client rpcClient) (*big.Int, error) {
 	feeInput := &feeOpts{
 		To: params.WithdrawalQueueAddress.String(),
 	}
-	err := client.Call(ctx, &result, "eth_call", feeInput)
+	err := client.Call(ctx, &result, "eth_call", feeInput, "latest")
 	if err != nil {
 		return nil, err
 	}
