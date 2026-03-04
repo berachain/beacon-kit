@@ -26,6 +26,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/berachain/beacon-kit/beacon/preconf"
@@ -34,7 +36,6 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/log/noop"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/net/jwt"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -106,7 +107,7 @@ func TestServer_HandleGetPayload(t *testing.T) {
 			server := preconf.NewServer(
 				noop.NewLogger[any](),
 				preconf.ValidatorJWTs{validatorA: secretA, validatorB: secretB},
-				preconf.NewWhitelist([]crypto.BLSPubkey{validatorA, validatorB}),
+				newTestWhitelist(t, pubkeyAHex, pubkeyBHex),
 				provider,
 				0,
 			)
@@ -140,6 +141,20 @@ func TestServer_RejectsNonPostMethods(t *testing.T) {
 		server.Handler().ServeHTTP(rec, req)
 		require.Equal(t, http.StatusMethodNotAllowed, rec.Code, "method: %s", method)
 	}
+}
+
+// newTestWhitelist writes a temp JSON whitelist file from the given hex pubkeys
+// and returns a Whitelist loaded from it.
+func newTestWhitelist(t *testing.T, pubkeyHexes ...string) preconf.Whitelist {
+	t.Helper()
+	content, err := json.Marshal(pubkeyHexes)
+	require.NoError(t, err)
+	tmpFile := filepath.Join(t.TempDir(), "whitelist.json")
+	err = os.WriteFile(tmpFile, content, 0o644)
+	require.NoError(t, err)
+	wl, err := preconf.NewWhitelist(tmpFile)
+	require.NoError(t, err)
+	return wl
 }
 
 // mockPayloadProvider implements PayloadProvider for tests.
