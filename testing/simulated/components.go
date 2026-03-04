@@ -104,6 +104,28 @@ func ProvideSimulationChainSpec() (chain.Spec, error) {
 	return chainSpec, nil
 }
 
+// ProvideElectra2ForkTestChainSpec provides a chain spec where Electra2 activates
+// at a future timestamp. Used for testing the Electra1 -> Electra2 fork transition,
+// including the EIP-6110 deposit catchup mechanism.
+func ProvideElectra2ForkTestChainSpec() (chain.Spec, error) {
+	specData := spec.TestnetChainSpecData()
+	specData.GenesisTime = 0
+	specData.Deneb1ForkTime = 0
+	specData.ElectraForkTime = 0
+	specData.Electra1ForkTime = 0
+	specData.Electra2ForkTime = 20 // Electra2 activates at timestamp 20
+	// We set slots per epoch to 2 for faster observation
+	specData.SlotsPerEpoch = 2
+	// We set this to 4 so tests are faster
+	specData.MinValidatorWithdrawabilityDelay = 4
+
+	chainSpec, err := chain.NewSpec(specData)
+	if err != nil {
+		return nil, err
+	}
+	return chainSpec, nil
+}
+
 // ProvidePectraForkTestChainSpec provides a chain spec with pectra at timestamp 10
 func ProvidePectraForkTestChainSpec() (chain.Spec, error) {
 	specData := spec.TestnetChainSpecData()
