@@ -20,34 +20,89 @@
 
 package preconf
 
-import "github.com/berachain/beacon-kit/primitives/crypto"
+import (
+	"sync/atomic"
+
+	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/primitives/crypto"
+)
 
 // Whitelist defines the interface for checking if a validator is whitelisted
 // for preconfirmation support.
 type Whitelist interface {
 	// IsWhitelisted returns true if the given public key is in the whitelist.
 	IsWhitelisted(pubkey crypto.BLSPubkey) bool
+
+	// Reload reloads the whitelist from the underlying source. If reloading fails,
+	// it returns an error and keeps the existing whitelist.
+	Reload() error
+
+	// Len returns the number of validators in the whitelist.
+	Len() int
 }
 
-// whitelist is the concrete implementation of Whitelist.
-type whitelist struct {
-	validators map[crypto.BLSPubkey]struct{}
+type validatorSet map[crypto.BLSPubkey]struct{}
+
+// reloadableWhitelist is a the concrete implementation of Whitelist.
+// Allows reloading the whitelist from source at runtime.
+type reloadableWhitelist struct {
+	path    string
+	current atomic.Pointer[validatorSet]
 }
 
-// NewWhitelist creates a new Whitelist from a slice of public keys.
-func NewWhitelist(pubkeys []crypto.BLSPubkey) Whitelist {
-	validators := make(map[crypto.BLSPubkey]struct{}, len(pubkeys))
-	for _, pk := range pubkeys {
-		validators[pk] = struct{}{}
+// Len returns the number of validators in the current whitelist.
+// Returns 0 if the whitelist is not loaded.
+func (r *reloadableWhitelist) Len() int {
+	w := r.current.Load()
+	if w == nil {
+		return 0
 	}
-	return &whitelist{validators: validators}
+	return len(*w)
 }
 
-// IsWhitelisted returns true if the given public key is in the whitelist.
-func (w *whitelist) IsWhitelisted(pubkey crypto.BLSPubkey) bool {
-	if w == nil || w.validators == nil {
+// NewWhitelist creates a new reloadableWhitelist with the given path
+// and logger, also loading the initial whitelist from the path.
+func NewWhitelist(path string) (*reloadableWhitelist, error) {
+	pubkeys, err := LoadWhitelist(path)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to load preconf whitelist from: %s", path)
+	}
+
+	validators := pubkeysToSet(pubkeys)
+
+	r := &reloadableWhitelist{path: path}
+	r.current.Store(validators)
+
+	return r, nil
+}
+
+// IsWhitelisted checks if the given public key is in the current whitelist.
+func (r *reloadableWhitelist) IsWhitelisted(pubkey crypto.BLSPubkey) bool {
+	w := r.current.Load()
+	if w == nil {
 		return false
 	}
-	_, ok := w.validators[pubkey]
+	_, ok := (*w)[pubkey]
 	return ok
+}
+
+// Reload reloads the whitelist from the stored file path. If loading fails,
+// it returns an error and keeps the existing whitelist.
+func (r *reloadableWhitelist) Reload() error {
+	pubkeys, err := LoadWhitelist(r.path)
+	if err != nil {
+		return err
+	}
+	validators := pubkeysToSet(pubkeys)
+	r.current.Store(validators)
+
+	return nil
+}
+
+func pubkeysToSet(pubkeys []crypto.BLSPubkey) *validatorSet {
+	m := make(validatorSet, len(pubkeys))
+	for _, pk := range pubkeys {
+		m[pk] = struct{}{}
+	}
+	return &m
 }
