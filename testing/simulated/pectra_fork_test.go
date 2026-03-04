@@ -87,11 +87,11 @@ func (s *PectraForkSuite) SetupTest() {
 
 	// Start the primary EL (execution layer) Reth node.
 	primaryNode := execution.NewRethNode(s.Primary.HomeDir, execution.ValidRethImage())
-	elHandle, authRPC, elRPC := primaryNode.Start(s.T(), path.Base(elGenesisPath))
+	elHandle, authRPC, primaryELRPC := primaryNode.Start(s.T(), path.Base(elGenesisPath))
 	s.Primary.ElHandle = elHandle
 
 	rethNode := execution.NewRethNode(s.Secondary.HomeDir, execution.ValidRethImage())
-	rethHandle, rethAuthRPC, elRPC := rethNode.Start(s.T(), path.Base(elGenesisPath))
+	rethHandle, rethAuthRPC, secondaryELRPC := rethNode.Start(s.T(), path.Base(elGenesisPath))
 	s.Secondary.ElHandle = rethHandle
 
 	// Prepare a logger backed by a buffer to capture logs for assertions.
@@ -110,7 +110,7 @@ func (s *PectraForkSuite) SetupTest() {
 		TempHomeDir: s.Primary.HomeDir,
 		CometConfig: cometConfig,
 		AuthRPC:     authRPC,
-		ClientRPC:   elRPC,
+		ClientRPC:   primaryELRPC,
 		Logger:      logger,
 		AppOpts:     viper.New(),
 		Components:  components,
@@ -121,7 +121,7 @@ func (s *PectraForkSuite) SetupTest() {
 		TempHomeDir: s.Secondary.HomeDir,
 		CometConfig: cometConfig,
 		AuthRPC:     rethAuthRPC,
-		ClientRPC:   elRPC,
+		ClientRPC:   secondaryELRPC,
 		Logger:      secondaryLogger,
 		AppOpts:     viper.New(),
 		Components:  components,

@@ -77,7 +77,7 @@ func (s *PayloadCacheSuite) SetupTest() {
 
 	// Start the primary EL (execution layer) Reth node.
 	primaryNode := execution.NewRethNode(s.Primary.HomeDir, execution.ValidRethImage())
-	elHandle, authRPC, elRPC := primaryNode.Start(s.T(), path.Base(elGenesisPath))
+	elHandle, authRPC, primaryELRPC := primaryNode.Start(s.T(), path.Base(elGenesisPath))
 	s.Primary.ElHandle = elHandle
 
 	// Choose the secondary reth node to run. 2 specific tests require the engine api override flag.
@@ -89,7 +89,7 @@ func (s *PayloadCacheSuite) SetupTest() {
 	} else {
 		secondaryNode = execution.NewRethNode(s.Secondary.HomeDir, execution.ValidRethImage())
 	}
-	secondaryHandle, secondaryAuthRPC, elRPC := secondaryNode.Start(s.T(), path.Base(elGenesisPath))
+	secondaryHandle, secondaryAuthRPC, secondaryELRPC := secondaryNode.Start(s.T(), path.Base(elGenesisPath))
 	s.Secondary.ElHandle = secondaryHandle
 
 	// Prepare a logger backed by a buffer to capture logs for assertions.
@@ -108,7 +108,7 @@ func (s *PayloadCacheSuite) SetupTest() {
 		TempHomeDir: s.Primary.HomeDir,
 		CometConfig: primaryCmtCfg,
 		AuthRPC:     authRPC,
-		ClientRPC:   elRPC,
+		ClientRPC:   primaryELRPC,
 		Logger:      logger,
 		AppOpts:     viper.New(),
 		Components:  components,
@@ -122,7 +122,7 @@ func (s *PayloadCacheSuite) SetupTest() {
 		TempHomeDir: s.Secondary.HomeDir,
 		CometConfig: secondaryCmtCfg,
 		AuthRPC:     secondaryAuthRPC,
-		ClientRPC:   elRPC,
+		ClientRPC:   secondaryELRPC,
 		Logger:      secondaryLogger,
 		AppOpts:     viper.New(),
 		Components:  components,

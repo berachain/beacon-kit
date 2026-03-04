@@ -555,6 +555,7 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_HasCorrectWithdraw
 		for i := 1; i < 30; i++ {
 			s.defaultDepositWithNonce(blsSigner, creds, depositAmount, false, big.NewInt(int64(i)))
 		}
+		time.Sleep(time.Second) // give it time to allow the txs to be included in the next block
 
 		s.LogBuffer.Reset()
 		s.MoveChainToHeight(s.T(), nextBlockHeight, iterations, nodeAddress, time.Now())
