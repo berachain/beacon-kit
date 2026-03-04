@@ -91,7 +91,7 @@ func (r *reloadableWhitelist) IsWhitelisted(pubkey crypto.BLSPubkey) bool {
 func (r *reloadableWhitelist) Reload() error {
 	pubkeys, err := LoadWhitelist(r.path)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to load preconf whitelist from: %s", r.path)
 	}
 	validators := pubkeysToSet(pubkeys)
 	r.current.Store(validators)

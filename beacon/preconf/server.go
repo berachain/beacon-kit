@@ -25,8 +25,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
+	"os/signal"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
@@ -69,6 +72,7 @@ type Server struct {
 
 	mu         sync.RWMutex
 	httpServer *http.Server
+	sighup     chan os.Signal
 }
 
 // NewServer creates a new preconf API server.
@@ -122,6 +126,25 @@ func (s *Server) Start(_ context.Context) error {
 		}
 	}()
 
+	// Listen for SIGHUP to hot-reload the whitelist without restarting.
+	s.mu.Lock()
+	s.sighup = make(chan os.Signal, 1)
+	s.mu.Unlock()
+	signal.Notify(s.sighup, syscall.SIGHUP)
+	go func() {
+		for range s.sighup {
+			if err := s.whitelist.Reload(); err != nil {
+				s.logger.Error("Failed to reload preconf whitelist", "error", err)
+				continue
+			}
+			if s.whitelist.Len() == 0 {
+				s.logger.Error("Reloaded preconf whitelist is empty")
+				continue
+			}
+			s.logger.Info("Preconf whitelist reloaded", "whitelist_count", s.whitelist.Len())
+		}
+	}()
+
 	return nil
 }
 
@@ -129,7 +152,13 @@ func (s *Server) Start(_ context.Context) error {
 func (s *Server) Stop() error {
 	s.mu.RLock()
 	server := s.httpServer
+	sighup := s.sighup
 	s.mu.RUnlock()
+
+	if sighup != nil {
+		signal.Stop(sighup)
+		close(sighup)
+	}
 
 	if server == nil {
 		return nil
