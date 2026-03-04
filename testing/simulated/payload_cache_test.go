@@ -24,25 +24,38 @@ package simulated_test
 
 import (
 	"context"
+	"math/big"
 	"path"
 	"strings"
 	"testing"
 	"time"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/beacon/blockchain"
+	svcencoding "github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/log/phuslu"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/eip4844"
+	"github.com/berachain/beacon-kit/primitives/net/url"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
 	"github.com/cometbft/cometbft/abci/types"
+	cmtcfg "github.com/cometbft/cometbft/config"
+	gethcommon "github.com/ethereum/go-ethereum/common"
+	gethtypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/crypto/kzg4844"
+	"github.com/holiman/uint256"
 	"github.com/spf13/viper"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
 // PayloadCacheSuite defines our test suite for Pectra related work using simulated Comet component.
 type PayloadCacheSuite struct {
 	suite.Suite
-	Geth simulated.SharedAccessors
-	Reth simulated.SharedAccessors
+	Geth  simulated.SharedAccessors
+	Reth  simulated.SharedAccessors
+	Reth2 simulated.SharedAccessors
 }
 
 // TestPayloadCacheSuite runs the test suite.
@@ -52,9 +65,18 @@ func TestPayloadCacheSuite(t *testing.T) {
 
 // SetupTest initializes the test environment.
 func (s *PayloadCacheSuite) SetupTest() {
+	testName := s.T().Name()
+	useThirdValidatorSetup := strings.Contains(
+		testName,
+		"TestReth_MisorderedBlobSidecarsCachedEnvelope_IsSuccessful",
+	)
+
 	// Create a cancellable context for the duration of the test.
 	s.Geth.CtxApp, s.Geth.CtxAppCancelFn = context.WithCancel(context.Background())
 	s.Reth.CtxApp, s.Reth.CtxAppCancelFn = context.WithCancel(context.Background())
+	if useThirdValidatorSetup {
+		s.Reth2.CtxApp, s.Reth2.CtxAppCancelFn = context.WithCancel(context.Background())
+	}
 
 	// CometBFT uses context.TODO() for all ABCI calls, so we replicate that.
 	s.Geth.CtxComet = context.TODO()
@@ -63,17 +85,37 @@ func (s *PayloadCacheSuite) SetupTest() {
 	s.Reth.CtxComet = context.TODO()
 	s.Reth.HomeDir = s.T().TempDir()
 
+	if useThirdValidatorSetup {
+		s.Reth2.CtxComet = context.TODO()
+		s.Reth2.HomeDir = s.T().TempDir()
+	}
+
 	// Initialize the home directory, Comet configuration, and genesis info.
 	const elGenesisPath = "./el-genesis-files/pectra-fork-genesis.json"
 	chainSpecFunc := simulated.ProvidePectraForkTestChainSpec
 	// Create the chainSpec.
 	chainSpec, err := chainSpecFunc()
 	s.Require().NoError(err)
-	gethCmtCfg, rethCmtCfg, genesisValidatorsRoot := simulated.Initialize2HomeDirs(
-		s.T(), chainSpec, s.Geth.HomeDir, s.Reth.HomeDir, elGenesisPath,
+	var (
+		gethCmtCfg            *cmtcfg.Config
+		rethCmtCfg            *cmtcfg.Config
+		reth2CmtCfg           *cmtcfg.Config
+		genesisValidatorsRoot common.Root
 	)
-	s.Geth.GenesisValidatorsRoot = genesisValidatorsRoot
-	s.Reth.GenesisValidatorsRoot = genesisValidatorsRoot
+	if useThirdValidatorSetup {
+		gethCmtCfg, rethCmtCfg, reth2CmtCfg, genesisValidatorsRoot = simulated.Initialize3HomeDirs(
+			s.T(), chainSpec, s.Geth.HomeDir, s.Reth.HomeDir, s.Reth2.HomeDir, elGenesisPath,
+		)
+		s.Geth.GenesisValidatorsRoot = genesisValidatorsRoot
+		s.Reth.GenesisValidatorsRoot = genesisValidatorsRoot
+		s.Reth2.GenesisValidatorsRoot = genesisValidatorsRoot
+	} else {
+		gethCmtCfg, rethCmtCfg, genesisValidatorsRoot = simulated.Initialize2HomeDirs(
+			s.T(), chainSpec, s.Geth.HomeDir, s.Reth.HomeDir, elGenesisPath,
+		)
+		s.Geth.GenesisValidatorsRoot = genesisValidatorsRoot
+		s.Reth.GenesisValidatorsRoot = genesisValidatorsRoot
+	}
 
 	// Start the EL (execution layer) Geth node.
 	gethNode := execution.NewGethNode(s.Geth.HomeDir, execution.ValidGethImage())
@@ -81,16 +123,33 @@ func (s *PayloadCacheSuite) SetupTest() {
 	s.Geth.ElHandle = elHandle
 
 	// Choose the reth node to run. 2 specific tests require the engine api override flag.
-	var rethNode *execution.ExecNode
-	testName := s.T().Name()
+	var (
+		rethNode  *execution.ExecNode
+		reth2Node *execution.ExecNode
+	)
 	if strings.Contains(testName, "TestReth_MustRebuildPostForkPayload_IsSuccessful") ||
 		strings.Contains(testName, "TestReth_MustRebuildPreForkPayload_IsSuccessful") {
 		rethNode = execution.NewRethNodeWithEngineOverride(s.Reth.HomeDir, execution.ValidRethImage())
+		if useThirdValidatorSetup {
+			reth2Node = execution.NewRethNodeWithEngineOverride(s.Reth2.HomeDir, execution.ValidRethImage())
+		}
 	} else {
 		rethNode = execution.NewRethNode(s.Reth.HomeDir, execution.ValidRethImage())
+		if useThirdValidatorSetup {
+			reth2Node = execution.NewRethNode(s.Reth2.HomeDir, execution.ValidRethImage())
+		}
 	}
-	rethHandle, rethAuthRPC, elRPC := rethNode.Start(s.T(), path.Base(elGenesisPath))
+	rethHandle, rethAuthRPC, rethRPC := rethNode.Start(s.T(), path.Base(elGenesisPath))
 	s.Reth.ElHandle = rethHandle
+	var (
+		reth2Handle  *execution.Resource
+		reth2AuthRPC *url.ConnectionURL
+		reth2RPC     *url.ConnectionURL
+	)
+	if useThirdValidatorSetup {
+		reth2Handle, reth2AuthRPC, elRPC = reth2Node.Start(s.T(), path.Base(elGenesisPath))
+		s.Reth2.ElHandle = reth2Handle
+	}
 
 	// Prepare a logger backed by a buffer to capture logs for assertions.
 	s.Geth.LogBuffer = &simulated.SyncBuffer{}
@@ -98,6 +157,12 @@ func (s *PayloadCacheSuite) SetupTest() {
 
 	s.Reth.LogBuffer = &simulated.SyncBuffer{}
 	rethLogger := phuslu.NewLogger(s.Reth.LogBuffer, nil)
+
+	var reth2Logger *phuslu.Logger
+	if useThirdValidatorSetup {
+		s.Reth2.LogBuffer = &simulated.SyncBuffer{}
+		reth2Logger = phuslu.NewLogger(s.Reth2.LogBuffer, nil)
+	}
 
 	// Build the Beacon node with the simulated Comet component and electra genesis chain spec
 	components := simulated.FixedComponents(s.T())
@@ -122,7 +187,7 @@ func (s *PayloadCacheSuite) SetupTest() {
 		TempHomeDir: s.Reth.HomeDir,
 		CometConfig: rethCmtCfg,
 		AuthRPC:     rethAuthRPC,
-		ClientRPC:   elRPC,
+		ClientRPC:   rethRPC,
 		Logger:      rethLogger,
 		AppOpts:     viper.New(),
 		Components:  components,
@@ -132,6 +197,22 @@ func (s *PayloadCacheSuite) SetupTest() {
 	s.Require().NoError(err)
 	s.Reth.SimComet.Comet.SetNodeAddress(nodeAddress)
 
+	if useThirdValidatorSetup {
+		s.Reth2.TestNode = simulated.NewTestNode(s.T(), simulated.TestNodeInput{
+			TempHomeDir: s.Reth2.HomeDir,
+			CometConfig: reth2CmtCfg,
+			AuthRPC:     reth2AuthRPC,
+			ClientRPC:   reth2RPC,
+			Logger:      reth2Logger,
+			AppOpts:     viper.New(),
+			Components:  components,
+		})
+		s.Reth2.SimComet = s.Reth2.TestNode.SimComet
+		nodeAddress, err = s.Reth2.SimComet.GetNodeAddress()
+		s.Require().NoError(err)
+		s.Reth2.SimComet.Comet.SetNodeAddress(nodeAddress)
+	}
+
 	// Start the Beacon node in a separate goroutine.
 	go func() {
 		_ = s.Geth.TestNode.Start(s.Geth.CtxApp)
@@ -140,6 +221,11 @@ func (s *PayloadCacheSuite) SetupTest() {
 	go func() {
 		_ = s.Reth.TestNode.Start(s.Reth.CtxApp)
 	}()
+	if useThirdValidatorSetup {
+		go func() {
+			_ = s.Reth2.TestNode.Start(s.Reth2.CtxApp)
+		}()
+	}
 
 	s.Geth.SimulationClient = execution.NewSimulationClient(s.Geth.TestNode.EngineClient)
 	// Reth does not have a simulation API
@@ -155,6 +241,7 @@ func (s *PayloadCacheSuite) SetupTest() {
 func (s *PayloadCacheSuite) TearDownTest() {
 	s.Geth.CleanupTestWithLabel(s.T(), "GETH")
 	s.Reth.CleanupTestWithLabel(s.T(), "RETH")
+	s.Reth2.CleanupTestWithLabel(s.T(), "RETH2")
 }
 
 // This tests a reth validator proposing a block. It then accepts the proposal in
@@ -770,121 +857,199 @@ func (s *PayloadCacheSuite) TestReth_MustRebuildPreForkPayload_IsSuccessful() {
 	}
 }
 
-// Test a scenario where reth must rebuild a payload for a failed state transition.
-func (s *PectraForkSuite) TestReth_MustRebuildForFailedStateTransition_IsSuccessful() {
-	// Initialize the chain state.
-	testEL := s.Reth
-	helpBuilder := s.Geth
-	testEL.InitializeChain(s.T())
-	helpBuilder.InitializeChain(s.T())
+// This tests a malicious proposer that reorders blob sidecars in a proposal.
+// Another validator accepts and caches the payload envelope without finalizing.
+// In a subsequent round at the same height, the caching validator proposes again
+// from cache and a third validator accepts that proposal.
+func (s *PayloadCacheSuite) TestReth_MisorderedBlobSidecarsCachedEnvelope_IsSuccessful() {
+	// Initialize chain state with 3 validators.
+	s.Geth.InitializeChain3Validators(s.T())
+	s.Reth.InitializeChain3Validators(s.T())
+	s.Reth2.InitializeChain3Validators(s.T())
 
-	// Retrieve the BLS signer and proposer address.
-	blsSigner := simulated.GetBlsSigner(testEL.HomeDir)
-	pubkey, err := blsSigner.GetPubKey()
+	// validator A: malicious proposer.
+	maliciousProposerAddress, err := s.Geth.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
-	nodeAddress := pubkey.Address()
-	testEL.SimComet.Comet.SetNodeAddress(nodeAddress)
+	s.Geth.SimComet.Comet.SetNodeAddress(maliciousProposerAddress)
 
-	const blkHeight = int64(1)
+	// validator B: verifies malicious proposal and later proposes from cache.
+	cachingValidatorAddress, err := s.Reth.SimComet.GetNodeAddress()
+	s.Require().NoError(err)
+	s.Reth.SimComet.Comet.SetNodeAddress(cachingValidatorAddress)
+
+	// validator C: verifies validator B's subsequent proposal.
+	verifyingValidatorAddress, err := s.Reth2.SimComet.GetNodeAddress()
+	s.Require().NoError(err)
+	s.Reth2.SimComet.Comet.SetNodeAddress(verifyingValidatorAddress)
+
+	nextBlockHeight := int64(1)
+	consensusTime := time.Unix(int64(s.Reth.TestNode.ChainSpec.ElectraForkTime()), 0)
+
+	// Seed proposer A's EL with blob txs so the proposal has reorderable sidecars.
+	s.submitBlobTransactions(s.Geth, 2)
+
 	var (
-		specs         = testEL.TestNode.ChainSpec
-		consensusTime = time.Unix(int64(specs.ElectraForkTime()), 0)
-
-		validTxsHeight1 [][]byte
+		proposal    *types.PrepareProposalResponse
+		reorderedTx bool
 	)
-
-	{
-		// 1- Build a valid block at height 1, via the helpBuilder
-		prepareRequest := &types.PrepareProposalRequest{
-			Height:          blkHeight,
-			Time:            consensusTime,
-			ProposerAddress: nodeAddress,
-		}
-		proposal, prepareErr := helpBuilder.SimComet.Comet.PrepareProposal(helpBuilder.CtxComet, prepareRequest)
-		s.Require().NoError(prepareErr)
-		s.Require().Len(proposal.Txs, 2)
-		validTxsHeight1 = proposal.Txs
-
-		// 2- Process the block via testEL node. The proposal is expected
-		// to pass and start building payload for height 2, optimistically.
-		processRequest := &types.ProcessProposalRequest{
-			Txs:                 proposal.Txs,
-			Height:              blkHeight,
-			ProposerAddress:     nodeAddress,
-			Time:                consensusTime,
-			NextProposerAddress: nodeAddress,
-		}
-		processResp, respErr := testEL.SimComet.Comet.ProcessProposal(testEL.CtxComet, processRequest)
-		s.Require().NoError(respErr)
-		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT.String(), processResp.Status.String())
-	}
-
-	// For some reason, the supermajority does not finalize the block.
-	// Another block comes, still at height 1, this time *invalid*. This would force
-	// the node to rebuild height 1, which the EL cannot do since it has already received
-	// an FCU(head == block_at_height_2)
-	{
-		invalidTxs := testBuildInvalidBlock(
-			s.Require(),
-			helpBuilder,
-			&types.PrepareProposalRequest{
-				Txs:             validTxsHeight1,
-				Height:          blkHeight,
+	for i := 0; i < 8; i++ {
+		proposal, err = s.Geth.SimComet.Comet.PrepareProposal(
+			s.Geth.CtxComet, &types.PrepareProposalRequest{
+				Height:          nextBlockHeight,
 				Time:            consensusTime,
-				ProposerAddress: pubkey.Address(),
-			},
-			func(sbb *ctypes.SignedBeaconBlock) {
-				sbb.Body.RandaoReveal = [96]byte{'t', 'e', 's', 't'} // this makes the block invalid
+				ProposerAddress: maliciousProposerAddress,
 			},
 		)
-
-		// 3- Process the invalid proposal proposal. It will be rejected
-		// and attempt to build optimistically a block at height 1.
-		processRequest := &types.ProcessProposalRequest{
-			Txs:                 invalidTxs,
-			Height:              blkHeight,
-			ProposerAddress:     nodeAddress,
-			Time:                consensusTime,
-			NextProposerAddress: nodeAddress,
-		}
-		processResp, processErr := testEL.SimComet.Comet.ProcessProposal(testEL.CtxComet, processRequest)
-		s.Require().NoError(processErr)
-		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT.String(), processResp.Status.String())
-	}
-
-	{
-		// 4- Finally let reth node build block at height 1, process and finalize it
-		prepareRequest := &types.PrepareProposalRequest{
-			Height:          blkHeight,
-			Time:            consensusTime,
-			ProposerAddress: pubkey.Address(),
-		}
-		proposal, prepareErr := testEL.SimComet.Comet.PrepareProposal(testEL.CtxComet, prepareRequest)
-		s.Require().NoError(prepareErr)
+		s.Require().NoError(err)
 		s.Require().Len(proposal.Txs, 2)
 
-		// Process the proposal via testEL node. The proposal is expected
-		// to pass and start building payload for height 2, optimistically.
-		processRequest := &types.ProcessProposalRequest{
-			Txs:                 proposal.Txs,
-			Height:              blkHeight,
-			ProposerAddress:     nodeAddress,
-			Time:                consensusTime,
-			NextProposerAddress: nodeAddress,
+		sidecars, scErr := svcencoding.UnmarshalBlobSidecarsFromABCIRequest(
+			proposal.Txs,
+			blockchain.BlobSidecarsTxIndex,
+		)
+		s.Require().NoError(scErr)
+		if len(sidecars) < 2 {
+			time.Sleep(150 * time.Millisecond)
+			continue
 		}
-		processResp, respErr := testEL.SimComet.Comet.ProcessProposal(testEL.CtxComet, processRequest)
-		s.Require().NoError(respErr)
-		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT.String(), processResp.Status.String())
 
-		finalizeRequest := &types.FinalizeBlockRequest{
-			Txs:             proposal.Txs,
-			Height:          blkHeight,
-			ProposerAddress: pubkey.Address(),
-			Time:            consensusTime,
-		}
-		_, finalizeErr := testEL.SimComet.Comet.FinalizeBlock(testEL.CtxComet, finalizeRequest)
-		s.Require().NoError(finalizeErr)
-		_, commitErr := testEL.SimComet.Comet.Commit(testEL.CtxComet, &types.CommitRequest{})
-		s.Require().NoError(commitErr)
+		// Maliciously reorder two sidecars in the proposal.
+		sidecars[0], sidecars[1] = sidecars[1], sidecars[0]
+		sidecarBytes, marshalErr := sidecars.MarshalSSZ()
+		s.Require().NoError(marshalErr)
+		proposal.Txs[blockchain.BlobSidecarsTxIndex] = sidecarBytes
+		reorderedTx = true
+		break
 	}
+	s.Require().True(
+		reorderedTx,
+		"expected at least 2 blob sidecars so the malicious proposer can reorder them",
+	)
+
+	// validator B verifies and accepts the maliciously-ordered proposal. This caches the
+	// payload envelope, but the block never finalizes.
+	processResp, err := s.Reth.SimComet.Comet.ProcessProposal(
+		s.Reth.CtxComet, &types.ProcessProposalRequest{
+			Txs:                 proposal.Txs,
+			Height:              nextBlockHeight,
+			ProposerAddress:     maliciousProposerAddress,
+			Time:                consensusTime,
+			NextProposerAddress: cachingValidatorAddress,
+		},
+	)
+	s.Require().NoError(err)
+	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
+
+	// Next round at same height; validator B now proposes from cached envelope.
+	time.Sleep(200 * time.Millisecond)
+	consensusTime = consensusTime.Add(time.Second)
+	cachedProposal, err := s.Reth.SimComet.Comet.PrepareProposal(
+		s.Reth.CtxComet, &types.PrepareProposalRequest{
+			Height:          nextBlockHeight,
+			Time:            consensusTime,
+			ProposerAddress: cachingValidatorAddress,
+		},
+	)
+	s.Require().NoError(err)
+	s.Require().Len(cachedProposal.Txs, 2)
+
+	// Ensure the proposal from cache carries sidecars in canonical index order.
+	cachedSidecars, err := svcencoding.UnmarshalBlobSidecarsFromABCIRequest(
+		cachedProposal.Txs,
+		blockchain.BlobSidecarsTxIndex,
+	)
+	s.Require().NoError(err)
+	s.Require().GreaterOrEqual(len(cachedSidecars), 2)
+	for i := 1; i < len(cachedSidecars); i++ {
+		s.Require().GreaterOrEqual(
+			cachedSidecars[i].GetIndex(),
+			cachedSidecars[i-1].GetIndex(),
+		)
+	}
+
+	// validator C verifies the cached proposal and accepts it.
+	processResp, err = s.Reth2.SimComet.Comet.ProcessProposal(
+		s.Reth2.CtxComet, &types.ProcessProposalRequest{
+			Txs:                 cachedProposal.Txs,
+			Height:              nextBlockHeight,
+			ProposerAddress:     cachingValidatorAddress,
+			Time:                consensusTime,
+			NextProposerAddress: verifyingValidatorAddress,
+		},
+	)
+	s.Require().NoError(err)
+	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
+}
+
+func (s *PayloadCacheSuite) submitBlobTransactions(node simulated.SharedAccessors, numBlobs int) {
+	s.T().Helper()
+	s.Require().GreaterOrEqual(numBlobs, 2)
+
+	blobs := make([]*eip4844.Blob, numBlobs)
+	for i := range blobs {
+		blob := &eip4844.Blob{}
+		blob[0] = byte(i + 1)
+		blob[1] = byte(i + 2)
+		blobs[i] = blob
+	}
+
+	proofs, commitments := simulated.GetProofAndCommitmentsForBlobs(
+		require.New(s.T()),
+		blobs,
+		node.TestNode.KZGVerifier,
+	)
+
+	testKey := simulated.GetTestKey(s.T())
+	chainID := node.TestNode.ChainSpec.DepositEth1ChainID()
+	signer := gethtypes.NewCancunSigner(big.NewInt(int64(chainID)))
+	senderAddress := crypto.PubkeyToAddress(testKey.PublicKey)
+	recipientAddress := gethcommon.HexToAddress(simulated.WithdrawalExecutionAddress)
+
+	nextNonce, err := node.TestNode.ContractBackend.PendingNonceAt(node.CtxApp, senderAddress)
+	s.Require().NoError(err)
+
+	for i := 0; i < numBlobs; i++ {
+		txSidecar := &gethtypes.BlobTxSidecar{
+			Blobs:       []kzg4844.Blob{kzg4844.Blob(blobs[i][:])},
+			Commitments: []kzg4844.Commitment{kzg4844.Commitment(commitments[i])},
+			Proofs:      []kzg4844.Proof{kzg4844.Proof(proofs[i])},
+		}
+		blobHash := commitments[i].ToVersionedHash()
+
+		blobTx, signErr := gethtypes.SignNewTx(
+			testKey,
+			signer,
+			&gethtypes.BlobTx{
+				ChainID:    uint256.NewInt(chainID),
+				Nonce:      nextNonce + uint64(i),
+				GasTipCap:  uint256.NewInt(10_000_000_000),
+				GasFeeCap:  uint256.NewInt(10_000_000_000),
+				Gas:        210000,
+				To:         recipientAddress,
+				Value:      uint256.NewInt(0),
+				Data:       []byte{},
+				AccessList: nil,
+				BlobFeeCap: uint256.NewInt(10_000_000_000),
+				BlobHashes: []gethcommon.Hash{blobHash},
+				// Sidecar must be nil on signing; we attach it immediately after.
+				Sidecar: nil,
+			},
+		)
+		s.Require().NoError(signErr)
+
+		blobTx = blobTx.WithBlobTxSidecar(txSidecar)
+		sendErr := node.TestNode.ContractBackend.SendTransaction(node.CtxApp, blobTx)
+		s.Require().NoError(sendErr)
+	}
+
+	for i := 0; i < 10; i++ {
+		pendingNonce, nonceErr := node.TestNode.ContractBackend.PendingNonceAt(node.CtxApp, senderAddress)
+		s.Require().NoError(nonceErr)
+		if pendingNonce >= nextNonce+uint64(numBlobs) {
+			return
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+
+	s.T().Fatalf("blob transactions did not enter txpool in time")
 }
