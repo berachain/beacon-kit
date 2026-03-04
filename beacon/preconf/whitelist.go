@@ -62,7 +62,7 @@ func (r *reloadableWhitelist) Len() int {
 
 // NewWhitelist creates a new reloadableWhitelist with the given path
 // and logger, also loading the initial whitelist from the path.
-func NewWhitelist(path string) (*reloadableWhitelist, error) {
+func NewWhitelist(path string) (Whitelist, error) {
 	pubkeys, err := LoadWhitelist(path)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to load preconf whitelist from: %s", path)
