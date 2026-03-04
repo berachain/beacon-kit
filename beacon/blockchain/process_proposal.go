@@ -364,6 +364,19 @@ func (s *Service) VerifyIncomingBlock(
 		go s.handleOptimisticPayloadBuild(ctx, nextBlockData)
 	}
 
+	// TODO: Handle edge case around Electra2 fork activation.
+	// When transitioning from Electra1 to Electra2, deposits from the 2 blocks right before the
+	// fork activation will be lost. The old system fetches deposits from EL block N-1 during
+	// finalize_block N; the new system gets deposits embedded in the EL block itself.
+	//
+	// if version.Equals(
+	// 	s.chainSpec.ActiveForkVersionForTimestamp(nextBlockData.Timestamp),
+	// 	version.Electra2(),
+	// ) {
+	// 	// If the next block is on the Electra2 fork, we need to fetch the deposits from the EL.
+	// 	s.depositFetcher(ctx, nextBlockData.Number)
+	// }
+
 	return valUpdates, nil
 }
 

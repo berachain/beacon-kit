@@ -70,8 +70,8 @@ func (s *Client) NewPayload(
 			executionRequests,
 		)
 
-	case version.Equals(forkVersion, version.Electra1()):
-		// Use V4P11 for Electra1 versions.
+	case version.Equals(forkVersion, version.Electra1()), version.Equals(forkVersion, version.Electra2()):
+		// Use V4P11 for Electra1 and Electra2 versions.
 		executionRequests, err := req.GetEncodedExecutionRequests()
 		if err != nil {
 			return nil, err
@@ -164,8 +164,8 @@ func (s *Client) ForkchoiceUpdated(
 		// Deneb versions and Electra use ForkchoiceUpdatedV3.
 		return s.ForkchoiceUpdatedV3(ctx, state, attrs)
 
-	case version.Equals(forkVersion, version.Electra1()):
-		// Electra1 uses ForkchoiceUpdatedV3P11.
+	case version.Equals(forkVersion, version.Electra1()), version.Equals(forkVersion, version.Electra2()):
+		// Electra1 and Electra2 use ForkchoiceUpdatedV3P11.
 		return s.ForkchoiceUpdatedV3P11(ctx, state, attrs)
 
 	default:
@@ -234,7 +234,7 @@ func (s *Client) GetPayload(
 	case version.Equals(forkVersion, version.Electra()):
 		return s.GetPayloadV4(ctx, payloadID, forkVersion)
 
-	case version.Equals(forkVersion, version.Electra1()):
+	case version.Equals(forkVersion, version.Electra1()), version.Equals(forkVersion, version.Electra2()):
 		return s.GetPayloadV4P11(ctx, payloadID, forkVersion)
 
 	default:
