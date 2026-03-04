@@ -147,7 +147,7 @@ func (s *PayloadCacheSuite) SetupTest() {
 		reth2RPC     *url.ConnectionURL
 	)
 	if useThirdValidatorSetup {
-		reth2Handle, reth2AuthRPC, elRPC = reth2Node.Start(s.T(), path.Base(elGenesisPath))
+		reth2Handle, reth2AuthRPC, reth2RPC = reth2Node.Start(s.T(), path.Base(elGenesisPath))
 		s.Reth2.ElHandle = reth2Handle
 	}
 
