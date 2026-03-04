@@ -146,6 +146,8 @@ func TestServer_RejectsNonPostMethods(t *testing.T) {
 }
 
 func TestServer_SIGHUPReloadsWhitelist(t *testing.T) {
+	t.Parallel()
+
 	pkB, err := parser.ConvertPubkey(pubkeyBHex)
 	require.NoError(t, err)
 
@@ -156,8 +158,8 @@ func TestServer_SIGHUPReloadsWhitelist(t *testing.T) {
 	require.NoError(t, err)
 
 	server := preconf.NewServer(noop.NewLogger[any](), nil, wl, nil, 0)
-	require.NoError(t, server.Start(context.Background()))
-	defer server.Stop() //nolint:errcheck
+	require.NoError(t, server.Start(t.Context()))
+	t.Cleanup(func() { require.NoError(t, server.Stop()) })
 
 	// Update file.
 	writeWhitelistFile(t, tmpFile, pubkeyAHex, pubkeyBHex)
