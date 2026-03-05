@@ -44,8 +44,7 @@ type ValidatorServiceInput struct {
 	Signer           crypto.BLSSigner
 	SidecarFactory   SidecarFactory
 	TelemetrySink    *metrics.TelemetrySink
-	PreconfClient    *preconf.Client   `optional:"true"`
-	PreconfWhitelist preconf.Whitelist `optional:"true"`
+	PreconfClient *preconf.Client `optional:"true"`
 }
 
 // ProvideValidatorService is a depinject provider for the validator service.
@@ -63,6 +62,5 @@ func ProvideValidatorService(in ValidatorServiceInput) (*validator.Service, erro
 		in.TelemetrySink,
 		&in.Cfg.Preconf,
 		in.PreconfClient,
-		in.PreconfWhitelist,
 	), nil
 }
