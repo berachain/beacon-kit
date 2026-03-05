@@ -38,6 +38,8 @@ install-kurtosis:
 
 # Starts a Kurtosis enclave containing a local devnet.
 start-devnet: install-kurtosis
+	kurtosis clean -a
+	kurtosis engine restart
 	$(MAKE) build-docker VERSION=kurtosis-local start-devnet-no-build
 
 # Starts a Kurtosis enclave containing a local devnet without building the image
