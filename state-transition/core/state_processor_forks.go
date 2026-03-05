@@ -21,6 +21,7 @@
 package core
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -303,6 +304,65 @@ func (sp *StateProcessor) upgradeToElectra2(
 			return setErr
 		}
 	}
+
+	// Catchup any remaining deposits from the deposit store that have not yet been applied
+	// to beacon state. This handles the edge case where deposits were fetched from the EL
+	// and stored in the deposit store during the last pre-Electra2 block(s), but were not
+	// yet included in a beacon block body. After Electra2, deposits come from EIP-6110 style
+	// execution requests embedded in the EL block, so the deposit store is no longer read.
+	// Without this catchup, those queued deposits would be permanently lost.
+	return sp.catchupDeposits(st)
+}
+
+// catchupDeposits processes any remaining deposits from the deposit store that haven't been
+// applied to state. This is used during the Electra2 fork upgrade to drain the deposit queue
+// and prevent deposit loss during the transition to EIP-6110 style deposit processing.
+func (sp *StateProcessor) catchupDeposits(st *statedb.StateDB) error {
+	eth1DepositIndex, err := st.GetEth1DepositIndex()
+	if err != nil {
+		return fmt.Errorf("catchup deposits: failed to get eth1 deposit index: %w", err)
+	}
+
+	// Query the deposit store for any deposits beyond the current eth1DepositIndex.
+	// Use a generous range: GetDepositsByIndex stops early when it encounters a missing
+	// index, so overshooting is safe and has no performance cost.
+	// In practice, only a handful of deposits (from 1-2 blocks) will be unprocessed.
+	const catchupRange = 4096
+	deposits, _, err := sp.ds.GetDepositsByIndex(
+		context.Background(),
+		eth1DepositIndex,
+		catchupRange,
+	)
+	if err != nil {
+		return fmt.Errorf("catchup deposits: failed to query deposit store: %w", err)
+	}
+
+	if len(deposits) == 0 {
+		sp.logger.Info(
+			"Electra2 fork upgrade: no deposit catchup needed",
+			"eth1_deposit_index", eth1DepositIndex,
+		)
+		return nil
+	}
+
+	sp.logger.Info(
+		"Electra2 fork upgrade: processing catchup deposits from deposit store",
+		"count", len(deposits),
+		"start_index", eth1DepositIndex,
+	)
+
+	for _, dep := range deposits {
+		if err = sp.processDeposit(st, dep); err != nil {
+			return fmt.Errorf("catchup deposits: failed to process deposit at index %d: %w",
+				dep.GetIndex().Unwrap(), err)
+		}
+	}
+
+	sp.logger.Info(
+		"Electra2 fork upgrade: deposit catchup complete",
+		"processed", len(deposits),
+		"new_eth1_deposit_index", eth1DepositIndex+uint64(len(deposits)),
+	)
 
 	return nil
 }
