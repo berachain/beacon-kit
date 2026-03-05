@@ -577,7 +577,7 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_HasCorrectWithdraw
 		s.Require().NoError(convertErr)
 		expectedStartBalanceGwei, convertErr := beaconmath.GweiFromWei(expectedStartBalance)
 		s.Require().NoError(convertErr)
-		s.Require().InDelta(finalBalanceGwei.Unwrap(), expectedStartBalanceGwei.Unwrap(), 2_000_000) // maximum 2_000_000 Gwei delta
+		s.Require().InDelta(finalBalanceGwei.Unwrap(), expectedStartBalanceGwei.Unwrap(), 4_000_000) // maximum 4_000_000 Gwei delta (covers gas costs of 30 deposit txs)
 
 		validators, err := s.TestNode.APIBackend.FilterValidators(nextBlockHeight-1, nil, nil)
 		s.Require().NoError(err)
