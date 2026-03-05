@@ -209,6 +209,7 @@ e2e/**/*.txt
 # hive
 !e2e/hive/**/*.json
 
+# geth
 *.rlp
 
 # cosmos
