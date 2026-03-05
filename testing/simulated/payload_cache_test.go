@@ -235,6 +235,10 @@ func (s *PayloadCacheSuite) SetupTest() {
 	s.Require().NoError(err)
 	err = simulated.WaitTillServicesStarted(s.Reth.LogBuffer, timeOut, interval)
 	s.Require().NoError(err)
+	if useThirdValidatorSetup {
+		err = simulated.WaitTillServicesStarted(s.Reth2.LogBuffer, timeOut, interval)
+		s.Require().NoError(err)
+	}
 }
 
 // TearDownTest cleans up the test environment.
@@ -892,7 +896,7 @@ func (s *PayloadCacheSuite) TestReth_MisorderedBlobSidecarsCachedEnvelope_IsSucc
 		proposal    *types.PrepareProposalResponse
 		reorderedTx bool
 	)
-	for i := 0; i < 8; i++ {
+	for i := 0; i < 10; i++ {
 		proposal, err = s.Geth.SimComet.Comet.PrepareProposal(
 			s.Geth.CtxComet, &types.PrepareProposalRequest{
 				Height:          nextBlockHeight,
@@ -909,8 +913,8 @@ func (s *PayloadCacheSuite) TestReth_MisorderedBlobSidecarsCachedEnvelope_IsSucc
 		)
 		s.Require().NoError(scErr)
 		if len(sidecars) < 2 {
-			time.Sleep(150 * time.Millisecond)
-			continue
+			time.Sleep(200 * time.Millisecond)
+			continue // NOTE: we retry at most 10 times, with 200ms delay between retries.
 		}
 
 		// Maliciously reorder two sidecars in the proposal.
