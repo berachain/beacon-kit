@@ -469,7 +469,7 @@ func (s *Service) shouldFetchFromSequencer() bool {
 	if s.preconfClient == nil || s.preconfCfg == nil || s.preconfWhitelist == nil {
 		return false
 	}
-	if !s.preconfCfg.ShouldFetchFromSequencer() {
+	if !s.preconfClient.IsAvailable() || !s.preconfCfg.ShouldFetchFromSequencer() {
 		return false
 	}
 	return s.preconfWhitelist.IsWhitelisted(s.signer.PublicKey())
