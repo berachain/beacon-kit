@@ -214,7 +214,9 @@ func (s *RPCErrorProxySuite) SetupTest() {
 }
 
 func (s *RPCErrorProxySuite) TearDownTest() {
-	s.errProxyServer.Close()
+	if s.errProxyServer != nil {
+		s.errProxyServer.Close()
+	}
 	s.CleanupTest(s.T())
 }
 
