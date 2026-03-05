@@ -463,6 +463,18 @@ func (s *Service) computeStateRoot(
 	return st.HashTreeRoot(), nil
 }
 
+// shouldFetchFromSequencer returns true if this validator should attempt to
+// fetch payloads from the sequencer.
+func (s *Service) shouldFetchFromSequencer() bool {
+	if s.preconfClient == nil || s.preconfCfg == nil || s.preconfWhitelist == nil {
+		return false
+	}
+	if !s.preconfClient.IsAvailable() || !s.preconfCfg.ShouldFetchFromSequencer() {
+		return false
+	}
+	return s.preconfWhitelist.IsWhitelisted(s.signer.PublicKey())
+}
+
 // fetchFromSequencer fetches the execution payload from the sequencer.
 func (s *Service) fetchFromSequencer(
 	ctx context.Context,

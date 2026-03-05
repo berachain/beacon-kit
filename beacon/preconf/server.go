@@ -96,6 +96,7 @@ func (s *Server) Name() string {
 // Start starts the preconf API server.
 func (s *Server) Start(_ context.Context) error {
 	mux := http.NewServeMux()
+	mux.HandleFunc(HealthEndpoint, s.handleHealth)
 	mux.HandleFunc(PayloadEndpoint, s.handleGetPayload)
 
 	addr := fmt.Sprintf(":%d", s.port)
@@ -141,6 +142,15 @@ func (s *Server) Stop() error {
 	defer cancel()
 
 	return server.Shutdown(ctx)
+}
+
+// handleHealth just sends 200 OK to the health check endpoint.
+func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		s.writeError(w, http.StatusMethodNotAllowed, "method not allowed")
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }
 
 // handleGetPayload handles the GetPayload endpoint.
