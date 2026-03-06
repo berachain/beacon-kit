@@ -38,9 +38,13 @@ install-kurtosis:
 
 # Starts a Kurtosis enclave containing a local devnet.
 start-devnet: install-kurtosis
-	kurtosis clean -a
-	kurtosis engine restart
 	$(MAKE) build-docker VERSION=kurtosis-local start-devnet-no-build
+
+# Removes and restarts a Kurtosis enclave containing a local devnet.
+restart-devnet:
+	$(MAKE) rm-devnet
+	kurtosis engine restart
+	$(MAKE) start-devnet
 
 # Starts a Kurtosis enclave containing a local devnet without building the image
 start-devnet-no-build:
@@ -50,6 +54,12 @@ start-devnet-no-build:
 # Starts a Kurtosis enclave with preconfirmation enabled.
 start-devnet-preconf: install-kurtosis
 	$(MAKE) build-docker VERSION=kurtosis-local start-devnet-preconf-no-build
+
+# Removes and restarts a Kurtosis enclave with preconfirmation enabled.
+restart-devnet-preconf:
+	$(MAKE) rm-devnet-preconf
+	kurtosis engine restart
+	$(MAKE) start-devnet-preconf
 
 # Starts a preconf devnet without building the image
 start-devnet-preconf-no-build:
@@ -76,11 +86,6 @@ rm-devnet-cloud:
 # Stops the running Kurtosis enclave
 stop-devnet:
 	kurtosis enclave stop my-local-devnet
-
-# Stops and removes the specified Kurtosis enclave
-reset-devnet:
-	$(MAKE) stop-devnet
-	kurtosis enclave rm my-local-devnet
 
 # Removes the specified Kurtosis enclave
 rm-devnet:
