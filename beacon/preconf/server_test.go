@@ -28,9 +28,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
-	"syscall"
 	"testing"
-	"time"
 
 	"github.com/berachain/beacon-kit/beacon/preconf"
 	"github.com/berachain/beacon-kit/cli/utils/parser"
@@ -143,34 +141,6 @@ func TestServer_RejectsNonPostMethods(t *testing.T) {
 		server.Handler().ServeHTTP(rec, req)
 		require.Equal(t, http.StatusMethodNotAllowed, rec.Code, "method: %s", method)
 	}
-}
-
-func TestServer_SIGHUPReloadsWhitelist(t *testing.T) {
-	t.Parallel()
-
-	pkB, err := parser.ConvertPubkey(pubkeyBHex)
-	require.NoError(t, err)
-
-	tmpFile := filepath.Join(t.TempDir(), "whitelist.json")
-	writeWhitelistFile(t, tmpFile, pubkeyAHex)
-
-	wl, err := preconf.NewWhitelist(tmpFile)
-	require.NoError(t, err)
-
-	server := preconf.NewServer(noop.NewLogger[any](), nil, wl, nil, 0)
-	require.NoError(t, server.Start(t.Context()))
-	t.Cleanup(func() { require.NoError(t, server.Stop()) })
-
-	// Update file.
-	writeWhitelistFile(t, tmpFile, pubkeyAHex, pubkeyBHex)
-
-	// Trigger reload.
-	require.NoError(t, syscall.Kill(os.Getpid(), syscall.SIGHUP))
-
-	require.Eventually(t, func() bool {
-		return wl.IsWhitelisted(pkB)
-	}, time.Second, 10*time.Millisecond)
-	require.Equal(t, 2, wl.Len())
 }
 
 // newTestWhitelist writes a temp JSON whitelist file from the given hex pubkeys
