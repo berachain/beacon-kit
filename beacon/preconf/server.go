@@ -25,11 +25,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
-	"os/signal"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
@@ -72,7 +69,6 @@ type Server struct {
 
 	mu         sync.RWMutex
 	httpServer *http.Server
-	sighup     chan os.Signal
 }
 
 // NewServer creates a new preconf API server.
@@ -126,41 +122,28 @@ func (s *Server) Start(_ context.Context) error {
 		}
 	}()
 
-	// Listen for SIGHUP to hot-reload the whitelist without restarting.
-	s.mu.Lock()
-	s.sighup = make(chan os.Signal, 1)
-	s.mu.Unlock()
-	signal.Notify(s.sighup, syscall.SIGHUP)
-	go func() {
-		for range s.sighup {
-			r, ok := s.whitelist.(ReloadableWhitelist)
-			if !ok {
-				continue
-			}
-			if err := r.Reload(); err != nil {
-				s.logger.Error("Failed to reload preconf whitelist", "error", err)
-				continue
-			}
-			s.logger.Info("Preconf whitelist reloaded", "whitelist_count", r.Len())
-		}
-	}()
-
 	return nil
+}
+
+// OnSIGHUP implements SIGHUPHandler. It hot-reloads the whitelist from disk.
+func (s *Server) OnSIGHUP() {
+	r, ok := s.whitelist.(ReloadableWhitelist)
+	if !ok {
+		return
+	}
+	if err := r.Reload(); err != nil {
+		s.logger.Error("Failed to reload preconf whitelist", "error", err)
+		return
+	}
+	s.logger.Info("Preconf whitelist reloaded", "whitelist_count", r.Len())
 }
 
 // Stop stops the preconf API server.
 func (s *Server) Stop() error {
 	s.mu.Lock()
 	server := s.httpServer
-	sighup := s.sighup
 	s.httpServer = nil
-	s.sighup = nil
 	s.mu.Unlock()
-
-	if sighup != nil {
-		signal.Stop(sighup)
-		close(sighup)
-	}
 
 	if server == nil {
 		return nil

@@ -157,6 +157,42 @@ func newTestWhitelist(t *testing.T, pubkeyHexes ...string) preconf.Whitelist {
 	return wl
 }
 
+func TestServer_OnSIGHUP(t *testing.T) {
+	t.Parallel()
+
+	pkA, err := parser.ConvertPubkey(pubkeyAHex)
+	require.NoError(t, err)
+	pkB, err := parser.ConvertPubkey(pubkeyBHex)
+	require.NoError(t, err)
+
+	tmpFile := filepath.Join(t.TempDir(), "whitelist.json")
+
+	// Write initial whitelist with only key A.
+	content, err := json.Marshal([]string{pubkeyAHex})
+	require.NoError(t, err)
+	err = os.WriteFile(tmpFile, content, 0o644)
+	require.NoError(t, err)
+
+	wl, err := preconf.NewWhitelist(tmpFile)
+	require.NoError(t, err)
+
+	server := preconf.NewServer(noop.NewLogger[any](), nil, wl, nil, 0)
+
+	require.True(t, wl.IsWhitelisted(pkA))
+	require.False(t, wl.IsWhitelisted(pkB))
+
+	// Add key B to file and trigger hot-reload via OnSIGHUP.
+	content, err = json.Marshal([]string{pubkeyAHex, pubkeyBHex})
+	require.NoError(t, err)
+	err = os.WriteFile(tmpFile, content, 0o644)
+	require.NoError(t, err)
+
+	server.OnSIGHUP()
+
+	require.True(t, wl.IsWhitelisted(pkA))
+	require.True(t, wl.IsWhitelisted(pkB))
+}
+
 // mockPayloadProvider implements PayloadProvider for tests.
 type mockPayloadProvider struct {
 	hasPayload bool
