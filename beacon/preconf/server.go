@@ -280,6 +280,7 @@ func (s *Server) verifyToken(tokenString string, secret *jwt.Secret) bool {
 // Handler returns an http.Handler for testing purposes.
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
+	mux.HandleFunc(HealthEndpoint, s.handleHealth)
 	mux.HandleFunc(PayloadEndpoint, s.handleGetPayload)
 	return mux
 }
