@@ -39,6 +39,12 @@ type Basic interface {
 	Name() string
 }
 
+// SIGHUPHandler is an optional interface for services that want to be
+// notified on a SIGHUP signal.
+type SIGHUPHandler interface {
+	OnSIGHUP()
+}
+
 // Registry provides a useful pattern for managing services.
 // It allows for ease of dependency management and ensures services
 // dependent on others use the same references in memory.
@@ -114,6 +120,15 @@ func (s *Registry) StopAll() {
 		}
 	}
 	s.logger.Info("All services stopped", "num", len(s.servicesStarted))
+}
+
+// DispatchSIGHUP notifies all registered services that implement SIGHUPHandler.
+func (s *Registry) DispatchSIGHUP() {
+	for _, typeName := range s.serviceTypes {
+		if h, ok := s.services[typeName].(SIGHUPHandler); ok {
+			h.OnSIGHUP()
+		}
+	}
 }
 
 // RegisterService appends a service constructor function to the service
