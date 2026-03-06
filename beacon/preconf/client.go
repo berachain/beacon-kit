@@ -69,7 +69,6 @@ type Client struct {
 	healthy              atomic.Bool   // true if sequencer is reachable
 	healthMonitorRunning atomic.Bool   // whether we are currently monitoring sequencer liveness
 	probeInterval        time.Duration // how often to probe sequencer when unavailable
-	healthMonitorCancel  func()        // function to stop the health monitor goroutine on exit, in case sequencer never comes back
 }
 
 // NewClient creates a new preconf client for fetching payloads from the sequencer.
@@ -90,8 +89,7 @@ func NewClient(
 			Timeout: timeout,
 		},
 	}
-	c.healthy.Store(true)             // assume sequencer is up until proven otherwise
-	c.healthMonitorCancel = func() {} // no-op until we start the monitor
+	c.healthy.Store(true) // assume sequencer is up until proven otherwise
 	return c
 }
 
@@ -139,11 +137,7 @@ func (c *Client) GetPayloadBySlot(
 		c.healthy.Store(false)
 		if c.healthMonitorRunning.CompareAndSwap(false, true) {
 			// avoid routine to exit after PrepareProposal context is canceled
-			// (WithoutCancel strips parent cancellation while still inheriting values),
-			// but store cancel function to call on exit in case sequencer never recovers
-			monitoringCtx, cancel := context.WithCancel(context.WithoutCancel(ctx))
-			c.healthMonitorCancel = cancel
-			go c.monitorUntilHealthy(monitoringCtx)
+			go c.monitorUntilHealthy(context.WithoutCancel(ctx))
 		}
 		return nil, errors.Wrapf(ErrSequencerUnavailable, "request failed: %v", err)
 	}
@@ -192,10 +186,6 @@ func (c *Client) GetPayloadBySlot(
 	)
 
 	return payloadResp.ToExecutionPayloadEnvelope(), nil
-}
-
-func (c *Client) Stop() {
-	c.healthMonitorCancel()
 }
 
 // getToken returns a valid JWT token, generating a new one if necessary.
