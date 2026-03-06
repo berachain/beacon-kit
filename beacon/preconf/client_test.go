@@ -21,7 +21,6 @@
 package preconf_test
 
 import (
-	"context"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -59,7 +58,7 @@ func TestClient_MarksUnavailableOnConnectionFailure(t *testing.T) {
 	// Point at a port with nothing listening.
 	client := newTestClient(t, "http://"+closedAddr(t), time.Hour)
 
-	_, err := client.GetPayloadBySlot(context.Background(), 1, [32]byte{})
+	_, err := client.GetPayloadBySlot(t.Context(), 1, [32]byte{})
 	require.ErrorIs(t, err, preconf.ErrSequencerUnavailable)
 	require.False(t, client.IsAvailable(), "client should be unavailable after connection failure")
 }
@@ -68,7 +67,7 @@ func TestClient_RestoresAvailabilityOnSequencerRecover(t *testing.T) {
 	t.Parallel()
 
 	// Start a server that's initially down (nil handler = not started yet).
-	srv := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	srv := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
 
@@ -76,7 +75,7 @@ func TestClient_RestoresAvailabilityOnSequencerRecover(t *testing.T) {
 	client := newTestClient(t, "http://"+srv.Listener.Addr().String(), 20*time.Millisecond)
 
 	// Trigger a failure to start the health monitor.
-	_, err := client.GetPayloadBySlot(context.Background(), 1, [32]byte{})
+	_, err := client.GetPayloadBySlot(t.Context(), 1, [32]byte{})
 	require.ErrorIs(t, err, preconf.ErrSequencerUnavailable)
 	require.False(t, client.IsAvailable())
 
