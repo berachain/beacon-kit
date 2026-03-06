@@ -32,18 +32,21 @@ import (
 type Whitelist interface {
 	// IsWhitelisted returns true if the given public key is in the whitelist.
 	IsWhitelisted(pubkey crypto.BLSPubkey) bool
+}
 
-	// Reload reloads the whitelist from the underlying source. If reloading fails,
-	// it returns an error and keeps the existing whitelist.
+// ReloadableWhitelist extends Whitelist with hot-reload capability.
+type ReloadableWhitelist interface {
+	Whitelist
+	// Reload reloads the whitelist from the underlying source. If reloading
+	// fails or the result is empty, it returns an error and keeps the existing set.
 	Reload() error
-
 	// Len returns the number of validators in the whitelist.
 	Len() int
 }
 
 type validatorSet map[crypto.BLSPubkey]struct{}
 
-// reloadableWhitelist is a the concrete implementation of Whitelist.
+// reloadableWhitelist is a the concrete implementation of ReloadableWhitelist.
 // Allows reloading the whitelist from source at runtime.
 type reloadableWhitelist struct {
 	path    string
@@ -62,7 +65,7 @@ func (r *reloadableWhitelist) Len() int {
 
 // NewWhitelist creates a new reloadableWhitelist with the given path
 // and logger, also loading the initial whitelist from the path.
-func NewWhitelist(path string) (Whitelist, error) {
+func NewWhitelist(path string) (ReloadableWhitelist, error) {
 	pubkeys, err := LoadWhitelist(path)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to load preconf whitelist from: %s", path)
