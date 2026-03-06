@@ -137,10 +137,6 @@ func (s *Server) Start(_ context.Context) error {
 				s.logger.Error("Failed to reload preconf whitelist", "error", err)
 				continue
 			}
-			if s.whitelist.Len() == 0 {
-				s.logger.Error("Reloaded preconf whitelist is empty")
-				continue
-			}
 			s.logger.Info("Preconf whitelist reloaded", "whitelist_count", s.whitelist.Len())
 		}
 	}()
