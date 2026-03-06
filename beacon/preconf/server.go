@@ -146,10 +146,12 @@ func (s *Server) Start(_ context.Context) error {
 
 // Stop stops the preconf API server.
 func (s *Server) Stop() error {
-	s.mu.RLock()
+	s.mu.Lock()
 	server := s.httpServer
 	sighup := s.sighup
-	s.mu.RUnlock()
+	s.httpServer = nil
+	s.sighup = nil
+	s.mu.Unlock()
 
 	if sighup != nil {
 		signal.Stop(sighup)
