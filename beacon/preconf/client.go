@@ -66,9 +66,9 @@ type Client struct {
 	tokenExpiry time.Time
 
 	// sequencer liveness tracking
-	available              atomic.Bool   // true if sequencer is reachable
-	availabilityMonitoring atomic.Bool   // whether we are currently monitoring sequencer liveness
-	probeInterval          time.Duration // how often to probe sequencer when unavailable
+	healthy              atomic.Bool   // true if sequencer is reachable
+	healthMonitorRunning atomic.Bool   // whether we are currently monitoring sequencer liveness
+	probeInterval        time.Duration // how often to probe sequencer when unavailable
 }
 
 // NewClient creates a new preconf client for fetching payloads from the sequencer.
@@ -89,13 +89,13 @@ func NewClient(
 			Timeout: timeout,
 		},
 	}
-	c.available.Store(true) // assume sequencer is up until proven otherwise
+	c.healthy.Store(true) // assume sequencer is up until proven otherwise
 	return c
 }
 
 // IsAvailable returns true if the last known state of the sequencer is "reachable".
 func (c *Client) IsAvailable() bool {
-	return c.available.Load()
+	return c.healthy.Load()
 }
 
 // GetPayloadBySlot fetches a payload from the sequencer for the given slot and parent block root.
@@ -134,8 +134,8 @@ func (c *Client) GetPayloadBySlot(
 
 	resp, err := c.httpClient.Do(req) //#nosec:G704 // sequencer URL from trusted config
 	if err != nil {
-		c.available.Store(false)
-		if c.availabilityMonitoring.CompareAndSwap(false, true) {
+		c.healthy.Store(false)
+		if c.healthMonitorRunning.CompareAndSwap(false, true) {
 			// avoid routine to exit after PrepareProposal context is canceled
 			go c.monitorUntilHealthy(context.WithoutCancel(ctx))
 		}
@@ -236,7 +236,7 @@ func (c *Client) checkHealth(ctx context.Context) error {
 
 // monitorUntilHealthy continuously probes the sequencer until it becomes healthy again.
 func (c *Client) monitorUntilHealthy(ctx context.Context) {
-	defer c.availabilityMonitoring.Store(false)
+	defer c.healthMonitorRunning.Store(false)
 	ticker := time.NewTicker(c.probeInterval)
 	defer ticker.Stop()
 	for {
@@ -245,7 +245,7 @@ func (c *Client) monitorUntilHealthy(ctx context.Context) {
 			return
 		case <-ticker.C:
 			if c.checkHealth(ctx) == nil {
-				c.available.Store(true)
+				c.healthy.Store(true)
 				return
 			}
 		}
