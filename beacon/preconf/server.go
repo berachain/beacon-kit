@@ -133,11 +133,15 @@ func (s *Server) Start(_ context.Context) error {
 	signal.Notify(s.sighup, syscall.SIGHUP)
 	go func() {
 		for range s.sighup {
-			if err := s.whitelist.Reload(); err != nil {
+			r, ok := s.whitelist.(ReloadableWhitelist)
+			if !ok {
+				continue
+			}
+			if err := r.Reload(); err != nil {
 				s.logger.Error("Failed to reload preconf whitelist", "error", err)
 				continue
 			}
-			s.logger.Info("Preconf whitelist reloaded", "whitelist_count", s.whitelist.Len())
+			s.logger.Info("Preconf whitelist reloaded", "whitelist_count", r.Len())
 		}
 	}()
 
