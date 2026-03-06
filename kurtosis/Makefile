@@ -42,7 +42,7 @@ start-devnet: install-kurtosis
 
 # Removes and restarts a Kurtosis enclave containing a local devnet.
 restart-devnet:
-	$(MAKE) rm-devnet
+	-$(MAKE) rm-devnet
 	kurtosis engine restart
 	$(MAKE) start-devnet
 
