@@ -105,8 +105,5 @@ func (s *Service) Start(
 }
 
 func (s *Service) Stop() error {
-	if s.preconfClient != nil {
-		s.preconfClient.Stop()
-	}
 	return nil
 }
