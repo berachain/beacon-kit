@@ -61,27 +61,27 @@ func ProvidePreconfWhitelist(in PreconfWhitelistInput) (preconf.Whitelist, error
 		return nil, nil
 	}
 
-	pubkeys, err := preconf.LoadWhitelist(cfg.WhitelistPath)
+	wl, err := preconf.NewWhitelist(cfg.WhitelistPath)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to load preconf whitelist from: %s", cfg.WhitelistPath)
+		return nil, err
 	}
 
-	if len(pubkeys) == 0 {
+	if wl.Len() == 0 {
 		return nil, errors.New("preconf whitelist is empty")
 	}
 
 	if cfg.SequencerMode {
 		logger.Info(
 			"Preconf sequencer mode enabled",
-			"whitelist_count", len(pubkeys),
+			"whitelist_count", wl.Len(),
 			"whitelist_path", cfg.WhitelistPath,
 		)
 	} else {
 		logger.Info(
 			"Preconf whitelist loaded for validator mode",
-			"whitelist_count", len(pubkeys),
+			"whitelist_count", wl.Len(),
 		)
 	}
 
-	return preconf.NewWhitelist(pubkeys), nil
+	return wl, nil
 }
