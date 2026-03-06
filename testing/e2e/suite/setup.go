@@ -25,6 +25,7 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"math/big"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"sync/atomic"
@@ -90,10 +91,21 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 
 	s.kCtx, err = kurtosis_context.NewKurtosisContextFromLocalEngine()
 	s.Require().NoError(err)
+
 	s.logger.Info("Destroying any existing enclave...")
 	//#nosec:G703 // It's okay if this errors out. It will error out
 	// if there is no enclave to destroy.
 	_ = s.kCtx.DestroyEnclave(s.ctx, "e2e-test-enclave")
+
+	// Restart the engine to clear any stale state (equivalent to `kurtosis engine restart`)
+	cmd := exec.CommandContext(s.ctx, "kurtosis", "engine", "restart")
+	out, restartErr := cmd.CombinedOutput()
+	s.logger.Info("Kurtosis engine restart", "output", string(out))
+	s.Require().NoError(restartErr, "Failed to restart kurtosis engine")
+
+	// Re-connect after restart since the engine process changed
+	s.kCtx, err = kurtosis_context.NewKurtosisContextFromLocalEngine()
+	s.Require().NoError(err)
 
 	s.logger.Info("Creating enclave...")
 	s.enclave, err = s.kCtx.CreateEnclave(s.ctx, "e2e-test-enclave")
