@@ -42,7 +42,7 @@ start-devnet: install-kurtosis
 
 # Removes and restarts a Kurtosis enclave containing a local devnet.
 restart-devnet:
-	$(MAKE) rm-devnet
+	-$(MAKE) rm-devnet
 	kurtosis engine restart
 	$(MAKE) start-devnet
 
@@ -57,7 +57,7 @@ start-devnet-preconf: install-kurtosis
 
 # Removes and restarts a Kurtosis enclave with preconfirmation enabled.
 restart-devnet-preconf:
-	$(MAKE) rm-devnet-preconf
+	-$(MAKE) rm-devnet-preconf
 	kurtosis engine restart
 	$(MAKE) start-devnet-preconf
 
