@@ -210,6 +210,9 @@ func (c *Client) CheckHealth(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	if resp == nil {
+		return errors.New("nil response from sequencer")
+	}
 
 	// Drain and close body to allow connection reuse
 	//nolint:errcheck // cleanup errors don't affect sequencer health

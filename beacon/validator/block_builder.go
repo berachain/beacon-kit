@@ -486,7 +486,11 @@ func (s *Service) fetchFromSequencer(
 	parentBlockRoot common.Root,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
 	envelope, err := s.preconfClient.GetPayloadBySlot(ctx, slot, parentBlockRoot)
-	if errors.Is(err, preconf.ErrSequencerUnavailable) {
+	// Any error other than ErrPayloadNotFound (404) means the sequencer is not
+	// serving us — trip the circuit breaker and start the health monitor.
+	// ErrPayloadNotFound means the sequencer is healthy but has no payload yet.
+	if err != nil && !errors.Is(err, preconf.ErrPayloadNotFound) {
+		s.logger.Info("Detected sequencer disservice, starting health monitor")
 		s.sequencerAvailable.Store(false)
 		if s.sequencerMonitorRunning.CompareAndSwap(false, true) {
 			go s.monitorSequencerHealth(context.WithoutCancel(ctx))

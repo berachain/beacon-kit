@@ -167,3 +167,14 @@ func ContainsLogMessage(logs []string, target string) bool {
 	}
 	return false
 }
+
+// CountLogMessages counts how many log lines contain the target message.
+func CountLogMessages(logs []string, target string) int {
+	count := 0
+	for _, log := range logs {
+		if strings.Contains(log, target) {
+			count++
+		}
+	}
+	return count
+}
