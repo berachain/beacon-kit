@@ -70,6 +70,5 @@ func ProvidePreconfClient(in PreconfClientInput) (*preconf.Client, error) {
 		cfg.SequencerURL,
 		jwtSecret,
 		cfg.FetchTimeout,
-		cfg.ProbeInterval,
 	), nil
 }

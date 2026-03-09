@@ -28,7 +28,6 @@ import (
 	"io"
 	"net/http"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
@@ -64,11 +63,6 @@ type Client struct {
 	mu          sync.RWMutex
 	cachedToken string
 	tokenExpiry time.Time
-
-	// sequencer liveness tracking
-	healthy              atomic.Bool   // true if sequencer is reachable
-	healthMonitorRunning atomic.Bool   // whether we are currently monitoring sequencer liveness
-	probeInterval        time.Duration // how often to probe sequencer when unavailable
 }
 
 // NewClient creates a new preconf client for fetching payloads from the sequencer.
@@ -77,25 +71,16 @@ func NewClient(
 	sequencerURL string,
 	jwtSecret *jwt.Secret,
 	timeout time.Duration,
-	probeInterval time.Duration,
 ) *Client {
-	c := &Client{
-		logger:        logger,
-		sequencerURL:  sequencerURL,
-		jwtSecret:     jwtSecret,
-		timeout:       timeout,
-		probeInterval: probeInterval,
+	return &Client{
+		logger:       logger,
+		sequencerURL: sequencerURL,
+		jwtSecret:    jwtSecret,
+		timeout:      timeout,
 		httpClient: &http.Client{
 			Timeout: timeout,
 		},
 	}
-	c.healthy.Store(true) // assume sequencer is up until proven otherwise
-	return c
-}
-
-// IsAvailable returns true if the last known state of the sequencer is "reachable".
-func (c *Client) IsAvailable() bool {
-	return c.healthy.Load()
 }
 
 // GetPayloadBySlot fetches a payload from the sequencer for the given slot and parent block root.
@@ -134,11 +119,6 @@ func (c *Client) GetPayloadBySlot(
 
 	resp, err := c.httpClient.Do(req) //#nosec:G704 // sequencer URL from trusted config
 	if err != nil {
-		c.healthy.Store(false)
-		if c.healthMonitorRunning.CompareAndSwap(false, true) {
-			// avoid routine to exit after PrepareProposal context is canceled
-			go c.monitorUntilHealthy(context.WithoutCancel(ctx))
-		}
 		return nil, errors.Wrapf(ErrSequencerUnavailable, "request failed: %v", err)
 	}
 	if resp == nil || resp.Body == nil {
@@ -219,8 +199,8 @@ func (c *Client) getToken() (string, error) {
 	return token, nil
 }
 
-// checkHealth performs a GET on the server health endpoint.
-func (c *Client) checkHealth(ctx context.Context) error {
+// CheckHealth performs a GET on the server health endpoint.
+func (c *Client) CheckHealth(ctx context.Context) error {
 	url := c.sequencerURL + HealthEndpoint
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
@@ -235,22 +215,4 @@ func (c *Client) checkHealth(ctx context.Context) error {
 		return errors.New("sequencer unhealthy")
 	}
 	return nil
-}
-
-// monitorUntilHealthy continuously probes the sequencer until it becomes healthy again.
-func (c *Client) monitorUntilHealthy(ctx context.Context) {
-	defer c.healthMonitorRunning.Store(false)
-	ticker := time.NewTicker(c.probeInterval)
-	defer ticker.Stop()
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-ticker.C:
-			if c.checkHealth(ctx) == nil {
-				c.healthy.Store(true)
-				return
-			}
-		}
-	}
 }

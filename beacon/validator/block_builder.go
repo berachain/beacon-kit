@@ -26,6 +26,7 @@ import (
 	"time"
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
+	"github.com/berachain/beacon-kit/beacon/preconf"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -469,7 +470,7 @@ func (s *Service) shouldFetchFromSequencer() bool {
 	if s.preconfClient == nil || s.preconfCfg == nil || s.preconfWhitelist == nil {
 		return false
 	}
-	if !s.preconfClient.IsAvailable() || !s.preconfCfg.ShouldFetchFromSequencer() {
+	if !s.sequencerAvailable.Load() || !s.preconfCfg.ShouldFetchFromSequencer() {
 		return false
 	}
 	return s.preconfWhitelist.IsWhitelisted(s.signer.PublicKey())
@@ -481,5 +482,30 @@ func (s *Service) fetchFromSequencer(
 	slot math.Slot,
 	parentBlockRoot common.Root,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
-	return s.preconfClient.GetPayloadBySlot(ctx, slot, parentBlockRoot)
+	envelope, err := s.preconfClient.GetPayloadBySlot(ctx, slot, parentBlockRoot)
+	if errors.Is(err, preconf.ErrSequencerUnavailable) {
+		s.sequencerAvailable.Store(false)
+		if s.sequencerMonitorRunning.CompareAndSwap(false, true) {
+			go s.monitorSequencerHealth(context.WithoutCancel(ctx))
+		}
+	}
+	return envelope, err
+}
+
+// monitorSequencerHealth continuously probes the sequencer until it becomes healthy again.
+func (s *Service) monitorSequencerHealth(ctx context.Context) {
+	defer s.sequencerMonitorRunning.Store(false)
+	ticker := time.NewTicker(s.preconfCfg.ProbeInterval)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			if s.preconfClient.CheckHealth(ctx) == nil {
+				s.sequencerAvailable.Store(true)
+				return
+			}
+		}
+	}
 }
