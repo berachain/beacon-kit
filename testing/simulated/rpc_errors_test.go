@@ -234,7 +234,7 @@ func (s *RPCErrorProxySuite) prepareForFinalize() preparedProposal {
 	const blockHeight = 1
 	const coreLoopIterations = 1
 
-	s.InitializeChain(s.T())
+	s.InitializeChain(s.T(), 1)
 	nodeAddress, err := s.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
 	s.SimComet.Comet.SetNodeAddress(nodeAddress)

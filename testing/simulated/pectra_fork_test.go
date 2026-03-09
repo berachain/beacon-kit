@@ -159,9 +159,9 @@ func (s *PectraForkSuite) TearDownTest() {
 // The Geth Node will be the block producer but the Reth node is treated as a full node, i.e. doesn't produce blocks.
 func (s *PectraForkSuite) TestTimestampFork_ELAndCLInSync_IsSuccessful() {
 	// Initialize the geth chain state.
-	s.Geth.InitializeChain(s.T())
+	s.Geth.InitializeChain(s.T(), 1)
 	// Initialize the reth chain state.
-	s.Reth.InitializeChain(s.T())
+	s.Reth.InitializeChain(s.T(), 1)
 
 	nodeAddress, err := s.Geth.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
@@ -239,8 +239,8 @@ func (s *PectraForkSuite) TestTimestampFork_ELAndCLInSync_IsSuccessful() {
 // A user makes a consolidation request on our chain which isn't supported.
 func (s *PectraForkSuite) TestMaliciousUser_MakesConsolidationRequest_IsIgnored() {
 	// Initialize the chain state.
-	s.Geth.InitializeChain(s.T())
-	s.Reth.InitializeChain(s.T())
+	s.Geth.InitializeChain(s.T(), 1)
+	s.Reth.InitializeChain(s.T(), 1)
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.Geth.HomeDir)
@@ -363,8 +363,8 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 	helper := s.Reth
 
 	// Initialize the chain state.
-	client.InitializeChain(s.T())
-	helper.InitializeChain(s.T()) // helper to build "invalid" blocks
+	client.InitializeChain(s.T(), 1)
+	helper.InitializeChain(s.T(), 1) // helper to build "invalid" blocks
 
 	nodeAddress, err := client.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
@@ -529,7 +529,7 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 // This will be rejected and is expected to occur around the fork for 1 or 2 rounds.
 func (s *PectraForkSuite) TestValidProposer_ProposesPreForkBlockWithPostForkConsensusTimestamp_IsRejected() {
 	// Initialize the chain state.
-	s.Geth.InitializeChain(s.T())
+	s.Geth.InitializeChain(s.T(), 1)
 	nodeAddress, err := s.Geth.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
 	s.Geth.SimComet.Comet.SetNodeAddress(nodeAddress)
@@ -574,7 +574,7 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPreForkBlockWithPostForkCons
 func (s *PectraForkSuite) Test_OptimisticBuildAtFork_IsSuccessful() {
 	// Initialize the chain state.
 	client := s.Geth
-	client.InitializeChain(s.T()) // init the validator
+	client.InitializeChain(s.T(), 1) // init the validator
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(client.HomeDir)
@@ -675,8 +675,8 @@ func (s *PectraForkSuite) TestReth_MustRebuildForFailedStateTransition_IsSuccess
 	// Initialize the chain state.
 	testEL := s.Reth
 	helpBuilder := s.Geth
-	testEL.InitializeChain(s.T())
-	helpBuilder.InitializeChain(s.T())
+	testEL.InitializeChain(s.T(), 1)
+	helpBuilder.InitializeChain(s.T(), 1)
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(testEL.HomeDir)

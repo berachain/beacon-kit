@@ -254,7 +254,7 @@ func (s *PayloadCacheSuite) TearDownTest() {
 // payload from its cache.
 func (s *PayloadCacheSuite) TestReth_ReusePayload_IsSuccessful() {
 	// Initialize the chain state.
-	s.Reth.InitializeChain2Validators(s.T()) // 1 reth validator
+	s.Reth.InitializeChain(s.T(), 2) // 1 reth validator
 	nodeAddress, err := s.Reth.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
 	s.Reth.SimComet.Comet.SetNodeAddress(nodeAddress)
@@ -335,7 +335,7 @@ func (s *PayloadCacheSuite) TestReth_ReusePayload_IsSuccessful() {
 // payload from its cache.
 func (s *PayloadCacheSuite) TestGeth_ReusePayload_IsSuccessful() {
 	// Initialize the chain state.
-	s.Geth.InitializeChain2Validators(s.T()) // 1 geth validator
+	s.Geth.InitializeChain(s.T(), 2) // 1 geth validator
 	nodeAddress, err := s.Geth.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
 	s.Geth.SimComet.Comet.SetNodeAddress(nodeAddress)
@@ -415,7 +415,7 @@ func (s *PayloadCacheSuite) TestGeth_ReusePayload_IsSuccessful() {
 // rebuild a new payload (and not reuse the old one from its cache).
 func (s *PayloadCacheSuite) TestReth_RebuildPayload_IsSuccessful() {
 	// Initialize the chain state.
-	s.Reth.InitializeChain2Validators(s.T()) // 1 reth validator
+	s.Reth.InitializeChain(s.T(), 2) // 1 reth validator
 	nodeAddress, err := s.Reth.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
 	s.Reth.SimComet.Comet.SetNodeAddress(nodeAddress)
@@ -497,7 +497,7 @@ func (s *PayloadCacheSuite) TestReth_RebuildPayload_IsSuccessful() {
 // rebuild a new payload (and not reuse the old one from its cache).
 func (s *PayloadCacheSuite) TestGeth_RebuildPayload_IsSuccessful() {
 	// Initialize the chain state.
-	s.Geth.InitializeChain2Validators(s.T()) // 1 geth validator
+	s.Geth.InitializeChain(s.T(), 2) // 1 geth validator
 	nodeAddress, err := s.Geth.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
 	s.Geth.SimComet.Comet.SetNodeAddress(nodeAddress)
@@ -581,11 +581,11 @@ func (s *PayloadCacheSuite) TestGeth_RebuildPayload_IsSuccessful() {
 // NOTE: this test requires reth with the --engine.always-process-payload-attributes-on-canonical-head flag.
 func (s *PayloadCacheSuite) TestReth_MustRebuildPostForkPayload_IsSuccessful() {
 	// Initialize the chain state.
-	s.Geth.InitializeChain2Validators(s.T()) // 1 geth validator
+	s.Geth.InitializeChain(s.T(), 2) // 1 geth validator
 	gethNodeAddress, err := s.Geth.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
 	s.Geth.SimComet.Comet.SetNodeAddress(gethNodeAddress)
-	s.Reth.InitializeChain2Validators(s.T()) // 1 reth validator
+	s.Reth.InitializeChain(s.T(), 2) // 1 reth validator
 	rethNodeAddress, err := s.Reth.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
 	s.Reth.SimComet.Comet.SetNodeAddress(rethNodeAddress)
@@ -695,10 +695,10 @@ func (s *PayloadCacheSuite) TestReth_MustRebuildPostForkPayload_IsSuccessful() {
 // to propose the valid pre-fork block.
 func (s *PayloadCacheSuite) TestReth_MustRebuildPreForkPayload_IsSuccessful() {
 	// Initialize the chain state.
-	s.Geth.InitializeChain2Validators(s.T())
+	s.Geth.InitializeChain(s.T(), 2)
 	gethNodeAddress, err := s.Geth.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
-	s.Reth.InitializeChain2Validators(s.T())
+	s.Reth.InitializeChain(s.T(), 2)
 	rethNodeAddress, err := s.Reth.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
 
@@ -867,9 +867,9 @@ func (s *PayloadCacheSuite) TestReth_MustRebuildPreForkPayload_IsSuccessful() {
 // from cache and a third validator accepts that proposal.
 func (s *PayloadCacheSuite) TestReth_MisorderedBlobSidecarsCachedEnvelope_IsSuccessful() {
 	// Initialize chain state with 3 validators.
-	s.Geth.InitializeChain3Validators(s.T())
-	s.Reth.InitializeChain3Validators(s.T())
-	s.Reth2.InitializeChain3Validators(s.T())
+	s.Geth.InitializeChain(s.T(), 3)
+	s.Reth.InitializeChain(s.T(), 3)
+	s.Reth2.InitializeChain(s.T(), 3)
 
 	// validator A: malicious proposer.
 	maliciousProposerAddress, err := s.Geth.SimComet.GetNodeAddress()

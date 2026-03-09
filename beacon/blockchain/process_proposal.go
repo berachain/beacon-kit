@@ -22,9 +22,10 @@ package blockchain
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"fmt"
-	"sort"
+	"slices"
 	"time"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
@@ -70,6 +71,11 @@ func (s *Service) ProcessProposal(
 		return nil, fmt.Errorf("failed to decode block and blobs: %w", err)
 	}
 	blk := signedBlk.GetBeaconBlock()
+
+	// Sort the sidecars by index for verification and processing.
+	slices.SortFunc(sidecars, func(a, b *datypes.BlobSidecar) int {
+		return cmp.Compare(a.GetIndex(), b.GetIndex())
+	})
 
 	// There are two different timestamps:
 	//     - The "consensus time" is determined by CometBFT consensus and can be retrieved with `req.GetTime()`
@@ -177,18 +183,7 @@ func (s *Service) ProcessProposal(
 
 func payloadEnvFromPayload(sidecars datypes.BlobSidecars, blk *ctypes.BeaconBlock) (ctypes.BuiltExecutionPayloadEnv, error) {
 	blobBundle := &engineprimitives.BlobsBundleV1{}
-
-	// Iterate over sidecars in order of sidecar index.
-	sortedIndices := make([]int, len(sidecars))
-	for i := range sidecars {
-		sortedIndices[i] = i
-	}
-	sort.Slice(sortedIndices, func(i, j int) bool {
-		return sidecars[sortedIndices[i]].GetIndex() < sidecars[sortedIndices[j]].GetIndex()
-	})
-
-	for _, i := range sortedIndices {
-		s := sidecars[i]
+	for _, s := range sidecars {
 		blobBundle.Commitments = append(blobBundle.Commitments, s.GetKzgCommitment())
 		blobBundle.Proofs = append(blobBundle.Proofs, s.GetKzgProof())
 
