@@ -470,7 +470,10 @@ func (s *Service) shouldFetchFromSequencer() bool {
 	if s.preconfClient == nil || s.preconfCfg == nil || s.preconfWhitelist == nil {
 		return false
 	}
-	if !s.sequencerAvailable.Load() || !s.preconfCfg.ShouldFetchFromSequencer() {
+	if !s.preconfCfg.ShouldFetchFromSequencer() {
+		return false
+	}
+	if !s.sequencerAvailable.Load() {
 		return false
 	}
 	return s.preconfWhitelist.IsWhitelisted(s.signer.PublicKey())
@@ -503,6 +506,7 @@ func (s *Service) monitorSequencerHealth(ctx context.Context) {
 			return
 		case <-ticker.C:
 			if s.preconfClient.CheckHealth(ctx) == nil {
+				s.logger.Info("Sequencer is healthy again, stopping health monitor")
 				s.sequencerAvailable.Store(true)
 				return
 			}

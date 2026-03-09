@@ -210,7 +210,12 @@ func (c *Client) CheckHealth(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	resp.Body.Close()
+
+	// Drain and close body to allow connection reuse
+	//nolint:errcheck // cleanup errors don't affect sequencer health
+	io.Copy(io.Discard, resp.Body) //#nosec G104 -- cleanup error doesn't affect health result
+	resp.Body.Close()              //#nosec G104 -- cleanup error doesn't affect health result
+
 	if resp.StatusCode != http.StatusOK {
 		return errors.New("sequencer unhealthy")
 	}

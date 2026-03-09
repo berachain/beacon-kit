@@ -29,8 +29,8 @@ const (
 	// DefaultFetchTimeout is the default timeout for the HTTP client when fetching payloads from sequencer.
 	DefaultFetchTimeout = 500 * time.Millisecond
 
-	// DefaultProbeInterval is how often the client probes the sequencer when it is unavailable.
-	DefaultProbeInterval = 2 * time.Second
+	// DefaultHealthCheckInterval is how often the client probes the sequencer when it is unavailable.
+	DefaultHealthCheckInterval = 10 * time.Second
 )
 
 // Config holds preconfirmation configuration.
@@ -81,7 +81,7 @@ func DefaultConfig() Config {
 	return Config{
 		APIPort:       DefaultAPIPort,
 		FetchTimeout:  DefaultFetchTimeout,
-		ProbeInterval: DefaultProbeInterval,
+		ProbeInterval: DefaultHealthCheckInterval,
 	}
 }
 

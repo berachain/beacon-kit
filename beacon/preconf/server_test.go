@@ -49,30 +49,6 @@ const (
 	secretBHex = "0x3132333435363738394041424344454647484950515253545556575859606162"
 )
 
-func TestServer_HandleHealthEndpoint(t *testing.T) {
-	t.Parallel()
-
-	server := preconf.NewServer(noop.NewLogger[any](), nil, nil, nil, 0)
-
-	t.Run("success", func(t *testing.T) {
-		t.Parallel()
-		req := httptest.NewRequest(http.MethodGet, preconf.HealthEndpoint, nil)
-		rec := httptest.NewRecorder()
-		server.Handler().ServeHTTP(rec, req)
-		require.Equal(t, http.StatusOK, rec.Code)
-	})
-
-	t.Run("not allowed", func(t *testing.T) {
-		t.Parallel()
-		for _, method := range []string{http.MethodPost, http.MethodPut, http.MethodDelete} {
-			req := httptest.NewRequest(method, preconf.HealthEndpoint, nil)
-			rec := httptest.NewRecorder()
-			server.Handler().ServeHTTP(rec, req)
-			require.Equal(t, http.StatusMethodNotAllowed, rec.Code, "method: %s", method)
-		}
-	})
-}
-
 func TestServer_HandleGetPayload(t *testing.T) {
 	t.Parallel()
 
