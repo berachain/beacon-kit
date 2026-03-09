@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/beacon/validator"
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
@@ -49,6 +50,9 @@ type ValidatorServiceInput struct {
 
 // ProvideValidatorService is a depinject provider for the validator service.
 func ProvideValidatorService(in ValidatorServiceInput) (*validator.Service, error) {
+	if in.Cfg.Preconf.ShouldFetchFromSequencer() && in.Cfg.Preconf.ProbeInterval <= 0 {
+		return nil, errors.New("preconf enabled but sequencer probe interval is set to <= 0")
+	}
 	// Build the builder service.
 	return validator.NewService(
 		&in.Cfg.Validator,
