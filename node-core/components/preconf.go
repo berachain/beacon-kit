@@ -44,7 +44,7 @@ func ProvidePreconfWhitelist(in PreconfWhitelistInput) (preconf.Whitelist, error
 	// Only the sequencer needs a populated whitelist (to know which proposers to build for).
 	// Validators don't need it — they opt in to preconf by setting sequencer-url.
 	if !cfg.Enabled || !cfg.SequencerMode {
-		return preconf.NewWhitelist(nil), nil
+		return preconf.EmptyWhitelist(), nil
 	}
 
 	if cfg.WhitelistPath == "" {

@@ -56,6 +56,12 @@ func (r *reloadableWhitelist) Len() int {
 	return len(*w)
 }
 
+// EmptyWhitelist returns a Whitelist instance that contains no validators.
+// This can be used for non-sequencer nodes that don't require a whitelist.
+func EmptyWhitelist() Whitelist {
+	return &reloadableWhitelist{}
+}
+
 // NewWhitelist creates a new reloadableWhitelist with the given path
 // also loading the initial whitelist from the source.
 func NewWhitelist(path string) (Whitelist, error) {
