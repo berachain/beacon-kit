@@ -98,6 +98,7 @@ func (c *Client) GetPayloadBySlot(
 
 	// Create HTTP request
 	url := c.sequencerURL + PayloadEndpoint
+	//#nosec G704 // sequencerURL is operator-configured, not user-supplied
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqJSON))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
@@ -119,6 +120,9 @@ func (c *Client) GetPayloadBySlot(
 	resp, err := c.httpClient.Do(req) //#nosec:G704 // sequencer URL from trusted config
 	if err != nil {
 		return nil, errors.Wrapf(ErrSequencerUnavailable, "request failed: %v", err)
+	}
+	if resp == nil || resp.Body == nil {
+		return nil, errors.New("received nil response from sequencer")
 	}
 	if resp == nil || resp.Body == nil {
 		return nil, errors.New("received nil response from sequencer")

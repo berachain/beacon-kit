@@ -8,20 +8,18 @@ beacond = import_module("./src/nodes/consensus/beacond/launcher.star")
 networks = import_module("./src/networks/networks.star")
 port_spec_lib = import_module("./src/lib/port_spec.star")
 nodes = import_module("./src/nodes/nodes.star")
-nginx = import_module("./src/services/nginx/nginx.star")
 constants = import_module("./src/constants.star")
 spamoor = import_module("./src/services/spamoor/launcher.star")
 prometheus = import_module("./src/observability/prometheus/prometheus.star")
 grafana = import_module("./src/observability/grafana/grafana.star")
 pyroscope = import_module("./src/observability/pyroscope/pyroscope.star")
 tx_fuzz = import_module("./src/services/tx_fuzz/launcher.star")
-blutgang = import_module("./src/services/blutgang/launcher.star")
 blockscout = import_module("./src/services/blockscout/launcher.star")
 sequencer = import_module("./src/services/sequencer/launcher.star")
 preconf_config = import_module("./src/preconf/config.star")
 flashblock_monitor = import_module("./src/services/flashblock-monitor/launcher.star")
 
-def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpoints = [], additional_services = [], metrics_enabled_services = [], preconf = {}):
+def run(plan, network_configuration = {}, node_settings = {}, additional_services = [], metrics_enabled_services = [], preconf = {}):
     """
     Initiates the execution plan with the specified number of validators and arguments.
 
@@ -29,7 +27,6 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
     plan: The execution plan to be run.
     network_configuration: Network configuration including validators, full nodes, seed nodes.
     node_settings: Node-specific settings.
-    eth_json_rpc_endpoints: RPC endpoint configurations.
     additional_services: Additional services to launch.
     metrics_enabled_services: Services with metrics enabled.
     preconf: Preconfirmation configuration. If provided, enables preconf with:
@@ -172,9 +169,11 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
     for n, seed in enumerate(seed_nodes):
         seed_node_config = beacond.create_node_config(plan, seed, consensus_node_peering_info, seed.el_service_name, chain_id, chain_spec, genesis_deposits_root, genesis_deposit_count_hex, jwt_file, kzg_trusted_setup)
         seed_node_configs[seed.cl_service_name] = seed_node_config
-    seed_nodes_clients = plan.add_services(
-        configs = seed_node_configs,
-    )
+    seed_nodes_clients = {}
+    if seed_node_configs != {}:
+        seed_nodes_clients = plan.add_services(
+            configs = seed_node_configs,
+        )
     for n, seed_client in enumerate(seed_nodes):
         peer_info = beacond.get_peer_info(plan, seed_client.cl_service_name)
         consensus_node_peering_info.append(peer_info)
@@ -356,29 +355,35 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
     for n, seed_node in enumerate(seed_nodes):
         beacond.dial_unsafe_peers(plan, seed_node.cl_service_name, all_consensus_peering_info)
 
-    # Get only the first rpc endpoint
-    eth_json_rpc_endpoint = eth_json_rpc_endpoints[0]
-    endpoint_type = eth_json_rpc_endpoint["type"]
-    plan.print("RPC Endpoint Type:", endpoint_type)
-    if endpoint_type == "nginx":
-        plan.print("Launching RPCs for ", endpoint_type)
-        nginx.get_config(plan, eth_json_rpc_endpoint["clients"])
+    # If no seed nodes exist, bootstrap peering from the first validator
+    # so that nodes can discover each other via PEX.
+    if len(seed_nodes) == 0 and len(validators) > 0:
+        beacond.dial_unsafe_peers(plan, validators[0].cl_service_name, all_consensus_peering_info)
 
-    elif endpoint_type == "blutgang":
-        plan.print("Launching blutgang")
-        blutgang_config_template = read_file(
-            constants.BLUTGANG_CONFIG_TEMPLATE_FILEPATH,
-        )
-        blutgang.launch_blutgang(
-            plan,
-            blutgang_config_template,
-            full_node_el_clients,
-            eth_json_rpc_endpoint["clients"],
-            "kurtosis",
-        )
+        # Bootstrap EL peering: use first validator as a static peer so
+        # all EL nodes can discover each other via devp2p.
+        bootstrap_enode = execution.get_enode_addr(plan, validators[0].el_service_name)
+        el_services_to_peer = []
+        for node in full_nodes:
+            el_services_to_peer.append(node.el_service_name)
+        for node in preconf_rpc_nodes:
+            el_services_to_peer.append(node.el_service_name)
+        if sequencer_node:
+            el_services_to_peer.append(sequencer_node.el_service_name)
+        for node in validators[1:]:
+            el_services_to_peer.append(node.el_service_name)
+        for el_name in el_services_to_peer:
+            execution.add_peer(plan, el_name, bootstrap_enode)
 
-    else:
-        plan.print("Invalid type for eth_json_rpc_endpoint")
+    # For preconf topologies: add direct EL peering between the sequencer
+    # and tx-receiving nodes (preconf RPC, full nodes) so that transactions
+    # gossip directly to the sequencer without routing through validator-0.
+    if preconf_cfg and sequencer_node:
+        sequencer_enode = execution.get_enode_addr(plan, sequencer_node.el_service_name)
+        for node in preconf_rpc_nodes:
+            execution.add_peer(plan, node.el_service_name, sequencer_enode)
+        for node in full_nodes:
+            execution.add_peer(plan, node.el_service_name, sequencer_enode)
 
     # 8. Start additional services
     prometheus_url = ""
@@ -386,8 +391,10 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
         s = service_module.parse_service_from_dict(s_dict)
         if s.name == "spamoor":
             plan.print("Launching spamoor")
-            ip_spamoor = plan.get_service(endpoint_type).ip_address
-            port_spamoor = plan.get_service(endpoint_type).ports["http"].number
+            first_full_el_name = full_nodes[0].el_service_name
+            first_full_el = full_node_el_clients[first_full_el_name]
+            ip_spamoor = first_full_el.ip_address
+            port_spamoor = first_full_el.ports["eth-json-rpc"].number
             spamoor.launch_spamoor(
                 plan,
                 constants.PRE_FUNDED_ACCOUNTS[next_free_prefunded_account],
@@ -400,7 +407,6 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
             if "replicas" not in s_dict:
                 s.replicas = 1
             next_free_prefunded_account = tx_fuzz.launch_tx_fuzzes(plan, s.replicas, next_free_prefunded_account, full_node_el_client_configs, full_node_el_clients, [])
-            # next_free_prefunded_account = tx_fuzz.launch_tx_fuzzes_gang(plan, s.replicas, next_free_prefunded_account, [])
 
         elif s.name == "prometheus":
             prometheus_url = prometheus.start(plan, metrics_enabled_services)

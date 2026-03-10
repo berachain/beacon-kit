@@ -85,8 +85,7 @@ func DefaultConfig() *cmtcfg.Config {
 	consensus.TimeoutPrevote = minTimeoutPrevote
 	consensus.TimeoutPrecommit = minTimeoutPrecommit
 
-	//nolint:staticcheck // setting to zero because it's deprecated
-	consensus.TimeoutCommit = 0
+	consensus.TimeoutCommit = 0 //nolint:staticcheck // deprecated but still needed
 
 	cfg.Storage.DiscardABCIResponses = true
 

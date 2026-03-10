@@ -59,15 +59,15 @@ func (s *BeaconKitE2ESuite) Test4844Live() {
 
 	// Grab values to plug into txs
 	sender := s.TestAccounts()[0]
-	chainID, err := s.JSONRPCBalancer().ChainID(ctx)
+	chainID, err := s.RPCClient().ChainID(ctx)
 	s.Require().NoError(err)
-	tip, err := s.JSONRPCBalancer().SuggestGasTipCap(ctx)
+	tip, err := s.RPCClient().SuggestGasTipCap(ctx)
 	s.Require().NoError(err)
-	gasFee, err := s.JSONRPCBalancer().SuggestGasPrice(ctx)
+	gasFee, err := s.RPCClient().SuggestGasPrice(ctx)
 	s.Require().NoError(err)
-	blkNum, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
+	blkNum, err := s.RPCClient().BlockNumber(s.Ctx())
 	s.Require().NoError(err)
-	nonce, err := s.JSONRPCBalancer().NonceAt(
+	nonce, err := s.RPCClient().NonceAt(
 		s.Ctx(), sender.Address(), new(big.Int).SetUint64(blkNum),
 	)
 	s.Require().NoError(err)
@@ -99,7 +99,7 @@ func (s *BeaconKitE2ESuite) Test4844Live() {
 		s.Logger().Info("submitting blob transaction", "blobTx", blobTx.Hash().Hex())
 		blobTxs = append(blobTxs, blobTx)
 
-		err = s.JSONRPCBalancer().SendTransaction(ctx, blobTx)
+		err = s.RPCClient().SendTransaction(ctx, blobTx)
 		// TODO: Figure out what is causing this to happen.
 		// Also, `errors.Is(err, txpool.ErrAlreadyKnown)` doesn't catch it.
 		if err != nil && err.Error() == txpool.ErrAlreadyKnown.Error() {
@@ -119,7 +119,7 @@ func (s *BeaconKitE2ESuite) Test4844Live() {
 			// Wait for the blob transaction to be mined before making request.
 			s.Logger().
 				Info("waiting for blob transaction to be mined", "blobTx", blobTx.Hash().Hex())
-			receipt, errWait := bind.WaitMined(ctx, s.JSONRPCBalancer(), blobTx)
+			receipt, errWait := bind.WaitMined(ctx, s.RPCClient(), blobTx)
 			s.Require().NoError(errWait)
 			s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
 
