@@ -80,6 +80,7 @@ jobs:
       - name: Import GPG key
         run: |
           mkdir -p ~/.gnupg
+          chmod 700 ~/.gnupg
           echo "allow-loopback-pinentry" >> ~/.gnupg/gpg-agent.conf
           echo "$GPG_KEY" | gpg --batch --import
           gpg-connect-agent reloadagent /bye || true
