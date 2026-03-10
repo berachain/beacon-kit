@@ -23,6 +23,7 @@ package config
 import (
 	"time"
 
+	"github.com/berachain/beacon-kit/beacon/preconf"
 	"github.com/berachain/beacon-kit/beacon/validator"
 	"github.com/berachain/beacon-kit/config/template"
 	viperlib "github.com/berachain/beacon-kit/config/viper"
@@ -61,6 +62,7 @@ func DefaultConfig() *Config {
 		Validator:         validator.DefaultConfig(),
 		BlockStoreService: block.DefaultConfig(),
 		NodeAPI:           server.DefaultConfig(),
+		Preconf:           preconf.DefaultConfig(),
 	}
 }
 
@@ -87,6 +89,8 @@ type Config struct {
 	BlockStoreService block.Config `mapstructure:"block-store-service"`
 	// NodeAPI is the configuration for the node API.
 	NodeAPI server.Config `mapstructure:"node-api"`
+	// Preconf is the configuration for preconfirmation support.
+	Preconf preconf.Config `mapstructure:"preconf"`
 }
 
 // GetEngine returns the execution client configuration.

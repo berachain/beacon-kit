@@ -1,6 +1,6 @@
 # Contains functionality for initializing and starting the nodes
 
-def start(persistent_peers, is_seed, validator_index, config_settings, app_settings, kzg_impl):
+def start(persistent_peers, is_seed, validator_index, config_settings, app_settings, kzg_impl, preconf_flags = ""):
     mv_genesis = "mv root/.tmp_genesis/genesis.json /root/.beacond/config/genesis.json"
     set_config = 'sed -i "s/^prometheus = false$/prometheus = {}/" {}/config/config.toml'.format("$BEACOND_ENABLE_PROMETHEUS", "$BEACOND_HOME")
     set_config += '\nsed -i "s/^pprof_laddr = \\".*\\"/pprof_laddr = \\"0.0.0.0:6060\\"/" {}/config/config.toml'.format("$BEACOND_HOME")
@@ -40,7 +40,7 @@ def start(persistent_peers, is_seed, validator_index, config_settings, app_setti
     --beacon-kit.engine.rpc-dial-url {} \
     --beacon-kit.node-api.enabled --beacon-kit.node-api.logging --beacon-kit.node-api.address 0.0.0.0:3500 \
     --pruning=nothing \
-    {} {}".format("$BEACOND_CHAIN_SPEC", kzg_impl, "$BEACOND_ENGINE_DIAL_URL", seed_option, persistent_peers_option)
+    {} {} {}".format("$BEACOND_CHAIN_SPEC", kzg_impl, "$BEACOND_ENGINE_DIAL_URL", seed_option, persistent_peers_option, preconf_flags)
 
     return "{} && {} && {}".format(mv_genesis, set_config, start_node)
 
