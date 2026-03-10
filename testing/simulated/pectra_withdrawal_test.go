@@ -83,7 +83,8 @@ func (s *PectraWithdrawalSuite) SetupTest() {
 	// Create the chainSpec.
 	chainSpec, err := chainSpecFunc()
 	s.Require().NoError(err)
-	cometConfig, genesisValidatorsRoot := simulated.InitializeHomeDir(s.T(), chainSpec, s.HomeDir, elGenesisPath)
+	configs, genesisValidatorsRoot := simulated.InitializeHomeDirs(s.T(), chainSpec, elGenesisPath, s.HomeDir)
+	cometConfig := configs[0]
 	s.GenesisValidatorsRoot = genesisValidatorsRoot
 
 	// Start the EL (execution layer) Geth node.

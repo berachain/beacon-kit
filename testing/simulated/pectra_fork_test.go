@@ -79,7 +79,8 @@ func (s *PectraForkSuite) SetupTest() {
 	// Create the chainSpec.
 	chainSpec, err := chainSpecFunc()
 	s.Require().NoError(err)
-	cometConfig, genesisValidatorsRoot := simulated.InitializeHomeDir(s.T(), chainSpec, s.Geth.HomeDir, elGenesisPath)
+	configs, genesisValidatorsRoot := simulated.InitializeHomeDirs(s.T(), chainSpec, elGenesisPath, s.Geth.HomeDir)
+	cometConfig := configs[0]
 	s.Geth.GenesisValidatorsRoot = genesisValidatorsRoot
 	s.Reth.GenesisValidatorsRoot = genesisValidatorsRoot
 

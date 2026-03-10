@@ -33,7 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	svcencoding "github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/log/phuslu"
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/net/url"
 	"github.com/berachain/beacon-kit/testing/simulated"
@@ -97,24 +96,25 @@ func (s *PayloadCacheSuite) SetupTest() {
 	chainSpec, err := chainSpecFunc()
 	s.Require().NoError(err)
 	var (
-		gethCmtCfg            *cmtcfg.Config
-		rethCmtCfg            *cmtcfg.Config
-		reth2CmtCfg           *cmtcfg.Config
-		genesisValidatorsRoot common.Root
+		gethCmtCfg  *cmtcfg.Config
+		rethCmtCfg  *cmtcfg.Config
+		reth2CmtCfg *cmtcfg.Config
 	)
 	if useThirdValidatorSetup {
-		gethCmtCfg, rethCmtCfg, reth2CmtCfg, genesisValidatorsRoot = simulated.Initialize3HomeDirs(
-			s.T(), chainSpec, s.Geth.HomeDir, s.Reth.HomeDir, s.Reth2.HomeDir, elGenesisPath,
+		configs, root := simulated.InitializeHomeDirs(
+			s.T(), chainSpec, elGenesisPath, s.Geth.HomeDir, s.Reth.HomeDir, s.Reth2.HomeDir,
 		)
-		s.Geth.GenesisValidatorsRoot = genesisValidatorsRoot
-		s.Reth.GenesisValidatorsRoot = genesisValidatorsRoot
-		s.Reth2.GenesisValidatorsRoot = genesisValidatorsRoot
+		gethCmtCfg, rethCmtCfg, reth2CmtCfg = configs[0], configs[1], configs[2]
+		s.Geth.GenesisValidatorsRoot = root
+		s.Reth.GenesisValidatorsRoot = root
+		s.Reth2.GenesisValidatorsRoot = root
 	} else {
-		gethCmtCfg, rethCmtCfg, genesisValidatorsRoot = simulated.Initialize2HomeDirs(
-			s.T(), chainSpec, s.Geth.HomeDir, s.Reth.HomeDir, elGenesisPath,
+		configs, root := simulated.InitializeHomeDirs(
+			s.T(), chainSpec, elGenesisPath, s.Geth.HomeDir, s.Reth.HomeDir,
 		)
-		s.Geth.GenesisValidatorsRoot = genesisValidatorsRoot
-		s.Reth.GenesisValidatorsRoot = genesisValidatorsRoot
+		gethCmtCfg, rethCmtCfg = configs[0], configs[1]
+		s.Geth.GenesisValidatorsRoot = root
+		s.Reth.GenesisValidatorsRoot = root
 	}
 
 	// Start the EL (execution layer) Geth node.
