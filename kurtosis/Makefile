@@ -51,6 +51,23 @@ start-devnet-no-build:
 	kurtosis run ./kurtosis --args-file ./kurtosis/beaconkit-local.yaml \
 		--enclave my-local-devnet --parallelism 200
 
+# Starts a Kurtosis enclave with preconfirmation enabled.
+start-devnet-preconf: install-kurtosis
+	$(MAKE) build-docker VERSION=kurtosis-local start-devnet-preconf-no-build
+
+# Starts a preconf devnet without building the image
+start-devnet-preconf-no-build:
+	kurtosis run ./kurtosis --args-file ./kurtosis/beaconkit-preconf.yaml \
+		--enclave my-preconf-devnet --parallelism 200
+
+# Stops the preconf devnet
+stop-devnet-preconf:
+	kurtosis enclave stop my-preconf-devnet
+
+# Removes the preconf devnet
+rm-devnet-preconf:
+	kurtosis enclave rm my-preconf-devnet --force
+
 # Starts a Kurtosis enclave in the cloud using the latest image tag
 start-devnet-cloud: install-kurtosis
 	kurtosis run ./kurtosis --args-file ./kurtosis/beaconkit-cloud.yaml \
@@ -85,4 +102,4 @@ star-fix: buildifier-install
 
 # Marks targets as not being associated with files
 .PHONY: start-devnet stop-devnet start-devnet-cloud rm-devnet-cloud reset-devnet rm-devnet buildifier-install \
-  star-lint star-fix install-kurtosis
+  star-lint star-fix install-kurtosis start-devnet-preconf start-devnet-preconf-no-build stop-devnet-preconf rm-devnet-preconf
