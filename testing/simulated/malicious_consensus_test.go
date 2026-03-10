@@ -45,7 +45,7 @@ func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_Errors() {
 	const coreLoopIterations = 1
 
 	// Initialize the chain state.
-	s.InitializeChain(s.T())
+	s.InitializeChain(s.T(), 1)
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)

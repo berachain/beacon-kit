@@ -40,7 +40,7 @@ import (
 // This simulates the scenario where sidecars are saved to disk but the block finalization fails.
 func (s *SimulatedSuite) TestOrphanedBlobCleanup() {
 	// Initialize chain and move forward two blocks.
-	s.InitializeChain(s.T())
+	s.InitializeChain(s.T(), 1)
 	nodeAddress, err := s.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
 	s.SimComet.Comet.SetNodeAddress(nodeAddress)
