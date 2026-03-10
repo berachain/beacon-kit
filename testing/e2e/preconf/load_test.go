@@ -18,9 +18,9 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-//go:build e2e_preconf
+//go:build e2e
 
-package e2e_test
+package preconf_test
 
 import (
 	"context"
@@ -28,7 +28,6 @@ import (
 	"math/big"
 	"sort"
 	"sync"
-	"testing"
 	"time"
 
 	"github.com/berachain/beacon-kit/errors"
@@ -41,10 +40,6 @@ import (
 )
 
 const (
-	// Kurtosis service names.
-	loadTestPreconfRPCEL   = "el-preconf-rpc-reth-0"
-	loadTestPreconfRPCPort = "eth-json-rpc"
-
 	// Load parameters.
 	loadTestDuration           = 60 * time.Second       // how long the load test phase runs
 	loadTestTxPerFlashblock    = 40                     // txs per flashblock (0 to disable)
@@ -83,47 +78,6 @@ type pendingTx struct {
 	sendBlock uint64
 }
 
-// PreconfLoadE2ESuite tests the preconf system by sending real ETH
-// transactions through the preconf RPC node, measuring flashblock
-// latency, and verifying state consistency with the standard RPC.
-type PreconfLoadE2ESuite struct {
-	suite.KurtosisE2ESuite
-	preconfClient *ethclient.Client
-	chainID       *big.Int
-}
-
-// TestPreconfLoadE2ESuite runs the preconf load test suite.
-func TestPreconfLoadE2ESuite(t *testing.T) {
-	suite.Run(t, new(PreconfLoadE2ESuite))
-}
-
-// SetupSuite initializes the network with a dedicated sequencer and
-// preconf RPC node, then discovers the preconf RPC endpoint.
-func (s *PreconfLoadE2ESuite) SetupSuite() {
-	s.SetupSuiteWithOptions(suite.WithPreconfLoadConfig())
-
-	// Discover preconf RPC EL node via Kurtosis port mapping.
-	sCtx, err := s.Enclave().GetServiceContext(loadTestPreconfRPCEL)
-	s.Require().NoError(err, "Should get preconf RPC EL service context")
-
-	port, ok := sCtx.GetPublicPorts()[loadTestPreconfRPCPort]
-	s.Require().True(ok, "Preconf RPC EL should expose eth-json-rpc port")
-
-	preconfURL := fmt.Sprintf("http://0.0.0.0:%d", port.GetNumber())
-	s.T().Logf("Preconf RPC EL URL: %s", preconfURL)
-
-	s.preconfClient, err = types.DialWithPooling(preconfURL)
-	s.Require().NoError(err, "Should connect to preconf RPC EL")
-	s.T().Cleanup(func() { s.preconfClient.Close() })
-
-	s.chainID, err = s.RPCClient().ChainID(s.Ctx())
-	s.Require().NoError(err, "Should get chain ID")
-
-	// Brief warmup: confirm network is producing blocks after funding.
-	err = s.WaitForNBlockNumbers(1)
-	s.Require().NoError(err, "Network should produce warmup blocks")
-}
-
 // TestPreconfTransactions fires bursts of parallel ETH transfers through
 // the preconf RPC node every flashblock interval and waits for receipts.
 // This measures per-transaction flashblock inclusion latency under
@@ -131,7 +85,7 @@ func (s *PreconfLoadE2ESuite) SetupSuite() {
 // on the standard full node RPC.
 //
 //nolint:funlen // load test with multiple phases
-func (s *PreconfLoadE2ESuite) TestPreconfTransactions() {
+func (s *PreconfE2ESuite) TestPreconfTransactions() {
 	ctx := s.Ctx()
 	sender := s.TestAccounts()[0]
 	receiver := s.TestAccounts()[1]
@@ -347,7 +301,7 @@ loop:
 // to discover when sent transactions are included. This replaces per-tx
 // receipt polling with a single scanning loop that makes far fewer RPC
 // calls, avoiding 429 rate-limiting under heavy load.
-func (s *PreconfLoadE2ESuite) collectResults(
+func (s *PreconfE2ESuite) collectResults(
 	ctx context.Context,
 	pendingTxCh <-chan pendingTx,
 ) []txResult {
@@ -461,7 +415,7 @@ func (s *PreconfLoadE2ESuite) collectResults(
 // from testAccounts[2] to create realistic mempool pressure. Returns a
 // stop func that cancels the spammer, waits for it to exit, and returns
 // the hashes of all successfully sent transactions.
-func (s *PreconfLoadE2ESuite) startBackgroundLoad(
+func (s *PreconfE2ESuite) startBackgroundLoad(
 	ctx context.Context,
 ) (stop func() []common.Hash) {
 	if loadTestSpamTxPerSec == 0 {
@@ -536,7 +490,7 @@ func (s *PreconfLoadE2ESuite) startBackgroundLoad(
 
 // sendETHTransfer creates, signs, and sends an ETH transfer via the given
 // client. It is goroutine-safe: errors are returned, not asserted.
-func (s *PreconfLoadE2ESuite) sendETHTransfer(
+func (s *PreconfE2ESuite) sendETHTransfer(
 	p transferParams,
 ) (*ethtypes.Transaction, error) {
 	signedTx, err := p.sender.SignTx(
@@ -563,7 +517,7 @@ func (s *PreconfLoadE2ESuite) sendETHTransfer(
 
 // suggestGasCaps queries the client for gas tip and fee caps, falling back
 // to defaults if the RPC method is unsupported.
-func (s *PreconfLoadE2ESuite) suggestGasCaps(
+func (s *PreconfE2ESuite) suggestGasCaps(
 	client *ethclient.Client,
 ) (gasTipCap, gasFeeCap *big.Int) {
 	gasTipCap, err := client.SuggestGasTipCap(s.Ctx())

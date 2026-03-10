@@ -404,3 +404,16 @@ func (s *KurtosisE2ESuite) CheckForSuccessfulTx(tx common.Hash) bool {
 	}
 	return receipt.Status == ethtypes.ReceiptStatusSuccessful
 }
+
+// kurtosisPackagePath returns the absolute path to the kurtosis/ directory
+// at the repository root. It uses runtime.Caller to locate this source file
+// (testing/e2e/suite/setup.go) and navigates relative to it, so the path
+// is correct regardless of where `go test` is invoked from.
+//
+//nolint:dogsled // no risk from e2e suite
+func kurtosisPackagePath() string {
+	_, filename, _, _ := runtime.Caller(0)
+	// filename = .../testing/e2e/suite/setup.go
+	// walk up 3 levels to repo root, then into kurtosis/
+	return filepath.Join(filepath.Dir(filename), "../../../kurtosis")
+}
