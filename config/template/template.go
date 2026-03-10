@@ -118,7 +118,7 @@ enabled = {{ .BeaconKit.Preconf.Enabled }}
 sequencer-mode = {{ .BeaconKit.Preconf.SequencerMode }}
 
 # Path to whitelist JSON file containing validator pubkeys.
-# Required when enabled and sequencer-mode are both true.
+# Only needed when sequencer-mode = true.
 # Startup fails if file is missing/invalid.
 whitelist-path = "{{ .BeaconKit.Preconf.WhitelistPath }}"
 

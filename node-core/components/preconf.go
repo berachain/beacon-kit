@@ -35,30 +35,20 @@ type PreconfWhitelistInput struct {
 	Logger *phuslu.Logger
 }
 
-// ProvidePreconfWhitelist is a function that provides the module to the
-// application. Returns nil if preconf is disabled or no whitelist is configured.
-//
-//nolint:nilnil // nil whitelist indicates preconf is disabled
+// ProvidePreconfWhitelist provides the preconf whitelist to the application.
+// Returns an empty whitelist for non-sequencer nodes (all IsWhitelisted checks return false).
 func ProvidePreconfWhitelist(in PreconfWhitelistInput) (preconf.Whitelist, error) {
 	cfg := &in.Cfg.Preconf
 	logger := in.Logger.With("service", "preconf")
 
-	if !cfg.Enabled {
-		logger.Info("Preconfirmation support is disabled")
-		return nil, nil
+	// Only the sequencer needs a populated whitelist (to know which proposers to build for).
+	// Validators don't need it — they opt in to preconf by setting sequencer-url.
+	if !cfg.Enabled || !cfg.SequencerMode {
+		return preconf.NewWhitelist(nil), nil
 	}
 
-	// Sequencer mode requires whitelist
-	if cfg.SequencerMode && cfg.WhitelistPath == "" {
-		return nil, errors.New("preconf sequencer mode enabled but whitelist-path is not set")
-	}
-
-	// Load whitelist if path is provided (both sequencer and validators need it)
-	// - Sequencer: to know which proposers to build for
-	// - Validators: to know if they should fetch from sequencer
 	if cfg.WhitelistPath == "" {
-		logger.Info("Preconfirmation enabled but no whitelist configured")
-		return nil, nil
+		return nil, errors.New("preconf sequencer mode enabled but whitelist-path is not set")
 	}
 
 	pubkeys, err := preconf.LoadWhitelist(cfg.WhitelistPath)
@@ -70,18 +60,11 @@ func ProvidePreconfWhitelist(in PreconfWhitelistInput) (preconf.Whitelist, error
 		return nil, errors.New("preconf whitelist is empty")
 	}
 
-	if cfg.SequencerMode {
-		logger.Info(
-			"Preconf sequencer mode enabled",
-			"whitelist_count", len(pubkeys),
-			"whitelist_path", cfg.WhitelistPath,
-		)
-	} else {
-		logger.Info(
-			"Preconf whitelist loaded for validator mode",
-			"whitelist_count", len(pubkeys),
-		)
-	}
+	logger.Info(
+		"Preconf sequencer mode enabled",
+		"whitelist_count", len(pubkeys),
+		"whitelist_path", cfg.WhitelistPath,
+	)
 
 	return preconf.NewWhitelist(pubkeys), nil
 }
