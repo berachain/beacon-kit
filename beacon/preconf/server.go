@@ -129,6 +129,7 @@ func (s *Server) Start(_ context.Context) error {
 func (s *Server) OnSIGHUP() {
 	r, ok := s.whitelist.(*reloadableWhitelist)
 	if !ok {
+		s.logger.Warn("Whitelist is not reloadable, cannot hot-reload on SIGHUP")
 		return
 	}
 	if err := r.Reload(); err != nil {
