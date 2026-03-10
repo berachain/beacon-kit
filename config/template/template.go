@@ -146,5 +146,5 @@ sequencer-jwt-path = "{{ .BeaconKit.Preconf.SequencerJWTPath }}"
 fetch-timeout = "{{ .BeaconKit.Preconf.FetchTimeout }}"
 
 # How often to probe sequencer health endpoint when it becomes unavailable.
-probe-interval = "{{ .BeaconKit.Preconf.ProbeInterval }}"
+health-check-interval = "{{ .BeaconKit.Preconf.HealthCheckInterval }}"
 `

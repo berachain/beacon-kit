@@ -490,7 +490,7 @@ func (s *Service) fetchFromSequencer(
 	// serving us — trip the circuit breaker and start the health monitor.
 	// ErrPayloadNotFound means the sequencer is healthy but has no payload yet.
 	if err != nil && !errors.Is(err, preconf.ErrPayloadNotFound) {
-		s.logger.Info("Detected sequencer disservice, starting health monitor")
+		s.logger.Info("Detected sequencer offline, starting health monitor")
 		s.sequencerAvailable.Store(false)
 		if s.sequencerMonitorRunning.CompareAndSwap(false, true) {
 			go s.monitorSequencerHealth(context.WithoutCancel(ctx))
@@ -501,14 +501,16 @@ func (s *Service) fetchFromSequencer(
 
 // monitorSequencerHealth continuously probes the sequencer until it becomes healthy again.
 func (s *Service) monitorSequencerHealth(ctx context.Context) {
+	start := time.Now()
 	defer s.sequencerMonitorRunning.Store(false)
-	ticker := time.NewTicker(s.preconfCfg.ProbeInterval)
+	ticker := time.NewTicker(s.preconfCfg.HealthCheckInterval)
 	defer ticker.Stop()
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
+			s.logger.Info("Sequencer offline", "duration", time.Since(start))
 			if s.preconfClient.CheckHealth(ctx) == nil {
 				s.logger.Info("Sequencer is healthy again, stopping health monitor")
 				s.sequencerAvailable.Store(true)

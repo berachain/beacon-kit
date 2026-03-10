@@ -50,8 +50,8 @@ type ValidatorServiceInput struct {
 
 // ProvideValidatorService is a depinject provider for the validator service.
 func ProvideValidatorService(in ValidatorServiceInput) (*validator.Service, error) {
-	if in.Cfg.Preconf.ShouldFetchFromSequencer() && in.Cfg.Preconf.ProbeInterval <= 0 {
-		return nil, errors.New("preconf enabled but sequencer probe interval is set to <= 0")
+	if in.Cfg.Preconf.ShouldFetchFromSequencer() && in.Cfg.Preconf.HealthCheckInterval <= 0 {
+		return nil, errors.New("preconf enabled but sequencer health check interval is set to <= 0")
 	}
 	// Build the builder service.
 	return validator.NewService(

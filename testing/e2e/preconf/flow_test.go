@@ -31,7 +31,7 @@ const (
 	// Log messages that indicate preconf is working.
 	sequencerServingLog   = "GetPayloadBySlot completed"
 	validatorFetchingLog  = "Successfully fetched payload from sequencer"
-	sequencerDownLog      = "Detected sequencer disservice, starting health monitor"
+	sequencerDownLog      = "Detected sequencer offline, starting health monitor"
 	sequencerRecoveredLog = "Sequencer is healthy again, stopping health monitor"
 
 	// Kurtosis service name for the dedicated sequencer CL node.
