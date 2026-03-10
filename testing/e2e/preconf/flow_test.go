@@ -62,7 +62,11 @@ func (s *PreconfE2ESuite) TestSequencerFlow() {
 
 	// Verify validators fetch from sequencer.
 	s.Run("ValidatorFetches", func() {
-		for _, validator := range []string{config.ClientValidator0} {
+		validators := []string{
+			config.ClientValidator0, config.ClientValidator1, config.ClientValidator2,
+			config.ClientValidator3, config.ClientValidator4,
+		}
+		for _, validator := range validators {
 			validator := validator // capture for closure
 			s.Run(validator, func() {
 				logs, err := s.GetServiceLogs(validator)
@@ -145,7 +149,11 @@ func (s *PreconfE2ESuite) TestSequencerFlow() {
 		s.Require().NoError(err, "Network should continue producing blocks after sequencer restarted")
 
 		// Validators should have detected recovery and resumed fetching from the sequencer.
-		for _, validator := range []string{config.ClientValidator0} {
+		validators := []string{
+			config.ClientValidator0, config.ClientValidator1, config.ClientValidator2,
+			config.ClientValidator3, config.ClientValidator4,
+		}
+		for _, validator := range validators {
 			logs, err := s.GetServiceLogs(validator)
 			s.Require().NoError(err, "Should get logs for %s", validator)
 
