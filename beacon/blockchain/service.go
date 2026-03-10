@@ -26,6 +26,7 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"github.com/berachain/beacon-kit/beacon/preconf"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/log"
@@ -69,6 +70,22 @@ type Service struct {
 	// It helps avoid resending the same FCU data (and spares a network call)
 	// in case optimistic block building is active
 	latestFcuReq atomic.Pointer[engineprimitives.ForkchoiceStateV1]
+
+	// preconfCfg holds the preconfirmation configuration.
+	preconfCfg *preconf.Config
+
+	// preconfWhitelist contains whitelisted validator pubkeys for preconfirmation.
+	// Used by both sequencer and validators:
+	// - Sequencer: checks if next proposer is whitelisted to trigger optimistic FCU
+	// - Validator: checks if self is whitelisted to fetch payload from sequencer
+	// Can be nil if preconf is disabled.
+	preconfWhitelist preconf.Whitelist
+
+	// optimisticBuildTriggered tracks whether ProcessProposal triggered an
+	// optimistic payload build for the next slot. FinalizeBlock checks this
+	// flag: if ProcessProposal was skipped (e.g., late proposal), the flag
+	// remains false and FinalizeBlock triggers the build as a fallback.
+	optimisticBuildTriggered atomic.Bool
 }
 
 // NewService creates a new validator service.
@@ -82,6 +99,8 @@ func NewService(
 	localBuilder LocalBuilder,
 	stateProcessor StateProcessor,
 	telemetrySink TelemetrySink,
+	preconfCfg *preconf.Config,
+	preconfWhitelist preconf.Whitelist,
 ) *Service {
 	return &Service{
 		storageBackend:       storageBackend,
@@ -96,6 +115,8 @@ func NewService(
 		stateProcessor:       stateProcessor,
 		metrics:              newChainMetrics(telemetrySink),
 		forceStartupSyncOnce: new(sync.Once),
+		preconfCfg:           preconfCfg,
+		preconfWhitelist:     preconfWhitelist,
 	}
 }
 
