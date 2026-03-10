@@ -95,9 +95,7 @@ func (n *node) Start(
 				return
 			case sig := <-sigc:
 				switch sig {
-				case syscall.SIGHUP:
-					n.registry.DispatchSIGHUP()
-				default:
+				case syscall.SIGINT, syscall.SIGTERM:
 					timeout := time.AfterFunc(n.shutdownTimeout, func() {
 						n.logger.Error("Shutdown timeout exceeded, forcing exit", "timeout", n.shutdownTimeout.String())
 						os.Exit(1)
@@ -106,6 +104,11 @@ func (n *node) Start(
 						shutdownFunc(fmt.Errorf("shutdown initiated by signal: %s", sig.String()))
 					})
 					timeout.Stop()
+					return
+				case syscall.SIGHUP:
+					n.registry.DispatchSIGHUP()
+				default:
+					n.logger.Info("Received unhandled signal", "signal", sig.String())
 				}
 			}
 		}

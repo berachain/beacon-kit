@@ -127,7 +127,7 @@ func (s *Server) Start(_ context.Context) error {
 
 // OnSIGHUP implements SIGHUPHandler. It hot-reloads the whitelist from disk.
 func (s *Server) OnSIGHUP() {
-	r, ok := s.whitelist.(ReloadableWhitelist)
+	r, ok := s.whitelist.(*reloadableWhitelist)
 	if !ok {
 		return
 	}
