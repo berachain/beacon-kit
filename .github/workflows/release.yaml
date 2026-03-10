@@ -79,11 +79,13 @@ jobs:
 
       - name: Import GPG key
         run: |
+          set -o pipefail
           mkdir -p ~/.gnupg
           chmod 700 ~/.gnupg
           echo "allow-loopback-pinentry" >> ~/.gnupg/gpg-agent.conf
           echo "$GPG_KEY" | gpg --batch --import
           gpg-connect-agent reloadagent /bye || true
+          gpg --list-secret-keys --keyid-format=long
         env:
           GPG_KEY: ${{ secrets.GPG_KEY }}
 
