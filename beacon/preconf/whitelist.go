@@ -28,16 +28,19 @@ import (
 )
 
 // Whitelist defines the interface for checking if a validator is whitelisted
-// for preconfirmation support.
+// for preconfirmation support. It also supports hot-reloading the whitelist from source.
 type Whitelist interface {
 	// IsWhitelisted returns true if the given public key is in the whitelist.
 	IsWhitelisted(pubkey crypto.BLSPubkey) bool
+	// Reload reloads the whitelist from the stored source.
+	Reload() error
+	// Len returns the number of validators in the current whitelist.
+	Len() int
 }
 
 type validatorSet map[crypto.BLSPubkey]struct{}
 
-// reloadableWhitelist is the concrete implementation of Whitelist with hot-reload support.
-// Allows reloading the whitelist from source at runtime.
+// reloadableWhitelist is the concrete implementation of ReloadableWhitelist.
 type reloadableWhitelist struct {
 	path    string
 	current atomic.Pointer[validatorSet]
@@ -54,10 +57,8 @@ func (r *reloadableWhitelist) Len() int {
 }
 
 // NewWhitelist creates a new reloadableWhitelist with the given path
-// and logger, also loading the initial whitelist from the path.
-//
-//nolint:revive // reloadableWhitelist is intentionally unexported; callers use the Whitelist interface
-func NewWhitelist(path string) (*reloadableWhitelist, error) {
+// also loading the initial whitelist from the source.
+func NewWhitelist(path string) (Whitelist, error) {
 	pubkeys, err := LoadWhitelist(path)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to load preconf whitelist from: %s", path)

@@ -127,16 +127,11 @@ func (s *Server) Start(_ context.Context) error {
 
 // OnSIGHUP implements SIGHUPHandler. It hot-reloads the whitelist from disk.
 func (s *Server) OnSIGHUP() {
-	r, ok := s.whitelist.(*reloadableWhitelist)
-	if !ok {
-		s.logger.Warn("Whitelist is not reloadable, cannot hot-reload on SIGHUP")
-		return
-	}
-	if err := r.Reload(); err != nil {
+	if err := s.whitelist.Reload(); err != nil {
 		s.logger.Error("Failed to reload preconf whitelist", "error", err)
 		return
 	}
-	s.logger.Info("Preconf whitelist reloaded", "whitelist_count", r.Len())
+	s.logger.Info("Preconf whitelist reloaded", "whitelist_count", s.whitelist.Len())
 }
 
 // Stop stops the preconf API server.
