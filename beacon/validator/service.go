@@ -55,11 +55,8 @@ type Service struct {
 	// preconfCfg holds the preconfirmation configuration.
 	preconfCfg *preconf.Config
 	// preconfClient is used to fetch payloads from the sequencer.
-	// Can be nil if preconf is disabled or this validator is not whitelisted.
-	preconfClient *preconf.Client
-	// preconfWhitelist is used to check if this validator is whitelisted for preconf.
 	// Can be nil if preconf is disabled.
-	preconfWhitelist preconf.Whitelist
+	preconfClient *preconf.Client
 }
 
 // NewService creates a new validator service.
@@ -75,7 +72,6 @@ func NewService(
 	ts TelemetrySink,
 	preconfCfg *preconf.Config,
 	preconfClient *preconf.Client,
-	preconfWhitelist preconf.Whitelist,
 ) *Service {
 	return &Service{
 		cfg:                 cfg,
@@ -89,7 +85,6 @@ func NewService(
 		metrics:             newValidatorMetrics(ts),
 		preconfCfg:          preconfCfg,
 		preconfClient:       preconfClient,
-		preconfWhitelist:    preconfWhitelist,
 	}
 }
 
