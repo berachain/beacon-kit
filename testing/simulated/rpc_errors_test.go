@@ -166,7 +166,8 @@ func (s *RPCErrorProxySuite) SetupTest() {
 	chainSpecFunc := simulated.ProvideSimulationChainSpec
 	chainSpec, err := chainSpecFunc()
 	s.Require().NoError(err)
-	cometConfig, genesisValidatorsRoot := simulated.InitializeHomeDir(s.T(), chainSpec, s.HomeDir, elGenesisPath)
+	configs, genesisValidatorsRoot := simulated.InitializeHomeDirs(s.T(), chainSpec, elGenesisPath, s.HomeDir)
+	cometConfig := configs[0]
 	s.GenesisValidatorsRoot = genesisValidatorsRoot
 
 	// Start Geth.
@@ -234,7 +235,7 @@ func (s *RPCErrorProxySuite) prepareForFinalize() preparedProposal {
 	const blockHeight = 1
 	const coreLoopIterations = 1
 
-	s.InitializeChain(s.T())
+	s.InitializeChain(s.T(), 1)
 	nodeAddress, err := s.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
 	s.SimComet.Comet.SetNodeAddress(nodeAddress)

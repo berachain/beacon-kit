@@ -76,7 +76,8 @@ func (s *PectraGenesisSuite) SetupTest() {
 	// Create the chainSpec.
 	chainSpec, err := chainSpecFunc()
 	s.Require().NoError(err)
-	cometConfig, genesisValidatorsRoot := simulated.InitializeHomeDir(s.T(), chainSpec, s.HomeDir, elGenesisPath)
+	configs, genesisValidatorsRoot := simulated.InitializeHomeDirs(s.T(), chainSpec, elGenesisPath, s.HomeDir)
+	cometConfig := configs[0]
 	s.GenesisValidatorsRoot = genesisValidatorsRoot
 
 	// Start the EL (execution layer) Geth node.
@@ -127,7 +128,7 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithoutRequests_IsSuccessful() {
 	const coreLoopIterations = 10
 
 	// Initialize the chain state.
-	s.InitializeChain(s.T())
+	s.InitializeChain(s.T(), 1)
 	nodeAddress, err := s.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
 	s.SimComet.Comet.SetNodeAddress(nodeAddress)
@@ -142,7 +143,7 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithoutRequests_IsSuccessful() {
 
 func (s *PectraGenesisSuite) TestFullLifecycle_WithPartialWithdrawalRequests_IsSuccessful() {
 	// Initialize the chain state.
-	s.InitializeChain(s.T())
+	s.InitializeChain(s.T(), 1)
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
@@ -264,7 +265,7 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithPartialWithdrawalRequests_IsS
 
 func (s *PectraGenesisSuite) TestFullLifecycle_WithFullWithdrawalRequest_IsSuccessful() {
 	// Initialize the chain state.
-	s.InitializeChain(s.T())
+	s.InitializeChain(s.T(), 1)
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
@@ -404,7 +405,7 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithFullWithdrawalRequest_IsSucce
 // that were not actually requested.
 func (s *PectraGenesisSuite) TestMaliciousProposer_AddInvalidExecutionRequests_IsRejected() {
 	// Initialize the chain state.
-	s.InitializeChain(s.T())
+	s.InitializeChain(s.T(), 1)
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
