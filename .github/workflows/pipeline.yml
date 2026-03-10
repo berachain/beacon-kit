@@ -30,7 +30,7 @@ on:
     branches:
       - main
     tags:
-      - "v*"
+      # - "v*"
   pull_request:
   merge_group:
 
