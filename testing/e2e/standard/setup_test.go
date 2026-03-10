@@ -13,14 +13,14 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
 //go:build e2e
 
-package e2e_test
+package standard_test
 
 import (
 	"testing"
@@ -28,7 +28,20 @@ import (
 	"github.com/berachain/beacon-kit/testing/e2e/suite"
 )
 
+// BeaconE2ESuite is a suite of tests simulating a fully function beacon-kit
+// network.
+type BeaconKitE2ESuite struct {
+	suite.KurtosisE2ESuite
+}
+
 // TestBeaconKitE2ESuite runs the test suite.
 func TestBeaconKitE2ESuite(t *testing.T) {
 	suite.Run(t, new(BeaconKitE2ESuite))
+}
+
+// TestBasicStartup tests the basic startup of the beacon-kit network.
+// TODO: Should check all clients, opposed to just the RPC client.
+func (s *BeaconKitE2ESuite) TestBasicStartup() {
+	err := s.WaitForFinalizedBlockNumber(10)
+	s.Require().NoError(err)
 }

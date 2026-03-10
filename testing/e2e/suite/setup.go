@@ -25,6 +25,8 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"math/big"
+	"path/filepath"
+	"runtime"
 	"sync/atomic"
 	"time"
 
@@ -106,7 +108,7 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	)
 
 	result, err := s.enclave.RunStarlarkPackageBlocking(
-		s.ctx, "../../kurtosis",
+		s.ctx, kurtosisPackagePath(),
 		starlark_run_config.NewRunStarlarkConfig(
 			starlark_run_config.WithSerializedParams(s.cfg.MustMarshalJSON()),
 		),
@@ -410,4 +412,17 @@ func (s *KurtosisE2ESuite) CheckForSuccessfulTx(
 		return false
 	}
 	return receipt.Status == ethtypes.ReceiptStatusSuccessful
+}
+
+// kurtosisPackagePath returns the absolute path to the kurtosis/ directory
+// at the repository root. It uses runtime.Caller to locate this source file
+// (testing/e2e/suite/setup.go) and navigates relative to it, so the path
+// is correct regardless of where `go test` is invoked from.
+//
+//nolint:dogsled // no risk from e2e suite
+func kurtosisPackagePath() string {
+	_, filename, _, _ := runtime.Caller(0)
+	// filename = .../testing/e2e/suite/setup.go
+	// walk up 3 levels to repo root, then into kurtosis/
+	return filepath.Join(filepath.Dir(filename), "../../../kurtosis")
 }
