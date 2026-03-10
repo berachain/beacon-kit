@@ -487,9 +487,9 @@ func (s *Service) fetchFromSequencer(
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
 	envelope, err := s.preconfClient.GetPayloadBySlot(ctx, slot, parentBlockRoot)
 	if errors.Is(err, preconf.ErrSequencerUnavailable) {
-		s.logger.Info("Detected sequencer offline, starting health monitor")
-		s.sequencerAvailable.Store(false)
 		if s.sequencerMonitorRunning.CompareAndSwap(false, true) {
+			s.logger.Info("Detected sequencer offline, starting health monitor")
+			s.sequencerAvailable.Store(false)
 			go s.monitorSequencerHealth(context.WithoutCancel(ctx))
 		}
 	}
