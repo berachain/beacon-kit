@@ -220,7 +220,7 @@ func (s *Service) retrieveExecutionPayload(
 	slot := slotData.GetSlot()
 
 	// If preconf is enabled and we should fetch from sequencer, try that first
-	if s.shouldFetchFromSequencer() {
+	if s.preconfClient != nil && s.preconfCfg.ShouldFetchFromSequencer() {
 		envelope, err := s.fetchFromSequencer(ctx, slot, parentBlockRoot)
 		if err == nil {
 			s.logger.Info("Using payload from sequencer", "slot", slot.Base10())
@@ -461,18 +461,6 @@ func (s *Service) computeStateRoot(
 	}
 
 	return st.HashTreeRoot(), nil
-}
-
-// shouldFetchFromSequencer returns true if this validator should attempt to
-// fetch payloads from the sequencer.
-func (s *Service) shouldFetchFromSequencer() bool {
-	if s.preconfClient == nil || s.preconfCfg == nil || s.preconfWhitelist == nil {
-		return false
-	}
-	if !s.preconfCfg.ShouldFetchFromSequencer() {
-		return false
-	}
-	return s.preconfWhitelist.IsWhitelisted(s.signer.PublicKey())
 }
 
 // fetchFromSequencer fetches the execution payload from the sequencer.
