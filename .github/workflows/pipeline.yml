@@ -124,9 +124,10 @@ jobs:
 
   ci-e2e:
     strategy:
+      fail-fast: false
       matrix:
         args:
-          - "test-e2e"
+          - "test-e2e-standard"
           - "test-e2e-preconf"
         os:
           - ubuntu-24.04-e2e
