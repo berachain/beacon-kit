@@ -29,8 +29,10 @@ import (
 
 const (
 	// Log messages that indicate preconf is working.
-	sequencerServingLog  = "GetPayloadBySlot completed"
-	validatorFetchingLog = "Successfully fetched payload from sequencer"
+	sequencerServingLog   = "GetPayloadBySlot completed"
+	validatorFetchingLog  = "Successfully fetched payload from sequencer"
+	sequencerDownLog      = "Detected sequencer offline, starting health monitor"
+	sequencerRecoveredLog = "Sequencer is healthy again, stopping health monitor"
 
 	// Kurtosis service name for the dedicated sequencer CL node.
 	sequencerCLService = "cl-sequencer-beaconkit-0"
@@ -41,8 +43,6 @@ const (
 )
 
 // TestSequencerFlow verifies the preconf pathway using ordered subtests.
-// NOTE: This test removes the sequencer service in SequencerFallback,
-// so it must run after TestPreconfTransactions (testify runs alphabetically).
 func (s *PreconfE2ESuite) TestSequencerFlow() {
 	// Wait for enough blocks so preconf has been exercised.
 	err := s.WaitForFinalizedBlockNumber(blocksToWait)
@@ -62,7 +62,11 @@ func (s *PreconfE2ESuite) TestSequencerFlow() {
 
 	// Verify validators fetch from sequencer.
 	s.Run("ValidatorFetches", func() {
-		for _, validator := range []string{config.ClientValidator0} {
+		validators := []string{
+			config.ClientValidator0, config.ClientValidator1, config.ClientValidator2,
+			config.ClientValidator3, config.ClientValidator4,
+		}
+		for _, validator := range validators {
 			validator := validator // capture for closure
 			s.Run(validator, func() {
 				logs, err := s.GetServiceLogs(validator)
@@ -77,16 +81,16 @@ func (s *PreconfE2ESuite) TestSequencerFlow() {
 		}
 	})
 
-	// Remove sequencer and verify validators fall back to local building.
+	// Stop sequencer and verify validators fall back to local building.
 	s.Run("SequencerFallback", func() {
-		// Get current block before removing sequencer.
+		// Get current block before stopping sequencer.
 		currentBlock, err := s.RPCClient().BlockNumber(s.Ctx())
 		s.Require().NoError(err, "Should get current block number")
 
-		// Remove sequencer -- simulates crash/unavailability.
-		s.T().Logf("Removing sequencer (%s)...", sequencerCLService)
-		err = s.RemoveService(sequencerCLService)
-		s.Require().NoError(err, "Should remove sequencer service")
+		// Stop sequencer -- simulates crash/unavailability.
+		s.T().Logf("Stopping sequencer (%s)...", sequencerCLService)
+		err = s.StopService(sequencerCLService)
+		s.Require().NoError(err, "Should stop sequencer service")
 
 		// Wait for more blocks -- validators must build locally now.
 		targetBlock := currentBlock + blocksAfterFallback
@@ -103,5 +107,65 @@ func (s *PreconfE2ESuite) TestSequencerFlow() {
 			"Network should have produced blocks after sequencer removed")
 
 		s.T().Logf("Network continued: block %d -> %d (fallback working)", currentBlock, finalBlock)
+	})
+
+	// After sequencer have been stopped, verify each validator logs the circuit breaker
+	// message at most once on their first proposal after the sequencer went down.
+	s.Run("SequencerCircuitBreaker", func() {
+		// Wait for enough additional blocks so each validator has had the chance
+		// to propose at least twice since the sequencer was removed.
+		currentBlock, err := s.RPCClient().BlockNumber(s.Ctx())
+		s.Require().NoError(err, "Should get current block number")
+		err = s.WaitForFinalizedBlockNumber(currentBlock + blocksAfterFallback)
+		s.Require().NoError(err, "Network should continue producing blocks")
+
+		validators := []string{
+			config.ClientValidator0, config.ClientValidator1, config.ClientValidator2,
+			config.ClientValidator3, config.ClientValidator4,
+		}
+		for _, validator := range validators {
+			logs, err := s.GetServiceLogs(validator)
+			s.Require().NoError(err, "Should get logs for %s", validator)
+
+			count := suite.CountLogMessages(logs, sequencerDownLog)
+			s.Require().LessOrEqual(count, 1,
+				"Validator %s tripped circuit breaker %d times: should only detect sequencer down once",
+				validator, count)
+		}
+	})
+
+	// When sequencer gets restarted, verify each validator's monitor detects the recovery
+	// and validators resume fetching payloads from the sequencer.
+	s.Run("SequencerRecovery", func() {
+		s.T().Logf("Restarting sequencer (%s)...", sequencerCLService)
+		err := s.StartService(sequencerCLService)
+		s.Require().NoError(err, "Should restart sequencer service")
+
+		// Wait for enough blocks so each validator has had the chance to propose
+		// at least once after the monitor detects recovery.
+		currentBlock, err := s.RPCClient().BlockNumber(s.Ctx())
+		s.Require().NoError(err, "Should get current block number")
+		err = s.WaitForFinalizedBlockNumber(currentBlock + blocksAfterFallback)
+		s.Require().NoError(err, "Network should continue producing blocks after sequencer restarted")
+
+		// Validators should have detected recovery and resumed fetching from the sequencer.
+		validators := []string{
+			config.ClientValidator0, config.ClientValidator1, config.ClientValidator2,
+			config.ClientValidator3, config.ClientValidator4,
+		}
+		for _, validator := range validators {
+			logs, err := s.GetServiceLogs(validator)
+			s.Require().NoError(err, "Should get logs for %s", validator)
+
+			s.Require().True(suite.ContainsLogMessage(logs, sequencerRecoveredLog),
+				"Validator %s health monitor should have detected sequencer recovery. "+
+					"Expected log message containing: %q",
+				validator, sequencerRecoveredLog)
+
+			s.Require().True(suite.ContainsLogMessage(logs, validatorFetchingLog),
+				"Validator %s should resume fetching from sequencer after recovery. "+
+					"Expected log message containing: %q",
+				validator, validatorFetchingLog)
+		}
 	})
 }

@@ -28,6 +28,8 @@ import (
 )
 
 const (
+	// HealthEndpoint is the API endpoint for checking server liveness.
+	HealthEndpoint = "/eth/v1/preconf/health"
 	// PayloadEndpoint is the API endpoint for fetching/serving preconf payloads.
 	PayloadEndpoint = "/eth/v1/preconf/payload"
 )

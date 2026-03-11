@@ -26,6 +26,7 @@ import (
 	"time"
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
+	"github.com/berachain/beacon-kit/beacon/preconf"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -220,7 +221,7 @@ func (s *Service) retrieveExecutionPayload(
 	slot := slotData.GetSlot()
 
 	// If preconf is enabled and we should fetch from sequencer, try that first
-	if s.preconfClient != nil && s.preconfCfg.ShouldFetchFromSequencer() {
+	if s.preconfClient != nil && s.preconfCfg.ShouldFetchFromSequencer() && s.sequencerAvailable.Load() {
 		envelope, err := s.fetchFromSequencer(ctx, slot, parentBlockRoot)
 		if err == nil {
 			s.logger.Info("Using payload from sequencer", "slot", slot.Base10())
@@ -469,5 +470,34 @@ func (s *Service) fetchFromSequencer(
 	slot math.Slot,
 	parentBlockRoot common.Root,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
-	return s.preconfClient.GetPayloadBySlot(ctx, slot, parentBlockRoot)
+	envelope, err := s.preconfClient.GetPayloadBySlot(ctx, slot, parentBlockRoot)
+	if errors.Is(err, preconf.ErrSequencerUnavailable) {
+		if s.sequencerMonitorRunning.CompareAndSwap(false, true) {
+			s.logger.Info("Detected sequencer offline, starting health monitor")
+			s.sequencerAvailable.Store(false)
+			go s.monitorSequencerHealth(context.WithoutCancel(ctx))
+		}
+	}
+	return envelope, err
+}
+
+// monitorSequencerHealth continuously probes the sequencer until it becomes healthy again.
+func (s *Service) monitorSequencerHealth(ctx context.Context) {
+	start := time.Now()
+	defer s.sequencerMonitorRunning.Store(false)
+	ticker := time.NewTicker(s.preconfCfg.HealthCheckInterval)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			s.logger.Info("Sequencer offline", "duration", time.Since(start))
+			if s.preconfClient.CheckHealth(ctx) == nil {
+				s.logger.Info("Sequencer is healthy again, stopping health monitor")
+				s.sequencerAvailable.Store(true)
+				return
+			}
+		}
+	}
 }

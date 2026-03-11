@@ -104,11 +104,29 @@ func (s *KurtosisE2ESuite) TestAccounts() []*types.EthAccount {
 }
 
 // RemoveService removes a service by name using kurtosis starlark.
-// Note: Kurtosis doesn't support stopping/restarting services directly,
-// so removal is the only way to simulate service unavailability.
 func (s *KurtosisE2ESuite) RemoveService(serviceName string) error {
 	script := `def run(plan):
     plan.remove_service(name="` + serviceName + `")
+`
+	runConfig := starlark_run_config.NewRunStarlarkConfig()
+	_, err := s.enclave.RunStarlarkScriptBlocking(s.ctx, script, runConfig)
+	return err
+}
+
+// StopService stops a running service without removing it, allowing it to be restarted later.
+func (s *KurtosisE2ESuite) StopService(serviceName string) error {
+	script := `def run(plan):
+    plan.stop_service(name="` + serviceName + `")
+`
+	runConfig := starlark_run_config.NewRunStarlarkConfig()
+	_, err := s.enclave.RunStarlarkScriptBlocking(s.ctx, script, runConfig)
+	return err
+}
+
+// StartService restarts a previously stopped service.
+func (s *KurtosisE2ESuite) StartService(serviceName string) error {
+	script := `def run(plan):
+    plan.start_service(name="` + serviceName + `")
 `
 	runConfig := starlark_run_config.NewRunStarlarkConfig()
 	_, err := s.enclave.RunStarlarkScriptBlocking(s.ctx, script, runConfig)

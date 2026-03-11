@@ -22,6 +22,7 @@ package validator
 
 import (
 	"context"
+	"sync/atomic"
 
 	"github.com/berachain/beacon-kit/beacon/preconf"
 	"github.com/berachain/beacon-kit/log"
@@ -57,6 +58,11 @@ type Service struct {
 	// preconfClient is used to fetch payloads from the sequencer.
 	// Can be nil if preconf is disabled.
 	preconfClient *preconf.Client
+
+	// sequencerAvailable is true if sequencer is reachable.
+	sequencerAvailable atomic.Bool
+	// sequencerMonitorRunning is used to track whether we are currently monitoring sequencer liveness.
+	sequencerMonitorRunning atomic.Bool
 }
 
 // NewService creates a new validator service.
@@ -73,7 +79,7 @@ func NewService(
 	preconfCfg *preconf.Config,
 	preconfClient *preconf.Client,
 ) *Service {
-	return &Service{
+	s := &Service{
 		cfg:                 cfg,
 		logger:              logger,
 		sb:                  sb,
@@ -86,6 +92,8 @@ func NewService(
 		preconfCfg:          preconfCfg,
 		preconfClient:       preconfClient,
 	}
+	s.sequencerAvailable.Store(true) // assume sequencer is up until proven otherwise
+	return s
 }
 
 // Name returns the name of the service.
