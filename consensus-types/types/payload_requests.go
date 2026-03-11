@@ -65,20 +65,11 @@ type newPayloadRequest struct {
 
 // BuildNewPayloadRequestFromFork builds a NewPayloadRequest from a beacon block.
 func BuildNewPayloadRequestFromFork(blk *BeaconBlock, parentProposerPubkey *crypto.BLSPubkey) (NewPayloadRequest, error) {
-	forkVersion := blk.GetForkVersion()
-	if version.IsBefore(forkVersion, version.Deneb()) {
-		return nil, ErrForkVersionNotSupported
-	}
+	body := blk.GetBody()
+	payload := body.GetExecutionPayload()
 
-	var (
-		body                  = blk.GetBody()
-		payload               = body.GetExecutionPayload()
-		parentBeaconBlockRoot = blk.GetParentBlockRoot()
-		executionRequestsList []EncodedExecutionRequest
-	)
-
-	if version.EqualsOrIsAfter(forkVersion, version.Electra()) {
-		// If we're post-electra, we set execution requests.
+	var executionRequestsList []EncodedExecutionRequest
+	if version.EqualsOrIsAfter(blk.GetForkVersion(), version.Electra()) {
 		executionRequests, err := body.GetExecutionRequests()
 		if err != nil {
 			return nil, err
@@ -88,28 +79,19 @@ func BuildNewPayloadRequestFromFork(blk *BeaconBlock, parentProposerPubkey *cryp
 			return nil, err
 		}
 	}
-	if version.IsBefore(forkVersion, version.Electra1()) {
-		if parentProposerPubkey != nil {
-			return nil, engineprimitives.ErrNonEmptyPrevProposerPubKey
-		}
-	} else {
-		if parentProposerPubkey == nil {
-			return nil, engineprimitives.ErrEmptyPrevProposerPubKey
-		}
-	}
 
-	return &newPayloadRequest{
-		Versionable:           NewVersionable(payload.GetForkVersion()),
-		executionPayload:      payload,
-		versionedHashes:       body.GetBlobKzgCommitments().ToVersionedHashes(),
-		parentBeaconBlockRoot: parentBeaconBlockRoot,
-		executionRequests:     executionRequestsList,
-		parentProposerPubkey:  parentProposerPubkey,
-	}, nil
+	return buildNewPayloadRequest(
+		payload.GetForkVersion(),
+		payload,
+		body.GetBlobKzgCommitments().ToVersionedHashes(),
+		blk.GetParentBlockRoot(),
+		executionRequestsList,
+		parentProposerPubkey,
+	)
 }
 
 // BuildNewPayloadRequestFromEnvelope builds a NewPayloadRequest from an execution payload envelope.
-// This is useful to validate a payload provided by the sequencer.
+// Useful to validate payloads provided by the sequencer.
 func BuildNewPayloadRequestFromEnvelope(
 	envelope BuiltExecutionPayloadEnv,
 	parentBeaconBlockRoot common.Root,
@@ -117,13 +99,37 @@ func BuildNewPayloadRequestFromEnvelope(
 ) (NewPayloadRequest, error) {
 	payload := envelope.GetExecutionPayload()
 	forkVersion := payload.GetForkVersion()
-	if version.IsBefore(forkVersion, version.Deneb()) {
-		return nil, ErrForkVersionNotSupported
-	}
 
 	var executionRequestsList []EncodedExecutionRequest
 	if version.EqualsOrIsAfter(forkVersion, version.Electra()) {
 		executionRequestsList = envelope.GetEncodedExecutionRequests()
+	}
+
+	commitments := envelope.GetBlobsBundle().GetCommitments()
+	versionedHashes := eip4844.KZGCommitments[common.ExecutionHash](commitments).ToVersionedHashes()
+
+	return buildNewPayloadRequest(
+		forkVersion,
+		payload,
+		versionedHashes,
+		parentBeaconBlockRoot,
+		executionRequestsList,
+		parentProposerPubkey,
+	)
+}
+
+// buildNewPayloadRequest handles common validation of fork version and
+// proposer pubkey in building a newPayloadRequest.
+func buildNewPayloadRequest(
+	forkVersion common.Version,
+	payload *ExecutionPayload,
+	versionedHashes []common.ExecutionHash,
+	parentBeaconBlockRoot common.Root,
+	executionRequestsList []EncodedExecutionRequest,
+	parentProposerPubkey *crypto.BLSPubkey,
+) (NewPayloadRequest, error) {
+	if version.IsBefore(forkVersion, version.Deneb()) {
+		return nil, ErrForkVersionNotSupported
 	}
 	if version.IsBefore(forkVersion, version.Electra1()) {
 		if parentProposerPubkey != nil {
@@ -134,10 +140,6 @@ func BuildNewPayloadRequestFromEnvelope(
 			return nil, engineprimitives.ErrEmptyPrevProposerPubKey
 		}
 	}
-
-	commitments := envelope.GetBlobsBundle().GetCommitments()
-	versionedHashes := eip4844.KZGCommitments[common.ExecutionHash](commitments).ToVersionedHashes()
-
 	return &newPayloadRequest{
 		Versionable:           NewVersionable(forkVersion),
 		executionPayload:      payload,
@@ -161,7 +163,7 @@ func (n *newPayloadRequest) GetParentBeaconBlockRoot() common.Root {
 }
 
 // GetParentProposerPubkey may return a nil parent pub key. See BuildNewPayloadRequestFromFork
-// to understand how parentProposerPubkey gets populated
+// to understand how parentProposerPubkey gets populated.
 func (n *newPayloadRequest) GetParentProposerPubkey() *crypto.BLSPubkey {
 	return n.parentProposerPubkey
 }
