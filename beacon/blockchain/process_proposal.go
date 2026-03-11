@@ -397,7 +397,6 @@ func (s *Service) VerifyIncomingBlock(
 			)
 			return valUpdates, nil
 		}
-		s.optimisticBuildTriggered.Store(true)
 		go s.handleOptimisticPayloadBuild(ctx, nextBlockData)
 	}
 
