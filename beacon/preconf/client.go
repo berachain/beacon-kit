@@ -124,9 +124,6 @@ func (c *Client) GetPayloadBySlot(
 	if resp == nil || resp.Body == nil {
 		return nil, errors.New("received nil response from sequencer")
 	}
-	if resp == nil || resp.Body == nil {
-		return nil, errors.New("received nil response from sequencer")
-	}
 	defer resp.Body.Close()
 
 	// Read response body
@@ -197,4 +194,30 @@ func (c *Client) getToken() (string, error) {
 	c.tokenExpiry = time.Now().Add(tokenCacheExpiry)
 
 	return token, nil
+}
+
+// CheckHealth performs a GET on the server health endpoint.
+func (c *Client) CheckHealth(ctx context.Context) error {
+	url := c.sequencerURL + HealthEndpoint
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return err
+	}
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	if resp == nil {
+		return errors.New("nil response from sequencer")
+	}
+
+	// Drain and close body to allow connection reuse
+	//nolint:errcheck // cleanup errors don't affect sequencer health
+	io.Copy(io.Discard, resp.Body) //#nosec G104 -- cleanup error doesn't affect health result
+	resp.Body.Close()              //#nosec G104 -- cleanup error doesn't affect health result
+
+	if resp.StatusCode != http.StatusOK {
+		return errors.New("sequencer unhealthy")
+	}
+	return nil
 }
