@@ -222,15 +222,21 @@ func (s *Service) retrieveExecutionPayload(
 
 	// If preconf is enabled and we should fetch from sequencer, try that first
 	if s.preconfClient != nil && s.preconfCfg.ShouldFetchFromSequencer() && s.sequencerAvailable.Load() {
-		envelope, err := s.fetchFromSequencer(ctx, slot, parentBlockRoot)
-		if err == nil {
+		envelope, fetchErr := s.fetchFromSequencer(ctx, slot, parentBlockRoot)
+		if fetchErr != nil {
+			s.logger.Warn("Failed to fetch from sequencer, falling back to local build",
+				"slot", slot.Base10(),
+				"error", fetchErr,
+			)
+		} else if validateErr := s.validateSequencerPayload(ctx, st, envelope, parentBlockRoot); validateErr != nil {
+			s.logger.Warn("Sequencer payload failed local EL validation, falling back to local build",
+				"slot", slot.Base10(),
+				"error", validateErr,
+			)
+		} else {
 			s.logger.Info("Using payload from sequencer", "slot", slot.Base10())
 			return envelope, nil
 		}
-		s.logger.Warn("Failed to fetch from sequencer, falling back to local build",
-			"slot", slot.Base10(),
-			"error", err,
-		)
 		// Fall through to local building
 	}
 
@@ -501,4 +507,27 @@ func (s *Service) monitorSequencerHealth(ctx context.Context) {
 			}
 		}
 	}
+}
+
+// validateSequencerPayload validates a payload provided by the sequencer against local EL.
+func (s *Service) validateSequencerPayload(
+	ctx context.Context,
+	st *statedb.StateDB,
+	envelope ctypes.BuiltExecutionPayloadEnv,
+	parentBlockRoot common.Root,
+) error {
+	if s.executionEngine == nil {
+		return nil
+	}
+	payloadTimestamp := envelope.GetExecutionPayload().GetTimestamp()
+	parentProposerPubkey, err := st.ParentProposerPubkey(payloadTimestamp)
+	if err != nil {
+		return fmt.Errorf("failed to get parent proposer pubkey for sequencer payload validation: %w", err)
+	}
+	payloadReq, err := ctypes.BuildNewPayloadRequestFromEnvelope(envelope, parentBlockRoot, parentProposerPubkey)
+	if err != nil {
+		return fmt.Errorf("failed to build new payload request from sequencer envelope: %w", err)
+	}
+	_, err = s.executionEngine.NewPayload(ctx, payloadReq)
+	return err
 }

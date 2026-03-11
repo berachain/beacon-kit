@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/version"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	gethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -62,7 +63,7 @@ type newPayloadRequest struct {
 	parentProposerPubkey *crypto.BLSPubkey
 }
 
-// BuildNewPayloadRequestFromFork will build a NewPayloadRequest.
+// BuildNewPayloadRequestFromFork builds a NewPayloadRequest from a beacon block.
 func BuildNewPayloadRequestFromFork(blk *BeaconBlock, parentProposerPubkey *crypto.BLSPubkey) (NewPayloadRequest, error) {
 	forkVersion := blk.GetForkVersion()
 	if version.IsBefore(forkVersion, version.Deneb()) {
@@ -101,6 +102,46 @@ func BuildNewPayloadRequestFromFork(blk *BeaconBlock, parentProposerPubkey *cryp
 		Versionable:           NewVersionable(payload.GetForkVersion()),
 		executionPayload:      payload,
 		versionedHashes:       body.GetBlobKzgCommitments().ToVersionedHashes(),
+		parentBeaconBlockRoot: parentBeaconBlockRoot,
+		executionRequests:     executionRequestsList,
+		parentProposerPubkey:  parentProposerPubkey,
+	}, nil
+}
+
+// BuildNewPayloadRequestFromEnvelope builds a NewPayloadRequest from an execution payload envelope.
+// This is useful to validate a payload provided by the sequencer.
+func BuildNewPayloadRequestFromEnvelope(
+	envelope BuiltExecutionPayloadEnv,
+	parentBeaconBlockRoot common.Root,
+	parentProposerPubkey *crypto.BLSPubkey,
+) (NewPayloadRequest, error) {
+	payload := envelope.GetExecutionPayload()
+	forkVersion := payload.GetForkVersion()
+	if version.IsBefore(forkVersion, version.Deneb()) {
+		return nil, ErrForkVersionNotSupported
+	}
+
+	var executionRequestsList []EncodedExecutionRequest
+	if version.EqualsOrIsAfter(forkVersion, version.Electra()) {
+		executionRequestsList = envelope.GetEncodedExecutionRequests()
+	}
+	if version.IsBefore(forkVersion, version.Electra1()) {
+		if parentProposerPubkey != nil {
+			return nil, engineprimitives.ErrNonEmptyPrevProposerPubKey
+		}
+	} else {
+		if parentProposerPubkey == nil {
+			return nil, engineprimitives.ErrEmptyPrevProposerPubKey
+		}
+	}
+
+	commitments := envelope.GetBlobsBundle().GetCommitments()
+	versionedHashes := eip4844.KZGCommitments[common.ExecutionHash](commitments).ToVersionedHashes()
+
+	return &newPayloadRequest{
+		Versionable:           NewVersionable(forkVersion),
+		executionPayload:      payload,
+		versionedHashes:       versionedHashes,
 		parentBeaconBlockRoot: parentBeaconBlockRoot,
 		executionRequests:     executionRequestsList,
 		parentProposerPubkey:  parentProposerPubkey,

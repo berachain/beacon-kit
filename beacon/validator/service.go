@@ -53,6 +53,9 @@ type Service struct {
 	// metrics is a metrics collector.
 	metrics *validatorMetrics
 
+	// executionEngine is used to validate sequencer payloads against the local EL.
+	executionEngine ExecutionEngine
+
 	// preconfCfg holds the preconfirmation configuration.
 	preconfCfg *preconf.Config
 	// preconfClient is used to fetch payloads from the sequencer.
@@ -76,6 +79,7 @@ func NewService(
 	blobFactory BlobFactory,
 	localPayloadBuilder PayloadBuilder,
 	ts TelemetrySink,
+	executionEngine ExecutionEngine,
 	preconfCfg *preconf.Config,
 	preconfClient *preconf.Client,
 ) *Service {
@@ -89,6 +93,7 @@ func NewService(
 		blobFactory:         blobFactory,
 		localPayloadBuilder: localPayloadBuilder,
 		metrics:             newValidatorMetrics(ts),
+		executionEngine:     executionEngine,
 		preconfCfg:          preconfCfg,
 		preconfClient:       preconfClient,
 	}
