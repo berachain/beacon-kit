@@ -44,27 +44,27 @@ func ProvidePreconfWhitelist(in PreconfWhitelistInput) (preconf.Whitelist, error
 	// Only the sequencer needs a populated whitelist (to know which proposers to build for).
 	// Validators don't need it — they opt in to preconf by setting sequencer-url.
 	if !cfg.Enabled || !cfg.SequencerMode {
-		return preconf.NewWhitelist(nil), nil
+		return preconf.EmptyWhitelist(), nil
 	}
 
 	if cfg.WhitelistPath == "" {
 		return nil, errors.New("preconf sequencer mode enabled but whitelist-path is not set")
 	}
 
-	pubkeys, err := preconf.LoadWhitelist(cfg.WhitelistPath)
+	wl, err := preconf.NewWhitelist(cfg.WhitelistPath)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to load preconf whitelist from: %s", cfg.WhitelistPath)
+		return nil, err
 	}
 
-	if len(pubkeys) == 0 {
+	if wl.Len() == 0 {
 		return nil, errors.New("preconf whitelist is empty")
 	}
 
 	logger.Info(
 		"Preconf sequencer mode enabled",
-		"whitelist_count", len(pubkeys),
+		"whitelist_count", wl.Len(),
 		"whitelist_path", cfg.WhitelistPath,
 	)
 
-	return preconf.NewWhitelist(pubkeys), nil
+	return wl, nil
 }

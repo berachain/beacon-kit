@@ -26,6 +26,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/berachain/beacon-kit/beacon/preconf"
@@ -34,7 +36,6 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/log/noop"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/net/jwt"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -106,7 +107,7 @@ func TestServer_HandleGetPayload(t *testing.T) {
 			server := preconf.NewServer(
 				noop.NewLogger[any](),
 				preconf.ValidatorJWTs{validatorA: secretA, validatorB: secretB},
-				preconf.NewWhitelist([]crypto.BLSPubkey{validatorA, validatorB}),
+				newTestWhitelist(t, pubkeyAHex, pubkeyBHex),
 				provider,
 				0,
 			)
@@ -140,6 +141,56 @@ func TestServer_RejectsNonPostMethods(t *testing.T) {
 		server.Handler().ServeHTTP(rec, req)
 		require.Equal(t, http.StatusMethodNotAllowed, rec.Code, "method: %s", method)
 	}
+}
+
+// newTestWhitelist writes a temp JSON whitelist file from the given hex pubkeys
+// and returns a Whitelist loaded from it.
+func newTestWhitelist(t *testing.T, pubkeyHexes ...string) preconf.Whitelist {
+	t.Helper()
+	content, err := json.Marshal(pubkeyHexes)
+	require.NoError(t, err)
+	tmpFile := filepath.Join(t.TempDir(), "whitelist.json")
+	err = os.WriteFile(tmpFile, content, 0o644)
+	require.NoError(t, err)
+	wl, err := preconf.NewWhitelist(tmpFile)
+	require.NoError(t, err)
+	return wl
+}
+
+func TestServer_OnSIGHUP(t *testing.T) {
+	t.Parallel()
+
+	pkA, err := parser.ConvertPubkey(pubkeyAHex)
+	require.NoError(t, err)
+	pkB, err := parser.ConvertPubkey(pubkeyBHex)
+	require.NoError(t, err)
+
+	tmpFile := filepath.Join(t.TempDir(), "whitelist.json")
+
+	// Write initial whitelist with only key A.
+	content, err := json.Marshal([]string{pubkeyAHex})
+	require.NoError(t, err)
+	err = os.WriteFile(tmpFile, content, 0o644)
+	require.NoError(t, err)
+
+	wl, err := preconf.NewWhitelist(tmpFile)
+	require.NoError(t, err)
+
+	server := preconf.NewServer(noop.NewLogger[any](), nil, wl, nil, 0)
+
+	require.True(t, wl.IsWhitelisted(pkA))
+	require.False(t, wl.IsWhitelisted(pkB))
+
+	// Add key B to file and trigger hot-reload via OnSIGHUP.
+	content, err = json.Marshal([]string{pubkeyAHex, pubkeyBHex})
+	require.NoError(t, err)
+	err = os.WriteFile(tmpFile, content, 0o644)
+	require.NoError(t, err)
+
+	server.OnSIGHUP()
+
+	require.True(t, wl.IsWhitelisted(pkA))
+	require.True(t, wl.IsWhitelisted(pkB))
 }
 
 // mockPayloadProvider implements PayloadProvider for tests.

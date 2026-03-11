@@ -26,6 +26,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/beacon/preconf"
+	"github.com/berachain/beacon-kit/cli/utils/parser"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/stretchr/testify/require"
 )
@@ -33,10 +34,21 @@ import (
 func TestLoadWhitelist_ValidFile(t *testing.T) {
 	t.Parallel()
 
-	// Create temp file with valid JSON whitelist
-	content := `[
+	pubkeyHexes := []string{
 		"0x93247f2209abcacf57b75a51dafae777f9dd38bc7053d1af526f220a7489a6d3a2753e5f3e8b1cfe39b56f43611df74a",
-		"0xa572cbea904d67468808c8eb50a9450c9721db309128012543902d0ac358a62ae28f75bb8f1c7c42c39a8c5529bf0f4e"
+		"0xa572cbea904d67468808c8eb50a9450c9721db309128012543902d0ac358a62ae28f75bb8f1c7c42c39a8c5529bf0f4e",
+	}
+
+	pubkeys := make([]crypto.BLSPubkey, len(pubkeyHexes))
+	for i, hex := range pubkeyHexes {
+		pk, convErr := parser.ConvertPubkey(hex)
+		require.NoError(t, convErr)
+		pubkeys[i] = pk
+	}
+
+	content := `[
+		"` + pubkeyHexes[0] + `",
+		"` + pubkeyHexes[1] + `"
 	]`
 
 	tmpDir := t.TempDir()
@@ -44,12 +56,10 @@ func TestLoadWhitelist_ValidFile(t *testing.T) {
 	err := os.WriteFile(tmpFile, []byte(content), 0o644)
 	require.NoError(t, err)
 
-	pubkeys, err := preconf.LoadWhitelist(tmpFile)
-	require.NoError(t, err)
-	require.Len(t, pubkeys, 2)
-
 	// Verify loaded pubkeys work with whitelist
-	w := preconf.NewWhitelist(pubkeys)
+	w, err := preconf.NewWhitelist(tmpFile)
+	require.NoError(t, err)
+	require.Equal(t, 2, w.Len())
 	require.True(t, w.IsWhitelisted(pubkeys[0]))
 	require.True(t, w.IsWhitelisted(pubkeys[1]))
 

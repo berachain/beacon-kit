@@ -71,7 +71,7 @@ func (n *node) Start(
 	stop := make(chan struct{})
 	sigc := make(chan os.Signal, 1)
 
-	signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	defer signal.Stop(sigc)
 
 	// make sure we only call shutdownFunc once
@@ -88,19 +88,30 @@ func (n *node) Start(
 		n.logger.Info("Node shutdown completed", "duration", time.Since(now).String())
 	}
 
-	// listen to signals in a separate goroutine
 	go func() {
-		sig := <-sigc
-
-		timeout := time.AfterFunc(n.shutdownTimeout, func() {
-			n.logger.Error("Shutdown timeout exceeded, forcing exit", "timeout", n.shutdownTimeout.String())
-			os.Exit(1)
-		})
-		defer timeout.Stop()
-
-		once.Do(func() {
-			shutdownFunc(fmt.Errorf("shutdown initiated by signal: %s", sig.String()))
-		})
+		for {
+			select {
+			case <-stop:
+				return
+			case sig := <-sigc:
+				switch sig {
+				case syscall.SIGINT, syscall.SIGTERM:
+					timeout := time.AfterFunc(n.shutdownTimeout, func() {
+						n.logger.Error("Shutdown timeout exceeded, forcing exit", "timeout", n.shutdownTimeout.String())
+						os.Exit(1)
+					})
+					once.Do(func() {
+						shutdownFunc(fmt.Errorf("shutdown initiated by signal: %s", sig.String()))
+					})
+					timeout.Stop()
+					return
+				case syscall.SIGHUP:
+					n.registry.DispatchSIGHUP()
+				default:
+					n.logger.Info("Received unhandled signal", "signal", sig.String())
+				}
+			}
+		}
 	}()
 
 	err := n.registry.StartAll(cctx)
