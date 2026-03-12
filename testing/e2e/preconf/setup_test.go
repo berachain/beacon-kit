@@ -27,9 +27,9 @@ import (
 	"math/big"
 	"testing"
 
+	beraclient "github.com/berachain/beacon-kit/gethlib/ethclient"
 	"github.com/berachain/beacon-kit/testing/e2e/suite"
 	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
-	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 const (
@@ -43,7 +43,7 @@ const (
 // latency, and verifying state consistency with the standard RPC.
 type PreconfE2ESuite struct {
 	suite.KurtosisE2ESuite
-	preconfClient *ethclient.Client
+	preconfClient *beraclient.Client
 	chainID       *big.Int
 }
 
@@ -67,8 +67,9 @@ func (s *PreconfE2ESuite) SetupSuite() {
 	preconfURL := fmt.Sprintf("http://0.0.0.0:%d", port.GetNumber())
 	s.T().Logf("Preconf RPC EL URL: %s", preconfURL)
 
-	s.preconfClient, err = types.DialWithPooling(preconfURL)
+	rawClient, err := types.DialWithPooling(preconfURL)
 	s.Require().NoError(err, "Should connect to preconf RPC EL")
+	s.preconfClient = beraclient.Wrap(rawClient)
 	s.T().Cleanup(func() { s.preconfClient.Close() })
 
 	s.chainID, err = s.RPCClient().ChainID(s.Ctx())

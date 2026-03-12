@@ -169,7 +169,7 @@ func defaultExecutionSettings() ExecutionSettings {
 		},
 		Images: map[string]string{
 			"geth": "ghcr.io/berachain/bera-geth:latest",
-			"reth": "ghcr.io/berachain/bera-reth:af193b66839313cd75b86da0e371baaeb5e814fd",
+			"reth": "ghcr.io/berachain/bera-reth:2c502ebe978e3c36e8ecb0b4801cb2f620fbfc31",
 		},
 	}
 }

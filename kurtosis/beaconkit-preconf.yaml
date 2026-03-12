@@ -89,7 +89,7 @@ node_settings:
       max_memory: 4096
     images:
       geth: ghcr.io/berachain/bera-geth:latest
-      reth: ghcr.io/berachain/bera-reth:af193b66839313cd75b86da0e371baaeb5e814fd
+      reth: ghcr.io/berachain/bera-reth:2c502ebe978e3c36e8ecb0b4801cb2f620fbfc31
 additional_services:
   #- name: "spamoor"
   #- name: "tx-fuzz"
