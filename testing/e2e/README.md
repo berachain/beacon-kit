@@ -8,12 +8,12 @@ End-to-end tests for BeaconKit using [Kurtosis](https://www.kurtosis.com/), a pl
 testing/e2e/
   config/          # Network configuration structs and defaults
     config.go      #   E2ETestConfig, NetworkConfiguration, NodeSet, etc.
-    defaults.go    #   DefaultE2ETestConfig(), PreconfLoadE2ETestConfig()
+    defaults.go    #   DefaultE2ETestConfig(),
 
   suite/           # Shared test framework (Kurtosis orchestration, lifecycle)
     suite.go       #   KurtosisE2ESuite struct and accessors
     setup.go       #   SetupSuite, TearDownSuite, FundAccounts, WaitForFinalizedBlockNumber
-    options.go     #   Functional options (WithPreconfLoadConfig)
+    options.go     #   Functional options
     logs.go        #   Log fetching, dumping on failure
     constants.go   #   Ether, gas limits, timeouts
     errors.go      #   Shared error variables
@@ -22,18 +22,13 @@ testing/e2e/
   standard/        # Standard e2e test suite (package standard_test)
     setup_test.go  #   BeaconKitE2ESuite struct + entry point
     *_test.go      #   One file per feature (blobs, beacon API, staking, ...)
-
-  preconf/         # Preconf e2e test suite (package preconf_test)
-    setup_test.go  #   PreconfE2ESuite struct + entry point
-    flow_test.go   #   Sequencer serving, validator fetching, fallback
-    load_test.go   #   ETH transfers through preconf RPC
 ```
 
 ## How It Works
 
 ### Suite Lifecycle
 
-Each test suite (`standard/`, `preconf/`) defines a struct that embeds `suite.KurtosisE2ESuite` and uses [testify suites](https://pkg.go.dev/github.com/stretchr/testify/suite) for lifecycle management.
+Each test suite (`standard/`) defines a struct that embeds `suite.KurtosisE2ESuite` and uses [testify suites](https://pkg.go.dev/github.com/stretchr/testify/suite) for lifecycle management.
 
 1. **SetupSuite** (runs once before all tests in a suite):
    - Loads configuration from `config/defaults.go` (or applies custom options)
@@ -54,7 +49,7 @@ Each test suite (`standard/`, `preconf/`) defines a struct that embeds `suite.Ku
 
 ### Enclave = One Suite
 
-Each test suite gets its own Kurtosis enclave. The standard suite uses `DefaultE2ETestConfig()` (5 validators: 3 geth + 2 reth, full nodes, seed nodes). The preconf suite uses `PreconfLoadE2ETestConfig()` which adds a dedicated sequencer node and preconf RPC nodes.
+Each test suite gets its own Kurtosis enclave. The standard suite uses `DefaultE2ETestConfig()` (5 validators: 3 geth + 2 reth, full nodes, seed nodes).
 
 ### Build Tags
 
@@ -81,9 +76,8 @@ This directory is git-ignored. Logs from previous runs are overwritten.
 ### With Docker Build (builds `beacond:kurtosis-local` image first)
 
 ```bash
-make test-e2e              # Run ALL e2e tests (standard + preconf, sequentially)
+make test-e2e              # Run ALL e2e tests (standard, sequentially)
 make test-e2e-standard     # Run only standard suite
-make test-e2e-preconf      # Run only preconf suite
 make test-e2e-4844         # Run only blob tests
 make test-e2e-deposits     # Run only deposit tests
 ```
@@ -92,7 +86,6 @@ make test-e2e-deposits     # Run only deposit tests
 
 ```bash
 make test-e2e-standard-no-build
-make test-e2e-preconf-no-build
 ```
 
 ### Running a Specific Test
@@ -116,8 +109,8 @@ To add a new test suite configuration, create a function in `defaults.go` that r
 
 ## Adding New Tests
 
-1. Pick the appropriate suite directory (`standard/` or `preconf/`).
-2. Create a new `*_test.go` file with the `//go:build e2e` tag and the matching package name (`standard_test` or `preconf_test`).
+1. Pick the appropriate suite directory (`standard/`).
+2. Create a new `*_test.go` file with the `//go:build e2e` tag and the matching package name (`standard_test`).
 3. Add test methods on the suite struct (e.g., `func (s *BeaconKitE2ESuite) TestMyFeature() { ... }`).
 4. Use `s.ExecutionClients()` for EL queries, `s.ConsensusClients()` for CL queries, `s.GenesisAccount()` / `s.TestAccounts()` for funded accounts.
 
