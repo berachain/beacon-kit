@@ -10,7 +10,6 @@ COMETBFT_PPROF_PORT_NUM = 6060
 METRICS_PORT_NUM = 26660
 ENGINE_RPC_PORT_NUM = 8551
 NODE_API_PORT_NUM = 3500
-PRECONF_API_PORT_NUM = 9090
 
 # Port IDs
 COMETBFT_RPC_PORT_ID = "cometbft-rpc"
@@ -22,7 +21,6 @@ ENGINE_RPC_PORT_ID = "engine-rpc"
 METRICS_PORT_ID = "metrics"
 METRICS_PATH = "/metrics"
 NODE_API_PORT_ID = "node-api"
-PRECONF_API_PORT_ID = "preconf-api"
 
 USED_PORTS = {
     COMETBFT_RPC_PORT_ID: shared_utils.new_port_spec(COMETBFT_RPC_PORT_NUM, shared_utils.TCP_PROTOCOL),
@@ -31,7 +29,6 @@ USED_PORTS = {
     # ENGINE_RPC_PORT_ID: shared_utils.new_port_spec(ENGINE_RPC_PORT_NUM, shared_utils.TCP_PROTOCOL),
     METRICS_PORT_ID: shared_utils.new_port_spec(METRICS_PORT_NUM, shared_utils.TCP_PROTOCOL, wait = None),
     NODE_API_PORT_ID: shared_utils.new_port_spec(NODE_API_PORT_NUM, shared_utils.TCP_PROTOCOL),
-    PRECONF_API_PORT_ID: shared_utils.new_port_spec(PRECONF_API_PORT_NUM, shared_utils.TCP_PROTOCOL, wait = None),
 }
 
 def get_config(node_struct, engine_dial_url, chain_id, chain_spec, genesis_deposits_root, genesis_deposit_count_hex, entrypoint = [], cmd = [], persistent_peers = "", expose_ports = True, jwt_file = None, kzg_trusted_setup_file = None):
@@ -208,7 +205,7 @@ def init_consensus_nodes():
     collect_gentx = "/usr/bin/beacond genesis collect-premined-deposits --beacon-kit.chain-spec {} --home {}".format("$BEACOND_CHAIN_SPEC", "$BEACOND_HOME")
     return "{} && {} && {}".format(init_node, add_validator, collect_gentx)
 
-def create_node_config(plan, node_struct, peers, paired_el_client_name, chain_id, chain_spec, genesis_deposits_root, genesis_deposit_count_hex, jwt_file = None, kzg_trusted_setup_file = None, preconf_config = None):
+def create_node_config(plan, node_struct, peers, paired_el_client_name, chain_id, chain_spec, genesis_deposits_root, genesis_deposit_count_hex, jwt_file = None, kzg_trusted_setup_file = None):
     engine_dial_url = "http://{}:{}".format(paired_el_client_name, execution.ENGINE_RPC_PORT_NUM)
 
     persistent_peers = get_persistent_peers(plan, peers)
@@ -216,29 +213,11 @@ def create_node_config(plan, node_struct, peers, paired_el_client_name, chain_id
     app_settings = node_struct.consensus_settings.app
     kzg_impl = node_struct.kzg_impl
 
-    # Determine preconf flags based on configuration
-    preconf_flags = ""
-    if preconf_config != None:
-        if node_struct.node_type == "sequencer":
-            # Dedicated sequencer node - needs whitelist and validator JWTs
-            preconf_flags = "--beacon-kit.preconf.enabled=true --beacon-kit.preconf.sequencer-mode=true"
-            preconf_flags += " --beacon-kit.preconf.whitelist-path=/root/preconf/whitelist.json"
-            preconf_flags += " --beacon-kit.preconf.validator-jwts-path=/root/preconf/validator-jwts.json"
-            preconf_flags += " --beacon-kit.preconf.api-port=9090"
-        elif node_struct.node_type == "validator":
-            # Validator - fetches payloads from sequencer
-            preconf_flags = "--beacon-kit.preconf.enabled=true"
-            preconf_flags += " --beacon-kit.preconf.sequencer-url=$PRECONF_SEQUENCER_URL"
-            preconf_flags += " --beacon-kit.preconf.sequencer-jwt-path=/root/preconf/jwt-secret.hex"
-            preconf_flags += " --beacon-kit.preconf.whitelist-path=/root/preconf/whitelist.json"
-
-    cmd = "{} && {}".format(init_consensus_nodes(), node.start(persistent_peers, False, 0, config_settings, app_settings, kzg_impl, preconf_flags))
+    cmd = "{} && {}".format(init_consensus_nodes(), node.start(persistent_peers, False, 0, config_settings, app_settings, kzg_impl))
     if node_struct.node_type == "validator":
-        cmd = node.start(persistent_peers, False, node_struct.index, config_settings, app_settings, kzg_impl, preconf_flags)
+        cmd = node.start(persistent_peers, False, node_struct.index, config_settings, app_settings, kzg_impl)
     elif node_struct.node_type == "seed":
-        cmd = "{} && {}".format(init_consensus_nodes(), node.start(persistent_peers, True, 0, config_settings, app_settings, kzg_impl, preconf_flags))
-    elif node_struct.node_type == "sequencer":
-        cmd = "{} && {}".format(init_consensus_nodes(), node.start(persistent_peers, False, 0, config_settings, app_settings, kzg_impl, preconf_flags))
+        cmd = "{} && {}".format(init_consensus_nodes(), node.start(persistent_peers, True, 0, config_settings, app_settings, kzg_impl))
 
     beacond_config = get_config(
         node_struct,
@@ -261,30 +240,6 @@ def create_node_config(plan, node_struct, peers, paired_el_client_name, chain_id
         )
 
     beacond_config.files["/root/.tmp_genesis"] = Directory(artifact_names = ["cosmos-genesis-final"])
-
-    # Add preconf files if configured
-    if preconf_config != None:
-        if node_struct.node_type == "sequencer":
-            # Sequencer needs whitelist and validator JWTs files
-            artifact_names = []
-            if preconf_config.whitelist_file != None:
-                artifact_names.append(preconf_config.whitelist_file)
-            if preconf_config.validator_jwts_file != None:
-                artifact_names.append(preconf_config.validator_jwts_file)
-            if len(artifact_names) > 0:
-                beacond_config.files["/root/preconf"] = Directory(artifact_names = artifact_names)
-        elif node_struct.node_type == "validator":
-            # Validator needs its own JWT secret AND the whitelist
-            artifact_names = []
-            if preconf_config.whitelist_file != None:
-                artifact_names.append(preconf_config.whitelist_file)
-            if node_struct.index in preconf_config.validator_jwt_artifacts:
-                artifact_names.append("validator-jwt-secret-{}".format(node_struct.index))
-            if len(artifact_names) > 0:
-                beacond_config.files["/root/preconf"] = Directory(artifact_names = artifact_names)
-
-            # Add sequencer URL to env vars
-            beacond_config.env_vars["PRECONF_SEQUENCER_URL"] = "http://{}:9090".format(preconf_config.sequencer_service_name)
 
     plan.print(beacond_config)
 

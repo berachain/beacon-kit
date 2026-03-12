@@ -16,7 +16,7 @@ pyroscope = import_module("./src/observability/pyroscope/pyroscope.star")
 tx_fuzz = import_module("./src/services/tx_fuzz/launcher.star")
 blockscout = import_module("./src/services/blockscout/launcher.star")
 
-def run(plan, network_configuration = {}, node_settings = {}, additional_services = [], metrics_enabled_services = [], preconf = {}):
+def run(plan, network_configuration = {}, node_settings = {}, additional_services = [], metrics_enabled_services = []):
     """
     Initiates the execution plan with the specified number of validators and arguments.
 
@@ -160,7 +160,7 @@ def run(plan, network_configuration = {}, node_settings = {}, additional_service
 
     validator_node_configs = {}
     for n, validator in enumerate(validators):
-        validator_node_config = beacond.create_node_config(plan, validator, consensus_node_peering_info, validator.el_service_name, chain_id, chain_spec, genesis_deposits_root, genesis_deposit_count_hex, jwt_file, kzg_trusted_setup, preconf_cfg)
+        validator_node_config = beacond.create_node_config(plan, validator, consensus_node_peering_info, validator.el_service_name, chain_id, chain_spec, genesis_deposits_root, genesis_deposit_count_hex, jwt_file, kzg_trusted_setup)
         validator_node_configs[validator.cl_service_name] = validator_node_config
 
     cl_clients = plan.add_services(
@@ -190,24 +190,10 @@ def run(plan, network_configuration = {}, node_settings = {}, additional_service
         el_services_to_peer = []
         for node in full_nodes:
             el_services_to_peer.append(node.el_service_name)
-        for node in preconf_rpc_nodes:
-            el_services_to_peer.append(node.el_service_name)
-        if sequencer_node:
-            el_services_to_peer.append(sequencer_node.el_service_name)
         for node in validators[1:]:
             el_services_to_peer.append(node.el_service_name)
         for el_name in el_services_to_peer:
             execution.add_peer(plan, el_name, bootstrap_enode)
-
-    # For preconf topologies: add direct EL peering between the sequencer
-    # and tx-receiving nodes (preconf RPC, full nodes) so that transactions
-    # gossip directly to the sequencer without routing through validator-0.
-    if preconf_cfg and sequencer_node:
-        sequencer_enode = execution.get_enode_addr(plan, sequencer_node.el_service_name)
-        for node in preconf_rpc_nodes:
-            execution.add_peer(plan, node.el_service_name, sequencer_enode)
-        for node in full_nodes:
-            execution.add_peer(plan, node.el_service_name, sequencer_enode)
 
     # 8. Start additional services
     prometheus_url = ""
