@@ -128,12 +128,12 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	s.logger.Info("Enclave spun up successfully")
 
 	s.logger.Info("Setting up consensus clients")
-	err = s.SetupConsensusClients()
+	err = s.SetupConsensusClients(s.ctx)
 	s.Require().NoError(err, "Error setting up consensus clients")
 
 	// Setup the JSON-RPC Execution Clients.
 	s.logger.Info("Setting up JSON-RPC Execution Clients")
-	err = s.SetupExecutionClients()
+	err = s.SetupExecutionClients(s.ctx)
 	s.Require().NoError(err, "Error setting up JSON-RPC Execution Clients")
 
 	s.logger.Info("Waiting for nodes to get ready...")
@@ -152,7 +152,7 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 // SetupConsensusClients sets up the consensus clients for the validator nodes.
 //
 // TODO: set up consensus clients for full nodes as well.
-func (s *KurtosisE2ESuite) SetupConsensusClients() error {
+func (s *KurtosisE2ESuite) SetupConsensusClients(ctx context.Context) error {
 	s.consensusClients = make(map[string]*types.ConsensusClient, config.NumValidators)
 
 	var (
@@ -180,7 +180,7 @@ func (s *KurtosisE2ESuite) SetupConsensusClients() error {
 		}
 
 		s.consensusClients[clientName] = types.NewConsensusClient(sCtx)
-		if err = s.consensusClients[clientName].Start(context.Background()); err != nil {
+		if err = s.consensusClients[clientName].Start(ctx); err != nil {
 			return err
 		}
 	}
@@ -190,20 +190,38 @@ func (s *KurtosisE2ESuite) SetupConsensusClients() error {
 
 // SetupJSONRPCBalancer sets up the load balancer for the test suite.
 //
-// TODO: set up execution clients for all validators and full nodes.
-func (s *KurtosisE2ESuite) SetupExecutionClients() error {
-	// get the type for EthJSONRPCEndpoint
-	typeRPCEndpoint := s.JSONRPCBalancerType()
+// TODO: set up execution clients for validators as well.
+func (s *KurtosisE2ESuite) SetupExecutionClients(ctx context.Context) error {
+	s.executionClients = make(map[string]*types.ExecutionClient, config.NumFullNodes)
 
-	s.logger.Info("Setting up JSON-RPC balancer:", "type", typeRPCEndpoint)
+	var (
+		sCtx *services.ServiceContext
+		err  error
+	)
+	for i := range config.NumFullNodes {
+		var clientName string
+		//nolint:mnd // its okay.
+		switch i % config.NumFullNodes {
+		case 0:
+			clientName = config.ClientExecution0
+		case 1:
+			clientName = config.ClientExecution1
+		case 2:
+			clientName = config.ClientExecution2
+		case 3:
+			clientName = config.ClientExecution3
+		case 4:
+			clientName = config.ClientExecution4
+		}
+		sCtx, err = s.Enclave().GetServiceContext(clientName)
+		if err != nil {
+			return err
+		}
 
-	sCtx, err := s.Enclave().GetServiceContext(typeRPCEndpoint)
-	if err != nil {
-		return err
-	}
-
-	if s.loadBalancer, err = types.NewLoadBalancer(sCtx); err != nil {
-		return err
+		s.executionClients[clientName] = types.NewExecutionClient(sCtx)
+		if err = s.executionClients[clientName].Start(ctx); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -215,13 +233,15 @@ func (s *KurtosisE2ESuite) SetupExecutionClients() error {
 func (s *KurtosisE2ESuite) FundAccounts() {
 	ctx := context.Background()
 	nonce := atomic.Uint64{}
-	pendingNonce, err := s.JSONRPCBalancer().PendingNonceAt(
+	elClient := s.ExecutionClients()[config.ClientExecution0]
+	s.Require().NotNil(elClient)
+	pendingNonce, err := elClient.PendingNonceAt(
 		ctx, s.genesisAccount.Address())
 	s.Require().NoError(err, "Failed to get nonce for genesis account")
 	nonce.Store(pendingNonce)
 
 	var chainID *big.Int
-	chainID, err = s.JSONRPCBalancer().ChainID(ctx)
+	chainID, err = elClient.ChainID(ctx)
 	s.Require().NoError(err, "failed to get chain ID")
 	s.logger.Info("Chain-id is", "chain_id", chainID)
 	_, err = iter.MapErr(
@@ -230,7 +250,7 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 			account := *acc
 			var gasTipCap *big.Int
 
-			if gasTipCap, err = s.JSONRPCBalancer().SuggestGasTipCap(ctx); err != nil {
+			if gasTipCap, err = elClient.SuggestGasTipCap(ctx); err != nil {
 				var rpcErr rpc.Error
 				if errors.As(err, &rpcErr) && rpcErr.ErrorCode() == -32601 {
 					// Fallback to default value of 10 Gwei if method not supported
@@ -260,7 +280,7 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 
 			cctx, cancel := context.WithTimeout(ctx, DefaultE2ETestTimeout)
 			defer cancel()
-			if err = s.JSONRPCBalancer().SendTransaction(cctx, signedTx); err != nil {
+			if err = elClient.SendTransaction(cctx, signedTx); err != nil {
 				s.logger.Error(
 					"error submitting funding transaction",
 					"error",
@@ -278,7 +298,7 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 			var receipt *ethtypes.Receipt
 
 			if receipt, err = bind.WaitMined(
-				cctx, s.JSONRPCBalancer(), signedTx,
+				cctx, elClient, signedTx,
 			); err != nil {
 				return nil, err
 			}
@@ -304,7 +324,7 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 
 			// Verify the balance of the account
 			var balance *big.Int
-			if balance, err = s.JSONRPCBalancer().BalanceAt(ctx, dest, nil); err != nil {
+			if balance, err = elClient.BalanceAt(ctx, dest, nil); err != nil {
 				return nil, err
 			} else if balance.Cmp(value) != 0 {
 				return nil, errors.Wrap(
@@ -319,14 +339,15 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 
 // WaitForFinalizedBlockNumber waits for the finalized block number
 // to reach the target block number across all execution clients.
-func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
-	target uint64,
-) error {
+func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(target uint64) error {
 	cctx, cancel := context.WithTimeout(s.ctx, DefaultE2ETestTimeout)
 	defer cancel()
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
-	finalBlockNum, err := s.JSONRPCBalancer().BlockNumber(cctx)
+
+	elClient := s.ExecutionClients()[config.ClientExecution0]
+	s.Require().NotNil(elClient)
+	finalBlockNum, err := elClient.BlockNumber(cctx)
 	if err != nil {
 		s.logger.Error("error getting finalized block number", "error", err)
 	}
@@ -338,7 +359,7 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 		default:
 		}
 
-		finalBlockNum, err = s.JSONRPCBalancer().BlockNumber(cctx)
+		finalBlockNum, err = elClient.BlockNumber(cctx)
 		if err != nil {
 			s.logger.Error("error getting finalized block number", "error", err)
 			continue
@@ -372,10 +393,10 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 
 // WaitForNBlockNumbers waits for a specified amount of blocks into the future
 // from now.
-func (s *KurtosisE2ESuite) WaitForNBlockNumbers(
-	n uint64,
-) error {
-	current, err := s.JSONRPCBalancer().BlockNumber(s.ctx)
+func (s *KurtosisE2ESuite) WaitForNBlockNumbers(n uint64) error {
+	elClient := s.ExecutionClients()[config.ClientExecution0]
+	s.Require().NotNil(elClient)
+	current, err := elClient.BlockNumber(s.ctx)
 	if err != nil {
 		return err
 	}
@@ -393,12 +414,13 @@ func (s *KurtosisE2ESuite) TearDownSuite() {
 }
 
 // CheckForSuccessfulTx returns true if the transaction was successful.
-func (s *KurtosisE2ESuite) CheckForSuccessfulTx(
-	tx common.Hash,
-) bool {
+func (s *KurtosisE2ESuite) CheckForSuccessfulTx(tx common.Hash) bool {
 	ctx, cancel := context.WithTimeout(s.Ctx(), DefaultE2ETestTimeout)
 	defer cancel()
-	receipt, err := s.JSONRPCBalancer().TransactionReceipt(ctx, tx)
+
+	elClient := s.ExecutionClients()[config.ClientExecution0]
+	s.Require().NotNil(elClient)
+	receipt, err := elClient.TransactionReceipt(ctx, tx)
 	if err != nil {
 		s.Logger().Error("Error getting transaction receipt", "error", err)
 		return false

@@ -36,6 +36,17 @@ const (
 	ClientValidator4 = "cl-validator-beaconkit-4"
 )
 
+// Execution clients.
+const (
+	NumFullNodes = 5
+
+	ClientExecution0 = "el-reth-0"
+	ClientExecution1 = "el-reth-1"
+	ClientExecution2 = "el-reth-2"
+	ClientExecution3 = "el-reth-3"
+	ClientExecution4 = "el-reth-4"
+)
+
 // DefaultE2ETestConfig provides a default configuration for end-to-end tests,
 // pre-populating with a standard set of validators and no additional
 // services.
@@ -60,13 +71,8 @@ func defaultValidators() NodeSet {
 		Type: "validator",
 		Nodes: []Node{
 			{
-				ElType:   "geth",
-				Replicas: 3, //nolint:mnd // we want 3 replicas here
-				KZGImpl:  "crate-crypto/go-kzg-4844",
-			},
-			{
 				ElType:   "reth",
-				Replicas: 2, //nolint:mnd // we want 2 replicas here
+				Replicas: 5, //nolint:mnd // we want 5 replicas here
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 		},
@@ -79,12 +85,7 @@ func defaultFullNodes() NodeSet {
 		Nodes: []Node{
 			{
 				ElType:   "reth",
-				Replicas: 2, //nolint:mnd // we want 2 replicas here
-				KZGImpl:  "crate-crypto/go-kzg-4844",
-			},
-			{
-				ElType:   "geth",
-				Replicas: 2, //nolint:mnd // we want 2 replicas here
+				Replicas: 5, //nolint:mnd // we want 5 replicas here
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 		},
@@ -96,7 +97,7 @@ func defaultSeedNodes() NodeSet {
 		Type: "seed",
 		Nodes: []Node{
 			{
-				ElType:   "geth",
+				ElType:   "reth",
 				Replicas: 1,
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
@@ -120,7 +121,6 @@ func defaultExecutionSettings() ExecutionSettings {
 			MaxMemory: 2048, //nolint:mnd // 2 GB
 		},
 		Images: map[string]string{
-			"geth": "ghcr.io/berachain/bera-geth:latest",
 			"reth": "ghcr.io/berachain/bera-reth:nightly",
 		},
 	}

@@ -37,6 +37,7 @@ type ExecutionClient struct {
 	*beraclient.Client
 
 	serviceCtx *services.ServiceContext
+	url        string
 }
 
 // NewExecutionClientFromServiceCtx creates a new execution client from a
@@ -53,13 +54,19 @@ func (ec *ExecutionClient) Start(ctx context.Context) error {
 		return ErrPublicPortNotFound
 	}
 
-	ethClient, err := DialWithPooling(fmt.Sprintf("http://://0.0.0.0:%d", port.GetNumber()))
+	ec.url = fmt.Sprintf("http://://0.0.0.0:%d", port.GetNumber())
+	ethClient, err := DialWithPooling(ec.url)
 	if err != nil {
 		return err
 	}
 
 	ec.Client = beraclient.Wrap(ethClient)
 	return nil
+}
+
+// URL returns the URL of the execution client.
+func (ec *ExecutionClient) URL() string {
+	return ec.url
 }
 
 // DialWithPooling creates an ethclient with an HTTP transport configured

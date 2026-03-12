@@ -18,7 +18,9 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package e2e_test
+//go:build e2e
+
+package standard_test
 
 import (
 	"context"
@@ -36,6 +38,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	beaconmath "github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
+	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/berachain/beacon-kit/testing/e2e/suite"
 	e2etypes "github.com/berachain/beacon-kit/testing/e2e/suite/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -169,15 +172,16 @@ func (s *BeaconKitE2ESuite) TestSubmitPartialWithdrawalTransaction() {
 	// Set withdrawal amount
 	withdrawalAmount := beaconmath.Gwei(DefaultWithdrawalAmount)
 
-	// Create an rpc client using the load balancer URL
-	rpcClient, err := rpc.Dial(s.JSONRPCBalancer().URL())
+	// Create an rpc client using the EL client URL
+	elClient := s.ExecutionClients()[config.ClientExecution0]
+	s.Require().NotNil(elClient)
+	rpcClient, err := rpc.Dial(elClient.URL())
 	s.Require().NoError(err)
 	defer rpcClient.Close()
-
 	rpcWrapper := &rpcWrapper{Client: rpcClient}
 
 	// Get current block number before withdrawal
-	blkNum, err := s.JSONRPCBalancer().BlockNumber(ctx)
+	blkNum, err := elClient.BlockNumber(ctx)
 	s.Require().NoError(err)
 	s.T().Logf("Block number before withdrawal: %d", blkNum)
 
@@ -199,7 +203,9 @@ func (s *BeaconKitE2ESuite) TestSubmitPartialWithdrawalTransaction() {
 	privateKey, err := ethcrypto.HexToECDSA("fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306")
 	s.Require().NoError(err)
 
-	chainID, err := s.JSONRPCBalancer().ChainID(ctx)
+	elClient := s.ExecutionClients()[config.ClientExecution0]
+	s.Require().NotNil(elClient)
+	chainID, err := elClient.ChainID(ctx)
 	s.Require().NoError(err)
 	signer := gethcore.NewPragueSigner(chainID)
 
@@ -239,7 +245,7 @@ func (s *BeaconKitE2ESuite) TestSubmitPartialWithdrawalTransaction() {
 	s.Require().NoError(err)
 
 	// Get the transaction receipt
-	receipt, err := s.JSONRPCBalancer().TransactionReceipt(ctx, txHash)
+	receipt, err := elClient.TransactionReceipt(ctx, txHash)
 	s.Require().NoError(err)
 	s.Require().NotNil(receipt, "Transaction receipt should not be nil")
 	s.T().Logf("Withdrawal transaction included in block: %d", receipt.BlockNumber)

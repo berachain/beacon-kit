@@ -13,12 +13,14 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package e2e_test
+//go:build e2e
+
+package standard_test
 
 import (
 	"bytes"
@@ -68,7 +70,8 @@ func (s *BeaconKitE2ESuite) TestABCIInfo() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		elClient := s.JSONRPCBalancer()
+		elClient := s.ExecutionClients()[config.ClientExecution0]
+		s.Require().NotNil(elClient)
 		elHeight, err := elClient.BlockNumber(s.Ctx())
 		s.Require().NoError(err)
 		heightsMap.Store("el", int64(elHeight)) // #nosec G115

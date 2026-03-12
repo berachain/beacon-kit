@@ -53,6 +53,11 @@ type KurtosisE2ESuite struct {
 	testAccounts   []*types.EthAccount
 }
 
+// Config returns the E2ETestConfig associated with the KurtosisE2ESuite.
+func (s *KurtosisE2ESuite) Config() *config.E2ETestConfig {
+	return s.cfg
+}
+
 // ConsensusClients returns the consensus clients associated with the KurtosisE2ESuite.
 func (s *KurtosisE2ESuite) ConsensusClients() map[string]*types.ConsensusClient {
 	return s.consensusClients
@@ -70,9 +75,14 @@ func (s *KurtosisE2ESuite) Enclave() *enclaves.EnclaveContext {
 	return s.enclave
 }
 
-// Config returns the E2ETestConfig associated with the KurtosisE2ESuite.
-func (s *KurtosisE2ESuite) Config() *config.E2ETestConfig {
-	return s.cfg
+// ExecutionClients returns the execution clients associated with the KurtosisE2ESuite.
+func (s *KurtosisE2ESuite) ExecutionClients() map[string]*types.ExecutionClient {
+	return s.executionClients
+}
+
+// GenesisAccount returns the genesis account for the test suite.
+func (s *KurtosisE2ESuite) GenesisAccount() *types.EthAccount {
+	return s.genesisAccount
 }
 
 // KurtosisCtx returns the KurtosisContext associated with the KurtosisE2ESuite.
@@ -82,32 +92,9 @@ func (s *KurtosisE2ESuite) KurtosisCtx() *kurtosis_context.KurtosisContext {
 	return s.kCtx
 }
 
-// ExecutionClients returns the execution clients associated with the KurtosisE2ESuite.
-//
-// TODO: enable this in favor of the LoadBalancer to test multiple execution clients.
-func (s *KurtosisE2ESuite) ExecutionClients() map[string]*types.ExecutionClient {
-	return nil
-}
-
-// JSONRPCBalancer returns the JSON-RPC balancer for the test suite.
-func (s *KurtosisE2ESuite) JSONRPCBalancer() *types.LoadBalancer {
-	return s.loadBalancer
-}
-
-// JSONRPCBalancerType returns the type of the JSON-RPC balancer
-// for the test suite.
-func (s *KurtosisE2ESuite) JSONRPCBalancerType() string {
-	return s.cfg.EthJSONRPCEndpoints[0].Type
-}
-
 // Logger returns the logger for the test suite.
 func (s *KurtosisE2ESuite) Logger() log.Logger {
 	return s.logger
-}
-
-// GenesisAccount returns the genesis account for the test suite.
-func (s *KurtosisE2ESuite) GenesisAccount() *types.EthAccount {
-	return s.genesisAccount
 }
 
 // TestAccounts returns the test accounts for the test suite.

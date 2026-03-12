@@ -13,12 +13,14 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package e2e_test
+//go:build e2e
+
+package standard_test
 
 import (
 	"math/big"
@@ -41,8 +43,12 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 	// Sender account
 	sender := s.TestAccounts()[0]
 
+	// Get the execution client.
+	elClient := s.ExecutionClients()[config.ClientExecution0]
+	s.Require().NotNil(elClient)
+
 	// Get the chain ID.
-	chainID, err := s.JSONRPCBalancer().ChainID(s.Ctx())
+	chainID, err := elClient.ChainID(s.Ctx())
 	s.Require().NoError(err)
 
 	// Deploy the SSZTest contract to verify the block proposer proof.
@@ -51,17 +57,17 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 		Signer:   sender.SignerFunc(chainID),
 		GasLimit: 1000000,
 		Context:  s.Ctx(),
-	}, s.JSONRPCBalancer())
+	}, elClient)
 	s.Require().NoError(err)
 
 	// Confirm deployment.
-	receipt, err := bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
+	receipt, err := bind.WaitMined(s.Ctx(), elClient, tx)
 	s.Require().NoError(err)
 	s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
 	s.Logger().Info("SSZTest contract deployed successfully", "address", addr.Hex())
 
 	// Get the current block number.
-	blockNumber, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
+	blockNumber, err := elClient.BlockNumber(s.Ctx())
 	s.Require().NoError(err)
 
 	// Get the block proposer proof for the parent block number.
@@ -73,7 +79,7 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 	s.Require().NotNil(blockProposerResp.BeaconBlockHeader)
 
 	// Get the next block header.
-	nextHeader, err := s.JSONRPCBalancer().HeaderByNumber(
+	nextHeader, err := elClient.HeaderByNumber(
 		s.Ctx(), new(big.Int).SetUint64(blockNumber),
 	)
 	s.Require().NoError(err)
@@ -150,7 +156,7 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 	s.Require().NoError(err)
 
 	// Get the fork version based on the block's timestamp.
-	header, err := s.JSONRPCBalancer().HeaderByNumber(
+	header, err := elClient.HeaderByNumber(
 		s.Ctx(), new(big.Int).SetUint64(blockNumber-1),
 	)
 	s.Require().NoError(err)
@@ -185,8 +191,12 @@ func (s *BeaconKitE2ESuite) TestValidatorBalanceProof() {
 	// Sender account
 	sender := s.TestAccounts()[0]
 
+	// Get the execution client.
+	elClient := s.ExecutionClients()[config.ClientExecution0]
+	s.Require().NotNil(elClient)
+
 	// Get the chain ID.
-	chainID, err := s.JSONRPCBalancer().ChainID(s.Ctx())
+	chainID, err := elClient.ChainID(s.Ctx())
 	s.Require().NoError(err)
 
 	// Deploy the SSZTest contract to verify the validator balance proof.
@@ -195,17 +205,17 @@ func (s *BeaconKitE2ESuite) TestValidatorBalanceProof() {
 		Signer:   sender.SignerFunc(chainID),
 		GasLimit: 1000000,
 		Context:  s.Ctx(),
-	}, s.JSONRPCBalancer())
+	}, elClient)
 	s.Require().NoError(err)
 
 	// Confirm deployment.
-	receipt, err := bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
+	receipt, err := bind.WaitMined(s.Ctx(), elClient, tx)
 	s.Require().NoError(err)
 	s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
 	s.Logger().Info("SSZTest contract deployed successfully", "address", addr.Hex())
 
 	// Get the current block number.
-	blockNumber, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
+	blockNumber, err := elClient.BlockNumber(s.Ctx())
 	s.Require().NoError(err)
 
 	// Get the validator balance proof for validator 0 at the parent block number.
@@ -220,7 +230,7 @@ func (s *BeaconKitE2ESuite) TestValidatorBalanceProof() {
 	s.Require().Equal(balanceResp.BeaconBlockHeader.Slot.Unwrap(), blockNumber-1)
 
 	// Get the next block header.
-	nextHeader, err := s.JSONRPCBalancer().HeaderByNumber(s.Ctx(), new(big.Int).SetUint64(blockNumber))
+	nextHeader, err := elClient.HeaderByNumber(s.Ctx(), new(big.Int).SetUint64(blockNumber))
 	s.Require().NoError(err)
 	s.Require().NotNil(nextHeader)
 
@@ -254,7 +264,7 @@ func (s *BeaconKitE2ESuite) TestValidatorBalanceProof() {
 	s.Require().NoError(err)
 
 	// Get the fork version based on the block's timestamp.
-	header, err := s.JSONRPCBalancer().HeaderByNumber(
+	header, err := elClient.HeaderByNumber(
 		s.Ctx(), new(big.Int).SetUint64(blockNumber-1),
 	)
 	s.Require().NoError(err)
@@ -290,8 +300,12 @@ func (s *BeaconKitE2ESuite) TestValidatorCredentialsProof() {
 	// Sender account
 	sender := s.TestAccounts()[0]
 
+	// Get the execution client.
+	elClient := s.ExecutionClients()[config.ClientExecution0]
+	s.Require().NotNil(elClient)
+
 	// Get the chain ID.
-	chainID, err := s.JSONRPCBalancer().ChainID(s.Ctx())
+	chainID, err := elClient.ChainID(s.Ctx())
 	s.Require().NoError(err)
 
 	// Deploy the SSZTest contract to verify the validator credentials proof.
@@ -300,17 +314,17 @@ func (s *BeaconKitE2ESuite) TestValidatorCredentialsProof() {
 		Signer:   sender.SignerFunc(chainID),
 		GasLimit: 1000000,
 		Context:  s.Ctx(),
-	}, s.JSONRPCBalancer())
+	}, elClient)
 	s.Require().NoError(err)
 
 	// Confirm deployment.
-	receipt, err := bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
+	receipt, err := bind.WaitMined(s.Ctx(), elClient, tx)
 	s.Require().NoError(err)
 	s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
 	s.Logger().Info("SSZTest contract deployed successfully", "address", addr.Hex())
 
 	// Get the current block number.
-	blockNumber, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
+	blockNumber, err := elClient.BlockNumber(s.Ctx())
 	s.Require().NoError(err)
 
 	// Get the validator credentials proof for validator 0 at the parent block number.
@@ -325,7 +339,7 @@ func (s *BeaconKitE2ESuite) TestValidatorCredentialsProof() {
 	s.Require().Equal(credsResp.BeaconBlockHeader.Slot.Unwrap(), blockNumber-1)
 
 	// Get the next block header.
-	nextHeader, err := s.JSONRPCBalancer().HeaderByNumber(s.Ctx(), new(big.Int).SetUint64(blockNumber))
+	nextHeader, err := elClient.HeaderByNumber(s.Ctx(), new(big.Int).SetUint64(blockNumber))
 	s.Require().NoError(err)
 	s.Require().NotNil(nextHeader)
 
@@ -357,7 +371,7 @@ func (s *BeaconKitE2ESuite) TestValidatorCredentialsProof() {
 	s.Require().NoError(err)
 
 	// Get the fork version based on the block's timestamp.
-	header, err := s.JSONRPCBalancer().HeaderByNumber(
+	header, err := elClient.HeaderByNumber(
 		s.Ctx(), new(big.Int).SetUint64(blockNumber-1),
 	)
 	s.Require().NoError(err)
@@ -418,8 +432,12 @@ func (s *BeaconKitE2ESuite) TestValidatorPubkeyProof() {
 	// Sender account
 	sender := s.TestAccounts()[0]
 
+	// Get the execution client.
+	elClient := s.ExecutionClients()[config.ClientExecution0]
+	s.Require().NotNil(elClient)
+
 	// Get the chain ID.
-	chainID, err := s.JSONRPCBalancer().ChainID(s.Ctx())
+	chainID, err := elClient.ChainID(s.Ctx())
 	s.Require().NoError(err)
 
 	// Deploy the SSZTest contract to verify the validator pubkey proof.
@@ -428,17 +446,17 @@ func (s *BeaconKitE2ESuite) TestValidatorPubkeyProof() {
 		Signer:   sender.SignerFunc(chainID),
 		GasLimit: 1000000,
 		Context:  s.Ctx(),
-	}, s.JSONRPCBalancer())
+	}, elClient)
 	s.Require().NoError(err)
 
 	// Confirm deployment.
-	receipt, err := bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
+	receipt, err := bind.WaitMined(s.Ctx(), elClient, tx)
 	s.Require().NoError(err)
 	s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
 	s.Logger().Info("SSZTest contract deployed successfully", "address", addr.Hex())
 
 	// Get the current block number.
-	blockNumber, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
+	blockNumber, err := elClient.BlockNumber(s.Ctx())
 	s.Require().NoError(err)
 
 	// Get the validator pubkey proof for validator 0 at the parent block number.
@@ -453,7 +471,7 @@ func (s *BeaconKitE2ESuite) TestValidatorPubkeyProof() {
 	s.Require().Equal(pubkeyResp.BeaconBlockHeader.Slot.Unwrap(), blockNumber-1)
 
 	// Get the next block header.
-	nextHeader, err := s.JSONRPCBalancer().HeaderByNumber(s.Ctx(), new(big.Int).SetUint64(blockNumber))
+	nextHeader, err := elClient.HeaderByNumber(s.Ctx(), new(big.Int).SetUint64(blockNumber))
 	s.Require().NoError(err)
 	s.Require().NotNil(nextHeader)
 
@@ -483,7 +501,7 @@ func (s *BeaconKitE2ESuite) TestValidatorPubkeyProof() {
 	s.Require().NoError(err)
 
 	// Get the fork version based on the block's timestamp.
-	header, err := s.JSONRPCBalancer().HeaderByNumber(
+	header, err := elClient.HeaderByNumber(
 		s.Ctx(), new(big.Int).SetUint64(blockNumber-1),
 	)
 	s.Require().NoError(err)

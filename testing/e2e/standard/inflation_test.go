@@ -13,12 +13,14 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package e2e_test
+//go:build e2e
+
+package standard_test
 
 import (
 	"math/big"
@@ -28,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	gethcommon "github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/params"
 )
 
@@ -38,6 +39,9 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 	// TODO: make test use configurable chain spec.
 	chainspec, err := spec.DevnetChainSpec()
 	s.Require().NoError(err)
+
+	elClient := s.ExecutionClients()[config.ClientExecution0]
+	s.Require().NotNil(elClient)
 
 	var (
 		inflationPerBlock          uint64
@@ -54,10 +58,8 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 	for blkNum := range int64(2 * chainspec.SlotsPerEpoch()) {
 		err = s.WaitForFinalizedBlockNumber(uint64(blkNum))
 		s.Require().NoError(err)
-
-		var header *types.Header
-		header, err = s.JSONRPCBalancer().HeaderByNumber(s.Ctx(), big.NewInt(blkNum))
-		s.Require().NoError(err)
+		header, errBlk := elClient.HeaderByNumber(s.Ctx(), big.NewInt(blkNum))
+		s.Require().NoError(errBlk)
 
 		payloadTime := header.Time
 		inflationPerBlock = chainspec.EVMInflationPerBlock(math.U64(payloadTime)).Unwrap()
@@ -74,7 +76,7 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 				forkSlot = blkNum
 
 				// take the snapshot of balance right before the fork and check it won't change anymore
-				preForkAddressFinalBalance, err = s.JSONRPCBalancer().BalanceAt(
+				preForkAddressFinalBalance, err = elClient.BalanceAt(
 					s.Ctx(), gethcommon.Address(oldInflationAddress), big.NewInt(blkNum-1),
 				)
 				s.Require().NoError(err)
@@ -82,7 +84,7 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 
 			// Enforce that the balance of the EVM inflation address
 			// prior to the hardfork is the same as it is now.
-			preForkLatestBalance, err = s.JSONRPCBalancer().BalanceAt(
+			preForkLatestBalance, err = elClient.BalanceAt(
 				s.Ctx(), gethcommon.Address(oldInflationAddress), nil, // at the current block
 			)
 			s.Require().NoError(err)
@@ -100,7 +102,7 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 			)
 		}
 
-		balance, err = s.JSONRPCBalancer().BalanceAt(
+		balance, err = elClient.BalanceAt(
 			s.Ctx(),
 			gethcommon.Address(inflationAddress),
 			big.NewInt(blkNum),
