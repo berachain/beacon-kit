@@ -515,9 +515,6 @@ func (s *Service) validateSequencerPayload(
 	envelope ctypes.BuiltExecutionPayloadEnv,
 	parentBlockRoot common.Root,
 ) error {
-	if s.executionEngine == nil {
-		return nil
-	}
 	payloadTimestamp := envelope.GetExecutionPayload().GetTimestamp()
 	parentProposerPubkey, err := st.ParentProposerPubkey(payloadTimestamp)
 	if err != nil {
