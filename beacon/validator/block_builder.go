@@ -475,7 +475,10 @@ func (s *Service) fetchFromSequencer(
 		if s.sequencerMonitorRunning.CompareAndSwap(false, true) {
 			s.logger.Info("Detected sequencer offline, starting health monitor")
 			s.sequencerAvailable.Store(false)
-			go s.monitorSequencerHealth(context.WithoutCancel(ctx))
+			// Store cancel function to stop the monitor on service shutdown.
+			monitorCtx, cancel := context.WithCancel(context.Background())
+			s.sequencerMonitorCancel = cancel
+			go s.monitorSequencerHealth(monitorCtx)
 		}
 	}
 	return envelope, err
