@@ -43,7 +43,6 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 	return &E2ETestConfig{
 		NetworkConfiguration: defaultNetworkConfiguration(),
 		NodeSettings:         defaultNodeSettings(),
-		EthJSONRPCEndpoints:  defaultEthJSONRPCEndpoints(),
 		AdditionalServices:   defaultAdditionalServices(),
 	}
 }
@@ -156,17 +155,6 @@ func defaultConsensusSettings() ConsensusSettings {
 		},
 		AppConfig: AppConfig{
 			PayloadTimeout: builderCfg.PayloadTimeout.String(),
-		},
-	}
-}
-
-func defaultEthJSONRPCEndpoints() []EthJSONRPCEndpoint {
-	return []EthJSONRPCEndpoint{
-		{
-			Type: "blutgang",
-			Clients: []string{
-				"el-full-geth-2",
-			},
 		},
 	}
 }

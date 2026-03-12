@@ -47,8 +47,7 @@ type KurtosisE2ESuite struct {
 	enclave *enclaves.EnclaveContext
 
 	consensusClients map[string]*types.ConsensusClient
-	// executionClients map[string]*types.ExecutionClient // TODO: enable.
-	loadBalancer *types.LoadBalancer
+	executionClients map[string]*types.ExecutionClient
 
 	genesisAccount *types.EthAccount
 	testAccounts   []*types.EthAccount

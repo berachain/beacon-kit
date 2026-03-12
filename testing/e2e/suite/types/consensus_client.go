@@ -35,13 +35,13 @@ import (
 	rpcclient "github.com/cometbft/cometbft/rpc/client"
 	httpclient "github.com/cometbft/cometbft/rpc/client/http"
 	coretypes "github.com/cometbft/cometbft/rpc/core/types"
-	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
+	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/services"
 	"github.com/rs/zerolog"
 )
 
 // ConsensusClient represents a consensus client.
 type ConsensusClient struct {
-	*WrappedServiceContext
+	serviceCtx *services.ServiceContext
 
 	// Comet JSON-RPC client
 	cometClient rpcclient.Client
@@ -54,18 +54,18 @@ type ConsensusClient struct {
 }
 
 // NewConsensusClient creates a new consensus client.
-func NewConsensusClient(serviceCtx *WrappedServiceContext) *ConsensusClient {
+func NewConsensusClient(serviceCtx *services.ServiceContext) *ConsensusClient {
 	return &ConsensusClient{
-		WrappedServiceContext: serviceCtx,
+		serviceCtx: serviceCtx,
 	}
 }
 
-// Connect connects the consensus client to the consensus client.
-func (cc *ConsensusClient) Connect(ctx context.Context) error {
+// Start starts the consensus client.
+func (cc *ConsensusClient) Start(ctx context.Context) error {
 	// Start by trying to get the public port for the comet JSON-RPC.
-	cometPort, ok := cc.WrappedServiceContext.GetPublicPorts()["cometbft-rpc"]
+	cometPort, ok := cc.serviceCtx.GetPublicPorts()["cometbft-rpc"]
 	if !ok {
-		panic("Couldn't find the public port for the comet JSON-RPC")
+		return ErrPublicPortNotFound
 	}
 	clientURL := fmt.Sprintf("http://0.0.0.0:%d", cometPort.GetNumber())
 	client, err := httpclient.New(clientURL)
@@ -75,7 +75,7 @@ func (cc *ConsensusClient) Connect(ctx context.Context) error {
 	cc.cometClient = client
 
 	// Then try to get the public port for the node API.
-	nodePort, ok := cc.WrappedServiceContext.GetPublicPorts()["node-api"]
+	nodePort, ok := cc.serviceCtx.GetPublicPorts()["node-api"]
 	if !ok {
 		panic("Couldn't find the public port for the node API")
 	}
@@ -97,28 +97,11 @@ func (cc *ConsensusClient) Connect(ctx context.Context) error {
 	return nil
 }
 
-// Start starts the consensus client.
-//
-// TODO: Debug wrapped service context failing to start.
-func (cc *ConsensusClient) Start(
-	ctx context.Context, _ *enclaves.EnclaveContext,
-) (*enclaves.StarlarkRunResult, error) {
-	// res, err := cc.WrappedServiceContext.Start(ctx, enclaveContext)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	return &enclaves.StarlarkRunResult{}, cc.Connect(ctx)
-}
-
 // Stop stops the consensus client.
-//
-// TODO: Debug wrapped service context failing to stop.
-func (cc *ConsensusClient) Stop(context.Context) (*enclaves.StarlarkRunResult, error) {
-	cc.cancelFunc()
-	// return cc.WrappedServiceContext.Stop(ctx)
-
-	return &enclaves.StarlarkRunResult{}, nil
+func (cc *ConsensusClient) Stop(context.Context) {
+	if cc.cancelFunc != nil {
+		cc.cancelFunc()
+	}
 }
 
 // GetPubKey returns the public key of the validator running on this node.

@@ -38,7 +38,6 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/services"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/starlark_run_config"
 	"github.com/kurtosis-tech/kurtosis/api/golang/engine/lib/kurtosis_context"
@@ -132,10 +131,10 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	err = s.SetupConsensusClients()
 	s.Require().NoError(err, "Error setting up consensus clients")
 
-	// Setup the JSON-RPC balancer.
-	s.logger.Info("Setting up JSON-RPC balancer")
-	err = s.SetupJSONRPCBalancer()
-	s.Require().NoError(err, "Error setting up JSON-RPC balancer")
+	// Setup the JSON-RPC Execution Clients.
+	s.logger.Info("Setting up JSON-RPC Execution Clients")
+	err = s.SetupExecutionClients()
+	s.Require().NoError(err, "Error setting up JSON-RPC Execution Clients")
 
 	s.logger.Info("Waiting for nodes to get ready...")
 	//nolint:mnd // its okay.
@@ -158,7 +157,6 @@ func (s *KurtosisE2ESuite) SetupConsensusClients() error {
 
 	var (
 		sCtx *services.ServiceContext
-		res  *enclaves.StarlarkRunResult
 		err  error
 	)
 	for i := range config.NumValidators {
@@ -181,19 +179,9 @@ func (s *KurtosisE2ESuite) SetupConsensusClients() error {
 			return err
 		}
 
-		s.consensusClients[clientName] = types.NewConsensusClient(
-			types.NewWrappedServiceContext(sCtx, s.Enclave().RunStarlarkScriptBlocking),
-		)
-		if res, err = s.consensusClients[clientName].Start(
-			context.Background(), s.Enclave(),
-		); err != nil {
+		s.consensusClients[clientName] = types.NewConsensusClient(sCtx)
+		if err = s.consensusClients[clientName].Start(context.Background()); err != nil {
 			return err
-		}
-		if res.ExecutionError != nil {
-			return errors.New(res.ExecutionError.String())
-		}
-		if len(res.ValidationErrors) > 0 {
-			return errors.New(res.ValidationErrors[0].String())
 		}
 	}
 
@@ -203,7 +191,7 @@ func (s *KurtosisE2ESuite) SetupConsensusClients() error {
 // SetupJSONRPCBalancer sets up the load balancer for the test suite.
 //
 // TODO: set up execution clients for all validators and full nodes.
-func (s *KurtosisE2ESuite) SetupJSONRPCBalancer() error {
+func (s *KurtosisE2ESuite) SetupExecutionClients() error {
 	// get the type for EthJSONRPCEndpoint
 	typeRPCEndpoint := s.JSONRPCBalancerType()
 
@@ -399,10 +387,7 @@ func (s *KurtosisE2ESuite) WaitForNBlockNumbers(
 func (s *KurtosisE2ESuite) TearDownSuite() {
 	s.Logger().Info("Destroying enclave...")
 	for _, client := range s.consensusClients {
-		res, err := client.Stop(s.ctx)
-		s.Require().NoError(err, "Error stopping consensus client")
-		s.Require().Nil(res.ExecutionError, "Error stopping consensus client")
-		s.Require().Empty(res.ValidationErrors, "Error stopping consensus client")
+		client.Stop(s.ctx)
 	}
 	s.Require().NoError(s.kCtx.DestroyEnclave(s.ctx, "e2e-test-enclave"))
 }
