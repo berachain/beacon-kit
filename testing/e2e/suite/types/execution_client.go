@@ -55,7 +55,7 @@ func (ec *ExecutionClient) Start(ctx context.Context) error {
 	}
 
 	ec.url = fmt.Sprintf("http://://0.0.0.0:%d", port.GetNumber())
-	ethClient, err := DialWithPooling(ec.url)
+	ethClient, err := DialWithPooling(ctx, ec.url)
 	if err != nil {
 		return err
 	}
@@ -72,7 +72,7 @@ func (ec *ExecutionClient) URL() string {
 // DialWithPooling creates an ethclient with an HTTP transport configured
 // for high connection reuse, avoiding ephemeral port exhaustion under
 // heavy concurrent load.
-func DialWithPooling(url string) (*ethclient.Client, error) {
+func DialWithPooling(ctx context.Context, url string) (*ethclient.Client, error) {
 	const (
 		poolMaxIdleConns    = 256
 		poolIdleTimeoutSecs = 90
@@ -84,9 +84,7 @@ func DialWithPooling(url string) (*ethclient.Client, error) {
 			IdleConnTimeout:     poolIdleTimeoutSecs * time.Second,
 		},
 	}
-	rpcClient, err := rpc.DialOptions(
-		context.Background(), url, rpc.WithHTTPClient(httpClient),
-	)
+	rpcClient, err := rpc.DialOptions(ctx, url, rpc.WithHTTPClient(httpClient))
 	if err != nil {
 		return nil, err
 	}
