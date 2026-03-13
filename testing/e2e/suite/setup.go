@@ -26,6 +26,8 @@ import (
 	"fmt"
 	"math/big"
 	"os/exec"
+	"path/filepath"
+	"runtime"
 	"sync/atomic"
 	"time"
 
@@ -116,8 +118,12 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 		len(s.cfg.NetworkConfiguration.FullNodes.Nodes),
 	)
 
+	_, thisFile, _, ok := runtime.Caller(0)
+	s.Require().True(ok, "could not determine source file path")
+	kurtosisDir := filepath.Join(filepath.Dir(thisFile), "..", "..", "..", "kurtosis")
+
 	result, err := s.enclave.RunStarlarkPackageBlocking(
-		s.ctx, "../../kurtosis",
+		s.ctx, kurtosisDir,
 		starlark_run_config.NewRunStarlarkConfig(
 			starlark_run_config.WithSerializedParams(s.cfg.MustMarshalJSON()),
 		),
