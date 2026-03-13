@@ -64,6 +64,61 @@ func TestBuildNewPayloadRequestFromFork(t *testing.T) {
 	})
 }
 
+// newEnvelopeFromBlock builds a concrete BuiltExecutionPayloadEnv from a beacon block.
+func newEnvelopeFromBlock(t *testing.T, block *types.BeaconBlock) types.BuiltExecutionPayloadEnv {
+	t.Helper()
+	body := block.GetBody()
+	v := block.GetForkVersion()
+
+	var encodedRequests []types.EncodedExecutionRequest
+	if version.EqualsOrIsAfter(v, version.Electra()) {
+		executionRequests, err := body.GetExecutionRequests()
+		require.NoError(t, err)
+		encodedRequests, err = types.GetExecutionRequestsList(executionRequests)
+		require.NoError(t, err)
+	}
+
+	bundle := &engineprimitives.BlobsBundleV1{
+		Commitments: body.GetBlobKzgCommitments(),
+	}
+	return types.NewExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1](
+		body.GetExecutionPayload(),
+		bundle,
+		encodedRequests,
+	)
+}
+
+func TestBuildNewPayloadRequestFromEnvelope(t *testing.T) {
+	t.Parallel()
+
+	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
+		block := utils.GenerateValidBeaconBlock(t, v)
+		envelope := newEnvelopeFromBlock(t, block)
+
+		var parentProposerPubKey *crypto.BLSPubkey
+		if version.EqualsOrIsAfter(v, version.Electra1()) {
+			parentProposerPubKey = &crypto.BLSPubkey{0x01}
+		}
+
+		request, err := types.BuildNewPayloadRequestFromEnvelope(envelope, block.GetParentBlockRoot(), parentProposerPubKey)
+		require.NoError(t, err)
+		require.NotNil(t, request)
+		require.Equal(t, block.GetBody().GetExecutionPayload(), request.GetExecutionPayload())
+		require.Equal(t, block.GetBody().GetBlobKzgCommitments().ToVersionedHashes(), request.GetVersionedHashes())
+		require.Equal(t, block.GetParentBlockRoot(), request.GetParentBeaconBlockRoot())
+
+		if version.EqualsOrIsAfter(v, version.Electra()) {
+			requests, getErr := block.GetBody().GetExecutionRequests()
+			require.NoError(t, getErr)
+			list, getErr := types.GetExecutionRequestsList(requests)
+			require.NoError(t, getErr)
+			executionRequests, getErr := request.GetEncodedExecutionRequests()
+			require.NoError(t, getErr)
+			require.Equal(t, list, executionRequests)
+		}
+	})
+}
+
 func TestBuildForkchoiceUpdateRequest(t *testing.T) {
 	t.Parallel()
 	var (
