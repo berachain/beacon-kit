@@ -49,7 +49,7 @@ Each test suite (`standard/`) defines a struct that embeds `suite.KurtosisE2ESui
 
 ### Enclave = One Suite
 
-Each test suite gets its own Kurtosis enclave. The standard suite uses `DefaultE2ETestConfig()` (5 validators: 3 geth + 2 reth, full nodes, seed nodes).
+Each test suite gets its own Kurtosis enclave. The standard suite uses `DefaultE2ETestConfig()` (5 bera-reth validators. 5 bera-reth full nodes, 1 bera-reth seed node).
 
 ### Build Tags
 
@@ -69,7 +69,7 @@ This directory is git-ignored. Logs from previous runs are overwritten.
 
 - **Docker** running locally
 - **Kurtosis CLI** installed ([instructions](https://docs.kurtosis.com/install)) with the engine started (`kurtosis engine start`)
-- **Go 1.25.7+**
+- **Go 1.25.8+**
 
 ## Running Tests
 
@@ -98,11 +98,11 @@ go test -timeout 0 -tags e2e,bls12381,test ./testing/e2e/standard/. -v -testify.
 
 Network topology is defined in `config/defaults.go`. Key settings:
 
-- **Validators**: 5 nodes (3 geth + 2 reth) by default
-- **Full nodes**: 4 nodes (2 reth + 2 geth)
-- **Seed nodes**: 1 geth node
+- **Validators**: 5 nodes (5 bera-reth) by default
+- **Full nodes**: 5 nodes (5 bera-reth) by default
+- **Seed nodes**: 1 node (1 bera-reth) by default
 - **Chain ID**: 80087 (devnet). To modify the chain spec, see `config/spec/devnet.go`.
-- **EL images**: Configured in `defaultExecutionSettings()` (bera-geth and bera-reth)
+- **EL images**: Configured in `defaultExecutionSettings()` (bera-reth)
 - **CL image**: `beacond:kurtosis-local` (built from local source)
 
 To add a new test suite configuration, create a function in `defaults.go` that returns `*E2ETestConfig` and wire it via a functional option in `suite/options.go`.

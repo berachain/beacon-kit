@@ -54,7 +54,7 @@ func (ec *ExecutionClient) Start(ctx context.Context) error {
 		return ErrPublicPortNotFound
 	}
 
-	ec.url = fmt.Sprintf("http://://0.0.0.0:%d", port.GetNumber())
+	ec.url = fmt.Sprintf("http://0.0.0.0:%d", port.GetNumber())
 	ethClient, err := DialWithPooling(ctx, ec.url)
 	if err != nil {
 		return err

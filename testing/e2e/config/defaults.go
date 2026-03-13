@@ -40,11 +40,11 @@ const (
 const (
 	NumFullNodes = 5
 
-	ClientExecution0 = "el-reth-0"
-	ClientExecution1 = "el-reth-1"
-	ClientExecution2 = "el-reth-2"
-	ClientExecution3 = "el-reth-3"
-	ClientExecution4 = "el-reth-4"
+	ClientExecution0 = "el-full-reth-0"
+	ClientExecution1 = "el-full-reth-1"
+	ClientExecution2 = "el-full-reth-2"
+	ClientExecution3 = "el-full-reth-3"
+	ClientExecution4 = "el-full-reth-4"
 )
 
 // DefaultE2ETestConfig provides a default configuration for end-to-end tests,
