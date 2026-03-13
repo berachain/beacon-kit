@@ -63,8 +63,6 @@ type Service struct {
 	sequencerAvailable atomic.Bool
 	// sequencerMonitorRunning is used to track whether we are currently monitoring sequencer liveness.
 	sequencerMonitorRunning atomic.Bool
-	// sequencerMonitorCancel is the cancel function for the sequencer health monitor context.
-	sequencerMonitorCancel context.CancelFunc
 }
 
 // NewService creates a new validator service.
@@ -110,8 +108,5 @@ func (s *Service) Start(
 }
 
 func (s *Service) Stop() error {
-	if s.sequencerMonitorCancel != nil {
-		s.sequencerMonitorCancel()
-	}
 	return nil
 }
