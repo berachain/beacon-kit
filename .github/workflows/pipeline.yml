@@ -181,7 +181,7 @@ jobs:
           done
           kurtosis engine start
       - name: Pre-pull bera-reth image
-        run: docker pull ghcr.io/berachain/bera-reth:af193b66839313cd75b86da0e371baaeb5e814fd
+        run: docker pull ghcr.io/berachain/bera-reth:2c502ebe978e3c36e8ecb0b4801cb2f620fbfc31
         if: matrix.args == 'test-e2e-preconf'
       - name: Run ${{ matrix.args }}
         run: |

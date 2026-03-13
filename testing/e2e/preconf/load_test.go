@@ -31,6 +31,7 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/errors"
+	beraclient "github.com/berachain/beacon-kit/gethlib/ethclient"
 	"github.com/berachain/beacon-kit/testing/e2e/suite"
 	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -54,7 +55,7 @@ const (
 
 // transferParams groups the parameters for an ETH transfer.
 type transferParams struct {
-	client    *ethclient.Client
+	client    *beraclient.Client
 	sender    *types.EthAccount
 	to        common.Address
 	nonce     uint64
@@ -105,7 +106,7 @@ func (s *PreconfE2ESuite) TestPreconfTransactions() {
 	s.Require().NoError(err, "Should get initial spammer nonce")
 
 	// Pre-compute gas caps once to avoid per-tx RPC calls.
-	gasTipCap, gasFeeCap := s.suggestGasCaps(s.preconfClient)
+	gasTipCap, gasFeeCap := s.suggestGasCaps(s.preconfClient.Client)
 
 	// Start background load on the standard RPC to create mempool pressure.
 	stopSpammer := s.startBackgroundLoad(ctx)
@@ -286,9 +287,11 @@ loop:
 	s.T().Logf("State consistency verified at block %d", maxInclusionBlock)
 
 	// Log eth transaction count per block from genesis to end of test.
+	// Use beraclient wrapper to handle custom Berachain tx types (e.g. PoL).
+	rpcBeraClient := beraclient.Wrap(s.RPCClient().Client)
 	s.T().Log("Eth transactions count in block:")
 	for bn := uint64(0); bn <= maxInclusionBlock; bn++ {
-		block, bErr := s.RPCClient().BlockByNumber(ctx, new(big.Int).SetUint64(bn))
+		block, bErr := rpcBeraClient.BlockByNumber(ctx, new(big.Int).SetUint64(bn))
 		if bErr != nil {
 			s.T().Logf("  block %d: error fetching: %v", bn, bErr)
 			continue
