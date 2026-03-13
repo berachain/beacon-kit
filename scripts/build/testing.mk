@@ -298,7 +298,7 @@ test-unit-fuzz: ## run fuzz tests
 	go test -run ^FuzzPayloadIDCacheConcurrency -fuzztime=${SHORT_FUZZ_TIME} github.com/berachain/beacon-kit/payload/cache
 	go test -run ^FuzzHashTreeRoot -fuzztime=${MEDIUM_FUZZ_TIME} github.com/berachain/beacon-kit/primitives/merkle
 
-test-e2e: ## run all e2e tests (standard + preconf)
+test-e2e: ## run all e2e tests (standard)
 	@$(MAKE) build-docker VERSION=kurtosis-local test-e2e-no-build
 
 test-e2e-no-build:

@@ -41,7 +41,7 @@ import (
 
 // ConsensusClient represents a consensus client.
 type ConsensusClient struct {
-	serviceCtx *services.ServiceContext
+	*services.ServiceContext
 
 	// Comet JSON-RPC client
 	cometClient rpcclient.Client
@@ -56,14 +56,14 @@ type ConsensusClient struct {
 // NewConsensusClient creates a new consensus client.
 func NewConsensusClient(serviceCtx *services.ServiceContext) *ConsensusClient {
 	return &ConsensusClient{
-		serviceCtx: serviceCtx,
+		ServiceContext: serviceCtx,
 	}
 }
 
 // Start starts the consensus client.
 func (cc *ConsensusClient) Start(ctx context.Context) error {
 	// Start by trying to get the public port for the comet JSON-RPC.
-	cometPort, ok := cc.serviceCtx.GetPublicPorts()["cometbft-rpc"]
+	cometPort, ok := cc.GetPublicPorts()["cometbft-rpc"]
 	if !ok {
 		return ErrPublicPortNotFound
 	}
@@ -75,7 +75,7 @@ func (cc *ConsensusClient) Start(ctx context.Context) error {
 	cc.cometClient = client
 
 	// Then try to get the public port for the node API.
-	nodePort, ok := cc.serviceCtx.GetPublicPorts()["node-api"]
+	nodePort, ok := cc.GetPublicPorts()["node-api"]
 	if !ok {
 		panic("Couldn't find the public port for the node API")
 	}

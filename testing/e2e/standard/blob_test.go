@@ -57,13 +57,14 @@ func (s *BeaconKitE2ESuite) Test4844Live() {
 	// Connect the consensus client node-api
 	client0 := s.ConsensusClients()[config.ClientValidator0]
 	s.Require().NotNil(client0)
-	s.Require().NoError(client0.Connect(ctx))
 
 	// Grab values to plug into txs
 	elClient := s.ExecutionClients()[config.ClientExecution0]
 	s.Require().NotNil(elClient)
 	sender := s.TestAccounts()[0]
 	chainID, err := elClient.ChainID(ctx)
+	s.Require().NoError(err)
+	blkNum, err := elClient.BlockNumber(ctx)
 	s.Require().NoError(err)
 	tip, err := elClient.SuggestGasTipCap(ctx)
 	s.Require().NoError(err)

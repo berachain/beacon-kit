@@ -203,8 +203,6 @@ func (s *BeaconKitE2ESuite) TestSubmitPartialWithdrawalTransaction() {
 	privateKey, err := ethcrypto.HexToECDSA("fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306")
 	s.Require().NoError(err)
 
-	elClient := s.ExecutionClients()[config.ClientExecution0]
-	s.Require().NotNil(elClient)
 	chainID, err := elClient.ChainID(ctx)
 	s.Require().NoError(err)
 	signer := gethcore.NewPragueSigner(chainID)
