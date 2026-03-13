@@ -149,6 +149,10 @@ def get_config_backend(
         max_memory = BLOCKSCOUT_MAX_MEMORY,
     )
 
+BLOCKSCOUT_JSONRPC_VARIANT = {
+    "reth": "geth",
+}
+
 def get_el_client_info(ip_addr, rpc_port_num, full_name):
     el_client_rpc_url = "http://{}:{}/".format(
         ip_addr,
@@ -157,5 +161,5 @@ def get_el_client_info(ip_addr, rpc_port_num, full_name):
     el_client_type = full_name.split("-")[2]
     return {
         "RPC_Url": el_client_rpc_url,
-        "Eth_Type": el_client_type,
+        "Eth_Type": BLOCKSCOUT_JSONRPC_VARIANT.get(el_client_type, el_client_type),
     }
