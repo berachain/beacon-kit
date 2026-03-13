@@ -231,6 +231,7 @@ def run(plan, network_configuration = {}, node_settings = {}, additional_service
                 full_node_el_clients,
                 s.client,
                 False,
+                s.verifier_image,
             )
 
     plan.print("Successfully launched development network")

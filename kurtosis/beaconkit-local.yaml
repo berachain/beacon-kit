@@ -75,3 +75,6 @@ additional_services:
   - name: "prometheus"
   - name: "grafana"
   - name: "pyroscope"
+  - name: "blockscout"
+    client: "el-full-reth-0"
+    verifier_image: "blockscout-sc-verifier:v1.10.0"

@@ -40,7 +40,8 @@ def launch_blockscout(
         plan,
         full_node_el_clients,
         client_from_user,
-        persistent):
+        persistent,
+        verifier_image = None):
     postgres_output = postgres.run(
         plan,
         service_name = "{}-postgres".format(SERVICE_NAME_BLOCKSCOUT),
@@ -64,7 +65,7 @@ def launch_blockscout(
             )
             break
 
-    config_verif = get_config_verif()
+    config_verif = get_config_verif(verifier_image)
     verif_service_name = "{}-verif".format(SERVICE_NAME_BLOCKSCOUT)
     verif_service = plan.add_service(verif_service_name, config_verif)
     verif_url = "http://{}:{}/api".format(
@@ -88,9 +89,9 @@ def launch_blockscout(
 
     return blockscout_url
 
-def get_config_verif():
+def get_config_verif(verifier_image = None):
     return ServiceConfig(
-        image = IMAGE_NAME_BLOCKSCOUT_VERIF,
+        image = verifier_image or IMAGE_NAME_BLOCKSCOUT_VERIF,
         ports = VERIF_USED_PORTS,
         env_vars = {
             "SMART_CONTRACT_VERIFIER__SERVER__HTTP__ADDR": "0.0.0.0:{}".format(
