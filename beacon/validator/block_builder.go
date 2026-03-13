@@ -478,17 +478,20 @@ func (s *Service) fetchFromSequencer(
 			// Store cancel function to stop the monitor on service shutdown.
 			monitorCtx, cancel := context.WithCancel(context.Background())
 			s.sequencerMonitorCancel = cancel
-			go s.monitorSequencerHealth(monitorCtx)
+			go s.monitorSequencerHealth(monitorCtx, cancel)
 		}
 	}
 	return envelope, err
 }
 
 // monitorSequencerHealth continuously probes the sequencer until it becomes healthy again.
-func (s *Service) monitorSequencerHealth(ctx context.Context) {
+func (s *Service) monitorSequencerHealth(ctx context.Context, cancel context.CancelFunc) {
 	start := time.Now()
-	defer s.sequencerMonitorRunning.Store(false)
 	ticker := time.NewTicker(s.preconfCfg.HealthCheckInterval)
+	// Cancel context on exit (otherwise still referenced by s.sequencerMonitorCancel)
+	// Avoid `s.sequencerMonitorCancel = nil` to prevent data race on shutdown
+	defer cancel()
+	defer s.sequencerMonitorRunning.Store(false)
 	defer ticker.Stop()
 	for {
 		select {
