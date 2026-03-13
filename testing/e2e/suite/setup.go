@@ -52,6 +52,8 @@ func (s *KurtosisE2ESuite) SetupSuite() {
 }
 
 // SetupSuiteWithOptions sets up the test suite with the provided options.
+//
+//nolint:funlen // setup suite has many responsibilities...
 func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	var (
 		key0, key1, key2 *ecdsa.PrivateKey
