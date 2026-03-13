@@ -475,7 +475,7 @@ func (s *Service) fetchFromSequencer(
 		if s.sequencerMonitorRunning.CompareAndSwap(false, true) {
 			s.logger.Info("Detected sequencer offline, starting health monitor")
 			s.sequencerAvailable.Store(false)
-			go s.monitorSequencerHealth(context.WithoutCancel(ctx))
+			go s.monitorSequencerHealth(ctx)
 		}
 	}
 	return envelope, err
@@ -490,6 +490,7 @@ func (s *Service) monitorSequencerHealth(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
+			// ctx tracks down to s.ctx - will be cancelled at shutdown
 			return
 		case <-ticker.C:
 			s.logger.Info("Sequencer offline", "duration", time.Since(start))
