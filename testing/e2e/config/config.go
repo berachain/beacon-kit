@@ -106,8 +106,6 @@ type ConsensusConfig struct {
 	TimeoutPrevote string `json:"timeout_prevote"`
 	// TimeoutPrecommit specifies the timeout for precommiting on a block.
 	TimeoutPrecommit string `json:"timeout_precommit"`
-	// TimeoutCommit specifies the timeout for committing a block.
-	TimeoutCommit string `json:"timeout_commit"`
 	// MaxNumInboundPeers specifies the maximum number of inbound peers.
 	MaxNumInboundPeers int `json:"max_num_inbound_peers"`
 	// MaxNumOutboundPeers specifies the maximum number of outbound peers.

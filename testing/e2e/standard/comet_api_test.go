@@ -33,7 +33,6 @@ import (
 	sdkcollections "cosmossdk.io/collections"
 	"github.com/berachain/beacon-kit/storage/beacondb/keys"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
-	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
 	rpcclient "github.com/cometbft/cometbft/rpc/client"
 	ics23 "github.com/cosmos/ics23/go"
 )
@@ -43,34 +42,32 @@ func (s *BeaconKitE2ESuite) TestABCIInfo() {
 	// Wait for execution block 5 to ensure nodes have progressed.
 	s.Require().NoError(s.WaitForFinalizedBlockNumber(5))
 
-	// Get all consensus clients.
-	clients := s.ConsensusClients()
-	s.Require().NotEmpty(clients, "No consensus clients found")
-
 	// Retrieve heights from all nodes in parallel.
 	var (
 		wg         sync.WaitGroup
 		heightsMap sync.Map
 		errorsMap  sync.Map
 	)
-	for name, client := range clients {
+	for i := range config.NumValidators {
 		wg.Add(1)
-		go func(name string, client *types.ConsensusClient) {
+		go func(i int) {
 			defer wg.Done()
+			client, name := s.ConsensusClients(i), config.ValidatorConsensusClientName(i)
+			s.Require().NotNil(client)
 			abciInfo, err := client.ABCIInfo(s.Ctx())
 			if err != nil {
 				errorsMap.Store(name, err)
 				return
 			}
 			heightsMap.Store(name, abciInfo.LastBlockHeight)
-		}(name, client)
+		}(i)
 	}
 
 	// Also retrieve height from the EL client.
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		elClient := s.ExecutionClients()[config.ClientExecution0]
+		elClient := s.ExecutionClients(0)
 		s.Require().NotNil(elClient)
 		elHeight, err := elClient.BlockNumber(s.Ctx())
 		s.Require().NoError(err)
@@ -120,15 +117,15 @@ func (s *BeaconKitE2ESuite) TestABCIQuery() {
 	// Wait for execution block 5 to ensure nodes have progressed.
 	s.Require().NoError(s.WaitForFinalizedBlockNumber(5))
 
-	// Get all consensus clients.
-	clients := s.ConsensusClients()
-	s.Require().NotEmpty(clients, "No consensus clients found")
+	// Get the full node consensus client.
+	client := s.ConsensusClients(2)
+	s.Require().NotNil(client)
 
 	// membership
 
 	// Get ABCI query with proof of the fork data from a node.
 	key := sdkcollections.NewPrefix([]byte{keys.ForkPrefix})
-	abciQuery, err := clients[config.ClientValidator2].ABCIQuery(
+	abciQuery, err := client.ABCIQuery(
 		s.Ctx(),
 		"store/beacon/key",
 		key,
@@ -142,7 +139,7 @@ func (s *BeaconKitE2ESuite) TestABCIQuery() {
 	s.Require().Equal(abciQuery.Height, int64(5))
 
 	block := int64(6)
-	commit, err := clients[config.ClientValidator2].Commit(s.Ctx(), &block)
+	commit, err := client.Commit(s.Ctx(), &block)
 	if err != nil {
 		panic(err)
 	}
@@ -168,7 +165,7 @@ func (s *BeaconKitE2ESuite) TestABCIQuery() {
 
 	// Get ABCI query with proof of the fork data from a node.
 	key = []byte("oogabooga")
-	abciQuery, err = clients[config.ClientValidator2].ABCIQuery(
+	abciQuery, err = client.ABCIQuery(
 		s.Ctx(),
 		"store/beacon/key",
 		key,
@@ -182,7 +179,7 @@ func (s *BeaconKitE2ESuite) TestABCIQuery() {
 	s.Require().Equal(abciQuery.Height, int64(5))
 
 	block = int64(6)
-	commit, err = clients[config.ClientValidator2].Commit(s.Ctx(), &block)
+	commit, err = client.Commit(s.Ctx(), &block)
 	if err != nil {
 		panic(err)
 	}
@@ -294,10 +291,10 @@ func (s *BeaconKitE2ESuite) TestCometBFTSignedHeaderMatchesCommit() {
 	s.Require().True(ok)
 
 	// Get the same data via CometBFT RPC Commit.
-	clients := s.ConsensusClients()
-	s.Require().NotEmpty(clients)
+	client := s.ConsensusClients(0)
+	s.Require().NotNil(client)
 	height := int64(5)
-	commit, err := clients[config.ClientValidator0].Commit(s.Ctx(), &height)
+	commit, err := client.Commit(s.Ctx(), &height)
 	s.Require().NoError(err)
 	s.Require().NotNil(commit)
 

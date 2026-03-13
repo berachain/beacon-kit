@@ -80,7 +80,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	)
 
 	// Get the execution client.
-	elClient := s.ExecutionClients()[config.ClientExecution0]
+	elClient := s.ExecutionClients(0)
 	s.Require().NotNil(elClient)
 
 	// Get the chain ID.
@@ -110,7 +110,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	s.Require().NoError(err)
 	s.Require().False(genesisRoot == [32]byte{})
 
-	apiClient := s.ConsensusClients()[config.ClientValidator0]
+	apiClient := s.ConsensusClients(0)
 	s.Require().NotNil(apiClient)
 
 	// Grab genesis validators to get withdrawal creds.
@@ -124,12 +124,13 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 
 	vals := response.Data
 	s.Require().Len(vals, config.NumValidators)
-	s.Require().Len(s.ConsensusClients(), config.NumValidators)
 
 	// Grab pre-state data for each validator.
 	validators := make([]*ValidatorTestStruct, config.NumValidators)
 	var idx uint64
-	for name, client := range s.ConsensusClients() {
+	for i := range config.NumValidators {
+		client, name := s.ConsensusClients(i), config.ValidatorConsensusClientName(i)
+		s.Require().NotNil(client)
 		power, cErr := client.GetConsensusPower(s.Ctx())
 		s.Require().NoError(cErr)
 

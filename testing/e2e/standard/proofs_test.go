@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/merkle"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
@@ -44,7 +43,7 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 	sender := s.TestAccounts()[0]
 
 	// Get the execution client.
-	elClient := s.ExecutionClients()[config.ClientExecution0]
+	elClient := s.ExecutionClients(0)
 	s.Require().NotNil(elClient)
 
 	// Get the chain ID.
@@ -71,7 +70,7 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 	s.Require().NoError(err)
 
 	// Get the block proposer proof for the parent block number.
-	blockProposerResp, err := s.ConsensusClients()[config.ClientValidator0].BlockProposerProof(
+	blockProposerResp, err := s.ConsensusClients(0).BlockProposerProof(
 		s.Ctx(), strconv.FormatUint(blockNumber-1, 10),
 	)
 	s.Require().NoError(err)
@@ -86,7 +85,7 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 	s.Require().NotNil(nextHeader)
 
 	// Get the block proposer proof for the next timestamp and enforce equality.
-	blockProposerResp2, err := s.ConsensusClients()[config.ClientValidator0].BlockProposerProof(
+	blockProposerResp2, err := s.ConsensusClients(0).BlockProposerProof(
 		s.Ctx(), "t"+strconv.FormatUint(nextHeader.Time, 10),
 	)
 	s.Require().NoError(err)
@@ -192,7 +191,7 @@ func (s *BeaconKitE2ESuite) TestValidatorBalanceProof() {
 	sender := s.TestAccounts()[0]
 
 	// Get the execution client.
-	elClient := s.ExecutionClients()[config.ClientExecution0]
+	elClient := s.ExecutionClients(0)
 	s.Require().NotNil(elClient)
 
 	// Get the chain ID.
@@ -220,7 +219,7 @@ func (s *BeaconKitE2ESuite) TestValidatorBalanceProof() {
 
 	// Get the validator balance proof for validator 0 at the parent block number.
 	validatorIndex := uint64(0)
-	balanceResp, err := s.ConsensusClients()[config.ClientValidator0].ValidatorBalanceProof(
+	balanceResp, err := s.ConsensusClients(0).ValidatorBalanceProof(
 		s.Ctx(), strconv.FormatUint(blockNumber-1, 10), strconv.FormatUint(validatorIndex, 10),
 	)
 	s.Require().NoError(err)
@@ -235,7 +234,7 @@ func (s *BeaconKitE2ESuite) TestValidatorBalanceProof() {
 	s.Require().NotNil(nextHeader)
 
 	// Get the block proposer proof for the next timestamp and enforce equality.
-	balanceResp2, err := s.ConsensusClients()[config.ClientValidator0].ValidatorBalanceProof(
+	balanceResp2, err := s.ConsensusClients(0).ValidatorBalanceProof(
 		s.Ctx(), "t"+strconv.FormatUint(nextHeader.Time, 10), strconv.FormatUint(validatorIndex, 10),
 	)
 	s.Require().NoError(err)
@@ -301,7 +300,7 @@ func (s *BeaconKitE2ESuite) TestValidatorCredentialsProof() {
 	sender := s.TestAccounts()[0]
 
 	// Get the execution client.
-	elClient := s.ExecutionClients()[config.ClientExecution0]
+	elClient := s.ExecutionClients(0)
 	s.Require().NotNil(elClient)
 
 	// Get the chain ID.
@@ -329,7 +328,7 @@ func (s *BeaconKitE2ESuite) TestValidatorCredentialsProof() {
 
 	// Get the validator credentials proof for validator 0 at the parent block number.
 	validatorIndex := uint64(0)
-	credsResp, err := s.ConsensusClients()[config.ClientValidator0].ValidatorCredentialsProof(
+	credsResp, err := s.ConsensusClients(0).ValidatorCredentialsProof(
 		s.Ctx(), strconv.FormatUint(blockNumber-1, 10), strconv.FormatUint(validatorIndex, 10),
 	)
 	s.Require().NoError(err)
@@ -344,7 +343,7 @@ func (s *BeaconKitE2ESuite) TestValidatorCredentialsProof() {
 	s.Require().NotNil(nextHeader)
 
 	// Get the block proposer proof for the next timestamp and enforce equality.
-	credsResp1, err := s.ConsensusClients()[config.ClientValidator0].ValidatorCredentialsProof(
+	credsResp1, err := s.ConsensusClients(0).ValidatorCredentialsProof(
 		s.Ctx(), "t"+strconv.FormatUint(nextHeader.Time, 10), strconv.FormatUint(validatorIndex, 10),
 	)
 	s.Require().NoError(err)
@@ -400,7 +399,7 @@ func (s *BeaconKitE2ESuite) TestValidatorCredentialsProof() {
 
 	// Test with a different validator index
 	validatorIndex2 := uint64(1)
-	credsResp2, err := s.ConsensusClients()[config.ClientValidator0].ValidatorCredentialsProof(
+	credsResp2, err := s.ConsensusClients(0).ValidatorCredentialsProof(
 		s.Ctx(), strconv.FormatUint(blockNumber-1, 10), strconv.FormatUint(validatorIndex2, 10),
 	)
 	s.Require().NoError(err)
@@ -433,7 +432,7 @@ func (s *BeaconKitE2ESuite) TestValidatorPubkeyProof() {
 	sender := s.TestAccounts()[0]
 
 	// Get the execution client.
-	elClient := s.ExecutionClients()[config.ClientExecution0]
+	elClient := s.ExecutionClients(0)
 	s.Require().NotNil(elClient)
 
 	// Get the chain ID.
@@ -461,7 +460,7 @@ func (s *BeaconKitE2ESuite) TestValidatorPubkeyProof() {
 
 	// Get the validator pubkey proof for validator 0 at the parent block number.
 	validatorIndex := uint64(0)
-	pubkeyResp, err := s.ConsensusClients()[config.ClientValidator0].ValidatorPubkeyProof(
+	pubkeyResp, err := s.ConsensusClients(0).ValidatorPubkeyProof(
 		s.Ctx(), strconv.FormatUint(blockNumber-1, 10), strconv.FormatUint(validatorIndex, 10),
 	)
 	s.Require().NoError(err)
@@ -476,7 +475,7 @@ func (s *BeaconKitE2ESuite) TestValidatorPubkeyProof() {
 	s.Require().NotNil(nextHeader)
 
 	// Get the pubkey proof for the next timestamp and enforce equality.
-	pubkeyResp2, err := s.ConsensusClients()[config.ClientValidator0].ValidatorPubkeyProof(
+	pubkeyResp2, err := s.ConsensusClients(0).ValidatorPubkeyProof(
 		s.Ctx(), "t"+strconv.FormatUint(nextHeader.Time, 10), strconv.FormatUint(validatorIndex, 10),
 	)
 	s.Require().NoError(err)
@@ -528,7 +527,7 @@ func (s *BeaconKitE2ESuite) TestValidatorPubkeyProof() {
 
 	// Test with a different validator index
 	validatorIndex2 := uint64(1)
-	pubkeyResp3, err := s.ConsensusClients()[config.ClientValidator0].ValidatorPubkeyProof(
+	pubkeyResp3, err := s.ConsensusClients(0).ValidatorPubkeyProof(
 		s.Ctx(), strconv.FormatUint(blockNumber-1, 10), strconv.FormatUint(validatorIndex2, 10),
 	)
 	s.Require().NoError(err)

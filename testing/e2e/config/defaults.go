@@ -21,31 +21,27 @@
 package config
 
 import (
+	"fmt"
+
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/payload/builder"
 )
 
-// Consensus clients.
 const (
+	NumFullNodes  = 5
 	NumValidators = 5
 
-	ClientValidator0 = "cl-validator-beaconkit-0"
-	ClientValidator1 = "cl-validator-beaconkit-1"
-	ClientValidator2 = "cl-validator-beaconkit-2"
-	ClientValidator3 = "cl-validator-beaconkit-3"
-	ClientValidator4 = "cl-validator-beaconkit-4"
+	consensusClientFmt = "cl-validator-beaconkit-%d"
+	executionClientFmt = "el-full-reth-%d"
 )
 
-// Execution clients.
-const (
-	NumFullNodes = 5
+func ValidatorConsensusClientName(i int) string {
+	return fmt.Sprintf(consensusClientFmt, i)
+}
 
-	ClientExecution0 = "el-full-reth-0"
-	ClientExecution1 = "el-full-reth-1"
-	ClientExecution2 = "el-full-reth-2"
-	ClientExecution3 = "el-full-reth-3"
-	ClientExecution4 = "el-full-reth-4"
-)
+func FullNodeExecutionClientName(i int) string {
+	return fmt.Sprintf(executionClientFmt, i)
+}
 
 // DefaultE2ETestConfig provides a default configuration for end-to-end tests,
 // pre-populating with a standard set of validators and no additional
@@ -149,7 +145,6 @@ func defaultConsensusSettings() ConsensusSettings {
 			TimeoutPrevote:   consensus.TimeoutPrevote.String(),
 			TimeoutPrecommit: consensus.TimeoutPrecommit.String(),
 
-			TimeoutCommit:       consensus.TimeoutCommit.String(),
 			MaxNumInboundPeers:  p2p.MaxNumInboundPeers,
 			MaxNumOutboundPeers: p2p.MaxNumOutboundPeers,
 		},

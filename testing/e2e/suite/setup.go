@@ -40,7 +40,6 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/services"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/starlark_run_config"
 	"github.com/kurtosis-tech/kurtosis/api/golang/engine/lib/kurtosis_context"
 	"github.com/sourcegraph/conc/iter"
@@ -162,27 +161,9 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 // TODO: set up consensus clients for full nodes as well.
 func (s *KurtosisE2ESuite) SetupConsensusClients(ctx context.Context) error {
 	s.consensusClients = make(map[string]*types.ConsensusClient, config.NumValidators)
-
-	var (
-		sCtx *services.ServiceContext
-		err  error
-	)
 	for i := range config.NumValidators {
-		var clientName string
-		//nolint:mnd // its okay.
-		switch i % config.NumValidators {
-		case 0:
-			clientName = config.ClientValidator0
-		case 1:
-			clientName = config.ClientValidator1
-		case 2:
-			clientName = config.ClientValidator2
-		case 3:
-			clientName = config.ClientValidator3
-		case 4:
-			clientName = config.ClientValidator4
-		}
-		sCtx, err = s.Enclave().GetServiceContext(clientName)
+		clientName := config.ValidatorConsensusClientName(i)
+		sCtx, err := s.Enclave().GetServiceContext(clientName)
 		if err != nil {
 			return err
 		}
@@ -196,32 +177,14 @@ func (s *KurtosisE2ESuite) SetupConsensusClients(ctx context.Context) error {
 	return nil
 }
 
-// SetupJSONRPCBalancer sets up the load balancer for the test suite.
+// SetupExecutionClients sets up the execution clients for the full nodes.
 //
 // TODO: set up execution clients for validators as well.
 func (s *KurtosisE2ESuite) SetupExecutionClients(ctx context.Context) error {
 	s.executionClients = make(map[string]*types.ExecutionClient, config.NumFullNodes)
-
-	var (
-		sCtx *services.ServiceContext
-		err  error
-	)
 	for i := range config.NumFullNodes {
-		var clientName string
-		//nolint:mnd // its okay.
-		switch i % config.NumFullNodes {
-		case 0:
-			clientName = config.ClientExecution0
-		case 1:
-			clientName = config.ClientExecution1
-		case 2:
-			clientName = config.ClientExecution2
-		case 3:
-			clientName = config.ClientExecution3
-		case 4:
-			clientName = config.ClientExecution4
-		}
-		sCtx, err = s.Enclave().GetServiceContext(clientName)
+		clientName := config.FullNodeExecutionClientName(i)
+		sCtx, err := s.Enclave().GetServiceContext(clientName)
 		if err != nil {
 			return err
 		}
@@ -241,7 +204,7 @@ func (s *KurtosisE2ESuite) SetupExecutionClients(ctx context.Context) error {
 func (s *KurtosisE2ESuite) FundAccounts() {
 	ctx := context.Background()
 	nonce := atomic.Uint64{}
-	elClient := s.ExecutionClients()[config.ClientExecution0]
+	elClient := s.ExecutionClients(0)
 	s.Require().NotNil(elClient)
 	pendingNonce, err := elClient.PendingNonceAt(
 		ctx, s.genesisAccount.Address())
@@ -353,7 +316,7 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(target uint64) error {
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 
-	elClient := s.ExecutionClients()[config.ClientExecution0]
+	elClient := s.ExecutionClients(0)
 	s.Require().NotNil(elClient)
 	finalBlockNum, err := elClient.BlockNumber(cctx)
 	if err != nil {
@@ -402,7 +365,7 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(target uint64) error {
 // WaitForNBlockNumbers waits for a specified amount of blocks into the future
 // from now.
 func (s *KurtosisE2ESuite) WaitForNBlockNumbers(n uint64) error {
-	elClient := s.ExecutionClients()[config.ClientExecution0]
+	elClient := s.ExecutionClients(0)
 	s.Require().NotNil(elClient)
 	current, err := elClient.BlockNumber(s.ctx)
 	if err != nil {
@@ -426,7 +389,7 @@ func (s *KurtosisE2ESuite) CheckForSuccessfulTx(tx common.Hash) bool {
 	ctx, cancel := context.WithTimeout(s.Ctx(), DefaultE2ETestTimeout)
 	defer cancel()
 
-	elClient := s.ExecutionClients()[config.ClientExecution0]
+	elClient := s.ExecutionClients(0)
 	s.Require().NotNil(elClient)
 	receipt, err := elClient.TransactionReceipt(ctx, tx)
 	if err != nil {

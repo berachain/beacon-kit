@@ -88,7 +88,7 @@ func (s *BeaconKitE2ESuite) initBeaconTest() *types.ConsensusClient {
 	s.Require().NoError(err)
 
 	// Get the consensus client.
-	client := s.ConsensusClients()[config.ClientValidator0]
+	client := s.ConsensusClients(0)
 	s.Require().NotNil(client)
 
 	return client

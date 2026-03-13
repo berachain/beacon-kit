@@ -58,9 +58,9 @@ func (s *KurtosisE2ESuite) Config() *config.E2ETestConfig {
 	return s.cfg
 }
 
-// ConsensusClients returns the consensus clients associated with the KurtosisE2ESuite.
-func (s *KurtosisE2ESuite) ConsensusClients() map[string]*types.ConsensusClient {
-	return s.consensusClients
+// ConsensusClients returns the consensus client for the given validator number.
+func (s *KurtosisE2ESuite) ConsensusClients(numValidator int) *types.ConsensusClient {
+	return s.consensusClients[config.ValidatorConsensusClientName(numValidator)]
 }
 
 // Ctx returns the context associated with the KurtosisE2ESuite.
@@ -75,9 +75,9 @@ func (s *KurtosisE2ESuite) Enclave() *enclaves.EnclaveContext {
 	return s.enclave
 }
 
-// ExecutionClients returns the execution clients associated with the KurtosisE2ESuite.
-func (s *KurtosisE2ESuite) ExecutionClients() map[string]*types.ExecutionClient {
-	return s.executionClients
+// ExecutionClients returns the execution client for the given full node number.
+func (s *KurtosisE2ESuite) ExecutionClients(numFullNode int) *types.ExecutionClient {
+	return s.executionClients[config.FullNodeExecutionClientName(numFullNode)]
 }
 
 // GenesisAccount returns the genesis account for the test suite.

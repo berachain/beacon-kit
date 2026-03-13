@@ -14,7 +14,6 @@ CONSENSUS_DEFAULT_SETTINGS = {
         "timeout_propose": "3s",
         "timeout_prevote": "1s",
         "timeout_precommit": "1s",
-        "timeout_commit": "1s",
         "max_num_inbound_peers": 40,
         "max_num_outbound_peers": 10,
     },
@@ -107,8 +106,6 @@ def parse_consensus_config_settings(config_settings):
         config_settings["timeout_prevote"] = CONSENSUS_DEFAULT_SETTINGS["config"]["timeout_prevote"]
     if "timeout_precommit" not in config_settings:
         config_settings["timeout_precommit"] = CONSENSUS_DEFAULT_SETTINGS["config"]["timeout_precommit"]
-    if "timeout_commit" not in config_settings:
-        config_settings["timeout_commit"] = CONSENSUS_DEFAULT_SETTINGS["config"]["timeout_commit"]
     if "max_num_inbound_peers" not in config_settings:
         config_settings["max_num_inbound_peers"] = CONSENSUS_DEFAULT_SETTINGS["config"]["max_num_inbound_peers"]
     if "max_num_outbound_peers" not in config_settings:
@@ -118,7 +115,6 @@ def parse_consensus_config_settings(config_settings):
         timeout_propose = config_settings["timeout_propose"],
         timeout_prevote = config_settings["timeout_prevote"],
         timeout_precommit = config_settings["timeout_precommit"],
-        timeout_commit = config_settings["timeout_commit"],
         max_num_inbound_peers = config_settings["max_num_inbound_peers"],
         max_num_outbound_peers = config_settings["max_num_outbound_peers"],
     )

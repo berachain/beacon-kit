@@ -59,7 +59,6 @@ node_settings:
       timeout_propose: 2s
       timeout_prevote: 2s
       timeout_precommit: 2s
-      timeout_commit: 500ms
       max_num_inbound_peers: 40
       max_num_outbound_peers: 10
     app:

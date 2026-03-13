@@ -31,7 +31,6 @@ import (
 
 	"github.com/attestantio/go-eth2-client/api"
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
-	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/berachain/beacon-kit/testing/e2e/suite"
 	"github.com/berachain/beacon-kit/testing/e2e/suite/types/tx"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -55,11 +54,11 @@ func (s *BeaconKitE2ESuite) Test4844Live() {
 	defer cancel()
 
 	// Connect the consensus client node-api
-	client0 := s.ConsensusClients()[config.ClientValidator0]
+	client0 := s.ConsensusClients(0)
 	s.Require().NotNil(client0)
 
 	// Grab values to plug into txs
-	elClient := s.ExecutionClients()[config.ClientExecution0]
+	elClient := s.ExecutionClients(0)
 	s.Require().NotNil(elClient)
 	sender := s.TestAccounts()[0]
 	chainID, err := elClient.ChainID(ctx)

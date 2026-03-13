@@ -38,7 +38,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	beaconmath "github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
-	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/berachain/beacon-kit/testing/e2e/suite"
 	e2etypes "github.com/berachain/beacon-kit/testing/e2e/suite/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -173,7 +172,7 @@ func (s *BeaconKitE2ESuite) TestSubmitPartialWithdrawalTransaction() {
 	withdrawalAmount := beaconmath.Gwei(DefaultWithdrawalAmount)
 
 	// Create an rpc client using the EL client URL
-	elClient := s.ExecutionClients()[config.ClientExecution0]
+	elClient := s.ExecutionClients(0)
 	s.Require().NotNil(elClient)
 	rpcClient, err := rpc.Dial(elClient.URL())
 	s.Require().NoError(err)

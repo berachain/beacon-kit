@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/testing/e2e/config"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/params"
 )
@@ -41,7 +40,7 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 	chainspec, err := spec.DevnetChainSpec()
 	s.Require().NoError(err)
 
-	elClient := s.ExecutionClients()[config.ClientExecution0]
+	elClient := s.ExecutionClients(0)
 	s.Require().NotNil(elClient)
 
 	var (

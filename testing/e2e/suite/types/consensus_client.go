@@ -77,7 +77,7 @@ func (cc *ConsensusClient) Start(ctx context.Context) error {
 	// Then try to get the public port for the node API.
 	nodePort, ok := cc.GetPublicPorts()["node-api"]
 	if !ok {
-		panic("Couldn't find the public port for the node API")
+		return ErrPublicPortNotFound
 	}
 	cancelCtx, cancel := context.WithCancel(ctx)
 
