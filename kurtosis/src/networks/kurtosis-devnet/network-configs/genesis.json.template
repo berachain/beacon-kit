@@ -20,6 +20,7 @@
     "shanghaiTime": 0,
     "cancunTime": 0,
     "pragueTime": 0,
+    "depositContractAddress": "0x4242424242424242424242424242424242424242",
     "terminalTotalDifficulty": 0,
     "terminalTotalDifficultyPassed": true,
     "ethash": {},
@@ -35,6 +36,7 @@
         "baseFeeUpdateFraction": 3338477
       }
     },
+    "depositContractAddress": "0x4242424242424242424242424242424242424242",
     "berachain": {
       "prague1": {
         "time": 0,

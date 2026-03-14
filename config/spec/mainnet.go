@@ -87,6 +87,9 @@ const (
 	// mainnetElectra1ForkTime is the timestamp at which the Electra1 fork occurs.
 	mainnetElectra1ForkTime = 1_756_915_200
 
+	// mainnetElectra2ForkTime is the timestamp at which the Electra2 fork occurs.
+	mainnetElectra2ForkTime = 9_999_999_999
+
 	// mainnetEVMInflationAddressDeneb1 is the address on the EVM which will receive the
 	// inflation amount of native EVM balance through a withdrawal every block in the Deneb1 fork.
 	mainnetEVMInflationAddressDeneb1 = "0x656b95E550C07a9ffe548bd4085c72418Ceb1dba"
@@ -144,6 +147,7 @@ func MainnetChainSpecData() *chain.SpecData {
 		Deneb1ForkTime:   mainnetDeneb1ForkTime,
 		ElectraForkTime:  mainnetElectraForkTime,
 		Electra1ForkTime: mainnetElectra1ForkTime,
+		Electra2ForkTime: mainnetElectra2ForkTime,
 
 		// State list length constants.
 		EpochsPerHistoricalVector: defaultEpochsPerHistoricalVector,

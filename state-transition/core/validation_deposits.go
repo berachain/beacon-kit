@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/storage/deposit"
 )
 
+// NOTE: only used at genesis.
 func validateGenesisDeposits(
 	st *statedb.StateDB, deposits []*ctypes.Deposit, validatorSetCap uint64,
 ) error {
@@ -70,7 +71,10 @@ func validateGenesisDeposits(
 	return nil
 }
 
-func ValidateNonGenesisDeposits(
+// ValidateNonGenesisDepositsPreElectra2 validates deposits before Electra2.
+// After Electra2, deposits are managed by EIP-6110 style deposit requests
+// and this validation is no longer needed.
+func ValidateNonGenesisDepositsPreElectra2(
 	ctx context.Context,
 	st *statedb.StateDB,
 	depositStore deposit.StoreManager,
