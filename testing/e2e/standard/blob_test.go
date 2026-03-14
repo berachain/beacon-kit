@@ -13,12 +13,14 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package e2e_test
+//go:build e2e
+
+package standard_test
 
 import (
 	"bytes"
@@ -29,7 +31,6 @@ import (
 
 	"github.com/attestantio/go-eth2-client/api"
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
-	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/berachain/beacon-kit/testing/e2e/suite"
 	"github.com/berachain/beacon-kit/testing/e2e/suite/types/tx"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -53,23 +54,22 @@ func (s *BeaconKitE2ESuite) Test4844Live() {
 	defer cancel()
 
 	// Connect the consensus client node-api
-	client0 := s.ConsensusClients()[config.ClientValidator0]
+	client0 := s.ConsensusClients(0)
 	s.Require().NotNil(client0)
-	s.Require().NoError(client0.Connect(ctx))
 
 	// Grab values to plug into txs
+	elClient := s.ExecutionClients(0)
+	s.Require().NotNil(elClient)
 	sender := s.TestAccounts()[0]
-	chainID, err := s.JSONRPCBalancer().ChainID(ctx)
+	chainID, err := elClient.ChainID(ctx)
 	s.Require().NoError(err)
-	tip, err := s.JSONRPCBalancer().SuggestGasTipCap(ctx)
+	blkNum, err := elClient.BlockNumber(ctx)
 	s.Require().NoError(err)
-	gasFee, err := s.JSONRPCBalancer().SuggestGasPrice(ctx)
+	tip, err := elClient.SuggestGasTipCap(ctx)
 	s.Require().NoError(err)
-	blkNum, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
+	gasFee, err := elClient.SuggestGasPrice(ctx)
 	s.Require().NoError(err)
-	nonce, err := s.JSONRPCBalancer().NonceAt(
-		s.Ctx(), sender.Address(), new(big.Int).SetUint64(blkNum),
-	)
+	nonce, err := elClient.NonceAt(ctx, sender.Address(), new(big.Int).SetUint64(blkNum))
 	s.Require().NoError(err)
 
 	// Craft and send each blob-carrying transaction.
@@ -99,7 +99,7 @@ func (s *BeaconKitE2ESuite) Test4844Live() {
 		s.Logger().Info("submitting blob transaction", "blobTx", blobTx.Hash().Hex())
 		blobTxs = append(blobTxs, blobTx)
 
-		err = s.JSONRPCBalancer().SendTransaction(ctx, blobTx)
+		err = elClient.SendTransaction(ctx, blobTx)
 		// TODO: Figure out what is causing this to happen.
 		// Also, `errors.Is(err, txpool.ErrAlreadyKnown)` doesn't catch it.
 		if err != nil && err.Error() == txpool.ErrAlreadyKnown.Error() {
@@ -119,7 +119,7 @@ func (s *BeaconKitE2ESuite) Test4844Live() {
 			// Wait for the blob transaction to be mined before making request.
 			s.Logger().
 				Info("waiting for blob transaction to be mined", "blobTx", blobTx.Hash().Hex())
-			receipt, errWait := bind.WaitMined(ctx, s.JSONRPCBalancer(), blobTx)
+			receipt, errWait := bind.WaitMined(ctx, elClient, blobTx)
 			s.Require().NoError(errWait)
 			s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
 

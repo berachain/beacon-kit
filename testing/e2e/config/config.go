@@ -32,8 +32,6 @@ type E2ETestConfig struct {
 	NetworkConfiguration NetworkConfiguration `json:"network_configuration"`
 	// NodeSettings specifies the configuration for the nodes in the test.
 	NodeSettings NodeSettings `json:"node_settings"`
-	// EthJSONRPCEndpoints specifies the RPC endpoints to include in the test.
-	EthJSONRPCEndpoints []EthJSONRPCEndpoint `json:"eth_json_rpc_endpoints"`
 	// AdditionalServices specifies any extra services that should be included
 	// in the test environment.
 	AdditionalServices []AdditionalService `json:"additional_services"`
@@ -46,11 +44,6 @@ type NetworkConfiguration struct {
 	FullNodes NodeSet `json:"full_nodes"`
 	// SeedNodes specifies the number of seed nodes to include in the test.
 	SeedNodes NodeSet `json:"seed_nodes"`
-}
-
-type EthJSONRPCEndpoint struct {
-	Type    string   `json:"type"`
-	Clients []string `json:"clients"`
 }
 
 // NodeSet holds nodes that have a distinct role in the network.
@@ -113,8 +106,6 @@ type ConsensusConfig struct {
 	TimeoutPrevote string `json:"timeout_prevote"`
 	// TimeoutPrecommit specifies the timeout for precommiting on a block.
 	TimeoutPrecommit string `json:"timeout_precommit"`
-	// TimeoutCommit specifies the timeout for committing a block.
-	TimeoutCommit string `json:"timeout_commit"`
 	// MaxNumInboundPeers specifies the maximum number of inbound peers.
 	MaxNumInboundPeers int `json:"max_num_inbound_peers"`
 	// MaxNumOutboundPeers specifies the maximum number of outbound peers.

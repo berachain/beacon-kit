@@ -11,7 +11,6 @@ GLOBAL_LOG_LEVEL = struct(
 JWT_MOUNT_PATH_ON_CONTAINER = "/jwt/jwt-secret.hex"
 JWT_FILEPATH = "/kurtosis/src/nodes/jwt-secret.hex"
 KZG_TRUSTED_SETUP_FILEPATH = "/kurtosis/src/nodes/kzg-trusted-setup.json"
-BLUTGANG_CONFIG_TEMPLATE_FILEPATH = "/kurtosis/src/services/blutgang/config.toml.tmpl"
 
 def new_prefunded_account(address, private_key):
     return struct(address = address, private_key = private_key)

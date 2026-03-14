@@ -34,19 +34,13 @@ network_configuration:
     nodes:
       - el_type: reth
         kzg_impl: crate-crypto/go-kzg-4844
-        replicas: 2
-      - el_type: geth
-        kzg_impl: crate-crypto/go-kzg-4844
-        replicas: 3
+        replicas: 5
   full_nodes:
     type: "full"
     nodes:
       - el_type: reth
         kzg_impl: crate-crypto/go-kzg-4844
-        replicas: 2
-      - el_type: geth
-        kzg_impl: crate-crypto/go-kzg-4844
-        replicas: 2
+        replicas: 5
   seed_nodes:
     type: "seed"
     nodes:
@@ -65,7 +59,6 @@ node_settings:
       timeout_propose: 2s
       timeout_prevote: 2s
       timeout_precommit: 2s
-      timeout_commit: 500ms
       max_num_inbound_peers: 40
       max_num_outbound_peers: 10
     app:
@@ -77,15 +70,7 @@ node_settings:
       min_memory: 1024
       max_memory: 2048
     images:
-      geth: ghcr.io/berachain/bera-geth:latest
       reth: ghcr.io/berachain/bera-reth:nightly
-eth_json_rpc_endpoints:
-  # type has to be either blutgang or nginx
-  - type: blutgang
-    clients:
-      - el-full-reth-0
-      - el-full-reth-1
-      - el-full-geth-2
 additional_services:
   - name: "spamoor"
   - name: "tx-fuzz"

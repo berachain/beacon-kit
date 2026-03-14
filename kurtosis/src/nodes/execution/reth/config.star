@@ -110,10 +110,10 @@ USED_PORTS = defaults.USED_PORTS
 USED_PORTS_TEMPLATE = defaults.USED_PORTS_TEMPLATE
 
 def set_max_peers(config, max_peers):
-    cmdList = config["cmd"][:]
-    cmdList.append(MAX_PEERS_OUTBOUND_CMD)
-    cmdList.append(max_peers)
-    cmdList.append(MAX_PEERS_INBOUND_CMD)
-    cmdList.append(max_peers)
-    config["cmd"] = cmdList
+    cmd_list = config["cmd"][:]
+    cmd_list.append(MAX_PEERS_OUTBOUND_CMD)
+    cmd_list.append(max_peers)
+    cmd_list.append(MAX_PEERS_INBOUND_CMD)
+    cmd_list.append(max_peers)
+    config["cmd"] = cmd_list
     return config
