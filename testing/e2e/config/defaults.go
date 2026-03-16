@@ -28,11 +28,13 @@ import (
 )
 
 const (
-	NumFullNodes  = 5
-	NumValidators = 5
+	NumFullNodes       = 5
+	NumValidators      = 5
+	NumPreconfRPCNodes = 1
 
-	consensusClientFmt = "cl-validator-beaconkit-%d"
-	executionClientFmt = "el-full-reth-%d"
+	consensusClientFmt  = "cl-validator-beaconkit-%d"
+	executionClientFmt  = "el-full-reth-%d"
+	preconfRPCClientFmt = "el-preconf-rpc-reth-%d"
 )
 
 func ValidatorConsensusClientName(i int) string {
@@ -41,6 +43,10 @@ func ValidatorConsensusClientName(i int) string {
 
 func FullNodeExecutionClientName(i int) string {
 	return fmt.Sprintf(executionClientFmt, i)
+}
+
+func PreconfRPCClientName(i int) string {
+	return fmt.Sprintf(preconfRPCClientFmt, i)
 }
 
 // DefaultE2ETestConfig provides a default configuration for end-to-end tests,

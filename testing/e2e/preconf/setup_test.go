@@ -23,19 +23,9 @@
 package preconf_test
 
 import (
-	"fmt"
-	"math/big"
 	"testing"
 
-	beraclient "github.com/berachain/beacon-kit/gethlib/ethclient"
 	"github.com/berachain/beacon-kit/testing/e2e/suite"
-	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
-)
-
-const (
-	// Kurtosis service names.
-	loadTestPreconfRPCEL   = "el-preconf-rpc-reth-0"
-	loadTestPreconfRPCPort = "eth-json-rpc"
 )
 
 // PreconfE2ESuite tests the preconf system by sending real ETH
@@ -43,8 +33,6 @@ const (
 // latency, and verifying state consistency with the standard RPC.
 type PreconfE2ESuite struct {
 	suite.KurtosisE2ESuite
-	preconfClient *beraclient.Client
-	chainID       *big.Int
 }
 
 // TestPreconfE2ESuite runs the preconf e2e test suite.
@@ -57,26 +45,7 @@ func TestPreconfE2ESuite(t *testing.T) {
 func (s *PreconfE2ESuite) SetupSuite() {
 	s.SetupSuiteWithOptions(suite.WithPreconfLoadConfig())
 
-	// Discover preconf RPC EL node via Kurtosis port mapping.
-	sCtx, err := s.Enclave().GetServiceContext(loadTestPreconfRPCEL)
-	s.Require().NoError(err, "Should get preconf RPC EL service context")
-
-	port, ok := sCtx.GetPublicPorts()[loadTestPreconfRPCPort]
-	s.Require().True(ok, "Preconf RPC EL should expose eth-json-rpc port")
-
-	preconfURL := fmt.Sprintf("http://0.0.0.0:%d", port.GetNumber())
-	s.T().Logf("Preconf RPC EL URL: %s", preconfURL)
-
-	rawClient, err := types.DialWithPooling(s.Ctx(), preconfURL)
-	s.Require().NoError(err, "Should connect to preconf RPC EL")
-	s.preconfClient = beraclient.Wrap(rawClient)
-	s.T().Cleanup(func() { s.preconfClient.Close() })
-
-	elClient := s.ExecutionClients(0)
-	s.chainID, err = elClient.ChainID(s.Ctx())
-	s.Require().NoError(err, "Should get chain ID")
-
 	// Brief warmup: confirm network is producing blocks after funding.
-	err = s.WaitForNBlockNumbers(1)
+	err := s.WaitForNBlockNumbers(1)
 	s.Require().NoError(err, "Network should produce warmup blocks")
 }

@@ -95,10 +95,11 @@ func (s *PreconfE2ESuite) TestPreconfTransactions() {
 	spammer := s.TestAccounts()[2]
 	spammerAddr := spammer.Address()
 
-	initialNonce, err := s.preconfClient.NonceAt(ctx, senderAddr, nil)
+	preconfClient := s.PreconfRPCClients(0)
+	initialNonce, err := preconfClient.NonceAt(ctx, senderAddr, nil)
 	s.Require().NoError(err, "Should get initial sender nonce")
 
-	initialBalance, err := s.preconfClient.BalanceAt(ctx, receiverAddr, nil)
+	initialBalance, err := preconfClient.BalanceAt(ctx, receiverAddr, nil)
 	s.Require().NoError(err, "Should get initial receiver balance")
 
 	elClient := s.ExecutionClients(0)
@@ -106,7 +107,7 @@ func (s *PreconfE2ESuite) TestPreconfTransactions() {
 	s.Require().NoError(err, "Should get initial spammer nonce")
 
 	// Pre-compute gas caps once to avoid per-tx RPC calls.
-	gasTipCap, gasFeeCap := s.suggestGasCaps(s.preconfClient)
+	gasTipCap, gasFeeCap := s.suggestGasCaps(preconfClient.Client)
 
 	// Start background load on the standard RPC to create mempool pressure.
 	stopSpammer := s.startBackgroundLoad(ctx)
@@ -138,7 +139,7 @@ loop:
 		case <-deadline:
 			break loop
 		case <-ticker.C:
-			sendBlock, bErr := s.preconfClient.BlockNumber(ctx)
+			sendBlock, bErr := preconfClient.BlockNumber(ctx)
 			s.Require().NoError(bErr, "Should get block number at send time")
 
 			// Send txs sequentially to avoid nonce gaps. The collector
@@ -146,7 +147,7 @@ loop:
 			for range loadTestTxPerFlashblock {
 				sendTime := time.Now()
 				tx, sErr := s.sendETHTransfer(transferParams{
-					client:    s.preconfClient,
+					client:    preconfClient.Client,
 					sender:    sender,
 					to:        receiverAddr,
 					nonce:     nonce,
@@ -271,14 +272,14 @@ loop:
 	for _, addr := range []common.Address{senderAddr, receiverAddr, spammerAddr} {
 		stdBal, bErr := elClient.BalanceAt(ctx, addr, verifyBlock)
 		s.Require().NoError(bErr)
-		preconfBal, bErr := s.preconfClient.BalanceAt(ctx, addr, verifyBlock)
+		preconfBal, bErr := preconfClient.BalanceAt(ctx, addr, verifyBlock)
 		s.Require().NoError(bErr)
 		s.Require().Equal(stdBal.String(), preconfBal.String(),
 			"Balance mismatch for %s at block %d", addr, maxInclusionBlock)
 
 		stdNonce, nErr := elClient.NonceAt(ctx, addr, verifyBlock)
 		s.Require().NoError(nErr)
-		preconfNonce, nErr := s.preconfClient.NonceAt(ctx, addr, verifyBlock)
+		preconfNonce, nErr := preconfClient.NonceAt(ctx, addr, verifyBlock)
 		s.Require().NoError(nErr)
 		s.Require().Equal(stdNonce, preconfNonce,
 			"Nonce mismatch for %s at block %d", addr, maxInclusionBlock)
@@ -361,7 +362,8 @@ func (s *PreconfE2ESuite) collectResults(
 		}
 
 		// Scan newly finalized blocks.
-		currentBlock, err := s.preconfClient.BlockNumber(ctx)
+		preconfClient := s.PreconfRPCClients(0)
+		currentBlock, err := preconfClient.BlockNumber(ctx)
 		if err != nil {
 			s.T().Logf("Collector: BlockNumber failed: %v", err)
 			continue
@@ -370,7 +372,7 @@ func (s *PreconfE2ESuite) collectResults(
 			lastScannedBlock = currentBlock - 1
 		}
 		for bn := lastScannedBlock + 1; bn <= currentBlock; bn++ {
-			block, bErr := s.preconfClient.BlockByNumber(ctx, new(big.Int).SetUint64(bn))
+			block, bErr := preconfClient.BlockByNumber(ctx, new(big.Int).SetUint64(bn))
 			if bErr != nil {
 				s.T().Logf("Collector: BlockByNumber(%d) failed: %v (lastScanned=%d current=%d unseen=%d)",
 					bn, bErr, lastScannedBlock, currentBlock, len(unseen))
@@ -393,7 +395,7 @@ func (s *PreconfE2ESuite) collectResults(
 		// Check pending block for txs preconfirmed via flashblocks
 		// but not yet finalized.
 		if len(unseen) > 0 {
-			pb, pErr := s.preconfClient.BlockByNumber(ctx, big.NewInt(-1))
+			pb, pErr := preconfClient.BlockByNumber(ctx, big.NewInt(-1))
 			if pErr == nil && pb != nil {
 				now := time.Now()
 				for _, tx := range pb.Transactions() {
@@ -436,6 +438,9 @@ func (s *PreconfE2ESuite) startBackgroundLoad(
 	gasTipCap, gasFeeCap := s.suggestGasCaps(elClient.Client)
 	amount := new(big.Int).SetUint64(1) // 1 wei self-transfers
 
+	chainID, err := elClient.ChainID(ctx)
+	s.Require().NoError(err, "Should get chain ID")
+
 	var (
 		wg     sync.WaitGroup
 		hashes []common.Hash
@@ -456,8 +461,8 @@ func (s *PreconfE2ESuite) startBackgroundLoad(
 			}
 
 			tx, sErr := spammer.SignTx(
-				s.chainID, ethtypes.NewTx(&ethtypes.DynamicFeeTx{
-					ChainID:   s.chainID,
+				chainID, ethtypes.NewTx(&ethtypes.DynamicFeeTx{
+					ChainID:   chainID,
 					Nonce:     nonce,
 					GasTipCap: gasTipCap,
 					GasFeeCap: gasFeeCap,
@@ -495,9 +500,12 @@ func (s *PreconfE2ESuite) startBackgroundLoad(
 func (s *PreconfE2ESuite) sendETHTransfer(
 	p transferParams,
 ) (*ethtypes.Transaction, error) {
+	chainID, err := p.client.ChainID(s.Ctx())
+	s.Require().NoError(err, "Should get chain ID")
+
 	signedTx, err := p.sender.SignTx(
-		s.chainID, ethtypes.NewTx(&ethtypes.DynamicFeeTx{
-			ChainID:   s.chainID,
+		chainID, ethtypes.NewTx(&ethtypes.DynamicFeeTx{
+			ChainID:   chainID,
 			Nonce:     p.nonce,
 			GasTipCap: p.gasTipCap,
 			GasFeeCap: p.gasFeeCap,
