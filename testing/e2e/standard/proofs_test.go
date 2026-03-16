@@ -59,6 +59,7 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 	}, elClient)
 	s.Require().NoError(err)
 
+	// Confirm deployment.
 	receipt, err := bind.WaitMined(s.Ctx(), elClient, tx)
 	s.Require().NoError(err)
 	s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
