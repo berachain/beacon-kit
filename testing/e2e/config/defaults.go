@@ -57,7 +57,7 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 		NetworkConfiguration: defaultNetworkConfiguration(),
 		NodeSettings:         defaultNodeSettings(),
 		AdditionalServices:   defaultAdditionalServices(),
-		RPCServiceName:       "el-full-geth-2",
+		RPCServiceName:       FullNodeExecutionClientName(2),
 	}
 }
 

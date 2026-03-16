@@ -196,6 +196,10 @@ func (s *KurtosisE2ESuite) SetupExecutionClients(ctx context.Context) error {
 		}
 	}
 
+	if s.cfg.NetworkConfiguration.PreconfRPCNodes == nil {
+		return nil
+	}
+
 	for i := range config.NumPreconfRPCNodes {
 		clientName := config.PreconfRPCClientName(i)
 		sCtx, err := s.Enclave().GetServiceContext(clientName)
