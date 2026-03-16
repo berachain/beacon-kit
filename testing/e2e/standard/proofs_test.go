@@ -61,6 +61,8 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 
 	receipt, err := bind.WaitMined(s.Ctx(), elClient, tx)
 	s.Require().NoError(err)
+	s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
+	s.Logger().Info("SSZTest contract deployed successfully", "address", addr.Hex())
 
 	// Get the current block number.
 	blockNumber, err := elClient.BlockNumber(s.Ctx())

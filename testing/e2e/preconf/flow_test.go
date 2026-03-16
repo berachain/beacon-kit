@@ -63,8 +63,11 @@ func (s *PreconfE2ESuite) TestSequencerFlow() {
 	// Verify validators fetch from sequencer.
 	s.Run("ValidatorFetches", func() {
 		validators := []string{
-			config.ClientValidator0, config.ClientValidator1, config.ClientValidator2,
-			config.ClientValidator3, config.ClientValidator4,
+			config.ValidatorConsensusClientName(0),
+			config.ValidatorConsensusClientName(1),
+			config.ValidatorConsensusClientName(2),
+			config.ValidatorConsensusClientName(3),
+			config.ValidatorConsensusClientName(4),
 		}
 		for _, validator := range validators {
 			validator := validator // capture for closure
@@ -83,8 +86,10 @@ func (s *PreconfE2ESuite) TestSequencerFlow() {
 
 	// Stop sequencer and verify validators fall back to local building.
 	s.Run("SequencerFallback", func() {
+		elClient := s.ExecutionClients(0)
+
 		// Get current block before stopping sequencer.
-		currentBlock, err := s.RPCClient().BlockNumber(s.Ctx())
+		currentBlock, err := elClient.BlockNumber(s.Ctx())
 		s.Require().NoError(err, "Should get current block number")
 
 		// Stop sequencer -- simulates crash/unavailability.
@@ -101,7 +106,7 @@ func (s *PreconfE2ESuite) TestSequencerFlow() {
 		s.Require().NoError(err, "Network should continue producing blocks after sequencer removed")
 
 		// Verify network continued.
-		finalBlock, err := s.RPCClient().BlockNumber(s.Ctx())
+		finalBlock, err := elClient.BlockNumber(s.Ctx())
 		s.Require().NoError(err, "Should get final block number")
 		s.Require().GreaterOrEqual(finalBlock, targetBlock,
 			"Network should have produced blocks after sequencer removed")
@@ -112,16 +117,21 @@ func (s *PreconfE2ESuite) TestSequencerFlow() {
 	// After sequencer have been stopped, verify each validator logs the circuit breaker
 	// message at most once on their first proposal after the sequencer went down.
 	s.Run("SequencerCircuitBreaker", func() {
+		elClient := s.ExecutionClients(0)
+
 		// Wait for enough additional blocks so each validator has had the chance
 		// to propose at least twice since the sequencer was removed.
-		currentBlock, err := s.RPCClient().BlockNumber(s.Ctx())
+		currentBlock, err := elClient.BlockNumber(s.Ctx())
 		s.Require().NoError(err, "Should get current block number")
 		err = s.WaitForFinalizedBlockNumber(currentBlock + blocksAfterFallback)
 		s.Require().NoError(err, "Network should continue producing blocks")
 
 		validators := []string{
-			config.ClientValidator0, config.ClientValidator1, config.ClientValidator2,
-			config.ClientValidator3, config.ClientValidator4,
+			config.ValidatorConsensusClientName(0),
+			config.ValidatorConsensusClientName(1),
+			config.ValidatorConsensusClientName(2),
+			config.ValidatorConsensusClientName(3),
+			config.ValidatorConsensusClientName(4),
 		}
 		for _, validator := range validators {
 			logs, err := s.GetServiceLogs(validator)
@@ -141,17 +151,22 @@ func (s *PreconfE2ESuite) TestSequencerFlow() {
 		err := s.StartService(sequencerCLService)
 		s.Require().NoError(err, "Should restart sequencer service")
 
+		elClient := s.ExecutionClients(0)
+
 		// Wait for enough blocks so each validator has had the chance to propose
 		// at least once after the monitor detects recovery.
-		currentBlock, err := s.RPCClient().BlockNumber(s.Ctx())
+		currentBlock, err := elClient.BlockNumber(s.Ctx())
 		s.Require().NoError(err, "Should get current block number")
 		err = s.WaitForFinalizedBlockNumber(currentBlock + blocksAfterFallback)
 		s.Require().NoError(err, "Network should continue producing blocks after sequencer restarted")
 
 		// Validators should have detected recovery and resumed fetching from the sequencer.
 		validators := []string{
-			config.ClientValidator0, config.ClientValidator1, config.ClientValidator2,
-			config.ClientValidator3, config.ClientValidator4,
+			config.ValidatorConsensusClientName(0),
+			config.ValidatorConsensusClientName(1),
+			config.ValidatorConsensusClientName(2),
+			config.ValidatorConsensusClientName(3),
+			config.ValidatorConsensusClientName(4),
 		}
 		for _, validator := range validators {
 			logs, err := s.GetServiceLogs(validator)

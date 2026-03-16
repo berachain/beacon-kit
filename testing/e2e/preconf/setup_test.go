@@ -67,12 +67,13 @@ func (s *PreconfE2ESuite) SetupSuite() {
 	preconfURL := fmt.Sprintf("http://0.0.0.0:%d", port.GetNumber())
 	s.T().Logf("Preconf RPC EL URL: %s", preconfURL)
 
-	rawClient, err := types.DialWithPooling(preconfURL)
+	rawClient, err := types.DialWithPooling(s.Ctx(), preconfURL)
 	s.Require().NoError(err, "Should connect to preconf RPC EL")
 	s.preconfClient = beraclient.Wrap(rawClient)
 	s.T().Cleanup(func() { s.preconfClient.Close() })
 
-	s.chainID, err = s.RPCClient().ChainID(s.Ctx())
+	elClient := s.ExecutionClients(0)
+	s.chainID, err = elClient.ChainID(s.Ctx())
 	s.Require().NoError(err, "Should get chain ID")
 
 	// Brief warmup: confirm network is producing blocks after funding.

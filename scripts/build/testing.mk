@@ -326,8 +326,4 @@ test-e2e-preconf: ## run preconf e2e tests
 	@$(MAKE) build-docker VERSION=kurtosis-local test-e2e-preconf-no-build
 
 test-e2e-preconf-no-build:
-<<<<<<< HEAD
-	go test -timeout 0 -tags e2e_preconf,bls12381,test ./testing/e2e/preconf/. -v
-=======
 	go test -timeout 0 -tags e2e,bls12381,test ./testing/e2e/preconf/. -v
->>>>>>> 8fe76aad0 (3/n chore(kurtosis): reorganize e2e tests into subdirectories (#3043))

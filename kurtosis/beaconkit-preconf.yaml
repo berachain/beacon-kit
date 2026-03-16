@@ -34,19 +34,13 @@ network_configuration:
     nodes:
       - el_type: reth
         kzg_impl: crate-crypto/go-kzg-4844
-        replicas: 2
-      - el_type: geth
-        kzg_impl: crate-crypto/go-kzg-4844
-        replicas: 3
+        replicas: 5
   full_nodes:
     type: "full"
     nodes:
       - el_type: reth
         kzg_impl: crate-crypto/go-kzg-4844
-        replicas: 1
-      - el_type: geth
-        kzg_impl: crate-crypto/go-kzg-4844
-        replicas: 1
+        replicas: 2
   seed_nodes:
     type: "seed"
     nodes:
@@ -88,7 +82,6 @@ node_settings:
       min_memory: 0
       max_memory: 4096
     images:
-      geth: ghcr.io/berachain/bera-geth:latest
       reth: ghcr.io/berachain/bera-reth:2c502ebe978e3c36e8ecb0b4801cb2f620fbfc31
 additional_services:
   #- name: "spamoor"

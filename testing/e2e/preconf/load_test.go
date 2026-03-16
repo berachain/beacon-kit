@@ -36,7 +36,6 @@ import (
 	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
@@ -102,11 +101,12 @@ func (s *PreconfE2ESuite) TestPreconfTransactions() {
 	initialBalance, err := s.preconfClient.BalanceAt(ctx, receiverAddr, nil)
 	s.Require().NoError(err, "Should get initial receiver balance")
 
-	spammerInitialNonce, err := s.RPCClient().NonceAt(ctx, spammerAddr, nil)
+	elClient := s.ExecutionClients(0)
+	spammerInitialNonce, err := elClient.NonceAt(ctx, spammerAddr, nil)
 	s.Require().NoError(err, "Should get initial spammer nonce")
 
 	// Pre-compute gas caps once to avoid per-tx RPC calls.
-	gasTipCap, gasFeeCap := s.suggestGasCaps(s.preconfClient.Client)
+	gasTipCap, gasFeeCap := s.suggestGasCaps(s.preconfClient)
 
 	// Start background load on the standard RPC to create mempool pressure.
 	stopSpammer := s.startBackgroundLoad(ctx)
@@ -223,7 +223,7 @@ loop:
 	// Wait for the full node to reach the max inclusion block (or current
 	// head when no preconf txs) so that state is settled before verification.
 	if maxInclusionBlock == 0 {
-		maxInclusionBlock, err = s.RPCClient().BlockNumber(ctx)
+		maxInclusionBlock, err = elClient.BlockNumber(ctx)
 		s.Require().NoError(err)
 		maxInclusionBlock += 3 //nolint:mnd // extra blocks for pending spam txs to settle
 	}
@@ -236,7 +236,7 @@ loop:
 	// have time to be included.
 	spamVerifyStart := time.Now()
 	for i, h := range spamHashes {
-		receipt, rErr := s.RPCClient().TransactionReceipt(ctx, h)
+		receipt, rErr := elClient.TransactionReceipt(ctx, h)
 		s.Require().NoError(rErr, "spam tx %d (%s) should have a receipt", i, h.Hex())
 		s.Require().Equal(ethtypes.ReceiptStatusSuccessful, receipt.Status,
 			"spam tx %d (%s) should succeed", i, h.Hex())
@@ -246,13 +246,13 @@ loop:
 	// Verify final nonce and balance at the max inclusion block.
 	verifyBlock := new(big.Int).SetUint64(maxInclusionBlock)
 
-	finalNonce, err := s.RPCClient().NonceAt(ctx, senderAddr, verifyBlock)
+	finalNonce, err := elClient.NonceAt(ctx, senderAddr, verifyBlock)
 	s.Require().NoError(err)
 	s.Require().Equal(initialNonce+uint64(len(results)), finalNonce,
 		"Sender nonce should increment by %d", len(results))
 
 	expectedIncrease := new(big.Int).Mul(transferAmt, big.NewInt(int64(len(results))))
-	finalBalance, err := s.RPCClient().BalanceAt(ctx, receiverAddr, verifyBlock)
+	finalBalance, err := elClient.BalanceAt(ctx, receiverAddr, verifyBlock)
 	s.Require().NoError(err)
 	actualIncrease := new(big.Int).Sub(finalBalance, initialBalance)
 	s.Require().Equal(expectedIncrease.String(), actualIncrease.String(),
@@ -262,21 +262,21 @@ loop:
 	// Under high load, SendTransaction may return an error for a tx that
 	// was actually accepted by the node, so the on-chain nonce can be
 	// slightly higher than len(spamHashes).
-	spammerFinalNonce, err := s.RPCClient().NonceAt(ctx, spammerAddr, nil)
+	spammerFinalNonce, err := elClient.NonceAt(ctx, spammerAddr, nil)
 	s.Require().NoError(err)
 	s.Require().GreaterOrEqual(spammerFinalNonce, spammerInitialNonce+uint64(len(spamHashes)),
 		"Spammer nonce should be at least %d", len(spamHashes))
 
 	// Verify state consistency between both RPCs at the same block.
 	for _, addr := range []common.Address{senderAddr, receiverAddr, spammerAddr} {
-		stdBal, bErr := s.RPCClient().BalanceAt(ctx, addr, verifyBlock)
+		stdBal, bErr := elClient.BalanceAt(ctx, addr, verifyBlock)
 		s.Require().NoError(bErr)
 		preconfBal, bErr := s.preconfClient.BalanceAt(ctx, addr, verifyBlock)
 		s.Require().NoError(bErr)
 		s.Require().Equal(stdBal.String(), preconfBal.String(),
 			"Balance mismatch for %s at block %d", addr, maxInclusionBlock)
 
-		stdNonce, nErr := s.RPCClient().NonceAt(ctx, addr, verifyBlock)
+		stdNonce, nErr := elClient.NonceAt(ctx, addr, verifyBlock)
 		s.Require().NoError(nErr)
 		preconfNonce, nErr := s.preconfClient.NonceAt(ctx, addr, verifyBlock)
 		s.Require().NoError(nErr)
@@ -288,10 +288,9 @@ loop:
 
 	// Log eth transaction count per block from genesis to end of test.
 	// Use beraclient wrapper to handle custom Berachain tx types (e.g. PoL).
-	rpcBeraClient := beraclient.Wrap(s.RPCClient().Client)
 	s.T().Log("Eth transactions count in block:")
 	for bn := uint64(0); bn <= maxInclusionBlock; bn++ {
-		block, bErr := rpcBeraClient.BlockByNumber(ctx, new(big.Int).SetUint64(bn))
+		block, bErr := elClient.BlockByNumber(ctx, new(big.Int).SetUint64(bn))
 		if bErr != nil {
 			s.T().Logf("  block %d: error fetching: %v", bn, bErr)
 			continue
@@ -429,12 +428,12 @@ func (s *PreconfE2ESuite) startBackgroundLoad(
 
 	spammer := s.TestAccounts()[2]
 	spammerAddr := spammer.Address()
-	client := s.RPCClient()
+	elClient := s.ExecutionClients(0)
 
-	nonce, err := client.NonceAt(ctx, spammerAddr, nil)
+	nonce, err := elClient.NonceAt(ctx, spammerAddr, nil)
 	s.Require().NoError(err, "Should get spammer nonce")
 
-	gasTipCap, gasFeeCap := s.suggestGasCaps(client.Client)
+	gasTipCap, gasFeeCap := s.suggestGasCaps(elClient.Client)
 	amount := new(big.Int).SetUint64(1) // 1 wei self-transfers
 
 	var (
@@ -471,9 +470,9 @@ func (s *PreconfE2ESuite) startBackgroundLoad(
 				continue
 			}
 
-			if sErr = client.SendTransaction(ctx, tx); sErr != nil {
+			if sErr = elClient.SendTransaction(ctx, tx); sErr != nil {
 				// Nonce may be stale, refresh it.
-				if refreshed, nErr := client.NonceAt(ctx, spammerAddr, nil); nErr == nil {
+				if refreshed, nErr := elClient.NonceAt(ctx, spammerAddr, nil); nErr == nil {
 					nonce = refreshed
 				}
 				continue
@@ -521,7 +520,7 @@ func (s *PreconfE2ESuite) sendETHTransfer(
 // suggestGasCaps queries the client for gas tip and fee caps, falling back
 // to defaults if the RPC method is unsupported.
 func (s *PreconfE2ESuite) suggestGasCaps(
-	client *ethclient.Client,
+	client *beraclient.Client,
 ) (gasTipCap, gasFeeCap *big.Int) {
 	gasTipCap, err := client.SuggestGasTipCap(s.Ctx())
 	if err != nil {

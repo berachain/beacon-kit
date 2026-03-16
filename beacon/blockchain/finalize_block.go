@@ -80,11 +80,7 @@ func (s *Service) FinalizeBlock(
 	}
 
 	// STEP 4: Post Finalizations cleanups.
-	if err = s.PostFinalizeBlockOps(ctx, blk); err != nil {
-		return valUpdates, err
-	}
-
-	return valUpdates, nil
+	return valUpdates, s.PostFinalizeBlockOps(ctx, blk)
 }
 
 func (s *Service) FinalizeSidecars(
