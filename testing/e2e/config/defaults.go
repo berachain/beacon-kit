@@ -55,7 +55,6 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 		NetworkConfiguration: defaultNetworkConfiguration(),
 		NodeSettings:         defaultNodeSettings(),
 		AdditionalServices:   defaultAdditionalServices(),
-		RPCServiceName:       FullNodeExecutionClientName(2),
 	}
 }
 
@@ -79,7 +78,6 @@ func PreconfLoadE2ETestConfig() *E2ETestConfig {
 		}},
 	}
 	cfg.NetworkConfiguration.SeedNodes = NodeSet{Type: "seed", Nodes: []Node{}}
-	cfg.RPCServiceName = "el-full-reth-0"
 
 	cfg.NetworkConfiguration.SequencerNode = &Node{
 		ElType:  "reth",
