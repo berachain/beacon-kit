@@ -28,9 +28,7 @@ import (
 )
 
 const (
-	NumFullNodes       = 5
-	NumValidators      = 5
-	NumPreconfRPCNodes = 1
+	NumValidators = 5
 
 	consensusClientFmt  = "cl-validator-beaconkit-%d"
 	executionClientFmt  = "el-full-reth-%d"
