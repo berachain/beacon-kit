@@ -10,7 +10,6 @@ def start(persistent_peers, is_seed, validator_index, config_settings, app_setti
     set_config += '\nsed -i "s/^timeout_propose_delta = \\".*\\"$/timeout_propose_delta = \\"500ms\\"/" {}/config/config.toml'.format("$BEACOND_HOME")
     set_config += '\nsed -i "s/^timeout_prevote = \\".*\\"$/timeout_prevote = \\"{}\\"/" {}/config/config.toml'.format(config_settings.timeout_prevote, "$BEACOND_HOME")
     set_config += '\nsed -i "s/^timeout_precommit = \\".*\\"$/timeout_precommit = \\"{}\\"/" {}/config/config.toml'.format(config_settings.timeout_precommit, "$BEACOND_HOME")
-    set_config += '\nsed -i "s/^timeout_commit = \\".*\\"$/timeout_commit = \\"{}\\"/" {}/config/config.toml'.format(config_settings.timeout_commit, "$BEACOND_HOME")
     set_config += '\nsed -i "s/^addr_book_strict = .*/addr_book_strict = false/" "{}/config/config.toml"'.format("$BEACOND_HOME")
     set_config += '\nsed -i "s/^unsafe = false$/unsafe = true/" "{}/config/config.toml"'.format("$BEACOND_HOME")
     set_config += '\nsed -i "s/^type = \\".*\\"$/type = \\"nop\\"/" {}/config/config.toml'.format("$BEACOND_HOME")

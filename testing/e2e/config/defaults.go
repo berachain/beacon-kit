@@ -21,20 +21,27 @@
 package config
 
 import (
+	"fmt"
+
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/payload/builder"
 )
 
-// Consensus clients.
 const (
+	NumFullNodes  = 5
 	NumValidators = 5
 
-	ClientValidator0 = "cl-validator-beaconkit-0"
-	ClientValidator1 = "cl-validator-beaconkit-1"
-	ClientValidator2 = "cl-validator-beaconkit-2"
-	ClientValidator3 = "cl-validator-beaconkit-3"
-	ClientValidator4 = "cl-validator-beaconkit-4"
+	consensusClientFmt = "cl-validator-beaconkit-%d"
+	executionClientFmt = "el-full-reth-%d"
 )
+
+func ValidatorConsensusClientName(i int) string {
+	return fmt.Sprintf(consensusClientFmt, i)
+}
+
+func FullNodeExecutionClientName(i int) string {
+	return fmt.Sprintf(executionClientFmt, i)
+}
 
 // DefaultE2ETestConfig provides a default configuration for end-to-end tests,
 // pre-populating with a standard set of validators and no additional
@@ -43,7 +50,6 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 	return &E2ETestConfig{
 		NetworkConfiguration: defaultNetworkConfiguration(),
 		NodeSettings:         defaultNodeSettings(),
-		EthJSONRPCEndpoints:  defaultEthJSONRPCEndpoints(),
 		AdditionalServices:   defaultAdditionalServices(),
 	}
 }
@@ -61,13 +67,8 @@ func defaultValidators() NodeSet {
 		Type: "validator",
 		Nodes: []Node{
 			{
-				ElType:   "geth",
-				Replicas: 3, //nolint:mnd // we want 3 replicas here
-				KZGImpl:  "crate-crypto/go-kzg-4844",
-			},
-			{
 				ElType:   "reth",
-				Replicas: 2, //nolint:mnd // we want 2 replicas here
+				Replicas: 5, //nolint:mnd // we want 5 replicas here
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 		},
@@ -80,12 +81,7 @@ func defaultFullNodes() NodeSet {
 		Nodes: []Node{
 			{
 				ElType:   "reth",
-				Replicas: 2, //nolint:mnd // we want 2 replicas here
-				KZGImpl:  "crate-crypto/go-kzg-4844",
-			},
-			{
-				ElType:   "geth",
-				Replicas: 2, //nolint:mnd // we want 2 replicas here
+				Replicas: 5, //nolint:mnd // we want 5 replicas here
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 		},
@@ -97,7 +93,7 @@ func defaultSeedNodes() NodeSet {
 		Type: "seed",
 		Nodes: []Node{
 			{
-				ElType:   "geth",
+				ElType:   "reth",
 				Replicas: 1,
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
@@ -121,7 +117,6 @@ func defaultExecutionSettings() ExecutionSettings {
 			MaxMemory: 2048, //nolint:mnd // 2 GB
 		},
 		Images: map[string]string{
-			"geth": "ghcr.io/berachain/bera-geth:latest",
 			"reth": "ghcr.io/berachain/bera-reth:nightly",
 		},
 	}
@@ -149,24 +144,12 @@ func defaultConsensusSettings() ConsensusSettings {
 			TimeoutPropose:   consensus.TimeoutPropose.String(),
 			TimeoutPrevote:   consensus.TimeoutPrevote.String(),
 			TimeoutPrecommit: consensus.TimeoutPrecommit.String(),
-			//nolint:staticcheck // setting to zero because it's deprecated
-			TimeoutCommit:       consensus.TimeoutCommit.String(),
+
 			MaxNumInboundPeers:  p2p.MaxNumInboundPeers,
 			MaxNumOutboundPeers: p2p.MaxNumOutboundPeers,
 		},
 		AppConfig: AppConfig{
 			PayloadTimeout: builderCfg.PayloadTimeout.String(),
-		},
-	}
-}
-
-func defaultEthJSONRPCEndpoints() []EthJSONRPCEndpoint {
-	return []EthJSONRPCEndpoint{
-		{
-			Type: "blutgang",
-			Clients: []string{
-				"el-full-geth-2",
-			},
 		},
 	}
 }

@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit
 
-go 1.25.7
+go 1.25.8
 
 replace (
 	github.com/cometbft/cometbft => github.com/berachain/cometbft v1.0.1-0.20260120183949-acbb64111633
@@ -59,7 +59,7 @@ require (
 	github.com/cosmos/ics23/go v0.11.0
 	github.com/ethereum/go-ethereum v1.17.0
 	github.com/ferranbt/fastssz v0.1.5-0.20240903094032-455b54c08c81
-	github.com/kurtosis-tech/kurtosis/api/golang v1.13.2
+	github.com/kurtosis-tech/kurtosis/api/golang v1.16.6
 	github.com/protolambda/zrnt v0.34.1
 	github.com/protolambda/ztyp v0.2.2
 	github.com/rs/zerolog v1.34.0

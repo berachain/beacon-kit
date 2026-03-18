@@ -13,12 +13,14 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package e2e_test
+//go:build e2e
+
+package standard_test
 
 import (
 	"encoding/json"
@@ -86,7 +88,7 @@ func (s *BeaconKitE2ESuite) initBeaconTest() *types.ConsensusClient {
 	s.Require().NoError(err)
 
 	// Get the consensus client.
-	client := s.ConsensusClients()[config.ClientValidator0]
+	client := s.ConsensusClients(0)
 	s.Require().NotNil(client)
 
 	return client

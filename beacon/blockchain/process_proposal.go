@@ -22,8 +22,10 @@ package blockchain
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"fmt"
+	"slices"
 	"time"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
@@ -69,6 +71,11 @@ func (s *Service) ProcessProposal(
 		return nil, fmt.Errorf("failed to decode block and blobs: %w", err)
 	}
 	blk := signedBlk.GetBeaconBlock()
+
+	// Sort the sidecars by index for verification and processing.
+	slices.SortFunc(sidecars, func(a, b *datypes.BlobSidecar) int {
+		return cmp.Compare(a.GetIndex(), b.GetIndex())
+	})
 
 	// There are two different timestamps:
 	//     - The "consensus time" is determined by CometBFT consensus and can be retrieved with `req.GetTime()`

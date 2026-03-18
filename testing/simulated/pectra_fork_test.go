@@ -31,6 +31,7 @@ import (
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/execution/requests/eip7251"
 	"github.com/berachain/beacon-kit/log/phuslu"
@@ -78,7 +79,8 @@ func (s *PectraForkSuite) SetupTest() {
 	// Create the chainSpec.
 	chainSpec, err := chainSpecFunc()
 	s.Require().NoError(err)
-	cometConfig, genesisValidatorsRoot := simulated.InitializeHomeDir(s.T(), chainSpec, s.Geth.HomeDir, elGenesisPath)
+	configs, genesisValidatorsRoot := simulated.InitializeHomeDirs(s.T(), chainSpec, elGenesisPath, s.Geth.HomeDir)
+	cometConfig := configs[0]
 	s.Geth.GenesisValidatorsRoot = genesisValidatorsRoot
 	s.Reth.GenesisValidatorsRoot = genesisValidatorsRoot
 
@@ -158,9 +160,9 @@ func (s *PectraForkSuite) TearDownTest() {
 // The Geth Node will be the block producer but the Reth node is treated as a full node, i.e. doesn't produce blocks.
 func (s *PectraForkSuite) TestTimestampFork_ELAndCLInSync_IsSuccessful() {
 	// Initialize the geth chain state.
-	s.Geth.InitializeChain(s.T())
+	s.Geth.InitializeChain(s.T(), 1)
 	// Initialize the reth chain state.
-	s.Reth.InitializeChain(s.T())
+	s.Reth.InitializeChain(s.T(), 1)
 
 	nodeAddress, err := s.Geth.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
@@ -238,8 +240,8 @@ func (s *PectraForkSuite) TestTimestampFork_ELAndCLInSync_IsSuccessful() {
 // A user makes a consolidation request on our chain which isn't supported.
 func (s *PectraForkSuite) TestMaliciousUser_MakesConsolidationRequest_IsIgnored() {
 	// Initialize the chain state.
-	s.Geth.InitializeChain(s.T())
-	s.Reth.InitializeChain(s.T())
+	s.Geth.InitializeChain(s.T(), 1)
+	s.Reth.InitializeChain(s.T(), 1)
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.Geth.HomeDir)
@@ -362,8 +364,8 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 	helper := s.Reth
 
 	// Initialize the chain state.
-	client.InitializeChain(s.T())
-	helper.InitializeChain(s.T()) // helper to build "invalid" blocks
+	client.InitializeChain(s.T(), 1)
+	helper.InitializeChain(s.T(), 1) // helper to build "invalid" blocks
 
 	nodeAddress, err := client.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
@@ -528,7 +530,7 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPostForkBlockIsNotFinalized_
 // This will be rejected and is expected to occur around the fork for 1 or 2 rounds.
 func (s *PectraForkSuite) TestValidProposer_ProposesPreForkBlockWithPostForkConsensusTimestamp_IsRejected() {
 	// Initialize the chain state.
-	s.Geth.InitializeChain(s.T())
+	s.Geth.InitializeChain(s.T(), 1)
 	nodeAddress, err := s.Geth.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
 	s.Geth.SimComet.Comet.SetNodeAddress(nodeAddress)
@@ -573,7 +575,7 @@ func (s *PectraForkSuite) TestValidProposer_ProposesPreForkBlockWithPostForkCons
 func (s *PectraForkSuite) Test_OptimisticBuildAtFork_IsSuccessful() {
 	// Initialize the chain state.
 	client := s.Geth
-	client.InitializeChain(s.T()) // init the validator
+	client.InitializeChain(s.T(), 1) // init the validator
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(client.HomeDir)
@@ -665,6 +667,125 @@ func (s *PectraForkSuite) Test_OptimisticBuildAtFork_IsSuccessful() {
 		_, finalizeErr := client.SimComet.Comet.FinalizeBlock(client.CtxComet, finalizeRequest)
 		s.Require().NoError(finalizeErr)
 		_, commitErr := client.SimComet.Comet.Commit(client.CtxComet, &types.CommitRequest{})
+		s.Require().NoError(commitErr)
+	}
+}
+
+// Test a scenario where reth must rebuild a payload for a failed state transition.
+func (s *PectraForkSuite) TestReth_MustRebuildForFailedStateTransition_IsSuccessful() {
+	// Initialize the chain state.
+	testEL := s.Reth
+	helpBuilder := s.Geth
+	testEL.InitializeChain(s.T(), 1)
+	helpBuilder.InitializeChain(s.T(), 1)
+
+	// Retrieve the BLS signer and proposer address.
+	blsSigner := simulated.GetBlsSigner(testEL.HomeDir)
+	pubkey, err := blsSigner.GetPubKey()
+	s.Require().NoError(err)
+	nodeAddress := pubkey.Address()
+	testEL.SimComet.Comet.SetNodeAddress(nodeAddress)
+
+	const blkHeight = int64(1)
+	var (
+		specs         = testEL.TestNode.ChainSpec
+		consensusTime = time.Unix(int64(specs.ElectraForkTime()), 0)
+
+		validTxsHeight1 [][]byte
+	)
+
+	{
+		// 1- Build a valid block at height 1, via the helpBuilder
+		prepareRequest := &types.PrepareProposalRequest{
+			Height:          blkHeight,
+			Time:            consensusTime,
+			ProposerAddress: nodeAddress,
+		}
+		proposal, prepareErr := helpBuilder.SimComet.Comet.PrepareProposal(helpBuilder.CtxComet, prepareRequest)
+		s.Require().NoError(prepareErr)
+		s.Require().Len(proposal.Txs, 2)
+		validTxsHeight1 = proposal.Txs
+
+		// 2- Process the block via testEL node. The proposal is expected
+		// to pass and start building payload for height 2, optimistically.
+		processRequest := &types.ProcessProposalRequest{
+			Txs:                 proposal.Txs,
+			Height:              blkHeight,
+			ProposerAddress:     nodeAddress,
+			Time:                consensusTime,
+			NextProposerAddress: nodeAddress,
+		}
+		processResp, respErr := testEL.SimComet.Comet.ProcessProposal(testEL.CtxComet, processRequest)
+		s.Require().NoError(respErr)
+		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT.String(), processResp.Status.String())
+	}
+
+	// For some reason, the supermajority does not finalize the block.
+	// Another block comes, still at height 1, this time *invalid*. This would force
+	// the node to rebuild height 1, which the EL cannot do since it has already received
+	// an FCU(head == block_at_height_2)
+	{
+		invalidTxs := testBuildInvalidBlock(
+			s.Require(),
+			helpBuilder,
+			&types.PrepareProposalRequest{
+				Txs:             validTxsHeight1,
+				Height:          blkHeight,
+				Time:            consensusTime,
+				ProposerAddress: pubkey.Address(),
+			},
+			func(sbb *ctypes.SignedBeaconBlock) {
+				sbb.Body.RandaoReveal = [96]byte{'t', 'e', 's', 't'} // this makes the block invalid
+			},
+		)
+
+		// 3- Process the invalid proposal proposal. It will be rejected
+		// and attempt to build optimistically a block at height 1.
+		processRequest := &types.ProcessProposalRequest{
+			Txs:                 invalidTxs,
+			Height:              blkHeight,
+			ProposerAddress:     nodeAddress,
+			Time:                consensusTime,
+			NextProposerAddress: nodeAddress,
+		}
+		processResp, processErr := testEL.SimComet.Comet.ProcessProposal(testEL.CtxComet, processRequest)
+		s.Require().NoError(processErr)
+		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT.String(), processResp.Status.String())
+	}
+
+	{
+		// 4- Finally let reth node build block at height 1, process and finalize it
+		prepareRequest := &types.PrepareProposalRequest{
+			Height:          blkHeight,
+			Time:            consensusTime,
+			ProposerAddress: pubkey.Address(),
+		}
+		proposal, prepareErr := testEL.SimComet.Comet.PrepareProposal(testEL.CtxComet, prepareRequest)
+		s.Require().NoError(prepareErr)
+		s.Require().Len(proposal.Txs, 2)
+
+		// Process the proposal via testEL node. The proposal is expected
+		// to pass and start building payload for height 2, optimistically.
+		processRequest := &types.ProcessProposalRequest{
+			Txs:                 proposal.Txs,
+			Height:              blkHeight,
+			ProposerAddress:     nodeAddress,
+			Time:                consensusTime,
+			NextProposerAddress: nodeAddress,
+		}
+		processResp, respErr := testEL.SimComet.Comet.ProcessProposal(testEL.CtxComet, processRequest)
+		s.Require().NoError(respErr)
+		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT.String(), processResp.Status.String())
+
+		finalizeRequest := &types.FinalizeBlockRequest{
+			Txs:             proposal.Txs,
+			Height:          blkHeight,
+			ProposerAddress: pubkey.Address(),
+			Time:            consensusTime,
+		}
+		_, finalizeErr := testEL.SimComet.Comet.FinalizeBlock(testEL.CtxComet, finalizeRequest)
+		s.Require().NoError(finalizeErr)
+		_, commitErr := testEL.SimComet.Comet.Commit(testEL.CtxComet, &types.CommitRequest{})
 		s.Require().NoError(commitErr)
 	}
 }

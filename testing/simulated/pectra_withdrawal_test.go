@@ -83,7 +83,8 @@ func (s *PectraWithdrawalSuite) SetupTest() {
 	// Create the chainSpec.
 	chainSpec, err := chainSpecFunc()
 	s.Require().NoError(err)
-	cometConfig, genesisValidatorsRoot := simulated.InitializeHomeDir(s.T(), chainSpec, s.HomeDir, elGenesisPath)
+	configs, genesisValidatorsRoot := simulated.InitializeHomeDirs(s.T(), chainSpec, elGenesisPath, s.HomeDir)
+	cometConfig := configs[0]
 	s.GenesisValidatorsRoot = genesisValidatorsRoot
 
 	// Start the EL (execution layer) Geth node.
@@ -145,7 +146,7 @@ func (s *PectraWithdrawalSuite) TearDownTest() {
 
 func (s *PectraWithdrawalSuite) TestExcessValidatorBeforeFork_CorrectlyEvicted() {
 	// Initialize the chain state.
-	s.InitializeChain(s.T())
+	s.InitializeChain(s.T(), 1)
 	nodeAddress, err := s.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
 	s.SimComet.Comet.SetNodeAddress(nodeAddress)
@@ -326,7 +327,7 @@ func (s *PectraWithdrawalSuite) TestExcessValidatorBeforeFork_CorrectlyEvicted()
 // This also served as a PoC for a now patched bug (see https://github.com/berachain/beacon-kit/pull/2723).
 func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdrawal_CorrectAmountWithdrawn() {
 	// Initialize the chain state.
-	s.InitializeChain(s.T())
+	s.InitializeChain(s.T(), 1)
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
@@ -510,7 +511,7 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdra
 
 func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_HasCorrectWithdrawalAmount() {
 	// Initialize the chain state.
-	s.InitializeChain(s.T())
+	s.InitializeChain(s.T(), 1)
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)

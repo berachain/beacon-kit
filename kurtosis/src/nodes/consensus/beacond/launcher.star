@@ -107,7 +107,7 @@ def perform_genesis_deposits_ceremony(plan, validators, jwt_file, chain_id, chai
     plan.print(multiple_gentx_env_vars)
     plan.print(stored_configs)
 
-    plan.run_sh(
+    result = plan.run_sh(
         run = "chmod +x /app/scripts/multiple-premined-deposits-cl.sh && /app/scripts/multiple-premined-deposits-cl.sh",
         image = validators[0].cl_image,
         files = {
@@ -117,7 +117,12 @@ def perform_genesis_deposits_ceremony(plan, validators, jwt_file, chain_id, chai
         store = stored_configs,
         description = "Collecting beacond genesis files",
     )
-    return stored_configs
+
+    # Return both the StoreSpec list (for names) and the future references (for dependencies)
+    return struct(
+        configs = stored_configs,
+        artifacts = result.files_artifacts,
+    )
 
 def modify_genesis_files_deposits(plan, validators, genesis_files, chain_id, chain_spec, stored_configs):
     num_validators = len(validators)

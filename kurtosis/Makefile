@@ -10,6 +10,9 @@
 # variables like PATH not set, STDERR redirect does not work, etc).
 SHELL := /bin/bash
 
+BLOCKSCOUT_VERIF_GHCR = ghcr.io/blockscout/smart-contract-verifier:v1.10.0
+BLOCKSCOUT_VERIF_LOCAL = blockscout-sc-verifier:v1.10.0
+
 # Installs Kurtosis if not already installed
 install-kurtosis:
 	@echo "Checking for Kurtosis installation..."
@@ -40,8 +43,21 @@ install-kurtosis:
 start-devnet: install-kurtosis
 	$(MAKE) build-docker VERSION=kurtosis-local start-devnet-no-build
 
+# Removes and restarts a Kurtosis enclave containing a local devnet.
+restart-devnet:
+	-$(MAKE) rm-devnet
+	kurtosis engine restart
+	$(MAKE) start-devnet
+
+# Pre-pulls GHCR images that require credential-helper auth and re-tags them
+# to local-only names so the Kurtosis engine can resolve them without GHCR access.
+pull-blockscout-images:
+	@echo "Pre-pulling blockscout images for local devnet..."
+	@docker pull $(BLOCKSCOUT_VERIF_GHCR)
+	@docker tag $(BLOCKSCOUT_VERIF_GHCR) $(BLOCKSCOUT_VERIF_LOCAL)
+
 # Starts a Kurtosis enclave containing a local devnet without building the image
-start-devnet-no-build:
+start-devnet-no-build: pull-blockscout-images
 	kurtosis run ./kurtosis --args-file ./kurtosis/beaconkit-local.yaml \
 		--enclave my-local-devnet --parallelism 200
 
@@ -57,11 +73,6 @@ rm-devnet-cloud:
 # Stops the running Kurtosis enclave
 stop-devnet:
 	kurtosis enclave stop my-local-devnet
-
-# Stops and removes the specified Kurtosis enclave
-reset-devnet:
-	$(MAKE) stop-devnet
-	kurtosis enclave rm my-local-devnet
 
 # Removes the specified Kurtosis enclave
 rm-devnet:
@@ -84,4 +95,4 @@ star-fix: buildifier-install
 
 # Marks targets as not being associated with files
 .PHONY: start-devnet stop-devnet start-devnet-cloud rm-devnet-cloud reset-devnet rm-devnet buildifier-install \
-  star-lint star-fix install-kurtosis
+  star-lint star-fix install-kurtosis pull-blockscout-images

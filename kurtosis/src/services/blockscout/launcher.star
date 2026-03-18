@@ -2,7 +2,7 @@ shared_utils = import_module("github.com/ethpandaops/ethereum-package/src/shared
 postgres = import_module("github.com/kurtosis-tech/postgres-package/main.star")
 
 IMAGE_NAME_BLOCKSCOUT = "blockscout/blockscout:6.6.0"
-IMAGE_NAME_BLOCKSCOUT_VERIF = "ghcr.io/blockscout/smart-contract-verifier:v1.9.2-arm"
+IMAGE_NAME_BLOCKSCOUT_VERIF = "ghcr.io/blockscout/smart-contract-verifier:v1.10.0"
 
 SERVICE_NAME_BLOCKSCOUT = "blockscout"
 
@@ -40,7 +40,8 @@ def launch_blockscout(
         plan,
         full_node_el_clients,
         client_from_user,
-        persistent):
+        persistent,
+        verifier_image = None):
     postgres_output = postgres.run(
         plan,
         service_name = "{}-postgres".format(SERVICE_NAME_BLOCKSCOUT),
@@ -64,7 +65,7 @@ def launch_blockscout(
             )
             break
 
-    config_verif = get_config_verif()
+    config_verif = get_config_verif(verifier_image)
     verif_service_name = "{}-verif".format(SERVICE_NAME_BLOCKSCOUT)
     verif_service = plan.add_service(verif_service_name, config_verif)
     verif_url = "http://{}:{}/api".format(
@@ -88,9 +89,9 @@ def launch_blockscout(
 
     return blockscout_url
 
-def get_config_verif():
+def get_config_verif(verifier_image = None):
     return ServiceConfig(
-        image = IMAGE_NAME_BLOCKSCOUT_VERIF,
+        image = verifier_image or IMAGE_NAME_BLOCKSCOUT_VERIF,
         ports = VERIF_USED_PORTS,
         env_vars = {
             "SMART_CONTRACT_VERIFIER__SERVER__HTTP__ADDR": "0.0.0.0:{}".format(
@@ -148,6 +149,10 @@ def get_config_backend(
         max_memory = BLOCKSCOUT_MAX_MEMORY,
     )
 
+BLOCKSCOUT_JSONRPC_VARIANT = {
+    "reth": "geth",
+}
+
 def get_el_client_info(ip_addr, rpc_port_num, full_name):
     el_client_rpc_url = "http://{}:{}/".format(
         ip_addr,
@@ -156,5 +161,5 @@ def get_el_client_info(ip_addr, rpc_port_num, full_name):
     el_client_type = full_name.split("-")[2]
     return {
         "RPC_Url": el_client_rpc_url,
-        "Eth_Type": el_client_type,
+        "Eth_Type": BLOCKSCOUT_JSONRPC_VARIANT.get(el_client_type, el_client_type),
     }

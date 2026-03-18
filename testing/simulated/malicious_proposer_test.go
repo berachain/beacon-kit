@@ -53,7 +53,7 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	const coreLoopIterations = 1
 
 	// Initialize the chain state.
-	s.InitializeChain(s.T())
+	s.InitializeChain(s.T(), 1)
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
@@ -156,7 +156,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidTimestamps_Errors() {
 	const coreLoopIterations = 1
 
 	// Initialize the chain state.
-	s.InitializeChain(s.T())
+	s.InitializeChain(s.T(), 1)
 	nodeAddress, err := s.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
 	s.SimComet.Comet.SetNodeAddress(nodeAddress)
@@ -218,7 +218,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobCommitment_Errors() {
 	const coreLoopIterations = 1
 
 	// Initialize the chain state.
-	s.InitializeChain(s.T())
+	s.InitializeChain(s.T(), 1)
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
@@ -387,7 +387,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobInclusionProof_Errors() 
 	const coreLoopIterations = 1
 
 	// Initialize the chain state.
-	s.InitializeChain(s.T())
+	s.InitializeChain(s.T(), 1)
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
