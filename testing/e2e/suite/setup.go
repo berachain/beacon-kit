@@ -182,8 +182,7 @@ func (s *KurtosisE2ESuite) SetupConsensusClients(ctx context.Context) error {
 // TODO: set up execution clients for validators as well.
 func (s *KurtosisE2ESuite) SetupExecutionClients(ctx context.Context) error {
 	numFullNodes := s.cfg.NetworkConfiguration.FullNodes.Nodes[0].Replicas
-	numPreconfRPCNodes := s.cfg.NetworkConfiguration.PreconfRPCNodes.Nodes[0].Replicas
-	s.executionClients = make(map[string]*types.ExecutionClient, numFullNodes+numPreconfRPCNodes)
+	s.executionClients = make(map[string]*types.ExecutionClient, numFullNodes)
 
 	for i := range numFullNodes {
 		clientName := config.FullNodeExecutionClientName(i)
@@ -202,7 +201,7 @@ func (s *KurtosisE2ESuite) SetupExecutionClients(ctx context.Context) error {
 		return nil
 	}
 
-	for i := range numPreconfRPCNodes {
+	for i := range s.cfg.NetworkConfiguration.PreconfRPCNodes.Nodes[0].Replicas {
 		clientName := config.PreconfRPCClientName(i)
 		sCtx, err := s.Enclave().GetServiceContext(clientName)
 		if err != nil {
