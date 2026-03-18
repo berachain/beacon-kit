@@ -156,6 +156,15 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 	)
 }
 
+// NewPayload sends engine_newPayloadVX to the EL without retry logic.
+// Use this for one-shot validation where the caller handles the result directly.
+func (ee *Engine) NewPayload(
+	ctx context.Context,
+	req ctypes.NewPayloadRequest,
+) (*common.ExecutionHash, error) {
+	return ee.ec.NewPayload(ctx, req)
+}
+
 // NotifyNewPayload notifies the execution client of the new payload.
 //
 //nolint:funlen // error handling and logs
