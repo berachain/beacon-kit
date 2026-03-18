@@ -37,9 +37,6 @@ type E2ETestConfig struct {
 	AdditionalServices []AdditionalService `json:"additional_services"`
 	// Preconf specifies the preconfirmation configuration.
 	Preconf PreconfConfig `json:"preconf,omitempty"`
-	// RPCServiceName is the Kurtosis service name of the EL node to use
-	// for JSON-RPC in tests. Not serialized to Kurtosis.
-	RPCServiceName string `json:"-"`
 }
 
 // PreconfConfig holds the preconfirmation configuration for E2E tests.

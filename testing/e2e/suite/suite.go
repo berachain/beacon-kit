@@ -81,6 +81,11 @@ func (s *KurtosisE2ESuite) ExecutionClients(numFullNode int) *types.ExecutionCli
 	return s.executionClients[config.FullNodeExecutionClientName(numFullNode)]
 }
 
+// PreconfRPCClients returns the preconf RPC client for the given preconf RPC node number.
+func (s *KurtosisE2ESuite) PreconfRPCClients(numPreconfRPCNode int) *types.ExecutionClient {
+	return s.executionClients[config.PreconfRPCClientName(numPreconfRPCNode)]
+}
+
 // GenesisAccount returns the genesis account for the test suite.
 func (s *KurtosisE2ESuite) GenesisAccount() *types.EthAccount {
 	return s.genesisAccount

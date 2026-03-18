@@ -8,20 +8,12 @@ End-to-end tests for BeaconKit using [Kurtosis](https://www.kurtosis.com/), a pl
 testing/e2e/
   config/          # Network configuration structs and defaults
     config.go      #   E2ETestConfig, NetworkConfiguration, NodeSet, etc.
-<<<<<<< HEAD
-    defaults.go    #   DefaultE2ETestConfig(),
-=======
     defaults.go    #   DefaultE2ETestConfig(), PreconfLoadE2ETestConfig()
->>>>>>> 8fe76aad0 (3/n chore(kurtosis): reorganize e2e tests into subdirectories (#3043))
 
   suite/           # Shared test framework (Kurtosis orchestration, lifecycle)
     suite.go       #   KurtosisE2ESuite struct and accessors
     setup.go       #   SetupSuite, TearDownSuite, FundAccounts, WaitForFinalizedBlockNumber
-<<<<<<< HEAD
-    options.go     #   Functional options
-=======
     options.go     #   Functional options (WithPreconfLoadConfig)
->>>>>>> 8fe76aad0 (3/n chore(kurtosis): reorganize e2e tests into subdirectories (#3043))
     logs.go        #   Log fetching, dumping on failure
     constants.go   #   Ether, gas limits, timeouts
     errors.go      #   Shared error variables
@@ -30,10 +22,6 @@ testing/e2e/
   standard/        # Standard e2e test suite (package standard_test)
     setup_test.go  #   BeaconKitE2ESuite struct + entry point
     *_test.go      #   One file per feature (blobs, beacon API, staking, ...)
-<<<<<<< HEAD
-```
-
-=======
 
   preconf/         # Preconf e2e test suite (package preconf_test)
     setup_test.go  #   PreconfE2ESuite struct + entry point
@@ -41,16 +29,11 @@ testing/e2e/
     load_test.go   #   ETH transfers through preconf RPC
 ```
 
->>>>>>> 8fe76aad0 (3/n chore(kurtosis): reorganize e2e tests into subdirectories (#3043))
 ## How It Works
 
 ### Suite Lifecycle
 
-<<<<<<< HEAD
-Each test suite (`standard/`) defines a struct that embeds `suite.KurtosisE2ESuite` and uses [testify suites](https://pkg.go.dev/github.com/stretchr/testify/suite) for lifecycle management.
-=======
 Each test suite (`standard/`, `preconf/`) defines a struct that embeds `suite.KurtosisE2ESuite` and uses [testify suites](https://pkg.go.dev/github.com/stretchr/testify/suite) for lifecycle management.
->>>>>>> 8fe76aad0 (3/n chore(kurtosis): reorganize e2e tests into subdirectories (#3043))
 
 1. **SetupSuite** (runs once before all tests in a suite):
    - Loads configuration from `config/defaults.go` (or applies custom options)
@@ -71,11 +54,7 @@ Each test suite (`standard/`, `preconf/`) defines a struct that embeds `suite.Ku
 
 ### Enclave = One Suite
 
-<<<<<<< HEAD
-Each test suite gets its own Kurtosis enclave. The standard suite uses `DefaultE2ETestConfig()` (5 bera-reth validators. 5 bera-reth full nodes, 1 bera-reth seed node).
-=======
-Each test suite gets its own Kurtosis enclave. The standard suite uses `DefaultE2ETestConfig()` (5 validators: 3 geth + 2 reth, full nodes, seed nodes). The preconf suite uses `PreconfLoadE2ETestConfig()` which adds a dedicated sequencer node and preconf RPC nodes.
->>>>>>> 8fe76aad0 (3/n chore(kurtosis): reorganize e2e tests into subdirectories (#3043))
+Each test suite gets its own Kurtosis enclave. The standard suite uses `DefaultE2ETestConfig()` (5 bera-reth validators. 5 bera-reth full nodes, 1 bera-reth seed node). The preconf suite uses `PreconfLoadE2ETestConfig()` which adds a dedicated sequencer node and preconf RPC nodes.
 
 ### Build Tags
 

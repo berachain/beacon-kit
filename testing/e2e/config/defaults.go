@@ -28,11 +28,11 @@ import (
 )
 
 const (
-	NumFullNodes  = 5
 	NumValidators = 5
 
-	consensusClientFmt = "cl-validator-beaconkit-%d"
-	executionClientFmt = "el-full-reth-%d"
+	consensusClientFmt  = "cl-validator-beaconkit-%d"
+	executionClientFmt  = "el-full-reth-%d"
+	preconfRPCClientFmt = "el-preconf-rpc-reth-%d"
 )
 
 func ValidatorConsensusClientName(i int) string {
@@ -43,6 +43,10 @@ func FullNodeExecutionClientName(i int) string {
 	return fmt.Sprintf(executionClientFmt, i)
 }
 
+func PreconfRPCClientName(i int) string {
+	return fmt.Sprintf(preconfRPCClientFmt, i)
+}
+
 // DefaultE2ETestConfig provides a default configuration for end-to-end tests,
 // pre-populating with a standard set of validators and no additional
 // services.
@@ -51,7 +55,6 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 		NetworkConfiguration: defaultNetworkConfiguration(),
 		NodeSettings:         defaultNodeSettings(),
 		AdditionalServices:   defaultAdditionalServices(),
-		RPCServiceName:       "el-full-geth-2",
 	}
 }
 
@@ -75,7 +78,6 @@ func PreconfLoadE2ETestConfig() *E2ETestConfig {
 		}},
 	}
 	cfg.NetworkConfiguration.SeedNodes = NodeSet{Type: "seed", Nodes: []Node{}}
-	cfg.RPCServiceName = "el-full-reth-0"
 
 	cfg.NetworkConfiguration.SequencerNode = &Node{
 		ElType:  "reth",

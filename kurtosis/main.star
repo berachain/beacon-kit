@@ -220,7 +220,6 @@ def run(plan, network_configuration = {}, node_settings = {}, additional_service
             chain_id,
             chain_spec,
             genesis_files,
-            geth_config_artifact,
             el_enode_addrs,
             preconf_cfg,
         )
@@ -270,7 +269,6 @@ def run(plan, network_configuration = {}, node_settings = {}, additional_service
                 chain_id,
                 chain_spec,
                 genesis_files,
-                geth_config_artifact,
                 el_enode_addrs,
                 preconf_cfg,
             )

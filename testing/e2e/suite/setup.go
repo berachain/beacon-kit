@@ -181,9 +181,28 @@ func (s *KurtosisE2ESuite) SetupConsensusClients(ctx context.Context) error {
 //
 // TODO: set up execution clients for validators as well.
 func (s *KurtosisE2ESuite) SetupExecutionClients(ctx context.Context) error {
-	s.executionClients = make(map[string]*types.ExecutionClient, config.NumFullNodes)
-	for i := range config.NumFullNodes {
+	numFullNodes := s.cfg.NetworkConfiguration.FullNodes.Nodes[0].Replicas
+	s.executionClients = make(map[string]*types.ExecutionClient, numFullNodes)
+
+	for i := range numFullNodes {
 		clientName := config.FullNodeExecutionClientName(i)
+		sCtx, err := s.Enclave().GetServiceContext(clientName)
+		if err != nil {
+			return err
+		}
+
+		s.executionClients[clientName] = types.NewExecutionClient(sCtx)
+		if err = s.executionClients[clientName].Start(ctx); err != nil {
+			return err
+		}
+	}
+
+	if s.cfg.NetworkConfiguration.PreconfRPCNodes == nil {
+		return nil
+	}
+
+	for i := range s.cfg.NetworkConfiguration.PreconfRPCNodes.Nodes[0].Replicas {
+		clientName := config.PreconfRPCClientName(i)
 		sCtx, err := s.Enclave().GetServiceContext(clientName)
 		if err != nil {
 			return err
@@ -403,17 +422,4 @@ func (s *KurtosisE2ESuite) CheckForSuccessfulTx(tx common.Hash) bool {
 		return false
 	}
 	return receipt.Status == ethtypes.ReceiptStatusSuccessful
-}
-
-// kurtosisPackagePath returns the absolute path to the kurtosis/ directory
-// at the repository root. It uses runtime.Caller to locate this source file
-// (testing/e2e/suite/setup.go) and navigates relative to it, so the path
-// is correct regardless of where `go test` is invoked from.
-//
-//nolint:dogsled // no risk from e2e suite
-func kurtosisPackagePath() string {
-	_, filename, _, _ := runtime.Caller(0)
-	// filename = .../testing/e2e/suite/setup.go
-	// walk up 3 levels to repo root, then into kurtosis/
-	return filepath.Join(filepath.Dir(filename), "../../../kurtosis")
 }
