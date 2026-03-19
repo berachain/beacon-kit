@@ -25,13 +25,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/berachain/beacon-kit/beacon/deposits"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
-	"github.com/berachain/beacon-kit/primitives/version"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -128,28 +128,9 @@ func (s *Service) PostFinalizeBlockOps(ctx sdk.Context, blk *ctypes.BeaconBlock)
 	st := s.storageBackend.StateFromContext(ctx)
 
 	// Before Electra2, deposits must be fetched from the EL directly in the CL.
-	if version.IsBefore(blk.GetForkVersion(), version.Electra2()) {
-		// Fetch and store the deposit for the block.
-		blockNum := blk.GetBody().GetExecutionPayload().GetNumber()
-		deposits, err := s.depositContract.Fetcher(ctx, blockNum, s.eth1FollowDistance)
-		if err != nil {
-			s.logger.Error("Failed to read deposits", "block", blockNum, "error", err)
-		}
-		if len(deposits) == 0 {
-			s.logger.Info(
-				"depositFetcher, nothing to fetch",
-				"block", blockNum, "eth1FollowDistance", s.eth1FollowDistance,
-			)
-		} else {
-			s.logger.Info(
-				"Found deposits on execution layer", "block", blockNum, "deposits", len(deposits),
-			)
-		}
-
-		if err = s.storageBackend.DepositStore().EnqueueDeposits(ctx, deposits); err != nil {
-			s.logger.Error("Failed to store deposits", "block", blockNum, "error", err)
-		}
-	}
+	deposits.FetchDepositsPreElectra2(
+		ctx, s.depositContract, blk, s.eth1FollowDistance, s.storageBackend.DepositStore(), s.logger,
+	)
 
 	// Store the finalized block in the KVStore.
 	slot := blk.GetSlot()
@@ -188,6 +169,17 @@ func (s *Service) finalizeBeaconBlock(
 	// If the block is nil, exit early.
 	if beaconBlk == nil {
 		return nil, ErrNilBlk
+	}
+
+	// If on the first block of Electra2, catchup the previous 2 blocks' deposits.
+	var catchupErr error
+	s.catchupElectra2DepositsOnce.Do(func() {
+		catchupErr = deposits.CatchupElectra2Deposits(
+			ctx, s.depositContract, st, beaconBlk, s.chainSpec, s.storageBackend.DepositStore(), s.logger,
+		)
+	})
+	if catchupErr != nil {
+		return nil, catchupErr
 	}
 
 	valUpdates, err := s.executeStateTransition(ctx, st, blk)

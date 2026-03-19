@@ -18,14 +18,16 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package validator
+package deposits
 
-import "github.com/berachain/beacon-kit/errors"
-
-var (
-	// ErrNilBlkBody is an error for when the block body is nil.
-	ErrNilBlkBody = errors.New("nil block body")
-
-	// ErrNilBlobsBundle is an error for when the blobs bundle is nil.
-	ErrNilBlobsBundle = errors.New("nil blobs bundle")
+import (
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
+
+// ChainSpec defines an interface for accessing chain-specific parameters.
+type ChainSpec interface {
+	MaxDepositsPerBlock() uint64
+	ActiveForkVersionForTimestamp(timestamp math.U64) common.Version
+}
+

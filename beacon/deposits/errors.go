@@ -18,14 +18,12 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package validator
+package deposits
 
 import "github.com/berachain/beacon-kit/errors"
 
 var (
-	// ErrNilBlkBody is an error for when the block body is nil.
-	ErrNilBlkBody = errors.New("nil block body")
-
-	// ErrNilBlobsBundle is an error for when the blobs bundle is nil.
-	ErrNilBlobsBundle = errors.New("nil blobs bundle")
+	// ErrDepositStoreIncomplete is an error for when the deposit store has not returned
+	// the expected amount of deposits. Could be due to pruning when it should not be enabled.
+	ErrDepositStoreIncomplete = errors.New("deposits from deposit store incomplete")
 )

@@ -48,7 +48,6 @@ type Service struct {
 	// chainSpec holds the chain specifications.
 	chainSpec ServiceChainSpec
 	// executionEngine is the execution engine responsible for processing
-	//
 	// execution payloads.
 	executionEngine ExecutionEngine
 	// localBuilder is a local builder for constructing new beacon states.
@@ -59,7 +58,8 @@ type Service struct {
 	metrics *chainMetrics
 	// forceStartupSyncOnce is used to force a sync of the startup head.
 	forceStartupSyncOnce *sync.Once
-
+	// catchupElectra2DepositsOnce is used to catchup deposits for the first block of Electra2.
+	catchupElectra2DepositsOnce *sync.Once
 	// latestFcuReq holds a copy of the latest FCU sent to the execution layer.
 	// It helps avoid resending the same FCU data (and spares a network call)
 	// in case optimistic block building is active
@@ -79,17 +79,18 @@ func NewService(
 	telemetrySink TelemetrySink,
 ) *Service {
 	return &Service{
-		storageBackend:       storageBackend,
-		blobProcessor:        blobProcessor,
-		depositContract:      depositContract,
-		eth1FollowDistance:   math.U64(chainSpec.Eth1FollowDistance()),
-		logger:               logger,
-		chainSpec:            chainSpec,
-		executionEngine:      executionEngine,
-		localBuilder:         localBuilder,
-		stateProcessor:       stateProcessor,
-		metrics:              newChainMetrics(telemetrySink),
-		forceStartupSyncOnce: new(sync.Once),
+		storageBackend:              storageBackend,
+		blobProcessor:               blobProcessor,
+		depositContract:             depositContract,
+		eth1FollowDistance:          math.U64(chainSpec.Eth1FollowDistance()),
+		logger:                      logger,
+		chainSpec:                   chainSpec,
+		executionEngine:             executionEngine,
+		localBuilder:                localBuilder,
+		stateProcessor:              stateProcessor,
+		metrics:                     newChainMetrics(telemetrySink),
+		forceStartupSyncOnce:        new(sync.Once),
+		catchupElectra2DepositsOnce: new(sync.Once),
 	}
 }
 

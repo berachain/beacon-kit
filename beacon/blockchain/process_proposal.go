@@ -28,6 +28,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/berachain/beacon-kit/beacon/deposits"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/cache"
 	"github.com/berachain/beacon-kit/consensus/types"
@@ -328,6 +329,17 @@ func (s *Service) VerifyIncomingBlock(
 		}
 	}
 
+	// If on the first block of Electra2, catchup the previous 2 blocks' deposits.
+	var catchupErr error
+	s.catchupElectra2DepositsOnce.Do(func() {
+		catchupErr = deposits.CatchupElectra2Deposits(
+			ctx, s.depositContract, state, beaconBlk, s.chainSpec, s.storageBackend.DepositStore(), s.logger,
+		)
+	})
+	if catchupErr != nil {
+		return nil, catchupErr
+	}
+
 	// Verify the state root of the incoming block.
 	valUpdates, err := s.verifyStateRoot(ctx, state, blk)
 	if err != nil {
@@ -370,19 +382,6 @@ func (s *Service) VerifyIncomingBlock(
 		}
 		go s.handleOptimisticPayloadBuild(ctx, nextBlockData)
 	}
-
-	// TODO: Handle edge case around Electra2 fork activation.
-	// When transitioning from Electra1 to Electra2, deposits from the 2 blocks right before the
-	// fork activation will be lost. The old system fetches deposits from EL block N-1 during
-	// finalize_block N; the new system gets deposits embedded in the EL block itself.
-	//
-	// if version.Equals(
-	// 	s.chainSpec.ActiveForkVersionForTimestamp(nextBlockData.Timestamp),
-	// 	version.Electra2(),
-	// ) {
-	// 	// If the next block is on the Electra2 fork, we need to fetch the deposits from the EL.
-	// 	s.depositFetcher(ctx, nextBlockData.Number)
-	// }
 
 	return valUpdates, nil
 }
