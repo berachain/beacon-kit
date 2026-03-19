@@ -23,6 +23,7 @@ package validator
 import (
 	"context"
 	"fmt"
+	stdmath "math"
 	"time"
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
@@ -327,38 +328,40 @@ func (s *Service) buildBlockBody(
 	// Set the KZG commitments on the block body.
 	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
 
-	// Before Electra2, deposits are processed from the beacon block body directly.
-	if version.IsBefore(body.GetForkVersion(), version.Electra2()) {
-		// Dequeue deposits from the state.
-		depositIndex, err := st.GetEth1DepositIndex()
+	// If we are on the first Electra2 block, we need to catch up the previous 2 blocks' deposits.
+	lph, err := st.GetLatestExecutionPayloadHeader()
+	if err != nil {
+		return err
+	}
+	prevBlockForkVersion := s.chainSpec.ActiveForkVersionForTimestamp(lph.GetTimestamp())
+	if version.Equals(prevBlockForkVersion, version.Electra1()) &&
+		version.Equals(blk.GetForkVersion(), version.Electra2()) {
+		deposits, err := s.depositContract.ReadDeposits(ctx, lph.GetNumber()-1, lph.GetNumber())
 		if err != nil {
-			return fmt.Errorf("failed loading eth1 deposit index: %w", err)
+			s.logger.Error("Failed to read catchup deposits for Electra2", "error", err)
+			return err
 		}
+		if len(deposits) == 0 {
+			s.logger.Info("Deposits catchup for Electra2, nothing to fetch")
+		} else {
+			s.logger.Info("Found deposits to catchup for Electra2", "num", len(deposits))
+			if err = s.sb.DepositStore().EnqueueDeposits(ctx, deposits); err != nil {
+				s.logger.Error("Failed to store catchup deposits for Electra2", "error", err)
+				return err
+			}
+			err = s.setDeposits(ctx, st, body, blk.GetForkVersion(), prevBlockForkVersion)
+			if err != nil {
+				return err
+			}
+		}
+	}
 
-		// Grab all previous deposits from genesis up to the current index + max deposits per block.
-		deposits, localDepositRoot, err := s.sb.DepositStore().GetDepositsByIndex(
-			ctx,
-			constants.FirstDepositIndex,
-			depositIndex+s.chainSpec.MaxDepositsPerBlock(),
-		)
+	// Before Electra2, deposits are processed from the beacon block body directly.
+	if version.IsBefore(blk.GetForkVersion(), version.Electra2()) {
+		err = s.setDeposits(ctx, st, body, blk.GetForkVersion(), prevBlockForkVersion)
 		if err != nil {
 			return err
 		}
-		if uint64(len(deposits)) < depositIndex {
-			return errors.Wrapf(ErrDepositStoreIncomplete,
-				"all historical deposits not available, expected: %d, got: %d",
-				depositIndex, len(deposits),
-			)
-		}
-
-		s.logger.Info(
-			"Building block body with local deposits",
-			"start_index", depositIndex, "num_deposits", uint64(len(deposits))-depositIndex,
-		)
-
-		eth1Data := ctypes.NewEth1Data(localDepositRoot)
-		body.SetEth1Data(eth1Data)
-		body.SetDeposits(deposits[depositIndex:])
 	}
 
 	// Set the graffiti on the block body.
@@ -391,6 +394,63 @@ func (s *Service) buildBlockBody(
 		}
 	}
 
+	return nil
+}
+
+// Note: should only be called for versions before Electra2 and the first block of Electra2.
+func (s *Service) setDeposits(
+	ctx context.Context,
+	st *statedb.StateDB,
+	body *ctypes.BeaconBlockBody,
+	forkVersion common.Version,
+	prevBlockForkVersion common.Version,
+) error {
+	// Dequeue deposits from the state.
+	depositIndex, err := st.GetEth1DepositIndex()
+	if err != nil {
+		return fmt.Errorf("failed loading eth1 deposit index: %w", err)
+	}
+
+	// Ensure calling conditions are met. Either its called before Electra2 or on the first block
+	// of Electra2. And accordingly set the deposit range to query for from the deposit store.
+	var depositRange uint64
+	if version.IsBefore(forkVersion, version.Electra2()) {
+		depositRange = depositIndex + s.chainSpec.MaxDepositsPerBlock()
+	} else if version.Equals(prevBlockForkVersion, version.Electra1()) &&
+		version.Equals(forkVersion, version.Electra2()) {
+		// For the first block of Electra2 catchup deposits, we will include as many as are required to exhaust the
+		// queue. Since after this block in Electra2, we no longer use the deposit queue and
+		// instead follow EIP-6110 deposit requests.
+		depositRange = stdmath.MaxUint64
+	} else {
+		panic(
+			fmt.Sprintf(
+				"block builder: setDeposits called on wrong fork version %s",
+				version.Name(forkVersion),
+			),
+		)
+	}
+
+	// Grab all previous deposits from genesis up to the current index + max deposits per block.
+	deposits, localDepositRoot, err := s.sb.DepositStore().GetDepositsByIndex(
+		ctx, constants.FirstDepositIndex, depositRange,
+	)
+	if err != nil {
+		return err
+	}
+	if uint64(len(deposits)) < depositIndex {
+		return errors.Wrapf(ErrDepositStoreIncomplete,
+			"all historical deposits not available, expected: %d, got: %d",
+			depositIndex, len(deposits),
+		)
+	}
+
+	s.logger.Info(
+		"Building block body with local deposits",
+		"start_index", depositIndex, "num_deposits", uint64(len(deposits))-depositIndex,
+	)
+	body.SetEth1Data(ctypes.NewEth1Data(localDepositRoot))
+	body.SetDeposits(deposits[depositIndex:])
 	return nil
 }
 

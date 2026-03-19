@@ -131,7 +131,24 @@ func (s *Service) PostFinalizeBlockOps(ctx sdk.Context, blk *ctypes.BeaconBlock)
 	if version.IsBefore(blk.GetForkVersion(), version.Electra2()) {
 		// Fetch and store the deposit for the block.
 		blockNum := blk.GetBody().GetExecutionPayload().GetNumber()
-		s.depositFetcher(ctx, blockNum)
+		deposits, err := s.depositContract.Fetcher(ctx, blockNum, s.eth1FollowDistance)
+		if err != nil {
+			s.logger.Error("Failed to read deposits", "block", blockNum, "error", err)
+		}
+		if len(deposits) == 0 {
+			s.logger.Info(
+				"depositFetcher, nothing to fetch",
+				"block", blockNum, "eth1FollowDistance", s.eth1FollowDistance,
+			)
+		} else {
+			s.logger.Info(
+				"Found deposits on execution layer", "block", blockNum, "deposits", len(deposits),
+			)
+		}
+
+		if err = s.storageBackend.DepositStore().EnqueueDeposits(ctx, deposits); err != nil {
+			s.logger.Error("Failed to store deposits", "block", blockNum, "error", err)
+		}
 	}
 
 	// Store the finalized block in the KVStore.

@@ -29,7 +29,12 @@ import (
 
 // Contract is the ABI for the deposit contract.
 type Contract interface {
-	// ReadDeposits reads deposits from the deposit contract.
+	// Fetcher fetches deposits from the deposit contract.
+	Fetcher(
+		ctx context.Context,
+		blockNum math.U64,
+		eth1FollowDistance math.U64,
+	) ([]*ctypes.Deposit, error)
 	ReadDeposits(
 		ctx context.Context,
 		fromBlock math.U64,

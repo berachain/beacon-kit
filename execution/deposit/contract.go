@@ -60,7 +60,26 @@ func NewWrappedDepositContract(
 	}, nil
 }
 
-// ReadDeposits reads deposits from the deposit contract.
+func (dc *WrappedDepositContract) Fetcher(
+	ctx context.Context,
+	blockNum math.U64,
+	eth1FollowDistance math.U64,
+) ([]*ctypes.Deposit, error) {
+	if blockNum <= eth1FollowDistance {
+		return nil, nil
+	}
+
+	blockToFetch := blockNum - eth1FollowDistance
+	deposits, err := dc.ReadDeposits(ctx, blockToFetch, blockToFetch)
+	if err != nil {
+
+		return nil, err
+	}
+
+	return deposits, nil
+}
+
+// readDeposits reads deposits from the deposit contract.
 func (dc *WrappedDepositContract) ReadDeposits(
 	ctx context.Context,
 	fromBlock math.U64,
