@@ -32,6 +32,8 @@ import (
 )
 
 // processOperations processes the operations and ensures they match the local state.
+//
+//nolint:gocognit // sufficiently commented.
 func (sp *StateProcessor) processOperations(
 	ctx ReadOnlyContext,
 	st *state.StateDB,
@@ -43,8 +45,8 @@ func (sp *StateProcessor) processOperations(
 		err      error
 	)
 
+	// Validators increase/decrease stake through execution requests starting in Electra.
 	if version.EqualsOrIsAfter(blk.GetForkVersion(), version.Electra()) {
-		// Validators increase/decrease stake through execution requests starting in Electra.
 		requests, err = blk.GetBody().GetExecutionRequests()
 		if err != nil {
 			return err
@@ -69,7 +71,8 @@ func (sp *StateProcessor) processOperations(
 		deposits = requests.Deposits
 	}
 
-	// Before Electra2, we directly compare block deposits with our local store ones.
+	// Before (and the first block of) Electra2, we directly compare block deposits with our
+	// local store ones.
 	if err = ValidateNonGenesisDepositsPreElectra2(
 		ctx.ConsensusCtx(),
 		st,

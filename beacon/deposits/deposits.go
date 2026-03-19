@@ -75,8 +75,8 @@ func CatchupElectra2Deposits(
 	return nil
 }
 
-// FetchDepositsPreElectra2 fetches deposits from the EL directly into the CL.
-func FetchDepositsPreElectra2(
+// FetchPreviousDepositsPreElectra2 fetches deposits from the EL at the given eth1 follow distance.
+func FetchPreviousDepositsPreElectra2(
 	ctx context.Context,
 	depositContract deposit.Contract,
 	blk *ctypes.BeaconBlock,
@@ -84,36 +84,39 @@ func FetchDepositsPreElectra2(
 	depositStore depositstore.StoreManager,
 	logger log.Logger,
 ) {
-	if version.IsBefore(blk.GetForkVersion(), version.Electra2()) {
-		// Fetch and store the deposit for the block.
-		blockNum := blk.GetBody().GetExecutionPayload().GetNumber()
-		if blockNum <= eth1FollowDistance {
-			logger.Info(
-				"depositFetcher, nothing to fetch",
-				"block num", blockNum,
-				"eth1FollowDistance", eth1FollowDistance,
-			)
-			return
-		}
-		blockToFetch := blockNum - eth1FollowDistance
-		deposits, err := depositContract.ReadDeposits(ctx, blockToFetch, blockToFetch)
-		if err != nil {
-			logger.Error("Failed to read deposits", "block", blockNum, "error", err)
-		}
-		if len(deposits) == 0 {
-			logger.Info(
-				"depositFetcher, nothing to fetch",
-				"block", blockNum, "eth1FollowDistance", eth1FollowDistance,
-			)
-		} else {
-			logger.Info(
-				"Found deposits on execution layer", "block", blockNum, "deposits", len(deposits),
-			)
-		}
+	// If after Electra2, we don't need to fetch previous deposits since EIP-6110 is used.
+	if version.EqualsOrIsAfter(blk.GetForkVersion(), version.Electra2()) {
+		return
+	}
 
-		if err = depositStore.EnqueueDeposits(ctx, deposits); err != nil {
-			logger.Error("Failed to store deposits", "block", blockNum, "error", err)
-		}
+	// Fetch and store the deposit for the block.
+	blockNum := blk.GetBody().GetExecutionPayload().GetNumber()
+	if blockNum <= eth1FollowDistance {
+		logger.Info(
+			"depositFetcher, nothing to fetch",
+			"block num", blockNum,
+			"eth1FollowDistance", eth1FollowDistance,
+		)
+		return
+	}
+	blockToFetch := blockNum - eth1FollowDistance
+	deposits, err := depositContract.ReadDeposits(ctx, blockToFetch, blockToFetch)
+	if err != nil {
+		logger.Error("Failed to read deposits", "block", blockNum, "error", err)
+	}
+	if len(deposits) == 0 {
+		logger.Info(
+			"depositFetcher, nothing to fetch",
+			"block", blockNum, "eth1FollowDistance", eth1FollowDistance,
+		)
+	} else {
+		logger.Info(
+			"Found deposits on execution layer", "block", blockNum, "deposits", len(deposits),
+		)
+	}
+
+	if err = depositStore.EnqueueDeposits(ctx, deposits); err != nil {
+		logger.Error("Failed to store deposits", "block", blockNum, "error", err)
 	}
 }
 

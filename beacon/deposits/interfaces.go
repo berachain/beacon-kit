@@ -30,4 +30,3 @@ type ChainSpec interface {
 	MaxDepositsPerBlock() uint64
 	ActiveForkVersionForTimestamp(timestamp math.U64) common.Version
 }
-

@@ -127,8 +127,8 @@ func (s *Service) PostFinalizeBlockOps(ctx sdk.Context, blk *ctypes.BeaconBlock)
 	// TODO: consider extracting LatestExecutionPayloadHeader instead of using state here
 	st := s.storageBackend.StateFromContext(ctx)
 
-	// Before Electra2, deposits must be fetched from the EL directly in the CL.
-	deposits.FetchDepositsPreElectra2(
+	// Before Electra2, deposits must be fetched from the EL (at the eth1 follow distance).
+	deposits.FetchPreviousDepositsPreElectra2(
 		ctx, s.depositContract, blk, s.eth1FollowDistance, s.storageBackend.DepositStore(), s.logger,
 	)
 
