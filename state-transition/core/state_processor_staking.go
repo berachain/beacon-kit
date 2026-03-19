@@ -36,6 +36,7 @@ func (sp *StateProcessor) processOperations(
 	ctx ReadOnlyContext,
 	st *state.StateDB,
 	blk *ctypes.BeaconBlock,
+	prevBlockForkVersion common.Version,
 ) error {
 	var (
 		requests *ctypes.ExecutionRequests
@@ -52,33 +53,41 @@ func (sp *StateProcessor) processOperations(
 
 	var deposits []*ctypes.Deposit
 	if version.IsBefore(blk.GetForkVersion(), version.Electra2()) {
-		// Before Electra2 however, deposits are taken from the beacon block body directly.
+		// Before Electra2, deposits are taken from the beacon block body directly.
 		//
 		// Verify that outstanding deposits are processed up to the maximum number of deposits.
 		// Unlike Ethereum 2.0 specs, we don't check that
 		// `len(body.deposits) ==  min(MAX_DEPOSITS, state.eth1_data.deposit_count - state.eth1_deposit_index)`.
-		deposits = blk.GetBody().GetDeposits()
-		if uint64(len(deposits)) > sp.cs.MaxDepositsPerBlock() {
+		if uint64(len(blk.GetBody().GetDeposits())) > sp.cs.MaxDepositsPerBlock() {
 			return errors.Wrapf(
 				ErrExceedsBlockDepositLimit, "expected: %d, got: %d",
 				sp.cs.MaxDepositsPerBlock(), len(deposits),
 			)
 		}
-
-		// Instead, we directly compare block deposits with our local store ones.
-		if err = ValidateNonGenesisDepositsPreElectra2(
-			ctx.ConsensusCtx(),
-			st,
-			sp.ds,
-			sp.cs.MaxDepositsPerBlock(),
-			deposits,
-			blk.GetBody().GetEth1Data().DepositRoot,
-		); err != nil {
-			return err
-		}
 	} else if requests != nil {
 		// Starting in Electra2, EIP-6110 style deposit requests are used.
 		deposits = requests.Deposits
+	}
+
+	// Before Electra2, we directly compare block deposits with our local store ones.
+	if err = ValidateNonGenesisDepositsPreElectra2(
+		ctx.ConsensusCtx(),
+		st,
+		sp.ds,
+		sp.cs.MaxDepositsPerBlock(),
+		blk.GetBody().GetDeposits(),
+		blk.GetBody().GetEth1Data().DepositRoot,
+		blk.GetForkVersion(),
+		prevBlockForkVersion,
+	); err != nil {
+		return err
+	}
+
+	// First block of Electra2: also process the catchup deposits from
+	// the block body to exhaust the pre-Electra2 deposit queue.
+	if version.Equals(prevBlockForkVersion, version.Electra1()) &&
+		version.Equals(blk.GetForkVersion(), version.Electra2()) {
+		deposits = append(blk.GetBody().GetDeposits(), deposits...)
 	}
 
 	// Process the deposits.

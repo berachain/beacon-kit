@@ -171,7 +171,7 @@ func (s *Service) finalizeBeaconBlock(
 		return nil, ErrNilBlk
 	}
 
-	// If on the first block of Electra2, catchup the previous 2 blocks' deposits.
+	// If on the first block of Electra2, catchup the previous block's deposits.
 	var catchupErr error
 	s.catchupElectra2DepositsOnce.Do(func() {
 		catchupErr = deposits.CatchupElectra2Deposits(

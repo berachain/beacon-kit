@@ -24,6 +24,7 @@ import (
 	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	clicontext "github.com/berachain/beacon-kit/cli/context"
 	servercmtlog "github.com/berachain/beacon-kit/consensus/cometbft/service/log"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/state-transition/core"
 	"github.com/berachain/beacon-kit/storage/db"
 	dbm "github.com/cosmos/cosmos-db"
@@ -77,6 +78,10 @@ func GetDBCheckCmd(appCreator servertypes.AppCreator) *cobra.Command {
 				// blkDepositRoot: eth1Data.DepositRoot
 				// We will compare against the beacon state's deposit root at this snapshotted state.
 				eth1Data.DepositRoot,
+				// blkForkVersion: any version before Electra2.
+				version.Electra1(),
+				// prevBlockForkVersion: any version before Electra2.
+				version.Electra1(),
 			); err != nil {
 				return err
 			}

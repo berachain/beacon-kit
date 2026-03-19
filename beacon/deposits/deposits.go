@@ -36,7 +36,7 @@ import (
 	depositstore "github.com/berachain/beacon-kit/storage/deposit"
 )
 
-// If on the first block of Electra2, catchup the previous 2 blocks' deposits.
+// If on the first block of Electra2, catchup the previous block's deposits.
 func CatchupElectra2Deposits(
 	ctx context.Context,
 	depositContract deposit.Contract,
@@ -57,7 +57,7 @@ func CatchupElectra2Deposits(
 		return nil
 	}
 
-	deposits, err := depositContract.ReadDeposits(ctx, lph.GetNumber()-1, lph.GetNumber())
+	deposits, err := depositContract.ReadDeposits(ctx, lph.GetNumber(), lph.GetNumber())
 	if err != nil {
 		return err
 	}
@@ -87,7 +87,16 @@ func FetchDepositsPreElectra2(
 	if version.IsBefore(blk.GetForkVersion(), version.Electra2()) {
 		// Fetch and store the deposit for the block.
 		blockNum := blk.GetBody().GetExecutionPayload().GetNumber()
-		deposits, err := depositContract.Fetcher(ctx, blockNum, eth1FollowDistance)
+		if blockNum <= eth1FollowDistance {
+			logger.Info(
+				"depositFetcher, nothing to fetch",
+				"block num", blockNum,
+				"eth1FollowDistance", eth1FollowDistance,
+			)
+			return
+		}
+		blockToFetch := blockNum - eth1FollowDistance
+		deposits, err := depositContract.ReadDeposits(ctx, blockToFetch, blockToFetch)
 		if err != nil {
 			logger.Error("Failed to read deposits", "block", blockNum, "error", err)
 		}
