@@ -44,7 +44,7 @@ const (
 	roundRotationTimeout = 90 * time.Second
 
 	// The number of additional blocks required to confirm the chain is healthy.
-	blocksAfterRotation = 10
+	blocksAfterRestore = 10
 )
 
 // TestPreconf_RoundRotation_NonWhitelistedValidator verifies the scenario
@@ -57,7 +57,7 @@ func (s *PreconfE2ESuite) TestPreconf_RoundRotation_NonWhitelistedValidator() {
 	var originalWhitelist []string
 	stoppedValidator := config.ValidatorConsensusClientName(0)
 
-	// Unwhitelist first validator.
+	// Remove first validator from the whitelist.
 	s.Run("NarrowWhitelist", func() {
 		val0Pubkey, err := s.getValidatorBLSPubkey(stoppedValidator)
 		s.Require().NoError(err, "Should get validator 0 BLS pubkey from key file")
@@ -116,28 +116,7 @@ func (s *PreconfE2ESuite) TestPreconf_RoundRotation_NonWhitelistedValidator() {
 
 	// Restore original environment (all validators are whitelisted and the stopped one is restarted).
 	s.Run("Restore", func() {
-		// Snapshot the non-whitelisted log count before restoring so we can assert it stops growing.
-		logsBefore, logErr := s.GetServiceLogs(sequencerCLService)
-		s.Require().NoError(logErr)
-		falseCountBefore := suite.CountLogMessages(logsBefore, sequencerNotWhitelistedLog)
-
-		s.Require().NoError(s.writeSequencerWhitelist(originalWhitelist))
-		s.Require().NoError(s.sighupSequencer())
-
-		s.T().Logf("Restarting %s...", stoppedValidator)
-		s.Require().NoError(s.StartService(stoppedValidator))
-
-		s.Require().NoError(s.WaitForNBlockNumbers(blocksAfterRotation),
-			"Chain must continue after full whitelist is restored and validator restarts")
-
-		// After blocksAfterRotation new blocks, the count must be the same.
-		logsAfter, logErr := s.GetServiceLogs(sequencerCLService)
-		s.Require().NoError(logErr)
-		falseCountAfter := suite.CountLogMessages(logsAfter, sequencerNotWhitelistedLog)
-		s.Require().Equal(falseCountBefore, falseCountAfter,
-			"No new %q entries must appear after the whitelist is restored "+
-				"(got %d before restore, %d after — delta indicates non-whitelisted validators remain)",
-			sequencerNotWhitelistedLog, falseCountBefore, falseCountAfter)
+		s.restore(originalWhitelist, stoppedValidator)
 	})
 }
 
@@ -201,35 +180,42 @@ func (s *PreconfE2ESuite) TestPreconf_RoundRotation_WhitelistedValidator() {
 
 	// Restore original environment.
 	s.Run("Restore", func() {
-		s.Require().NoError(s.writeSequencerWhitelist(originalWhitelist))
-		s.Require().NoError(s.sighupSequencer())
-
-		// Wait for reload to take effect before snapshotting (NarrowWhitelist already
-		// triggered one reload, so we need >= 2 total to confirm this second one).
-		s.Require().Eventually(func() bool {
-			logs, logErr := s.GetServiceLogs(sequencerCLService)
-			return logErr == nil && suite.CountLogMessages(logs, sequencerWhitelistReloadLog) >= 2
-		}, 15*time.Second, 500*time.Millisecond,
-			"Sequencer must confirm whitelist restore reload")
-
-		logsBefore, logErr := s.GetServiceLogs(sequencerCLService)
-		s.Require().NoError(logErr)
-		falseCountBefore := suite.CountLogMessages(logsBefore, sequencerNotWhitelistedLog)
-
-		s.T().Logf("Restarting %s...", stoppedValidator)
-		s.Require().NoError(s.StartService(stoppedValidator))
-
-		s.Require().NoError(s.WaitForNBlockNumbers(blocksAfterRotation),
-			"Chain must continue after full whitelist is restored and validator restarts")
-
-		logsAfter, logErr := s.GetServiceLogs(sequencerCLService)
-		s.Require().NoError(logErr)
-		falseCountAfter := suite.CountLogMessages(logsAfter, sequencerNotWhitelistedLog)
-		s.Require().Equal(falseCountBefore, falseCountAfter,
-			"No new %q entries must appear after the whitelist is restored "+
-				"(got %d before restore, %d after — delta indicates non-whitelisted validators remain)",
-			sequencerNotWhitelistedLog, falseCountBefore, falseCountAfter)
+		s.restore(originalWhitelist, stoppedValidator)
 	})
+}
+
+// restore reverts the whitelist to the given one and restarts the stopped validator.
+func (s *PreconfE2ESuite) restore(whitelist []string, stoppedValidator string) {
+	s.Require().NoError(s.writeSequencerWhitelist(whitelist))
+	s.Require().NoError(s.sighupSequencer())
+
+	// Wait for reload to take effect before snapshotting (NarrowWhitelist already
+	// triggered one reload, so we need >= 2 total to confirm this second one).
+	s.Require().Eventually(func() bool {
+		logs, logErr := s.GetServiceLogs(sequencerCLService)
+		return logErr == nil && suite.CountLogMessages(logs, sequencerWhitelistReloadLog) >= 2
+	}, 15*time.Second, 500*time.Millisecond,
+		"Sequencer must confirm whitelist restore reload")
+
+	// Snapshot the non-whitelisted log count before restoring so we can assert it stops growing.
+	logsBefore, logErr := s.GetServiceLogs(sequencerCLService)
+	s.Require().NoError(logErr)
+	falseCountBefore := suite.CountLogMessages(logsBefore, sequencerNotWhitelistedLog)
+
+	s.T().Logf("Restarting %s...", stoppedValidator)
+	s.Require().NoError(s.StartService(stoppedValidator))
+
+	s.Require().NoError(s.WaitForNBlockNumbers(blocksAfterRotation),
+		"Chain must continue after full whitelist is restored and validator restarts")
+
+	// After blocksAfterRotation new blocks, the count must be the same.
+	logsAfter, logErr := s.GetServiceLogs(sequencerCLService)
+	s.Require().NoError(logErr)
+	falseCountAfter := suite.CountLogMessages(logsAfter, sequencerNotWhitelistedLog)
+	s.Require().Equal(falseCountBefore, falseCountAfter,
+		"No new %q entries must appear after the whitelist is restored "+
+			"(got %d before restore, %d after — delta indicates non-whitelisted validators remain)",
+		sequencerNotWhitelistedLog, falseCountBefore, falseCountAfter)
 }
 
 // getValidatorBLSPubkey returns the "0x<hex>" formatted BLS pubkey of the given validator service.
