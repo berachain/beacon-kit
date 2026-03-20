@@ -36,6 +36,7 @@ import (
 const (
 	sequencerWhitelistReloadLog = "Preconf whitelist reloaded"
 	sequencerNotWhitelistedLog  = "is_whitelisted=false"
+	sequencerWhitelistedLog     = "is_whitelisted=true"
 
 	whitelistPath = "/root/preconf/whitelist.json"
 
@@ -47,8 +48,8 @@ const (
 )
 
 // TestPreconf_RoundRotation_NonWhitelistedValidator verifies the scenario
-// where a NON-whitelisted validator fails to propose and the round skips to a
-// whitelisted validator instead.
+// where a NON-whitelisted validator fails to propose and the round rotates to
+// a whitelisted validator instead.
 func (s *PreconfE2ESuite) TestPreconf_RoundRotation_NonWhitelistedValidator() {
 	err := s.WaitForFinalizedBlockNumber(blocksToWait)
 	s.Require().NoError(err, "Network should reach initial finalized blocks")
@@ -57,7 +58,7 @@ func (s *PreconfE2ESuite) TestPreconf_RoundRotation_NonWhitelistedValidator() {
 	stoppedValidator := config.ValidatorConsensusClientName(0)
 
 	// Unwhitelist first validator.
-	s.Run("UnwhitelistValidator", func() {
+	s.Run("NarrowWhitelist", func() {
 		val0Pubkey, err := s.getValidatorBLSPubkey(stoppedValidator)
 		s.Require().NoError(err, "Should get validator 0 BLS pubkey from key file")
 		s.T().Logf("Validator 0 BLS pubkey: %s", val0Pubkey)
@@ -97,7 +98,7 @@ func (s *PreconfE2ESuite) TestPreconf_RoundRotation_NonWhitelistedValidator() {
 	currentBlock, err := s.ExecutionClients(0).BlockNumber(s.Ctx())
 	s.Require().NoError(err)
 
-	// When stopped non-whitelisted validator is selected as proposer, round rotation must occur.
+	// When stopped validator is selected as proposer, round rotation must occur.
 	s.Run("RoundRotationWithNonWhitelistedProposer", func() {
 		rotated, rotatedHeight := s.waitForRoundRotationBlock(currentBlock+1, roundRotationTimeout)
 		s.Require().True(rotated,
@@ -113,8 +114,8 @@ func (s *PreconfE2ESuite) TestPreconf_RoundRotation_NonWhitelistedValidator() {
 			sequencerNotWhitelistedLog)
 	})
 
-	// Restore original environment: all validators are whitelisted and the stopped one is restarted.
-	s.Run("RestoreWhitelistAndRestart", func() {
+	// Restore original environment (all validators are whitelisted and the stopped one is restarted).
+	s.Run("Restore", func() {
 		// Snapshot the non-whitelisted log count before restoring so we can assert it stops growing.
 		logsBefore, logErr := s.GetServiceLogs(sequencerCLService)
 		s.Require().NoError(logErr)
@@ -130,6 +131,97 @@ func (s *PreconfE2ESuite) TestPreconf_RoundRotation_NonWhitelistedValidator() {
 			"Chain must continue after full whitelist is restored and validator restarts")
 
 		// After blocksAfterRotation new blocks, the count must be the same.
+		logsAfter, logErr := s.GetServiceLogs(sequencerCLService)
+		s.Require().NoError(logErr)
+		falseCountAfter := suite.CountLogMessages(logsAfter, sequencerNotWhitelistedLog)
+		s.Require().Equal(falseCountBefore, falseCountAfter,
+			"No new %q entries must appear after the whitelist is restored "+
+				"(got %d before restore, %d after — delta indicates non-whitelisted validators remain)",
+			sequencerNotWhitelistedLog, falseCountBefore, falseCountAfter)
+	})
+}
+
+// TestPreconf_RoundRotation_WhitelistedValidator verifies the inverse scenario
+// where a whitelisted validator fails to propose and the round rotates to a
+// non-whitelisted validator instead.
+func (s *PreconfE2ESuite) TestPreconf_RoundRotation_WhitelistedValidator() {
+	err := s.WaitForFinalizedBlockNumber(blocksToWait)
+	s.Require().NoError(err, "Network should reach initial finalized blocks")
+
+	var originalWhitelist []string
+	stoppedValidator := config.ValidatorConsensusClientName(0)
+
+	// Narrow the whitelist to only validator 0.
+	s.Run("NarrowWhitelist", func() {
+		val0Pubkey, err := s.getValidatorBLSPubkey(stoppedValidator)
+		s.Require().NoError(err, "Should get validator 0 BLS pubkey from key file")
+		s.T().Logf("Validator 0 BLS pubkey: %s", val0Pubkey)
+
+		originalWhitelist, err = s.readSequencerWhitelist()
+		s.Require().NoError(err, "Should read current whitelist from sequencer")
+		s.Require().NotEmpty(originalWhitelist, "Whitelist must not be empty at start")
+		s.T().Logf("Original whitelist has %d entries", len(originalWhitelist))
+
+		// Keep only validator 0's pubkey — all others become non-whitelisted.
+		s.Require().NoError(s.writeSequencerWhitelist([]string{val0Pubkey}))
+		s.Require().NoError(s.sighupSequencer())
+		s.T().Logf("Whitelist narrowed to 1 entry; only validator 0 is whitelisted")
+
+		s.Require().Eventually(func() bool {
+			logs, logErr := s.GetServiceLogs(sequencerCLService)
+			return logErr == nil && suite.ContainsLogMessage(logs, sequencerWhitelistReloadLog)
+		}, 15*time.Second, 500*time.Millisecond,
+			"Sequencer must log a successful whitelist reload after SIGHUP")
+	})
+
+	// Stop the only whitelisted validator.
+	s.Run("StopValidator", func() {
+		s.T().Logf("Stopping %s (only whitelisted validator) to induce round rotation...", stoppedValidator)
+		s.Require().NoError(s.StopService(stoppedValidator))
+	})
+
+	currentBlock, err := s.ExecutionClients(0).BlockNumber(s.Ctx())
+	s.Require().NoError(err)
+
+	// When stopped validator is selected as proposer, round rotation must occur.
+	s.Run("RoundRotationWithWhitelistedProposers", func() {
+		rotated, rotatedHeight := s.waitForRoundRotationBlock(currentBlock+1, roundRotationTimeout)
+		s.Require().True(rotated,
+			"At least one block must be committed at Round > 0 after stopping validator 0")
+		s.T().Logf("Round rotation observed at block height %d", rotatedHeight)
+
+		// Poll for the log: Kurtosis log propagation may lag the block commit by a few seconds.
+		s.Require().Eventually(func() bool {
+			seqLogs, logErr := s.GetServiceLogs(sequencerCLService)
+			return logErr == nil && suite.ContainsLogMessage(seqLogs, sequencerWhitelistedLog)
+		}, 15*time.Second, 500*time.Millisecond,
+			"Sequencer must log %q for the whitelisted proposer that caused the rotation",
+			sequencerWhitelistedLog)
+	})
+
+	// Restore original environment.
+	s.Run("Restore", func() {
+		s.Require().NoError(s.writeSequencerWhitelist(originalWhitelist))
+		s.Require().NoError(s.sighupSequencer())
+
+		// Wait for reload to take effect before snapshotting (NarrowWhitelist already
+		// triggered one reload, so we need >= 2 total to confirm this second one).
+		s.Require().Eventually(func() bool {
+			logs, logErr := s.GetServiceLogs(sequencerCLService)
+			return logErr == nil && suite.CountLogMessages(logs, sequencerWhitelistReloadLog) >= 2
+		}, 15*time.Second, 500*time.Millisecond,
+			"Sequencer must confirm whitelist restore reload")
+
+		logsBefore, logErr := s.GetServiceLogs(sequencerCLService)
+		s.Require().NoError(logErr)
+		falseCountBefore := suite.CountLogMessages(logsBefore, sequencerNotWhitelistedLog)
+
+		s.T().Logf("Restarting %s...", stoppedValidator)
+		s.Require().NoError(s.StartService(stoppedValidator))
+
+		s.Require().NoError(s.WaitForNBlockNumbers(blocksAfterRotation),
+			"Chain must continue after full whitelist is restored and validator restarts")
+
 		logsAfter, logErr := s.GetServiceLogs(sequencerCLService)
 		s.Require().NoError(logErr)
 		falseCountAfter := suite.CountLogMessages(logsAfter, sequencerNotWhitelistedLog)
