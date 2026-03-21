@@ -172,14 +172,10 @@ func (s *Service) finalizeBeaconBlock(
 	}
 
 	// If on the first block of Electra2, catchup the previous block's deposits.
-	var catchupErr error
-	s.catchupElectra2DepositsOnce.Do(func() {
-		catchupErr = deposits.CatchupElectra2Deposits(
-			ctx, s.depositContract, st, beaconBlk, s.chainSpec, s.storageBackend.DepositStore(), s.logger,
-		)
-	})
-	if catchupErr != nil {
-		return nil, catchupErr
+	if err := deposits.CatchupElectra2Deposits(
+		ctx, s.depositContract, st, beaconBlk, s.chainSpec, s.storageBackend.DepositStore(), s.logger,
+	); err != nil {
+		return nil, err
 	}
 
 	valUpdates, err := s.executeStateTransition(ctx, st, blk)

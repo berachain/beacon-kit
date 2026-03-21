@@ -29,9 +29,9 @@ import (
 
 // Contract is the ABI for the deposit contract.
 type Contract interface {
+	LastBlockNumber() math.U64
 	ReadDeposits(
 		ctx context.Context,
-		fromBlock math.U64,
-		toBlock math.U64,
+		blockNumber math.U64,
 	) ([]*ctypes.Deposit, error)
 }

@@ -24,6 +24,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync/atomic"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/gethlib/deposit"
@@ -38,6 +39,10 @@ import (
 type WrappedDepositContract struct {
 	// DepositContractFilterer is a pointer to the codegen ABI binding.
 	deposit.DepositContractFilterer
+
+	// lastBlockNumber is the last block number that was successfully read from
+	// the deposit contract.
+	lastBlockNumber atomic.Pointer[math.U64]
 }
 
 // NewWrappedDepositContract creates a new DepositContract.
@@ -60,17 +65,21 @@ func NewWrappedDepositContract(
 	}, nil
 }
 
-// readDeposits reads deposits from the deposit contract.
+// LastBlockNumber returns the last block number that was successfully read from the deposit contract.
+func (dc *WrappedDepositContract) LastBlockNumber() math.U64 {
+	return *dc.lastBlockNumber.Load()
+}
+
+// ReadDeposits reads deposits from the deposit contract.
 func (dc *WrappedDepositContract) ReadDeposits(
 	ctx context.Context,
-	fromBlock math.U64,
-	toBlock math.U64,
+	blockNumber math.U64,
 ) ([]*ctypes.Deposit, error) {
 	logs, err := dc.FilterDeposit(
 		&bind.FilterOpts{
 			Context: ctx,
-			Start:   fromBlock.Unwrap(),
-			End:     toBlock.UnwrapPtr(),
+			Start:   blockNumber.Unwrap(),
+			End:     blockNumber.UnwrapPtr(),
 		},
 	)
 	if err != nil {
@@ -105,6 +114,8 @@ func (dc *WrappedDepositContract) ReadDeposits(
 		}
 		deposits = append(deposits, deposit)
 	}
+
+	dc.lastBlockNumber.Store(&blockNumber)
 
 	return deposits, nil
 }

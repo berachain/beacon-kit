@@ -330,14 +330,10 @@ func (s *Service) VerifyIncomingBlock(
 	}
 
 	// If on the first block of Electra2, catchup the previous block's deposits.
-	var catchupErr error
-	s.catchupElectra2DepositsOnce.Do(func() {
-		catchupErr = deposits.CatchupElectra2Deposits(
-			ctx, s.depositContract, state, beaconBlk, s.chainSpec, s.storageBackend.DepositStore(), s.logger,
-		)
-	})
-	if catchupErr != nil {
-		return nil, catchupErr
+	if err = deposits.CatchupElectra2Deposits(
+		ctx, s.depositContract, state, beaconBlk, s.chainSpec, s.storageBackend.DepositStore(), s.logger,
+	); err != nil {
+		return nil, err
 	}
 
 	// Verify the state root of the incoming block.
