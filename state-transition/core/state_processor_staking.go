@@ -92,7 +92,7 @@ func (sp *StateProcessor) processOperations(
 	if version.Equals(prevBlockForkVersion, version.Electra1()) &&
 		version.Equals(blk.GetForkVersion(), version.Electra2()) {
 		// NOTE: for this block, we do not impose a maximum number of block deposits
-		// since we are exhasuting the full deposit queue.
+		// since we are exhausting the full deposit queue.
 		deposits = append(blk.GetBody().GetDeposits(), deposits...)
 	}
 
