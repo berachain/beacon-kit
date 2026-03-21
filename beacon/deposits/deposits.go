@@ -78,6 +78,8 @@ func CatchupElectra2Deposits(
 		return err
 	}
 
+	depositContract.SetLastBlockNumber(lph.GetNumber())
+
 	return nil
 }
 

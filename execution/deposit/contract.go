@@ -40,7 +40,7 @@ type WrappedDepositContract struct {
 	// DepositContractFilterer is a pointer to the codegen ABI binding.
 	deposit.DepositContractFilterer
 
-	// lastBlockNumber is the last block number that was successfully read from
+	// lastBlockNumber is the last block number that was successfully consumed from
 	// the deposit contract.
 	lastBlockNumber atomic.Pointer[math.U64]
 }
@@ -65,9 +65,13 @@ func NewWrappedDepositContract(
 	}, nil
 }
 
-// LastBlockNumber returns the last block number that was successfully read from the deposit contract.
+// LastBlockNumber returns the last block number that was successfully
+// consumed from the deposit contract.
 func (dc *WrappedDepositContract) LastBlockNumber() math.U64 {
-	return *dc.lastBlockNumber.Load()
+	if p := dc.lastBlockNumber.Load(); p != nil {
+		return *p
+	}
+	return 0
 }
 
 // ReadDeposits reads deposits from the deposit contract.
@@ -115,7 +119,11 @@ func (dc *WrappedDepositContract) ReadDeposits(
 		deposits = append(deposits, deposit)
 	}
 
-	dc.lastBlockNumber.Store(&blockNumber)
-
 	return deposits, nil
+}
+
+// SetLastBlockNumber sets the last block number that was successfully
+// consumed from the deposit contract.
+func (dc *WrappedDepositContract) SetLastBlockNumber(blockNumber math.U64) {
+	dc.lastBlockNumber.Store(&blockNumber)
 }
