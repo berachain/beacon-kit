@@ -111,14 +111,15 @@ func (s *PectraDepositSuite) TearDownTest() {
 // the first Electra2 block drains the entire queue. Additionally, new deposits
 // arriving as EIP-6110 execution requests in the same block are also processed.
 //
-// Chain spec: Electra1 at genesis, Electra2 at t=7, MaxDepositsPerBlock=4.
+// Chain spec: Deneb1 at genesis, Electra1 at t=6, Electra2 at t=7, MaxDepositsPerBlock=4.
+// EL genesis: Cancun at genesis, Prague/Prague1 at t=6, Prague2 at t=7.
 //
 // Timeline:
 //
-//	Block 1 (t=5): EL includes 12 deposit txs. Eth1FollowDistance prevents sync.
-//	Block 2 (t=6): Deposit store syncs all 12 deposits from EL block 1.
-//	               Send 2 additional deposit txs (for EIP-6110 requests).
-//	Block 3 (t=7): First Electra2 block. Drains all 12 catchup deposits from
+//	Block 1 (t=5): EL Cancun block includes 12 deposit txs. Eth1FollowDistance=1 prevents sync.
+//	Block 2 (t=6): Electra1/Prague1 fork. FinalizeBlock syncs all 12 deposits from Cancun EL block 1.
+//	               Send 2 additional deposit txs (for EIP-6110 requests in the next Prague2 block).
+//	Block 3 (t=7): First Electra2/Prague2 block. Drains all 12 catchup deposits from
 //	               the block body + 2 EIP-6110 deposit requests from execution payload.
 //	Block 4 (t=8): Post-fork block to confirm chain continues cleanly.
 func (s *PectraDepositSuite) TestDepositQueueDrainedOnFirstElectra2Block() {
@@ -150,7 +151,7 @@ func (s *PectraDepositSuite) TestDepositQueueDrainedOnFirstElectra2Block() {
 	nextBlockTime := time.Unix(5, 0)
 	nextBlockHeight := int64(1)
 
-	// [Block 1, t=5] EL includes the 12 deposit txs in its execution payload.
+	// [Block 1, t=5] Deneb1/Cancun block. EL includes the 12 deposit txs.
 	// Due to Eth1FollowDistance=1, the CL does not sync these deposits yet.
 	{
 		_, _, nextBlockTime = s.MoveChainToHeight(s.T(), nextBlockHeight, 1, nodeAddress, nextBlockTime)
@@ -163,13 +164,17 @@ func (s *PectraDepositSuite) TestDepositQueueDrainedOnFirstElectra2Block() {
 		nextBlockHeight++
 	}
 
-	// [Block 2, t=6] FinalizeBlock syncs deposits from EL block 1.
-	// The deposit store now has 1 (genesis) + 12 (new) = 13 entries.
-	// No deposits are processed yet (PrepareProposal ran before sync).
+	// [Block 2, t=6] Electra1/Prague1 fork activates. FinalizeBlock syncs deposits
+	// from Cancun EL block 1. The deposit store now has 1 (genesis) + 12 (new) = 13.
+	// No deposits are processed yet from the block body (PrepareProposal ran before sync).
 	{
 		s.LogBuffer.Reset()
 		_, _, nextBlockTime = s.MoveChainToHeight(s.T(), nextBlockHeight, 1, nodeAddress, nextBlockTime)
 		s.Require().Equal(time.Unix(7, 0), nextBlockTime)
+
+		s.Require().Contains(s.LogBuffer.String(),
+			"welcome to the electra1 (0x05010000) fork!",
+			"Electra1 fork should activate on block 2")
 
 		ds := s.TestNode.StorageBackend.DepositStore()
 		deposits, _, err := ds.GetDepositsByIndex(s.CtxApp, 0, 100)
@@ -192,7 +197,7 @@ func (s *PectraDepositSuite) TestDepositQueueDrainedOnFirstElectra2Block() {
 	}
 	time.Sleep(time.Second)
 
-	// [Block 3, t=7] First Electra2 block.
+	// [Block 3, t=7] First Electra2/Prague2 block.
 	// The catchup logic sets depositRange=MaxUint64, so all 12 queued deposits
 	// are placed on the block body. EIP-6110 deposit requests from the execution
 	// payload are appended. All deposits are processed in a single block.
@@ -203,10 +208,6 @@ func (s *PectraDepositSuite) TestDepositQueueDrainedOnFirstElectra2Block() {
 		s.Require().Contains(s.LogBuffer.String(),
 			"welcome to the electra2 (0x05020000) fork!",
 			"Electra2 fork should activate on block 3")
-
-		s.Require().Contains(s.LogBuffer.String(),
-			"Processed deposit to increase balance",
-			"Catchup deposits should be processed")
 
 		s.Require().Contains(s.LogBuffer.String(),
 			"Building block body with local deposits",

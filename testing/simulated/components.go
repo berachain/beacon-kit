@@ -120,15 +120,17 @@ func ProvidePectraForkTestChainSpec() (chain.Spec, error) {
 }
 
 // ProvidePectraDepositTestChainSpec provides a chain spec for testing deposit queue
-// drain at the Electra2 fork boundary. Electra1 is active from genesis and Electra2
-// forks at timestamp 7. MaxDepositsPerBlock is lowered to 4 so that 3x overload is
-// achievable with fewer deposit transactions.
+// drain at the Electra2 fork boundary. Deneb1 is active from genesis, Electra1
+// activates at t=6, and Electra2 forks at t=7. MaxDepositsPerBlock is lowered to 4
+// so that 3x overload is achievable with fewer deposit transactions.
+// Block 1 at t=5 is Cancun (deposits readable), block 2 at t=6 is Electra1/Prague1
+// (syncs deposits), block 3 at t=7 is Electra2/Prague2 (drains them all).
 func ProvidePectraDepositTestChainSpec() (chain.Spec, error) {
 	specData := spec.TestnetChainSpecData()
 	specData.GenesisTime = 0
 	specData.Deneb1ForkTime = 0
-	specData.ElectraForkTime = 0
-	specData.Electra1ForkTime = 0
+	specData.ElectraForkTime = 6
+	specData.Electra1ForkTime = 6
 	specData.Electra2ForkTime = 7
 	specData.SlotsPerEpoch = 1
 	specData.MaxDepositsPerBlock = 4

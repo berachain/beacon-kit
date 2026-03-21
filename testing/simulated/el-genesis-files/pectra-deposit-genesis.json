@@ -19,7 +19,7 @@
     "mergeNetsplitBlock": 0,
     "shanghaiTime": 0,
     "cancunTime": 0,
-    "pragueTime": 0,
+    "pragueTime": 6,
     "terminalTotalDifficulty": 0,
     "terminalTotalDifficultyPassed": true,
     "ethash": {},
@@ -37,7 +37,7 @@
     },
     "berachain": {
       "prague1": {
-        "time": 0,
+        "time": 6,
         "baseFeeChangeDenominator": 48,
         "minimumBaseFeeWei": 10000000000,
         "polDistributorAddress": "0x4200000000000000000000000000000000000042"
