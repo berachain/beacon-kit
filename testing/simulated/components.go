@@ -73,6 +73,7 @@ func ProvideElectraGenesisChainSpec() (chain.Spec, error) {
 	specData.Deneb1ForkTime = 0
 	specData.ElectraForkTime = 0
 	specData.Electra1ForkTime = 9223372036854775807
+	specData.FuluForkTime = 9223372036854775807
 	// We set slots per epoch to 2 for faster observation of withdrawal behaviour
 	specData.SlotsPerEpoch = 2
 	// We set this to 4 so tests are faster
@@ -95,6 +96,7 @@ func ProvideSimulationChainSpec() (chain.Spec, error) {
 	// High number as we don't want to activate electra.
 	specData.ElectraForkTime = 9999999999999999
 	specData.Electra1ForkTime = 9999999999999999
+	specData.FuluForkTime = 9999999999999999
 	chainSpec, err := chain.NewSpec(specData)
 	if err != nil {
 		return nil, err
@@ -109,6 +111,29 @@ func ProvidePectraForkTestChainSpec() (chain.Spec, error) {
 	specData.Deneb1ForkTime = 0
 	specData.ElectraForkTime = 10
 	specData.Electra1ForkTime = 9223372036854775807
+	specData.FuluForkTime = 9223372036854775807
+	chainSpec, err := chain.NewSpec(specData)
+	if err != nil {
+		return nil, err
+	}
+	return chainSpec, nil
+}
+
+// ProvideFuluDepositTestChainSpec provides a chain spec for testing deposit queue
+// drain at the Fulu fork boundary. Deneb1 is active from genesis, Electra1
+// activates at t=6, and Fulu forks at t=7. MaxDepositsPerBlock is lowered to 4
+// so that 3x overload is achievable with fewer deposit transactions.
+// Block 1 at t=5 is Cancun (deposits readable), block 2 at t=6 is Electra1/Prague1
+// (syncs deposits), block 3 at t=7 is Fulu/Prague2 (drains them all).
+func ProvideFuluDepositTestChainSpec() (chain.Spec, error) {
+	specData := spec.TestnetChainSpecData()
+	specData.GenesisTime = 0
+	specData.Deneb1ForkTime = 0
+	specData.ElectraForkTime = 6
+	specData.Electra1ForkTime = 6
+	specData.FuluForkTime = 7
+	specData.SlotsPerEpoch = 1
+	specData.MaxDepositsPerBlock = 4
 	chainSpec, err := chain.NewSpec(specData)
 	if err != nil {
 		return nil, err
@@ -123,6 +148,7 @@ func ProvidePectraWithdrawalTestChainSpec() (chain.Spec, error) {
 	specData.Deneb1ForkTime = 0
 	specData.ElectraForkTime = 10
 	specData.Electra1ForkTime = 9223372036854775807
+	specData.FuluForkTime = 9223372036854775807
 	// We set slots per epoch to 1 for faster observation of withdrawal behaviour
 	specData.SlotsPerEpoch = 1
 	// We set this to 4 so tests are faster

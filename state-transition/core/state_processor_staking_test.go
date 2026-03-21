@@ -110,8 +110,8 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		st,
 		types.NewEth1Data(depRoot),
 		10,
-		blkDeposits,
-		&types.ExecutionRequests{},
+		[]*types.Deposit{},
+		&types.ExecutionRequests{Deposits: blkDeposits},
 		st.EVMInflationWithdrawal(10),
 	)
 
@@ -243,8 +243,8 @@ func TestTransitionCreateValidator(t *testing.T) {
 		st,
 		types.NewEth1Data(depRoot),
 		10,
-		blkDeposits,
-		&types.ExecutionRequests{},
+		[]*types.Deposit{},
+		&types.ExecutionRequests{Deposits: blkDeposits},
 		st.EVMInflationWithdrawal(10),
 	)
 
@@ -442,8 +442,8 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		st,
 		types.NewEth1Data(depRoot),
 		10,
-		blkDeposits,
-		&types.ExecutionRequests{},
+		[]*types.Deposit{},
+		&types.ExecutionRequests{Deposits: blkDeposits},
 		st.EVMInflationWithdrawal(10),
 	)
 
@@ -683,8 +683,8 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		st,
 		types.NewEth1Data(depRoot),
 		10,
-		[]*types.Deposit{extraValDeposit},
-		&types.ExecutionRequests{},
+		[]*types.Deposit{},
+		&types.ExecutionRequests{Deposits: []*types.Deposit{extraValDeposit}},
 		st.EVMInflationWithdrawal(10),
 	)
 

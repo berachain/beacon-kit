@@ -36,7 +36,7 @@ import (
 
 //nolint:paralleltest // uses envars
 func TestInvalidDeposits(t *testing.T) {
-	cs := setupChain(t)
+	cs := setupPreFuluChain(t)
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
@@ -110,7 +110,7 @@ func TestInvalidDeposits(t *testing.T) {
 
 //nolint:paralleltest // uses envars
 func TestInvalidDepositsCount(t *testing.T) {
-	cs := setupChain(t)
+	cs := setupPreFuluChain(t)
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
@@ -183,7 +183,8 @@ func TestInvalidDepositsCount(t *testing.T) {
 func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 	t.Parallel()
 	csData := spec.DevnetChainSpecData()
-	csData.MaxDepositsPerBlock = 1 // Set only 1 deposit allowed per block.
+	csData.MaxDepositsPerBlock = 1
+	csData.FuluForkTime = 9_999_999_999
 	cs, err := chain.NewSpec(csData)
 	require.NoError(t, err)
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
@@ -253,10 +254,84 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestFuluCatchupDepositsExceedMaxPerBlock(t *testing.T) {
+	t.Parallel()
+	csData := spec.DevnetChainSpecData()
+	csData.MaxDepositsPerBlock = 1
+	csData.FuluForkTime = 10
+	cs, err := chain.NewSpec(csData)
+	require.NoError(t, err)
+	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
+
+	var (
+		maxBalance   = cs.MaxEffectiveBalance()
+		credentials0 = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
+	)
+
+	genDeposits := types.Deposits{
+		{
+			Pubkey:      [48]byte{0x00},
+			Credentials: credentials0,
+			Amount:      maxBalance,
+			Index:       0,
+		},
+	}
+	genPayloadHeader := &types.ExecutionPayloadHeader{
+		Versionable: types.NewVersionable(cs.GenesisForkVersion()),
+	}
+	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
+	_, err = sp.InitializeBeaconStateFromEth1(
+		st, genDeposits, genPayloadHeader, cs.GenesisForkVersion(),
+	)
+	require.NoError(t, err)
+
+	catchupDeposits := types.Deposits{
+		{
+			Pubkey:      [48]byte{0x01},
+			Credentials: credentials0,
+			Amount:      maxBalance,
+			Index:       1,
+		},
+		{
+			Pubkey:      [48]byte{0x02},
+			Credentials: credentials0,
+			Amount:      maxBalance,
+			Index:       2,
+		},
+		{
+			Pubkey:      [48]byte{0x03},
+			Credentials: credentials0,
+			Amount:      maxBalance,
+			Index:       3,
+		},
+	}
+	totalDepositsCount := uint64(len(genDeposits)) + uint64(len(catchupDeposits))
+
+	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), catchupDeposits))
+	var depRoot common.Root
+	_, depRoot, err = ds.GetDepositsByIndex(ctx.ConsensusCtx(), constants.FirstDepositIndex, totalDepositsCount)
+	require.NoError(t, err)
+
+	blk := buildNextBlock(
+		t,
+		cs,
+		st,
+		types.NewEth1Data(depRoot),
+		10,
+		catchupDeposits,
+		&types.ExecutionRequests{},
+		st.EVMInflationWithdrawal(10),
+	)
+
+	_, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+}
+
 func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
 	t.Parallel()
 	csData := spec.DevnetChainSpecData()
-	csData.MaxDepositsPerBlock = 1 // Set only 1 deposit allowed per block.
+	csData.MaxDepositsPerBlock = 1
+	csData.FuluForkTime = 9_999_999_999
 	cs, err := chain.NewSpec(csData)
 	require.NoError(t, err)
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)

@@ -48,8 +48,11 @@ const (
 	devnetElectraForkTime = 0
 
 	// devnetElectra1ForkTime is the timestamp at which the Electra1 fork occurs.
-	// devnet is configured to start on electra1.
 	devnetElectra1ForkTime = 0
+
+	// devnetFuluForkTime is the timestamp at which the Fulu fork occurs.
+	// devnet is configured to start on Fulu.
+	devnetFuluForkTime = 0
 
 	// devnetEVMInflationAddressDeneb1 is the address of the EVM inflation contract
 	// after the Deneb1 fork.
@@ -79,6 +82,7 @@ func DevnetChainSpecData() *chain.SpecData {
 	specData.Deneb1ForkTime = devnetDeneb1ForkTime
 	specData.ElectraForkTime = devnetElectraForkTime
 	specData.Electra1ForkTime = devnetElectra1ForkTime
+	specData.FuluForkTime = devnetFuluForkTime
 
 	// EVM inflation is different from mainnet to test.
 	specData.EVMInflationAddressGenesis = common.MustNewExecutionAddressFromHex(devnetEVMInflationAddress)

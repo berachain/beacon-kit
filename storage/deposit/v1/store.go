@@ -103,7 +103,7 @@ func (kv *KVStore) GetDepositsByIndex(
 	depRange uint64,
 ) (ctypes.Deposits, common.Root, error) {
 	var (
-		deposits = make(ctypes.Deposits, 0, depRange)
+		deposits = make(ctypes.Deposits, 0)
 		endIdx   = startIndex + depRange
 	)
 

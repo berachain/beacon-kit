@@ -147,7 +147,7 @@ func (s *BeaconKitE2ESuite) TestBeaconValidatorsWithIndices() {
 	s.Require().
 		True(validator.Validator.EffectiveBalance > 0, "Effective balance should be positive")
 	s.Require().
-		True(validator.Validator.EffectiveBalance <= 32e9, "Effective balance should not exceed 32 ETH")
+		True(validator.Validator.EffectiveBalance <= 33e9, "Effective balance should not exceed 33 ETH")
 
 	s.Require().
 		False(validator.Validator.Slashed, "Slashed status should not be true")
@@ -166,7 +166,7 @@ func (s *BeaconKitE2ESuite) TestBeaconValidatorsWithIndices() {
 	s.Require().
 		True(validator.Balance > 0, "Validator balance should be positive")
 	s.Require().
-		True(validator.Balance <= 32e9, "Validator balance should not exceed 32 ETH")
+		True(validator.Balance <= 33e9, "Validator balance should not exceed 33 ETH")
 }
 
 // TestValidatorsEmptyIndicesAndStatuses tests that querying validators with empty indices and empty statuses returns all validators.
@@ -720,9 +720,9 @@ func (s *BeaconKitE2ESuite) TestGetValidatorBalancesForGenesis() {
 
 	for _, balance := range *balancesResp {
 		s.Require().True(balance.Balance > 0, "Validator balance should be positive")
-		// At genesis, the validator balance is 32 BERA.
-		// 32e9 Gwei = 32 * 10^9 Gwei = 32,000,000,000 Gwei = 32 BERA
-		s.Require().True(balance.Balance <= 32e9, "Validator balance should not exceed 32 BERA")
+		// At genesis, the validator balance is 33 BERA (DEPOSIT_AMOUNT in kurtosis config).
+		// 33e9 Gwei = 33 * 10^9 Gwei = 33,000,000,000 Gwei = 33 BERA
+		s.Require().True(balance.Balance <= 33e9, "Validator balance should not exceed 33 BERA")
 	}
 }
 
@@ -867,8 +867,8 @@ func (s *BeaconKitE2ESuite) TestGetValidatorsWithStateGenesis() {
 	for _, validator := range *validators {
 		s.Require().True(validator.Status == "active_ongoing")
 		s.Require().True(validator.Balance > 0, "Validator balance should be positive")
-		// 32e9 Gwei = 32 * 10^9 Gwei = 32,000,000,000 Gwei = 32 BERA
-		s.Require().True(validator.Balance <= 32e9, "Validator balance should not exceed 32 BERA")
+		// 33e9 Gwei = 33 * 10^9 Gwei = 33,000,000,000 Gwei = 33 BERA
+		s.Require().True(validator.Balance <= 33e9, "Validator balance should not exceed 33 BERA")
 	}
 }
 
@@ -889,7 +889,7 @@ func (s *BeaconKitE2ESuite) TestGenesis() {
 	s.Require().NotEmpty(genesis.GenesisValidatorsRoot, "Genesis validators root should not be empty")
 	s.Require().NotEmpty(genesis.GenesisForkVersion, "Genesis fork version should not be empty")
 
-	expectedVersion := version.Electra1() // TODO: change this back to Deneb once devnet spec is updated.
+	expectedVersion := version.Fulu() // TODO: change this back to Deneb once devnet spec is updated.
 	s.Require().Equal(
 		expectedVersion[:],
 		genesis.GenesisForkVersion[:],
