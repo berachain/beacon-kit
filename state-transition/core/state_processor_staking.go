@@ -56,11 +56,12 @@ func (sp *StateProcessor) processOperations(
 	var deposits []*ctypes.Deposit
 	if version.IsBefore(blk.GetForkVersion(), version.Electra2()) {
 		// Before Electra2, deposits are taken from the beacon block body directly.
-		//
+		deposits = blk.GetBody().GetDeposits()
+
 		// Verify that outstanding deposits are processed up to the maximum number of deposits.
 		// Unlike Ethereum 2.0 specs, we don't check that
 		// `len(body.deposits) ==  min(MAX_DEPOSITS, state.eth1_data.deposit_count - state.eth1_deposit_index)`.
-		if uint64(len(blk.GetBody().GetDeposits())) > sp.cs.MaxDepositsPerBlock() {
+		if uint64(len(deposits)) > sp.cs.MaxDepositsPerBlock() {
 			return errors.Wrapf(
 				ErrExceedsBlockDepositLimit, "expected: %d, got: %d",
 				sp.cs.MaxDepositsPerBlock(), len(deposits),
@@ -90,6 +91,8 @@ func (sp *StateProcessor) processOperations(
 	// the block body to exhaust the pre-Electra2 deposit queue.
 	if version.Equals(prevBlockForkVersion, version.Electra1()) &&
 		version.Equals(blk.GetForkVersion(), version.Electra2()) {
+		// NOTE: for this block, we do not impose a maximum number of block deposits
+		// since we are exhasuting the full deposit queue.
 		deposits = append(blk.GetBody().GetDeposits(), deposits...)
 	}
 
