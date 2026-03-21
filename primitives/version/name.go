@@ -41,8 +41,8 @@ func Name(v common.Version) string {
 		return "electra"
 	case electra1:
 		return "electra1"
-	case electra2:
-		return "electra2"
+	case fulu:
+		return "fulu"
 	default:
 		return "unknown"
 	}

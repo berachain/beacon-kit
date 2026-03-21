@@ -36,7 +36,7 @@ import (
 
 //nolint:paralleltest // uses envars
 func TestInvalidDeposits(t *testing.T) {
-	cs := setupPreElectra2Chain(t)
+	cs := setupPreFuluChain(t)
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
@@ -110,7 +110,7 @@ func TestInvalidDeposits(t *testing.T) {
 
 //nolint:paralleltest // uses envars
 func TestInvalidDepositsCount(t *testing.T) {
-	cs := setupPreElectra2Chain(t)
+	cs := setupPreFuluChain(t)
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
@@ -184,7 +184,7 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 	t.Parallel()
 	csData := spec.DevnetChainSpecData()
 	csData.MaxDepositsPerBlock = 1
-	csData.Electra2ForkTime = 9_999_999_999
+	csData.FuluForkTime = 9_999_999_999
 	cs, err := chain.NewSpec(csData)
 	require.NoError(t, err)
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
@@ -254,11 +254,11 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestElectra2CatchupDepositsExceedMaxPerBlock(t *testing.T) {
+func TestFuluCatchupDepositsExceedMaxPerBlock(t *testing.T) {
 	t.Parallel()
 	csData := spec.DevnetChainSpecData()
 	csData.MaxDepositsPerBlock = 1
-	csData.Electra2ForkTime = 10
+	csData.FuluForkTime = 10
 	cs, err := chain.NewSpec(csData)
 	require.NoError(t, err)
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
@@ -331,7 +331,7 @@ func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
 	t.Parallel()
 	csData := spec.DevnetChainSpecData()
 	csData.MaxDepositsPerBlock = 1
-	csData.Electra2ForkTime = 9_999_999_999
+	csData.FuluForkTime = 9_999_999_999
 	cs, err := chain.NewSpec(csData)
 	require.NoError(t, err)
 	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)

@@ -127,8 +127,8 @@ func (s *Service) PostFinalizeBlockOps(ctx sdk.Context, blk *ctypes.BeaconBlock)
 	// TODO: consider extracting LatestExecutionPayloadHeader instead of using state here
 	st := s.storageBackend.StateFromContext(ctx)
 
-	// Before Electra2, deposits must be fetched from the EL (at the eth1 follow distance).
-	deposits.FetchPreviousDepositsPreElectra2(
+	// Before Fulu, deposits must be fetched from the EL (at the eth1 follow distance).
+	deposits.FetchPreviousDepositsPreFulu(
 		ctx, s.depositContract, blk, s.eth1FollowDistance, s.storageBackend.DepositStore(), s.logger,
 	)
 
@@ -171,8 +171,8 @@ func (s *Service) finalizeBeaconBlock(
 		return nil, ErrNilBlk
 	}
 
-	// If on the first block of Electra2, catchup the previous block's deposits.
-	if err := deposits.CatchupElectra2Deposits(
+	// If on the first block of Fulu, catchup the previous block's deposits.
+	if err := deposits.CatchupFuluDeposits(
 		ctx, s.depositContract, st, beaconBlk, s.chainSpec, s.storageBackend.DepositStore(), s.logger,
 	); err != nil {
 		return nil, err

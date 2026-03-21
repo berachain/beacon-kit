@@ -107,14 +107,14 @@ func (sp *StateProcessor) ProcessFork(
 		if logUpgrade {
 			sp.logElectra1Fork(stateFork.PreviousVersion, timestamp, slot)
 		}
-	case version.Electra2():
-		if err = sp.upgradeToElectra2(st, stateFork, slot); err != nil {
+	case version.Fulu():
+		if err = sp.upgradeToFulu(st, stateFork, slot); err != nil {
 			return err
 		}
 
-		// Log the upgrade to Electra2 if requested.
+		// Log the upgrade to Fulu if requested.
 		if logUpgrade {
-			sp.logElectra2Fork(stateFork.PreviousVersion, timestamp, slot)
+			sp.logFuluFork(stateFork.PreviousVersion, timestamp, slot)
 		}
 	default:
 		panic(fmt.Sprintf("unsupported fork version: %s", forkVersion))
@@ -280,17 +280,17 @@ func (sp *StateProcessor) logElectra1Fork(
 	))
 }
 
-// upgradeToElectra2 upgrades the state to the Electra2 fork version. It is modified from the ETH
+// upgradeToFulu upgrades the state to the Fulu fork version. It is modified from the ETH
 // 2.0 spec (https://ethereum.github.io/consensus-specs/specs/electra/fork/#upgrading-the-state) to:
 //   - update the Fork struct in the BeaconState
 //   - initialize the pending partial withdrawals to an empty array (if not already initialized)
 //   - catchup deposits from the EL to migrate to EIP-6110 style deposit requests
-func (sp *StateProcessor) upgradeToElectra2(
+func (sp *StateProcessor) upgradeToFulu(
 	st *statedb.StateDB, fork *types.Fork, slot math.Slot,
 ) error {
 	// Set the fork on BeaconState.
 	fork.PreviousVersion = fork.CurrentVersion
-	fork.CurrentVersion = version.Electra2()
+	fork.CurrentVersion = version.Fulu()
 	fork.Epoch = sp.cs.SlotToEpoch(slot)
 	if err := st.SetFork(fork); err != nil {
 		return err
@@ -307,8 +307,8 @@ func (sp *StateProcessor) upgradeToElectra2(
 	return nil
 }
 
-// logElectra2Fork logs information about the Electra2 fork.
-func (sp *StateProcessor) logElectra2Fork(
+// logFuluFork logs information about the Fulu fork.
+func (sp *StateProcessor) logFuluFork(
 	previousVersion common.Version, timestamp math.U64, slot math.Slot,
 ) {
 	sp.logger.Info(fmt.Sprintf(`
@@ -316,17 +316,17 @@ func (sp *StateProcessor) logElectra2Fork(
 
 	⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️
 
-	+ ✅  welcome to the electra2 (0x05020000) fork! 🎉
+	+ ✅  welcome to the Fulu (0x05020000) fork! 🎉
 	+ 🚝  previous fork: %s (%s)
-	+ ⏱️   electra2 fork time: %d
-	+ 🍴  first slot / timestamp of electra2: %d / %d
+	+ ⏱️   Fulu fork time: %d
+	+ 🍴  first slot / timestamp of Fulu: %d / %d
 	+ ⛓️   current beacon epoch: %d
 
 	⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️
 
 `,
 		version.Name(previousVersion), previousVersion.String(),
-		sp.cs.Electra2ForkTime(),
+		sp.cs.FuluForkTime(),
 		slot.Unwrap(), timestamp.Unwrap(),
 		sp.cs.SlotToEpoch(slot).Unwrap(),
 	))

@@ -36,9 +36,9 @@ import (
 	depositstore "github.com/berachain/beacon-kit/storage/deposit"
 )
 
-// If on the first block of Electra2, catchup the previous block's deposits. Between
+// If on the first block of Fulu, catchup the previous block's deposits. Between
 // Prepare/ProcessProposal and FinalizeBlock, this only needs to be done once.
-func CatchupElectra2Deposits(
+func CatchupFuluDeposits(
 	ctx context.Context,
 	depositContract deposit.Contract,
 	st *statedb.StateDB,
@@ -52,9 +52,9 @@ func CatchupElectra2Deposits(
 		return err
 	}
 	prevBlockForkVersion := chainSpec.ActiveForkVersionForTimestamp(lph.GetTimestamp())
-	isFirstElectra2Block := version.Equals(prevBlockForkVersion, version.Electra1()) &&
-		version.Equals(blk.GetForkVersion(), version.Electra2())
-	if !isFirstElectra2Block {
+	isFirstFuluBlock := version.Equals(prevBlockForkVersion, version.Electra1()) &&
+		version.Equals(blk.GetForkVersion(), version.Fulu())
+	if !isFirstFuluBlock {
 		return nil
 	}
 
@@ -68,13 +68,13 @@ func CatchupElectra2Deposits(
 		return err
 	}
 	if len(deposits) == 0 {
-		logger.Info("Deposits catchup for Electra2, nothing to fetch")
+		logger.Info("Deposits catchup for Fulu, nothing to fetch")
 		return nil
 	}
 
-	logger.Info("Found deposits to catchup for Electra2", "num", len(deposits))
+	logger.Info("Found deposits to catchup for Fulu", "num", len(deposits))
 	if err = depositStore.EnqueueDeposits(ctx, deposits); err != nil {
-		logger.Error("Failed to store catchup deposits for Electra2", "error", err)
+		logger.Error("Failed to store catchup deposits for Fulu", "error", err)
 		return err
 	}
 
@@ -83,8 +83,8 @@ func CatchupElectra2Deposits(
 	return nil
 }
 
-// FetchPreviousDepositsPreElectra2 fetches deposits from the EL at the given eth1 follow distance.
-func FetchPreviousDepositsPreElectra2(
+// FetchPreviousDepositsPreFulu fetches deposits from the EL at the given eth1 follow distance.
+func FetchPreviousDepositsPreFulu(
 	ctx context.Context,
 	depositContract deposit.Contract,
 	blk *ctypes.BeaconBlock,
@@ -92,8 +92,8 @@ func FetchPreviousDepositsPreElectra2(
 	depositStore depositstore.StoreManager,
 	logger log.Logger,
 ) {
-	// If after Electra2, we don't need to fetch previous deposits since EIP-6110 is used.
-	if version.EqualsOrIsAfter(blk.GetForkVersion(), version.Electra2()) {
+	// If after Fulu, we don't need to fetch previous deposits since EIP-6110 is used.
+	if version.EqualsOrIsAfter(blk.GetForkVersion(), version.Fulu()) {
 		return
 	}
 
@@ -150,20 +150,20 @@ func SetDepositsOnBlockBody(
 	}
 	prevBlockForkVersion := chainSpec.ActiveForkVersionForTimestamp(lph.GetTimestamp())
 
-	// Only if called before Electra2 or on the first block of Electra2, do we set deposits on the
+	// Only if called before Fulu or on the first block of Fulu, do we set deposits on the
 	// block body.
 	var depositRange uint64
 	switch {
-	case version.IsBefore(forkVersion, version.Electra2()):
+	case version.IsBefore(forkVersion, version.Fulu()):
 		depositRange = depositIndex + chainSpec.MaxDepositsPerBlock()
 	case version.Equals(prevBlockForkVersion, version.Electra1()) &&
-		version.Equals(forkVersion, version.Electra2()):
-		// For the first block of Electra2 catchup deposits, we will include as many as are required to exhaust the
-		// queue. Since after this block in Electra2, we no longer use the deposit queue and
+		version.Equals(forkVersion, version.Fulu()):
+		// For the first block of Fulu catchup deposits, we will include as many as are required to exhaust the
+		// queue. Since after this block in Fulu, we no longer use the deposit queue and
 		// instead follow EIP-6110 deposit requests.
 		depositRange = stdmath.MaxUint64
 	default:
-		// We don't set deposits on the block body after the first block of Electra2.
+		// We don't set deposits on the block body after the first block of Fulu.
 		return nil
 	}
 

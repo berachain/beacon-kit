@@ -45,23 +45,23 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-// PectraDepositSuite tests the deposit queue drain at the Electra2 fork boundary.
-type PectraDepositSuite struct {
+// FuluDepositSuite tests the deposit queue drain at the Fulu fork boundary.
+type FuluDepositSuite struct {
 	suite.Suite
 	simulated.SharedAccessors
 }
 
-func TestPectraDepositSuite(t *testing.T) {
-	suite.Run(t, new(PectraDepositSuite))
+func TestFuluDepositSuite(t *testing.T) {
+	suite.Run(t, new(FuluDepositSuite))
 }
 
-func (s *PectraDepositSuite) SetupTest() {
+func (s *FuluDepositSuite) SetupTest() {
 	s.CtxApp, s.CtxAppCancelFn = context.WithCancel(context.Background())
 	s.CtxComet = context.TODO()
 	s.HomeDir = s.T().TempDir()
 
-	const elGenesisPath = "./el-genesis-files/pectra-deposit-genesis.json"
-	chainSpecFunc := simulated.ProvidePectraDepositTestChainSpec
+	const elGenesisPath = "./el-genesis-files/fulu-deposit-genesis.json"
+	chainSpecFunc := simulated.ProvideFuluDepositTestChainSpec
 	chainSpec, err := chainSpecFunc()
 	s.Require().NoError(err)
 	configs, genesisValidatorsRoot := simulated.InitializeHomeDirs(s.T(), chainSpec, elGenesisPath, s.HomeDir)
@@ -102,16 +102,16 @@ func (s *PectraDepositSuite) SetupTest() {
 	s.Require().NoError(err)
 }
 
-func (s *PectraDepositSuite) TearDownTest() {
+func (s *FuluDepositSuite) TearDownTest() {
 	s.CleanupTest(s.T())
 }
 
-// TestDepositQueueDrainedOnFirstElectra2Block verifies that when the deposit
-// store is overloaded with 3x MaxDepositsPerBlock just before the Electra2 fork,
-// the first Electra2 block drains the entire queue. Additionally, new deposits
+// TestDepositQueueDrainedOnFirstFuluBlock verifies that when the deposit
+// store is overloaded with 3x MaxDepositsPerBlock just before the Fulu fork,
+// the first Fulu block drains the entire queue. Additionally, new deposits
 // arriving as EIP-6110 execution requests in the same block are also processed.
 //
-// Chain spec: Deneb1 at genesis, Electra1 at t=6, Electra2 at t=7, MaxDepositsPerBlock=4.
+// Chain spec: Deneb1 at genesis, Electra1 at t=6, Fulu at t=7, MaxDepositsPerBlock=4.
 // EL genesis: Cancun at genesis, Prague/Prague1 at t=6, Prague2 at t=7.
 //
 // Timeline:
@@ -119,10 +119,10 @@ func (s *PectraDepositSuite) TearDownTest() {
 //	Block 1 (t=5): EL Cancun block includes 12 deposit txs. Eth1FollowDistance=1 prevents sync.
 //	Block 2 (t=6): Electra1/Prague1 fork. FinalizeBlock syncs all 12 deposits from Cancun EL block 1.
 //	               Send 2 additional deposit txs (for EIP-6110 requests in the next Prague2 block).
-//	Block 3 (t=7): First Electra2/Prague2 block. Drains all 12 catchup deposits from
+//	Block 3 (t=7): First Fulu/Prague2 block. Drains all 12 catchup deposits from
 //	               the block body + 2 EIP-6110 deposit requests from execution payload.
 //	Block 4 (t=8): Post-fork block to confirm chain continues cleanly.
-func (s *PectraDepositSuite) TestDepositQueueDrainedOnFirstElectra2Block() {
+func (s *FuluDepositSuite) TestDepositQueueDrainedOnFirstFuluBlock() {
 	s.InitializeChain(s.T(), 1)
 
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
@@ -197,7 +197,7 @@ func (s *PectraDepositSuite) TestDepositQueueDrainedOnFirstElectra2Block() {
 	}
 	time.Sleep(time.Second)
 
-	// [Block 3, t=7] First Electra2/Prague2 block.
+	// [Block 3, t=7] First Fulu/Prague2 block.
 	// The catchup logic sets depositRange=MaxUint64, so all 12 queued deposits
 	// are placed on the block body. EIP-6110 deposit requests from the execution
 	// payload are appended. All deposits are processed in a single block.
@@ -206,8 +206,8 @@ func (s *PectraDepositSuite) TestDepositQueueDrainedOnFirstElectra2Block() {
 		_, _, nextBlockTime = s.MoveChainToHeight(s.T(), nextBlockHeight, 1, nodeAddress, nextBlockTime)
 
 		s.Require().Contains(s.LogBuffer.String(),
-			"welcome to the electra2 (0x05020000) fork!",
-			"Electra2 fork should activate on block 3")
+			"welcome to the Fulu (0x05020000) fork!",
+			"Fulu fork should activate on block 3")
 
 		s.Require().Contains(s.LogBuffer.String(),
 			"Building block body with local deposits",
@@ -230,7 +230,7 @@ func (s *PectraDepositSuite) TestDepositQueueDrainedOnFirstElectra2Block() {
 	}
 }
 
-func (s *PectraDepositSuite) sendDeposit(
+func (s *FuluDepositSuite) sendDeposit(
 	blsSigner *signer.BLSSigner,
 	creds consensustypes.WithdrawalCredentials,
 	depositAmount beaconmath.Gwei,

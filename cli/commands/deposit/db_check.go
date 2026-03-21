@@ -35,7 +35,7 @@ import (
 // GetDBCheckCmd returns a command for checking that the deposit store
 // is in sync with the beacon state.
 //
-// NOTE: this command is only useful before the Electra2 fork. After Electra2, deposits
+// NOTE: this command is only useful before the Fulu fork. After Fulu, deposits
 // are not maintained in a deposit DB by the beacon-kit client and instead managed by
 // EIP-6110 style deposit requests.
 func GetDBCheckCmd(appCreator servertypes.AppCreator) *cobra.Command {
@@ -65,7 +65,7 @@ func GetDBCheckCmd(appCreator servertypes.AppCreator) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if err = core.ValidateNonGenesisDepositsPreElectra2(
+			if err = core.ValidateNonGenesisDepositsPreFulu(
 				ctx,
 				beaconState,
 				depositStore,
@@ -78,9 +78,9 @@ func GetDBCheckCmd(appCreator servertypes.AppCreator) *cobra.Command {
 				// blkDepositRoot: eth1Data.DepositRoot
 				// We will compare against the beacon state's deposit root at this snapshotted state.
 				eth1Data.DepositRoot,
-				// blkForkVersion: any version before Electra2.
+				// blkForkVersion: any version before Fulu.
 				version.Electra1(),
-				// prevBlockForkVersion: any version before Electra2.
+				// prevBlockForkVersion: any version before Fulu.
 				version.Electra1(),
 			); err != nil {
 				return err

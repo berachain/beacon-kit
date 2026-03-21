@@ -148,8 +148,8 @@ func executableDataToExecutionPayloadHeader(
 ) (*types.ExecutionPayloadHeader, error) {
 	eph := &types.ExecutionPayloadHeader{}
 
-	// We do not support fork versions before Deneb and after Electra2.
-	if version.IsAfter(forkVersion, version.Electra2()) ||
+	// We do not support fork versions before Deneb and after Fulu.
+	if version.IsAfter(forkVersion, version.Fulu()) ||
 		version.IsBefore(forkVersion, version.Deneb()) {
 		return nil, types.ErrForkVersionNotSupported
 	}

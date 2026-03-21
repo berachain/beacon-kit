@@ -102,8 +102,8 @@ type SpecData struct {
 	ElectraForkTime uint64 `mapstructure:"electra-fork-time"`
 	// Electra1ForkTime is the time at which the Electra1 fork is activated.
 	Electra1ForkTime uint64 `mapstructure:"electra-one-fork-time"`
-	// Electra2ForkTime is the time at which the Electra2 fork is activated.
-	Electra2ForkTime uint64 `mapstructure:"electra-two-fork-time"`
+	// FuluForkTime is the time at which the Fulu fork is activated.
+	FuluForkTime uint64 `mapstructure:"fulu-fork-time"`
 
 	// State list lengths
 	//

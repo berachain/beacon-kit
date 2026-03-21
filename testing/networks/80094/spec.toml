@@ -36,7 +36,7 @@ genesis-time = 1_737_381_600
 deneb-one-fork-time = 1_738_415_507
 electra-fork-time = 1_749_056_400
 electra-one-fork-time = 1_756_915_200
-electra-two-fork-time = 9_999_999_999
+fulu-fork-time = 9_999_999_999
 
 # State list lengths
 epochs-per-historical-vector = 8

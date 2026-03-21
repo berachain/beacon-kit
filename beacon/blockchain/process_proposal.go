@@ -329,8 +329,8 @@ func (s *Service) VerifyIncomingBlock(
 		}
 	}
 
-	// If on the first block of Electra2, catchup the previous block's deposits.
-	if err = deposits.CatchupElectra2Deposits(
+	// If on the first block of Fulu, catchup the previous block's deposits.
+	if err = deposits.CatchupFuluDeposits(
 		ctx, s.depositContract, state, beaconBlk, s.chainSpec, s.storageBackend.DepositStore(), s.logger,
 	); err != nil {
 		return nil, err

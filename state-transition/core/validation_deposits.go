@@ -73,11 +73,11 @@ func validateGenesisDeposits(
 	return nil
 }
 
-// ValidateNonGenesisDepositsPreElectra2 validates deposits before Electra2.
-// After Electra2, deposits are managed by EIP-6110 style deposit requests
-// and this validation is no longer needed. On the first block of Electra2,
+// ValidateNonGenesisDepositsPreFulu validates deposits before Fulu.
+// After Fulu, deposits are managed by EIP-6110 style deposit requests
+// and this validation is no longer needed. On the first block of Fulu,
 // we catchup the previous block's deposits to exhaust the deposit queue.
-func ValidateNonGenesisDepositsPreElectra2(
+func ValidateNonGenesisDepositsPreFulu(
 	ctx context.Context,
 	st *statedb.StateDB,
 	depositStore deposit.StoreManager,
@@ -94,16 +94,16 @@ func ValidateNonGenesisDepositsPreElectra2(
 
 	var depositRange uint64
 	switch {
-	case version.IsBefore(blkForkVersion, version.Electra2()):
+	case version.IsBefore(blkForkVersion, version.Fulu()):
 		depositRange = depositIndex + maxDepositsPerBlock
 	case version.Equals(prevBlockForkVersion, version.Electra1()) &&
-		version.Equals(blkForkVersion, version.Electra2()):
-		// For the first block of Electra2 catchup deposits, we will allow as many as are
-		// required to exhaust the queue. Since after this block in Electra2, we no longer use
+		version.Equals(blkForkVersion, version.Fulu()):
+		// For the first block of Fulu catchup deposits, we will allow as many as are
+		// required to exhaust the queue. Since after this block in Fulu, we no longer use
 		// the deposit queue and instead follow EIP-6110 deposit requests.
 		depositRange = stdmath.MaxUint64
 	default:
-		// We don't validate deposits on the block body after the first block of Electra2.
+		// We don't validate deposits on the block body after the first block of Fulu.
 		return nil
 	}
 

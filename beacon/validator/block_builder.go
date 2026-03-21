@@ -326,8 +326,8 @@ func (s *Service) buildBlockBody(
 	// Set the KZG commitments on the block body.
 	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
 
-	// Special case: on the first block of Electra2, catchup the previous block's deposits.
-	if err := deposits.CatchupElectra2Deposits(
+	// Special case: on the first block of Fulu, catchup the previous block's deposits.
+	if err := deposits.CatchupFuluDeposits(
 		ctx, s.depositContract, st, blk, s.chainSpec, s.sb.DepositStore(), s.logger,
 	); err != nil {
 		return err
