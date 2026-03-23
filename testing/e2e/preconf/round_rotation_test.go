@@ -201,7 +201,7 @@ func (s *PreconfE2ESuite) restore(whitelist []string, stoppedValidator string) {
 	s.Require().NoError(s.WaitForNBlockNumbers(3),
 		"Chain must produce blocks after whitelist reload")
 
-	// Snapshot the non-whitelisted log count before restoring so we can assert it stops growing.
+	// Snapshot the non-whitelisted log count soon after restoring so we can assert it stops growing.
 	logsBefore, logErr := s.GetServiceLogs(sequencerCLService)
 	s.Require().NoError(logErr)
 	falseCountBefore := suite.CountLogMessages(logsBefore, sequencerNotWhitelistedLog)
