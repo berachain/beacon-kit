@@ -33,7 +33,7 @@ import (
 
 // processOperations processes the operations and ensures they match the local state.
 //
-//nolint:gocognit // sufficiently commented.
+
 func (sp *StateProcessor) processOperations(
 	ctx ReadOnlyContext,
 	st *state.StateDB,
