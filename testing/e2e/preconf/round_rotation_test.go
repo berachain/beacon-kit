@@ -58,7 +58,7 @@ func (s *PreconfE2ESuite) TestPreconf_RoundRotation_NonWhitelistedValidator() {
 	stoppedValidator := config.ValidatorConsensusClientName(0)
 
 	// Remove first validator from the whitelist.
-	s.Run("NarrowWhitelist", func() {
+	s.Run("RemoveValidatorFromWhitelist", func() {
 		val0Pubkey, err := s.getValidatorBLSPubkey(stoppedValidator)
 		s.Require().NoError(err, "Should get validator 0 BLS pubkey from key file")
 		s.T().Logf("Validator 0 BLS pubkey: %s", val0Pubkey)
