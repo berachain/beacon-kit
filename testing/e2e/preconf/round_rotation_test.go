@@ -205,10 +205,10 @@ func (s *PreconfE2ESuite) restore(whitelist []string, stoppedValidator string) {
 	s.T().Logf("Restarting %s...", stoppedValidator)
 	s.Require().NoError(s.StartService(stoppedValidator))
 
-	s.Require().NoError(s.WaitForNBlockNumbers(blocksAfterRotation),
+	s.Require().NoError(s.WaitForNBlockNumbers(blocksAfterRestore),
 		"Chain must continue after full whitelist is restored and validator restarts")
 
-	// After blocksAfterRotation new blocks, the count must be the same.
+	// After blocksAfterRestore new blocks, the count must be the same.
 	logsAfter, logErr := s.GetServiceLogs(sequencerCLService)
 	s.Require().NoError(logErr)
 	falseCountAfter := suite.CountLogMessages(logsAfter, sequencerNotWhitelistedLog)
