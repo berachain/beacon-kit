@@ -189,13 +189,17 @@ func (s *PreconfE2ESuite) restore(whitelist []string, stoppedValidator string) {
 	s.Require().NoError(s.writeSequencerWhitelist(whitelist))
 	s.Require().NoError(s.sighupSequencer())
 
-	// Wait for reload to take effect before snapshotting (NarrowWhitelist already
+	// Wait for reload to take effect before snapshotting (whitelist modification already
 	// triggered one reload, so we need >= 2 total to confirm this second one).
 	s.Require().Eventually(func() bool {
 		logs, logErr := s.GetServiceLogs(sequencerCLService)
 		return logErr == nil && suite.CountLogMessages(logs, sequencerWhitelistReloadLog) >= 2
 	}, 15*time.Second, 500*time.Millisecond,
 		"Sequencer must confirm whitelist restore reload")
+
+	// Wait a few blocks so any in-flight proposals are flushed before we snapshot.
+	s.Require().NoError(s.WaitForNBlockNumbers(3),
+		"Chain must produce blocks after whitelist reload")
 
 	// Snapshot the non-whitelisted log count before restoring so we can assert it stops growing.
 	logsBefore, logErr := s.GetServiceLogs(sequencerCLService)
