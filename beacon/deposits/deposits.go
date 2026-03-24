@@ -111,6 +111,7 @@ func FetchPreviousDepositsPreFulu(
 	deposits, err := depositContract.ReadDeposits(ctx, blockToFetch)
 	if err != nil {
 		logger.Error("Failed to read deposits", "block", blockNum, "error", err)
+		return
 	}
 	if len(deposits) == 0 {
 		logger.Info(

@@ -281,10 +281,9 @@ func (sp *StateProcessor) logElectra1Fork(
 }
 
 // upgradeToFulu upgrades the state to the Fulu fork version. It is modified from the ETH
-// 2.0 spec (https://ethereum.github.io/consensus-specs/specs/electra/fork/#upgrading-the-state) to:
+// 2.0 spec (https://ethereum.github.io/consensus-specs/specs/fulu/fork/#upgrading-the-state) to:
 //   - update the Fork struct in the BeaconState
 //   - initialize the pending partial withdrawals to an empty array (if not already initialized)
-//   - catchup deposits from the EL to migrate to EIP-6110 style deposit requests
 func (sp *StateProcessor) upgradeToFulu(
 	st *statedb.StateDB, fork *types.Fork, slot math.Slot,
 ) error {
@@ -316,7 +315,7 @@ func (sp *StateProcessor) logFuluFork(
 
 	⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️
 
-	+ ✅  welcome to the Fulu (0x05020000) fork! 🎉
+	+ ✅  welcome to the Fulu (0x06000000) fork! 🎉
 	+ 🚝  previous fork: %s (%s)
 	+ ⏱️   Fulu fork time: %d
 	+ 🍴  first slot / timestamp of Fulu: %d / %d
