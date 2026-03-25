@@ -76,15 +76,16 @@ const (
 	NodeAPILogging = nodeAPIRoot + "logging"
 
 	// Preconf Config.
-	preconfRoot          = beaconKitRoot + "preconf."
-	PreconfEnabled       = preconfRoot + "enabled"
-	PreconfSequencerMode = preconfRoot + "sequencer-mode"
-	PreconfWhitelistPath = preconfRoot + "whitelist-path"
-	PreconfValidatorJWTs = preconfRoot + "validator-jwts-path"
-	PreconfAPIPort       = preconfRoot + "api-port"
-	PreconfSequencerURL  = preconfRoot + "sequencer-url"
-	PreconfSequencerJWT  = preconfRoot + "sequencer-jwt-path"
-	PreconfFetchTimeout  = preconfRoot + "fetch-timeout"
+	preconfRoot                = beaconKitRoot + "preconf."
+	PreconfEnabled             = preconfRoot + "enabled"
+	PreconfSequencerMode       = preconfRoot + "sequencer-mode"
+	PreconfWhitelistPath       = preconfRoot + "whitelist-path"
+	PreconfValidatorJWTs       = preconfRoot + "validator-jwts-path"
+	PreconfAPIPort             = preconfRoot + "api-port"
+	PreconfSequencerURL        = preconfRoot + "sequencer-url"
+	PreconfSequencerJWT        = preconfRoot + "sequencer-jwt-path"
+	PreconfFetchTimeout        = preconfRoot + "fetch-timeout"
+	PreconfHealthCheckInterval = preconfRoot + "health-check-interval"
 
 	// BLS Config.
 	PrivValidatorKeyFile   = "priv_validator_key_file"
@@ -227,5 +228,10 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 		PreconfFetchTimeout,
 		defaultCfg.Preconf.FetchTimeout,
 		"timeout for fetching payload from sequencer",
+	)
+	startCmd.Flags().Duration(
+		PreconfHealthCheckInterval,
+		defaultCfg.Preconf.HealthCheckInterval,
+		"how often to probe sequencer health endpoint when it becomes unavailable",
 	)
 }
