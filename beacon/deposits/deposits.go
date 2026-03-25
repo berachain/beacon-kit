@@ -47,6 +47,7 @@ func CatchupFuluDeposits(
 	depositStore depositstore.StoreManager,
 	logger log.Logger,
 ) error {
+	// Verify we are on the first block of Fulu.
 	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return err
@@ -63,23 +64,25 @@ func CatchupFuluDeposits(
 		return nil
 	}
 
+	// Read the deposits from the deposit contract.
 	deposits, err := depositContract.ReadDeposits(ctx, lph.GetNumber())
 	if err != nil {
 		return err
 	}
-	if len(deposits) == 0 {
+
+	// Enqueue the deposits if we found any.
+	if len(deposits) > 0 {
+		logger.Info("Found deposits to catchup for Fulu", "num", len(deposits))
+		if err = depositStore.EnqueueDeposits(ctx, deposits); err != nil {
+			logger.Error("Failed to store catchup deposits for Fulu", "error", err)
+			return err
+		}
+	} else {
 		logger.Info("Deposits catchup for Fulu, nothing to fetch")
-		return nil
 	}
 
-	logger.Info("Found deposits to catchup for Fulu", "num", len(deposits))
-	if err = depositStore.EnqueueDeposits(ctx, deposits); err != nil {
-		logger.Error("Failed to store catchup deposits for Fulu", "error", err)
-		return err
-	}
-
+	// Set the last block number that was successfully consumed from the deposit contract.
 	depositContract.SetLastBlockNumber(lph.GetNumber())
-
 	return nil
 }
 
