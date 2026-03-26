@@ -69,9 +69,14 @@ func (r *GetPayloadResponse) ToExecutionPayloadEnvelope() ctypes.BuiltExecutionP
 		r.ExecutionPayload.Versionable = ctypes.NewVersionable(r.ForkVersion)
 	}
 
+	blobsBundle := r.BlobsBundle
+	if blobsBundle == nil {
+		blobsBundle = &engineprimitives.BlobsBundleV1{}
+	}
+
 	return ctypes.NewExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1](
 		r.ExecutionPayload,
-		r.BlobsBundle,
+		blobsBundle,
 		r.ExecutionRequests,
 	)
 }
