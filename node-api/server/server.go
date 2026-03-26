@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/node-api/backend"
 	beaconapi "github.com/berachain/beacon-kit/node-api/handlers/beacon"
 	builderapi "github.com/berachain/beacon-kit/node-api/handlers/builder"
+	cometbftapi "github.com/berachain/beacon-kit/node-api/handlers/cometbft"
 	configapi "github.com/berachain/beacon-kit/node-api/handlers/config"
 	debugapi "github.com/berachain/beacon-kit/node-api/handlers/debug"
 	eventsapi "github.com/berachain/beacon-kit/node-api/handlers/events"
@@ -83,6 +84,7 @@ func New(
 	beaconHandler := beaconapi.NewHandler(b, cs, apiLogger)
 	mware.RegisterRoutes(beaconHandler.RouteSet())
 	mware.RegisterRoutes(builderapi.NewHandler(apiLogger).RouteSet())
+	mware.RegisterRoutes(cometbftapi.NewHandler(b, apiLogger).RouteSet())
 	mware.RegisterRoutes(configapi.NewHandler(cs, apiLogger).RouteSet())
 	mware.RegisterRoutes(debugapi.NewHandler(b, apiLogger).RouteSet())
 	mware.RegisterRoutes(eventsapi.NewHandler(apiLogger).RouteSet())

@@ -102,7 +102,7 @@ func DecodeFixedText(input, out []byte) error {
 		if highNibble == badNibble || lowNibble == badNibble {
 			return ErrInvalidString
 		}
-		out[i/2] = byte((highNibble << nibbleShift) | lowNibble)
+		out[i/2] = byte((highNibble << nibbleShift) | lowNibble) // #nosec G115 -- nibbles are validated 0-15, combined result is 0-255.
 	}
 
 	return nil

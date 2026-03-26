@@ -28,7 +28,6 @@ import (
 	"math/big"
 
 	"github.com/berachain/beacon-kit/execution/client"
-	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -75,7 +74,7 @@ type BlockOverrides struct {
 	BaseFeePerGas *hexutil.Big    `json:"baseFeePerGas,omitempty"`
 	BlobBaseFee   *hexutil.Big    `json:"blobBaseFee,omitempty"`
 	BeaconRoot    *common.Hash    `json:"beaconRoot,omitempty"`
-	Withdrawals   gethprimitives.Withdrawals
+	Withdrawals   types.Withdrawals
 }
 
 // SimBlock is a block containing calls and optional overrides for simulation.
@@ -153,7 +152,7 @@ func (c *SimulationClient) Simulate(
 // TxsToTransactionArgs converts a slice of Geth transactions to TransactionArgs suitable for simulation.
 // The transactions must be dynamic-fee (EIP-1559 or EIP-4844) type.
 // TODO: use the LatestSigner based on a Geth ChainConfig parsed from an EL Genesis File as have currently hardcoded Cancun Signer.
-func TxsToTransactionArgs(chainID uint64, txs []*gethprimitives.Transaction) ([]TransactionArgs, error) {
+func TxsToTransactionArgs(chainID uint64, txs []*types.Transaction) ([]TransactionArgs, error) {
 	signer := types.NewCancunSigner(big.NewInt(int64(chainID)))
 	args := make([]TransactionArgs, len(txs))
 

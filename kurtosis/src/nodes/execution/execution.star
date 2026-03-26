@@ -12,7 +12,7 @@ PUBLIC_RPC_PORT_NUM = 8547
 RPC_PORT_ID = "eth-json-rpc"
 
 # Because structs are immutable, we pass around a map to allow full modification up until we create the final ServiceConfig
-def get_default_service_config(plan, node_struct, node_module, chain_id, chain_spec, genesis_files, geth_config_artifact = None):
+def get_default_service_config(plan, node_struct, node_module, chain_id, chain_spec, genesis_files):
     settings = node_struct.execution_settings
 
     node_labels = dict(settings.labels)
@@ -23,11 +23,6 @@ def get_default_service_config(plan, node_struct, node_module, chain_id, chain_s
 
     # Create a copy of the module files
     files_dict = dict(node_module.FILES)
-
-    if geth_config_artifact != None:
-        files_dict["/root/.geth"] = Directory(
-            artifact_names = [geth_config_artifact],
-        )
 
     # Default path for all supported clients
     files_dict["/root/genesis"] = Directory(
@@ -129,11 +124,11 @@ def deploy_nodes(plan, configs, is_full_node = False):
         configs = service_configs,
     )
 
-def generate_node_config(plan, node_modules, node_struct, chain_id, chain_spec, genesis_files, geth_config_artifact = None, bootnode_enode_addrs = []):
+def generate_node_config(plan, node_modules, node_struct, chain_id, chain_spec, genesis_files, bootnode_enode_addrs = []):
     node_module = node_modules[node_struct.el_type]
 
     # 4a. Launch EL
-    el_service_config_dict = get_default_service_config(plan, node_struct, node_module, chain_id, chain_spec, genesis_files, geth_config_artifact)
+    el_service_config_dict = get_default_service_config(plan, node_struct, node_module, chain_id, chain_spec, genesis_files)
 
     if node_struct.node_type == "seed":
         el_service_config_dict = set_max_peers(node_module, el_service_config_dict, "200")
@@ -141,6 +136,20 @@ def generate_node_config(plan, node_modules, node_struct, chain_id, chain_spec, 
         el_service_config_dict = add_bootnodes(node_module, el_service_config_dict, bootnode_enode_addrs)
 
     return el_service_config_dict
+
+def add_peer(plan, el_service_name, enode_addr):
+    """Adds a peer to the given EL node via admin_addPeer JSON-RPC."""
+    request_recipe = PostHttpRequestRecipe(
+        endpoint = "",
+        body = '{{"method":"admin_addPeer","params":["{}"],"id":1,"jsonrpc":"2.0"}}'.format(enode_addr),
+        content_type = "application/json",
+        port_id = RPC_PORT_ID,
+    )
+
+    plan.request(
+        service_name = el_service_name,
+        recipe = request_recipe,
+    )
 
 def add_metrics(metrics_enabled_services, node, el_service_name, el_client_service, node_modules):
     metrics_enabled_services.append({

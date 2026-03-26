@@ -144,7 +144,7 @@ func buildBalanceLeaf(allBalances []uint64, validatorIndex math.U64) common.Root
 		}
 		bal := allBalances[idx]
 		for j := range bytesPerBalance {
-			leafBytes[i*bytesPerBalance+j] = byte(bal >> (j * bytesPerBalance))
+			leafBytes[i*bytesPerBalance+j] = byte(bal >> (j * bytesPerBalance)) // #nosec G115 -- intentional byte extraction from uint64.
 		}
 	}
 

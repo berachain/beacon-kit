@@ -37,6 +37,7 @@ import (
 	cmtcfg "github.com/cometbft/cometbft/config"
 	cmtcrypto "github.com/cometbft/cometbft/crypto"
 	pvm "github.com/cometbft/cometbft/privval"
+	cmttypes "github.com/cometbft/cometbft/types"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -117,4 +118,12 @@ func (s *SimComet) CreateQueryContext(height int64, prove bool) (sdk.Context, er
 
 func (s *SimComet) GetSyncData() (int64, int64) {
 	panic("unimplemented")
+}
+
+func (s *SimComet) GetBlock(height int64) *cmttypes.Block {
+	return s.Comet.GetBlock(height)
+}
+
+func (s *SimComet) GetSignedHeader(height int64) *cmttypes.SignedHeader {
+	return s.Comet.GetSignedHeader(height)
 }

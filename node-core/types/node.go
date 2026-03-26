@@ -26,6 +26,7 @@ import (
 	"cosmossdk.io/store"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	service "github.com/berachain/beacon-kit/node-core/services/registry"
+	cmttypes "github.com/cometbft/cometbft/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -57,4 +58,8 @@ type ConsensusService interface {
 	IsAppReady() error
 	CreateQueryContext(height int64, prove bool) (sdk.Context, error)
 	GetSyncData() (latestHeight int64, syncToHeight int64)
+	// GetBlock returns the CometBFT block at the given height.
+	GetBlock(height int64) *cmttypes.Block
+	// GetSignedHeader returns the CometBFT signed header (header + commit) at the given height.
+	GetSignedHeader(height int64) *cmttypes.SignedHeader
 }

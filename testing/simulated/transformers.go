@@ -29,14 +29,16 @@ import (
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
-	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
-	libcommon "github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
-	"github.com/ethereum/go-ethereum/common"
+	gethengine "github.com/ethereum/go-ethereum/beacon/engine"
+	gethcommon "github.com/ethereum/go-ethereum/common"
+	coretypes "github.com/ethereum/go-ethereum/core/types"
 	gethtypes "github.com/ethereum/go-ethereum/core/types"
+	gethtrie "github.com/ethereum/go-ethereum/trie"
 )
 
 // transformSimulatedBlockToGethBlock converts a simulated execution block into a Geth-style block.
@@ -44,7 +46,7 @@ import (
 func transformSimulatedBlockToGethBlock(
 	simBlock *execution.SimulatedBlock,
 	txs []*gethtypes.Transaction,
-	parentBeaconRoot libcommon.Root,
+	parentBeaconRoot common.Root,
 ) *gethtypes.Block {
 	// Convert numeric fields.
 	excessBlobGas := simBlock.ExcessBlobGas.ToInt().Uint64()
@@ -52,17 +54,17 @@ func transformSimulatedBlockToGethBlock(
 	baseFeePerGas := simBlock.BaseFeePerGas.ToInt()
 
 	// Compute the withdrawals hash from the simulated block's withdrawals.
-	withdrawalsHash := gethprimitives.DeriveSha(simBlock.Withdrawals, gethprimitives.NewStackTrie(nil))
+	withdrawalsHash := gethtypes.DeriveSha(simBlock.Withdrawals, gethtrie.NewStackTrie(nil))
 
 	// Create a new header using values from the simulated block.
-	header := &gethprimitives.Header{
+	header := &gethtypes.Header{
 		ParentHash: simBlock.ParentHash,
-		UncleHash:  gethprimitives.EmptyUncleHash,
+		UncleHash:  gethtypes.EmptyUncleHash,
 		Coinbase:   simBlock.Miner,
 		Root:       simBlock.StateRoot,
 		// TxHash is computed from the provided transactions since simulation does not have signatures
 		// which is required for correct hash calculation.
-		TxHash:           gethprimitives.DeriveSha(gethprimitives.Transactions(txs), gethprimitives.NewStackTrie(nil)),
+		TxHash:           gethtypes.DeriveSha(gethtypes.Transactions(txs), gethtrie.NewStackTrie(nil)),
 		ReceiptHash:      simBlock.ReceiptsRoot,
 		Bloom:            gethtypes.Bloom(simBlock.LogsBloom),
 		Difficulty:       big.NewInt(0),
@@ -76,24 +78,24 @@ func transformSimulatedBlockToGethBlock(
 		WithdrawalsHash:  &withdrawalsHash,
 		ExcessBlobGas:    &excessBlobGas,
 		BlobGasUsed:      &blobGasUsed,
-		ParentBeaconRoot: (*common.Hash)(&parentBeaconRoot),
+		ParentBeaconRoot: (*gethcommon.Hash)(&parentBeaconRoot),
 	}
 
 	// Create the block body using the transactions and withdrawals from the simulation.
-	body := gethprimitives.Body{
+	body := gethtypes.Body{
 		Transactions: txs,
 		Uncles:       nil,
 		Withdrawals:  simBlock.Withdrawals,
 	}
 
-	return gethprimitives.NewBlockWithHeader(header).WithBody(body)
+	return gethtypes.NewBlockWithHeader(header).WithBody(body)
 }
 
 // transformExecutableDataToExecutionPayload converts Ethereum executable data into a beacon execution payload.
 // This function supports fork versions prior to Deneb1. For unsupported fork versions, it returns an error.
 func transformExecutableDataToExecutionPayload(
-	forkVersion libcommon.Version,
-	data *gethprimitives.ExecutableData,
+	forkVersion common.Version,
+	data *gethengine.ExecutableData,
 ) (*ctypes.ExecutionPayload, error) {
 	// Check that the fork version is supported
 	if version.IsAfter(forkVersion, version.Electra()) {
@@ -126,12 +128,12 @@ func transformExecutableDataToExecutionPayload(
 	// Construct the execution payload.
 	executionPayload := &ctypes.ExecutionPayload{
 		Versionable:   ctypes.NewVersionable(forkVersion),
-		ParentHash:    libcommon.ExecutionHash(data.ParentHash),
-		FeeRecipient:  libcommon.ExecutionAddress(data.FeeRecipient),
-		StateRoot:     libcommon.Bytes32(data.StateRoot),
-		ReceiptsRoot:  libcommon.Bytes32(data.ReceiptsRoot),
+		ParentHash:    common.ExecutionHash(data.ParentHash),
+		FeeRecipient:  common.ExecutionAddress(data.FeeRecipient),
+		StateRoot:     common.Bytes32(data.StateRoot),
+		ReceiptsRoot:  common.Bytes32(data.ReceiptsRoot),
 		LogsBloom:     [256]byte(data.LogsBloom),
-		Random:        libcommon.Bytes32(data.Random),
+		Random:        common.Bytes32(data.Random),
 		Number:        math.U64(data.Number),
 		GasLimit:      math.U64(data.GasLimit),
 		GasUsed:       math.U64(data.GasUsed),
@@ -139,7 +141,7 @@ func transformExecutableDataToExecutionPayload(
 		Withdrawals:   withdrawals,
 		ExtraData:     data.ExtraData,
 		BaseFeePerGas: baseFeePerGas,
-		BlockHash:     libcommon.ExecutionHash(data.BlockHash),
+		BlockHash:     common.ExecutionHash(data.BlockHash),
 		Transactions:  data.Transactions,
 		BlobGasUsed:   math.U64(blobGasUsed),
 		ExcessBlobGas: math.U64(excessBlobGas),
@@ -150,9 +152,9 @@ func transformExecutableDataToExecutionPayload(
 // splitTxs separates transactions into two slices:
 // 1. Transactions with blob sidecars removed.
 // 2. The extracted blob sidecars, if any.
-func splitTxs(txs []*gethtypes.Transaction) (txsWithoutSidecars []*gethtypes.Transaction, txSidecars []*gethtypes.BlobTxSidecar) {
-	txsWithoutSidecars = make([]*gethtypes.Transaction, 0, len(txs))
-	txSidecars = make([]*gethtypes.BlobTxSidecar, 0, len(txs))
+func splitTxs(txs []*coretypes.Transaction) (txsWithoutSidecars []*coretypes.Transaction, txSidecars []*coretypes.BlobTxSidecar) {
+	txsWithoutSidecars = make([]*coretypes.Transaction, 0, len(txs))
+	txSidecars = make([]*coretypes.BlobTxSidecar, 0, len(txs))
 
 	for _, tx := range txs {
 		// Append the transaction with its blob sidecar removed.

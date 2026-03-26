@@ -90,3 +90,8 @@ packages:
       recursive: False
       with-expecter: true
       include-regex: GenesisStateProcessor
+  github.com/berachain/beacon-kit/node-core/types:
+    config:
+      recursive: False
+      with-expecter: true
+      include-regex: ConsensusService

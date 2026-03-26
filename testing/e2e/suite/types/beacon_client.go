@@ -198,7 +198,7 @@ func (c *customBeaconClient) Validators(
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	resp, err := c.client.Do(req)
+	resp, err := c.client.Do(req) //#nosec:G704 // URL is from trusted test infrastructure.
 	if err != nil {
 		return nil, fmt.Errorf("failed to send request: %w", err)
 	}
@@ -245,7 +245,7 @@ func (c *customBeaconClient) BlockProposerProof(
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	resp, err := c.client.Do(req)
+	resp, err := c.client.Do(req) //#nosec:G704 // URL is from trusted test infrastructure.
 	if err != nil {
 		return nil, fmt.Errorf("failed to send request: %w", err)
 	}
@@ -274,7 +274,7 @@ func (c *customBeaconClient) ValidatorBalanceProof(
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	resp, err := c.client.Do(req)
+	resp, err := c.client.Do(req) //#nosec:G704 // URL is from trusted test infrastructure.
 	if err != nil {
 		return nil, fmt.Errorf("failed to send request: %w", err)
 	}
@@ -303,7 +303,7 @@ func (c *customBeaconClient) ValidatorCredentialsProof(
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	resp, err := c.client.Do(req)
+	resp, err := c.client.Do(req) //#nosec:G704 // URL is from trusted test infrastructure.
 	if err != nil {
 		return nil, fmt.Errorf("failed to send request: %w", err)
 	}
@@ -332,7 +332,7 @@ func (c *customBeaconClient) ValidatorPubkeyProof(
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	resp, err := c.client.Do(req)
+	resp, err := c.client.Do(req) //#nosec:G704 // URL is from trusted test infrastructure.
 	if err != nil {
 		return nil, fmt.Errorf("failed to send request: %w", err)
 	}

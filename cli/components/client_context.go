@@ -24,9 +24,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/berachain/beacon-kit/cli/config"
 	"github.com/cosmos/cosmos-sdk/client"
-	sdkconfig "github.com/cosmos/cosmos-sdk/client/config"
 )
 
 //nolint:gochecknoglobals // todo:fix from sdk.
@@ -43,23 +41,13 @@ func init() {
 
 // ProvideClientContext returns a new client context with the given options.
 func ProvideClientContext() (client.Context, error) {
-	var err error
 	clientCtx := client.Context{}.
 		WithInput(os.Stdin).
 		WithHomeDir(DefaultNodeHome).
 		WithViper("") // uses by default the binary name as prefix
 
-	// Read the config to overwrite the default values with the values from the
-	// config file
-	customClientTemplate, customClientConfig := config.InitClientConfig()
-	clientCtx, err = sdkconfig.CreateClientConfig(
-		clientCtx,
-		customClientTemplate,
-		customClientConfig,
-	)
-	if err != nil {
-		return clientCtx, err
-	}
-
+	// Do not call CreateClientConfig here as it may create directories
+	// in the default home directory before the --home flag is parsed.
+	// This will be called again in PersistentPreRunE after flags are parsed.
 	return clientCtx, nil
 }

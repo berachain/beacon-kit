@@ -184,7 +184,7 @@ func (rpc *client) callRaw(
 	req.Header = rpc.header.Clone()
 	rpc.mu.RUnlock()
 
-	response, err := rpc.client.Do(req)
+	response, err := rpc.client.Do(req) //#nosec:G704 // URL is operator-configured RPC endpoint.
 	if err != nil {
 		return nil, err
 	}

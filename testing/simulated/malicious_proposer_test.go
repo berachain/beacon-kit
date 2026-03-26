@@ -33,7 +33,6 @@ import (
 	dablob "github.com/berachain/beacon-kit/da/blob"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/engine-primitives/errors"
-	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
@@ -54,7 +53,7 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	const coreLoopIterations = 1
 
 	// Initialize the chain state.
-	s.InitializeChain(s.T())
+	s.InitializeChain(s.T(), 1)
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
@@ -107,7 +106,7 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	)
 
 	// Initialize the slice with the malicious transaction.
-	maliciousTxs := []*gethprimitives.Transaction{maliciousTx}
+	maliciousTxs := []*gethtypes.Transaction{maliciousTx}
 
 	// Create a malicious block by injecting an invalid transaction.
 	maliciousBlock := simulated.ComputeAndSetInvalidExecutionBlock(
@@ -157,7 +156,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidTimestamps_Errors() {
 	const coreLoopIterations = 1
 
 	// Initialize the chain state.
-	s.InitializeChain(s.T())
+	s.InitializeChain(s.T(), 1)
 	nodeAddress, err := s.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
 	s.SimComet.Comet.SetNodeAddress(nodeAddress)
@@ -219,7 +218,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobCommitment_Errors() {
 	const coreLoopIterations = 1
 
 	// Initialize the chain state.
-	s.InitializeChain(s.T())
+	s.InitializeChain(s.T(), 1)
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
@@ -388,7 +387,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobInclusionProof_Errors() 
 	const coreLoopIterations = 1
 
 	// Initialize the chain state.
-	s.InitializeChain(s.T())
+	s.InitializeChain(s.T(), 1)
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)

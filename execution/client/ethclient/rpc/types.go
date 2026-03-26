@@ -62,3 +62,8 @@ type Error struct {
 func (err Error) Error() string {
 	return fmt.Sprintf("Error %d (%s)", err.Code, err.Message)
 }
+
+// ErrorCode returns the number identifying the JSON-RPC error.
+func (err Error) ErrorCode() int {
+	return err.Code
+}

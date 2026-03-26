@@ -48,134 +48,81 @@ const TestnetBeaconChainID = "testnet-beacon-80069"
 
 const WithdrawalExecutionAddress = "0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4"
 
-// InitializeHomeDir sets up a temporary home directory with the necessary genesis state
-// and configuration files for testing. It returns the configured CometBFT config along with
-// the computed genesis validators root.
-func InitializeHomeDir(t *testing.T, chainSpec chain.Spec, tempHomeDir string, elGenesisPath string) (*cmtcfg.Config, common.Root) {
-	t.Helper()
-
-	t.Logf("Initializing home directory: %s", tempHomeDir)
-	// Create the default CometBFT configuration using the temporary home directory.
-	cometConfig := createCometConfig(t, tempHomeDir)
-
-	// Run initialization command to mimic 'beacond init'
-	initCommand(t, chainSpec, cometConfig.RootDir)
-
-	// Retrieve the BLS signer from the configured home directory.
-	blsSigner := GetBlsSigner(cometConfig.RootDir)
-
-	// Set the deposit amount to the maximum effective balance.
-	depositAmount := chainSpec.MaxEffectiveBalance()
-	// Define an arbitrary withdrawal address.
-	withdrawalAddress, err := common.NewExecutionAddressFromHex(WithdrawalExecutionAddress)
-	require.NoError(t, err, "failed to create withdrawal address")
-
-	// Add a genesis deposit.
-	err = genesis.AddGenesisDeposit(chainSpec, cometConfig, blsSigner, depositAmount, withdrawalAddress, "")
-	require.NoError(t, err, "failed to add genesis deposit")
-
-	// Collect the genesis deposit.
-	err = genesis.CollectGenesisDeposits(cometConfig)
-	require.NoError(t, err, "failed to collect genesis deposits")
-
-	// Update the execution layer deposit storage with the eth-genesis file.
-	err = genesis.SetDepositStorage(chainSpec, cometConfig, elGenesisPath)
-	require.NoError(t, err, "failed to set deposit storage")
-
-	// Add the execution payload to the genesis configuration.
-	err = genesis.AddExecutionPayload(chainSpec, path.Join(cometConfig.RootDir, filepath.Base(elGenesisPath)), cometConfig)
-	require.NoError(t, err, "failed to add execution payload")
-
-	// Compute the validators root from the genesis file.
-	genesisValidatorsRoot, err := genesisutils.ComputeValidatorsRootFromFile(
-		path.Join(cometConfig.RootDir, "config/genesis.json"),
-		chainSpec,
-	)
-	require.NoError(t, err, "failed to compute validators root")
-
-	return cometConfig, genesisValidatorsRoot
-}
-
-// Initialize2HomeDirs sets up a temporary home directory with the necessary genesis state
-// and configuration files for testing. It returns the configured CometBFT config along with
-// the computed genesis validators root. This creates a 2 validator setup.
-func Initialize2HomeDirs(
+// InitializeHomeDirs sets up one or more temporary home directories with the
+// necessary genesis state and configuration files for testing. It returns a
+// CometBFT config per home directory along with the computed genesis validators
+// root. When multiple directories are provided, premined deposits are
+// consolidated into the first directory and the resulting genesis file is
+// replicated to all others.
+func InitializeHomeDirs(
 	t *testing.T,
 	chainSpec chain.Spec,
-	tempHomeDir1, tempHomeDir2, elGenesisPath string,
-) (*cmtcfg.Config, *cmtcfg.Config, common.Root) {
+	elGenesisPath string,
+	tempHomeDirs ...string,
+) ([]*cmtcfg.Config, common.Root) {
 	t.Helper()
+	require.NotEmpty(t, tempHomeDirs, "at least one home directory is required")
 
-	t.Logf("Initializing home directory: %s and %s", tempHomeDir1, tempHomeDir2)
-	// Create the default CometBFT configuration using the temporary home directory.
-	cmtCfg1 := createCometConfig(t, tempHomeDir1)
-	// Create a new temp home dir for the second validator.
-	cmtCfg2 := createCometConfig(t, tempHomeDir2)
+	n := len(tempHomeDirs)
+	t.Logf("Initializing %d home director(ies): %v", n, tempHomeDirs)
 
-	// Run initialization command to mimic 'beacond init'
-	initCommand(t, chainSpec, cmtCfg1.RootDir)
-	initCommand(t, chainSpec, cmtCfg2.RootDir)
+	configs := make([]*cmtcfg.Config, n)
+	for i, dir := range tempHomeDirs {
+		configs[i] = createCometConfig(t, dir)
+		initCommand(t, chainSpec, configs[i].RootDir)
+	}
 
-	// Retrieve the BLS signer from the configured home directory.
-	blsSigner1 := GetBlsSigner(cmtCfg1.RootDir)
-	blsSigner2 := GetBlsSigner(cmtCfg2.RootDir)
-
-	// Set the deposit amount to the maximum effective balance.
 	depositAmount := chainSpec.MaxEffectiveBalance()
-	// Define an arbitrary withdrawal address.
 	withdrawalAddress, err := common.NewExecutionAddressFromHex(WithdrawalExecutionAddress)
 	require.NoError(t, err, "failed to create withdrawal address")
 
-	// Add a genesis deposit for the first validator.
-	err = genesis.AddGenesisDeposit(chainSpec, cmtCfg1, blsSigner1, depositAmount, withdrawalAddress, "")
-	require.NoError(t, err, "failed to add genesis deposit")
-	// Add a genesis deposit for the second validator.
-	err = genesis.AddGenesisDeposit(chainSpec, cmtCfg2, blsSigner2, depositAmount, withdrawalAddress, "")
-	require.NoError(t, err, "failed to add genesis deposit 2")
+	for i, cfg := range configs {
+		signer := GetBlsSigner(cfg.RootDir)
+		err = genesis.AddGenesisDeposit(chainSpec, cfg, signer, depositAmount, withdrawalAddress, "")
+		require.NoError(t, err, "failed to add genesis deposit %d", i+1)
+	}
 
-	// cmtCfg1 contains premined deposit for both validators.
-	dir1 := filepath.Join(cmtCfg1.RootDir, "config", "premined-deposits")
-	dir2 := filepath.Join(cmtCfg2.RootDir, "config", "premined-deposits")
-	copyMissingFiles(t, dir2, dir1)
+	primaryDir := filepath.Join(configs[0].RootDir, "config", "premined-deposits")
+	for i := 1; i < n; i++ {
+		copyMissingFiles(t, filepath.Join(configs[i].RootDir, "config", "premined-deposits"), primaryDir)
+	}
 
-	// Collect the genesis deposits in cmtCfg1.
-	err = genesis.CollectGenesisDeposits(cmtCfg1)
+	err = genesis.CollectGenesisDeposits(configs[0])
 	require.NoError(t, err, "failed to collect genesis deposits")
 
-	// Copy the genesis file from cmtCfg1 to cmtCfg2 so both validators have the same genesis file.
-	srcGenesis := filepath.Join(cmtCfg1.RootDir, "config", "genesis.json")
-	dstGenesis := filepath.Join(cmtCfg2.RootDir, "config", "genesis.json")
-	data, err := os.ReadFile(srcGenesis)
-	require.NoError(t, err, "failed to read genesis file: %s", srcGenesis)
-	err = os.WriteFile(dstGenesis, data, 0o600)
-	require.NoError(t, err, "failed to write genesis file: %s", dstGenesis)
+	if n > 1 {
+		srcGenesis := filepath.Join(configs[0].RootDir, "config", "genesis.json")
+		data, readErr := os.ReadFile(srcGenesis)
+		require.NoError(t, readErr, "failed to read genesis file: %s", srcGenesis)
+		for i := 1; i < n; i++ {
+			dst := filepath.Join(configs[i].RootDir, "config", "genesis.json")
+			require.NoError(t, os.WriteFile(dst, data, 0o600), "failed to write genesis file: %s", dst)
+		}
+	}
 
-	// Update the execution layer deposit storage with the eth-genesis file.
-	err = genesis.SetDepositStorage(chainSpec, cmtCfg1, elGenesisPath)
-	require.NoError(t, err, "failed to set deposit storage")
-	err = genesis.SetDepositStorage(chainSpec, cmtCfg2, elGenesisPath)
-	require.NoError(t, err, "failed to set deposit storage 2")
+	for i, cfg := range configs {
+		err = genesis.SetDepositStorage(chainSpec, cfg, elGenesisPath)
+		require.NoError(t, err, "failed to set deposit storage %d", i+1)
 
-	// Add the execution payload to the genesis configuration.
-	err = genesis.AddExecutionPayload(chainSpec, path.Join(cmtCfg1.RootDir, filepath.Base(elGenesisPath)), cmtCfg1)
-	require.NoError(t, err, "failed to add execution payload")
-	err = genesis.AddExecutionPayload(chainSpec, path.Join(cmtCfg2.RootDir, filepath.Base(elGenesisPath)), cmtCfg2)
-	require.NoError(t, err, "failed to add execution payload 2")
+		err = genesis.AddExecutionPayload(chainSpec, path.Join(cfg.RootDir, filepath.Base(elGenesisPath)), cfg)
+		require.NoError(t, err, "failed to add execution payload %d", i+1)
+	}
 
-	// Compute the validators root from the genesis file.
 	genesisValidatorsRoot, err := genesisutils.ComputeValidatorsRootFromFile(
-		path.Join(cmtCfg1.RootDir, "config/genesis.json"),
+		path.Join(configs[0].RootDir, "config/genesis.json"),
 		chainSpec,
 	)
 	require.NoError(t, err, "failed to compute validators root")
-	genesisValidatorsRoot2, err := genesisutils.ComputeValidatorsRootFromFile(
-		path.Join(cmtCfg2.RootDir, "config/genesis.json"),
-		chainSpec,
-	)
-	require.NoError(t, err, "failed to compute validators root 2")
-	require.Equal(t, genesisValidatorsRoot, genesisValidatorsRoot2, "validators' roots should be equal")
+	for i := 1; i < n; i++ {
+		root, rootErr := genesisutils.ComputeValidatorsRootFromFile(
+			path.Join(configs[i].RootDir, "config/genesis.json"),
+			chainSpec,
+		)
+		require.NoError(t, rootErr, "failed to compute validators root %d", i+1)
+		require.Equal(t, genesisValidatorsRoot, root, "validators' roots should be equal")
+	}
 
-	return cmtCfg1, cmtCfg2, genesisValidatorsRoot
+	return configs, genesisValidatorsRoot
 }
 
 func CopyHomeDir(t *testing.T, sourceHomeDir, targetHomeDir string) {

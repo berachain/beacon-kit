@@ -86,9 +86,9 @@ func NewStore[BeaconBlockT BeaconBlock](
 	return kvStore
 }
 
-// Set sets the block by a given index in the store, storing the block root,
-// timestamp, and state root. Only this function may potentially evict
-// entries from the store if the availability window is reached.
+// Set sets the block in the store, storing the block root, timestamp, and state root.
+// Only this function may potentially evict entries from the store if the availability
+// window is reached.
 func (kv *KVStore[BeaconBlockT]) Set(blk BeaconBlockT) error {
 	if !kv.enabled {
 		// nothing to do if store is disabled

@@ -115,8 +115,6 @@ func (s *Service) PostFinalizeBlockOps(ctx sdk.Context, blk *ctypes.BeaconBlock)
 	s.depositFetcher(ctx, blockNum)
 
 	// Store the finalized block in the KVStore.
-	//
-	// TODO: Store full SignedBeaconBlock with all data in storage
 	slot := blk.GetSlot()
 	if err := s.storageBackend.BlockStore().Set(blk); err != nil {
 		s.logger.Error(

@@ -22,69 +22,71 @@ package types
 
 import (
 	"context"
+	"fmt"
+	"net/http"
+	"time"
 
-	"cosmossdk.io/log"
-	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
+	beraclient "github.com/berachain/beacon-kit/gethlib/ethclient"
+	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/services"
 )
 
 // ExecutionClient represents an execution client.
 type ExecutionClient struct {
-	*WrappedServiceContext
-	*JSONRPCConnection
-	logger log.Logger
+	*beraclient.Client
+
+	serviceCtx *services.ServiceContext
+	url        string
 }
 
 // NewExecutionClientFromServiceCtx creates a new execution client from a
 // service context.
-func NewExecutionClientFromServiceCtx(
-	serviceCtx *WrappedServiceContext,
-	logger log.Logger,
-) *ExecutionClient {
-	ec := &ExecutionClient{
-		WrappedServiceContext: serviceCtx,
-		logger: logger.With(
-			"client-name",
-			serviceCtx.GetServiceName(),
-		),
+func NewExecutionClient(serviceCtx *services.ServiceContext) *ExecutionClient {
+	return &ExecutionClient{
+		serviceCtx: serviceCtx,
 	}
-
-	if err := ec.Connect(); err != nil {
-		panic(err)
-	}
-
-	return ec
 }
 
-func (ec *ExecutionClient) Connect() error {
-	jsonRPCConn, err := NewJSONRPCConnection(ec.ServiceContext)
+func (ec *ExecutionClient) Start(ctx context.Context) error {
+	port, ok := ec.serviceCtx.GetPublicPorts()["eth-json-rpc"]
+	if !ok {
+		return ErrPublicPortNotFound
+	}
+
+	ec.url = fmt.Sprintf("http://0.0.0.0:%d", port.GetNumber())
+	ethClient, err := DialWithPooling(ctx, ec.url)
 	if err != nil {
 		return err
 	}
 
-	ec.JSONRPCConnection = jsonRPCConn
+	ec.Client = beraclient.Wrap(ethClient)
 	return nil
 }
 
-func (ec ExecutionClient) Start(
-	ctx context.Context,
-	enclaveContext *enclaves.EnclaveContext,
-) (*enclaves.StarlarkRunResult, error) {
-	res, err := ec.WrappedServiceContext.Start(ctx, enclaveContext)
+// URL returns the URL of the execution client.
+func (ec *ExecutionClient) URL() string {
+	return ec.url
+}
+
+// DialWithPooling creates an ethclient with an HTTP transport configured
+// for high connection reuse, avoiding ephemeral port exhaustion under
+// heavy concurrent load.
+func DialWithPooling(ctx context.Context, url string) (*ethclient.Client, error) {
+	const (
+		poolMaxIdleConns    = 256
+		poolIdleTimeoutSecs = 90
+	)
+	httpClient := &http.Client{
+		Transport: &http.Transport{
+			MaxIdleConns:        poolMaxIdleConns,
+			MaxIdleConnsPerHost: poolMaxIdleConns,
+			IdleConnTimeout:     poolIdleTimeoutSecs * time.Second,
+		},
+	}
+	rpcClient, err := rpc.DialOptions(ctx, url, rpc.WithHTTPClient(httpClient))
 	if err != nil {
 		return nil, err
 	}
-
-	return res, ec.Connect()
-}
-
-func (ec ExecutionClient) Stop(
-	ctx context.Context,
-) (*enclaves.StarlarkRunResult, error) {
-	return ec.WrappedServiceContext.Stop(ctx)
-}
-
-// IsValidator returns true if the execution client is a validator.
-// TODO: All nodes are validators rn.
-func (ec *ExecutionClient) IsValidator() bool {
-	return true
+	return ethclient.NewClient(rpcClient), nil
 }
