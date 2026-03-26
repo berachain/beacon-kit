@@ -42,7 +42,7 @@ type WrappedDepositContract struct {
 
 	// lastBlockNumber is the last block number that was successfully consumed from
 	// the deposit contract.
-	lastBlockNumber atomic.Pointer[math.U64]
+	lastBlockNumber atomic.Uint64
 }
 
 // NewWrappedDepositContract creates a new DepositContract.
@@ -68,10 +68,7 @@ func NewWrappedDepositContract(
 // LastBlockNumber returns the last block number that was successfully
 // consumed from the deposit contract.
 func (dc *WrappedDepositContract) LastBlockNumber() math.U64 {
-	if p := dc.lastBlockNumber.Load(); p != nil {
-		return *p
-	}
-	return 0
+	return math.U64(dc.lastBlockNumber.Load())
 }
 
 // ReadDeposits reads deposits from the deposit contract.
@@ -125,5 +122,5 @@ func (dc *WrappedDepositContract) ReadDeposits(
 // SetLastBlockNumber sets the last block number that was successfully
 // consumed from the deposit contract.
 func (dc *WrappedDepositContract) SetLastBlockNumber(blockNumber math.U64) {
-	dc.lastBlockNumber.Store(&blockNumber)
+	dc.lastBlockNumber.Store(blockNumber.Unwrap())
 }
