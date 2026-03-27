@@ -249,7 +249,15 @@ func (s *Service) Start(
 
 	close(started)
 
-	return err
+	if err != nil {
+		return err
+	}
+
+	// Subscribe to round-change events so the sequencer can detect when
+	// a consensus round times out and rebuild the payload for the new proposer.
+	s.subscribeToRoundChanges(ctx)
+
+	return nil
 }
 
 func (s *Service) Stop() error {

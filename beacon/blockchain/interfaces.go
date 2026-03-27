@@ -74,6 +74,9 @@ type LocalBuilder interface {
 		latestEnvelopeSlot math.Slot,
 		latestEnvelope ctypes.BuiltExecutionPayloadEnv,
 	)
+	// InvalidatePayload removes a cached payload ID for the given slot and
+	// parent block root, forcing a fresh build on the next request.
+	InvalidatePayload(slot math.Slot, parentBlockRoot common.Root)
 }
 
 // StateProcessor defines the interface for processing various state transitions
@@ -164,6 +167,14 @@ type BlockchainI interface {
 		*ctypes.BeaconBlock,
 	) error
 	PruneOrphanedBlobs(lastBlockHeight int64) error
+	// HandleRoundChange is called when CometBFT enters round > 0 at a height.
+	// On the sequencer it triggers a fresh payload build for the new proposer.
+	HandleRoundChange(
+		ctx context.Context,
+		height int64,
+		round int32,
+		proposerAddress []byte,
+	)
 }
 
 // BlobProcessor is the interface for the blobs processor.
