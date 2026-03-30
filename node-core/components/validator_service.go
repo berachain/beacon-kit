@@ -27,7 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/errors"
-	"github.com/berachain/beacon-kit/execution/engine"
+	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
@@ -46,7 +46,7 @@ type ValidatorServiceInput struct {
 	Signer          crypto.BLSSigner
 	SidecarFactory  SidecarFactory
 	TelemetrySink   *metrics.TelemetrySink
-	ExecutionEngine *engine.Engine
+	EngineClient    *client.EngineClient
 	PreconfClient   *preconf.Client `optional:"true"`
 }
 
@@ -66,7 +66,7 @@ func ProvideValidatorService(in ValidatorServiceInput) (*validator.Service, erro
 		in.SidecarFactory,
 		in.LocalBuilder,
 		in.TelemetrySink,
-		in.ExecutionEngine,
+		in.EngineClient,
 		&in.Cfg.Preconf,
 		in.PreconfClient,
 	), nil

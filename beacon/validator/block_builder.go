@@ -525,6 +525,6 @@ func (s *Service) validateSequencerPayload(
 	if err != nil {
 		return fmt.Errorf("failed to build new payload request from sequencer envelope: %w", err)
 	}
-	_, err = s.executionEngine.NewPayload(ctx, payloadReq)
+	_, err = s.engineClient.NewPayload(ctx, payloadReq)
 	return err
 }

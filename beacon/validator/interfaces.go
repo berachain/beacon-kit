@@ -104,8 +104,8 @@ type TelemetrySink interface {
 	MeasureSince(key string, start time.Time, args ...string)
 }
 
-// ExecutionEngine is the interface for validating payloads against the local EL.
-type ExecutionEngine interface {
+// EngineClient is the interface for validating payloads against the local EL.
+type EngineClient interface {
 	NewPayload(
 		ctx context.Context,
 		req ctypes.NewPayloadRequest,
