@@ -329,6 +329,9 @@ func (s *Service) VerifyIncomingBlock(
 				s.logger.Error("Failed to get next proposer pubkey", "error", pubkeyErr)
 			} else {
 				shouldBuildNextPayload = s.preconfWhitelist.IsWhitelisted(expectedProposerPubkey)
+				// Record expected proposer so the preconf server can verify
+				// that payload requests come from the correct validator.
+				s.preconfProposerTracker.SetExpectedProposer(blkSlot+1, expectedProposerPubkey)
 			}
 			s.logger.Info("Sequencer mode: determined next proposer",
 				"current_block_slot", blkSlot.Base10(),

@@ -43,6 +43,7 @@ func DefaultComponents() []any {
 		components.ProvideJWTSecret,
 		components.ProvideLocalBuilder,
 		components.ProvidePreconfWhitelist,
+		components.ProvidePreconfProposerTracker,
 		components.ProvidePreconfServer,
 		components.ProvidePreconfClient,
 		components.ProvideReportingService,

@@ -36,6 +36,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/log/noop"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/net/jwt"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -97,6 +98,11 @@ func TestServer_HandleGetPayload(t *testing.T) {
 		},
 	}
 
+	jwtToValidator := map[*jwt.Secret]crypto.BLSPubkey{
+		secretA: validatorA,
+		secretB: validatorB,
+	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
@@ -104,10 +110,15 @@ func TestServer_HandleGetPayload(t *testing.T) {
 			provider := &mockPayloadProvider{
 				hasPayload: tt.payloadExists,
 			}
+			tracker := preconf.NewProposerTracker()
+			if pubkey, ok := jwtToValidator[tt.requestJWT]; ok {
+				tracker.SetExpectedProposer(tt.requestSlot, pubkey)
+			}
 			server := preconf.NewServer(
 				noop.NewLogger[any](),
 				preconf.ValidatorJWTs{validatorA: secretA, validatorB: secretB},
 				newTestWhitelist(t, pubkeyAHex, pubkeyBHex),
+				tracker,
 				provider,
 				0,
 			)
@@ -130,10 +141,86 @@ func TestServer_HandleGetPayload(t *testing.T) {
 	}
 }
 
+func TestServer_ProposerCheck(t *testing.T) {
+	t.Parallel()
+
+	validatorA, _ := parser.ConvertPubkey(pubkeyAHex)
+	validatorB, _ := parser.ConvertPubkey(pubkeyBHex)
+	secretA, _ := jwt.NewFromHex(secretAHex)
+	secretB, _ := jwt.NewFromHex(secretBHex)
+
+	const targetSlot math.Slot = 100
+
+	tests := []struct {
+		name         string
+		setupTracker func() *preconf.ProposerTracker
+		requestJWT   *jwt.Secret
+		wantStatus   int
+		wantContains string
+	}{
+		{
+			name: "expected proposer gets payload",
+			setupTracker: func() *preconf.ProposerTracker {
+				tr := preconf.NewProposerTracker()
+				tr.SetExpectedProposer(targetSlot, validatorA)
+				return tr
+			},
+			requestJWT: secretA,
+			wantStatus: http.StatusOK,
+		},
+		{
+			name: "non-expected proposer is rejected",
+			setupTracker: func() *preconf.ProposerTracker {
+				tr := preconf.NewProposerTracker()
+				tr.SetExpectedProposer(targetSlot, validatorA)
+				return tr
+			},
+			requestJWT:   secretB,
+			wantStatus:   http.StatusForbidden,
+			wantContains: "not the expected proposer",
+		},
+		{
+			name:         "no tracked proposer for slot is rejected",
+			setupTracker: preconf.NewProposerTracker,
+			requestJWT:   secretA,
+			wantStatus:   http.StatusForbidden,
+			wantContains: "not the expected proposer",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			server := preconf.NewServer(
+				noop.NewLogger[any](),
+				preconf.ValidatorJWTs{validatorA: secretA, validatorB: secretB},
+				newTestWhitelist(t, pubkeyAHex, pubkeyBHex),
+				tt.setupTracker(),
+				&mockPayloadProvider{hasPayload: true},
+				0,
+			)
+
+			body, _ := json.Marshal(preconf.GetPayloadRequest{Slot: targetSlot})
+			req := httptest.NewRequest(http.MethodPost, preconf.PayloadEndpoint, bytes.NewReader(body))
+			token, _ := tt.requestJWT.BuildSignedToken()
+			req.Header.Set("Authorization", "Bearer "+token)
+
+			rec := httptest.NewRecorder()
+			server.Handler().ServeHTTP(rec, req)
+
+			require.Equal(t, tt.wantStatus, rec.Code)
+			if tt.wantContains != "" {
+				require.Contains(t, rec.Body.String(), tt.wantContains)
+			}
+		})
+	}
+}
+
 func TestServer_RejectsNonPostMethods(t *testing.T) {
 	t.Parallel()
 
-	server := preconf.NewServer(noop.NewLogger[any](), nil, nil, nil, 0)
+	server := preconf.NewServer(noop.NewLogger[any](), nil, nil, nil, nil, 0)
 
 	for _, method := range []string{http.MethodGet, http.MethodPut, http.MethodDelete} {
 		req := httptest.NewRequest(method, preconf.PayloadEndpoint, nil)
@@ -176,7 +263,7 @@ func TestServer_OnSIGHUP(t *testing.T) {
 	wl, err := preconf.NewWhitelist(tmpFile)
 	require.NoError(t, err)
 
-	server := preconf.NewServer(noop.NewLogger[any](), nil, wl, nil, 0)
+	server := preconf.NewServer(noop.NewLogger[any](), nil, wl, nil, nil, 0)
 
 	require.True(t, wl.IsWhitelisted(pkA))
 	require.False(t, wl.IsWhitelisted(pkB))

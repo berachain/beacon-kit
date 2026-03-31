@@ -50,6 +50,7 @@ func FixedComponents(t *testing.T) []any {
 		components.ProvideJWTSecret,
 		components.ProvideLocalBuilder,
 		components.ProvidePreconfWhitelist,
+		components.ProvidePreconfProposerTracker,
 		components.ProvidePreconfServer,
 		components.ProvidePreconfClient,
 		components.ProvideReportingService,

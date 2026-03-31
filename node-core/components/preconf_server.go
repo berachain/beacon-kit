@@ -33,10 +33,11 @@ import (
 type PreconfServerInput struct {
 	depinject.In
 
-	Cfg          *config.Config
-	Logger       *phuslu.Logger
-	Whitelist    preconf.Whitelist
-	LocalBuilder *payloadbuilder.PayloadBuilder
+	Cfg                    *config.Config
+	Logger                 *phuslu.Logger
+	Whitelist              preconf.Whitelist
+	PreconfProposerTracker *preconf.ProposerTracker
+	LocalBuilder           *payloadbuilder.PayloadBuilder
 }
 
 // ProvidePreconfServer provides the preconf API server for sequencer mode.
@@ -81,6 +82,7 @@ func ProvidePreconfServer(in PreconfServerInput) (*preconf.Server, error) {
 		logger,
 		validatorJWTs,
 		in.Whitelist,
+		in.PreconfProposerTracker,
 		in.LocalBuilder,
 		cfg.APIPort,
 	), nil

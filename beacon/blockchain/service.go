@@ -80,6 +80,12 @@ type Service struct {
 	// - Validator: checks if self is whitelisted to fetch payload from sequencer
 	// Can be nil if preconf is disabled.
 	preconfWhitelist preconf.Whitelist
+
+	// preconfProposerTracker tracks the expected proposer pubkey for upcoming slots.
+	// The sequencer writes entries here so the preconf server can verify that
+	// payload requests come from the correct proposer.
+	// Can be nil if preconf is disabled.
+	preconfProposerTracker *preconf.ProposerTracker
 }
 
 // NewService creates a new validator service.
@@ -95,22 +101,24 @@ func NewService(
 	telemetrySink TelemetrySink,
 	preconfCfg *preconf.Config,
 	preconfWhitelist preconf.Whitelist,
+	preconfProposerTracker *preconf.ProposerTracker,
 ) *Service {
 	return &Service{
-		storageBackend:       storageBackend,
-		blobProcessor:        blobProcessor,
-		depositContract:      depositContract,
-		eth1FollowDistance:   math.U64(chainSpec.Eth1FollowDistance()),
-		failedBlocks:         make(map[math.Slot]struct{}),
-		logger:               logger,
-		chainSpec:            chainSpec,
-		executionEngine:      executionEngine,
-		localBuilder:         localBuilder,
-		stateProcessor:       stateProcessor,
-		metrics:              newChainMetrics(telemetrySink),
-		forceStartupSyncOnce: new(sync.Once),
-		preconfCfg:           preconfCfg,
-		preconfWhitelist:     preconfWhitelist,
+		storageBackend:         storageBackend,
+		blobProcessor:          blobProcessor,
+		depositContract:        depositContract,
+		eth1FollowDistance:     math.U64(chainSpec.Eth1FollowDistance()),
+		failedBlocks:           make(map[math.Slot]struct{}),
+		logger:                 logger,
+		chainSpec:              chainSpec,
+		executionEngine:        executionEngine,
+		localBuilder:           localBuilder,
+		stateProcessor:         stateProcessor,
+		metrics:                newChainMetrics(telemetrySink),
+		forceStartupSyncOnce:   new(sync.Once),
+		preconfCfg:             preconfCfg,
+		preconfWhitelist:       preconfWhitelist,
+		preconfProposerTracker: preconfProposerTracker,
 	}
 }
 

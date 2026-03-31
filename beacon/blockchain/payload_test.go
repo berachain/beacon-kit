@@ -286,6 +286,7 @@ func setupOptimisticPayloadTests(t *testing.T, cs chain.Spec) (
 		ts,
 		nil, // preconf.Config unused in this test
 		nil, // preconf.Whitelist unused in this test
+		nil, // preconf.ProposerTracker unused in this test
 	)
 	return chain, st, cms, ctx, sp, b, sb, eng, depStore
 }

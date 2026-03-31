@@ -22,6 +22,8 @@ package blockchain
 
 import (
 	"context"
+
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // HandleRoundChange is called when CometBFT enters a new consensus round
@@ -44,8 +46,13 @@ func (s *Service) HandleRoundChange(
 
 	st := s.storageBackend.StateFromContext(ctx)
 
+	slot := math.Slot(height) //#nosec:G115 // CometBFT heights are always positive.
+
 	proposerPubkey, err := s.getNextProposerPubkey(st, proposerAddress)
 	if err != nil {
+		// Clear the tracker so the stale proposer can no longer fetch payloads.
+		s.preconfProposerTracker.ClearExpectedProposer(slot)
+
 		s.logger.Warn("Round change: failed to resolve proposer pubkey",
 			"height", height,
 			"round", round,
@@ -53,6 +60,11 @@ func (s *Service) HandleRoundChange(
 		)
 		return
 	}
+
+	// Update expected proposer immediately so the preconf server rejects
+	// requests from the previous round's proposer, even if the new proposer
+	// is not whitelisted or prefetch fails below.
+	s.preconfProposerTracker.SetExpectedProposer(slot, proposerPubkey)
 
 	if !s.preconfWhitelist.IsWhitelisted(proposerPubkey) {
 		s.logger.Debug("Round change: new proposer not whitelisted, skipping rebuild",

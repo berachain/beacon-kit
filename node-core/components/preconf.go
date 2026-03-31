@@ -28,6 +28,12 @@ import (
 	"github.com/berachain/beacon-kit/log/phuslu"
 )
 
+// ProvidePreconfProposerTracker provides a ProposerTracker shared between the
+// blockchain service (writer) and the preconf server (reader).
+func ProvidePreconfProposerTracker() *preconf.ProposerTracker {
+	return preconf.NewProposerTracker()
+}
+
 // PreconfWhitelistInput is the input for the preconf whitelist provider.
 type PreconfWhitelistInput struct {
 	depinject.In
