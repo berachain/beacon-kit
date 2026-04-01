@@ -76,7 +76,7 @@ jobs:
         name: Update dependencies to latest (skip replace-pinned modules)
         run: |
           go list -m -f '{{if not .Indirect}}{{.Path}}{{end}}' all \
-            | grep -vE 'cosmossdk\.io/|cosmos/cosmos-sdk|cometbft/|karalabe/ssz|kurtosis-tech/' \
+            | grep -vE 'berachain/beacon-kit|cosmossdk\.io/|cosmos/cosmos-sdk|cometbft/|karalabe/ssz|kurtosis-tech/' \
             | xargs go get -u -t
           go mod tidy
       - run: make test-unit
