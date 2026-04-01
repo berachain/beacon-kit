@@ -57,6 +57,9 @@ func TestActiveForkVersionForTimestamp(t *testing.T) {
 		{name: "Before Electra Fork", timestamp: spec.ElectraForkTime() - 1, expected: version.Deneb1()},
 		{name: "At Electra Fork", timestamp: spec.ElectraForkTime(), expected: version.Electra()},
 		{name: "After Electra Fork", timestamp: spec.ElectraForkTime() + 1, expected: version.Electra()},
+		{name: "Before Fulu Fork", timestamp: spec.FuluForkTime() - 1, expected: version.Electra1()},
+		{name: "At Fulu Fork", timestamp: spec.FuluForkTime(), expected: version.Fulu()},
+		{name: "After Fulu Fork", timestamp: spec.FuluForkTime() + 1, expected: version.Fulu()},
 	}
 
 	// Run test cases
