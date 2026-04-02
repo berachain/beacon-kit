@@ -144,7 +144,8 @@ func TestRetrievePayload(t *testing.T) {
 				pb.CacheLatestVerifiedPayload(slot, tt.verifiedEnvelope)
 			}
 
-			envelope, err := pb.RetrievePayload(t.Context(), slot, parentBlockRoot, tt.expectedForkVersion)
+			var envelope ctypes.BuiltExecutionPayloadEnv
+			envelope, err = pb.RetrievePayload(t.Context(), slot, parentBlockRoot, tt.expectedForkVersion)
 			if tt.wantErr != nil {
 				require.ErrorIs(t, err, tt.wantErr)
 				return
