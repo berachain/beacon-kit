@@ -144,8 +144,8 @@ func TestRetrievePayload(t *testing.T) {
 				pb.CacheLatestVerifiedPayload(slot, tt.verifiedEnvelope)
 			}
 
-			var envelope ctypes.BuiltExecutionPayloadEnv
-			envelope, err = pb.RetrievePayload(t.Context(), slot, parentBlockRoot, tt.expectedForkVersion)
+			//nolint:govet // shadow err so that parallel tests do not overwrite err.
+			envelope, err := pb.RetrievePayload(t.Context(), slot, parentBlockRoot, tt.expectedForkVersion)
 			if tt.wantErr != nil {
 				require.ErrorIs(t, err, tt.wantErr)
 				return
