@@ -164,6 +164,111 @@ func TestRetrievePayloadNilWithdrawalsListRejected(t *testing.T) {
 	require.ErrorIs(t, builder.ErrNilWithdrawals, err)
 }
 
+func TestRetrievePayloadFallbackForkVersionMatch(t *testing.T) {
+	t.Parallel()
+
+	chainSpec, err := spec.MainnetChainSpec()
+	require.NoError(t, err)
+
+	var (
+		logger = noop.NewLogger[any]()
+		cfg    = &builder.Config{Enabled: true}
+		ee     = &stubExecutionEngine{}
+		pc     = cache.NewPayloadIDCache()
+		af     = &stubAttributesFactory{}
+	)
+	pb := builder.New(cfg, chainSpec, logger, ee, pc, af)
+
+	var (
+		ctx             = t.Context()
+		slot            = math.Slot(10)
+		parentBlockRoot = common.Root{0x01}
+	)
+
+	// Timestamp in the Deneb range (before Deneb1ForkTime=1_738_415_507).
+	cachedEnvelope := &mockExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1]{
+		ExecutionPayload: &ctypes.ExecutionPayload{
+			Timestamp:   math.U64(1_737_381_600),
+			Withdrawals: engineprimitives.Withdrawals{},
+		},
+		BlobsBundle: &engineprimitives.BlobsBundleV1{},
+	}
+	pb.CacheLatestVerifiedPayload(slot, cachedEnvelope)
+
+	// PayloadIDCache is empty for (slot, parentBlockRoot), so RetrievePayload
+	// falls through to getLatestVerifiedPayload. Fork versions match → reuse.
+	envelope, err := pb.RetrievePayload(ctx, slot, parentBlockRoot, version.Deneb())
+	require.NoError(t, err)
+	require.Equal(t, cachedEnvelope, envelope)
+}
+
+func TestRetrievePayloadFallbackForkVersionMismatch(t *testing.T) {
+	t.Parallel()
+
+	chainSpec, err := spec.MainnetChainSpec()
+	require.NoError(t, err)
+
+	var (
+		logger = noop.NewLogger[any]()
+		cfg    = &builder.Config{Enabled: true}
+		ee     = &stubExecutionEngine{}
+		pc     = cache.NewPayloadIDCache()
+		af     = &stubAttributesFactory{}
+	)
+	pb := builder.New(cfg, chainSpec, logger, ee, pc, af)
+
+	var (
+		ctx             = t.Context()
+		slot            = math.Slot(10)
+		parentBlockRoot = common.Root{0x01}
+	)
+
+	// Timestamp in the Deneb range, but we'll request Electra.
+	cachedEnvelope := &mockExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1]{
+		ExecutionPayload: &ctypes.ExecutionPayload{
+			Timestamp:   math.U64(1_737_381_600),
+			Withdrawals: engineprimitives.Withdrawals{},
+		},
+		BlobsBundle: &engineprimitives.BlobsBundleV1{},
+	}
+	pb.CacheLatestVerifiedPayload(slot, cachedEnvelope)
+
+	// Fork version mismatch (Deneb payload, Electra expected) → skip reuse → ErrPayloadIDNotFound.
+	_, err = pb.RetrievePayload(ctx, slot, parentBlockRoot, version.Electra())
+	require.ErrorIs(t, err, builder.ErrPayloadIDNotFound)
+}
+
+func TestRetrievePayloadFallbackNilExecutionPayload(t *testing.T) {
+	t.Parallel()
+
+	chainSpec, err := spec.MainnetChainSpec()
+	require.NoError(t, err)
+
+	var (
+		logger = noop.NewLogger[any]()
+		cfg    = &builder.Config{Enabled: true}
+		ee     = &stubExecutionEngine{}
+		pc     = cache.NewPayloadIDCache()
+		af     = &stubAttributesFactory{}
+	)
+	pb := builder.New(cfg, chainSpec, logger, ee, pc, af)
+
+	var (
+		ctx             = t.Context()
+		slot            = math.Slot(10)
+		parentBlockRoot = common.Root{0x01}
+	)
+
+	// Envelope with nil execution payload — must not panic.
+	cachedEnvelope := &mockExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1]{
+		ExecutionPayload: nil,
+	}
+	pb.CacheLatestVerifiedPayload(slot, cachedEnvelope)
+
+	_, err = pb.RetrievePayload(ctx, slot, parentBlockRoot, version.Deneb())
+	require.ErrorIs(t, err, builder.ErrPayloadIDNotFound)
+}
+
 // HELPERS section
 
 var errStubNotImplemented = errors.New("stub not implemented")

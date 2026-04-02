@@ -239,19 +239,24 @@ func (pb *PayloadBuilder) CacheLatestVerifiedPayload(
 	pb.latestEnvelope = latestEnvelope
 }
 
-// getLatestVerifiedPayload is a simple getter to keep pb.muEnv locking scope at minimum
+// getLatestVerifiedPayload returns the latest verified payload if it is for the given slot and fork version.
 func (pb *PayloadBuilder) getLatestVerifiedPayload(
 	slot math.Slot,
 	expectedForkVersion common.Version,
 ) ctypes.BuiltExecutionPayloadEnv {
 	pb.muEnv.RLock()
 	defer pb.muEnv.RUnlock()
-	if pb.latestEnvelope != nil &&
-		slot == pb.latestEnvelopeSlot &&
-		version.Equals(
-			pb.chainSpec.ActiveForkVersionForTimestamp(pb.latestEnvelope.GetExecutionPayload().GetTimestamp()),
-			expectedForkVersion,
-		) {
+	if pb.latestEnvelope == nil || slot != pb.latestEnvelopeSlot {
+		return nil
+	}
+	payload := pb.latestEnvelope.GetExecutionPayload()
+	if payload == nil {
+		return nil
+	}
+	if version.Equals(
+		pb.chainSpec.ActiveForkVersionForTimestamp(payload.GetTimestamp()),
+		expectedForkVersion,
+	) {
 		return pb.latestEnvelope
 	}
 	return nil
