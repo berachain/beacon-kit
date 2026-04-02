@@ -58,7 +58,7 @@ type GetPayloadResponse struct {
 	BlockValue *math.U256 `json:"block_value"`
 
 	// ExecutionRequests contains the encoded execution requests (Electra+).
-	ExecutionRequests []ctypes.EncodedExecutionRequest `json:"execution_requests,omitempty"`
+	ExecutionRequests []ctypes.EncodedExecutionRequest `json:"execution_requests"`
 }
 
 // ToExecutionPayloadEnvelope converts the response to a BuiltExecutionPayloadEnv.
