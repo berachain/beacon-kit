@@ -37,17 +37,17 @@ import (
 // ValidatorServiceInput is the input for the validator service provider.
 type ValidatorServiceInput struct {
 	depinject.In
-	Cfg             *config.Config
-	ChainSpec       chain.Spec
-	LocalBuilder    LocalBuilder
-	Logger          *phuslu.Logger
-	StateProcessor  StateProcessor
-	StorageBackend  *storage.Backend
-	Signer          crypto.BLSSigner
-	SidecarFactory  SidecarFactory
-	TelemetrySink   *metrics.TelemetrySink
-	EngineClient    *client.EngineClient
-	PreconfClient   *preconf.Client `optional:"true"`
+	Cfg            *config.Config
+	ChainSpec      chain.Spec
+	LocalBuilder   LocalBuilder
+	Logger         *phuslu.Logger
+	StateProcessor StateProcessor
+	StorageBackend *storage.Backend
+	Signer         crypto.BLSSigner
+	SidecarFactory SidecarFactory
+	TelemetrySink  *metrics.TelemetrySink
+	EngineClient   *client.EngineClient
+	PreconfClient  *preconf.Client `optional:"true"`
 }
 
 // ProvideValidatorService is a depinject provider for the validator service.
