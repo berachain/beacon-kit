@@ -41,9 +41,14 @@ func ProvideCometBFTService(
 	db dbm.DB,
 	cs chain.Spec,
 	cmtCfg *cmtcfg.Config,
+	cfg *config.Config,
 	appOpts config.AppOptions,
 	telemetrySink *metrics.TelemetrySink,
 ) *cometbft.Service {
+	opts := builder.DefaultServiceOptions(appOpts)
+	if cfg.Preconf.IsSequencer() {
+		opts = append(opts, cometbft.EnableRoundChangeListener())
+	}
 	return cometbft.NewService(
 		logger,
 		db,
@@ -52,6 +57,6 @@ func ProvideCometBFTService(
 		cs,
 		cmtCfg,
 		telemetrySink,
-		builder.DefaultServiceOptions(appOpts)...,
+		opts...,
 	)
 }

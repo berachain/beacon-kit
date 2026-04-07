@@ -99,6 +99,9 @@ type (
 			latestEnvelopeSlot math.Slot,
 			latestEnvelope ctypes.BuiltExecutionPayloadEnv,
 		)
+		// InvalidatePayload removes a cached payload ID for the given slot
+		// and parent block root, forcing a fresh build on the next request.
+		InvalidatePayload(slot math.Slot, parentBlockRoot common.Root)
 	}
 
 	// 	// PayloadAttributes is the interface for the payload attributes.
