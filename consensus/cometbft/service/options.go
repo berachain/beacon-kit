@@ -83,3 +83,9 @@ func SetInterBlockCache(cache storetypes.MultiStorePersistentCache) func(*Servic
 func SetChainID(chainID string) func(*Service) {
 	return func(s *Service) { s.chainID = chainID }
 }
+
+// EnableRoundChangeListener enables the EventNewRound subscription in Start.
+// Only the preconf sequencer needs this.
+func EnableRoundChangeListener() func(*Service) {
+	return func(s *Service) { s.roundChangeListenerEnabled = true }
+}

@@ -106,6 +106,10 @@ type Service struct {
 
 	// syncingToHeight is a helper to track node sync state and support node-apis.
 	syncingToHeight int64
+
+	// roundChangeListenerEnabled gates the EventNewRound subscription in Start.
+	// Set via the EnableRoundChangeListener option (sequencer only).
+	roundChangeListenerEnabled bool
 }
 
 func NewService(
@@ -253,9 +257,10 @@ func (s *Service) Start(
 		return err
 	}
 
-	// Subscribe to round-change events so the sequencer can detect when
-	// a consensus round times out and rebuild the payload for the new proposer.
-	s.subscribeToRoundChanges(ctx)
+	// Only the sequencer needs to react to round-change events
+	if s.roundChangeListenerEnabled {
+		s.startRoundChangeListener(ctx)
+	}
 
 	return nil
 }

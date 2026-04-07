@@ -22,9 +22,6 @@ package blockchain
 
 import (
 	"context"
-	"time"
-
-	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // HandleRoundChange is called when CometBFT enters a new consensus round
@@ -41,6 +38,7 @@ func (s *Service) HandleRoundChange(
 	proposerAddress []byte,
 ) {
 	if !s.preconfCfg.IsSequencer() || !s.localBuilder.Enabled() {
+		s.logger.Error("Round change invoked on non-sequencer", "height", height, "round", round)
 		return
 	}
 
@@ -71,8 +69,16 @@ func (s *Service) HandleRoundChange(
 		"proposer", proposerPubkey.String(),
 	)
 
-	// Wall-clock time as consensus time estimate for the new round.
-	currentTime := math.U64(time.Now().Unix()) //#nosec:G115
+	lph, err := st.GetLatestExecutionPayloadHeader()
+	if err != nil {
+		s.logger.Error("Round change: failed to read latest execution payload header",
+			"height", height,
+			"round", round,
+			"error", err,
+		)
+		return
+	}
+	currentTime := lph.GetTimestamp()
 	ephemeralState := st.Protect(ctx)
 	buildData, err := s.preFetchBuildData(ephemeralState, currentTime)
 	if err != nil {

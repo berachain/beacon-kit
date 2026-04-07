@@ -22,55 +22,95 @@ package cometbft
 
 import (
 	"context"
+	"time"
 
 	cmttypes "github.com/cometbft/cometbft/types"
 )
 
-const roundChangeSubscriber = "beacon-kit-round-change"
+const (
+	roundChangeSubscriber = "beacon-kit-round-change"
 
-// subscribeToRoundChanges subscribes to CometBFT's EventNewRound on the
-// local event bus and calls Blockchain.HandleRoundChange for rounds > 0.
-// This allows the sequencer to detect consensus round timeouts and trigger
-// a fresh payload build for the new proposer.
-func (s *Service) subscribeToRoundChanges(ctx context.Context) {
-	sub, err := s.node.EventBus().Subscribe(ctx, roundChangeSubscriber, cmttypes.EventQueryNewRound)
-	if err != nil {
-		// Should never fail after a successful node start. Degrades gracefully.
-		s.logger.Error("Failed to subscribe to NewRound events", "error", err)
-		return
+	// roundChangeBufferCapacity is kept at 1 so any overflow trips the
+	// resubscribe path below instead of silently absorbing bursts.
+	roundChangeBufferCapacity = 1
+
+	// roundChangeResubscribeBackoff is the delay between resubscribe attempts
+	// after the underlying subscription is cancelled (e.g. ErrOutOfCapacity).
+	roundChangeResubscribeBackoff = 1 * time.Second
+)
+
+// startRoundChangeListener subscribes to CometBFT's EventNewRound on the local
+// event bus and runs a goroutine that calls Blockchain.HandleRoundChange for
+// rounds > 0. This allows the sequencer to detect consensus round timeouts and
+// trigger a fresh payload build for the new proposer.
+//
+// If the subscription is cancelled while ctx is still alive (e.g. slow consumer
+// overflow), the goroutine resubscribes with a fixed backoff so a one-off drop
+// doesn't permanently disable the listener for the rest of the node's lifetime.
+func (s *Service) startRoundChangeListener(ctx context.Context) {
+	subscribe := func() cmttypes.Subscription {
+		sub, err := s.node.EventBus().Subscribe(
+			ctx, roundChangeSubscriber, cmttypes.EventQueryNewRound, roundChangeBufferCapacity,
+		)
+		if err != nil {
+			s.logger.Error("NewRound subscribe failed", "error", err)
+			return nil
+		}
+		return sub
 	}
+
+	sub := subscribe()
 
 	go func() {
 		for {
+			// If we don't have a live subscription, wait out the backoff and
+			// try again. Bail out early if ctx is cancelled during the wait.
+			if sub == nil {
+				timer := time.NewTimer(roundChangeResubscribeBackoff)
+				select {
+				case <-ctx.Done():
+					timer.Stop()
+					return
+				case <-timer.C:
+				}
+				sub = subscribe()
+				continue
+			}
+
 			select {
 			case <-ctx.Done():
 				return
 			case <-sub.Canceled():
-				s.logger.Warn("NewRound subscription cancelled", "error", sub.Err())
-				return
+				s.logger.Warn("NewRound subscription cancelled, will resubscribe", "error", sub.Err())
+				sub = nil
 			case msg, open := <-sub.Out():
 				if !open {
-					return
-				}
-				event, ok := msg.Data().(cmttypes.EventDataNewRound)
-				if !ok || event.Round < 1 {
+					sub = nil
 					continue
 				}
-				s.logger.Info("CometBFT round change detected",
-					"height", event.Height,
-					"round", event.Round,
-					"proposer_address", event.Proposer.Address,
-				)
-
-				freshState := s.resetState(ctx)
-				//nolint:contextcheck // ctx already passed via resetState
-				s.Blockchain.HandleRoundChange(
-					freshState.Context(),
-					event.Height,
-					event.Round,
-					event.Proposer.Address,
-				)
+				s.dispatchRoundChangeEvent(ctx, msg.Data())
 			}
 		}
 	}()
+}
+
+func (s *Service) dispatchRoundChangeEvent(ctx context.Context, data any) {
+	event, ok := data.(cmttypes.EventDataNewRound)
+	if !ok || event.Round < 1 {
+		return
+	}
+	s.logger.Info("CometBFT round change detected",
+		"height", event.Height,
+		"round", event.Round,
+		"proposer_address", event.Proposer.Address,
+	)
+
+	freshState := s.resetState(ctx)
+	//nolint:contextcheck // ctx already passed via resetState
+	s.Blockchain.HandleRoundChange(
+		freshState.Context(),
+		event.Height,
+		event.Round,
+		event.Proposer.Address,
+	)
 }
