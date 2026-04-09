@@ -25,6 +25,7 @@ import (
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
@@ -78,4 +79,11 @@ func New(
 // Enabled returns true if the payload builder is enabled.
 func (pb *PayloadBuilder) Enabled() bool {
 	return pb.cfg.Enabled
+}
+
+// InvalidatePayload removes a cached payload ID for the given slot and parent
+// block root. This forces the next RequestPayloadAsync call to send a fresh
+// FCU with attributes rather than returning the stale cached entry.
+func (pb *PayloadBuilder) InvalidatePayload(slot math.Slot, parentBlockRoot common.Root) {
+	pb.pc.Delete(slot, parentBlockRoot)
 }

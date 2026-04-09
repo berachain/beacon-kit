@@ -47,6 +47,13 @@ func ProvidePreconfWhitelist(in PreconfWhitelistInput) (preconf.Whitelist, error
 		return preconf.EmptyWhitelist(), nil
 	}
 
+	// Sequencer mode requires a local payload builder so that round-change
+	// rebuilds and optimistic FCU/payload-fetch flows can run. Fail fast at
+	// startup rather than silently no-opping at runtime.
+	if !in.Cfg.PayloadBuilder.Enabled {
+		return nil, errors.New("preconf sequencer mode requires payload-builder.enabled=true")
+	}
+
 	if cfg.WhitelistPath == "" {
 		return nil, errors.New("preconf sequencer mode enabled but whitelist-path is not set")
 	}
