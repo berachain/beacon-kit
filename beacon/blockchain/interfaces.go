@@ -54,10 +54,12 @@ type ExecutionEngine interface {
 		retryOnSyncingStatus bool,
 	) error
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
-	// update.
+	// update. When retryOnSyncingStatus is true, retries indefinitely if the
+	// EL returns SYNCING; when false, returns the error immediately.
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
 		req *ctypes.ForkchoiceUpdateRequest,
+		retryOnSyncingStatus bool,
 	) (*engineprimitives.PayloadID, error)
 }
 

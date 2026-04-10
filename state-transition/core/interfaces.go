@@ -54,6 +54,7 @@ type ExecutionEngine interface {
 	NotifyForkchoiceUpdate( // added to simplify mocks
 		ctx context.Context,
 		req *ctypes.ForkchoiceUpdateRequest,
+		retryOnSyncingStatus bool,
 	) (*engineprimitives.PayloadID, error)
 	// NotifyNewPayload notifies the execution client of the new payload.
 	NotifyNewPayload(

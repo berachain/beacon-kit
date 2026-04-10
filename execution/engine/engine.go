@@ -70,9 +70,14 @@ func (ee *Engine) GetPayload(
 }
 
 // NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
+// When retryOnSyncingStatus is true, the call retries indefinitely if the EL
+// returns SYNCING. When false, it returns ErrSyncingPayloadStatus immediately,
+// allowing the caller to handle the situation (e.g. during startup replay where
+// infinite retries would deadlock the node).
 func (ee *Engine) NotifyForkchoiceUpdate(
 	ctx context.Context,
 	req *ctypes.ForkchoiceUpdateRequest,
+	retryOnSyncingStatus bool,
 ) (*engineprimitives.PayloadID, error) {
 	var (
 		engineAPIBackoff     = ee.newBackoff()
@@ -82,23 +87,15 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 	return backoff.Retry(
 		ctx,
 		func() (*engineprimitives.PayloadID, error) {
-			// Log and call the forkchoice update.
 			ee.metrics.markNotifyForkchoiceUpdateCalled(hasPayloadAttributes)
 			payloadID, err := ee.ec.ForkchoiceUpdated(
 				ctx, req.State, req.PayloadAttributes, req.ForkVersion,
 			)
 
-			// NotifyForkchoiceUpdate gets called under two circumstances:
-			// 1. Payload Building (During PrepareProposal or
-			//    optimistically in ProcessProposal)
-			// 2. FinalizeBlock
-			// We'll discriminate error handling based on these.
 			switch {
 			case err == nil:
 				ee.metrics.markForkchoiceUpdateValid(req.State, hasPayloadAttributes, payloadID)
 
-				// If we reached here, we have a VALID status and a nil payload ID,
-				// we should log a warning and error.
 				if payloadID == nil && hasPayloadAttributes {
 					ee.logger.Warn(
 						"Received nil payload ID on VALID engine response",
@@ -106,17 +103,19 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 						"safe_eth1_hash", req.State.SafeBlockHash,
 						"finalized_eth1_hash", req.State.FinalizedBlockHash,
 					)
-					// Do not retry, return the error.
 					return nil, backoff.Permanent(ErrNilPayloadOnValidResponse)
 				}
 
-				// We've received a valid response, no more retries.
 				return payloadID, nil
 
 			case errors.IsAny(err, engineerrors.ErrSyncingPayloadStatus):
-				ee.logger.Info("NotifyForkchoiceUpdate: EL syncing. Retrying...")
 				ee.metrics.markForkchoiceUpdateSyncing(req.State, err)
-				return nil, err
+				if retryOnSyncingStatus {
+					ee.logger.Info("NotifyForkchoiceUpdate: EL syncing. Retrying...")
+					return nil, err
+				}
+				ee.logger.Warn("NotifyForkchoiceUpdate: EL syncing, not retrying.")
+				return nil, backoff.Permanent(err)
 
 			case client.IsNonFatalError(err):
 				ee.logger.Info(
@@ -127,8 +126,6 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 				return nil, err
 
 			case errors.Is(err, engineerrors.ErrInvalidPayloadStatus):
-				// During payload building, then there is an invalid payload and should error.
-				// During FinalizeBlock, something is broken because this should never happen.
 				ee.logger.Error("NotifyForkchoiceUpdate: EL returned invalid payload.")
 				ee.metrics.markForkchoiceUpdateInvalid(req.State, err)
 				return nil, backoff.Permanent(err)

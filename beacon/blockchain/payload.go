@@ -66,7 +66,7 @@ func (s *Service) forceSyncUponProcess(
 		},
 		s.chainSpec.ActiveForkVersionForTimestamp(lph.GetTimestamp()),
 	)
-	if _, err = s.executionEngine.NotifyForkchoiceUpdate(ctx, req); err != nil {
+	if _, err = s.executionEngine.NotifyForkchoiceUpdate(ctx, req, false); err != nil {
 		s.logger.Error(
 			"failed to send force head FCU",
 			"error", err,
@@ -111,7 +111,7 @@ func (s *Service) forceSyncUponFinalize(
 		s.chainSpec.ActiveForkVersionForTimestamp(executionPayload.GetTimestamp()),
 	)
 
-	switch _, err = s.executionEngine.NotifyForkchoiceUpdate(ctx, req); {
+	switch _, err = s.executionEngine.NotifyForkchoiceUpdate(ctx, req, false); {
 	case err == nil:
 		return nil
 

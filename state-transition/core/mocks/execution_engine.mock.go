@@ -23,9 +23,9 @@ func (_m *ExecutionEngine) EXPECT() *ExecutionEngine_Expecter {
 	return &ExecutionEngine_Expecter{mock: &_m.Mock}
 }
 
-// NotifyForkchoiceUpdate provides a mock function with given fields: ctx, req
-func (_m *ExecutionEngine) NotifyForkchoiceUpdate(ctx context.Context, req *types.ForkchoiceUpdateRequest) (*engineprimitives.PayloadID, error) {
-	ret := _m.Called(ctx, req)
+// NotifyForkchoiceUpdate provides a mock function with given fields: ctx, req, retryOnSyncingStatus
+func (_m *ExecutionEngine) NotifyForkchoiceUpdate(ctx context.Context, req *types.ForkchoiceUpdateRequest, retryOnSyncingStatus bool) (*engineprimitives.PayloadID, error) {
+	ret := _m.Called(ctx, req, retryOnSyncingStatus)
 
 	if len(ret) == 0 {
 		panic("no return value specified for NotifyForkchoiceUpdate")
@@ -33,19 +33,19 @@ func (_m *ExecutionEngine) NotifyForkchoiceUpdate(ctx context.Context, req *type
 
 	var r0 *engineprimitives.PayloadID
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *types.ForkchoiceUpdateRequest) (*engineprimitives.PayloadID, error)); ok {
-		return rf(ctx, req)
+	if rf, ok := ret.Get(0).(func(context.Context, *types.ForkchoiceUpdateRequest, bool) (*engineprimitives.PayloadID, error)); ok {
+		return rf(ctx, req, retryOnSyncingStatus)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *types.ForkchoiceUpdateRequest) *engineprimitives.PayloadID); ok {
-		r0 = rf(ctx, req)
+	if rf, ok := ret.Get(0).(func(context.Context, *types.ForkchoiceUpdateRequest, bool) *engineprimitives.PayloadID); ok {
+		r0 = rf(ctx, req, retryOnSyncingStatus)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*engineprimitives.PayloadID)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *types.ForkchoiceUpdateRequest) error); ok {
-		r1 = rf(ctx, req)
+	if rf, ok := ret.Get(1).(func(context.Context, *types.ForkchoiceUpdateRequest, bool) error); ok {
+		r1 = rf(ctx, req, retryOnSyncingStatus)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -61,13 +61,14 @@ type ExecutionEngine_NotifyForkchoiceUpdate_Call struct {
 // NotifyForkchoiceUpdate is a helper method to define mock.On call
 //   - ctx context.Context
 //   - req *types.ForkchoiceUpdateRequest
-func (_e *ExecutionEngine_Expecter) NotifyForkchoiceUpdate(ctx interface{}, req interface{}) *ExecutionEngine_NotifyForkchoiceUpdate_Call {
-	return &ExecutionEngine_NotifyForkchoiceUpdate_Call{Call: _e.mock.On("NotifyForkchoiceUpdate", ctx, req)}
+//   - retryOnSyncingStatus bool
+func (_e *ExecutionEngine_Expecter) NotifyForkchoiceUpdate(ctx interface{}, req interface{}, retryOnSyncingStatus interface{}) *ExecutionEngine_NotifyForkchoiceUpdate_Call {
+	return &ExecutionEngine_NotifyForkchoiceUpdate_Call{Call: _e.mock.On("NotifyForkchoiceUpdate", ctx, req, retryOnSyncingStatus)}
 }
 
-func (_c *ExecutionEngine_NotifyForkchoiceUpdate_Call) Run(run func(ctx context.Context, req *types.ForkchoiceUpdateRequest)) *ExecutionEngine_NotifyForkchoiceUpdate_Call {
+func (_c *ExecutionEngine_NotifyForkchoiceUpdate_Call) Run(run func(ctx context.Context, req *types.ForkchoiceUpdateRequest, retryOnSyncingStatus bool)) *ExecutionEngine_NotifyForkchoiceUpdate_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*types.ForkchoiceUpdateRequest))
+		run(args[0].(context.Context), args[1].(*types.ForkchoiceUpdateRequest), args[2].(bool))
 	})
 	return _c
 }
@@ -77,7 +78,7 @@ func (_c *ExecutionEngine_NotifyForkchoiceUpdate_Call) Return(_a0 *engineprimiti
 	return _c
 }
 
-func (_c *ExecutionEngine_NotifyForkchoiceUpdate_Call) RunAndReturn(run func(context.Context, *types.ForkchoiceUpdateRequest) (*engineprimitives.PayloadID, error)) *ExecutionEngine_NotifyForkchoiceUpdate_Call {
+func (_c *ExecutionEngine_NotifyForkchoiceUpdate_Call) RunAndReturn(run func(context.Context, *types.ForkchoiceUpdateRequest, bool) (*engineprimitives.PayloadID, error)) *ExecutionEngine_NotifyForkchoiceUpdate_Call {
 	_c.Call.Return(run)
 	return _c
 }

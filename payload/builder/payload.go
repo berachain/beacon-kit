@@ -83,7 +83,7 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 		attrs,
 		forkVersion,
 	)
-	payloadID, err := pb.ee.NotifyForkchoiceUpdate(ctx, req)
+	payloadID, err := pb.ee.NotifyForkchoiceUpdate(ctx, req, true)
 	if err != nil {
 		return nil, common.Version{}, fmt.Errorf("RequestPayloadAsync failed sending forkchoice update: %w", err)
 	}

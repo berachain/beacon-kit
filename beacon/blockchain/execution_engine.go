@@ -63,7 +63,7 @@ func (s *Service) sendPostBlockFCU(
 		fcuData,
 		s.chainSpec.ActiveForkVersionForTimestamp(lph.GetTimestamp()),
 	)
-	if _, err = s.executionEngine.NotifyForkchoiceUpdate(ctx, req); err != nil {
+	if _, err = s.executionEngine.NotifyForkchoiceUpdate(ctx, req, true); err != nil {
 		return fmt.Errorf("failed forkchoice update, head %s: %w",
 			lph.GetBlockHash().String(),
 			err,
