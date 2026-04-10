@@ -58,7 +58,7 @@ type GetPayloadResponse struct {
 	BlockValue *math.U256 `json:"block_value"`
 
 	// ExecutionRequests contains the encoded execution requests (Electra+).
-	ExecutionRequests []ctypes.EncodedExecutionRequest `json:"execution_requests,omitempty"`
+	ExecutionRequests []ctypes.EncodedExecutionRequest `json:"execution_requests"`
 }
 
 // ToExecutionPayloadEnvelope converts the response to a BuiltExecutionPayloadEnv.
@@ -69,9 +69,14 @@ func (r *GetPayloadResponse) ToExecutionPayloadEnvelope() ctypes.BuiltExecutionP
 		r.ExecutionPayload.Versionable = ctypes.NewVersionable(r.ForkVersion)
 	}
 
+	blobsBundle := r.BlobsBundle
+	if blobsBundle == nil {
+		blobsBundle = &engineprimitives.BlobsBundleV1{}
+	}
+
 	return ctypes.NewExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1](
 		r.ExecutionPayload,
-		r.BlobsBundle,
+		blobsBundle,
 		r.ExecutionRequests,
 	)
 }
