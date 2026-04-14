@@ -174,7 +174,7 @@ func (pb *PayloadBuilder) RetrievePayload(
 	payloadRes, found := pb.pc.Get(slot, parentBlockRoot)
 	if !found {
 		// No block built optimistically, try reusing the latest verified payload
-		if verifiedEnvelope := pb.getLatestVerifiedPayload(slot); verifiedEnvelope != nil {
+		if verifiedEnvelope := pb.getLatestVerifiedPayload(slot, expectedForkVersion); verifiedEnvelope != nil {
 			return verifiedEnvelope, nil
 		}
 
@@ -196,7 +196,7 @@ func (pb *PayloadBuilder) RetrievePayload(
 			pb.pc.Delete(slot, parentBlockRoot)
 
 			// Again here we should try reusing the latest verified block.
-			if verifiedEnvelope := pb.getLatestVerifiedPayload(slot); verifiedEnvelope != nil {
+			if verifiedEnvelope := pb.getLatestVerifiedPayload(slot, expectedForkVersion); verifiedEnvelope != nil {
 				return verifiedEnvelope, nil
 			}
 		}
@@ -239,11 +239,24 @@ func (pb *PayloadBuilder) CacheLatestVerifiedPayload(
 	pb.latestEnvelope = latestEnvelope
 }
 
-// getLatestVerifiedPayload is a simple getter to keep pb.muEnv locking scope at minimum
-func (pb *PayloadBuilder) getLatestVerifiedPayload(slot math.Slot) ctypes.BuiltExecutionPayloadEnv {
+// getLatestVerifiedPayload returns the latest verified payload if it is for the given slot and fork version.
+func (pb *PayloadBuilder) getLatestVerifiedPayload(
+	slot math.Slot,
+	expectedForkVersion common.Version,
+) ctypes.BuiltExecutionPayloadEnv {
 	pb.muEnv.RLock()
 	defer pb.muEnv.RUnlock()
-	if pb.latestEnvelope != nil && slot == pb.latestEnvelopeSlot {
+	if pb.latestEnvelope == nil || slot != pb.latestEnvelopeSlot {
+		return nil
+	}
+	payload := pb.latestEnvelope.GetExecutionPayload()
+	if payload == nil {
+		return nil
+	}
+	if version.Equals(
+		pb.chainSpec.ActiveForkVersionForTimestamp(payload.GetTimestamp()),
+		expectedForkVersion,
+	) {
 		return pb.latestEnvelope
 	}
 	return nil

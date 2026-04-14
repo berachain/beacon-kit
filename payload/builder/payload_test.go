@@ -38,6 +38,126 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestRetrievePayload(t *testing.T) {
+	t.Parallel()
+
+	chainSpec, err := spec.MainnetChainSpec()
+	require.NoError(t, err)
+
+	var (
+		slot            = math.Slot(10)
+		parentBlockRoot = common.Root{0x01}
+		denebTimestamp  = math.U64(1_737_381_600) // before mainnet Deneb1ForkTime
+		dummyPayloadID  = engineprimitives.PayloadID{0xab}
+	)
+
+	validEnvelope := &mockExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1]{
+		ExecutionPayload: &ctypes.ExecutionPayload{
+			Timestamp:   denebTimestamp,
+			Withdrawals: engineprimitives.Withdrawals{},
+		},
+		BlobsBundle: &engineprimitives.BlobsBundleV1{},
+	}
+	nilWithdrawalsEnvelope := &mockExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1]{
+		ExecutionPayload: &ctypes.ExecutionPayload{
+			Timestamp:   denebTimestamp,
+			Withdrawals: nil,
+		},
+		BlobsBundle: &engineprimitives.BlobsBundleV1{},
+	}
+	nilPayloadEnvelope := &mockExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1]{
+		ExecutionPayload: nil,
+	}
+
+	tests := []struct {
+		name string
+
+		// If non-nil, seed the PayloadIDCache before calling RetrievePayload.
+		cachePayloadID   *engineprimitives.PayloadID
+		cacheForkVersion common.Version
+
+		// Stub response from the execution engine's GetPayload.
+		eeEnvelope ctypes.BuiltExecutionPayloadEnv
+
+		// If non-nil, cache as the latest verified payload for the same slot.
+		verifiedEnvelope ctypes.BuiltExecutionPayloadEnv
+
+		expectedForkVersion common.Version
+		wantEnvelope        ctypes.BuiltExecutionPayloadEnv
+		wantErr             error
+	}{
+		{
+			name:                "sunny path via PayloadIDCache",
+			cachePayloadID:      &dummyPayloadID,
+			cacheForkVersion:    version.Deneb(),
+			eeEnvelope:          validEnvelope,
+			expectedForkVersion: version.Deneb(),
+			wantEnvelope:        validEnvelope,
+		},
+		{
+			name:                "nil withdrawals list rejected",
+			cachePayloadID:      &dummyPayloadID,
+			cacheForkVersion:    version.Deneb(),
+			eeEnvelope:          nilWithdrawalsEnvelope,
+			expectedForkVersion: version.Deneb(),
+			wantErr:             builder.ErrNilWithdrawals,
+		},
+		{
+			name:                "fallback reuses verified payload on fork version match",
+			verifiedEnvelope:    validEnvelope,
+			expectedForkVersion: version.Deneb(),
+			wantEnvelope:        validEnvelope,
+		},
+		{
+			name:                "fallback rejects verified payload on fork version mismatch",
+			verifiedEnvelope:    validEnvelope,
+			expectedForkVersion: version.Electra(),
+			wantErr:             builder.ErrPayloadIDNotFound,
+		},
+		{
+			name:                "fallback skips verified payload with nil execution payload",
+			verifiedEnvelope:    nilPayloadEnvelope,
+			expectedForkVersion: version.Deneb(),
+			wantErr:             builder.ErrPayloadIDNotFound,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ee := &stubExecutionEngine{payloadEnvToReturn: tt.eeEnvelope}
+			pc := cache.NewPayloadIDCache()
+			pb := builder.New(
+				&builder.Config{Enabled: true},
+				chainSpec,
+				noop.NewLogger[any](),
+				ee,
+				pc,
+				&stubAttributesFactory{},
+			)
+
+			if tt.cachePayloadID != nil {
+				pc.Set(slot, parentBlockRoot, *tt.cachePayloadID, tt.cacheForkVersion)
+			}
+			if tt.verifiedEnvelope != nil {
+				pb.CacheLatestVerifiedPayload(slot, tt.verifiedEnvelope)
+			}
+
+			//nolint:govet // shadow err so that parallel tests do not overwrite err.
+			envelope, err := pb.RetrievePayload(t.Context(), slot, parentBlockRoot, tt.expectedForkVersion)
+			if tt.wantErr != nil {
+				require.ErrorIs(t, err, tt.wantErr)
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, tt.wantEnvelope, envelope)
+		})
+	}
+}
+
+// HELPERS section
+
 type mockExecutionPayloadEnvelope[BlobsBundleT engineprimitives.BlobsBundle] struct {
 	ExecutionPayload  *ctypes.ExecutionPayload         `json:"executionPayload"`
 	BlockValue        *math.U256                       `json:"blockValue"`
@@ -65,106 +185,6 @@ func (m mockExecutionPayloadEnvelope[BlobsBundleT]) GetEncodedExecutionRequests(
 func (m mockExecutionPayloadEnvelope[BlobsBundleT]) ShouldOverrideBuilder() bool {
 	return m.Override
 }
-
-// TODO cluster these tests into a single test table
-func TestRetrievePayloadSunnyPath(t *testing.T) {
-	t.Parallel()
-
-	chainSpec, err := spec.MainnetChainSpec()
-	require.NoError(t, err)
-
-	// Create payload builder
-	var (
-		logger = noop.NewLogger[any]()
-		cfg    = &builder.Config{Enabled: true}
-		ee     = &stubExecutionEngine{}
-		cache  = cache.NewPayloadIDCache()
-		af     = &stubAttributesFactory{}
-	)
-	pb := builder.New(
-		cfg,
-		chainSpec,
-		logger,
-		ee,
-		cache,
-		af,
-	)
-
-	// create inputs and set expectations
-	var (
-		ctx             = t.Context()
-		slot            = math.Slot(2025)
-		parentBlockRoot = common.Root{0xff, 0xaa}
-		dummyPayloadID  = engineprimitives.PayloadID{0xab}
-
-		expectedPayload = &mockExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1]{
-			ExecutionPayload: &ctypes.ExecutionPayload{
-				Withdrawals: engineprimitives.Withdrawals{},
-			},
-			BlobsBundle: &engineprimitives.BlobsBundleV1{},
-		}
-	)
-
-	// set expectations
-	expectedForkVersion := version.Deneb()
-	cache.Set(slot, parentBlockRoot, dummyPayloadID, expectedForkVersion)
-	ee.payloadEnvToReturn = expectedPayload
-
-	// test and checks
-	payload, err := pb.RetrievePayload(ctx, slot, parentBlockRoot, expectedForkVersion)
-	require.NoError(t, err)
-	require.Equal(t, expectedPayload, payload)
-}
-
-func TestRetrievePayloadNilWithdrawalsListRejected(t *testing.T) {
-	t.Parallel()
-
-	chainSpec, err := spec.MainnetChainSpec()
-	require.NoError(t, err)
-
-	// Create payload builder
-	var (
-		logger = noop.NewLogger[any]()
-		cfg    = &builder.Config{Enabled: true}
-		ee     = &stubExecutionEngine{}
-		cache  = cache.NewPayloadIDCache()
-		af     = &stubAttributesFactory{}
-	)
-	pb := builder.New(
-		cfg,
-		chainSpec,
-		logger,
-		ee,
-		cache,
-		af,
-	)
-
-	// create inputs
-	var (
-		ctx             = t.Context()
-		slot            = math.Slot(2025)
-		parentBlockRoot = common.Root{0xff, 0xaa}
-		dummyPayloadID  = engineprimitives.PayloadID{0xab}
-
-		faultyPayload = &mockExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1]{
-			ExecutionPayload: &ctypes.ExecutionPayload{
-				Withdrawals: nil, // empty withdrawals are fine, nil list should be rejected
-			},
-			BlobsBundle: &engineprimitives.BlobsBundleV1{},
-		}
-	)
-
-	// set expectations
-	expectedForkVersion := version.Deneb()
-	cache.Set(slot, parentBlockRoot, dummyPayloadID, expectedForkVersion)
-	ee.payloadEnvToReturn = faultyPayload
-
-	// test and checks
-	_, err = pb.RetrievePayload(ctx, slot, parentBlockRoot, expectedForkVersion)
-	require.ErrorIs(t, builder.ErrNilWithdrawals, err)
-}
-
-// HELPERS section
 
 var errStubNotImplemented = errors.New("stub not implemented")
 
