@@ -83,10 +83,12 @@ gosec: gosec-install
 #   vulncheck   #
 #################
 
-vulncheck:
+vulncheck-install:
+	@go install golang.org/x/vuln/cmd/govulncheck@latest
+
+vulncheck: vulncheck-install
 	@echo "--> Running govulncheck"
-	@GOTOOLCHAIN=go$(shell sed -n 's/^go //p' go.mod) \
-		go run golang.org/x/vuln/cmd/govulncheck@latest $(shell go list ./... | grep -v '/testing/')
+	@govulncheck $(shell go list ./... | grep -v '/testing/')
 
 #################
 #    slither    #
