@@ -37,17 +37,18 @@ import (
 type ChainServiceInput struct {
 	depinject.In
 
-	Cfg                   *config.Config
-	ChainSpec             chain.Spec
-	ExecutionEngine       *engine.Engine
-	LocalBuilder          LocalBuilder
-	Logger                *phuslu.Logger
-	StateProcessor        StateProcessor
-	StorageBackend        *storage.Backend
-	BlobProcessor         BlobProcessor
-	TelemetrySink         *metrics.TelemetrySink
-	BeaconDepositContract deposit.Contract
-	PreconfWhitelist      preconf.Whitelist
+	Cfg                    *config.Config
+	ChainSpec              chain.Spec
+	ExecutionEngine        *engine.Engine
+	LocalBuilder           LocalBuilder
+	Logger                 *phuslu.Logger
+	StateProcessor         StateProcessor
+	StorageBackend         *storage.Backend
+	BlobProcessor          BlobProcessor
+	TelemetrySink          *metrics.TelemetrySink
+	BeaconDepositContract  deposit.Contract
+	PreconfWhitelist       preconf.Whitelist
+	PreconfProposerTracker preconf.ProposerTracker
 }
 
 // ProvideChainService is a depinject provider for the blockchain service.
@@ -64,5 +65,6 @@ func ProvideChainService(in ChainServiceInput) *blockchain.Service {
 		in.TelemetrySink,
 		&in.Cfg.Preconf,
 		in.PreconfWhitelist,
+		in.PreconfProposerTracker,
 	)
 }

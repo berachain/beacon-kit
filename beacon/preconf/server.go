@@ -61,11 +61,12 @@ type PayloadProvider interface {
 
 // Server is the preconf API server that serves GetPayload requests from validators.
 type Server struct {
-	logger          log.Logger
-	validatorJWTs   ValidatorJWTs
-	whitelist       Whitelist
-	payloadProvider PayloadProvider
-	port            int
+	logger                 log.Logger
+	validatorJWTs          ValidatorJWTs
+	whitelist              Whitelist
+	preconfProposerTracker ProposerTracker
+	payloadProvider        PayloadProvider
+	port                   int
 
 	mu         sync.RWMutex
 	httpServer *http.Server
@@ -76,15 +77,17 @@ func NewServer(
 	logger log.Logger,
 	validatorJWTs ValidatorJWTs,
 	whitelist Whitelist,
+	preconfProposerTracker ProposerTracker,
 	payloadProvider PayloadProvider,
 	port int,
 ) *Server {
 	return &Server{
-		logger:          logger,
-		validatorJWTs:   validatorJWTs,
-		whitelist:       whitelist,
-		payloadProvider: payloadProvider,
-		port:            port,
+		logger:                 logger,
+		validatorJWTs:          validatorJWTs,
+		whitelist:              whitelist,
+		preconfProposerTracker: preconfProposerTracker,
+		payloadProvider:        payloadProvider,
+		port:                   port,
 	}
 }
 
@@ -190,6 +193,16 @@ func (s *Server) handleGetPayload(w http.ResponseWriter, r *http.Request) {
 	var req GetPayloadRequest
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
 		s.writeError(w, http.StatusBadRequest, "invalid request body: "+err.Error())
+		return
+	}
+
+	// Verify the requesting validator is the expected proposer for this slot.
+	if !s.preconfProposerTracker.IsExpectedProposer(req.Slot, pubkey) {
+		s.logger.Warn("Validator is not the expected proposer for slot",
+			"pubkey", pubkey.String(),
+			"slot", req.Slot,
+		)
+		s.writeError(w, http.StatusForbidden, "not the expected proposer for this slot")
 		return
 	}
 
