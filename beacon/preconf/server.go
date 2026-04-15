@@ -64,7 +64,7 @@ type Server struct {
 	logger                 log.Logger
 	validatorJWTs          ValidatorJWTs
 	whitelist              Whitelist
-	preconfProposerTracker *ProposerTracker
+	preconfProposerTracker ProposerTracker
 	payloadProvider        PayloadProvider
 	port                   int
 
@@ -77,7 +77,7 @@ func NewServer(
 	logger log.Logger,
 	validatorJWTs ValidatorJWTs,
 	whitelist Whitelist,
-	preconfProposerTracker *ProposerTracker,
+	preconfProposerTracker ProposerTracker,
 	payloadProvider PayloadProvider,
 	port int,
 ) *Server {

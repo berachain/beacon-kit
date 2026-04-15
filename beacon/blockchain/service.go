@@ -84,8 +84,7 @@ type Service struct {
 	// preconfProposerTracker tracks the expected proposer pubkey for upcoming slots.
 	// The sequencer writes entries here so the preconf server can verify that
 	// payload requests come from the correct proposer.
-	// Can be nil if preconf is disabled.
-	preconfProposerTracker *preconf.ProposerTracker
+	preconfProposerTracker preconf.ProposerTracker
 }
 
 // NewService creates a new validator service.
@@ -101,7 +100,7 @@ func NewService(
 	telemetrySink TelemetrySink,
 	preconfCfg *preconf.Config,
 	preconfWhitelist preconf.Whitelist,
-	preconfProposerTracker *preconf.ProposerTracker,
+	preconfProposerTracker preconf.ProposerTracker,
 ) *Service {
 	return &Service{
 		storageBackend:         storageBackend,

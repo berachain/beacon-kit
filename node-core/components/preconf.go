@@ -30,7 +30,7 @@ import (
 
 // ProvidePreconfProposerTracker provides a ProposerTracker shared between the
 // blockchain service (writer) and the preconf server (reader).
-func ProvidePreconfProposerTracker() *preconf.ProposerTracker {
+func ProvidePreconfProposerTracker() preconf.ProposerTracker {
 	return preconf.NewProposerTracker()
 }
 

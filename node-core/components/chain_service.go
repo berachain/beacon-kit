@@ -48,7 +48,7 @@ type ChainServiceInput struct {
 	TelemetrySink          *metrics.TelemetrySink
 	BeaconDepositContract  deposit.Contract
 	PreconfWhitelist       preconf.Whitelist
-	PreconfProposerTracker *preconf.ProposerTracker
+	PreconfProposerTracker preconf.ProposerTracker
 }
 
 // ProvideChainService is a depinject provider for the blockchain service.

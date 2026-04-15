@@ -36,7 +36,7 @@ type PreconfServerInput struct {
 	Cfg                    *config.Config
 	Logger                 *phuslu.Logger
 	Whitelist              preconf.Whitelist
-	PreconfProposerTracker *preconf.ProposerTracker
+	PreconfProposerTracker preconf.ProposerTracker
 	LocalBuilder           *payloadbuilder.PayloadBuilder
 }
 

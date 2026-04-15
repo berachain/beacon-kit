@@ -28,29 +28,37 @@ import (
 )
 
 // ProposerTracker tracks the expected proposer for the next slot.
-// Written by the blockchain service, read by the preconf server.
-type ProposerTracker struct {
+type ProposerTracker interface {
+	// SetExpectedProposer records the expected proposer for a slot.
+	SetExpectedProposer(slot math.Slot, pubkey crypto.BLSPubkey)
+	// ClearExpectedProposer clears the expected proposer if the slot matches.
+	ClearExpectedProposer(slot math.Slot)
+	// IsExpectedProposer returns true if pubkey matches the expected proposer for slot.
+	IsExpectedProposer(slot math.Slot, pubkey crypto.BLSPubkey) bool
+}
+
+// proposerTracker is the concrete implementation of ProposerTracker.
+type proposerTracker struct {
 	mu       sync.RWMutex
 	slot     math.Slot
 	expected crypto.BLSPubkey
 }
 
-// NewProposerTracker creates a new ProposerTracker.
-func NewProposerTracker() *ProposerTracker {
-	return &ProposerTracker{}
+// NewProposerTracker creates a new ProposerTracker. A freshly constructed
+// tracker has no expected proposer, so IsExpectedProposer returns false until
+// SetExpectedProposer is called.
+func NewProposerTracker() ProposerTracker {
+	return &proposerTracker{}
 }
 
-// SetExpectedProposer records the expected proposer for a slot.
-func (pt *ProposerTracker) SetExpectedProposer(slot math.Slot, pubkey crypto.BLSPubkey) {
+func (pt *proposerTracker) SetExpectedProposer(slot math.Slot, pubkey crypto.BLSPubkey) {
 	pt.mu.Lock()
 	defer pt.mu.Unlock()
 	pt.slot = slot
 	pt.expected = pubkey
 }
 
-// ClearExpectedProposer removes the expected proposer for a slot so that no
-// validator is considered the expected proposer.
-func (pt *ProposerTracker) ClearExpectedProposer(slot math.Slot) {
+func (pt *proposerTracker) ClearExpectedProposer(slot math.Slot) {
 	pt.mu.Lock()
 	defer pt.mu.Unlock()
 	if pt.slot == slot {
@@ -58,8 +66,7 @@ func (pt *ProposerTracker) ClearExpectedProposer(slot math.Slot) {
 	}
 }
 
-// IsExpectedProposer returns true if pubkey matches the expected proposer for slot.
-func (pt *ProposerTracker) IsExpectedProposer(slot math.Slot, pubkey crypto.BLSPubkey) bool {
+func (pt *proposerTracker) IsExpectedProposer(slot math.Slot, pubkey crypto.BLSPubkey) bool {
 	pt.mu.RLock()
 	defer pt.mu.RUnlock()
 	return pt.slot == slot && pt.expected == pubkey

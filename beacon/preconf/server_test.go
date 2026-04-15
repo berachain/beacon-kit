@@ -153,14 +153,14 @@ func TestServer_ProposerCheck(t *testing.T) {
 
 	tests := []struct {
 		name         string
-		setupTracker func() *preconf.ProposerTracker
+		setupTracker func() preconf.ProposerTracker
 		requestJWT   *jwt.Secret
 		wantStatus   int
 		wantContains string
 	}{
 		{
 			name: "expected proposer gets payload",
-			setupTracker: func() *preconf.ProposerTracker {
+			setupTracker: func() preconf.ProposerTracker {
 				tr := preconf.NewProposerTracker()
 				tr.SetExpectedProposer(targetSlot, validatorA)
 				return tr
@@ -170,7 +170,7 @@ func TestServer_ProposerCheck(t *testing.T) {
 		},
 		{
 			name: "non-expected proposer is rejected",
-			setupTracker: func() *preconf.ProposerTracker {
+			setupTracker: func() preconf.ProposerTracker {
 				tr := preconf.NewProposerTracker()
 				tr.SetExpectedProposer(targetSlot, validatorA)
 				return tr
