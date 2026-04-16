@@ -53,8 +53,7 @@ type HysteresisSpec interface {
 
 	// HysteresisDownwardMultiplier returns the multiplier used when checking
 	// if the effective balance should be decreased.
-	// The value is fork-gated by timestamp (updated in Fulu per BRIP-0008).
-	HysteresisDownwardMultiplier(timestamp math.U64) math.U64
+	HysteresisDownwardMultiplier() math.U64
 
 	// HysteresisUpwardMultiplier returns the multiplier used when checking
 	// if the effective balance should be increased.
@@ -347,7 +346,7 @@ func (s spec) HysteresisQuotient(timestamp math.U64) math.U64 {
 	return math.U64(s.Data.HysteresisQuotient)
 }
 
-func (s spec) HysteresisDownwardMultiplier(timestamp math.U64) math.U64 {
+func (s spec) HysteresisDownwardMultiplier() math.U64 {
 	return math.U64(s.Data.HysteresisDownwardMultiplier)
 }
 

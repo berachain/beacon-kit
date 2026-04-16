@@ -401,7 +401,7 @@ func (sp *StateProcessor) processEffectiveBalanceUpdates(st *state.StateDB) erro
 	var (
 		effectiveBalanceIncrement = sp.cs.EffectiveBalanceIncrement()
 		hysteresisIncrement       = effectiveBalanceIncrement / sp.cs.HysteresisQuotient(timestamp)
-		downwardThreshold         = hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier(timestamp)
+		downwardThreshold         = hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier()
 		upwardThreshold           = hysteresisIncrement * sp.cs.HysteresisUpwardMultiplier(timestamp)
 
 		idx     math.U64
