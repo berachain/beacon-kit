@@ -102,6 +102,8 @@ type SpecData struct {
 	ElectraForkTime uint64 `mapstructure:"electra-fork-time"`
 	// Electra1ForkTime is the time at which the Electra1 fork is activated.
 	Electra1ForkTime uint64 `mapstructure:"electra-one-fork-time"`
+	// FuluForkTime is the time at which the Fulu fork is activated (Fusaka CL fork).
+	FuluForkTime uint64 `mapstructure:"fulu-fork-time"`
 
 	// State list lengths
 	//
@@ -162,6 +164,21 @@ type SpecData struct {
 	// EVMInflationPerBlockDeneb1 is the amount of native EVM balance (in Gwei) to be
 	// minted to the EVMInflationAddressDeneb1 via a withdrawal every block in the Deneb1 fork.
 	EVMInflationPerBlockDeneb1 uint64 `mapstructure:"evm-inflation-per-block-deneb-one"`
+
+	// Fulu Value Changes
+	//
+	// HysteresisQuotientFulu is the hysteresis quotient for the Fulu fork (BRIP-0008).
+	HysteresisQuotientFulu uint64 `mapstructure:"hysteresis-quotient-fulu"`
+	// HysteresisDownwardMultiplierFulu is the hysteresis downward multiplier for the Fulu fork.
+	HysteresisDownwardMultiplierFulu uint64 `mapstructure:"hysteresis-downward-multiplier-fulu"`
+	// HysteresisUpwardMultiplierFulu is the hysteresis upward multiplier for the Fulu fork.
+	HysteresisUpwardMultiplierFulu uint64 `mapstructure:"hysteresis-upward-multiplier-fulu"`
+	// EVMInflationAddressFulu is the address on the EVM which will receive the
+	// inflation amount of native EVM balance through a withdrawal every block in the Fulu fork.
+	EVMInflationAddressFulu common.ExecutionAddress `mapstructure:"evm-inflation-address-fulu"`
+	// EVMInflationPerBlockFulu is the amount of native EVM balance (in Gwei) to be
+	// minted to the EVMInflationAddressFulu via a withdrawal every block in the Fulu fork.
+	EVMInflationPerBlockFulu uint64 `mapstructure:"evm-inflation-per-block-fulu"`
 
 	// Electra Values
 	//

@@ -36,6 +36,7 @@ genesis-time = 0
 deneb-one-fork-time = 0
 electra-fork-time = 0
 electra-one-fork-time = 0
+fulu-fork-time = 0
 
 # State list lengths
 epochs-per-historical-vector = 8
@@ -62,6 +63,13 @@ evm-inflation-per-block = 10_000_000_000
 # Deneb1 value changes
 evm-inflation-address-deneb-one = "0x4206942069420694206942069420694206942069"
 evm-inflation-per-block-deneb-one = 11_000_000_000
+
+# Fulu values (BRIP-0008 hysteresis + PoL vNext)
+hysteresis-quotient-fulu = 100
+hysteresis-downward-multiplier-fulu = 1
+hysteresis-upward-multiplier-fulu = 10
+evm-inflation-address-fulu = "0x4206942069420694206942069420694206942069"
+evm-inflation-per-block-fulu = 12_000_000_000
 
 # Electra values
 min-activation-balance = 32_000_000_000

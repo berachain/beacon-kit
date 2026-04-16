@@ -109,6 +109,15 @@ func (sp *StateProcessor) ProcessFork(
 		if logUpgrade {
 			sp.logElectra1Fork(stateFork.PreviousVersion, timestamp, slot)
 		}
+	case version.Fulu():
+		if err = sp.upgradeToFulu(st, stateFork, slot); err != nil {
+			return err
+		}
+
+		// Log the upgrade to Fulu if requested.
+		if logUpgrade {
+			sp.logFuluFork(stateFork.PreviousVersion, timestamp, slot)
+		}
 	default:
 		panic(fmt.Sprintf("unsupported fork version: %s", forkVersion))
 	}
@@ -264,6 +273,53 @@ func (sp *StateProcessor) logElectra1Fork(
 `,
 		version.Name(previousVersion), previousVersion.String(),
 		sp.cs.Electra1ForkTime(),
+		slot.Unwrap(), timestamp.Unwrap(),
+		sp.cs.SlotToEpoch(slot).Unwrap(),
+	))
+}
+
+// upgradeToFulu upgrades the state to the Fulu fork version.
+func (sp *StateProcessor) upgradeToFulu(
+	st *statedb.StateDB, fork *types.Fork, slot math.Slot,
+) error {
+	// Set the fork on BeaconState.
+	fork.PreviousVersion = fork.CurrentVersion
+	fork.CurrentVersion = version.Fulu()
+	fork.Epoch = sp.cs.SlotToEpoch(slot)
+	if err := st.SetFork(fork); err != nil {
+		return err
+	}
+
+	// Initialize the pending partial withdrawals to an empty array if not already initialized.
+	// This handles the case where the chain starts directly on Fulu (e.g., devnet).
+	if _, err := st.GetPendingPartialWithdrawals(); errors.Is(err, collections.ErrNotFound) {
+		sp.metrics.gaugePartialWithdrawalsEnqueued(0)
+		return st.SetPendingPartialWithdrawals([]*types.PendingPartialWithdrawal{})
+	}
+
+	return nil
+}
+
+// logFuluFork logs information about the Fulu fork.
+func (sp *StateProcessor) logFuluFork(
+	previousVersion common.Version, timestamp math.U64, slot math.Slot,
+) {
+	sp.logger.Info(fmt.Sprintf(`
+
+
+	⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️
+
+	+ ✅  welcome to the fulu (0x06000000) fork! 🎉
+	+ 🚝  previous fork: %s (%s)
+	+ ⏱️   fulu fork time: %d
+	+ 🍴  first slot / timestamp of fulu: %d / %d
+	+ ⛓️   current beacon epoch: %d
+
+	⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️⏭️
+
+`,
+		version.Name(previousVersion), previousVersion.String(),
+		sp.cs.FuluForkTime(),
 		slot.Unwrap(), timestamp.Unwrap(),
 		sp.cs.SlotToEpoch(slot).Unwrap(),
 	))

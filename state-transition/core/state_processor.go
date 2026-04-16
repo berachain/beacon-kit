@@ -390,11 +390,19 @@ func (sp *StateProcessor) processEffectiveBalanceUpdates(st *state.StateDB) erro
 		return err
 	}
 
+	// Get the timestamp from the latest execution payload header to determine the active fork
+	// version for fork-gated hysteresis parameters (BRIP-0008).
+	lph, err := st.GetLatestExecutionPayloadHeader()
+	if err != nil {
+		return err
+	}
+	timestamp := lph.GetTimestamp()
+
 	var (
 		effectiveBalanceIncrement = sp.cs.EffectiveBalanceIncrement()
-		hysteresisIncrement       = effectiveBalanceIncrement / sp.cs.HysteresisQuotient()
-		downwardThreshold         = hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier()
-		upwardThreshold           = hysteresisIncrement * sp.cs.HysteresisUpwardMultiplier()
+		hysteresisIncrement       = effectiveBalanceIncrement / sp.cs.HysteresisQuotient(timestamp)
+		downwardThreshold         = hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier(timestamp)
+		upwardThreshold           = hysteresisIncrement * sp.cs.HysteresisUpwardMultiplier(timestamp)
 
 		idx     math.U64
 		balance math.Gwei

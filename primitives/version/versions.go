@@ -46,6 +46,8 @@ var (
 	electra1 = common.Version{0x05, 0x01, 0x00, 0x00}
 	// TBD if used but kept as an example.
 	electra2 = common.Version{0x05, 0x02, 0x00, 0x00}
+	// fulu is the Fulu hardfork of Berachain mainnet (Fusaka CL fork).
+	fulu = common.Version{0x06, 0x00, 0x00, 0x00}
 )
 
 // Phase0 returns phase0 as a common.Version.
@@ -92,4 +94,10 @@ func Electra1() common.Version {
 // Electra2 returns electra2 as a common.Version.
 func Electra2() common.Version {
 	return electra2
+}
+
+// Fulu returns fulu as a common.Version. Fulu is the CL component of the
+// Fusaka hardfork on Berachain mainnet.
+func Fulu() common.Version {
+	return fulu
 }
