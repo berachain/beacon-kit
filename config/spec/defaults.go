@@ -33,11 +33,6 @@ const (
 	defaultHysteresisDownwardMultiplier = 1
 	defaultHysteresisUpwardMultiplier   = 5
 
-	// Fulu hysteresis values (BRIP-0008).
-	defaultHysteresisQuotientFulu           = 100
-	defaultHysteresisDownwardMultiplierFulu = 1
-	defaultHysteresisUpwardMultiplierFulu   = 10
-
 	// Time parameters constants.
 	defaultSlotsPerEpoch                = 32
 	defaultSlotsPerHistoricalRoot       = 8

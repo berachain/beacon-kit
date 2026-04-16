@@ -348,10 +348,6 @@ func (s spec) HysteresisQuotient(timestamp math.U64) math.U64 {
 }
 
 func (s spec) HysteresisDownwardMultiplier(timestamp math.U64) math.U64 {
-	fv := s.ActiveForkVersionForTimestamp(timestamp)
-	if version.EqualsOrIsAfter(fv, version.Fulu()) {
-		return math.U64(s.Data.HysteresisDownwardMultiplierFulu)
-	}
 	return math.U64(s.Data.HysteresisDownwardMultiplier)
 }
 

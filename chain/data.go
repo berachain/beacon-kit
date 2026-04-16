@@ -165,12 +165,18 @@ type SpecData struct {
 	// minted to the EVMInflationAddressDeneb1 via a withdrawal every block in the Deneb1 fork.
 	EVMInflationPerBlockDeneb1 uint64 `mapstructure:"evm-inflation-per-block-deneb-one"`
 
+	// Electra Values
+	//
+	// MinActivationBalance [New in Electra:EIP7251] Minimum balance for a validator to become active
+	MinActivationBalance uint64 `mapstructure:"min-activation-balance"`
+	// MinValidatorWithdrawabilityDelay is defined in the Electra spec and introduces
+	// withdrawability delays to allow for slashing.
+	MinValidatorWithdrawabilityDelay uint64 `mapstructure:"min-validator-withdrawability-delay"`
+
 	// Fulu Value Changes
 	//
 	// HysteresisQuotientFulu is the hysteresis quotient for the Fulu fork (BRIP-0008).
 	HysteresisQuotientFulu uint64 `mapstructure:"hysteresis-quotient-fulu"`
-	// HysteresisDownwardMultiplierFulu is the hysteresis downward multiplier for the Fulu fork.
-	HysteresisDownwardMultiplierFulu uint64 `mapstructure:"hysteresis-downward-multiplier-fulu"`
 	// HysteresisUpwardMultiplierFulu is the hysteresis upward multiplier for the Fulu fork.
 	HysteresisUpwardMultiplierFulu uint64 `mapstructure:"hysteresis-upward-multiplier-fulu"`
 	// EVMInflationAddressFulu is the address on the EVM which will receive the
@@ -179,12 +185,4 @@ type SpecData struct {
 	// EVMInflationPerBlockFulu is the amount of native EVM balance (in Gwei) to be
 	// minted to the EVMInflationAddressFulu via a withdrawal every block in the Fulu fork.
 	EVMInflationPerBlockFulu uint64 `mapstructure:"evm-inflation-per-block-fulu"`
-
-	// Electra Values
-	//
-	// MinActivationBalance [New in Electra:EIP7251] Minimum balance for a validator to become active
-	MinActivationBalance uint64 `mapstructure:"min-activation-balance"`
-	// MinValidatorWithdrawabilityDelay is defined in the Electra spec and introduces
-	// withdrawability delays to allow for slashing.
-	MinValidatorWithdrawabilityDelay uint64 `mapstructure:"min-validator-withdrawability-delay"`
 }

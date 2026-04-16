@@ -64,16 +64,15 @@ evm-inflation-per-block = 0
 evm-inflation-address-deneb-one = "0x656b95E550C07a9ffe548bd4085c72418Ceb1dba"
 evm-inflation-per-block-deneb-one = 5_750_000_000
 
-# Fulu values (BRIP-0008 hysteresis + PoL vNext)
-hysteresis-quotient-fulu = 100
-hysteresis-downward-multiplier-fulu = 1
-hysteresis-upward-multiplier-fulu = 10
-evm-inflation-address-fulu = "0x0000000000000000000000000000000000000000"
-evm-inflation-per-block-fulu = 0
-
 # Electra values
 min-activation-balance = 250_000_000_000_000
 min-validator-withdrawability-delay = 256
+
+# Fulu values (BRIP-0008 hysteresis + PoL vNext -- TODO: update values)
+hysteresis-quotient-fulu = 100
+hysteresis-upward-multiplier-fulu = 10
+evm-inflation-address-fulu = "0x0000000000000000000000000000000000000000"
+evm-inflation-per-block-fulu = 0
 
 [block-delay-configuration]
 max-block-delay = 300_000_000_000

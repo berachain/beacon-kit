@@ -66,10 +66,6 @@ const (
 	// Set to 0 so devnet starts with Fulu active.
 	devnetFuluForkTime = 0
 
-	// devnetEVMInflationAddressFulu is the address of the EVM inflation contract
-	// after the Fulu fork on devnet.
-	devnetEVMInflationAddressFulu = "0x4206942069420694206942069420694206942069"
-
 	// devnetEVMInflationPerBlockFulu is the amount of native EVM balance (in units
 	// of Gwei) to be minted per EL block after the Fulu fork on devnet.
 	devnetEVMInflationPerBlockFulu = 12 * params.GWei
@@ -108,8 +104,8 @@ func DevnetChainSpecData() *chain.SpecData {
 	specData.SlotsPerEpoch = defaultSlotsPerEpoch
 	specData.MinValidatorWithdrawabilityDelay = devnetMinValidatorWithdrawabilityDelay
 
-	// EVM inflation for the Fulu fork on devnet.
-	specData.EVMInflationAddressFulu = common.MustNewExecutionAddressFromHex(devnetEVMInflationAddressFulu)
+	// EVM inflation for the Fulu fork on devnet. The address remains the same as the Deneb1 fork.
+	specData.EVMInflationAddressFulu = common.MustNewExecutionAddressFromHex(devnetEVMInflationAddressDeneb1)
 	specData.EVMInflationPerBlockFulu = devnetEVMInflationPerBlockFulu
 
 	return specData

@@ -107,6 +107,12 @@ const (
 	// TODO: Set to actual fork time before Fulu activation.
 	mainnetFuluForkTime = 9_999_999_999_999_999
 
+	// mainnetHysteresisQuotientFulu is the hysteresis quotient for the Fulu fork (BRIP-0008).
+	mainnetHysteresisQuotientFulu = 100
+
+	// mainnetHysteresisUpwardMultiplierFulu is the hysteresis upward multiplier for the Fulu fork.
+	mainnetHysteresisUpwardMultiplierFulu = 10
+
 	// mainnetEVMInflationAddressFulu is the address on the EVM which will receive the
 	// inflation amount of native EVM balance through a withdrawal every block in the Fulu fork.
 	// TODO: Set to actual address before Fulu activation.
@@ -186,16 +192,15 @@ func MainnetChainSpecData() *chain.SpecData {
 		EVMInflationAddressDeneb1:  common.MustNewExecutionAddressFromHex(mainnetEVMInflationAddressDeneb1),
 		EVMInflationPerBlockDeneb1: mainnetEVMInflationPerBlockDeneb1,
 
-		// Fulu values (BRIP-0008 hysteresis + PoL vNext).
-		HysteresisQuotientFulu:           defaultHysteresisQuotientFulu,
-		HysteresisDownwardMultiplierFulu: defaultHysteresisDownwardMultiplierFulu,
-		HysteresisUpwardMultiplierFulu:   defaultHysteresisUpwardMultiplierFulu,
-		EVMInflationAddressFulu:          common.MustNewExecutionAddressFromHex(mainnetEVMInflationAddressFulu),
-		EVMInflationPerBlockFulu:         mainnetEVMInflationPerBlockFulu,
-
 		// Electra values.
 		MinActivationBalance:             mainnetMinActivationBalance,
 		MinValidatorWithdrawabilityDelay: mainnetMinValidatorWithdrawabilityDelay,
+
+		// Fulu values (BRIP-0008 hysteresis + PoL vNext).
+		HysteresisQuotientFulu:         mainnetHysteresisQuotientFulu,
+		HysteresisUpwardMultiplierFulu: mainnetHysteresisUpwardMultiplierFulu,
+		EVMInflationAddressFulu:        common.MustNewExecutionAddressFromHex(mainnetEVMInflationAddressFulu),
+		EVMInflationPerBlockFulu:       mainnetEVMInflationPerBlockFulu,
 	}
 
 	specData.Config.ConsensusUpdateHeight = mainnetSBTConsensusUpdateHeight
