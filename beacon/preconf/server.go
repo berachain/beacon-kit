@@ -30,8 +30,10 @@ import (
 	"time"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
+	payloadbuilder "github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -67,6 +69,7 @@ type Server struct {
 	preconfProposerTracker ProposerTracker
 	payloadProvider        PayloadProvider
 	port                   int
+	metrics                *serverMetrics
 
 	mu         sync.RWMutex
 	httpServer *http.Server
@@ -80,6 +83,7 @@ func NewServer(
 	preconfProposerTracker ProposerTracker,
 	payloadProvider PayloadProvider,
 	port int,
+	sink TelemetrySink,
 ) *Server {
 	return &Server{
 		logger:                 logger,
@@ -88,6 +92,7 @@ func NewServer(
 		preconfProposerTracker: preconfProposerTracker,
 		payloadProvider:        payloadProvider,
 		port:                   port,
+		metrics:                newServerMetrics(sink),
 	}
 }
 
@@ -168,8 +173,12 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 
 // handleGetPayload handles the GetPayload endpoint.
 func (s *Server) handleGetPayload(w http.ResponseWriter, r *http.Request) {
+	result := ServerResultOK
+	defer func() { s.metrics.markPayloadRequest(result) }()
+
 	// Only accept POST requests
 	if r.Method != http.MethodPost {
+		result = ServerResultMethodNotAllowed
 		s.writeError(w, http.StatusMethodNotAllowed, "method not allowed")
 		return
 	}
@@ -177,6 +186,7 @@ func (s *Server) handleGetPayload(w http.ResponseWriter, r *http.Request) {
 	// Validate JWT and extract validator pubkey
 	pubkey, err := s.validateJWT(r)
 	if err != nil {
+		result = ServerResultUnauthorized
 		s.logger.Warn("JWT validation failed", "error", err)
 		s.writeError(w, http.StatusUnauthorized, "unauthorized: "+err.Error())
 		return
@@ -184,6 +194,7 @@ func (s *Server) handleGetPayload(w http.ResponseWriter, r *http.Request) {
 
 	// Check if validator is whitelisted
 	if s.whitelist != nil && !s.whitelist.IsWhitelisted(pubkey) {
+		result = ServerResultNotWhitelisted
 		s.logger.Warn("Validator not whitelisted", "pubkey", pubkey)
 		s.writeError(w, http.StatusForbidden, "validator not whitelisted")
 		return
@@ -192,12 +203,16 @@ func (s *Server) handleGetPayload(w http.ResponseWriter, r *http.Request) {
 	// Parse request body
 	var req GetPayloadRequest
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
+		result = ServerResultBadRequest
 		s.writeError(w, http.StatusBadRequest, "invalid request body: "+err.Error())
 		return
 	}
 
 	// Verify the requesting validator is the expected proposer for this slot.
-	if !s.preconfProposerTracker.IsExpectedProposer(req.Slot, pubkey) {
+	matched := s.preconfProposerTracker.IsExpectedProposer(req.Slot, pubkey)
+	s.metrics.markProposerCheck(matched)
+	if !matched {
+		result = ServerResultWrongProposer
 		s.logger.Warn("Validator is not the expected proposer for slot",
 			"pubkey", pubkey.String(),
 			"slot", req.Slot,
@@ -211,8 +226,11 @@ func (s *Server) handleGetPayload(w http.ResponseWriter, r *http.Request) {
 		"validator_pubkey", pubkey.String(),
 	)
 
-	// Get the payload from provider
-	ctx := r.Context()
+	// fetches the payload from sequencer and writes the http response to the caller
+	result = s.fetchAndWritePayload(r.Context(), w, req)
+}
+
+func (s *Server) fetchAndWritePayload(ctx context.Context, w http.ResponseWriter, req GetPayloadRequest) string {
 	startTime := time.Now()
 	envelope, err := s.payloadProvider.GetPayloadBySlot(ctx, req.Slot, req.ParentBlockRoot)
 	elapsed := time.Since(startTime)
@@ -222,22 +240,27 @@ func (s *Server) handleGetPayload(w http.ResponseWriter, r *http.Request) {
 			"error", err,
 			"elapsed", elapsed,
 		)
-		s.writeError(w, http.StatusNotFound, "payload not available: "+err.Error())
-		return
+		if errors.Is(err, payloadbuilder.ErrPayloadIDNotFound) || errors.Is(err, engineerrors.ErrUnknownPayload) {
+			s.writeError(w, http.StatusNotFound, "payload not available: "+err.Error())
+			return ServerResultPayloadNotFound
+		}
+		s.writeError(w, http.StatusInternalServerError, "internal server error")
+		return ServerResultInternalError
 	}
 
 	if envelope == nil {
 		s.writeError(w, http.StatusNotFound, "payload not available")
-		return
+		return ServerResultPayloadNotFound
 	}
 
-	// Write response
 	w.Header().Set("Content-Type", "application/json")
 	if err = json.NewEncoder(w).Encode(NewGetPayloadResponseFromEnvelope(envelope)); err != nil {
-		s.logger.Error("Failed to encode response", "error", err)
+		s.logger.Error("Failed to encode response", "slot", req.Slot, "error", err)
+		return ServerResultSerializationError
 	}
 
 	s.logger.Info("GetPayloadBySlot completed", "slot", req.Slot, "elapsed", elapsed)
+	return ServerResultOK
 }
 
 // validateJWT validates the JWT token from the Authorization header and returns

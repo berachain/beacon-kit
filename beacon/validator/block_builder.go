@@ -228,13 +228,20 @@ func (s *Service) retrieveExecutionPayload(
 				"slot", slot.Base10(),
 				"error", fetchErr,
 			)
+			s.preconfMetrics.markFallback(fallbackReasonFromFetchErr(fetchErr))
 		} else if validateErr := s.validateSequencerPayload(ctx, st, envelope, parentBlockRoot); validateErr != nil {
 			s.logger.Warn("Sequencer payload failed local EL validation, falling back to local build",
 				"slot", slot.Base10(),
 				"error", validateErr,
 			)
+			s.preconfMetrics.markFetch(FetchOutcomeValidationFailed)
+			s.preconfMetrics.markFallback(FallbackReasonValidationFailed)
 		} else {
 			s.logger.Info("Using payload from sequencer", "slot", slot.Base10())
+			s.preconfMetrics.markFetch(FetchOutcomeOK)
+			// Re-emit on every success so the gauge isn't dropped by
+			// prometheus-retention-time when the state never transitions.
+			s.preconfMetrics.setSequencerAvailable(true)
 			return envelope, nil
 		}
 		// Fall through to local building
@@ -477,10 +484,14 @@ func (s *Service) fetchFromSequencer(
 	parentBlockRoot common.Root,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
 	envelope, err := s.preconfClient.GetPayloadBySlot(ctx, slot, parentBlockRoot)
+	if err != nil {
+		s.preconfMetrics.markFetch(fetchOutcomeFromErr(err))
+	}
 	if errors.Is(err, preconf.ErrSequencerUnavailable) {
 		if s.sequencerMonitorRunning.CompareAndSwap(false, true) {
 			s.logger.Info("Detected sequencer offline, starting health monitor")
 			s.sequencerAvailable.Store(false)
+			s.preconfMetrics.setSequencerAvailable(false)
 			go s.monitorSequencerHealth(ctx)
 		}
 	}
@@ -503,9 +514,34 @@ func (s *Service) monitorSequencerHealth(ctx context.Context) {
 			if s.preconfClient.CheckHealth(ctx) == nil {
 				s.logger.Info("Sequencer is healthy again, stopping health monitor")
 				s.sequencerAvailable.Store(true)
+				s.preconfMetrics.setSequencerAvailable(true)
 				return
 			}
 		}
+	}
+}
+
+// fetchOutcomeFromErr classifies a sequencer fetch error into a metric outcome label.
+func fetchOutcomeFromErr(err error) string {
+	switch {
+	case errors.Is(err, preconf.ErrSequencerUnavailable):
+		return FetchOutcomeUnavailable
+	case errors.Is(err, preconf.ErrPayloadNotFound):
+		return FetchOutcomeNotFound
+	default:
+		return FetchOutcomeOther
+	}
+}
+
+// fallbackReasonFromFetchErr maps a sequencer fetch error to a fallback reason label.
+func fallbackReasonFromFetchErr(err error) string {
+	switch {
+	case errors.Is(err, preconf.ErrSequencerUnavailable):
+		return FallbackReasonUnavailable
+	case errors.Is(err, preconf.ErrPayloadNotFound):
+		return FallbackReasonNotFound
+	default:
+		return FallbackReasonOther
 	}
 }
 
