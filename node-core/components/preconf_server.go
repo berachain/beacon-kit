@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log/phuslu"
+	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	payloadbuilder "github.com/berachain/beacon-kit/payload/builder"
 )
 
@@ -38,6 +39,7 @@ type PreconfServerInput struct {
 	Whitelist              preconf.Whitelist
 	PreconfProposerTracker preconf.ProposerTracker
 	LocalBuilder           *payloadbuilder.PayloadBuilder
+	TelemetrySink          *metrics.TelemetrySink
 }
 
 // ProvidePreconfServer provides the preconf API server for sequencer mode.
@@ -85,5 +87,6 @@ func ProvidePreconfServer(in PreconfServerInput) (*preconf.Server, error) {
 		in.PreconfProposerTracker,
 		in.LocalBuilder,
 		cfg.APIPort,
+		in.TelemetrySink,
 	), nil
 }
