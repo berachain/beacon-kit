@@ -32,9 +32,9 @@ import (
 
 	"github.com/berachain/beacon-kit/beacon/preconf"
 	"github.com/berachain/beacon-kit/cli/utils/parser"
-	"github.com/berachain/beacon-kit/errors"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log/noop"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -351,13 +351,13 @@ func TestServer_HealthEndpoint(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name          string
-		syncChecker   *mockSyncChecker
-		elChecker     *mockELChecker
-		wantStatus    int
-		wantReady     bool
-		wantSync      bool
-		wantELConn    bool
+		name        string
+		syncChecker *mockSyncChecker
+		elChecker   *mockELChecker
+		wantStatus  int
+		wantReady   bool
+		wantSync    bool
+		wantELConn  bool
 	}{
 		{
 			name:        "healthy - synced, ready, EL connected",
