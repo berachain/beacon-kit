@@ -32,6 +32,7 @@ import (
 
 	"github.com/berachain/beacon-kit/beacon/preconf"
 	"github.com/berachain/beacon-kit/cli/utils/parser"
+	"github.com/berachain/beacon-kit/errors"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/log/noop"
@@ -120,6 +121,8 @@ func TestServer_HandleGetPayload(t *testing.T) {
 				newTestWhitelist(t, pubkeyAHex, pubkeyBHex),
 				tracker,
 				provider,
+				&mockSyncChecker{ready: true},
+				&mockELChecker{connected: true},
 				0,
 			)
 
@@ -198,6 +201,8 @@ func TestServer_ProposerCheck(t *testing.T) {
 				newTestWhitelist(t, pubkeyAHex, pubkeyBHex),
 				tt.setupTracker(),
 				&mockPayloadProvider{hasPayload: true},
+				&mockSyncChecker{ready: true},
+				&mockELChecker{connected: true},
 				0,
 			)
 
@@ -220,7 +225,7 @@ func TestServer_ProposerCheck(t *testing.T) {
 func TestServer_RejectsNonPostMethods(t *testing.T) {
 	t.Parallel()
 
-	server := preconf.NewServer(noop.NewLogger[any](), nil, nil, nil, nil, 0)
+	server := preconf.NewServer(noop.NewLogger[any](), nil, nil, nil, nil, nil, nil, 0)
 
 	for _, method := range []string{http.MethodGet, http.MethodPut, http.MethodDelete} {
 		req := httptest.NewRequest(method, preconf.PayloadEndpoint, nil)
@@ -263,7 +268,7 @@ func TestServer_OnSIGHUP(t *testing.T) {
 	wl, err := preconf.NewWhitelist(tmpFile)
 	require.NoError(t, err)
 
-	server := preconf.NewServer(noop.NewLogger[any](), nil, wl, nil, nil, 0)
+	server := preconf.NewServer(noop.NewLogger[any](), nil, wl, nil, nil, nil, nil, 0)
 
 	require.True(t, wl.IsWhitelisted(pkA))
 	require.False(t, wl.IsWhitelisted(pkB))
@@ -314,3 +319,121 @@ func (m *mockPayloadEnvelope) GetEncodedExecutionRequests() []ctypes.EncodedExec
 }
 
 func (m *mockPayloadEnvelope) ShouldOverrideBuilder() bool { return false }
+
+// mockSyncChecker implements preconf.SyncChecker for tests.
+type mockSyncChecker struct {
+	ready        bool
+	latestHeight int64
+	syncToHeight int64
+}
+
+func (m *mockSyncChecker) IsAppReady() error {
+	if !m.ready {
+		return errors.New("app not ready")
+	}
+	return nil
+}
+
+func (m *mockSyncChecker) GetSyncData() (int64, int64) {
+	return m.latestHeight, m.syncToHeight
+}
+
+// mockELChecker implements preconf.ELChecker for tests.
+type mockELChecker struct {
+	connected bool
+}
+
+func (m *mockELChecker) IsConnected() bool {
+	return m.connected
+}
+
+func TestServer_HealthEndpoint(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		syncChecker   *mockSyncChecker
+		elChecker     *mockELChecker
+		wantStatus    int
+		wantReady     bool
+		wantSync      bool
+		wantELConn    bool
+	}{
+		{
+			name:        "healthy - synced, ready, EL connected",
+			syncChecker: &mockSyncChecker{ready: true, latestHeight: 100, syncToHeight: 100},
+			elChecker:   &mockELChecker{connected: true},
+			wantStatus:  http.StatusOK,
+			wantReady:   true,
+			wantSync:    false,
+			wantELConn:  true,
+		},
+		{
+			name:        "unhealthy - still syncing",
+			syncChecker: &mockSyncChecker{ready: true, latestHeight: 50, syncToHeight: 100},
+			elChecker:   &mockELChecker{connected: true},
+			wantStatus:  http.StatusServiceUnavailable,
+			wantReady:   true,
+			wantSync:    true,
+			wantELConn:  true,
+		},
+		{
+			name:        "unhealthy - app not ready",
+			syncChecker: &mockSyncChecker{ready: false, latestHeight: 0, syncToHeight: 0},
+			elChecker:   &mockELChecker{connected: true},
+			wantStatus:  http.StatusServiceUnavailable,
+			wantReady:   false,
+			wantSync:    false,
+			wantELConn:  true,
+		},
+		{
+			name:        "unhealthy - EL disconnected",
+			syncChecker: &mockSyncChecker{ready: true, latestHeight: 100, syncToHeight: 100},
+			elChecker:   &mockELChecker{connected: false},
+			wantStatus:  http.StatusServiceUnavailable,
+			wantReady:   true,
+			wantSync:    false,
+			wantELConn:  false,
+		},
+		{
+			name:       "healthy - nil checkers",
+			wantStatus: http.StatusOK,
+			wantReady:  true,
+			wantSync:   false,
+			wantELConn: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			var syncChecker preconf.SyncChecker
+			if tt.syncChecker != nil {
+				syncChecker = tt.syncChecker
+			}
+			var elChecker preconf.ELChecker
+			if tt.elChecker != nil {
+				elChecker = tt.elChecker
+			}
+
+			server := preconf.NewServer(
+				noop.NewLogger[any](), nil, nil, nil, nil,
+				syncChecker, elChecker, 0,
+			)
+
+			req := httptest.NewRequest(http.MethodGet, preconf.HealthEndpoint, nil)
+			rec := httptest.NewRecorder()
+			server.Handler().ServeHTTP(rec, req)
+
+			require.Equal(t, tt.wantStatus, rec.Code)
+
+			var resp preconf.HealthResponse
+			err := json.NewDecoder(rec.Body).Decode(&resp)
+			require.NoError(t, err)
+			require.Equal(t, tt.wantReady, resp.IsReady)
+			require.Equal(t, tt.wantSync, resp.IsSyncing)
+			require.Equal(t, tt.wantELConn, resp.ELConnected)
+		})
+	}
+}
