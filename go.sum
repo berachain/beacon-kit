@@ -78,10 +78,10 @@ github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
-github.com/berachain/cometbft v1.0.1-0.20260407160047-b95619676ffc h1:oO099KFHn5l8jBs5YQnC6dowtFQqXDYY2wo8RQBnojk=
-github.com/berachain/cometbft v1.0.1-0.20260407160047-b95619676ffc/go.mod h1:AB3j5W0TQmQSuwRdzWvIBQPAKquFo7VnckwETlAsuwk=
-github.com/berachain/cometbft/api v1.0.1-0.20260407160047-b95619676ffc h1:XZlAYs0qgKJ9209eFEDwxKLiXqeRwn39LgjSrRxHZZc=
-github.com/berachain/cometbft/api v1.0.1-0.20260407160047-b95619676ffc/go.mod h1:QaK8NCB4rHDs0MdS+L+QOQsL4UM3YJ9OMCNrH+CGdA0=
+github.com/berachain/cometbft v1.0.1-0.20260417142533-880521c815b6 h1:pCfZDheMbkXRE+VbERz/bPFibp96Yd5V3RVDJLLib2A=
+github.com/berachain/cometbft v1.0.1-0.20260417142533-880521c815b6/go.mod h1:AB3j5W0TQmQSuwRdzWvIBQPAKquFo7VnckwETlAsuwk=
+github.com/berachain/cometbft/api v1.0.1-0.20260417142533-880521c815b6 h1:HS1NYR8xeqNR9ABrfvS84clBgujpXOUunGKEaKP1l+k=
+github.com/berachain/cometbft/api v1.0.1-0.20260417142533-880521c815b6/go.mod h1:QaK8NCB4rHDs0MdS+L+QOQsL4UM3YJ9OMCNrH+CGdA0=
 github.com/berachain/karalabe-ssz v0.3.0-alpha.0 h1:SVMU5PSuMB2fgmFTf1rSBY9rEHpQv24DJcqxSrD7jf8=
 github.com/berachain/karalabe-ssz v0.3.0-alpha.0/go.mod h1:7BZG/jckt43eKw7sl/AF6gTcL0oxgFPme39m54v8rDI=
 github.com/bgentry/speakeasy v0.2.0 h1:tgObeVOf8WAvtuAX6DhJ4xks4CFNwPDZiqzGqIHE51E=
