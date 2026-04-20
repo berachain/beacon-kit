@@ -199,10 +199,7 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 // buildHealthResponse inspects the node's sync state and EL connectivity
 // and produces a HealthResponse.
 func (s *Server) buildHealthResponse() *HealthResponse {
-	resp := &HealthResponse{
-		IsReady:     true,
-		ELConnected: true,
-	}
+	resp := new(HealthResponse)
 
 	if s.syncChecker != nil {
 		resp.IsReady = s.syncChecker.IsAppReady() == nil

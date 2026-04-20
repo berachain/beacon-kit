@@ -396,11 +396,11 @@ func TestServer_HealthEndpoint(t *testing.T) {
 			wantELConn:  false,
 		},
 		{
-			name:       "healthy - nil checkers",
-			wantStatus: http.StatusOK,
-			wantReady:  true,
+			name:       "unhealthy - nil checkers",
+			wantStatus: http.StatusServiceUnavailable,
+			wantReady:  false,
 			wantSync:   false,
-			wantELConn: true,
+			wantELConn: false,
 		},
 	}
 
