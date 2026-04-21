@@ -341,10 +341,14 @@ func (s spec) EffectiveBalanceIncrement() math.Gwei {
 
 func (s spec) HysteresisQuotient(timestamp math.U64) math.U64 {
 	fv := s.ActiveForkVersionForTimestamp(timestamp)
-	if version.EqualsOrIsAfter(fv, version.Fulu()) {
+	switch {
+	case version.EqualsOrIsAfter(fv, version.Fulu()):
 		return math.U64(s.Data.HysteresisQuotientFulu)
+	case version.EqualsOrIsAfter(fv, s.GenesisForkVersion()):
+		return math.U64(s.Data.HysteresisQuotient)
+	default:
+		panic(fmt.Sprintf("HysteresisQuotient not supported for this fork version: %d", fv))
 	}
-	return math.U64(s.Data.HysteresisQuotient)
 }
 
 func (s spec) HysteresisDownwardMultiplier() math.U64 {
@@ -353,10 +357,14 @@ func (s spec) HysteresisDownwardMultiplier() math.U64 {
 
 func (s spec) HysteresisUpwardMultiplier(timestamp math.U64) math.U64 {
 	fv := s.ActiveForkVersionForTimestamp(timestamp)
-	if version.EqualsOrIsAfter(fv, version.Fulu()) {
+	switch {
+	case version.EqualsOrIsAfter(fv, version.Fulu()):
 		return math.U64(s.Data.HysteresisUpwardMultiplierFulu)
+	case version.EqualsOrIsAfter(fv, s.GenesisForkVersion()):
+		return math.U64(s.Data.HysteresisUpwardMultiplierFulu)
+	default:
+		panic(fmt.Sprintf("HysteresisUpwardMultiplier not supported for this fork version: %d", fv))
 	}
-	return math.U64(s.Data.HysteresisUpwardMultiplier)
 }
 
 // SlotsPerEpoch returns the number of slots per epoch.
@@ -543,7 +551,7 @@ func (s spec) EVMInflationAddress(timestamp math.U64) common.ExecutionAddress {
 		return s.Data.EVMInflationAddressFulu
 	case version.EqualsOrIsAfter(fv, version.Deneb1()):
 		return s.Data.EVMInflationAddressDeneb1
-	case version.Equals(fv, version.Deneb()):
+	case version.Equals(fv, s.GenesisForkVersion()):
 		return s.Data.EVMInflationAddressGenesis
 	default:
 		panic(fmt.Sprintf("EVMInflationAddress not supported for this fork version: %d", fv))
@@ -559,7 +567,7 @@ func (s spec) EVMInflationPerBlock(timestamp math.U64) math.Gwei {
 		return math.Gwei(s.Data.EVMInflationPerBlockFulu)
 	case version.EqualsOrIsAfter(fv, version.Deneb1()):
 		return math.Gwei(s.Data.EVMInflationPerBlockDeneb1)
-	case version.Equals(fv, version.Deneb()):
+	case version.Equals(fv, s.GenesisForkVersion()):
 		return math.Gwei(s.Data.EVMInflationPerBlockGenesis)
 	default:
 		panic(fmt.Sprintf("EVMInflationPerBlock not supported for this fork version: %d", fv))
