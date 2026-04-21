@@ -23,6 +23,10 @@
 package preconf_test
 
 import (
+	"slices"
+	"strings"
+	"time"
+
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/berachain/beacon-kit/testing/e2e/suite"
 )
@@ -40,6 +44,9 @@ const (
 	// Number of blocks to wait.
 	blocksToWait        = 20
 	blocksAfterFallback = 10
+
+	// Upper bound for the sequencer to come back up.
+	sequencerRecoveryTimeout = 90 * time.Second
 )
 
 // TestSequencerFlow verifies the preconf pathway using ordered subtests.
@@ -151,16 +158,8 @@ func (s *PreconfE2ESuite) TestSequencerFlow() {
 		err := s.StartService(sequencerCLService)
 		s.Require().NoError(err, "Should restart sequencer service")
 
-		elClient := s.ExecutionClients(0)
-
-		// Wait for enough blocks so each validator has had the chance to propose
-		// at least once after the monitor detects recovery.
-		currentBlock, err := elClient.BlockNumber(s.Ctx())
-		s.Require().NoError(err, "Should get current block number")
-		err = s.WaitForFinalizedBlockNumber(currentBlock + blocksAfterFallback)
-		s.Require().NoError(err, "Network should continue producing blocks after sequencer restarted")
-
-		// Validators should have detected recovery and resumed fetching from the sequencer.
+		// Each validator must see the sequencer healthy after pod restart + resync.
+		// Poll the logs so we tolerate variable startup latency.
 		validators := []string{
 			config.ValidatorConsensusClientName(0),
 			config.ValidatorConsensusClientName(1),
@@ -169,18 +168,25 @@ func (s *PreconfE2ESuite) TestSequencerFlow() {
 			config.ValidatorConsensusClientName(4),
 		}
 		for _, validator := range validators {
-			logs, err := s.GetServiceLogs(validator)
-			s.Require().NoError(err, "Should get logs for %s", validator)
+			validator := validator
+			s.Require().Eventuallyf(func() bool {
+				logs, logErr := s.GetServiceLogs(validator)
+				if logErr != nil {
+					return false
+				}
 
-			s.Require().True(suite.ContainsLogMessage(logs, sequencerRecoveredLog),
-				"Validator %s health monitor should have detected sequencer recovery. "+
-					"Expected log message containing: %q",
-				validator, sequencerRecoveredLog)
+				// Require a fetch AFTER recovery: a fetch log preceding the outage
+				// would otherwise falsely satisfy a flat Contains check.
+				recoveryIdx := slices.IndexFunc(logs, func(line string) bool {
+					return strings.Contains(line, sequencerRecoveredLog)
+				})
 
-			s.Require().True(suite.ContainsLogMessage(logs, validatorFetchingLog),
-				"Validator %s should resume fetching from sequencer after recovery. "+
-					"Expected log message containing: %q",
-				validator, validatorFetchingLog)
+				return recoveryIdx >= 0 &&
+					suite.ContainsLogMessage(logs[recoveryIdx+1:], validatorFetchingLog)
+			}, sequencerRecoveryTimeout, time.Second,
+				"Validator %s should detect sequencer recovery and resume fetching. "+
+					"Expected log %q followed by %q",
+				validator, sequencerRecoveredLog, validatorFetchingLog)
 		}
 	})
 }
