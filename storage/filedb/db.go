@@ -50,8 +50,9 @@ func NewDB(opts ...Option) *DB {
 	}
 
 	if db.fs == nil {
-		db.fs = afero.NewBasePathFs(afero.NewOsFs(), db.rootDir)
+		db.fs = afero.NewOsFs()
 	}
+	db.fs = afero.NewBasePathFs(db.fs, db.rootDir)
 	return db
 }
 
