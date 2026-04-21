@@ -70,6 +70,9 @@ func (s *EngineClient) handleRPCError(
 	var e jsonrpc.Error
 	ok := errors.As(err, &e)
 	if !ok || e == nil {
+		// No JSON-RPC response at all — the EL is unreachable. Mark the
+		// client as disconnected so the preconf health endpoint reflects it.
+		s.connected.Store(false)
 		return errors.Join(ErrBadConnection, err)
 	}
 

@@ -24,7 +24,7 @@ import (
 	"context"
 	"fmt"
 	"math/big"
-	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/berachain/beacon-kit/errors"
@@ -49,10 +49,9 @@ type EngineClient struct {
 	metrics *clientMetrics
 	// capabilities is a map of capabilities that the execution client has.
 	capabilities map[string]struct{}
-	// connected will be set to true when we have successfully connected
-	// to the execution client.
-	connectedMu sync.RWMutex
-	connected   bool
+	// connected reflects live EL reachability: flipped to true on any
+	// successful Engine API call, and to false on connection-level errors.
+	connected atomic.Bool
 }
 
 // New creates a new engine client EngineClient.
@@ -99,7 +98,6 @@ func New(
 		capabilities: make(map[string]struct{}),
 		eth1ChainID:  eth1ChainID,
 		metrics:      newClientMetrics(telemetrySink, logger),
-		connected:    false,
 	}
 }
 
@@ -123,9 +121,10 @@ func (s *EngineClient) Start(ctx context.Context) error {
 		"dial_url", s.cfg.RPCDialURL.String(),
 	)
 
-	// If the connection connection succeeds, we can skip the
-	// connection initialization loop.
+	// If the connection succeeds, we can skip the connection
+	// initialization loop.
 	if err := s.verifyChainIDAndConnection(ctx); err == nil {
+		s.connected.Store(true)
 		return nil
 	}
 
@@ -147,9 +146,7 @@ func (s *EngineClient) Start(ctx context.Context) error {
 				}
 				continue
 			}
-			s.connectedMu.Lock()
-			s.connected = true
-			s.connectedMu.Unlock()
+			s.connected.Store(true)
 			return nil
 		}
 	}
@@ -160,9 +157,7 @@ func (s *EngineClient) Stop() error {
 }
 
 func (s *EngineClient) IsConnected() bool {
-	s.connectedMu.RLock()
-	defer s.connectedMu.RUnlock()
-	return s.connected
+	return s.connected.Load()
 }
 
 func (s *EngineClient) HasCapability(capability string) bool {
