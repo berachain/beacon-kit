@@ -102,6 +102,26 @@ const (
 	// These are the heights at which SBT is activated on mainnet.
 	mainnetSBTConsensusUpdateHeight = 9_983_085
 	mainnetSBTConsensusEnableHeight = 9_983_086
+
+	// mainnetFuluForkTime is the timestamp at which the Fulu fork occurs.
+	// TODO: Set to actual fork time before Fulu activation.
+	mainnetFuluForkTime = 9_999_999_999_999_999
+
+	// mainnetHysteresisQuotientFulu is the hysteresis quotient for the Fulu fork (BRIP-0008).
+	mainnetHysteresisQuotientFulu = 100
+
+	// mainnetHysteresisUpwardMultiplierFulu is the hysteresis upward multiplier for the Fulu fork.
+	mainnetHysteresisUpwardMultiplierFulu = 10
+
+	// mainnetEVMInflationAddressFulu is the address on the EVM which will receive the
+	// inflation amount of native EVM balance through a withdrawal every block in the Fulu fork.
+	// TODO: Set to actual address before Fulu activation.
+	mainnetEVMInflationAddressFulu = "0x0000000000000000000000000000000000000000"
+
+	// mainnetEVMInflationPerBlockFulu is the amount of native EVM balance (in Gwei) to be
+	// minted to the EVMInflationAddressFulu via a withdrawal every block in the Fulu fork.
+	// TODO: Set to actual value before Fulu activation.
+	mainnetEVMInflationPerBlockFulu = 0
 )
 
 // MainnetChainSpecData is the chain.SpecData for the Berachain mainnet.
@@ -144,6 +164,7 @@ func MainnetChainSpecData() *chain.SpecData {
 		Deneb1ForkTime:   mainnetDeneb1ForkTime,
 		ElectraForkTime:  mainnetElectraForkTime,
 		Electra1ForkTime: mainnetElectra1ForkTime,
+		FuluForkTime:     mainnetFuluForkTime,
 
 		// State list length constants.
 		EpochsPerHistoricalVector: defaultEpochsPerHistoricalVector,
@@ -174,6 +195,12 @@ func MainnetChainSpecData() *chain.SpecData {
 		// Electra values.
 		MinActivationBalance:             mainnetMinActivationBalance,
 		MinValidatorWithdrawabilityDelay: mainnetMinValidatorWithdrawabilityDelay,
+
+		// Fulu values (BRIP-0008 hysteresis + PoL vNext).
+		HysteresisQuotientFulu:         mainnetHysteresisQuotientFulu,
+		HysteresisUpwardMultiplierFulu: mainnetHysteresisUpwardMultiplierFulu,
+		EVMInflationAddressFulu:        common.MustNewExecutionAddressFromHex(mainnetEVMInflationAddressFulu),
+		EVMInflationPerBlockFulu:       mainnetEVMInflationPerBlockFulu,
 	}
 
 	specData.Config.ConsensusUpdateHeight = mainnetSBTConsensusUpdateHeight
