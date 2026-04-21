@@ -49,6 +49,10 @@ func TestnetChainSpecData() *chain.SpecData {
 	// Timestamp of the Electra1 fork on Bepolia.
 	specData.Electra1ForkTime = 1_754_496_000
 
+	// Timestamp of the Fulu fork on Bepolia.
+	// TODO: Set to actual fork time before Fulu activation.
+	specData.FuluForkTime = 9_999_999_999_999_999
+
 	return specData
 }
 
