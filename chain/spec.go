@@ -48,16 +48,17 @@ type HysteresisSpec interface {
 	// HysteresisQuotient returns the quotient used in effective balance
 	// calculations to create hysteresis. This provides resistance to small
 	// balance changes triggering effective balance updates.
-	// The value is fork-gated by timestamp (updated in Fulu per BRIP-0008).
+	// This value is fork-gated by timestamp (updated in Fulu per BRIP-0008).
 	HysteresisQuotient(timestamp math.U64) math.U64
 
 	// HysteresisDownwardMultiplier returns the multiplier used when checking
 	// if the effective balance should be decreased.
+	// The value is NOT fork-gated by timestamped as no changes are expected to this value.
 	HysteresisDownwardMultiplier() math.U64
 
 	// HysteresisUpwardMultiplier returns the multiplier used when checking
 	// if the effective balance should be increased.
-	// The value is fork-gated by timestamp (updated in Fulu per BRIP-0008).
+	// This value is fork-gated by timestamp (updated in Fulu per BRIP-0008).
 	HysteresisUpwardMultiplier(timestamp math.U64) math.U64
 }
 
