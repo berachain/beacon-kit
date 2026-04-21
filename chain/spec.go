@@ -342,13 +342,15 @@ func (s spec) EffectiveBalanceIncrement() math.Gwei {
 func (s spec) HysteresisQuotient(timestamp math.U64) math.U64 {
 	fv := s.ActiveForkVersionForTimestamp(timestamp)
 	switch {
-	case version.EqualsOrIsAfter(fv, version.Fulu()):
+	case version.Equals(fv, version.Fulu()):
 		return math.U64(s.Data.HysteresisQuotientFulu)
-	case version.EqualsOrIsAfter(fv, s.GenesisForkVersion()):
+	case version.Equals(fv, s.GenesisForkVersion()),
+		version.Equals(fv, version.Deneb1()),
+		version.Equals(fv, version.Electra()),
+		version.Equals(fv, version.Electra1()):
 		return math.U64(s.Data.HysteresisQuotient)
-	default:
-		panic(fmt.Sprintf("HysteresisQuotient not supported for this fork version: %d", fv))
 	}
+	panic(fmt.Sprintf("HysteresisQuotient not supported for this fork version: %d", fv))
 }
 
 func (s spec) HysteresisDownwardMultiplier() math.U64 {
@@ -358,13 +360,15 @@ func (s spec) HysteresisDownwardMultiplier() math.U64 {
 func (s spec) HysteresisUpwardMultiplier(timestamp math.U64) math.U64 {
 	fv := s.ActiveForkVersionForTimestamp(timestamp)
 	switch {
-	case version.EqualsOrIsAfter(fv, version.Fulu()):
+	case version.Equals(fv, version.Fulu()):
 		return math.U64(s.Data.HysteresisUpwardMultiplierFulu)
-	case version.EqualsOrIsAfter(fv, s.GenesisForkVersion()):
+	case version.Equals(fv, s.GenesisForkVersion()),
+		version.Equals(fv, version.Deneb1()),
+		version.Equals(fv, version.Electra()),
+		version.Equals(fv, version.Electra1()):
 		return math.U64(s.Data.HysteresisUpwardMultiplierFulu)
-	default:
-		panic(fmt.Sprintf("HysteresisUpwardMultiplier not supported for this fork version: %d", fv))
 	}
+	panic(fmt.Sprintf("HysteresisUpwardMultiplier not supported for this fork version: %d", fv))
 }
 
 // SlotsPerEpoch returns the number of slots per epoch.
@@ -547,15 +551,16 @@ func (s spec) ValidatorSetCap() uint64 {
 func (s spec) EVMInflationAddress(timestamp math.U64) common.ExecutionAddress {
 	fv := s.ActiveForkVersionForTimestamp(timestamp)
 	switch {
-	case version.EqualsOrIsAfter(fv, version.Fulu()):
+	case version.Equals(fv, version.Fulu()):
 		return s.Data.EVMInflationAddressFulu
-	case version.EqualsOrIsAfter(fv, version.Deneb1()):
+	case version.Equals(fv, version.Deneb1()),
+		version.Equals(fv, version.Electra()),
+		version.Equals(fv, version.Electra1()):
 		return s.Data.EVMInflationAddressDeneb1
 	case version.Equals(fv, s.GenesisForkVersion()):
 		return s.Data.EVMInflationAddressGenesis
-	default:
-		panic(fmt.Sprintf("EVMInflationAddress not supported for this fork version: %d", fv))
 	}
+	panic(fmt.Sprintf("EVMInflationAddress not supported for this fork version: %d", fv))
 }
 
 // EVMInflationPerBlock returns the amount of native EVM balance (in Gwei) to
@@ -563,13 +568,14 @@ func (s spec) EVMInflationAddress(timestamp math.U64) common.ExecutionAddress {
 func (s spec) EVMInflationPerBlock(timestamp math.U64) math.Gwei {
 	fv := s.ActiveForkVersionForTimestamp(timestamp)
 	switch {
-	case version.EqualsOrIsAfter(fv, version.Fulu()):
+	case version.Equals(fv, version.Fulu()):
 		return math.Gwei(s.Data.EVMInflationPerBlockFulu)
-	case version.EqualsOrIsAfter(fv, version.Deneb1()):
+	case version.Equals(fv, version.Deneb1()),
+		version.Equals(fv, version.Electra()),
+		version.Equals(fv, version.Electra1()):
 		return math.Gwei(s.Data.EVMInflationPerBlockDeneb1)
 	case version.Equals(fv, s.GenesisForkVersion()):
 		return math.Gwei(s.Data.EVMInflationPerBlockGenesis)
-	default:
-		panic(fmt.Sprintf("EVMInflationPerBlock not supported for this fork version: %d", fv))
 	}
+	panic(fmt.Sprintf("EVMInflationPerBlock not supported for this fork version: %d", fv))
 }
