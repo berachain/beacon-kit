@@ -101,6 +101,8 @@ func NewGetPayloadResponseFromEnvelope(env ctypes.BuiltExecutionPayloadEnv) *Get
 }
 
 // HealthResponse is the response body for the health endpoint.
+// For richer sync metadata (head slot, sync distance), see the
+// standard /eth/v1/node/syncing endpoint.
 type HealthResponse struct {
 	// IsReady indicates whether the node has committed at least one block.
 	IsReady bool `json:"is_ready"`
@@ -110,12 +112,6 @@ type HealthResponse struct {
 
 	// ELConnected indicates whether the execution-layer client is reachable.
 	ELConnected bool `json:"el_connected"`
-
-	// HeadSlot is the latest committed block height.
-	HeadSlot int64 `json:"head_slot"`
-
-	// SyncDistance is the number of slots remaining until the node is synced.
-	SyncDistance int64 `json:"sync_distance"`
 }
 
 // ErrorResponse is the error response body.

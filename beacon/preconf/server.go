@@ -188,7 +188,8 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 	resp := s.buildHealthResponse()
 
 	w.Header().Set("Content-Type", "application/json")
-	if !resp.IsReady || resp.IsSyncing || !resp.ELConnected {
+	healthy := resp.IsReady && !resp.IsSyncing && resp.ELConnected
+	if !healthy {
 		w.WriteHeader(http.StatusServiceUnavailable)
 	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
@@ -204,12 +205,7 @@ func (s *Server) buildHealthResponse() *HealthResponse {
 	if s.syncChecker != nil {
 		resp.IsReady = s.syncChecker.IsAppReady() == nil
 		latestHeight, syncToHeight := s.syncChecker.GetSyncData()
-		resp.HeadSlot = latestHeight
-		resp.SyncDistance = syncToHeight - latestHeight
-		if resp.SyncDistance < 0 {
-			resp.SyncDistance = 0
-		}
-		resp.IsSyncing = resp.SyncDistance > 0
+		resp.IsSyncing = syncToHeight > latestHeight
 	}
 
 	if s.elChecker != nil {
