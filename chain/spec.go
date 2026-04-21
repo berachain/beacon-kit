@@ -53,7 +53,7 @@ type HysteresisSpec interface {
 
 	// HysteresisDownwardMultiplier returns the multiplier used when checking
 	// if the effective balance should be decreased.
-	// The value is NOT fork-gated by timestamped as no changes are expected to this value.
+	// This value is NOT fork-gated by timestamped as no changes are expected to this value.
 	HysteresisDownwardMultiplier() math.U64
 
 	// HysteresisUpwardMultiplier returns the multiplier used when checking
