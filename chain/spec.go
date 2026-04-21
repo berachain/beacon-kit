@@ -366,7 +366,7 @@ func (s spec) HysteresisUpwardMultiplier(timestamp math.U64) math.U64 {
 		version.Equals(fv, version.Deneb1()),
 		version.Equals(fv, version.Electra()),
 		version.Equals(fv, version.Electra1()):
-		return math.U64(s.Data.HysteresisUpwardMultiplierFulu)
+		return math.U64(s.Data.HysteresisUpwardMultiplier)
 	}
 	panic(fmt.Sprintf("HysteresisUpwardMultiplier not supported for this fork version: %d", fv))
 }
