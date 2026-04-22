@@ -123,10 +123,7 @@ func (s *EngineClient) handleRPCError(
 // IsFatalError defines errors that indicate a bad request or an otherwise
 // unusable client.
 func IsFatalError(err error) bool {
-	return jsonrpc.IsPreDefinedError(err) || errors.IsAny(
-		err,
-		ErrBadConnection,
-	)
+	return jsonrpc.IsPreDefinedError(err)
 }
 
 // IsNonFatalError defines errors that should be ephemeral and can be
@@ -136,5 +133,6 @@ func IsNonFatalError(err error) bool {
 		err,
 		engineerrors.ErrEngineAPITimeout,
 		http.ErrTimeout,
+		ErrBadConnection,
 	)
 }
