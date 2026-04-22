@@ -62,7 +62,7 @@ evm-inflation-per-block = 0
 
 # Deneb1 value changes
 evm-inflation-address-deneb-one = "0xEE0BD9569e41fA26A79305Fc31a663986Deb79FB"
-evm-inflation-per-block-deneb-one = 11_000_000_000
+evm-inflation-per-block-deneb-one = 5_750_000_000
 
 # Electra values
 min-activation-balance = 250_000_000_000_000
@@ -72,7 +72,7 @@ min-validator-withdrawability-delay = 32
 hysteresis-quotient-fulu = 100
 hysteresis-upward-multiplier-fulu = 10
 evm-inflation-address-fulu = "0x4A2452Fd7e9FCA389d98063c5C3A8FC63838E451"
-evm-inflation-per-block-fulu = 12_000_000_000
+evm-inflation-per-block-fulu = 0
 
 [block-delay-configuration]
 max-block-delay = 300_000_000_000
