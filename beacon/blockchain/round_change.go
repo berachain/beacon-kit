@@ -44,6 +44,8 @@ func (s *Service) HandleRoundChange(
 		return
 	}
 
+	s.metrics.markRoundChange()
+
 	st := s.storageBackend.StateFromContext(ctx)
 
 	slot := math.Slot(height) //#nosec:G115 // CometBFT heights are always positive.
