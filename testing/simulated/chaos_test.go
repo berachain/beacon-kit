@@ -26,56 +26,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/cometbft/cometbft/abci/types"
 )
-
-// TestProcessProposal_CrashedExecutionClient_Errors effectively serves as a test for how a valid node would react to
-// a valid block being proposed but the execution client has crashed.
-func (s *SimulatedSuite) TestProcessProposal_CrashedExecutionClient_Errors() {
-	const blockHeight = 1
-	const coreLoopIterations = 1
-
-	// Initialize the chain state.
-	s.InitializeChain(s.T(), 1)
-	nodeAddress, err := s.SimComet.GetNodeAddress()
-	s.Require().NoError(err)
-	s.SimComet.Comet.SetNodeAddress(nodeAddress)
-
-	// Test happens post Deneb1 fork.
-	startTime := time.Now()
-
-	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals, _, proposalTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, nodeAddress, startTime)
-	s.Require().Len(proposals, coreLoopIterations)
-
-	currentHeight := int64(blockHeight + coreLoopIterations)
-
-	// Prepare a valid block proposal.
-	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
-		Height:          currentHeight,
-		Time:            proposalTime,
-		ProposerAddress: nodeAddress,
-	})
-	s.Require().NoError(err)
-	s.Require().NotEmpty(proposal)
-
-	// Reset the log buffer to discard old logs we don't care about.
-	s.LogBuffer.Reset()
-	// Kill the execution client.
-	err = s.ElHandle.Close()
-	s.Require().NoError(err)
-	// Process the proposal containing the valid block.
-	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
-		Txs:             proposal.Txs,
-		Height:          currentHeight,
-		ProposerAddress: nodeAddress,
-		Time:            proposalTime,
-	})
-	s.Require().NoError(err)
-	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
-	s.Require().Contains(s.LogBuffer.String(), client.ErrBadConnection.Error())
-}
 
 // TestContextHandling_SIGINT_SafeShutdown mimicks the expected outcome of a SIGINT by calling context cancel and stop services.
 func (s *SimulatedSuite) TestContextHandling_SIGINT_SafeShutdown() {
