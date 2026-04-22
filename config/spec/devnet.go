@@ -22,6 +22,8 @@ package spec
 
 import (
 	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/ethereum/go-ethereum/params"
 )
 
 const (
@@ -38,9 +40,8 @@ const (
 	// devnet is configured to start on electra1.
 	devnetElectra1ForkTime = 0
 
-	// devnetEVMInflationAddressDeneb1 is the address of the EVM inflation contract
-	// after the Deneb1 fork.
-	devnetEVMInflationAddressDeneb1 = "0x4206942069420694206942069420694206942069"
+	// devnetEVMInflationAddressDeneb1 is the address of the EVM inflation contract after the Deneb1 fork.
+	devnetEVMInflationAddressDeneb1 = "0xEE0BD9569e41fA26A79305Fc31a663986Deb79FB"
 
 	// devnetEVMInflationPerBlockDeneb1 is the amount of native EVM balance (in units
 	// of Gwei) to be minted per EL block after the Deneb1 fork.
@@ -52,6 +53,10 @@ const (
 	// devnetFuluForkTime is the timestamp at which the Fulu fork occurs on devnet.
 	// Set to 0 so devnet starts with Fulu active.
 	devnetFuluForkTime = 0
+
+	// devnetEVMInflationAddressFulu is the address of the EVM inflation contract
+	// after the Fulu fork on devnet.
+	devnetEVMInflationAddressFulu = "0x4A2452Fd7e9FCA389d98063c5C3A8FC63838E451"
 
 	// devnetEVMInflationPerBlockFulu is the amount of native EVM balance (in units
 	// of Gwei) to be minted per EL block after the Fulu fork on devnet.
@@ -74,23 +79,15 @@ func DevnetChainSpecData() *chain.SpecData {
 	specData.Electra1ForkTime = devnetElectra1ForkTime
 	specData.FuluForkTime = devnetFuluForkTime
 
-	// EVM inflation is different from mainnet to test.
-	specData.EVMInflationAddressGenesis = common.MustNewExecutionAddressFromHex(devnetEVMInflationAddress)
-	specData.EVMInflationPerBlockGenesis = devnetEVMInflationPerBlock
-
 	// EVM inflation is different from mainnet for now, after the Deneb1 fork.
 	specData.EVMInflationAddressDeneb1 = common.MustNewExecutionAddressFromHex(devnetEVMInflationAddressDeneb1)
 	specData.EVMInflationPerBlockDeneb1 = devnetEVMInflationPerBlockDeneb1
 
-	// Staking is different from mainnet for now.
-	specData.MaxEffectiveBalance = devnetMaxStakeAmount
-	specData.MinActivationBalance = defaultActivationBalance
-	specData.EffectiveBalanceIncrement = defaultEffectiveBalanceIncrement
-	specData.SlotsPerEpoch = defaultSlotsPerEpoch
+	// Validator withdrawability delay is set to a low value to speed up testing.
 	specData.MinValidatorWithdrawabilityDelay = devnetMinValidatorWithdrawabilityDelay
 
 	// EVM inflation for the Fulu fork on devnet. The address remains the same as the Deneb1 fork.
-	specData.EVMInflationAddressFulu = common.MustNewExecutionAddressFromHex(devnetEVMInflationAddressDeneb1)
+	specData.EVMInflationAddressFulu = common.MustNewExecutionAddressFromHex(devnetEVMInflationAddressFulu)
 	specData.EVMInflationPerBlockFulu = devnetEVMInflationPerBlockFulu
 
 	// Use fewer slots per epoch for devnet to speed up testing.

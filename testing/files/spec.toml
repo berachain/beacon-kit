@@ -1,8 +1,8 @@
 # Devnet Chain Spec Configuration
 
 # Gwei value constants
-max-effective-balance = 4_000_000_000_000
-effective-balance-increment = 1_000_000_000
+max-effective-balance = 10_000_000_000_000_000
+effective-balance-increment = 10_000_000_000_000
 
 # Hysteresis parameters
 hysteresis-quotient = 4
@@ -57,21 +57,21 @@ bytes-per-blob = 131072
 
 # Berachain genesis values
 validator-set-cap = 69
-evm-inflation-address = "0x6942069420694206942069420694206942069420"
-evm-inflation-per-block = 10_000_000_000
+evm-inflation-address = "0x0000000000000000000000000000000000000000"
+evm-inflation-per-block = 0
 
 # Deneb1 value changes
-evm-inflation-address-deneb-one = "0x4206942069420694206942069420694206942069"
+evm-inflation-address-deneb-one = "0xEE0BD9569e41fA26A79305Fc31a663986Deb79FB"
 evm-inflation-per-block-deneb-one = 11_000_000_000
 
 # Electra values
-min-activation-balance = 32_000_000_000
+min-activation-balance = 250_000_000_000_000
 min-validator-withdrawability-delay = 32
 
 # Fulu values (BRIP-0008 hysteresis + PoL vNext)
 hysteresis-quotient-fulu = 100
 hysteresis-upward-multiplier-fulu = 10
-evm-inflation-address-fulu = "0x4206942069420694206942069420694206942069"
+evm-inflation-address-fulu = "0x4A2452Fd7e9FCA389d98063c5C3A8FC63838E451"
 evm-inflation-per-block-fulu = 12_000_000_000
 
 [block-delay-configuration]
