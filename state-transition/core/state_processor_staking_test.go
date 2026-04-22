@@ -868,52 +868,39 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	valToEvictAddr, err := valToEvict.Credentials.ToExecutionAddress()
 	require.NoError(t, err)
 
-	// finally the block turning epoch
-	blk = buildNextBlock(
-		t,
-		cs,
-		st,
-		types.NewEth1Data(depRoot),
-		blk.GetTimestamp()+1,
-		[]*types.Deposit{},
-		&types.ExecutionRequests{},
-		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
-	)
-	_, err = sp.Transition(ctx, st, blk)
-	require.NoError(t, err)
+	// Iterate over next ceil(totalValidators / MaxValidatorsPerWithdrawalsSweep) blocks
+	// so we're guaranteed to find the withdrawal.
+	totalVals := cs.ValidatorSetCap() + 1 // genesis set + extra validator from STEP 1
+	maxSweep := uint64(cs.MaxValidatorsPerWithdrawalsSweep())
+	maxBlocksToSweep := (totalVals + maxSweep - 1) / maxSweep
 
-	blk = buildNextBlock(
-		t,
-		cs,
-		st,
-		types.NewEth1Data(depRoot),
-		blk.GetTimestamp()+1,
-		[]*types.Deposit{},
-		&types.ExecutionRequests{},
-		st.EVMInflationWithdrawal(blk.GetTimestamp()+1),
-	)
-	_, err = sp.Transition(ctx, st, blk)
-	require.NoError(t, err)
+	foundValWithdrawal := false
+	for range maxBlocksToSweep {
+		timestamp := blk.GetTimestamp() + 1
+		expWithdrawals, _, wErr := st.ExpectedWithdrawals(timestamp)
+		require.NoError(t, wErr)
 
-	withdrawals := []*engineprimitives.Withdrawal{
-		st.EVMInflationWithdrawal(blk.GetTimestamp() + 1),
-		{
-			Index:     0,
-			Validator: smallestValIdx,
-			Address:   valToEvictAddr,
-			Amount:    valToEvict.Amount,
-		},
+		for _, w := range expWithdrawals {
+			if w.Validator == smallestValIdx {
+				require.Equal(t, valToEvictAddr, w.Address)
+				require.Equal(t, valToEvict.Amount, w.Amount)
+				foundValWithdrawal = true
+			}
+		}
+
+		blk = buildNextBlock(
+			t,
+			cs,
+			st,
+			types.NewEth1Data(depRoot),
+			timestamp,
+			[]*types.Deposit{},
+			&types.ExecutionRequests{},
+			expWithdrawals...,
+		)
+		_, err = sp.Transition(ctx, st, blk)
+		require.NoError(t, err)
 	}
-	blk = buildNextBlock(
-		t,
-		cs,
-		st,
-		types.NewEth1Data(depRoot),
-		blk.GetTimestamp()+1,
-		[]*types.Deposit{},
-		&types.ExecutionRequests{},
-		withdrawals...,
-	)
-	_, err = sp.Transition(ctx, st, blk)
-	require.NoError(t, err)
+	require.True(t, foundValWithdrawal,
+		"valToEvict withdrawal should have been enqueued within %d blocks", maxBlocksToSweep)
 }
