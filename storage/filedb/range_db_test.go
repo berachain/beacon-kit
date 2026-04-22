@@ -292,7 +292,7 @@ func TestRangeDB_Invariants(t *testing.T) {
 			},
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				t.Helper()
-				requireNotExist(t, rdb, 0, lastConsequetiveNilIndex(rdb))
+				requireNotExist(t, rdb, 0, lastConsecutiveNilIndex(rdb))
 			},
 		},
 		{
@@ -303,7 +303,7 @@ func TestRangeDB_Invariants(t *testing.T) {
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				t.Helper()
 				_ = rdb.Delete(2, []byte("key"))
-				requireNotExist(t, rdb, 0, lastConsequetiveNilIndex(rdb))
+				requireNotExist(t, rdb, 0, lastConsecutiveNilIndex(rdb))
 			},
 		},
 		{
@@ -314,7 +314,7 @@ func TestRangeDB_Invariants(t *testing.T) {
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				t.Helper()
 				_ = rdb.Prune(0, 3)
-				requireNotExist(t, rdb, 0, lastConsequetiveNilIndex(rdb))
+				requireNotExist(t, rdb, 0, lastConsecutiveNilIndex(rdb))
 			},
 		},
 		{
@@ -328,7 +328,7 @@ func TestRangeDB_Invariants(t *testing.T) {
 					t.Fatalf("Prune() error = %v", err)
 				}
 				_ = populateTestDB(rdb, 5, 10)
-				requireNotExist(t, rdb, 0, lastConsequetiveNilIndex(rdb))
+				requireNotExist(t, rdb, 0, lastConsecutiveNilIndex(rdb))
 			},
 		},
 	}
@@ -343,7 +343,7 @@ func TestRangeDB_Invariants(t *testing.T) {
 						t,
 						rdb,
 						0,
-						lastConsequetiveNilIndex(rdb),
+						lastConsecutiveNilIndex(rdb),
 					)
 				}
 			}
@@ -408,7 +408,7 @@ func getFirstNonNilIndex(rdb *file.RangeDB) uint64 {
 	return reflect.ValueOf(rdb).Elem().FieldByName("lowerBoundIndex").Uint()
 }
 
-func lastConsequetiveNilIndex(rdb *file.RangeDB) uint64 {
+func lastConsecutiveNilIndex(rdb *file.RangeDB) uint64 {
 	return uint64(max(int64(getFirstNonNilIndex(rdb))-1, 0))
 }
 
