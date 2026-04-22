@@ -48,15 +48,18 @@ type HysteresisSpec interface {
 	// HysteresisQuotient returns the quotient used in effective balance
 	// calculations to create hysteresis. This provides resistance to small
 	// balance changes triggering effective balance updates.
-	HysteresisQuotient() math.U64
+	// This value is fork-gated by timestamp (updated in Fulu per BRIP-0008).
+	HysteresisQuotient(timestamp math.U64) math.U64
 
 	// HysteresisDownwardMultiplier returns the multiplier used when checking
 	// if the effective balance should be decreased.
+	// This value is NOT fork-gated by timestamped as no changes are expected to this value.
 	HysteresisDownwardMultiplier() math.U64
 
 	// HysteresisUpwardMultiplier returns the multiplier used when checking
 	// if the effective balance should be increased.
-	HysteresisUpwardMultiplier() math.U64
+	// This value is fork-gated by timestamp (updated in Fulu per BRIP-0008).
+	HysteresisUpwardMultiplier(timestamp math.U64) math.U64
 }
 
 type DepositSpec interface {
@@ -109,6 +112,9 @@ type ForkSpec interface {
 
 	// Electra1ForkTime returns the time at which the Electra1 fork takes effect.
 	Electra1ForkTime() uint64
+
+	// FuluForkTime returns the time at which the Fulu fork takes effect.
+	FuluForkTime() uint64
 }
 
 type BlobSpec interface {
@@ -269,6 +275,7 @@ func (s spec) validate() error {
 		s.Data.Deneb1ForkTime,
 		s.Data.ElectraForkTime,
 		s.Data.Electra1ForkTime,
+		s.Data.FuluForkTime,
 	}
 	for i := 1; i < len(orderedForkTimes); i++ {
 		prev, cur := orderedForkTimes[i-1], orderedForkTimes[i]
@@ -332,16 +339,36 @@ func (s spec) EffectiveBalanceIncrement() math.Gwei {
 	return math.Gwei(s.Data.EffectiveBalanceIncrement)
 }
 
-func (s spec) HysteresisQuotient() math.U64 {
-	return math.U64(s.Data.HysteresisQuotient)
+func (s spec) HysteresisQuotient(timestamp math.U64) math.U64 {
+	fv := s.ActiveForkVersionForTimestamp(timestamp)
+	switch {
+	case version.Equals(fv, version.Fulu()):
+		return math.U64(s.Data.HysteresisQuotientFulu)
+	case version.Equals(fv, s.GenesisForkVersion()),
+		version.Equals(fv, version.Deneb1()),
+		version.Equals(fv, version.Electra()),
+		version.Equals(fv, version.Electra1()):
+		return math.U64(s.Data.HysteresisQuotient)
+	}
+	panic(fmt.Sprintf("HysteresisQuotient not supported for this fork version: %d", fv))
 }
 
 func (s spec) HysteresisDownwardMultiplier() math.U64 {
 	return math.U64(s.Data.HysteresisDownwardMultiplier)
 }
 
-func (s spec) HysteresisUpwardMultiplier() math.U64 {
-	return math.U64(s.Data.HysteresisUpwardMultiplier)
+func (s spec) HysteresisUpwardMultiplier(timestamp math.U64) math.U64 {
+	fv := s.ActiveForkVersionForTimestamp(timestamp)
+	switch {
+	case version.Equals(fv, version.Fulu()):
+		return math.U64(s.Data.HysteresisUpwardMultiplierFulu)
+	case version.Equals(fv, s.GenesisForkVersion()),
+		version.Equals(fv, version.Deneb1()),
+		version.Equals(fv, version.Electra()),
+		version.Equals(fv, version.Electra1()):
+		return math.U64(s.Data.HysteresisUpwardMultiplier)
+	}
+	panic(fmt.Sprintf("HysteresisUpwardMultiplier not supported for this fork version: %d", fv))
 }
 
 // SlotsPerEpoch returns the number of slots per epoch.
@@ -447,6 +474,11 @@ func (s spec) Electra1ForkTime() uint64 {
 	return s.Data.Electra1ForkTime
 }
 
+// FuluForkTime returns the timestamp of the Fulu fork.
+func (s spec) FuluForkTime() uint64 {
+	return s.Data.FuluForkTime
+}
+
 // EpochsPerHistoricalVector returns the number of epochs per historical vector.
 func (s spec) EpochsPerHistoricalVector() uint64 {
 	return s.Data.EpochsPerHistoricalVector
@@ -518,26 +550,32 @@ func (s spec) ValidatorSetCap() uint64 {
 // inflation amount of native EVM balance through a withdrawal every block.
 func (s spec) EVMInflationAddress(timestamp math.U64) common.ExecutionAddress {
 	fv := s.ActiveForkVersionForTimestamp(timestamp)
-	switch fv {
-	case version.Deneb1(), version.Electra(), version.Electra1():
+	switch {
+	case version.Equals(fv, version.Fulu()):
+		return s.Data.EVMInflationAddressFulu
+	case version.Equals(fv, version.Deneb1()),
+		version.Equals(fv, version.Electra()),
+		version.Equals(fv, version.Electra1()):
 		return s.Data.EVMInflationAddressDeneb1
-	case version.Deneb():
+	case version.Equals(fv, s.GenesisForkVersion()):
 		return s.Data.EVMInflationAddressGenesis
-	default:
-		panic(fmt.Sprintf("EVMInflationAddress not supported for this fork version: %d", fv))
 	}
+	panic(fmt.Sprintf("EVMInflationAddress not supported for this fork version: %d", fv))
 }
 
 // EVMInflationPerBlock returns the amount of native EVM balance (in Gwei) to
 // be minted to the EVMInflationAddress via a withdrawal every block.
 func (s spec) EVMInflationPerBlock(timestamp math.U64) math.Gwei {
 	fv := s.ActiveForkVersionForTimestamp(timestamp)
-	switch fv {
-	case version.Deneb1(), version.Electra(), version.Electra1():
+	switch {
+	case version.Equals(fv, version.Fulu()):
+		return math.Gwei(s.Data.EVMInflationPerBlockFulu)
+	case version.Equals(fv, version.Deneb1()),
+		version.Equals(fv, version.Electra()),
+		version.Equals(fv, version.Electra1()):
 		return math.Gwei(s.Data.EVMInflationPerBlockDeneb1)
-	case version.Deneb():
+	case version.Equals(fv, s.GenesisForkVersion()):
 		return math.Gwei(s.Data.EVMInflationPerBlockGenesis)
-	default:
-		panic(fmt.Sprintf("EVMInflationPerBlock not supported for this fork version: %d", fv))
 	}
+	panic(fmt.Sprintf("EVMInflationPerBlock not supported for this fork version: %d", fv))
 }
