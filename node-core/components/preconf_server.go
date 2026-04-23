@@ -25,8 +25,10 @@ import (
 	"github.com/berachain/beacon-kit/beacon/preconf"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
+	"github.com/berachain/beacon-kit/node-core/types"
 	payloadbuilder "github.com/berachain/beacon-kit/payload/builder"
 )
 
@@ -39,6 +41,8 @@ type PreconfServerInput struct {
 	Whitelist              preconf.Whitelist
 	PreconfProposerTracker preconf.ProposerTracker
 	LocalBuilder           *payloadbuilder.PayloadBuilder
+	ConsensusService       types.ConsensusService
+	EngineClient           *client.EngineClient
 	TelemetrySink          *metrics.TelemetrySink
 }
 
@@ -86,6 +90,8 @@ func ProvidePreconfServer(in PreconfServerInput) (*preconf.Server, error) {
 		in.Whitelist,
 		in.PreconfProposerTracker,
 		in.LocalBuilder,
+		in.ConsensusService,
+		in.EngineClient,
 		cfg.APIPort,
 		in.TelemetrySink,
 	), nil

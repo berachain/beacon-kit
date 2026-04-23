@@ -61,6 +61,20 @@ type PayloadProvider interface {
 	GetPayloadBySlot(ctx context.Context, slot math.Slot, parentBlockRoot common.Root) (ctypes.BuiltExecutionPayloadEnv, error)
 }
 
+// SyncChecker exposes the node's sync status for health checks.
+type SyncChecker interface {
+	// IsAppReady returns nil if the node has committed at least one block.
+	IsAppReady() error
+	// GetSyncData returns the latest committed height and the target height being synced to.
+	GetSyncData() (latestHeight int64, syncToHeight int64)
+}
+
+// ELChecker exposes the execution-layer client's connectivity status.
+type ELChecker interface {
+	// IsConnected returns true if the execution client is reachable.
+	IsConnected() bool
+}
+
 // Server is the preconf API server that serves GetPayload requests from validators.
 type Server struct {
 	logger                 log.Logger
@@ -68,6 +82,8 @@ type Server struct {
 	whitelist              Whitelist
 	preconfProposerTracker ProposerTracker
 	payloadProvider        PayloadProvider
+	syncChecker            SyncChecker
+	elChecker              ELChecker
 	port                   int
 	metrics                *serverMetrics
 
@@ -82,6 +98,8 @@ func NewServer(
 	whitelist Whitelist,
 	preconfProposerTracker ProposerTracker,
 	payloadProvider PayloadProvider,
+	syncChecker SyncChecker,
+	elChecker ELChecker,
 	port int,
 	sink TelemetrySink,
 ) *Server {
@@ -91,6 +109,8 @@ func NewServer(
 		whitelist:              whitelist,
 		preconfProposerTracker: preconfProposerTracker,
 		payloadProvider:        payloadProvider,
+		syncChecker:            syncChecker,
+		elChecker:              elChecker,
 		port:                   port,
 		metrics:                newServerMetrics(sink),
 	}
@@ -162,13 +182,42 @@ func (s *Server) Stop() error {
 	return server.Shutdown(ctx)
 }
 
-// handleHealth just sends 200 OK to the health check endpoint.
+// handleHealth checks sync status and returns 200 when the sequencer is synced
+// and ready to produce blocks, or 503 when it is not.
 func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		s.writeError(w, http.StatusMethodNotAllowed, "method not allowed")
 		return
 	}
-	w.WriteHeader(http.StatusOK)
+
+	resp := s.buildHealthResponse()
+
+	w.Header().Set("Content-Type", "application/json")
+	healthy := resp.IsReady && !resp.IsSyncing && resp.ELConnected
+	if !healthy {
+		w.WriteHeader(http.StatusServiceUnavailable)
+	}
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		s.logger.Error("Failed to encode health response", "error", err)
+	}
+}
+
+// buildHealthResponse inspects the node's sync state and EL connectivity
+// and produces a HealthResponse.
+func (s *Server) buildHealthResponse() *HealthResponse {
+	resp := new(HealthResponse)
+
+	if s.syncChecker != nil {
+		resp.IsReady = s.syncChecker.IsAppReady() == nil
+		latestHeight, syncToHeight := s.syncChecker.GetSyncData()
+		resp.IsSyncing = syncToHeight > latestHeight
+	}
+
+	if s.elChecker != nil {
+		resp.ELConnected = s.elChecker.IsConnected()
+	}
+
+	return resp
 }
 
 // handleGetPayload handles the GetPayload endpoint.
