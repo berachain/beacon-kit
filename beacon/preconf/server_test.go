@@ -35,7 +35,6 @@ import (
 	"github.com/berachain/beacon-kit/cli/utils/parser"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
-	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log/noop"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	payloadbuilder "github.com/berachain/beacon-kit/payload/builder"
@@ -416,6 +415,8 @@ func TestServer_MetricsLabels(t *testing.T) {
 				newTestWhitelist(t, pubkeyAHex, pubkeyBHex),
 				tracker,
 				&mockPayloadProvider{hasPayload: tt.hasPayload, returnErr: tt.providerErr},
+				&mockSyncChecker{ready: true},
+				&mockELChecker{connected: true},
 				0,
 				sink,
 			)
@@ -538,7 +539,7 @@ func TestServer_HealthEndpoint(t *testing.T) {
 
 			server := preconf.NewServer(
 				noop.NewLogger[any](), nil, nil, nil, nil,
-				syncChecker, elChecker, 0,
+				syncChecker, elChecker, 0, metrics.NewNoOpTelemetrySink(),
 			)
 
 			req := httptest.NewRequest(http.MethodGet, preconf.HealthEndpoint, nil)
