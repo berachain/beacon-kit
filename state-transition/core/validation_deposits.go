@@ -109,7 +109,7 @@ func ValidateNonGenesisDeposits(
 		//#nosec:G115 // won't overflow in practice.
 		if blkDepositIndex != depositIndex+uint64(i) {
 			return errors.Wrapf(ErrDepositIndexOutOfOrder,
-				"deposit index: %d, expected index: %d", blkDepositIndex, i,
+				"deposit index: %d, expected index: %d", blkDepositIndex, depositIndex+uint64(i),
 			)
 		}
 
