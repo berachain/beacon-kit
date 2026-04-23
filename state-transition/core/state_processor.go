@@ -390,11 +390,25 @@ func (sp *StateProcessor) processEffectiveBalanceUpdates(st *state.StateDB) erro
 		return err
 	}
 
+	// Get the timestamp from the latest execution payload header to determine the active fork
+	// version for fork-gated hysteresis parameters (BRIP-0008).
+	//
+	// Note: this uses the previous block's payload timestamp because processEpoch runs
+	// inside ProcessSlots, before ProcessFork updates the state. If Fulu activates exactly
+	// at an epoch boundary, the new hysteresis values take effect one epoch later. This is
+	// acceptable because hysteresis only affects capital efficiency (not consensus safety),
+	// and is consistent with how all fork-gated logic in processEpoch operates.
+	lph, err := st.GetLatestExecutionPayloadHeader()
+	if err != nil {
+		return err
+	}
+	timestamp := lph.GetTimestamp()
+
 	var (
 		effectiveBalanceIncrement = sp.cs.EffectiveBalanceIncrement()
-		hysteresisIncrement       = effectiveBalanceIncrement / sp.cs.HysteresisQuotient()
+		hysteresisIncrement       = effectiveBalanceIncrement / sp.cs.HysteresisQuotient(timestamp)
 		downwardThreshold         = hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier()
-		upwardThreshold           = hysteresisIncrement * sp.cs.HysteresisUpwardMultiplier()
+		upwardThreshold           = hysteresisIncrement * sp.cs.HysteresisUpwardMultiplier(timestamp)
 
 		idx     math.U64
 		balance math.Gwei

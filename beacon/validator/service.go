@@ -52,6 +52,8 @@ type Service struct {
 	localPayloadBuilder PayloadBuilder
 	// metrics is a metrics collector.
 	metrics *validatorMetrics
+	// preconfMetrics emits validator-side preconf metrics.
+	preconfMetrics *preconfMetrics
 
 	// engineClient is used to validate sequencer payloads against the local EL.
 	engineClient EngineClient
@@ -93,11 +95,17 @@ func NewService(
 		blobFactory:         blobFactory,
 		localPayloadBuilder: localPayloadBuilder,
 		metrics:             newValidatorMetrics(ts),
+		preconfMetrics:      newPreconfMetrics(ts),
 		engineClient:        engineClient,
 		preconfCfg:          preconfCfg,
 		preconfClient:       preconfClient,
 	}
 	s.sequencerAvailable.Store(true) // assume sequencer is up until proven otherwise
+	// Emit initial gauge so scrapes see a value before any state change. Only
+	// meaningful when this node actually fetches from the sequencer.
+	if preconfCfg != nil && preconfCfg.ShouldFetchFromSequencer() {
+		s.preconfMetrics.setSequencerAvailable(true)
+	}
 	return s
 }
 

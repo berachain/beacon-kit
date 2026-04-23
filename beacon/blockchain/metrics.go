@@ -115,3 +115,8 @@ func (cm *chainMetrics) measureStateRootVerificationTime(start time.Time) {
 		"beacon_kit.blockchain.state_root_verification_duration", start,
 	)
 }
+
+// markRoundChange records a CometBFT round-change event on the sequencer.
+func (cm *chainMetrics) markRoundChange() {
+	cm.sink.IncrementCounter("beacon_kit.preconf.round_change_total")
+}
