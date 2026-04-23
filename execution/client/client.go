@@ -48,7 +48,8 @@ type EngineClient struct {
 	// clientMetrics is the metrics for the engine client.
 	metrics *clientMetrics
 	// capabilities is a map of capabilities that the execution client has.
-	capabilities map[string]struct{}
+	capabilitiesMu sync.RWMutex
+	capabilities   map[string]struct{}
 	// connected will be set to true when we have successfully connected
 	// to the execution client.
 	connectedMu sync.RWMutex
@@ -166,6 +167,8 @@ func (s *EngineClient) IsConnected() bool {
 }
 
 func (s *EngineClient) HasCapability(capability string) bool {
+	s.capabilitiesMu.RLock()
+	defer s.capabilitiesMu.RUnlock()
 	_, ok := s.capabilities[capability]
 	return ok
 }

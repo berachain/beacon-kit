@@ -168,10 +168,12 @@ func (s *EngineClient) ExchangeCapabilities(
 	}
 
 	// Capture and log the capabilities that the execution client has.
+	s.capabilitiesMu.Lock()
 	for _, capability := range result {
 		s.logger.Info("Exchanged capability", "capability", capability)
 		s.capabilities[capability] = struct{}{}
 	}
+	s.capabilitiesMu.Unlock()
 
 	// Log the capabilities that the execution client does not have.
 	for _, capability := range ethclient.BeaconKitSupportedCapabilities() {
