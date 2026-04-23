@@ -23,6 +23,7 @@
 package core_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/berachain/beacon-kit/chain"
@@ -30,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
+	core "github.com/berachain/beacon-kit/state-transition/core"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	"github.com/stretchr/testify/require"
 )
@@ -251,6 +253,59 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 	// Run transition.
 	_, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
+}
+
+// TestDepositIndexOutOfOrderErrorMessage verifies that the error message produced by
+// ErrDepositIndexOutOfOrder reports the absolute expected index (depositIndex+i),
+// not just the loop counter i. This is a regression test for a bug where a chain
+// 100 deposits in would report "expected index: 0" instead of "expected index: 100".
+//
+//nolint:paralleltest // uses envars
+func TestDepositIndexOutOfOrderErrorMessage(t *testing.T) {
+	cs := setupChain(t)
+	_, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
+
+	credentials0 := types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
+
+	// Simulate a chain that has already processed 5 deposits (indices 0–4).
+	const processedDeposits = uint64(5)
+
+	// Seed the deposit store with processedDeposits+1 entries so that the length
+	// check passes when we submit a single-deposit block.
+	allDeposits := make(types.Deposits, processedDeposits+1)
+	for i := range allDeposits {
+		allDeposits[i] = &types.Deposit{
+			Pubkey:      [48]byte{byte(i)},
+			Credentials: credentials0,
+			Amount:      cs.MinActivationBalance(),
+			Index:       uint64(i),
+		}
+	}
+	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), allDeposits))
+
+	// Advance the state's eth1 deposit index to reflect the already-processed deposits.
+	require.NoError(t, st.SetEth1DepositIndex(processedDeposits))
+
+	// Build a deposit whose index is wrong (0 instead of the expected processedDeposits).
+	wrongDeposit := &types.Deposit{
+		Pubkey:      [48]byte{0xff},
+		Credentials: credentials0,
+		Amount:      cs.MinActivationBalance(),
+		Index:       0, // should be processedDeposits
+	}
+
+	err := core.ValidateNonGenesisDeposits(
+		ctx.ConsensusCtx(),
+		st,
+		ds,
+		cs.MaxDepositsPerBlock(),
+		types.Deposits{wrongDeposit},
+		common.Root{}, // root check is never reached; index check fires first
+	)
+	require.Error(t, err)
+	require.ErrorIs(t, err, core.ErrDepositIndexOutOfOrder)
+	// The error must report the absolute expected index, not just the loop counter (0).
+	require.ErrorContains(t, err, fmt.Sprintf("expected index: %d", processedDeposits))
 }
 
 func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
