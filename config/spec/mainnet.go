@@ -88,7 +88,8 @@ const (
 	mainnetElectra1ForkTime = 1_756_915_200
 
 	// mainnetFuluForkTime is the timestamp at which the Fulu fork occurs.
-	mainnetFuluForkTime = 9_999_999_999
+	// TODO: Set to actual fork time before Fulu activation.
+	mainnetFuluForkTime = 9_999_999_999_999_999
 
 	// mainnetEVMInflationAddressDeneb1 is the address on the EVM which will receive the
 	// inflation amount of native EVM balance through a withdrawal every block in the Deneb1 fork.
@@ -105,10 +106,6 @@ const (
 	// These are the heights at which SBT is activated on mainnet.
 	mainnetSBTConsensusUpdateHeight = 9_983_085
 	mainnetSBTConsensusEnableHeight = 9_983_086
-
-	// mainnetFuluForkTime is the timestamp at which the Fulu fork occurs.
-	// TODO: Set to actual fork time before Fulu activation.
-	mainnetFuluForkTime = 9_999_999_999_999_999
 
 	// mainnetHysteresisQuotientFulu is the hysteresis quotient for the Fulu fork (BRIP-0008).
 	mainnetHysteresisQuotientFulu = 100
