@@ -206,7 +206,7 @@ func (s *FuluDepositSuite) TestDepositQueueDrainedOnFirstFuluBlock() {
 		_, _, nextBlockTime = s.MoveChainToHeight(s.T(), nextBlockHeight, 1, nodeAddress, nextBlockTime)
 
 		s.Require().Contains(s.LogBuffer.String(),
-			"welcome to the Fulu (0x06000000) fork!",
+			"welcome to the fulu (0x06000000) fork!",
 			"Fulu fork should activate on block 3")
 
 		s.Require().Contains(s.LogBuffer.String(),
