@@ -24,6 +24,7 @@ import (
 	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	clicontext "github.com/berachain/beacon-kit/cli/context"
 	servercmtlog "github.com/berachain/beacon-kit/consensus/cometbft/service/log"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/state-transition/core"
 	"github.com/berachain/beacon-kit/storage/db"
 	dbm "github.com/cosmos/cosmos-db"
@@ -33,6 +34,10 @@ import (
 
 // GetDBCheckCmd returns a command for checking that the deposit store
 // is in sync with the beacon state.
+//
+// NOTE: this command is only useful before the Fulu fork. After Fulu, deposits
+// are not maintained in a deposit DB by the beacon-kit client and instead managed by
+// EIP-6110 style deposit requests.
 func GetDBCheckCmd(appCreator servertypes.AppCreator) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "db-check",
@@ -60,7 +65,7 @@ func GetDBCheckCmd(appCreator servertypes.AppCreator) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if err = core.ValidateNonGenesisDeposits(
+			if err = core.ValidateNonGenesisDepositsPreFulu(
 				ctx,
 				beaconState,
 				depositStore,
@@ -73,6 +78,10 @@ func GetDBCheckCmd(appCreator servertypes.AppCreator) *cobra.Command {
 				// blkDepositRoot: eth1Data.DepositRoot
 				// We will compare against the beacon state's deposit root at this snapshotted state.
 				eth1Data.DepositRoot,
+				// blkForkVersion: any version before Fulu.
+				version.Electra1(),
+				// prevBlockForkVersion: any version before Fulu.
+				version.Electra1(),
 			); err != nil {
 				return err
 			}

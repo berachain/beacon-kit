@@ -260,7 +260,7 @@ func TestValidate_ForkOrder_DenebAfterElectra(t *testing.T) {
 	data.Deneb1ForkTime = 80
 	data.ElectraForkTime = 40
 	data.Electra1ForkTime = 50
-	data.FuluForkTime = 90
+	data.FuluForkTime = 60
 
 	_, err := chain.NewSpec(data)
 	require.Error(t, err)
@@ -274,6 +274,7 @@ func TestValidate_ForkOrder_AllForksAtGenesis(t *testing.T) {
 	data.Deneb1ForkTime = 0
 	data.ElectraForkTime = 0
 	data.Electra1ForkTime = 0
+	data.FuluForkTime = 0
 
 	_, err := chain.NewSpec(data)
 	require.NoError(t, err)

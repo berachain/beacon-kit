@@ -89,8 +89,7 @@ func Electra1() common.Version {
 	return electra1
 }
 
-// Fulu returns fulu as a common.Version. Fulu is the CL component of the
-// Fusaka hardfork on Berachain mainnet.
+// Fulu returns fulu as a common.Version.
 func Fulu() common.Version {
 	return fulu
 }

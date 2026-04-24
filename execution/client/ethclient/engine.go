@@ -230,7 +230,8 @@ func (s *Client) GetPayload(
 		// Versions before Deneb are not supported for calling GetPayload.
 		return nil, ErrInvalidVersion
 
-	case version.Equals(forkVersion, version.Deneb()), version.Equals(forkVersion, version.Deneb1()):
+	case version.Equals(forkVersion, version.Deneb()),
+		version.Equals(forkVersion, version.Deneb1()):
 		return s.GetPayloadV3(ctx, payloadID, forkVersion)
 
 	case version.Equals(forkVersion, version.Electra()):

@@ -47,6 +47,15 @@ func setupChain(t *testing.T) chain.Spec {
 	return chainSpec
 }
 
+func setupPreFuluChain(t *testing.T) chain.Spec {
+	t.Helper()
+	csData := spec.DevnetChainSpecData()
+	csData.FuluForkTime = 9_999_999_999
+	chainSpec, err := chain.NewSpec(csData)
+	require.NoError(t, err)
+	return chainSpec
+}
+
 //nolint:unused // may be used in the future.
 func progressStateToSlot(
 	t *testing.T,

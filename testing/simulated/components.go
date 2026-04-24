@@ -119,6 +119,28 @@ func ProvidePectraForkTestChainSpec() (chain.Spec, error) {
 	return chainSpec, nil
 }
 
+// ProvideFuluDepositTestChainSpec provides a chain spec for testing deposit queue
+// drain at the Fulu fork boundary. Deneb1 is active from genesis, Electra1
+// activates at t=6, and Fulu forks at t=7. MaxDepositsPerBlock is lowered to 4
+// so that 3x overload is achievable with fewer deposit transactions.
+// Block 1 at t=5 is Cancun (deposits readable), block 2 at t=6 is Electra1/Prague1
+// (syncs deposits), block 3 at t=7 is Fulu/Prague2 (drains them all).
+func ProvideFuluDepositTestChainSpec() (chain.Spec, error) {
+	specData := spec.TestnetChainSpecData()
+	specData.GenesisTime = 0
+	specData.Deneb1ForkTime = 0
+	specData.ElectraForkTime = 6
+	specData.Electra1ForkTime = 6
+	specData.FuluForkTime = 7
+	specData.SlotsPerEpoch = 1
+	specData.MaxDepositsPerBlock = 4
+	chainSpec, err := chain.NewSpec(specData)
+	if err != nil {
+		return nil, err
+	}
+	return chainSpec, nil
+}
+
 // ProvidePectraWithdrawalTestChainSpec provides a chain spec used for withdrawal testing
 func ProvidePectraWithdrawalTestChainSpec() (chain.Spec, error) {
 	specData := spec.TestnetChainSpecData()

@@ -32,50 +32,82 @@ import (
 )
 
 // processOperations processes the operations and ensures they match the local state.
+//
+
 func (sp *StateProcessor) processOperations(
 	ctx ReadOnlyContext,
 	st *state.StateDB,
 	blk *ctypes.BeaconBlock,
+	prevBlockForkVersion common.Version,
 ) error {
-	// Verify that outstanding deposits are processed up to the maximum number of deposits.
-	//
-	// Unlike Eth 2.0 specs we don't check that
-	// `len(body.deposits) ==  min(MAX_DEPOSITS, state.eth1_data.deposit_count - state.eth1_deposit_index)`
-	deposits := blk.GetBody().GetDeposits()
-	if uint64(len(deposits)) > sp.cs.MaxDepositsPerBlock() {
-		return errors.Wrapf(
-			ErrExceedsBlockDepositLimit, "expected: %d, got: %d",
-			sp.cs.MaxDepositsPerBlock(), len(deposits),
-		)
+	var (
+		requests *ctypes.ExecutionRequests
+		err      error
+	)
+
+	// Validators increase/decrease stake through execution requests starting in Electra.
+	if version.EqualsOrIsAfter(blk.GetForkVersion(), version.Electra()) {
+		requests, err = blk.GetBody().GetExecutionRequests()
+		if err != nil {
+			return err
+		}
 	}
 
-	// Instead we directly compare block deposits with our local store ones.
-	if err := ValidateNonGenesisDeposits(
+	var deposits []*ctypes.Deposit
+	if version.IsBefore(blk.GetForkVersion(), version.Fulu()) {
+		// Before Fulu, deposits are taken from the beacon block body directly.
+		deposits = blk.GetBody().GetDeposits()
+
+		// Verify that outstanding deposits are processed up to the maximum number of deposits.
+		// Unlike Ethereum 2.0 specs, we don't check that
+		// `len(body.deposits) ==  min(MAX_DEPOSITS, state.eth1_data.deposit_count - state.eth1_deposit_index)`.
+		if uint64(len(deposits)) > sp.cs.MaxDepositsPerBlock() {
+			return errors.Wrapf(
+				ErrExceedsBlockDepositLimit, "expected: %d, got: %d",
+				sp.cs.MaxDepositsPerBlock(), len(deposits),
+			)
+		}
+	} else if requests != nil {
+		// Starting in Fulu, EIP-6110 style deposit requests are used.
+		deposits = requests.Deposits
+	}
+
+	// Before (and the first block of) Fulu, we directly compare block deposits with our
+	// local store ones.
+	if err = ValidateNonGenesisDepositsPreFulu(
 		ctx.ConsensusCtx(),
 		st,
 		sp.ds,
 		sp.cs.MaxDepositsPerBlock(),
-		deposits,
+		blk.GetBody().GetDeposits(),
 		blk.GetBody().GetEth1Data().DepositRoot,
+		blk.GetForkVersion(),
+		prevBlockForkVersion,
 	); err != nil {
 		return err
 	}
 
+	// First block of Fulu: also process the catchup deposits from
+	// the block body to exhaust the pre-Fulu deposit queue.
+	if version.Equals(prevBlockForkVersion, version.Electra1()) &&
+		version.Equals(blk.GetForkVersion(), version.Fulu()) {
+		// NOTE: for this block, we do not impose a maximum number of block deposits
+		// since we are exhausting the full deposit queue.
+		deposits = append(blk.GetBody().GetDeposits(), deposits...)
+	}
+
+	// Process the deposits.
 	for _, dep := range deposits {
-		if err := sp.processDeposit(st, dep); err != nil {
+		if err = sp.processDeposit(st, dep); err != nil {
 			return err
 		}
 	}
 
-	if version.EqualsOrIsAfter(blk.GetForkVersion(), version.Electra()) {
-		// After Electra, validators can request withdrawals through execution requests which must be handled.
-		requests, err := blk.GetBody().GetExecutionRequests()
-		if err != nil {
-			return err
-		}
+	// Starting in Electra, process the EIP-7002 withdrawal requests.
+	if requests != nil {
 		for _, withdrawal := range requests.Withdrawals {
-			if withdrawErr := sp.processWithdrawalRequest(st, withdrawal); withdrawErr != nil {
-				return withdrawErr
+			if err = sp.processWithdrawalRequest(st, withdrawal); err != nil {
+				return err
 			}
 		}
 	}
