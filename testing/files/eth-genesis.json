@@ -20,6 +20,7 @@
     "shanghaiTime": 0,
     "cancunTime": 0,
     "pragueTime": 0,
+    "osakaTime": 0,
     "depositContractAddress": "0x4242424242424242424242424242424242424242",
     "terminalTotalDifficulty": 0,
     "terminalTotalDifficultyPassed": true,

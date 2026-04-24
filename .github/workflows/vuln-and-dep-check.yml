@@ -73,8 +73,12 @@ jobs:
           check-latest: true
           cache-dependency-path: "**/*.sum"
       - if: matrix.deps == 'latest'
-        name: Update all dependencies to latest
-        run: go get -u -t ./... && go mod tidy
+        name: Update dependencies to latest (skip replace-pinned modules)
+        run: |
+          go list -m -f '{{if not .Indirect}}{{.Path}}{{end}}' all \
+            | grep -vE 'berachain/beacon-kit|cosmossdk\.io/|cosmos/cosmos-sdk|cometbft/|karalabe/ssz|kurtosis-tech/' \
+            | xargs go get -u -t
+          go mod tidy
       - run: make test-unit
         env:
           GOPATH: /home/runner/go

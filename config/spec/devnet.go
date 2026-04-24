@@ -64,6 +64,14 @@ const (
 
 	// devnetMinValidatorWithdrawabilityDelay is the delay (in epochs) before a validator can withdraw their stake.
 	devnetMinValidatorWithdrawabilityDelay = 32
+
+	// devnetFuluForkTime is the timestamp at which the Fulu fork occurs on devnet.
+	// Set to 0 so devnet starts with Fulu active.
+	devnetFuluForkTime = 0
+
+	// devnetEVMInflationPerBlockFulu is the amount of native EVM balance (in units
+	// of Gwei) to be minted per EL block after the Fulu fork on devnet.
+	devnetEVMInflationPerBlockFulu = 12 * params.GWei
 )
 
 // DevnetChainSpecData is the chain.SpecData for a devnet. It is similar to mainnet but
@@ -98,6 +106,10 @@ func DevnetChainSpecData() *chain.SpecData {
 	specData.EffectiveBalanceIncrement = defaultEffectiveBalanceIncrement
 	specData.SlotsPerEpoch = defaultSlotsPerEpoch
 	specData.MinValidatorWithdrawabilityDelay = devnetMinValidatorWithdrawabilityDelay
+
+	// EVM inflation for the Fulu fork on devnet. The address remains the same as the Deneb1 fork.
+	specData.EVMInflationAddressFulu = common.MustNewExecutionAddressFromHex(devnetEVMInflationAddressDeneb1)
+	specData.EVMInflationPerBlockFulu = devnetEVMInflationPerBlockFulu
 
 	return specData
 }

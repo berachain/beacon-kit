@@ -70,7 +70,8 @@ func (s *Client) NewPayload(
 			executionRequests,
 		)
 
-	case version.Equals(forkVersion, version.Electra1()), version.Equals(forkVersion, version.Fulu()):
+	case version.Equals(forkVersion, version.Electra1()),
+		version.Equals(forkVersion, version.Fulu()):
 		// Use V4P11 for Electra1 and Fulu versions.
 		executionRequests, err := req.GetEncodedExecutionRequests()
 		if err != nil {
@@ -164,7 +165,8 @@ func (s *Client) ForkchoiceUpdated(
 		// Deneb versions and Electra use ForkchoiceUpdatedV3.
 		return s.ForkchoiceUpdatedV3(ctx, state, attrs)
 
-	case version.Equals(forkVersion, version.Electra1()), version.Equals(forkVersion, version.Fulu()):
+	case version.Equals(forkVersion, version.Electra1()),
+		version.Equals(forkVersion, version.Fulu()):
 		// Electra1 and Fulu use ForkchoiceUpdatedV3P11.
 		return s.ForkchoiceUpdatedV3P11(ctx, state, attrs)
 
@@ -228,13 +230,15 @@ func (s *Client) GetPayload(
 		// Versions before Deneb are not supported for calling GetPayload.
 		return nil, ErrInvalidVersion
 
-	case version.Equals(forkVersion, version.Deneb()), version.Equals(forkVersion, version.Deneb1()):
+	case version.Equals(forkVersion, version.Deneb()),
+		version.Equals(forkVersion, version.Deneb1()):
 		return s.GetPayloadV3(ctx, payloadID, forkVersion)
 
 	case version.Equals(forkVersion, version.Electra()):
 		return s.GetPayloadV4(ctx, payloadID, forkVersion)
 
-	case version.Equals(forkVersion, version.Electra1()), version.Equals(forkVersion, version.Fulu()):
+	case version.Equals(forkVersion, version.Electra1()),
+		version.Equals(forkVersion, version.Fulu()):
 		return s.GetPayloadV4P11(ctx, payloadID, forkVersion)
 
 	default:

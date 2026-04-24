@@ -69,7 +69,7 @@ This directory is git-ignored. Logs from previous runs are overwritten.
 
 - **Docker** running locally
 - **Kurtosis CLI** installed ([instructions](https://docs.kurtosis.com/install)) with the engine started (`kurtosis engine start`)
-- **Go 1.25.8+**
+- **Go 1.26.2+**
 
 ## Running Tests
 
