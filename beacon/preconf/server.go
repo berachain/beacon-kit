@@ -62,8 +62,10 @@ type PayloadProvider interface {
 }
 
 // SyncChecker exposes the node's sync status for health checks.
+// Keeps the original signatures from the cometbft service interface.
 type SyncChecker interface {
-	// IsAppReady returns nil if the node has committed at least one block.
+	// IsAppReady returns nil if the chain is ready (at least one block has been committed).
+	// In case of error we set the server as not available.
 	IsAppReady() error
 	// GetSyncData returns the latest committed height and the target height being synced to.
 	GetSyncData() (latestHeight int64, syncToHeight int64)
