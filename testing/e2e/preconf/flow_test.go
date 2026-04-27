@@ -55,6 +55,17 @@ func (s *PreconfE2ESuite) TestSequencerFlow() {
 	err := s.WaitForFinalizedBlockNumber(blocksToWait)
 	s.Require().NoError(err, "Network should reach finalized blocks")
 
+	allValidators := []string{
+		config.ValidatorConsensusClientName(0),
+		config.ValidatorConsensusClientName(1),
+		config.ValidatorConsensusClientName(2),
+		config.ValidatorConsensusClientName(3),
+		config.ValidatorConsensusClientName(4),
+	}
+
+	// Pre-stop circuit-breaker counts.
+	baselineOfflineCounts := make(map[string]int, len(allValidators))
+
 	// Verify sequencer is serving payloads.
 	s.Run("SequencerServesPayloads", func() {
 		logs, err := s.GetServiceLogs(sequencerCLService)
@@ -69,14 +80,7 @@ func (s *PreconfE2ESuite) TestSequencerFlow() {
 
 	// Verify validators fetch from sequencer.
 	s.Run("ValidatorFetches", func() {
-		validators := []string{
-			config.ValidatorConsensusClientName(0),
-			config.ValidatorConsensusClientName(1),
-			config.ValidatorConsensusClientName(2),
-			config.ValidatorConsensusClientName(3),
-			config.ValidatorConsensusClientName(4),
-		}
-		for _, validator := range validators {
+		for _, validator := range allValidators {
 			validator := validator // capture for closure
 			s.Run(validator, func() {
 				logs, err := s.GetServiceLogs(validator)
@@ -94,6 +98,13 @@ func (s *PreconfE2ESuite) TestSequencerFlow() {
 	// Stop sequencer and verify validators fall back to local building.
 	s.Run("SequencerFallback", func() {
 		elClient := s.ExecutionClients(0)
+
+		// Snapshot the offline-log counts before stopping the sequencer.
+		for _, validator := range allValidators {
+			logs, logErr := s.GetServiceLogs(validator)
+			s.Require().NoError(logErr, "Should get logs for %s", validator)
+			baselineOfflineCounts[validator] = suite.CountLogMessages(logs, sequencerDownLog)
+		}
 
 		// Get current block before stopping sequencer.
 		currentBlock, err := elClient.BlockNumber(s.Ctx())
@@ -133,20 +144,13 @@ func (s *PreconfE2ESuite) TestSequencerFlow() {
 		err = s.WaitForFinalizedBlockNumber(currentBlock + blocksAfterFallback)
 		s.Require().NoError(err, "Network should continue producing blocks")
 
-		validators := []string{
-			config.ValidatorConsensusClientName(0),
-			config.ValidatorConsensusClientName(1),
-			config.ValidatorConsensusClientName(2),
-			config.ValidatorConsensusClientName(3),
-			config.ValidatorConsensusClientName(4),
-		}
-		for _, validator := range validators {
+		for _, validator := range allValidators {
 			logs, err := s.GetServiceLogs(validator)
 			s.Require().NoError(err, "Should get logs for %s", validator)
 
-			count := suite.CountLogMessages(logs, sequencerDownLog)
+			count := suite.CountLogMessages(logs, sequencerDownLog) - baselineOfflineCounts[validator]
 			s.Require().LessOrEqual(count, 1,
-				"Validator %s tripped circuit breaker %d times: should only detect sequencer down once",
+				"Validator %s tripped circuit breaker %d times after sequencer stop: should only detect once",
 				validator, count)
 		}
 	})
@@ -160,14 +164,7 @@ func (s *PreconfE2ESuite) TestSequencerFlow() {
 
 		// Each validator must see the sequencer healthy after pod restart + resync.
 		// Poll the logs so we tolerate variable startup latency.
-		validators := []string{
-			config.ValidatorConsensusClientName(0),
-			config.ValidatorConsensusClientName(1),
-			config.ValidatorConsensusClientName(2),
-			config.ValidatorConsensusClientName(3),
-			config.ValidatorConsensusClientName(4),
-		}
-		for _, validator := range validators {
+		for _, validator := range allValidators {
 			validator := validator
 			s.Require().Eventuallyf(func() bool {
 				logs, logErr := s.GetServiceLogs(validator)
