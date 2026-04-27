@@ -49,17 +49,17 @@ func (s *senderFromServer) Equal(other types.Signer) bool {
 	return ok && os.blockhash == s.blockhash
 }
 
-func (s *senderFromServer) Hash(tx *types.Transaction) gethcommon.Hash {
+func (s *senderFromServer) Hash(*types.Transaction) gethcommon.Hash {
 	panic("can't sign with senderFromServer")
 }
 
-func (s *senderFromServer) Sender(tx *types.Transaction) (gethcommon.Address, error) {
+func (s *senderFromServer) Sender(*types.Transaction) (gethcommon.Address, error) {
 	if s.addr == (gethcommon.Address{}) {
 		return gethcommon.Address{}, errNotCached
 	}
 	return s.addr, nil
 }
 
-func (s *senderFromServer) SignatureValues(tx *types.Transaction, sig []byte) (r, ss, v *big.Int, err error) {
+func (s *senderFromServer) SignatureValues(*types.Transaction, []byte) (*big.Int, *big.Int, *big.Int, error) {
 	panic("can't sign with senderFromServer")
 }
