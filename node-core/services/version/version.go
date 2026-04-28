@@ -153,7 +153,7 @@ func (rs *ReportingService) printToConsole(
 	+ 🍴 Deneb1 Fork Time: %-52d+
 	+ 🍴 Electra Fork Time: %-51d+
 	+ 🍴 Electra1 Fork Time: %-50d+
-	+ 🍴 Fulu Fork Time: %-49d+
+	+ 🍴 Fulu Fork Time: %-54d+
 	+ 🦺 Please report issues @ https://github.com/berachain/beacon-kit/issues +
 	+==========================================================================+
 
