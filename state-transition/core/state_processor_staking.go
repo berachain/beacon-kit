@@ -32,8 +32,6 @@ import (
 )
 
 // processOperations processes the operations and ensures they match the local state.
-//
-
 func (sp *StateProcessor) processOperations(
 	ctx ReadOnlyContext,
 	st *state.StateDB,

@@ -112,14 +112,14 @@ func (s *FuluDepositSuite) TearDownTest() {
 // arriving as EIP-6110 execution requests in the same block are also processed.
 //
 // Chain spec: Deneb1 at genesis, Electra1 at t=6, Fulu at t=7, MaxDepositsPerBlock=4.
-// EL genesis: Cancun at genesis, Prague/Prague1 at t=6, Prague2 at t=7.
+// EL genesis: Cancun at genesis, Prague/Prague1 at t=6, Osaka at t=7.
 //
 // Timeline:
 //
 //	Block 1 (t=5): EL Cancun block includes 12 deposit txs. Eth1FollowDistance=1 prevents sync.
 //	Block 2 (t=6): Electra1/Prague1 fork. FinalizeBlock syncs all 12 deposits from Cancun EL block 1.
-//	               Send 2 additional deposit txs (for EIP-6110 requests in the next Prague2 block).
-//	Block 3 (t=7): First Fulu/Prague2 block. Drains all 12 catchup deposits from
+//	               Send 2 additional deposit txs (for EIP-6110 requests in the next Osaka block).
+//	Block 3 (t=7): First Fulu/Osaka block. Drains all 12 catchup deposits from
 //	               the block body + 2 EIP-6110 deposit requests from execution payload.
 //	Block 4 (t=8): Post-fork block to confirm chain continues cleanly.
 func (s *FuluDepositSuite) TestDepositQueueDrainedOnFirstFuluBlock() {
@@ -188,7 +188,7 @@ func (s *FuluDepositSuite) TestDepositQueueDrainedOnFirstFuluBlock() {
 		nextBlockHeight++
 	}
 
-	// Send 2 more deposit txs that will be picked up by the first Prague2 EL block
+	// Send 2 more deposit txs that will be picked up by the first Osaka EL block
 	// as EIP-6110 execution requests.
 	numEIP6110Deposits := 2
 	for i := 0; i < numEIP6110Deposits; i++ {
@@ -197,7 +197,7 @@ func (s *FuluDepositSuite) TestDepositQueueDrainedOnFirstFuluBlock() {
 	}
 	time.Sleep(time.Second)
 
-	// [Block 3, t=7] First Fulu/Prague2 block.
+	// [Block 3, t=7] First Fulu/Osaka block.
 	// The catchup logic sets depositRange=MaxUint64, so all 12 queued deposits
 	// are placed on the block body. EIP-6110 deposit requests from the execution
 	// payload are appended. All deposits are processed in a single block.

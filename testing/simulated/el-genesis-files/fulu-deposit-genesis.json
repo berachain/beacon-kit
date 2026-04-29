@@ -20,6 +20,8 @@
     "shanghaiTime": 0,
     "cancunTime": 0,
     "pragueTime": 6,
+    "osakaTime": 7,
+    "depositContractAddress": "0x4242424242424242424242424242424242424242",
     "terminalTotalDifficulty": 0,
     "terminalTotalDifficultyPassed": true,
     "ethash": {},
@@ -33,6 +35,11 @@
         "target": 3,
         "max": 6,
         "baseFeeUpdateFraction": 3338477
+      },
+      "osaka": {
+        "target": 3,
+        "max": 6,
+        "baseFeeUpdateFraction": 3338477
       }
     },
     "berachain": {
@@ -41,10 +48,6 @@
         "baseFeeChangeDenominator": 48,
         "minimumBaseFeeWei": 10000000000,
         "polDistributorAddress": "0x4200000000000000000000000000000000000042"
-      },
-      "prague2": {
-        "time": 7,
-        "minimumBaseFeeWei": 0
       }
     }
   },
