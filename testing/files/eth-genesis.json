@@ -35,6 +35,11 @@
         "target": 3,
         "max": 6,
         "baseFeeUpdateFraction": 3338477
+      },
+      "osaka": {
+        "target": 3,
+        "max": 6,
+        "baseFeeUpdateFraction": 3338477
       }
     },
     "berachain": {
