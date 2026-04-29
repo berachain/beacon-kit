@@ -73,6 +73,9 @@ func (c *Client) TransactionByHash(
 	if sigErr != nil {
 		return nil, false, sigErr
 	}
+	if jsonTx.From != nil && jsonTx.BlockHash != nil {
+		setSenderFromServer(jsonTx.tx, *jsonTx.From, *jsonTx.BlockHash)
+	}
 	return jsonTx.tx, jsonTx.BlockNumber == nil, nil
 }
 
@@ -90,7 +93,47 @@ func (c *Client) TransactionInBlock(ctx context.Context, blockHash gethcommon.Ha
 	if sigErr != nil {
 		return nil, sigErr
 	}
+	if jsonTx.From != nil && jsonTx.BlockHash != nil {
+		setSenderFromServer(jsonTx.tx, *jsonTx.From, *jsonTx.BlockHash)
+	}
 	return jsonTx.tx, nil
+}
+
+// TransactionSender returns the sender address of the given transaction. The transaction
+// must be known to the remote node and included in the blockchain at the given block and
+// index. The sender is the one derived by the protocol at the time of inclusion.
+//
+// There is a fast-path for transactions retrieved by TransactionByHash and
+// TransactionInBlock. Getting their sender address can be done without an RPC interaction.
+func (c *Client) TransactionSender(
+	ctx context.Context,
+	tx *types.Transaction,
+	block gethcommon.Hash,
+	index uint,
+) (gethcommon.Address, error) {
+	sender, err := types.Sender(&senderFromServer{blockhash: block}, tx)
+	if err == nil {
+		return sender, nil
+	}
+
+	var meta struct {
+		Hash gethcommon.Hash    `json:"hash"`
+		From gethcommon.Address `json:"from"`
+	}
+	err = c.Client.Client().CallContext(
+		ctx,
+		&meta,
+		"eth_getTransactionByBlockHashAndIndex",
+		block,
+		hexutil.Uint64(index),
+	)
+	if err != nil {
+		return gethcommon.Address{}, err
+	}
+	if meta.Hash == (gethcommon.Hash{}) || meta.Hash != tx.Hash() {
+		return gethcommon.Address{}, errors.New("wrong inclusion block/index")
+	}
+	return meta.From, nil
 }
 
 type rpcBlock struct {
@@ -286,6 +329,9 @@ func (c *Client) getBlock(ctx context.Context, method string, args ...interface{
 		sigErr := ensureTransactionHasRequiredSignature(tx.tx)
 		if sigErr != nil {
 			return nil, sigErr
+		}
+		if tx.From != nil {
+			setSenderFromServer(tx.tx, *tx.From, *body.Hash)
 		}
 		txs[i] = tx.tx
 	}
