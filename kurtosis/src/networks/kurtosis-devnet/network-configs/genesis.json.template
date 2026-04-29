@@ -20,6 +20,7 @@
     "shanghaiTime": 0,
     "cancunTime": 0,
     "pragueTime": 0,
+    "osakaTime": 0,
     "terminalTotalDifficulty": 0,
     "terminalTotalDifficultyPassed": true,
     "ethash": {},
@@ -30,6 +31,11 @@
         "baseFeeUpdateFraction": 3338477
       },
       "prague": {
+        "target": 3,
+        "max": 6,
+        "baseFeeUpdateFraction": 3338477
+      },
+      "osaka": {
         "target": 3,
         "max": 6,
         "baseFeeUpdateFraction": 3338477
