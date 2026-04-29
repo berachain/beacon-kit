@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
-	"github.com/cometbft/cometbft/crypto/bls12381"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
@@ -47,6 +46,7 @@ const (
 type ValidatorTestStruct struct {
 	Index                 uint64
 	Power                 *big.Int
+	Pubkey                phase0.BLSPubKey
 	WithdrawalBalance     *big.Int
 	WithdrawalCredentials [32]byte
 	Name                  string
@@ -147,6 +147,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 		validators[idx] = &ValidatorTestStruct{
 			Index:                 idx,
 			Power:                 new(big.Int).SetUint64(power),
+			Pubkey:                val.Validator.PublicKey,
 			WithdrawalBalance:     withdrawalBalance,
 			WithdrawalCredentials: creds,
 			Name:                  name,
@@ -175,23 +176,15 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	s.Require().NoError(err)
 
 	var (
-		tx           *coretypes.Transaction
-		clientPubkey []byte
-		pk           *bls12381.PubKey
-		signature    [96]byte
-		value        = depositAmountWei
-		signer       = sender.SignerFunc(chainID)
-		from         = sender.Address()
+		tx        *coretypes.Transaction
+		signature [96]byte
+		value     = depositAmountWei
+		signer    = sender.SignerFunc(chainID)
+		from      = sender.Address()
 	)
 	for i := range NumDepositsLoad {
 		// Create a deposit transaction using the default validators' pubkeys.
 		curVal := validators[i%config.NumValidators]
-		clientPubkey, err = curVal.Client.GetPubKey(s.Ctx())
-		s.Require().NoError(err)
-		pk, err = bls12381.NewPublicKeyFromBytes(clientPubkey)
-		s.Require().NoError(err)
-		pubkey := pk.Compress()
-		s.Require().Len(pubkey, 48)
 
 		// Only the first deposit for a pubkey has a non-zero operator.
 		operator := gethcommon.Address{}
@@ -205,7 +198,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 			Nonce:    new(big.Int).SetUint64(nonce + i),
 			GasLimit: 1000000,
 			Context:  s.Ctx(),
-		}, pubkey, curVal.WithdrawalCredentials[:], signature[:], operator)
+		}, curVal.Pubkey[:], curVal.WithdrawalCredentials[:], signature[:], operator)
 		s.Require().NoError(err)
 		s.Logger().Info("Deposit tx created", "num", i+1, "hash", tx.Hash().Hex(), "value", value)
 	}
