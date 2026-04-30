@@ -205,6 +205,60 @@ func Test_KZGRootIndex(t *testing.T) {
 	require.Equal(t, 2*kzgParentRootIndex, uint64(ctypes.KZGRootIndex))
 }
 
+func TestValidateAfterDecodingSSZ_NilHeaders(t *testing.T) {
+	t.Parallel()
+
+	inclusionProof := make([]common.Root, ctypes.KZGInclusionProofDepth)
+
+	tests := []struct {
+		name    string
+		sidecar *types.BlobSidecar
+	}{
+		{
+			name: "nil SignedBeaconBlockHeader",
+			sidecar: &types.BlobSidecar{
+				Index:                   1,
+				Blob:                    eip4844.Blob{},
+				KzgCommitment:           eip4844.KZGCommitment{},
+				KzgProof:                eip4844.KZGProof{},
+				SignedBeaconBlockHeader: nil,
+				InclusionProof:          inclusionProof,
+			},
+		},
+		{
+			name: "nil inner Header",
+			sidecar: &types.BlobSidecar{
+				Index:         1,
+				Blob:          eip4844.Blob{},
+				KzgCommitment: eip4844.KZGCommitment{},
+				KzgProof:      eip4844.KZGProof{},
+				SignedBeaconBlockHeader: &ctypes.SignedBeaconBlockHeader{
+					Header:    nil,
+					Signature: crypto.BLSSignature{},
+				},
+				InclusionProof: inclusionProof,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			sc := tt.sidecar
+
+			require.NoError(t, sc.ValidateAfterDecodingSSZ())
+			require.NotNil(t, sc.SignedBeaconBlockHeader)
+			require.NotNil(t, sc.SignedBeaconBlockHeader.Header)
+			require.NotNil(t, sc.GetBeaconBlockHeader())
+
+			require.NotPanics(t, func() {
+				slot := sc.GetBeaconBlockHeader().GetSlot()
+				require.Equal(t, math.Slot(0), slot)
+			})
+		})
+	}
+}
+
 func TestHashTreeRoot(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
