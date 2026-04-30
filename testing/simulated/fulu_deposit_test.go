@@ -68,7 +68,7 @@ func (s *FuluDepositSuite) SetupTest() {
 	cometConfig := configs[0]
 	s.GenesisValidatorsRoot = genesisValidatorsRoot
 
-	elNode := execution.NewGethNode(s.HomeDir, execution.ValidGethImage())
+	elNode := execution.NewRethNode(s.HomeDir, execution.ValidRethImage())
 	elHandle, authRPC, elRPC := elNode.Start(s.T(), path.Base(elGenesisPath))
 	s.ElHandle = elHandle
 
