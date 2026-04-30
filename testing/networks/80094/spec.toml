@@ -71,8 +71,8 @@ min-validator-withdrawability-delay = 256
 # Fulu values (BRIP-0008 hysteresis + PoL vNext -- TODO: update values)
 hysteresis-quotient-fulu = 100
 hysteresis-upward-multiplier-fulu = 10
-evm-inflation-address-fulu = "0x0000000000000000000000000000000000000000"
-evm-inflation-per-block-fulu = 0
+evm-inflation-address-fulu = "0x1AE7dD7AE06F6C58B4524d9c1f816094B1bcCD8e"
+evm-inflation-per-block-fulu = 1_705_000_000
 
 [block-delay-configuration]
 max-block-delay = 300_000_000_000
