@@ -22,7 +22,13 @@ package spec
 
 import (
 	"github.com/berachain/beacon-kit/chain"
+	"github.com/ethereum/go-ethereum/params"
 )
+
+// bepoliaEVMInflationPerBlockFulu is the amount of native EVM balance (in Gwei) to be
+// minted to the EVMInflationAddressFulu via a withdrawal every block in the Fulu fork
+// on Bepolia. This differs from mainnet.
+const bepoliaEVMInflationPerBlockFulu = 1.6275 * params.GWei
 
 // TestnetChainSpecData is the chain.SpecData for Berachain's public testnet, Bepolia.
 func TestnetChainSpecData() *chain.SpecData {
@@ -52,6 +58,7 @@ func TestnetChainSpecData() *chain.SpecData {
 	// Timestamp of the Fulu fork on Bepolia.
 	// TODO: Set to actual fork time before Fulu activation.
 	specData.FuluForkTime = 9_999_999_999_999_999
+	specData.EVMInflationPerBlockFulu = bepoliaEVMInflationPerBlockFulu
 
 	return specData
 }
