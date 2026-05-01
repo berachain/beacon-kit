@@ -28,7 +28,6 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
-	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
@@ -48,21 +47,6 @@ func (s *Service) FinalizeBlock(
 	}
 	blk := signedBlk.GetBeaconBlock()
 	st := s.storageBackend.StateFromContext(ctx)
-
-	// Send an FCU to force the HEAD of the chain on the EL on startup.
-	var finalizeErr error
-	s.forceStartupSyncOnce.Do(func() {
-		var parentProposerPubkey *crypto.BLSPubkey
-		parentProposerPubkey, finalizeErr = st.ParentProposerPubkey(blk.GetTimestamp())
-		if finalizeErr != nil {
-			finalizeErr = fmt.Errorf("force sync upon finalize: failed retrieving parent proposer pubkey: %w", finalizeErr)
-		} else {
-			finalizeErr = s.forceSyncUponFinalize(ctx, blk, parentProposerPubkey)
-		}
-	})
-	if finalizeErr != nil {
-		return nil, finalizeErr
-	}
 
 	// STEP 2: Finalize sidecars first (block will check for sidecar availability).
 	if err = s.FinalizeSidecars(ctx, req.SyncingToHeight, blk, blobs); err != nil {
