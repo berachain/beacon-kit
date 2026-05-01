@@ -115,13 +115,11 @@ const (
 
 	// mainnetEVMInflationAddressFulu is the address on the EVM which will receive the
 	// inflation amount of native EVM balance through a withdrawal every block in the Fulu fork.
-	// TODO: Set to actual address before Fulu activation.
-	mainnetEVMInflationAddressFulu = "0x0000000000000000000000000000000000000000"
+	mainnetEVMInflationAddressFulu = "0x1AE7dD7AE06F6C58B4524d9c1f816094B1bcCD8e"
 
 	// mainnetEVMInflationPerBlockFulu is the amount of native EVM balance (in Gwei) to be
 	// minted to the EVMInflationAddressFulu via a withdrawal every block in the Fulu fork.
-	// TODO: Set to actual value before Fulu activation.
-	mainnetEVMInflationPerBlockFulu = 0
+	mainnetEVMInflationPerBlockFulu = 1.705 * params.GWei
 )
 
 // MainnetChainSpecData is the chain.SpecData for the Berachain mainnet.

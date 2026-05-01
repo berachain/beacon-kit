@@ -174,6 +174,9 @@ func (b *BlobSidecar) ValidateAfterDecodingSSZ() error {
 	if b.SignedBeaconBlockHeader == nil {
 		b.SignedBeaconBlockHeader = &ctypes.SignedBeaconBlockHeader{}
 	}
+	if b.SignedBeaconBlockHeader.Header == nil {
+		b.SignedBeaconBlockHeader.Header = &ctypes.BeaconBlockHeader{}
+	}
 	return nil
 }
 
