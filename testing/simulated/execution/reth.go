@@ -43,7 +43,7 @@ func NewRethNodeWithEngineOverride(homeDir string, image docker.PullImageOptions
 func ValidRethImage() docker.PullImageOptions {
 	return docker.PullImageOptions{
 		Repository: "ghcr.io/berachain/bera-reth",
-		Tag:        "v1.4.0-rc1",
+		Tag:        "nightly",
 	}
 }
 

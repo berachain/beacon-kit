@@ -91,7 +91,9 @@ func (sp *StateProcessor) processOperations(
 		version.Equals(blk.GetForkVersion(), version.Fulu()) {
 		// NOTE: for this block, we do not impose a maximum number of block deposits
 		// since we are exhausting the full deposit queue.
-		deposits = append(blk.GetBody().GetDeposits(), deposits...)
+		blockDeposits := blk.GetBody().GetDeposits()
+		sp.logger.Info("Exhausting the pre-Fulu deposit queue", "num", len(blockDeposits))
+		deposits = append(blockDeposits, deposits...)
 	}
 
 	// Process the deposits.
