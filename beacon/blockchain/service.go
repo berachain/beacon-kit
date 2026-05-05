@@ -43,17 +43,11 @@ type Service struct {
 	depositContract deposit.Contract
 	// eth1FollowDistance is the follow distance for Ethereum 1.0 blocks.
 	eth1FollowDistance math.U64
-	// failedBlocksMu protects failedBlocks for concurrent access.
-	failedBlocksMu sync.RWMutex
-	// failedBlocks is a map of blocks that failed to be processed
-	// and should be retried.
-	failedBlocks map[math.U64]struct{}
 	// logger is used for logging messages in the service.
 	logger log.Logger
 	// chainSpec holds the chain specifications.
 	chainSpec ServiceChainSpec
 	// executionEngine is the execution engine responsible for processing
-	//
 	// execution payloads.
 	executionEngine ExecutionEngine
 	// localBuilder is a local builder for constructing new beacon states.
@@ -64,7 +58,6 @@ type Service struct {
 	metrics *chainMetrics
 	// forceStartupSyncOnce is used to force a sync of the startup head.
 	forceStartupSyncOnce *sync.Once
-
 	// latestFcuReq holds a copy of the latest FCU sent to the execution layer.
 	// It helps avoid resending the same FCU data (and spares a network call)
 	// in case optimistic block building is active
@@ -88,7 +81,6 @@ func NewService(
 		blobProcessor:        blobProcessor,
 		depositContract:      depositContract,
 		eth1FollowDistance:   math.U64(chainSpec.Eth1FollowDistance()),
-		failedBlocks:         make(map[math.Slot]struct{}),
 		logger:               logger,
 		chainSpec:            chainSpec,
 		executionEngine:      executionEngine,
@@ -105,10 +97,7 @@ func (s *Service) Name() string {
 }
 
 // Start starts the blockchain service.
-func (s *Service) Start(ctx context.Context) error {
-	// Catchup deposits for failed blocks. TODO: remove.
-	go s.depositCatchupFetcher(ctx)
-
+func (s *Service) Start(context.Context) error {
 	return nil
 }
 

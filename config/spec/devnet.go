@@ -38,19 +38,6 @@ const (
 	// of Gwei) that can be staked.
 	devnetMaxStakeAmount = 4000 * params.GWei
 
-	// devnetGenesisTime is the timestamp of devnet genesis.
-	devnetGenesisTime = 0
-
-	// devnetDeneb1ForkTime is the timestamp at which the Deneb1 fork occurs.
-	devnetDeneb1ForkTime = 0
-
-	// devnetElectraForkTime is the timestamp at which the Electra fork occurs.
-	devnetElectraForkTime = 0
-
-	// devnetElectra1ForkTime is the timestamp at which the Electra1 fork occurs.
-	// devnet is configured to start on electra1.
-	devnetElectra1ForkTime = 0
-
 	// devnetEVMInflationAddressDeneb1 is the address of the EVM inflation contract
 	// after the Deneb1 fork.
 	devnetEVMInflationAddressDeneb1 = "0x4206942069420694206942069420694206942069"
@@ -61,10 +48,6 @@ const (
 
 	// devnetMinValidatorWithdrawabilityDelay is the delay (in epochs) before a validator can withdraw their stake.
 	devnetMinValidatorWithdrawabilityDelay = 32
-
-	// devnetFuluForkTime is the timestamp at which the Fulu fork occurs on devnet.
-	// Set to 0 so devnet starts with Fulu active.
-	devnetFuluForkTime = 0
 
 	// devnetEVMInflationPerBlockFulu is the amount of native EVM balance (in units
 	// of Gwei) to be minted per EL block after the Fulu fork on devnet.
@@ -83,11 +66,11 @@ func DevnetChainSpecData() *chain.SpecData {
 	specData.Config.ConsensusEnableHeight = 2
 
 	// Fork timings are set to facilitate local testing across fork versions.
-	specData.GenesisTime = devnetGenesisTime
-	specData.Deneb1ForkTime = devnetDeneb1ForkTime
-	specData.ElectraForkTime = devnetElectraForkTime
-	specData.Electra1ForkTime = devnetElectra1ForkTime
-	specData.FuluForkTime = devnetFuluForkTime
+	specData.GenesisTime = 0
+	specData.Deneb1ForkTime = 0
+	specData.ElectraForkTime = 0
+	specData.Electra1ForkTime = 0
+	specData.FuluForkTime = 0
 
 	// EVM inflation is different from mainnet to test.
 	specData.EVMInflationAddressGenesis = common.MustNewExecutionAddressFromHex(devnetEVMInflationAddress)

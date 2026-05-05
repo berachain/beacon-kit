@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/berachain/beacon-kit/beacon/deposits"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
@@ -126,9 +127,10 @@ func (s *Service) PostFinalizeBlockOps(ctx sdk.Context, blk *ctypes.BeaconBlock)
 	// TODO: consider extracting LatestExecutionPayloadHeader instead of using state here
 	st := s.storageBackend.StateFromContext(ctx)
 
-	// Fetch and store the deposit for the block.
-	blockNum := blk.GetBody().GetExecutionPayload().GetNumber()
-	s.depositFetcher(ctx, blockNum)
+	// Before Fulu, deposits must be fetched from the EL (at the eth1 follow distance).
+	deposits.FetchPreviousDepositsPreFulu(
+		ctx, s.depositContract, blk, s.eth1FollowDistance, s.storageBackend.DepositStore(), s.logger,
+	)
 
 	// Store the finalized block in the KVStore.
 	slot := blk.GetSlot()
@@ -167,6 +169,13 @@ func (s *Service) finalizeBeaconBlock(
 	// If the block is nil, exit early.
 	if beaconBlk == nil {
 		return nil, ErrNilBlk
+	}
+
+	// If on the first block of Fulu, catchup the previous block's deposits.
+	if err := deposits.CatchupFuluDeposits(
+		ctx, s.depositContract, st, beaconBlk, s.chainSpec, s.storageBackend.DepositStore(), s.logger,
+	); err != nil {
+		return nil, err
 	}
 
 	valUpdates, err := s.executeStateTransition(ctx, st, blk)
