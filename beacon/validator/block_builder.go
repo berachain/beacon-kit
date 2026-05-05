@@ -25,15 +25,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/berachain/beacon-kit/beacon/deposits"
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
-	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
@@ -327,35 +326,19 @@ func (s *Service) buildBlockBody(
 	// Set the KZG commitments on the block body.
 	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
 
-	// Dequeue deposits from the state.
-	depositIndex, err := st.GetEth1DepositIndex()
-	if err != nil {
-		return fmt.Errorf("failed loading eth1 deposit index: %w", err)
-	}
-
-	// Grab all previous deposits from genesis up to the current index + max deposits per block.
-	deposits, localDepositRoot, err := s.sb.DepositStore().GetDepositsByIndex(
-		ctx,
-		constants.FirstDepositIndex,
-		depositIndex+s.chainSpec.MaxDepositsPerBlock(),
-	)
-	if err != nil {
+	// Special case: on the first block of Fulu, catchup the previous block's deposits.
+	if err := deposits.CatchupFuluDeposits(
+		ctx, s.depositContract, st, blk, s.chainSpec, s.sb.DepositStore(), s.logger,
+	); err != nil {
 		return err
 	}
-	if uint64(len(deposits)) < depositIndex {
-		return errors.Wrapf(ErrDepositStoreIncomplete,
-			"all historical deposits not available, expected: %d, got: %d",
-			depositIndex, len(deposits),
-		)
-	}
-	s.logger.Info(
-		"Building block body with local deposits",
-		"start_index", depositIndex, "num_deposits", uint64(len(deposits))-depositIndex,
-	)
 
-	eth1Data := ctypes.NewEth1Data(localDepositRoot)
-	body.SetEth1Data(eth1Data)
-	body.SetDeposits(deposits[depositIndex:])
+	// Set the deposits on the block body.
+	if err := deposits.SetDepositsOnBlockBody(
+		ctx, st, body, s.chainSpec, s.sb.DepositStore(), s.logger,
+	); err != nil {
+		return err
+	}
 
 	// Set the graffiti on the block body.
 	sizedGraffiti := bytes.ExtendToSize([]byte(s.cfg.Graffiti), bytes.B32Size)

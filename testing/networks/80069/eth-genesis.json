@@ -82,6 +82,7 @@
     "shanghaiTime": 0,
     "pragueTime": 1746633600,
     "osakaTime": 9999999999999999,
+    "depositContractAddress": "0x4242424242424242424242424242424242424242",
     "terminalTotalDifficulty": 0,
     "terminalTotalDifficultyPassed": true,
     "blobSchedule": {

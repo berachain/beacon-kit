@@ -413,8 +413,6 @@ func lastConsequetiveNilIndex(rdb *file.RangeDB) uint64 {
 }
 
 // requireNotExist requires the indexes from `from` to `to` to be empty.
-//
-
 func requireNotExist(t *testing.T, rdb *file.RangeDB, from uint64, to uint64) {
 	t.Helper()
 	for i := from; i <= to; i++ {
