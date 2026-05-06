@@ -69,22 +69,22 @@ func (h *Handler) FilterValidators(height int64, ids []string, statuses []string
 }
 
 type validatorFilters struct {
-	indexes []uint64
-	pubkeys []crypto.BLSPubkey
+	indexes map[uint64]struct{}
+	pubkeys map[crypto.BLSPubkey]struct{}
 }
 
 // parseID attempts to parse a single ID as either a numeric ID or pubkey
 func (f *validatorFilters) parseID(id string) {
 	// Try parsing as numeric ID first
 	if index, err := math.U64FromString(id); err == nil {
-		f.indexes = append(f.indexes, index.Unwrap())
+		f.indexes[index.Unwrap()] = struct{}{}
 		return
 	}
 
 	// Try parsing as pubkey
 	var pubkey crypto.BLSPubkey
 	if err := pubkey.UnmarshalText([]byte(id)); err == nil {
-		f.pubkeys = append(f.pubkeys, pubkey)
+		f.pubkeys[pubkey] = struct{}{}
 	}
 	// We can skip errors here, since they should not happen.
 	// We do validate these ids in ValidateValidatorID.
@@ -93,8 +93,8 @@ func (f *validatorFilters) parseID(id string) {
 // parseValidatorIDs parses a slice of string IDs into numeric IDs and pubkeys
 func parseValidatorIDs(ids []string) *validatorFilters {
 	filters := &validatorFilters{
-		indexes: make([]uint64, 0, len(ids)),
-		pubkeys: make([]crypto.BLSPubkey, 0, len(ids)),
+		indexes: make(map[uint64]struct{}, len(ids)),
+		pubkeys: make(map[crypto.BLSPubkey]struct{}, len(ids)),
 	}
 
 	for _, id := range ids {
@@ -158,13 +158,15 @@ func matchesFilters(validator *consensustypes.Validator, index math.U64, filters
 	return false
 }
 
-func matchesPubkey(validator *consensustypes.Validator, parsedPubkeys []crypto.BLSPubkey) bool {
+func matchesPubkey(validator *consensustypes.Validator, parsedPubkeys map[crypto.BLSPubkey]struct{}) bool {
 	validatorPubkey := validator.GetPubkey()
-	return slices.Contains(parsedPubkeys, validatorPubkey)
+	_, exists := parsedPubkeys[validatorPubkey]
+	return exists
 }
 
-func matchesIndex(index math.U64, ids []uint64) bool {
-	return slices.Contains(ids, index.Unwrap())
+func matchesIndex(index math.U64, ids map[uint64]struct{}) bool {
+	_, exists := ids[index.Unwrap()]
+	return exists
 }
 
 func matchesStatusFilter(status string, statuses []string) bool {
