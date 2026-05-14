@@ -87,6 +87,8 @@ func (dc *WrappedDepositContract) ReadDeposits(
 		return nil, err
 	}
 
+	defer logs.Close()
+
 	deposits := make([]*ctypes.Deposit, 0)
 	for logs.Next() {
 		var (
@@ -114,6 +116,10 @@ func (dc *WrappedDepositContract) ReadDeposits(
 			Index:       logs.Event.Index,
 		}
 		deposits = append(deposits, deposit)
+	}
+
+	if err = logs.Error(); err != nil {
+		return nil, fmt.Errorf("deposit log iterator: %w", err)
 	}
 
 	return deposits, nil
