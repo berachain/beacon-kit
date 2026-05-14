@@ -167,10 +167,16 @@ func (s *EngineClient) ExchangeCapabilities(
 		return nil, err
 	}
 
-	// Capture and log the capabilities that the execution client has.
+	// Write all capabilities under a single lock acquisition.
+	s.capabilitiesMu.Lock()
+	for _, capability := range result {
+		s.capabilities[capability] = struct{}{}
+	}
+	s.capabilitiesMu.Unlock()
+
+	// Log after the lock is released to avoid blocking readers during I/O.
 	for _, capability := range result {
 		s.logger.Info("Exchanged capability", "capability", capability)
-		s.capabilities[capability] = struct{}{}
 	}
 
 	// Log the capabilities that the execution client does not have.
