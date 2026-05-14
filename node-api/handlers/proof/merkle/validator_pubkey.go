@@ -26,6 +26,7 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/merkle"
 )
@@ -47,6 +48,14 @@ func ProveValidatorPubkeyInBlock(
 	bbh *ctypes.BeaconBlockHeader,
 	bsm types.BeaconStateMarshallable,
 ) ([]common.Root, common.Root, error) {
+	// Bound validatorIndex for subsequent cast to int.
+	if validatorIndex.Unwrap() >= constants.ValidatorsRegistryLimit {
+		return nil, common.Root{}, fmt.Errorf(
+			"validator index %d exceeds registry limit %d",
+			validatorIndex, uint64(constants.ValidatorsRegistryLimit),
+		)
+	}
+
 	forkVersion := bsm.GetForkVersion()
 
 	// Calculate the validator-specific offset.
@@ -96,7 +105,8 @@ func ProveValidatorPubkeyInState(
 	}
 
 	// Determine the correct gIndex based on the fork version.
-	gIndex := int(validatorOffset) // #nosec G115 -- max validator offset is 8 * (2^40 - 1).
+	// int conversion is safe on 64-bit architectures: (2^40-1)*8 < 2^43 < 2^63.
+	gIndex := int(validatorOffset) // #nosec G115 -- offset bounded by caller.
 	zeroValidatorPubkeyGIndexState, err := GetZeroValidatorPubkeyGIndexState(forkVersion)
 	if err != nil {
 		return nil, common.Root{}, err

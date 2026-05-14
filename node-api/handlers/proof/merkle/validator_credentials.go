@@ -21,10 +21,13 @@
 package merkle
 
 import (
+	"fmt"
+
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/merkle"
 )
@@ -49,10 +52,8 @@ func ProveWithdrawalCredentialsInState(
 		return nil, common.Root{}, err
 	}
 
-	// Calculate the generalized index for the target validator. The offset
-	// multiplication is bounded by (2^40-1)*8 < 2^43 < 2^63, so converting to
-	// int is safe on 64-bit architectures.
-	gIndex := zeroWithdrawalGIndexState + int(validatorOffset) // #nosec G115
+	// int conversion is safe on 64-bit architectures: (2^40-1)*8 < 2^43 < 2^63.
+	gIndex := zeroWithdrawalGIndexState + int(validatorOffset) // #nosec G115 -- offset bounded by caller.
 
 	withdrawalProof, err := stateProofTree.Prove(gIndex)
 	if err != nil {
@@ -75,6 +76,14 @@ func ProveWithdrawalCredentialsInBlock(
 	bbh *ctypes.BeaconBlockHeader,
 	bsm types.BeaconStateMarshallable,
 ) ([]common.Root, common.Root, error) {
+	// Bound validatorIndex for subsequent cast to int.
+	if validatorIndex.Unwrap() >= constants.ValidatorsRegistryLimit {
+		return nil, common.Root{}, fmt.Errorf(
+			"validator index %d exceeds registry limit %d",
+			validatorIndex, uint64(constants.ValidatorsRegistryLimit),
+		)
+	}
+
 	forkVersion := bsm.GetForkVersion()
 
 	// Calculate the validator-specific offset.
