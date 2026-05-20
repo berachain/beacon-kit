@@ -306,7 +306,7 @@ func TestFilterValidators(t *testing.T) {
 		{
 			name: "rejects requests exceeding max IDs cap",
 			inputs: func() (beacontypes.GetStateValidatorsRequest, beacontypes.PostStateValidatorsRequest) {
-				ids := make([]string, beacontypes.MaxValidatorIDsPerRequest+1)
+				ids := make([]string, 1025)
 				for i := range ids {
 					ids[i] = strconv.Itoa(i)
 				}
