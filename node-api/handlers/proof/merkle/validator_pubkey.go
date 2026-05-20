@@ -26,7 +26,6 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/merkle"
 )
@@ -48,12 +47,8 @@ func ProveValidatorPubkeyInBlock(
 	bbh *ctypes.BeaconBlockHeader,
 	bsm types.BeaconStateMarshallable,
 ) ([]common.Root, common.Root, error) {
-	// Bound validatorIndex for subsequent cast to int.
-	if validatorIndex.Unwrap() >= constants.ValidatorsRegistryLimit {
-		return nil, common.Root{}, fmt.Errorf(
-			"validator index %d exceeds registry limit %d",
-			validatorIndex, uint64(constants.ValidatorsRegistryLimit),
-		)
+	if err := validateValidatorIndexBound(validatorIndex); err != nil {
+		return nil, common.Root{}, err
 	}
 
 	forkVersion := bsm.GetForkVersion()
