@@ -460,6 +460,7 @@ func (s *Service) verifyStateRoot(
 		ctx,
 		blk.GetConsensusTime(),
 		blk.GetProposerAddress(),
+		engineprimitives.PhaseValidate,
 	).
 		WithVerifyPayload(true).
 		WithVerifyRandao(true).
