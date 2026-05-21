@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/net/jwt"
+	cmtcfg "github.com/cometbft/cometbft/config"
 )
 
 // EngineClientInputs is the input for the EngineClient.
@@ -59,16 +60,20 @@ func ProvideEngineClient(in EngineClientInputs) *client.EngineClient {
 type ExecutionEngineInputs struct {
 	depinject.In
 	EngineClient  *client.EngineClient
+	CmtCfg        *cmtcfg.Config
 	Logger        *phuslu.Logger
 	TelemetrySink *metrics.TelemetrySink
 }
 
 // ProvideExecutionEngine provides the execution engine to the depinject
-// framework.
+// framework. The PhaseBuild / PhaseValidate retry budgets are derived inside
+// engine.New from the consensus phase timeouts so a stuck engine call yields
+// in time for consensus to advance.
 func ProvideExecutionEngine(in ExecutionEngineInputs) *engine.Engine {
 	return engine.New(
 		in.EngineClient,
 		in.Logger.With("service", "execution-engine"),
 		in.TelemetrySink,
+		in.CmtCfg.Consensus,
 	)
 }

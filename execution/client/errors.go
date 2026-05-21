@@ -21,6 +21,8 @@
 package client
 
 import (
+	nethttp "net/http"
+
 	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/execution/client/ethclient/rpc"
@@ -51,6 +53,8 @@ var (
 )
 
 // Handles errors received from the RPC server according to the specification.
+//
+//nolint:funlen // its ok
 func (s *EngineClient) handleRPCError(
 	err error,
 ) error {
@@ -76,7 +80,14 @@ func (s *EngineClient) handleRPCError(
 		var httpErr *rpc.HTTPStatusError
 		if errors.As(err, &httpErr) && httpErr != nil &&
 			httpErr.StatusCode >= 400 && httpErr.StatusCode < 500 {
-			// HTTP 4xx is a request-level rejection; retrying with the same payload will never
+			// 408/425/429 are RFC-defined retryable signals: a reverse proxy,
+			// rate limiter, or WAF in front of the EL must not turn brief
+			// backpressure into missed slots. Treat as transport-level transient.
+			switch httpErr.StatusCode {
+			case nethttp.StatusRequestTimeout, nethttp.StatusTooEarly, nethttp.StatusTooManyRequests:
+				return errors.Join(ErrBadConnection, err)
+			}
+			// Other 4xx is a request-level rejection; retrying with the same payload will never
 			// succeed. Fatal so the proposer skips the slot instead of looping.
 			return errors.Join(ErrHTTPClientError, err)
 		}
