@@ -33,6 +33,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/consensus-types/types"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/log/noop"
 	nodemetrics "github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/bytes"
@@ -151,10 +152,14 @@ func SetupTestState(t *testing.T, cs chain.Spec) (
 
 	// by default we keep checks at minimum. It is up
 	// to single tests to redefine the ctx along their needs.
+	// Phase doesn't matter when VerifyPayload is false, but is required at
+	// construction; tests that flip VerifyPayload(true) must rebuild the ctx
+	// with the appropriate phase.
 	ctx := transition.NewTransitionCtx(
 		sdkCtx,
 		0, // time
 		DummyProposerAddr,
+		engineprimitives.PhaseValidate,
 	).
 		WithVerifyPayload(false).
 		WithVerifyRandao(false).
