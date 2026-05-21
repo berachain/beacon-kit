@@ -37,7 +37,6 @@ import (
 
 	"github.com/berachain/beacon-kit/execution/client/ethclient"
 	"github.com/berachain/beacon-kit/log/phuslu"
-	jsonrpc "github.com/berachain/beacon-kit/primitives/net/json-rpc"
 	"github.com/berachain/beacon-kit/primitives/net/url"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
@@ -46,16 +45,20 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-// HTTP proxy in between beacon node and execution client. When active,
-// replaces responses with specified JSON-RPC error. When dropConn is set,
-// hijacks and closes the TCP connection to simulate an unreachable EL.
+// HTTP proxy in between beacon node and execution client. Supports three
+// injection modes:
+//   - activate(code, msg): return HTTP 200 with the given JSON-RPC error body
+//   - activateHTTPStatus(status): return the given HTTP status with a generic body
+//     (exercises the transport-level classification path, e.g. HTTP 4xx fatal)
+//   - activateDropConn: hijack and close the TCP connection (unreachable EL)
 type rpcErrorProxy struct {
-	targetURL  string
-	active     atomic.Bool
-	dropConn   atomic.Bool
-	errorCode  int
-	errorMsg   string
-	httpClient *http.Client
+	targetURL    string
+	active       atomic.Bool
+	dropConn     atomic.Bool
+	httpStatus   atomic.Int32 // 0 = inactive; otherwise the status code to return
+	errorCode    int
+	errorMsg     string
+	httpClient   *http.Client
 }
 
 func newRPCErrorProxy(targetURL string) *rpcErrorProxy {
@@ -71,6 +74,13 @@ func (p *rpcErrorProxy) activate(code int, msg string) {
 	p.active.Store(true)
 }
 
+// activateHTTPStatus makes the proxy respond to engine-API requests with the
+// given HTTP status code and a short body. Use to exercise transport-level
+// classification (e.g. 4xx fatal vs 5xx retryable).
+func (p *rpcErrorProxy) activateHTTPStatus(statusCode int) {
+	p.httpStatus.Store(int32(statusCode))
+}
+
 // activateDropConn simulates an unreachable EL by dropping the TCP
 // connection on any engine-API request.
 func (p *rpcErrorProxy) activateDropConn() {
@@ -80,6 +90,7 @@ func (p *rpcErrorProxy) activateDropConn() {
 func (p *rpcErrorProxy) deactivate() {
 	p.active.Store(false)
 	p.dropConn.Store(false)
+	p.httpStatus.Store(0)
 }
 
 func (p *rpcErrorProxy) getErr(reqId json.RawMessage) string {
@@ -131,7 +142,8 @@ func (p *rpcErrorProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // intercept reports whether the request should be intercepted and writes
 // the intercepted response to w. Returns true when the request was handled.
 func (p *rpcErrorProxy) intercept(w http.ResponseWriter, bodyBytes []byte) bool {
-	if !p.active.Load() && !p.dropConn.Load() {
+	httpStatus := int(p.httpStatus.Load())
+	if !p.active.Load() && !p.dropConn.Load() && httpStatus == 0 {
 		return false
 	}
 	var req struct {
@@ -143,6 +155,12 @@ func (p *rpcErrorProxy) intercept(w http.ResponseWriter, bodyBytes []byte) bool 
 	}
 	if p.dropConn.Load() {
 		dropTCPConn(w)
+		return true
+	}
+	if httpStatus != 0 {
+		w.Header().Set("Content-Type", "text/plain")
+		w.WriteHeader(httpStatus)
+		_, _ = fmt.Fprintf(w, "injected HTTP %d", httpStatus)
 		return true
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -300,14 +318,73 @@ func (s *RPCErrorProxySuite) prepareForFinalize() preparedProposal {
 	}
 }
 
-// TestFinalizeBlock_FatalRPCError shows that when exec client returns a
-// JSON-RPC error (e.g. -32700 parse error) during FinalizeBlock, the error is
-// correctly identified and returned.
-func (s *RPCErrorProxySuite) TestFinalizeBlock_HandleRPCError() {
+// TestFinalizeBlock_FatalRPCError_Surfaces shows that a fatal engine-API
+// response (e.g. -32700 parse error, HTTP 4xx) during FinalizeBlock is
+// surfaced immediately rather than retried. Fatal errors encode "this request
+// will never succeed against this EL" — retrying forever would turn a
+// misconfigured JWT or wrong chain ID into a silent node hang. Transient
+// outages take the IsNonFatalError path instead, which still retries
+// indefinitely under PhaseFinalize (see TestFinalizeBlock_ConnectionDrop_Recovery).
+func (s *RPCErrorProxySuite) TestFinalizeBlock_FatalRPCError_Surfaces() {
 	pp := s.prepareForFinalize()
 
-	// Activate the error proxy with an RPC error code (-32700 parse error).
+	// Inject -32700 parse errors on every engine-API call and leave them on.
 	s.errProxy.activate(-32700, "Parse Error")
+	defer s.errProxy.deactivate()
+
+	_, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.FinalizeBlockRequest{
+		Txs:             pp.txs,
+		Height:          pp.height,
+		ProposerAddress: pp.proposerAddress,
+		Time:            pp.proposalTime,
+	})
+
+	s.Require().Error(err, "FinalizeBlock must surface fatal engine-API errors instead of looping")
+
+	logs := s.LogBuffer.String()
+	s.Require().Contains(logs, "fatal error", "Should log the fatal error")
+}
+
+// TestFinalizeBlock_HTTP4xx_Surfaces is the integration-level twin of
+// TestFinalizeBlock_FatalRPCError_Surfaces, covering the load-bearing
+// transport-level path that PR #3109 was about: an HTTP 4xx response from
+// the EL (e.g. 413 oversized payload, 401 bad JWT) must surface immediately
+// rather than trap FinalizeBlock in an infinite retry. This protects against
+// a misconfigured EL hanging a validator node forever.
+func (s *RPCErrorProxySuite) TestFinalizeBlock_HTTP4xx_Surfaces() {
+	pp := s.prepareForFinalize()
+
+	// Inject HTTP 413 (the original PoC) on every engine-API call.
+	s.errProxy.activateHTTPStatus(http.StatusRequestEntityTooLarge)
+	defer s.errProxy.deactivate()
+
+	_, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.FinalizeBlockRequest{
+		Txs:             pp.txs,
+		Height:          pp.height,
+		ProposerAddress: pp.proposerAddress,
+		Time:            pp.proposalTime,
+	})
+
+	s.Require().Error(err, "FinalizeBlock must surface HTTP 4xx instead of looping")
+
+	logs := s.LogBuffer.String()
+	s.Require().Contains(logs, "fatal error", "Should log the fatal error")
+}
+
+// TestFinalizeBlock_HTTP429_Recovers pins the carve-out for RFC-retryable
+// 4xx codes: a proxy/rate-limiter returning 429 must not surface as fatal,
+// because retrying after backoff is the prescribed response. FinalizeBlock
+// recovers once the 429 stops.
+func (s *RPCErrorProxySuite) TestFinalizeBlock_HTTP429_Recovers() {
+	pp := s.prepareForFinalize()
+
+	s.errProxy.activateHTTPStatus(http.StatusTooManyRequests)
+
+	// Stop returning 429 after a short delay so the retry can succeed.
+	go func() {
+		time.Sleep(500 * time.Millisecond)
+		s.errProxy.deactivate()
+	}()
 
 	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.FinalizeBlockRequest{
 		Txs:             pp.txs,
@@ -316,9 +393,11 @@ func (s *RPCErrorProxySuite) TestFinalizeBlock_HandleRPCError() {
 		Time:            pp.proposalTime,
 	})
 
-	s.Require().Error(err, "FinalizeBlock should fail on fatal RPC error")
-	s.Require().Nil(finalizeResp)
-	s.Require().ErrorIs(err, jsonrpc.ErrParse, "Error should be correctly classified")
+	s.Require().NoError(err, "FinalizeBlock should recover after rate limit lifts")
+	s.Require().NotNil(finalizeResp)
+
+	logs := s.LogBuffer.String()
+	s.Require().Contains(logs, "non fatal error", "429 must be classified as retryable, not fatal")
 }
 
 // TestFinalizeBlock_ConnectionDrop_Recovery shows that when the EL is

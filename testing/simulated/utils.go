@@ -40,6 +40,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/da/kzg"
 	"github.com/berachain/beacon-kit/da/kzg/gokzg"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/errors"
 	gethtypes "github.com/berachain/beacon-kit/gethlib/types"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
@@ -417,10 +418,12 @@ func ComputeAndSetStateRoot(
 	stateDBCopy := storageBackend.StateFromContext(queryCtx).Protect(queryCtx)
 
 	// Create a transition context with the provided consensus time and proposer address.
+	// PhaseBuild — re-runs the state transition on the proposer-side path.
 	txCtx := transition.NewTransitionCtx(
 		queryCtx,
 		math.U64(consensusTime.Unix()),
 		proposerAddress,
+		engineprimitives.PhaseBuild,
 	).WithVerifyPayload(false).
 		WithVerifyRandao(false).
 		WithVerifyResult(false).

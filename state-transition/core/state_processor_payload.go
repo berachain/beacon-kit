@@ -25,6 +25,7 @@ import (
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -76,8 +77,9 @@ func (sp *StateProcessor) processExecutionPayload(
 
 	// Perform payload verification only if the context is configured as such.
 	if txCtx.VerifyPayload() {
+		phase := txCtx.EnginePhase()
 		g.Go(func() error {
-			return sp.validateExecutionPayload(ctx, txCtx.ConsensusTime(), st, blk, parentProposerPubkey)
+			return sp.validateExecutionPayload(ctx, phase, txCtx.ConsensusTime(), st, blk, parentProposerPubkey)
 		})
 	}
 
@@ -106,6 +108,7 @@ func (sp *StateProcessor) processExecutionPayload(
 // state and the execution engine.
 func (sp *StateProcessor) validateExecutionPayload(
 	ctx context.Context,
+	phase engineprimitives.EnginePhase,
 	consensusTime math.U64,
 	st ReadOnlyBeaconState,
 	blk *ctypes.BeaconBlock,
@@ -114,7 +117,7 @@ func (sp *StateProcessor) validateExecutionPayload(
 	if err := sp.validateStatelessPayload(blk); err != nil {
 		return err
 	}
-	return sp.validateStatefulPayload(ctx, consensusTime, st, blk, parentProposerPubkey)
+	return sp.validateStatefulPayload(ctx, phase, consensusTime, st, blk, parentProposerPubkey)
 }
 
 // validateStatelessPayload performs stateless checks on the execution payload.
@@ -140,6 +143,7 @@ func (sp *StateProcessor) validateStatelessPayload(blk *ctypes.BeaconBlock) erro
 // validateStatefulPayload performs stateful checks on the execution payload.
 func (sp *StateProcessor) validateStatefulPayload(
 	ctx context.Context,
+	phase engineprimitives.EnginePhase,
 	consensusTime math.U64,
 	st ReadOnlyBeaconState,
 	blk *ctypes.BeaconBlock,
@@ -185,9 +189,7 @@ func (sp *StateProcessor) validateStatefulPayload(
 		return err
 	}
 
-	// TODO: set retryOnSyncingStatus to false if we are in FinalizeBlock.
-	// Otherwise leave as true. This is ok to leave this way for now.
-	if err = sp.executionEngine.NotifyNewPayload(ctx, payloadReq, true); err != nil {
+	if err = sp.executionEngine.NotifyNewPayload(ctx, payloadReq, phase); err != nil {
 		return err
 	}
 

@@ -27,8 +27,6 @@ import (
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
-	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
-	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -66,7 +64,7 @@ func (s *Service) forceSyncUponProcess(
 		},
 		s.chainSpec.ActiveForkVersionForTimestamp(lph.GetTimestamp()),
 	)
-	if _, err = s.executionEngine.NotifyForkchoiceUpdate(ctx, req); err != nil {
+	if _, err = s.executionEngine.NotifyForkchoiceUpdate(ctx, req, engineprimitives.PhaseStartup); err != nil {
 		s.logger.Error(
 			"failed to send force head FCU",
 			"error", err,
@@ -93,9 +91,10 @@ func (s *Service) forceSyncUponFinalize(
 		return err
 	}
 
-	// We set retryOnSyncingStatus to false here. We can ignore SYNCING status and proceed
-	// to the FCU.
-	err = s.executionEngine.NotifyNewPayload(ctx, payloadReq, false)
+	// EL may return SYNCING (payload accepted but not yet validated — it's
+	// still catching up). Fine at startup: the block is already finalized
+	// in our state, and the FCU below kicks off the EL sync.
+	err = s.executionEngine.NotifyNewPayload(ctx, payloadReq, engineprimitives.PhaseStartup)
 	if err != nil {
 		return fmt.Errorf("startSyncUponFinalize NotifyNewPayload failed: %w", err)
 	}
@@ -111,22 +110,10 @@ func (s *Service) forceSyncUponFinalize(
 		s.chainSpec.ActiveForkVersionForTimestamp(executionPayload.GetTimestamp()),
 	)
 
-	switch _, err = s.executionEngine.NotifyForkchoiceUpdate(ctx, req); {
-	case err == nil:
-		return nil
-
-	case errors.IsAny(err,
-		engineerrors.ErrSyncingPayloadStatus,
-		engineerrors.ErrAcceptedPayloadStatus):
-		s.logger.Warn(
-			//nolint:lll // long message on one line for readability.
-			`Your execution client is syncing. It should be downloading eth blocks from its peers. Restart the beacon node once the execution client is caught up.`,
-		)
-		return err
-
-	default:
+	if _, err = s.executionEngine.NotifyForkchoiceUpdate(ctx, req, engineprimitives.PhaseStartup); err != nil {
 		return fmt.Errorf("force startup NotifyForkchoiceUpdate failed: %w", err)
 	}
+	return nil
 }
 
 // Once you provide the right state, we really need to carry out the very same operations
