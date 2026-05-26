@@ -291,6 +291,42 @@ func TestPendingPartialWithdrawals_Update(t *testing.T) {
 	require.Equal(t, updatedWithdrawals, ppw)
 }
 
+func TestValidatorsCache(t *testing.T) {
+	t.Parallel()
+	store, err := initTestStore()
+	require.NoError(t, err)
+
+	val1 := &types.Validator{Pubkey: bytes.B48{0x01}, EffectiveBalance: 32e9}
+	require.NoError(t, store.AddValidator(val1))
+
+	// First call populates cache; second call should return identical result.
+	a, err := store.GetValidators()
+	require.NoError(t, err)
+	b, err := store.GetValidators()
+	require.NoError(t, err)
+	require.Equal(t, a, b)
+
+	// Mutating a returned validator must not corrupt the cache.
+	a[0].SetEffectiveBalance(0)
+	c, err := store.GetValidators()
+	require.NoError(t, err)
+	require.Equal(t, math.Gwei(32e9), c[0].GetEffectiveBalance())
+
+	// Adding a validator invalidates the cache.
+	val2 := &types.Validator{Pubkey: bytes.B48{0x02}, EffectiveBalance: 32e9}
+	require.NoError(t, store.AddValidator(val2))
+	d, err := store.GetValidators()
+	require.NoError(t, err)
+	require.Len(t, d, 2)
+
+	// Updating a validator invalidates the cache.
+	updated := &types.Validator{Pubkey: bytes.B48{0x01}, EffectiveBalance: 0}
+	require.NoError(t, store.UpdateValidatorAtIndex(0, updated))
+	e, err := store.GetValidators()
+	require.NoError(t, err)
+	require.Equal(t, updated, e[0])
+}
+
 func initTestStore() (*beacondb.KVStore, error) {
 	db, err := db.OpenDB("", dbm.MemDBBackend)
 	if err != nil {

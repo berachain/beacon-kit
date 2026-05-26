@@ -41,6 +41,7 @@ func (kv *KVStore) AddValidator(val *ctypes.Validator) error {
 		return err
 	}
 
+	kv.validatorsCache = nil
 	return kv.balances.Set(kv.ctx, idx, 0)
 }
 
@@ -49,6 +50,7 @@ func (kv *KVStore) UpdateValidatorAtIndex(
 	index math.ValidatorIndex,
 	val *ctypes.Validator,
 ) error {
+	kv.validatorsCache = nil
 	return kv.validators.Set(kv.ctx, index.Unwrap(), val)
 }
 
@@ -96,6 +98,11 @@ func (kv *KVStore) ValidatorByIndex(
 func (kv *KVStore) GetValidators() (
 	ctypes.Validators, error,
 ) {
+	if kv.validatorsCache != nil {
+		// Return a deep copy so callers that mutate validators dont corrupt the cache.
+		return kv.validatorsCache.Copy(), nil
+	}
+
 	registrySize, err := kv.validatorIndex.Peek(kv.ctx)
 	if err != nil {
 		return nil, err
@@ -122,16 +129,17 @@ func (kv *KVStore) GetValidators() (
 		vals = append(vals, val)
 	}
 
-	return vals, err
+	kv.validatorsCache = vals
+	return kv.validatorsCache.Copy(), err
 }
 
 // GetTotalValidators returns the total number of validators.
 func (kv *KVStore) GetTotalValidators() (math.U64, error) {
-	validators, err := kv.GetValidators()
+	count, err := kv.validatorIndex.Peek(kv.ctx)
 	if err != nil {
 		return 0, err
 	}
-	return math.U64(len(validators)), nil
+	return math.U64(count), nil
 }
 
 // GetBalance returns the balance of a validator.
