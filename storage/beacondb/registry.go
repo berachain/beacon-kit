@@ -95,11 +95,9 @@ func (kv *KVStore) ValidatorByIndex(
 }
 
 // GetValidators retrieves all validators from the beacon state.
-func (kv *KVStore) GetValidators() (
-	ctypes.Validators, error,
-) {
+func (kv *KVStore) GetValidators() (_ ctypes.Validators, err error) {
 	if kv.validatorsCache != nil {
-		// Return a deep copy so callers that mutate validators dont corrupt the cache.
+		// Return a deep copy so callers that mutate validators don't corrupt the cache.
 		return kv.validatorsCache.Copy(), nil
 	}
 
@@ -108,10 +106,7 @@ func (kv *KVStore) GetValidators() (
 		return nil, err
 	}
 
-	var (
-		vals = make([]*ctypes.Validator, 0, registrySize)
-		val  *ctypes.Validator
-	)
+	vals := make([]*ctypes.Validator, 0, registrySize)
 
 	iter, err := kv.validators.Iterate(kv.ctx, nil)
 	if err != nil {
@@ -122,15 +117,15 @@ func (kv *KVStore) GetValidators() (
 	}()
 
 	for ; iter.Valid(); iter.Next() {
-		val, err = iter.Value()
-		if err != nil {
-			return nil, err
+		val, iterErr := iter.Value()
+		if iterErr != nil {
+			return nil, iterErr
 		}
 		vals = append(vals, val)
 	}
 
 	kv.validatorsCache = vals
-	return kv.validatorsCache.Copy(), err
+	return kv.validatorsCache.Copy(), nil
 }
 
 // GetTotalValidators returns the total number of validators.
