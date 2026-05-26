@@ -30,6 +30,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	"github.com/berachain/beacon-kit/consensus-types/types"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
@@ -136,6 +137,7 @@ func TestPayloadTimestampVerification(t *testing.T) {
 				sdkCtx,
 				math.U64(consensusBlkTime.Unix()),
 				statetransition.DummyProposerAddr,
+				engineprimitives.PhaseValidate,
 			).
 				WithVerifyPayload(true).
 				WithVerifyRandao(false).

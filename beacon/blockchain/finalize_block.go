@@ -29,6 +29,7 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
@@ -214,6 +215,7 @@ func (s *Service) executeStateTransition(
 		ctx,
 		blk.GetConsensusTime(),
 		blk.GetProposerAddress(),
+		engineprimitives.PhaseFinalize,
 	).
 		WithVerifyPayload(true).
 		WithVerifyRandao(false).

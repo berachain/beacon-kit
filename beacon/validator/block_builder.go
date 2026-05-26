@@ -418,6 +418,7 @@ func (s *Service) computeStateRoot(
 		ctx,
 		consensusTime,
 		proposerAddress,
+		engineprimitives.PhaseBuild,
 	).
 		WithVerifyPayload(false).
 		WithVerifyRandao(false).
