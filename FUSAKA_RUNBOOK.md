@@ -94,18 +94,22 @@ curl -s -X POST $EL -H 'content-type: application/json' --data '{
 
 Sanity checks on the response:
 
-- `result.current.chain_id == 80069` (Bepolia) — confirms the node is on the
-  right network.
-- `result.current.activation_time == 1779897600` after fork — the "current"
-  bucket has rolled forward from Prague* to Osaka.
-- `result.current.precompiles` contains an entry whose **address is
-  `0x0000000000000000000000000000000000000100`** (P256VERIFY). This is the
-  smoking gun for EIP-7951.
-- `result.current.system_contracts` contains the deposit contract at
-  `0x4242424242424242424242424242424242424242` (the fix called out in
+- `result.current.chainId == "0x138d7"` (`80087`, devnet) /
+  `"0x138c5"` (`80069`, Bepolia) / `"0x138de"` (`80094`, mainnet) — confirms
+  the node is on the right network.
+- `result.current.activationTime` equals the configured Osaka time for the
+  network (Bepolia: `1779897600`). After fork, the "current" bucket has rolled
+  forward from Prague* to Osaka.
+- `result.current.precompiles` contains an entry **`"P256VERIFY":
+  "0x0000000000000000000000000000000000000100"`**. This is the smoking gun
+  for EIP-7951.
+- `result.current.systemContracts.DEPOSIT_CONTRACT_ADDRESS ==
+  "0x4242424242424242424242424242424242424242"` (the fix called out in
   v1.4.0-rc2 release notes).
-- `result.current.fork_id.hash` is non-zero and the value matches what peers
-  advertise in devp2p (see `admin_nodeInfo` if exposed).
+- `result.current.forkId` is a non-zero 4-byte hex string and matches what
+  peers advertise in devp2p (see `admin_nodeInfo` if exposed).
+- `result.next` is `null` once Osaka is the latest configured fork (nothing
+  scheduled after it). `result.last` is also `null` in that case.
 
 ### 1.2 EIP-7951 — P-256 (secp256r1) precompile at `0x0…0100`
 
@@ -663,7 +667,7 @@ curl -fsS -X POST $EL -H 'content-type: application/json' --data '{
 echo "== eth_config current fork (EL) =="
 curl -fsS -X POST $EL -H 'content-type: application/json' --data '{
   "jsonrpc":"2.0","id":1,"method":"eth_config","params":[]}' \
-  | jq '.result.current | {chain_id, activation_time, fork_id, precompiles_has_p256: (.precompiles | to_entries | map(select(.value=="0x0000000000000000000000000000000000000100")) | length > 0)}'
+  | jq '.result.current | {chainId, activationTime, forkId, p256_at_0x100: (.precompiles.P256VERIFY == "0x0000000000000000000000000000000000000100")}'
 
 echo "== Heights agree =="
 echo "comet : $(curl -fsS $CMT/status | jq -r '.result.sync_info.latest_block_height')"
