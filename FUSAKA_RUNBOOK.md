@@ -265,12 +265,18 @@ The simplest live check is to deploy a contract whose runtime code is between
 
 ```bash
 # 28 KB of STOPs as runtime code, wrapped in a constructor that returns it.
-# Layout matches src/evm/mod.rs:create_init_code_returning_stops:
-#   PUSH2 len | PUSH2 0x000f | PUSH1 0 | CODECOPY | PUSH2 len | PUSH1 0 | RETURN | <len * 0x00>
-LEN_HEX=$(printf '%04x' 28000)
-INIT_PREFIX="61${LEN_HEX}610000f60003961${LEN_HEX}6000f3"
-PAYLOAD=$(python3 -c 'print("00"*28000)')
+# Init prefix is exactly 15 bytes / 30 hex chars (see osaka_eip_tests
+# create_init_code_returning_stops in bera-reth src/evm/mod.rs):
+#   PUSH2 len | PUSH2 0x000f | PUSH1 0 | CODECOPY | PUSH2 len | PUSH1 0 | RETURN
+#   61 <hi><lo>  61 00 0f      60 00     39         61 <hi><lo>  60 00     f3
+LEN_HEX=$(printf '%04x' 28000)                       # e.g. "6d60"
+INIT_PREFIX="61${LEN_HEX}61000f60003961${LEN_HEX}6000f3"
+PAYLOAD=$(python3 -c 'print("00"*28000, end="")')    # 56000 hex chars, no newline
 INITCODE="0x${INIT_PREFIX}${PAYLOAD}"
+
+# Sanity-check the prefix length before sending: must be 30 hex chars.
+[ ${#INIT_PREFIX} -eq 30 ] || { echo "bad init prefix: ${#INIT_PREFIX} chars"; exit 1; }
+
 # Send via a funded test account:
 cast send --rpc-url $EL --private-key $PRIV_KEY --create $INITCODE
 ```
