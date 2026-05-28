@@ -131,7 +131,9 @@ func (p *rpcErrorProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // intercept reports whether the request should be intercepted and writes
 // the intercepted response to w. Returns true when the request was handled.
 func (p *rpcErrorProxy) intercept(w http.ResponseWriter, bodyBytes []byte) bool {
-	if !p.active.Load() && !p.dropConn.Load() {
+	// Snapshot both flags once so a concurrent deactivate() can't change them mid-request.
+	active, dropConn := p.active.Load(), p.dropConn.Load()
+	if !active && !dropConn {
 		return false
 	}
 	var req struct {
@@ -141,7 +143,7 @@ func (p *rpcErrorProxy) intercept(w http.ResponseWriter, bodyBytes []byte) bool 
 	if json.Unmarshal(bodyBytes, &req) != nil || !isTargetedEngineMethod(req.Method) {
 		return false
 	}
-	if p.dropConn.Load() {
+	if dropConn {
 		dropTCPConn(w)
 		return true
 	}
