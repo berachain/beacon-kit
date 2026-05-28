@@ -24,6 +24,7 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	nethttp "net/http"
 	"sync"
 	"time"
 
@@ -32,7 +33,6 @@ import (
 	ethclientrpc "github.com/berachain/beacon-kit/execution/client/ethclient/rpc"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/net/http"
 	"github.com/berachain/beacon-kit/primitives/net/jwt"
 )
 
@@ -193,8 +193,8 @@ func (s *EngineClient) verifyChainIDAndConnection(
 	// After the initial dial, check to make sure the chain ID is correct.
 	chainID, err = s.Client.ChainID(ctx)
 	if err != nil {
-		if errors.Is(err, http.ErrUnauthorized) {
-			// We always log this error as it is a critical error.
+		var httpErr *ethclientrpc.HTTPStatusError
+		if errors.As(err, &httpErr) && httpErr != nil && httpErr.StatusCode == nethttp.StatusUnauthorized {
 			s.logger.Error(UnauthenticatedConnectionErrorStr)
 		}
 		return err

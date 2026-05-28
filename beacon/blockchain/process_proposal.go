@@ -29,6 +29,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/berachain/beacon-kit/beacon/deposits"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/cache"
 	"github.com/berachain/beacon-kit/consensus/types"
@@ -358,6 +359,13 @@ func (s *Service) VerifyIncomingBlock(
 				"err", err,
 			)
 		}
+	}
+
+	// If on the first block of Fulu, catchup the previous block's deposits.
+	if err = deposits.CatchupFuluDeposits(
+		ctx, s.depositContract, state, beaconBlk, s.chainSpec, s.storageBackend.DepositStore(), s.logger,
+	); err != nil {
+		return nil, err
 	}
 
 	// Verify the state root of the incoming block.

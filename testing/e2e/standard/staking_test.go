@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
-	"github.com/cometbft/cometbft/crypto/bls12381"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
@@ -47,6 +46,7 @@ const (
 type ValidatorTestStruct struct {
 	Index                 uint64
 	Power                 *big.Int
+	Pubkey                phase0.BLSPubKey
 	WithdrawalBalance     *big.Int
 	WithdrawalCredentials [32]byte
 	Name                  string
@@ -147,6 +147,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 		validators[idx] = &ValidatorTestStruct{
 			Index:                 idx,
 			Power:                 new(big.Int).SetUint64(power),
+			Pubkey:                val.Validator.PublicKey,
 			WithdrawalBalance:     withdrawalBalance,
 			WithdrawalCredentials: creds,
 			Name:                  name,
@@ -175,23 +176,15 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	s.Require().NoError(err)
 
 	var (
-		tx           *coretypes.Transaction
-		clientPubkey []byte
-		pk           *bls12381.PubKey
-		signature    [96]byte
-		value        = depositAmountWei
-		signer       = sender.SignerFunc(chainID)
-		from         = sender.Address()
+		tx        *coretypes.Transaction
+		signature [96]byte
+		value     = depositAmountWei
+		signer    = sender.SignerFunc(chainID)
+		from      = sender.Address()
 	)
 	for i := range NumDepositsLoad {
 		// Create a deposit transaction using the default validators' pubkeys.
 		curVal := validators[i%config.NumValidators]
-		clientPubkey, err = curVal.Client.GetPubKey(s.Ctx())
-		s.Require().NoError(err)
-		pk, err = bls12381.NewPublicKeyFromBytes(clientPubkey)
-		s.Require().NoError(err)
-		pubkey := pk.Compress()
-		s.Require().Len(pubkey, 48)
 
 		// Only the first deposit for a pubkey has a non-zero operator.
 		operator := gethcommon.Address{}
@@ -205,7 +198,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 			Nonce:    new(big.Int).SetUint64(nonce + i),
 			GasLimit: 1000000,
 			Context:  s.Ctx(),
-		}, pubkey, curVal.WithdrawalCredentials[:], signature[:], operator)
+		}, curVal.Pubkey[:], curVal.WithdrawalCredentials[:], signature[:], operator)
 		s.Require().NoError(err)
 		s.Logger().Info("Deposit tx created", "num", i+1, "hash", tx.Hash().Hex(), "value", value)
 	}
@@ -256,6 +249,18 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 
 	increaseAmt := new(big.Int).Mul(depositAmountGwei, big.NewInt(int64(NumDepositsLoad/config.NumValidators)))
 
+	// Pull the latest validator data from the API once so we can also report
+	// the beacon balance/effective balance alongside the consensus power. This
+	// is purely for diagnostics on assertion failures; it does not affect the
+	// pass/fail decision below.
+	postResp, err := apiClient.Validators(s.Ctx(), &api.ValidatorsOpts{
+		State:   "head",
+		Indices: []phase0.ValidatorIndex{0, 1, 2, 3, 4},
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(postResp)
+	postVals := postResp.Data
+
 	for _, val := range validators {
 		// Consensus Power is in Gwei.
 		powerAfterRaw, cErr := val.Client.GetConsensusPower(s.Ctx())
@@ -274,7 +279,34 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 		// We simply validate that the balance is NumValidators times larger than we expect it to be.
 		withdrawalDiff.Div(withdrawalDiff, new(big.Int).SetUint64(config.NumValidators))
 
-		// Verify input balance is equal to the power + withdrawal balances.
-		s.Require().Equal(increaseAmt, new(big.Int).Add(powerDiff, withdrawalDiff))
+		// Diagnostic: surface the post-deposit beacon-state view so failed
+		// runs make it clear whether deposits ever reached the CL.
+		var beaconBalance, effectiveBalance uint64
+		if postVal, ok := postVals[phase0.ValidatorIndex(val.Index)]; ok && postVal != nil && postVal.Validator != nil {
+			beaconBalance = uint64(postVal.Balance)
+			effectiveBalance = uint64(postVal.Validator.EffectiveBalance)
+		}
+		s.Logger().Info(
+			"deposit robustness validator post-state",
+			"name", val.Name,
+			"index", val.Index,
+			"power_diff_gwei", powerDiff.String(),
+			"withdrawal_diff_gwei", withdrawalDiff.String(),
+			"beacon_balance_gwei", beaconBalance,
+			"effective_balance_gwei", effectiveBalance,
+		)
+
+		// Verify deposits applied as a mix of stake (capped at MaxEffectiveBalance,
+		// reflected in consensus power) and partial withdrawals (delivered to the
+		// validator's withdrawal address). Their sum must equal the total deposited
+		// amount per validator.
+		actual := new(big.Int).Add(powerDiff, withdrawalDiff)
+		s.Require().Equalf(
+			increaseAmt, actual,
+			"validator %d (%s) deposit accounting mismatch: power_diff=%s gwei, withdrawal_diff=%s gwei, beacon_balance=%d gwei, effective_balance=%d gwei",
+			val.Index, val.Name,
+			powerDiff.String(), withdrawalDiff.String(),
+			beaconBalance, effectiveBalance,
+		)
 	}
 }

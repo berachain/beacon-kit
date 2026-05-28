@@ -209,4 +209,5 @@ type ServiceChainSpec interface {
 	EpochsPerHistoricalVector() uint64
 	SlotToEpoch(slot math.Slot) math.Epoch
 	Eth1FollowDistance() uint64
+	MaxDepositsPerBlock() uint64
 }

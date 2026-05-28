@@ -20,6 +20,21 @@
 
 package rpc
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 var ErrNilResponse = errors.New("nil response")
+
+// HTTPStatusError is returned by callRaw when the EL responds with a non-200
+// status. It carries the HTTP status code so upstream classifiers can decide
+// retry policy via errors.As without string-matching the error message.
+type HTTPStatusError struct {
+	StatusCode int
+	Body       string
+}
+
+func (e *HTTPStatusError) Error() string {
+	return fmt.Sprintf("unexpected status code %d: %s", e.StatusCode, e.Body)
+}

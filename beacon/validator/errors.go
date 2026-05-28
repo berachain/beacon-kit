@@ -28,8 +28,4 @@ var (
 
 	// ErrNilBlobsBundle is an error for when the blobs bundle is nil.
 	ErrNilBlobsBundle = errors.New("nil blobs bundle")
-
-	// ErrDepositStoreIncomplete is an error for when the deposit store has not returned
-	// the expected amount of deposits. Could be due to pruning when it should not be enabled.
-	ErrDepositStoreIncomplete = errors.New("deposits from deposit store incomplete")
 )

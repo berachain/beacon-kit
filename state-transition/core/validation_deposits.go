@@ -22,16 +22,19 @@ package core
 
 import (
 	"context"
+	stdmath "math"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/berachain/beacon-kit/storage/deposit"
 )
 
+// NOTE: only used at genesis.
 func validateGenesisDeposits(
 	st *statedb.StateDB, deposits []*ctypes.Deposit, validatorSetCap uint64,
 ) error {
@@ -70,24 +73,43 @@ func validateGenesisDeposits(
 	return nil
 }
 
-func ValidateNonGenesisDeposits(
+// ValidateNonGenesisDepositsPreFulu validates deposits before Fulu.
+// After Fulu, deposits are managed by EIP-6110 style deposit requests
+// and this validation is no longer needed. On the first block of Fulu,
+// we catchup the previous block's deposits to exhaust the deposit queue.
+func ValidateNonGenesisDepositsPreFulu(
 	ctx context.Context,
 	st *statedb.StateDB,
 	depositStore deposit.StoreManager,
 	maxDepositsPerBlock uint64,
 	blkDeposits []*ctypes.Deposit,
 	blkDepositRoot common.Root,
+	blkForkVersion common.Version,
+	prevBlockForkVersion common.Version,
 ) error {
 	depositIndex, err := st.GetEth1DepositIndex()
 	if err != nil {
 		return err
 	}
 
+	var depositRange uint64
+	switch {
+	case version.IsBefore(blkForkVersion, version.Fulu()):
+		depositRange = depositIndex + maxDepositsPerBlock
+	case version.Equals(prevBlockForkVersion, version.Electra1()) &&
+		version.Equals(blkForkVersion, version.Fulu()):
+		// For the first block of Fulu catchup deposits, we will allow as many as are
+		// required to exhaust the queue. Since after this block in Fulu, we no longer use
+		// the deposit queue and instead follow EIP-6110 deposit requests.
+		depositRange = stdmath.MaxUint64
+	default:
+		// We don't validate deposits on the block body after the first block of Fulu.
+		return nil
+	}
+
 	// Grab all previous deposits from genesis up to the current index + max deposits per block.
 	localDeposits, localDepositRoot, err := depositStore.GetDepositsByIndex(
-		ctx,
-		constants.FirstDepositIndex,
-		depositIndex+maxDepositsPerBlock,
+		ctx, constants.FirstDepositIndex, depositRange,
 	)
 	if err != nil {
 		return err

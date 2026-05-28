@@ -31,7 +31,6 @@ import (
 
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
-	beaconhttp "github.com/berachain/beacon-kit/primitives/net/http"
 	"github.com/berachain/beacon-kit/primitives/net/jwt"
 )
 
@@ -186,6 +185,9 @@ func (rpc *client) callRaw(
 
 	response, err := rpc.client.Do(req) //#nosec:G704 // URL is operator-configured RPC endpoint.
 	if err != nil {
+		// handle error as a transport level failure (connection refused, DNS, TLS, body EOF, ctx cancellation, etc)
+		// and return it as-is and let upstream handleRPCError classify it (timeouts become http.ErrTimeout and
+		// everything else falls through to ErrBadConnection).
 		return nil, err
 	}
 	if response == nil {
@@ -198,14 +200,8 @@ func (rpc *client) callRaw(
 		return nil, err
 	}
 
-	switch response.StatusCode {
-	case http.StatusOK:
-		// OK: just proceed (no return)
-	case http.StatusUnauthorized:
-		return nil, beaconhttp.ErrUnauthorized
-	default:
-		// Return a default error
-		return nil, fmt.Errorf("unexpected status code %d: %s", response.StatusCode, string(data))
+	if response.StatusCode != http.StatusOK {
+		return nil, &HTTPStatusError{StatusCode: response.StatusCode, Body: string(data)}
 	}
 
 	resp := new(Response)
