@@ -225,12 +225,17 @@ def create_node_config(plan, node_struct, peers, paired_el_client_name, chain_id
             preconf_flags += " --beacon-kit.preconf.whitelist-path=/root/preconf/whitelist.json"
             preconf_flags += " --beacon-kit.preconf.validator-jwts-path=/root/preconf/validator-jwts.json"
             preconf_flags += " --beacon-kit.preconf.api-port=9090"
+            if preconf_config.tls_enabled:
+                preconf_flags += " --beacon-kit.preconf.tls-cert-path=/root/preconf-tls/server-cert.pem"
+                preconf_flags += " --beacon-kit.preconf.tls-key-path=/root/preconf-tls/server-key.pem"
         elif node_struct.node_type == "validator":
             # Validator - fetches payloads from sequencer
             preconf_flags = "--beacon-kit.preconf.enabled=true"
             preconf_flags += " --beacon-kit.preconf.sequencer-url=$PRECONF_SEQUENCER_URL"
             preconf_flags += " --beacon-kit.preconf.sequencer-jwt-path=/root/preconf/jwt-secret.hex"
             preconf_flags += " --beacon-kit.preconf.whitelist-path=/root/preconf/whitelist.json"
+            if preconf_config.tls_enabled:
+                preconf_flags += " --beacon-kit.preconf.sequencer-ca-cert-path=/root/preconf-tls/ca-cert.pem"
 
     cmd = "{} && {}".format(init_consensus_nodes(), node.start(persistent_peers, False, 0, config_settings, app_settings, kzg_impl, preconf_flags))
     if node_struct.node_type == "validator":
@@ -273,6 +278,12 @@ def create_node_config(plan, node_struct, peers, paired_el_client_name, chain_id
                 artifact_names.append(preconf_config.validator_jwts_file)
             if len(artifact_names) > 0:
                 beacond_config.files["/root/preconf"] = Directory(artifact_names = artifact_names)
+
+            # Sequencer serves TLS: mount the signed leaf cert and its private key.
+            if preconf_config.tls_enabled:
+                beacond_config.files["/root/preconf-tls"] = Directory(
+                    artifact_names = [preconf_config.tls_server_cert_artifact, preconf_config.tls_server_key_artifact],
+                )
         elif node_struct.node_type == "validator":
             # Validator needs its own JWT secret AND the whitelist
             artifact_names = []
@@ -283,8 +294,15 @@ def create_node_config(plan, node_struct, peers, paired_el_client_name, chain_id
             if len(artifact_names) > 0:
                 beacond_config.files["/root/preconf"] = Directory(artifact_names = artifact_names)
 
-            # Add sequencer URL to env vars
-            beacond_config.env_vars["PRECONF_SEQUENCER_URL"] = "http://{}:9090".format(preconf_config.sequencer_service_name)
+            # Validator pins the CA (not the leaf, not the key).
+            if preconf_config.tls_enabled:
+                beacond_config.files["/root/preconf-tls"] = Directory(
+                    artifact_names = [preconf_config.tls_ca_cert_artifact],
+                )
+
+            # Add sequencer URL to env vars (https when TLS is enabled).
+            scheme = "https" if preconf_config.tls_enabled else "http"
+            beacond_config.env_vars["PRECONF_SEQUENCER_URL"] = "{}://{}:9090".format(scheme, preconf_config.sequencer_service_name)
 
     plan.print(beacond_config)
 

@@ -21,7 +21,9 @@
 package preconf
 
 import (
+	"crypto/x509"
 	"encoding/json"
+	"fmt"
 	"os"
 	"strings"
 
@@ -97,6 +99,23 @@ func LoadValidatorJWTs(path string) (ValidatorJWTs, error) {
 	}
 
 	return result, nil
+}
+
+// LoadCACert reads a PEM-encoded CA certificate file and returns
+// a cert pool containing only that certificate.
+func LoadCACert(path string) (*x509.CertPool, error) {
+	if path == "" {
+		return nil, errors.New("CA cert path is empty")
+	}
+	data, err := os.ReadFile(path) //#nosec G304 -- path from operator-controlled config
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to read CA cert file: %s", path)
+	}
+	pool := x509.NewCertPool()
+	if !pool.AppendCertsFromPEM(data) {
+		return nil, fmt.Errorf("failed to parse CA certificate from: %s", path)
+	}
+	return pool, nil
 }
 
 // LoadJWTSecret loads a JWT secret from a file containing a hex-encoded secret.

@@ -23,13 +23,24 @@ package preconf_test
 import (
 	"bytes"
 	"context"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/tls"
+	"crypto/x509"
+	"crypto/x509/pkix"
 	"encoding/json"
+	"encoding/pem"
 	"errors"
+	"fmt"
+	"math/big"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/berachain/beacon-kit/beacon/preconf"
 	"github.com/berachain/beacon-kit/cli/utils/parser"
@@ -124,6 +135,7 @@ func TestServer_HandleGetPayload(t *testing.T) {
 				tracker,
 				provider,
 				0,
+				preconf.TLSPaths{},
 				metrics.NewNoOpTelemetrySink(),
 			)
 
@@ -203,6 +215,7 @@ func TestServer_ProposerCheck(t *testing.T) {
 				tt.setupTracker(),
 				&mockPayloadProvider{hasPayload: true},
 				0,
+				preconf.TLSPaths{},
 				metrics.NewNoOpTelemetrySink(),
 			)
 
@@ -225,7 +238,7 @@ func TestServer_ProposerCheck(t *testing.T) {
 func TestServer_RejectsNonPostMethods(t *testing.T) {
 	t.Parallel()
 
-	server := preconf.NewServer(noop.NewLogger[any](), nil, nil, nil, nil, 0, metrics.NewNoOpTelemetrySink())
+	server := preconf.NewServer(noop.NewLogger[any](), nil, nil, nil, nil, 0, preconf.TLSPaths{}, metrics.NewNoOpTelemetrySink())
 
 	for _, method := range []string{http.MethodGet, http.MethodPut, http.MethodDelete} {
 		req := httptest.NewRequest(method, preconf.PayloadEndpoint, nil)
@@ -268,7 +281,7 @@ func TestServer_OnSIGHUP(t *testing.T) {
 	wl, err := preconf.NewWhitelist(tmpFile)
 	require.NoError(t, err)
 
-	server := preconf.NewServer(noop.NewLogger[any](), nil, wl, nil, nil, 0, metrics.NewNoOpTelemetrySink())
+	server := preconf.NewServer(noop.NewLogger[any](), nil, wl, nil, nil, 0, preconf.TLSPaths{}, metrics.NewNoOpTelemetrySink())
 
 	require.True(t, wl.IsWhitelisted(pkA))
 	require.False(t, wl.IsWhitelisted(pkB))
@@ -412,6 +425,7 @@ func TestServer_MetricsLabels(t *testing.T) {
 				tracker,
 				&mockPayloadProvider{hasPayload: tt.hasPayload, returnErr: tt.providerErr},
 				0,
+				preconf.TLSPaths{},
 				sink,
 			)
 
@@ -432,4 +446,332 @@ func TestServer_MetricsLabels(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestConfig_Validate checks the TLS config rules enforced at startup: cert and
+// key must be set together, and a pinned CA requires an https sequencer URL.
+func TestConfig_Validate(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		cfg     preconf.Config
+		wantErr string
+	}{
+		{
+			name: "both TLS paths set is valid",
+			cfg:  preconf.Config{TLSCertPath: "/cert.pem", TLSKeyPath: "/key.pem"},
+		},
+		{
+			name: "neither TLS path set is valid",
+			cfg:  preconf.Config{},
+		},
+		{
+			name:    "only cert path set",
+			cfg:     preconf.Config{TLSCertPath: "/cert.pem"},
+			wantErr: "tls-cert-path and tls-key-path must both be set or both be empty",
+		},
+		{
+			name:    "only key path set",
+			cfg:     preconf.Config{TLSKeyPath: "/key.pem"},
+			wantErr: "tls-cert-path and tls-key-path must both be set or both be empty",
+		},
+		{
+			name:    "CA cert without sequencer URL",
+			cfg:     preconf.Config{SequencerCACertPath: "/ca.pem"},
+			wantErr: "sequencer-ca-cert-path requires sequencer-url to be set",
+		},
+		{
+			name:    "CA cert with http URL",
+			cfg:     preconf.Config{SequencerCACertPath: "/ca.pem", SequencerURL: "http://seq:9090"},
+			wantErr: "sequencer-url must use https:// scheme",
+		},
+		{
+			name: "CA cert with https URL is valid",
+			cfg:  preconf.Config{SequencerCACertPath: "/ca.pem", SequencerURL: "https://seq:9090"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			err := tt.cfg.Validate()
+			if tt.wantErr != "" {
+				require.ErrorContains(t, err, tt.wantErr)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+// TestConfig_TLSEnabled checks that TLS counts as enabled only when both the
+// cert and key paths are present.
+func TestConfig_TLSEnabled(t *testing.T) {
+	t.Parallel()
+
+	require.False(t, (&preconf.Config{}).TLSEnabled())
+	require.False(t, (&preconf.Config{TLSCertPath: "/cert.pem"}).TLSEnabled())
+	require.False(t, (&preconf.Config{TLSKeyPath: "/key.pem"}).TLSEnabled())
+	require.True(t, (&preconf.Config{TLSCertPath: "/cert.pem", TLSKeyPath: "/key.pem"}).TLSEnabled())
+}
+
+// TestServer_TLS_RejectsPlaintext asserts that once TLS is configured the server
+// only speaks HTTPS: a plaintext HTTP request to the same port fails.
+func TestServer_TLS_RejectsPlaintext(t *testing.T) {
+	t.Parallel()
+
+	certPath, keyPath := generateSelfSignedCert(t)
+	port := freePort(t)
+
+	server := preconf.NewServer(
+		noop.NewLogger[any](),
+		nil,
+		newTestWhitelist(t, pubkeyAHex),
+		preconf.NewProposerTracker(),
+		&mockPayloadProvider{},
+		port,
+		preconf.TLSPaths{Cert: certPath, Key: keyPath},
+		metrics.NewNoOpTelemetrySink(),
+	)
+	require.NoError(t, server.Start(t.Context()))
+	t.Cleanup(func() { _ = server.Stop() })
+
+	addr := fmt.Sprintf("127.0.0.1:%d", port)
+	// Confirm the TLS listener is up before probing with plaintext, so the
+	// failure below is a plaintext rejection and not a connection-refused race.
+	require.NotEmpty(t, fetchServedCert(t, addr))
+
+	// Send a plaintext HTTP request to the TLS port. The server speaks TLS and
+	// never falls back to cleartext (no dual-mode listener).
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "http://"+addr+preconf.HealthEndpoint, nil)
+	require.NoError(t, err)
+	client := &http.Client{Timeout: 2 * time.Second}
+	resp, err := client.Do(req)
+	if resp != nil {
+		defer resp.Body.Close()
+	}
+	// Go's TLS server answers a cleartext request with a 400 ("client sent an
+	// HTTP request to an HTTPS server") rather than a transport error. Either a
+	// transport error or a non-200 response proves plaintext was not served.
+	if err == nil {
+		require.NotEqual(t, http.StatusOK, resp.StatusCode,
+			"plaintext request to a TLS-only server must not be served")
+	}
+}
+
+// generateSelfSignedCert creates a self-signed cert/key pair in a temp directory.
+func generateSelfSignedCert(t *testing.T) (string, string) {
+	t.Helper()
+	dir := t.TempDir()
+	certPath := filepath.Join(dir, "cert.pem")
+	keyPath := filepath.Join(dir, "key.pem")
+	writeSelfSignedCert(t, certPath, keyPath)
+	return certPath, keyPath
+}
+
+// writeSelfSignedCert writes a fresh self-signed cert/key pair to the given
+// paths. Each call generates a new key, so the resulting cert differs from any
+// prior one written to the same paths (useful for exercising rotation).
+func writeSelfSignedCert(t *testing.T, certPath, keyPath string) {
+	t.Helper()
+
+	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	require.NoError(t, err)
+
+	template := &x509.Certificate{
+		SerialNumber:          big.NewInt(time.Now().UnixNano()),
+		Subject:               pkix.Name{Organization: []string{"test"}},
+		NotBefore:             time.Now(),
+		NotAfter:              time.Now().Add(time.Hour),
+		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+		BasicConstraintsValid: true,
+		IsCA:                  true,
+		// SAN so a pinned client verifying against 127.0.0.1 / localhost passes.
+		IPAddresses: []net.IP{net.ParseIP("127.0.0.1")},
+		DNSNames:    []string{"localhost"},
+	}
+
+	certDER, err := x509.CreateCertificate(rand.Reader, template, template, &key.PublicKey, key)
+	require.NoError(t, err)
+
+	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certDER})
+	require.NoError(t, os.WriteFile(certPath, certPEM, 0o600))
+
+	keyDER, err := x509.MarshalECPrivateKey(key)
+	require.NoError(t, err)
+	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: keyDER})
+	require.NoError(t, os.WriteFile(keyPath, keyPEM, 0o600))
+}
+
+// freePort returns a TCP port that is free at the time of the call.
+func freePort(t *testing.T) int {
+	t.Helper()
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	tcpAddr, ok := ln.Addr().(*net.TCPAddr)
+	require.True(t, ok)
+	require.NoError(t, ln.Close())
+	return tcpAddr.Port
+}
+
+// fetchServedCert dials the TLS server and returns the DER bytes of the leaf
+// certificate it presents. It retries until the server is accepting.
+func fetchServedCert(t *testing.T, addr string) []byte {
+	t.Helper()
+	var raw []byte
+	require.Eventually(t, func() bool {
+		// InsecureSkipVerify: the test inspects the served cert rather than verifying it.
+		conn, err := tls.Dial("tcp", addr, &tls.Config{InsecureSkipVerify: true})
+		if err != nil {
+			return false
+		}
+		defer conn.Close()
+		certs := conn.ConnectionState().PeerCertificates
+		if len(certs) == 0 {
+			return false
+		}
+		raw = certs[0].Raw
+		return true
+	}, 2*time.Second, 20*time.Millisecond)
+	return raw
+}
+
+// TestServer_TLS_CertReload verifies SIGHUP swaps the served certificate: after
+// rotating the cert files on disk, the server presents a different cert.
+func TestServer_TLS_CertReload(t *testing.T) {
+	t.Parallel()
+
+	certPath, keyPath := generateSelfSignedCert(t)
+	port := freePort(t)
+
+	server := preconf.NewServer(
+		noop.NewLogger[any](),
+		nil,
+		newTestWhitelist(t, pubkeyAHex),
+		preconf.NewProposerTracker(),
+		&mockPayloadProvider{},
+		port,
+		preconf.TLSPaths{Cert: certPath, Key: keyPath},
+		metrics.NewNoOpTelemetrySink(),
+	)
+	require.NoError(t, server.Start(t.Context()))
+	t.Cleanup(func() { _ = server.Stop() })
+
+	addr := fmt.Sprintf("127.0.0.1:%d", port)
+	before := fetchServedCert(t, addr)
+	require.NotEmpty(t, before)
+
+	// Rotate the cert on the same paths and signal a reload.
+	writeSelfSignedCert(t, certPath, keyPath)
+	server.OnSIGHUP()
+
+	after := fetchServedCert(t, addr)
+	require.NotEqual(t, before, after, "served cert should change after SIGHUP reload")
+}
+
+// TestServer_TLS_CertReload_KeepsOldOnError verifies a SIGHUP reload of a corrupt
+// cert file is ignored, leaving the previously served cert in place.
+func TestServer_TLS_CertReload_KeepsOldOnError(t *testing.T) {
+	t.Parallel()
+
+	certPath, keyPath := generateSelfSignedCert(t)
+	port := freePort(t)
+
+	server := preconf.NewServer(
+		noop.NewLogger[any](),
+		nil,
+		newTestWhitelist(t, pubkeyAHex),
+		preconf.NewProposerTracker(),
+		&mockPayloadProvider{},
+		port,
+		preconf.TLSPaths{Cert: certPath, Key: keyPath},
+		metrics.NewNoOpTelemetrySink(),
+	)
+	require.NoError(t, server.Start(t.Context()))
+	t.Cleanup(func() { _ = server.Stop() })
+
+	addr := fmt.Sprintf("127.0.0.1:%d", port)
+	before := fetchServedCert(t, addr)
+	require.NotEmpty(t, before)
+
+	// A corrupt cert file must not break the listener: keep the old cert.
+	require.NoError(t, os.WriteFile(certPath, []byte("not a certificate"), 0o600))
+	server.OnSIGHUP()
+
+	after := fetchServedCert(t, addr)
+	require.Equal(t, before, after, "served cert should be unchanged after a failed reload")
+}
+
+// TestServer_TLS_ClientPinning verifies CA pinning end to end: a client pinned to
+// the server's cert connects, while one pinned to a different CA is rejected.
+func TestServer_TLS_ClientPinning(t *testing.T) {
+	t.Parallel()
+
+	certPath, keyPath := generateSelfSignedCert(t)
+	port := freePort(t)
+
+	server := preconf.NewServer(
+		noop.NewLogger[any](),
+		nil,
+		newTestWhitelist(t, pubkeyAHex),
+		preconf.NewProposerTracker(),
+		&mockPayloadProvider{},
+		port,
+		preconf.TLSPaths{Cert: certPath, Key: keyPath},
+		metrics.NewNoOpTelemetrySink(),
+	)
+	require.NoError(t, server.Start(t.Context()))
+	t.Cleanup(func() { _ = server.Stop() })
+
+	url := fmt.Sprintf("https://127.0.0.1:%d", port)
+	secret, err := jwt.NewFromHex(secretAHex)
+	require.NoError(t, err)
+
+	// A client pinned to the server's own cert trusts it. The health check
+	// succeeds once the listener is accepting (retried to absorb startup).
+	pinnedPool, err := preconf.LoadCACert(certPath)
+	require.NoError(t, err)
+	pinnedClient := preconf.NewClient(noop.NewLogger[any](), url, secret, 2*time.Second, pinnedPool)
+	require.Eventually(t, func() bool {
+		return pinnedClient.CheckHealth(t.Context()) == nil
+	}, 2*time.Second, 20*time.Millisecond, "pinned client should trust the server's cert")
+
+	// A client pinned to a different CA rejects the server's cert. The server is
+	// already up (the pinned check passed), so this fails at cert verification
+	// rather than connection setup.
+	otherCertPath, _ := generateSelfSignedCert(t)
+	otherPool, err := preconf.LoadCACert(otherCertPath)
+	require.NoError(t, err)
+	otherClient := preconf.NewClient(noop.NewLogger[any](), url, secret, 2*time.Second, otherPool)
+	err = otherClient.CheckHealth(t.Context())
+	require.ErrorContains(t, err, "certificate signed by unknown authority")
+}
+
+// TestServer_Start_BindFailure verifies a bind failure (port already in use)
+// fails Start synchronously instead of leaving a dead endpoint behind.
+func TestServer_Start_BindFailure(t *testing.T) {
+	t.Parallel()
+
+	// Occupy a port on all interfaces, matching what Start binds (":<port>").
+	occupied, err := net.Listen("tcp", ":0")
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = occupied.Close() })
+	tcpAddr, ok := occupied.Addr().(*net.TCPAddr)
+	require.True(t, ok)
+
+	server := preconf.NewServer(
+		noop.NewLogger[any](),
+		nil,
+		newTestWhitelist(t, pubkeyAHex),
+		preconf.NewProposerTracker(),
+		&mockPayloadProvider{},
+		tcpAddr.Port,
+		preconf.TLSPaths{},
+		metrics.NewNoOpTelemetrySink(),
+	)
+	t.Cleanup(func() { _ = server.Stop() })
+
+	require.Error(t, server.Start(t.Context()), "Start should fail when the port is already in use")
 }

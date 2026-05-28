@@ -84,6 +84,9 @@ const (
 	PreconfAPIPort             = preconfRoot + "api-port"
 	PreconfSequencerURL        = preconfRoot + "sequencer-url"
 	PreconfSequencerJWT        = preconfRoot + "sequencer-jwt-path"
+	PreconfTLSCertPath         = preconfRoot + "tls-cert-path"
+	PreconfTLSKeyPath          = preconfRoot + "tls-key-path"
+	PreconfSequencerCACert     = preconfRoot + "sequencer-ca-cert-path"
 	PreconfFetchTimeout        = preconfRoot + "fetch-timeout"
 	PreconfHealthCheckInterval = preconfRoot + "health-check-interval"
 
@@ -215,6 +218,16 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 		"preconf API server port (sequencer only)",
 	)
 	startCmd.Flags().String(
+		PreconfTLSCertPath,
+		defaultCfg.Preconf.TLSCertPath,
+		"path to TLS certificate for preconf API server (sequencer only)",
+	)
+	startCmd.Flags().String(
+		PreconfTLSKeyPath,
+		defaultCfg.Preconf.TLSKeyPath,
+		"path to TLS private key for preconf API server (sequencer only)",
+	)
+	startCmd.Flags().String(
 		PreconfSequencerURL,
 		defaultCfg.Preconf.SequencerURL,
 		"URL of the sequencer's preconf API endpoint",
@@ -223,6 +236,11 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 		PreconfSequencerJWT,
 		defaultCfg.Preconf.SequencerJWTPath,
 		"path to JWT secret for authenticating with sequencer",
+	)
+	startCmd.Flags().String(
+		PreconfSequencerCACert,
+		defaultCfg.Preconf.SequencerCACertPath,
+		"path to CA certificate for verifying the sequencer's TLS cert (optional)",
 	)
 	startCmd.Flags().Duration(
 		PreconfFetchTimeout,
