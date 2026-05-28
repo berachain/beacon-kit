@@ -25,6 +25,7 @@ import (
 	"sync/atomic"
 
 	"github.com/berachain/beacon-kit/beacon/preconf"
+	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 )
@@ -43,6 +44,9 @@ type Service struct {
 	blobFactory BlobFactory
 	// sb is the beacon state backend.
 	sb StorageBackend
+	// depositContract is the contract interface for interacting with the
+	// deposit contract.
+	depositContract deposit.Contract
 	// stateProcessor is responsible for processing the state.
 	stateProcessor StateProcessor
 	// localPayloadBuilder represents the local block builder, this builder
@@ -76,6 +80,7 @@ func NewService(
 	logger log.Logger,
 	chainSpec ChainSpec,
 	sb StorageBackend,
+	depositContract deposit.Contract,
 	stateProcessor StateProcessor,
 	signer crypto.BLSSigner,
 	blobFactory BlobFactory,
@@ -89,6 +94,7 @@ func NewService(
 		cfg:                 cfg,
 		logger:              logger,
 		sb:                  sb,
+		depositContract:     depositContract,
 		chainSpec:           chainSpec,
 		signer:              signer,
 		stateProcessor:      stateProcessor,
@@ -114,9 +120,7 @@ func (s *Service) Name() string {
 	return "validator"
 }
 
-func (s *Service) Start(
-	_ context.Context,
-) error {
+func (s *Service) Start(context.Context) error {
 	return nil
 }
 

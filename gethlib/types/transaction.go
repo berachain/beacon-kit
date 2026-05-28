@@ -25,6 +25,7 @@ import (
 	"errors"
 	"math/big"
 	"sync/atomic"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
@@ -35,6 +36,16 @@ import (
 type TxData interface {
 	txType() byte // returns the type ID
 
+	accessList() AccessList
+	data() []byte
+	gas() uint64
+	gasFeeCap() *big.Int
+	gasPrice() *big.Int
+	gasTipCap() *big.Int
+	nonce() uint64
+	to() *common.Address
+	value() *big.Int
+
 	encode(*bytes.Buffer) error
 	decode([]byte) error
 }
@@ -43,9 +54,30 @@ type TxData interface {
 // for the BRIP-0004 PoL transaction type.
 type Transaction struct {
 	inner TxData // Consensus contents of a transaction
+	time  time.Time
 
 	// cache
 	hash atomic.Pointer[common.Hash]
+	from atomic.Pointer[sigCache]
+}
+
+// AccessList returns the access list of the transaction.
+func (tx *Transaction) AccessList() AccessList { return tx.inner.accessList() }
+
+// BlobGas returns the blob gas limit of the transaction for blob transactions, 0 otherwise.
+func (tx *Transaction) BlobGas() uint64 {
+	if blobtx, ok := tx.inner.(*BlobTx); ok {
+		return blobtx.blobGas()
+	}
+	return 0
+}
+
+// BlobGasFeeCap returns the blob gas fee cap per blob gas of the transaction for blob transactions, nil otherwise.
+func (tx *Transaction) BlobGasFeeCap() *big.Int {
+	if blobtx, ok := tx.inner.(*BlobTx); ok {
+		return blobtx.BlobFeeCap.ToBig()
+	}
+	return nil
 }
 
 // BlobHashes returns the hashes of the blob commitments for blob transactions, nil otherwise.
@@ -55,6 +87,29 @@ func (tx *Transaction) BlobHashes() []common.Hash {
 	}
 	return nil
 }
+
+// BlobTxSidecar returns the sidecar of a blob transaction, nil otherwise.
+func (tx *Transaction) BlobTxSidecar() *BlobTxSidecar {
+	if blobtx, ok := tx.inner.(*BlobTx); ok {
+		return blobtx.Sidecar
+	}
+	return nil
+}
+
+// Data returns the input data of the transaction.
+func (tx *Transaction) Data() []byte { return tx.inner.data() }
+
+// Gas returns the gas limit of the transaction.
+func (tx *Transaction) Gas() uint64 { return tx.inner.gas() }
+
+// GasFeeCap returns the fee cap per gas of the transaction.
+func (tx *Transaction) GasFeeCap() *big.Int { return new(big.Int).Set(tx.inner.gasFeeCap()) }
+
+// GasPrice returns the gas price of the transaction.
+func (tx *Transaction) GasPrice() *big.Int { return new(big.Int).Set(tx.inner.gasPrice()) }
+
+// GasTipCap returns the gasTipCap per gas of the transaction.
+func (tx *Transaction) GasTipCap() *big.Int { return new(big.Int).Set(tx.inner.gasTipCap()) }
 
 // Hash returns the transaction hash.
 func (tx *Transaction) Hash() common.Hash {
@@ -72,10 +127,8 @@ func (tx *Transaction) Hash() common.Hash {
 	return h
 }
 
-// Type returns the transaction type.
-func (tx *Transaction) Type() uint8 {
-	return tx.inner.txType()
-}
+// Nonce returns the sender account nonce of the transaction.
+func (tx *Transaction) Nonce() uint64 { return tx.inner.nonce() }
 
 // RawSignatureValues returns the transaction signature values.
 // PoL transactions intentionally return nil values because they are unsigned.
@@ -101,6 +154,23 @@ func (tx *Transaction) RawSignatureValues() (*big.Int, *big.Int, *big.Int) {
 		return nil, nil, nil
 	}
 }
+
+// Time returns the time when the transaction was first seen locally.
+func (tx *Transaction) Time() time.Time { return tx.time }
+
+// To returns the recipient address of the transaction.
+// For contract-creation transactions, To returns nil.
+func (tx *Transaction) To() *common.Address {
+	return copyAddressPtr(tx.inner.to())
+}
+
+// Type returns the transaction type.
+func (tx *Transaction) Type() uint8 {
+	return tx.inner.txType()
+}
+
+// Value returns the ether amount of the transaction.
+func (tx *Transaction) Value() *big.Int { return new(big.Int).Set(tx.inner.value()) }
 
 // MarshalBinary returns the canonical encoding of the transaction.
 // For legacy transactions, it returns the RLP encoding. For EIP-2718 typed
@@ -169,7 +239,9 @@ func (tx *Transaction) decodeTyped(b []byte) (TxData, error) {
 // setDecoded sets the inner transaction and clears hash cache.
 func (tx *Transaction) setDecoded(inner TxData) {
 	tx.inner = inner
+	tx.time = time.Now()
 	tx.hash.Store(nil)
+	tx.from.Store(nil)
 }
 
 // Transactions implements DerivableList for transactions.
@@ -188,4 +260,13 @@ func (s Transactions) EncodeIndex(i int, w *bytes.Buffer) {
 	} else {
 		_ = tx.encodeTyped(w)
 	}
+}
+
+// copyAddressPtr copies an address.
+func copyAddressPtr(a *common.Address) *common.Address {
+	if a == nil {
+		return nil
+	}
+	cpy := *a
+	return &cpy
 }

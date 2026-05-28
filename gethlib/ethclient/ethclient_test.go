@@ -23,8 +23,10 @@ package ethclient_test
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"math/big"
 	"strings"
+	"sync/atomic"
 	"testing"
 
 	beraclient "github.com/berachain/beacon-kit/gethlib/ethclient"
@@ -123,6 +125,60 @@ func TestTransactionInBlockWithPoLTransaction(t *testing.T) {
 	}
 }
 
+func TestBlockByNumberCachesSenderFromServer(t *testing.T) {
+	t.Parallel()
+
+	client := newMockClientWithService(t, &senderCacheMockEthService{})
+	block, err := client.BlockByNumber(t.Context(), big.NewInt(2))
+	if err != nil {
+		t.Fatalf("BlockByNumber returned error: %v", err)
+	}
+
+	sender, err := client.TransactionSender(t.Context(), block.Transactions()[0], testBlockHash, 0)
+	if err != nil {
+		t.Fatalf("TransactionSender returned error: %v", err)
+	}
+	if sender != testFrom {
+		t.Fatalf("unexpected sender: got %s want %s", sender, testFrom)
+	}
+}
+
+func TestTransactionByHashCachesSenderFromServer(t *testing.T) {
+	t.Parallel()
+
+	client := newMockClientWithService(t, &senderCacheMockEthService{})
+	tx, _, err := client.TransactionByHash(t.Context(), testTxHash)
+	if err != nil {
+		t.Fatalf("TransactionByHash returned error: %v", err)
+	}
+
+	sender, err := client.TransactionSender(t.Context(), tx, testBlockHash, 0)
+	if err != nil {
+		t.Fatalf("TransactionSender returned error: %v", err)
+	}
+	if sender != testFrom {
+		t.Fatalf("unexpected sender: got %s want %s", sender, testFrom)
+	}
+}
+
+func TestTransactionInBlockCachesSenderFromServer(t *testing.T) {
+	t.Parallel()
+
+	client := newMockClientWithService(t, &transactionInBlockSenderCacheService{})
+	tx, err := client.TransactionInBlock(t.Context(), testBlockHash, 0)
+	if err != nil {
+		t.Fatalf("TransactionInBlock returned error: %v", err)
+	}
+
+	sender, err := client.TransactionSender(t.Context(), tx, testBlockHash, 0)
+	if err != nil {
+		t.Fatalf("TransactionSender returned error: %v", err)
+	}
+	if sender != testFrom {
+		t.Fatalf("unexpected sender: got %s want %s", sender, testFrom)
+	}
+}
+
 type mockEthService struct{}
 
 func (s *mockEthService) GetBlockByNumber(ctx context.Context, number string, fullTx bool) (json.RawMessage, error) {
@@ -158,9 +214,14 @@ func (s *mockEthService) GetTransactionByBlockHashAndIndex(
 
 func newMockClient(t *testing.T) *beraclient.Client {
 	t.Helper()
+	return newMockClientWithService(t, &mockEthService{})
+}
+
+func newMockClientWithService(t *testing.T, service any) *beraclient.Client {
+	t.Helper()
 
 	srv := rpc.NewServer()
-	if err := srv.RegisterName("eth", &mockEthService{}); err != nil {
+	if err := srv.RegisterName("eth", service); err != nil {
 		t.Fatalf("failed to register mock service: %v", err)
 	}
 	rpcClient := rpc.DialInProc(srv)
@@ -170,6 +231,41 @@ func newMockClient(t *testing.T) *beraclient.Client {
 		srv.Stop()
 	})
 	return client
+}
+
+type senderCacheMockEthService struct {
+	mockEthService
+}
+
+func (s *senderCacheMockEthService) GetTransactionByBlockHashAndIndex(
+	ctx context.Context,
+	blockHash gethcommon.Hash,
+	index string,
+) (json.RawMessage, error) {
+	_ = s
+	_ = ctx
+	_ = blockHash
+	_ = index
+	return nil, errors.New("unexpected sender fallback RPC")
+}
+
+type transactionInBlockSenderCacheService struct {
+	mockEthService
+	calls atomic.Uint32
+}
+
+func (s *transactionInBlockSenderCacheService) GetTransactionByBlockHashAndIndex(
+	ctx context.Context,
+	blockHash gethcommon.Hash,
+	index string,
+) (json.RawMessage, error) {
+	_ = ctx
+	_ = blockHash
+	_ = index
+	if s.calls.Add(1) == 1 {
+		return mockTransactionJSON(), nil
+	}
+	return nil, errors.New("unexpected sender fallback RPC")
 }
 
 func mockTransactionJSON() json.RawMessage {
