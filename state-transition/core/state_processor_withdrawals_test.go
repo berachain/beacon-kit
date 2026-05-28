@@ -557,8 +557,8 @@ func TestWithdrawalRequestsNonGenesisValidators(t *testing.T) {
 		st,
 		types.NewEth1Data(depRoot),
 		10,
-		blkDeposits,
-		&types.ExecutionRequests{},
+		[]*types.Deposit{},
+		&types.ExecutionRequests{Deposits: blkDeposits},
 		st.EVMInflationWithdrawal(10),
 	)
 
@@ -836,8 +836,8 @@ func TestConcurrentAutomaticAndVoluntaryWithdrawalRequests(t *testing.T) {
 		st,
 		types.NewEth1Data(depRoot),
 		blkTimestamp,
-		blkDeposits,
-		&types.ExecutionRequests{},
+		[]*types.Deposit{},
+		&types.ExecutionRequests{Deposits: blkDeposits},
 		st.EVMInflationWithdrawal(blkTimestamp),
 	)
 
@@ -1308,8 +1308,8 @@ func TestValidatorNotWithdrawable(t *testing.T) {
 		st,
 		types.NewEth1Data(depRoot),
 		10,
-		blkDeposits,
-		&types.ExecutionRequests{},
+		[]*types.Deposit{},
+		&types.ExecutionRequests{Deposits: blkDeposits},
 		st.EVMInflationWithdrawal(10),
 	)
 

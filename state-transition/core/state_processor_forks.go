@@ -103,10 +103,6 @@ func (sp *StateProcessor) ProcessFork(
 			return err
 		}
 
-		if err = sp.processElectra1Fixes(st); err != nil {
-			return err
-		}
-
 		// Log the upgrade to Electra1 if requested.
 		if logUpgrade {
 			sp.logElectra1Fork(stateFork.PreviousVersion, timestamp, slot)
@@ -235,6 +231,7 @@ func (sp *StateProcessor) logElectraFork(
 // 2.0 spec (https://ethereum.github.io/consensus-specs/specs/electra/fork/#upgrading-the-state) to:
 //   - update the Fork struct in the BeaconState
 //   - initialize the pending partial withdrawals to an empty array (if not already initialized)
+//   - process the Electra1 special fixes on Berachain mainnet
 func (sp *StateProcessor) upgradeToElectra1(
 	st *statedb.StateDB, fork *types.Fork, slot math.Slot,
 ) error {
@@ -249,10 +246,13 @@ func (sp *StateProcessor) upgradeToElectra1(
 	// Initialize the pending partial withdrawals to an empty array if not already initialized.
 	if _, err := st.GetPendingPartialWithdrawals(); errors.Is(err, collections.ErrNotFound) {
 		sp.metrics.gaugePartialWithdrawalsEnqueued(0)
-		return st.SetPendingPartialWithdrawals([]*types.PendingPartialWithdrawal{})
+		if setErr := st.SetPendingPartialWithdrawals([]*types.PendingPartialWithdrawal{}); setErr != nil {
+			return setErr
+		}
 	}
 
-	return nil
+	// Process the Electra1 fixes.
+	return sp.processElectra1Fixes(st)
 }
 
 // logElectra1Fork logs information about the Electra1 fork.
@@ -296,7 +296,9 @@ func (sp *StateProcessor) upgradeToFulu(
 	// This handles the case where the chain starts directly on Fulu (e.g., devnet).
 	if _, err := st.GetPendingPartialWithdrawals(); errors.Is(err, collections.ErrNotFound) {
 		sp.metrics.gaugePartialWithdrawalsEnqueued(0)
-		return st.SetPendingPartialWithdrawals([]*types.PendingPartialWithdrawal{})
+		if setErr := st.SetPendingPartialWithdrawals([]*types.PendingPartialWithdrawal{}); setErr != nil {
+			return setErr
+		}
 	}
 
 	return nil

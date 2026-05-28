@@ -29,12 +29,19 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto/kzg4844"
+	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/holiman/uint256"
 )
 
 // BRIP-0004 PoL transaction type.
 const PoLTxType = 0x7E
+
+// AccessList is an EIP-2930 access list.
+type AccessList = coretypes.AccessList
+
+// BlobTxSidecar contains the blobs of a blob transaction.
+type BlobTxSidecar = coretypes.BlobTxSidecar
 
 // AccessListTx is the data of EIP-2930 access list transactions.
 type AccessListTx struct {
@@ -49,7 +56,16 @@ type AccessListTx struct {
 	V, R, S    *big.Int             // signature values
 }
 
-func (tx *AccessListTx) txType() byte { return coretypes.AccessListTxType }
+func (tx *AccessListTx) accessList() AccessList { return tx.AccessList }
+func (tx *AccessListTx) data() []byte           { return tx.Data }
+func (tx *AccessListTx) gas() uint64            { return tx.Gas }
+func (tx *AccessListTx) gasFeeCap() *big.Int    { return tx.GasPrice }
+func (tx *AccessListTx) gasPrice() *big.Int     { return tx.GasPrice }
+func (tx *AccessListTx) gasTipCap() *big.Int    { return tx.GasPrice }
+func (tx *AccessListTx) nonce() uint64          { return tx.Nonce }
+func (tx *AccessListTx) to() *common.Address    { return tx.To }
+func (tx *AccessListTx) txType() byte           { return coretypes.AccessListTxType }
+func (tx *AccessListTx) value() *big.Int        { return tx.Value }
 
 func (tx *AccessListTx) encode(b *bytes.Buffer) error {
 	return rlp.Encode(b, tx)
@@ -83,7 +99,19 @@ type BlobTx struct {
 	S *uint256.Int
 }
 
-func (tx *BlobTx) txType() byte { return coretypes.BlobTxType }
+func (tx *BlobTx) accessList() AccessList { return tx.AccessList }
+func (tx *BlobTx) blobGas() uint64 {
+	return params.BlobTxBlobGasPerBlob * uint64(len(tx.BlobHashes))
+}
+func (tx *BlobTx) data() []byte        { return tx.Data }
+func (tx *BlobTx) gas() uint64         { return tx.Gas }
+func (tx *BlobTx) gasFeeCap() *big.Int { return tx.GasFeeCap.ToBig() }
+func (tx *BlobTx) gasPrice() *big.Int  { return tx.GasFeeCap.ToBig() }
+func (tx *BlobTx) gasTipCap() *big.Int { return tx.GasTipCap.ToBig() }
+func (tx *BlobTx) nonce() uint64       { return tx.Nonce }
+func (tx *BlobTx) to() *common.Address { tmp := tx.To; return &tmp }
+func (tx *BlobTx) txType() byte        { return coretypes.BlobTxType }
+func (tx *BlobTx) value() *big.Int     { return tx.Value.ToBig() }
 
 func (tx *BlobTx) encode(b *bytes.Buffer) error {
 	switch {
@@ -250,7 +278,16 @@ type DynamicFeeTx struct {
 	S *big.Int
 }
 
-func (tx *DynamicFeeTx) txType() byte { return coretypes.DynamicFeeTxType }
+func (tx *DynamicFeeTx) accessList() AccessList { return tx.AccessList }
+func (tx *DynamicFeeTx) data() []byte           { return tx.Data }
+func (tx *DynamicFeeTx) gas() uint64            { return tx.Gas }
+func (tx *DynamicFeeTx) gasFeeCap() *big.Int    { return tx.GasFeeCap }
+func (tx *DynamicFeeTx) gasPrice() *big.Int     { return tx.GasFeeCap }
+func (tx *DynamicFeeTx) gasTipCap() *big.Int    { return tx.GasTipCap }
+func (tx *DynamicFeeTx) nonce() uint64          { return tx.Nonce }
+func (tx *DynamicFeeTx) to() *common.Address    { return tx.To }
+func (tx *DynamicFeeTx) txType() byte           { return coretypes.DynamicFeeTxType }
+func (tx *DynamicFeeTx) value() *big.Int        { return tx.Value }
 
 func (tx *DynamicFeeTx) encode(b *bytes.Buffer) error {
 	return rlp.Encode(b, tx)
@@ -271,7 +308,16 @@ type LegacyTx struct {
 	V, R, S  *big.Int        // signature values
 }
 
-func (tx *LegacyTx) txType() byte { return coretypes.LegacyTxType }
+func (*LegacyTx) accessList() AccessList { return nil }
+func (tx *LegacyTx) data() []byte        { return tx.Data }
+func (tx *LegacyTx) gas() uint64         { return tx.Gas }
+func (tx *LegacyTx) gasFeeCap() *big.Int { return tx.GasPrice }
+func (tx *LegacyTx) gasPrice() *big.Int  { return tx.GasPrice }
+func (tx *LegacyTx) gasTipCap() *big.Int { return tx.GasPrice }
+func (tx *LegacyTx) nonce() uint64       { return tx.Nonce }
+func (tx *LegacyTx) to() *common.Address { return tx.To }
+func (tx *LegacyTx) txType() byte        { return coretypes.LegacyTxType }
+func (tx *LegacyTx) value() *big.Int     { return tx.Value }
 
 func (tx *LegacyTx) encode(*bytes.Buffer) error {
 	panic("encode called on LegacyTx")
@@ -292,7 +338,16 @@ type PoLTx struct {
 	Data     []byte         // encodes the pubkey distributing for
 }
 
-func (*PoLTx) txType() byte { return PoLTxType }
+func (*PoLTx) accessList() AccessList { return nil }
+func (tx *PoLTx) data() []byte        { return tx.Data }
+func (tx *PoLTx) gas() uint64         { return tx.GasLimit }
+func (tx *PoLTx) gasFeeCap() *big.Int { return tx.GasPrice }
+func (tx *PoLTx) gasPrice() *big.Int  { return tx.GasPrice }
+func (*PoLTx) gasTipCap() *big.Int    { return common.Big0 }
+func (tx *PoLTx) nonce() uint64       { return tx.Nonce }
+func (tx *PoLTx) to() *common.Address { return &tx.To }
+func (*PoLTx) txType() byte           { return PoLTxType }
+func (*PoLTx) value() *big.Int        { return common.Big0 }
 
 func (tx *PoLTx) encode(b *bytes.Buffer) error {
 	return rlp.Encode(b, tx)
@@ -322,7 +377,16 @@ type SetCodeTx struct {
 	S *uint256.Int
 }
 
-func (tx *SetCodeTx) txType() byte { return coretypes.SetCodeTxType }
+func (tx *SetCodeTx) accessList() AccessList { return tx.AccessList }
+func (tx *SetCodeTx) data() []byte           { return tx.Data }
+func (tx *SetCodeTx) gas() uint64            { return tx.Gas }
+func (tx *SetCodeTx) gasFeeCap() *big.Int    { return tx.GasFeeCap.ToBig() }
+func (tx *SetCodeTx) gasPrice() *big.Int     { return tx.GasFeeCap.ToBig() }
+func (tx *SetCodeTx) gasTipCap() *big.Int    { return tx.GasTipCap.ToBig() }
+func (tx *SetCodeTx) nonce() uint64          { return tx.Nonce }
+func (tx *SetCodeTx) to() *common.Address    { tmp := tx.To; return &tmp }
+func (tx *SetCodeTx) txType() byte           { return coretypes.SetCodeTxType }
+func (tx *SetCodeTx) value() *big.Int        { return tx.Value.ToBig() }
 
 func (tx *SetCodeTx) encode(b *bytes.Buffer) error {
 	return rlp.Encode(b, tx)

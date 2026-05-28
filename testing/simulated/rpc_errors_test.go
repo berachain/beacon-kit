@@ -47,10 +47,12 @@ import (
 )
 
 // HTTP proxy in between beacon node and execution client. When active,
-// replaces responses with specified JSON-RPC error.
+// replaces responses with specified JSON-RPC error. When dropConn is set,
+// hijacks and closes the TCP connection to simulate an unreachable EL.
 type rpcErrorProxy struct {
 	targetURL  string
 	active     atomic.Bool
+	dropConn   atomic.Bool
 	errorCode  int
 	errorMsg   string
 	httpClient *http.Client
@@ -69,8 +71,15 @@ func (p *rpcErrorProxy) activate(code int, msg string) {
 	p.active.Store(true)
 }
 
+// activateDropConn simulates an unreachable EL by dropping the TCP
+// connection on any engine-API request.
+func (p *rpcErrorProxy) activateDropConn() {
+	p.dropConn.Store(true)
+}
+
 func (p *rpcErrorProxy) deactivate() {
 	p.active.Store(false)
+	p.dropConn.Store(false)
 }
 
 func (p *rpcErrorProxy) getErr(reqId json.RawMessage) string {
@@ -88,21 +97,8 @@ func (p *rpcErrorProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	// Check if need interceptor.
-	if p.active.Load() {
-		var req struct {
-			ID     json.RawMessage `json:"id"`
-			Method string          `json:"method"`
-		}
-		if json.Unmarshal(bodyBytes, &req) == nil {
-			// Intercept targeted methods.
-			if isTargetedEngineMethod(req.Method) {
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusOK)
-				_, _ = w.Write([]byte(p.getErr(req.ID)))
-				return
-			}
-		}
+	if p.intercept(w, bodyBytes) {
+		return
 	}
 
 	// Forward original request.
@@ -130,6 +126,45 @@ func (p *rpcErrorProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(resp.StatusCode)
 	_, _ = io.Copy(w, resp.Body)
+}
+
+// intercept reports whether the request should be intercepted and writes
+// the intercepted response to w. Returns true when the request was handled.
+func (p *rpcErrorProxy) intercept(w http.ResponseWriter, bodyBytes []byte) bool {
+	if !p.active.Load() && !p.dropConn.Load() {
+		return false
+	}
+	var req struct {
+		ID     json.RawMessage `json:"id"`
+		Method string          `json:"method"`
+	}
+	if json.Unmarshal(bodyBytes, &req) != nil || !isTargetedEngineMethod(req.Method) {
+		return false
+	}
+	if p.dropConn.Load() {
+		dropTCPConn(w)
+		return true
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte(p.getErr(req.ID)))
+	return true
+}
+
+// dropTCPConn hijacks and closes the TCP connection to simulate an
+// unreachable EL.
+func dropTCPConn(w http.ResponseWriter) {
+	hj, ok := w.(http.Hijacker)
+	if !ok {
+		http.Error(w, "hijack not supported", http.StatusInternalServerError)
+		return
+	}
+	conn, _, err := hj.Hijack()
+	if err != nil {
+		http.Error(w, "hijack failed", http.StatusInternalServerError)
+		return
+	}
+	_ = conn.Close()
 }
 
 func isTargetedEngineMethod(method string) bool {
@@ -284,4 +319,34 @@ func (s *RPCErrorProxySuite) TestFinalizeBlock_HandleRPCError() {
 	s.Require().Error(err, "FinalizeBlock should fail on fatal RPC error")
 	s.Require().Nil(finalizeResp)
 	s.Require().ErrorIs(err, jsonrpc.ErrParse, "Error should be correctly classified")
+}
+
+// TestFinalizeBlock_ConnectionDrop_Recovery shows that when the EL is
+// unreachable (e.g. bera-reth restart) the engine keeps retrying and
+// FinalizeBlock succeeds once the EL comes back.
+func (s *RPCErrorProxySuite) TestFinalizeBlock_ConnectionDrop_Recovery() {
+	pp := s.prepareForFinalize()
+
+	// Simulate the EL going away: next engine-API requests have their TCP
+	// connection dropped.
+	s.errProxy.activateDropConn()
+
+	// Bring the EL back after a short delay so the retry can succeed.
+	go func() {
+		time.Sleep(500 * time.Millisecond)
+		s.errProxy.deactivate()
+	}()
+
+	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.FinalizeBlockRequest{
+		Txs:             pp.txs,
+		Height:          pp.height,
+		ProposerAddress: pp.proposerAddress,
+		Time:            pp.proposalTime,
+	})
+
+	s.Require().NoError(err, "FinalizeBlock should recover after EL comes back")
+	s.Require().NotNil(finalizeResp)
+
+	logs := s.LogBuffer.String()
+	s.Require().Contains(logs, "non fatal error", "Should log non fatal retry attempts")
 }
