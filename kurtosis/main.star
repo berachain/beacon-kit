@@ -43,6 +43,7 @@ def run(plan, network_configuration = {}, node_settings = {}, additional_service
 
     # Get preconf configuration
     preconf_enabled = preconf.get("enabled", False)
+    preconf_tls = preconf.get("tls", False)
 
     plan.print("CHAIN_ID: {}".format(chain_id), "CHAIN_SPEC: {}".format(chain_spec))
 
@@ -125,6 +126,18 @@ def run(plan, network_configuration = {}, node_settings = {}, additional_service
             preconf_cfg.jwt_secrets,
         )
 
+        # Generate an internal CA + signed server cert for the sequencer when TLS
+        # is enabled. The leaf SAN matches the sequencer service name so pinned
+        # validators verify it.
+        tls_ca_cert_artifact = None
+        tls_server_cert_artifact = None
+        tls_server_key_artifact = None
+        if preconf_tls:
+            tls_certs = preconf_config.generate_tls_certs(plan, preconf_cfg.sequencer_service_name)
+            tls_ca_cert_artifact = tls_certs.ca_cert_artifact
+            tls_server_cert_artifact = tls_certs.server_cert_artifact
+            tls_server_key_artifact = tls_certs.server_key_artifact
+
         # Update preconf config with the file artifacts
         preconf_cfg = struct(
             jwt_secrets = preconf_cfg.jwt_secrets,
@@ -135,6 +148,10 @@ def run(plan, network_configuration = {}, node_settings = {}, additional_service
             num_validators = preconf_cfg.num_validators,
             whitelist_file = preconf_files.whitelist_artifact,
             validator_jwts_file = preconf_files.validator_jwts_artifact,
+            tls_enabled = preconf_tls,
+            tls_ca_cert_artifact = tls_ca_cert_artifact,
+            tls_server_cert_artifact = tls_server_cert_artifact,
+            tls_server_key_artifact = tls_server_key_artifact,
         )
 
         plan.print("Preconf configuration created: sequencer={}, {} validators whitelisted".format(

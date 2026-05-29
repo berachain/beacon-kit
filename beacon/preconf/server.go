@@ -22,11 +22,14 @@ package preconf
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
@@ -61,6 +64,18 @@ type PayloadProvider interface {
 	GetPayloadBySlot(ctx context.Context, slot math.Slot, parentBlockRoot common.Root) (ctypes.BuiltExecutionPayloadEnv, error)
 }
 
+// TLSPaths holds the filesystem paths to a TLS certificate and its private key.
+// An empty value means TLS is disabled (plaintext HTTP).
+type TLSPaths struct {
+	Cert string
+	Key  string
+}
+
+// Enabled reports whether both a cert and key path are set.
+func (p TLSPaths) Enabled() bool {
+	return p.Cert != "" && p.Key != ""
+}
+
 // Server is the preconf API server that serves GetPayload requests from validators.
 type Server struct {
 	logger                 log.Logger
@@ -69,7 +84,12 @@ type Server struct {
 	preconfProposerTracker ProposerTracker
 	payloadProvider        PayloadProvider
 	port                   int
+	tlsPaths               TLSPaths
 	metrics                *serverMetrics
+
+	// tlsCert holds the currently-served TLS certificate. It is swapped
+	// atomically on SIGHUP so cert rotation needs no restart.
+	tlsCert atomic.Pointer[tls.Certificate]
 
 	mu         sync.RWMutex
 	httpServer *http.Server
@@ -83,6 +103,7 @@ func NewServer(
 	preconfProposerTracker ProposerTracker,
 	payloadProvider PayloadProvider,
 	port int,
+	tlsPaths TLSPaths,
 	sink TelemetrySink,
 ) *Server {
 	return &Server{
@@ -92,6 +113,7 @@ func NewServer(
 		preconfProposerTracker: preconfProposerTracker,
 		payloadProvider:        payloadProvider,
 		port:                   port,
+		tlsPaths:               tlsPaths,
 		metrics:                newServerMetrics(sink),
 	}
 }
@@ -114,11 +136,40 @@ func (s *Server) Start(_ context.Context) error {
 		ReadHeaderTimeout: serverReadHeaderTimeout,
 	}
 
+	tlsEnabled := s.tlsPaths.Enabled()
+	if tlsEnabled {
+		// Load the cert once up front so a malformed cert/key fails Start
+		// synchronously rather than only logging inside the serve goroutine.
+		if err := s.loadTLSCert(); err != nil {
+			return errors.Wrap(err, "failed to load TLS certificate")
+		}
+		// GetCertificate is consulted on every handshake, so swapping the
+		// stored cert on SIGHUP takes effect without a restart.
+		server.TLSConfig = &tls.Config{
+			MinVersion: tls.VersionTLS12,
+			GetCertificate: func(*tls.ClientHelloInfo) (*tls.Certificate, error) {
+				return s.tlsCert.Load(), nil
+			},
+		}
+	}
+
+	// Bind synchronously so a failure (port in use, permission denied) fails
+	// Start and propagates to the service registry, rather than only logging
+	// inside the serve goroutine with a dead endpoint left behind.
+	ln, err := net.Listen("tcp", addr)
+	if err != nil {
+		return errors.Wrapf(err, "failed to bind preconf API server to %s", addr)
+	}
+
 	s.mu.Lock()
 	s.httpServer = server
 	s.mu.Unlock()
 
-	s.logger.Info("Starting preconf API server", "address", addr, "num_validator_jwts", len(s.validatorJWTs))
+	s.logger.Info("Starting preconf API server",
+		"address", addr,
+		"tls_enabled", tlsEnabled,
+		"num_validator_jwts", len(s.validatorJWTs),
+	)
 
 	// Log the registered validator pubkeys for debugging
 	for pubkey := range s.validatorJWTs {
@@ -126,21 +177,53 @@ func (s *Server) Start(_ context.Context) error {
 	}
 
 	go func() {
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			s.logger.Error("Preconf API server error", "error", err)
+		var serveErr error
+		if tlsEnabled {
+			// Cert and key are supplied via TLSConfig.GetCertificate.
+			serveErr = server.ServeTLS(ln, "", "")
+		} else {
+			serveErr = server.Serve(ln)
+		}
+		// A graceful Stop() makes Serve return http.ErrServerClosed, which is
+		// expected. Anything else is a genuine serve failure worth logging.
+		if serveErr != nil && !errors.Is(serveErr, http.ErrServerClosed) {
+			s.logger.Error("Preconf API server error", "error", serveErr)
 		}
 	}()
 
 	return nil
 }
 
-// OnSIGHUP implements SIGHUPHandler. It hot-reloads the whitelist from disk.
+// OnSIGHUP implements SIGHUPHandler. It hot-reloads the whitelist and, when TLS
+// is configured, the server certificate from disk.
 func (s *Server) OnSIGHUP() {
 	if err := s.whitelist.Reload(); err != nil {
 		s.logger.Error("Failed to reload preconf whitelist", "error", err)
+	} else {
+		s.logger.Info("Preconf whitelist reloaded", "whitelist_count", s.whitelist.Len())
+	}
+
+	if !s.tlsPaths.Enabled() {
 		return
 	}
-	s.logger.Info("Preconf whitelist reloaded", "whitelist_count", s.whitelist.Len())
+	// On a parse failure, keep serving the existing cert rather than break the
+	// listener (same policy as the whitelist reload above).
+	if err := s.loadTLSCert(); err != nil {
+		s.logger.Error("Failed to reload TLS certificate", "error", err)
+		return
+	}
+	s.logger.Info("TLS certificate reloaded", "cert", s.tlsPaths.Cert)
+}
+
+// loadTLSCert reads the cert/key from disk and atomically stores them as the
+// certificate served on subsequent handshakes.
+func (s *Server) loadTLSCert() error {
+	cert, err := tls.LoadX509KeyPair(s.tlsPaths.Cert, s.tlsPaths.Key)
+	if err != nil {
+		return err
+	}
+	s.tlsCert.Store(&cert)
+	return nil
 }
 
 // Stop stops the preconf API server.

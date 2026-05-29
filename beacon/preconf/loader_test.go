@@ -158,3 +158,37 @@ func TestLoadJWTSecret_InvalidSecret(t *testing.T) {
 	_, err = preconf.LoadJWTSecret(tmpFile)
 	require.Error(t, err)
 }
+
+func TestLoadCACert_ValidFile(t *testing.T) {
+	t.Parallel()
+
+	certPath, _ := generateSelfSignedCert(t)
+	pool, err := preconf.LoadCACert(certPath)
+	require.NoError(t, err)
+	require.NotNil(t, pool)
+}
+
+func TestLoadCACert_InvalidPEM(t *testing.T) {
+	t.Parallel()
+
+	tmpFile := filepath.Join(t.TempDir(), "bad.pem")
+	err := os.WriteFile(tmpFile, []byte("not a certificate"), 0o600)
+	require.NoError(t, err)
+
+	_, err = preconf.LoadCACert(tmpFile)
+	require.ErrorContains(t, err, "failed to parse CA certificate")
+}
+
+func TestLoadCACert_EmptyPath(t *testing.T) {
+	t.Parallel()
+
+	_, err := preconf.LoadCACert("")
+	require.ErrorContains(t, err, "CA cert path is empty")
+}
+
+func TestLoadCACert_MissingFile(t *testing.T) {
+	t.Parallel()
+
+	_, err := preconf.LoadCACert("/nonexistent/ca.pem")
+	require.Error(t, err)
+}

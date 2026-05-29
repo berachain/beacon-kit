@@ -93,6 +93,7 @@ func PreconfLoadE2ETestConfig() *E2ETestConfig {
 	}
 	cfg.Preconf = PreconfConfig{
 		Enabled: true,
+		TLS:     true,
 	}
 
 	// Enable flashblock-monitor to subscribe to the sequencer's WS and
