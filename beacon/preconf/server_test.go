@@ -235,6 +235,39 @@ func TestServer_ProposerCheck(t *testing.T) {
 	}
 }
 
+func TestServer_RejectsOversizedRequestBody(t *testing.T) {
+	t.Parallel()
+
+	validatorA, _ := parser.ConvertPubkey(pubkeyAHex)
+	secretA, _ := jwt.NewFromHex(secretAHex)
+
+	server := preconf.NewServer(
+		noop.NewLogger[any](),
+		preconf.ValidatorJWTs{validatorA: secretA},
+		newTestWhitelist(t, pubkeyAHex),
+		preconf.NewProposerTracker(),
+		&mockPayloadProvider{hasPayload: true},
+		0,
+		preconf.TLSPaths{},
+		metrics.NewNoOpTelemetrySink(),
+	)
+
+	// A valid-JSON body well over the 2KB cap: a long string value forces the
+	// decoder to read past the limit, where MaxBytesReader trips. Authenticated
+	// and whitelisted so the request reaches body parsing.
+	body := append([]byte(`{"slot":1,"pad":"`), bytes.Repeat([]byte("a"), 4096)...)
+	body = append(body, '"', '}')
+	req := httptest.NewRequest(http.MethodPost, preconf.PayloadEndpoint, bytes.NewReader(body))
+	token, _ := secretA.BuildSignedToken()
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	rec := httptest.NewRecorder()
+	server.Handler().ServeHTTP(rec, req)
+
+	require.Equal(t, http.StatusRequestEntityTooLarge, rec.Code)
+	require.Contains(t, rec.Body.String(), "request body too large")
+}
+
 func TestServer_RejectsNonPostMethods(t *testing.T) {
 	t.Parallel()
 
@@ -733,7 +766,7 @@ func TestServer_TLS_ClientPinning(t *testing.T) {
 	// succeeds once the listener is accepting (retried to absorb startup).
 	pinnedPool, err := preconf.LoadCACert(certPath)
 	require.NoError(t, err)
-	pinnedClient := preconf.NewClient(noop.NewLogger[any](), url, secret, 2*time.Second, pinnedPool)
+	pinnedClient := preconf.NewClient(noop.NewLogger[any](), url, secret, 2*time.Second, pinnedPool, 0)
 	require.Eventually(t, func() bool {
 		return pinnedClient.CheckHealth(t.Context()) == nil
 	}, 2*time.Second, 20*time.Millisecond, "pinned client should trust the server's cert")
@@ -744,7 +777,7 @@ func TestServer_TLS_ClientPinning(t *testing.T) {
 	otherCertPath, _ := generateSelfSignedCert(t)
 	otherPool, err := preconf.LoadCACert(otherCertPath)
 	require.NoError(t, err)
-	otherClient := preconf.NewClient(noop.NewLogger[any](), url, secret, 2*time.Second, otherPool)
+	otherClient := preconf.NewClient(noop.NewLogger[any](), url, secret, 2*time.Second, otherPool, 0)
 	err = otherClient.CheckHealth(t.Context())
 	require.ErrorContains(t, err, "certificate signed by unknown authority")
 }
