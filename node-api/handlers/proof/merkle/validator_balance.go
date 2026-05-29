@@ -56,9 +56,8 @@ func ProveBalanceInState(
 	leafOffset := validatorIndex / BalancesPerLeaf
 
 	// Calculate the generalized index for the target validator's balance leaf.
-	// The offset multiplication is bounded by the number of validators, so
-	// converting to int is safe on 64-bit architectures.
-	gIndex := zeroBalanceGIndexState + int(leafOffset) // #nosec G115
+	// int conversion is safe on 64-bit architectures: (2^40-1)*8 < 2^43 < 2^63.
+	gIndex := zeroBalanceGIndexState + int(leafOffset) // #nosec G115 -- offset bounded by caller.
 
 	balanceProof, err := stateProofTree.Prove(gIndex)
 	if err != nil {
@@ -82,6 +81,10 @@ func ProveBalanceInBlock(
 	bsm types.BeaconStateMarshallable,
 	allBalances []uint64,
 ) ([]common.Root, common.Root, common.Root, error) {
+	if err := validateValidatorIndexBound(validatorIndex); err != nil {
+		return nil, common.Root{}, common.Root{}, err
+	}
+
 	forkVersion := bsm.GetForkVersion()
 
 	// 1. Proof inside the state.
