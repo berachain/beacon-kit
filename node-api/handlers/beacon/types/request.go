@@ -49,14 +49,14 @@ type GetPendingPartialWithdrawalsRequest struct {
 
 type GetStateValidatorsRequest struct {
 	types.StateIDRequest
-	IDs      []string `query:"id"     validate:"dive,validator_id"`
-	Statuses []string `query:"status" validate:"dive,validator_status"`
+	IDs      []string `query:"id"     validate:"max=1024,dive,validator_id"`
+	Statuses []string `query:"status" validate:"max=16,dive,validator_status"`
 }
 
 type PostStateValidatorsRequest struct {
 	types.StateIDRequest
-	IDs      []string `json:"ids"      validate:"dive,validator_id"`
-	Statuses []string `json:"statuses" validate:"dive,validator_status"`
+	IDs      []string `json:"ids"      validate:"max=1024,dive,validator_id"`
+	Statuses []string `json:"statuses" validate:"max=16,dive,validator_status"`
 }
 
 type GetStateValidatorRequest struct {
@@ -66,12 +66,12 @@ type GetStateValidatorRequest struct {
 
 type GetValidatorBalancesRequest struct {
 	types.StateIDRequest
-	IDs []string `query:"id" validate:"dive,validator_id"`
+	IDs []string `query:"id" validate:"max=1024,dive,validator_id"`
 }
 
 type PostValidatorBalancesRequest struct {
 	types.StateIDRequest
-	IDs []string `json:"-" validate:"dive,validator_id"`
+	IDs []string `json:"-" validate:"max=1024,dive,validator_id"`
 }
 
 type GetStateCommitteesRequest struct {
