@@ -101,5 +101,6 @@ func ProvidePreconfClient(in PreconfClientInput) (*preconf.Client, error) {
 		jwtSecret,
 		cfg.FetchTimeout,
 		caCertPool,
+		cfg.MaxResponseSize,
 	), nil
 }
