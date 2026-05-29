@@ -185,12 +185,20 @@ openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:P-256 \
 # 2. Create the server key + CSR
 openssl req -newkey ec -pkeyopt ec_paramgen_curve:P-256 \
   -keyout server-key.pem -out server.csr -nodes \
-  -subj "/CN=sequencer" \
-  -addext "subjectAltName=DNS:sequencer.example.com,IP:1.2.3.4"
+  -subj "/CN=sequencer"
 
-# 3. Sign the server cert with the CA
+# 3. Define the extensions the CA will set on the leaf. The CA controls these
+#    explicitly rather than copying whatever the CSR requested.
+cat > server-ext.cnf <<'EOF'
+subjectAltName = DNS:sequencer.example.com,IP:1.2.3.4
+basicConstraints = critical, CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+EOF
+
+# 4. Sign the server cert with the CA, applying the extension file.
 openssl x509 -req -in server.csr -CA ca-cert.pem -CAkey ca-key.pem \
-  -CAcreateserial -out server-cert.pem -days 365 -copy_extensions copyall
+  -CAcreateserial -out server-cert.pem -days 365 -extfile server-ext.cnf
 ```
 
 Distribute `ca-cert.pem` to validators (as `sequencer-ca-cert-path`). It's the

@@ -53,6 +53,10 @@ func ProvidePreconfClient(in PreconfClientInput) (*preconf.Client, error) {
 		return nil, nil
 	}
 
+	if err := cfg.Validate(); err != nil {
+		return nil, errors.Wrap(err, "invalid preconf configuration")
+	}
+
 	// Load JWT secret
 	if cfg.SequencerJWTPath == "" {
 		return nil, errors.New("preconf enabled with sequencer-url but sequencer-jwt-path is not set")
@@ -61,10 +65,6 @@ func ProvidePreconfClient(in PreconfClientInput) (*preconf.Client, error) {
 	jwtSecret, err := preconf.LoadJWTSecret(cfg.SequencerJWTPath)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to load sequencer JWT from: %s", cfg.SequencerJWTPath)
-	}
-
-	if err = cfg.Validate(); err != nil {
-		return nil, errors.Wrap(err, "invalid preconf configuration")
 	}
 
 	var caCertPool *x509.CertPool

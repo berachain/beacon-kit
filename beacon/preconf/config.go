@@ -21,7 +21,7 @@
 package preconf
 
 import (
-	"strings"
+	"net/url"
 	"time"
 
 	"github.com/berachain/beacon-kit/errors"
@@ -126,7 +126,11 @@ func (c *Config) Validate() error {
 		if c.SequencerURL == "" {
 			return errors.New("sequencer-ca-cert-path requires sequencer-url to be set")
 		}
-		if !strings.HasPrefix(c.SequencerURL, "https://") {
+		u, err := url.Parse(c.SequencerURL)
+		if err != nil {
+			return errors.Wrapf(err, "invalid sequencer-url: %s", c.SequencerURL)
+		}
+		if u.Scheme != "https" {
 			return errors.New("sequencer-url must use https:// scheme when sequencer-ca-cert-path is set")
 		}
 	}
