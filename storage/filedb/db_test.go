@@ -181,13 +181,11 @@ func TestDB_SetExistingKey_CreateError(t *testing.T) {
 
 	t.Run(test.name, func(t *testing.T) {
 		t.Parallel()
-		fs := afero.NewMemMapFs()
 		db := file.NewDB(
 			file.WithRootDirectory("/etc"),
 			file.WithFileExtension("txt"),
 			file.WithDirectoryPermissions(0700),
 			file.WithLogger(log.NewNopLogger()),
-			file.WithAferoFS(fs),
 		)
 
 		if test.setupFunc != nil {
@@ -237,13 +235,11 @@ func TestDB_SetHas_NotDirError(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			fs := afero.NewMemMapFs()
 			db := file.NewDB(
 				file.WithRootDirectory("/etc/passwd"),
 				file.WithFileExtension("txt"),
 				file.WithDirectoryPermissions(0700),
 				file.WithLogger(log.NewNopLogger()),
-				file.WithAferoFS(fs),
 			)
 
 			if tt.setupFunc != nil {
@@ -280,13 +276,11 @@ func TestDB_Set_MkDirError(t *testing.T) {
 
 	t.Run(test.name, func(t *testing.T) {
 		t.Parallel()
-		fs := afero.NewMemMapFs()
 		db := file.NewDB(
 			file.WithRootDirectory("/etc/test"),
 			file.WithFileExtension("txt"),
 			file.WithDirectoryPermissions(0700),
 			file.WithLogger(log.NewNopLogger()),
-			file.WithAferoFS(fs),
 		)
 
 		if test.setupFunc != nil {
