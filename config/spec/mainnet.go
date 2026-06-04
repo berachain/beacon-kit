@@ -88,8 +88,7 @@ const (
 	mainnetElectra1ForkTime = 1_756_915_200
 
 	// mainnetFuluForkTime is the timestamp at which the Fulu fork occurs.
-	// TODO: Set to actual fork time before Fulu activation.
-	mainnetFuluForkTime = 9_999_999_999_999_999
+	mainnetFuluForkTime = 1_782_316_800
 
 	// mainnetEVMInflationAddressDeneb1 is the address on the EVM which will receive the
 	// inflation amount of native EVM balance through a withdrawal every block in the Deneb1 fork.
