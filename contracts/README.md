@@ -30,7 +30,9 @@ The same pattern can be used to extract bytecode for other contracts in the
 - `MockPoLReverting.sol` - PoL distributor that reverts after 10 distributions
 
 - `MockPoLGasEnforcer.sol` - Gas-constrained PoL distributor for gas limit
+
 testing
 
 - `MockValidatorRegistry.sol` - Registry contract for testing cross-contract
+
 calls
