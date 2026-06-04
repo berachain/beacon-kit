@@ -26,8 +26,11 @@ The same pattern can be used to extract bytecode for other contracts in the
 ### Contracts
 
 - `MockPoL.sol` - Basic PoL distributor with multi-contract state changes
+
 - `MockPoLReverting.sol` - PoL distributor that reverts after 10 distributions
+
 - `MockPoLGasEnforcer.sol` - Gas-constrained PoL distributor for gas limit
 testing
+
 - `MockValidatorRegistry.sol` - Registry contract for testing cross-contract
 calls
