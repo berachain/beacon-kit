@@ -148,6 +148,10 @@ func (s *EngineClient) GetPayload(
 		// Engine API returns the Unknown Payload (-38001) error if a nil result is returned.
 		return result, engineerrors.ErrUnknownPayload
 	}
+	if result.GetExecutionPayload() == nil {
+		// Reject JSON "null" payload with a clean error.
+		return result, engineerrors.ErrNilExecutionPayload
+	}
 	if result.GetBlobsBundle() == nil {
 		return result, engineerrors.ErrNilBlobsBundle
 	}
