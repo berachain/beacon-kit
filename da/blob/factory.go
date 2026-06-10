@@ -21,6 +21,7 @@
 package blob
 
 import (
+	"fmt"
 	"time"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
@@ -64,6 +65,15 @@ func (f *SidecarFactory) BuildSidecars(
 		header      = blk.GetHeader()
 		g           = errgroup.Group{}
 	)
+
+	// The goroutines below index commitments[i] and proofs[i] up to len(blobs).
+	// Reject mismatched bundles up front.
+	if len(commitments) != len(blobs) || len(proofs) != len(blobs) {
+		return nil, fmt.Errorf(
+			"mismatched blobs bundle: %d blobs, %d commitments, %d proofs",
+			len(blobs), len(commitments), len(proofs),
+		)
+	}
 
 	startTime := time.Now()
 	defer f.metrics.measureBuildSidecarsDuration(
