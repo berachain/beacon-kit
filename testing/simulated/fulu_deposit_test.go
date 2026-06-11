@@ -351,15 +351,26 @@ func (s *FuluDepositSuite) TestBodyDepositsAfterFuluRejected() {
 	s.Require().Contains(s.LogBuffer.String(), core.ErrUnexpectedDepositSource.Error())
 }
 
-// TestNoDepositRequestsBeforeFulu verifies that before Fulu (in Electra) deposits are not
-// surfaced as EIP-6110 execution requests. A deposit transaction is mined into a pre-Fulu
-// (Electra1/Prague) block so that its on-chain deposit event is emitted; because the
-// execution layer only produces EIP-6110 deposit requests from Osaka onwards, the resulting
-// block must contain no deposit execution requests. Such deposits are instead ingested from
-// the deposit-contract events into the deposit store and applied via the block body.
+// TestNoDepositRequestsBeforeFulu verifies that before Fulu (in Electra) deposits never
+// enter the chain as EIP-6110 execution requests. A deposit transaction is made available
+// to the EL while the chain is still pre-Fulu (Electra1/Prague), so that its deposit event
+// is emitted before Osaka. The pinned EL image is the moving bera-reth:nightly tag, so
+// depending on its EIP-6110 inclusion gate one of two valid outcomes is asserted, both of
+// which uphold the invariant:
+//
+//  1. The EL gates EIP-6110 on Osaka (fixed bera-reth): the Prague block is built including
+//     the deposit transaction and carries no deposit execution requests.
+//  2. The EL still gates EIP-6110 on Prague (older bera-reth): the EL surfaces a deposit
+//     request before Fulu and the CL refuses to build the block, failing with
+//     ErrUnexpectedDepositSource instead of silently consuming the request.
+//
+// Either way, deposits cannot be sourced from execution requests before Fulu. The
+// legitimate EIP-6110 inclusion path from the first Fulu block onwards is covered by
+// TestDepositQueueDrainedOnFirstFuluBlock.
 //
 // Chain spec (ProvideFuluDepositTestChainSpec): Deneb1 at genesis, Electra1 at t=6, Fulu at
-// t=7. Block 1 is at t=5 (Deneb1/Cancun) and block 2 is at t=6 (Electra1/Prague).
+// t=7. EL genesis: Cancun at genesis, Prague at t=6, Osaka at t=7. Block 1 is at t=5
+// (Deneb1/Cancun) and block 2 is proposed at t=6 (Electra1/Prague).
 func (s *FuluDepositSuite) TestNoDepositRequestsBeforeFulu() {
 	s.InitializeChain(s.T(), 1)
 
@@ -378,24 +389,45 @@ func (s *FuluDepositSuite) TestNoDepositRequestsBeforeFulu() {
 	_, _, nextBlockTime := s.MoveChainToHeight(s.T(), 1, 1, nodeAddress, time.Unix(5, 0))
 	s.Require().Equal(time.Unix(6, 0), nextBlockTime)
 
-	// Send a deposit now so it is mined into the next (Electra1/Prague) block, emitting its
-	// deposit event while the execution layer is still pre-Osaka.
+	// Send a deposit so that it is pending in the EL mempool when the next
+	// (Electra1/Prague) payload is requested, emitting its deposit event pre-Osaka.
 	depositTxHash := s.sendDeposit(blsSigner, creds, depositAmount, true, big.NewInt(0))
 	time.Sleep(time.Second)
 
-	// [Block 2, t=6] Electra1/Prague block that includes the deposit transaction.
-	proposals, _, _ := s.MoveChainToHeight(s.T(), 2, 1, nodeAddress, nextBlockTime)
-	s.Require().Len(proposals, 1)
+	// [Block 2, t=6] Propose the Electra1/Prague block directly (not via MoveChainToHeight)
+	// so that both EL behaviors can be asserted on below.
+	s.LogBuffer.Reset()
+	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &cmtabci.PrepareProposalRequest{
+		Height:          2,
+		Time:            nextBlockTime,
+		ProposerAddress: nodeAddress,
+	})
+	s.Require().NoError(err)
 
-	preFuluForkVersion := s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(beaconmath.U64(6))
+	if len(proposal.Txs) == 0 {
+		// The EL gates EIP-6110 on Prague and surfaced a deposit request before Fulu. The
+		// only acceptable CL behavior is refusing to build a block that sources deposits
+		// from execution requests.
+		s.T().Log("EL surfaced a pre-Fulu deposit request; asserting the CL refused to build the block")
+		s.Require().Contains(s.LogBuffer.String(), core.ErrUnexpectedDepositSource.Error())
+		s.Require().Contains(s.LogBuffer.String(), "EIP-6110 deposit requests before Fulu")
+		return
+	}
+
+	// The EL gates EIP-6110 on Osaka: the Prague block must include the deposit transaction
+	// (so its deposit event was actually emitted pre-Osaka and the assertion below is not
+	// vacuous) and must carry no deposit execution requests.
+	s.T().Log("EL built the pre-Fulu block; asserting it carries no deposit execution requests")
+	s.Require().Len(proposal.Txs, 2)
+	preFuluForkVersion := s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(
+		beaconmath.U64(nextBlockTime.Unix()),
+	)
 	signedBlk, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
-		proposals[0].Txs, blockchain.BeaconBlockTxIndex, preFuluForkVersion,
+		proposal.Txs, blockchain.BeaconBlockTxIndex, preFuluForkVersion,
 	)
 	s.Require().NoError(err)
 	block := signedBlk.GetBeaconBlock()
 
-	// The deposit transaction must be in this pre-Fulu block so its deposit event is emitted
-	// before Osaka; otherwise the assertion below would be vacuous.
 	depositIncluded := false
 	for _, raw := range block.GetBody().GetExecutionPayload().GetTransactions() {
 		var tx gethcore.Transaction
@@ -410,8 +442,6 @@ func (s *FuluDepositSuite) TestNoDepositRequestsBeforeFulu() {
 	s.Require().True(depositIncluded,
 		"deposit tx must be included in the pre-Fulu block so its deposit event is emitted")
 
-	// Core assertion: before Fulu the execution layer must not surface deposits as EIP-6110
-	// deposit requests.
 	requests, err := block.GetBody().GetExecutionRequests()
 	s.Require().NoError(err)
 	s.Require().Empty(requests.Deposits,
