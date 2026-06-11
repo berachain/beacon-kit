@@ -61,6 +61,30 @@ func TestGetPayloadRejectsNilExecutionPayload(t *testing.T) {
 	require.Nil(t, envelope.GetExecutionPayload())
 }
 
+// TestGetPayloadRejectsNilBlockValue ensures that a malicious or buggy
+// execution client returning a JSON "null" for "blockValue" is rejected with a
+// clean error at the trust boundary.
+func TestGetPayloadRejectsNilBlockValue(t *testing.T) {
+	t.Parallel()
+
+	logger := noop.NewLogger[any]()
+	ec := &EngineClient{
+		Client:  ethclient.New(nullBlockValueRPCClient{}),
+		cfg:     &Config{RPCTimeout: MinRPCTimeout},
+		logger:  logger,
+		metrics: newClientMetrics(noopTelemetrySink{}, logger),
+	}
+
+	envelope, err := ec.GetPayload(
+		t.Context(),
+		engineprimitives.PayloadID{},
+		version.Deneb1(),
+	)
+	require.ErrorIs(t, err, engineerrors.ErrNilBlockValue)
+	require.NotNil(t, envelope)
+	require.Nil(t, envelope.GetBlockValue())
+}
+
 type nullPayloadRPCClient struct{}
 
 var _ rpc.Client = nullPayloadRPCClient{}
@@ -70,6 +94,22 @@ func (nullPayloadRPCClient) Start(context.Context) {}
 func (nullPayloadRPCClient) Close() error          { return nil }
 func (nullPayloadRPCClient) Call(_ context.Context, target any, _ string, _ ...any) error {
 	const resp = `{"executionPayload":null,"blockValue":"0x0",` +
+		`"blobsBundle":{"commitments":[],"proofs":[],"blobs":[]},` +
+		`"shouldOverrideBuilder":false}`
+	return json.Unmarshal([]byte(resp), target)
+}
+
+type nullBlockValueRPCClient struct{}
+
+var _ rpc.Client = nullBlockValueRPCClient{}
+
+func (nullBlockValueRPCClient) Initialize() error     { return nil }
+func (nullBlockValueRPCClient) Start(context.Context) {}
+func (nullBlockValueRPCClient) Close() error          { return nil }
+func (nullBlockValueRPCClient) Call(_ context.Context, target any, _ string, _ ...any) error {
+	// executionPayload is omitted so the envelope keeps the non-nil empty
+	// payload from NewEmptyExecutionPayloadEnvelope; only blockValue is null.
+	const resp = `{"blockValue":null,` +
 		`"blobsBundle":{"commitments":[],"proofs":[],"blobs":[]},` +
 		`"shouldOverrideBuilder":false}`
 	return json.Unmarshal([]byte(resp), target)

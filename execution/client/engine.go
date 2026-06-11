@@ -152,6 +152,10 @@ func (s *EngineClient) GetPayload(
 		// Reject JSON "null" payload with a clean error.
 		return result, engineerrors.ErrNilExecutionPayload
 	}
+	if result.GetBlockValue() == nil {
+		// Also check for block value for completeness, even if not used at present.
+		return result, engineerrors.ErrNilBlockValue
+	}
 	if result.GetBlobsBundle() == nil {
 		return result, engineerrors.ErrNilBlobsBundle
 	}
