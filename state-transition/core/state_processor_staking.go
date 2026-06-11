@@ -51,6 +51,19 @@ func (sp *StateProcessor) processOperations(
 		}
 	}
 
+	// Sanity check that deposits are sourced from the place mandated by the block's fork
+	// before we consume them. This mirrors the execution layer, which only emits EIP-6110
+	// deposit requests from Fulu (Osaka) onwards, and guards against deposits being silently
+	// double counted or dropped if the execution layer gates EIP-6110 incorrectly.
+	if err = validateDepositSource(
+		blk.GetForkVersion(),
+		prevBlockForkVersion,
+		blk.GetBody().GetDeposits(),
+		requests,
+	); err != nil {
+		return err
+	}
+
 	var deposits []*ctypes.Deposit
 	if version.IsBefore(blk.GetForkVersion(), version.Fulu()) {
 		// Before Fulu, deposits are taken from the beacon block body directly.
@@ -113,6 +126,44 @@ func (sp *StateProcessor) processOperations(
 	}
 
 	return st.SetEth1Data(blk.GetBody().Eth1Data)
+}
+
+// validateDepositSource enforces that block deposits originate from the source mandated by the
+// block's fork: the EL deposit-contract events carried on the beacon block body before Fulu, and
+// EIP-6110 execution requests from Fulu onwards. The first block of Fulu is the sole exception:
+// it carries the remaining queued body deposits to exhaust the pre-Fulu deposit queue and may
+// also include EIP-6110 deposit requests for that block.
+func validateDepositSource(
+	blkForkVersion common.Version,
+	prevBlockForkVersion common.Version,
+	bodyDeposits []*ctypes.Deposit,
+	requests *ctypes.ExecutionRequests,
+) error {
+	// The first block of Fulu is exempt from these checks: it carries the remaining queued
+	// body deposits to exhaust the pre-Fulu deposit queue and may also include EIP-6110
+	// deposit requests for that block.
+	isFirstFuluBlock := version.Equals(prevBlockForkVersion, version.Electra1()) &&
+		version.Equals(blkForkVersion, version.Fulu())
+
+	switch {
+	case version.IsBefore(blkForkVersion, version.Fulu()):
+		// Pre-Fulu: deposits come exclusively from the deposit-contract events on the block
+		// body. EIP-6110 deposit requests must not be present before Fulu.
+		if requests != nil && len(requests.Deposits) > 0 {
+			return errors.Wrapf(ErrUnexpectedDepositSource,
+				"found %d EIP-6110 deposit requests before Fulu", len(requests.Deposits),
+			)
+		}
+	case !isFirstFuluBlock:
+		// Fulu onwards (after the first Fulu block): deposits come exclusively from EIP-6110
+		// execution requests. The block body must not carry any deposits.
+		if len(bodyDeposits) > 0 {
+			return errors.Wrapf(ErrUnexpectedDepositSource,
+				"found %d block body deposits after Fulu", len(bodyDeposits),
+			)
+		}
+	}
+	return nil
 }
 
 // processDeposit processes the deposit and ensures it matches the local state.
