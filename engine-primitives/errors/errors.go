@@ -78,6 +78,16 @@ var (
 	ErrNilBlobsBundle = errors.New(
 		"nil blobs bundle received from execution client")
 
+	// ErrNilExecutionPayload is returned when the execution client returns a
+	// nil execution payload (e.g. a JSON "null" for "executionPayload", which
+	// the standard library decodes to a nil pointer).
+	ErrNilExecutionPayload = errors.New(
+		"nil execution payload received from execution client")
+
+	// ErrNilBlockValue like ErrNilExecutionPayload but for block value.
+	ErrNilBlockValue = errors.New(
+		"nil block value received from execution client")
+
 	// ErrNilPayloadStatus is returned when nil payload status is received.
 	ErrNilPayloadStatus = errors.New(
 		"nil payload status received from execution client",

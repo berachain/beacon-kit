@@ -277,7 +277,7 @@ func (pb *PayloadBuilder) getPayload(
 	if err != nil {
 		return nil, err
 	}
-	// envelope is guaranteed to be non-nil here
+	// envelope and its payload are guaranteed to be non-nil here
 	if envelope.GetExecutionPayload().Withdrawals == nil {
 		return nil, ErrNilWithdrawals
 	}
