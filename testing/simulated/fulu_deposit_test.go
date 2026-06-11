@@ -29,15 +29,19 @@ import (
 	"testing"
 	"time"
 
+	"github.com/berachain/beacon-kit/beacon/blockchain"
 	depositcli "github.com/berachain/beacon-kit/cli/commands/deposit"
 	consensustypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/gethlib/deposit"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
 	beaconmath "github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/state-transition/core"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
+	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	gethcore "github.com/ethereum/go-ethereum/core/types"
@@ -236,7 +240,7 @@ func (s *FuluDepositSuite) sendDeposit(
 	depositAmount beaconmath.Gwei,
 	setOperator bool,
 	nonce *big.Int,
-) {
+) gethcommon.Hash {
 	depositContractAddress := gethcommon.Address(s.TestNode.ChainSpec.DepositContractAddress())
 	depositClient, err := deposit.NewDepositContract(depositContractAddress, s.TestNode.ContractBackend)
 	s.Require().NoError(err)
@@ -282,6 +286,134 @@ func (s *FuluDepositSuite) sendDeposit(
 		txOpts.Nonce = nonce
 	}
 
-	_, err = depositClient.Deposit(txOpts, depositMsg.Pubkey[:], depositMsg.Credentials[:], blsSig[:], operator)
+	tx, depErr := depositClient.Deposit(txOpts, depositMsg.Pubkey[:], depositMsg.Credentials[:], blsSig[:], operator)
+	s.Require().NoError(depErr)
+	return tx.Hash()
+}
+
+// TestBodyDepositsAfterFuluRejected verifies that, once Fulu (Osaka) is active and the
+// pre-Fulu deposit queue has been drained, a proposed block carrying deposits on the
+// beacon block body is rejected. From Fulu onwards deposits must be sourced exclusively
+// from EIP-6110 execution requests, so the only block permitted to carry body deposits is
+// the single first-Fulu catchup block.
+//
+// Chain spec (ProvideFuluDepositTestChainSpec): Electra1 at t=6, Fulu at t=7. Block 3
+// (t=7) is the first Fulu block; block 4 (t=8) is the first block where deposits on the
+// block body are no longer a valid source.
+func (s *FuluDepositSuite) TestBodyDepositsAfterFuluRejected() {
+	s.InitializeChain(s.T(), 1)
+
+	blsSigner := simulated.GetBlsSigner(s.HomeDir)
+	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
+	nodeAddress := pubkey.Address()
+	s.SimComet.Comet.SetNodeAddress(nodeAddress)
+
+	// Advance through the first Fulu block (block 3 at t=7) so that the next block is a
+	// non-first Fulu block where block body deposits are disallowed.
+	const postFuluHeight = int64(4)
+	_, _, nextBlockTime := s.MoveChainToHeight(s.T(), 1, postFuluHeight-1, nodeAddress, time.Unix(5, 0))
+	s.Require().Equal(time.Unix(8, 0), nextBlockTime, "block 4 must be the first post-Fulu block")
+
+	// Prepare a valid block proposal for the post-Fulu height.
+	validProposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &cmtabci.PrepareProposalRequest{
+		Height:          postFuluHeight,
+		Time:            nextBlockTime,
+		ProposerAddress: nodeAddress,
+	})
+	s.Require().NoError(err)
+	s.Require().NotEmpty(validProposal)
+
+	// Inject a deposit onto the beacon block body. The execution payload is left untouched,
+	// so the block is only invalid because it sources a deposit from the body after Fulu.
+	maliciousTxs := testBuildInvalidBlock(
+		s.Require(),
+		s.SharedAccessors,
+		&cmtabci.PrepareProposalRequest{
+			Txs:    validProposal.Txs,
+			Height: postFuluHeight,
+			Time:   nextBlockTime,
+		},
+		func(sb *consensustypes.SignedBeaconBlock) {
+			sb.BeaconBlock.Body.SetDeposits(consensustypes.Deposits{{Index: 99}})
+		},
+	)
+
+	s.LogBuffer.Reset()
+	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &cmtabci.ProcessProposalRequest{
+		Txs:             maliciousTxs,
+		Height:          postFuluHeight,
+		ProposerAddress: nodeAddress,
+		Time:            nextBlockTime,
+	})
+	s.Require().NoError(err)
+	s.Require().Equal(cmtabci.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
+	s.Require().Contains(s.LogBuffer.String(), core.ErrUnexpectedDepositSource.Error())
+}
+
+// TestNoDepositRequestsBeforeFulu verifies that before Fulu (in Electra) deposits are not
+// surfaced as EIP-6110 execution requests. A deposit transaction is mined into a pre-Fulu
+// (Electra1/Prague) block so that its on-chain deposit event is emitted; because the
+// execution layer only produces EIP-6110 deposit requests from Osaka onwards, the resulting
+// block must contain no deposit execution requests. Such deposits are instead ingested from
+// the deposit-contract events into the deposit store and applied via the block body.
+//
+// Chain spec (ProvideFuluDepositTestChainSpec): Deneb1 at genesis, Electra1 at t=6, Fulu at
+// t=7. Block 1 is at t=5 (Deneb1/Cancun) and block 2 is at t=6 (Electra1/Prague).
+func (s *FuluDepositSuite) TestNoDepositRequestsBeforeFulu() {
+	s.InitializeChain(s.T(), 1)
+
+	blsSigner := simulated.GetBlsSigner(s.HomeDir)
+	pubkey, err := blsSigner.GetPubKey()
+	s.Require().NoError(err)
+	nodeAddress := pubkey.Address()
+	s.SimComet.Comet.SetNodeAddress(nodeAddress)
+
+	credAddress, err := common.NewExecutionAddressFromHex(simulated.WithdrawalExecutionAddress)
+	s.Require().NoError(err)
+	creds := consensustypes.NewCredentialsFromExecutionAddress(credAddress)
+	depositAmount := beaconmath.Gwei(10_000 * 1e9)
+
+	// [Block 1, t=5] Deneb1/Cancun block, no deposits yet.
+	_, _, nextBlockTime := s.MoveChainToHeight(s.T(), 1, 1, nodeAddress, time.Unix(5, 0))
+	s.Require().Equal(time.Unix(6, 0), nextBlockTime)
+
+	// Send a deposit now so it is mined into the next (Electra1/Prague) block, emitting its
+	// deposit event while the execution layer is still pre-Osaka.
+	depositTxHash := s.sendDeposit(blsSigner, creds, depositAmount, true, big.NewInt(0))
+	time.Sleep(time.Second)
+
+	// [Block 2, t=6] Electra1/Prague block that includes the deposit transaction.
+	proposals, _, _ := s.MoveChainToHeight(s.T(), 2, 1, nodeAddress, nextBlockTime)
+	s.Require().Len(proposals, 1)
+
+	preFuluForkVersion := s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(beaconmath.U64(6))
+	signedBlk, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
+		proposals[0].Txs, blockchain.BeaconBlockTxIndex, preFuluForkVersion,
+	)
+	s.Require().NoError(err)
+	block := signedBlk.GetBeaconBlock()
+
+	// The deposit transaction must be in this pre-Fulu block so its deposit event is emitted
+	// before Osaka; otherwise the assertion below would be vacuous.
+	depositIncluded := false
+	for _, raw := range block.GetBody().GetExecutionPayload().GetTransactions() {
+		var tx gethcore.Transaction
+		if uErr := tx.UnmarshalBinary(raw); uErr != nil {
+			continue
+		}
+		if tx.Hash() == depositTxHash {
+			depositIncluded = true
+			break
+		}
+	}
+	s.Require().True(depositIncluded,
+		"deposit tx must be included in the pre-Fulu block so its deposit event is emitted")
+
+	// Core assertion: before Fulu the execution layer must not surface deposits as EIP-6110
+	// deposit requests.
+	requests, err := block.GetBody().GetExecutionRequests()
+	s.Require().NoError(err)
+	s.Require().Empty(requests.Deposits,
+		"no EIP-6110 deposit requests must be produced before Fulu")
 }
