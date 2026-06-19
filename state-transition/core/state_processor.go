@@ -398,6 +398,19 @@ func (sp *StateProcessor) processEffectiveBalanceUpdates(st *state.StateDB) erro
 		return err
 	}
 
+	// Bulk-load balances. Validators and balances are index-keyed and dense, so index i and balances[i] both
+	// correspond to validator i, matching GetValidators order. Avoids a per-validator pubkey lookup.
+	balances, err := st.GetBalances()
+	if err != nil {
+		return err
+	}
+	if len(balances) != len(validators) {
+		return fmt.Errorf(
+			"effective balance update: validators/balances length mismatch (%d vs %d)",
+			len(validators), len(balances),
+		)
+	}
+
 	// Get the timestamp from the latest execution payload header to determine the active fork
 	// version for fork-gated hysteresis parameters (BRIP-0008).
 	//
@@ -417,21 +430,11 @@ func (sp *StateProcessor) processEffectiveBalanceUpdates(st *state.StateDB) erro
 		hysteresisIncrement       = effectiveBalanceIncrement / sp.cs.HysteresisQuotient(timestamp)
 		downwardThreshold         = hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier()
 		upwardThreshold           = hysteresisIncrement * sp.cs.HysteresisUpwardMultiplier(timestamp)
-
-		idx     math.U64
-		balance math.Gwei
 	)
 
-	for _, val := range validators {
-		idx, err = st.ValidatorIndexByPubkey(val.GetPubkey())
-		if err != nil {
-			return err
-		}
-
-		balance, err = st.GetBalance(idx)
-		if err != nil {
-			return err
-		}
+	for i, val := range validators {
+		idx := math.ValidatorIndex(i)
+		balance := math.Gwei(balances[i])
 
 		if balance+downwardThreshold < val.GetEffectiveBalance() ||
 			val.GetEffectiveBalance()+upwardThreshold < balance {
