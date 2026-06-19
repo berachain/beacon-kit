@@ -72,8 +72,8 @@ func (h *Handler) GetBlobSidecars(c handlers.Context) (any, error) {
 		indices[i] = idx.Unwrap()
 	}
 
-	// Validate the requested slot is within the Data Availability Period.
-	// Compare against local head; same retention window as availability pruning.
+	// Validate the requested slot is within the DA period (epoch-based WithinDAPeriod,
+	// same check as FinalizeSidecars). Reference local head, not sync target.
 	if !h.cs.WithinDAPeriod(slot, math.Slot(headHeight)) {
 		return nil, fmt.Errorf(
 			"requested slot (%d) is not within Data Availability Period (previous %d epochs)",

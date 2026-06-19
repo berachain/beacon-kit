@@ -168,7 +168,7 @@ func TestGetBlobSidecars(t *testing.T) {
 				require.Nil(t, res)
 				require.ErrorContains(t, err, "not within Data Availability Period")
 				require.ErrorContains(t, err, "212568")
-				backend.AssertNotCalled(t, "GetBlobSidecarsAtSlot")
+				backend.AssertNumberOfCalls(t, "GetBlobSidecarsAtSlot", 0)
 			},
 		},
 	}
