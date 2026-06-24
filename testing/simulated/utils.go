@@ -257,6 +257,29 @@ func (s *SharedAccessors) MoveChainToHeight(
 	return proposedCometBlocks, finalizedResponses, proposalTime
 }
 
+// PrepareProposalUntil repeatedly calls PrepareProposal for req (up to 10 attempts, 200ms apart)
+// until cond reports the built proposal is ready, then returns that proposal.
+func (s *SharedAccessors) PrepareProposalUntil(
+	t *testing.T,
+	req *types.PrepareProposalRequest,
+	cond func(*types.PrepareProposalResponse) bool,
+) *types.PrepareProposalResponse {
+	t.Helper()
+	const maxAttempts = 10
+	const retryInterval = 200 * time.Millisecond
+	for attempt := 0; attempt < maxAttempts; attempt++ {
+		proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, req)
+		require.NoError(t, err)
+		require.NotEmpty(t, proposal)
+		if cond(proposal) {
+			return proposal
+		}
+		time.Sleep(retryInterval)
+	}
+	require.FailNow(t, "PrepareProposal did not satisfy the condition within the retry budget")
+	return nil
+}
+
 // WaitTillServicesStarted waits until the log buffer contains "All services started".
 // It checks periodically with a timeout to prevent indefinite waiting.
 // If there is a better way to determine the services have started, e.g. readiness probe, replace this.
@@ -401,8 +424,12 @@ func ComputeAndSetValidExecutionBlock(
 	txsNoSidecar, sidecars := splitTxs(txs)
 	origParent := latestBlock.GetParentBlockRoot()
 
+	// reth's eth_simulateV1 ignores the withdrawals override and returns no withdrawals, so build the
+	// execution block with the original block's withdrawals (which the CL expects).
+	origWithdrawals := latestBlock.GetBody().GetExecutionPayload().GetWithdrawals()
+	gethWithdrawals := *(*coretypes.Withdrawals)(unsafe.Pointer(&origWithdrawals))
 	// Transform the simulated block into a Geth block.
-	execBlock := transformSimulatedBlockToGethBlock(simBlock, txsNoSidecar, origParent)
+	execBlock := transformSimulatedBlockToGethBlock(simBlock, txsNoSidecar, origParent, gethWithdrawals)
 	// TODO: Add support for execution requests before allowing electra
 	return updateBeaconBlockBody(t, latestBlock, forkVersion, execBlock, sidecars, nil)
 }

@@ -184,14 +184,9 @@ func TxsToTransactionArgs(chainID uint64, txs []*types.Transaction) ([]Transacti
 			ChainID:              &chainIDHex,
 		}
 
-		if sidecar := tx.BlobTxSidecar(); sidecar != nil {
-			blobCap := hexutil.Big(*tx.BlobGasFeeCap())
-			call.BlobHashes = tx.BlobHashes()
-			call.BlobFeeCap = &blobCap
-			call.Blobs = sidecar.Blobs
-			call.Commitments = sidecar.Commitments
-			call.Proofs = sidecar.Proofs
-		}
+		// NOTE: blob fields are intentionally NOT set for simulation.
+		// reth's eth_simulateV1 cannot build an EIP-4844 transaction from
+		// blobVersionedHashes / maxFeePerBlobGas alone.
 
 		args[i] = call
 	}
