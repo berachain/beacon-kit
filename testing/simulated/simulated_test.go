@@ -67,8 +67,8 @@ func (s *SimulatedSuite) SetupTest() {
 	cometConfig := configs[0]
 	s.GenesisValidatorsRoot = genesisValidatorsRoot
 
-	// Start the EL (execution layer) Geth node.
-	elNode := execution.NewGethNode(s.HomeDir, execution.ValidGethImage())
+	// Start the EL (execution layer) Reth node.
+	elNode := execution.NewRethNode(s.HomeDir, execution.ValidRethImage())
 	elHandle, authRPC, elRPC := elNode.Start(s.T(), path.Base(elGenesisPath))
 	s.ElHandle = elHandle
 

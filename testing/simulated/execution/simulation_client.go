@@ -35,7 +35,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto/kzg4844"
 )
 
-// SimulationClient calls `eth_simulateV1` on a Geth node.
+// SimulationClient calls `eth_simulateV1` on an execution client.
 type SimulationClient struct {
 	engineClient *client.EngineClient
 }

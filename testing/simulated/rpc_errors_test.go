@@ -207,8 +207,8 @@ func (s *RPCErrorProxySuite) SetupTest() {
 	cometConfig := configs[0]
 	s.GenesisValidatorsRoot = genesisValidatorsRoot
 
-	// Start Geth.
-	elNode := execution.NewGethNode(s.HomeDir, execution.ValidGethImage())
+	// Start Reth.
+	elNode := execution.NewRethNode(s.HomeDir, execution.ValidRethImage())
 	elHandle, authRPC, elRPC := elNode.Start(s.T(), path.Base(elGenesisPath))
 	s.ElHandle = elHandle
 
@@ -216,7 +216,7 @@ func (s *RPCErrorProxySuite) SetupTest() {
 	s.errProxy = newRPCErrorProxy(authRPC.String())
 	s.errProxyServer = httptest.NewServer(s.errProxy)
 
-	// Create a ConnectionURL pointing to the proxy instead of Geth.
+	// Create a ConnectionURL pointing to the proxy instead of execution client.
 	proxyURL, err := url.NewFromRaw(s.errProxyServer.URL)
 	s.Require().NoError(err)
 
