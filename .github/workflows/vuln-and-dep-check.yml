@@ -82,3 +82,21 @@ jobs:
       - run: make test-unit
         env:
           GOPATH: /home/runner/go
+
+  # Post to Slack if any job above fails
+  notify-slack:
+    needs: [govulncheck, test-deps]
+    if: failure()
+    runs-on:
+      labels: ubuntu-24.04-beacon-kit
+    steps:
+      - name: Post failure to Slack
+        env:
+          CORE_SLACK_WEBHOOK_URL: ${{ secrets.CORE_SLACK_WEBHOOK_URL }}
+          TEXT: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} ${{ github.workflow }} workflow failed
+        run: |
+          if [ -z "$CORE_SLACK_WEBHOOK_URL" ]; then
+            echo "CORE_SLACK_WEBHOOK_URL not set; skipping Slack notification."
+            exit 0
+          fi
+          curl -sSf -H 'Content-type: application/json' --data "{\"text\": \"$TEXT\"}" "$CORE_SLACK_WEBHOOK_URL"
