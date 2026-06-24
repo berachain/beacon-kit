@@ -227,7 +227,7 @@ func (s *PayloadCacheSuite) SetupTest() {
 		}()
 	}
 
-	s.Reth.SimulationClient = execution.NewSimulationClient(s.Reth.TestNode.EngineClient)
+	s.Reth.SimulationClient = execution.NewSimulationClient(s.Reth.TestNode.ContractBackend)
 	timeOut := 10 * time.Second
 	interval := 50 * time.Millisecond
 	err = simulated.WaitTillServicesStarted(s.Reth.LogBuffer, timeOut, interval)

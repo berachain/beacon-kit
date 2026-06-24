@@ -97,7 +97,7 @@ func (s *SimulatedSuite) SetupTest() {
 		_ = s.TestNode.Start(s.CtxApp)
 	}()
 
-	s.SimulationClient = execution.NewSimulationClient(s.TestNode.EngineClient)
+	s.SimulationClient = execution.NewSimulationClient(s.TestNode.ContractBackend)
 	timeOut := 10 * time.Second
 	interval := 50 * time.Millisecond
 	err = simulated.WaitTillServicesStarted(s.LogBuffer, timeOut, interval)

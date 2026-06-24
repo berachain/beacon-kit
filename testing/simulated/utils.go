@@ -176,6 +176,16 @@ func (s *SharedAccessors) InitializeChain(t *testing.T, numValidators int) {
 	require.Len(t, deposits, numValidators, fmt.Sprintf("Expected %d deposit(s)", numValidators))
 }
 
+// GetBalance returns the latest balance of the given hex execution address, queried via
+// the execution-layer eth JSON-RPC (ContractBackend). Prefer this over an eth_getBalance
+// call on the EngineClient: reth's auth/engine endpoint does not serve eth_getBalance.
+func (s *SharedAccessors) GetBalance(t *testing.T, addr string) hexutil.Big {
+	t.Helper()
+	balance, err := s.TestNode.ContractBackend.BalanceAt(s.CtxApp, gethcommon.HexToAddress(addr), nil)
+	require.NoError(t, err)
+	return hexutil.Big(*balance)
+}
+
 // MoveChainToHeight will iterate through the core loop `iterations` times, i.e. Propose, Process, Finalize and Commit.
 // Returns the list of proposed comet blocks.
 func (s *SharedAccessors) MoveChainToHeight(

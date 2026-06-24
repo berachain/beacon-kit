@@ -27,17 +27,18 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto/kzg4844"
+	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-// SimulationClient calls `eth_simulateV1` on an execution client.
+// SimulationClient calls `eth_simulateV1` on an execution client's eth JSON-RPC
+// endpoint. Reth only serves eth_simulateV1 on the eth namespace, not on the auth RPC.
 type SimulationClient struct {
-	engineClient *client.EngineClient
+	ethClient *ethclient.Client
 }
 
 // TransactionArgs represents the fields needed to construct a dynamic-fee transaction.
@@ -129,7 +130,7 @@ type SimulatedBlock struct {
 }
 
 // NewSimulationClient returns a client for eth_simulateV1 calls.
-func NewSimulationClient(cli *client.EngineClient) *SimulationClient {
+func NewSimulationClient(cli *ethclient.Client) *SimulationClient {
 	return &SimulationClient{cli}
 }
 
@@ -143,7 +144,7 @@ func (c *SimulationClient) Simulate(
 	var result []*SimulatedBlock
 	blockNumberInput := hexutil.Uint64(blockNumber)
 
-	if err := c.engineClient.Call(ctx, &result, "eth_simulateV1", opts, blockNumberInput); err != nil {
+	if err := c.ethClient.Client().CallContext(ctx, &result, "eth_simulateV1", opts, blockNumberInput); err != nil {
 		return nil, err
 	}
 	return result, nil
