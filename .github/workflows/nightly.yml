@@ -40,6 +40,11 @@ jobs:
   pipeline:
     uses: ./.github/workflows/pipeline.yml
     secrets: inherit
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
 
   # Run tests with locked and latest deps to catch breakage from both.
   test-deps:
