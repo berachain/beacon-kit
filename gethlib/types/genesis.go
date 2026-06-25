@@ -63,15 +63,15 @@ type Genesis struct {
 	BlobGasUsed   *uint64     `json:"blobGasUsed"`   // EIP-4844
 }
 
-// IsVerkle indicates whether the state is already stored in a verkle
+// IsUBT indicates whether the state is already stored in a UBT
 // tree at genesis time.
-func (g *Genesis) IsVerkle() bool {
-	return g.Config.IsVerkleGenesis()
+func (g *Genesis) IsUBT() bool {
+	return g.Config.IsUBTGenesis()
 }
 
 // ToBlock returns the genesis block according to genesis specification.
 func (g *Genesis) ToBlock() *Block {
-	root, err := hashAlloc(&g.Alloc, g.IsVerkle())
+	root, err := hashAlloc(&g.Alloc, g.IsUBT())
 	if err != nil {
 		panic(err)
 	}
@@ -231,12 +231,12 @@ func (g *Genesis) toBlockWithRoot(root common.Hash) *Block {
 }
 
 // hashAlloc computes the state root according to the genesis specification.
-func hashAlloc(ga *types.GenesisAlloc, isVerkle bool) (common.Hash, error) {
-	// If a genesis-time verkle trie is requested, create a trie config
-	// with the verkle trie enabled so that the tree can be initialized
+func hashAlloc(ga *types.GenesisAlloc, isUBT bool) (common.Hash, error) {
+	// If a genesis-time UBT trie is requested, create a trie config
+	// with the UBT trie enabled so that the tree can be initialized
 	// as such.
 	var config *triedb.Config
-	if isVerkle {
+	if isUBT {
 		config = &triedb.Config{
 			PathDB:            pathdb.Defaults,
 			IsUBT:             true,
@@ -246,7 +246,7 @@ func hashAlloc(ga *types.GenesisAlloc, isVerkle bool) (common.Hash, error) {
 	// Create an ephemeral in-memory database for computing hash,
 	// all the derived states will be discarded to not pollute disk.
 	emptyRoot := types.EmptyRootHash
-	if isVerkle {
+	if isUBT {
 		emptyRoot = types.EmptyBinaryHash
 	}
 	db := rawdb.NewMemoryDatabase()
