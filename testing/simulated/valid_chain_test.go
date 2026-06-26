@@ -91,7 +91,6 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlock_IsSuccessful() {
 // inject custom transactions and state transitions into the core loop.
 func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsSuccessful() {
 	const blockHeight = 1
-	const coreLoopIterations = 1
 
 	// Initialize the chain state.
 	s.InitializeChain(s.T(), 1)
