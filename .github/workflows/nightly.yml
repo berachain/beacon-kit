@@ -23,7 +23,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-name: deps
+name: nightly
 
 on:
   schedule:
@@ -32,42 +32,36 @@ on:
 
 # Cancel any in-progress run if a new one starts on the same branch.
 concurrency:
-  group: vuln-and-dep-check-${{ github.ref }}
+  group: nightly-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
-
 jobs:
-  # Catch newly published vulnerabilities in dependencies via symbol-level analysis.
-  govulncheck:
-    runs-on:
-      labels: ubuntu-24.04-beacon-kit
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
-        with:
-          submodules: recursive
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
-        with:
-          go-version-file: go.mod
-          check-latest: true
-          cache-dependency-path: "**/*.sum"
-      - run: make vulncheck
+  # Run the full CI pipeline against main (build, lint, unit, forge, e2e, vulncheck, ...).
+  pipeline:
+    uses: ./.github/workflows/pipeline.yml
+    secrets: inherit
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
 
   # Run tests with locked and latest deps to catch breakage from both.
   test-deps:
     runs-on:
       labels: ubuntu-24.04-beacon-kit
+    permissions:
+      contents: read
     strategy:
       fail-fast: false # Always run both variants so one failure doesn't hide the other.
       matrix:
         deps: [locked, latest]
     name: test-${{ matrix.deps }}-deps
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           submodules: recursive
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
         with:
           go-version-file: go.mod
           check-latest: true
@@ -82,3 +76,23 @@ jobs:
       - run: make test-unit
         env:
           GOPATH: /home/runner/go
+
+  # Post to Slack only when the nightly run fails.
+  notify-slack:
+    needs: [pipeline, test-deps]
+    if: failure()
+    runs-on:
+      labels: ubuntu-24.04-beacon-kit
+    permissions:
+      contents: read
+    steps:
+      - name: Post failure to Slack
+        env:
+          CORE_SLACK_WEBHOOK_URL: ${{ secrets.CORE_SLACK_WEBHOOK_URL }}
+          TEXT: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} nightly CI failed (pipeline=${{ needs.pipeline.result }}, test-deps=${{ needs.test-deps.result }})
+        run: |
+          if [ -z "$CORE_SLACK_WEBHOOK_URL" ]; then
+            echo "CORE_SLACK_WEBHOOK_URL not set; skipping Slack notification."
+            exit 0
+          fi
+          curl -sSf -H 'Content-type: application/json' --data "{\"text\": \"$TEXT\"}" "$CORE_SLACK_WEBHOOK_URL"
