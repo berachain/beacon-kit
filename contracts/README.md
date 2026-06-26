@@ -16,8 +16,7 @@ forge build
 cat out/MockPoL.sol/SimplePoLDistributor.json | jq -r .deployedBytecode.object
 
 # Extract ValidatorRegistry bytecode
-cat out/MockValidatorRegistry.sol/ValidatorRegistry.json \
-  | jq -r .deployedBytecode.object
+cat out/MockValidatorRegistry.sol/ValidatorRegistry.json | jq -r .deployedBytecode.object
 ```
 
 The same pattern can be used to extract bytecode for other contracts in the
@@ -27,5 +26,5 @@ The same pattern can be used to extract bytecode for other contracts in the
 
 - `MockPoL.sol` - Basic PoL distributor with multi-contract state changes
 - `MockPoLReverting.sol` - PoL distributor that reverts after 10 distributions
-- `MockPoLGasEnforcer.sol` - PoL distributor that enforces a gas limit
-- `MockValidatorRegistry.sol` - Registry for testing cross-contract calls
+- `MockPoLGasEnforcer.sol` - Gas-constrained PoL distributor for gas limit testing
+- `MockValidatorRegistry.sol` - Registry contract for testing cross-contract calls
