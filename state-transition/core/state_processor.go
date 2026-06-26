@@ -224,6 +224,14 @@ func (sp *StateProcessor) ProcessBlock(
 		return err
 	}
 
+	// Capture the previous block's fork version before processExecutionPayload
+	// overwrites the latest execution payload header in state.
+	lph, err := st.GetLatestExecutionPayloadHeader()
+	if err != nil {
+		return err
+	}
+	prevBlockForkVersion := sp.cs.ActiveForkVersionForTimestamp(lph.GetTimestamp())
+
 	if err = sp.processExecutionPayload(ctx, st, blk, parentProposerPubkey); err != nil {
 		return err
 	}
@@ -236,7 +244,7 @@ func (sp *StateProcessor) ProcessBlock(
 		return err
 	}
 
-	if err = sp.processOperations(ctx, st, blk); err != nil {
+	if err = sp.processOperations(ctx, st, blk, prevBlockForkVersion); err != nil {
 		return err
 	}
 

@@ -23,6 +23,7 @@ package client
 import (
 	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/execution/client/ethclient/rpc"
 	"github.com/berachain/beacon-kit/primitives/net/http"
 	jsonrpc "github.com/berachain/beacon-kit/primitives/net/json-rpc"
 )
@@ -42,6 +43,11 @@ var (
 	// ErrBadConnection indicates that the http.Client was unable to
 	// establish a connection.
 	ErrBadConnection = errors.New("connection error")
+
+	// ErrHTTPClientError indicates an HTTP 4xx response from the EL.
+	// The request itself is rejected (oversized body, bad request, etc.) and
+	// retrying with the same payload will never succeed. Classified as fatal.
+	ErrHTTPClientError = errors.New("http client error")
 )
 
 // Handles errors received from the RPC server according to the specification.
@@ -62,16 +68,21 @@ func (s *EngineClient) handleRPCError(
 		s.metrics.incrementHTTPTimeoutCounter()
 		return http.ErrTimeout
 	}
-	// Check for authorization errors
-	if errors.Is(err, http.ErrUnauthorized) {
-		return err
-	}
-	// Check for connection errors.
+
 	var e jsonrpc.Error
 	ok := errors.As(err, &e)
 	if !ok || e == nil {
-		// No JSON-RPC response at all — the EL is unreachable. Mark the
-		// client as disconnected so the preconf health endpoint reflects it.
+		// Not a JSON-RPC error, classify by transport-level signal.
+		var httpErr *rpc.HTTPStatusError
+		if errors.As(err, &httpErr) && httpErr != nil &&
+			httpErr.StatusCode >= 400 && httpErr.StatusCode < 500 {
+			// HTTP 4xx is a request-level rejection; retrying with the same payload will never
+			// succeed. Fatal so the proposer skips the slot instead of looping.
+			// Do not set the connection flag, as the client is still reachable.
+			return errors.Join(ErrHTTPClientError, err)
+		}
+		// 5xx, other non-200, and plain transport failures fall through to ErrBadConnection.
+		// Mark the client as disconnected so the preconf health endpoint reflects it.
 		s.connected.Store(false)
 		return errors.Join(ErrBadConnection, err)
 	}
@@ -123,13 +134,16 @@ func (s *EngineClient) handleRPCError(
 	}
 }
 
-// IsFatalError defines errors that indicate a bad request or an otherwise
-// unusable client.
+// IsFatalError defines errors that indicate a bad request or an otherwise unusable client.
+// HTTP 4xx is fatal as the EL rejected the request itself (retrying with the same payload will fail).
 func IsFatalError(err error) bool {
-	return jsonrpc.IsPreDefinedError(err) || errors.IsAny(
-		err,
-		ErrBadConnection,
-	)
+	if jsonrpc.IsPreDefinedError(err) {
+		return true
+	}
+	if errors.Is(err, ErrHTTPClientError) {
+		return true
+	}
+	return false
 }
 
 // IsNonFatalError defines errors that should be ephemeral and can be
@@ -139,5 +153,6 @@ func IsNonFatalError(err error) bool {
 		err,
 		engineerrors.ErrEngineAPITimeout,
 		http.ErrTimeout,
+		ErrBadConnection,
 	)
 }

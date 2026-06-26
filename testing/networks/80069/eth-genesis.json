@@ -81,7 +81,8 @@
     "petersburgBlock": 0,
     "shanghaiTime": 0,
     "pragueTime": 1746633600,
-    "osakaTime": 9999999999999999,
+    "osakaTime": 1779897600,
+    "depositContractAddress": "0x4242424242424242424242424242424242424242",
     "terminalTotalDifficulty": 0,
     "terminalTotalDifficultyPassed": true,
     "blobSchedule": {
@@ -91,6 +92,11 @@
         "baseFeeUpdateFraction": 3338477
       },
       "prague": {
+        "target": 3,
+        "max": 6,
+        "baseFeeUpdateFraction": 3338477
+      },
+      "osaka": {
         "target": 3,
         "max": 6,
         "baseFeeUpdateFraction": 3338477
