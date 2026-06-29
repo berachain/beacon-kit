@@ -66,9 +66,15 @@ func (e *ExecNode) Start(t *testing.T, genesisFile string) (*Resource, *url.Conn
 	err = pool.Client.Ping()
 	require.NoErrorf(t, err, "could not connect to Docker: %s", err)
 
-	// Pull the image if it is not already present.
-	err = pool.Client.PullImage(e.image, docker.AuthConfiguration{})
-	require.NoError(t, err, "failed to pull image")
+	// Refresh the image from the registry, but tolerate an unreachable registry when the
+	// image is already present locally.
+	if pullErr := pool.Client.PullImage(e.image, docker.AuthConfiguration{}); pullErr != nil {
+		_, inspectErr := pool.Client.InspectImage(e.image.Repository + ":" + e.image.Tag)
+		require.NoErrorf(t, inspectErr,
+			"failed to pull image %s:%s and it is not present locally (pull error: %v)",
+			e.image.Repository, e.image.Tag, pullErr,
+		)
+	}
 
 	// Resolve the absolute path to the local test files.
 	absPath, err := filepath.Abs("../files")

@@ -119,7 +119,7 @@ func (s *SharedAccessors) CleanupTest(t *testing.T) {
 }
 
 // CleanupTestWithLabel performs common cleanup operations with an optional label for logs.
-// Use this when managing multiple execution clients (e.g., "GETH", "RETH").
+// Use this when managing multiple execution clients.
 func (s *SharedAccessors) CleanupTestWithLabel(t *testing.T, label string) {
 	t.Helper()
 
@@ -174,6 +174,16 @@ func (s *SharedAccessors) InitializeChain(t *testing.T, numValidators int) {
 	)
 	require.NoError(t, err)
 	require.Len(t, deposits, numValidators, fmt.Sprintf("Expected %d deposit(s)", numValidators))
+}
+
+// GetBalance returns the latest balance of the given hex execution address, queried via
+// the execution-layer eth JSON-RPC (ContractBackend). Prefer this over an eth_getBalance
+// call on the EngineClient: reth's auth/engine endpoint does not serve eth_getBalance.
+func (s *SharedAccessors) GetBalance(t *testing.T, addr string) hexutil.Big {
+	t.Helper()
+	balance, err := s.TestNode.ContractBackend.BalanceAt(s.CtxApp, gethcommon.HexToAddress(addr), nil)
+	require.NoError(t, err)
+	return hexutil.Big(*balance)
 }
 
 // MoveChainToHeight will iterate through the core loop `iterations` times, i.e. Propose, Process, Finalize and Commit.
@@ -245,6 +255,29 @@ func (s *SharedAccessors) MoveChainToHeight(
 		)
 	}
 	return proposedCometBlocks, finalizedResponses, proposalTime
+}
+
+// PrepareProposalUntil repeatedly calls PrepareProposal for req (up to 10 attempts, 200ms apart)
+// until cond reports the built proposal is ready, then returns that proposal.
+func (s *SharedAccessors) PrepareProposalUntil(
+	t *testing.T,
+	req *types.PrepareProposalRequest,
+	cond func(*types.PrepareProposalResponse) bool,
+) *types.PrepareProposalResponse {
+	t.Helper()
+	const maxAttempts = 10
+	const retryInterval = 200 * time.Millisecond
+	for attempt := 0; attempt < maxAttempts; attempt++ {
+		proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, req)
+		require.NoError(t, err)
+		require.NotEmpty(t, proposal)
+		if cond(proposal) {
+			return proposal
+		}
+		time.Sleep(retryInterval)
+	}
+	require.FailNow(t, "PrepareProposal did not satisfy the condition within the retry budget")
+	return nil
 }
 
 // WaitTillServicesStarted waits until the log buffer contains "All services started".
@@ -391,8 +424,12 @@ func ComputeAndSetValidExecutionBlock(
 	txsNoSidecar, sidecars := splitTxs(txs)
 	origParent := latestBlock.GetParentBlockRoot()
 
+	// reth's eth_simulateV1 ignores the withdrawals override and returns no withdrawals, so build the
+	// execution block with the original block's withdrawals (which the CL expects).
+	origWithdrawals := latestBlock.GetBody().GetExecutionPayload().GetWithdrawals()
+	gethWithdrawals := *(*coretypes.Withdrawals)(unsafe.Pointer(&origWithdrawals))
 	// Transform the simulated block into a Geth block.
-	execBlock := transformSimulatedBlockToGethBlock(simBlock, txsNoSidecar, origParent)
+	execBlock := transformSimulatedBlockToGethBlock(simBlock, txsNoSidecar, origParent, gethWithdrawals)
 	// TODO: Add support for execution requests before allowing electra
 	return updateBeaconBlockBody(t, latestBlock, forkVersion, execBlock, sidecars, nil)
 }
