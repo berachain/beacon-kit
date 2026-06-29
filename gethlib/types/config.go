@@ -114,6 +114,9 @@ type BerachainConfig struct {
 
 	// Prague4 fork values.
 	Prague4 Prague4Config `json:"prague4,omitempty"`
+
+	// Osaka1 fork values.
+	Osaka1 Osaka1Config `json:"osaka1,omitempty"`
 }
 
 // Prague1Config is the config values for the Prague1 fork on Berachain.
@@ -152,6 +155,16 @@ type Prague3Config struct {
 type Prague4Config struct {
 	// Time is the time of the Prague4 fork.
 	Time *uint64 `json:"time,omitempty"` // Prague4 switch time (0 = already on prague4, nil = no fork)
+}
+
+// Osaka1Config is the config values for the Osaka1 fork on Berachain.
+type Osaka1Config struct {
+	// Time is the time of the Osaka1 fork.
+	Time *uint64 `json:"time,omitempty"` // Osaka1 switch time (0 = already on osaka1, nil = no fork)
+	// MinimumBaseFeeWei is the minimum base fee in wei.
+	MinimumBaseFeeWei *big.Int `json:"minimumBaseFeeWei,omitempty"`
+	// MinimumBlobBaseFeeWei is the minimum blob base fee in wei.
+	MinimumBlobBaseFeeWei *big.Int `json:"minimumBlobBaseFeeWei,omitempty"`
 }
 
 // IsLondon returns whether num is either equal to the London fork block or greater.
