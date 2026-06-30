@@ -105,6 +105,9 @@ func TestStateIDToHeight(t *testing.T) {
 			for _, target := range tc.errNot {
 				require.NotErrorIs(t, err, target)
 			}
+			if tc.storage.err != nil {
+				require.ErrorIs(t, err, tc.storage.err)
+			}
 		})
 	}
 }
