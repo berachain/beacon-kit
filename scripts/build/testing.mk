@@ -152,6 +152,10 @@ define FILTER_COVERAGE
 	grep -Ev '(/testing/|/mock/|/mocks/|\.mock\.go)' $(1) > $(2)
 endef
 
+# Cache the covdata tool up front so the parallel coverage runs don't race to write-then-exec it ("text file busy").
+covdata-prewarm:
+	@go tool covdata >/dev/null 2>&1 || true
+
 test:
 	@$(MAKE) test-unit test-forge-fuzz
 
@@ -169,7 +173,7 @@ coverage-summary: test-unit test-simulated
 
 test-unit-cover: test-unit test-simulated test-unit-quick ## run golang unit tests with coverage
 
-test-unit:
+test-unit: covdata-prewarm
 	@echo "Running unit tests with coverage and race checks..."
 	@go list -f '{{.Dir}}/...' -m | xargs \
 		go test -race -covermode=atomic -coverpkg=github.com/berachain/beacon-kit/... -coverprofile=temp-test-unit-cover.txt -tags bls12381,test
@@ -182,7 +186,7 @@ test-unit-quick: ## run quick tests. We run these without coverage as covermode=
 	@go list -f '{{.Dir}}/testing/quick' -m | xargs \
 		go test -v -tags quick
 
-test-simulated: ## run simulation tests
+test-simulated: covdata-prewarm ## run simulation tests
 	@echo "Running simulation tests with coverage"
 	@go list -f '{{.Dir}}/testing/simulated' -m | xargs \
 		go test -cover -covermode=atomic -coverpkg=github.com/berachain/beacon-kit/... -coverprofile=temp-test-simulated.txt -tags simulated -v
