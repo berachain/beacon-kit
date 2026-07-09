@@ -21,28 +21,32 @@
 
 set -euo pipefail
 
-# govulncheck v1.4.0 bundles golang.org/x/tools v0.46.0, whose SSA callgraph
-# builder panics ("ForEachElement called on type containing *types.TypeParam")
-# on our generics under Go 1.26. Fixed upstream in golang/go#80055 (x/tools CL
-# 786280), not yet in a tagged release. Build govulncheck against the patched
-# commit (MVS selects it over v0.46.0). Drop this once a govulncheck release
-# ships with the fix and replace with `go run .../govulncheck@latest`.
-XTOOLS_FIX="golang.org/x/tools@d711ac7849d4f5456228745090323144c4c2d190"
+command -v jq >/dev/null || { echo "jq is required" >&2; exit 1; }
 
-# Pin the analysis toolchain to the version declared in go.mod.
-export GOTOOLCHAIN="go$(sed -n 's/^go //p' go.mod)"
-
-# Build govulncheck against the patched x/tools in a throwaway module.
-tmp="$(mktemp -d)"
-trap 'rm -rf "$tmp"' EXIT
-(
-  cd "$tmp"
-  go mod init vulncheck-runner >/dev/null
-  go get golang.org/x/vuln/cmd/govulncheck@latest >/dev/null
-  go get "$XTOOLS_FIX" >/dev/null
-  go build -o "$tmp/govulncheck" golang.org/x/vuln/cmd/govulncheck
+# Suppressed advisories, with the reason above each entry.
+SUPPRESSED=(
+  # x/crypto/openpgp is unmaintained with no fix, only reached via cosmos-sdk keyring armor.
+  'GO-2026-5932'
 )
 
-# Scan all non-test packages.
-# shellcheck disable=SC2046
-"$tmp/govulncheck" $(go list ./... | grep -v '/testing/')
+# Scan with the toolchain declared in go.mod.
+export GOTOOLCHAIN="go$(sed -n 's/^go //p' go.mod)"
+
+report="$(mktemp)"
+trap 'rm -f "$report"' EXIT
+
+# Scan all non-test packages. JSON mode always exits 0; pass/fail is decided below after dropping suppressed advisories.
+go run golang.org/x/vuln/cmd/govulncheck@latest -format json $(go list ./... | grep -v '/testing/') > "$report"
+
+# Advisories our code reaches at symbol level. A finding is symbol level when its first trace frame has a function.
+found="$(jq -r 'select(.finding.trace[0].function != null) | .finding.osv' "$report" | sort -u | grep -vxF -f <(printf '%s\n' "${SUPPRESSED[@]}") || true)"
+
+if [ -n "$found" ]; then
+  echo "Reachable vulnerabilities:"
+  jq -r --arg found "$found" 'select(.osv.id | IN($found | split("\n")[]))
+    | "  \(.osv.id): \(.osv.summary)\n    https://pkg.go.dev/vuln/\(.osv.id)"' "$report"
+  echo "For full traces run: go run golang.org/x/vuln/cmd/govulncheck@latest ./..."
+  exit 3
+fi
+
+echo "OK (suppressed advisories: ${SUPPRESSED[*]})"
