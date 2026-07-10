@@ -24,6 +24,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 
@@ -253,6 +254,10 @@ func (c *customBeaconClient) BlockProposerProof(
 		return nil, errors.New("received nil response")
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("received non-OK response %s: %s", resp.Status, string(body))
+	}
 
 	var result ptypes.BlockProposerResponse
 	if err = json.NewDecoder(resp.Body).Decode(&result); err != nil {
@@ -282,6 +287,10 @@ func (c *customBeaconClient) ValidatorBalanceProof(
 		return nil, errors.New("received nil response")
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("received non-OK response %s: %s", resp.Status, string(body))
+	}
 
 	var result ptypes.ValidatorBalanceResponse
 	if err = json.NewDecoder(resp.Body).Decode(&result); err != nil {
@@ -311,6 +320,10 @@ func (c *customBeaconClient) ValidatorCredentialsProof(
 		return nil, errors.New("received nil response")
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("received non-OK response %s: %s", resp.Status, string(body))
+	}
 
 	var result ptypes.ValidatorWithdrawalCredentialsResponse
 	if err = json.NewDecoder(resp.Body).Decode(&result); err != nil {
@@ -340,6 +353,10 @@ func (c *customBeaconClient) ValidatorPubkeyProof(
 		return nil, errors.New("received nil response")
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("received non-OK response %s: %s", resp.Status, string(body))
+	}
 
 	var result ptypes.ValidatorPubkeyResponse
 	if err = json.NewDecoder(resp.Body).Decode(&result); err != nil {

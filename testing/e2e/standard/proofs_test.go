@@ -25,15 +25,31 @@ package standard_test
 import (
 	"math/big"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/gethlib/ssztest"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/merkle"
+	ptypes "github.com/berachain/beacon-kit/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
+
+// errSlotNotIndexed is the transient server error returned while a queried node is still indexing the head.
+const errSlotNotIndexed = "slot not found at timestamp"
+
+// retryTimestampProof re-runs a t<timestamp> proof fetch while the queried node returns the errSlotNotIndexed.
+func retryTimestampProof[T any](fetch func() (*T, error)) (*T, error) {
+	resp, err := fetch()
+	for i := 0; i < 15 && err != nil && strings.Contains(err.Error(), errSlotNotIndexed); i++ {
+		time.Sleep(200 * time.Millisecond)
+		resp, err = fetch()
+	}
+	return resp, err
+}
 
 // TestBlockProposerProof tests the block proposer proof endpoint by fetching and verifying
 // the block proposer proofs against the SSZTest contract. Refer to
@@ -85,9 +101,9 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 	s.Require().NotNil(nextHeader)
 
 	// Get the block proposer proof for the next timestamp and enforce equality.
-	blockProposerResp2, err := s.ConsensusClients(0).BlockProposerProof(
-		s.Ctx(), "t"+strconv.FormatUint(nextHeader.Time, 10),
-	)
+	blockProposerResp2, err := retryTimestampProof(func() (*ptypes.BlockProposerResponse, error) {
+		return s.ConsensusClients(0).BlockProposerProof(s.Ctx(), "t"+strconv.FormatUint(nextHeader.Time, 10))
+	})
 	s.Require().NoError(err)
 	s.Require().NotNil(blockProposerResp2)
 	s.Require().NotNil(blockProposerResp2.BeaconBlockHeader)
@@ -234,9 +250,11 @@ func (s *BeaconKitE2ESuite) TestValidatorBalanceProof() {
 	s.Require().NotNil(nextHeader)
 
 	// Get the block proposer proof for the next timestamp and enforce equality.
-	balanceResp2, err := s.ConsensusClients(0).ValidatorBalanceProof(
-		s.Ctx(), "t"+strconv.FormatUint(nextHeader.Time, 10), strconv.FormatUint(validatorIndex, 10),
-	)
+	balanceResp2, err := retryTimestampProof(func() (*ptypes.ValidatorBalanceResponse, error) {
+		return s.ConsensusClients(0).ValidatorBalanceProof(
+			s.Ctx(), "t"+strconv.FormatUint(nextHeader.Time, 10), strconv.FormatUint(validatorIndex, 10),
+		)
+	})
 	s.Require().NoError(err)
 	s.Require().NotNil(balanceResp2)
 	s.Require().NotNil(balanceResp2.BeaconBlockHeader)
@@ -343,9 +361,11 @@ func (s *BeaconKitE2ESuite) TestValidatorCredentialsProof() {
 	s.Require().NotNil(nextHeader)
 
 	// Get the block proposer proof for the next timestamp and enforce equality.
-	credsResp1, err := s.ConsensusClients(0).ValidatorCredentialsProof(
-		s.Ctx(), "t"+strconv.FormatUint(nextHeader.Time, 10), strconv.FormatUint(validatorIndex, 10),
-	)
+	credsResp1, err := retryTimestampProof(func() (*ptypes.ValidatorWithdrawalCredentialsResponse, error) {
+		return s.ConsensusClients(0).ValidatorCredentialsProof(
+			s.Ctx(), "t"+strconv.FormatUint(nextHeader.Time, 10), strconv.FormatUint(validatorIndex, 10),
+		)
+	})
 	s.Require().NoError(err)
 	s.Require().NotNil(credsResp1)
 	s.Require().NotNil(credsResp1.BeaconBlockHeader)
@@ -475,9 +495,11 @@ func (s *BeaconKitE2ESuite) TestValidatorPubkeyProof() {
 	s.Require().NotNil(nextHeader)
 
 	// Get the pubkey proof for the next timestamp and enforce equality.
-	pubkeyResp2, err := s.ConsensusClients(0).ValidatorPubkeyProof(
-		s.Ctx(), "t"+strconv.FormatUint(nextHeader.Time, 10), strconv.FormatUint(validatorIndex, 10),
-	)
+	pubkeyResp2, err := retryTimestampProof(func() (*ptypes.ValidatorPubkeyResponse, error) {
+		return s.ConsensusClients(0).ValidatorPubkeyProof(
+			s.Ctx(), "t"+strconv.FormatUint(nextHeader.Time, 10), strconv.FormatUint(validatorIndex, 10),
+		)
+	})
 	s.Require().NoError(err)
 	s.Require().NotNil(pubkeyResp2)
 	s.Require().NotNil(pubkeyResp2.BeaconBlockHeader)
