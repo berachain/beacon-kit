@@ -131,23 +131,27 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 	s.Require().NoError(err)
 	forkVersion := s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(math.U64(consensusTime.Unix()))
 
-	// Build the proposal, retrying until the proposer's EL build includes the injected tx.
-	proposal := s.PrepareProposalUntil(s.T(), &types.PrepareProposalRequest{
+	// Build the proposal and ensure the injected tx submitted to the EL pool is included.
+	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
 		Time:            consensusTime,
 		ProposerAddress: nodeAddress,
-	}, func(p *types.PrepareProposalResponse) bool {
-		builtBlock, derr := encoding.UnmarshalBeaconBlockFromABCIRequest(
-			p.Txs, blockchain.BeaconBlockTxIndex, forkVersion,
-		)
-		s.Require().NoError(derr)
-		for _, txBytes := range builtBlock.GetBody().GetExecutionPayload().GetTransactions() {
-			if bytes.Equal(txBytes, validTxBytes) {
-				return true
-			}
-		}
-		return false
 	})
+	s.Require().NoError(err)
+	s.Require().NotEmpty(proposal)
+
+	builtBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
+		proposal.Txs, blockchain.BeaconBlockTxIndex, forkVersion,
+	)
+	s.Require().NoError(err)
+	txIncluded := false
+	for _, txBytes := range builtBlock.GetBody().GetExecutionPayload().GetTransactions() {
+		if bytes.Equal(txBytes, validTxBytes) {
+			txIncluded = true
+			break
+		}
+	}
+	s.Require().True(txIncluded, "injected transaction was not included in the built block")
 
 	// Reset the log buffer to discard old logs we don't care about
 	s.LogBuffer.Reset()
@@ -230,16 +234,18 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessfu
 		s.Require().NoError(s.TestNode.ContractBackend.SendTransaction(s.CtxApp, blobTx))
 	}
 
-	// Build the proposal, retrying until the proposer's EL build includes both blobs.
-	proposal := s.PrepareProposalUntil(s.T(), &types.PrepareProposalRequest{
+	// Build the proposal and ensure the blob txs submitted to the EL pool are included.
+	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
 		Time:            consensusTime,
 		ProposerAddress: nodeAddress,
-	}, func(p *types.PrepareProposalResponse) bool {
-		sidecars, scErr := encoding.UnmarshalBlobSidecarsFromABCIRequest(p.Txs, blockchain.BlobSidecarsTxIndex)
-		s.Require().NoError(scErr)
-		return len(sidecars) == len(blobs)
 	})
+	s.Require().NoError(err)
+	s.Require().NotEmpty(proposal)
+
+	sidecars, err := encoding.UnmarshalBlobSidecarsFromABCIRequest(proposal.Txs, blockchain.BlobSidecarsTxIndex)
+	s.Require().NoError(err)
+	s.Require().Len(sidecars, len(blobs), "injected blobs were not included in the built block")
 
 	// Reset the log buffer to discard old logs we don't care about.
 	s.LogBuffer.Reset()
