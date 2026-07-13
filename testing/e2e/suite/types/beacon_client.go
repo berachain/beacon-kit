@@ -27,6 +27,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	client "github.com/attestantio/go-eth2-client"
 	beaconapi "github.com/attestantio/go-eth2-client/api"
@@ -234,6 +235,20 @@ func (c *customBeaconClient) Validators(
 	}, nil
 }
 
+// errSlotNotIndexed is the transient server error returned while a queried node is still indexing the head.
+// Defined in GetParentSlotByTimestamp (storage/block/store.go:128)
+const errSlotNotIndexed = "slot not found at timestamp"
+
+// doProofRequestUntilIndexed re-runs fetch while the node reports it has not yet indexed the queried timestamp.
+func doProofRequestUntilIndexed[T any](ctx context.Context, c *customBeaconClient, url string) (*T, error) {
+	resp, err := doProofRequest[T](ctx, c, url)
+	for i := 0; i < 15 && err != nil && strings.Contains(err.Error(), errSlotNotIndexed); i++ {
+		time.Sleep(200 * time.Millisecond)
+		resp, err = doProofRequest[T](ctx, c, url)
+	}
+	return resp, err
+}
+
 // doProofRequest issues a GET to a proof endpoint and decodes the JSON body into *T.
 func doProofRequest[T any](ctx context.Context, c *customBeaconClient, url string) (*T, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
@@ -268,7 +283,7 @@ func (c *customBeaconClient) BlockProposerProof(
 	ctx context.Context, timestampID string,
 ) (*ptypes.BlockProposerResponse, error) {
 	url := fmt.Sprintf("%s/bkit/v1/proof/block_proposer/%s", c.address, timestampID)
-	return doProofRequest[ptypes.BlockProposerResponse](ctx, c, url)
+	return doProofRequestUntilIndexed[ptypes.BlockProposerResponse](ctx, c, url)
 }
 
 // ValidatorBalanceProof calls `bkit/v1/proof/validator_balance/:timestamp_id/:validator_index` endpoint to get
@@ -277,7 +292,7 @@ func (c *customBeaconClient) ValidatorBalanceProof(
 	ctx context.Context, timestampID string, validatorIndex string,
 ) (*ptypes.ValidatorBalanceResponse, error) {
 	url := fmt.Sprintf("%s/bkit/v1/proof/validator_balance/%s/%s", c.address, timestampID, validatorIndex)
-	return doProofRequest[ptypes.ValidatorBalanceResponse](ctx, c, url)
+	return doProofRequestUntilIndexed[ptypes.ValidatorBalanceResponse](ctx, c, url)
 }
 
 // ValidatorCredentialsProof calls `bkit/v1/proof/validator_credentials/:timestamp_id/:validator_index` endpoint to get
@@ -286,7 +301,7 @@ func (c *customBeaconClient) ValidatorCredentialsProof(
 	ctx context.Context, timestampID string, validatorIndex string,
 ) (*ptypes.ValidatorWithdrawalCredentialsResponse, error) {
 	url := fmt.Sprintf("%s/bkit/v1/proof/validator_credentials/%s/%s", c.address, timestampID, validatorIndex)
-	return doProofRequest[ptypes.ValidatorWithdrawalCredentialsResponse](ctx, c, url)
+	return doProofRequestUntilIndexed[ptypes.ValidatorWithdrawalCredentialsResponse](ctx, c, url)
 }
 
 // ValidatorPubkeyProof calls `bkit/v1/proof/validator_pubkey/:timestamp_id/:validator_index` endpoint to get
@@ -295,5 +310,5 @@ func (c *customBeaconClient) ValidatorPubkeyProof(
 	ctx context.Context, timestampID string, validatorIndex string,
 ) (*ptypes.ValidatorPubkeyResponse, error) {
 	url := fmt.Sprintf("%s/bkit/v1/proof/validator_pubkey/%s/%s", c.address, timestampID, validatorIndex)
-	return doProofRequest[ptypes.ValidatorPubkeyResponse](ctx, c, url)
+	return doProofRequestUntilIndexed[ptypes.ValidatorPubkeyResponse](ctx, c, url)
 }
