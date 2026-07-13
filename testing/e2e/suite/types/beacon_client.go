@@ -235,15 +235,22 @@ func (c *customBeaconClient) Validators(
 	}, nil
 }
 
-// errSlotNotIndexed is the transient server error returned while a queried node is still indexing the head.
-// Defined in GetParentSlotByTimestamp (storage/block/store.go:128)
-const errSlotNotIndexed = "slot not found at timestamp"
+const (
+	// errSlotNotIndexed is the transient server error returned while a queried node is still
+	// indexing the head. Defined in GetParentSlotByTimestamp (storage/block/store.go:128).
+	errSlotNotIndexed = "slot not found at timestamp"
+
+	// proofRetryAttempts and proofRetryInterval bound the wait for the node to index the head,
+	// within a total 3s, above the ~2s target block time.
+	proofRetryAttempts = 15
+	proofRetryInterval = 200 * time.Millisecond
+)
 
 // doProofRequestUntilIndexed re-runs fetch while the node reports it has not yet indexed the queried timestamp.
 func doProofRequestUntilIndexed[T any](ctx context.Context, c *customBeaconClient, url string) (*T, error) {
 	resp, err := doProofRequest[T](ctx, c, url)
-	for i := 0; i < 15 && err != nil && strings.Contains(err.Error(), errSlotNotIndexed); i++ {
-		time.Sleep(200 * time.Millisecond)
+	for i := 0; i < proofRetryAttempts && err != nil && strings.Contains(err.Error(), errSlotNotIndexed); i++ {
+		time.Sleep(proofRetryInterval)
 		resp, err = doProofRequest[T](ctx, c, url)
 	}
 	return resp, err
