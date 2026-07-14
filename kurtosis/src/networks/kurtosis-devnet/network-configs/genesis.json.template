@@ -55,8 +55,8 @@
       },
       "osaka1": {
         "time": 0,
-        "minimumBaseFeeWei": 10000000000,
-        "minimumBlobBaseFeeWei": 10000000000
+        "minimumBaseFeeWei": 1000000000,
+        "minimumBlobBaseFeeWei": 1000000000
       }
     }
   },
