@@ -337,7 +337,7 @@ start_tx_load() {
     ) &
     PIDS+=($!)
     # Drop the job from bash's job table so cleanup's SIGTERM does not print a "Terminated: 15" job notice.
-    disown
+    disown || true
 }
 
 # ---------------------------------------------------------------------------------------------------------------

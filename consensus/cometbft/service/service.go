@@ -120,7 +120,6 @@ type Service struct {
 	syncingToHeight int64
 }
 
-//nolint:funlen // node assembly requires many sequential setup steps
 func NewService(
 	logger *phuslu.Logger,
 	db dbm.DB,
@@ -174,25 +173,7 @@ func NewService(
 	lastBlockHeight := s.lastBlockHeight()
 	s.syncingToHeight = lastBlockHeight
 
-	// Seed the finalized-block tracking from the last committed block so the halt checks hold across restarts.
-	// Blocks committed by binaries that predate the populated commit header carry a zero timestamp, which
-	// leaves the halt-time check unseeded until the next commit.
-	s.finalizedHeight = lastBlockHeight
-	if lastBlockHeight > 0 {
-		rms, ok := s.sm.GetCommitMultiStore().(*rootmulti.Store)
-		if !ok {
-			panic("failed loading last committed block time: unexpected commit multi-store type")
-		}
-
-		ci, ciErr := rms.GetCommitInfo(lastBlockHeight)
-		if ciErr != nil {
-			panic(fmt.Errorf("failed loading commit info at height %d: %w", lastBlockHeight, ciErr))
-		}
-		if ci == nil {
-			panic(fmt.Errorf("failed loading commit info at height %d: empty commit info", lastBlockHeight))
-		}
-		s.finalizedTime = ci.Timestamp
-	}
+	s.seedFinalizedBlock(lastBlockHeight)
 
 	// Make sure that SBT consensus parameters are duly set when the node restart.
 	// Note that we can't rely on genesis.json having these parameters set right
@@ -222,6 +203,31 @@ func NewService(
 	}
 
 	return s
+}
+
+// seedFinalizedBlock seeds the finalized-block tracking from the last committed block so the halt checks hold
+// across restarts. The commit-info load is skipped unless a halt flag is set, the first FinalizeBlock refreshes
+// these fields before anything else reads them. Blocks committed by binaries that predate the populated commit
+// header carry a zero timestamp, which leaves the halt-time check unseeded until the next commit.
+func (s *Service) seedFinalizedBlock(lastBlockHeight int64) {
+	s.finalizedHeight = lastBlockHeight
+	if lastBlockHeight <= 0 || (s.haltHeight == 0 && s.haltTime == 0) {
+		return
+	}
+
+	rms, ok := s.sm.GetCommitMultiStore().(*rootmulti.Store)
+	if !ok {
+		panic("failed loading last committed block time: unexpected commit multi-store type")
+	}
+
+	ci, ciErr := rms.GetCommitInfo(lastBlockHeight)
+	if ciErr != nil {
+		panic(fmt.Errorf("failed loading commit info at height %d: %w", lastBlockHeight, ciErr))
+	}
+	if ci == nil {
+		panic(fmt.Errorf("failed loading commit info at height %d: empty commit info", lastBlockHeight))
+	}
+	s.finalizedTime = ci.Timestamp
 }
 
 // TODO: Move nodeKey into being created within the function.

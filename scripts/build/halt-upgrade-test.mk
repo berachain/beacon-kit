@@ -21,7 +21,7 @@ BERA_RETH_BIN_DIR = /tmp/.halt-upgrade-test
 BERA_RETH_PLATFORM := $(shell uname -m | sed 's/arm64/aarch64/')-$(if $(filter Darwin,$(shell uname)),apple-darwin,unknown-linux-gnu)
 BERA_RETH_ASSET = bera-reth-$(BERA_RETH_VERSION)-$(BERA_RETH_PLATFORM).tar.gz
 BERA_RETH_URL = https://github.com/berachain/bera-reth/releases/download/$(BERA_RETH_VERSION)/$(BERA_RETH_ASSET)
-BERA_RETH_BIN = $(BERA_RETH_BIN_DIR)/bera-reth-$(BERA_RETH_VERSION)
+BERA_RETH_BIN = $(BERA_RETH_BIN_DIR)/bera-reth-$(BERA_RETH_VERSION)-$(BERA_RETH_PLATFORM)
 
 # The tarball comes from the GitHub release over HTTPS and is trusted as-is. The version-stamped mv at the end
 # is the commit step, so an interrupted download never masquerades as a valid cached binary.
