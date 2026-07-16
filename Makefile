@@ -8,6 +8,7 @@ include scripts/build/linting.mk
 include scripts/build/protobuf.mk
 include scripts/build/release.mk
 include scripts/build/testing.mk
+include scripts/build/halt-upgrade-test.mk
 include contracts/Makefile
 include kurtosis/Makefile
 include scripts/build/help.mk
