@@ -24,7 +24,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
+	"cosmossdk.io/store/rootmulti"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/validator"
@@ -88,6 +90,16 @@ type Service struct {
 	initialHeight   int64
 	minRetainBlocks uint64
 
+	// haltHeight and haltTime, when non-zero, cause the node to gracefully shut down once the committed block
+	// height, respectively block time in Unix seconds, reaches them.
+	haltHeight uint64
+	haltTime   uint64
+
+	// finalizedHeight and finalizedTime describe the block most recently processed by FinalizeBlock. commit()
+	// uses them for the halt checks, since the cached state context does not carry a populated block header.
+	finalizedHeight int64
+	finalizedTime   time.Time
+
 	chainID string
 
 	// ctx is the context passed in for the service. CometBFT currently does
@@ -108,6 +120,7 @@ type Service struct {
 	syncingToHeight int64
 }
 
+//nolint:funlen // node assembly requires many sequential setup steps
 func NewService(
 	logger *phuslu.Logger,
 	db dbm.DB,
@@ -161,6 +174,26 @@ func NewService(
 	lastBlockHeight := s.lastBlockHeight()
 	s.syncingToHeight = lastBlockHeight
 
+	// Seed the finalized-block tracking from the last committed block so the halt checks hold across restarts.
+	// Blocks committed by binaries that predate the populated commit header carry a zero timestamp, which
+	// leaves the halt-time check unseeded until the next commit.
+	s.finalizedHeight = lastBlockHeight
+	if lastBlockHeight > 0 {
+		rms, ok := s.sm.GetCommitMultiStore().(*rootmulti.Store)
+		if !ok {
+			panic("failed loading last committed block time: unexpected commit multi-store type")
+		}
+
+		ci, ciErr := rms.GetCommitInfo(lastBlockHeight)
+		if ciErr != nil {
+			panic(fmt.Errorf("failed loading commit info at height %d: %w", lastBlockHeight, ciErr))
+		}
+		if ci == nil {
+			panic(fmt.Errorf("failed loading commit info at height %d: empty commit info", lastBlockHeight))
+		}
+		s.finalizedTime = ci.Timestamp
+	}
+
 	// Make sure that SBT consensus parameters are duly set when the node restart.
 	// Note that we can't rely on genesis.json having these parameters set right
 	// because we introduced stable block time post (mainnet) genesis.
@@ -195,6 +228,12 @@ func NewService(
 func (s *Service) Start(
 	ctx context.Context,
 ) error {
+	// Refuse to enter consensus when the halt point was already reached, so a node restarted with the halt
+	// flags still set exits cleanly instead of proposing or replaying blocks past the halt and crash-looping.
+	if err := s.ensureNotHalted(); err != nil {
+		return err
+	}
+
 	cfg := s.cmtCfg
 	nodeKey, err := p2p.LoadOrGenNodeKey(cfg.NodeKeyFile())
 	if err != nil {
@@ -349,6 +388,14 @@ func (s *Service) lastBlockHeight() int64 {
 
 func (s *Service) setMinRetainBlocks(minRetainBlocks uint64) {
 	s.minRetainBlocks = minRetainBlocks
+}
+
+func (s *Service) setHaltHeight(haltHeight uint64) {
+	s.haltHeight = haltHeight
+}
+
+func (s *Service) setHaltTime(haltTime uint64) {
+	s.haltTime = haltTime
 }
 
 func (s *Service) setInterBlockCache(

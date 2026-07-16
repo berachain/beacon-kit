@@ -23,41 +23,121 @@ package cometbft
 
 import (
 	"fmt"
+	"os"
+	"syscall"
+	"time"
 
 	"cosmossdk.io/store/rootmulti"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
+	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 )
 
 func (s *Service) commit(
 	*cmtabci.CommitRequest,
 ) (*cmtabci.CommitResponse, error) {
-	_, finalState, err := s.cachedStates.GetFinal()
-	if err != nil {
+	if _, _, err := s.cachedStates.GetFinal(); err != nil {
 		// This is unexpected since CometBFT should call Commit only
 		// after FinalizeBlock has been called. Panic appeases nilaway.
 		panic(fmt.Errorf("commit: %w", err))
 	}
 
-	header := finalState.Context().BlockHeader()
-	retainHeight := s.GetBlockRetentionHeight(header.Height)
+	// The cached state context carries an empty block header, so use the height and time captured from FinalizeBlock instead.
+	retainHeight := s.GetBlockRetentionHeight(s.finalizedHeight)
 
 	rms, ok := s.sm.GetCommitMultiStore().(*rootmulti.Store)
 	if ok {
-		rms.SetCommitHeader(header)
+		rms.SetCommitHeader(cmtproto.Header{ChainID: s.chainID, Height: s.finalizedHeight, Time: s.finalizedTime})
 	}
 	s.sm.GetCommitMultiStore().Commit()
 
 	s.cachedStates.Reset()
 
 	if s.blockDelay != nil {
-		if err = s.sm.SaveBlockDelay(s.blockDelay.ToBytes()); err != nil {
+		if err := s.sm.SaveBlockDelay(s.blockDelay.ToBytes()); err != nil {
 			panic(fmt.Errorf("failed to save block delay: %w", err))
 		}
 	}
 
+	s.haltIfReached()
+
 	return &cmtabci.CommitResponse{
 		RetainHeight: retainHeight,
 	}, nil
+}
+
+// haltPointReached reports whether a block at the given height and time has reached the configured halt-height
+// or halt-time. It is the single halt predicate, applied to the last finalized block by ensureNotHalted and haltIfReached.
+func haltPointReached(haltHeight, haltTime uint64, height int64, blockTime time.Time) bool {
+	unixTime := blockTime.Unix()
+	switch {
+	case haltHeight > 0 && height >= 0 && uint64(height) >= haltHeight:
+		return true
+	case haltTime > 0 && unixTime >= 0 && uint64(unixTime) >= haltTime:
+		return true
+	default:
+		return false
+	}
+}
+
+// ensureNotHalted returns an error once the last finalized block has reached the halt point. Service start
+// refuses to run with it and the ABCI handlers gate on it (see abci.go), so a node with the halt flags still
+// set neither advances state past the halt block nor creeps one block per restart.
+func (s *Service) ensureNotHalted() error {
+	if !haltPointReached(s.haltHeight, s.haltTime, s.finalizedHeight, s.finalizedTime) {
+		return nil
+	}
+	return fmt.Errorf(
+		"chain reached the configured halt point (halt-height %d, halt-time %d) at committed height %d, unset the halt flags to resume",
+		s.haltHeight, s.haltTime, s.finalizedHeight,
+	)
+}
+
+// haltShutdownSlack bounds how long a parked ABCI call waits after the app context is cancelled. The halt
+// shutdown normally exits the process within it, so the caller's error return (and the CometBFT panic it
+// causes) only happens on a wedged shutdown.
+//
+//nolint:gochecknoglobals // var instead of const so tests can shorten it
+var haltShutdownSlack = 30 * time.Second
+
+// waitForHaltShutdown parks an ABCI call that must not proceed past the halt point while the halt shutdown
+// brings the process down.
+func (s *Service) waitForHaltShutdown() {
+	<-s.ctx.Done()
+	time.Sleep(haltShutdownSlack)
+}
+
+// haltGracePeriod keeps Commit blocked after the halt block so vote gossip can deliver the halt-block
+// precommits to validators still one short. Exiting immediately can wedge those peers at the previous height,
+// and a wedged set larger than 1/3 cannot recover after the restart (individual precommit signatures do not
+// survive commit aggregation).
+const haltGracePeriod = 5 * time.Second
+
+// haltIfReached gracefully shuts down the node once the committed block reaches the configured halt-height or
+// halt-time. It runs after the block has been fully committed, so a restarted node resumes consensus at the
+// next height with no replay needed.
+func (s *Service) haltIfReached() {
+	if !haltPointReached(s.haltHeight, s.haltTime, s.finalizedHeight, s.finalizedTime) {
+		return
+	}
+
+	s.logger.Info("halting node per configuration",
+		"halt_height", s.haltHeight, "halt_time", s.haltTime, "committed_height", s.finalizedHeight, "grace_period", haltGracePeriod)
+
+	// Sleeping here blocks the consensus state machine inside Commit, so no halting node can advance to the
+	// next height while its peer gossip routines keep serving the halt-block precommits from the live vote set.
+	time.Sleep(haltGracePeriod)
+
+	// Signal our own process so the node's regular shutdown path runs, the same mechanism a cosmos-sdk baseapp
+	// uses for halt-height.
+	p, err := os.FindProcess(os.Getpid())
+	if err != nil {
+		os.Exit(0)
+	}
+	if err = p.Signal(syscall.SIGINT); err != nil {
+		if err = p.Signal(syscall.SIGTERM); err != nil {
+			os.Exit(0)
+		}
+	}
 }
 
 // GetBlockRetentionHeight returns the height for which all blocks below this
