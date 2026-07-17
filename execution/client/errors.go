@@ -78,9 +78,12 @@ func (s *EngineClient) handleRPCError(
 			httpErr.StatusCode >= 400 && httpErr.StatusCode < 500 {
 			// HTTP 4xx is a request-level rejection; retrying with the same payload will never
 			// succeed. Fatal so the proposer skips the slot instead of looping.
+			// Do not set the connection flag, as the client is still reachable.
 			return errors.Join(ErrHTTPClientError, err)
 		}
 		// 5xx, other non-200, and plain transport failures fall through to ErrBadConnection.
+		// Mark the client as disconnected so the preconf health endpoint reflects it.
+		s.connected.Store(false)
 		return errors.Join(ErrBadConnection, err)
 	}
 

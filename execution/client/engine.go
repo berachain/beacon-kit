@@ -56,6 +56,7 @@ func (s *EngineClient) NewPayload(
 		}
 		return nil, s.handleRPCError(err)
 	}
+	s.connected.Store(true)
 	if result == nil {
 		return nil, engineerrors.ErrNilPayloadStatus
 	}
@@ -107,6 +108,7 @@ func (s *EngineClient) ForkchoiceUpdated(
 		}
 		return nil, s.handleRPCError(err)
 	}
+	s.connected.Store(true)
 	if result == nil {
 		return nil, engineerrors.ErrNilForkchoiceResponse
 	}
@@ -144,6 +146,7 @@ func (s *EngineClient) GetPayload(
 		}
 		return result, s.handleRPCError(err)
 	}
+	s.connected.Store(true)
 	if result == nil {
 		// Engine API returns the Unknown Payload (-38001) error if a nil result is returned.
 		return result, engineerrors.ErrUnknownPayload
