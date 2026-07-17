@@ -215,14 +215,20 @@ func (s *BeaconKitE2ESuite) TestSubmitPartialWithdrawalTransaction() {
 	)
 	s.Require().NoError(err)
 
+	// Derive fee caps from the chain so the tx clears any configured base fee floor
+	tip, err := elClient.SuggestGasTipCap(ctx)
+	s.Require().NoError(err)
+	gasFee, err := elClient.SuggestGasPrice(ctx)
+	s.Require().NoError(err)
+
 	// Create and sign the transaction
 	tx := gethcore.MustSignNewTx(privateKey, signer, &gethcore.DynamicFeeTx{
 		ChainID:   chainID,
 		Nonce:     uint64(nonce),
 		To:        &params.WithdrawalQueueAddress,
 		Gas:       WithdrawalTxGasLimit,
-		GasFeeCap: big.NewInt(10000000000),
-		GasTipCap: big.NewInt(10000000000),
+		GasFeeCap: new(big.Int).Mul(gasFee, big.NewInt(2)),
+		GasTipCap: tip,
 		Value:     fee,
 		Data:      withdrawalTxData,
 	})
