@@ -24,8 +24,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	client "github.com/attestantio/go-eth2-client"
 	beaconapi "github.com/attestantio/go-eth2-client/api"
@@ -233,13 +235,29 @@ func (c *customBeaconClient) Validators(
 	}, nil
 }
 
-// BlockProposerProof calls `bkit/v1/proof/block_proposer/:timestamp_id` endpoint to get
-// the merkle proofs that can be used to verify the block proposer for a given timestamp id.
-func (c *customBeaconClient) BlockProposerProof(
-	ctx context.Context, timestampID string,
-) (*ptypes.BlockProposerResponse, error) {
-	url := fmt.Sprintf("%s/bkit/v1/proof/block_proposer/%s", c.address, timestampID)
+const (
+	// errSlotNotIndexed is the transient server error returned while a queried node is still
+	// indexing the head. Defined in GetParentSlotByTimestamp (storage/block/store.go:128).
+	errSlotNotIndexed = "slot not found at timestamp"
 
+	// proofRetryAttempts and proofRetryInterval bound the wait for the node to index the head,
+	// within a total 3s, above the ~2s target block time.
+	proofRetryAttempts = 15
+	proofRetryInterval = 200 * time.Millisecond
+)
+
+// doProofRequestUntilIndexed re-runs fetch while the node reports it has not yet indexed the queried timestamp.
+func doProofRequestUntilIndexed[T any](ctx context.Context, c *customBeaconClient, url string) (*T, error) {
+	resp, err := doProofRequest[T](ctx, c, url)
+	for i := 0; i < proofRetryAttempts && err != nil && strings.Contains(err.Error(), errSlotNotIndexed); i++ {
+		time.Sleep(proofRetryInterval)
+		resp, err = doProofRequest[T](ctx, c, url)
+	}
+	return resp, err
+}
+
+// doProofRequest issues a GET to a proof endpoint and decodes the JSON body into *T.
+func doProofRequest[T any](ctx context.Context, c *customBeaconClient, url string) (*T, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
@@ -253,13 +271,26 @@ func (c *customBeaconClient) BlockProposerProof(
 		return nil, errors.New("received nil response")
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("received non-OK response %s: %s", resp.Status, string(body))
+	}
 
-	var result ptypes.BlockProposerResponse
+	var result T
 	if err = json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
 	return &result, nil
+}
+
+// BlockProposerProof calls `bkit/v1/proof/block_proposer/:timestamp_id` endpoint to get
+// the merkle proofs that can be used to verify the block proposer for a given timestamp id.
+func (c *customBeaconClient) BlockProposerProof(
+	ctx context.Context, timestampID string,
+) (*ptypes.BlockProposerResponse, error) {
+	url := fmt.Sprintf("%s/bkit/v1/proof/block_proposer/%s", c.address, timestampID)
+	return doProofRequestUntilIndexed[ptypes.BlockProposerResponse](ctx, c, url)
 }
 
 // ValidatorBalanceProof calls `bkit/v1/proof/validator_balance/:timestamp_id/:validator_index` endpoint to get
@@ -268,27 +299,7 @@ func (c *customBeaconClient) ValidatorBalanceProof(
 	ctx context.Context, timestampID string, validatorIndex string,
 ) (*ptypes.ValidatorBalanceResponse, error) {
 	url := fmt.Sprintf("%s/bkit/v1/proof/validator_balance/%s/%s", c.address, timestampID, validatorIndex)
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-
-	resp, err := c.client.Do(req) //#nosec:G704 // URL is from trusted test infrastructure.
-	if err != nil {
-		return nil, fmt.Errorf("failed to send request: %w", err)
-	}
-	if resp == nil {
-		return nil, errors.New("received nil response")
-	}
-	defer resp.Body.Close()
-
-	var result ptypes.ValidatorBalanceResponse
-	if err = json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return nil, fmt.Errorf("failed to decode response: %w", err)
-	}
-
-	return &result, nil
+	return doProofRequestUntilIndexed[ptypes.ValidatorBalanceResponse](ctx, c, url)
 }
 
 // ValidatorCredentialsProof calls `bkit/v1/proof/validator_credentials/:timestamp_id/:validator_index` endpoint to get
@@ -297,27 +308,7 @@ func (c *customBeaconClient) ValidatorCredentialsProof(
 	ctx context.Context, timestampID string, validatorIndex string,
 ) (*ptypes.ValidatorWithdrawalCredentialsResponse, error) {
 	url := fmt.Sprintf("%s/bkit/v1/proof/validator_credentials/%s/%s", c.address, timestampID, validatorIndex)
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-
-	resp, err := c.client.Do(req) //#nosec:G704 // URL is from trusted test infrastructure.
-	if err != nil {
-		return nil, fmt.Errorf("failed to send request: %w", err)
-	}
-	if resp == nil {
-		return nil, errors.New("received nil response")
-	}
-	defer resp.Body.Close()
-
-	var result ptypes.ValidatorWithdrawalCredentialsResponse
-	if err = json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return nil, fmt.Errorf("failed to decode response: %w", err)
-	}
-
-	return &result, nil
+	return doProofRequestUntilIndexed[ptypes.ValidatorWithdrawalCredentialsResponse](ctx, c, url)
 }
 
 // ValidatorPubkeyProof calls `bkit/v1/proof/validator_pubkey/:timestamp_id/:validator_index` endpoint to get
@@ -326,25 +317,5 @@ func (c *customBeaconClient) ValidatorPubkeyProof(
 	ctx context.Context, timestampID string, validatorIndex string,
 ) (*ptypes.ValidatorPubkeyResponse, error) {
 	url := fmt.Sprintf("%s/bkit/v1/proof/validator_pubkey/%s/%s", c.address, timestampID, validatorIndex)
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-
-	resp, err := c.client.Do(req) //#nosec:G704 // URL is from trusted test infrastructure.
-	if err != nil {
-		return nil, fmt.Errorf("failed to send request: %w", err)
-	}
-	if resp == nil {
-		return nil, errors.New("received nil response")
-	}
-	defer resp.Body.Close()
-
-	var result ptypes.ValidatorPubkeyResponse
-	if err = json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return nil, fmt.Errorf("failed to decode response: %w", err)
-	}
-
-	return &result, nil
+	return doProofRequestUntilIndexed[ptypes.ValidatorPubkeyResponse](ctx, c, url)
 }

@@ -146,7 +146,7 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	// Verify that the log contains the expected error message.
 	s.Require().Contains(s.LogBuffer.String(), errors.ErrInvalidPayloadStatus.Error())
 	// Note this error message may change across execution clients. Base fee changes with number of core loop iterations.
-	s.Require().Contains(s.LogBuffer.String(), "max fee per gas less than block base fee: address 0x20f33CE90A13a4b5E7697E3544c3083B8F8A51D4, maxFeePerGas: 10000000, baseFee: 765625000")
+	s.Require().Contains(s.LogBuffer.String(), "gas price is less than basefee")
 }
 
 // TestProcessProposal_InvalidTimestamps_Errors effectively serves as a test for how a valid node would react to
@@ -305,21 +305,16 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobCommitment_Errors() {
 		blobTxs[i] = blobTx
 	}
 
-	proposedBlockMessage := simulated.ComputeAndSetValidExecutionBlock(
+	// Build the block carrying the malformed blob tx directly via MakeEthBlock (no eth_simulateV1,
+	// which reth cannot use to build blob txs).
+	proposedBlockMessage := simulated.ComputeAndSetInvalidExecutionBlock(
 		s.T(),
 		proposedBlock.GetBeaconBlock(),
-		s.SimulationClient,
 		s.TestNode.ChainSpec,
 		blobTxs,
+		nil,
 	)
 	proposedBlockMessage.GetBody().SetBlobKzgCommitments(commitments)
-
-	// Finalize the block by applying the state transition to update its state root.
-	queryCtx, err := s.SimComet.CreateQueryContext(currentHeight-1, false)
-	s.Require().NoError(err)
-
-	proposedBlockMessage, err = simulated.ComputeAndSetStateRoot(queryCtx, consensusTime, nodeAddress, s.TestNode.StateProcessor, s.TestNode.StorageBackend, proposedBlockMessage)
-	s.Require().NoError(err)
 
 	newSignedBlock, err := ctypes.NewSignedBeaconBlock(
 		proposedBlockMessage,
@@ -377,7 +372,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobCommitment_Errors() {
 	})
 	s.Require().NoError(err)
 	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
-	s.Require().Contains(s.LogBuffer.String(), "could not apply tx 1 [0xdbbf691e9271a8bc3de5e64405337972fb4a5185cc3df160bac310c515f7d768]: blob transaction missing blob hashes")
+	s.Require().Contains(s.LogBuffer.String(), "unexpected list")
 }
 
 // TestProcessProposal_InvalidBlobInclusionProof_Errors effectively serves as a test for a malicious blobs.

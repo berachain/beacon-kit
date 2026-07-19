@@ -80,8 +80,8 @@ func (s *PectraGenesisSuite) SetupTest() {
 	cometConfig := configs[0]
 	s.GenesisValidatorsRoot = genesisValidatorsRoot
 
-	// Start the EL (execution layer) Geth node.
-	elNode := execution.NewGethNode(s.HomeDir, execution.ValidGethImage())
+	// Start the EL (execution layer) Reth node.
+	elNode := execution.NewRethNode(s.HomeDir, execution.ValidRethImage())
 	elHandle, authRPC, elRPC := elNode.Start(s.T(), path.Base(elGenesisPath))
 	s.ElHandle = elHandle
 
@@ -111,7 +111,7 @@ func (s *PectraGenesisSuite) SetupTest() {
 		_ = s.TestNode.Start(s.CtxApp)
 	}()
 
-	s.SimulationClient = execution.NewSimulationClient(s.TestNode.EngineClient)
+	s.SimulationClient = execution.NewSimulationClient(s.TestNode.ContractBackend)
 	timeOut := 10 * time.Second
 	interval := 50 * time.Millisecond
 	err = simulated.WaitTillServicesStarted(s.LogBuffer, timeOut, interval)
@@ -191,8 +191,7 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithPartialWithdrawalRequests_IsS
 				Data:      withdrawalTxData,
 			})
 
-			var balance hexutil.Big
-			err = s.TestNode.EngineClient.Call(s.CtxApp, &balance, "eth_getBalance", simulated.WithdrawalExecutionAddress, "latest")
+			balance := s.GetBalance(s.T(), simulated.WithdrawalExecutionAddress)
 			s.T().Logf("Balance before withdrawal request sent: %s", balance.ToInt().String())
 
 			var txBytes []byte
@@ -216,8 +215,7 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithPartialWithdrawalRequests_IsS
 		s.Require().Contains(s.LogBuffer.String(), "Processing execution requests service=state-processor\u001B[0m deposits=0\u001B[0m withdrawals=2\u001B[0m consolidations=0\u001B[0m")
 
 		s.LogBuffer.Reset()
-		err := s.TestNode.EngineClient.Call(s.CtxApp, &afterRequestBalance, "eth_getBalance", simulated.WithdrawalExecutionAddress, "latest")
-		s.Require().NoError(err)
+		afterRequestBalance = s.GetBalance(s.T(), simulated.WithdrawalExecutionAddress)
 		s.T().Logf("Balance after withdrawal request included in block: %s", afterRequestBalance.ToInt().String())
 		nextBlockHeight++
 	}
@@ -235,8 +233,7 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithPartialWithdrawalRequests_IsS
 		s.MoveChainToHeight(s.T(), nextBlockHeight, int64(iterationsToTurn), nodeAddress, time.Now())
 
 		s.LogBuffer.Reset()
-		err := s.TestNode.EngineClient.Call(s.CtxApp, &beforeWithdrawalBalance, "eth_getBalance", simulated.WithdrawalExecutionAddress, "latest")
-		s.Require().NoError(err)
+		beforeWithdrawalBalance = s.GetBalance(s.T(), simulated.WithdrawalExecutionAddress)
 		s.T().Logf("Balance before withdrawal processed: %s", beforeWithdrawalBalance.ToInt().String())
 
 		// Balance should not have changed yet
@@ -248,9 +245,7 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithPartialWithdrawalRequests_IsS
 	{
 		s.MoveChainToHeight(s.T(), nextBlockHeight, 1, nodeAddress, time.Now())
 
-		var afterWithdrawalBalance hexutil.Big
-		err := s.TestNode.EngineClient.Call(s.CtxApp, &afterWithdrawalBalance, "eth_getBalance", simulated.WithdrawalExecutionAddress, "latest")
-		s.Require().NoError(err)
+		afterWithdrawalBalance := s.GetBalance(s.T(), simulated.WithdrawalExecutionAddress)
 		s.T().Logf("Balance after withdrawal processed: %s", afterWithdrawalBalance.ToInt().String())
 
 		withdrawalAmountWei := new(big.Int).Mul(big.NewInt(int64(totalWithdrawalAmount)), big.NewInt(params.GWei))
@@ -309,8 +304,7 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithFullWithdrawalRequest_IsSucce
 			Data:      withdrawalTxData,
 		})
 
-		var balance hexutil.Big
-		err = s.TestNode.EngineClient.Call(s.CtxApp, &balance, "eth_getBalance", simulated.WithdrawalExecutionAddress, "latest")
+		balance := s.GetBalance(s.T(), simulated.WithdrawalExecutionAddress)
 		s.T().Logf("Balance before withdrawal request sent: %s", balance.ToInt().String())
 
 		txBytes, err := withdrawalTx.MarshalBinary()
@@ -333,8 +327,7 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithFullWithdrawalRequest_IsSucce
 		// No validator updates yet
 		s.Require().Len(finalizeBlockResponses[0].GetValidatorUpdates(), 0)
 
-		err := s.TestNode.EngineClient.Call(s.CtxApp, &afterRequestBalance, "eth_getBalance", simulated.WithdrawalExecutionAddress, "latest")
-		s.Require().NoError(err)
+		afterRequestBalance = s.GetBalance(s.T(), simulated.WithdrawalExecutionAddress)
 		s.T().Logf("Balance after withdrawal request included in block: %s", afterRequestBalance.ToInt().String())
 		nextBlockHeight++
 	}
@@ -372,8 +365,7 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithFullWithdrawalRequest_IsSucce
 		s.MoveChainToHeight(s.T(), nextBlockHeight, int64(iterationsToTurn), nodeAddress, time.Now())
 
 		s.LogBuffer.Reset()
-		err := s.TestNode.EngineClient.Call(s.CtxApp, &beforeWithdrawalBalance, "eth_getBalance", simulated.WithdrawalExecutionAddress, "latest")
-		s.Require().NoError(err)
+		beforeWithdrawalBalance = s.GetBalance(s.T(), simulated.WithdrawalExecutionAddress)
 		s.T().Logf("Balance before withdrawal processed: %s", beforeWithdrawalBalance.ToInt().String())
 
 		// Balance should not have changed yet
@@ -384,9 +376,7 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithFullWithdrawalRequest_IsSucce
 	// The next block will be the turn of the Epoch, and the balance will change
 	{
 		s.MoveChainToHeight(s.T(), nextBlockHeight, 1, nodeAddress, time.Now())
-		var afterWithdrawalBalance hexutil.Big
-		err := s.TestNode.EngineClient.Call(s.CtxApp, &afterWithdrawalBalance, "eth_getBalance", simulated.WithdrawalExecutionAddress, "latest")
-		s.Require().NoError(err)
+		afterWithdrawalBalance := s.GetBalance(s.T(), simulated.WithdrawalExecutionAddress)
 		s.T().Logf("Balance after withdrawal processed: %s", afterWithdrawalBalance.ToInt().String())
 
 		// Since this is a full withdrawal, the full balance will be withdrawn.
@@ -502,6 +492,6 @@ func (s *PectraGenesisSuite) TestMaliciousProposer_AddInvalidExecutionRequests_I
 
 		// Verify that the log contains the expected error message.
 		s.Require().Contains(s.LogBuffer.String(), errors.ErrInvalidPayloadStatus.Error())
-		s.Require().Contains(s.LogBuffer.String(), "invalid requests hash (remote: 33ba74e937423115e3abf4250db02588388b4b3a7918950ed44a28e4bf3428d2 local: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855)")
+		s.Require().Contains(s.LogBuffer.String(), "mismatched block requests hash")
 	}
 }
