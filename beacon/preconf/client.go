@@ -43,6 +43,9 @@ import (
 const (
 	// tokenCacheExpiry is how long to cache JWT tokens before regenerating.
 	tokenCacheExpiry = 30 * time.Second
+
+	// maxResponseHeaderBytes caps the sequencer's response headers, which are standard headers only (<1KB), stdlib default is 10MB.
+	maxResponseHeaderBytes = 64 * 1024
 )
 
 var (
@@ -55,11 +58,12 @@ var (
 
 // Client is an HTTP client for fetching payloads from the sequencer.
 type Client struct {
-	logger       log.Logger
-	httpClient   *http.Client
-	sequencerURL string
-	jwtSecret    *jwt.Secret
-	timeout      time.Duration
+	logger          log.Logger
+	httpClient      *http.Client
+	sequencerURL    string
+	jwtSecret       *jwt.Secret
+	timeout         time.Duration
+	maxResponseSize int64
 
 	// mu protects the JWT token cache
 	mu          sync.RWMutex
@@ -69,13 +73,18 @@ type Client struct {
 
 // NewClient creates a new preconf client for fetching payloads from the sequencer.
 // If caCertPool is non-nil, only the provided CA is trusted for TLS verification.
+// A maxResponseSize <= 0 falls back to DefaultMaxResponseSize.
 func NewClient(
 	logger log.Logger,
 	sequencerURL string,
 	jwtSecret *jwt.Secret,
 	timeout time.Duration,
 	caCertPool *x509.CertPool,
+	maxResponseSize int64,
 ) *Client {
+	if maxResponseSize <= 0 {
+		maxResponseSize = DefaultMaxResponseSize
+	}
 	defaultTransport, ok := http.DefaultTransport.(*http.Transport)
 	if !ok {
 		defaultTransport = &http.Transport{}
@@ -85,11 +94,13 @@ func NewClient(
 		MinVersion: tls.VersionTLS12,
 		RootCAs:    caCertPool, // nil = system trust store
 	}
+	transport.MaxResponseHeaderBytes = maxResponseHeaderBytes
 	return &Client{
-		logger:       logger,
-		sequencerURL: sequencerURL,
-		jwtSecret:    jwtSecret,
-		timeout:      timeout,
+		logger:          logger,
+		sequencerURL:    sequencerURL,
+		jwtSecret:       jwtSecret,
+		timeout:         timeout,
+		maxResponseSize: maxResponseSize,
 		httpClient: &http.Client{
 			Timeout:   timeout,
 			Transport: transport,
@@ -140,10 +151,13 @@ func (c *Client) GetPayloadBySlot(
 	}
 	defer resp.Body.Close()
 
-	// Read response body
-	body, err := io.ReadAll(resp.Body)
+	// Read response body, capped to bound memory. Read one extra byte so a response at the limit is distinguishable from an oversized one.
+	body, err := io.ReadAll(io.LimitReader(resp.Body, c.maxResponseSize+1))
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response: %w", err)
+	}
+	if int64(len(body)) > c.maxResponseSize {
+		return nil, fmt.Errorf("sequencer response exceeds %d byte limit", c.maxResponseSize)
 	}
 
 	// Handle error responses

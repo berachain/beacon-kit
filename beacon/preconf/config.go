@@ -36,6 +36,10 @@ const (
 
 	// DefaultHealthCheckInterval is how often the client probes the sequencer when it is unavailable.
 	DefaultHealthCheckInterval = 10 * time.Second
+
+	// DefaultMaxResponseSize caps the sequencer response body on the validator's client to prevent OOM from a malicious sequencer.
+	// 16MiB holds a worst-case valid block (30M-gas calldata ~6MiB hex + 6 blobs ~1.5MiB hex + overhead) with ~2x headroom.
+	DefaultMaxResponseSize = 16 * 1024 * 1024
 )
 
 // Config holds preconfirmation configuration.
@@ -91,6 +95,9 @@ type Config struct {
 
 	// HealthCheckInterval is how often to probe the sequencer health endpoint when it becomes unavailable.
 	HealthCheckInterval time.Duration `mapstructure:"health-check-interval"`
+
+	// MaxResponseSize caps the sequencer response body in bytes. Must exceed the max valid block size, defaults to DefaultMaxResponseSize.
+	MaxResponseSize int64 `mapstructure:"max-response-size"`
 }
 
 // DefaultConfig returns the default preconfirmation configuration.
@@ -99,6 +106,7 @@ func DefaultConfig() Config {
 		APIPort:             DefaultAPIPort,
 		FetchTimeout:        DefaultFetchTimeout,
 		HealthCheckInterval: DefaultHealthCheckInterval,
+		MaxResponseSize:     DefaultMaxResponseSize,
 	}
 }
 
@@ -121,6 +129,9 @@ func (c *Config) TLSEnabled() bool {
 func (c *Config) Validate() error {
 	if (c.TLSCertPath != "") != (c.TLSKeyPath != "") {
 		return errors.New("tls-cert-path and tls-key-path must both be set or both be empty")
+	}
+	if c.MaxResponseSize < 0 {
+		return errors.New("max-response-size must not be negative")
 	}
 	if c.SequencerCACertPath != "" {
 		if c.SequencerURL == "" {

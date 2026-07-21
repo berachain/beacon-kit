@@ -95,11 +95,5 @@ func ProvidePreconfClient(in PreconfClientInput) (*preconf.Client, error) {
 		"fetch_timeout", cfg.FetchTimeout,
 	)
 
-	return preconf.NewClient(
-		logger,
-		cfg.SequencerURL,
-		jwtSecret,
-		cfg.FetchTimeout,
-		caCertPool,
-	), nil
+	return preconf.NewClient(logger, cfg.SequencerURL, jwtSecret, cfg.FetchTimeout, caCertPool, cfg.MaxResponseSize), nil
 }

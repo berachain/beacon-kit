@@ -36,6 +36,7 @@ const (
 	ServerResultResponseWriteError ServerResult = "response_write_error"
 	ServerResultMethodNotAllowed   ServerResult = "method_not_allowed"
 	ServerResultBadRequest         ServerResult = "bad_request"
+	ServerResultRequestTooLarge    ServerResult = "request_too_large"
 )
 
 // TelemetrySink is a minimal sink interface used by the preconf server for
