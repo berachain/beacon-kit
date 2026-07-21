@@ -128,12 +128,9 @@ func (s *Service) haltIfReached() {
 	time.Sleep(haltGracePeriod)
 
 	// Signal our own process so the node's regular shutdown path runs, the same mechanism a cosmos-sdk baseapp
-	// uses for halt-height.
-	p, err := os.FindProcess(os.Getpid())
-	if err != nil {
-		os.Exit(0)
-	}
-	if err = p.Signal(syscall.SIGINT); err != nil {
+	// uses for halt-height. FindProcess never fails on Unix.
+	p, _ := os.FindProcess(os.Getpid())
+	if err := p.Signal(syscall.SIGINT); err != nil {
 		if err = p.Signal(syscall.SIGTERM); err != nil {
 			os.Exit(0)
 		}
