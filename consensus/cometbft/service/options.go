@@ -55,6 +55,28 @@ func SetMinRetainBlocks(minRetainBlocks uint64) func(*Service) {
 	return func(bs *Service) { bs.setMinRetainBlocks(minRetainBlocks) }
 }
 
+// SetHaltHeight returns a Service option function that sets the block height at which the node gracefully
+// shuts down after committing.
+func SetHaltHeight(haltHeight uint64) func(*Service) {
+	return func(bs *Service) {
+		if haltHeight > 0 {
+			bs.logger.Info("halt height configured, node will shut down after committing it", "halt_height", haltHeight)
+		}
+		bs.setHaltHeight(haltHeight)
+	}
+}
+
+// SetHaltTime returns a Service option function that sets the minimum block time, in Unix seconds, at which
+// the node gracefully shuts down after committing.
+func SetHaltTime(haltTime uint64) func(*Service) {
+	return func(bs *Service) {
+		if haltTime > 0 {
+			bs.logger.Info("halt time configured, node will shut down at the first block at or after it", "halt_time", haltTime)
+		}
+		bs.setHaltTime(haltTime)
+	}
+}
+
 // SetIAVLCacheSize provides a Service option function that sets the size of
 // IAVL cache.
 func SetIAVLCacheSize(size int) func(*Service) {

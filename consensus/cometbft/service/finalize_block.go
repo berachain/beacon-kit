@@ -284,11 +284,18 @@ func (s *Service) calculateFinalizeBlockResponse(
 	s.syncingToHeight = req.SyncingToHeight
 
 	cp := s.cmtConsensusParams.ToProto()
-	return &cmtabci.FinalizeBlockResponse{
+	response := &cmtabci.FinalizeBlockResponse{
 		TxResults:             txResults,
 		ValidatorUpdates:      formattedValUpdates,
 		ConsensusParamUpdates: &cp,
 		AppHash:               s.workingHash(),
 		NextBlockDelay:        nextBlockTime,
-	}, nil
+	}
+
+	// Only publish the block metadata used by Commit after FinalizeBlock has completed successfully. Otherwise,
+	// a failed attempt at the halt point could be mistaken for an already committed block on a subsequent call.
+	s.finalizedHeight = req.Height
+	s.finalizedTime = req.Time
+
+	return response, nil
 }

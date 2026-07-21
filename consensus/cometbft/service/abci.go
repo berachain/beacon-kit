@@ -55,6 +55,14 @@ func (s *Service) PrepareProposal(
 	_ context.Context,
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
+	// Once halted, propose nothing so consensus cannot decide a block past the halt point while the halt
+	// shutdown completes.
+	if s.ensureNotHalted() != nil {
+		s.logger.Info("halt point reached, returning an empty proposal", "height", req.Height)
+		//nolint:nilerr // a halted node proposes nothing instead of erroring
+		return &cmtabci.PrepareProposalResponse{Txs: [][]byte{}}, nil
+	}
+
 	// Check if ctx is still good. CometBFT does not check this.
 	if s.ctx.Err() != nil {
 		// If the context is getting cancelled, we are shutting down.
@@ -94,6 +102,14 @@ func (s *Service) ProcessProposal(
 	_ context.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
+	// Once halted, prevote nil on every proposal so no block past the halt point can be decided. An error
+	// return would make CometBFT panic.
+	if s.ensureNotHalted() != nil {
+		s.logger.Info("halt point reached, rejecting proposal", "height", req.Height)
+		//nolint:nilerr // a halted node votes nil instead of erroring
+		return &cmtabci.ProcessProposalResponse{Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT}, nil
+	}
+
 	// Check if ctx is still good. CometBFT does not check this.
 	if s.ctx.Err() != nil {
 		// Node will panic on context cancel with "CONSENSUS FAILURE!!!" due to
@@ -109,6 +125,16 @@ func (s *Service) FinalizeBlock(
 	_ context.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (*cmtabci.FinalizeBlockResponse, error) {
+	// Never execute a block past the halt point. An error return would make CometBFT panic with CONSENSUS
+	// FAILURE (consensus and blocksync both escalate FinalizeBlock errors), so park until the halt shutdown
+	// exits the process underneath this call. Checked before the ctx guard below so a post-halt block arriving
+	// mid-shutdown parks instead of panicking.
+	if err := s.ensureNotHalted(); err != nil {
+		s.logger.Info("halt point reached, refusing to finalize block", "height", req.Height)
+		s.waitForHaltShutdown()
+		return nil, err
+	}
+
 	// Check if ctx is still good. CometBFT does not check this.
 	if s.ctx.Err() != nil {
 		// Node will panic on context cancel with "CONSENSUS FAILURE!!!" due to error.
@@ -122,10 +148,9 @@ func (s *Service) FinalizeBlock(
 // Commit implements the ABCI interface. It will commit all state that exists in
 // the deliver state's multi-store and includes the resulting commit ID in the
 // returned cmtabci.ResponseCommit. Commit will set the check state based on the
-// latest header and reset the deliver state. Also, if a non-zero halt height is
-// defined in config, Commit will execute a deferred function call to check
-// against that height and gracefully halt if it matches the latest committed
-// height.
+// latest header and reset the deliver state. Also, if a non-zero halt height
+// or halt time is configured, Commit gracefully shuts the node down once the
+// committed block reaches it.
 func (s *Service) Commit(
 	_ context.Context, req *cmtabci.CommitRequest,
 ) (*cmtabci.CommitResponse, error) {
