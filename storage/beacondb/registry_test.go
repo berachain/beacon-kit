@@ -291,6 +291,72 @@ func TestPendingPartialWithdrawals_Update(t *testing.T) {
 	require.Equal(t, updatedWithdrawals, ppw)
 }
 
+func TestValidatorsCache(t *testing.T) {
+	t.Parallel()
+	store, err := initTestStore()
+	require.NoError(t, err)
+
+	val1 := &types.Validator{Pubkey: bytes.B48{0x01}, EffectiveBalance: 32e9}
+	require.NoError(t, store.AddValidator(val1))
+
+	// First call populates cache; second call should return identical result.
+	a, err := store.GetValidators()
+	require.NoError(t, err)
+	b, err := store.GetValidators()
+	require.NoError(t, err)
+	require.Equal(t, a, b)
+
+	// Mutating a returned validator must not corrupt the cache.
+	a[0].SetEffectiveBalance(0)
+	c, err := store.GetValidators()
+	require.NoError(t, err)
+	require.Equal(t, math.Gwei(32e9), c[0].GetEffectiveBalance())
+
+	// Adding a validator invalidates the cache.
+	val2 := &types.Validator{Pubkey: bytes.B48{0x02}, EffectiveBalance: 32e9}
+	require.NoError(t, store.AddValidator(val2))
+	d, err := store.GetValidators()
+	require.NoError(t, err)
+	require.Len(t, d, 2)
+
+	// Updating a validator invalidates the cache.
+	updated := &types.Validator{Pubkey: bytes.B48{0x01}, EffectiveBalance: 0}
+	require.NoError(t, store.UpdateValidatorAtIndex(0, updated))
+	e, err := store.GetValidators()
+	require.NoError(t, err)
+	require.Equal(t, updated, e[0])
+}
+
+// TestValidatorsCache_WithContextResets pins the invariant that a fresh
+// per-block view (WithContext) never serves another instance's stale validator
+// cache. This is what keeps a syncing node correct across blocks that add or
+// update validators: each block reads committed state, not pre-block cache.
+func TestValidatorsCache_WithContextResets(t *testing.T) {
+	t.Parallel()
+	store, err := initTestStore()
+	require.NoError(t, err)
+
+	require.NoError(t, store.AddValidator(
+		&types.Validator{Pubkey: bytes.B48{0x01}, EffectiveBalance: 32e9}))
+
+	// Populate store's cache with the 1-validator set.
+	vals, err := store.GetValidators()
+	require.NoError(t, err)
+	require.Len(t, vals, 1)
+
+	// Commit a new validator on a separate copy without touching store's cache
+	// (mirrors epoch updates committed on a copy during block processing).
+	require.NoError(t, store.WithContext(t.Context()).AddValidator(
+		&types.Validator{Pubkey: bytes.B48{0x02}, EffectiveBalance: 32e9}))
+
+	// A fresh per-block view must read committed state (2), not inherit store's
+	// stale 1-validator cache. Fails if WithContext stops resetting the cache.
+	fresh := store.WithContext(t.Context())
+	got, err := fresh.GetValidators()
+	require.NoError(t, err)
+	require.Len(t, got, 2)
+}
+
 func initTestStore() (*beacondb.KVStore, error) {
 	db, err := db.OpenDB("", dbm.MemDBBackend)
 	if err != nil {

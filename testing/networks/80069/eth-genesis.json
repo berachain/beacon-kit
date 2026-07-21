@@ -112,6 +112,11 @@
       "prague2": {
         "time": 1758124800,
         "minimumBaseFeeWei": 0
+      },
+      "osaka1": {
+        "time": 1784736000,
+        "minimumBaseFeeWei": 1000000000,
+        "minimumBlobBaseFeeWei": 1000000000
       }
     }
   },

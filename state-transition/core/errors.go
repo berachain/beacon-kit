@@ -68,6 +68,11 @@ var (
 	// deposit limit.
 	ErrExceedsBlockDepositLimit = errors.New("block exceeds deposit limit")
 
+	// ErrUnexpectedDepositSource is returned when a block sources deposits from
+	// a place not permitted by its fork: EIP-6110 deposit requests before Fulu,
+	// or beacon block body deposits after the first block of Fulu.
+	ErrUnexpectedDepositSource = errors.New("unexpected deposit source for fork")
+
 	// ErrRewardsLengthMismatch is returned when the length of the rewards
 	// in a block does not match the expected value.
 	ErrRewardsLengthMismatch = errors.New("rewards length mismatch")

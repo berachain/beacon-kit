@@ -303,6 +303,30 @@ func TestFilterValidators(t *testing.T) {
 				require.Nil(t, res)
 			},
 		},
+		{
+			name: "rejects requests exceeding max IDs cap",
+			inputs: func() (beacontypes.GetStateValidatorsRequest, beacontypes.PostStateValidatorsRequest) {
+				ids := make([]string, 1025)
+				for i := range ids {
+					ids[i] = strconv.Itoa(i)
+				}
+				return beacontypes.GetStateValidatorsRequest{
+						StateIDRequest: handlertypes.StateIDRequest{StateID: utils.StateIDHead},
+						IDs:            ids,
+					}, beacontypes.PostStateValidatorsRequest{
+						StateIDRequest: handlertypes.StateIDRequest{StateID: utils.StateIDHead},
+						IDs:            ids,
+					}
+			},
+			setMockExpectations: func(_ *mocks.Backend) {
+				// validation rejects before backend is touched
+			},
+			check: func(t *testing.T, res any, err error) {
+				t.Helper()
+				require.ErrorIs(t, err, handlertypes.ErrInvalidRequest)
+				require.Nil(t, res)
+			},
+		},
 	}
 
 	for _, tc := range testCases {
