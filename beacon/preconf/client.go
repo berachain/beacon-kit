@@ -43,6 +43,9 @@ import (
 const (
 	// tokenCacheExpiry is how long to cache JWT tokens before regenerating.
 	tokenCacheExpiry = 30 * time.Second
+
+	// maxResponseHeaderBytes caps the sequencer's response headers, which are standard headers only (<1KB), stdlib default is 10MB.
+	maxResponseHeaderBytes = 64 * 1024
 )
 
 var (
@@ -91,6 +94,7 @@ func NewClient(
 		MinVersion: tls.VersionTLS12,
 		RootCAs:    caCertPool, // nil = system trust store
 	}
+	transport.MaxResponseHeaderBytes = maxResponseHeaderBytes
 	return &Client{
 		logger:          logger,
 		sequencerURL:    sequencerURL,
@@ -147,8 +151,7 @@ func (c *Client) GetPayloadBySlot(
 	}
 	defer resp.Body.Close()
 
-	// Read response body, capped to bound memory. Read one extra byte so a
-	// response exactly at the limit is distinguishable from an oversized one.
+	// Read response body, capped to bound memory. Read one extra byte so a response at the limit is distinguishable from an oversized one.
 	body, err := io.ReadAll(io.LimitReader(resp.Body, c.maxResponseSize+1))
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response: %w", err)

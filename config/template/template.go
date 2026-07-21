@@ -162,7 +162,6 @@ fetch-timeout = "{{ .BeaconKit.Preconf.FetchTimeout }}"
 # How often to probe sequencer health endpoint when it becomes unavailable.
 health-check-interval = "{{ .BeaconKit.Preconf.HealthCheckInterval }}"
 
-# Max sequencer response size (bytes) accepted by the client. Must exceed the
-# maximum valid block size; raise it only if the chain runs a higher gas limit.
+# Max sequencer response size (bytes) accepted by the client. Must exceed the max valid block size, raise it only for a higher gas limit.
 max-response-size = {{ .BeaconKit.Preconf.MaxResponseSize }}
 `

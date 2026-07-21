@@ -37,9 +37,8 @@ const (
 	// DefaultHealthCheckInterval is how often the client probes the sequencer when it is unavailable.
 	DefaultHealthCheckInterval = 10 * time.Second
 
-	// DefaultMaxResponseSize caps the sequencer response body on the validator's client to bound memory.
-	// 16MiB comfortably holds a worst-case valid block (30M-gas calldata ~6MiB hex + 6 blobs ~1.5MiB hex +
-	// overhead) with ~2x headroom, while preventing OOM from a malicious or compromised sequencer.
+	// DefaultMaxResponseSize caps the sequencer response body on the validator's client to prevent OOM from a malicious sequencer.
+	// 16MiB holds a worst-case valid block (30M-gas calldata ~6MiB hex + 6 blobs ~1.5MiB hex + overhead) with ~2x headroom.
 	DefaultMaxResponseSize = 16 * 1024 * 1024
 )
 
@@ -97,8 +96,7 @@ type Config struct {
 	// HealthCheckInterval is how often to probe the sequencer health endpoint when it becomes unavailable.
 	HealthCheckInterval time.Duration `mapstructure:"health-check-interval"`
 
-	// MaxResponseSize caps the sequencer response body (in bytes) read by the client.
-	// Must exceed the maximum valid block size.Defaults to DefaultMaxResponseSize.
+	// MaxResponseSize caps the sequencer response body in bytes. Must exceed the max valid block size, defaults to DefaultMaxResponseSize.
 	MaxResponseSize int64 `mapstructure:"max-response-size"`
 }
 

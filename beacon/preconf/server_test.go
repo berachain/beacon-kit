@@ -251,14 +251,15 @@ func TestServer_RejectsOversizedRequestBody(t *testing.T) {
 		newTestWhitelist(t, pubkeyAHex),
 		preconf.NewProposerTracker(),
 		&mockPayloadProvider{hasPayload: true},
+		&mockSyncChecker{ready: true},
+		&mockELChecker{connected: true},
 		0,
 		preconf.TLSPaths{},
 		metrics.NewNoOpTelemetrySink(),
 	)
 
-	// A valid-JSON body well over the 2KB cap: a long string value forces the
-	// decoder to read past the limit, where MaxBytesReader trips. Authenticated
-	// and whitelisted so the request reaches body parsing.
+	// A valid-JSON body well over the 2KB cap: a long string value forces the decoder to read past the limit, where MaxBytesReader trips.
+	// Authenticated and whitelisted so the request reaches body parsing.
 	body := append([]byte(`{"slot":1,"pad":"`), bytes.Repeat([]byte("a"), 4096)...)
 	body = append(body, '"', '}')
 	req := httptest.NewRequest(http.MethodPost, preconf.PayloadEndpoint, bytes.NewReader(body))

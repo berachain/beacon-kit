@@ -55,31 +55,29 @@ const (
 	// serverReadHeaderTimeout is the timeout for reading request headers.
 	serverReadHeaderTimeout = 10 * time.Second
 
-	// serverReadTimeout bounds the total time to read a request (headers + body).
-	// Must be >= serverReadHeaderTimeout. Defends against a Slowloris attack: a
-	// client sends headers fast enough to pass serverReadHeaderTimeout, then
-	// trickles the body one byte at a time to hold the connection (and its
-	// goroutine) open indefinitely. Capping total read time disconnects it.
+	// serverReadTimeout bounds the total time to read a request (headers + body). Must be >= serverReadHeaderTimeout. Defends against a
+	// Slowloris attack: a client sends headers fast enough to pass serverReadHeaderTimeout, then trickles the body one byte at a time to
+	// hold the connection (and its goroutine) open indefinitely. Capping total read time disconnects it.
 	serverReadTimeout = 15 * time.Second
 
-	// serverWriteTimeout bounds the time to write a response. Defends against a
-	// reverse Slowloris attack: a client makes a valid request but then reads the
-	// response one byte at a time (or stops reading entirely), blocking the
-	// server goroutine in Encode forever. Capping write time disconnects it.
+	// serverWriteTimeout bounds the time to write a response. Defends against a reverse Slowloris attack: a client makes a valid request
+	// but then reads the response one byte at a time (or stops reading entirely), blocking the server goroutine in Encode forever.
+	// Capping write time disconnects it.
 	serverWriteTimeout = 30 * time.Second
 
 	// serverIdleTimeout bounds how long an idle keep-alive connection stays open.
 	serverIdleTimeout = 60 * time.Second
 
-	// maxConcurrentConnections caps simultaneous connections so a connection
-	// flood cannot exhaust file descriptors. Sized for ~100 validators plus
-	// headroom and monitoring.
+	// maxConcurrentConnections caps simultaneous connections so a connection flood cannot exhaust file descriptors. Sized for ~100
+	// validators plus headroom and monitoring.
 	maxConcurrentConnections = 256
 
-	// maxRequestBodySize caps the GetPayload request body. The request is ~100
-	// bytes (slot + parent block root); 2KB gives 20x headroom while guarding
-	// against OOM from an oversized body.
+	// maxRequestBodySize caps the GetPayload request body. The request is ~100 bytes (slot + parent block root),
+	// so 2KB gives 20x headroom while guarding against OOM from an oversized body.
 	maxRequestBodySize = 2048
+
+	// maxRequestHeaderBytes caps request headers. Requests carry only a bearer JWT plus standard headers (<1KB), stdlib default is 1MB.
+	maxRequestHeaderBytes = 16 * 1024
 
 	// authHeaderParts is the expected number of parts in the Authorization header.
 	authHeaderParts = 2
@@ -186,6 +184,7 @@ func (s *Server) Start(_ context.Context) error {
 		ReadTimeout:       serverReadTimeout,
 		WriteTimeout:      serverWriteTimeout,
 		IdleTimeout:       serverIdleTimeout,
+		MaxHeaderBytes:    maxRequestHeaderBytes,
 	}
 
 	tlsEnabled := s.tlsPaths.Enabled()
@@ -212,8 +211,7 @@ func (s *Server) Start(_ context.Context) error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to bind preconf API server to %s", addr)
 	}
-	// Cap concurrent connections so a connection flood cannot exhaust file
-	// descriptors and lock out legitimate validators.
+	// Cap concurrent connections so a connection flood cannot exhaust file descriptors and lock out legitimate validators.
 	ln = netutil.LimitListener(ln, maxConcurrentConnections)
 
 	s.mu.Lock()

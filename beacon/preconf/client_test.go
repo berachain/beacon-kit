@@ -33,8 +33,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestClient_RejectsOversizedResponse verifies the client caps the sequencer
-// response body so a malicious/compromised sequencer cannot OOM the validator.
+// TestClient_RejectsOversizedResponse verifies the client caps the response body so a malicious sequencer cannot OOM the validator.
 func TestClient_RejectsOversizedResponse(t *testing.T) {
 	t.Parallel()
 
