@@ -43,6 +43,8 @@ type E2ETestConfig struct {
 type PreconfConfig struct {
 	// Enabled specifies whether preconf is enabled.
 	Enabled bool `json:"enabled"`
+	// TLS enables HTTPS on the sequencer preconf API and CA pinning on validators.
+	TLS bool `json:"tls"`
 	// SequencerIndex specifies which validator is the sequencer.
 	SequencerIndex int `json:"sequencer_index"`
 }

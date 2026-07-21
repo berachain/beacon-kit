@@ -174,6 +174,43 @@ def create_preconf_files_from_configs(plan, num_validators, jwt_secrets):
         validator_jwts_artifact = result.files_artifacts[1],
     )
 
+def generate_tls_certs(plan, sequencer_service_name):
+    """
+    Generate an internal CA and a CA-signed server cert for the sequencer's
+    preconf API, mirroring the production trust topology.
+
+    Validators pin the CA (ca-cert.pem); the sequencer serves the leaf
+    (server-cert.pem + server-key.pem). The leaf's SAN matches the sequencer
+    service name so pinned validators verify it. Ephemeral, test-only.
+
+    Returns a struct with ca_cert_artifact, server_cert_artifact, server_key_artifact.
+    """
+    script = (
+        # 1. Self-signed CA (the anchor validators pin).
+        "openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:P-256 -keyout /tmp/ca-key.pem -out /tmp/ca-cert.pem -days 3650 -nodes -subj '/CN=preconf-ca' && " +
+        # 2. Server key + CSR carrying the SAN.
+        "openssl req -newkey ec -pkeyopt ec_paramgen_curve:P-256 -keyout /tmp/server-key.pem -out /tmp/server.csr -nodes -subj '/CN={name}' -addext 'subjectAltName=DNS:{name},DNS:localhost,IP:127.0.0.1' && " +
+        # 3. Sign the leaf with the CA. copy_extensions carries the SAN into the cert.
+        "openssl x509 -req -in /tmp/server.csr -CA /tmp/ca-cert.pem -CAkey /tmp/ca-key.pem -CAcreateserial -out /tmp/server-cert.pem -days 365 -copy_extensions copyall"
+    ).format(name = sequencer_service_name)
+
+    result = plan.run_sh(
+        run = script,
+        image = "alpine/openssl",
+        store = [
+            StoreSpec(src = "/tmp/ca-cert.pem", name = "preconf-tls-ca-cert"),
+            StoreSpec(src = "/tmp/server-cert.pem", name = "preconf-tls-server-cert"),
+            StoreSpec(src = "/tmp/server-key.pem", name = "preconf-tls-server-key"),
+        ],
+        description = "Generating internal CA + signed server cert for preconf sequencer (test-only)",
+    )
+
+    return struct(
+        ca_cert_artifact = result.files_artifacts[0],
+        server_cert_artifact = result.files_artifacts[1],
+        server_key_artifact = result.files_artifacts[2],
+    )
+
 def get_preconf_start_flags(is_sequencer, sequencer_url = "", preconf_enabled = True):
     """
     Get the preconf-related flags for the beacond start command.

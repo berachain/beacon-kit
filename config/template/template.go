@@ -132,6 +132,15 @@ validator-jwts-path = "{{ .BeaconKit.Preconf.ValidatorJWTsPath }}"
 # Required when sequencer-mode = true.
 api-port = {{ .BeaconKit.Preconf.APIPort }}
 
+# Path to TLS certificate for the preconf API server.
+# When set together with tls-key-path, the server uses HTTPS.
+# Leave empty for plaintext HTTP (dev/testing only).
+tls-cert-path = "{{ .BeaconKit.Preconf.TLSCertPath }}"
+
+# Path to TLS private key for the preconf API server.
+# Must be set if tls-cert-path is set.
+tls-key-path = "{{ .BeaconKit.Preconf.TLSKeyPath }}"
+
 # === Validator-side settings ===
 
 # URL of the sequencer's preconf API endpoint.
@@ -141,6 +150,11 @@ sequencer-url = "{{ .BeaconKit.Preconf.SequencerURL }}"
 # Path to this validator's JWT secret for authenticating with sequencer.
 # Required when sequencer-url is set.
 sequencer-jwt-path = "{{ .BeaconKit.Preconf.SequencerJWTPath }}"
+
+# Path to CA certificate for verifying the sequencer's TLS certificate.
+# When set, only this CA is trusted (certificate pinning).
+# When empty, the system CA store is used.
+sequencer-ca-cert-path = "{{ .BeaconKit.Preconf.SequencerCACertPath }}"
 
 # Timeout for fetching payload from sequencer.
 fetch-timeout = "{{ .BeaconKit.Preconf.FetchTimeout }}"

@@ -95,5 +95,8 @@ additional_services:
 # - enabled: Turns on preconf support for all validators.
 #   The sequencer_node triggers optimistic payload builds for whitelisted validators.
 #   All validators fetch payloads from the sequencer.
+# - tls: Serves the sequencer preconf API over HTTPS with a self-signed cert
+#   generated at plan time, and pins it on validators (test-only certs).
 preconf:
   enabled: true
+  tls: true

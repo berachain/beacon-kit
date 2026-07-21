@@ -78,9 +78,14 @@ func ProvidePreconfServer(in PreconfServerInput) (*preconf.Server, error) {
 		return nil, errors.New("preconf server requires a LocalBuilder")
 	}
 
+	if err = cfg.Validate(); err != nil {
+		return nil, errors.Wrap(err, "invalid preconf configuration")
+	}
+
 	logger.Info(
 		"Preconf API server configuration loaded",
 		"port", cfg.APIPort,
+		"tls_enabled", cfg.TLSEnabled(),
 		"validator_count", len(validatorJWTs),
 	)
 
@@ -93,6 +98,7 @@ func ProvidePreconfServer(in PreconfServerInput) (*preconf.Server, error) {
 		in.ConsensusService,
 		in.EngineClient,
 		cfg.APIPort,
+		preconf.TLSPaths{Cert: cfg.TLSCertPath, Key: cfg.TLSKeyPath},
 		in.TelemetrySink,
 	), nil
 }

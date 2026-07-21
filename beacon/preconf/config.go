@@ -20,7 +20,12 @@
 
 package preconf
 
-import "time"
+import (
+	"net/url"
+	"time"
+
+	"github.com/berachain/beacon-kit/errors"
+)
 
 const (
 	// DefaultAPIPort is the default port for the preconf API server.
@@ -58,6 +63,14 @@ type Config struct {
 	// Required when SequencerMode is true.
 	APIPort int `mapstructure:"api-port"`
 
+	// TLSCertPath is the path to the TLS certificate file for the preconf API server.
+	// When set together with TLSKeyPath, the server uses HTTPS.
+	TLSCertPath string `mapstructure:"tls-cert-path"`
+
+	// TLSKeyPath is the path to the TLS private key file for the preconf API server.
+	// Must be set if TLSCertPath is set.
+	TLSKeyPath string `mapstructure:"tls-key-path"`
+
 	// === Validator-side settings ===
 
 	// SequencerURL is the URL of the sequencer's preconf API endpoint.
@@ -68,6 +81,10 @@ type Config struct {
 	// with the sequencer.
 	// Required when SequencerURL is set.
 	SequencerJWTPath string `mapstructure:"sequencer-jwt-path"`
+
+	// SequencerCACertPath is the optional path to a CA certificate for verifying
+	// the sequencer's TLS certificate. When set, only this CA is trusted.
+	SequencerCACertPath string `mapstructure:"sequencer-ca-cert-path"`
 
 	// FetchTimeout is the timeout for fetching payloads from sequencer.
 	FetchTimeout time.Duration `mapstructure:"fetch-timeout"`
@@ -93,4 +110,29 @@ func (c *Config) IsSequencer() bool {
 // ShouldFetchFromSequencer returns true if this node should fetch payloads from sequencer.
 func (c *Config) ShouldFetchFromSequencer() bool {
 	return c != nil && c.Enabled && c.SequencerURL != ""
+}
+
+// TLSEnabled returns true if both TLS cert and key paths are configured.
+func (c *Config) TLSEnabled() bool {
+	return c != nil && c.TLSCertPath != "" && c.TLSKeyPath != ""
+}
+
+// Validate checks the config for structural consistency.
+func (c *Config) Validate() error {
+	if (c.TLSCertPath != "") != (c.TLSKeyPath != "") {
+		return errors.New("tls-cert-path and tls-key-path must both be set or both be empty")
+	}
+	if c.SequencerCACertPath != "" {
+		if c.SequencerURL == "" {
+			return errors.New("sequencer-ca-cert-path requires sequencer-url to be set")
+		}
+		u, err := url.Parse(c.SequencerURL)
+		if err != nil {
+			return errors.Wrapf(err, "invalid sequencer-url: %s", c.SequencerURL)
+		}
+		if u.Scheme != "https" {
+			return errors.New("sequencer-url must use https:// scheme when sequencer-ca-cert-path is set")
+		}
+	}
+	return nil
 }

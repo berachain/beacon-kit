@@ -23,6 +23,8 @@ package preconf
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -66,19 +68,31 @@ type Client struct {
 }
 
 // NewClient creates a new preconf client for fetching payloads from the sequencer.
+// If caCertPool is non-nil, only the provided CA is trusted for TLS verification.
 func NewClient(
 	logger log.Logger,
 	sequencerURL string,
 	jwtSecret *jwt.Secret,
 	timeout time.Duration,
+	caCertPool *x509.CertPool,
 ) *Client {
+	defaultTransport, ok := http.DefaultTransport.(*http.Transport)
+	if !ok {
+		defaultTransport = &http.Transport{}
+	}
+	transport := defaultTransport.Clone()
+	transport.TLSClientConfig = &tls.Config{
+		MinVersion: tls.VersionTLS12,
+		RootCAs:    caCertPool, // nil = system trust store
+	}
 	return &Client{
 		logger:       logger,
 		sequencerURL: sequencerURL,
 		jwtSecret:    jwtSecret,
 		timeout:      timeout,
 		httpClient: &http.Client{
-			Timeout: timeout,
+			Timeout:   timeout,
+			Transport: transport,
 		},
 	}
 }
@@ -98,7 +112,7 @@ func (c *Client) GetPayloadBySlot(
 
 	// Create HTTP request
 	url := c.sequencerURL + PayloadEndpoint
-	//#nosec G704 // sequencerURL is operator-configured, not user-supplied
+	//#nosec G704 -- sequencerURL is operator-configured, not user-supplied
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqJSON))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
@@ -117,7 +131,7 @@ func (c *Client) GetPayloadBySlot(
 	// Send request
 	c.logger.Debug("Fetching payload from sequencer", "slot", slot, "url", url)
 
-	resp, err := c.httpClient.Do(req) //#nosec:G704 // sequencer URL from trusted config
+	resp, err := c.httpClient.Do(req) //#nosec G704 -- sequencer URL from trusted config
 	if err != nil {
 		return nil, errors.Wrapf(ErrSequencerUnavailable, "request failed: %v", err)
 	}
