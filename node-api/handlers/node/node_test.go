@@ -72,6 +72,7 @@ func TestNodeSyncing(t *testing.T) {
 				latestHeight := int64(1492)
 				syncToHeight := int64(1492)
 				b.EXPECT().GetSyncData().Return(latestHeight, syncToHeight).Once()
+				b.EXPECT().HasPendingBlobFetches().Return(false).Once()
 			},
 			check: func(t *testing.T, res any, err error) {
 				t.Helper()

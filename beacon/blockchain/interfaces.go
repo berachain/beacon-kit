@@ -26,6 +26,7 @@ import (
 
 	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/blobconsensus"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	dastore "github.com/berachain/beacon-kit/da/store"
@@ -128,6 +129,9 @@ type TelemetrySink interface {
 	// the provided key.
 	IncrementCounter(key string, args ...string)
 
+	// SetGauge sets a gauge metric to the specified value.
+	SetGauge(key string, value int64, args ...string)
+
 	// MeasureSince measures the time since the provided start time,
 	// identified by the provided keys.
 	MeasureSince(key string, start time.Time, args ...string)
@@ -144,15 +148,17 @@ type BlockchainI interface {
 		datypes.BlobSidecars,
 		error,
 	)
+	// ProcessProposal verifies a proposal and also returns the block's verified blob sidecars, so the caller
+	// can cache them for FinalizeBlock.
 	ProcessProposal(
 		sdk.Context,
 		*cmtabci.ProcessProposalRequest,
 		[]byte, // this node address
-	) (transition.ValidatorUpdates, error)
+	) (transition.ValidatorUpdates, datypes.BlobSidecars, error)
 	FinalizeSidecars(
 		ctx sdk.Context,
 		syncingToHeight int64,
-		blk *ctypes.BeaconBlock,
+		signedBlk *ctypes.SignedBeaconBlock,
 		blobs datypes.BlobSidecars,
 	) error
 	FinalizeBlock(
@@ -164,6 +170,57 @@ type BlockchainI interface {
 		*ctypes.BeaconBlock,
 	) error
 	PruneOrphanedBlobs(lastBlockHeight int64) error
+	// PendingBlobRequests reports queued background blob fetches; a node with pending in-window fetches must not report itself as synced.
+	PendingBlobRequests() int
+}
+
+// BlobRequester is the blob reactor surface the blockchain service uses to obtain sidecars that no longer ride inside CometBFT
+// blocks. Satisfied by *blobreactor.BlobReactor.
+type BlobRequester interface {
+	// GetPushedSidecars returns sidecars pushed for the given block root, or nil.
+	GetPushedSidecars(root common.Root) datypes.BlobSidecars
+	// DiscardPushedSidecars evicts a cached push that failed verification against the actual proposal, so it
+	// no longer shadows an honest re-push or gets served to peers.
+	DiscardPushedSidecars(root common.Root)
+	// NotifySidecarsObtained caches fully verified sidecars for serving and re-gossips them to peers that are not known to have them.
+	NotifySidecarsObtained(root common.Root, sidecars datypes.BlobSidecars)
+	// RequestSidecarsByRoot fetches one block's verified sidecars from peers.
+	RequestSidecarsByRoot(
+		ctx context.Context,
+		slot math.Slot,
+		blockRoot common.Root,
+		verify func(datypes.BlobSidecars) error,
+	) (datypes.BlobSidecars, error)
+	// RequestSidecarsByRange fetches verified sidecars for a slot range from peers; the verify callback is invoked once per returned slot.
+	RequestSidecarsByRange(
+		ctx context.Context,
+		startSlot math.Slot,
+		count uint64,
+		verify func(math.Slot, datypes.BlobSidecars) error,
+	) (map[math.Slot]datypes.BlobSidecars, error)
+	// SetHeadSlot updates the requester's view of the chain head.
+	SetHeadSlot(slot math.Slot)
+	// FetchTimeout is the overall deadline for retrieving one block's sidecars at the tip.
+	FetchTimeout() time.Duration
+}
+
+// BlobReconstructor rebuilds a block's sidecars from blobs fetched off the local execution client. Satisfied by *blob.Reconstructor.
+type BlobReconstructor interface {
+	ReconstructSidecars(ctx context.Context, signedBlk *ctypes.SignedBeaconBlock) (datypes.BlobSidecars, error)
+}
+
+// BlobFetcher asynchronously fetches blob sidecars of finalized blocks.
+type BlobFetcher interface {
+	// Start begins the background blob fetching process.
+	Start(ctx context.Context)
+	// Stop gracefully shuts down the blob fetcher.
+	Stop()
+	// QueueBlobRequest queues a fetch of the given block's sidecars.
+	QueueBlobRequest(signedBlk *ctypes.SignedBeaconBlock) error
+	// SetHeadSlot updates the head slot for DA-window expiry and serving.
+	SetHeadSlot(slot math.Slot)
+	// PendingRequests returns the number of queued fetch requests.
+	PendingRequests() int
 }
 
 // BlobProcessor is the interface for the blobs processor.
@@ -194,6 +251,7 @@ type ServiceChainSpec interface {
 	chain.ForkSpec
 	chain.ForkVersionSpec
 	delay.ConfigGetter
+	blobconsensus.ConfigGetter
 
 	EpochsPerHistoricalVector() uint64
 	SlotToEpoch(slot math.Slot) math.Epoch

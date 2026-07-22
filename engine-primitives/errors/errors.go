@@ -97,4 +97,8 @@ var (
 	ErrEngineAPITimeout = errors.New(
 		"engine API call timed out",
 	)
+
+	// ErrGetBlobsUnsupported is returned when the execution client does not
+	// support the engine_getBlobsV2 API.
+	ErrGetBlobsUnsupported = errors.New("engine_getBlobsV2 is not supported by the execution client")
 )

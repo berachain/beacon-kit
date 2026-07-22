@@ -22,6 +22,7 @@ package spec
 
 import (
 	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/blobconsensus"
 )
 
 // TestnetChainSpecData is the chain.SpecData for Berachain's public testnet, Bepolia.
@@ -51,6 +52,9 @@ func TestnetChainSpecData() *chain.SpecData {
 
 	// Timestamp of the Fulu fork on Bepolia.
 	specData.FuluForkTime = 1_779_897_600
+
+	// Blob distribution via the blob reactor is not scheduled on Bepolia yet.
+	specData.BlobConsensus = blobconsensus.DefaultConfig()
 
 	return specData
 }

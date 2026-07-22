@@ -29,24 +29,31 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
+// ParseBeaconBlock decodes the consensus txs of a proposal, honoring the tx layout active at the proposal's height. Before the blob
+// consensus enable height a proposal carries two txs (block, sidecars); at and above it a proposal carries only the block and the
+// returned sidecars are nil (they are distributed via the blob reactor instead).
 func (s *Service) ParseBeaconBlock(req encoding.ABCIRequest) (
 	*ctypes.SignedBeaconBlock,
 	types.BlobSidecars,
 	error,
 ) {
-	if countTx := len(req.GetTxs()); countTx > MaxConsensusTxsCount {
+	blobConsensusEnabled := s.chainSpec.IsBlobConsensusEnabled(req.GetHeight())
+
+	maxTxCount := MaxConsensusTxsCount
+	if blobConsensusEnabled {
+		maxTxCount = MaxBlobConsensusTxsCount
+	}
+	if countTx := len(req.GetTxs()); countTx > maxTxCount {
 		return nil, nil, fmt.Errorf("max expected %d, got %d: %w",
-			MaxConsensusTxsCount, countTx,
+			maxTxCount, countTx,
 			ErrTooManyConsensusTxs,
 		)
 	}
 
 	forkVersion := s.chainSpec.ActiveForkVersionForTimestamp(math.U64(req.GetTime().Unix())) //#nosec: G115
-	// Decode signed block and sidecars.
-	signedBlk, sidecars, err := encoding.ExtractBlobsAndBlockFromRequest(
-		req,
+	signedBlk, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
+		req.GetTxs(),
 		BeaconBlockTxIndex,
-		BlobSidecarsTxIndex,
 		forkVersion,
 	)
 	if err != nil {
@@ -57,6 +64,16 @@ func (s *Service) ParseBeaconBlock(req encoding.ABCIRequest) (
 			"Aborting block verification - beacon block not found in proposal",
 		)
 		return nil, nil, ErrNilBlk
+	}
+
+	if blobConsensusEnabled {
+		// Sidecars travel on the blob reactor channel, not as a consensus tx.
+		return signedBlk, nil, nil
+	}
+
+	sidecars, err := encoding.UnmarshalBlobSidecarsFromABCIRequest(req.GetTxs(), BlobSidecarsTxIndex)
+	if err != nil {
+		return nil, nil, err
 	}
 	if sidecars == nil {
 		s.logger.Warn(

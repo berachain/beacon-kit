@@ -22,6 +22,7 @@ package node
 
 type Backend interface {
 	GetSyncData() (latestHeight int64, syncToHeight int64)
+	HasPendingBlobFetches() bool
 	GetVersionData() (
 		appName,
 		version,

@@ -65,6 +65,10 @@ func DevnetChainSpecData() *chain.SpecData {
 	specData.Config.ConsensusUpdateHeight = 1
 	specData.Config.ConsensusEnableHeight = 2
 
+	// Distribute blobs via the blob reactor (instead of a consensus tx) almost
+	// immediately, so devnets exercise the post-transition path.
+	specData.BlobConsensus.EnableHeight = 2
+
 	// Fork timings are set to facilitate local testing across fork versions.
 	specData.GenesisTime = 0
 	specData.Deneb1ForkTime = 0
