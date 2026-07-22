@@ -18,7 +18,6 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-//nolint:dupl // False positive detected.
 package types
 
 import (
@@ -29,6 +28,16 @@ import (
 
 // Validators is a type alias for a SSZ list of Validator containers.
 type Validators []*Validator
+
+// Copy returns a deep copy of the Validators slice.
+func (vs Validators) Copy() Validators {
+	cpy := make(Validators, len(vs))
+	for i, v := range vs {
+		val := *v
+		cpy[i] = &val
+	}
+	return cpy
+}
 
 // SizeSSZ returns the SSZ encoded size in bytes for the Validators.
 func (vs Validators) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {

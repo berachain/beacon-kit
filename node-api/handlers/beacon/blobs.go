@@ -79,7 +79,7 @@ func (h *Handler) GetBlobSidecars(c handlers.Context) (any, error) {
 	}
 
 	// Validate request indices.
-	if uint64(len(indices)) >= h.cs.MaxBlobsPerBlock() {
+	if uint64(len(indices)) > h.cs.MaxBlobsPerBlock() {
 		return nil, errors.New("too many indices requested")
 	}
 	for _, index := range indices {

@@ -49,10 +49,8 @@ func ProveWithdrawalCredentialsInState(
 		return nil, common.Root{}, err
 	}
 
-	// Calculate the generalized index for the target validator. The offset
-	// multiplication is bounded by (2^40-1)*8 < 2^43 < 2^63, so converting to
-	// int is safe on 64-bit architectures.
-	gIndex := zeroWithdrawalGIndexState + int(validatorOffset) // #nosec G115
+	// int conversion is safe on 64-bit architectures: (2^40-1)*8 < 2^43 < 2^63.
+	gIndex := zeroWithdrawalGIndexState + int(validatorOffset) // #nosec G115 -- offset bounded by caller.
 
 	withdrawalProof, err := stateProofTree.Prove(gIndex)
 	if err != nil {
@@ -75,6 +73,10 @@ func ProveWithdrawalCredentialsInBlock(
 	bbh *ctypes.BeaconBlockHeader,
 	bsm types.BeaconStateMarshallable,
 ) ([]common.Root, common.Root, error) {
+	if err := validateValidatorIndexBound(validatorIndex); err != nil {
+		return nil, common.Root{}, err
+	}
+
 	forkVersion := bsm.GetForkVersion()
 
 	// Calculate the validator-specific offset.

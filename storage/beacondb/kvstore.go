@@ -97,6 +97,9 @@ type KVStore struct {
 	// We must use `*ctypes.PendingPartialWithdrawals` instead of `ctypes.PendingPartialWithdrawals` as marshalling
 	// methods require a pointer receiver.
 	pendingPartialWithdrawals sdkcollections.Item[*ctypes.PendingPartialWithdrawals]
+	// validatorsCache caches the full validator set to avoid repeated DB reads
+	// within the same block. Invalidated on any validator write.
+	validatorsCache ctypes.Validators
 }
 
 // New creates a new instance of Store.
@@ -276,5 +279,9 @@ func (kv *KVStore) Context() context.Context {
 func (kv *KVStore) WithContext(ctx context.Context) *KVStore {
 	cpy := *kv
 	cpy.ctx = ctx
+	// Reset cache: epoch processing updates validators on a copy and commits to disk,
+	// but the parent KVStore's cache still holds pre-epoch data. Without this,
+	// subsequent blocks would silently use stale effective balances and activation statuses.
+	cpy.validatorsCache = nil
 	return &cpy
 }

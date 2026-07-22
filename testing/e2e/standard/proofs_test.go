@@ -85,9 +85,7 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 	s.Require().NotNil(nextHeader)
 
 	// Get the block proposer proof for the next timestamp and enforce equality.
-	blockProposerResp2, err := s.ConsensusClients(0).BlockProposerProof(
-		s.Ctx(), "t"+strconv.FormatUint(nextHeader.Time, 10),
-	)
+	blockProposerResp2, err := s.ConsensusClients(0).BlockProposerProof(s.Ctx(), "t"+strconv.FormatUint(nextHeader.Time, 10))
 	s.Require().NoError(err)
 	s.Require().NotNil(blockProposerResp2)
 	s.Require().NotNil(blockProposerResp2.BeaconBlockHeader)
