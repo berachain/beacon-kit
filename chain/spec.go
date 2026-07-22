@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/blobconsensus"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -190,6 +191,7 @@ type WithdrawalsSpec interface {
 // Spec defines an interface for accessing chain-specific parameters.
 type Spec interface {
 	delay.ConfigGetter
+	blobconsensus.ConfigGetter
 	DepositSpec
 	BalancesSpec
 	HysteresisSpec
@@ -322,6 +324,15 @@ func (s spec) SbtConsensusUpdateHeight() int64 {
 }
 func (s spec) SbtConsensusEnableHeight() int64 {
 	return s.Data.ConsensusEnableHeight
+}
+
+func (s spec) BlobConsensusEnableHeight() int64 {
+	return s.Data.BlobConsensus.EnableHeight
+}
+
+func (s spec) IsBlobConsensusEnabled(height int64) bool {
+	enableHeight := s.Data.BlobConsensus.EnableHeight
+	return enableHeight > 0 && height >= enableHeight
 }
 
 // MaxEffectiveBalance returns the maximum effective balance.

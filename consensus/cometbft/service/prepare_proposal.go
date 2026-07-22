@@ -84,7 +84,22 @@ func (s *Service) prepareProposal(
 		return &cmtabci.PrepareProposalResponse{Txs: [][]byte{}}, nil
 	}
 
+	if !s.chainSpec.IsBlobConsensusEnabled(req.Height) {
+		// Before the blob consensus enable height, sidecars ride as the second consensus tx.
+		return &cmtabci.PrepareProposalResponse{
+			Txs: [][]byte{blkBz, sidecarsBz},
+		}, nil
+	}
+
+	// At and above the enable height the proposal carries only the block. Push the sidecars to peers on the blob reactor channel
+	// at the same moment the block is handed to CometBFT; validators that miss the push fall back to their EL and then to a
+	// by-root fetch.
+	if err = s.BlobReactor.BroadcastSidecars(sidecarsBz); err != nil {
+		// Do not fail the proposal: peers can still fetch the sidecars from this node by root, or reconstruct them from their own EL.
+		s.logger.Error("failed to broadcast blob sidecars", "height", req.Height, "err", err)
+	}
+
 	return &cmtabci.PrepareProposalResponse{
-		Txs: [][]byte{blkBz, sidecarsBz},
+		Txs: [][]byte{blkBz},
 	}, nil
 }

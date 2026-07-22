@@ -48,6 +48,17 @@ type BlobProofVerifier interface {
 	VerifyBlobProofBatch(*kzgtypes.BlobProofArgs) error
 }
 
+// BlobProofProver computes the KZG proof binding a blob to its commitment.
+// It is used to reconstruct canonical blob sidecars from blobs fetched off
+// the execution client, whose engine_getBlobsV2 response carries cell proofs
+// rather than the single blob proof the sidecar format requires. The computed
+// proof is deterministic, so it is byte-identical to the proposer's.
+type BlobProofProver interface {
+	// ComputeBlobProof computes the KZG proof for the given blob and
+	// commitment.
+	ComputeBlobProof(blob *eip4844.Blob, commitment eip4844.KZGCommitment) (eip4844.KZGProof, error)
+}
+
 // NewBlobProofVerifier creates a new BlobVerifier with the given
 // implementation.
 func NewBlobProofVerifier(

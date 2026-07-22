@@ -275,6 +275,9 @@ func setupOptimisticPayloadTests(t *testing.T, cs chain.Spec) (
 	chain := blockchain.NewService(
 		sb,
 		nil, // blockchain.BlobProcessor unused in this test
+		nil, // blockchain.BlobRequester unused in this test
+		nil, // blockchain.BlobReconstructor unused in this test
+		noopBlobFetcher{},
 		nil, // deposit.Contract unused in this test
 		logger,
 		cs,
@@ -416,3 +419,13 @@ func computeStateRoot(
 
 	return st.HashTreeRoot(), nil
 }
+
+// noopBlobFetcher satisfies blockchain.BlobFetcher for tests that never
+// exercise blob fetching but do start/stop the service.
+type noopBlobFetcher struct{}
+
+func (noopBlobFetcher) Start(context.Context)                            {}
+func (noopBlobFetcher) Stop()                                            {}
+func (noopBlobFetcher) QueueBlobRequest(*ctypes.SignedBeaconBlock) error { return nil }
+func (noopBlobFetcher) SetHeadSlot(math.Slot)                            {}
+func (noopBlobFetcher) PendingRequests() int                             { return 0 }

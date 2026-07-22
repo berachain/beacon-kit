@@ -27,4 +27,5 @@ type ABCIRequest interface {
 	// GetTxs returns the transactions included in the request.
 	GetTxs() [][]byte
 	GetTime() time.Time
+	GetHeight() int64
 }

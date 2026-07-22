@@ -138,6 +138,12 @@ func (b *Backend) GetSyncData() (int64 /*latestHeight*/, int64 /*syncToHeight*/)
 	return b.node.GetSyncData()
 }
 
+// HasPendingBlobFetches reports whether in-window blob sidecars are still
+// being fetched in the background.
+func (b *Backend) HasPendingBlobFetches() bool {
+	return b.node.HasPendingBlobFetches()
+}
+
 func (b *Backend) GetVersionData() (
 	string, // appName
 	string, // cometVersion

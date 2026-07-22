@@ -63,6 +63,15 @@ func (v Verifier) VerifyBlobProof(
 			(gokzg4844.KZGProof)(proof))
 }
 
+// ComputeBlobProof computes the KZG proof for the given blob and commitment.
+func (v Verifier) ComputeBlobProof(
+	blob *eip4844.Blob,
+	commitment eip4844.KZGCommitment,
+) (eip4844.KZGProof, error) {
+	proof, err := v.Context.ComputeBlobKZGProof((*gokzg4844.Blob)(blob), (gokzg4844.KZGCommitment)(commitment), 0)
+	return eip4844.KZGProof(proof), err
+}
+
 // VerifyBlobProofBatch verifies the KZG proof that the polynomial represented
 // by the blob evaluated at the given point is the claimed value.
 // It is more efficient than VerifyBlobProof when verifying multiple proofs.

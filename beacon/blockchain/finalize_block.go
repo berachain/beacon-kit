@@ -66,7 +66,7 @@ func (s *Service) FinalizeBlock(
 	}
 
 	// STEP 2: Finalize sidecars first (block will check for sidecar availability).
-	if err = s.FinalizeSidecars(ctx, req.SyncingToHeight, blk, blobs); err != nil {
+	if err = s.FinalizeSidecars(ctx, req.SyncingToHeight, signedBlk, blobs); err != nil {
 		return nil, fmt.Errorf("failed finalizing sidecars: %w", err)
 	}
 
@@ -84,20 +84,42 @@ func (s *Service) FinalizeBlock(
 	return valUpdates, s.PostFinalizeBlockOps(ctx, blk)
 }
 
+// FinalizeSidecars makes sure the blobs a finalized block commits to are persisted in the availability store,
+// keeping "finalized within the DA window" equivalent to "data available". Outside the DA window there is
+// nothing to enforce and the call is a no-op.
+//
+// Where the sidecars come from depends on how the block reached us. Below the blob consensus enable height
+// they ride in the request txs, and for a block verified at the tip they were already fetched during
+// ProcessProposal. In both cases the caller passes them in, and they are persisted under a strict availability
+// check. With blob consensus enabled and no sidecars in hand (block sync, or a tip block this node never voted
+// on), the store is checked first, then the same tiered retrieval ProcessProposal uses if the block is at the
+// tip, and failing that a background fetch is queued. Queueing never fails the block: it is already committed
+// by 2/3+ of the voting power, which implies the data was available to the network, and the fetcher keeps
+// retrying until the slot leaves the DA window while the node reports itself as still syncing.
 func (s *Service) FinalizeSidecars(
 	ctx sdk.Context,
 	syncingToHeight int64,
-	blk *ctypes.BeaconBlock,
+	signedBlk *ctypes.SignedBeaconBlock,
 	blobs datypes.BlobSidecars,
 ) error {
+	blk := signedBlk.GetBeaconBlock()
+
 	// SyncingToHeight is always the tip of the chain both during sync and when
 	// caught up. We don't need to process sidecars unless they are within DA period.
 	//
 	//#nosec: G115 // SyncingToHeight will never be negative.
-	if s.chainSpec.WithinDAPeriod(blk.GetSlot(), math.Slot(syncingToHeight)) {
+	if !s.chainSpec.WithinDAPeriod(blk.GetSlot(), math.Slot(syncingToHeight)) {
+		// Here outside Data Availability window. Just log if needed
+		if len(blobs) > 0 {
+			s.logger.Info("Skipping blob processing outside of Data Availability Period", "slot", blk.GetSlot().Base10(), "head", syncingToHeight)
+		}
+		return nil
+	}
+
+	processAndCheck := func(sidecars datypes.BlobSidecars) error {
 		err := s.blobProcessor.ProcessSidecars(
 			s.storageBackend.AvailabilityStore(),
-			blobs,
+			sidecars,
 		)
 		if err != nil {
 			s.logger.Error("Failed to process blob sidecars", "error", err)
@@ -113,12 +135,45 @@ func (s *Service) FinalizeSidecars(
 		return nil
 	}
 
-	// Here outside Data Availability window. Just log if needed
-	if len(blobs) > 0 {
-		s.logger.Info(
-			"Skipping blob processing outside of Data Availability Period",
-			"slot", blk.GetSlot().Base10(), "head", syncingToHeight,
-		)
+	//#nosec: G115 // slots are never negative.
+	blobConsensusEnabled := s.chainSpec.IsBlobConsensusEnabled(int64(blk.GetSlot().Unwrap()))
+
+	// Legacy layout (sidecars rode as a consensus tx) or sidecars handed to us by the caller (verified during ProcessProposal):
+	// persist and enforce availability strictly.
+	if !blobConsensusEnabled || len(blobs) > 0 {
+		return processAndCheck(blobs)
+	}
+
+	// Blob consensus is enabled and no sidecars were provided with the block.
+	if len(blk.GetBody().GetBlobKzgCommitments()) == 0 {
+		return nil
+	}
+
+	// Already stored and bound to this exact block (e.g. restart replay after a crash mid-finalization, or a previous fetch already
+	// persisted them). Presence alone would not be enough: sidecars from a different proposal at this slot with identical commitments
+	// would pass an availability check while carrying the wrong header and signature.
+	if sidecarsAlreadyStored(s.storageBackend.AvailabilityStore(), blk.GetHeader(), blk.GetBody().GetBlobKzgCommitments()) {
+		return nil
+	}
+
+	// At the tip of the chain a node can reach FinalizeBlock without a successful ProcessProposal (it voted nil while 2/3+
+	// committed, or it just joined). Use the same tiered retrieval as ProcessProposal.
+	//#nosec: G115 // slots are never negative.
+	if int64(blk.GetSlot().Unwrap()) == syncingToHeight {
+		sidecars, err := s.fetchProposalSidecars(ctx, signedBlk)
+		if err == nil {
+			return processAndCheck(sidecars)
+		}
+		s.logger.Warn("Failed to fetch blob sidecars at tip, queueing background fetch",
+			"slot", blk.GetSlot().Unwrap(), "error", err)
+	}
+
+	// Syncing (or the tip fetch failed): queue an asynchronous fetch. The background fetcher retries until the slot leaves the DA
+	// window, and the node does not report itself as synced while in-window fetches are pending. Failing the block here is not an
+	// option: the block is already committed by 2/3+ of the voting power, which also implies they held and verified the data.
+	if err := s.blobFetcher.QueueBlobRequest(signedBlk); err != nil {
+		return fmt.Errorf("failed to queue blob fetch request for slot %d: %w",
+			blk.GetSlot().Unwrap(), err)
 	}
 	return nil
 }
@@ -140,6 +195,10 @@ func (s *Service) PostFinalizeBlockOps(ctx sdk.Context, blk *ctypes.BeaconBlock)
 		)
 		return err
 	}
+
+	// Update the head slot for blob distribution (peers are served based on it, and pending fetches outside the DA window are
+	// dropped against it).
+	s.blobFetcher.SetHeadSlot(slot)
 
 	// Prune the availability and deposit store.
 	if err := s.processPruning(ctx, blk); err != nil {

@@ -441,3 +441,29 @@ func populateTestDB(rdb *file.RangeDB, from, to uint64) error {
 	}
 	return nil
 }
+
+// A write below lowerBoundIndex must be rejected, not silently clamped onto lowerBoundIndex: clamping would
+// corrupt the data stored at that index (the bug the blob fetcher could hit when a slot leaves the DA window
+// mid-fetch).
+func TestRangeDB_SetBelowLowerBoundRejected(t *testing.T) {
+	t.Parallel()
+	rdb := file.NewRangeDB(newTestFDB("/tmp/testdb"))
+
+	require.NoError(t, rdb.Set(10, []byte("k"), []byte("v10")))
+	require.NoError(t, rdb.Prune(0, 10)) // lowerBoundIndex -> 10
+
+	// A stale write for index 5 must be rejected, and index 10's value untouched.
+	err := rdb.Set(5, []byte("k"), []byte("stale"))
+	require.ErrorIs(t, err, file.ErrIndexPruned)
+
+	has, err := rdb.Has(5, []byte("k"))
+	require.NoError(t, err)
+	require.False(t, has, "the rejected write must not appear under its own index")
+	got, err := rdb.Get(10, []byte("k"))
+	require.NoError(t, err)
+	require.Equal(t, []byte("v10"), got, "the rejected write must not corrupt the lower-bound index")
+
+	// Writes at or above the bound still succeed.
+	require.NoError(t, rdb.Set(10, []byte("k2"), []byte("v")))
+	require.NoError(t, rdb.Set(11, []byte("k"), []byte("v")))
+}

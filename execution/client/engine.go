@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	ethclient "github.com/berachain/beacon-kit/execution/client/ethclient"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/ethereum/go-ethereum/beacon/engine"
 )
 
 /* -------------------------------------------------------------------------- */
@@ -160,6 +161,37 @@ func (s *EngineClient) GetPayload(
 		return result, engineerrors.ErrNilBlobsBundle
 	}
 
+	return result, nil
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                  GetBlobs                                  */
+/* -------------------------------------------------------------------------- */
+
+// GetBlobsV2 calls the engine_getBlobsV2 method via JSON-RPC, fetching blobs
+// from the execution client's blob pool by versioned hash. Returns
+// engineerrors.ErrGetBlobsUnsupported if the execution client does not
+// advertise the capability, and a nil slice if the execution client is
+// missing any of the requested blobs (all-or-nothing semantics).
+func (s *EngineClient) GetBlobsV2(
+	ctx context.Context,
+	versionedHashes []common.ExecutionHash,
+) ([]*engine.BlobAndProofV2, error) {
+	if !s.HasCapability(ethclient.GetBlobsMethodV2) {
+		return nil, engineerrors.ErrGetBlobsUnsupported
+	}
+
+	var (
+		startTime    = time.Now()
+		cctx, cancel = s.createContextWithTimeout(ctx)
+	)
+	defer s.metrics.measureGetBlobsDuration(startTime)
+	defer cancel()
+
+	result, err := s.Client.GetBlobsV2(cctx, versionedHashes)
+	if err != nil {
+		return nil, s.handleRPCError(err)
+	}
 	return result, nil
 }
 

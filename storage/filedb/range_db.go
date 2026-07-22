@@ -44,6 +44,12 @@ const (
 
 var (
 	ErrRangeNotSupported = errors.New("RangeDB DeleteRange: delete range not supported for this db")
+
+	// ErrIndexPruned is returned by Set when the index is below lowerBoundIndex,
+	// i.e. it has already been pruned (or is about to be). The write is rejected
+	// rather than clamped so pruned-away data is never resurrected under the
+	// wrong index.
+	ErrIndexPruned = errors.New("RangeDB Set: index below pruning lower bound")
 )
 
 // RangeDB is a database that stores versioned data.
@@ -93,11 +99,19 @@ func (db *RangeDB) Has(index uint64, key []byte) (bool, error) {
 // Set stores the value with the given index and key in the database.
 // It prefixes the key with the index and a slash before storing it in the
 // underlying database.
+//
+// A write below lowerBoundIndex is rejected with ErrIndexPruned rather than
+// clamped to lowerBoundIndex: clamping would silently store the value under a
+// different index, corrupting that index's data. This matters for writes that
+// race pruning, e.g. the background blob fetcher persisting a slot that leaves
+// the DA window mid-fetch.
 func (db *RangeDB) Set(index uint64, key []byte, value []byte) error {
 	db.rwMu.Lock()
 	defer db.rwMu.Unlock()
 
-	index = max(index, db.lowerBoundIndex) // enforce invariant
+	if index < db.lowerBoundIndex {
+		return fmt.Errorf("%w: index %d below lower bound %d", ErrIndexPruned, index, db.lowerBoundIndex)
+	}
 	return db.coreDB.Set(prefix(index, key), value)
 }
 

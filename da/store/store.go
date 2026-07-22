@@ -22,10 +22,12 @@ package store
 
 import (
 	"context"
+	"fmt"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/encoding/ssz"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
@@ -56,14 +58,29 @@ func (s *Store) IsDataAvailable(
 	slot math.Slot,
 	body *ctypes.BeaconBlockBody,
 ) bool {
-	for _, commitment := range body.GetBlobKzgCommitments() {
-		// Check if the block data is available in the IndexDB
-		blockData, err := s.IndexDB.Has(slot.Unwrap(), commitment[:])
+	// Commitments can be duplicated within a block, so the storage key
+	// includes the blob index alongside the commitment.
+	for i, commitment := range body.GetBlobKzgCommitments() {
+		if i > maxBlobIndex {
+			s.logger.Error("Blob index exceeds maximum storable value", "index", i)
+			return false
+		}
+		blockData, err := s.IndexDB.Has(slot.Unwrap(), sidecarKey(commitment, uint64(i))) //#nosec:G115 // i>=0
 		if err != nil || !blockData {
 			return false
 		}
 	}
 	return true
+}
+
+// maxBlobIndex is the largest blob index encodable in the storage key.
+const maxBlobIndex = 255
+
+// sidecarKey builds the storage key for one sidecar: the KZG commitment with
+// the blob index appended, so duplicated commitments within a block do not
+// overwrite each other.
+func sidecarKey(commitment eip4844.KZGCommitment, index uint64) []byte {
+	return append(commitment[:], byte(index)) // #nosec G115 -- callers enforce index <= maxBlobIndex (255)
 }
 
 // GetBlobSidecars fetches the sidecars for a specific slot.
@@ -86,29 +103,50 @@ func (s *Store) GetBlobSidecars(slot math.Slot) (types.BlobSidecars, error) {
 }
 
 // Persist ensures the sidecar data remains accessible, utilizing parallel
-// processing for efficiency.
+// processing for efficiency. A block's sidecars are always persisted as a
+// complete set, so the slot's existing entries are cleared first: this keeps
+// Persist idempotent and, across the storage-key change (commitment ->
+// commitment||index), prevents a re-persisted block from leaving both the old-
+// and new-key entries and returning duplicate indices.
 func (s *Store) Persist(sidecars types.BlobSidecars) error {
-	var slot math.Slot
+	if len(sidecars) == 0 {
+		return nil
+	}
+	if sidecars[0] == nil {
+		return ErrAttemptedToStoreNilSidecar
+	}
+	slot := sidecars[0].GetBeaconBlockHeader().GetSlot()
+	if err := s.IndexDB.DeleteByIndex(slot.Unwrap()); err != nil {
+		return err
+	}
+
 	// Store each sidecar sequentially. The store's underlying RangeDB is not
 	// built to handle concurrent writes.
 	for _, sidecar := range sidecars {
 		if sidecar == nil {
 			return ErrAttemptedToStoreNilSidecar
 		}
+		// Every sidecar must belong to the slot whose entries were just
+		// deleted; a mixed-slot slice would delete one slot's data and then
+		// write under another.
+		if sidecarSlot := sidecar.GetBeaconBlockHeader().GetSlot(); sidecarSlot != slot {
+			return fmt.Errorf("%w: expected %d, got %d",
+				ErrMixedSlotSidecars, slot.Unwrap(), sidecarSlot.Unwrap())
+		}
+		index := sidecar.GetIndex()
+		if index > maxBlobIndex {
+			return fmt.Errorf("blob index %d exceeds maximum storable value %d", index, maxBlobIndex)
+		}
 		bz, err := sidecar.MarshalSSZ()
 		if err != nil {
 			return err
 		}
-		slot = sidecar.GetBeaconBlockHeader().GetSlot()
-		err = s.IndexDB.Set(slot.Unwrap(), sidecar.KzgCommitment[:], bz)
-
+		err = s.IndexDB.Set(slot.Unwrap(), sidecarKey(sidecar.KzgCommitment, index), bz)
 		if err != nil {
 			return err
 		}
 	}
 
-	// Slots should all be the same at this point. Just use the slot from the
-	// last sidecar.
 	s.logger.Info("Successfully stored all blob sidecars 🚗",
 		"slot", slot.Base10(), "num_sidecars", len(sidecars),
 	)

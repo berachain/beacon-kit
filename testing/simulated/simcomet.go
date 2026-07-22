@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
+	"github.com/berachain/beacon-kit/da/blobreactor"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/builder"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
@@ -57,6 +58,7 @@ func ProvideSimComet(
 	logger *phuslu.Logger,
 	blockchain blockchain.BlockchainI,
 	blockBuilder validator.BlockBuilderI,
+	blobReactor *blobreactor.BlobReactor,
 	db dbm.DB,
 	cs chain.Spec,
 	cmtCfg *cmtcfg.Config,
@@ -68,6 +70,7 @@ func ProvideSimComet(
 			db,
 			blockchain,
 			blockBuilder,
+			blobReactor,
 			cs,
 			cmtCfg,
 			telemetrySink,
@@ -75,6 +78,11 @@ func ProvideSimComet(
 		),
 		cmtCfg: cmtCfg,
 	}
+}
+
+// HasPendingBlobFetches delegates to the underlying comet service.
+func (s *SimComet) HasPendingBlobFetches() bool {
+	return s.Comet.HasPendingBlobFetches()
 }
 
 // Start sets the ctx and the node address for the SimComet service.
