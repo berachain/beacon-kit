@@ -207,7 +207,14 @@ func (s *SharedAccessors) MoveChainToHeight(
 			ProposerAddress: nodeAddress,
 		})
 		require.NoError(t, err)
-		require.Len(t, proposal.Txs, 2)
+
+		// Below the blob-consensus enable height proposals carry two txs (block, sidecars); at and above it
+		// they carry only the block.
+		expectedTxs := 2
+		if s.TestNode.ChainSpec.IsBlobConsensusEnabled(currentHeight) {
+			expectedTxs = 1
+		}
+		require.Len(t, proposal.Txs, expectedTxs)
 
 		// Process the proposal.
 		processReq := &types.ProcessProposalRequest{
@@ -242,10 +249,9 @@ func (s *SharedAccessors) MoveChainToHeight(
 		// set consensus time for the next block to match
 		// the timestamp of the payload built optimistically.
 		forkVersion := s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(math.U64(proposalTime.Unix())) //#nosec: G115
-		blk, _, err := encoding.ExtractBlobsAndBlockFromRequest(
-			processReq,
+		blk, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
+			processReq.GetTxs(),
 			blockchain.BeaconBlockTxIndex,
-			blockchain.BlobSidecarsTxIndex,
 			forkVersion,
 		)
 		require.NoError(t, err)

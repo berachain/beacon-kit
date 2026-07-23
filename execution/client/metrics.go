@@ -73,6 +73,11 @@ func (cm *clientMetrics) measureGetPayloadDuration(startTime time.Time) {
 	)
 }
 
+// measureGetBlobsDuration measures the duration of the get blobs call.
+func (cm *clientMetrics) measureGetBlobsDuration(startTime time.Time) {
+	cm.sink.MeasureSince("beacon_kit.execution.client.get_blobs_duration", startTime)
+}
+
 // incrementEngineAPITimeout increments the timeout counter for
 // general engine api timeouts.
 func (cm *clientMetrics) incrementEngineAPITimeout() {

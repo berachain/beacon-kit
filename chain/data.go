@@ -21,6 +21,7 @@
 package chain
 
 import (
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/blobconsensus"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
 	"github.com/berachain/beacon-kit/primitives/common"
 )
@@ -29,6 +30,10 @@ import (
 // `mapstructure` tag are required.
 type SpecData struct {
 	delay.Config `mapstructure:"block-delay-configuration"`
+
+	// BlobConsensus gates the transition from carrying blob sidecars as the
+	// second consensus tx to distributing them via the blob reactor.
+	BlobConsensus blobconsensus.Config `mapstructure:"blob-consensus"`
 
 	// Gwei value constants.
 	//

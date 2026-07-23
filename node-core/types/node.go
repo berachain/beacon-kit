@@ -58,6 +58,9 @@ type ConsensusService interface {
 	IsAppReady() error
 	CreateQueryContext(height int64, prove bool) (sdk.Context, error)
 	GetSyncData() (latestHeight int64, syncToHeight int64)
+	// HasPendingBlobFetches reports whether in-window blob sidecars are still
+	// being fetched in the background; such a node is not fully synced.
+	HasPendingBlobFetches() bool
 	// GetBlock returns the CometBFT block at the given height.
 	GetBlock(height int64) *cmttypes.Block
 	// GetSignedHeader returns the CometBFT signed header (header + commit) at the given height.

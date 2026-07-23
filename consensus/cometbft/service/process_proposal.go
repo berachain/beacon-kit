@@ -64,7 +64,7 @@ func (s *Service) processProposal(
 	// errors to consensus indicate that the node was not able to understand
 	// whether the block was valid or not. Viceversa, we signal that a block
 	// is invalid by its status, but we do return nil error in such a case.
-	valUpdates, err := s.Blockchain.ProcessProposal(
+	valUpdates, sidecars, err := s.Blockchain.ProcessProposal(
 		processProposalState.Context(),
 		req,
 		s.nodeAddress[:],
@@ -86,11 +86,12 @@ func (s *Service) processProposal(
 	// TODO: before Stable block time activation we keep caching off
 	// to make sure chain does not get faster. Once activated, we can
 	// active as if cache was always active.
-	if cache.IsStateCachingActive(s.delayCfg, math.Slot(req.Height)) {
+	if cache.IsStateCachingActive(s.chainSpec, math.Slot(req.Height)) {
 		stateHash := string(req.Hash)
 		toCache := &cache.Element{
 			State:      processProposalState,
 			ValUpdates: valUpdates,
+			Sidecars:   sidecars,
 		}
 		s.cachedStates.SetCached(stateHash, toCache)
 	}

@@ -22,6 +22,7 @@ package spec
 
 import (
 	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/blobconsensus"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -202,6 +203,9 @@ func MainnetChainSpecData() *chain.SpecData {
 
 	specData.Config.ConsensusUpdateHeight = mainnetSBTConsensusUpdateHeight
 	specData.Config.ConsensusEnableHeight = mainnetSBTConsensusEnableHeight
+
+	// Blob distribution via the blob reactor is not scheduled on mainnet yet.
+	specData.BlobConsensus = blobconsensus.DefaultConfig()
 
 	return specData
 }

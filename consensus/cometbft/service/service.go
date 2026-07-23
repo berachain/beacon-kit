@@ -35,6 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
 	servercmtlog "github.com/berachain/beacon-kit/consensus/cometbft/service/log"
 	statem "github.com/berachain/beacon-kit/consensus/cometbft/service/state"
+	"github.com/berachain/beacon-kit/da/blobreactor"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/transition"
@@ -61,7 +62,7 @@ type Service struct {
 	node        *node.Node
 	nodeAddress cmtcrypto.Address
 
-	delayCfg delay.ConfigGetter
+	chainSpec chain.Spec
 
 	// cmtConsensusParams are part of the blockchain state and
 	// are agreed upon by all validators in the network.
@@ -78,6 +79,7 @@ type Service struct {
 	sm           *statem.Manager
 	Blockchain   blockchain.BlockchainI
 	BlockBuilder validator.BlockBuilderI
+	BlobReactor  BlobReactorI
 
 	// cachedStates tracks in memory the post block states
 	// of blocks which were successfully verified. It allows
@@ -125,6 +127,7 @@ func NewService(
 	db dbm.DB,
 	blockchain blockchain.BlockchainI,
 	blockBuilder validator.BlockBuilderI,
+	blobReactor BlobReactorI,
 	cs chain.Spec,
 	cmtCfg *cmtcfg.Config,
 	telemetrySink TelemetrySink,
@@ -148,7 +151,8 @@ func NewService(
 		sm:                 statem.NewManager(db, log),
 		Blockchain:         blockchain,
 		BlockBuilder:       blockBuilder,
-		delayCfg:           cs,
+		BlobReactor:        blobReactor,
+		chainSpec:          cs,
 		cmtConsensusParams: cmtConsensusParams,
 		cmtCfg:             cmtCfg,
 		telemetrySink:      telemetrySink,
@@ -178,8 +182,8 @@ func NewService(
 	// Make sure that SBT consensus parameters are duly set when the node restart.
 	// Note that we can't rely on genesis.json having these parameters set right
 	// because we introduced stable block time post (mainnet) genesis.
-	if lastBlockHeight >= s.delayCfg.SbtConsensusUpdateHeight() {
-		s.cmtConsensusParams.Feature.SBTEnableHeight = s.delayCfg.SbtConsensusEnableHeight()
+	if lastBlockHeight >= s.chainSpec.SbtConsensusUpdateHeight() {
+		s.cmtConsensusParams.Feature.SBTEnableHeight = s.chainSpec.SbtConsensusEnableHeight()
 	}
 
 	// Load block delay.
@@ -256,6 +260,18 @@ func (s *Service) Start(
 	}
 
 	s.ResetAppCtx(ctx)
+
+	// Register the blob reactor on the node's switch when the chain spec schedules the blob consensus transition. The reactor's
+	// channel is harmless before the enable height and required at and above it.
+	var nodeOptions []node.Option
+	if s.chainSpec.BlobConsensusEnableHeight() > 0 && s.BlobReactor != nil {
+		s.logger.Info(
+			"Enabling blob reactor for p2p blob distribution",
+			"blob_consensus_enable_height", s.chainSpec.BlobConsensusEnableHeight(),
+		)
+		nodeOptions = append(nodeOptions, node.CustomReactors(map[string]p2p.Reactor{blobreactor.ReactorName: s.BlobReactor}))
+	}
+
 	s.node, err = node.NewNode(
 		ctx,
 		cfg,
@@ -266,6 +282,7 @@ func (s *Service) Start(
 		cmtcfg.DefaultDBProvider,
 		node.DefaultMetricsProvider(cfg.Instrumentation),
 		servercmtlog.WrapCometLogger(s.logger),
+		nodeOptions...,
 	)
 	if err != nil {
 		return err

@@ -26,6 +26,7 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
+	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	lru "github.com/hashicorp/golang-lru/v2"
@@ -87,6 +88,10 @@ type States interface {
 type Element struct {
 	State      *State
 	ValUpdates transition.ValidatorUpdates
+	// Sidecars holds the blob sidecars verified during ProcessProposal, so
+	// FinalizeBlock can persist them without refetching once blob consensus
+	// is enabled (they no longer ride in the request txs).
+	Sidecars datypes.BlobSidecars
 }
 
 type candidateStates struct {

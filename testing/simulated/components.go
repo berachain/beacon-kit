@@ -40,6 +40,9 @@ func FixedComponents(t *testing.T) []any {
 		components.ProvideBlsSigner,
 		components.ProvideBlobProcessor,
 		components.ProvideBlobProofVerifier,
+		components.ProvideBlobReactor,
+		components.ProvideBlobReconstructor,
+		components.ProvideBlobFetcher,
 		components.ProvideChainService,
 		components.ProvideNode,
 		components.ProvideConfig,
@@ -102,6 +105,22 @@ func ProvideSimulationChainSpec() (chain.Spec, error) {
 		return nil, err
 	}
 	return chainSpec, nil
+}
+
+// ProvideBlobConsensusTestChainSpec provides the simulation chain spec with the blob-consensus transition
+// enabled at height 2 (proposals carry a single tx and sidecars ride the blob reactor from there on) and
+// stable block time enabled alongside it, so the state-cache finalization path is exercised too.
+func ProvideBlobConsensusTestChainSpec() (chain.Spec, error) {
+	specData := spec.TestnetChainSpecData()
+	specData.GenesisTime = 0
+	specData.Deneb1ForkTime = 30
+	specData.ElectraForkTime = 9999999999999999
+	specData.Electra1ForkTime = 9999999999999999
+	specData.FuluForkTime = 9999999999999999
+	specData.Config.ConsensusUpdateHeight = 1
+	specData.Config.ConsensusEnableHeight = 2
+	specData.BlobConsensus.EnableHeight = 2
+	return chain.NewSpec(specData)
 }
 
 // ProvidePectraForkTestChainSpec provides a chain spec with pectra at timestamp 10
