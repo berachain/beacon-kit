@@ -58,6 +58,9 @@ func defaultRethCmdStrBuilder(genesisFile string) string {
 			 --full \
 			 --engine.persistence-threshold=0 \
 			 --engine.memory-block-buffer-target=0 \
+			 --txpool.pending-max-count=4096 \
+			 --txpool.queued-max-count=4096 \
+			 --txpool.max-account-slots=256 \
 			 -vvvv \
 	`, genesisFile)
 }
@@ -75,6 +78,9 @@ func rethWithEngineOverrideFlagCmdStrBuilder(genesisFile string) string {
 			 --engine.persistence-threshold=0 \
 			 --engine.memory-block-buffer-target=0 \
 			 --engine.always-process-payload-attributes-on-canonical-head \
+			 --txpool.pending-max-count=4096 \
+			 --txpool.queued-max-count=4096 \
+			 --txpool.max-account-slots=256 \
 			 -vvvv \
 	`, genesisFile)
 }

@@ -14,8 +14,10 @@ generate: ## generate all the code
 	done
 	@go run github.com/vektra/mockery/v2@v2.53.5
 
+# Pin abigen to the go-ethereum version in go.mod. Using @latest makes generated
+# bindings drift whenever geth tags a release that touches the abigen templates.
 abigen-install:
-	@go install github.com/ethereum/go-ethereum/cmd/abigen@latest
+	@go install github.com/ethereum/go-ethereum/cmd/abigen@$(GETH_GO_GENERATE_VERSION)
 
 generate-check: abigen-install
 	@$(MAKE) forge-build

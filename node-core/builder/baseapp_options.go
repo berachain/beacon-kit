@@ -70,6 +70,8 @@ func DefaultServiceOptions(
 		cometbft.SetMinRetainBlocks(
 			cast.ToUint64(appOpts.Get(server.FlagMinRetainBlocks)),
 		),
+		cometbft.SetHaltHeight(cast.ToUint64(appOpts.Get(server.FlagHaltHeight))),
+		cometbft.SetHaltTime(cast.ToUint64(appOpts.Get(server.FlagHaltTime))),
 		cometbft.SetInterBlockCache(cache),
 		cometbft.SetIAVLCacheSize(
 			cast.ToInt(appOpts.Get(server.FlagIAVLCacheSize)),

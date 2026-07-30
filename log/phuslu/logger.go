@@ -172,14 +172,14 @@ func (l *Logger) withLogLevel(level string) {
 // useConsoleWriter sets the logger to use a console writer.
 func (l *Logger) useConsoleWriter() {
 	l.setWriter(&log.ConsoleWriter{
-		Writer:    l.out,
+		Writer:    truncatingWriter{out: l.out},
 		Formatter: l.formatter.Format,
 	})
 }
 
 // useJSONWriter sets the logger to use a IOWriter wrapper.
 func (l *Logger) useJSONWriter() {
-	l.setWriter(log.IOWriter{Writer: l.out})
+	l.setWriter(log.IOWriter{Writer: truncatingWriter{out: l.out}})
 }
 
 // setWriter sets the writer of the logger.

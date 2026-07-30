@@ -73,34 +73,6 @@ start-reth:
 	--engine.persistence-threshold 0 \
 	--engine.memory-block-buffer-target 0
 
-## Start an ephemeral `geth` node with docker
-start-geth: 
-	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
-	docker run \
-	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
-	-v $(PWD)/.tmp:/.tmp \
-	ghcr.io/berachain/bera-geth:latest init \
-	--datadir ${ETH_DATA_DIR} \
-	${ETH_GENESIS_PATH}
-
-	docker run \
-	-p 30303:30303 \
-	-p 8545:8545 \
-	-p 8551:8551 \
-	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
-	-v $(PWD)/.tmp:/.tmp \
-	ghcr.io/berachain/bera-geth:latest \
-	--syncmode=full \
-	--http \
-	--http.addr 0.0.0.0 \
-	--http.api eth,net \
-	--authrpc.addr 0.0.0.0 \
-	--authrpc.jwtsecret $(JWT_PATH) \
-	--authrpc.vhosts "*" \
-	--datadir ${ETH_DATA_DIR} \
-	--ipcpath ${IPC_PATH}
-
-
 #################
 #    Bepolia    #
 #################
@@ -111,38 +83,6 @@ BEPOLIA_ETH_GENESIS_PATH = ${BEPOLIA_NETWORK_FILES_DIR}/eth-genesis.json
 start-bepolia:
 	@JWT_SECRET_PATH=$(JWT_PATH) \
 	${TESTAPP_FILES_DIR}/entrypoint.sh testnet
-
-start-geth-bepolia:
-	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
-	docker run \
-	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
-	--rm -v $(PWD)/${BEPOLIA_NETWORK_FILES_DIR}:/${BEPOLIA_NETWORK_FILES_DIR} \
-	-v $(PWD)/.tmp:/.tmp \
-	ghcr.io/berachain/bera-geth:latest init \
-	--datadir ${ETH_DATA_DIR} \
-	${BEPOLIA_ETH_GENESIS_PATH}
-
-	@# Read bootnodes from the file; the file is mounted into the container.
-	@bootnodes=`cat $(PWD)/$(BEPOLIA_NETWORK_FILES_DIR)/el-bootnodes.txt`; \
-	echo "Using bootnodes: $$bootnodes"; \
-	docker run \
-	-p 30303:30303 \
-	-p 8545:8545 \
-	-p 8551:8551 \
-	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
-	--rm -v $(PWD)/${BEPOLIA_NETWORK_FILES_DIR}:/${BEPOLIA_NETWORK_FILES_DIR} \
-	-v $(PWD)/.tmp:/.tmp \
-	ghcr.io/berachain/bera-geth:latest \
-	--http \
-	--http.addr 0.0.0.0 \
-	--http.api eth,net \
-	--authrpc.addr 0.0.0.0 \
-	--authrpc.jwtsecret $(JWT_PATH) \
-	--authrpc.vhosts "*" \
-	--datadir ${ETH_DATA_DIR} \
-	--ipcpath ${IPC_PATH} \
-	--syncmode=full \
-	--bootnodes $$bootnodes
 
 start-reth-bepolia:
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
@@ -176,40 +116,6 @@ MAINNET_ETH_GENESIS_PATH = ${MAINNET_NETWORK_FILES_DIR}/eth-genesis.json
 start-mainnet:
 	@JWT_SECRET_PATH=$(JWT_PATH) \
 	${TESTAPP_FILES_DIR}/entrypoint.sh mainnet
-
-# NOTE: By default this will use the EL peers as your bootnodes. If you want specific 
-# discovery bootnodes by region, refer to testing/networks/80094/el-bootnodes.txt
-start-geth-mainnet:
-	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
-	docker run \
-	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
-	--rm -v $(PWD)/${MAINNET_NETWORK_FILES_DIR}:/${MAINNET_NETWORK_FILES_DIR} \
-	-v $(PWD)/.tmp:/.tmp \
-	ghcr.io/berachain/bera-geth:latest init \
-	--datadir ${ETH_DATA_DIR} \
-	${MAINNET_ETH_GENESIS_PATH}
-
-	@# Read bootnodes from the file; the file is mounted into the container.
-	@bootnodes=`cat $(PWD)/$(MAINNET_NETWORK_FILES_DIR)/el-peers.txt`; \
-	echo "Using bootnodes: $$bootnodes"; \
-	docker run \
-	-p 30303:30303 \
-	-p 8545:8545 \
-	-p 8551:8551 \
-	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
-	--rm -v $(PWD)/${MAINNET_NETWORK_FILES_DIR}:/${MAINNET_NETWORK_FILES_DIR} \
-	-v $(PWD)/.tmp:/.tmp \
-	ghcr.io/berachain/bera-geth:latest \
-	--http \
-	--http.addr 0.0.0.0 \
-	--http.api eth,net \
-	--authrpc.addr 0.0.0.0 \
-	--authrpc.jwtsecret $(JWT_PATH) \
-	--authrpc.vhosts "*" \
-	--datadir ${ETH_DATA_DIR} \
-	--ipcpath ${IPC_PATH} \
-	--syncmode=full \
-	--bootnodes $$bootnodes
 
 start-reth-mainnet:
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
@@ -246,6 +152,10 @@ define FILTER_COVERAGE
 	grep -Ev '(/testing/|/mock/|/mocks/|\.mock\.go)' $(1) > $(2)
 endef
 
+# Cache the covdata tool up front so the parallel coverage runs don't race to write-then-exec it ("text file busy").
+covdata-prewarm:
+	@go tool covdata >/dev/null 2>&1 || true
+
 test:
 	@$(MAKE) test-unit test-forge-fuzz
 
@@ -263,7 +173,7 @@ coverage-summary: test-unit test-simulated
 
 test-unit-cover: test-unit test-simulated test-unit-quick ## run golang unit tests with coverage
 
-test-unit:
+test-unit: covdata-prewarm
 	@echo "Running unit tests with coverage and race checks..."
 	@go list -f '{{.Dir}}/...' -m | xargs \
 		go test -race -covermode=atomic -coverpkg=github.com/berachain/beacon-kit/... -coverprofile=temp-test-unit-cover.txt -tags bls12381,test
@@ -276,7 +186,7 @@ test-unit-quick: ## run quick tests. We run these without coverage as covermode=
 	@go list -f '{{.Dir}}/testing/quick' -m | xargs \
 		go test -v -tags quick
 
-test-simulated: ## run simulation tests
+test-simulated: covdata-prewarm ## run simulation tests
 	@echo "Running simulation tests with coverage"
 	@go list -f '{{.Dir}}/testing/simulated' -m | xargs \
 		go test -cover -covermode=atomic -coverpkg=github.com/berachain/beacon-kit/... -coverprofile=temp-test-simulated.txt -tags simulated -v

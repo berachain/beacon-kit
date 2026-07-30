@@ -71,7 +71,7 @@ type ChainConfig struct {
 	BPO4Time      *uint64 `json:"bpo4Time,omitempty"`      // BPO4 switch time (nil = no fork, 0 = already on bpo4)
 	BPO5Time      *uint64 `json:"bpo5Time,omitempty"`      // BPO5 switch time (nil = no fork, 0 = already on bpo5)
 	AmsterdamTime *uint64 `json:"amsterdamTime,omitempty"` // Amsterdam switch time (nil = no fork, 0 = already on amsterdam)
-	VerkleTime    *uint64 `json:"verkleTime,omitempty"`    // Verkle switch time (nil = no fork, 0 = already on verkle)
+	UBTTime       *uint64 `json:"ubtTime,omitempty"`       // UBT switch time (nil = no fork, 0 = already on UBT)
 
 	// TerminalTotalDifficulty is the amount of total difficulty reached by
 	// the network that triggers the consensus upgrade.
@@ -79,18 +79,18 @@ type ChainConfig struct {
 
 	DepositContractAddress common.Address `json:"depositContractAddress,omitempty"`
 
-	// EnableVerkleAtGenesis is a flag that specifies whether the network uses
-	// the Verkle tree starting from the genesis block. If set to true, the
-	// genesis state will be committed using the Verkle tree, eliminating the
-	// need for any Verkle transition later.
+	// EnableUBTAtGenesis is a flag that specifies whether the network uses
+	// the UBT tree starting from the genesis block. If set to true, the
+	// genesis state will be committed using the UBT tree, eliminating the
+	// need for any UBT transition later.
 	//
-	// This is a temporary flag only for verkle devnet testing, where verkle is
+	// This is a temporary flag only for UBT devnet testing, where UBT is
 	// activated at genesis, and the configured activation date has already passed.
 	//
-	// In production networks (mainnet and public testnets), verkle activation
+	// In production networks (mainnet and public testnets), UBT activation
 	// always occurs after the genesis block, making this flag irrelevant in
 	// those cases.
-	EnableVerkleAtGenesis bool `json:"enableVerkleAtGenesis,omitempty"`
+	EnableUBTAtGenesis bool `json:"enableUBTAtGenesis,omitempty"`
 
 	// Various consensus engines
 	Ethash             *params.EthashConfig       `json:"ethash,omitempty"`
@@ -114,6 +114,9 @@ type BerachainConfig struct {
 
 	// Prague4 fork values.
 	Prague4 Prague4Config `json:"prague4,omitempty"`
+
+	// Osaka1 fork values.
+	Osaka1 Osaka1Config `json:"osaka1,omitempty"`
 }
 
 // Prague1Config is the config values for the Prague1 fork on Berachain.
@@ -154,6 +157,16 @@ type Prague4Config struct {
 	Time *uint64 `json:"time,omitempty"` // Prague4 switch time (0 = already on prague4, nil = no fork)
 }
 
+// Osaka1Config is the config values for the Osaka1 fork on Berachain.
+type Osaka1Config struct {
+	// Time is the time of the Osaka1 fork.
+	Time *uint64 `json:"time,omitempty"` // Osaka1 switch time (0 = already on osaka1, nil = no fork)
+	// MinimumBaseFeeWei is the minimum base fee in wei.
+	MinimumBaseFeeWei *big.Int `json:"minimumBaseFeeWei,omitempty"`
+	// MinimumBlobBaseFeeWei is the minimum blob base fee in wei.
+	MinimumBlobBaseFeeWei *big.Int `json:"minimumBlobBaseFeeWei,omitempty"`
+}
+
 // IsLondon returns whether num is either equal to the London fork block or greater.
 func (c *ChainConfig) IsLondon(num *big.Int) bool {
 	return isBlockForked(c.LondonBlock, num)
@@ -180,18 +193,18 @@ func (c *ChainConfig) IsPrague1(num *big.Int, time uint64) bool {
 	return c.IsPrague(num, time) && isTimestampForked(c.Berachain.Prague1.Time, time)
 }
 
-// IsVerkleGenesis checks whether the verkle fork is activated at the genesis block.
+// IsUBTGenesis checks whether the UBT fork is activated at the genesis block.
 //
-// Verkle mode is considered enabled if the verkle fork time is configured,
+// UBT mode is considered enabled if the UBT fork time is configured,
 // regardless of whether the local time has surpassed the fork activation time.
-// This is a temporary workaround for verkle devnet testing, where verkle is
+// This is a temporary workaround for UBT devnet testing, where UBT is
 // activated at genesis, and the configured activation date has already passed.
 //
-// In production networks (mainnet and public testnets), verkle activation
+// In production networks (mainnet and public testnets), UBT activation
 // always occurs after the genesis block, making this function irrelevant in
 // those cases.
-func (c *ChainConfig) IsVerkleGenesis() bool {
-	return c.EnableVerkleAtGenesis
+func (c *ChainConfig) IsUBTGenesis() bool {
+	return c.EnableUBTAtGenesis
 }
 
 // isBlockForked returns whether a fork scheduled at block s is active at the

@@ -47,14 +47,16 @@ func transformSimulatedBlockToGethBlock(
 	simBlock *execution.SimulatedBlock,
 	txs []*gethtypes.Transaction,
 	parentBeaconRoot common.Root,
+	withdrawals gethtypes.Withdrawals,
 ) *gethtypes.Block {
 	// Convert numeric fields.
 	excessBlobGas := simBlock.ExcessBlobGas.ToInt().Uint64()
 	blobGasUsed := simBlock.BlobGasUsed.ToInt().Uint64()
 	baseFeePerGas := simBlock.BaseFeePerGas.ToInt()
 
-	// Compute the withdrawals hash from the simulated block's withdrawals.
-	withdrawalsHash := gethtypes.DeriveSha(simBlock.Withdrawals, gethtrie.NewStackTrie(nil))
+	// reth's eth_simulateV1 ignores the withdrawals override and returns none, so the expected
+	// withdrawals are supplied by the caller.
+	withdrawalsHash := gethtypes.DeriveSha(withdrawals, gethtrie.NewStackTrie(nil))
 
 	// Create a new header using values from the simulated block.
 	header := &gethtypes.Header{
@@ -81,11 +83,11 @@ func transformSimulatedBlockToGethBlock(
 		ParentBeaconRoot: (*gethcommon.Hash)(&parentBeaconRoot),
 	}
 
-	// Create the block body using the transactions and withdrawals from the simulation.
+	// Create the block body using the transactions from the simulation and withdrawals from the caller.
 	body := gethtypes.Body{
 		Transactions: txs,
 		Uncles:       nil,
-		Withdrawals:  simBlock.Withdrawals,
+		Withdrawals:  withdrawals,
 	}
 
 	return gethtypes.NewBlockWithHeader(header).WithBody(body)

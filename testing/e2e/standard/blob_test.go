@@ -69,8 +69,13 @@ func (s *BeaconKitE2ESuite) Test4844Live() {
 	s.Require().NoError(err)
 	gasFee, err := elClient.SuggestGasPrice(ctx)
 	s.Require().NoError(err)
+	blobBaseFee, err := elClient.BlobBaseFee(ctx)
+	s.Require().NoError(err)
 	nonce, err := elClient.NonceAt(ctx, sender.Address(), new(big.Int).SetUint64(blkNum))
 	s.Require().NoError(err)
+
+	// Cap at twice the current blob base fee to absorb fee movement
+	blobFeeCap := new(big.Int).Mul(blobBaseFee, big.NewInt(2))
 
 	// Craft and send each blob-carrying transaction.
 	blobTxs := make([]*coretypes.Transaction, 0, NumBlobsLoad)
@@ -89,7 +94,7 @@ func (s *BeaconKitE2ESuite) Test4844Live() {
 			nonce+i, nil, 1000000,
 			chainID, tip, gasFee, big.NewInt(0),
 			[]byte{0x01, 0x02, 0x03, 0x04},
-			big.NewInt(1), blobData,
+			blobFeeCap, blobData,
 			coretypes.AccessList{},
 		)
 

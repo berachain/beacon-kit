@@ -87,8 +87,8 @@ func (s *PectraWithdrawalSuite) SetupTest() {
 	cometConfig := configs[0]
 	s.GenesisValidatorsRoot = genesisValidatorsRoot
 
-	// Start the EL (execution layer) Geth node.
-	elNode := execution.NewGethNode(s.HomeDir, execution.ValidGethImage())
+	// Start the EL (execution layer) Reth node.
+	elNode := execution.NewRethNode(s.HomeDir, execution.ValidRethImage())
 	elHandle, authRPC, elRPC := elNode.Start(s.T(), path.Base(elGenesisPath))
 	s.ElHandle = elHandle
 
@@ -118,7 +118,7 @@ func (s *PectraWithdrawalSuite) SetupTest() {
 		_ = s.TestNode.Start(s.CtxApp)
 	}()
 
-	s.SimulationClient = execution.NewSimulationClient(s.TestNode.EngineClient)
+	s.SimulationClient = execution.NewSimulationClient(s.TestNode.ContractBackend)
 	timeOut := 10 * time.Second
 	interval := 50 * time.Millisecond
 	err = simulated.WaitTillServicesStarted(s.LogBuffer, timeOut, interval)
@@ -403,8 +403,7 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_WithPartialWithdra
 			Data:      withdrawalTxData,
 		})
 
-		var balance hexutil.Big
-		err = s.TestNode.EngineClient.Call(s.CtxApp, &balance, "eth_getBalance", simulated.WithdrawalExecutionAddress, "latest")
+		balance := s.GetBalance(s.T(), simulated.WithdrawalExecutionAddress)
 		s.T().Logf("Balance before withdrawal request sent: %s", balance.ToInt().String())
 
 		var txBytes []byte
@@ -578,7 +577,7 @@ func (s *PectraWithdrawalSuite) TestWithdrawalFromExcessStake_HasCorrectWithdraw
 		s.Require().NoError(convertErr)
 		expectedStartBalanceGwei, convertErr := beaconmath.GweiFromWei(expectedStartBalance)
 		s.Require().NoError(convertErr)
-		s.Require().InDelta(finalBalanceGwei.Unwrap(), expectedStartBalanceGwei.Unwrap(), 2_000_000) // maximum 2_000_000 Gwei delta
+		s.Require().InDelta(finalBalanceGwei.Unwrap(), expectedStartBalanceGwei.Unwrap(), 3_000_000) // maximum 3_000_000 Gwei delta (EL gas accounting varies slightly by client)
 
 		validators, err := s.TestNode.APIBackend.FilterValidators(nextBlockHeight-1, nil, nil)
 		s.Require().NoError(err)
