@@ -53,3 +53,12 @@ func (v Verifier) VerifyBlobProofBatch(
 ) error {
 	return nil
 }
+
+// ComputeBlobProof returns a zero proof; the noop implementation is only used
+// where proofs are not actually checked.
+func (v Verifier) ComputeBlobProof(
+	*eip4844.Blob,
+	eip4844.KZGCommitment,
+) (eip4844.KZGProof, error) {
+	return eip4844.KZGProof{}, nil
+}

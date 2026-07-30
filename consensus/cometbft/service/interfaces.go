@@ -22,7 +22,18 @@ package cometbft
 
 import (
 	"time"
+
+	"github.com/cometbft/cometbft/p2p"
 )
+
+// BlobReactorI is the blob distribution reactor registered on the CometBFT
+// switch. Satisfied by *blobreactor.BlobReactor.
+type BlobReactorI interface {
+	p2p.Reactor
+	// BroadcastSidecars pushes a proposal's sidecars to peers and caches them
+	// locally, at the moment the proposer hands the block to CometBFT.
+	BroadcastSidecars(sidecarsBz []byte) error
+}
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.
 type TelemetrySink interface {

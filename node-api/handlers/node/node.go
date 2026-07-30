@@ -35,10 +35,11 @@ func (h *Handler) Syncing(handlers.Context) (any, error) {
 		HeadSlot:     latestHeight,
 		SyncDistance: syncDistance,
 
-		// BeaconKit has two operation modes: syncing from genesis
-		// and normal operations. Every block finalized is verified
-		// by the EL so for every purpose IsSyncing is equivalent to syncDistance > 0
-		IsSyncing: syncDistance > 0,
+		// BeaconKit has two operation modes: syncing from genesis and normal operations. Every block finalized is verified by
+		// the EL so for every purpose IsSyncing is equivalent to syncDistance > 0. Once blob consensus is enabled, blob
+		// sidecars can trail the blocks during sync; a node still fetching in-window blobs is not synced ("finalized and
+		// synced" must keep implying "data available").
+		IsSyncing: syncDistance > 0 || h.backend.HasPendingBlobFetches(),
 
 		// BeaconKit always verifies blocks payload, whether
 		// it is syncing or it's in normal operation mode.

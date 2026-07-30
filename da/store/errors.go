@@ -28,6 +28,10 @@ var (
 	// nil sidecar.
 	ErrAttemptedToStoreNilSidecar = errors.New("attempted to store nil sidecar")
 
+	// ErrMixedSlotSidecars is returned when Persist is given sidecars that do
+	// not all belong to the same slot.
+	ErrMixedSlotSidecars = errors.New("sidecars belong to different slots")
+
 	// ErrAttemptedToVerifyNilSidecars is returned when an attempt is made to
 	// verify
 	// nil sidecars.

@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
+	"github.com/berachain/beacon-kit/da/blobreactor"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/builder"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
@@ -38,6 +39,7 @@ func ProvideCometBFTService(
 	logger *phuslu.Logger,
 	blockchain blockchain.BlockchainI,
 	blockBuilder validator.BlockBuilderI,
+	blobReactor *blobreactor.BlobReactor,
 	db dbm.DB,
 	cs chain.Spec,
 	cmtCfg *cmtcfg.Config,
@@ -49,6 +51,7 @@ func ProvideCometBFTService(
 		db,
 		blockchain,
 		blockBuilder,
+		blobReactor,
 		cs,
 		cmtCfg,
 		telemetrySink,

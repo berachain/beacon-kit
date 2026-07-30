@@ -38,6 +38,14 @@ type Service struct {
 	storageBackend StorageBackend
 	// blobProcessor is used for processing sidecars.
 	blobProcessor BlobProcessor
+	// blobRequester distributes and retrieves sidecars over the blob reactor
+	// p2p channel once blob consensus is enabled.
+	blobRequester BlobRequester
+	// blobReconstructor rebuilds sidecars from the local execution client's
+	// blob pool.
+	blobReconstructor BlobReconstructor
+	// blobFetcher fetches sidecars of finalized blocks in the background.
+	blobFetcher BlobFetcher
 	// depositContract is the contract interface for interacting with the
 	// deposit contract.
 	depositContract deposit.Contract
@@ -68,6 +76,9 @@ type Service struct {
 func NewService(
 	storageBackend StorageBackend,
 	blobProcessor BlobProcessor,
+	blobRequester BlobRequester,
+	blobReconstructor BlobReconstructor,
+	blobFetcher BlobFetcher,
 	depositContract deposit.Contract,
 	logger log.Logger,
 	chainSpec ServiceChainSpec,
@@ -79,6 +90,9 @@ func NewService(
 	return &Service{
 		storageBackend:       storageBackend,
 		blobProcessor:        blobProcessor,
+		blobRequester:        blobRequester,
+		blobReconstructor:    blobReconstructor,
+		blobFetcher:          blobFetcher,
 		depositContract:      depositContract,
 		eth1FollowDistance:   math.U64(chainSpec.Eth1FollowDistance()),
 		logger:               logger,
@@ -91,19 +105,29 @@ func NewService(
 	}
 }
 
+// PendingBlobRequests reports queued background blob fetches; a node with
+// pending in-window fetches must not report itself as synced.
+func (s *Service) PendingBlobRequests() int {
+	return s.blobFetcher.PendingRequests()
+}
+
 // Name returns the name of the service.
 func (s *Service) Name() string {
 	return "blockchain"
 }
 
 // Start starts the blockchain service.
-func (s *Service) Start(context.Context) error {
+func (s *Service) Start(ctx context.Context) error {
+	// Start the background blob fetcher.
+	s.blobFetcher.Start(ctx)
 	return nil
 }
 
 // Stop stops the blockchain service and closes the deposit store.
 func (s *Service) Stop() error {
 	s.logger.Info("Stopping blockchain service")
+
+	s.blobFetcher.Stop()
 
 	err := s.storageBackend.DepositStore().Close()
 	if err != nil {
@@ -121,6 +145,13 @@ func (s *Service) StorageBackend() StorageBackend {
 // PruneOrphanedBlobs removes any orphaned blob sidecars that may exist from incomplete block finalization.
 func (s *Service) PruneOrphanedBlobs(lastBlockHeight int64) error {
 	orphanedSlot := math.Slot(lastBlockHeight + 1) // #nosec G115
+
+	// Once blob consensus is enabled, replayed blocks no longer carry sidecars, so these may be the only local
+	// copy and replay depends on them. Keep them. FinalizeSidecars binds them to the replayed block's header
+	// before reuse, so a set from a different block at this height is replaced through the normal fetch path.
+	if s.chainSpec.IsBlobConsensusEnabled(lastBlockHeight + 1) {
+		return nil
+	}
 
 	// Check if any blob sidecars exist at the potentially orphaned slot
 	sidecars, err := s.storageBackend.AvailabilityStore().GetBlobSidecars(orphanedSlot)

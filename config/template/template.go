@@ -105,4 +105,11 @@ address = "{{ .BeaconKit.NodeAPI.Address }}"
 
 # Logging determines if the node API logging is enabled.
 logging = "{{ .BeaconKit.NodeAPI.Logging }}"
+
+[beacon-kit.blob-reactor]
+# Per-peer timeout for one blob request/response round trip.
+request-timeout = "{{ .BeaconKit.BlobReactor.RequestTimeout }}"
+
+# Overall deadline for retrieving one block's sidecars at the tip of the chain.
+fetch-timeout = "{{ .BeaconKit.BlobReactor.FetchTimeout }}"
 `
