@@ -55,7 +55,7 @@ func (s *SimulatedSuite) TestContextHandling_SIGINT_SafeShutdown() {
 	s.Require().NoError(err)
 
 	type proposalResult struct {
-		proposal *types.PrepareProposalResponse
+		proposal *types.ResponsePrepareProposal
 		err      error
 	}
 	// Capture result of prepare proposal
@@ -63,7 +63,7 @@ func (s *SimulatedSuite) TestContextHandling_SIGINT_SafeShutdown() {
 
 	// Prepare proposal in a separate goroutine since it will block due to retrying on the crashed EL.
 	go func() {
-		proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
+		proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.RequestPrepareProposal{
 			Height:          currentHeight,
 			Time:            proposalTime,
 			ProposerAddress: nodeAddress,
@@ -118,7 +118,7 @@ func (s *SimulatedSuite) TestContextHandling_CancelledContext_Rejected() {
 	s.CtxAppCancelFn()
 
 	s.LogBuffer.Reset()
-	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
+	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.RequestPrepareProposal{
 		Height:          currentHeight,
 		Time:            proposalTime,
 		ProposerAddress: nodeAddress,
@@ -126,7 +126,7 @@ func (s *SimulatedSuite) TestContextHandling_CancelledContext_Rejected() {
 	s.Require().NoError(err)
 	s.Require().Empty(proposal)
 
-	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
+	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.RequestProcessProposal{
 		Txs:             proposal.Txs,
 		Height:          currentHeight,
 		ProposerAddress: nodeAddress,
@@ -135,7 +135,7 @@ func (s *SimulatedSuite) TestContextHandling_CancelledContext_Rejected() {
 	s.Require().Error(err, context.Canceled)
 	s.Require().Nil(processResp)
 
-	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.FinalizeBlockRequest{
+	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.RequestFinalizeBlock{
 		Txs:             proposal.Txs,
 		Height:          currentHeight,
 		ProposerAddress: nodeAddress,
@@ -144,6 +144,6 @@ func (s *SimulatedSuite) TestContextHandling_CancelledContext_Rejected() {
 	s.Require().Error(err, context.Canceled)
 	s.Require().Nil(finalizeResp)
 
-	_, err = s.SimComet.Comet.Commit(s.CtxComet, &types.CommitRequest{})
+	_, err = s.SimComet.Comet.Commit(s.CtxComet, &types.RequestCommit{})
 	s.Require().Error(err, context.Canceled)
 }
