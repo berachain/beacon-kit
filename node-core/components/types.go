@@ -21,7 +21,6 @@
 package components
 
 import (
-	appmodule "cosmossdk.io/core/appmodule/v2"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	consruntimetypes "github.com/berachain/beacon-kit/consensus/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -54,9 +53,6 @@ type (
 
 	// SlashingInfo is a type alias for the slashing info.
 	SlashingInfo = types.SlashingInfo
-
-	// ValidatorUpdate is a type alias for the validator update.
-	ABCIValidatorUpdate = appmodule.ValidatorUpdate
 
 	// ValidatorUpdate is a type alias for the validator update.
 	ValidatorUpdate = transition.ValidatorUpdate

@@ -136,12 +136,13 @@ func TestSignedBeaconBlock_SignBeaconBlock(t *testing.T) {
 	t.Parallel()
 	runForAllSupportedVersions(t, func(t *testing.T, v common.Version) {
 		// Generate a new bls key signer
-		filePV, err := privval.GenFilePV(
+		privKey, err := generatePrivKey()
+		require.NoError(t, err)
+		filePV := privval.NewFilePV(
+			privKey,
 			"signed_beacon_block_test_filepv_key",
 			"signed_beacon_block_test_filepv_state",
-			generatePrivKey,
 		)
-		require.NoError(t, err)
 		blsSigner := signer.BLSSigner{PrivValidator: filePV}
 
 		// Generate real signed beacon block

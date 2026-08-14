@@ -25,13 +25,14 @@ import (
 	"fmt"
 	"runtime"
 
-	"cosmossdk.io/log"
+	"cosmossdk.io/log/v2"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	cmttypes "github.com/cometbft/cometbft/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -66,7 +67,7 @@ func (b *Backend) StateAndSlotFromHeight(height int64) (ReadOnlyBeaconState, mat
 		// Copy the state to ensure clients potential changes won't pollute the state
 		// Also we make sure to create the copy in a thread-safe way via the muCms mutex.
 		ms := b.cms.CacheMultiStore()
-		ctx := sdk.NewContext(ms, true, log.NewNopLogger())
+		ctx := sdk.NewContext(ms, cmtproto.Header{}, true, log.NewNopLogger())
 		ephemeralGenesisState := b.genesisState.Protect(ctx)
 		return ephemeralGenesisState, 0, nil
 	}

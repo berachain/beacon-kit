@@ -41,6 +41,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
+	bls12_381 "github.com/cosmos/cosmos-sdk/crypto/keys/bls12_381"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
@@ -79,14 +81,9 @@ func StatusCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			cometRPC, err := clientCtx.GetNode()
-			if err != nil {
-				return err
-			}
-
 			status, err := cmtservice.GetNodeStatus(
 				context.Background(),
-				cometRPC,
+				clientCtx,
 			)
 			if err != nil {
 				return err
@@ -158,6 +155,10 @@ func ShowValidatorCmd() *cobra.Command {
 
 			registry := codectypes.NewInterfaceRegistry()
 			cryptocodec.RegisterInterfaces(registry)
+			// sdk v0.54 does not register the BLS pubkey implementation.
+			registry.RegisterImplementations(
+				(*cryptotypes.PubKey)(nil), &bls12_381.PubKey{},
+			)
 			cdc := codec.NewProtoCodec(registry)
 
 			bz, err := cdc.MarshalInterfaceJSON(sdkPK)
@@ -209,7 +210,7 @@ which this app has been compiled.`,
 				BlockProtocol uint64
 				P2PProtocol   uint64
 			}{
-				CometBFT:      cmtversion.CMTSemVer,
+				CometBFT:      cmtversion.TMCoreSemVer,
 				ABCI:          cmtversion.ABCIVersion,
 				BlockProtocol: cmtversion.BlockProtocol,
 				P2PProtocol:   cmtversion.P2PProtocol,
@@ -253,7 +254,7 @@ using a light client`,
 				height = app.CommitMultiStore().LastCommitID().Version
 			}
 
-			return node.BootstrapState(
+			return node.BootstrapStateWithGenProvider(
 				cmd.Context(),
 				cfg,
 				cmtcfg.DefaultDBProvider,

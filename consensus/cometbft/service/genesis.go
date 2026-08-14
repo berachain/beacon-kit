@@ -22,7 +22,6 @@ package cometbft
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"strings"
@@ -34,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cometbft/cometbft/node"
+	cmttypes "github.com/cometbft/cometbft/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 )
 
@@ -247,41 +247,12 @@ func isValidForkVersion(forkVersion common.Version) bool {
 
 // GetGenDocProvider returns a function which returns the genesis doc from the
 // genesis file.
-func GetGenDocProvider(
-	cfg *cmtcfg.Config,
-) func() (node.ChecksummedGenesisDoc, error) {
-	return func() (node.ChecksummedGenesisDoc, error) {
+func GetGenDocProvider(cfg *cmtcfg.Config) node.GenesisDocProvider {
+	return func() (*cmttypes.GenesisDoc, error) {
 		appGenesis, err := genutiltypes.AppGenesisFromFile(cfg.GenesisFile())
 		if err != nil {
-			return node.ChecksummedGenesisDoc{
-				Sha256Checksum: []byte{},
-			}, err
+			return nil, err
 		}
-
-		gen, err := appGenesis.ToGenesisDoc()
-		if err != nil {
-			return node.ChecksummedGenesisDoc{
-				Sha256Checksum: []byte{},
-			}, err
-		}
-		genbz, err := gen.AppState.MarshalJSON()
-		if err != nil {
-			return node.ChecksummedGenesisDoc{
-				Sha256Checksum: []byte{},
-			}, err
-		}
-
-		bz, err := json.Marshal(genbz)
-		if err != nil {
-			return node.ChecksummedGenesisDoc{
-				Sha256Checksum: []byte{},
-			}, err
-		}
-		sum := sha256.Sum256(bz)
-
-		return node.ChecksummedGenesisDoc{
-			GenesisDoc:     gen,
-			Sha256Checksum: sum[:],
-		}, nil
+		return appGenesis.ToGenesisDoc()
 	}
 }

@@ -32,8 +32,8 @@ import (
 
 func (s *Service) prepareProposal(
 	ctx context.Context,
-	req *cmtabci.PrepareProposalRequest,
-) (*cmtabci.PrepareProposalResponse, error) {
+	req *cmtabci.RequestPrepareProposal,
+) (*cmtabci.ResponsePrepareProposal, error) {
 	startTime := time.Now()
 	defer s.telemetrySink.MeasureSince(
 		"beacon_kit.runtime.prepare_proposal_duration", startTime)
@@ -81,10 +81,10 @@ func (s *Service) prepareProposal(
 			"time", req.Time,
 			"err", err,
 		)
-		return &cmtabci.PrepareProposalResponse{Txs: [][]byte{}}, nil
+		return &cmtabci.ResponsePrepareProposal{Txs: [][]byte{}}, nil
 	}
 
-	return &cmtabci.PrepareProposalResponse{
+	return &cmtabci.ResponsePrepareProposal{
 		Txs: [][]byte{blkBz, sidecarsBz},
 	}, nil
 }

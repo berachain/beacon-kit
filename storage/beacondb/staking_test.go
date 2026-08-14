@@ -51,7 +51,7 @@ package beacondb_test
 // logger := log.NewTestLogger(t)
 // keys := storetypes.NewKVStoreKeys(testName)
 // cms := integration.CreateMultiStore(keys, logger)
-// ctx := sdk.NewContext(cms, true, logger)
+// ctx := sdk.NewContext(cms, cmtproto.Header{}, true, logger)
 // storeKey := keys[testName]
 
 // sdb := beacondb.New[
