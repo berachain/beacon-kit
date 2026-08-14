@@ -63,7 +63,7 @@ const (
 //nolint:funlen // abundantly commented
 func (s *Service) ProcessProposal(
 	ctx sdk.Context,
-	req *cmtabci.ProcessProposalRequest,
+	req *cmtabci.RequestProcessProposal,
 	thisNodeAddress []byte,
 ) (transition.ValidatorUpdates, error) {
 	signedBlk, sidecars, err := s.ParseBeaconBlock(req)

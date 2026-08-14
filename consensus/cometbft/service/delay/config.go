@@ -28,7 +28,7 @@ import (
 const (
 	// maxDelayBetweenBlocks is the maximum delay between two consecutive blocks.
 	// If the last block time minus the previous block time is greater than
-	// maxDelayBetweenBlocks, then we reset `FinalizeBlockResponse.NextBlockDelay`
+	// maxDelayBetweenBlocks, then we reset `ResponseFinalizeBlock.NextBlockDelay`
 	// to default.
 	//
 	// This is needed because the network may stall for a long time and we don't
@@ -52,7 +52,7 @@ const (
 	sbtConsensusParamUpdate = 0
 
 	// Until `timeout_commit` is removed from the CometBFT config,
-	// `FinalizeBlockResponse.NextBlockDelay` can't be exactly 0. If it's set to
+	// `ResponseFinalizeBlock.NextBlockDelay` can't be exactly 0. If it's set to
 	// 0, then `timeout_commit` from the config will be used, which is not what
 	// we want since we're trying to control the block time.
 	noDelay = 1 * time.Microsecond

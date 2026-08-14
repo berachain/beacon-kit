@@ -23,7 +23,7 @@ package filedb_test
 import (
 	"testing"
 
-	"cosmossdk.io/log"
+	"cosmossdk.io/log/v2"
 	"github.com/berachain/beacon-kit/errors"
 	file "github.com/berachain/beacon-kit/storage/filedb"
 	"github.com/spf13/afero"

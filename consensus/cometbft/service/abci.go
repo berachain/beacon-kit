@@ -29,7 +29,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
-	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	sdkversion "github.com/cosmos/cosmos-sdk/version"
 )
@@ -38,12 +37,12 @@ var errInvalidHeight = errors.New("invalid height")
 
 func (s *Service) InitChain(
 	_ context.Context,
-	req *cmtabci.InitChainRequest,
-) (*cmtabci.InitChainResponse, error) {
+	req *cmtabci.RequestInitChain,
+) (*cmtabci.ResponseInitChain, error) {
 	// Check if ctx is still good. CometBFT does not check this.
 	if s.ctx.Err() != nil {
 		// If the context is getting cancelled, we are shutting down.
-		return &cmtabci.InitChainResponse{}, s.ctx.Err()
+		return &cmtabci.ResponseInitChain{}, s.ctx.Err()
 	}
 	//nolint:contextcheck // see s.ctx comment for more details
 	return s.initChain(s.ctx, req)
@@ -53,14 +52,14 @@ func (s *Service) InitChain(
 // ResponsePrepareProposal object to the client.
 func (s *Service) PrepareProposal(
 	_ context.Context,
-	req *cmtabci.PrepareProposalRequest,
-) (*cmtabci.PrepareProposalResponse, error) {
+	req *cmtabci.RequestPrepareProposal,
+) (*cmtabci.ResponsePrepareProposal, error) {
 	// Once halted, propose nothing so consensus cannot decide a block past the halt point while the halt
 	// shutdown completes.
 	if s.ensureNotHalted() != nil {
 		s.logger.Info("halt point reached, returning an empty proposal", "height", req.Height)
 		//nolint:nilerr // a halted node proposes nothing instead of erroring
-		return &cmtabci.PrepareProposalResponse{Txs: [][]byte{}}, nil
+		return &cmtabci.ResponsePrepareProposal{Txs: [][]byte{}}, nil
 	}
 
 	// Check if ctx is still good. CometBFT does not check this.
@@ -68,15 +67,15 @@ func (s *Service) PrepareProposal(
 		// If the context is getting cancelled, we are shutting down.
 		// It is ok returning an empty proposal.
 		//nolint:nilerr // explicitly allowing this case
-		return &cmtabci.PrepareProposalResponse{Txs: req.Txs}, nil
+		return &cmtabci.ResponsePrepareProposal{Txs: req.Txs}, nil
 	}
 	//nolint:contextcheck // see s.ctx comment for more details
 	return s.prepareProposal(s.ctx, req)
 }
 
 func (s *Service) Info(context.Context,
-	*cmtabci.InfoRequest,
-) (*cmtabci.InfoResponse, error) {
+	*cmtabci.RequestInfo,
+) (*cmtabci.ResponseInfo, error) {
 	lastCommitID := s.sm.GetCommitMultiStore().LastCommitID()
 	appVersion := initialAppVersion
 	if lastCommitID.Version > 0 {
@@ -87,7 +86,7 @@ func (s *Service) Info(context.Context,
 		}
 	}
 
-	return &cmtabci.InfoResponse{
+	return &cmtabci.ResponseInfo{
 		Data:             AppName,
 		Version:          sdkversion.Version,
 		AppVersion:       appVersion,
@@ -100,14 +99,14 @@ func (s *Service) Info(context.Context,
 // ResponseProcessProposal object to the client.
 func (s *Service) ProcessProposal(
 	_ context.Context,
-	req *cmtabci.ProcessProposalRequest,
-) (*cmtabci.ProcessProposalResponse, error) {
+	req *cmtabci.RequestProcessProposal,
+) (*cmtabci.ResponseProcessProposal, error) {
 	// Once halted, prevote nil on every proposal so no block past the halt point can be decided. An error
 	// return would make CometBFT panic.
 	if s.ensureNotHalted() != nil {
 		s.logger.Info("halt point reached, rejecting proposal", "height", req.Height)
 		//nolint:nilerr // a halted node votes nil instead of erroring
-		return &cmtabci.ProcessProposalResponse{Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT}, nil
+		return &cmtabci.ResponseProcessProposal{Status: cmtabci.ResponseProcessProposal_REJECT}, nil
 	}
 
 	// Check if ctx is still good. CometBFT does not check this.
@@ -123,8 +122,8 @@ func (s *Service) ProcessProposal(
 
 func (s *Service) FinalizeBlock(
 	_ context.Context,
-	req *cmtabci.FinalizeBlockRequest,
-) (*cmtabci.FinalizeBlockResponse, error) {
+	req *cmtabci.RequestFinalizeBlock,
+) (*cmtabci.ResponseFinalizeBlock, error) {
 	// Never execute a block past the halt point. An error return would make CometBFT panic with CONSENSUS
 	// FAILURE (consensus and blocksync both escalate FinalizeBlock errors), so park until the halt shutdown
 	// exits the process underneath this call. Checked before the ctx guard below so a post-halt block arriving
@@ -152,8 +151,8 @@ func (s *Service) FinalizeBlock(
 // or halt time is configured, Commit gracefully shuts the node down once the
 // committed block reaches it.
 func (s *Service) Commit(
-	_ context.Context, req *cmtabci.CommitRequest,
-) (*cmtabci.CommitResponse, error) {
+	_ context.Context, req *cmtabci.RequestCommit,
+) (*cmtabci.ResponseCommit, error) {
 	// Check if ctx is still good. CometBFT does not check this.
 	if s.ctx.Err() != nil {
 		// Node will panic on context cancel with "CONSENSUS FAILURE!!!" due to error.
@@ -167,9 +166,9 @@ func (s *Service) Commit(
 // NOTE: Partially copied from https://github.com/cosmos/cosmos-sdk/blob/960d44842b9e313cbe762068a67a894ac82060ab/baseapp/abci.go#L168
 func (s *Service) Query(
 	_ context.Context,
-	req *abci.QueryRequest,
-) (*abci.QueryResponse, error) {
-	resp := new(abci.QueryResponse)
+	req *cmtabci.RequestQuery,
+) (*cmtabci.ResponseQuery, error) {
+	resp := new(cmtabci.ResponseQuery)
 
 	// add panic recovery for all queries
 	//
@@ -213,49 +212,63 @@ func (s *Service) Query(
 
 func (Service) ListSnapshots(
 	context.Context,
-	*abci.ListSnapshotsRequest,
-) (*abci.ListSnapshotsResponse, error) {
-	return &abci.ListSnapshotsResponse{}, nil
+	*cmtabci.RequestListSnapshots,
+) (*cmtabci.ResponseListSnapshots, error) {
+	return &cmtabci.ResponseListSnapshots{}, nil
 }
 
 func (Service) LoadSnapshotChunk(
 	context.Context,
-	*abci.LoadSnapshotChunkRequest,
-) (*abci.LoadSnapshotChunkResponse, error) {
-	return &abci.LoadSnapshotChunkResponse{}, nil
+	*cmtabci.RequestLoadSnapshotChunk,
+) (*cmtabci.ResponseLoadSnapshotChunk, error) {
+	return &cmtabci.ResponseLoadSnapshotChunk{}, nil
 }
 
 func (Service) OfferSnapshot(
 	context.Context,
-	*abci.OfferSnapshotRequest,
-) (*abci.OfferSnapshotResponse, error) {
-	return &abci.OfferSnapshotResponse{}, nil
+	*cmtabci.RequestOfferSnapshot,
+) (*cmtabci.ResponseOfferSnapshot, error) {
+	return &cmtabci.ResponseOfferSnapshot{}, nil
 }
 
 func (Service) ApplySnapshotChunk(
 	context.Context,
-	*abci.ApplySnapshotChunkRequest,
-) (*abci.ApplySnapshotChunkResponse, error) {
-	return &abci.ApplySnapshotChunkResponse{}, nil
+	*cmtabci.RequestApplySnapshotChunk,
+) (*cmtabci.ResponseApplySnapshotChunk, error) {
+	return &cmtabci.ResponseApplySnapshotChunk{}, nil
 }
 
 func (Service) ExtendVote(
 	context.Context,
-	*abci.ExtendVoteRequest,
-) (*abci.ExtendVoteResponse, error) {
-	return &abci.ExtendVoteResponse{}, nil
+	*cmtabci.RequestExtendVote,
+) (*cmtabci.ResponseExtendVote, error) {
+	return &cmtabci.ResponseExtendVote{}, nil
 }
 
 func (Service) VerifyVoteExtension(
 	context.Context,
-	*abci.VerifyVoteExtensionRequest,
-) (*abci.VerifyVoteExtensionResponse, error) {
-	return &abci.VerifyVoteExtensionResponse{}, nil
+	*cmtabci.RequestVerifyVoteExtension,
+) (*cmtabci.ResponseVerifyVoteExtension, error) {
+	return &cmtabci.ResponseVerifyVoteExtension{}, nil
 }
 
 func (*Service) CheckTx(
 	context.Context,
-	*abci.CheckTxRequest,
-) (*abci.CheckTxResponse, error) {
-	return &abci.CheckTxResponse{}, nil
+	*cmtabci.RequestCheckTx,
+) (*cmtabci.ResponseCheckTx, error) {
+	return &cmtabci.ResponseCheckTx{}, nil
+}
+
+func (*Service) InsertTx(
+	context.Context,
+	*cmtabci.RequestInsertTx,
+) (*cmtabci.ResponseInsertTx, error) {
+	return &cmtabci.ResponseInsertTx{}, nil
+}
+
+func (*Service) ReapTxs(
+	context.Context,
+	*cmtabci.RequestReapTxs,
+) (*cmtabci.ResponseReapTxs, error) {
+	return &cmtabci.ResponseReapTxs{}, nil
 }
