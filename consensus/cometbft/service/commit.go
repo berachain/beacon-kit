@@ -27,14 +27,14 @@ import (
 	"syscall"
 	"time"
 
-	"cosmossdk.io/store/rootmulti"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
-	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	"github.com/cosmos/cosmos-sdk/store/v2/rootmulti"
 )
 
 func (s *Service) commit(
-	*cmtabci.CommitRequest,
-) (*cmtabci.CommitResponse, error) {
+	*cmtabci.RequestCommit,
+) (*cmtabci.ResponseCommit, error) {
 	if _, _, err := s.cachedStates.GetFinal(); err != nil {
 		// This is unexpected since CometBFT should call Commit only
 		// after FinalizeBlock has been called. Panic appeases nilaway.
@@ -60,7 +60,7 @@ func (s *Service) commit(
 
 	s.haltIfReached()
 
-	return &cmtabci.CommitResponse{
+	return &cmtabci.ResponseCommit{
 		RetainHeight: retainHeight,
 	}, nil
 }

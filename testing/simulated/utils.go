@@ -160,7 +160,7 @@ func (s *SharedAccessors) InitializeChain(t *testing.T, numValidators int) {
 	appGenesis, err := genutiltypes.AppGenesisFromFile(s.HomeDir + "/config/genesis.json")
 	require.NoError(t, err)
 
-	initResp, err := s.SimComet.Comet.InitChain(s.CtxComet, &types.InitChainRequest{
+	initResp, err := s.SimComet.Comet.InitChain(s.CtxComet, &types.RequestInitChain{
 		ChainId:       TestnetBeaconChainID,
 		AppStateBytes: appGenesis.AppState,
 	})
@@ -194,14 +194,14 @@ func (s *SharedAccessors) MoveChainToHeight(
 	iterations int64,
 	nodeAddress cmtcrypto.Address,
 	startTime time.Time,
-) ([]*types.PrepareProposalResponse, []*types.FinalizeBlockResponse, time.Time) {
+) ([]*types.ResponsePrepareProposal, []*types.ResponseFinalizeBlock, time.Time) {
 	// Prepare a block proposal.
-	var proposedCometBlocks []*types.PrepareProposalResponse
-	var finalizedResponses []*types.FinalizeBlockResponse
+	var proposedCometBlocks []*types.ResponsePrepareProposal
+	var finalizedResponses []*types.ResponseFinalizeBlock
 
 	proposalTime := startTime
 	for currentHeight := startHeight; currentHeight < startHeight+iterations; currentHeight++ {
-		proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
+		proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.RequestPrepareProposal{
 			Height:          currentHeight,
 			Time:            proposalTime,
 			ProposerAddress: nodeAddress,
@@ -210,7 +210,7 @@ func (s *SharedAccessors) MoveChainToHeight(
 		require.Len(t, proposal.Txs, 2)
 
 		// Process the proposal.
-		processReq := &types.ProcessProposalRequest{
+		processReq := &types.RequestProcessProposal{
 			Txs:                 proposal.Txs,
 			Height:              currentHeight,
 			ProposerAddress:     nodeAddress,
@@ -219,10 +219,10 @@ func (s *SharedAccessors) MoveChainToHeight(
 		}
 		processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, processReq)
 		require.NoError(t, err)
-		require.Equal(t, types.PROCESS_PROPOSAL_STATUS_ACCEPT.String(), processResp.Status.String())
+		require.Equal(t, types.ResponseProcessProposal_ACCEPT.String(), processResp.Status.String())
 
 		// Finalize the block.
-		finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.FinalizeBlockRequest{
+		finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.RequestFinalizeBlock{
 			Txs:             proposal.Txs,
 			Height:          currentHeight,
 			ProposerAddress: nodeAddress,
@@ -232,7 +232,7 @@ func (s *SharedAccessors) MoveChainToHeight(
 		require.NotEmpty(t, finalizeResp)
 
 		// Commit the block.
-		_, err = s.SimComet.Comet.Commit(s.CtxComet, &types.CommitRequest{})
+		_, err = s.SimComet.Comet.Commit(s.CtxComet, &types.RequestCommit{})
 		require.NoError(t, err)
 
 		// Record the Commit Block

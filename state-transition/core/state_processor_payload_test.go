@@ -26,8 +26,7 @@ import (
 	"testing"
 	"time"
 
-	"cosmossdk.io/log"
-	storetypes "cosmossdk.io/store/types"
+	"cosmossdk.io/log/v2"
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
@@ -37,6 +36,8 @@ import (
 	"github.com/berachain/beacon-kit/primitives/transition"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -127,7 +128,7 @@ func TestPayloadTimestampVerification(t *testing.T) {
 			tt.setupMocksF()
 
 			// create independent states per each test
-			sdkCtx := sdk.NewContext(cms.CacheMultiStore(), true, log.NewNopLogger())
+			sdkCtx := sdk.NewContext(cms.CacheMultiStore(), cmtproto.Header{}, true, log.NewNopLogger())
 			testSt := statedb.NewBeaconStateFromDB(
 				st.KVStore.WithContext(sdkCtx), cs, sdkCtx.Logger(), metrics.NewNoOpTelemetrySink(),
 			)

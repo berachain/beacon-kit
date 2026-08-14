@@ -111,7 +111,7 @@ func TestFinalizeBlockParksAtHaltPoint(t *testing.T) {
 
 	done := make(chan error, 1)
 	go func() {
-		_, err := s.FinalizeBlock(ctx, &cmtabci.FinalizeBlockRequest{Height: 11})
+		_, err := s.FinalizeBlock(ctx, &cmtabci.RequestFinalizeBlock{Height: 11})
 		done <- err
 	}()
 
@@ -138,11 +138,11 @@ func TestProposalHandlersGateAtHaltPoint(t *testing.T) {
 	ctx := t.Context()
 	s := haltedService(ctx)
 
-	prepResp, err := s.PrepareProposal(ctx, &cmtabci.PrepareProposalRequest{Height: 11})
+	prepResp, err := s.PrepareProposal(ctx, &cmtabci.RequestPrepareProposal{Height: 11})
 	require.NoError(t, err)
 	require.Empty(t, prepResp.Txs, "halted node must propose nothing")
 
-	procResp, err := s.ProcessProposal(ctx, &cmtabci.ProcessProposalRequest{Height: 11})
+	procResp, err := s.ProcessProposal(ctx, &cmtabci.RequestProcessProposal{Height: 11})
 	require.NoError(t, err)
-	require.Equal(t, cmtabci.PROCESS_PROPOSAL_STATUS_REJECT, procResp.Status)
+	require.Equal(t, cmtabci.ResponseProcessProposal_REJECT, procResp.Status)
 }
