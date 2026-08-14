@@ -85,14 +85,10 @@ func (s *SimComet) Start(ctx context.Context) error {
 
 // GetNodeAddress returns the node address for the SimComet service.
 func (s *SimComet) GetNodeAddress() (cmtcrypto.Address, error) {
-	privVal, err := pvm.LoadOrGenFilePV(
+	privVal := pvm.LoadOrGenFilePV(
 		s.cmtCfg.PrivValidatorKeyFile(),
 		s.cmtCfg.PrivValidatorStateFile(),
-		nil,
 	)
-	if err != nil {
-		return nil, err
-	}
 	pubKey, err := privVal.GetPubKey()
 	if err != nil {
 		return nil, err

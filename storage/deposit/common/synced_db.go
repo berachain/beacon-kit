@@ -21,11 +21,10 @@
 package deposit
 
 import (
-	"cosmossdk.io/core/store"
 	dbm "github.com/cosmos/cosmos-db"
 )
 
-var _ store.KVStoreWithBatch = &syncedDB{}
+var _ dbm.DB = syncedDB{}
 
 // We have verified experimentally that deposits are often *not* flushed
 // as soon as they are enqueue when pebbleDB is chosed as backend. This may
@@ -65,19 +64,19 @@ func (s syncedDB) DeleteSync(key []byte) error {
 	return s.db.DeleteSync(key)
 }
 
-func (s syncedDB) Iterator(start, end []byte) (store.Iterator, error) {
+func (s syncedDB) Iterator(start, end []byte) (dbm.Iterator, error) {
 	return s.db.Iterator(start, end)
 }
 
-func (s syncedDB) ReverseIterator(start, end []byte) (store.Iterator, error) {
+func (s syncedDB) ReverseIterator(start, end []byte) (dbm.Iterator, error) {
 	return s.db.ReverseIterator(start, end)
 }
 
-func (s syncedDB) NewBatch() store.Batch {
+func (s syncedDB) NewBatch() dbm.Batch {
 	return s.db.NewBatch()
 }
 
-func (s syncedDB) NewBatchWithSize(i int) store.Batch {
+func (s syncedDB) NewBatchWithSize(i int) dbm.Batch {
 	return s.db.NewBatchWithSize(i)
 }
 

@@ -371,6 +371,11 @@ issues:
     - path: "^consensus-types/types/.*\\.go$"
       linters:
         - thelper
+    # The cosmos-sdk telemetry package is deprecated in favor of OpenTelemetry
+    # as of sdk v0.54, but is still the wired-up metrics backend here.
+    - text: "SA1019: telemetry\\."
+      linters:
+        - staticcheck
   exclude-files:
     - "pkg/cometbft/cli/.*\\.go"
     - "pkg/cometbft/service/server/.*\\.go"

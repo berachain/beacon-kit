@@ -37,8 +37,8 @@ import (
 
 func (s *Service) finalizeBlock(
 	ctx context.Context,
-	req *cmtabci.FinalizeBlockRequest,
-) (*cmtabci.FinalizeBlockResponse, error) {
+	req *cmtabci.RequestFinalizeBlock,
+) (*cmtabci.ResponseFinalizeBlock, error) {
 	if err := s.validateFinalizeBlockHeight(req); err != nil {
 		return nil, err
 	}
@@ -69,7 +69,7 @@ func (s *Service) finalizeBlock(
 
 			if err = s.Blockchain.FinalizeSidecars(
 				finalState.Context(),
-				req.SyncingToHeight,
+				req.Height,
 				blk,
 				sidecars,
 			); err != nil {
@@ -130,7 +130,7 @@ func (s *Service) finalizeBlock(
 	return s.calculateFinalizeBlockResponse(req, valUpdates)
 }
 
-func (s *Service) nextBlockDelay(req *cmtabci.FinalizeBlockRequest) time.Duration {
+func (s *Service) nextBlockDelay(req *cmtabci.RequestFinalizeBlock) time.Duration {
 	// c0. SBT is not enabled => use the old block delay.
 	if s.cmtConsensusParams.Feature.SBTEnableHeight <= 0 {
 		return s.delayCfg.SbtConstBlockDelay()
@@ -210,7 +210,7 @@ func (s *Service) workingHash() []byte {
 	return commitHash
 }
 
-func (s *Service) validateFinalizeBlockHeight(req *cmtabci.FinalizeBlockRequest) error {
+func (s *Service) validateFinalizeBlockHeight(req *cmtabci.RequestFinalizeBlock) error {
 	if req.Height < 1 {
 		return fmt.Errorf(
 			"finalizeBlock at height %v: %w",
@@ -249,9 +249,9 @@ func (s *Service) validateFinalizeBlockHeight(req *cmtabci.FinalizeBlockRequest)
 }
 
 func (s *Service) calculateFinalizeBlockResponse(
-	req *cmtabci.FinalizeBlockRequest,
+	req *cmtabci.RequestFinalizeBlock,
 	valUpdates transition.ValidatorUpdates,
-) (*cmtabci.FinalizeBlockResponse, error) {
+) (*cmtabci.ResponseFinalizeBlock, error) {
 	// Update Stable block time related data
 	if s.cmtConsensusParams.Feature.SBTEnableHeight == 0 && req.Height == s.delayCfg.SbtConsensusUpdateHeight() {
 		s.cmtConsensusParams.Feature.SBTEnableHeight = s.delayCfg.SbtConsensusEnableHeight()
@@ -281,10 +281,11 @@ func (s *Service) calculateFinalizeBlockResponse(
 	}
 
 	// update sync to height once FinalizeBlock cannot err anymore.
-	s.syncingToHeight = req.SyncingToHeight
+	// The v0.39 fork ABCI has no SyncingToHeight, use the finalized height.
+	s.syncingToHeight = req.Height
 
 	cp := s.cmtConsensusParams.ToProto()
-	response := &cmtabci.FinalizeBlockResponse{
+	response := &cmtabci.ResponseFinalizeBlock{
 		TxResults:             txResults,
 		ValidatorUpdates:      formattedValUpdates,
 		ConsensusParamUpdates: &cp,
