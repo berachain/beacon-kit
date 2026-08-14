@@ -27,8 +27,7 @@ import (
 	"testing"
 	"time"
 
-	"cosmossdk.io/log"
-	storetypes "cosmossdk.io/store/types"
+	"cosmossdk.io/log/v2"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	bcmocks "github.com/berachain/beacon-kit/beacon/blockchain/mocks"
 	"github.com/berachain/beacon-kit/chain"
@@ -50,6 +49,8 @@ import (
 	"github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/berachain/beacon-kit/storage/deposit"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -178,7 +179,7 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 	eng.EXPECT().NotifyForkchoiceUpdate(mock.Anything, mock.Anything).Return(dummyPayloadID, nil)
 
 	// BUILD A VALID BLOCK (without polluting state st)
-	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), true, log.NewNopLogger())
+	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), cmtproto.Header{}, true, log.NewNopLogger())
 	buildState := state.NewBeaconStateFromDB(
 		st.KVStore.WithContext(sdkCtx), cs, sdkCtx.Logger(), metrics.NewNoOpTelemetrySink(),
 	)
