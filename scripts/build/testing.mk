@@ -139,6 +139,21 @@ start-reth-mainnet:
 	--ipcpath ${IPC_PATH} \
 	--trusted-peers $$trustedpeers
 
+# Migrate reth v1 db to storage v2. The datadir must already exist.
+migrate-reth-v2-mainnet:
+	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
+	docker run \
+	-p 30303:30303 \
+	-p 8545:8545 \
+	-p 8551:8551 \
+	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	--rm -v $(PWD)/${MAINNET_NETWORK_FILES_DIR}:/${MAINNET_NETWORK_FILES_DIR} \
+	-v $(PWD)/.tmp:/.tmp \
+	ghcr.io/berachain/bera-reth:v1.5.0-rc0 db \
+	--datadir ${ETH_DATA_DIR} \
+	migrate-v2 \
+	--chain ${MAINNET_ETH_GENESIS_PATH}
+
 #################
 #    Testing    #
 #################
