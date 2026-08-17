@@ -141,11 +141,12 @@ start-reth-mainnet:
 
 # Migrate reth v1 db to storage v2. The datadir must already exist.
 migrate-reth-v2-mainnet:
-	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
+	@abs_path=$(abspath $(ETH_DATA_DIR)); \
+	if test ! -d "$$abs_path"; then \
+		echo "Directory '$$abs_path' does not exist; expected an existing reth v1 datadir to migrate."; \
+		exit 1; \
+	fi
 	docker run \
-	-p 30303:30303 \
-	-p 8545:8545 \
-	-p 8551:8551 \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	--rm -v $(PWD)/${MAINNET_NETWORK_FILES_DIR}:/${MAINNET_NETWORK_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
