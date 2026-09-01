@@ -66,7 +66,7 @@ func (s *Service) FinalizeBlock(
 	}
 
 	// STEP 2: Finalize sidecars first (block will check for sidecar availability).
-	if err = s.FinalizeSidecars(ctx, req.Height, blk, blobs); err != nil {
+	if err = s.FinalizeSidecars(ctx, req.SyncingToHeight, blk, blobs); err != nil {
 		return nil, fmt.Errorf("failed finalizing sidecars: %w", err)
 	}
 
@@ -90,11 +90,10 @@ func (s *Service) FinalizeSidecars(
 	blk *ctypes.BeaconBlock,
 	blobs datypes.BlobSidecars,
 ) error {
-	// syncingToHeight approximates the chain tip. The v0.40 fork ABCI has no
-	// SyncingToHeight, so callers pass the finalized height. We don't need to
-	// process sidecars unless they are within DA period.
+	// SyncingToHeight is always the tip of the chain both during sync and when
+	// caught up. We don't need to process sidecars unless they are within DA period.
 	//
-	//#nosec: G115 // syncingToHeight will never be negative.
+	//#nosec: G115 // SyncingToHeight will never be negative.
 	if s.chainSpec.WithinDAPeriod(blk.GetSlot(), math.Slot(syncingToHeight)) {
 		err := s.blobProcessor.ProcessSidecars(
 			s.storageBackend.AvailabilityStore(),
