@@ -3,7 +3,7 @@ module github.com/berachain/beacon-kit
 go 1.26.6
 
 replace (
-	github.com/cometbft/cometbft => github.com/berachain/cometbft v0.0.0-20260821161106-3d10c389ed06
+	github.com/cometbft/cometbft => github.com/berachain/cometbft v0.0.0-20260902110357-316c3646e359
 	github.com/karalabe/ssz => github.com/berachain/karalabe-ssz v0.3.0-alpha.0
 )
 

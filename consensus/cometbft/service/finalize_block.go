@@ -69,7 +69,7 @@ func (s *Service) finalizeBlock(
 
 			if err = s.Blockchain.FinalizeSidecars(
 				finalState.Context(),
-				req.Height,
+				req.SyncingToHeight,
 				blk,
 				sidecars,
 			); err != nil {
@@ -281,8 +281,7 @@ func (s *Service) calculateFinalizeBlockResponse(
 	}
 
 	// update sync to height once FinalizeBlock cannot err anymore.
-	// The v0.40 fork ABCI has no SyncingToHeight, use the finalized height.
-	s.syncingToHeight = req.Height
+	s.syncingToHeight = req.SyncingToHeight
 
 	cp := s.cmtConsensusParams.ToProto()
 	response := &cmtabci.ResponseFinalizeBlock{

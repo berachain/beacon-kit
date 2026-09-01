@@ -89,8 +89,8 @@ github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
-github.com/berachain/cometbft v0.0.0-20260821161106-3d10c389ed06 h1:lv8lepKRB6v59FwQ+1jX+CGnp7wcquywTzdMT4f4Qbw=
-github.com/berachain/cometbft v0.0.0-20260821161106-3d10c389ed06/go.mod h1:3z+Aq3BSkwNKw+Z40yPUTxtSRIpQa0w2PyCwyaxxHeU=
+github.com/berachain/cometbft v0.0.0-20260902110357-316c3646e359 h1:/xXRe04vMUDdSO8kKiI2tZCkuFa5LyTf2rZg0w3BeN8=
+github.com/berachain/cometbft v0.0.0-20260902110357-316c3646e359/go.mod h1:3z+Aq3BSkwNKw+Z40yPUTxtSRIpQa0w2PyCwyaxxHeU=
 github.com/berachain/karalabe-ssz v0.3.0-alpha.0 h1:SVMU5PSuMB2fgmFTf1rSBY9rEHpQv24DJcqxSrD7jf8=
 github.com/berachain/karalabe-ssz v0.3.0-alpha.0/go.mod h1:7BZG/jckt43eKw7sl/AF6gTcL0oxgFPme39m54v8rDI=
 github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
