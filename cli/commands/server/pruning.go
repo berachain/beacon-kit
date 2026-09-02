@@ -24,8 +24,8 @@ import (
 	"fmt"
 	"strings"
 
-	pruningtypes "cosmossdk.io/store/pruning/types"
 	"github.com/berachain/beacon-kit/cli/commands/server/types"
+	pruningtypes "github.com/cosmos/cosmos-sdk/store/v2/pruning/types"
 	"github.com/spf13/cast"
 )
 

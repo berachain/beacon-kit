@@ -26,7 +26,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"cosmossdk.io/log"
+	"cosmossdk.io/log/v2"
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"

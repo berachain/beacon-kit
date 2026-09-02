@@ -33,8 +33,8 @@ import (
 
 func (s *Service) initChain(
 	ctx context.Context,
-	req *cmtabci.InitChainRequest,
-) (*cmtabci.InitChainResponse, error) {
+	req *cmtabci.RequestInitChain,
+) (*cmtabci.ResponseInitChain, error) {
 	if req.ChainId != s.chainID {
 		return nil, fmt.Errorf(
 			"invalid chain-id on InitChain; expected: %s, got: %s",
@@ -105,7 +105,7 @@ func (s *Service) initChain(
 	// NOTE: We don't commit, but FinalizeBlock for block InitialHeight starts
 	// from
 	// this FinalizeBlockState.
-	return &cmtabci.InitChainResponse{
+	return &cmtabci.ResponseInitChain{
 		ConsensusParams: req.ConsensusParams,
 		Validators:      resValidators,
 		AppHash:         s.sm.GetCommitMultiStore().LastCommitID().Hash,

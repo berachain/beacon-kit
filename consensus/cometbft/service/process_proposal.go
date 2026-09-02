@@ -32,8 +32,8 @@ import (
 
 func (s *Service) processProposal(
 	ctx context.Context,
-	req *cmtabci.ProcessProposalRequest,
-) (*cmtabci.ProcessProposalResponse, error) {
+	req *cmtabci.RequestProcessProposal,
+) (*cmtabci.ResponseProcessProposal, error) {
 	startTime := time.Now()
 	defer s.telemetrySink.MeasureSince(
 		"beacon_kit.runtime.process_proposal_duration", startTime)
@@ -70,7 +70,7 @@ func (s *Service) processProposal(
 		s.nodeAddress[:],
 	)
 	if err != nil {
-		status := cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
+		status := cmtabci.ResponseProcessProposal_REJECT
 		s.logger.Error(
 			"failed to process proposal",
 			"height", req.Height,
@@ -78,7 +78,7 @@ func (s *Service) processProposal(
 			"hash", fmt.Sprintf("%X", req.Hash),
 			"err", err,
 		)
-		return &cmtabci.ProcessProposalResponse{Status: status}, nil
+		return &cmtabci.ResponseProcessProposal{Status: status}, nil
 	}
 
 	// We must not cache execution of the first block post initialHeight
@@ -94,6 +94,6 @@ func (s *Service) processProposal(
 		}
 		s.cachedStates.SetCached(stateHash, toCache)
 	}
-	status := cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
-	return &cmtabci.ProcessProposalResponse{Status: status}, nil
+	status := cmtabci.ResponseProcessProposal_ACCEPT
+	return &cmtabci.ResponseProcessProposal{Status: status}, nil
 }
