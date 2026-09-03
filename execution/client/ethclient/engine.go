@@ -319,3 +319,23 @@ func (s *Client) GetClientVersionV1(
 	}
 	return result, nil
 }
+
+/* -------------------------------------------------------------------------- */
+/*                                  GetBlobs                                  */
+/* -------------------------------------------------------------------------- */
+
+// GetBlobsV2 calls the engine_getBlobsV2 method via JSON-RPC, retrieving
+// blobs (and their cell proofs) from the execution client's blob pool by
+// versioned hash. Per the Engine API spec the response is all-or-nothing: if
+// the execution client is missing any of the requested blobs, the result is
+// nil rather than a partial list.
+func (s *Client) GetBlobsV2(
+	ctx context.Context,
+	versionedHashes []common.ExecutionHash,
+) ([]*engine.BlobAndProofV2, error) {
+	var result []*engine.BlobAndProofV2
+	if err := s.Call(ctx, &result, GetBlobsMethodV2, versionedHashes); err != nil {
+		return nil, fmt.Errorf("failed GetBlobsV2 call: %w", err)
+	}
+	return result, nil
+}

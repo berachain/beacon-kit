@@ -32,6 +32,7 @@ func BeaconKitSupportedCapabilities() []string {
 		GetPayloadMethodV3,
 		GetPayloadMethodV4,
 		GetPayloadMethodV4P11,
+		GetBlobsMethodV2,
 		GetClientVersionV1,
 	}
 }
@@ -54,6 +55,9 @@ const (
 	GetPayloadMethodV4 = "engine_getPayloadV4"
 	// GetPayloadMethodV4P11 for retrieving a payload in Electra1 (Pectra11).
 	GetPayloadMethodV4P11 = "engine_getPayloadV4P11"
+	// GetBlobsMethodV2 for retrieving blobs (with cell proofs) from the
+	// execution client's blob pool in Osaka onwards.
+	GetBlobsMethodV2 = "engine_getBlobsV2"
 	// BlockByHashMethod for retrieving a block by its hash.
 	BlockByHashMethod = "eth_getBlockByHash"
 	// BlockByNumberMethod for retrieving a block by its number.

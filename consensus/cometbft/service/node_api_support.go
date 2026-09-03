@@ -102,3 +102,9 @@ func (s *Service) CreateQueryContext(
 func (s *Service) GetSyncData() (int64, int64) {
 	return s.lastBlockHeight(), s.syncingToHeight
 }
+
+// HasPendingBlobFetches reports whether in-window blob sidecars are still being fetched in the background. A node with pending
+// fetches holds all finalized blocks but not yet all their blobs, so it must not report itself as synced.
+func (s *Service) HasPendingBlobFetches() bool {
+	return s.Blockchain.PendingBlobRequests() > 0
+}

@@ -26,6 +26,7 @@ import (
 
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	handlertypes "github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
@@ -48,14 +49,14 @@ func (h *Handler) GetBlobSidecars(c handlers.Context) (any, error) {
 		return nil, err
 	}
 
-	var slot math.Slot
-	if slotID == utils.Head {
-		latestHeight, _ := h.backend.GetSyncData()
-		if latestHeight < 0 {
-			return nil, errors.New("invalid negative block height")
-		}
-		slot = math.Slot(latestHeight)
-	} else {
+	latestHeight, _ := h.backend.GetSyncData()
+	if latestHeight < 0 {
+		return nil, errors.New("invalid negative block height")
+	}
+	head := math.Slot(latestHeight)
+
+	slot := head
+	if slotID != utils.Head {
 		slot = math.Slot(slotID) //#nosec: G115 // practically safe
 	}
 
@@ -70,8 +71,8 @@ func (h *Handler) GetBlobSidecars(c handlers.Context) (any, error) {
 		indices[i] = idx.Unwrap()
 	}
 
-	// Validate the requested slot is within the Data Availability Period.
-	if !h.cs.WithinDAPeriod(slot, slot) {
+	// Validate the requested slot is within the Data Availability Period relative to the chain head.
+	if !h.cs.WithinDAPeriod(slot, head) {
 		return nil, fmt.Errorf(
 			"requested slot (%d) is not within Data Availability Period (previous %d epochs)",
 			slotID, h.cs.MinEpochsForBlobsSidecarsRequest(),
@@ -91,6 +92,12 @@ func (h *Handler) GetBlobSidecars(c handlers.Context) (any, error) {
 	blobSidecars, err := h.backend.GetBlobSidecarsAtSlot(slot)
 	if err != nil {
 		return nil, err
+	}
+
+	// If no blobs were found but the block used blob gas, the sidecars are still being fetched in the background (blob consensus
+	// distributes them outside the block); report not-found rather than an empty success.
+	if len(blobSidecars) == 0 && h.blobsPending(slot) {
+		return nil, fmt.Errorf("blobs pending: %w", handlertypes.ErrNotFound)
 	}
 
 	// Create a map of requested indices for O(1) index lookups.
@@ -121,4 +128,23 @@ func (h *Handler) GetBlobSidecars(c handlers.Context) (any, error) {
 	return types.SidecarsResponse{
 		Data: blobSidecarsResponse,
 	}, nil
+}
+
+// blobsPending reports whether the block at the given slot used blob gas while its sidecars are not yet in
+// the store, which can only happen while they are still being fetched in the background. Slots outside the DA
+// window relative to the chain head are never pending: their sidecars are pruned.
+func (h *Handler) blobsPending(slot math.Slot) bool {
+	head, _ := h.backend.GetSyncData()
+	if head < 0 || !h.cs.WithinDAPeriod(slot, math.Slot(head)) {
+		return false
+	}
+	st, _, err := h.backend.StateAndSlotFromHeight(int64(slot)) //#nosec: G115 // practically safe
+	if err != nil {
+		return false
+	}
+	payloadHeader, err := st.GetLatestExecutionPayloadHeader()
+	if err != nil || payloadHeader == nil {
+		return false
+	}
+	return payloadHeader.GetBlobGasUsed() > 0
 }

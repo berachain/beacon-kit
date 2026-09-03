@@ -26,10 +26,8 @@ import (
 	"fmt"
 	"time"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/cache"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/delay"
-	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/sourcegraph/conc/iter"
@@ -52,36 +50,7 @@ func (s *Service) finalizeBlock(
 		// This is because Genesis state is cached but not committed (and purged from s.cachedStates)
 		// We handle the case outside of this switch, via the s.Blockchain.FinalizeBlock below.
 		if req.Height > s.initialHeight {
-			if err = s.cachedStates.MarkAsFinal(hash); err != nil {
-				return nil, fmt.Errorf("failed marking state as final, hash %s, height %d: %w", hash, req.Height, err)
-			}
-
-			finalState := cached.State
-			var (
-				signedBlk *ctypes.SignedBeaconBlock
-				sidecars  datypes.BlobSidecars
-			)
-			signedBlk, sidecars, err = s.Blockchain.ParseBeaconBlock(req)
-			if err != nil {
-				return nil, fmt.Errorf("finalize block: failed parsing block: %w", err)
-			}
-			blk := signedBlk.GetBeaconBlock()
-
-			if err = s.Blockchain.FinalizeSidecars(
-				finalState.Context(),
-				req.SyncingToHeight,
-				blk,
-				sidecars,
-			); err != nil {
-				return nil, fmt.Errorf("failed finalizing sidecars: %w", err)
-			}
-			if err = s.Blockchain.PostFinalizeBlockOps(
-				finalState.Context(),
-				blk,
-			); err != nil {
-				return nil, fmt.Errorf("finalize block: failed post finalize block ops: %w", err)
-			}
-			return s.calculateFinalizeBlockResponse(req, cached.ValUpdates)
+			return s.finalizeCachedBlock(req, hash, cached)
 		}
 
 	case errors.Is(err, cache.ErrStateNotFound):
@@ -130,15 +99,54 @@ func (s *Service) finalizeBlock(
 	return s.calculateFinalizeBlockResponse(req, valUpdates)
 }
 
+// finalizeCachedBlock finalizes a block whose post-state was already computed and cached during ProcessProposal, skipping re-execution.
+func (s *Service) finalizeCachedBlock(
+	req *cmtabci.FinalizeBlockRequest,
+	hash string,
+	cached *cache.Element,
+) (*cmtabci.FinalizeBlockResponse, error) {
+	if err := s.cachedStates.MarkAsFinal(hash); err != nil {
+		return nil, fmt.Errorf("failed marking state as final, hash %s, height %d: %w", hash, req.Height, err)
+	}
+
+	finalState := cached.State
+	signedBlk, sidecars, err := s.Blockchain.ParseBeaconBlock(req)
+	if err != nil {
+		return nil, fmt.Errorf("finalize block: failed parsing block: %w", err)
+	}
+	blk := signedBlk.GetBeaconBlock()
+
+	// When blob consensus is enabled the request txs carry no sidecars; use the ones verified during ProcessProposal instead.
+	if s.chainSpec.IsBlobConsensusEnabled(req.Height) {
+		sidecars = cached.Sidecars
+	}
+
+	if err = s.Blockchain.FinalizeSidecars(
+		finalState.Context(),
+		req.SyncingToHeight,
+		signedBlk,
+		sidecars,
+	); err != nil {
+		return nil, fmt.Errorf("failed finalizing sidecars: %w", err)
+	}
+	if err = s.Blockchain.PostFinalizeBlockOps(
+		finalState.Context(),
+		blk,
+	); err != nil {
+		return nil, fmt.Errorf("finalize block: failed post finalize block ops: %w", err)
+	}
+	return s.calculateFinalizeBlockResponse(req, cached.ValUpdates)
+}
+
 func (s *Service) nextBlockDelay(req *cmtabci.FinalizeBlockRequest) time.Duration {
 	// c0. SBT is not enabled => use the old block delay.
 	if s.cmtConsensusParams.Feature.SBTEnableHeight <= 0 {
-		return s.delayCfg.SbtConstBlockDelay()
+		return s.chainSpec.SbtConstBlockDelay()
 	}
 
 	// c1. current height < SBTEnableHeight => wait for the upgrade.
 	if req.Height < s.cmtConsensusParams.Feature.SBTEnableHeight {
-		return s.delayCfg.SbtConstBlockDelay()
+		return s.chainSpec.SbtConstBlockDelay()
 	}
 
 	// c2. current height == SBTEnableHeight => initialize the block delay.
@@ -148,7 +156,7 @@ func (s *Service) nextBlockDelay(req *cmtabci.FinalizeBlockRequest) time.Duratio
 			InitialHeight:     req.Height,
 			PreviousBlockTime: req.Time,
 		}
-		return s.delayCfg.SbtConstBlockDelay()
+		return s.chainSpec.SbtConstBlockDelay()
 	}
 
 	// c3. current height > SBTEnableHeight
@@ -157,7 +165,7 @@ func (s *Service) nextBlockDelay(req *cmtabci.FinalizeBlockRequest) time.Duratio
 	// The upgrade was successfully applied and the block delay is set.
 	if s.blockDelay != nil {
 		prevBlkTime := s.blockDelay.PreviousBlockTime // note it down before ComputeNext changes it
-		delay := s.blockDelay.ComputeNext(s.delayCfg, req.Time, req.Height)
+		delay := s.blockDelay.ComputeNext(s.chainSpec, req.Time, req.Height)
 		s.logger.Debug("Stable block time",
 			"previous block time", prevBlkTime.String(),
 			"current block time", req.Time.String(),
@@ -253,8 +261,8 @@ func (s *Service) calculateFinalizeBlockResponse(
 	valUpdates transition.ValidatorUpdates,
 ) (*cmtabci.FinalizeBlockResponse, error) {
 	// Update Stable block time related data
-	if s.cmtConsensusParams.Feature.SBTEnableHeight == 0 && req.Height == s.delayCfg.SbtConsensusUpdateHeight() {
-		s.cmtConsensusParams.Feature.SBTEnableHeight = s.delayCfg.SbtConsensusEnableHeight()
+	if s.cmtConsensusParams.Feature.SBTEnableHeight == 0 && req.Height == s.chainSpec.SbtConsensusUpdateHeight() {
+		s.cmtConsensusParams.Feature.SBTEnableHeight = s.chainSpec.SbtConsensusEnableHeight()
 	}
 	nextBlockTime := s.nextBlockDelay(req)
 

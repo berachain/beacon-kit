@@ -58,20 +58,32 @@ const (
 
 	// A Consensus block has at most two transactions (block and blob).
 	MaxConsensusTxsCount = 2
+
+	// Once blob consensus is enabled, a consensus block carries exactly one
+	// transaction (the block); sidecars travel on the blob reactor channel.
+	MaxBlobConsensusTxsCount = 1
 )
 
+// ProcessProposal verifies an incoming proposal and returns its validator updates together with the block's
+// verified blob sidecars. Below the blob consensus enable height the sidecars arrive as the proposal's second
+// tx and are verified in place. At and above it the proposal carries only the block, the sidecars are
+// retrieved via fetchProposalSidecars, and not obtaining them in time rejects the proposal like any other
+// invalid one. Returning the sidecars lets the CometBFT layer cache them next to the verified state, so
+// FinalizeBlock can persist them without refetching.
+//
 //nolint:funlen // abundantly commented
 func (s *Service) ProcessProposal(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
 	thisNodeAddress []byte,
-) (transition.ValidatorUpdates, error) {
+) (transition.ValidatorUpdates, datypes.BlobSidecars, error) {
 	signedBlk, sidecars, err := s.ParseBeaconBlock(req)
 	if err != nil {
 		s.logger.Error("Failed to decode block and blobs", "error", err)
-		return nil, fmt.Errorf("failed to decode block and blobs: %w", err)
+		return nil, nil, fmt.Errorf("failed to decode block and blobs: %w", err)
 	}
 	blk := signedBlk.GetBeaconBlock()
+	blobConsensusEnabled := s.chainSpec.IsBlobConsensusEnabled(req.Height)
 
 	// Sort the sidecars by index for verification and processing.
 	slices.SortFunc(sidecars, func(a, b *datypes.BlobSidecar) int {
@@ -94,43 +106,60 @@ func (s *Service) ProcessProposal(
 	forkVersion := s.chainSpec.ActiveForkVersionForTimestamp(math.U64(req.GetTime().Unix())) //#nosec: G115
 	blkVersion := s.chainSpec.ActiveForkVersionForTimestamp(blk.GetTimestamp())
 	if !version.Equals(blkVersion, forkVersion) {
-		return nil, fmt.Errorf("CometBFT version %v, BeaconBlock version %v: %w",
+		return nil, nil, fmt.Errorf("CometBFT version %v, BeaconBlock version %v: %w",
 			forkVersion, blkVersion,
 			ErrVersionMismatch,
 		)
 	}
 
-	// Make sure we have the right number of BlobSidecars
 	blobKzgCommitments := blk.GetBody().GetBlobKzgCommitments()
 	numCommitments := len(blobKzgCommitments)
-	if numCommitments != len(sidecars) {
-		return nil, fmt.Errorf("expected %d sidecars, got %d: %w",
-			numCommitments, len(sidecars),
-			ErrSidecarCommitmentMismatch,
-		)
-	}
 	if uint64(numCommitments) > s.chainSpec.MaxBlobsPerBlock() {
-		return nil, fmt.Errorf("expected less than %d sidecars, got %d: %w",
+		return nil, nil, fmt.Errorf("expected less than %d sidecars, got %d: %w",
 			s.chainSpec.MaxBlobsPerBlock(), numCommitments,
 			core.ErrExceedsBlockBlobLimit,
 		)
 	}
 
-	// Verify the block and sidecar signatures. We can simply verify the block
-	// signature and then make sure the sidecar signatures match the block.
-	blkSignature := signedBlk.GetSignature()
-	for i, sidecar := range sidecars {
-		sidecarSignature := sidecar.GetSignature()
-		if !bytes.Equal(blkSignature[:], sidecarSignature[:]) {
-			return nil, fmt.Errorf("%w, idx: %d", ErrSidecarSignatureMismatch, i)
+	if !blobConsensusEnabled {
+		// Make sure we have the right number of BlobSidecars
+		if numCommitments != len(sidecars) {
+			return nil, nil, fmt.Errorf("expected %d sidecars, got %d: %w",
+				numCommitments, len(sidecars),
+				ErrSidecarCommitmentMismatch,
+			)
+		}
+
+		// Verify the block and sidecar signatures. We can simply verify the block
+		// signature and then make sure the sidecar signatures match the block.
+		blkSignature := signedBlk.GetSignature()
+		for i, sidecar := range sidecars {
+			sidecarSignature := sidecar.GetSignature()
+			if !bytes.Equal(blkSignature[:], sidecarSignature[:]) {
+				return nil, nil, fmt.Errorf("%w, idx: %d", ErrSidecarSignatureMismatch, i)
+			}
 		}
 	}
+
+	// Verify the block signature before doing any expensive work (in particular before fetching sidecars over the network, so
+	// unauthenticated proposals cannot trigger fetches).
 	err = s.VerifyIncomingBlockSignature(ctx, blk, signedBlk.GetSignature())
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	if numCommitments > 0 {
+	switch {
+	case blobConsensusEnabled:
+		// Sidecars did not ride with the proposal; retrieve them (push cache, local EL, then peers) and fully verify them against
+		// the block. No sidecars in time means rejecting the proposal, same as any invalid proposal.
+		sidecars, err = s.fetchProposalSidecars(ctx, signedBlk)
+		if err != nil {
+			s.logger.Error("failed to retrieve blob sidecars for proposal",
+				"slot", blk.GetSlot().Unwrap(), "expected_blobs", numCommitments, "error", err)
+			return nil, nil, err
+		}
+
+	case numCommitments > 0:
 		// Process the blob sidecars
 		//
 		// In theory, swapping the order of verification between the sidecars
@@ -142,7 +171,7 @@ func (s *Service) ProcessProposal(
 		err = s.VerifyIncomingBlobSidecars(ctx, sidecars, blk.GetHeader(), blobKzgCommitments)
 		if err != nil {
 			s.logger.Error("failed to verify incoming blob sidecars", "error", err)
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
@@ -166,7 +195,7 @@ func (s *Service) ProcessProposal(
 	)
 	if err != nil {
 		s.logger.Error("failed to verify incoming block", "error", err)
-		return nil, err
+		return nil, nil, err
 	}
 
 	// once we have successfully verified the block we cache it in the node builder.
@@ -175,11 +204,11 @@ func (s *Service) ProcessProposal(
 	// optimistic block building, then FCU(Head == N)) if verified block is not finalized)
 	envelope, err := payloadEnvFromPayload(sidecars, blk)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	s.localBuilder.CacheLatestVerifiedPayload(blk.Slot, envelope)
-	return valUpdates.CanonicalSort(), nil
+	return valUpdates.CanonicalSort(), sidecars, nil
 }
 
 func payloadEnvFromPayload(sidecars datypes.BlobSidecars, blk *ctypes.BeaconBlock) (ctypes.BuiltExecutionPayloadEnv, error) {

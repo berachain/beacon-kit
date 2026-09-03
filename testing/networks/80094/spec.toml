@@ -80,3 +80,7 @@ target-block-time = 2_000_000_000
 const-block-delay = 500_000_000
 consensus-update-height = 9_983_085
 consensus-enable-height = 9_983_086
+[blob-consensus]
+# Height at which blob sidecars stop riding as the second consensus tx and are
+# distributed via the blob reactor instead. 0 disables the transition.
+enable-height = 0

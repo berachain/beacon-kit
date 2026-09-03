@@ -163,6 +163,17 @@ max-block-delay = 300_000_000_000
 			wantErr: "missing required configuration for key: block-delay-configuration.target-block-time",
 		},
 		{
+			name: "missing blob-consensus after block-delay-configuration",
+			specContent: `[block-delay-configuration]
+max-block-delay = 300_000_000_000
+target-block-time = 2_000_000_000
+const-block-delay = 500_000_000
+consensus-update-height = 1
+consensus-enable-height = 2
+`,
+			wantErr: "missing required configuration for key: blob-consensus.enable-height",
+		},
+		{
 			name: "missing max-effective-balance after block-delay-configuration",
 			specContent: `[block-delay-configuration]
 max-block-delay = 300_000_000_000
@@ -170,6 +181,9 @@ target-block-time = 2_000_000_000
 const-block-delay = 500_000_000
 consensus-update-height = 1
 consensus-enable-height = 2
+
+[blob-consensus]
+enable-height = 0
 `,
 			wantErr: "missing required configuration for key: max-effective-balance",
 		},
