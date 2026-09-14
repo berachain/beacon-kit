@@ -37,6 +37,11 @@ type BLSSigner struct {
 	types.PrivValidator
 }
 
+// SetPrivValidator swaps the underlying PrivValidator the signer delegates to.
+func (f *BLSSigner) SetPrivValidator(pv types.PrivValidator) {
+	f.PrivValidator = pv
+}
+
 // NewBLSSigner creates a new BLSSigner instance using the provided key and
 // state
 // file paths.
