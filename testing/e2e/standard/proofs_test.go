@@ -56,7 +56,7 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 		Signer:   sender.SignerFunc(chainID),
 		GasLimit: 1000000,
 		Context:  s.Ctx(),
-	}, elClient)
+	}, elClient.ContractBackend())
 	s.Require().NoError(err)
 
 	// Confirm deployment.
@@ -202,7 +202,7 @@ func (s *BeaconKitE2ESuite) TestValidatorBalanceProof() {
 		Signer:   sender.SignerFunc(chainID),
 		GasLimit: 1000000,
 		Context:  s.Ctx(),
-	}, elClient)
+	}, elClient.ContractBackend())
 	s.Require().NoError(err)
 
 	// Confirm deployment.
@@ -311,7 +311,7 @@ func (s *BeaconKitE2ESuite) TestValidatorCredentialsProof() {
 		Signer:   sender.SignerFunc(chainID),
 		GasLimit: 1000000,
 		Context:  s.Ctx(),
-	}, elClient)
+	}, elClient.ContractBackend())
 	s.Require().NoError(err)
 
 	// Confirm deployment.
@@ -443,7 +443,7 @@ func (s *BeaconKitE2ESuite) TestValidatorPubkeyProof() {
 		Signer:   sender.SignerFunc(chainID),
 		GasLimit: 1000000,
 		Context:  s.Ctx(),
-	}, elClient)
+	}, elClient.ContractBackend())
 	s.Require().NoError(err)
 
 	// Confirm deployment.

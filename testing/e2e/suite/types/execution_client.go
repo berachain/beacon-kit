@@ -64,6 +64,13 @@ func (ec *ExecutionClient) Start(ctx context.Context) error {
 	return nil
 }
 
+// ContractBackend returns the underlying go-ethereum client for abigen bindings.
+// The embedded Berachain client overrides TransactionByHash with a different
+// return type, so it does not satisfy bind.ContractBackend.
+func (ec *ExecutionClient) ContractBackend() *ethclient.Client {
+	return ec.Client.Client
+}
+
 // URL returns the URL of the execution client.
 func (ec *ExecutionClient) URL() string {
 	return ec.url
