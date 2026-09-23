@@ -112,7 +112,7 @@ To add a new test suite configuration, create a function in `defaults.go` that r
 1. Pick the appropriate suite directory (`standard/`).
 2. Create a new `*_test.go` file with the `//go:build e2e` tag and the matching package name (`standard_test`).
 3. Add test methods on the suite struct (e.g., `func (s *BeaconKitE2ESuite) TestMyFeature() { ... }`).
-4. Use `s.ExecutionClients()` for EL queries, `s.ConsensusClients()` for CL queries, `s.GenesisAccount()` / `s.TestAccounts()` for funded accounts.
+4. Use `s.ExecutionClients()` for EL queries, `s.ConsensusClients()` for CL queries, `s.GenesisAccount()` / `s.Accounts()` for funded accounts.
 
 ## Debugging
 

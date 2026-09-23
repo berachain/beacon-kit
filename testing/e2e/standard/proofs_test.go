@@ -40,7 +40,7 @@ import (
 // beacon-kit/contracts/src/eip4788/SSZ.sol for details.
 func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 	// Sender account
-	sender := s.TestAccounts()[0]
+	sender := s.Accounts()[0]
 
 	// Get the execution client.
 	elClient := s.ExecutionClients(0)
@@ -186,7 +186,7 @@ func (s *BeaconKitE2ESuite) TestBlockProposerProof() {
 // validator balance proofs against the SSZTest contract.
 func (s *BeaconKitE2ESuite) TestValidatorBalanceProof() {
 	// Sender account
-	sender := s.TestAccounts()[0]
+	sender := s.Accounts()[0]
 
 	// Get the execution client.
 	elClient := s.ExecutionClients(0)
@@ -295,7 +295,7 @@ func (s *BeaconKitE2ESuite) TestValidatorBalanceProof() {
 // and verifying withdrawal credentials proofs against the SSZTest contract.
 func (s *BeaconKitE2ESuite) TestValidatorCredentialsProof() {
 	// Sender account
-	sender := s.TestAccounts()[0]
+	sender := s.Accounts()[0]
 
 	// Get the execution client.
 	elClient := s.ExecutionClients(0)
@@ -427,7 +427,7 @@ func (s *BeaconKitE2ESuite) TestValidatorCredentialsProof() {
 // validator pubkey proofs against the SSZTest contract.
 func (s *BeaconKitE2ESuite) TestValidatorPubkeyProof() {
 	// Sender account
-	sender := s.TestAccounts()[0]
+	sender := s.Accounts()[0]
 
 	// Get the execution client.
 	elClient := s.ExecutionClients(0)

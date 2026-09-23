@@ -157,7 +157,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	}
 
 	// Sender account
-	sender := s.TestAccounts()[0]
+	sender := s.Accounts()[0]
 
 	// Get the block num
 	blkNum, err := elClient.BlockNumber(s.Ctx())
