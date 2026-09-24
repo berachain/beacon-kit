@@ -70,10 +70,10 @@ func TestGetBlobSidecars(t *testing.T) {
 		name                string
 		inputs              func() beacontypes.GetBlobSidecarsRequest
 		setMockExpectations func(*testing.T, *mocks.Backend)
-		check               func(t *testing.T, res any, err error)
+		check               func(t *testing.T, backend *mocks.Backend, res any, err error)
 	}{
 		{
-			name: "success",
+			name: "success - head",
 			inputs: func() beacontypes.GetBlobSidecarsRequest {
 				return beacontypes.GetBlobSidecarsRequest{
 					BlockIDRequest: handlertypes.BlockIDRequest{
@@ -88,7 +88,7 @@ func TestGetBlobSidecars(t *testing.T) {
 				b.EXPECT().GetSyncData().Return(int64(1234), int64(1234))
 				b.EXPECT().GetBlobSidecarsAtSlot(mock.Anything).Return(testSidecars, nil)
 			},
-			check: func(t *testing.T, res any, err error) {
+			check: func(t *testing.T, _ *mocks.Backend, res any, err error) {
 				t.Helper()
 
 				require.NoError(t, err)
@@ -98,6 +98,77 @@ func TestGetBlobSidecars(t *testing.T) {
 
 				require.Len(t, sr.Data, 1)
 				require.Equal(t, beacontypes.SidecarFromConsensus(testSidecars[0]), sr.Data[0])
+			},
+		},
+		{
+			name: "success - head while syncing",
+			inputs: func() beacontypes.GetBlobSidecarsRequest {
+				return beacontypes.GetBlobSidecarsRequest{
+					BlockIDRequest: handlertypes.BlockIDRequest{
+						BlockID: utils.StateIDHead,
+					},
+					Indices: nil,
+				}
+			},
+			setMockExpectations: func(t *testing.T, b *mocks.Backend) {
+				t.Helper()
+
+				b.EXPECT().GetSyncData().Return(int64(1000), int64(800_000))
+				b.EXPECT().GetBlobSidecarsAtSlot(math.Slot(1000)).Return(testSidecars, nil)
+			},
+			check: func(t *testing.T, _ *mocks.Backend, res any, err error) {
+				t.Helper()
+
+				require.NoError(t, err)
+				require.NotNil(t, res)
+			},
+		},
+		{
+			name: "success - explicit slot within DA period",
+			inputs: func() beacontypes.GetBlobSidecarsRequest {
+				return beacontypes.GetBlobSidecarsRequest{
+					BlockIDRequest: handlertypes.BlockIDRequest{
+						BlockID: "999000",
+					},
+					Indices: nil,
+				}
+			},
+			setMockExpectations: func(t *testing.T, b *mocks.Backend) {
+				t.Helper()
+
+				b.EXPECT().GetSyncData().Return(int64(1_000_000), int64(1_000_000))
+				b.EXPECT().GetBlobSidecarsAtSlot(math.Slot(999_000)).Return(testSidecars, nil)
+			},
+			check: func(t *testing.T, _ *mocks.Backend, res any, err error) {
+				t.Helper()
+
+				require.NoError(t, err)
+				require.NotNil(t, res)
+			},
+		},
+		{
+			name: "reject - slot outside DA period",
+			inputs: func() beacontypes.GetBlobSidecarsRequest {
+				return beacontypes.GetBlobSidecarsRequest{
+					BlockIDRequest: handlertypes.BlockIDRequest{
+						BlockID: "212568",
+					},
+					Indices: nil,
+				}
+			},
+			setMockExpectations: func(t *testing.T, b *mocks.Backend) {
+				t.Helper()
+
+				b.EXPECT().GetSyncData().Return(int64(1_000_000), int64(1_000_000))
+			},
+			check: func(t *testing.T, backend *mocks.Backend, res any, err error) {
+				t.Helper()
+
+				require.Error(t, err)
+				require.Nil(t, res)
+				require.ErrorContains(t, err, "not within Data Availability Period")
+				require.ErrorContains(t, err, "212568")
+				backend.AssertNumberOfCalls(t, "GetBlobSidecarsAtSlot", 0)
 			},
 		},
 	}
@@ -130,7 +201,7 @@ func TestGetBlobSidecars(t *testing.T) {
 			res, err := h.GetBlobSidecars(c)
 
 			// finally do checks
-			tc.check(t, res, err)
+			tc.check(t, backend, res, err)
 		})
 	}
 }
