@@ -90,7 +90,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	// Bind the deposit contract.
 	depositContractAddress := gethcommon.Address(chainSpec.DepositContractAddress())
 
-	dc, err := deposit.NewDepositContract(depositContractAddress, elClient)
+	dc, err := deposit.NewDepositContract(depositContractAddress, elClient.ContractBackend())
 	s.Require().NoError(err)
 
 	// Enforce the deposit count at genesis is equal to the number of validators.
@@ -157,7 +157,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	}
 
 	// Sender account
-	sender := s.TestAccounts()[0]
+	sender := s.Accounts()[0]
 
 	// Get the block num
 	blkNum, err := elClient.BlockNumber(s.Ctx())
