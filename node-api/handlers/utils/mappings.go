@@ -26,12 +26,13 @@ import (
 	"strings"
 
 	"github.com/berachain/beacon-kit/errors"
+	handlertypes "github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/storage/block"
 )
 
 var (
-	ErrNoSlotForStateRoot         = errors.New("slot not found at state root")
 	ErrFailedMappingHeightTooHigh = errors.New("failed mapping height too high")
 )
 
@@ -57,7 +58,10 @@ func StateIDToHeight[StorageBackendT interface {
 	}
 	slot, err := storage.GetSlotByStateRoot(root)
 	if err != nil {
-		return 0, ErrNoSlotForStateRoot
+		if errors.Is(err, block.ErrBlockStoreNotEnabled) {
+			return 0, err
+		}
+		return 0, fmt.Errorf("%w: %w", handlertypes.ErrNotFound, err)
 	}
 	if slot > stdmath.MaxInt64 { // appease linters
 		return 0, fmt.Errorf("%w: slot %d", ErrFailedMappingHeightTooHigh, slot)
