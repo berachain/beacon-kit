@@ -128,7 +128,7 @@ func (h *Handler) makeBlockHeaderResponse(height int64, resultsInList bool) (any
 	// access finalized blocks in this APIs. Still we may return a list of responses
 	// to be compliant with API specs https://ethereum.github.io/beacon-APIs/?urls.primaryName=v3.1.0#/Beacon/getBlockHeader
 	headerResp := beacontypes.BlockHeaderResponse{
-		Root:      header.GetBodyRoot(),
+		Root:      header.HashTreeRoot(),
 		Canonical: true,
 		Header: &beacontypes.SignedBeaconBlockHeader{
 			Message:   beacontypes.BeaconBlockHeaderFromConsensus(header),
