@@ -34,6 +34,46 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestPruneRemovesStartEndRange(t *testing.T) {
+	baseDB, err := db.OpenDB("", dbm.MemDBBackend)
+	require.NoError(t, err)
+
+	nopLog := log.NewNopLogger()
+	ctx := t.Context()
+
+	var store *deposit.KVStore
+	require.NotPanics(t, func() {
+		store = deposit.NewStore(baseDB, nopLog)
+	})
+
+	deposits := make([]*types.Deposit, 0, 15)
+	for i := range 15 {
+		b := uint8(i % 255)
+		deposits = append(deposits, &types.Deposit{
+			Pubkey:      [48]byte{b},
+			Credentials: types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{b}),
+			Amount:      10_000,
+			Signature:   crypto.BLSSignature{b},
+			Index:       uint64(i),
+		})
+	}
+	require.NoError(t, store.EnqueueDeposits(ctx, deposits))
+
+	// Prune is documented as removing [start, end).
+	require.NoError(t, store.Prune(ctx, 5, 10))
+
+	// Deposits below start survive.
+	got, _, err := store.GetDepositsByIndex(ctx, 0, 15)
+	require.NoError(t, err)
+	require.Len(t, got, 5)
+
+	// Deposits at and above end survive (bug deleted [start, start+end)).
+	got, _, err = store.GetDepositsByIndex(ctx, 10, 5)
+	require.NoError(t, err)
+	require.Len(t, got, 5)
+	require.Equal(t, uint64(10), got[0].GetIndex().Unwrap())
+}
+
 func BenchmarkDepositsInsertion(b *testing.B) {
 	baseDB, err := db.OpenDB("", dbm.MemDBBackend)
 	require.NoError(b, err)
