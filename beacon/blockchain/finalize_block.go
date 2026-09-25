@@ -39,7 +39,7 @@ import (
 
 func (s *Service) FinalizeBlock(
 	ctx sdk.Context,
-	req *cmtabci.FinalizeBlockRequest,
+	req *cmtabci.RequestFinalizeBlock,
 ) (transition.ValidatorUpdates, error) {
 	// STEP 1: Decode block and blobs.
 	signedBlk, blobs, err := s.ParseBeaconBlock(req)

@@ -29,12 +29,12 @@ import (
 	"syscall"
 	"time"
 
-	"cosmossdk.io/store"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/log"
 	service "github.com/berachain/beacon-kit/node-core/services/registry"
 	"github.com/berachain/beacon-kit/node-core/types"
+	"github.com/cosmos/cosmos-sdk/store/v2"
 )
 
 // Compile-time assertion that node implements the NodeI interface.

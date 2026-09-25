@@ -23,10 +23,10 @@ package types
 import (
 	"context"
 
-	"cosmossdk.io/store"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	service "github.com/berachain/beacon-kit/node-core/services/registry"
 	cmttypes "github.com/cometbft/cometbft/types"
+	"github.com/cosmos/cosmos-sdk/store/v2"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
