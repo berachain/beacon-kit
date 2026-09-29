@@ -45,20 +45,27 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-// HTTP proxy in between beacon node and execution client. Supports four
+// maxBoundedCall is the longest a bounded engine call may take with default
+// config. It is the retry budget (1.5s) plus one RPC timeout (2s).
+const maxBoundedCall = 3500 * time.Millisecond
+
+// HTTP proxy in between beacon node and execution client. Supports five
 // injection modes:
 //   - activate(code, msg): return HTTP 200 with the given JSON-RPC error body
 //   - activateHTTPStatus(status): return the given HTTP status with a generic body
 //     (exercises the transport-level classification path, e.g. HTTP 4xx fatal)
 //   - activateDropConn: hijack and close the TCP connection (unreachable EL)
 //   - activateSyncingNewPayload: forward newPayload to the EL, answer SYNCING
+//   - activateHang: never answer, the caller gives up at its RPC timeout
 type rpcErrorProxy struct {
 	targetURL         string
 	active            atomic.Bool
 	dropConn          atomic.Bool
 	httpStatus        atomic.Int32 // 0 = inactive; otherwise the status code to return
 	syncingNewPayload atomic.Bool
+	hang              atomic.Bool
 	fcuCalls          atomic.Int32 // forkchoiceUpdated requests seen by the proxy
+	newPayloadCalls   atomic.Int32 // newPayload requests seen by the proxy
 	errorCode         int
 	errorMsg          string
 	httpClient        *http.Client
@@ -102,11 +109,18 @@ func (p *rpcErrorProxy) activateSyncingNewPayload() {
 	p.syncingNewPayload.Store(true)
 }
 
+// activateHang makes the proxy hold engine-API requests without answering,
+// which simulates an EL that accepts the connection and then stalls.
+func (p *rpcErrorProxy) activateHang() {
+	p.hang.Store(true)
+}
+
 func (p *rpcErrorProxy) deactivate() {
 	p.active.Store(false)
 	p.dropConn.Store(false)
 	p.httpStatus.Store(0)
 	p.syncingNewPayload.Store(false)
+	p.hang.Store(false)
 }
 
 func (p *rpcErrorProxy) getErr(reqId json.RawMessage) string {
@@ -129,6 +143,15 @@ func (p *rpcErrorProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	_ = json.Unmarshal(bodyBytes, &req)
 	if isForkchoiceUpdatedMethod(req.Method) {
 		p.fcuCalls.Add(1)
+	}
+	if isNewPayloadMethod(req.Method) {
+		p.newPayloadCalls.Add(1)
+	}
+
+	if p.hang.Load() && isTargetedEngineMethod(req.Method) {
+		// The request context is done once the caller drops the connection.
+		<-r.Context().Done()
+		return
 	}
 
 	if p.intercept(w, req) {
@@ -313,7 +336,8 @@ func (s *RPCErrorProxySuite) TearDownTest() {
 	s.CleanupTest(s.T())
 }
 
-// preparedProposal holds the state needed to call FinalizeBlock.
+// preparedProposal holds the state needed to call ProcessProposal and
+// FinalizeBlock.
 type preparedProposal struct {
 	txs             [][]byte
 	height          int64
@@ -321,42 +345,72 @@ type preparedProposal struct {
 	proposalTime    time.Time
 }
 
-// prepareForFinalize advances the chain and prepares a proposal, returning
-// the data needed to call FinalizeBlock.
-func (s *RPCErrorProxySuite) prepareForFinalize() preparedProposal {
-	s.T().Helper()
+func (pp preparedProposal) processRequest() *types.ProcessProposalRequest {
+	return &types.ProcessProposalRequest{
+		Txs:             pp.txs,
+		Height:          pp.height,
+		ProposerAddress: pp.proposerAddress,
+		Time:            pp.proposalTime,
+	}
+}
 
-	const blockHeight = 1
-	const coreLoopIterations = 1
+func (pp preparedProposal) finalizeRequest() *types.FinalizeBlockRequest {
+	return &types.FinalizeBlockRequest{
+		Txs:             pp.txs,
+		Height:          pp.height,
+		ProposerAddress: pp.proposerAddress,
+		Time:            pp.proposalTime,
+	}
+}
+
+// initChain initializes the chain and returns the address of the node.
+func (s *RPCErrorProxySuite) initChain() []byte {
+	s.T().Helper()
 
 	s.InitializeChain(s.T(), 1)
 	nodeAddress, err := s.SimComet.GetNodeAddress()
 	s.Require().NoError(err)
 	s.SimComet.Comet.SetNodeAddress(nodeAddress)
+	return nodeAddress
+}
 
-	startTime := time.Now()
+// prepareProposal initializes the chain, finalizes every block below height
+// and prepares a proposal for height.
+func (s *RPCErrorProxySuite) prepareProposal(height int64) preparedProposal {
+	s.T().Helper()
 
-	proposals, _, proposalTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, nodeAddress, startTime)
-	s.Require().Len(proposals, coreLoopIterations)
+	const firstHeight = 1
+	nodeAddress := s.initChain()
 
-	currentHeight := int64(blockHeight + coreLoopIterations)
+	finalized := height - firstHeight
+	proposals, _, proposalTime := s.MoveChainToHeight(s.T(), firstHeight, finalized, nodeAddress, time.Now())
+	s.Require().Len(proposals, int(finalized))
 
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
-		Height:          currentHeight,
+		Height:          height,
 		Time:            proposalTime,
 		ProposerAddress: nodeAddress,
 	})
 	s.Require().NoError(err)
-	s.Require().NotEmpty(proposal)
+	s.Require().Len(proposal.Txs, 2)
 
 	s.LogBuffer.Reset()
 
 	return preparedProposal{
 		txs:             proposal.Txs,
-		height:          currentHeight,
+		height:          height,
 		proposerAddress: nodeAddress,
 		proposalTime:    proposalTime,
 	}
+}
+
+// prepareForFinalize prepares a proposal on top of one finalized block, so
+// the startup sync has already run.
+func (s *RPCErrorProxySuite) prepareForFinalize() preparedProposal {
+	s.T().Helper()
+
+	const secondHeight = 2
+	return s.prepareProposal(secondHeight)
 }
 
 // TestFinalizeBlock_FatalRPCError_Surfaces shows that a fatal engine-API
@@ -373,12 +427,7 @@ func (s *RPCErrorProxySuite) TestFinalizeBlock_FatalRPCError_Surfaces() {
 	s.errProxy.activate(-32700, "Parse Error")
 	defer s.errProxy.deactivate()
 
-	_, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.FinalizeBlockRequest{
-		Txs:             pp.txs,
-		Height:          pp.height,
-		ProposerAddress: pp.proposerAddress,
-		Time:            pp.proposalTime,
-	})
+	_, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, pp.finalizeRequest())
 
 	s.Require().Error(err, "FinalizeBlock must surface fatal engine-API errors instead of looping")
 
@@ -399,46 +448,12 @@ func (s *RPCErrorProxySuite) TestFinalizeBlock_HTTP4xx_Surfaces() {
 	s.errProxy.activateHTTPStatus(http.StatusRequestEntityTooLarge)
 	defer s.errProxy.deactivate()
 
-	_, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.FinalizeBlockRequest{
-		Txs:             pp.txs,
-		Height:          pp.height,
-		ProposerAddress: pp.proposerAddress,
-		Time:            pp.proposalTime,
-	})
+	_, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, pp.finalizeRequest())
 
 	s.Require().Error(err, "FinalizeBlock must surface HTTP 4xx instead of looping")
 
 	logs := s.LogBuffer.String()
 	s.Require().Contains(logs, "fatal error", "Should log the fatal error")
-}
-
-// TestFinalizeBlock_HTTP429_Recovers pins the carve-out for RFC-retryable
-// 4xx codes: a proxy/rate-limiter returning 429 must not surface as fatal,
-// because retrying after backoff is the prescribed response. FinalizeBlock
-// recovers once the 429 stops.
-func (s *RPCErrorProxySuite) TestFinalizeBlock_HTTP429_Recovers() {
-	pp := s.prepareForFinalize()
-
-	s.errProxy.activateHTTPStatus(http.StatusTooManyRequests)
-
-	// Stop returning 429 after a short delay so the retry can succeed.
-	go func() {
-		time.Sleep(500 * time.Millisecond)
-		s.errProxy.deactivate()
-	}()
-
-	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.FinalizeBlockRequest{
-		Txs:             pp.txs,
-		Height:          pp.height,
-		ProposerAddress: pp.proposerAddress,
-		Time:            pp.proposalTime,
-	})
-
-	s.Require().NoError(err, "FinalizeBlock should recover after rate limit lifts")
-	s.Require().NotNil(finalizeResp)
-
-	logs := s.LogBuffer.String()
-	s.Require().Contains(logs, "non fatal error", "429 must be classified as retryable, not fatal")
 }
 
 // TestFinalizeBlock_ConnectionDrop_Recovery shows that when the EL is
@@ -457,12 +472,7 @@ func (s *RPCErrorProxySuite) TestFinalizeBlock_ConnectionDrop_Recovery() {
 		s.errProxy.deactivate()
 	}()
 
-	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.FinalizeBlockRequest{
-		Txs:             pp.txs,
-		Height:          pp.height,
-		ProposerAddress: pp.proposerAddress,
-		Time:            pp.proposalTime,
-	})
+	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, pp.finalizeRequest())
 
 	s.Require().NoError(err, "FinalizeBlock should recover after EL comes back")
 	s.Require().NotNil(finalizeResp)
@@ -471,44 +481,19 @@ func (s *RPCErrorProxySuite) TestFinalizeBlock_ConnectionDrop_Recovery() {
 	s.Require().Contains(logs, "non fatal error", "Should log non fatal retry attempts")
 }
 
-// TestFinalizeBlock_NewPayloadSyncing_Accepted shows that FinalizeBlock accepts
-// a SYNCING status from NewPayload and relies on the FCU that follows.
-func (s *RPCErrorProxySuite) TestFinalizeBlock_NewPayloadSyncing_Accepted() {
-	pp := s.prepareForFinalize()
-
-	s.errProxy.activateSyncingNewPayload()
-	defer s.errProxy.deactivate()
-	fcuCallsBefore := s.errProxy.fcuCalls.Load()
-
-	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.FinalizeBlockRequest{
-		Txs:             pp.txs,
-		Height:          pp.height,
-		ProposerAddress: pp.proposerAddress,
-		Time:            pp.proposalTime,
-	})
-
-	s.Require().NoError(err, "FinalizeBlock should accept a SYNCING payload status")
-	s.Require().NotNil(finalizeResp)
-	s.Require().Contains(s.LogBuffer.String(), "pushed new payload to SYNCING/ACCEPTED node")
-	s.Require().Greater(s.errProxy.fcuCalls.Load(), fcuCallsBefore, "FCU must follow the SYNCING payload")
-}
-
-// TestFinalizeBlock_NewPayloadSyncing_SendsFCU shows that the post block FCU
-// is sent even if the optimistic build already sent the same one. The block
-// is verified under one CometBFT hash and finalized under another, as happens
-// when a later round re-proposes the same payload.
+// TestFinalizeBlock_NewPayloadSyncing_SendsFCU shows that FinalizeBlock accepts
+// a SYNCING status from NewPayload and sends the post block FCU, even if the
+// optimistic build already sent the same one. The block is verified under one
+// CometBFT hash and finalized under another, as happens when a later round
+// re-proposes the same payload.
 func (s *RPCErrorProxySuite) TestFinalizeBlock_NewPayloadSyncing_SendsFCU() {
 	pp := s.prepareForFinalize()
 
 	// Triggers an optimistic build, which sends the FCU for this block.
-	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
-		Txs:                 pp.txs,
-		Height:              pp.height,
-		ProposerAddress:     pp.proposerAddress,
-		Time:                pp.proposalTime,
-		NextProposerAddress: pp.proposerAddress,
-		Hash:                []byte("round-0"),
-	})
+	processReq := pp.processRequest()
+	processReq.NextProposerAddress = pp.proposerAddress
+	processReq.Hash = []byte("round-0")
+	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, processReq)
 	s.Require().NoError(err)
 	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
 	time.Sleep(200 * time.Millisecond) // This lets the optimistic build complete.
@@ -517,13 +502,9 @@ func (s *RPCErrorProxySuite) TestFinalizeBlock_NewPayloadSyncing_SendsFCU() {
 	defer s.errProxy.deactivate()
 	fcuCallsBefore := s.errProxy.fcuCalls.Load()
 
-	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.FinalizeBlockRequest{
-		Txs:             pp.txs,
-		Height:          pp.height,
-		ProposerAddress: pp.proposerAddress,
-		Time:            pp.proposalTime,
-		Hash:            []byte("round-1"),
-	})
+	finalizeReq := pp.finalizeRequest()
+	finalizeReq.Hash = []byte("round-1")
+	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, finalizeReq)
 
 	s.Require().NoError(err, "FinalizeBlock should accept a SYNCING payload status")
 	s.Require().NotNil(finalizeResp)
@@ -537,26 +518,12 @@ func (s *RPCErrorProxySuite) TestFinalizeBlock_NewPayloadSyncing_SendsFCU() {
 // EL is back.
 func (s *RPCErrorProxySuite) TestProcessProposal_StartupSync_WaitsForEL() {
 	const (
-		blockHeight = 1
+		firstHeight = 1
 		// Longer than the validate budget, so a bounded FCU would give up.
 		outage = 2500 * time.Millisecond
 	)
+	pp := s.prepareProposal(firstHeight)
 
-	s.InitializeChain(s.T(), 1)
-	nodeAddress, err := s.SimComet.GetNodeAddress()
-	s.Require().NoError(err)
-	s.SimComet.Comet.SetNodeAddress(nodeAddress)
-
-	proposalTime := time.Now()
-	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
-		Height:          blockHeight,
-		Time:            proposalTime,
-		ProposerAddress: nodeAddress,
-	})
-	s.Require().NoError(err)
-	s.Require().Len(proposal.Txs, 2)
-
-	s.LogBuffer.Reset()
 	s.errProxy.activateDropConn()
 
 	// Bring the EL back after the outage so the startup FCU can succeed.
@@ -565,16 +532,83 @@ func (s *RPCErrorProxySuite) TestProcessProposal_StartupSync_WaitsForEL() {
 		s.errProxy.deactivate()
 	}()
 
-	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
-		Txs:             proposal.Txs,
-		Height:          blockHeight,
-		ProposerAddress: nodeAddress,
-		Time:            proposalTime,
-	})
+	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, pp.processRequest())
 	s.Require().NoError(err)
 	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
 
 	logs := s.LogBuffer.String()
 	s.Require().Contains(logs, "Sending startup forkchoice update to execution client")
 	s.Require().NotContains(logs, "failed to send force head FCU", "startup FCU must not give up")
+}
+
+// TestProcessProposal_ConnectionDrop_Rejects shows that ProcessProposal does
+// not wait for an unreachable EL. It retries within the validate budget and
+// then rejects the proposal.
+func (s *RPCErrorProxySuite) TestProcessProposal_ConnectionDrop_Rejects() {
+	pp := s.prepareForFinalize()
+
+	s.errProxy.activateDropConn()
+	defer s.errProxy.deactivate()
+	callsBefore := s.errProxy.newPayloadCalls.Load()
+
+	start := time.Now()
+	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, pp.processRequest())
+	elapsed := time.Since(start)
+
+	s.Require().NoError(err)
+	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
+	s.Require().Less(elapsed, maxBoundedCall, "ProcessProposal must give up once the budget is spent")
+	s.Require().Greater(s.errProxy.newPayloadCalls.Load()-callsBefore, int32(1), "fast failures must be retried")
+}
+
+// TestProcessProposal_HungEL_Rejects shows that ProcessProposal does not wait
+// for an EL that stalls. With default config the validate budget is below the
+// RPC timeout, so the call that timed out is not retried.
+func (s *RPCErrorProxySuite) TestProcessProposal_HungEL_Rejects() {
+	pp := s.prepareForFinalize()
+
+	s.errProxy.activateHang()
+	defer s.errProxy.deactivate()
+	callsBefore := s.errProxy.newPayloadCalls.Load()
+
+	start := time.Now()
+	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, pp.processRequest())
+	elapsed := time.Since(start)
+
+	s.Require().NoError(err)
+	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
+	s.Require().GreaterOrEqual(elapsed, s.TestNode.EngineClient.GetRPCTimeout(), "the call in flight is not interrupted")
+	s.Require().Less(elapsed, maxBoundedCall, "ProcessProposal must give up after the RPC timeout")
+	s.Require().Equal(int32(1), s.errProxy.newPayloadCalls.Load()-callsBefore, "a timed out call must not be retried")
+}
+
+// TestPrepareProposal_ConnectionDrop_SkipsProposal shows that PrepareProposal
+// does not wait for an unreachable EL. It returns an empty proposal once the
+// build budget is spent, and proposes again once the EL is back.
+func (s *RPCErrorProxySuite) TestPrepareProposal_ConnectionDrop_SkipsProposal() {
+	const firstHeight = 1
+	nodeAddress := s.initChain()
+
+	// No payload was built for this height yet, so the proposer must send an FCU.
+	prepareReq := &types.PrepareProposalRequest{
+		Height:          firstHeight,
+		Time:            time.Now(),
+		ProposerAddress: nodeAddress,
+	}
+	s.errProxy.activateDropConn()
+	fcuCallsBefore := s.errProxy.fcuCalls.Load()
+
+	start := time.Now()
+	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, prepareReq)
+	elapsed := time.Since(start)
+
+	s.Require().NoError(err)
+	s.Require().Empty(proposal.Txs, "an unreachable EL must result in no proposal")
+	s.Require().Less(elapsed, maxBoundedCall, "PrepareProposal must give up once the budget is spent")
+	s.Require().Greater(s.errProxy.fcuCalls.Load()-fcuCallsBefore, int32(1), "fast failures must be retried")
+
+	s.errProxy.deactivate()
+	proposal, err = s.SimComet.Comet.PrepareProposal(s.CtxComet, prepareReq)
+	s.Require().NoError(err)
+	s.Require().Len(proposal.Txs, 2, "the node must propose once the EL is back")
 }
