@@ -36,11 +36,8 @@ import (
 	cmtcfg "github.com/cometbft/cometbft/config"
 )
 
-// consensusPhaseBudgetFraction is the share of the CometBFT phase timeout
-// reserved for the engine retry budget. The remainder is headroom for the
-// other phase work that shares the same consensus window — getPayload and
-// block assembly for PhaseBuild; blob KZG verification, state checks, and
-// vote propagation for PhaseValidate.
+// consensusPhaseBudgetFraction sizes the retry budget of the bounded phases
+// as a share of the matching CometBFT timeout.
 const consensusPhaseBudgetFraction = 0.75
 
 // Engine is Beacon-Kit's implementation of the `ExecutionEngine`
@@ -53,24 +50,21 @@ type Engine struct {
 	logger log.Logger
 	// metrics is the metrics for the engine.
 	metrics *engineMetrics
-	// buildBudget and validateBudget cap the retry loop in PhaseBuild and
-	// PhaseValidate respectively. They are sized as a fraction of the
-	// corresponding CometBFT phase timeout so a stuck engine call yields in
-	// time for consensus to advance, while leaving headroom for the rest of
-	// the phase work. PhaseFinalize and PhaseStartup are unbounded and
-	// ignore these.
+	// buildBudget and validateBudget are the retry budgets of PhaseBuild and
+	// PhaseValidate. No new attempt starts once the budget is spent. An
+	// attempt in flight is not interrupted, so a call takes at most the
+	// budget plus one RPC timeout. PhaseFinalize and PhaseStartup are
+	// unbounded and ignore these.
 	//
-	// validateBudget is pegged to TimeoutPrevote rather than TimeoutPropose:
-	// ProcessProposal runs during the propose phase, but the engine call's
-	// real deadline is "vote must be cast before TimeoutPrevote elapses."
-	// TimeoutPrevote is the safe upper bound, not the tightest one.
+	// The CometBFT timeouts only size the budgets. No consensus timer
+	// interrupts an ABCI handler.
 	buildBudget    time.Duration
 	validateBudget time.Duration
 }
 
 // New creates a new Engine. The PhaseBuild and PhaseValidate retry budgets are
-// derived from the matching CometBFT consensus phase timeouts (TimeoutPropose
-// and TimeoutPrevote) so they track operator-tuned consensus timeouts.
+// a fraction of TimeoutPropose and TimeoutPrevote, so they follow
+// operator-tuned consensus timeouts.
 //
 // Panics if either timeout is non-positive: zero would yield a zero budget,
 // which collapses to unbounded retry and silently undoes the bounded-phase
@@ -87,13 +81,38 @@ func New(
 			consensusCfg.TimeoutPropose, consensusCfg.TimeoutPrevote,
 		))
 	}
-	return &Engine{
+	ee := &Engine{
 		ec:             engineClient,
 		logger:         logger,
 		metrics:        newEngineMetrics(telemtrySink, logger),
 		buildBudget:    time.Duration(float64(consensusCfg.TimeoutPropose) * consensusPhaseBudgetFraction),
 		validateBudget: time.Duration(float64(consensusCfg.TimeoutPrevote) * consensusPhaseBudgetFraction),
 	}
+	ee.logRetryBudgets()
+	return ee
+}
+
+// logRetryBudgets logs the retry budgets of the bounded phases and whether
+// they leave room to retry a call that hit the RPC timeout.
+func (ee *Engine) logRetryBudgets() {
+	var (
+		rpcTimeout    = ee.ec.GetRPCTimeout()
+		retryInterval = ee.ec.GetRPCRetryInterval()
+	)
+	ee.logger.Info(
+		"Engine API retry budgets",
+		"build_budget", ee.buildBudget.String(),
+		"validate_budget", ee.validateBudget.String(),
+		"rpc_timeout", rpcTimeout.String(),
+		"build_retries_timeouts", retriesTimeouts(ee.buildBudget, rpcTimeout, retryInterval),
+		"validate_retries_timeouts", retriesTimeouts(ee.validateBudget, rpcTimeout, retryInterval),
+	)
+}
+
+// retriesTimeouts reports whether a call that hit the RPC timeout still has
+// budget left for another attempt.
+func retriesTimeouts(budget, rpcTimeout, retryInterval time.Duration) bool {
+	return budget >= rpcTimeout+retryInterval
 }
 
 // GetPayload returns the payload and blobs bundle for the given slot.

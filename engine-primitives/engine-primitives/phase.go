@@ -26,7 +26,8 @@ package engineprimitives
 //
 //   - PhaseBuild and PhaseValidate are bounded: a stuck call must return so
 //     CometBFT can move to a new round/proposer. This is what closes the
-//     malicious-payload retry-loop class of bugs.
+//     malicious-payload retry-loop class of bugs. The bound is the retry
+//     budget plus one RPC timeout.
 //   - PhaseFinalize is unbounded: the block is already agreed by >=2/3 of
 //     validators, so the node must eventually apply it or fall out of
 //     consensus. A brief EL outage is absorbed by retrying; the loop logs

@@ -67,8 +67,7 @@ type ExecutionEngineInputs struct {
 
 // ProvideExecutionEngine provides the execution engine to the depinject
 // framework. The PhaseBuild / PhaseValidate retry budgets are derived inside
-// engine.New from the consensus phase timeouts so a stuck engine call yields
-// in time for consensus to advance.
+// engine.New from the consensus phase timeouts.
 func ProvideExecutionEngine(in ExecutionEngineInputs) *engine.Engine {
 	return engine.New(
 		in.EngineClient,
