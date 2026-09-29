@@ -30,8 +30,8 @@ import (
 )
 
 // sendPostBlockFCU sends a forkchoice update to the execution client after a
-// block is finalized. With canSkip set, the update is not sent if the same
-// one was already sent for this block.
+// block is finalized. With canSkip set, the update is skipped if an identical
+// one was sent since the last finalized block.
 func (s *Service) sendPostBlockFCU(
 	ctx context.Context,
 	st *statedb.StateDB,
