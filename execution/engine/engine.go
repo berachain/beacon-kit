@@ -146,10 +146,13 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 	phase engineprimitives.EnginePhase,
 ) (*engineprimitives.PayloadID, error) {
 	hasPayloadAttributes := req.PayloadAttributes != nil
+	// retrying is set when the last attempt failed with a retryable error.
+	var retrying bool
 
-	return backoff.Retry(
+	payloadID, err := backoff.Retry(
 		ctx,
 		func() (*engineprimitives.PayloadID, error) {
+			retrying = false
 			ee.metrics.markNotifyForkchoiceUpdateCalled(hasPayloadAttributes)
 			payloadID, err := ee.ec.ForkchoiceUpdated(
 				ctx, req.State, req.PayloadAttributes, req.ForkVersion,
@@ -172,6 +175,7 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 			case errors.IsAny(err, engineerrors.ErrSyncingPayloadStatus):
 				ee.logger.Info("NotifyForkchoiceUpdate: EL syncing. Retrying...", "phase", phase)
 				ee.metrics.markForkchoiceUpdateSyncing(req.State, err)
+				retrying = true
 				return nil, err
 
 			case client.IsNonFatalError(err):
@@ -181,6 +185,7 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 					"err", err,
 				)
 				ee.metrics.markForkchoiceUpdateNonFatalError(err)
+				retrying = true
 				return nil, err
 
 			case errors.Is(err, engineerrors.ErrInvalidPayloadStatus):
@@ -211,6 +216,10 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 		backoff.WithMaxTries(0),
 		backoff.WithMaxElapsedTime(ee.phaseMaxElapsedTime(phase)),
 	)
+	if err != nil && retrying {
+		err = ee.budgetExhausted(ctx, err, phase)
+	}
+	return payloadID, err
 }
 
 // NotifyNewPayload notifies the execution client of the new payload.
@@ -222,11 +231,14 @@ func (ee *Engine) NotifyNewPayload(
 	var (
 		payloadHash       = req.GetExecutionPayload().GetBlockHash()
 		payloadParentHash = req.GetExecutionPayload().GetParentHash()
+		// retrying is set when the last attempt failed with a retryable error.
+		retrying bool
 	)
 
 	_, err := backoff.Retry(
 		ctx,
 		func() (*common.ExecutionHash, error) {
+			retrying = false
 			ee.metrics.markNewPayloadCalled(payloadHash, payloadParentHash)
 			lastValidHash, err := ee.ec.NewPayload(ctx, req)
 
@@ -255,6 +267,7 @@ func (ee *Engine) NotifyNewPayload(
 					"phase", phase,
 					"err", err,
 				)
+				retrying = true
 				return nil, err
 
 			case client.IsNonFatalError(err):
@@ -267,6 +280,7 @@ func (ee *Engine) NotifyNewPayload(
 					lastValidHash = &common.ExecutionHash{}
 				}
 				ee.metrics.markNewPayloadNonFatalError(payloadHash, *lastValidHash, err)
+				retrying = true
 				return nil, err
 
 			case errors.Is(err, engineerrors.ErrInvalidPayloadStatus):
@@ -300,7 +314,26 @@ func (ee *Engine) NotifyNewPayload(
 		backoff.WithMaxTries(0),
 		backoff.WithMaxElapsedTime(ee.phaseMaxElapsedTime(phase)),
 	)
+	if err != nil && retrying {
+		err = ee.budgetExhausted(ctx, err, phase)
+	}
 	return err
+}
+
+// budgetExhausted wraps the error of a retry loop that gave up on a retryable
+// error. A cancelled context ends the loop too, and is returned as is.
+func (ee *Engine) budgetExhausted(
+	ctx context.Context,
+	err error,
+	phase engineprimitives.EnginePhase,
+) error {
+	if ctx.Err() != nil {
+		return err
+	}
+	return fmt.Errorf(
+		"%w, phase %s, budget %s: %w",
+		ErrRetryBudgetExhausted, phase, ee.phaseMaxElapsedTime(phase), err,
+	)
 }
 
 // phaseMaxElapsedTime returns the backoff MaxElapsedTime for a given phase.

@@ -35,8 +35,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/execution/client/ethclient"
+	"github.com/berachain/beacon-kit/execution/engine"
 	"github.com/berachain/beacon-kit/log/phuslu"
+	jsonrpc "github.com/berachain/beacon-kit/primitives/net/json-rpc"
 	"github.com/berachain/beacon-kit/primitives/net/url"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
@@ -427,12 +430,13 @@ func (s *RPCErrorProxySuite) TestFinalizeBlock_FatalRPCError_Surfaces() {
 	s.errProxy.activate(-32700, "Parse Error")
 	defer s.errProxy.deactivate()
 
-	_, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, pp.finalizeRequest())
+	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, pp.finalizeRequest())
 
-	s.Require().Error(err, "FinalizeBlock must surface fatal engine-API errors instead of looping")
+	s.Require().ErrorIs(err, jsonrpc.ErrParse, "FinalizeBlock must surface fatal engine-API errors instead of looping")
+	s.Require().Nil(finalizeResp)
 
 	logs := s.LogBuffer.String()
-	s.Require().Contains(logs, "fatal error", "Should log the fatal error")
+	s.Require().Contains(logs, "EL returns fatal error", "Should log the fatal error")
 }
 
 // TestFinalizeBlock_HTTP4xx_Surfaces is the integration-level twin of
@@ -448,12 +452,13 @@ func (s *RPCErrorProxySuite) TestFinalizeBlock_HTTP4xx_Surfaces() {
 	s.errProxy.activateHTTPStatus(http.StatusRequestEntityTooLarge)
 	defer s.errProxy.deactivate()
 
-	_, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, pp.finalizeRequest())
+	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, pp.finalizeRequest())
 
-	s.Require().Error(err, "FinalizeBlock must surface HTTP 4xx instead of looping")
+	s.Require().ErrorIs(err, client.ErrHTTPClientError, "FinalizeBlock must surface HTTP 4xx instead of looping")
+	s.Require().Nil(finalizeResp)
 
 	logs := s.LogBuffer.String()
-	s.Require().Contains(logs, "fatal error", "Should log the fatal error")
+	s.Require().Contains(logs, "EL returns fatal error", "Should log the fatal error")
 }
 
 // TestFinalizeBlock_ConnectionDrop_Recovery shows that when the EL is
@@ -478,7 +483,7 @@ func (s *RPCErrorProxySuite) TestFinalizeBlock_ConnectionDrop_Recovery() {
 	s.Require().NotNil(finalizeResp)
 
 	logs := s.LogBuffer.String()
-	s.Require().Contains(logs, "non fatal error", "Should log non fatal retry attempts")
+	s.Require().Contains(logs, "EL returns non fatal error", "Should log non fatal retry attempts")
 }
 
 // TestFinalizeBlock_NewPayloadSyncing_SendsFCU shows that FinalizeBlock accepts
@@ -559,6 +564,7 @@ func (s *RPCErrorProxySuite) TestProcessProposal_ConnectionDrop_Rejects() {
 	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
 	s.Require().Less(elapsed, maxBoundedCall, "ProcessProposal must give up once the budget is spent")
 	s.Require().Greater(s.errProxy.newPayloadCalls.Load()-callsBefore, int32(1), "fast failures must be retried")
+	s.Require().Contains(s.LogBuffer.String(), engine.ErrRetryBudgetExhausted.Error())
 }
 
 // TestProcessProposal_HungEL_Rejects shows that ProcessProposal does not wait
@@ -580,6 +586,7 @@ func (s *RPCErrorProxySuite) TestProcessProposal_HungEL_Rejects() {
 	s.Require().GreaterOrEqual(elapsed, s.TestNode.EngineClient.GetRPCTimeout(), "the call in flight is not interrupted")
 	s.Require().Less(elapsed, maxBoundedCall, "ProcessProposal must give up after the RPC timeout")
 	s.Require().Equal(int32(1), s.errProxy.newPayloadCalls.Load()-callsBefore, "a timed out call must not be retried")
+	s.Require().Contains(s.LogBuffer.String(), engine.ErrRetryBudgetExhausted.Error())
 }
 
 // TestPrepareProposal_ConnectionDrop_SkipsProposal shows that PrepareProposal
@@ -606,6 +613,7 @@ func (s *RPCErrorProxySuite) TestPrepareProposal_ConnectionDrop_SkipsProposal() 
 	s.Require().Empty(proposal.Txs, "an unreachable EL must result in no proposal")
 	s.Require().Less(elapsed, maxBoundedCall, "PrepareProposal must give up once the budget is spent")
 	s.Require().Greater(s.errProxy.fcuCalls.Load()-fcuCallsBefore, int32(1), "fast failures must be retried")
+	s.Require().Contains(s.LogBuffer.String(), engine.ErrRetryBudgetExhausted.Error())
 
 	s.errProxy.deactivate()
 	proposal, err = s.SimComet.Comet.PrepareProposal(s.CtxComet, prepareReq)
