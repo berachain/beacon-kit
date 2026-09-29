@@ -49,7 +49,9 @@ const (
 	// applying a block that consensus has already agreed on.
 	PhaseFinalize
 	// PhaseStartup is used from one-shot startup paths (forceSyncUponProcess
-	// / forceSyncUponFinalize).
+	// / forceSyncUponFinalize). forceSyncUponProcess runs inside
+	// ProcessProposal, so the first ProcessProposal after a start is not
+	// bounded. Its request comes from local state, not from the proposal.
 	PhaseStartup
 )
 
