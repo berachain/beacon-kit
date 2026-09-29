@@ -68,6 +68,7 @@ type rpcErrorProxy struct {
 	syncingNewPayload atomic.Bool
 	hang              atomic.Bool
 	fcuCalls          atomic.Int32 // forkchoiceUpdated requests seen by the proxy
+	fcuAnswered       atomic.Int32 // forkchoiceUpdated requests answered by the EL
 	newPayloadCalls   atomic.Int32 // newPayload requests seen by the proxy
 	errorCode         int
 	errorMsg          string
@@ -196,6 +197,10 @@ func (p *rpcErrorProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(resp.StatusCode)
 	_, _ = io.Copy(w, resp.Body)
+
+	if isForkchoiceUpdatedMethod(req.Method) {
+		p.fcuAnswered.Add(1)
+	}
 }
 
 // intercept reports whether the request should be intercepted and writes
@@ -495,13 +500,16 @@ func (s *RPCErrorProxySuite) TestFinalizeBlock_NewPayloadSyncing_SendsFCU() {
 	pp := s.prepareForFinalize()
 
 	// Triggers an optimistic build, which sends the FCU for this block.
+	fcuAnsweredBefore := s.errProxy.fcuAnswered.Load()
 	processReq := pp.processRequest()
 	processReq.NextProposerAddress = pp.proposerAddress
 	processReq.Hash = []byte("round-0")
 	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, processReq)
 	s.Require().NoError(err)
 	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
-	time.Sleep(200 * time.Millisecond) // This lets the optimistic build complete.
+	s.Require().Eventually(func() bool {
+		return s.errProxy.fcuAnswered.Load() > fcuAnsweredBefore
+	}, 2*time.Second, 10*time.Millisecond, "the optimistic build must send its FCU")
 
 	s.errProxy.activateSyncingNewPayload()
 	defer s.errProxy.deactivate()

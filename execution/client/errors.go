@@ -54,7 +54,7 @@ var (
 
 // Handles errors received from the RPC server according to the specification.
 //
-//nolint:funlen // its ok
+//nolint:funlen // one case per JSON-RPC error code
 func (s *EngineClient) handleRPCError(
 	err error,
 ) error {
