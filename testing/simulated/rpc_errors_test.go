@@ -530,3 +530,51 @@ func (s *RPCErrorProxySuite) TestFinalizeBlock_NewPayloadSyncing_SendsFCU() {
 	s.Require().Contains(s.LogBuffer.String(), "pushed new payload to SYNCING/ACCEPTED node")
 	s.Require().Greater(s.errProxy.fcuCalls.Load(), fcuCallsBefore, "FCU must not be skipped after a SYNCING payload")
 }
+
+// TestProcessProposal_StartupSync_WaitsForEL shows that the startup FCU sent
+// by the first ProcessProposal is not bounded by the validate budget. It
+// retries while the EL is unreachable and the proposal is accepted once the
+// EL is back.
+func (s *RPCErrorProxySuite) TestProcessProposal_StartupSync_WaitsForEL() {
+	const (
+		blockHeight = 1
+		// Longer than the validate budget, so a bounded FCU would give up.
+		outage = 2500 * time.Millisecond
+	)
+
+	s.InitializeChain(s.T(), 1)
+	nodeAddress, err := s.SimComet.GetNodeAddress()
+	s.Require().NoError(err)
+	s.SimComet.Comet.SetNodeAddress(nodeAddress)
+
+	proposalTime := time.Now()
+	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
+		Height:          blockHeight,
+		Time:            proposalTime,
+		ProposerAddress: nodeAddress,
+	})
+	s.Require().NoError(err)
+	s.Require().Len(proposal.Txs, 2)
+
+	s.LogBuffer.Reset()
+	s.errProxy.activateDropConn()
+
+	// Bring the EL back after the outage so the startup FCU can succeed.
+	go func() {
+		time.Sleep(outage)
+		s.errProxy.deactivate()
+	}()
+
+	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
+		Txs:             proposal.Txs,
+		Height:          blockHeight,
+		ProposerAddress: nodeAddress,
+		Time:            proposalTime,
+	})
+	s.Require().NoError(err)
+	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
+
+	logs := s.LogBuffer.String()
+	s.Require().Contains(logs, "Sending startup forkchoice update to execution client")
+	s.Require().NotContains(logs, "failed to send force head FCU", "startup FCU must not give up")
+}
