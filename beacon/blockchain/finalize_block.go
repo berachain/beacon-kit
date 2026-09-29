@@ -81,8 +81,9 @@ func (s *Service) FinalizeBlock(
 		return nil, err
 	}
 
-	// STEP 4: Post Finalizations cleanups.
-	return valUpdates, s.PostFinalizeBlockOps(ctx, blk)
+	// STEP 4: Post Finalizations cleanups. The payload above may have been
+	// pushed to a SYNCING execution client, so the FCU must not be skipped.
+	return valUpdates, s.postFinalizeBlockOps(ctx, blk, false)
 }
 
 func (s *Service) FinalizeSidecars(
@@ -124,7 +125,13 @@ func (s *Service) FinalizeSidecars(
 	return nil
 }
 
+// PostFinalizeBlockOps runs the post finalization steps of a block that was
+// verified in ProcessProposal and did not go through FinalizeBlock.
 func (s *Service) PostFinalizeBlockOps(ctx sdk.Context, blk *ctypes.BeaconBlock) error {
+	return s.postFinalizeBlockOps(ctx, blk, true)
+}
+
+func (s *Service) postFinalizeBlockOps(ctx sdk.Context, blk *ctypes.BeaconBlock, canSkipFCU bool) error {
 	// TODO: consider extracting LatestExecutionPayloadHeader instead of using state here
 	st := s.storageBackend.StateFromContext(ctx)
 
@@ -147,7 +154,7 @@ func (s *Service) PostFinalizeBlockOps(ctx sdk.Context, blk *ctypes.BeaconBlock)
 		s.logger.Error("failed to processPruning", "error", err)
 	}
 
-	if err := s.sendPostBlockFCU(ctx, st); err != nil {
+	if err := s.sendPostBlockFCU(ctx, st, canSkipFCU); err != nil {
 		return fmt.Errorf("sendPostBlockFCU failed: %w", err)
 	}
 
