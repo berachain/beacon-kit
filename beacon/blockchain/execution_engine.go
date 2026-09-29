@@ -30,10 +30,12 @@ import (
 )
 
 // sendPostBlockFCU sends a forkchoice update to the execution client after a
-// block is finalized.
+// block is finalized. With canSkip set, the update is not sent if the same
+// one was already sent for this block.
 func (s *Service) sendPostBlockFCU(
 	ctx context.Context,
 	st *statedb.StateDB,
+	canSkip bool,
 ) error {
 	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
@@ -53,7 +55,7 @@ func (s *Service) sendPostBlockFCU(
 
 	latestRequestedFCU := s.latestFcuReq.Load()
 	s.latestFcuReq.Store(&engineprimitives.ForkchoiceStateV1{}) // reset and prepare for next block
-	if latestRequestedFCU.Equals(fcuData) {
+	if canSkip && latestRequestedFCU.Equals(fcuData) {
 		// we already sent the same FCU, likely due to optimistic block building
 		// being active. Avoid re-issuing the same request.
 		return nil
