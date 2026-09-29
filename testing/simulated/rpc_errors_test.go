@@ -45,20 +45,29 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-// HTTP proxy in between beacon node and execution client. Supports three
+// HTTP proxy in between beacon node and execution client. Supports four
 // injection modes:
 //   - activate(code, msg): return HTTP 200 with the given JSON-RPC error body
 //   - activateHTTPStatus(status): return the given HTTP status with a generic body
 //     (exercises the transport-level classification path, e.g. HTTP 4xx fatal)
 //   - activateDropConn: hijack and close the TCP connection (unreachable EL)
+//   - activateSyncingNewPayload: forward newPayload to the EL, answer SYNCING
 type rpcErrorProxy struct {
-	targetURL  string
-	active     atomic.Bool
-	dropConn   atomic.Bool
-	httpStatus atomic.Int32 // 0 = inactive; otherwise the status code to return
-	errorCode  int
-	errorMsg   string
-	httpClient *http.Client
+	targetURL         string
+	active            atomic.Bool
+	dropConn          atomic.Bool
+	httpStatus        atomic.Int32 // 0 = inactive; otherwise the status code to return
+	syncingNewPayload atomic.Bool
+	fcuCalls          atomic.Int32 // forkchoiceUpdated requests seen by the proxy
+	errorCode         int
+	errorMsg          string
+	httpClient        *http.Client
+}
+
+// rpcRequest holds the JSON-RPC request fields the proxy cares about.
+type rpcRequest struct {
+	ID     json.RawMessage `json:"id"`
+	Method string          `json:"method"`
 }
 
 func newRPCErrorProxy(targetURL string) *rpcErrorProxy {
@@ -87,10 +96,17 @@ func (p *rpcErrorProxy) activateDropConn() {
 	p.dropConn.Store(true)
 }
 
+// activateSyncingNewPayload makes the proxy answer newPayload with a SYNCING
+// status. The request is still forwarded, so the EL imports the payload.
+func (p *rpcErrorProxy) activateSyncingNewPayload() {
+	p.syncingNewPayload.Store(true)
+}
+
 func (p *rpcErrorProxy) deactivate() {
 	p.active.Store(false)
 	p.dropConn.Store(false)
 	p.httpStatus.Store(0)
+	p.syncingNewPayload.Store(false)
 }
 
 func (p *rpcErrorProxy) getErr(reqId json.RawMessage) string {
@@ -108,7 +124,14 @@ func (p *rpcErrorProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	if p.intercept(w, bodyBytes) {
+	// Requests that fail to parse have no method and are forwarded untouched.
+	var req rpcRequest
+	_ = json.Unmarshal(bodyBytes, &req)
+	if isForkchoiceUpdatedMethod(req.Method) {
+		p.fcuCalls.Add(1)
+	}
+
+	if p.intercept(w, req) {
 		return
 	}
 
@@ -130,6 +153,16 @@ func (p *rpcErrorProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	defer resp.Body.Close()
 
+	if p.syncingNewPayload.Load() && isNewPayloadMethod(req.Method) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = fmt.Fprintf(w,
+			`{"jsonrpc":"2.0","id":%s,"result":{"status":"SYNCING","latestValidHash":null,"validationError":null}}`,
+			string(req.ID),
+		)
+		return
+	}
+
 	for k, vv := range resp.Header {
 		for _, v := range vv {
 			w.Header().Add(k, v)
@@ -141,17 +174,13 @@ func (p *rpcErrorProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // intercept reports whether the request should be intercepted and writes
 // the intercepted response to w. Returns true when the request was handled.
-func (p *rpcErrorProxy) intercept(w http.ResponseWriter, bodyBytes []byte) bool {
+func (p *rpcErrorProxy) intercept(w http.ResponseWriter, req rpcRequest) bool {
 	// Snapshot all flags once so a concurrent deactivate() can't change them mid-request.
 	active, dropConn, httpStatus := p.active.Load(), p.dropConn.Load(), int(p.httpStatus.Load())
 	if !active && !dropConn && httpStatus == 0 {
 		return false
 	}
-	var req struct {
-		ID     json.RawMessage `json:"id"`
-		Method string          `json:"method"`
-	}
-	if json.Unmarshal(bodyBytes, &req) != nil || !isTargetedEngineMethod(req.Method) {
+	if !isTargetedEngineMethod(req.Method) {
 		return false
 	}
 	if dropConn {
@@ -187,11 +216,22 @@ func dropTCPConn(w http.ResponseWriter) {
 }
 
 func isTargetedEngineMethod(method string) bool {
+	return isNewPayloadMethod(method) || isForkchoiceUpdatedMethod(method)
+}
+
+func isNewPayloadMethod(method string) bool {
 	switch method {
 	case ethclient.NewPayloadMethodV3,
 		ethclient.NewPayloadMethodV4,
-		ethclient.NewPayloadMethodV4P11,
-		ethclient.ForkchoiceUpdatedMethodV3,
+		ethclient.NewPayloadMethodV4P11:
+		return true
+	}
+	return false
+}
+
+func isForkchoiceUpdatedMethod(method string) bool {
+	switch method {
+	case ethclient.ForkchoiceUpdatedMethodV3,
 		ethclient.ForkchoiceUpdatedMethodV3P11:
 		return true
 	}
@@ -429,4 +469,64 @@ func (s *RPCErrorProxySuite) TestFinalizeBlock_ConnectionDrop_Recovery() {
 
 	logs := s.LogBuffer.String()
 	s.Require().Contains(logs, "non fatal error", "Should log non fatal retry attempts")
+}
+
+// TestFinalizeBlock_NewPayloadSyncing_Accepted shows that FinalizeBlock accepts
+// a SYNCING status from NewPayload and relies on the FCU that follows.
+func (s *RPCErrorProxySuite) TestFinalizeBlock_NewPayloadSyncing_Accepted() {
+	pp := s.prepareForFinalize()
+
+	s.errProxy.activateSyncingNewPayload()
+	defer s.errProxy.deactivate()
+	fcuCallsBefore := s.errProxy.fcuCalls.Load()
+
+	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.FinalizeBlockRequest{
+		Txs:             pp.txs,
+		Height:          pp.height,
+		ProposerAddress: pp.proposerAddress,
+		Time:            pp.proposalTime,
+	})
+
+	s.Require().NoError(err, "FinalizeBlock should accept a SYNCING payload status")
+	s.Require().NotNil(finalizeResp)
+	s.Require().Contains(s.LogBuffer.String(), "pushed new payload to SYNCING/ACCEPTED node")
+	s.Require().Greater(s.errProxy.fcuCalls.Load(), fcuCallsBefore, "FCU must follow the SYNCING payload")
+}
+
+// TestFinalizeBlock_NewPayloadSyncing_SendsFCU shows that the post block FCU
+// is sent even if the optimistic build already sent the same one. The block
+// is verified under one CometBFT hash and finalized under another, as happens
+// when a later round re-proposes the same payload.
+func (s *RPCErrorProxySuite) TestFinalizeBlock_NewPayloadSyncing_SendsFCU() {
+	pp := s.prepareForFinalize()
+
+	// Triggers an optimistic build, which sends the FCU for this block.
+	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
+		Txs:                 pp.txs,
+		Height:              pp.height,
+		ProposerAddress:     pp.proposerAddress,
+		Time:                pp.proposalTime,
+		NextProposerAddress: pp.proposerAddress,
+		Hash:                []byte("round-0"),
+	})
+	s.Require().NoError(err)
+	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
+	time.Sleep(200 * time.Millisecond) // This lets the optimistic build complete.
+
+	s.errProxy.activateSyncingNewPayload()
+	defer s.errProxy.deactivate()
+	fcuCallsBefore := s.errProxy.fcuCalls.Load()
+
+	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.FinalizeBlockRequest{
+		Txs:             pp.txs,
+		Height:          pp.height,
+		ProposerAddress: pp.proposerAddress,
+		Time:            pp.proposalTime,
+		Hash:            []byte("round-1"),
+	})
+
+	s.Require().NoError(err, "FinalizeBlock should accept a SYNCING payload status")
+	s.Require().NotNil(finalizeResp)
+	s.Require().Contains(s.LogBuffer.String(), "pushed new payload to SYNCING/ACCEPTED node")
+	s.Require().Greater(s.errProxy.fcuCalls.Load(), fcuCallsBefore, "FCU must not be skipped after a SYNCING payload")
 }
