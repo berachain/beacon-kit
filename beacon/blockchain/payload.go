@@ -33,7 +33,8 @@ import (
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-// forceSyncUponProcess sends a force head FCU to the execution client.
+// forceSyncUponProcess sends a force head FCU to the execution client. It
+// blocks until the EL is reachable and has the head.
 func (s *Service) forceSyncUponProcess(
 	ctx context.Context,
 	st *statedb.StateDB,
