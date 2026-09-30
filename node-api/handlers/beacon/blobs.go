@@ -48,14 +48,16 @@ func (h *Handler) GetBlobSidecars(c handlers.Context) (any, error) {
 		return nil, err
 	}
 
+	headHeight, _ := h.backend.GetSyncData()
+	if headHeight < 0 {
+		return nil, errors.New("invalid negative block height")
+	}
+
 	var slot math.Slot
-	if slotID == utils.Head {
-		latestHeight, _ := h.backend.GetSyncData()
-		if latestHeight < 0 {
-			return nil, errors.New("invalid negative block height")
-		}
-		slot = math.Slot(latestHeight)
-	} else {
+	switch slotID {
+	case utils.Head:
+		slot = math.Slot(headHeight)
+	default:
 		slot = math.Slot(slotID) //#nosec: G115 // practically safe
 	}
 
@@ -70,11 +72,12 @@ func (h *Handler) GetBlobSidecars(c handlers.Context) (any, error) {
 		indices[i] = idx.Unwrap()
 	}
 
-	// Validate the requested slot is within the Data Availability Period.
-	if !h.cs.WithinDAPeriod(slot, slot) {
+	// Validate the requested slot is within the DA period (epoch-based WithinDAPeriod,
+	// same check as FinalizeSidecars). Reference local head, not sync target.
+	if !h.cs.WithinDAPeriod(slot, math.Slot(headHeight)) {
 		return nil, fmt.Errorf(
 			"requested slot (%d) is not within Data Availability Period (previous %d epochs)",
-			slotID, h.cs.MinEpochsForBlobsSidecarsRequest(),
+			slot.Unwrap(), h.cs.MinEpochsForBlobsSidecarsRequest(),
 		)
 	}
 
