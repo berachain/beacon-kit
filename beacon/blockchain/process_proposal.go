@@ -250,7 +250,7 @@ func (s *Service) verifyPayloadTxCount(ctx context.Context, blk *ctypes.BeaconBl
 		return fmt.Errorf("failed loading latest execution payload header: %w", err)
 	}
 	parentGasLimit := lph.GetGasLimit().Unwrap()
-	maxGasLimit := parentGasLimit + parentGasLimit/params.GasLimitBoundDivisor
+	maxGasLimit := parentGasLimit + parentGasLimit/params.GasLimitBoundDivisor - 1
 	maxTxs := maxGasLimit/params.TxGas + 1 // +1 for the PoL tx
 	numTxs := uint64(len(blk.GetBody().GetExecutionPayload().GetTransactions()))
 	if numTxs > maxTxs {

@@ -236,7 +236,7 @@ func (s *SimulatedSuite) TestProcessProposal_TooManyTxs_IsRejected() {
 	lph, err := s.TestNode.StorageBackend.StateFromContext(queryCtx).GetLatestExecutionPayloadHeader()
 	s.Require().NoError(err)
 	parentGasLimit := lph.GetGasLimit().Unwrap()
-	maxTxs := (parentGasLimit+parentGasLimit/params.GasLimitBoundDivisor)/params.TxGas + 1
+	maxTxs := (parentGasLimit+parentGasLimit/params.GasLimitBoundDivisor-1)/params.TxGas + 1
 
 	validProposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
