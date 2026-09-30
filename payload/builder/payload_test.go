@@ -200,7 +200,7 @@ func (ee *stubExecutionEngine) GetPayload(
 }
 
 func (ee *stubExecutionEngine) NotifyForkchoiceUpdate(
-	context.Context, *ctypes.ForkchoiceUpdateRequest,
+	context.Context, *ctypes.ForkchoiceUpdateRequest, engineprimitives.EnginePhase,
 ) (*engineprimitives.PayloadID, error) {
 	return nil, errStubNotImplemented
 }
