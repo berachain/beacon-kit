@@ -27,10 +27,7 @@ import (
 	"testing"
 
 	corestore "cosmossdk.io/core/store"
-	"cosmossdk.io/log"
-	"cosmossdk.io/store"
-	"cosmossdk.io/store/metrics"
-	storetypes "cosmossdk.io/store/types"
+	"cosmossdk.io/log/v2"
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/log/noop"
@@ -45,7 +42,10 @@ import (
 	"github.com/berachain/beacon-kit/storage/beacondb"
 	"github.com/berachain/beacon-kit/storage/db"
 	"github.com/berachain/beacon-kit/storage/deposit"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	dbm "github.com/cosmos/cosmos-db"
+	"github.com/cosmos/cosmos-sdk/store/v2"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -88,15 +88,11 @@ func BuildTestStores() (
 		return nil, nil, nil, fmt.Errorf("failed opening mem deposits db: %w", err)
 	}
 
-	var (
-		nopLog     = log.NewNopLogger()
-		nopMetrics = metrics.NewNoOpMetrics()
-	)
+	nopLog := log.NewNopLogger()
 
 	cms := store.NewCommitMultiStore(
 		appDB,
 		nopLog,
-		nopMetrics,
 	)
 
 	cms.MountStoreWithDB(testStoreKey, storetypes.StoreTypeIAVL, nil)
@@ -132,7 +128,7 @@ func SetupTestState(t *testing.T, cs chain.Spec) (
 	cms, kvStore, depositStore, err := BuildTestStores()
 	require.NoError(t, err)
 
-	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), true, log.NewNopLogger())
+	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), cmtproto.Header{}, true, log.NewNopLogger())
 	beaconState := statedb.NewBeaconStateFromDB(
 		kvStore.WithContext(sdkCtx), cs, sdkCtx.Logger(), nodemetrics.NewNoOpTelemetrySink(),
 	)

@@ -25,13 +25,13 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
-	storetypes "cosmossdk.io/store/types"
-	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
+	abci "github.com/cometbft/cometbft/abci/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // NOTE: Partially copied from: https://github.com/cosmos/cosmos-sdk/blob/960d44842b9e313cbe762068a67a894ac82060ab/baseapp/abci.go#L1098
-func (s *Service) handleQueryStore(path []string, req *abci.QueryRequest) abci.QueryResponse {
+func (s *Service) handleQueryStore(path []string, req *abci.RequestQuery) abci.ResponseQuery {
 	queryable, ok := s.sm.GetCommitMultiStore().(storetypes.Queryable)
 	if !ok {
 		return queryResult(
@@ -56,7 +56,7 @@ func (s *Service) handleQueryStore(path []string, req *abci.QueryRequest) abci.Q
 	}
 	resp.Height = req.Height
 
-	return abci.QueryResponse(*resp)
+	return abci.ResponseQuery(*resp)
 }
 
 // NOTE: Copied from here: https://github.com/cosmos/cosmos-sdk/blob/960d44842b9e313cbe762068a67a894ac82060ab/baseapp/errors.go#L37-L46.
@@ -65,9 +65,9 @@ func (s *Service) handleQueryStore(path []string, req *abci.QueryRequest) abci.Q
 //
 // queryResult returns a ResponseQuery from an error. It will try to parse ABCI
 // info from the error.
-func queryResult(err error) abci.QueryResponse {
+func queryResult(err error) abci.ResponseQuery {
 	space, code, log := errorsmod.ABCIInfo(err, false)
-	return abci.QueryResponse{
+	return abci.ResponseQuery{
 		Codespace: space,
 		Code:      code,
 		Log:       log,

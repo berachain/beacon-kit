@@ -26,17 +26,17 @@ import (
 	"testing"
 
 	corestore "cosmossdk.io/core/store"
-	"cosmossdk.io/log"
-	"cosmossdk.io/store"
-	"cosmossdk.io/store/metrics"
-	storetypes "cosmossdk.io/store/types"
+	"cosmossdk.io/log/v2"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/storage"
 	"github.com/berachain/beacon-kit/storage/beacondb"
 	"github.com/berachain/beacon-kit/storage/db"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	dbm "github.com/cosmos/cosmos-db"
+	"github.com/cosmos/cosmos-sdk/store/v2"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 )
@@ -362,15 +362,11 @@ func initTestStore() (*beacondb.KVStore, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed opening mem db: %w", err)
 	}
-	var (
-		nopLog     = log.NewNopLogger()
-		nopMetrics = metrics.NewNoOpMetrics()
-	)
+	nopLog := log.NewNopLogger()
 
 	cms := store.NewCommitMultiStore(
 		db,
 		nopLog,
-		nopMetrics,
 	)
 
 	cms.MountStoreWithDB(testStoreKey, storetypes.StoreTypeIAVL, nil)
@@ -378,7 +374,7 @@ func initTestStore() (*beacondb.KVStore, error) {
 		return nil, fmt.Errorf("failed to load latest version: %w", err)
 	}
 
-	ctx := sdk.NewContext(cms, true, nopLog)
+	ctx := sdk.NewContext(cms, cmtproto.Header{}, true, nopLog)
 	testStoreService := &testKVStoreService{
 		ctx: ctx,
 	}
