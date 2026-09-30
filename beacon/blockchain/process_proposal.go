@@ -46,6 +46,7 @@ import (
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/params"
 )
 
 const (
@@ -114,6 +115,11 @@ func (s *Service) ProcessProposal(
 			s.chainSpec.MaxBlobsPerBlock(), numCommitments,
 			core.ErrExceedsBlockBlobLimit,
 		)
+	}
+
+	// Bound the tx count before the per-tx hashing done by signature and payload verification.
+	if err = s.verifyPayloadTxCount(ctx, blk); err != nil {
+		return nil, err
 	}
 
 	// Verify the block and sidecar signatures. We can simply verify the block
@@ -232,6 +238,25 @@ func (s *Service) VerifyIncomingBlockSignature(
 		return fmt.Errorf("failed verifying incoming block signature: %w", err)
 	}
 	return err
+}
+
+// verifyPayloadTxCount rejects payloads with more txs than any valid gas limit allows. Every tx
+// costs at least TxGas except the gas-free PoL tx. The gas limit is taken from the parent since
+// the payload's own value is set by the proposer, and the EL lets it rise by less than
+// parentGasLimit/GasLimitBoundDivisor per block.
+func (s *Service) verifyPayloadTxCount(ctx context.Context, blk *ctypes.BeaconBlock) error {
+	lph, err := s.storageBackend.StateFromContext(ctx).GetLatestExecutionPayloadHeader()
+	if err != nil {
+		return fmt.Errorf("failed loading latest execution payload header: %w", err)
+	}
+	parentGasLimit := lph.GetGasLimit().Unwrap()
+	maxGasLimit := parentGasLimit + parentGasLimit/params.GasLimitBoundDivisor - 1
+	maxTxs := maxGasLimit/params.TxGas + 1 // +1 for the PoL tx
+	numTxs := uint64(len(blk.GetBody().GetExecutionPayload().GetTransactions()))
+	if numTxs > maxTxs {
+		return fmt.Errorf("%w, max: %d, got: %d", ErrTooManyPayloadTxs, maxTxs, numTxs)
+	}
+	return nil
 }
 
 // VerifyIncomingBlobSidecars verifies the BlobSidecars of an incoming

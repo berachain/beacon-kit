@@ -40,4 +40,6 @@ var (
 	ErrSidecarCommitmentMismatch = errors.New("sidecars commitments mismatch")
 	// ErrSidecarSignatureMismatch indicates that the sidecar signature is invalid.
 	ErrSidecarSignatureMismatch = errors.New("sidecar signature mismatch")
+	// ErrTooManyPayloadTxs indicates that the execution payload has more txs than the gas limit allows.
+	ErrTooManyPayloadTxs = errors.New("too many execution payload txs")
 )
