@@ -28,7 +28,7 @@ import (
 	"strings"
 	"testing"
 
-	cosmoslog "cosmossdk.io/log"
+	cosmoslog "cosmossdk.io/log/v2"
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
@@ -46,6 +46,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/labstack/echo/v4"
@@ -571,7 +572,7 @@ func makeTestState(t *testing.T, cs chain.Spec) *statedb.StateDB {
 
 	cms, kvStore, _, errSt := statetransition.BuildTestStores()
 	require.NoError(t, errSt)
-	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), true, cosmoslog.NewNopLogger())
+	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), cmtproto.Header{}, true, cosmoslog.NewNopLogger())
 	st := statedb.NewBeaconStateFromDB(
 		kvStore.WithContext(sdkCtx), cs, sdkCtx.Logger(), metrics.NewNoOpTelemetrySink(),
 	)

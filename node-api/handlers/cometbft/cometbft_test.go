@@ -33,7 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers/cometbft/mocks"
 	"github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/middleware"
-	cmtversion "github.com/cometbft/cometbft/api/cometbft/version/v1"
+	cmtversion "github.com/cometbft/cometbft/proto/tendermint/version"
 	cmttypes "github.com/cometbft/cometbft/types"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/require"

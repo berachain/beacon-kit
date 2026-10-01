@@ -24,23 +24,24 @@ import (
 	"context"
 
 	"cosmossdk.io/core/store"
+	dbm "github.com/cosmos/cosmos-db"
 )
 
 var _ store.KVStoreService = (*KVStoreProvider)(nil)
 
 // KVStoreProvider is a provider for a KV store.
 type KVStoreProvider struct {
-	store.KVStoreWithBatch
+	dbm.DB
 }
 
 // NewKVStoreProvider creates a new KV store provider.
-func NewKVStoreProvider(kvsb store.KVStoreWithBatch) *KVStoreProvider {
+func NewKVStoreProvider(kvsb dbm.DB) *KVStoreProvider {
 	return &KVStoreProvider{
-		KVStoreWithBatch: kvsb,
+		DB: kvsb,
 	}
 }
 
 // OpenKVStore opens a new KV store.
 func (p *KVStoreProvider) OpenKVStore(context.Context) store.KVStore {
-	return p.KVStoreWithBatch
+	return p.DB
 }
