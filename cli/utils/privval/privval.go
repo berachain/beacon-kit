@@ -27,6 +27,7 @@ package privval
 import (
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 
@@ -80,7 +81,10 @@ func InitializeNodeValidatorFilesFromMnemonic(
 	if err != nil {
 		return "", nil, err
 	}
-	filePV := loadOrGenFilePV(privKey, pvKeyFile, pvStateFile)
+	filePV, err := loadOrGenFilePV(privKey, pvKeyFile, pvStateFile)
+	if err != nil {
+		return "", nil, err
+	}
 
 	pubKey, err := filePV.GetPubKey()
 	if err != nil {
@@ -107,14 +111,20 @@ func genPrivKey(mnemonic, keyType string) (cmtcrypto.PrivKey, error) {
 }
 
 // loadOrGenFilePV loads a FilePV from the given file paths or generates a
-// new one from privKey and saves it.
+// new one from privKey and saves it. A key is only generated when the key
+// file does not exist, any other stat error is returned.
 func loadOrGenFilePV(
 	privKey cmtcrypto.PrivKey, keyFilePath, stateFilePath string,
-) *privval.FilePV {
-	if _, err := os.Stat(keyFilePath); err == nil {
-		return privval.LoadFilePV(keyFilePath, stateFilePath)
+) (*privval.FilePV, error) {
+	_, err := os.Stat(keyFilePath)
+	switch {
+	case err == nil:
+		return privval.LoadFilePV(keyFilePath, stateFilePath), nil
+	case errors.Is(err, fs.ErrNotExist):
+		pv := privval.NewFilePV(privKey, keyFilePath, stateFilePath)
+		pv.Save()
+		return pv, nil
+	default:
+		return nil, fmt.Errorf("could not stat %q: %w", keyFilePath, err)
 	}
-	pv := privval.NewFilePV(privKey, keyFilePath, stateFilePath)
-	pv.Save()
-	return pv
 }
