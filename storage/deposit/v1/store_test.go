@@ -35,6 +35,7 @@ import (
 )
 
 func TestPruneRemovesStartEndRange(t *testing.T) {
+	t.Parallel()
 	baseDB, err := db.OpenDB("", dbm.MemDBBackend)
 	require.NoError(t, err)
 
