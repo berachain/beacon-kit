@@ -13,6 +13,7 @@ include contracts/Makefile
 include kurtosis/Makefile
 include scripts/build/help.mk
 include testing/forge-script/Makefile
+include testing/hardhat-deployment/Makefile
 
 # Specify the default target if none is provided
 .DEFAULT_GOAL := build
