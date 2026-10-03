@@ -217,8 +217,20 @@ func validatorSetsDiffs(
 		delete(prevValsSet, key)
 	}
 
-	// prevValsSet now contains all evicted validators (and only those)
+	// prevValsSet now contains all evicted validators (and only those).
+	// Range order over a Go map is randomized per process, so collect the
+	// keys and sort them before appending. Without this, two nodes evicting
+	// the same set in the same epoch emit ValidatorUpdates in different
+	// orders. CometBFT sorts the change set before applying it, so this is
+	// not observable today, but relying on that is fragile for a value
+	// derived from the state transition.
+	evicted := make([]string, 0, len(prevValsSet))
 	for pkBytes := range prevValsSet {
+		evicted = append(evicted, pkBytes)
+	}
+	slices.Sort(evicted)
+
+	for _, pkBytes := range evicted {
 		//#nosec:G703 // bytes comes from a pk
 		pk, _ := bytes.ToBytes48([]byte(pkBytes))
 		res = append(res, &transition.ValidatorUpdate{
