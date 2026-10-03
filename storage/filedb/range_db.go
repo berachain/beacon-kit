@@ -22,6 +22,7 @@ package filedb
 
 import (
 	"bytes"
+	"encoding/binary"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -61,15 +62,66 @@ type RangeDB struct {
 }
 
 // NewRangeDB creates a new RangeDB.
+//
+// lowerBoundIndex is restored from disk so that a restart does not reset the
+// prune floor to zero. Without this, the first Prune after every restart walks
+// the range from genesis, issuing one RemoveAll per index for the entire chain
+// history inside FinalizeBlock.
 func NewRangeDB(coreDB db.DB) *RangeDB {
 	cDB, ok := coreDB.(*DB)
 	if !ok {
 		panic(ErrRangeNotSupported)
 	}
-	return &RangeDB{
-		coreDB:          cDB,
-		lowerBoundIndex: 0,
+	rdb := &RangeDB{coreDB: cDB}
+
+	lowerBound, err := rdb.loadLowerBoundIndex()
+	if err != nil {
+		panic(fmt.Errorf("RangeDB: failed loading prune lower bound: %w", err))
 	}
+	rdb.lowerBoundIndex = lowerBound
+	return rdb
+}
+
+// lowerBoundFile is the reserved filename used to persist lowerBoundIndex. It
+// lives at the store root next to the numeric index directories, so it can
+// never collide with an index path (those are always "<uint64>/").
+const lowerBoundFile = "prune-lower-bound"
+
+// lowerBoundFilePerms are the permissions for the persisted lower bound file.
+const lowerBoundFilePerms = 0o600
+
+// loadLowerBoundIndex reads the persisted prune floor. A store that has never
+// been pruned has no such file, which is not an error and means zero.
+func (db *RangeDB) loadLowerBoundIndex() (uint64, error) {
+	bz, err := afero.ReadFile(db.coreDB.fs, lowerBoundFile)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return 0, nil
+		}
+		return 0, err
+	}
+	if len(bz) != lowerBoundEncodedLen {
+		return 0, fmt.Errorf(
+			"corrupt prune lower bound: got %d bytes, want %d",
+			len(bz), lowerBoundEncodedLen,
+		)
+	}
+	return binary.BigEndian.Uint64(bz), nil
+}
+
+// lowerBoundEncodedLen is the on-disk size of the encoded lower bound.
+const lowerBoundEncodedLen = 8
+
+// saveLowerBoundIndex durably records the prune floor so it survives a restart.
+func (db *RangeDB) saveLowerBoundIndex(index uint64) error {
+	if err := db.coreDB.fs.MkdirAll(".", db.coreDB.dirPerms); err != nil {
+		return err
+	}
+	var bz [lowerBoundEncodedLen]byte
+	binary.BigEndian.PutUint64(bz[:], index)
+	return afero.WriteFile(
+		db.coreDB.fs, lowerBoundFile, bz[:], lowerBoundFilePerms,
+	)
 }
 
 // Get retrieves the value associated with the given index and key.
@@ -150,6 +202,11 @@ func (db *RangeDB) Prune(start, end uint64) error {
 	// was successful and we return an error.
 	err := db.deleteRange(start, end)
 	db.lowerBoundIndex = end
+	// Persist the new floor so a restart resumes from here instead of walking
+	// the whole range from genesis again.
+	if saveErr := db.saveLowerBoundIndex(end); saveErr != nil {
+		return errors.Join(err, saveErr)
+	}
 	return err
 }
 
