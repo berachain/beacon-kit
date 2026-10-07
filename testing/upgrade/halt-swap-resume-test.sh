@@ -155,7 +155,7 @@ alive_count() {
 
 last_committed_height() {
     # `|| true` so a log without a match yields "" under pipefail; the caller fails loudly on an empty result.
-    grep -o "Committed state.*height=[0-9]*" "$LOG_DIR/cl$1.old.log" | grep -o "[0-9]*$" | tail -1 || true
+    grep -io "committed state.*height=[0-9]*" "$LOG_DIR/cl$1.old.log" | grep -o "[0-9]*$" | tail -1 || true
 }
 
 # el_tx_count_range <first> <last> — load txs in el0 blocks first..last, filtered by sender since every block

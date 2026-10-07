@@ -26,12 +26,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"cosmossdk.io/store"
-	storetypes "cosmossdk.io/store/types"
 	server "github.com/berachain/beacon-kit/cli/commands/server"
 	"github.com/berachain/beacon-kit/config"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/store/v2"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/cast"
 )

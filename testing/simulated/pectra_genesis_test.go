@@ -39,7 +39,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
-	v1 "github.com/cometbft/cometbft/api/cometbft/abci/v1"
+	v1 "github.com/cometbft/cometbft/abci/types"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -350,7 +350,7 @@ func (s *PectraGenesisSuite) TestFullLifecycle_WithFullWithdrawalRequest_IsSucce
 		s.Require().Len(finalizeBlockResponses[lastBlockIdx].GetValidatorUpdates(), 1)
 		ejectedValidator := finalizeBlockResponses[lastBlockIdx].GetValidatorUpdates()[0]
 		s.Require().Equal(int64(0), ejectedValidator.GetPower())
-		s.Require().Equal(blsSigner.PublicKey().String(), hex.EncodeBytes(ejectedValidator.GetPubKeyBytes()))
+		s.Require().Equal(blsSigner.PublicKey().String(), hex.EncodeBytes(ejectedValidator.PubKey.GetBls12381()))
 
 		nextBlockHeight = nextBlockHeight + int64(iterationsToExitEpoch)
 	}
@@ -414,11 +414,11 @@ func (s *PectraGenesisSuite) TestMaliciousProposer_AddInvalidExecutionRequests_I
 
 	// Create a signed block with invalid execution requests.
 	var maliciousSignedBlock *ctypes.SignedBeaconBlock
-	var proposal *v1.PrepareProposalResponse
+	var proposal *v1.ResponsePrepareProposal
 	proposalTime := time.Now()
 	{
 		s.LogBuffer.Reset()
-		proposal, err = s.SimComet.Comet.PrepareProposal(s.CtxComet, &v1.PrepareProposalRequest{
+		proposal, err = s.SimComet.Comet.PrepareProposal(s.CtxComet, &v1.RequestPrepareProposal{
 			Height:          nextBlockHeight,
 			Time:            time.Now(),
 			ProposerAddress: nodeAddress,
@@ -481,14 +481,14 @@ func (s *PectraGenesisSuite) TestMaliciousProposer_AddInvalidExecutionRequests_I
 		// Reset the log buffer to discard old logs we don't care about
 		s.LogBuffer.Reset()
 		// Process the proposal containing the malicious block.
-		processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &v1.ProcessProposalRequest{
+		processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &v1.RequestProcessProposal{
 			Txs:             proposal.Txs,
 			Height:          nextBlockHeight,
 			ProposerAddress: nodeAddress,
 			Time:            proposalTime,
 		})
 		s.Require().NoError(err)
-		s.Require().Equal(v1.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
+		s.Require().Equal(v1.ResponseProcessProposal_REJECT, processResp.Status)
 
 		// Verify that the log contains the expected error message.
 		s.Require().Contains(s.LogBuffer.String(), errors.ErrInvalidPayloadStatus.Error())

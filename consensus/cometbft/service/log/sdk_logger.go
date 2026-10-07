@@ -21,7 +21,9 @@
 package log
 
 import (
-	sdklog "cosmossdk.io/log"
+	"context"
+
+	sdklog "cosmossdk.io/log/v2"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/log/phuslu"
 )
@@ -44,4 +46,20 @@ func (l *SDKLogger) With(keyVals ...any) sdklog.Logger {
 
 func (l *SDKLogger) Impl() any {
 	return l.AdvancedLogger
+}
+
+func (l *SDKLogger) InfoContext(_ context.Context, msg string, keyVals ...any) {
+	l.Info(msg, keyVals...)
+}
+
+func (l *SDKLogger) WarnContext(_ context.Context, msg string, keyVals ...any) {
+	l.Warn(msg, keyVals...)
+}
+
+func (l *SDKLogger) ErrorContext(_ context.Context, msg string, keyVals ...any) {
+	l.Error(msg, keyVals...)
+}
+
+func (l *SDKLogger) DebugContext(_ context.Context, msg string, keyVals ...any) {
+	l.Debug(msg, keyVals...)
 }
