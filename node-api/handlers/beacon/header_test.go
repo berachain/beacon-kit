@@ -62,10 +62,11 @@ func TestGetBlockHeaders(t *testing.T) {
 		StateRoot:       common.Root{'p', 'a', 'r', 'e', 'n', 't', 's', 't', 'a', 't', 'e', 'r', 'o', 'o', 't'},
 		BodyRoot:        common.Root{'p', 'a', 'r', 'e', 'n', 't', 'r', 'o', 'o', 't'},
 	}
+	parentBlockRoot := testParentHeader.HashTreeRoot()
 	testHeader := &ctypes.BeaconBlockHeader{
 		Slot:            testParentHeader.Slot + 1,
 		ProposerIndex:   math.ValidatorIndex(5678),
-		ParentBlockRoot: testParentHeader.BodyRoot,
+		ParentBlockRoot: parentBlockRoot,
 		StateRoot:       common.Root{}, // set in test cases
 		BodyRoot:        common.Root{'d', 'u', 'm', 'm', 'y', 'r', 'o', 'o', 't'},
 	}
@@ -105,7 +106,7 @@ func TestGetBlockHeaders(t *testing.T) {
 				data, _ := gr.Data.([]beacontypes.BlockHeaderResponse)
 				require.Len(t, data, 1)
 
-				require.Equal(t, testHeader.BodyRoot, data[0].Root)
+				require.Equal(t, expectedHeaderBlockRoot(testHeader, expectedStateRoot), data[0].Root)
 				expectedHeader := &beacontypes.BeaconBlockHeader{
 					Slot:          testHeader.Slot.Base10(),
 					ProposerIndex: testHeader.ProposerIndex.Base10(),
@@ -145,7 +146,7 @@ func TestGetBlockHeaders(t *testing.T) {
 				data, _ := gr.Data.([]beacontypes.BlockHeaderResponse)
 				require.Len(t, data, 1)
 
-				require.Equal(t, testHeader.BodyRoot, data[0].Root)
+				require.Equal(t, expectedHeaderBlockRoot(testHeader, expectedStateRoot), data[0].Root)
 				expectedHeader := &beacontypes.BeaconBlockHeader{
 					Slot:          testHeader.Slot.Base10(),
 					ProposerIndex: testHeader.ProposerIndex.Base10(),
@@ -211,7 +212,7 @@ func TestGetBlockHeaders(t *testing.T) {
 				st := makeTestState(t, cs)
 				stateRoot := testDummyState(t, cs, st, testHeader)
 				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(st, math.Slot(0), nil)
-				b.EXPECT().GetSlotByBlockRoot(testParentHeader.BodyRoot).Return(testParentHeader.Slot, nil)
+				b.EXPECT().GetSlotByBlockRoot(parentBlockRoot).Return(testParentHeader.Slot, nil)
 				return stateRoot
 			},
 			check: func(t *testing.T, expectedStateRoot common.Root, res any, err error) {
@@ -225,7 +226,7 @@ func TestGetBlockHeaders(t *testing.T) {
 				data, _ := gr.Data.([]beacontypes.BlockHeaderResponse)
 				require.Len(t, data, 1)
 
-				require.Equal(t, testHeader.BodyRoot, data[0].Root)
+				require.Equal(t, expectedHeaderBlockRoot(testHeader, expectedStateRoot), data[0].Root)
 				expectedHeader := &beacontypes.BeaconBlockHeader{
 					Slot:          testHeader.Slot.Base10(),
 					ProposerIndex: testHeader.ProposerIndex.Base10(),
@@ -263,7 +264,7 @@ func TestGetBlockHeaders(t *testing.T) {
 			},
 			setMockExpectations: func(_ *testing.T, b *mocks.Backend) common.Root {
 				// Assume parent header is not known
-				b.EXPECT().GetSlotByBlockRoot(testParentHeader.BodyRoot).Return(0, errTestHeaderNotFound)
+				b.EXPECT().GetSlotByBlockRoot(parentBlockRoot).Return(0, errTestHeaderNotFound)
 				return common.Root{}
 			},
 			check: func(t *testing.T, _ common.Root, _ any, err error) {
@@ -289,7 +290,7 @@ func TestGetBlockHeaders(t *testing.T) {
 				st := makeTestState(t, cs)
 				stateRoot := testDummyState(t, cs, st, testHeader)
 				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(st, math.Slot(0), nil)
-				b.EXPECT().GetSlotByBlockRoot(testParentHeader.BodyRoot).Return(testParentHeader.Slot, nil)
+				b.EXPECT().GetSlotByBlockRoot(parentBlockRoot).Return(testParentHeader.Slot, nil)
 				return stateRoot
 			},
 			check: func(t *testing.T, expectedStateRoot common.Root, res any, err error) {
@@ -303,7 +304,7 @@ func TestGetBlockHeaders(t *testing.T) {
 				data, _ := gr.Data.([]beacontypes.BlockHeaderResponse)
 				require.Len(t, data, 1)
 
-				require.Equal(t, testHeader.BodyRoot, data[0].Root)
+				require.Equal(t, expectedHeaderBlockRoot(testHeader, expectedStateRoot), data[0].Root)
 				expectedHeader := &beacontypes.BeaconBlockHeader{
 					Slot:          testHeader.Slot.Base10(),
 					ProposerIndex: testHeader.ProposerIndex.Base10(),
@@ -325,7 +326,7 @@ func TestGetBlockHeaders(t *testing.T) {
 				}
 			},
 			setMockExpectations: func(_ *testing.T, b *mocks.Backend) common.Root {
-				b.EXPECT().GetSlotByBlockRoot(testParentHeader.BodyRoot).Return(testParentHeader.Slot, nil)
+				b.EXPECT().GetSlotByBlockRoot(parentBlockRoot).Return(testParentHeader.Slot, nil)
 				return common.Root{}
 			},
 			check: func(t *testing.T, _ common.Root, _ any, err error) {
@@ -382,6 +383,11 @@ func TestGetBlockHeaderByID(t *testing.T) {
 		StateRoot:       common.Root{}, // set in test cases
 		BodyRoot:        common.Root{'d', 'u', 'm', 'm', 'y', 'r', 'o', 'o', 't'},
 	}
+	stForBlockRoot := makeTestState(t, cs)
+	testBlockRoot := expectedHeaderBlockRoot(
+		testHeader,
+		testDummyState(t, cs, stForBlockRoot, testHeader),
+	)
 	errTestHeaderNotFound := errors.New("test header not found error")
 
 	testCases := []struct {
@@ -417,7 +423,7 @@ func TestGetBlockHeaderByID(t *testing.T) {
 				require.IsType(t, &beacontypes.BlockHeaderResponse{}, gr.Data)
 				data, _ := gr.Data.(*beacontypes.BlockHeaderResponse)
 
-				require.Equal(t, testHeader.BodyRoot, data.Root)
+				require.Equal(t, expectedHeaderBlockRoot(testHeader, expectedStateRoot), data.Root)
 				expectedHeader := &beacontypes.BeaconBlockHeader{
 					Slot:          testHeader.Slot.Base10(),
 					ProposerIndex: testHeader.ProposerIndex.Base10(),
@@ -473,7 +479,7 @@ func TestGetBlockHeaderByID(t *testing.T) {
 			inputs: func() beacontypes.GetBlockHeaderRequest {
 				return beacontypes.GetBlockHeaderRequest{
 					BlockIDRequest: handlertypes.BlockIDRequest{
-						BlockID: testHeader.BodyRoot.Hex(),
+						BlockID: testBlockRoot.Hex(),
 					},
 				}
 			},
@@ -483,7 +489,7 @@ func TestGetBlockHeaderByID(t *testing.T) {
 				st := makeTestState(t, cs)
 				stateRoot := testDummyState(t, cs, st, testHeader)
 				b.EXPECT().StateAndSlotFromHeight(mock.Anything).Return(st, math.Slot(0), nil)
-				b.EXPECT().GetSlotByBlockRoot(testHeader.BodyRoot).Return(testHeader.Slot, nil)
+				b.EXPECT().GetSlotByBlockRoot(testBlockRoot).Return(testHeader.Slot, nil)
 				return stateRoot
 			},
 			check: func(t *testing.T, expectedStateRoot common.Root, res any, err error) {
@@ -496,7 +502,7 @@ func TestGetBlockHeaderByID(t *testing.T) {
 				require.IsType(t, &beacontypes.BlockHeaderResponse{}, gr.Data)
 				data, _ := gr.Data.(*beacontypes.BlockHeaderResponse)
 
-				require.Equal(t, testHeader.BodyRoot, data.Root)
+				require.Equal(t, expectedHeaderBlockRoot(testHeader, expectedStateRoot), data.Root)
 				expectedHeader := &beacontypes.BeaconBlockHeader{
 					Slot:          testHeader.Slot.Base10(),
 					ProposerIndex: testHeader.ProposerIndex.Base10(),
@@ -530,13 +536,12 @@ func TestGetBlockHeaderByID(t *testing.T) {
 			inputs: func() beacontypes.GetBlockHeaderRequest {
 				return beacontypes.GetBlockHeaderRequest{
 					BlockIDRequest: handlertypes.BlockIDRequest{
-						BlockID: testHeader.BodyRoot.Hex(),
+						BlockID: testBlockRoot.Hex(),
 					},
 				}
 			},
 			setMockExpectations: func(_ *testing.T, b *mocks.Backend) common.Root {
-				// Assume parent header is not known
-				b.EXPECT().GetSlotByBlockRoot(testHeader.BodyRoot).Return(0, errTestHeaderNotFound)
+				b.EXPECT().GetSlotByBlockRoot(testBlockRoot).Return(0, errTestHeaderNotFound)
 				return common.Root{}
 			},
 			check: func(t *testing.T, _ common.Root, _ any, err error) {
@@ -617,4 +622,10 @@ func testDummyState(
 	require.NoError(t, st.SetPendingPartialWithdrawals([]*ctypes.PendingPartialWithdrawal{}))
 
 	return st.HashTreeRoot()
+}
+
+func expectedHeaderBlockRoot(hdr *ctypes.BeaconBlockHeader, stateRoot common.Root) common.Root {
+	h := *hdr
+	h.SetStateRoot(stateRoot)
+	return h.HashTreeRoot()
 }
