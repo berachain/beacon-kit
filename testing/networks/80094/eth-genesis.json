@@ -71,7 +71,7 @@
         "time": 1762963200
       },
       "osaka1": {
-        "time": 9999999999,
+        "time": 1785945600,
         "minimumBaseFeeWei": 1000000000,
         "minimumBlobBaseFeeWei": 1000000000
       }

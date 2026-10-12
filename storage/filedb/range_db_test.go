@@ -24,7 +24,7 @@ import (
 	"reflect"
 	"testing"
 
-	"cosmossdk.io/log"
+	"cosmossdk.io/log/v2"
 	"github.com/berachain/beacon-kit/errors"
 	file "github.com/berachain/beacon-kit/storage/filedb"
 	"github.com/berachain/beacon-kit/storage/interfaces/mocks"

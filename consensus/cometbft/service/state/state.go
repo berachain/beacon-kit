@@ -23,11 +23,10 @@ package state
 import (
 	"fmt"
 
-	"cosmossdk.io/log"
-	"cosmossdk.io/store"
-	storemetrics "cosmossdk.io/store/metrics"
-	storetypes "cosmossdk.io/store/types"
+	"cosmossdk.io/log/v2"
 	dbm "github.com/cosmos/cosmos-db"
+	"github.com/cosmos/cosmos-sdk/store/v2"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 )
 
 type Manager struct {
@@ -42,12 +41,8 @@ func NewManager(
 	opts ...func(*Manager),
 ) *Manager {
 	sm := &Manager{
-		db: db,
-		cms: store.NewCommitMultiStore(
-			db,
-			logger,
-			storemetrics.NewNoOpMetrics(),
-		),
+		db:  db,
+		cms: store.NewCommitMultiStore(db, logger),
 	}
 
 	for _, opt := range opts {

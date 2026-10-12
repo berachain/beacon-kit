@@ -26,6 +26,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	servercmtlog "github.com/berachain/beacon-kit/consensus/cometbft/service/log"
 	"github.com/berachain/beacon-kit/node-core/types"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -94,6 +95,7 @@ func (s *Service) CreateQueryContext(
 
 	return sdk.NewContext(
 		cacheMS,
+		cmtproto.Header{},
 		true,
 		servercmtlog.WrapSDKLogger(s.logger),
 	), nil

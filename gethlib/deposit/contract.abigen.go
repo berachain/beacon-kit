@@ -4,9 +4,11 @@
 package deposit
 
 import (
+	"context"
 	"errors"
 	"math/big"
 	"strings"
+	"time"
 
 	ethereum "github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -27,6 +29,8 @@ var (
 	_ = types.BloomLookup
 	_ = event.NewSubscription
 	_ = abi.ConvertType
+	_ = time.Tick
+	_ = context.Background
 )
 
 // DepositContractMetaData contains all meta data concerning the DepositContract contract.
@@ -561,6 +565,10 @@ func (_DepositContract *DepositContractFilterer) WatchDeposit(opts *bind.WatchOp
 				// New log arrived, parse the event and forward to the user
 				event := new(DepositContractDeposit)
 				if err := _DepositContract.contract.UnpackLog(event, "Deposit", log); err != nil {
+					// If the signature doesn't match, skip this log.
+					if errors.Is(err, bind.ErrEventSignatureMismatch) {
+						continue
+					}
 					return err
 				}
 				event.Raw = log
@@ -705,6 +713,10 @@ func (_DepositContract *DepositContractFilterer) WatchOperatorChangeCancelled(op
 				// New log arrived, parse the event and forward to the user
 				event := new(DepositContractOperatorChangeCancelled)
 				if err := _DepositContract.contract.UnpackLog(event, "OperatorChangeCancelled", log); err != nil {
+					// If the signature doesn't match, skip this log.
+					if errors.Is(err, bind.ErrEventSignatureMismatch) {
+						continue
+					}
 					return err
 				}
 				event.Raw = log
@@ -852,6 +864,10 @@ func (_DepositContract *DepositContractFilterer) WatchOperatorChangeQueued(opts 
 				// New log arrived, parse the event and forward to the user
 				event := new(DepositContractOperatorChangeQueued)
 				if err := _DepositContract.contract.UnpackLog(event, "OperatorChangeQueued", log); err != nil {
+					// If the signature doesn't match, skip this log.
+					if errors.Is(err, bind.ErrEventSignatureMismatch) {
+						continue
+					}
 					return err
 				}
 				event.Raw = log
@@ -998,6 +1014,10 @@ func (_DepositContract *DepositContractFilterer) WatchOperatorUpdated(opts *bind
 				// New log arrived, parse the event and forward to the user
 				event := new(DepositContractOperatorUpdated)
 				if err := _DepositContract.contract.UnpackLog(event, "OperatorUpdated", log); err != nil {
+					// If the signature doesn't match, skip this log.
+					if errors.Is(err, bind.ErrEventSignatureMismatch) {
+						continue
+					}
 					return err
 				}
 				event.Raw = log

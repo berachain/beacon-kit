@@ -132,7 +132,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 	forkVersion := s.TestNode.ChainSpec.ActiveForkVersionForTimestamp(math.U64(consensusTime.Unix()))
 
 	// Build the proposal and ensure the injected tx submitted to the EL pool is included.
-	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
+	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.RequestPrepareProposal{
 		Height:          currentHeight,
 		Time:            consensusTime,
 		ProposerAddress: nodeAddress,
@@ -156,17 +156,17 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 	// Reset the log buffer to discard old logs we don't care about
 	s.LogBuffer.Reset()
 	// Process the proposal containing the valid block.
-	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
+	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.RequestProcessProposal{
 		Txs:             proposal.Txs,
 		Height:          currentHeight,
 		ProposerAddress: nodeAddress,
 		Time:            consensusTime,
 	})
 	s.Require().NoError(err)
-	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
+	s.Require().Equal(types.ResponseProcessProposal_ACCEPT, processResp.Status)
 
 	// Finalize the block.
-	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.FinalizeBlockRequest{
+	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.RequestFinalizeBlock{
 		Txs:             proposal.Txs,
 		Height:          currentHeight,
 		ProposerAddress: nodeAddress,
@@ -176,7 +176,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 	s.Require().NotEmpty(finalizeResp)
 
 	// Commit the block.
-	_, err = s.SimComet.Comet.Commit(s.CtxComet, &types.CommitRequest{})
+	_, err = s.SimComet.Comet.Commit(s.CtxComet, &types.RequestCommit{})
 	s.Require().NoError(err)
 }
 
@@ -235,7 +235,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessfu
 	}
 
 	// Build the proposal and ensure the blob txs submitted to the EL pool are included.
-	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
+	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.RequestPrepareProposal{
 		Height:          currentHeight,
 		Time:            consensusTime,
 		ProposerAddress: nodeAddress,
@@ -250,17 +250,17 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessfu
 	// Reset the log buffer to discard old logs we don't care about.
 	s.LogBuffer.Reset()
 	// Process the proposal containing the valid block and blobs.
-	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
+	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.RequestProcessProposal{
 		Txs:             proposal.Txs,
 		Height:          currentHeight,
 		ProposerAddress: nodeAddress,
 		Time:            consensusTime,
 	})
 	s.Require().NoError(err)
-	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
+	s.Require().Equal(types.ResponseProcessProposal_ACCEPT, processResp.Status)
 
 	// Finalize the block.
-	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.FinalizeBlockRequest{
+	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.RequestFinalizeBlock{
 		Txs:             proposal.Txs,
 		Height:          currentHeight,
 		ProposerAddress: nodeAddress,
@@ -270,6 +270,6 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessfu
 	s.Require().NotEmpty(finalizeResp)
 
 	// Commit the block.
-	_, err = s.SimComet.Comet.Commit(s.CtxComet, &types.CommitRequest{})
+	_, err = s.SimComet.Comet.Commit(s.CtxComet, &types.RequestCommit{})
 	s.Require().NoError(err)
 }

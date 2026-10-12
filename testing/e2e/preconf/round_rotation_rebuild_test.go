@@ -91,8 +91,8 @@ func (s *PreconfE2ESuite) TestRoundRotationRebuild() {
 	// across the round-timeout window. We collect every successfully sent
 	// hash for later inclusion-block verification.
 	preconfClient := s.PreconfRPCClients(0)
-	sender := s.TestAccounts()[0]
-	receiver := s.TestAccounts()[1]
+	sender := s.Accounts()[0]
+	receiver := s.Accounts()[1]
 	startNonce, err := preconfClient.NonceAt(s.Ctx(), sender.Address(), nil)
 	s.Require().NoError(err, "Should get sender nonce")
 	gasTipCap, gasFeeCap := s.suggestGasCaps(preconfClient.Client)

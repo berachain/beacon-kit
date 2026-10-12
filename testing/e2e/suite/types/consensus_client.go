@@ -68,7 +68,7 @@ func (cc *ConsensusClient) Start(ctx context.Context) error {
 		return ErrPublicPortNotFound
 	}
 	clientURL := fmt.Sprintf("http://0.0.0.0:%d", cometPort.GetNumber())
-	client, err := httpclient.New(clientURL)
+	client, err := httpclient.New(clientURL, "/websocket")
 	if err != nil {
 		return err
 	}
@@ -140,7 +140,7 @@ func (cc *ConsensusClient) IsActive(ctx context.Context) (bool, error) {
 // ABCIInfo returns the ABCI info of the node.
 func (cc ConsensusClient) ABCIInfo(
 	ctx context.Context,
-) (*abcitypes.InfoResponse, error) {
+) (*abcitypes.ResponseInfo, error) {
 	if cc.cometClient == nil {
 		return nil, errors.New("comet client is not initialized")
 	}
@@ -157,7 +157,7 @@ func (cc ConsensusClient) ABCIQuery(
 	path string,
 	data []byte,
 	opts rpcclient.ABCIQueryOptions,
-) (*abcitypes.QueryResponse, error) {
+) (*abcitypes.ResponseQuery, error) {
 	if cc.cometClient == nil {
 		return nil, errors.New("comet client is not initialized")
 	}

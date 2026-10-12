@@ -60,7 +60,7 @@ func (s *BeaconKitE2ESuite) Test4844Live() {
 	// Grab values to plug into txs
 	elClient := s.ExecutionClients(0)
 	s.Require().NotNil(elClient)
-	sender := s.TestAccounts()[0]
+	sender := s.Accounts()[0]
 	chainID, err := elClient.ChainID(ctx)
 	s.Require().NoError(err)
 	blkNum, err := elClient.BlockNumber(ctx)

@@ -103,8 +103,8 @@ func (s *KurtosisE2ESuite) Logger() log.Logger {
 	return s.logger
 }
 
-// TestAccounts returns the test accounts for the test suite.
-func (s *KurtosisE2ESuite) TestAccounts() []*types.EthAccount {
+// Accounts returns the test accounts for the test suite.
+func (s *KurtosisE2ESuite) Accounts() []*types.EthAccount {
 	return s.testAccounts
 }
 

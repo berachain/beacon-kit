@@ -64,7 +64,7 @@ func (s *PreconfE2ESuite) runStateConsistencySerial() {
 	gasTipCap, gasFeeCap := s.suggestGasCaps(preconf.Client)
 
 	r := s.runStateConsistencyWorker(
-		ctx, preconf, s.TestAccounts()[0], newRandomAddress(),
+		ctx, preconf, s.Accounts()[0], newRandomAddress(),
 		stateConsistencyTxsPerWorker, gasTipCap, gasFeeCap,
 	)
 	s.Require().NoError(r.err)
@@ -78,7 +78,7 @@ func (s *PreconfE2ESuite) runStateConsistencyParallel() {
 	ctx := s.Ctx()
 	preconf := s.PreconfRPCClients(0)
 	gasTipCap, gasFeeCap := s.suggestGasCaps(preconf.Client)
-	senders := s.TestAccounts()
+	senders := s.Accounts()
 
 	results := make([]workerResult, len(senders))
 	var wg sync.WaitGroup

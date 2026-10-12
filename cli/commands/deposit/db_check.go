@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/state-transition/core"
 	"github.com/berachain/beacon-kit/storage/db"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
@@ -55,7 +56,7 @@ func GetDBCheckCmd(appCreator servertypes.AppCreator) *cobra.Command {
 
 			// Setup the state to check.
 			ctx := sdk.NewContext(
-				app.CommitMultiStore().CacheMultiStore(), false, servercmtlog.WrapSDKLogger(logger),
+				app.CommitMultiStore().CacheMultiStore(), cmtproto.Header{}, false, servercmtlog.WrapSDKLogger(logger),
 			).WithContext(cmd.Context())
 			beaconState := app.StorageBackend().StateFromContext(ctx)
 			depositStore := app.StorageBackend().DepositStore()

@@ -85,7 +85,7 @@ func DefaultConfig() *cmtcfg.Config {
 	consensus.TimeoutPrevote = minTimeoutPrevote
 	consensus.TimeoutPrecommit = minTimeoutPrecommit
 
-	consensus.TimeoutCommit = 0 //nolint:staticcheck // deprecated but still needed
+	consensus.TimeoutCommit = 0
 
 	cfg.Storage.DiscardABCIResponses = true
 
@@ -186,7 +186,7 @@ func extractConsensusParams(cmtCfg *cmtcfg.Config) (*cmttypes.ConsensusParams, e
 	}
 
 	// Todo: add validation for genesis params by chainID
-	cmtConsensusParams := genDoc.GenesisDoc.ConsensusParams
+	cmtConsensusParams := genDoc.ConsensusParams
 	return cmtConsensusParams, validateConsensusParams(cmtConsensusParams)
 }
 
