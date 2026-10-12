@@ -353,8 +353,8 @@ type preparedProposal struct {
 	proposalTime    time.Time
 }
 
-func (pp preparedProposal) processRequest() *types.ProcessProposalRequest {
-	return &types.ProcessProposalRequest{
+func (pp preparedProposal) processRequest() *types.RequestProcessProposal {
+	return &types.RequestProcessProposal{
 		Txs:             pp.txs,
 		Height:          pp.height,
 		ProposerAddress: pp.proposerAddress,
@@ -362,8 +362,8 @@ func (pp preparedProposal) processRequest() *types.ProcessProposalRequest {
 	}
 }
 
-func (pp preparedProposal) finalizeRequest() *types.FinalizeBlockRequest {
-	return &types.FinalizeBlockRequest{
+func (pp preparedProposal) finalizeRequest() *types.RequestFinalizeBlock {
+	return &types.RequestFinalizeBlock{
 		Txs:             pp.txs,
 		Height:          pp.height,
 		ProposerAddress: pp.proposerAddress,
@@ -506,7 +506,7 @@ func (s *RPCErrorProxySuite) TestFinalizeBlock_NewPayloadSyncing_SendsFCU() {
 	processReq.Hash = []byte("round-0")
 	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, processReq)
 	s.Require().NoError(err)
-	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
+	s.Require().Equal(types.ResponseProcessProposal_ACCEPT, processResp.Status)
 	s.Require().Eventually(func() bool {
 		return s.errProxy.fcuAnswered.Load() > fcuAnsweredBefore
 	}, 2*time.Second, 10*time.Millisecond, "the optimistic build must send its FCU")
@@ -547,7 +547,7 @@ func (s *RPCErrorProxySuite) TestProcessProposal_StartupSync_WaitsForEL() {
 
 	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, pp.processRequest())
 	s.Require().NoError(err)
-	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
+	s.Require().Equal(types.ResponseProcessProposal_ACCEPT, processResp.Status)
 
 	logs := s.LogBuffer.String()
 	s.Require().Contains(logs, "Sending startup forkchoice update to execution client")
@@ -569,7 +569,7 @@ func (s *RPCErrorProxySuite) TestProcessProposal_ConnectionDrop_Rejects() {
 	elapsed := time.Since(start)
 
 	s.Require().NoError(err)
-	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
+	s.Require().Equal(types.ResponseProcessProposal_REJECT, processResp.Status)
 	s.Require().Less(elapsed, maxBoundedCall, "ProcessProposal must give up once the budget is spent")
 	s.Require().Greater(s.errProxy.newPayloadCalls.Load()-callsBefore, int32(1), "fast failures must be retried")
 	s.Require().Contains(s.LogBuffer.String(), engine.ErrRetryBudgetExhausted.Error())
@@ -590,7 +590,7 @@ func (s *RPCErrorProxySuite) TestProcessProposal_HungEL_Rejects() {
 	elapsed := time.Since(start)
 
 	s.Require().NoError(err)
-	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
+	s.Require().Equal(types.ResponseProcessProposal_REJECT, processResp.Status)
 	s.Require().GreaterOrEqual(elapsed, s.TestNode.EngineClient.GetRPCTimeout(), "the call in flight is not interrupted")
 	s.Require().Less(elapsed, maxBoundedCall, "ProcessProposal must give up after the RPC timeout")
 	s.Require().Equal(int32(1), s.errProxy.newPayloadCalls.Load()-callsBefore, "a timed out call must not be retried")
@@ -605,7 +605,7 @@ func (s *RPCErrorProxySuite) TestPrepareProposal_ConnectionDrop_SkipsProposal() 
 	nodeAddress := s.initChain()
 
 	// No payload was built for this height yet, so the proposer must send an FCU.
-	prepareReq := &types.PrepareProposalRequest{
+	prepareReq := &types.RequestPrepareProposal{
 		Height:          firstHeight,
 		Time:            time.Now(),
 		ProposerAddress: nodeAddress,
