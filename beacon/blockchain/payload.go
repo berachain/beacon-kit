@@ -211,11 +211,11 @@ func (s *Service) handleRebuildPayloadForRejectedBlock(
 	buildData *builder.RequestPayloadData,
 ) {
 	s.logger.Info("Rebuilding payload for rejected block ⏳ ")
-	nextBlkSlot := buildData.Slot
 	if _, _, err := s.localBuilder.RequestPayloadAsync(ctx, buildData); err != nil {
-		s.metrics.markRebuildPayloadForRejectedBlockFailure(nextBlkSlot, err)
+		s.metrics.markRebuildPayloadForRejectedBlockFailure()
 		s.logger.Error(
 			"failed to rebuild payload for nil block",
+			"for_slot", buildData.Slot.Base10(),
 			"error", err,
 		)
 		return
@@ -223,7 +223,7 @@ func (s *Service) handleRebuildPayloadForRejectedBlock(
 
 	s.latestFcuReq.Store(&buildData.FCState)
 
-	s.metrics.markRebuildPayloadForRejectedBlockSuccess(nextBlkSlot)
+	s.metrics.markRebuildPayloadForRejectedBlockSuccess()
 }
 
 // handleOptimisticPayloadBuild handles optimistically
@@ -237,7 +237,7 @@ func (s *Service) handleOptimisticPayloadBuild(
 		"next_slot", buildData.Slot.Base10(),
 	)
 	if _, _, err := s.localBuilder.RequestPayloadAsync(ctx, buildData); err != nil {
-		s.metrics.markOptimisticPayloadBuildFailure(buildData.Slot, err)
+		s.metrics.markOptimisticPayloadBuildFailure()
 		s.logger.Error(
 			"Failed to build optimistic payload",
 			"for_slot", buildData.Slot.Base10(),
@@ -248,5 +248,5 @@ func (s *Service) handleOptimisticPayloadBuild(
 
 	s.latestFcuReq.Store(&buildData.FCState)
 
-	s.metrics.markOptimisticPayloadBuildSuccess(buildData.Slot)
+	s.metrics.markOptimisticPayloadBuildSuccess()
 }

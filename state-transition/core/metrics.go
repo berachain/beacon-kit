@@ -36,19 +36,14 @@ func newStateProcessorMetrics(sink TelemetrySink) *stateProcessorMetrics {
 	}
 }
 
-func (s *stateProcessorMetrics) gaugeBlockGasUsed(blockNumber, txGasUsed, blobGasUsed math.U64) {
-	blockNumberStr := blockNumber.Base10()
+func (s *stateProcessorMetrics) gaugeBlockGasUsed(txGasUsed, blobGasUsed math.U64) {
 	s.sink.SetGauge(
 		"beacon_kit.state.block_tx_gas_used",
 		int64(txGasUsed.Unwrap()), // #nosec G115
-		"block_number",
-		blockNumberStr,
 	)
 	s.sink.SetGauge(
 		"beacon_kit.state.block_blob_gas_used",
 		int64(blobGasUsed.Unwrap()), // #nosec G115
-		"block_number",
-		blockNumberStr,
 	)
 }
 

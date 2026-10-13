@@ -93,9 +93,7 @@ func (sp *StateProcessor) processExecutionPayload(
 	}
 
 	if txCtx.MeterGas() {
-		sp.metrics.gaugeBlockGasUsed(
-			payload.GetNumber(), payload.GetGasUsed(), payload.GetBlobGasUsed(),
-		)
+		sp.metrics.gaugeBlockGasUsed(payload.GetGasUsed(), payload.GetBlobGasUsed())
 	}
 
 	// Set the latest execution payload header.
