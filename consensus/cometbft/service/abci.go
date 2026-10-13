@@ -163,6 +163,9 @@ func (s *Service) Commit(
 	return s.commit(req)
 }
 
+// storeQueryPath is the only ABCI query path prefix the node serves.
+const storeQueryPath = "store"
+
 // NOTE: Partially copied from https://github.com/cosmos/cosmos-sdk/blob/960d44842b9e313cbe762068a67a894ac82060ab/baseapp/abci.go#L168
 func (s *Service) Query(
 	_ context.Context,
@@ -184,20 +187,27 @@ func (s *Service) Query(
 		req.Height = s.lastBlockHeight()
 	}
 
-	s.telemetrySink.IncrementCounter("beacon_kit.comet.query_count", "path", req.Path)
 	startTime := time.Now()
+	path := splitABCIQueryPath(req.Path)
+
+	// Label with a fixed category rather than the raw request path, which is
+	// client-controlled and would create unbounded metric series.
+	pathLabel := "unsupported"
+	if len(path) > 0 && path[0] == storeQueryPath {
+		pathLabel = storeQueryPath
+	}
+	s.telemetrySink.IncrementCounter("beacon_kit.comet.query_count", "path", pathLabel)
 	defer s.telemetrySink.MeasureSince(
-		"beacon_kit.comet.query_duration", startTime, "path", req.Path,
+		"beacon_kit.comet.query_duration", startTime, "path", pathLabel,
 	)
 
-	path := splitABCIQueryPath(req.Path)
 	if len(path) == 0 {
 		*resp = queryResult(errorsmod.Wrap(sdkerrors.ErrUnknownRequest, "no query path provided"))
 		return resp, nil
 	}
 
 	// Only "/store" prefix for store queries are supported.
-	if path[0] != "store" {
+	if path[0] != storeQueryPath {
 		*resp = queryResult(errorsmod.Wrap(sdkerrors.ErrNotSupported, "unsupported query path"))
 		return resp, nil
 	}
