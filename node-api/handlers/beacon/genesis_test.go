@@ -25,10 +25,7 @@ import (
 	"testing"
 
 	corestore "cosmossdk.io/core/store"
-	"cosmossdk.io/log"
-	"cosmossdk.io/store"
-	sdkmetrics "cosmossdk.io/store/metrics"
-	storetypes "cosmossdk.io/store/types"
+	"cosmossdk.io/log/v2"
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
@@ -47,7 +44,10 @@ import (
 	kvstorage "github.com/berachain/beacon-kit/storage"
 	"github.com/berachain/beacon-kit/storage/beacondb"
 	"github.com/berachain/beacon-kit/storage/db"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	dbm "github.com/cosmos/cosmos-db"
+	"github.com/cosmos/cosmos-sdk/store/v2"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/mock"
@@ -157,22 +157,19 @@ func initTestGenesisState(t *testing.T, cs chain.Spec) *state.StateDB {
 	db, err := db.OpenDB("", dbm.MemDBBackend)
 	require.NoError(t, err)
 
-	var (
-		nopLog     = log.NewNopLogger()
-		nopMetrics = sdkmetrics.NewNoOpMetrics()
-	)
+	nopLog := log.NewNopLogger()
 
-	cms := store.NewCommitMultiStore(db, nopLog, nopMetrics)
+	cms := store.NewCommitMultiStore(db, nopLog)
 	cms.MountStoreWithDB(testStoreKey, storetypes.StoreTypeIAVL, nil)
 	require.NoError(t, cms.LoadLatestVersion())
 
-	ctx := sdk.NewContext(cms, true, nopLog)
+	ctx := sdk.NewContext(cms, cmtproto.Header{}, true, nopLog)
 	backendStoreService := &backendKVStoreService{
 		ctx: ctx,
 	}
 	kvStore := beacondb.New(backendStoreService)
 
-	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), true, nopLog)
+	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), cmtproto.Header{}, true, nopLog)
 	return state.NewBeaconStateFromDB(
 		kvStore.WithContext(sdkCtx),
 		cs,

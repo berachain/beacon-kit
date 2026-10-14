@@ -26,8 +26,6 @@ import (
 	"fmt"
 	"time"
 
-	"cosmossdk.io/store/rootmulti"
-	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/validator"
 	"github.com/berachain/beacon-kit/chain"
@@ -36,18 +34,23 @@ import (
 	servercmtlog "github.com/berachain/beacon-kit/consensus/cometbft/service/log"
 	statem "github.com/berachain/beacon-kit/consensus/cometbft/service/state"
 	"github.com/berachain/beacon-kit/log/phuslu"
-	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/storage"
-	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
+	abci "github.com/cometbft/cometbft/abci/types"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	cmtcrypto "github.com/cometbft/cometbft/crypto"
+	"github.com/cometbft/cometbft/crypto/bls12381"
+	cmtos "github.com/cometbft/cometbft/libs/os"
 	"github.com/cometbft/cometbft/node"
 	"github.com/cometbft/cometbft/p2p"
 	pvm "github.com/cometbft/cometbft/privval"
+	cmtprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cometbft/cometbft/proxy"
 	cmttypes "github.com/cometbft/cometbft/types"
 	dbm "github.com/cosmos/cosmos-db"
+	"github.com/cosmos/cosmos-sdk/store/v2/rootmulti"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -250,17 +253,16 @@ func (s *Service) Start(
 		return err
 	}
 
-	privVal, err := pvm.LoadOrGenFilePV(
+	privVal, err := loadOrGenBLSFilePV(
 		cfg.PrivValidatorKeyFile(),
 		cfg.PrivValidatorStateFile(),
-		nil,
 	)
 	if err != nil {
 		return err
 	}
 
 	s.ResetAppCtx(ctx)
-	s.node, err = node.NewNode(
+	s.node, err = node.NewNodeWithContext(
 		ctx,
 		cfg,
 		privVal,
@@ -353,12 +355,29 @@ func (s *Service) CommitMultiStore() storetypes.CommitMultiStore {
 	return s.sm.GetCommitMultiStore()
 }
 
+// loadOrGenBLSFilePV loads a FilePV from the given file paths, or else
+// generates a new one with a BLS12-381 private key and saves it to the
+// file paths.
+func loadOrGenBLSFilePV(keyFilePath, stateFilePath string) (*pvm.FilePV, error) {
+	if cmtos.FileExists(keyFilePath) {
+		return pvm.LoadFilePV(keyFilePath, stateFilePath), nil
+	}
+
+	blsKey, err := bls12381.GenPrivKey()
+	if err != nil {
+		return nil, err
+	}
+	pv := pvm.NewFilePV(blsKey, keyFilePath, stateFilePath)
+	pv.Save()
+	return pv, nil
+}
+
 // GetBlock returns the CometBFT block at the given height.
 func (s *Service) GetBlock(height int64) *cmttypes.Block {
 	if s.node == nil {
 		return nil
 	}
-	block, _ := s.node.BlockStore().LoadBlock(height)
+	block := s.node.BlockStore().LoadBlock(height)
 	return block
 }
 
@@ -367,7 +386,7 @@ func (s *Service) GetSignedHeader(height int64) *cmttypes.SignedHeader {
 	if s.node == nil {
 		return nil
 	}
-	block, _ := s.node.BlockStore().LoadBlock(height)
+	block := s.node.BlockStore().LoadBlock(height)
 	if block == nil {
 		return nil
 	}
@@ -432,6 +451,7 @@ func (s *Service) resetState(ctx context.Context) *cache.State {
 
 	newCtx := sdk.NewContext(
 		ms,
+		cmtproto.Header{},
 		false,
 		servercmtlog.WrapSDKLogger(s.logger),
 	).WithContext(ctx)
@@ -453,9 +473,10 @@ func convertValidatorUpdate[ValidatorUpdateT any](
 	}
 	//nolint:errcheck // should be safe
 	return any(abci.ValidatorUpdate{
-		PubKeyBytes: update.Pubkey[:],
-		PubKeyType:  crypto.CometBLSType,
-		Power:       int64(update.EffectiveBalance.Unwrap()), // #nosec G115 -- this is safe.
+		PubKey: cmtprotocrypto.PublicKey{
+			Sum: &cmtprotocrypto.PublicKey_Bls12381{Bls12381: update.Pubkey[:]},
+		},
+		Power: int64(update.EffectiveBalance.Unwrap()), // #nosec G115 -- this is safe.
 	}).(ValidatorUpdateT), nil
 }
 

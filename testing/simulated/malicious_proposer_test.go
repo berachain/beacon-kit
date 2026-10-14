@@ -24,6 +24,7 @@ package simulated_test
 
 import (
 	"math/big"
+	"slices"
 	"time"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
@@ -34,6 +35,7 @@ import (
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
+	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -42,6 +44,7 @@ import (
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	gethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto/kzg4844"
+	"github.com/ethereum/go-ethereum/params"
 	"github.com/holiman/uint256"
 	"github.com/stretchr/testify/require"
 )
@@ -73,7 +76,7 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	currentHeight := int64(blockHeight + coreLoopIterations)
 
 	// Prepare a block proposal.
-	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
+	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.RequestPrepareProposal{
 		Height:          currentHeight,
 		Time:            proposalTime,
 		ProposerAddress: nodeAddress,
@@ -134,14 +137,14 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	// Reset the log buffer to discard old logs we don't care about
 	s.LogBuffer.Reset()
 	// Process the proposal containing the malicious block.
-	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
+	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.RequestProcessProposal{
 		Txs:             proposal.Txs,
 		Height:          currentHeight,
 		ProposerAddress: nodeAddress,
 		Time:            proposalTime,
 	})
 	s.Require().NoError(err)
-	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
+	s.Require().Equal(types.ResponseProcessProposal_REJECT, processResp.Status)
 
 	// Verify that the log contains the expected error message.
 	s.Require().Contains(s.LogBuffer.String(), errors.ErrInvalidPayloadStatus.Error())
@@ -171,7 +174,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidTimestamps_Errors() {
 
 	// Prepare a block proposal. This will create a valid payload due to optimistic payload building.
 	// It is called to flush the payload cache.
-	validProposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
+	validProposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.RequestPrepareProposal{
 		Height:          currentHeight,
 		Time:            correctConsensusTime,
 		ProposerAddress: nodeAddress,
@@ -184,7 +187,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidTimestamps_Errors() {
 	maliciousProposalTxs := testBuildInvalidBlock(
 		s.Require(),
 		s.SharedAccessors,
-		&types.PrepareProposalRequest{
+		&types.RequestPrepareProposal{
 			Txs:    validProposal.Txs,
 			Height: currentHeight,
 			Time:   correctConsensusTime,
@@ -198,7 +201,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidTimestamps_Errors() {
 	// Reset the log buffer to discard old logs we don't care about
 	s.LogBuffer.Reset()
 	// Process the proposal containing the malicious block.
-	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
+	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.RequestProcessProposal{
 		Txs:             maliciousProposalTxs,
 		Height:          currentHeight,
 		ProposerAddress: nodeAddress,
@@ -206,8 +209,78 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidTimestamps_Errors() {
 		Time: correctConsensusTime,
 	})
 	s.Require().NoError(err)
-	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
+	s.Require().Equal(types.ResponseProcessProposal_REJECT, processResp.Status)
 	s.Require().Contains(s.LogBuffer.String(), payloadtime.ErrTooFarInTheFuture.Error())
+}
+
+// TestProcessProposal_TooManyTxs_IsRejected checks that a payload with more txs than the parent gas limit
+// allows is rejected before the per-tx hashing in signature and payload verification.
+func (s *SimulatedSuite) TestProcessProposal_TooManyTxs_IsRejected() {
+	const blockHeight = 1
+	const coreLoopIterations = 1
+
+	// Initialize the chain state.
+	s.InitializeChain(s.T(), 1)
+	nodeAddress, err := s.SimComet.GetNodeAddress()
+	s.Require().NoError(err)
+	s.SimComet.Comet.SetNodeAddress(nodeAddress)
+
+	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
+	proposals, _, proposalTime := s.MoveChainToHeight(s.T(), blockHeight, coreLoopIterations, nodeAddress, time.Now())
+	s.Require().Len(proposals, coreLoopIterations)
+	currentHeight := int64(blockHeight + coreLoopIterations)
+
+	// Every tx but the gas-free PoL tx costs at least TxGas, and the gas limit may grow by 1/1024 of the parent's.
+	queryCtx, err := s.SimComet.CreateQueryContext(currentHeight-1, false)
+	s.Require().NoError(err)
+	lph, err := s.TestNode.StorageBackend.StateFromContext(queryCtx).GetLatestExecutionPayloadHeader()
+	s.Require().NoError(err)
+	parentGasLimit := lph.GetGasLimit().Unwrap()
+	maxTxs := (parentGasLimit+parentGasLimit/params.GasLimitBoundDivisor-1)/params.TxGas + 1
+
+	validProposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.RequestPrepareProposal{
+		Height:          currentHeight,
+		Time:            proposalTime,
+		ProposerAddress: nodeAddress,
+	})
+	s.Require().NoError(err)
+	s.Require().NotEmpty(validProposal)
+
+	// processWithTxs replaces the payload txs but keeps the original signature, which no longer matches the block.
+	processWithTxs := func(numTxs uint64) types.ResponseProcessProposal_ProposalStatus {
+		signedBlk, _, parseErr := s.SimComet.Comet.Blockchain.ParseBeaconBlock(&types.RequestProcessProposal{
+			Txs:             validProposal.Txs,
+			Height:          currentHeight,
+			ProposerAddress: nodeAddress,
+			Time:            proposalTime,
+		})
+		s.Require().NoError(parseErr)
+		signedBlk.BeaconBlock.Body.ExecutionPayload.Transactions = make([][]byte, numTxs)
+		blkBz, mErr := signedBlk.MarshalSSZ()
+		s.Require().NoError(mErr)
+		proposalTxs := slices.Clone(validProposal.Txs)
+		proposalTxs[blockchain.BeaconBlockTxIndex] = blkBz
+
+		// Reset the log buffer to discard old logs we don't care about
+		s.LogBuffer.Reset()
+		processResp, ppErr := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.RequestProcessProposal{
+			Txs:             proposalTxs,
+			Height:          currentHeight,
+			ProposerAddress: nodeAddress,
+			Time:            proposalTime,
+		})
+		s.Require().NoError(ppErr)
+		return processResp.Status
+	}
+
+	// At the bound the count check passes and the block fails on the signature.
+	s.Require().Equal(types.ResponseProcessProposal_REJECT, processWithTxs(maxTxs))
+	s.Require().NotContains(s.LogBuffer.String(), blockchain.ErrTooManyPayloadTxs.Error())
+	s.Require().Contains(s.LogBuffer.String(), signer.ErrInvalidSignature.Error())
+
+	// One over the bound is rejected before the signature is checked.
+	s.Require().Equal(types.ResponseProcessProposal_REJECT, processWithTxs(maxTxs+1))
+	s.Require().Contains(s.LogBuffer.String(), blockchain.ErrTooManyPayloadTxs.Error())
 }
 
 // TestProcessProposal_InvalidBlobCommitment_Errors effectively serves as a test for a malicious blobs.
@@ -238,7 +311,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobCommitment_Errors() {
 	currentHeight := int64(blockHeight + coreLoopIterations)
 
 	// Prepare a block proposal.
-	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
+	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.RequestPrepareProposal{
 		Height:          currentHeight,
 		Time:            consensusTime,
 		ProposerAddress: nodeAddress,
@@ -364,14 +437,14 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobCommitment_Errors() {
 	// Reset the log buffer to discard old logs we don't care about
 	s.LogBuffer.Reset()
 	// Process the proposal containing the block.
-	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
+	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.RequestProcessProposal{
 		Txs:             proposal.Txs,
 		Height:          currentHeight,
 		ProposerAddress: nodeAddress,
 		Time:            consensusTime,
 	})
 	s.Require().NoError(err)
-	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
+	s.Require().Equal(types.ResponseProcessProposal_REJECT, processResp.Status)
 	s.Require().Contains(s.LogBuffer.String(), "unexpected list")
 }
 
@@ -402,7 +475,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobInclusionProof_Errors() 
 	currentHeight := int64(blockHeight + coreLoopIterations)
 
 	// Prepare a block proposal.
-	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
+	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.RequestPrepareProposal{
 		Height:          currentHeight,
 		Time:            consensusTime,
 		ProposerAddress: nodeAddress,
@@ -528,14 +601,14 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobInclusionProof_Errors() 
 	// Reset the log buffer to discard old logs we don't care about
 	s.LogBuffer.Reset()
 	// Process the proposal containing the block.
-	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
+	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.RequestProcessProposal{
 		Txs:             proposal.Txs,
 		Height:          currentHeight,
 		ProposerAddress: nodeAddress,
 		Time:            consensusTime,
 	})
 	s.Require().NoError(err)
-	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
+	s.Require().Equal(types.ResponseProcessProposal_REJECT, processResp.Status)
 	s.Require().Contains(s.LogBuffer.String(), "invalid KZG commitment inclusion proof")
 }
 
@@ -544,7 +617,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobInclusionProof_Errors() 
 func testBuildInvalidBlock(
 	r *require.Assertions,
 	builder simulated.SharedAccessors,
-	PrepReq *types.PrepareProposalRequest,
+	PrepReq *types.RequestPrepareProposal,
 	modifyBlock func(*ctypes.SignedBeaconBlock),
 ) [][]byte {
 	blsSigner := simulated.GetBlsSigner(builder.HomeDir)
@@ -552,7 +625,7 @@ func testBuildInvalidBlock(
 	r.NoError(err)
 
 	signedBlk, sidecars, err := builder.SimComet.Comet.Blockchain.ParseBeaconBlock(
-		&types.ProcessProposalRequest{
+		&types.RequestProcessProposal{
 			Txs:             PrepReq.Txs,
 			Height:          PrepReq.Height,
 			ProposerAddress: pubkey.Address(),

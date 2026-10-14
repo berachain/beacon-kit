@@ -28,10 +28,7 @@ import (
 	"sync"
 
 	corestore "cosmossdk.io/core/store"
-	"cosmossdk.io/log"
-	"cosmossdk.io/store"
-	sdkmetrics "cosmossdk.io/store/metrics"
-	storetypes "cosmossdk.io/store/types"
+	"cosmossdk.io/log/v2"
 	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
@@ -43,7 +40,10 @@ import (
 	"github.com/berachain/beacon-kit/storage/beacondb"
 	"github.com/berachain/beacon-kit/storage/db"
 	cmtcfg "github.com/cometbft/cometbft/config"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	dbm "github.com/cosmos/cosmos-db"
+	"github.com/cosmos/cosmos-sdk/store/v2"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 )
@@ -186,25 +186,22 @@ func (b *Backend) initGenesisState() error {
 	if err != nil {
 		return fmt.Errorf("failed opening mem db: %w", err)
 	}
-	var (
-		nopLog     = log.NewNopLogger()
-		nopMetrics = sdkmetrics.NewNoOpMetrics()
-	)
+	nopLog := log.NewNopLogger()
 
-	b.cms = store.NewCommitMultiStore(b.db, nopLog, nopMetrics)
+	b.cms = store.NewCommitMultiStore(b.db, nopLog)
 
 	b.cms.MountStoreWithDB(backendStoreKey, storetypes.StoreTypeIAVL, nil)
 	if err = b.cms.LoadLatestVersion(); err != nil {
 		return fmt.Errorf("backend data loading: failed to load latest version: %w", err)
 	}
 
-	ctx := sdk.NewContext(b.cms, true, nopLog)
+	ctx := sdk.NewContext(b.cms, cmtproto.Header{}, true, nopLog)
 	backendStoreService := &backendKVStoreService{
 		ctx: ctx,
 	}
 	kvStore := beacondb.New(backendStoreService)
 
-	sdkCtx := sdk.NewContext(b.cms.CacheMultiStore(), true, log.NewNopLogger())
+	sdkCtx := sdk.NewContext(b.cms.CacheMultiStore(), cmtproto.Header{}, true, log.NewNopLogger())
 	b.genesisState = state.NewBeaconStateFromDB(
 		kvStore.WithContext(sdkCtx),
 		b.cs,

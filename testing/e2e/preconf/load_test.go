@@ -87,12 +87,12 @@ type pendingTx struct {
 //nolint:funlen // load test with multiple phases
 func (s *PreconfE2ESuite) TestPreconfTransactions() {
 	ctx := s.Ctx()
-	sender := s.TestAccounts()[0]
-	receiver := s.TestAccounts()[1]
+	sender := s.Accounts()[0]
+	receiver := s.Accounts()[1]
 	senderAddr := sender.Address()
 	receiverAddr := receiver.Address()
 
-	spammer := s.TestAccounts()[2]
+	spammer := s.Accounts()[2]
 	spammerAddr := spammer.Address()
 
 	preconfClient := s.PreconfRPCClients(0)
@@ -428,7 +428,7 @@ func (s *PreconfE2ESuite) startBackgroundLoad(
 
 	ctx, cancel := context.WithCancel(ctx)
 
-	spammer := s.TestAccounts()[2]
+	spammer := s.Accounts()[2]
 	spammerAddr := spammer.Address()
 	elClient := s.ExecutionClients(0)
 

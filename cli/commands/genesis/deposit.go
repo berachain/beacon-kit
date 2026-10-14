@@ -28,6 +28,7 @@ import (
 	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	"github.com/berachain/beacon-kit/cli/context"
 	"github.com/berachain/beacon-kit/cli/utils/parser"
+	privvalinit "github.com/berachain/beacon-kit/cli/utils/privval"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-core/components"
@@ -38,7 +39,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
@@ -96,7 +96,7 @@ func AddGenesisDeposit(
 	withdrawalAddress common.ExecutionAddress,
 	outputDocument string,
 ) error {
-	_, valPubKey, err := genutil.InitializeNodeValidatorFiles(
+	_, valPubKey, err := privvalinit.InitializeNodeValidatorFiles(
 		cometConfig, crypto.CometBLSType,
 	)
 	if err != nil {

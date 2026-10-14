@@ -30,7 +30,7 @@ func TestValidatorIndexes(t *testing.T) {
 	// logger := log.NewTestLogger(t)
 	// keys := storetypes.NewKVStoreKeys(testName)
 	// cms := integration.CreateMultiStore(keys, logger)
-	// ctx := sdk.NewContext(cms, true, logger)
+	// ctx := sdk.NewContext(cms, cmtproto.Header{}, true, logger)
 	// storeKey := keys[testName]
 	// kvs := sdkruntime.NewKVStoreService(storeKey)
 	// env := sdkruntime.NewEnvironment(kvs, logger)

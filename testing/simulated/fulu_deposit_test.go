@@ -316,7 +316,7 @@ func (s *FuluDepositSuite) TestBodyDepositsAfterFuluRejected() {
 	s.Require().Equal(time.Unix(8, 0), nextBlockTime, "block 4 must be the first post-Fulu block")
 
 	// Prepare a valid block proposal for the post-Fulu height.
-	validProposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &cmtabci.PrepareProposalRequest{
+	validProposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &cmtabci.RequestPrepareProposal{
 		Height:          postFuluHeight,
 		Time:            nextBlockTime,
 		ProposerAddress: nodeAddress,
@@ -329,7 +329,7 @@ func (s *FuluDepositSuite) TestBodyDepositsAfterFuluRejected() {
 	maliciousTxs := testBuildInvalidBlock(
 		s.Require(),
 		s.SharedAccessors,
-		&cmtabci.PrepareProposalRequest{
+		&cmtabci.RequestPrepareProposal{
 			Txs:    validProposal.Txs,
 			Height: postFuluHeight,
 			Time:   nextBlockTime,
@@ -340,14 +340,14 @@ func (s *FuluDepositSuite) TestBodyDepositsAfterFuluRejected() {
 	)
 
 	s.LogBuffer.Reset()
-	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &cmtabci.ProcessProposalRequest{
+	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &cmtabci.RequestProcessProposal{
 		Txs:             maliciousTxs,
 		Height:          postFuluHeight,
 		ProposerAddress: nodeAddress,
 		Time:            nextBlockTime,
 	})
 	s.Require().NoError(err)
-	s.Require().Equal(cmtabci.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
+	s.Require().Equal(cmtabci.ResponseProcessProposal_REJECT, processResp.Status)
 	s.Require().Contains(s.LogBuffer.String(), core.ErrUnexpectedDepositSource.Error())
 }
 
@@ -397,7 +397,7 @@ func (s *FuluDepositSuite) TestNoDepositRequestsBeforeFulu() {
 	// [Block 2, t=6] Propose the Electra1/Prague block directly (not via MoveChainToHeight)
 	// so that both EL behaviors can be asserted on below.
 	s.LogBuffer.Reset()
-	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &cmtabci.PrepareProposalRequest{
+	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &cmtabci.RequestPrepareProposal{
 		Height:          2,
 		Time:            nextBlockTime,
 		ProposerAddress: nodeAddress,

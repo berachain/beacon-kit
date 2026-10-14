@@ -184,12 +184,12 @@ test-unit: covdata-prewarm
 test-unit-quick: ## run quick tests. We run these without coverage as covermode=atomic is too slow and coverage here provides little value
 	@echo "Running 'quick' tests..."
 	@go list -f '{{.Dir}}/testing/quick' -m | xargs \
-		go test -v -tags quick
+		go test -v -tags quick,bls12381
 
 test-simulated: covdata-prewarm ## run simulation tests
 	@echo "Running simulation tests with coverage"
 	@go list -f '{{.Dir}}/testing/simulated' -m | xargs \
-		go test -cover -covermode=atomic -coverpkg=github.com/berachain/beacon-kit/... -coverprofile=temp-test-simulated.txt -tags simulated -v
+		go test -cover -covermode=atomic -coverpkg=github.com/berachain/beacon-kit/... -coverprofile=temp-test-simulated.txt -tags simulated,bls12381 -v
 	# Filter out any coverage lines from the testing directory
 	$(call FILTER_COVERAGE, temp-test-simulated.txt, test-simulated.txt)
 	@rm temp-test-simulated.txt

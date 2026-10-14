@@ -34,6 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	clitypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	"github.com/berachain/beacon-kit/cli/context"
+	privvalinit "github.com/berachain/beacon-kit/cli/utils/privval"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -157,7 +158,7 @@ func InitCmd(creator clitypes.ChainSpecCreator, mm interface {
 				initHeight = 1
 			}
 
-			nodeID, _, err := genutil.InitializeNodeValidatorFilesFromMnemonic(config, mnemonic, consensusKeyAlgo)
+			nodeID, _, err := privvalinit.InitializeNodeValidatorFilesFromMnemonic(config, mnemonic, consensusKeyAlgo)
 			if err != nil {
 				return err
 			}

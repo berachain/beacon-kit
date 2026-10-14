@@ -264,5 +264,5 @@ func hashAlloc(ga *types.GenesisAlloc, isUBT bool) (common.Hash, error) {
 			statedb.SetState(addr, key, value)
 		}
 	}
-	return statedb.Commit(0, false, false)
+	return statedb.Commit(params.Rules{}, 0)
 }

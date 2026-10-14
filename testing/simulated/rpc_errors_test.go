@@ -284,7 +284,7 @@ func (s *RPCErrorProxySuite) prepareForFinalize() preparedProposal {
 
 	currentHeight := int64(blockHeight + coreLoopIterations)
 
-	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
+	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.RequestPrepareProposal{
 		Height:          currentHeight,
 		Time:            proposalTime,
 		ProposerAddress: nodeAddress,
@@ -311,7 +311,7 @@ func (s *RPCErrorProxySuite) TestFinalizeBlock_HandleRPCError() {
 	// Activate the error proxy with an RPC error code (-32700 parse error).
 	s.errProxy.activate(-32700, "Parse Error")
 
-	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.FinalizeBlockRequest{
+	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.RequestFinalizeBlock{
 		Txs:             pp.txs,
 		Height:          pp.height,
 		ProposerAddress: pp.proposerAddress,
@@ -339,7 +339,7 @@ func (s *RPCErrorProxySuite) TestFinalizeBlock_ConnectionDrop_Recovery() {
 		s.errProxy.deactivate()
 	}()
 
-	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.FinalizeBlockRequest{
+	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.RequestFinalizeBlock{
 		Txs:             pp.txs,
 		Height:          pp.height,
 		ProposerAddress: pp.proposerAddress,
