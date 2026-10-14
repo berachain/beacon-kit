@@ -82,14 +82,8 @@ func (sp *StateProcessor) processRegistryUpdates(st *statedb.StateDB) error {
 		}
 
 		if valModified {
-			idx, err = st.ValidatorIndexByPubkey(val.GetPubkey())
-			if err != nil {
-				return fmt.Errorf(
-					"registry update, failed loading validator index, state index %d: %w",
-					si,
-					err,
-				)
-			}
+			// vals is in registry-index order and dense, so si is the validator index.
+			idx = math.ValidatorIndex(si)
 			if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
 				return fmt.Errorf(
 					"registry update, failed updating validator idx %d: %w",
