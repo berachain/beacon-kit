@@ -63,8 +63,12 @@ type Engine struct {
 }
 
 // New creates a new Engine. The PhaseBuild and PhaseValidate retry budgets are
-// a fraction of TimeoutPropose and TimeoutPrevote, so they follow
-// operator-tuned consensus timeouts.
+// a fraction of TimeoutPropose and TimeoutPrevote. Those timeouts are roughly
+// how long the other validators wait for this node's proposal and prevote
+// before they move on, so a budget below them keeps the node from holding a
+// round the network has already given up on. The mapping is a heuristic, not
+// a guarantee. No consensus timer interrupts an ABCI handler, the timeouts
+// only size the budgets.
 //
 // Panics if either timeout is non-positive: zero would yield a zero budget,
 // which collapses to unbounded retry and silently undoes the bounded-phase
@@ -88,25 +92,34 @@ func New(
 		buildBudget:    time.Duration(float64(consensusCfg.TimeoutPropose) * consensusPhaseBudgetFraction),
 		validateBudget: time.Duration(float64(consensusCfg.TimeoutPrevote) * consensusPhaseBudgetFraction),
 	}
-	ee.logRetryBudgets()
+	ee.logRetryBudgets(consensusCfg.TimeoutPropose, consensusCfg.TimeoutPrevote)
 	return ee
 }
 
-// logRetryBudgets logs the retry budgets of the bounded phases and whether
-// they leave room to retry a call that hit the RPC timeout.
-func (ee *Engine) logRetryBudgets() {
+// logRetryBudgets logs the retry budgets of the bounded phases, the longest
+// call each allows and whether they leave room to retry a call that hit the
+// RPC timeout. It warns when the RPC timeout alone outlasts a consensus
+// timeout, since then a single attempt can hold a round the network has
+// moved past.
+func (ee *Engine) logRetryBudgets(timeoutPropose, timeoutPrevote time.Duration) {
 	var (
 		rpcTimeout    = ee.ec.GetRPCTimeout()
 		retryInterval = ee.ec.GetRPCRetryInterval()
 	)
-	ee.logger.Info(
-		"Engine API retry budgets",
+	fields := []any{
 		"build_budget", ee.buildBudget.String(),
 		"validate_budget", ee.validateBudget.String(),
 		"rpc_timeout", rpcTimeout.String(),
+		"build_max_call", (ee.buildBudget + rpcTimeout).String(),
+		"validate_max_call", (ee.validateBudget + rpcTimeout).String(),
 		"build_retries_timeouts", retriesTimeouts(ee.buildBudget, rpcTimeout, retryInterval),
 		"validate_retries_timeouts", retriesTimeouts(ee.validateBudget, rpcTimeout, retryInterval),
-	)
+	}
+	if rpcTimeout > timeoutPropose || rpcTimeout > timeoutPrevote {
+		ee.logger.Warn("Engine API RPC timeout exceeds a consensus timeout, one call can outlast the round", fields...)
+		return
+	}
+	ee.logger.Info("Engine API retry budgets", fields...)
 }
 
 // retriesTimeouts reports whether a call that hit the RPC timeout still has
@@ -249,8 +262,9 @@ func (ee *Engine) NotifyNewPayload(
 
 			case errors.IsAny(err, engineerrors.ErrSyncingPayloadStatus, engineerrors.ErrAcceptedPayloadStatus):
 				ee.metrics.markNewPayloadAcceptedSyncingPayloadStatus(err, payloadHash, payloadParentHash)
-				// Finalize/Startup accept SYNCING because the FCU that follows
-				// drives the EL to sync; the verifying phases must retry until
+				// Finalize/Startup accept SYNCING because the caller sends an
+				// FCU to this payload next, which makes the EL sync (see the
+				// PhaseFinalize doc). The verifying phases must retry until
 				// the EL is caught up so they can verify the block.
 				if phase == engineprimitives.PhaseFinalize || phase == engineprimitives.PhaseStartup {
 					ee.logger.Warn(

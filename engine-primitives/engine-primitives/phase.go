@@ -30,8 +30,10 @@ package engineprimitives
 //     budget plus one RPC timeout.
 //   - PhaseFinalize is unbounded: the block is already agreed by >=2/3 of
 //     validators, so the node must eventually apply it or fall out of
-//     consensus. A brief EL outage is absorbed by retrying; the loop logs
-//     loudly so operator alerting can catch a persistently stuck node.
+//     consensus. A brief EL outage is absorbed by retrying. Each retry logs
+//     at Warn or Error and bumps the engine retry counters
+//     (beacon_kit.execution.engine.*_syncing, *_non_fatal_error), so
+//     operator alerting can catch a persistently stuck node.
 //   - PhaseStartup has an unbounded time budget so a slow cold-starting EL
 //     (re-importing chain state, snap-syncing) is acceptable. Fatal errors
 //     still propagate immediately — a misconfigured boot (wrong JWT, wrong
@@ -47,6 +49,13 @@ const (
 	PhaseValidate
 	// PhaseFinalize is used from FinalizeBlock and the post-block FCU when
 	// applying a block that consensus has already agreed on.
+	//
+	// Invariant: a NewPayload in this phase or in PhaseStartup is followed by
+	// an FCU to the payload's block hash. The engine returns success on a
+	// SYNCING/ACCEPTED NewPayload in these phases on that assumption, since
+	// only the FCU makes the EL fetch what it is missing. FinalizeBlock keeps
+	// it by never skipping the post-block FCU, forceSyncUponFinalize by
+	// sending its FCU right after NewPayload.
 	PhaseFinalize
 	// PhaseStartup is used from one-shot startup paths (forceSyncUponProcess
 	// / forceSyncUponFinalize). forceSyncUponProcess runs inside

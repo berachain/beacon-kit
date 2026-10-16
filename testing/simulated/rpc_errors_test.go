@@ -52,13 +52,17 @@ import (
 // config. It is the retry budget (1.5s) plus one RPC timeout (2s).
 const maxBoundedCall = 3500 * time.Millisecond
 
-// HTTP proxy in between beacon node and execution client. Supports five
+// syncingStatus is the PayloadStatusV1 of an EL that is still syncing.
+const syncingStatus = `{"status":"SYNCING","latestValidHash":null,"validationError":null}`
+
+// HTTP proxy in between beacon node and execution client. Supports six
 // injection modes:
 //   - activate(code, msg): return HTTP 200 with the given JSON-RPC error body
 //   - activateHTTPStatus(status): return the given HTTP status with a generic body
 //     (exercises the transport-level classification path, e.g. HTTP 4xx fatal)
 //   - activateDropConn: hijack and close the TCP connection (unreachable EL)
 //   - activateSyncingNewPayload: forward newPayload to the EL, answer SYNCING
+//   - activateSyncingFCU: forward forkchoiceUpdated to the EL, answer SYNCING
 //   - activateHang: never answer, the caller gives up at its RPC timeout
 type rpcErrorProxy struct {
 	targetURL         string
@@ -66,6 +70,7 @@ type rpcErrorProxy struct {
 	dropConn          atomic.Bool
 	httpStatus        atomic.Int32 // 0 = inactive; otherwise the status code to return
 	syncingNewPayload atomic.Bool
+	syncingFCU        atomic.Bool
 	hang              atomic.Bool
 	fcuCalls          atomic.Int32 // forkchoiceUpdated requests seen by the proxy
 	fcuAnswered       atomic.Int32 // forkchoiceUpdated requests answered by the EL
@@ -113,6 +118,12 @@ func (p *rpcErrorProxy) activateSyncingNewPayload() {
 	p.syncingNewPayload.Store(true)
 }
 
+// activateSyncingFCU makes the proxy answer forkchoiceUpdated with a SYNCING
+// status. The request is still forwarded, so the EL gets the head.
+func (p *rpcErrorProxy) activateSyncingFCU() {
+	p.syncingFCU.Store(true)
+}
+
 // activateHang makes the proxy hold engine-API requests without answering,
 // which simulates an EL that accepts the connection and then stalls.
 func (p *rpcErrorProxy) activateHang() {
@@ -124,6 +135,7 @@ func (p *rpcErrorProxy) deactivate() {
 	p.dropConn.Store(false)
 	p.httpStatus.Store(0)
 	p.syncingNewPayload.Store(false)
+	p.syncingFCU.Store(false)
 	p.hang.Store(false)
 }
 
@@ -181,12 +193,11 @@ func (p *rpcErrorProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer resp.Body.Close()
 
 	if p.syncingNewPayload.Load() && isNewPayloadMethod(req.Method) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		_, _ = fmt.Fprintf(w,
-			`{"jsonrpc":"2.0","id":%s,"result":{"status":"SYNCING","latestValidHash":null,"validationError":null}}`,
-			string(req.ID),
-		)
+		writeResult(w, req.ID, syncingStatus)
+		return
+	}
+	if p.syncingFCU.Load() && isForkchoiceUpdatedMethod(req.Method) {
+		writeResult(w, req.ID, `{"payloadStatus":`+syncingStatus+`,"payloadId":null}`)
 		return
 	}
 
@@ -201,6 +212,13 @@ func (p *rpcErrorProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if isForkchoiceUpdatedMethod(req.Method) {
 		p.fcuAnswered.Add(1)
 	}
+}
+
+// writeResult answers a JSON-RPC request with the given result object.
+func writeResult(w http.ResponseWriter, reqID json.RawMessage, result string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, _ = fmt.Fprintf(w, `{"jsonrpc":"2.0","id":%s,"result":%s}`, string(reqID), result)
 }
 
 // intercept reports whether the request should be intercepted and writes
@@ -523,6 +541,65 @@ func (s *RPCErrorProxySuite) TestFinalizeBlock_NewPayloadSyncing_SendsFCU() {
 	s.Require().NotNil(finalizeResp)
 	s.Require().Contains(s.LogBuffer.String(), "pushed new payload to SYNCING/ACCEPTED node")
 	s.Require().Greater(s.errProxy.fcuCalls.Load(), fcuCallsBefore, "FCU must not be skipped after a SYNCING payload")
+}
+
+// TestFinalizeBlock_ELCatchingUp_WaitsForFCU shows that FinalizeBlock accepts
+// a SYNCING answer from newPayload but does not return until the post block
+// FCU is VALID. The FCU stays SYNCING for longer than the bounded budgets, so
+// the block is only applied because the finalize phase is unbounded.
+func (s *RPCErrorProxySuite) TestFinalizeBlock_ELCatchingUp_WaitsForFCU() {
+	// Longer than the validate budget, so a bounded FCU would give up.
+	const catchUp = 2500 * time.Millisecond
+	pp := s.prepareForFinalize()
+
+	s.errProxy.activateSyncingNewPayload()
+	s.errProxy.activateSyncingFCU()
+	defer s.errProxy.deactivate()
+	fcuCallsBefore := s.errProxy.fcuCalls.Load()
+
+	// The EL has caught up after catchUp, so the FCU becomes VALID.
+	start := time.Now()
+	go func() {
+		time.Sleep(catchUp)
+		s.errProxy.deactivate()
+	}()
+
+	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, pp.finalizeRequest())
+	elapsed := time.Since(start)
+
+	s.Require().NoError(err, "FinalizeBlock must apply the block once the EL has caught up")
+	s.Require().NotNil(finalizeResp)
+	s.Require().GreaterOrEqual(elapsed, catchUp, "FinalizeBlock must wait for the FCU to become VALID")
+	s.Require().Greater(s.errProxy.fcuCalls.Load()-fcuCallsBefore, int32(1), "a SYNCING FCU must be retried")
+
+	logs := s.LogBuffer.String()
+	s.Require().Contains(logs, "pushed new payload to SYNCING/ACCEPTED node")
+	s.Require().Contains(logs, "NotifyForkchoiceUpdate: EL syncing. Retrying...")
+	s.Require().NotContains(logs, engine.ErrRetryBudgetExhausted.Error(), "the finalize phase must not give up")
+}
+
+// TestFinalizeBlock_StartupSync_AcceptsSyncingNewPayload shows that the
+// startup sync run by the first FinalizeBlock accepts a SYNCING answer from
+// newPayload and sends its FCU, so an EL that is behind starts to sync and
+// the block is applied.
+func (s *RPCErrorProxySuite) TestFinalizeBlock_StartupSync_AcceptsSyncingNewPayload() {
+	const firstHeight = 1
+	pp := s.prepareProposal(firstHeight)
+
+	s.errProxy.activateSyncingNewPayload()
+	defer s.errProxy.deactivate()
+	fcuCallsBefore := s.errProxy.fcuCalls.Load()
+
+	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, pp.finalizeRequest())
+
+	s.Require().NoError(err, "the startup sync must accept a SYNCING payload status")
+	s.Require().NotNil(finalizeResp)
+	// The startup FCU and the post block FCU.
+	s.Require().GreaterOrEqual(s.errProxy.fcuCalls.Load()-fcuCallsBefore, int32(2), "the startup FCU must follow the SYNCING payload")
+
+	logs := s.LogBuffer.String()
+	s.Require().Contains(logs, "pushed new payload to SYNCING/ACCEPTED node")
+	s.Require().Contains(logs, "phase=startup")
 }
 
 // TestProcessProposal_StartupSync_WaitsForEL shows that the startup FCU sent
