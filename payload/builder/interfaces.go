@@ -60,6 +60,7 @@ type ExecutionEngine interface {
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
 		req *ctypes.ForkchoiceUpdateRequest,
+		phase engineprimitives.EnginePhase,
 	) (*engineprimitives.PayloadID, error)
 }
 

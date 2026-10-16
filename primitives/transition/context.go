@@ -23,6 +23,7 @@ package transition
 import (
 	"context"
 
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
@@ -52,12 +53,21 @@ type Context struct {
 	// layer payload should be meter or not. We currently meter only
 	// finalized blocks.
 	meterGas bool
+
+	// enginePhase selects the engine retry policy used when calling
+	// NewPayload / ForkchoiceUpdated during this transition. It is required
+	// at construction so a future call site can't silently inherit the wrong
+	// budget by forgetting to set it — e.g. enabling VerifyPayload on the
+	// proposer path would otherwise pick up Validate semantics instead of
+	// Build.
+	enginePhase engineprimitives.EnginePhase
 }
 
 func NewTransitionCtx(
 	consensusCtx context.Context,
 	time math.U64,
 	address []byte,
+	phase engineprimitives.EnginePhase,
 ) *Context {
 	return &Context{
 		consensusCtx:    consensusCtx,
@@ -72,6 +82,8 @@ func NewTransitionCtx(
 		verifyPayload: true,
 		verifyRandao:  true,
 		verifyResult:  true,
+
+		enginePhase: phase,
 	}
 }
 
@@ -123,4 +135,8 @@ func (c *Context) VerifyResult() bool {
 
 func (c *Context) MeterGas() bool {
 	return c.meterGas
+}
+
+func (c *Context) EnginePhase() engineprimitives.EnginePhase {
+	return c.enginePhase
 }
