@@ -65,7 +65,7 @@ func (b *Backend) StateAndSlotFromHeight(height int64) (ReadOnlyBeaconState, mat
 		defer b.muSt.Unlock()
 
 		// Copy the state to ensure clients potential changes won't pollute the state
-		// Also we make sure to create the copy in a thread-safe way via the muCms mutex.
+		// Also we make sure to create the copy in a thread-safe way via the muSt mutex.
 		ms := b.cms.CacheMultiStore()
 		ctx := sdk.NewContext(ms, cmtproto.Header{}, true, log.NewNopLogger())
 		ephemeralGenesisState := b.genesisState.Protect(ctx)
