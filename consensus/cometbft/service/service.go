@@ -60,11 +60,17 @@ const (
 	maxCachedStates          = 10
 )
 
+// consensusParamsSpec is the chain-spec view used for height-gated consensus param updates.
+type consensusParamsSpec interface {
+	BlockMaxBytesUpdateHeight() int64
+}
+
 type Service struct {
 	node        *node.Node
 	nodeAddress cmtcrypto.Address
 
 	delayCfg delay.ConfigGetter
+	cpSpec   consensusParamsSpec
 
 	// cmtConsensusParams are part of the blockchain state and
 	// are agreed upon by all validators in the network.
@@ -152,6 +158,7 @@ func NewService(
 		Blockchain:         blockchain,
 		BlockBuilder:       blockBuilder,
 		delayCfg:           cs,
+		cpSpec:             cs,
 		cmtConsensusParams: cmtConsensusParams,
 		cmtCfg:             cmtCfg,
 		telemetrySink:      telemetrySink,

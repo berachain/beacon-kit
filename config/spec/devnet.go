@@ -64,6 +64,8 @@ func DevnetChainSpecData() *chain.SpecData {
 
 	specData.Config.ConsensusUpdateHeight = 1
 	specData.Config.ConsensusEnableHeight = 2
+	// Devnet genesis already carries the Block.MaxBytes cap (DefaultConsensusParams), no update.
+	specData.BlockMaxBytesUpdateHeight = 0
 
 	// Fork timings are set to facilitate local testing across fork versions.
 	specData.GenesisTime = 0
