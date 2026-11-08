@@ -535,6 +535,19 @@ func TestGwei_ToWei(t *testing.T) {
 	}
 }
 
+func TestGweiFromWeiPreservesInput(t *testing.T) {
+	t.Parallel()
+	for _, input := range []*big.Int{
+		big.NewInt(1234567890),
+		big.NewInt(-1),
+		new(big.Int).Lsh(big.NewInt(1), 128),
+	} {
+		before := new(big.Int).Set(input)
+		_, _ = math.GweiFromWei(input)
+		require.Equal(t, before, input)
+	}
+}
+
 func TestU64_Base10(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
