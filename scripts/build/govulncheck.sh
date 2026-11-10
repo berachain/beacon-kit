@@ -27,6 +27,12 @@ command -v jq >/dev/null || { echo "jq is required" >&2; exit 1; }
 SUPPRESSED=(
   # x/crypto/openpgp is unmaintained with no fix, only reached via cosmos-sdk keyring armor.
   'GO-2026-5932'
+  # Echo default RateLimiter trusts X-Forwarded-For; no patched release yet (Fixed in: N/A).
+  # Node API is not exposed behind untrusted multi-hop XFF without an upstream gateway.
+  'GO-2026-6872'
+  # Echo reverse-proxy middleware forwards client X-Real-IP by default; no patched release yet.
+  # Beacon-kit does not use Echo as an untrusted reverse proxy to upstreams.
+  'GO-2026-6875'
 )
 
 # Scan with the toolchain declared in go.mod.

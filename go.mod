@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit
 
-go 1.26.9
+go 1.26.10
 
 replace (
 	github.com/cometbft/cometbft => github.com/berachain/cometbft v0.0.0-20260930102528-74fe6b551fc9
@@ -28,7 +28,7 @@ require (
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/holiman/uint256 v1.3.2
 	github.com/karalabe/ssz v0.2.1-0.20240724074312-3d1ff7a6f7c4
-	github.com/labstack/echo/v4 v4.13.4
+	github.com/labstack/echo/v4 v4.16.3
 	github.com/minio/sha256-simd v1.0.1
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/ory/dockertest v3.3.5+incompatible
@@ -282,11 +282,11 @@ require (
 	github.com/kurtosis-tech/kurtosis/grpc-file-transfer/golang v0.0.0-20230803130419-099ee7a4e3dc // indirect
 	github.com/kurtosis-tech/kurtosis/path-compression v0.0.0-20240307154559-64d2929cd265 // indirect
 	github.com/kurtosis-tech/stacktrace v0.0.0-20211028211901-1c67a77b5409 // indirect
-	github.com/labstack/gommon v0.4.2 // indirect
+	github.com/labstack/gommon v0.5.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/lib/pq v1.12.3 // indirect
 	github.com/linxGnu/grocksdb v1.10.8 // indirect
-	github.com/mattn/go-colorable v0.1.14 // indirect
+	github.com/mattn/go-colorable v0.1.15 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/mholt/archiver v3.1.1+incompatible // indirect
