@@ -27,6 +27,10 @@ command -v jq >/dev/null || { echo "jq is required" >&2; exit 1; }
 SUPPRESSED=(
   # x/crypto/openpgp is unmaintained with no fix, only reached via cosmos-sdk keyring armor.
   'GO-2026-5932'
+  # echo v4 has no fix (v5 only). Rate limiter keyed on X-Forwarded-For, node-api does not use the rate limiter.
+  'GO-2026-6872'
+  # echo v4 has no fix (v5 only). Proxy middleware forwards X-Real-IP, node-api does not use the proxy middleware.
+  'GO-2026-6875'
 )
 
 # Scan with the toolchain declared in go.mod.
