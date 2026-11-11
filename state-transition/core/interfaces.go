@@ -47,6 +47,7 @@ type ReadOnlyContext interface {
 	VerifyRandao() bool
 	VerifyResult() bool
 	MeterGas() bool
+	EnginePhase() engineprimitives.EnginePhase
 }
 
 // ExecutionEngine is the interface for the execution engine.
@@ -54,12 +55,13 @@ type ExecutionEngine interface {
 	NotifyForkchoiceUpdate( // added to simplify mocks
 		ctx context.Context,
 		req *ctypes.ForkchoiceUpdateRequest,
+		phase engineprimitives.EnginePhase,
 	) (*engineprimitives.PayloadID, error)
 	// NotifyNewPayload notifies the execution client of the new payload.
 	NotifyNewPayload(
 		ctx context.Context,
 		req ctypes.NewPayloadRequest,
-		retryOnSyncingStatus bool,
+		phase engineprimitives.EnginePhase,
 	) error
 }
 

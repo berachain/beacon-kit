@@ -86,7 +86,7 @@ func TestOptimisticBlockBuildingRejectedBlockStateChecks(t *testing.T) {
 	// Since this is the first block called post genesis
 	// forceSyncUponProcess will be called.
 	dummyPayloadID := &engineprimitives.PayloadID{1, 2, 3}
-	eng.EXPECT().NotifyForkchoiceUpdate(mock.Anything, mock.Anything).Return(dummyPayloadID, nil)
+	eng.EXPECT().NotifyForkchoiceUpdate(mock.Anything, mock.Anything, mock.Anything).Return(dummyPayloadID, nil)
 
 	// we set just enough data in invalid block to let it pass
 	// the first validations in chain before state processor is invoked
@@ -176,7 +176,7 @@ func TestOptimisticBlockBuildingVerifiedBlockStateChecks(t *testing.T) {
 	// Since this is the first block called post genesis
 	// forceSyncUponProcess will be called.
 	dummyPayloadID := &engineprimitives.PayloadID{1, 2, 3}
-	eng.EXPECT().NotifyForkchoiceUpdate(mock.Anything, mock.Anything).Return(dummyPayloadID, nil)
+	eng.EXPECT().NotifyForkchoiceUpdate(mock.Anything, mock.Anything, mock.Anything).Return(dummyPayloadID, nil)
 
 	// BUILD A VALID BLOCK (without polluting state st)
 	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), cmtproto.Header{}, true, log.NewNopLogger())
@@ -404,6 +404,7 @@ func computeStateRoot(
 		ctx,
 		consensusTime,
 		proposerAddress,
+		engineprimitives.PhaseBuild,
 	).
 		WithVerifyPayload(false).
 		WithVerifyRandao(false).

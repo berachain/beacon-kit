@@ -23,9 +23,9 @@ func (_m *ExecutionEngine) EXPECT() *ExecutionEngine_Expecter {
 	return &ExecutionEngine_Expecter{mock: &_m.Mock}
 }
 
-// NotifyForkchoiceUpdate provides a mock function with given fields: ctx, req
-func (_m *ExecutionEngine) NotifyForkchoiceUpdate(ctx context.Context, req *types.ForkchoiceUpdateRequest) (*engineprimitives.PayloadID, error) {
-	ret := _m.Called(ctx, req)
+// NotifyForkchoiceUpdate provides a mock function with given fields: ctx, req, phase
+func (_m *ExecutionEngine) NotifyForkchoiceUpdate(ctx context.Context, req *types.ForkchoiceUpdateRequest, phase engineprimitives.EnginePhase) (*engineprimitives.PayloadID, error) {
+	ret := _m.Called(ctx, req, phase)
 
 	if len(ret) == 0 {
 		panic("no return value specified for NotifyForkchoiceUpdate")
@@ -33,19 +33,19 @@ func (_m *ExecutionEngine) NotifyForkchoiceUpdate(ctx context.Context, req *type
 
 	var r0 *engineprimitives.PayloadID
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *types.ForkchoiceUpdateRequest) (*engineprimitives.PayloadID, error)); ok {
-		return rf(ctx, req)
+	if rf, ok := ret.Get(0).(func(context.Context, *types.ForkchoiceUpdateRequest, engineprimitives.EnginePhase) (*engineprimitives.PayloadID, error)); ok {
+		return rf(ctx, req, phase)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *types.ForkchoiceUpdateRequest) *engineprimitives.PayloadID); ok {
-		r0 = rf(ctx, req)
+	if rf, ok := ret.Get(0).(func(context.Context, *types.ForkchoiceUpdateRequest, engineprimitives.EnginePhase) *engineprimitives.PayloadID); ok {
+		r0 = rf(ctx, req, phase)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*engineprimitives.PayloadID)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *types.ForkchoiceUpdateRequest) error); ok {
-		r1 = rf(ctx, req)
+	if rf, ok := ret.Get(1).(func(context.Context, *types.ForkchoiceUpdateRequest, engineprimitives.EnginePhase) error); ok {
+		r1 = rf(ctx, req, phase)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -61,13 +61,14 @@ type ExecutionEngine_NotifyForkchoiceUpdate_Call struct {
 // NotifyForkchoiceUpdate is a helper method to define mock.On call
 //   - ctx context.Context
 //   - req *types.ForkchoiceUpdateRequest
-func (_e *ExecutionEngine_Expecter) NotifyForkchoiceUpdate(ctx interface{}, req interface{}) *ExecutionEngine_NotifyForkchoiceUpdate_Call {
-	return &ExecutionEngine_NotifyForkchoiceUpdate_Call{Call: _e.mock.On("NotifyForkchoiceUpdate", ctx, req)}
+//   - phase engineprimitives.EnginePhase
+func (_e *ExecutionEngine_Expecter) NotifyForkchoiceUpdate(ctx interface{}, req interface{}, phase interface{}) *ExecutionEngine_NotifyForkchoiceUpdate_Call {
+	return &ExecutionEngine_NotifyForkchoiceUpdate_Call{Call: _e.mock.On("NotifyForkchoiceUpdate", ctx, req, phase)}
 }
 
-func (_c *ExecutionEngine_NotifyForkchoiceUpdate_Call) Run(run func(ctx context.Context, req *types.ForkchoiceUpdateRequest)) *ExecutionEngine_NotifyForkchoiceUpdate_Call {
+func (_c *ExecutionEngine_NotifyForkchoiceUpdate_Call) Run(run func(ctx context.Context, req *types.ForkchoiceUpdateRequest, phase engineprimitives.EnginePhase)) *ExecutionEngine_NotifyForkchoiceUpdate_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*types.ForkchoiceUpdateRequest))
+		run(args[0].(context.Context), args[1].(*types.ForkchoiceUpdateRequest), args[2].(engineprimitives.EnginePhase))
 	})
 	return _c
 }
@@ -77,22 +78,22 @@ func (_c *ExecutionEngine_NotifyForkchoiceUpdate_Call) Return(_a0 *engineprimiti
 	return _c
 }
 
-func (_c *ExecutionEngine_NotifyForkchoiceUpdate_Call) RunAndReturn(run func(context.Context, *types.ForkchoiceUpdateRequest) (*engineprimitives.PayloadID, error)) *ExecutionEngine_NotifyForkchoiceUpdate_Call {
+func (_c *ExecutionEngine_NotifyForkchoiceUpdate_Call) RunAndReturn(run func(context.Context, *types.ForkchoiceUpdateRequest, engineprimitives.EnginePhase) (*engineprimitives.PayloadID, error)) *ExecutionEngine_NotifyForkchoiceUpdate_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// NotifyNewPayload provides a mock function with given fields: ctx, req, retryOnSyncingStatus
-func (_m *ExecutionEngine) NotifyNewPayload(ctx context.Context, req types.NewPayloadRequest, retryOnSyncingStatus bool) error {
-	ret := _m.Called(ctx, req, retryOnSyncingStatus)
+// NotifyNewPayload provides a mock function with given fields: ctx, req, phase
+func (_m *ExecutionEngine) NotifyNewPayload(ctx context.Context, req types.NewPayloadRequest, phase engineprimitives.EnginePhase) error {
+	ret := _m.Called(ctx, req, phase)
 
 	if len(ret) == 0 {
 		panic("no return value specified for NotifyNewPayload")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, types.NewPayloadRequest, bool) error); ok {
-		r0 = rf(ctx, req, retryOnSyncingStatus)
+	if rf, ok := ret.Get(0).(func(context.Context, types.NewPayloadRequest, engineprimitives.EnginePhase) error); ok {
+		r0 = rf(ctx, req, phase)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -108,14 +109,14 @@ type ExecutionEngine_NotifyNewPayload_Call struct {
 // NotifyNewPayload is a helper method to define mock.On call
 //   - ctx context.Context
 //   - req types.NewPayloadRequest
-//   - retryOnSyncingStatus bool
-func (_e *ExecutionEngine_Expecter) NotifyNewPayload(ctx interface{}, req interface{}, retryOnSyncingStatus interface{}) *ExecutionEngine_NotifyNewPayload_Call {
-	return &ExecutionEngine_NotifyNewPayload_Call{Call: _e.mock.On("NotifyNewPayload", ctx, req, retryOnSyncingStatus)}
+//   - phase engineprimitives.EnginePhase
+func (_e *ExecutionEngine_Expecter) NotifyNewPayload(ctx interface{}, req interface{}, phase interface{}) *ExecutionEngine_NotifyNewPayload_Call {
+	return &ExecutionEngine_NotifyNewPayload_Call{Call: _e.mock.On("NotifyNewPayload", ctx, req, phase)}
 }
 
-func (_c *ExecutionEngine_NotifyNewPayload_Call) Run(run func(ctx context.Context, req types.NewPayloadRequest, retryOnSyncingStatus bool)) *ExecutionEngine_NotifyNewPayload_Call {
+func (_c *ExecutionEngine_NotifyNewPayload_Call) Run(run func(ctx context.Context, req types.NewPayloadRequest, phase engineprimitives.EnginePhase)) *ExecutionEngine_NotifyNewPayload_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(types.NewPayloadRequest), args[2].(bool))
+		run(args[0].(context.Context), args[1].(types.NewPayloadRequest), args[2].(engineprimitives.EnginePhase))
 	})
 	return _c
 }
@@ -125,7 +126,7 @@ func (_c *ExecutionEngine_NotifyNewPayload_Call) Return(_a0 error) *ExecutionEng
 	return _c
 }
 
-func (_c *ExecutionEngine_NotifyNewPayload_Call) RunAndReturn(run func(context.Context, types.NewPayloadRequest, bool) error) *ExecutionEngine_NotifyNewPayload_Call {
+func (_c *ExecutionEngine_NotifyNewPayload_Call) RunAndReturn(run func(context.Context, types.NewPayloadRequest, engineprimitives.EnginePhase) error) *ExecutionEngine_NotifyNewPayload_Call {
 	_c.Call.Return(run)
 	return _c
 }

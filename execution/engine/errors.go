@@ -35,4 +35,8 @@ var (
 	ErrNilPayloadOnValidResponse = errors.New(
 		"received nil payload ID on VALID engine response",
 	)
+
+	// ErrRetryBudgetExhausted is returned when a bounded phase gives up
+	// retrying an engine call.
+	ErrRetryBudgetExhausted = errors.New("engine retry budget exhausted")
 )

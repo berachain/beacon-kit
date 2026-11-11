@@ -303,6 +303,10 @@ func (s *Service) VerifyIncomingBlock(
 	// into this case during the first block after genesis.
 	// TODO: Consider panicing here if this fails. If our node cannot successfully run
 	// forceStartupSync, then we should shut down the node and fix the problem.
+	//
+	// This is the one unbounded engine call in ProcessProposal. The request is
+	// built from local state, so a proposer cannot trigger it, and the node
+	// cannot verify a block until its EL has the head.
 	s.forceStartupSyncOnce.Do(func() { s.forceSyncUponProcess(ctx, state) })
 
 	s.logger.Debug(
@@ -428,6 +432,7 @@ func (s *Service) verifyStateRoot(
 		ctx,
 		blk.GetConsensusTime(),
 		blk.GetProposerAddress(),
+		engineprimitives.PhaseValidate,
 	).
 		WithVerifyPayload(true).
 		WithVerifyRandao(true).
