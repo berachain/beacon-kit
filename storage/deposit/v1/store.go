@@ -151,10 +151,10 @@ func (kv *KVStore) Prune(ctx context.Context, start, end uint64) error {
 			storage.ErrInvalidRange, "DepositKVStore Prune start: %d, end: %d", start, end)
 	}
 
-	for i := range end {
+	for i := start; i < end; i++ {
 		// This only errors if the key passed in cannot be encoded.
-		if err := kv.store.Remove(ctx, start+i); err != nil {
-			return errors.Wrapf(err, "failed to prune deposit %d", start+i)
+		if err := kv.store.Remove(ctx, i); err != nil {
+			return errors.Wrapf(err, "failed to prune deposit %d", i)
 		}
 	}
 
