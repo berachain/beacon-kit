@@ -115,7 +115,7 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 
 			case errors.IsAny(err, engineerrors.ErrSyncingPayloadStatus):
 				ee.logger.Info("NotifyForkchoiceUpdate: EL syncing. Retrying...")
-				ee.metrics.markForkchoiceUpdateSyncing(req.State, err)
+				ee.metrics.markForkchoiceUpdateSyncing(req.State)
 				return nil, err
 
 			case client.IsNonFatalError(err):
@@ -173,7 +173,7 @@ func (ee *Engine) NotifyNewPayload(
 	_, err := backoff.Retry(
 		ctx,
 		func() (*common.ExecutionHash, error) {
-			ee.metrics.markNewPayloadCalled(payloadHash, payloadParentHash)
+			ee.metrics.markNewPayloadCalled()
 			lastValidHash, err := ee.ec.NewPayload(
 				ctx, req,
 			)
