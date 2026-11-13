@@ -106,6 +106,12 @@ const (
 	mainnetSBTConsensusUpdateHeight = 9_983_085
 	mainnetSBTConsensusEnableHeight = 9_983_086
 
+	// mainnetBlockMaxBytesUpdateHeight is the height from which Block.MaxBytes drops from the
+	// genesis 100 MiB to the cap in consensus/cometbft/service. Every validator must run a binary
+	// with this value before the height is reached, as with the SBT heights above.
+	// TODO(release): set to a height safely past the v1.5.1 rollout. 0 keeps the genesis value.
+	mainnetBlockMaxBytesUpdateHeight = 0
+
 	// mainnetHysteresisQuotientFulu is the hysteresis quotient for the Fulu fork (BRIP-0008).
 	mainnetHysteresisQuotientFulu = 100
 
@@ -202,6 +208,7 @@ func MainnetChainSpecData() *chain.SpecData {
 
 	specData.Config.ConsensusUpdateHeight = mainnetSBTConsensusUpdateHeight
 	specData.Config.ConsensusEnableHeight = mainnetSBTConsensusEnableHeight
+	specData.BlockMaxBytesUpdateHeight = mainnetBlockMaxBytesUpdateHeight
 
 	return specData
 }

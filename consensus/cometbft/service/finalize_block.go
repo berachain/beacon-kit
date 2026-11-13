@@ -248,6 +248,24 @@ func (s *Service) validateFinalizeBlockHeight(req *cmtabci.RequestFinalizeBlock)
 	return nil
 }
 
+// applyBlockMaxBytesUpdate lowers Block.MaxBytes to maxBlockSize from the chain spec's
+// BlockMaxBytesUpdateHeight on. The update rides in this block's ConsensusParamUpdates and
+// takes effect at the next height. MaxBytes is part of the header ConsensusHash, so every node
+// must apply it at the same height. It is applied on every block from the height on, which keeps
+// it idempotent across restarts (cmtConsensusParams is reloaded from genesis on start).
+func (s *Service) applyBlockMaxBytesUpdate(height int64) {
+	if s.cpSpec == nil {
+		return
+	}
+	updateHeight := s.cpSpec.BlockMaxBytesUpdateHeight()
+	if updateHeight <= 0 || height < updateHeight {
+		return
+	}
+	if s.cmtConsensusParams.Block.MaxBytes > maxBlockSize {
+		s.cmtConsensusParams.Block.MaxBytes = maxBlockSize
+	}
+}
+
 func (s *Service) calculateFinalizeBlockResponse(
 	req *cmtabci.RequestFinalizeBlock,
 	valUpdates transition.ValidatorUpdates,
@@ -256,6 +274,7 @@ func (s *Service) calculateFinalizeBlockResponse(
 	if s.cmtConsensusParams.Feature.SBTEnableHeight == 0 && req.Height == s.delayCfg.SbtConsensusUpdateHeight() {
 		s.cmtConsensusParams.Feature.SBTEnableHeight = s.delayCfg.SbtConsensusEnableHeight()
 	}
+	s.applyBlockMaxBytesUpdate(req.Height)
 	nextBlockTime := s.nextBlockDelay(req)
 
 	// This result format is expected by Comet. That actual execution will happen as part of the state transition.

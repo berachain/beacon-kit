@@ -83,6 +83,9 @@ func TestSBTEnableHeightAlignedWithChainSpecs(t *testing.T) {
 			// chain spec one. This is relevant to make sure that consensus parameters
 			// are well set when chain spec is modified and genesis is regenerated.
 			require.Equal(t, cp.Feature.SBTEnableHeight, cs.SbtConsensusEnableHeight())
+
+			// New networks start at the block size cap, far above any valid block (~10 MiB).
+			require.Equal(t, int64(16*1024*1024), cp.Block.MaxBytes)
 		})
 	}
 }

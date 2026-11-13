@@ -74,6 +74,9 @@ hysteresis-upward-multiplier-fulu = 10
 evm-inflation-address-fulu = "0x1AE7dD7AE06F6C58B4524d9c1f816094B1bcCD8e"
 evm-inflation-per-block-fulu = 1_705_000_000
 
+# Height from which Block.MaxBytes is lowered to the cap in consensus/cometbft/service. 0 = no update.
+block-max-bytes-update-height = 0
+
 [block-delay-configuration]
 max-block-delay = 300_000_000_000
 target-block-time = 2_000_000_000
