@@ -24,7 +24,6 @@ import (
 	"fmt"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -155,7 +154,10 @@ func (b *BlobSidecar) SizeSSZ(sizer *ssz.Sizer) uint32 {
 // MarshalSSZ marshals the BlobSidecar object to SSZ format.
 func (b *BlobSidecar) MarshalSSZ() ([]byte, error) {
 	if len(b.InclusionProof) != ctypes.KZGInclusionProofDepth {
-		return []byte{}, errors.New("invalid inclusion proof length")
+		return []byte{}, fmt.Errorf("invalid inclusion proof length, got %d, expect %d",
+			len(b.InclusionProof),
+			ctypes.KZGInclusionProofDepth,
+		)
 	}
 	buf := make([]byte, ssz.Size(b))
 	return buf, ssz.EncodeToBytes(buf, b)
@@ -165,7 +167,7 @@ func (b *BlobSidecar) ValidateAfterDecodingSSZ() error {
 	// Verify inclusion proof length
 	if len(b.InclusionProof) != ctypes.KZGInclusionProofDepth {
 		return fmt.Errorf("invalid inclusion proof length, got %d, expect %d",
-			b.InclusionProof,
+			len(b.InclusionProof),
 			ctypes.KZGInclusionProofDepth,
 		)
 	}
