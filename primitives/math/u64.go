@@ -159,17 +159,17 @@ func (u U64) HashTreeRoot() common.Root {
 
 var ErrGweiOverflow = errors.New("gwei from big.Int overflows")
 
-// GweiFromWei returns the value of Wei in Gwei.
+// GweiFromWei returns the value of Wei in Gwei without modifying i.
 func GweiFromWei(i *big.Int) (Gwei, error) {
 	intToGwei := big.NewInt(0).SetUint64(params.GWei)
-	i.Div(i, intToGwei)
-	if !i.IsUint64() {
+	gwei := new(big.Int).Div(i, intToGwei)
+	if !gwei.IsUint64() {
 		// a Gwei amount >= (2**64) * (10**9) or negative would not
 		// be representable as uint64. This should not happen but
 		// we still guard against a serialization bug or other mishap.
 		return 0, ErrGweiOverflow
 	}
-	return Gwei(i.Uint64()), nil
+	return Gwei(gwei.Uint64()), nil
 }
 
 // ToWei converts a value from Gwei to Wei.
