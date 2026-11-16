@@ -51,13 +51,14 @@ type ExecutionEngine interface {
 	NotifyNewPayload(
 		ctx context.Context,
 		req ctypes.NewPayloadRequest,
-		retryOnSyncingStatus bool,
+		phase engineprimitives.EnginePhase,
 	) error
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
 		req *ctypes.ForkchoiceUpdateRequest,
+		phase engineprimitives.EnginePhase,
 	) (*engineprimitives.PayloadID, error)
 }
 
