@@ -114,11 +114,13 @@ type Validator struct {
 	WithdrawableEpoch          string `json:"withdrawable_epoch"`
 }
 
-//nolint:staticcheck // todo: figure this out.
 type CommitteeData struct {
-	Index      uint64   `json:"index,string"`
-	Slot       uint64   `json:"slot,string"`
-	Validators []uint64 `json:"validators,string"`
+	Index uint64 `json:"index,string"`
+	Slot  uint64 `json:"slot,string"`
+	// The `,string` option has no effect on a slice, so `[]uint64` encoded as
+	// raw numbers rather than the quoted strings the Beacon API specifies for
+	// this field. Hold the indices as strings so they marshal correctly.
+	Validators []string `json:"validators"`
 }
 
 type BlockRewardsData struct {
