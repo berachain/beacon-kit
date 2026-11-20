@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/builder"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	dbm "github.com/cosmos/cosmos-db"
 )
@@ -43,7 +44,13 @@ func ProvideCometBFTService(
 	cmtCfg *cmtcfg.Config,
 	appOpts config.AppOptions,
 	telemetrySink *metrics.TelemetrySink,
+	blsSigner crypto.BLSSigner,
 ) *cometbft.Service {
+	options := builder.DefaultServiceOptions(appOpts)
+	if consumer, ok := blsSigner.(cometbft.PrivValidatorConsumer); ok {
+		options = append(options, cometbft.SetPrivValidatorConsumer(consumer))
+	}
+
 	return cometbft.NewService(
 		logger,
 		db,
@@ -52,6 +59,6 @@ func ProvideCometBFTService(
 		cs,
 		cmtCfg,
 		telemetrySink,
-		builder.DefaultServiceOptions(appOpts)...,
+		options...,
 	)
 }
