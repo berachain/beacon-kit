@@ -24,6 +24,7 @@ import (
 	"bytes"
 	"fmt"
 	"sync"
+	"time"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/cache"
@@ -279,10 +280,12 @@ func (sp *StateProcessor) processEpoch(st *state.StateDB) (transition.ValidatorU
 
 	// track validators set before updating it, to be able to
 	// inform consensus of the validators set changes
+	tStart := time.Now()
 	currentActiveVals, err := getActiveVals(st, currentEpoch)
 	if err != nil {
 		return nil, err
 	}
+	tActiveVals := time.Now()
 
 	// if err = sp.processRewardsAndPenalties(st); err != nil {
 	// 	return nil, err
@@ -290,20 +293,26 @@ func (sp *StateProcessor) processEpoch(st *state.StateDB) (transition.ValidatorU
 	if err = sp.processRegistryUpdates(st); err != nil {
 		return nil, err
 	}
+	tRegistry := time.Now()
+
 	if err = sp.processEffectiveBalanceUpdates(st); err != nil {
 		return nil, err
 	}
+	tEffBalances := time.Now()
+
 	// if err = sp.processSlashingsReset(st); err != nil {
 	// 	return nil, err
 	// }
 	if err = sp.processRandaoMixesReset(st); err != nil {
 		return nil, err
 	}
+	tRandao := time.Now()
 
 	// only after we have fully updated validators, we enforce a cap on the validators set
 	if err = sp.processValidatorSetCap(st); err != nil {
 		return nil, err
 	}
+	tCap := time.Now()
 
 	// finally compute diffs in validator set to duly update consensus
 	nextEpoch := currentEpoch + 1
@@ -311,8 +320,25 @@ func (sp *StateProcessor) processEpoch(st *state.StateDB) (transition.ValidatorU
 	if err != nil {
 		return nil, err
 	}
+	tNextActiveVals := time.Now()
 
-	return validatorSetsDiffs(currentActiveVals, nextActiveVals), nil
+	diffs := validatorSetsDiffs(currentActiveVals, nextActiveVals)
+	tDiffs := time.Now()
+
+	// Per-step timings to locate epoch-boundary slowness.
+	sp.logger.Info("processEpoch timings",
+		"epoch", currentEpoch.Base10(),
+		"active_vals", tActiveVals.Sub(tStart).String(),
+		"registry_updates", tRegistry.Sub(tActiveVals).String(),
+		"effective_balances", tEffBalances.Sub(tRegistry).String(),
+		"randao_reset", tRandao.Sub(tEffBalances).String(),
+		"validator_set_cap", tCap.Sub(tRandao).String(),
+		"next_active_vals", tNextActiveVals.Sub(tCap).String(),
+		"set_diffs", tDiffs.Sub(tNextActiveVals).String(),
+		"total", tDiffs.Sub(tStart).String(),
+	)
+
+	return diffs, nil
 }
 
 // processBlockHeader processes the header and ensures it matches the local state.
@@ -398,6 +424,19 @@ func (sp *StateProcessor) processEffectiveBalanceUpdates(st *state.StateDB) erro
 		return err
 	}
 
+	// Bulk-load balances. Validators and balances are index-keyed and dense, so index i and balances[i] both
+	// correspond to validator i, matching GetValidators order. Avoids a per-validator pubkey lookup.
+	balances, err := st.GetBalances()
+	if err != nil {
+		return err
+	}
+	if len(balances) != len(validators) {
+		return fmt.Errorf(
+			"effective balance update: validators/balances length mismatch (%d vs %d)",
+			len(validators), len(balances),
+		)
+	}
+
 	// Get the timestamp from the latest execution payload header to determine the active fork
 	// version for fork-gated hysteresis parameters (BRIP-0008).
 	//
@@ -417,21 +456,11 @@ func (sp *StateProcessor) processEffectiveBalanceUpdates(st *state.StateDB) erro
 		hysteresisIncrement       = effectiveBalanceIncrement / sp.cs.HysteresisQuotient(timestamp)
 		downwardThreshold         = hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier()
 		upwardThreshold           = hysteresisIncrement * sp.cs.HysteresisUpwardMultiplier(timestamp)
-
-		idx     math.U64
-		balance math.Gwei
 	)
 
-	for _, val := range validators {
-		idx, err = st.ValidatorIndexByPubkey(val.GetPubkey())
-		if err != nil {
-			return err
-		}
-
-		balance, err = st.GetBalance(idx)
-		if err != nil {
-			return err
-		}
+	for i, val := range validators {
+		idx := math.ValidatorIndex(i)
+		balance := math.Gwei(balances[i])
 
 		if balance+downwardThreshold < val.GetEffectiveBalance() ||
 			val.GetEffectiveBalance()+upwardThreshold < balance {
