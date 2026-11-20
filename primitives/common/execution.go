@@ -98,16 +98,29 @@ func (h *ExecutionHash) UnmarshalJSON(input []byte) error {
 /*                              ExecutionAddress                              */
 /* -------------------------------------------------------------------------- */
 
+// ExecutionAddressSize is the length of an ExecutionAddress in bytes.
+const ExecutionAddressSize = 20
+
 // ExecutionAddress represents a 20-byte Ethereum address.
 // We use this type to represent addresses that come from the execution layer.
 // It is EIP-55 checksummed and compliant.
-type ExecutionAddress [20]byte
+type ExecutionAddress [ExecutionAddressSize]byte
 
 // NewExecutionAddressFromHex creates a new address from a hex string.
+//
+// Errors if:
+// - input is not prefixed with "0x".
+// - input is not valid hex of 20 bytes.
 func NewExecutionAddressFromHex(input string) (ExecutionAddress, error) {
 	bz, err := hex.ToBytes(input)
 	if err != nil {
 		return ExecutionAddress{}, err
+	}
+	// The slice-to-array conversion below panics when bz is shorter than
+	// ExecutionAddressSize and silently drops the trailing bytes when it is
+	// longer, so the length must be checked first.
+	if len(bz) != ExecutionAddressSize {
+		return ExecutionAddress{}, bytes.ErrIncorrectLength
 	}
 	return ExecutionAddress(bz), nil
 }
