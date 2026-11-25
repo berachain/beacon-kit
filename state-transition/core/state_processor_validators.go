@@ -229,8 +229,7 @@ func validatorSetsDiffs(
 	return res
 }
 
-// nextEpochValidatorSet returns the current estimation of what next epoch
-// validator set would be.
+// getActiveVals returns the validators that are active at the given epoch.
 func getActiveVals(st *statedb.StateDB, epoch math.Epoch) ([]*ctypes.Validator, error) {
 	vals, err := st.GetValidators()
 	if err != nil {

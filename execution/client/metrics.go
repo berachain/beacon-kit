@@ -101,7 +101,7 @@ func (cm *clientMetrics) incrementGetPayloadTimeout() {
 		"beacon_kit.execution.client.get_payload_duration")
 }
 
-// incrementHTTPTimeout increments the timeout counter for HTTP.
+// incrementHTTPTimeoutCounter increments the timeout counter for HTTP.
 func (cm *clientMetrics) incrementHTTPTimeoutCounter() {
 	cm.incrementTimeoutCounter("beacon_kit.execution.client.http")
 }

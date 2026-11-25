@@ -174,8 +174,8 @@ func (s *EngineClient) HasCapability(capability string) bool {
 /*                                   Helpers                                  */
 /* -------------------------------------------------------------------------- */
 
-// verifyChainID dials the execution client and
-// ensures the chain ID is correct.
+// verifyChainIDAndConnection checks the execution client's chain ID against the
+// configured chain ID and exchanges capabilities.
 func (s *EngineClient) verifyChainIDAndConnection(
 	ctx context.Context,
 ) error {
