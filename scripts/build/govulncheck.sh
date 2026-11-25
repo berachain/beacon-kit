@@ -31,6 +31,9 @@ SUPPRESSED=(
   'GO-2026-6872'
   # echo v4 has no fix (v5 only). Proxy middleware forwards X-Real-IP, node-api does not use the proxy middleware.
   'GO-2026-6875'
+  # gorilla/websocket has no tagged release with the fix (v1.5.3 is the latest tag). The weak mask key only affects
+  # websocket clients, and beacond does not dial websockets. On Go 1.22+ math/rand top-level functions are ChaCha8.
+  'GO-2026-6278'
 )
 
 # Scan with the toolchain declared in go.mod.
