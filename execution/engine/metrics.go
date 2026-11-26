@@ -51,14 +51,9 @@ func newEngineMetrics(
 }
 
 // markNewPayloadCalled increments the counter for new payload calls.
-func (em *engineMetrics) markNewPayloadCalled(
-	payloadHash common.ExecutionHash,
-	parentHash common.ExecutionHash,
-) {
+func (em *engineMetrics) markNewPayloadCalled() {
 	em.sink.IncrementCounter(
 		"beacon_kit.execution.engine.new_payload",
-		"payload_block_hash", payloadHash.Hex(),
-		"payload_parent_block_hash", parentHash.Hex(),
 	)
 }
 
@@ -132,7 +127,6 @@ func (em *engineMetrics) markNewPayloadNonFatalError(
 
 	em.sink.IncrementCounter(
 		"beacon_kit.execution.engine.new_payload_non_fatal_error",
-		"error", err.Error(),
 	)
 }
 
@@ -152,7 +146,6 @@ func (em *engineMetrics) markNewPayloadFatalError(
 
 	em.sink.IncrementCounter(
 		"beacon_kit.execution.engine.new_payload_fatal_error",
-		"error", err.Error(),
 	)
 }
 
@@ -170,7 +163,6 @@ func (em *engineMetrics) markNewPayloadUndefinedError(
 
 	em.sink.IncrementCounter(
 		"beacon_kit.execution.engine.new_payload_undefined_error",
-		"error", err.Error(),
 	)
 }
 
@@ -212,7 +204,6 @@ func (em *engineMetrics) markForkchoiceUpdateValid(
 // the counter for accepted syncing forkchoice updates.
 func (em *engineMetrics) markForkchoiceUpdateSyncing(
 	state *engineprimitives.ForkchoiceStateV1,
-	err error,
 ) {
 	em.logger.Warn(
 		"Received syncing payload status during forkchoice update. Awaiting execution client to finish sync.",
@@ -226,8 +217,6 @@ func (em *engineMetrics) markForkchoiceUpdateSyncing(
 
 	em.sink.IncrementCounter(
 		"beacon_kit.execution.engine.forkchoice_update_syncing",
-		"error",
-		err.Error(),
 	)
 }
 
@@ -247,8 +236,6 @@ func (em *engineMetrics) markForkchoiceUpdateInvalid(
 
 	em.sink.IncrementCounter(
 		"beacon_kit.execution.engine.forkchoice_update_invalid",
-		"error",
-		err.Error(),
 	)
 }
 
@@ -262,7 +249,6 @@ func (em *engineMetrics) markForkchoiceUpdateFatalError(err error) {
 
 	em.sink.IncrementCounter(
 		"beacon_kit.execution.engine.forkchoice_update_fatal_error",
-		"error", err.Error(),
 	)
 }
 
@@ -276,7 +262,6 @@ func (em *engineMetrics) markForkchoiceUpdateNonFatalError(err error) {
 
 	em.sink.IncrementCounter(
 		"beacon_kit.execution.engine.forkchoice_update_non_fatal_error",
-		"error", err.Error(),
 	)
 }
 
@@ -291,6 +276,5 @@ func (em *engineMetrics) markForkchoiceUpdateUndefinedError(err error) {
 
 	em.sink.IncrementCounter(
 		"beacon_kit.execution.engine.forkchoice_update_undefined_error",
-		"error", err.Error(),
 	)
 }

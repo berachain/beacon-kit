@@ -237,7 +237,12 @@ func (s *Service) retrieveExecutionPayload(
 	// call that needs to be called before requesting the Payload.
 	// TODO: We should decouple the PayloadBuilder from BeaconState to make
 	// this less confusing.
-	s.metrics.failedToRetrievePayload(slot, err)
+	s.metrics.failedToRetrievePayload()
+	s.logger.Warn(
+		"Failed to retrieve payload, requesting synchronous payload",
+		"slot", slot.Base10(),
+		"error", err,
+	)
 
 	// The latest execution payload header will be from the previous block
 	// during the block building phase.
