@@ -185,4 +185,10 @@ type SpecData struct {
 	// EVMInflationPerBlockFulu is the amount of native EVM balance (in Gwei) to be
 	// minted to the EVMInflationAddressFulu via a withdrawal every block in the Fulu fork.
 	EVMInflationPerBlockFulu uint64 `mapstructure:"evm-inflation-per-block-fulu"`
+
+	// BlockMaxBytesUpdateHeight is the CometBFT height from which Block.MaxBytes is lowered to
+	// the cap in consensus/cometbft/service (DefaultConsensusParams). MaxBytes is part of the
+	// header ConsensusHash, so every node must switch at the same height. 0 disables the update,
+	// for networks whose genesis already carries the cap.
+	BlockMaxBytesUpdateHeight int64 `mapstructure:"block-max-bytes-update-height"`
 }

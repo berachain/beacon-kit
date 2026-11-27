@@ -187,9 +187,17 @@ type WithdrawalsSpec interface {
 	MinValidatorWithdrawabilityDelay() math.Epoch
 }
 
+// ConsensusParamsSpec holds the heights at which CometBFT consensus params change after genesis.
+type ConsensusParamsSpec interface {
+	// BlockMaxBytesUpdateHeight returns the height from which Block.MaxBytes is lowered to the
+	// current cap. 0 means no update.
+	BlockMaxBytesUpdateHeight() int64
+}
+
 // Spec defines an interface for accessing chain-specific parameters.
 type Spec interface {
 	delay.ConfigGetter
+	ConsensusParamsSpec
 	DepositSpec
 	BalancesSpec
 	HysteresisSpec
@@ -304,6 +312,10 @@ func (s spec) validate() error {
 		}
 	}
 
+	if s.Data.BlockMaxBytesUpdateHeight < 0 {
+		return errors.New("block max bytes update height can't be negative")
+	}
+
 	// TODO: Add more validation rules here.
 	return nil
 }
@@ -322,6 +334,11 @@ func (s spec) SbtConsensusUpdateHeight() int64 {
 }
 func (s spec) SbtConsensusEnableHeight() int64 {
 	return s.Data.ConsensusEnableHeight
+}
+
+// BlockMaxBytesUpdateHeight returns the height from which Block.MaxBytes is lowered. 0 means no update.
+func (s spec) BlockMaxBytesUpdateHeight() int64 {
+	return s.Data.BlockMaxBytesUpdateHeight
 }
 
 // MaxEffectiveBalance returns the maximum effective balance.

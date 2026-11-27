@@ -45,6 +45,9 @@ func TestnetChainSpecData() *chain.SpecData {
 	// Enable stable block time before the Electra1 fork.
 	specData.Config.ConsensusUpdateHeight = 7_768_334
 	specData.Config.ConsensusEnableHeight = 7_768_335
+	// Height from which Block.MaxBytes drops from the genesis 100 MiB to the cap in
+	// consensus/cometbft/service. TODO(release): set past the v1.5.1 rollout. 0 keeps genesis.
+	specData.BlockMaxBytesUpdateHeight = 0
 
 	// Timestamp of the Electra1 fork on Bepolia.
 	specData.Electra1ForkTime = 1_754_496_000

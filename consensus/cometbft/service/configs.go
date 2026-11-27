@@ -40,7 +40,13 @@ const ( // appeases mnd
 	minTimeoutPrevote   = 2000 * time.Millisecond
 	minTimeoutPrecommit = 2000 * time.Millisecond
 
-	maxBlockSize = 100 * 1024 * 1024
+	// maxBlockSize caps a CometBFT block. A valid block is bounded by the EL's 8 MiB payload
+	// cap (EIP-7934, enforced by bera-reth since Osaka), 6 blob sidecars of 128 KiB plus proofs,
+	// and the header and aggregated commit, so about 10 MiB. 16 MiB leaves margin while removing
+	// the ~90 MiB a proposer could otherwise push through every validator per proposer slot.
+	// Networks whose genesis carries a larger value switch at the chain spec's
+	// BlockMaxBytesUpdateHeight (see applyBlockMaxBytesUpdate).
+	maxBlockSize = 16 * 1024 * 1024
 
 	precision    = 505 * time.Millisecond
 	messageDelay = 15 * time.Second
@@ -111,9 +117,7 @@ func DefaultConsensusParams(consensusKeyAlgo string, cs chain.Spec) *cmttypes.Co
 	res := cmttypes.DefaultConsensusParams()
 	res.Validator.PubKeyTypes = []string{consensusKeyAlgo}
 
-	// set max block size in order to accommodate max blobs size
-	// This matches current cmttypes.MaxBlockSizeBytes but it's
-	// explicitly hard coded for safety across deps upgrades.
+	// Hard coded for safety across deps upgrades; see maxBlockSize.
 	res.Block.MaxBytes = maxBlockSize
 
 	// activate pbst and hard code values to
