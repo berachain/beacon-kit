@@ -126,3 +126,51 @@ func TestExecutionAddressUnmarshalJSON_Short(t *testing.T) {
 		})
 	}
 }
+
+func TestNewExecutionAddressFromHex_Length(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		input   string
+		wantErr bool
+	}{
+		{
+			name:  "exactly 20 bytes",
+			input: "0x0000000000000000000000000000000000000001",
+		},
+		{
+			// Previously panicked: converting a short slice to [20]byte is a
+			// run-time panic.
+			name:    "19 bytes",
+			input:   "0x00000000000000000000000000000000000001",
+			wantErr: true,
+		},
+		{
+			// Previously truncated silently: converting a longer slice keeps
+			// only the leading 20 bytes.
+			name:    "25 bytes",
+			input:   "0x0000000000000000000000000000000000000001deadbeef0a",
+			wantErr: true,
+		},
+		{
+			name:    "empty",
+			input:   "0x",
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			require.NotPanics(t, func() {
+				addr, err := common.NewExecutionAddressFromHex(tt.input)
+				if tt.wantErr {
+					require.Error(t, err)
+					require.Equal(t, common.ExecutionAddress{}, addr)
+					return
+				}
+				require.NoError(t, err)
+			})
+		})
+	}
+}
