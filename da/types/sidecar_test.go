@@ -259,6 +259,33 @@ func TestValidateAfterDecodingSSZ_NilHeaders(t *testing.T) {
 	}
 }
 
+// TestValidateAfterDecodingSSZ_WrongProofLength checks that decoding a sidecar
+// with an inclusion proof of the wrong length is rejected and that the error
+// reports the actual proof length (not the raw proof contents).
+func TestValidateAfterDecodingSSZ_WrongProofLength(t *testing.T) {
+	t.Parallel()
+
+	wrongLen := ctypes.KZGInclusionProofDepth - 1
+	sc := &types.BlobSidecar{
+		Index:                   1,
+		Blob:                    eip4844.Blob{},
+		KzgCommitment:           eip4844.KZGCommitment{},
+		KzgProof:                eip4844.KZGProof{},
+		SignedBeaconBlockHeader: &ctypes.SignedBeaconBlockHeader{Header: &ctypes.BeaconBlockHeader{}},
+		InclusionProof:          make([]common.Root, wrongLen),
+	}
+
+	err := sc.ValidateAfterDecodingSSZ()
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "got "+strconv.Itoa(wrongLen))
+	require.Contains(t, err.Error(), "expect "+strconv.Itoa(ctypes.KZGInclusionProofDepth))
+
+	// MarshalSSZ guards the same invariant and must report the length too.
+	_, err = sc.MarshalSSZ()
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "got "+strconv.Itoa(wrongLen))
+}
+
 func TestHashTreeRoot(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
